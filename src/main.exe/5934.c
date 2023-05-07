@@ -818,7 +818,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/5934", D_8001b120);
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/5934", D_8001b13c);
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/5934", get_held_buttons);
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/5934", get_stored_held_buttons);
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/5934", FUN_8001b174);
 

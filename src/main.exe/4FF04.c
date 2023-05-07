@@ -430,7 +430,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_7F0);
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_660__override__prt_80062e48_c0aacbba);
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_7F0__override__prt_80062e48_c0aacbba);
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_84C);
 
@@ -438,7 +438,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_8A8);
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_660__override__prt_80062ecc_37e266fb);
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_7F0__override__prt_80062ecc_37e266fb);
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/4FF04", ISO9660_OBJ_8D0);
 
