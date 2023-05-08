@@ -184,6 +184,12 @@ objRules = do
     Stdout ccOut <- cmd cc ccFlags processed
     cmd_ (StdinBS ccOut) as asFlags "-o" out
 
+  buildDir <//> "*.bin.o" %> \out -> do
+    let fileComponent = makeRelative buildDir out
+        target = takeDirectory1 fileComponent
+        asset = genDir </> target </> assetsDir </> dropExtension (dropDirectory1 fileComponent)
+    copyFile' asset out
+
 mainRules :: Rules ()
 mainRules = do
   want [mainExe]
@@ -203,27 +209,30 @@ mainRules = do
     let mainBuildDir = buildDir </> "main.exe"
         beforeAsm = mainBuildDir </> mainGenDir </> asmDir
         beforeSrc = mainBuildDir </> mainGenDir </> srcDir
+        beforeAssets = mainBuildDir </> mainGenDir </> assetsDir
     cmd_ "sed" ["-i", "s|" <> beforeAsm <> "|" <> mainBuildDir <> "|g", mainGenDir </> linkerDir </> "main.exe.ld"]
     cmd_ "sed" ["-i", "s|" <> beforeSrc <> "|" <> mainBuildDir <> "|g", mainGenDir </> linkerDir </> "main.exe.ld"]
+    cmd_ "sed" ["-i", "s|" <> beforeAssets <> "|" <> mainBuildDir <> "|g", mainGenDir </> linkerDir </> "main.exe.ld"]
   -- liftIO $ writeFile done ""
 
   let mainElf = mainExe <.> "elf"
   mainElf %> \out -> do
-    -- need [mainGen]
-    -- orderOnly [mainGen]
     _generatedFiles <- getGeneratedFiles mainGen
     mainSFiles <- liftIO $ getDirectoryFilesIO (mainGenDir </> asmDir) ["*.s", "data/*.s"]
     mainCFiles <- liftIO $ getDirectoryFilesIO (srcDir </> "main.exe") ["//*.c"]
-    let mainOFiles = map (\f -> buildDir </> "main.exe" </> f <.> "o") (mainCFiles <> mainSFiles)
+    mainAssetFiles <- liftIO $ getDirectoryFilesIO (mainGenDir </> assetsDir) ["//*.bin"]
+    let mainOFiles = map (\f -> buildDir </> "main.exe" </> f <.> "o") (mainCFiles <> mainSFiles <> mainAssetFiles)
         ldFile = mainGenDir </> linkerDir </> "main.exe.ld"
         definedSymbols = configDir </> "symbols.main.exe.txt"
         undefinedSymbols = mainGenDir </> metaDir </> "undefined_symbols_auto.main.exe.txt"
         undefinedFunctions = mainGenDir </> metaDir </> "undefined_functions_auto.main.exe.txt"
         mainSFilesExp = map (\f -> mainGenDir </> asmDir </> f) mainSFiles
         mainCFilesExp = map (\f -> srcDir </> "main.exe" </> f) mainCFiles
-    need (mainSFilesExp <> mainCFilesExp <> mainOFiles <> [ldFile, undefinedSymbols, undefinedFunctions])
+        mainAssetFilesExp = map (\f -> mainGenDir </> assetsDir </> f) mainAssetFiles
+    putInfo $ show mainOFiles
+    need (mainSFilesExp <> mainCFilesExp <> mainAssetFilesExp <> mainOFiles <> [ldFile, undefinedSymbols, undefinedFunctions])
     -- need [mainCFilesExp]
-    -- putInfo $ show mainOFiles
+
     liftIO $ IO.createDirectoryIfMissing True (buildDir </> "tenchu")
     cmd_
       ld
