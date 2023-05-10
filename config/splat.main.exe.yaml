@@ -19,7 +19,7 @@ options:
   generated_c_preamble: |
     #include "common.h"
     #include "main.exe.h"
-
+  string_encoding: ASCII
   section_order:
     # - ".rodata"
     # - ".text"
