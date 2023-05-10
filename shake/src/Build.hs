@@ -266,7 +266,7 @@ phonyRules = do
     liftIO $
       removeFiles
         "."
-        [genDir, buildDir]
+        [genDir, buildDir, processedDir]
 
   phony "extract_main.exe" $ do
     need [mainGen]
