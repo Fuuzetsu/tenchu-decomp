@@ -71,7 +71,8 @@
 
       devShell = mipselPkgs.mkShell {
         nativeBuildInputs = [
-          pkgs.busybox
+          # pkgs.busybox
+          pkgs.less
           pkgs.spimdisasm
           pkgs.m2c
           pkgs.splat
