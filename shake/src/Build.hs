@@ -6,7 +6,9 @@
 import Control.Monad (when)
 import qualified Data.Aeson as A
 import Data.Binary (Binary)
+import Data.Functor ((<&>))
 import Data.Hashable (Hashable)
+import qualified Data.Set as Set
 import qualified Data.UUID as UUID
 import Data.UUID.V4 (nextRandom)
 import Development.Shake
@@ -153,10 +155,23 @@ objRules = do
     cmd_ as asFlags ["-o"] out src
 
   processedDir <//> "*.c" %> \out -> do
+    _generatedFiles <- getGeneratedFiles mainGen
     let fileComponent = makeRelative processedDir out
         target = takeDirectory1 fileComponent
-        src = srcDir </> target </> replaceExtension (dropDirectory1 fileComponent) "c"
+        file = dropDirectory1 fileComponent
         header = srcDir </> target </> target <.> "h"
+        genPath = genDir </> target </> "src" </> file
+        srcPath = srcDir </> target </> file
+
+    -- If corresponding file is in `src` then use it, otherwise use it from gen
+    -- dir.
+    src <-
+      doesFileExist srcPath <&> \case
+        True -> srcPath
+        False -> genPath
+
+    putInfo $ show (src, header)
+
     orderOnly [header]
     -- Make sure we have generated sources. Whether and what we need from them
     -- exactly, we'll find out from the compiler soon enough and we'll `needed`
@@ -169,7 +184,7 @@ objRules = do
     need [mainGen, src]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     withTempFile $ \makeOut -> do
-      cmd_ cpp (cppFlags <> ["-MMD", "-MF", makeOut]) src out
+      cmd_ cpp (cppFlags <> ["-MMD", "-MF", makeOut, "-I", takeDirectory header]) src out
       neededMakefileDependencies makeOut
 
   processedDir <//> "*.s" %> \out -> do
@@ -224,18 +239,21 @@ mainRules = do
   mainElf %> \out -> do
     _generatedFiles <- getGeneratedFiles mainGen
     mainSFiles <- liftIO $ getDirectoryFilesIO (mainGenDir </> asmDir) ["*.s", "data/*.s"]
-    mainCFiles <- liftIO $ getDirectoryFilesIO (srcDir </> "main.exe") ["//*.c"]
+    cFiles <- liftIO $ do
+      userFiles <- Set.fromList <$> getDirectoryFilesIO (srcDir </> "main.exe") ["//*.c"]
+      genFiles <- Set.fromList <$> getDirectoryFilesIO (mainGenDir </> "src") ["//*.c"]
+      pure $ Set.toList (userFiles <> genFiles)
     mainAssetFiles <- liftIO $ getDirectoryFilesIO (mainGenDir </> assetsDir) ["//*.bin"]
-    let mainOFiles = map (\f -> buildDir </> "main.exe" </> f <.> "o") (mainCFiles <> mainSFiles <> mainAssetFiles)
+    let mainOFiles = map (\f -> buildDir </> "main.exe" </> f <.> "o") (cFiles <> mainSFiles <> mainAssetFiles)
         ldFile = mainGenDir </> linkerDir </> "main.exe.ld"
         definedSymbols = configDir </> "symbols.main.exe.txt"
         undefinedSymbols = mainGenDir </> metaDir </> "undefined_symbols_auto.main.exe.txt"
         undefinedFunctions = mainGenDir </> metaDir </> "undefined_functions_auto.main.exe.txt"
         mainSFilesExp = map (\f -> mainGenDir </> asmDir </> f) mainSFiles
-        mainCFilesExp = map (\f -> srcDir </> "main.exe" </> f) mainCFiles
+        -- mainCFilesExp = map (\f -> srcDir </> "main.exe" </> f) mainCFiles
         mainAssetFilesExp = map (\f -> mainGenDir </> assetsDir </> f) mainAssetFiles
-    putInfo $ show mainOFiles
-    need (mainSFilesExp <> mainCFilesExp <> mainAssetFilesExp <> mainOFiles <> [ldFile, undefinedSymbols, undefinedFunctions])
+    putInfo $ show cFiles
+    need (mainSFilesExp <> mainAssetFilesExp <> mainOFiles <> [ldFile, undefinedSymbols, undefinedFunctions])
     -- need [mainCFilesExp]
 
     liftIO $ IO.createDirectoryIfMissing True (buildDir </> "tenchu")

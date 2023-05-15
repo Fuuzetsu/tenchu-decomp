@@ -11,6 +11,7 @@ executable Build
     base
     , aeson
     , binary    
+    , containers
     , directory
     , hashable
     , shake
