@@ -1026,7 +1026,6 @@ think_setting_pad1 = 0x8002f820;
 think_setting_pad2 = 0x8002f8c4;
 think_setting_watch_ = 0x8002f8e8;
 think_setting_sleep_ = 0x8002f998;
-FUN_8002f9e0 = 0x8002f9e0;
 think_setting_turn_towards_player = 0x8002fa24;
 think_setting_go_towards_player = 0x8002fa54;
 FUN_8002fabc = 0x8002fabc;
