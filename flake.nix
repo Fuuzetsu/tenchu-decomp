@@ -59,7 +59,7 @@
           };
         in
         pkgs.writeShellScriptBin "diff.py" '' 
-              ${asm-differ.dependencyEnv}/bin/python ${inputs.asm-differ}/diff.py
+              ${asm-differ.dependencyEnv}/bin/python ${inputs.asm-differ}/diff.py "$@"
           '';
     in
     {
