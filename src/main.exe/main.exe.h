@@ -203,7 +203,7 @@ enum stage_rank
 //     RECLAIM_THE_CASTLE = 0x07,
 //     FREE_THE_PRINCESS = 0x08,
 //     TRAINING = 0x09,
-//     CROSS_THE_CHECKPOINT = 0x0a,
+//     CROSS_THE_CHECKPOs32 = 0x0a,
 //     EXECUTE_THE_CORRUPT_MINISTER = 0x0b,
 //     NOT_CHOSEN = 0xffff,
 // };
@@ -220,7 +220,7 @@ enum chosen_stage_ix
     RECLAIM_THE_CASTLE = 0x06,
     FREE_THE_PRINCESS = 0x07,
     TRAINING = 0x08,
-    CROSS_THE_CHECKPOINT = 0x09,
+    CROSS_THE_CHECKPOs32 = 0x09,
     EXECUTE_THE_CORRUPT_MINISTER = 0x0a,
 };
 
@@ -253,8 +253,342 @@ struct some_character_button_values
     button_mask currently_pressed;
     button_mask pressed_last_frame;
     button_mask newly_pressed;
-    short frames_since_new_input;
-    button_mask buttons_pressed_in_short_succession[4];
+    s16 frames_since_new_input;
+    button_mask buttons_pressed_in_s16_succession[4];
 };
 
-// int debug_menu_choose(char *screen_header, debug_menu_choice *choices, char *param_3);
+typedef struct xyz xyz;
+struct xyz
+{
+    s32 x;
+    s32 y;
+    s32 z;
+};
+
+typedef struct xyz_s xyz_s;
+struct xyz_s
+{
+    s16 x;
+    s16 y;
+    s16 z;
+};
+
+typedef struct something_about_player_rotation_perhaps something_about_player_rotation_perhaps;
+struct something_about_player_rotation_perhaps
+{
+    u8 field0_0x0;
+    u8 field1_0x1;
+    s16 character_rotation;
+};
+
+typedef struct some_animation_kind_ptr some_animation_kind_ptr;
+struct some_animation_kind_ptr
+{
+    s16 animation_kind;
+    s16 field1_0x2;
+    void *data_ptr;
+};
+
+typedef struct char_state_related_camera_things char_state_related_camera_things;
+struct char_state_related_camera_things
+{
+    u8 field0_0x0;
+    u8 field1_0x1;
+    u8 field2_0x2;
+    u8 field3_0x3;
+    u8 field4_0x4;
+    u8 field5_0x5;
+    u8 field6_0x6;
+    u8 field7_0x7;
+    u8 field8_0x8;
+    u8 field9_0x9;
+    u8 field10_0xa;
+    u8 field11_0xb;
+    u8 field12_0xc;
+    u8 field13_0xd;
+    u8 field14_0xe;
+    u8 field15_0xf;
+    u8 field16_0x10;
+    u8 field17_0x11;
+    u8 field18_0x12;
+    u8 field19_0x13;
+    u8 field20_0x14;
+    u8 field21_0x15;
+    u8 field22_0x16;
+    u8 field23_0x17;
+    xyz position;
+    u8 field25_0x24;
+    u8 field26_0x25;
+    u8 field27_0x26;
+    u8 field28_0x27;
+    u8 field29_0x28;
+    u8 field30_0x29;
+    u8 field31_0x2a;
+    u8 field32_0x2b;
+    u8 field33_0x2c;
+    u8 field34_0x2d;
+    u8 field35_0x2e;
+    u8 field36_0x2f;
+    u8 field37_0x30;
+    u8 field38_0x31;
+    u8 field39_0x32;
+    u8 field40_0x33;
+    u8 field41_0x34;
+    u8 field42_0x35;
+    u8 field43_0x36;
+    u8 field44_0x37;
+    u8 field45_0x38;
+    u8 field46_0x39;
+    u8 field47_0x3a;
+    u8 field48_0x3b;
+    u8 field49_0x3c;
+    u8 field50_0x3d;
+    u8 field51_0x3e;
+    u8 field52_0x3f;
+    u8 field53_0x40;
+    u8 field54_0x41;
+    u8 field55_0x42;
+    u8 field56_0x43;
+    u8 field57_0x44;
+    u8 field58_0x45;
+    u8 field59_0x46;
+    u8 field60_0x47;
+    u8 field61_0x48;
+    u8 field62_0x49;
+    u8 field63_0x4a;
+    u8 field64_0x4b;
+    u8 field65_0x4c;
+    u8 field66_0x4d;
+    u8 field67_0x4e;
+    u8 field68_0x4f;
+    xyz_s fpv_camera_rotation;
+    u8 field70_0x56;
+    u8 field71_0x57;
+    u8 field72_0x58;
+    u8 field73_0x59;
+    u8 field74_0x5a;
+    u8 field75_0x5b;
+    u8 field76_0x5c;
+    u8 field77_0x5d;
+    u8 field78_0x5e;
+    u8 field79_0x5f;
+    u8 field80_0x60;
+    u8 field81_0x61;
+    u8 field82_0x62;
+    u8 field83_0x63;
+    s16 some_num_of_things_in_something_about_current_animation;
+    u8 field85_0x66;
+    u8 field86_0x67;
+    u8 field87_0x68;
+    u8 field88_0x69;
+    u8 field89_0x6a;
+    u8 field90_0x6b;
+    u8 field91_0x6c;
+    u8 field92_0x6d;
+    u8 field93_0x6e;
+    u8 field94_0x6f;
+    u8 field95_0x70;
+    u8 field96_0x71;
+    u8 field97_0x72;
+    u8 field98_0x73;
+    u8 field99_0x74;
+    u8 field100_0x75;
+    u8 field101_0x76;
+    u8 field102_0x77;
+};
+
+typedef struct player_item_counts_by_name player_item_counts_by_name;
+struct player_item_counts_by_name
+{
+    u8 picbn_kaginawa;
+    u8 picbn_shuriken;
+    u8 picbn_makibisi;
+    u8 picbn_kusuri;
+    u8 picbn_fire;
+    u8 picbn_smoke;
+    u8 picbn_jirai;
+    u8 picbn_dokudango;
+    u8 picbn_gosikimai;
+    u8 picbn_nemurigusuri;
+    u8 picbn_kawarimi;
+    u8 picbn_hensin;
+    u8 picbn_goshinfuda;
+    u8 picbn_shinsoku;
+    u8 picbn_rikimarukochan;
+    u8 picbn_happou;
+    u8 picbn_ninken;
+    u8 picbn_kaengeki;
+    u8 picbn_manebue;
+    u8 picbn_armour;
+};
+
+typedef struct special_item_counts_by_name special_item_counts_by_name;
+struct special_item_counts_by_name
+{
+    u8 sicbn_gun;
+    u8 sicbn_yumi;
+    u8 sicbn_kaen;
+    u8 sicbn_lightning_bolt;
+    u8 sicbn_the_world;
+};
+
+typedef union player_item_counts player_item_counts;
+
+union player_item_counts
+{
+    player_item_counts_by_name pic_by_name;
+    u8 pic_by_index[20];
+};
+
+typedef union special_item_counts special_item_counts;
+union special_item_counts
+{
+    special_item_counts_by_name sic_by_name;
+    u8 sic_by_index[5];
+};
+
+typedef struct something_about_current_animation something_about_current_animation;
+struct something_about_current_animation
+{
+    s16 animation_state_perhaps;
+    u16 frames_since_animation_start;
+    s16 seconds_elapsed;
+    u16 num_of_some_things_in_offs_24;
+    s16 field4_0x8;
+    s16 field5_0xa;
+    char_state_related_camera_things *char_state_related_camera_things;
+    u8 *field7_0x10;
+    some_animation_kind_ptr *animations;
+    void *field9_0x18;
+};
+
+typedef struct inventory_item_counts inventory_item_counts;
+struct inventory_item_counts
+{
+    player_item_counts player_item_counts;
+    special_item_counts special_item_counts;
+};
+
+typedef s32 (*some_char_state_function)(void);
+
+typedef enum item_kind2 item_kind2;
+enum item_kind2
+{
+    ITEM_KIND_2_KAGINAWA = 0x00,
+    ITEM_KIND_2_SHURIKEN = 0x01,
+    ITEM_KIND_2_MAKIBISI = 0x02,
+    ITEM_KIND_2_KUSURI = 0x03,
+    ITEM_KIND_2_FIRE = 0x04,
+    ITEM_KIND_2_SMOKE = 0x05,
+    ITEM_KIND_2_JIRAI = 0x06,
+    ITEM_KIND_2_DOKUDANGO = 0x07,
+    ITEM_KIND_2_GOSIKIMAI = 0x08,
+    ITEM_KIND_2_NEMURIGUSURI = 0x09,
+    ITEM_KIND_2_KAWARIMI = 0x0a,
+    ITEM_KIND_2_HENSIN = 0x0b,
+    ITEM_KIND_2_GOSHINFUDA = 0x0c,
+    ITEM_KIND_2_SHINSOKU = 0x0d,
+    ITEM_KIND_2_RIKIMARUKOCHAN = 0x0e,
+    ITEM_KIND_2_HAPPOU = 0x0f,
+    ITEM_KIND_2_NINKEN = 0x10,
+    ITEM_KIND_2_KAENGEKI = 0x11,
+    ITEM_KIND_2_MANEBUE = 0x12,
+    ITEM_KIND_2_ARMOUR = 0x13,
+    ITEM_KIND_2_GUN = 0x14,
+    ITEM_KIND_2_YUMI = 0x15,
+    ITEM_KIND_2_KAEN = 0x16,
+    ITEM_KIND_2_LIGHTNING_BOLT = 0x17,
+    ITEM_KIND_2_THE_WORLD = 0x18,
+
+    ITEM_KIND_2_EXTEND = 0xffff,
+};
+
+typedef struct character_state character_state;
+struct character_state
+{
+    character_kind character_kind;
+    character_status character_status;
+    u16 some_character_marker_thing;
+    s16 character_rotation_speed;
+    u16 current_health;
+    u16 max_health;
+    s16 field6_0xc;
+    s16 field7_0xe;
+    some_character_button_values buttons;
+    u8 field9_0x20;
+    u8 field10_0x21;
+    u8 field11_0x22;
+    u8 field12_0x23;
+    u8 field13_0x24;
+    u8 field14_0x25;
+    u8 field15_0x26;
+    u8 field16_0x27;
+    u8 field17_0x28;
+    u8 field18_0x29;
+    u8 field19_0x2a;
+    u8 field20_0x2b;
+    u8 field21_0x2c;
+    u8 field22_0x2d;
+    u8 field23_0x2e;
+    u8 field24_0x2f;
+    void *field25_0x30;
+    void *field26_0x34;
+    VECTOR *some_kind_of_current_position;
+    something_about_player_rotation_perhaps *something_about_player_rotation_perhaps;
+    xyz_s some_rotation_vector_for_tmd;
+    u8 field30_0x46;
+    u8 field31_0x47;
+    xyz current_position;
+    u8 field33_0x54;
+    u8 field34_0x55;
+    u8 field35_0x56;
+    u8 field36_0x57;
+    char_state_related_camera_things *camera_related;
+    something_about_current_animation *something_about_current_animation;
+    some_char_state_function *think_setting0;
+    some_char_state_function *think_setting1;
+    some_char_state_function *think_setting2;
+    some_char_state_function *think_setting3;
+    u8 field43_0x70;
+    u8 field44_0x71;
+    u8 field45_0x72;
+    u8 field46_0x73;
+    char_state_related_camera_things *another_camera_related_perhaps;
+    s32 some_x_position;
+    s32 some_z_position;
+    s32 some_other_x_position;
+    s32 some_other_z_position;
+    u8 field52_0x88;
+    u8 field53_0x89;
+    byte field54_0x8a;
+    byte field55_0x8b;
+    s16 index_s32o_animation_collection;
+    weapon_kind weapon_kind;
+    u8 field58_0x90;
+    u8 field59_0x91;
+    u8 field60_0x92;
+    u8 field61_0x93;
+    some_tmd_map_link_struct *right_hand_active_weapon_tmd;
+    some_tmd_map_link_struct *left_hand_active_weapon_tmd;
+    some_tmd_map_link_struct *right_hand_inactive_weapon_tmd;
+    some_tmd_map_link_struct *left_hand_inactive_weapon_tmd;
+    u8 field66_0xa4;
+    u8 field67_0xa5;
+    u8 field68_0xa6;
+    u8 field69_0xa7;
+    u8 field70_0xa8;
+    u8 field71_0xa9;
+    u8 field72_0xaa;
+    u8 field73_0xab;
+    u16 character_kind_sound_mask;
+    item_kind2 active_item;
+    u8 field76_0xb0;
+    u8 field77_0xb1;
+    u8 field78_0xb2;
+    u8 field79_0xb3;
+    inventory_item_counts inventory;
+    u8 field81_0xcd;
+    u8 field82_0xce;
+    u8 field83_0xcf;
+};
+// s32 debug_menu_choose(char *screen_header, debug_menu_choice *choices, char *param_3);
