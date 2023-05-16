@@ -11,6 +11,7 @@ options:
   find_file_boundaries: yes
   use_legacy_include_asm: no
   migrate_rodata_to_functions: no
+  gp_value: 0x80097698
   ld_script_path: .shake/gen/main.exe/linker/main.exe.ld
   symbol_addrs_path: config/symbols.main.exe.txt
   # undefined_syms_path: meta/undefined_symbols.main.exe.txt
