@@ -598,3 +598,8 @@ extern character_state *CHARACTER_BEING_UPDATED_;
 extern s16 ALERT_STATUS_;
 extern s16 ACTUALLY_ALERT_STATUS_;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
+
+extern void *load_resource_from(char *resource_prefix, char *resource_name);
+extern void *tenchu_GsGetTimInfo(u_long *tim, GsIMAGE *im);
+extern void load_image_from_tim_to_gpu_and_dealloc_data_(u_long *tim);
+extern void load_font_image_into_global(GsIMAGE *image);
