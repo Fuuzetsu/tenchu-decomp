@@ -45,6 +45,8 @@ segments:
       - [0x5934, data]
       - [0xAA60, c, get_held_buttons]
       - [0xAAB8, data]
+      - [0x1F198, c, think_setting_sleep]
+      - [0x1F224, data]
       # - [0x75F64, data]
       - [0x86E98, sdata]
       - [0x87788, sbss]
