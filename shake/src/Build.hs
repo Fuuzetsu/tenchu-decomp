@@ -3,7 +3,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies #-}
 
-import Control.Monad (when)
+import Control.Monad (forM_, when)
 import qualified Data.Aeson as A
 import Data.Binary (Binary)
 import Data.Functor ((<&>))
@@ -246,7 +246,13 @@ mainRules = do
     cmd_ "sed" ["-i", "s|" <> beforeAsm <> "|" <> mainBuildDir <> "|g", mainGenDir </> linkerDir </> "main.exe.ld"]
     cmd_ "sed" ["-i", "s|" <> beforeSrc <> "|" <> mainBuildDir <> "|g", mainGenDir </> linkerDir </> "main.exe.ld"]
     cmd_ "sed" ["-i", "s|" <> beforeAssets <> "|" <> mainBuildDir <> "|g", mainGenDir </> linkerDir </> "main.exe.ld"]
-  -- liftIO $ writeFile done ""
+
+    -- Process .s files to fix up gp_rel stuff:
+    -- https://discordapp.com/channels/710646040331681844/813939516385525790/1108037321711964230
+    generatedAsm <- map (\f -> mainGenDir </> asmDir </> f) <$> liftIO (getDirectoryFilesIO (mainGenDir </> asmDir) ["//*.s"])
+    forM_ generatedAsm $ \f -> do
+      cmd_ "sed" ["-i", "-E", "-s", "s/%(got|gp_rel)\\(([^)]+)\\)\\(\\$gp\\)/\\2/", f]
+      cmd_ "sed" ["-i", "-E", "-s", "s/\\$gp, %(got|gp_rel)\\(([^)]+)\\)/\\2/", f]
 
   let mainElf = mainExe <.> "elf"
   mainElf %> \out -> do
