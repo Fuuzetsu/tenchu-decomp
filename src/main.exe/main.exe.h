@@ -224,4 +224,37 @@ enum chosen_stage_ix
     EXECUTE_THE_CORRUPT_MINISTER = 0x0a,
 };
 
+typedef enum button_mask button_mask;
+enum button_mask
+{
+    NOTHING = 0x00,
+    L2 = 0x01,
+    R2 = 0x02,
+    L1 = 0x04,
+    R1 = 0x08,
+    TRIANGLE = 0x10,
+    CIRCLE = 0x20,
+    CROSS = 0x40,
+    SQUARE = 0x80,
+    SELECT = 0x100,
+    L3 = 0x200,
+    R3 = 0x400,
+    START = 0x800,
+    UP = 0x1000,
+    RIGHT = 0x2000,
+    DOWN = 0x4000,
+    LEFT = 0x8000,
+    DUMMY_MASK = 0xffff,
+};
+
+typedef struct some_character_button_values some_character_button_values;
+struct some_character_button_values
+{
+    button_mask currently_pressed;
+    button_mask pressed_last_frame;
+    button_mask newly_pressed;
+    short frames_since_new_input;
+    button_mask buttons_pressed_in_short_succession[4];
+};
+
 // int debug_menu_choose(char *screen_header, debug_menu_choice *choices, char *param_3);
