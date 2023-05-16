@@ -2,6 +2,7 @@
 #define LIBGS_H
 
 #include <psxsdk/libgte.h>
+#include <types.h>
 
 typedef struct GsCOORD2PARAM GsCOORD2PARAM;
 
