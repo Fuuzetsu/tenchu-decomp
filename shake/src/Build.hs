@@ -154,7 +154,7 @@ objRules = do
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     cmd_ as asFlags ["-o"] out src
 
-  processedDir <//> "*.c" %> \out -> do
+  processedDir <//> "*" %> \out -> do
     _generatedFiles <- getGeneratedFiles mainGen
     let fileComponent = makeRelative processedDir out
         target = takeDirectory1 fileComponent
