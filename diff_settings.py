@@ -2,7 +2,7 @@ def apply(config, args):
     
     config["baseimg"] = "disks/tenchu/main.exe"
     config["myimg"] = ".shake/build/tenchu/main.exe"
-    # config["mapfile"] = "build.map"
+    config["mapfile"] = ".shake/build/tenchu/main.exe.map"
     # config["source_directories"] = ["."]
     # config["show_line_numbers_default"] = True
     config["arch"] = "mips"
