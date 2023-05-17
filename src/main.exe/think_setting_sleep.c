@@ -1,8 +1,9 @@
 #include "common.h"
 #include "main.exe.h"
 
-// INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/think_setting_sleep", think_setting_sleep_);
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/think_setting_sleep", think_setting_sleep_);
 
+/*
 s32 think_setting_sleep_(void)
 {
     something_about_current_animation *temp_a0;
@@ -25,3 +26,4 @@ s32 think_setting_sleep_(void)
     }
     return var_v0 >> 0x10;
 }
+*/
