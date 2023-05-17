@@ -1,9 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/initialise_font", initialise_font);
+// INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/initialise_font", initialise_font);
 
-/*
 void initialise_font(void)
 {
     GsIMAGE sp10;
@@ -14,4 +13,3 @@ void initialise_font(void)
     load_image_from_tim_to_gpu_and_dealloc_data_(temp_v0);
     load_font_image_into_global(&sp10);
 }
-*/
