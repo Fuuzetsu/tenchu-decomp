@@ -332,8 +332,10 @@ mainRules = do
         "-T",
         undefinedFunctions,
         "--no-check-sections",
-        "-nostdlib",
-        "-s"
+        "-nostdlib"
+        -- NB: not stripped (`-s`) on purpose — keeping the symbol table lets the
+        -- `mod` target look up function slot addresses via nm. objcopy -O binary
+        -- ignores the symbol table, so main.exe is unaffected.
       ]
 
   mainExe %> \_out -> do
@@ -350,6 +352,13 @@ phonyRules = do
 
   phony "extract_main.exe" $ do
     need [mainGen]
+
+  -- Build a modded (non-matching) main_mod.exe: layer the grown functions in
+  -- src/mod/main.exe/ onto the byte-matching image via trampolines + a mod
+  -- region. See tools/mkmod.py and docs/modding-and-nonmatching.md.
+  phony "mod" $ do
+    need [mainExe, mainExe <.> "elf"]
+    cmd_ "tools/mkmod.py"
 
   phony "check" $ do
     let reference = "disks" </> "tenchu" </> "main.exe"

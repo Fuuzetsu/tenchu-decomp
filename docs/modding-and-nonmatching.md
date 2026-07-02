@@ -53,27 +53,54 @@ because this is a *partial* decomp with a fixed memory layout:
 In short: a fixed-layout partial decomp can absorb *substitutions* but not
 *insertions*.
 
-## Making growth work
+## Making growth work: `./Build mod` (implemented)
 
-Three options, cheapest first:
+Growth is handled by a **trampoline + mod region**, wired in as the `mod` target:
 
-1. **Stay same-size.** For many tweaks you can. MIPS has 32 registers and lots of
-   delay slots; you can often express a change without adding instructions.
+```console
+$ # put your grown/modified function in src/mod/main.exe/<fn>.c (filename == fn)
+$ ./Build mod        # -> .shake/build/tenchu/main_mod.exe
+mkmod: hooking get_held_buttons
+  get_held_buttons: slot 0x8001b260 -> j 0x80098000
+mkmod: wrote .shake/build/tenchu/main_mod.exe (…, mod region @ 0x80098000, …)
+```
 
-2. **Trampoline to a mod region (recommended for debug / real growth).** Leave
-   the original function's slot the same size, put a `j <mod_addr>` (+ `nop`) in
-   it, and compile the grown/debug version into a **new section in free RAM**.
-   The exe loads at `0x80011000`–`~0x80098000`; RAM is free from there up to the
-   initial `sp` (`0x801FFF F0`), ~1.5 MB. Because every original address stays
-   put, all callers (symbolic *and* raw) reach the slot and jump to your code.
-   This is the standard ROM-hack hook; it is not wired into the build yet — it
-   would need (a) a `mod` output section appended in the linker script and (b) a
-   rule that emits the trampoline for a hooked function. Ask and it can be added.
+How it works (`tools/mkmod.py`): it starts from the byte-matching `main.exe`,
+then for each `src/mod/main.exe/<fn>.c`:
 
-3. **Decompile more.** Once the data around your function is fully symbolic (no
-   raw pointers, no fixed addresses into that region), a uniform shift becomes
-   self-consistent and functions can grow freely. This is the natural end-state
-   of the decomp; it just isn't there yet for most of the binary.
+1. compiles it with the normal pipeline (`cpp | cc1 -G8 | maspsx | as`);
+2. links all mods at **`MODBASE` (`0x80098000`)** — the first free address after
+   the loaded image (`main_exe` ends there with zero bss) — resolving the game's
+   symbols from `main.exe.elf`;
+3. overwrites the first 8 bytes of the original function's slot with
+   `j <mod_addr>; nop`;
+4. appends the mod region to the image and extends the PS-EXE `.text` size.
+
+Result (verified): `main_mod.exe` is **byte-identical to the original except the
+8-byte trampoline per hooked function and the header size**, with the grown code
+appended. Every original address stays put, so all callers — symbolic *and* raw
+— reach the slot and jump to your code. `src/main.exe/` (the matching decomp)
+is untouched; mods live only in `src/mod/main.exe/`.
+
+Notes / knobs:
+- `MODBASE` defaults to `0x80098000` (contiguous after the image). If the game's
+  runtime heap turns out to use that region, override it: `MODBASE=0x801f0000
+  ./Build mod` (any free RAM below the stack at `0x801FFFF0`). Determining a
+  guaranteed-safe address needs the runtime memory map (e.g. from your Ghidra
+  project); the mechanism itself is address-agnostic.
+- A hooked function's slot must be ≥ 8 bytes (for `j` + `nop`); every real
+  function is.
+- Taking the *address* of a hooked function still yields the original slot
+  address (which trampolines correctly); only rare address-identity comparisons
+  would notice.
+
+### Alternative: decompile more (not needed now)
+
+Once the data around a function is fully symbolic (no raw pointers / fixed
+addresses into that region), a uniform shift becomes self-consistent and
+functions can grow in place without trampolines. That's the natural end-state of
+the decomp — not required, just noted for context. `./Build mod` works today
+regardless.
 
 ## Running a modified exe
 

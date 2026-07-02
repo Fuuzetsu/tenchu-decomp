@@ -67,12 +67,14 @@ decision + recipe, project layout, and a matching case study. Ranked next steps:
 
 ## Modding / non-matching builds
 
-`./Build` (without `check`) already builds non-matching C. Same-size behaviour
-edits produce a valid, runnable binary (only the changed bytes differ). Size-
-changing edits (e.g. debug prints) shift everything after the function and break
-the fixed partial-decomp layout — see
-[`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) for the
-trampoline/mod-region approach to allow growth (not yet wired in).
+- **Same-size edits**: `./Build` (without `check`) produces a valid runnable
+  binary; only the changed bytes differ.
+- **Growth (debug prints, bigger functions)**: `./Build mod` — put the grown
+  function in `src/mod/main.exe/<fn>.c` and it's relocated into a mod region
+  (`MODBASE=0x80098000`) with a trampoline at the original slot, so the rest of
+  the binary stays byte-identical. See
+  [`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) and
+  `tools/mkmod.py`. (Runtime-safe `MODBASE` may need the game's memory map.)
 
 ## Notes
 
