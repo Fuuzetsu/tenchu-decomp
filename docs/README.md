@@ -20,6 +20,8 @@ decisions behind the toolchain. It's the reference companion to the terse
   and how to handle growth.
 - [building-an-iso.md](building-an-iso.md) — `./Build iso` / `iso-mod`: rebuild a
   bootable CD image (`.bin`/`.cue`) for pcsx-redux with our `main.exe`.
+- [ghidra-bridge.md](ghidra-bridge.md) — pull decompiled C from your Ghidra
+  project into `src/` one function at a time (`tools/reverse.py`).
 
 ## Current state (verified 2026-07-02)
 
