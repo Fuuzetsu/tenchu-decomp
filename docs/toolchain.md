@@ -114,6 +114,38 @@ maspsx *before* the flag flip.
    against the target. Escalate the aspsx version only on an observed `la`/`gp`
    mismatch.
 
+## gp globals: making small globals byte-match (important)
+
+Tenchu addresses small globals (≤ 8 bytes, within ±32 KB of `gp = 0x80097698`)
+via `$gp` — the disassembly shows `%gp_rel(SYMBOL)($gp)`. To reproduce that from
+compiled C you must get maspsx to rewrite the access to `%gp_rel`. **maspsx only
+gp-converts symbols it sees declared as small-data** (`.comm`/`.lcomm`/`.sdata`/
+`.sbss`); it *ignores* `.extern`.
+
+So a small global declared `extern s16 ALERT_STATUS_;` compiles to an **absolute**
+`lui/…` access and will **not** match. Instead declare it as a **tentative
+definition** (drop `extern`):
+
+```c
+s16 ALERT_STATUS_;      /* not `extern` → cc1 emits `.comm ALERT_STATUS_,2` */
+```
+
+Then, with `-fcommon` (already set) + cc1 `-G8`:
+- cc1 emits `.comm ALERT_STATUS_,2`;
+- maspsx sees the small `.comm`, tracks it, and rewrites `sh $2,ALERT_STATUS_`
+  → `sh $2,%gp_rel(ALERT_STATUS_)($gp)`;
+- at link, the absolute definition from `undefined_symbols_auto.main.exe.txt`
+  (`ALERT_STATUS_ = 0x800979D6;`) overrides the common symbol, so nothing is
+  allocated and `%gp_rel` resolves to `addr - gp` — matching the target.
+
+This is verified working (`sh $2,ALERT_STATUS_` → `%gp_rel(...)` under
+`--aspsx-version=2.77 -G8`). Big/far globals (e.g. `HELD_BUTTONS` at `0x800be6d0`,
+outside gp range) stay `extern` and are addressed absolutely — that's correct.
+
+The clean long-term form is to split these globals into a real `.sdata`/`.sbss`
+section symbolically; the tentative-definition trick is the interim that matches
+today. `think_setting_sleep` is the first function that needs this.
+
 ## Notes on the current `cc1` flags
 
 `ccFlags` is already the standard PSY-Q/maspsx set and should stay: `-mcpu=3000

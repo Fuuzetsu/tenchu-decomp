@@ -46,8 +46,8 @@ per asm file: .shake/gen/…/*.s
 For each C file, the `processedDir` rule uses `src/main.exe/<fn>.c` if it exists,
 otherwise the generated stub in `.shake/gen/main.exe/src/<fn>.c`. So the normal
 workflow is: let splat generate a stub, copy/write your version into
-`src/main.exe/`, and iterate there. `initialise_font.c` (matched) and
-`think_setting_sleep.c` / `get_held_buttons.c` (WIP) live in `src/main.exe/`.
+`src/main.exe/`, and iterate there. `initialise_font.c` and `get_held_buttons.c` (matched) and
+`think_setting_sleep.c` (WIP) live in `src/main.exe/`.
 
 ## Dependency tracking (why `as --MD`)
 
