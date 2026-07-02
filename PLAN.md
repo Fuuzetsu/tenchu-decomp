@@ -50,14 +50,16 @@ The **build environment**, not the decomp logic:
 
 Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 
-1. **Finish `Think1sleep`** (the active matching target). maspsx made it
-   very close; the exact remaining work is documented in the stub
-   (`src/main.exe/Think1sleep.c`) and [`docs/toolchain.md`](docs/toolchain.md):
-   (a) declare its gp globals as tentative definitions (drop `extern`) so maspsx
-   emits `%gp_rel` — the *reusable* gp pattern; (b) fix `character_state` type
-   sizes (`character_kind`/`character_status` → 2 bytes, `button_mask` → 2 bytes so
-   `some_character_button_values` is 16) and `frames_since_animation_start` → `s16`;
-   (c) a decomp-permuter pass for any residual register allocation.
+1. **gp-relative globals** — the one blocker for `Think1sleep` (and every future
+   gp-using function). `character_state` layout + signedness are now fixed (done),
+   so `Think1sleep`'s body compiles to the target's exact arithmetic — but its 4
+   small globals (`Me_THINK_C`/`SR`/`Attrib`/`FRAMES_UNTIL_END_OF_ALERT`) must be
+   `%gp_rel`, and no simple flag does it (tentative-def `.comm` won't link; `as
+   -G8` gp-addresses far symbols too). **Fix: patch maspsx to gp-convert a
+   whitelist of symbols within ±32 KB of gp (kept `extern`, resolved to absolute).**
+   See the stub `src/main.exe/Think1sleep.c` and
+   [`docs/toolchain.md`](docs/toolchain.md) "gp globals". Then a decomp-permuter
+   pass (`tools/permute.py Think1sleep`) for any residual regalloc.
 2. **decomp-permuter is wired in** (`tools/permute.py`) — see
    [`docs/permuter.md`](docs/permuter.md).
 3. **Commit the disassembly**: move splat's asm to a committed `asm/main.exe/` and

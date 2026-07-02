@@ -4,27 +4,30 @@
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think1sleep", Think1sleep);
 
 /*
- * WIP. The body below (from m2c) is functionally correct and, with maspsx now in
- * the pipeline, compiles VERY close to the target. Remaining, precisely
- * identified blockers before it byte-matches (see docs/toolchain.md "gp globals"):
+ * WIP — everything below is correct EXCEPT gp addressing of its 4 small globals.
  *
- *  1. gp addressing: Me_THINK_C, SR,
- *     Attrib, FRAMES_UNTIL_END_OF_ALERT must be $gp-relative in
- *     the output (target uses %gp_rel). maspsx only gp-converts symbols it sees
- *     as small-data (.comm/.sdata/.sbss), NOT `.extern`. Fix: declare these
- *     globals as tentative definitions (drop `extern` in main.exe.h) so cc1 emits
- *     `.comm SYM,size`; maspsx then rewrites the loads/stores to %gp_rel and the
- *     linker resolves the symbol to its real address via undefined_symbols_auto.
- *  2. character_state layout: `something_about_current_animation` must sit at
- *     0x5C but currently lands at 0x70 — a 20-byte drift from oversized types
- *     (all contradict the field-offset annotations): character_kind and
- *     character_status are 4-byte enums (should be 2 bytes each) and
- *     some_character_button_values is 32 bytes because button_mask is 4 bytes
- *     (should be 2, making the struct 16). Fix those three type sizes.
- *  3. something_about_current_animation.frames_since_animation_start must be s16
- *     (target uses `lh`), not u16 (`lhu`).
- *  4. After 1-3, any residual register-allocation diff is a decomp-permuter job
- *     (as with GetRealPad).
+ * Done (in main.exe.h): character_state now puts the animation pointer at 0x5C
+ * (character_kind/character_status -> 2 bytes, button_mask -> 2 bytes so
+ * some_character_button_values is 16), and frames_since_animation_start is s16.
+ * With those, the body below compiles to the target's exact arithmetic, branches,
+ * struct offsets and li/lh — verified instruction-by-instruction.
+ *
+ * BLOCKER — gp-relative small globals (Me_THINK_C, SR, Attrib,
+ * FRAMES_UNTIL_END_OF_ALERT). The target addresses them via %gp_rel($gp) against
+ * *undefined* symbols (resolved to their real addresses at link). We can't yet
+ * reproduce that:
+ *   - `extern` + `as -G0`  -> absolute (lui/lo), doesn't match.
+ *   - tentative def (.comm) -> the symbol is defined in .sbss (which the linker
+ *     script discards) at a *sequential* offset, so the reloc is against .sbss
+ *     (link error) with the wrong gp offset (4/6/8 vs the real 0x33E/0x344/…).
+ *   - `as -G8` (global)     -> gp-addresses EVERY small extern, incl. far ones
+ *     like the string FONT_FILE_NAME (reloc-truncated), and shifts section layout
+ *     -> breaks everything.
+ * The distinction "near-gp vs far" can't come from size alone. The fix is to
+ * gp-convert only a WHITELIST of symbols whose address is within ±32 KB of gp
+ * (computable from config/symbols), keeping them undefined so the reloc resolves
+ * to the absolute address. Cleanest: patch maspsx to accept that whitelist (it
+ * already does the %gp_rel rewrite for .comm). Or split .sdata/.sbss symbolically.
  *
  * s32 Think1sleep(void)
  * {

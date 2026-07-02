@@ -258,11 +258,11 @@ enum button_mask
 typedef struct some_character_button_values some_character_button_values;
 struct some_character_button_values
 {
-    button_mask currently_pressed;
-    button_mask pressed_last_frame;
-    button_mask newly_pressed;
+    u16 currently_pressed;   // enum button_mask, stored as 2 bytes
+    u16 pressed_last_frame;
+    u16 newly_pressed;
     s16 frames_since_new_input;
-    button_mask buttons_pressed_in_s16_succession[4];
+    u16 buttons_pressed_in_s16_succession[4];
 };
 
 typedef struct xyz xyz;
@@ -459,7 +459,7 @@ typedef struct something_about_current_animation something_about_current_animati
 struct something_about_current_animation
 {
     s16 animation_state_perhaps;
-    u16 frames_since_animation_start;
+    s16 frames_since_animation_start;   // target loads with lh (signed)
     s16 seconds_elapsed;
     u16 num_of_some_things_in_offs_24;
     s16 field4_0x8;
@@ -514,8 +514,8 @@ enum item_kind2
 typedef struct character_state character_state;
 struct character_state
 {
-    character_kind character_kind;
-    character_status character_status;
+    u16 character_kind;   // enum character_kind, stored as 2 bytes
+    u16 character_status; // enum character_status, stored as 2 bytes
     u16 some_character_marker_thing;
     s16 character_rotation_speed;
     u16 current_health;

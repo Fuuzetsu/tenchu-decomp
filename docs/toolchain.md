@@ -122,29 +122,33 @@ compiled C you must get maspsx to rewrite the access to `%gp_rel`. **maspsx only
 gp-converts symbols it sees declared as small-data** (`.comm`/`.lcomm`/`.sdata`/
 `.sbss`); it *ignores* `.extern`.
 
-So a small global declared `extern s16 ALERT_STATUS_;` compiles to an **absolute**
-`lui/…` access and will **not** match. Instead declare it as a **tentative
-definition** (drop `extern`):
+So a small global declared `extern s16 SR;` compiles to an **absolute** `lui/…`
+access and will **not** match. This is **still an open problem** — none of the
+obvious fixes work (learned the hard way on `Think1sleep`):
 
-```c
-s16 ALERT_STATUS_;      /* not `extern` → cc1 emits `.comm ALERT_STATUS_,2` */
-```
+- **Tentative definition** (drop `extern` so cc1 emits `.comm SR,2`): maspsx then
+  *does* rewrite to `%gp_rel`, BUT the `.comm` symbol is now *defined locally in
+  `.sbss`*, which the linker script discards → link error (`.sbss referenced in
+  .text … discarded`), and its gp offset is the *sequential* `.sbss` slot (4/6/8…)
+  not the symbol's real `addr − gp` (0x33E/0x344…). So it neither links nor
+  matches. (The earlier "verified working" claim only checked maspsx's text
+  output, never the link — it does not link.)
+- **`as -G8`** (so `as` itself gp-addresses small externs): gp-addresses *every*
+  small extern, including far ones like the string `FONT_FILE_NAME` (reloc
+  truncated), and changes section layout — breaks everything.
 
-Then, with `-fcommon` (already set) + cc1 `-G8`:
-- cc1 emits `.comm ALERT_STATUS_,2`;
-- maspsx sees the small `.comm`, tracks it, and rewrites `sh $2,ALERT_STATUS_`
-  → `sh $2,%gp_rel(ALERT_STATUS_)($gp)`;
-- at link, the absolute definition from `undefined_symbols_auto.main.exe.txt`
-  (`ALERT_STATUS_ = 0x800979D6;`) overrides the common symbol, so nothing is
-  allocated and `%gp_rel` resolves to `addr - gp` — matching the target.
+The distinction "near-gp vs far" cannot come from size alone (`FONT_FILE_NAME` is
+1 byte but far). The correct fix is to gp-convert **only a whitelist** of symbols
+whose address is within ±32 KB of `gp` (computable from `config/symbols`), keeping
+them **`extern`/undefined** so the `%gp_rel` reloc resolves to the absolute
+address at link. Cleanest: **patch maspsx** to take that whitelist (it already
+does the `%gp_rel` rewrite — it just needs to accept symbols by name instead of
+only tracked `.comm`). Alternatively, split `.sdata`/`.sbss` symbolically so the
+globals are genuinely defined at their addresses in a placed section.
 
-This is verified working (`sh $2,ALERT_STATUS_` → `%gp_rel(...)` under
-`--aspsx-version=2.77 -G8`). Big/far globals (e.g. `HELD_BUTTONS` at `0x800be6d0`,
-outside gp range) stay `extern` and are addressed absolutely — that's correct.
-
-The clean long-term form is to split these globals into a real `.sdata`/`.sbss`
-section symbolically; the tentative-definition trick is the interim that matches
-today. `Think1sleep` is the first function that needs this.
+`Think1sleep` is blocked on exactly this (everything else about it matches —
+struct layout, signedness, arithmetic). Far globals (e.g. `PadPort` at
+`0x800be6d0`, outside gp range) correctly stay `extern`/absolute.
 
 ## Notes on the current `cc1` flags
 
