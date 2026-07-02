@@ -56,9 +56,18 @@ latent bugs. Fixed in this batch of work (see `build-system.md` for detail):
 3. **Asset `.bin.o`** now uses `ld -r -b binary` (a raw copy would fail the link).
 4. **`check`** now pins the expected sha256 to catch a swapped/corrupt base image.
 
+## Also built this cycle
+
+- **maspsx integrated** — `cpp | cc1-281 -G8 | maspsx | as`, so functions using
+  integer division / `$gp`-relative globals can byte-match. wine dropped. See
+  [toolchain.md](toolchain.md).
+- **`./Build mod`** — grow/modify functions runnably via trampolines + a mod
+  region. See [modding-and-nonmatching.md](modding-and-nonmatching.md).
+- **`./Build iso` / `iso-mod`** — rebuild a bootable `.bin`/`.cue` for pcsx-redux.
+  See [building-an-iso.md](building-an-iso.md).
+
 ## Next step
 
-Add **maspsx** to the pipeline — it's the one missing piece before functions
-that use integer division or `$gp`-relative globals will byte-match. See
-[toolchain.md](toolchain.md). (It is *not* needed for `get_held_buttons`; that
-one needs the decomp-permuter — see the case study.)
+Finish `think_setting_sleep` (the active matching target) — see `PLAN.md` #1 and
+the analysis in `src/main.exe/think_setting_sleep.c`: gp globals as tentative
+definitions, `character_state` type-size fixes, then a permuter pass.

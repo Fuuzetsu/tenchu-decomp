@@ -8,15 +8,20 @@ recompiles to the same bytes. The build (Haskell **Shake**, `shake/src/Build.hs`
 which superseded the old `Makefile`) reassembles everything and gates on a
 byte-identical `main.exe`.
 
-## Status: the round-trip works ✅
+## Status ✅
 
-`./Build clean && ./Build check` disassembles and reassembles to a **byte-identical**
-`main.exe` (sha256 `0690a5c1…3558`, matches `disks/tenchu/main.exe`). The splitting
-and reassembly are sound — verified from a clean state.
+- **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a
+  **byte-identical** `main.exe` (sha256 `0690a5c1…3558`) from a clean state.
+- **Toolchain is complete for matching.** Pipeline is
+  `cpp | cc1-281 -G8 | maspsx --aspsx-version=2.77 | as | ld`; reproducible/offline
+  via nix (no cabal/wine). maspsx is integrated (see [`docs/toolchain.md`](docs/toolchain.md)).
+- **Matched functions:** `initialise_font` and `get_held_buttons` (the latter via
+  decomp-permuter — [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)).
+  `think_setting_sleep` is a WIP stub (see roadmap #1).
+- **Modding + emulator loop works:** `./Build mod` (grow functions) and
+  `./Build iso`/`iso-mod` (bootable disc for pcsx-redux). See docs/.
 
-`initialise_font` and `get_held_buttons` are fully matched C (the latter via
-decomp-permuter — see [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md));
-`think_setting_sleep` is a stub with a WIP C attempt in a comment.
+New session: read this file + [`docs/README.md`](docs/README.md) (the docs index).
 
 ## What was actually wrong (fixed 2026-07-02)
 
@@ -43,27 +48,31 @@ The **build environment**, not the decomp logic:
 
 ## Roadmap / TODO (not yet done)
 
-Detailed developer docs now live in [`docs/`](docs/) — build system, the maspsx
-decision + recipe, project layout, and a matching case study. Ranked next steps:
+Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 
-1. **maspsx** between `cc1` and GNU `as` — the one missing piece before functions
-   using integer division or `$gp`-relative globals byte-match. Confirmed: it
-   *replaces* ASPSX.EXE, so **wine can be deleted**. Start `--aspsx-version=2.77`,
-   `-G8`; add it as a filter in the `.s` stage. Full recipe + rationale in
-   [`docs/toolchain.md`](docs/toolchain.md). (Not needed for `get_held_buttons`.)
-2. **Commit the disassembly**: move splat's asm to a committed `asm/main.exe/` and
-   set splat `base_path: .` so a fresh clone is self-contained. See
-   [`docs/project-layout.md`](docs/project-layout.md).
-3. **Pin `tools/cc1-281`** via a checksummed nix `fetchurl`
+1. **Finish `think_setting_sleep`** (the active matching target). maspsx made it
+   very close; the exact remaining work is documented in the stub
+   (`src/main.exe/think_setting_sleep.c`) and [`docs/toolchain.md`](docs/toolchain.md):
+   (a) declare its gp globals as tentative definitions (drop `extern`) so maspsx
+   emits `%gp_rel` — the *reusable* gp pattern; (b) fix `character_state` type
+   sizes (`character_kind`/`character_status` → 2 bytes, `button_mask` → 2 bytes so
+   `some_character_button_values` is 16) and `frames_since_animation_start` → `s16`;
+   (c) a decomp-permuter pass for any residual register allocation.
+2. **Wire decomp-permuter into the repo** (`compile.sh` + `import.py`) — the manual
+   setup that matched `get_held_buttons` is in the memory note / case study; make
+   it a first-class `tools/` thing for reuse.
+3. **Commit the disassembly**: move splat's asm to a committed `asm/main.exe/` and
+   set splat `base_path: .` so a fresh clone is self-contained.
+   (NOTE: the operator prefers keeping `.shake/gen` regenerated-on-demand; only do
+   this if that changes — [`docs/project-layout.md`](docs/project-layout.md).)
+4. **Pin `tools/cc1-281`** via a checksummed nix `fetchurl`
    (decompals/old-gcc `gcc-2.8.1-psx`) instead of an opaque committed binary.
-4. **CI**: a GitHub Actions job running `nix develop --command ./Build check`.
-5. **Per-function tooling**: `diff_settings.py` (asm-differ is in the devShell),
-   `objdiff.json`, an `m2ctx.py` context generator, and a `make <obj>` shim.
-6. Continue matching functions: `think_setting_sleep` next (needs maspsx; C
-   draft already sketched). The **decomp-permuter** workflow is established —
-   `get_held_buttons` was matched with it (see
-   [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)); wire
-   it into the repo (`compile.sh`/`import.py`) for reuse.
+5. **CI**: a GitHub Actions job running `nix develop --command ./Build check`.
+6. **Per-function tooling**: `diff_settings.py` (asm-differ is in the devShell),
+   `objdiff.json`, an `m2ctx.py` context generator, a `make <obj>` shim.
+7. **Growth-mod streaming safety** (if `iso-mod` movies/XA glitch): keep `main.exe`
+   same-size on disc by relocating the mod region into a separate disc file rather
+   than appending — see the caveat in [`docs/building-an-iso.md`](docs/building-an-iso.md).
 
 ## Modding / non-matching builds
 
