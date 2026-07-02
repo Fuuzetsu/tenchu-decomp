@@ -1,0 +1,58 @@
+# Tenchu (PS1) decompilation — developer docs
+
+This directory records how the build works, what state it's in, and the
+decisions behind the toolchain. It's the reference companion to the terse
+[`PLAN.md`](../PLAN.md) at the repo root.
+
+## Contents
+
+- [build-system.md](build-system.md) — the split→reassemble pipeline, the Shake
+  build driver, dependency tracking, and the offline/reproducible nix setup.
+- [toolchain.md](toolchain.md) — the compiler + assembler story, **maspsx vs
+  ASPSX.EXE** (do we need wine?), the ASPSX version for Tenchu, and the exact
+  recipe to add maspsx.
+- [project-layout.md](project-layout.md) — recommended directory layout drawn
+  from established PSX decomps, what to keep vs change, and Shake-vs-Make.
+- [matching-get-held-buttons.md](matching-get-held-buttons.md) — a worked
+  case study of trying to byte-match a real function, and what makes it hard.
+
+## Current state (verified 2026-07-02)
+
+The disassemble → reassemble round-trip **works and is byte-identical**:
+
+```console
+$ nix develop            # or: direnv allow, once
+$ ./Build check          # clean-rebuilds and asserts sha256 == the real main.exe
+BUILD GREEN (byte-identical)
+```
+
+- `disks/tenchu/main.exe` (the real game exe) is split by **splat**
+  (`split.py`) into per-function ASM, data, a header, C stubs, and a linker
+  script; everything is reassembled with the GCC 2.8.1 cross toolchain + GNU
+  `ld` back into a **byte-identical** `main.exe`
+  (sha256 `0690a5c1…3558`).
+- `initialise_font` is already a **fully decompiled C function that
+  byte-matches** — proof the pipeline handles real C, not just `INCLUDE_ASM`
+  stubs. `get_held_buttons` and `think_setting_sleep` are still stubs/WIP.
+
+## What was wrong, and what got fixed
+
+The decomp logic was fine; the **build environment** was broken and had a few
+latent bugs. Fixed in this batch of work (see `build-system.md` for detail):
+
+1. **Reproducibility** — the nix devShell shipped bare `ghc`+`cabal`, so
+   `./Build` needed network + a warm `~/.cabal` to compile Shake's deps. Now the
+   deps are baked into GHC via `ghcWithPackages` and `./Build` compiles the
+   driver with plain `ghc` — fully offline on a fresh checkout.
+2. **INCLUDE_ASM dependency tracking** — objects didn't depend on the `.include`'d
+   nonmatching `.s` / `macro.inc`, so asm edits produced silently stale output.
+   Now tracked via `as --MD`.
+3. **Asset `.bin.o`** now uses `ld -r -b binary` (a raw copy would fail the link).
+4. **`check`** now pins the expected sha256 to catch a swapped/corrupt base image.
+
+## Next step
+
+Add **maspsx** to the pipeline — it's the one missing piece before functions
+that use integer division or `$gp`-relative globals will byte-match. See
+[toolchain.md](toolchain.md). (It is *not* needed for `get_held_buttons`; that
+one needs the decomp-permuter — see the case study.)
