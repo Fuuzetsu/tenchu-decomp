@@ -14,7 +14,7 @@ import Data.UUID.V4 (nextRandom)
 import Development.Shake
 import Development.Shake.Classes (NFData)
 import Development.Shake.FilePath
-import Development.Shake.Util (neededMakefileDependencies)
+import Development.Shake.Util (neededMakefileDependencies, parseMakefile)
 import GHC.Generics (Generic)
 import qualified System.Directory as IO
 
@@ -138,6 +138,23 @@ cppFlags =
     "-DHACKS"
   ]
 
+-- | The sha256 of the known-good target @disks/tenchu/main.exe@. Pinned so that
+-- @check@ can detect a swapped/corrupt base image rather than merely proving the
+-- build is self-consistent with whatever splat happened to extract.
+expectedSha256 :: String
+expectedSha256 = "0690a5c14ff3e975ebcb3de26e196a4dbb6afc992677d0de2cbcf86af9993558"
+
+-- | Register the @.include@'d files recorded by @as --MD@ as dependencies.
+--
+-- @as@ resolves @.include@ directives (the INCLUDE_ASM'd nonmatching .s and
+-- @include/macro.inc@) at assembly time; cpp's @-MMD@ never sees them, so without
+-- this the object would go stale when that asm changes. splat bakes a @config/..@
+-- prefix into the INCLUDE_ASM paths, so normalise them to match the generated-file
+-- rules. Mirrors 'neededMakefileDependencies' but with the normalisation.
+neededAsmDeps :: FilePath -> Action ()
+neededAsmDeps depFile =
+  needed . map normaliseEx . concatMap snd . parseMakefile =<< liftIO (readFile depFile)
+
 main :: IO ()
 main = do
   topD <- getProjectRoot
@@ -167,7 +184,9 @@ objRules = do
         src = genDir </> target </> asmDir </> dropDirectory1 (dropExtension fileComponent)
     need [src]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
-    cmd_ as asFlags ["-o"] out src
+    withTempFile $ \depFile -> do
+      cmd_ as asFlags ["--MD", depFile, "-o", out, src]
+      neededAsmDeps depFile
 
   [processedDir <//> "*.c", processedDir <//> "*.h"] |%> \out -> do
     _generatedFiles <- getGeneratedFiles mainGen
@@ -215,13 +234,21 @@ objRules = do
     need [processed]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     putInfo $ "Feeding " <> processed <> " to as"
-    cmd_ (FileStdin processed) as asFlags "-o" out
+    -- `as` resolves the INCLUDE_ASM'd nonmatching .s (and include/macro.inc)
+    -- here, not cpp; --MD lets us depend on them so an asm edit rebuilds this.
+    withTempFile $ \depFile -> do
+      cmd_ (FileStdin processed) as asFlags ["--MD", depFile, "-o", out]
+      neededAsmDeps depFile
 
   buildDir <//> "*.bin.o" %> \out -> do
     let fileComponent = makeRelative buildDir out
         target = takeDirectory1 fileComponent
         asset = genDir </> target </> assetsDir </> dropExtension (dropDirectory1 fileComponent)
-    copyFile' asset out
+    -- The linker script places assets with ELF section syntax `x.bin.o(.data)`,
+    -- which needs a real relocatable object, not a raw blob (matches Makefile).
+    need [asset]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    cmd_ ld ["-r", "-b", "binary", "-o", out, asset]
 
 mainRules :: Rules ()
 mainRules = do
@@ -311,8 +338,13 @@ phonyRules = do
     StdoutTrim ours <- cmd "sha256sum" mainExe
     let refSha = head $ words ref
         ourSha = head $ words ours
-    when (refSha /= ourSha) $ do
-      fail $ unwords ["Expected", mainExe, "to have sha256 of", refSha, "but it's", ourSha]
+    -- Guard against a swapped/corrupt base image: the reference we diff against
+    -- must itself be the known-good Tenchu main.exe, not just self-consistent
+    -- with whatever splat happened to extract.
+    when (refSha /= expectedSha256) $
+      fail $ unwords ["Reference", reference, "has sha256", refSha, "but expected known-good", expectedSha256, "- wrong/corrupt base image?"]
+    when (ourSha /= expectedSha256) $
+      fail $ unwords ["Expected", mainExe, "to have sha256 of", expectedSha256, "but it's", ourSha]
 
 -- | Gets the absolute root directory of the project. Errors on
 -- failure. Assumes we're somewhere inside the project.
