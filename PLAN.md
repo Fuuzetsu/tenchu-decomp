@@ -58,9 +58,8 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
    sizes (`character_kind`/`character_status` → 2 bytes, `button_mask` → 2 bytes so
    `some_character_button_values` is 16) and `frames_since_animation_start` → `s16`;
    (c) a decomp-permuter pass for any residual register allocation.
-2. **Wire decomp-permuter into the repo** (`compile.sh` + `import.py`) — the manual
-   setup that matched `get_held_buttons` is in the memory note / case study; make
-   it a first-class `tools/` thing for reuse.
+2. **decomp-permuter is wired in** (`tools/permute.py`) — see
+   [`docs/permuter.md`](docs/permuter.md).
 3. **Commit the disassembly**: move splat's asm to a committed `asm/main.exe/` and
    set splat `base_path: .` so a fresh clone is self-contained.
    (NOTE: the operator prefers keeping `.shake/gen` regenerated-on-demand; only do

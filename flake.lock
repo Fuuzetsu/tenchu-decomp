@@ -16,6 +16,22 @@
         "type": "github"
       }
     },
+    "decomp-permuter": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782856352,
+        "narHash": "sha256-l3G0pZruK4e3uf/kRhRREEKrCqBtT+a51rBRxNCoKrQ=",
+        "owner": "simonlindholm",
+        "repo": "decomp-permuter",
+        "rev": "70d74f7eff7ee0708694265d06533471010a31a4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "simonlindholm",
+        "repo": "decomp-permuter",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -389,6 +405,7 @@
     "root": {
       "inputs": {
         "asm-differ": "asm-differ",
+        "decomp-permuter": "decomp-permuter",
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "m2c": "m2c",

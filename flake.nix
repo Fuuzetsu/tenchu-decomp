@@ -26,6 +26,10 @@
       url = "github:mkst/maspsx";
       flake = false;
     };
+    decomp-permuter = {
+      url = "github:simonlindholm/decomp-permuter";
+      flake = false;
+    };
   };
 
   outputs =
@@ -38,6 +42,7 @@
     , asm-differ
     , spimdisasm
     , maspsx
+    , decomp-permuter
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -75,6 +80,31 @@
 
       # mkpsxiso + dumpsxiso: dump/rebuild the game's CD image (`./Build iso`).
       mkpsxiso = pkgs.callPackage ./nix/mkpsxiso.nix { };
+
+      # decomp-permuter: randomly perturbs C to find the source that byte-matches
+      # (register allocation / scheduling). tools/permute.py drives it.
+      permuter =
+        let
+          pyenv = pkgs.python3.withPackages (ps: [ ps.pycparser ps.toml ps.pynacl ps.attrs ]);
+        in
+        pkgs.symlinkJoin {
+          name = "decomp-permuter";
+          paths = [
+            (pkgs.writeShellScriptBin "permuter.py" ''
+              export PYTHONPATH=${inputs.decomp-permuter}''${PYTHONPATH:+:$PYTHONPATH}
+              exec ${pyenv}/bin/python3 ${inputs.decomp-permuter}/permuter.py "$@"
+            '')
+            (pkgs.writeShellScriptBin "permuter-import.py" ''
+              export PYTHONPATH=${inputs.decomp-permuter}''${PYTHONPATH:+:$PYTHONPATH}
+              exec ${pyenv}/bin/python3 ${inputs.decomp-permuter}/import.py "$@"
+            '')
+            # the permuter's scorer looks for `mips-linux-gnu-objdump`; forward to
+            # this repo's cross objdump (ELF carries endianness, so -EL is implicit).
+            (pkgs.writeShellScriptBin "mips-linux-gnu-objdump" ''
+              exec mipsel-unknown-linux-gnu-objdump "$@"
+            '')
+          ];
+        };
     in
     {
       legacyPackages = pkgs;
@@ -96,6 +126,7 @@
           '')
           maspsx-bin
           mkpsxiso
+          permuter
           # GHC with the Shake build tool's deps baked into its global package
           # DB, so `./Build` compiles shake/src/Build.hs with plain `ghc` fully
           # offline — no `cabal update`/Hackage fetch on a fresh checkout.
