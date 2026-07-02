@@ -10,7 +10,7 @@ s32 think_setting_sleep_(void)
     s32 var_a1;
     s32 var_v0;
 
-    temp_a0 = &CHARACTER_BEING_UPDATED_->something_about_current_animation;
+    temp_a0 = CHARACTER_BEING_UPDATED_->something_about_current_animation;
     var_a1 = 0;
     if (temp_a0->animation_state_perhaps == 0x100)
     {
