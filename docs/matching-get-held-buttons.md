@@ -1,8 +1,9 @@
-# Case study: byte-matching `get_held_buttons`
+# Case study: byte-matching `get_held_buttons` (SOLVED)
 
 A worked example of the decomp loop — and of why "the C is correct" is not the
-same as "the bytes match". This function is *arithmetic-perfect* but not yet
-byte-identical; it's a good illustration of what's easy and what's hard.
+same as "the bytes match". The natural C is *arithmetic-perfect* but not byte-
+identical; the exact match was found with **decomp-permuter**. `get_held_buttons`
+now byte-matches (`./Build check` is green with real C, no `INCLUDE_ASM`).
 
 ## The target
 
@@ -72,15 +73,53 @@ Two coupled instruction-scheduling / register-allocation differences remain:
    into the load and uses `$v0`/`$v1`.
 
 Both are outcomes of gcc 2.8.1's register allocator. About **25** semantically-
-equivalent source formulations were tried (pointer arithmetic, explicit
+equivalent source formulations were tried by hand (pointer arithmetic, explicit
 associations, temporaries, `int`/`unsigned`/`register` arg types, complete array
 dimensions, `+0` perturbations) — several reproduced *one* of the two properties,
-none reproduced *both* at once. This is exactly what the **decomp-permuter** is
-for: it randomly perturbs the code to nudge the allocator until the bytes line up.
+none reproduced *both* at once.
 
 Note this is **not** a maspsx problem — there's no division, no `$gp`-relative
 access (`HELD_BUTTONS` at `0x800be6d0` is far outside gp's ±32 KB range), and no
-`nop` scheduling here. maspsx would leave these bytes unchanged.
+`nop` scheduling here. maspsx would leave these bytes unchanged. It's purely a
+register-allocation nudge, which is exactly what the permuter is for.
+
+## The fix (decomp-permuter)
+
+[decomp-permuter](https://github.com/simonlindholm/decomp-permuter) randomly
+perturbs the source and recompiles, scoring each candidate against the target
+object until it finds score 0 (byte-identical). Setup for this repo's non-Make
+toolchain:
+
+- `compile.sh` runs `tools/cc1-281 <ccFlags> | mipsel-…-as <asFlags>` on
+  preprocessed C (the same flags as `Build.hs`).
+- `base.c` is the preprocessed function with minimal inline typedefs.
+- `target.s` is the nonmatching `.s` (+ `include/macro.inc`), assembled with the
+  repo's `asFlags` to `target.o`.
+- the scorer needs an objdump named `mips-linux-gnu-objdump`; symlink
+  `mipsel-unknown-linux-gnu-objdump` to that name on `PATH` (ELF carries
+  endianness, so it works).
+
+It found score 0 in ~1500 iterations. The winning perturbation: a **pointer
+temporary inside a `do { … } while (0)`**:
+
+```c
+buttons_held get_held_buttons(s32 arg0)
+{
+    buttons_held *held;
+    FUN_8001ada4();
+    do {
+        held = &HELD_BUTTONS[arg0 >> 4][arg0 & 3].held;
+        return *held;
+    } while (0);
+}
+```
+
+The `do/while(0)` is **not cosmetic** — its (never-taken) loop back-edge changes
+gcc's basic-block ordering and liveness enough to flip the allocator into the
+target's `$s0`-reuse / outer-index-first schedule. A plain block scope, or the
+pointer temp without the loop, does **not** match (both verified against
+`./Build check`). Keep it, with a comment, so nobody "simplifies" it and silently
+breaks the match.
 
 ## Fast iteration harness
 
@@ -100,6 +139,7 @@ object, wire `diff.py` (`asm-differ`, already in the devShell) via
 
 ## Status
 
-Left as an `INCLUDE_ASM` stub with the analysis in `src/main.exe/get_held_buttons.c`
-so `./Build check` stays green. Next: run the decomp-permuter on it, or move to a
-function that byte-matches more directly (e.g. `initialise_font` already does).
+**Matched.** `src/main.exe/get_held_buttons.c` is real C that byte-matches;
+`./Build check` is green. This is the second fully-decompiled function (after
+`initialise_font`), and the first done via the permuter — the workflow for the
+next function is now established.

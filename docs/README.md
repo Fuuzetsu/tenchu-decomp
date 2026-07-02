@@ -31,9 +31,10 @@ BUILD GREEN (byte-identical)
   script; everything is reassembled with the GCC 2.8.1 cross toolchain + GNU
   `ld` back into a **byte-identical** `main.exe`
   (sha256 `0690a5c1…3558`).
-- `initialise_font` is already a **fully decompiled C function that
-  byte-matches** — proof the pipeline handles real C, not just `INCLUDE_ASM`
-  stubs. `get_held_buttons` and `think_setting_sleep` are still stubs/WIP.
+- `initialise_font` and `get_held_buttons` are **fully decompiled C functions
+  that byte-match** — proof the pipeline handles real C, not just `INCLUDE_ASM`
+  stubs. `get_held_buttons` was matched with the **decomp-permuter** (see the
+  case study). `think_setting_sleep` is still a WIP stub.
 
 ## What was wrong, and what got fixed
 

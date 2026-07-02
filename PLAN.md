@@ -14,8 +14,9 @@ byte-identical `main.exe`.
 `main.exe` (sha256 `0690a5c1…3558`, matches `disks/tenchu/main.exe`). The splitting
 and reassembly are sound — verified from a clean state.
 
-`get_held_buttons` is still a generated `INCLUDE_ASM` stub; `think_setting_sleep`
-is a stub with a WIP C attempt in a comment; `initialise_font` is fully matched C.
+`initialise_font` and `get_held_buttons` are fully matched C (the latter via
+decomp-permuter — see [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md));
+`think_setting_sleep` is a stub with a WIP C attempt in a comment.
 
 ## What was actually wrong (fixed 2026-07-02)
 
@@ -58,9 +59,11 @@ decision + recipe, project layout, and a matching case study. Ranked next steps:
 4. **CI**: a GitHub Actions job running `nix develop --command ./Build check`.
 5. **Per-function tooling**: `diff_settings.py` (asm-differ is in the devShell),
    `objdiff.json`, an `m2ctx.py` context generator, and a `make <obj>` shim.
-6. Continue matching functions: `get_held_buttons` (needs the **decomp-permuter**
-   — see [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)),
-   then `think_setting_sleep` (needs maspsx; C draft already sketched).
+6. Continue matching functions: `think_setting_sleep` next (needs maspsx; C
+   draft already sketched). The **decomp-permuter** workflow is established —
+   `get_held_buttons` was matched with it (see
+   [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)); wire
+   it into the repo (`compile.sh`/`import.py`) for reuse.
 
 ## Notes
 

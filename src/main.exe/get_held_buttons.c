@@ -1,24 +1,21 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/get_held_buttons", get_held_buttons);
-
 /*
- * WIP: arithmetic-perfect, but the instruction scheduling / register allocation
- * does not yet byte-match. See docs/case-study-get-held-buttons.md.
+ * Returns the held-buttons word for controller [arg0 >> 4][arg0 & 3].
  *
- * The body below is functionally correct (confirmed vs m2c) and produces the
- * right MIPS arithmetic (the *14 / *56 strength-reduced multiplies, the lhu),
- * but gcc 2.8.1 schedules the two index terms in the opposite order and picks
- * different registers than the target. The target computes the OUTER index
- * (arg0 >> 4) first because it reuses $s0 for the inner index, and materialises
- * the full &HELD_BUTTONS address (lui+addiu) grouped with the inner term. No
- * source rewrite reproduced that exact allocation across ~25 variants — this is
- * a decomp-permuter job, not a maspsx one (there is no div / gp-rel / nop here).
- *
- * buttons_held get_held_buttons(s32 arg0)
- * {
- *     FUN_8001ada4();
- *     return HELD_BUTTONS[arg0 >> 4][arg0 & 3].held;
- * }
+ * The pointer temporary and the do/while(0) are not cosmetic: they are what
+ * makes GCC 2.8.1 pick the exact register allocation / instruction schedule of
+ * the original (found with decomp-permuter). Writing the natural
+ * `return HELD_BUTTONS[arg0 >> 4][arg0 & 3].held;` computes the indices in the
+ * other order and no longer byte-matches. See docs/matching-get-held-buttons.md.
  */
+buttons_held get_held_buttons(s32 arg0)
+{
+    buttons_held *held;
+    FUN_8001ada4();
+    do {
+        held = &HELD_BUTTONS[arg0 >> 4][arg0 & 3].held;
+        return *held;
+    } while (0);
+}
