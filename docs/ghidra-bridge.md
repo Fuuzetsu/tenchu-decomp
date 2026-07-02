@@ -51,14 +51,41 @@ with the permuter / asm-differ as usual. Same pattern as `get_held_buttons`.
 
 Manual mode (no export): `tools/reverse.py <name> --addr 0x… --size 0x…`.
 
-## Notes / next
+## Symbol names (done)
 
-- The importer currently pulls only the decompiled **C**. Ghidra's **types/structs**
-  and **symbol names** are also valuable — importing structs would directly unblock
-  `think_setting_sleep` (its blocker is a `character_state` layout mismatch). That's
-  a follow-up (a types→`main.exe.h` exporter); ask when you want it.
-- `ReduxSymbols.java` (your existing script) already syncs symbol names to
-  pcsx-redux; a similar exporter could feed `config/symbols.main.exe.txt`.
-- rodata: if a function has associated `.rodata` (jump tables, float constants) that
-  lives inside the split region, the byte-check will catch a mismatch — handle those
-  case-by-case (splat `rodata` subsegment) for now.
+`tools/ghidra/ExportSymbolsTypes.java` dumps all global symbols → `symbols.tsv`,
+and `tools/import_symbols.py` adopts those names across the whole decomp
+(`config/symbols`, the splat yaml, `src/*.c` + filenames, `main.exe.h`). Only
+names change (addresses are identical) so `./Build check` stays byte-identical.
+Re-run it after you rename things in Ghidra:
+
+```console
+$ tools/import_symbols.py --ghidra-export .shake/ghidra-export
+```
+
+It renames game-RAM symbols only (leaves PSX hardware/BIOS names), never
+downgrades a real name to a Ghidra placeholder (`FUN_…`), and skips collisions.
+
+## Types (reference)
+
+`ExportSymbolsTypes.java` also writes `types.h`; a snapshot is committed at
+[`reference/ghidra_types.h`](../reference/ghidra_types.h) (157 structs/enums).
+It's **reference only, not built** — types affect codegen, so replacing
+`main.exe.h` wholesale risks breaking already-matched functions. Adopt types
+**per function** as you reverse (copy the struct you need into `main.exe.h`,
+adjust, and let `./Build check` catch layout mistakes).
+
+Example: `think_setting_sleep` (now `Think1sleep`) is blocked by a wrong
+`character_state` layout. Ghidra's decompilation is `Me_THINK_C->motion->mid` /
+`->count` — i.e. the character struct has a `motion` pointer at 0x5C (correct),
+and `motion` points to a `{ short mid; short count; … }`. Pull that layout from
+`reference/ghidra_types.h` to fix it.
+
+## Notes
+
+- Only the program's data-type manager is exported (PSY-Q + applied game types).
+  Game structs in the separate "Shared data types" *archive* that aren't applied
+  in `MAIN.EXE` won't appear; export the archive separately if needed.
+- rodata: if a split function has associated `.rodata` (jump tables, floats)
+  inside its region, the byte-check catches the mismatch — handle case-by-case
+  (a splat `rodata` subsegment) for now.
