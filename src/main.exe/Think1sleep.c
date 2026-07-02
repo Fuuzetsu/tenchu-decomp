@@ -1,7 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/think_setting_sleep", Think1sleep);
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think1sleep", Think1sleep);
 
 /*
  * WIP. The body below (from m2c) is functionally correct and, with maspsx now in

@@ -15,7 +15,7 @@ and only git-ignore the build outputs.
 
 Fix: move splat's asm output under a committed `asm/main.exe/` and set
 `base_path: .` so the include collapses to the clean
-`INCLUDE_ASM("main.exe/nonmatchings/think_setting_sleep", think_setting_sleep_)`
+`INCLUDE_ASM("main.exe/nonmatchings/Think1sleep", Think1sleep)`
 form (matching SOTN/esa). The `include/include_asm.h` macro already emits
 `.include "FOLDER/NAME.s"`, so only the FOLDER string and the committed location
 change.

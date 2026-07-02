@@ -75,7 +75,7 @@ It's **reference only, not built** — types affect codegen, so replacing
 **per function** as you reverse (copy the struct you need into `main.exe.h`,
 adjust, and let `./Build check` catch layout mistakes).
 
-Example: `think_setting_sleep` (now `Think1sleep`) is blocked by a wrong
+Example: `Think1sleep` is blocked by a wrong
 `character_state` layout. Ghidra's decompilation is `Me_THINK_C->motion->mid` /
 `->count` — i.e. the character struct has a `motion` pointer at 0x5C (correct),
 and `motion` points to a `{ short mid; short count; … }`. Pull that layout from

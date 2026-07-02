@@ -17,7 +17,7 @@ byte-identical `main.exe`.
   via nix (no cabal/wine). maspsx is integrated (see [`docs/toolchain.md`](docs/toolchain.md)).
 - **Matched functions:** `initialise_font` and `get_held_buttons` (the latter via
   decomp-permuter — [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)).
-  `think_setting_sleep` is a WIP stub (see roadmap #1).
+  `Think1sleep` is a WIP stub (see roadmap #1).
 - **Modding + emulator loop works:** `./Build mod` (grow functions) and
   `./Build iso`/`iso-mod` (bootable disc for pcsx-redux). See docs/.
 
@@ -50,9 +50,9 @@ The **build environment**, not the decomp logic:
 
 Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 
-1. **Finish `think_setting_sleep`** (the active matching target). maspsx made it
+1. **Finish `Think1sleep`** (the active matching target). maspsx made it
    very close; the exact remaining work is documented in the stub
-   (`src/main.exe/think_setting_sleep.c`) and [`docs/toolchain.md`](docs/toolchain.md):
+   (`src/main.exe/Think1sleep.c`) and [`docs/toolchain.md`](docs/toolchain.md):
    (a) declare its gp globals as tentative definitions (drop `extern`) so maspsx
    emits `%gp_rel` — the *reusable* gp pattern; (b) fix `character_state` type
    sizes (`character_kind`/`character_status` → 2 bytes, `button_mask` → 2 bytes so

@@ -43,7 +43,7 @@ BUILD GREEN (byte-identical)
 - `initialise_font` and `get_held_buttons` are **fully decompiled C functions
   that byte-match** — proof the pipeline handles real C, not just `INCLUDE_ASM`
   stubs. `get_held_buttons` was matched with the **decomp-permuter** (see the
-  case study). `think_setting_sleep` is still a WIP stub.
+  case study). `Think1sleep` is still a WIP stub.
 
 ## What was wrong, and what got fixed
 
@@ -72,6 +72,6 @@ latent bugs. Fixed in this batch of work (see `build-system.md` for detail):
 
 ## Next step
 
-Finish `think_setting_sleep` (the active matching target) — see `PLAN.md` #1 and
-the analysis in `src/main.exe/think_setting_sleep.c`: gp globals as tentative
+Finish `Think1sleep` (the active matching target) — see `PLAN.md` #1 and
+the analysis in `src/main.exe/Think1sleep.c`: gp globals as tentative
 definitions, `character_state` type-size fixes, then a permuter pass.

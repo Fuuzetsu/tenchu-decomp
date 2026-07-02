@@ -109,7 +109,7 @@ maspsx *before* the flag flip.
 6. If `-G8` triggers gcc's function-after-data reordering and breaks an
    INCLUDE_ASM order (low risk today), apply maspsx's `# maspsx-keep` /
    `__maspsx_include_asm_hack_<NAME>` workaround in `include/include_asm.h`.
-7. **Confirm the version:** decompile a gp-using function (`think_setting_sleep`
+7. **Confirm the version:** decompile a gp-using function (`Think1sleep`
    is the obvious candidate — its C draft is already sketched) and `diff.py` it
    against the target. Escalate the aspsx version only on an observed `la`/`gp`
    mismatch.
@@ -144,7 +144,7 @@ outside gp range) stay `extern` and are addressed absolutely — that's correct.
 
 The clean long-term form is to split these globals into a real `.sdata`/`.sbss`
 section symbolically; the tentative-definition trick is the interim that matches
-today. `think_setting_sleep` is the first function that needs this.
+today. `Think1sleep` is the first function that needs this.
 
 ## Notes on the current `cc1` flags
 
