@@ -65,6 +65,15 @@ decision + recipe, project layout, and a matching case study. Ranked next steps:
    [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)); wire
    it into the repo (`compile.sh`/`import.py`) for reuse.
 
+## Modding / non-matching builds
+
+`./Build` (without `check`) already builds non-matching C. Same-size behaviour
+edits produce a valid, runnable binary (only the changed bytes differ). Size-
+changing edits (e.g. debug prints) shift everything after the function and break
+the fixed partial-decomp layout — see
+[`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) for the
+trampoline/mod-region approach to allow growth (not yet wired in).
+
 ## Notes
 
 - Generator oracle detects staleness by the *set* of generated file paths, not

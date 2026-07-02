@@ -15,6 +15,9 @@ decisions behind the toolchain. It's the reference companion to the terse
   from established PSX decomps, what to keep vs change, and Shake-vs-Make.
 - [matching-get-held-buttons.md](matching-get-held-buttons.md) — a worked
   case study of trying to byte-match a real function, and what makes it hard.
+- [modding-and-nonmatching.md](modding-and-nonmatching.md) — building
+  non-matching binaries (behaviour changes, debug): what works (same-size edits)
+  and how to handle growth.
 
 ## Current state (verified 2026-07-02)
 
