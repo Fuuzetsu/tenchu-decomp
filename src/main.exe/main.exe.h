@@ -2,8 +2,16 @@
 
 typedef u16 buttons_held;
 
+// One controller's input state; 14 bytes. get_held_buttons indexes a
+// [port][slot] table of these and reads the first (held) field.
+typedef struct
+{
+    buttons_held held;
+    u16 unk_2[6];
+} controller_input;
+
 extern void FUN_8001ada4(void);
-extern buttons_held HELD_BUTTONS;
+extern controller_input HELD_BUTTONS[][4];
 
 typedef struct
 {
