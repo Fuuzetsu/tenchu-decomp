@@ -19,7 +19,8 @@ disks/tenchu/main.exe   (the real game executable — source of truth)
 per C file:   src/main.exe/<fn>.c   (hand-written, overrides the stub if present)
         │
         ▼  mipsel-…-cpp  (cppFlags)      → .shake/processed/main.exe/<fn>.c
-        ▼  tools/cc1-281 (ccFlags)       → .shake/processed/main.exe/<fn>.s
+        ▼  tools/cc1-281 (ccFlags, -G8)  → cc1 asm
+        ▼  maspsx (--aspsx-version=2.77) → .shake/processed/main.exe/<fn>.s
         ▼  mipsel-…-as   (asFlags, --MD) → .shake/build/main.exe/<fn>.c.o
 
 per asm file: .shake/gen/…/*.s

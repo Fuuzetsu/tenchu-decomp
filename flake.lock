@@ -241,6 +241,22 @@
         "type": "github"
       }
     },
+    "maspsx": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777925843,
+        "narHash": "sha256-pKFFWBS/OaPk7z4JbjUummlWJ49kRgHS1penf3pemnc=",
+        "owner": "mkst",
+        "repo": "maspsx",
+        "rev": "42b862c988fe7a13fe4e7ac0ebec90ed6b9fb763",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mkst",
+        "repo": "maspsx",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1669833724,
@@ -376,6 +392,7 @@
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "m2c": "m2c",
+        "maspsx": "maspsx",
         "nixpkgs": "nixpkgs_2",
         "spimdisasm": "spimdisasm",
         "splat": "splat"

@@ -1,8 +1,13 @@
 # Toolchain: maspsx vs ASPSX.EXE, and how to reach byte-matches
 
+> **Status: maspsx is integrated.** The pipeline is `cpp | cc1-281 -G8 | maspsx
+> --aspsx-version=2.77 -G8 | as -G0 | ld`. wine has been removed from the
+> devShell. `./Build check` stays byte-identical. The "Recipe" section below is
+> kept as the rationale/record.
+
 ## TL;DR — do we need maspsx or ASPSX.EXE / wine?
 
-**Use maspsx. Delete wine.**
+**Use maspsx. Delete wine.** (Done.)
 
 maspsx *replaces* `ASPSX.EXE` (+ `psyq-obj-parser`); it is not a complement. This
 repo already committed to the modern, wine-free "path B" that every active PSX
@@ -70,10 +75,12 @@ so don't jump there pre-emptively. Overlays (`slps_019.01`, etc.) may use a
 different version — check each when tackled (SOTN, for instance, uses 2.67 for
 one overlay, 2.77 elsewhere).
 
-## Recipe: add maspsx to the pipeline
+## Recipe: add maspsx to the pipeline (done — kept as the record)
 
-Ordered, with the gating checks. See the maspsx research synthesis in the git
-history / `PLAN.md` for full rationale.
+This is how maspsx was integrated (all steps below are done except cc1 pinning,
+which stays on the roadmap). Gating check: `./Build check` stayed byte-identical,
+and `get_held_buttons`/`initialise_font` were verified unchanged under `-G8` +
+maspsx *before* the flag flip.
 
 1. **Vendor maspsx** into the devShell (it's a single-file, stdlib-only Python
    script). Mirror the `asm-differ` pattern in `flake.nix`: add a

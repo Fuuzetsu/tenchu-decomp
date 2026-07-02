@@ -22,6 +22,10 @@
       url = "github:simonlindholm/asm-differ";
       flake = false;
     };
+    maspsx = {
+      url = "github:mkst/maspsx";
+      flake = false;
+    };
   };
 
   outputs =
@@ -33,6 +37,7 @@
     , m2c
     , asm-differ
     , spimdisasm
+    , maspsx
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -58,9 +63,15 @@
 
           };
         in
-        pkgs.writeShellScriptBin "diff.py" '' 
+        pkgs.writeShellScriptBin "diff.py" ''
               ${asm-differ.dependencyEnv}/bin/python ${inputs.asm-differ}/diff.py "$@"
           '';
+
+      # maspsx: post-processes cc1's asm so GNU as reproduces PSY-Q ASPSX bytes
+      # (replaces ASPSX.EXE — no wine needed). Single-file, stdlib-only Python.
+      maspsx-bin = pkgs.writeShellScriptBin "maspsx" ''
+        exec ${pkgs.python3}/bin/python3 ${inputs.maspsx}/maspsx.py "$@"
+      '';
     in
     {
       legacyPackages = pkgs;
@@ -80,7 +91,7 @@
             mkdir -p "$out"/bin
             ln -s "${pkgs.gcc}/bin/cpp" "$out"/bin 
           '')
-          pkgs.wine
+          maspsx-bin
           # GHC with the Shake build tool's deps baked into its global package
           # DB, so `./Build` compiles shake/src/Build.hs with plain `ghc` fully
           # offline — no `cabal update`/Hackage fetch on a fresh checkout.

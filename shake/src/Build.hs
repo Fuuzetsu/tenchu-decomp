@@ -67,6 +67,18 @@ cpp = cross "cpp"
 cc :: FilePath
 cc = "tools/cc1-281"
 
+-- | maspsx post-processes cc1's asm so GNU @as@ reproduces PSY-Q ASPSX's bytes
+-- (div traps, load-delay nops, $at/li/move expansion, $gp small-data layout).
+-- Runs as a filter between cc1 and @as@; provided by the nix devShell.
+maspsx :: FilePath
+maspsx = "maspsx"
+
+-- | @--aspsx-version=2.77@ is the evidenced version for Tenchu (gp symbol+offset
+-- addressing present, 1993-1997 SDK). @-G8@ is the small-data threshold maspsx
+-- emulates for $gp layout (it matches cc1's @-G8@; @as@ still gets @-G0@).
+maspsxFlags :: [String]
+maspsxFlags = ["--aspsx-version=2.77", "-G8"]
+
 as :: FilePath
 as = cross "as"
 
@@ -100,7 +112,10 @@ ccFlags :: [String]
 ccFlags =
   [ "-mcpu=3000",
     "-quiet",
-    "-G0",
+    -- -G8: small globals go in .sdata/.sbss and are addressed via $gp, as the
+    -- original ASPSX build did. maspsx reproduces the resulting layout; `as`
+    -- itself still runs with -G0 (see asFlags).
+    "-G8",
     "-w",
     "-O2",
     "-funsigned-char",
@@ -223,8 +238,13 @@ objRules = do
     let processed = replaceExtension out "c"
     need [processed]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
-    putInfo $ "Feeding " <> processed <> " to cc"
-    cmd_ (FileStdin processed) (FileStdout out) cc ccFlags
+    putInfo $ "Feeding " <> processed <> " to cc | maspsx"
+    -- cc1 -> maspsx (filter) -> .s. maspsx massages cc1's asm so that `as`
+    -- reproduces ASPSX's bytes; it leaves INCLUDE_ASM's .include/.section/.set
+    -- directives untouched, so stubs pass through unchanged.
+    withTempFile $ \ccOut -> do
+      cmd_ (FileStdin processed) (FileStdout ccOut) cc ccFlags
+      cmd_ (FileStdin ccOut) (FileStdout out) maspsx maspsxFlags
 
   buildDir <//> "*.c.o" %> \out -> do
     let fileComponent = makeRelative buildDir out
