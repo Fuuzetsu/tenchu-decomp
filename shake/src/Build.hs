@@ -180,7 +180,11 @@ main = do
             shakeVerbosity = Verbose,
             shakeTimings = True,
             shakeChange = ChangeDigest,
-            shakeFiles = shakeDir
+            shakeFiles = shakeDir,
+            -- Bump to force a full rebuild when a rule's *command* changes in a
+            -- way Shake can't see (it doesn't track cmd_ contents). Bumped when
+            -- main.exe.elf stopped being stripped (needed by the `mod` target).
+            shakeVersion = "2"
           }
   shakeArgs opts rules
 
