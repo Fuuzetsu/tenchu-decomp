@@ -18,6 +18,8 @@ decisions behind the toolchain. It's the reference companion to the terse
 - [modding-and-nonmatching.md](modding-and-nonmatching.md) — building
   non-matching binaries (behaviour changes, debug): what works (same-size edits)
   and how to handle growth.
+- [building-an-iso.md](building-an-iso.md) — `./Build iso` / `iso-mod`: rebuild a
+  bootable CD image (`.bin`/`.cue`) for pcsx-redux with our `main.exe`.
 
 ## Current state (verified 2026-07-02)
 

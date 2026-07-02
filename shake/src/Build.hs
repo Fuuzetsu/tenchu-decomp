@@ -364,6 +364,18 @@ phonyRules = do
     need [mainExe, mainExe <.> "elf"]
     cmd_ "tools/mkmod.py"
 
+  -- Rebuild the game's CD image with our main.exe -> a bootable .bin/.cue for
+  -- pcsx-redux. Needs the original disc (see tools/mkiso.py). `iso` uses the
+  -- matching build; `iso-mod` uses the grown main_mod.exe from `mod`.
+  phony "iso" $ do
+    need [mainExe]
+    cmd_ "tools/mkiso.py"
+
+  phony "iso-mod" $ do
+    need [mainExe, mainExe <.> "elf"]
+    cmd_ "tools/mkmod.py"
+    cmd_ "tools/mkiso.py" ["--exe", buildDir </> "tenchu" </> "main_mod.exe"]
+
   phony "check" $ do
     let reference = "disks" </> "tenchu" </> "main.exe"
     need [mainExe, reference]

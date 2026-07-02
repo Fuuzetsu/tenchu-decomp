@@ -72,6 +72,9 @@
       maspsx-bin = pkgs.writeShellScriptBin "maspsx" ''
         exec ${pkgs.python3}/bin/python3 ${inputs.maspsx}/maspsx.py "$@"
       '';
+
+      # mkpsxiso + dumpsxiso: dump/rebuild the game's CD image (`./Build iso`).
+      mkpsxiso = pkgs.callPackage ./nix/mkpsxiso.nix { };
     in
     {
       legacyPackages = pkgs;
@@ -92,6 +95,7 @@
             ln -s "${pkgs.gcc}/bin/cpp" "$out"/bin 
           '')
           maspsx-bin
+          mkpsxiso
           # GHC with the Shake build tool's deps baked into its global package
           # DB, so `./Build` compiles shake/src/Build.hs with plain `ghc` fully
           # offline — no `cabal update`/Hackage fetch on a fresh checkout.

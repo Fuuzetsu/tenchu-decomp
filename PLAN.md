@@ -76,6 +76,15 @@ decision + recipe, project layout, and a matching case study. Ranked next steps:
   [`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) and
   `tools/mkmod.py`. (Runtime-safe `MODBASE` may need the game's memory map.)
 
+## Running in an emulator (`./Build iso`)
+
+`./Build iso` rebuilds the game's CD image with our `main.exe` (via mkpsxiso,
+packaged in `nix/mkpsxiso.nix`) → a `.bin`/`.cue` for pcsx-redux. Matching build →
+data track byte-identical to the original except `main.exe`; `./Build iso-mod`
+puts the grown `main_mod.exe` on the disc (auto-LBA). Needs the original disc
+(`TENCHU_CUE=…` or under `disks/`/`~/tenchu-iso/`). See
+[`docs/building-an-iso.md`](docs/building-an-iso.md).
+
 ## Notes
 
 - Generator oracle detects staleness by the *set* of generated file paths, not
