@@ -4,14 +4,37 @@
 /*
  * Pre-mission briefing / item selection screen (0x80052084, 0xE24 bytes).
  *
- * WIP draft — see the INCLUDE_ASM stub at the bottom which is still the
- * linked implementation while this is iterated with matchdiff.
+ * CURRENT(94): the #if 0 draft below assembles to the exact instruction
+ * count (905/905) with 94 differing lines in 57 blocks -- all remaining
+ * diffs are register-home pairings (asmdiff.py view):
+ *   1. entry clamp: {v1,a0} pair (stock-addr temp vs maxStock); the case-1
+ *      clamp copy matches, only the entry copy is inverted (7 lines).
+ *   2. (s16)pad.u argument of check_for_known_button_combination: ours
+ *      extends into a0 before the np xor/and chain, target extends in-place
+ *      on v0 after it (4 lines).
+ *   3. case-0x1F store block {v0,v1} pair -- collateral of the do{}while(0)
+ *      wrapper that fixes nsel/scale=s6/s7 (7 lines, net win).
+ *   4. case-7 inner-sum addu operand order (1 line).
+ *   5. grid loop: {v0,v1,a1} temp rotation, inner-sum order, and the
+ *      j+1-into-delay-slot steal (target duplicates addiu into the c==0xFE
+ *      skip branch; ours fills from fallthrough) (~14 lines).
+ *   6. cursor block {t3,t4}: ddx vs best (5 lines).
+ *   7. the {s1,s2} family (~30 lines): T wants shown(+dy)=s1/jext=s2 and
+ *      u0=s1/dsp=s2; ours has each pair swapped, plus the digit-block entry
+ *      schedule (addiu sp,24 first vs our nop) and T's extra
+ *      `andi s0,s1,0xff` (u0 re-mask that combine folds for us via
+ *      nonzero_bits of u0's single lbu def -- implies u0 is a reuse of a
+ *      wider-def variable; u0=shown directly produced a shared (int) copy
+ *      pseudo instead of the andi).
  */
 
 /* The persistent state is accessed three ways in the original, on purpose:
  *  - through short-lived pointer locals (q/ps/r below) -> reg+disp addressing;
  *  - through PSTATE casts in the two entry loops -> one hoisted 0x80010000;
  *  - through plain extern globals -> assembler one-line macro (lui+op pairs).
+ * Array-indexing spelling picks the addu operand order: `p->arr[i]` puts the
+ * base first, `(&p->arr[0])[i]` puts the index first, the extern-symbol form
+ * puts the (hoisted) %hi base first.
  */
 #define PSTATE ((PersistentState *)0x80010000)
 
@@ -96,18 +119,13 @@ static inline void TimToSprite(u_long *buf, GsSPRITE *sp)
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", BriefingAndInventorySelectionScreen);
 
-/*
- * WIP draft — structure verified against the target (see the header notes),
- * 241 differing instruction-lines remain, almost all register-allocation
- * cascades. Enable by deleting the INCLUDE_ASM above and the #if 0 guard.
- */
 #if 0
 void BriefingAndInventorySelectionScreen(void)
 {
     GsSPRITE spr;
     GsSPRITE hspr;
     s16 bounce;
-    u16 pad;
+    union { u16 u; s16 s; } pad;
     u16 cap;
     u16 taken;
     void *bg;
@@ -116,38 +134,44 @@ void BriefingAndInventorySelectionScreen(void)
     int help;
     PersistentState *q;
     PersistentState *ps;
-    PersistentState *r;
     GsSPRITE *dsp;
     u_long *buf;
     int cursor;
-    int nsel;
     int scale;
+    int nsel;
     s16 np;
-    int i;
-    s16 j;
-    s16 gi;
+    int i;        /* entry backup loop */
+    s16 j;        /* counts loop, case1/3 loops, grid, shown, cursor dx, epilogue */
+    s32 x;        /* grid x, cursor dy */
+    s32 y;        /* grid y */
+    s16 j7;       /* case 7 loop */
+    int ci;       /* clamp loops */
+    int si;       /* cursor search */
     s16 shown;
+    s16 av;
+    int t;
+    int uid;
     int id;
 
-    cursor = 0;
-    pad = -1;
+    pad.s = -1;
     cap = 0xF;
+    cursor = 0;
     taken = 0;
     help = -1;
 
     for (i = 0; i < 0x14; i++) {
-        PSTATE->backup[i] = PSTATE->stock[CHOSEN_CHARACTER * 0x20 + i];
+        PSTATE->backup[i] = PSTATE->stock[i + CHOSEN_CHARACTER * 0x20];
     }
     for (j = 0; j < 0x14; j++) {
         PSTATE->counts[j] = 0;
     }
     q = (PersistentState *)0x80010000;
-    if (StageConfig[q->stage].uid == 0) {
-        q->counts[0] = 0xFF;
+    uid = StageConfig[q->stage].uid;
+    q->counts[0] = 0xFF;
+    if (uid == 0) {
         q->counts[1] = 5;
         return;
     }
-    q->counts[0] = 0xFF;
     if ((q->flags48 & 1) == 0) {
         FUN_800519bc();
     }
@@ -175,22 +199,25 @@ void BriefingAndInventorySelectionScreen(void)
     nsel = 1;
     harc = LoadHelpArchive(q);
 
-    for (i = 0; i < 0x13; i++) {
-        int n = SHOP_ITEM_DEFAULTS[i].itemIndex + CHOSEN_CHARACTER * 0x20;
-        s32 mx = SHOP_ITEM_DEFAULTS[i].maxStock;
-        u8 c = PSTATE->stock[n];
-        if (c != 0xFE && mx < c) {
-            PSTATE->stock[n] = mx;
+    {
+        PersistentState *cq = (PersistentState *)0x80010000;
+        for (ci = 0; ci < 0x13; ci++) {
+            int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
+            u8 c = cq->stock[n];
+            s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
+            if (c != 0xFE && mx < c) {
+                cq->stock[n] = mx;
+            }
         }
     }
 
     ps = (PersistentState *)0x80010000;
     do {
         rand();
-        np = pad;
-        pad = GetRealPad(0);
-        np = pad & (pad ^ np);
-        id = check_for_known_button_combination((s16)pad, np);
+        np = pad.u;
+        pad.u = GetRealPad(0);
+        np = pad.u & (pad.u ^ np);
+        id = check_for_known_button_combination((s16)pad.u, np);
         switch ((s16)(id - 1)) {
         case 0:
             if (CARRY_30_ITEMS_CHEAT_APPLIED == 0) {
@@ -201,32 +228,35 @@ void BriefingAndInventorySelectionScreen(void)
         case 1:
             for (j = 1; j < 9; j++) {
                 int n = j + ps->chr * 0x20;
-                if (ps->stock[n] == 0xFE) {
-                    ps->stock[n] = 1;
+                if ((&ps->stock[0])[n] == 0xFE) {
+                    (&ps->stock[0])[n] = 1;
                 } else {
-                    ps->stock[n] = ps->stock[n] + 1;
+                    (&ps->stock[0])[n] = (&ps->stock[0])[n] + 1;
                 }
             }
             for (j = 9; j < 0x14; j++) {
                 int n = j + ps->chr * 0x20;
-                if (ps->stock[n] != 0xFE) {
-                    ps->stock[n] = ps->stock[n] + 1;
+                if ((&ps->stock[0])[n] != 0xFE) {
+                    (&ps->stock[0])[n] = (&ps->stock[0])[n] + 1;
                 }
             }
-            for (i = 0; i < 0x13; i++) {
-                int n = SHOP_ITEM_DEFAULTS[i].itemIndex + CHOSEN_CHARACTER * 0x20;
-                s32 mx = SHOP_ITEM_DEFAULTS[i].maxStock;
-                u8 c = PSTATE->stock[n];
-                if (c != 0xFE && mx < c) {
-                    PSTATE->stock[n] = mx;
+            {
+                PersistentState *cq = (PersistentState *)0x80010000;
+                for (ci = 0; ci < 0x13; ci++) {
+                    int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
+                    u8 c = cq->stock[n];
+                    s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
+                    if (c != 0xFE && mx < c) {
+                        cq->stock[n] = mx;
+                    }
                 }
             }
             break;
         case 3:
             for (j = 9; j < 0x14; j++) {
                 int n = j + ps->chr * 0x20;
-                if (ps->stock[n] == 0xFE) {
-                    ps->stock[n] = 1;
+                if ((&ps->stock[0])[n] == 0xFE) {
+                    (&ps->stock[0])[n] = 1;
                 }
             }
             break;
@@ -234,21 +264,23 @@ void BriefingAndInventorySelectionScreen(void)
             if (ps->chr != 0) {
                 u8 already = ps->counts[0x13];
                 if (already != 0 || (&ps->stock[0x13])[ps->chr * 0x20] == 1) {
-                    if ((s16)nsel < 6) {
-                        if (already == 0) {
-                            nsel++;
-                            taken++;
+                    do {
+                        if ((s16)nsel < 6) {
+                            if (already == 0) {
+                                nsel++;
+                                taken++;
+                            }
+                            ps->counts[0x13] = 0xFF;
+                            (&ps->stock[0x13])[ps->chr * 0x20] = 0;
+                            SoundEx((VECTOR *)0x0, 8);
                         }
-                        ps->counts[0x13] = 0xFF;
-                        (&ps->stock[0x13])[ps->chr * 0x20] = 0;
-                        SoundEx((VECTOR *)0x0, 8);
-                    }
+                    } while (0);
                 }
             }
             break;
         case 7:
-            for (j = 0; j < 0x14; j++) {
-                ps->stock[(int)j + CHOSEN_CHARACTER * 0x20] = ps->backup[j];
+            for (j7 = 0; j7 < 0x14; j7++) {
+                (&ps->stock[0])[CHOSEN_CHARACTER * 0x20 + (int)j7] = (&ps->backup[0])[j7];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
             FUN_80038ce0();
@@ -262,60 +294,58 @@ void BriefingAndInventorySelectionScreen(void)
         }
         StartDrawing();
         DrawBG(bg);
-        gi = 0;
+        j = 0;
     grid:
         {
-            int n = SHOP_ITEM_DEFAULTS[gi].itemIndex;
-            u8 c = ps->stock[n + ps->chr * 0x20];
+            int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
+            u8 c = (&ps->stock[0])[n + ps->chr * 0x20];
             if (c != 0xFE) {
-                s32 x = SHOP_ITEM_DEFAULTS[gi].x;
-                s32 y = SHOP_ITEM_DEFAULTS[gi].y;
+                x = SHOP_ITEM_DEFAULTS[j].x;
+                y = SHOP_ITEM_DEFAULTS[j].y;
                 if (c != 0xFF) {
                     PutNumber(x + 0x1A, y + 8, c);
                 }
                 PutItemIcon(n, x, y, 0x1000);
             }
         }
-        gi++;
-        if (gi < 0x13)
+        j++;
+        if (j < 0x13)
             goto grid;
 
         PutItemCursor(SHOP_ITEM_DEFAULTS[cursor].x, SHOP_ITEM_DEFAULTS[cursor].y, 0x1000, -0x3000);
         {
-            s16 dy;
-            s16 dx;
             int ddy, ddx;
             int k;
 
-            dy = 0x10;
+            shown = 0x10;
             if ((np & 0x4000) == 0) {
-                dy = 0;
+                shown = 0;
                 if ((np & 0x1000) != 0) {
-                    dy = -0x10;
+                    shown = -0x10;
                 }
             }
-            dx = 0x10;
+            j = 0x10;
             if ((np & 0x2000) == 0) {
-                dx = 0;
+                j = 0;
                 if ((np & 0x8000) != 0) {
-                    dx = -0x10;
+                    j = -0x10;
                 }
             }
-            ddx = dx;
-            ddy = dy;
+            ddx = j;
+            ddy = shown;
             k = cursor;
             if (ddx != 0 || ddy != 0) {
                 int best = 0x7FFFFFFF;
                 int bi = cursor;
                 int tx = SHOP_ITEM_DEFAULTS[bi].x + ddx;
                 int ty = SHOP_ITEM_DEFAULTS[bi].y + ddy;
-                for (i = 0; i < 0x13; i++) {
-                    int ex = SHOP_ITEM_DEFAULTS[i].x - tx;
-                    int ey = SHOP_ITEM_DEFAULTS[i].y - ty;
+                for (si = 0; si < 0x13; si++) {
+                    int ex = SHOP_ITEM_DEFAULTS[si].x - tx;
+                    int ey = SHOP_ITEM_DEFAULTS[si].y - ty;
                     int d = ex * ex + ey * ey;
-                    if (d < best && 0 <= ex * ddx && 0 <= ey * ddy && i != k) {
+                    if (d < best && 0 <= ex * ddx && 0 <= ey * ddy && si != k) {
                         best = d;
-                        bi = i;
+                        bi = si;
                     }
                 }
                 cursor = bi;
@@ -326,24 +356,24 @@ void BriefingAndInventorySelectionScreen(void)
             help = -1;
         }
         if (np != 0) {
-            if ((s16)pad == 0x20) {
+            if ((s16)pad.u == 0x20) {
                 np = 0;
                 bounce = 1;
                 {
                     s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                     scale = 0x200;
-                    if (ps->stock[idx + ps->chr * 0x20] != 0) {
-                        if (ps->stock[idx + ps->chr * 0x20] != 0xFE) {
+                    if ((&ps->stock[0])[ps->chr * 0x20 + idx] != 0) {
+                        if ((&ps->stock[0])[ps->chr * 0x20 + idx] != 0xFE) {
                             if ((s16)taken < cap) {
-                                u8 cnt = ps->counts[idx];
+                                u8 cnt = (&ps->counts[0])[idx];
                                 if (cnt == 0) {
                                     nsel++;
                                 }
                                 if ((s16)nsel < 6) {
                                     if (idx != 0x13 || D_8001001A == 0) {
-                                        ps->counts[idx] = cnt + 1;
+                                        (&ps->counts[0])[idx] = cnt + 1;
                                         taken++;
-                                        ps->stock[idx + ps->chr * 0x20]--;
+                                        (&ps->stock[0])[ps->chr * 0x20 + idx]--;
                                     }
                                     SoundEx((VECTOR *)0x0, 0xD);
                                 } else {
@@ -359,21 +389,21 @@ void BriefingAndInventorySelectionScreen(void)
                     }
                 }
             }
-            if (np != 0 && (s16)pad == 0x40) {
+            if (np != 0 && (s16)pad.u == 0x40) {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                 bounce = 2;
                 {
-                    u8 c = ps->counts[idx];
+                    u8 c = (&ps->counts[0])[idx];
                     scale = 0x1400;
                     if (c != 0) {
                         if (c == 0xFF) {
-                            ps->counts[idx] = 0;
-                            ps->stock[idx + ps->chr * 0x20] = 1;
+                            (&ps->counts[0])[idx] = 0;
+                            (&ps->stock[0])[ps->chr * 0x20 + idx] = 1;
                             nsel--;
                         } else {
-                            ps->counts[idx] = c - 1;
-                            ps->stock[idx + ps->chr * 0x20]++;
-                            if (ps->counts[idx] == 0) {
+                            (&ps->counts[0])[idx] = c - 1;
+                            (&ps->stock[0])[ps->chr * 0x20 + idx]++;
+                            if ((&ps->counts[0])[idx] == 0) {
                                 nsel--;
                             }
                         }
@@ -388,7 +418,7 @@ void BriefingAndInventorySelectionScreen(void)
             scale += 0xC0;
         }
         if (help == -1) {
-            if (ps->stock[SHOP_ITEM_DEFAULTS[cursor].itemIndex + ps->chr * 0x20] != 0xFE) {
+            if ((&ps->stock[0])[ps->chr * 0x20 + SHOP_ITEM_DEFAULTS[cursor].itemIndex] != 0xFE) {
                 help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
             }
         }
@@ -411,59 +441,69 @@ void BriefingAndInventorySelectionScreen(void)
             GsSortSprite(&hspr, OTablePt, 1);
         }
         if (bounce == 1) {
-            scale += 0x10;
-            if (0x1400 < (s16)scale) {
+            t = scale + 0x10;
+            scale = t;
+            if (0x1400 < (s16)t) {
                 bounce ^= 1;
             }
         } else if (bounce == 0) {
-            scale -= 0x10;
-            if ((s16)scale < 0x1000) {
+            t = scale - 0x10;
+            scale = t;
+            if ((s16)t < 0x1000) {
                 bounce ^= 1;
             }
         } else if (bounce == 2) {
-            scale -= 0x10;
-            if ((s16)scale < 0x1000) {
+            t = scale - 0x10;
+            scale = t;
+            if ((s16)t < 0x1000) {
                 bounce = 0;
             }
         }
         shown = 0;
-        for (gi = 0; gi < 0x14; gi++) {
-            u8 c = ps->counts[gi];
+        for (j = shown; j < 0x14; j++) {
+            u8 c = (&ps->counts[0])[j];
             if (c != 0) {
                 if (c != 0xFF) {
                     PutNumber(0xA6 - shown * 0x19, 0x62, c);
                 }
-                PutItemIcon((int)gi, 0x8C - shown * 0x19, 0x5A, 0x1000);
+                PutItemIcon((int)j, (s16)(0x8C - shown * 0x19), 0x5A, 0x1000);
                 shown++;
             }
         }
         {
-            int av;
             int neg;
             u8 u0;
+            int m;
+            int tv;
+            int rem;
+            int quo;
+            int d;
 
             dsp = &spr;
             dsp->x = 0x22;
-            dsp->y = -0x32;
             av = cap - taken;
-            if ((s16)av < 0) {
-                av = -(s16)av;
+            tv = (s16)av;
+            dsp->y = -0x32;
+            if (tv < 0) {
+                av = -tv;
                 neg = 1;
             } else {
                 neg = 0;
             }
             do {
-                s16 d = (s16)av;
-                s32 quo = d / 10;
+                d = av;
+                quo = d / 10;
                 u0 = dsp->u;
-                dsp->u = u0 + (s16)(d - quo * 10) * dsp->w;
+                rem = d - quo * 10;
+                dsp->u = u0 + (s16)rem * dsp->w;
                 GsSortSprite(dsp, OTablePt, 0);
                 dsp->u = u0;
                 dsp->x -= 0xC;
                 av = quo;
             } while ((s16)av != 0);
             if (neg) {
-                dsp->u = (u8)u0 + dsp->w * 10;
+                m = 10;
+                dsp->u = u0 + dsp->w * m;
                 GsSortSprite(dsp, OTablePt, 0);
                 dsp->u = u0;
             }
@@ -478,11 +518,10 @@ quit:
     if (PSTATE->counts[0x12] != 0) {
         PSTATE->counts[0x12] = 0xFF;
     }
-    r = (PersistentState *)0x80010000;
     for (j = 0; j < 9; j++) {
-        int n = r->chr * 0x20 + j;
-        if (r->stock[n] == 0) {
-            r->stock[n] = 0xFE;
+        int n = j + PSTATE->chr * 0x20;
+        if (PSTATE->stock[n] == 0) {
+            PSTATE->stock[n] = 0xFE;
         }
     }
     vfree(harc);

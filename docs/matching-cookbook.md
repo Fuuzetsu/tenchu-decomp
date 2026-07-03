@@ -313,6 +313,31 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   call → callee-saved reg + a whole allocation cascade
   (BriefingAndInventorySelectionScreen's item-count digits).
 
+- **u16 init `= -1` with `addiu -1` AND `lhu` reloads = a 2-byte union**:
+  `union { u16 u; s16 s; } pad; pad.s = -1;` — the unpromoted HImode pseudo
+  stores the sign-extended canonical constant while `.u` reads stay `lhu`.
+  Plain `u16 pad = -1;` gives `ori 0xffff` (see the initializer note above).
+- **Array spelling picks the addu operand order**: `p->arr[i]` emits
+  `addu base,index`; `(&p->arr[0])[i]` emits `addu index,base`;
+  `((T *)0x80010000)->arr[i]` emits index-first with a split `lui`+lo
+  displacement that cse merges into any register already holding the
+  constant; an extern-array symbol emits `la` (lui+addiu), not the split.
+  A hoisted-hi clamp loop with base-first addu is a block-local pointer
+  variable (`PersistentState *cq = (PersistentState *)0x80010000;`), one per
+  duplicated loop copy (separate pseudos → different hi registers).
+- **Division shortening is blocked by an int dividend temp**: `d = av;
+  quo = d / 10;` (both int, av s16) keeps the division SImode — quo stores
+  raw, no widening pair. `av / 10` directly (or an s16 quo) gets shortened
+  to HImode by the front end and widens at the int store. Write the
+  remainder through a temp (`rem = d - quo * 10; … (s16)rem * w`) — folding
+  the cast over the subtraction distributes it into `(s16)quo * 10` instead.
+  The loop-carried copy needs quo int too: `av = quo; } while ((s16)av != 0)`
+  folds the ext to the sll-only `bnez` pinned after the copy; with both s16
+  the test hoists across the call and av/quo coalesce (the move vanishes).
+- **`t = scale ± 0x10; scale = t; if ((s16)t < K)` — compare the temp**:
+  reading `scale` in the compare lets combine collapse the pair back into
+  one `addiu scale,scale,±16` (the target keeps the temp shape).
+
 ## Register allocation steering
 
 - **Source statement order is the main regalloc lever.** Storing
@@ -327,6 +352,16 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 - Cached pointers that live in `$s`-registers across calls
   (`p = &item->param;`) are real source temporaries — indexing the base
   struct directly doesn't allocate the register (see ProcItemManebue).
+- **Callee-saved homes on short-lived block locals mean VARIABLE REUSE**:
+  the original reuses one s16 `j` across the entry-counts loop, the case-1/3
+  loops, the grid counter, the shown-items counter, the cursor-move dx and
+  the epilogue loop (calls inside two of them force the shared pseudo into
+  $s0 everywhere), and reuses `shown` as the cursor-move dy. Distinct
+  same-shaped counters stay caller-saved. Also: `for (j = shown; ...)` right
+  after `shown = 0;` reproduces a `move` loop-init from the zeroed variable
+  (cse copy-propagates, like `i = 0` after `cursor = 0` giving
+  `move a0,s8`). Anti-rule: DEAD early assignments cannot steer allocation —
+  cse propagates the constant into unrelated code.
 - **A `do { ... } while (0);` wrapper is a regalloc lever**: the degenerate
   loop generates no code, but its loop notes make flow.c count every ref
   inside at loop_depth 2, doubling those pseudos' priority in global-alloc.
@@ -360,12 +395,15 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 
 ## Shared tails
 
-- **Ghidra's duplicated single store on both branch paths is literal**: write
-  it twice (`if (uid == 0) { q->counts[0] = 0xFF; …; return; } q->counts[0] =
-  0xFF;`) — cross-jump merges the copies and reorg leaves one `sb` in the
-  branch delay slot, executed on both paths. Hoisting it above the `if` in
-  source puts the store BEFORE the load/branch instead (scheduler moves it
-  further up) — one store, wrong position.
+- **A store shared by both branch paths via the branch delay slot**: load the
+  condition into a temp first, store between the temp and the branch
+  (`uid = StageConfig[...].uid; q->counts[0] = 0xFF; if (uid == 0) {...}`) —
+  the constant li fills the load-delay slot and reorg drops the lone `sb`
+  into the branch delay slot, executed on both paths. Writing the store
+  BEFORE the load lets the scheduler hoist it too early; writing it
+  DUPLICATED inside both paths only cross-jumps when both copies' first
+  insns are identical including registers
+  (BriefingAndInventorySelectionScreen's entry).
 - An identical dispose/cleanup sequence reached from two paths with a `j`
   into the middle of one copy is **the code written out twice** in source —
   GCC's cross-jump pass merges the common suffix (from the `jalr` backwards;
