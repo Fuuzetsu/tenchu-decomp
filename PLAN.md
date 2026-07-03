@@ -76,8 +76,9 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
    set splat `base_path: .` so a fresh clone is self-contained.
    (NOTE: the operator prefers keeping `.shake/gen` regenerated-on-demand; only do
    this if that changes — [`docs/project-layout.md`](docs/project-layout.md).)
-4. **Pin `tools/cc1-281`** via a checksummed nix `fetchurl`
-   (decompals/old-gcc `gcc-2.8.1-psx`) instead of an opaque committed binary.
+4. ~~Pin `tools/cc1-281`~~ **DONE** — nix `fetchurl` of decompals/old-gcc 0.17
+   `gcc-2.8.1-psx` (sha256-pinned, `cc1-281` on PATH); the committed binary is
+   gone (it was a wrong build — see [`docs/toolchain.md`](docs/toolchain.md)).
 5. **CI**: a GitHub Actions job running `nix develop --command ./Build check`.
 6. **Per-function tooling**: `diff_settings.py` (asm-differ is in the devShell),
    `objdiff.json`, an `m2ctx.py` context generator, a `make <obj>` shim.
@@ -89,12 +90,12 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 
 - **Same-size edits**: `./Build` (without `check`) produces a valid runnable
   binary; only the changed bytes differ.
-- **Growth (debug prints, bigger functions)**: `./Build mod` — put the grown
-  function in `src/mod/main.exe/<fn>.c` and it's relocated into a mod region
-  (`MODBASE=0x80098000`) with a trampoline at the original slot, so the rest of
-  the binary stays byte-identical. See
-  [`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) and
-  `tools/mkmod.py`. (Runtime-safe `MODBASE` may need the game's memory map.)
+- **Modified functions**: `./Build mod` — put the function in
+  `src/mod/main.exe/<fn>.c` and it's compiled and **patched in place** (it must
+  fit its original slot; mkmod aborts with the overage otherwise), so
+  `main_mod.exe` stays the same size and the disc rebuild stays byte-faithful.
+  See [`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) and
+  `tools/mkmod.py`.
 
 ## Running in an emulator (`./Build iso`)
 
