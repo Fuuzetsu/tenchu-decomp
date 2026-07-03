@@ -13,6 +13,10 @@ decisions behind the toolchain. It's the reference companion to the terse
   recipe to add maspsx.
 - [project-layout.md](project-layout.md) — recommended directory layout drawn
   from established PSX decomps, what to keep vs change, and Shake-vs-Make.
+- [matching-cookbook.md](matching-cookbook.md) — **start here for matching
+  work**: the cc1 2.8.1 source idioms that byte-match (dispatch, loops, fold
+  reassociation, stack buffers, regalloc steering), the `tools/matchdiff.py`
+  iteration loop, and pointers to the worked examples.
 - [matching-get-held-buttons.md](matching-get-held-buttons.md) — a worked
   case study of trying to byte-match a real function, and what makes it hard.
 - [modding-and-nonmatching.md](modding-and-nonmatching.md) — building
