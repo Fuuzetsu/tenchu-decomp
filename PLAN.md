@@ -19,7 +19,10 @@ byte-identical `main.exe`.
   [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)),
   **`Think1sleep`** — the first function needing `$gp`-relative globals — and
   **`ProcItemManebue`** — the first needing *absolute* addressing of a small
-  global that another TU gp-addresses. Between them they pinned down the real
+  global that another TU gp-addresses — and **`ProcItemKusuri`** (1432 bytes,
+  the largest yet: switch dispatch, casted scratch buffer, magic divisions,
+  block-copy loop, cross-jumped tails; its header comment is the matching
+  cookbook for cc1 2.8.1 idioms). Between them they pinned down the real
   gp model (ASPSX gp-addresses only TU-local definitions; externs are absolute)
   and produced the reusable infrastructure in
   [`docs/toolchain.md`](docs/toolchain.md): the opt-in `maspsx --gp-extern`
