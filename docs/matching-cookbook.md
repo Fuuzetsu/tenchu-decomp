@@ -317,6 +317,12 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   `union { u16 u; s16 s; } pad; pad.s = -1;` — the unpromoted HImode pseudo
   stores the sign-extended canonical constant while `.u` reads stay `lhu`.
   Plain `u16 pad = -1;` gives `ori 0xffff` (see the initializer note above).
+- **Inside an ADDRESS expression, a mult-by-constant subterm expands FIRST**
+  (`arr[a + b*c]` → `addu chr32,idx` regardless of source order): EXPAND_SUM
+  special-cases the mult. Spelling the scale as a SHIFT
+  (`arr[idx + (ps->chr << 5)]`) skips the special case and preserves source
+  order; a sum assigned to a value temp first (`int n = j + chr * 0x20;`)
+  also expands in source order.
 - **Array spelling picks the addu operand order**: `p->arr[i]` emits
   `addu base,index`; `(&p->arr[0])[i]` emits `addu index,base`;
   `((T *)0x80010000)->arr[i]` emits index-first with a split `lui`+lo
@@ -352,6 +358,31 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 - Cached pointers that live in `$s`-registers across calls
   (`p = &item->param;`) are real source temporaries — indexing the base
   struct directly doesn't allocate the register (see ProcItemManebue).
+- **Spilled u16 locals loaded several insns before their use went through
+  int temps**: `int t1 = cap, t2 = taken; … av = t1 - t2;` — the u16→int
+  reads are real zero_extend insns that reload turns into lhu in place;
+  combine can't merge them into the later subu. u16 temps DO merge back
+  (loads collapse to the use and cost a hazard nop).
+- **A surviving `andi rN,reg,0xff` feeding a sum and a later sb across a
+  call is `int c = (u8)var;` with var MULTI-DEF** — combine folds the zext
+  only over a single-lbu def; reuse another block's variable as the host to
+  keep the andi and pin the register (BIS's u0 hosted in the grid x).
+- **A loop-internal skip branch whose delay slot duplicates the loop
+  increment needs a real `for`**: the rotated exit test leaves
+  NOTE_INSN_LOOP_VTOP at the bottom; reorg predicts the branch taken and
+  fills from the taken thread (duplicate + retarget). goto/do-while forms
+  fill from fallthrough — one insn short (BIS's grid loop).
+- **Byte-neutral respellings are permuter seed levers**: re-reading a cached
+  field that cse folds back (`dsp->u = dsp->u + …` for `x + …`) or a
+  do{}while(0) around an UNRELATED block shifts pseudo bookkeeping enough to
+  flip global-alloc ordering ties (flipped a 40-line callee-saved mirror at
+  zero byte cost). Semantic-diff permuter winners against the REPRINTED base
+  — the reprint alone skews scores.
+- **Anti-rules**: element-pointer temps materialize the array displacement
+  as a real addiu (keep repeated `base[n]` spellings); address-taken locals
+  move from spill slots to frame slots and shift everything; unreferenced
+  static inline helpers still get emitted in stub TUs — keep helpers inside
+  the caller's #if guard.
 - **Callee-saved homes on short-lived block locals mean VARIABLE REUSE**:
   the original reuses one s16 `j` across the entry-counts loop, the case-1/3
   loops, the grid counter, the shown-items counter, the cursor-move dx and
@@ -427,6 +458,18 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   it; a path whose slot is already full keeps jumping to the li itself.
   Duplicating the call per path merges WORSE (sched2 drags the arg setup
   from the call; cross-jump suffixes stop matching).
+
+## Split functions (jump tables through .rodata)
+
+A table-switch splits the function into several nonmatching .s pieces and
+routes the table through the C object's .rodata (see the yaml comment at the
+BriefingAndInventorySelectionScreen carve). Consequences: the STUB state
+must INCLUDE_ASM all pieces AND provide a `static const u32 …_jtbl[]` with
+the original table words (deleted when the real C is activated);
+tools/permute.py concatenates all pieces for its target (fixed after this
+bit a session); tools/matchdiff.py's window stops at the first piece — use
+tools/asmdiff.py (sizes from the Ghidra export) for iteration and
+matchdiff's whole-image count only as the gate.
 
 ## gp vs absolute globals (item-TU vs think-TU)
 

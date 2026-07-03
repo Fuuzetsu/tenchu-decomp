@@ -62,11 +62,16 @@ mipsel-unknown-linux-gnu-as {asflags} -o "$OUT" "$TMP/b.s"
 
 
 def find_nonmatching_s(name):
-    hits = glob.glob(f".shake/gen/main.exe/asm/nonmatchings/*/{name}.s")
+    """All split pieces of the function, in address order (a jump-table switch
+    splits one function into several .s files — the target must be their
+    concatenation, not just the entry piece)."""
+    dirs = glob.glob(f".shake/gen/main.exe/asm/nonmatchings/{name}")
+    hits = sorted(glob.glob(f"{dirs[0]}/*.s")) if dirs else \
+        glob.glob(f".shake/gen/main.exe/asm/nonmatchings/*/{name}.s")
     if not hits:
         sys.exit(f"permute: {name}.s not found under .shake/gen — is {name} split "
                  f"and built? run `./Build` (or split it with tools/reverse.py).")
-    return hits[0]
+    return hits
 
 
 def main():
@@ -101,8 +106,10 @@ def main():
     subprocess.run(CPP + ["-DPERMUTER", src, base], check=True)
 
     # target.o = the original function, assembled from its nonmatching .s
+    # (all pieces concatenated for split/jump-table functions)
     tgt_s = os.path.join(work, "target.s")
-    open(tgt_s, "w").write('.include "macro.inc"\n' + open(target_s).read())
+    open(tgt_s, "w").write('.include "macro.inc"\n'
+                           + "".join(open(t).read() for t in target_s))
     subprocess.run(["mipsel-unknown-linux-gnu-as", *AS_FLAGS,
                     "-o", os.path.join(work, "target.o"), tgt_s], check=True)
 

@@ -4,28 +4,65 @@
 /*
  * Pre-mission briefing / item selection screen (0x80052084, 0xE24 bytes).
  *
- * CURRENT(94): the #if 0 draft below assembles to the exact instruction
- * count (905/905) with 94 differing lines in 57 blocks -- all remaining
- * diffs are register-home pairings (asmdiff.py view):
- *   1. entry clamp: {v1,a0} pair (stock-addr temp vs maxStock); the case-1
- *      clamp copy matches, only the entry copy is inverted (7 lines).
- *   2. (s16)pad.u argument of check_for_known_button_combination: ours
- *      extends into a0 before the np xor/and chain, target extends in-place
- *      on v0 after it (4 lines).
- *   3. case-0x1F store block {v0,v1} pair -- collateral of the do{}while(0)
- *      wrapper that fixes nsel/scale=s6/s7 (7 lines, net win).
- *   4. case-7 inner-sum addu operand order (1 line).
- *   5. grid loop: {v0,v1,a1} temp rotation, inner-sum order, and the
- *      j+1-into-delay-slot steal (target duplicates addiu into the c==0xFE
- *      skip branch; ours fills from fallthrough) (~14 lines).
- *   6. cursor block {t3,t4}: ddx vs best (5 lines).
- *   7. the {s1,s2} family (~30 lines): T wants shown(+dy)=s1/jext=s2 and
- *      u0=s1/dsp=s2; ours has each pair swapped, plus the digit-block entry
- *      schedule (addiu sp,24 first vs our nop) and T's extra
- *      `andi s0,s1,0xff` (u0 re-mask that combine folds for us via
- *      nonzero_bits of u0's single lbu def -- implies u0 is a reuse of a
- *      wider-def variable; u0=shown directly produced a shared (int) copy
- *      pseudo instead of the andi).
+ * CURRENT(28): 905/905 instructions, 28 differing lines in 15 blocks; all
+ * remaining diffs are local register-pairing ties (asmdiff.py view):
+ *   1. entry clamp {v1,a0}: T ties the stock-address into n's dying reg
+ *      (addu v1,t0,v1) and puts maxStock in a0; ours takes fresh a0 for the
+ *      address (the case-1 clamp copy, which uses the fresh-reg shape, is
+ *      byte-identical in both) (7 lines).
+ *   2. (s16)pad argument of check_for_known_button_combination: ours emits
+ *      the sll/sra ext BEFORE the np xor/and chain with a0 as intermediate;
+ *      T emits it after, reusing v0 (the dying pad copy) (4 lines).
+ *   3. case-0x1F store block {v0,v1}: T loads chr into v1/li 255 into v0,
+ *      ours inverted. The fresh chr reload itself is right (join block cuts
+ *      cse); only the local qty pairing differs (7 lines).
+ *   4. cursor-move exts: T interleaves [sll dx][sll dy][move k=cursor]
+ *      [sra dx][bnez][slot: sra dy]; ours keeps each (s16)->int ext pair
+ *      together and reorg fills the slot with the k move instead (5 lines).
+ *   5. bounce-arm compare: T's (s16)t ext reads the addiu temp (sll v0,v0);
+ *      ours reads the coalesced scale (sll v0,s7) -- some equivalence makes
+ *      cc1 canonicalize (s16)t to scale's reg; reusing early-born ints
+ *      (uid/i) as t shifted other regions, so the temp identity is not it
+ *      (3 lines).
+ *   6. digit-block entry loads: both lhu's are reload-materialized zexts of
+ *      the int t1/t2 temps, but ours orders [160][152] with t2 in v0; T
+ *      orders [152][160] with t2 in t5. Source statement order of t1/t2
+ *      does NOT flip it (canonicalized somewhere post-expand) (3+2 lines).
+ *
+ * History: 94 -> 28 this session. The wins, in order:
+ *   - digit loop's u0 merged into grid x (multi-def host keeps T's
+ *     andi s0,_,0xff alive: an `int c = (u8)<multi-def-var>` zext with two
+ *     uses across the call must stay one andi + sb of c's home s0);
+ *   - shown-items loop's (s16)j ext runs through grid y (y = (s16)j), so
+ *     the y-family (grid conflict with x) lands with jext, freeing s1;
+ *   - digit-entry [addiu sp,24][lhu cap][lhu taken][li 34][sh x] shape:
+ *     `int t1 = cap, t2 = taken;` read-temps make the loads real zext RTL
+ *     insns positioned at their statements (u16 temps get combine-merged
+ *     back into the subu; int temps' zero_extends have no subu pattern and
+ *     survive) -- this also killed the assembler hazard nop (905 exactly);
+ *   - inline index sums `[idx + (ps->chr << 5)]` (shift spelling!): inside
+ *     an address expression EXPAND_SUM expands a MULT-BY-CONSTANT first
+ *     regardless of source operand order (addu chr32,idx); << 5 skips the
+ *     mult special-case and preserves source order (addu idx,chr32). Value
+ *     temps (`int n = j + ps->chr * 0x20;`) don't need this (7 sites);
+ *   - grid loop must be a real `for` (not goto/do-while): the c==0xFE skip
+ *     branch targets the loop bottom = jump.c's NOTE_INSN_LOOP_VTOP, so
+ *     reorg's mostly_true_jump predicts it taken and duplicates the j++
+ *     addiu into the delay slot (goto-loop: fallthrough fill, one insn
+ *     short; invariants stay unhoisted either way because the loop body
+ *     has calls);
+ *   - do{}while(0) around the cursor-move block (permuter find, round 1);
+ *   - digit loop sum written `dsp->u = dsp->u + (s16)rem * dsp->w;` and neg
+ *     block `int c = (u8)dsp->u;` -- cse folds the re-reads back to x's
+ *     register (same bytes) but the shifted pseudo bookkeeping flips the
+ *     global s1/s2 seed: {x+u0, shown+dy}=s1, {y+jext, dsp}=s2 like the
+ *     target (permuter find, round 2; the whole ~40-line s1/s2 mirror
+ *     traces to which callee-saved reg the first cursor mult temp lands in).
+ * Permuter work dirs: scratch/permuter-briefing (r1, base 94-state),
+ * scratch/permuter-b2 (r2, base 65-state), scratch/permuter-b3 (r3, base
+ * 28-state). tools/permute.py's stock target.o is WRONG for this function
+ * (splat splits the switch cases into 8 .s files; concatenate them in
+ * address order -- see target.s in the scratch permuter dirs).
  */
 
 /* The persistent state is accessed three ways in the original, on purpose:
@@ -93,13 +130,51 @@ extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 extern buttons_held GetRealPad(s32 which);
 extern void FUN_800519bc(void);
 
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", BriefingAndInventorySelectionScreen);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__switchD);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__caseD_0);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__caseD_1);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__caseD_3);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__caseD_1f);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__caseD_7);
+
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", switchD_80052360__caseD_2);
+
+/*
+ * Stub-state jump table. The splat yaml routes vram 0x80013B30 through this
+ * TU's .rodata ([0x3330, .rodata, ...]) so the ACTIVE function's compiled
+ * switch table lands at the original address. In the stub state the
+ * INCLUDE_ASM pieces emit no .rodata, so provide the original 0x20-entry
+ * table verbatim (its absence shifts the whole image by 0x80 bytes).
+ * DELETE this array when activating the #if 0 draft below.
+ */
+static const u32 switchD_80052360_jtbl[32] = {
+    0x80052368, 0x8005238C, 0x8005260C, 0x80052490,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x8005257C,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x8005260C,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x8005260C,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x8005260C,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x8005260C,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x8005260C,
+    0x8005260C, 0x8005260C, 0x8005260C, 0x800524E4,
+};
+
+#if 0
 /*
  * The two TIM-sprite setup blocks are inlined static helpers (same mechanism
  * as DoInfoViewProc's menus): the GsIMAGE scratch is the helper's own local,
- * so its address expands from the inlined frame base (bare register — every
+ * so its address expands from the inlined frame base (bare register -- every
  * call gets a direct addiu into the arg register instead of a CSE'd
  * callee-saved pseudo), and the two inline expansions reuse one freed temp
  * slot after the caller's locals (spr @ +0, hspr @ +0x28, tim @ +0x50).
+ * NOTE: keep the helpers inside the guard -- in the stub state cc1 emits
+ * unreferenced static inlines as standalone code (+32 insns).
  */
 static inline u_long *LoadHelpArchive(PersistentState *q)
 {
@@ -117,9 +192,6 @@ static inline void TimToSprite(u_long *buf, GsSPRITE *sp)
     InitSprite(&tim, sp);
 }
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BriefingAndInventorySelectionScreen", BriefingAndInventorySelectionScreen);
-
-#if 0
 void BriefingAndInventorySelectionScreen(void)
 {
     GsSPRITE spr;
@@ -217,7 +289,7 @@ void BriefingAndInventorySelectionScreen(void)
         np = pad.u;
         pad.u = GetRealPad(0);
         np = pad.u & (pad.u ^ np);
-        id = check_for_known_button_combination((s16)pad.u, np);
+        id = check_for_known_button_combination(pad.s, np);
         switch ((s16)(id - 1)) {
         case 0:
             if (CARRY_30_ITEMS_CHEAT_APPLIED == 0) {
@@ -280,7 +352,7 @@ void BriefingAndInventorySelectionScreen(void)
             break;
         case 7:
             for (j7 = 0; j7 < 0x14; j7++) {
-                (&ps->stock[0])[CHOSEN_CHARACTER * 0x20 + (int)j7] = (&ps->backup[0])[j7];
+                (&ps->stock[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] = (&ps->backup[0])[j7];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
             FUN_80038ce0();
@@ -294,11 +366,9 @@ void BriefingAndInventorySelectionScreen(void)
         }
         StartDrawing();
         DrawBG(bg);
-        j = 0;
-    grid:
-        {
+        for (j = 0; j < 0x13; j++) {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
-            u8 c = (&ps->stock[0])[n + ps->chr * 0x20];
+            u8 c = (&ps->stock[0])[n + (ps->chr << 5)];
             if (c != 0xFE) {
                 x = SHOP_ITEM_DEFAULTS[j].x;
                 y = SHOP_ITEM_DEFAULTS[j].y;
@@ -308,15 +378,13 @@ void BriefingAndInventorySelectionScreen(void)
                 PutItemIcon(n, x, y, 0x1000);
             }
         }
-        j++;
-        if (j < 0x13)
-            goto grid;
 
         PutItemCursor(SHOP_ITEM_DEFAULTS[cursor].x, SHOP_ITEM_DEFAULTS[cursor].y, 0x1000, -0x3000);
         {
-            int ddy, ddx;
+            int ddx, ddy;
             int k;
 
+            do {
             shown = 0x10;
             if ((np & 0x4000) == 0) {
                 shown = 0;
@@ -350,6 +418,7 @@ void BriefingAndInventorySelectionScreen(void)
                 }
                 cursor = bi;
             }
+            } while (0);
         }
         if ((np & 0xF000) != 0) {
             SoundEx((VECTOR *)0x0, 0xB);
@@ -362,8 +431,8 @@ void BriefingAndInventorySelectionScreen(void)
                 {
                     s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                     scale = 0x200;
-                    if ((&ps->stock[0])[ps->chr * 0x20 + idx] != 0) {
-                        if ((&ps->stock[0])[ps->chr * 0x20 + idx] != 0xFE) {
+                    if ((&ps->stock[0])[idx + (ps->chr << 5)] != 0) {
+                        if ((&ps->stock[0])[idx + (ps->chr << 5)] != 0xFE) {
                             if ((s16)taken < cap) {
                                 u8 cnt = (&ps->counts[0])[idx];
                                 if (cnt == 0) {
@@ -373,7 +442,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     if (idx != 0x13 || D_8001001A == 0) {
                                         (&ps->counts[0])[idx] = cnt + 1;
                                         taken++;
-                                        (&ps->stock[0])[ps->chr * 0x20 + idx]--;
+                                        (&ps->stock[0])[idx + (ps->chr << 5)]--;
                                     }
                                     SoundEx((VECTOR *)0x0, 0xD);
                                 } else {
@@ -398,11 +467,11 @@ void BriefingAndInventorySelectionScreen(void)
                     if (c != 0) {
                         if (c == 0xFF) {
                             (&ps->counts[0])[idx] = 0;
-                            (&ps->stock[0])[ps->chr * 0x20 + idx] = 1;
+                            (&ps->stock[0])[idx + (ps->chr << 5)] = 1;
                             nsel--;
                         } else {
                             (&ps->counts[0])[idx] = c - 1;
-                            (&ps->stock[0])[ps->chr * 0x20 + idx]++;
+                            (&ps->stock[0])[idx + (ps->chr << 5)]++;
                             if ((&ps->counts[0])[idx] == 0) {
                                 nsel--;
                             }
@@ -418,7 +487,7 @@ void BriefingAndInventorySelectionScreen(void)
             scale += 0xC0;
         }
         if (help == -1) {
-            if ((&ps->stock[0])[ps->chr * 0x20 + SHOP_ITEM_DEFAULTS[cursor].itemIndex] != 0xFE) {
+            if ((&ps->stock[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->chr << 5)] != 0xFE) {
                 help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
             }
         }
@@ -461,29 +530,34 @@ void BriefingAndInventorySelectionScreen(void)
         }
         shown = 0;
         for (j = shown; j < 0x14; j++) {
-            u8 c = (&ps->counts[0])[j];
+            u8 c;
+            y = (s16)j;
+            c = (&ps->counts[0])[y];
             if (c != 0) {
                 if (c != 0xFF) {
                     PutNumber(0xA6 - shown * 0x19, 0x62, c);
                 }
-                PutItemIcon((int)j, (s16)(0x8C - shown * 0x19), 0x5A, 0x1000);
+                PutItemIcon(y, (s16)(0x8C - shown * 0x19), 0x5A, 0x1000);
                 shown++;
             }
         }
         {
             int neg;
-            u8 u0;
             int m;
             int tv;
             int rem;
             int quo;
             int d;
+            int t1;
+            int t2;
 
             dsp = &spr;
+            t1 = cap;
+            t2 = taken;
             dsp->x = 0x22;
-            av = cap - taken;
-            tv = (s16)av;
             dsp->y = -0x32;
+            av = t1 - t2;
+            tv = (s16)av;
             if (tv < 0) {
                 av = -tv;
                 neg = 1;
@@ -493,19 +567,20 @@ void BriefingAndInventorySelectionScreen(void)
             do {
                 d = av;
                 quo = d / 10;
-                u0 = dsp->u;
+                x = dsp->u;
                 rem = d - quo * 10;
-                dsp->u = u0 + (s16)rem * dsp->w;
+                dsp->u = dsp->u + (s16)rem * dsp->w;
                 GsSortSprite(dsp, OTablePt, 0);
-                dsp->u = u0;
+                dsp->u = x;
                 dsp->x -= 0xC;
                 av = quo;
             } while ((s16)av != 0);
             if (neg) {
+                int c = (u8)dsp->u;
                 m = 10;
-                dsp->u = u0 + dsp->w * m;
+                dsp->u = c + dsp->w * m;
                 GsSortSprite(dsp, OTablePt, 0);
-                dsp->u = u0;
+                dsp->u = c;
             }
         }
         SkipFrame = 2;
