@@ -48,15 +48,8 @@ segments:
       - [0xAAB8, data]
       - [0x1F198, c, Think1sleep]
       - [0x1F224, data]
+      - [0x399D8, c, ProcItemManebue]
+      - [0x39AEC, data]
       - [0x46E98, c, initialise_font]
       - [0x46EE8, data]
-      # - [0x75F64, data]
-      # - [0x86E98, sdata]
-      # - [0x87788, sbss]
-      # Ghidra says there's bss starting from 0x87790 but it's all zero. bss is
-      # by definition uninitialised memory so linker won't put anything here.
-      # Yet then original binary has zeroes here. So we just remove this
-      # subsegment and let it be part of .sbss which will explicitly insert
-      # zeroes and make the binary match.
-      # - [0x87790, bss]
   - [0x87800]
