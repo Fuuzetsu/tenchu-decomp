@@ -8,6 +8,7 @@ import qualified Data.Aeson as A
 import Data.Binary (Binary)
 import Data.Functor ((<&>))
 import Data.Hashable (Hashable)
+import Data.List (sort)
 import qualified Data.Set as Set
 import qualified Data.UUID as UUID
 import Data.UUID.V4 (nextRandom)
@@ -17,6 +18,7 @@ import Development.Shake.FilePath
 import Development.Shake.Util (neededMakefileDependencies, parseMakefile)
 import GHC.Generics (Generic)
 import qualified System.Directory as IO
+import System.Environment (lookupEnv)
 
 shakeDir :: FilePath
 shakeDir = ".shake"
@@ -382,25 +384,25 @@ phonyRules = do
   -- faithful full boot. Set PCSX_REDUX / PCSX_REDUX_ARGS to tweak the emulator.
   phony "run" $ do
     need [mainExe]
-    cmd_ "tools/run.py" ["--loadexe", mainExe]
+    launchLoadExe mainExe
 
   phony "run-mod" $ do
     need [mainExe, mainExe <.> "elf"]
     cmd_ "tools/mkmod.py"
-    cmd_ "tools/run.py" ["--loadexe", buildDir </> "tenchu" </> "main_mod.exe"]
+    launchLoadExe (buildDir </> "tenchu" </> "main_mod.exe")
 
   -- `run-iso` / `run-iso-mod`: faithful — repack the disc with our exe and boot the
   -- whole thing, so the real SLPS_019.01 -> ... -> MAIN.EXE chain runs.
   phony "run-iso" $ do
     need [mainExe]
     cmd_ "tools/mkiso.py"
-    cmd_ "tools/run.py" ["--iso", buildDir </> "tenchu" </> "tenchu.cue"]
+    launchIso (buildDir </> "tenchu" </> "tenchu.cue")
 
   phony "run-iso-mod" $ do
     need [mainExe, mainExe <.> "elf"]
     cmd_ "tools/mkmod.py"
     cmd_ "tools/mkiso.py" ["--exe", buildDir </> "tenchu" </> "main_mod.exe"]
-    cmd_ "tools/run.py" ["--iso", buildDir </> "tenchu" </> "tenchu.cue"]
+    launchIso (buildDir </> "tenchu" </> "tenchu.cue")
 
   phony "check" $ do
     let reference = "disks" </> "tenchu" </> "main.exe"
@@ -416,6 +418,68 @@ phonyRules = do
       fail $ unwords ["Reference", reference, "has sha256", refSha, "but expected known-good", expectedSha256, "- wrong/corrupt base image?"]
     when (ourSha /= expectedSha256) $
       fail $ unwords ["Expected", mainExe, "to have sha256 of", expectedSha256, "but it's", ourSha]
+
+-- | Launch our exe fast: mount the original disc and @-loadexe@ over it (no repack).
+-- Paths are absolutised — pcsx-redux resolves them against its own cwd.
+launchLoadExe :: FilePath -> Action ()
+launchLoadExe exe = do
+  disc <- liftIO $ findDisc >>= IO.makeAbsolute
+  exeAbs <- liftIO $ IO.makeAbsolute exe
+  runPcsx ["-run", "-iso", disc, "-loadexe", exeAbs]
+
+-- | Launch a repacked disc image (the faithful full boot).
+launchIso :: FilePath -> Action ()
+launchIso cue = do
+  cueAbs <- liftIO $ IO.makeAbsolute cue
+  runPcsx ["-run", "-iso", cueAbs]
+
+-- | Run pcsx-redux with the given base args plus any @$PCSX_REDUX_ARGS@. It falls
+-- back to OpenBIOS when no BIOS is configured, so no BIOS is required.
+runPcsx :: [String] -> Action ()
+runPcsx baseArgs = do
+  pcsx <- liftIO findPcsx
+  extra <- liftIO $ maybe [] words <$> lookupEnv "PCSX_REDUX_ARGS"
+  cmd_ pcsx (baseArgs <> extra)
+
+-- | The pcsx-redux binary: @$PCSX_REDUX@, else on @$PATH@, else the usual checkout.
+findPcsx :: IO FilePath
+findPcsx =
+  lookupEnv "PCSX_REDUX" >>= \case
+    Just p -> do
+      ok <- IO.doesFileExist p
+      if ok then pure p else fail ("$PCSX_REDUX=" <> p <> " does not exist")
+    Nothing -> do
+      onPath <- IO.findExecutable "pcsx-redux"
+      home <- IO.getHomeDirectory
+      let fallback = home </> "programming" </> "pcsx-redux" </> "pcsx-redux"
+      fbOk <- IO.doesFileExist fallback
+      case onPath of
+        Just p -> pure p
+        Nothing | fbOk -> pure fallback
+        _ -> fail "pcsx-redux not found: set PCSX_REDUX, put it on PATH, or build it at ~/programming/pcsx-redux"
+
+-- | The original (copyrighted) disc you provide: @$TENCHU_CUE@, else a @.cue@ under
+-- @disks/@ or @~\/tenchu-iso/@. Mirrors tools/mkiso.py's discovery.
+findDisc :: IO FilePath
+findDisc =
+  lookupEnv "TENCHU_CUE" >>= \case
+    Just c -> do
+      ok <- IO.doesFileExist c
+      if ok then pure c else fail ("$TENCHU_CUE=" <> c <> " not found")
+    Nothing -> do
+      home <- IO.getHomeDirectory
+      firstCue ["disks", home </> "tenchu-iso"]
+  where
+    firstCue [] = fail "original disc .cue not found; set TENCHU_CUE=/path/to/game.cue"
+    firstCue (d : ds) = do
+      exists <- IO.doesDirectoryExist d
+      cues <-
+        if exists
+          then sort . filter ((== ".cue") . takeExtension) <$> IO.listDirectory d
+          else pure []
+      case cues of
+        (c : _) -> pure (d </> c)
+        [] -> firstCue ds
 
 -- | Gets the absolute root directory of the project. Errors on
 -- failure. Assumes we're somewhere inside the project.
