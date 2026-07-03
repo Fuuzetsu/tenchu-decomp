@@ -76,7 +76,7 @@ def main():
     matched = set()
     for f in os.listdir("src/main.exe"):
         if f.endswith(".c"):
-            if "INCLUDE_ASM" not in open(os.path.join("src/main.exe", f)).read():
+            if not re.search(r"^\s*INCLUDE_ASM", open(os.path.join("src/main.exe", f)).read(), re.M):
                 matched.add(f[:-2])
     for f in os.listdir(stems):
         os.unlink(os.path.join(stems, f))

@@ -47,7 +47,7 @@ def matched_names():
     names = set()
     for f in os.listdir(SRC):
         if f.endswith(".c"):
-            if "INCLUDE_ASM" not in open(os.path.join(SRC, f)).read():
+            if not re.search(r"^\s*INCLUDE_ASM", open(os.path.join(SRC, f)).read(), re.M):
                 names.add(f[:-2])
     return names
 

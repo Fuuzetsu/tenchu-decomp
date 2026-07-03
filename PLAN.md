@@ -88,6 +88,34 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
    same-size on disc by relocating the mod region into a separate disc file rather
    than appending — see the caveat in [`docs/building-an-iso.md`](docs/building-an-iso.md).
 
+## Progress & the SDK endgame
+
+`tools/progress.py` (add `--json` for machine-readable/frogress-shaped output)
+reports matched functions/bytes split **game code vs SDK** — the split matters
+because ~1000 of the 1623 functions above `0x80061000` are statically-linked
+PSY-Q library code (LIBSND/LIBSPU/LIBCD/…), not game logic. The provisional
+boundary lives in the tool; refine it as library identification improves.
+
+**Full compilation is already a permanent property**: every unmatched function
+is assembled from its extracted asm (INCLUDE_ASM), so the build links a
+complete, byte-identical exe at every stage — matching only ever replaces
+blobs with C. The realistic goal metric is **100% of game code matched**; for
+the SDK the options (in scene-standard order) are:
+
+1. **Leave it as INCLUDE_ASM** — shippable "source + vendored asm" forever.
+2. **Link original PSY-Q objects**: convert SDK `.OBJ`/`.LIB` members with
+   `psyq-obj-parser` (ships with pcsx-redux, already checked out) and let the
+   linker use them instead of asm blobs. Needs a user-provided PSY-Q SDK
+   archive (uncommitted, like the game disc). Also unlocks precise SDK
+   function identification/naming via `tools/coddog compare-raw`.
+3. **Opportunistic decompilation of trivial clusters** — `tools/coddog
+   cluster` found e.g. 108 byte-identical `dmyGsPrstF3NL`-style stubs; one C
+   file per cluster is a cheap, large jump in the SDK numbers.
+
+Recommended: (1) now, chase the game-code metric, revisit (2) if a "no blobs"
+build is ever wanted; (3) whenever a quick win is nice. Progress uploading
+(frogress / decomp.dev) can consume `tools/progress.py --json` from CI later.
+
 ## Modding / non-matching builds
 
 - **Same-size edits**: `./Build` (without `check`) produces a valid runnable
