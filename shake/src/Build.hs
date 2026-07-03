@@ -115,6 +115,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     -- ReqItemDrop.c is part of the original item TU, which defines its
     -- round-robin counter (the item TU's .sdata block starts at 0x80097ac8).
     syms "ReqItemDrop" = ["COUNTER_FOR_ITEM_ARRAY_"]
+    -- FUN_8004a42c.c is also part of the original item TU (same counter).
+    syms "FUN_8004a42c" = ["COUNTER_FOR_ITEM_ARRAY_"]
     -- GetAreaMapLevel.c is part of the original area-map TU, which defines
     -- these small globals (.sdata around 0x80097ec0).
     syms "GetAreaMapLevel" = ["FieldIndex", "FieldArea", "D_80097EC0", "D_80097EC4"]

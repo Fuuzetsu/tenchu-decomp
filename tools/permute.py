@@ -36,6 +36,7 @@ AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").
 GP_EXTERNS = {
     "Think1sleep": ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"],
     "ReqItemDrop": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "FUN_8004a42c": ["COUNTER_FOR_ITEM_ARRAY_"],
     "GetAreaMapLevel": ["FieldIndex", "FieldArea", "D_80097EC0", "D_80097EC4"],
 }
 

@@ -57,6 +57,8 @@ segments:
       - [0x30298, data]
       - [0x399D8, c, ProcItemManebue]
       - [0x39AEC, data]
+      - [0x39C2C, c, FUN_8004a42c]
+      - [0x39D00, data]
       - [0x46E98, c, initialise_font]
       - [0x46EE8, data]
   - [0x87800]
