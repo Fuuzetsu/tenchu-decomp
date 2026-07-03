@@ -107,6 +107,9 @@ maspsxGpExterns src = concat [["--gp-extern", s] | s <- syms (takeBaseName src)]
   where
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
+    -- ReqItemDrop.c is part of the original item TU, which defines its
+    -- round-robin counter (the item TU's .sdata block starts at 0x80097ac8).
+    syms "ReqItemDrop" = ["COUNTER_FOR_ITEM_ARRAY_"]
     syms _ = []
 
 as :: FilePath

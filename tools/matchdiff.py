@@ -82,11 +82,15 @@ def main():
     ours = open(OURS, "rb").read()
 
     diffs = [i for i in range(off, off + size) if orig[i] != ours[i]]
+    total = sum(1 for a, b in zip(orig, ours) if a != b) + abs(len(orig) - len(ours))
     print(f"{args.name} @ {addr:#x} ({size} bytes): "
-          f"{len(diffs)} differing bytes")
+          f"{len(diffs)} differing bytes ({total} in the whole image)")
+    if total > len(diffs):
+        print("NOTE: diffs beyond the function window — if your function is a"
+              " different LENGTH, everything after it shifts (symbols drift too).")
     if not diffs:
-        print("MATCH!")
-        return 0
+        print("MATCH!" if total == 0 else "window matches but the image does not!")
+        return 0 if total == 0 else 1
 
     o_dis = disasm(orig, off, size, addr)
     m_dis = disasm(ours, off, size, addr)

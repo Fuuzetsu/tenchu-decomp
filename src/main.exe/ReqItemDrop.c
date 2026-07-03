@@ -1,0 +1,101 @@
+#include "common.h"
+#include "main.exe.h"
+#include "item.h"
+
+/*
+ * ReqItemDrop (0x8003e8ac) — spawn a dropped/tossed item (called e.g. by
+ * ProcItemKusuri when the drink is interrupted). Round-robins through the
+ * items[] pool (COUNTER_FOR_ITEM_ARRAY_, this TU's own gp-relative counter);
+ * if all 0x1d slots are busy it force-disposes the current one (the same
+ * dispose block as the ProcItem* functions). The drop lands only if the area
+ * map has floor at the start position; the item then gets ProcItemDrop as its
+ * processor and the toss velocity packed into param (param_korogari view).
+ *
+ * Matching notes (see docs/matching-cookbook.md):
+ *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check: its addiu
+ *    fills the beqz delay slot, and the longer live range demotes pp's
+ *    allocation priority so p keeps $s1 (after the check, pp stole $s1 and the
+ *    return-0 block folded away — 2 instructions short, which shifted every
+ *    object after this one by 8 bytes).
+ *  - us/ty and x/y/z are real temps: the original batches the loads before the
+ *    stores (`lw`×3 + `sh`×3) — writing `pp->vx = p->end.vx` directly lets the
+ *    canonical cc1 emit a truncating `lhu` of the low half instead.
+ *  - `st = &p->start;` is materialized between the t[0] and t[1] stores (the
+ *    vy/vz reads go through it; vx reads p directly).
+ *  - First compiled-to-compiled reference: ProcItemKusuri's `jal ReqItemDrop`
+ *    now resolves against this object (R_MIPS_26), and both share item.h.
+ */
+extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
+extern void ProcItemDrop(tag_TItem *item);
+extern void *GlobalAreaMap;
+/* This TU defines the counter (gp-relative): listed in Build.hs
+ * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
+extern s32 COUNTER_FOR_ITEM_ARRAY_;
+/* Model pointer per item type. */
+extern Sprite3D *D_8008E5BC[];
+
+int ReqItemDrop(PARAM_ITEM_USE *p)
+{
+    tag_TItem *it;
+    param_korogari *pp;
+    VECTOR *st;
+    Humanoid *us;
+    s32 ty;
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 i;
+
+    i = 0;
+    do
+    {
+        COUNTER_FOR_ITEM_ARRAY_++;
+        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
+            COUNTER_FOR_ITEM_ARRAY_ = 0;
+        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        if (it->proc == 0)
+            goto found;
+        i++;
+    } while (i < 0x1d);
+
+    /* pool exhausted: force-dispose the slot the counter landed on */
+    it->mode = 0xff;
+    it->proc(it);
+    DeleteConflict(it->locate);
+    if (it->mode != 0)
+    {
+        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+    }
+    it->owner = 0;
+    it->proc = 0;
+
+found:
+    pp = (param_korogari *)it->param;
+    if (it == 0)
+        return 0;
+    if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz, 0) < p->start.vy)
+        return 0;
+    us = p->user;
+    ty = p->type;
+    it->owner = us;
+    it->proc = ProcItemDrop;
+    it->mode = 0;
+    it->type = ty;
+    it->locate->locate.coord.t[0] = p->start.vx;
+    st = &p->start;
+    it->locate->locate.coord.t[1] = st->vy;
+    it->locate->locate.coord.t[2] = st->vz;
+    it->locate->locate.super = 0;
+    UpdateCoordinate(it->locate);
+    it->coll_size = 0;
+    it->model = D_8008E5BC[it->type];
+    x = p->end.vx;
+    y = p->end.vy;
+    z = p->end.vz;
+    pp->vx = x;
+    pp->vy = y;
+    pp->vz = z;
+    ((param_korogari *)it->param)->hint = 0;
+    pp->status = 0;
+    return 1;
+}

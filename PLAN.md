@@ -21,8 +21,10 @@ byte-identical `main.exe`.
   **`ProcItemManebue`** — the first needing *absolute* addressing of a small
   global that another TU gp-addresses — and **`ProcItemKusuri`** (1432 bytes,
   the largest yet: switch dispatch, casted scratch buffer, magic divisions,
-  block-copy loop, cross-jumped tails; its header comment is the matching
-  cookbook for cc1 2.8.1 idioms). Between them they pinned down the real
+  block-copy loop, cross-jumped tails), and **`ReqItemDrop`** — the first
+  cross-referenced match: called by the compiled `ProcItemKusuri` (real
+  R_MIPS_26 link), sharing types via `src/main.exe/item.h`.
+  [`docs/matching-cookbook.md`](docs/matching-cookbook.md) records the idioms. Between them they pinned down the real
   gp model (ASPSX gp-addresses only TU-local definitions; externs are absolute)
   and produced the reusable infrastructure in
   [`docs/toolchain.md`](docs/toolchain.md): the opt-in `maspsx --gp-extern`

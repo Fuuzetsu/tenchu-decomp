@@ -35,6 +35,7 @@ AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").
 # small globals the function's ORIGINAL translation unit defined).
 GP_EXTERNS = {
     "Think1sleep": ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"],
+    "ReqItemDrop": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

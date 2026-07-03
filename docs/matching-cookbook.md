@@ -28,7 +28,10 @@ $ tools/matchdiff.py <Name>
 $ ./Build check      # then confirm the whole image
 ```
 
-Treat the differing-byte count as a score to drive down; each structured diff
+Treat the differing-byte count as a score to drive down (matchdiff also
+reports the whole-image count: if your function assembles to a different
+LENGTH, every object after it shifts and even data symbols drift — fix the
+instruction count before chasing operand diffs); each structured diff
 (wrong register class, wrong block order, wrong instruction) maps to one of
 the rules below. When a residual diff resists source-shaping, decomp.me with
 the `psyq4.3` preset arbitrates "is this expressible at all" (it runs the real
@@ -97,6 +100,11 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   neighbouring field is `s16` (`life` is `s16`@0x8, `lifemax` is `u16`@0xA).
 - Byte-sized call arguments loaded with `lbu` and no masking are plain `u8`
   struct fields passed directly.
+- **A narrowing store fed through a temp forces the full-word load**:
+  `x = p->end.vx; pp->vx = x;` gives the original's `lw` + `sh`, while the
+  inline `pp->vx = p->end.vx;` lets the canonical cc1 emit a truncating `lhu`
+  of the low half. Loads batched before a run of stores (`lw`×3 then `sh`×3)
+  mean the values went through source temps.
 
 ## Stack objects
 
@@ -130,6 +138,15 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 - Cached pointers that live in `$s`-registers across calls
   (`p = &item->param;`) are real source temporaries — indexing the base
   struct directly doesn't allocate the register (see ProcItemManebue).
+- **Assignment position around a branch is a double lever** (ReqItemDrop):
+  `pp = ...;` placed *before* `if (it == 0) return 0;` lets reorg fill the
+  `beqz` delay slot with its `addiu` (instead of collapsing the return-0
+  block into the slot) *and* lengthens pp's live range, demoting its
+  allocation priority so the function argument keeps `$s1`. One statement
+  move fixed a register swap, a missing block, and two missing instructions.
+- A base-address pseudo appearing mid-sequence (`addiu $a0, $s1, 8` between
+  two accesses) is a temp assigned between the statements:
+  `t[0] = p->start.vx; st = &p->start; t[1] = st->vy; ...`.
 - The reverse also holds: **cc1 does not fold away a pointer temp to a frame
   object**. `PARAM_ITEM_USE *prm = (PARAM_ITEM_USE *)buf;` allocates a
   callee-saved register for the address (frame grows, prologue shifts), and a
