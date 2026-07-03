@@ -376,6 +376,21 @@ phonyRules = do
     cmd_ "tools/mkmod.py"
     cmd_ "tools/mkiso.py" ["--exe", buildDir </> "tenchu" </> "main_mod.exe"]
 
+  -- Build the matching main.exe (if needed), repack the disc with it, and launch
+  -- it in pcsx-redux. Tenchu boots SLPS_019.01 -> ... -> MAIN.EXE, so we boot the
+  -- whole disc rather than `-loadexe main.exe`. Set PCSX_REDUX to override which
+  -- emulator binary is used, or PCSX_REDUX_ARGS to pass extra flags (see run.py).
+  phony "run" $ do
+    need [mainExe]
+    cmd_ "tools/mkiso.py"
+    cmd_ "tools/run.py"
+
+  phony "run-mod" $ do
+    need [mainExe, mainExe <.> "elf"]
+    cmd_ "tools/mkmod.py"
+    cmd_ "tools/mkiso.py" ["--exe", buildDir </> "tenchu" </> "main_mod.exe"]
+    cmd_ "tools/run.py"
+
   phony "check" $ do
     let reference = "disks" </> "tenchu" </> "main.exe"
     need [mainExe, reference]
