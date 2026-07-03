@@ -109,7 +109,11 @@ Sony compiler; our cc1 is equivalent to it — if it can't, restructure; if it
 can, keep hunting). `tools/permute.py` (decomp-permuter) cracks pure
 register-allocation ties.
 
-**Trust the assembly over Ghidra's statement order.** Ghidra's decompiler
+**Trust the assembly over Ghidra's statement order.** Ghidra's EARLY temp
+assignment is often an SSA artifact, not source position: `iVar1 = GLOBAL;`
+rendered before a whole dispatch, used in ONE branch, usually just marks
+where the tracked load sat — check whether the asm's load really spans that
+far back before hoisting (PlayerOption). Ghidra's decompiler
 reorders memory operations and normalizes conditions freely; the asm's store
 order and branch polarity are the source's. Ghidra's *types* however are
 gold — match its return/variable types exactly (`Think1sleep` needed
@@ -117,6 +121,10 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 
 ## Dispatch
 
+- **Put the case whose body precedes the epilogue LAST in source**: with no
+  default, the textually last case needs no trailing jump if it falls into
+  the join point — a real length lever (PlayerOption's order 0,1,3,2
+  recovered a wasted j/nop pair).
 - **Case-body memory order reveals the source case order** (the compare tree
   always sorts by value): LayoutEnemyOption's inner switch was written
   `case 1, case 2, case 0` — only the bodies show it.
@@ -426,6 +434,22 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   (`t1 = cap; av = t1 - taken;`) makes its zext an expression temp that
   reload materializes in source order into the next spill reg (BIS digit
   entry).
+- **A one-block register tie can hinge on an UNRELATED statement's
+  position**: local-alloc's tie-breaking sees the whole block's statement
+  order, not just the tied pseudos' positions — when a stubborn swap resists
+  every change to the statements touching the swapped registers, move a
+  nearby independent assignment instead (PlayerOption: sliding a global
+  store two statements later fixed an $a0/$a1 swap whose first uses were
+  earlier).
+- **`*p = x = expr;` vs `x = expr; *p = x;` flips a scheduling tie** between
+  the load feeding expr and the load computing p's address — try the
+  chained-assignment fold when two independent insns land swapped and
+  nothing else differs (PlayerOption).
+- **Read the permuter's non-winning output dirs**: with --stop-on-zero, every
+  improvement leaves an output-<score>-<n>/source.c; a plateaued run's best
+  candidate can contain the exact single-statement reorder needed — diff it
+  against your base instead of waiting out the random search (PlayerOption
+  found its fix in an output-30 dir of a run stuck at 805).
 - **Byte-neutral respellings are permuter seed levers**: re-reading a cached
   field that cse folds back (`dsp->u = dsp->u + …` for `x + …`) or a
   do{}while(0) around an UNRELATED block shifts pseudo bookkeeping enough to

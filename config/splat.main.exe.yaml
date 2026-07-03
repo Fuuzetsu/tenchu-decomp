@@ -90,4 +90,6 @@ segments:
       - [0x4B59C, data]
       - [0x4C1FC, c, debug_menu_stage_option]
       - [0x4C3BC, data]
+      - [0x4C670, c, PlayerOption]
+      - [0x4C810, data]
   - [0x87800]
