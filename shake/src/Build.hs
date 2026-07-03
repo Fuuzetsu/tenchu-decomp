@@ -80,7 +80,7 @@ cpp :: FilePath
 cpp = cross "cpp"
 
 cc :: FilePath
-cc = "tools/cc1-281"
+cc = "cc1-281"          -- PS1 GCC 2.8.1 cc1, provided on PATH by the nix devShell
 
 -- | maspsx post-processes cc1's asm so GNU @as@ reproduces PSY-Q ASPSX's bytes
 -- (div traps, load-delay nops, $at/li/move expansion, $gp small-data layout).

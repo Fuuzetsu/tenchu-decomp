@@ -37,7 +37,7 @@ IN=$(realpath "$1"); OUT=$(realpath -m "$3")
 cd {root}
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-tools/cc1-281 {ccflags} < "$IN" > "$TMP/a.s"
+cc1-281 {ccflags} < "$IN" > "$TMP/a.s"
 maspsx --aspsx-version=2.77 -G8 < "$TMP/a.s" > "$TMP/b.s"
 mipsel-unknown-linux-gnu-as {asflags} -o "$OUT" "$TMP/b.s"
 """

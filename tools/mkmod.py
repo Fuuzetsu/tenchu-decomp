@@ -25,7 +25,7 @@ of change a fixed-layout partial decomp can absorb; *insertions* that grow the i
 are not (yet — that needs more of the surrounding data symbolised so a uniform shift
 stays self-consistent).
 
-Run inside the nix devShell (needs the cross toolchain, tools/cc1-281, maspsx).
+Run inside the nix devShell (needs the cross toolchain, cc1-281 (on PATH), maspsx).
 """
 import os, re, subprocess, sys, glob
 
@@ -41,7 +41,7 @@ AS = CROSS + "as"
 LD = CROSS + "ld"
 NM = CROSS + "nm"
 OBJCOPY = CROSS + "objcopy"
-CC1 = "tools/cc1-281"
+CC1 = "cc1-281"   # PS1 GCC 2.8.1 cc1, on PATH via the nix devShell
 
 CPP_FLAGS = ("-Iinclude -undef -Wall -lang-c -fno-builtin -gstabs -Dmips "
              "-D__GNUC__=2 -D__OPTIMIZE__ -D__mips__ -D__mips -Dpsx -D__psx__ "

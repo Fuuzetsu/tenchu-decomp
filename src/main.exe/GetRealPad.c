@@ -4,18 +4,16 @@
 /*
  * Returns the held-buttons word for controller [arg0 >> 4][arg0 & 3].
  *
- * The pointer temporary and the do/while(0) are not cosmetic: they are what
- * makes GCC 2.8.1 pick the exact register allocation / instruction schedule of
- * the original (found with decomp-permuter). Writing the natural
- * `return PadPort[arg0 >> 4][arg0 & 3].held;` computes the indices in the
- * other order and no longer byte-matches. See docs/matching-get-held-buttons.md.
+ * The pointer temporary forces GCC to compute the row index (`arg0 >> 4`) before
+ * the column (`arg0 & 3`) — the order the original picks. Writing the natural
+ * `return PadPort[arg0 >> 4][arg0 & 3].held;` computes them the other way and
+ * doesn't byte-match. (With the old non-canonical cc1 this also needed a
+ * `do/while(0)` wrapper; the canonical gcc-2.8.1-psx doesn't.)
  */
 buttons_held GetRealPad(s32 arg0)
 {
     buttons_held *held;
     PadProc();
-    do {
-        held = &PadPort[arg0 >> 4][arg0 & 3].held;
-        return *held;
-    } while (0);
+    held = &PadPort[arg0 >> 4][arg0 & 3].held;
+    return *held;
 }

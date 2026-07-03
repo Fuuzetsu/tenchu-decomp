@@ -15,7 +15,7 @@ decomp uses (SOTN, Silent Hill, MediEvil, Soul Reaver, Croc, Spyro):
 
 | PSY-Q tool (path A, needs wine/DOS) | This repo (path B, native Linux) |
 |---|---|
-| `CC1PSX.EXE` (compiler)             | `tools/cc1-281` (GCC 2.8.1 cross-`cc1`) |
+| `CC1PSX.EXE` (compiler)             | `cc1-281` (decompals GCC 2.8.1 psx `cc1`, nix-pinned) |
 | `ASPSX.EXE` + `psyq-obj-parser`     | **maspsx** + `mipsel-…-as`  ← missing piece |
 | `PSYLINK`                           | `mipsel-…-ld` + `main.exe.ld` |
 
@@ -87,11 +87,18 @@ maspsx *before* the flag flip.
    `fetchFromGitHub mkst/maspsx` (or a Fuuzetsu-style overlay if one exists) and
    a `writeShellScriptBin "maspsx"` that runs `python3 maspsx.py`. In the same
    edit, **delete `pkgs.wine`**.
-2. **Pin `cc1-281` first.** Verify the committed `tools/cc1-281` bytes match a
-   specific [decompals/old-gcc](https://github.com/decompals/old-gcc) release
-   (`gcc-2.8.1-psx.tar.gz`), then replace the opaque binary with a `fetchurl`
-   pinned to that sha256. Byte-identical codegen depends entirely on this exact
-   `cc1`.
+2. **Pin `cc1-281`** (DONE). `flake.nix` `fetchurl`s
+   [decompals/old-gcc](https://github.com/decompals/old-gcc) **0.17**
+   `gcc-2.8.1-psx.tar.gz` (sha256 `f6f6e883…1be0`) and puts `cc1-281` on PATH; the
+   committed binary is gone. **This is the *canonical* build** — verified byte-for-byte
+   equal to the real Sony `CC1PSX.EXE` (== decomp.me `psyq4.3`) on our corpus + on a
+   fingerprint function. The **previously-committed `tools/cc1-281` was a different,
+   non-canonical build** with a codegen bug: it read the *high* halfword for
+   `(short)(int)` truncation (`lhu 0x10`) where Sony reads the *low* half (`lhu 0x8`).
+   Switching to canonical fixed it, kept Think1sleep/initialise_font matching, and only
+   needed GetRealPad re-matched (its cleaner pointer-temp form — the old `do/while(0)`
+   was an artifact of the buggy binary). Verdict: use canonical 2.8.1; the real Sony
+   binary is unnecessary (no measured divergence) and 2.7.2 is worse (register alloc).
 3. **Insert maspsx as a filter** (not `--run-assembler`) in the `.s`-producing
    stage of `Build.hs`. Change `cc1 ccFlags` (stdin `.c` → stdout `.s`) to pipe
    `cc1` through `maspsx --aspsx-version=2.77 -G8` (add `--expand-div` for TUs

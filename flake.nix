@@ -87,6 +87,26 @@
         exec ${pkgs.python3}/bin/python3 ${maspsx-src}/maspsx.py "$@"
       '';
 
+      # The PS1 GCC 2.8.1 compiler (cc1). Pinned by sha256 to decompals/old-gcc
+      # 0.17 `gcc-2.8.1-psx` instead of committing the ~3 MB binary. This exact
+      # build is verified equivalent to the real Sony CC1PSX.EXE (== decomp.me
+      # `psyq4.3`) for our corpus — see docs/toolchain.md. The previously-committed
+      # tools/cc1-281 was a DIFFERENT, non-canonical build with a codegen bug (it
+      # read the high halfword for `(short)(int)` truncation). Static i386 ELF, runs
+      # directly on x86_64 via i386 kernel support; skip fixup so it isn't mangled.
+      cc1-281 = pkgs.runCommandLocal "cc1-281"
+        {
+          src = pkgs.fetchurl {
+            url = "https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.1-psx.tar.gz";
+            sha256 = "f6f6e883942d4d3289d048236c672e71ed410e546aaae8ff655952f1567e1be0";
+          };
+          dontFixup = true;
+        } ''
+        mkdir -p "$out/bin"
+        tar xzf "$src" cc1
+        install -m755 cc1 "$out/bin/cc1-281"
+      '';
+
       # mkpsxiso + dumpsxiso: dump/rebuild the game's CD image (`./Build iso`).
       mkpsxiso = pkgs.callPackage ./nix/mkpsxiso.nix { };
 
@@ -134,6 +154,7 @@
             ln -s "${pkgs.gcc}/bin/cpp" "$out"/bin 
           '')
           maspsx-bin
+          cc1-281
           mkpsxiso
           permuter
           # GHC with the Shake build tool's deps baked into its global package
