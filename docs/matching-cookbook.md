@@ -216,6 +216,29 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 - A two-statement remainder temp (`x = rand(); x = x % 200;`) is provable
   from the asm: the `mult`/`subu` operate **in place on the moved call
   result's register** ($sN) — inline `rand() % 200` computes on `$v0`.
+- **Halfword store constants reveal the element's signedness**: storing an
+  0xFFFF terminator emits `li -1` (`addiu $rN,$zero,-1`) only for a SIGNED
+  s16 element; a u16 element materializes `ori $rN,$zero,0xffff`. Same
+  family: an `x != 0` test on an s16 compiles to `sll`+`beqz` (truncation
+  with the sra dropped), on a u16 to `andi 0xffff` — the zero-test names the
+  type (PauseProc's cheat buffer is s16).
+- **An increment shared with a call argument goes through a narrow temp
+  BEFORE the call**: `addiu rX,s_i,1; addu s_i,rX; … jal f` (rX caller-saved,
+  dead at the call) is `j = i + 1; i = j; f(buf, j + 1);` with `short i, j`.
+  Ghidra's rendering (`f(buf, (short)(i+1)+1); i = i + 1;`) would hold the
+  shared i+1 across the call — callee-saved reg + post-call move that the
+  scheduler never undoes. Narrow (HImode) adds stay raw on the unnormalized
+  reg (PauseProc).
+- **Two registers holding the same computed value = an explicit source
+  copy**: cc1 never splits live ranges — `trg = cur & (cur ^ opad);` into
+  one callee-saved reg and then `opad = trg;` into another, with the rest of
+  the body reading `opad`, is the only way one value occupies two s-regs
+  (PauseProc).
+- **Ghidra's short-typed call-result variable can be `int` in source**: a
+  short-returning call assigned to int extends once at the assignment
+  (sll/sra right after the jal, before any joins); a true `short` variable
+  re-extends at each compare after the joins. Place the sll/sra relative to
+  the joins to pick the type (PauseProc).
 - **A narrowing store fed through a temp forces the full-word load**:
   `x = p->end.vx; pp->vx = x;` gives the original's `lw` + `sh`, while the
   inline `pp->vx = p->end.vx;` lets the canonical cc1 emit a truncating `lhu`
@@ -323,6 +346,14 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 - A conditional branch that lands PAST a load at its target block is reorg's
   redundant-insn elimination (the branch path already has the value): both
   source paths simply read the same variable — no restructuring needed.
+- **A call+return tail shared by several loop exits, with the argument `li`
+  in each exit's jump delay slot, is ONE copy written after the loop**:
+  `break` from each path and write the call once (PauseProc's
+  `SsSetMVol(0x7f,0x7f)`). Reorg steals the after-loop block's first insn
+  (the arg li) into each break-jump's empty delay slot and retargets past
+  it; a path whose slot is already full keeps jumping to the li itself.
+  Duplicating the call per path merges WORSE (sched2 drags the arg setup
+  from the call; cross-jump suffixes stop matching).
 
 ## gp vs absolute globals (item-TU vs think-TU)
 

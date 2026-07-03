@@ -59,6 +59,8 @@ segments:
       - [0x39AEC, data]
       - [0x39C2C, c, FUN_8004a42c]
       - [0x39D00, data]
+      - [0x3ACC0, c, PauseProc]
+      - [0x3B048, data]
       - [0x3B25C, c, DoInfoViewProc]
       - [0x3B7A4, data]
       - [0x46E98, c, initialise_font]
