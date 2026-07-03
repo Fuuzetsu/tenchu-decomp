@@ -78,6 +78,8 @@ typedef struct
     MotionManager *motion;       /* 0x5C */
     u8 pad2[0x4E];               /* 0x60 */
     s16 active_item;             /* 0xAE (item_kind2 the character is using) */
+    u8 pad3[0x4];                /* 0xB0 */
+    u8 item[0x8];                /* 0xB4 (carry count per item_kind2 — ProcItemDrop) */
 } Humanoid;
 
 typedef struct
@@ -96,6 +98,8 @@ typedef struct
     s16 vy;                      /* 0x6 */
     s16 vz;                      /* 0x8 */
     u8 status;                   /* 0xA */
+    u8 pad;                      /* 0xB */
+    u8 count;                    /* 0xC (settle/pickup frame counter — ProcItemDrop) */
 } param_korogari;
 
 struct tag_TItem

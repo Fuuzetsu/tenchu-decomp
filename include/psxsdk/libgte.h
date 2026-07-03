@@ -11,7 +11,7 @@ struct VECTOR
 typedef struct SVECTOR SVECTOR;
 struct SVECTOR
 {
-    short xv, vy, vz;
+    short vx, vy, vz;
     short pad;
 };
 

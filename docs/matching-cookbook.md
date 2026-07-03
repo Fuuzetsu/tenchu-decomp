@@ -163,6 +163,16 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   neighbouring field is `s16` (`life` is `s16`@0x8, `lifemax` is `u16`@0xA).
 - Byte-sized call arguments loaded with `lbu` and no masking are plain `u8`
   struct fields passed directly.
+- **A constant stored to both a narrow field and a full-word field must be a
+  shared int variable**: cc1 gives the literal in `s16_field = 8;` an HImode
+  pseudo and a later `s32_field = 8;` a separate SImode one — two `li`s, one
+  instruction too long. `m = 8; ... p->pad = m; ... q->mode = m;` yields the
+  original's single `li` in one register (the `sh` reads its low part). The
+  tell: the same small constant materialized twice, once feeding `sh`, once
+  `sw` (ProcItemDrop's conflict-insert path).
+- A two-statement remainder temp (`x = rand(); x = x % 200;`) is provable
+  from the asm: the `mult`/`subu` operate **in place on the moved call
+  result's register** ($sN) — inline `rand() % 200` computes on `$v0`.
 - **A narrowing store fed through a temp forces the full-word load**:
   `x = p->end.vx; pp->vx = x;` gives the original's `lw` + `sh`, while the
   inline `pp->vx = p->end.vx;` lets the canonical cc1 emit a truncating `lhu`
