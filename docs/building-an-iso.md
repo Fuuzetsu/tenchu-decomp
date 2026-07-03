@@ -20,7 +20,7 @@ On first use the disc is dumped once with `dumpsxiso` into `TENCHU_ISO_WORK`
 ```console
 $ nix develop            # provides mkpsxiso + dumpsxiso (packaged in nix/mkpsxiso.nix)
 $ ./Build iso            # matching main.exe   -> .shake/build/tenchu/tenchu.{bin,cue}
-$ ./Build iso-mod        # grown main_mod.exe  (from src/mod/main.exe/, see modding docs)
+$ ./Build iso-mod        # grown main_mod.exe  -> .shake/build/tenchu/tenchu-mod.{bin,cue}
 $ ./Build run            # FAST: -loadexe main.exe over the original disc (no repack)
 $ ./Build run-iso        # FAITHFUL: repack the disc with main.exe and boot it
 $ ./Build run-mod        # fast, grown main_mod.exe
@@ -34,10 +34,14 @@ Two ways to launch:
   Tenchu boots `SLPS_019.01 → … → TENCHU/MAIN.EXE`, this jumps straight to
   `MAIN.EXE` and skips that launcher; great for iterating on `main.exe`, but if the
   game needs the full boot chain use `run-iso`.
-- **`./Build run-iso`** (faithful) repacks the disc with our `MAIN.EXE` swapped in
-  and boots the whole thing, running the real `SLPS_019.01 → … → MAIN.EXE`. You can
-  also load `tenchu.cue` by hand (drag it into pcsx-redux, or *File → Open Disk
-  Image*).
+- **`./Build run-iso`** (faithful) boots the repacked disc (our `MAIN.EXE` swapped
+  in), running the real `SLPS_019.01 → … → MAIN.EXE`. You can also load `tenchu.cue`
+  by hand (drag it into pcsx-redux, or *File → Open Disk Image*).
+
+`tenchu.{bin,cue}` (and `tenchu-mod.{bin,cue}`) are real Shake targets, so `iso` /
+`run-iso` **repack only when the exe changed** — repeated `run-iso` launches don't
+rebuild the ~750 MB image. The one thing not tracked is a swap of the *original*
+disc (mkiso.py discovers it dynamically): `./Build clean` to force a repack then.
 
 `run` finds the emulator via `$PCSX_REDUX`, then `pcsx-redux` on `PATH`, then
 `~/programming/pcsx-redux/pcsx-redux`; extra emulator flags go in `$PCSX_REDUX_ARGS`.
