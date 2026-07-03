@@ -48,6 +48,9 @@ segments:
     subalign: 4
     subsegments:
       - [0x800, data] # ?
+      # AddMisc's switch jump table (vram 0x800127E8), same scheme.
+      - [0x1FE8, .rodata, AddMisc]
+      - [0x2008, data]
       # BriefingAndInventorySelectionScreen's switch jump table (vram
       # 0x80013B30): linked from the C object's .rodata so the compiled table
       # lands at the original address (the raw data bin is split around it).
@@ -82,6 +85,8 @@ segments:
       - [0x3B048, data]
       - [0x3B25C, c, DoInfoViewProc]
       - [0x3B7A4, data]
+      - [0x3C93C, c, AddMisc]
+      - [0x3CB50, data]
       - [0x41884, c, BriefingAndInventorySelectionScreen]
       - [0x426A8, data]
       - [0x46E98, c, initialise_font]

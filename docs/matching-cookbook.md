@@ -367,6 +367,11 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   (`arr[idx + (ps->chr << 5)]`) skips the special case and preserves source
   order; a sum assigned to a value temp first (`int n = j + chr * 0x20;`)
   also expands in source order.
+- **Pointer-local spelling extends the addu-order rule**: `tp->n[x]` through
+  a struct-pointer emits `addu base,index`; `tp[x]` on a plain `char **`
+  emits `addu index,base` (AddMisc).
+- **A signed `slt` on a pointer comparison is an `(s32)` cast pair in
+  source** (Ghidra renders it as `(int)ptr < -0x7ff…`).
 - **Array spelling picks the addu operand order**: `p->arr[i]` emits
   `addu base,index`; `(&p->arr[0])[i]` emits `addu index,base`;
   `((T *)0x80010000)->arr[i]` emits index-first with a split `lui`+lo
@@ -471,6 +476,30 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   (cse copy-propagates, like `i = 0` after `cursor = 0` giving
   `move a0,s8`). Anti-rule: DEAD early assignments cannot steer allocation —
   cse propagates the constant into unrelated code.
+- **cse has a (set REG0 REG1) copy-swap special case for ADJACENT pairs**:
+  `base = misc; p = base;` back-to-back gets rewritten so the la lands in
+  the copy's dest and the copy flips. Keep other initializer insns BETWEEN
+  the la and the copy (decl order!) — prev_nonnote_insn adjacency is what
+  the swap checks (AddMisc).
+- **A stack parameter used exactly once is load-sunk to its use**
+  (update_equiv_regs: REG_N_REFS==2 + REG_EQUIV from assign_parms). A local
+  copy (`s32 va = ry;`) defeats it — the parm substitutes into the copy, so
+  the entry lw lands at the copy's DECL position (decl order = load order)
+  and the copy's pseudo needs a hard reg. Every REG_EQUIV-noted parm also
+  gets REG_LIVE_LENGTH×2 — raw parms lose allocation races their ref counts
+  say they should win (AddMisc).
+- **Loop notes are scheduler barriers** (sched adds artificial deps at
+  LOOP_BEG/END): a do{}while(0) weight lever must ENCLOSE any insn that has
+  to float across it, and must extend past a switch's tail if a case arm
+  jumps out of the note range — otherwise jump.c moves that arm's block to
+  the function end (AddMisc).
+- **Global-alloc priority is floor_log2(n_refs)·n_refs/live_length·10000·size,
+  ties by pseudo number** (global.c allocno_compare; flow adds loop_depth
+  per ref). cc1's `-da` dump prints each pseudo's refs/length and the
+  allocation order — with it, the whole caller-saved assignment can be
+  ENGINEERED by placing do{}while(0) levers at computed depths (AddMisc:
+  body wrapper depth 2 + nested double wrapper on the loop-bottom increment
+  gave [a0,a2,a3,t0,t1] exactly).
 - **A `do { ... } while (0);` wrapper is a regalloc lever**: the degenerate
   loop generates no code, but its loop notes make flow.c count every ref
   inside at loop_depth 2, doubling those pseudos' priority in global-alloc.
