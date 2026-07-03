@@ -1,9 +1,19 @@
 # Bridging the Ghidra project into the decomp
 
-You have a separate Ghidra project with symbols/types/decompilation. This brings
-its decompiled C into the repo **one function at a time**, so each function gets a
-`src/main.exe/<fn>.c` with the ASM split out and Ghidra's C as a reference to turn
-into matching C. The build stays byte-identical at every step.
+You have a separate Ghidra project with symbols/types/decompilation. The bridge is
+**bidirectional**:
+
+- **Ghidra → repo** (sections 1–3 below): pull decompiled C, symbol names, and
+  types in, one function at a time. The build stays byte-identical at every step.
+- **repo → Ghidra** ([sync back](#pushing-the-repo-back-into-ghidra-repo--ghidra)):
+  push the knowledge you *proved* here (a type/signature that survives
+  `./Build check`) back so Ghidra's decompiler improves for the next function.
+
+The mental model that makes the loop work: **the C bodies never sync** (Ghidra
+generates its; the repo has the matching one — different roles). What syncs is the
+*knowledge layer* — types, function signatures, global var types, and names — and
+the repo is canonical for what the byte-match proves. See PLAN.md / the design
+discussion for the full rationale.
 
 ## 1. Export from Ghidra (once, re-run when it changes)
 
@@ -80,6 +90,61 @@ Example: `Think1sleep` is blocked by a wrong
 `->count` — i.e. the character struct has a `motion` pointer at 0x5C (correct),
 and `motion` points to a `{ short mid; short count; … }`. Pull that layout from
 `reference/ghidra_types.h` to fix it.
+
+## Pushing the repo back into Ghidra (repo → Ghidra)
+
+`tools/sync_to_ghidra.py` drives `tools/ghidra/ImportToGhidra.java` (headless) to
+push the repo's verified knowledge into the Ghidra program:
+
+- **types** — `src/main.exe/game_types.h` (the structs/enums, split out of
+  `main.exe.h` as the round-trip unit) is parsed into the program's data type
+  manager. Base `sN`/`uN` types Ghidra lacks are supplied; ones it already has
+  (`u_long`, `byte`, …) are **not** redefined (that would clobber Ghidra's SDK types).
+- **function signatures** — from `main.exe.h`'s `extern` prototypes *and* every
+  fully-matched `src/main.exe/*.c` definition. Applied with `NO_CHANGE`, so the
+  return/param **types** land but the function is never renamed and its calling
+  convention is untouched.
+- **global var types** — `extern T x;` globals from `main.exe.h` (`Me_THINK_C` →
+  `character_state *`, `SR` → `s16`, …). Arrays are skipped for now.
+
+```console
+$ tools/sync_to_ghidra.py            # DRY RUN (read-only) — review the log
+$ tools/sync_to_ghidra.py --commit   # actually write to the Ghidra project
+```
+
+Everything is resolved **by address** (from `config/symbols`), never by name —
+addresses are the invariant; names drift on both sides. Close the Ghidra GUI first
+(headless needs the project lock). Dry run changes nothing; it prints exactly what
+`--commit` would do. Defaults: project `~/programming/ghidra-projects`, name
+`tenchu-decompile`, program `main.exe` (override with `--project/--project-name/--program`).
+
+### Reconciling names (the drift report)
+
+Because it matches by address, the sync ends with a **name-drift report** —
+addresses where the repo's name and Ghidra's differ. This is the manual reconcile
+step, and it cuts both ways:
+
+```
+8001ada4  repo=PadProc        ghidra=FUN_8001ada4              -> push repo name (Ghidra has a placeholder)
+800979cc  repo=Me_THINK_C     ghidra=CHARACTER_BEING_UPDATED?  -> pull Ghidra's better name into the repo
+8001b260  repo=GetRealPad     ghidra=get_held_buttons          -> decide the canonical name
+```
+
+Pull Ghidra's names into the repo with `tools/import_symbols.py`; push the repo's
+by renaming in Ghidra (or extend the sync — it deliberately does *not* rename
+automatically, to avoid clobbering a name you preferred on either side).
+
+### The loop, end to end
+
+1. Reverse a function (sections 1–2): `reverse.py` + Ghidra's C as reference.
+2. Make it match; refine types in `game_types.h`. `./Build check` green **proves**
+   the types — the build is a CI test for your Ghidra type model.
+3. `tools/sync_to_ghidra.py --commit` pushes the proven types/signatures back;
+   Ghidra re-decompiles everything with them → better C for the next function.
+4. When both sides moved, `git diff reference/ghidra_types.h` (after a fresh
+   `ExportSymbolsTypes` run) shows what Ghidra changed; merge the wanted bits into
+   `game_types.h` and let `./Build check` validate. Git is the merge tool; the
+   byte-match is the arbiter.
 
 ## Notes
 
