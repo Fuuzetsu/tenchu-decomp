@@ -16,11 +16,17 @@ byte-identical `main.exe`.
   `cpp | cc1-281 -G8 | maspsx --aspsx-version=2.77 | as | ld`; reproducible/offline
   via nix (no cabal/wine). maspsx is integrated (see [`docs/toolchain.md`](docs/toolchain.md)).
 - **Matched functions:** `initialise_font`, `GetRealPad` (via decomp-permuter —
-  [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)), and
-  **`Think1sleep`** — the first function needing `$gp`-relative globals. Matching it
-  unblocked two reusable pieces of infrastructure (both in
-  [`docs/toolchain.md`](docs/toolchain.md)): the maspsx `.extern`-gp patch and the
-  `macro.inc` `li→addiu` fix. Every future gp-using function now "just works".
+  [`docs/matching-get-held-buttons.md`](docs/matching-get-held-buttons.md)),
+  **`Think1sleep`** — the first function needing `$gp`-relative globals — and
+  **`ProcItemManebue`** — the first needing *absolute* addressing of a small
+  global that another TU gp-addresses. Between them they pinned down the real
+  gp model (ASPSX gp-addresses only TU-local definitions; externs are absolute)
+  and produced the reusable infrastructure in
+  [`docs/toolchain.md`](docs/toolchain.md): the opt-in `maspsx --gp-extern`
+  patch + per-file lists in `Build.hs` (`maspsxGpExterns`), and the `macro.inc`
+  `li→addiu` fix. The compiler is the canonical decompals `gcc-2.8.1-psx`,
+  nix-pinned and verified equivalent to real Sony `CC1PSX.EXE` (decomp.me
+  `psyq4.3`) — see `compiler-fidelity` in the toolchain doc.
 - **Modding + emulator loop works:** `./Build mod` (grow functions) and
   `./Build iso`/`iso-mod` (bootable disc for pcsx-redux). See docs/.
 

@@ -1,42 +1,54 @@
---- a/maspsx/__init__.py	1970-01-01 09:00:01.000000000 +0900
-+++ b/maspsx/__init__.py	2026-07-03 08:37:27.972961469 +0900
-@@ -421,6 +421,11 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -397,6 +397,7 @@
+         gp_allow_la=False,
+         use_comm_section=False,
+         use_comm_for_lcomm=False,
++        gp_externs=None,
+     ):
+         self.lines = [x.strip() for x in lines]
+ 
+@@ -418,9 +419,19 @@
+         self.use_comm_section = use_comm_section
+         self.use_comm_for_lcomm = use_comm_for_lcomm
+ 
++        # Symbols to treat as $gp-addressable even though this file only sees an
++        # `.extern SYM, SIZE` for them (--gp-extern). ASPSX gp-addresses ONLY
++        # symbols *defined* in the current file (.sdata/.sbss/.comm); externs are
++        # always addressed absolutely (lui $at). In a fixed-address decomp where
++        # every symbol is extern, list the small globals the ORIGINAL translation
++        # unit defined to reproduce its gp accesses.
++        self.gp_externs: set = set(gp_externs or [])
++
          self.bss_entries: dict[str, int] = {}
          self.sbss_entries: dict[str, int] = {}
          self.sdata_entries: dict[str, int] = {}
-+        # Small externs (`.extern SYM, SIZE` with SIZE <= G) that cc1 -G emits
-+        # for referenced globals. Real `as -G`/ASPSX gp-address these; we record
-+        # them so the gp-rewrite fires, but never define them (they stay
-+        # undefined, so the %gp_rel reloc resolves to addr - _gp at link).
++        # --gp-extern'd small externs seen in this file (name -> size)
 +        self.extern_entries: dict[str, int] = {}
  
          self.comm_symbols: set[str] = set()
  
-@@ -465,7 +470,23 @@
+@@ -465,7 +476,19 @@
                  continue
  
              if line.startswith(".extern"):
-+                # cc1 -G emits `.extern SYM, SIZE` for every referenced extern
-+                # whose (declared) size it knows. A small one (SIZE <= G) is
-+                # gp-addressed by real `as -G`/ASPSX; record it so the gp-rewrite
-+                # fires. It is never defined here, so it stays undefined and the
-+                # %gp_rel reloc resolves to the symbol's absolute address at link
-+                # (addr - _gp). Arrays of unknown size (e.g. `char s[]`) get no
-+                # SIZE from cc1, so they are skipped and stay absolute.
++                # cc1 -G emits `.extern SYM, SIZE` for referenced externs of known
++                # size. Record the --gp-extern'd small ones so the gp rewrite fires
++                # for them; everything else stays absolute, as ASPSX does.
                  in_sdata = False
 +                parts = line.split(None, 1)
 +                if len(parts) == 2 and "," in parts[1]:
 +                    symbol, size_str = parts[1].split(",", 1)
 +                    symbol = symbol.strip()
 +                    size_str = size_str.strip()
-+                    if size_str.isdigit():
++                    if symbol in self.gp_externs and size_str.isdigit():
 +                        size = int(size_str)
 +                        if 0 < size <= self.sdata_limit:
 +                            self.extern_entries[symbol] = size
                  continue
  
              if line.startswith(".comm") or line.startswith(".lcomm"):
-@@ -527,6 +548,7 @@
+@@ -527,6 +550,7 @@
          self.bss_entries = {}
          self.sbss_entries = {}
          self.sdata_entries = {}
@@ -44,7 +56,7 @@
  
          self.preprocess_lines()
  
-@@ -634,6 +656,7 @@
+@@ -634,6 +658,7 @@
  
                  if gp_allowed and (
                      symbol in self.sbss_entries or symbol in self.sdata_entries
@@ -52,7 +64,7 @@
                  ):
                      return True
  
-@@ -923,6 +946,7 @@
+@@ -923,6 +948,7 @@
  
                  if gp_allowed and (
                      symbol in self.sdata_entries or symbol in self.sbss_entries
@@ -60,7 +72,7 @@
                  ):
                      res.append(f"{op}\t{r_dest},{gp_rel}")
                  else:
-@@ -1014,6 +1038,7 @@
+@@ -1014,6 +1040,7 @@
  
                  if gp_allowed and (
                      symbol in self.sdata_entries or symbol in self.sbss_entries
@@ -68,3 +80,24 @@
                  ):
                      res.append(f"{op}\t{r_dest},{gp_rel}")
                  else:
+--- a/maspsx.py
++++ b/maspsx.py
+@@ -59,6 +59,10 @@
+     parser.add_argument("--force-stdin", action="store_true")
+     parser.add_argument("--use-comm-section", action="store_true")
+     parser.add_argument("--use-comm-for-lcomm", action="store_true")
++    # Treat these small externs as $gp-addressable (repeatable). ASPSX only
++    # gp-addresses symbols defined in the current file; use this to reproduce a
++    # translation unit whose original defined the listed globals.
++    parser.add_argument("--gp-extern", action="append", default=[], metavar="SYMBOL")
+     # decomp.me debugging
+     parser.add_argument("--print-output", action="store_true")
+     parser.add_argument("--print-input", action="store_true")
+@@ -144,6 +148,7 @@
+         gp_allow_la=version_config.gp_allow_la,
+         use_comm_section=args.use_comm_section,
+         use_comm_for_lcomm=args.use_comm_for_lcomm,
++        gp_externs=args.gp_extern,
+     )
+     try:
+         out_lines = maspsx_processor.process_lines()

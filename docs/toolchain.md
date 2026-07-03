@@ -121,39 +121,46 @@ maspsx *before* the flag flip.
    against the target. Escalate the aspsx version only on an observed `la`/`gp`
    mismatch.
 
-## gp globals: making small globals byte-match (SOLVED)
+## gp globals: making small globals byte-match (SOLVED — per-TU opt-in)
 
-Tenchu addresses small globals (≤ 8 bytes, within ±32 KB of `gp = 0x80097698`)
-via `$gp` — the disassembly shows `%gp_rel(SYMBOL)($gp)`. To reproduce that from
-compiled C, maspsx must rewrite the access to `%gp_rel`. Stock maspsx only
-gp-converts symbols it sees declared as small-data (`.comm`/`.lcomm`/`.sdata`/
-`.sbss`); it *ignored* `.extern`, so `extern s16 SR;` compiled to an **absolute**
-`lui/…` access and did not match.
+Tenchu addresses some small globals (≤ 8 bytes, within ±32 KB of
+`gp = 0x80097698`) via `$gp` (`%gp_rel(SYMBOL)($gp)`), others absolutely
+(`lui $at`). **The rule, verified against the original binary: a TU's gp
+accesses target only the smalls that TU itself *defines*; externs are always
+absolute.** The gp-target addresses per region form disjoint contiguous blocks —
+each TU's own `.sdata` — e.g. the think TU's block *starts at*
+`FRAMES_UNTIL_END_OF_ALERT` (0x800979c0), which `Think1sleep` reaches via `$gp`,
+while the item TU (`ProcItemManebue`, `ProcItemKusuri`) addresses that very same
+symbol absolutely and gp-addresses its *own* block (0x80097ac8…) instead. So
+ASPSX ignores `.extern SYM,SIZE` for gp decisions — exactly like stock maspsx.
 
-**The fix** ([`nix/maspsx-gp-extern.patch`](../nix/maspsx-gp-extern.patch), wired
-in `flake.nix`): cc1 `-G8` already emits **`.extern SYM, SIZE`** for every small
-global it references (e.g. `.extern SR, 2`) — arrays of unknown size like
-`extern char s[]` get *no* size and are skipped. Real `as -G`/ASPSX gp-address
-exactly these size-bearing small externs; the patch teaches maspsx to do the same:
-it records `.extern SYM,SIZE` with `0 < SIZE ≤ G` in a new `extern_entries` set and
-adds that set to the three gp-rewrite gates. The symbols are **never defined** by
-maspsx, so they stay undefined and the `R_MIPS_GPREL16` reloc resolves at link to
-`SYM − _gp` (bfd uses the `_gp = 0x80097698` symbol in the linker script; the real
-addresses come from `config/symbols`). This is general — no per-symbol whitelist,
-no `config/symbols` coupling in maspsx — and it's what unblocked `Think1sleep`
-(`Me_THINK_C`/`SR`/`Attrib`/`FRAMES_UNTIL_END_OF_ALERT`).
+Our decomp complicates this: every symbol is `extern` (addresses come from
+`config/symbols` at link), so "defined in this TU" doesn't exist in our sources.
+**The fix** ([`nix/maspsx-gp-extern.patch`](../nix/maspsx-gp-extern.patch)): an
+opt-in, repeatable **`maspsx --gp-extern SYM`** flag. Listed symbols with a
+size-bearing small `.extern SYM,SIZE` (`0 < SIZE ≤ G`; cc1 `-G8` emits these for
+every small global it references) are recorded and added to the gp-rewrite
+gates; everything else passes through as cc1's one-line macro (`sw $0,SYM`),
+which GNU `as` expands to the same `lui $at` sequence ASPSX used. The symbols
+are never defined by maspsx, so `R_MIPS_GPREL16` resolves at link to `SYM − _gp`.
 
-Dead ends that this replaced: a **tentative def** (`.comm`) defines the symbol in
-the discarded `.sbss` at a *sequential* offset (link error + wrong gp offset);
-`as -G8` gp-addresses **every** small extern including far ones — but a far small
-extern (e.g. a `char` string near a large `.data` blob) then reloc-truncates.
-The size-based approach shares that last risk in theory, but it is *loud* (ld errors
-`relocation truncated to fit R_MIPS_GPREL16`), and it doesn't fire for `la`
-(address-of) at aspsx 2.77 (`gp_allow_la` is off), which is how the far strings
-`FONT_FILE_NAME`/`IMAGES_PREFIX_STR` — only ever `&`-taken — stay absolute today.
-If a future function *loads* from a far small extern, declare it as an array so cc1
-emits no `.extern SIZE`. Far globals outside gp range (e.g. `PadPort` at
-`0x800be6d0`) are large/array and correctly stay `extern`/absolute.
+Per-file flag lists live in `Build.hs` (`maspsxGpExterns`) and mirror in
+`tools/permute.py` (`GP_EXTERNS`): each file lists the smalls its *original* TU
+defined — `Think1sleep` → `Me_THINK_C`/`SR`/`Attrib`/`FRAMES_UNTIL_END_OF_ALERT`;
+item-TU functions list none. When a new function needs `$gp` for a symbol, that's
+the signal its original TU defined it — add it to the list (and it'll seed the
+TU-ownership map for the eventual data segments).
+
+History: the first version of this patch gp-addressed **every** small extern
+(no flag). That matched `Think1sleep` but was wrong for cross-TU references —
+`ProcItemManebue`'s absolute `FRAMES` store (`lui $at`, scheduled late by the
+assembler expansion) was unreachable with the blanket patch, since forcing
+absolute required declaring the symbol as an unsized array, which makes cc1
+materialize the address in a real register (`lui $v0`, scheduled early) instead
+of emitting the macro. The opt-in flag keeps cc1's small-data macro emission
+(the schedule) *and* lets the assembler pick the original's `$at` expansion.
+Note `la` (address-of) is not gp-rewritten at aspsx 2.77 (`gp_allow_la` off),
+which is how far `&`-taken strings (`FONT_FILE_NAME`) stay absolute.
 
 ## `li` of small positive immediates → `addiu`, not `ori` (SOLVED)
 

@@ -30,6 +30,13 @@ CC_FLAGS = ("-mcpu=3000 -quiet -G8 -w -O2 -funsigned-char -fpeephole -ffunction-
             "-msoft-float").split()
 AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").split()
 
+# Per-function `--gp-extern SYM` maspsx flags — MUST mirror maspsxGpExterns in
+# shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
+# small globals the function's ORIGINAL translation unit defined).
+GP_EXTERNS = {
+    "Think1sleep": ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"],
+}
+
 COMPILE_SH = r"""#!/usr/bin/env bash
 # permuter compile: preprocessed C -> object, via this repo's cc1|maspsx|as.
 set -e
@@ -38,7 +45,7 @@ cd {root}
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 cc1-281 {ccflags} < "$IN" > "$TMP/a.s"
-maspsx --aspsx-version=2.77 -G8 < "$TMP/a.s" > "$TMP/b.s"
+maspsx --aspsx-version=2.77 -G8{gpexterns} < "$TMP/a.s" > "$TMP/b.s"
 mipsel-unknown-linux-gnu-as {asflags} -o "$OUT" "$TMP/b.s"
 """
 
@@ -71,8 +78,10 @@ def main():
 
     # compile.sh
     csh = os.path.join(work, "compile.sh")
+    gpx = "".join(f" --gp-extern {s}" for s in GP_EXTERNS.get(name, []))
     open(csh, "w").write(COMPILE_SH.format(
-        root=ROOT, ccflags=" ".join(CC_FLAGS), asflags=" ".join(AS_FLAGS)))
+        root=ROOT, ccflags=" ".join(CC_FLAGS), asflags=" ".join(AS_FLAGS),
+        gpexterns=gpx))
     os.chmod(csh, 0o755)
 
     # base.c = preprocessed src (what the permuter perturbs)

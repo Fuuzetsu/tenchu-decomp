@@ -94,6 +94,21 @@ maspsx = "maspsx"
 maspsxFlags :: [String]
 maspsxFlags = ["--aspsx-version=2.77", "-G8"]
 
+-- | Per-file @--gp-extern SYM@ flags (our nix/maspsx-gp-extern.patch). ASPSX
+-- $gp-addresses only symbols *defined* in the file being assembled; externs are
+-- always absolute (@lui $at@). Verified in the original binary: the think TU
+-- gp-addresses FRAMES_UNTIL_END_OF_ALERT (its own .sdata starts right at it,
+-- 0x800979c0) while the item TU addresses the very same symbol absolutely.
+-- Our decomp declares everything @extern@ (symbols come from the fixed-address
+-- link), so per file we list the small globals its ORIGINAL translation unit
+-- defined — maspsx then gp-addresses exactly those and leaves the rest absolute.
+maspsxGpExterns :: FilePath -> [String]
+maspsxGpExterns src = concat [["--gp-extern", s] | s <- syms (takeBaseName src)]
+  where
+    -- Think1sleep.c is a fragment of the original think TU, which defines these.
+    syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
+    syms _ = []
+
 as :: FilePath
 as = cross "as"
 
@@ -263,7 +278,8 @@ objRules = do
     -- directives untouched, so stubs pass through unchanged.
     withTempFile $ \ccOut -> do
       cmd_ (FileStdin processed) (FileStdout ccOut) cc ccFlags
-      cmd_ (FileStdin ccOut) (FileStdout out) maspsx maspsxFlags
+      cmd_ (FileStdin ccOut) (FileStdout out) maspsx
+        (maspsxFlags <> maspsxGpExterns processed)
 
   buildDir <//> "*.c.o" %> \out -> do
     let fileComponent = makeRelative buildDir out

@@ -74,10 +74,13 @@
 
       # maspsx: post-processes cc1's asm so GNU as reproduces PSY-Q ASPSX bytes
       # (replaces ASPSX.EXE — no wine needed). Single-file, stdlib-only Python.
-      # Patched (nix/maspsx-gp-extern.patch) to gp-address size-bearing small
-      # externs — cc1 -G emits `.extern SYM,SIZE` for referenced small globals,
-      # which real `as -G`/ASPSX gp-address but upstream maspsx leaves absolute.
-      # This is what lets gp-relative functions (e.g. Think1sleep) byte-match.
+      # Patched (nix/maspsx-gp-extern.patch) to add an opt-in `--gp-extern SYM`
+      # flag: ASPSX gp-addresses only symbols *defined* in the file it assembles
+      # (verified against the original binary — think's TU gp-addresses
+      # FRAMES_UNTIL_END_OF_ALERT while the item TU addresses the same symbol
+      # absolutely), but this decomp declares everything `extern` (fixed-address
+      # link). Per file, Build.hs lists the smalls the ORIGINAL translation unit
+      # defined (maspsxGpExterns) so exactly those go via $gp — e.g. Think1sleep.
       maspsx-src = pkgs.applyPatches {
         name = "maspsx-patched";
         src = inputs.maspsx;
