@@ -51,32 +51,40 @@ def from_ghidra(export, name):
 
 
 def parse_subsegments(text):
-    """Return (pre, entries, post) where entries = [(indent, off, type, name, raw)]."""
+    """Return (pre, items, post). items mixes parsed entries
+    ("e", indent, off, type, name, raw) with verbatim passthrough lines
+    ("raw", line) — comments and anything else hand-maintained in the
+    subsegment list survive a rewrite (a dropped `.rodata` carve once broke
+    the jump-table link)."""
     lines = text.splitlines(keepends=True)
     start = next(i for i, l in enumerate(lines) if l.strip() == "subsegments:")
     # the segment ends at the top-level terminator `  - [0x....]` (2-space indent)
     end = next(i for i in range(start + 1, len(lines))
                if re.match(r"  - \[0x[0-9A-Fa-f]+\]\s*$", lines[i]))
-    entries = []
+    items = []
     for l in lines[start + 1:end]:
-        m = re.match(r"(\s*)- \[\s*(0x[0-9A-Fa-f]+)\s*,\s*(\w+)\s*(?:,\s*([\w.]+)\s*)?\]",
+        m = re.match(r"(\s*)- \[\s*(0x[0-9A-Fa-f]+)\s*,\s*([\w.]+)\s*(?:,\s*([\w.]+)\s*)?\]",
                      l)
         if m:
-            entries.append((m.group(1), int(m.group(2), 16), m.group(3),
-                            m.group(4), l))
-    return lines[:start + 1], entries, lines[end:]
+            items.append(("e", m.group(1), int(m.group(2), 16), m.group(3),
+                          m.group(4), l))
+        else:
+            items.append(("raw", l))
+    return lines[:start + 1], items, lines[end:]
 
 
 def split_config(fstart, fend, name):
     text = open(YAML).read()
-    pre, entries, post = parse_subsegments(text)
-    if any(e[1] == fstart and e[2] == "c" for e in entries):
+    pre, items, post = parse_subsegments(text)
+    entries = [(i, it) for i, it in enumerate(items) if it[0] == "e"]
+    if any(it[2] == fstart and it[3] == "c" for _, it in entries):
         print(f"reverse: 0x{fstart:x} already a `c` subsegment — leaving config")
         return
     # the entry whose range covers fstart
-    offsets = [e[1] for e in entries] + [int(re.search(r"0x[0-9A-Fa-f]+", post[0]).group(0), 16)]
+    offsets = [it[2] for _, it in entries] + \
+        [int(re.search(r"0x[0-9A-Fa-f]+", post[0]).group(0), 16)]
     idx = max(i for i, o in enumerate(offsets[:-1]) if o <= fstart)
-    ind, off, typ, _nm, _raw = entries[idx]
+    item_i, (_, ind, off, typ, _nm, _raw) = entries[idx]
     nxt = offsets[idx + 1]
     if typ != "data":
         sys.exit(f"reverse: 0x{fstart:x} falls in a `{typ}` subsegment (0x{off:x}), not data")
@@ -89,13 +97,12 @@ def split_config(fstart, fend, name):
     new.append(f"{ind}- [0x{fstart:X}, c, {name}]\n")
     if fend < nxt:
         new.append(f"{ind}- [0x{fend:X}, data]\n")
-    entries[idx] = None  # replaced by `new`
     out = list(pre)
-    for i, e in enumerate(entries):
-        if i == idx:
+    for i, it in enumerate(items):
+        if i == item_i:
             out.extend(new)
-        elif e is not None:
-            out.append(e[4])
+        else:
+            out.append(it[-1])
     out.extend(post)
     open(YAML, "w").write("".join(out))
     print(f"reverse: split config -> [0x{fstart:X}, c, {name}]")

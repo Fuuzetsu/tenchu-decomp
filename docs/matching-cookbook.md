@@ -163,6 +163,16 @@ gold — match its return/variable types exactly (`Think1sleep` needed
 - A hand-rolled `label: if (...) goto...` loop also keeps the top test but
   **loses hoisting** (no loop notes → loop.c skips it): magic divisors and
   invariant addresses get rematerialized per iteration. Wrong.
+- **A top-test loop that never hoists its invariants is a hand-rolled goto
+  loop, not while(1)+break**: `while(1){if(!cond)break;…}` still emits loop
+  notes, so loop.c hoists invariant addresses/constants to the preheader and
+  strength-reduces repeated field offsets into a second induction pointer
+  (extra callee-saved regs, bigger frame). When the target recomputes an
+  invariant `lui`/constant INSIDE the loop and walks ONE cursor with plain
+  field offsets, write literal labels:
+  `loop: if (!(i < N)) goto end; …; it++; i++; goto loop; end:`
+  (ClearItemLayout: while(1)+break gave s0–s4/0x28 frame vs the target's
+  s0–s1/0x20; the goto form matched first try).
 - **No combined address bases + no rotated tests ⇒ goto loops.** Real
   for/while/do-while get loop.c strength reduction (extra induction pseudos
   folding several field offsets, e.g. base+2/base+6) and jump.c rotation (a
