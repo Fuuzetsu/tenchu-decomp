@@ -131,6 +131,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     -- debug_menu_stage_option.c is part of the same debug-menu TU, which
     -- defines SystemFlag (info-view TU accesses it absolutely — both proven).
     syms "debug_menu_stage_option" = ["SystemFlag"]
+    syms "FileOption" = ["SystemFlag"]
     syms _ = []
 
 as :: FilePath

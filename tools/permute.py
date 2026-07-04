@@ -42,6 +42,7 @@ GP_EXTERNS = {
     "BriefingAndInventorySelectionScreen": ["CARRY_30_ITEMS_CHEAT_APPLIED"],
     "LayoutEnemyOption": ["D_80097D44"],
     "debug_menu_stage_option": ["SystemFlag"],
+    "FileOption": ["SystemFlag"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

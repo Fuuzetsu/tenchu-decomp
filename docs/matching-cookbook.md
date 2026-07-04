@@ -550,6 +550,16 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   are the source's real shape. `sizeof(T)` in the memsets is free
   (compile-time constant) and matches.
 
+- **Anti-rule (open problem): sched's equal-priority tiebreak prefers the
+  memory-unit insn** — a store and an independent ALU op simultaneously
+  ready always emit [alu][store]. A target showing [store][alu] with all
+  else matched resisted statement order, temps, multi-def hosts and
+  do{}while(0) fences (fences pin the order but retie the dying operand
+  into $a0). Untried levers: make the pair NOT simultaneously ready
+  (lengthen the store's downstream dependence chain with a byte-neutral
+  field re-read, or derive the ALU operand from a later-completing value).
+  FileOption case 0xd, CURRENT(2).
+
 ## Shared tails
 
 - **A store shared by both branch paths via the branch delay slot**: load the
@@ -621,6 +631,19 @@ Practical rule: a new function needing `$gp` for a symbol → add
 `tools/permute.py` `GP_EXTERNS`); needing absolute → declare it a plain small
 extern and keep the file off the list.
 
+- **-msplit-addresses is effectively ON in the pinned cc1**: non-small
+  extern symbols compile to compiler-level HIGH/LO_SUM through ALLOCATED
+  regs (`lui rA,%hi / addiu rB,rA,%lo`, two-reg pairs possible, %hi
+  loop-hoistable, reorg can steal the lui into a delay slot); small (≤ -G8)
+  symbols keep the one-line macro that maspsx/as expand via $at (stores) or
+  the dest reg (loads). Tell: $at = small-symbol macro; allocated-reg lui =
+  non-small split. Force the non-small path per-TU with an unknown-size
+  extern array. A block copy whose source address builds as a two-reg
+  lui/addiu pair is a plain extern struct assignment under split-addresses;
+  flat `*(T *)0x…` casts become same-reg li macros instead. A hoisted
+  lui-only base + per-iteration `addiu rD,base,disp` arg is a block-local
+  round-constant pointer (`char *hi = (char *)0x80090000;`) whose uses sit
+  inside a label-broken loop window (FileOption).
 - **≤8-byte externs are -G8-small: their address is one `la` (lui+addiu into
   the SAME register); a split `lui rA,%hi / addiu rB,rA,%lo` across TWO
   registers means the original declaration was NOT small** — respell as an
