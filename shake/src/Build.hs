@@ -159,6 +159,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "GetConflictResult" = ["ConflictObjects", "ConflictDistance", "ConflictModel"]
     syms "DisposeAreaMap" = ["GlobalAreaMap"]
     syms "NowReturnNormal" = ["Me_MOTION_C", "motID", "D_80097F0E"]
+    syms "vinit" = ["virtual_memory_pool"]
+    syms "LoadAreaMap" = ["GlobalAreaMap", "FieldIndex", "FieldArea"]
     syms _ = []
 
 as :: FilePath
