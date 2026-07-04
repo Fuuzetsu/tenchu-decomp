@@ -81,7 +81,9 @@ targets. Prefer functions from an original TU we've already touched (shared
 headers like item.h and the gp-extern lists already exist for those). Batch
 work: one function per matcher agent (.claude/agents/matcher.md), and commit
 only on a green `./Build check`. **Don't hand-write the launch prompt** — run
-`tools/matcher-prompt.py <Name>` to generate it (auto-fills address/size,
+`tools/matcher-prompt.py <Name>` to generate it (it also ROUTES: an exact
+byte-identical twin -> tools/clonematch.py, a findsimilar-1.00 twin ->
+near-clone recipe done inline in ~2 min, else a full agent prompt) (auto-fills address/size,
 jump-table detection, the nearest matched worked examples, TU family, and the
 current cross-cutting guidance). Update the GUIDANCE block in that script (and
 this cookbook) as lessons accrue, so every future launch inherits them.

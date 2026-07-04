@@ -91,6 +91,25 @@ def main():
     near = nearest_matched(name)
     fam, header, famnote = family(name)
 
+    # Routing: an IDENTICAL mnemonic sequence (findsimilar 1.00) is a NEAR-CLONE —
+    # same code, only immediates/symbols differ. Don't burn a full agent; clone
+    # the twin and adjust the few constants matchdiff flags. (Exact byte-identical
+    # -> tools/clonematch.py instead.)
+    if near and near[0][0] >= 0.99:
+        twin = near[0][1]
+        print(f"# NEAR-CLONE of {twin} (findsimilar {near[0][0]:.2f}) — DON'T spawn "
+              f"a full agent; do this inline (~2 min):")
+        print(f"#   1. cp src/main.exe/{twin}.c src/main.exe/{name}.c  (substitute "
+              f"the function name; item Req/Proc twins also swap Proc<Twin>-><this>)")
+        print(f"#   2. tools/reverse.py {name} --ghidra-export .shake/ghidra-export "
+              f"--no-check  (carve); ./Build; tools/gpsyms.py {name} --write")
+        print(f"#   3. tools/matchdiff.py {name} — it shows the few differing insns "
+              f"(a %lo(symbol) or an li immediate); change the matching source "
+              f"constants; a local `j` that only differs in target auto-relocates.")
+        print(f"#   4. ./Build check. If the mnemonics turn out to differ (not a "
+              f"true clone), fall back to the full agent prompt below.\n#")
+        # still print the full prompt below as a fallback
+
     examples = ", ".join(f"src/main.exe/{n}.c ({s:.2f})" for s, n in near) or \
         "(run tools/findsimilar.py to pick worked examples)"
     ex_names = [n for _, n in near]
