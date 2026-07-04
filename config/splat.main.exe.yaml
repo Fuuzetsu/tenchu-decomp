@@ -77,6 +77,8 @@ segments:
       - [0x2DC54, c, ProcItemDrop]
       - [0x2E0AC, c, ReqItemDrop]
       - [0x2E284, data]
+      - [0x2F5E0, c, ReqItemShinsoku]
+      - [0x2F768, data]
       - [0x2FB54, c, ReqItemSmoke]
       - [0x2FD00, c, ProcItemKusuri]
       - [0x30298, data]

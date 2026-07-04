@@ -47,6 +47,7 @@ GP_EXTERNS = {
     "ReqItemDokudango": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemSmoke": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemFire": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemShinsoku": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

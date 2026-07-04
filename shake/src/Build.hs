@@ -136,6 +136,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReqItemDokudango" = ["COUNTER_FOR_ITEM_ARRAY_"]
     syms "ReqItemSmoke" = ["COUNTER_FOR_ITEM_ARRAY_"]
     syms "ReqItemFire" = ["COUNTER_FOR_ITEM_ARRAY_"]
+    syms "ReqItemShinsoku" = ["COUNTER_FOR_ITEM_ARRAY_"]
     syms _ = []
 
 as :: FilePath
