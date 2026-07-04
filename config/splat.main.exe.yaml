@@ -82,6 +82,8 @@ segments:
       - [0x30298, data]
       - [0x31234, c, ReqItemDokudango]
       - [0x313F4, data]
+      - [0x34EFC, c, ReqItemFire]
+      - [0x350A8, data]
       - [0x38158, c, ReqItemJirai]
       - [0x382FC, data]
       - [0x399D8, c, ProcItemManebue]
