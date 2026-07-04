@@ -100,6 +100,15 @@ Two helpers for the setup phase:
   function for ~65–75k tokens each (4/4); it cost 2–5× more on jump-table or
   regalloc-heavy ones. Give Sonnet the small/simple tier, Fable the
   jump-table / big / heavy-regalloc tier.
+- **Bundle a near-clone CLUSTER into ONE agent, not one-per-function.** Five
+  mutually near-clone item functions (each a 1-line `it->proc` diff) matched
+  in a SINGLE session for ~141k total (~28k/fn) vs ~550–750k for five separate
+  agents: the setup (contract/cookbook/worked-examples/item.h) is paid once and
+  the anchor's investigation IS the clones' (copy, rename, carve, build). It
+  also sidesteps the merge conflicts five agents editing Build.hs/permute/yaml
+  concurrently would hit. Caveat: the amortization is mostly the shared
+  investigation — 5 UNRELATED functions in one session only saves the fixed
+  setup. Watch for contract drift on repetition (see matcher.md).
 - **Jump-table functions cost 2–3×** (split pieces + `.rodata` carve + jtbl
   array). Detect them up front (`.shake/gen/main.exe/asm/nonmatchings/<Name>/`
   has multiple `.s` pieces) and tell the agent, so it doesn't rediscover the
@@ -638,6 +647,14 @@ plain C is the matched file.
   block into the slot) *and* lengthens pp's live range, demoting its
   allocation priority so the function argument keeps `$s1`. One statement
   move fixed a register swap, a missing block, and two missing instructions.
+- **An independent load can schedule BEFORE unrelated stores that textually
+  precede it — don't reorder source to chase its asm position.** cc1 hides
+  load latency by hoisting a load past intervening stores it doesn't alias:
+  ReqItemKusuri's `it->locate` reload (fresh per the no-cached-pointer-temp
+  rule) appears in the asm before the `it->proc=`/`it->mode=`/`it->type=`
+  stores that precede it in source, yet the natural owner/proc/mode/type/coord
+  statement order matched first try. A load ahead of "earlier" stores is the
+  scheduler, not a source reordering.
 - A base-address pseudo appearing mid-sequence (`addiu $a0, $s1, 8` between
   two accesses) is a temp assigned between the statements:
   `t[0] = p->start.vx; st = &p->start; t[1] = st->vy; ...`.

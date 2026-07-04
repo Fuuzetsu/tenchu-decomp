@@ -52,6 +52,11 @@ GP_EXTERNS = {
     "ReqItemKaengeki": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemGoshikimai": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemNemuri": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemKusuri": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemKawarimi": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemGosin": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemHenshin": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemManebue": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

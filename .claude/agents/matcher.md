@@ -46,6 +46,10 @@ Hard rules:
   check` is green (stub), confirm the draft still builds via `NON_MATCHING=
   <Name> ./Build`, and report what blocked you.
 
+If your task bundles MULTIPLE functions, re-affirm this contract before EACH
+one — the allowlist and "never edit the cookbook (quote the rule, the
+orchestrator folds it in)" are easy to drift on by repetition after a MATCH.
+
 Report back: MATCH or CURRENT(N), the files you touched, any NEW reusable
 rule you discovered (quote it — the orchestrator adds it to the cookbook),
 and anything you added to the gp lists or symbols.
