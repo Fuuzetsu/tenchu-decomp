@@ -53,6 +53,13 @@ GUIDANCE = [
     "if regalloc.py shows the target's register is unreachable from C.)",
     "N loads adjacent with no use between them are source temps (us/ty), even if "
     "the scheduler later scatters their stores.",
+    "Before inventing a `D_XXXXXXXX` name or an anonymous struct layout for an "
+    "unknown global, look it up in the Ghidra export: `.shake/ghidra-export/"
+    "types.h` (by struct tag) and `symbols.tsv`/`functions.tsv` (by address). "
+    "Ghidra often has the fully-named ORIGINAL struct/symbol (e.g. PadArrange, "
+    "TCdaStatus) even when the calling function's own decompilation showed only "
+    "offsets — use the real name/layout and add a plain `NAME = 0xADDR;` to "
+    "config/symbols if it isn't auto-named.",
     "When Ghidra's union rendering has MORE assignment lines than access.py's "
     "per-register offset count, check the m2c reference's raw-offset dump "
     "(already in the seed) BEFORE opening the raw .s — it usually disambiguates "
