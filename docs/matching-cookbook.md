@@ -79,6 +79,13 @@ headers like item.h and the gp-extern lists already exist for those). Batch
 work: one function per matcher agent (.claude/agents/matcher.md), and commit
 only on a green `./Build check`.
 
+Two helpers for the setup phase:
+- `tools/gpsyms.py <Name> [--write]` derives the gp-extern list from the
+  function's `%gp_rel(...)` operands and (with --write) syncs it into both
+  Build.hs maspsxGpExterns and permute.py GP_EXTERNS.
+- `tools/xref.py <Name>` lists callers (their call sites pin the prototype)
+  and callees (matched vs needs-extern), resolved against the original image.
+
 **Batch efficiency (measured over the debug-menu batch):**
 - **Route by model.** Sonnet matched every sub-500-byte non-jump-table
   function for ~65–75k tokens each (4/4); it cost 2–5× more on jump-table or

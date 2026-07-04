@@ -54,9 +54,12 @@ def matched_names():
 
 def all_mnemonics():
     """{addr: mnemonic} for the whole text segment, one objdump pass."""
+    # The EXE has a FILE_TEXT_OFF (0x800) header before the text; adjust so file
+    # offset 0x800 maps to TEXT_START (else every address is skewed +0x800 and
+    # each function's window reads the code 0x800 bytes before it).
     out = subprocess.run(
         [OBJDUMP, "-D", "-b", "binary", "-m", "mips", "-EL",
-         "--adjust-vma", hex(TEXT_START), ORIG],
+         "--adjust-vma", hex(TEXT_START - FILE_TEXT_OFF), ORIG],
         capture_output=True, text=True).stdout
     mn = {}
     pat = re.compile(r"^\s*([0-9a-f]+):\t[0-9a-f]{8} \t(\S+)")
