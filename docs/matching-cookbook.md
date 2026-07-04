@@ -500,6 +500,25 @@ gold — match its return/variable types exactly (`Think1sleep` needed
   ENGINEERED by placing do{}while(0) levers at computed depths (AddMisc:
   body wrapper depth 2 + nested double wrapper on the loop-bottom increment
   gave [a0,a2,a3,t0,t1] exactly).
+  Refinements (AdtSelect): read refs/length from `-dl`, the final assignment
+  from `-dg`'s "N in HardReg" table; do{}while(0) notes do NOT count toward
+  live_length, so boosts compute exactly. floor_log2 makes priority jump
+  DISCONTINUOUSLY at 16/32 weighted refs — +1 occurrence can be the right
+  boost where +2 overshoots. Wrap a loop with its init HOISTED OUT
+  (`i = first; do { for (; i < last; i++) … } while (0);`) to boost interior
+  pseudos without boosting the init-read. Hazards: loop notes are sched1
+  barriers (never place one between two defs that must interleave), and a
+  wrapper around defs WITHOUT their consumer lets cse re-canonicalize +
+  combine collapse the copy — the function changes length. Wrap
+  def+consumer as a unit or not at all.
+- **Huge-frame TUs (offsets past ±32767) spill params to their arg-home
+  slots** once the callee-saved file is full; every use rematerializes
+  li/addu/lw through reload's spill regs (a3/t0 rotation). Pointer-VALUE
+  reads share one reg in place; pointer-DEREF reads emit a two-reg
+  operand-address pair. A residual a3/t0 swap there is RELOAD structure
+  (find_reloads_address + allocate_reload_reg rotation), not regalloc —
+  permuter-immune; steer it by changing which earlier insns in the same
+  block need reloads (AdtSelect's CURRENT(9)).
 - **A `do { ... } while (0);` wrapper is a regalloc lever**: the degenerate
   loop generates no code, but its loop notes make flow.c count every ref
   inside at loop_depth 2, doubling those pseudos' priority in global-alloc.

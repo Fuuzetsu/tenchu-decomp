@@ -97,4 +97,6 @@ segments:
       - [0x4C3BC, data]
       - [0x4C670, c, PlayerOption]
       - [0x4C810, data]
+      - [0x4F6CC, c, AdtSelect]
+      - [0x4F9D4, data]
   - [0x87800]
