@@ -26,9 +26,11 @@ SYMBOLS = "config/symbols.main.exe.txt"
 # launch (deeper detail is in the cookbook, which the agent reads). Edit here. --
 GUIDANCE = [
     "Ghidra's SCALAR types are gold, but its inferred STRUCT NAMES are often "
-    "wrong (it invents PARAM_ITEM_DROP etc. with fields shifted 4 bytes). For "
-    "struct layout trust the m2c reference's raw offsets + the proven shared "
-    "header (item.h), NOT Ghidra's struct name.",
+    "wrong (it invents PARAM_ITEM_DROP etc. with fields shifted 4 bytes) and "
+    "NEITHER Ghidra nor m2c discloses access WIDTH. For struct layout trust "
+    "item.h's proven view + `tools/access.py` (offset -> sw/sh/sb width) over "
+    "Ghidra's struct name; reach a divergent-width union field via an offset "
+    "cast off the same proven pointer (`*(s32 *)((u8 *)pp + 0xC) = 0;`).",
     "Lean on the tools; don't re-derive their output by hand. gpsyms --write "
     "syncs the gp lists, xref gives the prototype/externs, reverse.py seeds both "
     "a Ghidra AND an m2c reference (m2c = cleaner control flow / register temps, "
@@ -124,6 +126,9 @@ def main():
                  "+ the jtbl + the .rodata carve, green before you draft).")
     P.append(f"- `tools/xref.py {name}` — callers (pin the prototype) + callees "
              "(matched vs needs-extern).")
+    P.append(f"- `tools/access.py {name}` — each pointer offset's WIDTH/"
+             "signedness/direction (sw vs sh vs sb, lh vs lhu) straight from the "
+             "mnemonics; use it for struct layout instead of hand-tracing .s.")
     P.append(f"- `tools/gpsyms.py {name} --write` — auto-derives + syncs the "
              "gp-externs into Build.hs + permute.py (run after splitting).")
     P.append(f"- `tools/matchdiff.py {name}` / `tools/asmdiff.py {name}` — iterate. "
