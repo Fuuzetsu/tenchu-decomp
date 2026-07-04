@@ -66,6 +66,8 @@ segments:
       - [0x5934, data]
       - [0x7A48, c, UpdateCoordinate]
       - [0x7A78, data]
+      - [0x7AA8, c, GetAbsolutePosition]
+      - [0x7B20, data]
       - [0x7CF8, c, DisposeModel]
       - [0x7D1C, data]
       - [0x7F18, c, DisposeOrnament]
