@@ -1,0 +1,172 @@
+# Orchestrating matcher agents — the runbook
+
+How the **orchestrator** (the main session) drives byte-matching at scale by
+spawning `matcher` subagents, harvesting their work, and compounding the
+tooling. If you're resuming this work, read this first, then
+[matching-cookbook.md](matching-cookbook.md) for the actual matching idioms.
+
+The split of responsibility:
+- **Matcher agent** (`.claude/agents/matcher.md`) — matches ONE function (or a
+  bundle) in an isolated git worktree. Never commits. Reports MATCH/CURRENT(N),
+  files touched, new rules, and *where it had to reason manually that a tool
+  could have done the work* (that last part drives the tooling loop).
+- **Orchestrator** (you) — picks targets, generates prompts, launches agents,
+  **harvests on green, commits**, folds reported rules into the cookbook, and
+  **builds a tool whenever a friction recurs**.
+
+## The tool map
+
+Everything the pipeline needs, in the order you touch it:
+
+| Tool | Does |
+|---|---|
+| `tools/triage.py` | rate every function EASY..VERY-HARD + why + relevant cookbook sections; `--leverage` = call in-degree; `<Name>` = detail. Pick targets. |
+| `tools/findsimilar.py [--targets]` | mnemonic-similarity ranking (nearest matched / easiest unmatched). |
+| `tools/matcher-prompt.py <Name>` | **generate the agent launch prompt** — never hand-write it. Auto-fills address/size, jump-table detection, nearest matched worked-examples, TU family, and the evolving `GUIDANCE` block. Routes findsimilar-1.00 near-clones to an inline recipe. |
+| `tools/reverse.py <Name> --ghidra-export .shake/ghidra-export` | split + seed the `.c` with Ghidra C **and** m2c C **and** a `triage:` line + likely-relevant docs. Adds the splat carve. |
+| `tools/split-scaffold.py <Name>` | jump-table function: all INCLUDE_ASM pieces + the jtbl array + the `.rodata` carve, green before drafting. |
+| `tools/xref.py <Name>` | callers (pin the prototype) + callees (matched vs needs-extern). |
+| `tools/access.py <Name> [--order]` | each pointer offset's width/signedness/direction from the mnemonics; `--order` = the store sequence. Struct layout without hand-tracing `.s`. |
+| `tools/gpsyms.py <Name> --write` | derive the gp-extern set from `%gp_rel` and sync Build.hs + permute.py. Shake-oracle-tracked, so it just takes effect. |
+| `tools/clonematch.py <Matched>` | write the `.c` for exact byte-identical unmatched siblings (verified). |
+| `tools/matchdiff.py <Name>` / `tools/asmdiff.py <Name>` | iterate. matchdiff = whole-image gate; asmdiff = aligned view for big/split functions. |
+| `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties. |
+
+## Launching an agent
+
+1. `tools/matcher-prompt.py <Name>` (in the nix devShell). Read its top line —
+   it annotates JUMP-TABLE and the TU family, and if the target is a
+   findsimilar-1.00 **near-clone** it prints an inline recipe instead: do that
+   yourself (clone the twin, swap the differing constant, `matchdiff`) —
+   ~2 min, no agent.
+2. Otherwise paste the generated prompt into the **Agent** tool with
+   `isolation: "worktree"` and the model from *Model routing* below. Background
+   is fine; you're notified on completion.
+3. On the completion notification: **harvest** (below), commit on green, fold
+   rules, remove the worktree.
+
+The generated prompt already carries the contract pointer, the tool workflow,
+the worked examples (which self-update as more functions match), and the
+cross-cutting `GUIDANCE`. **Update `GUIDANCE` in `matcher-prompt.py` (and the
+cookbook) as lessons accrue** — every future launch then inherits them.
+
+## Model routing
+
+- **Sonnet** — sub-~800B, non-jump-table, structural-twin-of-something-matched.
+  It went 4/4 on the easy tier at ~65–110k tokens each; the mid Proc* at ~96k.
+- **Fable** — jump-table functions, >~1000B, heavy register-allocation surgery,
+  or anything with a residual that needs reading gcc-2.8.1 sources. The
+  `matcher-prompt.py` top line flags jump-table; size and float/GTE (from
+  `triage.py`) flag the rest.
+
+## Bundling: one agent for many functions
+
+The decisive lever. Bundling amortizes fixed setup (contract/cookbook/worked-
+examples/headers, paid once) **plus** whatever *investigation transfers*
+between the functions. Measured over four experiments:
+
+| What's shared between the bundled functions | Cost/fn | vs separate agents |
+|---|---|---|
+| Whole function — exact/near clone (findsimilar 1.00, ≤3-word diff) | ~28k | **4–5× cheaper** |
+| Skeleton — structural twins (findsimilar ~0.5–0.85) | ~84k | ~30% |
+| Family conventions — low-sim but same TU family (shared idioms/dispose path) | ~96k | ~15–25% |
+| Nothing — independent functions | ~116k | ~none |
+
+**Bundle by FAMILY, not just by similarity.** The mid Proc* were barely
+similar to each other yet beat the independent Req stragglers, because the
+ProcItem *conventions* transferred within the session. Rules of thumb:
+- Tight clone cluster → **one agent, anchor-then-clone** (or do it inline
+  yourself). Find them: `clonematch` (exact) or `findsimilar.py <Name>` == 1.00.
+- Structural twins / same-family → **bundle ~4–5 in one agent**, one at a time,
+  self-contained, tell it to **re-affirm the contract before each function**
+  (multi-function sessions drift into editing the cookbook — matcher.md warns).
+- Independent functions → **parallel single-function agents** (setup-only
+  savings don't justify serial wall-clock + bloat risk).
+- Context bloat did **not** degrade quality across 4–5 real matches in one
+  session in any experiment — so ~5 is a safe bundle size; be cautious past that
+  or with multiple 1000B+ functions.
+
+Tell an agent bundling several to **stub-and-move-on** (NON_MATCHING) if one
+resists, so a single hard function can't sink the session.
+
+## Harvesting (deterministic — avoid cross-agent conflicts)
+
+Agents branch from a point-in-time worktree; by the time they finish, `main`
+has moved (other harvests). **Do not merge their config edits.** Re-derive them
+with the tools instead. Per matched function, in the main tree:
+
+```
+cp <worktree>/src/main.exe/<Name>.c src/main.exe/          # the matched C
+# apply any config/symbols.main.exe.txt ADDITIONS the agent reported (it has no
+# comment syntax — plain `NAME = 0xADDR;` lines only)
+tools/reverse.py <Name> --ghidra-export .shake/ghidra-export --no-check   # carve — NEVER hand-edit the yaml, offsets are easy to get wrong
+```
+then once all are copied+carved:
+```
+./Build                                   # generates the split .s
+tools/gpsyms.py <Name> --write            # per function; oracle picks it up
+./Build
+tools/matchdiff.py <Name>                 # per function → MATCH
+./Build check                             # whole image byte-identical
+```
+Commit the `.c` + `config/splat.main.exe.yaml` + `shake/src/Build.hs` +
+`tools/permute.py` (+ symbols if added) together, then
+`git worktree remove <path> --force && git branch -D <branch>`.
+
+## The reflection loop (how the tooling compounds)
+
+After each agent, read its report's **"where I reasoned manually"** and **new
+rules**:
+- A new *idiom* → fold into `matching-cookbook.md` (quote the agent verbatim;
+  agents don't edit it themselves). Anchor on an existing nearby rule; **verify
+  the anchor string matches** (wrapped lines / backticks bite — check after).
+- A recurring *friction* → **build a tool**. That's the whole game. This session:
+  agents hand-traced struct widths → `access.py`; hand-traced the store order →
+  `access.py --order`; re-derived gp lists → `gpsyms.py`; the gp edit didn't
+  invalidate the build → a Shake `GpFlags` oracle (the *proper* fix, not a
+  cache-bust); re-scaffolded jump tables → `split-scaffold.py`; the orchestrator
+  hand-wrote prompts → `matcher-prompt.py`. **Fix a tool bug centrally the
+  moment the first agent hits it** — don't let N parallel agents each re-diagnose
+  it (the `reverse.py` carve-drop cost ~every agent tokens before it was fixed).
+- Sub-C-level residual (≤10-byte register swap / adjacent reorder surviving a
+  bounded permuter run) → it's below C; root-cause it, mark NON_MATCHING, move
+  on. Don't sink sessions into it (~1.4M tokens for 0 matches taught this).
+
+## Picking targets
+
+`tools/triage.py` (easiest first, or `--leverage` for high call in-degree, or
+`--max-size N`). Prefer functions from a TU you've already touched — the shared
+header (e.g. `src/main.exe/item.h`) and gp lists already exist, and the worked
+examples make them near-mechanical. `findsimilar.py --targets` is the other
+lens.
+
+## Gotchas (all learned the hard way)
+
+- **Never hand-edit `config/splat.main.exe.yaml` carves** — use `reverse.py`;
+  the data-offset math is easy to get wrong (bit me twice). It preserves
+  hand-added `.rodata` carves now (it used to drop them).
+- **`config/symbols.main.exe.txt` has no comment syntax** — `//`/`/* */` is a
+  hard splat parse error. Plain `NAME = 0xADDR;` only.
+- **A whole-image `./Build check` failure while a function is mid-match is
+  EXPECTED** (wrong length shifts every later object — even matched siblings
+  show huge matchdiff diffs). Finish the function; don't bisect.
+- **Objdump the whole EXE with `--adjust-vma (TEXT_START - 0x800)`**, not
+  `TEXT_START` — the 0x800 header skews every address (this bug was silently
+  wrong in `findsimilar` for a while; now fixed and it's the norm in the tools).
+- Agents sometimes `cd` into the main checkout instead of their worktree
+  (their bash cwd resets to the worktree each call, but an explicit `cd`
+  overrides). Read-only tools are harmless there; writes aren't — the prompt
+  and matcher.md both stress the worktree symlink setup.
+
+## High-leverage backlog (do these for outsized payoff)
+
+- **Flesh out the `Humanoid` struct** in `item.h` (character/actor state, ~724
+  accesses at its 4 signature offsets alone; Ghidra `types.h` has a fuller
+  candidate). It's `CamState.Owner` and every enemy/player — unlocks a large
+  slice of remaining game code.
+- **Easy + high-in-degree functions** (from `triage.py --leverage`): matching
+  them confirms a signature for many callers. e.g. `UpdateCoordinate` (trivial,
+  54 callers), `DeleteConflict` (easy, 65), `Sound` (trivial, 43), `SetNowMotion`
+  (trivial, 35 — Ghidra already types it `(Humanoid*, short, short)`).
+- **Remaining item family**: the ~16 large `ProcItem*` (784–2468B, Fable tier)
+  and the 5272B `ReqItemUse` dispatcher.

@@ -13,6 +13,10 @@ decisions behind the toolchain. It's the reference companion to the terse
   recipe to add maspsx.
 - [project-layout.md](project-layout.md) — recommended directory layout drawn
   from established PSX decomps, what to keep vs change, and Shake-vs-Make.
+- [orchestration.md](orchestration.md) — **the runbook for driving matcher
+  agents at scale**: the tool map, how to launch/prompt/harvest agents, model
+  routing, the bundling economics (bundle by FAMILY), the reflection loop, and
+  the high-leverage backlog. Read this to resume the batch-matching work.
 - [matching-cookbook.md](matching-cookbook.md) — **start here for matching
   work**: the cc1 2.8.1 source idioms that byte-match (dispatch, loops, fold
   reassociation, stack buffers, regalloc steering), the `tools/matchdiff.py`

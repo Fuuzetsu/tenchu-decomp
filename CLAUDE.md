@@ -15,10 +15,11 @@ iterate with tools/matchdiff.py <Name> until MATCH, then ./Build check.
 Keep the cookbook updated: when matching teaches a new reusable rule, add it
 there (not just to session memory), and extend the worked-example pointers.
 Pick targets with tools/findsimilar.py --targets (unmatched functions ranked
-by similarity to already-matched ones). For batch matching, generate the launch prompt with
-tools/matcher-prompt.py <Name> (auto-derives facts + carries the evolving
-guidance) and spawn the `matcher` agent (.claude/agents/matcher.md), one
-function each;
+by similarity to already-matched ones). For batch matching, follow docs/orchestration.md (the runbook: tool map,
+launch/harvest procedure, model routing, bundling economics, the reflection
+loop). In short: generate the launch prompt with tools/matcher-prompt.py
+<Name> (auto-derives facts + carries the evolving guidance) and spawn the
+`matcher` agent (.claude/agents/matcher.md), one function each;
 the main session reviews, commits only on green `./Build check`, and folds
 newly reported rules into the cookbook.
 
