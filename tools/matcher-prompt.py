@@ -43,6 +43,14 @@ GUIDANCE = [
     "helped (`n: s16->s32: 4->0`). It's the deterministic first pass — if it "
     "reports no win, the residual is NOT one of those mechanical rules (don't "
     "keep guessing them; it's structure/regalloc — read the diff or permute).",
+    "For a pure REGISTER tie (right length, right instructions, a value in the "
+    "wrong register — and autorules found nothing + a short permuter run won't "
+    "beat the base), don't blind-permute: run `tools/regalloc.py <Name>`. It runs "
+    "cc1 -dg and shows which values are live across calls (forced callee-saved), "
+    "the pseudo->hard-reg map, and the copy-chains that bias the coloring — so you "
+    "break the specific copy-chain / shorten the live range it names instead of "
+    "guessing. (This is a genuine sub-C tie class; cap effort and NON_MATCHING it "
+    "if regalloc.py shows the target's register is unreachable from C.)",
     "N loads adjacent with no use between them are source temps (us/ty), even if "
     "the scheduler later scatters their stores.",
     "When Ghidra's union rendering has MORE assignment lines than access.py's "

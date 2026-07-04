@@ -32,6 +32,7 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/matchdiff.py <Name>` / `tools/asmdiff.py <Name>` | iterate. matchdiff = whole-image gate; asmdiff = aligned view for big/split functions. |
 | `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules (type-width flips; `&&` split/merge and single-use temp inline via tree-sitter) and greedily keep what shrinks the asmdiff, reporting which edit helped. Deterministic first pass; a "no win" verdict means the residual is structure/regalloc, not a local rule. |
 | `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties (the stochastic search; autorules is its deterministic, explainable complement). |
+| `tools/regalloc.py <Name>` | **diagnose a register tie** — runs `cc1 -dg` and surfaces which values are live across calls (forced callee-saved), the pseudo→hard-reg map, and the copy-chains that bias the coloring. Run this BEFORE blindly permuting a sub-C tie; it tells you which copy-chain to break. |
 
 ## Launching an agent
 
@@ -181,11 +182,11 @@ lens.
 
 ## Tooling backlog (recurring friction → build these)
 
-- **A register-preference/tie diagnoser.** Several matches (Sound, InsertConflict,
-  Makibishi's residuals) bottom out in a below-C register-allocation tie that
-  eats many blind permute/restructure iterations. cc1 `-dg` emits a global-reg
-  (greg) disposition + copy-preference dump; a tool that parses it into "pseudo X
-  is pinned to hard-reg Y via copy-chain Z" would root-cause these in one shot
-  instead of guessing. Would have shortcut both Sound and InsertConflict. The
-  clean tell that you're in tie territory: `autorules` reports no win AND a
-  bounded permuter run never beats the base score.
+- **A register-preference/tie diagnoser** — BUILT: `tools/regalloc.py <Name>`.
+  Parses cc1 `-dg` into the pseudo→hard-reg map, the values live across calls
+  (forced callee-saved — the pressure), and the copy-chains that bias coloring.
+  The tell that you're in tie territory (when to reach for it): `autorules`
+  reports no win AND a bounded permuter run never beats the base score. Run
+  `regalloc.py` then break the copy-chain / shorten the live range it points at,
+  instead of blind permuting. (Open v2: diff our greg allocation against the
+  target asm's registers to auto-flag the divergent value.)

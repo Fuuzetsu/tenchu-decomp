@@ -613,6 +613,15 @@ plain C is the matched file.
 
 ## Register allocation steering
 
+> **Diagnose before you steer: `tools/regalloc.py <Name>`.** It runs `cc1 -dg`
+> and shows which values are live across calls (forced into callee-saved
+> $s0–$s7), the pseudo→hard-reg dispositions, and the register copy-chains that
+> bias the coloring. When a draft is the right length + right instructions but a
+> value is in the wrong register, this names the copy-chain to break or the live
+> range to shorten — instead of blind statement-shuffling or permuting. A value
+> is in $s0–$s7 *only* because it survives a call; if the target holds it in a
+> caller-saved reg, shorten its live range so it no longer crosses the call.
+
 - **Source statement order is the main regalloc lever.** Storing
   register-held values first (`prm.type = ty; prm.user = own;`) before
   memory-chain stores frees their registers for later constants — in
