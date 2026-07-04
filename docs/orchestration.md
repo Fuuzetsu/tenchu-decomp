@@ -30,7 +30,8 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/gpsyms.py <Name> --write` | derive the gp-extern set from `%gp_rel` and sync Build.hs + permute.py. Shake-oracle-tracked, so it just takes effect. |
 | `tools/clonematch.py <Matched>` | write the `.c` for exact byte-identical unmatched siblings (verified). |
 | `tools/matchdiff.py <Name>` / `tools/asmdiff.py <Name>` | iterate. matchdiff = whole-image gate; asmdiff = aligned view for big/split functions. |
-| `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties. |
+| `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules (type-width flips today) and greedily keep what shrinks the asmdiff, reporting which flip helped. Deterministic first pass; a "no win" verdict means the residual isn't type-width. |
+| `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties (the stochastic search; autorules is its deterministic, explainable complement). |
 
 ## Launching an agent
 
@@ -120,6 +121,12 @@ rules**:
 - A new *idiom* → fold into `matching-cookbook.md` (quote the agent verbatim;
   agents don't edit it themselves). Anchor on an existing nearby rule; **verify
   the anchor string matches** (wrapped lines / backticks bite — check after).
+  If the idiom is *mechanical and local* (a token/expression rewrite at an
+  enumerable site — a type width, a sign toggle, a condition normalization),
+  ALSO add it as a rule in `tools/autorules.py` so it's machine-applied and
+  never hand-guessed again. Recognition/structural idioms (loop shape,
+  switch-vs-ladder, union-offset casts, case ordering) can't be sited blindly —
+  they stay cookbook-only until an AST-based transform can place them.
 - A recurring *friction* → **build a tool**. That's the whole game. This session:
   agents hand-traced struct widths → `access.py`; hand-traced the store order →
   `access.py --order`; re-derived gp lists → `gpsyms.py`; the gp edit didn't

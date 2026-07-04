@@ -49,6 +49,13 @@ The ordered triage — fix categories in THIS order, re-running
    levers, in order: statement/assignment position (a one-line move can flip
    allocation priorities and delay-slot fills), declaration of temps, and
    finally `tools/permute.py <Name>` for pure allocation ties.
+   - **Machine-apply the mechanical rules first.** The moment the draft
+     compiles, run `tools/autorules.py <Name>`: it sweeps every local's integer
+     type (the s16↔s32 index/call-result width lever below, sign toggles) and
+     greedily keeps what shrinks the asmdiff, telling you which flip helped.
+     Don't hand-guess widths — and if it reports no win, the residual is *not* a
+     type-width issue, so move to structure/regalloc instead of trying more
+     types.
 4. **A whole-image `./Build check` failure while a function is mid-match is
    EXPECTED, not a regression** — a function of the wrong length shifts every
    later object (even already-matched siblings show huge matchdiff diffs).
