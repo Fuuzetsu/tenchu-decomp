@@ -7,6 +7,11 @@ future tasks as well as mark things already done etc. The developer docs index
 is docs/README.md — read it before non-trivial work; it explains the build,
 toolchain decisions, modding, ISO/emulator flow, and the Ghidra bridge.
 
+Record durable knowledge — build/env gotchas, toolchain decisions, reusable
+lessons, tool facts — in the relevant `docs/` file (the shared repo), NOT in
+private agent memory, so humans and agents on other machines benefit too.
+Private memory is only for thin cross-session pointers back to these docs.
+
 For byte-matching new functions (the core activity), follow
 docs/matching-cookbook.md: it records the cc1 2.8.1 source idioms that
 reproduce the original bytes (dispatch/loop/expression/stack/regalloc rules,

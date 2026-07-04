@@ -92,3 +92,42 @@ works from anywhere in the tree.
 ```
 
 Everything must run inside the devShell (`nix develop`, or `direnv allow` once).
+
+## Environment notes & gotchas
+
+**Run tools inside the devShell — always, especially headless.** The devShell
+provides `cc1-281`, the cross binutils, `ghc`, `maspsx`, and (see below) a
+`python3` with tree-sitter. A bare/background shell often has only a *partial*
+environment (e.g. `ghc`/`objdump` leak in via a stale `.direnv/bin` but
+`cc1-281` does **not**). When Shake then can't exec the missing `cc1-281`, the
+failure surfaces **not** as "command not found" but as a misleading
+`/tmp/extra-file-…: withFile: invalid argument (Bad file descriptor)` at the
+maspsx `.s` step (Shake's `withTempFile` + `FileStdin`/`FileStdout` plumbing).
+Don't chase the fd/tmp red herring — wrap the whole invocation, e.g.
+`nix develop --command bash -c './Build check'`. This applies to every tool that
+shells out to `./Build` (`matchdiff`, `asmdiff`, `autorules`, `gpsyms`).
+
+**Two nixpkgs on purpose.** `flake.nix` has two nixpkgs inputs:
+
+- `nixpkgs` — **pinned to 2023-03** and load-bearing for byte-exactness. The
+  compiler `cc1-281` is a sha256-pinned prebuilt static binary (immune to the
+  pin), but the cross **binutils** (`as`/`ld`) come from here, and their exact
+  output is what makes the reassembled `main.exe` byte-identical. Do **not** bump
+  this to chase a tool.
+- `nixpkgs-tools` — a modern `nixos-unstable`, used **only** to build the dev
+  tools' `python3` (`tree-sitter` + `tree-sitter-language-pack` for
+  `tools/autorules.py`'s AST rules). The devShell otherwise ships no `python3`
+  (it came from the user profile), so this one interpreter cleanly becomes
+  `python3` on PATH; the stdlib tools (`matchdiff`, `triage`, …) run under it
+  fine.
+
+This split is deliberate, not a wart: you cannot get both a frozen byte-exact
+toolchain *and* modern Python tooling from a single nixpkgs. **The bump to a
+single latest-master nixpkgs was investigated (2026-07-04) and rejected:** it is
+a cascade of 3-year incompatibilities — modern nixpkgs removed top-level
+`pkgs.poetry2nix` (breaks the `asm-differ` derivation); adding it as a flake
+input then hits `attribute 'isPy27' missing` because that poetry2nix rev predates
+python 3.13's removal of `isPy27`; and even past all eval breaks the byte-match
+would need re-verifying against binutils 2.40→2.44, and if it moved we'd have to
+pin binutils separately anyway (re-introducing a split). The 2023 pin also has
+no tree-sitter *python binding*, so unifying downward isn't possible either.
