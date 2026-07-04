@@ -368,7 +368,11 @@ plain C is the matched file.
   (`sw rN,0x20(it)`) — same address, different bytes. Extends the twins'
   `hint = 0` single-field case; ReqItemKaengeki does it for a whole 6-word
   tail (p->start/p->end stored as raw s32 at it->param 0/4/8/0x10/0x14/0x18,
-  each an isolated lw+sw, no temps).
+  each an isolated lw+sw, no temps). The divergent member can also sit at
+  offsets that don't line up with the named view AT ALL (ReqItemGoshikimai:
+  three u16 at it->param 0/2/4, no hint/status/count) — `pp` is still declared
+  before the null check (the delay-slot lever) even when NONE of its named
+  fields are read, purely as a cast vehicle.
 - **A param-union store whose access WIDTH differs from the proven shared
   view at the same offset is a distinct union member** — reach it via an
   explicit offset cast off the SAME proven pointer

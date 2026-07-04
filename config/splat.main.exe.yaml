@@ -84,6 +84,8 @@ segments:
       - [0x30298, data]
       - [0x31234, c, ReqItemDokudango]
       - [0x313F4, data]
+      - [0x32D6C, c, ReqItemGoshikimai]
+      - [0x32F10, data]
       - [0x3340C, c, ReqItemKaengeki]
       - [0x335D4, data]
       - [0x33ED0, c, ReqItemNinken]
