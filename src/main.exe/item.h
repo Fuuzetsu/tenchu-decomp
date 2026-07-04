@@ -86,7 +86,9 @@ typedef struct
     PADtype pad;                 /* 0x10 (DoInfoViewProc reads .data/.trig) */
     u8 pad0[0x18];               /* 0x20 */
     VECTOR *locate;              /* 0x38 */
-    u8 pad1[0x1C];               /* 0x3C */
+    SVECTOR *rotate;             /* 0x3C (facing angles; MoveHumanoid reads .vy) */
+    SVECTOR vector;              /* 0x40 (velocity; MoveHumanoid writes .vx/.vz) */
+    u8 pad1[0x10];               /* 0x48 */
     ModelArchiveType *model;     /* 0x58 */
     MotionManager *motion;       /* 0x5C */
     u8 pad2[0x4C];               /* 0x60 */
@@ -143,7 +145,7 @@ struct tag_TItem
 
 extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 extern s16 UpdateMotion(MotionManager *m, int id);
-extern void MoveHumanoid(Humanoid *h, int a, int b);
+extern void MoveHumanoid(Humanoid *h, short a, short b);
 extern void UpdateCoordinate(ModelType *m);
 extern void DrawSprite(Sprite3D *s);
 extern VECTOR *GetAbsolutePosition(ModelType *m, int x, int y, int z);

@@ -80,6 +80,8 @@ segments:
       - [0xAAB8, data]
       - [0x16754, c, SetNowMotion]
       - [0x16804, data]
+      - [0x18D2C, c, MoveHumanoid]
+      - [0x18E60, data]
       - [0x1F198, c, Think1sleep]
       - [0x1F224, data]
       - [0x2DC54, c, ProcItemDrop]
