@@ -616,6 +616,13 @@ plain C is the matched file.
   `((T *)0x80010000)->arr[i]` emits index-first with a split `lui`+lo
   displacement that cse merges into any register already holding the
   constant; an extern-array symbol emits `la` (lui+addiu), not the split.
+  - **Don't factor out a cursor pointer when the target wants index-first.**
+    Repeating the raw index (`map[j].a; map[j].b; …`) vs caching it
+    (`rec = &map[j];`) FLIPS the addu order: the pointer-temp assignment trips
+    cc1's source-order exception to EXPAND_SUM's mult-first special case. If the
+    target's addu is index-first on a plainly-indexed pointer, keep the repeated
+    `map[j]` and trust cse to still cache the address — the `rec` temp is wrong
+    (LoadAreaMap).
   A hoisted-hi clamp loop with base-first addu is a block-local pointer
   variable (`PersistentState *cq = (PersistentState *)0x80010000;`), one per
   duplicated loop copy (separate pseudos → different hi registers).
