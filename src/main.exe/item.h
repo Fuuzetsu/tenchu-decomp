@@ -61,6 +61,8 @@ typedef struct
     s16 mode;                    /* 0xA */
     void *model;                 /* 0xC */
     MotionDataType *motion;      /* 0x10 */
+    void *motreg;                /* 0x14 */
+    void *control;               /* 0x18 (freed by DisposeMotionManager) */
 } MotionManager;
 
 /* Per-controller state embedded in Humanoid (Ghidra: PADtype). */
