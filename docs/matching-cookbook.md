@@ -944,6 +944,19 @@ absolute → keep the symbol off the list (a plain small extern).
   lui-only base + per-iteration `addiu rD,base,disp` arg is a block-local
   round-constant pointer (`char *hi = (char *)0x80090000;`) whose uses sit
   inside a label-broken loop window (FileOption).
+  - **Offset-0 folds, a nonzero offset materializes — and the addiu is always
+    the DECLARED symbol's own address.** A non-small extern accessed at offset 0
+    (bare scalar, struct field, or index 0 — verified 4/8/36/40 bytes) never gets
+    a standalone `addiu`: cc1 shares one `lui` and folds `%lo(sym)` into each
+    load/store's displacement (4 insns). A nonzero constant offset forces full
+    materialization (`lui`+`addiu` forming the declared symbol's *own* address,
+    never partially absorbing the extra offset), and the offset applies purely as
+    the consuming access's displacement (5 insns). Consequence for a get/set-swap
+    NON_MATCHING: if the target's `lui`+`addiu` decodes to the exact final address
+    with **0 residual displacement** on every access, no "declare the global at
+    its own offset" spelling reproduces it (offset 0 folds; a nonzero offset never
+    leaves 0 displacement) — the real symbol must be an earlier sibling field of a
+    not-yet-matched enclosing struct. Check this dead-end early (MemCardCallback).
 - **≤8-byte externs are -G8-small: their address is one `la` (lui+addiu into
   the SAME register); a split `lui rA,%hi / addiu rB,rA,%lo` across TWO
   registers means the original declaration was NOT small** — respell as an
@@ -962,6 +975,14 @@ absolute → keep the symbol off the list (a plain small extern).
 
 ## Toolchain gotchas
 
+- **maspsx's `break` wants the single-value form `break 0x107`, not the
+  two-operand disassembly `break 0, 263`.** maspsx (`elif op == "break"`) takes
+  one immediate and splits it into the two 10-bit fields itself; the
+  Ghidra/objdump-printed `break code1, code2` form crashes it with `invalid
+  literal for int() with base 0: '0,'`. Relevant only when hand-writing inline
+  asm for a raw BIOS trap (PClseek's `break 0x107` host-lseek — a syscall with
+  no C representation, currently parked NON_MATCHING pending the inline-asm
+  policy question; see GetPad.c).
 - **`config/symbols.main.exe.txt` (an ld/splat script) has NO comment syntax**
   — `//` or `/* */` is a hard parse error, not a no-op. If a splat-auto-named
   `D_XXXXXXXX` data symbol resolves to the wrong address (verify against the
