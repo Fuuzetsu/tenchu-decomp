@@ -40,19 +40,25 @@ _cache = {}
 def load():
     if _cache:
         return _cache
+    # config/symbols is the source of truth for names (reverse.py names the .c
+    # file after it), so prefer the symbol name over the Ghidra TSV's FUN_ name —
+    # otherwise a function matched under its real name shows as unmatched here.
+    symname, switchdata = {}, set()
+    for line in open(SYMBOLS):
+        m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
+        if m:
+            symname[int(m.group(2), 16)] = m.group(1)
+        m = re.search(r"switchD_([0-9a-fA-F]+)__switchdataD_", line)
+        if m:
+            switchdata.add(int(m.group(1), 16))
     funcs = []
     for line in open(TSV):
         p = line.rstrip("\n").split("\t")
         if len(p) == 3 and re.match(r"^[A-Za-z_]\w*$", p[2]):
             a, s, n = int(p[0], 16), int(p[1]), p[2]
             if TEXT_START <= a < TEXT_END and s >= 8:
-                funcs.append((a, s, n))
+                funcs.append((a, s, symname.get(a, n)))
     funcs.sort()
-    switchdata = set()
-    for line in open(SYMBOLS):
-        m = re.search(r"switchD_([0-9a-fA-F]+)__switchdataD_", line)
-        if m:
-            switchdata.add(int(m.group(1), 16))
     out = subprocess.run(
         [OBJDUMP, "-D", "-b", "binary", "-m", "mips", "-EL",
          "--adjust-vma", hex(TEXT_START - FILE_OFF), ORIG],
