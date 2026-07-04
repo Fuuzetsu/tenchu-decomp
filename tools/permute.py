@@ -57,6 +57,10 @@ GP_EXTERNS = {
     "ReqItemGosin": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemHenshin": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemManebue": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemMakibishi": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemLightningBolt": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemNingyo": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemLaunch": ["COUNTER_FOR_ITEM_ARRAY_", "D_80097F48"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
