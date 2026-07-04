@@ -370,6 +370,19 @@ plain C is the matched file.
     register sign-extend (InsertConflict's slot capture).
 - Byte-sized call arguments loaded with `lbu` and no masking are plain `u8`
   struct fields passed directly.
+- **A mask literal's SPELLING picks `andi` vs `li`+`and`.** `x & C` is a single
+  `andi` only when `C` passes the unsigned-16-bit-immediate test; the *same*
+  effective mask written as the complement of a positive constant
+  (`~0x5FFF` = 0xFFFFA000, a negative `int`) fails it and materializes a full
+  register constant (`addiu $rN,$zero,-0x6000`) + a register-register `and`.
+  So `& 0xA000` (andi) and `& ~0x5FFF` (li+and) are bit-identical masks with
+  different codegen — read the raw immediate to pick the spelling; don't trust
+  Ghidra's positive-literal rendering (Think2confirm's `& ~0x5FFF` vs
+  Think1sleep's `& 0xA000`). Corollary: function names here are splat-preserved
+  debug symbols describing call-site *intent*, not this function's own control
+  flow — `dispose_weapon_data_of_char_` has zero branches (2 stores + a tail
+  call, no null-check/free); always read the raw `.s` before assuming a family
+  shape from the name.
 - **m2c and Ghidra disagree on a call's ARG COUNT in BOTH directions** — m2c
   over-counts (a leftover register at the call site read as an argument),
   Ghidra under-counts (misses stack-passed args past the 4 register ones).
