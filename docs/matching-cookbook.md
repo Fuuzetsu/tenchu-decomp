@@ -49,10 +49,11 @@ The ordered triage — fix categories in THIS order, re-running
 4. Don't trust the byte count alone — read the diff. A change can improve the
    count while shifting registers globally (worse), or vice versa.
 5. **Attempt cap.** If ~10 meaningful source changes haven't reduced the diff,
-   stop: restore the INCLUDE_ASM stub, keep your best attempt in the file as a
-   comment or note `/* CURRENT(N): best attempt, see notes */`, commit nothing
-   red, and record what blocked you. decomp.me (psyq4.3 preset) arbitrates
-   "is this expressible at all".
+   stop and preserve the best draft with the **NON_MATCHING convention** (see
+   below): the default build keeps the byte-identical stub while the draft
+   stays first-class and buildable. Mark the residual (`STATUS: NON_MATCHING —
+   N of M bytes differ`) and record what blocked you. decomp.me (psyq4.3
+   preset) arbitrates "is this expressible at all".
 6. **On MATCH:** `./Build check`, add the matching-notes header, promote any
    NEW reusable rule to this cookbook, commit the function + splat.yaml
    together.
@@ -118,6 +119,30 @@ reorders memory operations and normalizes conditions freely; the asm's store
 order and branch polarity are the source's. Ghidra's *types* however are
 gold — match its return/variable types exactly (`Think1sleep` needed
 `short`/`ushort` accumulators, not `s32`).
+
+## Partial matches (the NON_MATCHING convention)
+
+When a function is close but has a residual that resists source-shaping
+(usually a scheduler or register-allocator tie below the C level — see
+FileOption / AdtSelect), preserve the draft as a compile-able XOR instead of a
+dead `#if 0`:
+
+```c
+#ifndef NON_MATCHING
+INCLUDE_ASM(...);              /* + any jtbl array for split functions */
+#else
+... the best-attempt draft ...
+#endif
+```
+
+Default `./Build` keeps the stub → green byte-identical image; the tools still
+count the file **unmatched** (the `INCLUDE_ASM` text is present). Build the
+draft with `NON_MATCHING=<Name> ./Build`; `tools/matchdiff.py`/`asmdiff.py` set
+that automatically (they'd otherwise compare the trivially-matching stub), and
+`tools/permute.py` preprocesses with `-DNON_MATCHING`. Head the file with
+`STATUS: NON_MATCHING — N of M bytes differ` and keep the root-cause in the
+header. On a later full match, delete the guards (and any jtbl array) — the
+plain C is the matched file.
 
 ## Dispatch
 

@@ -31,6 +31,13 @@ byte-identical `main.exe`.
   **`BriefingAndInventorySelectionScreen`** (3620 bytes, the largest: first
   jump-table switch, matched by a four-session relay 437→241→94→28→0 diff
   lines). 12/602 game functions, 3.5% of game-code bytes.
+- **Partial matches** (blocked on sub-C-level residuals, kept via the
+  NON_MATCHING convention — default build stays green byte-identical, draft
+  builds with `NON_MATCHING=<Name> ./Build`): **`FileOption`** (6 of 1108
+  bytes — a sched1 class tie hoisting an andi past a store) and
+  **`AdtSelect`** (9 of 776 bytes — a reload spill-register rotation from the
+  >32KB frame). Both root-caused in their file headers; a decomp.me psyq4.3
+  scratch would confirm whether the bytes are expressible at all.
   [`docs/matching-cookbook.md`](docs/matching-cookbook.md) records the idioms. Between them they pinned down the real
   gp model (ASPSX gp-addresses only TU-local definitions; externs are absolute)
   and produced the reusable infrastructure in

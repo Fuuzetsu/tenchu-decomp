@@ -7,7 +7,9 @@
  * image re-init, SystemFlag toggle, music test by StageID, music-select menu,
  * engage-level presets, stock layout load.
  *
- * CURRENT(2): 275/277 instructions byte-identical; see the #if 0 draft below.
+ * STATUS: NON_MATCHING — 6 of 1108 bytes differ (275/277 instructions).
+ * Build the draft with `NON_MATCHING=FileOption ./Build` (or tools/matchdiff.py,
+ * which sets it automatically); the default build keeps the INCLUDE_ASM stub.
  * The ONLY residual is one instruction-ORDER swap in case 0xd:
  *     target: sb v1,6(v0); andi a0,v1,0xff; lw v0,gp(SystemFlag)
  *     ours:   andi a0,v1,0xff; sb v1,6(v0); lw v0,gp(SystemFlag)
@@ -101,6 +103,7 @@ extern void PlayMusicFromID(s32 id);
 extern void load_layout(s32 no);
 extern void leLayoutEnemy(s32 n);
 
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", FileOption);
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__switchD);
@@ -142,8 +145,9 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD
  * TU's .rodata ([0x3FB8, .rodata, FileOption]) so the ACTIVE function's
  * compiled switch table lands at the original address. In the stub state the
  * INCLUDE_ASM pieces emit no .rodata, so provide the original 14-entry table
- * verbatim (its absence shifts the whole image by 0x38 bytes).
- * DELETE this array when activating the #if 0 draft below.
+ * verbatim (its absence shifts the whole image by 0x38 bytes). It lives in the
+ * stub (#ifndef NON_MATCHING) branch; the NON_MATCHING draft's compiled switch
+ * emits its own table, so this XORs out when the draft is built.
  */
 static const u32 switchD_8005c6cc_jtbl[14] = {
     0x8005C728, 0x8005C6D4, 0x8005C79C, 0x8005C7AC,
@@ -152,7 +156,7 @@ static const u32 switchD_8005c6cc_jtbl[14] = {
     0x8005C928, 0x8005C948,
 };
 
-#if 0
+#else /* NON_MATCHING */
 void FileOption(void)
 {
     s16 n;
@@ -263,4 +267,4 @@ void FileOption(void)
         break;
     }
 }
-#endif
+#endif /* NON_MATCHING */

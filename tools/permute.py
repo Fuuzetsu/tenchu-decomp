@@ -114,9 +114,11 @@ def main():
         gpexterns=gpx))
     os.chmod(csh, 0o755)
 
-    # base.c = preprocessed src (what the permuter perturbs)
+    # base.c = preprocessed src (what the permuter perturbs). -DNON_MATCHING
+    # selects the draft over the INCLUDE_ASM stub for partial functions (a no-op
+    # for files without the guard), so the permuter perturbs real C either way.
     base = os.path.join(work, "base.c")
-    subprocess.run(CPP + ["-DPERMUTER", src, base], check=True)
+    subprocess.run(CPP + ["-DPERMUTER", "-DNON_MATCHING", src, base], check=True)
 
     # target.o = the original function, assembled from its nonmatching .s
     # (all pieces concatenated for split/jump-table functions)

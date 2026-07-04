@@ -80,8 +80,13 @@ def main():
     args = ap.parse_args()
 
     if not args.no_build:
+        # Build a NON_MATCHING partial's draft (not its trivially-matching stub).
+        env = dict(os.environ)
+        srcp = os.path.join("src/main.exe", args.name + ".c")
+        if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
+            env["NON_MATCHING"] = args.name
         r = subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.STDOUT)
+                           stderr=subprocess.STDOUT, env=env)
         if r.returncode != 0:
             sys.exit("asmdiff: ./Build FAILED (run it directly for the error)")
 

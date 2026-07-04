@@ -8,7 +8,10 @@
  * edge-detected pad input until confirm (pad & 0x820 -> current entry) or
  * cancel (pad & 0x40 -> last entry); returns the entry's choice_number.
  *
- * CURRENT(9): best attempt below matches 767/776 bytes.  The 9 differing
+ * STATUS: NON_MATCHING — 9 of 776 bytes differ.  Build the draft with
+ * `NON_MATCHING=AdtSelect ./Build` (or tools/matchdiff.py, which sets it
+ * automatically); the default build keeps the INCLUDE_ASM stub below.
+ * The 9 differing
  * bytes are ONE reload-register swap (a3<->t0) in the entry-count block:
  *
  *   target:  lw a3,0(a3); lw v0,0(a3);  ...  li t0,0x80CC; addu; lw v1,0(t0)
@@ -33,9 +36,10 @@
  * allocation (9 callee-saved pseudos + 2 spilled params) matches.
  */
 
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AdtSelect", AdtSelect);
 
-#if 0 /* CURRENT(9) best attempt — activate by removing INCLUDE_ASM above */
+#else /* NON_MATCHING */
 
 extern s32 (*AdtReadPadFunc)(s32);
 extern void AdtGetDisp(u8 *buf);
@@ -158,4 +162,4 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
     return menu[selection].choice_number;
 }
 
-#endif /* CURRENT(9) */
+#endif /* NON_MATCHING */

@@ -208,6 +208,18 @@ cppFlags =
     "-DHACKS"
   ]
 
+-- | Per-file NON_MATCHING opt-in. @NON_MATCHING=Name1,Name2 ./Build@ (or
+-- @NON_MATCHING=all@) compiles those files' @#else@ draft instead of their
+-- @INCLUDE_ASM@ stub, so a work-in-progress function can be built (and
+-- byte-compared) without hand-editing the source. Unset (the default) keeps
+-- every stub, i.e. the green byte-identical image. @getEnv@ is Shake-tracked,
+-- so flipping the variable reprocesses exactly the affected files.
+nonMatchingFlags :: FilePath -> Action [String]
+nonMatchingFlags src = do
+  mval <- getEnv "NON_MATCHING"
+  let names = maybe [] (words . map (\c -> if c == ',' then ' ' else c)) mval
+  pure ["-DNON_MATCHING" | mval == Just "all" || takeBaseName src `elem` names]
+
 -- | The sha256 of the known-good target @disks/tenchu/main.exe@. Pinned so that
 -- @check@ can detect a swapped/corrupt base image rather than merely proving the
 -- build is self-consistent with whatever splat happened to extract.
@@ -289,8 +301,9 @@ objRules = do
     -- anything in mainGen changes.
     need [mainGen, src]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    nm <- nonMatchingFlags src
     withTempFile $ \makeOut -> do
-      cmd_ cpp (cppFlags <> ["-MMD", "-MF", makeOut, "-I", takeDirectory header]) src out
+      cmd_ cpp (cppFlags <> nm <> ["-MMD", "-MF", makeOut, "-I", takeDirectory header]) src out
       neededMakefileDependencies makeOut
 
   processedDir <//> "*.s" %> \out -> do

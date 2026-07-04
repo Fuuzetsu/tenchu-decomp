@@ -36,10 +36,12 @@ Hard rules:
 - You may edit: src/main.exe/**, config/splat.main.exe.yaml (via reverse.py),
   config/symbols.main.exe.txt (additions only), shake/src/Build.hs (only the
   maspsxGpExterns list), tools/permute.py (only the GP_EXTERNS map).
-- If you can't match after ~10 meaningful attempts: restore the INCLUDE_ASM
-  stub with a `/* CURRENT(N) */` note and your best attempt preserved in the
-  file's comment, verify ./Build check is green again, and report what
-  blocked you.
+- If you can't match after ~10 meaningful attempts: preserve the draft with
+  the NON_MATCHING convention (docs/matching-cookbook.md "Partial matches") —
+  `#ifndef NON_MATCHING` INCLUDE_ASM `#else` draft `#endif`, headed with
+  `STATUS: NON_MATCHING — N of M bytes differ`. Verify the DEFAULT `./Build
+  check` is green (stub), confirm the draft still builds via `NON_MATCHING=
+  <Name> ./Build`, and report what blocked you.
 
 Report back: MATCH or CURRENT(N), the files you touched, any NEW reusable
 rule you discovered (quote it — the orchestrator adds it to the cookbook),
