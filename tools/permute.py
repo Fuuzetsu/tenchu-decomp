@@ -43,6 +43,7 @@ GP_EXTERNS = {
     "LayoutEnemyOption": ["D_80097D44"],
     "debug_menu_stage_option": ["SystemFlag"],
     "FileOption": ["SystemFlag"],
+    "ReqItemJirai": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

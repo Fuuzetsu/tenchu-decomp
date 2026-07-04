@@ -153,9 +153,15 @@ rendered before a whole dispatch, used in ONE branch, usually just marks
 where the tracked load sat — check whether the asm's load really spans that
 far back before hoisting (PlayerOption). Ghidra's decompiler
 reorders memory operations and normalizes conditions freely; the asm's store
-order and branch polarity are the source's. Ghidra's *types* however are
+order and branch polarity are the source's. Ghidra's SCALAR types are
 gold — match its return/variable types exactly (`Think1sleep` needed
-`short`/`ushort` accumulators, not `s32`).
+`short`/`ushort` accumulators, not `s32`). But its inferred STRUCT NAMES can
+be wrong: for ReqItemJirai it invented `PARAM_ITEM_DROP` with fields shifted
+4 bytes (its `p->start.vx`@4 was really `p->user`). For struct layout, trust
+the **m2c reference's raw offsets** (`arg0->unk4`, seeded next to Ghidra's C)
+plus the **proven shared header** (item.h's `PARAM_ITEM_USE`) over Ghidra's
+struct name — item-TU Req*/Proc* functions almost always take
+`PARAM_ITEM_USE *p`.
 
 ## Partial matches (the NON_MATCHING convention)
 
@@ -353,7 +359,13 @@ plain C is the matched file.
   `x = p->end.vx; pp->vx = x;` gives the original's `lw` + `sh`, while the
   inline `pp->vx = p->end.vx;` lets the canonical cc1 emit a truncating `lhu`
   of the low half. Loads batched before a run of stores (`lw`×3 then `sh`×3)
-  mean the values went through source temps.
+  mean the values went through source temps. **The stores need NOT stay
+  contiguous**: the tell is just "N loads adjacent with no use between them"
+  — name them as temps even if the scheduler later scatters their stores
+  (ReqItemJirai: `p->user`/`p->type` load back-to-back but their
+  `it->owner=`/`it->type=` stores end up 4 insns apart with other stores
+  interleaved; `us = p->user; ty = p->type;` then the stores matched, while
+  inline loads cost 26 bytes).
 
 ## Stack objects
 

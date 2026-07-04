@@ -132,6 +132,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     -- defines SystemFlag (info-view TU accesses it absolutely — both proven).
     syms "debug_menu_stage_option" = ["SystemFlag"]
     syms "FileOption" = ["SystemFlag"]
+    syms "ReqItemJirai" = ["COUNTER_FOR_ITEM_ARRAY_"]
     syms _ = []
 
 as :: FilePath
