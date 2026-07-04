@@ -54,6 +54,17 @@ The ordered triage — fix categories in THIS order, re-running
    stays first-class and buildable. Mark the residual (`STATUS: NON_MATCHING —
    N of M bytes differ`) and record what blocked you. decomp.me (psyq4.3
    preset) arbitrates "is this expressible at all".
+   - **Sub-C-level residual early-stop (SAVES THE MOST TOKENS).** A residual of
+     **≤ ~10 bytes** that is a pure **register swap** or **adjacent-instruction
+     reorder** (same instructions, same registers, only order/reg-name differs)
+     is almost always below the C level — a `reload`/register-allocator
+     rotation or a `sched` tie. These are *permuter-immune*: FileOption burned
+     a 450k-iteration run and AdtSelect an 80k+162k run, both flat, both still
+     stuck. Budget the permuter to **one bounded run (~5–10 min)**; if such a
+     residual survives it, STOP — root-cause it against the gcc-2.8.1 sources
+     (sched.c / reload.c / global.c), write the mechanism into the header, mark
+     NON_MATCHING, and move on. Do NOT open more surgical sessions on it; that
+     is how ~1.4M tokens produced zero additional matches this batch.
 6. **On MATCH:** `./Build check`, add the matching-notes header, promote any
    NEW reusable rule to this cookbook, commit the function + splat.yaml
    together.
@@ -67,6 +78,22 @@ targets. Prefer functions from an original TU we've already touched (shared
 headers like item.h and the gp-extern lists already exist for those). Batch
 work: one function per matcher agent (.claude/agents/matcher.md), and commit
 only on a green `./Build check`.
+
+**Batch efficiency (measured over the debug-menu batch):**
+- **Route by model.** Sonnet matched every sub-500-byte non-jump-table
+  function for ~65–75k tokens each (4/4); it cost 2–5× more on jump-table or
+  regalloc-heavy ones. Give Sonnet the small/simple tier, Fable the
+  jump-table / big / heavy-regalloc tier.
+- **Jump-table functions cost 2–3×** (split pieces + `.rodata` carve + jtbl
+  array). Detect them up front (`.shake/gen/main.exe/asm/nonmatchings/<Name>/`
+  has multiple `.s` pieces) and tell the agent, so it doesn't rediscover the
+  split-function protocol.
+- **Fix a tool bug once, centrally, the moment the first agent hits it** —
+  don't let N parallel agents each re-diagnose it (the `reverse.py`
+  carve-drop cost ~every debug-menu agent real tokens before it was fixed;
+  agents branched from before the fix and each repaired it by hand).
+- **Respect the sub-C-level early-stop** (Iteration protocol §5) — the single
+  biggest token sink was deep-diving permuter-immune residuals.
 
 ### coddog (similarity at scale)
 

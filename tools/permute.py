@@ -132,6 +132,11 @@ def main():
     subprocess.run([csh, base, "-o", os.path.join(work, "base.o")], check=True)
 
     print(f"permute: set up {work} — running permuter…")
+    print("permute: BUDGET REMINDER — a <=10-byte register-swap / adjacent-"
+          "reorder residual is\n         usually sub-C-level (reload/sched) "
+          "and permuter-immune. Give it ONE\n         bounded run (~5-10 min); "
+          "if it stays flat, stop and mark NON_MATCHING\n         "
+          "(docs/matching-cookbook.md 'sub-C-level residual early-stop').")
     rest = args.rest[1:] if args.rest and args.rest[0] == "--" else args.rest
     if not rest:
         rest = ["--stop-on-zero", "-j4"]
