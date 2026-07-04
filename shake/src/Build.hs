@@ -155,6 +155,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ProcItemHappou" = ["HAPPOU_SCRATCH_MODEL"]
     syms "Sound" = ["D_80097CB4"]
     syms "DeleteConflict" = ["ConflictObjects"]
+    syms "InsertConflict" = ["ConflictObjects"]
     syms _ = []
 
 as :: FilePath

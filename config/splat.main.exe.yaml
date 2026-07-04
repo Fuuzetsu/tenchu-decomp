@@ -74,6 +74,7 @@ segments:
       - [0x7F3C, data]
       - [0x9210, c, GetAreaMapLevel]
       - [0x96A0, data]
+      - [0x9C44, c, InsertConflict]
       - [0x9D7C, c, DeleteConflict]
       - [0x9E88, data]
       - [0xAA60, c, GetRealPad]
