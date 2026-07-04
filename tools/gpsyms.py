@@ -99,19 +99,9 @@ def main():
     a2 = patch_permute(args.name, syms)
     print(f"  Build.hs maspsxGpExterns: {a1}")
     print(f"  permute.py GP_EXTERNS:    {a2}")
-    # Bust stale generated artifacts: the gp-extern list is a Haskell-level flag,
-    # NOT a declared file dep of the .s rule, so Shake's digest tracking won't
-    # invalidate an already-built function when the list changes. Deleting these
-    # forces regeneration with the new flags (else matchdiff shows absolute
-    # lui/lw instead of the gp lw and you chase a phantom).
-    busted = []
-    for p in (f".shake/processed/main.exe/{args.name}.s",
-              f".shake/build/main.exe/{args.name}.c.o"):
-        if os.path.exists(p):
-            os.remove(p)
-            busted.append(p)
-    if busted:
-        print(f"  busted stale artifacts ({len(busted)}) so the flags take effect")
+    # No cache-busting needed: Build.hs exposes the per-file gp flags through a
+    # Shake oracle (GpFlags), so editing the list invalidates exactly the
+    # affected .s on the next build.
     print("  NOTE: this lists ALL %gp_rel symbols; if any is actually an extern the"
           " original\n  TU only referenced (rare), remove it and keep it absolute — "
           "`./Build check`\n  will tell you (the cookbook's gp section has the rule).")

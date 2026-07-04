@@ -255,13 +255,18 @@ main = do
             -- Bump to force a full rebuild when a rule's *command* changes in a
             -- way Shake can't see (it doesn't track cmd_ contents). Bumped when
             -- main.exe.elf stopped being stripped (needed by the `mod` target).
-            shakeVersion = "2"
+            -- "3": one-time bump so every .s rule re-runs once and records the
+            -- new GpFlags oracle dependency; afterwards the oracle invalidates
+            -- exactly the affected .s on a gp-list edit — no more bumps needed
+            -- for gp changes.
+            shakeVersion = "3"
           }
   shakeArgs opts rules
 
 rules :: Rules ()
 rules = do
   _ <- addOracle (liftIO . runIdOracle)
+  _ <- addOracle (\(GpFlags f) -> pure (maspsxGpExterns f))
   mainRules
   phonyRules
   objRules
@@ -318,10 +323,11 @@ objRules = do
     -- cc1 -> maspsx (filter) -> .s. maspsx massages cc1's asm so that `as`
     -- reproduces ASPSX's bytes; it leaves INCLUDE_ASM's .include/.section/.set
     -- directives untouched, so stubs pass through unchanged.
+    gpFlags <- askOracle (GpFlags processed)
     withTempFile $ \ccOut -> do
       cmd_ (FileStdin processed) (FileStdout ccOut) cc ccFlags
       cmd_ (FileStdin ccOut) (FileStdout out) maspsx
-        (maspsxFlags <> maspsxGpExterns processed)
+        (maspsxFlags <> gpFlags)
 
   buildDir <//> "*.c.o" %> \out -> do
     let fileComponent = makeRelative buildDir out
@@ -604,6 +610,24 @@ instance NFData GetGenId
 instance Binary GetGenId
 
 type instance RuleResult GetGenId = UUID.UUID
+
+-- | The per-file maspsx flags (gp-externs + extras). These are computed in
+-- Haskell and passed as a @cmd_@ argument, which Shake can't see change — so a
+-- stale @.s@ would survive a gp-list edit (matchdiff then shows absolute
+-- @lui/lw@ instead of the gp @lw@). Exposing them through an oracle makes each
+-- @.s@ rule depend on the flag VALUE: edit the list → the oracle answer changes
+-- → only the affected @.s@ regenerates. (Proper fix for what a @shakeVersion@
+-- bump would otherwise hammer with a full rebuild.)
+newtype GpFlags = GpFlags FilePath
+  deriving (Generic, Show, Eq)
+
+instance Hashable GpFlags
+
+instance NFData GpFlags
+
+instance Binary GpFlags
+
+type instance RuleResult GpFlags = [String]
 
 data GenData = GenData
   { lastRunId :: UUID.UUID,
