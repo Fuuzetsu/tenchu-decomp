@@ -359,6 +359,15 @@ plain C is the matched file.
   (sll/sra right after the jal, before any joins); a true `short` variable
   re-extends at each compare after the joins. Place the sll/sra relative to
   the joins to pick the type (PauseProc).
+- **A param-union store whose access WIDTH differs from the proven shared
+  view at the same offset is a distinct union member** — reach it via an
+  explicit offset cast off the SAME proven pointer
+  (`*(s32 *)((u8 *)pp + 0xC) = 0;`), don't invent a new named struct. Ghidra
+  synthesizes a different, often bogus union path per such store
+  (ReqItemDokudango got four: napalm/smoke.koro/lightningbolt/gun — cross-
+  function unification noise), and NEITHER Ghidra nor m2c discloses the store
+  width; only the raw `.s` mnemonic (sw/sh/sb) does. `tools/access.py <Name>`
+  prints each pointer offset's width/direction so you don't hand-trace it.
 - **A narrowing store fed through a temp forces the full-word load**:
   `x = p->end.vx; pp->vx = x;` gives the original's `lw` + `sh`, while the
   inline `pp->vx = p->end.vx;` lets the canonical cc1 emit a truncating `lhu`

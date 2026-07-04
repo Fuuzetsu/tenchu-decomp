@@ -44,6 +44,7 @@ GP_EXTERNS = {
     "debug_menu_stage_option": ["SystemFlag"],
     "FileOption": ["SystemFlag"],
     "ReqItemJirai": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemDokudango": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
