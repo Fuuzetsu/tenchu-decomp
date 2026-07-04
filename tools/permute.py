@@ -45,6 +45,7 @@ GP_EXTERNS = {
     "FileOption": ["SystemFlag"],
     "ReqItemJirai": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemDokudango": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemSmoke": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

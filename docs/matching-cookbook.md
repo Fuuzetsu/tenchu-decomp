@@ -721,10 +721,15 @@ externs are always absolute (`lui $at`/dest-reg expansion of the one-line
 macro). Our per-file `maspsxGpExterns` list in `Build.hs` encodes "smalls the
 original TU defined". Full story + evidence in
 [toolchain.md](toolchain.md#gp-globals-making-small-globals-byte-match-solved--per-tu-opt-in).
-Practical rule: a new function needing `$gp` for a symbol → add
-`--gp-extern` for it in that file's list (and mirror in
-`tools/permute.py` `GP_EXTERNS`); needing absolute → declare it a plain small
-extern and keep the file off the list.
+Practical rule: `tools/gpsyms.py <Name> --write` derives the set from the
+split asm's `%gp_rel(...)` and syncs both lists for you. It also **busts the
+stale `.shake/processed/…/<Name>.s` + `.c.o`**: the gp-extern list is a
+Haskell-level flag, not a declared file dep of the `.s` rule, so Shake's
+digest tracking would otherwise keep serving an already-built function's old
+`.s`/`.c.o` (matchdiff then shows absolute `lui/lw` instead of the gp `lw` and
+you chase a phantom). If you ever hit that without gpsyms, delete those two
+artifacts by hand. Needing absolute → keep the symbol off the list (a plain
+small extern).
 
 - **-msplit-addresses is effectively ON in the pinned cc1**: non-small
   extern symbols compile to compiler-level HIGH/LO_SUM through ALLOCATED
