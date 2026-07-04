@@ -196,12 +196,25 @@ def main():
     r = subprocess.run(["./Build", "check"], stdout=subprocess.DEVNULL)
     if r.returncode == 0:
         print(f"reverse: ✓ ./Build check GREEN — {args.name} split, still byte-identical.")
-    else:
-        print(f"reverse: ✗ ./Build check FAILED — the split changed the output.\n"
-              f"         Likely the [start,size) boundary is off or the region has\n"
-              f"         rodata splat needs told about. Revert with `git checkout {YAML} "
-              f"{SRC_DIR}/{args.name}.c` and check the function extent.", file=sys.stderr)
-        sys.exit(1)
+        return
+    # A jump-table function splits into several .s pieces; the single INCLUDE_ASM
+    # seeded above only covers the first, and its table needs a .rodata carve —
+    # tools/split-scaffold.py does both. Detect that case and point at it rather
+    # than reporting a bare failure.
+    genstub = os.path.join(".shake", "gen", "main.exe", "src", args.name + ".c")
+    pieces = 0
+    if os.path.exists(genstub):
+        pieces = sum(1 for l in open(genstub) if l.startswith("INCLUDE_ASM("))
+    if pieces > 1:
+        print(f"reverse: {args.name} is a jump-table function ({pieces} .s pieces).\n"
+              f"         The stub needs all pieces + the table's .rodata carve — run\n"
+              f"         `tools/split-scaffold.py {args.name}` to finish it (then green).")
+        return
+    print(f"reverse: ✗ ./Build check FAILED — the split changed the output.\n"
+          f"         Likely the [start,size) boundary is off or the region has\n"
+          f"         rodata splat needs told about. Revert with `git checkout {YAML} "
+          f"{SRC_DIR}/{args.name}.c` and check the function extent.", file=sys.stderr)
+    sys.exit(1)
 
 
 if __name__ == "__main__":

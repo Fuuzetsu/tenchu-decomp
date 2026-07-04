@@ -17,7 +17,10 @@ Then:
 1. If src/main.exe/<Name>.c doesn't exist:
    `tools/reverse.py <Name> --ghidra-export .shake/ghidra-export`
    (splits the function, seeds the file with Ghidra's C, verifies the build
-   stays green with the stub).
+   stays green with the stub). If reverse.py reports a JUMP-TABLE function
+   (multiple .s pieces), run `tools/split-scaffold.py <Name>` next — it writes
+   the full stub (all pieces + jtbl) and the .rodata carve so the build is
+   green before you start drafting.
 2. Draft real C from the Ghidra comment + the cookbook rules. Reuse shared
    headers (src/main.exe/item.h etc.) instead of redefining types.
 3. Loop: `tools/matchdiff.py <Name>` → apply the cookbook's Iteration

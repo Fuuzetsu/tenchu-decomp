@@ -649,6 +649,14 @@ plain C is the matched file.
 
 ## Split functions (jump tables through .rodata)
 
+**`tools/split-scaffold.py <Name>` does all of this for you** — run
+`tools/reverse.py <Name>` first (adds the `c` carve, generates the pieces),
+then `split-scaffold.py <Name>` writes the full NON_MATCHING stub (every
+INCLUDE_ASM piece + the jump table(s) as `static const u32 …_jtbl[]`), inserts
+the `.rodata` carve, and leaves `./Build check` green; fill in the `#else`
+draft and iterate. reverse.py detects the split case and points you at it. The
+manual mechanics, for reference:
+
 A table-switch splits the function into several nonmatching .s pieces and
 routes the table through the C object's .rodata (see the yaml comment at the
 BriefingAndInventorySelectionScreen carve). Consequences: the yaml needs
