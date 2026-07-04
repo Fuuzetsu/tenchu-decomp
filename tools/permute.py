@@ -61,6 +61,8 @@ GP_EXTERNS = {
     "ReqItemLightningBolt": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemNingyo": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemLaunch": ["COUNTER_FOR_ITEM_ARRAY_", "D_80097F48"],
+    "ReqItemArrow": ["COUNTER_FOR_ITEM_ARRAY_", "D_80097F4C"],
+    "ReqItemHappou": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

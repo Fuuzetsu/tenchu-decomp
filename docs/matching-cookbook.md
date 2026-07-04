@@ -329,6 +329,11 @@ plain C is the matched file.
 - **Two `u16` out-parameter locals with a 4-byte stack GAP are one `SVECTOR`'s
   `.vx`/`.vz`** (the write skips `.vy`), not two scalars (LightningBolt's
   GetVectorRotation output).
+  Related (ReqItemArrow): two adjacent Ghidra-invented `short[2]` out-params of
+  one call are really ONE 8-byte stack aggregate — two tight scalars pack 2
+  bytes too close, and padding either to 4 overshoots by 4 (non-additive). Use
+  one `struct { u16 a, pad0, b, pad1; }` and pass `&s.a`/`&s.b`; read back via
+  `lhu` (the callee writes full words, the caller needs each low half).
 - **A caller-side extern's RETURN TYPE is an extension-position lever**:
   declaring a u16-returning callee as `extern u32 f()` in the calling TU
   moves the result's derived (s16) extension after the intervening bit-chain,
@@ -670,6 +675,16 @@ plain C is the matched file.
   + later arithmetic on $s5 means the original overwrote the parameter
   (`x = x / 10;`) — the param pseudo gets a callee-saved home. A fresh local
   computes straight into the s-register with no entry move.
+- **A delay-slot instruction can be pulled BACKWARD across calls by reorg** —
+  its position in Ghidra/the disassembly ("the statement right before this
+  call") is not proof of its source position. When a manually-placed
+  increment resists sitting near its apparent slot, try moving it PAST
+  subsequent calls (ReqItemHappou's permuter fix moved `j++;` from before
+  SearchItemTarget2 to after SetupFly, crossing two calls).
+- **A trivial dependency-free constant as the FIRST statement floats its `li`
+  above the prologue `sw ra`** (not just above unrelated stores). Writing the
+  statement that needs a LOAD first anchors the schedule so `sw ra` stays put
+  and the `li` fills the load's delay slot (ReqItemStay).
 - **Assignment position around a branch is a double lever** (ReqItemDrop):
   `pp = ...;` placed *before* `if (it == 0) return 0;` lets reorg fill the
   `beqz` delay slot with its `addiu` (instead of collapsing the return-0
