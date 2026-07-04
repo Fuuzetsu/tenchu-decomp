@@ -461,6 +461,14 @@ plain C is the matched file.
   one callee-saved reg and then `opad = trg;` into another, with the rest of
   the body reading `opad`, is the only way one value occupies two s-regs
   (PauseProc).
+  - **Branch variant — a second pointer feeds the guard-branch delay slot.**
+    When one branch of an `if` reads a pointer/value the other computes, and the
+    target combines the address *eagerly* (before the guard-flag load) with an
+    explicit register copy hoisted into the guard branch's delay slot: declare
+    the copy `q = p;` right after computing `p` and before the `if`, then read
+    `p` in one branch and `q` in the other. This forces the full address combine
+    at that statement (instead of drifting into the delay slot) AND supplies the
+    move reorg steals into the branch's delay slot (PadShock).
 - **Ghidra's short-typed call-result variable can be `int` in source**: a
   short-returning call assigned to int extends once at the assignment
   (sll/sra right after the jal, before any joins); a true `short` variable
