@@ -25,20 +25,29 @@ TEXT_END = 0x80098000
 FILE_TEXT_OFF = 0x800
 ORIG = "disks/tenchu/main.exe"
 TSV = ".shake/ghidra-export/functions.tsv"
+SYMBOLS = "config/symbols.main.exe.txt"
 SRC = "src/main.exe"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
 N = 4  # n-gram size
 
 
 def load_functions():
-    """[(addr, size, name)] for functions inside the text segment."""
+    """[(addr, size, name)] for functions inside the text segment. Prefer the
+    config/symbols name over the Ghidra TSV's FUN_ name (that's the name the .c
+    file gets), so a function matched under its real name isn't reported as an
+    unmatched target."""
+    symname = {}
+    for line in open(SYMBOLS):
+        m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
+        if m:
+            symname[int(m.group(2), 16)] = m.group(1)
     out = []
     for line in open(TSV):
         parts = line.rstrip("\n").split("\t")
         if len(parts) == 3:
             addr, size, name = int(parts[0], 16), int(parts[1]), parts[2]
             if TEXT_START <= addr < TEXT_END and size >= 8:
-                out.append((addr, size, name))
+                out.append((addr, size, symname.get(addr, name)))
     return out
 
 
