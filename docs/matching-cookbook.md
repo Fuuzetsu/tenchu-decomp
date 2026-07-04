@@ -21,7 +21,10 @@ idioms in one place; read its header comment).
 $ tools/reverse.py <Name> --ghidra-export .shake/ghidra-export
       # splits the function, seeds src/main.exe/<Name>.c with Ghidra's C,
       # verifies ./Build check stays green (INCLUDE_ASM stub)
-$ # write a first draft from the Ghidra comment + this cookbook, then loop:
+      # the seed carries TWO references: Ghidra's typed-but-normalized C and
+      # (appended after the build) m2c's `mipsel-gcc-c` output — m2c has the
+      # cleaner control flow / register temps, Ghidra the real types/names.
+$ # write a first draft from BOTH references + this cookbook, then loop:
 $ tools/matchdiff.py <Name>
       # ./Build + byte-compare the function window vs the original;
       # prints differing instructions side by side. Iterate until MATCH,

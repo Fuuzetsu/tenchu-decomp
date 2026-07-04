@@ -158,6 +158,43 @@ def write_src(name, ghidra_c):
     print(f"reverse: wrote {path}" + ("" if ghidra_c else " (no Ghidra C — stub only)"))
 
 
+def m2c_ref(name):
+    """m2c's C for the function (mipsel-gcc-c target), or None. m2c reconstructs
+    the real control flow / register temps straight from the asm — a good
+    STRUCTURAL second opinion next to Ghidra's typed-but-normalized C."""
+    import glob
+    pieces = sorted(glob.glob(
+        f".shake/gen/main.exe/asm/nonmatchings/{name}/*.s")) or glob.glob(
+        f".shake/gen/main.exe/asm/nonmatchings/*/{name}.s")
+    if not pieces:
+        return None
+    try:
+        r = subprocess.run(["m2c.py", "-t", "mipsel-gcc-c", *pieces],
+                           capture_output=True, text=True)
+    except FileNotFoundError:
+        return None
+    return r.stdout if r.returncode == 0 and r.stdout.strip() else None
+
+
+def append_m2c(name):
+    """Append m2c's C as a second reference comment (after Ghidra's), once."""
+    path = os.path.join(SRC_DIR, f"{name}.c")
+    if not os.path.exists(path):
+        return
+    txt = open(path).read()
+    if "m2c (" in txt or "INCLUDE_ASM" not in txt:
+        return
+    c = m2c_ref(name)
+    if not c:
+        return
+    commented = "\n".join(("// " + l).rstrip() for l in c.rstrip("\n").splitlines())
+    open(path, "a").write(
+        "\n// m2c (mipsel-gcc-c reference — cleaner control flow + register\n"
+        "// temps straight from the asm; Ghidra above has the real types):\n//\n"
+        + commented + "\n")
+    print(f"reverse: appended m2c reference to {path}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
@@ -196,6 +233,7 @@ def main():
     r = subprocess.run(["./Build", "check"], stdout=subprocess.DEVNULL)
     if r.returncode == 0:
         print(f"reverse: ✓ ./Build check GREEN — {args.name} split, still byte-identical.")
+        append_m2c(name)      # .s now exists; add the m2c second-opinion comment
         return
     # A jump-table function splits into several .s pieces; the single INCLUDE_ASM
     # seeded above only covers the first, and its table needs a .rodata carve —
