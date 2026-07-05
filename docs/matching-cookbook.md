@@ -726,6 +726,13 @@ plain C is the matched file.
 - **Pointer-local spelling extends the addu-order rule**: `tp->n[x]` through
   a struct-pointer emits `addu base,index`; `tp[x]` on a plain `char **`
   emits `addu index,base` (AddMisc).
+- **A chain of N identical `table + offset` lookups software-pipelines when each
+  table address goes through its OWN named local pointer** (`T *p2 = table2; …
+  p2[off];`) rather than an inline extern-array cast at the use site. The named
+  pointer lets cc1 schedule table K+1's address materialization to overlap table
+  K's load/store latency (2-deep pipeline); the inline-cast form computes the
+  shift/mask first and serializes. The LAST table in the chain needs no temp —
+  nothing follows to overlap with (SetupThinkFunction).
 - **A signed `slt` on a pointer comparison is an `(s32)` cast pair in
   source** (Ghidra renders it as `(int)ptr < -0x7ff…`).
 - **Array spelling picks the addu operand order**: `p->arr[i]` emits
