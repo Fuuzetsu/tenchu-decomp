@@ -565,6 +565,15 @@ plain C is the matched file.
     leftover 8 bytes as two `lw`/`sw`. `tools/access.py <Name> --order` showing
     every copy insn (tail included) as `sw` disproves the field-typed rendering —
     trust it over Ghidra's struct-field names (DeleteConflict).
+- **A truncated per-TU struct breaks when the element is array-INDEXED, not
+  just pointer-dereferenced.** The "declare only the fields you touch" truncation
+  (DisposeBG-style) is safe for `ptr->field`, but `arr[i]` compiles the index as
+  `i * sizeof(T)` — a truncated `T` computes the wrong stride. FUN_80027304
+  indexing the conflict pool with `ConflictObjectType` truncated to 0x14 bytes
+  emitted `sll;addu;sll` (stride 0x14) instead of the target's `sll v0,a0,4;
+  subu v0,v0,a0; sll v0,v0,3` (stride 0x78); replicating GetConflictResult.c's
+  full 0x78 layout fixed it. When indexing an already-typed pool array from a new
+  file, reuse the proven full-size element struct, never a truncated prefix.
 - Write grouped stores **through the same base expression** a later copy
   reads (`((s32 *)(buf + 0x10))[n] = ...;` rather than
   `*(s32 *)(buf + 0x18) = ...;`): with distinct address pseudos the scheduler
