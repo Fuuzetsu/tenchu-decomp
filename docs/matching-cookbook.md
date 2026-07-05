@@ -260,10 +260,21 @@ plain C is the matched file.
   other)` — the provably-redundant `!= 0` test's `beqz` is gone. Ghidra shows
   the redundant form (logical, not physical, structure), so trusting it
   under-produces instructions. NEST instead of chain — `if (x != 0) { if
-  (x == 1 && other) {…} }` — to keep both branches (ProcItemLightningBolt).- Branch-if-equal *into* a physically-later block with the fallthrough being
+  (x == 1 && other) {…} }` — to keep both branches (ProcItemLightningBolt).
+- Branch-if-equal *into* a physically-later block with the fallthrough being
   the other body usually means the source condition was the **opposite
   polarity** of Ghidra's rendering (`if (0xe < n) {...} else {...}` vs
   Ghidra's `if (n < 0xf)` with swapped bodies).
+  - **EXCEPTION — a null-guard clause with two returns keeps Ghidra's LITERAL
+    polarity.** When both arms terminate in `return` with no shared merge
+    (`if (handle == 0) { error; return E; } success; return S;`), the guard body
+    is the branch TARGET that falls straight into the epilogue and the success
+    body is the fallthrough-plus-jump — so writing the null-check first in
+    Ghidra's own `== 0` sense is what matches. Inverting to `if (handle != 0)
+    {success} else {error}` transposes both (correct) blocks for a pure ~29-byte
+    layout diff. Very common in the C-layer wrappers (cd_close/Afs* family); the
+    opposite-polarity rule above is for a single if/else over a comparison, not
+    this guard-clause-with-two-returns shape.
 - **Don't reuse the switch variable inside case bodies across calls**: a
   dispatch-only variable dies at the case tree and lives in a caller-saved
   reg (`move $v1,$v0` after the call that produced it). Assigning a later
