@@ -1036,6 +1036,13 @@ plain C is the matched file.
   the differing prefixes, e.g. two different `mode = 0xff` stores, stay
   separate). A shared `goto` label merges *more* than the original (loses the
   duplicated call-site setup) — don't.
+- **When two branches build the SAME call with all-different arguments, write
+  the call literally twice (once per branch), not funnelled through shared
+  locals + one post-merge call.** Cross-jump merges only the byte-identical
+  suffix (`jal` + empty delay slot); the argument-loading prefix stays
+  per-branch — including a same-valued-constant CSE chain (`a0=0` fresh, then
+  `a1`/`a2` copied from `a0`) that a single shared call site won't reproduce
+  (one branch reads globals, the other passes all-zero — StartDrawing area).
 
 - **Multiple `return CONST;` statements cross-jump unpredictably; a labeled
   return body pins them**: write the constant return once, label INSIDE the
