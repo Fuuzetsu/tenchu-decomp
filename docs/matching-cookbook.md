@@ -361,6 +361,12 @@ plain C is the matched file.
 - A hand-rolled `label: if (...) goto...` loop also keeps the top test but
   **loses hoisting** (no loop notes → loop.c skips it): magic divisors and
   invariant addresses get rematerialized per iteration. Wrong.
+- **A loop-invariant store value hoists, but its `li` lands AFTER the counter's
+  init unless you pre-assign it to a named local before the loop.**
+  `for (i=N; i>=0; i--) arr[i].f = -1;` hoists the `-1` yet orders its `li`
+  after the counter's — write `s16 dead; dead = -1; for (…) arr[i].f = dead;`
+  to emit the invariant's `li` first (leResetEnemyLayout: a 2-instruction pure
+  register-swap otherwise).
 - **A top-test loop that never hoists its invariants is a hand-rolled goto
   loop, not while(1)+break**: `while(1){if(!cond)break;…}` still emits loop
   notes, so loop.c hoists invariant addresses/constants to the preheader and
