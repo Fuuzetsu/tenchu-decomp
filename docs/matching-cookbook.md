@@ -556,6 +556,13 @@ plain C is the matched file.
   (dest = source) while `x = -y` picks `negu $rX,$rY` (a different source
   register) — match only when the negate re-reads the variable it writes
   (Think1trace).
+- **A conditional value used ONLY as a call argument is an inline ternary, not
+  a preceding if/else.** Ghidra renders `f(…, cond ? B : A)` as an SSA artifact
+  `tmp = A; if (cond) tmp = B; f(…, tmp);` — but written as separate statements
+  the conditional gets its own basic block that strictly precedes (blocks)
+  evaluation of the call's OTHER arguments, so sched1 can't interleave the flag
+  computation with them. Spell it as the ternary directly (SetupSoundEffect: a
+  48-byte residual fixed in one edit).
 - **Two registers holding the same computed value = an explicit source
   copy**: cc1 never splits live ranges — `trg = cur & (cur ^ opad);` into
   one callee-saved reg and then `opad = trg;` into another, with the rest of
