@@ -14,6 +14,46 @@ The split of responsibility:
   **harvests on green, commits**, folds reported rules into the cookbook, and
   **builds a tool whenever a friction recurs**.
 
+## Resuming the hands-off flywheel (quick-start)
+
+**State (keep this line current):** ~164/555 game functions (~30%), ~12% of
+game bytes, whole-image byte-identical (sha256 `0690a5c1…3558`). Live count:
+`nix develop --command tools/progress.py`.
+
+**The loop (repeat until the user stops you):**
+1. `nix develop --command 'tools/triage.py'` → pick a batch of **5 clean-seam
+   functions**. Clean seam = non-jump-table, ≤~500 bytes, non-dispatch, ideally
+   with a matched twin (`~0.NN to <Twin>`). Filter OUT `switchD`, `Think3*`,
+   `handle_char_state_*`, `Card`/library, and `0x80060xxx`. Prefer trivial/easy
+   tier + a strong twin.
+2. Spawn ONE `general-purpose` agent, `model: "sonnet"`, `isolation:
+   "worktree"`, `run_in_background: true`, with a prompt naming the 5 functions,
+   their matched twins, the proven shared structs, and the early-stop rules
+   (copy a recent batch prompt from this session's history — they're near-
+   identical; the only variables are the 5 names + twins). Two agents in
+   parallel on disjoint families is fine.
+3. On the completion notification, **harvest** (procedure below), `./Build
+   clean && ./Build check` must be **BYTE-IDENTICAL**, then commit.
+4. Fold any genuinely-novel mechanical rule into `matching-cookbook.md`; fix any
+   reported tool bug centrally. Be selective — the cookbook is mature.
+5. Brief progress line to the user. Repeat.
+
+**Economics that make it hands-off:** the clean seam matches **4–5/5 per batch
+at ~150–260k agent tokens**; the tie-prone bucket (big `handle_char_state_*`/
+`Think3*` dispatchers, 1400–1700 B) costs 2–3× for 2/5 and its residuals are
+sub-C reload/schedule ties — **DEFER them** (don't burn Sonnet on them). If a
+batch's residual is the named `la`/address-materialization reload tie (`%hi` in
+a temp vs the target reg), it is **permuter-immune → NON_MATCHING immediately**,
+never permute. A jump-table NON_MATCHING with a `.rodata` carve or two-piece
+split is fiddly to harvest — **defer it** (leave in the blob, save the draft to
+`scratch/`), like `cd_open`/`handle_char_state_using_item_`/`FUN_80027818`.
+
+**Biggest lever — family-first:** before a new subsystem, map its shared struct
+ONCE (`item.h`, `game_types.h`) and point every agent at it; sequence small
+leaves first so the struct gets byte-proven early, then the family is cheap.
+`character_state` (AI) is now proven; `item.h`'s `Humanoid`/`ModelType`/
+`MotionManager`/`MotionRegistType`/`MotionDataType` are proven.
+
 ## The tool map
 
 Everything the pipeline needs, in the order you touch it:
