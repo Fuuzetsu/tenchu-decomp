@@ -38,7 +38,7 @@ GP_EXTERNS = {
     "ReqItemDrop": ["COUNTER_FOR_ITEM_ARRAY_"],
     "FUN_8004a42c": ["COUNTER_FOR_ITEM_ARRAY_"],
     "GetAreaMapLevel": ["FieldIndex", "FieldArea", "D_80097EC0", "D_80097EC4"],
-    "DoInfoViewProc": ["D_80097B1C", "CURRENTLY_SELECTED_ITEM_KIND_1_", "D_80097BB1"],
+    "DoInfoViewProc": ["fInitialize", "CURRENTLY_SELECTED_ITEM_KIND_1_", "PutMapMode"],
     "BriefingAndInventorySelectionScreen": ["CARRY_30_ITEMS_CHEAT_APPLIED"],
     "LayoutEnemyOption": ["D_80097D44"],
     "debug_menu_stage_option": ["SystemFlag"],

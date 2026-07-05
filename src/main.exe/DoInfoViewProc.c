@@ -31,8 +31,8 @@
  *  - `(s16)CamState.Owner->lifemax` forces the signed lh the original has —
  *    this TU's view disagrees with the item TU's u16 (ProcItemKusuri lhu's
  *    the same field).
- *  - gp smalls of this TU: D_80097B1C (fInitialize),
- *    CURRENTLY_SELECTED_ITEM_KIND_1_, D_80097BB1 (Build.hs maspsxGpExterns +
+ *  - gp smalls of this TU: fInitialize (fInitialize),
+ *    CURRENTLY_SELECTED_ITEM_KIND_1_, PutMapMode (Build.hs maspsxGpExterns +
  *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/D_80097C40 are other
  *    TUs' — plain absolute externs.
  */
@@ -61,9 +61,9 @@ extern u32 SystemFlag;
 extern s32 GameClock;
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
-extern u8 D_80097B1C;                       /* fInitialize */
+extern u8 fInitialize;                       /* fInitialize */
 extern s16 CURRENTLY_SELECTED_ITEM_KIND_1_;
-extern u8 D_80097BB1;                       /* PutMap latch */
+extern u8 PutMapMode;                       /* PutMap latch */
 
 extern MENU_MAIN_TBL DEBUG_MENU_MAIN_SCREEN_OPTIONS;
 extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
@@ -164,7 +164,7 @@ void DoInfoViewProc(void)
 
     pad = CamState.Owner->pad.data;
     trig = CamState.Owner->pad.trig;
-    if (D_80097B1C == 0)
+    if (fInitialize == 0)
     {
         InitializeInfoView();
     }
@@ -245,6 +245,6 @@ nosel:
     }
     else
     {
-        D_80097BB1 = 0;
+        PutMapMode = 0;
     }
 }

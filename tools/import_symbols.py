@@ -20,6 +20,9 @@ os.chdir(ROOT)
 SYMBOLS = "config/symbols.main.exe.txt"
 YAML = "config/splat.main.exe.yaml"
 SRC_DIR = "src/main.exe"
+# gp-extern lists reference symbols as quoted strings; a gp-small rename must
+# update them too or maspsx stops gp-addressing the symbol (byte-break).
+GPFILES = ["shake/src/Build.hs", "tools/permute.py"]
 GAME_LO = 0x80010000
 
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -113,6 +116,15 @@ def apply_renames(renames):
     for f in srcs:
         c = open(f).read()
         open(f, "w").write(ident.sub(lambda m: rep(m, 1), c))
+
+    # gp-extern lists (Build.hs `syms`, permute.py GP_EXTERNS) name symbols as
+    # quoted strings — rewrite the quoted form only, so a renamed gp-small keeps
+    # its --gp-extern flag and maspsx stays byte-identical.
+    quoted = re.compile(rf'"({alt})"')
+    for f in GPFILES:
+        if os.path.exists(f):
+            t = open(f).read()
+            open(f, "w").write(quoted.sub(lambda m: '"' + rep(m, 1) + '"', t))
 
     # rename src/*.c files whose basename is a renamed function
     nfiles = 0

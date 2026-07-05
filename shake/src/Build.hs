@@ -122,7 +122,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "GetAreaMapLevel" = ["FieldIndex", "FieldArea", "D_80097EC0", "D_80097EC4"]
     -- DoInfoViewProc.c is part of the original info-view TU, which defines
     -- these smalls (fInitialize / item cursor / PutMap latch).
-    syms "DoInfoViewProc" = ["D_80097B1C", "CURRENTLY_SELECTED_ITEM_KIND_1_", "D_80097BB1"]
+    syms "DoInfoViewProc" = ["fInitialize", "CURRENTLY_SELECTED_ITEM_KIND_1_", "PutMapMode"]
     -- BriefingAndInventorySelectionScreen.c's original TU defines the one-shot
     -- capacity-cheat latch (.sdata, 0x80097cdc); SkipFrame stays absolute.
     syms "BriefingAndInventorySelectionScreen" = ["CARRY_30_ITEMS_CHEAT_APPLIED"]
