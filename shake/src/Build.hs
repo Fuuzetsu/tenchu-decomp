@@ -190,6 +190,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ThinkBasicHuman1" = ["Me_THINK_C"]
     syms "StartDrawing" = ["DrawingPage", "OTablePt", "GameClock"]
     syms "FUN_80027688" = ["Me_MOTION_C", "dtM"]
+    syms "SetupSoundEffect" = ["STAGE_SOUNDS_POINTER"]
+    syms "initialise_default_player_cameras_" = ["CAMERA_PTR_ARRAY_START"]
     syms _ = []
 
 as :: FilePath

@@ -99,6 +99,8 @@ GP_EXTERNS = {
     "ThinkBasicHuman1": ["Me_THINK_C"],
     "StartDrawing": ["DrawingPage", "OTablePt", "GameClock"],
     "FUN_80027688": ["Me_MOTION_C", "dtM"],
+    "SetupSoundEffect": ["STAGE_SOUNDS_POINTER"],
+    "initialise_default_player_cameras_": ["CAMERA_PTR_ARRAY_START"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
