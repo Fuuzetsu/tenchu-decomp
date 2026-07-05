@@ -84,6 +84,15 @@ The ordered triage — fix categories in THIS order, re-running
      (sched.c / reload.c / global.c), write the mechanism into the header, mark
      NON_MATCHING, and move on. Do NOT open more surgical sessions on it; that
      is how ~1.4M tokens produced zero additional matches this batch.
+     - **The `la`/address-materialization reload tie is a NAMED member of this
+       class — DON'T even start the permuter on it.** When the only diff is a
+       symbol address built `lui $tmp,%hi / addiu $dst,$tmp,%lo` where the
+       target puts both halves in one register (`lui $dst,%hi / addiu
+       $dst,$dst,%lo`), or vice versa, that's a reload-pass register choice with
+       no source lever. PrepareAccess (2 bytes, 87k permuter iters, flat) and
+       cd_open (4 bytes, ~50 min / **353k agent tokens**, flat) are the identical
+       tie. Recognize the signature, document it, mark NON_MATCHING immediately —
+       a permuter run on this pattern has never once paid off.
 6. **On MATCH:** `./Build check`, add the matching-notes header, promote any
    NEW reusable rule to this cookbook, commit the function + splat.yaml
    together.
@@ -197,6 +206,23 @@ the **m2c reference's raw offsets** (`arg0->unk4`, seeded next to Ghidra's C)
 plus the **proven shared header** (item.h's `PARAM_ITEM_USE`) over Ghidra's
 struct name — item-TU Req*/Proc* functions almost always take
 `PARAM_ITEM_USE *p`.
+
+- **A bare `enum`-typed struct field is 4 bytes under this pinned cc1** (no
+  `-fshort-enums`), even when every enumerator fits in one or two bytes — so a
+  field spelled with the raw enum typedef silently compiles 4 bytes wide and
+  shifts every later field (no warning; `-w` is on). Match the existing
+  precedent: spell it `u16 name; // enum X, stored as 2 bytes` the way
+  `character_kind`/`character_status` already do, never `enum X name;`
+  (character_state's `weapon_kind`/`active_item`).
+- **An existing Ghidra struct-field POINTER type may be an unverified guess** —
+  nothing ever dereferenced it, so Ghidra typed the target from a stale/adjacent
+  inference. Before trusting one, `grep` the field name: zero other usages ⇒
+  it's a guess, re-derive from the bytes. Cross-check the THREE independent type
+  sources — the m2c seed's raw offsets, the proven shared headers (item.h), and
+  Ghidra's own fuller independently-built structs in `reference/ghidra_types.h`
+  (its `Humanoid` had `think[4]`@0x60, `weapon[4]`@0x94, `illusion[2]`@0xa4 all
+  correctly placed) — and match the way they agree (character_state's
+  `camera_related`@0x58 was really `model`, an `ModelArchiveType*`).
 
 ## Partial matches (the NON_MATCHING convention)
 

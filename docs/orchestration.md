@@ -120,6 +120,35 @@ Commit the `.c` + `config/splat.main.exe.yaml` + `shake/src/Build.hs` +
 `tools/permute.py` (+ symbols if added) together, then
 `git worktree remove <path> --force && git branch -D <branch>`.
 
+### Harvest gotchas (hit in the AI + CD batches)
+- **Trust the whole-image `./Build check` (sha), never per-function matchdiff
+  alone.** matchdiff's window can be shorter than the function — `cd_open`
+  reported "0 differing bytes" in its 64-byte window while 4 bytes differed
+  past it; only the sha caught it. A batch isn't green until `./Build check` is.
+- **A phantom `nonmatchings/<name>.s` "can't open for reading" error after
+  incremental carves is stale Shake state, not a real break** (the INCLUDE_ASM
+  dep-tracking latent issue). `./Build clean` (~7s) fixes it; harvests in a
+  churny region (e.g. the 0x8005fxxx CD block) may as well `./Build clean` up
+  front.
+- **A function splat splits into TWO non-contiguous pieces can't be
+  NON_MATCHING-stubbed** — the INCLUDE_ASM covers only the first piece, so a
+  cross-piece `.L<addr>` branch target goes undefined at link. Such a function
+  must be fully MATCHED or left in the original blob (un-carved via
+  `git checkout config/splat…` + re-carve the rest); it can't be parked as a
+  stub+draft (`cd_open` — draft saved to `scratch/` instead).
+
+### Strategy: family-first for a new tier (biggest token lever)
+Before launching a tier that shares a struct (AI → `character_state`; items →
+`PARAM_ITEM_USE`/`Humanoid`; CD/AFS → `FILE`/`TAFS`), map that struct in
+`game_types.h`/`item.h` ONCE, point every agent at it, and sequence
+leaves/small functions first so it gets byte-PROVEN early — then the big
+handlers reuse it for free instead of each re-deriving it. `character_state`
+(Ghidra-complete but with a few wrong field-type guesses) went unproven →
+proven+corrected on the first small batch, de-risking the whole
+`handle_char_state_*`/`think_*` family. Also cross-check
+`reference/ghidra_types.h` (Ghidra's own fuller structs) before inventing field
+names past a struct's known extent.
+
 ## The reflection loop (how the tooling compounds)
 
 After each agent, read its report's **"where I reasoned manually"** and **new
