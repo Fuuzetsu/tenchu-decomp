@@ -75,6 +75,8 @@ GP_EXTERNS = {
     "DrawBG": ["OTablePt"],
     "PrepareAccess": ["AccessPower"],
     "handle_balmer_acm_": ["GlobalAreaMap", "FieldIndex", "D_800976E8", "FieldArea"],
+    "FUN_80027304": ["Me_MOTION_C", "dtL"],
+    "init_score_stats": ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

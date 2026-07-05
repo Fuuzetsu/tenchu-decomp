@@ -164,6 +164,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "DrawBG" = ["OTablePt"]
     syms "PrepareAccess" = ["AccessPower"]
     syms "handle_balmer_acm_" = ["GlobalAreaMap", "FieldIndex", "D_800976E8", "FieldArea"]
+    syms "FUN_80027304" = ["Me_MOTION_C", "dtL"]
+    syms "init_score_stats" = ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"]
     syms _ = []
 
 as :: FilePath

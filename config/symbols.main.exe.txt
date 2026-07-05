@@ -4247,3 +4247,5 @@ PrepareAccess = 0x80019768;
 CursorImage = 0x800c07a8;
 AccessPower = 0x800976d8;
 cbAccess = 0x80018dec;
+FUN_8004f598 = 0x8004f598;
+FUN_80027304 = 0x80027304;
