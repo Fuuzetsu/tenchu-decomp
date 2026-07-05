@@ -89,6 +89,8 @@ GP_EXTERNS = {
     "Think3firstattack": ["Distance", "SR", "Me_THINK_C", "Attrib", "Degree"],
     "Think3escape": ["Distance", "SR", "Degree", "Attrib", "Me_THINK_C"],
     "Think1ninja": ["Me_THINK_C"],
+    "GetArcData": ["MODEL_ARCHIVE_PTR"],
+    "FUN_80027730": ["dtM", "Me_MOTION_C", "dtR"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

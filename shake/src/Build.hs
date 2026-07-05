@@ -180,6 +180,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "Think3firstattack" = ["Distance", "SR", "Me_THINK_C", "Attrib", "Degree"]
     syms "Think3escape" = ["Distance", "SR", "Degree", "Attrib", "Me_THINK_C"]
     syms "Think1ninja" = ["Me_THINK_C"]
+    syms "GetArcData" = ["MODEL_ARCHIVE_PTR"]
+    syms "FUN_80027730" = ["dtM", "Me_MOTION_C", "dtR"]
     syms _ = []
 
 as :: FilePath
