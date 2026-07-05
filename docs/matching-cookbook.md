@@ -704,6 +704,12 @@ plain C is the matched file.
   `((T *)0x80010000)->arr[i]` emits index-first with a split `lui`+lo
   displacement that cse merges into any register already holding the
   constant; an extern-array symbol emits `la` (lui+addiu), not the split.
+  - **Two ADJACENT data tables are separate symbols, not one array indexed with
+    a constant offset.** When a load's `lh/lw` displacement is 0 and the base
+    address equals a *different* nearby symbol's address, declare that second
+    symbol (`atkd2` at atkd+8) rather than writing `atkd[wclass+4]` — the array
+    form folds the +4 into the index and materializes `atkd`'s base, not
+    `atkd2`'s (Think3firstattack).
   - **Don't factor out a cursor pointer when the target wants index-first.**
     Repeating the raw index (`map[j].a; map[j].b; …`) vs caching it
     (`rec = &map[j];`) FLIPS the addu order: the pointer-temp assignment trips
