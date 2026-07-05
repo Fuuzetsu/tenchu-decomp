@@ -4258,3 +4258,6 @@ atkd = 0x800979e0;
 atkd2 = 0x800979e8;
 MusicIDTable = 0x8008ea2c;
 DemoBackupArea = 0x800c0938;
+FUN_8004f68c = 0x8004f68c;
+FUN_80039684 = 0x80039684;
+FUN_8005fe88 = 0x8005fe88;

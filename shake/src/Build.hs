@@ -183,6 +183,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "GetArcData" = ["MODEL_ARCHIVE_PTR"]
     syms "FUN_80027730" = ["dtM", "Me_MOTION_C", "dtR"]
     syms "ReturnNormal" = ["Me_MOTION_C", "motID", "D_80097F0E"]
+    syms "DrawOrnament" = ["OTablePt"]
+    syms "FUN_8005fe88" = ["D_80097E98"]
     syms _ = []
 
 as :: FilePath

@@ -92,6 +92,8 @@ GP_EXTERNS = {
     "GetArcData": ["MODEL_ARCHIVE_PTR"],
     "FUN_80027730": ["dtM", "Me_MOTION_C", "dtR"],
     "ReturnNormal": ["Me_MOTION_C", "motID", "D_80097F0E"],
+    "DrawOrnament": ["OTablePt"],
+    "FUN_8005fe88": ["D_80097E98"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
