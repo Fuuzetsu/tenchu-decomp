@@ -192,6 +192,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "FUN_80027688" = ["Me_MOTION_C", "dtM"]
     syms "SetupSoundEffect" = ["STAGE_SOUNDS_POINTER"]
     syms "initialise_default_player_cameras_" = ["CAMERA_PTR_ARRAY_START"]
+    syms "vgetfreesize" = ["virtual_memory_pool"]
+    syms "vgetmaxsize" = ["virtual_memory_pool"]
     syms _ = []
 
 as :: FilePath

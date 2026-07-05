@@ -101,6 +101,8 @@ GP_EXTERNS = {
     "FUN_80027688": ["Me_MOTION_C", "dtM"],
     "SetupSoundEffect": ["STAGE_SOUNDS_POINTER"],
     "initialise_default_player_cameras_": ["CAMERA_PTR_ARRAY_START"],
+    "vgetfreesize": ["virtual_memory_pool"],
+    "vgetmaxsize": ["virtual_memory_pool"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

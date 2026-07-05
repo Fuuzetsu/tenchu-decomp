@@ -4272,3 +4272,5 @@ Think2Func = 0x80089dbc;
 Think3Func = 0x80089dd4;
 Think4Func = 0x80089dfc;
 FileWrite = 0x800193cc;
+FUN_8004f770 = 0x8004f770;
+FUN_80032610 = 0x80032610;
