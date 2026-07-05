@@ -81,12 +81,17 @@ GP_EXTERNS = {
     "think_setting_go_towards_player": ["Attrib", "Me_THINK_C", "Degree"],
     "update_something_for_each_visible_enemy_": ["VISIBLE_ENEMIES_"],
     "turn_towards_player_": ["Me_THINK_C", "Degree", "Attrib", "D_80097F10"],
+    "Think1trace": ["Me_THINK_C", "Degree", "Attrib"],
+    "Think3chase": ["Distance", "SR", "EngageLevel", "D_800979BC", "Degree", "Me_THINK_C"],
+    "handle_char_state_attacking_SEVEN_": ["dtM", "Me_MOTION_C", "dtR"],
+    "bow_shoot_logic": ["Me_MOTION_C", "dtR"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
 # maspsxGpExterns (e.g. --expand-div for TUs that divide by a variable).
 MASPSX_EXTRA = {
     "GetAreaMapLevel": ["--expand-div"],
+    "bow_shoot_logic": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

@@ -580,8 +580,15 @@ struct character_state
     s32 some_other_z_position;
     u8 field52_0x88;
     u8 field53_0x89;
-    byte field54_0x8a;
-    byte field55_0x8b;
+    // Was `byte` (signed char) — Think1trace.c proves both BY THE LOAD/COMPARE
+    // INSTRUCTIONS: `lbu` (not `lb`) loads each field, and actscnt is compared
+    // with `sltiu` (unsigned) against 0x3C/0x1E, not a signed `slti`/`slt`.
+    // Matches Ghidra's own independently-built Humanoid struct
+    // (reference/ghidra_types.h), which types this same pair `uchar actcnt;
+    // uchar actscnt;` right after actmode/actflg (field52/53 above) — an
+    // "action state machine" nibble: mode/flag/count/subcount.
+    u8 actcnt;
+    u8 actscnt;
     s16 index_s32o_animation_collection;
     u16 weapon_kind; // enum weapon_kind, stored as 2 bytes (see the
                       // character_kind/character_status precedent above —

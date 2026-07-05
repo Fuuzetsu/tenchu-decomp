@@ -93,7 +93,12 @@ typedef struct
     u8 pad1[0x10];               /* 0x48 */
     ModelArchiveType *model;     /* 0x58 */
     MotionManager *motion;       /* 0x5C */
-    u8 pad2[0x4C];               /* 0x60 */
+    u8 pad2a[0x14];              /* 0x60 */
+    ModelType *target;           /* 0x74 (handle_char_state_attacking_SEVEN_
+                                    reads target->locate.coord.t[1], the Y
+                                    translation of the target's world matrix,
+                                    for a lightning-bolt end point) */
+    u8 pad2b[0x34];              /* 0x78 */
     u16 sound;                   /* 0xAC (default sound id, OR'd into Sound()'s seid) */
     s16 active_item;             /* 0xAE (item_kind2 the character is using) */
     u8 pad3[0x4];                /* 0xB0 */
