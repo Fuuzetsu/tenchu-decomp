@@ -26,6 +26,11 @@ struct ModelType
     s16 id;                      /* 0x58 */
     s16 attribute;               /* 0x5A */
     SVECTOR clip;                /* 0x5C */
+    GsDOBJ2 object;               /* 0x64 (FUN_8001851c.c: valloc(sizeof(ModelType))
+                                    == 0x74 only with this field; attribute/coord2/tmd
+                                    written directly at +0x64/+0x68/+0x6C, matching
+                                    Ghidra's own independently-built struct exactly —
+                                    reference/ghidra_types.h:5021) */
 };
 
 typedef struct
@@ -55,6 +60,13 @@ typedef struct
     u8 sweep;                    /* 0x1 */
     u8 orderspd;                 /* 0x2 */
     u8 sidespd;                  /* 0x3 */
+    s16 time;                    /* 0x4 (PlayMotion.c: mmp->count compared
+                                    against mmp->motion->time; matches
+                                    Ghidra's own independently-built
+                                    MotionDataType exactly — reference/
+                                    ghidra_types.h:4994, which also has
+                                    id/locate/rotate[1] after it, not yet
+                                    exercised by any matched function) */
 } MotionDataType;
 
 /* GetMotionID's registry row (Ghidra's own independently-built type,
