@@ -94,6 +94,9 @@ GP_EXTERNS = {
     "ReturnNormal": ["Me_MOTION_C", "motID", "D_80097F0E"],
     "DrawOrnament": ["OTablePt"],
     "FUN_8005fe88": ["D_80097E98"],
+    "SetupStageSequence": ["StageEvent", "StagePlayer"],
+    "FUN_800274e8": ["dtM", "Me_MOTION_C"],
+    "ThinkBasicHuman1": ["Me_THINK_C"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

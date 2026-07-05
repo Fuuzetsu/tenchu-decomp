@@ -185,6 +185,9 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReturnNormal" = ["Me_MOTION_C", "motID", "D_80097F0E"]
     syms "DrawOrnament" = ["OTablePt"]
     syms "FUN_8005fe88" = ["D_80097E98"]
+    syms "SetupStageSequence" = ["StageEvent", "StagePlayer"]
+    syms "FUN_800274e8" = ["dtM", "Me_MOTION_C"]
+    syms "ThinkBasicHuman1" = ["Me_THINK_C"]
     syms _ = []
 
 as :: FilePath

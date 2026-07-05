@@ -541,8 +541,15 @@ struct character_state
     s16 field7_0xe;
     some_character_button_values buttons;
     MapVector map;
-    u8 field17_0x28;
-    u8 field18_0x29;
+    // Was two separate `u8 field17_0x28;`/`u8 field18_0x29;` placeholders —
+    // ThinkBasicHuman1.c PROVES a single `lhu` (unsigned halfword) reads both
+    // bytes together and tests bit 0x200, which can't fit in one byte; no
+    // matched function reads either byte individually, so this merges them
+    // into one proven u16 (Ghidra's own decompilation of the same offset
+    // guesses the name "attrib", though it wrongly nests it under `map` —
+    // the raw asm reads it directly off character_state+0x28, not through
+    // MapVector, which is separately proven 8 bytes/level+height only).
+    u16 attrib;
     u8 field19_0x2a;
     u8 field20_0x2b;
     u8 field21_0x2c;
