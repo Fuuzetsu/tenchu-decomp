@@ -267,6 +267,14 @@ plain C is the matched file.
   `expand_case` emits a balanced compare tree over a *fresh* index load. An
   if/goto-ladder CSEs the load into one `lbu` and compares small unsigned
   types with `sltiu`. Case bodies are laid out in source order.
+- **An explicit `if (cond) goto L;` ladder decouples test ORDER from body
+  LAYOUT** — reach for it when an N-way dispatch fires its tests in a different
+  order than the bodies sit in memory. cd_seek's 3-way `whence` dispatch tests
+  1,0,2 but lays bodies out 0,2,1 (SEEK_CUR last, falling into the merge): a
+  `switch` adds a range-split `slti` and an `if/else if` inlines each body right
+  after its own test, but `if (whence==1) goto a; if (whence==0) goto b; …` with
+  the *labels* ordered 0,2,1 reproduces the test sequence and the body addresses
+  independently.
 - A preceding test that keeps its constant in a **callee-saved register**
   across calls (`li $s4, 0xFF` + later `sb $s4`) is a local variable
   (`u8 ff = 0xff;`) also used by a later store. A path where the same value is
