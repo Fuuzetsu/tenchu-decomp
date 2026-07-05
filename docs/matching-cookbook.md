@@ -317,6 +317,11 @@ plain C is the matched file.
     layout diff. Very common in the C-layer wrappers (cd_close/Afs* family); the
     opposite-polarity rule above is for a single if/else over a comparison, not
     this guard-clause-with-two-returns shape.
+    - **…but flip back when the "rest" arm carries the loop's own back-edge.**
+      `if (match) return X; … keep-searching goto-loop …; return FALLBACK;`
+      relocates the `return X` to the function's far end — instead invert the
+      condition and NEST the keep-searching + fallback inside the `if`, leaving
+      the found-return as the final unnested statement (GetItemType).
 - **Don't reuse the switch variable inside case bodies across calls**: a
   dispatch-only variable dies at the case tree and lives in a caller-saved
   reg (`move $v1,$v0` after the call that produced it). Assigning a later
@@ -415,6 +420,11 @@ plain C is the matched file.
     `lhu` (different machine modes don't CSE). Don't collapse to one load; give
     the narrowing use its own `short` temp and both loads fall out
     (DeleteConflict's `ConflictObjects`).
+- **A `u8` local re-narrowed after arithmetic gets a defensive `andi 0xff` +
+  unsigned `sltiu`** even when the value provably stays in byte range. If the
+  target has a signed `slti` there instead, declare the local `s32` — the source
+  `lbu` load already zero-extends so nothing is lost, and cc1 then keeps the
+  signed compare with no mask (FUN_800576e8).
   - **Store-before-sign-extend on a capture-and-increment.** `v = Global; Global
     = v + 1; idx = (short)v;` — the store to `Global` MUST come before the
     `(short)v`. While `v` is still memory-equivalent to `Global`, cse renders
@@ -744,6 +754,12 @@ plain C is the matched file.
 > is in $s0–$s7 *only* because it survives a call; if the target holds it in a
 > caller-saved reg, shorten its live range so it no longer crosses the call.
 
+- **A named `zero` local can flip a pure register-swap tie — cheaper than the
+  permuter.** Comparing a loop bound against a `zero` local (`int zero = 0; …
+  while (n > zero)`) rather than the literal `0` shifts global-alloc's
+  pseudo-number tie-break enough to swap two coalesced registers with no other
+  effect — plausible as a real sentinel/bound local. Try it before reaching for
+  `tools/permute.py` on a ≤-few-byte register-swap residual (GetArcData).
 - **A shared return variable copy-preferences its sources together — use early
   returns to split their live ranges.** Funnelling two values through one
   `ret` (e.g. `ret = existing_id; … ret = new_index; return ret;`) makes cc1's
