@@ -48,7 +48,11 @@ The ordered triage — fix categories in THIS order, re-running
 3. **Register-only differences last.** They usually fall out of 1–2. The
    levers, in order: statement/assignment position (a one-line move can flip
    allocation priorities and delay-slot fills), declaration of temps, and
-   finally `tools/permute.py <Name>` for pure allocation ties.
+   finally `tools/permute.py <Name>` for pure allocation ties. **A permuter
+   winner can carry red herrings alongside the real fix — bisect a multi-diff
+   score-0 candidate statement-by-statement and keep only the load-bearing
+   change** (bow_shoot_logic's winner touched three things; only the extern
+   return-type retype mattered), don't paste it wholesale.
    - **Machine-apply the mechanical rules first.** The moment the draft
      compiles, run `tools/autorules.py <Name>`: it sweeps the *local* rules —
      every local's integer type (the s16↔s32 index/call-result width lever
@@ -57,7 +61,11 @@ The ordered triage — fix categories in THIS order, re-running
      expressions rule below) — and greedily keeps what shrinks the asmdiff,
      telling you which edit helped. Don't hand-apply these — and if it reports
      no win, the residual is *not* one of them, so move to structure/regalloc
-     instead of trying more variants. (Structural rules that need diff-reading
+     instead of trying more variants. **Reject an autorules "win" that changes a
+     PROVEN struct field's ACCESS WIDTH** even when it shrinks the byte count: a
+     `u16`→`u8` field retype can narrow a correct `lhu` to `lbu` at another,
+     already-matched site — autorules scores *total* diff, not per-site
+     correctness, so it reports the net shrink as a win (Think3chase). (Structural rules that need diff-reading
      to place — loop shape, switch-vs-ladder, union-offset casts — stay manual.)
 4. **A whole-image `./Build check` failure while a function is mid-match is
    EXPECTED, not a regression** — a function of the wrong length shifts every
@@ -520,6 +528,11 @@ plain C is the matched file.
   caller-saved ($v1). Keep the negation at the assignment (`s = -rsin(a); c =
   -rcos(a);`), don't write `-(short)s` in the downstream expression and don't
   hoist the sign-fix ahead of it (MoveHumanoid).
+- **A conditional negate must re-read its own destination: `x = y; if (cond)
+  x = -x;`, not `x = -y;`.** Same value, but `x = -x` picks `negu $rX,$rX`
+  (dest = source) while `x = -y` picks `negu $rX,$rY` (a different source
+  register) — match only when the negate re-reads the variable it writes
+  (Think1trace).
 - **Two registers holding the same computed value = an explicit source
   copy**: cc1 never splits live ranges — `trg = cur & (cur ^ opad);` into
   one callee-saved reg and then `opad = trg;` into another, with the rest of
@@ -896,6 +909,18 @@ plain C is the matched file.
   setup, before the final return) re-weights the whole interior at once
   (GetAreaMapLevel: flipped four s-registers in one move; GetRealPad's old
   wrapper was the same mechanism).
+- **A whole-block `if (X) {block} else {block}` with BYTE-IDENTICAL arms is a
+  scheduling lever** (permuter-found; no statement reorder reaches it).
+  Duplicating an interleaved multi-load sequence into both arms — even when `X`
+  reads a not-yet-initialised local (harmless, always overwritten before use) —
+  shifts cc1's front-end basic-block/pseudo numbering enough to fix a
+  load-delay-slot interleaving order; the straight-line form was 8 bytes longer
+  with a stray `nop` and a different colour for an unrelated variable
+  (Think1trace).
+- **Hoist a shared `result = 0;` default to the function's SINGLE entry, not
+  per-branch** — reorg then folds that one store into the very first branch's
+  delay slot, shared by every downstream path; writing it separately in each
+  branch prevents the fold and forces per-branch reconstruction (Think1trace).
 - **Reused parameters vs fresh locals show in the prologue**: `move $s5,$a1`
   + later arithmetic on $s5 means the original overwrote the parameter
   (`x = x / 10;`) — the param pseudo gets a callee-saved home. A fresh local
