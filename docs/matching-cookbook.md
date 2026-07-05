@@ -660,6 +660,12 @@ plain C is the matched file.
   `*(s32 *)(buf + 0x18) = ...;`): with distinct address pseudos the scheduler
   loses the store→copy dependence and interleaves the copy into the divide
   latency (differently from the original).
+- **An unexplained frame-size gap — the target's frame is bigger with no
+  load/store touching the extra bytes — is often a DEAD/UNUSED local.** cc1
+  reserves stack for every declared automatic aggregate regardless of use; when
+  the gap exactly equals a sibling function's struct size, declare that struct
+  as an unused local (FUN_800274e8: an unused `PARAM_ITEM_USE p;` = 40 bytes, a
+  refactoring leftover from wrapping bow_shoot_logic).
 - **Overlapping big frame buffers whose addresses rematerialize at every
   call are INLINED STATIC HELPERS, not locals** (DoInfoViewProc's debug
   menus). Mechanics, all three observable in the bytes:
@@ -1055,8 +1061,16 @@ plain C is the matched file.
 then `split-scaffold.py <Name>` writes the full NON_MATCHING stub (every
 INCLUDE_ASM piece + the jump table(s) as `static const u32 …_jtbl[]`), inserts
 the `.rodata` carve, and leaves `./Build check` green; fill in the `#else`
-draft and iterate. reverse.py detects the split case and points you at it. The
-manual mechanics, for reference:
+draft and iterate. reverse.py detects the split case and points you at it.
+
+**But not every 2-piece report is a real jump table.** A
+`__override__prt_<addr>_<hash>` symbol at a mid-function address makes
+reverse.py/split-scaffold see two pieces, yet if the raw `.s` has NO branch to
+that address — piece 1 falls straight through into piece 2 — it's ONE ordinary
+function: write it as plain C with no `_jtbl` array (SetupStageSequence;
+FileOption.c has a buried instance). Check for an actual jump before scaffolding.
+
+The manual mechanics, for reference:
 
 A table-switch splits the function into several nonmatching .s pieces and
 routes the table through the C object's .rodata (see the yaml comment at the
