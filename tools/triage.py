@@ -8,12 +8,19 @@ them into a difficulty score + a plain-English "why" + the cookbook sections
 that will matter. Pick a function that fits your time/skill (humans) or route/
 size an agent (orchestrator).
 
-  tools/triage.py                 all UNMATCHED game functions, easiest first
-  tools/triage.py --all           include SDK-region + matched
+  tools/triage.py                 all UNMATCHED, UNPARKED game funcs, easiest first
+  tools/triage.py --all           include SDK-region + matched + parked
   tools/triage.py --hard          hardest first
   tools/triage.py --leverage      sort by call in-degree (high-impact first)
   tools/triage.py <Name>          detail for one function (features + docs)
   tools/triage.py --max-size N    only functions <= N bytes
+  tools/triage.py --parked        only the shelved functions, with their reason
+
+PARKED functions are ones we already investigated and consciously shelved (a
+documented `STATUS: NON_MATCHING` in their .c — sub-C register ties, the
+sll16/sra12/sra4 sign-extension class, etc). They are hidden by default: their
+features still look easy, so leaving them in the list sends agents down dead
+ends we have already paid for. Read the .c's STATUS note before reviving one.
 
 `relevant_docs(name)` is importable (reverse.py annotates its seed with it).
 Run inside the nix devShell.
@@ -80,8 +87,63 @@ def matched(name):
     return os.path.exists(f) and not re.search(r"^\s*INCLUDE_ASM", open(f).read(), re.M)
 
 
+# `STATUS: NON_MATCHING — <reason>` (em dash, en dash or ASCII hyphen).
+STATUS_RE = re.compile(r"STATUS:\s*NON_MATCHING\s*[—–-]?\s*(.*)")
+
+
+def parked(name):
+    """Reason if <name>.c exists, is still INCLUDE_ASM-backed, and is documented
+    NON_MATCHING — i.e. we tried it and shelved it. None otherwise.
+
+    A carve with no NON_MATCHING note is just an unfinished draft, still a fair
+    target; only a deliberate park counts.
+    """
+    f = os.path.join(SRC, name + ".c")
+    if not os.path.exists(f):
+        return None
+    src = open(f).read()
+    if not re.search(r"^\s*INCLUDE_ASM", src, re.M):
+        return None  # matched
+    if "NON_MATCHING" not in src:
+        return None  # fresh carve / in-progress draft
+    m = STATUS_RE.search(src)
+    return " ".join(m.group(1).split()) if m else "parked (see the .c)"
+
+
 FLOAT = re.compile(r"^(lwc1|swc1|mtc1|mfc1|ctc1|cfc1|.*\.s|.*\.d|c\.)")
 MULDIV = {"mult", "multu", "div", "divu"}
+# COP2 data moves: `as` assembles these, but there is no C spelling for them.
+COP2_MOVES = {"lwc2", "swc2", "mfc2", "mtc2", "cfc2", "ctc2"}
+# objdump renders a GTE *command* (RTPS/NCLIP/MVMVA/...) as a bare `c2`.
+# binutils' vanilla MIPS `as` cannot assemble those, so splat's per-function
+# split of such a function does not even build -> reverse.py fails outright.
+GTE_CMD = "c2"
+
+
+def _shamt(ops):
+    try:
+        return int(ops.split(",")[-1].strip(), 0)
+    except ValueError:
+        return None
+
+
+def signext_split(win):
+    """True for the `sll r,r,16 / sra r,r,k / sra r,r,16-k` (k != 16) triple.
+
+    That's a short's sign-extension FUSED with a left-scale, and it has no
+    natural-C spelling: cc1 refolds every plain-arithmetic respelling back to
+    the textbook 2-shift sll16/sra16. Whole game code has exactly three (the
+    GetPad/FUN_8001b174/GetPadXY trio), all parked pending the inline-asm
+    policy — so flag it rather than let it read as a TRIVIAL target.
+    """
+    if len(win) != 3:
+        return False
+    (m1, o1), (m2, o2), (m3, o3) = win
+    if (m1, m2, m3) != ("sll", "sra", "sra"):
+        return False
+    a1, a2, a3 = _shamt(o1), _shamt(o2), _shamt(o3)
+    return a1 == 16 and a2 is not None and a3 is not None \
+        and a2 != 16 and a2 + a3 == 16
 
 
 def features(a, s):
@@ -90,10 +152,19 @@ def features(a, s):
     mns = []
     floats = muldiv = gp = callees = indirect = loops = 0
     frame = 0
+    signext = gtecmd = cop2 = 0
+    win = []
     seen_callees = set()
     for ia in range(a, a + s, 4):
         mn, ops = c["insns"].get(ia, ("?", ""))
         mns.append(mn)
+        win = (win + [(mn, ops)])[-3:]
+        if signext_split(win):
+            signext += 1
+        if mn == GTE_CMD:
+            gtecmd += 1
+        if mn in COP2_MOVES:
+            cop2 += 1
         if FLOAT.match(mn):
             floats += 1
         if mn in MULDIV:
@@ -114,7 +185,8 @@ def features(a, s):
             frame = -int(ops.split(",")[-1])
     return dict(mns=mns, floats=floats, muldiv=muldiv, gp=gp,
                 callees=len(seen_callees), indirect=indirect, loops=loops,
-                frame=frame, switch=a in c["switchdata"])
+                frame=frame, switch=a in c["switchdata"], signext=signext,
+                gtecmd=gtecmd, cop2=cop2)
 
 
 def ngrams(mns, N=4):
@@ -158,6 +230,17 @@ def docs_for(f):
         d.append(("Register allocation steering", "indirect call — null-check-var/call-field"))
     if f["floats"]:
         d.append(("(sparse in cookbook)", "float/GTE ops — few documented idioms yet"))
+    if f["signext"]:
+        d.append(("Toolchain gotchas",
+                  "sll16/sra-split sign-extension — no natural-C form; see GetPad.c"))
+    if f["gtecmd"]:
+        d.append(("Toolchain gotchas",
+                  "GTE command opcodes — `as` rejects them, so the per-function "
+                  "split does not even assemble; needs the GTE->.word pass first"))
+    elif f["cop2"]:
+        d.append(("Toolchain gotchas",
+                  "COP2 data moves — assemble, but have no C spelling; blocked on "
+                  "the same inline-asm policy as GetPad/PClseek"))
     return d
 
 
@@ -171,6 +254,9 @@ def score(f, sim):
     base += 40 * f["loops"]
     base += 30 * (f["frame"] > 0x200)
     base += 5 * f["callees"]
+    base += 400 * bool(f["signext"])  # no natural-C form (GetPad class)
+    base += 800 * bool(f["gtecmd"])   # won't even assemble today
+    base += 400 * bool(f["cop2"])     # assembles, but no C spelling
     if sim >= 0.99:
         return 15                      # near-clone: clone the twin
     if sim >= 0.6:
@@ -196,6 +282,10 @@ def relevant_docs(name):
 
 def why(f, sim, twin):
     bits = [f"{len(f['mns'])} insns"]
+    if f["gtecmd"]:
+        bits.append(f"{f['gtecmd']} GTE CMD — UN-SPLITTABLE (as can't assemble)")
+    elif f["cop2"]:
+        bits.append(f"{f['cop2']} COP2 moves — no C form (inline-asm policy)")
     if f["switch"]:
         bits.append("JUMP TABLE")
     if f["floats"]:
@@ -208,6 +298,8 @@ def why(f, sim, twin):
         bits.append(f"frame 0x{f['frame']:x}")
     if f["indirect"]:
         bits.append("indirect-call")
+    if f["signext"]:
+        bits.append("SIGNEXT-SPLIT (GetPad class — likely unmatchable)")
     bits.append(f"{f['callees']} callees")
     if sim >= 0.99:
         bits.append(f"NEAR-CLONE of {twin} — clone it")
@@ -250,8 +342,19 @@ def main():
                     help="sort by call in-degree (high-impact first)")
     ap.add_argument("--max-size", type=int, default=0)
     ap.add_argument("--top", type=int, default=40)
+    ap.add_argument("--parked", action="store_true",
+                    help="only the shelved (documented NON_MATCHING) functions")
     args = ap.parse_args()
     c = load()
+
+    if args.parked:
+        rows = [(a, s, n, parked(n)) for a, s, n in c["funcs"] if parked(n)]
+        rows.sort(key=lambda r: r[1])
+        print(f"{'size':>5}  {'function':26} why it was shelved")
+        for a, s, n, p in rows:
+            print(f"{s:5}  {n:26} {p[:72]}")
+        print(f"\n({len(rows)} parked; read the .c's STATUS note before reviving one)")
+        return
 
     if args.name:
         hit = next((x for x in c["funcs"] if x[2] == args.name), None)
@@ -264,6 +367,10 @@ def main():
         print(f"{n} @ {a:#x} ({s} bytes) — {bucket(sc).upper()} (score {sc:.0f})")
         print(f"  why: {why(f, sim, twin)}")
         print(f"  matched: {matched(n)}")
+        p = parked(n)
+        if p:
+            print(f"  PARKED: {p}")
+            print(f"          (read {os.path.join(SRC, n + '.c')} before reviving)")
         print("  relevant cookbook sections:")
         for sec, w in docs_for(f) or [("(base rules)", "small/plain function")]:
             print(f"    - {sec}: {w}")
@@ -271,9 +378,13 @@ def main():
 
     deg = indegree() if args.leverage else None
     rows = []
+    n_parked = 0
     for a, s, n in c["funcs"]:
         if not args.all:
             if a >= SDK_START or matched(n):
+                continue
+            if parked(n):
+                n_parked += 1
                 continue
         if args.max_size and s > args.max_size:
             continue
@@ -290,8 +401,11 @@ def main():
     print(f"{'diff':9} {hdr}{'size':>5}  {'function':26} why")
     for sc, a, s, n, f, sim, twin in rows[:args.top]:
         lev = f"{deg.get(n,0):3} " if args.leverage else ""
-        print(f"{bucket(sc):9} {lev}{s:5}  {n:26} {why(f, sim, twin)}")
+        mark = "PARKED: " if args.all and parked(n) else ""
+        print(f"{bucket(sc):9} {lev}{s:5}  {n:26} {mark}{why(f, sim, twin)}")
     print(f"\n({len(rows)} functions; `tools/triage.py <Name>` for detail + docs)")
+    if n_parked:
+        print(f"({n_parked} parked/shelved hidden; `tools/triage.py --parked` to see why)")
 
 
 if __name__ == "__main__":

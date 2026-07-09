@@ -23,9 +23,10 @@ game bytes, whole-image byte-identical (sha256 `0690a5c1…3558`). Live count:
 **The loop (repeat until the user stops you):**
 1. `nix develop --command 'tools/triage.py'` → pick a batch of **5 clean-seam
    functions**. Clean seam = non-jump-table, ≤~500 bytes, non-dispatch, ideally
-   with a matched twin (`~0.NN to <Twin>`). Filter OUT `switchD`, `Think3*`,
-   `handle_char_state_*`, `Card`/library, and `0x80060xxx`. Prefer trivial/easy
-   tier + a strong twin.
+   with a matched twin (`~0.NN to <Twin>`). triage already hides parked functions
+   and de-ranks the GTE/SIGNEXT classes; you still filter OUT `switchD`,
+   `Think3*`, `handle_char_state_*`, `Card`/library, and `0x80060xxx`. Prefer
+   trivial/easy tier + a strong twin.
 2. Spawn ONE `general-purpose` agent, `model: "sonnet"`, `isolation:
    "worktree"`, `run_in_background: true`, with a prompt naming the 5 functions,
    their matched twins, the proven shared structs, and the early-stop rules
@@ -60,7 +61,7 @@ Everything the pipeline needs, in the order you touch it:
 
 | Tool | Does |
 |---|---|
-| `tools/triage.py` | rate every function EASY..VERY-HARD + why + relevant cookbook sections; `--leverage` = call in-degree; `<Name>` = detail. Pick targets. |
+| `tools/triage.py` | rate every function EASY..VERY-HARD + why + relevant cookbook sections; `--leverage` = call in-degree; `<Name>` = detail; `--parked` = the shelved ones + why. Pick targets. It now **hides** functions already parked NON_MATCHING and flags the two un-matchable idiom classes (`GTE CMD — UN-SPLITTABLE`, `SIGNEXT-SPLIT`), so the default list is all live targets. |
 | `tools/findsimilar.py [--targets]` | mnemonic-similarity ranking (nearest matched / easiest unmatched). |
 | `tools/matcher-prompt.py <Name>` | **generate the agent launch prompt** — never hand-write it. Auto-fills address/size, jump-table detection, nearest matched worked-examples, TU family, and the evolving `GUIDANCE` block. Routes findsimilar-1.00 near-clones to an inline recipe. |
 | `tools/reverse.py <Name> --ghidra-export .shake/ghidra-export` | split + seed the `.c` with Ghidra C **and** m2c C **and** a `triage:` line + likely-relevant docs. Adds the splat carve. |

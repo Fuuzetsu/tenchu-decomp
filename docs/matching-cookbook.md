@@ -1199,6 +1199,18 @@ absolute → keep the symbol off the list (a plain small extern).
   cut the game/SDK boundary at `0x80060000`; also note `EVENT_OBJ_80/90/BC` etc.
   aren't even standalone functions (they're shared epilogues of `CdInit` and its
   retry wrapper — splat carved them only because they had symbol names).
+- **`sll r,r,16 / sra r,r,k / sra r,r,16-k` (k≠16) is a sign-extension FUSED
+  with a left-scale, and has no natural-C form.** A plain "index an array by a
+  `short`" always compiles to the textbook 2-shift `sll16/sra16`, and cc1's
+  fold/combine refolds *every* plain-arithmetic respelling back to it (nested
+  expression, two statements, K&R params, explicit pointer casts, a static-inline
+  helper, even a literal transcription of the asm shifts — all verified against
+  cc1 `-da` RTL dumps + the gcc-2.8.1 sources). Only a genuine optimizer barrier
+  (an empty register-constrained `__asm__("" : "+r"(t))`) reproduces it, which is
+  the same open inline-asm policy question as `PClseek`. Whole game code contains
+  exactly three, all parked: `GetPad`, `FUN_8001b174`, `GetPadXY` (see
+  `GetPad.c` for the byte-exact barrier form). `triage.py` now detects the triple
+  and reports `SIGNEXT-SPLIT (GetPad class)` instead of rating it TRIVIAL.
 - **`as` cannot assemble PS1 GTE command opcodes — the DrawTMD/renderer region
   is un-splittable until a GTE→`.word` pass exists.** Our `mipsel-...-as`
   (binutils 2.40, `-march=r3000`) is vanilla MIPS: standard COP2 data moves
@@ -1209,7 +1221,14 @@ absolute → keep the symbol off the list (a plain small extern).
   renderer helper (FUN_8005d1fc/d764/dd30/d49c/e330 = per-primitive-type
   handlers dispatched by `DrawTMD`) fails at `./Build check` — before the
   NON_MATCHING convention even applies (that assumes the stub assembles). maspsx
-  has no GTE handling either. FIX (backlogged, see orchestration.md): a filter
+  has no GTE handling either. **The blocked set is wider than the `0x8005dxxx`
+  handlers: 24 game functions (~15 KB) contain GTE commands, including
+  `FUN_8001c730` and the whole `0x80057b80`–`0x8005a3cc` block (`FUN_80057b80` is
+  3796 B).** `triage.py` now flags them (`GTE CMD — UN-SPLITTABLE`) and ranks them
+  VERY-HARD, so they stop surfacing as attractive small targets; `SetDepthQ` is
+  the lone COP2-*moves*-only function (`ctc2` ×2 — it assembles, but has no C
+  spelling, so it is blocked on the inline-asm policy, not on the `.word` pass).
+  objdump renders a GTE command as a bare `c2` mnemonic — that's the detector. FIX (backlogged, see orchestration.md): a filter
   that rewrites each GTE mnemonic to `.word 0x…` using the encoding on splat's
   own `/* addr vaddr WORD */` comment on the line. **BEWARE: that WORD column is
   the raw little-endian file bytes in address order, NOT the instruction word —
