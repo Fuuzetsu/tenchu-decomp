@@ -1210,9 +1210,16 @@ absolute → keep the symbol off the list (a plain small extern).
   handlers dispatched by `DrawTMD`) fails at `./Build check` — before the
   NON_MATCHING convention even applies (that assumes the stub assembles). maspsx
   has no GTE handling either. FIX (backlogged, see orchestration.md): a filter
-  that rewrites each GTE mnemonic to `.word 0x…` taking the encoding straight
-  from splat's own `/* addr vaddr WORD */` comment on the line (byte-exact by
-  construction). NOTE it only makes the region *splittable*; MATCHING these still
+  that rewrites each GTE mnemonic to `.word 0x…` using the encoding on splat's
+  own `/* addr vaddr WORD */` comment on the line. **BEWARE: that WORD column is
+  the raw little-endian file bytes in address order, NOT the instruction word —
+  you must byte-swap it before emitting a `.word`.** Verified: `jr $ra`
+  (`0x03E00008`) prints as `0800E003`, and `j SystemOut` (`0x08005BA3`) prints as
+  `A35B0008`; the file bytes at that offset really are `a3 5b 00 08`. Since GNU
+  `as` on a little-endian target lays `.word 0xAABBCCDD` down as `dd cc bb aa`,
+  copying the comment verbatim emits the bytes REVERSED. So the pass is
+  `.word 0x` + byteswap(comment) — byte-exact only after the swap.
+  NOTE it only makes the region *splittable*; MATCHING these still
   needs the register-pinned-locals / inline-asm treatment (non-ABI calling
   convention, values in `$t2..$t5`/`$s0`), i.e. the same open inline-asm policy
   as GetPad/PClseek — so build the pass together with that decision.

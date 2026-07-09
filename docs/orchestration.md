@@ -268,9 +268,13 @@ lens.
   decision, so parked for the owner). `as` can't assemble PS1 GTE command
   opcodes, so splat's per-function split of any renderer helper (the ~5
   `FUN_8005dxxx` `DrawTMD` handlers, `SetDepthQ`, neighbors) won't assemble —
-  the whole GTE-using region is un-splittable. The transform itself is trivial
-  and byte-exact: rewrite each GTE mnemonic line to `.word 0x…` from splat's own
-  `/* … WORD */` comment (like maspsx's other normalizations); the open part is
+  the whole GTE-using region is un-splittable. The transform itself is trivial:
+  rewrite each GTE mnemonic line to `.word 0x…` from splat's own `/* … WORD */`
+  comment (like maspsx's other normalizations) — but **byte-swap that column
+  first**: it is the raw little-endian file bytes in address order, not the
+  instruction word (`jr $ra` = `0x03E00008` prints as `0800E003`), and `as` lays
+  `.word` down little-endian, so copying it verbatim emits the bytes reversed.
+  The open part is
   WHERE it runs (post-splat on the nonmatchings `.s`, or a maspsx addition) and
   that MATCHING the region additionally needs the inline-asm/register-pinned
   policy (non-ABI calling convention) — so do both together. See the cookbook's
