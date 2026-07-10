@@ -131,3 +131,20 @@ python 3.13's removal of `isPy27`; and even past all eval breaks the byte-match
 would need re-verifying against binutils 2.40→2.44, and if it moved we'd have to
 pin binutils separately anyway (re-introducing a split). The 2023 pin also has
 no tree-sitter *python binding*, so unifying downward isn't possible either.
+
+## Two dependency traps in Build.hs (both hit for real)
+
+**1. A tool input that isn't in `need` is invisible.** `config/symbols.main.exe.txt`
+is fed to `ld -T` but was missing from the `mainElf` rule's `need` list. Editing it
+(adding a `D_` address, moving one) silently did nothing: splat only re-runs when the
+change touches something *it* emits, so with nothing else dirty the old `.elf` was
+reused, `./Build check` reported success against a **stale link**, and `matchdiff`
+reported the OLD address with no indication anything was wrong. Fixed. If you add an
+input to a command, add it to `need` in the same edit.
+
+**2. Shake learns a new `need` only after the rule runs once.** Shake decides whether
+to re-run a rule from the dependency list *recorded on the previous run*. So after
+adding a `need`, the first build still skips the rule, and the new dependency is not
+recorded until something else forces it. When testing a dependency fix, delete the
+target (or `./Build clean`) first — otherwise you will conclude, wrongly, that the fix
+does not work.

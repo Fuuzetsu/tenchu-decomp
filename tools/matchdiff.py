@@ -133,9 +133,14 @@ def main():
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
         r = subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.STDOUT, env=env)
+                           stderr=subprocess.PIPE)
         if r.returncode != 0:
-            sys.exit("matchdiff: ./Build FAILED (run it directly for the error)")
+            err = r.stderr.decode(errors="replace").strip()
+            # Surface it. Swallowing this cost a long, wrong "it's just load"
+            # diagnosis once: an exec failure and a real compile error looked the
+            # same from here.
+            sys.exit(f"matchdiff: ./Build FAILED (rc={r.returncode})\n"
+                     + "\n".join(err.splitlines()[-15:]))
 
     addr, size = symbol_slot(args.name)
     off = FILE_TEXT_OFF + (addr - TEXT_START)

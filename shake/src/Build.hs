@@ -477,7 +477,13 @@ mainRules = do
         mainSFilesExp = map (\f -> mainGenDir </> asmDir </> f) mainSFiles
         -- mainCFilesExp = map (\f -> srcDir </> "main.exe" </> f) mainCFiles
         mainAssetFilesExp = map (\f -> mainGenDir </> assetsDir </> f) mainAssetFiles
-    need (mainSFilesExp <> mainAssetFilesExp <> mainOFiles <> [ldFile, undefinedSymbols, undefinedFunctions])
+    -- definedSymbols is fed to `ld -T` below, so the link MUST depend on it.
+    -- Without it, editing config/symbols.main.exe.txt (adding a `D_` address, or
+    -- moving one) silently has no effect: splat only re-runs when the change
+    -- touches something it emits, and if nothing else is dirty the old .elf is
+    -- reused. `./Build check` then reports success against a stale link, and
+    -- matchdiff reports the OLD address with no indication anything is wrong.
+    need (mainSFilesExp <> mainAssetFilesExp <> mainOFiles <> [ldFile, definedSymbols, undefinedSymbols, undefinedFunctions])
     -- need [mainCFilesExp]
 
     liftIO $ IO.createDirectoryIfMissing True (buildDir </> "tenchu")
