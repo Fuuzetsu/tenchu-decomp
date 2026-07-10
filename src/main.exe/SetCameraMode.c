@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -11,8 +12,6 @@
  * Original parameters and locals (the demo build's register allocation may
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
  * over). A repeated name is a nested-block scope, not a duplicate.
- * A ZERO-locals record is unverified, not a claim that the function has none:
- * vfree lists zero locals yet its byte-matched source needs seven.
  * The frame size and saved-reg mask above are the DEMO's: retail often needs
  * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
  * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
@@ -27,139 +26,193 @@
  * END PSX.SYM */
 
 /*
- * SetCameraMode (0x800316b8) — TODO one-line description.
+ * SetCameraMode (0x800316b8) — camera mode dispatcher (CAMERA.C).
+ * 16-entry jump-table switch; case bodies in source order 4, 15, {1,3}, 0,
+ * default (memory order = source order), with case 4's critical-hit success
+ * body as a labeled block between case 0 and default (goto target, reached
+ * from inside the loop; it reuses the loop's cs pseudo in $s4).
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=SetCameraMode
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * NOTE the retail TCameraStatus layout differs from the demo PSX.SYM one:
+ * DirectionRX/RY sit at 0x18/0x1A (demo: 0x1C/0x1E) and 0x1C/0x1D are two
+ * BYTE fields (OldMode as a byte reused as the critical-camera index + a
+ * critical-hit flag), proven by the raw sh 0x18/sh 0x1A/sb 0x1C/sb 0x1D in
+ * this function's own asm.
+ *
+ * Matching notes (see docs/matching-cookbook.md):
+ *  - Case 4's search loop is a hand-rolled goto loop (loop:/goto loop): no
+ *    loop notes, so nothing hoists/forces the &va..&vd call args — each
+ *    RotTrans/FUN_80039ddc frame-address arg re-materializes `addiu aN,sp,N`
+ *    at its use. cs/tbl/fp are REAL locals assigned before the loop (that is
+ *    what the "hoisted" $s4/$s7/$s3 are); cs's init lands as `addu s4,a1`
+ *    because cse folds it onto the preceding OldMode-store's address pseudo.
+ *  - The scratchpad STORES go through small extern symbols
+ *    (scratch_rot_1f800040 / scratch_trans_1f800094) — a small-extern store
+ *    is the one-op $at macro AND is MEM_IN_STRUCT_P, which keeps sched.c's
+ *    true_dependence (its MEM_IN_STRUCT heuristic) from batching the
+ *    rot->vx/vy/vz and pos->vx/vy/vz loads past the preceding stores: the pairs
+ *    stay serialized through one register like the target. Flat
+ *    *(s16 *)0x1F8000xx casts are NOT in-struct -> the loads batch (wrong);
+ *    struct-pointer casts lose the constant-address macro form (wrong).
+ *    The GTE-call ARGS stay literal casts (raw lui/ori), as the bytes show.
+ *  - The two do{}while(0) wrappers are load-bearing:
+ *    (a) around the scratch-rot stores + RotMatrixYXZ: flow.c counts refs at
+ *        +1 loop depth, boosting rot's allocno above p so the allocation
+ *        order is rot->$s0, p->$s1 (they come out swapped otherwise);
+ *    (b) around the four RotTrans calls: the loop notes are sched1 barriers,
+ *        pinning `i++` at the loop bottom (it otherwise floats into a
+ *        load-delay slot mid-body), so reorg fills the bnez delay slot with
+ *        it and the backjump's slot with the loop-top slti.
+ *  - `RotTrans(p+2, pv = &vc, fp); RotTrans(p+3, pv = &vd, fp); pv = 0;`:
+ *    each pv reassignment EVICTS pv's register from cse's value class for
+ *    the previous &vN, and the dead `pv = 0;` (deleted by flow, zero bytes)
+ *    evicts it from &vd's class — so the FUN_80039ddc args find no register
+ *    equivalent and re-materialize fresh addius like the target. Without
+ *    this, cse2 (which unlike cse1 does not stop at LOOP_END notes) folds
+ *    the ddc args onto the RotTrans arg pseudos, which then need two extra
+ *    callee-saved registers ($s0/$s2 + moves).
+ *  - `p = (SVECTOR *)(cs->OldMode * 0x20 + (s32)tbl);` — INTEGER addition in
+ *    source order emits `addu p,index,base` (any pointer-arithmetic spelling
+ *    normalizes to base+index at the tree level and emits the operands
+ *    swapped). Inline (no offset temp) so the lbu/sll/addu chain fuses into
+ *    p's register; the entry rand() result is a SEPARATE variable n
+ *    (caller-saved $v1) — Ghidra's iVar4 double-role is an SSA artifact.
+ *  - FUN_8002fd9c takes the Humanoid* (its own asm derefs $a0 at
+ *    0x30/0x38/0x3C); passing cs->Owner ties the Owner temp to $a0.
+ *  - hitf (a named flag for the ddc result compare) keeps the scc form
+ *    slti/xori/bnez; an inline `if (... > 0x7ff)` compiles slti/beqz (short).
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", SetCameraMode);
+typedef struct
+{
+    s32 vpx, vpy, vpz;           /* 0x00 */
+    s32 vrx, vry, vrz;           /* 0x0C */
+} TViewInfo;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", switchD_80031704__switchD);
+typedef struct
+{
+    VECTOR TargetVector;         /* 0x00 */
+    Humanoid *Owner;             /* 0x10 (lw @80031980) */
+    s32 Mode;                    /* 0x14 (sw @800319c8) */
+    s16 DirectionRX;             /* 0x18 (sh @80031894) */
+    s16 DirectionRY;             /* 0x1A (sh @8003195c) */
+    u8 OldMode;                  /* 0x1C (sb/lbu @80031738) */
+    u8 CriticalHit;              /* 0x1D (sb @800319c0) */
+} TCameraStatus;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", switchD_80031704__caseD_4);
+extern TCameraStatus CamState;
+extern TViewInfo ViewInfo;
+/* Critical-hit camera placements: 4 poses x 4 SVECTORs each. */
+extern SVECTOR D_80089F50[][4];
+/* Scratchpad work objects (0x1F800040 rotation SVECTOR, 0x1F800080 MATRIX
+ * whose .t translation column sits at 0x1F800094). The STORES go through
+ * these small extern symbols (assembler $at one-op macro + MEM_IN_STRUCT
+ * serialization); the GTE-call ARGS are literal casts (raw lui/ori constant),
+ * exactly as the target bytes mix them. Bound in config/symbols.main.exe.txt. */
+extern SVECTOR scratch_rot_1f800040;
+extern s32 scratch_trans_1f800094[2];
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", switchD_80031704__caseD_f);
+extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
+extern short FUN_8002fd9c(Humanoid *h);
+extern int FUN_80039ddc(VECTOR *a, VECTOR *b, int c, int d);
+extern void RotMatrixYXZ(SVECTOR *r, MATRIX *m);
+extern void SetRotMatrix(MATRIX *m);
+extern void SetTransMatrix(MATRIX *m);
+extern void RotTrans(SVECTOR *v0, VECTOR *v1, long *flag);
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", switchD_80031704__caseD_1);
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", switchD_80031704__caseD_0);
+void SetCameraMode(s32 mode)
+{
+    VECTOR va;
+    VECTOR vb;
+    VECTOR vc;
+    VECTOR vd;
+    long flag;
+    s32 rx;
+    s32 ry;
+    TCameraStatus *cs;
+    SVECTOR (*tbl)[4];
+    long *fp;
+    VECTOR *pos;
+    SVECTOR *rot;
+    SVECTOR *p;
+    VECTOR *pv;
+    s32 n;
+    s32 i;
+    s32 hitf;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetCameraMode", switchD_80031704__caseD_2);
-
-/* jump-table pool @ 0x80011c50 (16 words; tables at 0x80011c50) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 SetCameraMode_jtbl[16] = {
-    0x80031978, 0x800318A0, 0x800319C4, 0x800318A0,
-    0x8003170C, 0x800319C4, 0x800319C4, 0x800319C4,
-    0x800319C4, 0x800319C4, 0x800319C4, 0x800319C4,
-    0x800319C4, 0x800319C4, 0x800319C4, 0x80031888,
-};
-
-#else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// void SetCameraMode(TCameraMode mode)
-// 
-// {
-//   bool bVar1;
-//   TCameraMode TVar2;
-//   short sVar3;
-//   int iVar4;
-//   int iVar5;
-//   SVECTOR *pSVar6;
-//   VECTOR *pVVar7;
-//   VECTOR VStack_78;
-//   VECTOR VStack_68;
-//   VECTOR VStack_58;
-//   VECTOR VStack_48;
-//   long lStack_38;
-//   int local_34;
-//   int local_30 [2];
-//   
-//   switch(mode) {
-//   case CMODE_NORMAL:
-//     TVar2 = mode;
-//     if ((((CamState.Owner)->pad).data & 4) != 0) {
-//       SetCameraMode(CMODE_DIRECTION);
-//       TVar2 = CamState.Mode;
-//     }
-//     break;
-//   case CMODE_DIRECTION:
-//   case CMODE_SIGHT:
-//     if ((CamState.Mode != CMODE_DIRECTION) && (CamState.Mode != CMODE_LOCK)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_34,local_30);
-//       local_30[0] = local_30[0] - ((CamState.Owner)->model->rotate).vy;
-//       iVar4 = local_30[0] + 0x2800;
-//       iVar5 = iVar4;
-//       if (iVar4 < 0) {
-//         iVar5 = local_30[0] + 0x37ff;
-//       }
-//       local_30[0]._0_2_ = (short)iVar4 + (short)(iVar5 >> 0xc) * -0x1000 + -0x800;
-//       CamState.DirectionRX = 0;
-//       CamState.DirectionRY = (short)local_30[0];
-//     }
-//     goto LAB_8003196c;
-//   default:
-//     TVar2 = mode;
-//     break;
-//   case CMODE_CRITICAL_HIT:
-//     iVar4 = rand();
-//     iVar5 = iVar4;
-//     if (iVar4 < 0) {
-//       iVar5 = iVar4 + 3;
-//     }
-//     CamState.OldMode._0_1_ = (char)iVar4 + (char)(iVar5 >> 2) * -4;
-//     iVar5 = 0;
-//     bVar1 = true;
-//     while (bVar1) {
-//       CamState.OldMode._0_1_ = (undefined1)CamState.OldMode + CMODE_DIRECTION;
-//       if (CMODE_SIGHT < (byte)(undefined1)CamState.OldMode) {
-//         CamState.OldMode._0_1_ = CMODE_NORMAL;
-//       }
-//       iVar4 = (uint)(byte)(undefined1)CamState.OldMode * 0x20;
-//       pVVar7 = (CamState.Owner)->locate;
-//       pSVar6 = (CamState.Owner)->rotate;
-//       sVar3 = FUN_8002fd9c();
-//       Scratchpad._64_2_ = pSVar6->vx + sVar3;
-//       Scratchpad._66_2_ = pSVar6->vy;
-//       Scratchpad._68_2_ = pSVar6->vz;
-//       RotMatrixYXZ((SVECTOR *)(Scratchpad + 0x40),(MATRIX *)(Scratchpad + 0x80));
-//       Scratchpad._148_4_ = pVVar7->vx;
-//       Scratchpad._152_4_ = pVVar7->vy;
-//       Scratchpad._156_4_ = pVVar7->vz;
-//       SetRotMatrix((MATRIX *)(Scratchpad + 0x80));
-//       SetTransMatrix((MATRIX *)(Scratchpad + 0x80));
-//       RotTrans((SVECTOR *)(&DAT_80089f50 + iVar4),&VStack_78,&lStack_38);
-//       RotTrans((SVECTOR *)(&DAT_80089f58 + iVar4),&VStack_68,&lStack_38);
-//       RotTrans((SVECTOR *)(&DAT_80089f60 + iVar4),&VStack_58,&lStack_38);
-//       RotTrans((SVECTOR *)(&DAT_80089f68 + iVar4),&VStack_48,&lStack_38);
-//       iVar4 = FUN_80039ddc(&VStack_58,&VStack_48,0,0);
-//       iVar5 = iVar5 + 1;
-//       if (0x7ff < iVar4) {
-//         CamState.Mode = mode;
-//         CamState.OldMode._1_1_ = 1;
-//         return;
-//       }
-//       bVar1 = iVar5 < 4;
-//     }
-//     CamState.OldMode._0_1_ = CMODE_NORMAL;
-//     TVar2 = CamState.Mode;
-//     break;
-//   case CMODE_FALL|CMODE_DIRECTION:
-//     CamState.DirectionRX = 0;
-//     CamState.DirectionRY = 0;
-// LAB_8003196c:
-//     CamState.Mode = CMODE_DIRECTION;
-//     CamState.OldMode._0_1_ = (undefined1)mode;
-//     TVar2 = CamState.Mode;
-//   }
-//   CamState.Mode = TVar2;
-//   return;
-// }
-
-#endif /* NON_MATCHING */
+    switch (mode) {
+    case 4:
+        n = rand();
+        CamState.OldMode = n % 4;
+        i = 0;
+        cs = &CamState;
+        tbl = D_80089F50;
+        fp = &flag;
+    loop:
+        if (!(i < 4)) goto giveup;
+        cs->OldMode = cs->OldMode + 1;
+        if (cs->OldMode > 3) cs->OldMode = 0;
+        p = (SVECTOR *)(cs->OldMode * 0x20 + (s32)tbl);
+        pos = cs->Owner->locate;
+        rot = cs->Owner->rotate;
+        do {
+            scratch_rot_1f800040.vx = rot->vx + FUN_8002fd9c(cs->Owner);
+            scratch_rot_1f800040.vy = rot->vy;
+            scratch_rot_1f800040.vz = rot->vz;
+            RotMatrixYXZ((SVECTOR *)0x1F800040, (MATRIX *)0x1F800080);
+        } while (0);
+        scratch_trans_1f800094[0] = pos->vx;
+        scratch_trans_1f800094[1] = pos->vy;
+        scratch_trans_1f800094[2] = pos->vz;
+        SetRotMatrix((MATRIX *)0x1F800080);
+        SetTransMatrix((MATRIX *)0x1F800080);
+        do {
+            RotTrans(p, &va, fp);
+            RotTrans(p + 1, &vb, fp);
+            RotTrans(p + 2, pv = &vc, fp);
+            RotTrans(p + 3, pv = &vd, fp);
+        } while (0);
+        pv = 0;
+        hitf = FUN_80039ddc(&vc, &vd, 0, 0) > 0x7ff;
+        i++;
+        if (hitf) goto hit;
+        goto loop;
+    giveup:
+        CamState.OldMode = 0;
+        break;
+    case 15:
+        CamState.DirectionRX = 0;
+        CamState.DirectionRY = 0;
+        CamState.Mode = 1;
+        CamState.OldMode = mode;
+        break;
+    case 1:
+    case 3:
+        if (CamState.Mode != 1 && CamState.Mode != 13) {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rx = rx - CamState.Owner->model->rotate.vx;
+            ry = ry - CamState.Owner->model->rotate.vy;
+            rx = (rx + 0x2800) % 0x1000 - 0x800;
+            ry = (ry + 0x2800) % 0x1000 - 0x800;
+            CamState.DirectionRX = 0;
+            CamState.DirectionRY = ry;
+        }
+        CamState.Mode = 1;
+        CamState.OldMode = mode;
+        break;
+    case 0:
+        if (CamState.Owner->pad.data & 4) {
+            SetCameraMode(1);
+            return;
+        }
+        CamState.Mode = mode;
+        break;
+    hit:
+        cs->Mode = mode;
+        cs->CriticalHit = 1;
+        break;
+    default:
+        CamState.Mode = mode;
+        break;
+    }
+}

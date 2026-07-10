@@ -949,6 +949,28 @@ only narrowed at the end.** `short t` rather than `s32 t` removed both a spuriou
 `andi 0xffff` and a whole register-allocation cascade in `ControlTraceLine`'s degree
 ladder.
 
+**Pointer arithmetic normalises to base+index; only INTEGER addition keeps operand
+order.** `p = (SVECTOR *)(idx * 0x20 + (s32)tbl);` emits `addu p,index,base`, whereas
+`tbl[i]`, `&tbl[i][0]` and `(u8 *)tbl + n` all emit `addu p,base,index`. When the
+target's `addu` has the index first, spell the address as an explicit integer sum,
+not an array subscript (`SetCameraMode`).
+
+**A `slti/xori/bnez` (set-condition + branch) success test is a NAMED flag variable.**
+`hitf = call(...) > 0x7ff; if (hitf) goto hit;` compiles the three-instruction
+scc+branch; the inline `if (call(...) > 0x7ff)` compiles a two-instruction
+`slti/beqz` and is one short (`SetCameraMode`).
+
+**Serialised stores/loads at absolute scratchpad addresses are small-extern SYMBOL
+accesses, not flat pointer casts.** A `<= -G8` extern's store is the one-op `$at`
+macro AND is `MEM_IN_STRUCT_P`; gcc 2.8.1 `sched.c`'s `true_dependence` MEM-in-struct
+heuristic then dismisses the store→load dependence between a non-struct fixed-address
+store and a struct varying-address load, so a flat `*(s16 *)0x1F8000xx` cast lets
+sched1 wrongly batch the following struct loads past the stores, while a
+struct-pointer cast loses the constant-address macro (base forced into a register).
+Bind the symbol in `config/symbols.<target>.txt` and access it as a plain extern; GTE
+CALL arguments, by contrast, stay literal casts (`SetCameraMode`'s scratchpad
+rot/trans tables).
+
 **Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
 before any intervening call** — even where Ghidra renders one lazily folded into a
 later call's argument (`f(a, b / d)`). `IsVisible`'s three divisions by one variable
@@ -1321,6 +1343,18 @@ costs nothing elsewhere. Constraint: place the early-return site so its inline b
 does NOT sit between two blocks sharing a cse'd value (a shared `lhu` of a global, a
 shared struct-pointer load) — cse follows only the fallthrough path
 (`turn_towards_player_`; its `cached != 0x80000000` guard is the unique safe site).
+
+### cse2 ignores loop notes; evict a merged `&local` arg by reassigning a pointer
+
+`cse1` ends its basic block at `NOTE_INSN_LOOP_END` but `cse2` does NOT, so a
+`do {} while (0)` protects a value from cse1 only. When cse2 keeps folding a repeated
+`&local` call-argument onto an earlier call's argument pseudo (the target
+re-materialises `addiu $aN,$sp,N` fresh each time), evict the register from cse's
+value class by threading one pointer variable through the call sites:
+`f(.., pv = &vc, ..); f(.., pv = &vd, ..); pv = 0;` — each reassignment drops `pv`
+from the previous value's class, and the dead `pv = 0;` (flow deletes it, zero bytes)
+evicts the last, so the later `&vc`/`&vd` arguments find no equivalent register and
+rebuild the address (`SetCameraMode`).
 
 ### An "unconditional" delay-slot move after a compare is NOT a comma-expression
 
