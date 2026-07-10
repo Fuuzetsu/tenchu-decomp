@@ -285,6 +285,16 @@ lens.
 
 ## Gotchas (all learned the hard way)
 
+- **An agent can confidently report a MATCH that is incomplete — verify length, not
+  just the agent's word.** One agent this session claimed SetSmoke "done" (pure C,
+  no guard) when its draft linked 748 bytes into a 788-byte carve — 40 bytes of
+  missing logic, not a register tie. `matchdiff.py` now cross-checks the linked
+  `.text` size against the carve extent and `symcheck.py` flags the resulting
+  region drift; together they catch it in one second. This is WHY every claimed
+  match is re-verified at harvest with matchdiff + symcheck + a green ./Build check,
+  never trusted from the report. (Same agent also hallucinated a non-existent
+  sub-agent and blocked on it; a matcher works alone and cannot spawn matchers.)
+
 - **Run `tools/symcheck.py` during every harvest.** It asserts that a symbol named
   `D_<HEX>` resolves to `0x<HEX>`. A missing `--gp-extern` entry silently relocates a
   whole data region -- the link succeeds and the image is just wrong. Measured: one
