@@ -104,6 +104,9 @@ GP_EXTERNS = {
     "vgetfreesize": ["virtual_memory_pool"],
     "vgetmaxsize": ["virtual_memory_pool"],
     "InitAccessInfo": ["AccessPower"],
+    "GetHumanoid": ["Humans"],
+    "AttackAnimal": ["Me_THINK_C", "Distance", "Degree"],
+    "StickonCheck": ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

@@ -195,6 +195,9 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "vgetfreesize" = ["virtual_memory_pool"]
     syms "vgetmaxsize" = ["virtual_memory_pool"]
     syms "InitAccessInfo" = ["AccessPower"]
+    syms "GetHumanoid" = ["Humans"]
+    syms "AttackAnimal" = ["Me_THINK_C", "Distance", "Degree"]
+    syms "StickonCheck" = ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"]
     syms _ = []
 
 as :: FilePath

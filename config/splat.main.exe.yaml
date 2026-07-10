@@ -47,7 +47,9 @@ segments:
     # vram: 0x80016134
     subalign: 4
     subsegments:
-      - [0x800, data] # ?
+      - [0x800, data]
+      - [0x10F0, .rodata, EquipWeapon]
+      - [0x1160, data]
       # AddMisc's switch jump table (vram 0x800127E8), same scheme.
       - [0x1FE8, .rodata, AddMisc]
       - [0x2008, data]
@@ -137,6 +139,8 @@ segments:
       - [0xBD10, c, GetMotionID]
       - [0xBD84, c, PlayMotion]
       - [0xBE40, data]
+      - [0xCB74, c, StickonCheck]
+      - [0xCC74, data]
       - [0xEEB8, c, handle_char_state_attacking_SEVEN_]
       - [0xEFE4, data]
       - [0x1674C, c, FUN_80026f4c]
@@ -154,14 +158,16 @@ segments:
       - [0x170DC, c, ActCEILHANG]
       - [0x170E4, data]
       - [0x18B68, c, update_something_for_each_visible_enemy_]
-      - [0x18C6C, data]
+      - [0x18C6C, c, GetHumanoid]
       - [0x18CDC, c, is_character_state_present_on_stage_]
       - [0x18D2C, c, MoveHumanoid]
       - [0x18E60, data]
       - [0x18F2C, c, GetDirection]
       - [0x18F94, data]
       - [0x1A0EC, c, GetAttackDBID]
-      - [0x1A178, data]
+      - [0x1A178, c, DisposeWeapon]
+      - [0x1A1E0, c, EquipWeapon]
+      - [0x1A2D0, data]
       - [0x1B190, c, turn_towards_player_]
       - [0x1B370, data]
       - [0x1B7EC, c, Think1trace]
@@ -174,6 +180,8 @@ segments:
       - [0x1CE38, data]
       - [0x1D308, c, Think3firstattack]
       - [0x1D40C, data]
+      - [0x1E970, c, AttackAnimal]
+      - [0x1EA54, data]
       - [0x1EF3C, c, SetupThinkFunction]
       - [0x1EFF4, data]
       - [0x1F018, c, ThinkBasicNone]

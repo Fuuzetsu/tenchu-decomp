@@ -591,7 +591,13 @@ struct character_state
     s32 some_z_position;
     s32 some_other_x_position;
     s32 some_other_z_position;
-    u8 field52_0x88;
+    // Was `field52_0x88` — AttackAnimal.c proves this is `actmode`: the raw
+    // `lbu`/`sb` plus a `+1` arithmetic op right before an actmode-gated
+    // dispatch ladder, matching Ghidra's own independently-built Humanoid
+    // struct's actmode/actflg/actcnt/actscnt run (reference/ghidra_types.h)
+    // at this exact offset — the same struct that already anchored the
+    // actflg/actcnt/actscnt names below.
+    u8 actmode;
     // Was `field53_0x89` — Think1watch.c proves this is `actflg`: Ghidra's
     // own (independent) decompilation of Think1watch names this exact
     // offset `actflg` (tested `!= 0`, later assigned `rand() & 1`), matching

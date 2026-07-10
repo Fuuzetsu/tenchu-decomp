@@ -114,7 +114,22 @@ typedef struct
     s16 width;                   /* 0x0C */
     s16 height;                  /* 0x0E */
     PADtype pad;                 /* 0x10 (DoInfoViewProc reads .data/.trig) */
-    u8 pad0[0x18];               /* 0x20 */
+    u8 pad0a[0x8];               /* 0x20 (Ghidra's own independently-built
+                                    Humanoid: MapVector's level/height, same
+                                    truncated-to-8-bytes convention as
+                                    game_types.h's character_state.map;
+                                    untouched by any matched function yet) */
+    s16 attrib;                  /* 0x28 (StickonCheck: `& 0xc000`, read via
+                                    `lh`; game_types.h's character_state
+                                    twin at this same offset series proves
+                                    the field u16 via a DIFFERENT TU's
+                                    `lhu` — same per-TU load-width
+                                    disagreement already established for
+                                    lifemax) */
+    u8 pad0b[0xE];               /* 0x2A (Ghidra: MapVector's degree/vector/
+                                    direct/angleL/angleH, then 8 more
+                                    unnamed bytes before `locate`; untouched
+                                    by any matched function yet) */
     VECTOR *locate;              /* 0x38 */
     SVECTOR *rotate;             /* 0x3C (facing angles; MoveHumanoid reads .vy) */
     SVECTOR vector;              /* 0x40 (velocity; MoveHumanoid writes .vx/.vz) */
@@ -126,7 +141,25 @@ typedef struct
                                     reads target->locate.coord.t[1], the Y
                                     translation of the target's world matrix,
                                     for a lightning-bolt end point) */
-    u8 pad2b[0x1C];              /* 0x78 */
+    u8 pad2b[0x16];              /* 0x78 (Ghidra's own independently-built
+                                    Humanoid: point[2]/chase[2]/actmode/
+                                    actflg/actcnt/actscnt/warid; untouched
+                                    by any matched function yet) */
+    u16 weapon_kind;             /* 0x8E (EquipWeapon dispatches a weapon-
+                                    swap by this field's value, read via
+                                    lhu. Ghidra's own Humanoid names it
+                                    `wpatk` (typed short there), but
+                                    game_types.h's independently-proven
+                                    character_state twin at this same
+                                    cross-checked offset series (0x94/0xA4/
+                                    0xAC/0xAE all agree with this struct)
+                                    already types the field `u16
+                                    weapon_kind` (enum weapon_kind, stored
+                                    as 2 bytes) — kept unsigned per that
+                                    proven sibling and the raw lhu width) */
+    u8 pad2c[0x4];               /* 0x90 (Ghidra: wepid[2]; character_state:
+                                    field58_0x90..field61_0x93; untouched by
+                                    any matched function yet) */
     OrnamentType *weapon[4];     /* 0x94 (equipped weapon ornaments — right/
                                     left active + right/left inactive per
                                     game_types.h's character_state sibling
