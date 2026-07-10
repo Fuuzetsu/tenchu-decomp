@@ -1322,6 +1322,17 @@ absolute → keep the symbol off the list (a plain small extern).
   asm for a raw BIOS trap (PClseek's `break 0x107` host-lseek — a syscall with
   no C representation, currently parked NON_MATCHING pending the inline-asm
   policy question; see GetPad.c).
+- **An UNDER-SIZED `functions.tsv` entry carves a truncated function that still
+  builds GREEN — the failure is silent.** `reverse.py` takes the function's size
+  from the Ghidra export. If Ghidra sized it short, splat carves only the first
+  N bytes; the tail is emitted as a `.data` blob (`asm/data/<off>.data.s`) which
+  *defines the `.L` labels the carved asm jumps into*, so it links, and
+  `./Build check` stays byte-identical. Nothing complains — you simply can never
+  write C that byte-matches, because the real body is longer than the carve.
+  Run **`tools/coverage.py`** before trusting a size; it finds code claimed by no
+  function and names the culprit. Two exist in game code: `LoadCard`
+  (0x114 → true 0x168) and `FUN_800593a0` (0x12C → true 0x27C). Carve those with
+  `reverse.py <Name> --size 0x<true>` (verified green), and fix them in Ghidra.
 - **`config/symbols.main.exe.txt` (an ld/splat script) has NO comment syntax**
   — `//` or `/* */` is a hard parse error, not a no-op. If a splat-auto-named
   `D_XXXXXXXX` data symbol resolves to the wrong address (verify against the

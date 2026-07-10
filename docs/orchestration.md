@@ -73,6 +73,7 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/matchdiff.py <Name>` / `tools/asmdiff.py <Name>` | iterate. matchdiff = whole-image gate; asmdiff = aligned view for big/split functions. |
 | `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules (type-width flips; `&&` split/merge and single-use temp inline via tree-sitter) and greedily keep what shrinks the asmdiff, reporting which edit helped. Deterministic first pass; a "no win" verdict means the residual is structure/regalloc, not a local rule. |
 | `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties (the stochastic search; autorules is its deterministic, explainable complement). |
+| `tools/coverage.py [--all]` | code claimed by NO function — finds under-sized `functions.tsv` entries (a truncated carve still builds green; the tail becomes a `.data` blob that defines the `.L` labels, so nothing complains). `LoadCard` and `FUN_800593a0` are the two in game code. |
 | `tools/regalloc.py <Name>` | **diagnose a register tie** — runs `cc1 -dg` and surfaces which values are live across calls (forced callee-saved), the pseudo→hard-reg map, and the copy-chains that bias the coloring. Run this BEFORE blindly permuting a sub-C tie; it tells you which copy-chain to break. |
 
 ## Launching an agent
