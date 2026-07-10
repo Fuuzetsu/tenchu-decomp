@@ -15,52 +15,60 @@
  *     param $a1       struct VECTOR * v2
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetVectorDistance", GetVectorDistance);
+/*
+ * GetVectorDistance (0x80039808, 0x13c bytes) — same clamp-then-scale
+ * magnitude idiom as the sibling GetVectorLength.c (this TU), but takes the
+ * delta between two VECTOR points instead of three raw components. See
+ * GetVectorLength.c's header for the two idioms this shares:
+ *  - `abs()` must be declared `long abs(long)`, not `int abs(int)` — the
+ *    latter is cc1's recognized builtin and inlines to branch+negate (no
+ *    `jal`) even though this build's `-fno-builtin` never reaches cc1
+ *    (Build.hs only feeds it to the separate `cpp` step). The target's 3
+ *    `jal 0x80076074` calls (tools/xref.py) need the non-builtin spelling.
+ *  - Ghidra's `bVar1 = false; if (OR-chain) bVar1 = true; if (bVar1) ...`
+ *    is literal source shape (not SSA noise): the flag surviving all three
+ *    abs() calls is what puts it in a callee-saved register.
+ *  - Each `if (v < 0) v = v + 0xff;` clamp is a default-then-override temp
+ *    (`t = v; if (v < 0) t = v + 0xff; v = t >> 8;`), matching the target's
+ *    delay-slot-filled `bgez` (the unconditional copy sits in the branch's
+ *    delay slot); reassigning `v` in place compiles 8 bytes short.
+ */
+extern s32 SquareRoot0(s32 x);
+extern long abs(long x);
 
-// triage: EASY — 79 insns, mul/div, 2 callees, ~0.16 to GetVectorRotation
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+int GetVectorDistance(VECTOR *v1, VECTOR *v2)
+{
+    long dx, dy, dz;
+    long len;
+    int big;
+    long v;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// int GetVectorDistance(VECTOR *v1,VECTOR *v2)
-//
-// {
-//   bool bVar1;
-//   int iVar2;
-//   long lVar3;
-//   int n;
-//   int n_00;
-//   int n_01;
-//
-//   bVar1 = false;
-//   n_01 = v1->vx - v2->vx;
-//   n = v1->vy - v2->vy;
-//   n_00 = v1->vz - v2->vz;
-//   iVar2 = abs(n_01);
-//   if (((0x1000 < iVar2) || (iVar2 = abs(n), 0x1000 < iVar2)) || (iVar2 = abs(n_00), 0x1000 < iVar2))
-//   {
-//     bVar1 = true;
-//   }
-//   if (bVar1) {
-//     if (n_01 < 0) {
-//       n_01 = n_01 + 0xff;
-//     }
-//     if (n < 0) {
-//       n = n + 0xff;
-//     }
-//     if (n_00 < 0) {
-//       n_00 = n_00 + 0xff;
-//     }
-//     lVar3 = SquareRoot0((n_01 >> 8) * (n_01 >> 8) + (n >> 8) * (n >> 8) + (n_00 >> 8) * (n_00 >> 8))
-//     ;
-//     iVar2 = lVar3 << 8;
-//   }
-//   else {
-//     iVar2 = SquareRoot0(n_01 * n_01 + n * n + n_00 * n_00);
-//   }
-//   return iVar2;
-// }
+    dx = v1->vx - v2->vx;
+    dy = v1->vy - v2->vy;
+    dz = v1->vz - v2->vz;
+
+    big = 0;
+    if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+    {
+        big = 1;
+    }
+    if (big)
+    {
+        v = dx;
+        if (dx < 0) v = dx + 0xff;
+        dx = v >> 8;
+        v = dy;
+        if (dy < 0) v = dy + 0xff;
+        dy = v >> 8;
+        v = dz;
+        if (dz < 0) v = dz + 0xff;
+        dz = v >> 8;
+        len = SquareRoot0(dx * dx + dy * dy + dz * dz);
+        len = len << 8;
+    }
+    else
+    {
+        len = SquareRoot0(dx * dx + dy * dy + dz * dz);
+    }
+    return len;
+}

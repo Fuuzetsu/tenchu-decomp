@@ -111,6 +111,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "GetAreaMapLevel" = ["--expand-div"]
     extra "bow_shoot_logic" = ["--expand-div"]
     extra "Think3escape" = ["--expand-div"]
+    extra "UpdateTexScroll" = ["--expand-div"]
     extra "SuccessionAttack" = ["--expand-div"]
     extra "GetSpline" = ["--expand-div"]
     extra _ = []
@@ -261,6 +262,9 @@ ccFlags :: [String]
 ccFlags =
   [ "-mcpu=3000",
     "-quiet",
+    -- cc1, not cpp, is what decides whether `abs()` inlines. This flag lived
+    -- in cppFlags for a long time, where it did nothing.
+    "-fno-builtin",
     -- -G8: small globals go in .sdata/.sbss and are addressed via $gp, as the
     -- original ASPSX build did. maspsx reproduces the resulting layout; `as`
     -- itself still runs with -G0 (see asFlags).
@@ -284,7 +288,6 @@ cppFlags =
     "-undef",
     "-Wall",
     "-lang-c",
-    "-fno-builtin",
     "-gstabs",
     "-Dmips",
     "-D__GNUC__=2",

@@ -13,6 +13,7 @@ typedef struct BloodType BloodType;
 typedef struct BleedType BleedType;
 typedef struct SplashType SplashType;
 typedef struct FrameType FrameType;
+typedef struct ExplosionType ExplosionType;
 
 struct BloodType /* size 36 */
 {
@@ -64,12 +65,27 @@ struct FrameType /* size 24 */
     u8 mode;              /* +0x14 */
 };
 
+struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
+                        aliases the same struct twice); DrawHinoko.c's own
+                        param view, offsets proven from its raw .s (a
+                        DIFFERENT layout from BloodType even though it
+                        overlaps the same union bytes) */
+{
+    SVECTOR vec;  /* +0x0 */
+    VECTOR pos;   /* +0x8 */
+    long rotate;  /* +0x18 */
+    long scale;   /* +0x1c */
+    u8 time;      /* +0x20 */
+    u8 mode;      /* +0x21 */
+};
+
 union EffectParam /* size 72 (union EFFECT__180fake) */
 {
     struct BloodType blood;
     struct BleedType bleed;
     struct SplashType splash;
     struct FrameType frame;
+    struct ExplosionType explosion;
     u8 pad[72];
 };
 

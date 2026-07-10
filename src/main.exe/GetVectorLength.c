@@ -16,45 +16,71 @@
  *     param $a2       long dz
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetVectorLength", GetVectorLength);
+/*
+ * GetVectorLength (0x80039944, 0x120 bytes) — magnitude of (dx,dy,dz),
+ * clamping-then-scaling by 256 before the sqrt when any component would
+ * overflow SquareRoot0's fixed-point input (component magnitude > 0x1000).
+ *
+ * Matching notes:
+ *  - PSX.SYM's frame (24 bytes, mask 0x80000000 — $ra only) does NOT match
+ *    this build: the real function needs a 40-byte frame saving s0-s3+ra.
+ *    The demo build's symbol table is wrong here, not just differently
+ *    allocated (docs/matching-cookbook.md's "~2 of 5" PSX.SYM caveat).
+ *  - `abs()` MUST be declared taking/returning `long`, not `int`/`s32`.
+ *    cc1 recognizes `int abs(int)` as a builtin and inlines it to
+ *    branch+negate (no `jal`) even though Build.hs's `-fno-builtin` never
+ *    reaches the cc1 step (it's only in `cppFlags`, fed to the separate
+ *    `cpp` invocation — verified with a standalone cc1-281 run: plain
+ *    `int abs(int)` inlines, `-fno-builtin int abs(int)` and plain
+ *    `long abs(long)` both emit a real `jal abs` with byte-identical
+ *    `.frame`/`.mask`. The target's 3 `jal 0x80076074` calls (confirmed by
+ *    `tools/xref.py`) need the latter spelling — no Build.hs/symbols.txt
+ *    change needed once the prototype is right.
+ *  - Ghidra's `bVar1 = false; if (OR-chain) bVar1 = true; if (bVar1) ...`
+ *    is the LITERAL source shape here, not an SSA artifact: writing the
+ *    equivalent direct `if (OR-chain) {BIG} else {SMALL}` compiles to
+ *    short-circuit jumps straight to each body and is 8 bytes short (one
+ *    fewer callee-saved register, no shared flag). The named `big` flag
+ *    surviving across all three `abs()` calls is what puts it in $s3.
+ *  - Each `if (v < 0) v = v + 0xff;` clamp is a default-then-override temp,
+ *    not an in-place reassignment: `t = v; if (v < 0) t = v + 0xff; v = t
+ *    >> 8;`. The target's delay-slot-filled `bgez` puts the *default* copy
+ *    (`move v0,sN`) in the branch's delay slot (runs unconditionally) and
+ *    only the fallthrough (v<0) path overwrites it — reassigning `v`
+ *    in place instead produces a shorter, wrong-shaped `addiu` with no
+ *    delay-slot move.
+ */
+extern s32 SquareRoot0(s32 x);
+extern long abs(long x);
 
-// triage: EASY — 72 insns, mul/div, 2 callees, ~0.10 to AdtFntLoad
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+long GetVectorLength(long dx, long dy, long dz)
+{
+    long len;
+    int big;
+    long v;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// long GetVectorLength(long dx,long dy,long dz)
-//
-// {
-//   bool bVar1;
-//   int iVar2;
-//   long lVar3;
-//
-//   bVar1 = false;
-//   iVar2 = abs(dx);
-//   if (((0x1000 < iVar2) || (iVar2 = abs(dy), 0x1000 < iVar2)) || (iVar2 = abs(dz), 0x1000 < iVar2))
-//   {
-//     bVar1 = true;
-//   }
-//   if (bVar1) {
-//     if (dx < 0) {
-//       dx = dx + 0xff;
-//     }
-//     if (dy < 0) {
-//       dy = dy + 0xff;
-//     }
-//     if (dz < 0) {
-//       dz = dz + 0xff;
-//     }
-//     lVar3 = SquareRoot0((dx >> 8) * (dx >> 8) + (dy >> 8) * (dy >> 8) + (dz >> 8) * (dz >> 8));
-//     lVar3 = lVar3 << 8;
-//   }
-//   else {
-//     lVar3 = SquareRoot0(dx * dx + dy * dy + dz * dz);
-//   }
-//   return lVar3;
-// }
+    big = 0;
+    if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+    {
+        big = 1;
+    }
+    if (big)
+    {
+        v = dx;
+        if (dx < 0) v = dx + 0xff;
+        dx = v >> 8;
+        v = dy;
+        if (dy < 0) v = dy + 0xff;
+        dy = v >> 8;
+        v = dz;
+        if (dz < 0) v = dz + 0xff;
+        dz = v >> 8;
+        len = SquareRoot0(dx * dx + dy * dy + dz * dz);
+        len = len << 8;
+    }
+    else
+    {
+        len = SquareRoot0(dx * dx + dy * dy + dz * dz);
+    }
+    return len;
+}
