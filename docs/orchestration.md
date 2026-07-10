@@ -295,6 +295,12 @@ lens.
 
 ## Gotchas (all learned the hard way)
 
+- **Wrap a maybe-not-closing draft in the `#ifndef NON_MATCHING` guard IMMEDIATELY, not
+  only at the end.** `matchdiff`/`./Build` under `NON_MATCHING=1` happily succeeds while
+  the DEFAULT `./Build check` silently breaks if the guard is missing — an agent leaked
+  SetBleedsDir's 88 stray bytes into the default image this way, caught only by an
+  explicit default `./Build check`.
+
 - **Never read `matchdiff`/`asmdiff` output from a build whose `./Build check` did not
   return 0.** A failed or torn build leaves stale/inconsistent artifacts, and the diff
   against them is fiction. I "diagnosed" a phantom 2-byte gp-offset bug in a

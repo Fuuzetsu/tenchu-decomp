@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -39,144 +40,177 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — links 808 bytes vs the 876-byte target (17
+ * instructions / 68 bytes SHORT). Default build keeps the byte-identical
+ * INCLUDE_ASM stub.
+ *
+ * Matching notes (against SetBleed.c/SetBleeds.c, the same EffectSlot[200]
+ * pool spawner family — see their headers for the idiom writeups):
+ *  - `SetBleedsDir` is the "given direction" variant: `pos` is jittered by
+ *    `grange` (same 3-axis default-then-conditionally-overwritten idiom as
+ *    SetBleeds' `grange`/`srange` jitter), but `vec` (the direction) is
+ *    copied VERBATIM into `v` — no srange/jitter step for it at all (that's
+ *    the whole "Dir" distinction from SetBleeds, which jitters both).
+ *  - The two `memset(&npos/&v, 0, sizeof(...))` calls are load-bearing, same
+ *    as SetBleeds (zero the padding/unused fields before the block-copies).
+ *  - `time` splits as `half = time / 8; rem = time - half; btime = half +
+ *    (rem>0 ? rand()%rem : 0);` — note the DIVISOR is 8 here, not 2 like
+ *    SetBleeds' half-split; confirmed by the raw `.s`'s `sra ,3`/`+7`
+ *    round-toward-zero shift sequence (the standard signed-divide-by-
+ *    power-of-2 compilation), not a `sra ,1`.
+ *  - The inner EffectSlot[200] pool scan is SetBleed.c's own hand-rolled
+ *    `goto loop;` shape verbatim (count++ only on the NOT-found path, &dmy
+ *    assigned after the loop, cursor-store inside the found branch, `n--`
+ *    on both exits before the shared tail).
+ *  - Field store order into BleedType: pos (block copy), vec (block copy),
+ *    r, g, time, b, mode, proc — same order as SetBleed.c/SetBleeds.c, not
+ *    struct-offset order.
+ *  - `grange * 2`/`rand() % grange2` needs maspsx `--expand-div` for this
+ *    file (division by a variable) — added to Build.hs/permute.py.
+ *
+ * RESIDUAL (68 bytes / 17 instructions short): the SAME unresolved
+ * "throwaway stack scratch, then a SECOND block-copy" shape as SetBleeds'
+ * own parked residual (see its header) — target computes each of npos's
+ * THREE jitter fields into its own memset'd stack scratch, then reloads
+ * and re-stores them into npos's real stack slot (8 extra instructions: 4
+ * lw + 4 sw) before npos ever gets block-copied again into
+ * `ef->param.bleed.pos`. A plain `long px, py, pz;` (SetBleeds.c's own
+ * idiom, tried first) let cc1 keep the jitter values resident in
+ * REGISTERS and store straight into npos's fields with no intermediate
+ * stack bounce at all (692 bytes short residual: 788 vs 876). Declaring
+ * them as one array instead — `long p[3];`, `p[0]/p[1]/p[2] = ...; npos.vx
+ * = p[0];` etc. — is a REAL, reusable lever: it forced genuine stack
+ * residency (arrays don't get promoted to registers as readily as scalars
+ * in this pipeline) and cut the residual from 88 to 68 bytes, though it
+ * still doesn't reproduce the exact double-copy-through-TWO-different-
+ * scratch-addresses shape target uses (target's third jitter value's
+ * scratch slot gets REUSED as `v`'s own scratch immediately after, a
+ * stack-slot-numbering coincidence downstream of whatever register
+ * pressure the real source had that this draft doesn't reach). Consistent
+ * with SetBleeds' own conclusion: this is the cookbook's allocator-
+ * cost-tie class, not a source-shape bug — parked per the attempt-cap
+ * guidance.
+ *
+ * CAUTION for future attempts: `tools/autorules.py SetBleedsDir` produced
+ * actively WRONG local types when run on this draft (narrowed `p`'s
+ * 32-bit position-jitter values to `s16`, and `idx`/`count` — both real
+ * 0..200 loop counters — to `s16`/`s8`). Because `p` feeds a VECTOR field
+ * and idx/count are compared against 200, these aren't just "different
+ * register class" ties like the cookbook's usual autorules wins; they're
+ * outright semantically wrong despite autorules reporting them as
+ * score-improving (and the resulting file failed to even build cleanly
+ * once). Sanity-check every autorules-suggested width against what the
+ * variable actually holds before accepting it, not just the score delta.
+ */
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBleedsDir", SetBleedsDir);
+#else
+extern void DrawBleed(TEffectSlot *ef);
+extern void *memset(void *s, int c, u32 n);
+extern int rand(void);
 
-// triage: MEDIUM — 219 insns, mul/div, 1 loop, 2 callees, ~0.08 to DebugMenuItemSet
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, long col)
+{
+    VECTOR npos;
+    SVECTOR v;
+    long p[3];
+    int grange2;
+    long d;
+    int half;
+    int rem;
+    int btime;
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    BleedType *fp;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetBleedsDir(VECTOR *pos,SVECTOR *vec,short grange,short n)
-//
-// {
-//   AreaNodeType *pAVar1;
-//   int iVar2;
-//   AreaNodeType *pAVar3;
-//   long lVar4;
-//   int iVar5;
-//   int iVar6;
-//   tag_EffectSlot *ptVar7;
-//   int iVar8;
-//   int iVar9;
-//   int iVar10;
-//   uint uVar11;
-//   int in_stack_00000010;
-//   undefined4 in_stack_00000014;
-//   AreaNodeType *local_38;
-//   int local_34;
-//   AreaNodeType *local_30;
-//   long local_2c;
-//
-//   uVar11 = (uint)(ushort)n;
-//   iVar10 = (int)grange;
-//   iVar9 = iVar10 << 1;
-//   do {
-//     if ((int)(uVar11 << 0x10) < 1) {
-//       return;
-//     }
-//     memset((uchar *)&local_38,'\0',0x10);
-//     iVar8 = pos->vx;
-//     iVar5 = -iVar10;
-//     if (0 < iVar9) {
-//       iVar5 = rand();
-//       if (iVar9 == 0) {
-//         trap(0x1c00);
-//       }
-//       if ((iVar9 == -1) && (iVar5 == -0x80000000)) {
-//         trap(0x1800);
-//       }
-//       iVar5 = iVar5 % iVar9 - iVar10;
-//     }
-//     local_38 = (AreaNodeType *)(iVar8 + iVar5);
-//     iVar8 = pos->vy;
-//     iVar5 = -iVar10;
-//     if (0 < iVar9) {
-//       iVar5 = rand();
-//       if (iVar9 == 0) {
-//         trap(0x1c00);
-//       }
-//       if ((iVar9 == -1) && (iVar5 == -0x80000000)) {
-//         trap(0x1800);
-//       }
-//       iVar5 = iVar5 % iVar9 - iVar10;
-//     }
-//     local_34 = iVar8 + iVar5;
-//     iVar8 = pos->vz;
-//     iVar5 = -iVar10;
-//     if (0 < iVar9) {
-//       iVar5 = rand();
-//       if (iVar9 == 0) {
-//         trap(0x1c00);
-//       }
-//       if ((iVar9 == -1) && (iVar5 == -0x80000000)) {
-//         trap(0x1800);
-//       }
-//       iVar5 = iVar5 % iVar9 - iVar10;
-//     }
-//     lVar4 = local_2c;
-//     iVar2 = local_34;
-//     pAVar1 = local_38;
-//     local_30 = (AreaNodeType *)(iVar8 + iVar5);
-//     pAVar3 = local_30;
-//     memset((uchar *)&local_30,'\0',8);
-//     local_38 = *(AreaNodeType **)vec;
-//     local_2c = CONCAT22(local_2c._2_2_,vec->vz);
-//     local_34 = local_2c;
-//     iVar5 = in_stack_00000010;
-//     if (in_stack_00000010 < 0) {
-//       iVar5 = in_stack_00000010 + 7;
-//     }
-//     iVar5 = iVar5 >> 3;
-//     iVar8 = in_stack_00000010 - iVar5;
-//     local_30 = local_38;
-//     if (0 < iVar8) {
-//       iVar6 = rand();
-//       if (iVar8 == 0) {
-//         trap(0x1c00);
-//       }
-//       if ((iVar8 == -1) && (iVar6 == -0x80000000)) {
-//         trap(0x1800);
-//       }
-//       iVar5 = iVar6 % iVar8 + iVar5;
-//     }
-//     iVar6 = 0;
-//     ptVar7 = EffectSlot + DAT_80097a3c;
-//     iVar8 = DAT_80097a3c;
-//     do {
-//       iVar8 = iVar8 + 1;
-//       ptVar7 = ptVar7 + 1;
-//       if (199 < iVar8) {
-//         iVar8 = 0;
-//         ptVar7 = EffectSlot;
-//       }
-//       if (ptVar7->proc == (undefined **)0x0) {
-//         DAT_80097a3c = iVar8 + 1;
-//         if (199 < iVar8 + 1) {
-//           DAT_80097a3c = 0;
-//         }
-//         goto LAB_8003558c;
-//       }
-//       iVar6 = iVar6 + 1;
-//     } while (iVar6 < 200);
-//     ptVar7 = &dmy;
-// LAB_8003558c:
-//     uVar11 = uVar11 - 1;
-//     (ptVar7->param).blood.hint = pAVar1;
-//     (ptVar7->param).blood.px = iVar2;
-//     (ptVar7->param).blood.py = (long)pAVar3;
-//     (ptVar7->param).blood.pz = lVar4;
-//     (ptVar7->param).blood.scale = (long)local_38;
-//     (ptVar7->param).blood.rotate = local_34;
-//     (ptVar7->param).bleed.r = (uchar)((uint)in_stack_00000014 >> 0x10);
-//     (ptVar7->param).bleed.g = (uchar)((uint)in_stack_00000014 >> 8);
-//     (ptVar7->param).bleed.time = (uchar)iVar5;
-//     (ptVar7->param).bleed.b = (uchar)in_stack_00000014;
-//     (ptVar7->param).bleed.mode = '\0';
-//     ptVar7->proc = (undefined **)DrawBleed;
-//   } while( true );
-// }
+    grange2 = grange * 2;
+    do
+    {
+        if (n <= 0)
+        {
+            return;
+        }
+        memset(&npos, 0, sizeof(npos));
+        d = -grange;
+        if (grange2 > 0)
+        {
+            d = rand() % grange2 - grange;
+        }
+        p[0] = pos->vx + d;
+
+        d = -grange;
+        if (grange2 > 0)
+        {
+            d = rand() % grange2 - grange;
+        }
+        p[1] = pos->vy + d;
+
+        d = -grange;
+        if (grange2 > 0)
+        {
+            d = rand() % grange2 - grange;
+        }
+        p[2] = pos->vz + d;
+        npos.vx = p[0];
+        npos.vy = p[1];
+        npos.vz = p[2];
+
+        memset(&v, 0, sizeof(v));
+        v = *vec;
+
+        half = time / 8;
+        rem = time - half;
+        btime = half;
+        if (rem > 0)
+        {
+            btime = rand() % rem + half;
+        }
+
+        base = EffectSlot;
+        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        slot = base + idx;
+        count = 0;
+    loop:
+        idx = idx + 1;
+        slot = slot + 1;
+        if (199 < idx)
+        {
+            slot = base;
+            idx = 0;
+        }
+        if (slot->proc == 0)
+        {
+            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+            if (199 < idx + 1)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+            }
+            ef = slot;
+            n = n - 1;
+            goto found;
+        }
+        count = count + 1;
+        if (199 < count)
+        {
+            ef = &dmy;
+            n = n - 1;
+            goto found;
+        }
+        goto loop;
+    found:
+        fp = &ef->param.bleed;
+        fp->pos = npos;
+        fp->vec = v;
+        fp->r = col >> 16;
+        fp->g = col >> 8;
+        fp->time = btime;
+        fp->b = col;
+        fp->mode = 0;
+        ef->proc = (void (*)())DrawBleed;
+    } while (1);
+}
+#endif

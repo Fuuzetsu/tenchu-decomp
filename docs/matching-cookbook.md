@@ -1995,6 +1995,14 @@ reach the pool-scan addu operand tie anyway — that order is chosen after `fold
 below the C AST the permuter transforms. Recognise these and park; do not budget
 permuter time.
 
+### Declaring scratch jitter values as one array forces stack residency
+
+For an EFFECT spawner whose three jitter scratch values (px/py/pz) must live on the
+stack (the target block-copies them, so they cannot stay in registers), declaring them
+as one `long p[3];` instead of three scalars forces genuine stack residency and moves
+the residual toward the target (`SetBleedsDir`: 88 → 68 bytes). Part of the still-open
+"throwaway scratch + second block-copy" residual that SetBleeds/SetSmoke share.
+
 ### Hoist-invariant vs widen-parameter can be a 2-instruction allocator tie
 
 A hand-rolled `do {} while (1)` loop that has BOTH a repeatedly-used address/constant
