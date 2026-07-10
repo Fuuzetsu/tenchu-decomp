@@ -17,51 +17,129 @@
  *     extern unsigned long *virtual_memory_pool;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — 9 of 260 bytes differ (whole-image: 9, function is
+ * the RIGHT LENGTH — a pure register-color residual, no structural issue).
+ *
+ * vfree (0x80016d7c) — same TU as vinit.c/vgetfreesize.c/vsize.c/vcalloc.c
+ * (virtual_memory_pool/valloc/vfree/vgetmaxsize/vgetfreesize/vcalloc all
+ * cluster together): releases a block returned by valloc/vcalloc back to
+ * the pool's singly-linked free list (see vinit.c for PoolBlock), then
+ * coalesces it with its physically-adjacent neighbours in the list: the
+ * block already pointed to by its own `next` (forward), and whichever
+ * block's `next` points AT this one (backward, found by a linear walk
+ * from the pool head — the list is otherwise unordered from vfree's point
+ * of view).
+ *
+ * Matching notes:
+ *  - The header address `(PoolBlock *)pt - 1` is computed unconditionally
+ *    in the null-guard branch's delay slot but only used once the guard
+ *    passes — ordinary "independent computation floats into the guard's
+ *    delay slot", not a source-level rule.
+ *  - The backward-merge search is a genuine `do { ... } while (prev != 0);`
+ *    guarded by `if (virtual_memory_pool != 0)`: falling straight from the
+ *    guard into the loop body with NO separate entry test is exactly the
+ *    do-while shape (a `while` here would re-test the already-proven
+ *    condition). Written as a hand-rolled `label:`/`goto` (the do-while
+ *    KEYWORD form instead compiled to a "jump straight to the bottom
+ *    test" shape — an EXTRA unconditional `j`, wrong instruction count;
+ *    the label/goto form reproduces the target's straight fall-through
+ *    into the loop body with no entry test, matching GetAreaMapLevel's
+ *    "every loop here is a hand-rolled goto loop" precedent).
+ *  - `header->size` is read/written as a plain `s32`. The forward-merge
+ *    "is next free" test needs the LITERAL `(~next->size & mask)` spelling
+ *    (Ghidra's own rendering) with `mask` a NAMED VARIABLE, not the inline
+ *    literal `0x80000000` — an inline literal constant-folds the whole
+ *    test back into a signed `bltz` (fold-const's sign-bit-test
+ *    simplification), losing the real `nor+and` instructions.
+ *  - **NEW RULE, confirmed here**: a call-crossing constant used only
+ *    ONCE is cheap enough for cc1 to leave UNALLOCATED and re-materialize
+ *    at its point of use (no persistent register, no prologue save) —
+ *    this is what our EARLIER drafts did, and it cost 2 instructions
+ *    (missing `sw s2`/`lw s2`) plus cascaded every downstream register
+ *    color by one slot. Using the SAME named constant a SECOND time
+ *    (the double-release guard, spelled `(header->size & mask) == 0`
+ *    instead of the equally-valid `header->size >= 0`) was what tipped
+ *    cc1 into actually allocating it a real callee-saved register
+ *    (mask 0x80070000: ra, s0, s1, s2) — matching the target exactly and
+ *    fixing the whole-image length. Confirmed by regalloc.py showing `$s2:
+ *    (copy target)` only after this change.
+ *  - Residual (9 bytes): the forward-merge block's `next`/`next->size`
+ *    registers ($a0/$v1) and the backward-merge's final sum's result
+ *    register ($v1) are swapped against the target — a pure allocator
+ *    tie (autorules: no improving edit; regalloc.py: no copy-chain to a
+ *    hard reg to break; one bounded `tools/permute.py` run plateaued at
+ *    score 30, never reaching 0, in a CPU-contended shared run). Declaration
+ *    order/extra temps (`n2`, a separate `nsz`) tried and made no
+ *    difference — parked per the cookbook's sub-C-level early-stop.
+ */
+
+typedef struct PoolBlock
+{
+    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
+    struct PoolBlock *next;
+} PoolBlock;
+
+extern PoolBlock *virtual_memory_pool;
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/vfree", vfree);
+#else
 
-// triage: EASY — 65 insns, 1 loop, 1 callees, ~0.09 to DisposeWeapon
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" — still referenced by
+                              the unmatched vmemoryGC asm; reuse it rather
+                              than opening a fresh .rodata (see LoadAreaMap.c) */
+extern void SystemOut(char *);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void vfree(undefined *pt)
-//
-// {
-//   uint uVar1;
-//   int *piVar2;
-//   uint *puVar3;
-//   int *piVar4;
-//
-//   if (pt != (undefined *)0x0) {
-//     if (-1 < *(int *)(pt + -8)) {
-//                     /* WARNING: Subroutine does not return */
-//       SystemOut((uchar *)"DOUBLE MEMORY RELEASE");
-//     }
-//     uVar1 = *(uint *)(pt + -8);
-//     *(uint *)(pt + -8) = uVar1 & 0x7fffffff;
-//     puVar3 = *(uint **)(pt + -4);
-//     if (puVar3 != (uint *)0x0) {
-//       if ((~*puVar3 & 0x80000000) != 0) {
-//         *(uint *)(pt + -8) = (uVar1 & 0x7fffffff) + 2 + *puVar3;
-//         *(uint *)(pt + -4) = puVar3[1];
-//       }
-//     }
-//     piVar4 = virtual_memory_pool;
-//     if (virtual_memory_pool != (int *)0x0) {
-//       do {
-//         piVar2 = (int *)piVar4[1];
-//         if (piVar2 == (int *)(pt + -8)) break;
-//         piVar4 = piVar2;
-//       } while (piVar2 != (int *)0x0);
-//       if ((piVar4 != (int *)0x0) && (-1 < *piVar4)) {
-//         *piVar4 = *piVar4 + 2 + *(int *)(pt + -8);
-//         piVar4[1] = *(int *)(pt + -4);
-//       }
-//     }
-//   }
-//   return;
-// }
+void vfree(void *pt)
+{
+    PoolBlock *header;
+    PoolBlock *next;
+    PoolBlock *prev;
+    PoolBlock *n2;
+    u32 mask;
+    u32 sz;
+    s32 psz;
+
+    if (pt == 0)
+        return;
+
+    header = (PoolBlock *)pt - 1;
+    mask = 0x80000000;
+    if ((header->size & mask) == 0)
+        SystemOut(D_8001104C);
+
+    sz = header->size & 0x7fffffff;
+    header->size = sz;
+
+    next = header->next;
+    if (next != 0 && (~next->size & mask) != 0)
+    {
+        header->size = next->size + 2 + sz;
+        header->next = next->next;
+    }
+
+    prev = virtual_memory_pool;
+    if (prev != 0)
+    {
+    search:
+        n2 = prev->next;
+        if (n2 == header)
+            goto found;
+        prev = n2;
+        if (prev != 0)
+            goto search;
+
+    found:
+        if (prev != 0)
+        {
+            psz = prev->size;
+            if (psz >= 0)
+            {
+                prev->size = header->size + 2 + psz;
+                prev->next = header->next;
+            }
+        }
+    }
+}
+#endif

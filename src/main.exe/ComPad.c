@@ -23,7 +23,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct TPadPort PadPort[2][4];
- *     extern short ConflictObjects;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ComPad", ComPad);

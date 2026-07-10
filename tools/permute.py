@@ -120,6 +120,9 @@ GP_EXTERNS = {
     "HumanActionControl": ["Me_MOTION_C", "dtPAD", "dtCMD", "D_80097F0E", "dtV", "dtL", "dtR", "dtM", "motID"],
     "AttackCancelControl": ["Me_MOTION_C", "dtM"],
     "DoItemProc": ["D_80097AC8"],
+    "vfree": ["virtual_memory_pool"],
+    "DrawModel": ["OTablePt"],
+    "FUN_8001b2f4": ["D_800976F6"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

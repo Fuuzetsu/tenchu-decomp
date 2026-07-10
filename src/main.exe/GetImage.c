@@ -14,7 +14,6 @@
  *     param $a0       int index
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern struct GsIMAGE Images[52];
  * END PSX.SYM */
 

@@ -211,6 +211,9 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "HumanActionControl" = ["Me_MOTION_C", "dtPAD", "dtCMD", "D_80097F0E", "dtV", "dtL", "dtR", "dtM", "motID"]
     syms "AttackCancelControl" = ["Me_MOTION_C", "dtM"]
     syms "DoItemProc" = ["D_80097AC8"]
+    syms "vfree" = ["virtual_memory_pool"]
+    syms "DrawModel" = ["OTablePt"]
+    syms "FUN_8001b2f4" = ["D_800976F6"]
     syms _ = []
 
 as :: FilePath

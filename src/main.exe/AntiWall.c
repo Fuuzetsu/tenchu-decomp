@@ -25,7 +25,6 @@
  *     reg   $s0       int sz
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 

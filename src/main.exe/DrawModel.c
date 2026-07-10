@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -23,73 +24,157 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — residual ~21 differing asm lines (83 target insns,
+ * ours 87 — 4 instructions long). All branch polarities/values verified
+ * correct; the residual is LAYOUT (which physical copy of the shared
+ * `reject_check` test the two/three incoming edges land on) — see notes.
+ *
+ * DrawModel (0x80017248) — same TU as DrawClip.c/UpdateCoordinate.c/
+ * GetAbsolutePosition.c/DrawOrnament.c (3DCTRL.C): DrawClip's full-bodied
+ * twin — builds the model's local screen matrix (GsGetLs+GsSetLsMatrix,
+ * DrawOrnament's pair) then runs the exact same visibility/clip gauntlet
+ * as DrawClip (attribute&1/2/4/8/0x10, the UnitVector RotTransPers,
+ * DrawTMDmode), and on success actually calls DrawTMD; returns 1 drawn / 0
+ * not.
+ *
+ * Matching notes:
+ *  - Ghidra's decompile needed 3 gotos for an irreducible CFG — the SOURCE
+ *    really is goto-shaped, not just a decompiler artifact: reject_check
+ *    (retest attribute&0x10 after either skipping or passing the
+ *    +-0xf0/+-0xb4 box check), unit_vector (the shared UnitVector
+ *    RotTransPers call, reached both when attribute&2 is set AND as a
+ *    fallthrough), ret (the shared tail: draw if the running OTZ/sentinel
+ *    isn't -1).
+ *  - Ghidra's `iVar3` conflates TWO independent asm registers under one
+ *    name: `$v1` (the OTZ from the first RotTransPers, cached and reused
+ *    unchanged through the attribute&4 and attribute&0x10 tests, then
+ *    reused again as the "-1 = don't draw" sentinel and finally the second
+ *    RotTransPers's own OTZ — ONE variable/register the WHOLE function)
+ *    and `$v0` (the transient +-0xf0/+-0xb4 box check temp). Splitting
+ *    them into `otz`/`iv` reproduces the real caching (DrawClip needed
+ *    the identical `otz` split for its own attribute&4/attribute&0x10
+ *    tests) — but `otz` must stay ONE variable end to end (an
+ *    otz1/otz2/result 3-way split was tried and left the exact same
+ *    residual, so the single-variable form is kept for clarity).
+ *  - The attribute&0x10 guard tests the OLD `otz` (the first RotTransPers's
+ *    cached OTZ) — Ghidra's `(iVar3 = -1, 0x4e2 < lVar2 >> 2)` comma makes
+ *    the assignment look like it precedes the read, but the read is of a
+ *    SEPARATE value (`lVar2 >> 2`, i.e. the still-live `otz`) — the
+ *    branch's delay slot just happens to carry the `otz = -1` store,
+ *    executed independent of the test result (dead unless we actually
+ *    take the goto). Test-then-assign-then-goto is the natural, correct
+ *    C order and reproduces this exactly.
+ *  - The tail is TWO literal early returns (`if (otz==-1) return 0;
+ *    DrawTMD(...); return 1;`), NOT `return otz != -1;` — the latter
+ *    compiles a `nor+sltu` boolean materialize that the target doesn't
+ *    have (DrawBG's identical "two early returns, no computed boolean"
+ *    lever).
+ *  - Residual: `reject_check` is reached from THREE edges (attribute&8==0
+ *    skip, the box check passing cleanly, and the box check's own
+ *    "iv<0xb5" loop-back). The target lays the box-check body out FIRST
+ *    (so its own pass-through falls straight into reject_check with a
+ *    freshly-reloaded `attribute&0x10`) and reaches reject_check's TEST
+ *    from the attribute&8==0 edge via a forward jump feeding the SAME
+ *    test with a value computed in ITS OWN delay slot — i.e. one shared
+ *    physical test, two independent `andi` computations feeding it. Our
+ *    draft's cross-jump pass instead duplicates the whole reject_check
+ *    body once per incoming edge. Tried: `if/else` vs `goto`/label for
+ *    the attribute&8 dispatch (byte-identical either way — confirms cc1
+ *    doesn't care about that spelling here), otz split into
+ *    otz1/otz2/result (also byte-identical — coalesced back by the
+ *    allocator regardless). Neither lever reached the shared-vs-duplicated
+ *    layout choice; parked per the cookbook's attempt cap.
+ */
+
+extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
+extern void GsSetLsMatrix(MATRIX *m);
+extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
+extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
+extern SVECTOR UnitVector;
+extern GsOT *OTablePt;
+extern s32 DrawTMDmode;
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawModel", DrawModel);
+#else
 
-// triage: EASY — 83 insns, 4 callees, ~0.10 to GetAbsolutePosition
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+short DrawModel(ModelType *objp)
+{
+    MATRIX mat;
+    u16 attr;
+    long lv;
+    s32 otz;
+    s32 iv;
+    short rxy[2];
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-//
-// short DrawModel(ModelType *objp)
-//
-// {
-//   ushort uVar1;
-//   long lVar2;
-//   int iVar3;
-//   MATRIX MStack_38;
-//   short local_18;
-//   short local_16;
-//
-//   GsGetLs(&objp->locate,&MStack_38);
-//   GsSetLsMatrix(&MStack_38);
-//   uVar1 = objp->attribute;
-//   iVar3 = -1;
-//   if ((uVar1 & 1) != 0) goto LAB_80017360;
-//   if ((uVar1 & 2) == 0) {
-//     lVar2 = RotTransPers(&objp->clip,(long *)&local_18,(long *)0x0,(long *)0x0);
-//     if (((uVar1 & 4) == 0) || (lVar2 >> 2 != 0)) {
-//       if ((uVar1 & 8) == 0) {
-// LAB_800172fc:
-//         if (((uVar1 & 0x10) != 0) && (iVar3 = -1, 0x4e2 < lVar2 >> 2)) goto LAB_80017360;
-//         goto LAB_8001730c;
-//       }
-//       iVar3 = (int)local_18;
-//       if (iVar3 < 0) {
-//         iVar3 = -iVar3;
-//       }
-//       if (iVar3 < 0xf1) {
-//         iVar3 = (int)local_16;
-//         if (iVar3 < 0) {
-//           iVar3 = -iVar3;
-//         }
-//         if (iVar3 < 0xb5) goto LAB_800172fc;
-//       }
-//     }
-//   }
-//   else {
-// LAB_8001730c:
-//     lVar2 = RotTransPers(&UnitVector,(long *)0x0,(long *)0x0,(long *)0x0);
-//     iVar3 = lVar2 >> 2;
-//     if (iVar3 < 0x4e3) {
-//       if (iVar3 < 300) {
-//         _DrawTMDmode = 0;
-//       }
-//       else {
-//         _DrawTMDmode = 0x20;
-//       }
-//       goto LAB_80017360;
-//     }
-//   }
-//   iVar3 = -1;
-// LAB_80017360:
-//   if (iVar3 != -1) {
-//     DrawTMD(&objp->object,OTablePt,0);
-//   }
-//   return (short)(iVar3 != -1);
-// }
+    GsGetLs(&objp->locate, &mat);
+    GsSetLsMatrix(&mat);
+    attr = objp->attribute;
+    otz = -1;
+    if ((attr & 1) != 0)
+        goto ret;
+    if ((attr & 2) == 0)
+    {
+        lv = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0);
+        otz = lv >> 2;
+        if ((attr & 4) == 0 || otz != 0)
+        {
+            if ((attr & 8) == 0)
+            {
+            reject_check:
+                if ((attr & 0x10) != 0 && 0x4e2 < otz)
+                {
+                    otz = -1;
+                    goto ret;
+                }
+                goto unit_vector;
+            }
+            iv = rxy[0];
+            if (iv < 0)
+            {
+                iv = -iv;
+            }
+            if (iv < 0xf1)
+            {
+                iv = rxy[1];
+                if (iv < 0)
+                {
+                    iv = -iv;
+                }
+                if (iv < 0xb5)
+                {
+                    goto reject_check;
+                }
+            }
+            goto unit_vector;
+        }
+    }
+    else
+    {
+    unit_vector:
+        lv = RotTransPers(&UnitVector, 0, 0, 0);
+        otz = lv >> 2;
+        if (otz < 0x4e3)
+        {
+            if (otz < 300)
+            {
+                DrawTMDmode = 0;
+            }
+            else
+            {
+                DrawTMDmode = 0x20;
+            }
+            goto ret;
+        }
+    }
+    otz = -1;
+ret:
+    if (otz == -1)
+    {
+        return 0;
+    }
+    DrawTMD(&objp->object, OTablePt, 0);
+    return 1;
+}
+#endif

@@ -114,8 +114,17 @@ def globals_of(name):
         if i < 0:
             continue
         owner = dense[i]
-        if owner in decl and owner not in hits:
-            hits.append(owner)
+        if owner not in decl or owner in hits:
+            continue
+        if y != owner:
+            # An interior offset only makes sense for an aggregate. A scalar
+            # (`short ConflictObjects;`) cannot own `owner + 0xa` -- that address
+            # simply has no symbol, and attributing it here is how FUN_8001b2f4's
+            # block claimed a global it never touches.
+            d = decl[owner].strip()
+            if "[" not in d and not d.startswith(("struct ", "union ")):
+                continue
+        hits.append(owner)
     return [f"extern {decl[a]};" for a in hits[:12]]
 
 

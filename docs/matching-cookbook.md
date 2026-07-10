@@ -84,6 +84,16 @@ $ ./Build check      # then confirm the whole image
 
 ## Iteration protocol
 
+> **`autorules` and `permute.py` report their OWN score, not raw bytes.** Both
+> optimise an internal objective that can move the wrong way against
+> `tools/matchdiff.py`. Twice in one batch a "winning" edit scored better
+> internally while being semantically wrong or literally worse under matchdiff
+> (a narrow-width change in `DrawModel`/`FUN_8001b2f4`, a loop-bound change in
+> `FUN_800566fc`). **Re-verify every accepted edit with `matchdiff.py`, and the
+> function as a whole with `./Build check`.** Never accept a permuter candidate
+> on its score alone — and bisect it: winning candidates routinely carry dead
+> statements that are not load-bearing.
+
 The ordered triage — fix categories in THIS order, re-running
 `tools/matchdiff.py <Name>` after every source change:
 
@@ -962,6 +972,16 @@ scratch — base and index registers swapped, exactly as the target does
 (ReqLifeBar; 9 instructions / 36 bytes recovered). Verified empirically; the
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
+
+### A constant used ONCE across a call is rematerialised, not allocated
+
+cc1 costs a cheap constant that is live across a call as *rematerialisable*: it
+re-emits it at the point of use rather than paying a callee-saved register plus
+the prologue/epilogue save. If the target clearly keeps such a value in `$s2`
+across a call and your draft re-materialises it, **use the same named constant a
+second time somewhere else in the function** — a second use tips the cost model
+into giving it a real register. (`vfree`'s `mask` needed to appear in both the
+double-release guard and the forward-merge test to land in `$s2`.)
 
 ### Statement order steers which value gets tail-duplicated at a goto-merge
 

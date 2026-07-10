@@ -20,7 +20,6 @@
  *     extern enum TSystemFlag SystemFlag;
  *     extern short Humans;
  *     extern struct Humanoid *HumanGroup[32];
- *     extern short ConflictObjects;
  *     extern short SkipFrame;
  * END PSX.SYM */
 

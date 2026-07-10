@@ -10,7 +10,6 @@
  *     ITEM.C:3205, 52 src lines, frame 32 bytes, saved-reg mask 0x80030000
  *
  * Globals it touches, as the original declared them:
- *     extern int StageID;
  *     extern long GameClock;
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */

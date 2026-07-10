@@ -15,15 +15,13 @@
  *     param $a0       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short dtPAD;
  *     extern short dtCMD;
- *     extern short motID;
  *     extern struct SVECTOR *dtV;
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
  *     extern struct MotionManager *dtM;
- *     extern void (*ActionFunc[18])();
+ *     extern short motID;
  * END PSX.SYM */
 
 /*

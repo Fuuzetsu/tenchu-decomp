@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern enum TSystemFlag SystemFlag;
- * END PSX.SYM */
-
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/cd_open", cd_open);
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/cd_open", FUN_8005f278__override__prt_8005f2b8_e1c3c140);
 

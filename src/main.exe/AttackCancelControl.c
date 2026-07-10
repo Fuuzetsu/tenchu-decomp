@@ -15,7 +15,6 @@
  *     param $a0       short mode
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct MotionManager *dtM;
  * END PSX.SYM */
 
