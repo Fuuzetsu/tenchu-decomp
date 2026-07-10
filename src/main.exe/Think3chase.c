@@ -5,10 +5,10 @@
 /*
  * Think3chase (0x8002cf74, 0x13c bytes) — think-handler, same "think" TU as
  * Think1trace.c/Think1sleep.c/Think2confirm.c (s16 return convention;
- * gp-relative Distance/SR/EngageLevel/Degree/D_800979BC — see gpsyms).
+ * gp-relative Distance/SR/EngageLevel/Degree/AttackActionCount — see gpsyms).
  *
  * If close enough (Distance < 10000) and not already in the "-2" SR state,
- * clear SR. If the next scheduled attack action (D_800979BC) is due
+ * clear SR. If the next scheduled attack action (AttackActionCount) is due
  * (< GameClock) AND the character isn't badly misaimed (abs(Degree) < 500),
  * pick a pad-command result by distance band, reschedule the next attack
  * action, and return early. Otherwise (attack not due, or misaimed), fall
@@ -36,13 +36,13 @@
  * once (see STATUS below for the one remaining residual).
  *
  * STATUS: NON_MATCHING — 144 of 316 bytes differ (structurally isolated to
- * 2 extra instructions / 8 bytes at the D_800979BC update — see
+ * 2 extra instructions / 8 bytes at the AttackActionCount update — see
  * `tools/asmdiff.py Think3chase --structural`; the 144-byte figure is that
  * one structural diff cascading through matchdiff's fixed window, not 144
  * independently-wrong bytes).
  *
  * Root cause (confirmed via tools/regalloc.py + reading target's raw .s):
- * for `D_800979BC = GameClock + EngageLevel * 10;`, the target computes the
+ * for `AttackActionCount = GameClock + EngageLevel * 10;`, the target computes the
  * whole RHS in $v0/$v1 and leaves `result` (the pad-command value, live
  * until the `return` right after) untouched in $a0 the entire time — a
  * single final `sll $v0,$a0,16` at the shared epilogue tail does the s16
@@ -55,7 +55,7 @@
  * This is a pure register-color tie, not a wrong instruction: tried (all
  * failed to move it) — `result` as u16/u8/s32; hoisting EngageLevel or
  * GameClock into their own named temp, in either order; commuting the `+`
- * operands; splitting `D_800979BC = ...; return result;` into all three
+ * operands; splitting `AttackActionCount = ...; return result;` into all three
  * dispatch arms (hoping cc1's own cross-jump would re-merge it the way the
  * target's does — it didn't; that variant was 92 bytes, worse); tightening
  * `result`'s scope to the innermost block. `tools/autorules.py` found
@@ -75,7 +75,7 @@ extern s32 Distance;
 extern s16 EngageLevel;
 extern s32 GameClock;
 extern s16 Degree;
-extern s32 D_800979BC; /* next GameClock tick an attack action may fire */
+extern s32 AttackActionCount; /* next GameClock tick an attack action may fire */
 extern u16 SetCommand(some_character_button_values *pad, s32 code);
 extern s32 (*AttackFunc[])(void);
 
@@ -91,7 +91,7 @@ s16 Think3chase(void)
     {
         SR = 0;
     }
-    if (D_800979BC + EngageLevel * 30 < GameClock)
+    if (AttackActionCount + EngageLevel * 30 < GameClock)
     {
         degree = Degree;
         if (degree < 0)
@@ -118,7 +118,7 @@ s16 Think3chase(void)
                     result = 0xA0;
                 }
             }
-            D_800979BC = GameClock + EngageLevel * 10;
+            AttackActionCount = GameClock + EngageLevel * 10;
             return result;
         }
     }

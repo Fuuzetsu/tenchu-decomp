@@ -19,13 +19,13 @@
  * ReturnNormal.c/FUN_80027304.c (Me_MOTION_C, dtL, motID, D_80097F0E all
  * gp-relative here, matching those files' convention).
  *
- * `D_800BE750` (Ghidra's own data symbol table names it "map" — the
- * GetAreaMapVector out-parameter) and `D_80086774` (Ghidra: "RefrectVector",
+ * `map` (Ghidra's own data symbol table names it "map" — the
+ * GetAreaMapVector out-parameter) and `RefrectVector` (Ghidra: "RefrectVector",
  * a table of reflect-vector flag words) are declared under their raw
  * auto-generated names because that's what the assembled `.s` actually
  * references (splat only pulls FUNCTION names from the Ghidra export, not
  * arbitrary data symbols) — an extern spelled `RefrectVector` would not
- * link. `D_800BE750`'s type here is a local, offsets-only truncated view
+ * link. `map`'s type here is a local, offsets-only truncated view
  * (only +0x8/s16 and +0xC/u8 are touched by this function; GetAreaMapVector
  * itself writes a much larger 0x20-byte record, per its own Ghidra
  * decompilation, that this function never reads).
@@ -39,7 +39,7 @@
  *    nothing else pending after it, so a plain `return 0;` per guard
  *    reproduces the asm's repeated `v0=0` delay-slot pattern with no
  *    special-casing needed) — proven for 4 of the 5 guards.
- *  - `idxval = D_80086774[D_800BE750.vector];` is a real STATEMENT before
+ *  - `idxval = RefrectVector[map.vector];` is a real STATEMENT before
  *    the `||`, not a comma-expression inside it: the raw asm loads it
  *    unconditionally (no side effects to gate), matching Ghidra's own
  *    comma-rendering of an eagerly-evaluated subexpression.
@@ -47,13 +47,13 @@
  *    load (one `lhu`, reused, with an explicit re-sign-extend for the
  *    second test) — the established u16-field/signed-compare-cast pattern.
  *
- * THE RESIDUAL: the `if ((D_800BE750.attrib & 0xC000) != 0) return 0;` guard
+ * THE RESIDUAL: the `if ((map.attrib & 0xC000) != 0) return 0;` guard
  * right after the GetAreaMapVector call is byte-correct in every respect
  * (condition, operands, both branch targets) except which instruction fills
  * its delay slot. The target fills it with the return path's own `move
  * $v0,zero` (harmless either way, since $v0 is about to be overwritten on
  * the fallthrough path too); our build instead has reorg pull the
- * FALLTHROUGH's first instruction (`lui $v0,%hi(D_80086774)`, the next
+ * FALLTHROUGH's first instruction (`lui $v0,%hi(RefrectVector)`, the next
  * statement's array-base load — data-independent and therefore an equally
  * "ready" candidate) into the slot, which then needs an extra explicit `j`
  * to reach the return path — a net +1 instruction that is exactly offset by
@@ -66,7 +66,7 @@
  * restructured much more of the function AND got WORSE (67 differing bytes
  * but now with an actual length mismatch, because it also changed how
  * `Me_MOTION_C->status` CSEs across the two later reads); a named `u8 vec`
- * temp for `D_800BE750.vector` (zero effect, address-then-index evaluation
+ * temp for `map.vector` (zero effect, address-then-index evaluation
  * order is fixed by EXPAND_SUM regardless of source statement split); a
  * `do { guard } while (0);` wrapper around just this guard (zero effect on
  * the delay slot choice). `tools/autorules.py` found no improving edit
@@ -94,8 +94,8 @@ extern VECTOR *dtL;
 extern void *GlobalAreaMap;
 extern u16 motID;
 extern u16 D_80097F0E;
-extern u16 D_80086774[];
-extern AreaMapVectorResult D_800BE750;
+extern u16 RefrectVector[];
+extern AreaMapVectorResult map;
 extern s32 GetAreaMapVector(void *mvp, void *pos, s32 wide, s32 width, s32 flag);
 
 #ifndef NON_MATCHING
@@ -113,12 +113,12 @@ void *StickonCheck(void)
     {
         return 0;
     }
-    GetAreaMapVector(GlobalAreaMap, &D_800BE750, (s32)dtL, Me_MOTION_C->width + 0x64, 5);
-    if ((D_800BE750.attrib & 0xC000) != 0)
+    GetAreaMapVector(GlobalAreaMap, &map, (s32)dtL, Me_MOTION_C->width + 0x64, 5);
+    if ((map.attrib & 0xC000) != 0)
     {
         return 0;
     }
-    idxval = D_80086774[D_800BE750.vector];
+    idxval = RefrectVector[map.vector];
     if (Me_MOTION_C->status != 0xc && (idxval & 0x200) != 0)
     {
         return 0;
@@ -132,6 +132,6 @@ void *StickonCheck(void)
         motID = 0xc00;
         D_80097F0E = 1;
     }
-    return &D_800BE750;
+    return &map;
 }
 #endif

@@ -89,6 +89,35 @@ def load_current():
     return cur, names
 
 
+def build_additions(gh, cur, names):
+    """Addresses the rename table names but config/symbols has never heard of.
+
+    Data globals recovered by tools/datamatch.py are usually like this: splat
+    auto-labels them `D_800BC108` wherever asm references them, and that name is
+    all `src/` ever sees.  Naming one means inserting the definition *and*
+    rewriting the auto-label everywhere, so return it as a rename of the splat
+    placeholder plus a new `NAME = 0xADDR;` line.
+    """
+    have = {addr for _, addr in cur}
+    adds, renames = [], {}
+    for addr, new in sorted(gh.items()):
+        if addr in have or new in names:
+            continue
+        adds.append((new, addr))
+        renames[f"D_{addr:08X}"] = new
+    return adds, renames
+
+
+def insert_symbols(adds):
+    """Append `NAME = 0xADDR;` lines. config/symbols has NO comment syntax."""
+    if not adds:
+        return
+    with open(SYMBOLS, "a") as f:
+        for name, addr in adds:
+            f.write(f"{name} = 0x{addr:08x};\n")
+    print(f"import_symbols: defined {len(adds)} new symbols in {SYMBOLS}.")
+
+
 def build_renames(gh, cur, names):
     renames = {}
     targets = set()
@@ -171,9 +200,15 @@ def main():
     gh = load_renames_tsv(args.renames) if args.renames else load_ghidra(args.ghidra_export)
     cur, names = load_current()
     renames = build_renames(gh, cur, names)
+    adds = []
+    if args.renames:
+        adds, extra = build_additions(gh, cur, names)
+        renames.update(extra)
     print(f"import_symbols: {len(renames)} symbols to adopt Ghidra names for "
-          f"({sum(1 for k in renames if k.startswith('FUN_'))} were FUN_ placeholders).")
+          f"({sum(1 for k in renames if k.startswith('FUN_'))} were FUN_ placeholders"
+          + (f", {len(adds)} newly defined" if adds else "") + ").")
     apply_renames(renames)
+    insert_symbols(adds)
 
     if args.no_check:
         return

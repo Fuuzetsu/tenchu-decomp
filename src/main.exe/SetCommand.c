@@ -6,7 +6,7 @@
  * STATUS: NON_MATCHING — 46 of 268 bytes differ.
  *
  * SetCommand (0x8001b038, 0x10c bytes) — looks up `cmd` in the global
- * command table D_8008686C (a NULL-terminated array of `u16 *` entries:
+ * command table Command (a NULL-terminated array of `u16 *` entries:
  * entry[0] = command id, entry[1..] = a 0xFFFF-terminated argument list),
  * copies the entry's remaining arguments into pad->stream[], sets
  * pad->time = 1, and returns the entry's first argument (sign-extended).
@@ -14,8 +14,8 @@
  * .stream are the proven item.h struct (GetRealPad.c/PadShock.c).
  *
  * Three loops, all standard shapes (docs/matching-cookbook.md):
- *  - outer search: `i = 0; while (D_8008686C[i] != 0) { entry =
- *    D_8008686C[i]; i++; if (entry[0] == cmd) {...match...} }` — the
+ *  - outer search: `i = 0; while (Command[i] != 0) { entry =
+ *    Command[i]; i++; if (entry[0] == cmd) {...match...} }` — the
  *    classic duplicate_loop_exit_test bottom-test do-while (provable i=0
  *    entry, same shape as this session's FUN_800566c0/FUN_800565f0).
  *  - arg count: `n = 0; while (args[n] != 0xFFFF) n++;` — same shape,
@@ -83,7 +83,7 @@
  *  then 305 (never 0) against these two clusters — logged as permuter-
  *  resistant register/scheduling ties, not a source-shape gap.
  */
-extern u16 *D_8008686C[];
+extern u16 *Command[];
 
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetCommand", SetCommand);
@@ -99,8 +99,8 @@ short SetCommand(PADtype *pad, short cmd)
 
     one = 1;
     i = 0;
-    while (D_8008686C[i] != 0) {
-        entry = D_8008686C[i];
+    while (Command[i] != 0) {
+        entry = Command[i];
         i++;
         if (entry[0] == cmd) {
             args = entry + 1;

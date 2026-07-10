@@ -121,7 +121,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "FUN_8004a42c" = ["COUNTER_FOR_ITEM_ARRAY_"]
     -- GetAreaMapLevel.c is part of the original area-map TU, which defines
     -- these small globals (.sdata around 0x80097ec0).
-    syms "GetAreaMapLevel" = ["FieldIndex", "FieldArea", "D_80097EC0", "D_80097EC4"]
+    syms "GetAreaMapLevel" = ["FieldIndex", "FieldArea", "D_80097EC0", "FieldAttrib"]
     -- DoInfoViewProc.c is part of the original info-view TU, which defines
     -- these smalls (fInitialize / item cursor / PutMap latch).
     syms "DoInfoViewProc" = ["fInitialize", "CURRENTLY_SELECTED_ITEM_KIND_1_", "PutMapMode"]
@@ -173,7 +173,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "update_something_for_each_visible_enemy_" = ["VISIBLE_ENEMIES_"]
     syms "turn_towards_player_" = ["Me_THINK_C", "Degree", "Attrib", "D_80097F10"]
     syms "Think1trace" = ["Me_THINK_C", "Degree", "Attrib"]
-    syms "Think3chase" = ["Distance", "SR", "EngageLevel", "D_800979BC", "Degree", "Me_THINK_C"]
+    syms "Think3chase" = ["Distance", "SR", "EngageLevel", "AttackActionCount", "Degree", "Me_THINK_C"]
     syms "AttackFire" = ["dtM", "Me_MOTION_C", "dtR"]
     syms "bow_shoot_logic" = ["Me_MOTION_C", "dtR"]
     syms "Think1watch" = ["Me_THINK_C"]
@@ -200,7 +200,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "StickonCheck" = ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"]
     syms "DeleteCard" = ["D_80097D04"]
     syms "SetupAfterimage" = ["D_80097F3C"]
-    syms "MotionAndMove" = ["D_80097710", "Me_MOTION_C", "motID", "D_80097F0E"]
+    syms "MotionAndMove" = ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"]
     syms _ = []
 
 as :: FilePath

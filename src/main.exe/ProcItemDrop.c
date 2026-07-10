@@ -60,7 +60,7 @@ extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s16 InsertConflict(ModelType *m);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
 /* The conflict pool (Ghidra: ConflictObject). */
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 
 void ProcItemDrop(tag_TItem *item)
 {
@@ -112,14 +112,14 @@ void ProcItemDrop(tag_TItem *item)
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
             m = 8;
-            D_800BC108[n].offset.vx = 0;
-            D_800BC108[n].offset.vz = 0;
-            D_800BC108[n].offset.vy = 0;
-            D_800BC108[n].size.vz = 0xb4;
-            D_800BC108[n].size.vy = 0xb4;
-            D_800BC108[n].size.vx = 0xb4;
-            D_800BC108[n].common = (void *)0x1;
-            D_800BC108[n].size.pad = m;
+            ConflictObject[n].offset.vx = 0;
+            ConflictObject[n].offset.vz = 0;
+            ConflictObject[n].offset.vy = 0;
+            ConflictObject[n].size.vz = 0xb4;
+            ConflictObject[n].size.vy = 0xb4;
+            ConflictObject[n].size.vx = 0xb4;
+            ConflictObject[n].common = (void *)0x1;
+            ConflictObject[n].size.pad = m;
             item->coll_size = 0xb4;
             item->coll_ofsY = 0;
             item->coll_mode = m;
@@ -136,7 +136,7 @@ void ProcItemDrop(tag_TItem *item)
             i = GetConflictResult(item->locate, -1);
         if (i == -1)
             return;
-        human = (Humanoid *)D_800BC108[i].common;
+        human = (Humanoid *)ConflictObject[i].common;
         if (is_character_state_present_on_stage_(human) == 0)
             return;
         if (human->motion->mid == 0x810)

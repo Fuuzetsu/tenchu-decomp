@@ -4,7 +4,7 @@
 
 /*
  * DeleteConflict (0x8001a57c) — remove every conflict box owned by `model`
- * from the D_800BC108 pool (see ProcItemMakibishi.c / ProcItemDrop.c, which
+ * from the ConflictObject pool (see ProcItemMakibishi.c / ProcItemDrop.c, which
  * register boxes into this pool). A swap-remove compaction: scan the live
  * range [0, ConflictObjects); when a slot's `.model` matches, overwrite it
  * with the last live element, shrink the count, and rewrite the moved
@@ -13,7 +13,7 @@
  * model is marked free (id = -1) and its top two attribute bits are cleared.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `D_800BC108[i] = D_800BC108[count];` is a 0x78-byte, word-aligned STRUCT
+ *  - `ConflictObject[i] = ConflictObject[count];` is a 0x78-byte, word-aligned STRUCT
  *    ASSIGNMENT — cc1's emit_block_move copies MAX_MOVE_BYTES (4 words = 0x10)
  *    per loop iteration for the aligned bulk (0x70) then the 8-byte remainder
  *    as two lw/sw (the cookbook's "0x50-byte struct assignment becomes the
@@ -44,7 +44,7 @@ typedef struct
 } ConflictObjectType;            /* 0x78 */
 
 /* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 extern s16 ConflictObjects;
 
 void DeleteConflict(ModelType *model)
@@ -58,11 +58,11 @@ void DeleteConflict(ModelType *model)
         while (i < ConflictObjects)
         {
             count = ConflictObjects - 1;
-            if (D_800BC108[i].model == model)
+            if (ConflictObject[i].model == model)
             {
                 ConflictObjects = count;
-                D_800BC108[i] = D_800BC108[count];
-                D_800BC108[i].model->id = i;
+                ConflictObject[i] = ConflictObject[count];
+                ConflictObject[i].model->id = i;
             }
             else
             {

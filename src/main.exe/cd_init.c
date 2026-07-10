@@ -40,7 +40,7 @@ struct FILE
     s32 pos;         /* 0x1C */
 };
 
-extern FILE D_800C2D70[10]; /* FileHandlePool (Ghidra symbols.tsv) — the CD
+extern FILE FileHandlePool[10]; /* FileHandlePool (Ghidra symbols.tsv) — the CD
                               * file-handle pool shared with cd_open. */
 
 void cd_init(void)
@@ -48,5 +48,5 @@ void cd_init(void)
     int i;
 
     for (i = 9; i >= 0; i--)
-        D_800C2D70[i].flagUse = 0;
+        FileHandlePool[i].flagUse = 0;
 }

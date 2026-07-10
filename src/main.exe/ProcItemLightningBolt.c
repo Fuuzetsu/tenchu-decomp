@@ -65,7 +65,7 @@ extern void SetLightning(VECTOR *pos, VECTOR *target, s32 a, s32 b, s32 c);
 extern void SetImpact(VECTOR *pos, s32 a, s32 b);
 extern s32 GameClock;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 
 void ProcItemLightningBolt(tag_TItem *item)
 {
@@ -98,14 +98,14 @@ void ProcItemLightningBolt(tag_TItem *item)
         item->locate->locate.coord.t[2] = pos.vz;
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
-        D_800BC108[n].offset.vx = 0;
-        D_800BC108[n].offset.vz = 0;
-        D_800BC108[n].offset.vy = 0;
-        D_800BC108[n].size.vz = 100;
-        D_800BC108[n].size.vy = 100;
-        D_800BC108[n].size.vx = 100;
-        D_800BC108[n].common = (void *)1;
-        D_800BC108[n].size.pad = 1;
+        ConflictObject[n].offset.vx = 0;
+        ConflictObject[n].offset.vz = 0;
+        ConflictObject[n].offset.vy = 0;
+        ConflictObject[n].size.vz = 100;
+        ConflictObject[n].size.vy = 100;
+        ConflictObject[n].size.vx = 100;
+        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].size.pad = 1;
         item->coll_size = 100;
         item->coll_ofsY = 0;
         item->coll_mode = 1;
@@ -230,7 +230,7 @@ void ProcItemLightningBolt(tag_TItem *item)
 // ? SoundEx(?, ?, ?);                                 /* extern */
 // extern s32 CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 // extern ? D_800121CC;
-// extern ? D_800BC108;
+// extern ? ConflictObject;
 // extern s32 GameClock;
 //
 // void ProcItemLightningBolt(void *arg0) {
@@ -284,7 +284,7 @@ void ProcItemLightningBolt(tag_TItem *item)
 //         arg0->unk10->unk1C = sp1C;
 //         arg0->unk10->unk20 = sp20;
 //         DeleteConflict(arg0->unk10);
-//         temp_v1_2 = (InsertConflict(arg0->unk10) * 0x78) + &D_800BC108;
+//         temp_v1_2 = (InsertConflict(arg0->unk10) * 0x78) + &ConflictObject;
 //         temp_v1_2->unk14 = 0;
 //         temp_v1_2->unk18 = 0;
 //         temp_v1_2->unk16 = 0;

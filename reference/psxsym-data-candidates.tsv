@@ -1,0 +1,20 @@
+# Data symbols with only ONE witnessing function -- not adopted.
+# A single reference-alignment vote can come from a misaligned
+# instruction block; two independent functions rarely agree by
+# accident.  Re-run tools/datamatch.py --min-votes 1 to see them
+# in context, and confirm by reading the referencing function.
+#addr	current	candidate	storage	type
+80011004	D_80011004	gspOp6	EXT	struct GsSPRITE
+800975f4	D_800975F4	_padFuncNextPort	?	?
+80097600	D_80097600	_padFuncCurrLimit	?	?
+80098040	D_80098040	Packet	EXT	unsigned char [2][65536]
+800c6380	D_800C6380	GsDRAWENV	?	?
+800c6490	D_800C6490	GsCLIP3far	?	?
+800c64e0	D_800C64E0	GsWSMATRIX_ORG	?	?
+800c657c	D_800C657C	GsMATE_C	?	?
+800c66c0	D_800C66C0	SsFCALL	?	?
+800c7508	D_800C7508	_svm_sreg_dirty	?	?
+800c76f8	D_800C76F8	_svm_rattr	?	?
+800c7790	D_800C7790	_svm_damper	?	?
+800c77da	D_800C77DA	kMaxPrograms	?	?
+800c79c0	D_800C79C0	_spu_RQ	?	?

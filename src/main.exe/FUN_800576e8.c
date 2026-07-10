@@ -9,11 +9,11 @@
  * index (subtract 0x20, and an additional 0x40 for the upper half-width-kana
  * block >= 0xC0), and summing each character's width out of the per-glyph
  * table `D_8008EF98[]`. Short-circuits to a precomputed width
- * (`D_800C2D08.u1 - D_800C2D08.u0`, Ghidra's own field names for this
+ * (`TelopP.u1 - TelopP.u0`, Ghidra's own field names for this
  * struct — "TelopP" per its Ghidra symbol) whenever either half of that
  * pair is nonzero, i.e. whenever a telop is already active/queued.
  *
- * `D_800C2D08` (splat's auto name; Ghidra calls it TelopP, not yet a bound
+ * `TelopP` (splat's auto name; Ghidra calls it TelopP, not yet a bound
  * build symbol so left as the auto name here) only has these two u8 fields
  * proven — declared as a minimal stand-in reaching just offset 0x14, same
  * as AttackFire's dtM_type/dtR_type.
@@ -51,7 +51,7 @@ typedef struct
     u8 u1;  /* 0x14 */
 } TelopType;
 
-extern TelopType D_800C2D08;
+extern TelopType TelopP;
 extern u8 D_8008EF98[];
 
 s32 FUN_800576e8(u8 *param_1)
@@ -62,9 +62,9 @@ s32 FUN_800576e8(u8 *param_1)
     u8 *entry;
 
     iVar4 = 0;
-    if (D_800C2D08.u0 != 0 || D_800C2D08.u1 != 0)
+    if (TelopP.u0 != 0 || TelopP.u1 != 0)
     {
-        iVar4 = D_800C2D08.u1 - D_800C2D08.u0;
+        iVar4 = TelopP.u1 - TelopP.u0;
     }
     else if (*param_1 != 0)
     {

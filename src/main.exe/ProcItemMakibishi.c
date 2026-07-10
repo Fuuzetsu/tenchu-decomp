@@ -54,7 +54,7 @@ extern void MoveKorogari(tag_TItem *item, param_korogari *pp);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s16 InsertConflict(ModelType *m);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 
 void ProcItemMakibishi(tag_TItem *item)
 {
@@ -87,14 +87,14 @@ void ProcItemMakibishi(tag_TItem *item)
             item->mode = item->mode + one;
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
-            D_800BC108[n].offset.vx = 0;
-            D_800BC108[n].offset.vz = 0;
-            D_800BC108[n].offset.vy = 0;
-            D_800BC108[n].size.vz = 100;
-            D_800BC108[n].size.vy = 100;
-            D_800BC108[n].size.vx = 100;
-            D_800BC108[n].common = (void *)one;
-            D_800BC108[n].size.pad = one;
+            ConflictObject[n].offset.vx = 0;
+            ConflictObject[n].offset.vz = 0;
+            ConflictObject[n].offset.vy = 0;
+            ConflictObject[n].size.vz = 100;
+            ConflictObject[n].size.vy = 100;
+            ConflictObject[n].size.vx = 100;
+            ConflictObject[n].common = (void *)one;
+            ConflictObject[n].size.pad = one;
             item->coll_size = 100;
             item->coll_ofsY = 0;
             item->coll_mode = one;
@@ -123,7 +123,7 @@ void ProcItemMakibishi(tag_TItem *item)
             i = -1;
         else
             i = GetConflictResult(item->locate, -1);
-        if (i != -1 && is_character_state_present_on_stage_(D_800BC108[i].common) != 0)
+        if (i != -1 && is_character_state_present_on_stage_(ConflictObject[i].common) != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x14, 0xa, 0xf, 0x7f0000);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
@@ -261,7 +261,7 @@ void ProcItemMakibishi(tag_TItem *item)
 // ? UpdateCoordinate(void *);                         /* extern */
 // s32 is_character_state_present_on_stage_(s32);      /* extern */
 // extern ? D_800121CC;
-// extern ? D_800BC108;
+// extern ? ConflictObject;
 //
 // void ProcItemMakibishi(void *arg0) {
 //     s16 var_a0_2;
@@ -291,7 +291,7 @@ void ProcItemMakibishi(tag_TItem *item)
 //             if (temp_a1 == 4) {
 //                 arg0->unk54 = (u8) (arg0->unk54 + 1);
 //                 DeleteConflict(arg0->unk10, temp_a1);
-//                 temp_v1_2 = (InsertConflict(arg0->unk10) * 0x78) + &D_800BC108;
+//                 temp_v1_2 = (InsertConflict(arg0->unk10) * 0x78) + &ConflictObject;
 //                 temp_v1_2->unk14 = 0;
 //                 temp_v1_2->unk18 = 0;
 //                 temp_v1_2->unk16 = 0;
@@ -344,7 +344,7 @@ void ProcItemMakibishi(tag_TItem *item)
 //         } else {
 //             var_a0_2 = GetConflictResult(temp_a0, -1);
 //         }
-//         if ((var_a0_2 != -1) && (is_character_state_present_on_stage_(((var_a0_2 * 0x78) + &D_800BC108)->unk24) != 0)) {
+//         if ((var_a0_2 != -1) && (is_character_state_present_on_stage_(((var_a0_2 * 0x78) + &ConflictObject)->unk24) != 0)) {
 //             SetBleeds(arg0->unk10 + 0x18, 0, 0x14, 0xA, 0xF, 0x7F0000);
 //             SoundEx(arg0->unk10 + 0x18, 0x30);
 //             if (arg0->unkC != NULL) {

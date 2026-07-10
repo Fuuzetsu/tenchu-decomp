@@ -14,7 +14,7 @@ inherits the lesson.
 
 Run inside the nix devShell (uses findsimilar for the nearest examples).
 """
-import argparse, os, re, subprocess, sys
+import argparse, bisect, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -140,6 +140,48 @@ def family(name):
     return (None, None, None)
 
 
+def globals_touched(name):
+    """Globals this function references, typed from PSX.SYM.
+
+    Saves the agent from inventing a layout for `D_800BC108` when the original
+    source called it `struct ConflictObjectType ConflictObject[64]`.
+    """
+    hdr = "reference/psxsym-globals.h"
+    if not os.path.exists(hdr):
+        return []
+    sys.path.insert(0, "tools")
+    try:
+        import datamatch as D
+    except Exception:
+        return []
+    try:
+        addr, size = func(name)
+    except SystemExit:
+        return []
+    decl = {}
+    for line in open(hdr):
+        m = re.match(r"extern (.*);\s+/\* (0x[0-9a-f]+)", line)
+        if m:
+            decl[int(m.group(2), 16)] = m.group(1)
+    if not decl:
+        return []
+    exe = open("disks/tenchu/main.exe", "rb").read()
+    refs, _ = D.data_refs(exe[0x800:], 0x80011000, addr, size, D.RETAIL_GP, *D.RETAIL_TEXT)
+    starts = sorted(decl)
+    hits = []
+    for _, y in refs:
+        i = bisect.bisect_right(starts, y) - 1
+        if i >= 0 and y - starts[i] < 0x2000 and starts[i] not in hits:
+            hits.append(starts[i])
+    if not hits:
+        return []
+    out = ["- Globals it touches, with the original declaration (reference/"
+           "psxsym-globals.h) — use these instead of inventing a `D_` layout:"]
+    for a in hits[:12]:
+        out.append(f"    `extern {decl[a]};`  /* {a:#010x} */")
+    return out
+
+
 def psxsym_facts(name):
     """Original prototype / TU / storage class for `name`, from the demo's PSX.SYM
     (see docs/psx-sym.md).  These are the real names the authors used; a matching
@@ -163,6 +205,8 @@ def psxsym_facts(name):
                            f"reference/psxsym-tu-map.tsv are its TU-mates, which pins "
                            f"rodata pooling and %gp choices.")
                 break
+    for line in globals_touched(name):
+        out.append(line)
     cand = "reference/psxsym-candidates.tsv"
     if name.startswith("FUN_") and os.path.exists(cand):
         for line in open(cand):

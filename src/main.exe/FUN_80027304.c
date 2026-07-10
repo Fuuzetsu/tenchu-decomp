@@ -8,7 +8,7 @@
  * copy-two-of-three-fields shape as GetConflictResult's ConflictDistance)
  * when its id is a valid conflict-pool slot.
  * `Me_MOTION_C->model->object[0]` is the first sub-model of the current
- * character's active ModelArchiveType (item.h); its `id` indexes D_800BC108,
+ * character's active ModelArchiveType (item.h); its `id` indexes ConflictObject,
  * the same conflict pool typed in GetConflictResult.c. Array INDEXING (not
  * just a pointer's leading fields) needs the real element stride, so unlike
  * a DisposeBG-style truncated pad view, this local copy must keep the FULL
@@ -30,7 +30,7 @@ typedef struct
     u8 pad[0x10];                 /* 0x68 */
 } ConflictObjectType;             /* 0x78 */
 
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 extern VECTOR *dtL;
 extern Humanoid *Me_MOTION_C;
 
@@ -41,8 +41,8 @@ void FUN_80027304(void)
     id = (*Me_MOTION_C->model->object)->id;
     if (id >= 0)
     {
-        dtL->vx = D_800BC108[id].position.vx;
-        dtL->vz = D_800BC108[id].position.vz;
+        dtL->vx = ConflictObject[id].position.vx;
+        dtL->vz = ConflictObject[id].position.vz;
     }
 }
 
@@ -72,7 +72,7 @@ void FUN_80027304(void)
 // m2c (mipsel-gcc-c reference — cleaner control flow + register
 // temps straight from the asm; Ghidra above has the real types):
 //
-// extern ? D_800BC108;
+// extern ? ConflictObject;
 // extern void *Me_MOTION_C;
 // extern void *dtL;
 //
@@ -82,7 +82,7 @@ void FUN_80027304(void)
 //
 //     temp_a0 = (*Me_MOTION_C->unk58->unk68)->unk58;
 //     if (temp_a0 >= 0) {
-//         temp_v0 = (temp_a0 * 0x78) + &D_800BC108;
+//         temp_v0 = (temp_a0 * 0x78) + &ConflictObject;
 //         dtL->unk0 = (s32) temp_v0->unk4;
 //         dtL->unk8 = (s32) temp_v0->unkC;
 //     }

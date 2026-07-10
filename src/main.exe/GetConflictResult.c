@@ -3,7 +3,7 @@
 #include "item.h"
 
 /*
- * GetConflictResult (0x8001a9b8) — query the D_800BC108 conflict pool for a
+ * GetConflictResult (0x8001a9b8) — query the ConflictObject conflict pool for a
  * live collision against `model`. `model->id` is its own slot in the pool; the
  * slot's `result[]` array flags which other slots it currently overlaps. When
  * `index < 0` the function SCANS result[0..ConflictObjects) for the next flagged
@@ -75,7 +75,7 @@ typedef struct
 } ConflictObjectType;            /* 0x78 */
 
 /* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 extern s16 ConflictObjects;
 
 /* Output globals (Ghidra names, bound to correct addresses in config/symbols
@@ -109,14 +109,14 @@ short GetConflictResult(ModelType *model, short index)
     {
         for (index = 0; index < ConflictObjects; index++)
         {
-            if (D_800BC108[iVar3].result[index] != 0)
+            if (ConflictObject[iVar3].result[index] != 0)
             {
                 found++;
-                if (D_800BC108[iVar3].offset.pad < found)
+                if (ConflictObject[iVar3].offset.pad < found)
                 {
                     goto ret_m1;
                 }
-                if ((D_800BC108[iVar3].result[index] & 0x40) == 0)
+                if ((ConflictObject[iVar3].result[index] & 0x40) == 0)
                 {
                     break;
                 }
@@ -126,15 +126,15 @@ short GetConflictResult(ModelType *model, short index)
     k = index;
     if (k < ConflictObjects)
     {
-        if (D_800BC108[sVar1].result[k] != 0)
+        if (ConflictObject[sVar1].result[k] != 0)
         {
-            D_800BC108[sVar1].result[k] |= 0x40;
-            ConflictDistance.vx = (short)D_800BC108[k].position.vx - (short)D_800BC108[sVar1].position.vx;
-            ConflictModel = D_800BC108[k].model;
-            ConflictDistance.vy = (short)D_800BC108[k].position.vy - (short)D_800BC108[sVar1].position.vy;
+            ConflictObject[sVar1].result[k] |= 0x40;
+            ConflictDistance.vx = (short)ConflictObject[k].position.vx - (short)ConflictObject[sVar1].position.vx;
+            ConflictModel = ConflictObject[k].model;
+            ConflictDistance.vy = (short)ConflictObject[k].position.vy - (short)ConflictObject[sVar1].position.vy;
             do
             {
-                ConflictDistance.vz = (short)D_800BC108[k].position.vz - (short)D_800BC108[sVar1].position.vz;
+                ConflictDistance.vz = (short)ConflictObject[k].position.vz - (short)ConflictObject[sVar1].position.vz;
             } while (0);
             return index;
         }

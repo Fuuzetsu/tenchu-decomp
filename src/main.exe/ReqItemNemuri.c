@@ -49,7 +49,7 @@ extern void ProcItemNemuri(tag_TItem *item);
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model sprite (Ghidra/export name: sprSmoke); unlike the
  * D_8008E5BC[]-indexing twins this is a single global, not per-type. */
-extern Sprite3D *D_80097A68;
+extern Sprite3D *sprSmoke;
 
 int ReqItemNemuri(PARAM_ITEM_USE *p)
 {
@@ -100,7 +100,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = D_80097A68;
+    it->model = sprSmoke;
     *(s16 *)((u8 *)pp + 0) = p->end.vx;
     *(s16 *)((u8 *)pp + 2) = p->end.vy;
     *(s16 *)((u8 *)pp + 4) = p->end.vz;

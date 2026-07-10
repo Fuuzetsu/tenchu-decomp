@@ -1,0 +1,163 @@
+# Data symbols newly DEFINED in config/symbols.main.exe.txt.
+# datamatch     = reference alignment inside functions named on both sides
+#                 (tools/datamatch.py; 100% control precision on 105 addrs)
+# ghidra-export = already named in the Ghidra program for THIS binary but
+#                 never adopted, because import_symbols could only rename
+#                 existing entries, not define new ones.
+#addr	name	source	evidence	storage	type
+80010000	PersistentState	ghidra-export	same binary, address-keyed	?	?
+80012980	MusicTable	ghidra-export	same binary, address-keyed	?	?
+8005d010	DepthPoint	ghidra-export	same binary, address-keyed	?	?
+8005d014	SlightPoint	ghidra-export	same binary, address-keyed	?	?
+80060750	CdReset	ghidra-export	same binary, address-keyed	?	?
+800607dc	CdSetDebug	ghidra-export	same binary, address-keyed	?	?
+800607f0	CdComstr	ghidra-export	same binary, address-keyed	?	?
+80060824	CdIntstr	ghidra-export	same binary, address-keyed	?	?
+80062520	CD_set_test_parmnum	ghidra-export	same binary, address-keyed	?	?
+80064e14	GsGetActiveBuff	ghidra-export	same binary, address-keyed	?	?
+800650d4	GsInitCoord2param	ghidra-export	same binary, address-keyed	?	?
+8006512c	GsSetLightMatrix	ghidra-export	same binary, address-keyed	?	?
+80069384	GsA4divTNG4	ghidra-export	same binary, address-keyed	?	?
+8006a094	GsA4divTNF4	ghidra-export	same binary, address-keyed	?	?
+8006ac64	GsA4divNG4	ghidra-export	same binary, address-keyed	?	?
+8006b834	GsA4divNF4	ghidra-export	same binary, address-keyed	?	?
+8006c2c4	GsA4divTNG3	ghidra-export	same binary, address-keyed	?	?
+8006cd94	GsA4divNG3	ghidra-export	same binary, address-keyed	?	?
+8006d754	GsA4divTNF3	ghidra-export	same binary, address-keyed	?	?
+8006e124	GsA4divNF3	ghidra-export	same binary, address-keyed	?	?
+80071b44	note2pitch	ghidra-export	same binary, address-keyed	?	?
+80073154	SsVabOpenHeadSticky	ghidra-export	same binary, address-keyed	?	?
+80073188	SsVabFakeHead	ghidra-export	same binary, address-keyed	?	?
+800760d8	tolower	ghidra-export	same binary, address-keyed	?	?
+80078574	SetVertex0	ghidra-export	same binary, address-keyed	?	?
+80078584	SetVertex1	ghidra-export	same binary, address-keyed	?	?
+80078594	SetVertex2	ghidra-export	same binary, address-keyed	?	?
+800785a4	SetVertexTri	ghidra-export	same binary, address-keyed	?	?
+800785c4	SetRGBfifo	ghidra-export	same binary, address-keyed	?	?
+800785d8	SetIR123	ghidra-export	same binary, address-keyed	?	?
+800785ec	SetIR0	ghidra-export	same binary, address-keyed	?	?
+800785f8	SetSZfifo3	ghidra-export	same binary, address-keyed	?	?
+8007860c	SetSZfifo4	ghidra-export	same binary, address-keyed	?	?
+80078624	SetSXSYfifo	ghidra-export	same binary, address-keyed	?	?
+80078638	SetRii	ghidra-export	same binary, address-keyed	?	?
+8007864c	SetMAC123	ghidra-export	same binary, address-keyed	?	?
+80078660	SetData32	ghidra-export	same binary, address-keyed	?	?
+80078d44	GsTMDfastNF3	ghidra-export	same binary, address-keyed	?	?
+80078fc0	GsTMDfastF3L	ghidra-export	same binary, address-keyed	?	?
+80079108	GsTMDfastF3LFG	ghidra-export	same binary, address-keyed	?	?
+80079254	GsTMDfastNF4	ghidra-export	same binary, address-keyed	?	?
+800793bc	GsTMDfastF4NL	ghidra-export	same binary, address-keyed	?	?
+80079528	GsTMDfastF4L	ghidra-export	same binary, address-keyed	?	?
+80079824	GsTMDfastNG3	ghidra-export	same binary, address-keyed	?	?
+80079f54	GsTMDfastG4NL	ghidra-export	same binary, address-keyed	?	?
+8007a600	GsTMDfastTF3NL	ghidra-export	same binary, address-keyed	?	?
+8007abe4	GsTMDfastTF4NL	ghidra-export	same binary, address-keyed	?	?
+8007ad80	GsTMDfastTF4L	ghidra-export	same binary, address-keyed	?	?
+8007b25c	GsTMDfastTG3NL	ghidra-export	same binary, address-keyed	?	?
+8007b3b8	GsTMDfastTG3L	ghidra-export	same binary, address-keyed	?	?
+8007b56c	GsTMDfastTG3LFG	ghidra-export	same binary, address-keyed	?	?
+8007b724	GsTMDfastTNG4	ghidra-export	same binary, address-keyed	?	?
+8007b8e0	GsTMDfastTG4NL	ghidra-export	same binary, address-keyed	?	?
+8007ba78	GsTMDfastTG4L	ghidra-export	same binary, address-keyed	?	?
+8007cf9c	LoadClut	ghidra-export	same binary, address-keyed	?	?
+8007d154	SetDumpFnt	ghidra-export	same binary, address-keyed	?	?
+8007dda4	SetGraphQueue	ghidra-export	same binary, address-keyed	?	?
+8007de48	GetGraphDebug	ghidra-export	same binary, address-keyed	?	?
+8007de58	DrawSyncCallback	ghidra-export	same binary, address-keyed	?	?
+8007e164	ClearImage2	ghidra-export	same binary, address-keyed	?	?
+8007e374	ClearOTag	ghidra-export	same binary, address-keyed	?	?
+8007e674	DrawOTagEnv	ghidra-export	same binary, address-keyed	?	?
+8007ecac	GetODE	ghidra-export	same binary, address-keyed	?	?
+8007ecdc	SetTexWindow	ghidra-export	same binary, address-keyed	?	?
+8007ed14	SetDrawArea	ghidra-export	same binary, address-keyed	?	?
+8007ed94	SetDrawOffset	ghidra-export	same binary, address-keyed	?	?
+8007edd4	SetPriority	ghidra-export	same binary, address-keyed	?	?
+8007edfc	SetDrawStp	ghidra-export	same binary, address-keyed	?	?
+8007ee78	SetDrawEnv	ghidra-export	same binary, address-keyed	?	?
+80080950	MoveImage2	ghidra-export	same binary, address-keyed	?	?
+80080a94	DrawOTag2	ghidra-export	same binary, address-keyed	?	?
+80081564	MemCardReadData	ghidra-export	same binary, address-keyed	?	?
+80081758	MemCardWriteData	ghidra-export	same binary, address-keyed	?	?
+80081d8c	MemCardGetDirentry	ghidra-export	same binary, address-keyed	?	?
+8008256c	MemCardUnformat	ghidra-export	same binary, address-keyed	?	?
+80083394	SetInitPadFlag	ghidra-export	same binary, address-keyed	?	?
+800833b0	PAD_init	ghidra-export	same binary, address-keyed	?	?
+80083440	InitPAD	ghidra-export	same binary, address-keyed	?	?
+800834d0	StartPAD	ghidra-export	same binary, address-keyed	?	?
+80083500	StopPAD	ghidra-export	same binary, address-keyed	?	?
+80083a84	PadChkVsync	ghidra-export	same binary, address-keyed	?	?
+80083ae4	PadChkMtap	ghidra-export	same binary, address-keyed	?	?
+80083dbc	PadInfoComb	ghidra-export	same binary, address-keyed	?	?
+80083f34	PadEnableCom	ghidra-export	same binary, address-keyed	?	?
+80084c40	_padSetCmd	ghidra-export	same binary, address-keyed	?	?
+80086764	UnitVector2	ghidra-export	same binary, address-keyed	EXT	struct VECTOR
+80086774	RefrectVector	datamatch	VOTES4	EXT	short [16]
+80086794	RefrectMove	ghidra-export	same binary, address-keyed	EXT	short [16][2]
+800867d4	direction	ghidra-export	same binary, address-keyed	?	?
+8008686c	Command	datamatch	VOTES2	STAT	unsigned short *[12]
+80086b7c	searchsight	ghidra-export	same binary, address-keyed	?	?
+80086b94	MOTcommon	ghidra-export	same binary, address-keyed	EXT	struct MotionRegistType [41]
+80089aac	WeaponDB	datamatch	VOTES2	EXT	struct WeaponType [28]
+80089f20	pnt	ghidra-export	same binary, address-keyed	?	?
+80089fe0	pat	ghidra-export	same binary, address-keyed	?	?
+80089ff0	sprFrame	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE [4]
+8008dbec	WorldMap	ghidra-export	same binary, address-keyed	EXT	struct WorldType [8][8][8]
+8008e6cc	SpriteData	ghidra-export	same binary, address-keyed	EXT	struct MISC__185fake [2]
+8008e6dc	StageChar	ghidra-export	same binary, address-keyed	STAT	struct StageCharType [18]
+80097698	_gp	ghidra-export	same binary, address-keyed	?	?
+800976bc	time	ghidra-export	same binary, address-keyed	?	?
+800976c0	voice	ghidra-export	same binary, address-keyed	?	?
+800976c4	ReadMode	datamatch	VOTES4	STAT	int
+800976cc	MemoryLoadAddress	datamatch	VOTES2	EXT	unsigned long *
+800976fc	CommonMotion	ghidra-export	same binary, address-keyed	EXT	struct MotionPackType *
+80097704	StageMotion	ghidra-export	same binary, address-keyed	EXT	struct MotionPackType *
+80097710	MotionUpdateMode	ghidra-export	same binary, address-keyed	EXT	short
+800979bc	AttackActionCount	datamatch	VOTES4	EXT	long
+800979c4	StrainRatio	ghidra-export	same binary, address-keyed	EXT	long
+800979d8	Pad	ghidra-export	same binary, address-keyed	STAT	struct PADtype *
+80097a68	sprSmoke	ghidra-export	same binary, address-keyed	EXT	struct Sprite3D *
+80097ec4	FieldAttrib	datamatch	VOTES2	EXT	short
+80097ef8	dtCMD	datamatch	VOTES6	STAT	short
+80097efa	dtPAD	datamatch	VOTES12	STAT	short
+80097f04	dtV	datamatch	VOTES9	STAT	struct SVECTOR *
+800b8070	Fog	ghidra-export	same binary, address-keyed	EXT	struct GsFOGPARAM
+800b80a0	ZSortTable	ghidra-export	same binary, address-keyed	EXT	struct GsOT_TAG [2][2048]
+800bc0f8	cv	ghidra-export	same binary, address-keyed	?	?
+800bc108	ConflictObject	datamatch	VOTES21	EXT	struct ConflictObjectType [64]
+800be688	ComBuf	ghidra-export	same binary, address-keyed	STAT	unsigned char [2][34]
+800be750	map	ghidra-export	same binary, address-keyed	?	?
+800be908	dmy	ghidra-export	same binary, address-keyed	?	?
+800be958	sprBlood	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE
+800bea78	sprSplash	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE
+800beb68	sprBomb	ghidra-export	same binary, address-keyed	STAT	struct Sprite3D *[3]
+800beb78	plyBleed	datamatch	VOTES2	STAT	struct POLY_F4
+800bfb80	SpriteGoshikimai	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE
+800c07d8	NumberImage	datamatch	VOTES2	STAT	struct GsSPRITE
+800c0808	ItemSprite3Ds	ghidra-export	same binary, address-keyed	?	?
+800c0898	MapImage	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE
+800c2d08	TelopP	ghidra-export	same binary, address-keyed	STAT	struct POLY_FT4
+800c2d70	FileHandlePool	ghidra-export	same binary, address-keyed	?	?
+800c6368	PSDOFSX	datamatch	VOTES2	?	?
+800c636c	PSDOFSY	datamatch	VOTES2	?	?
+800c6370	PSDBASEX	datamatch	VOTES2	?	?
+800c6374	PSDBASEY	datamatch	VOTES2	?	?
+800c6378	POSITION	datamatch	VOTES3	?	?
+800c63e0	GsDISPENV	datamatch	VOTES2	?	?
+800c63f4	GsORGOFSX	datamatch	VOTES4	?	?
+800c63f6	GsORGOFSY	datamatch	VOTES4	?	?
+800c648c	VWD0	datamatch	VOTES4	?	?
+800c64a0	GsLIGHTWSMATRIX	datamatch	VOTES4	?	?
+800c64c0	_LC	datamatch	VOTES3	?	?
+800c6500	GsIDMATRIX	datamatch	VOTES2	?	?
+800c6540	GsIDMATRIX2	datamatch	VOTES2	?	?
+800c6564	GsLIOFF	datamatch	VOTES2	?	?
+800c6568	GsLMODE	datamatch	VOTES2	?	?
+800c656c	GsLIGNR	datamatch	VOTES2	?	?
+800c6578	GsOUT_PACKET_P	datamatch	VOTES26	?	?
+800c6590	GsFCALL4	ghidra-export	same binary, address-keyed	?	?
+800c6754	_snd_ev_flag	datamatch	VOTES3	?	?
+800c6ff0	_svm_onos1	datamatch	VOTES4	?	?
+800c6ff2	_svm_onos2	datamatch	VOTES4	?	?
+800c77dc	_svm_pg	datamatch	VOTES3	?	?
+800c77e4	_svm_vh	datamatch	VOTES4	?	?
+800dc000	MemoryPool	ghidra-export	same binary, address-keyed	?	?

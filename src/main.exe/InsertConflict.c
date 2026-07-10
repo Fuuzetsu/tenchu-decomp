@@ -3,12 +3,12 @@
 #include "item.h"
 
 /*
- * InsertConflict (0x8001a444) — append `model` to the D_800BC108 conflict pool
+ * InsertConflict (0x8001a444) — append `model` to the ConflictObject conflict pool
  * (the inverse of DeleteConflict.c; the pool is also filled by ProcItem* via
  * ProcItemMakibishi.c). If `model` is already registered (id != -1) its id is
  * returned unchanged. Otherwise a fresh slot is claimed: abort via SystemOut
  * if the pool is full (> 0x4f live), then store the model, zero `.common`,
- * copy the identity `.position` from UnitVector2 (D_80086764, a VECTOR) and
+ * copy the identity `.position` from UnitVector2 (UnitVector2, a VECTOR) and
  * `.offset`/`.size` from UnitVector (an SVECTOR), memset the result area, and
  * stamp the model's id (= new slot) and attribute (set bit 14, clear bit 15).
  *
@@ -29,7 +29,7 @@
  *  - `idx`/`id` are `int` so the short return is a plain move of an already-
  *    sign-extended value (no return sll/sra); the raw u16 `cnt` (its own reg)
  *    feeds `model->id = cnt` (sh) and `cnt + 1`.
- *  - `.position = D_80086764` is a 16-byte word-aligned VECTOR copy (4x lw/sw);
+ *  - `.position = UnitVector2` is a 16-byte word-aligned VECTOR copy (4x lw/sw);
  *    `.offset`/`.size = UnitVector` are align-2 SVECTOR copies (lwl/lwr+swl/swr).
  *    access.py --order proves every position word is a full `sw`.
  */
@@ -47,12 +47,12 @@ typedef struct
 } ConflictObjectType;            /* 0x78 */
 
 /* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 extern s16 ConflictObjects;
 
-/* Identity constants copied into a fresh slot. D_80086764 is Ghidra's
+/* Identity constants copied into a fresh slot. UnitVector2 is Ghidra's
  * UnitVector2 (the VECTOR position); UnitVector is the SVECTOR offset/size. */
-extern VECTOR D_80086764;
+extern VECTOR UnitVector2;
 extern SVECTOR UnitVector;
 
 extern char D_800111F8[];        /* "CONFLICT REGIST FAILURE" */
@@ -76,12 +76,12 @@ short InsertConflict(ModelType *model)
     cnt = ConflictObjects;
     ConflictObjects = cnt + 1;
     idx = (short)cnt;
-    D_800BC108[idx].model = model;
-    D_800BC108[idx].common = 0;
-    D_800BC108[idx].position = D_80086764;
-    D_800BC108[idx].offset = UnitVector;
-    D_800BC108[idx].size = UnitVector;
-    memset(D_800BC108[idx].result, 0, 0x50);
+    ConflictObject[idx].model = model;
+    ConflictObject[idx].common = 0;
+    ConflictObject[idx].position = UnitVector2;
+    ConflictObject[idx].offset = UnitVector;
+    ConflictObject[idx].size = UnitVector;
+    memset(ConflictObject[idx].result, 0, 0x50);
     model->id = cnt;
     model->attribute = (model->attribute | 0x4000) & 0x7fff;
     return idx;

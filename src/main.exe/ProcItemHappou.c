@@ -59,7 +59,7 @@ extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
-extern ConflictObjectType D_800BC108[];
+extern ConflictObjectType ConflictObject[];
 /* Ghidra/m2c call this D_80097F54; bound here under a fresh name via
  * config/symbols.main.exe.txt because the data.s-internal `glabel
  * D_80097F54` (and its neighbor D_80097F48, also referenced by
@@ -94,14 +94,14 @@ void ProcItemHappou(tag_TItem *item)
     {
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
-        D_800BC108[n].offset.vx = 0;
-        D_800BC108[n].offset.vz = 0;
-        D_800BC108[n].offset.vy = 0;
-        D_800BC108[n].size.vz = 300;
-        D_800BC108[n].size.vy = 300;
-        D_800BC108[n].size.vx = 300;
-        D_800BC108[n].common = (void *)1;
-        D_800BC108[n].size.pad = 1;
+        ConflictObject[n].offset.vx = 0;
+        ConflictObject[n].offset.vz = 0;
+        ConflictObject[n].offset.vy = 0;
+        ConflictObject[n].size.vz = 300;
+        ConflictObject[n].size.vy = 300;
+        ConflictObject[n].size.vx = 300;
+        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].size.pad = 1;
         item->coll_size = 300;
         item->coll_ofsY = 0;
         item->coll_mode = 1;
@@ -136,7 +136,7 @@ void ProcItemHappou(tag_TItem *item)
         i = -1;
     else
         i = GetConflictResult(item->locate, -1);
-    if (i != -1 && is_character_state_present_on_stage_(D_800BC108[i].common) != 0)
+    if (i != -1 && is_character_state_present_on_stage_(ConflictObject[i].common) != 0)
     {
         SetImpact((VECTOR *)item->locate->locate.coord.t, 0x4000, 2);
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
@@ -254,7 +254,7 @@ void ProcItemHappou(tag_TItem *item)
 // s32 is_character_state_present_on_stage_(s32);      /* extern */
 // extern ? D_800121CC;
 // extern void *HAPPOU_SCRATCH_MODEL;
-// extern ? D_800BC108;
+// extern ? ConflictObject;
 //
 // void ProcItemHappou(void *arg0) {
 //     ? (*temp_v0_2)(void *);
@@ -282,7 +282,7 @@ void ProcItemHappou(tag_TItem *item)
 //     temp_s1->unk30 = temp_v0;
 //     if (!(temp_v0 & 0xFF)) {
 //         DeleteConflict(arg0->unk10);
-//         temp_v1 = (InsertConflict(arg0->unk10) * 0x78) + &D_800BC108;
+//         temp_v1 = (InsertConflict(arg0->unk10) * 0x78) + &ConflictObject;
 //         temp_v1->unk14 = 0;
 //         temp_v1->unk18 = 0;
 //         temp_v1->unk16 = 0;
@@ -333,7 +333,7 @@ void ProcItemHappou(tag_TItem *item)
 //     } else {
 //         var_a0 = GetConflictResult(temp_a0_2, -1);
 //     }
-//     if ((var_a0 != -1) && (is_character_state_present_on_stage_(((var_a0 * 0x78) + &D_800BC108)->unk24) != 0)) {
+//     if ((var_a0 != -1) && (is_character_state_present_on_stage_(((var_a0 * 0x78) + &ConflictObject)->unk24) != 0)) {
 //         SetImpact(arg0->unk10 + 0x18, 0x4000, 2);
 //         SoundEx(arg0->unk10 + 0x18, 0x30);
 //         DeleteConflict(arg0->unk10);

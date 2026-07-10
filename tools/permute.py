@@ -37,7 +37,7 @@ GP_EXTERNS = {
     "Think1sleep": ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"],
     "ReqItemDrop": ["COUNTER_FOR_ITEM_ARRAY_"],
     "FUN_8004a42c": ["COUNTER_FOR_ITEM_ARRAY_"],
-    "GetAreaMapLevel": ["FieldIndex", "FieldArea", "D_80097EC0", "D_80097EC4"],
+    "GetAreaMapLevel": ["FieldIndex", "FieldArea", "D_80097EC0", "FieldAttrib"],
     "DoInfoViewProc": ["fInitialize", "CURRENTLY_SELECTED_ITEM_KIND_1_", "PutMapMode"],
     "BriefingAndInventorySelectionScreen": ["CARRY_30_ITEMS_CHEAT_APPLIED"],
     "LayoutEnemyOption": ["D_80097D44"],
@@ -82,7 +82,7 @@ GP_EXTERNS = {
     "update_something_for_each_visible_enemy_": ["VISIBLE_ENEMIES_"],
     "turn_towards_player_": ["Me_THINK_C", "Degree", "Attrib", "D_80097F10"],
     "Think1trace": ["Me_THINK_C", "Degree", "Attrib"],
-    "Think3chase": ["Distance", "SR", "EngageLevel", "D_800979BC", "Degree", "Me_THINK_C"],
+    "Think3chase": ["Distance", "SR", "EngageLevel", "AttackActionCount", "Degree", "Me_THINK_C"],
     "AttackFire": ["dtM", "Me_MOTION_C", "dtR"],
     "bow_shoot_logic": ["Me_MOTION_C", "dtR"],
     "Think1watch": ["Me_THINK_C"],
@@ -109,7 +109,7 @@ GP_EXTERNS = {
     "StickonCheck": ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"],
     "DeleteCard": ["D_80097D04"],
     "SetupAfterimage": ["D_80097F3C"],
-    "MotionAndMove": ["D_80097710", "Me_MOTION_C", "motID", "D_80097F0E"],
+    "MotionAndMove": ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

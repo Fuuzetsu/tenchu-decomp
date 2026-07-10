@@ -7,7 +7,7 @@
  * map units; the NodeIndexType table (FieldIndex caches the last hit, `map`
  * is the table base) is walked down/up to the row matching y10, then each
  * row entry's rect is tested and ComputeAreaLevel gives the height. The
- * result is cached in FieldArea/FieldIndex/D_80097EC4 (attribute) and
+ * result is cached in FieldArea/FieldIndex/FieldAttrib (attribute) and
  * D_80097EC0 (last y10). Returns level*10 (or the delta to y with flag&2),
  * 0x80000000 when nothing is below.
  *
@@ -79,7 +79,7 @@ typedef struct AreaDivisionType
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 extern long D_80097EC0; /* last queried y10 */
-extern u16 D_80097EC4;  /* attribute of the found area (FieldAttrib) */
+extern u16 FieldAttrib;  /* attribute of the found area (FieldAttrib) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
@@ -101,7 +101,7 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
 
     idx = FieldIndex;
     x = x / 10;
-    D_80097EC4 = 0x81;
+    FieldAttrib = 0x81;
     z = z / 10;
     y10 = y / 10;
     level = 0x80000000;
@@ -180,15 +180,15 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
                                     level = area->y;
                                 else
                                     level = ComputeAreaLevel(area, x, z);
-                                D_80097EC4 = FieldArea->attribute;
+                                FieldAttrib = FieldArea->attribute;
                                 goto next;
                             }
                             lv = ComputeAreaLevel(area, x, z);
                             if ((level == 0x80000000 || lv < level) && y10 <= lv)
                             {
-                                D_80097EC4 = FieldArea->attribute;
+                                FieldAttrib = FieldArea->attribute;
                                 level = lv;
-                                if (D_80097EC4 & 0x2000)
+                                if (FieldAttrib & 0x2000)
                                     goto next;
                             }
                         }
@@ -208,7 +208,7 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
         if (level == 0x80000000)
             goto ret_min;
     calc:
-        if (D_80097EC4 & 2)
+        if (FieldAttrib & 2)
             goto ret_min;
         level = level * 10;
         y10 = level - y;
