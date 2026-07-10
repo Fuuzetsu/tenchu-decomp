@@ -23,9 +23,20 @@ and `matcher-prompt.py` / `coverage.py` / `triage.py` / `findsimilar.py` /
 `xref.py` all die on `.shake/ghidra-export/functions.tsv`. wt-init.sh symlinks
 both from the primary worktree. It is idempotent.
 
+**Run the permuter SYNCHRONOUSLY and bounded — never as a background task you then
+wait on.** Always wrap it: `nix develop --command bash -c 'timeout 420 tools/permute.py <Name> -- --stop-on-zero -j4'`.
+It either finds a zero and prints it, or the timeout ends it and you move on. Do
+NOT spawn it in the background and end your turn "waiting for the permuter" — that
+has repeatedly stalled agents for no gain, and there is NO other agent and NO sub-agent
+involved: you are one matcher working alone in your own worktree. A bounded run that
+plateaus is a PARK signal, not a reason to wait. If the permuter prints an improved
+candidate, re-verify it with `tools/matchdiff.py` before believing it (its score
+ignores stack-slot placement).
+
 Never run `tools/permute.py` and `tools/matchdiff.py` at the same time: both drive
 `./Build` against the same `.shake/` database, and the torn read yields a garbled
-diff that appears to be a length mismatch in some *other* function.
+diff that appears to be a length mismatch in some *other* function. (This is why the
+permuter run above must FINISH — via zero or timeout — before you run matchdiff.)
 
 If you convert an `INCLUDE_ASM` stub to real C, run `tools/symcheck.py` afterwards.
 A missing `--gp-extern` entry silently relocates a whole data region -- the link
