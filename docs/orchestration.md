@@ -16,7 +16,7 @@ The split of responsibility:
 
 ## Resuming the hands-off flywheel (quick-start)
 
-**State (keep this line current):** ~168/555 game functions (~30%), ~12% of
+**State (keep this line current):** ~189/555 game functions (~34%), ~13% of
 game bytes, whole-image byte-identical (sha256 `0690a5c1…3558`). Live count:
 `nix develop --command tools/progress.py`.
 
@@ -162,6 +162,15 @@ Commit the `.c` + `config/splat.main.exe.yaml` + `shake/src/Build.hs` +
 `git worktree remove <path> --force && git branch -D <branch>`.
 
 ### Harvest gotchas (hit in the AI + CD batches)
+- **An agent's `INCLUDE_ASM`-free `.c` is NOT proof of a match.** An agent that
+  runs out of turn (e.g. parked on a background permuter and never reported) can
+  leave a *draft* with the stub already removed. Re-verify every file yourself:
+  the AFS batch's `AfsGetHeader` came back as pure C but was 61 bytes off, and
+  its own header comment described a fix it had never applied. Tell: per-function
+  `matchdiff` on the *other* functions says `window matches but the image does
+  not` — the image diff is coming from the unverified sibling. Always finish with
+  `./Build clean && ./Build check`, and read the header comments of anything an
+  interrupted agent touched.
 - **Trust the whole-image `./Build check` (sha), never per-function matchdiff
   alone.** matchdiff's window can be shorter than the function — `cd_open`
   reported "0 differing bytes" in its 64-byte window while 4 bytes differed

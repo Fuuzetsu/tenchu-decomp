@@ -1019,6 +1019,17 @@ plain C is the matched file.
     exact offset split. Two fresh computations off the untouched parameter
     (`f(adr + 1); g(adr + 3);`) put the value in a different register and compute
     both offsets fresh: a register swap plus an instruction-shape mismatch.
+- **A value computed into a source temp BEFORE an intervening store frees the
+  return register for an earlier expression.** In `AfsGetHeader` the target
+  builds `maxElements`'s shift/or chain in `$v0`, then `move $v0,zero` (the
+  `return 0`) lands *between* the two field stores, so the second chain
+  accumulates in `$v1`. Writing the two field assignments in plain source order
+  (`a = X; flag = 0; b = Y;`) makes cc1 materialize `$v0 = 0` ahead of the first
+  chain, pushing *its* accumulator to `$v1` and re-colouring both — a same-length,
+  instruction-for-instruction-identical, 61-byte miss. The fix is a named local:
+  `a = X; tmp = Y; flag = 0; b = tmp;`. The tell is loads for the *second*
+  expression scheduled before the intervening store, while its own store stays
+  after. (Related: N adjacent loads with no use between them are source temps.)
 - **A delay-slot instruction can be pulled BACKWARD across calls by reorg** —
   its position in Ghidra/the disassembly ("the statement right before this
   call") is not proof of its source position. When a manually-placed
@@ -1083,6 +1094,14 @@ plain C is the matched file.
   DUPLICATED inside both paths only cross-jumps when both copies' first
   insns are identical including registers
   (BriefingAndInventorySelectionScreen's entry).
+- **Write each switch case's call INLINE rather than funnelling its arguments
+  through one shared local into a single post-switch call.** The funnelled form
+  (`case X: s = STR_X; break; … f(s, …);`) forces a two-register hi/lo address
+  split — a temp for `%hi`, a different register for the `%lo`-completed pointer.
+  Writing `case X: f((T *)STR_X, …); break;` per case instead lets gcc's
+  cross-jump pass merge the identical call-tails into ONE physical copy *and*
+  lets each address materialize straight into the call's own argument register,
+  reproducing the target's single-register `$a0`-to-`$a0` shape (FUN_8004f6c0).
 - An identical dispose/cleanup sequence reached from two paths with a `j`
   into the middle of one copy is **the code written out twice** in source —
   GCC's cross-jump pass merges the common suffix (from the `jalr` backwards;
@@ -1222,6 +1241,13 @@ absolute → keep the symbol off the list (a plain small extern).
   first free caller-saved reg. Raw-constant casts give `lui+ori` (wrong), a
   pointer temp to a small extern still collapses to `la`
   (DebugMenuItemSet's smoke vector).
+  - **Counterexample — an 8-byte object is not automatically small in practice**:
+    an 8-byte struct consumed by a whole-struct assignment can still want the
+    non-small two-register hi/lo split. So don't reason from the size alone: if a
+    plain scalar extern yields one shared register but the target uses two
+    different ones, respell as an unknown-size array *even at exactly 8 bytes*
+    (DoBriefingAndInventorySelection's `extern RECT D_80097698[];`, indexed
+    `[0]` — 14 bytes off as a plain `extern RECT`).
 - **A callee-saved value dying at a call whose result lands in the SAME
   s-register is the call-result variable HOSTING the earlier load**:
   `h = pm->locate.coord.t[1]; gy = h; … h = GetAreaMapLevel(…, gy, …);` —
