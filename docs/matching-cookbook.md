@@ -476,6 +476,21 @@ plain C is the matched file.
   a fresh `li $a2,1` like the original (cse tables don't follow the taken
   edge).
 
+### `if (cond) A; else B;` makes A the fall-through and negates `cond`
+
+Independent of De Morgan. cc1 compiles `if (cond) A; else B;` as `if (!cond) goto B;`
+with `A` falling through. So when the target's own branch tests `cond` *directly* and
+branches away to the **trivial** body while the **complex** body falls through, the
+source had the bodies the other way round from what you would naturally write. Spell
+it `if (cond) goto trivial; <complex>; goto join; trivial: <trivial>; join:`.
+
+This also buys the reorg trick where one branch eagerly assigns in its delay slot and
+the other unconditionally overrides it on fall-through. Verified on `FUN_8003a2a8`'s
+`[0, 0x4e1]` clamp: `if (t < 0) goto zero; pri = 0x4e1; if (t < 0x4e2) pri = t;
+goto done; zero: pri = 0; done:` reproduces the target's `bltz` + eager `li` +
+overriding `move`, where the natural `if (t < 0) pri = 0; else { … }` compiled to
+`bgez` — same instructions, wrong polarity, and an extra misplaced jump.
+
 ### An `&&`-chain's body is always the fallthrough after the last test
 
 If the target has the *opposite* body as the fallthrough, no `goto` ladder and no
