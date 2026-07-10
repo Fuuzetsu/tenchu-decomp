@@ -1,0 +1,177 @@
+From 1f3736dc8c5d79d5c25c08a7e597fe6f58581cfb Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Sun, 5 Jul 2026 18:40:40 +1000
+Subject: [PATCH 07/13] Resolve byte-aligned bitfields to named struct fields
+
+Type.get_field() unconditionally refused to name any field on a struct
+with bitfield members, even for a byte-aligned split (e.g. a 24-bit +
+8-bit word) that compiles identically to plain sub-fields and has no
+ambiguity to worry about. Add
+StructDeclaration.byte_aligned_bitfields_containing_offset() and wire
+it into get_field() as a fallback when no ordinary field matches --
+only for bitfields whose bit_offset and width are both byte-aligned;
+a genuine sub-byte-packed bitfield still bails exactly as before.
+
+Confirmed via the PS1 GPU/OT-primitive P_TAG struct (addr:24, len:8):
+this unblocked m2c's ability to name the `len` field of ~20 sibling
+structs across a real decomp project (tenchu-decomp) that previously
+fell back to a synthesized `unkN` field.
+---
+ m2c/types.py             | 59 +++++++++++++++++++++++++++++++++----
+ tests/unit/test_types.py | 63 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 117 insertions(+), 5 deletions(-)
+ create mode 100644 tests/unit/test_types.py
+
+diff --git a/m2c/types.py b/m2c/types.py
+index a2a1a37..a5cd2b2 100644
+--- a/m2c/types.py
++++ b/m2c/types.py
+@@ -489,10 +489,19 @@ class Type:
+             # than one if the StructDeclaration is for a union.
+             possible_fields = data.struct.fields_containing_offset(offset)
+ 
+-            # We don't support bitfield access. If there isn't a field at the given offset,
+-            # it's better to bail early. We're likely recursively resolving a field, and
+-            # it's better for the caller to check for other fields (like in a union) than
+-            # to get a reference to a struct with bitfields.
++            # A byte-aligned bitfield (bit-offset and width both multiples of 8)
++            # compiles to a plain load/store, just like an ordinary field of that
++            # size -- so it can be named the same way. Try that before bailing.
++            if not possible_fields and data.struct.has_bitfields:
++                possible_fields = data.struct.byte_aligned_bitfields_containing_offset(
++                    offset
++                )
++
++            # We don't support sub-byte bitfield access. If there still isn't a field
++            # at the given offset, it's better to bail early. We're likely recursively
++            # resolving a field, and it's better for the caller to check for other
++            # fields (like in a union) than to get a reference to a struct with
++            # bitfields.
+             if not possible_fields and data.struct.has_bitfields:
+                 return self._no_matching_field()
+ 
+@@ -625,7 +634,11 @@ class Type:
+         if self.is_struct():
+             assert data.struct is not None
+             if data.struct.has_bitfields:
+-                # TODO: Support bitfields
++                # TODO: Support bitfields. Note this bails even for structs that
++                # are entirely byte-aligned bitfields (see `get_field`'s narrower
++                # exception): doing so here would mean merging `.fields` and
++                # `.bitfields` into one offset-ordered walk, which is more
++                # invasive than this initializer-list feature warrants.
+                 return None
+ 
+             output: List[Union[int, Type]] = []
+@@ -1351,6 +1364,42 @@ class StructDeclaration:
+             fields.append(field)
+         return fields
+ 
++    def byte_aligned_bitfields_containing_offset(self, offset: int) -> List[StructField]:
++        """
++        Return synthetic StructFields for bitfields containing the given offset
++        (in bytes) that are "byte-aligned": both their bit-offset and width are
++        multiples of 8. Such a bitfield is emitted by the compiler as a plain
++        byte/halfword/word load-or-store, indistinguishable from an ordinary
++        field of that size, so it can be resolved and named like one.
++
++        Sub-byte-packed bitfields (the common case, e.g. `a:3` sharing a byte
++        with `b:5`) are never returned here; callers should keep bailing out
++        for those, as before.
++        """
++        fields = []
++        for bf in self.bitfields:
++            if bf.bit_offset % 8 != 0 or bf.bit_width % 8 != 0:
++                continue
++            field_offset = bf.bit_offset // 8
++            field_size = bf.bit_width // 8
++            if field_size == 1:
++                field_type = Type.u8()
++            elif field_size == 2:
++                field_type = Type.u16()
++            elif field_size == 4:
++                field_type = Type.u32()
++            else:
++                # Not a size m2c has a primitive integer type for (e.g. a
++                # byte-aligned 24-bit field); can't be named as a plain field.
++                continue
++            if field_offset <= offset < field_offset + field_size:
++                fields.append(
++                    self.StructField(
++                        type=field_type, offset=field_offset, name=bf.name, known=True
++                    )
++                )
++        return fields
++
+     def try_add_field(
+         self, type: Type, offset: int, name: str, size: Optional[int]
+     ) -> Optional[StructField]:
+diff --git a/tests/unit/test_types.py b/tests/unit/test_types.py
+new file mode 100644
+index 0000000..63c6212
+--- /dev/null
++++ b/tests/unit/test_types.py
+@@ -0,0 +1,63 @@
++import unittest
++
++from m2c.types import StructDeclaration, Type
++
++
++def _bitfield_struct(
++    bitfields: "list[StructDeclaration.BitField]", size: int = 4
++) -> StructDeclaration:
++    return StructDeclaration(
++        size=size,
++        align=size,
++        new_field_prefix="unk",
++        tag_name="TEST",
++        fields=[],
++        bitfields=bitfields,
++        has_bitfields=True,
++    )
++
++
++class TestGetFieldBitfields(unittest.TestCase):
++    def test_byte_aligned_bitfield_resolves_to_named_field(self) -> None:
++        """
++        Mirrors PSX's P_TAG: `u32 addr:24; u32 len:8;`. Both the bit-offset (24)
++        and width (8) of `len` are multiples of 8, so it compiles to a plain
++        byte load/store just like an ordinary `u8 len` field would, and m2c
++        should be able to name it.
++        """
++        struct = _bitfield_struct(
++            [
++                StructDeclaration.BitField(bit_offset=0, bit_width=24, name="addr"),
++                StructDeclaration.BitField(bit_offset=24, bit_width=8, name="len"),
++            ]
++        )
++        typ = Type.struct(struct)
++
++        path, field_type, remaining_offset = typ.get_field(3, target_size=1)
++
++        self.assertEqual(path, ["len"])
++        self.assertEqual(remaining_offset, 0)
++        self.assertEqual(field_type.get_size_bytes(), 1)
++
++    def test_sub_byte_bitfield_still_bails(self) -> None:
++        """
++        `unsigned a:3; unsigned b:5;` packs two fields into a single byte with
++        no byte-aligned boundary between them. This must keep bailing to
++        `_no_matching_field()`, exactly as before this change.
++        """
++        struct = _bitfield_struct(
++            [
++                StructDeclaration.BitField(bit_offset=0, bit_width=3, name="a"),
++                StructDeclaration.BitField(bit_offset=3, bit_width=5, name="b"),
++            ]
++        )
++        typ = Type.struct(struct)
++
++        path, field_type, remaining_offset = typ.get_field(0, target_size=1)
++
++        self.assertIsNone(path)
++        self.assertEqual(remaining_offset, 0)
++
++
++if __name__ == "__main__":
++    unittest.main()

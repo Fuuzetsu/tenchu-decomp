@@ -1,0 +1,146 @@
+From 5962ac9ab11536e391e6a3a96b9944a57e6b9092 Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Thu, 9 Jul 2026 12:20:23 +1000
+Subject: [PATCH 11/13] Handle bltzal/bgezal (branch-and-link) and
+ bc0f/bc0t/bc2f/bc2t (coprocessor branch-on-flag)
+
+---
+ m2c/arch_mips.py                              | 21 ++++++++++++++++---
+ tests/end_to_end/psx-branch-link/test-out.c   |  8 +++++++
+ tests/end_to_end/psx-branch-link/test.s       |  9 ++++++++
+ .../end_to_end/psx-cop-branch-flag/test-out.c | 14 +++++++++++++
+ tests/end_to_end/psx-cop-branch-flag/test.s   | 15 +++++++++++++
+ 5 files changed, 64 insertions(+), 3 deletions(-)
+ create mode 100644 tests/end_to_end/psx-branch-link/test-out.c
+ create mode 100644 tests/end_to_end/psx-branch-link/test.s
+ create mode 100644 tests/end_to_end/psx-cop-branch-flag/test-out.c
+ create mode 100644 tests/end_to_end/psx-cop-branch-flag/test.s
+
+diff --git a/m2c/arch_mips.py b/m2c/arch_mips.py
+index 889c94e..43fd6a2 100644
+--- a/m2c/arch_mips.py
++++ b/m2c/arch_mips.py
+@@ -1100,8 +1100,14 @@ class MipsArch(Arch):
+             "bgtz",
+             "blez",
+             "bltz",
++            "bltzal",
++            "bgezal",
+             "bc1t",
+             "bc1f",
++            "bc0t",
++            "bc0f",
++            "bc2t",
++            "bc2f",
+         ):
+             # Normal branch
+             if mnemonic in ("beq", "bne"):
+@@ -1111,7 +1117,7 @@ class MipsArch(Arch):
+                     and isinstance(args[1], Register)
+                 )
+                 inputs = [args[0], args[1]]
+-            elif mnemonic in ("bc1t", "bc1f"):
++            elif mnemonic in ("bc1t", "bc1f", "bc0t", "bc0f", "bc2t", "bc2f"):
+                 assert len(args) == 1
+                 inputs = [Register("condition_bit")]
+             else:
+@@ -1120,11 +1126,15 @@ class MipsArch(Arch):
+             jump_target = get_jump_target(args[-1])
+             has_delay_slot = True
+             is_conditional = True
++            # bltzal/bgezal always place the return address in $ra, whether or
++            # not the branch is taken (confirmed: psx-spx CPU Jump Opcodes).
++            if mnemonic in ("bltzal", "bgezal"):
++                outputs = [Register("ra")]
+ 
+             def eval_fn(s: NodeState, a: InstrArgs) -> None:
+-                if mnemonic in ("bc1t", "bc1f"):
++                if mnemonic in ("bc1t", "bc1f", "bc0t", "bc0f", "bc2t", "bc2f"):
+                     cond = condition_from_expr(a.regs[Register("condition_bit")])
+-                    if mnemonic == "bc1f":
++                    if mnemonic in ("bc1f", "bc0f", "bc2f"):
+                         cond = cond.negated()
+                 else:
+                     cond = cls.instrs_branches[mnemonic](a)
+@@ -1420,6 +1430,11 @@ class MipsArch(Arch):
+         "bgtz": lambda a: BinaryOp.scmp(a.reg(0), ">", Literal(0)),
+         "bltz": lambda a: handle_bgez(a).negated(),
+         "bgez": lambda a: handle_bgez(a),
++        # Same branch condition as bltz/bgez; the "and-link" part (always
++        # setting $ra) is handled by the outputs=[Register("ra")] special
++        # case in the branch-dispatch block above, not here.
++        "bltzal": lambda a: handle_bgez(a).negated(),
++        "bgezal": lambda a: handle_bgez(a),
+     }
+     instrs_no_dest: StmtInstrMap = {
+         # Conditional traps (happen with Pascal code sometimes, might as well give a nicer
+diff --git a/tests/end_to_end/psx-branch-link/test-out.c b/tests/end_to_end/psx-branch-link/test-out.c
+new file mode 100644
+index 0000000..2d21f68
+--- /dev/null
++++ b/tests/end_to_end/psx-branch-link/test-out.c
+@@ -0,0 +1,8 @@
++void test(s32 arg0, s32 arg1) {
++    if (arg0 >= 0) {
++
++    }
++    if (arg1 < 0) {
++
++    }
++}
+diff --git a/tests/end_to_end/psx-branch-link/test.s b/tests/end_to_end/psx-branch-link/test.s
+new file mode 100644
+index 0000000..e90824a
+--- /dev/null
++++ b/tests/end_to_end/psx-branch-link/test.s
+@@ -0,0 +1,9 @@
++glabel test
++bltzal $a0, .L1
++nop
++.L1:
++bgezal $a1, .L2
++nop
++.L2:
++jr $ra
++nop
+diff --git a/tests/end_to_end/psx-cop-branch-flag/test-out.c b/tests/end_to_end/psx-cop-branch-flag/test-out.c
+new file mode 100644
+index 0000000..7437a74
+--- /dev/null
++++ b/tests/end_to_end/psx-cop-branch-flag/test-out.c
+@@ -0,0 +1,14 @@
++void test(void) {
++    if (M2C_ERROR(/* Read from unset register $condition_bit */)) {
++
++    }
++    if (M2C_ERROR(/* Read from unset register $condition_bit */)) {
++
++    }
++    if (M2C_ERROR(/* Read from unset register $condition_bit */)) {
++
++    }
++    if (M2C_ERROR(/* Read from unset register $condition_bit */)) {
++
++    }
++}
+diff --git a/tests/end_to_end/psx-cop-branch-flag/test.s b/tests/end_to_end/psx-cop-branch-flag/test.s
+new file mode 100644
+index 0000000..d4f9384
+--- /dev/null
++++ b/tests/end_to_end/psx-cop-branch-flag/test.s
+@@ -0,0 +1,15 @@
++glabel test
++bc0t .L1
++nop
++.L1:
++bc0f .L2
++nop
++.L2:
++bc2t .L3
++nop
++.L3:
++bc2f .L4
++nop
++.L4:
++jr $ra
++nop

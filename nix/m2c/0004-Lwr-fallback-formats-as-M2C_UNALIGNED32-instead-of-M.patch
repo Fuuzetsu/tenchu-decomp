@@ -1,0 +1,28 @@
+From 8fba4fffc752f2f01ba0afd54a9d484a101c26fd Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Wed, 29 Apr 2026 18:59:10 +1000
+Subject: [PATCH 04/13] Lwr fallback formats as M2C_UNALIGNED32 instead of
+ M2C_LWR
+
+When a lwr has no matching lwl (e.g. function label placed mid-function
+by the disassembler), the Lwr marker was leaking into the output as
+M2C_LWR(...). It now formats consistently with a matched lwr+lwl pair.
+---
+ m2c/translate.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/m2c/translate.py b/m2c/translate.py
+index 36ea739..a600de9 100644
+--- a/m2c/translate.py
++++ b/m2c/translate.py
+@@ -1792,7 +1792,9 @@ class Lwr(Expression):
+         return [self.load_expr]
+ 
+     def format(self, fmt: Formatter) -> str:
+-        return f"M2C_LWR({self.load_expr.format(fmt)})"
++        if fmt.valid_syntax:
++            return f"M2C_UNALIGNED32({self.load_expr.format(fmt)})"
++        return f"(unaligned s32) {self.load_expr.format(fmt)}"
+ 
+ 
+ @dataclass(frozen=True)

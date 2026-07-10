@@ -1,0 +1,111 @@
+From f06faac87327e7b17715f87d3c0ab0ab2f5ae8f4 Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Wed, 29 Apr 2026 21:32:41 +1000
+Subject: [PATCH 05/13] Add --input-regs flag to mark registers as defined at
+ function entry
+
+Allows callers to specify registers (e.g. v0,v1) that should be treated
+as having a defined value at function entry, for non-standard calling
+conventions. The register is given an opaque GlobalSymbol (input_<name>)
+rather than a PassedInArg, so it does not affect the function's inferred
+ABI or architecture defaults.
+
+Motivated by PSY-Q GCC's shared exit-block pattern where the compiler
+places a common epilogue at the exported symbol address and the real
+function body at a higher address. In that pattern registers like $v0
+flow into the join point as implicit inputs, causing m2c to emit
+M2C_ERROR("Read from unset register"). Passing --input-regs v0 suppresses
+the error without touching MipsPsxArch or any arch-level defaults.
+---
+ m2c/main.py      |  9 +++++++++
+ m2c/options.py   |  1 +
+ m2c/translate.py | 16 ++++++++++++++--
+ 3 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/m2c/main.py b/m2c/main.py
+index e4c056b..f8c27ee 100644
+--- a/m2c/main.py
++++ b/m2c/main.py
+@@ -644,6 +644,13 @@ def parse_flags(flags: List[str]) -> Options:
+         help="Use single variables instead of temps/phis for the given "
+         "registers (comma separated)",
+     )
++    group.add_argument(
++        "--input-regs",
++        metavar="REGISTERS",
++        dest="input_regs",
++        help="Mark registers as defined at function entry, for non-standard "
++        "calling conventions (comma separated, e.g. v0,v1)",
++    )
+     group.add_argument(
+         "--goto",
+         metavar="PATTERN",
+@@ -680,6 +687,7 @@ def parse_flags(flags: List[str]) -> Options:
+ 
+     args = parser.parse_args(flags)
+     reg_vars = args.reg_vars.split(",") if args.reg_vars else []
++    input_regs = args.input_regs.split(",") if args.input_regs else []
+     preproc_defines: Dict[str, Optional[int]] = {d: None for d in args.undefined}
+     for d in args.defined:
+         parts = d.split("=", 1)
+@@ -738,6 +746,7 @@ def parse_flags(flags: List[str]) -> Options:
+         force_decimal=args.force_decimal,
+         heuristic_strings=args.heuristic_strings,
+         reg_vars=reg_vars,
++        input_regs=input_regs,
+         goto_patterns=args.goto_patterns,
+         stop_on_error=args.stop_on_error,
+         print_assembly=args.print_assembly,
+diff --git a/m2c/options.py b/m2c/options.py
+index 5cfe61a..0171bf8 100644
+--- a/m2c/options.py
++++ b/m2c/options.py
+@@ -164,6 +164,7 @@ class Options:
+     force_decimal: bool
+     heuristic_strings: bool
+     reg_vars: List[str]
++    input_regs: List[str]
+     goto_patterns: List[str]
+     stop_on_error: bool
+     print_assembly: bool
+diff --git a/m2c/translate.py b/m2c/translate.py
+index a600de9..f98e6f1 100644
+--- a/m2c/translate.py
++++ b/m2c/translate.py
+@@ -4707,7 +4707,9 @@ def setup_reg_vars(stack_info: StackInfo, options: Options) -> None:
+         stack_info.add_register_var(reg, reg_name)
+ 
+ 
+-def setup_initial_registers(state: NodeState, fn_sig: FunctionSignature) -> None:
++def setup_initial_registers(
++    state: NodeState, fn_sig: FunctionSignature, options: Options
++) -> None:
+     """Set up initial register contents for translation."""
+     stack_info = state.stack_info
+     arch = stack_info.global_info.arch
+@@ -4748,6 +4750,16 @@ def setup_initial_registers(state: NodeState, fn_sig: FunctionSignature) -> None
+                 RegMeta(uninteresting=True, initial=True),
+             )
+ 
++    for reg_name in options.input_regs:
++        reg = Register(reg_name)
++        sym_name = f"input_{reg_name}"
++        type = stack_info.unique_type_for("input_reg", sym_name, Type.any_reg())
++        state.set_initial_reg(
++            reg,
++            GlobalSymbol(sym_name, type=type),
++            RegMeta(initial=True),
++        )
++
+ 
+ def translate_to_ast(
+     function: Function,
+@@ -4780,7 +4792,7 @@ def translate_to_ast(
+     assert fn_sig is not None, "fn_type is known to be a function"
+     stack_info.is_variadic = fn_sig.is_variadic
+ 
+-    setup_initial_registers(state, fn_sig)
++    setup_initial_registers(state, fn_sig, options)
+ 
+     if options.debug:
+         print(stack_info)

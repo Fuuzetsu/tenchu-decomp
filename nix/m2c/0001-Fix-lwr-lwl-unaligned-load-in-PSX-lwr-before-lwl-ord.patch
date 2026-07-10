@@ -1,0 +1,181 @@
+From e43ef329561b8d0d809d1ad283a7ee4fa473ed1f Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Wed, 29 Apr 2026 17:46:46 +1000
+Subject: [PATCH 01/13] Fix lwr/lwl unaligned load in PSX (lwr-before-lwl)
+ order
+
+PSX GCC emits unaligned 32-bit loads as lwr/lwl pairs where the
+relative offset ordering can go either way:
+  - lwl $dst, N+3($base) then lwr $dst, N($base)  [lwl-before-lwr]
+  - lwr $dst, N($base)   then lwl $dst, N+3($base) [lwr-before-lwl]
+
+The existing code handled lwl-before-lwr only via a signed delta check
+that fails when the offsets are reversed relative to the expected endian
+convention.
+
+Add a `Lwr` marker class symmetric to `Lwl`: when handle_lwr finds no
+matching Lwl in the register, it stores Lwr as a temporary marker.
+handle_lwl then detects the marker (via get_raw to bypass the inputs
+check) and emits UnalignedLoad.
+
+Also handle the case where lwl-before-lwr appears with reversed offsets
+(lwl at N+3, lwr at N in BE mode) by checking both delta signs in
+handle_lwr.
+
+Add end-to-end test for the lwr-before-lwl pattern.
+---
+ m2c/evaluate.py                               | 37 +++++++++++++++++--
+ m2c/translate.py                              | 16 ++++++++
+ tests/end_to_end/psx-unaligned-load/orig.c    |  9 +++++
+ .../psx-unaligned-load/psyq-o2-flags.txt      |  1 +
+ .../psx-unaligned-load/psyq-o2-out.c          |  3 ++
+ tests/end_to_end/psx-unaligned-load/psyq-o2.s |  9 +++++
+ 6 files changed, 71 insertions(+), 4 deletions(-)
+ create mode 100644 tests/end_to_end/psx-unaligned-load/orig.c
+ create mode 100644 tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt
+ create mode 100644 tests/end_to_end/psx-unaligned-load/psyq-o2-out.c
+ create mode 100644 tests/end_to_end/psx-unaligned-load/psyq-o2.s
+
+diff --git a/m2c/evaluate.py b/m2c/evaluate.py
+index b4b0d8c..5c0d0fa 100644
+--- a/m2c/evaluate.py
++++ b/m2c/evaluate.py
+@@ -39,6 +39,7 @@ from .translate import (
+     Load3Bytes,
+     LocalVar,
+     Lwl,
++    Lwr,
+     NodeState,
+     RawSymbolRef,
+     RegExpression,
+@@ -542,10 +543,21 @@ def deref_unaligned(
+ 
+ 
+ def handle_lwl(args: InstrArgs) -> Expression:
+-    # Unaligned load for the left part of a register (lwl can technically merge with
+-    # a pre-existing lwr, but doesn't in practice, so we treat this as a standard
+-    # destination-first operation)
++    # Unaligned load for the left part of a register. If lwr ran first and stored a
++    # Lwr marker (lwr-before-lwl pattern), detect it here and emit UnalignedLoad.
++    # We use get_raw() to bypass the inputs check since lwl doesn't declare its
++    # destination as an input, but we need to read the Lwr marker left by lwr.
+     ref = args.memory_ref(1)
++    raw_old = args.regs.get_raw(args.reg_ref(0))
++    if raw_old is not None:
++        uw_old_value = early_unwrap(raw_old)
++        lwr_key: Tuple[int, object]
++        if isinstance(ref, AddressMode):
++            lwr_key = (ref.offset - 3, args.regs[ref.base])
++        else:
++            lwr_key = (ref.offset - 3, ref.sym)
++        if isinstance(uw_old_value, Lwr) and uw_old_value.key[0] == lwr_key[0]:
++            return UnalignedLoad(uw_old_value.load_expr)
+     expr = deref_unaligned(ref, args.regs, args.stack_info)
+     key: Tuple[int, object]
+     if isinstance(ref, AddressMode):
+@@ -572,6 +584,16 @@ def handle_lwr(args: InstrArgs) -> Expression:
+         else:
+             load_expr = deref_unaligned(ref, args.regs, args.stack_info)
+         return UnalignedLoad(load_expr)
++    # Also check the reversed-delta pair (lwl at N+3 before lwr at N, PSX/GCC style).
++    # In BE mode delta=-3 fails for this pattern, so try delta=+3 as well.
++    reversed_lwl_key: Tuple[int, object]
++    if isinstance(ref, AddressMode):
++        reversed_lwl_key = (ref.offset - delta, args.regs[ref.base])
++    else:
++        reversed_lwl_key = (ref.offset - delta, ref.sym)
++    if isinstance(uw_old_value, Lwl) and uw_old_value.key[0] == reversed_lwl_key[0]:
++        load_expr = deref_unaligned(ref, args.regs, args.stack_info)
++        return UnalignedLoad(load_expr)
+     # IDO may copy 3 bytes between 4-byte-aligned addresses using lwr+swr, e.g. for
+     # the purpose of array initializers. Little endian can use lwl+swl instead,
+     # but other compilers don't seem to emit this pattern so we don't handle that
+@@ -580,7 +602,14 @@ def handle_lwr(args: InstrArgs) -> Expression:
+         left_mem_ref = replace(ref, offset=ref.offset - 2)
+         load_expr = deref_unaligned(left_mem_ref, args.regs, args.stack_info)
+         return Load3Bytes(load_expr)
+-    return ErrorExpr("Unable to handle lwr; missing a corresponding lwl")
++    # lwr runs before its paired lwl (lwr-before-lwl pattern). Store a Lwr marker so
++    # handle_lwl can detect the pair and emit UnalignedLoad when it runs.
++    lwr_key: Tuple[int, object]
++    if isinstance(ref, AddressMode):
++        lwr_key = (ref.offset, args.regs[ref.base])
++    else:
++        lwr_key = (ref.offset, ref.sym)
++    return Lwr(deref_unaligned(ref, args.regs, args.stack_info), lwr_key)
+ 
+ 
+ def make_store(args: InstrArgs, type: Type) -> Optional[StoreStmt]:
+diff --git a/m2c/translate.py b/m2c/translate.py
+index bc78da6..36ea739 100644
+--- a/m2c/translate.py
++++ b/m2c/translate.py
+@@ -1779,6 +1779,22 @@ class Lwl(Expression):
+         return f"M2C_LWL({self.load_expr.format(fmt)})"
+ 
+ 
++@dataclass(frozen=True)
++class Lwr(Expression):
++    """Temporary marker stored in a register by lwr in little-endian mode.
++    Consumed by the subsequent lwl to emit UnalignedLoad."""
++
++    load_expr: Expression
++    key: Tuple[int, object]
++    type: Type = field(compare=False, default_factory=Type.any_reg)
++
++    def dependencies(self) -> List[Expression]:
++        return [self.load_expr]
++
++    def format(self, fmt: Formatter) -> str:
++        return f"M2C_LWR({self.load_expr.format(fmt)})"
++
++
+ @dataclass(frozen=True)
+ class Load3Bytes(Expression):
+     load_expr: Expression
+diff --git a/tests/end_to_end/psx-unaligned-load/orig.c b/tests/end_to_end/psx-unaligned-load/orig.c
+new file mode 100644
+index 0000000..38380e9
+--- /dev/null
++++ b/tests/end_to_end/psx-unaligned-load/orig.c
+@@ -0,0 +1,9 @@
++/* PSX little-endian unaligned 32-bit load (lwr before lwl) */
++typedef struct {
++    char pad;       /* offset 0 */
++    int  value;     /* offset 1 — unaligned */
++} UnalignedStruct;
++
++int get_value(UnalignedStruct *s) {
++    return s->value;
++}
+diff --git a/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt b/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt
+new file mode 100644
+index 0000000..f12d30e
+--- /dev/null
++++ b/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt
+@@ -0,0 +1 @@
++-t mips-gcc-c
+diff --git a/tests/end_to_end/psx-unaligned-load/psyq-o2-out.c b/tests/end_to_end/psx-unaligned-load/psyq-o2-out.c
+new file mode 100644
+index 0000000..c25530a
+--- /dev/null
++++ b/tests/end_to_end/psx-unaligned-load/psyq-o2-out.c
+@@ -0,0 +1,3 @@
++s32 test(void *arg0) {
++    return (unaligned s32) arg0->unk1;
++}
+diff --git a/tests/end_to_end/psx-unaligned-load/psyq-o2.s b/tests/end_to_end/psx-unaligned-load/psyq-o2.s
+new file mode 100644
+index 0000000..1a78ccd
+--- /dev/null
++++ b/tests/end_to_end/psx-unaligned-load/psyq-o2.s
+@@ -0,0 +1,9 @@
++.set noat
++.set noreorder
++
++glabel test
++    /* lwr before lwl — PSX LE unaligned load pattern */
++    lwr  $v0, 1($a0)
++    lwl  $v0, 4($a0)
++    jr   $ra
++     nop

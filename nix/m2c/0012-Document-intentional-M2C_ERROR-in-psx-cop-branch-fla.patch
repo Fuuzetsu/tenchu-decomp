@@ -1,0 +1,34 @@
+From 05beaec3d544ebb977b4f5e1173cea4eba2a8e6b Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Thu, 9 Jul 2026 12:33:18 +1000
+Subject: [PATCH 12/13] Document intentional M2C_ERROR in psx-cop-branch-flag
+ test snapshot
+
+Per final whole-branch review: the unset-condition_bit marker in
+test-out.c is accepted low-fidelity output, not a regression -- a
+future grep for M2C_ERROR should not treat this test as still-broken.
+---
+ tests/end_to_end/psx-cop-branch-flag/NOTES.md | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 tests/end_to_end/psx-cop-branch-flag/NOTES.md
+
+diff --git a/tests/end_to_end/psx-cop-branch-flag/NOTES.md b/tests/end_to_end/psx-cop-branch-flag/NOTES.md
+new file mode 100644
+index 0000000..fa6394e
+--- /dev/null
++++ b/tests/end_to_end/psx-cop-branch-flag/NOTES.md
+@@ -0,0 +1,14 @@
++The `M2C_ERROR(/* Read from unset register $condition_bit */)` markers in
++`test-out.c` are the **intended, accepted** output for this test, not a
++regression or an open defect.
++
++`bc0f`/`bc0t`/`bc2f`/`bc2t` branch on a coprocessor condition flag that only
++COP1's compare instructions ever set in this codebase — nothing writes
++`$condition_bit` for COP0 or COP2/GTE, so the condition's *source* is
++genuinely unknown. What matters is that the branch itself is real (a proper
++`if`, not silently dropped control flow) — see
++`docs/superpowers/specs/2026-07-09-m2c-isa-completeness-design.md` in
++tenchu-decomp for the "never crash, low fidelity is fine" bar this satisfies.
++
++If this file's `M2C_ERROR` string shows up in a future grep for "still-broken"
++cases, that grep is a false positive for this specific test.

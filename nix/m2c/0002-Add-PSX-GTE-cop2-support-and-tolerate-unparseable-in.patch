@@ -1,0 +1,118 @@
+From b3eae2138d59c488badae2796bbfcdb7bcd441e4 Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Wed, 29 Apr 2026 18:28:28 +1000
+Subject: [PATCH 02/13] Add PSX GTE cop2 support and tolerate unparseable
+ instructions
+
+mfc2/cfc2 set the destination GPR to a GTE_mfc2(...) error placeholder.
+All other GTE ops (mtc2, ctc2, lwc2, swc2, nclip, rtpt, avsz3/4, etc.)
+emit // GTE: <instruction> comments so functions containing GTE code can
+still be decompiled rather than crashing.
+
+Instruction parse failures in .text sections are now caught and emitted
+as warning comments rather than aborting the entire file.
+---
+ m2c/arch_mips.py                              | 20 +++++++++++++++++++
+ m2c/asm_file.py                               |  7 +++++--
+ .../end_to_end/psx-gte-cop2/psyq-o2-flags.txt |  1 +
+ tests/end_to_end/psx-gte-cop2/psyq-o2-out.c   |  9 +++++++++
+ tests/end_to_end/psx-gte-cop2/psyq-o2.s       | 17 ++++++++++++++++
+ 5 files changed, 52 insertions(+), 2 deletions(-)
+ create mode 100644 tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt
+ create mode 100644 tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+ create mode 100644 tests/end_to_end/psx-gte-cop2/psyq-o2.s
+
+diff --git a/m2c/arch_mips.py b/m2c/arch_mips.py
+index 1d3464a..8c78e31 100644
+--- a/m2c/arch_mips.py
++++ b/m2c/arch_mips.py
+@@ -1138,6 +1138,26 @@ class MipsArch(Arch):
+             assert len(args) == 2 and isinstance(args[0], Register)
+             inputs = [args[0]]
+             eval_fn = lambda s, a: s.write_statement(error_stmt(instr_str))
++        elif mnemonic in ("mfc2", "cfc2"):
++            assert len(args) >= 1 and isinstance(args[0], Register)
++            outputs = [args[0]]
++            eval_fn = lambda s, a: s.set_reg(
++                a.reg_ref(0), ErrorExpr(f"GTE_{mnemonic}({a.raw_arg(1)})")
++            )
++        elif mnemonic in (
++            "mtc2", "ctc2", "lwc2", "swc2",
++            "cop2", "nclip", "rtps", "rtpt", "mvmva",
++            "ncds", "ncdt", "nccs", "nct", "ncs", "ncc",
++            "dpcs", "dpct", "intpl", "cdp", "cc",
++            "avsz3", "avsz4", "sqr", "dcpl", "op", "gpf", "gpl",
++        ):
++            inputs = [r for r in args if isinstance(r, Register)]
++            for arg in args:
++                if isinstance(arg, AsmAddressMode):
++                    inputs.append(arg.base)
++            eval_fn = lambda s, a: s.write_statement(
++                CommentStmt(f"GTE: {instr_str}")
++            )
+         elif mnemonic in cls.instrs_no_dest:
+             assert not any(isinstance(a, AsmAddressMode) for a in args)
+             inputs = [r for r in args if isinstance(r, Register)]
+diff --git a/m2c/asm_file.py b/m2c/asm_file.py
+index 5c8dc57..d66192b 100644
+--- a/m2c/asm_file.py
++++ b/m2c/asm_file.py
+@@ -849,8 +849,11 @@ def parse_file(f: typing.TextIO, arch: ArchAsm, options: Options) -> AsmFile:
+                     lineno=lineno,
+                     synthetic=False,
+                 )
+-                ins = parse_instruction(line, meta, arch, asm_state)
+-                asm_file.new_instruction(ins)
++                try:
++                    ins = parse_instruction(line, meta, arch, asm_state)
++                    asm_file.new_instruction(ins)
++                except DecompFailure as e:
++                    add_warning(warnings, str(e))
+ 
+     if warnings and options.coding_style.comment_style != CodingStyle.CommentStyle.NONE:
+         print("/*")
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt b/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt
+new file mode 100644
+index 0000000..f12d30e
+--- /dev/null
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt
+@@ -0,0 +1 @@
++-t mips-gcc-c
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c b/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+new file mode 100644
+index 0000000..b8f715e
+--- /dev/null
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+@@ -0,0 +1,9 @@
++s32 test(void) {
++    // GTE: lwc2 $0, ($a0)
++    // GTE: lwc2 $1, 0x4($a0)
++    // GTE: rtpt
++    // GTE: nclip
++    // GTE: avsz3
++    // GTE: swc2 $16, ($a1)
++    return M2C_ERROR(/* GTE_cfc2($31) */);
++}
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2.s b/tests/end_to_end/psx-gte-cop2/psyq-o2.s
+new file mode 100644
+index 0000000..d5a7887
+--- /dev/null
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2.s
+@@ -0,0 +1,17 @@
++.set noat
++.set noreorder
++
++glabel test
++    addiu $sp, $sp, -0x20
++    sw    $ra, 0x1C($sp)
++    lwc2  $0, 0x0($a0)
++    lwc2  $1, 0x4($a0)
++    rtpt
++    nclip
++    avsz3
++    cfc2  $v0, $31
++    mfc2  $v1, $2
++    swc2  $16, 0x0($a1)
++    lw    $ra, 0x1C($sp)
++    jr    $ra
++     addiu $sp, $sp, 0x20

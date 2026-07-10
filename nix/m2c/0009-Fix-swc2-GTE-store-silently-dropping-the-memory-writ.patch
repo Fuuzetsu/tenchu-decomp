@@ -1,0 +1,128 @@
+From ecc4295c0aef3ea5a33023311ca7b0f2f5cc8df1 Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Mon, 6 Jul 2026 01:12:07 +1000
+Subject: [PATCH 09/13] Fix swc2 (GTE store) silently dropping the memory write
+
+swc2 was only ever handled by instrs_cop2_comment, which emits a bare
+comment -- no is_store, no outputs, and swc2 was never in instrs_store.
+So a real GTE-register-to-memory store like `swc2 $25, 0x0($a2)` rendered
+as only `// GTE: swc2 $25, 0x0($a2)`: the actual write vanished from the
+decompiled output entirely. This is silently WRONG output (a real store
+disappearing), not just a bail-out.
+
+Confirmed real and high-frequency: 867 swc2 occurrences in tenchu-decomp's
+own asm/*.s. ApplyMatrix writes a computed matrix out via three
+consecutive swc2 -- all three were missing before this fix.
+
+Adds a real swc2 case: is_store=True, outputs via make_memory_access,
+source built from GteReadExpr(mnemonic="mfc2", ...) (matching mfc2's own
+construction) routed through the normal make_store_real/store_memory
+path, so it gets ordinary struct-field/StackLocation/argument resolution
+for free instead of a hand-rolled special case.
+
+lwc2 (the read direction) deliberately left as comment-only -- wiring it
+as a real load risks becoming dead code eliminated by the same
+emit-only-if-used logic (m2c doesn't model GTE register state as
+inspectable), which would just be a differently-shaped silent drop with
+no correctness payoff. Reopen if a concrete case ever needs it.
+
+Test: extended tests/end_to_end/psx-gte-cop2 (from a87a9b1) to three
+consecutive swc2 stores, mirroring ApplyMatrix's real shape. 380 passed,
+0 skipped, 1 failed (pre-existing e2e:weird-asm/test.s), 381 total --
+identical to baseline, no regressions.
+
+Verified against the real ApplyMatrix case in tenchu-decomp: the three
+stores now resolve as arg2->vx/vy/vz = GTE_MFC2(25/26/27) instead of
+vanishing into comments.
+---
+ m2c/arch_mips.py                            | 30 ++++++++++++++++++++-
+ tests/end_to_end/psx-gte-cop2/psyq-o2-out.c |  6 +++--
+ tests/end_to_end/psx-gte-cop2/psyq-o2.s     |  2 ++
+ 3 files changed, 35 insertions(+), 3 deletions(-)
+
+diff --git a/m2c/arch_mips.py b/m2c/arch_mips.py
+index d406b0a..055c532 100644
+--- a/m2c/arch_mips.py
++++ b/m2c/arch_mips.py
+@@ -100,6 +100,7 @@ from .evaluate import (
+     imm_add_32,
+     load_upper,
+     make_store,
++    make_store_real,
+     void_fn_op,
+ )
+ from .types import FunctionSignature, Type
+@@ -1147,6 +1148,33 @@ class MipsArch(Arch):
+                 a.reg_ref(0),
+                 GteReadExpr(mnemonic=mn, reg=str(a.raw_arg(1)).lstrip("$"), type=Type.s32()),
+             )
++        elif mnemonic == "swc2":
++            # Store a GTE/cop2 data register to memory. `args[0]` is not a GPR;
++            # it is the raw cop2 register number (same operand shape as any
++            # other coprocessor store), so it must not be treated as a normal
++            # register input -- read its value as a GteReadExpr instead, the
++            # same way mfc2 (instrs_cop2_write_gpr) reads it.
++            assert isinstance(args[0], Register)
++            outputs = make_memory_access(args[1])
++            is_store = True
++            if isinstance(args[1], AsmAddressMode):
++                inputs.append(args[1].base)
++
++            def eval_fn(s: NodeState, a: InstrArgs) -> None:
++                source_val = GteReadExpr(
++                    mnemonic="mfc2", reg=str(a.raw_arg(0)).lstrip("$"), type=Type.s32()
++                )
++                store = make_store_real(
++                    source_val,
++                    None,
++                    a.memory_ref(1),
++                    a.regs,
++                    a.stack_info,
++                    Type.reg32(likely_float=False),
++                )
++                if store is not None:
++                    s.store_memory(store, a.reg_ref(0))
++
+         elif mnemonic in cls.instrs_cop2_comment:
+             inputs = [r for r in args if isinstance(r, Register)]
+             for arg in args:
+@@ -2213,7 +2241,7 @@ class MipseeArch(MipsArch):
+ class MipsPsxArch(MipsArch):
+     instrs_cop2_write_gpr: Set[str] = {"mfc2", "cfc2"}
+     instrs_cop2_comment: Set[str] = {
+-        "mtc2", "ctc2", "lwc2", "swc2",
++        "mtc2", "ctc2", "lwc2",
+         "cop2", "nclip", "rtps", "rtpt", "mvmva",
+         "ncds", "ncdt", "nccs", "ncct", "nct", "ncs", "ncc",
+         "dpcs", "dpct", "intpl", "cdp", "cc",
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c b/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+index 564587d..c5b4622 100644
+--- a/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+@@ -1,9 +1,11 @@
+-s32 test(void) {
++s32 test(void *arg1) {
+     // GTE: lwc2 $0, ($a0)
+     // GTE: lwc2 $1, 0x4($a0)
+     // GTE: rtpt
+     // GTE: nclip
+     // GTE: avsz3
+-    // GTE: swc2 $16, ($a1)
++    arg1->unk0 = (s32) GTE_MFC2(16);
++    arg1->unk4 = (s32) GTE_MFC2(17);
++    arg1->unk8 = (s32) GTE_MFC2(18);
+     return GTE_CFC2(31);
+ }
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2.s b/tests/end_to_end/psx-gte-cop2/psyq-o2.s
+index d5a7887..fbf3f8c 100644
+--- a/tests/end_to_end/psx-gte-cop2/psyq-o2.s
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2.s
+@@ -12,6 +12,8 @@ glabel test
+     cfc2  $v0, $31
+     mfc2  $v1, $2
+     swc2  $16, 0x0($a1)
++    swc2  $17, 0x4($a1)
++    swc2  $18, 0x8($a1)
+     lw    $ra, 0x1C($sp)
+     jr    $ra
+      addiu $sp, $sp, 0x20

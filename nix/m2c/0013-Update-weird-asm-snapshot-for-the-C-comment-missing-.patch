@@ -1,0 +1,25 @@
+From 969a2bc1746bd3cdd56bd6744c43b00494f6f3f1 Mon Sep 17 00:00:00 2001
+From: Mateusz Kowalczyk <shanachanlove@gmail.com>
+Date: Fri, 10 Jul 2026 10:40:48 +0900
+Subject: [PATCH 13/13] Update weird-asm snapshot for the C-comment
+ missing-return warning
+
+"Read COP0/GTE registers as expressions instead of erroring, add syscall op"
+intentionally moved the missing-"jr $ra" warning from a stderr print into a C
+comment so it survives in the generated source. It refreshed psx-gte-cop2s
+snapshot but not weird-asms, leaving the e2e suite red.
+---
+ tests/end_to_end/weird-asm/test-out.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/tests/end_to_end/weird-asm/test-out.c b/tests/end_to_end/weird-asm/test-out.c
+index a64e891..41fa94a 100644
+--- a/tests/end_to_end/weird-asm/test-out.c
++++ b/tests/end_to_end/weird-asm/test-out.c
+@@ -1,5 +1,4 @@
+-Warning: missing "jr $ra" in last block of test (jumptarget_label).
+-
++/* Warning: missing "jr $ra" in last block of test (jumptarget_label). */
+ extern s32 more special;
+ static s16 special !@#$%^chars[2] = { 0, 0x1234 };  /* const */
+ 

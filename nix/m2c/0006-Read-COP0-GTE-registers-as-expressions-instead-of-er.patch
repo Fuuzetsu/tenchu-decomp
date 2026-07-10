@@ -1,0 +1,127 @@
+From e546919220c67d36887af6b6beafe154fbbfecbd Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Sun, 5 Jul 2026 17:28:26 +1000
+Subject: [PATCH 06/13] Read COP0/GTE registers as expressions instead of
+ erroring, add syscall op
+
+- mfc0 and cop2-write-GPR instructions now emit a GteReadExpr
+  (GTE_<MNEMONIC>(reg) / COP0_MFC0(reg)) instead of bailing out via
+  ErrorExpr, so functions that read hardware registers decompile instead
+  of hitting M2C_ERROR().
+- mtc0 emits a plain comment statement instead of erroring.
+- Add syscall as a recognized void-fn opcode (M2C_SYSCALL).
+- Add ncct to the cop2-comment instruction set.
+- Missing-return warning is now emitted as a C comment in the output
+  instead of a stderr print, so it survives in the generated source.
+---
+ m2c/arch_mips.py                            | 16 +++++++++++-----
+ m2c/flow_graph.py                           |  2 +-
+ m2c/translate.py                            | 15 +++++++++++++++
+ tests/end_to_end/psx-gte-cop2/psyq-o2-out.c |  2 +-
+ 4 files changed, 28 insertions(+), 7 deletions(-)
+
+diff --git a/m2c/arch_mips.py b/m2c/arch_mips.py
+index b6eee13..d406b0a 100644
+--- a/m2c/arch_mips.py
++++ b/m2c/arch_mips.py
+@@ -49,6 +49,7 @@ from .translate import (
+     CmpInstrMap,
+     CommentStmt,
+     ErrorExpr,
++    GteReadExpr,
+     ExprStmt,
+     Expression,
+     InstrArgs,
+@@ -1132,17 +1133,19 @@ class MipsArch(Arch):
+             assert len(args) == 2 and isinstance(args[0], Register)
+             outputs = [args[0]]
+             eval_fn = lambda s, a: s.set_reg(
+-                a.reg_ref(0), ErrorExpr(f"mfc0 {a.raw_arg(1)}")
++                a.reg_ref(0),
++                GteReadExpr(mnemonic="mfc0", reg=str(a.raw_arg(1)).lstrip("$"), type=Type.s32(), cop="COP0"),
+             )
+         elif mnemonic == "mtc0":
+             assert len(args) == 2 and isinstance(args[0], Register)
+             inputs = [args[0]]
+-            eval_fn = lambda s, a: s.write_statement(error_stmt(instr_str))
++            eval_fn = lambda s, a: s.write_statement(CommentStmt(f"COP0: {instr_str}"))
+         elif mnemonic in cls.instrs_cop2_write_gpr:
+             assert len(args) >= 1 and isinstance(args[0], Register)
+             outputs = [args[0]]
+-            eval_fn = lambda s, a: s.set_reg(
+-                a.reg_ref(0), ErrorExpr(f"GTE_{mnemonic}({a.raw_arg(1)})")
++            eval_fn = lambda s, a, mn=mnemonic: s.set_reg(
++                a.reg_ref(0),
++                GteReadExpr(mnemonic=mn, reg=str(a.raw_arg(1)).lstrip("$"), type=Type.s32()),
+             )
+         elif mnemonic in cls.instrs_cop2_comment:
+             inputs = [r for r in args if isinstance(r, Register)]
+@@ -1430,6 +1433,9 @@ class MipsArch(Arch):
+         "break": lambda a: void_fn_op(
+             "M2C_BREAK", [a.s16_imm(0)] if a.count() >= 1 else []
+         ),
++        "syscall": lambda a: void_fn_op(
++            "M2C_SYSCALL", [a.s16_imm(0)] if a.count() >= 1 else []
++        ),
+         "sync": lambda a: void_fn_op("M2C_SYNC", []),
+         "trapuv.fictive": lambda a: CommentStmt("code compiled with -trapuv"),
+         "memcpy.aligned.fictive": lambda a: void_fn_op(
+@@ -2209,7 +2215,7 @@ class MipsPsxArch(MipsArch):
+     instrs_cop2_comment: Set[str] = {
+         "mtc2", "ctc2", "lwc2", "swc2",
+         "cop2", "nclip", "rtps", "rtpt", "mvmva",
+-        "ncds", "ncdt", "nccs", "nct", "ncs", "ncc",
++        "ncds", "ncdt", "nccs", "ncct", "nct", "ncs", "ncc",
+         "dpcs", "dpct", "intpl", "cdp", "cc",
+         "avsz3", "avsz4", "sqr", "dcpl", "op", "gpf", "gpl",
+     }
+diff --git a/m2c/flow_graph.py b/m2c/flow_graph.py
+index afb9b91..530dbb8 100644
+--- a/m2c/flow_graph.py
++++ b/m2c/flow_graph.py
+@@ -1067,7 +1067,7 @@ def warn_on_safeguard_use(
+         label = node.block.approx_label_name
+         return_instrs = arch.missing_return()
+         print(
+-            f'Warning: missing "{return_instrs[0]}" in last block of {function.name} ({label}).\n'
++            f'/* Warning: missing "{return_instrs[0]}" in last block of {function.name} ({label}). */'
+         )
+ 
+ 
+diff --git a/m2c/translate.py b/m2c/translate.py
+index f98e6f1..fc0f0bf 100644
+--- a/m2c/translate.py
++++ b/m2c/translate.py
+@@ -929,6 +929,21 @@ class ErrorExpr(Condition):
+         return "M2C_ERROR()"
+ 
+ 
++@dataclass(frozen=True, eq=False)
++class GteReadExpr(Expression):
++    """Read from a COP register — emits GTE_MFC2(n), COP0_MFC0(n), etc."""
++    mnemonic: str
++    reg: str
++    type: Type = field(compare=False)
++    cop: str = "GTE"
++
++    def dependencies(self) -> List[Expression]:
++        return []
++
++    def format(self, fmt: Formatter) -> str:
++        return f"{self.cop}_{self.mnemonic.upper()}({self.reg})"
++
++
+ @dataclass(frozen=True)
+ class CommentExpr(Expression):
+     expr: Expression
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c b/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+index b8f715e..564587d 100644
+--- a/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2-out.c
+@@ -5,5 +5,5 @@ s32 test(void) {
+     // GTE: nclip
+     // GTE: avsz3
+     // GTE: swc2 $16, ($a1)
+-    return M2C_ERROR(/* GTE_cfc2($31) */);
++    return GTE_CFC2(31);
+ }

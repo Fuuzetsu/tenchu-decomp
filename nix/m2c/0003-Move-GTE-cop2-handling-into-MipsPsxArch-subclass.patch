@@ -1,0 +1,105 @@
+From c1399d0b27ffa4ec54ff46d1b34b43d2581cbb48 Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Wed, 29 Apr 2026 18:48:23 +1000
+Subject: [PATCH 03/13] Move GTE cop2 handling into MipsPsxArch subclass
+
+GTE instruction support now lives in MipsPsxArch rather than the base
+MipsArch, so it doesn't affect N64/IRIX or other MIPS targets.
+MipsPsxArch uses instrs_cop2_write_gpr / instrs_cop2_comment class-level
+sets, consistent with the existing instrs_ignore / instrs_no_dest pattern.
+
+mipsel targets now route to MipsPsxArch in main.py. PSX test flags
+updated from mips-gcc-c to mipsel-gcc-c accordingly.
+---
+ m2c/arch_mips.py                              | 23 ++++++++++++-------
+ m2c/main.py                                   |  4 +++-
+ .../end_to_end/psx-gte-cop2/psyq-o2-flags.txt |  2 +-
+ .../psx-unaligned-load/psyq-o2-flags.txt      |  2 +-
+ 4 files changed, 20 insertions(+), 11 deletions(-)
+
+diff --git a/m2c/arch_mips.py b/m2c/arch_mips.py
+index 8c78e31..b6eee13 100644
+--- a/m2c/arch_mips.py
++++ b/m2c/arch_mips.py
+@@ -1138,19 +1138,13 @@ class MipsArch(Arch):
+             assert len(args) == 2 and isinstance(args[0], Register)
+             inputs = [args[0]]
+             eval_fn = lambda s, a: s.write_statement(error_stmt(instr_str))
+-        elif mnemonic in ("mfc2", "cfc2"):
++        elif mnemonic in cls.instrs_cop2_write_gpr:
+             assert len(args) >= 1 and isinstance(args[0], Register)
+             outputs = [args[0]]
+             eval_fn = lambda s, a: s.set_reg(
+                 a.reg_ref(0), ErrorExpr(f"GTE_{mnemonic}({a.raw_arg(1)})")
+             )
+-        elif mnemonic in (
+-            "mtc2", "ctc2", "lwc2", "swc2",
+-            "cop2", "nclip", "rtps", "rtpt", "mvmva",
+-            "ncds", "ncdt", "nccs", "nct", "ncs", "ncc",
+-            "dpcs", "dpct", "intpl", "cdp", "cc",
+-            "avsz3", "avsz4", "sqr", "dcpl", "op", "gpf", "gpl",
+-        ):
++        elif mnemonic in cls.instrs_cop2_comment:
+             inputs = [r for r in args if isinstance(r, Register)]
+             for arg in args:
+                 if isinstance(arg, AsmAddressMode):
+@@ -1367,6 +1361,8 @@ class MipsArch(Arch):
+         "ctc1",
+         "nop",
+     }
++    instrs_cop2_write_gpr: Set[str] = set()
++    instrs_cop2_comment: Set[str] = set()
+     instrs_store: StoreInstrMap = {
+         # Storage instructions
+         "sb": lambda a: make_store(a, type=Type.int_of_size(8)),
+@@ -2206,3 +2202,14 @@ class MipseeArch(MipsArch):
+             arg_slots=known_slots,
+             possible_slots=possible_slots,
+         )
++
++
++class MipsPsxArch(MipsArch):
++    instrs_cop2_write_gpr: Set[str] = {"mfc2", "cfc2"}
++    instrs_cop2_comment: Set[str] = {
++        "mtc2", "ctc2", "lwc2", "swc2",
++        "cop2", "nclip", "rtps", "rtpt", "mvmva",
++        "ncds", "ncdt", "nccs", "nct", "ncs", "ncc",
++        "dpcs", "dpct", "intpl", "cdp", "cc",
++        "avsz3", "avsz4", "sqr", "dcpl", "op", "gpf", "gpl",
++    }
+diff --git a/m2c/main.py b/m2c/main.py
+index 51058eb..e4c056b 100644
+--- a/m2c/main.py
++++ b/m2c/main.py
+@@ -24,7 +24,7 @@ from .translate import (
+ )
+ from .types import TypePool
+ from .arch_arm import ArmArch, ArmGbaArch
+-from .arch_mips import MipsArch, MipseeArch
++from .arch_mips import MipsArch, MipseeArch, MipsPsxArch
+ from .arch_ppc import PpcArch
+ 
+ 
+@@ -89,6 +89,8 @@ def run(options: Options) -> int:
+     if options.target.arch == Target.ArchEnum.MIPS:
+         if options.target.platform == Target.PlatformEnum.MIPSEE:
+             arch = MipseeArch()
++        elif options.target.platform == Target.PlatformEnum.MIPSEL:
++            arch = MipsPsxArch()
+         else:
+             arch = MipsArch()
+     elif options.target.arch == Target.ArchEnum.PPC:
+diff --git a/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt b/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt
+index f12d30e..6033382 100644
+--- a/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt
++++ b/tests/end_to_end/psx-gte-cop2/psyq-o2-flags.txt
+@@ -1 +1 @@
+--t mips-gcc-c
++-t mipsel-gcc-c
+diff --git a/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt b/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt
+index f12d30e..6033382 100644
+--- a/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt
++++ b/tests/end_to_end/psx-unaligned-load/psyq-o2-flags.txt
+@@ -1 +1 @@
+--t mips-gcc-c
++-t mipsel-gcc-c

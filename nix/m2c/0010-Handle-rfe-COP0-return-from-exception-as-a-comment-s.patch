@@ -1,0 +1,46 @@
+From 305c52cda43d372bef8b3a6f9be7c34def0dc0f5 Mon Sep 17 00:00:00 2001
+From: Patrick Gill <patrickgill@users.noreply.github.com>
+Date: Thu, 9 Jul 2026 12:05:34 +1000
+Subject: [PATCH 10/13] Handle rfe (COP0 return-from-exception) as a
+ comment-stub, matching mtc0
+
+---
+ m2c/arch_mips.py                    | 2 ++
+ tests/end_to_end/psx-rfe/test-out.c | 3 +++
+ tests/end_to_end/psx-rfe/test.s     | 4 ++++
+ 3 files changed, 9 insertions(+)
+ create mode 100644 tests/end_to_end/psx-rfe/test-out.c
+ create mode 100644 tests/end_to_end/psx-rfe/test.s
+
+diff --git a/m2c/arch_mips.py b/m2c/arch_mips.py
+index 055c532..889c94e 100644
+--- a/m2c/arch_mips.py
++++ b/m2c/arch_mips.py
+@@ -1141,6 +1141,8 @@ class MipsArch(Arch):
+             assert len(args) == 2 and isinstance(args[0], Register)
+             inputs = [args[0]]
+             eval_fn = lambda s, a: s.write_statement(CommentStmt(f"COP0: {instr_str}"))
++        elif mnemonic == "rfe":
++            eval_fn = lambda s, a: s.write_statement(CommentStmt(f"COP0: {instr_str}"))
+         elif mnemonic in cls.instrs_cop2_write_gpr:
+             assert len(args) >= 1 and isinstance(args[0], Register)
+             outputs = [args[0]]
+diff --git a/tests/end_to_end/psx-rfe/test-out.c b/tests/end_to_end/psx-rfe/test-out.c
+new file mode 100644
+index 0000000..9cc9979
+--- /dev/null
++++ b/tests/end_to_end/psx-rfe/test-out.c
+@@ -0,0 +1,3 @@
++void test(void) {
++    // COP0: rfe
++}
+diff --git a/tests/end_to_end/psx-rfe/test.s b/tests/end_to_end/psx-rfe/test.s
+new file mode 100644
+index 0000000..17dc1d7
+--- /dev/null
++++ b/tests/end_to_end/psx-rfe/test.s
+@@ -0,0 +1,4 @@
++glabel test
++rfe
++jr $ra
++nop
