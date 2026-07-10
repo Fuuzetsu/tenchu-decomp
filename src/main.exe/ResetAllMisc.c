@@ -1,0 +1,43 @@
+#include "common.h"
+#include "main.exe.h"
+
+/*
+ * ResetAllMisc (0x8004d514, 0x5c bytes) — walks the misc[] pool (200 entries,
+ * tag_TMisc from AddMisc.c's sibling spawner, same TU/proven struct) and force
+ * -disposes every live slot: runs `proc(p, 1)` (MM_DESTROY-style message),
+ * then clears proc to NULL. Same pool/stride (0x24-byte tag_TMisc, 0xC8
+ * entries) and the same "for whose entry test provably folds away" shape as
+ * DrawEffect.c/FUN_80039c14.c (cookbook Loops/leResetEnemyLayout): a bottom
+ * -test-only do-while with a strength-reduced walking pointer.
+ *
+ * The null-check and the indirect call both read `p->proc` — cc1's cse
+ * reuses the ONE load for both (no separate variable needed): the asm loads
+ * proc once into $v0, tests it, and calls through the SAME register
+ * (DrawEffect.c's exact shape).
+ */
+
+typedef struct tag_TMisc tag_TMisc;
+
+struct tag_TMisc
+{
+    void (*proc)(tag_TMisc *, s32); /* 0x00 */
+    u8 pad[0x20];
+};                                  /* 0x24 */
+
+extern tag_TMisc misc[200];
+
+void ResetAllMisc(void)
+{
+    tag_TMisc *p;
+    s32 i;
+
+    for (i = 0; i < 0xC8; i++)
+    {
+        p = &misc[i];
+        if (p->proc != 0)
+        {
+            p->proc(p, 1);
+            p->proc = 0;
+        }
+    }
+}
