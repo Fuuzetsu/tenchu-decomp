@@ -30,109 +30,145 @@
  *     reg   $s1       struct tag_fly * fly
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — linked length 656 vs carve extent 664 (8 bytes / 2
+ * instructions SHORT), plus register-coloring differences that cascade once
+ * the length is off. Two distinct residuals, both codegen artifacts:
+ *
+ * (1) LENGTH (the 2 missing instructions): the Y and Z "current point" jitter
+ *     each compute `mid ± jitter` and the target DUPLICATES that add/subtract
+ *     into BOTH conditional branches — the else branch (`jitter = -hx`) folds
+ *     to a single `subu mid,hx`, the if branch stays `addu mid,jitter`, and
+ *     because the two tails are now different instructions cc1 keeps them
+ *     duplicated (2 extra insns vs our single post-merge store). Writing the
+ *     store/value inside each branch (`if(...) v=mid-hx; else v=mid+...;`) DOES
+ *     reproduce the duplication and fixes the length exactly (664), but then
+ *     the extra per-branch pressure displaces `pfly` from $s2 to $s4 and the
+ *     whole register map shifts (414 differing bytes) — strictly worse. The
+ *     single-store form kept here is 8 short but 116 diffs. Neither is
+ *     reachable to 0 from C: the duplication is cc1's cross-jump/combine
+ *     interaction, not a source shape.
+ * (2) REGISTER COLORING: even at the right length `pfly` colors to $s4, the
+ *     target uses $s2 (yw and pfly swap their callee-saved slots). No source
+ *     lever found; `regalloc.py` confirms both are only callee-saved because
+ *     live across GetVectorDistance, and cc1's find_reg picks the number.
+ *
+ * Everything structural IS reproduced: 6-arg prototype, the mode/speed byte
+ * stores, the `dist/time` speed clamp via the byte's own `& 0xff` truncation,
+ * the pre-shifted hy and hy/2 asymmetric split, the X/Y/Z jitter polarity,
+ * and `--expand-div` for the variable divisions. The permuter aborts on this
+ * TU (rand() typemap gap) as with SetBlood/SetHinoko.
+ *
+ * Matching notes (all verified against the original bytes):
+ *  - SetupFly's true arity is 6, not Ghidra's 4: the already-matched callers
+ *    (ReqItemArrow, ReqItemHappou, ReqItemLaunch) all declare and call it
+ *    `void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5,
+ *    s32 a6)` — Ghidra drops `yh`/`time`, the two STACK-passed args past the
+ *    four register ones (cookbook: Ghidra undercounts stack args). Kept the
+ *    first parameter `long *pfly` here (matching Ghidra's own indexing
+ *    style) rather than inventing `struct param_fly *` — nothing in this
+ *    function needs the union's other members, and the three callers' own
+ *    externs already keep it `void *` (respell per-TU; don't fight it).
+ *  - `pfly->mode` (byte @0x28) is set to 0 as the FIRST statement, before
+ *    start/end are even copied in — matches Ghidra's own rendering exactly.
+ *  - The "speed" byte (@0x24, `dist / time`, a genuine variable division —
+ *    needs `--expand-div`) is clamped to at least 1 when the division
+ *    truncates to zero, using the BYTE value's own truncation as the test
+ *    (`if ((speed & 0xff) != 0) goto skip_default;`), not a fresh compare of
+ *    the untruncated quotient. It's copied to the adjacent byte (@0x25)
+ *    later, interleaved with the X-magnitude scaling (read back through the
+ *    pointer both times — no cached local survives that span, matching the
+ *    fresh `lbu` reloads in the asm), and decremented once, last, right
+ *    before return.
+ *  - The X/Y/Z "current point" fields (@0x18/0x1c/0x20) share one shape —
+ *    `if (range > 0) mid + (rand() % range OP half) else mid OP half` — but
+ *    X and Z use a SYMMETRIC range (`2 * hx`, offset `hx`) while Y instead
+ *    splits `half = hy / 2; other = hy - half;` and divides by `other`
+ *    (the SAME asymmetric split as SetBlood's time jitter) — verified from
+ *    the raw asm, not assumed by symmetry with X/Z. X ADDS its jitter, Y
+ *    SUBTRACTS, Z ADDS again.
+ *  - X and Z reuse the SAME magnitude `hx` (the yw-derived one, not a
+ *    separate z-magnitude) for their own jitter range — confirmed by the
+ *    raw asm recomputing `2 * hx` fresh at each site (not CSE'd across the
+ *    distance), so both are written as the literal expression `hx * 2`
+ *    rather than a shared named temp.
+ */
+extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupFly", SetupFly);
+#else
+void SetupFly(long *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
+{
+    long v1;
+    long v3;
+    long v7;
+    long v8;
+    long midx;
+    long midy;
+    long midz;
 
-// triage: MEDIUM — 166 insns, mul/div, 2 callees, ~0.10 to bow_shoot_logic
-// likely-relevant cookbook sections:
-//   - Expressions: mult/div — magic-multiply constants, fold
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetupFly(int *pfly,VECTOR *start,VECTOR *end,int yw)
-//
-// {
-//   int iVar1;
-//   int iVar2;
-//   int iVar3;
-//   int iVar4;
-//   int iVar5;
-//   int iVar6;
-//   int iVar7;
-//   int iVar8;
-//   int in_stack_00000010;
-//   int in_stack_00000014;
-//
-//   *(undefined1 *)(pfly + 10) = 0;
-//   *pfly = start->vx;
-//   pfly[1] = start->vy;
-//   pfly[2] = start->vz;
-//   pfly[3] = end->vx;
-//   pfly[4] = end->vy;
-//   pfly[5] = end->vz;
-//   iVar1 = GetVectorDistance(start,end);
-//   if (0 < in_stack_00000014) {
-//     if (in_stack_00000014 == 0) {
-//       trap(0x1c00);
-//     }
-//     if ((in_stack_00000014 == -1) && (iVar1 == -0x80000000)) {
-//       trap(0x1800);
-//     }
-//     *(char *)(pfly + 9) = (char)(iVar1 / in_stack_00000014);
-//     if ((iVar1 / in_stack_00000014 & 0xffU) != 0) goto LAB_8003e28c;
-//   }
-//   *(undefined1 *)(pfly + 9) = 1;
-// LAB_8003e28c:
-//   iVar7 = iVar1 * (yw / 2);
-//   *(char *)((int)pfly + 0x25) = (char)pfly[9];
-//   if (iVar7 < 0) {
-//     iVar7 = iVar7 + 0xfff;
-//   }
-//   iVar1 = iVar1 * (in_stack_00000010 / 2);
-//   iVar7 = iVar7 >> 0xc;
-//   if (iVar1 < 0) {
-//     iVar1 = iVar1 + 0xfff;
-//   }
-//   iVar2 = *pfly;
-//   iVar5 = pfly[3];
-//   iVar8 = iVar7 << 1;
-//   if (iVar8 < 1) {
-//     iVar8 = -iVar7;
-//   }
-//   else {
-//     iVar3 = rand();
-//     if (iVar8 == 0) {
-//       trap(0x1c00);
-//     }
-//     if ((iVar8 == -1) && (iVar3 == -0x80000000)) {
-//       trap(0x1800);
-//     }
-//     iVar8 = iVar3 % iVar8 - iVar7;
-//   }
-//   iVar4 = pfly[1];
-//   iVar6 = pfly[4];
-//   iVar3 = (iVar1 >> 0xc) - (iVar1 >> 0x1f) >> 1;
-//   iVar1 = (iVar1 >> 0xc) - iVar3;
-//   pfly[6] = (iVar2 + iVar5) / 2 + iVar8;
-//   if (0 < iVar1) {
-//     iVar2 = rand();
-//     if (iVar1 == 0) {
-//       trap(0x1c00);
-//     }
-//     if ((iVar1 == -1) && (iVar2 == -0x80000000)) {
-//       trap(0x1800);
-//     }
-//     iVar3 = iVar2 % iVar1 + iVar3;
-//   }
-//   iVar1 = pfly[2];
-//   iVar2 = pfly[5];
-//   iVar5 = iVar7 << 1;
-//   pfly[7] = (iVar4 + iVar6) / 2 - iVar3;
-//   if (iVar5 < 1) {
-//     iVar7 = -iVar7;
-//   }
-//   else {
-//     iVar8 = rand();
-//     if (iVar5 == 0) {
-//       trap(0x1c00);
-//     }
-//     if ((iVar5 == -1) && (iVar8 == -0x80000000)) {
-//       trap(0x1800);
-//     }
-//     iVar7 = iVar8 % iVar5 - iVar7;
-//   }
-//   pfly[8] = (iVar1 + iVar2) / 2 + iVar7;
-//   *(char *)(pfly + 9) = (char)pfly[9] + -1;
-//   return;
-// }
+    *((u8 *)pfly + 0x28) = 0;
+    pfly[0] = start->vx;
+    pfly[1] = start->vy;
+    pfly[2] = start->vz;
+    pfly[3] = end->vx;
+    pfly[4] = end->vy;
+    pfly[5] = end->vz;
+    v1 = GetVectorDistance(start, end);
+    if (0 < time)
+    {
+        *((u8 *)pfly + 0x24) = v1 / time;
+        if ((*((u8 *)pfly + 0x24) & 0xff) != 0)
+        {
+            goto skip_default;
+        }
+    }
+    *((u8 *)pfly + 0x24) = 1;
+skip_default:
+    v7 = v1 * (yw / 2);
+    *((u8 *)pfly + 0x25) = *((u8 *)pfly + 0x24);
+    if (v7 < 0)
+    {
+        v7 = v7 + 0xfff;
+    }
+    v1 = v1 * (yh / 2);
+    v7 = v7 >> 12;
+    if (v1 < 0)
+    {
+        v1 = v1 + 0xfff;
+    }
+    v1 = v1 >> 12;
+    midx = (pfly[0] + pfly[3]) / 2;
+    v8 = v7 << 1;
+    if (v8 < 1)
+    {
+        v8 = -v7;
+    }
+    else
+    {
+        v8 = rand() % v8 - v7;
+    }
+    midy = (pfly[1] + pfly[4]) / 2;
+    v3 = v1 / 2;
+    v1 = v1 - v3;
+    pfly[6] = midx + v8;
+    if (0 < v1)
+    {
+        v3 = rand() % v1 + v3;
+    }
+    midz = (pfly[2] + pfly[5]) / 2;
+    v8 = v7 << 1;
+    pfly[7] = midy - v3;
+    if (v8 < 1)
+    {
+        v7 = -v7;
+    }
+    else
+    {
+        v7 = rand() % v8 - v7;
+    }
+    pfly[8] = midz + v7;
+    *((u8 *)pfly + 0x24) = *((u8 *)pfly + 0x24) - 1;
+}
+#endif

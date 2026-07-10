@@ -964,6 +964,18 @@ bit 31 for a plain `sll`+`bltz` with no `sra` (the shifted value is never reused
 per-TU return-type lever as GetRealPad, here applied to GetMotionID's not-found
 sentinel (`JumpControl`).
 
+**The EffectSlot pool-scan `slot = base + idx` addu is index-first ONLY without an
+outer loop.** Single-shot spawners (SetImpact/SetExplosion/SetBleed) emit it index-first
+(`addu dst, scaled_idx, base`). The moment the same expression runs inside an outer
+count loop with `base` loop-invariant callee-saved, cc1 canonicalises the invariant
+operand FIRST (`addu dst, base, scaled_idx`) — a post-`fold` RTL operand order with NO
+source lever: `base+idx`, `idx+base`, `&base[idx]` all fold identical, and moving `base`
+in/out of the loop changes the LENGTH instead. A 1-instruction, same-length,
+permuter-immune sub-C tie (SetBlood, SetHinoko). For such an outer-loop spawner, use
+`while (1) { if (!(i < n)) break; …; i++; }` (NOT a hand-rolled goto) to place `base` in
+the target's callee-saved register — SetHinoko's goto form shifted every param register
+up one (55-byte cascade); the while/break form collapsed it to the 2-byte addu tie.
+
 **Pointer arithmetic normalises to base+index; only INTEGER addition keeps operand
 order.** `p = (SVECTOR *)(idx * 0x20 + (s32)tbl);` emits `addu p,index,base`, whereas
 `tbl[i]`, `&tbl[i][0]` and `(u8 *)tbl + n` all emit `addu p,base,index`. When the
@@ -1974,6 +1986,14 @@ absolute → keep the symbol off the list (a plain small extern).
   `move sN,v0` reuses the register once gy dies. Loading gy directly leaves
   h caller-saved and drifts the whole tail (DebugMenuItemSet, permuter
   find; same family as the variable-reuse rule).
+
+### The permuter aborts on rand()-calling functions (KeyError 'rand')
+
+decomp-permuter throws `KeyError: 'rand'` in `perm_add_mask` on EFFECT.C spawners (a
+typemap gap for `rand()`-calling functions; also seen on FUN_8003944c). It could not
+reach the pool-scan addu operand tie anyway — that order is chosen after `fold` in RTL,
+below the C AST the permuter transforms. Recognise these and park; do not budget
+permuter time.
 
 ### Hoist-invariant vs widen-parameter can be a 2-instruction allocator tie
 

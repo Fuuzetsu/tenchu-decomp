@@ -36,6 +36,11 @@ struct BloodType /* size 36 */
                                   * an explicit `sb` store there, distinct
                                   * from the struct's implicit round-up to
                                   * the union's 4-byte alignment). */
+    u8 unk23;                   /* +0x23 -- proven by SetBlood: a genuine
+                                  * `sb $zero, 0x23(...)` store, not just the
+                                  * struct's own round-up to 36 bytes (which
+                                  * would otherwise land silently on this same
+                                  * byte). */
 };
 
 struct BleedType /* size 32 */

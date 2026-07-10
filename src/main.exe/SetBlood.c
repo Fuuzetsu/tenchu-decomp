@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,96 +35,162 @@
  *     extern struct AreaNodeType *FieldArea;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — 2 of 772 bytes differ (linked length 772 == carve
+ * extent 772, i.e. SAME LENGTH; a single instruction differs). Everything
+ * else is byte-identical.
+ *
+ * The sole residual is the pool-scan cursor's initial address computation
+ * `slot = base + idx;` (base = EffectSlot held loop-invariant in $s6, idx =
+ * CURRENT_OFFSET scaled by the 76-byte stride via a sll/subu chain into $v0):
+ *     target  addu $a0, $v0, $s6   (index-first: scaled_idx + base)
+ *     ours    addu $a0, $s6, $v0   (base-first:  base + scaled_idx)
+ * Same registers, same length, only the two source operands of the commutative
+ * `addu` are swapped. This is a post-`fold` RTL canonicalization below the C
+ * level: `base + idx`, `idx + base`, `&base[idx]` all `fold` to the identical
+ * base-first tree, and `EffectSlot + idx` / moving `base` in/out of the loop
+ * all change the LENGTH (cse folds `%lo(EffectSlot)` or loop.c re-hoists).
+ * The already-matched siblings SetImpact/SetExplosion/SetBleed emit the SAME
+ * `base + idx` source as index-first, but they have NO outer `n`-count loop —
+ * once the addu executes inside a loop with `base` loop-invariant callee-saved,
+ * cc1 canonicalizes the invariant operand first. decomp-permuter cannot reach
+ * this (it transforms the C AST; the operand order is chosen after fold, in
+ * RTL) and additionally aborts on this TU with `KeyError: 'rand'` in
+ * perm_add_mask (a permuter typemap gap on rand()-calling functions, same as
+ * FUN_8003944c). A single-instruction, same-length, permuter-immune operand
+ * swap = the cookbook's sub-C-level early-stop class.
+ *
+ * Matching notes (all verified against the original bytes):
+ *  - The demo's PSX.SYM records a FOUR-argument prototype (pos, vect, n,
+ *    time). Retail's three callers (ActDAMAGE, CVAupdate, DamageControl x2)
+ *    each set only $a0/$a1/$a2 before `jal SetBlood`, and the callee itself
+ *    never reads $a3 — the SVECTOR* "spread" parameter was dropped between
+ *    the demo and retail builds (every per-axis jitter below now comes
+ *    straight from rand(), with no live use of a spread vector anywhere in
+ *    the body). Retail SetBlood is a plain THREE-argument
+ *    `void SetBlood(VECTOR *pos, short n, short time)` — verified from the
+ *    callers' own register setup, not assumed from PSX.SYM.
+ *  - GetAreaMapLevel's return is discarded (called for a side effect only);
+ *    `hint = FieldArea;` is a separate global read right after, not
+ *    GetAreaMapLevel's result. Ghidra drops GetAreaMapLevel's stack-passed
+ *    5th arg (the `0` mode flag) — cookbook: Ghidra undercounts stack args.
+ *  - The whole per-particle fill (spawn `n` particles) is a HAND-ROLLED
+ *    `outer: if (!(i < n)) goto end; ...; i++; goto outer; end:` — not a
+ *    real while/for and not even while(1)+break. A genuine loop here lets
+ *    loop.c hoist the shared %120/%60 magic-multiply constant AND the
+ *    `time/2` split (both loop-invariant across outer iterations, neither
+ *    depends on `i`) all the way to the function's prologue; the target
+ *    recomputes both fresh every outer iteration, right where they're first
+ *    used. Only the hand-rolled goto form (no loop notes at all) suppresses
+ *    that invariant motion (cookbook: "a top-test loop that never hoists its
+ *    invariants is a hand-rolled goto loop, not while(1)+break").
+ *  - The inner EffectSlot[200] search is the same round-robin do-while as
+ *    SetExplosion/SetImpact (`ef = &dmy;` sits AFTER the loop). Verified
+ *    from THIS function's own asm (don't assume a sibling's shape): the
+ *    "occupied" branch's delay slot unconditionally increments `count`
+ *    regardless of outcome, so `count = count + 1;` sits BEFORE the
+ *    `if (slot->proc == 0)` test — SetExplosion's order, not SetImpact's.
+ *  - Field store order follows Ghidra's own rendering exactly: unk22,
+ *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a combined
+ *    mode+bright halfword store, hint, unk23, and `proc` last (it lands in
+ *    the closing loop-jump's delay slot).
+ *  - `mode`/`bright` are both compile-time constants here (0x80 and 0), so
+ *    the two adjacent bytes compile as ONE `sh` — write it via the same
+ *    cast Ghidra shows (`*(u16 *)&fp->mode = 0x80;`), not two `sb`s (that
+ *    only happens elsewhere in this family when one of the two fields is a
+ *    runtime value — see SetImpact/SetHinoko).
+ *  - `time`'s jitter needs a genuine variable division (`rand() % half2`),
+ *    guarded by ASPSX's break 7/break 6 — needs `--expand-div`
+ *    (Build.hs/permute.py).
+ */
+extern void *GlobalAreaMap;
+extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
+extern struct AreaNodeType *FieldArea;
+extern void DrawBlood(TEffectSlot *ef);
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBlood", SetBlood);
+#else
+void SetBlood(VECTOR *pos, short n, short time)
+{
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    BloodType *fp;
+    struct AreaNodeType *hint;
+    short i;
+    int half;
+    int half2;
 
-// triage: MEDIUM — 193 insns, mul/div, 1 loop, 2 callees, ~0.08 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetBlood(VECTOR *pos,SVECTOR *vect,short n,short time)
-//
-// {
-//   AreaNodeType *pAVar1;
-//   int iVar2;
-//   int iVar3;
-//   short sVar4;
-//   tag_EffectSlot *ptVar5;
-//   int iVar6;
-//
-//   iVar6 = 0;
-//   GetAreaMapLevel(GlobalAreaMap,pos->vx,pos->vy);
-//   pAVar1 = FieldArea;
-//   do {
-//     iVar3 = 0;
-//     if ((int)vect << 0x10 <= iVar6 << 0x10) {
-//       return;
-//     }
-//     ptVar5 = EffectSlot + DAT_80097a3c;
-//     iVar2 = DAT_80097a3c;
-//     do {
-//       iVar2 = iVar2 + 1;
-//       ptVar5 = ptVar5 + 1;
-//       if (199 < iVar2) {
-//         iVar2 = 0;
-//         ptVar5 = EffectSlot;
-//       }
-//       iVar3 = iVar3 + 1;
-//       if (ptVar5->proc == (undefined **)0x0) {
-//         DAT_80097a3c = iVar2 + 1;
-//         if (199 < DAT_80097a3c) {
-//           DAT_80097a3c = 0;
-//         }
-//         goto LAB_800332bc;
-//       }
-//     } while (iVar3 < 200);
-//     ptVar5 = &dmy;
-// LAB_800332bc:
-//     iVar3 = rand();
-//     *(char *)((int)&ptVar5->param + 0x22) = (char)iVar3 + (char)(iVar3 / 2) * -2;
-//     iVar2 = rand();
-//     iVar3 = iVar2;
-//     if (iVar2 < 0) {
-//       iVar3 = iVar2 + 0xfff;
-//     }
-//     (ptVar5->param).blood.scale = iVar2 + (iVar3 >> 0xc) * -0x1000 + 0x2000;
-//     iVar3 = rand();
-//     (ptVar5->param).blood.rotate = (iVar3 % 0x168) * 0x1000;
-//     (ptVar5->param).blood.px = pos->vx;
-//     (ptVar5->param).blood.py = pos->vy;
-//     (ptVar5->param).blood.pz = pos->vz;
-//     iVar3 = rand();
-//     (ptVar5->param).blood.vx = (short)iVar3 + (short)(iVar3 / 0x78) * -0x78 + -0x3c;
-//     iVar3 = rand();
-//     (ptVar5->param).blood.vy = (short)iVar3 + (short)(iVar3 / 0x3c) * -0x3c + -0x78;
-//     iVar3 = rand();
-//     (ptVar5->param).blood.vz = (short)iVar3 + (short)(iVar3 / 0x78) * -0x78 + -0x3c;
-//     iVar3 = (int)((uint)(ushort)n << 0x10) >> 0x10;
-//     iVar2 = iVar3 - ((int)((uint)(ushort)n << 0x10) >> 0x1f) >> 1;
-//     iVar3 = iVar3 - iVar2;
-//     sVar4 = (short)iVar2;
-//     if (iVar3 < 1) {
-//       (ptVar5->param).blood.time = sVar4;
-//     }
-//     else {
-//       iVar2 = rand();
-//       if (iVar3 == 0) {
-//         trap(0x1c00);
-//       }
-//       if ((iVar3 == -1) && (iVar2 == -0x80000000)) {
-//         trap(0x1800);
-//       }
-//       (ptVar5->param).blood.time = (short)(iVar2 % iVar3) + sVar4;
-//     }
-//     iVar6 = iVar6 + 1;
-//     *(undefined2 *)((int)&ptVar5->param + 0x20) = 0x80;
-//     (ptVar5->param).blood.hint = pAVar1;
-//     *(undefined1 *)((int)&ptVar5->param + 0x23) = 0;
-//     ptVar5->proc = (undefined **)DrawBlood;
-//   } while( true );
-// }
+    GetAreaMapLevel(GlobalAreaMap, pos->vx, pos->vy, pos->vz, 0);
+    hint = FieldArea;
+    base = EffectSlot;
+    i = 0;
+outer:
+    if (!(i < n))
+    {
+        goto end;
+    }
+    {
+        count = 0;
+        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        slot = base + idx;
+        do
+        {
+            idx = idx + 1;
+            slot = slot + 1;
+            if (199 < idx)
+            {
+                slot = base;
+                idx = 0;
+            }
+            count = count + 1;
+            if (slot->proc == 0)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                if (199 < idx + 1)
+                {
+                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                }
+                ef = slot;
+                goto found;
+            }
+        } while (count < 200);
+        ef = &dmy;
+    found:
+        fp = &ef->param.blood;
+        do
+        {
+            fp->unk22 = rand() % 2;
+            fp->scale = rand() % 4096 + 0x2000;
+            fp->rotate = (rand() % 360) * 0x1000;
+            fp->px = pos->vx;
+            fp->py = pos->vy;
+            fp->pz = pos->vz;
+            fp->vx = rand() % 120 - 60;
+            fp->vy = rand() % 60 - 120;
+            fp->vz = rand() % 120 - 60;
+            half = time / 2;
+            half2 = time - half;
+            if (0 < half2)
+            {
+                fp->time = rand() % half2 + half;
+            }
+            else
+            {
+                fp->time = half;
+            }
+            i = i + 1;
+            *(u16 *)&fp->mode = 0x80;
+            fp->hint = hint;
+            fp->unk23 = 0;
+            ef->proc = (void (*)())DrawBlood;
+        } while (0);
+    }
+    goto outer;
+end:
+    return;
+}
+#endif
