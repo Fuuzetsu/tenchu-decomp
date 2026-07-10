@@ -96,15 +96,21 @@ DIAGNOSIS = ("an env var exceeds MAX_ARG_STRLEN (128 KiB). Find it with:\n  env 
 BUILD_LOG = os.path.join(tempfile.gettempdir(), "tenchu-matchdiff-build.log")
 
 
-def run_build():
+def run_build(env=None):
     """Run ./Build, streaming its output to a FILE.
+
+    `env` MUST be passed through: for a `#ifndef NON_MATCHING` file the caller sets
+    NON_MATCHING=<name> so ./Build compiles the DRAFT, not the trivially-matching
+    INCLUDE_ASM stub. This parameter was missing for a long time, so matchdiff
+    silently built the stub and reported a false MATCH for every guarded file.
 
     Never capture a build log into a pipe or a shell variable: a full build is
     ~780 KB of Verbose command echo, and holding it in memory buys nothing. The
     log stays on disk so a failure can be read afterwards.
     """
     with open(BUILD_LOG, "wb") as log:
-        return subprocess.run(["./Build"], stdout=subprocess.DEVNULL, stderr=log)
+        return subprocess.run(["./Build"], stdout=subprocess.DEVNULL, stderr=log,
+                              env=env if env is not None else os.environ)
 
 
 def build_log_tail(n=15):
@@ -179,7 +185,7 @@ def main():
         srcp = os.path.join("src/main.exe", args.name + ".c")
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
-        r = run_build()
+        r = run_build(env)
         if r.returncode != 0:
             tail = build_log_tail()
             if r.returncode in (126, 127) and "Argument list too long" in tail:
