@@ -1,34 +1,59 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8004f4f8", FUN_8004f4f8);
+/*
+ * FUN_8004f4f8 (0x8004f4f8, 0xa0 bytes) — build/load a tile BackGround
+ * (psxsym-types.h's proven layout: BackGround.map@0x24 holds a GsMAP whose
+ * ncellw/ncellh sit at map+0x2/+0x4, i.e. BackGround+0x26/+0x28 — matches
+ * tools/access.py exactly; index@0x3C, sz@0x40, both already proven by
+ * DrawBG.c/DisposeBG.c's own truncated views) from a loaded TIM: reads the
+ * TIM header (GetTIMInfo), builds the BG's cell/work buffers and its
+ * index[] table pre-filled with 0xffff "empty" sentinels (SetupBG, already
+ * matched), marks it "not yet drawn this frame" (sz=100, DrawBG-adjacent
+ * convention), uploads the TIM pixels (LoadTIM), then overwrites every
+ * index[] entry (one per map cell, ncellw*ncellh of them) with its own
+ * linear index 0..n-1 — wiring each map cell to its own TIM region 1:1
+ * instead of SetupBG's default "no cell assigned" state.
+ *
+ * Matching note: the raw .s recomputes `ncellw*ncellh` a SECOND time for the
+ * do-while's own bottom test (a fresh lhu/lhu/mult/mflo, not a cached
+ * value) — Ghidra's literal rendering (repeating the whole expression
+ * instead of naming a local) is the real source shape here, not an SSA
+ * artifact; caching it into a local drops those extra instructions.
+ *
+ * Called by CreateStage, BriefingAndInventorySelectionScreen (matched),
+ * StageEndScreen and two other still-asm helpers — all places that load a
+ * background image straight off a TIM buffer. No confirmed original name.
+ */
+typedef struct
+{
+    u8 pad0[0x26];
+    u16 ncellw;    /* 0x26 */
+    u16 ncellh;    /* 0x28 */
+    u8 pad1[0x12]; /* 0x2a..0x3c */
+    u16 *index;    /* 0x3c */
+    u16 sz;        /* 0x40 */
+} BackGround;
 
-// triage: MEDIUM — 40 insns, mul/div, 1 loop, 3 callees, ~0.13 to FUN_80038d10
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
+extern BackGround *SetupBG(GsIMAGE *image, s16 w, s16 h);
+extern void LoadTIM(u_long *tim);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// BackGround * FUN_8004f4f8(ulong *param_1)
-//
-// {
-//   BackGround *pBVar1;
-//   int iVar2;
-//   GsIMAGE GStack_28;
-//
-//   GetTIMInfo(param_1,&GStack_28);
-//   pBVar1 = SetupBG((BackGround *)&GStack_28,0x140,0xf0);
-//   pBVar1->sz = 100;
-//   LoadTIM(param_1);
-//   iVar2 = 0;
-//   if (0 < (int)((uint)(pBVar1->map).ncellw * (uint)(pBVar1->map).ncellh)) {
-//     do {
-//       pBVar1->index[iVar2] = (ushort)iVar2;
-//       iVar2 = iVar2 + 1;
-//     } while (iVar2 < (int)((uint)(pBVar1->map).ncellw * (uint)(pBVar1->map).ncellh));
-//   }
-//   return pBVar1;
-// }
+BackGround *FUN_8004f4f8(u_long *tim)
+{
+    BackGround *bg;
+    s32 i;
+    GsIMAGE im;
+
+    GetTIMInfo(tim, &im);
+    bg = SetupBG(&im, 0x140, 0xf0);
+    bg->sz = 100;
+    LoadTIM(tim);
+    i = 0;
+    if (0 < bg->ncellw * bg->ncellh) {
+        do {
+            bg->index[i] = (u16)i;
+            i = i + 1;
+        } while (i < bg->ncellw * bg->ncellh);
+    }
+    return bg;
+}

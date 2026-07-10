@@ -476,6 +476,22 @@ plain C is the matched file.
   a fresh `li $a2,1` like the original (cse tables don't follow the taken
   edge).
 
+### A boolean temp capturing a test BEFORE a narrowing adjustment is its own shape
+
+`ch = f; hi = ch > K; if (ch > J) ch -= J2; if (hi) ch -= K2;` is genuinely distinct
+from inlining the comparison *after* the adjustment (`if (ch > J) ch -= J2;
+if (ch > K) ch -= K2;`). A decomp-permuter candidate may score the inlined-after
+form better and still be a regression: on `FUN_800570b8` it scored 790 against the
+baseline's ~1140 yet produced the wrong length (205 vs 138 bytes). Always re-verify
+a permuter win with `matchdiff`.
+
+### A dual-role dispatch test can be the opposite shape of its goto-ladder
+
+Ghidra's `if (A == 0 && (side-effect, B == 0)) { short } else { long }` can really be
+`if (A != 0) goto long; if (B == 0) goto short;` with `long` as the fall-through.
+Same family as the two-independent-`goto` rule, but here BOTH bodies are
+substantial — neither is a trivial do-nothing case.
+
 ### `if (cond) A; else B;` makes A the fall-through and negates `cond`
 
 Independent of De Morgan. cc1 compiles `if (cond) A; else B;` as `if (!cond) goto B;`

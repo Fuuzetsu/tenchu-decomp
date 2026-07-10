@@ -285,6 +285,13 @@ lens.
 
 ## Gotchas (all learned the hard way)
 
+- **The linker map's `LOAD .text ADDR SIZE` line is not authoritative for final
+  placement.** When one function in a batch has the wrong length, that line can make
+  an *earlier, already-matched* function look broken. Only the map's symbol table
+  (`ADDR NAME`) and the real bytes of the built image settle it. Cost an agent
+  significant time chasing a phantom upstream bug when the real culprit was a later
+  function's own 8-byte shortfall.
+
 - **A build killed mid-run poisons exactly one subsequent `./Build`.** `./Build clean`
   removes `.shake/{gen,build,processed}` but NOT Shake's database (`.shake/`
   itself is `shakeFiles`). A torn database from a SIGKILLed build can make the next
