@@ -16,7 +16,7 @@ The split of responsibility:
 
 ## Resuming the hands-off flywheel (quick-start)
 
-**State (keep this line current):** ~272/555 game functions (~49%), ~20% of
+**State (keep this line current):** ~273/555 game functions (~49%), ~21% of
 game bytes, whole-image byte-identical (sha256 `0690a5c1…3558`). Live count:
 `nix develop --command tools/progress.py`.
 
