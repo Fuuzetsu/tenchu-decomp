@@ -2137,6 +2137,41 @@ each iteration. Both cost the same 2 instructions; no operand-order or De-Morgan
 of the compare reliably picks the target's path. RTL-escalation territory, not
 respelling (`SetSmoke`).
 
+## loop.c hoisting is a threshold economy (the invariant-hoist model)
+
+`move_movables` hoists a loop invariant iff `threshold * savings * lifetime >=
+insn_count`. `threshold` starts at `(loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)`
+— **29** for a call-containing loop on this target — and **decays by 3 for each movable
+already moved**. Every decision is printed in the `-da` `.loop` dump
+(`Insn N: regno R (life L), savings S moved / not desirable`), so you can solve for the
+threshold and PREDICT the fix instead of permuting for it. Three levers follow:
+
+- **Guard operand order controls whether a short parameter's widening hoists.** In a
+  call-containing loop, `if (i >= n)` (counter first) emits `n`'s sign-extension pair
+  adjacent to the `slt` → lifetime 2 → stays in-loop, and combine folds both extensions
+  into a no-`sra` `sll/sll/slt`, keeping raw `short n` in one callee-saved reg. The
+  reversed `if (n <= i)` gives the pair lifetime 4 → loop.c hoists the widening into its
+  own register and the compare degrades to `sll/sra/slt`. Which operand's `sll` comes
+  first in the target's compare reads the source operand order off directly.
+- **A USER-variable invariant assignment is hoistable only if it precedes any conditional
+  exit.** `base = EffectSlot;` as the FIRST body statement (before `if (…) return;`) is a
+  movable (its `lui/addiu` lands in the prologue, both `base+idx` and the wrap-reset read
+  one cached reg). The same statement AFTER the guard is `maybe_never` and ineligible —
+  and assigning `base` ABOVE the loop in source mismatches too (next point).
+- **The −3-per-move decay is load-bearing: an early hoist keeps a LATER invariant
+  in-loop.** SetSmoke needs `time<<16` un-hoisted: after `base`'s two moves plus the
+  `%100` magic, threshold is 29−9=20 → `20*2*3 < 153` → stays. Writing `base` above the
+  loop instead moves only the magic (−3), and `26*2*3 >= 153` hoists the `time<<16` chain
+  and spills n/time to stack. WHERE an invariant is assigned changes unrelated
+  expressions' fates later in the body.
+
+Two corollaries: loop.c DELETES single-use register copies inside a call-containing loop
+(`reg_single_usage` substitution in scan_loop), so a `tmp = n;` copy cannot block
+invariance — don't bother; and fold reassociates `(x - 1) - (a + b)` into `x - (a+b+1)`,
+so an own-statement temp (`m = smoke->mode - 1;`) is needed to keep the literal `addiu -1`
+on x's side. (`SetSmoke`, whole outer loop. `-da` dumps the `.loop` numbers; `-dd` dumps
+reorg/dbr for delay-slot questions.)
+
 ## Dividing by a variable needs `--expand-div`
 
 **A `%` or `/` by a runtime VALUE (not a constant) compiles ~10 instructions shorter
