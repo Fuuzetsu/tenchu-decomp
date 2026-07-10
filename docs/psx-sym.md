@@ -280,8 +280,16 @@ Control precision — retail addresses whose current name is itself a PSX.SYM na
 is **100% (105/105)**. Note that the two apparent counter-examples in an earlier run
 were not errors: our `Me_MOTION_C` is the de-duplicated spelling of the demo's static
 `Me`, and `StageBosses`/`StageEnemies` at `0x80097c74`/`0x80097c76` disagree with the
-demo's single `StageEnemies` short — the tool correctly refused to propose, because
-the name was already taken. That pair is worth a human look.
+demo's single `StageEnemies` short — the tool correctly refused to propose, because the
+name was already taken. **That one has since been chased down: our names are right.**
+Retail's `Think3callaid` reads `0x80097c76`/`0x80097c78` together and writes them back
+`+1`/`-1`, an adjacent pair used as a pair, exactly like the demo's
+`StageEnemies`/`StageCitizens`; retail simply inserted a new short at `…c74`.
+
+That is worth internalising: **a reference-alignment vote is weakest at an insertion
+point**, because `difflib` aligns the demo's store to the *first* identical retail
+store. When a vote contradicts an existing name, check how the symbols are *used
+together* before believing it.
 
 **156 data symbols were defined**, in `reference/data-symbols-applied.tsv`:
 

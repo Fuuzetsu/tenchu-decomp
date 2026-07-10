@@ -114,9 +114,14 @@ Best remaining leads, roughly in value order:
 4. **The SLD stream** (per-instruction line deltas) and the `0x90`/`0x92` block markers
    are parsed and discarded. They would give an address→source-line map for the demo
    build.
-5. **`StageBosses`/`StageEnemies`** at `0x80097c74`/`0x80097c76`: the demo knows only a
-   single `short StageEnemies`, and the reference votes point it at `…c74`. One of our
-   two names is probably a two-byte-shifted invention.
+5. ~~`StageBosses`/`StageEnemies` shift~~ **RESOLVED, names are correct.** Retail's
+   `Think3callaid` loads `0x80097c76`/`0x80097c78` together and writes them back `+1`/`-1`
+   — an adjacent pair used as a pair, exactly like the demo's `StageEnemies`/`StageCitizens`.
+   Retail *inserted* a new short (`StageBosses`, a Ghidra name absent from PSX.SYM) at
+   `…c74`. The datamatch vote that pointed `…c74` at `StageEnemies` was the artefact:
+   `difflib` aligns the demo's store to the *first* identical retail store, which is
+   exactly what an insertion looks like. **Reference-alignment votes are weakest at an
+   insertion point** — corroborate with how the symbols are *used together*.
 
 ## Roadmap / TODO (not yet done)
 
