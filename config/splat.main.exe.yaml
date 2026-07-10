@@ -163,7 +163,8 @@ segments:
       - [0xA1B8, c, GetConflictResult]
       - [0xA328, c, DisposeAreaMap]
       - [0xA364, c, handle_balmer_acm_]
-      - { start: 0xA3A0, type: data, linker_section_order: .text }
+      - [0xA3A0, c, character_balma_around_main_routine_]
+      - { start: 0xA3C4, type: data, linker_section_order: .text }
       - [0xA838, c, SetCommand]
       - [0xA944, c, GetPad]
       - [0xA974, c, FUN_8001b174]
@@ -192,7 +193,8 @@ segments:
       - [0x1674C, c, FUN_80026f4c]
       - [0x16754, c, SetNowMotion]
       - [0x16804, c, NowReturnNormal]
-      - { start: 0x168C8, type: data, linker_section_order: .text }
+      - [0x168C8, c, dispose_weapon_data_of_char_]
+      - { start: 0x168F8, type: data, linker_section_order: .text }
       - [0x16A10, c, MotionAndMove]
       - [0x16AA0, c, ReturnNormal]
       - [0x16B04, c, FUN_80027304]
@@ -230,7 +232,7 @@ segments:
       - [0x1E970, c, AttackAnimal]
       - { start: 0x1EA54, type: data, linker_section_order: .text }
       - [0x1EF3C, c, SetupThinkFunction]
-      - { start: 0x1EFF4, type: data, linker_section_order: .text }
+      - [0x1EFF4, c, reset_alert_duration]
       - [0x1F018, c, ThinkBasicNone]
       - [0x1F020, c, ThinkBasicHuman1]
       - [0x1F0C4, c, ThinkBasicHuman2]
@@ -313,6 +315,8 @@ segments:
       - [0x358D0, c, ProcItemLightningBolt]
       - [0x35B58, c, ReqItemLightningBolt]
       - { start: 0x35D28, type: data, linker_section_order: .text }
+      - [0x36054, c, item_use_gun]
+      - { start: 0x361C0, type: data, linker_section_order: .text }
       - [0x36DF4, c, ReqItemDefault]
       - [0x36F38, c, ReqItemLaunch]
       - { start: 0x37118, type: data, linker_section_order: .text }
@@ -386,6 +390,7 @@ segments:
       - [0x46718, c, FormatCard]
       - [0x46750, c, LoadCard]
       - { start: 0x468B8, type: data, linker_section_order: .text }
+      - [0x46E4C, c, load_font_image_into_global]
       - [0x46E98, c, initialise_font]
       - [0x46EE8, c, FUN_800576e8]
       - { start: 0x46F8C, type: data, linker_section_order: .text }

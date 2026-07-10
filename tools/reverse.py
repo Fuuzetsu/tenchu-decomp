@@ -227,16 +227,28 @@ def piece_symbols(genstub):
     return out
 
 
+# A jump-table split names its extra pieces switchD_<addr>__… (switchD/caseD).
+# Anything else that splits a function is just an interior SYMBOL: a Ghidra
+# `__override__prt_` call-site marker, or a plain label/data symbol inside the
+# body (e.g. INIT_STAGE_STATS inside StartStageSequence). Those only need every
+# piece seeded; a real jump table also needs its .rodata carve.
+JT_PIECE = re.compile(r"switchD_[0-9a-fA-F]+__")
+
+
+def is_jump_table(pieces):
+    return any(JT_PIECE.search(sym) for _, sym in pieces[1:])
+
+
 def expand_stub(name, pieces):
     """Rewrite <name>.c's single INCLUDE_ASM with one line per generated piece.
 
-    splat starts a new .s piece at every symbol inside the function's range. A
-    Ghidra `__override__prt_` marker (a call-SITE prototype override, not a
-    function) therefore silently splits a perfectly ordinary function in two,
-    and a stub carrying only the first piece fails to link: a branch whose
-    target lives in piece 2 goes undefined. Emitting every piece restores the
-    green stub. (A jump table also splits, but additionally needs a .rodata
-    carve — that's split-scaffold.py's job, not this.)
+    splat starts a new .s piece at every symbol inside the function's range. Any
+    interior symbol therefore silently splits a perfectly ordinary function — a
+    Ghidra `__override__prt_` call-SITE prototype override, or a plain label/data
+    symbol in the body — and a stub carrying only the first piece fails to link:
+    a branch whose target lives in piece 2 goes undefined. Emitting every piece
+    restores the green stub. (A jump table also splits, but additionally needs a
+    .rodata carve — that's split-scaffold.py's job, not this.)
     """
     path = os.path.join(SRC_DIR, f"{name}.c")
     src = open(path).read()
@@ -362,15 +374,15 @@ def main():
     # is generated under its real name.
     genstub = os.path.join(".shake", "gen", "main.exe", "src", name + ".c")
     pieces = piece_symbols(genstub) if os.path.exists(genstub) else []
-    # (a) A Ghidra `__override__prt_` call-site marker sitting inside the body.
-    #     Not a jump table, no .rodata: just seed every piece and we're green.
-    if len(pieces) > 1 and all("__override__prt_" in s for _, s in pieces[1:]):
+    # (a) An interior symbol (override marker, label, data) sitting inside the
+    #     body. Not a jump table, no .rodata: seed every piece and we're green.
+    if len(pieces) > 1 and not is_jump_table(pieces):
         if expand_stub(name, pieces):
             r = subprocess.run(["./Build", "check"], stdout=subprocess.DEVNULL)
             if r.returncode == 0:
                 print(f"reverse: ✓ ./Build check GREEN — {name} split into "
-                      f"{len(pieces)} pieces at a Ghidra __override__prt_ marker "
-                      f"(a call-site override, not a jump table); seeded all pieces.")
+                      f"{len(pieces)} pieces at an interior symbol "
+                      f"(not a jump table); seeded all pieces.")
                 append_m2c(name)
                 return
     # (b) A real jump table: needs all pieces AND the table's .rodata carve —

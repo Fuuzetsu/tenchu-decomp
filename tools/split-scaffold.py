@@ -141,25 +141,58 @@ def draft_seed(name, addr):
             + "\n".join("// " + l for l in body.splitlines()) + "\n")
 
 
-def build_c(name, addr, pieces, tables):
+def table_pool(name, fstart, fend, sw_addrs, sd):
+    """(pool_vram, words) — the ONE contiguous .rodata run holding every jump
+    table of this function.
+
+    A compiled object has a SINGLE `.rodata` section, so we can only place it
+    once. Emitting one `static const` array per table and one carve per table
+    made `ld` drop the whole section at the first carve and nothing at the rest
+    (ActCHASE/ActSQUAT/CameraType1 have two tables, ActENGAGE three).
+
+    Reading the pool as one raw run also sidesteps per-table length guessing:
+    ActENGAGE's middle table is 34 words, but its 34th is not a pointer into the
+    function, so an entry-by-entry walk stopped at 33 and left a 4-byte hole.
+    Only the LAST table's length still needs the pointer heuristic — everything
+    before it is bounded by the next table's start.
+    """
+    starts = sorted(sd[sw] for sw in sw_addrs)
+    pool_start = starts[0]
+    last = starts[-1]
+    pool_end = last + 4 * table_len(last, fstart, fend, list(sd.values()))
+
+    # Another function's table inside our pool would mean we are about to swallow
+    # its bytes into this object's .rodata. Refuse rather than corrupt the image.
+    foreign = [t for t in sd.values()
+               if pool_start < t < pool_end and t not in starts]
+    if foreign:
+        sys.exit(f"split-scaffold: {name}'s table pool "
+                 f"[0x{pool_start:08x},0x{pool_end:08x}) contains another "
+                 f"function's table at {[hex(t) for t in foreign]} — "
+                 f"place these carves by hand.")
+    return pool_start, read_words(pool_start, (pool_end - pool_start) // 4)
+
+
+def build_c(name, addr, pieces, pool_vram, words, starts):
+    tbl = ", ".join(f"0x{t:08x}" for t in starts)
     L = ['#include "common.h"', '#include "main.exe.h"', "",
          "/*", f" * {name} (0x{addr:08x}) — TODO one-line description.",
          " *",
          " * STATUS: NON_MATCHING — split (jump-table) function scaffolded by",
          " * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub",
-         " * (INCLUDE_ASM pieces + the jump table(s) as static const arrays so the",
-         " * .rodata carve has bytes); build the draft with `NON_MATCHING=" + name,
-         " * ./Build`. On a full match, delete the guards and the _jtbl array(s).",
+         " * (INCLUDE_ASM pieces + the jump-table pool as one static const array so",
+         " * the .rodata carve has bytes); build the draft with `NON_MATCHING=" + name,
+         " * ./Build`. On a full match, delete the guards and the _jtbl array.",
          " */", "", "#ifndef NON_MATCHING"]
     L += sum(([p, ""] for p in pieces), [])
-    for sw, (tv, words) in tables.items():
-        L.append(f"/* jump table @ 0x{tv:08x} ({len(words)} entries) — stub-only;"
-                 f" the draft's compiled switch emits its own. */")
-        L.append(f"static const u32 switchD_{sw:08x}_jtbl[{len(words)}] = {{")
-        for i in range(0, len(words), 4):
-            L.append("    " + " ".join(f"0x{w:08X}," for w in words[i:i + 4]))
-        L.append("};")
-        L.append("")
+    L.append(f"/* jump-table pool @ 0x{pool_vram:08x} ({len(words)} words; tables at"
+             f" {tbl}) — stub-only, one array because the object has one .rodata"
+             f" section; the draft's compiled switch emits its own. */")
+    L.append(f"static const u32 {name}_jtbl[{len(words)}] = {{")
+    for i in range(0, len(words), 4):
+        L.append("    " + " ".join(f"0x{w:08X}," for w in words[i:i + 4]))
+    L.append("};")
+    L.append("")
     L.append("#else /* NON_MATCHING */")
     L.append(draft_seed(name, addr))
     L.append("#endif /* NON_MATCHING */")
@@ -231,16 +264,14 @@ def main():
     fstart, fend = func_bounds(name)
     pieces = stub_pieces(name)
     sd = switchdata_addrs()
-    table_starts = list(sd.values())
 
-    tables = {}
-    for sw in switch_addrs_of(pieces):
+    sw_addrs = switch_addrs_of(pieces)
+    for sw in sw_addrs:
         if sw not in sd:
             sys.exit(f"split-scaffold: no switchdataD symbol for switchD_{sw:x} in "
                      f"{SYMBOLS} — add it (splat should have), then retry.")
-        tv = sd[sw]
-        n = table_len(tv, fstart, fend, table_starts)
-        tables[sw] = (tv, read_words(tv, n))
+    starts = sorted(sd[sw] for sw in sw_addrs)
+    pool_vram, words = table_pool(name, fstart, fend, sw_addrs, sd)
 
     # Never clobber a function that already MATCHES. The stub we would write is
     # byte-identical to the original, so `./Build check` stays green and the
@@ -254,21 +285,22 @@ def main():
 
     # Build the content BEFORE opening for write: draft_seed reads the current
     # file to preserve an existing #else draft, and open(...,"w") truncates.
-    content = build_c(name, fstart, pieces, tables)
+    content = build_c(name, fstart, pieces, pool_vram, words, starts)
     if args.no_yaml:
         print(f"split-scaffold: --no-yaml — not writing {target} either "
               f"({len(content.splitlines())} lines would be written).")
     else:
         open(target, "w").write(content)
 
-    carves = [(FILE_OFF + (tv - TEXT_START), len(w) * 4) for tv, w in tables.values()]
+    carves = [(FILE_OFF + (pool_vram - TEXT_START), len(words) * 4)]
     printed = insert_rodata_carves(name, carves, args.no_yaml)
 
     print(f"split-scaffold: wrote {SRC}/{name}.c "
-          f"({len(pieces)} INCLUDE_ASM pieces, {len(tables)} table(s))")
-    for sw, (tv, w) in tables.items():
-        print(f"  table switchD_{sw:08x} @ 0x{tv:08x}: {len(w)} entries "
-              f"(file 0x{FILE_OFF + (tv - TEXT_START):X}, size 0x{len(w) * 4:X})")
+          f"({len(pieces)} INCLUDE_ASM pieces, {len(starts)} table(s) in one pool)")
+    print(f"  pool @ 0x{pool_vram:08x}: {len(words)} words "
+          f"(file 0x{FILE_OFF + (pool_vram - TEXT_START):X}, "
+          f"size 0x{len(words) * 4:X}); tables at "
+          f"{', '.join('0x%08x' % t for t in starts)}")
     print("  .rodata carve" + (" (add to config/splat.main.exe.yaml):"
                                if args.no_yaml else " inserted:"))
     for l in printed:

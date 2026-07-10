@@ -3,6 +3,16 @@
 #include "item.h"
 
 /*
+ * STATUS: NON_MATCHING — item_use_gun was never CARVED (no `c` subsegment), so its
+ * .c was never linked and never actually compared: its bytes came from the
+ * raw data blob and matchdiff reported a false MATCH. Carved now, and the
+ * draft below does not reproduce the original. matchdiff/progress refuse to
+ * count an un-carved function from now on.
+ */
+#ifndef NON_MATCHING
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/item_use_gun", item_use_gun);
+#else
+/*
  * item_use_gun (0x80046854) — spawn a gun/firearm item. Same item TU, same
  * pool round-robin shape as ReqItemManebue/ReqItemKawarimi/etc, but:
  *  - returns void (no `return 1;`/`return 0;` — Ghidra's decompile shows a
@@ -69,3 +79,4 @@ found:
     it->coll_size = 0;
     *(VECTOR *)it->param = p->end;
 }
+#endif /* NON_MATCHING */

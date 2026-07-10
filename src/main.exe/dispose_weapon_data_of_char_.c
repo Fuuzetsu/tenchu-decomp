@@ -3,6 +3,16 @@
 #include "item.h"
 
 /*
+ * STATUS: NON_MATCHING — dispose_weapon_data_of_char_ was never CARVED (no `c` subsegment), so its
+ * .c was never linked and never actually compared: its bytes came from the
+ * raw data blob and matchdiff reported a false MATCH. Carved now, and the
+ * draft below does not reproduce the original. matchdiff/progress refuse to
+ * count an un-carved function from now on.
+ */
+#ifndef NON_MATCHING
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/dispose_weapon_data_of_char_", dispose_weapon_data_of_char_);
+#else
+/*
  * dispose_weapon_data_of_char_ (0x800270c8) — NOT a null-checked disposer
  * despite the name: the raw asm has no branch at all. Same original TU as
  * NowReturnNormal.c (adjacent addresses, 0x80027004/0x800270c8; shares its
@@ -26,3 +36,4 @@ void dispose_weapon_data_of_char_(Humanoid *h, int a)
     dtM = h->motion;
     AttackCancelControl(a);
 }
+#endif /* NON_MATCHING */

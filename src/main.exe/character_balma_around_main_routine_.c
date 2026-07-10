@@ -2,6 +2,16 @@
 #include "main.exe.h"
 
 /*
+ * STATUS: NON_MATCHING — character_balma_around_main_routine_ was never CARVED (no `c` subsegment), so its
+ * .c was never linked and never actually compared: its bytes came from the
+ * raw data blob and matchdiff reported a false MATCH. Carved now, and the
+ * draft below does not reproduce the original. matchdiff/progress refuse to
+ * count an un-carved function from now on.
+ */
+#ifndef NON_MATCHING
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/character_balma_around_main_routine_", character_balma_around_main_routine_);
+#else
+/*
  * character_balma_around_main_routine_ (0x8001aba0, 0x24 bytes) — swaps the
  * live area-map cursor (GlobalAreaMap) with a saved one (D_800976E8) and
  * refreshes FieldIndex/FieldArea from the newly-installed cursor. Called
@@ -49,3 +59,4 @@ void character_balma_around_main_routine_(void)
     FieldIndex = saved;
     FieldArea = area;
 }
+#endif /* NON_MATCHING */

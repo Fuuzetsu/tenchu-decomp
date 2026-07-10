@@ -24,7 +24,20 @@ FILE_TEXT_OFF = 0x800
 ORIG = "disks/tenchu/main.exe"
 OURS = ".shake/build/tenchu/main.exe"
 SYMBOLS = "config/symbols.main.exe.txt"
+YAML = "config/splat.main.exe.yaml"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
+
+
+def is_carved(name):
+    """True iff a `c` subsegment exists for `name`.
+
+    An UN-carved function's bytes come from a raw `data` blob, so the built image
+    matches the original at that address no matter what its .c says — this tool
+    would happily print MATCH for a .c that is never even linked. Five functions
+    sat in the tree as bogus "matches" that way.
+    """
+    pat = re.compile(rf"^\s+- \[0x[0-9A-Fa-f]+,\s*c,\s*{re.escape(name)}\]", re.M)
+    return bool(pat.search(open(YAML).read()))
 
 
 def symbol_slot(name):
@@ -69,6 +82,12 @@ def main():
     ap.add_argument("--max", type=int, default=40,
                     help="max differing instructions to print")
     args = ap.parse_args()
+
+    if not is_carved(args.name):
+        sys.exit(f"matchdiff: {args.name} has no `c` subsegment in {YAML} — it is "
+                 f"NOT carved, so its .c is never linked and this comparison would "
+                 f"trivially 'MATCH' (the bytes come from the raw data blob). Run "
+                 f"`tools/reverse.py {args.name}` first.")
 
     if not args.no_build:
         # A NON_MATCHING partial (INCLUDE_ASM stub XOR draft behind #ifndef
