@@ -949,6 +949,21 @@ only narrowed at the end.** `short t` rather than `s32 t` removed both a spuriou
 `andi 0xffff` and a whole register-allocation cascade in `ControlTraceLine`'s degree
 ladder.
 
+**A field compared then re-read inside the hit body wants a named temp captured via a
+comma expression, to preserve `&&` short-circuit.** `if (cond && (z = lv.vz, z < dist))
+{ dist = z; … }` gives both the short-circuit AND one load: a bare re-read
+(`… && lv.vz < dist; … dist = lv.vz;`) forces a second stack reload (the `slt` clobbers
+the compare's register), and an unconditional `z = lv.vz;` before the `if` reads the
+field even when `cond` is false (2 extra insns). Only the assignment INSIDE the RHS
+operand gives both (`SearchItemTarget2`; and its hit body's `dist = z;` must precede the
+struct copy `*target = tv;`, or the copy's temps schedule first and swap a move pair).
+
+**A callee that really returns `s16` can be declared `extern u16 f()` per-TU so the
+caller tests its sign as `(f() << 16) < 0`.** u16 promotes to int, so bit 15 lands in
+bit 31 for a plain `sll`+`bltz` with no `sra` (the shifted value is never reused). Same
+per-TU return-type lever as GetRealPad, here applied to GetMotionID's not-found
+sentinel (`JumpControl`).
+
 **Pointer arithmetic normalises to base+index; only INTEGER addition keeps operand
 order.** `p = (SVECTOR *)(idx * 0x20 + (s32)tbl);` emits `addu p,index,base`, whereas
 `tbl[i]`, `&tbl[i][0]` and `(u8 *)tbl + n` all emit `addu p,base,index`. When the
