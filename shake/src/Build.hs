@@ -199,6 +199,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "AttackAnimal" = ["Me_THINK_C", "Distance", "Degree"]
     syms "StickonCheck" = ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"]
     syms "DeleteCard" = ["D_80097D04"]
+    syms "SetupAfterimage" = ["D_80097F3C"]
     syms _ = []
 
 as :: FilePath

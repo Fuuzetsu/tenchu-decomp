@@ -4288,3 +4288,4 @@ FUN_80039544 = 0x80039544;
 DeleteCard = 0x80056ec4;
 LoadCard = 0x80056f50;
 FUN_800593a0 = 0x800593a0;
+DisposeOrnamentArchive = 0x8003cd5c;
