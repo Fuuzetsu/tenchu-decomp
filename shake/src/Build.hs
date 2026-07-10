@@ -429,6 +429,11 @@ mainRules = do
     -- liftIO $ removeFiles mainGenDir ["//"]
     liftIO $ mapM_ (\d -> IO.createDirectoryIfMissing True (mainGenDir </> d)) splatDirs
     cmd_ "split.py" [splatFile]
+    -- `as` cannot assemble PS1 GTE command opcodes (RTPS/RTPT/NCLIP/DPCS/...),
+    -- which splat emits as mnemonics; without this the whole renderer region is
+    -- un-splittable (a function there won't even build as a NON_MATCHING stub).
+    -- Rewrite them to the equivalent `.word`. Byte-exact; `./Build check` gates.
+    cmd_ "tools/gte2word.py" [mainGenDir </> asmDir]
     -- Clean up paths in linker to not be buildDir </> genDir as we want to put
     -- object files in separate place for aesthetics or whatever.
     let mainBuildDir = buildDir </> "main.exe"

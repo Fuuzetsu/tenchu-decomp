@@ -81,6 +81,7 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/matchdiff.py <Name>` / `tools/asmdiff.py <Name>` | iterate. matchdiff = whole-image gate; asmdiff = aligned view for big/split functions. |
 | `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules (type-width flips; `&&` split/merge and single-use temp inline via tree-sitter) and greedily keep what shrinks the asmdiff, reporting which edit helped. Deterministic first pass; a "no win" verdict means the residual is structure/regalloc, not a local rule. |
 | `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties (the stochastic search; autorules is its deterministic, explainable complement). |
+| `tools/gte2word.py <dir>` | rewrite splat's GTE command mnemonics (`RTPT`…) to `.word` so `as` can assemble them. **Runs automatically from Build.hs after `split.py`** — you never invoke it by hand. Byte-exact (the `.word` is the byte-SWAP of splat's WORD comment). |
 | `tools/coverage.py [--all]` | code claimed by NO function — finds under-sized `functions.tsv` entries (a truncated carve still builds green; the tail becomes a `.data` blob that defines the `.L` labels, so nothing complains). `LoadCard` and `FUN_800593a0` are the two in game code. |
 | `tools/regalloc.py <Name>` | **diagnose a register tie** — runs `cc1 -dg` and surfaces which values are live across calls (forced callee-saved), the pseudo→hard-reg map, and the copy-chains that bias the coloring. Run this BEFORE blindly permuting a sub-C tie; it tells you which copy-chain to break. |
 
@@ -316,6 +317,15 @@ Only 3 more scored ≤200. Median score was 2520, so **a brief permuter run over
 everything would be wasted** — from a score-1165 base the permuter did not
 converge in 45 s, while the score-0 ones need no permuter at all.
 
+**Upgrading m2c did NOT move this needle.** We replaced the 3-year-stale
+`m2c-overlay` pin with upstream master + our PS1 patch series (`nix/m2c/*.patch`).
+On the identical 331-function set the scored count was **138 before and 138
+after**: the stack-passed-argument and bitfield fixes change the drafts but not
+whether `cc1` accepts them. The m2c upgrade's payoff is GTE/COP2 readability, not
+draft throughput. The remaining compile failures are `sp32 undeclared` stack
+temps, `void value not ignored`, and arg-count mismatches against context
+prototypes — that is still where more zeros hide.
+
 Takeaways: the sweep's value is (a) free matches and (b) a *ranked worklist* —
 score-vs-target is a far better "what's easy next" signal than triage's
 size/similarity heuristic. The 195 that never scored are blocked on draft quality
@@ -347,18 +357,12 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   `regalloc.py` then break the copy-chain / shorten the live range it points at,
   instead of blind permuting. (Open v2: diff our greg allocation against the
   target asm's registers to auto-flag the divergent value.)
-- **A GTE-opcode → `.word` pass** (NOT built — needs a build-pipeline + policy
-  decision, so parked for the owner). `as` can't assemble PS1 GTE command
-  opcodes, so splat's per-function split of any renderer helper (the ~5
-  `FUN_8005dxxx` `DrawTMD` handlers, `SetDepthQ`, neighbors) won't assemble —
-  the whole GTE-using region is un-splittable. The transform itself is trivial:
-  rewrite each GTE mnemonic line to `.word 0x…` from splat's own `/* … WORD */`
-  comment (like maspsx's other normalizations) — but **byte-swap that column
-  first**: it is the raw little-endian file bytes in address order, not the
-  instruction word (`jr $ra` = `0x03E00008` prints as `0800E003`), and `as` lays
-  `.word` down little-endian, so copying it verbatim emits the bytes reversed.
-  The open part is
-  WHERE it runs (post-splat on the nonmatchings `.s`, or a maspsx addition) and
-  that MATCHING the region additionally needs the inline-asm/register-pinned
-  policy (non-ABI calling convention) — so do both together. See the cookbook's
-  Toolchain-gotchas GTE entry.
+- **DONE — the GTE→`.word` pass is built** (`tools/gte2word.py`, run from
+  Build.hs after `split.py`). All 25 GTE functions are carved and `./Build check`
+  is byte-identical. **What remains is the OWNER'S POLICY CALL**: matching them
+  needs register-pinned locals / inline asm, because no C construct emits a GTE
+  opcode and the region uses a non-ABI calling convention (values live in
+  `$t2..$t5`/`$s0` at entry). The same decision unblocks `GetPad`/`GetPadXY`/
+  `FUN_8001b174` (the sign-extension trio) and `PClseek`'s `break 0x107`. Until
+  it is made, those ~29 functions stay VERY-HARD/parked. m2c can already read the
+  region (`--input-regs`), so a decision is all that is missing.

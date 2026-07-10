@@ -1327,37 +1327,35 @@ absolute → keep the symbol off the list (a plain small extern).
     split into two `sra`s summing to 16, with **no** scale folded in.
     `triage.py`'s detector already requires the 3-insn form, so it will not
     false-positive here.
-- **`as` cannot assemble PS1 GTE command opcodes — the DrawTMD/renderer region
-  is un-splittable until a GTE→`.word` pass exists.** Our `mipsel-...-as`
-  (binutils 2.40, `-march=r3000`) is vanilla MIPS: standard COP2 data moves
-  (`lwc2`/`swc2`/`mfc2`/`cfc2`) assemble, but the GTE *command* opcodes
-  (`RTPT`/`RTPS`/`NCLIP`/`DPCS`/`DPCT`/`MVMVA`/`AVSZ3`/`AVSZ4`/`GPF`/`GPL`/`OP`/
-  `SQR`/`NC*`/`CC`/`CDP`/`INTPL`) are `unrecognized opcode`. splat emits them as
-  *mnemonics* when you individually split a function, so `reverse.py` on any
-  renderer helper (FUN_8005d1fc/d764/dd30/d49c/e330 = per-primitive-type
-  handlers dispatched by `DrawTMD`) fails at `./Build check` — before the
-  NON_MATCHING convention even applies (that assumes the stub assembles). maspsx
-  has no GTE handling either. **The blocked set is wider than the `0x8005dxxx`
-  handlers: 24 game functions (~15 KB) contain GTE commands, including
-  `FUN_8001c730` and the whole `0x80057b80`–`0x8005a3cc` block (`FUN_80057b80` is
-  3796 B).** `triage.py` now flags them (`GTE CMD — UN-SPLITTABLE`) and ranks them
-  VERY-HARD, so they stop surfacing as attractive small targets; `SetDepthQ` is
-  the lone COP2-*moves*-only function (`ctc2` ×2 — it assembles, but has no C
-  spelling, so it is blocked on the inline-asm policy, not on the `.word` pass).
-  objdump renders a GTE command as a bare `c2` mnemonic — that's the detector. FIX (backlogged, see orchestration.md): a filter
-  that rewrites each GTE mnemonic to `.word 0x…` using the encoding on splat's
-  own `/* addr vaddr WORD */` comment on the line. **BEWARE: that WORD column is
-  the raw little-endian file bytes in address order, NOT the instruction word —
-  you must byte-swap it before emitting a `.word`.** Verified: `jr $ra`
-  (`0x03E00008`) prints as `0800E003`, and `j SystemOut` (`0x08005BA3`) prints as
-  `A35B0008`; the file bytes at that offset really are `a3 5b 00 08`. Since GNU
-  `as` on a little-endian target lays `.word 0xAABBCCDD` down as `dd cc bb aa`,
-  copying the comment verbatim emits the bytes REVERSED. So the pass is
-  `.word 0x` + byteswap(comment) — byte-exact only after the swap.
-  NOTE it only makes the region *splittable*; MATCHING these still
-  needs the register-pinned-locals / inline-asm treatment (non-ABI calling
-  convention, values in `$t2..$t5`/`$s0`), i.e. the same open inline-asm policy
-  as GetPad/PClseek — so build the pass together with that decision.
+- **PS1 GTE command opcodes: SOLVED for splitting, still blocked for matching.**
+  Our `mipsel-...-as` (binutils 2.40, `-march=r3000`) is vanilla MIPS: the COP2
+  *data moves* (`lwc2`/`swc2`/`mfc2`/`mtc2`/`cfc2`/`ctc2`) assemble, but the GTE
+  *command* opcodes (`RTPS`/`RTPT`/`NCLIP`/`DPCS`/`DPCT`/`MVMVA`/`AVSZ3`/`AVSZ4`/
+  `GPF`/`GPL`/`OP`/`SQR`/`NC*`/`CC`/`CDP`/`INTPL`) are `unrecognized opcode`, and
+  splat emits them as mnemonics. **`tools/gte2word.py` rewrites each to the
+  equivalent `.word`, and Build.hs runs it right after `split.py`** — so the whole
+  renderer region is now splittable, and all 25 GTE functions are carved
+  (`FUN_8001c730`, the `0x80057b80`–`0x8005a3cc` block, and the `0x8005dxxx`/
+  `0x8005exxx` per-primitive handlers dispatched by `DrawTMD`). `./Build check`
+  stays byte-identical.
+  - **The detector** is that spimdisasm prints a GTE command's mnemonic in
+    UPPERCASE and everything else in lowercase (`RTPT` vs `lui`). objdump instead
+    renders one as a bare `c2` — that's what `triage.py` keys on.
+  - **The `.word` value is the BYTE-SWAP of splat's `/* addr vaddr WORD */`
+    comment, not the comment itself.** That column is the raw little-endian file
+    bytes in address order (`jr $ra` = `0x03E00008` prints as `0800E003`), while
+    `as` lays a `.word` down little-endian. `RTPT` prints `3000284A` and must be
+    emitted as `.word 0x4A280030`. Copying the comment verbatim reverses every
+    instruction.
+  - **What is still blocked is MATCHING**: no C construct emits a GTE opcode, and
+    these functions also use a non-ABI calling convention (values live in
+    `$t2..$t5`/`$s0` at entry). That needs the register-pinned-locals / inline-asm
+    policy — the same open question as `GetPad`/`PClseek`. `triage.py` says
+    `GTE CMD — split OK, no C form (inline-asm policy)` and keeps them VERY-HARD.
+  - **m2c can now read them**: our m2c carries a PSX GTE/COP2 patch series
+    (`nix/m2c/*.patch`). Pass `--input-regs v0,t0,t3,t5,s0` (or whichever the
+    function reads at entry) or every use becomes
+    `M2C_ERROR(Read from unset register)`.
 - **maspsx's `break` wants the single-value form `break 0x107`, not the
   two-operand disassembly `break 0, 263`.** maspsx (`elif op == "break"`) takes
   one immediate and splits it into the two 10-bit fields itself; the

@@ -115,8 +115,11 @@ MULDIV = {"mult", "multu", "div", "divu"}
 # COP2 data moves: `as` assembles these, but there is no C spelling for them.
 COP2_MOVES = {"lwc2", "swc2", "mfc2", "mtc2", "cfc2", "ctc2"}
 # objdump renders a GTE *command* (RTPS/NCLIP/MVMVA/...) as a bare `c2`.
-# binutils' vanilla MIPS `as` cannot assemble those, so splat's per-function
-# split of such a function does not even build -> reverse.py fails outright.
+# `as` cannot assemble those mnemonics, but `tools/gte2word.py` (wired into the
+# splat step in Build.hs) rewrites them to `.word`, so the region IS splittable
+# and every one of these functions is carved. What still blocks a MATCH is that
+# no C construct emits a GTE opcode: that needs the inline-asm policy decision
+# (same one as GetPad/PClseek). Keep them de-ranked, but say why accurately.
 GTE_CMD = "c2"
 
 
@@ -235,8 +238,9 @@ def docs_for(f):
                   "sll16/sra-split sign-extension — no natural-C form; see GetPad.c"))
     if f["gtecmd"]:
         d.append(("Toolchain gotchas",
-                  "GTE command opcodes — `as` rejects them, so the per-function "
-                  "split does not even assemble; needs the GTE->.word pass first"))
+                  "GTE command opcodes — tools/gte2word.py makes the split "
+                  "assemble; a MATCH still needs the inline-asm policy, since no "
+                  "C construct emits a GTE opcode"))
     elif f["cop2"]:
         d.append(("Toolchain gotchas",
                   "COP2 data moves — assemble, but have no C spelling; blocked on "
@@ -255,7 +259,7 @@ def score(f, sim):
     base += 30 * (f["frame"] > 0x200)
     base += 5 * f["callees"]
     base += 400 * bool(f["signext"])  # no natural-C form (GetPad class)
-    base += 800 * bool(f["gtecmd"])   # won't even assemble today
+    base += 800 * bool(f["gtecmd"])   # splittable, but no C form for GTE ops
     base += 400 * bool(f["cop2"])     # assembles, but no C spelling
     if sim >= 0.99:
         return 15                      # near-clone: clone the twin
@@ -283,7 +287,7 @@ def relevant_docs(name):
 def why(f, sim, twin):
     bits = [f"{len(f['mns'])} insns"]
     if f["gtecmd"]:
-        bits.append(f"{f['gtecmd']} GTE CMD — UN-SPLITTABLE (as can't assemble)")
+        bits.append(f"{f['gtecmd']} GTE CMD — split OK, no C form (inline-asm policy)")
     elif f["cop2"]:
         bits.append(f"{f['cop2']} COP2 moves — no C form (inline-asm policy)")
     if f["switch"]:
