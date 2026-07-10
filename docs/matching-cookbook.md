@@ -1347,6 +1347,24 @@ caller-saved in a distinct register and spends an EXTRA callee-saved one (frame 
 when the target's frame is LARGER than yours and a call result dies near a
 call-surviving definition.
 
+### An offset-0 alias vs the enclosing struct member is a `%hi`-register lever
+
+Under -msplit-addresses, an offset-0 alias symbol (`ALIAS->field`, ALIAS at the struct
+base) folds `%hi` into the destination register (`lui $a2; lw $a2,0($a2)`), while
+reaching the same pointer as a NONZERO member of its enclosing struct
+(`CamState.Owner`, +0x10) splits the base into a separate register
+(`lui $v1; lw $a2,0x10($v1)`). When a pointer-load reload tie (`$v1` vs the dest for
+`%hi`) is the only residual, switch between the alias spelling and the struct-member
+spelling (`CheckCheatCodes`, last 2 bytes).
+
+### A shared `f(0, x)` tail vs two explicit `f(0, lit)` calls place the const arg differently
+
+A shared `f(0, x)` after an if/else hoists one `$a0 = 0` into the merged call's delay
+slot; writing TWO explicit per-branch `f(0, literal)` calls keeps `$a0 = 0` in each
+predecessor (cross-jump merges only the common `jal` tail, leaving a `nop` delay slot).
+Use the two-explicit-calls form when the target materialises a shared constant argument
+in each predecessor (`CheckCheatCodes`: 17-byte diff → 2).
+
 ### An abs `negu` that negates the COPY is the `abssi2` insn — reach it inline
 
 A `negu $v0,$v0` (negating the copy, not the source) is the MIPS backend's `abssi2`

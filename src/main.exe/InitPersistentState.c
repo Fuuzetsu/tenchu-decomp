@@ -1,7 +1,105 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
+/*
+ * InitPersistentState (0x80016134) — if the persistent-state blob at
+ * 0x80010000 is uninitialised or corrupt (CHOSEN_CHARACTER has any bit but
+ * bit0 set, or CHOSEN_STAGE is out of range >10), wipe it (memset 0xE70) and
+ * seed it with defaults: magic 0x19981110 at offset 0, audio/config bytes at
+ * 0x58..0x61, the per-character shop-stock row 0 (0xFE-filled then patched),
+ * a copy of that row into char 1's slot, the default item counts, then pick
+ * mono/stereo and re-enter the stage-select menu. Returns 0 when it
+ * (re)initialised, 1 when the existing state was already valid.
+ *
+ * Fields the game_types.h struct names (chr/stage/layout/counts/stock) use
+ * those; the audio/config bytes at 0x58..0x61 (inside the opaque
+ * field_0x49[0x15]/field_0x5f spans) use raw offset casts, matching the
+ * per-byte `sb` stores. The 0x59 field is InitSoundEffect's mono/stereo byte
+ * (D_80010059); the mono/stereo dispatch takes InitSoundEffect's inverted
+ * `!= 0 ? Stereo : Mono` polarity (beqz into the physically-later Mono block).
+ *
+ * STATUS: NON_MATCHING — 14 of 92 instructions differ (same 368-byte length;
+ * matchdiff reports 188 raw bytes, inflated by branch-target re-encoding).
+ * The whole residual is one sub-C register-allocation/strength-reduction knot
+ * rooted in cc1's CSE:
+ *   - The stock-init loop's walking-pointer base gets CSE-merged with the
+ *     field-write block's base (`move s0,a2`), so loop.c cannot consume the
+ *     base into an independent induction giv and recomputes `base+i` each
+ *     iteration (`addu v0,a0,a2`) instead of the target's walking pointer
+ *     (`lui a0; or a0,a0,i; … addiu a0,a0,-1`).
+ *   - The return value routes v1->v0 (`li v1,1; move v1,zero; move v0,v1`)
+ *     where the target keeps it in v0.
+ * The TARGET avoids the merge by materialising the block base as the
+ * `%hi(PersistentState)` SYMBOL (relocatable HIGH) while the loop uses a raw
+ * integer constant — two distinct RTL forms cc1 never CSEs. That distinction
+ * is UNREACHABLE in this C: `PersistentState` is both the game_types.h TYPE
+ * and the 0x80010000 symbol (can't be named as a global), and splat rejects a
+ * second symbol alias at 0x80010000 ("Duplicate symbol"). A pointer-cast local
+ * is a plain constant, so every base folds to one register. A bounded
+ * decomp-permuter run (~28k iterations, -j4) never beat the base draft.
+ */
+
+extern void SsSetMono(void);
+extern void SsSetStereo(void);
+extern void debug_menu_select_stage(PersistentState *ps);
+
+typedef struct
+{
+    u32 w[8];
+} StockRow;
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitPersistentState", InitPersistentState);
+#else
+s32 InitPersistentState(void)
+{
+    PersistentState *pg = (PersistentState *)0x80010000;
+    PersistentState *ps;
+    s32 result;
+    s32 i;
+
+    if ((pg->chr & 0xfe) != 0 || (result = 1, 10 < pg->stage)) {
+        memset((void *)0x80010000, 0, 0xe70);
+        ps = (PersistentState *)0x80010000;
+        *(u32 *)ps = 0x19981110;
+        ((u8 *)ps)[0x58] = 0;
+        ((u8 *)ps)[0x59] = 1;
+        ((u8 *)ps)[0x5a] = 0x7f;
+        ((u8 *)ps)[0x5b] = 0x7f;
+        ((u8 *)ps)[0x5c] = 0;
+        ((u8 *)ps)[0x5d] = 1;
+        ((u8 *)ps)[0x61] = 1;
+        ((u8 *)ps)[0x60] = 1;
+        for (i = 0x1f; i >= 0; i--) {
+            ((PersistentState *)0x80010000)->stock[i] = 0xfe;
+        }
+        ps->stock[0] = 0xff;
+        ps->stock[1] = 6;
+        ps->stock[2] = 6;
+        ps->stock[3] = 2;
+        ps->stock[4] = 1;
+        ps->stock[5] = 1;
+        ps->stock[7] = 3;
+        ps->stock[8] = 5;
+        *(StockRow *)&ps->stock[0x20] = *(StockRow *)&ps->stock[0];
+        ps->counts[1] = 10;
+        ps->counts[0] = 0xff;
+        ps->counts[2] = 5;
+        ps->counts[3] = 2;
+        ps->layout = 0xff;
+        if (((u8 *)ps)[0x59] != 0) {
+            SsSetStereo();
+        } else {
+            SsSetMono();
+        }
+        debug_menu_select_stage(ps);
+        ((u8 *)ps)[0x5f] = 0;
+        result = 0;
+    }
+    return result;
+}
+#endif /* NON_MATCHING */
 
 // triage: MEDIUM — 92 insns, 1 loop, 4 callees, ~0.08 to load_font_image_into_global
 // likely-relevant cookbook sections:

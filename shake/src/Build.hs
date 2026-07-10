@@ -189,6 +189,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SetBleedsDir" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "ChasetoTarget" = ["Me_THINK_C", "Attrib", "Distance"]
     syms "GetAreaMapPassage" = ["FieldArea", "FieldIndex"]
+    syms "PlaySE" = ["voice"]
     syms "AVCameraSetup" = ["CHOSEN_EVENT_LIST_THING_LOCATION", "D_80097CC4"]
     syms "AVCameraControl" = ["D_80097CCA", "D_80097CC8", "D_80097CC4"]
     syms "CVAsequence" = ["PERSISTENT_EVENT_LIST_THING", "CHOSEN_EVENT_LIST_THING_LOCATION", "D_80097CC4", "D_80097CCC", "D_80097CC0"]
