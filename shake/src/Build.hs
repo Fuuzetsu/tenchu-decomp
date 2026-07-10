@@ -201,6 +201,9 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "DeleteCard" = ["D_80097D04"]
     syms "SetupAfterimage" = ["D_80097F3C"]
     syms "MotionAndMove" = ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"]
+    syms "FileRead" = ["AccessPower", "ReadMode", "TotalIO"]
+    syms "LoadFromDEVPC" = ["TotalIO", "ReadMode", "MemoryLoadAddress"]
+    syms "LoadFromCDROM" = ["TotalIO", "ReadMode", "MemoryLoadAddress"]
     syms _ = []
 
 as :: FilePath

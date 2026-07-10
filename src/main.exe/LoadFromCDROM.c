@@ -20,47 +20,107 @@
  *     extern unsigned long *MemoryLoadAddress;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/LoadFromCDROM", LoadFromCDROM);
+/*
+ * LoadFromCDROM (0x80019650, 0x118 bytes) — loads a file from the AFS
+ * volume on disc: bumps TotalIO, mutes the CD-audio pump (AdtQuiet),
+ * opens `filename` via AfsOpen on the global `systemAFS` handle; a NULL
+ * result restores the audio state and reports via AdtMessageBox. On
+ * success, optionally logs (ReadMode & 4), gets the file's size via
+ * AfsFileSize, takes MemoryLoadAddress as a pre-supplied buffer if set
+ * (consuming it) or valloc()s a fresh one, reads it via AfsRead, closes
+ * the handle, restores the audio state, and returns the buffer. Same
+ * proven TAFS/TAFSFileHandle layout as
+ * AfsRead.c/AfsFileSize.c/AfsClose.c/AfsOpen.c.
+ *
+ * Matching notes:
+ *  - `&systemAFS` is recomputed at each of its 3 uses (AfsOpen, AfsFileSize,
+ *    AfsRead) rather than cached in a named pointer: the first two share one
+ *    callee-saved register (CSE, no intervening redefinition), but that
+ *    register gets reused for `size` right after AfsFileSize, so AfsRead's
+ *    `&systemAFS` materializes fresh. Write the address-of expression
+ *    directly at each call site — don't introduce a `TAFS *vol` local.
+ *  - Same MemoryLoadAddress idiom as LoadFromDEVPC: `buff = MemoryLoadAddress`
+ *    belongs INSIDE the else-branch (m2c already shows this literally),
+ *    not hoisted before the if the way Ghidra renders it.
+ *  - AfsOpen's real return type is `TAFSFileHandle *` (AfsFileSize/AfsRead/
+ *    AfsClose already fixed that signature) even though AfsOpen.c's own
+ *    still-unmatched Ghidra stub calls it `TAFSElement *` — Ghidra's struct
+ *    naming for this family isn't reliable; follow the proven callees.
+ *  - GUARD POLARITY: unlike the one-line-success guard clauses (AfsClose,
+ *    AfsFileSize — literal `== 0`, error as the branch target folded next
+ *    to the epilogue), this guard's success arm is LONG (several
+ *    statements, a nested if, five more calls) and a shared `quiet`
+ *    local live from before the guard to the tail of BOTH arms. Ghidra's
+ *    literal `if (fd == 0) {error; return 0;} success; return buff;`
+ *    compiles with the wrong polarity here (success ends up the branch
+ *    target, error the fallthrough — backwards from the target, which
+ *    keeps error unnested and LAST). Nest the long success arm instead:
+ *    `if (fd != 0) { ...long body...; return buff; } error; return 0;`
+ *    — the mirror image of the short-body guard-clause rule. Net rule:
+ *    the short-body exception flips back once the "success" side is the
+ *    LONGER of the two arms.
+ */
+extern s32 AdtQuiet(s32 quiet);
+typedef struct TAFS TAFS;
+typedef struct TAFSElement TAFSElement;
+typedef struct TAFSFileHandle TAFSFileHandle;
 
-// triage: EASY — 70 insns, 7 callees, ~0.13 to DoBriefingAndInventorySelection
-// likely-relevant cookbook sections:
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+struct TAFSElement
+{
+    u16 flag;    /* 0x0 */
+    u32 pos;     /* 0x4 */
+    u32 size;    /* 0x8 */
+    u32 psize;   /* 0xC */
+    u8 name[20]; /* 0x10 */
+};
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// ulong * LoadFromCDROM(uchar *path)
-//
-// {
-//   undefined4 uVar1;
-//   TAFSElement *element;
-//   ulong size;
-//   ulong *buffer;
-//
-//   TotalIO = TotalIO + 1;
-//   uVar1 = AdtQuiet(0);
-//   element = AfsOpen(&systemAFS,(char *)path);
-//   if (element == (TAFSElement *)0x0) {
-//     AdtQuiet(uVar1);
-//     AdtMessageBox("LOAD(CD) ERROR\n%d[%s]",TotalIO,path);
-//     buffer = (ulong *)0x0;
-//   }
-//   else {
-//     if ((ReadMode & 4U) != 0) {
-//       AdtMessageBox("%$LOAD(CD)\n%d[%s]",TotalIO,path);
-//     }
-//     size = AfsFileSize(&systemAFS,(TAFSElement *)element);
-//     buffer = MemoryLoadAddress;
-//     if (MemoryLoadAddress == (ulong *)0x0) {
-//       buffer = (ulong *)valloc(size);
-//     }
-//     else {
-//       MemoryLoadAddress = (ulong *)0x0;
-//     }
-//     AfsRead(&systemAFS,(TAFSElement *)element,(undefined *)buffer,size);
-//     AfsClose((TAFSElement *)element);
-//     AdtQuiet(uVar1);
-//   }
-//   return buffer;
-// }
+struct TAFSFileHandle
+{
+    s32 flagUse;       /* 0x0 */
+    u32 pos;           /* 0x4 */
+    TAFSElement *info; /* 0x8 */
+};
+
+extern TAFSFileHandle *AfsOpen(TAFS *handle, char *path);
+extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
+extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);
+extern int AfsClose(TAFSFileHandle *fd);
+extern void *valloc(u32 size);
+extern void AdtMessageBox(char *fmt, ...);
+extern char D_80011160[]; /* "%$LOAD(CD)\n%d[%s]" */
+extern char D_80011174[]; /* "LOAD(CD) ERROR\n%d[%s]" */
+extern s32 TotalIO;
+extern s32 ReadMode;
+extern u_long *MemoryLoadAddress;
+extern TAFS systemAFS;
+
+u_long *LoadFromCDROM(u8 *filename)
+{
+    s32 quiet;
+    TAFSFileHandle *fd;
+    s32 size;
+    u_long *buff;
+
+    TotalIO = TotalIO + 1;
+    quiet = AdtQuiet(0);
+    fd = AfsOpen(&systemAFS, (char *)filename);
+    if (fd != 0) {
+        if (ReadMode & 4) {
+            AdtMessageBox(D_80011160, TotalIO, filename);
+        }
+        size = AfsFileSize(&systemAFS, fd);
+        if (MemoryLoadAddress == 0) {
+            buff = (u_long *)valloc(size);
+        } else {
+            buff = MemoryLoadAddress;
+            MemoryLoadAddress = 0;
+        }
+        AfsRead(&systemAFS, fd, buff, size);
+        AfsClose(fd);
+        AdtQuiet(quiet);
+        return buff;
+    }
+    AdtQuiet(quiet);
+    AdtMessageBox(D_80011174, TotalIO, filename);
+    return 0;
+}

@@ -1,52 +1,78 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AfsOpenVolume", AfsOpenVolume);
+/*
+ * AfsOpenVolume (0x8005edb4, 0xCC bytes) — opens the AFS archive volume
+ * named `path`: AfsInit()s the handle, and if `path` fits an 80-byte stack
+ * buffer (< 0x4C chars, leaving room for the ".VOL" suffix), builds
+ * "<path>.VOL", cd_open()s it into handle->fpVol. A failed open reports and
+ * returns 1; otherwise reads the header (AfsGetHeader) — a nonzero result
+ * reports "Header error" and returns 2 — then reads the file table
+ * (AfsGetEntry) — a nonzero result reports "Entry error" and returns 3,
+ * else 0. No PSX.SYM block (compiled without -g); types are the proven
+ * TAFS/FILE layout from AfsInit.c/AfsRead.c/AfsGetHeader.c.
+ *
+ * Matching notes: Ghidra threads every path through one `iVar2` assigned
+ * before the guards and returned once at the end — but that keeps `iVar2`
+ * live across every call in the function, promoting it to a THIRD
+ * callee-saved register (an extra prologue/epilogue save pair, 8 bytes
+ * too long). The asm has no shared-return variable at all: each guard
+ * jumps straight to an early `return N;` (the constant materializes
+ * right at the jump, in the branch's own delay slot), and the function
+ * falls off the end with a final `return 0;` — a plain guard-clause chain,
+ * not Ghidra's fold-into-one-variable rendering. Two callee-saved regs
+ * only (handle, path).
+ */
+typedef struct FILE FILE;
+typedef struct TAFSElement TAFSElement;
+typedef struct TAFSFileHandle TAFSFileHandle;
 
-// triage: EASY — 51 insns, 8 callees, ~0.12 to AdtFntLoad
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
+typedef struct TAFS
+{
+    FILE *fpVol;             /* 0x0 */
+    s32 fModified;           /* 0x4 */
+    u32 posElement;          /* 0x8 */
+    TAFSElement *pElement;   /* 0xC */
+    u32 maxElements;         /* 0x10 */
+    s32 maxElementArea;      /* 0x14 */
+    TAFSFileHandle *pHandle; /* 0x18 */
+} TAFS;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// int AfsOpenVolume(TAFS *handle,char *path)
-//
-// {
-//   uint uVar1;
-//   int iVar2;
-//   FILE *pFVar3;
-//   int iVar4;
-//   char acStack_60 [80];
-//
-//   AfsInit((TAFS *)handle);
-//   uVar1 = strlen(path);
-//   iVar2 = 1;
-//   if (uVar1 < 0x4c) {
-//     strcpy(acStack_60,path);
-//     strcat(acStack_60,s__VOL_80097e78);
-//     pFVar3 = (FILE *)cd_open(acStack_60,0);
-//     handle->fpVol = pFVar3;
-//     if (pFVar3 == (FILE *)0x0) {
-//       AdtMessageBox("AfsOpenVolume: %s open err\n",acStack_60);
-//       iVar2 = 1;
-//     }
-//     else {
-//       iVar2 = AfsGetHeader((TAFS *)handle);
-//       if (iVar2 == 0) {
-//         iVar4 = AfsGetEntry((TAFS *)handle);
-//         iVar2 = 0;
-//         if (iVar4 != 0) {
-//           AdtMessageBox("AfsOpenVolume: Entry error");
-//           iVar2 = 3;
-//         }
-//       }
-//       else {
-//         AdtMessageBox("AfsOpenVolume: Header error");
-//         iVar2 = 2;
-//       }
-//     }
-//   }
-//   return iVar2;
-// }
+extern void AfsInit(TAFS *handle);
+extern u32 strlen(const char *s);
+extern char *strcpy(char *dst, const char *src);
+extern char *strcat(char *dst, const char *src);
+extern int cd_open(char *name, int mode);
+extern int AfsGetHeader(TAFS *handle);
+extern int AfsGetEntry(TAFS *handle);
+extern void AdtMessageBox(char *fmt, ...);
+extern char D_80097E78[]; /* ".VOL" */
+extern char D_80014870[]; /* "AfsOpenVolume: %s open err\n" */
+extern char D_8001488C[]; /* "AfsOpenVolume: Header error" */
+extern char D_800148A8[]; /* "AfsOpenVolume: Entry error" */
+
+int AfsOpenVolume(TAFS *handle, char *path)
+{
+    char buf[80];
+
+    AfsInit(handle);
+    if (strlen(path) >= 0x4C) {
+        return 1;
+    }
+    strcpy(buf, path);
+    strcat(buf, D_80097E78);
+    handle->fpVol = (FILE *)cd_open(buf, 0);
+    if (handle->fpVol == 0) {
+        AdtMessageBox(D_80014870, buf);
+        return 1;
+    }
+    if (AfsGetHeader(handle) != 0) {
+        AdtMessageBox(D_8001488C);
+        return 2;
+    }
+    if (AfsGetEntry(handle) != 0) {
+        AdtMessageBox(D_800148A8);
+        return 3;
+    }
+    return 0;
+}

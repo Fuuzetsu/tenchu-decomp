@@ -110,6 +110,9 @@ GP_EXTERNS = {
     "DeleteCard": ["D_80097D04"],
     "SetupAfterimage": ["D_80097F3C"],
     "MotionAndMove": ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"],
+    "FileRead": ["AccessPower", "ReadMode", "TotalIO"],
+    "LoadFromDEVPC": ["TotalIO", "ReadMode", "MemoryLoadAddress"],
+    "LoadFromCDROM": ["TotalIO", "ReadMode", "MemoryLoadAddress"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

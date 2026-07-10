@@ -16,28 +16,43 @@
  *     param $a2       unsigned long size
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/LoadExecEx", LoadExecEx);
+/*
+ * LoadExecEx (0x80019448, 0xac bytes) — shuts down every game subsystem
+ * (sound, graphics, pads, memcard, CD callback) before loading and jumping
+ * to a fresh executable off the disc. The Ghidra callee `FUN_8005e834` is
+ * the already-named `run_exec_file` (config/symbols.main.exe.txt); its
+ * second argument is the fixed stack-top constant 0x801ffff0, not an
+ * address-of (Ghidra's `&DAT_801ffff0` is a decompiler artifact for a bare
+ * absolute literal here, not a real object being pointed to — the asm
+ * builds it as a plain `lui/ori` 32-bit constant, never with a
+ * `-G8`/`%lo`-style small-symbol relocation).
+ */
+extern void FUN_8001b2b8(void);
+extern void CdaStop(void);
+extern void SsEnd(void);
+extern void FUN_8006ebe4(void);
+extern void ResetGraph(int mode);
+extern void PadStopCom(void);
+extern void MemCardStop(void);
+extern void MemCardEnd(void);
+extern void StopCallback(void);
+extern void FUN_8005e8f0(u8 *file, u32 stack, u32 size);
+extern void CdInit(void);
+extern void run_exec_file(u8 *name, u32 topaddr, s32 argc);
+extern char D_800111D4[]; /* "\\TENCHU\\RUN.EXE;1" */
 
-// triage: EASY — 43 insns, 12 callees, ~0.19 to DoBriefingAndInventorySelection
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void LoadExecEx(uchar *file,ulong stack,ulong size)
-//
-// {
-//   FUN_8001b2b8();
-//   CdaStop();
-//   SsEnd();
-//   FUN_8006ebe4();
-//   ResetGraph(3);
-//   PadStopCom();
-//   MemCardStop();
-//   MemCardEnd();
-//   StopCallback();
-//   FUN_8005e8f0(file,stack,size);
-//   CdInit();
-//   FUN_8005e834("\\TENCHU\\RUN.EXE;1",&DAT_801ffff0,0);
-//   return;
-// }
+void LoadExecEx(u8 *file, u32 stack, u32 size)
+{
+    FUN_8001b2b8();
+    CdaStop();
+    SsEnd();
+    FUN_8006ebe4();
+    ResetGraph(3);
+    PadStopCom();
+    MemCardStop();
+    MemCardEnd();
+    StopCallback();
+    FUN_8005e8f0(file, stack, size);
+    CdInit();
+    run_exec_file(D_800111D4, 0x801ffff0, 0);
+}

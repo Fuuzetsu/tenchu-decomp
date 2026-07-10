@@ -20,36 +20,49 @@
  *     extern unsigned char *ImagePath;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ResetInfoview", ResetInfoview);
+/*
+ * ResetInfoview (0x8004bfa4, 0x80 bytes) — resets the 5-entry LifeBar[]
+ * pool (same struct/stride as PutLifeBarS.c) and, for a valid stage, reloads
+ * the minimap sprite MapImage from "chizu.tim" via PathFileRead/GetTIMInfo/
+ * LoadTIMAndFree/InitSprite (the same call chain InitSprite.c's own header
+ * documents). PSX.SYM (an earlier build) recorded `LifeBar[4]`; the loop
+ * here plainly zeroes 5 entries (i=4..0) like ReqLifeBar/PutLifeBarS's
+ * already-matched `LifeBar[5]` — the retail array grew by one, so LifeBar[5]
+ * is what reproduces the bytes (cookbook: "the layouts are from an earlier
+ * build ... if the retail .s disagrees, the asm wins").
+ *
+ * `int i` (not `short`) lets loop.c strength-reduce `LifeBar[i].count = 0;`
+ * into the walking cursor the asm shows (`addiu $v0,$v0,-0x14` each
+ * iteration, starting at &LifeBar[4]); only one field is touched so there's
+ * no walking-pointer field-order bias to worry about (cookbook Loops).
+ */
+typedef struct
+{
+    u8 pad0[4];
+    s32 life;
+    s32 max;
+    s32 count;
+    s32 style;
+} tag_LifeBarEntry; /* 0x14 */
 
-// triage: EASY — 32 insns, 1 loop, 4 callees, ~0.17 to FUN_8004f598
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
+extern tag_LifeBarEntry LifeBar[5];
+extern u8 *ImagePath;
+extern char D_80012564[]; /* "chizu.tim" */
+extern GsSPRITE MapImage;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void ResetInfoview(int stage)
-//
-// {
-//   int iVar1;
-//   ulong *adr;
-//   int iVar2;
-//   GsIMAGE GStack_28;
-//
-//   iVar2 = 4;
-//   iVar1 = -0x7ff3f6e8;
-//   do {
-//     *(undefined4 *)(iVar1 + 0xc) = 0;
-//     iVar2 = iVar2 + -1;
-//     iVar1 = iVar1 + -0x14;
-//   } while (-1 < iVar2);
-//   if (-1 < stage) {
-//     adr = PathFileRead(ImagePath,(uchar *)"chizu.tim");
-//     GetTIMInfo(adr,&GStack_28);
-//     LoadTIMAndFree(adr);
-//     InitSprite(&GStack_28,&MapImage);
-//   }
-//   return;
-// }
+void ResetInfoview(int stage)
+{
+    int i;
+    u_long *adr;
+    GsIMAGE image;
+
+    for (i = 4; i >= 0; i--) {
+        LifeBar[i].count = 0;
+    }
+    if (stage >= 0) {
+        adr = PathFileRead(ImagePath, D_80012564);
+        GetTIMInfo(adr, &image);
+        LoadTIMAndFree(adr);
+        InitSprite(&image, &MapImage);
+    }
+}
