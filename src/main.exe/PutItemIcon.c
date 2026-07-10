@@ -18,7 +18,6 @@
  *     param $a3       short scale
  *
  * Globals it touches, as the original declared them:
- *     extern struct WorldType WorldMap[8][8][8];
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 

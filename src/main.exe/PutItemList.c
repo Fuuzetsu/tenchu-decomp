@@ -26,7 +26,6 @@
  *     extern struct GsSPRITE CursorImage;
  *     extern struct TCameraStatus CamState;
  *     extern struct GsOT *OTablePt;
- *     extern struct WorldType WorldMap[8][8][8];
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PutItemList", PutItemList);

@@ -10,7 +10,6 @@
  *     extern int StageID;
  *     extern struct GsOT *OTablePt;
  *     extern long GameClock;
- *     extern struct WorldType WorldMap[8][8][8];
  *     extern short SkipFrame;
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
