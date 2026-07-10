@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -18,7 +19,98 @@
  *     extern struct GsSPRITE TargetSprite[1];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitializeItem", InitializeItem);
+/*
+ * InitializeItem (0x8003d3e4, 0x144 bytes) — one-time setup of the item
+ * pool: loads four fixed models (the "launch"/"arrow"-family fixed visuals
+ * ReqItemLaunch's D_80097F48, ReqItemArrow's D_80097F4C, D_80097F50, and
+ * ProcItemHappou's HAPPOU_SCRATCH_MODEL — same globals, different TU-local
+ * extern spelling: those files see them as `Sprite3D *`, this one as the
+ * `ModelType *` LoadModel actually returns; no header shared between them,
+ * so no conflict), blanks all 30 item[] slots, then sets up the on-screen
+ * target-lock, item-count, and Goshikimai cursor sprites.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - D_80097F5C/D_80097F60 need the FULL Sprite3D (item.h's is truncated at
+ *    0x68, right where the embedded GsSPRITE `.sprite` field this function
+ *    writes begins) — same "local wrapper composes item.h's Sprite3D
+ *    instead of redefining it" idiom as PutItemIcon.c's ItemIconType.
+ *  - The `for (i=0;i<1;i++)` TargetSprite loop is Ghidra's own literal
+ *    rendering (a `bgtz`-tested single-iteration loop) — transcribed as-is.
+ *  - `D_80097AC8 = 1;` is this TU's own gp-relative small (already listed
+ *    for DoItemProc.c; added here too) — DoItemProc's lazy-init guard.
+ */
+
+typedef struct
+{
+    Sprite3D model; /* item.h's truncated 0x68-byte view */
+    GsSPRITE sprite; /* the embedded 2D sprite, +0x68 */
+} FullSprite3D;
+
+extern ModelType *D_80097F48;
+extern ModelType *D_80097F4C;
+extern ModelType *D_80097F50;
+extern ModelType *HAPPOU_SCRATCH_MODEL;
+extern FullSprite3D *D_80097F5C;
+extern FullSprite3D *D_80097F60;
+extern GsSPRITE TargetSprite[1];
+extern GsSPRITE SpriteGoshikimai;
+/* gp-relative small (this TU defines it; DoItemProc.c already lists it). */
+extern u8 D_80097AC8;
+
+extern u_long *GetArcData(s32 index);
+extern ModelType *LoadModel(u_long *adr);
+extern GsIMAGE *GetImage(s32 index);
+extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
+extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
+
+void InitializeItem(void)
+{
+    u_long *arc;
+    GsIMAGE *image;
+    GsSPRITE *sprite;
+    s32 i;
+    u32 attr;
+
+    arc = GetArcData(0x14);
+    D_80097F48 = LoadModel(arc);
+    arc = GetArcData(0x15);
+    D_80097F4C = LoadModel(arc);
+    arc = GetArcData(0x1B);
+    D_80097F50 = LoadModel(arc);
+    arc = GetArcData(0x1C);
+    HAPPOU_SCRATCH_MODEL = LoadModel(arc);
+
+    for (i = 0; i < 0x1E; i++)
+    {
+        items[i].locate = LoadModel((u_long *)0);
+        items[i].proc = 0;
+    }
+
+    i = 0;
+    attr = 0x50000000;
+    sprite = TargetSprite;
+    while (1)
+    {
+        if (!(i < 1))
+            break;
+        image = GetImage(0x34);
+        InitSprite(image, sprite);
+        sprite->attribute = attr;
+        sprite++;
+        i++;
+    }
+
+    image = GetImage(7);
+    D_80097F5C = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
+    D_80097F5C->sprite.attribute = 0x50000000;
+    image = GetImage(6);
+    D_80097F60 = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
+    D_80097F60->sprite.attribute = 0x60000000;
+    image = GetImage(0xD);
+    InitSprite(image, &SpriteGoshikimai);
+
+    D_80097AC8 = 1;
+}
 
 // triage: EASY — 81 insns, 1 loop, 5 callees, ~0.04 to PrepareGetScreenPositionS
 // likely-relevant cookbook sections:

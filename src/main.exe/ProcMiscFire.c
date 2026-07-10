@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -17,49 +18,95 @@
  *     stack sp+24     struct VECTOR pos
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — 10 of 356 bytes differ. Residual is the named
+ * permuter-immune "la reload tie" (cookbook, Iteration protocol): the
+ * address of the unnamed SVECTOR constant `D_80097C48` builds as
+ * `lui v0,%hi / addiu t3,v0,%lo` (two registers) in the target, with an
+ * unrelated independent instruction (`addiu s1,sp,24`, materializing
+ * `&vec`) scheduled between the two halves; our build instead puts both
+ * halves in ONE register (`lui t3,%hi / addiu t3,t3,%lo`) with the
+ * independent instruction moved after. Tried and reverted: swapping the
+ * `vec`/`pos` local declaration order (worse, 40 bytes) and swapping the
+ * `vec = D_80097C48;` / `pos.v{x,y,z} = m->{x,y,z};` statement order
+ * (worse, 22 bytes — reorders the visible store sequence too). Per the
+ * cookbook, this exact tie class (PrepareAccess, cd_open) has never been
+ * cracked by the permuter or by source-shaping; parked rather than
+ * spending a bounded run on a known-flat class.
+ *
+ * ProcMiscFire (0x8004d570, 0x164 bytes) — MISC_FIRE's ProcMisc* handler:
+ * MM_CREATE arms a 10-tick fuse; every later message decrements it (once
+ * per call, gated on `mode == 0`) and, when it reaches 0, detonates: an
+ * explosion + a burning-embers burst + a smoke puff at m's position, then
+ * rearms the fuse to a random 0..149 tick count and plays the bang sound.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - `msg > MM_RESUME` is the same unsigned-enum dispatch as ProcMiscSprite
+ *    (`enum TMiscMessage msg`, not plain `s32`, is what gets cc1 to emit
+ *    `sltiu` instead of `slti`).
+ *  - `--m->count` (or equivalently `m->count = m->count - 1;`) stores
+ *    unconditionally in the branch's delay slot even on the "still armed"
+ *    path — ordinary statement order, no special shape needed.
+ *  - `vec = D_80097C48;` is a whole-SVECTOR struct assignment (align-2
+ *    `lwl/lwr`+`swl/swr` block move, cookbook: cast type's alignment drives
+ *    copy code) from an unnamed 8-byte rodata/data constant — NOT the
+ *    Ghidra-rendered `local_28._4_4_ = (uint)(ushort)local_28.pad << 0x10;`
+ *    later in the function, which is a decompiler artifact: the raw .s has
+ *    three plain adjacent `sh` stores (vx=0, vy=-200, vz=0), no pad touched
+ *    at all (cookbook: trust the assembly over Ghidra's rendering).
+ *  - `m->count = rand() % 150;` keeps the call inline so the magic-multiply
+ *    divide operates directly on $v0.
+ */
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcMiscFire", ProcMiscFire);
+#else
+/* Draft — turn this into matching C, then delete the #ifndef/#else/#endif
+   guards. Reference: */
 
-// triage: MEDIUM — 89 insns, mul/div, 5 callees, ~0.09 to SetupAfterimage
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+extern SVECTOR D_80097C48;
+extern void SetExplosion(VECTOR *pos, SVECTOR *vel);
+extern void SetHinoko(VECTOR *pos, SVECTOR *vel, s32 n);
+extern void SetSmoke(VECTOR *pos, SVECTOR *vel, s32 n, s32 time);
+extern s16 SoundEx(VECTOR *loc, s32 id);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void ProcMiscFire(tag_TMisc *m,TMiscMessage msg)
-//
-// {
-//   int iVar1;
-//   SVECTOR local_28;
-//   VECTOR local_20;
-//
-//   if (msg == MM_CREATE) {
-//     m->mode = '\0';
-//     m->count = 10;
-//   }
-//   else if (((MM_RESUME < msg) && (m->mode == '\0')) &&
-//           (iVar1 = m->count + -1, m->count = iVar1, iVar1 < 1)) {
-//     local_28.vx = (short)DAT_80097c48;
-//     local_28.vy = DAT_80097c48._2_2_;
-//     local_28.vz = (short)DAT_80097c4c;
-//     local_28.pad = DAT_80097c4c._2_2_;
-//     local_20.vx = m->x;
-//     local_20.vy = m->y;
-//     local_20.vz = m->z;
-//     SetExplosion(&local_20,&local_28);
-//     local_28.vx = 0x4b;
-//     local_28.vy = 0xb4;
-//     local_28.vz = 0x4b;
-//     SetHinoko(&local_20,&local_28,10);
-//     local_28.vx = 0;
-//     local_28.vy = -200;
-//     local_28._4_4_ = (uint)(ushort)local_28.pad << 0x10;
-//     SetSmoke(&local_20,&local_28,0x14,6);
-//     iVar1 = rand();
-//     m->count = iVar1 % 0x96;
-//     SoundEx(&local_20,0x28);
-//   }
-//   return;
-// }
+void ProcMiscFire(tag_TMisc *m, enum TMiscMessage msg)
+{
+    SVECTOR vec;
+    VECTOR pos;
+
+    if (msg == MM_CREATE)
+        goto do_create;
+    if (MM_RESUME < msg)
+        goto do_check;
+    return;
+
+do_create:
+    m->mode = 0;
+    m->count = 10;
+    return;
+
+do_check:
+    if (m->mode != 0)
+        return;
+    m->count = m->count - 1;
+    if (m->count < 1)
+    {
+        vec = D_80097C48;
+        pos.vx = m->x;
+        pos.vy = m->y;
+        pos.vz = m->z;
+        SetExplosion(&pos, &vec);
+        vec.vx = 0x4B;
+        vec.vy = 0xB4;
+        vec.vz = 0x4B;
+        SetHinoko(&pos, &vec, 10);
+        vec.vx = 0;
+        vec.vy = -200;
+        vec.vz = 0;
+        SetSmoke(&pos, &vec, 0x14, 6);
+        m->count = rand() % 150;
+        SoundEx(&pos, 0x28);
+    }
+}
+#endif /* NON_MATCHING */

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -17,46 +18,75 @@
  *     reg   $s0       struct Sprite3D * s
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ProcMiscSprite", ProcMiscSprite);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ProcMiscSprite", debug_menu_sprite_spawner__override__prt_8004d8b8_394600bf);
+/*
+ * ProcMiscSprite (0x8004d874, 0xFC bytes across two pieces — the second, a
+ * Ghidra `__override__prt_` call-site marker for the AdtMessageBox variadic
+ * call, is NOT a jump table: piece 1 falls straight through into it, no
+ * branch targets it (cookbook: "__override__prt isn't always a jump
+ * table")). MISC_SPRITE's ProcMisc* handler: MM_CREATE clamps the raw
+ * TMiscInit.a param down to a valid SpriteData index (0 or 1) and re-stores
+ * it as the TSprite.type byte at the SAME union offset (0x18); any message
+ * past MM_RESUME (the "draw" tick) recolors the sprite a random grey and
+ * copies m's position into it.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - `msg > MM_RESUME` compiles UNSIGNED (`sltiu`, confirmed against the raw
+ *    .s alongside ProcMiscFire's identical dispatch prologue) — declaring
+ *    `msg` as the actual `enum TMiscMessage` parameter (all-non-negative
+ *    enumerators) is what gets cc1 to pick the unsigned compare; a plain
+ *    `s32 msg` would emit `slti` instead (wrong instruction, though same
+ *    length).
+ *  - The union's two views at offset 0x18: `m->param.init.a` (s32) for the
+ *    raw CREATE read, `m->param.sprite.type` (u8) for the clamped
+ *    store-back and every later read — reproduces the lw-then-sb/lbu width
+ *    switch at the identical address (cookbook: a param-union store whose
+ *    access WIDTH differs from another view at the same offset is a
+ *    distinct union member).
+ *  - `rand() % 60 + 'b'` inline (not through a temp) so the magic-multiply
+ *    divide operates directly on $v0 (cookbook: keep calls inline in
+ *    expressions).
+ */
 
-// triage: EASY — 63 insns, mul/div, 4 callees, ~0.10 to DisposeOrnamentArchive
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+extern void UpdateCoordinate(Sprite3D *dim);
+extern void DrawSprite(Sprite3D *s);
+/* Shared MISC.C rodata pool (same block as AddMisc.c's D_800127A4/D_800127BC
+ * strings, carved via AddMisc's .rodata segment) — "unknown sprite type",
+ * NOT a fresh literal in this file's own rodata (which would place it at
+ * the wrong address, cookbook: TU-shared string pooling). */
+extern char D_80012728[];
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void ProcMiscSprite(int m,TMiscMessage msg)
-//
-// {
-//   uchar uVar1;
-//   int iVar2;
-//   Sprite3D *sprt;
-//
-//   if (msg == MM_CREATE) {
-//     iVar2 = *(int *)(m + 0x18);
-//     if (1 < iVar2) {
-//       AdtMessageBox("unknown sprite type");
-//       iVar2 = 0;
-//     }
-//     *(undefined1 *)(m + 0x15) = 0;
-//     *(char *)(m + 0x18) = (char)iVar2;
-//   }
-//   else if (MM_RESUME < msg) {
-//     sprt = SpriteData[*(byte *)(m + 0x18)].spr;
-//     iVar2 = rand();
-//     uVar1 = (char)iVar2 + (char)(iVar2 / 0x3c) * -0x3c + 'b';
-//     (sprt->sprite).r = uVar1;
-//     (sprt->sprite).g = uVar1;
-//     (sprt->sprite).b = uVar1;
-//     (sprt->locate).coord.t[0] = *(long *)(m + 4);
-//     (sprt->locate).coord.t[1] = *(long *)(m + 8);
-//     (sprt->locate).coord.t[2] = *(long *)(m + 0xc);
-//     UpdateCoordinate((ModelType *)sprt);
-//     DrawSprite(sprt);
-//   }
-//   return;
-// }
+void ProcMiscSprite(tag_TMisc *m, enum TMiscMessage msg)
+{
+    s32 type;
+    Sprite3D *s;
+    u8 grey;
+
+    if (msg == MM_CREATE)
+        goto do_create;
+    if (MM_RESUME < msg)
+        goto do_draw;
+    return;
+
+do_create:
+    type = m->param.init.a;
+    if (1 < type)
+    {
+        AdtMessageBox(D_80012728);
+        type = 0;
+    }
+    m->mode = 0;
+    m->param.sprite.type = (u8)type;
+    return;
+
+do_draw:
+    s = SpriteData[m->param.sprite.type].spr;
+    grey = (u8)(rand() % 60 + 'b');
+    s->sprite.r = grey;
+    s->sprite.g = grey;
+    s->sprite.b = grey;
+    s->locate.coord.t[0] = m->x;
+    s->locate.coord.t[1] = m->y;
+    s->locate.coord.t[2] = m->z;
+    UpdateCoordinate(s);
+    DrawSprite(s);
+}

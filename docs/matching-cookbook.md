@@ -134,6 +134,24 @@ The ordered triage — fix categories in THIS order, re-running
    Finish the in-progress function (its own `tools/matchdiff.py <Name>` window
    isolates it); downstream resolves once it reaches the right length. Don't
    bisect.
+   - **When matching SEVERAL functions in one session, an EARLIER one
+     (lower address) being the wrong length makes a LATER one's own
+     `matchdiff`/`asmdiff` window compare against the WRONG BYTES, not just
+     a bigger diff.** Both tools read the target's address straight from
+     `config/symbols.main.exe.txt` and disassemble OUR build at that SAME
+     fixed address; if anything before it has drifted, that address no
+     longer holds the later function's actual compiled bytes — it shows a
+     plausible-looking but SPURIOUS diff (a prologue instruction that looks
+     "missing", garbage-looking-but-valid instructions, or gp-relative
+     immediates all off by the SAME constant amount). The tell: the
+     reported length is wildly short (e.g. "6 vs 63") or a data symbol's gp
+     offset is off by a fixed delta consistently across every use in the
+     function. Don't debug the downstream function for this — sort the
+     batch by ADDRESS and fix upstream-first; once every earlier function
+     in the batch reaches the target LENGTH (not necessarily byte-perfect,
+     just the right size), later functions' comparisons become meaningful
+     again (this batch: InitializeItem (earliest) needed fixing before
+     ProcMiscSprite's diff made any sense at all).
 4. Don't trust the byte count alone — read the diff. A change can improve the
    count while shifting registers globally (worse), or vice versa.
 5. **Attempt cap.** If ~10 meaningful source changes haven't reduced the diff,
@@ -337,6 +355,30 @@ plain C is the matched file.
 
 ## Dispatch
 
+- **An enum-typed dispatch parameter with all-non-negative enumerators
+  compiles a range test UNSIGNED (`sltiu`) — a plain `s32`/`int` parameter
+  gives `slti` instead.** `void f(struct T *m, enum TMsg msg)` with
+  `if (MM_RESUME < msg)` (MM_RESUME the highest-valued enumerator, all
+  values ≥0) emits `sltiu $v0,$a1,N` in the target; declaring the same
+  parameter plain `s32` compiles the identical comparison to `slti` (same
+  length, wrong instruction). Verified on two sibling functions in the same
+  TU with the identical dispatch prologue (ProcMiscSprite, ProcMiscFire) —
+  both need the parameter spelled as the real `enum` type, not just `s32`,
+  to reproduce the unsigned compare cc1 picks for an enum whose range is
+  provably non-negative.
+- **Two independent `if (cond) goto L;` tests whose FALLTHROUGH is the
+  short case is a different shape from a single if/else-if** — reach for
+  it when BOTH non-fallthrough bodies are reached by a forward jump (not
+  just one). `if (msg == A) goto do_a; if (B < msg) goto do_b; return;
+  do_a: ...; return; do_b: ...;` reproduces a target where the SHORT
+  "do nothing" case sits inline right after the tests and both real bodies
+  are placed after it as jump targets — a plain `if (msg==A) {A} else if
+  (B<msg) {B}` instead inlines the FIRST body (A) right after its own test
+  and only jumps for the else-if chain, giving the wrong polarity for A's
+  reachability (ProcMiscSprite, ProcMiscFire: MM_CREATE's body and the
+  "draw" body are both forward-jump targets; the 1-in-3 `MM_DESTROY`/
+  `MM_PAUSE`/`MM_RESUME` messages fall through the two tests straight to
+  `return`).
 - **Put the case whose body precedes the epilogue LAST in source**: with no
   default, the textually last case needs no trailing jump if it falls into
   the join point — a real length lever (PlayerOption's order 0,1,3,2
@@ -475,6 +517,25 @@ plain C is the matched file.
     a separately incremented cursor) so cc1 strength-reduces to exactly ONE
     walking pointer no matter how many offsets/fields you touch off it
     (FUN_8004a6bc's `D_8008E4B4[idx]` table, touched at offsets 0/4/5).
+  - **Neither shape may be perfect when the loop ALSO conditionally
+    dispatches through a field.** DoMiscProc's 200-slot cull loop touches
+    five fields (`proc`,`x`,`y`,`z`,`pause`) with two indirect calls through
+    `proc`: a raw walking pointer reproduces the SAME bias this rule warns
+    about (the last-written field, `pause`@0x14, biases the base by +0x14
+    — confirmed by direct trial, 117 vs 113 target instructions), while
+    array indexing (`misc[i].field`) avoids the bias but degrades the
+    loop's OWN exit test from the target's plain counter compare
+    (`slti v0,s1,200`) to a pointer-vs-pointer bound check
+    (`addiu v0,base,7200; slt v0,cursor,v0`) plus an extra register (cc1
+    copies the array base into a second register to serve as the walking
+    cursor once a null-checked field access forces materialization). A
+    third attempt — caching `T *p = &arr[i];` just inside the null-check,
+    narrowing p's scope to avoid the raw-pointer bias — fixed the exit test
+    back to a counter but added its own extra copy (preserving `p` across
+    the call), netting worse (115 vs 113). Parked NON_MATCHING; array
+    indexing was the best of the three (right instruction COUNT, residual
+    confined to register choice) — try this cache-inside-the-if idea again
+    with a LOWER register-pressure sibling before assuming it never works.
 - **Keep a compared memory read INLINE in both `&&` operands (cc1 CSEs the
   address); hoisting it into a temp can swap two registers.**
   `if (p[n] != K && mx < p[n]) p[n] = mx;` with `mx` declared *before* the `if`
@@ -1609,6 +1670,22 @@ absolute → keep the symbol off the list (a plain small extern).
       one you're currently drafting (FUN_80056e30 and DeleteCard.c both
       `extern`'d `D_80097D04`/`D_80097D08`; rebound as `CardVolumeIdPtr`/
       `CardPathFormat` in both files at once).
+    - **The same fix applies to a string/constant that NO carved asm ever
+      referenced, from a shared TU-wide rodata pool a sibling function
+      already carved.** MISC.C's functions share ONE rodata block (splat
+      auto-named `D_800127A4`/`D_800127BC` from it, both still-referenced by
+      AddMisc's case-5 table); "unknown sprite type" — ProcMiscSprite's own
+      error string, living in that SAME block a few bytes earlier — was
+      NEVER referenced by any carved asm at all (ProcMiscSprite was still an
+      `INCLUDE_ASM` stub), so splat never named it. Writing a fresh C string
+      literal there places it in THIS file's own compiled rodata at the
+      WRONG address (a different `.rodata` page entirely — not a small
+      offset drift, verified 8+ pages off); the fix is the same
+      `D_XXXXXXXX = 0xADDR;` binding (address confirmed by reading the raw
+      ROM bytes at the offset), then `extern char D_XXXXXXXX[];` +
+      `AdtMessageBox(D_XXXXXXXX)` instead of a literal. Tell: a Ghidra/m2c
+      string-literal argument whose TU already has OTHER proven shared
+      strings at nearby addresses (check the sibling's header comment).
   - **gp-output SVECTOR/aggregate whose fields splat auto-named as separate
     drifted `D_` symbols**: when a function writes a small SVECTOR to gp memory,
     splat names each *referenced field address* its own `D_XXXX` glabel and can

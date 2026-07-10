@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -27,7 +28,126 @@
  *     extern struct MISC__184fake PitfallData[2];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitMisc", InitMisc);
+/*
+ * InitMisc (0x8004c1e8, 0x168 bytes) — one-time setup of the misc-object
+ * pool: clears all 200 misc[] slots (bottom-test walking-pointer loop,
+ * `misc + 199` down to `misc`), then loads the door/pitfall pair-of-models
+ * tables and the two ambient sprites (rain/snow "steam"), and finally sets
+ * the init latch DoMiscProc waits on.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - `misc + 199` (a nonzero-offset pointer into a big absolute extern
+ *    array) forces materialization of misc's OWN base address (lui+addiu)
+ *    plus a THIRD addiu for the +199*sizeof(tag_TMisc) offset — the
+ *    "offset-0 folds, a nonzero offset materializes" rule; ordinary pointer
+ *    arithmetic reproduces it with no special spelling.
+ *  - DoorData/PitfallData's `Model[2]` fields double as int archive-index
+ *    slots before this function ever runs (the original static initializer
+ *    packs a GetArcData index — or -1 for "none" — into the same word later
+ *    overwritten with the loaded ModelType pointer); PSX.SYM's own locals
+ *    (`int iDoor1`/`iDoor2`) confirm the field is READ as a plain int here,
+ *    cast off the ModelType* field (`(s32)door->Model[0]`), while other
+ *    already-matched files access the same field as a ModelType* — no
+ *    conflict, this is a different TU's own read of the field's raw bits.
+ *  - Both `Model[0]`/`Model[1]` are read UNCONDITIONALLY before either `if`
+ *    (`iDoor2` cached because the first `if`'s GetArcData/LoadModel calls
+ *    would clobber a caller-saved copy of it; `iDoor1` is consumed
+ *    immediately by its own call and needs no separate temp beyond the
+ *    parameter register) — same "pointer/value cached only when it must
+ *    survive a call" shape as ProcMiscDoor's twins.
+ *  - SpriteData's own `.spr` field is likewise read (cast to int) as the
+ *    GetImage index BEFORE being overwritten with the real Sprite3D*.
+ *  - The final `EFFECT_SPAWNERS_INITIALISED = 1;` is this TU's own
+ *    gp-relative small (Build.hs maspsxGpExterns); DoMiscProc reads it.
+ */
+
+extern u_long *GetArcData(s32 index);
+extern ModelType *LoadModel(u_long *adr);
+extern GsIMAGE *GetImage(s32 index);
+extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
+
+void InitMisc(void)
+{
+    tag_TMisc *tm;
+    s32 i;
+
+    i = 199;
+    tm = misc;
+    tm = tm + 199;
+    do
+    {
+        tm->proc = 0;
+        i--;
+        tm--;
+    } while (-1 < i);
+
+    {
+        s32 iDoor1;
+        s32 iDoor2;
+        ModelType *data;
+
+        for (i = 0; i < 0xB; i++)
+        {
+            iDoor1 = (s32)DoorData[i].Model[0];
+            iDoor2 = (s32)DoorData[i].Model[1];
+            if (iDoor1 != -1)
+            {
+                data = LoadModel(GetArcData(iDoor1));
+                DoorData[i].Model[0] = data;
+            }
+            if (iDoor2 != -1)
+            {
+                data = LoadModel(GetArcData(iDoor2));
+                DoorData[i].Model[1] = data;
+            }
+        }
+    }
+
+    {
+        SpriteDataType *spr;
+        GsIMAGE *image;
+        Sprite3D *sprite;
+        u32 attr;
+
+        i = 0;
+        attr = 0x50000000;
+        spr = SpriteData;
+        do
+        {
+            i++;
+            image = GetImage((s32)spr->spr);
+            sprite = SetupSprite((Sprite3D *)0, image);
+            spr->spr = sprite;
+            sprite->sprite.attribute = attr;
+            spr->spr->scale = spr->scale;
+            spr++;
+        } while (i < 2);
+    }
+
+    {
+        s32 id1;
+        s32 id2;
+        ModelType *data;
+
+        for (i = 0; i < 3; i++)
+        {
+            id1 = (s32)PitfallData[i].Model[0];
+            id2 = (s32)PitfallData[i].Model[1];
+            if (id1 != -1)
+            {
+                data = LoadModel(GetArcData(id1));
+                PitfallData[i].Model[0] = data;
+            }
+            if (id2 != -1)
+            {
+                data = LoadModel(GetArcData(id2));
+                PitfallData[i].Model[1] = data;
+            }
+        }
+    }
+
+    EFFECT_SPAWNERS_INITIALISED = 1;
+}
 
 // triage: MEDIUM — 90 insns, 4 loop, 4 callees, ~0.07 to ResetAllMisc
 // likely-relevant cookbook sections:
