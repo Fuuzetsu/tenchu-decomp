@@ -143,42 +143,20 @@ def family(name):
 def globals_touched(name):
     """Globals this function references, typed from PSX.SYM.
 
-    Saves the agent from inventing a layout for `D_800BC108` when the original
-    source called it `struct ConflictObjectType ConflictObject[64]`.
-    """
-    hdr = "reference/psxsym-globals.h"
-    if not os.path.exists(hdr):
-        return []
-    sys.path.insert(0, "tools")
+    Delegates to tools/symnote.py so there is exactly ONE implementation of the
+    ownership rule (resolve against the dense symbol table, not the sparse typed
+    set -- see the note there)."""
     try:
-        import datamatch as D
+        sys.path.insert(0, "tools")
+        import symnote
+        decls = symnote.globals_of(name)
     except Exception:
         return []
-    try:
-        addr, size = func(name)
-    except SystemExit:
-        return []
-    decl = {}
-    for line in open(hdr):
-        m = re.match(r"extern (.*);\s+/\* (0x[0-9a-f]+)", line)
-        if m:
-            decl[int(m.group(2), 16)] = m.group(1)
-    if not decl:
-        return []
-    exe = open("disks/tenchu/main.exe", "rb").read()
-    refs, _ = D.data_refs(exe[0x800:], 0x80011000, addr, size, D.RETAIL_GP, *D.RETAIL_TEXT)
-    starts = sorted(decl)
-    hits = []
-    for _, y in refs:
-        i = bisect.bisect_right(starts, y) - 1
-        if i >= 0 and y - starts[i] < 0x2000 and starts[i] not in hits:
-            hits.append(starts[i])
-    if not hits:
+    if not decls:
         return []
     out = ["- Globals it touches, with the original declaration (reference/"
            "psxsym-globals.h) — use these instead of inventing a `D_` layout:"]
-    for a in hits[:12]:
-        out.append(f"    `extern {decl[a]};`  /* {a:#010x} */")
+    out += [f"    `{d}`" for d in decls]
     return out
 
 

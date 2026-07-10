@@ -9,7 +9,6 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern struct GsOT *OTablePt;
- *     extern struct TCdaStatus CdaStatus;
  *
  * PSX.SYM suggests this may be `SetGore` (LOW confidence, EFFECT.C) — NOT
  * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.

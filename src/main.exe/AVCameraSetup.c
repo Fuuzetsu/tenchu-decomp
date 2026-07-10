@@ -15,7 +15,6 @@
  *     reg   $a1       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */

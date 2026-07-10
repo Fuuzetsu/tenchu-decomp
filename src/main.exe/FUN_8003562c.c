@@ -11,10 +11,7 @@
  *     extern struct GsOT *OTablePt;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct AreaNodeType *FieldArea;
- *     extern struct TCdaStatus CdaStatus;
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8003562c", FUN_8003562c);

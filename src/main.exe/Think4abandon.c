@@ -14,10 +14,8 @@
  *     reg   $v1       short pad
  *
  * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  *     extern short Attrib;
  *     extern short SR;
- *     extern long AttackActionCount;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think4abandon", Think4abandon);

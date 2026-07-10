@@ -19,7 +19,6 @@
  *     reg   $a1       short j
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct Humanoid *StagePlayer;
  *     extern short Humans;

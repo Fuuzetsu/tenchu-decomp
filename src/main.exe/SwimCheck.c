@@ -17,7 +17,6 @@
  *     reg   $v1       short i
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short motID;
  *     extern struct MotionManager *dtM;
  *     extern struct ConflictObjectType ConflictObject[64];

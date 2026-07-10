@@ -21,7 +21,6 @@
  *     stack sp+40     long [2] y
  *
  * Globals it touches, as the original declared them:
- *     extern struct POLY_GT4 AccessImage;
  *     extern struct AreaNodeType *FieldArea;
  *     extern struct NodeIndexType *FieldIndex;
  *     extern struct tag_TItem items[30];

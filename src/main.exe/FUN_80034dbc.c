@@ -10,7 +10,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
  *     extern unsigned long *GlobalAreaMap;
- *     extern short motID;
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 

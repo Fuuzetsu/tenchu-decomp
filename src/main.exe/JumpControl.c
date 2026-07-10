@@ -12,7 +12,6 @@
  *     extern struct VECTOR *dtL;
  *     extern struct MotionManager *dtM;
  *     extern short motID;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct Humanoid *StagePlayer;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR *dtV;

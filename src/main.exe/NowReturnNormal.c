@@ -15,7 +15,6 @@
  *     param $a0       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short motID;
  * END PSX.SYM */
 

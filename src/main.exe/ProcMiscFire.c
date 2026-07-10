@@ -15,9 +15,6 @@
  *     param $a1       enum TMiscMessage msg
  *     stack sp+16     struct SVECTOR vec
  *     stack sp+24     struct VECTOR pos
- *
- * Globals it touches, as the original declared them:
- *     extern unsigned char PutMapMode;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcMiscFire", ProcMiscFire);

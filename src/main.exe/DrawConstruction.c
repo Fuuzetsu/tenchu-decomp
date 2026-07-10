@@ -52,7 +52,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct WorldType WorldMap[8][8][8];
  *     extern struct GsOT *OTablePt;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawConstruction", DrawConstruction);

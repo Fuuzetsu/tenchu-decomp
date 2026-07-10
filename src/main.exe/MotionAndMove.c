@@ -12,7 +12,6 @@
  * Globals it touches, as the original declared them:
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short motID;
  * END PSX.SYM */
 

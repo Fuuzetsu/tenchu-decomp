@@ -19,7 +19,6 @@
  * Globals it touches, as the original declared them:
  *     extern unsigned long *GlobalAreaMap;
  *     extern short RefrectMove[16][2];
- *     extern int StageID;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/MoveKorogari", MoveKorogari);

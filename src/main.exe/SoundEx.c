@@ -16,8 +16,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct Humanoid *StagePlayer;
- *     extern struct TCdaStatus CdaStatus;
- *     extern short StageCitizens;
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 

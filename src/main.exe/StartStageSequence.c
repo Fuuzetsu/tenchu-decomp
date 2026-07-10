@@ -21,15 +21,15 @@
  *     extern struct StageCharType StageChar[18];
  *     extern struct Humanoid *HumanGroup[32];
  *     extern int StageID;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct Humanoid *StagePlayer;
  *     extern short Humans;
  *     extern unsigned long *GlobalAreaMap;
  *     extern short StageCitizens;
  *     extern short StageEnemies;
- *     extern short FriendHits;
  *     extern struct EventSeqType *StageEvent;
  *     extern long GameClock;
+ *     extern long StageTime;
+ *     extern short ActionHalt;
  * END PSX.SYM */
 
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/StartStageSequence", StartStageSequence);

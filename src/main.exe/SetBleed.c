@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -17,69 +18,84 @@
  *     param $a3       long col
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBleed", SetBleed);
+/*
+ * Matching notes (all verified against the original bytes):
+ *  - The effect-slot pool search is a hand-rolled `goto loop;` (NOT
+ *    while(1)+break): the give-up path takes `&dmy`'s address, a compile-time
+ *    constant, and a real loop shape would let loop.c hoist that lui/addiu to
+ *    the preheader (wrong — target only materializes &dmy at its own use).
+ *  - `idx` must be assigned before `slot = base + idx;` (not the other way
+ *    round with a second read of the cursor global) to land idx/slot in the
+ *    target's t0/v1 pair instead of the swapped v1/t0.
+ *  - The free-slot cursor-update code (store back to the pool cursor) lives
+ *    INSIDE the `if (slot->proc == 0) { ...; ef = slot; break; }` body, not
+ *    after a bare `if (proc==0) break;` — that's what gives the occupied path
+ *    (not the found path) the branch-away polarity the original has.
+ *  - `ef->param.bleed.pos = *pos;` / `.vec = *vec;` are plain whole-struct
+ *    assignments: VECTOR (align 4) block-moves as 4 lw+4 sw, SVECTOR (align 2)
+ *    as lwl/lwr+swl/swr pairs — no manual field-by-field copy needed.
+ *  - `fp = &ef->param.bleed;` must be computed BEFORE `r = col >> 16;` (both
+ *    textually and hence in the RTL) even though r's value is stored later:
+ *    with r first, cc1 duplicates r's independent `sra` onto both merge-entry
+ *    paths and leaves fp's address undupped, backwards from the target (which
+ *    duplicates the necessarily-path-dependent fp address and computes r's
+ *    path-invariant value exactly once). Reordering the two flips it back.
+ *  - `ef->proc = ...;` last, after time/b/mode, lets its store fall into the
+ *    final jr's delay slot like the original.
+ */
+extern void DrawBleed(TEffectSlot *ef);
 
-// triage: EASY — 61 insns, 1 loop, 0 callees, ~0.11 to InsertConflict
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)
+{
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    BleedType *fp;
+    u8 r;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetBleed(VECTOR *pos,SVECTOR *vec,int time,long col)
-//
-// {
-//   int iVar1;
-//   tag_EffectSlot *ptVar2;
-//   int iVar3;
-//   long lVar4;
-//   long lVar5;
-//   long lVar6;
-//
-//   iVar3 = 0;
-//   ptVar2 = EffectSlot + DAT_80097a3c;
-//   iVar1 = DAT_80097a3c;
-//   while( true ) {
-//     iVar1 = iVar1 + 1;
-//     ptVar2 = ptVar2 + 1;
-//     if (199 < iVar1) {
-//       iVar1 = 0;
-//       ptVar2 = EffectSlot;
-//     }
-//     if (ptVar2->proc == (undefined **)0x0) break;
-//     iVar3 = iVar3 + 1;
-//     if (199 < iVar3) {
-//       ptVar2 = &dmy;
-// LAB_800393e0:
-//       lVar4 = pos->vy;
-//       lVar5 = pos->vz;
-//       lVar6 = pos->pad;
-//       (ptVar2->param).blood.hint = (AreaNodeType *)pos->vx;
-//       (ptVar2->param).blood.px = lVar4;
-//       (ptVar2->param).blood.py = lVar5;
-//       (ptVar2->param).blood.pz = lVar6;
-//       lVar4 = *(long *)&vec->vz;
-//       (ptVar2->param).blood.scale = *(long *)vec;
-//       (ptVar2->param).blood.rotate = lVar4;
-//       (ptVar2->param).bleed.r = (uchar)((uint)col >> 0x10);
-//       (ptVar2->param).bleed.g = (uchar)((uint)col >> 8);
-//       (ptVar2->param).bleed.time = (uchar)time;
-//       (ptVar2->param).bleed.b = (uchar)col;
-//       (ptVar2->param).bleed.mode = '\0';
-//       ptVar2->proc = (undefined **)DrawBleed;
-//       return;
-//     }
-//   }
-//   DAT_80097a3c = iVar1 + 1;
-//   if (199 < iVar1 + 1) {
-//     DAT_80097a3c = 0;
-//   }
-//   goto LAB_800393e0;
-// }
+    base = EffectSlot;
+    idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+    slot = base + idx;
+    count = 0;
+loop:
+    idx = idx + 1;
+    slot = slot + 1;
+    if (199 < idx)
+    {
+        slot = base;
+        idx = 0;
+    }
+    if (slot->proc == 0)
+    {
+        CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+        if (199 < idx + 1)
+        {
+            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+        }
+        ef = slot;
+        goto found;
+    }
+    count = count + 1;
+    if (199 < count)
+    {
+        ef = &dmy;
+        goto found;
+    }
+    goto loop;
+found:
+    fp = &ef->param.bleed;
+    r = col >> 16;
+    ef->param.bleed.pos = *pos;
+    ef->param.bleed.vec = *vec;
+    fp->r = r;
+    fp->g = col >> 8;
+    fp->time = time;
+    fp->b = col;
+    fp->mode = 0;
+    ef->proc = (void (*)())DrawBleed;
+}

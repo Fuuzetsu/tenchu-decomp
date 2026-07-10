@@ -20,7 +20,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct TCameraStatus CamState;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SnapCameraTargetVector", SnapCameraTargetVector);

@@ -17,7 +17,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct SVECTOR UnitVector;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

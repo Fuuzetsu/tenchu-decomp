@@ -16,7 +16,6 @@
  *     reg   $s0       long y
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct MotionManager *dtM;
  *     extern short dtPAD;
  *     extern short MotionUpdateMode;
@@ -25,8 +24,6 @@
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
  *     extern short dtCMD;
- *     extern unsigned char fInitialize;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

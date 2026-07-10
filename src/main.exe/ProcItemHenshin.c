@@ -29,9 +29,7 @@
  *     reg   $s3       struct tag_TItem * item
  *
  * Globals it touches, as the original declared them:
- *     extern int StageID;
  *     extern struct GsSPRITE TargetSprite[1];
- *     extern long AttackActionCount;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemHenshin", ProcItemHenshin);

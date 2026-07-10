@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct StageCharType StageChar[18];
- * END PSX.SYM */
-
 /*
  * STATUS: NON_MATCHING — our draft is 180 bytes (45 insns) vs target's 176
  * (44 insns): one genuine extra instruction plus the register/operand-order

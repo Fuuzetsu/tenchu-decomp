@@ -21,9 +21,7 @@
  *     reg   $v1       short ph
  *
  * Globals it touches, as the original declared them:
- *     extern short motID;
  *     extern struct SVECTOR UnitVector;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

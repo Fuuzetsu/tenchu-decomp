@@ -8,8 +8,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
- *     extern unsigned char PutMapMode;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct GsSPRITE sprFrame[4];
  * END PSX.SYM */
 

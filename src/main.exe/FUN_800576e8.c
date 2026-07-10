@@ -8,7 +8,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct POLY_FT4 TelopP;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

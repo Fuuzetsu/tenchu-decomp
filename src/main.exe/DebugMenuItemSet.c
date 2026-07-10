@@ -10,7 +10,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct TCameraStatus CamState;
  *     extern unsigned long *GlobalAreaMap;
- *     extern unsigned char fInitialize;
  * END PSX.SYM */
 
 /*

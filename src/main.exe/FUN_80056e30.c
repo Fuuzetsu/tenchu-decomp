@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
- * END PSX.SYM */
-
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_80056e30", FUN_80056e30);
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_80056e30", FUN_80056e30__override__prt_80056e6c_aee7b64a);
 

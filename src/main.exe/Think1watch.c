@@ -18,9 +18,6 @@
  *     reg   $a1       long vz
  *     reg   $v0       short deg
  *     reg   $s0       short pad
- *
- * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  * END PSX.SYM */
 
 /*

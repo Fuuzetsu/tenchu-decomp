@@ -19,9 +19,6 @@
  *     reg   $s2       long vz
  *     reg   $v0       short deg
  *     reg   $s0       short pad
- *
- * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think1chase", Think1chase);

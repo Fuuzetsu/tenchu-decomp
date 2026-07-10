@@ -19,7 +19,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct ConflictObjectType ConflictObject[64];
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct BattleType BattleDB[78];
  *     extern struct MotionManager *dtM;
  *     extern struct Humanoid *StagePlayer;

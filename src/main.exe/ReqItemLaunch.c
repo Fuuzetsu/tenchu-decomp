@@ -26,8 +26,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_TItem items[30];
- *     extern int StageID;
- *     extern short motID;
  * END PSX.SYM */
 
 /*

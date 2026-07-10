@@ -15,15 +15,12 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct Humanoid *StagePlayer;
  *     extern short motID;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct SVECTOR *dtV;
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtR;
  *     extern struct VECTOR *dtL;
- *     extern struct TCameraStatus CamState;
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */

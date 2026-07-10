@@ -16,8 +16,8 @@
  *     stack sp+24     struct RECT rect
  *
  * Globals it touches, as the original declared them:
- *     extern enum TSystemFlag SystemFlag;
  *     extern struct TCdaStatus CdaStatus;
+ *     extern enum TSystemFlag SystemFlag;
  *     extern short Humans;
  *     extern struct Humanoid *HumanGroup[32];
  *     extern short ConflictObjects;

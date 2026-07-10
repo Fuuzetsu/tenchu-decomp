@@ -22,11 +22,9 @@
  *     reg   $a0       struct GsSPRITE * spr
  *
  * Globals it touches, as the original declared them:
- *     extern unsigned char fInitialize;
  *     extern struct GsSPRITE NumberImage;
  *     extern struct GsSPRITE CursorImage;
  *     extern struct TCameraStatus CamState;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct GsOT *OTablePt;
  *     extern struct WorldType WorldMap[8][8][8];
  * END PSX.SYM */

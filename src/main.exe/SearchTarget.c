@@ -27,9 +27,6 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern struct Humanoid *StagePlayer;
- *     extern struct TCdaStatus CdaStatus;
- *     extern long AttackActionCount;
- *     extern void (*ActionFunc[18])();
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 

@@ -17,7 +17,6 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct VECTOR UnitVector2;
  *     extern struct SVECTOR UnitVector;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct ModelType *ConflictModel;
  *     extern struct SVECTOR ConflictDistance;
  *     extern short ConflictObjects;

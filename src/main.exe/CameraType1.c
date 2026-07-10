@@ -40,10 +40,8 @@
  *     stack sp+64     struct SVECTOR ref
  *
  * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
- *     extern struct TCdaStatus CdaStatus;
- *     extern int Projection;
  *     extern unsigned long *GlobalAreaMap;
+ *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
 /*

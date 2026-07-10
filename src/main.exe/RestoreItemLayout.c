@@ -22,7 +22,6 @@
  *     extern struct tag_TItem items[30];
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct WorldType WorldMap[8][8][8];
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/RestoreItemLayout", RestoreItemLayout);

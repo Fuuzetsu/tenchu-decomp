@@ -25,8 +25,6 @@
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct tag_EffectSlot EffectSlot[200];
  *     extern struct AreaNodeType *FieldArea;
- *     extern int Projection;
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBlood", SetBlood);

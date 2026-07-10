@@ -15,14 +15,12 @@
  *     reg   $s1       struct POLY_XF4 * ply
  *
  * Globals it touches, as the original declared them:
- *     extern short motID;
  *     extern unsigned char PutMapMode;
  *     extern struct GsSPRITE MapImage;
  *     extern struct GsOT *OTablePt;
  *     extern struct tag_TItem items[30];
  *     extern int StageID;
  *     extern struct WorldType WorldMap[8][8][8];
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PutMap", PutMap);

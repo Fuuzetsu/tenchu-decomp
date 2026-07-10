@@ -7,9 +7,7 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 

@@ -113,6 +113,9 @@ GP_EXTERNS = {
     "FileRead": ["AccessPower", "ReadMode", "TotalIO"],
     "LoadFromDEVPC": ["TotalIO", "ReadMode", "MemoryLoadAddress"],
     "LoadFromCDROM": ["TotalIO", "ReadMode", "MemoryLoadAddress"],
+    "SetFrame": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "SetSplash": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "SetBleed": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

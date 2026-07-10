@@ -14,7 +14,6 @@
  *     extern short SR;
  *     extern short Degree;
  *     extern short Attrib;
- *     extern short EngageLevel;
  * END PSX.SYM */
 
 /*

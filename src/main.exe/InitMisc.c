@@ -25,7 +25,6 @@
  *     extern struct MISC__183fake DoorData[11];
  *     extern struct MISC__185fake SpriteData[2];
  *     extern struct MISC__184fake PitfallData[2];
- *     extern unsigned char PutMapMode;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitMisc", InitMisc);

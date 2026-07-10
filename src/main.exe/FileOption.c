@@ -25,7 +25,6 @@
  * Globals it touches, as the original declared them:
  *     extern enum TSystemFlag SystemFlag;
  *     extern int StageID;
- *     extern short StageCitizens;
  *     extern short EngageLevel;
  * END PSX.SYM */
 

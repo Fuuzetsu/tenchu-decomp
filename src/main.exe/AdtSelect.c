@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern enum TSystemFlag SystemFlag;
- * END PSX.SYM */
-
 /*
  * AdtSelect (0x8005fecc, 776 bytes) — modal debug-menu selection widget:
  * waits for pad release, saves the display state into a 0x8090-byte frame

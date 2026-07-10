@@ -13,14 +13,12 @@
  *     extern short dtPAD;
  *     extern short motID;
  *     extern short dtCMD;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short ActionHalt;
  *     extern struct SVECTOR *dtR;
  *     extern struct SVECTOR *dtV;
  *     extern struct Humanoid *StagePlayer;
  *     extern long GameClock;
  *     extern struct VECTOR *dtL;
- *     extern unsigned char fInitialize;
  * END PSX.SYM */
 
 /*

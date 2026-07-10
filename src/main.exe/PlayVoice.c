@@ -23,7 +23,6 @@
  *     reg   $s1       unsigned char sec
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern struct StageCharType StageChar[18];
  * END PSX.SYM */
 

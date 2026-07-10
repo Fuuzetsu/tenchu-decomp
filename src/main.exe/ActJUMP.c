@@ -19,7 +19,6 @@
  *     stack sp+40     struct SVECTOR spd
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short motID;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct VECTOR *dtL;

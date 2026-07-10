@@ -16,7 +16,6 @@
  *     extern long GameClock;
  *     extern long AttackActionCount;
  *     extern short Degree;
- *     extern short (*AttackFunc[4])();
  * END PSX.SYM */
 
 /*

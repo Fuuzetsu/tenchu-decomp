@@ -7,9 +7,7 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  *     extern long GameClock;
  *
  * PSX.SYM suggests this may be `DrawGore` (LOW confidence, EFFECT.C) — NOT

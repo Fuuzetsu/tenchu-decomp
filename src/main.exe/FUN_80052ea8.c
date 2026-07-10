@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
- * END PSX.SYM */
-
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80052ea8", FUN_80052ea8);
 
 // triage: HARD — 311 insns, mul/div, 6 loop, 1 callees, ~0.06 to BriefingAndInventorySelectionScreen

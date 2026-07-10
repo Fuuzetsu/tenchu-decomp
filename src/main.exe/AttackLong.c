@@ -16,10 +16,10 @@
  *     reg   $s0       short pad
  *
  * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  *     extern struct BattleType BattleDB[78];
  *     extern long Distance;
  *     extern short Degree;
+ *     extern short EngageLevel;
  *     extern short Attrib;
  *     extern long GameClock;
  *     extern long AttackActionCount;

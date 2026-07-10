@@ -21,7 +21,6 @@
  *     stack sp+224    unsigned char [8192] block
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern unsigned char *ImagePath;
  *     extern int StageID;
  * END PSX.SYM */

@@ -52,7 +52,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
  *     extern struct GsOT *OTablePt;
- *     extern short motID;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetWire", SetWire);

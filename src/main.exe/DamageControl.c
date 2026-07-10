@@ -25,7 +25,6 @@
  *     reg   $v1       short i
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short MotionUpdateMode;
  *     extern short motID;
  *     extern struct Humanoid *StagePlayer;
@@ -33,10 +32,11 @@
  *     extern struct BattleType BattleDB[78];
  *     extern struct VECTOR *dtL;
  *     extern short Criticals;
- *     extern struct TCdaStatus CdaStatus;
  *     extern short Murders;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short ActionHalt;
+ *     extern struct MotionManager *dtM;
+ *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
 /*

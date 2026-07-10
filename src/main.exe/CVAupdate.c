@@ -16,16 +16,13 @@
  *     reg   $s0       long i
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct SVECTOR UnitVector;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct Humanoid *StagePlayer;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct GsIMAGE Images[52];
  *     extern int StageID;
- *     extern struct POLY_F4 TelopbgP;
  * END PSX.SYM */
 
 /*

@@ -22,8 +22,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern unsigned long *GlobalAreaMap;
- *     extern short motID;
- *     extern int StageID;
  *     extern long GameClock;
  * END PSX.SYM */
 

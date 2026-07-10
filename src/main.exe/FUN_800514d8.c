@@ -7,7 +7,6 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
  *     extern short SkipFrame;
  * END PSX.SYM */
 

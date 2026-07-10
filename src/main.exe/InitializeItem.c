@@ -14,7 +14,6 @@
  *     reg   $s1       int i
  *
  * Globals it touches, as the original declared them:
- *     extern short motID;
  *     extern struct tag_TItem items[30];
  *     extern struct GsSPRITE TargetSprite[1];
  *     extern int StageID;

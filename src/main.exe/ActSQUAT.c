@@ -14,18 +14,15 @@
  *     reg   $s0       short turn
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct MotionManager *dtM;
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtR;
  *     extern short motID;
  *     extern struct SVECTOR *dtV;
- *     extern struct TCameraStatus CamState;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct VECTOR *dtL;
  *     extern short dtCMD;
- *     extern unsigned char fInitialize;
- *     extern struct TCdaStatus CdaStatus;
+ *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
 /*

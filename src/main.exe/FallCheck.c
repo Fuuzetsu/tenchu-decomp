@@ -16,7 +16,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern short motID;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct MotionManager *dtM;
  *     extern short RefrectMove[16][2];
  *     extern struct VECTOR *dtL;

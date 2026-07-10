@@ -8,7 +8,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern enum TSystemFlag SystemFlag;
- *     extern struct POLY_FT4 TelopP;
  * END PSX.SYM */
 
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/cd_open", cd_open);

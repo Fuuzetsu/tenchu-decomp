@@ -18,9 +18,6 @@
  *     param $a3       short z
  *     stack sp+16     struct MATRIX mat
  *     stack sp+48     struct SVECTOR offset
- *
- * Globals it touches, as the original declared them:
- *     extern short motID;
  * END PSX.SYM */
 
 /*

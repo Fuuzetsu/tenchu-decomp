@@ -14,10 +14,6 @@
  *     param $a0       short mode
  *     param $a1       short stage
  *     stack sp+24     unsigned char [100] name
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

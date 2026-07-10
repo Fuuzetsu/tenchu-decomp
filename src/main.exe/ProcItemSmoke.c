@@ -26,7 +26,6 @@
  *     reg   $s0       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
- *     extern int StageID;
  *     extern long GameClock;
  *     extern struct Humanoid *HumanGroup[32];
  *     extern short Humans;

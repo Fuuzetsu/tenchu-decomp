@@ -21,7 +21,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct SVECTOR *dtR;
  *     extern short RefrectVector[16];
  *     extern short dtCMD;
@@ -30,8 +29,9 @@
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtV;
- *     extern struct TCameraStatus CamState;
- *     extern unsigned char fInitialize;
+ *     extern struct NodeIndexType *FieldIndex;
+ *     extern struct VECTOR *dtL;
+ *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
 /*

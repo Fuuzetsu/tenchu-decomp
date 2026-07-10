@@ -26,9 +26,6 @@
  *     reg   $t1       unsigned char * icon3
  *     reg   $s1       unsigned char * icon2
  *     reg   $s0       unsigned char * icon1
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  * END PSX.SYM */
 
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveCard", SaveCard);

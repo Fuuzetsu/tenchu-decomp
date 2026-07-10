@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
- * END PSX.SYM */
-
 /*
  * FUN_800568b8 (0x800568b8, 0x58 bytes) — clamps every item's stock in a
  * PersistentState blob down to that item's shop maximum, skipping the ones

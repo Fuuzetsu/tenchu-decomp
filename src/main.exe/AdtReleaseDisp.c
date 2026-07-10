@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
- * END PSX.SYM */
-
 /*
  * AdtReleaseDisp (0x8005fca4, 0x90 bytes) — counterpart of AdtGetDisp:
  * reloads the font adapter's PSYQ FntLoad/FntOpen state from D_8008F1B8

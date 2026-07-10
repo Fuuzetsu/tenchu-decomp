@@ -29,9 +29,6 @@
  *     extern short Humans;
  *     extern enum TSystemFlag SystemFlag;
  *     extern struct TEnemyLayout enemy[30];
- *     extern struct TCameraStatus CamState;
- *     extern struct TCdaStatus CdaStatus;
- *     extern long AttackActionCount;
  *     extern long GameClock;
  * END PSX.SYM */
 

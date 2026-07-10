@@ -19,17 +19,17 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct Humanoid *StagePlayer;
- *     extern short motID;
  *     extern long StageTime;
- *     extern struct TCameraStatus CamState;
  *     extern short ActionHalt;
  *     extern enum TSystemFlag SystemFlag;
  *     extern short SkipFrame;
  *     extern long GameClock;
  *     extern int StageID;
- *     extern long AttackActionCount;
- *     extern struct TCdaStatus CdaStatus;
  *     extern short Findenemies;
+ *     extern short Murders;
+ *     extern short Criticals;
+ *     extern short StageEnemies;
+ *     extern short FriendHits;
  * END PSX.SYM */
 
 /*

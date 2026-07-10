@@ -19,7 +19,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct HumanDataType HumanData[63];
  *     extern short NowStage;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupCharacterParameter", SetupCharacterParameter);

@@ -8,7 +8,6 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct VECTOR *dtL;
  * END PSX.SYM */

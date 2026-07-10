@@ -18,16 +18,12 @@
  * Globals it touches, as the original declared them:
  *     extern long Distance;
  *     extern short SR;
- *     extern short (*Think4Func[6])();
  *     extern int StageID;
- *     extern short EngageLevel;
  *     extern short Degree;
- *     extern short (*Think1Func[10])();
- *     extern short (*Think2Func[5])();
- *     extern short (*Think3Func[10])();
  *     extern struct PADtype *Pad;
  *     extern short Attrib;
  *     extern short StageEnemies;
+ *     extern short StageCitizens;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think3callaid", Think3callaid);

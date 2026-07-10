@@ -62,7 +62,6 @@
  *     reg   $s1       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
- *     extern short motID;
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 

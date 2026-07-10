@@ -18,13 +18,10 @@
  *     extern struct MotionManager *dtM;
  *     extern short motID;
  *     extern short dtPAD;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct SVECTOR *dtR;
  *     extern struct SVECTOR *dtV;
  *     extern struct VECTOR *dtL;
  *     extern struct Humanoid *StagePlayer;
- *     extern unsigned char fInitialize;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

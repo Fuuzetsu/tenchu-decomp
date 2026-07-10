@@ -504,6 +504,23 @@ plain C is the matched file.
   (`i = CURR; cur = i;`) so the lh lands in i's register and the copy is
   `move cur,i`, matching the original operand order (DoInfoViewProc).
 
+- **A `while (1) { … break; }` search loop whose give-up path takes the address
+  of a global (`return &dmy;`) gets that `la` hoisted into the preheader by
+  loop.c's invariant motion** — the address is loop-invariant, so loop.c lifts
+  it above the loop even though the target only materialises it at its own use,
+  on the give-up path. There is no source spelling of the loop that suppresses
+  this. Hand-roll the loop instead (`top: … goto top;`) so loop.c never sees a
+  `NOTE_INSN_LOOP_BEG` and does no invariant motion at all. Applies even when the
+  loop is an otherwise ordinary top-tested pool search (SetFrame/SetSplash/
+  SetBleed, the `EffectSlot[200]` scan).
+
+- **You cannot flip a `break`'s branch polarity by negating the test.** `if (c)
+  break;` and `if (!c) { … } break;` canonicalise to byte-identical code — cc1's
+  break/continue-to-loop-exit machinery erases the difference (verified: the
+  rewrite produced a 0-byte diff). The only lever is *where the work lives*: to
+  make the `break` the fallthrough rather than the branch-away, move the real
+  work for the other case bodily **inside** the `if` block, ahead of the `break`.
+
 ## Expressions
 
 - **fold reassociation** (fold-const.c `associate`/`split_tree`): any
@@ -751,6 +768,11 @@ plain C is the matched file.
   rotation; a 0x50-byte struct assignment becomes the 16-bytes-per-iteration
   copy loop), while `*(SVECTOR *)a = *(SVECTOR *)b` (align 2) is `lwl/lwr` +
   `swl/swr` pairs.
+  - **This holds for a member of a parameter union too, even when Ghidra renders
+    it as `long`-by-`long` temp copies.** `ef->param.bleed.pos = *pos;` (VECTOR,
+    align 4) and `.vec = *vec;` (SVECTOR, align 2) reproduce the target's batched
+    load-then-batched-store block move exactly; the field-at-a-time transcription
+    does not (SetBleed).
   - **A whole-pool swap-remove is a plain struct assignment `pool[i] =
     pool[last];`** — Ghidra mis-renders it as a hand `do{}while` over invented
     per-field names with a halfword-typed (`sh`) tail; both wrong. A 0x78-byte
@@ -940,6 +962,20 @@ scratch — base and index registers swapped, exactly as the target does
 (ReqLifeBar; 9 instructions / 36 bytes recovered). Verified empirically; the
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
+
+### Statement order steers which value gets tail-duplicated at a goto-merge
+
+The "source statement order steers scheduling" family has a second, distinct
+member: at a merge point reached by several `goto`s, cc1 duplicates *one* of the
+values computed before it into each predecessor and computes the other once.
+Which one it picks is decided by **textual order**, and it can pick backwards.
+
+With `r = col >> 16;` written before `fp = &ef->param.bleed;`, cc1 duplicated the
+path-*invariant* `r` onto both merge-entry paths and computed the necessarily
+path-*dependent* `fp` once — the opposite of the target. Swapping the two
+statements (address first) fixed both at once (SetBleed). If a diff shows one
+value duplicated across predecessors and another that "should" be, try reordering
+their definitions before reaching for the permuter.
 
 > **Diagnose before you steer: `tools/regalloc.py <Name>`.** It runs `cc1 -dg`
 > and shows which values are live across calls (forced into callee-saved

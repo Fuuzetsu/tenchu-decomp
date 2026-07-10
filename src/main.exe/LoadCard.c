@@ -17,9 +17,6 @@
  *     stack sp+8416   long cmd
  *     stack sp+8420   long result
  *     stack sp+224    unsigned char [8192] block
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/LoadCard", LoadCard);

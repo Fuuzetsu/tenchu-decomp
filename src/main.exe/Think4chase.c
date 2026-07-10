@@ -22,7 +22,6 @@
  * Globals it touches, as the original declared them:
  *     extern short SR;
  *     extern short Attrib;
- *     extern short EngageLevel;
  *     extern short Degree;
  * END PSX.SYM */
 

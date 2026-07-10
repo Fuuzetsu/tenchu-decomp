@@ -28,7 +28,6 @@
  *     extern short FieldAttrib;
  *     extern struct AreaNodeType *FieldArea;
  *     extern struct NodeIndexType *FieldIndex;
- *     extern short RefrectMove[16][2];
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetAreaMapVector", GetAreaMapVector);

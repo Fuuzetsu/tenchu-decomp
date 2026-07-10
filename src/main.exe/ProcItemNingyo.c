@@ -35,8 +35,6 @@
  *     extern short Humans;
  *     extern struct TCameraStatus CamState;
  *     extern struct Humanoid *HumanGroup[32];
- *     extern int StageID;
- *     extern short motID;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */

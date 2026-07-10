@@ -15,8 +15,6 @@
  *     reg   $v1       short rv
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
- *     extern struct PADCMD__141fake PadArrange;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct VECTOR *dtL;
  *     extern short RefrectVector[16];

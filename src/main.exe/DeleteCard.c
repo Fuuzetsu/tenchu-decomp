@@ -15,9 +15,6 @@
  *     stack sp+216    long cmd
  *     stack sp+220    long result
  *     stack sp+16     unsigned char [200] fn
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  * END PSX.SYM */
 
 /*

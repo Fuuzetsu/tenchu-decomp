@@ -19,11 +19,9 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct VECTOR *dtL;
  *     extern struct TCameraStatus CamState;
  *     extern short motID;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct Humanoid *StagePlayer;
  *     extern struct SVECTOR *dtR;
  *     extern short MotionUpdateMode;

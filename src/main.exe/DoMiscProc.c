@@ -15,7 +15,6 @@
  *     reg   $s1       int i
  *
  * Globals it touches, as the original declared them:
- *     extern unsigned char PutMapMode;
  *     extern long GameClock;
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TMisc misc[200];

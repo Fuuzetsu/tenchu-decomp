@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -17,60 +18,87 @@
  *     param $a3       struct _GsCOORDINATE2 * super
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetFrame", SetFrame);
+/*
+ * Matching notes (all verified against the original bytes; the same pool
+ * search shape recurs in SetSplash/SetBleed and every other EffectSlot
+ * inserter — see effect.h and this function's comments for the reusable
+ * idioms):
+ *  - The pool search is a hand-rolled `goto loop;`, not `while(1){...break;}`:
+ *    the give-up path takes `&dmy`'s address (a compile-time constant), and a
+ *    real loop shape would let loop.c hoist that lui/addiu into the preheader
+ *    — the target only materializes it at its own use, right before "found".
+ *  - `idx = CURSOR; slot = base + idx;` (idx assigned first, slot computed
+ *    FROM idx) lands idx/slot in the target's t0/v1 register pair; computing
+ *    slot first and re-reading the cursor global for idx (relying on cse to
+ *    fold the loads) swaps them to v1/t0 instead.
+ *  - The free-slot cursor-update store lives INSIDE
+ *    `if (slot->proc == 0) { ...; ef = slot; break; }`, not after a bare
+ *    `if (proc==0) break;` with the update code after the loop — only the
+ *    former gives the occupied path (not the found path) the branch-away
+ *    polarity the target has (a bare `if(cond) break;`'s jump always goes
+ *    with cond-true, i.e. the wrong path here).
+ *  - A param-union write to a NONZERO field offset goes through a cached
+ *    typed pointer (`fp = &ef->param.frame;`); the very first field written,
+ *    if it sits at a nonzero offset itself (frame.px here), still wants fp —
+ *    only an offset-ZERO field (frame.super) is written through a fresh
+ *    `ef->param.frame.super = ...` recast instead of `fp->super`.
+ *  - `tmp = pos->vz;` (captured before the mode/size/count stores, stored via
+ *    `fp->pz = tmp;` after them) reproduces the original's delayed store —
+ *    inlining `fp->pz = pos->vz;` in position would read pos->vz too late.
+ */
+extern void DrawFrame(TEffectSlot *ef);
 
-// triage: EASY — 49 insns, 1 loop, 0 callees, ~0.07 to ReqItemManebue
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
+{
+    long tmp;
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    FrameType *fp;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetFrame(VECTOR *pos,short size,short time,_GsCOORDINATE2 *super)
-//
-// {
-//   long lVar1;
-//   int iVar2;
-//   tag_EffectSlot *ptVar3;
-//   int iVar4;
-//
-//   iVar4 = 0;
-//   ptVar3 = EffectSlot + DAT_80097a3c;
-//   iVar2 = DAT_80097a3c;
-//   while( true ) {
-//     iVar2 = iVar2 + 1;
-//     ptVar3 = ptVar3 + 1;
-//     if (199 < iVar2) {
-//       iVar2 = 0;
-//       ptVar3 = EffectSlot;
-//     }
-//     if (ptVar3->proc == (undefined **)0x0) break;
-//     iVar4 = iVar4 + 1;
-//     if (199 < iVar4) {
-//       ptVar3 = &dmy;
-// LAB_80039120:
-//       (ptVar3->param).blood.px = pos->vx;
-//       (ptVar3->param).blood.py = pos->vy;
-//       lVar1 = pos->vz;
-//       (ptVar3->param).frame.mode = '\0';
-//       (ptVar3->param).bleed.vec.vx = size;
-//       (ptVar3->param).bleed.vec.vy = time;
-//       (ptVar3->param).blood.pz = lVar1;
-//       (ptVar3->param).frame.super = super;
-//       ptVar3->proc = (undefined **)DrawFrame;
-//       return;
-//     }
-//   }
-//   DAT_80097a3c = iVar2 + 1;
-//   if (199 < iVar2 + 1) {
-//     DAT_80097a3c = 0;
-//   }
-//   goto LAB_80039120;
-// }
+    idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+    count = 0;
+    base = EffectSlot;
+    slot = base + idx;
+loop:
+    idx = idx + 1;
+    slot = slot + 1;
+    if (199 < idx)
+    {
+        slot = base;
+        idx = 0;
+    }
+    if (slot->proc == 0)
+    {
+        CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+        if (199 < idx + 1)
+        {
+            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+        }
+        ef = slot;
+        goto found;
+    }
+    count = count + 1;
+    if (199 < count)
+    {
+        ef = &dmy;
+        goto found;
+    }
+    goto loop;
+found:
+    fp = &ef->param.frame;
+    fp->px = pos->vx;
+    fp->py = pos->vy;
+    tmp = pos->vz;
+    fp->mode = 0;
+    fp->size = size;
+    fp->count = time;
+    fp->pz = tmp;
+    ef->param.frame.super = super;
+    ef->proc = (void (*)())DrawFrame;
+}

@@ -18,9 +18,7 @@
  *     reg   $v1       int i
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetExplosion", SetExplosion);

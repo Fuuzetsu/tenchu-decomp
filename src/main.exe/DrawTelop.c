@@ -13,7 +13,6 @@
  *     extern struct GsOT *OTablePt;
  *     extern struct tag_TItem items[30];
  *     extern struct GsIMAGE Images[52];
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

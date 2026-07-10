@@ -16,9 +16,6 @@
  *     param $a2       long dv
  *     reg   $s0       short d
  *     reg   $v1       short v
- *
- * Globals it touches, as the original declared them:
- *     extern short SkipFrame;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PlaySE", PlaySE);

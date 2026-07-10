@@ -147,9 +147,6 @@
  *     extern struct TCameraStatus CamState;
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
- *     extern int StageID;
- *     extern short motID;
- *     extern struct TCdaStatus CdaStatus;
  *     extern long GameClock;
  * END PSX.SYM */
 

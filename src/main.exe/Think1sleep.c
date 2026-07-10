@@ -9,9 +9,7 @@
  *     THINK_1.C:106, 8 src lines, frame 0 bytes, saved-reg mask 0x00000000
  *
  * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  *     extern short SR;
- *     extern long AttackActionCount;
  *     extern short Attrib;
  * END PSX.SYM */
 

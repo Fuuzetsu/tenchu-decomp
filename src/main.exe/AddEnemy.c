@@ -25,10 +25,8 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct HumanDataType HumanData[63];
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct WeaponModelType WeaponModel[41];
  *     extern int StageID;
- *     extern short StageCitizens;
  *     extern struct ThinkDBtype ThinkDB[20];
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */

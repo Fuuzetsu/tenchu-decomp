@@ -20,29 +20,25 @@
  *     stack sp+56     struct SVECTOR vo
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/RotateVectorS", RotateVectorS);
+/* Matching notes: RotateVector's SVECTOR-output twin — a direct transcription
+ * of Ghidra's decompilation using the PSX.SYM local names, matched as-is. */
+extern void *memset(void *s, int c, u32 n);
+extern void RotMatrixYXZ(SVECTOR *r, MATRIX *m);
+extern SVECTOR *ApplyMatrixSV(MATRIX *m, SVECTOR *v0, SVECTOR *v1);
 
-// triage: TRIVIAL — 43 insns, 3 callees, ~0.14 to vcalloc
+void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz)
+{
+    MATRIX SMAT;
+    SVECTOR rot;
+    SVECTOR vo;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void RotateVectorS(SVECTOR *vec,int rx,int ry,int rz)
-//
-// {
-//   MATRIX MStack_48;
-//   SVECTOR local_28;
-//   SVECTOR local_20;
-//
-//   memset((uchar *)&local_28,'\0',8);
-//   local_28.vx = (short)rx;
-//   local_28.vy = (short)ry;
-//   local_28.vz = (short)rz;
-//   RotMatrixYXZ(&local_28,&MStack_48);
-//   ApplyMatrixSV(&MStack_48,vec,&local_20);
-//   vec->vx = local_20.vx;
-//   vec->vy = local_20.vy;
-//   vec->vz = local_20.vz;
-//   return;
-// }
+    memset(&rot, 0, 8);
+    rot.vx = (short)rx;
+    rot.vy = (short)ry;
+    rot.vz = (short)rz;
+    RotMatrixYXZ(&rot, &SMAT);
+    ApplyMatrixSV(&SMAT, vec, &vo);
+    vec->vx = vo.vx;
+    vec->vy = vo.vy;
+    vec->vz = vo.vz;
+}

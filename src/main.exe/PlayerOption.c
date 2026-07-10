@@ -17,7 +17,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct TCameraStatus CamState;
  *     extern int StageID;
- *     extern struct TCdaStatus CdaStatus;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct NodeIndexType *FieldIndex;
  *     extern struct AreaNodeType *FieldArea;

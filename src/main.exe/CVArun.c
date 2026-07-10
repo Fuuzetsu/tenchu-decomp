@@ -16,10 +16,8 @@
  *
  * Globals it touches, as the original declared them:
  *     extern int StageID;
- *     extern struct POLY_F4 TelopbgP;
  *     extern struct GsOT *OTablePt;
  *     extern struct HumanAnimType CVAhuman[5];
- *     extern short StageCitizens;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CVArun", CVArun);

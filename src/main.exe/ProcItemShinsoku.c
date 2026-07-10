@@ -25,7 +25,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern unsigned long *GlobalAreaMap;
- *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemShinsoku", ProcItemShinsoku);

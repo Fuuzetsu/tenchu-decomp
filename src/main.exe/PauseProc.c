@@ -74,7 +74,6 @@
  *     extern struct TCameraStatus CamState;
  *     extern short ActionHalt;
  *     extern short Findenemies;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /* Camera status (Ghidra: TCameraStatus, at CamState). Only Owner is used. */

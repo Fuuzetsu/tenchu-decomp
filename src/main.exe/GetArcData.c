@@ -12,9 +12,6 @@
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
  * over). A repeated name is a nested-block scope, not a duplicate:
  *     param $a0       int index
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  * END PSX.SYM */
 
 /*

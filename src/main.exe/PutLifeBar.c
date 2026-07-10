@@ -28,7 +28,6 @@
  *     extern struct GsSPRITE NumberImage;
  *     extern struct WorldType WorldMap[8][8][8];
  *     extern struct GsOT *OTablePt;
- *     extern struct TCdaStatus CdaStatus;
  *     extern long GameClock;
  * END PSX.SYM */
 

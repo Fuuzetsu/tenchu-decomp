@@ -14,9 +14,7 @@
  *     stack sp+24     unsigned char [50] name
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern int StageID;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct POLY_F4 TelopbgP;
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */

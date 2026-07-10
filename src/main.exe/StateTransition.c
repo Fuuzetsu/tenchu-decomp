@@ -20,16 +20,16 @@
  * Globals it touches, as the original declared them:
  *     extern struct Humanoid *StagePlayer;
  *     extern long StrainRatio;
- *     extern short EngageLevel;
  *     extern struct PADtype *Pad;
  *     extern short Attrib;
- *     extern short motID;
  *     extern short ActionHalt;
- *     extern long AttackActionCount;
  *     extern long Distance;
  *     extern short Degree;
- *     extern struct TCdaStatus CdaStatus;
  *     extern short SR;
+ *     extern unsigned long *GlobalAreaMap;
+ *     extern short FieldAttrib;
+ *     extern short EngageLevel;
+ *     extern short Findenemies;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/StateTransition", StateTransition);

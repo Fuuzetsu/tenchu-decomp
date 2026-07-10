@@ -73,6 +73,15 @@ def load():
 
 
 def globals_of(name):
+    """Globals this function references, typed from PSX.SYM.
+
+    Ownership is resolved against the DENSE symbol table (config/symbols), not
+    against the sparse set of typed globals: a reference is attributed to the
+    symbol that actually contains it. Attributing to the nearest preceding *typed*
+    global instead lets an unrelated symbol two kilobytes earlier claim the
+    reference -- that bug put `Projection` and `HumanGroup` in SetFrame's block,
+    neither of which it touches.
+    """
     try:
         import datamatch as D
     except Exception:
@@ -82,9 +91,9 @@ def globals_of(name):
         return []
     decl = {}
     for line in open(hdr):
-        m = re.match(r"extern (.*);\s+/\* (0x[0-9a-f]+)", line)
+        m = re.match(r"extern (.*?([A-Za-z_]\w*)(?:\[.*?\])*(?:\(\))?);\s+/\* (0x[0-9a-f]+)", line)
         if m:
-            decl[int(m.group(2), 16)] = m.group(1)
+            decl[int(m.group(3), 16)] = m.group(1)
     addr = size = None
     for line in open(".shake/ghidra-export/functions.tsv"):
         c = line.rstrip("\n").split("\t")
@@ -94,13 +103,19 @@ def globals_of(name):
     if addr is None or not decl:
         return []
     import bisect
+    dense = sorted(int(m.group(1), 16) for m in
+                   (re.match(r"\s*[A-Za-z_]\w*\s*=\s*(0x[0-9A-Fa-f]+)\s*;", l)
+                    for l in open("config/symbols.main.exe.txt")) if m)
     exe = open("disks/tenchu/main.exe", "rb").read()
     refs, _ = D.data_refs(exe[0x800:], 0x80011000, addr, size, D.RETAIL_GP, *D.RETAIL_TEXT)
-    starts, hits = sorted(decl), []
+    hits = []
     for _, y in refs:
-        i = bisect.bisect_right(starts, y) - 1
-        if i >= 0 and y - starts[i] < 0x2000 and starts[i] not in hits:
-            hits.append(starts[i])
+        i = bisect.bisect_right(dense, y) - 1
+        if i < 0:
+            continue
+        owner = dense[i]
+        if owner in decl and owner not in hits:
+            hits.append(owner)
     return [f"extern {decl[a]};" for a in hits[:12]]
 
 
@@ -280,6 +295,14 @@ def main() -> None:
         block = render(n, protos, tu, locals_, cand)
         if block is None:
             skipped += 1
+            # a previous run may have written a block (e.g. globals that later
+            # proved to be misattributed) -- drop it rather than leave it stale
+            if args.write:
+                txt = open(path).read()
+                if BLOCK.search(txt):
+                    open(path, "w").write(re.sub(r"\n*" + BLOCK.pattern + r"\n*", "\n\n",
+                                                 txt, count=1, flags=re.S))
+                    wrote += 1
             continue
         if args.check:
             cur = BLOCK.search(open(path).read())

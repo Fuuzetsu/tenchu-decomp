@@ -20,7 +20,6 @@
  *     extern struct tag_TItem items[30];
  *     extern struct VECTOR UnitVector2;
  *     extern struct SVECTOR UnitVector;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

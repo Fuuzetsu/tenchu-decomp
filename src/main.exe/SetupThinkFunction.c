@@ -13,12 +13,6 @@
  * over). A repeated name is a nested-block scope, not a duplicate:
  *     param $a0       struct Humanoid * human
  *     param $a1       short type
- *
- * Globals it touches, as the original declared them:
- *     extern short (*Think1Func[10])();
- *     extern short (*Think2Func[5])();
- *     extern short (*Think3Func[10])();
- *     extern short (*Think4Func[6])();
  * END PSX.SYM */
 
 /*

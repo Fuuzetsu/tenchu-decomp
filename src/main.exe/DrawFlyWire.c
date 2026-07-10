@@ -14,9 +14,6 @@
  *     param $s1       struct tag_EffectSlot * ef
  *     reg   $s0       struct FlyWireType * param
  *     stack sp+24     struct VECTOR pos
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawFlyWire", DrawFlyWire);

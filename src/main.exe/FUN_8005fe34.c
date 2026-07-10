@@ -1,16 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct POLY_FT4 TelopP;
- *     extern enum TSystemFlag SystemFlag;
- * END PSX.SYM */
-
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8005fe34", FUN_8005fe34);
 
 // triage: TRIVIAL — 21 insns, 1 callees, ~0.05 to AdtFntOpen

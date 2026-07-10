@@ -9,7 +9,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct SVECTOR *dtR;
  * END PSX.SYM */
 

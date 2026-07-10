@@ -14,9 +14,6 @@
  *     param $s0       struct tag_TItem * item
  *     reg   $a0       struct param_drop * param
  *     reg   $s0       struct tag_TItem * item
- *
- * Globals it touches, as the original declared them:
- *     extern long AttackActionCount;
  * END PSX.SYM */
 
 /*

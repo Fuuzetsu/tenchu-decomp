@@ -7,7 +7,6 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
  *     extern int StageID;
  *     extern struct GsOT *OTablePt;
  *     extern long GameClock;

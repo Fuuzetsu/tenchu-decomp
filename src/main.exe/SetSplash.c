@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -17,60 +18,71 @@
  *     param $a3       int speed
  *
  * Globals it touches, as the original declared them:
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetSplash", SetSplash);
+/*
+ * Matching notes (see SetFrame.c for the full writeup of the shared
+ * EffectSlot pool-search idioms — goto loop instead of while(1)+break so
+ * loop.c doesn't hoist &dmy's address, idx-computed-before-slot so idx/slot
+ * land in the target's t0/v1 pair, and the cursor-update store living inside
+ * `if (slot->proc==0){...break;}` for the right branch polarity):
+ *  - splash.px is this struct's offset-ZERO field and is the first one
+ *    written, so it goes through a fresh `ef->param.splash.px = ...` recast;
+ *    `fp = &ef->param.splash;` is only introduced for the second field
+ *    onward (all nonzero offsets), matching the target's t0-direct first
+ *    store followed by a v1=t0+4 computed just before the second.
+ */
+extern void DrawSplash(TEffectSlot *ef);
 
-// triage: EASY — 49 insns, 1 loop, 0 callees, ~0.08 to ReqItemManebue
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+void SetSplash(VECTOR *pos, short sx, short sy, int speed)
+{
+    long tmp;
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    SplashType *fp;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetSplash(VECTOR *pos,short sx,short sy,int speed)
-//
-// {
-//   int iVar1;
-//   long lVar2;
-//   tag_EffectSlot *ptVar3;
-//   int iVar4;
-//
-//   iVar4 = 0;
-//   ptVar3 = EffectSlot + DAT_80097a3c;
-//   iVar1 = DAT_80097a3c;
-//   while( true ) {
-//     iVar1 = iVar1 + 1;
-//     ptVar3 = ptVar3 + 1;
-//     if (199 < iVar1) {
-//       iVar1 = 0;
-//       ptVar3 = EffectSlot;
-//     }
-//     if (ptVar3->proc == (undefined **)0x0) break;
-//     iVar4 = iVar4 + 1;
-//     if (199 < iVar4) {
-//       ptVar3 = &dmy;
-// LAB_80039318:
-//       (ptVar3->param).blood.hint = (AreaNodeType *)pos->vx;
-//       (ptVar3->param).blood.px = pos->vy;
-//       lVar2 = pos->vz;
-//       (ptVar3->param).splash.mode = '\0';
-//       (ptVar3->param).splash.sx = sx;
-//       (ptVar3->param).splash.sy = sy;
-//       (ptVar3->param).splash.speed = (uchar)speed;
-//       (ptVar3->param).blood.py = lVar2;
-//       ptVar3->proc = (undefined **)DrawSplash;
-//       return;
-//     }
-//   }
-//   DAT_80097a3c = iVar1 + 1;
-//   if (199 < iVar1 + 1) {
-//     DAT_80097a3c = 0;
-//   }
-//   goto LAB_80039318;
-// }
+    idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+    count = 0;
+    base = EffectSlot;
+    slot = base + idx;
+loop:
+    idx = idx + 1;
+    slot = slot + 1;
+    if (199 < idx)
+    {
+        slot = base;
+        idx = 0;
+    }
+    if (slot->proc == 0)
+    {
+        CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+        if (199 < idx + 1)
+        {
+            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+        }
+        ef = slot;
+        goto found;
+    }
+    count = count + 1;
+    if (199 < count)
+    {
+        ef = &dmy;
+        goto found;
+    }
+    goto loop;
+found:
+    ef->param.splash.px = pos->vx;
+    fp = &ef->param.splash;
+    fp->py = pos->vy;
+    tmp = pos->vz;
+    fp->mode = 0;
+    fp->sx = sx;
+    fp->sy = sy;
+    fp->speed = speed;
+    fp->pz = tmp;
+    ef->proc = (void (*)())DrawSplash;
+}

@@ -10,13 +10,10 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short dtPAD;
  *     extern short motID;
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
- *     extern unsigned char fInitialize;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 /*

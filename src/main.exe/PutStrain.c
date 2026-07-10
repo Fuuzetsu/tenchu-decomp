@@ -17,10 +17,9 @@
  *
  * Globals it touches, as the original declared them:
  *     extern long StrainRatio;
- *     extern struct GsSPRITE NumberImage;
  *     extern long GameClock;
+ *     extern struct GsSPRITE NumberImage;
  *     extern struct GsOT *OTablePt;
- *     extern short motID;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PutStrain", PutStrain);

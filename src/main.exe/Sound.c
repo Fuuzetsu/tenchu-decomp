@@ -26,9 +26,6 @@
  *     reg   $s1       long zz
  *     reg   $s2       long xx
  *     reg   $a1       struct VECTOR * player
- *
- * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  * END PSX.SYM */
 
 /*

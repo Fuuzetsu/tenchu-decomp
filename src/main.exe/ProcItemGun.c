@@ -23,7 +23,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct ConflictObjectType ConflictObject[64];
- *     extern int StageID;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemGun", ProcItemGun);

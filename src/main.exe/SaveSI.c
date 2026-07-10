@@ -31,7 +31,6 @@
  *     stack sp+8424   struct TAdtSelect [3] sel
  *
  * Globals it touches, as the original declared them:
- *     extern short StageCitizens;
  *     extern unsigned char *ImagePath;
  *     extern int StageID;
  * END PSX.SYM */

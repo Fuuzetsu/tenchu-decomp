@@ -204,6 +204,9 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "FileRead" = ["AccessPower", "ReadMode", "TotalIO"]
     syms "LoadFromDEVPC" = ["TotalIO", "ReadMode", "MemoryLoadAddress"]
     syms "LoadFromCDROM" = ["TotalIO", "ReadMode", "MemoryLoadAddress"]
+    syms "SetFrame" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "SetSplash" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "SetBleed" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms _ = []
 
 as :: FilePath

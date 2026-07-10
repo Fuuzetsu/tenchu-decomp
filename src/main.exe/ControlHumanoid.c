@@ -20,11 +20,7 @@
  *     extern enum TSystemFlag SystemFlag;
  *     extern short SkipFrame;
  *     extern struct Humanoid *StagePlayer;
- *     extern struct PADCMD__141fake PadArrange;
- *     extern short Humans;
- *     extern struct Humanoid *HumanGroup[32];
  *     extern short ActionHalt;
- *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ControlHumanoid", ControlHumanoid);

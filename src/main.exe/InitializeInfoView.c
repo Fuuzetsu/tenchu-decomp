@@ -17,7 +17,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct GsSPRITE CursorImage;
  *     extern struct WorldType WorldMap[8][8][8];
- *     extern struct GsSPRITE NumberImage;
  *     extern unsigned char fInitialize;
  * END PSX.SYM */
 

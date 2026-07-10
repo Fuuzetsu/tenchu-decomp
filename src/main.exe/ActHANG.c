@@ -20,7 +20,6 @@
  *     extern struct VECTOR *dtL;
  *     extern short motID;
  *     extern unsigned long *GlobalAreaMap;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 

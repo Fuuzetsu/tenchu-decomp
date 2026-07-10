@@ -14,7 +14,6 @@
  *     reg   $s0       short pad
  *
  * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  *     extern long Distance;
  *     extern short Degree;
  * END PSX.SYM */

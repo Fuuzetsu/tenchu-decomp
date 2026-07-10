@@ -38,7 +38,6 @@
  *     stack sp+96     struct VECTOR pos
  *
  * Globals it touches, as the original declared them:
- *     extern int StageID;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */

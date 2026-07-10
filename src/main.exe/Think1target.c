@@ -19,13 +19,10 @@
  *     reg   $s0       short pad
  *
  * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  *     extern long GameClock;
  *     extern short SR;
  *     extern struct Humanoid *StagePlayer;
- *     extern struct TCdaStatus CdaStatus;
  *     extern short Attrib;
- *     extern long AttackActionCount;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think1target", Think1target);

@@ -16,13 +16,11 @@
  *     reg   $a2       short idx
  *
  * Globals it touches, as the original declared them:
- *     extern short EngageLevel;
  *     extern short SR;
  *     extern long Distance;
  *     extern short Degree;
- *     extern short Attrib;
+ *     extern short EngageLevel;
  *     extern struct Humanoid *StagePlayer;
- *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think3attack", Think3attack);

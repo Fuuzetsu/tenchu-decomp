@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
- * END PSX.SYM */
-
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AdtGetDisp", AdtGetDisp);
 
 // triage: EASY — 89 insns, 11 callees, ~0.10 to FUN_80038c0c

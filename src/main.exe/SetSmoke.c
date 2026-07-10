@@ -22,8 +22,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern int Projection;
- *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetSmoke", SetSmoke);

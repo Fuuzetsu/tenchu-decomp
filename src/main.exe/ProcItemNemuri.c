@@ -33,7 +33,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct ConflictObjectType ConflictObject[64];
- *     extern int StageID;
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 

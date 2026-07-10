@@ -22,9 +22,7 @@
  *     reg   $v0       struct Humanoid * enemy
  *
  * Globals it touches, as the original declared them:
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct Humanoid *StagePlayer;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
  *     extern short motID;

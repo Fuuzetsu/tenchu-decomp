@@ -22,8 +22,6 @@
  *     stack sp+24     struct VECTOR pos
  *
  * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
- *     extern struct TCdaStatus CdaStatus;
  *     extern struct TEnemyLayout enemy[30];
  *     extern struct Sprite3D *sprSmoke;
  * END PSX.SYM */

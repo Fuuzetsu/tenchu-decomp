@@ -35,10 +35,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
- *     extern int Projection;
  *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern struct Humanoid *HumanGroup[32];
- *     extern short motID;
  *     extern short RefrectVector[16];
  *     extern struct SVECTOR UnitVector;
  *     extern struct GsOT *OTablePt;

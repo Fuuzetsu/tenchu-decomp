@@ -10,7 +10,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern enum TSystemFlag SystemFlag;
- *     extern short EngageLevel;
  * END PSX.SYM */
 
 /*

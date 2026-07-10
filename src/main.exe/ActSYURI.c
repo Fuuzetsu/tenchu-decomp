@@ -16,7 +16,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern struct Humanoid *StagePlayer;
  *     extern short motID;
  * END PSX.SYM */

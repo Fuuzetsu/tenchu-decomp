@@ -35,7 +35,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
- *     extern struct NodeIndexType *FieldIndex;
  *     extern short motID;
  *     extern struct BattleType BattleDB[78];
  *     extern struct SVECTOR *dtR;
@@ -46,6 +45,7 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR *dtV;
  *     extern short ActionHalt;
+ *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
 /*

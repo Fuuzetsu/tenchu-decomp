@@ -35,7 +35,6 @@
  *     extern struct GsOT *OTablePt;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct AreaNodeType *FieldArea;
- *     extern struct TCdaStatus CdaStatus;
  *     extern long GameClock;
  * END PSX.SYM */
 
