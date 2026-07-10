@@ -207,6 +207,10 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SetFrame" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "SetSplash" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "SetBleed" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "AttackBowControl" = ["dtM", "Me_MOTION_C"]
+    syms "HumanActionControl" = ["Me_MOTION_C", "dtPAD", "dtCMD", "D_80097F0E", "dtV", "dtL", "dtR", "dtM", "motID"]
+    syms "AttackCancelControl" = ["Me_MOTION_C", "dtM"]
+    syms "DoItemProc" = ["D_80097AC8"]
     syms _ = []
 
 as :: FilePath

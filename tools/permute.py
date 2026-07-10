@@ -116,6 +116,10 @@ GP_EXTERNS = {
     "SetFrame": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "SetSplash": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "SetBleed": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "AttackBowControl": ["dtM", "Me_MOTION_C"],
+    "HumanActionControl": ["Me_MOTION_C", "dtPAD", "dtCMD", "D_80097F0E", "dtV", "dtL", "dtR", "dtM", "motID"],
+    "AttackCancelControl": ["Me_MOTION_C", "dtM"],
+    "DoItemProc": ["D_80097AC8"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
