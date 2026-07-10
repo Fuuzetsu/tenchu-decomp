@@ -109,6 +109,7 @@ GP_EXTERNS = {
     "StickonCheck": ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"],
     "DeleteCard": ["D_80097D04"],
     "SetupAfterimage": ["D_80097F3C"],
+    "MotionAndMove": ["D_80097710", "Me_MOTION_C", "motID", "D_80097F0E"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
