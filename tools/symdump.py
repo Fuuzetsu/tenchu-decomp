@@ -7,7 +7,8 @@ Writes, under reference/:
 
   psxsym-types.h    structs/unions/enums/typedefs with the original field names
   psxsym-protos.h   function prototypes with the original parameter names
-  psxsym-tu-map.tsv function -> source file, line, frame size, saved-reg mask
+  psxsym-tu-map.tsv function -> source file, line span, frame size, saved-reg mask
+  psxsym-locals.tsv every local variable: name, type, and where it lived
   psxsym-data.tsv   data symbols (globals) with their original types
   psxsym-statics.tsv symbols the original build declared `static`
 
@@ -24,6 +25,10 @@ import psxsym as P
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FAKE = re.compile(r"^\.\d+fake$")
+REG = ["$zero", "$at", "$v0", "$v1", "$a0", "$a1", "$a2", "$a3",
+       "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7",
+       "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7",
+       "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra"]
 
 
 def stem(path: str) -> str:
@@ -158,14 +163,65 @@ def main() -> None:
 
     # ---- TU map
     with open(f"{args.out}/psxsym-tu-map.tsv", "w") as f:
-        f.write("#demo_addr\tsize\tfile\tline\tfsize\tmask\tstatic\tname\n")
+        f.write("#demo_addr\tsize\tfile\tline\tend_line\tsrc_lines\tfsize\tmask\t"
+                "static\tname\n")
         order = sorted(sf.funcs, key=lambda x: x.addr)
+        # The 0x8E end-of-function line is not trustworthy everywhere: in THINK_2.C
+        # and THINK_4.C every function claims to end at the file's last line, which
+        # overlaps its successors.  Only report a span when it is consistent with
+        # where the next function in the same file starts.
+        nextline = {}
+        for src2 in {f2.file for f2 in sf.funcs}:
+            fs = sorted((f2 for f2 in sf.funcs if f2.file == src2), key=lambda x: x.line)
+            for j, f2 in enumerate(fs):
+                nextline[f2.name] = fs[j + 1].line if j + 1 < len(fs) else None
         for i, fn in enumerate(order):
             nxt = order[i + 1].addr if i + 1 < len(order) else fn.end_addr + 8
             r = rettype.get(fn.name)
             st = "static" if r is not None and r.cls == P.C_STAT else "extern"
+            nl = nextline.get(fn.name)
+            ok = fn.end_line >= fn.line and (nl is None or fn.end_line < nl)
+            if ok and nl is None:
+                # last function in its file: nothing bounds end_line, so sanity-check
+                # against code density.  Verified spans sit near 10 bytes/line; a
+                # function claiming 0.4 is really reporting the file's last line.
+                span0 = fn.end_line - fn.line + 1
+                ok = span0 > 0 and (nxt - fn.addr) / span0 >= 2.0
+            span = str(fn.end_line - fn.line + 1) if ok else "?"
+            end = str(fn.end_line) if ok else "?"
             f.write(f"{fn.addr:08x}\t{nxt-fn.addr}\t{fn.file.split(chr(92))[-1]}\t{fn.line}\t"
-                    f"{fn.fsize}\t{fn.mask & 0xFFFFFFFF:#010x}\t{st}\t{fn.name}\n")
+                    f"{end}\t{span}\t{fn.fsize}\t{fn.mask & 0xFFFFFFFF:#010x}\t"
+                    f"{st}\t{fn.name}\n")
+
+    # ---- locals: the original variables, and where the demo build put them
+    with open(f"{args.out}/psxsym-locals.tsv", "w") as f:
+        f.write("# Every parameter and local of the 442 debug functions.\n"
+                "# storage is from the DEMO build: register allocation may differ in\n"
+                "# retail, but the NUMBER of locals and their TYPES are what drive cc1's\n"
+                "# codegen, and those carry over.\n"
+                "# C_AUTO offsets are frame-pointer relative ($fp == $sp), so the real\n"
+                "# slot is sp + fsize + offset; we print the resolved sp+N.\n"
+                "# A name repeated inside one function is a distinct nested-block scope.\n"
+                "#function\tfile\tkind\tstorage\ttype\tname\n")
+        nloc = 0
+        for fn in sorted(sf.funcs, key=lambda x: (x.file, x.line)):
+            src = fn.file.split(chr(92))[-1]
+            for a in fn.args:
+                where = REG[a.offset] if a.cls == P.C_REGPARM and a.offset < 32 else f"stack+{a.offset}"
+                f.write(f"{fn.name}\t{src}\tparam\t{where}\t"
+                        f"{declare(a, '', tagmap).strip()}\t{a.name}\n")
+                nloc += 1
+            for v in fn.lvars:
+                if v.cls == P.C_REG:
+                    where = REG[v.offset] if v.offset < 32 else f"reg{v.offset}"
+                else:
+                    raw = v.offset - (1 << 32) if v.offset >= (1 << 31) else v.offset
+                    where = f"sp+{fn.fsize + raw}"
+                f.write(f"{fn.name}\t{src}\t{'reg' if v.cls == P.C_REG else 'stack'}\t{where}\t"
+                        f"{declare(v, '', tagmap).strip()}\t{v.name}\n")
+                nloc += 1
+    print(f"wrote psxsym-locals.tsv ({nloc} params+locals across "
+          f"{sum(1 for f in sf.funcs if f.args or f.lvars)} functions)")
     tus = len({f.file for f in sf.funcs})
     print(f"wrote psxsym-tu-map.tsv ({len(sf.funcs)} functions across {tus} source files)")
 

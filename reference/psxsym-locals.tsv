@@ -1,0 +1,2524 @@
+# Every parameter and local of the 442 debug functions.
+# storage is from the DEMO build: register allocation may differ in
+# retail, but the NUMBER of locals and their TYPES are what drive cc1's
+# codegen, and those carry over.
+# C_AUTO offsets are frame-pointer relative ($fp == $sp), so the real
+# slot is sp + fsize + offset; we print the resolved sp+N.
+# A name repeated inside one function is a distinct nested-block scope.
+#function	file	kind	storage	type	name
+InitLighting	3DCTRL.C	param	$a0	int	fogflag
+SetupLighting	3DCTRL.C	param	$a0	short	id
+SetupLighting	3DCTRL.C	param	$s2	short	r
+SetupLighting	3DCTRL.C	param	$s3	short	g
+SetupLighting	3DCTRL.C	param	$s4	short	b
+SetupLighting	3DCTRL.C	param	stack+16	int	deg1
+SetupLighting	3DCTRL.C	param	stack+20	int	deg2
+SetupLighting	3DCTRL.C	stack	sp+16	struct MATRIX	mat
+SetupLighting	3DCTRL.C	stack	sp+48	struct SVECTOR	vsou
+SetupLighting	3DCTRL.C	stack	sp+56	struct VECTOR	vdest
+EndDrawing	3DCTRL.C	param	$a0	short	sync
+UpdateCoordinate	3DCTRL.C	param	$a0	struct ModelType *	dim
+UpdateCoordinate2	3DCTRL.C	param	$a0	struct ModelType *	dim
+GetAbsolutePosition	3DCTRL.C	param	$a0	struct ModelType *	model
+GetAbsolutePosition	3DCTRL.C	param	$a1	short	x
+GetAbsolutePosition	3DCTRL.C	param	$a2	short	y
+GetAbsolutePosition	3DCTRL.C	param	$a3	short	z
+GetAbsolutePosition	3DCTRL.C	stack	sp+16	struct MATRIX	mat
+GetAbsolutePosition	3DCTRL.C	stack	sp+48	struct SVECTOR	offset
+DrawClip	3DCTRL.C	param	$a0	struct ModelType *	objp
+DrawClip	3DCTRL.C	param	$a1	long *	xy
+DrawClip	3DCTRL.C	stack	sp+16	short [2]	rxy
+LoadModel	3DCTRL.C	param	$a0	unsigned long *	adr
+DrawModel	3DCTRL.C	param	$s1	struct ModelType *	objp
+DrawModel	3DCTRL.C	stack	sp+16	struct MATRIX	mat
+DrawModel	3DCTRL.C	reg	$s1	struct ModelType *	objp
+DrawModel	3DCTRL.C	reg	$v1	long	sz
+DrawModel	3DCTRL.C	reg	$s0	short	atr
+DrawModel	3DCTRL.C	stack	sp+48	short [2]	rxy
+DisposeModel	3DCTRL.C	param	$a0	struct ModelType *	objp
+CreateCloneModel	3DCTRL.C	param	$a0	struct ModelType *	objp
+LoadModelArchive	3DCTRL.C	param	$s0	unsigned long *	adr
+LoadModelArchive	3DCTRL.C	param	$s6	struct ModelType *	prnt
+LoadModelArchive	3DCTRL.C	reg	$a3	struct ModelType *	dim
+LoadModelArchive	3DCTRL.C	reg	$s2	struct ModelArchiveType *	mad
+LoadModelArchive	3DCTRL.C	reg	$s5	struct ParentingType *	prntp
+LoadModelArchive	3DCTRL.C	reg	$s7	unsigned char *	tmdp
+LoadModelArchive	3DCTRL.C	reg	$s3	short	i
+LoadModelArchive	3DCTRL.C	reg	$v1	short	j
+LoadModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	objp
+LoadModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	dim
+LoadModelArchive	3DCTRL.C	reg	$s2	struct ModelType *	dim
+LoadModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	objp
+LoadModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	dim
+DrawModelArchive	3DCTRL.C	param	$s2	struct ModelArchiveType *	mad
+DrawModelArchive	3DCTRL.C	param	$s3	long	gap
+DrawModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	objp
+DrawModelArchive	3DCTRL.C	stack	sp+16	struct MATRIX	mat
+DrawModelArchive	3DCTRL.C	stack	sp+48	struct SVECTOR	pos
+DrawModelArchive	3DCTRL.C	reg	$s1	short	i
+DrawModelArchive	3DCTRL.C	reg	$s2	struct ModelType *	objp
+DrawModelArchive	3DCTRL.C	reg	$v1	long	sz
+DrawModelArchive	3DCTRL.C	reg	$s0	short	atr
+DrawModelArchive	3DCTRL.C	stack	sp+56	short [2]	rxy
+DisposeModelArchive	3DCTRL.C	param	$a0	struct ModelArchiveType *	mad
+CreateCloneModelArchive	3DCTRL.C	param	$s5	struct ModelArchiveType *	mad
+CreateCloneModelArchive	3DCTRL.C	reg	$s1	struct ModelArchiveType *	newmad
+CreateCloneModelArchive	3DCTRL.C	reg	$s4	short	i
+CreateCloneModelArchive	3DCTRL.C	reg	$s1	struct ModelType *	dim
+CreateCloneModelArchive	3DCTRL.C	reg	$s2	struct ModelType *	objp
+CreateCloneModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	objp
+CreateCloneModelArchive	3DCTRL.C	reg	$s0	struct ModelType *	dim
+LoadOrnament	3DCTRL.C	param	$a0	unsigned long *	adr
+DrawOrnament	3DCTRL.C	param	$a0	struct OrnamentType *	objp
+DrawOrnament	3DCTRL.C	stack	sp+16	struct MATRIX	mat
+DisposeOrnament	3DCTRL.C	param	$a0	struct OrnamentType *	objp
+CreateCloneOrnament	3DCTRL.C	param	$a0	struct OrnamentType *	objp
+UpdateOrnament	3DCTRL.C	param	$a0	struct OrnamentType *	objp
+UpdateOrnament	3DCTRL.C	param	$a1	short	ry
+UpdateOrnament	3DCTRL.C	stack	sp+16	struct SVECTOR	rotv
+SetupSprite	3DCTRL.C	param	$s0	struct Sprite3D *	orgsprt
+SetupSprite	3DCTRL.C	param	$s3	struct GsIMAGE *	image
+SetupSprite	3DCTRL.C	reg	$s2	struct Sprite3D *	sprt
+SetupSprite	3DCTRL.C	reg	$s2	struct ModelType *	dim
+DrawSprite	3DCTRL.C	param	$s1	struct Sprite3D *	sprt
+DrawSprite	3DCTRL.C	stack	sp+16	struct MATRIX	mat
+DrawSprite	3DCTRL.C	reg	$a2	long	sz
+DrawSprite	3DCTRL.C	reg	$s1	struct ModelType *	objp
+DrawSprite	3DCTRL.C	reg	$s2	long *	xy
+DrawSprite	3DCTRL.C	reg	$v1	long	sz
+DrawSprite	3DCTRL.C	reg	$s0	short	atr
+DrawSprite	3DCTRL.C	stack	sp+48	short [2]	rxy
+DisposeSprite	3DCTRL.C	param	$a0	struct Sprite3D *	sprt
+SetupBG	3DCTRL.C	param	stack+0	struct GsIMAGE *	image
+SetupBG	3DCTRL.C	param	$a1	short	w
+SetupBG	3DCTRL.C	param	$a2	short	h
+SetupBG	3DCTRL.C	reg	$s4	struct BackGround *	bg
+SetupBG	3DCTRL.C	reg	$s2	struct GsCELL *	cell
+SetupBG	3DCTRL.C	reg	$s5	short	x
+SetupBG	3DCTRL.C	stack	sp+16	short	y
+SetupBG	3DCTRL.C	stack	sp+24	short	sy
+SetupBG	3DCTRL.C	reg	$a1	short	n
+SetupBG	3DCTRL.C	reg	$s1	short	pmode
+SetupBG	3DCTRL.C	stack	sp+32	short	size
+DrawBG	3DCTRL.C	param	$a0	struct BackGround *	bg
+DisposeBG	3DCTRL.C	param	$a0	struct BackGround *	bg
+ViewAdjustBG	3DCTRL.C	param	$a0	struct BackGround *	bg
+LoadTIM	3DCTRL.C	param	$a0	unsigned long *	adr
+LoadTIM	3DCTRL.C	stack	sp+16	struct RECT	rect
+LoadTIM	3DCTRL.C	stack	sp+24	struct GsIMAGE	tim
+GetTIMInfo	3DCTRL.C	param	$a0	unsigned long *	adr
+GetTIMInfo	3DCTRL.C	param	$a1	struct GsIMAGE *	image
+LoadTIMpack	3DCTRL.C	param	$a0	unsigned long *	adr
+LoadTIMpack	3DCTRL.C	stack	sp+16	struct RECT	rect
+LoadTIMpack	3DCTRL.C	stack	sp+24	struct GsIMAGE	tim
+GetTIMpackInfo	3DCTRL.C	param	$a0	unsigned long *	adr
+GetTIMpackInfo	3DCTRL.C	param	$a1	struct GsIMAGE *	image
+GetTIMpackInfo	3DCTRL.C	param	$a2	int	idx
+GetTIMpackInfo	3DCTRL.C	stack	sp+16	struct RECT	rect
+LoadMotion	ACTION.C	param	$a0	unsigned long *	data
+LoadMotion	ACTION.C	reg	$s0	struct MotionPackType *	mpd
+LoadMotion	ACTION.C	reg	$a1	struct MotionDataType *	mmp
+LoadMotion	ACTION.C	reg	$a3	short	i
+LoadMotion	ACTION.C	reg	$a2	short	j
+SearchMotion	ACTION.C	param	$a1	short	id
+SearchMotion	ACTION.C	reg	$a3	struct MotionPackType *	mpd
+SearchMotion	ACTION.C	reg	$a2	short	i
+SetupMotionRegist	ACTION.C	param	$a0	struct MotionRegistType *	mrp
+SetupMotionManager	ACTION.C	param	$a0	struct ModelArchiveType *	mad
+SetupMotionManager	ACTION.C	param	$a1	struct MotionRegistType *	mot
+DisposeMotionManager	ACTION.C	param	$a0	struct MotionManager *	mmp
+GetMotionID	ACTION.C	param	$a0	struct MotionManager *	mmp
+GetMotionID	ACTION.C	param	$a1	short	mid
+UpdateMotion	ACTION.C	param	$s0	struct MotionManager *	mmp
+UpdateMotion	ACTION.C	param	$t0	short	mid
+UpdateMotion	ACTION.C	reg	$a0	struct MotionRegistType *	mrp
+UpdateMotion	ACTION.C	reg	$a2	short	i
+UpdateMotion	ACTION.C	reg	$a1	short	j
+UpdateMotion	ACTION.C	reg	$a3	short *	xyz
+PlayMotion	ACTION.C	param	$a0	struct MotionManager *	mmp
+PlayMotion	ACTION.C	param	$a1	short	mode
+HoldMotion	ACTION.C	param	$s1	struct MotionManager *	mmp
+HoldMotion	ACTION.C	reg	$s2	struct MotionDataType *	mot
+HoldMotion	ACTION.C	reg	$a1	struct ModelType *	object
+HoldMotion	ACTION.C	reg	$s0	short	i
+SweepMotion	ACTION.C	param	$s3	struct MotionManager *	mmp
+SweepMotion	ACTION.C	reg	$s2	struct MotionDataType *	mot
+SweepMotion	ACTION.C	reg	$a2	struct ModelType *	object
+SweepMotion	ACTION.C	reg	$s1	short	i
+ActiveMotion	ACTION.C	param	$s2	struct MotionManager *	mmp
+ActiveMotion	ACTION.C	reg	$s0	short	i
+ActiveMotion	ACTION.C	reg	$s3	short	count
+ActiveMotion	ACTION.C	reg	$s1	struct ModelType *	object
+ActiveMotion	ACTION.C	stack	sp+16	struct SVECTOR	vect
+SetupSpline	ACTION.C	param	$a0	struct MotionManager *	mmp
+UpdateSplineControl	ACTION.C	param	$t0	struct SplineControlType *	spc
+UpdateSplineControl	ACTION.C	reg	$a2	struct MotionElementType *	key0p
+UpdateSplineControl	ACTION.C	reg	$a3	struct MotionElementType *	key1n
+GetSpline	ACTION.C	param	$s2	struct SVECTOR *	vect
+GetSpline	ACTION.C	param	$s0	struct SplineControlType *	spc
+GetSpline	ACTION.C	param	$s1	short	cnt
+SetupAppearance	APPEAR.C	param	$s7	short	mode
+SetupAppearance	APPEAR.C	param	$fp	short	stage
+SetupAppearance	APPEAR.C	reg	$s2	short	i
+SetupAppearance	APPEAR.C	reg	$s1	short	j
+SetupAppearance	APPEAR.C	stack	sp+16	unsigned char [100]	name
+SetupAppearance	APPEAR.C	reg	$a0	unsigned char *	pt
+SetupCharacterParameter	APPEAR.C	param	$s2	short	type
+SetupCharacterParameter	APPEAR.C	param	$s1	struct Humanoid *	human
+SetupCharacterParameter	APPEAR.C	reg	$a0	int	idx
+SetupCharacterParameter	APPEAR.C	reg	$a2	short *	idtbl
+BreedLife	APPEAR.C	param	$s4	short	type
+BreedLife	APPEAR.C	param	$s5	long	x
+BreedLife	APPEAR.C	param	$s7	long	y
+BreedLife	APPEAR.C	param	$s6	long	z
+BreedLife	APPEAR.C	param	stack+16	long	r
+BreedLife	APPEAR.C	reg	$v0	long	r
+BreedLife	APPEAR.C	reg	$s0	struct Humanoid *	human
+BreedLife	APPEAR.C	reg	$s2	unsigned long *	model
+BreedLife	APPEAR.C	reg	$s0	unsigned long	idx
+BreedLife	APPEAR.C	stack	sp+16	unsigned char [100]	name
+GetAttackDBID	APPEAR.C	param	$a0	struct Humanoid *	human
+GetAttackDBID	APPEAR.C	param	$a1	short	mid
+GetWeaponData	APPEAR.C	param	$s1	struct Humanoid *	human
+GetWeaponData	APPEAR.C	param	$s3	short	body
+GetWeaponData	APPEAR.C	param	$t1	short	wid
+GetWeaponData	APPEAR.C	param	$a3	short	wpid
+GetWeaponData	APPEAR.C	param	stack+16	int	wep
+GetWeaponData	APPEAR.C	reg	$s2	short	wep
+GetWeaponData	APPEAR.C	reg	$a0	short	i
+GetWeaponData	APPEAR.C	stack	sp+16	unsigned char [100]	name
+SetupWeapon	APPEAR.C	param	$s0	struct Humanoid *	human
+SetupWeapon	APPEAR.C	reg	$a1	short	i
+DisposeWeapon	APPEAR.C	param	$a0	struct Humanoid *	human
+EquipWeapon	APPEAR.C	param	$a0	struct Humanoid *	human
+EquipWeapon	APPEAR.C	param	$a1	short	mode
+SetupSE	AUDIO.C	param	$a0	unsigned char *	vab
+DisposeSE	AUDIO.C	param	$a0	struct SoundEffect *	se
+PlaySE	AUDIO.C	param	$a0	struct SoundEffect *	se
+PlaySE	AUDIO.C	param	$a1	short	pt
+PlaySE	AUDIO.C	param	$a2	long	dv
+PlaySE	AUDIO.C	reg	$s0	short	d
+PlaySE	AUDIO.C	reg	$v1	short	v
+StopSE	AUDIO.C	param	$a0	short	voice
+SetCameraMode	CAMERA.C	param	$a0	enum TCameraMode	mode
+QuakeCamera	CAMERA.C	param	$a0	int	i
+SnapCameraTargetVector	CAMERA.C	stack	sp+16	struct VECTOR	v
+SnapCameraTargetVector	CAMERA.C	stack	sp+32	struct SVECTOR	sv
+SnapCameraTargetVector	CAMERA.C	stack	sp+40	struct SVECTOR	sv2
+SnapCameraTargetVector	CAMERA.C	reg	$a0	struct VECTOR *	target
+MakeDifSub	CAMERA.C	param	$t0	struct VECTOR *	src
+MakeDifSub	CAMERA.C	param	$a1	struct VECTOR *	target
+MakeDifSub	CAMERA.C	param	$s5	struct VECTOR *	dest
+MakeDifSub	CAMERA.C	param	$s4	struct TMakeDifInfo *	info
+MakeDifSub	CAMERA.C	reg	$s2	int	len
+MakeDifSub	CAMERA.C	reg	$s6	int	mspd
+MakeDifSub	CAMERA.C	reg	$s0	long	theta
+MakeDifSub	CAMERA.C	reg	$s0	long	dx
+MakeDifSub	CAMERA.C	reg	$s3	long	dy
+MakeDifSub	CAMERA.C	reg	$s1	long	dz
+MakeDifSub	CAMERA.C	stack	sp+16	struct SVECTOR	nv
+MakeDifSub	CAMERA.C	reg	$v1	struct SVECTOR *	a
+MakeDifSub	CAMERA.C	reg	$s0	struct SVECTOR *	b
+MakeDifSub	CAMERA.C	reg	$s0	long	slab
+MakeDifSub	CAMERA.C	reg	$s0	long	sla
+MakeDifSub	CAMERA.C	reg	$s1	long	ip
+MakeDif	CAMERA.C	param	$a0	struct GsRVIEW2 *	vinfo
+MakeDif	CAMERA.C	param	$a1	struct GsRVIEW2 *	target
+MakeDif	CAMERA.C	param	$a2	struct GsRVIEW2 *	vdif
+AntiWall	CAMERA.C	param	$a0	struct GsRVIEW2 *	vinfo
+AntiWall	CAMERA.C	param	$s2	struct GsRVIEW2 *	target
+AntiWall	CAMERA.C	stack	sp+24	struct SVECTOR	vsL
+AntiWall	CAMERA.C	stack	sp+32	struct SVECTOR	vsR
+AntiWall	CAMERA.C	reg	$s3	int	lvR
+AntiWall	CAMERA.C	reg	$s0	int	rmap
+AntiWall	CAMERA.C	stack	sp+40	struct SVECTOR	av
+AntiWall	CAMERA.C	stack	sp+48	int	rx
+AntiWall	CAMERA.C	stack	sp+52	int	ry
+AntiWall	CAMERA.C	reg	$s5	int	sx
+AntiWall	CAMERA.C	reg	$s3	int	sy
+AntiWall	CAMERA.C	reg	$s0	int	sz
+MakeCameraPosition	CAMERA.C	param	$s4	struct VECTOR *	orgpos
+MakeCameraPosition	CAMERA.C	param	$s5	struct SVECTOR *	orgrot
+MakeCameraPosition	CAMERA.C	param	$s7	struct SVECTOR *	campos
+MakeCameraPosition	CAMERA.C	param	$fp	struct SVECTOR *	ref
+MakeCameraPosition	CAMERA.C	param	stack+16	struct GsRVIEW2 *	vDif
+MakeCameraPosition	CAMERA.C	reg	$v1	int	fwRot
+MakeCameraPosition	CAMERA.C	reg	$s2	struct SVECTOR *	tmp
+MakeCameraPosition	CAMERA.C	reg	$s6	struct SVECTOR *	prot
+MakeCameraPosition	CAMERA.C	reg	$s1	struct MATRIX *	pmat
+MakeCameraPosition	CAMERA.C	reg	$s4	struct VECTOR *	pos
+MakeCameraPosition	CAMERA.C	reg	$s5	struct SVECTOR *	rot
+MakeCameraPosition	CAMERA.C	reg	$a0	int	d
+MakeCameraPosition	CAMERA.C	reg	$v1	int	ret
+MakeCameraPosition	CAMERA.C	reg	$s0	int	dz
+MakeCameraPosition	CAMERA.C	reg	$s3	int	dx
+MakeCameraPosition	CAMERA.C	reg	$v0	int	y2
+MakeCameraPosition	CAMERA.C	reg	$s0	int	y1
+MakeCameraPosition	CAMERA.C	stack	sp+24	struct SVECTOR	dvec
+MakeCameraPosition	CAMERA.C	stack	sp+32	struct VECTOR	ret
+MakeCameraPosition	CAMERA.C	stack	sp+48	struct VECTOR	start
+MakeCameraPosition	CAMERA.C	reg	$a2	int	N
+MakeCameraPosition	CAMERA.C	reg	$s4	struct VECTOR *	start
+MakeCameraPosition	CAMERA.C	reg	$a0	struct SVECTOR *	v
+MakeCameraPosition	CAMERA.C	reg	$s1	int	n
+MakeCameraPosition	CAMERA.C	reg	$s4	int	pz
+MakeCameraPosition	CAMERA.C	reg	$s2	int	py
+MakeCameraPosition	CAMERA.C	reg	$s3	int	px
+MakeCameraPosition	CAMERA.C	reg	$s5	int	vz
+MakeCameraPosition	CAMERA.C	reg	$s6	int	vy
+MakeCameraPosition	CAMERA.C	reg	$s7	int	vx
+MakeCameraPosition	CAMERA.C	reg	$s0	int	i
+MakeCameraPosition	CAMERA.C	stack	sp+120	struct GsRVIEW2 *	vdif
+CameraType1	CAMERA.C	param	$s5	struct Humanoid *	pl
+CameraType1	CAMERA.C	param	$s3	struct GsRVIEW2 *	vDif
+CameraType1	CAMERA.C	reg	$s2	struct ModelArchiveType *	mad
+CameraType1	CAMERA.C	stack	sp+24	struct VECTOR	pos
+CameraType1	CAMERA.C	stack	sp+40	struct SVECTOR	vecl
+CameraType1	CAMERA.C	stack	sp+48	struct SVECTOR	vecr
+CameraType1	CAMERA.C	reg	$s0	int	levfl
+CameraType1	CAMERA.C	reg	$s1	int	levfr
+CameraType1	CAMERA.C	reg	$v0	int	levbl
+CameraType1	CAMERA.C	reg	$s2	int	levbr
+CameraType1	CAMERA.C	reg	$s0	int	levmap
+CameraType1	CAMERA.C	stack	sp+56	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+64	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+72	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+80	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+88	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+96	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+104	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+112	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+120	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+128	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+136	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+144	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+152	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+160	struct SVECTOR	ref
+CameraType1	CAMERA.C	stack	sp+56	struct SVECTOR	campos
+CameraType1	CAMERA.C	stack	sp+64	struct SVECTOR	ref
+Camera	CAMERA.C	stack	sp+24	struct GsRVIEW2	vDif
+Camera	CAMERA.C	reg	$s1	short	pad_dat
+CameraDirection	CAMERA.C	param	$a0	struct Humanoid *	pl
+CameraDirection	CAMERA.C	param	$s3	struct GsRVIEW2 *	vDif
+CameraDirection	CAMERA.C	stack	sp+24	struct GsRVIEW2	target
+CameraDirection	CAMERA.C	reg	$s2	struct ModelArchiveType *	mad
+CameraDirection	CAMERA.C	stack	sp+56	struct SVECTOR	r
+CameraDirection	CAMERA.C	stack	sp+64	struct SVECTOR	CamLoc
+CameraDirection	CAMERA.C	stack	sp+72	struct VECTOR	vc
+CameraDirection	CAMERA.C	stack	sp+88	struct MATRIX	mat
+CameraDirection	CAMERA.C	stack	sp+120	int	rx
+CameraDirection	CAMERA.C	stack	sp+124	int	ry
+CameraDirection	CAMERA.C	stack	sp+128	short	x
+CameraDirection	CAMERA.C	stack	sp+130	short	y
+CVAsetup	CHRANIM.C	stack	sp+24	unsigned char [50]	name
+CVAsequence	CHRANIM.C	param	$a0	short	sid
+CVAsequence	CHRANIM.C	reg	$s3	struct SoundEffect *	vab
+CVAsequence	CHRANIM.C	reg	$a0	struct Humanoid *	human
+CVAsequence	CHRANIM.C	reg	$s0	short	sound
+CVAsequence	CHRANIM.C	reg	$s0	short	i
+CVAsequence	CHRANIM.C	reg	$a1	short	j
+CVAupdate	CHRANIM.C	stack	sp+24	struct SVECTOR	vect
+CVAupdate	CHRANIM.C	reg	$s1	struct Humanoid *	human
+CVAupdate	CHRANIM.C	reg	$s0	long	i
+CVArun	CHRANIM.C	reg	$a2	struct MotionManager *	mmp
+CVArun	CHRANIM.C	reg	$s1	short	i
+AVCameraSetup	CHRANIM.C	stack	sp+16	struct SVECTOR	vect
+AVCameraSetup	CHRANIM.C	reg	$a1	struct Humanoid *	human
+AVCameraControl	CHRANIM.C	stack	sp+16	struct SVECTOR	vect
+AVCameraControl	CHRANIM.C	reg	$s1	long	xx
+AVCameraControl	CHRANIM.C	reg	$s0	long	zz
+AVCameraControl	CHRANIM.C	reg	$s2	long	len
+AVCameraControl	CHRANIM.C	reg	$a1	short	ry
+SetupTelop	CHRANIM.C	param	$s4	unsigned char *	telop
+SetupTelop	CHRANIM.C	reg	$a2	short *	font
+SetupTelop	CHRANIM.C	stack	sp+16	short [16][16]	bitmap
+SetupTelop	CHRANIM.C	reg	$s0	short	n
+SetupTelop	CHRANIM.C	reg	$t0	short	u
+SetupTelop	CHRANIM.C	reg	$t1	short	v
+SetupTelop	CHRANIM.C	stack	sp+528	struct RECT	rect
+LoadAreaMap	CONFLICT.C	param	$a0	unsigned long *	adr
+DisposeAreaMap	CONFLICT.C	param	$a0	unsigned long *	area
+ComputeAreaLevel	CONFLICT.C	param	$t0	struct AreaNodeType *	node
+ComputeAreaLevel	CONFLICT.C	param	$a1	long	x
+ComputeAreaLevel	CONFLICT.C	param	$a2	long	z
+ComputeAreaLevel	CONFLICT.C	reg	$a0	short	yy
+GetAreaMapLevel	CONFLICT.C	param	$a0	unsigned long *	area
+GetAreaMapLevel	CONFLICT.C	param	$s5	long	x
+GetAreaMapLevel	CONFLICT.C	param	stack+8	long	y
+GetAreaMapLevel	CONFLICT.C	param	$s6	long	z
+GetAreaMapLevel	CONFLICT.C	param	stack+16	int	mode
+GetAreaMapLevel	CONFLICT.C	stack	sp+16	short	mode
+GetAreaMapLevel	CONFLICT.C	reg	$s3	struct NodeIndexType *	index
+GetAreaMapLevel	CONFLICT.C	reg	$s0	struct AreaNodeType *	node
+GetAreaMapLevel	CONFLICT.C	reg	$fp	long	y2
+GetAreaMapLevel	CONFLICT.C	reg	$s4	long	yy
+GetAreaMapLevel	CONFLICT.C	reg	$v1	long	sy
+GetAreaMapLevel	CONFLICT.C	reg	$s1	long	n
+GetAreaMapLevel	CONFLICT.C	reg	$s7	long	nn
+GetAreaMapVector	CONFLICT.C	param	stack+0	unsigned long *	area
+GetAreaMapVector	CONFLICT.C	param	$s0	struct MapVector *	mvp
+GetAreaMapVector	CONFLICT.C	param	$s1	struct VECTOR *	pos
+GetAreaMapVector	CONFLICT.C	param	$s7	long	wide
+GetAreaMapVector	CONFLICT.C	param	stack+16	int	mode
+GetAreaMapVector	CONFLICT.C	reg	$s4	short	mode
+GetAreaMapVector	CONFLICT.C	reg	$s2	short	i
+GetAreaMapVector	CONFLICT.C	reg	$s1	short	v
+GetAreaMapVector	CONFLICT.C	reg	$a0	long	level
+GetAreaMapVector	CONFLICT.C	reg	$s6	long	x
+GetAreaMapVector	CONFLICT.C	reg	$s3	long	y
+GetAreaMapVector	CONFLICT.C	reg	$s5	long	z
+GetAreaMapPassage	CONFLICT.C	param	$s4	unsigned long *	area
+GetAreaMapPassage	CONFLICT.C	param	$a1	struct VECTOR *	pos
+GetAreaMapPassage	CONFLICT.C	param	$s1	struct SVECTOR *	vect
+GetAreaMapPassage	CONFLICT.C	param	$s3	short	n
+GetAreaMapPassage	CONFLICT.C	reg	$a0	struct AreaNodeType *	node
+GetAreaMapPassage	CONFLICT.C	stack	sp+24	long [2]	x
+GetAreaMapPassage	CONFLICT.C	stack	sp+32	long [2]	z
+GetAreaMapPassage	CONFLICT.C	stack	sp+40	long [2]	y
+InitConflict	CONFLICT.C	reg	$s0	short	i
+InsertConflict	CONFLICT.C	param	$s2	struct ModelType *	model
+DeleteConflict	CONFLICT.C	param	$t3	struct ModelType *	model
+DeleteConflict	CONFLICT.C	reg	$t1	short	i
+ComputeAllConflict	CONFLICT.C	reg	$s1	struct ConflictObjectType *	confop
+ComputeAllConflict	CONFLICT.C	reg	$s0	struct ModelType *	model
+ComputeAllConflict	CONFLICT.C	stack	sp+16	struct MATRIX	mat
+ComputeAllConflict	CONFLICT.C	reg	$s2	short	i
+ComputeAllConflict	CONFLICT.C	reg	$t0	short	j
+GetConflictResult	CONFLICT.C	param	$a0	struct ModelType *	model
+GetConflictResult	CONFLICT.C	param	$a2	short	index
+GetConflictResult	CONFLICT.C	reg	$t0	short	i
+GetConflictResult	CONFLICT.C	reg	$t1	short	idx
+DrawSpriteXYZ	EFFECT.C	param	$a0	struct GsSPRITE *	sprt
+DrawSpriteXYZ	EFFECT.C	param	$a1	long	x
+DrawSpriteXYZ	EFFECT.C	param	$a2	long	y
+DrawSpriteXYZ	EFFECT.C	param	$a3	long	z
+DrawSpriteXYZ	EFFECT.C	param	stack+16	long	scale
+DrawSpriteXYZ	EFFECT.C	stack	sp+16	struct SVECTOR	scr
+CGetLevel	EFFECT.C	param	$a0	struct AreaNodeType **	hint
+CGetLevel	EFFECT.C	param	$a1	long	x
+CGetLevel	EFFECT.C	param	$a2	long	y
+CGetLevel	EFFECT.C	param	$a3	long	z
+CGetLevel	EFFECT.C	param	stack+16	unsigned long	flag
+InitEffect	EFFECT.C	stack	sp+16	struct GsIMAGE	img
+InitEffect	EFFECT.C	reg	$s2	short	i
+InitEffect	EFFECT.C	stack	sp+48	int [3]	img
+DrawTargetS	EFFECT.C	param	$s0	long	x
+DrawTargetS	EFFECT.C	param	$s1	long	y
+DrawTargetS	EFFECT.C	param	$s3	long	z
+DrawTargetS	EFFECT.C	param	$a3	long	color
+DrawTargetS	EFFECT.C	stack	sp+16	struct GsLINE	line
+DrawTargetS	EFFECT.C	reg	$a2	int	z
+RotateVector	EFFECT.C	param	$a0	struct VECTOR *	vec
+RotateVector	EFFECT.C	param	$a1	int	rx
+RotateVector	EFFECT.C	param	$a2	int	ry
+RotateVector	EFFECT.C	param	$a3	int	rz
+RotateVector	EFFECT.C	stack	sp+16	struct MATRIX	SMAT
+RotateVector	EFFECT.C	stack	sp+48	struct SVECTOR	rot
+RotateVector	EFFECT.C	stack	sp+56	struct VECTOR	vo
+RotateVectorS	EFFECT.C	param	$a0	struct SVECTOR *	vec
+RotateVectorS	EFFECT.C	param	$a1	int	rx
+RotateVectorS	EFFECT.C	param	$a2	int	ry
+RotateVectorS	EFFECT.C	param	$a3	int	rz
+RotateVectorS	EFFECT.C	stack	sp+16	struct MATRIX	SMAT
+RotateVectorS	EFFECT.C	stack	sp+48	struct SVECTOR	rot
+RotateVectorS	EFFECT.C	stack	sp+56	struct SVECTOR	vo
+GetVectorLength	EFFECT.C	param	$a0	long	dx
+GetVectorLength	EFFECT.C	param	$a1	long	dy
+GetVectorLength	EFFECT.C	param	$a2	long	dz
+GetVectorDistance	EFFECT.C	param	$a0	struct VECTOR *	v1
+GetVectorDistance	EFFECT.C	param	$a1	struct VECTOR *	v2
+GetVectorRotation	EFFECT.C	param	$a0	struct VECTOR *	start
+GetVectorRotation	EFFECT.C	param	$a1	struct VECTOR *	end
+GetVectorRotation	EFFECT.C	param	$a2	int *	rx
+GetVectorRotation	EFFECT.C	param	$a3	int *	ry
+GetScreenPosition	EFFECT.C	param	$a0	long	x
+GetScreenPosition	EFFECT.C	param	$a1	long	y
+GetScreenPosition	EFFECT.C	param	$a2	long	z
+GetScreenPosition	EFFECT.C	param	$a3	struct SVECTOR *	scr
+GetScreenPositionS	EFFECT.C	param	$a0	long	x
+GetScreenPositionS	EFFECT.C	param	$a1	long	y
+GetScreenPositionS	EFFECT.C	param	$a2	long	z
+GetScreenPositionS	EFFECT.C	param	$a3	struct SVECTOR *	scr
+DrawTarget	EFFECT.C	param	$a0	long	x
+DrawTarget	EFFECT.C	param	$a1	long	y
+DrawTarget	EFFECT.C	param	$a2	long	z
+DrawTarget	EFFECT.C	param	$a3	long	color
+DrawTarget	EFFECT.C	stack	sp+16	struct SVECTOR	scr
+SetPadState	EFFECT.C	param	$s1	short	pad
+SetPadState	EFFECT.C	param	$a1	short	index
+SetPadState	EFFECT.C	reg	$a0	struct GsSPRITE *	spr
+SetPadState	EFFECT.C	reg	$s2	short	y
+SetPadState	EFFECT.C	reg	$s0	short	x
+SetPadState	EFFECT.C	reg	$v1	short	i
+DrawBlood	EFFECT.C	param	$s0	struct tag_EffectSlot *	ef
+DrawBlood	EFFECT.C	reg	$s2	struct BloodType *	blood
+DrawBlood	EFFECT.C	reg	$s3	struct GsSPRITE *	spr
+DrawBlood	EFFECT.C	reg	$s2	struct AreaNodeType **	hint
+DrawBlood	EFFECT.C	reg	$t3	long	x
+DrawBlood	EFFECT.C	reg	$t2	long	y
+DrawBlood	EFFECT.C	reg	$a3	long	z
+DrawBlood	EFFECT.C	reg	$a2	int	sz
+DrawBlood	EFFECT.C	reg	$t1	int	sy
+DrawBlood	EFFECT.C	reg	$a1	int	sx
+DrawBlood	EFFECT.C	reg	$v1	long	rety
+DrawBlood	EFFECT.C	reg	$a0	struct AreaNodeType *	area
+DrawBlood	EFFECT.C	stack	sp+24	struct VECTOR	pos
+DrawBlood	EFFECT.C	stack	sp+40	struct SVECTOR	vec
+DrawBlood	EFFECT.C	reg	$s3	struct GsSPRITE *	sprt
+DrawBlood	EFFECT.C	reg	$s0	long	scale
+DrawBlood	EFFECT.C	stack	sp+24	struct SVECTOR	scr
+DrawBlood	EFFECT.C	reg	$a0	int	z
+SetBlood	EFFECT.C	param	$s3	struct VECTOR *	pos
+SetBlood	EFFECT.C	param	$s5	struct SVECTOR *	vect
+SetBlood	EFFECT.C	param	$s7	short	n
+SetBlood	EFFECT.C	param	$fp	short	time
+SetBlood	EFFECT.C	reg	$s4	short	i
+SetBlood	EFFECT.C	reg	$s6	struct AreaNodeType *	hint
+SetBlood	EFFECT.C	reg	$s1	struct tag_EffectSlot *	slot
+SetBlood	EFFECT.C	reg	$s0	struct BloodType *	blood
+SetBlood	EFFECT.C	reg	$a0	int	i
+DrawSmoke	EFFECT.C	param	$s3	struct tag_EffectSlot *	ef
+DrawSmoke	EFFECT.C	reg	$s0	struct SmokeType *	smoke
+DrawSmoke	EFFECT.C	reg	$s1	struct Sprite3D *	spr
+DrawSmoke	EFFECT.C	reg	$s2	unsigned char	alfa
+SetSmoke	EFFECT.C	param	$s5	struct VECTOR *	pos
+SetSmoke	EFFECT.C	param	$s6	struct SVECTOR *	vect
+SetSmoke	EFFECT.C	param	$s7	short	n
+SetSmoke	EFFECT.C	param	$s3	short	time
+SetSmoke	EFFECT.C	reg	$s4	short	i
+SetSmoke	EFFECT.C	reg	$s1	struct tag_EffectSlot *	slot
+SetSmoke	EFFECT.C	reg	$s0	struct SmokeType *	smoke
+SetSmoke	EFFECT.C	reg	$a0	int	i
+SetSmokeS	EFFECT.C	param	$a0	struct VECTOR *	pos
+SetSmokeS	EFFECT.C	param	$a1	short	vx
+SetSmokeS	EFFECT.C	param	$a2	short	vy
+SetSmokeS	EFFECT.C	param	$a3	short	vz
+SetSmokeS	EFFECT.C	param	stack+16	int	time
+DrawImpact	EFFECT.C	param	$s2	struct tag_EffectSlot *	ef
+DrawImpact	EFFECT.C	reg	$s1	struct ImpactType *	param
+DrawImpact	EFFECT.C	reg	$s0	struct Sprite3D *	spr
+SetImpact	EFFECT.C	param	$a0	struct VECTOR *	pos
+SetImpact	EFFECT.C	param	$a1	short	size
+SetImpact	EFFECT.C	param	$a2	short	type
+DrawBleed	EFFECT.C	param	$a0	struct tag_EffectSlot *	ef
+DrawBleed	EFFECT.C	reg	$s1	struct BleedType *	param
+DrawBleed	EFFECT.C	stack	sp+16	struct SVECTOR	scr
+DrawBleed	EFFECT.C	reg	$v0	long	x
+DrawBleed	EFFECT.C	reg	$a1	long	y
+DrawBleed	EFFECT.C	reg	$a2	long	z
+DrawBleed	EFFECT.C	reg	$s0	struct SVECTOR *	scr
+DrawBleed	EFFECT.C	reg	$v1	int	z
+SetBleed	EFFECT.C	param	$a0	struct VECTOR *	pos
+SetBleed	EFFECT.C	param	$a1	struct SVECTOR *	vec
+SetBleed	EFFECT.C	param	$a2	int	time
+SetBleed	EFFECT.C	param	$a3	long	col
+SetBleeds	EFFECT.C	param	stack+0	struct VECTOR *	pos
+SetBleeds	EFFECT.C	param	$a1	short	grange
+SetBleeds	EFFECT.C	param	$s5	short	srange
+SetBleeds	EFFECT.C	param	$s6	short	n
+SetBleeds	EFFECT.C	param	stack+16	int	time
+SetBleeds	EFFECT.C	param	stack+20	long	col
+SetBleeds	EFFECT.C	reg	$fp	int	time
+SetBleeds	EFFECT.C	reg	$s7	long	col
+SetBleeds	EFFECT.C	stack	sp+16	struct VECTOR	npos
+SetBleeds	EFFECT.C	stack	sp+32	struct SVECTOR	v
+SetBleeds	EFFECT.C	reg	$a3	struct VECTOR *	pos
+SetBleeds	EFFECT.C	reg	$t0	int	time
+SetBleeds	EFFECT.C	reg	$s7	long	col
+SetBleeds	EFFECT.C	reg	$v1	struct BleedType *	param
+SetBleeds	EFFECT.C	reg	$a2	struct tag_EffectSlot *	slot
+SetBleeds	EFFECT.C	reg	$a0	int	i
+DrawSplash	EFFECT.C	param	$s3	struct tag_EffectSlot *	ef
+DrawSplash	EFFECT.C	reg	$s1	struct SplashType *	param
+DrawSplash	EFFECT.C	reg	$s2	struct GsSPRITE *	spr
+DrawSplash	EFFECT.C	stack	sp+24	struct SVECTOR	scr
+DrawSplash	EFFECT.C	reg	$v0	long	x
+DrawSplash	EFFECT.C	reg	$a1	long	y
+DrawSplash	EFFECT.C	reg	$a2	long	z
+DrawSplash	EFFECT.C	reg	$s0	struct SVECTOR *	scr
+DrawSplash	EFFECT.C	stack	sp+32	struct VECTOR	pos
+DrawSplash	EFFECT.C	reg	$v1	int	z
+SetSplash	EFFECT.C	param	$a0	struct VECTOR *	pos
+SetSplash	EFFECT.C	param	$a1	short	sx
+SetSplash	EFFECT.C	param	$a2	short	sy
+SetSplash	EFFECT.C	param	$a3	int	speed
+DrawFrame	EFFECT.C	param	$s3	struct tag_EffectSlot *	ef
+DrawFrame	EFFECT.C	reg	$s1	struct FrameType *	param
+DrawFrame	EFFECT.C	reg	$s2	struct GsSPRITE *	spr
+DrawFrame	EFFECT.C	stack	sp+16	struct SVECTOR	scr
+DrawFrame	EFFECT.C	stack	sp+24	struct SVECTOR	sv
+DrawFrame	EFFECT.C	stack	sp+40	struct MATRIX	mat
+DrawFrame	EFFECT.C	stack	sp+72	long	p
+DrawFrame	EFFECT.C	stack	sp+76	long	flag
+DrawFrame	EFFECT.C	reg	$v0	long	x
+DrawFrame	EFFECT.C	reg	$a1	long	y
+DrawFrame	EFFECT.C	reg	$a2	long	z
+DrawFrame	EFFECT.C	reg	$s0	struct SVECTOR *	scr
+DrawFrame	EFFECT.C	reg	$v1	int	z
+SetFrame	EFFECT.C	param	$a0	struct VECTOR *	pos
+SetFrame	EFFECT.C	param	$a1	short	size
+SetFrame	EFFECT.C	param	$a2	short	time
+SetFrame	EFFECT.C	param	$a3	struct _GsCOORDINATE2 *	super
+SetBleedsDir	EFFECT.C	param	$s7	struct VECTOR *	pos
+SetBleedsDir	EFFECT.C	param	$fp	struct SVECTOR *	vec
+SetBleedsDir	EFFECT.C	param	$a2	short	grange
+SetBleedsDir	EFFECT.C	param	$s5	short	n
+SetBleedsDir	EFFECT.C	param	stack+16	int	time
+SetBleedsDir	EFFECT.C	param	stack+20	long	col
+SetBleedsDir	EFFECT.C	reg	$s4	int	time
+SetBleedsDir	EFFECT.C	reg	$s6	long	col
+SetBleedsDir	EFFECT.C	stack	sp+16	struct VECTOR	npos
+SetBleedsDir	EFFECT.C	stack	sp+32	struct SVECTOR	v
+SetBleedsDir	EFFECT.C	reg	$a3	struct VECTOR *	pos
+SetBleedsDir	EFFECT.C	reg	$t0	int	time
+SetBleedsDir	EFFECT.C	reg	$s6	long	col
+SetBleedsDir	EFFECT.C	reg	$v1	struct BleedType *	param
+SetBleedsDir	EFFECT.C	reg	$a2	struct tag_EffectSlot *	slot
+SetBleedsDir	EFFECT.C	reg	$a0	int	i
+DrawGore	EFFECT.C	param	$s0	struct tag_EffectSlot *	ef
+DrawGore	EFFECT.C	reg	$s1	struct GoreType *	param
+DrawGore	EFFECT.C	stack	sp+16	struct VECTOR	pos
+DrawGore	EFFECT.C	stack	sp+32	struct SVECTOR	vec
+DrawGore	EFFECT.C	reg	$t1	struct VECTOR *	pos
+DrawGore	EFFECT.C	reg	$t0	int	time
+DrawGore	EFFECT.C	reg	$a3	long	col
+DrawGore	EFFECT.C	reg	$v1	struct BleedType *	param
+DrawGore	EFFECT.C	reg	$a2	struct tag_EffectSlot *	slot
+DrawGore	EFFECT.C	reg	$a2	int	i
+SetGore	EFFECT.C	param	$a0	struct VECTOR *	pos
+SetGore	EFFECT.C	param	$a1	struct SVECTOR *	vec
+SetGore	EFFECT.C	param	$a2	int	time
+SetGore	EFFECT.C	param	$a3	long	col
+DrawExplosion	EFFECT.C	param	$a1	struct tag_EffectSlot *	ef
+DrawExplosion	EFFECT.C	reg	$a2	struct ExplosionType *	param
+DrawExplosion	EFFECT.C	reg	$s0	struct Sprite3D *	spr
+DrawExplosion	EFFECT.C	reg	$a3	unsigned char	alfa
+SetExplosion	EFFECT.C	param	$s2	struct VECTOR *	pos
+SetExplosion	EFFECT.C	param	$s3	struct SVECTOR *	vect
+SetExplosion	EFFECT.C	reg	$s1	struct tag_EffectSlot *	slot
+SetExplosion	EFFECT.C	reg	$s0	struct ExplosionType *	param
+SetExplosion	EFFECT.C	reg	$v1	int	i
+DrawHinoko	EFFECT.C	param	$a1	struct tag_EffectSlot *	ef
+DrawHinoko	EFFECT.C	reg	$a2	struct ExplosionType *	param
+DrawHinoko	EFFECT.C	reg	$s0	struct Sprite3D *	spr
+DrawHinoko	EFFECT.C	reg	$a3	unsigned char	alfa
+SetHinoko	EFFECT.C	param	$s3	struct VECTOR *	pos
+SetHinoko	EFFECT.C	param	$s4	struct SVECTOR *	power
+SetHinoko	EFFECT.C	param	$s5	int	n
+SetHinoko	EFFECT.C	reg	$s2	short	i
+SetHinoko	EFFECT.C	reg	$s1	struct tag_EffectSlot *	slot
+SetHinoko	EFFECT.C	reg	$s0	struct ExplosionType *	param
+SetHinoko	EFFECT.C	reg	$a0	int	i
+DrawFlyWire	EFFECT.C	param	$s1	struct tag_EffectSlot *	ef
+DrawFlyWire	EFFECT.C	reg	$s0	struct FlyWireType *	param
+DrawFlyWire	EFFECT.C	stack	sp+24	struct VECTOR	pos
+SetFlyWire	EFFECT.C	param	$a2	struct VECTOR *	start
+SetFlyWire	EFFECT.C	param	$a3	struct VECTOR *	end
+SetFlyWire	EFFECT.C	reg	$s5	struct tag_EffectSlot *	slot
+SetFlyWire	EFFECT.C	reg	$s3	struct FlyWireType *	param
+SetFlyWire	EFFECT.C	reg	$s2	int	dist
+SetFlyWire	EFFECT.C	reg	$a1	int	i
+SetFlyWire	EFFECT.C	reg	$s3	struct VECTOR *	v1
+SetFlyWire	EFFECT.C	reg	$a0	long	dz
+SetFlyWire	EFFECT.C	reg	$a2	long	dy
+SetFlyWire	EFFECT.C	reg	$t0	long	dx
+SetWire	EFFECT.C	param	$s3	struct VECTOR *	start
+SetWire	EFFECT.C	param	$s2	struct VECTOR *	end
+SetWire	EFFECT.C	param	$s1	struct VECTOR *	center
+SetWire	EFFECT.C	param	$s0	long	len
+SetWire	EFFECT.C	stack	sp+16	struct VECTOR	StockCenter
+SetWire	EFFECT.C	reg	$s4	long	lcount
+SetWire	EFFECT.C	reg	$s0	int	i
+SetWire	EFFECT.C	reg	$s5	int	ecount
+SetWire	EFFECT.C	stack	sp+32	struct SVECTOR	scr
+SetWire	EFFECT.C	stack	sp+40	struct SVECTOR	oldscr
+SetWire	EFFECT.C	stack	sp+72	int	x
+SetWire	EFFECT.C	stack	sp+76	int	y
+SetWire	EFFECT.C	reg	$s6	int	z
+SetWire	EFFECT.C	stack	sp+48	struct GsLINE	line
+SetWire	EFFECT.C	reg	$v0	long	x
+SetWire	EFFECT.C	reg	$a1	long	y
+SetWire	EFFECT.C	reg	$a2	long	z
+SetWire	EFFECT.C	reg	$s3	struct VECTOR *	v1
+SetWire	EFFECT.C	reg	$s2	struct VECTOR *	v2
+SetWire	EFFECT.C	reg	$a1	long	dz
+SetWire	EFFECT.C	reg	$a3	long	dy
+SetWire	EFFECT.C	reg	$t0	long	dx
+SetWire	EFFECT.C	reg	$v0	long	t
+SetWire	EFFECT.C	reg	$a0	long	Q
+SetWire	EFFECT.C	reg	$a2	long	R
+SetWire	EFFECT.C	stack	sp+72	long	x
+SetWire	EFFECT.C	stack	sp+76	long	y
+SetWire	EFFECT.C	reg	$s6	long	z
+SetWire	EFFECT.C	reg	$v1	int	z
+SetWire	EFFECT.C	stack	sp+64	int	rx
+SetWire	EFFECT.C	stack	sp+68	int	ry
+SetWire	EFFECT.C	reg	$s3	struct VECTOR *	start
+SetWire	EFFECT.C	reg	$s2	struct VECTOR *	end
+SetWire	EFFECT.C	reg	$s0	int	dz
+SetWire	EFFECT.C	reg	$s2	int	dy
+SetWire	EFFECT.C	reg	$s1	int	dx
+SetLightningI	EFFECT.C	param	$s6	struct VECTOR *	start
+SetLightningI	EFFECT.C	param	$s7	struct VECTOR *	end
+SetLightningI	EFFECT.C	param	stack+4294967216	int	gen
+SetLightningI	EFFECT.C	param	stack+4294967224	short	r
+SetLightningI	EFFECT.C	param	stack+16	int	g
+SetLightningI	EFFECT.C	param	stack+20	int	b
+SetLightningI	EFFECT.C	stack	sp+88	short	g
+SetLightningI	EFFECT.C	stack	sp+96	short	b
+SetLightningI	EFFECT.C	reg	$s0	long	lcount
+SetLightningI	EFFECT.C	reg	$s4	int	i
+SetLightningI	EFFECT.C	stack	sp+24	struct SVECTOR	scr
+SetLightningI	EFFECT.C	stack	sp+32	struct SVECTOR	oldscr
+SetLightningI	EFFECT.C	reg	$s1	int	x
+SetLightningI	EFFECT.C	reg	$s2	int	y
+SetLightningI	EFFECT.C	reg	$s3	int	z
+SetLightningI	EFFECT.C	stack	sp+40	struct GsLINE	line
+SetLightningI	EFFECT.C	reg	$v0	long	x
+SetLightningI	EFFECT.C	reg	$t1	long	y
+SetLightningI	EFFECT.C	reg	$t2	long	z
+SetLightningI	EFFECT.C	reg	$s6	struct VECTOR *	v1
+SetLightningI	EFFECT.C	reg	$s7	struct VECTOR *	v2
+SetLightningI	EFFECT.C	reg	$a1	long	dz
+SetLightningI	EFFECT.C	reg	$a3	long	dy
+SetLightningI	EFFECT.C	reg	$t0	long	dx
+SetLightningI	EFFECT.C	stack	sp+56	struct VECTOR	sv
+SetLightningI	EFFECT.C	reg	$s1	long	x
+SetLightningI	EFFECT.C	reg	$s2	long	y
+SetLightningI	EFFECT.C	reg	$s3	long	z
+SetLightningI	EFFECT.C	reg	$fp	struct SVECTOR *	scr
+SetLightningI	EFFECT.C	reg	$v1	int	z
+SetLightning	EFFECT.C	param	$a0	struct VECTOR *	start
+SetLightning	EFFECT.C	param	$a1	struct VECTOR *	end
+SetLightning	EFFECT.C	param	$a2	short	r
+SetLightning	EFFECT.C	param	$a3	short	g
+SetLightning	EFFECT.C	param	stack+16	int	b
+DrawShadow	EFFECT.C	param	$s2	struct Humanoid *	human
+DrawShadow	EFFECT.C	stack	sp+24	struct VECTOR	scl
+DrawShadow	EFFECT.C	reg	$s1	struct VECTOR *	loc
+DrawShadow	EFFECT.C	stack	sp+40	struct MATRIX	mat
+DrawShadow	EFFECT.C	reg	$s0	int	height
+DrawShadow	EFFECT.C	reg	$s1	struct VECTOR *	pos
+DrawShadow	EFFECT.C	reg	$v1	struct SplashType *	param
+DrawShadow	EFFECT.C	reg	$a1	struct tag_EffectSlot *	slot
+DrawShadow	EFFECT.C	reg	$a2	int	i
+DrawShadow	EFFECT.C	stack	sp+72	struct PARAM_ITEM_LAUNCH	param
+DrawShadow	EFFECT.C	reg	$s1	struct ModelType *	model
+DrawShadow	EFFECT.C	stack	sp+112	struct VECTOR	pos
+DrawShadow	EFFECT.C	stack	sp+128	struct SVECTOR	sv
+DrawShadow	EFFECT.C	reg	$t2	short	time
+DrawShadow	EFFECT.C	reg	$s1	struct _GsCOORDINATE2 *	super
+DrawShadow	EFFECT.C	reg	$v1	struct FrameType *	param
+DrawShadow	EFFECT.C	reg	$t1	struct tag_EffectSlot *	slot
+DrawShadow	EFFECT.C	reg	$a2	int	i
+DrawShadow	EFFECT.C	stack	sp+72	struct SVECTOR	scr
+DrawShadow	EFFECT.C	stack	sp+148	long	flag
+DrawShadow	EFFECT.C	stack	sp+144	long	p
+SetupAfterimage	EFFECT.C	param	$s0	struct ModelType *	model
+SetupAfterimage	EFFECT.C	param	$a1	short	len
+SetupAfterimage	EFFECT.C	reg	$s2	struct GsIMAGE *	image
+SetupAfterimage	EFFECT.C	reg	$s1	struct AfterimageType *	afi
+SetupAfterimage	EFFECT.C	reg	$a1	short	px
+SetupAfterimage	EFFECT.C	reg	$a2	short	py
+SetupAfterimage	EFFECT.C	reg	$v1	short	ph
+DisposeAfterimage	EFFECT.C	param	$a0	struct AfterimageType *	afi
+DrawAfterimage	EFFECT.C	param	$s2	struct AfterimageType *	afi
+DrawAfterimage	EFFECT.C	param	$a1	short	disp
+DrawAfterimage	EFFECT.C	reg	$s0	struct POLY_GT4 *	poly
+DrawAfterimage	EFFECT.C	reg	$s3	short	i
+DrawAfterimage	EFFECT.C	reg	$s1	short	tplv
+DrawAfterimage	EFFECT.C	stack	sp+16	struct MATRIX	mat
+DrawAfterimage	EFFECT.C	reg	$v1	int	z
+SetPolyXF4	EFFECT.C	param	$a0	struct POLY_XF4 *	ply
+SetPolyXF4	EFFECT.C	param	$a1	short	attrib
+AddXF4	EFFECT.C	param	$a0	void *	ot
+AddXF4	EFFECT.C	param	$a1	struct POLY_XF4 *	ply
+DrawXF4	EFFECT.C	param	$a0	struct POLY_XF4 *	ply
+SetPolyXG4	EFFECT.C	param	$a0	struct POLY_XG4 *	ply
+SetPolyXG4	EFFECT.C	param	$a1	short	attrib
+AddXG4	EFFECT.C	param	$a0	void *	ot
+AddXG4	EFFECT.C	param	$a1	struct POLY_XG4 *	ply
+DrawXG4	EFFECT.C	param	$a0	struct POLY_XG4 *	ply
+FadeOutDirect	EFFECT.C	param	$a0	short	time
+FadeOutDirect	EFFECT.C	param	$a1	short	attrib
+FadeOutDirect	EFFECT.C	param	$a2	unsigned char	r
+FadeOutDirect	EFFECT.C	param	$a3	unsigned char	g
+FadeOutDirect	EFFECT.C	param	stack+16	int	b
+FadeOutDirect	EFFECT.C	stack	sp+16	struct DISPENV	o_disp
+FadeOutDirect	EFFECT.C	stack	sp+40	struct DRAWENV	o_draw
+FadeOutDirect	EFFECT.C	stack	sp+136	struct DRAWENV	n_draw
+FadeOutDirect	EFFECT.C	stack	sp+232	struct POLY_XF4	ply
+SetupTexScroll	EFFECT.C	param	$a0	struct GsIMAGE *	img
+SetupTexScroll	EFFECT.C	param	$a1	short	x
+SetupTexScroll	EFFECT.C	param	$a2	short	y
+SetupTexScroll	EFFECT.C	param	$a3	short	mode
+UpdateTexScroll	EFFECT.C	param	$s1	struct TexScroll *	tscr
+UpdateTexScroll	EFFECT.C	reg	$s0	struct DR_MOVE *	prim
+InitFileSystem	FILEIO.C	param	$a0	int	mode
+cbAccess	FILEIO.C	stack	sp+16	struct DISPENV	o_disp
+cbAccess	FILEIO.C	stack	sp+40	struct DRAWENV	o_draw
+cbAccess	FILEIO.C	stack	sp+136	struct DRAWENV	n_draw
+FileRead	FILEIO.C	param	$s0	unsigned char *	filename
+FileRead	FILEIO.C	reg	$s0	unsigned long *	ret
+PathFileRead	FILEIO.C	param	$a0	unsigned char *	path
+PathFileRead	FILEIO.C	param	$a1	unsigned char *	name
+PathFileRead	FILEIO.C	stack	sp+16	unsigned char [256]	filename
+FileWrite	FILEIO.C	param	$a0	unsigned char *	filename
+FileWrite	FILEIO.C	param	$a1	void *	data
+FileWrite	FILEIO.C	param	$a2	long	size
+LoadFromDEVPC	FILEIO.C	param	$a0	unsigned char *	filename
+LoadFromMEMORY	FILEIO.C	param	$s4	unsigned char *	filename
+LoadFromMEMORY	FILEIO.C	reg	$s1	unsigned long *	vmp
+LoadFromMEMORY	FILEIO.C	reg	$s2	unsigned long *	data
+LoadFromMEMORY	FILEIO.C	stack	sp+16	unsigned char [24]	name
+LoadFromMEMORY	FILEIO.C	reg	$s0	short	i
+LoadFromMEMORY	FILEIO.C	reg	$a2	short	j
+LoadFromMEMORY	FILEIO.C	reg	$s4	unsigned char *	filename
+LoadFromMEMORY	FILEIO.C	reg	$s2	int	fd
+LoadFromMEMORY	FILEIO.C	reg	$s3	int	size
+LoadFromMEMORY	FILEIO.C	reg	$s1	unsigned long *	data
+LoadFromCDROM	FILEIO.C	param	$a0	unsigned char *	filename
+CreateHumanoid	HUMAN.C	param	$s1	short	type
+CreateHumanoid	HUMAN.C	param	$s0	unsigned long *	mad
+CreateHumanoid	HUMAN.C	reg	$s0	struct Humanoid *	human
+KillHumanoid	HUMAN.C	param	$a0	struct Humanoid *	human
+ControlHumanoid	HUMAN.C	param	$s0	struct Humanoid *	human
+ControlHumanoid	HUMAN.C	reg	$s1	struct ModelArchiveType *	model
+ControlHumanoid	HUMAN.C	reg	$s2	long	m
+ControlHumanoid	HUMAN.C	stack	sp+24	struct MATRIX	mat
+DefaultActionHumanoid	HUMAN.C	param	$s1	struct Humanoid *	human
+DefaultActionHumanoid	HUMAN.C	reg	$s3	struct MapVector *	map
+DefaultActionHumanoid	HUMAN.C	reg	$s5	struct SVECTOR *	vector
+DefaultActionHumanoid	HUMAN.C	reg	$s2	struct VECTOR *	locate
+DefaultActionHumanoid	HUMAN.C	reg	$s4	struct VECTOR *	slocate
+DefaultActionHumanoid	HUMAN.C	reg	$s7	struct ModelType *	object
+DefaultActionHumanoid	HUMAN.C	reg	$a2	long	i
+DefaultActionHumanoid	HUMAN.C	reg	$s4	long	xx
+DefaultActionHumanoid	HUMAN.C	reg	$v1	long	yy
+DefaultActionHumanoid	HUMAN.C	reg	$s0	long	zz
+DefaultActionHumanoid	HUMAN.C	reg	$s0	long	ry
+DefaultActionHumanoid	HUMAN.C	stack	sp+32	struct VECTOR	position
+DefaultActionHumanoid	HUMAN.C	stack	sp+48	struct MapVector	mv
+DefaultActionHumanoid	HUMAN.C	stack	sp+64	struct VECTOR	position
+GetHumanoid	HUMAN.C	param	$a0	short	type
+MoveHumanoid	HUMAN.C	param	$a0	struct Humanoid *	human
+MoveHumanoid	HUMAN.C	param	$a1	short	ordr
+MoveHumanoid	HUMAN.C	param	$a2	short	side
+GetMoveSpeed	HUMAN.C	param	$a0	struct SVECTOR *	vect
+GetMoveSpeed	HUMAN.C	param	$a1	short	ry
+GetMoveSpeed	HUMAN.C	param	$a2	short	ordr
+GetMoveSpeed	HUMAN.C	param	$a3	short	side
+GetDirection	HUMAN.C	param	$a0	long	dx
+GetDirection	HUMAN.C	param	$a1	long	dz
+GetDirection	HUMAN.C	param	$a2	short	roty
+GetTargetDistance	HUMAN.C	param	$a0	struct Humanoid *	human
+GetTargetDistance	HUMAN.C	param	$a1	short *	deg
+GetNearestHumanoid	HUMAN.C	param	$a0	struct Humanoid *	human
+GetNearestHumanoid	HUMAN.C	param	$a1	short	distance
+SearchTarget	HUMAN.C	param	$s1	struct Humanoid *	human
+SearchTarget	HUMAN.C	param	$s3	long *	distance
+SearchTarget	HUMAN.C	param	$s4	short *	degree
+SearchTarget	HUMAN.C	reg	$s2	struct VECTOR *	head
+SearchTarget	HUMAN.C	stack	sp+16	struct VECTOR	vect
+SearchTarget	HUMAN.C	stack	sp+32	struct SVECTOR	svect
+SearchTarget	HUMAN.C	reg	$s0	short	mode
+SearchTarget	HUMAN.C	reg	$a0	long	dx
+SearchTarget	HUMAN.C	reg	$a1	long	dz
+SearchTarget	HUMAN.C	reg	$s0	short	roty
+SearchTarget	HUMAN.C	reg	$a1	short	degree
+SearchTarget	HUMAN.C	reg	$a3	short	n
+SetupTraceLine	HUMAN.C	param	$a0	struct Humanoid *	human
+SetupTraceLine	HUMAN.C	param	$a1	struct TracePoint *	point
+RestartTraceLine	HUMAN.C	param	$a0	struct Humanoid *	human
+ControlTraceLine	HUMAN.C	param	$s5	struct Humanoid *	human
+ControlTraceLine	HUMAN.C	reg	$s4	struct TracePoint *	point
+ControlTraceLine	HUMAN.C	reg	$s1	struct TraceLine *	trcl
+ControlTraceLine	HUMAN.C	reg	$s2	long	dx
+ControlTraceLine	HUMAN.C	reg	$s0	long	dz
+ControlTraceLine	HUMAN.C	reg	$s6	long	dist
+ControlTraceLine	HUMAN.C	reg	$s3	short	pad
+ControlTraceLine	HUMAN.C	reg	$s2	long	dx
+ControlTraceLine	HUMAN.C	reg	$s0	long	dz
+ControlTraceLine	HUMAN.C	reg	$s0	short	roty
+ControlTraceLine	HUMAN.C	reg	$a1	short	degree
+GetImage	IMAGES.C	param	$a0	int	index
+InitSprite	IMAGES.C	param	$s3	struct GsIMAGE *	image
+InitSprite	IMAGES.C	param	$s2	struct GsSPRITE *	sprite
+SetupImageToPolyFT4	IMAGES.C	param	$s1	struct GsIMAGE *	image
+SetupImageToPolyFT4	IMAGES.C	param	$s0	struct POLY_FT4 *	ply
+SetupImageToPolyFT4	IMAGES.C	param	$a2	short	x
+SetupImageToPolyFT4	IMAGES.C	param	$a3	short	y
+SetupImageToPolyFT4	IMAGES.C	reg	$a1	short	tx
+SetupImageToPolyFT4	IMAGES.C	reg	$a3	short	ty
+SetupImageToPolyFT4	IMAGES.C	reg	$t0	short	th
+SetupImageToPolyGT4	IMAGES.C	param	$s1	struct GsIMAGE *	image
+SetupImageToPolyGT4	IMAGES.C	param	$s0	struct POLY_GT4 *	ply
+SetupImageToPolyGT4	IMAGES.C	param	$a2	short	x
+SetupImageToPolyGT4	IMAGES.C	param	$a3	short	y
+SetupImageToPolyGT4	IMAGES.C	reg	$a1	short	tx
+SetupImageToPolyGT4	IMAGES.C	reg	$a3	short	ty
+SetupImageToPolyGT4	IMAGES.C	reg	$t0	short	th
+GetArcData	IMAGES.C	param	$a0	int	index
+_PlayMusic	IMAGES.C	param	$s3	int	MusicNo
+_PlayMusic	IMAGES.C	param	$s4	int	mode
+_PlayMusic	IMAGES.C	stack	sp+24	unsigned char [200]	fname
+_PlayMusic	IMAGES.C	stack	sp+224	struct CdlLOC	start
+_PlayMusic	IMAGES.C	stack	sp+232	struct CdlLOC	end
+_PlayMusic	IMAGES.C	reg	$s2	struct TMusicTable *	music
+_PlayMusic	IMAGES.C	reg	$s0	unsigned char	min
+_PlayMusic	IMAGES.C	reg	$s1	unsigned char	sec
+PlayMusic	IMAGES.C	param	$a0	int	MusicNo
+PlayMusic	IMAGES.C	param	$a1	int	mode
+PlayVoice	IMAGES.C	param	$s3	int	id
+PlayVoice	IMAGES.C	reg	$s6	unsigned char *	FileName
+PlayVoice	IMAGES.C	stack	sp+24	struct CdlLOC	start
+PlayVoice	IMAGES.C	stack	sp+32	struct CdlLOC	end
+PlayVoice	IMAGES.C	reg	$s4	struct TVoiceTable *	voice
+PlayVoice	IMAGES.C	reg	$s0	unsigned char	min
+PlayVoice	IMAGES.C	reg	$s1	unsigned char	sec
+PlayVoice	IMAGES.C	reg	$s2	struct CdlLOC *	loc
+PlayVoice	IMAGES.C	reg	$s0	unsigned char	min
+PlayVoice	IMAGES.C	reg	$s1	unsigned char	sec
+PlayMusicFormID	IMAGES.C	param	$a0	int	id
+ReqLifeBar	INFOVIEW.C	param	$a0	struct Humanoid *	h
+ReqLifeBar	INFOVIEW.C	reg	$a1	int	i
+ReqLifeBar	INFOVIEW.C	reg	$a2	int	g
+InitializeInfoView	INFOVIEW.C	reg	$s0	int	i
+InitializeInfoView	INFOVIEW.C	stack	sp+16	unsigned char [25]	image
+PutNumber	INFOVIEW.C	param	$a0	int	x
+PutNumber	INFOVIEW.C	param	$a1	int	y
+PutNumber	INFOVIEW.C	param	$a2	int	cols
+PutNumber	INFOVIEW.C	param	$a3	int	n
+PutStrain	INFOVIEW.C	reg	$s0	int	newpow
+PutStrain	INFOVIEW.C	reg	$a2	int	r
+PutStrain	INFOVIEW.C	reg	$s1	struct GsSPRITE *	spr
+PutLifeBar	INFOVIEW.C	param	$s3	int	x
+PutLifeBar	INFOVIEW.C	param	$s4	int	y
+PutLifeBar	INFOVIEW.C	param	$s1	int	n
+PutLifeBar	INFOVIEW.C	param	$a3	int	mx
+PutLifeBar	INFOVIEW.C	param	stack+16	int	style
+PutLifeBar	INFOVIEW.C	reg	$s5	int	style
+PutLifeBar	INFOVIEW.C	stack	sp+16	struct POLY_F4	poly
+PutLifeBar	INFOVIEW.C	reg	$a3	int	w
+PutLifeBar	INFOVIEW.C	reg	$v0	int	x
+PutLifeBar	INFOVIEW.C	reg	$a0	int	y
+PutLifeBar	INFOVIEW.C	reg	$a3	int	n
+PutLifeBar	INFOVIEW.C	reg	$s2	int	ou
+PutLifeBarS	INFOVIEW.C	reg	$s2	int	i
+PutItemIcon	INFOVIEW.C	param	$a0	int	ItemID
+PutItemIcon	INFOVIEW.C	param	$a1	short	x
+PutItemIcon	INFOVIEW.C	param	$a2	short	y
+PutItemIcon	INFOVIEW.C	param	$a3	short	scale
+PutItemCursor	INFOVIEW.C	param	$a0	short	x
+PutItemCursor	INFOVIEW.C	param	$a1	short	y
+PutItemCursor	INFOVIEW.C	param	$a2	short	size
+PutItemCursor	INFOVIEW.C	param	$a3	short	rotdif
+PutItemList	INFOVIEW.C	reg	$s3	int	i
+PutItemList	INFOVIEW.C	reg	$s4	int	x
+PutItemList	INFOVIEW.C	reg	$s0	unsigned int	s
+PutItemList	INFOVIEW.C	reg	$v1	int	n
+PutItemList	INFOVIEW.C	reg	$s2	int	ou
+PutItemList	INFOVIEW.C	reg	$s3	int	ItemID
+PutItemList	INFOVIEW.C	reg	$a0	struct GsSPRITE *	spr
+PutItemList	INFOVIEW.C	reg	$s3	int	ItemID
+PutItemList	INFOVIEW.C	reg	$a0	struct GsSPRITE *	spr
+SaveSI	INFOVIEW.C	param	$a0	int	target
+SaveSI	INFOVIEW.C	param	$s5	unsigned char *	name
+SaveSI	INFOVIEW.C	param	$fp	void *	mem
+SaveSI	INFOVIEW.C	param	$s6	long	size
+SaveSI	INFOVIEW.C	stack	sp+24	unsigned char [200]	fn
+SaveSI	INFOVIEW.C	reg	$s0	int	fd
+SaveSI	INFOVIEW.C	reg	$s3	unsigned char *	msg
+SaveSI	INFOVIEW.C	stack	sp+8416	long	cmd
+SaveSI	INFOVIEW.C	stack	sp+8420	long	result
+SaveSI	INFOVIEW.C	reg	$s4	long	chan
+SaveSI	INFOVIEW.C	stack	sp+224	unsigned char [8192]	block
+SaveSI	INFOVIEW.C	reg	$s2	struct TCardHeader *	hd
+SaveSI	INFOVIEW.C	reg	$s7	void *	data
+SaveSI	INFOVIEW.C	reg	$s2	struct TCardHeader *	hd
+SaveSI	INFOVIEW.C	reg	$t1	unsigned char *	icon3
+SaveSI	INFOVIEW.C	reg	$s1	unsigned char *	icon2
+SaveSI	INFOVIEW.C	reg	$s0	unsigned char *	icon1
+SaveSI	INFOVIEW.C	stack	sp+8424	struct TAdtSelect [3]	sel
+LoadSI	INFOVIEW.C	param	$a0	int	target
+LoadSI	INFOVIEW.C	param	$s0	unsigned char *	name
+LoadSI	INFOVIEW.C	reg	$s1	void *	ret
+LoadSI	INFOVIEW.C	stack	sp+24	unsigned char [200]	fn
+LoadSI	INFOVIEW.C	reg	$s2	unsigned char *	msg
+LoadSI	INFOVIEW.C	stack	sp+8416	long	cmd
+LoadSI	INFOVIEW.C	stack	sp+8420	long	result
+LoadSI	INFOVIEW.C	stack	sp+224	unsigned char [8192]	block
+SelectStage	INFOVIEW.C	stack	sp+16	struct TAdtSelect [10]	StageSelect
+SelectStage	INFOVIEW.C	stack	sp+96	unsigned char [9][100]	name
+SelectStage	INFOVIEW.C	reg	$s0	int	i
+AddEnemy	INFOVIEW.C	stack	sp+24	unsigned char [70][20]	names
+AddEnemy	INFOVIEW.C	stack	sp+1424	struct TAdtSelect [70]	ItemName
+AddEnemy	INFOVIEW.C	reg	$s4	short	i
+AddEnemy	INFOVIEW.C	reg	$s0	struct Humanoid *	human
+AddEnemy	INFOVIEW.C	reg	$s7	long	type
+AddEnemy	INFOVIEW.C	reg	$s5	long	x
+AddEnemy	INFOVIEW.C	reg	$s2	long	y
+AddEnemy	INFOVIEW.C	reg	$s0	long	z
+AddEnemy	INFOVIEW.C	reg	$s3	short	r
+AddEnemy	INFOVIEW.C	reg	$s2	short	think
+AddEnemy	INFOVIEW.C	stack	sp+1984	struct VECTOR	pos
+SelectCameraOwnerOption	INFOVIEW.C	stack	sp+16	struct TAdtSelect [31]	targets
+SelectCameraOwnerOption	INFOVIEW.C	stack	sp+264	unsigned char [30][10]	msg
+SelectCameraOwnerOption	INFOVIEW.C	reg	$s1	int	i
+LayoutEnemyOption	INFOVIEW.C	stack	sp+16	struct TAdtSelect [11]	ItemName
+LayoutEnemyOption	INFOVIEW.C	stack	sp+104	struct TAdtSelect [3]	OkCancel
+LayoutEnemyOption	INFOVIEW.C	stack	sp+128	struct TAdtSelect [7]	ItemName
+AddItem2	INFOVIEW.C	stack	sp+24	struct PARAM_ITEM_STAY	param
+AddItem2	INFOVIEW.C	reg	$s2	long	x
+AddItem2	INFOVIEW.C	reg	$s0	long	y
+AddItem2	INFOVIEW.C	reg	$s1	long	z
+AddItem2	INFOVIEW.C	stack	sp+24	struct TAdtSelect [25]	ItemName
+AddItem2	INFOVIEW.C	stack	sp+48	struct SVECTOR	vec
+FileOption	INFOVIEW.C	stack	sp+16	struct TAdtSelect [17]	ItemName
+FileOption	INFOVIEW.C	stack	sp+152	struct TAdtSelect [5]	SelectIO
+FileOption	INFOVIEW.C	stack	sp+192	struct TAdtSelect [18]	SelectSlot
+FileOption	INFOVIEW.C	reg	$s2	int	TargetIO
+FileOption	INFOVIEW.C	reg	$s1	unsigned char *	fname
+FileOption	INFOVIEW.C	reg	$s0	void *	pBuf
+FileOption	INFOVIEW.C	stack	sp+336	unsigned char [7000]	Buf
+FileOption	INFOVIEW.C	reg	$s1	int	i
+FileOption	INFOVIEW.C	stack	sp+7552	unsigned char [26][12]	msg
+FileOption	INFOVIEW.C	stack	sp+7336	struct TAdtSelect [27]	targets
+PlayerOption	INFOVIEW.C	stack	sp+16	struct TAdtSelect [5]	option
+LoadExecEx	INFOVIEW.C	param	$a0	unsigned char *	file
+LoadExecEx	INFOVIEW.C	param	$a1	unsigned long	stack
+LoadExecEx	INFOVIEW.C	param	$a2	unsigned long	size
+DemoPatchInit	INFOVIEW.C	stack	sp+16	struct RECT	rc
+DemoPatchProc	INFOVIEW.C	stack	sp+24	struct RECT	rc
+DrawPause	INFOVIEW.C	stack	sp+16	struct DISPENV	o_disp
+DrawPause	INFOVIEW.C	stack	sp+40	struct DRAWENV	o_draw
+DrawPause	INFOVIEW.C	stack	sp+136	struct DRAWENV	n_draw
+DrawPause	INFOVIEW.C	stack	sp+232	struct POLY_GT4	ply
+PauseProc	INFOVIEW.C	reg	$s0	short	pad
+PauseProc	INFOVIEW.C	reg	$s2	short	ForbiddenCount
+PauseProc	INFOVIEW.C	reg	$s1	short	push
+PauseProc	INFOVIEW.C	reg	$v1	short	trig
+PauseProc	INFOVIEW.C	stack	sp+24	struct RECT	rc
+PutMap	INFOVIEW.C	reg	$s2	int	rgb
+PutMap	INFOVIEW.C	reg	$s1	struct POLY_XF4 *	ply
+ResetInfoview	INFOVIEW.C	param	$a0	int	stage
+ResetInfoview	INFOVIEW.C	stack	sp+16	struct GsIMAGE	image
+DoInfoViewProc	INFOVIEW.C	reg	$s1	long	trig
+DoInfoViewProc	INFOVIEW.C	stack	sp+32	struct TAdtSelect [12]	Option
+DoInfoViewProc	INFOVIEW.C	reg	$v1	int	i
+DoInfoViewProc	INFOVIEW.C	stack	sp+128	struct TAdtSelect [4]	Num
+DoInfoViewProc	INFOVIEW.C	stack	sp+128	struct TAdtSelect [25]	ItemName
+DoInfoViewProc	INFOVIEW.C	reg	$s0	int	i
+DoInfoViewProc	INFOVIEW.C	stack	sp+168	struct TAdtSelect [3]	OkCancel
+DoInfoViewProc	INFOVIEW.C	stack	sp+128	struct TAdtSelect [5]	Option
+DoInfoViewProc	INFOVIEW.C	reg	$v1	int	i
+DoInfoViewProc	INFOVIEW.C	stack	sp+128	struct TAdtSelect [5]	option
+DoInfoViewProc	INFOVIEW.C	reg	$v1	int	c
+DoInfoViewProc	INFOVIEW.C	reg	$v1	int	c
+SearchItemTarget2	ITEM.C	param	$fp	struct Humanoid *	owner
+SearchItemTarget2	ITEM.C	param	$s1	struct SVECTOR *	rot
+SearchItemTarget2	ITEM.C	param	$s5	struct VECTOR *	start
+SearchItemTarget2	ITEM.C	param	$s7	struct VECTOR *	target
+SearchItemTarget2	ITEM.C	reg	$s1	int	i
+SearchItemTarget2	ITEM.C	reg	$s4	int	dist
+SearchItemTarget2	ITEM.C	reg	$s6	struct Humanoid *	ret
+SearchItemTarget2	ITEM.C	stack	sp+16	struct MATRIX	mat
+SearchItemTarget2	ITEM.C	stack	sp+48	struct SVECTOR	rrot
+SearchItemTarget2	ITEM.C	stack	sp+56	struct SVECTOR	v
+SearchItemTarget2	ITEM.C	reg	$s0	struct VECTOR *	gpv
+SearchItemTarget2	ITEM.C	reg	$s0	struct Humanoid *	human
+SearchItemTarget2	ITEM.C	stack	sp+64	struct VECTOR	tv
+SearchItemTarget2	ITEM.C	stack	sp+80	struct VECTOR	lv
+PackItemLayout	ITEM.C	param	$a0	void *	buf
+PackItemLayout	ITEM.C	param	$a1	long	size
+PackItemLayout	ITEM.C	stack	sp+16	unsigned char [200]	fn
+PackItemLayout	ITEM.C	reg	$a2	int	i
+RestoreItemLayout	ITEM.C	param	$a0	void *	buf
+RestoreItemLayout	ITEM.C	reg	$s3	struct TItemLayout *	slot
+RestoreItemLayout	ITEM.C	stack	sp+16	unsigned char [200]	fn
+RestoreItemLayout	ITEM.C	reg	$s1	int	i
+RestoreItemLayout	ITEM.C	reg	$s1	int	i
+RestoreItemLayout	ITEM.C	stack	sp+216	struct PARAM_ITEM_STAY	param
+InitializeItem	ITEM.C	reg	$s1	int	i
+GetItemType	ITEM.C	param	$a0	int	ConflictID
+RequestItem	ITEM.C	param	$a0	enum TRequestItem	req
+RequestItem	ITEM.C	param	$a1	void *	param
+MoveKorogari	ITEM.C	param	$s1	struct tag_TItem *	item
+MoveKorogari	ITEM.C	param	$s2	struct param_korogari *	param
+MoveKorogari	ITEM.C	stack	sp+24	struct MapVector	mv
+MoveKorogari	ITEM.C	stack	sp+40	struct SVECTOR	vec
+MoveFly	ITEM.C	param	$t4	struct tag_TItem *	item
+MoveFly	ITEM.C	param	$a2	struct param_fly *	param
+MoveFly	ITEM.C	reg	$t3	long	x
+MoveFly	ITEM.C	reg	$t0	long	y
+MoveFly	ITEM.C	reg	$a3	long	z
+MoveFly	ITEM.C	reg	$v0	long	t
+MoveFly	ITEM.C	reg	$a0	long	Q
+MoveFly	ITEM.C	reg	$a1	long	R
+MoveFly	ITEM.C	reg	$a2	struct param_korogari *	param
+SetupFly	ITEM.C	param	$a0	struct param_fly *	pfly
+SetupFly	ITEM.C	param	$a1	struct VECTOR *	start
+SetupFly	ITEM.C	param	$a2	struct VECTOR *	end
+SetupFly	ITEM.C	param	$s5	int	yw
+SetupFly	ITEM.C	param	stack+16	int	yh
+SetupFly	ITEM.C	param	stack+20	int	time
+SetupFly	ITEM.C	reg	$s6	int	yh
+SetupFly	ITEM.C	reg	$s0	int	time
+SetupFly	ITEM.C	reg	$a0	long	len
+SetupFly	ITEM.C	reg	$s1	struct tag_fly *	fly
+ProcItemDrop	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemDrop	ITEM.C	reg	$s4	struct param_drop *	param
+ProcItemDrop	ITEM.C	reg	$a0	int	cid
+ProcItemDrop	ITEM.C	reg	$t1	struct Sprite3D *	model
+ProcItemDrop	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemDrop	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemDrop	ITEM.C	reg	$v0	int	t
+ProcItemDrop	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemDrop	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemDrop	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemDrop	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemDrop	ITEM.C	reg	$s4	struct param_korogari *	param
+ProcItemDrop	ITEM.C	reg	$s1	int	x
+ProcItemDrop	ITEM.C	reg	$s0	int	y
+ProcItemDrop	ITEM.C	reg	$v0	int	z
+ProcItemDrop	ITEM.C	reg	$s3	struct tag_TItem *	item
+ReqItemDrop	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemDrop	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemDrop	ITEM.C	reg	$s1	struct param_drop *	param
+ReqItemDrop	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemDrop	ITEM.C	reg	$a1	int	i
+ReqItemDrop	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemDrop	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemDrop	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemDrop	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemDrop	ITEM.C	reg	$a0	int	atype
+ReqItemDrop	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemDrop	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemDrop	ITEM.C	reg	$v1	int	x
+ReqItemDrop	ITEM.C	reg	$a0	int	y
+ReqItemDrop	ITEM.C	reg	$a1	int	z
+ProcSightShot	ITEM.C	param	$s1	struct tag_TItem *	item
+ProcSightShot	ITEM.C	reg	$v1	struct param_launch *	param
+ProcSightShot	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcSightShot	ITEM.C	reg	$a1	struct ModelType *	model
+ProcSightShot	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	param
+ProcSightShot	ITEM.C	stack	sp+56	struct SVECTOR	rot
+ProcSightShot	ITEM.C	stack	sp+64	int	rx
+ProcSightShot	ITEM.C	stack	sp+68	int	ry
+ProcSightShot	ITEM.C	stack	sp+72	struct PARAM_ITEM_LAUNCH	param
+ProcSightShot	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcKaginawa	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcKaginawa	ITEM.C	stack	sp+16	int	rx
+ProcKaginawa	ITEM.C	stack	sp+20	int	ry
+ProcKaginawa	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcKaginawa	ITEM.C	reg	$v0	int	dist
+ProcKaginawa	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemTeleport	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemTeleport	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemStay	ITEM.C	param	$a0	struct PARAM_ITEM_STAY *	p
+ReqItemStay	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	param
+ProcItemMakibishi	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemMakibishi	ITEM.C	reg	$s4	struct Sprite3D *	model
+ProcItemMakibishi	ITEM.C	reg	$s2	struct param_drop *	param
+ProcItemMakibishi	ITEM.C	reg	$a0	int	cid
+ProcItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemMakibishi	ITEM.C	reg	$v0	int	t
+ProcItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemMakibishi	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemMakibishi	ITEM.C	reg	$s1	struct Humanoid *	human
+ProcItemMakibishi	ITEM.C	reg	$s1	struct Humanoid *	human
+ProcItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemMakibishi	ITEM.C	param	$s2	struct PARAM_ITEM_DROP *	p
+ReqItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemMakibishi	ITEM.C	reg	$s1	struct param_drop *	param
+ReqItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemMakibishi	ITEM.C	reg	$a1	int	i
+ReqItemMakibishi	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemMakibishi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemMakibishi	ITEM.C	reg	$v1	int	atype
+ReqItemMakibishi	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemMakibishi	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemMakibishi	ITEM.C	reg	$v0	int	x
+ReqItemMakibishi	ITEM.C	reg	$v1	int	y
+ReqItemMakibishi	ITEM.C	reg	$a0	int	z
+ProcItemManebue	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemManebue	ITEM.C	reg	$a0	struct param_drop *	param
+ProcItemManebue	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemManebue	ITEM.C	param	$s1	struct PARAM_ITEM_LAUNCH *	p
+ReqItemManebue	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemManebue	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemManebue	ITEM.C	reg	$a1	int	i
+ReqItemManebue	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemManebue	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemManebue	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemManebue	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemManebue	ITEM.C	reg	$a0	int	atype
+ReqItemManebue	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemShinsoku	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemShinsoku	ITEM.C	reg	$s1	struct param_shinsoku *	param
+ProcItemShinsoku	ITEM.C	stack	sp+24	struct VECTOR	pos
+ProcItemShinsoku	ITEM.C	reg	$s2	struct Humanoid *	human
+ProcItemShinsoku	ITEM.C	reg	$s0	int	itemID
+ProcItemShinsoku	ITEM.C	stack	sp+40	struct PARAM_ITEM_LAUNCH	p
+ProcItemShinsoku	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemShinsoku	ITEM.C	reg	$s0	struct VECTOR *	apos
+ProcItemShinsoku	ITEM.C	stack	sp+56	struct MapVector	map
+ProcItemShinsoku	ITEM.C	stack	sp+40	struct VECTOR	pos
+ProcItemShinsoku	ITEM.C	reg	$s3	struct tag_TItem *	item
+ReqItemShinsoku	ITEM.C	param	$s1	struct PARAM_ITEM_LAUNCH *	p
+ReqItemShinsoku	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemShinsoku	ITEM.C	reg	$s2	struct param_shinsoku *	param
+ReqItemShinsoku	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemShinsoku	ITEM.C	reg	$a1	int	i
+ReqItemShinsoku	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemShinsoku	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemShinsoku	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemShinsoku	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemShinsoku	ITEM.C	reg	$a0	int	atype
+ReqItemShinsoku	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemSmoke	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemSmoke	ITEM.C	reg	$s1	struct Sprite3D *	model
+ProcItemSmoke	ITEM.C	reg	$s0	struct param_smoke *	param
+ProcItemSmoke	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemSmoke	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemSmoke	ITEM.C	stack	sp+16	struct SVECTOR	vec
+ProcItemSmoke	ITEM.C	stack	sp+24	struct VECTOR	pos
+ProcItemSmoke	ITEM.C	stack	sp+56	struct TFindItemTarget	find
+ProcItemSmoke	ITEM.C	reg	$v1	struct VECTOR *	pos
+ProcItemSmoke	ITEM.C	reg	$s1	int	i
+ProcItemSmoke	ITEM.C	reg	$s0	struct Humanoid *	target
+ProcItemSmoke	ITEM.C	reg	$v0	int	dist
+ProcItemSmoke	ITEM.C	reg	$s0	struct Humanoid *	human
+ReqItemSmoke	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemSmoke	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemSmoke	ITEM.C	reg	$s1	struct param_smoke *	param
+ReqItemSmoke	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemSmoke	ITEM.C	reg	$a1	int	i
+ReqItemSmoke	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemSmoke	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemSmoke	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemSmoke	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemSmoke	ITEM.C	reg	$a0	int	atype
+ReqItemSmoke	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemSmoke	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemSmoke	ITEM.C	reg	$v1	int	x
+ReqItemSmoke	ITEM.C	reg	$a0	int	y
+ReqItemSmoke	ITEM.C	reg	$a1	int	z
+ProcItemKusuri	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemKusuri	ITEM.C	reg	$s0	struct Sprite3D *	model
+ProcItemKusuri	ITEM.C	reg	$s1	int	i
+ProcItemKusuri	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemKusuri	ITEM.C	reg	$s2	struct Humanoid *	human
+ProcItemKusuri	ITEM.C	reg	$s0	int	itemID
+ProcItemKusuri	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	p
+ProcItemKusuri	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemKusuri	ITEM.C	stack	sp+16	struct VECTOR	pos
+ProcItemKusuri	ITEM.C	stack	sp+32	struct SVECTOR	vec
+ProcItemKusuri	ITEM.C	reg	$s3	struct tag_TItem *	item
+ReqItemKusuri	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemKusuri	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKusuri	ITEM.C	reg	$s1	struct param_drop *	param
+ReqItemKusuri	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemKusuri	ITEM.C	reg	$a1	int	i
+ReqItemKusuri	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemKusuri	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKusuri	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKusuri	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemKusuri	ITEM.C	reg	$a0	int	atype
+ReqItemKusuri	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemKusuri	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemKusuri	ITEM.C	reg	$v1	int	x
+ReqItemKusuri	ITEM.C	reg	$a0	int	y
+ReqItemKusuri	ITEM.C	reg	$a1	int	z
+ProcItemKawarimi	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemKawarimi	ITEM.C	reg	$s4	struct param_drop *	param
+ProcItemKawarimi	ITEM.C	reg	$s2	int	i
+ProcItemKawarimi	ITEM.C	stack	sp+16	struct VECTOR	pos
+ProcItemKawarimi	ITEM.C	stack	sp+32	struct SVECTOR	vec
+ProcItemKawarimi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKawarimi	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemKawarimi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKawarimi	ITEM.C	reg	$s1	struct param_drop *	param
+ReqItemKawarimi	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemKawarimi	ITEM.C	reg	$a1	int	i
+ReqItemKawarimi	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemKawarimi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKawarimi	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKawarimi	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemKawarimi	ITEM.C	reg	$a0	int	atype
+ReqItemKawarimi	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemKawarimi	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemKawarimi	ITEM.C	reg	$v1	int	x
+ReqItemKawarimi	ITEM.C	reg	$a0	int	y
+ReqItemKawarimi	ITEM.C	reg	$a1	int	z
+ProcItemDokudango	ITEM.C	param	$s4	struct tag_TItem *	item
+ProcItemDokudango	ITEM.C	reg	$s0	struct Sprite3D *	model
+ProcItemDokudango	ITEM.C	reg	$s6	struct param_dokudango *	param
+ProcItemDokudango	ITEM.C	reg	$s4	struct tag_TItem *	item
+ProcItemDokudango	ITEM.C	stack	sp+16	struct TFindItemTarget	find
+ProcItemDokudango	ITEM.C	reg	$s5	struct Humanoid *	target
+ProcItemDokudango	ITEM.C	reg	$s7	int	targetlen
+ProcItemDokudango	ITEM.C	reg	$v0	struct TFindItemTarget *	find
+ProcItemDokudango	ITEM.C	reg	$v1	struct VECTOR *	pos
+ProcItemDokudango	ITEM.C	reg	$s7	int	dist
+ProcItemDokudango	ITEM.C	reg	$s3	struct TFindItemTarget *	find
+ProcItemDokudango	ITEM.C	reg	$s1	int	i
+ProcItemDokudango	ITEM.C	reg	$s0	struct Humanoid *	target
+ProcItemDokudango	ITEM.C	reg	$v0	int	dist
+ProcItemDokudango	ITEM.C	stack	sp+48	struct PARAM_ITEM_LAUNCH	param
+ProcItemDokudango	ITEM.C	reg	$s4	struct tag_TItem *	item
+ProcItemDokudango	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemDokudango	ITEM.C	reg	$v0	struct VECTOR *	tv
+ProcItemDokudango	ITEM.C	reg	$s6	struct param_korogari *	param
+ProcItemDokudango	ITEM.C	reg	$s1	int	x
+ProcItemDokudango	ITEM.C	reg	$s0	int	y
+ProcItemDokudango	ITEM.C	reg	$v0	int	z
+ProcItemDokudango	ITEM.C	reg	$s1	struct Humanoid *	human
+ProcItemDokudango	ITEM.C	reg	$s1	struct Humanoid *	human
+ProcItemDokudango	ITEM.C	reg	$s4	struct tag_TItem *	item
+ReqItemDokudango	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemDokudango	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemDokudango	ITEM.C	reg	$s1	struct param_dokudango *	param
+ReqItemDokudango	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemDokudango	ITEM.C	reg	$a1	int	i
+ReqItemDokudango	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemDokudango	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemDokudango	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemDokudango	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemDokudango	ITEM.C	reg	$a0	int	atype
+ReqItemDokudango	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemDokudango	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemDokudango	ITEM.C	reg	$v0	int	x
+ReqItemDokudango	ITEM.C	reg	$v1	int	y
+ReqItemDokudango	ITEM.C	reg	$a0	int	z
+ProcItemGosin	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemGosin	ITEM.C	reg	$s2	struct Humanoid *	human
+ProcItemGosin	ITEM.C	reg	$s0	int	itemID
+ProcItemGosin	ITEM.C	stack	sp+24	struct PARAM_ITEM_LAUNCH	p
+ProcItemGosin	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemGosin	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemGosin	ITEM.C	stack	sp+24	struct VECTOR	v
+ReqItemGosin	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemGosin	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemGosin	ITEM.C	reg	$s1	struct param_drop *	param
+ReqItemGosin	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemGosin	ITEM.C	reg	$a1	int	i
+ReqItemGosin	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemGosin	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemGosin	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemGosin	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemGosin	ITEM.C	reg	$a0	int	atype
+ReqItemGosin	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemGosin	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemGosin	ITEM.C	reg	$v1	int	x
+ReqItemGosin	ITEM.C	reg	$a0	int	y
+ReqItemGosin	ITEM.C	reg	$a1	int	z
+ProcItemNingyo	ITEM.C	param	$s5	struct tag_TItem *	item
+ProcItemNingyo	ITEM.C	reg	$s4	struct param_ningyo *	param
+ProcItemNingyo	ITEM.C	reg	$a0	int	cid
+ProcItemNingyo	ITEM.C	reg	$s5	struct tag_TItem *	item
+ProcItemNingyo	ITEM.C	stack	sp+24	struct SVECTOR	sv
+ProcItemNingyo	ITEM.C	stack	sp+32	struct VECTOR	v
+ProcItemNingyo	ITEM.C	reg	$s5	struct tag_TItem *	item
+ProcItemNingyo	ITEM.C	reg	$v0	int	t
+ProcItemNingyo	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemNingyo	ITEM.C	reg	$s2	int	i
+ProcItemNingyo	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemNingyo	ITEM.C	reg	$s1	long	len
+ProcItemNingyo	ITEM.C	reg	$v0	struct Humanoid *	human
+ProcItemNingyo	ITEM.C	reg	$v0	struct Humanoid *	human
+ProcItemNingyo	ITEM.C	reg	$a1	int	i
+ProcItemNingyo	ITEM.C	reg	$s5	struct tag_TItem *	item
+ProcItemNingyo	ITEM.C	stack	sp+48	struct VECTOR	pos
+ProcItemNingyo	ITEM.C	reg	$s4	struct param_korogari *	param
+ProcItemNingyo	ITEM.C	reg	$s4	struct param_korogari *	param
+ReqItemNingyo	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemNingyo	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNingyo	ITEM.C	reg	$s1	struct param_ningyo *	param
+ReqItemNingyo	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemNingyo	ITEM.C	reg	$a1	int	i
+ReqItemNingyo	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemNingyo	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNingyo	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNingyo	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemNingyo	ITEM.C	reg	$a0	int	atype
+ReqItemNingyo	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemNingyo	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemNingyo	ITEM.C	reg	$v0	int	x
+ReqItemNingyo	ITEM.C	reg	$v1	int	y
+ReqItemNingyo	ITEM.C	reg	$a0	int	z
+ProcItemHenshin	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemHenshin	ITEM.C	reg	$s4	struct param_henshin *	param
+ProcItemHenshin	ITEM.C	reg	$a1	int	i
+ProcItemHenshin	ITEM.C	reg	$s1	struct ModelArchiveType *	mad
+ProcItemHenshin	ITEM.C	reg	$a2	struct ModelArchiveType *	hen
+ProcItemHenshin	ITEM.C	stack	sp+16	struct ModelArchiveType *[30]	target
+ProcItemHenshin	ITEM.C	reg	$s2	int	targets
+ProcItemHenshin	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemHenshin	ITEM.C	reg	$s2	struct Humanoid *	human
+ProcItemHenshin	ITEM.C	reg	$s0	int	itemID
+ProcItemHenshin	ITEM.C	stack	sp+136	struct PARAM_ITEM_LAUNCH	p
+ProcItemHenshin	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemHenshin	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemHenshin	ITEM.C	stack	sp+136	struct SVECTOR	sv
+ProcItemHenshin	ITEM.C	stack	sp+144	struct SVECTOR	sv
+ProcItemHenshin	ITEM.C	reg	$s3	struct tag_TItem *	item
+ReqItemHenshin	ITEM.C	param	$s1	struct PARAM_ITEM_LAUNCH *	p
+ReqItemHenshin	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemHenshin	ITEM.C	reg	$s2	struct param_henshin *	param
+ReqItemHenshin	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemHenshin	ITEM.C	reg	$a1	int	i
+ReqItemHenshin	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemHenshin	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemHenshin	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemHenshin	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemHenshin	ITEM.C	reg	$a0	int	atype
+ReqItemHenshin	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemGoshikimai	ITEM.C	param	$s1	struct tag_TItem *	item
+ProcItemGoshikimai	ITEM.C	reg	$s0	struct param_goshikimai *	param
+ProcItemGoshikimai	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemGoshikimai	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	p
+ProcItemGoshikimai	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemGoshikimai	ITEM.C	param	$s1	struct PARAM_ITEM_LAUNCH *	p
+ReqItemGoshikimai	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemGoshikimai	ITEM.C	reg	$s2	struct param_goshikimai *	param
+ReqItemGoshikimai	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemGoshikimai	ITEM.C	reg	$a1	int	i
+ReqItemGoshikimai	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemGoshikimai	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemGoshikimai	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemGoshikimai	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemGoshikimai	ITEM.C	reg	$a0	int	atype
+ReqItemGoshikimai	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemKaengeki	ITEM.C	param	$s3	struct tag_TItem *	item
+ProcItemKaengeki	ITEM.C	reg	$s1	struct param_kaengeki *	param
+ProcItemKaengeki	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemKaengeki	ITEM.C	reg	$s2	struct Humanoid *	human
+ProcItemKaengeki	ITEM.C	reg	$s0	int	itemID
+ProcItemKaengeki	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	p
+ProcItemKaengeki	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemKaengeki	ITEM.C	reg	$s3	struct tag_TItem *	item
+ProcItemKaengeki	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	rp
+ReqItemKaengeki	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemKaengeki	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKaengeki	ITEM.C	reg	$s1	struct param_kaengeki *	param
+ReqItemKaengeki	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemKaengeki	ITEM.C	reg	$a1	int	i
+ReqItemKaengeki	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemKaengeki	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKaengeki	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemKaengeki	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemKaengeki	ITEM.C	reg	$a0	int	atype
+ReqItemKaengeki	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemNinken	ITEM.C	param	$s2	struct tag_TItem *	item
+ProcItemNinken	ITEM.C	reg	$s1	struct param_ninken *	param
+ProcItemNinken	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemNinken	ITEM.C	stack	sp+24	struct SVECTOR	vec
+ProcItemNinken	ITEM.C	stack	sp+32	struct SVECTOR	vec
+ProcItemNinken	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemNinken	ITEM.C	reg	$s0	unsigned long	at
+ProcItemNinken	ITEM.C	reg	$s0	struct Humanoid *	target
+ReqItemNinken	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemNinken	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNinken	ITEM.C	reg	$s1	struct param_ninken *	param
+ReqItemNinken	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemNinken	ITEM.C	reg	$a1	int	i
+ReqItemNinken	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemNinken	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNinken	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNinken	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemNinken	ITEM.C	reg	$a0	int	atype
+ReqItemNinken	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemNinken	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemNinken	ITEM.C	reg	$v1	int	x
+ReqItemNinken	ITEM.C	reg	$a0	int	z
+ProcItemHappou	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemHappou	ITEM.C	reg	$s2	struct ModelType *	model
+ProcItemHappou	ITEM.C	reg	$s1	struct param_launch *	param
+ProcItemHappou	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemHappou	ITEM.C	reg	$v0	int	t
+ProcItemHappou	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemHappou	ITEM.C	reg	$a0	int	cid
+ProcItemHappou	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemHappou	ITEM.C	reg	$s1	struct Humanoid *	m
+ProcItemHappou	ITEM.C	reg	$s1	struct Humanoid *	human
+ReqItemHappou	ITEM.C	param	$s4	struct PARAM_ITEM_LAUNCH *	p
+ReqItemHappou	ITEM.C	reg	$s5	int	i
+ReqItemHappou	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemHappou	ITEM.C	reg	$s3	struct param_launch *	param
+ReqItemHappou	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemHappou	ITEM.C	reg	$a1	int	i
+ReqItemHappou	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemHappou	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemHappou	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemHappou	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemHappou	ITEM.C	reg	$a0	int	atype
+ReqItemHappou	ITEM.C	reg	$s2	struct VECTOR *	pos
+ReqItemHappou	ITEM.C	stack	sp+24	struct SVECTOR	rot
+ProcItemFire	ITEM.C	param	$s2	struct tag_TItem *	item
+ProcItemFire	ITEM.C	reg	$s4	struct Sprite3D *	model
+ProcItemFire	ITEM.C	reg	$s5	struct param_smoke *	param
+ProcItemFire	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemFire	ITEM.C	stack	sp+24	struct VECTOR	pos
+ProcItemFire	ITEM.C	stack	sp+40	struct SVECTOR	vec
+ProcItemFire	ITEM.C	stack	sp+56	struct PARAM_ITEM_STAY	rparam
+ProcItemFire	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemFire	ITEM.C	stack	sp+104	struct PARAM_ITEM_LAUNCH	param
+ProcItemFire	ITEM.C	reg	$a0	int	cid
+ProcItemFire	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemFire	ITEM.C	reg	$v0	int	t
+ProcItemFire	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemFire	ITEM.C	reg	$v0	struct Humanoid *	human
+ProcItemFire	ITEM.C	stack	sp+48	struct SVECTOR	vec
+ProcItemFire	ITEM.C	stack	sp+80	struct VECTOR	pos
+ProcItemFire	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemFire	ITEM.C	reg	$v0	int	t
+ProcItemFire	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemFire	ITEM.C	reg	$a0	int	cid
+ProcItemFire	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemFire	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemFire	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemFire	ITEM.C	reg	$s1	struct ModelType *	model
+ProcItemFire	ITEM.C	stack	sp+96	struct VECTOR	pos
+ReqItemFire	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemFire	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemFire	ITEM.C	reg	$s1	struct param_smoke *	param
+ReqItemFire	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemFire	ITEM.C	reg	$a1	int	i
+ReqItemFire	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemFire	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemFire	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemFire	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemFire	ITEM.C	reg	$a0	int	atype
+ReqItemFire	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemFire	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemFire	ITEM.C	reg	$v1	int	x
+ReqItemFire	ITEM.C	reg	$a0	int	y
+ReqItemFire	ITEM.C	reg	$a1	int	z
+ProcItemNemuri	ITEM.C	param	$s2	struct tag_TItem *	item
+ProcItemNemuri	ITEM.C	reg	$s4	struct Sprite3D *	model
+ProcItemNemuri	ITEM.C	reg	$s3	struct param_napalm *	param
+ProcItemNemuri	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemNemuri	ITEM.C	reg	$v0	struct VECTOR *	pos
+ProcItemNemuri	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemNemuri	ITEM.C	reg	$v0	int	t
+ProcItemNemuri	ITEM.C	reg	$s1	int	env
+ProcItemNemuri	ITEM.C	reg	$v0	int	bright
+ProcItemNemuri	ITEM.C	reg	$a0	int	cid
+ProcItemNemuri	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemNemuri	ITEM.C	reg	$s3	struct Humanoid *	human
+ProcItemNemuri	ITEM.C	reg	$s3	struct Humanoid *	human
+ProcItemNemuri	ITEM.C	stack	sp+16	struct VECTOR	pos
+ProcItemNemuri	ITEM.C	stack	sp+32	struct SVECTOR	vec
+ProcItemNemuri	ITEM.C	stack	sp+48	struct VECTOR	pos
+ProcItemNemuri	ITEM.C	reg	$s3	struct Humanoid *	human
+ProcItemNemuri	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemNemuri	ITEM.C	reg	$s2	struct tag_TItem *	item
+ReqItemNemuri	ITEM.C	param	$s1	struct PARAM_ITEM_LAUNCH *	p
+ReqItemNemuri	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNemuri	ITEM.C	reg	$s2	struct param_napalm *	param
+ReqItemNemuri	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemNemuri	ITEM.C	reg	$a1	int	i
+ReqItemNemuri	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemNemuri	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNemuri	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemNemuri	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemNemuri	ITEM.C	reg	$a0	int	atype
+ReqItemNemuri	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemLightningBolt	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemLightningBolt	ITEM.C	reg	$s2	struct param_lightningbolt *	param
+ProcItemLightningBolt	ITEM.C	stack	sp+24	struct VECTOR	target
+ProcItemLightningBolt	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemLightningBolt	ITEM.C	reg	$v0	int	t
+ProcItemLightningBolt	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemLightningBolt	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemLightningBolt	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemLightningBolt	ITEM.C	reg	$s1	struct param_lightningbolt *	param
+ReqItemLightningBolt	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemLightningBolt	ITEM.C	reg	$a1	int	i
+ReqItemLightningBolt	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemLightningBolt	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemLightningBolt	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemLightningBolt	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemLightningBolt	ITEM.C	reg	$a0	int	atype
+ReqItemLightningBolt	ITEM.C	reg	$a0	struct VECTOR *	pos
+ProcItemGun	ITEM.C	param	$s1	struct tag_TItem *	item
+ProcItemGun	ITEM.C	reg	$s2	struct param_gun *	param
+ProcItemGun	ITEM.C	stack	sp+24	struct SVECTOR	vec
+ProcItemGun	ITEM.C	stack	sp+32	struct VECTOR	target
+ProcItemGun	ITEM.C	reg	$s3	struct Humanoid *	IsHuman
+ProcItemGun	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcItemGun	ITEM.C	reg	$v0	int	t
+ProcItemGun	ITEM.C	stack	sp+48	struct SVECTOR	vec
+ProcItemGun	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcItemNapalm	ITEM.C	param	$s2	struct tag_TItem *	item
+ProcItemNapalm	ITEM.C	reg	$s5	struct Sprite3D *	model
+ProcItemNapalm	ITEM.C	reg	$s3	struct param_napalm *	param
+ProcItemNapalm	ITEM.C	reg	$s0	int	ex
+ProcItemNapalm	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemNapalm	ITEM.C	reg	$v0	int	t
+ProcItemNapalm	ITEM.C	reg	$a0	int	cid
+ProcItemNapalm	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemNapalm	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemNapalm	ITEM.C	reg	$s0	struct Humanoid *	human
+ProcItemNapalm	ITEM.C	reg	$s1	struct ModelType *	model
+ProcItemNapalm	ITEM.C	stack	sp+16	struct VECTOR	pos
+ProcItemNapalm	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemLaunch	ITEM.C	param	$s0	struct tag_TItem *	item
+ProcItemLaunch	ITEM.C	reg	$s2	struct ModelType *	model
+ProcItemLaunch	ITEM.C	reg	$s1	struct param_launch *	param
+ProcItemLaunch	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemLaunch	ITEM.C	reg	$v0	int	t
+ProcItemLaunch	ITEM.C	stack	sp+24	struct PARAM_ITEM_STAY	rparam
+ProcItemLaunch	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemLaunch	ITEM.C	reg	$v1	struct PARAM_ITEM_STAY *	p
+ProcItemLaunch	ITEM.C	stack	sp+72	struct PARAM_ITEM_LAUNCH	param
+ProcItemLaunch	ITEM.C	reg	$s0	struct tag_TItem *	item
+ProcItemLaunch	ITEM.C	reg	$a0	int	cid
+ProcItemLaunch	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemLaunch	ITEM.C	reg	$s1	struct Humanoid *	m
+ProcItemLaunch	ITEM.C	reg	$s1	struct Humanoid *	human
+ProcItemLaunch	ITEM.C	reg	$s0	struct tag_TItem *	item
+UpdateItemState	ITEM.C	reg	$s4	int	i
+UpdateItemState	ITEM.C	reg	$s1	int	mode
+UpdateItemState	ITEM.C	reg	$v0	int	t
+ReqItemDefault	ITEM.C	param	$a0	struct Humanoid *	user
+ReqItemDefault	ITEM.C	param	$a1	enum TItemType	ItemID
+ReqItemDefault	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	param
+ReqItemDefault	ITEM.C	stack	sp+56	struct VECTOR	v
+ReqItemDefault	ITEM.C	stack	sp+72	struct VECTOR	v0
+ReqItemLaunch	ITEM.C	param	$s3	struct PARAM_ITEM_LAUNCH *	p
+ReqItemLaunch	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemLaunch	ITEM.C	reg	$s2	struct param_launch *	param
+ReqItemLaunch	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemLaunch	ITEM.C	reg	$a1	int	i
+ReqItemLaunch	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemLaunch	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemLaunch	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemLaunch	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemLaunch	ITEM.C	reg	$a0	int	atype
+ReqItemLaunch	ITEM.C	reg	$s0	struct VECTOR *	pos
+ArrangeLocalMatrix	ITEM.C	param	$a0	struct ModelType *	model
+ArrangeLocalMatrix	ITEM.C	param	$s3	struct MATRIX *	t
+ArrangeLocalMatrix	ITEM.C	stack	sp+16	struct MATRIX	m
+ArrangeLocalMatrix	ITEM.C	reg	$a1	int	i
+ArrangeLocalMatrix	ITEM.C	reg	$t4	int	j
+ArrangeLocalMatrix	ITEM.C	reg	$t5	int	k
+ArrangeLocalMatrix	ITEM.C	reg	$s1	long	det
+ArrangeLocalMatrix	ITEM.C	reg	$a3	long	t
+ArrangeLocalMatrix	ITEM.C	reg	$t1	long	u
+ProcItemArrow	ITEM.C	param	$s1	struct tag_TItem *	item
+ProcItemArrow	ITEM.C	reg	$s4	struct ModelType *	model
+ProcItemArrow	ITEM.C	reg	$s3	struct param_arrow *	param
+ProcItemArrow	ITEM.C	stack	sp+24	struct VECTOR	v1
+ProcItemArrow	ITEM.C	stack	sp+40	struct VECTOR	v2
+ProcItemArrow	ITEM.C	stack	sp+136	int	rx
+ProcItemArrow	ITEM.C	stack	sp+140	int	ry
+ProcItemArrow	ITEM.C	reg	$a0	int	cid
+ProcItemArrow	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcItemArrow	ITEM.C	reg	$v0	int	t
+ProcItemArrow	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemArrow	ITEM.C	reg	$s2	struct Humanoid *	m
+ProcItemArrow	ITEM.C	reg	$s2	struct Humanoid *	human
+ProcItemArrow	ITEM.C	stack	sp+56	struct PARAM_ITEM_LAUNCH	param
+ProcItemArrow	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcItemArrow	ITEM.C	reg	$s0	struct ModelType *	model
+ProcItemArrow	ITEM.C	reg	$s1	struct tag_TItem *	item
+ProcItemArrow	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemArrow	ITEM.C	param	$s2	struct PARAM_ITEM_LAUNCH *	p
+ReqItemArrow	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemArrow	ITEM.C	reg	$s3	struct param_arrow *	param
+ReqItemArrow	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemArrow	ITEM.C	reg	$a1	int	i
+ReqItemArrow	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemArrow	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemArrow	ITEM.C	reg	$s1	struct tag_TItem *	item
+ReqItemArrow	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemArrow	ITEM.C	reg	$a0	int	atype
+ReqItemArrow	ITEM.C	reg	$s0	struct VECTOR *	pos
+CalcWorldVector	ITEM.C	param	$a0	struct ModelArchiveType *	model
+CalcWorldVector	ITEM.C	param	$a1	struct VECTOR *	v
+CalcWorldVector	ITEM.C	stack	sp+16	int	rx
+CalcWorldVector	ITEM.C	stack	sp+20	int	ry
+ProcItemJirai	ITEM.C	param	$s2	struct tag_TItem *	item
+ProcItemJirai	ITEM.C	reg	$s6	struct Sprite3D *	model
+ProcItemJirai	ITEM.C	reg	$v1	struct param_smoke *	param
+ProcItemJirai	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemJirai	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemJirai	ITEM.C	reg	$v0	int	t
+ProcItemJirai	ITEM.C	reg	$a0	int	cid
+ProcItemJirai	ITEM.C	reg	$a0	struct ModelType *	model
+ProcItemJirai	ITEM.C	reg	$s4	struct Humanoid *	human
+ProcItemJirai	ITEM.C	reg	$s4	struct Humanoid *	human
+ProcItemJirai	ITEM.C	reg	$s3	int	i
+ProcItemJirai	ITEM.C	reg	$s0	struct ModelType *	model
+ProcItemJirai	ITEM.C	stack	sp+24	struct VECTOR	pos
+ProcItemJirai	ITEM.C	stack	sp+24	struct SVECTOR	vec
+ProcItemJirai	ITEM.C	stack	sp+32	struct VECTOR	pos
+ProcItemJirai	ITEM.C	reg	$s2	struct tag_TItem *	item
+ProcItemJirai	ITEM.C	reg	$v0	int	t
+ProcItemJirai	ITEM.C	reg	$s2	struct tag_TItem *	item
+ReqItemJirai	ITEM.C	param	$s2	struct PARAM_ITEM_DROP *	p
+ReqItemJirai	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemJirai	ITEM.C	reg	$s1	struct param_smoke *	param
+ReqItemJirai	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemJirai	ITEM.C	reg	$a1	int	i
+ReqItemJirai	ITEM.C	reg	$a0	struct tag_TItem *	item
+ReqItemJirai	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemJirai	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemJirai	ITEM.C	reg	$v1	int	atype
+ReqItemJirai	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemJirai	ITEM.C	reg	$s1	struct param_korogari *	param
+ReqItemJirai	ITEM.C	reg	$v1	int	x
+ReqItemJirai	ITEM.C	reg	$a0	int	y
+ReqItemJirai	ITEM.C	reg	$a1	int	z
+ReqItemUse	ITEM.C	param	$s1	struct PARAM_ITEM_LAUNCH *	p
+ReqItemUse	ITEM.C	reg	$s1	int	i
+ReqItemUse	ITEM.C	stack	sp+16	struct PARAM_ITEM_DROP	param
+ReqItemUse	ITEM.C	stack	sp+56	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+76	int	ry
+ReqItemUse	ITEM.C	stack	sp+72	int	rx
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s2	struct param_launch *	param
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemUse	ITEM.C	reg	$a0	int	i
+ReqItemUse	ITEM.C	reg	$v1	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemUse	ITEM.C	reg	$a0	int	atype
+ReqItemUse	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemUse	ITEM.C	stack	sp+96	struct PARAM_ITEM_LAUNCH	param
+ReqItemUse	ITEM.C	stack	sp+72	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+144	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+160	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+176	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+192	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+208	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+224	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+240	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+256	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+272	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+288	struct PARAM_ITEM_DROP	param
+ReqItemUse	ITEM.C	stack	sp+328	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemUse	ITEM.C	reg	$a0	int	i
+ReqItemUse	ITEM.C	reg	$v1	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemUse	ITEM.C	reg	$a0	int	atype
+ReqItemUse	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemUse	ITEM.C	stack	sp+344	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemUse	ITEM.C	reg	$a0	int	i
+ReqItemUse	ITEM.C	reg	$v1	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemUse	ITEM.C	reg	$a0	int	atype
+ReqItemUse	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemUse	ITEM.C	stack	sp+368	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	stack	sp+384	struct VECTOR	v
+ReqItemUse	ITEM.C	reg	$a0	struct ModelArchiveType *	model
+ReqItemUse	ITEM.C	reg	$a3	int	rz
+ReqItemUse	ITEM.C	stack	sp+140	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	int	rx
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemUse	ITEM.C	reg	$a0	int	i
+ReqItemUse	ITEM.C	reg	$v1	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemUse	ITEM.C	reg	$a0	int	atype
+ReqItemUse	ITEM.C	reg	$a0	struct VECTOR *	pos
+ReqItemUse	ITEM.C	stack	sp+400	struct VECTOR	target
+ReqItemUse	ITEM.C	stack	sp+416	int	rx
+ReqItemUse	ITEM.C	stack	sp+420	int	ry
+ReqItemUse	ITEM.C	stack	sp+136	struct SVECTOR	rot
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s2	struct param_napalm *	param
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	ret
+ReqItemUse	ITEM.C	reg	$a0	int	i
+ReqItemUse	ITEM.C	reg	$v1	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$s0	struct tag_TItem *	item
+ReqItemUse	ITEM.C	reg	$v1	struct Humanoid *	aowner
+ReqItemUse	ITEM.C	reg	$a0	int	atype
+ReqItemUse	ITEM.C	reg	$a0	struct VECTOR *	pos
+TurnAroundAllItems	ITEM.C	param	$s5	struct Humanoid *	user
+TurnAroundAllItems	ITEM.C	reg	$s4	int	i
+TurnAroundAllItems	ITEM.C	reg	$s1	int	j
+TurnAroundAllItems	ITEM.C	reg	$s5	struct Humanoid *	human
+TurnAroundAllItems	ITEM.C	reg	$s4	int	itemID
+TurnAroundAllItems	ITEM.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	p
+ChkCard	MEMCARD.C	stack	sp+16	long	cmd
+ChkCard	MEMCARD.C	stack	sp+20	long	result
+DeleteCard	MEMCARD.C	param	$a0	unsigned char *	name
+DeleteCard	MEMCARD.C	stack	sp+216	long	cmd
+DeleteCard	MEMCARD.C	stack	sp+220	long	result
+DeleteCard	MEMCARD.C	stack	sp+16	unsigned char [200]	fn
+FormatCard	MEMCARD.C	stack	sp+16	long	cmd
+FormatCard	MEMCARD.C	stack	sp+20	long	result
+LoadCard	MEMCARD.C	param	$a0	int	target
+LoadCard	MEMCARD.C	param	$a1	unsigned char *	name
+LoadCard	MEMCARD.C	stack	sp+24	unsigned char [200]	fn
+LoadCard	MEMCARD.C	stack	sp+8416	long	cmd
+LoadCard	MEMCARD.C	stack	sp+8420	long	result
+LoadCard	MEMCARD.C	stack	sp+224	unsigned char [8192]	block
+SaveCard	MEMCARD.C	param	$a0	int	target
+SaveCard	MEMCARD.C	param	$s5	unsigned char *	name
+SaveCard	MEMCARD.C	param	$s6	void *	mem
+SaveCard	MEMCARD.C	param	$s7	long	size
+SaveCard	MEMCARD.C	stack	sp+24	unsigned char [200]	fn
+SaveCard	MEMCARD.C	stack	sp+8416	long	cmd
+SaveCard	MEMCARD.C	stack	sp+8420	long	result
+SaveCard	MEMCARD.C	reg	$s4	long	chan
+SaveCard	MEMCARD.C	stack	sp+224	unsigned char [8192]	block
+SaveCard	MEMCARD.C	reg	$s2	struct TCardHeader *	hd
+SaveCard	MEMCARD.C	reg	$s3	void *	data
+SaveCard	MEMCARD.C	reg	$s2	struct TCardHeader *	hd
+SaveCard	MEMCARD.C	reg	$t1	unsigned char *	icon3
+SaveCard	MEMCARD.C	reg	$s1	unsigned char *	icon2
+SaveCard	MEMCARD.C	reg	$s0	unsigned char *	icon1
+InitMisc	MISC.C	reg	$s1	int	i
+InitMisc	MISC.C	reg	$a0	int	iDoor1
+InitMisc	MISC.C	reg	$s1	int	iDoor2
+InitMisc	MISC.C	reg	$v0	struct ModelType *	data
+InitMisc	MISC.C	reg	$a0	int	id1
+InitMisc	MISC.C	reg	$s1	int	id2
+InitMisc	MISC.C	reg	$v0	struct ModelType *	data
+ProcMiscFire	MISC.C	param	$s2	struct tag_TMisc *	m
+ProcMiscFire	MISC.C	param	$a1	enum TMiscMessage	msg
+ProcMiscFire	MISC.C	stack	sp+16	struct SVECTOR	vec
+ProcMiscFire	MISC.C	stack	sp+24	struct VECTOR	pos
+ProcMiscDoor	MISC.C	param	$s0	struct tag_TMisc *	m
+ProcMiscDoor	MISC.C	param	$a1	enum TMiscMessage	msg
+ProcMiscDoor	MISC.C	reg	$s1	struct TDoor *	param
+ProcMiscDoor	MISC.C	reg	$s2	int	r
+ProcMiscDoor	MISC.C	reg	$a1	int	type
+ProcMiscDoor	MISC.C	reg	$v0	int	t
+ProcMiscDoor	MISC.C	reg	$v0	int	cid
+ProcMiscDoor	MISC.C	reg	$v0	int	dir
+ProcMiscDoor	MISC.C	reg	$s2	int	w
+ProcMiscDoor	MISC.C	reg	$s0	struct ModelType *	model
+ProcMiscPitfall	MISC.C	param	$s1	struct tag_TMisc *	m
+ProcMiscPitfall	MISC.C	param	$a1	enum TMiscMessage	msg
+ProcMiscPitfall	MISC.C	reg	$s2	struct TPitfall *	param
+ProcMiscPitfall	MISC.C	reg	$s0	struct ModelType *	model
+ProcMiscPitfall	MISC.C	reg	$s1	short	w
+ProcMiscPitfall	MISC.C	reg	$s0	int	r
+ProcMiscPitfall	MISC.C	reg	$a1	int	type
+ProcMiscPitfall	MISC.C	reg	$v0	int	t
+ProcMiscSnowfall	MISC.C	param	$s2	struct tag_TMisc *	m
+ProcMiscSnowfall	MISC.C	param	$a1	enum TMiscMessage	msg
+ProcMiscSnowfall	MISC.C	reg	$s4	struct TSnowfall *	param
+ProcMiscSnowfall	MISC.C	reg	$s1	int	i
+ProcMiscSnowfall	MISC.C	reg	$v0	int	w
+ProcMiscSnowfall	MISC.C	reg	$v1	int	h
+ProcMiscSnowfall	MISC.C	reg	$s0	struct SVECTOR *	pos
+ProcMiscSprite	MISC.C	param	$s1	struct tag_TMisc *	m
+ProcMiscSprite	MISC.C	param	$a1	enum TMiscMessage	msg
+ProcMiscSprite	MISC.C	reg	$v1	int	type
+ProcMiscSprite	MISC.C	reg	$s0	struct Sprite3D *	s
+AddMisc	MISC.C	param	$t0	enum MiscType	type
+AddMisc	MISC.C	param	$a1	int	x
+AddMisc	MISC.C	param	$a2	int	y
+AddMisc	MISC.C	param	$a3	int	z
+AddMisc	MISC.C	param	stack+16	int	a
+AddMisc	MISC.C	param	stack+20	int	b
+AddMisc	MISC.C	param	stack+24	int	c
+AddMisc	MISC.C	reg	$a0	int	a
+AddMisc	MISC.C	reg	$t1	int	b
+AddMisc	MISC.C	reg	$t2	int	c
+DoMiscProc	MISC.C	reg	$s1	int	i
+DoMiscProc	MISC.C	reg	$s1	int	i
+InitMoji	MOJI.C	param	$s1	int	x
+InitMoji	MOJI.C	param	$s2	int	y
+InitMoji	MOJI.C	reg	$s0	unsigned long *	dat
+InitMoji	MOJI.C	stack	sp+16	struct GsIMAGE	img
+InitMoji	MOJI.C	stack	sp+48	struct RECT	rect
+InitMoji	MOJI.C	reg	$a0	int	i
+GetKazu	MOJI.C	param	$a0	unsigned char *	sScript
+GetKazu	MOJI.C	param	$a1	int	wk1
+GetKazu	MOJI.C	param	$a2	int	wk2
+PutMojiColKage	MOJI.C	param	$a0	int	x
+PutMojiColKage	MOJI.C	param	$a1	int	y
+PutMojiColKage	MOJI.C	param	$a2	int	col
+PutMojiColKage	MOJI.C	param	$a3	unsigned char *	Script
+PutMojiColKage	MOJI.C	param	stack+16	unsigned int	flag2
+PutMojiColKage	MOJI.C	param	stack+20	int	selichi
+PutMojiCol	MOJI.C	param	$a0	int	x
+PutMojiCol	MOJI.C	param	$a1	int	y
+PutMojiCol	MOJI.C	param	$a2	int	col
+PutMojiCol	MOJI.C	param	$a3	unsigned char *	Script
+PutMojiCol	MOJI.C	param	stack+16	unsigned int	flag2
+PutMojiCol	MOJI.C	param	stack+20	int	selichi
+PutMojiKage	MOJI.C	param	$a0	int	x
+PutMojiKage	MOJI.C	param	$a1	int	y
+PutMojiKage	MOJI.C	param	$a2	unsigned char *	Script
+PutMojiKage	MOJI.C	param	$a3	unsigned int	flag2
+PutMojiKage	MOJI.C	param	stack+16	int	selichi
+PutMoji	MOJI.C	param	$s6	int	x
+PutMoji	MOJI.C	param	$a1	int	y
+PutMoji	MOJI.C	param	$s0	unsigned char *	Script
+PutMoji	MOJI.C	param	$s4	unsigned int	flag2
+PutMoji	MOJI.C	param	stack+16	int	selichi
+PutMoji	MOJI.C	reg	$fp	int	selichi
+PutMoji	MOJI.C	reg	$a3	int	wk1
+PutMoji	MOJI.C	reg	$v1	int	wk2
+PutMoji	MOJI.C	reg	$s1	int	Putx
+PutMoji	MOJI.C	reg	$s3	int	Puty
+PutMoji	MOJI.C	reg	$s7	int	bufMojiEffe2
+PutMoji	MOJI.C	reg	$a2	unsigned char *	sScript
+PutMoji	MOJI.C	reg	$v0	int	wk1
+PutMoji	MOJI.C	reg	$v1	int	wk2
+PutMoji	MOJI.C	reg	$a2	unsigned char *	sScript
+PutMoji	MOJI.C	reg	$v0	int	wk1
+PutMoji	MOJI.C	reg	$v1	int	wk2
+PutMoji	MOJI.C	reg	$a2	unsigned char *	sScript
+PutMoji	MOJI.C	reg	$v0	int	wk1
+PutMoji	MOJI.C	reg	$v1	int	wk2
+HumanActionControl	MOTION.C	param	$a0	struct Humanoid *	human
+SetNowMotion	MOTION.C	param	$a0	struct Humanoid *	human
+SetNowMotion	MOTION.C	param	$a1	short	mid
+SetNowMotion	MOTION.C	param	$a2	short	move
+NowReturnNormal	MOTION.C	param	$a0	struct Humanoid *	human
+SwimCheck	MOTION.C	stack	sp+16	struct VECTOR	vect
+SwimCheck	MOTION.C	reg	$a2	struct ModelArchiveType *	mdl
+SwimCheck	MOTION.C	reg	$a1	short	i
+SwimCheck	MOTION.C	reg	$v1	short	i
+FallCheck	MOTION.C	stack	sp+24	struct SVECTOR	vect
+FallCheck	MOTION.C	reg	$v1	short	i
+HangCheck	MOTION.C	stack	sp+24	struct SVECTOR	vect
+HangCheck	MOTION.C	reg	$s0	long	yy
+HangCheck	MOTION.C	reg	$s0	long	y
+HangCheck	MOTION.C	reg	$s1	long	ry
+HangCheck	MOTION.C	reg	$s4	long	oy
+HangCheck	MOTION.C	reg	$v1	short	i
+StickonCheck	MOTION.C	reg	$v1	short	rv
+DamageControl	MOTION.C	stack	sp+16	struct VECTOR	p
+DamageControl	MOTION.C	reg	$s1	struct VECTOR *	pp
+DamageControl	MOTION.C	reg	$s2	short	i
+DamageControl	MOTION.C	reg	$s0	short	id
+DamageControl	MOTION.C	reg	$s4	short	deg
+DamageControl	MOTION.C	reg	$s1	short	dmg
+DamageControl	MOTION.C	reg	$s5	short	did
+DamageControl	MOTION.C	reg	$s3	struct Humanoid *	enemy
+DamageControl	MOTION.C	reg	$v1	short	i
+DamageControl	MOTION.C	stack	sp+32	struct SVECTOR	pv
+DamageControl	MOTION.C	reg	$v1	short	i
+DamageControl	MOTION.C	reg	$v1	short	i
+AttackControl	MOTION.C	stack	sp+16	struct SVECTOR	vect
+AttackControl	MOTION.C	reg	$a1	short	emid
+AttackControl	MOTION.C	reg	$a2	short	myid
+AttackControl	MOTION.C	stack	sp+26	short	deg
+AttackControl	MOTION.C	stack	sp+24	short	mydeg
+AttackControl	MOTION.C	reg	$s0	struct Humanoid *	enemy
+AttackControl	MOTION.C	reg	$s0	struct Humanoid *	human
+AttackControl	MOTION.C	reg	$a1	short	mid
+AttackControl	MOTION.C	reg	$v0	struct Humanoid *	enemy
+AttackCancelControl	MOTION.C	param	$a0	short	mode
+AttackContinuousCheck	MOTION.C	param	$a0	struct BattleType *	battle
+WeaponHitWeapon	MOTION.C	param	$s3	struct ModelType *	hand
+WeaponHitWeapon	MOTION.C	reg	$s2	struct VECTOR *	p
+WeaponHitWeapon	MOTION.C	reg	$s4	short	id
+WeaponHitWeapon	MOTION.C	reg	$s0	short	i
+WeaponHitWeapon	MOTION.C	stack	sp+16	struct SVECTOR	pv
+AttackBowControl	MOTION.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	item
+AttackBowControl	MOTION.C	reg	$v0	struct VECTOR *	pos
+AttackBowControl	MOTION.C	stack	sp+56	struct SVECTOR	vect
+AttackGunControl	MOTION.C	param	$a0	short	length
+AttackGunControl	MOTION.C	param	$a1	short	frm
+AttackGunControl	MOTION.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	item
+AttackPQD	MOTION.C	param	$a0	short	sfrm
+AttackPQD	MOTION.C	param	$a1	short	efrm
+AttackFire	MOTION.C	param	$a0	short	sfrm
+AttackFire	MOTION.C	param	$a1	short	efrm
+AttackFire	MOTION.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	item
+AttackFire	MOTION.C	stack	sp+56	struct SVECTOR	vect
+ActACTION	MOTION.C	reg	$v1	short	i
+ActSWIM	MOTION.C	reg	$a2	struct ModelArchiveType *	mdl
+ActSWIM	MOTION.C	reg	$a1	short	i
+ActKAGI	MOTION.C	stack	sp+24	struct VECTOR	v
+ActKAGI	MOTION.C	reg	$s0	long	dist
+ActKAGI	MOTION.C	stack	sp+40	struct PARAM_ITEM_LAUNCH	item
+ActKAGI	MOTION.C	reg	$v1	short	ry
+ActKAGI	MOTION.C	reg	$v1	short	i
+ActCHASE	MOTION.C	reg	$s1	short	turn
+ActCHASE	MOTION.C	reg	$v1	short	i
+ActCHASE	MOTION.C	reg	$s0	long	y
+ActATTACK	MOTION.C	reg	$s1	struct BattleType *	battle
+ActATTACK	MOTION.C	reg	$v1	struct ModelType **	object
+ActATTACK	MOTION.C	stack	sp+16	struct ModelType *[2]	hand
+ActATTACK	MOTION.C	reg	$a2	struct OrnamentType **	weapon
+ActATTACK	MOTION.C	reg	$v0	struct VECTOR *	pos
+ActATTACK	MOTION.C	stack	sp+24	struct PARAM_ITEM_LAUNCH	item
+ActATTACK	MOTION.C	reg	$v0	struct VECTOR *	pos
+ActATTACK	MOTION.C	stack	sp+24	struct PARAM_ITEM_LAUNCH	item
+ActATTACK	MOTION.C	stack	sp+104	struct SVECTOR	vect
+ActATTACK	MOTION.C	reg	$v0	struct VECTOR *	pos
+ActATTACK	MOTION.C	stack	sp+64	struct PARAM_ITEM_LAUNCH	item
+ActATTACK	MOTION.C	reg	$v1	short	i
+ActATTACK	MOTION.C	reg	$v1	short	i
+ActATTACK	MOTION.C	reg	$v1	short	i
+ActATTACK	MOTION.C	reg	$a2	struct OrnamentType **	weapon
+ActATTACK	MOTION.C	reg	$v1	short	i
+ActATTACK	MOTION.C	reg	$a2	struct OrnamentType **	weapon
+ActATTACK	MOTION.C	reg	$v1	short	i
+ActATTACK	MOTION.C	reg	$a3	struct ModelType *	waist
+ActATTACK	MOTION.C	reg	$v1	short	i
+ActATTACK	MOTION.C	reg	$t0	struct AfterimageType *	ilu
+ActSTATE	MOTION.C	reg	$v1	short	i
+ActJUMP	MOTION.C	stack	sp+24	struct MapVector	map
+ActJUMP	MOTION.C	reg	$a3	short	ry
+ActJUMP	MOTION.C	reg	$v1	short	i
+ActJUMP	MOTION.C	reg	$s0	short	mid
+ActJUMP	MOTION.C	reg	$v1	short	i
+ActJUMP	MOTION.C	stack	sp+40	struct SVECTOR	spd
+ActHANG	MOTION.C	reg	$s0	long	y
+ActSQUAT	MOTION.C	reg	$s0	short	turn
+ActSTICKON	MOTION.C	reg	$v1	struct MapVector *	map
+ActSTICKON	MOTION.C	reg	$s0	struct ModelArchiveType *	model
+ActSTICKON	MOTION.C	reg	$a2	short	y
+ActSTICKON	MOTION.C	reg	$s2	short	rv
+ActSTICKON	MOTION.C	reg	$s1	short	pd
+ActSTICKON	MOTION.C	stack	sp+16	struct SVECTOR	vect
+ActSTICKON	MOTION.C	reg	$v1	short	i
+ActSYURI	MOTION.C	reg	$v0	struct VECTOR *	p
+ActSYURI	MOTION.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	item
+ActITEM	MOTION.C	stack	sp+16	struct PARAM_ITEM_LAUNCH	item
+ActITEM	MOTION.C	reg	$a1	short	flag
+ActITEM	MOTION.C	reg	$a0	short	mode
+ActITEM	MOTION.C	reg	$v0	struct VECTOR *	p
+ActDAMAGE	MOTION.C	reg	$a2	struct OrnamentType **	weapon
+ActDEAD	MOTION.C	reg	$s0	struct VECTOR *	pp
+ActDEAD	MOTION.C	stack	sp+16	struct VECTOR	p
+ActDEAD	MOTION.C	stack	sp+32	struct SVECTOR	v
+ActDEAD	MOTION.C	reg	$s2	short	bldo
+ActDEAD	MOTION.C	reg	$s3	short	blds
+ActDEAD	MOTION.C	reg	$s0	short	blood
+cbCheckCD	OPAUDIO.C	stack	sp+16	unsigned char [8]	result
+cbCheckCD	OPAUDIO.C	reg	$s0	int	ret
+cbCheckCD	OPAUDIO.C	reg	$v1	int	com
+cbCheckCD	OPAUDIO.C	stack	sp+24	struct CdlLOC	loc
+cbCheckCD	OPAUDIO.C	stack	sp+24	struct CdlLOC	loc
+CdaPlayXA	OPAUDIO.C	param	$s3	unsigned char *	fname
+CdaPlayXA	OPAUDIO.C	param	$s5	struct CdlLOC *	start
+CdaPlayXA	OPAUDIO.C	param	$s4	struct CdlLOC *	end
+CdaPlayXA	OPAUDIO.C	param	$s6	unsigned char	channel
+CdaPlayXA	OPAUDIO.C	param	stack+16	int	mode
+CdaPlayXA	OPAUDIO.C	stack	sp+16	struct CdlFILE	cf
+CdaPlayXA	OPAUDIO.C	stack	sp+40	struct CdlFILTER	filter
+CdaPlayXA	OPAUDIO.C	stack	sp+48	unsigned char [4]	param
+CdaPlayXA	OPAUDIO.C	stack	sp+56	struct CdlLOC	loc
+StartLoad	OPENING.C	reg	$s0	short	j
+SpWorkSet	OPENING.C	param	$a0	struct GsSPRITE *	spptr
+SpWorkSet	OPENING.C	param	$a1	struct GsIMAGE *	img
+SpWorkSet	OPENING.C	param	$a2	int	x
+SpWorkSet	OPENING.C	param	$a3	int	y
+SpWorkSet	OPENING.C	param	stack+16	int	rgb
+SpWorkSet	OPENING.C	param	stack+20	int	attri
+GsSortSpriteKage	OPENING.C	param	$a0	struct GsSPRITE *	gspOp7
+GsSortSpriteKage	OPENING.C	param	$a1	short	z
+GsSortSpriteKage	OPENING.C	param	$a2	short	flag
+FideOutFs	OPENING.C	param	$a0	short	mode
+FideOutFs	OPENING.C	param	$a1	short	x
+FideOutFs	OPENING.C	param	$a2	short	y
+FideOutFs	OPENING.C	param	$a3	short	w
+FideOutFs	OPENING.C	param	stack+16	int	h
+FideOut	OPENING.C	param	$a0	short	job
+FideOut	OPENING.C	reg	$s4	int	wk3
+FideOut	OPENING.C	reg	$s0	unsigned long *	dat
+FideOut	OPENING.C	reg	$s0	struct POLY_XG4 *	ply
+FideOut2	OPENING.C	param	$a0	short	sjob
+FideOut3	OPENING.C	param	$a0	short	sjob
+Opening	OPENING.C	param	stack+4294967224	short	job
+Opening	OPENING.C	reg	$s6	struct GsSPRITE *	sp
+Opening	OPENING.C	reg	$fp	unsigned long *	dat
+Opening	OPENING.C	reg	$s7	int	i
+Opening	OPENING.C	reg	$s2	int	j
+Opening	OPENING.C	reg	$s3	int	u
+Opening	OPENING.C	reg	$s5	int	v
+Opening	OPENING.C	reg	$fp	int	gpade2
+Opening	OPENING.C	stack	sp+40	struct RECT	rect
+Opening	OPENING.C	stack	sp+40	struct RECT	rect
+Opening	OPENING.C	stack	sp+56	short	sjob
+Opening	OPENING.C	reg	$s0	int	j
+Opening	OPENING.C	reg	$s1	int	i
+Opening	OPENING.C	reg	$s3	int	u
+Opening	OPENING.C	stack	sp+56	short	sjob
+Opening	OPENING.C	reg	$s0	int	j
+Opening	OPENING.C	reg	$s1	int	i
+Opening	OPENING.C	reg	$s3	int	u
+Opening	OPENING.C	stack	sp+56	short	sjob
+Opening	OPENING.C	reg	$s0	int	j
+Opening	OPENING.C	reg	$s1	int	i
+Opening	OPENING.C	reg	$s3	int	u
+Opening	OPENING.C	stack	sp+56	short	sjob
+Opening	OPENING.C	reg	$s0	int	j
+Opening	OPENING.C	reg	$s1	int	i
+Opening	OPENING.C	reg	$s3	int	u
+Opening	OPENING.C	stack	sp+40	struct RECT	rect
+Opening	OPENING.C	stack	sp+56	short	sjob
+Opening	OPENING.C	reg	$s0	int	j
+Opening	OPENING.C	reg	$s1	int	i
+Opening	OPENING.C	reg	$s3	int	u
+Opening	OPENING.C	reg	$a0	struct MotionManager *	mmp
+Opening	OPENING.C	reg	$s0	struct POLY_XG4 *	ply
+Opening	OPENING.C	reg	$s0	struct POLY_XG4 *	ply
+Opening	OPENING.C	reg	$s0	struct POLY_XG4 *	ply
+Opening	OPENING.C	reg	$s0	struct POLY_XG4 *	ply
+Opening	OPENING.C	reg	$s0	struct POLY_XG4 *	ply
+Opening	OPENING.C	stack	sp+48	struct RECT	rect
+Opening	OPENING.C	stack	sp+48	struct RECT	rect
+Opening	OPENING.C	stack	sp+56	short	sjob
+Opening	OPENING.C	reg	$s0	int	j
+Opening	OPENING.C	reg	$s1	int	i
+Opening	OPENING.C	reg	$s3	int	u
+open_stream	OPMOVIE.C	param	$a0	unsigned char *	fname
+open_stream	OPMOVIE.C	param	$a1	int	x
+open_stream	OPMOVIE.C	param	$a2	int	y
+open_stream	OPMOVIE.C	param	$a3	int	mode
+open_stream	OPMOVIE.C	stack	sp+16	unsigned char [128]	str
+open_stream	OPMOVIE.C	stack	sp+144	struct CdlFILE	file
+close_stream	OPMOVIE.C	stack	sp+16	unsigned char [8]	param
+strSetDefDecEnv	OPMOVIE.C	param	$a0	struct DECENV *	dec
+strSetDefDecEnv	OPMOVIE.C	param	$a1	int	x
+strSetDefDecEnv	OPMOVIE.C	param	$a2	int	y
+strInit	OPMOVIE.C	param	$a0	struct CdlLOC *	loc
+strInit	OPMOVIE.C	param	$a1	void (*)()	callback
+strCallback	OPMOVIE.C	reg	$s0	int	id
+strCallback	OPMOVIE.C	stack	sp+16	struct RECT	snap_rect
+strCallback	OPMOVIE.C	stack	sp+24	struct DRAWENV	draw
+strNextVlc	OPMOVIE.C	param	$a0	struct DECENV *	dec
+strNext	OPMOVIE.C	param	$s1	struct DECENV *	dec
+strNext	OPMOVIE.C	stack	sp+16	unsigned long *	addr
+strNext	OPMOVIE.C	stack	sp+20	struct StHEADER *	sector
+strNext	OPMOVIE.C	reg	$s0	int	cnt
+strNext	OPMOVIE.C	stack	sp+24	struct RECT	rect
+strSync	OPMOVIE.C	param	$a0	struct DECENV *	dec
+strSync	OPMOVIE.C	param	$a1	int	mode
+strSync	OPMOVIE.C	stack	sp+16	unsigned long	cnt
+strKickCD	OPMOVIE.C	param	$a0	struct CdlLOC *	loc
+strKickCD	OPMOVIE.C	stack	sp+16	unsigned char	param
+PadShock	PADCMD.C	param	$a0	int	port
+PadShock	PADCMD.C	param	$a1	int	p1
+PadShock	PADCMD.C	param	$a2	int	p2
+ComPad	PADCMD.C	param	$s3	int	port
+ComPad	PADCMD.C	param	$s2	unsigned char *	rxbuf
+ComPad	PADCMD.C	reg	$s0	struct TPadPort *	pad
+ComPad	PADCMD.C	reg	$s1	int	initlevel
+ComPad	PADCMD.C	reg	$s0	int	i
+ComPad	PADCMD.C	reg	$s3	int	port
+ComPad	PADCMD.C	reg	$v1	int	i
+ComPad	PADCMD.C	reg	$v1	int	i
+ComPad	PADCMD.C	reg	$a1	int	i
+PadShockAR	PADCMD.C	param	$a0	int	port
+PadShockAR	PADCMD.C	param	$a1	int	pow
+PadShockAR	PADCMD.C	param	$a2	int	attack
+PadShockAR	PADCMD.C	param	$a3	int	release
+PadProc	PADCMD.C	reg	$a0	int	ct
+GetRealPad	PADCMD.C	param	$a0	int	port
+GetPadXY	PADCMD.C	param	$a0	short	no
+GetPadXY	PADCMD.C	param	$a1	short *	x
+GetPadXY	PADCMD.C	param	$a2	short *	y
+GetPad	PADCMD.C	param	$a0	short	no
+SetPad	PADCMD.C	param	$a0	struct PADtype *	pad
+SetPad	PADCMD.C	param	$a1	short	data
+GetCommand	PADCMD.C	param	$t0	struct PADtype *	pad
+GetCommand	PADCMD.C	reg	$a0	unsigned short *	cmd
+GetCommand	PADCMD.C	reg	$a2	short	i
+GetCommand	PADCMD.C	reg	$a1	short	j
+SetCommand	PADCMD.C	param	$t0	struct PADtype *	pad
+SetCommand	PADCMD.C	param	$a1	short	cmd
+SetCommand	PADCMD.C	reg	$a2	unsigned short *	com
+SetCommand	PADCMD.C	reg	$a0	short	i
+SetCommand	PADCMD.C	reg	$a0	short	j
+SetCommand	PADCMD.C	reg	$a1	short	k
+SetupSoundEffect	SEMNG.C	param	$a0	short	mode
+SetupSoundEffect	SEMNG.C	param	$a1	short	stage
+SetupSoundEffect	SEMNG.C	stack	sp+24	unsigned char [100]	name
+SoundEx	SEMNG.C	param	$a0	struct VECTOR *	locate
+SoundEx	SEMNG.C	param	$a1	short	seid
+Sound	SEMNG.C	param	$a0	struct Humanoid *	human
+Sound	SEMNG.C	param	$a1	short	seid
+Sound	SEMNG.C	reg	$a0	struct VECTOR *	locate
+Sound	SEMNG.C	reg	$a1	short	seid
+Sound	SEMNG.C	reg	$s0	long	volume
+Sound	SEMNG.C	reg	$s1	long	zz
+Sound	SEMNG.C	reg	$s2	long	xx
+Sound	SEMNG.C	reg	$a1	struct VECTOR *	player
+Sound	SEMNG.C	reg	$a0	struct VECTOR *	locate
+Sound	SEMNG.C	reg	$a1	short	seid
+Sound	SEMNG.C	reg	$s0	long	volume
+Sound	SEMNG.C	reg	$s1	long	zz
+Sound	SEMNG.C	reg	$s2	long	xx
+Sound	SEMNG.C	reg	$a1	struct VECTOR *	player
+SetupStageSequence	STAGE.C	stack	sp+16	unsigned char [50]	name
+StartStageSequence	STAGE.C	reg	$s2	struct StageCharType *	stg
+StartStageSequence	STAGE.C	reg	$s0	struct Humanoid *	human
+StartStageSequence	STAGE.C	reg	$v0	long	y
+StartStageSequence	STAGE.C	reg	$a1	short	i
+StartStageSequence	STAGE.C	reg	$a0	short	tp
+StageSequence	STAGE.C	reg	$s1	struct EventSeqType *	ev
+StageSequence	STAGE.C	reg	$s0	struct Humanoid *	tgt
+StageSequence	STAGE.C	reg	$s3	short	i
+StageSequence	STAGE.C	reg	$s2	short	flag
+StageSequence	STAGE.C	reg	$s0	long	gc
+UpdateEvent	STAGE.C	param	$a0	short	n
+UpdateEvent	STAGE.C	param	$a1	short	id
+UpdateEvent	STAGE.C	reg	$a3	short	i
+MakeArcData	START.C	param	$a0	unsigned long *	ArcData
+LoadTIMarc	START.C	param	$a0	unsigned long *	adr
+LoadTIMarc	START.C	stack	sp+16	struct RECT	rect
+LoadTIMarc	START.C	stack	sp+24	struct GsIMAGE	tim
+main	START.C	reg	$s3	short	i
+main	START.C	reg	$s2	unsigned long *	dat
+main	START.C	stack	sp+24	struct RECT	rect
+StateTransition	THINK.C	param	$a0	struct Humanoid *	human
+StateTransition	THINK.C	reg	$s2	short	pad
+StateTransition	THINK.C	reg	$s1	short	atr0
+StateTransition	THINK.C	reg	$s3	long	ssr
+StateTransition	THINK.C	reg	$s0	short	motid
+SetupThinkFunction	THINK.C	param	$a0	struct Humanoid *	human
+SetupThinkFunction	THINK.C	param	$a1	short	type
+GotoPosition	THINK.C	param	$a0	long	vx
+GotoPosition	THINK.C	param	$a1	long	vz
+ChasetoTarget	THINK.C	param	$s5	long	length
+ChasetoTarget	THINK.C	reg	$s3	long	xx
+ChasetoTarget	THINK.C	reg	$s2	long	zz
+ChasetoTarget	THINK.C	reg	$s4	long *	chase
+ChasetoTarget	THINK.C	reg	$s3	long	vx
+ChasetoTarget	THINK.C	reg	$s2	long	vz
+ChasetoTarget	THINK.C	reg	$v0	short	deg
+ChasetoTarget	THINK.C	reg	$s0	short	pad
+Think1trace	THINK_1.C	reg	$a0	long	xx
+Think1trace	THINK_1.C	reg	$a1	long	zz
+Think1trace	THINK_1.C	reg	$t0	short	pad
+Think1trace	THINK_1.C	reg	$a0	long	vx
+Think1trace	THINK_1.C	reg	$a1	long	vz
+Think1trace	THINK_1.C	reg	$v0	short	deg
+Think1trace	THINK_1.C	reg	$s0	short	pad
+Think1watch	THINK_1.C	reg	$a0	long	xx
+Think1watch	THINK_1.C	reg	$a1	long	zz
+Think1watch	THINK_1.C	reg	$s0	short	pad
+Think1watch	THINK_1.C	reg	$a0	long	vx
+Think1watch	THINK_1.C	reg	$a1	long	vz
+Think1watch	THINK_1.C	reg	$v0	short	deg
+Think1watch	THINK_1.C	reg	$s0	short	pad
+Think1random	THINK_1.C	reg	$a1	long	xx
+Think1random	THINK_1.C	reg	$v1	long	zz
+Think1random	THINK_1.C	reg	$s1	short	pad
+Think1random	THINK_1.C	reg	$a1	long	vx
+Think1random	THINK_1.C	reg	$v1	long	vz
+Think1random	THINK_1.C	reg	$v0	short	deg
+Think1random	THINK_1.C	reg	$s0	short	pad
+Think1chase	THINK_1.C	reg	$a0	struct Humanoid *	enemy
+Think1chase	THINK_1.C	reg	$s1	long	xx
+Think1chase	THINK_1.C	reg	$s2	long	zz
+Think1chase	THINK_1.C	reg	$s3	short	pad
+Think1chase	THINK_1.C	reg	$s1	long	vx
+Think1chase	THINK_1.C	reg	$s2	long	vz
+Think1chase	THINK_1.C	reg	$v0	short	deg
+Think1chase	THINK_1.C	reg	$s0	short	pad
+Think1target	THINK_1.C	reg	$a0	long	xx
+Think1target	THINK_1.C	reg	$a1	long	zz
+Think1target	THINK_1.C	reg	$a0	long	vx
+Think1target	THINK_1.C	reg	$a1	long	vz
+Think1target	THINK_1.C	reg	$v0	short	deg
+Think1target	THINK_1.C	reg	$s0	short	pad
+Think3callaid	THINK_3.C	reg	$s0	struct Humanoid *	human
+Think3callaid	THINK_3.C	reg	$v1	struct Humanoid *	human
+Think3callaid	THINK_3.C	reg	$a0	short	type
+Think3attack	THINK_3.C	reg	$v0	short	rng
+Think3attack	THINK_3.C	reg	$s0	short	pad
+Think3attack	THINK_3.C	reg	$a2	short	idx
+Think3area	THINK_3.C	reg	$s0	short	pad
+Think3area	THINK_3.C	reg	$s2	long	xx
+Think3area	THINK_3.C	reg	$s1	long	zz
+Think3area	THINK_3.C	reg	$s3	long	dist
+Think3area	THINK_3.C	reg	$s2	long	vx
+Think3area	THINK_3.C	reg	$s1	long	vz
+Think3area	THINK_3.C	reg	$v0	short	deg
+Think3area	THINK_3.C	reg	$s0	short	pad
+Think3hitaway	THINK_3.C	reg	$a1	short	pad
+Think3firstattack	THINK_3.C	reg	$a0	short	pad
+Think3firstattack	THINK_3.C	reg	$v1	short	pad
+ItemUse	THINK_3.C	reg	$s0	short	id
+SuccessionAttack	THINK_3.C	param	$a0	long	dist
+SuccessionAttack	THINK_3.C	param	$a1	short	deg
+AttackShort	THINK_3.C	reg	$s0	short	pad
+AttackShort	THINK_3.C	reg	$s0	short	pad
+AttackGeneral	THINK_3.C	reg	$s0	short	pad
+AttackGeneral	THINK_3.C	reg	$s0	short	pad
+AttackLong	THINK_3.C	reg	$a0	short	ad
+AttackLong	THINK_3.C	reg	$s0	short	pad
+AttackLong	THINK_3.C	reg	$s0	short	pad
+AttackIndirect	THINK_3.C	reg	$s0	short	pad
+AttackAnimal	THINK_3.C	reg	$s0	short	pad
+Think4abandon	THINK_4.C	reg	$v1	short	pad
+Think4contact	THINK_4.C	reg	$a1	short	pad
+Think4contact	THINK_4.C	reg	$s1	long	xx
+Think4contact	THINK_4.C	reg	$s2	long	zz
+Think4contact	THINK_4.C	reg	$s1	long	vx
+Think4contact	THINK_4.C	reg	$s2	long	vz
+Think4contact	THINK_4.C	reg	$v0	short	deg
+Think4contact	THINK_4.C	reg	$s0	short	pad
+Think4chase	THINK_4.C	reg	$a0	short	pad
+Think4chase	THINK_4.C	reg	$s1	long	xx
+Think4chase	THINK_4.C	reg	$s2	long	zz
+Think4chase	THINK_4.C	reg	$s1	long	vx
+Think4chase	THINK_4.C	reg	$s2	long	vz
+Think4chase	THINK_4.C	reg	$v0	short	deg
+Think4chase	THINK_4.C	reg	$s0	short	pad
+vinit	VALLOC.C	param	$a0	void *	adr
+vinit	VALLOC.C	param	$a1	unsigned long	size
+vinit	VALLOC.C	stack	sp+0	struct VMhead	vh
+valloc	VALLOC.C	param	$t0	unsigned long	size
+valloc	VALLOC.C	stack	sp+24	struct VMhead	vh
+valloc	VALLOC.C	reg	$a2	struct VMhead *	vhp
+valloc	VALLOC.C	reg	$s1	unsigned long *	vmpt
+valloc	VALLOC.C	stack	sp+32	struct VMhead	vh
+valloc	VALLOC.C	stack	sp+40	unsigned char [1024]	str
+valloc	VALLOC.C	reg	$a3	unsigned long	maxsize
+valloc	VALLOC.C	reg	$a0	struct VMhead *	vhp
+valloc	VALLOC.C	reg	$a1	unsigned long	freesize
+valloc	VALLOC.C	reg	$v1	struct VMhead *	vhp
+vrealloc	VALLOC.C	param	$s2	void *	pt
+vrealloc	VALLOC.C	param	$s0	unsigned long	size
+vrealloc	VALLOC.C	reg	$a3	struct VMhead *	vhp
+vrealloc	VALLOC.C	reg	$a1	struct VMhead *	svhp
+vrealloc	VALLOC.C	stack	sp+16	struct VMhead	vh
+vrealloc	VALLOC.C	reg	$s1	void *	newp
+vrealloc	VALLOC.C	reg	$a2	unsigned long	size2
+vcalloc	VALLOC.C	param	$a0	unsigned long	size
+vcalloc	VALLOC.C	param	$a1	unsigned char	c
+vfree	VALLOC.C	param	$a0	void *	pt
+vsize	VALLOC.C	param	$a0	void *	pt
+vmemoryGC	VALLOC.C	param	$s2	void *	pt
+vmemoryGC	VALLOC.C	reg	$s3	struct VMhead *	vhp
+vmemoryGC	VALLOC.C	reg	$a3	struct VMhead *	svhp
+vmemoryGC	VALLOC.C	stack	sp+16	struct VMhead	vh
+vmemoryGC	VALLOC.C	reg	$s1	unsigned long *	vmpt
+vmemoryGC	VALLOC.C	reg	$s6	unsigned long	size
+vmemoryGC	VALLOC.C	reg	$s2	void *	pt
+vmemoryGC	VALLOC.C	reg	$s2	void *	pt
+vmemoryGC	VALLOC.C	reg	$a0	struct VMhead *	svhp
+vmemoryGC	VALLOC.C	reg	$s0	struct VMhead *	vhp
+vmemoryGC	VALLOC.C	reg	$s1	void *	pt
+vmemoryGC	VALLOC.C	reg	$a0	struct VMhead *	svhp
+vmemoryGC	VALLOC.C	reg	$s0	struct VMhead *	vhp
+SystemOut	VALLOC.C	param	$a0	unsigned char *	string
+CreateStage	WORLD.C	param	$s3	int	StageNo
+CreateStage	WORLD.C	param	$s5	int	CharType
+CreateStage	WORLD.C	reg	$s0	struct Humanoid *	target
+CreateStage	WORLD.C	reg	$s2	int	i
+CreateStage	WORLD.C	stack	sp+24	struct POLY_FT4	ply_ten
+CreateStage	WORLD.C	stack	sp+64	struct POLY_FT4	ply_title1
+CreateStage	WORLD.C	stack	sp+104	struct POLY_FT4	ply_title2
+CreateStage	WORLD.C	stack	sp+144	struct GsIMAGE	image
+CreateStage	WORLD.C	reg	$s1	unsigned long *	dat
+CreateStage	WORLD.C	reg	$s0	struct Humanoid *	human
+CreateStage	WORLD.C	reg	$a0	int	i
+CreateStage	WORLD.C	reg	$s0	void *	pBuf
+LoadOrnamentArchive	WORLD.C	param	$s0	unsigned long *	adr
+LoadOrnamentArchive	WORLD.C	param	$s4	struct ModelType *	prnt
+LoadOrnamentArchive	WORLD.C	reg	$a3	struct ModelType *	dim
+LoadOrnamentArchive	WORLD.C	reg	$s1	struct OrnamentArchiveType *	mad
+LoadOrnamentArchive	WORLD.C	reg	$s3	struct ParentingType *	prntp
+LoadOrnamentArchive	WORLD.C	reg	$s5	unsigned char *	tmdp
+LoadOrnamentArchive	WORLD.C	reg	$s2	short	i
+LoadOrnamentArchive	WORLD.C	reg	$v1	short	j
+LoadOrnamentArchive	WORLD.C	reg	$s0	struct OrnamentType *	objp
+DisposeOrnamentArchive	WORLD.C	param	$a0	struct OrnamentArchiveType *	mad
+GetCenterAndSize	WORLD.C	param	$a0	unsigned long *	tmd
+GetCenterAndSize	WORLD.C	param	$a1	struct SVECTOR *	center
+GetCenterAndSize	WORLD.C	param	$a2	int *	size
+GetCenterAndSize	WORLD.C	reg	$a0	struct SVECTOR *	vert
+GetCenterAndSize	WORLD.C	reg	$t7	int	nVert
+GetCenterAndSize	WORLD.C	reg	$t0	int	i
+GetCenterAndSize	WORLD.C	reg	$t6	short	minx
+GetCenterAndSize	WORLD.C	reg	$t2	short	miny
+GetCenterAndSize	WORLD.C	reg	$t5	short	minz
+GetCenterAndSize	WORLD.C	reg	$t4	short	maxx
+GetCenterAndSize	WORLD.C	reg	$t1	short	maxy
+GetCenterAndSize	WORLD.C	reg	$t3	short	maxz
+GetCenterAndSize	WORLD.C	reg	$a0	short	dm
+LoadConstruction	WORLD.C	param	stack+0	unsigned long *	data
+LoadConstruction	WORLD.C	stack	sp+352	int	ObjectID
+LoadConstruction	WORLD.C	stack	sp+356	unsigned long *	MapModel
+LoadConstruction	WORLD.C	stack	sp+360	struct WorldDataType *	wlddt
+LoadConstruction	WORLD.C	reg	$s2	struct OrnamentType *	model
+LoadConstruction	WORLD.C	reg	$s4	long	x
+LoadConstruction	WORLD.C	reg	$s3	long	y
+LoadConstruction	WORLD.C	reg	$s0	long	z
+LoadConstruction	WORLD.C	stack	sp+364	long	n
+LoadConstruction	WORLD.C	reg	$s5	long	i
+LoadConstruction	WORLD.C	stack	sp+32	unsigned char [256]	name
+LoadConstruction	WORLD.C	reg	$s3	int	nModel
+LoadConstruction	WORLD.C	reg	$s1	struct OrnamentArchiveType *	mad
+LoadConstruction	WORLD.C	reg	$s0	int	i
+LoadConstruction	WORLD.C	reg	$s1	struct OrnamentArchiveType *	mad
+LoadConstruction	WORLD.C	reg	$s0	int	i
+LoadConstruction	WORLD.C	reg	$s3	int	n
+LoadConstruction	WORLD.C	reg	$s0	int	i
+LoadConstruction	WORLD.C	reg	$a0	long	a
+LoadConstruction	WORLD.C	reg	$a0	long	a
+LoadConstruction	WORLD.C	reg	$a0	long	a
+LoadConstruction	WORLD.C	stack	sp+288	struct SVECTOR	center
+LoadConstruction	WORLD.C	stack	sp+296	int	size
+LoadConstruction	WORLD.C	reg	$s3	struct tag_ObjectSlotType **	slot
+LoadConstruction	WORLD.C	reg	$s2	struct OrnamentType *	model
+LoadConstruction	WORLD.C	reg	$s6	short	shifty
+LoadConstruction	WORLD.C	stack	sp+304	struct PARAM_ITEM_STAY	param
+LoadConstruction	WORLD.C	reg	$s6	int	i
+LoadConstruction	WORLD.C	stack	sp+368	struct ParentingType *	ix
+LoadConstruction	WORLD.C	reg	$fp	int	msize
+LoadConstruction	WORLD.C	reg	$a0	long	a
+LoadConstruction	WORLD.C	reg	$a0	long	a
+LoadConstruction	WORLD.C	reg	$a0	long	a
+LoadConstruction	WORLD.C	reg	$s3	struct tag_ObjectSlotType **	slot
+LoadConstruction	WORLD.C	reg	$s1	struct OrnamentType *	model
+PointInTri	WORLD.C	param	$a0	struct TPoint *	pt
+PointInTri	WORLD.C	stack	sp+0	struct TPoint [3]	ops
+PointInTri	WORLD.C	reg	$v0	long	ptop
+IsVisible	WORLD.C	param	$a0	long	x
+IsVisible	WORLD.C	param	$a1	long	y
+IsVisible	WORLD.C	param	$a2	long	z
+IsVisible	WORLD.C	param	$a3	long	s
+ActivateHumans	WORLD.C	reg	$s1	int	i
+ActivateHumans	WORLD.C	reg	$s0	struct Humanoid *	target
+ActivateHumans	WORLD.C	stack	sp+16	struct VECTOR	vc
+ActivateHumans	WORLD.C	reg	$s0	struct Humanoid *	human
+DrawConstruction	WORLD.C	reg	$s6	short	j
+DrawConstruction	WORLD.C	reg	$s4	short	k
+DrawConstruction	WORLD.C	reg	$s2	unsigned long	plimit
+DrawConstruction	WORLD.C	reg	$a2	int	nx
+DrawConstruction	WORLD.C	reg	$a1	int	ny
+DrawConstruction	WORLD.C	reg	$a0	int	nz
+DrawConstruction	WORLD.C	reg	$a0	long	a
+DrawConstruction	WORLD.C	reg	$a0	long	a
+DrawConstruction	WORLD.C	reg	$a0	long	a
+DrawConstruction	WORLD.C	stack	sp+1848	int	ndl
+DrawConstruction	WORLD.C	stack	sp+1852	int	ndt
+DrawConstruction	WORLD.C	stack	sp+16	struct tag_ObjectSlotType *[153]	DrawList
+DrawConstruction	WORLD.C	stack	sp+632	struct tag_ObjectSlotType [100]	Slot
+DrawConstruction	WORLD.C	stack	sp+1832	struct ObjectSlotManager	SlotMan
+DrawConstruction	WORLD.C	reg	$s0	int	sx
+DrawConstruction	WORLD.C	stack	sp+1856	int	sy
+DrawConstruction	WORLD.C	stack	sp+1860	int	sz
+DrawConstruction	WORLD.C	stack	sp+1864	int	ex
+DrawConstruction	WORLD.C	stack	sp+1868	int	ey
+DrawConstruction	WORLD.C	stack	sp+1872	int	ez
+DrawConstruction	WORLD.C	reg	$s3	int	i
+DrawConstruction	WORLD.C	reg	$s1	struct tag_ObjectSlotType *	cur
+DrawConstruction	WORLD.C	reg	$v0	long	y
+DrawConstruction	WORLD.C	reg	$v0	long	z
+DrawConstruction	WORLD.C	reg	$a1	int	sz
+DrawConstruction	WORLD.C	reg	$s3	long	a
+DrawConstruction	WORLD.C	reg	$v0	long	x
+DrawConstruction	WORLD.C	reg	$a3	long	y
+DrawConstruction	WORLD.C	reg	$a2	long	z
+DrawConstruction	WORLD.C	reg	$a1	int	sz
+DrawConstruction	WORLD.C	reg	$v0	int	k
+DrawConstruction	WORLD.C	reg	$s2	struct tag_ObjectSlotType **	slot
+DrawConstruction	WORLD.C	reg	$s0	struct OrnamentType *	model
+DrawConstruction	WORLD.C	reg	$s0	struct tag_ObjectSlotType *	cur
+DrawConstruction	WORLD.C	reg	$s0	struct tag_ObjectSlotType *	cur
+leFindEnemy	WORLD.C	reg	$s1	int	i
+leFindEnemy	WORLD.C	reg	$s6	long	px
+leFindEnemy	WORLD.C	reg	$s5	long	py
+leFindEnemy	WORLD.C	reg	$s4	long	pz
+leFindEnemy	WORLD.C	reg	$s3	int	find
+leFindEnemy	WORLD.C	reg	$s2	int	r
+leFindEnemy	WORLD.C	reg	$v1	int	rr
+leFindEnemy	WORLD.C	stack	sp+16	struct SVECTOR	pow
+leFindEnemy	WORLD.C	stack	sp+24	struct VECTOR	pos
+leSetEnemy	WORLD.C	param	$a0	int	type
+leSetEnemy	WORLD.C	param	$a1	short	think
+leSetEnemy	WORLD.C	param	$a2	long	x
+leSetEnemy	WORLD.C	param	$a3	long	y
+leSetEnemy	WORLD.C	param	stack+16	long	z
+leSetEnemy	WORLD.C	param	stack+20	int	r
+DestroyTraceLine	WORLD.C	param	$a0	struct TraceLine *	t
+leLayoutEnemy	WORLD.C	param	$s5	int	mode
+leLayoutEnemy	WORLD.C	reg	$s3	int	i
+leLayoutEnemy	WORLD.C	reg	$s1	struct Humanoid *	target
+leLayoutEnemy	WORLD.C	stack	sp+24	struct VECTOR	pos
+leLayoutEnemy	WORLD.C	reg	$s0	struct TraceLine *	t
+leLayoutEnemy	WORLD.C	reg	$s0	struct TEnemyLayout *	en
+leLayoutEnemy	WORLD.C	reg	$s1	struct Humanoid *	human
+leLayoutEnemy	WORLD.C	reg	$s1	struct Humanoid *	human
+leLayoutEnemy	WORLD.C	reg	$s0	struct TEnemyLayout *	en
+leLayoutEnemy	WORLD.C	reg	$a1	struct TracePoint *	tp
+leLayoutEnemy	WORLD.C	reg	$a0	int	i
+leLayoutEnemy	WORLD.C	stack	sp+40	struct VECTOR	pos
+lePackEnemyLayout	WORLD.C	param	$a0	void *	buf
+lePackEnemyLayout	WORLD.C	param	$a1	long	size
+leRestoreEnemyLayout	WORLD.C	param	$a0	void *	buf
+leResetPath	WORLD.C	param	$a0	int	id
+leAddPath	WORLD.C	param	$a0	int	id
+leAddPath	WORLD.C	param	$a1	long	x
+leAddPath	WORLD.C	param	$a2	long	y
+leAddPath	WORLD.C	param	$a3	long	z
+leAddPath	WORLD.C	stack	sp+16	struct VECTOR	pos
+leAddPath	WORLD.C	stack	sp+32	struct SVECTOR	pow

@@ -27,12 +27,14 @@ MAGIC = b"MND\x01"
 
 # ---------------------------------------------------------------- COFF types
 # Storage classes (C_*) as used by the Psy-Q/MIPS COFF-derived debug format.
+C_AUTO = 1
 C_EXT, C_STAT, C_REG, C_LABEL = 2, 3, 4, 6
 C_MOS, C_ARG, C_STRTAG, C_MOU, C_UNTAG = 8, 9, 10, 11, 12
 C_TPDEF, C_USTATIC, C_ENTAG, C_MOE, C_REGPARM, C_FIELD = 13, 14, 15, 16, 17, 18
 C_EOS, C_FILE = 102, 103
 
 CLASS_NAME = {
+    1: "AUTO",
     2: "EXT", 3: "STAT", 4: "REG", 6: "LABEL", 8: "MOS", 9: "ARG",
     10: "STRTAG", 11: "MOU", 12: "UNTAG", 13: "TPDEF", 14: "USTATIC",
     15: "ENTAG", 16: "MOE", 17: "REGPARM", 18: "FIELD",
@@ -99,6 +101,9 @@ class Func:
     # parameters, in declaration order, collected from the C_ARG/C_REGPARM defs
     # the linker emits between this function's 0x8C and 0x8E records
     args: list = field(default_factory=list)
+    # local variables: C_REG (offset = register number) and C_AUTO (offset =
+    # signed frame offset).  The originals, names and types included.
+    lvars: list = field(default_factory=list)
 
 
 @dataclass
@@ -175,6 +180,8 @@ class SymFile:
                 self.defs.append(dd)
                 if cur_func is not None and cls in (C_ARG, C_REGPARM):
                     cur_func.args.append(dd)
+                elif cur_func is not None and cls in (C_REG, C_AUTO):
+                    cur_func.lvars.append(dd)
                 p = q + 9 + nl
             elif tag == 0x96:                    # def2 (with array dims + struct tag)
                 cls, ty = struct.unpack_from("<HH", d, q)
@@ -189,6 +196,8 @@ class SymFile:
                 self.defs.append(dd)
                 if cur_func is not None and cls in (C_ARG, C_REGPARM):
                     cur_func.args.append(dd)
+                elif cur_func is not None and cls in (C_REG, C_AUTO):
+                    cur_func.lvars.append(dd)
                 p = r
             elif tag == 0x98:                    # overlay definition: u32 len, u32 id
                 p = q + 8

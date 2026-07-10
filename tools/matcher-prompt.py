@@ -205,6 +205,17 @@ def psxsym_facts(name):
                            f"reference/psxsym-tu-map.tsv are its TU-mates, which pins "
                            f"rodata pooling and %gp choices.")
                 break
+    loc = "reference/psxsym-locals.tsv"
+    if os.path.exists(loc):
+        rows = [l.rstrip("\n").split("\t") for l in open(loc) if not l.startswith("#")]
+        mine = [r for r in rows if len(r) == 6 and r[0] == name]
+        if mine:
+            out.append(f"- **The original locals** ({len(mine)}), from PSX.SYM. The demo "
+                       f"build's register allocation may differ, but the NUMBER of locals "
+                       f"and their TYPES drive cc1's codegen and carry over. A repeated "
+                       f"name is a nested-block scope, not a duplicate:")
+            for _, _, kind, where, ty, vn in mine[:16]:
+                out.append(f"    {kind:5s} {where:8s} {ty} {vn}")
     for line in globals_touched(name):
         out.append(line)
     cand = "reference/psxsym-candidates.tsv"

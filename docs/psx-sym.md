@@ -43,7 +43,38 @@ $ tools/symdump.py            # regenerates everything under reference/
 | `reference/psxsym-protos.h` | 442 prototypes, 308 with the authors' parameter names |
 | `reference/psxsym-tu-map.tsv` | function → source file, line, frame size, saved-reg mask |
 | `reference/psxsym-data.tsv` | 567 data symbols with their original types |
+| `reference/psxsym-locals.tsv` | **2516 parameters and locals** across 394 functions — name, type, and where the demo build put each one |
 | `reference/psxsym-statics.tsv` | 304 `static` declarations (73 functions, 231 objects) |
+
+### Locals
+
+The richest seam, and the last one opened. `C_REG` records a local's **register
+number** (`16` = `$s0`), `C_AUTO` its **frame-pointer-relative offset** — and `$fp`
+is `$sp`, so the real slot is `sp + fsize + offset`. `valloc`'s 1 KB debug buffer
+lands at `sp+40`, just under the saved registers at `fsize-8`. Checks out.
+
+```
+DrawSprite  3DCTRL.C  param  $s1      struct Sprite3D *sprt
+DrawSprite  3DCTRL.C  stack  sp+16    struct MATRIX mat
+DrawSprite  3DCTRL.C  reg    $s1      struct ModelType *objp
+DrawSprite  3DCTRL.C  stack  sp+48    short rxy[2]
+```
+
+The demo build's *register allocation* need not survive into retail, but the
+**number of locals and their types** are exactly what drive cc1's codegen, and those
+do. A name repeated inside one function is a distinct nested-block scope, not a
+duplicate. `tools/matcher-prompt.py` prints them for the target function.
+
+### Source-line spans
+
+`psxsym-tu-map.tsv` carries each function's start line, and its end line **when that
+can be trusted**. The `0x8E` end-of-function record is not reliable everywhere: in
+`THINK_2.C` and `THINK_4.C` every function claims to end at the file's last line,
+overlapping its successors. So a span is only reported when it is consistent with
+where the next function in the same file starts, and — for the last function in a
+file, which nothing bounds — when the implied code density is at least 2 bytes per
+line (verified spans sit at a median of 13.3). 431 of 442 survive; median 24 source
+lines, p90 83. Useful as a sanity prior on how much C a body should be.
 
 `tools/matcher-prompt.py` injects the prototype, the TU and the storage class into
 every matcher-agent launch prompt automatically.
@@ -193,13 +224,34 @@ rarely agree by accident.
 * **Statics.** 73 functions and 231 objects the original build declared `static`.
   A `static` never gets a `%gp` extern and changes how the symbol is emitted; this list
   should feed `tools/gpsyms.py`.
-* **Line numbers.** Every function records a start line and an end line, and the SLD
-  stream carries per-instruction line deltas we currently discard. Function *length in
-  source lines* is a usable prior on how much C a body should be.
+* **The SLD stream.** We use the per-function line records but discard the
+  per-instruction line deltas (`0x80`/`0x82`/`0x84`/`0x86`). Those give an
+  address→source-line map for the demo build, which would let a matcher see exactly
+  which instructions came from which statement.
+* **Block structure.** `0x90`/`0x92` block start/end records (with line numbers) give
+  the nesting depth of every function. Parsed and skipped today.
 * **`MENU.EXE` / `ENDING.EXE`.** The unplaced `OPENING.C`/`OPMOVIE.C`/`MOJI.C` functions
-  are presumably there. Same three matchers apply.
+  are presumably there — the demo was one monolithic `PSX.EXE`. Same matchers apply.
+
+## What else the disc holds
+
+Nothing else in `PSX.SYM` is unread: it parses to EOF with zero unknown tags, and the
+only record classes we discard are the SLD deltas and block markers above.
+
+On the disc itself:
+
 * **`VOLMAKE.BAT`** (embedded in `TENCHU.VOL`) names the stage and enemy assets:
   `ma_akin`→`akindo`, `ma_cat`→`castle`, `ma_jyou1`→`jouka`, `ma_tan`→`tanren`,
   `ma_tem`→`temple`, `ma_yami`→`yamijou`, and enemies `rounin`, `rouban`, `echigoya`,
   `hanbe`, `jochu`, `rat`, `cat`, `dog`. Useful for naming stage/enemy tables.
+* **The AFS directory preserves the original asset tree** — `K:\WORK\CDIMAGE\` with
+  `ANIM`, `DEMO`, `HUMAN`, `WEAPON`, `IMAGE`, `SOUND`, `STAGE`, and per-stage
+  directories `AKINDO CASTLE CAVE CAVE2 JOUKA JOUKA2 TANREN TEMPLE YAMIJOU`. 351 files:
+  `.TMD` models, `.MAD`/`.AMD` animation, `.TIM`/`.TPD` textures, `.VAB` sound banks,
+  `.CAD`/`.ESD` per-stage data, `.ACM`/`.CON`/`.POS` cutscene data.
+* **`AFSMAKE.EXE`** (PE + DOS stub) and `$RES_UP.BAT` are the authors' build tools.
 * The original tree lived at `J:\DEVELOP\PS\tenchu\tomo\NINJA_OP\`.
+
+**The retail disc has none of this.** Its `DATA.VOL` holds 1048 files and the only
+`.TXT` entries are the memory-card description strings (`CARD_J.TXT` etc.); no `.BAT`,
+no `.EXE`, no `.SYM`. The demo is the single source.
