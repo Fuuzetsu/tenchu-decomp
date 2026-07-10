@@ -211,6 +211,12 @@
         nativeBuildInputs = [
           # pkgs.busybox
           pkgs.less
+          # `./Build --lint-fsatrace` traces every file each rule actually reads
+          # and errors on one that was never `need`ed. It caught the missing
+          # config/symbols.main.exe.txt dependency in one line. Must come from
+          # THIS nixpkgs: fsatrace works by LD_PRELOAD, so a build against a
+          # different glibc fails with a version-mismatch at exec.
+          pkgs.fsatrace
           pkgs.spimdisasm
           m2c-bin
           pkgs.splat

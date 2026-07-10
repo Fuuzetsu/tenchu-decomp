@@ -443,6 +443,11 @@ objRules = do
     putInfo $ "Feeding " <> processed <> " to as"
     -- `as` resolves the INCLUDE_ASM'd nonmatching .s (and include/macro.inc)
     -- here, not cpp; --MD lets us depend on them so an asm edit rebuilds this.
+    -- `as` reads the INCLUDE_ASM'd nonmatchings .s (and include/macro.inc)
+    -- before we can know which ones -- that is what --MD is for, and
+    -- neededAsmDeps declares them afterwards with `needed`. --lint-fsatrace
+    -- still sees a read-before-need, so allow exactly that directory.
+    trackAllow [mainGenDir </> asmDir <//> "*", "include/*.inc"]
     withTempFile $ \depFile -> do
       cmd_ (FileStdin processed) as asFlags ["--MD", depFile, "-o", out]
       neededAsmDeps depFile
@@ -476,6 +481,24 @@ mainRules = do
     -- splittable. Our own `li`/`move` overrides are re-injected into macro.inc
     -- via the yaml's `generated_macro_inc_content`.
     cmd_ "split.py" [splatFile]
+    -- splat writes these four into include/ (outside mainGenDir, so the
+    -- `generator` output pattern doesn't cover them) and reads them back, as does
+    -- the `sed -i` on the linker script below. They are this rule's own outputs,
+    -- not dependencies, so tell the linter to allow the reads -- otherwise
+    -- `--lint-fsatrace` drowns the real findings in five known false positives.
+    produces
+      [ "include" </> "macro.inc",
+        "include" </> "gte_macros.inc",
+        "include" </> "labels.inc",
+        "include" </> "include_asm.h"
+      ]
+    trackAllow
+      [ mainGenDir <//> "*",
+        "include/macro.inc",
+        "include/gte_macros.inc",
+        "include/labels.inc",
+        "include/include_asm.h"
+      ]
     -- Clean up paths in linker to not be buildDir </> genDir as we want to put
     -- object files in separate place for aesthetics or whatever.
     let mainBuildDir = buildDir </> "main.exe"

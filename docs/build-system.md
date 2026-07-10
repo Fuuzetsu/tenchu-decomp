@@ -148,3 +148,64 @@ adding a `need`, the first build still skips the rule, and the new dependency is
 recorded until something else forces it. When testing a dependency fix, delete the
 target (or `./Build clean`) first — otherwise you will conclude, wrongly, that the fix
 does not work.
+
+## Linting the build graph (`--lint-fsatrace`)
+
+Shake can check the dependency graph against what the commands *actually touch*.
+`fsatrace` is in the devShell, so:
+
+```console
+$ nix develop --command bash -c './Build clean && ./Build --lint-fsatrace'
+```
+
+It traces every file each rule opens and errors on:
+
+* **"value was used but not depended upon"** — a rule read a file it never `need`ed.
+  This is the class that produced the stale-link bug above; the linter names it in
+  one line (`Used: config/symbols.main.exe.txt`).
+* **"value was depended upon after being used"** — a discovered dependency declared
+  after the command that read it.
+
+Two rules legitimately read files the linter can't know about, and both are declared
+with `trackAllow` rather than silenced globally:
+
+* the splat rule reads back the linker script it just wrote, and the four
+  `include/*.inc` files it (re)generates — those are its own outputs (`produces`);
+* the `.c.o` rule's `as --MD` reads the INCLUDE_ASM'd `.s` *before* we can know which
+  one it is; `neededAsmDeps` declares it afterwards with `needed`.
+
+Do not reach for `--lint-ignore`: it hides the finding you want. `fsatrace` must come
+from *this* nixpkgs — it works by `LD_PRELOAD`, so a build against a different glibc
+dies at exec with a version mismatch.
+
+Cheaper checks: `--lint` (basic: rules that change the cwd or modify their outputs
+after finishing), `--live=FILE` (which files Shake considers live), and
+`--report=r.html` (a profile of what rebuilt and why).
+
+## "Argument list too long" is not what it says
+
+`execve` on this machine intermittently returns `E2BIG` — which bash prints as
+`Argument list too long` and shells report as exit 126 — for commands with a trivial
+argument list. Captured with strace:
+
+```
+execve("…/bin/grep", ["grep","--version"], 0x55f010 /* 153 vars */) = -1 E2BIG
+```
+
+Two argv entries, 153 environment variables, ~24 KB total. Nothing is oversized: an
+`execve` under 128 KB never reaches the argument-size check. It is `get_arg_page()`
+failing to populate the new process's argument stack, and the kernel reports that as
+`E2BIG`.
+
+It is flaky (roughly 1 in 5 under the right conditions) and follows the shell having
+just materialised a large buffer via command substitution — `out=$(./Build 2>&1)` with
+a full build log is enough. It can hit *any* exec, including `./Build` itself, making a
+perfectly good build look broken.
+
+Consequences:
+
+* **Do not capture full build output into a shell variable.** Redirect to a file.
+* `tools/matchdiff.py` detects this exact signature (rc 126/127 + "Argument list too
+  long") and retries once instead of reporting a phantom failure.
+* If a sweep reports a contiguous run of build failures that vanish on retry, suspect
+  this before suspecting the build.

@@ -68,6 +68,11 @@ def carve_extent(name):
     return off - TEXT_FOFF + TEXT_VADDR, nxt - off
 
 
+def build_once():
+    return subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
+                          stderr=subprocess.PIPE)
+
+
 def symbol_slot(name):
     """(addr, size) for `name`. Prefer the splat carve; fall back to the symbol gap."""
     syms = {}
@@ -132,8 +137,16 @@ def main():
         srcp = os.path.join("src/main.exe", args.name + ".c")
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
-        r = subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.PIPE)
+        r = build_once()
+        if r.returncode in (126, 127) and b"Argument list too long" in r.stderr:
+            # Not a build failure. execve() can return E2BIG when the kernel
+            # fails to populate the new process's argument stack -- verified with
+            # strace: 2 argv entries, 153 env vars, ~24 KB total. It is flaky and
+            # follows the shell having just materialised a large buffer (e.g. a
+            # captured build log). Retry once rather than report a phantom break.
+            print("matchdiff: spurious exec failure (E2BIG); retrying once",
+                  file=sys.stderr)
+            r = build_once()
         if r.returncode != 0:
             err = r.stderr.decode(errors="replace").strip()
             # Surface it. Swallowing this cost a long, wrong "it's just load"
