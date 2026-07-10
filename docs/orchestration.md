@@ -25,8 +25,13 @@ game bytes, whole-image byte-identical (sha256 `0690a5c1…3558`). Live count:
    functions**. Clean seam = non-jump-table, ≤~500 bytes, non-dispatch, ideally
    with a matched twin (`~0.NN to <Twin>`). triage already hides parked functions
    and de-ranks the GTE/SIGNEXT classes; you still filter OUT `switchD`,
-   `Think3*`, `handle_char_state_*`, `Card`/library, and `0x80060xxx`. Prefer
-   trivial/easy tier + a strong twin.
+   `Think3*`, `handle_char_state_*`, `0x80060xxx`, and — until the inline-asm
+   policy lands — **`DrawTMD` and `ArrangeLocalMatrix`**, which triage rates
+   TRIVIAL/EASY but which pass arguments to the GTE handlers in `$t2..$t6`
+   (non-ABI; m2c confirms the callees read `input_t0/t3/t5`). Prefer trivial/easy
+   tier + a strong twin. **`LoadCard` and `FUN_800593a0` are under-sized in
+   `functions.tsv`** — carve them with `--size 0x168` / `--size 0x27C` or their
+   `.c` can never match (see `tools/coverage.py`).
 2. Spawn ONE `general-purpose` agent, `model: "sonnet"`, `isolation:
    "worktree"`, `run_in_background: true`, with a prompt naming the 5 functions,
    their matched twins, the proven shared structs, and the early-stop rules
