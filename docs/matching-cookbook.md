@@ -507,6 +507,22 @@ goto done; zero: pri = 0; done:` reproduces the target's `bltz` + eager `li` +
 overriding `move`, where the natural `if (t < 0) pri = 0; else { … }` compiled to
 `bgez` — same instructions, wrong polarity, and an extra misplaced jump.
 
+### A guard clause with no second `return` is a plain `if`, compiled via De Morgan
+
+`if (cond) { noreturn_call(); } <rest unconditionally>` — no `else`, no second
+`return` — reproduces the target's "short fail body inline, long body reached by a
+forward jump" layout. `CreateHumanoid`'s
+`if (mad == 0 || Humans >= 0x28) { SystemOut(…); }` is the real shape; Ghidra renders
+it backwards as `if (mad != 0 && Humans < 0x28) {…} SystemOut(…);` because there is no
+second return to anchor the guard-clause exception.
+
+### A search loop's own entry-duplicated test is the only guard needed
+
+`if (0 < Humans) { for (i = 0; i < Humans; i++) … }` compiles the SAME `0 < Humans`
+test TWICE — cc1 does not dedupe the outer `if` against the `for`'s own hoisted entry
+test. Drop the outer `if` and you get one `blez` (`KillHumanoid`, and its exact twin
+`GetHumanoid`).
+
 ### An `&&`-chain's body is always the fallthrough after the last test
 
 If the target has the *opposite* body as the fallthrough, no `goto` ladder and no
@@ -918,6 +934,17 @@ pinned cc1. If the target has the literal shape, name the shifted mask first:
 **A `<<2` scaling of a truncated difference must be a separately-reused variable's
 own second use**, or fpeephole fuses the truncating `sra` and the shift into one
 instruction — leaving you one instruction short of the target.
+
+**Increment-first beats read-one-ahead, even for a plain forward scan.**
+`while (pad != -1) { point++; pad = point->pad; }` is two instructions shorter than
+`while (pad != -1) { pad = point[1].pad; point++; }` — the one-ahead form needs a
+`+12`/`-12` compensation pair the increment-first form never creates
+(`SetupTraceLine`).
+
+**A narrow (`short`) accumulator can be right for an arithmetic ladder whose value is
+only narrowed at the end.** `short t` rather than `s32 t` removed both a spurious
+`andi 0xffff` and a whole register-allocation cascade in `ControlTraceLine`'s degree
+ladder.
 
 **Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
 before any intervening call** — even where Ghidra renders one lazily folded into a

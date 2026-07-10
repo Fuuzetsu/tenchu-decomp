@@ -1,21 +1,17 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
  * struct Humanoid * CreateHumanoid(short type, unsigned long *mad);
- *     HUMAN.C:36, 31 src lines, frame 32 bytes, saved-reg mask 0x80030000 (DEMO build -- see below)
+ *     HUMAN.C:36, 31 src lines, frame 32 bytes, saved-reg mask 0x80030000
  *
  * Original parameters and locals (the demo build's register allocation may
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
- * over). A repeated name is a nested-block scope, not a duplicate.
- * The frame size and saved-reg mask above are the DEMO's: retail often needs
- * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
- * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
- * and a hint at how many values stay live, never as a spec. The asm wins.
- * Locals:
+ * over). A repeated name is a nested-block scope, not a duplicate:
  *     param $s1       short type
  *     param $s0       unsigned long * mad
  *     reg   $s0       struct Humanoid * human
@@ -28,65 +24,159 @@
  *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — ~21 differing instruction lines (7 blocks), all
+ * downstream of ONE root cause: the function compiles 1 instruction (4
+ * bytes) SHORT of the target, in the `human->rotate = &pmod->rotate;`
+ * statement. The target materializes that address as TWO instructions
+ * (`move v1,v0` then `addiu v1,v1,80`, preserving pmod's own register
+ * unclobbered via an explicit copy) where our build emits the objectively
+ * equivalent ONE-instruction form (`addiu v1,v0,80`, dest != src, which
+ * ALSO leaves pmod's register unclobbered). Both forms are behaviorally
+ * and register-effect identical; this looks like a raw cc1 RTL-expansion
+ * artifact for `&callresult->field` assigned to a pointer-typed struct
+ * field, not a source-shape choice — every attempted source lever left it
+ * unchanged:
+ *   - an explicit second pointer copy (`pmod2 = pmod; human->rotate =
+ *     &pmod2->rotate;`) — copy-propagated away, zero effect.
+ *   - assigning the address through a named `SVECTOR *rotp;` temp before
+ *     the store — zero effect.
+ *   - reordering `locate`'s computation before `rotate`'s — compiles
+ *     WORSE (24 differing lines, a different address literal leaks in).
+ *   - inlining the height read (dropping the `hh` local) — zero effect.
+ *   - `tools/permute.py CreateHumanoid -- --stop-on-zero -j4`, one bounded
+ *     ~6-minute run: plateaued at internal score 270, its only found
+ *     "improvement" a dead-store decoy variable, never touching this insn.
+ * The one missing instruction cascades into a second block (the
+ * height-half computation right after) picking the mirror-image register
+ * pair (v1/a0 instead of a0/v0) — a scheduler-driven consequence of the
+ * upstream register's availability at that point, not an independent bug.
+ * Every OTHER instruction in the function (the guard, vcalloc, model/
+ * think/character-parameter setup, GetAreaMapVector call, the
+ * ConflictObject writes including the 0x86/0x89 special case, and the
+ * Humans/HumanGroup append) matches byte-for-byte.
+ *
+ * CreateHumanoid (0x800278e4) — allocate and register a new Humanoid: zero
+ * it, load its model archive, wire up locate/rotate into the archive's own
+ * matrix, run the think/character-parameter setup, derive a half-height
+ * clip offset, register it in the collision (Conflict) pool with half-width
+ * boxes (special-cased offset for types 0x86/0x89), then append it to
+ * HumanGroup. Aborts via SystemOut (noreturn) if `mad` is null or the
+ * HumanGroup pool is full.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - `if (mad == 0 || Humans >= 0x28) { SystemOut(...); } <unconditional
+ *    body...>` — NOT nested inside the success guard. SystemOut never
+ *    returns, and the target's actual block ORDER places the short
+ *    SystemOut call INLINE right after the guard (reached by the `||`
+ *    short-circuit's first-operand branch) with the long success body
+ *    placed AFTER it, fallen into unconditionally — the polarity a plain
+ *    `if (cond) { fail; } body...;` produces via De Morgan on Ghidra's
+ *    `mad != 0 && Humans < 0x28`, not the nested "guard clause" shape.
+ *  - `height`/`width` (item.h, s16) are each read TWICE for different
+ *    purposes: once as a plain pass-through (GetAreaMapVector's `wide` arg,
+ *    human->width — natural `lh`, no cast) and once copied into a same-width
+ *    `u16` LOCAL for the half-size computation (forces `lhu`, matching the
+ *    HUMAN.C-sibling "global copied into a same-width local" idiom), then
+ *    explicitly `(s16)`-cast back for the signed divide-by-2 (the
+ *    sll/sra + srl-bias/sra idiom cc1 emits for a provably-possibly-negative
+ *    dividend — proves the cast, not a field-type change).
+ *  - `ConflictObject[idx].size.vy = half;` then `.offset.vy = -half -
+ *    model->rotate.pad;` — writing `-half` (not `-model->rotate.pad`) first
+ *    negates the ALREADY-LIVE `half` register in place (matches asm's
+ *    `negu` on the just-stored value, not a fresh negate of the reloaded
+ *    pad).
+ *  - `ConflictObject[idx].common = human;` sits BETWEEN reading `width` and
+ *    computing its half — matches the asm's store scheduled between the
+ *    `lhu` and the resign/divide chain.
+ *  - `oldHumans = Humans; Humans = Humans + 1; HumanGroup[oldHumans] =
+ *    human;` — Humans captured into a named temp BEFORE the increment
+ *    (matches Ghidra's `uVar2 = Humans; Humans = Humans + 1;` capture-and-
+ *    increment shape exactly): `HumanGroup[Humans++] = human;` instead
+ *    computes the array address before the increment, one instruction off.
+ */
+extern Humanoid *vcalloc(u32 size, u8 c);
+extern ModelArchiveType *LoadModelArchive(u32 *adr, ModelType *prnt);
+extern void SetupThinkFunction(Humanoid *human, short type);
+extern void SetupCharacterParameter(short type, Humanoid *human);
+extern void SetupWeapon(Humanoid *human);
+extern s16 InsertConflict(ModelType *m);
+extern s32 GetAreaMapVector(void *area, void *mvp, void *pos, s32 wide, s32 mode);
+extern void SystemOut(char *msg);
+
+extern s16 Humans;
+extern ModelType World;
+extern void *GlobalAreaMap;
+extern char D_80011658[]; /* "HUMAN OVERFLOW" */
+
+/* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes; see DeleteConflict.c). */
+typedef struct
+{
+    ModelType *model;            /* 0x00 */
+    VECTOR position;             /* 0x04 */
+    SVECTOR offset;              /* 0x14 */
+    SVECTOR size;                /* 0x1C */
+    void *common;                /* 0x24 */
+    u8 result[64];                /* 0x28 */
+    u8 pad[0x10];                 /* 0x68 */
+} ConflictObjectType;             /* 0x78 */
+
+extern ConflictObjectType ConflictObject[];
+extern Humanoid *HumanGroup[];
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CreateHumanoid", CreateHumanoid);
+#else
+Humanoid *CreateHumanoid(short type, u32 *mad)
+{
+    Humanoid *human;
+    ModelArchiveType *pmod;
+    s16 idx;
+    u16 hh;
+    u16 ww;
+    s32 half;
+    s32 half2;
+    s16 oldHumans;
 
-// triage: MEDIUM — 127 insns, 9 callees, ~0.07 to GetAbsolutePosition
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// Humanoid * CreateHumanoid(short type,ulong *mad)
-//
-// {
-//   ushort uVar1;
-//   uint uVar2;
-//   short sVar3;
-//   short sVar4;
-//   Humanoid *human;
-//   ModelArchiveType *pMVar5;
-//   int iVar6;
-//
-//   if ((mad != (ulong *)0x0) && (Humans < 0x28)) {
-//     human = (Humanoid *)vcalloc(0xd0,'\0');
-//     human->type = type;
-//     human->status = 0;
-//     human->attribute = 0;
-//     pMVar5 = LoadModelArchive(mad,&World);
-//     human->model = pMVar5;
-//     human->rotate = &pMVar5->rotate;
-//     human->locate = (VECTOR *)(pMVar5->locate).coord.t;
-//     human->model->attribute = 0x1c;
-//     SetupThinkFunction(human,0);
-//     SetupCharacterParameter(type,human);
-//     iVar6 = (uint)(ushort)human->height << 0x10;
-//     (human->model->clip).vy = -(short)((iVar6 >> 0x10) - (iVar6 >> 0x1f) >> 1);
-//     UpdateMotion(human->motion,0);
-//     GetAreaMapVector((MapVector *)GlobalAreaMap,(VECTOR *)&human->map,(long)human->locate);
-//     SetupWeapon(human);
-//     sVar3 = InsertConflict(*human->model->object);
-//     iVar6 = (uint)(ushort)human->height << 0x10;
-//     sVar4 = (short)((iVar6 >> 0x10) - (iVar6 >> 0x1f) >> 1);
-//     ConflictObject[sVar3].size.vy = sVar4;
-//     ConflictObject[sVar3].offset.vy = -(human->model->rotate).pad - sVar4;
-//     uVar1 = human->width;
-//     ConflictObject[sVar3].common = (undefined *)human;
-//     iVar6 = (uint)uVar1 << 0x10;
-//     sVar4 = (short)((iVar6 >> 0x10) - (iVar6 >> 0x1f) >> 1);
-//     ConflictObject[sVar3].size.vz = sVar4;
-//     ConflictObject[sVar3].size.vx = sVar4;
-//     if ((type == 0x86) || (type == 0x89)) {
-//       ConflictObject[sVar3].offset.vy = -0x1c5;
-//       ConflictObject[sVar3].offset.vz = 0xc0;
-//     }
-//     uVar2 = (uint)(ushort)Humans;
-//     Humans = Humans + 1;
-//     *(Humanoid **)((int)HumanGroup + ((int)(uVar2 << 0x10) >> 0xe)) = human;
-//     return human;
-//   }
-//                     /* WARNING: Subroutine does not return */
-//   SystemOut((uchar *)"HUMAN OVERFLOW");
-// }
+    if (mad == 0 || Humans >= 0x28)
+    {
+        SystemOut(D_80011658);
+    }
+    human = vcalloc(0xd0, 0);
+    human->type = type;
+    human->status = 0;
+    human->attribute = 0;
+    pmod = LoadModelArchive(mad, &World);
+    human->model = pmod;
+    human->rotate = &pmod->rotate;
+    human->locate = (VECTOR *)pmod->locate.coord.t;
+    human->model->attribute = 0x1c;
+    SetupThinkFunction(human, 0);
+    SetupCharacterParameter(type, human);
+    hh = human->height;
+    human->model->clip.vy = -((s16)hh / 2);
+    UpdateMotion(human->motion, 0);
+    GetAreaMapVector(GlobalAreaMap, &human->map, human->locate, human->width, 1);
+    SetupWeapon(human);
+    idx = InsertConflict(human->model->object[0]);
+    hh = human->height;
+    half = (s16)hh / 2;
+    ConflictObject[idx].size.vy = half;
+    half = -half;
+    ConflictObject[idx].offset.vy = half - human->model->rotate.pad;
+    ww = human->width;
+    ConflictObject[idx].common = human;
+    half2 = (s16)ww / 2;
+    ConflictObject[idx].size.vz = half2;
+    ConflictObject[idx].size.vx = half2;
+    if (type == 0x86 || type == 0x89)
+    {
+        ConflictObject[idx].offset.vy = -0x1C5;
+        ConflictObject[idx].offset.vz = 0xC0;
+    }
+    oldHumans = Humans;
+    Humans = Humans + 1;
+    HumanGroup[oldHumans] = human;
+    return human;
+}
+#endif /* NON_MATCHING */

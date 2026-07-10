@@ -1,21 +1,17 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void KillHumanoid(struct Humanoid *human);
- *     HUMAN.C:78, 15 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
+ *     HUMAN.C:78, 15 src lines, frame 24 bytes, saved-reg mask 0x80010000
  *
  * Original parameters and locals (the demo build's register allocation may
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
- * over). A repeated name is a nested-block scope, not a duplicate.
- * The frame size and saved-reg mask above are the DEMO's: retail often needs
- * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
- * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
- * and a hint at how many values stay live, never as a spec. The asm wins.
- * Locals:
+ * over). A repeated name is a nested-block scope, not a duplicate:
  *     param $a0       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
@@ -23,48 +19,60 @@
  *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/KillHumanoid", KillHumanoid);
+/*
+ * KillHumanoid (0x800291a8) — tear down a Humanoid (conflict box, model
+ * archive, motion manager, weapon data, the Humanoid block itself), then
+ * swap-remove it from HumanGroup[] if present.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - The search-then-swap-remove loop is GetHumanoid.c's exact twin: a
+ *    `short i` loop counter over `HumanGroup[]` (a `Humanoid *[]`) fuses the
+ *    sign-extend with the pointer's 4-byte stride into one `sll 16/sra 14`
+ *    per iteration instead of loop.c strength-reducing to a walking
+ *    pointer — see the toolchain-gotchas note citing GetHumanoid/
+ *    DisposeWeapon for this exact 2-instruction shape.
+ *  - `for (i = 0; i < Humans; i++) if (HumanGroup[i] == human) break;` is
+ *    the standard entry-duplicated bottom-test do-while with a `break`
+ *    joining the same exit as the counter running out — `i` is live after
+ *    the loop either way (found index, or == Humans if not found).
+ *  - `Humans` is read `lh` (signed) for the entry `0 < Humans` guard and
+ *    again `lh`+`lhu` (two un-CSE'd loads) for the post-loop `i < Humans`
+ *    test / `Humans - 1` capture — the same per-read-purpose disagreement
+ *    as CreateHumanoid/InsertConflict.
+ */
+extern void DeleteConflict(ModelType *m);
+extern void DisposeModelArchive(ModelArchiveType *mad);
+extern void DisposeMotionManager(MotionManager *mm);
+extern void DisposeWeapon(Humanoid *human);
+extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
+extern void vfree(void *p);
 
-// triage: EASY — 63 insns, 1 loop, 6 callees, ~0.15 to DisposeBG
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+extern s16 Humans;
+extern Humanoid *HumanGroup[];
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void KillHumanoid(Humanoid *human)
-//
-// {
-//   ushort uVar1;
-//   int iVar2;
-//   short sVar3;
-//   int iVar4;
-//
-//   if (human != (Humanoid *)0x0) {
-//     DeleteConflict(*human->model->object);
-//     DisposeModelArchive(human->model);
-//     DisposeMotionManager(human->motion);
-//     DisposeWeapon(human);
-//     FUN_800270c8(human,3);
-//     vfree((undefined *)human);
-//     iVar4 = 0;
-//     if (0 < Humans) {
-//       iVar2 = 0;
-//       do {
-//         sVar3 = (short)iVar4;
-//         iVar4 = iVar4 + 1;
-//         if (*(Humanoid **)((int)HumanGroup + (iVar2 >> 0xe)) == human) break;
-//         iVar2 = iVar4 * 0x10000;
-//         sVar3 = (short)iVar4;
-//       } while (iVar4 * 0x10000 >> 0x10 < (int)Humans);
-//       uVar1 = Humans - 1;
-//       if ((int)sVar3 < (int)Humans) {
-//         Humans = uVar1;
-//         HumanGroup[sVar3] = *(Humanoid **)((int)HumanGroup + ((int)((uint)uVar1 << 0x10) >> 0xe));
-//       }
-//     }
-//   }
-//   return;
-// }
+void KillHumanoid(Humanoid *human)
+{
+    short i;
+
+    if (human != 0)
+    {
+        DeleteConflict(human->model->object[0]);
+        DisposeModelArchive(human->model);
+        DisposeMotionManager(human->motion);
+        DisposeWeapon(human);
+        dispose_weapon_data_of_char_(human, 3);
+        vfree(human);
+        for (i = 0; i < Humans; i++)
+        {
+            if (HumanGroup[i] == human)
+            {
+                break;
+            }
+        }
+        if (i < Humans)
+        {
+            Humans = Humans - 1;
+            HumanGroup[i] = HumanGroup[Humans];
+        }
+    }
+}

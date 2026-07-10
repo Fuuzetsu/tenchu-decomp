@@ -14,6 +14,14 @@ show as themselves and pure branch-target drift can be suppressed.
   tools/asmdiff.py <Name> -n           skip ./Build
 
 Exit 0 when the sequences are identical. Run inside the nix devShell.
+
+
+KNOWN BUG: --structural truncates its comparison window at the ORIGINAL function's
+instruction count instead of reporting that our build is longer. It printed
+"length ours 91 vs target 91" for a GetNearestHumanoid draft that was really 93
+instructions, and the overrun then made the NEXT function look like it was missing a
+prologue. When --structural looks off, cross-check with tools/matchdiff.py, whose
+whole-image byte count is reliable.
 """
 import tempfile, argparse, os, re, subprocess, sys
 

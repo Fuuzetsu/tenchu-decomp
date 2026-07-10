@@ -41,6 +41,9 @@ AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").
 # shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
 # small globals the function's ORIGINAL translation unit defined).
 GP_EXTERNS = {
+    "CreateHumanoid": ["Humans"],
+    "KillHumanoid": ["Humans"],
+    "GetNearestHumanoid": ["Humans"],
     "SetupCharacterParameter": ["NowStage"],
     "AVCameraSetup": ["CHOSEN_EVENT_LIST_THING_LOCATION", "D_80097CC4"],
     "AVCameraControl": ["D_80097CCA", "D_80097CC8", "D_80097CC4"],
