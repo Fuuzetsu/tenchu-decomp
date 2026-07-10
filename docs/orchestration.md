@@ -285,6 +285,12 @@ lens.
 
 ## Gotchas (all learned the hard way)
 
+- **A build killed mid-run poisons exactly one subsequent `./Build`.** `./Build clean`
+  removes `.shake/{gen,build,processed}` but NOT Shake's database (`.shake/`
+  itself is `shakeFiles`). A torn database from a SIGKILLed build can make the next
+  invocation exit non-zero while its log shows a completed, byte-identical build.
+  Re-run once before believing a failure whose log says success.
+
 - **Never run `tools/permute.py` and `tools/matchdiff.py` concurrently in one
   worktree.** Both drive `./Build` against the same `.shake/` database, and the
   torn read produces a wildly garbled diff — one that typically appears as a length

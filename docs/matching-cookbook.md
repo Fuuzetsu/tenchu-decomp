@@ -500,6 +500,19 @@ De Morgan: invert the `&&`-chain into an early-return `||` guard, which changes 
 body is "the then". `CGetLevel`'s 6-way guard needed exactly this; Ghidra had rendered
 the polarity backwards.
 
+### A `return 0x80000000;`-style guard constant needs a label past the main tail
+
+`goto ret_min;` to a label at the function's *very end*, after the normal tail.
+Put the label anywhere earlier and the constant's `lui` floats up into the guard
+branch's own delay slot — a 6-byte tie.
+
+### Two-guard-then-fall-through dispatch reaches one shared return tail
+
+`if (A) goto a; if (B) goto b; goto tail; a: …; goto tail; b: …; tail: return v;`
+is what you need whenever several case bodies must converge on a *single* shared
+return via cross-jump. Three separate `return EXPR;` statements each compile their
+own full tail instead. (See also the shared-tails rule.)
+
 ### A guard returning the constant its own test produced wants a bare `goto`
 
 `if (cond) return X;` followed by more code, where `X` is a compile-time constant
@@ -880,6 +893,15 @@ reach it with a single branch (`ItemUse`'s `item[4]==0` and `d >= 300` guards).
   `it->owner=`/`it->type=` stores end up 4 insns apart with other stores
   interleaved; `us = p->user; ty = p->type;` then the stores matched, while
   inline loads cost 26 bytes).
+
+**`x & (1 << n)` for non-constant `n` always canonicalises to `(x >> n) & 1`**
+(`srav`+`andi`), never the literal `sllv`+`and` — verified standalone against the
+pinned cc1. If the target has the literal shape, name the shifted mask first:
+`int mask = 1 << n; if (x & mask)`.
+
+**A `<<2` scaling of a truncated difference must be a separately-reused variable's
+own second use**, or fpeephole fuses the truncating `sra` and the shift into one
+instruction — leaving you one instruction short of the target.
 
 **A pure narrowing struct-field copy uses `lhu`/`lbu` even for signed fields.** A
 field read and immediately written back at the same width, with no arithmetic in
