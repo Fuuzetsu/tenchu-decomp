@@ -1904,6 +1904,27 @@ absolute → keep the symbol off the list (a plain small extern).
   h caller-saved and drifts the whole tail (DebugMenuItemSet, permuter
   find; same family as the variable-reuse rule).
 
+## Dividing by a variable needs `--expand-div`
+
+**A `%` or `/` by a runtime VALUE (not a constant) compiles ~10 instructions shorter
+than the target unless the function is on the `--expand-div` list.** ASPSX guards a
+variable division with `break 7` (divide-by-zero) and `break 6` (overflow, the
+INT_MIN/-1 case); maspsx only reproduces those guards under `--expand-div`. Without
+it maspsx emits a bare `div`/`mflo` and the draft assembles short, shifting
+everything after it (this is a common cause of the "40 bytes short" length mismatch).
+
+The tell, before you even build: **Ghidra renders the guards as `trap(0x1c00)` and
+`trap(0x1800)`** — seeing those in the reference C means the TU divides by a variable.
+In the target `.s` it is a `div`/`divu` followed by two `break` instructions. Division
+by a CONSTANT is a magic-multiply with no guards and needs nothing.
+
+Fix: add the function to BOTH `extra "<Name>" = ["--expand-div"]` in
+`shake/src/Build.hs` and `"<Name>": ["--expand-div"]` in `tools/permute.py`'s
+`MASPSX_EXTRA`. The EFFECT.C spawners are prone to this (`rand() % time`,
+`rand() % srange` etc.): `SetSmoke` (1 variable div, 2 breaks) and `SetBleeds`
+(3 variable divs) both need it; the already-matched `IsVisible`/`ComputeAreaLevel`/
+`bow_shoot_logic` are on the list for the same reason.
+
 ## Toolchain gotchas
 
 - **A literal added to a value that only ever feeds a NARROW (byte) store can
