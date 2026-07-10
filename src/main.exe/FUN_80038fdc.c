@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -11,55 +12,73 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80038fdc", FUN_80038fdc);
+/*
+ * FUN_80038fdc (0x80038fdc, 0xc0 bytes) — EFFECT.C effect-pool allocator:
+ * same EffectSlot[200] round-robin search as SetSplash/SetFrame/SetBleed
+ * (see SetSplash.c for the full writeup of the shared idioms — goto loop
+ * instead of while(1)+break so loop.c doesn't hoist &dmy's address,
+ * idx-computed-before-slot so idx/slot land in the target's t0/v1 pair).
+ * Called only by (still-asm) CVAupdate, which also drives SetBlood/
+ * SetNowMotion/SoundEx/SetupTelop for the same cutscene-ish sequence.
+ *
+ * The struct written (effect.h's new XF4Type) is a DIFFERENT union member
+ * than BloodType at offset 0 (three separate 1-byte stores, not BloodType's
+ * 4-byte `hint` pointer) even though it shares BloodType's px/py/pz layout
+ * at +4/+8/+0xc — see effect.h's XF4Type comment for the naming evidence
+ * (FUN_80036284, this slot's `proc`, calls AddXF4/SetPolyXF4; pairs with
+ * the unplaced demo `DrawXF4`, EFFECT.C:1785).
+ */
+extern void FUN_80036284(TEffectSlot *ef);
+extern long GameClock;
 
-// triage: EASY — 48 insns, 1 loop, 0 callees, ~0.04 to FUN_8004a42c
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+void FUN_80038fdc(u8 arg0, u8 arg1, u8 arg2, long arg3)
+{
+    long tmp;
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    XF4Type *fp;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void FUN_80038fdc(undefined1 param_1,undefined1 param_2,undefined1 param_3,long param_4)
-//
-// {
-//   long lVar1;
-//   int iVar2;
-//   tag_EffectSlot *ptVar3;
-//   int iVar4;
-//
-//   iVar4 = 0;
-//   ptVar3 = EffectSlot + DAT_80097a3c;
-//   iVar2 = DAT_80097a3c;
-//   while( true ) {
-//     iVar2 = iVar2 + 1;
-//     ptVar3 = ptVar3 + 1;
-//     if (199 < iVar2) {
-//       iVar2 = 0;
-//       ptVar3 = EffectSlot;
-//     }
-//     if (ptVar3->proc == (undefined **)0x0) break;
-//     iVar4 = iVar4 + 1;
-//     if (199 < iVar4) {
-//       ptVar3 = &dmy;
-// LAB_80039064:
-//       *(undefined1 *)&ptVar3->param = param_1;
-//       *(undefined1 *)((int)&ptVar3->param + 1) = param_2;
-//       *(undefined1 *)((int)&ptVar3->param + 2) = param_3;
-//       (ptVar3->param).splash.speed = '\0';
-//       lVar1 = GameClock;
-//       (ptVar3->param).blood.px = param_4;
-//       (ptVar3->param).blood.py = lVar1;
-//       (ptVar3->param).blood.pz = lVar1 + 5;
-//       ptVar3->proc = (undefined **)FUN_80036284;
-//       return;
-//     }
-//   }
-//   DAT_80097a3c = iVar2 + 1;
-//   if (199 < iVar2 + 1) {
-//     DAT_80097a3c = 0;
-//   }
-//   goto LAB_80039064;
-// }
+    idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+    count = 0;
+    base = EffectSlot;
+    slot = base + idx;
+loop:
+    idx = idx + 1;
+    slot = slot + 1;
+    if (199 < idx)
+    {
+        slot = base;
+        idx = 0;
+    }
+    if (slot->proc == 0)
+    {
+        CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+        if (199 < idx + 1)
+        {
+            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+        }
+        ef = slot;
+        goto found;
+    }
+    count = count + 1;
+    if (199 < count)
+    {
+        ef = &dmy;
+        goto found;
+    }
+    goto loop;
+found:
+    ef->param.xf4.unk0 = arg0;
+    fp = &ef->param.xf4;
+    fp->unk1 = arg1;
+    fp->unk2 = arg2;
+    fp->unk10 = 0;
+    tmp = GameClock;
+    fp->px = arg3;
+    fp->py = tmp;
+    fp->pz = tmp + 5;
+    ef->proc = (void (*)())FUN_80036284;
+}

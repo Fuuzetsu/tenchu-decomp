@@ -705,7 +705,7 @@ segments:
       - [0x4F4A4, c, AdtReleaseDisp]
       - [0x4F534, c, AdtDmyPadRead]
       - [0x4F53C, c, AdtVsprintf]
-      - [0x4F634, c, FUN_8005fe34]
+      - [0x4F638, c, FUN_8005fe38]
       - [0x4F688, c, FUN_8005fe88]
       - [0x4F6CC, c, AdtSelect]
       - { start: 0x4F9D4, type: data, linker_section_order: .text }

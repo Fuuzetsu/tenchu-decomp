@@ -14,6 +14,7 @@ typedef struct BleedType BleedType;
 typedef struct SplashType SplashType;
 typedef struct FrameType FrameType;
 typedef struct ExplosionType ExplosionType;
+typedef struct XF4Type XF4Type;
 
 struct BloodType /* size 36 */
 {
@@ -29,6 +30,11 @@ struct BloodType /* size 36 */
     short vz;                   /* +0x1e */
     u8 mode;                    /* +0x20 */
     u8 bright;                  /* +0x21 */
+    u8 unk22;                   /* +0x22 — proven by FUN_8003944c (a real
+                                  * field, not just alignment padding: it's
+                                  * an explicit `sb` store there, distinct
+                                  * from the struct's implicit round-up to
+                                  * the union's 4-byte alignment). */
 };
 
 struct BleedType /* size 32 */
@@ -79,6 +85,28 @@ struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
     u8 mode;      /* +0x21 */
 };
 
+/* Offsets proven by FUN_80038fdc (tools/access.py): +0/+1/+2 one-byte
+ * fields, +0x4/+0x8/+0xc a long triple sharing BloodType's px/py/pz layout,
+ * +0x10 one more byte. Distinct from BloodType at +0x0 (BloodType.hint is a
+ * 4-byte pointer; here it's three separate 1-byte stores) — the "divergent
+ * union member" case in docs/matching-cookbook.md. Tentatively named XF4:
+ * FUN_80038fdc's `proc` callback (FUN_80036284) calls AddXF4/SetPolyXF4,
+ * and reference/psxsym-unplaced.tsv has an un-located demo `DrawXF4`
+ * (EFFECT.C:1785) — this family always pairs SetX/DrawX (SetBlood/
+ * DrawBlood, SetSplash/DrawSplash, ...), so FUN_80038fdc/FUN_80036284 are
+ * good SetXF4/DrawXF4 candidates. Not corroborated by callmatch.py yet —
+ * do not treat the name as confirmed. */
+struct XF4Type /* size >= 0x11 */
+{
+    u8 unk0;   /* +0x0 */
+    u8 unk1;   /* +0x1 */
+    u8 unk2;   /* +0x2 */
+    long px;   /* +0x4 */
+    long py;   /* +0x8 */
+    long pz;   /* +0xc */
+    u8 unk10;  /* +0x10 */
+};
+
 union EffectParam /* size 72 (union EFFECT__180fake) */
 {
     struct BloodType blood;
@@ -86,6 +114,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct SplashType splash;
     struct FrameType frame;
     struct ExplosionType explosion;
+    struct XF4Type xf4;
     u8 pad[72];
 };
 

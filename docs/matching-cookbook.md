@@ -463,6 +463,18 @@ plain C is the matched file.
   Array indexing keeps the giv at the table base, so the accesses stay at their
   natural `4($a2)`/`8($a2)` (FUN_800568b8; the `addiu $a2,$a2,0xC` bottom
   increment is identical either way, so the *bias* is the only tell).
+  - **At 3+ touched offsets from one base, a walking pointer doesn't just bias
+    — it can split into a whole SECOND parallel induction register**, one
+    walking pointer materializing a constant offset (e.g. `entry+5`) to serve
+    two of the offsets while the original walking pointer serves the third,
+    both incrementing by the same stride every iteration (confirmed: every
+    walking-pointer spelling tried — plain pointer, byte-cast, named struct
+    field — reproduced the identical extra register). The fix is the same
+    lever, just needed harder: index by the loop's OWN counter variable
+    (`T[i].f`, reusing whatever `int i` already drives the loop-exit test, not
+    a separately incremented cursor) so cc1 strength-reduces to exactly ONE
+    walking pointer no matter how many offsets/fields you touch off it
+    (FUN_8004a6bc's `D_8008E4B4[idx]` table, touched at offsets 0/4/5).
 - **Keep a compared memory read INLINE in both `&&` operands (cc1 CSEs the
   address); hoisting it into a temp can swap two registers.**
   `if (p[n] != K && mx < p[n]) p[n] = mx;` with `mx` declared *before* the `if`
@@ -1523,6 +1535,29 @@ absolute → keep the symbol off the list (a plain small extern).
   function and names the culprit. Two exist in game code: `LoadCard`
   (0x114 → true 0x168) and `FUN_800593a0` (0x12C → true 0x27C). Carve those with
   `reverse.py <Name> --size 0x<true>` (verified green), and fix them in Ghidra.
+  - **Variant: the missing tail can land inside a NEIGHBOURING phantom function
+    instead of an orphan `.data` blob, if Ghidra also independently placed a
+    (bogus) function label exactly at the boundary.** Symptom: a trivial
+    `void f(void)`-shaped target's FIRST instruction is a small **positive**
+    `addiu sp,sp,+N` (not the usual negative frame-open) that doesn't fold into
+    anything sensible no matter how you shape the source. Check the PRECEDING
+    function's own carve: if it ends in a bare `jr ra` with no trailing
+    delay-slot instruction at all (`endlabel` right after `jr ra` in its `.s`),
+    that missing delay slot IS your function's leading `+N` — our cc1's
+    `mips_expand_epilogue` ALWAYS reorgs the sp-restore into `jr ra`'s own
+    delay slot (verified: no source shape leaves it bare), so the preceding
+    function's TRUE carve is one word (4 bytes) longer than its
+    `functions.tsv`/splat entry, and yours starts 4 bytes later than currently
+    split. Corroborate before touching the boundary: `tools/xref.py <Name>`
+    should show zero `jal` callers, and a raw byte-grep of the function's own
+    address as a little-endian word across `disks/tenchu/main.exe` should find
+    zero hits (no real function pointer/table targets it) — if both hold, it's
+    a phantom Ghidra label, not a genuine callable entry. Fix: move the
+    boundary 4 bytes later in `config/splat.main.exe.yaml` (shrinking the
+    phantom entry, growing the preceding one by the same 4 bytes) and rename
+    the file/function to match its TRUE start address (FUN_8005fe34, 84 bytes,
+    was really AdtVsprintf's own missing epilogue word + FUN_8005fe38, 80
+    bytes — both now match).
 - **`config/symbols.main.exe.txt` (an ld/splat script) has NO comment syntax**
   — `//` or `/* */` is a hard parse error, not a no-op. If a splat-auto-named
   `D_XXXXXXXX` data symbol resolves to the wrong address (verify against the
@@ -1552,6 +1587,28 @@ absolute → keep the symbol off the list (a plain small extern).
     `config/symbols.main.exe.txt` (PathFileRead's `"%s%s"` at `D_800976DC`;
     contrast `D_800127A4`, which keeps its label only because AddMisc's
     jump-table asm still references it).
+    - **Worse variant: it doesn't always fail loudly — it can silently resolve
+      to the WRONG address instead, even past your own same-name rebinding.**
+      If TWO already-matched `.c` files both plain-`extern` the same `D_`
+      symbol with no explicit binding (each relying on splat's auto-name from
+      whichever raw asm still referenced it), converting the LAST asm
+      reference to C removes that anchor — but `undefined_symbols_auto.main.exe.txt`
+      (a **generated meta linker script**, listed with `-T` *after*
+      `config/symbols.main.exe.txt`) can still auto-derive an address for that
+      same symbol NAME from an unrelated, drifted accumulation elsewhere, and
+      GNU ld's plain `SYM = ADDR;` assignment takes the LAST script's value —
+      so adding `D_XXXXXXXX = 0x<real>;` to `config/symbols.main.exe.txt`
+      yourself does **not** win; the auto meta file processed after it
+      silently overrides it back to the wrong address, and BOTH consumer
+      files break together with no link error (`./Build check`'s hash just
+      fails). Diagnose via the `.map`: `grep D_XXXXXXXX .shake/build/tenchu/main.exe.map`
+      shows the address actually in effect. Fix (same recipe as the sibling
+      bullet above, one level firmer): bind a **FRESH, non-colliding name**
+      (not the old `D_` one) at the correct address, and update **every**
+      already-matched consumer file's `extern` to the new name, not just the
+      one you're currently drafting (FUN_80056e30 and DeleteCard.c both
+      `extern`'d `D_80097D04`/`D_80097D08`; rebound as `CardVolumeIdPtr`/
+      `CardPathFormat` in both files at once).
   - **gp-output SVECTOR/aggregate whose fields splat auto-named as separate
     drifted `D_` symbols**: when a function writes a small SVECTOR to gp memory,
     splat names each *referenced field address* its own `D_XXXX` glabel and can

@@ -107,7 +107,7 @@ GP_EXTERNS = {
     "GetHumanoid": ["Humans"],
     "AttackAnimal": ["Me_THINK_C", "Distance", "Degree"],
     "StickonCheck": ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"],
-    "DeleteCard": ["D_80097D04"],
+    "DeleteCard": ["CardVolumeIdPtr"],
     "SetupAfterimage": ["D_80097F3C"],
     "MotionAndMove": ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"],
     "FileRead": ["AccessPower", "ReadMode", "TotalIO"],
@@ -133,6 +133,10 @@ GP_EXTERNS = {
     "Think3callaid": ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"],
     "InitFileSystem": ["ReadMode", "TotalIO", "D_80097EB8"],
     "cbAccess": ["AccessPower"],
+    "FUN_80056e30": ["CardVolumeIdPtr"],
+    "FUN_80038fdc": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "FUN_8003944c": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "FUN_8005fe38": ["D_80097E98"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

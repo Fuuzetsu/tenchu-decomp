@@ -201,7 +201,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "GetHumanoid" = ["Humans"]
     syms "AttackAnimal" = ["Me_THINK_C", "Distance", "Degree"]
     syms "StickonCheck" = ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"]
-    syms "DeleteCard" = ["D_80097D04"]
+    syms "DeleteCard" = ["CardVolumeIdPtr"]
     syms "SetupAfterimage" = ["D_80097F3C"]
     syms "MotionAndMove" = ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"]
     syms "FileRead" = ["AccessPower", "ReadMode", "TotalIO"]
@@ -227,6 +227,10 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "Think3callaid" = ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"]
     syms "InitFileSystem" = ["ReadMode", "TotalIO", "D_80097EB8"]
     syms "cbAccess" = ["AccessPower"]
+    syms "FUN_8005fe38" = ["D_80097E98"]
+    syms "FUN_80056e30" = ["CardVolumeIdPtr"]
+    syms "FUN_80038fdc" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "FUN_8003944c" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms _ = []
 
 as :: FilePath
@@ -262,9 +266,11 @@ ccFlags :: [String]
 ccFlags =
   [ "-mcpu=3000",
     "-quiet",
+    -- cc1, not cpp, decides whether `abs()` inlines. This lived in cppFlags
+    -- for a long time, where it did nothing.
+    "-fno-builtin",
     -- cc1, not cpp, is what decides whether `abs()` inlines. This flag lived
     -- in cppFlags for a long time, where it did nothing.
-    "-fno-builtin",
     -- -G8: small globals go in .sdata/.sbss and are addressed via $gp, as the
     -- original ASPSX build did. maspsx reproduces the resulting layout; `as`
     -- itself still runs with -G0 (see asFlags).

@@ -27,10 +27,20 @@
  * the stack for the return — hence the `lh` rather than a register truncation.
  * D_80097D04 is %gp_rel (a small in the gp window); D_80097D08, the format
  * string, is reached absolutely.
+ *
+ * Bound under fresh names (CardVolumeIdPtr/CardPathFormat) in
+ * config/symbols.main.exe.txt instead of the splat-auto D_80097D04/
+ * D_80097D08: once FUN_80056e30 (the same TU, same "%s%s" idiom) stopped
+ * being raw asm, splat's auto-symbol table lost its only remaining
+ * raw-bytes anchor for these two addresses and started deriving them from
+ * a drifted accumulation elsewhere (+4 bytes each) — the same "matching a
+ * function can delete the very D_ symbol its C body needs" class in
+ * docs/matching-cookbook.md. Bind fresh, non-colliding names at the
+ * correct addresses instead of re-using the (now unreliable) auto name.
  */
 
-extern char *D_80097D04;  /* -> the volume-id prefix string */
-extern char D_80097D08[]; /* "%s%s" style path format */
+extern char *CardVolumeIdPtr;  /* -> the volume-id prefix string */
+extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern s32 MemCardDeleteFile(s32 chan, char *path);
@@ -42,7 +52,7 @@ s16 DeleteCard(char *name)
     s32 cmd;
     s32 result;
 
-    sprintf(path, D_80097D08, D_80097D04, name);
+    sprintf(path, CardPathFormat, CardVolumeIdPtr, name);
     result = MemCardDeleteFile(0, path);
     MemCardSync(0, &cmd, &result);
     return result;
