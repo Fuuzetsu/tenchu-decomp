@@ -263,3 +263,48 @@ executables…"): `packages.spimdisasm` is now a `runCommandLocal` symlinking on
 guards it. **Bump `spimdisasm` here only once that fix is pushed** — until then
 `nix flake update spimdisasm` reintroduces the hijack. Even after, the bump is
 cosmetic; the CLI is the only thing it buys.
+
+## splat 0.41 (new splat-overlay): the image reproduces, but the repo needs work
+
+The rewritten `Fuuzetsu/splat-overlay` is **sound**: its own `splat-runs` and
+`splat-does-not-leak-pythonpath` checks pass, it exports nothing onto
+`PYTHONPATH` (the same hazard the spimdisasm overlay hit), and it keeps a
+`split.py` shim over the new `splat split` entry point, so `Build.hs` needs no
+change. It jumps splat from the 2023 build to **0.41.0**.
+
+**Verified: splat 0.41 reproduces our image byte-for-byte** (`./Build check`
+exit 0) — but only after two config changes, and it changes enough around the
+edges that adopting it is a migration, not a version bump.
+
+Required config changes:
+1. **Deduplicate `config/symbols.main.exe.txt`.** splat ≥0.4x rejects two names
+   at one vram unless disambiguated by segment/rom — which our file cannot
+   express, since it doubles as an ld script with no comment syntax. There are
+   **716 duplicate names over 181 addresses**, almost all Ghidra
+   `switchD_<a>__caseD_<n>` aliases for cases sharing a block. Only two of them
+   are referenced by our sources (`switchD_8002aa7c__caseD_2`,
+   `switchD_8005c6cc__caseD_e`), so keep those and drop the rest.
+2. **`ld_legacy_generation: True`.** 0.4x imposes `section_order` on linker-script
+   generation and then refuses our deliberately-unlisted `.rodata`. Listing
+   `.rodata` instead adds an auto `all .c.o(.rodata)` pile that shifts `.text`
+   and blows up branch ranges (`relocation truncated to fit: R_MIPS_PC16 against
+   switchD_8005c6cc__caseD_e`). Legacy generation restores the pre-0.4x behaviour
+   our carves were designed around.
+
+What else changes:
+- **splat now OVERWRITES `include/macro.inc` and `include/include_asm.h`**, and
+  writes `include/labels.inc` + `include/gte_macros.inc`. That silently destroys
+  our ASPSX `li` override (documented above). The image still matched, because
+  GNU `as`'s own `li` picks the same encoding — but do not rely on luck: re-inject
+  the overrides via splat's `generated_macro_inc_content` option.
+- **`tools/gte2word.py` becomes obsolete.** splat 0.41 ships 68 GTE macros in
+  `include/gte_macros.inc`, so it emits `rtpt`/`nclip`/`dpcs` in *lowercase* and
+  `as` assembles them through those macros. Our uppercase detector then matches
+  nothing (a silent no-op). Drop the tool and its `Build.hs` hook when migrating.
+- **Instruction lines are now indented** (`    /* off vram WORD */  insn`) and
+  functions gain `nonmatching NAME, SIZE` / `endlabel NAME` wrappers. Anything
+  anchoring on `^/\*` breaks: `tools/gte2word.py`'s `LINE` regex and
+  `tools/permute.py`'s `piece_addr` (which silently returns a sentinel, so
+  jump-table piece ORDER goes wrong). Fix both before migrating.
+
+Nothing here blocks pushing the overlay — the breakage is all on our side.
