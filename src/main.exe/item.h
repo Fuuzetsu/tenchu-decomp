@@ -313,7 +313,7 @@ struct tag_TItem
 };                               /* sizeof = 0x58 (items[] stride) */
 
 extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
-extern s16 UpdateMotion(MotionManager *m, int id);
+extern s16 UpdateMotion(MotionManager *m, short id);
 extern void MoveHumanoid(Humanoid *h, short a, short b);
 extern void UpdateCoordinate(ModelType *m);
 extern void DrawSprite(Sprite3D *s);
