@@ -14,6 +14,13 @@ src/main.exe/<name>.c and confirm with `./Build check`.
 
 Usage (in the nix devShell):  tools/permute.py <name> [-- <permuter args>]
 e.g.  tools/permute.py GetRealPad --stop-on-zero -j4
+
+
+CAVEAT: the permuter's score ignores stack-frame slot placement. It will happily
+report score 0 ("perfect") for a candidate that still differs from the target only
+in stack-slot ordering -- FUN_80018f00 has an 11-byte residual the scorer cannot
+see. It also scores register-allocation wins that are real byte regressions.
+ALWAYS re-verify a permuter win with tools/matchdiff.py before believing it.
 """
 import argparse, glob, os, shutil, subprocess, sys
 
@@ -34,6 +41,7 @@ AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").
 # shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
 # small globals the function's ORIGINAL translation unit defined).
 GP_EXTERNS = {
+    "FUN_80018f00": ["AccessPower"],
     "GetAreaMapVector": ["FieldAttrib", "FieldArea", "FieldIndex"],
     "FUN_80039160": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "SetImpact": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],

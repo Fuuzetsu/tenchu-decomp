@@ -167,6 +167,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SetImpact" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "GetAreaMapVector" = ["FieldAttrib", "FieldArea", "FieldIndex"]
     syms "FUN_80039160" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "FUN_80018f00" = ["AccessPower"]
     syms "SetExplosion" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "Think1random" = ["Me_THINK_C", "Attrib"]
     syms "Think1chase" = ["Me_THINK_C"]

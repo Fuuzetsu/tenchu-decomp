@@ -919,6 +919,9 @@ pinned cc1. If the target has the literal shape, name the shifted mask first:
 own second use**, or fpeephole fuses the truncating `sra` and the shift into one
 instruction — leaving you one instruction short of the target.
 
+**`GsSortSprite`'s `int pri` argument needs an explicit `(u16)` cast at the call
+site** to reproduce the `andi $a2,$a2,0xffff` that sits in the `jal`'s delay slot.
+
 **A pure narrowing struct-field copy uses `lhu`/`lbu` even for signed fields.** A
 field read and immediately written back at the same width, with no arithmetic in
 between, loads unsigned regardless of the field's signedness — the sign bits can't
