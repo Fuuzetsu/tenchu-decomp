@@ -12,6 +12,13 @@
 
 typedef struct tag_TItem tag_TItem;
 
+/* game_types.h's `some_char_state_function` (a plain `s32(*)(void)`),
+ * respelled locally so this header stays independent of game_types.h. The
+ * Think1Func[]/Think2Func[]/Think3Func[]/Think4Func[] tables (SetupThinkFunction.c,
+ * matched) are proven arrays of POINTERS TO this function-pointer type —
+ * carried over here for Humanoid.think[4]'s element type. */
+typedef s32 (*think_func_)(void);
+
 /* Opaque — only ever handled by pointer (moved around Humanoid's weapon[4],
  * never dereferenced by an item-TU function). Fully defined locally, per
  * this repo's convention, in DrawOrnament.c/CreateCloneOrnament.c/
@@ -54,6 +61,18 @@ typedef struct
     s32 scale;                   /* 0x64 */
 } Sprite3D;
 
+/* A single keyframe (Ghidra's own independently-built MotionElementType,
+ * reference/ghidra_types.h:4861, cross-checked against psxsym-types.h:2649 —
+ * both size 8, x/y/z/time all shorts; exercised by LoadMotion/HoldMotion/
+ * GetSpline/ActiveMotion's mmp->motion->locate->x-style keyframe reads). */
+typedef struct
+{
+    s16 x;                       /* 0x0 */
+    s16 y;                       /* 0x2 */
+    s16 z;                       /* 0x4 */
+    s16 time;                    /* 0x6 */
+} MotionElementType;               /* 0x8 */
+
 typedef struct
 {
     u8 n;                        /* 0x0 */
@@ -65,9 +84,16 @@ typedef struct
                                     Ghidra's own independently-built
                                     MotionDataType exactly — reference/
                                     ghidra_types.h:4994, which also has
-                                    id/locate/rotate[1] after it, not yet
-                                    exercised by any matched function) */
-} MotionDataType;
+                                    id/locate/rotate[1] after it) */
+    s16 id;                       /* 0x6 (SearchMotion's `pMVar2->id == id` compare) */
+    MotionElementType *locate;    /* 0x8 (LoadMotion's on-disk-offset ->
+                                    absolute-pointer fixup; HoldMotion/
+                                    ActiveMotion read ->x/->y/->z through it) */
+    MotionElementType *rotate[1]; /* 0xC (per-bone keyframe list, indexed 0..n-1
+                                    past the declared [1] — LoadMotion fixes up
+                                    n entries, HoldMotion/ActiveMotion/SweepMotion
+                                    read rotate[bone]->x/y/z) */
+} MotionDataType;                  /* 0x10 */
 
 /* GetMotionID's registry row (Ghidra's own independently-built type,
  * cross-checked: the `*8`-scaled index in GetMotionID's asm exactly matches
@@ -79,6 +105,21 @@ typedef struct
     MotionDataType *motion;       /* 0x4 */
 } MotionRegistType;                /* 0x8 */
 
+/* Spline interpolation state, one per animated bone (Ghidra's own
+ * independently-built SplineControlType, reference/ghidra_types.h:5030,
+ * cross-checked against psxsym-types.h:3604 — both size 0x18, matching
+ * SetupMotionManager.c's own `(n + 1) * sizeof(SplineControlType), 0x18
+ * bytes each` comment). key0/key1 bracket the current frame's keyframes;
+ * dd0/ds1 are the precomputed per-frame deltas (GetSpline/
+ * UpdateSplineControl). */
+typedef struct
+{
+    MotionElementType *key0;      /* 0x0 */
+    MotionElementType *key1;      /* 0x4 */
+    SVECTOR dd0;                  /* 0x8 */
+    SVECTOR ds1;                  /* 0x10 */
+} SplineControlType;                /* 0x18 */
+
 typedef struct
 {
     s16 mid;                     /* 0x0 */
@@ -87,11 +128,23 @@ typedef struct
     s16 n;                       /* 0x6 */
     s16 mask;                    /* 0x8 */
     s16 mode;                    /* 0xA */
-    void *model;                 /* 0xC */
+    ModelArchiveType *model;     /* 0xC (HoldMotion/ActiveMotion: mmp->model->object) */
     MotionDataType *motion;      /* 0x10 */
     MotionRegistType *motreg;    /* 0x14 (GetMotionID's table) */
-    void *control;               /* 0x18 (freed by DisposeMotionManager) */
+    SplineControlType *control;  /* 0x18 (freed by DisposeMotionManager;
+                                    ActiveMotion indexes mmp->control + bone) */
 } MotionManager;
+
+/* On-disk motion pack: `n` pack-relative entries, each initially a byte
+ * OFFSET from the pack base that LoadMotion fixes up in place into a real
+ * MotionDataType pointer (Ghidra's own independently-built MotionPackType,
+ * reference/ghidra_types.h:5206, cross-checked against psxsym-types.h:2669 —
+ * both size 8). SearchMotion walks the fixed-up table by id. */
+typedef struct
+{
+    s32 n;                        /* 0x0 */
+    MotionDataType *motion[1];    /* 0x4 */
+} MotionPackType;                  /* 0x8 */
 
 /* Per-controller state embedded in Humanoid (Ghidra: PADtype). */
 typedef struct
@@ -136,7 +189,18 @@ typedef struct
     u8 pad1[0x10];               /* 0x48 */
     ModelArchiveType *model;     /* 0x58 */
     MotionManager *motion;       /* 0x5C */
-    u8 pad2a[0x14];              /* 0x60 */
+    think_func_ *think[4];       /* 0x60 (per-think-level dispatch function
+                                    pointers, game_types.h's character_state
+                                    twin: think_setting0..3 @0x60/0x64/0x68/
+                                    0x6C, same `some_char_state_function *`
+                                    type — Think3callaid.c proves this offset
+                                    series with four whole-word stores of
+                                    Think1Func[4]/Think2Func[4]/Think3Func[4]/
+                                    Think4Func[4]). Matches Ghidra's own
+                                    independently-built Humanoid's
+                                    `pointer *think[4]` here too. */
+    u8 pad2a2[0x4];              /* 0x70 (Ghidra: TraceLine *trace; untouched
+                                    by any matched function yet) */
     ModelType *target;           /* 0x74 (AttackFire
                                     reads target->locate.coord.t[1], the Y
                                     translation of the target's world matrix,

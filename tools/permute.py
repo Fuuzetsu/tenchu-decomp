@@ -123,6 +123,16 @@ GP_EXTERNS = {
     "vfree": ["virtual_memory_pool"],
     "DrawModel": ["OTablePt"],
     "FUN_8001b2f4": ["D_800976F6"],
+    "LoadMotion": ["MotionPack"],
+    "SearchMotion": ["CommonMotion", "PlayerMotion", "StageMotion"],
+    "GetSpline": ["D_80097708", "D_80097EEC", "D_80097EE8"],
+    "GetImage": ["D_80097C90"],
+    "InitConflict": ["ConflictModel", "ConflictObjects"],
+    "ControlAllHumanoid": ["Humans", "VISIBLE_ENEMIES_"],
+    "SuccessionAttack": ["Me_THINK_C", "Distance", "Degree", "EngageLevel"],
+    "Think3callaid": ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"],
+    "InitFileSystem": ["ReadMode", "TotalIO", "D_80097EB8"],
+    "cbAccess": ["AccessPower"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

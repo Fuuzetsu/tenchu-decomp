@@ -111,6 +111,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "GetAreaMapLevel" = ["--expand-div"]
     extra "bow_shoot_logic" = ["--expand-div"]
     extra "Think3escape" = ["--expand-div"]
+    extra "SuccessionAttack" = ["--expand-div"]
+    extra "GetSpline" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
@@ -214,6 +216,16 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "vfree" = ["virtual_memory_pool"]
     syms "DrawModel" = ["OTablePt"]
     syms "FUN_8001b2f4" = ["D_800976F6"]
+    syms "LoadMotion" = ["MotionPack"]
+    syms "SearchMotion" = ["CommonMotion", "PlayerMotion", "StageMotion"]
+    syms "GetSpline" = ["D_80097708", "D_80097EEC", "D_80097EE8"]
+    syms "GetImage" = ["D_80097C90"]
+    syms "InitConflict" = ["ConflictModel", "ConflictObjects"]
+    syms "ControlAllHumanoid" = ["Humans", "VISIBLE_ENEMIES_"]
+    syms "SuccessionAttack" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel"]
+    syms "Think3callaid" = ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"]
+    syms "InitFileSystem" = ["ReadMode", "TotalIO", "D_80097EB8"]
+    syms "cbAccess" = ["AccessPower"]
     syms _ = []
 
 as :: FilePath

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -18,58 +19,83 @@
  *     stack sp+16     struct SVECTOR vect
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActiveMotion", ActiveMotion);
+/*
+ * ActiveMotion (0x8001bdfc, 0x1c4 bytes) — per-frame spline playback:
+ * bail to HoldMotion for a static (time==0) pose, else bump `count` and, for
+ * every masked bone, evaluate its GetSpline bracket at `count` (bone 0's
+ * locate+rotate written specially onto the world matrix translation, every
+ * other bone only rotate), then wrap `count` back to 0 once it passes the
+ * motion's `time` limit.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - `v` is a genuinely SEPARATE variable from `count`, not a renaming: `v =
+ *    mmp->count;` computes the raw pre-increment value once (feeds both the
+ *    `mmp->count = v + 1;` store and, later, `count = v;`), while `count`
+ *    itself only needs a callee-saved home from the point it's actually
+ *    read again. Funnelling both through ONE variable (`count = mmp->count;
+ *    mmp->count = count + 1;`) makes cc1 compute the increment directly in
+ *    count's own callee-saved register (no separate temp) — one instruction
+ *    short of the target, which keeps the raw read in a caller-saved reg and
+ *    copies it to $s3 only later. `i` is a THIRD, genuinely reused variable
+ *    (cookbook Register allocation steering) — `i = v;` gives it the same
+ *    value for the two bone-0 GetSpline calls, then it's clobbered as the
+ *    `for (i = 1; ...)` loop counter; the loop's own GetSpline calls pass
+ *    `count` directly, never `i`.
+ *  - The function-final `mmp->count = 0; return 0;` MUST be an early
+ *    `return 0;`, not `count = 0;` falling through to a single shared
+ *    `return count;` — funnelling the tail through `count` forces an extra
+ *    sign-extend-into-$v0 step at the shared return (the "shared return
+ *    variable copy-preferences its sources" cookbook rule); two early
+ *    returns let cc1 target $v0 directly on each path. Same lever fixes the
+ *    OUTER dispatch: `if (time==0) { count = HoldMotion(mmp); return count;
+ *    }` (an early return, not `else`) rather than falling through to the
+ *    shared tail.
+ *  - `mmp->control + (i + 1)` needs the EXPLICIT parens: `mmp->control + i +
+ *    1` (left-to-right `(control+i)+1`) reads mmp->control BEFORE computing
+ *    i's scale, while `+ (i + 1)` computes the `(i+1)*sizeof` scale first and
+ *    defers the `mmp->control` field load until right before the final add
+ *    — same value either way, different instruction order.
+ */
 
-// triage: MEDIUM — 113 insns, mul/div, 1 loop, 3 callees, ~0.12 to update_something_for_each_visible_enemy_
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
+extern short HoldMotion(MotionManager *mmp);
+extern void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// short ActiveMotion(MotionManager *mmp)
-//
-// {
-//   short sVar1;
-//   uint uVar2;
-//   int iVar3;
-//   ModelType *pMVar4;
-//   SVECTOR local_20;
-//
-//   if (mmp->motion->time == 0) {
-//     sVar1 = HoldMotion(mmp);
-//   }
-//   else {
-//     sVar1 = mmp->count;
-//     mmp->count = sVar1 + 1;
-//     if ((mmp->mask & 1U) != 0) {
-//       pMVar4 = *mmp->model->object;
-//       GetSpline(&local_20,mmp->control,sVar1);
-//       (pMVar4->locate).coord.t[0] = (int)local_20.vx;
-//       (pMVar4->locate).coord.t[2] = (int)local_20.vz;
-//       (pMVar4->locate).coord.t[1] = (int)(mmp->model->rotate).pad * (int)local_20.vy >> 0xc;
-//       GetSpline(&pMVar4->rotate,mmp->control + 1,sVar1);
-//       UpdateCoordinate(pMVar4);
-//     }
-//     iVar3 = 1;
-//     if (1 < mmp->n) {
-//       do {
-//         uVar2 = (uint)(short)iVar3;
-//         if (((int)mmp->mask >> (uVar2 & 0x1f) & 1U) != 0) {
-//           pMVar4 = mmp->model->object[uVar2];
-//           GetSpline(&pMVar4->rotate,mmp->control + uVar2 + 1,sVar1);
-//           UpdateCoordinate(pMVar4);
-//         }
-//         iVar3 = iVar3 + 1;
-//       } while (iVar3 * 0x10000 >> 0x10 < (int)mmp->n);
-//     }
-//     sVar1 = mmp->count;
-//     if (mmp->motion->time < sVar1) {
-//       mmp->count = 0;
-//       sVar1 = 0;
-//     }
-//   }
-//   return sVar1;
-// }
+short ActiveMotion(MotionManager *mmp)
+{
+    short i;
+    short count;
+    short v;
+    ModelType *object;
+    SVECTOR vect;
+
+    if (mmp->motion->time == 0) {
+        count = HoldMotion(mmp);
+        return count;
+    }
+    v = mmp->count;
+    mmp->count = v + 1;
+    count = v;
+    if (mmp->mask & 1) {
+        object = *mmp->model->object;
+        i = v;
+        GetSpline(&vect, mmp->control, i);
+        object->locate.coord.t[0] = (s32)vect.vx;
+        object->locate.coord.t[2] = (s32)vect.vz;
+        object->locate.coord.t[1] = (s32)mmp->model->rotate.pad * (s32)vect.vy >> 12;
+        GetSpline(&object->rotate, mmp->control + 1, i);
+        UpdateCoordinate(object);
+    }
+    for (i = 1; i < mmp->n; i++) {
+        if ((mmp->mask >> i) & 1) {
+            object = mmp->model->object[i];
+            GetSpline(&object->rotate, mmp->control + (i + 1), count);
+            UpdateCoordinate(object);
+        }
+    }
+    count = mmp->count;
+    if (mmp->motion->time < count) {
+        mmp->count = 0;
+        return 0;
+    }
+    return count;
+}

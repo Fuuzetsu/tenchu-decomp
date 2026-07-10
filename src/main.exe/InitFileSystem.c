@@ -21,69 +21,99 @@
  *     extern struct TAFS systemAFS;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitFileSystem", InitFileSystem);
+/*
+ * InitFileSystem (0x80019238, 0x15c bytes) — dispatches on `mode & 3`
+ * (0/1 = PC-link dev, 2 = CD-ROM AFS volume; 3 has no case) to set up the
+ * active file-loading backend FileRead() will use. Case 1 (PC-link,
+ * "acquire memory disk") lazily writes a 16-byte "ACQUREMEMORYDISK" magic
+ * into a fixed low-memory handshake buffer at 0x807f0000 (only if it isn't
+ * already there), sets ReadMode's PC-link bits, then — if EITHER the
+ * PC-link bit (1) or the just-set "acquire" bit (8) is set — reinitializes
+ * the virtual-memory pool at a fixed 0x80200000/0x5f0000 region and
+ * pre-allocates an 0x8000-byte scratch block, before writing a bookkeeping
+ * pointer into D_80097EB8 (an unnamed neighbour of OTablePt, NOT OTablePt
+ * itself — real OTablePt is 0x80097eb0 (StartDrawing.c), 8 bytes earlier;
+ * PSX.SYM's demo-build global list is imprecise here). Case 2 (CD-ROM)
+ * inits the CD and opens the "TENCHU\DATA" AFS volume into the global
+ * `systemAFS` handle.
+ *
+ * Matching notes:
+ *  - `ReadMode = mode;` (the UNMASKED parameter) is stored FIRST, then
+ *    `mode` is reassigned in place to `mode & 3` (the asm's `andi` operates
+ *    directly on the $a0 parameter register, no separate move — the
+ *    "reused parameter" idiom) and used as the dispatch value from then on.
+ *  - The dispatch is a real if/else-if ladder (SIGNED `slti` for the `< 2`
+ *    test, over the reused `mode` register) matching Ghidra's polarity
+ *    directly: `mode==1` / else `mode<2` (nested `mode==0`) / else `mode==2`.
+ *  - The 16-byte magic write is ONE aligned-1 (byte array) aggregate copy,
+ *    not Ghidra's 16 separate byte assignments (its usual block-move
+ *    decompilation artifact — same class as the DRAWENV copies in
+ *    cbAccess.c/FUN_80018f00.c): `*(Buf16 *)0x807f0000 = *(Buf16
+ *    *)D_800110F0;` reproduces the raw .s's lwl/lwr+swl/swr chunking.
+ *  - `virtual_memory_pool`'s save/restore around the vinit+vcalloc pair
+ *    sits INSIDE the `if (ReadMode & 9)` guard in the asm (the load is
+ *    scheduled right after the guard's own delay slot, i.e. only reached
+ *    when the branch falls through) — not hoisted unconditionally before
+ *    the guard the way Ghidra renders it (functionally identical either way
+ *    since the save/restore is a no-op when the guard is false, but this
+ *    placement is what the asm's instruction order actually shows).
+ */
+typedef struct PoolBlock
+{
+    s32 size;
+    struct PoolBlock *next;
+} PoolBlock;
 
-// triage: EASY — 87 insns, 7 callees, ~0.10 to initialise_default_player_cameras_
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+typedef struct
+{
+    u8 b[16];
+} Buf16;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-//
-// void InitFileSystem(int mode)
-//
-// {
-//   undefined4 uVar1;
-//   int iVar2;
-//   uint uVar3;
-//
-//   uVar3 = mode & 3;
-//   TotalIO = 0;
-//   ReadMode = mode;
-//   if (uVar3 == 1) {
-//     PCinit();
-//     iVar2 = strncmp(&DAT_807f0000,"ACQUREMEMORYDISK",0x10);
-//     if (iVar2 != 0) {
-//       vinit((undefined *)0x0,0);
-//       DAT_807f0000 = s_ACQUREMEMORYDISK_800110f0[0];
-//       UNK_807f0001 = s_ACQUREMEMORYDISK_800110f0[1];
-//       UNK_807f0002 = s_ACQUREMEMORYDISK_800110f0[2];
-//       UNK_807f0003 = s_ACQUREMEMORYDISK_800110f0[3];
-//       DAT_807f0004 = s_ACQUREMEMORYDISK_800110f0[4];
-//       UNK_807f0005 = s_ACQUREMEMORYDISK_800110f0[5];
-//       UNK_807f0006 = s_ACQUREMEMORYDISK_800110f0[6];
-//       UNK_807f0007 = s_ACQUREMEMORYDISK_800110f0[7];
-//       DAT_807f0008 = s_ACQUREMEMORYDISK_800110f0[8];
-//       UNK_807f0009 = s_ACQUREMEMORYDISK_800110f0[9];
-//       UNK_807f000a = s_ACQUREMEMORYDISK_800110f0[10];
-//       UNK_807f000b = s_ACQUREMEMORYDISK_800110f0[0xb];
-//       DAT_807f000c = s_ACQUREMEMORYDISK_800110f0[0xc];
-//       UNK_807f000d = s_ACQUREMEMORYDISK_800110f0[0xd];
-//       UNK_807f000e = s_ACQUREMEMORYDISK_800110f0[0xe];
-//       UNK_807f000f = s_ACQUREMEMORYDISK_800110f0[0xf];
-//       ReadMode = ReadMode | 9;
-//     }
-//     uVar1 = virtual_memory_pool;
-//     if ((ReadMode & 9U) != 0) {
-//       vinit(&UNK_80200000,0x5f0000);
-//       vcalloc(0x8000,'\0');
-//     }
-//     DAT_80097eb8 = &UNK_80200008;
-//     virtual_memory_pool = uVar1;
-//   }
-//   else if (uVar3 < 2) {
-//     if (uVar3 == 0) {
-//       PCinit();
-//     }
-//   }
-//   else if (uVar3 == 2) {
-//     CdInit();
-//     cd_init();
-//     AfsOpenVolume((TAFS *)&systemAFS,"TENCHU\\DATA");
-//   }
-//   return;
-// }
+extern void PCinit(void);
+extern void CdInit(void);
+extern void cd_init(void);
+extern int strncmp(const char *a, const char *b, u32 n);
+extern void vinit(void *adr, u32 size);
+extern void *vcalloc(u32 size, u8 c);
+extern int AfsOpenVolume(struct TAFS *handle, char *path);
+extern char D_800110F0[]; /* "ACQUREMEMORYDISK" */
+extern char D_80011104[]; /* "TENCHU\DATA" */
+extern PoolBlock *virtual_memory_pool;
+extern void *D_80097EB8;
+extern s32 ReadMode;
+extern s32 TotalIO;
+extern struct TAFS systemAFS;
+
+void InitFileSystem(int mode)
+{
+    PoolBlock *saved_pool;
+
+    ReadMode = mode;
+    mode = mode & 3;
+    TotalIO = 0;
+    switch (mode) {
+    case 0:
+        PCinit();
+        break;
+    case 1:
+        PCinit();
+        if (strncmp((char *)0x807f0000, D_800110F0, 0x10) != 0) {
+            vinit(0, 0);
+            *(Buf16 *)0x807f0000 = *(Buf16 *)D_800110F0;
+            ReadMode = ReadMode | 9;
+        }
+        if (ReadMode & 9) {
+            saved_pool = virtual_memory_pool;
+            vinit((void *)0x80200000, 0x5f0000);
+            vcalloc(0x8000, 0);
+            virtual_memory_pool = saved_pool;
+        }
+        D_80097EB8 = (void *)0x80200008;
+        break;
+    case 2:
+        CdInit();
+        cd_init();
+        AfsOpenVolume(&systemAFS, D_80011104);
+        break;
+    }
+}

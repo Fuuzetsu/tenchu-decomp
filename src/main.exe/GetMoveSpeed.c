@@ -17,28 +17,34 @@
  *     param $a3       short side
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetMoveSpeed", GetMoveSpeed);
+/*
+ * GetMoveSpeed (0x80029660, 0xcc bytes) — same "Humanoid control" TU as
+ * MoveHumanoid.c/GetHumanoid.c (HUMAN.C). Fills *vect with the (vx,vz)
+ * velocity for a given facing angle `ry` and an (ordr,side) speed pair —
+ * MoveHumanoid computes the same rotation from human->rotate->vy instead of
+ * a plain parameter; this looks like its shared helper.
+ *
+ * Matching notes (see MoveHumanoid's identical idioms):
+ *  - `s = -rsin(...); c = -rcos(...);` negates AT THE ASSIGNMENT — reorg
+ *    steals the first negate into the second call's delay slot (the
+ *    "x = -f(...)" rule), so -sin is live across the rcos call.
+ *  - `(short)s`/`(short)c` casts are written INLINE at each of their two
+ *    uses in the vx/vz expressions; cc1 CSEs the repeated cast into a
+ *    single truncation per variable (no re-truncation on reuse).
+ *  - `ordr`/`side` are the plain `short` parameters (no MoveHumanoid-style
+ *    io/o resign locals — this function does no -0x100 byte-resign), so
+ *    their (int) promotion is deferred to each expression's first use.
+ */
+extern s32 rsin(s32 a);
+extern s32 rcos(s32 a);
 
-// triage: EASY — 51 insns, mul/div, 2 callees, ~0.22 to MoveHumanoid
-// likely-relevant cookbook sections:
-//   - Expressions: mult/div — magic-multiply constants, fold
+void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side)
+{
+    int s, c;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void GetMoveSpeed(SVECTOR *vect,short ry,short ordr,short side)
-//
-// {
-//   int iVar1;
-//   int iVar2;
-//
-//   iVar1 = rsin((int)ry);
-//   iVar2 = rcos((int)ry);
-//   vect->vy = 0;
-//   vect->vx = (short)((int)(short)-(short)iVar1 * (int)ordr - (int)(short)-(short)iVar2 * (int)side
-//                     >> 0xc);
-//   vect->vz = (short)((int)(short)-(short)iVar2 * (int)ordr + (int)(short)-(short)iVar1 * (int)side
-//                     >> 0xc);
-//   return;
-// }
+    s = -rsin((int)ry);
+    c = -rcos((int)ry);
+    vect->vy = 0;
+    vect->vx = (short)(((int)(short)s * (int)ordr - (int)(short)c * (int)side) >> 0xc);
+    vect->vz = (short)(((int)(short)c * (int)ordr + (int)(short)s * (int)side) >> 0xc);
+}

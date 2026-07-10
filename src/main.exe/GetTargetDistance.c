@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -15,43 +16,84 @@
  *     param $a1       short * deg
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — 31 of 208 bytes differ (right length: the residual
+ * doesn't shift anything downstream).
+ *
+ * GetTargetDistance (0x80029794, 0xd0 bytes) — same "Humanoid control" TU as
+ * GetMoveSpeed.c/MoveHumanoid.c/GetHumanoid.c (HUMAN.C). Computes the planar
+ * (x,z) distance from `human` to `human->target`, and *deg the signed turn
+ * needed to face it (in the same 0x8000-scaled unit Degree/GetMoveSpeed's ry
+ * use), biased +-0x1000 depending on whether the raw angle difference falls
+ * in the "closest to zero" wedge.
+ *
+ * `human->target->locate.coord.t[0]/[2]` reach a GsCOORDINATE2's embedded
+ * MATRIX.t[] world-position (ModelType.locate @0x00, MATRIX.t[] @0x14 within
+ * it — 0x18/0x20 total, matching the asm's displacements).
+ *
+ * `vy` is a genuine narrow (`u16`) local: `human->rotate->vy` (SVECTOR.vy,
+ * signed in the shared header — MoveHumanoid reads the SAME field with
+ * `lh`) copied straight into a 16-bit destination reads `lhu` here (the
+ * narrowing-use rule: the sign bits are dead once the value only ever feeds
+ * a 16-bit copy). Declaring the temp `s32` (not `u16`) and casting only at
+ * the assignment (`vy = (u16)human->rotate->vy;`) was required — an `s32`
+ * temp assigned straight from the SIGNED field, or a `u16` temp, both cost
+ * an extra `andi 0xffff` at the later use (a call-surviving u16 read wants
+ * the "int t1 = cap;" idiom from the cookbook's spilled-u16-locals rule, not
+ * a narrow-typed temp).
+ *
+ * RESIDUAL (31 bytes, same length): purely the `if (sVar4 < 0x801) { if
+ * (-0x800 < sVar4) goto skip; } else { sVar4 = -sVar4; }` block. Target puts
+ * the sign-extended compare value in $a0 and the raw (store/arithmetic)
+ * value in $v1 throughout, with the OUTER if's THEN arm (containing the
+ * nested if+goto) reached by a taken branch and the ELSE arm (single
+ * assignment) as the fallthrough — literal-Ghidra-polarity C instead
+ * compiles the textbook way (else reached by branch, if-arm fallthrough),
+ * which is 4 bytes shorter but colors $v1 as the compare value and $a0 as
+ * the store value (swapped) with a different internal block layout.
+ * Inverting the outer test's polarity (`if (0x800 < sVar4) {negate} else
+ * {nested-if}`, the cookbook's "opposite polarity" lever) was tried and
+ * made it WORSE (75+ bytes, wrong length) — this isn't that family. Also
+ * tried: reading the comparisons from `iVar3` instead of `sVar4` (no
+ * effect — cc1 CSEs them identically), an explicit self-truncating
+ * `iVar3 = (s16)iVar3;` reassignment (no effect either).
+ * `tools/autorules.py` found no width-based win. One bounded permuter run
+ * (~400s, --stop-on-zero -j4) did not reach 0; not re-run per the
+ * attempt-cap guidance.
+ */
+extern s32 ratan2(s32 a, s32 b);
+extern s32 SquareRoot0(s32 x);
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetTargetDistance", GetTargetDistance);
+#else /* NON_MATCHING */
 
-// triage: EASY — 52 insns, mul/div, 2 callees, ~0.21 to GetVectorRotation
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+long GetTargetDistance(Humanoid *human, short *deg)
+{
+    s32 dx, dz;
+    s32 lVar2;
+    s32 vy;
+    s32 iVar3;
+    s16 sVar4;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// long GetTargetDistance(Humanoid *human,short *deg)
-//
-// {
-//   ushort uVar1;
-//   long lVar2;
-//   int iVar3;
-//   short sVar4;
-//   int iVar5;
-//   int iVar6;
-//
-//   iVar6 = (human->target->locate).coord.t[0] - human->locate->vx;
-//   iVar5 = (human->target->locate).coord.t[2] - human->locate->vz;
-//   uVar1 = human->rotate->vy;
-//   lVar2 = ratan2(-iVar6,-iVar5);
-//   iVar3 = lVar2 - (uint)uVar1;
-//   sVar4 = (short)iVar3;
-//   iVar3 = iVar3 * 0x10000 >> 0x10;
-//   if (iVar3 < 0x801) {
-//     if (-0x800 < iVar3) goto LAB_80029828;
-//   }
-//   else {
-//     sVar4 = -sVar4;
-//   }
-//   sVar4 = sVar4 + 0x1000;
-// LAB_80029828:
-//   *deg = sVar4;
-//   lVar2 = SquareRoot0(iVar6 * iVar6 + iVar5 * iVar5);
-//   return lVar2;
-// }
+    dx = human->target->locate.coord.t[0] - human->locate->vx;
+    dz = human->target->locate.coord.t[2] - human->locate->vz;
+    vy = (u16)human->rotate->vy;
+    lVar2 = ratan2(-dx, -dz);
+    iVar3 = lVar2 - vy;
+    sVar4 = (s16)iVar3;
+    if (sVar4 < 0x801)
+    {
+        if (-0x800 < sVar4) goto skip;
+    }
+    else
+    {
+        sVar4 = -sVar4;
+    }
+    sVar4 = sVar4 + 0x1000;
+skip:
+    *deg = sVar4;
+    return SquareRoot0(dx * dx + dz * dz);
+}
+
+#endif /* NON_MATCHING */

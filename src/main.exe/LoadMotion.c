@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -21,52 +22,48 @@
  *     extern struct MotionPackType *MotionPack;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/LoadMotion", LoadMotion);
+/*
+ * LoadMotion (0x8001c2c0, 0xf0 bytes) — fixup pass for a freshly-loaded
+ * motion-pack blob. Every MotionPackType.motion[] entry starts life as a
+ * pack-relative on-disk byte OFFSET and is rewritten in place into a real
+ * MotionDataType pointer by adding the pack base; within each MotionDataType,
+ * .locate and every .rotate[] entry get the same offset -> pointer fixup,
+ * relative to THAT MotionDataType's own (already-fixed-up) address — same
+ * on-disk-offset idiom as LoadAreaMap.c's `index` fixup.
+ *
+ * Matching notes: `if (mpd == 0) SystemOut(...)` has no early return — Ghidra
+ * flags SystemOut noreturn, but the asm falls straight through into the fixup
+ * loop reading through the null pointer on that path (LoadAreaMap.c's
+ * identical SystemOut-then-continue shape). Both `mmp->n != 0` tests are the
+ * SAME source condition: the second is just the natural entry-duplicated
+ * bound check of `for (j = 0; j < mmp->n; j++)` (cookbook Loops), not a
+ * second nested if.
+ */
+extern MotionPackType *MotionPack;
+extern void SystemOut(char *);
+extern char D_80011230[]; /* "NO MOTION DATA" */
 
-// triage: EASY — 60 insns, 2 loop, 1 callees, ~0.11 to LoadAreaMap
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+MotionPackType *LoadMotion(unsigned long *data)
+{
+    MotionPackType *mpd;
+    MotionDataType *mmp;
+    short i;
+    short j;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// MotionPackType * LoadMotion(ulong *data)
-//
-// {
-//   int iVar1;
-//   int iVar2;
-//   byte *pbVar3;
-//   int iVar4;
-//
-//   if (data != (ulong *)0x0) {
-//     iVar4 = 0;
-//     if (0 < (int)*data) {
-//       iVar1 = 0;
-//       do {
-//         pbVar3 = (byte *)(*(int *)((int)data + (iVar1 >> 0xe) + 4) + (int)data);
-//         *(byte **)((int)data + (iVar1 >> 0xe) + 4) = pbVar3;
-//         if (*pbVar3 != 0) {
-//           iVar1 = 0;
-//           *(byte **)(pbVar3 + 8) = pbVar3 + *(int *)(pbVar3 + 8);
-//           if (*pbVar3 != 0) {
-//             iVar2 = 0;
-//             do {
-//               iVar1 = iVar1 + 1;
-//               *(byte **)(pbVar3 + (iVar2 >> 0xe) + 0xc) =
-//                    pbVar3 + *(int *)(pbVar3 + (iVar2 >> 0xe) + 0xc);
-//               iVar2 = iVar1 * 0x10000;
-//             } while (iVar1 * 0x10000 >> 0x10 < (int)(uint)*pbVar3);
-//           }
-//         }
-//         iVar4 = iVar4 + 1;
-//         iVar1 = iVar4 * 0x10000;
-//       } while (iVar4 * 0x10000 >> 0x10 < (int)*data);
-//     }
-//     MotionPack = data;
-//     return (MotionPackType *)data;
-//   }
-//                     /* WARNING: Subroutine does not return */
-//   SystemOut("NO MOTION DATA");
-// }
+    mpd = (MotionPackType *)data;
+    if (mpd == 0) {
+        SystemOut(D_80011230);
+    }
+    for (i = 0; i < mpd->n; i++) {
+        mpd->motion[i] = (MotionDataType *)((s32)mpd->motion[i] + (s32)mpd);
+        mmp = mpd->motion[i];
+        if (mmp->n != 0) {
+            mmp->locate = (MotionElementType *)((s32)mmp->locate + (s32)mmp);
+            for (j = 0; j < mmp->n; j++) {
+                mmp->rotate[j] = (MotionElementType *)((s32)mmp->rotate[j] + (s32)mmp);
+            }
+        }
+    }
+    MotionPack = mpd;
+    return mpd;
+}

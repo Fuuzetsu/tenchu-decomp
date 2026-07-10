@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -22,71 +23,59 @@
  *     extern short ConflictObjects;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitConflict", InitConflict);
+/*
+ * InitConflict (0x8001a308, 0x13c bytes) — resets the whole conflict-box
+ * pool at boot: zero every ConflictObject[i]'s model/common, seed
+ * .position/.offset/.size from the shared UnitVector2 (VECTOR)/UnitVector
+ * (SVECTOR) identity constants exactly like InsertConflict.c/
+ * DeleteConflict.c, memset each slot's `.result` (0x50 bytes — deliberately
+ * overflows the declared 64-byte field into the trailing 0x10 pad, same as
+ * InsertConflict.c), then clear ConflictModel/ConflictDistance/
+ * ConflictObjects. `.offset`/`.size = UnitVector;` are plain SVECTOR struct
+ * assignments (align-2 lwl/lwr+swl/swr); Ghidra's SUB42/uVar4 byte-shuffle
+ * rendering is that same idiom (cookbook "Stack objects": cast-type
+ * alignment drives copy code), not a manual field-by-field copy.
+ *
+ * The loop counter is `short i` (PSX.SYM's own `reg $s0 short i`; Ghidra's
+ * `iVar7 * 0x10000 >> 0x10` bound-test is the short-loop-counter idiom —
+ * cookbook Loops), a guarded `for (i = 0; i < 0x50; i++)`.
+ */
 
-// triage: EASY — 79 insns, 1 loop, 1 callees, ~0.26 to InsertConflict
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+/* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes; see
+ * InsertConflict.c/DeleteConflict.c — identical per-TU local declaration). */
+typedef struct
+{
+    ModelType *model;            /* 0x00 */
+    VECTOR position;             /* 0x04 */
+    SVECTOR offset;              /* 0x14 */
+    SVECTOR size;                /* 0x1C */
+    void *common;                /* 0x24 */
+    u8 result[64];               /* 0x28 */
+    u8 pad[0x10];                /* 0x68 */
+} ConflictObjectType;            /* 0x78 */
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Unknown calling convention -- yet parameter storage is locked */
-//
-// void InitConflict(void)
-//
-// {
-//   long lVar1;
-//   long lVar2;
-//   short sVar3;
-//   undefined4 uVar4;
-//   undefined4 uVar5;
-//   short sVar6;
-//   int iVar7;
-//
-//   iVar7 = 0;
-//   do {
-//     sVar6 = (short)iVar7;
-//     ConflictObject[sVar6].model = (ModelType *)0x0;
-//     ConflictObject[sVar6].common = (undefined *)0x0;
-//     lVar2 = UnitVector2.vz;
-//     lVar1 = UnitVector2.vy;
-//     ConflictObject[sVar6].position.vx = UnitVector2.vx;
-//     ConflictObject[sVar6].position.vy = lVar1;
-//     ConflictObject[sVar6].position.vz = lVar2;
-//     ConflictObject[sVar6].position.pad = UnitVector2.pad;
-//     uVar4 = UnitVector._4_4_;
-//     sVar3 = UnitVector.vy;
-//     ConflictObject[sVar6].offset.vx = UnitVector.vx;
-//     uVar5 = UnitVector._4_4_;
-//     ConflictObject[sVar6].offset.vy = sVar3;
-//     UnitVector.vz = (short)uVar4;
-//     UnitVector.pad = SUB42(uVar4,2);
-//     sVar3 = UnitVector.pad;
-//     ConflictObject[sVar6].offset.vz = UnitVector.vz;
-//     UnitVector._4_4_ = uVar5;
-//     uVar4 = UnitVector._4_4_;
-//     ConflictObject[sVar6].offset.pad = sVar3;
-//     sVar3 = UnitVector.vy;
-//     ConflictObject[sVar6].size.vx = UnitVector.vx;
-//     uVar5 = UnitVector._4_4_;
-//     ConflictObject[sVar6].size.vy = sVar3;
-//     UnitVector.vz = (short)uVar4;
-//     UnitVector.pad = SUB42(uVar4,2);
-//     sVar3 = UnitVector.pad;
-//     ConflictObject[sVar6].size.vz = UnitVector.vz;
-//     UnitVector._4_4_ = uVar5;
-//     ConflictObject[sVar6].size.pad = sVar3;
-//     memset(ConflictObject[sVar6].result,'\0',0x50);
-//     iVar7 = iVar7 + 1;
-//   } while (iVar7 * 0x10000 >> 0x10 < 0x50);
-//   ConflictModel = (ModelType *)0x0;
-//   ConflictDistance.vx = UnitVector.vx;
-//   ConflictDistance.vy = UnitVector.vy;
-//   ConflictDistance.vz = UnitVector.vz;
-//   ConflictDistance.pad = UnitVector.pad;
-//   ConflictObjects = 0;
-//   return;
-// }
+extern ConflictObjectType ConflictObject[];
+extern s16 ConflictObjects;
+extern VECTOR UnitVector2;
+extern SVECTOR UnitVector;
+extern SVECTOR ConflictDistance; /* 0x80097EC8 (vx/vy/vz) */
+extern ModelType *ConflictModel; /* 0x80097ED0 */
+extern void *memset(void *s, int c, u32 n);
+
+void InitConflict(void)
+{
+    short i;
+
+    for (i = 0; i < 0x50; i++)
+    {
+        ConflictObject[i].model = 0;
+        ConflictObject[i].common = 0;
+        ConflictObject[i].position = UnitVector2;
+        ConflictObject[i].offset = UnitVector;
+        ConflictObject[i].size = UnitVector;
+        memset(ConflictObject[i].result, 0, 0x50);
+    }
+    ConflictModel = 0;
+    ConflictDistance = UnitVector;
+    ConflictObjects = 0;
+}

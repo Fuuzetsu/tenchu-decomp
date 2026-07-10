@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -21,65 +22,49 @@
  *     extern struct MotionPackType *StageMotion;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SearchMotion", SearchMotion);
+/*
+ * SearchMotion (0x8001b514, 0x148 bytes) — id lookup across the three fixed
+ * motion pools in priority order (common, then player, then stage), each a
+ * plain `for (i = 0; i < mpd->n; i++) if (mpd->motion[i]->id == id) return
+ * mpd->motion[i];` over item.h's MotionPackType (LoadMotion.c's proven
+ * fixed-up-pointer layout) — same short-counter recompute-from-base shape as
+ * LoadMotion's relocation loops (cookbook Loops: a short loop counter
+ * suppresses strength reduction). `mpd` is reused across all three blocks
+ * (one C variable, reassigned), matching PSX.SYM's single-`mpd`/single-`i`
+ * local list.
+ */
+extern MotionPackType *CommonMotion;
+extern MotionPackType *PlayerMotion;
+extern MotionPackType *StageMotion;
 
-// triage: MEDIUM — 82 insns, 5 loop, 0 callees, ~0.42 to GetHumanoid
-// likely-relevant cookbook sections:
-//   - Loops: 5 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+MotionDataType *SearchMotion(short id)
+{
+    MotionPackType *mpd;
+    short i;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// MotionDataType * SearchMotion(short id)
-//
-// {
-//   int iVar1;
-//   MotionDataType *pMVar2;
-//   int iVar3;
-//
-//   if (CommonMotion != (int *)0x0) {
-//     iVar3 = 0;
-//     if (0 < *CommonMotion) {
-//       iVar1 = 0;
-//       do {
-//         pMVar2 = *(MotionDataType **)((int)CommonMotion + (iVar1 >> 0xe) + 4);
-//         iVar3 = iVar3 + 1;
-//         if (pMVar2->id == id) {
-//           return pMVar2;
-//         }
-//         iVar1 = iVar3 * 0x10000;
-//       } while (iVar3 * 0x10000 >> 0x10 < *CommonMotion);
-//     }
-//   }
-//   if (PlayerMotion != (int *)0x0) {
-//     iVar3 = 0;
-//     if (0 < *PlayerMotion) {
-//       iVar1 = 0;
-//       do {
-//         pMVar2 = *(MotionDataType **)((int)PlayerMotion + (iVar1 >> 0xe) + 4);
-//         iVar3 = iVar3 + 1;
-//         if (pMVar2->id == id) {
-//           return pMVar2;
-//         }
-//         iVar1 = iVar3 * 0x10000;
-//       } while (iVar3 * 0x10000 >> 0x10 < *PlayerMotion);
-//     }
-//   }
-//   if (StageMotion != (int *)0x0) {
-//     iVar3 = 0;
-//     if (0 < *StageMotion) {
-//       iVar1 = 0;
-//       do {
-//         pMVar2 = *(MotionDataType **)((int)StageMotion + (iVar1 >> 0xe) + 4);
-//         iVar3 = iVar3 + 1;
-//         if (pMVar2->id == id) {
-//           return pMVar2;
-//         }
-//         iVar1 = iVar3 * 0x10000;
-//       } while (iVar3 * 0x10000 >> 0x10 < *StageMotion);
-//     }
-//   }
-//   return (MotionDataType *)0x0;
-// }
+    mpd = CommonMotion;
+    if (mpd != 0) {
+        for (i = 0; i < mpd->n; i++) {
+            if (mpd->motion[i]->id == id) {
+                return mpd->motion[i];
+            }
+        }
+    }
+    mpd = PlayerMotion;
+    if (mpd != 0) {
+        for (i = 0; i < mpd->n; i++) {
+            if (mpd->motion[i]->id == id) {
+                return mpd->motion[i];
+            }
+        }
+    }
+    mpd = StageMotion;
+    if (mpd != 0) {
+        for (i = 0; i < mpd->n; i++) {
+            if (mpd->motion[i]->id == id) {
+                return mpd->motion[i];
+            }
+        }
+    }
+    return 0;
+}

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -17,47 +18,46 @@
  *     reg   $s0       short i
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/HoldMotion", HoldMotion);
+/*
+ * HoldMotion (0x8001b8d4, 0x150 bytes) — freeze-frame pose: latch the root
+ * bone's locate keyframe straight onto object[0]'s world matrix translation
+ * (mask bit 0), then for every other masked bone copy its rotate keyframe
+ * onto that bone's ModelType.rotate and refresh its coordinate, before
+ * disabling the manager (loop = -2, count = 0).
+ *
+ * Matching notes: `mot->locate` is re-read fresh at each of its three uses
+ * (x/z/y) rather than cached in a pointer temp — every intervening `sw`
+ * (unproven-alias to cc1's weak per-store analysis) forces the next read to
+ * reload; same for `mmp->model` between the object[0]/rotate.pad reads.
+ * rotate.vx/vy/vz load their s16 source fields with `lhu` (a same-width
+ * short-to-short copy needs no sign extension — cookbook Expressions), while
+ * the locate->x/y/z reads widen into the `long` matrix translation and so
+ * load `lh`.
+ */
 
-// triage: MEDIUM — 84 insns, mul/div, 1 loop, 1 callees, ~0.08 to update_something_for_each_visible_enemy_
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
+short HoldMotion(MotionManager *mmp)
+{
+    MotionDataType *mot;
+    ModelType *object;
+    short i;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// short HoldMotion(MotionManager *mmp)
-//
-// {
-//   uint uVar1;
-//   ModelType *pMVar2;
-//   int iVar3;
-//   MotionDataType *pMVar4;
-//
-//   pMVar4 = mmp->motion;
-//   if ((mmp->mask & 1U) != 0) {
-//     pMVar2 = *mmp->model->object;
-//     (pMVar2->locate).coord.t[0] = (int)pMVar4->locate->x;
-//     (pMVar2->locate).coord.t[2] = (int)pMVar4->locate->z;
-//     (pMVar2->locate).coord.t[1] = (int)(mmp->model->rotate).pad * (int)pMVar4->locate->y >> 0xc;
-//   }
-//   iVar3 = 0;
-//   if (0 < mmp->n) {
-//     do {
-//       uVar1 = (uint)(short)iVar3;
-//       if (((int)mmp->mask >> (uVar1 & 0x1f) & 1U) != 0) {
-//         pMVar2 = mmp->model->object[uVar1];
-//         (pMVar2->rotate).vx = pMVar4->rotate[uVar1]->x;
-//         (pMVar2->rotate).vy = pMVar4->rotate[uVar1]->y;
-//         (pMVar2->rotate).vz = pMVar4->rotate[uVar1]->z;
-//         UpdateCoordinate(pMVar2);
-//       }
-//       iVar3 = iVar3 + 1;
-//     } while (iVar3 * 0x10000 >> 0x10 < (int)mmp->n);
-//   }
-//   mmp->loop = -2;
-//   mmp->count = 0;
-//   return 0;
-// }
+    mot = mmp->motion;
+    if (mmp->mask & 1) {
+        object = *mmp->model->object;
+        object->locate.coord.t[0] = (s32)mot->locate->x;
+        object->locate.coord.t[2] = (s32)mot->locate->z;
+        object->locate.coord.t[1] = (s32)mmp->model->rotate.pad * (s32)mot->locate->y >> 12;
+    }
+    for (i = 0; i < mmp->n; i++) {
+        if ((mmp->mask >> i) & 1) {
+            object = mmp->model->object[i];
+            object->rotate.vx = mot->rotate[i]->x;
+            object->rotate.vy = mot->rotate[i]->y;
+            object->rotate.vz = mot->rotate[i]->z;
+            UpdateCoordinate(object);
+        }
+    }
+    mmp->loop = -2;
+    mmp->count = 0;
+    return 0;
+}
