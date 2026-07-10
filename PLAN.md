@@ -159,6 +159,9 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
    sibling's entry together, and run `tools/symcheck.py` after each, or a converted
    stub silently relocates the shared data region. `HumanActionControl` (the
    dispatcher) is already drafted with the full list; use it as the template.
+   `ActSTICKON` and `DamageControl` additionally divide by a variable (target asm
+   has `div`+`break` guards), so they need `extra "<Name>" = ["--expand-div"]` in
+   Build.hs and permute.py too — see the cookbook's `--expand-div` rule.
 
 1. **Reverse more functions.** The pipeline is now proven end-to-end on a
    gp-using function (`Think1sleep`). Use `tools/reverse.py <name> --ghidra-export
