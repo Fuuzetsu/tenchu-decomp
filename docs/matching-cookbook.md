@@ -1185,6 +1185,38 @@ scratch — base and index registers swapped, exactly as the target does
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
 
+### gcc 2.8.1 never splits a pseudo's live range: one C variable = one hard register
+
+For its whole life. So when the target shows one *logical* value in two different
+registers across disjoint regions, the source had **two variables**. And when two
+different-looking roles share one register across disjoint regions, it was **ONE
+variable doing double duty** — and its call-argument copy-preference travels with it
+into the other region. (`vrealloc`: the grow-branch mask and the memcpy length are
+the same variable.)
+
+### Steering allocation: donate a call-arg preference to a low-priority pseudo
+
+`global.c`'s `find_reg` makes earlier (higher-priority) allocnos AVOID a free
+register that a later allocno *prefers*. So you can push a high-priority pseudo off
+a free `$a2` and into `$a3` by donating an `$a2` call-argument preference to a
+low-priority pseudo — e.g. by merging that pseudo with a call-argument temp whose
+live range is disjoint. This is the lever when a same-length register rotation has
+no C-level fix. Found by reading `-dg` on `vrealloc`: pseudo 85 was the top-priority
+allocno with an explicit `preferences: 6` (hard `$a2`) inherited from the give-up
+path's `memcpy` third argument; it took `$a2` first and rotated everything after it.
+
+### A `li` in a branch delay slot means the constant was defined in that test's block
+
+Signature: `lw / nop / bltz / lui`, i.e. a constant `li` sitting in a conditional
+branch's delay slot with a load-use hazard `nop` before the branch. That means the
+constant's definition lived in that test's OWN basic block — the source assigned it
+*between* two tests of what looks like a single `&&` chain. Write nested `if`s with a
+`goto` to the shared else, not one `&&`. sched1 slots the `li` into the load-delay
+stall, reorg pulls it into the branch slot, and the assembler re-inserts the hazard
+`nop`. Spelling the constant literally per-arm instead compiles TWO `lui`s: cse's
+path-following cannot unify constants across divergent arms (`vrealloc`'s
+`0x80000000`).
+
 ### Which zero-initialised local is the "master" decides the whole allocation
 
 When several locals are zeroed together, one is literally assigned the constant and

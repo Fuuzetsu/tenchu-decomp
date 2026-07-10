@@ -21,21 +21,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 74 of 516 bytes differ; RIGHT LENGTH (129
- * instructions both sides). The residual is confined to which caller-saved
- * register `svhp` (the block immediately after `vhp` in the free list) and
- * a couple of related temporaries land in — a pure register-allocation
- * rotation (mine: a0/v1-ish; target: a1-ish), not a missing/extra/wrong
- * instruction anywhere (asmdiff --structural shows only register-name
- * replacements, zero inserts/deletes). `tools/regalloc.py` shows no copy-chain
- * pinning `svhp`'s pseudo to a hard register — it's a plain "no obvious lever"
- * global-alloc tie. `tools/permute.py` ran ~3200 iterations (--stop-on-zero,
- * -j4, ~10 min bounded): best candidate scored 270 (from a base of 340, the
- * permuter's OWN objective) via aliasing `svhp->size` through a `s32 *`
- * pointer for one read — verified against matchdiff and it does NOT change
- * the real byte count (still 74), confirming the cookbook's warning that the
- * permuter's score is not raw bytes. Parked per the sub-C-level early-stop.
- *
  * vrealloc (0x80016738, 0x204 bytes) — same TU/family as valloc.c/vfree.c
  * (virtual_memory_pool's free-list allocator): realloc over the same
  * PoolBlock free list. `pt == 0` is a plain `valloc(size)` (malloc
@@ -57,19 +42,41 @@
  *     confirmed by both the raw asm and Ghidra's own decompilation, not a
  *     transcription error here.
  *
- * Matching notes:
+ * Matching notes (the last 74 bytes were a register-allocation knot, solved
+ * with cc1 -dg/-dl RTL dumps run standalone — not by respelling the C):
  *  - The grow-coalesce SPLIT tail's size is the raw excess (no `-2`); the
  *    shrink SPLIT tail's size is `excess - 2`. Different constants (0x11 vs
  *    0x13) gate the two splits too — read the raw immediate in each branch,
  *    don't assume they're the same threshold.
  *  - `vh.next` in the shrink-split branch is read fresh off `vhp->next`
  *    (not the cached `svhp`), even though the two are numerically identical
- *    at that point — matches Ghidra's own literal `*(uint*)(pt+-4)` reread
- *    instead of reusing puVar7.
+ *    at that point — matches Ghidra's own literal `*(uint*)(pt+-4)` reread.
  *  - The give-up path's `if (pt != 0) { ...memcpy... }` guarding a copy from
- *    a provably-non-null `pt` (we're already inside the `pt != 0` branch) is
- *    real source, preserved literally by Ghidra too — same "redundant guard
- *    kept as real code" shape as valloc.c's own `virtual_memory_pool != 0`.
+ *    a provably-non-null `pt` is real source, preserved literally.
+ *  - The slack (`size2`) and the give-up memcpy length CANNOT be one
+ *    variable: the target holds the slack in $v1 but flows the length
+ *    through $a2, and gcc 2.8.1 never splits a pseudo's live range — one
+ *    variable = one hard register. `-dg` showed the shared variable's
+ *    memcpy-third-arg copy-preference ($a2) winning the FIRST allocation
+ *    (it was the top-priority pseudo) and rotating every register after it.
+ *  - The grow branch's `mask` is a real variable assigned BETWEEN the
+ *    `svhp != 0` and `svhp->size >= 0` tests — hence the nested-if +
+ *    `goto giveup` shape instead of one `&&` chain. That places the
+ *    `li 0x80000000` in the second test's basic block: sched1 slots it
+ *    into the `lw svhp->size` load-delay stall, reorg then pulls it into
+ *    the `bltz` delay slot, and the assembler re-inserts the load-use
+ *    hazard nop — reproducing the target's `lw / nop / bltz / lui` exactly.
+ *    A literal 0x80000000 in each arm instead compiles TWO `lui`s (cse's
+ *    path-following cannot unify constants across the divergent split/
+ *    absorb arms) — one instruction long.
+ *  - `mask` is ALSO the give-up path's memcpy-length temp (one variable,
+ *    disjoint live ranges). This is load-bearing two ways: the memcpy
+ *    third-argument copy gives the pseudo an $a2 preference, and global.c's
+ *    find_reg makes earlier allocnos AVOID registers that later allocnos
+ *    prefer — so `vhp` (allocated first, higher priority) skips the free
+ *    $a2 and lands in $a3, after which mask/length takes $a2 in both
+ *    regions. Splitting them left vhp/mask swapped (a2/a3) with no
+ *    C-level lever at all.
  */
 
 typedef struct PoolBlock
@@ -83,10 +90,6 @@ extern void vfree(void *pt);
 extern u32 vsize(void *pt);
 extern void *memcpy(void *dst, void *src, u32 n);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/vrealloc", vrealloc);
-#else
-
 void *vrealloc(void *pt, u32 size)
 {
     PoolBlock *vhp;
@@ -94,6 +97,7 @@ void *vrealloc(void *pt, u32 size)
     PoolBlock vh;
     void *newp;
     u32 size2;
+    u32 mask;
 
     newp = pt;
     if (pt == 0)
@@ -132,44 +136,47 @@ void *vrealloc(void *pt, u32 size)
     }
     else
     {
-        if (svhp != 0 && svhp->size >= 0 &&
-            (u32)(vhp->size & 0x7fffffff) + (u32)svhp->size + 2 >= size)
+        if (svhp != 0)
         {
-            u32 mask;
-
             mask = 0x80000000;
-            vhp->size = vhp->size & 0x7fffffff;
-            size2 = ((u32)vhp->size + svhp->size) - size;
-            if (size2 < 0x11)
+            if (svhp->size >= 0 &&
+                (u32)(vhp->size & 0x7fffffff) + (u32)svhp->size + 2 >= size)
             {
-                vhp->size = (vhp->size + svhp->size + 2) | mask;
-                vhp->next = svhp->next;
+                vhp->size = vhp->size & 0x7fffffff;
+                size2 = ((u32)vhp->size + svhp->size) - size;
+                if (size2 < 0x11)
+                {
+                    vhp->size = (vhp->size + svhp->size + 2) | mask;
+                    vhp->next = svhp->next;
+                }
+                else
+                {
+                    PoolBlock *nb;
+
+                    vh.size = size2;
+                    vh.next = svhp->next;
+                    vhp->size = size | mask;
+                    nb = (PoolBlock *)((u8 *)vhp + (size << 2) + 8);
+                    vhp->next = nb;
+                    *nb = vh;
+                }
             }
             else
-            {
-                PoolBlock *nb;
-
-                vh.size = size2;
-                vh.next = svhp->next;
-                vhp->size = size | mask;
-                nb = (PoolBlock *)((u8 *)vhp + (size << 2) + 8);
-                vhp->next = nb;
-                *nb = vh;
-            }
+                goto giveup;
         }
         else
         {
+        giveup:
             newp = valloc(size << 2);
             if (pt != 0)
             {
-                size2 = vsize(pt);
-                if (size < size2)
-                    size2 = size;
-                memcpy(newp, pt, size2);
+                mask = vsize(pt);
+                if (size < mask)
+                    mask = size;
+                memcpy(newp, pt, mask);
             }
             vfree(pt);
         }
     }
     return newp;
 }
-#endif

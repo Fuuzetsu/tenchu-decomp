@@ -290,6 +290,20 @@ lens.
   whole data region -- the link succeeds and the image is just wrong. Measured: one
   missing entry moved 388 symbols by +16 bytes.
 
+- **A fresh worktree needs `tools/wt-init.sh` before anything works.** `disks/` (the
+  game images) and `.shake/` (which holds the Ghidra export) are both gitignored, so a
+  new worktree has neither: `./Build` cannot find the target image, and
+  matcher-prompt.py / coverage.py / triage.py / findsimilar.py all die with
+  FileNotFoundError on `.shake/ghidra-export/functions.tsv`. wt-init.sh symlinks both
+  from the primary worktree. Tell every worktree-isolated agent to run it first.
+
+- **Escalating a same-length register tie to an RTL-capable model works.** vrealloc
+  sat parked through ~3200 permuter iterations and a full C-respelling sweep. Told to
+  ignore the C and read `-dg`/`-dl` dumps instead, a stronger model matched it in one
+  pass by finding a call-argument register preference travelling through a merged
+  variable. Route same-length register rotations there directly; do not spend another
+  agent on respelling.
+
 - **Spawn matcher agents with `isolation: "worktree"`.** `.claude/agents/matcher.md`
   does NOT declare isolation, so an agent launched without it edits the MAIN working
   tree and shares one `.shake/` database with every sibling agent and with you. Six
