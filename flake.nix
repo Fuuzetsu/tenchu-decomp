@@ -217,6 +217,10 @@
           # THIS nixpkgs: fsatrace works by LD_PRELOAD, so a build against a
           # different glibc fails with a version-mismatch at exec.
           pkgs.fsatrace
+          # rg over grep: it never chokes on a long argument list built from a
+          # glob, it skips .shake/ and .git by default, and it is what the tools
+          # and docs assume from here on.
+          pkgs.ripgrep
           pkgs.spimdisasm
           m2c-bin
           pkgs.splat

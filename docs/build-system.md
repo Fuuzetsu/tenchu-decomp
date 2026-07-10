@@ -178,6 +178,10 @@ Do not reach for `--lint-ignore`: it hides the finding you want. `fsatrace` must
 from *this* nixpkgs — it works by `LD_PRELOAD`, so a build against a different glibc
 dies at exec with a version mismatch.
 
+The devShell also ships `ripgrep` (`rg`) — prefer it to `grep` in scripts and
+docs: it never chokes on an argument list built from a glob and skips `.shake/`
+and `.git/` by default.
+
 Cheaper checks: `--lint` (basic: rules that change the cwd or modify their outputs
 after finishing), `--live=FILE` (which files Shake considers live), and
 `--report=r.html` (a profile of what rebuilt and why).
@@ -185,27 +189,47 @@ after finishing), `--live=FILE` (which files Shake considers live), and
 ## "Argument list too long" is not what it says
 
 `execve` on this machine intermittently returns `E2BIG` — which bash prints as
-`Argument list too long` and shells report as exit 126 — for commands with a trivial
+`Argument list too long`, and shells report as exit 126 — for commands with a trivial
 argument list. Captured with strace:
 
 ```
 execve("…/bin/grep", ["grep","--version"], 0x55f010 /* 153 vars */) = -1 E2BIG
 ```
 
-Two argv entries, 153 environment variables, ~24 KB total. Nothing is oversized: an
-`execve` under 128 KB never reaches the argument-size check. It is `get_arg_page()`
-failing to populate the new process's argument stack, and the kernel reports that as
-`E2BIG`.
+Two argv entries, 153 environment variables, ~24 KB total. **Nothing is oversized.**
+An `execve` whose argv+envp is under `ARG_MAX` (128 KB) returns from the kernel's size
+check before any limit applies — verified by shrinking `RLIMIT_STACK` to 64 KB, which
+still execs fine. What fails is `get_arg_page()` populating the new process's argument
+stack, and the kernel reports that as `E2BIG`.
 
-It is flaky (roughly 1 in 5 under the right conditions) and follows the shell having
-just materialised a large buffer via command substitution — `out=$(./Build 2>&1)` with
-a full build log is enough. It can hit *any* exec, including `./Build` itself, making a
-perfectly good build look broken.
+**What it is not.** Two plausible causes were tested and eliminated:
 
-Consequences:
+* *Not a large captured buffer.* `out=$(./Build 2>&1)` holding a 780 KB build log:
+  **0 failures in 200 runs**. A 50 MB shell variable: 0 in 200. Baseline: 0 in 200.
+* *Not the stack rlimit.* See above — below `ARG_MAX` the limit is never consulted.
 
-* **Do not capture full build output into a shell variable.** Redirect to a file.
-* `tools/matchdiff.py` detects this exact signature (rc 126/127 + "Argument list too
-  long") and retries once instead of reporting a phantom failure.
-* If a sweep reports a contiguous run of build failures that vanish on retry, suspect
-  this before suspecting the build.
+It was only ever observed under **heavy concurrent build load** (nine agents, each
+running `./Build`, forking hundreds of `cc1`/`as` processes). That is consistent with a
+transient page-allocation/VMA-expansion failure, and it can hit *any* exec — including
+`./Build` itself — making a perfectly good build look broken.
+
+**What we do about it.** There is no user-space fix for a kernel that cannot hand out a
+page, so the tools do three things instead:
+
+1. **Never hold a build log in memory.** `matchdiff.py`/`asmdiff.py` stream `./Build`'s
+   output to a file and print its tail on failure. This is hygiene, not a cure — the
+   experiment above shows buffers were never the trigger — but it is bounded and the
+   log survives for reading.
+2. **Never mistake it for a build result.** A `rc 126/127` + `Argument list too long`
+   is reported as *"could not EXEC ./Build — environment failure, not a build failure"*
+   and the tool exits. It is **not** retried: silently retrying hides a real signal, and
+   a caller that sees success cannot tell the difference. `autorules.py` in particular
+   now aborts rather than scoring the failed exec as "this edit does not compile",
+   which would have quietly discarded a good edit as INVALID.
+3. **Reduce exec churn.** The `./Build` wrapper used to invoke `ghc -O2` on *every*
+   call. It now skips ghc unless `shake/src/Build.hs` or the wrapper itself is newer
+   than the compiled driver. A warm `./Build` went from ~3 s to ~0.2 s, and a
+   224-function sweep no longer launches 224 ghc processes.
+
+If a sweep reports a contiguous run of build failures that vanish on re-run, suspect
+this before suspecting the build.

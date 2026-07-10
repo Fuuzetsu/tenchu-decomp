@@ -431,7 +431,13 @@ def score(name, partial):
     if partial:
         env["NON_MATCHING"] = name
     b = subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
-                       stderr=subprocess.STDOUT, env=env)
+                       stderr=subprocess.DEVNULL, env=env)
+    if b.returncode in (126, 127):
+        # The kernel failed to exec ./Build (E2BIG; see docs/build-system.md).
+        # Scoring that as "this edit does not compile" would silently poison the
+        # greedy search -- a good edit would be discarded as INVALID.
+        sys.exit("autorules: could not EXEC ./Build — environment failure, not a "
+                 "bad edit. Aborting rather than mis-scoring. Re-run.")
     if b.returncode != 0:
         return (False, INVALID, None, None)
     r = subprocess.run([sys.executable, ASMDIFF, name, "-n"],

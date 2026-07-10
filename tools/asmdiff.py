@@ -15,7 +15,7 @@ show as themselves and pure branch-target drift can be suppressed.
 
 Exit 0 when the sequences are identical. Run inside the nix devShell.
 """
-import argparse, os, re, subprocess, sys
+import tempfile, argparse, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -85,10 +85,17 @@ def main():
         srcp = os.path.join("src/main.exe", args.name + ".c")
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
-        r = subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.STDOUT, env=env)
+        log = os.path.join(tempfile.gettempdir(), "tenchu-asmdiff-build.log")
+        with open(log, "wb") as lf:   # a file, never a pipe: a build log is ~780 KB
+            r = subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
+                               stderr=lf, env=env)
         if r.returncode != 0:
-            sys.exit("asmdiff: ./Build FAILED (run it directly for the error)")
+            tail = "\n".join(open(log, errors="replace").read().splitlines()[-15:])
+            if r.returncode in (126, 127) and "Argument list too long" in tail:
+                sys.exit("asmdiff: could not EXEC ./Build (kernel E2BIG; see "
+                         "docs/build-system.md) — environment failure, not a build "
+                         "failure. Re-run.")
+            sys.exit(f"asmdiff: ./Build FAILED (rc={r.returncode}), log: {log}\n{tail}")
 
     addr, size = resolve(args.name)
     tgt = dis(ORIG, addr, size)

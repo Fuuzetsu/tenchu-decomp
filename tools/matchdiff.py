@@ -14,7 +14,7 @@ The function's address comes from config/symbols.main.exe.txt; its size is the
 distance to the next symbol (same slot logic as mkmod). Exit status: 0 on a
 byte-match, 1 otherwise — usable as a gate in scripts.
 """
-import argparse, os, re, subprocess, sys
+import argparse, tempfile, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -68,9 +68,26 @@ def carve_extent(name):
     return off - TEXT_FOFF + TEXT_VADDR, nxt - off
 
 
-def build_once():
-    return subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
-                          stderr=subprocess.PIPE)
+BUILD_LOG = os.path.join(tempfile.gettempdir(), "tenchu-matchdiff-build.log")
+
+
+def run_build():
+    """Run ./Build, streaming its output to a FILE.
+
+    Never capture a build log into a pipe or a shell variable: a full build is
+    ~780 KB of Verbose command echo, and holding it in memory buys nothing. The
+    log stays on disk so a failure can be read afterwards.
+    """
+    with open(BUILD_LOG, "wb") as log:
+        return subprocess.run(["./Build"], stdout=subprocess.DEVNULL, stderr=log)
+
+
+def build_log_tail(n=15):
+    try:
+        with open(BUILD_LOG, "r", errors="replace") as f:
+            return "\n".join(f.read().splitlines()[-n:])
+    except OSError:
+        return "(no build log)"
 
 
 def symbol_slot(name):
@@ -137,23 +154,24 @@ def main():
         srcp = os.path.join("src/main.exe", args.name + ".c")
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
-        r = build_once()
-        if r.returncode in (126, 127) and b"Argument list too long" in r.stderr:
-            # Not a build failure. execve() can return E2BIG when the kernel
-            # fails to populate the new process's argument stack -- verified with
-            # strace: 2 argv entries, 153 env vars, ~24 KB total. It is flaky and
-            # follows the shell having just materialised a large buffer (e.g. a
-            # captured build log). Retry once rather than report a phantom break.
-            print("matchdiff: spurious exec failure (E2BIG); retrying once",
-                  file=sys.stderr)
-            r = build_once()
+        r = run_build()
         if r.returncode != 0:
-            err = r.stderr.decode(errors="replace").strip()
-            # Surface it. Swallowing this cost a long, wrong "it's just load"
-            # diagnosis once: an exec failure and a real compile error looked the
-            # same from here.
-            sys.exit(f"matchdiff: ./Build FAILED (rc={r.returncode})\n"
-                     + "\n".join(err.splitlines()[-15:]))
+            tail = build_log_tail()
+            if r.returncode in (126, 127) and "Argument list too long" in tail:
+                # Not a build failure at all. execve() returns E2BIG when the
+                # kernel cannot populate the new process's argument stack --
+                # confirmed with strace: 2 argv entries, 153 env vars, ~24 KB.
+                # Nothing is oversized. It is transient and appears under heavy
+                # concurrent build load. Report it as what it is; do not retry,
+                # and do not call it a build failure.
+                sys.exit("matchdiff: could not EXEC ./Build (kernel returned "
+                         "E2BIG; see docs/build-system.md). This is an "
+                         "environment failure, not a build failure. Re-run.")
+            # Surface the real error. Swallowing this behind "run it directly"
+            # once cost a long, wrong diagnosis: an exec failure and a compile
+            # error looked identical from here.
+            sys.exit(f"matchdiff: ./Build FAILED (rc={r.returncode}), "
+                     f"log: {BUILD_LOG}\n{tail}")
 
     addr, size = symbol_slot(args.name)
     off = FILE_TEXT_OFF + (addr - TEXT_START)
