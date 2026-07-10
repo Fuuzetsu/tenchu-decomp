@@ -172,6 +172,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "FUN_80018f00" = ["AccessPower"]
     syms "valloc" = ["virtual_memory_pool"]
     syms "SetupCharacterParameter" = ["NowStage"]
+    syms "AdtMessageBox" = ["AdtReadPadFunc", "D_80097E94"]
     syms "AVCameraSetup" = ["CHOSEN_EVENT_LIST_THING_LOCATION", "D_80097CC4"]
     syms "AVCameraControl" = ["D_80097CCA", "D_80097CC8", "D_80097CC4"]
     syms "CVAsequence" = ["PERSISTENT_EVENT_LIST_THING", "CHOSEN_EVENT_LIST_THING_LOCATION", "D_80097CC4", "D_80097CCC", "D_80097CC0"]

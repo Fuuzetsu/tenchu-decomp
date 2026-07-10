@@ -762,7 +762,10 @@ reach it with a single branch (`ItemUse`'s `item[4]==0` and `d >= 300` guards).
   invisible to m2c (no local def), so it silently drops it — the real call takes
   one more leading arg than m2c shows (DrawBG's `FUN_80063b94`,
   lePackEnemyLayout's `memcpy`/`AdtMessageBox`). Always reconcile against the
-  a0–a3 set in the raw `.s`, never m2c's argument list alone.
+  a0–a3 set in the raw `.s`, never m2c's argument list alone. NB this is about
+  m2c's rendering of a *call site*, not the callee's own arity: `AdtMessageBox`
+  itself is plainly `void AdtMessageBox(char *fmt, ...)`, and all 87 call sites
+  already declare it so.
 - **Two `u16` out-parameter locals with a 4-byte stack GAP are one `SVECTOR`'s
   `.vx`/`.vz`** (the write skips `.vy`), not two scalars (LightningBolt's
   GetVectorRotation output).
@@ -979,6 +982,22 @@ between, loads unsigned regardless of the field's signedness — the sign bits c
 matter. Do not fight it with named temps or casts.
 
 ## Stack objects
+
+**cc1 pads EACH separately-declared aggregate stack local up to a multiple of 8
+bytes.** Four adjacent aggregates that were really contiguous fields of one original
+struct must be declared as ONE combined struct local, or each is individually
+rounded (`DRAWENV` 0x5c → 0x60, `DISPENV` 0x14 → 0x18), inflating the frame and
+shifting every later offset — even though each was already 4-byte aligned. Field
+offsets *inside* one struct follow plain member alignment, with no such rounding
+(`AdtMessageBox`).
+
+**A varargs argument pointer must be computed lazily, at the call.** Writing
+`s32 *args = (s32 *)((char *)&fmt + sizeof(fmt));` as a named local at function
+entry forces cc1 to hold the address in a callee-saved register across the whole
+function when the vararg call is far away — an extra register and 8 bytes of frame.
+Inline the expression at the call site instead and cc1 computes it with a
+caller-saved temp. (`FUN_8005fe38` wants the named-local form because its call is
+near entry; `AdtMessageBox` wants the inline form.)
 
 - When Ghidra shows **overlapping stack locals** (its `local_40`-style merged
   buffer), the original really used **one `u8 buf[N]` + casts**
@@ -1575,6 +1594,13 @@ literal.** `IsVisible` sets a `fail` flag and has exactly ONE `return !fail;`, a
 bottom; making the failing branch return locally lets cc1 fold `!1` to `0` there —
 three instructions shorter than the target. Both branches must fall through to the
 single shared `return !fail;` for the real runtime `xori` to appear on both paths.
+
+**When both arms of an if/else end in the same statement on an address-taken
+variable, duplicate it into BOTH arms.** Writing it once after the if/else forces a
+fresh stack reload at the merge point (the variable is memory-resident because its
+address escapes); duplicating lets each arm feed the statement from the register it
+already has. cc1's own cross-jump then collapses the identical code, so duplicating
+costs nothing and matches the target (`AdtMessageBox`).
 
 **Two otherwise byte-identical `return expr;` tails can fail to cross-jump-merge in
 this cc1.** Route all but one through `goto` to a single shared `return` — in

@@ -1,97 +1,192 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AdtMessageBox", AdtMessageBox);
+/*
+ * AdtMessageBox (0x8005f958, 624 bytes) — the "Adt" debug console's modal
+ * message box: printf-style formats `fmt`+varargs into a stack buffer via
+ * AdtVsprintf, then draws it full-screen with FntPrint and (unless the
+ * global quiet flag is set) blocks on a pad button before restoring the
+ * display state. Highest in-degree unmatched function in the game (87
+ * call sites); every already-matched caller declares it
+ * `extern void AdtMessageBox(char *fmt, ...);` and passes a POOLED STRING
+ * SYMBOL (`extern char D_XXXXXXXX[];`) as fmt, never a literal.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - Variadic prologue: taking `&fmt` (the ONLY named parameter) forces
+ *    cc1 to spill all four incoming argument registers (fmt + 3 varargs)
+ *    to their ABI-reserved stack slots at function entry, the same idiom
+ *    already verified in this file's own sibling FUN_8005fe38.c
+ *    (`s32 *ap = (s32 *)((char *)&arg0 + sizeof(arg0));`). AdtVsprintf's
+ *    own signature (`int AdtVsprintf(s32 *args, char *dst, u32 n, char
+ *    *fmt)`, from FUN_8005fe38.c) takes that raw spilled-register pointer,
+ *    not a `va_list` abstraction — there is no stdarg.h in this codebase.
+ *  - `fmt` doubles as a MUTABLE local (its own address is taken below, so
+ *    cc1 keeps it memory-resident for its whole lifetime — reusing a
+ *    second name here would just get its own register/copy instead): a
+ *    leading "%#"/"%$" prefix is stripped (advancing the pointer by 2) and
+ *    drives a 0/1/2 `mode` selecting how modal the box is (2 = "%#": no
+ *    counter line, no wait; 1 = "%$": show once, no wait; 0 = default:
+ *    full modal "press start" wait). Two shape levers here, both needed
+ *    together: (1) Ghidra's own `goto` for the "neither # nor $" case
+ *    (must skip the '#'/'$' handling entirely, unreachable via a plain
+ *    if/else-if); (2) the '#' test's polarity is the OPPOSITE of Ghidra's
+ *    literal rendering — the target reaches the '#' body (mode=2) via a
+ *    forward branch with the "$"-test as the fallthrough, so the source
+ *    tests `fmt[1] != '#'` first (cc1 always makes the `then` arm the
+ *    fallthrough); and (3) `fmt += 2` must be DUPLICATED in both arms, not
+ *    shared after the if/else — a single shared statement forces a fresh
+ *    stack reload of fmt at the merge point instead of reusing the
+ *    register each arm already has it in (cc1 still cross-jump-merges the
+ *    resulting identical tails at the RTL level, so this costs nothing).
+ *  - The two guard clauses (`AdtFnt.quiet == 1` and the button-held check)
+ *    are plain early `return;`s with no `else` — Ghidra's own rendering of
+ *    the second one (`if (A==0 || B==0) { <long body> }`, no else) is the
+ *    De-Morgan-inverted form of the natural guard clause; the SECOND
+ *    `AdtReadPadFunc(0)` call is only ever made when the first already
+ *    tested true, so the natural source is the short-circuit `&&` guard
+ *    (`if (A && B) return;`) rather than Ghidra's literal `||`.
+ *  - D_8008F1B8 (same font-adapter global as AdtFntLoad.c/AdtFntOpen.c/
+ *    AdtQuiet.c) is reached at every field this TU touches: x/y/w/h/
+ *    isbg/n@0x0-0x14 (FntOpen), tx/ty@0x18/0x1c (FntLoad), and quiet@0x20
+ *    (the early guard) — this file's own "declare only what you touch"
+ *    view therefore covers all nine fields.
+ *  - The DRAWENV/DISPENV/RECT/backup-buffer/primitive locals must be ONE
+ *    combined struct local (TAdtDisp, see AdtReleaseDisp.c, extended here
+ *    with a trailing 24-byte primitive field this TU also touches), NOT
+ *    five separate top-level array/struct locals — even though Ghidra
+ *    renders them as separate acStack_8298/DStack_80a0/DStack_8044/
+ *    RStack_8030/auStack_8028/auStack_28 locals. cc1's stack-frame
+ *    allocator pads EACH separately-declared aggregate local up to a
+ *    multiple of 8 bytes (DRAWENV 0x5c->0x60, DISPENV 0x14->0x18),
+ *    inflating the frame by 8 bytes total and shifting every later
+ *    offset — whereas FIELD offsets inside one combined struct follow
+ *    plain member alignment with no such rounding, matching the target's
+ *    tight layout (rect at draw+0x70, backup at draw+0x78, primitive at
+ *    draw+0x8078) exactly.
+ *  - The two `DrawPrim` calls pass the SAME 24-byte stack primitive
+ *    (the combined struct's trailing field), never written by this
+ *    function itself — matches Ghidra's `auStack_28` exactly; whatever it
+ *    draws is whatever was left on the stack, not this function's concern.
+ */
+typedef struct
+{
+    s16 x, y, w, h;
+} RECT; /* 0x8 (PSYQ libgpu.h) */
 
-// triage: MEDIUM — 156 insns, indirect-call, 12 callees, ~0.04 to DebugMenuItemSet
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
-//   - Register allocation steering: indirect call — null-check-var/call-field
+typedef struct
+{
+    RECT clip;        /* +0x00 */
+    s16 ofs[2];       /* +0x08 */
+    RECT tw;          /* +0x0c */
+    u16 tpage;        /* +0x14 */
+    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
+    u32 dr_env[16];   /* +0x1c: tag + code[15] */
+} DRAWENV; /* 0x5c (PSYQ libgpu.h) */
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void AdtMessageBox(char *fmt,...)
-//
-// {
-//   uint uVar1;
-//   undefined4 in_a1;
-//   char *pcVar2;
-//   undefined4 in_a2;
-//   char *pcVar3;
-//   undefined4 in_a3;
-//   uint uVar4;
-//   char *local_res0;
-//   undefined4 local_res4;
-//   undefined4 local_res8;
-//   undefined4 local_resc;
-//   char acStack_8298 [504];
-//   DRAWENV DStack_80a0;
-//   DISPENV DStack_8044;
-//   RECT RStack_8030;
-//   u_long auStack_8028 [8192];
-//   undefined1 auStack_28 [24];
-//
-//   uVar4 = 0;
-//   local_res0 = fmt;
-//   if ((code *)AdtReadPadFunc == AdtDmyPadRead) {
-//     local_res0 = "*** AdtInit not called ***";
-//   }
-//   if (AdtFnt_8008f1b8.field8_0x20 == 1) {
-//     return;
-//   }
-//   if (*local_res0 == '%') {
-//     if (local_res0[1] == '#') {
-//       uVar4 = 2;
-//     }
-//     else {
-//       if (local_res0[1] != '$') goto LAB_8005fa18;
-//       uVar4 = 1;
-//     }
-//     local_res0 = local_res0 + 2;
-//   }
-// LAB_8005fa18:
-//   local_res4 = in_a1;
-//   local_res8 = in_a2;
-//   local_resc = in_a3;
-//   uVar1 = (*(code *)AdtReadPadFunc)(0);
-//   if (((uVar1 & 0x100) == 0) || (uVar1 = (*(code *)AdtReadPadFunc)(0), (uVar1 & 0x800) == 0)) {
-//     pcVar2 = acStack_8298;
-//     pcVar3 = (char *)0x1f4;
-//     AdtVsprintf(&local_res4);
-//     AdtGetDisp(&DStack_80a0);
-//     if (uVar4 < 2) {
-//       DrawPrim(auStack_28);
-//       pcVar2 = s_adtMessageBoxCount + 1;
-//       s_adtMessageBoxCount = pcVar2;
-//       FntPrint("AdtMessageBox #%d\n\n",pcVar2,pcVar3,local_res0);
-//     }
-//     FntPrint(acStack_8298,pcVar2,pcVar3,local_res0);
-//     if (uVar4 == 0) {
-//       FntPrint("\n\nPress start to continue...",pcVar2,pcVar3,local_res0);
-//     }
-//     FntFlush(-1);
-//     DrawSync(0);
-//     VSync(2);
-//     if (uVar4 == 0) {
-//       while (uVar4 = (*(code *)AdtReadPadFunc)(0), (uVar4 & 0x800) != 0) {
-//         VSync(0);
-//       }
-//       while (uVar4 = (*(code *)AdtReadPadFunc)(0), (uVar4 & 0x800) == 0) {
-//         VSync(0);
-//       }
-//       DrawPrim(auStack_28);
-//       DrawSync(0);
-//     }
-//     FntLoad(AdtFnt_8008f1b8.field6_0x18,AdtFnt_8008f1b8.field7_0x1c);
-//     FntOpen(AdtFnt_8008f1b8.field0_0x0,AdtFnt_8008f1b8.field1_0x4,AdtFnt_8008f1b8.field2_0x8,
-//             AdtFnt_8008f1b8.field3_0xc,AdtFnt_8008f1b8.field4_0x10,AdtFnt_8008f1b8.field5_0x14);
-//     LoadImage(&RStack_8030,auStack_8028);
-//     DrawSync(0);
-//     PutDrawEnv(&DStack_80a0);
-//     PutDispEnv(&DStack_8044);
-//   }
-//   return;
-// }
+typedef struct
+{
+    RECT disp;   /* +0x00 */
+    RECT screen; /* +0x08 */
+    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
+} DISPENV; /* 0x14 (PSYQ libgpu.h) */
+
+typedef struct
+{
+    s32 x, y, w, h, isbg, n; /* +0x00-0x14, FntOpen args */
+    s32 tx, ty;              /* +0x18, +0x1c, FntLoad args */
+    s32 quiet;               /* +0x20, AdtQuiet() flag */
+} AdtFntState;
+
+typedef struct
+{
+    DRAWENV draw;      /* +0x0000 */
+    DISPENV disp;      /* +0x005c */
+    RECT rect;         /* +0x0070 */
+    u_long backup[8192]; /* +0x0078 */
+    u8 prim[24];       /* +0x8078 */
+} TAdtDisp;
+
+extern AdtFntState D_8008F1B8;
+extern s32 (*AdtReadPadFunc)(s32 port);
+extern s32 AdtDmyPadRead(s32 port);
+extern s32 D_80097E94; /* AdtMessageBox call counter */
+extern char D_80014AAC[]; /* "*** AdtInit not called ***" */
+extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
+extern char D_80014ADC[]; /* "\n\nPress start to continue..." */
+
+extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
+extern void AdtGetDisp(DRAWENV *env);
+extern void DrawPrim(u8 *prim);
+extern void FntPrint(char *fmt, ...);
+extern s32 FntFlush(s32 id);
+extern int DrawSync(int mode);
+extern s32 VSync(s32 mode);
+extern void FntLoad(int tx, int ty);
+extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
+extern int LoadImage(RECT *rect, u_long *p);
+extern void PutDrawEnv(DRAWENV *env);
+extern void PutDispEnv(DISPENV *env);
+
+void AdtMessageBox(char *fmt, ...)
+{
+    s32 mode;
+    s32 count;
+    char buf[504];
+    TAdtDisp ad;
+
+    mode = 0;
+    if (AdtReadPadFunc == AdtDmyPadRead)
+        fmt = D_80014AAC;
+    if (D_8008F1B8.quiet == 1)
+        return;
+    if (*fmt == '%')
+    {
+        if (fmt[1] != '#')
+        {
+            if (fmt[1] != '$')
+                goto skip;
+            mode = 1;
+            fmt += 2;
+        }
+        else
+        {
+            mode = 2;
+            fmt += 2;
+        }
+    }
+skip:
+    if ((AdtReadPadFunc(0) & 0x100) && (AdtReadPadFunc(0) & 0x800))
+        return;
+
+    AdtVsprintf((s32 *)((char *)&fmt + sizeof(fmt)), buf, 0x1F4, fmt);
+    AdtGetDisp(&ad.draw);
+    if (mode < 2)
+    {
+        DrawPrim(ad.prim);
+        count = D_80097E94 + 1;
+        D_80097E94 = count;
+        FntPrint(D_80014AC8, count);
+    }
+    FntPrint(buf);
+    if (mode == 0)
+        FntPrint(D_80014ADC);
+    FntFlush(-1);
+    DrawSync(0);
+    VSync(2);
+    if (mode == 0)
+    {
+        while (AdtReadPadFunc(0) & 0x800)
+            VSync(0);
+        while (!(AdtReadPadFunc(0) & 0x800))
+            VSync(0);
+        DrawPrim(ad.prim);
+        DrawSync(0);
+    }
+    FntLoad(D_8008F1B8.tx, D_8008F1B8.ty);
+    FntOpen(D_8008F1B8.x, D_8008F1B8.y, D_8008F1B8.w, D_8008F1B8.h,
+            D_8008F1B8.isbg, D_8008F1B8.n);
+    LoadImage(&ad.rect, ad.backup);
+    DrawSync(0);
+    PutDrawEnv(&ad.draw);
+    PutDispEnv(&ad.disp);
+}
