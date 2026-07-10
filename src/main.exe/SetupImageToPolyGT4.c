@@ -20,79 +20,99 @@
  *     reg   $t0       short th
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupImageToPolyGT4", SetupImageToPolyGT4);
+/*
+ * SetupImageToPolyGT4 (0x8004ec10, 0x144 bytes) — the Gouraud twin of
+ * SetupImageToPolyFT4 (IMAGES.C), byte-for-byte the same shape: the only
+ * difference is POLY_GT4's per-vertex colour, so all twelve r/g/b bytes are
+ * written 0x7F instead of FT4's three. Layout below is PSX.SYM's own POLY_GT4
+ * (reference/psxsym-types.h), which confirms every offset in the .s.
+ *
+ * PSX.SYM's local list for this function (tx/ty/th) is from the DEMO build —
+ * retail's version was rewritten to match FT4's shape, so the FT4 locals are
+ * what reproduce the bytes here.
+ */
+typedef struct
+{
+    u_long tag;
+    u_char r0, g0, b0, code;
+    short x0, y0;
+    u_char u0, v0;
+    u_short clut;
+    u_char r1, g1, b1, p1;
+    short x1, y1;
+    u_char u1, v1;
+    u_short tpage;
+    u_char r2, g2, b2, p2;
+    short x2, y2;
+    u_char u2, v2;
+    u_short pad2;
+    u_char r3, g3, b3, p3;
+    short x3, y3;
+    u_char u3, v3;
+    u_short pad3;
+} POLY_GT4;
 
-// triage: TRIVIAL — 81 insns, 3 callees, NEAR-CLONE of SetupImageToPolyFT4 — clone it
+extern void SetPolyGT4(POLY_GT4 *p);
+extern u16 GetTPage(s32 tp, s32 abr, s16 x, s16 y);
+extern u16 GetClut(s16 x, s16 y);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void SetupImageToPolyGT4(GsIMAGE *image,POLY_GT4 *ply,short x,short y)
-//
-// {
-//   ushort uVar1;
-//   ushort uVar2;
-//   byte bVar3;
-//   u_short uVar4;
-//   u_char uVar5;
-//   int iVar6;
-//   u_char uVar7;
-//   uint tp;
-//   short sVar8;
-//   short sVar9;
-//
-//   SetPolyGT4(ply);
-//   tp = (ushort)image->pmode & 3;
-//   uVar4 = GetTPage(tp,1,(int)image->px,(int)image->py);
-//   ply->tpage = uVar4;
-//   uVar4 = GetClut((int)image->cx,(int)image->cy);
-//   ply->clut = uVar4;
-//   sVar8 = image->px;
-//   uVar7 = (u_char)image->py;
-//   uVar1 = image->pw;
-//   uVar2 = image->ph;
-//   ply->r0 = '\x7f';
-//                     /* Possible PsyQ macro: setSprt16() + setSemiTrans(sprt16, 1) +
-//                        setShadeTex(sprt16, 1) */
-//   ply->g0 = '\x7f';
-//   ply->b0 = '\x7f';
-//   ply->r1 = '\x7f';
-//                     /* Possible PsyQ macro: setSprt16() + setSemiTrans(sprt16, 1) +
-//                        setShadeTex(sprt16, 1) */
-//   ply->g1 = '\x7f';
-//   ply->b1 = '\x7f';
-//   ply->r2 = '\x7f';
-//                     /* Possible PsyQ macro: setSprt16() + setSemiTrans(sprt16, 1) +
-//                        setShadeTex(sprt16, 1) */
-//   ply->g2 = '\x7f';
-//   ply->b2 = '\x7f';
-//   ply->r3 = '\x7f';
-//                     /* Possible PsyQ macro: setSprt16() + setSemiTrans(sprt16, 1) +
-//                        setShadeTex(sprt16, 1) */
-//   ply->g3 = '\x7f';
-//   ply->b3 = '\x7f';
-//   ply->x0 = x;
-//   ply->y0 = y;
-//   ply->y1 = y;
-//   ply->x2 = x;
-//   bVar3 = (byte)((int)sVar8 << (2 - tp & 0x1f)) & (char)(1 << (8 - tp & 0x1f)) - 1U;
-//   iVar6 = (uint)uVar1 << (2 - tp & 0x1f);
-//   sVar8 = x + (short)iVar6;
-//   sVar9 = y + uVar2;
-//   uVar5 = bVar3 + (char)iVar6;
-//   ply->_2 = uVar7;
-//   ply->_3 = uVar7;
-//   uVar7 = uVar7 + (char)uVar2;
-//   ply->x1 = sVar8;
-//   ply->y2 = sVar9;
-//   ply->x3 = sVar8;
-//   ply->y3 = sVar9;
-//   ply->u0 = bVar3;
-//   ply->u1 = uVar5;
-//   ply->u2 = bVar3;
-//   ply->v2 = uVar7;
-//   ply->u3 = uVar5;
-//   ply->v3 = uVar7;
-//   return;
-// }
+void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
+{
+    s32 tp;
+    s32 sh;
+    s32 iVar7;
+    u32 u0Val;
+    u16 u1Val;
+    u8 v2Val;
+    s32 px;
+    u8 pyByte;
+    u32 pw;
+    u32 ph;
+
+    SetPolyGT4(ply);
+    tp = *(u16 *)&image->pmode & 3;
+    ply->tpage = GetTPage(tp, 1, image->px, image->py);
+    ply->clut = GetClut(image->cx, image->cy);
+    sh = 2 - tp;
+    px = image->px;
+    pyByte = (u8)image->py;
+    pw = image->pw;
+    ph = image->ph;
+    ply->r0 = 0x7F;
+    ply->g0 = 0x7F;
+    ply->b0 = 0x7F;
+    ply->r1 = 0x7F;
+    ply->g1 = 0x7F;
+    ply->b1 = 0x7F;
+    ply->r2 = 0x7F;
+    ply->g2 = 0x7F;
+    ply->b2 = 0x7F;
+    ply->r3 = 0x7F;
+    ply->g3 = 0x7F;
+    ply->b3 = 0x7F;
+    ply->x0 = x;
+    ply->y0 = y;
+    ply->y1 = y;
+    ply->x2 = x;
+    u0Val = (px << sh) & ((1 << (8 - tp)) - 1);
+    iVar7 = pw << sh;
+    x = x + iVar7;
+    y = y + ph;
+    do
+    {
+    } while (0);
+    u1Val = u0Val + iVar7;
+    ply->v0 = pyByte;
+    ply->v1 = pyByte;
+    v2Val = pyByte + ph;
+    ply->x1 = x;
+    ply->y2 = y;
+    ply->x3 = x;
+    ply->y3 = y;
+    ply->u0 = u0Val;
+    ply->u1 = u1Val;
+    ply->u2 = u0Val;
+    ply->v2 = v2Val;
+    ply->u3 = u1Val;
+    ply->v3 = v2Val;
+}
