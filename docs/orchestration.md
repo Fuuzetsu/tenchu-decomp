@@ -339,32 +339,40 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
 
 ## Tooling backlog (recurring friction → build these)
 
-- **Carve every remaining game function ("once and for all")? Measured: feasible,
-  but it is a project, not a flag.** 304 of the 555 game functions are still
-  un-carved (237,656 bytes) — they live inside the 99 `data` blobs that are really
-  raw code. Carving them all gives every function a per-function `.s`, which is
-  what `permute.py` / m2c / the auto-draft sweep need (the sweep currently
-  bulk-carves into a throwaway worktree to get them).
-  Tried it end-to-end in a worktree:
-  * **276 plain functions carve cleanly** with `reverse.py`'s `split_config` +
-    `write_src`. Build time goes ~13s → ~24s. Image stays linkable.
-  * **24 of them are `__override__prt_` two-piece splits**: a single INCLUDE_ASM
-    stub leaves `undefined reference to .L<addr>` at link. `reverse.py`'s
+- **Carve every remaining game function ("once and for all")? Two concrete
+  `split-scaffold.py` bugs block it — everything else works.** Carving does not
+  affect analysis: `triage.py`, `access.py`, `coverage.py`, `findsimilar.py` and
+  the Ghidra export all read the ORIGINAL binary via objdump, so they see every
+  function whole whether or not it is carved. What carving changes is the BUILD:
+  a `c` subsegment makes splat disassemble that range into its own
+  `asm/nonmatchings/<Name>/<Name>.s` (instead of leaving it inside a raw
+  `asm/data/<off>.data.s` blob) and emit a stub that `INCLUDE_ASM`s it. Output
+  bytes are identical either way. The payoff is that **`permute.py`, m2c and the
+  auto-draft sweep need a per-function `.s`** — the sweep currently bulk-carves
+  into a throwaway worktree just to get them.
+
+  Measured end-to-end (304 un-carved game functions, 237,656 bytes):
+  * 276 plain functions carve cleanly; build time ~13s → ~26s.
+  * 24 are `__override__prt_` two-piece splits: a single `INCLUDE_ASM` stub
+    leaves `undefined reference to .L<addr>` at link. `reverse.py`'s
     `expand_stub` fixes all 24 — a bulk carver must call it, not just `write_src`.
-    (This is a good consistency check: the carve *finds* boundary bugs that
-    `coverage.py` cannot, because they are wrong split points, not gaps.)
-  * **29 are jump-table functions and are the real blocker.** Without them the
-    image is 48 bytes short (one missing 12-entry table) and every later address
-    shifts — so "carve everything except the jump tables" is not a valid
-    intermediate state. Each needs `split-scaffold.py`, which today needs:
-    (a) a `switchD_<a>__switchdataD_<t>` symbol per table (some lack one, e.g.
-    `StartStageSequence`), and (b) their `.rodata` carve tagged
-    `linker_section_order: .text` — they sit in the TEXT run, unlike today's six
-    leading carves. `rodata_sub` now emits that tag, but no such carve exists yet,
-    so it is untested in anger.
-  Verdict: **not now.** Carving on demand is one `reverse.py` command, and the
-  only consumer that needs mass carving (the sweep) already works via a throwaway
-  worktree. Do it as a deliberate change once the jump-table path is solid.
+  * 29 are jump tables; all 29 now scaffold (needed the `func_bounds`
+    renamed-via-sibling fix). The tree LINKS with all 557 functions carved.
+  * **But the image comes out 52 bytes too large**, and the cause is two bugs:
+    1. **`split-scaffold` assumes one table per function.** `ActCHASE`,
+       `ActSQUAT`, `CameraType1` have 2 tables and `ActENGAGE` has 3, yet the
+       compiled object has ONE `.rodata` section with the `_jtbl` arrays
+       concatenated. Emitting one carve per table places that whole section at
+       the FIRST carve and nothing at the others. Fix: one carve per contiguous
+       table pool, sized to the object's whole `.rodata`.
+    2. **`table_len` under-counts.** `ActENGAGE`'s middle table is 34 words, not
+       33; the 34th (at vram `0x80011424`) is not a code pointer inside the
+       function, so the heuristic stops. That is exactly where the first byte
+       diff appears. Fix: bound a table by the next table's start / the pool end
+       rather than by "is this word a pointer into me".
+
+  Fix those two, and the full carve should land. Until then, carving on demand is
+  one `reverse.py` command and nothing is blocked.
 
 - **Productize the sweep as `tools/sweep.py`** (see the section above). Needs:
   resolve the permuter's source + python env from the `permuter.py` wrapper
