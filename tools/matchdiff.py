@@ -23,9 +23,32 @@ TEXT_START = 0x80011000
 FILE_TEXT_OFF = 0x800
 ORIG = "disks/tenchu/main.exe"
 OURS = ".shake/build/tenchu/main.exe"
+MAP = ".shake/build/tenchu/main.exe.map"
 SYMBOLS = "config/symbols.main.exe.txt"
 YAML = "config/splat.main.exe.yaml"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
+
+
+def linked_text_size(name):
+    """Bytes the linker actually placed for <name>.c.o's .text, from the map.
+
+    Independent of the byte comparison: if this disagrees with the carve extent,
+    the DRAFT is the wrong length, full stop -- and everything after it in the
+    image has shifted. Catches the case where a NON_MATCHING shadow build reports
+    a spurious whole-image MATCH on a split/override function (matchdiff once
+    printed `MATCH! 0 differing bytes` for a 456-byte draft in a 460-byte slot).
+    Returns None if the map has no such line (e.g. a pure-asm function).
+    """
+    if not os.path.exists(MAP):
+        return None
+    obj = re.compile(
+        r"^\s*\.text\s+0x[0-9a-fA-F]+\s+0x([0-9a-fA-F]+)\s+.*/" + re.escape(name) + r"\.c\.o\b")
+    total = None
+    for line in open(MAP, errors="replace"):
+        m = obj.match(line)
+        if m:
+            total = (total or 0) + int(m.group(1), 16)
+    return total
 
 
 def is_carved(name):
@@ -174,6 +197,18 @@ def main():
                      f"log: {BUILD_LOG}\n{tail}")
 
     addr, size = symbol_slot(args.name)
+
+    # Length cross-check, independent of the byte comparison. A draft that links
+    # SHORTER than its carve slot shifts everything after it; on a split/override
+    # function the windowed byte diff can still read as MATCH. The map does not lie.
+    linked = linked_text_size(args.name)
+    if linked is not None and linked != size:
+        print(f"{args.name}: LENGTH MISMATCH — carve extent {size} bytes, but the "
+              f"linker placed {linked} bytes of .text for {args.name}.c.o.")
+        print("  The draft is the wrong length; everything after it has shifted.")
+        print("  This is NOT a match, whatever the byte window below says.")
+        return 1
+
     off = FILE_TEXT_OFF + (addr - TEXT_START)
     orig = open(ORIG, "rb").read()
     ours = open(OURS, "rb").read()
