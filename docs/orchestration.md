@@ -178,6 +178,16 @@ Agents branch from a point-in-time worktree; by the time they finish, `main`
 has moved (other harvests). **Do not merge their config edits.** Re-derive them
 with the tools instead. Per matched function, in the main tree:
 
+**NEVER copy a SHARED file (`item.h`, `game_types.h`, `effect.h`, `Build.hs`,
+`permute.py`, `config/symbols.*`) wholesale from a worktree — apply only the agent's
+own hunk.** The worktree may be dozens of commits behind, so `cp`-ing its `item.h`
+over yours silently reverts every intervening change (I clobbered SoundEx's
+`int→short`, UpdateMotion, wepid, TraceLine this way; a `conflicting types` compile
+error caught it, but a size-preserving struct edit would have linked wrong silently).
+Extract the agent's added struct fields / prototype with a targeted
+`old→new` string replace against your CURRENT copy, then rebuild. Only per-function
+`.c` files are safe to copy whole.
+
 ```
 cp <worktree>/src/main.exe/<Name>.c src/main.exe/          # the matched C
 # apply any config/symbols.main.exe.txt ADDITIONS the agent reported (it has no
