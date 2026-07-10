@@ -379,6 +379,14 @@ plain C is the matched file.
 - A hand-rolled `label: if (...) goto...` loop also keeps the top test but
   **loses hoisting** (no loop notes → loop.c skips it): magic divisors and
   invariant addresses get rematerialized per iteration. Wrong.
+- **A `short` loop counter SUPPRESSES loop.c's strength reduction.** loop.c needs
+  a plain SImode giv to rewrite `arr[i].f` into a walking induction pointer, so an
+  `int i` gets you `p += 8` per iteration. A `short i` instead keeps the target's
+  recompute-from-base shape — the counter's own sign-extend fuses with the scale
+  (`(i<<16)>>13` for an 8-byte element), and the address is rebuilt as
+  `base + i*8` every iteration. When the target recomputes but your draft walks a
+  pointer, narrow the counter before touching anything else (SetupMotionRegist).
+  (Not to be confused with the *3-instruction* GetPad sign-extension class.)
 - **Index the table (`T[i].f`) rather than walking a pointer (`e++`) when the
   loop touches two or more fields.** With a walking pointer cc1 strength-reduces
   the induction variable so that the LAST field it touches sits at offset 0 —
