@@ -6,11 +6,16 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * static short LoadConstruction(unsigned long *data);
- *     WORLD.C:436, 191 src lines, frame 416 bytes, saved-reg mask 0xc0ff0000
+ *     WORLD.C:436, 191 src lines, frame 416 bytes, saved-reg mask 0xc0ff0000 (DEMO build -- see below)
  *
  * Original parameters and locals (the demo build's register allocation may
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
- * over). A repeated name is a nested-block scope, not a duplicate:
+ * over). A repeated name is a nested-block scope, not a duplicate.
+ * The frame size and saved-reg mask above are the DEMO's: retail often needs
+ * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
+ * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+ * and a hint at how many values stay live, never as a spec. The asm wins.
+ * Locals:
  *     param stack+0   unsigned long * data
  *     stack sp+352    int ObjectID
  *     stack sp+356    unsigned long * MapModel

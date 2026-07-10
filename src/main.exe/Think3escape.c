@@ -7,7 +7,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short Think3escape(void);
- *     THINK_3.C:103, 21 src lines, frame 0 bytes, saved-reg mask 0x00000000
+ *     THINK_3.C:103, 21 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern long Distance;

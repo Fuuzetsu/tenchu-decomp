@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void DrawTelop(void);
- *     CHRANIM.C:420, 17 src lines, frame 32 bytes, saved-reg mask 0x80070000
+ *     CHRANIM.C:420, 17 src lines, frame 32 bytes, saved-reg mask 0x80070000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct POLY_F4 TelopbgP;

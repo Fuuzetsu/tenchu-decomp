@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short Think1ninja(void);
- *     THINK_1.C:99, 2 src lines, frame 0 bytes, saved-reg mask 0x00000000
+ *     THINK_1.C:99, 2 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern unsigned long *GlobalAreaMap;

@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * unsigned long vgetmaxsize(void);
- *     VALLOC.C:45, 12 src lines, frame 0 bytes, saved-reg mask 0x00000000
+ *     VALLOC.C:45, 12 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern unsigned long *virtual_memory_pool;

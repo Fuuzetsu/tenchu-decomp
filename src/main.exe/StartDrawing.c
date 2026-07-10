@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void StartDrawing(void);
- *     3DCTRL.C:140, 6 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     3DCTRL.C:140, 6 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern short DrawingPage;

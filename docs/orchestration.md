@@ -285,6 +285,13 @@ lens.
 
 ## Gotchas (all learned the hard way)
 
+- **Never run `tools/permute.py` and `tools/matchdiff.py` concurrently in one
+  worktree.** Both drive `./Build` against the same `.shake/` database, and the
+  torn read produces a wildly garbled diff — one that typically appears as a length
+  mismatch in some *downstream* function, so you go hunting in the wrong place. Two
+  agents in two worktrees are fine (separate `.shake/`); one agent doing both at once
+  is not. If a diff suddenly stops making sense, check for a live permuter first.
+
 - **Never hand-edit `config/splat.main.exe.yaml` carves** — use `reverse.py`;
   the data-offset math is easy to get wrong (bit me twice). It preserves
   hand-added `.rodata` carves now (it used to drop them).

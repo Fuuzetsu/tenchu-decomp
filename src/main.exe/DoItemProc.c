@@ -7,7 +7,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void DoItemProc(void);
- *     ITEM.C:3205, 52 src lines, frame 32 bytes, saved-reg mask 0x80030000
+ *     ITEM.C:3205, 52 src lines, frame 32 bytes, saved-reg mask 0x80030000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern long GameClock;

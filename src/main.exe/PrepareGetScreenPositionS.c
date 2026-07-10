@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void PrepareGetScreenPositionS(void);
- *     EFFECT.C:577, 9 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     EFFECT.C:577, 9 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  * END PSX.SYM */
 
 /*

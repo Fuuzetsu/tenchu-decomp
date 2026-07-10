@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * int CdaGetCurrentLength(void);
- *     OPAUDIO.C:29, 13 src lines, frame 32 bytes, saved-reg mask 0x80030000
+ *     OPAUDIO.C:29, 13 src lines, frame 32 bytes, saved-reg mask 0x80030000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct TCdaStatus CdaStatus;

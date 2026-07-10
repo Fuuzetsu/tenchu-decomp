@@ -7,7 +7,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short ControlAllHumanoid(void);
- *     HUMAN.C:97, 6 src lines, frame 32 bytes, saved-reg mask 0x80030000
+ *     HUMAN.C:97, 6 src lines, frame 32 bytes, saved-reg mask 0x80030000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern short Humans;

@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void ItemControl(void);
- *     MOTION.C:896, 13 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     MOTION.C:896, 13 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  * END PSX.SYM */
 
 /*

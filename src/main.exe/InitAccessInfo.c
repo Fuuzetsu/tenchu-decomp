@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void InitAccessInfo(void);
- *     FILEIO.C:106, 4 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     FILEIO.C:106, 4 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct POLY_GT4 AccessImage;

@@ -476,6 +476,15 @@ plain C is the matched file.
   a fresh `li $a2,1` like the original (cse tables don't follow the taken
   edge).
 
+### A guard returning the constant its own test produced wants a bare `goto`
+
+`if (cond) return X;` followed by more code, where `X` is a compile-time constant
+**equal to the value the guard's own test left in `$v0`**, compiles one instruction
+too long: the literal `return X;` forces a `li $v0,X`. Write
+`if (cond) goto end; ... end: return;` instead — the pre-existing test register
+carries the value for free. Sharing one label across several such guards lets each
+reach it with a single branch (`ItemUse`'s `item[4]==0` and `d >= 300` guards).
+
 ## Loops
 
 - `for (init; cond; inc)` and `while (cond)` expand with a jump to a
@@ -1046,6 +1055,25 @@ scratch — base and index registers swapped, exactly as the target does
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
 
+### A parameter that walks stays in its incoming register; the fixed base gets copied
+
+When two live pointers into one buffer are a fixed base plus a walking cursor, cc1
+keeps the **incoming parameter register** as the walker and copies the fixed base to
+a fresh callee-saved register. In `LoadTIMpack`, writing `puVar2 = adr;` and then
+walking `adr` (`adr = adr + 1`) while reading the fixed base through `puVar2` matched
+the target's register roles. Walking `puVar2` instead — keeping `adr` fixed — rotated
+every callee-saved register by one and mismatched the whole prologue and epilogue.
+Pick which name walks to match the target's `$a0` role, not for readability.
+
+### A struct-typed local cached at a post-branch join, not at entry
+
+Two sibling field checks that straddle an intervening conditional block will each
+reload the base pointer, because a label is a hard CSE boundary. Naive hoisting to
+function entry does not fix it — but a **named local** whose liveness crosses the
+label does. `ItemUse` needed `character_state *me = Me_THINK_C;` introduced right at
+the join, so `item[1]` and `item[4]` reuse one register across the branch instead of
+reloading twice.
+
 ### A constant used ONCE across a call is rematerialised, not allocated
 
 cc1 costs a cheap constant that is live across a call as *rematerialisable*: it
@@ -1447,6 +1475,20 @@ re-materialises `%hi` per use through `$at` (`lui $at,0x8001; sb $v0,71($at)`) �
 extra `lui`s and the *wrong length*, not merely a register tie. The `lui`
 survives alone only because the object's `%lo` is 0, so the cast's constant
 needs exactly one instruction (FUN_8001b2b8).
+
+**An absolute global that is read, modified and re-read across a call wants a raw
+address-literal macro, not a named `extern`.** `InitGraphicsSystem`'s tail is
+`STARTING_RNG_SEED = STARTING_RNG_SEED + VSync(-1); srand(STARTING_RNG_SEED);`.
+A named `extern s32 STARTING_RNG_SEED;` compiles the load and the store through the
+generic assembler pseudo-ops (`lw $r,SYM` / `sw $r,SYM`), each independently
+`lui`-expanded: one instruction too many, and the store cannot be stolen into the
+following `jal srand` delay slot. Spelling it
+`#define STARTING_RNG_SEED (*(s32 *)0x80010e70)` makes cc1 commit to explicit
+`lui`+`ori` constant-load RTL, which it CSEs across the read and the write, freeing
+reorg to fill the call's delay slot with the store — the exact target sequence.
+Verified against the pinned cc1: the named extern and a pointer temp both fail; only
+the raw literal matches. This is the read-modify-reread-across-a-call counterpart to
+the bare-`lui` rule above.
 
 ASPSX gp-addresses only symbols **defined in the TU being assembled**;
 externs are always absolute (`lui $at`/dest-reg expansion of the one-line

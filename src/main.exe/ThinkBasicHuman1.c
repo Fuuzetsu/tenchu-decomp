@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short ThinkBasicHuman1(void);
- *     THINK.C:236, 7 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     THINK.C:236, 7 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern enum TSystemFlag SystemFlag;

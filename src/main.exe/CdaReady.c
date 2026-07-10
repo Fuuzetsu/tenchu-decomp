@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * int CdaReady(void);
- *     OPAUDIO.C:46, 2 src lines, frame 0 bytes, saved-reg mask 0x00000000
+ *     OPAUDIO.C:46, 2 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct TCdaStatus CdaStatus;

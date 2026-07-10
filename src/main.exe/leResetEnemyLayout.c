@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void leResetEnemyLayout(void);
- *     WORLD.C:1054, 7 src lines, frame 0 bytes, saved-reg mask 0x00000000
+ *     WORLD.C:1054, 7 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct TEnemyLayout enemy[30];

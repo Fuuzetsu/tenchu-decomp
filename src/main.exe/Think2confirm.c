@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short Think2confirm(void);
- *     THINK_2.C:14, frame 16 bytes, saved-reg mask 0x00000000
+ *     THINK_2.C:14, frame 16 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  * END PSX.SYM */
 
 /*

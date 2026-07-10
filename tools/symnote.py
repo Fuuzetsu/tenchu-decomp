@@ -136,12 +136,17 @@ def render(name, protos, tu, locals_, cand) -> str | None:
         span = f", {t['span']} src lines" if t.get("span", "?") != "?" else ""
         L.append(f"{'static ' if is_static else ''}{proto}")
         L.append(f"    {where}{span}, frame {t.get('fsize','?')} bytes, "
-                 f"saved-reg mask {t.get('mask','?')}")
+                 f"saved-reg mask {t.get('mask','?')} (DEMO build -- see below)")
     if name in locals_:
         L.append("")
         L.append("Original parameters and locals (the demo build's register allocation may")
         L.append("differ from retail, but the COUNT and TYPES drive cc1's codegen and carry")
-        L.append("over). A repeated name is a nested-block scope, not a duplicate:")
+        L.append("over). A repeated name is a nested-block scope, not a duplicate.")
+        L.append("The frame size and saved-reg mask above are the DEMO's: retail often needs")
+        L.append("FEWER callee-saved registers (measured: Think1random exact; Think1chase's")
+        L.append("0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound")
+        L.append("and a hint at how many values stay live, never as a spec. The asm wins.")
+        L.append("Locals:")
         for kind, where, ty, vn in locals_[name]:
             L.append(f"    {kind:<5} {where:<9} {ty} {vn}")
     g = globals_of(name)

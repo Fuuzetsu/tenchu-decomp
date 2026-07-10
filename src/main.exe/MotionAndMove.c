@@ -7,7 +7,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short MotionAndMove(void);
- *     MOTION.C:173, 11 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     MOTION.C:173, 11 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern short MotionUpdateMode;

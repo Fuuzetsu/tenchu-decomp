@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void InitializeImage(void);
- *     IMAGES.C:32, 16 src lines, frame 40 bytes, saved-reg mask 0x800f0000
+ *     IMAGES.C:32, 16 src lines, frame 40 bytes, saved-reg mask 0x800f0000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsIMAGE Images[52];

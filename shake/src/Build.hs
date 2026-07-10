@@ -154,11 +154,18 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "bow_shoot_logic" = ["--expand-div"]
     extra "Think3escape" = ["--expand-div"]
     extra "UpdateTexScroll" = ["--expand-div"]
+    extra "DrawSprite" = ["--expand-div"]
     extra "SuccessionAttack" = ["--expand-div"]
     extra "GetSpline" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
+    syms "DrawSprite" = ["OTablePt"]
+    syms "Think1random" = ["Me_THINK_C", "Attrib"]
+    syms "Think1chase" = ["Me_THINK_C"]
+    syms "ItemUse" = ["Me_THINK_C", "Degree"]
+    syms "Think4contact" = ["SR", "Attrib", "Me_THINK_C", "Degree"]
+    syms "Think4chase" = ["SR", "Attrib", "Me_THINK_C", "Degree"]
     -- ReqItemDrop.c is part of the original item TU, which defines its
     -- round-robin counter (the item TU's .sdata block starts at 0x80097ac8).
     syms "ReqItemDrop" = ["COUNTER_FOR_ITEM_ARRAY_"]

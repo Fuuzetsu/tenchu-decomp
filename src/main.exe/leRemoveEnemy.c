@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * int leRemoveEnemy(void);
- *     WORLD.C:1259, 12 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     WORLD.C:1259, 12 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct TEnemyLayout enemy[30];

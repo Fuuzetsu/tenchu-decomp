@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * short ThinkBasicHuman2(void);
- *     THINK.C:247, 2 src lines, frame 24 bytes, saved-reg mask 0x80000000
+ *     THINK.C:247, 2 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  * END PSX.SYM */
 
 /*

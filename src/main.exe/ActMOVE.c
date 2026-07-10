@@ -6,7 +6,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void ActMOVE(void);
- *     MOTION.C:994, 32 src lines, frame 24 bytes, saved-reg mask 0x80010000
+ *     MOTION.C:994, 32 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
