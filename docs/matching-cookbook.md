@@ -1194,6 +1194,29 @@ variable doing double duty** — and its call-argument copy-preference travels w
 into the other region. (`vrealloc`: the grow-branch mask and the memcpy length are
 the same variable.)
 
+### Two same-role temps with DISJOINT live ranges may be ONE reused variable
+
+The exact inverse of the rule above, and also a global-alloc priority lever.
+`global.c` sums refs and live-range lengths across a pseudo's whole life, and
+priority moves in `floor_log2` jumps, so merging two disjoint temps can vault the
+merged pseudo over a rival. `vfree`: the forward-merge's `next->size` (3 refs / 6
+insns = 5000) and the backward-merge's `prev->size` (3 / 4 = 7500) are ONE local
+`s`; merged they are 6 / 10 = 12000, outranking `next` (4 / 10 = 8000) and pushing
+it off `$v1` into `$a0` — the target's exact colouring.
+
+The tell: **the target loads two different values into the SAME register in disjoint
+regions** (`lw $v1, 0($a0)` in both merge blocks) while your draft colours them
+apart. A `do {} while (0)` wrapper can force the same order, but it cascades (it
+boosted `pt` past `header` across a `floor_log2(8)` jump and swapped `$s0`/`$s1`);
+a natural variable merge is the stabler lever when one exists.
+
+### `A + (B + 2)` and `B + 2 + A` pick different destination registers
+
+fold canonicalises `A + (B + C)` to `(A + C) + B`, so the `addiu` lands on A's
+register — where it can fill a guard's delay slot — and the `addu`'s destination
+ties to that dying operand. The mirrored spelling emits the same instructions with
+swapped operands and a different result colour (`vfree`'s tail sum: `$v1` vs `$v0`).
+
 ### Steering allocation: donate a call-arg preference to a low-priority pseudo
 
 `global.c`'s `find_reg` makes earlier (higher-priority) allocnos AVOID a free

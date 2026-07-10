@@ -7,7 +7,6 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern struct WorldType WorldMap[8][8][8];
  *     extern enum TSystemFlag SystemFlag;
  * END PSX.SYM */
 

@@ -142,6 +142,8 @@ def render(name, protos, tu, locals_, cand) -> str | None:
         L.append("Original parameters and locals (the demo build's register allocation may")
         L.append("differ from retail, but the COUNT and TYPES drive cc1's codegen and carry")
         L.append("over). A repeated name is a nested-block scope, not a duplicate.")
+        L.append("A ZERO-locals record is unverified, not a claim that the function has none:")
+        L.append("vfree lists zero locals yet its byte-matched source needs seven.")
         L.append("The frame size and saved-reg mask above are the DEMO's: retail often needs")
         L.append("FEWER callee-saved registers (measured: Think1random exact; Think1chase's")
         L.append("0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound")
