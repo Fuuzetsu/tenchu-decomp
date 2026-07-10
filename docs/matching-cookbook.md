@@ -919,6 +919,19 @@ pinned cc1. If the target has the literal shape, name the shifted mask first:
 own second use**, or fpeephole fuses the truncating `sra` and the shift into one
 instruction — leaving you one instruction short of the target.
 
+**Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
+before any intervening call** — even where Ghidra renders one lazily folded into a
+later call's argument (`f(a, b / d)`). `IsVisible`'s three divisions by one variable
+`d` all execute before either `abs()` that consumes them. Give each quotient its own
+named temp and compute them all, in argument order, before the first consuming call.
+
+**A target's "redundant-looking" extra reload means the source used a fresh field
+dereference, not a cached pointer.** `vrealloc` writes `vh.next = vhp->next;` even
+though a `nb` variable computed moments earlier holds the numerically identical
+address; spelling it `vh.next = nb;` drops the reload the target has, because cc1
+will not refetch what it can already see live in a register. Provable equality is not
+a licence to reuse the variable.
+
 **`GsSortSprite`'s `int pri` argument needs an explicit `(u16)` cast at the call
 site** to reproduce the `andi $a2,$a2,0xffff` that sits in the `jal`'s delay slot.
 
@@ -1133,6 +1146,18 @@ scratch — base and index registers swapped, exactly as the target does
 (ReqLifeBar; 9 instructions / 36 bytes recovered). Verified empirically; the
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
+
+### Which zero-initialised local is the "master" decides the whole allocation
+
+When several locals are zeroed together, one is literally assigned the constant and
+the rest are copied from it. Which one is discoverable from the register the first
+`move`/`li` of the init chain targets. Get it wrong and a local can collide with a
+still-live incoming parameter's register, forcing an extra callee-saved save/restore
+across the whole function. `GetCenterAndSize` zeroes six shorts; naming the wrong
+master put one of them in the live `center` parameter's register. Reordering the
+declarations so the master matches the asm's first-in-chain register fixed it with no
+other change. The tell is `regalloc.py` showing a parameter's register reused by a
+local.
 
 ### A parameter that walks stays in its incoming register; the fixed base gets copied
 
@@ -1452,6 +1477,12 @@ their definitions before reaching for the permuter.
 
 ## Shared tails
 
+**An early `return !flag;` right after `flag = 1;` gets constant-folded to a
+literal.** `IsVisible` sets a `fail` flag and has exactly ONE `return !fail;`, at the
+bottom; making the failing branch return locally lets cc1 fold `!1` to `0` there —
+three instructions shorter than the target. Both branches must fall through to the
+single shared `return !fail;` for the real runtime `xori` to appear on both paths.
+
 **Two otherwise byte-identical `return expr;` tails can fail to cross-jump-merge in
 this cc1.** Route all but one through `goto` to a single shared `return` — in
 `CGetLevel`, funnelling three arms into one `ret` variable plus one
@@ -1740,6 +1771,15 @@ absolute → keep the symbol off the list (a plain small extern).
   function and names the culprit. Two exist in game code: `LoadCard`
   (0x114 → true 0x168) and `FUN_800593a0` (0x12C → true 0x27C). Carve those with
   `reverse.py <Name> --size 0x<true>` (verified green), and fix them in Ghidra.
+  - **Variant: the missing tail can land in a plain anonymous
+    `{ start: 0x…, type: data }` splat entry sandwiched between two real
+    functions** — no phantom label, no rename, just delete the entry. Same tell
+    (a bare `jr ra` with no delay slot ending the preceding function's `.s`).
+    Third confirmed instance: `valloc`, carved 456 bytes where the truth is 460
+    (0x1CC); the stolen word at file `0x5F34` decodes to `addiu sp,sp,0x438`,
+    sitting in `jr ra`'s delay slot. Note Ghidra's own `functions.tsv` was
+    under-sized too, so `coverage.py` is the check, not the export.
+
   - **Variant: the missing tail can land inside a NEIGHBOURING phantom function
     instead of an orphan `.data` blob, if Ghidra also independently placed a
     (bogus) function label exactly at the boundary.** Symptom: a trivial

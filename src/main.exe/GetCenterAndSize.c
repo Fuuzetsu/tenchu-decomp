@@ -6,16 +6,11 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * static void GetCenterAndSize(unsigned long *tmd, struct SVECTOR *center, int *size);
- *     WORLD.C:390, 40 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
+ *     WORLD.C:390, 40 src lines, frame 0 bytes, saved-reg mask 0x00000000
  *
  * Original parameters and locals (the demo build's register allocation may
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
- * over). A repeated name is a nested-block scope, not a duplicate.
- * The frame size and saved-reg mask above are the DEMO's: retail often needs
- * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
- * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
- * and a hint at how many values stay live, never as a spec. The asm wins.
- * Locals:
+ * over). A repeated name is a nested-block scope, not a duplicate:
  *     param $a0       unsigned long * tmd
  *     param $a1       struct SVECTOR * center
  *     param $a2       int * size
@@ -31,74 +26,90 @@
  *     reg   $a0       short dm
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetCenterAndSize", GetCenterAndSize);
+/*
+ * GetCenterAndSize (0x8003a9bc, 0x1a4 bytes) — same TU as leFindEnemy.c/
+ * IsVisible.c (WORLD.C): given a TMD model's vertex table (`tmd[0]` the
+ * vertex array pointer, `tmd[1]` the vertex count), finds the bounding box
+ * over x/y/z, writes its center to `*center` and half of its largest axis
+ * extent to `*size`.
+ *
+ * Matching notes:
+ *  - Each axis is `if (max < v) max = v; else if (v < min) min = v;` — an
+ *    `if`/`else if`, NOT two independent ifs (Ghidra's own rendering, an
+ *    `||`-chained single `if`, is an SSA merge artifact of the shared
+ *    "did we already take the max branch" flag; the raw asm's max-branch
+ *    unconditionally jumps past the min-test).
+ *  - The field read for the COMPARISON is a signed `lh`, but the read that
+ *    feeds the (short-to-short) assignment is an unsigned `lhu` of the SAME
+ *    field, at the SAME address, with no intervening store — two un-CSE'd
+ *    loads of different machine modes (the narrowing-use-gets-lhu rule).
+ *    Reproduced by reading `vert->vN` directly at both the comparison and
+ *    the assignment rather than caching it in a temp.
+ *  - `maxz - minz` is computed ONCE, immediately after the loop, BEFORE the
+ *    center->vx/vy/vz stores — and re-used only after them, for the size
+ *    comparison. Statement position, not Ghidra's late placement, is the
+ *    real order (the value is textually first but used last).
+ *  - The `(short)a < (short)b` axis-extent comparisons compile to a SLT on
+ *    the two values shifted left 16 (no `sra`) — cc1 skips the sign-extend
+ *    since only the ORDERING of the low 16 bits matters to a signed
+ *    comparison of two `<<16`'d operands.
+ *  - Indexing `vert[i].vN` (not walking a pointer with `vert++`) is required:
+ *    the loop touches THREE fields (vx/vy/vz) off one base, and a walking
+ *    pointer biases the induction register toward the last-touched field
+ *    (Loops section rule) — confirmed here (permuter-free structural fix).
+ *  - `dm = (short)(maxx - minx);` must be computed as a NAMED local right
+ *    alongside `dz = maxz - minz;` (before the center->vx/vy/vz stores) and
+ *    reused in the final `if (dz < dm)` — recomputing `(short)(maxx-minx)`
+ *    inline at the comparison compiles to a different (permuter-found)
+ *    register colouring for the whole tail. Matches PSX.SYM's `reg $a0
+ *    short dm` local exactly.
+ */
 
-// triage: EASY — 105 insns, 1 loop, 0 callees, ~0.03 to DeleteConflict
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
+static void GetCenterAndSize(u32 *tmd, SVECTOR *center, int *size)
+{
+    SVECTOR *vert;
+    int nVert;
+    int i;
+    short minx, miny, minz, maxx, maxy, maxz;
+    short dz;
+    short dm;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void GetCenterAndSize(ulong *tmd,SVECTOR *center,int *size)
-//
-// {
-//   ushort *puVar1;
-//   int iVar2;
-//   uint uVar3;
-//   uint uVar4;
-//   uint uVar5;
-//   uint uVar6;
-//   uint uVar7;
-//   uint uVar8;
-//   uint uVar9;
-//   uint uVar10;
-//
-//   uVar8 = 0;
-//   uVar10 = 0;
-//   uVar5 = 0;
-//   uVar6 = 0;
-//   uVar7 = 0;
-//   uVar3 = 0;
-//   puVar1 = (ushort *)*tmd;
-//   iVar2 = 0;
-//   uVar4 = uVar3;
-//   if (0 < (int)tmd[1]) {
-//     do {
-//       uVar3 = (uint)*puVar1;
-//       uVar9 = uVar8;
-//       if (((short)uVar6 < (short)*puVar1) ||
-//          (uVar3 = uVar6, uVar9 = (uint)*puVar1, (short)*puVar1 < (short)uVar8)) {
-//         uVar6 = uVar3;
-//         uVar8 = uVar9;
-//       }
-//       uVar3 = (uint)puVar1[1];
-//       uVar9 = uVar10;
-//       if (((short)uVar7 < (short)puVar1[1]) ||
-//          (uVar3 = uVar7, uVar9 = (uint)puVar1[1], (short)puVar1[1] < (short)uVar10)) {
-//         uVar7 = uVar3;
-//         uVar10 = uVar9;
-//       }
-//       uVar3 = (uint)puVar1[2];
-//       if (((short)puVar1[2] <= (short)uVar4) && (uVar3 = uVar4, (short)puVar1[2] < (short)uVar5)) {
-//         uVar5 = (uint)puVar1[2];
-//       }
-//       iVar2 = iVar2 + 1;
-//       puVar1 = puVar1 + 4;
-//       uVar4 = uVar3;
-//     } while (iVar2 < (int)tmd[1]);
-//   }
-//   center->vx = (short)(((int)(short)uVar6 + (int)(short)uVar8) / 2);
-//   center->vy = (short)(((int)(short)uVar7 + (int)(short)uVar10) / 2);
-//   center->vz = (short)(((int)(short)uVar3 + (int)(short)uVar5) / 2);
-//   iVar2 = uVar3 - uVar5;
-//   if ((int)((uVar3 - uVar5) * 0x10000) < (int)((uVar7 - uVar10) * 0x10000)) {
-//     iVar2 = uVar7 - uVar10;
-//   }
-//   if (iVar2 << 0x10 < (int)((uVar6 - uVar8) * 0x10000)) {
-//     iVar2 = uVar6 - uVar8;
-//   }
-//   *size = ((iVar2 << 0x10) >> 0x10) - ((iVar2 << 0x10) >> 0x1f) >> 1;
-//   return;
-// }
+    minx = 0;
+    miny = minx;
+    minz = minx;
+    maxx = minx;
+    maxy = minx;
+    maxz = minx;
+
+    nVert = (int)tmd[1];
+    vert = (SVECTOR *)tmd[0];
+
+    for (i = 0; i < nVert; i++)
+    {
+        if (maxx < vert[i].vx)
+            maxx = vert[i].vx;
+        else if (vert[i].vx < minx)
+            minx = vert[i].vx;
+
+        if (maxy < vert[i].vy)
+            maxy = vert[i].vy;
+        else if (vert[i].vy < miny)
+            miny = vert[i].vy;
+
+        if (maxz < vert[i].vz)
+            maxz = vert[i].vz;
+        else if (vert[i].vz < minz)
+            minz = vert[i].vz;
+    }
+
+    dm = (short)(maxx - minx);
+    dz = maxz - minz;
+    center->vx = (maxx + minx) / 2;
+    center->vy = (maxy + miny) / 2;
+    center->vz = (maxz + minz) / 2;
+    if (dz < (short)(maxy - miny))
+        dz = maxy - miny;
+    if (dz < dm)
+        dz = maxx - minx;
+    *size = dz / 2;
+}

@@ -161,7 +161,6 @@ segments:
       - [0x5AA4, c, main]
       - [0x5CE0, c, DoBriefingAndInventorySelection]
       - [0x5D6C, c, valloc]
-      - { start: 0x5F34, type: data, linker_section_order: .text }
       - [0x5F38, c, vrealloc]
       - [0x613C, c, vmemoryGC]
       - [0x6448, c, vinit]

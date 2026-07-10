@@ -1,21 +1,17 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
  * int leFindEnemy(void);
- *     WORLD.C:1099, 31 src lines, frame 88 bytes, saved-reg mask 0x807f0000 (DEMO build -- see below)
+ *     WORLD.C:1099, 31 src lines, frame 88 bytes, saved-reg mask 0x807f0000
  *
  * Original parameters and locals (the demo build's register allocation may
  * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
- * over). A repeated name is a nested-block scope, not a duplicate.
- * The frame size and saved-reg mask above are the DEMO's: retail often needs
- * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
- * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
- * and a hint at how many values stay live, never as a spec. The asm wins.
- * Locals:
+ * over). A repeated name is a nested-block scope, not a duplicate:
  *     reg   $s1       int i
  *     reg   $s6       long px
  *     reg   $s5       long py
@@ -31,71 +27,112 @@
  *     extern struct Sprite3D *sprSmoke;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/leFindEnemy", leFindEnemy);
+/*
+ * leFindEnemy (0x8003c470, 0x1a4 bytes) — `le`=layout-enemy family (see
+ * leAddPath.c/leResetPath.c for TEnemyLayout): scans the 30-slot `enemy[]`
+ * table for the live (`type != -1`) entry nearest CamState.Owner's model
+ * position, returning its index (or -1 if none is closer than the initial
+ * 2000-unit cutoff). On a hit, spawns the same marker explosion effect as
+ * leAddPath (SetExplosion with a zeroed rotation and the found enemy's own
+ * x/y/z) at the found enemy's position.
+ *
+ * Matching notes:
+ *  - `local_48 = D_80097ABC[0];` (the whole-SVECTOR copy) is computed BEFORE
+ *    the `memset` call in source, not after — same pooled rodata constant
+ *    as leAddPath.c, same lwl/lwr+swl/swr block-copy shape.
+ *  - The zeroed/filled VECTOR is a SEPARATE staging local from the one
+ *    passed to SetExplosion: `local_40` gets memset then vx/vy/vz filled
+ *    from `enemy[find]`, and `pos = local_40;` (a whole 4-word struct copy,
+ *    including the untouched zero `pad`) is what SetExplosion actually
+ *    receives — not a fused "memset+fill one local" shape. PSX.SYM's demo
+ *    build only names the one surviving local (`pos`); retail keeps the
+ *    staging copy.
+ *  - `enemy[find]`'s address is computed as `find*17*8` (`(find<<4)+find,
+ *    then <<3`), the compiler's own strength-reduced multiply by
+ *    sizeof(TEnemyLayout)==0x88 — write plain `&enemy[find]`, not a manual
+ *    shift/add, and let cc1 pick this multiply sequence itself.
+ */
 
-// triage: MEDIUM — 105 insns, mul/div, 3 callees, ~0.12 to InsertConflict
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+typedef struct
+{
+    s16 type;
+    s16 ThinkType;
+    s16 nPath;
+    s32 x;
+    s32 y;
+    s32 z;
+    s16 r;
+    s16 pad;
+    VECTOR path[7];
+} TEnemyLayout; /* 0x88 */
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Unknown calling convention -- yet parameter storage is locked */
-//
-// int leFindEnemy(void)
-//
-// {
-//   ModelArchiveType *pMVar1;
-//   int iVar2;
-//   int iVar3;
-//   int iVar4;
-//   long lVar5;
-//   TEnemyLayout *pTVar6;
-//   int iVar7;
-//   int iVar8;
-//   int iVar9;
-//   int iVar10;
-//   int iVar11;
-//   int iVar12;
-//   SVECTOR local_48;
-//   VECTOR local_40;
-//   long local_30;
-//   long local_2c;
-//   long local_28;
-//   long local_24;
-//
-//   iVar9 = -1;
-//   iVar8 = 2000;
-//   pMVar1 = (CamState.Owner)->model;
-//   pTVar6 = enemy;
-//   iVar12 = (pMVar1->locate).coord.t[0];
-//   iVar11 = (pMVar1->locate).coord.t[1];
-//   iVar10 = (pMVar1->locate).coord.t[2];
-//   for (iVar7 = 0; iVar7 < 0x1e; iVar7 = iVar7 + 1) {
-//     if ((pTVar6->type != -1) &&
-//        (iVar2 = pTVar6->x - iVar12, iVar3 = pTVar6->y - iVar11, iVar4 = pTVar6->z - iVar10,
-//        lVar5 = SquareRoot0(iVar2 * iVar2 + iVar3 * iVar3 + iVar4 * iVar4), lVar5 < iVar8)) {
-//       iVar8 = lVar5;
-//       iVar9 = iVar7;
-//     }
-//     pTVar6 = pTVar6 + 1;
-//   }
-//   if (iVar9 != -1) {
-//     local_48.vx = SVECTOR_80097abc.vx;
-//     local_48.vy = SVECTOR_80097abc.vy;
-//     local_48.vz = SVECTOR_80097abc.vz;
-//     local_48.pad = SVECTOR_80097abc.pad;
-//     memset((uchar *)&local_30,'\0',0x10);
-//     local_40.vx = enemy[iVar9].x;
-//     local_40.vy = enemy[iVar9].y;
-//     local_40.vz = enemy[iVar9].z;
-//     local_40.pad = local_24;
-//     local_30 = local_40.vx;
-//     local_2c = local_40.vy;
-//     local_28 = local_40.vz;
-//     SetExplosion(&local_40,&local_48);
-//   }
-//   return iVar9;
-// }
+typedef struct
+{
+    VECTOR TargetVector; /* 0x00 */
+    Humanoid *Owner;     /* 0x10 */
+    s32 Mode;            /* 0x14 */
+    s16 DirectionRX;     /* 0x18 */
+    s16 DirectionRY;     /* 0x1A */
+    s32 OldMode;         /* 0x1C */
+    u8 Valiation;        /* 0x20 */
+} TCameraStatus;
+
+extern TCameraStatus CamState;
+extern TEnemyLayout enemy[0x1E];
+extern SVECTOR D_80097ABC[];
+
+extern s32 SquareRoot0(s32 x);
+extern void SetExplosion(VECTOR *pos, SVECTOR *rot);
+extern void *memset(void *s, s32 c, u32 n);
+
+int leFindEnemy(void)
+{
+    int i;
+    s32 px, py, pz;
+    int find;
+    int r;
+    int rr;
+    int dx, dy, dz;
+    SVECTOR local_48;
+    VECTOR pos;
+    VECTOR local_40;
+
+    find = -1;
+    r = 2000;
+    px = CamState.Owner->model->locate.coord.t[0];
+    py = CamState.Owner->model->locate.coord.t[1];
+    pz = CamState.Owner->model->locate.coord.t[2];
+
+    i = 0;
+    while (1)
+    {
+        if (!(i < 0x1E))
+            break;
+        if (enemy[i].type != -1)
+        {
+            dx = enemy[i].x - px;
+            dy = enemy[i].y - py;
+            dz = enemy[i].z - pz;
+            rr = SquareRoot0(dx * dx + dy * dy + dz * dz);
+            if (rr < r)
+            {
+                find = i;
+                r = rr;
+            }
+        }
+        i = i + 1;
+    }
+
+    if (find != -1)
+    {
+        local_48 = D_80097ABC[0];
+        memset((void *)&local_40, 0, 0x10);
+        local_40.vx = enemy[find].x;
+        local_40.vy = enemy[find].y;
+        local_40.vz = enemy[find].z;
+        pos = local_40;
+        SetExplosion(&pos, &local_48);
+    }
+
+    return find;
+}
