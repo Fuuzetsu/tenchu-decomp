@@ -230,10 +230,22 @@ typedef struct
                                     reads target->locate.coord.t[1], the Y
                                     translation of the target's world matrix,
                                     for a lightning-bolt end point) */
-    u8 pad2b[0x16];              /* 0x78 (Ghidra's own independently-built
-                                    Humanoid: point[2]/chase[2]/actmode/
-                                    actflg/actcnt/actscnt/warid; untouched
-                                    by any matched function yet) */
+    s32 point[2];                /* 0x78 (ground X/Z spawn position --
+                                    BreedLife: point[0]=x via `sw a1,0x78(s0)`,
+                                    point[1]=z via `sw s4,0x7C(s0)`; matches
+                                    Ghidra's own independently-built Humanoid's
+                                    `long point[2]` at this offset) */
+    s32 chase[2];                /* 0x80 (Ghidra's own independently-built
+                                    Humanoid; untouched by any matched
+                                    function yet) */
+    u8 actmode;                  /* 0x88 */
+    u8 actflg;                   /* 0x89 */
+    u8 actcnt;                   /* 0x8A */
+    u8 actscnt;                  /* 0x8B */
+    s16 warid;                   /* 0x8C (Ghidra's own independently-built
+                                    Humanoid; actmode..warid untouched by any
+                                    matched function yet, but the byte count
+                                    to weapon_kind@0x8E is exact) */
     u16 weapon_kind;             /* 0x8E (EquipWeapon dispatches a weapon-
                                     swap by this field's value, read via
                                     lhu. Ghidra's own Humanoid names it
