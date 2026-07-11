@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -32,61 +33,128 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcMiscSnowfall", ProcMiscSnowfall);
+/*
+ * ProcMiscSnowfall (0x8004ced0, 0x26C bytes) — MISC_SNOWFALL's ProcMisc*
+ * handler: MM_CREATE zeroes `mode` (sandwiched between a dead read of
+ * TSnowfall.w and a self-store of TSnowfall.h — the retail body no longer
+ * uses the grid dimensions the demo's PSX.SYM locals (w/h/i/pos) suggest a
+ * fuller CREATE once set up; only the two reads/one self-store survive).
+ * Every 4th tick (`GameClock & 3`) while armed (msg > MM_RESUME), spawns
+ * one snowflake: a small downward-biased jitter velocity and a position
+ * randomized in a box around the camera, handed to FUN_80039160 (the
+ * EffectSlot particle pool).
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - Dispatch is the "short do-nothing case falls through, both real
+ *    bodies are jump targets" 3-way: `if (msg==CREATE) goto do_create; if
+ *    (4<=msg) goto do_resume; return;` — msg 1/2 (do-nothing) is the
+ *    inline fallthrough, CREATE and RESUME are BOTH forward-jump targets,
+ *    placed in that order (CREATE immediately after the dispatch, RESUME
+ *    after CREATE) — matching neither a plain if/else-if (puts CREATE
+ *    inline instead) nor if/else with the arms swapped (moves CREATE to
+ *    the function's end) reproduces this; only the explicit 3-way goto
+ *    ladder does.
+ *  - `param = (TSnowfall *)&m->param;` is computed ONCE, unconditionally,
+ *    at function entry (PSX.SYM's own register-resident `param` local) —
+ *    used only by the CREATE branch's final `param->h = h;` store, but its
+ *    address must be live from entry to reproduce the target's frame.
+ *  - The CREATE branch's `w = ...->w;` (offset 0x18) is a genuinely DEAD
+ *    read in the compiled binary — cc1 provably eliminates a plain unused
+ *    local's load, so the field must be dereferenced through a
+ *    `volatile`-qualified pointer to survive (both reads use `(volatile
+ *    TSnowfall *)&m->param`, matching the two plain `lw`s at 0x18/0x1C).
+ *  - The residual register tie (`param` landing in $v1 instead of the
+ *    target's $a2) needed an extra, empirically-found lever: guarding the
+ *    whole CREATE body in `if (h || GameClock) {body} else {body}` (two
+ *    IDENTICAL copies — semantically a no-op since GameClock is genuinely
+ *    unknowable at compile time, so cc1 can't fold the branch away and
+ *    keeps both bodies' references alive going into register allocation,
+ *    which is what shifts `param` onto $a2). `h` in the condition is read
+ *    before its first real assignment; every well-defined substitute tried
+ *    (a fresh local, `param->h`, `m->pause`, `GameClock` alone, `h = 0;`
+ *    first) failed to reproduce the exact register, only reading the SAME
+ *    later-assigned local worked — found by `tools/permute.py` and
+ *    bisected down to this minimal shape; root mechanism (pseudo-numbering
+ *    order feeding a register-allocator tie-break) not fully characterized
+ *    beyond "an unresolvable branch on the reused pseudo works, nothing
+ *    else tried does."
+ *  - `ViewInfo.vrx - 3000 + rand() % 6000` (Ghidra's literal `A - C + B`)
+ *    needed the fold-reassociation rewrite `ViewInfo.vrx + (rand() % 6000
+ *    - 3000)` (cookbook Expressions) to get the target's schedule (the
+ *    field load interleaved with the rand()%N divide's latency) instead of
+ *    a same-length but differently-scheduled sequence.
+ *  - `vel`/`pos` (the copies actually passed to FUN_80039160) must be
+ *    declared BEFORE `jitter`/`posRaw` (the raw computed locals) for the
+ *    target's stack slot assignment (call args at the lower addresses).
+ */
 
-// triage: MEDIUM — 155 insns, mul/div, 3 callees, ~0.14 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+typedef struct
+{
+    s32 vpx, vpy, vpz; /* 0x00 */
+    s32 vrx, vry, vrz; /* 0x0C */
+} TViewInfo;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void ProcMiscSnowfall(tag_TMisc *m,TMiscMessage msg)
-//
-// {
-//   int iVar1;
-//   undefined4 local_40;
-//   undefined4 local_3c;
-//   undefined4 local_38;
-//   undefined4 local_34;
-//   int local_30;
-//   int local_2c;
-//   int local_28;
-//   undefined4 local_24;
-//   int local_20;
-//   int local_1c;
-//   int local_18;
-//   undefined4 local_14;
-//
-//   if (msg == MM_CREATE) {
-//     iVar1 = (m->param).init.b;
-//     m->mode = '\0';
-//     (m->param).init.b = iVar1;
-//   }
-//   else if ((MM_RESUME < msg) && ((GameClock & 3U) == 0)) {
-//     memset((uchar *)&local_38,'\0',8);
-//     iVar1 = rand();
-//     local_38 = CONCAT22(local_38._2_2_,(short)iVar1 + (short)(iVar1 / 0x14) * -0x14 + -10);
-//     iVar1 = rand();
-//     local_38 = CONCAT22((short)iVar1 + (short)(iVar1 / 0x32) * -0x32 + 0x32,(undefined2)local_38);
-//     iVar1 = rand();
-//     local_34 = CONCAT22(local_34._2_2_,(short)iVar1 + (short)(iVar1 / 0x14) * -0x14 + -10);
-//     local_40 = local_38;
-//     local_3c = local_34;
-//     memset((uchar *)&local_20,'\0',0x10);
-//     iVar1 = rand();
-//     local_20 = ViewInfo.vrx + -3000 + iVar1 % 6000;
-//     iVar1 = rand();
-//     local_1c = ViewInfo.vry + -6000 + iVar1 % 3000;
-//     iVar1 = rand();
-//     local_28 = ViewInfo.vrz + -3000 + iVar1 % 6000;
-//     local_30 = local_20;
-//     local_2c = local_1c;
-//     local_24 = local_14;
-//     local_18 = local_28;
-//     FUN_80039160(&local_30,&local_40,0x1000,0);
-//   }
-//   return;
-// }
+extern long GameClock;
+extern TViewInfo ViewInfo;
+extern void FUN_80039160(long *arg0, u16 *arg1, s32 arg2, u8 arg3);
+extern void *memset(void *s, int c, u32 n);
+
+void ProcMiscSnowfall(tag_TMisc *m, enum TMiscMessage msg)
+{
+    TSnowfall *param = (TSnowfall *)&m->param;
+
+    if (msg == MM_CREATE)
+    {
+        goto do_create;
+    }
+    if (4 <= msg)
+    {
+        goto do_resume;
+    }
+    return;
+
+do_create:
+    {
+        s32 w;
+        s32 h;
+
+        if (h || GameClock)
+        {
+            w = ((volatile TSnowfall *)&m->param)->w;
+            h = ((volatile TSnowfall *)&m->param)->h;
+            m->mode = 0;
+            param->h = h;
+        }
+        else
+        {
+            w = ((volatile TSnowfall *)&m->param)->w;
+            h = ((volatile TSnowfall *)&m->param)->h;
+            m->mode = 0;
+            param->h = h;
+        }
+    }
+    return;
+
+do_resume:
+    if ((GameClock & 3) == 0)
+    {
+        SVECTOR vel;
+        SVECTOR jitter;
+        VECTOR pos;
+        VECTOR posRaw;
+
+        memset(&jitter, 0, sizeof(jitter));
+        jitter.vx = rand() % 20 - 10;
+        jitter.vy = rand() % 50 + 50;
+        jitter.vz = rand() % 20 - 10;
+        vel = jitter;
+
+        memset(&posRaw, 0, sizeof(posRaw));
+        posRaw.vx = ViewInfo.vrx + (rand() % 6000 - 3000);
+        posRaw.vy = ViewInfo.vry + (rand() % 3000 - 6000);
+        posRaw.vz = ViewInfo.vrz + (rand() % 6000 - 3000);
+        pos = posRaw;
+        FUN_80039160((long *)&pos, (u16 *)&vel, 0x1000, 0);
+    }
+}
+

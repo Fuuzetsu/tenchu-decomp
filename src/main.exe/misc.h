@@ -29,6 +29,15 @@ typedef struct
     u8 type; /* 0x0 */
 } TSprite;
 
+/* The MISC_SNOWFALL variant of the param union (MISC__181fake's `snowfall`
+ * member, reference/psxsym-types.h). */
+typedef struct
+{
+    s32 w;          /* 0x0 */
+    s32 h;          /* 0x4 */
+    SVECTOR *snows; /* 0x8 */
+} TSnowfall;
+
 struct tag_TMisc
 {
     void (*proc)(tag_TMisc *, s32); /* 0x00 */

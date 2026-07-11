@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -24,59 +25,86 @@
  *     extern struct MotionManager *dtM;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AttackContinuousCheck", AttackContinuousCheck);
+/*
+ * AttackContinuousCheck (0x8001f180, 0x1A4 bytes) — gate a continuous-attack
+ * follow-up by the current motion frame against BattleDB's per-move window
+ * [contfrm-3, contfrm+3], then run the exact same weapon_kind-dispatched
+ * conflict-volume cleanup + afterimage drop as AttackCancelControl (same
+ * switch shape, same field offsets) before returning 1.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - Same genuine `switch (wk) { case 2: ...; case 3: ...; case 0: goto...;
+ *    default: ...; }` shape as AttackCancelControl — see that file's header.
+ *  - The illusion-disposal block is wrapped in `if (mode & 2)`, exactly
+ *    AttackCancelControl's parameter test, but here `mode` is a LOCAL that
+ *    only ever holds the literal 3 (set on case 0's early exit and again
+ *    right after the shared `DeleteConflict(model);`) — never a real
+ *    parameter. cc1 doesn't constant-fold `if (3 & 2)` away (that requires
+ *    a literal at the expression site, not a variable merely known-constant
+ *    by dataflow), so the dead andi+beqz survives in the binary exactly as
+ *    Ghidra's own decompilation (which DOES prove it dead and renders a
+ *    bare `return 1;`) hides.
+ *  - `Me_MOTION_C->pad.time = 0;` must be written BEFORE `wk = (s16)
+ *    Me_MOTION_C->weapon_kind;`, not after (Ghidra's own literal order).
+ *    An intervening STORE between the weapon_kind load and its first use
+ *    (the switch dispatch) blocks combine from fusing the `lhu` + sign-
+ *    extend pair into a single `lh` — reordering the two statements (the
+ *    store first) keeps the load adjacent to its use and recovers the
+ *    1-instruction `lh` (12 bytes / 3 insns saved).
+ */
 
-// triage: EASY — 105 insns, 2 callees, ~0.08 to ProcItemGoshikimai
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+extern Humanoid *Me_MOTION_C;
+extern MotionManager *dtM;
+extern void DisposeAfterimage(void *afi);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// short AttackContinuousCheck(BattleType *battle)
-//
-// {
-//   short sVar1;
-//   Humanoid *pHVar2;
-//   ModelType *model;
-//
-//   pHVar2 = Me_MOTION_C;
-//   if ((int)dtM->count < battle->contfrm + -3) {
-//     return 0;
-//   }
-//   if (battle->contfrm + 3 < (int)dtM->count) {
-//     return 0;
-//   }
-//   sVar1 = Me_MOTION_C->wpatk;
-//   (Me_MOTION_C->pad).time = 0;
-//   if (sVar1 == 2) {
-//     DeleteConflict(pHVar2->model->object[8]);
-//     model = Me_MOTION_C->model->object[0xb];
-//   }
-//   else {
-//     if (sVar1 < 3) {
-//       if (sVar1 == 0) goto LAB_8001f2a0;
-//     }
-//     else if (sVar1 == 3) {
-//       model = pHVar2->model->object[2];
-//       goto LAB_8001f294;
-//     }
-//     DeleteConflict(Me_MOTION_C->model->object[0xd]);
-//     model = Me_MOTION_C->model->object[0xe];
-//   }
-// LAB_8001f294:
-//   DeleteConflict(model);
-// LAB_8001f2a0:
-//   if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
-//     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-//     Me_MOTION_C->illusion[0] = (undefined *)0x0;
-//   }
-//   if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
-//     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-//     Me_MOTION_C->illusion[1] = (undefined *)0x0;
-//   }
-//   dtM->mask = 0x7fff;
-//   return 1;
-// }
+s16 AttackContinuousCheck(BattleType *battle)
+{
+    s16 wk;
+    ModelType *model;
+    s16 mode;
+
+    if (dtM->count < battle->contfrm - 3) {
+        return 0;
+    }
+    if (battle->contfrm + 3 < dtM->count) {
+        return 0;
+    }
+    Me_MOTION_C->pad.time = 0;
+    wk = (s16)Me_MOTION_C->weapon_kind;
+    switch (wk)
+    {
+    case 2:
+        DeleteConflict(Me_MOTION_C->model->object[8]);
+        model = Me_MOTION_C->model->object[0xB];
+        break;
+    case 3:
+        model = Me_MOTION_C->model->object[2];
+        break;
+    case 0:
+        mode = 3;
+        goto skip_mode2;
+    default:
+        DeleteConflict(Me_MOTION_C->model->object[0xD]);
+        model = Me_MOTION_C->model->object[0xE];
+        break;
+    }
+    DeleteConflict(model);
+    mode = 3;
+skip_mode2:
+    if ((mode & 2) != 0)
+    {
+        if (Me_MOTION_C->illusion[0] != 0)
+        {
+            DisposeAfterimage(Me_MOTION_C->illusion[0]);
+            Me_MOTION_C->illusion[0] = 0;
+        }
+        if (Me_MOTION_C->illusion[1] != 0)
+        {
+            DisposeAfterimage(Me_MOTION_C->illusion[1]);
+            Me_MOTION_C->illusion[1] = 0;
+        }
+    }
+    dtM->mask = 0x7FFF;
+    return 1;
+}
+

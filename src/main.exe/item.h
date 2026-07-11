@@ -340,6 +340,23 @@ extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 extern void *memset(void *s, int c, u32 n);
 
+/* MOTION.C's continuous-attack window table (BattleDB[78]). Ghidra's own
+ * independently-built BattleType (reference/ghidra_types.h:5486) and
+ * PSX.SYM (reference/psxsym-types.h:45) agree exactly: 8 shorts, size 0x10.
+ * `contfrm` is the center frame of the window AttackContinuousCheck tests
+ * dtM->count against ([contfrm-3, contfrm+3]). */
+typedef struct
+{
+    s16 mid;                     /* 0x0 */
+    s16 power;                   /* 0x2 */
+    s16 atks;                    /* 0x4 */
+    s16 atke;                    /* 0x6 */
+    s16 contfrm;                 /* 0x8 */
+    s16 revise;                  /* 0xA */
+    s16 ilus;                    /* 0xC */
+    s16 ilue;                    /* 0xE */
+} BattleType;                    /* 0x10 */
+
 /* Absolute in this TU (defined by think's TU, gp there — see the gp note). */
 extern s16 ActionHalt;
 /* "item dispose fail   id %d  mode %d" */

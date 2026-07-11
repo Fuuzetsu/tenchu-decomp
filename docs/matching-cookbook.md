@@ -1079,6 +1079,14 @@ Bind the symbol in `config/symbols.<target>.txt` and access it as a plain extern
 CALL arguments, by contrast, stay literal casts (`SetCameraMode`'s scratchpad
 rot/trans tables).
 
+**Two divisions in one function must be computed back-to-back before either's store
+block.** Interleaving store-then-next-division puts stores BETWEEN two reads of the same
+field, invalidating cse1's cached load and forcing a needless reload+move
+(`UpdateSplineControl`; matches Ghidra's literal order). And a store destined for a
+branch's delay slot must be written BEFORE the load whose result feeds the next test --
+an intervening store between a load and its first use blocks combine from fusing
+`lhu`+sign-extend into `lh` (`AttackContinuousCheck`).
+
 **Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
 before any intervening call** — even where Ghidra renders one lazily folded into a
 later call's argument (`f(a, b / d)`). `IsVisible`'s three divisions by one variable
@@ -2132,6 +2140,14 @@ fresh stack reload at the merge point (the variable is memory-resident because i
 address escapes); duplicating lets each arm feed the statement from the register it
 already has. cc1's own cross-jump then collapses the identical code, so duplicating
 costs nothing and matches the target (`AdtMessageBox`).
+
+**The shared-return lever fires only on INDEPENDENTLY-WRITTEN identical returns, not an
+explicit goto to one.** Two separately-written identical `return EXPR;` statements let
+jump2's cross-jump merge them into ONE shared call site placed EARLY; routing both
+through an explicit `goto label;` instead pins that code at the label's own textual
+position -- a byte regression. So: write the identical returns out in full, do not
+factor them into a goto (`Think4abandon`; the inverse of the cases where a named goto
+label is what you want -- see the shared-tails section).
 
 **Two otherwise byte-identical `return expr;` tails can fail to cross-jump-merge in
 this cc1.** Route all but one through `goto` to a single shared `return` — in
