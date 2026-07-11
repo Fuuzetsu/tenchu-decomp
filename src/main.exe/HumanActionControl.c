@@ -71,19 +71,36 @@ extern short MotionAndMove(void);
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/HumanActionControl", HumanActionControl);
 #else
 /*
- * STATUS: NON_MATCHING — same length, ~12 instructions differ by register
- * assignment and schedule only.
+ * STATUS: NON_MATCHING — same length, 11 of 292 bytes differ (down from an
+ * earlier 31-byte park; a stale header previously described a v0/v1 register
+ * tie that no longer applies).
  *
- * The target keeps `human` in $v1 and hoists the `attribute` halfword load
- * (`lhu 4($v1)`) above the three pointer loads; our draft caches through $v0 and
- * reads `attr` after them. Everything else — the gp stores of dtPAD/dtCMD/dtM,
- * the `andi 0x4000` test, the branch — is identical, so this is a pure
- * register-coloring / scheduling tie, not a source-structure miss.
+ * The `locate`/`motion`/`rotate`/`mid`/`attr`/`dtV` STATEMENT ORDER below was
+ * found by exhaustively trying all 720 orderings (respecting `mid` needing
+ * `motion` first) via a byte-diff scorer, plus separately sliding `dtV`
+ * through all 10 possible positions — this specific order is the unique
+ * minimum. It reproduces the target's whole register-coloring shape: the base
+ * pointer reload lands in the SAME hard reg as the just-consumed `GetCommand`
+ * return value (reused, not a fresh register) and survives through
+ * locate/motion/rotate/attr to be overwritten IN PLACE by the `dtV` address
+ * computation (`addu $2,$2,64`), exactly like the target's `addiu v0,v0,64`.
  *
- * A long permuter run (agent batch, MOTION.C) did not beat the base. Statement
- * reordering of the `attr` read alone does not move the base register. Parked
- * per the sub-C early-stop protocol; `tools/regalloc.py HumanActionControl` is
- * the next thing to try if someone picks this up.
+ * RESIDUAL (11 bytes): the target orders [dtV-store, mid-load, andi] but this
+ * draft orders [mid-load, andi, dtV-store] — a pure instruction-scheduling
+ * tie among three MUTUALLY INDEPENDENT ready instructions (a store with no
+ * consumer, and a load+andi chain), matching the cookbook's documented open
+ * problem "sched's equal-priority tiebreak prefers the memory-unit insn"
+ * (FileOption case 0xd class). Tried and failed to move it: every statement
+ * position for `dtV` (10 positions), every ordering of the other 5
+ * assignments (720 combos, scored via a fast standalone cc1|maspsx|as loop),
+ * and a bounded permuter run (300s, --stop-on-zero -j4, ~12k iterations)
+ * that plateaued at this exact residual and never found better. `attr &=
+ * 0x4000;` as an explicit statement (vs inlining `attr & 0x4000` in the
+ * `if`) has zero effect either way — cc1's scheduler treats the AND as
+ * freely movable regardless of where the source states it. Untried per the
+ * cookbook's own note on this class: lengthening the store's downstream
+ * dependence chain, or deriving the andi's operand from a later-completing
+ * value, to break the two candidates' simultaneous readiness.
  */
 void HumanActionControl(Humanoid *human)
 {
@@ -100,9 +117,9 @@ void HumanActionControl(Humanoid *human)
     locate = Me_MOTION_C->locate;
     motion = Me_MOTION_C->motion;
     rotate = Me_MOTION_C->rotate;
+    mid = *(u16 *)&motion->mid;
     attr = *(u16 *)&Me_MOTION_C->attribute;
     dtV = &Me_MOTION_C->vector;
-    mid = *(u16 *)&motion->mid;
     dtL = locate;
     dtR = rotate;
     dtM = motion;

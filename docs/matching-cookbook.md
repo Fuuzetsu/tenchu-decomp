@@ -1582,6 +1582,19 @@ cc1 folds `-at` back to `negu <dst>,<t_reg>`, negating the original `t`, not the
 copy. Which register `negu` sources from is a coloring artifact — do not chase it
 by respelling the conditional (`UpdateMotion`).
 
+### `arr[idx]` on a top-level extern array expands base-first (ARRAY_REF), not mult-first
+
+An address computation reused across N field stores of `arr[idx]` on a TOP-LEVEL extern
+array (a single index, not a compound `arr[a+b*c]` subscript) takes ARRAY_REF's own
+base-first expansion, NOT the `EXPAND_SUM` mult-first special case (which fires only for
+compound subscripts). So the base symbol's `high`/`lo_sum` gets a LOWER insn UID than the
+`idx*stride` offset chain, and local-alloc hands the base first pick of the low scratch
+registers -- possibly reversed from the target. This is NOT reachable by the
+`(&arr[0])[i]` respelling (that is the struct-member-through-pointer form) nor a cached
+pointer local (identical tree post-fold): the divergence is baked into which front-end
+expansion path a `SYMBOL + reg*CONST` address takes, not the source array spelling
+(`leSetEnemy`, a genuine un-source-reachable local-alloc order).
+
 ### An offset-0 LOCAL-pointer dereference is cse1-canonicalised back to base+const
 
 The sibling of the offset-0-alias `%hi` lever, but for a LOCAL pointer variable and cse

@@ -24,9 +24,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 31 of 208 bytes differ (right length: the residual
- * doesn't shift anything downstream).
- *
  * GetTargetDistance (0x80029794, 0xd0 bytes) — same "Humanoid control" TU as
  * GetMoveSpeed.c/MoveHumanoid.c/GetHumanoid.c (HUMAN.C). Computes the planar
  * (x,z) distance from `human` to `human->target`, and *deg the signed turn
@@ -49,31 +46,25 @@
  * the "int t1 = cap;" idiom from the cookbook's spilled-u16-locals rule, not
  * a narrow-typed temp).
  *
- * RESIDUAL (31 bytes, same length): purely the `if (sVar4 < 0x801) { if
- * (-0x800 < sVar4) goto skip; } else { sVar4 = -sVar4; }` block. Target puts
- * the sign-extended compare value in $a0 and the raw (store/arithmetic)
- * value in $v1 throughout, with the OUTER if's THEN arm (containing the
- * nested if+goto) reached by a taken branch and the ELSE arm (single
- * assignment) as the fallthrough — literal-Ghidra-polarity C instead
- * compiles the textbook way (else reached by branch, if-arm fallthrough),
- * which is 4 bytes shorter but colors $v1 as the compare value and $a0 as
- * the store value (swapped) with a different internal block layout.
- * Inverting the outer test's polarity (`if (0x800 < sVar4) {negate} else
- * {nested-if}`, the cookbook's "opposite polarity" lever) was tried and
- * made it WORSE (75+ bytes, wrong length) — this isn't that family. Also
- * tried: reading the comparisons from `iVar3` instead of `sVar4` (no
- * effect — cc1 CSEs them identically), an explicit self-truncating
- * `iVar3 = (s16)iVar3;` reassignment (no effect either).
- * `tools/autorules.py` found no width-based win. One bounded permuter run
- * (~400s, --stop-on-zero -j4) did not reach 0; not re-run per the
- * attempt-cap guidance.
+ * The tail bias block (`if (sVar4 < 0x801) { if (-0x800 < sVar4) goto skip; }
+ * else { sVar4 = -sVar4; } sVar4 = sVar4 + 0x1000;`) needed TWO changes to
+ * match: (1) the shared trailing `sVar4 = sVar4 + 0x1000;` must be split into
+ * a per-arm computation — the THEN arm keeps its own `sVar4 = sVar4 + 0x1000;`
+ * and the ELSE arm becomes a single combined `sVar4 = 0x1000 - sVar4;`
+ * (spelled as a subtraction from the materialized constant, not
+ * `sVar4 = -sVar4;` followed by the old shared add — that emits a separate
+ * `negu`+`addiu` where the target has one `li`+`subu`); and (2) the outer
+ * if's THEN arm (the nested if+goto) is reached by a TAKEN branch and the
+ * ELSE arm (single assignment) is the fallthrough — the opposite of ordinary
+ * `if (cond) {A} else {B}` codegen (which negates `cond` and branches to B).
+ * Per the cookbook's "if (cond) A; else B; makes A the fall-through and
+ * negates cond" rule, forcing a DIRECT (non-negated) test that branches to
+ * the THEN arm needs explicit gotos instead of if/else:
+ * `if (cond) goto nested; <else-body>; goto skip; nested: <then-body>`.
+ * Both changes together match; each alone left a residual.
  */
 extern s32 ratan2(s32 a, s32 b);
 extern s32 SquareRoot0(s32 x);
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetTargetDistance", GetTargetDistance);
-#else /* NON_MATCHING */
 
 long GetTargetDistance(Humanoid *human, short *deg)
 {
@@ -89,18 +80,13 @@ long GetTargetDistance(Humanoid *human, short *deg)
     lVar2 = ratan2(-dx, -dz);
     iVar3 = lVar2 - vy;
     sVar4 = (s16)iVar3;
-    if (sVar4 < 0x801)
-    {
-        if (-0x800 < sVar4) goto skip;
-    }
-    else
-    {
-        sVar4 = -sVar4;
-    }
+    if (sVar4 < 0x801) goto nested;
+    sVar4 = 0x1000 - sVar4;
+    goto skip;
+nested:
+    if (-0x800 < sVar4) goto skip;
     sVar4 = sVar4 + 0x1000;
 skip:
     *deg = sVar4;
     return SquareRoot0(dx * dx + dz * dz);
 }
-
-#endif /* NON_MATCHING */

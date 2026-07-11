@@ -56,23 +56,45 @@
  * address computation for the field stores. The draft is arithmetically
  * correct, the right length, and every field STORE matches (same values,
  * same order) — only the base/offset register choice for `&enemy[result]`
- * differs: the target computes the `idx*0x88` offset chain FIRST (into the
- * register that becomes the final address) and the `enemy` base SECOND
- * (matching EXPAND_SUM's documented mult-first rule); this cc1 compile
- * computes the base first and the offset second instead, ending up with the
- * same two instructions/operand-order but base and offset swapped between
- * $a0/$v1. Tried: the `(&enemy[0])[result]` index-first respelling that
- * fixed leAddPath.c's identical-looking tie (no effect here — that rule is
- * specific to struct-member array access through a pointer, not a top-level
- * array); a cached `TEnemyLayout *e = &enemy[result];` pointer (cookbook
- * warns this flips the addu order the WRONG way for an already-index-first
- * target, and empirically made no difference); reordering the `result`
- * copy-for-return relative to the field stores. autorules.py found no
- * mechanical win. tools/permute.py ran ~285 iterations (--stop-on-zero,
- * -j4, ~10 min bounded) and plateaued at score 60 (its best candidate
- * introduced a partial pointer cache for one field, not the full fix) —
- * below the C level, a local-alloc/expand_sum ordering tie, not a source
- * shape choice reachable from here.
+ * differs: the target puts the `idx*0x88` offset chain in $v1 (which becomes
+ * the final address register, `addu v1,v1,a0`) and the `enemy` base in $a0;
+ * this compile swaps them ($a0=chain/result, $v1=base), same two
+ * instructions/operand shape (chain register reused as destination, chain
+ * operand first), only the hard-register NAMES differ.
+ *
+ * RTL-confirmed (rtldump --pass combine,greg,lreg): the `.combine` dump's
+ * RTL tree already has the CORRECT abstract shape — `(plus offset-chain
+ * base)`, offset first — so this is not a fold/expand tree-order bug. The
+ * divergence is `local-alloc`'s per-block register assignment: the `enemy`
+ * base (`high`+`lo_sum` of the symbol) is emitted at a LOWER insn UID than
+ * the `idx*0x88` shift/add chain (base is computed for `&enemy[result]`
+ * before the multiply, even though the address is for a plain single-index
+ * `arr[idx]`, not a compound `arr[a+b*c]` subscript — the cookbook's
+ * EXPAND_SUM mult-first special case is for the LATTER shape only; a bare
+ * `SYMBOL + reg*CONST` address for a top-level array goes through
+ * ARRAY_REF's own base-first expansion instead, confirmed by the UID order
+ * in the dump), so local-alloc's per-block scan hands the base pseudo FIRST
+ * pick of the low scratch registers ($v1) and the chain gets what's left
+ * ($a0) — the reverse of the target. All 7 field stores CSE onto this ONE
+ * computed address (the address pseudo has 8 refs across the block), so the
+ * computation is genuinely shared, not per-store.
+ *
+ * Tried and failed to move it: the `(&enemy[0])[result]` index-first
+ * respelling that fixed leAddPath.c's identical-looking tie (no effect here
+ * — that rule is specific to struct-member array access through a pointer,
+ * not a top-level array, consistent with the ARRAY_REF-vs-PLUS_EXPR
+ * distinction above); a cached `TEnemyLayout *e = &enemy[result];` pointer
+ * (identical tree post-fold to the direct form, no effect); reordering the
+ * `result` copy-for-return relative to the field stores. autorules.py found
+ * no mechanical win. tools/permute.py ran two bounded passes (an earlier
+ * ~285-iteration/10-min run, and a fresh 300s/~36,000-iteration run this
+ * session) and both plateaued at score 60 with no candidate beating this
+ * residual — below the C level, a local-alloc ordering tie baked into how
+ * this cc1 legitimizes `SYMBOL + reg*CONST` addresses under
+ * -msplit-addresses for a single-index top-level array, not a source shape
+ * reachable from here. Do not retry without a NEW lever (e.g. a way to make
+ * the front end route the address through a genuine PLUS_EXPR/EXPAND_SUM
+ * path instead of ARRAY_REF's own expansion).
  */
 
 typedef struct
