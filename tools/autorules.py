@@ -38,6 +38,7 @@ os.chdir(ROOT)
 
 SRC = "src/main.exe"
 ASMDIFF = "tools/asmdiff.py"
+MATCHDIFF = "tools/matchdiff.py"
 INVALID = 10**9  # candidate did not compile
 
 
@@ -674,14 +675,27 @@ def score(name, partial):
                  "'length($0) > 131072 {print $1}'). See docs/build-system.md")
     if b.returncode != 0:
         return (False, INVALID, None, None)
-    r = subprocess.run([sys.executable, ASMDIFF, name, "-n"],
+    # Score by matchdiff's AUTHORITATIVE whole-image byte count, not asmdiff's
+    # differing-*lines*. The line count can drop while real bytes rise (an
+    # instruction-alignment artifact) -- that false win was adopted on
+    # Think3firstattack (13->9 lines but 28->29 bytes) and had to be caught by an
+    # agent. matchdiff -n reuses this same build (no rebuild). A LENGTH MISMATCH
+    # (wrong-length draft, everything shifts) gets a large penalty so the greedy
+    # search never prefers it.
+    r = subprocess.run([sys.executable, MATCHDIFF, name, "-n"],
                        capture_output=True, text=True, env=env)
-    m = SUMMARY.search(r.stdout)
+    out = r.stdout
+    if "MATCH!" in out:
+        return (True, 0, None, None)
+    lm = re.search(r"linked (\d+) bytes .*? extent (\d+)", out) or \
+        re.search(r"extent (\d+) bytes, but the linker placed (\d+)", out)
+    if "LENGTH MISMATCH" in out and lm:
+        a, b_ = int(lm.group(1)), int(lm.group(2))
+        return (False, 1000 + abs(a - b_), None, None)
+    m = re.search(r"\((\d+) in the whole image\)", out)
     if not m:
         return (False, INVALID, None, None)
-    nd, lo, lt = int(m.group(1)), int(m.group(2)), int(m.group(3))
-    match = (r.returncode == 0)
-    return (match, nd + 3 * abs(lo - lt), lo, lt)
+    return (False, int(m.group(1)), None, None)
 
 
 def write(path, lines):
@@ -719,9 +733,8 @@ def main():
     if base == INVALID:
         sys.exit(f"autorules: {name} does not build as-is — fix it first "
                  f"({'set NON_MATCHING and ' if partial else ''}run ./Build).")
-    tag = "MATCH" if match else f"{base} differing"
-    print(f"autorules {name} — baseline {tag} (len {lo}=={lt})" if match
-          else f"autorules {name} — baseline {base} differing lines (len {lo} vs {lt})")
+    print(f"autorules {name} — baseline MATCH" if match
+          else f"autorules {name} — baseline {base} differing bytes (whole image)")
     if match:
         print("already byte-identical — nothing to do.")
         return 0
