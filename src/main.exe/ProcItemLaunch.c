@@ -1,6 +1,38 @@
 #include "common.h"
 #include "main.exe.h"
 
+/*
+ * ProcItemLaunch (0x80047048) — the launched/thrown item processor (grenade
+ * family). Every frame: fly it (MoveFly), tick the arming countdown (at 0
+ * register a 300-unit conflict box), spin it (rotate.vy = GameClock * 0x2AA),
+ * mirror the coordinate into the shared model and draw + afterimage. If a
+ * live character is in the conflict box: SetImpact + SoundEx and dispose.
+ * Otherwise, once armed (param+0x28), dispatch on the payload type
+ * (param+0xA): 1 = plain dispose; 3 = detonate (SetBleeds/SoundEx 0x31 +
+ * reset_alert_duration); 2/4 = drop a pickup (build a PARAM_ITEM_USE at the
+ * model's position, dispose, ReqItemDrop).
+ *
+ * Matching notes (this is ProcItemHappou's skeleton — see that file for the
+ * conflict-box and countdown conventions; all deltas verified):
+ *  - The scratch model is `item->model` here (Happou draws into its gp-global
+ *    HAPPOU_SCRATCH_MODEL instead).
+ *  - The spin block's three stores are inline (`item->locate->rotate.v* =`);
+ *    each reloads item->locate (the in-struct stores invalidate the cached
+ *    load). GameClock * 0x2AA is the plain literal multiply (shift/add
+ *    chain), truncated by the sh.
+ *  - `switch (pp[0xa])` with bodies in source order 3, 2/4, 1; case 1 is the
+ *    shared `dispose:` label the impact path reaches by `goto` — its body
+ *    (and the case-2/4 copy) are literal duplicates, NOT cross-jumped (they
+ *    have different continuations).
+ *  - The drop path builds `param` through a pointer (`p = &param;
+ *    memset(p, ...)`) but stores fields DIRECT (`param.type = ...`, sp-folded),
+ *    then copies with `rparam = *p;` — the *p spelling is what lets the
+ *    0x28-byte block copy's source cursor coalesce with p ($s0) across the
+ *    case-2/4 join label (a `rparam = param` spelling re-materializes the
+ *    address). ReqItemDrop takes &rparam (the copy, not the original).
+ *  - `rparam` is declared before `param` (slot order 0x18/0x40, matching
+ *    PSX.SYM's rparam@24/param@72 declaration order).
+ */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -39,172 +71,137 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemLaunch", ProcItemLaunch);
+#include "item.h"
 
-// triage: MEDIUM — 253 insns, 2 loop, indirect-call, 16 callees, ~0.56 to ProcItemHappou
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
-//   - Register allocation steering: indirect call — null-check-var/call-field
+/* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes; see ProcItemDrop.c). */
+typedef struct
+{
+    ModelType *model;            /* 0x00 */
+    VECTOR position;             /* 0x04 */
+    SVECTOR offset;              /* 0x14 */
+    SVECTOR size;                /* 0x1C */
+    void *common;                /* 0x24 */
+    u8 result[64];                /* 0x28 */
+    u8 pad[0x10];                 /* 0x68 */
+} ConflictObjectType;             /* 0x78 */
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void ProcItemLaunch(tag_TItem *item)
-//
-// {
-//   byte bVar1;
-//   long lVar2;
-//   uchar uVar3;
-//   short sVar4;
-//   ModelType *pMVar5;
-//   ModelType *pMVar6;
-//   PARAM_ITEM_USE *pPVar7;
-//   PARAM_ITEM_USE *pPVar8;
-//   SVECTOR *pSVar9;
-//   int iVar10;
-//   undefined4 uVar11;
-//   Humanoid *pHVar12;
-//   undefined4 uVar13;
-//   TItemType TVar14;
-//   undefined4 uVar15;
-//   TItemType TVar16;
-//   TItemType *pTVar17;
-//   TItemType *pTVar18;
-//   ModelType *objp;
-//   PARAM_ITEM_USE local_60;
-//   TItemType local_38;
-//   Humanoid *local_34;
-//   long local_30;
-//   long local_2c;
-//   long local_28;
-//   TItemType aTStack_18 [2];
-//
-//   objp = item->model;
-//   if (item->mode == 0xff) {
-//     DisposeAfterimage((item->param).launch.effect);
-//     item->mode = '\0';
-//     return;
-//   }
-//   MoveFly((int *)item,(int *)&(item->param).henshin);
-//   uVar3 = (item->param).launch.count + 0xff;
-//   (item->param).launch.count = uVar3;
-//   if (uVar3 == '\0') {
-//     DeleteConflict(item->locate);
-//     sVar4 = InsertConflict(item->locate);
-//     ConflictObject[sVar4].offset.vx = 0;
-//     ConflictObject[sVar4].offset.vz = 0;
-//     ConflictObject[sVar4].offset.vy = 0;
-//     ConflictObject[sVar4].size.vz = 300;
-//     ConflictObject[sVar4].size.vy = 300;
-//     ConflictObject[sVar4].size.vx = 300;
-//     ConflictObject[sVar4].common = (undefined *)0x1;
-//     ConflictObject[sVar4].size.pad = 1;
-//     (item->collision).size = 300;
-//     (item->collision).ofsY = 0;
-//     (item->collision).mode = 1;
-//     (item->collision).pause = 0;
-//   }
-//   lVar2 = GameClock;
-//   (item->locate->rotate).vx = 0;
-//   (item->locate->rotate).vy = (short)lVar2 * 0x2aa;
-//   (item->locate->rotate).vz = 0;
-//   UpdateCoordinate(item->locate);
-//   pMVar5 = item->locate;
-//   pSVar9 = &pMVar5->rotate;
-//   pMVar6 = objp;
-//   do {
-//     uVar11 = *(undefined4 *)(pMVar5->locate).coord.m[0];
-//     uVar13 = *(undefined4 *)((pMVar5->locate).coord.m[0] + 2);
-//     uVar15 = *(undefined4 *)((pMVar5->locate).coord.m[1] + 1);
-//     (pMVar6->locate).flg = (pMVar5->locate).flg;
-//     *(undefined4 *)(pMVar6->locate).coord.m[0] = uVar11;
-//     *(undefined4 *)((pMVar6->locate).coord.m[0] + 2) = uVar13;
-//     *(undefined4 *)((pMVar6->locate).coord.m[1] + 1) = uVar15;
-//     pMVar5 = (ModelType *)((pMVar5->locate).coord.m + 2);
-//     pMVar6 = (ModelType *)((pMVar6->locate).coord.m + 2);
-//   } while (pMVar5 != (ModelType *)pSVar9);
-//   DrawModel(objp);
-//   DrawAfterimage((item->param).launch.effect,1);
-//   if (((int)item->locate->attribute & 0x8000U) == 0) {
-//     iVar10 = -1;
-//   }
-//   else {
-//     sVar4 = GetConflictResult(item->locate,-1);
-//     iVar10 = (int)sVar4;
-//   }
-//   if ((iVar10 == -1) || (iVar10 = FUN_800294dc(ConflictObject[iVar10].common), iVar10 == 0)) {
-//     if (*(char *)((int)&item->param + 0x28) == '\0') {
-//       return;
-//     }
-//     bVar1 = *(byte *)((int)&item->param + 10);
-//     if (bVar1 != 2) {
-//       if (bVar1 < 3) {
-//         if (bVar1 != 1) {
-//           return;
-//         }
-//         goto LAB_800473d4;
-//       }
-//       if (bVar1 == 3) {
-//         SetBleeds((short)item->locate + 0x18,0,0x19);
-//         SoundEx((VECTOR *)(item->locate->locate).coord.t,0x31);
-//         FUN_8002f7f4();
-//         return;
-//       }
-//       if (bVar1 != 4) {
-//         return;
-//       }
-//     }
-//     memset((uchar *)&local_38,'\0',0x28);
-//     local_38 = item->type;
-//     local_34 = item->owner;
-//     local_30 = (objp->locate).coord.t[0];
-//     local_2c = (objp->locate).coord.t[1];
-//     local_28 = (objp->locate).coord.t[2];
-//     pPVar8 = &local_60;
-//     pTVar18 = &local_38;
-//     do {
-//       pTVar17 = pTVar18;
-//       pPVar7 = pPVar8;
-//       pHVar12 = (Humanoid *)pTVar17[1];
-//       TVar14 = pTVar17[2];
-//       TVar16 = pTVar17[3];
-//       pPVar7->type = *pTVar17;
-//       pPVar7->user = pHVar12;
-//       (pPVar7->start).vx = TVar14;
-//       (pPVar7->start).vy = TVar16;
-//       pTVar18 = pTVar17 + 4;
-//       pPVar8 = (PARAM_ITEM_USE *)&(pPVar7->start).vz;
-//     } while (pTVar18 != aTStack_18);
-//     TVar14 = pTVar17[5];
-//     *(TItemType *)pPVar8 = *pTVar18;
-//     (pPVar7->start).pad = TVar14;
-//     if (item->proc != (undefined **)0x0) {
-//       item->mode = 0xff;
-//       (*(code *)item->proc)(item);
-//       DeleteConflict(item->locate);
-//       if (item->mode != 0) {
-//         AdtMessageBox("item dispose fail   id %d  mode %d",item->type,(uint)item->mode);
-//       }
-//       item->owner = (Humanoid *)0x0;
-//       item->proc = (undefined **)0x0;
-//     }
-//     ReqItemDrop(&local_60);
-//   }
-//   else {
-//     SetImpact((VECTOR *)(item->locate->locate).coord.t,0x4000,2);
-//     SoundEx((VECTOR *)(item->locate->locate).coord.t,0x30);
-// LAB_800473d4:
-//     if (item->proc != (undefined **)0x0) {
-//       item->mode = 0xff;
-//       (*(code *)item->proc)(item);
-//       DeleteConflict(item->locate);
-//       if (item->mode != 0) {
-//         AdtMessageBox("item dispose fail   id %d  mode %d",item->type,(uint)item->mode);
-//       }
-//       item->owner = (Humanoid *)0x0;
-//       item->proc = (undefined **)0x0;
-//     }
-//   }
-//   return;
-// }
+extern void MoveFly(tag_TItem *item, u8 *pp);
+extern void DisposeAfterimage(s32 effect);
+extern void DrawAfterimage(s32 effect, s32 flag);
+extern void DrawModel(ModelType *m);
+extern s16 InsertConflict(ModelType *m);
+extern s16 GetConflictResult(ModelType *m, s32 n);
+extern s32 is_character_state_present_on_stage_(Humanoid *h);
+extern void SetImpact(VECTOR *pos, s32 a, s32 b);
+extern void reset_alert_duration(void);
+extern ConflictObjectType ConflictObject[];
+extern s32 GameClock;
+
+void ProcItemLaunch(tag_TItem *item)
+{
+    ModelType *model;
+    u8 *pp;
+    u8 cnt;
+    s32 cid;
+    s32 n;
+    PARAM_ITEM_USE *p;
+    PARAM_ITEM_USE rparam;
+    PARAM_ITEM_USE param;
+
+    model = item->model;
+    pp = item->param;
+    if (item->mode == 0xff)
+    {
+        DisposeAfterimage(*(s32 *)(pp + 0x2c));
+        item->mode = 0;
+        return;
+    }
+    MoveFly(item, pp);
+    cnt = pp[0x30] - 1;
+    pp[0x30] = cnt;
+    if (cnt == 0)
+    {
+        DeleteConflict(item->locate);
+        n = InsertConflict(item->locate);
+        ConflictObject[n].offset.vx = 0;
+        ConflictObject[n].offset.vz = 0;
+        ConflictObject[n].offset.vy = 0;
+        ConflictObject[n].size.vz = 300;
+        ConflictObject[n].size.vy = 300;
+        ConflictObject[n].size.vx = 300;
+        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].size.pad = 1;
+        item->coll_size = 300;
+        item->coll_ofsY = 0;
+        item->coll_mode = 1;
+        item->coll_pause = 0;
+    }
+    item->locate->rotate.vx = 0;
+    item->locate->rotate.vy = GameClock * 0x2aa;
+    item->locate->rotate.vz = 0;
+    UpdateCoordinate(item->locate);
+    model->locate = item->locate->locate;
+    DrawModel(model);
+    DrawAfterimage(*(s32 *)(pp + 0x2c), 1);
+    if ((item->locate->attribute & 0x8000) == 0)
+        cid = -1;
+    else
+        cid = GetConflictResult(item->locate, -1);
+    if (cid != -1 && is_character_state_present_on_stage_(ConflictObject[cid].common) != 0)
+    {
+        SetImpact((VECTOR *)item->locate->locate.coord.t, 0x4000, 2);
+        SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
+        goto dispose;
+    }
+    if (pp[0x28] == 0)
+        return;
+    switch (pp[0xa])
+    {
+    case 3:
+        SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
+        SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
+        reset_alert_duration();
+        return;
+
+    case 2:
+    case 4:
+        p = &param;
+        memset(p, 0, sizeof(PARAM_ITEM_USE));
+        param.type = item->type;
+        param.user = item->owner;
+        param.start.vx = model->locate.coord.t[0];
+        param.start.vy = model->locate.coord.t[1];
+        param.start.vz = model->locate.coord.t[2];
+        rparam = *p;
+        if (item->proc != 0)
+        {
+            item->mode = 0xff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+        }
+        ReqItemDrop(&rparam);
+        return;
+
+    case 1:
+    dispose:
+        if (item->proc != 0)
+        {
+            item->mode = 0xff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+        }
+        return;
+    }
+}

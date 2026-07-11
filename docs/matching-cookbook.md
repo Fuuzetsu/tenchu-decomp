@@ -1896,6 +1896,47 @@ their definitions before reaching for the permuter.
   pseudo-number tie-break enough to swap two coalesced registers with no other
   effect — plausible as a real sentinel/bound local. Try it before reaching for
   `tools/permute.py` on a ≤-few-byte register-swap residual (GetArcData).
+
+### A `goto`-label's placement decides which copy keeps the source's register
+
+cse's `make_regs_eqv` (cse.c) will rewrite later uses of `x` to a copy `flag = x`
+*only if* `flag`'s live range ends both **beyond the block** and **later than
+`x`'s**. The C-level lever is **creation order**: placing the hit-handler block
+(the `goto hit;` target) *after* the after-loop check extends the handler-set
+variable's range past `x`'s, so the store keeps `x`'s register instead of the
+copy's. Moving the labelled block earlier/later flips which of two coalesced
+values owns the register (ProcItemSmoke's hit handler). Same family as "statement
+order steers tail-duplication," but the knob is *label position*, not def order.
+
+### `optimize_reg_copy_1` propagates a copy within a block; a `do{}while(0)` walls it off
+
+local-alloc's `optimize_reg_copy_1` propagates `[copy dest,src] … [src REG_DEAD]`
+by rewriting src→dest across the block, and its scan **stops only at JUMP/LABEL/
+LOOP notes** — plain statement order does not stop it, because sched1's REG_DEAD
+rank-boost hoists the copy regardless of where you write it. So when the target
+keeps the copy un-propagated (two live registers, not one), the only source-level
+barrier is a real basic-block edge between the copy and the death: wrap that span
+in `do { … } while (0);` (its back-edge note halts the scan). Reach for this when
+a draft collapses two registers into one that the target keeps distinct
+(ProcItemSmoke).
+
+### A search-flag's initialiser placement flips it callee- vs caller-saved
+
+`found = 0;` written at the **top of the search loop** is loop-invariant → loop.c
+hoists it into the preheader → the flag survives the loop body's calls and goes
+callee-saved ($s), shifting the whole allocation. Written **inside the
+exhaust/break arm** instead, it stays caller-saved and reorg can steal its `li`
+into the exit branch's delay slot. Pick the placement that matches where the
+target's flag lives (ProcItemLaunch/Smoke search loops).
+
+### A block copy through `*p` coalesces the copy cursor across a multi-pred join
+
+`rparam = *p;` (copy the pointee) lets the block-move's source cursor coalesce
+with the pointer variable across a multi-predecessor label (`case 2: case 4:`),
+matching a target that reuses the pointer register as the copy source;
+`rparam = param;` (copy a named aggregate) re-materialises the source address
+after the join and adds an `addiu`. When a struct-assignment's source register
+should be the incoming pointer itself, spell it as `*p` (ProcItemLaunch).
 - **A shared return variable copy-preferences its sources together — use early
   returns to split their live ranges.** Funnelling two values through one
   `ret` (e.g. `ret = existing_id; … ret = new_index; return ret;`) makes cc1's

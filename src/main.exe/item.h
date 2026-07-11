@@ -309,6 +309,19 @@ typedef struct
     u8 count;                    /* 0xC (settle/pickup frame counter — ProcItemDrop) */
 } param_korogari;
 
+/* ITEM.C's human-search scratch record (PSX.SYM's own struct TFindItemTarget,
+ * reference/psxsym-types.h:3769 — field names are the authors' own). The
+ * setup/search blocks in ProcItemSmoke/ProcItemDokudango view a shared stack
+ * buffer through this. */
+typedef struct
+{
+    Humanoid *find;              /* 0x00 (the found target) */
+    s32 dist;                    /* 0x04 */
+    s32 i;                       /* 0x08 (scan resume index) */
+    VECTOR pos;                  /* 0x0C (search center) */
+    s32 find_dist;               /* 0x1C (max/best distance) */
+} TFindItemTarget;               /* 0x20 */
+
 struct tag_TItem
 {
     Humanoid *owner;             /* 0x00 */
