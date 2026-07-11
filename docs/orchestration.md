@@ -318,6 +318,15 @@ lens.
   never trusted from the report. (Same agent also hallucinated a non-existent
   sub-agent and blocked on it; a matcher works alone and cannot spawn matchers.)
 
+- **A whole-park autorules re-sweep found 0 free matches (106 parks, all 8 rules).**
+  The mechanical rules (abs-ge, or-inplace, ptr-index-sum, min-ternary, cmp-swap,
+  type-width, &&-nest, temp-inline) earn their keep on NEW drafts -- autorules runs
+  first when an agent picks a function up -- not retroactively on the existing park
+  backlog, which is genuine sub-C ties / structural residuals. Don't re-run the mass
+  sweep; PlaySE was a one-off that closed before the sweep existed. New mechanical
+  rule => still add it to autorules (it helps the next fresh draft), just don't expect
+  it to unlock parks.
+
 - **Run `tools/symcheck.py` during every harvest.** It asserts that a symbol named
   `D_<HEX>` resolves to `0x<HEX>`. A missing `--gp-extern` entry silently relocates a
   whole data region -- the link succeeds and the image is just wrong. Measured: one
