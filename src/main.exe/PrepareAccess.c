@@ -28,39 +28,32 @@
  * (cookbook: branch-to-later-block + fallthrough-is-other-body means
  * opposite polarity).
  *
- * STATUS: NON_MATCHING — 2 bytes (a pure register-allocation tie). The draft
- * is arithmetically correct, the right length, and every instruction matches
- * except the `cbAccess` address split: the target computes BOTH the `lui
- * %hi` and the following `addiu %lo` directly into $a0 (the call-argument
- * register `f` itself lives in), while cc1 here puts the `%hi` temp in $v0
- * and combines into $a0 with `addiu a0,v0,...`. regalloc.py shows only ONE
- * pseudo (`f`) needed real global-alloc coloring; the HI temp is a separate,
- * single-use pseudo with no preference edge toward $a0 in this compile.
- * Reordering the two fallthrough-branch statements (`f = cbAccess;` before
- * `AccessPower = 0;`) and a `do{}while(0)` wrapper around the branch body
- * were both tried — the former regressed to 9 bytes (shifts the whole
- * fallthrough block), the latter had no effect. autorules.py found no
- * mechanical win. A decomp-permuter run of ~87k iterations (--stop-on-zero,
- * -j8) never beat the score-10 base, so this is below the C level — a
- * local-alloc temp-coloring tie, not a source-shape choice.
+ * This is the SAME idiom as FileRead's inlined guard (see its header): a
+ * shared `void (*f)(void)` local assigned per if/else arm and used once after
+ * the join is a pseudo LIVE ACROSS the block boundary, so `local-alloc.c`'s
+ * `combine_regs` refuses to tie the `%hi(cbAccess)` temp to it
+ * (`reg_qty[sreg] == -1` for any cross-block pseudo — cookbook's RTL-dump
+ * section) and the temp free-falls to the first free class register, $v0.
+ * `rtldump PrepareAccess --draft`'s `.greg` confirmed it: only pseudo 80
+ * (`f`) needed global-alloc coloring (landing in $a0 via its call-argument
+ * preference), while the `high(cbAccess)` temp was a separate block-local
+ * pseudo local-alloc parked in $v0 with no tie attempt. Calling
+ * `VSyncCallback` directly in each arm makes its argument pseudo local to
+ * that one block, so `combine_regs` DOES tie the `%hi` temp to it (both
+ * land in $a0 together), and `jump.c` cross-jump-merges the two calls'
+ * identical tail back into the single `jal VSyncCallback` the target has.
+ * MATCH.
  */
 extern void VSyncCallback(void (*f)(void));
 extern void cbAccess(void);
 extern s32 AccessPower;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PrepareAccess", PrepareAccess);
-#else
 void PrepareAccess(void)
 {
-    void (*f)(void);
-
     if (AccessPower >= 0) {
         AccessPower = 0;
-        f = cbAccess;
+        VSyncCallback(cbAccess);
     } else {
-        f = 0;
+        VSyncCallback(0);
     }
-    VSyncCallback(f);
 }
-#endif

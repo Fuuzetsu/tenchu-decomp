@@ -1547,6 +1547,24 @@ cc1 folds `-at` back to `negu <dst>,<t_reg>`, negating the original `t`, not the
 copy. Which register `negu` sources from is a coloring artifact — do not chase it
 by respelling the conditional (`UpdateMotion`).
 
+### A huge-offset-spilled pointer dereference can NEVER self-tie (un-matchable)
+
+If the target self-ties the `%hi` address and the value-load registers of a `ptr->field`
+where `ptr` itself is spilled at a frame offset beyond the signed-16-bit range, that
+shape is UN-MATCHABLE in this cc1 — the original did not use one combined dereference,
+and no C respelling forces it. `find_reloads_address`'s `reg_equiv_address` branch always
+pushes the address-of-the-spill-slot reload (`RELOAD_FOR_INPADDR_ADDRESS`) BEFORE the
+value-used-as-address reload (`RELOAD_FOR_INPUT_ADDRESS`); `reload_reg_free_p`'s
+`RELOAD_FOR_INPUT_ADDRESS` case hardcodes a reject on the first reload's register
+(`reload_reg_used_in_inpaddr_addr[opnum]`); and `reload_reg_class_lower`'s tiebreak
+`return r1 - r2` makes the push order deterministic. `combine.c` refolds any intermediate
+single-use pointer temp (`q = menu; name = q->choice_name;`) back to the same mem-of-mem
+before reload runs, so you cannot break it up either. Contrast a PLAIN whole-value read of
+the same spilled variable (`if (title == 0)`) — that is `RELOAD_FOR_INPUT`, has no reject
+rule, and self-ties freely. `AdtSelect` (`menu->choice_name`, frame offset 0x80CC) is
+parked on exactly this; do not retry it. Proven by reading reload.c/reload1.c, twice
+empirically.
+
 ### A `%hi` reload tie is `combine_regs` refusing to tie a block-crossing pseudo
 
 The "la/address-materialization reload tie" — target keeps a `lui`/`addiu` in the same

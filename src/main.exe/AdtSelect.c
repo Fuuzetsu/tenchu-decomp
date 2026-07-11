@@ -17,23 +17,53 @@
  *   target:  lw a3,0(a3); lw v0,0(a3);  ...  li t0,0x80CC; addu; lw v1,0(t0)
  *   ours:    lw t0,0(a3); lw v0,0(t0);  ...  li a3,0x80CC; addu; lw v1,0(a3)
  *
- * Cause (verified against gcc-2.8.1 reload.c/reload1.c sources): the frame
+ * PROVEN impossible to fix by C respelling (this session escalated past the
+ * earlier "round-robin" guess to the exact reload1.c mechanism — see
+ * docs/matching-cookbook.md's RTL-dump section for the method).  The frame
  * is 0x80C8 bytes, so the spilled params title/menu live at sp+0x80C8 /
- * sp+0x80CC — offsets > 32767 that no lw can encode.  reg_equiv_address
- * kicks in and every `menu` read needs reload-materialized addresses.  For
- * `menu->choice_name` (a mem whose ADDRESS contains the spilled reg) our
- * cc1 deterministically pushes TWO conflicting RELOAD_FOR_OPERAND_ADDRESS
- * reloads (the plus and the pointer) -> two spill regs a3+t0 and the
- * round-robin `last_spill_reg` rotation then hands BB5's p=menu reload a3.
- * The original's bytes need the pointer reload to SHARE a3 in-place
- * (allowed only for a whole-operand RELOAD_FOR_INPUT, cf. the title test
- * `if (title == 0)` and the return path `menu[selection].choice_number`,
- * both of which read the POINTER VALUE and do share, byte-matched).  No C
- * spelling found that keeps the deref yet forces the input-reload shape:
- * name-temps / pointer-temps cse-fold back to the identical RTL,
- * menu[count] with unknown count emits an extra sll, K&R params and an
- * 80k-iteration decomp-permuter run change nothing.  All other register
- * allocation (9 callee-saved pseudos + 2 spilled params) matches.
+ * sp+0x80CC — offsets > 32767 that no lw can encode, so every raw `menu`
+ * read goes through `find_reloads_address`'s `reg_equiv_address[regno]`
+ * branch (reload.c ~4304): it recurses on the "sp+32972" PLUS first (giving
+ * a reload of type `RELOAD_FOR_INPADDR_ADDRESS`, since `ADDR_TYPE` maps
+ * RELOAD_FOR_INPUT_ADDRESS -> RELOAD_FOR_INPADDR_ADDRESS, reload.c ~302),
+ * *then* pushes a second reload — for menu's own value, used as the address
+ * of the `->choice_name` mem — typed `RELOAD_FOR_INPUT_ADDRESS` (the type is
+ * passed through unchanged).  `reload_reg_free_p`'s RELOAD_FOR_INPUT_ADDRESS
+ * case (reload1.c ~4567) explicitly rejects any hard reg already marked in
+ * `reload_reg_used_in_inpaddr_addr[opnum]` — i.e. the FIRST reload's own
+ * register — so the second reload can NEVER reuse the first's register.
+ * And this isn't a coin flip: `reload_reg_class_lower`, the qsort comparator
+ * that orders same-class reloads for allocation (reload1.c ~4315), breaks
+ * ties with `return r1 - r2` (reload NUMBER, i.e. push order) — and the
+ * PLUS-reload is *always* pushed before the value-reload inside this one
+ * `reg_equiv_address` branch, unconditionally, as a fact of the branch's own
+ * code order, not of anything the C source can shape.  So this exact
+ * "dereference a huge-offset-spilled pointer in one combined expression"
+ * shape can PROVABLY never self-tie in this compiler — the earlier guess
+ * that a source respelling might force the input-reload shape was wrong;
+ * there is no such respelling.  (The title test `if (title == 0)` and the
+ * return path `menu[selection].choice_number` DO self-tie, byte-matched,
+ * because there the spilled value is the WHOLE read operand, not the
+ * address of a further mem — that's plain RELOAD_FOR_INPUT, which has no
+ * such reject rule.)
+ * Confirmed twice more this session that introducing an intermediate
+ * pointer local for the first access (`q = menu; name = q->choice_name;`,
+ * and separately dropping `name` for `if (menu->choice_name != 0)`) changes
+ * NOTHING — byte-identical 9-diff output both times — because `combine.c`
+ * refolds any single-def/single-use temp back into the same combined
+ * mem-of-mem RTL before reload ever runs (it doesn't yet know `menu` will
+ * end up reg_equiv_address'd).  For target's a3-self-tie to exist, its
+ * original source must avoid the reg_equiv_address recursion for this
+ * access entirely — e.g. a pointer local that combine can't fold away
+ * because it has a second, later use or crosses a boundary combine won't
+ * cross (cf. "cse1 stops at NOTE_INSN_LOOP_END" in the cookbook) — but no
+ * such construct was found that doesn't also change the (already-matching)
+ * instruction count elsewhere.  menu[count] with unknown count emits an
+ * extra sll, K&R params change nothing, and an 80k-iteration
+ * decomp-permuter run never beat the score-10 base (expected: this is a
+ * pre-AST, reload-pass decision, permuter-immune by construction).  All
+ * other register allocation (9 callee-saved pseudos + 2 spilled params)
+ * matches.
  */
 
 #ifndef NON_MATCHING
