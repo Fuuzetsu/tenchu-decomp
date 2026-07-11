@@ -491,12 +491,58 @@ def rule_or_inplace(text, name, span):
                splice(data, a.start_byte, a.end_byte, repl).decode())
 
 
+def rule_ptr_index_sum(text, name, span):
+    """Rewrite `T *p = base + idx;` to the integer-sum `p = (T*)(idx*sizeof(T) + (int)base)`.
+
+    Pointer arithmetic `base + idx` ALWAYS folds to a base-first `addu`; only integer
+    addition preserves operand order, and the target sometimes wants index-first
+    (cookbook: "Pointer arithmetic normalises to base+index"). This closed SetBlood and
+    SetHinoko. Yields BOTH operand assignments (which is base vs index); a
+    semantically-wrong one just produces wrong bytes and is discarded by scoring. Only
+    fires on a pointer-typed local declaration whose initializer is a bare `A + B`."""
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for decl in _find(body, ("declaration",)):
+        ty = decl.child_by_field_name("type")
+        if ty is None:
+            continue
+        elemtype = _txt(data, ty).strip()
+        idecs = [c for c in decl.named_children if c.type == "init_declarator"]
+        if len(idecs) != 1:
+            continue
+        dclr = idecs[0].child_by_field_name("declarator")
+        val = idecs[0].child_by_field_name("value")
+        if dclr is None or val is None or dclr.type != "pointer_declarator":
+            continue  # want exactly `T *p` (one level of pointer)
+        if val.type != "binary_expression":
+            continue
+        op = val.child_by_field_name("operator")
+        A = val.child_by_field_name("left")
+        B = val.child_by_field_name("right")
+        if op is None or _txt(data, op) != b"+" or A is None or B is None:
+            continue
+        at, bt = _txt(data, A).strip(), _txt(data, B).strip()
+        cast = b"(" + elemtype + b" *)"
+        sz = b"sizeof(" + elemtype + b")"
+        # variant 1: A is base (pointer), B is index
+        v1 = cast + b"((int)" + at + b" + " + bt + b" * " + sz + b")"
+        # variant 2: B is base, A is index
+        v2 = cast + b"((int)" + bt + b" + " + at + b" * " + sz + b")"
+        for tag, repl in ((f"ptr-sum {at.decode()}+{bt.decode()}", v1),
+                          (f"ptr-sum {bt.decode()}+{at.decode()}", v2)):
+            yield (f"{tag} L{_line(data, val.start_byte)}",
+                   splice(data, val.start_byte, val.end_byte, repl).decode())
+
+
 RULES = [
     ("type-width", "flip a local's integer type across width/signedness", rule_type_width),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
     ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
+    ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
 ]
 
 
