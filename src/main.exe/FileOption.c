@@ -85,6 +85,11 @@
  *    (cse) or becomes the $at macro (small-symbol path).
  * decomp.me/psyq4.3 arbitration or a future idiom may crack it; the permuter
  * (450k iterations, 8 threads) found nothing below score 70.
+ * RE-VERIFIED (a later session): re-ran `tools/rtldump.py FileOption --draft
+ * --pass sched`; the current `.i.sched` dump still shows insn 504
+ * (`zero_extendqisi2`, the andi) scheduled BEFORE insn 489 (`%hi
+ * STAGE_LAYOUT_NUMBER`) and insn 492 (the `sb`), i.e. [andi][lui][sb] same as
+ * this header describes. Root cause unchanged; re-parked, no new lever found.
  *
  * gp smalls of this TU: SystemFlag (Build.hs maspsxGpExterns + permute.py).
  * EngageLevel/StageID/D_80010058 are other TUs' smalls -> absolute macros.

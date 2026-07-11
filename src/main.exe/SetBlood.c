@@ -36,29 +36,21 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 2 of 772 bytes differ (linked length 772 == carve
- * extent 772, i.e. SAME LENGTH; a single instruction differs). Everything
- * else is byte-identical.
- *
- * The sole residual is the pool-scan cursor's initial address computation
- * `slot = base + idx;` (base = EffectSlot held loop-invariant in $s6, idx =
- * CURRENT_OFFSET scaled by the 76-byte stride via a sll/subu chain into $v0):
- *     target  addu $a0, $v0, $s6   (index-first: scaled_idx + base)
- *     ours    addu $a0, $s6, $v0   (base-first:  base + scaled_idx)
- * Same registers, same length, only the two source operands of the commutative
- * `addu` are swapped. This is a post-`fold` RTL canonicalization below the C
- * level: `base + idx`, `idx + base`, `&base[idx]` all `fold` to the identical
- * base-first tree, and `EffectSlot + idx` / moving `base` in/out of the loop
- * all change the LENGTH (cse folds `%lo(EffectSlot)` or loop.c re-hoists).
- * The already-matched siblings SetImpact/SetExplosion/SetBleed emit the SAME
- * `base + idx` source as index-first, but they have NO outer `n`-count loop —
- * once the addu executes inside a loop with `base` loop-invariant callee-saved,
- * cc1 canonicalizes the invariant operand first. decomp-permuter cannot reach
- * this (it transforms the C AST; the operand order is chosen after fold, in
- * RTL) and additionally aborts on this TU with `KeyError: 'rand'` in
- * perm_add_mask (a permuter typemap gap on rand()-calling functions, same as
- * FUN_8003944c). A single-instruction, same-length, permuter-immune operand
- * swap = the cookbook's sub-C-level early-stop class.
+ * MATCHED. The pool-scan cursor's initial address computation `slot = base +
+ * idx;` needed the INTEGER-SUM spelling, not pointer arithmetic:
+ *     slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
+ * Plain `base + idx` pointer arithmetic folds to a base-first `addu $a0,
+ * $s6,$v0` regardless of source spelling (`base+idx`, `idx+base`,
+ * `&base[idx]` all identical post-fold); the target has index-first `addu
+ * $a0,$v0,$s6`. Cookbook rule confirmed here: "Pointer arithmetic normalises
+ * to base+index; only INTEGER addition keeps operand order" — spelling the
+ * same address as an explicit `idx*sizeof + (int)base` integer sum (instead
+ * of `base[idx]`/`base+idx`) reaches the index-first `addu` because integer
+ * PLUS doesn't get the pointer-arithmetic canonicalization fold does to
+ * array/pointer addition. This was previously (wrongly) parked as
+ * "permuter-immune, sub-C-level, no source lever" — it had a lever, just not
+ * the one tried (reordering statements/loop shape instead of the operand's
+ * own type). SetHinoko (same TU, identical residual) fixed the same way.
  *
  * Matching notes (all verified against the original bytes):
  *  - The demo's PSX.SYM records a FOUR-argument prototype (pos, vect, n,
@@ -108,9 +100,6 @@ extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
 extern struct AreaNodeType *FieldArea;
 extern void DrawBlood(TEffectSlot *ef);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBlood", SetBlood);
-#else
 void SetBlood(VECTOR *pos, short n, short time)
 {
     int idx;
@@ -136,7 +125,7 @@ outer:
     {
         count = 0;
         idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
-        slot = base + idx;
+        slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
         do
         {
             idx = idx + 1;
@@ -193,4 +182,3 @@ outer:
 end:
     return;
 }
-#endif

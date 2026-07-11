@@ -60,6 +60,21 @@
  * 1-instruction residual and found nothing better than the base — a named
  * sub-C-level tie (cookbook "sub-C-level residual early-stop"); parked here
  * rather than opening more sessions on it.
+ * RTL-CONFIRMED (tools/rtldump.py --draft, .i.combine, re-verified this
+ * session): in BOTH functions `hi`'s constant assign is the identical `(set
+ * (reg/v:SI N) (const_int -2146893824)) {movsi_internal2}` with the same
+ * REG_EQUAL note — same starting fact for cse. The `hi+0x7D70` use sits at
+ * each function's loop-top code_label. The one RTL difference there:
+ * FileOption's code_label is immediately preceded by `NOTE_INSN_LOOP_BEG`
+ * (real `for`, loop.c-processed) and its use compiles to `(plus (reg 88)
+ * (const_int 32112)) {addsi3_internal}`; this function's code_label has NO
+ * loop note anywhere above it in the whole `.i.combine` dump (grepped for
+ * NOTE_INSN_LOOP_BEG — absent) and its use compiles to `(ior (reg 82)
+ * (const_int 32112)) {iorsi3}`. The plus->ior fold is gated on the ABSENCE
+ * of loop.c-recognised loop structure around the use — exactly the shape
+ * `&targets[i]` needs (a goto loop, so loop.c never touches it and can't
+ * strength-reduce the array index). The two requirements are mutually
+ * exclusive in this cc1: confirmed by direct dump comparison, not inferred.
  *
  * Matching notes:
  *  - Real retail layout differs from PSX.SYM's (earlier-build) recollection:

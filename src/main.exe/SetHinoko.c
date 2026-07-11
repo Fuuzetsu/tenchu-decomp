@@ -32,19 +32,14 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 2 of 724 bytes differ (linked length 724 == carve
- * extent 724, i.e. SAME LENGTH; a single instruction differs). Identical
- * residual to SetBlood in the same TU: the pool-scan cursor init
- * `slot = base + idx;` (base = EffectSlot loop-invariant in $s5) compiles
- *     target  addu $a0, $v0, $s5   (index-first)
- *     ours    addu $a0, $s5, $v0   (base-first)
- * — a commutative-operand swap on the scaled-index addu that `fold` fixes
- * base-first regardless of source spelling (`base+idx`, `idx+base`,
- * `&base[idx]` all identical; `EffectSlot+idx` and moving `base` inside the
- * loop change the LENGTH). Sub-C-level RTL canonicalization of the
- * loop-invariant operand; the permuter can't reach it (AST-level) and aborts
- * on rand() (`KeyError: 'rand'`). See SetBlood.c's header for the full
- * mechanism. Everything else is byte-identical.
+ * MATCHED. Same TU, identical residual/fix as SetBlood: the pool-scan
+ * cursor init `slot = base + idx;` needs the INTEGER-SUM spelling —
+ *     slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
+ * — to get the target's index-first `addu $a0,$v0,$s5` instead of the
+ * base-first `addu $a0,$s5,$v0` that plain pointer arithmetic (`base+idx`,
+ * `idx+base`, `&base[idx]`) always folds to. See SetBlood.c's header for
+ * the full cookbook-rule writeup ("Pointer arithmetic normalises to
+ * base+index; only INTEGER addition keeps operand order").
  *
  * Matching notes (all verified against the original bytes):
  *  - Unlike SetBlood in the same TU, retail keeps PSX.SYM's exact
@@ -81,9 +76,6 @@
  */
 extern void DrawHinoko(TEffectSlot *ef);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetHinoko", SetHinoko);
-#else
 void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
 {
     int idx;
@@ -105,7 +97,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         }
         count = 0;
         idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
-        slot = base + idx;
+        slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
         do
         {
             idx = idx + 1;
@@ -145,4 +137,3 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         ef->proc = (void (*)())DrawHinoko;
     }
 }
-#endif

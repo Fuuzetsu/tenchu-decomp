@@ -48,6 +48,33 @@
  *    inline-asm question, not a source-shaping problem — a candidate for
  *    the permuter IF inline asm is ever accepted here, but not chased
  *    further while that policy question is open.
+ * RE-VERIFIED (a later session, RTL-dump-backed): re-derived the mechanism
+ * independently via tools/rtldump.py --draft on the `.i.greg`/`.i.jump`
+ * dumps rather than trusting this header's prose. Confirmed: the shared-
+ * `goto done; done: return ret;` shape allocates `ret` straight into hard
+ * reg 3 (v1) — `.i.greg` shows "88 preferences: 3" / "88 in 3" — because
+ * `ret = r_v1` is a free coalesce once r_v1 is pinned to $3; the single
+ * ABI $v1->$v0 copy then lands at the merge block (`.i.greg` insn 41),
+ * exactly the observed 7-byte residual. Tried BOTH orderings of two literal
+ * `return` statements (`if(err) return -1; return ok;` AND the branch-sense-
+ * flipped `if(ok) return ok; return -1;`, matching the target's `beqz`
+ * sense) — `.i.jump` shows both give each arm its OWN independent v0
+ * materialization (the desired shape, `insn 35: v0=v1` / `insn 28: v0=-1`)
+ * but ALSO an unconditional `jump_insn` from the fallthrough arm to the
+ * merge label (block layout always places the branch-target arm textually
+ * AFTER the fallthrough arm, so the fallthrough needs an explicit jump over
+ * it) — confirmed via matchdiff: "LENGTH MISMATCH — 40 bytes" both times,
+ * not just "differs". This cc1 does not perform the target's trick (folding
+ * the taken-arm's one-instruction body into the branch's own delay slot to
+ * avoid needing a jump at all) from any two-return C shape tried. Whether a
+ * different structure exists is open, but four independent shapes now
+ * converge on the same two local optima (7-off/right-length or
+ * 4-over/wrong-length), matching this header's own prior conclusion.
+ * tools/permute.py was attempted as the final bounded step per protocol but
+ * could not be completed cleanly in this sandbox (harness auto-backgrounds
+ * bash calls exceeding ~2 minutes regardless of an inner `timeout`, so the
+ * "foreground, bounded" invocation kept detaching); killed after several
+ * minutes of real permuter activity with no zero found. Re-parked as-is.
  *
  * The #else draft is the CLOSEST variant found (single shared return,
  * 7/36 bytes off); default build keeps the byte-identical two-piece
