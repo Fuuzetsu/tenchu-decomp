@@ -280,6 +280,16 @@ def main():
         P.append(f"- **{name} is a JUMP-TABLE function** — after reverse.py, run "
                  f"`tools/split-scaffold.py {name}` (writes all INCLUDE_ASM pieces "
                  "+ the jtbl + the .rodata carve, green before you draft).")
+    if near:
+        P.append(f"- `tools/siblingdiff.py {name}` — **START DRAFTING HERE.** Prints "
+                 "the nearest MATCHED sibling's C plus a normalized asm diff "
+                 "(intra-function branches aligned to labels; `ref:`=sibling, "
+                 "`tgt:`=target, runs of identical insns collapsed). Transcribe the "
+                 "sibling's C, then change ONLY the flagged instructions. A hunk "
+                 "that differs in just the REGISTERS (same mnemonics/operands "
+                 "shape) is an allocation tie for rtldump/permute, not a source "
+                 "edit. Pass a different candidate as the 2nd arg to compare vs "
+                 "another sibling.")
     P.append(f"- `tools/xref.py {name}` — callers (pin the prototype) + callees "
              "(matched vs needs-extern).")
     P.append(f"- `tools/access.py {name}` — each pointer offset's WIDTH/"
