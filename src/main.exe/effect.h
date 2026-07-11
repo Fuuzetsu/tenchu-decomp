@@ -105,6 +105,20 @@ struct SmokeType /* size >= 0x23; same vec@0x0/pos@0x8/rotate@0x18/scale@0x1c
     u8 unk22;     /* +0x22 */
 };
 
+typedef struct FlyWireType FlyWireType;
+
+struct FlyWireType /* size 0x45, proven by DrawFlyWire/SetFlyWire's
+                      * tools/access.py offsets */
+{
+    VECTOR start;   /* +0x00 */
+    VECTOR end;     /* +0x10 */
+    VECTOR center;  /* +0x20 */
+    VECTOR NCenter; /* +0x30 */
+    short count;    /* +0x40 */
+    short time;     /* +0x42 */
+    u8 mode;        /* +0x44 */
+};
+
 /* Offsets proven by FUN_80038fdc (tools/access.py): +0/+1/+2 one-byte
  * fields, +0x4/+0x8/+0xc a long triple sharing BloodType's px/py/pz layout,
  * +0x10 one more byte. Distinct from BloodType at +0x0 (BloodType.hint is a
@@ -136,6 +150,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct ExplosionType explosion;
     struct XF4Type xf4;
     struct SmokeType smoke;
+    struct FlyWireType flywire;
     u8 pad[72];
 };
 

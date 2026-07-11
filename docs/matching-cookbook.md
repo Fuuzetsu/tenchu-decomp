@@ -1052,6 +1052,12 @@ STATEMENTS, do not chase the scheduler (`HangCheck`'s vx/vz-then-vy commit order
 escaped, so its `lh` reads carry deps on every earlier `*dtL` store, and storing vy last
 lets the vz read fill the load-delay hole with no hazard nop).
 
+**`x++` (postfix) is the general spelling for "test the OLD value; the incremented value
+is stored unconditionally because the other path overwrites it anyway."**
+`if (field++ < K) return; field = 0;` reproduces a single-load + delay-slot-store shape;
+an intermediate temp (`v = field; if (v < K) field = v+1;`) sometimes fails to reach the
+fused form.
+
 **A captured field copy used later in arithmetic must be declared `s32`, not the field's
 narrow width.** `s16 size = param->size;` triggers cc1's narrowing-store-loads-`lhu` rule
 even when `size` is later used in signed arithmetic, costing a spurious `sll/sra`
@@ -2205,6 +2211,16 @@ this one is about the tail.
   Duplicating the call per path merges WORSE (sched2 drags the arg setup
   from the call; cross-jump suffixes stop matching).
 
+### A false Ghidra/splat multi-piece split is sometimes just ONE function
+
+When `reverse.py` seeds several `INCLUDE_ASM` lines for one target but
+`config/splat.main.exe.yaml` carves it as a SINGLE `c` segment, the extra pieces are
+usually consecutive calls (e.g. two `FntPrint`s with different literal-string addresses)
+that tricked Ghidra's function-boundary detection. Write one real C function and DELETE
+every stub -- do NOT reach for `split-scaffold.py` (that is for genuine jump tables).
+The literal-string addresses may need pinning in `config/symbols.<target>.txt` (Camera's
+two FntPrint format strings). (`Camera`.)
+
 ## Split functions (jump tables through .rodata)
 
 **`tools/split-scaffold.py <Name>` does all of this for you** — run
@@ -2385,6 +2401,12 @@ parameter into one persistent register leaves nothing free and recomputes the in
 each iteration. Both cost the same 2 instructions; no operand-order or De-Morgan rewrite
 of the compare reliably picks the target's path. RTL-escalation territory, not
 respelling (`SetSmoke`).
+
+**Any literal reused across >=2 calls inside one loop needs its own named local,
+assigned once before the loop, to be promoted to a callee-saved register instead of
+re-materialising (`li`/`lui`) at every use.** Not just sentinels -- a bitmask, a fixed
+call argument, a comparison constant all qualify (`RestoreItemLayout`'s compare sentinel,
+`LoadOrnamentArchive`'s OR-mask + literal call-flag).
 
 ## loop.c hoisting is a threshold economy (the invariant-hoist model)
 

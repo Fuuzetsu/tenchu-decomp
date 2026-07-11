@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -30,9 +31,103 @@
  *     extern int Projection;
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/Camera", Camera);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/Camera", something_about_character_camera_and_fpv___override__prt_80031c34_f0048b67);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/Camera", something_about_character_camera_and_fpv___override__prt_80031c40_394600bf);
+typedef struct
+{
+    long vpx, vpy, vpz;
+    long vrx, vry, vrz;
+    long rz;
+    void *super;
+} GsRVIEW2;
+
+typedef struct
+{
+    VECTOR TargetVector; /* 0x00 */
+    Humanoid *Owner;     /* 0x10 */
+    s32 Mode;            /* 0x14 */
+} TCameraStatus;
+
+extern TCameraStatus CamState;
+extern GsRVIEW2 ViewInfo;
+extern u32 SystemFlag;
+extern s16 SkipFrame;
+extern s32 Projection;
+
+extern char D_80011BA4[]; /* "OWNER: (%d, %d, %d) R:%d" */
+extern char D_80097A38[]; /* "\n" */
+
+extern s16 GetPad(s16 no);
+extern void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif);
+extern void CameraType1(Humanoid *pl, GsRVIEW2 *vDif);
+extern void SetCameraMode(s32 mode);
+extern void GsSetRefView2(GsRVIEW2 *view);
+extern void FntPrint(char *fmt, ...);
+extern void GsSetProjection(s32 dist);
+extern void debug_output_edit_camera_settings(s16 param);
+
+void Camera(void)
+{
+    GsRVIEW2 vDif;
+    s16 pad_dat;
+
+    pad_dat = GetPad(0);
+    if ((s32)CamState.Owner & 1) {
+        return;
+    }
+
+    switch (CamState.Mode) {
+    case 1:
+        CameraDirection(CamState.Owner, &vDif);
+        break;
+    case 0xD:
+        vDif.vpx = 0;
+        vDif.vpy = 0;
+        vDif.vpz = 0;
+        vDif.vrx = 0;
+        vDif.vry = 0;
+        vDif.vrz = 0;
+        break;
+    case 0xE:
+        vDif.vpx = 0;
+        vDif.vpy = 0;
+        vDif.vpz = 0;
+        vDif.vrx = CamState.Owner->model->locate.coord.t[0] - ViewInfo.vrx;
+        vDif.vry = CamState.Owner->model->locate.coord.t[1] - ViewInfo.vry;
+        vDif.vrz = CamState.Owner->model->locate.coord.t[2] - ViewInfo.vrz;
+        break;
+    default:
+        if (CamState.Owner->pad.data & 4) {
+            SetCameraMode(1);
+            return;
+        }
+        CameraType1(CamState.Owner, &vDif);
+        break;
+    }
+    ViewInfo.vrx = ViewInfo.vrx + vDif.vrx;
+    ViewInfo.vry = ViewInfo.vry + vDif.vry;
+    ViewInfo.vrz = ViewInfo.vrz + vDif.vrz;
+    ViewInfo.vpx = ViewInfo.vpx + vDif.vpx;
+    ViewInfo.vpy = ViewInfo.vpy + vDif.vpy;
+    ViewInfo.vpz = ViewInfo.vpz + vDif.vpz;
+    GsSetRefView2(&ViewInfo);
+
+    if ((SystemFlag & 1) != 0 && SkipFrame != 1 && (pad_dat & 0x100) != 0) {
+        ModelType *model;
+
+        if (pad_dat & 1) {
+            Projection = 300;
+        }
+        if (pad_dat & 0x8000) {
+            Projection = Projection - 1;
+        } else if (pad_dat & 0x2000) {
+            Projection = Projection + 1;
+        }
+        model = CamState.Owner->model;
+        FntPrint(D_80011BA4, model->locate.coord.t[0], model->locate.coord.t[1], model->locate.coord.t[2], model->rotate.vy);
+        FntPrint(D_80097A38);
+        GsSetProjection(Projection);
+        debug_output_edit_camera_settings(pad_dat);
+    }
+}
 
 // triage: MEDIUM — 158 insns, 8 callees, ~0.09 to ReqItemDefault
 // likely-relevant cookbook sections:

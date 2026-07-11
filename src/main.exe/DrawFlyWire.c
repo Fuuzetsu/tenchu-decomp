@@ -1,5 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -23,7 +25,64 @@
  *     stack sp+24     struct VECTOR pos
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawFlyWire", DrawFlyWire);
+typedef struct
+{
+    VECTOR TargetVector; /* 0x00 */
+    Humanoid *Owner;     /* 0x10 */
+} TCameraStatus;
+
+extern TCameraStatus CamState;
+
+extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);
+extern void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col);
+extern void Sound(Humanoid *owner, s32 sfx);
+extern void *memset(void *s, int c, u32 n);
+
+void DrawFlyWire(TEffectSlot *ef)
+{
+    FlyWireType *param;
+    VECTOR pos;
+
+    param = &ef->param.flywire;
+    switch (param->mode) {
+    case 0: {
+        s16 time;
+        s32 sum;
+
+        time = param->time;
+        sum = (u16)param->count + 0x1000 / time;
+        param->count = sum;
+        if ((s16)sum >= 0x1001) {
+            param->count = 0;
+            param->mode = param->mode + 1;
+            SetBleeds(&param->end, 0, 0x32, 0xA, 0x1E, 0xFFFF00);
+            Sound(CamState.Owner, 0x31);
+        } else {
+            SetWire(&param->start, &param->end, &param->center, (s16)sum);
+        }
+        return;
+    }
+    case 1: {
+        VECTOR tmp;
+        s16 count;
+
+        memset(&tmp, 0, sizeof(VECTOR));
+        count = param->count;
+        tmp.vx = ((param->center.vx * (5 - count)) + (param->NCenter.vx * count)) / 5;
+        count = param->count;
+        tmp.vy = ((param->center.vy * (5 - count)) + (param->NCenter.vy * count)) / 5;
+        count = param->count;
+        tmp.vz = ((param->center.vz * (5 - count)) + (param->NCenter.vz * count)) / 5;
+        pos = tmp;
+        SetWire(&param->start, &param->end, &pos, 0x1000);
+        if (param->count > 4) {
+            ef->proc = 0;
+        }
+        param->count = param->count + 1;
+        return;
+    }
+    }
+}
 
 // triage: MEDIUM — 145 insns, mul/div, 4 callees, ~0.05 to EquipWeapon
 // likely-relevant cookbook sections:
@@ -89,4 +148,64 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawFlyWire", DrawFl
 //     (ef->param).flywire.count = (ef->param).flywire.count + 1;
 //   }
 //   return;
+// }
+
+// m2c (mipsel-gcc-c reference — cleaner control flow + register
+// temps straight from the asm; Ghidra above has the real types):
+//
+// ? SetBleeds(void *, ?, ?, ?, s32, s32);             /* extern */
+// ? SetWire(void *, void *, s32 *, s16);              /* extern */
+// ? Sound(s32, ?);                                    /* extern */
+// ? memset(s32 *, ?, ?);                              /* extern */
+// extern s32 CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+//
+// void DrawFlyWire(s32 *arg0) {
+//     s32 sp18;
+//     s32 sp1C;
+//     s32 sp20;
+//     s32 sp24;
+//     s32 sp28;
+//     s32 sp2C;
+//     s32 sp30;
+//     s16 temp_a0;
+//     s16 temp_a0_2;
+//     s16 temp_v0;
+//     s16 temp_v1_2;
+//     u8 temp_v1;
+//     void *temp_s0;
+//
+//     temp_s0 = arg0 + 4;
+//     temp_v1 = temp_s0->unk44;
+//     switch (temp_v1) {                              /* irregular */
+//     case 0:
+//         temp_v0 = (u16) temp_s0->unk40 + (0x1000 / (s16) temp_s0->unk42);
+//         temp_s0->unk40 = temp_v0;
+//         if (temp_v0 >= 0x1001) {
+//             temp_s0->unk40 = 0;
+//             temp_s0->unk44 = (u8) (temp_s0->unk44 + 1);
+//             SetBleeds(arg0 + 0x14, 0, 0x32, 0xA, 0x1E, 0xFFFF00);
+//             Sound(CURRENTLY_SELECTED_CHARACTER_STATE_PTR, 0x31);
+//             return;
+//         }
+//         SetWire(temp_s0, arg0 + 0x14, arg0 + 0x24, temp_v0);
+//         return;
+//     case 1:
+//         memset(&sp28, 0, 0x10);
+//         temp_a0 = temp_s0->unk40;
+//         sp28 = ((temp_s0->unk20 * (5 - temp_a0)) + (temp_s0->unk30 * temp_a0)) / 5;
+//         temp_a0_2 = temp_s0->unk40;
+//         sp2C = ((temp_s0->unk24 * (5 - temp_a0_2)) + (temp_s0->unk34 * temp_a0_2)) / 5;
+//         temp_v1_2 = temp_s0->unk40;
+//         sp30 = ((temp_s0->unk28 * (5 - temp_v1_2)) + (temp_s0->unk38 * temp_v1_2)) / 5;
+//         sp18 = sp28;
+//         sp1C = sp2C;
+//         sp20 = sp30;
+//         sp24 = sp34;
+//         SetWire(temp_s0, arg0 + 0x14, &sp18, 0x1000);
+//         if (temp_s0->unk40 >= 5) {
+//             *arg0 = 0;
+//         }
+//         temp_s0->unk40 = (s16) ((u16) temp_s0->unk40 + 1);
+//         return;
+//     }
 // }

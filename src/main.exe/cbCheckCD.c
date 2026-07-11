@@ -28,7 +28,137 @@
  *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — 12 of 488 bytes differ (right structure, wrong
+ * length by 3 instructions: 119 vs 122). Every major structural issue is
+ * resolved (switch-not-if/else outer dispatch on `ret` — cases in SOURCE
+ * order 5-then-2 to get the body layout right per the case-body-memory-order
+ * rule; the shared "field9_0x14=0x1B; CheckCount=0; status=0; return" tail
+ * reached via explicit goto from both case 5 and the deep mode==1 case;
+ * `cs->CheckCount++ < 0xA` for the delay-slot-hoisted increment; an explicit
+ * local `TCdaStatus *cs = &CdaStatus;` reused everywhere EXCEPT the two
+ * `CdaStatus.StartPos` reads and the `CdaStatus.status = result[0]` store,
+ * which the target compiles through a fresh %hi/%lo pair (`D_8008EA50`) —
+ * matches the target frame size (56) once `loc` is ONE function-scope local
+ * instead of two block-scoped ones).
+ *
+ * Residual: right before the final `CdControlF(0x11, NULL)` call, the
+ * target re-materializes `a0=0x11`/`a1=0` TWICE (once for the `com != 0x11`
+ * early-out, once more after `CdControl(1, NULL, result)` returns — both
+ * caller-saved regs are legitimately clobbered by the intervening calls) and
+ * keeps the two call sites SEPARATE with an explicit `j` between them; our
+ * draft's identical two instances get merged by cc1's own cross-jump pass
+ * into one, dropping the redundant `move a1,zero` + `j`. Every C-level
+ * restructuring tried (goto vs plain if for the `com != 0x11` skip,
+ * swapping which path falls through) produced byte-identical output either
+ * way — this is cc1's cross-jump heuristic deciding NOT to merge in the
+ * target where ours does, a below-the-C-level tie. One bounded permuter run
+ * (~500 iterations, `-j4`) plateaued flat at the base score with no
+ * improvement.
+ */
+
+typedef struct
+{
+    s32 StartPos;   /* 0x00 */
+    s32 CurPos;     /* 0x04 */
+    s32 EndPos;     /* 0x08 */
+    s16 mode;       /* 0x0C */
+    s16 CheckCount; /* 0x0E */
+    u8 status;      /* 0x10 */
+    u8 voll;        /* 0x11 */
+    u8 volr;        /* 0x12 */
+    u8 flag;        /* 0x13 */
+    u8 field9_0x14; /* 0x14 */
+} TCdaStatus;
+
+extern TCdaStatus CdaStatus;
+
+typedef struct CdlLOC CdlLOC;
+struct CdlLOC
+{
+    u8 minute;
+    u8 second;
+    u8 sector;
+    u8 track;
+};
+
+extern int CdControl(u8 com, u8 *param, u8 *result);
+extern int CdControlF(u8 com, u8 *param);
+extern void CdIntToPos(s32 n, CdlLOC *pos);
+extern int CdPosToInt(CdlLOC *pos);
+extern int CdSync(int mode, u8 *result);
+extern int CdLastCom(void);
+extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
+extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
+extern void cd_control(u8 param_1, u8 *param_2, u8 *param_3);
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/cbCheckCD", cbCheckCD);
+#else
+void cbCheckCD(void)
+{
+    TCdaStatus *cs = &CdaStatus;
+    u8 result[8];
+    s32 ret;
+    s32 com;
+    CdlLOC loc;
+
+    if (cs->field9_0x14 == 0x1B) {
+        CdIntToPos(CdaStatus.StartPos, &loc);
+        if ((cs->flag & 1) && CdControl(0x1B, (u8 *)&loc, NULL) == 0) {
+            return;
+        }
+        cs->field9_0x14 = 0;
+        SsSetSerialAttr(0, 0, 1);
+        SsSetSerialVol(0, cs->voll, cs->volr);
+        return;
+    }
+
+    if (cs->CheckCount++ < 0xA) {
+        return;
+    }
+    cs->CheckCount = 0;
+
+    ret = CdSync(1, result);
+    com = CdLastCom();
+    switch (ret) {
+    case 5:
+        cs->field9_0x14 = 0x1B;
+        goto shared_tail;
+    case 2:
+        if (com == 9) {
+            return;
+        }
+        if (com != 0x11) {
+            goto controlf;
+        }
+        cs->CurPos = CdPosToInt(&loc);
+        if ((cs->status & 0x20) &&
+            (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300)) {
+            if (cs->mode != 1) {
+                goto mode_error;
+            }
+            cs->field9_0x14 = 0x1B;
+        shared_tail:
+            cs->CheckCount = 0;
+            cs->status = 0;
+            return;
+
+        mode_error:
+            SsSetSerialAttr(0, 0, 1);
+            SsSetSerialVol(0, 0, 0);
+            cd_control(9, 0, 0);
+            cs->status = 0;
+            return;
+        }
+        CdControl(1, NULL, result);
+        CdaStatus.status = result[0];
+    controlf:
+        CdControlF(0x11, NULL);
+        break;
+    }
+}
+#endif
 
 // triage: MEDIUM — 122 insns, 9 callees, ~0.11 to CdaStop
 // likely-relevant cookbook sections:
@@ -97,4 +227,81 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/cbCheckCD", cbCheckC
 //     CdaStatus.status = '\0';
 //   }
 //   return;
+// }
+
+// m2c (mipsel-gcc-c reference — cleaner control flow + register
+// temps straight from the asm; Ghidra above has the real types):
+//
+// s32 CdControl(?, ? *, u8 *);                        /* extern */
+// ? CdControlF(?, ?);                                 /* extern */
+// ? CdIntToPos(s32, ? *);                             /* extern */
+// s32 CdLastCom();                                    /* extern */
+// s32 CdPosToInt(? *);                                /* extern */
+// s32 CdSync(?, u8 *);                                /* extern */
+// ? SsSetSerialAttr(?, ?, ?);                         /* extern */
+// ? SsSetSerialVol(?, u8, u8);                        /* extern */
+// ? cd_control(?, ?, ?);                              /* extern */
+// extern ? CdaStatus;
+// extern u8 D_8008EA50;
+//
+// void cbCheckCD(void) {
+//     u8 sp10;
+//     ? sp15;
+//     ? sp18;
+//     s32 temp_s1;
+//     s32 temp_v0;
+//     s32 temp_v1;
+//
+//     if (CdaStatus.unk14 == 0x1B) {
+//         CdIntToPos(CdaStatus.unk0, &sp18);
+//         if (!(CdaStatus.unk13 & 1) || (CdControl(0x1B, &sp18, NULL) != 0)) {
+//             CdaStatus.unk14 = 0U;
+//             SsSetSerialAttr(0, 0, 1);
+//             SsSetSerialVol(0, CdaStatus.unk11, CdaStatus.unk12);
+//         }
+//     } else {
+//         CdaStatus.unkE = (u16) (CdaStatus.unkE + 1);
+//         if ((s16) CdaStatus.unkE >= 0xA) {
+//             CdaStatus.unkE = 0U;
+//             temp_s1 = CdSync(1, &sp10);
+//             temp_v1 = CdLastCom();
+//             switch (temp_s1) {                      /* switch 1; irregular */
+//             case 5:                                 /* switch 1 */
+//                 CdaStatus.unk14 = 0x1BU;
+// block_15:
+//                 CdaStatus.unkE = 0U;
+//                 CdaStatus.unk10 = 0U;
+//                 return;
+//             case 2:                                 /* switch 1 */
+//                 switch (temp_v1) {                  /* switch 2; irregular */
+//                 case 17:                            /* switch 2 */
+//                     temp_v0 = CdPosToInt(&sp15);
+//                     CdaStatus.unk4 = temp_v0;
+//                     if (CdaStatus.unk10 & 0x20) {
+//                         if ((CdaStatus.unk8 < temp_v0) || (temp_v0 < (CdaStatus.unk0 - 0x12C))) {
+//                             if (CdaStatus.unkC == 1) {
+//                                 CdaStatus.unk14 = 0x1BU;
+//                                 goto block_15;
+//                             }
+//                             SsSetSerialAttr(0, 0, 1);
+//                             SsSetSerialVol(0, 0U, 0U);
+//                             cd_control(9, 0, 0);
+//                             CdaStatus.unk10 = 0U;
+//                             return;
+//                         }
+//                         goto block_18;
+//                     }
+// block_18:
+//                     CdControl(1, NULL, &sp10);
+//                     D_8008EA50 = sp10;
+//                 default:                            /* switch 2 */
+//                     CdControlF(0x11, 0);
+//                     break;
+//                 }
+//                 break;
+//             }
+//         } else {
+//         case 9:                                     /* switch 2 */
+//         }
+//     }
 // }
