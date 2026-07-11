@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -29,80 +30,107 @@
  *     reg   $a2       struct param_korogari * param
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/MoveFly", MoveFly);
+/*
+ * MoveFly (0x8003dfd4) — advances a thrown/flying item one frame along a
+ * quadratic Bezier arc, or hands off to MoveKorogari once it has landed.
+ * Needs maspsx --expand-div (Build.hs + permute.py): it divides `t<<12` by
+ * the runtime byte `param->div` (ASPSX break 7 / break 6 guards).
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - The mode dispatch is the two-independent-goto shape: `if (mode==0) goto
+ *    fly; if (mode==1) goto korogari; return;` — both bodies are forward-jump
+ *    targets, the do-nothing default falls through.
+ *  - `k = 0x1000;` as a named local shares the constant across `q = k - …`
+ *    and `w9 = k - d2 + …` (one `li` reused as a subtract base), matching the
+ *    target's a3; two inline `0x1000` literals compile a fold-reassociated
+ *    `q2 + 0x1000` and diverge.
+ *  - `d2 = q * 2` as its own statement lets reorg steal the `sll` into the
+ *    `q*q < 0` guard's delay slot; folded into w8/w9 it leaves a nop there.
+ *  - Each `xs/ys/zs = >>12` sits immediately after its own `<0` adjust so
+ *    reorg fills the NEXT guard's delay slot with it (deferred one step).
+ *  - `nv = q2;` is an explicit second copy of q2 (permuter-found): the target
+ *    keeps q2 live in TWO registers — one (`q2`) used only by the `y` multiply,
+ *    one (`nv`) by w9/w8 and the `x`/`z` multiplies. gcc 2.8.1 never splits a
+ *    live range, so one value in two registers = two source variables.
+ *
+ * Fly-phase view of tag_TItem.param (a quadratic Bezier: 3 control points
+ * P0/P1/P2, each 3 longs).  Byte fields at 0x24/0x25 and the 0x28 mode
+ * selector share the union with param_korogari (the reset transition writes
+ * korogari's hint/vx/vy/vz/status fields at 0/4/6/8/0xA). */
+typedef struct
+{
+    s32 p[9];   /* 0x00: P0(x,y,z) P1(x,y,z) P2(x,y,z) */
+    u8 t;       /* 0x24: step counter */
+    u8 div;     /* 0x25: divisor */
+    u8 pad26;   /* 0x26 */
+    u8 pad27;   /* 0x27 */
+    u8 mode;    /* 0x28: 0 fly, 1 korogari */
+} param_fly;
 
-// triage: MEDIUM — 122 insns, mul/div, 1 callees, ~0.07 to bow_shoot_logic
-// likely-relevant cookbook sections:
-//   - Expressions: mult/div — magic-multiply constants, fold
+extern void MoveKorogari(tag_TItem *item, param_korogari *param);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void MoveFly(int *item,int *param)
-//
-// {
-//   int iVar1;
-//   uint uVar2;
-//   int iVar3;
-//   undefined4 uVar4;
-//   int iVar5;
-//   undefined4 uVar6;
-//   undefined4 uVar7;
-//   int iVar8;
-//   int iVar9;
-//   uint uVar10;
-//
-//   if ((char)param[10] == '\0') {
-//     uVar10 = (uint)*(byte *)(param + 9);
-//     uVar2 = (uint)*(byte *)((int)param + 0x25);
-//     if (uVar2 == 0) {
-//       trap(0x1c00);
-//     }
-//     if ((uVar2 == 0xffffffff) && (uVar10 == 0x80000)) {
-//       trap(0x1800);
-//     }
-//     iVar1 = 0x1000 - (uVar10 << 0xc) / uVar2;
-//     iVar3 = iVar1 * iVar1;
-//     if (iVar3 < 0) {
-//       iVar3 = iVar3 + 0xfff;
-//     }
-//     iVar3 = iVar3 >> 0xc;
-//     iVar9 = iVar1 * -2 + 0x1000 + iVar3;
-//     iVar8 = iVar1 * 2 + iVar3 * -2;
-//     iVar1 = iVar9 * *param + iVar8 * param[6] + iVar3 * param[3];
-//     if (iVar1 < 0) {
-//       iVar1 = iVar1 + 0xfff;
-//     }
-//     iVar5 = iVar9 * param[1] + iVar8 * param[7] + iVar3 * param[4];
-//     if (iVar5 < 0) {
-//       iVar5 = iVar5 + 0xfff;
-//     }
-//     iVar3 = iVar9 * param[2] + iVar8 * param[8] + iVar3 * param[5];
-//     if (iVar3 < 0) {
-//       iVar3 = iVar3 + 0xfff;
-//     }
-//     if (uVar10 == 0) {
-//       iVar8 = item[4];
-//       uVar4 = *(undefined4 *)(iVar8 + 0x18);
-//       uVar6 = *(undefined4 *)(iVar8 + 0x1c);
-//       uVar7 = *(undefined4 *)(iVar8 + 0x20);
-//       *param = 0;
-//       *(undefined1 *)((int)param + 10) = 0;
-//       *(undefined1 *)(param + 10) = 1;
-//       *(short *)(param + 1) = (short)(iVar1 >> 0xc) - (short)uVar4;
-//       *(short *)((int)param + 6) = (short)(iVar5 >> 0xc) - (short)uVar6;
-//       *(short *)(param + 2) = (short)(iVar3 >> 0xc) - (short)uVar7;
-//     }
-//     else {
-//       *(byte *)(param + 9) = *(byte *)(param + 9) - 1;
-//     }
-//     *(int *)(item[4] + 0x18) = iVar1 >> 0xc;
-//     *(int *)(item[4] + 0x1c) = iVar5 >> 0xc;
-//     *(int *)(item[4] + 0x20) = iVar3 >> 0xc;
-//   }
-//   else if ((char)param[10] == '\x01') {
-//     MoveKorogari((tag_TItem *)item,(param_korogari *)param);
-//   }
-//   return;
-// }
+static void MoveFly(tag_TItem *item, param_fly *param)
+{
+    s32 x, y, z, q, q2, w9, w8, d2, k, nv;
+    s32 xs, ys, zs;
+    s32 t, ax, ay, az;
+    ModelType *model;
+    param_korogari *pk;
+
+    if (param->mode == 0)
+        goto fly;
+    if (param->mode == 1)
+        goto korogari;
+    return;
+
+fly:
+    t = param->t;
+    k = 0x1000;
+    q = k - (t << 12) / param->div;
+    q2 = q * q;
+    d2 = q * 2;
+    if (q2 < 0)
+        q2 += 0xfff;
+    q2 = q2 >> 12;
+    nv = q2;
+    w9 = k - d2 + nv;
+    w8 = d2 + nv * -2;
+    x = w9 * param->p[0] + w8 * param->p[6] + nv * param->p[3];
+    if (x < 0)
+        x += 0xfff;
+    xs = x >> 12;
+    y = w9 * param->p[1] + w8 * param->p[7] + q2 * param->p[4];
+    if (y < 0)
+        y += 0xfff;
+    ys = y >> 12;
+    z = w9 * param->p[2] + w8 * param->p[8] + nv * param->p[5];
+    if (z < 0)
+        z += 0xfff;
+    zs = z >> 12;
+    if (t == 0)
+    {
+        model = item->locate;
+        ax = model->locate.coord.t[0];
+        ay = model->locate.coord.t[1];
+        az = model->locate.coord.t[2];
+        pk = (param_korogari *)param;
+        pk->hint = 0;
+        pk->status = 0;
+        param->mode = 1;
+        pk->vx = xs - ax;
+        pk->vy = ys - ay;
+        pk->vz = zs - az;
+    }
+    else
+    {
+        param->t = param->t - 1;
+    }
+    item->locate->locate.coord.t[0] = xs;
+    item->locate->locate.coord.t[1] = ys;
+    item->locate->locate.coord.t[2] = zs;
+    return;
+
+korogari:
+    MoveKorogari(item, (param_korogari *)param);
+}
+

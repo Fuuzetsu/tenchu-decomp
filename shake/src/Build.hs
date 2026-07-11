@@ -168,6 +168,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "SetBleedsDir" = ["--expand-div"]
     extra "FUN_8003a148" = ["--expand-div"]
     extra "FUN_80039fb0" = ["--expand-div"]
+    extra "MoveFly" = ["--expand-div"]
     extra "FUN_80039ddc" = ["--expand-div"]
     extra "FUN_8004c59c" = ["--expand-div"]
     extra "FUN_8004d6d4" = ["--expand-div"]

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -30,79 +31,158 @@
  *     extern short SkipFrame;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/main", main);
+/*
+ * main (0x800162a4, START.C) — the game entry point: one-time subsystem init,
+ * then an infinite per-frame loop (pad -> stage sequence -> physics -> draw).
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - NO explicit `__main()` call: gcc inserts the C-runtime `__main()` at the
+ *    top of `main` automatically, and reorg fills its delay slot with the s0
+ *    save. Writing `__main();` compiles a SECOND call (2 bytes over).
+ *  - `u8 dead[0xF8]` is a DEAD 248-byte local — the retail frame is 0x118 with
+ *    NO stack access beyond the 3 register saves, the "unexplained frame-size
+ *    gap = unused aggregate" pattern. Neither Ghidra nor m2c shows it (both
+ *    optimise it away); only the frame size proves it. The demo's own locals
+ *    (`i`/`dat`/`rect`) were removed in retail.
+ *  - CHOSEN_STAGE(+5)/CHOSEN_CHARACTER(+4)/PersistentState[0x5F] are read
+ *    through ONE `PersistentState *ps = (PersistentState *)0x80010000;`
+ *    assigned right before CreateStage, so cc1 shares a single transient
+ *    `%hi(0x8001)` base (the bare-lui rule) instead of re-materialising it per
+ *    global; declaring `ps` at function top instead pins it in a callee-saved
+ *    register across the whole init sequence (wrong).
+ *  - `CdaStatus.flag` is the byte at CdaStatus+0x13 (0x8008EA53); StageSequence
+ *    returns `short` (the `sll 16 / sra 16` sign-extend of its result feeds the
+ *    `== 1` / `== -1` tests). The constant 1 is hoisted into a callee-saved
+ *    register (`s1`) by loop.c as a loop invariant shared by the `seq == 1`
+ *    and `SkipFrame == 1` tests.
+ */
 
-// triage: MEDIUM — 143 insns, 1 loop, 38 callees, ~0.06 to ThinkBasicHuman1
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
+typedef struct
+{
+    s32 StartPos;   /* 0x00 */
+    s32 CurPos;     /* 0x04 */
+    s32 EndPos;     /* 0x08 */
+    s16 mode;       /* 0x0C */
+    s16 CheckCount; /* 0x0E */
+    u8 status;      /* 0x10 */
+    u8 voll;        /* 0x11 */
+    u8 volr;        /* 0x12 */
+    u8 flag;        /* 0x13 */
+    u8 field9_0x14; /* 0x14 */
+} TCdaStatus;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void main(void)
-//
-// {
-//   short sVar1;
-//   uint uVar2;
-//   char *pcVar3;
-//   char *pcVar4;
-//   undefined4 in_a3;
-//
-//   __main();
-//   AdtReadPadFunc = GetRealPad;
-//   ResetCallback();
-//   InitPadControl();
-//   InitFileSystem(2);
-//   CdaStatus.flag = 1;
-//   SystemFlag = 0;
-//   InitGraphicsSystem();
-//   InitAccessInfo();
-//   while (Humans != 0) {
-//     KillHumanoid(HumanGroup[0]);
-//   }
-//   InitConflict();
-//   InitEffect();
-//   InitializeItem();
-//   InitializeInfoView();
-//   InitMisc();
-//   InitSoundEffect();
-//   DemoPatchInit();
-//   InitPersistentState();
-//   DAT_800976f6 = (ushort)(byte)PersistentState._95_1_;
-//   CreateStage((uint)(byte)PersistentState._5_1_,(uint)(byte)PersistentState._4_1_);
-//   FUN_8001b4bc();
-//   do {
-//     PadProc();
-//     sVar1 = StageSequence();
-//     if ((SystemFlag & 1) == 0) {
-//       if (sVar1 == 1) {
-//         StageEndScreen();
-//       }
-//       else if (sVar1 == -1) {
-//         FUN_80055d64();
-//       }
-//     }
-//     ComputeAllConflict();
-//     StartDrawing();
-//     Camera();
-//     ControlAllHumanoid();
-//     ActivateHumans();
-//     DrawConstruction();
-//     DrawEffect();
-//     DoItemProc();
-//     DoInfoViewProc();
-//     DoMiscProc();
-//     FUN_80029368();
-//     uVar2 = GetPad(0);
-//     if (((uVar2 & 0x100) != 0) && (SkipFrame == 0)) {
-//       pcVar3 = (char *)vgetfreesize();
-//       pcVar4 = (char *)vgetmaxsize();
-//       FntPrint("free memory %d(max block %d)\n",pcVar3,pcVar4,in_a3);
-//     }
-//     if ((SkipFrame != 1) && ((SystemFlag & 1) != 0)) {
-//       FntFlush(-1);
-//     }
-//     EndDrawing(-2);
-//   } while( true );
-// }
+extern s32 (*AdtReadPadFunc)(s32 port);
+extern s32 GetRealPad(s32 port);
+extern TCdaStatus CdaStatus;
+extern u32 SystemFlag;
+extern short Humans;
+extern Humanoid *HumanGroup[32];
+extern short SkipFrame;
+extern u16 D_800976F6;
+extern char D_80011004[];
+
+extern void ResetCallback(void);
+extern void InitFileSystem(s32 mode);
+extern void InitGraphicsSystem(void);
+extern void InitAccessInfo(void);
+extern void KillHumanoid(Humanoid *h);
+extern void InitConflict(void);
+extern void InitEffect(void);
+extern void InitializeInfoView(void);
+extern void InitSoundEffect(void);
+extern void DemoPatchInit(void);
+extern void InitPersistentState(void);
+extern void CreateStage(s32 stage, s32 chr);
+extern void FUN_8001b4bc(void);
+extern void PadProc(void);
+extern short StageSequence(void);
+extern void StageEndScreen(void);
+extern void start_demo_(void);
+extern void ComputeAllConflict(void);
+extern void StartDrawing(void);
+extern void Camera(void);
+extern void ControlAllHumanoid(void);
+extern void ActivateHumans(void);
+extern void DrawConstruction(void);
+extern void DrawEffect(void);
+extern void DoItemProc(void);
+extern void DoInfoViewProc(void);
+extern void DoMiscProc(void);
+extern void update_something_for_each_visible_enemy_(void);
+extern u32 GetPad(s32 port);
+extern void *vgetfreesize(void);
+extern void *vgetmaxsize(void);
+extern void FntPrint(char *fmt, ...);
+extern void FntFlush(s32 id);
+extern void EndDrawing(s32 mode);
+
+int main(void)
+{
+    short seq;
+    u32 pad;
+    PersistentState *ps;
+    u8 dead[0xF8];
+
+    AdtReadPadFunc = GetRealPad;
+    ResetCallback();
+    InitPadControl();
+    InitFileSystem(2);
+    CdaStatus.flag = 1;
+    SystemFlag = 0;
+    InitGraphicsSystem();
+    InitAccessInfo();
+    while (Humans != 0)
+    {
+        KillHumanoid(HumanGroup[0]);
+    }
+    InitConflict();
+    InitEffect();
+    InitializeItem();
+    InitializeInfoView();
+    InitMisc();
+    InitSoundEffect();
+    DemoPatchInit();
+    InitPersistentState();
+    ps = (PersistentState *)0x80010000;
+    D_800976F6 = ps->field_0x5f[0];
+    CreateStage(ps->stage, ps->chr);
+    FUN_8001b4bc();
+    do
+    {
+        PadProc();
+        seq = StageSequence();
+        if ((SystemFlag & 1) == 0)
+        {
+            if (seq == 1)
+            {
+                StageEndScreen();
+            }
+            else if (seq == -1)
+            {
+                start_demo_();
+            }
+        }
+        ComputeAllConflict();
+        StartDrawing();
+        Camera();
+        ControlAllHumanoid();
+        ActivateHumans();
+        DrawConstruction();
+        DrawEffect();
+        DoItemProc();
+        DoInfoViewProc();
+        DoMiscProc();
+        update_something_for_each_visible_enemy_();
+        pad = GetPad(0);
+        if ((pad & 0x100) != 0 && SkipFrame == 0)
+        {
+            FntPrint(D_80011004, vgetfreesize(), vgetmaxsize());
+        }
+        if (SkipFrame != 1 && (SystemFlag & 1) != 0)
+        {
+            FntFlush(-1);
+        }
+        EndDrawing(-2);
+    } while (1);
+}
+
