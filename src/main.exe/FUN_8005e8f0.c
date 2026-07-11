@@ -45,12 +45,32 @@
  *    `tools/autorules.py` found no local-rule win (int/s16/u32 width
  *    sweep). `tools/regalloc.py` shows no calls and no copy-chains in this
  *    function at all — confirming it's a pure sched1 tie between two
- *    independent single-cycle ops, not a register-allocation question. A
- *    bounded ~6-minute `tools/permute.py --stop-on-zero` run found nothing
- *    (timed out, flat). Matches the cookbook's "sub-C-level residual
- *    early-stop" class (adjacent-instruction reorder, same instructions/
- *    registers) — permuter-immune by the documented pattern, parked here
- *    rather than burning further budget.
+ *    independent single-cycle ops, not a register-allocation question.
+ *    `tools/rtldump.py --pass sched` names the exact mechanism: at the
+ *    ready-list step where both candidates (the `rec` address load, insn
+ *    15, and the `arg0+=6` add, insn 23) are simultaneously ready, sched.c's
+ *    backward list scheduler flags the STORE that consumes insn 15
+ *    (`rec->magic = ...`, insn 20) as having "a greater potential hazard"
+ *    and launches it (and transitively its feeder, insn 15) first — this
+ *    urgency comes from insn 20's STORE through `rec` being scheduled
+ *    relative to insn 30's LOAD through `arg0` (the `if (*arg0 != 0)`
+ *    check): cc1's alias.c cannot prove the literal-address pointer `rec`
+ *    and the parameter pointer `arg0` don't alias, so the two unrelated
+ *    memory accesses are kept conservatively ordered, and that ordering
+ *    pressure is what makes insn 15 win the tie over insn 23 in the
+ *    TARGET but not in our draft (where the tie breaks the other way with
+ *    no hazard note attached to either candidate). This is genuinely a
+ *    scheduler-internal hazard heuristic operating on two DIFFERENT
+ *    pointers whose non-aliasing is real but unprovable in C89 (this cc1
+ *    predates `restrict`; confirmed by direct probe — `__restrict__` is a
+ *    parse error in this cc1-281 build) — there is no source-level way to
+ *    assert it. A bounded ~6-minute `tools/permute.py --stop-on-zero` run
+ *    found nothing (timed out, flat, base score never beaten). Matches the
+ *    cookbook's "sub-C-level residual early-stop" class (adjacent-
+ *    instruction reorder, same instructions/registers), now with the
+ *    specific sched.c mechanism identified rather than a bare
+ *    "permuter-immune" label; parked here rather than burning further
+ *    budget on a hazard heuristic with no C-level lever.
  */
 
 typedef struct

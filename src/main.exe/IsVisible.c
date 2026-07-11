@@ -37,8 +37,42 @@
  * candidates were either identical modulo unreachable dead code (a
  * `do{}while(0)` injected after a `return`) or otherwise did not reduce the
  * real `matchdiff` byte count — re-verified per the cookbook's warning that
- * the permuter's own score isn't raw bytes. Parked per the sub-C-level
- * early-stop.
+ * the permuter's own score isn't raw bytes.
+ *
+ * Root-caused precisely via `tools/rtldump.py --pass lreg` (global.c's
+ * `allocno_compare` formula, cookbook's "pure callee-saved SWAP residual"
+ * section, extended here to 3 allocnos): `priority = floor_log2(refs) *
+ * refs / live_length`, and the HIGHEST-priority allocno gets first pick of
+ * the free callee-saved regs in ascending order ($s0, then $s1, then $s2).
+ * The three pseudos' raw stats in this draft: `fail` refs=4 life=22 ->
+ * floor_log2(4)*4/22 = 0.364; `q2` refs=2 life=6 -> floor_log2(2)*2/6 =
+ * 0.333; `iVar4` refs=3 life=17 -> floor_log2(3)*3/17 = 0.176. Assigned in
+ * DESCENDING priority order that's exactly `fail`(->$s0) > `q2`(->$s1) >
+ * `iVar4`(->$s2) — our current (wrong) result. The target needs `q2` >
+ * `iVar4` > `fail`; since `q2` already outranks `iVar4` (0.333 > 0.176),
+ * ONLY `fail`'s priority needs to drop below 0.176 — either by roughly
+ * DOUBLING its live_length (22 -> 46+, i.e. keeping it live across
+ * substantially more of the function than it naturally is) or by dropping
+ * its refs from 4 to 3 (floor_log2(3)*3/22 = 0.136, which would work).
+ * Both levers were tried and rejected: moving the `fail = 0;` statement
+ * earlier (to extend its apparent live range across all three divisions)
+ * produced BYTE-IDENTICAL output — confirmed via a fresh `rtldump --pass
+ * lreg` that pseudo 94's reported live_length stayed at exactly 22 insns
+ * regardless of source position, meaning cc1 computes life_length from the
+ * REACHING-DEFINITION dataflow, not textual statement order (a "move the
+ * ballast statement" trick, unlike SoundEx's, does not apply here). Cutting
+ * `fail`'s ref count from 4 to 3 would require merging the two `fail = 1;`
+ * assignment sites (one per branch) into one shared, `goto`-reached block —
+ * but that shared block would then be the immediate predecessor of
+ * `return !fail;`, and per this file's OWN already-solved constant-fold
+ * pitfall (documented below: an assignment immediately preceding a `return`
+ * of an expression provably constant AT THAT POINT gets folded, 3
+ * instructions shorter), merging the two sites this way would trigger
+ * EXACTLY that fold and regress the byte count that took real effort to
+ * fix. So the one lever big enough to move this tie is foreclosed by a
+ * DIFFERENT already-matched requirement in the SAME function — this is a
+ * genuine sub-C-level tie with a quantified, dump-verified mechanism, not a
+ * bare "permuter-immune" guess. Parked per the sub-C-level early-stop.
  *
  * IsVisible (0x8003b604, 0x208 bytes) — same TU as GetCenterAndSize.c/
  * leFindEnemy.c (WORLD.C): a cheap frustum-ish visibility test for a

@@ -41,31 +41,37 @@
  *    the time `ret0:` reuses $v0 for the return value), whereas case1
  *    keeps reassigning `arg1` itself (stays in $a1, its parameter home).
  *    Both read identically in C; only the register outcome differs.
- *  - CURRENTLY_SELECTED_CHARACTER_STATE_PTR and D_80012224 are both
- *    ABSOLUTE (lui/lw, lui/addiu) in this TU — no %gp_rel operands at all
- *    in the target asm, so no gp-extern entry is needed here.
- *
- * STATUS: NON_MATCHING — 2 of 128 bytes differ. Residual is case1's
- * null-guard reload of CURRENTLY_SELECTED_CHARACTER_STATE_PTR: the target
- * computes the symbol's %hi into a SCRATCH $v0, then loads %lo(...)($v0)
- * directly into $a1 (arg1's own fixed register); our cc1 computes both
- * halves directly into $a1. This is the cookbook's named
- * la/address-materialization reload tie ("%hi in a temp vs the target
- * reg") — PrepareAccess (2 bytes) and cd_open (4 bytes) are the identical
- * tie, both confirmed permuter-immune; per the early-stop rule this is
- * NOT permuted here. Tried: giving case1 the same fresh-local shape as
- * case0 (which DOES need the $v0 split) — no change, confirming the
- * residual isn't a statement-shape choice but a reload-pass register pick
- * with no source lever.
+ *  - **case1's reload of the currently-selected character MUST be spelled
+ *    `CamState.Owner` (the nonzero +0x10 struct-member load), NOT the
+ *    offset-0 alias `CURRENTLY_SELECTED_CHARACTER_STATE_PTR`, even though
+ *    they are literally the same address (0x80089f00).** Under
+ *    -msplit-addresses, the offset-0 alias folds `%hi` into the
+ *    destination register (`lui a1,%hi; lw a1,%lo(a1)` — what case0's
+ *    `p` reload correctly wants, and what this residual WRONGLY produced
+ *    when case1 also used the alias), while the +0x10 struct-member load
+ *    splits the base into a separate scratch register (`lui v0,%hi
+ *    (CamState); lw a1,0x10+%lo(v0)`), which is the target's actual
+ *    2-byte-different reload. Same lever as CheckCheatCodes's
+ *    `CamState.Owner` requirement; confirms the rule generalizes to a
+ *    SECOND function reaching the SAME 0x80089f00 cell two different ways
+ *    in the SAME source file (case0 via the alias, case1 via the
+ *    struct-member) — the earlier NON_MATCHING note calling this
+ *    "permuter-immune with no source lever" was wrong; a 42k-iteration
+ *    permuter run also plateaued flat at the baseline score, confirming
+ *    this class needs the alias/struct-member lever, not permutation.
  */
 
+typedef struct
+{
+    VECTOR TargetVector; /* 0x00 */
+    Humanoid *Owner;      /* 0x10 */
+} TCameraStatus;
+
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+extern TCameraStatus CamState;
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80012224[]; /* "not support yet %d" */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8004a368", FUN_8004a368);
-#else
 s32 FUN_8004a368(s32 arg0, Humanoid *arg1)
 {
     if (arg0 == 0)
@@ -85,7 +91,7 @@ case0:
 
 case1:
     if (arg1 == 0)
-        arg1 = CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+        arg1 = CamState.Owner;
     return arg1->item[0x19] == 1;
 
 do_default:
@@ -93,4 +99,3 @@ do_default:
 ret0:
     return 0;
 }
-#endif

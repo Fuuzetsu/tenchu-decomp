@@ -1340,6 +1340,15 @@ lottery. The dump tells you which pass diverged and why, so you solve for the fi
 
 This is not a Fable-only skill — it is a mechanical procedure. Any agent can do it.
 
+**Re-verify a park header's "permuter-immune" / "below-the-C-level" verdict before
+trusting it — the header can be WRONG.** `FUN_8004a368` was parked as "the same
+PrepareAccess/cd_open la-reload tie" and closed in minutes once someone checked it
+against a DOCUMENTED rule instead: it was the offset-0-alias-vs-struct-member `%hi`
+lever (grep the target address's OTHER name in sibling TU files — 0x80089f00 is both
+`CURRENTLY_SELECTED_CHARACTER_STATE_PTR` and `CamState.Owner`, and the two spellings
+choose different `%hi` register homes). Before spending an RTL dive or accepting a park,
+match the residual against the cookbook's named classes first.
+
 ### The tool
 
 `tools/rtldump.py <Name>` compiles `src/main.exe/<Name>.c` exactly as `./Build` does
