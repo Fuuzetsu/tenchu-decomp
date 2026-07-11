@@ -1937,6 +1937,22 @@ matching a target that reuses the pointer register as the copy source;
 `rparam = param;` (copy a named aggregate) re-materialises the source address
 after the join and adds an `addiu`. When a struct-assignment's source register
 should be the incoming pointer itself, spell it as `*p` (ProcItemLaunch).
+
+### reorg deletes a same-address reload only if the register is untouched between
+
+`reorg`/`dbr` (delay-branch, post-allocation) does redundant-insn elimination: a
+`[sw R,x … lw R,x]` pair with **R never redefined between** collapses to just the
+store — cse/combine never fold these (they're a pure coloring/reorg interaction;
+verified absent from `.cse`/`.cse2`/`.combine`). So when the target KEEPS a
+"redundant" reload (e.g. re-reading `p->end.*` after storing it), the stored
+register must be REDEFINED in the interval — funnel the stored values through one
+serially-reused temp (`t = v.vx; p->end.vx = t; t = v.vy; …`) so R is live-again
+and reorg can't delete the reload. Conversely, to make a reload vanish, keep its
+register untouched across the span. (ReqItemUse's lightningbolt end-vector tail —
+this rule and the coloring-order need are mutually exclusive, which is why that
+one case resisted ~12 spellings.) Note: a `sz = 0;`-style dead def can't steer
+this — `delete_trivially_dead_insns` runs post-cse and the ref counts are
+recomputed before local-alloc, so the def is gone before it can bias anything.
 - **A shared return variable copy-preferences its sources together — use early
   returns to split their live ranges.** Funnelling two values through one
   `ret` (e.g. `ret = existing_id; … ret = new_index; return ret;`) makes cc1's
@@ -2450,6 +2466,14 @@ absolute → keep the symbol off the list (a plain small extern).
     `extern SVECTOR D_80097B0C[];`/`D_80097B14[];` on that same `D_80097Bxx`
     table, +1 insn as plain `extern SVECTOR` — the `lui` reorg only hoists into
     the dispatch delay slot once the split forces a two-register HIGH/LO_SUM).
+  - **Interleave tell — how to SPOT the split from the asm**: when another
+    instruction sits *between* a symbol's `lui %hi` and its `lw/sw %lo` half, the
+    original was NOT a small extern — a small extern is ONE `la`/macro insn whose
+    two halves sched1 cannot pull apart, so anything landing between them proves a
+    two-register HIGH/LO_SUM that only an unknown-size array (`extern T SYM[];` …
+    `SYM[0]`) reproduces. Read it straight off the diff: hi and lo of the same
+    symbol not adjacent ⇒ respell as the array (ReqItemUse's guard-pointer and
+    the `..._[0] = 3` store).
 - **A callee-saved value dying at a call whose result lands in the SAME
   s-register is the call-result variable HOSTING the earlier load**:
   `h = pm->locate.coord.t[1]; gy = h; … h = GetAreaMapLevel(…, gy, …);` —

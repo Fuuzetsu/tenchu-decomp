@@ -158,13 +158,69 @@
  * END PSX.SYM */
 
 /*
- * ReqItemUse (0x80048afc) — TODO one-line description.
+ * ReqItemUse (0x80048afc) — the item-launch dispatcher: decrements the
+ * user's carry count for the item type, then switch(p->type) into 25 case
+ * bodies (throw-vector setup + per-type ReqItemXxx call, or an inline
+ * item-pool claim for kaginawa/sightshot/teleport/napalm).
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ReqItemUse
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * STATUS: NON_MATCHING — 60 of 5272 bytes differ (15 instructions, ALL inside
+ * the ONE 19-word lightningbolt (case 0x17) end-vector tail at
+ * 0x800496d4..0x8004971c; every other byte of the 25-case function matches,
+ * length exact). Build the draft with `NON_MATCHING=ReqItemUse ./Build`.
+ *
+ * The residual is a pure register permutation (t,sx,sz)=(v1,a1,v0) vs the
+ * target's (v0,v1,a1): `sz` (the p->start.vz capture) is the tail's only
+ * 1-def/1-use block-local pseudo, so local-alloc (which runs BEFORE global
+ * alloc and is blind to global pseudos) hands it $v0 via find_free_reg's
+ * default order, dominoing t->v1, sx->a1. The target needs sz allocated
+ * LAST (global, lowest priority -> $a1), which per the .lreg dumps requires
+ * the tail's other values to be 1-def local qtys — but 1-def stored-value
+ * temps let reorg's redundant-load elimination delete the three p->end.*
+ * reloads ([sw R,x .. lw R,x] with R untouched is deleted at dbr; the
+ * reloads only survive because the shared temps t/u/sx REDEFINE the stored
+ * register in between). The two requirements are mutually exclusive from C
+ * as far as ~12 spellings + two bounded permuter runs could reach (the
+ * permuter found the `sx = (p->end.vz = sx + sz);` chain, 23->15 lines,
+ * then plateaued). See the dump-backed analysis in the session notes;
+ * .lreg/.greg name the decision (`Register <sz> in 2` = local-alloc).
+ *
+ * Facts proven while matching (all byte-verified except the parked tail):
+ *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_USE layout {s32 type;
+ *    Humanoid *user; VECTOR start; VECTOR end;} (psxsym size 40 agrees).
+ *  - TWO function-scope 0x28 workspaces: `param`@sp+16, `work`@sp+56.
+ *    Sibling case scopes do NOT share stack slots under this cc1 (first
+ *    draft with per-case aggregates laddered the frame to 416 bytes), so
+ *    the original declared shared function-scope workspaces; the per-case
+ *    address-taken rx/ry pairs DO ladder (96..204), giving frame 224.
+ *    The kusuri-family "VECTOR v" lives at param's HEAD (*(VECTOR *)&param);
+ *    makibishi/jirai stage a PARAM_ITEM_LAUNCH in `work` (memset + 3 field
+ *    copies + `param = work`), then reuse work's head as the throw vector.
+ *  - Retail case map from the jump table (demo enum differs: 8/9 swapped,
+ *    0x16=NAPALM, 0x17=LIGHTNINGBOLT, 0x18=TELEPORT).
+ *  - The camera-check template is ReqItemDefault.c's idiom verbatim; the
+ *    `st = (VECTOR *)&param;` pointer temp before the guard puts &param in
+ *    a callee-saved reg across GetVectorRotation (guard delay slot addiu).
+ *  - The p->user == CamState.Owner guard in case 1 reads the OFFSET-0 ALIAS
+ *    CURRENTLY_SELECTED_CHARACTER_STATE_PTR and must be spelled as an
+ *    UNKNOWN-SIZE ARRAY extern (`extern Humanoid *SYM[]; ... SYM[0]`) so the
+ *    load is the two-insn split-address form whose halves sched1 can
+ *    interleave with the p->user load ([lui][lw user][lw %lo]); a plain
+ *    small extern is ONE macro load insn and cannot interleave. Same
+ *    respell for SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[0] = 3
+ *    (teleport's CamState.Mode store, lui+sw split, sw stolen into the
+ *    break jump's delay slot).
+ *  - The four pool-claim cases are ReqItemKusuri/Makibishi/Happou's matched
+ *    idiom verbatim (cur/it split unnecessary here: single `it`); napalm's
+ *    `pp` sits at the found: label like shuriken's; reorg duplicates the
+ *    addiu into the loop-exit branch's delay slot for napalm and steals it
+ *    into the null-check beqz's slot for shuriken — same source shape.
+ *  - The makibishi rand-loop is `while (1) { if (!(i < 5)) break; i++; ... }`
+ *    (top test + unconditional back-jump, magic %100/%50 hoisted) with
+ *    `i = 0;` AFTER the RotateVector call (sched1 hoists the move above the
+ *    call; writing it before the call orders the merge block's addiu/move
+ *    backwards).
+ *  - jirai's tail needs vx/vy/vz temps for the work-vector reads (multi-use
+ *    values in caller-saved regs; matches the batched-loads rule).
  */
 
 #ifndef NON_MATCHING
@@ -234,650 +290,835 @@ static const u32 ReqItemUse_jtbl[25] = {
 };
 
 #else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// /* WARNING: Type propagation algorithm not settling */
-// 
-// int ReqItemUse(PARAM_ITEM_USE *p)
-// 
-// {
-//   uchar uVar1;
-//   bool bVar2;
-//   undefined **ppuVar3;
-//   PARAM_ITEM_USE *pPVar4;
-//   PARAM_ITEM_USE *pPVar5;
-//   ModelType *pMVar6;
-//   ModelArchiveType *pMVar7;
-//   int iVar8;
-//   TItemType TVar9;
-//   int iVar10;
-//   long lVar11;
-//   Humanoid *pHVar12;
-//   long lVar13;
-//   VECTOR *pVVar14;
-//   tag_TItem *ptVar15;
-//   VECTOR *pVVar16;
-//   PARAM_ITEM_USE local_d0;
-//   VECTOR local_a8;
-//   long local_98;
-//   long local_94;
-//   VECTOR VStack_88;
-//   int local_78;
-//   int local_74;
-//   int local_70;
-//   int local_6c;
-//   int local_68;
-//   int local_64;
-//   int local_60;
-//   int local_5c;
-//   int local_58;
-//   int local_54;
-//   int local_50;
-//   int local_4c;
-//   int local_48;
-//   int local_44;
-//   int local_40;
-//   int local_3c;
-//   int local_38;
-//   int local_34;
-//   int local_30;
-//   int local_2c;
-//   int local_28;
-//   int local_24;
-//   int local_20;
-//   int local_1c;
-//   int local_18;
-//   int local_14;
-//   
-//   uVar1 = p->user->item[p->type];
-//   if ((uVar1 != '\0') && (uVar1 != 0xff)) {
-//     p->user->item[p->type] = uVar1 + 0xff;
-//   }
-//   lVar11 = DAT_80012280;
-//   pHVar12 = DAT_8001227c;
-//   switch(p->type) {
-//   case ITEM_KAGINAWA:
-//     iVar8 = 0;
-//     do {
-//       DAT_80097acc = DAT_80097acc + 1;
-//       if (0x1d < DAT_80097acc) {
-//         DAT_80097acc = 0;
-//       }
-//       iVar10 = DAT_80097acc;
-//       ptVar15 = items + DAT_80097acc;
-//       if (items[DAT_80097acc].proc == (undefined **)0x0) goto LAB_80049958;
-//       iVar8 = iVar8 + 1;
-//     } while (iVar8 < 0x1d);
-//     ppuVar3 = items[DAT_80097acc].proc;
-//     items[DAT_80097acc].mode = 0xff;
-//     (*(code *)ppuVar3)(ptVar15);
-//     DeleteConflict(items[iVar10].locate);
-//     if (items[iVar10].mode != 0) {
-//       AdtMessageBox("item dispose fail   id %d  mode %d",items[iVar10].type,(uint)items[iVar10].mode
-//                    );
-//     }
-//     ptVar15->owner = (Humanoid *)0x0;
-//     items[iVar10].proc = (undefined **)0x0;
-// LAB_80049958:
-//     if (ptVar15 == (tag_TItem *)0x0) {
-//       return 0;
-//     }
-//     TVar9 = p->type;
-//     ptVar15->owner = p->user;
-//     pMVar6 = items[iVar10].locate;
-//     items[iVar10].proc = (undefined **)ProcKaginawa;
-//     items[iVar10].mode = '\0';
-//     items[iVar10].type = TVar9;
-//     (pMVar6->locate).coord.t[0] = (p->start).vx;
-//     ((items[iVar10].locate)->locate).coord.t[1] = (p->start).vy;
-//     ((items[iVar10].locate)->locate).coord.t[2] = (p->start).vz;
-//     ((items[iVar10].locate)->locate).super = (_GsCOORDINATE2 *)0x0;
-//     UpdateCoordinate(items[iVar10].locate);
-//     pHVar12 = ptVar15->owner;
-//     items[iVar10].collision.size = 0;
-//     items[iVar10].model = (ModelType *)0x0;
-//     pHVar12->field_0xcd = 1;
-//     SetCameraMode(CMODE_SIGHT);
-//     CamState.DirectionRX = -0x155;
-//     CamState.DirectionRY = 0;
-//     goto switchD_80048b6c_caseD_13;
-//   case ITEM_SHURIKEN:
-//     if (p->user == CamState.Owner) {
-//       iVar8 = 0;
-//       do {
-//         DAT_80097acc = DAT_80097acc + 1;
-//         if (0x1d < DAT_80097acc) {
-//           DAT_80097acc = 0;
-//         }
-//         iVar10 = DAT_80097acc;
-//         ptVar15 = items + DAT_80097acc;
-//         if (items[DAT_80097acc].proc == (undefined **)0x0) goto LAB_80048e54;
-//         iVar8 = iVar8 + 1;
-//       } while (iVar8 < 0x1d);
-//       ppuVar3 = items[DAT_80097acc].proc;
-//       items[DAT_80097acc].mode = 0xff;
-//       (*(code *)ppuVar3)(ptVar15);
-//       DeleteConflict(items[iVar10].locate);
-//       if (items[iVar10].mode != 0) {
-//         AdtMessageBox("item dispose fail   id %d  mode %d",items[iVar10].type,
-//                       (uint)items[iVar10].mode);
-//       }
-//       ptVar15->owner = (Humanoid *)0x0;
-//       items[iVar10].proc = (undefined **)0x0;
-// LAB_80048e54:
-//       if (ptVar15 == (tag_TItem *)0x0) {
-//         return 0;
-//       }
-//       TVar9 = p->type;
-//       ptVar15->owner = p->user;
-//       pMVar6 = items[iVar10].locate;
-//       items[iVar10].proc = (undefined **)ProcSightShot;
-//       items[iVar10].mode = '\0';
-//       items[iVar10].type = TVar9;
-//       (pMVar6->locate).coord.t[0] = (p->start).vx;
-//       ((items[iVar10].locate)->locate).coord.t[1] = (p->start).vy;
-//       ((items[iVar10].locate)->locate).coord.t[2] = (p->start).vz;
-//       ((items[iVar10].locate)->locate).super = (_GsCOORDINATE2 *)0x0;
-//       UpdateCoordinate(items[iVar10].locate);
-//       pMVar6 = DAT_80097f48;
-//       items[iVar10].collision.size = 0;
-//       items[iVar10].model = pMVar6;
-//       items[iVar10].param.launch.count = '\x05';
-//       ptVar15->owner->field_0xcd = 1;
-//     }
-//     else {
-//       local_d0.type = p->type;
-//       local_d0.user = p->user;
-//       local_d0.start.vx = (p->start).vx;
-//       local_d0.start.vy = (p->start).vy;
-//       local_d0.start.vz = (p->start).vz;
-//       SearchItemTarget2(local_d0.user,&(local_d0.user)->model->rotate,&local_d0.start,&local_d0.end)
-//       ;
-//       ReqItemLaunch(&local_d0);
-//       p->user->field_0xcd = 0;
-//     }
-//     goto switchD_80048b6c_caseD_13;
-//   case ITEM_MAKIBISHI:
-//     memset((uchar *)&local_a8,'\0',0x28);
-//     local_a8.vx = p->type;
-//     local_a8.vy = (long)p->user;
-//     local_a8.vz = (p->start).vx;
-//     local_a8.pad = (p->start).vy;
-//     local_98 = (p->start).vz;
-//     local_94 = (p->start).pad;
-//     pPVar4 = &local_d0;
-//     pVVar14 = &local_a8;
-//     do {
-//       pVVar16 = pVVar14;
-//       pPVar5 = pPVar4;
-//       pHVar12 = (Humanoid *)pVVar16->vy;
-//       lVar11 = pVVar16->vz;
-//       lVar13 = pVVar16->pad;
-//       pPVar5->type = pVVar16->vx;
-//       pPVar5->user = pHVar12;
-//       (pPVar5->start).vx = lVar11;
-//       (pPVar5->start).vy = lVar13;
-//       pVVar14 = pVVar16 + 1;
-//       pPVar4 = (PARAM_ITEM_USE *)&(pPVar5->start).vz;
-//     } while (pVVar14 != &VStack_88);
-//     lVar11 = pVVar16[1].vy;
-//     *(long *)pPVar4 = pVVar14->vx;
-//     (pPVar5->start).pad = lVar11;
-//     local_a8.vx = DAT_80012268;
-//     local_a8.vy = DAT_8001226c;
-//     local_a8.vz = DAT_80012270;
-//     local_a8.pad = DAT_80012274;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&VStack_88.vz,&VStack_88.pad);
-//       iVar8 = 0;
-//     }
-//     else {
-//       VStack_88.vz = (long)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       VStack_88.pad = (long)(pMVar7->rotate).vy;
-//     }
-//     iVar10 = 0;
-//     RotateVector(&local_a8,VStack_88.vz,VStack_88.pad,iVar8);
-//     bVar2 = true;
-//     while (bVar2) {
-//       iVar10 = iVar10 + 1;
-//       iVar8 = rand();
-//       local_d0.end.vx = local_a8.vx + iVar8 % 100 + -0x32;
-//       iVar8 = rand();
-//       local_d0.end.vy = (local_a8.vy - iVar8 % 0x32) + -0x32;
-//       iVar8 = rand();
-//       local_d0.end.vz = local_a8.vz + iVar8 % 100 + -0x32;
-//       ReqItemMakibishi((PARAM_ITEM_DROP *)&local_d0);
-//       bVar2 = iVar10 < 5;
-//     }
-//     break;
-//   case ITEM_KUSURI:
-//     local_d0.type = DAT_800122a8;
-//     local_d0.user = DAT_800122ac;
-//     local_d0.start.vx = DAT_800122b0;
-//     local_d0.start.vy = DAT_800122b4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_20,&local_1c);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_20 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_1c = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_20,local_1c,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemKusuri(p);
-//     break;
-//   case ITEM_FIRE:
-//     local_d0.type = DAT_800122a8;
-//     local_d0.user = DAT_800122ac;
-//     local_d0.start.vx = DAT_800122b0;
-//     local_d0.start.vy = DAT_800122b4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_40,&local_3c);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_40 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_3c = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_40,local_3c,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemFire(p);
-//     break;
-//   case ITEM_SMOKE:
-//     local_d0.type = DAT_80012278;
-//     local_d0.user = DAT_8001227c;
-//     local_d0.start.vx = DAT_80012280;
-//     local_d0.start.vy = DAT_80012284;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_78,&local_74);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_78 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_74 = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_78,local_74,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemSmoke(p);
-//     break;
-//   case ITEM_JIRAI:
-//     memset((uchar *)&local_a8,'\0',0x28);
-//     local_a8.vx = p->type;
-//     local_a8.vy = (long)p->user;
-//     local_a8.vz = (p->start).vx;
-//     local_a8.pad = (p->start).vy;
-//     local_98 = (p->start).vz;
-//     local_94 = (p->start).pad;
-//     pPVar4 = &local_d0;
-//     pVVar14 = &local_a8;
-//     do {
-//       pVVar16 = pVVar14;
-//       pPVar5 = pPVar4;
-//       pHVar12 = (Humanoid *)pVVar16->vy;
-//       lVar13 = pVVar16->vz;
-//       lVar11 = pVVar16->pad;
-//       pPVar5->type = pVVar16->vx;
-//       pPVar5->user = pHVar12;
-//       (pPVar5->start).vx = lVar13;
-//       (pPVar5->start).vy = lVar11;
-//       pVVar14 = pVVar16 + 1;
-//       pPVar4 = (PARAM_ITEM_USE *)&(pPVar5->start).vz;
-//     } while (pVVar14 != &VStack_88);
-//     lVar11 = pVVar16[1].vy;
-//     *(long *)pPVar4 = pVVar14->vx;
-//     (pPVar5->start).pad = lVar11;
-//     local_a8.vx = DAT_800122c8;
-//     local_a8.vy = DAT_800122cc;
-//     local_a8.vz = DAT_800122d0;
-//     local_a8.pad = DAT_800122d4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_30,&local_2c);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_30 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_2c = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector(&local_a8,local_30,local_2c,iVar8);
-//     local_d0.start.vx = local_d0.start.vx + local_a8.vx;
-//     local_d0.end.vx = local_a8.vx;
-//     local_d0.end.vy = local_a8.vy;
-//     local_d0.end.vz = local_a8.vz;
-//     local_d0.start.vy = local_d0.start.vy + local_a8.vy;
-//     local_d0.start.vz = local_d0.start.vz + local_a8.vz;
-//     ReqItemJirai((PARAM_ITEM_DROP *)&local_d0);
-//     break;
-//   case ITEM_DOKUDANGO:
-//     local_d0.type = DAT_80012288;
-//     local_d0.user = DAT_8001228c;
-//     local_d0.start.vx = DAT_80012290;
-//     local_d0.start.vy = DAT_80012294;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_70,&local_6c);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_70 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_6c = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_70,local_6c,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemDokudango(p);
-//     break;
-//   case ITEM_GOSHIKIMAI:
-//     local_d0.type = DAT_80012258;
-//     local_d0.user = DAT_8001225c;
-//     local_d0.start.vx = DAT_80012260;
-//     local_d0.start.vy = DAT_80012264;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_58,&local_54);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_58 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_54 = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_58,local_54,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemGoshikimai(p);
-//     break;
-//   case ITEM_NEMURI:
-//     local_d0.type = DAT_80012298;
-//     local_d0.user = DAT_8001229c;
-//     local_d0.start.vx = DAT_800122a0;
-//     local_d0.start.vy = DAT_800122a4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_68,&local_64);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_68 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_64 = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_68,local_64,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemNemuri(p);
-//     break;
-//   case ITEM_KAWARIMI:
-//     ReqItemKawarimi(p);
-//     break;
-//   case ITEM_HENSHIN:
-//     ReqItemHenshin(p);
-//     break;
-//   case ITEM_GOSIN:
-//     local_d0.type = DAT_800122a8;
-//     local_d0.user = DAT_800122ac;
-//     local_d0.start.vx = DAT_800122b0;
-//     local_d0.start.vy = DAT_800122b4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_18,&local_14);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_18 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_14 = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_18,local_14,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemGosin(p);
-//     break;
-//   case ITEM_SHINSOKU:
-//     local_d0.type = DAT_800122d8;
-//     local_d0.user = DAT_800122dc;
-//     local_d0.start.vx = DAT_800122e0;
-//     local_d0.start.vy = DAT_800122e4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_28,&local_24);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_28 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_24 = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_28,local_24,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemShinsoku(p);
-//     break;
-//   case ITEM_NINGYO:
-//     local_d0.type = DAT_800122a8;
-//     local_d0.user = DAT_800122ac;
-//     local_d0.start.vx = DAT_800122b0;
-//     local_d0.start.vy = DAT_800122b4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_60,&local_5c);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_60 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_5c = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_60,local_5c,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemNingyo(p);
-//     break;
-//   case ITEM_HAPPOU:
-//     local_d0.type = DAT_800122a8;
-//     local_d0.user = DAT_800122ac;
-//     local_d0.start.vx = DAT_800122b0;
-//     local_d0.start.vy = DAT_800122b4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_48,&local_44);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_48 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_44 = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_48,local_44,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemHappou(p);
-//     break;
-//   case ITEM_NINKEN:
-//     local_d0.type = DAT_800122a8;
-//     local_d0.user = DAT_800122ac;
-//     local_d0.start.vx = DAT_800122b0;
-//     local_d0.start.vy = DAT_800122b4;
-//     pMVar7 = p->user->model;
-//     if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//       GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_50,&local_4c);
-//       iVar8 = 0;
-//     }
-//     else {
-//       local_50 = (int)(pMVar7->rotate).vx;
-//       iVar8 = (int)(pMVar7->rotate).vz;
-//       local_4c = (int)(pMVar7->rotate).vy;
-//     }
-//     RotateVector((VECTOR *)&local_d0,local_50,local_4c,iVar8);
-//     (p->end).vx = local_d0.type;
-//     (p->end).vy = (long)local_d0.user;
-//     (p->end).vz = local_d0.start.vx;
-//     ReqItemNinken(p);
-//     break;
-//   case ITEM_KAENGEKI:
-//     local_d0.type = DAT_80012278;
-//     local_d0.user = DAT_8001227c;
-//     local_d0.start.vx = DAT_80012280;
-//     local_d0.start.vy = DAT_80012284;
-//     (p->end).vx = DAT_80012278;
-//     (p->end).vy = (long)pHVar12;
-//     (p->end).vz = lVar11;
-//     ReqItemKaengeki(p);
-//     break;
-//   case ITEM_MANEBUE:
-//     ReqItemManebue(p);
-//   default:
-//     goto switchD_80048b6c_caseD_13;
-//   case ITEM_GUN:
-//                     /* calls ProcItemGun */
-//     FUN_80046854(p);
-//     break;
-//   case ITEM_ARROW:
-//     ReqItemArrow(p);
-//     break;
-//   case ITEM_NAPALM:
-//     iVar8 = 0;
-//     do {
-//       DAT_80097acc = DAT_80097acc + 1;
-//       if (0x1d < DAT_80097acc) {
-//         DAT_80097acc = 0;
-//       }
-//       iVar10 = DAT_80097acc;
-//       ptVar15 = items + DAT_80097acc;
-//       if (items[DAT_80097acc].proc == (undefined **)0x0) goto LAB_80049e78;
-//       iVar8 = iVar8 + 1;
-//     } while (iVar8 < 0x1d);
-//     ppuVar3 = items[DAT_80097acc].proc;
-//     items[DAT_80097acc].mode = 0xff;
-//     (*(code *)ppuVar3)(ptVar15);
-//     DeleteConflict(items[iVar10].locate);
-//     if (items[iVar10].mode != 0) {
-//       AdtMessageBox("item dispose fail   id %d  mode %d",items[iVar10].type,(uint)items[iVar10].mode
-//                    );
-//     }
-//     ptVar15->owner = (Humanoid *)0x0;
-//     items[iVar10].proc = (undefined **)0x0;
-// LAB_80049e78:
-//     if (ptVar15 == (tag_TItem *)0x0) {
-//       return 0;
-//     }
-//     if ((GameClock & 1U) == 0) {
-//       return 0;
-//     }
-//     TVar9 = p->type;
-//     ptVar15->owner = p->user;
-//     pMVar6 = items[iVar10].locate;
-//     items[iVar10].proc = (undefined **)ProcItemNapalm;
-//     items[iVar10].mode = '\0';
-//     items[iVar10].type = TVar9;
-//     (pMVar6->locate).coord.t[0] = (p->start).vx;
-//     ((items[iVar10].locate)->locate).coord.t[1] = (p->start).vy;
-//     ((items[iVar10].locate)->locate).coord.t[2] = (p->start).vz;
-//     ((items[iVar10].locate)->locate).super = (_GsCOORDINATE2 *)0x0;
-//     UpdateCoordinate(items[iVar10].locate);
-//     pMVar6 = DAT_80097f5c;
-//     items[iVar10].collision.size = 0;
-//     items[iVar10].model = pMVar6;
-//     items[iVar10].param.napalm.vec.vx = (short)(p->end).vx - (short)(p->start).vx;
-//     items[iVar10].param.napalm.vec.vy = (short)(p->end).vy - (short)(p->start).vy;
-//     items[iVar10].param.napalm.vec.vz = (short)(p->end).vz - (short)(p->start).vz;
-//     goto switchD_80048b6c_caseD_13;
-//   case ITEM_LIGHTNINGBOLT:
-//     if (p->user == CamState.Owner) {
-//       local_d0.type = DAT_800122b8;
-//       local_d0.user = DAT_800122bc;
-//       local_d0.start.vx = DAT_800122c0;
-//       local_d0.start.vy = DAT_800122c4;
-//       pMVar7 = p->user->model;
-//       if (((CamState.Owner)->model == pMVar7) && (CamState.Mode == CMODE_DIRECTION)) {
-//         GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_38,&local_34);
-//         iVar8 = 0;
-//       }
-//       else {
-//         local_38 = (int)(pMVar7->rotate).vx;
-//         iVar8 = (int)(pMVar7->rotate).vz;
-//         local_34 = (int)(pMVar7->rotate).vy;
-//       }
-//       RotateVector((VECTOR *)&local_d0,local_38,local_34,iVar8);
-//       iVar8 = (p->start).vx;
-//       iVar10 = (p->start).vz;
-//       (p->end).vx = local_d0.type;
-//       (p->end).vy = (long)local_d0.user;
-//       (p->end).vx = (p->end).vx + iVar8;
-//       (p->end).vz = local_d0.start.vx;
-//       (p->end).vy = (p->end).vy + (p->start).vy;
-//       (p->end).vz = (p->end).vz + iVar10;
-//     }
-//     ReqItemLightningBolt(p);
-//     break;
-//   case ITEM_TELEPORT:
-//     iVar8 = 0;
-//     do {
-//       DAT_80097acc = DAT_80097acc + 1;
-//       if (0x1d < DAT_80097acc) {
-//         DAT_80097acc = 0;
-//       }
-//       iVar10 = DAT_80097acc;
-//       ptVar15 = items + DAT_80097acc;
-//       if (items[DAT_80097acc].proc == (undefined **)0x0) goto LAB_80049b7c;
-//       iVar8 = iVar8 + 1;
-//     } while (iVar8 < 0x1d);
-//     ppuVar3 = items[DAT_80097acc].proc;
-//     items[DAT_80097acc].mode = 0xff;
-//     (*(code *)ppuVar3)(ptVar15);
-//     DeleteConflict(items[iVar10].locate);
-//     if (items[iVar10].mode != 0) {
-//       AdtMessageBox("item dispose fail   id %d  mode %d",items[iVar10].type,(uint)items[iVar10].mode
-//                    );
-//     }
-//     ptVar15->owner = (Humanoid *)0x0;
-//     items[iVar10].proc = (undefined **)0x0;
-// LAB_80049b7c:
-//     if (ptVar15 == (tag_TItem *)0x0) {
-//       return 0;
-//     }
-//     TVar9 = p->type;
-//     ptVar15->owner = p->user;
-//     pMVar6 = items[iVar10].locate;
-//     items[iVar10].proc = (undefined **)ProcItemTeleport;
-//     items[iVar10].mode = '\0';
-//     items[iVar10].type = TVar9;
-//     (pMVar6->locate).coord.t[0] = (p->start).vx;
-//     ((items[iVar10].locate)->locate).coord.t[1] = (p->start).vy;
-//     ((items[iVar10].locate)->locate).coord.t[2] = (p->start).vz;
-//     ((items[iVar10].locate)->locate).super = (_GsCOORDINATE2 *)0x0;
-//     UpdateCoordinate(items[iVar10].locate);
-//     items[iVar10].collision.size = 0;
-//     items[iVar10].model = (ModelType *)0x0;
-//     CamState.Mode = CMODE_SIGHT;
-// switchD_80048b6c_caseD_13:
-//   }
-//   return 1;
-// }
+
+/*
+ * Retail case map (jump table order; retail case values differ from the
+ * demo enum for 8/9 and 0x16-0x18):
+ *   0 KAGINAWA  1 SHURIKEN  2 MAKIBISHI  3 KUSURI  4 FIRE  5 SMOKE
+ *   6 JIRAI  7 DOKUDANGO  8 GOSHIKIMAI  9 NEMURI  a KAWARIMI  b HENSHIN
+ *   c GOSIN  d SHINSOKU  e NINGYO  f HAPPOU  10 NINKEN  11 KAENGEKI
+ *   12 MANEBUE  13 (nothing/default)  14 GUN  15 ARROW  16 NAPALM
+ *   17 LIGHTNINGBOLT  18 TELEPORT
+ */
+
+#include "item.h"
+
+typedef struct
+{
+    VECTOR TargetVector;         /* 0x00 */
+    Humanoid *Owner;             /* 0x10 */
+    s32 Mode;                    /* 0x14 (TCameraMode) */
+    s16 DirectionRX;             /* 0x18 */
+    s16 DirectionRY;             /* 0x1A */
+    s32 OldMode;                 /* 0x1C */
+    u8 Valiation;                /* 0x20 */
+} TCameraStatus;
+
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+} TViewInfo;
+
+/* tag_TItem.param viewed as the napalm payload (psxsym param_napalm). */
+typedef struct
+{
+    SVECTOR vec;                 /* 0x0 */
+    u8 count;                    /* 0x8 */
+} param_napalm;
+
+extern TCameraStatus CamState;
+extern TViewInfo ViewInfo;
+extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[]; /* == CamState.Owner */
+extern s32 SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[]; /* == CamState.Mode */
+extern s32 COUNTER_FOR_ITEM_ARRAY_;
+extern long GameClock;
+extern Sprite3D *D_80097F48;     /* shuriken/launch model (gp) */
+extern Sprite3D *D_80097F5C;     /* napalm model (gp) */
+
+/* Per-item-type throw/offset vector constants (ITEM.C file data). */
+extern VECTOR D_80012258[];
+extern VECTOR D_80012268[];
+extern VECTOR D_80012278[];
+extern VECTOR D_80012288[];
+extern VECTOR D_80012298[];
+extern VECTOR D_800122A8[];
+extern VECTOR D_800122B8[];
+extern VECTOR D_800122C8[];
+extern VECTOR D_800122D8[];
+
+extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
+extern void RotateVector(VECTOR *v, s32 rx, s32 ry, s32 rz);
+extern void SetCameraMode(int mode);
+extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
+extern void ProcSightShot(tag_TItem *item);
+extern void ProcKaginawa(tag_TItem *item);
+extern void ProcItemTeleport(tag_TItem *item);
+extern void ProcItemNapalm(tag_TItem *item);
+extern int ReqItemMakibishi(PARAM_ITEM_USE *p);
+extern int ReqItemLaunch(PARAM_ITEM_USE *p);
+extern int ReqItemSmoke(PARAM_ITEM_USE *p);
+extern int ReqItemDokudango(PARAM_ITEM_USE *p);
+extern int ReqItemNemuri(PARAM_ITEM_USE *p);
+extern int ReqItemNingyo(PARAM_ITEM_USE *p);
+extern int ReqItemGoshikimai(PARAM_ITEM_USE *p);
+extern int ReqItemKaengeki(PARAM_ITEM_USE *p);
+extern int ReqItemNinken(PARAM_ITEM_USE *p);
+extern int ReqItemHappou(PARAM_ITEM_USE *p);
+extern int ReqItemFire(PARAM_ITEM_USE *p);
+extern int ReqItemLightningBolt(PARAM_ITEM_USE *p);
+extern int ReqItemJirai(PARAM_ITEM_USE *p);
+extern int ReqItemShinsoku(PARAM_ITEM_USE *p);
+extern int ReqItemKusuri(PARAM_ITEM_USE *p);
+extern int ReqItemGosin(PARAM_ITEM_USE *p);
+extern void item_use_gun(PARAM_ITEM_USE *p);
+extern int ReqItemArrow(PARAM_ITEM_USE *p);
+extern int ReqItemHenshin(PARAM_ITEM_USE *p);
+extern int ReqItemKawarimi(PARAM_ITEM_USE *p);
+extern int ReqItemManebue(PARAM_ITEM_USE *p);
+
+int ReqItemUse(PARAM_ITEM_USE *p)
+{
+    u8 c;
+    PARAM_ITEM_USE param;  /* @sp+16: per-case launch params / vector scratch */
+    PARAM_ITEM_USE work;   /* @sp+56: makibishi/jirai staging + throw vector */
+
+    c = p->user->item[p->type];
+    if (c != 0 && c != 0xff)
+    {
+        p->user->item[p->type] = c - 1;
+    }
+
+    switch (p->type)
+    {
+    case 2: /* MAKIBISHI */
+    {
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+        s32 i;
+
+        memset(&work, 0, sizeof(PARAM_ITEM_USE));
+        work.type = p->type;
+        work.user = p->user;
+        work.start = p->start;
+        param = work;
+        *(VECTOR *)&work = D_80012268[0];
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector((VECTOR *)&work, rx, ry, rz);
+        i = 0;
+        while (1)
+        {
+            if (!(i < 5))
+                break;
+            i++;
+            param.end.vx = ((VECTOR *)&work)->vx + rand() % 100 - 50;
+            param.end.vy = ((VECTOR *)&work)->vy - rand() % 50 - 50;
+            param.end.vz = ((VECTOR *)&work)->vz + rand() % 100 - 50;
+            ReqItemMakibishi(&param);
+        }
+        break;
+    }
+    case 1: /* SHURIKEN */
+    {
+        tag_TItem *it;
+        tag_TItem *cur;
+        u8 *pp;
+        VECTOR *st;
+        Humanoid *us;
+        s32 ty;
+        s32 i;
+
+        if (p->user == CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0])
+        {
+            i = 0;
+            do
+            {
+                COUNTER_FOR_ITEM_ARRAY_++;
+                if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
+                    COUNTER_FOR_ITEM_ARRAY_ = 0;
+                cur = items + COUNTER_FOR_ITEM_ARRAY_;
+                if (cur->proc == 0)
+                {
+                    it = cur;
+                    goto found_shuriken;
+                }
+                i++;
+            } while (i < 0x1d);
+
+            cur->mode = 0xff;
+            cur->proc(cur);
+            DeleteConflict(cur->locate);
+            if (cur->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+            }
+            it = cur;
+            it->owner = 0;
+            it->proc = 0;
+
+        found_shuriken:
+            pp = it->param;
+            if (it == 0)
+                return 0;
+            us = p->user;
+            ty = p->type;
+            it->owner = us;
+            it->proc = ProcSightShot;
+            it->mode = 0;
+            it->type = ty;
+            it->locate->locate.coord.t[0] = p->start.vx;
+            st = &p->start;
+            it->locate->locate.coord.t[1] = st->vy;
+            it->locate->locate.coord.t[2] = st->vz;
+            it->locate->locate.super = 0;
+            UpdateCoordinate(it->locate);
+            it->coll_size = 0;
+            it->model = D_80097F48;
+            pp[0x30] = 5;
+            it->owner->item[0x19] = 1;
+        }
+        else
+        {
+            param.type = p->type;
+            param.user = p->user;
+            param.start.vx = p->start.vx;
+            param.start.vy = p->start.vy;
+            param.start.vz = p->start.vz;
+            SearchItemTarget2(param.user, &param.user->model->rotate, &param.start, &param.end);
+            ReqItemLaunch(&param);
+            p->user->item[0x19] = 0;
+        }
+        break;
+    }
+    case 5: /* SMOKE */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_80012278[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemSmoke(p);
+        break;
+    }
+    case 7: /* DOKUDANGO */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_80012288[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemDokudango(p);
+        break;
+    }
+    case 9: /* NEMURI */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_80012298[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemNemuri(p);
+        break;
+    }
+    case 0xe: /* NINGYO */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122A8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemNingyo(p);
+        break;
+    }
+    case 8: /* GOSHIKIMAI */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_80012258[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemGoshikimai(p);
+        break;
+    }
+    case 0x11: /* KAENGEKI */
+    {
+        *(VECTOR *)&param = D_80012278[0];
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemKaengeki(p);
+        break;
+    }
+    case 0x10: /* NINKEN */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122A8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemNinken(p);
+        break;
+    }
+    case 0xf: /* HAPPOU */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122A8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemHappou(p);
+        break;
+    }
+    case 4: /* FIRE */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122A8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemFire(p);
+        break;
+    }
+    case 0x17: /* LIGHTNINGBOLT */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+        s32 sx;
+        s32 sz;
+        s32 t;
+        s32 u;
+
+        if (p->user == CamState.Owner)
+        {
+            *(VECTOR *)&param = D_800122B8[0];
+            st = (VECTOR *)&param;
+            model = p->user->model;
+            if (CamState.Owner->model == model && CamState.Mode == 1)
+            {
+                GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+                rz = 0;
+            }
+            else
+            {
+                rx = model->rotate.vx;
+                rz = model->rotate.vz;
+                ry = model->rotate.vy;
+            }
+            RotateVector(st, rx, ry, rz);
+            sx = p->start.vx;
+            sz = p->start.vz;
+            t = ((VECTOR *)&param)->vx;
+            p->end.vx = t;
+            t = ((VECTOR *)&param)->vy;
+            p->end.vy = t;
+            t = p->end.vx;
+            u = ((VECTOR *)&param)->vz;
+            t = t + sx;
+            p->end.vx = t;
+            t = p->end.vy;
+            p->end.vz = u;
+            u = p->start.vy;
+            sx = p->end.vz;
+            t = t + u;
+            p->end.vy = t;
+            sx = (p->end.vz = sx + sz);
+        }
+        ReqItemLightningBolt(p);
+        break;
+    }
+    case 6: /* JIRAI */
+    {
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+        s32 vx;
+        s32 vy;
+        s32 vz;
+
+        memset(&work, 0, sizeof(PARAM_ITEM_USE));
+        work.type = p->type;
+        work.user = p->user;
+        work.start = p->start;
+        param = work;
+        *(VECTOR *)&work = D_800122C8[0];
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector((VECTOR *)&work, rx, ry, rz);
+        vx = ((VECTOR *)&work)->vx;
+        vy = ((VECTOR *)&work)->vy;
+        vz = ((VECTOR *)&work)->vz;
+        param.start.vx = param.start.vx + vx;
+        param.end.vx = vx;
+        param.end.vy = vy;
+        param.end.vz = vz;
+        param.start.vy = param.start.vy + vy;
+        param.start.vz = param.start.vz + vz;
+        ReqItemJirai(&param);
+        break;
+    }
+    case 0: /* KAGINAWA */
+    {
+        tag_TItem *it;
+        tag_TItem *cur;
+        VECTOR *st;
+        Humanoid *us;
+        s32 ty;
+        s32 i;
+
+        i = 0;
+        do
+        {
+            COUNTER_FOR_ITEM_ARRAY_++;
+            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
+                COUNTER_FOR_ITEM_ARRAY_ = 0;
+            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            if (cur->proc == 0)
+            {
+                it = cur;
+                goto found_kaginawa;
+            }
+            i++;
+        } while (i < 0x1d);
+
+        cur->mode = 0xff;
+        cur->proc(cur);
+        DeleteConflict(cur->locate);
+        if (cur->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        }
+        it = cur;
+        it->owner = 0;
+        it->proc = 0;
+
+    found_kaginawa:
+        if (it == 0)
+            return 0;
+        us = p->user;
+        ty = p->type;
+        it->owner = us;
+        it->proc = ProcKaginawa;
+        it->mode = 0;
+        it->type = ty;
+        it->locate->locate.coord.t[0] = p->start.vx;
+        st = &p->start;
+        it->locate->locate.coord.t[1] = st->vy;
+        it->locate->locate.coord.t[2] = st->vz;
+        it->locate->locate.super = 0;
+        UpdateCoordinate(it->locate);
+        it->coll_size = 0;
+        it->model = 0;
+        it->owner->item[0x19] = 1;
+        SetCameraMode(3);
+        CamState.DirectionRX = -0x155;
+        CamState.DirectionRY = 0;
+        break;
+    }
+    case 0xd: /* SHINSOKU */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122D8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemShinsoku(p);
+        break;
+    }
+    case 0x18: /* TELEPORT */
+    {
+        tag_TItem *it;
+        tag_TItem *cur;
+        VECTOR *st;
+        Humanoid *us;
+        s32 ty;
+        s32 i;
+
+        i = 0;
+        do
+        {
+            COUNTER_FOR_ITEM_ARRAY_++;
+            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
+                COUNTER_FOR_ITEM_ARRAY_ = 0;
+            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            if (cur->proc == 0)
+            {
+                it = cur;
+                goto found_teleport;
+            }
+            i++;
+        } while (i < 0x1d);
+
+        cur->mode = 0xff;
+        cur->proc(cur);
+        DeleteConflict(cur->locate);
+        if (cur->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        }
+        it = cur;
+        it->owner = 0;
+        it->proc = 0;
+
+    found_teleport:
+        if (it == 0)
+            return 0;
+        us = p->user;
+        ty = p->type;
+        it->owner = us;
+        it->proc = ProcItemTeleport;
+        it->mode = 0;
+        it->type = ty;
+        it->locate->locate.coord.t[0] = p->start.vx;
+        st = &p->start;
+        it->locate->locate.coord.t[1] = st->vy;
+        it->locate->locate.coord.t[2] = st->vz;
+        it->locate->locate.super = 0;
+        UpdateCoordinate(it->locate);
+        it->coll_size = 0;
+        it->model = 0;
+        SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[0] = 3;
+        break;
+    }
+    case 3: /* KUSURI */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122A8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemKusuri(p);
+        break;
+    }
+    case 0xc: /* GOSIN */
+    {
+        VECTOR *st;
+        ModelArchiveType *model;
+        s32 rx;
+        s32 ry;
+        s32 rz;
+
+        *(VECTOR *)&param = D_800122A8[0];
+        st = (VECTOR *)&param;
+        model = p->user->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(st, rx, ry, rz);
+        p->end.vx = ((VECTOR *)&param)->vx;
+        p->end.vy = ((VECTOR *)&param)->vy;
+        p->end.vz = ((VECTOR *)&param)->vz;
+        ReqItemGosin(p);
+        break;
+    }
+    case 0x14: /* GUN */
+        item_use_gun(p);
+        break;
+    case 0x15: /* ARROW */
+        ReqItemArrow(p);
+        break;
+    case 0x16: /* NAPALM */
+    {
+        tag_TItem *it;
+        tag_TItem *cur;
+        param_napalm *pp;
+        VECTOR *st;
+        Humanoid *us;
+        s32 ty;
+        s32 i;
+
+        i = 0;
+        do
+        {
+            COUNTER_FOR_ITEM_ARRAY_++;
+            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
+                COUNTER_FOR_ITEM_ARRAY_ = 0;
+            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            if (cur->proc == 0)
+            {
+                it = cur;
+                goto found_napalm;
+            }
+            i++;
+        } while (i < 0x1d);
+
+        cur->mode = 0xff;
+        cur->proc(cur);
+        DeleteConflict(cur->locate);
+        if (cur->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        }
+        it = cur;
+        it->owner = 0;
+        it->proc = 0;
+
+    found_napalm:
+        pp = (param_napalm *)it->param;
+        if (it == 0)
+            return 0;
+        if ((GameClock & 1) == 0)
+            return 0;
+        us = p->user;
+        ty = p->type;
+        it->owner = us;
+        it->proc = ProcItemNapalm;
+        it->mode = 0;
+        it->type = ty;
+        it->locate->locate.coord.t[0] = p->start.vx;
+        st = &p->start;
+        it->locate->locate.coord.t[1] = st->vy;
+        it->locate->locate.coord.t[2] = st->vz;
+        it->locate->locate.super = 0;
+        UpdateCoordinate(it->locate);
+        it->coll_size = 0;
+        it->model = D_80097F5C;
+        ((param_napalm *)it->param)->vec.vx = p->end.vx - p->start.vx;
+        pp->vec.vy = p->end.vy - p->start.vy;
+        pp->vec.vz = p->end.vz - p->start.vz;
+        break;
+    }
+    case 0xb: /* HENSHIN */
+        ReqItemHenshin(p);
+        break;
+    case 0xa: /* KAWARIMI */
+        ReqItemKawarimi(p);
+        break;
+    case 0x12: /* MANEBUE */
+        ReqItemManebue(p);
+    case 0x13:
+    default:
+        break;
+    }
+    return 1;
+}
 
 #endif /* NON_MATCHING */

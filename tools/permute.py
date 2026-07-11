@@ -117,6 +117,7 @@ GP_EXTERNS = {
     "ReqItemMakibishi": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemLightningBolt": ["COUNTER_FOR_ITEM_ARRAY_"],
     "ReqItemNingyo": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "ReqItemUse": ["COUNTER_FOR_ITEM_ARRAY_", "D_80097F48", "D_80097F5C"],
     "ReqItemLaunch": ["COUNTER_FOR_ITEM_ARRAY_", "D_80097F48"],
     "ReqItemArrow": ["COUNTER_FOR_ITEM_ARRAY_", "D_80097F4C"],
     "ReqItemHappou": ["COUNTER_FOR_ITEM_ARRAY_"],
