@@ -412,6 +412,13 @@ plain C is the matched file.
   `expand_case` emits a balanced compare tree over a *fresh* index load. An
   if/goto-ladder CSEs the load into one `lbu` and compares small unsigned
   types with `sltiu`. Case bodies are laid out in source order.
+- **A jump-table dispatch that opens `lhu / addiu -BASE / sll 16 / sra 16 /
+  sltiu N` is a cast-narrowed switch index** — spell it
+  `switch ((short)(ptr->mid - 0xA00))`. The `(short)` cast narrows the subtract
+  to HImode: a raw `lhu` load plus a HImode `addiu`, then the switch promotion
+  itself emits the `sll 16 / sra 16` sign-extension. A plain `switch (ptr->mid)`
+  with `0xA00`-based case labels subtracts in SImode off an `lh` load — no
+  sll/sra, wrong shape (ActHANG, dispatching on MotionManager.mid).
 - **An explicit `if (cond) goto L;` ladder decouples test ORDER from body
   LAYOUT** — reach for it when an N-way dispatch fires its tests in a different
   order than the bodies sit in memory. cd_seek's 3-way `whence` dispatch tests
@@ -1110,7 +1117,13 @@ sched1 wrongly batch the following struct loads past the stores, while a
 struct-pointer cast loses the constant-address macro (base forced into a register).
 Bind the symbol in `config/symbols.<target>.txt` and access it as a plain extern; GTE
 CALL arguments, by contrast, stay literal casts (`SetCameraMode`'s scratchpad
-rot/trans tables).
+rot/trans tables). **cse.c shares the same `MEM_IN_STRUCT_P` alias heuristic**:
+a varying-address struct-member store (`dtV->vy = -0x23;`) does NOT invalidate
+the cached load of a fixed-address non-struct scalar global (`lw gp(dtM)`), so a
+following `dtM->count` re-read reuses the register with no reload — only a
+multi-predecessor label forces a fresh gp load. This is exactly *when* the
+d-globals reload across the `Act*` family (ActHANG case 4's no-reload vs
+ActSYURI's reload after the `.L80025E68` join).
 
 **Two divisions in one function must be computed back-to-back before either's store
 block.** Interleaving store-then-next-division puts stores BETWEEN two reads of the same

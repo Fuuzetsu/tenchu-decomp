@@ -148,20 +148,32 @@ Best remaining leads, roughly in value order:
 
 Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 
-0. **The `Act*` character-action family — one coherent batch.** `ActNORMAL`,
-   `ActMOVE`, `ActSQUAT`, `ActACTION`, `ActITEM`, `ActATTACK`, `ActENGAGE`,
-   `ActCHASE`, `ActDAMAGE`, `ActHANG`, `ActSWIM`, `ActSTICKON`, `ActSTATE` are the
-   character-state machine (one THINK-family TU). They are large (700 B – 6.6 KB;
-   `ActATTACK` is the single biggest unmatched function in the game) so they are
-   Fable/RTL work, not quick Sonnet targets. They ALL share the same gp-extern set
-   — `dtM, Me_MOTION_C, dtV, dtPAD, MotionUpdateMode, motID, D_80097F0E` (plus a few
-   per-function extras; run `tools/gpsyms.py <Name>` after a build) — so add every
-   sibling's entry together, and run `tools/symcheck.py` after each, or a converted
-   stub silently relocates the shared data region. `HumanActionControl` (the
-   dispatcher) is already drafted with the full list; use it as the template.
-   `ActSTICKON` and `DamageControl` additionally divide by a variable (target asm
-   has `div`+`break` guards), so they need `extra "<Name>" = ["--expand-div"]` in
-   Build.hs and permute.py too — see the cookbook's `--expand-div` rule.
+0. **The `Act*` character-action family — one coherent batch. TU NOW
+   ESTABLISHED.** `ActSYURI` (676 B) and `ActHANG` (700 B, jump table) are
+   MATCHED (commit pending) — these proved the shared TU facts, so the remaining
+   11 (`ActNORMAL`, `ActMOVE`, `ActSQUAT`, `ActACTION`, `ActITEM`, `ActATTACK`,
+   `ActENGAGE`, `ActCHASE`, `ActDAMAGE`, `ActSWIM`, `ActSTICKON`, `ActSTATE`) are
+   now much cheaper — Sonnet-viable for the mid-size ones, Fable only for
+   `ActATTACK` (6.6 KB, the single biggest unmatched function in the game).
+   Established facts:
+   - **gp smalls** are MOTION.C's own: `dtM, Me_MOTION_C, motID, D_80097F0E`
+     (+ `dtV, dtL, dtPAD` as used per function; `tools/gpsyms.py <Name>` after a
+     build). **`StagePlayer` and `GlobalAreaMap` stay ABSOLUTE, not gp.** Add
+     every sibling's Build.hs + permute.py entry together and `tools/symcheck.py`
+     after each, or a converted stub silently relocates the shared data region.
+   - **Structs — item.h is already complete for this family**: `MotionManager`
+     (`mid`@0/`count`@2/`loop`@4), `Humanoid` (`attribute`@4, `pad.trig`@0x14,
+     `model`@0x58), `ModelArchiveType.object`@0x68. PSX.SYM's `PARAM_ITEM_LAUNCH`
+     == item.h's `PARAM_ITEM_USE`.
+   - **Idioms** (see cookbook): jump-table dispatch on `mid` is
+     `switch ((short)(ptr->mid - 0xA00))`; `D_80097F0E = 1;` is written literally
+     per if/else arm (never hoisted); load-width is per-SITE not per-TU; case
+     bodies lay in source order (read the order off piece memory order).
+   - `ActSTICKON` and `DamageControl` additionally divide by a variable (target
+     asm has `div`+`break` guards), so they need `extra "<Name>" =
+     ["--expand-div"]` in Build.hs and permute.py — see the cookbook's
+     `--expand-div` rule. `HumanActionControl` (the dispatcher) is drafted with
+     the full list; use it plus the two matched siblings as templates.
 
 1. **Reverse more functions.** The pipeline is now proven end-to-end on a
    gp-using function (`Think1sleep`). Use `tools/reverse.py <name> --ghidra-export
