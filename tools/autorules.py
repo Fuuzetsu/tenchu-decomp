@@ -409,10 +409,94 @@ def rule_temp_inline(text, name, span):
                splice(t1, ds, de, b"").decode())
 
 
+def rule_abs_ge(text, name, span):
+    """Rewrite an abs ternary to its GE form: `(x < 0) ? -x : x` -> `(x >= 0) ? x : -x`.
+
+    Both are abs(x), so it is ALWAYS semantically safe; scoring decides the bytes.
+    Only the GE spelling folds to cc1's `abssi2` insn (one `bgez;move;negu`, negu of
+    the copy); the LT spelling takes the branchy `negu dst,src` path. Cookbook:
+    "An abs assigned to a variable reaches abssi2 only as the GE ternary." Discovered
+    on SoundEx/UpdateMotion — now applied mechanically so no agent re-derives it."""
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for c in _find(body, ("conditional_expression",)):
+        cond = c.child_by_field_name("condition")
+        then = c.child_by_field_name("consequence")
+        els = c.child_by_field_name("alternative")
+        if cond is None or then is None or els is None:
+            return
+        inner = _paren_inner(cond) if cond.type == "parenthesized_expression" else cond
+        if inner is None or inner.type != "binary_expression":
+            continue
+        op = inner.child_by_field_name("operator")
+        lhs = inner.child_by_field_name("left")
+        rhs = inner.child_by_field_name("right")
+        if op is None or lhs is None or rhs is None:
+            continue
+        # match `X < 0` with consequence `-X` and alternative `X`
+        if _txt(data, op) != b"<" or _txt(data, rhs).strip() != b"0":
+            continue
+        x = _txt(data, lhs).strip()
+        neg = _txt(data, then).strip()
+        pos = _txt(data, els).strip()
+        if pos != x or neg not in (b"-" + x, b"- " + x):
+            continue
+        # build `(X >= 0) ? X : -X` preserving the original paren style of cond
+        newcond = _txt(data, lhs) + b" >= 0"
+        if cond.type == "parenthesized_expression":
+            newcond = b"(" + newcond + b")"
+        repl = newcond + b" ? " + x + b" : -" + x
+        yield (f"abs->GE {x.decode()} L{_line(data, c.start_byte)}",
+               splice(data, c.start_byte, c.end_byte, repl).decode())
+
+
+def rule_or_inplace(text, name, span):
+    """Rewrite `X = X <op> C;` to the compound `X <op>= C;` for | & + - ^.
+
+    cc1 colours the expression form's fresh temp differently from the in-place
+    compound (cookbook: "`x |= C` vs `x = x | C` is a local-alloc lever"). Same
+    value; scoring decides. Only when the LHS token equals the binary's left operand
+    token exactly (a plain lvalue, no side effects to duplicate)."""
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    COMPOUND = {b"|": b"|=", b"&": b"&=", b"+": b"+=", b"-": b"-=", b"^": b"^="}
+    for a in _find(body, ("assignment_expression",)):
+        op = a.child_by_field_name("operator")
+        lhs = a.child_by_field_name("left")
+        rhs = a.child_by_field_name("right")
+        if op is None or _txt(data, op) != b"=" or lhs is None or rhs is None:
+            continue
+        if rhs.type != "binary_expression":
+            continue
+        bop = rhs.child_by_field_name("operator")
+        bl = rhs.child_by_field_name("left")
+        br = rhs.child_by_field_name("right")
+        if bop is None or bl is None or br is None:
+            continue
+        comp = COMPOUND.get(_txt(data, bop))
+        if comp is None:
+            continue
+        lt = _txt(data, lhs).strip()
+        if _txt(data, bl).strip() != lt:
+            continue
+        # a bare identifier / field / index LHS only (no call, no deref-with-side-effect)
+        if any(ch in lt for ch in (b"(", b"++", b"--")):
+            continue
+        repl = lt + b" " + comp + b" " + _txt(data, br).strip()
+        yield (f"{lt.decode()} {comp.decode()} L{_line(data, a.start_byte)}",
+               splice(data, a.start_byte, a.end_byte, repl).decode())
+
+
 RULES = [
     ("type-width", "flip a local's integer type across width/signedness", rule_type_width),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
+    ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
+    ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
 ]
 
 
