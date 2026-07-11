@@ -66,14 +66,11 @@ extern s16 voice;
 extern u16 SsUtKeyOnV(s16, s16, s32, s32, s32, s32, u32, u32);
 extern void SsUtAutoPan(s16, s32, s16, s32);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PlaySE", PlaySE);
-#else
 short PlaySE(SoundEffect *se, short pt, long dv)
 {
-    s32 d;
+    s16 d;
     s16 v;
-    u32 voll;
+    s16 voll;
 
     if (se != NULL) {
         d = dv >> 8;
@@ -95,7 +92,6 @@ short PlaySE(SoundEffect *se, short pt, long dv)
     }
     return -1;
 }
-#endif /* NON_MATCHING */
 
 // triage: EASY — 71 insns, mul/div, 2 callees, ~0.04 to AttackFire
 // likely-relevant cookbook sections:

@@ -2280,6 +2280,17 @@ threshold and PREDICT the fix instead of permuting for it. Three levers follow:
   and spills n/time to stack. WHERE an invariant is assigned changes unrelated
   expressions' fates later in the body.
 
+**Identical invariant else-arm constants COMBINE, so their hoist savings SUM.** cse
+unifies `-shortvar` across arms into one pseudo and `combine_movables` does
+`m->savings += m1->savings`, so three per-arm `negu`s hoist together
+(`29*3*3 >= insn_count`) even though one alone stays (`29*1*3 < insn_count`). To keep the
+literal per-arm `negu` the target has: leave ONE arm as plain `-x`, and spell the others
+`zN - x` with `int zN = 0;` single-set/single-use vars initialised ABOVE the loop. Each
+minus is then a SOLO movable (different regs → no rtx match → stays), zN's alloc priority
+is rock-bottom (its REG_EQUIV note doubles its live length), and update_equiv_regs/reload
+substitute const-0 into `subsi3`'s `reg_or_0_operand`, emitting `negu` with zero trace of
+zN in the binary (`SetBleeds`). 
+
 Two corollaries: loop.c DELETES single-use register copies inside a call-containing loop
 (`reg_single_usage` substitution in scan_loop), so a `tmp = n;` copy cannot block
 invariance — don't bother; and fold reassociates `(x - 1) - (a + b)` into `x - (a+b+1)`,
