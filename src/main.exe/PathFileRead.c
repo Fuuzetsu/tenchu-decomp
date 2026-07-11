@@ -27,18 +27,18 @@
  * PathFileRead (0x80019394, 0x38 bytes) — joins a resource prefix and a
  * resource name into a 256-byte stack buffer and loads that file. Every caller
  * passes a directory prefix like D_800127A4 ("K:\WORK\CDIMAGE\IMAGE\") plus a
- * bare filename, so the "%s%s" is a plain path concatenation.
+ * bare filename, so the "%s%s" is a plain filename concatenation.
  */
 
 extern char D_800976DC[]; /* "%s%s" */
 
 extern int sprintf(char *buf, char *fmt, ...);
-extern void *FileRead(char *path);
+extern void *FileRead(char *filename);
 
-void *PathFileRead(char *resource_prefix, char *resource_name)
+void *PathFileRead(char *path, char *name)
 {
-    char path[256];
+    char filename[256];
 
-    sprintf(path, D_800976DC, resource_prefix, resource_name);
-    return FileRead(path);
+    sprintf(filename, D_800976DC, path, name);
+    return FileRead(filename);
 }

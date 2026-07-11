@@ -40,7 +40,7 @@
  * END PSX.SYM */
 
 /*
- * GetAreaMapLevel (0x80019a10) — area-map floor-height query (this is the
+ * GetAreaMapLevel (0x80019a10) — node-map floor-height query (this is the
  * map/collision TU, not the item TU). Coordinates are divided by 10 into
  * map units; the NodeIndexType table (FieldIndex caches the last hit, `map`
  * is the table base) is walked down/up to the row matching y10, then each
@@ -52,7 +52,7 @@
  * Matching notes (docs/matching-cookbook.md; all verified against the bytes):
  *  - Every loop is a hand-rolled goto loop, NOT while/do-while: real loops
  *    here get jump.c-rotated (do-while) or loop.c-strength-reduced (extra
- *    combined address bases like s8=idx+2 / s0=area+6 appear). Goto loops
+ *    combined address bases like s8=idx+2 / s0=node+6 appear). Goto loops
  *    keep the original's top-test + conditional back-jump and one cursor.
  *  - x and z are the PARAMETERS reused (`x = x / 10;`) — that is what puts
  *    them in callee-saved homes with the `move s5,a1`/`move s6,a3` prologue
@@ -68,7 +68,7 @@
  *    so cse reuses the bounds registers.
  *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
  *    sign-extend of the short quotient merged with the *2/*8 array scaling.
- *  - `area = (AreaNodeType *)((j << 4) + (long)list);` — integer + integer
+ *  - `node = (AreaNodeType *)((j << 4) + (long)list);` — integer + integer
  *    keeps the operand order (addu s0,v0,a2); `list + j` emits addu s0,a2,v0.
  *  - The tail return-0x80000000 body carries the ret_min label INSIDE the
  *    (y10 < -1000 && !(flag & 4)) body, and the level==MIN / attribute&2
@@ -110,23 +110,23 @@ typedef struct NodeIndexType
 
 typedef struct AreaDivisionType
 {
-    AreaNodeType *area; /* 0x0 */
+    AreaNodeType *node; /* 0x0 */
     s16 index[4][4];    /* 0x4 */
 } AreaDivisionType;
 
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 extern long D_80097EC0; /* last queried y10 */
-extern u16 FieldAttrib;  /* attribute of the found area (FieldAttrib) */
+extern u16 FieldAttrib;  /* attribute of the found node (FieldAttrib) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
-long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
+long GetAreaMapLevel(NodeIndexType *area, long x, long y, long z, u16 mode)
 {
     long j;
     long *p;
     NodeIndexType *idx;
-    AreaNodeType *area;
+    AreaNodeType *node;
     AreaNodeType *list;
     long level;
     long n;
@@ -150,10 +150,10 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
      * itself generates no code. */
     do
     {
-        if (flag & 1)
+        if (mode & 1)
             y10 -= 0x96;
 
-        if (y10 == D_80097EC0 && (flag & 0x10)
+        if (y10 == D_80097EC0 && (mode & 0x10)
             && FieldArea->x1 <= x && x <= FieldArea->x2
             && FieldArea->z1 <= z && z <= FieldArea->z2)
         {
@@ -161,13 +161,13 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
         }
         D_80097EC0 = y10;
 
-        if (idx == map)
+        if (idx == area)
             goto walked;
     down:
         if (!(y10 < idx->y))
             goto walked;
         idx--;
-        if (idx != map)
+        if (idx != area)
             goto down;
     walked:
         if (idx->index != 0)
@@ -182,7 +182,7 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
             if (idx->index != 0)
             {
                 p = &idx->index;
-                f8 = flag & 8;
+                f8 = mode & 8;
             loop:
                 if (level != 0x80000000)
                     goto calc;
@@ -199,29 +199,29 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
                         j = ((AreaDivisionType *)list)->index[qz][qx];
                         if (j == -1)
                             goto next;
-                        list = ((AreaDivisionType *)list)->area;
+                        list = ((AreaDivisionType *)list)->node;
                         n = -n;
                     }
                     if (j < n)
                     {
-                        area = (AreaNodeType *)((j << 4) + (long)list);
+                        node = (AreaNodeType *)((j << 4) + (long)list);
                     inner:
-                        if (z < area->z1)
+                        if (z < node->z1)
                             goto next;
-                        if (area->x1 <= x && x <= area->x2 && z <= area->z2)
+                        if (node->x1 <= x && x <= node->x2 && z <= node->z2)
                         {
                             FieldIndex = idx;
-                            FieldArea = area;
+                            FieldArea = node;
                             if (f8)
                             {
-                                if (area->division == -1)
-                                    level = area->y;
+                                if (node->division == -1)
+                                    level = node->y;
                                 else
-                                    level = ComputeAreaLevel(area, x, z);
+                                    level = ComputeAreaLevel(node, x, z);
                                 FieldAttrib = FieldArea->attribute;
                                 goto next;
                             }
-                            lv = ComputeAreaLevel(area, x, z);
+                            lv = ComputeAreaLevel(node, x, z);
                             if ((level == 0x80000000 || lv < level) && y10 <= lv)
                             {
                                 FieldAttrib = FieldArea->attribute;
@@ -231,7 +231,7 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
                             }
                         }
                         j++;
-                        area++;
+                        node++;
                         if (j < n)
                             goto inner;
                     }
@@ -250,14 +250,14 @@ long GetAreaMapLevel(NodeIndexType *map, long x, long y, long z, u16 flag)
             goto ret_min;
         level = level * 10;
         y10 = level - y;
-        if (y10 < -1000 && (flag & 4) == 0)
+        if (y10 < -1000 && (mode & 4) == 0)
         {
         ret_min:
             return 0x80000000;
         }
         ret = level;
     } while (0);
-    if (flag & 2)
+    if (mode & 2)
         ret = y10;
     return ret;
 }

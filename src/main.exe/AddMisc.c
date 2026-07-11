@@ -37,8 +37,8 @@
  * AddMisc (0x8004d13c) — the misc-object/effect spawner (fire, doors,
  * pitfalls, snowfall, sprites, water TIM swaps...). Scans the misc[] pool for
  * a free slot (proc == 0), fills in position + the three init params, then
- * dispatches on `kind` to install the processor and kick it once with
- * MM_CREATE (0). kind 5 doesn't allocate anything: it loads one of seven
+ * dispatches on `type` to install the processor and kick it once with
+ * MM_CREATE (0). type 5 doesn't allocate anything: it loads one of seven
  * water/warp TIMs (name picked by x) and uploads it via FUN_80032720.
  *
  * First jump-table switch in a scan loop; the table links from this TU's
@@ -47,7 +47,7 @@
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - The pool scan is a hand-rolled GOTO loop, not do/while: with loop notes,
- *    loop.c hoists the jump-table la, kind<<2 and &tbl[x] to the preheader and
+ *    loop.c hoists the jump-table la, type<<2 and &tbl[x] to the preheader and
  *    builds a p+0x14 induction variable (none of which the target has). The
  *    goto loop keeps them all in place; the bound is re-anchored each
  *    iteration by cse as one addiu off the register that la'd misc.
@@ -128,7 +128,7 @@ extern void FUN_8004c59c(tag_TMisc *m, s32 msg);
 extern void FUN_80032720(GsIMAGE *im, short y, short z);
 extern void AdtMessageBox(char *fmt, ...);
 
-void AddMisc(s32 kind, s32 x, s32 y, s32 z, s32 ry, s32 n, s32 mode)
+void AddMisc(s32 type, s32 x, s32 y, s32 z, s32 ry, s32 n, s32 mode)
 {
     tag_TMisc *base = misc;
     tag_TMisc *p;
@@ -154,7 +154,7 @@ loop:
             p->param.init.a = va;
             p->param.init.b = vb;
             p->param.init.c = vc;
-            switch (kind)
+            switch (type)
             {
             case 0:
                 if (va == 0)
@@ -188,7 +188,7 @@ loop:
                 p->proc = FUN_8004c59c;
                 break;
             default:
-                AdtMessageBox(D_800127BC, kind);
+                AdtMessageBox(D_800127BC, type);
                 return;
             }
             p->proc(p, 0);

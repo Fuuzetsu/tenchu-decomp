@@ -72,7 +72,7 @@ extern void SetTransMatrix(MATRIX *m);
 extern void SetRotMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
 
-void GetScreenPosition(s32 arg0, s32 arg1, s32 arg2, s32 *arg3)
+void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr)
 {
     MATRIX *m = (MATRIX *)0x1F800000;
     SVECTOR *sv = (SVECTOR *)0x1F800020;
@@ -80,10 +80,10 @@ void GetScreenPosition(s32 arg0, s32 arg1, s32 arg2, s32 *arg3)
     m->t[0] = 0;
     m->t[1] = 0;
     m->t[2] = 0;
-    sv->vx = arg0 - (short)ViewInfo.vpx;
-    sv->vy = arg1 - (short)ViewInfo.vpy;
-    sv->vz = arg2 - (short)ViewInfo.vpz;
+    sv->vx = x - (short)ViewInfo.vpx;
+    sv->vy = y - (short)ViewInfo.vpy;
+    sv->vz = z - (short)ViewInfo.vpz;
     SetTransMatrix(m);
     SetRotMatrix(&GsWSMATRIX);
-    *(short *)(arg3 + 1) = RotTransPers(sv, arg3, (void *)0x1F800028, (void *)0x1F80002C);
+    scr->vz = RotTransPers(sv, (s32 *)scr, (void *)0x1F800028, (void *)0x1F80002C);
 }
