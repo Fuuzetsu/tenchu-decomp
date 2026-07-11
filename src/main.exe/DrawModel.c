@@ -32,11 +32,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — residual ~21 differing asm lines (83 target insns,
- * ours 87 — 4 instructions long). All branch polarities/values verified
- * correct; the residual is LAYOUT (which physical copy of the shared
- * `reject_check` test the two/three incoming edges land on) — see notes.
- *
  * DrawModel (0x80017248) — same TU as DrawClip.c/UpdateCoordinate.c/
  * GetAbsolutePosition.c/DrawOrnament.c (3DCTRL.C): DrawClip's full-bodied
  * twin — builds the model's local screen matrix (GsGetLs+GsSetLsMatrix,
@@ -77,21 +72,56 @@
  *    compiles a `nor+sltu` boolean materialize that the target doesn't
  *    have (DrawBG's identical "two early returns, no computed boolean"
  *    lever).
- *  - Residual: `reject_check` is reached from THREE edges (attribute&8==0
- *    skip, the box check passing cleanly, and the box check's own
- *    "iv<0xb5" loop-back). The target lays the box-check body out FIRST
- *    (so its own pass-through falls straight into reject_check with a
- *    freshly-reloaded `attribute&0x10`) and reaches reject_check's TEST
- *    from the attribute&8==0 edge via a forward jump feeding the SAME
- *    test with a value computed in ITS OWN delay slot — i.e. one shared
- *    physical test, two independent `andi` computations feeding it. Our
- *    draft's cross-jump pass instead duplicates the whole reject_check
- *    body once per incoming edge. Tried: `if/else` vs `goto`/label for
- *    the attribute&8 dispatch (byte-identical either way — confirms cc1
- *    doesn't care about that spelling here), otz split into
- *    otz1/otz2/result (also byte-identical — coalesced back by the
- *    allocator regardless). Neither lever reached the shared-vs-duplicated
- *    layout choice; parked per the cookbook's attempt cap.
+ *  - `reject_check` is reached from THREE edges (attribute&8==0 skip, the
+ *    box check passing cleanly, and the box check's own "iv<0xb5"
+ *    loop-back). The target lays the box-check body out FIRST — `if
+ *    ((attr & 8) != 0) { <box check> } reject_check: ...` — so its OWN
+ *    attribute&8==0 case is the negated guard's forward branch straight
+ *    into reject_check's test, and the box check's clean pass-through is
+ *    a plain fallthrough into the SAME test, both feeding one physical
+ *    `andi s0,0x10` + `slti`. Writing it the other way around (Ghidra's
+ *    literal `if (attr&8==0) { reject_check: ... } <box check>`, i.e.
+ *    reject_check FIRST) makes cc1 place the box check's `goto
+ *    reject_check;` as a BACKWARD jump reusing the SAME physical test —
+ *    which is length-correct on its own, but see the next point.
+ *  - Length-only bug hiding downstream: Ghidra's decompile reads the box
+ *    check's OWN "goto unit_vector;" tail (reached when either box-check
+ *    threshold fails, i.e. iv>=0xf1 or iv>=0xb5) as skipping straight to
+ *    `unit_vector`. It doesn't — the target sends BOTH box-check failures
+ *    to the REJECT tail (`otz = -1; goto ret;`) directly, never touching
+ *    unit_vector at all. Decompiling the shared `goto unit_vector;" at
+ *    face value costs nothing in count (still compiles) but is
+ *    semantically wrong AND — because it changes which two rejects turn
+ *    out byte-identical to each other — it changes which cross-jump merge
+ *    cc1 finds, which is what actually broke the LENGTH (4 extra
+ *    instructions with the wrong tail).
+ *  - The two-arm `if (otz < 300) DrawTMDmode = 0; else DrawTMDmode = 0x20;`
+ *    inside unit_vector must be written negated — `if (otz >= 300)
+ *    DrawTMDmode = 0x20; else DrawTMDmode = 0;` — to match which arm ends
+ *    up adjacent to the shared reject/ret tail (worth 4 of the 8
+ *    residual bytes on its own; the cookbook's "if(cond)A;else B" A/B
+ *    labels are NOT swap-invariant once a shared tail sits past the
+ *    if/else — only ONE spelling reaches it for free).
+ *  - The other 4 bytes: `otz = -1;` for the "attribute&4 set, otz==0"
+ *    reject and for the unit_vector "otz>=0x4e3" reject must NOT be one
+ *    shared trailing statement (`... } otz = -1; ret: ...`, reached by
+ *    falling out of the whole if/else) — cc1's cross-jump then merges
+ *    them into a stub sitting wherever the EARLIER of the two textually
+ *    is (right after `reject_check`, before `unit_vector`'s own body),
+ *    which is length-correct but shifts branch targets throughout the
+ *    tail. The fix: give the merge point its own real label (`reject:`)
+ *    placed exactly where the target's copy physically lives — inside
+ *    unit_vector's own `if (otz >= 0x4e3)` guard — and have every OTHER
+ *    "unconditional otz=-1" site (attribute&4 reject, both box-check
+ *    failures) `goto reject;` into it instead of duplicating `otz = -1;
+ *    goto ret;` at each site. A named goto TARGET pins cross-jump's
+ *    choice of primary copy; an implicit shared-fallthrough or a
+ *    site-local duplicate both leave that choice to cc1, and it doesn't
+ *    reliably pick the textually-later occurrence. `reject_check`'s OWN
+ *    reject (the attribute&0x10 test) stays a literal, separate `otz =
+ *    -1; goto ret;` — the target compiles that one as a direct branch
+ *    with `otz=-1` in its OWN delay slot, never touching the shared
+ *    `reject:` stub at all, so merging it in would be wrong.
  */
 
 extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
@@ -101,10 +131,6 @@ extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawModel", DrawModel);
-#else
 
 short DrawModel(ModelType *objp)
 {
@@ -127,34 +153,38 @@ short DrawModel(ModelType *objp)
         otz = lv >> 2;
         if ((attr & 4) == 0 || otz != 0)
         {
-            if ((attr & 8) == 0)
+            if ((attr & 8) != 0)
             {
-            reject_check:
-                if ((attr & 0x10) != 0 && 0x4e2 < otz)
-                {
-                    otz = -1;
-                    goto ret;
-                }
-                goto unit_vector;
-            }
-            iv = rxy[0];
-            if (iv < 0)
-            {
-                iv = -iv;
-            }
-            if (iv < 0xf1)
-            {
-                iv = rxy[1];
+                iv = rxy[0];
                 if (iv < 0)
                 {
                     iv = -iv;
                 }
-                if (iv < 0xb5)
+                if (iv < 0xf1)
                 {
-                    goto reject_check;
+                    iv = rxy[1];
+                    if (iv < 0)
+                    {
+                        iv = -iv;
+                    }
+                    if (iv < 0xb5)
+                    {
+                        goto reject_check;
+                    }
                 }
+                goto reject;
+            }
+        reject_check:
+            if ((attr & 0x10) != 0 && 0x4e2 < otz)
+            {
+                otz = -1;
+                goto ret;
             }
             goto unit_vector;
+        }
+        else
+        {
+            goto reject;
         }
     }
     else
@@ -162,20 +192,21 @@ short DrawModel(ModelType *objp)
     unit_vector:
         lv = RotTransPers(&UnitVector, 0, 0, 0);
         otz = lv >> 2;
-        if (otz < 0x4e3)
+        if (otz >= 0x4e3)
         {
-            if (otz < 300)
-            {
-                DrawTMDmode = 0;
-            }
-            else
-            {
-                DrawTMDmode = 0x20;
-            }
+        reject:
+            otz = -1;
             goto ret;
         }
+        if (otz >= 300)
+        {
+            DrawTMDmode = 0x20;
+        }
+        else
+        {
+            DrawTMDmode = 0;
+        }
     }
-    otz = -1;
 ret:
     if (otz == -1)
     {
@@ -184,4 +215,3 @@ ret:
     DrawTMD(&objp->object, OTablePt, 0);
     return 1;
 }
-#endif

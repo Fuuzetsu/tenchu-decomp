@@ -33,30 +33,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — length ours 112 insns vs target 111 (structural,
- * not a register-only tie); this is a THIRD confirmed instance of
- * DrawModel.c's/DrawClip.c's already-PARKED cross-jump/tail-merge residual
- * (see those files' headers for the full writeup): the `reject_check` test
- * (attribute&0x10, gating the 0x4e2 OTZ cutoff) is reached from TWO edges —
- * the `attribute&8==0` skip and the box-check (+-0xf0/+-0xb4) passing
- * cleanly — and the target's cc1 build MERGES both edges into one shared
- * physical test block (each predecessor independently recomputing its own
- * `andi $s0,0x10` into the SAME landing block), while our build's
- * cross-jump pass instead DUPLICATES the whole test+branch into two
- * separate physical copies (one instruction longer). Tried and confirmed
- * BYTE-IDENTICAL either way (matching DrawModel.c's own finding for this
- * exact tie): a shared `reject_check:` label reached by `goto` from both
- * edges, and literal duplication of the test at both call sites with no
- * goto/label at all. Also fixed one genuine bug in an earlier draft along
- * the way (`sz` must be pre-set to -1 before the `attribute&1` early exit,
- * matching DrawModel.c's identical `otz = -1;` placement — omitting it left
- * `sz` live-in on that edge and forced an extra callee-saved register,
- * 80-byte frame instead of the target's 72). Given the identical pattern
- * already resisted extensive attempts on two sibling functions in this same
- * TU (including one bounded `tools/permute.py` run on DrawClip that
- * plateaued without reaching 0), this is parked per the cookbook's
- * sub-C-level early-stop rather than re-running the permuter a third time.
- *
  * DrawSprite (0x80017be8, 0x1bc bytes) — same TU as DrawClip.c/DrawModel.c
  * (3DCTRL.C): the Sprite3D twin of DrawModel's visibility gauntlet (builds
  * the local screen matrix, then runs the IDENTICAL attribute&1/2/4/8/0x10
@@ -76,11 +52,45 @@
  * SetupSprite.c/DrawHinoko.c.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `sz` (PSX.SYM's own name, `long`) is ONE variable spanning the whole
- *    function: the first RotTransPers's OTZ, re-tested by attribute&4/
- *    attribute&0x10, then overwritten by the second (UnitVector)
- *    RotTransPers's OTZ, and finally decremented by 5 for the tail's
- *    divisor — not a fresh local per RotTransPers call.
+ *  - THREE distinct `long` locals carry the OTZ/return story, NOT one `sz`
+ *    doing everything (that one-variable form is 1 instruction too SHORT):
+ *      * `sz` ($v1) — the OTZ from either RotTransPers, live only within the
+ *        clip gauntlet (re-tested by attribute&4/&0x10 and the 0x4e2 cutoff).
+ *      * `result` ($v0) — the "-1 = reject / else the accepted OTZ" value
+ *        the tail divides. It is assigned ONLY on the branches that reach
+ *        `ret:` (each reject does its own `result = -1; goto ret;`; each
+ *        accept does `result = sz; goto ret;`), NEVER once at the top. That
+ *        keeps its live range short per-path, so cc1 leaves it in caller-
+ *        saved $v0 and REMATERIALISES `li $v0,-1` at each reject site (the
+ *        target has four such `li v0,-1` + three `move v0,v1`). Hoisting a
+ *        single `result = -1;` to the function top instead makes it live
+ *        across the whole body, forcing it into a preserved arg reg ($a2)
+ *        materialised ONCE — which drops the per-site rematerialisations and
+ *        comes out 1 instruction short. This "assign the sentinel only on
+ *        each exit edge, never once up front" is the load-bearing lever.
+ *      * `pri` ($a2) — `result - 5`, the GsSortSprite priority / divisor.
+ *  - The reject sites split into TWO kinds and the split is NOT ours to
+ *    choose — reorg (delay-slot fill) decides, but the C structure controls
+ *    which it CAN do:
+ *      * DIRECT-to-ret rejects — a plain `if (cond) { result = -1; goto ret; }`
+ *        whose test is a conditional branch: reorg branches straight to the
+ *        `ret:` tail and drops `li $v0,-1` into the branch's OWN delay slot.
+ *        The attr&4&&sz==0, iv>=0xf1, and reject_check(attr&0x10&&sz>0x4e2)
+ *        rejects are these. The attr&4&&sz==0 one MUST be a standalone
+ *        `if ((attr&4)!=0 && sz==0)` (NOT the `else` of the enclosing
+ *        `if ((attr&4)==0 || sz!=0)` guard) — as an `else` body it is
+ *        textually identical to the shared reject block below and cc1's
+ *        cross-jump MERGES it in, costing the direct-branch form (and with
+ *        it the target's extra `andi $v0,s0,0x8` recompute that the
+ *        clobbered-by-`li v0,-1` delay slot forces — that recompute is the
+ *        very instruction the one-variable draft was missing).
+ *      * The SHARED reject block (`reject: result = -1; goto ret;`) — reached
+ *        by `goto reject` from the attribute&1 early-out and the iv>=0xb5 box
+ *        fail, and as the FALL-THROUGH of unit_vector's own `if (sz>=0x4e3)`.
+ *        It lands physically inside unit_vector (the `reject:` label sits in
+ *        that guard) and compiles to `j ret; li v0,-1`, exactly like the
+ *        target's shared block whose two predecessors' branch delay slots are
+ *        busy (so they cannot inline the `li` and must route through it).
  *  - `objp`/`dim`-style PSX.SYM register-note this TU's template shares with
  *    DrawModel/DrawClip's OWN PSX.SYM entries don't apply to any additional
  *    local here — `sprt` fills that role for the whole function.
@@ -97,6 +107,10 @@
  *    shared `ret` variable reassigned twice — DrawModel/DrawBG's "two
  *    literal early returns" lever, even though Ghidra renders it with one
  *    reused `sVar2`.
+ *  - The two-arm `if (sz < 300) DrawTMDmode = 0; else = 0x20;` inside
+ *    unit_vector is spelled NEGATED (`if (sz >= 300) = 0x20; else = 0;`) so
+ *    the 0x20 arm sits adjacent to the shared tail, same swap-non-invariance
+ *    DrawModel needed.
  */
 typedef struct
 {
@@ -117,16 +131,14 @@ extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawSprite", DrawSprite);
-#else
-
 short DrawSprite(Sprite3D *sprt)
 {
     MATRIX mat;
     u16 attr;
     long *xy;
     long sz;
+    long result;
+    long pri;
     s32 iv;
     short sVar2;
     short rxy[2];
@@ -135,24 +147,18 @@ short DrawSprite(Sprite3D *sprt)
     GsSetLsMatrix(&mat);
     attr = sprt->attribute;
     xy = (long *)&sprt->sprite.x;
-    sz = -1;
     if ((attr & 1) != 0)
-        goto ret;
+        goto reject;
     if ((attr & 2) == 0)
     {
         sz = RotTransPers(&sprt->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((attr & 4) == 0 || sz != 0)
+        if ((attr & 4) != 0 && sz == 0)
         {
-            if ((attr & 8) == 0)
-            {
-            reject_check:
-                if ((attr & 0x10) != 0 && 0x4e2 < sz)
-                {
-                    sz = -1;
-                    goto ret;
-                }
-                goto unit_vector;
-            }
+            result = -1;
+            goto ret;
+        }
+        if ((attr & 8) != 0)
+        {
             iv = rxy[0];
             if (iv < 0)
             {
@@ -169,39 +175,50 @@ short DrawSprite(Sprite3D *sprt)
                 {
                     goto reject_check;
                 }
+                goto reject;
             }
-            goto unit_vector;
+            result = -1;
+            goto ret;
         }
+    reject_check:
+        if ((attr & 0x10) != 0 && 0x4e2 < sz)
+        {
+            result = -1;
+            goto ret;
+        }
+        goto unit_vector;
     }
     else
     {
     unit_vector:
         sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
-        if (sz < 0x4e3)
+        if (sz >= 0x4e3)
         {
-            if (xy != 0)
-            {
-                goto ret;
-            }
-            if (sz < 300)
-                DrawTMDmode = 0;
-            else
-                DrawTMDmode = 0x20;
+        reject:
+            result = -1;
             goto ret;
         }
+        if (xy != 0)
+        {
+            result = sz;
+            goto ret;
+        }
+        if (sz >= 300)
+            DrawTMDmode = 0x20;
+        else
+            DrawTMDmode = 0;
+        result = sz;
     }
-    sz = -1;
 ret:
-    sz = sz - 5;
-    if (sz < 1)
+    pri = result - 5;
+    if (pri < 1)
     {
         return 0;
     }
     iv = (sprt->scale >> 2) * 300;
-    sVar2 = (short)(iv / sz);
+    sVar2 = (short)(iv / pri);
     sprt->sprite.scaley = sVar2;
     sprt->sprite.scalex = sVar2;
-    GsSortSprite(&sprt->sprite, OTablePt, (u16)sz);
+    GsSortSprite(&sprt->sprite, OTablePt, (u16)pri);
     return 1;
 }
-#endif

@@ -1035,6 +1035,16 @@ that drifts into a delay slot — one off. Spell the subtraction with the parent
 `C - b` / `b - C` grouping the target's `addiu`+`addu`/`subu` pair implies (`HangCheck`:
 `dtL->vy - (0x69 - y)` → `addiu vy,-105; addu +y`).
 
+**Two loop-invariant, mutually-independent assignments that must land in a specific
+relative order: cc1's list scheduler breaks the tie by RTL-creation (UID) order, which
+follows source scan order.** To force one earlier, capture whichever must come first as
+an explicit statement before the other — hoisting a dispatch comparison into an
+unconditional boolean, `found = (a == b); k = 1; if (found) …`, gives the comparison's
+widen (`sll/sra`) a lower UID than `k = 1`, ordering it first. Zero semantic effect, pure
+UID control (`SetCommand`). Related loop lever: the bottom `i++` must be the LAST body
+statement (after the whole `if`), so reorg hoists it into the entry-comparison branch's
+delay slot.
+
 **An address-taken local's loads never schedule above ANY pointer store** (the scheduler
 is alias-conservative: a true dep to every store). If the target reads such a local
 BETWEEN two field stores, the source statement order put that read earlier — reorder the
@@ -2035,6 +2045,24 @@ their definitions before reaching for the permuter.
   FileOption case 0xd, CURRENT(2).
 
 ## Shared tails
+
+**A named `goto` label pins cross-jump's choice of primary copy.** When several
+unconditional exits share a tail (e.g. every reject does `x = -1; goto ret;`), route them
+all through ONE named label placed exactly where the target's copy lives — cross-jump
+then merges onto that copy, not whichever it would pick by scan order. Placing the
+`reject:` label inside an existing guard where the target keeps it fixed DrawModel's
+length (Ghidra's literal `goto unit_vector;` on the box-check failures had sent them to
+the wrong tail, changing the merge).
+
+**Assign a sentinel ONLY on each exit edge, never once at the top, to keep it
+rematerialised in a caller-saved reg.** `result = -1; goto ret;` per reject keeps
+`result`'s live range short, so cc1 leaves it in caller-saved `$v0` and re-emits
+`li v0,-1` per site; hoisting `result = -1;` to the top forces ONE `$a2` materialisation
+and drops the rematerialisations (one instruction short). And a reject condition that is
+textually identical to the shared tail must be a STANDALONE `if`, not the enclosing
+guard's `else` — as an `else` body cross-jump merges it away, costing the direct branch
+and a recompute (`DrawSprite`, the exact missing instruction).
+
 
 **An early `return !flag;` right after `flag = 1;` gets constant-folded to a
 literal.** `IsVisible` sets a `fail` flag and has exactly ONE `return !fail;`, at the
