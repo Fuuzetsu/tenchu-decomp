@@ -1516,16 +1516,18 @@ predecessor (cross-jump merges only the common `jal` tail, leaving a `nop` delay
 Use the two-explicit-calls form when the target materialises a shared constant argument
 in each predecessor (`CheckCheatCodes`: 17-byte diff → 2).
 
-### An abs `negu` that negates the COPY is the `abssi2` insn — reach it inline
+### An abs assigned to a variable reaches `abssi2` only as the GE ternary
 
-A `negu $v0,$v0` (negating the copy, not the source) is the MIPS backend's `abssi2`
-insn, emitted as one opaque `bgez %1,1f; move %0,%1; subu %0,$0,%0; 1:` (tell: it
-survives cse untouched). Only an abs ternary used INLINE in a comparison —
-`if (((t < 0) ? -t : t) > 0x800)` — reaches it; assigning the same ternary to a named
-temp (`at = (t<0)?-t:t;`) takes expr.c's COND_EXPR singleton path, whose separate `neg`
-insn cse canonicalises to `negu dst,src`, and no variable arrangement wins
-`make_regs_eqv`'s promotion (the source var outlives the temp). Refines the rule below:
-the negate-the-copy form IS reachable, but only inline (`UpdateMotion`).
+`dy = (raw >= 0) ? raw : -raw;` folds to ABS_EXPR and expands to ONE `abssi2` insn
+writing `dy` (`bgez raw,1f; move dy,raw; negu dy,dy` — negu of the COPY, `raw` dies at
+the abs), IN ANY CONTEXT, and the result CAN be a reusable variable. The LT spelling
+`(raw < 0) ? -raw : raw` NEVER folds: fold-const.c's COND_EXPR inversion swaps the arms
+but then re-binds `arg1` from the already-swapped tree, so the abs check's
+`operand_equal_for_comparison_p` misses and expansion takes the branchy singleton path
+(`negu dst,src` — the extra-instruction residual). So: spell the abs ternary **GE**.
+This supersedes the older "the abs `negu` source is not a C-level choice" note AND the
+"reach abssi2 only inline in a comparison" refinement — it is reachable as a plain
+`x = (a>=0)?a:-a;` assignment (`SoundEx`, `UpdateMotion`).
 
 ### A conditional store via a pre-branch address copy is one assignment, conditional RHS
 
@@ -1544,6 +1546,19 @@ onto the original address register (`UpdateMotion`, last 4 bytes).
 cc1 folds `-at` back to `negu <dst>,<t_reg>`, negating the original `t`, not the
 copy. Which register `negu` sources from is a coloring artifact — do not chase it
 by respelling the conditional (`UpdateMotion`).
+
+### A pure callee-saved SWAP residual is an `allocno_compare` inequality — add ballast
+
+When two locals are swapped between `$s0`/`$s1` (or any callee-saved pair) with no other
+diff, it is a priority tie in `global.c`'s `allocno_compare`:
+`priority = floor_log2(refs) * refs / live_length`, read from the `.lreg` dump's
+`Register N used X times across Y insns` lines; the higher priority takes `$s0` first.
+Live length counts RTL insns at local-alloc time, so you tilt it by adding an
+instruction inside one allocno's live range — hoist a one-arm constant into a variable
+defined BEFORE the branch (`maxvol = 0x7f; … dist = maxvol - expr;`): +1 insn to every
+allocno live across it, and FREE in bytes when the target materialises that constant in
+a register anyway (`SoundEx`: a 14-byte `$s0`/`$s1` swap → 0). Compute the two
+priorities from the dump, then add ballast to the one that must win.
 
 ### Two same-role temps with DISJOINT live ranges may be ONE reused variable
 

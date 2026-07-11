@@ -26,11 +26,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 7 of 512 bytes differ (128 of 128 instructions; the
- * function is otherwise byte-identical). The whole residual is one 3-instruction
- * window in the vertical-distance abs block and reduces to a single sub-C
- * register-coloring choice — see RESIDUAL below.
- *
  * SoundEx (0x8004fc70) — play a positional sound effect: if `locate` is null
  * or IS the player's own position, play at a fixed volume (0x3f for seid
  * 0x12, else 0x7f), no direction encoded. Otherwise compute planar+vertical
@@ -63,29 +58,36 @@
  *    not `multu`/`srl`) confirm the intermediate arithmetic is signed —
  *    `dist`/`dy` must stay plain `s32`, not unsigned, for the magic-multiply
  *    constants to match.
- *  - The vertical-distance abs uses a `raw` temp reused for the ratan2 result:
- *    a persistent `raw` keeps the subtraction result caller-saved and separate
- *    from the abs `dy` (the target's `move a0,v0; negu a0,a0` shape). A `raw`
- *    that dies immediately coalesces with `dy` (direct `subu a0` + a speculative
- *    duplicated `slti`, +1 insn); reusing `angle` for it instead colours the
- *    subtraction into $a2 not $v0. This split got it to 7 bytes.
+ *  - **The vertical-distance abs is the GE-spelled ternary ASSIGNED to `dy`**:
+ *    `dy = (raw >= 0) ? raw : -raw;`. Only this arm order folds to ABS_EXPR
+ *    (one abssi2 insn writing `dy`: `bgez raw,1f; move dy,raw; negu dy,dy` —
+ *    negu of the COPY), and it works as a plain assignment, any context. The
+ *    LT spelling `(raw < 0) ? -raw : raw` does NOT fold: fold-const.c's
+ *    COND_EXPR case first INVERTS it (second-operand-equivalent clause) but
+ *    then re-reads `arg1 = TREE_OPERAND (t, 2)` from the ALREADY-SWAPPED tree
+ *    — arg1 becomes the negation arm, so the abs check's
+ *    operand_equal_for_comparison_p fails and the branchy singleton path
+ *    (negu of the SOURCE, `negu a0,v1` — the old 7-byte residual) is emitted
+ *    instead. `raw` dies at the abssi2, freeing the $v0-vs-$v1 tie the parked
+ *    draft could not reach. This refines UpdateMotion's "reach abssi2 inline"
+ *    rule: the abs RESULT can be a reusable variable — spell the ternary GE.
+ *  - **`maxvol = 0x7f;` hoisted above the near/far branch is a PRIORITY
+ *    ballast, found by the permuter and verified against global.c**: with the
+ *    abs now one insn shorter (x2), `dist`'s live length dropped 50→48 and its
+ *    allocno priority (floor_log2(refs)*refs/live_length, allocno_compare)
+ *    rose past `pp`'s (27/48*10000 = 5625 > 10/18*10000 = 5555), swapping
+ *    their $s0/$s1 colours (14 bytes). The extra li insn inside dist's live
+ *    range restores 27/49 = 5510 < 5555 → pp back to $s0, dist $s1. The insn
+ *    costs no bytes: it lands exactly on the target's `addiu v0,zero,0x7f`
+ *    feeding `subu s1,v0,v1` (the else-arm's `0x7f - q`), and the then-arm
+ *    keeps its own LITERAL `dist = 0x7f;` (cse leaves the immediate li in the
+ *    jump delay slot rather than copying maxvol's register).
+ *  - The ratan2 result reuses `raw` (dead since the abs): its pseudo is
+ *    $v0-homed everywhere, so the call-result move deletes as a no-op and
+ *    `subu a2,v0,v1` reads $v0 directly.
  *  - `CamState` field types/offsets copied verbatim from DoInfoViewProc.c's
  *    proven (fully-matched) local typedef: Mode is a plain `s32` (not the
  *    `enum` type) at 0x14, DirectionRY a signed `s16` at 0x1A.
- *
- * RESIDUAL (7 bytes, same length): the vertical-distance abs's raw subtraction
- * `raw = locate->vy - pp->vy` colours `raw` into $v1 (ours) where the target
- * uses $v0. `locate->vy` loads into $v0 (target) vs $v1 (ours) — two freely
- * interchangeable caller-saved temps; the branch/move/negu that follow all
- * inherit that one choice (`subu v0,v0,v1 / bgez v0 / move a0,v0 / negu a0,a0`
- * vs `subu v1,v1,v0 / bgez v1 / move a0,v1 / negu a0,v1`). No C-level lever
- * reaches it: every abs spelling tried (single-var, two-var `dy=raw`, ternary,
- * dedicated-dying-temp, `angle`-reuse) lands the temp in $v1/$a2 or coalesces
- * it away. tools/regalloc.py shows no copy-chain to break; tools/autorules.py
- * found no width win. Two decomp-permuter runs (25k + 14k iterations, both
- * --stop-on-zero) never reached 0 — best was a garbage `if(dist){A}else{A}`
- * dead-branch at score 35. Same abs-value register-role class that parked the
- * SEMNG/HUMAN sibling GetTargetDistance.c.
  */
 extern Humanoid *StagePlayer;
 
@@ -117,13 +119,12 @@ extern s32 SquareRoot0(s32 x);
 extern s32 ratan2(s32 y, s32 x);
 extern short PlaySE(SoundEffect *se, short pt, long dv);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SoundEx", SoundEx);
-#else
 short SoundEx(VECTOR *locate, short seid)
 {
     VECTOR *pp;
-    s32 dist, dx, dz, dy;
+    s32 dist, dx, dz;
+    s32 maxvol;
+    s32 dy;
     s32 angle;
     s32 vol;
     s32 raw;
@@ -140,18 +141,16 @@ short SoundEx(VECTOR *locate, short seid)
         return -1;
     }
     raw = locate->vy - pp->vy;
-    dy = raw;
-    if (raw < 0) {
-        dy = -dy;
-    }
+    dy = (raw >= 0) ? raw : -raw;
     if (9999 < dy) {
         return -1;
     }
+    maxvol = 0x7f;
     if (dist < 2000 && dy < 2000) {
         angle = 0;
         dist = 0x7f;
     } else {
-        dist = 0x7f - (dist << 7) / 18000;
+        dist = maxvol - (dist << 7) / 18000;
         dist = (dist * (10000 - dy)) / 10000;
         raw = ratan2(-dx, -dz);
         angle = raw - StagePlayer->rotate->vy;
@@ -169,72 +168,3 @@ short SoundEx(VECTOR *locate, short seid)
     vol = (angle << 8) | dist;
     return PlaySE(STAGE_SOUNDS_POINTER, seid, vol);
 }
-#endif /* NON_MATCHING */
-
-// triage: MEDIUM — 128 insns, mul/div, 3 callees, ~0.06 to GetVectorRotation
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// short SoundEx(VECTOR *locate,short seid)
-//
-// {
-//   short sVar1;
-//   long lVar2;
-//   int iVar3;
-//   uint uVar4;
-//   int iVar5;
-//   VECTOR *pVVar6;
-//   int iVar7;
-//   int iVar8;
-//
-//   pVVar6 = StagePlayer->locate;
-//   if ((locate == (VECTOR *)0x0) || (locate == pVVar6)) {
-//     uVar4 = 0x7f;
-//     if (seid == 0x12) {
-//       uVar4 = 0x3f;
-//     }
-//   }
-//   else {
-//     iVar8 = locate->vx - pVVar6->vx;
-//     iVar7 = locate->vz - pVVar6->vz;
-//     lVar2 = SquareRoot0(iVar8 * iVar8 + iVar7 * iVar7);
-//     if (17999 < lVar2) {
-//       return -1;
-//     }
-//     iVar3 = locate->vy - pVVar6->vy;
-//     if (iVar3 < 0) {
-//       iVar3 = -iVar3;
-//     }
-//     if (9999 < iVar3) {
-//       return -1;
-//     }
-//     if ((lVar2 < 2000) && (iVar5 = 0, iVar3 < 2000)) {
-//       uVar4 = 0x7f;
-//     }
-//     else {
-//       uVar4 = ((0x7f - (lVar2 << 7) / 18000) * (10000 - iVar3)) / 10000;
-//       lVar2 = ratan2(-iVar8,-iVar7);
-//       iVar5 = lVar2 - StagePlayer->rotate->vy;
-//       if (CamState.Mode == CMODE_DIRECTION) {
-//         iVar5 = iVar5 - CamState.DirectionRY;
-//       }
-//       if (iVar5 < 0x801) {
-//         if (iVar5 < -0x7ff) {
-//           iVar5 = iVar5 + 0x1000;
-//         }
-//       }
-//       else {
-//         iVar5 = 0x1000 - iVar5;
-//       }
-//     }
-//     uVar4 = iVar5 << 8 | uVar4;
-//   }
-//   sVar1 = PlaySE(PTR_80097cb0,seid,uVar4);
-//   return sVar1;
-// }
