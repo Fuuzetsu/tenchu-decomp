@@ -637,6 +637,74 @@ def rule_cmp_swap(text, name, span):
                splice(data, c.start_byte, c.end_byte, repl).decode())
 
 
+def rule_split_chain(text, name, span):
+    """Split a fused shift-of-a-binary into two statements:
+    `t = (x - C) >> S;` -> `t = x - C; t = t >> S;` (declaration keeps its type).
+
+    A fused `subtract-then-shift` (or any inner binary then a shift) can tie on which
+    register the intermediate lands in; splitting it into two statements pins the load's
+    destination to match the target (cookbook; fixed 2-byte register ties in DrawFrame
+    and DrawAfterimage). Same value; scoring decides. Only when the RHS is
+    `<binary> <shift-op> <operand>` and the LHS is a plain identifier."""
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    def emit(stmt, lhs, decl_prefix, val):
+        # val is the `E1 >> E2` binary_expression node; E1 must itself be binary.
+        vop = val.child_by_field_name("operator")
+        e1 = val.child_by_field_name("left")
+        e2 = val.child_by_field_name("right")
+        if vop is None or e1 is None or e2 is None:
+            return None
+        if _txt(data, vop) not in (b">>", b"<<"):
+            return None
+        # strip an outer paren on e1 to test its kind, but keep its text as-is
+        inner = _paren_inner(e1) if e1.type == "parenthesized_expression" else e1
+        if inner is None or inner.type != "binary_expression":
+            return None
+        # indentation of the statement's line
+        ls = data.rfind(b"\n", 0, stmt.start_byte) + 1
+        indent = data[ls:stmt.start_byte]
+        if indent.strip():
+            indent = b""  # not at line start; bail on injecting a 2nd line cleanly
+        two = (decl_prefix + lhs + b" = " + _txt(data, e1).strip() + b";\n" +
+               indent + lhs + b" = " + lhs + b" " + _txt(data, vop) + b" " +
+               _txt(data, e2).strip() + b";")
+        return two
+
+    for stmt in _find(body, ("expression_statement", "declaration")):
+        if stmt.type == "expression_statement":
+            e = [c for c in stmt.named_children if c.type != "comment"]
+            if len(e) != 1 or e[0].type != "assignment_expression":
+                continue
+            a = e[0]
+            if a.child_by_field_name("operator") is None or \
+               _txt(data, a.child_by_field_name("operator")) != b"=":
+                continue
+            lhs = a.child_by_field_name("left")
+            val = a.child_by_field_name("right")
+            if lhs is None or lhs.type != "identifier" or val is None or \
+               val.type != "binary_expression":
+                continue
+            two = emit(stmt, _txt(data, lhs).strip(), b"", val)
+        else:  # declaration
+            idecs = [c for c in stmt.named_children if c.type == "init_declarator"]
+            ty = stmt.child_by_field_name("type")
+            if len(idecs) != 1 or ty is None:
+                continue
+            idn = _descend_ident(idecs[0].child_by_field_name("declarator"))
+            val = idecs[0].child_by_field_name("value")
+            if idn is None or val is None or val.type != "binary_expression":
+                continue
+            two = emit(stmt, _txt(data, idn).strip(), _txt(data, ty).strip() + b" ", val)
+        if two is None:
+            continue
+        yield (f"split-chain L{_line(data, stmt.start_byte)}",
+               splice(data, stmt.start_byte, stmt.end_byte, two).decode())
+
+
 RULES = [
     ("type-width", "flip a local's integer type across width/signedness", rule_type_width),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
@@ -644,6 +712,7 @@ RULES = [
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
     ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
     ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
+    ("split-chain", "t = (x-C)>>S -> t = x-C; t = t>>S (split fused chain)", rule_split_chain),
     ("min-ternary", "x=a; if(b<x) x=b; -> x = (b<a)?b:a (min-vs-memory)", rule_min_ternary),
     ("cmp-swap", "a>mem -> mem<a (comparison operand-order lever)", rule_cmp_swap),
 ]
