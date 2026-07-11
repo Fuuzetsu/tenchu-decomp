@@ -23,6 +23,17 @@ and `matcher-prompt.py` / `coverage.py` / `triage.py` / `findsimilar.py` /
 `xref.py` all die on `.shake/ghidra-export/functions.tsv`. wt-init.sh symlinks
 both from the primary worktree. It is idempotent.
 
+**The MOMENT your draft compiles, run `tools/autorules.py <Name>` and let it finish
+BEFORE you reason about the residual.** It sweeps the mechanical rules automatically
+(type-width flips, `&&` split/merge, single-use temp inline, the abssi2 abs->GE fold,
+`X = X|C` -> `X |= C`, …), greedily keeping any edit that shrinks the asmdiff, in a
+minute of unattended builds. It is byte-safe by construction: only edits that actually
+move the bytes the right way survive, a full MATCH is always correct, and any partial
+result is advisory. This exists so you do NOT hand-apply a rule that a script can try —
+you only spend judgment on what autorules leaves. When you discover a NEW mechanical
+rewrite while matching, report it so it can be ADDED to autorules, not just the cookbook
+(the goal is to shrink what future agents must think about).
+
 **Run the permuter SYNCHRONOUSLY and bounded — never as a background task you then
 wait on.** Always wrap it: `nix develop --command bash -c 'timeout 420 tools/permute.py <Name> -- --stop-on-zero -j4'`.
 It either finds a zero and prints it, or the timeout ends it and you move on. Do
