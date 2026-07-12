@@ -562,6 +562,38 @@ class PermuteRescoreTests(unittest.TestCase):
             self.assertEqual(found, ["base.c", "output-10-1/source.c",
                                      "output-25-2/source.c"])
 
+    def test_contextualize_function_only_candidate(self):
+        base = """typedef unsigned int u32;
+extern void helper(u32 value);
+void Before(void) { helper(1); }
+void Target(u32 value)
+{
+    helper(value);
+}
+void After(void) { helper(3); }
+"""
+        candidate = """
+void Target(u32 value)
+{
+    /* A brace in a comment must not end the definition: } */
+    helper(value + 2);
+}
+"""
+        result = permute.contextualize_candidate("Target", base, candidate)
+        self.assertIsNotNone(result)
+        self.assertIn("typedef unsigned int u32;", result)
+        self.assertIn("void Before(void) { helper(1); }", result)
+        self.assertIn("helper(value + 2);", result)
+        self.assertIn("void After(void) { helper(3); }", result)
+        self.assertNotIn("helper(value);", result)
+        self.assertEqual(result.count("void Target("), 1)
+
+    def test_contextualize_requires_both_definitions(self):
+        base = "void Target(void) {}\n"
+        self.assertIsNone(permute.contextualize_candidate(
+            "Missing", base, "void Other(void) {}\n"
+        ))
+
 
 class BuildConfigurationTests(unittest.TestCase):
     def test_expand_div_table_matches_build(self):

@@ -2444,12 +2444,37 @@ before local-alloc, so the def is gone before it can bias anything.
   wrapper was the same mechanism).
 - **A whole-block `if (X) {block} else {block}` with BYTE-IDENTICAL arms is a
   scheduling lever** (permuter-found; no statement reorder reaches it).
-  Duplicating an interleaved multi-load sequence into both arms — even when `X`
-  reads a not-yet-initialised local (harmless, always overwritten before use) —
-  shifts cc1's front-end basic-block/pseudo numbering enough to fix a
-  load-delay-slot interleaving order; the straight-line form was 8 bytes longer
-  with a stray `nop` and a different colour for an unrelated variable
-  (Think1trace).
+  Duplicating an interleaved multi-load sequence into both arms shifts cc1's
+  front-end basic-block/pseudo numbering enough to fix a load-delay-slot
+  interleaving order; the straight-line form was 8 bytes longer with a stray
+  `nop` and a different colour for an unrelated variable (Think1trace).
+  Use an INITIALISED discriminator (`s32 donor = 0`), never an indeterminate
+  read: old cc1 still builds the useful CFG before jump2 merges the arms, while
+  the dead initialisation costs no code (ProcItemNemuri).
+- **An identical-arm discriminator can also be a PREFERENCE DONOR.** Declare it
+  at function scope, initialise it for the artificial `if`, then overwrite it
+  with the real value immediately before a call that wants a particular
+  argument register. The branch and initial value disappear, but the one pseudo
+  has participated in both CFGs and inherited the later call preference.
+  ProcItemNemuri used `s32 bleed_n = 0`, identical arms, then `bleed_n = 2`
+  before `SetBleeds`; this changed allocation without leaving a materialised
+  zero or branch in the final binary.
+- **Measure nested zero-trip-loop weighting instead of guessing its depth.** A
+  statement in N nested `do { ... } while (0)` wrappers receives N extra
+  loop-depth counts per reference. In ProcItemNemuri, putting the split colour
+  construction in three nested wrappers inside BOTH identical arms gave its
+  `env` pseudo 9 weighted refs / 49 live insns, priority 5510, above `wave` at
+  5 / 35, priority 2857; that produced target `$t0`/`$t1`. A shallower wrapper
+  was insufficient. Confirm the exact threshold with
+  `tools/regalloc.py <Name> --compare FIRST SECOND --enclosed-refs N`.
+- **Keep the small scheduling levers around that weighted identical block.** A
+  large literal written as `env = 0x6e0000; env |= 0x6e6e;` exposes separate
+  `lui`/`ori` definitions that can straddle the vanished branch. Assigning a
+  call temp (`bleed_range = 300`) immediately AFTER a duplicated multi-load
+  update lets its hard-register copy fill that update's load delay. And when an
+  `lbu` field feeds a multiply, a full-width named temp can schedule the load
+  early without the `andi 0xff` that an `u8` temp may introduce. These three
+  source shapes were all required by ProcItemNemuri's exact case-2 schedule.
 - **Hoist a shared `result = 0;` default to the function's SINGLE entry, not
   per-branch** — reorg then folds that one store into the very first branch's
   delay slot, shared by every downstream path; writing it separately in each

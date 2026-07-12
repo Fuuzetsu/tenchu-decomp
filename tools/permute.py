@@ -354,15 +354,124 @@ def candidate_sources(work):
     return sorted((path for path in paths if os.path.exists(path)), key=key)
 
 
+def function_definition_span(text, name):
+    """Return the source span of a same-line C function definition.
+
+    Permuter normally retains a complete preprocessed translation unit, but
+    ``--no-context-output`` deliberately writes only the changed function.
+    Finding that definition lets authoritative rescoring put it back into the
+    declarations and typedefs from base.c.  This is intentionally a small C
+    scanner rather than a general parser: the decomp sources put the return
+    type and function name on one line, while delimiter matching ignores
+    comments and quoted strings.
+    """
+    signature = re.compile(
+        rf"^[ \t]*(?!#)[A-Za-z_][\w \t*]*\b{re.escape(name)}[ \t]*\(",
+        re.M,
+    )
+
+    def matching_delimiter(start, opening, closing):
+        depth = 0
+        quote = None
+        escaped = False
+        line_comment = False
+        block_comment = False
+        i = start
+        while i < len(text):
+            char = text[i]
+            pair = text[i:i + 2]
+            if line_comment:
+                if char == "\n":
+                    line_comment = False
+                i += 1
+                continue
+            if block_comment:
+                if pair == "*/":
+                    block_comment = False
+                    i += 2
+                else:
+                    i += 1
+                continue
+            if quote:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = None
+                i += 1
+                continue
+            if pair == "//":
+                line_comment = True
+                i += 2
+                continue
+            if pair == "/*":
+                block_comment = True
+                i += 2
+                continue
+            if char in "\"'":
+                quote = char
+                i += 1
+                continue
+            if char == opening:
+                depth += 1
+            elif char == closing:
+                depth -= 1
+                if depth == 0:
+                    return i
+            i += 1
+        return None
+
+    for match in signature.finditer(text):
+        paren = text.find("(", match.start(), match.end())
+        paren_end = matching_delimiter(paren, "(", ")")
+        if paren_end is None:
+            continue
+        brace = paren_end + 1
+        while brace < len(text) and text[brace].isspace():
+            brace += 1
+        if brace >= len(text) or text[brace] != "{":
+            continue
+        brace_end = matching_delimiter(brace, "{", "}")
+        if brace_end is not None:
+            return match.start(), brace_end + 1
+    return None
+
+
+def contextualize_candidate(name, base, candidate):
+    """Splice a function-only permuter candidate into preprocessed ``base``."""
+    base_span = function_definition_span(base, name)
+    candidate_span = function_definition_span(candidate, name)
+    if base_span is None or candidate_span is None:
+        return None
+    blo, bhi = base_span
+    clo, chi = candidate_span
+    return base[:blo] + candidate[clo:chi] + base[bhi:]
+
+
 def _link_candidate(name, csh, source, scratch, ordinal, linker_text,
-                    original, addr, extent):
+                    original, addr, extent, base_source=None):
     """Compile and fully link one preprocessed candidate; return raw scores."""
     stem = os.path.join(scratch, f"candidate-{ordinal}")
     obj = stem + ".o"
-    compile_result = subprocess.run(
-        [csh, source, "-o", obj], stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE, text=True,
-    )
+    def compile_source(path):
+        return subprocess.run(
+            [csh, path, "-o", obj], stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE, text=True,
+        )
+
+    compile_result = compile_source(source)
+    if compile_result.returncode and base_source and source != base_source:
+        with open(base_source) as stream:
+            base = stream.read()
+        with open(source) as stream:
+            candidate = stream.read()
+        contextualized = contextualize_candidate(name, base, candidate)
+        if contextualized is not None:
+            contextual_source = stem + ".context.c"
+            with open(contextual_source, "w") as stream:
+                stream.write(contextualized)
+            compile_result = compile_source(contextual_source)
     if compile_result.returncode:
         return {"source": source, "error": "compile failed"}
 
@@ -418,7 +527,7 @@ def authoritative_rescore(name, work, csh):
         for ordinal, source in enumerate(sources):
             results.append(_link_candidate(
                 name, csh, source, scratch, ordinal, linker_text,
-                original, addr, extent,
+                original, addr, extent, sources[0],
             ))
 
     valid = sorted((result for result in results if "whole" in result),
