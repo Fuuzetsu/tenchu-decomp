@@ -394,6 +394,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ActJUMP" = ["Me_MOTION_C", "motID", "dtL", "dtM", "dtV", "dtR", "MotionUpdateMode", "D_80097F0E", "dtPAD"]
     syms "SwimCheck" = ["Me_MOTION_C", "motID", "dtM", "dtL", "D_80097F0E", "MotionUpdateMode"]
     syms "ActivateHumans" = ["D_80097F40", "D_80097F44", "D_80097F42", "StageID"]
+    syms "ProcItemNingyo" = ["D_80097AE0", "D_80097F50"]
     syms _ = []
 
 as :: FilePath

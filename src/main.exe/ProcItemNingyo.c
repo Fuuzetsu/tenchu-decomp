@@ -1,5 +1,75 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
+
+typedef struct
+{
+    ModelType *model;
+    VECTOR position;
+    SVECTOR offset;
+    SVECTOR size;
+    void *common;
+    u8 result[64];
+    u8 pad[0x10];
+} ConflictObjectType;
+
+typedef struct
+{
+    void *hint;
+    s16 vx;
+    s16 vy;
+    s16 vz;
+    u8 status;
+    u8 pad;
+    u8 count;
+    u8 hp;
+} param_ningyo;
+
+typedef struct
+{
+    VECTOR TargetVector;
+    Humanoid *Owner;
+    s32 Mode;
+    s16 DirectionRX;
+    s16 DirectionRY;
+    s32 OldMode;
+    u8 Valiation;
+} TCameraStatus;
+
+typedef struct
+{
+    VECTOR v;
+    VECTOR pos;
+} ProcItemNingyoVectors;
+
+typedef union
+{
+    struct
+    {
+        SVECTOR sv;
+        PARAM_ITEM_USE launch;
+    } drop;
+    ProcItemNingyoVectors vectors;
+} ProcItemNingyoScratch;
+
+extern s16 Humans;
+extern TCameraStatus CamState;
+extern Humanoid *HumanGroup[];
+extern ConflictObjectType ConflictObject[];
+extern SVECTOR ConflictDistance;
+extern SVECTOR D_80097AE4[];
+extern u8 D_80097AE0;
+extern ModelType *D_80097F50;
+
+extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern s16 InsertConflict(ModelType *model);
+extern s16 GetConflictResult(ModelType *model, s32 n);
+extern s32 GetVectorDistance(VECTOR *v1, VECTOR *v2);
+extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
+                      int time, long col);
+extern void DrawModel(ModelType *model);
+extern MATRIX *RotMatrixYXZ(SVECTOR *r, MATRIX *m);
+extern MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -46,7 +116,357 @@
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
+/* Matching checkpoint (retail): the pure-C draft has the exact 0x68 frame,
+ * 564 instructions, 33 calls, and target item/param/sentinel homes s3/s4/s5.
+ * `tools/matchdiff.py ProcItemNingyo` reports 504 differing bytes.  The
+ * remaining clusters are the entry Humans-loop schedule, the decoy launch's
+ * s0/s1/s2 rotation, the mode-1 constant schedule, and case-2 cid CFG/color.
+ *
+ * The otherwise-odd one-shot loops are measured allocator/scheduler fences:
+ * the launch fence prevents a stack-address pseudo from occupying s3, while
+ * the dispose fences keep item in the narrow priority window between param
+ * and the later bounce temporary and allow the indirect call's target delay
+ * slots.  They emit no branch or loop instructions. */
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemNingyo", ProcItemNingyo);
+#else
+void ProcItemNingyo(tag_TItem *item)
+{
+    param_ningyo *param;
+    s32 ff;
+    ProcItemNingyoScratch scratch;
+
+    param = (param_ningyo *)item->param;
+    ff = 0xff;
+    if (item->mode == ff)
+    {
+        if (param->hp != 99)
+        {
+            s32 i;
+            s32 n;
+            Humanoid **humans;
+
+            n = Humans;
+            if (n > 0)
+            {
+                s32 limit;
+
+                humans = HumanGroup;
+                i = 0;
+                limit = n;
+                do
+                {
+                    Humanoid *human;
+
+                    human = *humans;
+                    if (human->target == item->locate)
+                    {
+                        human->target = (ModelType *)CamState.Owner->model;
+                    }
+                    i++;
+                    humans++;
+                } while (i < limit);
+            }
+            D_80097AE0 = D_80097AE0 - 1;
+        }
+        item->mode = 0;
+        return;
+    }
+
+    MoveKorogari(item, (param_korogari *)param);
+    if (param->status == 1)
+    {
+        goto dispose;
+    }
+
+    switch (item->mode)
+    {
+    case 0:
+    {
+        s32 count;
+
+        count = param->count - 1;
+        param->count = count;
+        if ((u8)count == 0)
+        {
+            param->count = 0;
+            item->mode = item->mode + 1;
+            scratch.drop.sv = D_80097AE4[0];
+            SetSmoke((VECTOR *)item->locate->locate.coord.t,
+                     &scratch.drop.sv, 10, 6);
+            SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
+            if (D_80097AE0 < 3)
+            {
+                param->hp = 3;
+                D_80097AE0 = D_80097AE0 + 1;
+                goto draw_mode0;
+            }
+            else
+            {
+                Humanoid *owner;
+                s32 type;
+                ModelType *model;
+                VECTOR *position;
+
+                owner = item->owner;
+                type = item->type;
+                model = item->locate;
+                memset((PARAM_ITEM_USE *)&scratch.vectors.v.vz, 0,
+                       sizeof(PARAM_ITEM_USE));
+                if (owner != 0)
+                {
+                    ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
+                }
+                else
+                {
+                    ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
+                }
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->user = owner;
+                position = (VECTOR *)model->locate.coord.t;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vx = position->vx;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vy = position->vy;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vz = position->vz;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vx = rand() % 200 - 100;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vy = rand() % 100 - 200;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vz = rand() % 200 - 100;
+                ReqItemDrop((PARAM_ITEM_USE *)&scratch.vectors.v.vz);
+            }
+        }
+        else
+        {
+            goto draw_mode0;
+        }
+
+dispose:
+        do {
+            do { do { do {
+                if (item->proc == 0)
+                {
+                    return;
+                }
+            } while (0); } while (0); } while (0);
+            item->mode = ff;
+            item->proc(item);
+        } while (0);
+        DeleteConflict(item->locate);
+        if (item->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+        }
+        item->owner = 0;
+        item->proc = 0;
+        return;
+
+draw_mode0:
+        UpdateCoordinate(item->locate);
+        item->model->locate = item->locate->locate;
+        DrawSprite(item->model);
+        return;
+    }
+
+    case 1:
+    {
+        s32 n;
+        s32 size;
+        s32 offset_y;
+        s32 collision_mode;
+
+        param->count = param->count + 1;
+        memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
+        scratch.vectors.pos.vx = param->count << 8;
+        scratch.vectors.pos.vy = param->count << 8;
+        scratch.vectors.pos.vz = param->count << 8;
+        scratch.vectors.v = scratch.vectors.pos;
+        RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
+        ScaleMatrix(&item->locate->locate.coord, &scratch.vectors.v);
+        item->locate->locate.flg = 0;
+        D_80097F50->locate = item->locate->locate;
+        DrawModel(D_80097F50);
+        if (param->count < 16)
+        {
+            return;
+        }
+
+        DeleteConflict(item->locate);
+        n = InsertConflict(item->locate);
+        size = 500;
+        offset_y = -250;
+        collision_mode = 12;
+        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].offset.vx = 0;
+        ConflictObject[n].offset.vz = 0;
+        ConflictObject[n].offset.vy = offset_y;
+        ConflictObject[n].size.vz = size;
+        ConflictObject[n].size.vy = size;
+        ConflictObject[n].size.vx = size;
+        ConflictObject[n].size.pad = collision_mode;
+        item->coll_mode = collision_mode;
+        item->coll_size = size;
+        item->coll_ofsY = offset_y;
+        item->coll_pause = 0;
+        param->count = 3;
+        item->mode = item->mode + 1;
+        return;
+    }
+
+    case 2:
+    {
+        s32 count;
+        s32 cid;
+
+        if ((item->locate->attribute & 0x8000) == 0)
+        {
+            cid = -1;
+        }
+        else
+        {
+            cid = GetConflictResult(item->locate, -1);
+        }
+
+        count = param->count - 1;
+        param->count = count;
+        if ((u8)count == 0)
+        {
+            s32 i;
+            Humanoid **humans;
+
+            i = 0;
+            humans = HumanGroup;
+            while (1)
+            {
+                Humanoid *human;
+                s32 len;
+
+                if (!(i < Humans))
+                {
+                    break;
+                }
+                human = *humans;
+                len = GetVectorDistance(
+                    (VECTOR *)item->locate->locate.coord.t,
+                    human->locate);
+                if (len < 10000 && human->target != 0 &&
+                    len < GetVectorDistance(
+                              (VECTOR *)human->target->locate.coord.t,
+                              human->locate) &&
+                    ((u16)human->type & 0xf0) != 0x80)
+                {
+                    human->target = item->locate;
+                }
+                humans++;
+                i++;
+            }
+            param->count = 30;
+        }
+        else if (cid != -1)
+        {
+            ConflictObjectType *conflict;
+            s32 collision_mode;
+
+            conflict = &ConflictObject[cid];
+            collision_mode = conflict->size.pad;
+            if (collision_mode == 1)
+            {
+                if (param->hp == 0)
+                {
+                    SetBleeds((VECTOR *)item->locate->locate.coord.t,
+                              0, 30, 30, 30, 0xffff00);
+                    SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
+                    if (item->proc != 0)
+                    {
+                        item->mode = 0xff;
+                        item->proc(item);
+                        DeleteConflict(item->locate);
+                        if (item->mode != 0)
+                        {
+                            AdtMessageBox(D_800121CC, item->type,
+                                          (u32)item->mode);
+                        }
+                        item->owner = 0;
+                        item->proc = 0;
+                    }
+                    item->mode = item->mode + 1;
+                }
+                else
+                {
+                    s32 vz;
+                    s32 vx;
+                    u8 hp;
+
+                    memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
+                    scratch.vectors.pos.vx = conflict->position.vx;
+                    scratch.vectors.pos.vy = conflict->position.vy;
+                    scratch.vectors.pos.vz = conflict->position.vz;
+                    scratch.vectors.v = scratch.vectors.pos;
+                    vx = -ConflictDistance.vx;
+                    do
+                    {
+                        if (vx < 0)
+                        {
+                            vx += 15;
+                        }
+                    } while (0);
+                    vz = -ConflictDistance.vz;
+                    if (vz < 0)
+                    {
+                        vz += 15;
+                    }
+                    hp = param->hp;
+                    param->vx = vx >> 4;
+                    param->vy = -100;
+                    param->vz = vz >> 4;
+                    param->hint = 0;
+                    param->status = 0;
+                    param->hp = hp - 1;
+                    SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
+                }
+            }
+            else if (collision_mode != 8)
+            {
+                s32 random_x;
+                s32 random_z;
+                s32 vx;
+                s32 vy;
+                s32 vz;
+                s16 xbase;
+                s16 xrem;
+
+                random_x = rand();
+                vx = -ConflictDistance.vx;
+                if (vx < 0)
+                {
+                    vx += 7;
+                }
+                xbase = vx >> 3;
+                xrem = random_x % 20;
+                vy = 0;
+                if (-501 < ConflictDistance.vy)
+                {
+                    vy = -100;
+                }
+                random_z = rand();
+                vz = -ConflictDistance.vz;
+                if (vz < 0)
+                {
+                    vz += 7;
+                }
+                param->vx = xbase + xrem - 10;
+                param->vy = vy;
+                param->hint = 0;
+                param->status = 0;
+                param->vz = (vz >> 3) + random_z % 20 - 10;
+            }
+        }
+
+        UpdateCoordinate(item->locate);
+        D_80097F50->locate = item->locate->locate;
+        DrawModel(D_80097F50);
+        return;
+    }
+    }
+    return;
+}
+#endif
 
 // triage: HARD — 564 insns, mul/div, 4 loop, indirect-call, 17 callees, ~0.16 to ProcItemHappou
 // likely-relevant cookbook sections:
