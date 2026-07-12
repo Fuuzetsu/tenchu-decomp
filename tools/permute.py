@@ -230,6 +230,7 @@ GP_EXTERNS = {
     "FUN_8003562c": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "ProcItemHenshin": ["D_80097AEC", "D_80097AF0"],
     "ActJUMP": ["Me_MOTION_C", "motID", "dtL", "dtM", "dtV", "dtR", "MotionUpdateMode", "D_80097F0E", "dtPAD"],
+    "SwimCheck": ["Me_MOTION_C", "motID", "dtM", "dtL", "D_80097F0E", "MotionUpdateMode"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
@@ -277,6 +278,7 @@ MASPSX_EXTRA = {
     "ProcItemJirai": ["--expand-div"],
     "DrawBlood": ["--expand-div"],
     "FUN_8003562c": ["--expand-div"],
+    "SwimCheck": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

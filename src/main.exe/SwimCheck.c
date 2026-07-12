@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,16 +35,168 @@
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SwimCheck", SwimCheck);
+typedef struct
+{
+    ModelType *model;
+    VECTOR position;
+    SVECTOR offset;
+    SVECTOR size;
+    void *common;
+    u8 result[64];
+    u8 pad[0x10];
+} SwimConflictObject;
 
-// triage: HARD — 216 insns, mul/div, 2 loop, 11 callees, ~0.10 to FUN_80027304
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+typedef struct
+{
+    Humanoid *human;
+    u8 pad4[4];
+} SwimHumanAnim;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+extern Humanoid *Me_MOTION_C;
+extern Humanoid *StagePlayer;
+extern MotionManager *dtM;
+extern VECTOR *dtL;
+extern s16 motID;
+extern s16 D_80097F0E;
+extern s16 ActionHalt;
+extern s16 MotionUpdateMode;
+extern SwimConflictObject ConflictObject[64];
+extern SwimHumanAnim CVAhuman[5];
+
+extern void SetSplash(VECTOR *pos, short sx, short sy, short count);
+extern void AttackCancelControl(short mode);
+extern void SetCameraMode(short mode);
+extern void PadShockAR(short port, short power, short time, short mode);
+extern void FUN_800270f8(Humanoid *human, short hide);
+extern short GetMotionID(MotionManager *mmp, short mid);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
+extern void Sound(Humanoid *human, short id);
+extern void ReqLifeBar(Humanoid *human);
+extern void reset_alert_duration(void);
+
+short SwimCheck(void)
+{
+    short status;
+    short i;
+    short j;
+    VECTOR splash;
+    VECTOR *locate;
+    int object_id;
+    int r;
+    u16 motion;
+    long width;
+
+    if (Me_MOTION_C->map.height <= 0)
+    {
+        if ((Me_MOTION_C->attrib & 4) == 0)
+        {
+            return 0;
+        }
+        status = Me_MOTION_C->status;
+        if (status == 4)
+        {
+            return 0;
+        }
+        if (status == 3)
+        {
+            goto return_one;
+        }
+        if (status == 0x11)
+        {
+            if (motID == 0x1108)
+            {
+                goto return_one;
+            }
+            if (dtM->loop == -1)
+            {
+                return 0;
+            }
+        }
+
+        if (Me_MOTION_C->status != 0xb)
+        {
+            object_id = (*Me_MOTION_C->model->object)->id;
+            if (object_id >= 0)
+            {
+                locate = dtL;
+                dtL->vx = ConflictObject[object_id].position.vx;
+                locate->vz = ConflictObject[object_id].position.vz;
+            }
+        }
+
+        splash.vy = Me_MOTION_C->map.level;
+        i = 0;
+        do
+        {
+            r = rand();
+            width = Me_MOTION_C->width;
+            splash.vx = dtL->vx + (r % width) * 2 - width;
+            r = rand();
+            width = Me_MOTION_C->width;
+            splash.vz = dtL->vz + (r % width) * 2 - width;
+            SetSplash(&splash, (rand() & 7) << 12,
+                      (rand() & 7) << 12, 6);
+            i++;
+        } while (i < 20);
+
+        AttackCancelControl(3);
+        if (Me_MOTION_C == StagePlayer)
+        {
+            SetCameraMode(8);
+            PadShockAR(0, 0xff, 10, 0);
+        }
+        ActionHalt = 0;
+        FUN_800270f8(Me_MOTION_C, 1);
+        motion = GetMotionID(dtM, 0x300);
+        if ((s16)motion < 0 || Me_MOTION_C->life == 0)
+        {
+            motID = 0x1108;
+            D_80097F0E = 1;
+            Sound(Me_MOTION_C, 8);
+            Me_MOTION_C->life = 0;
+            ReqLifeBar(Me_MOTION_C);
+        }
+        else
+        {
+            motID = 0x300;
+            D_80097F0E = 1;
+        }
+
+        if (MotionUpdateMode != 0)
+        {
+            j = 0;
+            do
+            {
+                if (CVAhuman[j].human == Me_MOTION_C)
+                {
+                    goto motion_done;
+                }
+                j++;
+            } while (j < 5);
+        }
+        SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
+        D_80097F0E = -1;
+    motion_done:
+        Sound(Me_MOTION_C, 0x16);
+        reset_alert_duration();
+        goto return_one;
+    }
+    return 0;
+return_one:
+    return 1;
+}
+
+/* Matching notes:
+ * - Keep the two color rand() calls inside SetSplash's arguments.  cc1 then
+ *   materializes the first shifted color across the second call, exactly as
+ *   the retail scheduler does.
+ * - The two loop counters are distinct locals: sharing one makes the later
+ *   CVAhuman scan inherit the splash loop's callee-saved register.
+ * - Assigning the dtL alias only in the successful conflict-object arm keeps
+ *   its gp load at the target's first actual use.
+ */
+
+// Ghidra decompilation (reference):
 //
 //
 // /* WARNING: Unknown calling convention -- yet parameter storage is locked */
