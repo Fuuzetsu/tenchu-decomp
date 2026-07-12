@@ -53,6 +53,21 @@ def linked_text_size(name):
     return total
 
 
+def linked_nonmatching_stub(name):
+    """Whether the current map links `<name>.NON_MATCHING` from INCLUDE_ASM.
+
+    Guarded drafts deliberately give their default asm body this label.  It is
+    a stronger artifact check than inspecting timestamps or generated source:
+    a concurrent/default build can replace the candidate after `-n` was chosen,
+    but the final linked map records what actually supplied the bytes.
+    """
+    if not os.path.exists(MAP):
+        return False
+    marker = re.compile(r"\b" + re.escape(name) + r"\.NON_MATCHING\b")
+    with open(MAP, errors="replace") as stream:
+        return any(marker.search(line) for line in stream)
+
+
 def is_carved(name):
     """True iff a `c` subsegment exists for `name`.
 
@@ -203,6 +218,16 @@ def main():
             # error looked identical from here.
             sys.exit(f"matchdiff: ./Build FAILED (rc={r.returncode}), "
                      f"log: {BUILD_LOG}\n{tail}")
+
+    srcp = os.path.join("src/main.exe", args.name + ".c")
+    guarded = os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read()
+    if guarded and linked_nonmatching_stub(args.name):
+        sys.exit(
+            f"matchdiff: current image links {args.name}.NON_MATCHING — the "
+            "INCLUDE_ASM stub, not the guarded C draft. This byte match would "
+            "be trivial/stale. Rebuild the draft without -n (and ensure no "
+            "concurrent plain Build replaces it)."
+        )
 
     addr, size = symbol_slot(args.name)
 

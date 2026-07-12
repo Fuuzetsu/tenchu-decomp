@@ -1725,6 +1725,129 @@ def rule_loop_range(text, name, span):
                 )
 
 
+def _one_shot_loop(data, statement):
+    """The compound body of `do { ... } while (0)`, or None."""
+    if statement.type != "do_statement":
+        return None
+    condition = _unparen(statement.child_by_field_name("condition"))
+    loop_body = statement.child_by_field_name("body")
+    if (condition is None or condition.type != "number_literal" or
+            _txt(data, condition).strip() not in (b"0", b"0x0") or
+            loop_body is None or loop_body.type != "compound_statement"):
+        return None
+    return loop_body
+
+
+def rule_loop_boundary_shift(text, name, span):
+    """Move the following statement inside an existing one-shot loop.
+
+    `do { A; } while (0); B;` and `do { A; B; } while (0);` execute the same
+    statements once, but the latter moves NOTE_INSN_LOOP_END from before B to
+    after it.  gcc-2.8.1 sched treats the first instruction after LOOP_END as a
+    full register/memory fence.  This is a distinct lever from wrapping a new
+    range.  Reject captured break/continue/labels and declarations so moving B
+    cannot change its control-flow target or scope.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    forbidden = ("break_statement", "case_statement", "continue_statement",
+                 "labeled_statement")
+    eligible = {"compound_statement", "expression_statement", "if_statement",
+                "return_statement", "switch_statement", "while_statement"}
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for loop, following in zip(statements, statements[1:]):
+            loop_body = _one_shot_loop(data, loop)
+            if loop_body is None or following.type not in eligible:
+                continue
+            if _find(loop_body, forbidden) or _find(following, forbidden):
+                continue
+            lines = (_line(data, loop.start_byte), _line(data, following.start_byte))
+            if not any(_guided_site(line) for line in lines):
+                continue
+            close = loop_body.end_byte - 1
+            close_line = data.rfind(b"\n", loop_body.start_byte, close) + 1
+            indent = _indent_at(data, loop.start_byte)
+            moved = _txt(data, following).strip().replace(b"\n", b"\n    ")
+            inserted = indent + b"    " + moved + b"\n"
+            changed_loop = (data[loop.start_byte:close_line] + inserted +
+                            data[close_line:loop.end_byte])
+            # Consume the whitespace between the loop and B, but retain the
+            # indentation already preceding the loop's own start byte.
+            repl = changed_loop
+            yield (
+                f"loop-boundary-shift L{lines[0]}<-L{lines[1]}",
+                splice(data, loop.start_byte, following.end_byte, repl).decode(),
+            )
+
+
+def _guaranteed_defs(data, statement):
+    """Plain locals assigned on every path through one statement."""
+    direct = _plain_assignment(data, statement)
+    if direct is not None:
+        return [direct[0]]
+    loop_body = _one_shot_loop(data, statement)
+    if loop_body is None:
+        return []
+    out = []
+    for child in [c for c in loop_body.named_children if c.type != "comment"]:
+        out.extend(_guaranteed_defs(data, child))
+    return out
+
+
+def rule_identical_arm_fence(text, name, span):
+    """Duplicate one expression statement into byte-identical if/else arms.
+
+    jump optimization removes the branch, but the temporary CFG can fence
+    sched/CSE without assigning loop-depth weight to the statement's operands.
+    Conditions come only from nonvolatile locals either used by the statement
+    already or unconditionally defined in the three preceding statements; no
+    new uninitialised discriminator is invented.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for index, statement in enumerate(statements):
+            if statement.type != "expression_statement":
+                continue
+            line = _line(data, statement.start_byte)
+            if not _guided_site(line):
+                continue
+            assigned = _plain_assignment(data, statement)
+            lhs = assigned[0] if assigned is not None else None
+            candidates = []
+            for ident in _find(statement, ("identifier",)):
+                token = _txt(data, ident)
+                if token in locals_ and token != lhs and token not in candidates:
+                    candidates.append(token)
+            for previous in reversed(statements[max(0, index - 3):index]):
+                for token in reversed(_guaranteed_defs(data, previous)):
+                    if token in locals_ and token != lhs and token not in candidates:
+                        candidates.append(token)
+            if not candidates:
+                continue
+            indent = _indent_at(data, statement.start_byte)
+            original = _txt(data, statement).strip().replace(b"\n", b"\n    ")
+            for discriminator in candidates[:4]:
+                repl = (
+                    b"if (" + discriminator + b" != 0)\n" + indent + b"{\n" +
+                    indent + b"    " + original + b"\n" + indent + b"}\n" +
+                    indent + b"else\n" + indent + b"{\n" + indent + b"    " +
+                    original + b"\n" + indent + b"}"
+                )
+                yield (
+                    f"identical-arm-fence {discriminator.decode()} L{line}",
+                    splice(data, statement.start_byte, statement.end_byte,
+                           repl).decode(),
+                )
+
+
 def rule_case_fence(text, name, span):
     """Respell a two-arm if as a two-way switch with a real case label.
 
@@ -1792,6 +1915,8 @@ AGGRESSIVE_RULES = [
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
+    ("loop-boundary-shift", "move the next statement across an existing LOOP_END", rule_loop_boundary_shift),
+    ("identical-arm-fence", "duplicate one statement into zero-code identical arms", rule_identical_arm_fence),
     ("case-fence", "if/else -> two-way switch (hard cross-jump CODE_LABEL)", rule_case_fence),
 ]
 

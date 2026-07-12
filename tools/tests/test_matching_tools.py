@@ -17,6 +17,7 @@ if TOOLS not in sys.path:
 
 import autorules
 import matchlock
+import matchdiff
 import maspsxflags
 import permute
 import regalloc
@@ -88,6 +89,37 @@ class AutoRulesAdvancedTests(unittest.TestCase):
 }
 """
         self.assertEqual(self.candidates(autorules.rule_loop_range, source), [])
+
+    def test_loop_boundary_shift_moves_next_statement_before_loop_end(self):
+        source = """int F(int x) {
+    int y;
+    do {
+        x++;
+    } while (0);
+    y = x + 1;
+    return y;
+}
+"""
+        out = self.candidates(autorules.rule_loop_boundary_shift, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertLess(candidate.index("y = x + 1;"), candidate.index("while (0);"))
+
+    def test_identical_arm_fence_uses_initialized_local(self):
+        source = """int F(int input) {
+    int id;
+    int value;
+    id = input;
+    value = input + 1;
+    return value;
+}
+"""
+        out = self.candidates(autorules.rule_identical_arm_fence, source)
+        candidates = [text for label, text in out
+                      if label.startswith("identical-arm-fence id ")]
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].count("value = input + 1;"), 2)
+        self.assertIn("if (id != 0)", candidates[0])
 
     def test_vector_fields_collapse_to_aggregate_copy(self):
         source = """typedef struct { long vx, vy, vz, pad; } VECTOR;
@@ -452,6 +484,25 @@ class RtlGuideTests(unittest.TestCase):
         self.assertEqual(rtlguide.known_residual_signatures([h]),
                          ["adjacent-independent-load-order"])
 
+    def test_loop_boundary_lines_parse_first_post_loop_statement(self):
+        dump = """;; Function F
+(note 10 9 11 \"\" NOTE_INSN_LOOP_END)
+(note 11 10 12 (\"src/F.c\") 44)
+(insn 12 11 13 (set (reg:SI 2) (const_int 1)))
+(note 13 12 14 (\"src/F.c\") 45)
+(insn 14 13 15 (set (reg:SI 3) (const_int 2)))
+"""
+        with tempfile.NamedTemporaryFile("w+", suffix=".sched", delete=False) as f:
+            path = f.name
+            f.write(dump)
+        try:
+            self.assertEqual(
+                rtlguide.loop_boundary_source_lines([path], "F"),
+                {"sched": [44]},
+            )
+        finally:
+            os.unlink(path)
+
     def test_known_commutative_plus_destination_signature(self):
         h = self.hunk(["addu a0,a0,v1", "sw a0,0(gp)"],
                       ["addu v1,v1,a0", "sw v1,0(gp)"])
@@ -608,6 +659,23 @@ class RtlGuideTests(unittest.TestCase):
         out = rtlguide._jsonable(report)
         self.assertNotIn("target", out)
         self.assertEqual(out["hunks"][0]["target"], [[1, "nop"]])
+
+
+class MatchDiffArtifactTests(unittest.TestCase):
+    def test_nonmatching_stub_is_detected_from_link_map(self):
+        content = """
+ .text 0x80012340 0x20 .shake/build/main.exe/F.c.o
+                0x80012340                F.NON_MATCHING
+"""
+        with tempfile.NamedTemporaryFile("w+", delete=False) as f:
+            path = f.name
+            f.write(content)
+        try:
+            with mock.patch.object(matchdiff, "MAP", path):
+                self.assertTrue(matchdiff.linked_nonmatching_stub("F"))
+                self.assertFalse(matchdiff.linked_nonmatching_stub("Other"))
+        finally:
+            os.unlink(path)
 
 
 class MaspsxFlagsTests(unittest.TestCase):

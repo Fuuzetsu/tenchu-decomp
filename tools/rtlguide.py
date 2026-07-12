@@ -78,6 +78,7 @@ CATEGORY_RULES = {
     "regalloc": [
         "type-width", "cmp-polarity", "loop-fence", "loop-range", "split-chain",
         "or-inplace", "add-prefix-temp", "flag-arm-assign",
+        "identical-arm-fence",
     ],
     "cse/coalescing": [
         "type-width", "loop-fence", "loop-range", "temp-inline",
@@ -87,6 +88,7 @@ CATEGORY_RULES = {
     "schedule/delay": [
         "type-width", "loop-fence", "loop-range", "cmp-swap", "cmp-polarity",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign",
+        "loop-boundary-shift", "identical-arm-fence",
     ],
     "combine/expression": [
         "abs-ge", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
@@ -103,6 +105,11 @@ LOAD_OPS = {"lb", "lbu", "lh", "lhu", "lw", "lwl", "lwr"}
 STORE_OPS = {"sb", "sh", "sw", "swl", "swr"}
 
 SIGNATURE_HINTS = {
+    "adjacent-independent-load-order": (
+        "do not assume independence: compare .combine -> .sched -> .sched2, "
+        "then inspect LOG_LINKS and nearby LOOP_END notes; try boundary-shift "
+        "or an identical-arm fence before parking"
+    ),
     "copy-then-inplace-adjust": (
         "target stores a stack field before overwriting it with an adjusted value; "
         "try explicit fieldwise copy followed by an in-place +=/-= adjustment"
@@ -615,6 +622,46 @@ def pass_stats(paths, name=None):
     return stats
 
 
+def loop_boundary_source_lines(paths, name=None):
+    """Source lines whose first RTL insn follows NOTE_INSN_LOOP_END.
+
+    gcc-2.8.1 sched turns that first post-loop instruction into a full pending
+    register/memory fence.  This makes an apparent adjacent-load reorder a real
+    dependency rather than a scheduler tie (DefaultActionHumanoid).
+    """
+    result = {}
+    source_note = re.compile(r'^\(note .*\(".*\.c"\)\s+(\d+)\)')
+    real_insn = re.compile(r"^\((?:insn|jump_insn|call_insn)\b")
+    for path in paths:
+        suffix = _dump_suffix(path)
+        if suffix not in {"sched", "sched2"}:
+            continue
+        with open(path, errors="replace") as stream:
+            text = _rtl_function(stream.read(), name)
+        pending = False
+        current_line = None
+        found = set()
+        for raw in text.splitlines():
+            if "NOTE_INSN_LOOP_END" in raw:
+                pending = True
+                current_line = None
+                continue
+            if not pending:
+                continue
+            note = source_note.match(raw)
+            if note:
+                current_line = int(note.group(1))
+                continue
+            if real_insn.match(raw):
+                if current_line is not None:
+                    found.add(current_line)
+                pending = False
+                current_line = None
+        if found:
+            result[suffix] = sorted(found)
+    return result
+
+
 def _rtl_forms(text, kind):
     """Yield balanced top-level RTL forms beginning with `(<kind>`."""
     for match in re.finditer(rf"^\({re.escape(kind)}\b", text, re.M):
@@ -756,6 +803,7 @@ def diagnose(name, build=True, rtl=True):
         guide["variables_by_register"] = {}
         guide["pass_stats"] = {}
         guide["call_rtl_evidence"] = []
+        guide["loop_boundary_source_lines"] = {}
         return guide
 
     src = os.path.join("src", "main.exe", name + ".c")
@@ -767,6 +815,9 @@ def diagnose(name, build=True, rtl=True):
     _attach_lines(guide, mapped)
     guide["variables_by_register"] = parse_debug_variables(result["asm"], name)
     guide["pass_stats"] = pass_stats(result["dumps"], name)
+    guide["loop_boundary_source_lines"] = loop_boundary_source_lines(
+        result["dumps"], name
+    )
     guide["call_rtl_evidence"] = call_rtl_evidence(
         result["dumps"], guide["target_only_calls"], name
     )
@@ -843,6 +894,21 @@ def print_report(g, max_hunks=12):
             hint = SIGNATURE_HINTS.get(signature)
             if hint:
                 print(f"    {signature}: {hint}")
+        if "adjacent-independent-load-order" in g["known_residual_signatures"]:
+            residual_lines = set(g.get("source_lines", []))
+            nearby = {}
+            for rtl_pass, lines in g.get("loop_boundary_source_lines", {}).items():
+                hits = [line for line in lines if any(
+                    abs(line - residual) <= 2 for residual in residual_lines
+                )]
+                if hits:
+                    nearby[rtl_pass] = hits
+            if nearby:
+                evidence = "  ".join(
+                    f".{rtl_pass} L{','.join(map(str, lines))}"
+                    for rtl_pass, lines in sorted(nearby.items())
+                )
+                print("    LOOP_END fence evidence near residual: " + evidence)
         print("    confirm the named RTL pass and bounded source levers before parking")
 
     for n, h in enumerate(g["hunks"][:max_hunks], 1):

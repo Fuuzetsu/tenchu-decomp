@@ -208,14 +208,17 @@ The ordered triage — fix categories in THIS order, re-running
        iterations flat at 460, after trying guard-polarity inversion, literal
        Ghidra nesting, named temps and a `do{}while(0)` wrapper. Recognize and
        stop after one bounded run.
-     - **Two adjacent independent loads in the opposite order are a `.sched2`
-       tie once every consumer/register agrees.** If target and draft contain
-       the same two loads into the same hard registers and only their order is
-       reversed, declaration order, narrow/wide temps, and loop-note fences can
-       easily perturb unrelated allocation without changing sched2's ready-list
-       choice. DefaultActionHumanoid is exact-length with only this 6-byte
-       residual after those levers were exhausted. Record the scheduler cause
-       and park; do not contort proven field types to chase it.
+     - **Two adjacent loads in opposite order are NOT proven independent by the
+       final assembly.** Compare their order through `.combine -> .sched ->
+       .sched2`, inspect the candidate's sched `LOG_LINKS`, and look for a nearby
+       `NOTE_INSN_LOOP_END` before declaring a tie. gcc-2.8.1 makes the first
+       post-LOOP_END insn a full pending register/memory fence. In
+       DefaultActionHumanoid, `.combine` had `size, y, id`; sched1 changed it to
+       `size, id, y` because `size` consumed that fence. Moving a full-width id
+       capture between two nested loop ends gave `pointer, id, size`; duplicating
+       the y load into identical arms fenced it without adding loop weight, and
+       matched all 2624 bytes. Only park an adjacent-load residual after the
+       pass-order and dependency checks show a genuine equal ready-list choice.
      - **A dead constant scratch feeding one narrow store can be a reload/reorg
        hard-register choice.** When length, CFG, schedule, opcodes, and every
        surrounding register agree, but `li R,K; sb R,off(base)` uses `$v1` in
@@ -239,10 +242,13 @@ The ordered triage — fix categories in THIS order, re-running
        it into the shared sign-extension tail (or merge even more). Once the
        desired pre-jump2 RTL is proven and all safe CODE_LABEL layouts are flat,
        preserve the pure-C draft rather than forcing the jump.
-     - **Mechanical detection:** `rtlguide` names the first two signatures above
-       as `adjacent-independent-load-order` and
-       `commutative-plus-destination`. Those labels are triage hints; the pass
-       dump and bounded experiments remain the proof.
+     - **Mechanical detection:** `rtlguide` retains the historical
+       `adjacent-independent-load-order` signature name, but now warns that it
+       is only a hypothesis and reports nearby post-LOOP_END source lines from
+       `.sched`/`.sched2`. It also names `commutative-plus-destination`.
+       `autorules --guided` can try `loop-boundary-shift` and
+       `identical-arm-fence`; the pass dump and bounded experiments remain the
+       proof.
      - **BUT the permuter is stronger than this section's tone implies — do not
        skip it when the residual is the SAME LENGTH as the target.** It has since
        cracked: a 5-byte register tie (`FUN_800568b8`, ~400 iters), a 61-byte
@@ -1633,7 +1639,10 @@ debug line notes, and reports:
 
 `tools/rtlguide.py <Name> --json` exposes the same report to other tools.
 `--no-build` is only safe when the current `.shake` image is already the
-NON_MATCHING draft, not the default INCLUDE_ASM stub.
+NON_MATCHING draft, not the default INCLUDE_ASM stub. `matchdiff` now checks
+the linked map for `<Name>.NON_MATCHING` and refuses that stale/trivial artifact
+even with `-n`; this caught a concurrent default build that briefly made an
+unmatched guarded draft appear byte-exact.
 
 There is necessarily no "target RTL" to diff: the retail executable contains
 only machine code. Target assembly is therefore the specification; our RTL is
@@ -2467,7 +2476,12 @@ before local-alloc, so the def is gone before it can bias anything.
   gets REG_LIVE_LENGTH×2 — raw parms lose allocation races their ref counts
   say they should win (AddMisc).
 - **Loop notes are scheduler barriers** (sched adds artificial deps at
-  LOOP_BEG/END): a do{}while(0) weight lever must ENCLOSE any insn that has
+  LOOP_BEG/END): the FIRST real insn after `NOTE_INSN_LOOP_END` receives a full
+  pending-register/pending-memory dependency (`reg_pending_sets_all`), so moving
+  one source statement across an existing one-shot loop boundary can reverse
+  apparently independent loads. `autorules`' guided `loop-boundary-shift`
+  mechanically tries `do { A; } while (0); B;` ->
+  `do { A; B; } while (0);`. More generally, a do{}while(0) weight lever must ENCLOSE any insn that has
   to float across it, and must extend past a switch's tail if a case arm
   jumps out of the note range — otherwise jump.c moves that arm's block to
   the function end (AddMisc).
@@ -2520,6 +2534,13 @@ before local-alloc, so the def is gone before it can bias anything.
   Use an INITIALISED discriminator (`s32 donor = 0`), never an indeterminate
   read: old cc1 still builds the useful CFG before jump2 merges the arms, while
   the dead initialisation costs no code (ProcItemNemuri).
+  When a loop fence fixes scheduling but rotates registers by weighting the
+  enclosed loads, prefer an already-initialised live local as the discriminator:
+  `if (id) y = p->y; else y = p->y;`. DefaultActionHumanoid used this exact
+  zero-code CFG fence after nested LOOP_ENDs; it retained the target `$a1/$a2`
+  allocation where wrapping `y` in a third one-shot loop swapped them.
+  Guided `identical-arm-fence` enumerates only nonvolatile locals already used
+  by the statement or unconditionally defined in the preceding statements.
 - **An identical-arm discriminator can also be a PREFERENCE DONOR.** Declare it
   at function scope, initialise it for the artificial `if`, then overwrite it
   with the real value immediately before a call that wants a particular
