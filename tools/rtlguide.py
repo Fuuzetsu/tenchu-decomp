@@ -122,6 +122,12 @@ SIGNATURE_HINTS = {
         "target reuses a comparison register for 0/1 branch-delay definitions; "
         "assign the flag at the end of each arm, after that arm's comparisons"
     ),
+    "path-result-copy-join": (
+        "target preserves a path-produced value through two distinct pseudos "
+        "before testing it, while the candidate coalesces the second copy; "
+        "split the path result from the final flag at the CFG join, then inspect "
+        ".lreg/.greg before trying a bounded liveness fence"
+    ),
     "builtin-abs-inline": (
         "candidate calls abs but target has bgez/negu inline; spell the site "
         "__builtin_abs(...) because the matching cc1 receives -fno-builtin"
@@ -437,6 +443,50 @@ def _postincrement_working_copy(target, ours):
     return False
 
 
+def _path_result_copy_join(target, ours):
+    """Target ``move A,B; move B,A; branch B`` vs coalesced candidate.
+
+    The apparently redundant round trip is the final assembly trace of two
+    source pseudos meeting at a control-flow join.  A candidate that has only
+    ``move A,B; branch A`` has combined the path result with the final flag.
+    Keep this deliberately narrow: both copies must be exact reversals and the
+    consumer must be a zero-test branch.
+    """
+    def roundtrip(stream):
+        for i in range(len(stream) - 2):
+            first = stream[i][1]
+            second = stream[i + 1][1]
+            branch = stream[i + 2][1]
+            first_regs = registers(first)
+            second_regs = registers(second)
+            branch_regs = registers(branch)
+            if (mnemonic(first) == mnemonic(second) == "move" and
+                    len(first_regs) >= 2 and len(second_regs) >= 2 and
+                    second_regs[:2] == list(reversed(first_regs[:2])) and
+                    mnemonic(branch) in {"beqz", "bnez"} and
+                    branch_regs[:1] == second_regs[:1]):
+                return tuple(first_regs[:2])
+        return None
+
+    pair = roundtrip(target)
+    if pair is None or roundtrip(ours) is not None:
+        return False
+    destination, source = pair
+    for i in range(len(ours) - 1):
+        move_regs = registers(ours[i][1])
+        if mnemonic(ours[i][1]) != "move" or tuple(move_regs[:2]) != pair:
+            continue
+        for _addr, consumer in ours[i + 1:min(i + 4, len(ours))]:
+            consumer_regs = registers(consumer)
+            if (mnemonic(consumer) in {"beqz", "bnez"} and
+                    consumer_regs[:1] == [destination]):
+                return True
+            if (mnemonic(consumer) == "move" and
+                    consumer_regs[:2] == [source, destination]):
+                break
+    return False
+
+
 def _call_result_argument_pipeline(target, ours):
     """Target keeps first call result across a second call via its delay slot."""
     def has_pipeline(stream):
@@ -475,6 +525,8 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
             found.append("copy-then-inplace-adjust")
         if _post_comparison_flag(target_stream, ours_stream):
             found.append("post-comparison-flag-definition")
+        if _path_result_copy_join(target_stream, ours_stream):
+            found.append("path-result-copy-join")
         if _builtin_abs_gap(target_stream, ours_stream):
             found.append("builtin-abs-inline")
         if _call_result_argument_pipeline(target_stream, ours_stream):

@@ -705,6 +705,36 @@ class RtlGuideTests(unittest.TestCase):
             ["post-comparison-flag-definition"],
         )
 
+    def test_known_path_result_copy_join_signature(self):
+        target = [
+            (0x1000, "move v1,v0"),
+            (0x1004, "move v0,v1"),
+            (0x1008, "beqz v0,0x1040"),
+        ]
+        ours = [
+            (0x1000, "move v1,v0"),
+            (0x1004, "beqz v1,0x1040"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            ["path-result-copy-join"],
+        )
+
+    def test_path_result_copy_join_rejects_unrelated_moves(self):
+        target = [
+            (0x1000, "move v1,v0"),
+            (0x1004, "move v0,v1"),
+            (0x1008, "beqz v0,0x1040"),
+        ]
+        ours = [
+            (0x1000, "move a0,v0"),
+            (0x1004, "beqz a0,0x1040"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            [],
+        )
+
     def test_known_builtin_abs_signature(self):
         target = [
             (0x1000, "bgez a0,0x1010"),

@@ -2249,6 +2249,36 @@ register conflict (ProcItemNinken's final three-byte tie). `rtlguide` reports
 `flag-arm-assign` rewrite only when the local is nonvolatile, the arm does not
 read it, and no early exit can bypass the moved assignment.
 
+### Split a path-produced result from the final flag at its CFG join
+
+A target sequence such as `move v1,v0; move v0,v1; beqz v0,...` is not random
+redundancy.  It records two distinct pseudos: a value produced only by the
+computed paths is copied into the flag that all paths test.  If the candidate
+has only `move v1,v0; beqz v1,...`, cc1 has coalesced those roles.
+
+Keep the entry/default result and the path-computed result separate, and funnel
+only the computed paths through one join before assigning the final flag:
+
+```c
+if (entry_case) {
+    active = initial_active;
+    goto active_done;
+}
+computed_active = expensive_path_test();
+computed_active_done:
+active = computed_active;
+active_done:
+if (active) ...
+```
+
+This is a CFG and liveness lever, not merely a rename.  In `ActivateHumans` it
+recovered the target's path-result register and first join copy, reducing the
+draft from 1,004 to 740 differing bytes while retaining the exact 1,608-byte
+length and 0x68-byte frame.  The compiler still coalesced the final reverse
+copy, so do not escalate automatically to `volatile`: confirm the copy chain in
+`.lreg`/`.greg`, try at most a bounded zero-code liveness fence, and park a flat
+result.  `rtlguide` detects this narrow residual as `path-result-copy-join`.
+
 ### Which zero-initialised local is the "master" decides the whole allocation
 
 When several locals are zeroed together, one is literally assigned the constant and
