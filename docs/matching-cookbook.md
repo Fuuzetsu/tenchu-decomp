@@ -2453,6 +2453,13 @@ before local-alloc, so the def is gone before it can bias anything.
   rotate the caller-saved registers even though the load/store addresses are
   identical (ProcItemKaengeki). Cache a pointer only when the target keeps it
   live or reuses it; direct chains are also an allocation lever.
+  The useful boundary can be the **enclosing object**, not the final member:
+  ProcSightShot needed `ModelArchiveType *model = owner->model;` and then
+  `&model->rotate`. Precomputing `SVECTOR *model_rot = &model->rotate` created
+  a second address pseudo, changed the owner→model chain from `$a1` to
+  `$v1/$v0`, and inserted one hazard `nop`. When `rtlguide` points at a
+  pointer-chain CSE knot, name each possible prefix boundary separately; do
+  not assume the deepest pointer is the best cache.
 - **A pool-search cursor and its post-`found:` continuation can be a SEPARATE
   pseudo that's invisible under low register pressure.** Write the loop cursor
   as `cur = items + COUNTER…;`, then `it = cur;` assigned exactly twice — in
@@ -2607,8 +2614,20 @@ before local-alloc, so the def is gone before it can bias anything.
   real allocnos with their computed priority, and can quantify a proposed
   reweighting: `--compare FIRST SECOND` reports the exact additional weighted
   refs needed; `--enclosed-refs N` converts that delta into wrapper depths when
-  one proposed fence encloses N uses. The comparison assumes equal register
+  one proposed fence encloses N uses. `--between SUBJECT LOWER UPPER` handles
+  the harder three-way case: it reports the exact weighted-ref interval and
+  wrapper-depth interval that keeps SUBJECT above LOWER but below UPPER. The
+  comparison assumes equal register
   mode/size—use the dump, not the number alone, for mixed-mode pseudos.
+- **Sometimes the target is a priority WINDOW, not an outrank relation.** In
+  ProcItemNingyo, the saved-register order required
+  `param=4901 < item=4964 < bounce=5000`; +2 weighted refs left `item` too low
+  and +4 overshot the upper peer, while exactly +3 landed in the only useful
+  interval. An outer wrapper around the null-check/store/indirect-call plus
+  three inner null-check weights produced 70 refs / 846 live insns = 4964 and
+  the target `$s3/$s4/$s5` window. Use `regalloc.py --between`, then distribute
+  the computed depth across the smallest producer/consumer ranges whose loop
+  notes also preserve scheduling—do not blindly nest the whole function.
 - **Huge-frame TUs (offsets past ±32767) spill params to their arg-home
   slots** once the callee-saved file is full; every use rematerializes
   li/addu/lw through reload's spill regs (a3/t0 rotation). Pointer-VALUE
@@ -2641,6 +2660,13 @@ before local-alloc, so the def is gone before it can bias anything.
   allocation where wrapping `y` in a third one-shot loop swapped them.
   Guided `identical-arm-fence` enumerates only nonvolatile locals already used
   by the statement or unconditionally defined in the preceding statements.
+  A second use is to break a **hard conflict caused by a stack-address
+  pseudo**: ProcItemNingyo's address of its memset/request workspace occupied
+  `$s3` across calls, preventing `item` from taking the target `$s3`. Duplicating
+  the address-producing statement into identical arms made that pseudo cross a
+  CFG edge differently and removed the conflict with no surviving branch.
+  Confirm this in `.greg`'s conflict set before adding the fence; the visible
+  C pointer name alone does not reveal the stack-address allocno.
 - **An identical-arm discriminator can also be a PREFERENCE DONOR.** Declare it
   at function scope, initialise it for the artificial `if`, then overwrite it
   with the real value immediately before a call that wants a particular

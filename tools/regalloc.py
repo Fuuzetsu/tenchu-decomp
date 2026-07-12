@@ -21,6 +21,8 @@ because of the move-chain at insns N/M — break that chain."
   tools/regalloc.py <Name> --rtl        # + the raw greg RTL for the function
   tools/regalloc.py <Name> --compare 80 81 --enclosed-refs 3
                                         # exact weighted-ref / fence-depth lever
+  tools/regalloc.py <Name> --between 80 81 82 --enclosed-refs 3
+                                        # keep p80 above p81 but below p82
   tools/regalloc.py <Name> --func NAME  # a specific function if the TU has several
   tools/regalloc.py <file> --raw        # run on an already-preprocessed .c
 
@@ -126,6 +128,41 @@ def wrapper_depths(extra_refs, enclosed_refs):
     return (extra_refs + enclosed_refs - 1) // enclosed_refs
 
 
+def extra_refs_for_window(subject, lower, upper, max_extra=10000):
+    """Inclusive extra-ref interval placing subject strictly between rivals.
+
+    ``global.c`` priority is monotone but discontinuous at powers of two. A
+    useful allocation can therefore require a narrow window rather than merely
+    outranking one peer. Return the first/last weighted-ref delta in that
+    window, or ``None`` when the floor-log2 jump skips it entirely.
+    """
+    low = lower["priority"]
+    high = upper["priority"]
+    if low >= high:
+        return None
+    first = last = None
+    for extra in range(max_extra + 1):
+        priority = alloc_priority(subject["refs"] + extra,
+                                  subject["live_length"])
+        if low < priority < high:
+            if first is None:
+                first = extra
+            last = extra
+        elif first is not None and priority >= high:
+            break
+    return None if first is None else (first, last)
+
+
+def wrapper_depth_window(extra_window, enclosed_refs):
+    """Wrapper-depth interval whose weighted refs stay in ``extra_window``."""
+    if extra_window is None or enclosed_refs <= 0:
+        return None
+    low, high = extra_window
+    first = (low + enclosed_refs - 1) // enclosed_refs
+    last = high // enclosed_refs
+    return (first, last) if first <= last else None
+
+
 def split_functions(dump):
     """{func_name: body_text} for each ';; Function NAME' section."""
     out, cur, name = {}, [], None
@@ -206,7 +243,8 @@ def analyse(name, body, usage_body=None):
                 reg_first=reg_first)
 
 
-def report(name, a, show_rtl, body, compare=None, enclosed_refs=None):
+def report(name, a, show_rtl, body, compare=None, between=None,
+           enclosed_refs=None):
     hardnames = sorted({n for _, d, s in a["moves"] for n in (d, s)}
                        | set(a["setops"]) | set(a["reg_first"]),
                        key=lambda x: (x not in CALLEE, x))
@@ -265,6 +303,38 @@ def report(name, a, show_rtl, body, compare=None, enclosed_refs=None):
                                f"{enclosed_refs} ref(s)")
             print(f"  p{first} > p{second}: {result}")
             print("    (priority comparison assumes equal register mode/size)")
+    if between:
+        subject, lower, upper = between
+        missing = [pseudo for pseudo in between if pseudo not in a["usage"]]
+        if missing:
+            values = ", ".join(f"p{pseudo}" for pseudo in missing)
+            print(f"  priority window unavailable: {values} missing from the "
+                  "lreg usage table")
+        else:
+            window = extra_refs_for_window(
+                a["usage"][subject], a["usage"][lower], a["usage"][upper]
+            )
+            low_priority = a["usage"][lower]["priority"]
+            high_priority = a["usage"][upper]["priority"]
+            if window is None:
+                result = ("no weighted-ref delta <=10000 lands strictly in "
+                          f"({low_priority}, {high_priority})")
+            else:
+                lo, hi = window
+                result = f"needs +{lo}" if lo == hi else f"needs +{lo}..+{hi}"
+                result += " weighted ref(s)"
+                if enclosed_refs:
+                    depths = wrapper_depth_window(window, enclosed_refs)
+                    if depths is None:
+                        result += (f"; no whole wrapper depth enclosing "
+                                   f"{enclosed_refs} ref(s) lands in-window")
+                    else:
+                        dlo, dhi = depths
+                        depth_text = str(dlo) if dlo == dhi else f"{dlo}..{dhi}"
+                        result += (f" = wrapper depth {depth_text} when each "
+                                   f"encloses {enclosed_refs} ref(s)")
+            print(f"  p{lower} < p{subject} < p{upper}: {result}")
+            print("    (priority window assumes equal register mode/size)")
     print("  reading: a value in $s0-$s7 is there ONLY because it is live across a"
           "\n  call; to move it, shorten its live range past the call or break the"
           "\n  copy-chain above that ties it to that register.")
@@ -282,13 +352,16 @@ def main():
     ap.add_argument("--rtl", action="store_true", help="also print the greg RTL")
     ap.add_argument("--compare", nargs=2, type=int, metavar=("FIRST", "SECOND"),
                     help="weighted refs needed for FIRST to outrank SECOND")
+    ap.add_argument("--between", nargs=3, type=int,
+                    metavar=("SUBJECT", "LOWER", "UPPER"),
+                    help="weighted refs keeping SUBJECT above LOWER and below UPPER")
     ap.add_argument("--enclosed-refs", type=int, metavar="N",
-                    help="with --compare, refs one proposed wrapper encloses")
+                    help="with --compare/--between, refs one wrapper encloses")
     args = ap.parse_args()
     if args.enclosed_refs is not None and args.enclosed_refs <= 0:
         ap.error("--enclosed-refs must be positive")
-    if args.enclosed_refs is not None and not args.compare:
-        ap.error("--enclosed-refs requires --compare")
+    if args.enclosed_refs is not None and not (args.compare or args.between):
+        ap.error("--enclosed-refs requires --compare or --between")
 
     if args.raw:
         pp = open(args.target).read()
@@ -330,6 +403,7 @@ def main():
             args.rtl,
             funcs[f],
             args.compare,
+            args.between,
             args.enclosed_refs,
         )
 

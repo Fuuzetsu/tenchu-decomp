@@ -929,6 +929,24 @@ Register 81 used 4 times across 22 insns in block 0; GR_REGS.
             result["usage"][80], result["usage"][81]), 1)
         self.assertEqual(regalloc.wrapper_depths(5, 2), 3)
 
+    def test_priority_window_finds_narrow_weighted_ref_interval(self):
+        subject = {"refs": 67, "live_length": 846}
+        lower = {"priority": 4901}
+        upper = {"priority": 5000}
+        self.assertEqual(
+            regalloc.extra_refs_for_window(subject, lower, upper), (3, 3)
+        )
+        self.assertEqual(regalloc.alloc_priority(70, 846), 4964)
+        self.assertEqual(regalloc.wrapper_depth_window((3, 3), 1), (3, 3))
+        self.assertEqual(regalloc.wrapper_depth_window((3, 3), 3), (1, 1))
+        self.assertIsNone(regalloc.wrapper_depth_window((3, 3), 2))
+
+    def test_priority_window_rejects_reversed_bounds(self):
+        subject = {"refs": 4, "live_length": 10}
+        self.assertIsNone(regalloc.extra_refs_for_window(
+            subject, {"priority": 5000}, {"priority": 4000}
+        ))
+
 
 class MatchToolLockTests(unittest.TestCase):
     def test_lock_is_reentrant_for_driver_helpers_and_excludes_other_owner(self):
