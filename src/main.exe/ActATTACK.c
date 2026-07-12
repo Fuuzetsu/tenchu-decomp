@@ -1,5 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
+#define DeleteConflict DeleteConflict_prototype
+#include "item.h"
+#undef DeleteConflict
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -56,787 +59,880 @@
  * END PSX.SYM */
 
 /*
- * ActATTACK (0x80021d64) — TODO one-line description.
+ * ActATTACK (0x80021d64) — the main humanoid attack-motion controller.  It
+ * turns toward the current target, dispatches the active attack animation,
+ * creates and removes weapon conflict boxes, drives projectiles and special
+ * attacks, and manages weapon afterimages.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ActATTACK
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * Matching notes (6,648 bytes / 1,662 instructions):
+ *  - MOTION.C's small globals need the ActATTACK gp-extern list in both the
+ *    build and standalone matching tools.
+ *  - DeleteConflict is intentionally old-style in this translation unit.
+ *    The hand-selection value remains live in $a1 and is a harmless second
+ *    argument on the first cleanup calls.  The typed case-2 call preserves a
+ *    distinct HImode call result, stopping jump2 from folding two physical
+ *    cleanup calls into one.  The item.h prototype is renamed while including
+ *    the header so it does not erase this original call-site shape.
+ *  - Both the retail and trial executables contain the otherwise dead
+ *    Me_MOTION_C read immediately before the root-model coordinate clears.
+ *    The volatile-qualified read records that real access explicitly.
+ *  - cleanup_guard is a short.  Its HImode definitions make reorg duplicate
+ *    the case-0 `li 3` into the switch branch delay slot, as in the target.
+ *  - The reversed `direction > turn` comparisons only change fold/ref order;
+ *    they give local allocation the target's $v1/$a1 assignment.
+ *  - One-shot do loops around the MotionUpdateMode scans preserve the target's
+ *    loop notes and load order without emitting control-flow instructions.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", ActATTACK);
+typedef struct
+{
+    ModelType *model;
+    VECTOR position;
+    SVECTOR offset;
+    SVECTOR size;
+    void *common;
+    u8 result[64];
+    u8 pad[0x10];
+} ConflictObjectType; /* 0x78 in the retail build */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__switchD);
+typedef struct
+{
+    SVECTOR confp;
+    SVECTOR ilup0;
+    SVECTOR ilup1;
+} WeaponType; /* 0x18 */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_0);
+typedef struct
+{
+    Humanoid *human;
+    s16 loop;
+    s16 motid;
+} HumanAnimType; /* 0x8 */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_1);
+typedef struct
+{
+    ModelType *model;
+    SVECTOR vector1;
+    SVECTOR vector2;
+    s16 maxn;
+    s16 n;
+    s32 *p1;
+    s32 *p2;
+    s32 sz;
+    u8 poly[0x34];
+} AfterimageType; /* 0x58 */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_4);
+typedef struct
+{
+    VECTOR TargetVector;
+    Humanoid *Owner;
+    s32 Mode;
+    s16 DirectionRX;
+    s16 DirectionRY;
+    s32 OldMode;
+    u8 Valiation;
+} TCameraStatus;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_5);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_6);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_9);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_f);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_10);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_13);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_14);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActATTACK", switchD_80021f18__caseD_2);
-
-/* jump-table pool @ 0x800114a8 (26 words; tables at 0x800114a8) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 ActATTACK_jtbl[26] = {
-    0x80021F20, 0x80022274, 0x80022F1C, 0x80022F1C,
-    0x800223C8, 0x80022490, 0x800224B8, 0x80022F1C,
-    0x80022F1C, 0x80022608, 0x80022F1C, 0x80022F1C,
-    0x80022F1C, 0x80022F1C, 0x80022F1C, 0x800227EC,
-    0x80022B54, 0x80022F1C, 0x80022F1C, 0x80022D4C,
-    0x80022D88, 0x80022D88, 0x80022D88, 0x80022D88,
-    0x80022D88, 0x80022D88,
+enum
+{
+    CMODE_NORMAL = 0,
+    CMODE_CRITICAL_HIT = 4,
+    CMODE_FALL = 14,
 };
 
-#else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// void ActATTACK(void)
-// 
-// {
-//   short *psVar1;
-//   bool bVar2;
-//   OrnamentType **ppOVar3;
-//   Humanoid *pHVar4;
-//   SVECTOR *pSVar5;
-//   MotionManager *pMVar6;
-//   short sVar7;
-//   short sVar8;
-//   short sVar9;
-//   short sVar10;
-//   MotionDataType *pMVar11;
-//   VECTOR *pVVar12;
-//   int iVar13;
-//   AfterimageType *pAVar14;
-//   int iVar15;
-//   ModelType **ppMVar16;
-//   ModelType *pMVar17;
-//   short sVar18;
-//   BattleType *battle;
-//   ModelType *local_70;
-//   ModelType *local_6c;
-//   SVECTOR local_68 [5];
-//   PARAM_ITEM_USE local_40;
-//   SVECTOR local_18;
-//   
-//   if (dtM->count == 1) {
-//     if (Me_MOTION_C->life == 0) {
-//       motID = 0x1100;
-//       DAT_80097f0e = 1;
-//       return;
-//     }
-//     sVar7 = GetAttackDBID(Me_MOTION_C,motID);
-//     pHVar4 = Me_MOTION_C;
-//     Me_MOTION_C->warid = sVar7;
-//     sVar7 = 0xb;
-//     if ((motID != 0x713) && (sVar7 = 10, (motID & 1U) != 0)) {
-//       sVar7 = 9;
-//     }
-//     Sound(pHVar4,sVar7);
-//   }
-//   sVar7 = Me_MOTION_C->warid;
-//   pMVar17 = Me_MOTION_C->target;
-//   battle = BattleDB + sVar7;
-//   if (((pMVar17 != (ModelType *)0x0) && (dtM->count < BattleDB[sVar7].revise)) && (-1 < dtM->count))
-//   {
-//     sVar8 = GetDirection((pMVar17->locate).coord.t[0] - dtL->vx,
-//                          (pMVar17->locate).coord.t[2] - dtL->vz,dtR->vy);
-//     pHVar4 = Me_MOTION_C;
-//     if ((int)Me_MOTION_C->turn < (int)sVar8) {
-//       sVar8 = dtR->vy + 100;
-//     }
-//     else {
-//       if (-(int)Me_MOTION_C->turn <= (int)sVar8) goto LAB_80021edc;
-//       sVar8 = dtR->vy + -100;
-//     }
-//     dtR->vy = sVar8;
-//     pMVar11 = pHVar4->motion->motion;
-//     MoveHumanoid(pHVar4,(ushort)pMVar11->orderspd,(ushort)pMVar11->sidespd);
-//   }
-// LAB_80021edc:
-//   pVVar12 = dtL;
-//   pHVar4 = Me_MOTION_C;
-//   switch((int)(((ushort)dtM->mid - 0x700) * 0x10000) >> 0x10) {
-//   case 0:
-//     sVar8 = GetMotionID(dtM,0x700);
-//     pHVar4 = Me_MOTION_C;
-//     if (sVar8 == 0xe9) {
-//       FUN_8001f6b8(0xd);
-//     }
-//     else if (sVar8 < 0xea) {
-//       if (sVar8 == 0xab) {
-//         if (dtM->count == 0x14) {
-//           ppMVar16 = Me_MOTION_C->model->object;
-//           sVar8 = 100;
-// LAB_800220a0:
-//           pVVar12 = GetAbsolutePosition(ppMVar16[0xd],0,sVar8,-100);
-//           FUN_80027554(0x14,pVVar12);
-//           Sound(Me_MOTION_C,2);
-//         }
-//       }
-//       else if (sVar8 < 0xac) {
-//         if (sVar8 == 0xaa) {
-// LAB_800221b4:
-//           AttackBowControl();
-//         }
-//       }
-//       else if ((sVar8 == 0xac) && (dtM->count == 0x16)) {
-//         ppMVar16 = Me_MOTION_C->model->object;
-//         sVar8 = 700;
-//         goto LAB_800220a0;
-//       }
-//     }
-//     else if (sVar8 == 0xf5) {
-//       sVar8 = dtM->count;
-//       if ((0x23 < sVar8) && (sVar8 < 0x42)) {
-//         if (sVar8 == 0x24) {
-//           Sound(Me_MOTION_C,0x28);
-//         }
-//         local_40.type = ITEM_NAPALM;
-//         local_40.user = Me_MOTION_C;
-//         pVVar12 = GetAbsolutePosition(Me_MOTION_C->model->object[2],0,-100,-300);
-//         local_40.start.vx = pVVar12->vx;
-//         local_40.start.vy = pVVar12->vy;
-//         local_40.start.vz = pVVar12->vz;
-//         GetMoveSpeed(&local_18,dtR->vy,100,0);
-//         local_40.end.vx = local_40.start.vx + local_18.vx;
-//         local_40.end.vz = local_40.start.vz + local_18.vz;
-//         local_40.end.vy = local_40.start.vy;
-//         ReqItemUse(&local_40);
-//       }
-//     }
-//     else if (sVar8 < 0xf6) {
-//       if (sVar8 == 0xf1) {
-//         if (dtM->count == 0x2a) {
-//           if (Me_MOTION_C->weapon[3] != (OrnamentType *)0x0) {
-//             ppOVar3 = Me_MOTION_C->weapon;
-//             Me_MOTION_C->weapon[2] = Me_MOTION_C->weapon[0];
-//             pHVar4->weapon[0] = ppOVar3[3];
-//             pHVar4->weapon[3] = (OrnamentType *)0x0;
-//             Sound(pHVar4,1);
-//           }
-//         }
-//         else if ((dtM->count == 6) && (Me_MOTION_C->weapon[2] != (OrnamentType *)0x0)) {
-//           ppOVar3 = Me_MOTION_C->weapon;
-//           Me_MOTION_C->weapon[3] = Me_MOTION_C->weapon[0];
-//           pHVar4->weapon[0] = ppOVar3[2];
-//           pHVar4->weapon[2] = (OrnamentType *)0x0;
-//           Sound(pHVar4,0);
-//         }
-//       }
-//     }
-//     else if (sVar8 == 0x1a4) goto LAB_800221b4;
-//     if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
-//        (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
-//       motID = 0x702;
-//       if (((dtPAD & 0x2000) == 0) && (motID = 0x703, (dtPAD & 0x8000) == 0)) {
-//         motID = 0x701;
-//       }
-//       iVar13 = 0;
-//       if (MotionUpdateMode != 0) {
-//         iVar15 = 0;
-//         do {
-//           iVar13 = iVar13 + 1;
-//           if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar15 >> 0xd)) == Me_MOTION_C)
-//           goto LAB_800226f8;
-//           iVar15 = iVar13 * 0x10000;
-//         } while (iVar13 * 0x10000 >> 0x10 < 5);
-//       }
-// LAB_80022760:
-//       DAT_80097f0e = 1;
-//       sVar8 = SetNowMotion(Me_MOTION_C,motID,1);
-//       DAT_80097f0e = -1;
-//       goto LAB_80022780;
-//     }
-//     break;
-//   case 1:
-//     sVar8 = Me_MOTION_C->wpatk;
-//     if (sVar8 == 0x2a) {
-//       if (dtM->count == 0x34) {
-//         if (Me_MOTION_C->weapon[3] != (OrnamentType *)0x0) {
-//           ppOVar3 = Me_MOTION_C->weapon;
-//           Me_MOTION_C->weapon[2] = Me_MOTION_C->weapon[0];
-//           pHVar4->weapon[0] = ppOVar3[3];
-//           pHVar4->weapon[3] = (OrnamentType *)0x0;
-//           Sound(pHVar4,1);
-//         }
-//       }
-//       else if ((dtM->count == 1) && (Me_MOTION_C->weapon[2] != (OrnamentType *)0x0)) {
-//         ppOVar3 = Me_MOTION_C->weapon;
-//         Me_MOTION_C->weapon[3] = Me_MOTION_C->weapon[0];
-//         pHVar4->weapon[0] = ppOVar3[2];
-//         pHVar4->weapon[2] = (OrnamentType *)0x0;
-//         Sound(pHVar4,0);
-//       }
-//     }
-//     else if (sVar8 == 0x29) {
-//       FUN_8001f6b8(0xd);
-//     }
-//     else if (sVar8 == 0x35) {
-//       AttackBowControl();
-//     }
-//     if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
-//        (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
-//       motID = 0x704;
-//       iVar13 = 0;
-//       if (MotionUpdateMode != 0) {
-//         iVar15 = 0;
-//         do {
-//           iVar13 = iVar13 + 1;
-//           if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar15 >> 0xd)) == Me_MOTION_C)
-//           goto LAB_800226f8;
-//           iVar15 = iVar13 * 0x10000;
-//         } while (iVar13 * 0x10000 >> 0x10 < 5);
-//       }
-//       goto LAB_80022760;
-//     }
-//     break;
-//   case 4:
-//     if (Me_MOTION_C->wpatk == 0x29) {
-//       FUN_8001f6b8(0xd);
-//     }
-//     else if (Me_MOTION_C->wpatk == 0x35) {
-//       AttackBowControl();
-//     }
-//     if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
-//        (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
-//       motID = 0x705;
-//       iVar13 = 0;
-//       if (MotionUpdateMode != 0) {
-//         iVar15 = 0;
-//         do {
-//           iVar13 = iVar13 + 1;
-//           if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar15 >> 0xd)) == Me_MOTION_C)
-//           goto LAB_800226f8;
-//           iVar15 = iVar13 * 0x10000;
-//         } while (iVar13 * 0x10000 >> 0x10 < 5);
-//       }
-//       goto LAB_80022760;
-//     }
-//     break;
-//   case 5:
-//     if (Me_MOTION_C->wpatk == 0x29) {
-//       FUN_8001f6b8(0xd);
-//     }
-//     break;
-//   case 6:
-//     if (Me_MOTION_C->wpatk == 0x2a) {
-//       if (dtM->count == 0x34) {
-//         sVar8 = 1;
-//         if (Me_MOTION_C->weapon[3] != (OrnamentType *)0x0) {
-//           ppOVar3 = Me_MOTION_C->weapon;
-//           Me_MOTION_C->weapon[2] = Me_MOTION_C->weapon[0];
-//           pHVar4->weapon[0] = ppOVar3[3];
-//           pHVar4->weapon[3] = (OrnamentType *)0x0;
-// LAB_80022540:
-//           Sound(pHVar4,sVar8);
-//         }
-//       }
-//       else if ((dtM->count == 0x10) && (sVar8 = 0, Me_MOTION_C->weapon[2] != (OrnamentType *)0x0)) {
-//         ppOVar3 = Me_MOTION_C->weapon;
-//         Me_MOTION_C->weapon[3] = Me_MOTION_C->weapon[0];
-//         pHVar4->weapon[0] = ppOVar3[2];
-//         pHVar4->weapon[2] = (OrnamentType *)0x0;
-//         goto LAB_80022540;
-//       }
-//     }
-//     if (((((Me_MOTION_C->pad).trig & 0x80) != 0) && (((int)(short)dtPAD & 0xa000U) != 0)) &&
-//        (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
-//       motID = 0x708;
-//       if (((int)(short)dtPAD & 0x8000U) == 0) {
-//         motID = 0x707;
-//       }
-//       iVar13 = 0;
-//       if (MotionUpdateMode != 0) {
-//         iVar15 = 0;
-//         do {
-//           iVar13 = iVar13 + 1;
-//           if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar15 >> 0xd)) == Me_MOTION_C)
-//           goto LAB_800226f8;
-//           iVar15 = iVar13 * 0x10000;
-//         } while (iVar13 * 0x10000 >> 0x10 < 5);
-//       }
-//       goto LAB_80022760;
-//     }
-//     break;
-//   case 9:
-//     if (Me_MOTION_C->wpatk == 0x2a) {
-//       if (dtM->count == 0x2b) {
-//         sVar8 = 1;
-//         if (Me_MOTION_C->weapon[3] != (OrnamentType *)0x0) {
-//           ppOVar3 = Me_MOTION_C->weapon;
-//           Me_MOTION_C->weapon[2] = Me_MOTION_C->weapon[0];
-//           pHVar4->weapon[0] = ppOVar3[3];
-//           pHVar4->weapon[3] = (OrnamentType *)0x0;
-// LAB_80022690:
-//           Sound(pHVar4,sVar8);
-//         }
-//       }
-//       else if ((dtM->count == 0xd) && (sVar8 = 0, Me_MOTION_C->weapon[2] != (OrnamentType *)0x0)) {
-//         ppOVar3 = Me_MOTION_C->weapon;
-//         Me_MOTION_C->weapon[3] = Me_MOTION_C->weapon[0];
-//         pHVar4->weapon[0] = ppOVar3[2];
-//         pHVar4->weapon[2] = (OrnamentType *)0x0;
-//         goto LAB_80022690;
-//       }
-//     }
-//     if (((((Me_MOTION_C->pad).trig & 0x80) != 0) && (((int)(short)dtPAD & 0xa000U) != 0)) &&
-//        (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
-//       motID = 0x70b;
-//       if ((dtPAD & 0x2000) == 0) {
-//         motID = 0x70a;
-//       }
-//       iVar13 = 0;
-//       if (MotionUpdateMode != 0) {
-//         iVar15 = 0;
-//         do {
-//           iVar13 = iVar13 + 1;
-//           if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar15 >> 0xd)) == Me_MOTION_C)
-//           goto LAB_800226f8;
-//           iVar15 = iVar13 * 0x10000;
-//         } while (iVar13 * 0x10000 >> 0x10 < 5);
-//       }
-//       goto LAB_80022760;
-//     }
-//     break;
-//   case 0xf:
-//     if ((dtM->count == 1) && (3000 < (Me_MOTION_C->map).height)) {
-//       SetCameraMode(CMODE_FALL);
-//     }
-//     if (((int)(short)dtPAD & 0xf000U) != 0) {
-//       if ((dtPAD & 0x1000) == 0) {
-//         sVar8 = -10;
-//         if ((dtPAD & 0x4000) == 0) {
-//           if ((dtPAD & 0x2000) == 0) {
-//             sVar8 = 0;
-//             sVar9 = dtR->vy;
-//             sVar18 = 10;
-//           }
-//           else {
-//             sVar8 = 0;
-//             sVar9 = dtR->vy;
-//             sVar18 = -10;
-//           }
-//         }
-//         else {
-//           sVar9 = dtR->vy;
-//           sVar18 = 0;
-//         }
-//       }
-//       else {
-//         sVar8 = 10;
-//         sVar9 = dtR->vy;
-//         sVar18 = 0;
-//       }
-//       GetMoveSpeed(local_68,sVar9,sVar8,sVar18);
-//       pSVar5 = dtV;
-//       local_68[0].vx = local_68[0].vx + dtV->vx;
-//       local_68[0].vz = local_68[0].vz + dtV->vz;
-//       iVar13 = (int)local_68[0].vx;
-//       if (iVar13 < 0) {
-//         iVar13 = -iVar13;
-//       }
-//       if (iVar13 < 0x65) {
-//         iVar13 = (int)local_68[0].vz;
-//         if (iVar13 < 0) {
-//           iVar13 = -iVar13;
-//         }
-//         if (iVar13 < 0x65) {
-//           dtV->vx = local_68[0].vx;
-//           pSVar5->vz = local_68[0].vz;
-//         }
-//       }
-//     }
-//     if ((Me_MOTION_C->attribute & 0x800U) != 0) {
-//       motID = 0x710;
-//       DAT_80097f0e = 0;
-//       Sound(Me_MOTION_C,0x1a);
-//       FUN_80033bc0(dtL,300,0xc,10);
-//     }
-//     if ((dtM->count == 0) && (dtM->loop == 1)) {
-//       dtM->loop = -1;
-//     }
-//     sVar8 = dtM->loop + -1;
-//     if ((dtM->loop < 0) && (dtM->loop = sVar8, sVar8 < -0x1e)) {
-//       motID = 0x803;
-//       DAT_80097f0e = 0;
-//     }
-//     if (motID != 0x70f) {
-//       sVar8 = Me_MOTION_C->wpatk;
-//       if (sVar8 == 2) {
-//         DeleteConflict(Me_MOTION_C->model->object[8]);
-//         pMVar17 = Me_MOTION_C->model->object[0xb];
-// LAB_80022ab8:
-//         DeleteConflict(pMVar17);
-//       }
-//       else {
-//         if (2 < sVar8) {
-//           if (sVar8 != 3) goto LAB_80022a78;
-//           pMVar17 = Me_MOTION_C->model->object[2];
-//           goto LAB_80022ab8;
-//         }
-//         if (sVar8 != 0) {
-// LAB_80022a78:
-//           DeleteConflict(Me_MOTION_C->model->object[0xd]);
-//           pMVar17 = Me_MOTION_C->model->object[0xe];
-//           goto LAB_80022ab8;
-//         }
-//       }
-//       if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
-//         DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-//         Me_MOTION_C->illusion[0] = (undefined *)0x0;
-//       }
-//       if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
-//         DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-//         Me_MOTION_C->illusion[1] = (undefined *)0x0;
-//       }
-//       dtM->mask = 0x7fff;
-//       SetCameraMode(CMODE_NORMAL);
-//       if (motID == 0x803) {
-//         return;
-//       }
-//     }
-//     break;
-//   case 0x10:
-//     if (dtM->loop < 0) {
-//       dtM->loop = 0;
-//     }
-//     pSVar5 = dtV;
-//     if ((dtM->count != 0) || (dtM->loop == 0)) {
-//       if (0 < (Me_MOTION_C->map).height) {
-//         return;
-//       }
-//       psVar1 = &dtV->vz;
-//       dtV->vx = dtV->vx - (dtV->vx >> 2);
-//       pSVar5->vz = *psVar1 - (*psVar1 >> 2);
-//       return;
-//     }
-//     sVar7 = Me_MOTION_C->wpatk;
-//     if (sVar7 == 2) {
-//       DeleteConflict(Me_MOTION_C->model->object[8]);
-//       pMVar17 = Me_MOTION_C->model->object[0xb];
-// LAB_80022c74:
-//       DeleteConflict(pMVar17);
-//     }
-//     else {
-//       if (2 < sVar7) {
-//         if (sVar7 != 3) goto LAB_80022c34;
-//         pMVar17 = Me_MOTION_C->model->object[2];
-//         goto LAB_80022c74;
-//       }
-//       if (sVar7 != 0) {
-// LAB_80022c34:
-//         DeleteConflict(Me_MOTION_C->model->object[0xd]);
-//         pMVar17 = Me_MOTION_C->model->object[0xe];
-//         goto LAB_80022c74;
-//       }
-//     }
-//     if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
-//       DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-//       Me_MOTION_C->illusion[0] = (undefined *)0x0;
-//     }
-//     if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
-//       DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-//       Me_MOTION_C->illusion[1] = (undefined *)0x0;
-//     }
-//     motID = 0x501;
-//     DAT_80097f0e = 1;
-//     goto LAB_80023740;
-//   case 0x13:
-//     if (dtM->count != 0) {
-//       return;
-//     }
-//     if (dtM->loop == 0) {
-//       return;
-//     }
-//     motID = 0x501;
-//     DAT_80097f0e = 1;
-//     return;
-//   case 0x14:
-//   case 0x15:
-//   case 0x16:
-//   case 0x17:
-//   case 0x18:
-//   case 0x19:
-//     if (dtM->count == 1) {
-//       ActionHalt = dtM->count;
-//       SetCameraMode(CMODE_CRITICAL_HIT);
-//       CamState.OldMode._1_1_ = 1;
-//       return;
-//     }
-//     if ((dtM->loop == 0) && (dtL->vy == (Me_MOTION_C->target->locate).coord.t[1])) {
-//       return;
-//     }
-//     pMVar17 = *Me_MOTION_C->model->object;
-//     ActionHalt = 0;
-//     iVar13 = (int)(*Me_MOTION_C->model->object)->id;
-//     if (-1 < iVar13) {
-//       dtL->vx = ConflictObject[iVar13].position.vx;
-//       pVVar12->vz = ConflictObject[iVar13].position.vz;
-//     }
-//     (pMVar17->locate).coord.t[2] = 0;
-//     (pMVar17->locate).coord.t[0] = 0;
-//     ReturnNormal();
-//     sVar8 = DAT_80097f0e;
-//     sVar7 = motID;
-//     pHVar4 = Me_MOTION_C;
-//     if (((Me_MOTION_C->status != 0x11) || (Me_MOTION_C->motion->loop != -1)) &&
-//        ((sVar9 = UpdateMotion(Me_MOTION_C->motion,motID), sVar9 != 0 &&
-//         (pHVar4->status = (short)(char)((ushort)sVar7 >> 8), sVar8 != 0)))) {
-//       pMVar11 = pHVar4->motion->motion;
-//       MoveHumanoid(pHVar4,(ushort)pMVar11->orderspd,(ushort)pMVar11->sidespd);
-//     }
-//     pMVar6 = dtM;
-//     dtM->count = 0;
-//     pMVar6->loop = 0;
-//     PlayMotion(pMVar6,1);
-//     CamState.OldMode._1_1_ = 1;
-//     DAT_80097f0e = 0xffff;
-//     return;
-//   }
-// switchD_80021f18_caseD_2:
-//   sVar9 = motID;
-//   sVar8 = dtM->loop;
-//   if (dtM->loop < 0) {
-//     dtM->loop = sVar8 + 1;
-//     if (sVar8 != -1) {
-//       return;
-//     }
-//     pMVar11 = Me_MOTION_C->motion->motion;
-//     MoveHumanoid(Me_MOTION_C,(ushort)pMVar11->orderspd,(ushort)pMVar11->sidespd);
-//     return;
-//   }
-//   if ((dtM->count != 0) || (dtM->loop != 1)) {
-//     if (battle->mid == 0) {
-//       return;
-//     }
-//     if (BattleDB[sVar7].atks < 1) {
-//       return;
-//     }
-//     ppMVar16 = Me_MOTION_C->model->object;
-//     if (Me_MOTION_C->wpatk == 2) {
-//       local_70 = ppMVar16[8];
-//       local_6c = ppMVar16[0xb];
-//     }
-//     else if (Me_MOTION_C->wpatk == 3) {
-//       local_70 = ppMVar16[2];
-//       local_6c = ppMVar16[1];
-//     }
-//     else {
-//       local_70 = ppMVar16[0xd];
-//       local_6c = ppMVar16[0xe];
-//     }
-//     if (dtM->count == BattleDB[sVar7].atks) {
-//       iVar13 = (int)Me_MOTION_C->wepid[0];
-//       if (-1 < iVar13) {
-//         sVar10 = InsertConflict(local_70);
-//         sVar8 = WeaponDB[iVar13].confp.vy;
-//         sVar9 = WeaponDB[iVar13].confp.vz;
-//         sVar18 = WeaponDB[iVar13].confp.pad;
-//         ConflictObject[sVar10].offset.vx = WeaponDB[iVar13].confp.vx;
-//         ConflictObject[sVar10].offset.vy = sVar8;
-//         ConflictObject[sVar10].offset.vz = sVar9;
-//         pHVar4 = Me_MOTION_C;
-//         ConflictObject[sVar10].offset.pad = sVar18;
-//         sVar8 = WeaponDB[iVar13].confp.pad;
-//         ConflictObject[sVar10].size.pad = 1;
-//         ConflictObject[sVar10].size.vz = sVar8;
-//         ConflictObject[sVar10].size.vy = sVar8;
-//         ConflictObject[sVar10].size.vx = sVar8;
-//         ConflictObject[sVar10].common = (undefined *)pHVar4;
-//       }
-//       iVar13 = (int)Me_MOTION_C->wepid[1];
-//       if (-1 < iVar13) {
-//         sVar10 = InsertConflict(local_6c);
-//         sVar8 = WeaponDB[iVar13].confp.vy;
-//         sVar9 = WeaponDB[iVar13].confp.vz;
-//         sVar18 = WeaponDB[iVar13].confp.pad;
-//         ConflictObject[sVar10].offset.vx = WeaponDB[iVar13].confp.vx;
-//         ConflictObject[sVar10].offset.vy = sVar8;
-//         ConflictObject[sVar10].offset.vz = sVar9;
-//         pHVar4 = Me_MOTION_C;
-//         ConflictObject[sVar10].offset.pad = sVar18;
-//         sVar8 = WeaponDB[iVar13].confp.pad;
-//         ConflictObject[sVar10].size.pad = 1;
-//         ConflictObject[sVar10].size.vz = sVar8;
-//         ConflictObject[sVar10].size.vy = sVar8;
-//         ConflictObject[sVar10].size.vx = sVar8;
-//         ConflictObject[sVar10].common = (undefined *)pHVar4;
-//       }
-//       Sound(Me_MOTION_C,2);
-//       if (Me_MOTION_C == StagePlayer) {
-//         PadShockAR(0,0xff,5,0);
-//       }
-//     }
-//     else if (dtM->count == BattleDB[sVar7].atke) {
-//       sVar8 = Me_MOTION_C->wpatk;
-//       if (sVar8 == 2) {
-//         DeleteConflict(Me_MOTION_C->model->object[8]);
-//         DeleteConflict(Me_MOTION_C->model->object[0xb]);
-//       }
-//       else if (sVar8 < 3) {
-//         if (sVar8 != 0) {
-// LAB_800234c8:
-//           DeleteConflict(Me_MOTION_C->model->object[0xd]);
-//           DeleteConflict(Me_MOTION_C->model->object[0xe]);
-//         }
-//       }
-//       else {
-//         if (sVar8 != 3) goto LAB_800234c8;
-//         DeleteConflict(Me_MOTION_C->model->object[2]);
-//       }
-//       dtM->mask = 0x7fff;
-//     }
-//     if ((dtM->count < BattleDB[sVar7].atke) && ((Me_MOTION_C->type & 0xf0U) != 0xa0)) {
-//       if (local_70->id != -1) {
-//         WeaponHitWeapon(local_70);
-//       }
-//       if (local_6c->id != -1) {
-//         WeaponHitWeapon(local_6c);
-//       }
-//     }
-//     if (BattleDB[sVar7].ilus < 1) {
-//       return;
-//     }
-//     if (dtM->count == BattleDB[sVar7].ilus) {
-//       iVar13 = (int)Me_MOTION_C->wepid[0];
-//       if (-1 < iVar13) {
-//         pAVar14 = SetupAfterimage(local_70,10);
-//         pHVar4 = Me_MOTION_C;
-//         sVar7 = WeaponDB[iVar13].ilup0.vy;
-//         sVar8 = WeaponDB[iVar13].ilup0.vz;
-//         sVar9 = WeaponDB[iVar13].ilup0.pad;
-//         (pAVar14->vector1).vx = WeaponDB[iVar13].ilup0.vx;
-//         (pAVar14->vector1).vy = sVar7;
-//         (pAVar14->vector1).vz = sVar8;
-//         (pAVar14->vector1).pad = sVar9;
-//         sVar7 = WeaponDB[iVar13].ilup1.vy;
-//         sVar8 = WeaponDB[iVar13].ilup1.vz;
-//         sVar9 = WeaponDB[iVar13].ilup1.pad;
-//         (pAVar14->vector2).vx = WeaponDB[iVar13].ilup1.vx;
-//         (pAVar14->vector2).vy = sVar7;
-//         (pAVar14->vector2).vz = sVar8;
-//         (pAVar14->vector2).pad = sVar9;
-//         pHVar4->illusion[0] = (undefined *)pAVar14;
-//       }
-//       iVar13 = (int)Me_MOTION_C->wepid[1];
-//       if (iVar13 < 0) {
-//         return;
-//       }
-//       pAVar14 = SetupAfterimage(local_6c,10);
-//       pHVar4 = Me_MOTION_C;
-//       sVar7 = WeaponDB[iVar13].ilup0.vy;
-//       sVar8 = WeaponDB[iVar13].ilup0.vz;
-//       sVar9 = WeaponDB[iVar13].ilup0.pad;
-//       (pAVar14->vector1).vx = WeaponDB[iVar13].ilup0.vx;
-//       (pAVar14->vector1).vy = sVar7;
-//       (pAVar14->vector1).vz = sVar8;
-//       (pAVar14->vector1).pad = sVar9;
-//       sVar7 = WeaponDB[iVar13].ilup1.vy;
-//       sVar8 = WeaponDB[iVar13].ilup1.vz;
-//       sVar9 = WeaponDB[iVar13].ilup1.pad;
-//       (pAVar14->vector2).vx = WeaponDB[iVar13].ilup1.vx;
-//       (pAVar14->vector2).vy = sVar7;
-//       (pAVar14->vector2).vz = sVar8;
-//       (pAVar14->vector2).pad = sVar9;
-//       pHVar4->illusion[1] = (undefined *)pAVar14;
-//       return;
-//     }
-//     if (dtM->count != BattleDB[sVar7].ilue) {
-//       return;
-//     }
-//     if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
-//       DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-//       Me_MOTION_C->illusion[0] = (undefined *)0x0;
-//     }
-//     if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
-//       DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-//       Me_MOTION_C->illusion[1] = (undefined *)0x0;
-//     }
-// LAB_80023740:
-//     dtM->mask = 0x7fff;
-//     return;
-//   }
-//   sVar7 = Me_MOTION_C->wpatk;
-//   if (sVar7 == 2) {
-//     DeleteConflict(Me_MOTION_C->model->object[8]);
-//     pMVar17 = Me_MOTION_C->model->object[0xb];
-//   }
-//   else {
-//     if (sVar7 < 3) {
-//       if (sVar7 == 0) goto LAB_80023074;
-//     }
-//     else if (sVar7 == 3) {
-//       pMVar17 = Me_MOTION_C->model->object[2];
-//       goto LAB_80023068;
-//     }
-//     DeleteConflict(Me_MOTION_C->model->object[0xd]);
-//     pMVar17 = Me_MOTION_C->model->object[0xe];
-//   }
-// LAB_80023068:
-//   DeleteConflict(pMVar17);
-// LAB_80023074:
-//   if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
-//     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-//     Me_MOTION_C->illusion[0] = (undefined *)0x0;
-//   }
-//   if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
-//     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-//     Me_MOTION_C->illusion[1] = (undefined *)0x0;
-//   }
-//   motID = 0x501;
-//   DAT_80097f0e = 1;
-//   bVar2 = MotionUpdateMode != 0;
-//   dtM->mask = 0x7fff;
-//   if (bVar2) {
-//     iVar15 = 0;
-//     iVar13 = 0;
-//     do {
-//       iVar15 = iVar15 + 1;
-//       if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar13 >> 0xd)) == Me_MOTION_C)
-//       goto LAB_8002315c;
-//       iVar13 = iVar15 * 0x10000;
-//     } while (iVar15 * 0x10000 >> 0x10 < 5);
-//   }
-//   SetNowMotion(Me_MOTION_C,motID,DAT_80097f0e);
-//   DAT_80097f0e = -1;
-// LAB_8002315c:
-//   pMVar6 = dtM;
-//   pHVar4 = Me_MOTION_C;
-//   dtR->vy = dtR->vy + (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
-//   bVar2 = pHVar4 == StagePlayer;
-//   ((*pHVar4->model->object)->rotate).vy = pMVar6->motion->rotate[0]->y;
-//   if ((bVar2) && (SetCameraMode(CMODE_NORMAL), sVar9 == 0x712)) {
-//     CamState.OldMode._1_1_ = 1;
-//   }
-//   (Me_MOTION_C->pad).time = 0;
-//   return;
-// LAB_800226f8:
-//   DAT_80097f0e = 1;
-//   sVar8 = 0;
-// LAB_80022780:
-//   pVVar12 = dtL;
-//   if ((sVar8 != 0) && (iVar13 = (int)(*Me_MOTION_C->model->object)->id, -1 < iVar13)) {
-//     dtL->vx = ConflictObject[iVar13].position.vx;
-//     pVVar12->vz = ConflictObject[iVar13].position.vz;
-//   }
-//   goto switchD_80021f18_caseD_2;
-// }
+extern MotionManager *dtM;
+extern SVECTOR *dtR;
+extern VECTOR *dtL;
+extern SVECTOR *dtV;
+extern s16 dtPAD;
+extern s16 MotionUpdateMode;
+extern s16 motID;
+extern s16 D_80097F0E;
+extern s16 ActionHalt;
+extern Humanoid *Me_MOTION_C;
+extern Humanoid *StagePlayer;
+extern BattleType BattleDB[78];
+extern WeaponType WeaponDB[];
+extern ConflictObjectType ConflictObject[];
+extern HumanAnimType CVAhuman[];
+extern TCameraStatus CamState;
 
-#endif /* NON_MATCHING */
+extern s16 GetAttackDBID(Humanoid *human, s16 mid);
+extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
+extern s16 GetMotionID(MotionManager *mmp, s16 mid);
+extern void AttackFire(s16 frame);
+extern void AttackBowControl(s16 n);
+extern s16 AttackContinuousCheck(BattleType *battle);
+extern void bow_shoot_logic(s16 kind, VECTOR *start);
+extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
+extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern void SetCameraMode(s32 mode);
+extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
+extern s16 InsertConflict(ModelType *model);
+extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
+extern AfterimageType *SetupAfterimage(ModelType *model, s16 len);
+extern void DisposeAfterimage(AfterimageType *afi);
+extern void WeaponHitWeapon(ModelType *model);
+extern void ReturnNormal(void);
+extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
+extern s16 PlayMotion(MotionManager *mmp, s16 mode);
+extern s16 Sound(Humanoid *human, s16 id);
+extern void DeleteConflict();
+
+void ActATTACK(void)
+
+{
+  short *psVar1;
+  bool bVar2;
+  SVECTOR *pSVar5;
+  MotionManager *pMVar6;
+  short sVar7;
+  short sVar8;
+  short sVar9;
+  short sVar10;
+  short move_y;
+  short updated;
+  MotionDataType *pMVar11;
+  VECTOR *pVVar12;
+  int iVar13;
+  AfterimageType *pAVar14;
+  int iVar15;
+  ModelType **ppMVar16;
+  ModelType *pMVar17;
+  short sVar18;
+  BattleType *battle;
+  ModelType *hand[2];
+  SVECTOR local_68 [5];
+  PARAM_ITEM_USE local_40;
+  SVECTOR local_18;
+
+  {
+    Humanoid *human;
+
+  if (dtM->count == 1) {
+    short attack_id;
+    short sound_id;
+
+    if (Me_MOTION_C->life == 0) {
+      motID = 0x1100;
+      D_80097F0E = 1;
+      return;
+    }
+    attack_id = GetAttackDBID(Me_MOTION_C,motID);
+    human = Me_MOTION_C;
+    human->warid = attack_id;
+    sound_id = 0xb;
+    if ((motID != 0x713) && (sound_id = 10, (motID & 1U) != 0)) {
+      sound_id = 9;
+    }
+    Sound(human,sound_id);
+  }
+  human = Me_MOTION_C;
+  sVar7 = human->warid;
+  battle = &BattleDB[sVar7];
+  pMVar17 = human->target;
+  }
+  if (((pMVar17 != (ModelType *)0x0) && (dtM->count < battle->revise)) && (-1 < dtM->count))
+  {
+    Humanoid *human;
+    short turn;
+    short direction;
+
+    direction = GetDirection((pMVar17->locate).coord.t[0] - dtL->vx,
+                             (pMVar17->locate).coord.t[2] - dtL->vz,dtR->vy);
+    human = Me_MOTION_C;
+    turn = human->turn;
+    if ((int)direction > (int)turn) {
+      dtR->vy += 100;
+    }
+    else if (-(int)turn > (int)direction) {
+      dtR->vy -= 100;
+    }
+    else {
+      goto LAB_80021edc;
+    }
+    pMVar11 = human->motion->motion;
+    MoveHumanoid(human,(u16)pMVar11->orderspd,(u16)pMVar11->sidespd);
+  }
+LAB_80021edc:
+  switch ((short)(dtM->mid - 0x700)) {
+  case 0:
+    sVar8 = GetMotionID(dtM,0x700);
+    switch (sVar8) {
+    case 0xf1: {
+      OrnamentType **weapon;
+
+      weapon = Me_MOTION_C->weapon;
+      if (dtM->count == 0x2a) {
+        if (weapon[3] != (OrnamentType *)0x0) {
+          weapon[2] = weapon[0];
+          weapon[0] = weapon[3];
+          weapon[3] = (OrnamentType *)0x0;
+          Sound(Me_MOTION_C,1);
+        }
+      }
+      else if ((dtM->count == 6) && (weapon[2] != (OrnamentType *)0x0)) {
+        weapon[3] = weapon[0];
+        weapon[0] = weapon[2];
+        weapon[2] = (OrnamentType *)0x0;
+        Sound(Me_MOTION_C,0);
+      }
+      break;
+    }
+    case 0xab: {
+      VECTOR *pos;
+
+      if (dtM->count == 0x14) {
+        pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd],0,100,-100);
+        bow_shoot_logic(0x14,pos);
+        Sound(Me_MOTION_C,2);
+      }
+      break;
+    }
+    case 0xac: {
+      VECTOR *pos;
+
+      if (dtM->count == 0x16) {
+        pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd],0,700,-100);
+        bow_shoot_logic(0x14,pos);
+        Sound(Me_MOTION_C,2);
+      }
+      break;
+    }
+    case 0xf5: {
+      int last_frame;
+      PARAM_ITEM_USE *request;
+      short first_frame;
+
+      first_frame = 0x24;
+      sVar8 = dtM->count;
+      request = &local_40;
+      if (first_frame <= sVar8) {
+        last_frame = 0x41;
+        if (last_frame < sVar8) {
+          break;
+        }
+        if (sVar8 == first_frame) {
+          Sound(Me_MOTION_C,0x28);
+        }
+        local_40.type = ITEM_KIND_2_KAEN;
+        local_40.user = Me_MOTION_C;
+        pVVar12 = GetAbsolutePosition(Me_MOTION_C->model->object[2],0,-100,-300);
+        local_40.start.vx = pVVar12->vx;
+        local_40.start.vy = pVVar12->vy;
+        local_40.start.vz = pVVar12->vz;
+        GetMoveSpeed(&local_18,dtR->vy,100,0);
+        local_40.end.vx = local_40.start.vx + local_18.vx;
+        local_40.end.vy = local_40.start.vy;
+        local_40.end.vz = local_40.start.vz + local_18.vz;
+        ReqItemUse(request);
+      }
+      break;
+    }
+    case 0xe9:
+      AttackFire(0xd);
+      break;
+    case 0xaa:
+    case 0x1a4:
+      AttackBowControl(0);
+      break;
+    }
+    if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
+       (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
+      short i;
+
+      if ((dtPAD & 0x2000) != 0) {
+        motID = 0x702;
+      }
+      else if ((dtPAD & 0x8000) != 0) {
+        motID = 0x703;
+      }
+      else {
+        motID = 0x701;
+      }
+      D_80097F0E = 1;
+      i = 0;
+      do {
+        if (MotionUpdateMode != 0) {
+          for (; i < 5; i++) {
+            if (CVAhuman[i].human == Me_MOTION_C) {
+              goto LAB_800226f8;
+            }
+          }
+        }
+      } while (0);
+      goto LAB_80022760;
+    }
+    break;
+  case 1: {
+    OrnamentType **weapon;
+
+    sVar8 = Me_MOTION_C->weapon_kind;
+    if (sVar8 == 0x2a) {
+      weapon = Me_MOTION_C->weapon;
+      if (dtM->count == 0x34) {
+        if (weapon[3] != (OrnamentType *)0x0) {
+          weapon[2] = weapon[0];
+          weapon[0] = weapon[3];
+          weapon[3] = (OrnamentType *)0x0;
+          Sound(Me_MOTION_C,1);
+        }
+      }
+      else if ((dtM->count == 1) && (weapon[2] != (OrnamentType *)0x0)) {
+        weapon[3] = weapon[0];
+        weapon[0] = weapon[2];
+        weapon[2] = (OrnamentType *)0x0;
+        Sound(Me_MOTION_C,0);
+      }
+    }
+    else if (sVar8 == 0x29) {
+      AttackFire(0xd);
+    }
+    else if (sVar8 == 0x35) {
+      AttackBowControl(1);
+    }
+    if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
+       (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
+      short i;
+
+      motID = 0x704;
+      D_80097F0E = 1;
+      if (MotionUpdateMode != 0) {
+        for (i = 0; i < 5; i++) {
+          if (CVAhuman[i].human == Me_MOTION_C) {
+            goto LAB_800226f8;
+          }
+        }
+      }
+      goto LAB_80022760;
+    }
+    break;
+  }
+  case 4:
+    if ((s16)Me_MOTION_C->weapon_kind == 0x29) {
+      AttackFire(0xd);
+    }
+    else if ((s16)Me_MOTION_C->weapon_kind == 0x35) {
+      AttackBowControl(1);
+    }
+    if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
+       (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
+      short i;
+
+      motID = 0x705;
+      D_80097F0E = 1;
+      if (MotionUpdateMode != 0) {
+        for (i = 0; i < 5; i++) {
+          if (CVAhuman[i].human == Me_MOTION_C) {
+            goto LAB_800226f8;
+          }
+        }
+      }
+      goto LAB_80022760;
+    }
+    break;
+  case 5:
+    if ((s16)Me_MOTION_C->weapon_kind == 0x29) {
+      AttackFire(0xd);
+    }
+    break;
+  case 6: {
+    OrnamentType **weapon;
+
+    if ((s16)Me_MOTION_C->weapon_kind == 0x2a) {
+      weapon = Me_MOTION_C->weapon;
+      if (dtM->count == 0x34) {
+        if (weapon[3] != (OrnamentType *)0x0) {
+          weapon[2] = weapon[0];
+          weapon[0] = weapon[3];
+          weapon[3] = (OrnamentType *)0x0;
+          Sound(Me_MOTION_C,1);
+        }
+      }
+      else if ((dtM->count == 0x10) && (weapon[2] != (OrnamentType *)0x0)) {
+        weapon[3] = weapon[0];
+        weapon[0] = weapon[2];
+        weapon[2] = (OrnamentType *)0x0;
+        Sound(Me_MOTION_C,0);
+      }
+    }
+    if (((((Me_MOTION_C->pad).trig & 0x80) != 0) && (((int)(short)dtPAD & 0xa000U) != 0)) &&
+       (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
+      short i;
+
+      if (((int)(short)dtPAD & 0x8000U) != 0) {
+        motID = 0x708;
+      }
+      else {
+        motID = 0x707;
+      }
+      D_80097F0E = 1;
+      i = 0;
+      do {
+        if (MotionUpdateMode != 0) {
+          for (; i < 5; i++) {
+            if (CVAhuman[i].human == Me_MOTION_C) {
+              goto LAB_800226f8;
+            }
+          }
+        }
+      } while (0);
+      goto LAB_80022760;
+    }
+    break;
+  }
+  case 9: {
+    OrnamentType **weapon;
+
+    if ((s16)Me_MOTION_C->weapon_kind == 0x2a) {
+      weapon = Me_MOTION_C->weapon;
+      if (dtM->count == 0x2b) {
+        if (weapon[3] != (OrnamentType *)0x0) {
+          weapon[2] = weapon[0];
+          weapon[0] = weapon[3];
+          weapon[3] = (OrnamentType *)0x0;
+          Sound(Me_MOTION_C,1);
+        }
+      }
+      else if ((dtM->count == 0xd) && (weapon[2] != (OrnamentType *)0x0)) {
+        weapon[3] = weapon[0];
+        weapon[0] = weapon[2];
+        weapon[2] = (OrnamentType *)0x0;
+        Sound(Me_MOTION_C,0);
+      }
+    }
+    if (((((Me_MOTION_C->pad).trig & 0x80) != 0) && (((int)(short)dtPAD & 0xa000U) != 0)) &&
+       (sVar8 = AttackContinuousCheck(battle), sVar8 != 0)) {
+      short i;
+
+      if ((dtPAD & 0x2000) == 0) {
+        goto LAB_80022700;
+      }
+      motID = 0x70b;
+      goto LAB_80022704;
+LAB_800226f8:
+      sVar8 = 0;
+      goto LAB_80022780;
+LAB_80022700:
+      motID = 0x70a;
+LAB_80022704:
+      D_80097F0E = 1;
+      i = 0;
+      do {
+        if (MotionUpdateMode != 0) {
+          for (; i < 5; i++) {
+            if (CVAhuman[i].human == Me_MOTION_C) {
+              goto LAB_800226f8;
+            }
+          }
+        }
+      } while (0);
+LAB_80022760:
+      sVar8 = SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
+      D_80097F0E = -1;
+LAB_80022780:
+      if (sVar8 != 0) {
+        int conflict_id;
+
+        conflict_id = (int)(*Me_MOTION_C->model->object)->id;
+        if (-1 < conflict_id) {
+          dtL->vx = ConflictObject[conflict_id].position.vx;
+          dtL->vz = ConflictObject[conflict_id].position.vz;
+        }
+      }
+      goto switchD_80021f18_caseD_2;
+    }
+    break;
+  }
+  case 0xf:
+    if ((dtM->count == 1) && (3000 < (Me_MOTION_C->map).height)) {
+      SetCameraMode(CMODE_FALL);
+    }
+    if (((int)(short)dtPAD & 0xf000U) != 0) {
+      if ((dtPAD & 0x1000) != 0) {
+        GetMoveSpeed(local_68,dtR->vy,10,0);
+      }
+      else if ((dtPAD & 0x4000) != 0) {
+        GetMoveSpeed(local_68,dtR->vy,-10,0);
+      }
+      else if ((dtPAD & 0x2000) != 0) {
+        GetMoveSpeed(local_68,dtR->vy,0,-10);
+      }
+      else {
+        GetMoveSpeed(local_68,dtR->vy,0,10);
+      }
+      pSVar5 = dtV;
+      local_68[0].vx = local_68[0].vx + dtV->vx;
+      local_68[0].vz = local_68[0].vz + dtV->vz;
+      if ((((local_68[0].vx >= 0) ? local_68[0].vx : -local_68[0].vx) < 0x65) &&
+          (((local_68[0].vz >= 0) ? local_68[0].vz : -local_68[0].vz) < 0x65)) {
+        dtV->vx = local_68[0].vx;
+        pSVar5->vz = local_68[0].vz;
+      }
+    }
+    if ((Me_MOTION_C->attribute & 0x800U) != 0) {
+      motID = 0x710;
+      D_80097F0E = 0;
+      Sound(Me_MOTION_C,0x1a);
+      FUN_80033bc0(dtL,300,0xc,10);
+    }
+    if ((dtM->count == 0) && (dtM->loop == 1)) {
+      dtM->loop = -1;
+    }
+    if (dtM->loop < 0) {
+      dtM->loop--;
+      if (dtM->loop < -0x1e) {
+        motID = 0x803;
+        D_80097F0E = 0;
+      }
+    }
+    if (motID != 0x70f) {
+      short cleanup_guard;
+      short kind;
+
+      kind = Me_MOTION_C->weapon_kind;
+      switch (kind) {
+      case 2:
+        DeleteConflict(Me_MOTION_C->model->object[8]);
+        DeleteConflict(Me_MOTION_C->model->object[0xb]);
+        cleanup_guard = 3;
+        break;
+      case 3:
+        DeleteConflict(Me_MOTION_C->model->object[2]);
+        cleanup_guard = 3;
+        break;
+      case 0:
+        cleanup_guard = 3;
+        break;
+      default:
+        DeleteConflict(Me_MOTION_C->model->object[0xd]);
+        DeleteConflict(Me_MOTION_C->model->object[0xe]);
+        cleanup_guard = 3;
+        break;
+      }
+      if ((cleanup_guard & 2) != 0) {
+        if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
+          DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+          Me_MOTION_C->illusion[0] = (void *)0x0;
+        }
+        if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
+          DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+          Me_MOTION_C->illusion[1] = (void *)0x0;
+        }
+      }
+      dtM->mask = 0x7fff;
+      SetCameraMode(CMODE_NORMAL);
+      if (motID == 0x803) {
+        return;
+      }
+    }
+    break;
+  case 0x10: {
+    short cleanup_guard;
+    short kind;
+
+    if (dtM->loop < 0) {
+      dtM->loop = 0;
+    }
+    if ((dtM->count == 0) && (dtM->loop != 0)) {
+      kind = Me_MOTION_C->weapon_kind;
+      switch (kind) {
+      case 2:
+        DeleteConflict(Me_MOTION_C->model->object[8]);
+        DeleteConflict(Me_MOTION_C->model->object[0xb]);
+        cleanup_guard = 3;
+        break;
+      case 3:
+        DeleteConflict(Me_MOTION_C->model->object[2]);
+        cleanup_guard = 3;
+        break;
+      case 0:
+        cleanup_guard = 3;
+        break;
+      default:
+        DeleteConflict(Me_MOTION_C->model->object[0xd]);
+        DeleteConflict(Me_MOTION_C->model->object[0xe]);
+        cleanup_guard = 3;
+        break;
+      }
+      if ((cleanup_guard & 2) != 0) {
+        if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
+          DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+          Me_MOTION_C->illusion[0] = (void *)0x0;
+        }
+        if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
+          DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+          Me_MOTION_C->illusion[1] = (void *)0x0;
+        }
+      }
+      pMVar6 = dtM;
+      motID = 0x501;
+      D_80097F0E = 1;
+      goto LAB_80023740;
+    }
+    if (0 < (Me_MOTION_C->map).height) {
+      return;
+    }
+    pSVar5 = dtV;
+    dtV->vx = dtV->vx - (dtV->vx >> 2);
+    pSVar5->vz = pSVar5->vz - (pSVar5->vz >> 2);
+    return;
+  }
+  case 0x13:
+    if (dtM->count != 0) {
+      return;
+    }
+    if (dtM->loop == 0) {
+      return;
+    }
+    motID = 0x501;
+    D_80097F0E = 1;
+    return;
+  case 0x14:
+  case 0x15:
+  case 0x16:
+  case 0x17:
+  case 0x18:
+  case 0x19: {
+    int conflict_id;
+    Humanoid *human;
+    short saved_mid;
+    u32 shifted_mid;
+    short motion_flag;
+    short updated;
+
+    if (dtM->count == 1) {
+      ActionHalt = 1;
+      SetCameraMode(CMODE_CRITICAL_HIT);
+      (*((u8 *)&CamState.OldMode + 1)) = 1;
+      return;
+    }
+    if ((dtM->loop == 0) && (dtL->vy == (Me_MOTION_C->target->locate).coord.t[1])) {
+      return;
+    }
+    pMVar17 = *Me_MOTION_C->model->object;
+    ActionHalt = 0;
+    conflict_id = (int)(*Me_MOTION_C->model->object)->id;
+    if (-1 < conflict_id) {
+      dtL->vx = ConflictObject[conflict_id].position.vx;
+      dtL->vz = ConflictObject[conflict_id].position.vz;
+    }
+    (void)*(Humanoid * volatile *)&Me_MOTION_C;
+    (pMVar17->locate).coord.t[2] = 0;
+    (pMVar17->locate).coord.t[0] = 0;
+    ReturnNormal();
+    saved_mid = motID;
+    motion_flag = D_80097F0E;
+    human = Me_MOTION_C;
+    if (((human->status != 0x11) || (human->motion->loop != -1)) &&
+        ((shifted_mid = (u32)(u16)saved_mid << 16,
+          updated = UpdateMotion(human->motion,(s16)(shifted_mid >> 16)), updated != 0) &&
+         (human->status = (s8)(shifted_mid >> 24), motion_flag != 0))) {
+      pMVar11 = human->motion->motion;
+      MoveHumanoid(human,(u16)pMVar11->orderspd,(u16)pMVar11->sidespd);
+    }
+    dtM->count = 0;
+    dtM->loop = 0;
+    PlayMotion(dtM,1);
+    D_80097F0E = 0xffff;
+    (*((u8 *)&CamState.OldMode + 1)) = 1;
+    return;
+  }
+  }
+switchD_80021f18_caseD_2:
+  if (dtM->loop < 0) {
+    dtM->loop++;
+    if (dtM->loop != 0) {
+      return;
+    }
+    pMVar11 = Me_MOTION_C->motion->motion;
+    MoveHumanoid(Me_MOTION_C,(u16)pMVar11->orderspd,(u16)pMVar11->sidespd);
+    return;
+  }
+  if ((dtM->count == 0) && (dtM->loop == 1)) {
+    short cleanup_guard;
+    short kind;
+    short saved_mid;
+    short i;
+
+    saved_mid = motID;
+    kind = Me_MOTION_C->weapon_kind;
+    switch (kind) {
+    case 2:
+      DeleteConflict(Me_MOTION_C->model->object[8]);
+      DeleteConflict(Me_MOTION_C->model->object[0xb]);
+      cleanup_guard = 3;
+      break;
+    case 3:
+      DeleteConflict(Me_MOTION_C->model->object[2]);
+      cleanup_guard = 3;
+      break;
+    case 0:
+      cleanup_guard = 3;
+      break;
+    default:
+      DeleteConflict(Me_MOTION_C->model->object[0xd]);
+      DeleteConflict(Me_MOTION_C->model->object[0xe]);
+      cleanup_guard = 3;
+      break;
+    }
+    if ((cleanup_guard & 2) != 0) {
+      if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
+        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+        Me_MOTION_C->illusion[0] = (void *)0x0;
+      }
+      if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
+        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+        Me_MOTION_C->illusion[1] = (void *)0x0;
+      }
+    }
+    motID = 0x501;
+    D_80097F0E = 1;
+    dtM->mask = 0x7fff;
+    if (MotionUpdateMode != 0) {
+      for (i = 0; i < 5; i++) {
+        if (CVAhuman[i].human == Me_MOTION_C) {
+          goto LAB_8002315c;
+        }
+      }
+    }
+    SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
+    D_80097F0E = -1;
+LAB_8002315c:
+    dtR->vy = dtR->vy + (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
+    bVar2 = Me_MOTION_C == StagePlayer;
+    ((*Me_MOTION_C->model->object)->rotate).vy = dtM->motion->rotate[0]->y;
+    if ((bVar2) && (SetCameraMode(CMODE_NORMAL), saved_mid == 0x712)) {
+      (*((u8 *)&CamState.OldMode + 1)) = 1;
+    }
+    (Me_MOTION_C->pad).time = 0;
+    return;
+  }
+  {
+    int hand_kind;
+
+    if (battle->mid == 0) {
+      return;
+    }
+    if (battle->atks < 1) {
+      return;
+    }
+    ppMVar16 = Me_MOTION_C->model->object;
+    hand_kind = (s16)Me_MOTION_C->weapon_kind;
+    switch (hand_kind) {
+    case 3:
+      hand[0] = ppMVar16[2];
+      hand[1] = ppMVar16[1];
+      break;
+    case 2:
+      hand[0] = ppMVar16[8];
+      hand[1] = ppMVar16[0xb];
+      break;
+    default:
+      hand[0] = ppMVar16[0xd];
+      hand[1] = ppMVar16[0xe];
+      break;
+    }
+    if (dtM->count == battle->atks) {
+      iVar13 = (int)Me_MOTION_C->wepid[0];
+      if (-1 < iVar13) {
+        Humanoid *owner;
+        short conflict_size;
+
+        sVar10 = InsertConflict(hand[0]);
+        ConflictObject[sVar10].offset = WeaponDB[iVar13].confp;
+        conflict_size = WeaponDB[iVar13].confp.pad;
+        owner = Me_MOTION_C;
+        ConflictObject[sVar10].size.pad = 1;
+        ConflictObject[sVar10].size.vz = conflict_size;
+        ConflictObject[sVar10].size.vy = conflict_size;
+        ConflictObject[sVar10].size.vx = conflict_size;
+        ConflictObject[sVar10].common = (void *)owner;
+      }
+      iVar13 = (int)Me_MOTION_C->wepid[1];
+      if (-1 < iVar13) {
+        Humanoid *owner;
+        short conflict_size;
+
+        sVar10 = InsertConflict(hand[1]);
+        ConflictObject[sVar10].offset = WeaponDB[iVar13].confp;
+        conflict_size = WeaponDB[iVar13].confp.pad;
+        owner = Me_MOTION_C;
+        ConflictObject[sVar10].size.pad = 1;
+        ConflictObject[sVar10].size.vz = conflict_size;
+        ConflictObject[sVar10].size.vy = conflict_size;
+        ConflictObject[sVar10].size.vx = conflict_size;
+        ConflictObject[sVar10].common = (void *)owner;
+      }
+      Sound(Me_MOTION_C,2);
+      if (Me_MOTION_C == StagePlayer) {
+        PadShockAR(0,0xff,5,0);
+      }
+    }
+    else if (dtM->count == battle->atke) {
+      short kind;
+
+      kind = Me_MOTION_C->weapon_kind;
+      switch (kind) {
+      case 2:
+        DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);
+        ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[0xb]);
+        break;
+      case 3:
+        DeleteConflict(Me_MOTION_C->model->object[2], hand_kind);
+        break;
+      case 0:
+        break;
+      default:
+        DeleteConflict(Me_MOTION_C->model->object[0xd], hand_kind);
+        DeleteConflict(Me_MOTION_C->model->object[0xe]);
+        break;
+      }
+      dtM->mask = 0x7fff;
+    }
+    if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & 0xf0U) != 0xa0)) {
+      if (hand[0]->id != -1) {
+        WeaponHitWeapon(hand[0]);
+      }
+      if (hand[1]->id != -1) {
+        WeaponHitWeapon(hand[1]);
+      }
+    }
+    if (battle->ilus < 1) {
+      return;
+    }
+    if (dtM->count == battle->ilus) {
+      iVar13 = (int)Me_MOTION_C->wepid[0];
+      if (-1 < iVar13) {
+        pAVar14 = SetupAfterimage(hand[0],10);
+        pAVar14->vector1 = WeaponDB[iVar13].ilup0;
+        pAVar14->vector2 = WeaponDB[iVar13].ilup1;
+        Me_MOTION_C->illusion[0] = (void *)pAVar14;
+      }
+      iVar13 = (int)Me_MOTION_C->wepid[1];
+      if (iVar13 < 0) {
+        return;
+      }
+      pAVar14 = SetupAfterimage(hand[1],10);
+      pAVar14->vector1 = WeaponDB[iVar13].ilup0;
+      pAVar14->vector2 = WeaponDB[iVar13].ilup1;
+      Me_MOTION_C->illusion[1] = (void *)pAVar14;
+      return;
+    }
+    if (dtM->count != battle->ilue) {
+      return;
+    }
+    if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
+      DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+      Me_MOTION_C->illusion[0] = (void *)0x0;
+    }
+    if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
+      DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+      Me_MOTION_C->illusion[1] = (void *)0x0;
+    }
+    pMVar6 = dtM;
+LAB_80023740:
+    pMVar6->mask = 0x7fff;
+    return;
+  }
+}

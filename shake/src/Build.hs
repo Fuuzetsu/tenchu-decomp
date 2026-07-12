@@ -366,6 +366,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SetSmokeS" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "SetupAppearance" = ["NowStage", "PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR", "D_800979A6", "AMD_LOADED_FOR_CHARACTER_KIND"]
     syms "StateTransition" = ["StrainRatio", "Me_THINK_C", "Pad", "Attrib", "D_80097F1C", "ActionHalt", "FRAMES_UNTIL_END_OF_ALERT", "SR", "Distance", "D_80097F10", "D_80097F18", "D_80097F14", "EngageLevel", "Degree"]
+    syms "ActATTACK" = ["dtM", "Me_MOTION_C", "motID", "D_80097F0E", "dtR", "dtL", "dtPAD", "MotionUpdateMode", "dtV"]
     syms _ = []
 
 as :: FilePath
