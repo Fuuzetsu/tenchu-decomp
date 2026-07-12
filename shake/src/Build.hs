@@ -186,6 +186,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "AttackGeneral" = ["--expand-div"]
     extra "AttackShort" = ["--expand-div"]
     extra "DamageControl" = ["--expand-div"]
+    extra "ControlHumanoid" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
@@ -352,6 +353,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "GetImage" = ["D_80097C90"]
     syms "InitConflict" = ["ConflictModel", "ConflictObjects"]
     syms "ControlAllHumanoid" = ["Humans", "VISIBLE_ENEMIES_"]
+    syms "ControlHumanoid" = ["VISIBLE_ENEMIES_"]
     syms "SuccessionAttack" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel"]
     syms "Think3callaid" = ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"]
     syms "InitFileSystem" = ["ReadMode", "TotalIO", "D_80097EB8"]

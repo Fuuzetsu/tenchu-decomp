@@ -189,6 +189,7 @@ GP_EXTERNS = {
     "GetImage": ["D_80097C90"],
     "InitConflict": ["ConflictModel", "ConflictObjects"],
     "ControlAllHumanoid": ["Humans", "VISIBLE_ENEMIES_"],
+    "ControlHumanoid": ["VISIBLE_ENEMIES_"],
     "SuccessionAttack": ["Me_THINK_C", "Distance", "Degree", "EngageLevel"],
     "Think3callaid": ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"],
     "InitFileSystem": ["ReadMode", "TotalIO", "D_80097EB8"],
@@ -255,6 +256,7 @@ MASPSX_EXTRA = {
     "AttackGeneral": ["--expand-div"],
     "AttackShort": ["--expand-div"],
     "DamageControl": ["--expand-div"],
+    "ControlHumanoid": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

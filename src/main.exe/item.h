@@ -210,7 +210,7 @@ typedef struct
     VECTOR *locate;              /* 0x38 */
     SVECTOR *rotate;             /* 0x3C (facing angles; MoveHumanoid reads .vy) */
     SVECTOR vector;              /* 0x40 (velocity; MoveHumanoid writes .vx/.vz) */
-    u8 pad1[0x10];               /* 0x48 */
+    VECTOR slocate;              /* 0x48 (ControlHumanoid snapshots *locate) */
     ModelArchiveType *model;     /* 0x58 */
     MotionManager *motion;       /* 0x5C */
     think_func_ *think[4];       /* 0x60 (per-think-level dispatch function

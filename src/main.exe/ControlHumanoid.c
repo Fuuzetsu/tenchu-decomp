@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -30,7 +31,272 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — exact target length (394 instructions / 1576
+ * bytes), with 57 differing bytes.  Apart from the final signed add used as
+ * GetDirection's third argument, the residual is one consistent allocation:
+ * target keeps the signed direction in v1 and its absolute magnitude in a0,
+ * while retail cc1 gives this draft a0 and v1 respectively across all three
+ * clamp regions.  `tools/rtlguide.py ControlHumanoid` classifies the remaining
+ * hunks as register allocation.  Type-width, expression-order, explicit-abs,
+ * donor-lifetime, loop-fence, and bounded autorules/permuter variants were
+ * tested; none improved this clean pure-C form without disturbing exact code
+ * length or already-matching structure.
+ *
+ * Build with `NON_MATCHING=ControlHumanoid ./Build` and inspect with
+ * `tools/matchdiff.py ControlHumanoid`.
+ */
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ControlHumanoid", ControlHumanoid);
+#else
+
+typedef struct
+{
+    VECTOR TargetVector;
+    Humanoid *Owner;
+    s32 Mode;
+    s16 DirectionRX;
+    s16 DirectionRY;
+    s32 OldMode;
+    u8 Valiation;
+} TCameraStatus;
+
+extern u32 SystemFlag;
+extern s16 SkipFrame;
+extern Humanoid *StagePlayer;
+extern s16 ActionHalt;
+extern TCameraStatus CamState;
+extern s16 VISIBLE_ENEMIES_;
+extern s16 D_800BE768[];
+extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
+extern s16 DrawTMDmode;
+extern char D_80011668[];
+extern char D_80011684[];
+extern char D_80011694[];
+extern char D_800116A4[];
+
+extern s16 DefaultActionHumanoid(Humanoid *human);
+extern void StateTransition(Humanoid *human);
+extern void DrawShadow(Humanoid *human);
+extern void register_character_death(Humanoid *human);
+extern void death_camera_something_(Humanoid *human);
+extern void HumanActionControl(Humanoid *human);
+extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *mat);
+extern void GsSetLsMatrix(MATRIX *mat);
+extern s32 DrawClip(ModelType *model, s32 *xy);
+extern s32 FntPrint(char *format, ...);
+extern s16 PlayMotion(MotionManager *motion, s16 mode);
+extern void UpdateCoordinate(ModelType *model);
+extern s16 GetDirection(s32 dx, s32 dz, s32 rotation);
+
+void ControlHumanoid(Humanoid *human)
+{
+    ModelArchiveType *model;
+    s32 m;
+    MATRIX mat;
+    ModelType *head;
+    s32 direction;
+    s32 magnitude;
+    s32 rotation_pair;
+
+    model = human->model;
+    m = 1;
+    if (model->object[0]->id >= 0)
+    {
+        DefaultActionHumanoid(human);
+        StateTransition(human);
+        DrawShadow(human);
+    }
+    else
+    {
+        if (human->status == 0x11)
+        {
+            register_character_death(human);
+            death_camera_something_(human);
+        }
+    }
+    HumanActionControl(human);
+    if ((SystemFlag & 2) != 0)
+    {
+        if (SkipFrame != 0)
+        {
+            goto skip_draw;
+        }
+        if (human == StagePlayer)
+        {
+            FntPrint(D_80011668, human->type,
+                     human->locate->vx / 1000,
+                     human->locate->vy / 1000,
+                     human->locate->vz / 1000);
+            FntPrint(D_80011684, (u16)human->attribute, (u8)human->status);
+            FntPrint(D_80011694, (u8)human->motion->mid,
+                     human->motion->loop, human->motion->count);
+            FntPrint(D_800116A4, human->rotate->vy,
+                     human->model->object[0]->id);
+        }
+    }
+
+    if (SkipFrame == 0)
+    {
+        goto do_draw;
+    }
+skip_draw:
+    m = 0;
+    goto draw_done;
+do_draw:
+    if (human != StagePlayer)
+    {
+        s32 clip;
+
+        GsGetLs((GsCOORDINATE2 *)model, &mat);
+        GsSetLsMatrix(&mat);
+        clip = DrawClip((ModelType *)model, 0);
+        m = 0;
+        if (clip >= 0)
+        {
+            m = -1;
+        }
+    }
+draw_done:
+
+    PlayMotion(human->motion, human->status == 7 ? -1 : m);
+    human->slocate = *human->locate;
+    human->locate->vx += human->vector.vx;
+    human->locate->vz += human->vector.vz;
+    human->locate->vy += human->vector.vy;
+    UpdateCoordinate((ModelType *)model);
+
+    if (m == 0)
+    {
+        return;
+    }
+
+    D_800BE768[VISIBLE_ENEMIES_] = DrawTMDmode;
+    VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
+    VISIBLE_ENEMIES_++;
+    if (ActionHalt != 0 || human->life <= 0)
+    {
+        return;
+    }
+
+    if (human == StagePlayer)
+    {
+        do {
+          if (human->status == 0xc)
+          {
+              return;
+          }
+          head = human->model->object[2];
+        } while (0);
+        if (CamState.Mode != 1 && CamState.Mode != 3)
+        {
+            MotionElementType *rotation;
+
+            if (human->motion->loop != -1)
+            {
+                return;
+            }
+            rotation = human->motion->motion->rotate[2];
+            if (head->rotate.vx == rotation->x &&
+                head->rotate.vy == rotation->y)
+            {
+                return;
+            }
+            head->rotate.vx = rotation->x;
+            head->rotate.vy = human->motion->motion->rotate[2]->y;
+            UpdateCoordinate(head);
+            return;
+        }
+        else
+        {
+            direction = CamState.DirectionRY -
+                        (human->model->object[0]->rotate.vy +
+                         human->model->object[1]->rotate.vy);
+            magnitude = direction >= 0 ? direction : -direction;
+            if (magnitude >= 0x385)
+            {
+                head->rotate.vy = magnitude * 900 / direction;
+            }
+            else
+            {
+                head->rotate.vy = direction;
+            }
+
+            direction = CamState.DirectionRX;
+            magnitude = direction >= 0 ? direction : -direction;
+            if (magnitude > 500)
+            {
+                head->rotate.vx = magnitude * 500 / direction;
+            }
+            else
+            {
+                head->rotate.vx = direction;
+            }
+        }
+        UpdateCoordinate(head);
+        return;
+    }
+    else
+    {
+        if ((human->attribute & 3) != 2)
+        {
+            if (human->target == StagePlayer->model)
+            {
+                return;
+            }
+            if (human->motion->mid == 0x100)
+            {
+                return;
+            }
+        }
+
+        rotation_pair = human->model->object[0]->rotate.vy +
+                        human->model->object[1]->rotate.vy;
+        direction = GetDirection(
+            human->target->locate.coord.t[0] - human->locate->vx,
+            human->target->locate.coord.t[2] - human->locate->vz,
+            (s16)(rotation_pair + human->rotate->vy));
+        magnitude = direction >= 0 ? direction : -direction;
+        if (magnitude >= 0x708)
+        {
+            return;
+        }
+
+        head = human->model->object[2];
+        if (magnitude >= 0x385)
+        {
+            head->rotate.vy = magnitude * 900 / direction;
+        }
+        else
+        {
+            head->rotate.vy = direction;
+        }
+
+        direction = (human->target->locate.coord.t[1] - human->locate->vy) / 2;
+        if (direction != 0)
+        {
+            if (direction >= -500)
+            {
+                if (direction < 101)
+                {
+                    head->rotate.vx = direction;
+                }
+                else
+                {
+                    head->rotate.vx = 100;
+                }
+            }
+            else
+            {
+                head->rotate.vx = -500;
+            }
+        }
+        UpdateCoordinate(head);
+    }
+}
+
+#endif
 
 // triage: HARD — 394 insns, mul/div, 13 callees, ~0.05 to ProcItemDrop
 // likely-relevant cookbook sections:
