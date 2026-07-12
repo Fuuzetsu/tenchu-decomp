@@ -192,6 +192,46 @@ int F(int a, int b) { return sink((s16)(a + next() + b)); }
         self.assertEqual(
             self.candidates(autorules.rule_add_prefix_temp, source), [])
 
+    def test_rand_mod_split_names_call_result_before_remainder(self):
+        source = """typedef int s32;
+int rand(void);
+int F(void) {
+    s32 x;
+    x = rand() % 200;
+    return x;
+}
+"""
+        out = self.candidates(autorules.rule_rand_mod_split, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("x = rand();\n    x = x % 200;", out[0][1])
+
+    def test_rand_mod_split_merges_the_exact_adjacent_inverse(self):
+        source = """typedef int s32;
+int rand(void);
+int F(void) {
+    s32 x;
+    x = rand();
+    x = x % 100;
+    return x;
+}
+"""
+        out = self.candidates(autorules.rule_rand_mod_split, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("x = rand() % 100;", out[0][1])
+
+    def test_rand_mod_split_rejects_global_or_volatile_destinations(self):
+        global_source = """int x;
+int rand(void);
+int F(void) { x = rand() % 30; return x; }
+"""
+        volatile_source = """int rand(void);
+int F(void) { volatile int x; x = rand() % 30; return x; }
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_rand_mod_split, global_source), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_rand_mod_split, volatile_source), [])
+
     def test_registered_rules_never_emit_inline_asm(self):
         self.assertNotIn("__asm__", inspect.getsource(autorules))
         for key, _description, rule in autorules.RULES + autorules.AGGRESSIVE_RULES:

@@ -742,6 +742,137 @@ def rule_or_inplace(text, name, span):
                splice(data, a.start_byte, a.end_byte, repl).decode())
 
 
+def _nonvolatile_local_names(data, body):
+    """Plain local identifiers safe for statement-splitting rewrites.
+
+    Parameters/globals are deliberately excluded: two stores to either can be
+    observable, while a nonvolatile automatic local has no observation point
+    between adjacent statements.  If a name is ever declared volatile in the
+    function, exclude every same-spelled declaration conservatively.
+    """
+    names = set()
+    volatile = set()
+    for decl in _find(body, ("declaration",)):
+        found = set()
+        for child in decl.named_children:
+            if child.type == "init_declarator":
+                ident = _descend_ident(child.child_by_field_name("declarator"))
+            elif child.type in ("identifier", "pointer_declarator",
+                                "array_declarator"):
+                ident = _descend_ident(child)
+            else:
+                ident = None
+            if ident is not None:
+                found.add(_txt(data, ident))
+        names.update(found)
+        if re.search(rb"\bvolatile\b", _txt(data, decl)):
+            volatile.update(found)
+    return names - volatile
+
+
+def _plain_assignment(data, statement):
+    """Return (lhs identifier bytes, rhs node) for a whole `x = rhs;` stmt."""
+    if statement.type != "expression_statement":
+        return None
+    expressions = [c for c in statement.named_children if c.type != "comment"]
+    if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+        return None
+    assignment = expressions[0]
+    op = assignment.child_by_field_name("operator")
+    lhs = assignment.child_by_field_name("left")
+    rhs = assignment.child_by_field_name("right")
+    if (op is None or _txt(data, op) != b"=" or lhs is None or
+            lhs.type != "identifier" or rhs is None):
+        return None
+    return _txt(data, lhs), rhs
+
+
+def _rand_call(data, node):
+    """Whether `node` is exactly the side-effecting expression `rand()`."""
+    node = _unparen(node)
+    if node is None or node.type != "call_expression":
+        return False
+    function = node.child_by_field_name("function")
+    arguments = node.child_by_field_name("arguments")
+    return (function is not None and _txt(data, function).strip() == b"rand" and
+            arguments is not None and not arguments.named_children)
+
+
+def _local_rand_mod(data, statement, locals_):
+    """Return (name, literal modulus) for `local = rand() % LITERAL;`."""
+    assignment = _plain_assignment(data, statement)
+    if assignment is None:
+        return None
+    lhs, rhs = assignment
+    rhs = _unparen(rhs)
+    if lhs not in locals_ or rhs is None or rhs.type != "binary_expression":
+        return None
+    op = rhs.child_by_field_name("operator")
+    left = rhs.child_by_field_name("left")
+    right = _unparen(rhs.child_by_field_name("right"))
+    if (op is None or _txt(data, op) != b"%" or not _rand_call(data, left) or
+            right is None or right.type != "number_literal"):
+        return None
+    return lhs, _txt(data, right).strip()
+
+
+def rule_rand_mod_split(text, name, span):
+    """Split/merge `x = rand() % K` and `x = rand(); x = x % K`.
+
+    With this pinned cc1, the split spelling copies `$v0` into the destination
+    pseudo before expanding the remainder.  That can make the modulo chain work
+    in-place in a saved register; the inline spelling computes on `$v0` first.
+    Restrict the rewrite to nonvolatile automatic locals and a literal modulus,
+    making the two adjacent forms equivalent in ordinary C execution.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+
+    # SPLIT a single assignment statement.
+    for statement in _find(body, ("expression_statement",)):
+        match = _local_rand_mod(data, statement, locals_)
+        if match is None:
+            continue
+        lhs, modulus = match
+        indent = _indent_at(data, statement.start_byte)
+        repl = (lhs + b" = rand();\n" + indent + lhs + b" = " + lhs +
+                b" % " + modulus + b";")
+        yield (f"rand-mod split {lhs.decode()} L{_line(data, statement.start_byte)}",
+               splice(data, statement.start_byte, statement.end_byte, repl).decode())
+
+    # MERGE the exact adjacent inverse.  Require whitespace only between the
+    # statements so a source comment is never silently deleted.
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for first, second in zip(statements, statements[1:]):
+            one = _plain_assignment(data, first)
+            two = _plain_assignment(data, second)
+            if one is None or two is None or one[0] != two[0] or one[0] not in locals_:
+                continue
+            lhs, first_rhs = one
+            second_rhs = _unparen(two[1])
+            if not _rand_call(data, first_rhs):
+                continue
+            if second_rhs is None or second_rhs.type != "binary_expression":
+                continue
+            op = second_rhs.child_by_field_name("operator")
+            left = _unparen(second_rhs.child_by_field_name("left"))
+            right = _unparen(second_rhs.child_by_field_name("right"))
+            if (op is None or _txt(data, op) != b"%" or left is None or
+                    left.type != "identifier" or _txt(data, left) != lhs or
+                    right is None or right.type != "number_literal"):
+                continue
+            if data[first.end_byte:second.start_byte].strip():
+                continue
+            modulus = _txt(data, right).strip()
+            repl = lhs + b" = rand() % " + modulus + b";"
+            yield (f"rand-mod merge {lhs.decode()} L{_line(data, first.start_byte)}",
+                   splice(data, first.start_byte, second.end_byte, repl).decode())
+
+
 def rule_ptr_index_sum(text, name, span):
     """Rewrite `T *p = base + idx;` to the integer-sum `p = (T*)(idx*sizeof(T) + (int)base)`.
 
@@ -1377,6 +1508,7 @@ RULES = [
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
     ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
+    ("rand-mod", "split/merge x=rand()%K (call-result allocation lever)", rule_rand_mod_split),
     ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
     ("vector-copy", "four vx/vy/vz/pad field copies -> one struct assignment", rule_vector_copy),
     ("split-chain", "t = (x-C)>>S -> t = x-C; t = t>>S (split fused chain)", rule_split_chain),

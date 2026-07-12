@@ -209,6 +209,15 @@ The ordered triage — fix categories in THIS order, re-running
        choice. DefaultActionHumanoid is exact-length with only this 6-byte
        residual after those levers were exhausted. Record the scheduler cause
        and park; do not contort proven field types to chase it.
+     - **A dead constant scratch feeding one narrow store can be a reload/reorg
+       hard-register choice.** When length, CFG, schedule, opcodes, and every
+       surrounding register agree, but `li R,K; sb R,off(base)` uses `$v1` in
+       the target and `$t1` in the draft, there may be no remaining source
+       identity to steer. ProcItemDokudango reached this state at two duplicated
+       cleanup sites (four bytes total); 1,089 authoritative permuter candidates
+       were flat. After checking the cleanup's literal/direct/local spellings,
+       preserve the pure-C near-match rather than introducing a register-asm
+       escape hatch.
      - **A commutative PLUS whose destination ties to the other dying operand is
        a combine/local-allocation tie.** When the target and draft differ only
        as `addu A,A,B; sw A` versus `addu B,B,A; sw B`, inspect `.combine` and
@@ -367,6 +376,14 @@ struct name — item-TU Req*/Proc* functions almost always take
   (its `Humanoid` had `think[4]`@0x60, `weapon[4]`@0x94, `illusion[2]`@0xa4 all
   correctly placed) — and match the way they agree (character_state's
   `camera_related`@0x58 was really `model`, an `ModelArchiveType*`).
+- **Retail load/store width and raw offset outrank a demo symbol's reused union
+  member.** Shared parameter names often describe only a common prefix, while a
+  later retail processor extends or overlays it differently. If the binary says
+  `lhu/sh` at +0x14 and a pointer at +0x0c, define a TU-appropriate overlay with
+  exactly those widths/offsets instead of reusing a nearby struct that shifts the
+  tail. ProcItemDokudango's `param_dokudango` is the worked case: the existing
+  korogari view had an extra counter in the prefix, while the retail accesses
+  prove `eater`@+0x0c, `org_think`@+0x10, and a `u16 count`@+0x14.
 
 ## Partial matches (the NON_MATCHING convention)
 
@@ -445,7 +462,7 @@ plain C is the matched file.
   `item->mode = item->mode + 1; return;` and jump2 cross-jumped them into the
   LAST copy (case 1's). Writing one shared statement after the `switch` instead
   lays the join after ALL bodies — wrong placement. Duplicate the tail into each
-  case (ProcItemKawarimi, ProcItemGun).
+  case (ProcItemKawarimi, ProcItemGun, ProcItemDokudango).
 - **The switch index register doubling as the constant it matched.** A
   `sw`/`sh` store of the literal case value *inside* a case body (ProcItemGun's
   `common = (void *)1;` under `case 1:`) is cse's `record_jump_equiv` on the
@@ -457,7 +474,10 @@ plain C is the matched file.
   field) and compares **signed** (`slti`) is a real **`switch`**: cc1's
   `expand_case` emits a balanced compare tree over a *fresh* index load. An
   if/goto-ladder CSEs the load into one `lbu` and compares small unsigned
-  types with `sltiu`. Case bodies are laid out in source order.
+  types with `sltiu`. Case bodies are laid out in source order. A decompiler's
+  long state ladder can therefore need to be restored as one full `switch`, even
+  when labels/gotos initially look closer: ProcItemDokudango recovered both the
+  compare tree and the physical mode-body order only after doing so.
 - **A jump-table dispatch that opens `lhu / addiu -BASE / sll 16 / sra 16 /
   sltiu N` is a cast-narrowed switch index** — spell it
   `switch ((short)(ptr->mid - 0xA00))`. The `(short)` cast narrows the subtract
@@ -961,9 +981,19 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `count + 0xff` (literal +255, NOT -1, tests the OLD value) both occur for
   lookalike countdown-and-dispose logic (Happou vs LightningBolt). Ghidra's
   `+0xff` is real, not a decompiler artifact — confirm against the encoded word.
+- **Keep a narrow countdown field's new value in an `s32` temp when the target
+  zero-tests it with raw `sll 16`.** `n = p->count - 1; p->count = n; if
+  ((n << 16) == 0)` preserves the unnormalised full-width result long enough for
+  the shift test. Re-reading the `u16` field after the store instead naturally
+  becomes `lhu`/`andi 0xffff`, a different shape (ProcItemDokudango).
 - A two-statement remainder temp (`x = rand(); x = x % 200;`) is provable
   from the asm: the `mult`/`subu` operate **in place on the moved call
   result's register** ($sN) — inline `rand() % 200` computes on `$v0`.
+  `autorules` now tries both spellings as `rand-mod` for nonvolatile local
+  destinations and literal moduli. In a run of several random components, also
+  respect store order: publishing the offset results before an independent
+  countdown initializer can let sched fill the target's load/call gaps without
+  changing the arithmetic (ProcItemDokudango).
 - **Halfword store constants reveal the element's signedness**: storing an
   0xFFFF terminator emits `li -1` (`addiu $rN,$zero,-1`) only for a SIGNED
   s16 element; a u16 element materializes `ori $rN,$zero,0xffff`. Same
@@ -1655,6 +1685,16 @@ exclusive branches converge through the same hard register and identical store/c
 tail, first try one reused variable plus literal duplicated tails and let cross-jump
 perform the factoring. `rtlguide` classifies the resulting register-only residual;
 do not manually factor the source before testing this identity clue.
+
+The same rule applies inside one large state machine: split logically distinct
+lifetimes even when Ghidra gave them one SSA name. A scan's current `candidate`
+and its final `found` result, a pointer used before a call and the equivalent
+pointer reacquired afterward, or a mode-local `eater` and a later `human` often
+need separate C locals/scopes so each receives its own pseudo and copy preference.
+ProcItemDokudango used all three patterns. Conversely, when the target explicitly
+copies through the owning path, spelling an equivalent access as
+`param->eater->target` instead of `target->target` can force that source identity
+to materialise; algebraic pointer equivalence does not imply identical allocation.
 
 ### A promoted `short` parameter is TWO pseudos for free
 
@@ -2557,6 +2597,14 @@ fresh stack reload at the merge point (the variable is memory-resident because i
 address escapes); duplicating lets each arm feed the statement from the register it
 already has. cc1's own cross-jump then collapses the identical code, so duplicating
 costs nothing and matches the target (`AdtMessageBox`).
+
+**Duplicate a whole cleanup/advance tail when its physical address is inside the
+state bodies.** Writing one factored helper block or one post-switch tail pins the
+code at that source location. Writing the complete pure-C sequence independently
+at each exit lets jump2 cross-jump onto its chosen last copy, including indirect
+call/null-check cleanup and `mode++; return;` tails. ProcItemDokudango needed the
+cleanup at both disposal origins and the advance tail at three mode exits; the
+final binary contains one shared copy at the target's internal address.
 
 **The shared-return lever fires only on INDEPENDENTLY-WRITTEN identical returns, not an
 explicit goto to one.** Two separately-written identical `return EXPR;` statements let
