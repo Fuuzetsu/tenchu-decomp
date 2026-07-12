@@ -215,6 +215,7 @@ GP_EXTERNS = {
     "ProcItemNapalm": ["D_80097F60"],
     "DoMiscProc": ["EFFECT_SPAWNERS_INITIALISED"],
     "LoadSI": ["D_80097D8C"],
+    "SaveSI": ["D_80097D8C"],
     "InitializeInfoView": ["fInitialize"],
     "ActSYURI": ["dtM", "Me_MOTION_C", "motID", "D_80097F0E"],
     "ActHANG": ["dtV", "dtM", "dtPAD", "dtL", "motID", "D_80097F0E", "Me_MOTION_C"],

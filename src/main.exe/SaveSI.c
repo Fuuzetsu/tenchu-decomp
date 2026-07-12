@@ -42,10 +42,291 @@
  *     extern int StageID;
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveSI", SaveSI);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveSI", save_layout_to_card_or_disk__override__prt_8005bdec_aee7b64a);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveSI", save_layout_to_card_or_disk__override__prt_8005bea0_8cf8befb);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveSI", save_layout_to_card_or_disk__override__prt_8005c1f8_6152584a);
+typedef struct
+{
+    u8 bytes[0x20];
+} SaveSIPalette;
+
+typedef struct
+{
+    u8 bytes[0x80];
+} SaveSIIcon;
+
+typedef struct
+{
+    u8 bytes[0x10];
+} SaveSIUnalignedChunk;
+
+typedef struct
+{
+    u32 words[4];
+} SaveSIAlignedChunk;
+
+typedef struct
+{
+    u8 magic[4];
+    u8 title[0x40];
+    u8 reserved[0x1c];
+    SaveSIPalette palette;
+    SaveSIIcon icon1;
+    SaveSIIcon icon2;
+    SaveSIIcon icon3;
+} SaveSIHeader;
+
+typedef struct
+{
+    debug_menu_choice entry[3];
+} SaveSISelectBlock;
+
+extern u8 *ImagePath;
+extern s32 StageID;
+extern char D_80097D90[];
+extern char D_80097D98[];
+extern char *D_80097D8C;
+extern SaveSISelectBlock D_800140A8;
+extern char D_80014104[];
+extern char D_80014114[];
+extern char D_80014128[];
+extern char D_80014134[];
+extern char D_80014144[];
+extern char D_80014158[];
+extern char D_80014168[];
+extern char D_80014178[];
+extern char D_80014190[];
+
+extern void *memcpy(void *dst, const void *src, u32 size);
+extern int sprintf(char *buf, char *fmt, ...);
+extern u8 *GetArcData(s32 id);
+extern s32 PCcreat(char *name, s32 mode);
+extern s32 PCwrite(s32 fd, void *data, s32 size);
+extern s32 PCclose(s32 fd);
+extern s32 MemCardAccept(s32 chan);
+extern s32 MemCardCreateFile(s32 chan, char *name, s32 blocks);
+extern s32 MemCardWriteFile(s32 chan, char *name, void *data, s32 offset,
+                            s32 size);
+extern s32 MemCardFormat(s32 chan);
+extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
+extern s32 AdtSelect(char *title, debug_menu_choice *choices, s32 mode);
+extern void AdtMessageBox(char *fmt, ...);
+
+void SaveSI(s32 target, u8 *name, void *mem, s32 size)
+{
+    s32 fd;
+    char *msg;
+    u8 fn[200];
+    u8 block[0x2000];
+    SaveSISelectBlock select;
+    s32 cmd;
+    s32 result;
+    s32 chan;
+    SaveSIHeader *header;
+    void *data;
+
+    if (target == 0)
+    {
+        sprintf(fn, D_80097D90, ImagePath, name);
+        fd = PCcreat(fn, 0);
+        if (fd == -1)
+        {
+            AdtMessageBox(D_80014104, fn);
+            return;
+        }
+        PCwrite(fd, mem, size);
+        PCclose(fd);
+        return;
+    }
+
+    msg = 0;
+    chan = 0;
+    header = (SaveSIHeader *)block;
+    data = block + sizeof(SaveSIHeader);
+    if ((u32)size >= 0x1e01)
+    {
+        AdtMessageBox(D_80014114);
+        goto done;
+    }
+    {
+        u8 *icon3;
+        u8 *icon2;
+        u8 *icon1;
+        u8 *src;
+        u8 *dst;
+        s32 alignment;
+        s32 end;
+        s32 *cmdp;
+        s32 *resultp;
+
+        header->magic[0] = 0x53;
+        header->magic[1] = 0x43;
+        header->magic[2] = 0x13;
+        header->magic[3] = 1;
+        sprintf(header->title, D_80014128, StageID + 1, name);
+
+        icon1 = GetArcData(0x16);
+        icon2 = GetArcData(0x17);
+        icon3 = GetArcData(0x18);
+        header->palette = *(SaveSIPalette *)(icon1 + 0x14);
+        dst = (u8 *)&header->icon1;
+        src = icon1 + 0x40;
+        alignment = (u32)src & 3;
+        if (alignment)
+        {
+            do
+            {
+                *(SaveSIUnalignedChunk *)dst =
+                    *(SaveSIUnalignedChunk *)src;
+                src += 0x10;
+                dst += 0x10;
+            } while (src != icon1 + 0xc0);
+        }
+        else
+        {
+            do
+            {
+                *(SaveSIAlignedChunk *)dst = *(SaveSIAlignedChunk *)src;
+                src += 0x10;
+                dst += 0x10;
+            } while (src != icon1 + 0xc0);
+        }
+
+        dst = (u8 *)&header->icon2;
+        src = icon2 + 0x40;
+        alignment = (u32)src & 3;
+        if (alignment)
+        {
+            do
+            {
+                *(SaveSIUnalignedChunk *)dst =
+                    *(SaveSIUnalignedChunk *)src;
+                src += 0x10;
+                dst += 0x10;
+            } while (src != icon2 + 0xc0);
+        }
+        else
+        {
+            do
+            {
+                *(SaveSIAlignedChunk *)dst = *(SaveSIAlignedChunk *)src;
+                src += 0x10;
+                dst += 0x10;
+            } while (src != icon2 + 0xc0);
+        }
+
+        dst = (u8 *)&header->icon3;
+        src = icon3 + 0x40;
+        end = (s32)icon3 + 0xc0;
+        alignment = (u32)src & 3;
+        if (alignment)
+        {
+            do
+            {
+                *(SaveSIUnalignedChunk *)dst =
+                    *(SaveSIUnalignedChunk *)src;
+                src += 0x10;
+                dst += 0x10;
+            } while ((s32)src != end);
+        }
+        else
+        {
+            do
+            {
+                *(SaveSIAlignedChunk *)dst = *(SaveSIAlignedChunk *)src;
+                src += 0x10;
+                dst += 0x10;
+            } while ((s32)src != end);
+        }
+
+        if (icon3 != 0)
+        {
+            src = (u8 *)chan;
+        }
+        else
+        {
+            src = (u8 *)chan;
+        }
+        MemCardAccept((s32)src);
+        cmdp = &cmd;
+        resultp = &result;
+        MemCardSync(0, cmdp, resultp);
+        if (result == 0 || result == 3)
+        {
+            goto create_file;
+        }
+        if (result == 4)
+        {
+            select = D_800140A8;
+            if (msg != 0)
+            {
+                do
+                {
+                    src = (u8 *)D_80014134;
+                } while (0);
+                dst = (u8 *)select.entry;
+                end = AdtSelect((char *)src, (debug_menu_choice *)dst, 1);
+            }
+            else
+            {
+                do
+                {
+                    src = (u8 *)D_80014134;
+                } while (0);
+                dst = (u8 *)select.entry;
+                end = AdtSelect((char *)src, (debug_menu_choice *)dst, 1);
+            }
+            if (end == 0)
+            {
+                msg = D_80014144;
+            }
+            else
+            {
+                MemCardFormat(chan);
+                MemCardSync(0, cmdp, resultp);
+                if (result == 0)
+                {
+                    goto create_file;
+                }
+                msg = D_80014158;
+            }
+        }
+        else
+        {
+            msg = D_80014168;
+        }
+        goto done;
+
+create_file:
+        sprintf(fn, D_80097D98, D_80097D8C, StageID, name);
+        src = (u8 *)chan;
+        if (msg != 0)
+        {
+            dst = fn;
+        }
+        else
+        {
+            dst = fn;
+        }
+        alignment = MemCardCreateFile((s32)src, (char *)dst, 1);
+        result = alignment;
+        if (alignment != 0 && alignment != 6)
+        {
+            msg = D_80014178;
+            goto done;
+        }
+        memcpy(data, mem, size);
+        MemCardWriteFile(chan, fn, block, 0, 0x2000);
+        MemCardSync(0, &cmd, &result);
+        if (result != 0)
+        {
+            msg = D_80014190;
+        }
+    }
+
+done:
+    if (msg != 0)
+    {
+        AdtMessageBox(msg, result);
+    }
+}
 
 // triage: HARD — 330 insns, 6 loop, frame 0x2128, 13 callees, ~0.09 to LayoutEnemyOption
 // likely-relevant cookbook sections:
@@ -53,8 +334,7 @@ INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveSI", save_layout_to_card_o
 //   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
 //   - Stack objects: 0x2128 frame — buffer casts / spills
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (reference):
 //
 //
 // void SaveSI(int target,uchar *name,undefined *mem,long size)
