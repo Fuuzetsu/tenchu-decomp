@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -25,13 +26,73 @@
  *     param stack+16  int time
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetSmokeS", SetSmokeS);
+/*
+ * STATUS: NON_MATCHING — the behavioral draft is 452 bytes versus the
+ * 496-byte target (44 bytes short). It has the EffectSlot round-robin search,
+ * fallback slot, smoke fields, random scale/rotation, and variable-divisor
+ * brightness calculation, but the source/local shape still needs tuning to
+ * reproduce the target's register pressure and scheduling. The default build
+ * continues to use the byte-identical assembly stub.
+ */
+extern void DrawSmoke(TEffectSlot *ef);
 
-// triage: MEDIUM — 124 insns, mul/div, 1 loop, 1 callees, ~0.09 to ReqItemNingyo
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+#ifndef NON_MATCHING
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetSmokeS", SetSmokeS);
+#else
+void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time)
+{
+    int idx;
+    TEffectSlot *base;
+    TEffectSlot *slot;
+    int count;
+    TEffectSlot *ef;
+    SmokeType *smoke;
+    int r;
+
+    count = 0;
+    base = EffectSlot;
+    idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+    slot = base + idx;
+    do
+    {
+        idx = idx + 1;
+        slot = slot + 1;
+        if (199 < idx)
+        {
+            slot = base;
+            idx = 0;
+        }
+        if (slot->proc == 0)
+        {
+            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+            if (199 < idx + 1)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+            }
+            ef = slot;
+            goto found;
+        }
+        count = count + 1;
+    } while (count < 200);
+    ef = &dmy;
+found:
+    smoke = &ef->param.smoke;
+    r = rand();
+    smoke->scale = r % 0x2000 + 0x1000;
+    smoke->rotate = (rand() % 360) * 0x1000;
+    smoke->pos.vx = pos->vx;
+    smoke->pos.vy = pos->vy;
+    smoke->pos.vz = pos->vz;
+    smoke->vec.vx = vx;
+    smoke->vec.vy = vy;
+    smoke->vec.vz = vz;
+    smoke->mode = time;
+    r = rand();
+    smoke->unk22 = 0;
+    smoke->bright = (smoke->mode - 1) - (time / 2 + r % time);
+    ef->proc = (void (*)())DrawSmoke;
+}
+#endif /* NON_MATCHING */
 
 // Ghidra decompilation (reference — turn this into matching C,
 // then drop the INCLUDE_ASM above):
