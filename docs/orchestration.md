@@ -81,7 +81,7 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/reverse.py <Name> --ghidra-export .shake/ghidra-export` | split + seed the `.c` with Ghidra C **and** m2c C **and** a `triage:` line + likely-relevant docs. Adds the splat carve. |
 | `tools/split-scaffold.py <Name>` | jump-table function: all INCLUDE_ASM pieces + the jtbl array + the `.rodata` carve, green before drafting. |
 | `tools/xref.py <Name>` | callers (pin the prototype) + callees (matched vs needs-extern). |
-| `tools/symnear.py <Name-or-address>` | list fixed symbols immediately before a scalar address and compute candidate containing-field offsets. Use when `rtlguide` reports `enclosing-global-field-load`; confirm the proposed struct field independently. |
+| `tools/symnear.py <Name-or-address> [...]` | list fixed symbols immediately before scalar addresses and compute candidate containing-field offsets; multiple queries also report common candidate bases. Use when `rtlguide` reports `enclosing-global-field-load`; confirm the proposed struct fields independently. |
 | `tools/access.py <Name> [--order]` | each pointer offset's width/signedness/direction from the mnemonics; `--order` = the store sequence. Struct layout without hand-tracing `.s`. |
 | `tools/gpsyms.py <Name> --write` | derive the gp-extern set from `%gp_rel` and sync Build.hs + permute.py. Shake-oracle-tracked, so it just takes effect. |
 | `tools/maspsxflags.py <Name> --write` | preferred combined setup pass: sync gp externs and detect/sync ASPSX guarded variable division's `--expand-div` flag from the target asm. |

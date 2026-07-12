@@ -132,7 +132,7 @@ SIGNATURE_HINTS = {
     ),
     "enclosing-global-field-load": (
         "target keeps distinct base/value registers for a global load while "
-        "the candidate folds both into one; query the scalar name/address with "
+        "the candidate folds both into one; query one or more scalar names/addresses with "
         "tools/symnear.py and try the proven nonzero field of an enclosing global"
     ),
     "guard-return-island-layout": (

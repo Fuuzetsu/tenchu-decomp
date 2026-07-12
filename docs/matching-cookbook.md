@@ -1985,6 +1985,14 @@ appears, run `tools/symnear.py <scalar-name-or-address>` to list earlier fixed
 symbols and their exact offsets, then validate the candidate struct field.
 `rtlguide` labels the shape `enclosing-global-field-load`.
 
+Several apparent globals on one fixed page can be fields of the same aggregate.
+Query them together: `tools/symnear.py CHOSEN_CHARACTER CHOSEN_LANGUAGE`
+intersects their preceding-symbol windows and reports `PersistentState` with
+offsets +4/+0x5e. CVAsetup matched only when all three reads used
+`PSTATE->chr`/`PSTATE->language`: cc1 then kept the shared 0x80010000 base in
+`$s1` across three calls. Separate scalar externs emitted another `lui`, while
+caching only the character value modeled the wrong lifetime.
+
 ### A shared `f(0, x)` tail vs two explicit `f(0, lit)` calls place the const arg differently
 
 A shared `f(0, x)` after an if/else hoists one `$a0 = 0` into the merged call's delay

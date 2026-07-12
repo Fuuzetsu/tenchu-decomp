@@ -7,6 +7,7 @@ accessed a nonzero field of an enclosing global struct. This command turns the
 otherwise manual symbol-file scan into a bounded query::
 
     tools/symnear.py SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_
+    tools/symnear.py CHOSEN_CHARACTER CHOSEN_LANGUAGE
     tools/symnear.py 0x80089f04 --before 0x40 --after 0x10
 
 The offsets are candidates, not proof of containment: confirm the field layout
@@ -57,9 +58,28 @@ def nearby(symbols: list[tuple[int, str]], address: int,
     ]
 
 
+def common_bases(symbols: list[tuple[int, str]], addresses: list[int],
+                 before: int = 0x80) -> list[tuple[int, str, list[int]]]:
+    """Symbols lying before every query, with each query's field offset."""
+    if not addresses:
+        return []
+    candidates = None
+    for address in addresses:
+        current = {
+            (candidate, name)
+            for candidate, name in symbols
+            if address - before <= candidate <= address
+        }
+        candidates = current if candidates is None else candidates & current
+    return [
+        (candidate, name, [address - candidate for address in addresses])
+        for candidate, name in sorted(candidates or set())
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("query", help="symbol name or integer address")
+    parser.add_argument("query", nargs="+", help="one or more symbol names/addresses")
     parser.add_argument("--before", type=lambda value: int(value, 0), default=0x80)
     parser.add_argument("--after", type=lambda value: int(value, 0), default=0)
     parser.add_argument("--symbols", default=DEFAULT_SYMBOLS)
@@ -67,14 +87,25 @@ def main() -> None:
 
     symbols = load_symbols(args.symbols)
     try:
-        address = resolve_query(args.query, symbols)
+        addresses = [resolve_query(query, symbols) for query in args.query]
     except ValueError as error:
         sys.exit(f"symnear: {error}")
-    print(f"query {address:#010x} ({args.query})")
-    for candidate, name, offset in nearby(
-            symbols, address, args.before, args.after):
-        relation = f"+{offset:#x}" if offset >= 0 else f"-{abs(offset):#x}"
-        print(f"  {candidate:#010x}  {name:48} query = symbol {relation}")
+    for index, (query, address) in enumerate(zip(args.query, addresses)):
+        if index:
+            print()
+        print(f"query {address:#010x} ({query})")
+        for candidate, name, offset in nearby(
+                symbols, address, args.before, args.after):
+            relation = f"+{offset:#x}" if offset >= 0 else f"-{abs(offset):#x}"
+            print(f"  {candidate:#010x}  {name:48} query = symbol {relation}")
+    if len(addresses) > 1:
+        print("\ncommon candidate bases:")
+        rows = common_bases(symbols, addresses, args.before)
+        if not rows:
+            print("  (none in window)")
+        for candidate, name, offsets in rows:
+            joined = ", ".join(f"+{offset:#x}" for offset in offsets)
+            print(f"  {candidate:#010x}  {name:48} offsets {joined}")
 
 
 if __name__ == "__main__":

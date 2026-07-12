@@ -1009,6 +1009,15 @@ AFTER = 0x80089F08;
                     (0x80089F04, "SCALAR_ALIAS", 0),
                 ],
             )
+            self.assertEqual(
+                symnear.common_bases(
+                    symbols, [0x80089F04, 0x80089F08], before=0x20),
+                [
+                    (0x80089EF0, "CamState", [0x14, 0x18]),
+                    (0x80089F00, "CURRENTLY_SELECTED", [4, 8]),
+                    (0x80089F04, "SCALAR_ALIAS", [0, 4]),
+                ],
+            )
         finally:
             os.unlink(path)
 
