@@ -16,15 +16,18 @@ Usage (in the nix devShell):  tools/permute.py <name> [-- <permuter args>]
 e.g.  tools/permute.py GetRealPad --stop-on-zero -j4
 
 
-CAVEAT: the permuter's score ignores stack-frame slot placement. It will happily
+CAVEAT: the permuter's search score ignores stack-frame slot placement. It can
 report score 0 ("perfect") for a candidate that still differs from the target only
 in stack-slot ordering -- FUN_80018f00 has an 11-byte residual the scorer cannot
-see. It also scores register-allocation wins that are real byte regressions.
-ALWAYS re-verify a permuter win with tools/matchdiff.py before believing it.
+see. It also ranks some register-allocation wins that are real byte regressions.
+This wrapper therefore full-links every retained output and prints matchdiff's raw
+whole-image ranking after the run. Use `<name> --rescore-only` after interrupting
+one, and still verify an adopted/cleaned candidate with tools/matchdiff.py.
 """
-import argparse, glob, os, shutil, subprocess, sys
+import argparse, glob, os, re, shutil, subprocess, sys, tempfile
 
 from matchlock import MatchToolBusy, matching_tool_lock
+import matchdiff
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -38,6 +41,12 @@ CC_FLAGS = ("-mcpu=3000 -quiet -G8 -w -O2 -funsigned-char -fpeephole -ffunction-
             "-fpcc-struct-return -fcommon -fverbose-asm -fgnu-linker -mgas "
             "-msoft-float").split()
 AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").split()
+LD = "mipsel-unknown-linux-gnu-ld"
+OBJCOPY = "mipsel-unknown-linux-gnu-objcopy"
+LINKER = ".shake/gen/main.exe/linker/main.exe.ld"
+SYMBOLS = "config/symbols.main.exe.txt"
+UNDEFINED_SYMBOLS = ".shake/gen/main.exe/meta/undefined_symbols_auto.main.exe.txt"
+UNDEFINED_FUNCTIONS = ".shake/gen/main.exe/meta/undefined_functions_auto.main.exe.txt"
 
 # Per-function `--gp-extern SYM` maspsx flags — MUST mirror maspsxGpExterns in
 # shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
@@ -300,21 +309,174 @@ def find_nonmatching_s(name):
     return hits
 
 
+def raw_byte_diff(first, second):
+    """Raw differing-byte count, including a length delta."""
+    return (sum(a != b for a, b in zip(first, second)) +
+            abs(len(first) - len(second)))
+
+
+def rewrite_linker_object(linker, name, candidate):
+    """Replace one TU object in a generated splat linker script.
+
+    A candidate must be linked in the exact retail layout before its bytes are
+    authoritative: raw relocatable-object bytes do not contain resolved jumps,
+    gp-relative offsets, or final local-rodata addresses.  Using a private copy
+    of the linker script avoids touching Shake's live object tree.
+    """
+    original = f".shake/build/main.exe/{name}.c.o"
+    if original not in linker:
+        raise ValueError(f"{original} is absent from {LINKER}")
+    return linker.replace(original, os.path.abspath(candidate))
+
+
+def object_section_size(path, section=".text"):
+    out = subprocess.run(
+        ["mipsel-unknown-linux-gnu-objdump", "-h", path],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    pattern = re.compile(rf"^\s*\d+\s+{re.escape(section)}\s+([0-9a-fA-F]+)\b",
+                         re.M)
+    match = pattern.search(out)
+    return int(match.group(1), 16) if match else 0
+
+
+def candidate_sources(work):
+    """The baseline plus every improvement source retained by permuter."""
+    paths = [os.path.join(work, "base.c")]
+    paths.extend(glob.glob(os.path.join(work, "output-*-*", "source.c")))
+
+    def key(path):
+        match = re.search(r"/output-(\d+)-(\d+)/source\.c$", path)
+        return (-1, 0) if not match else (int(match.group(1)), int(match.group(2)))
+
+    return sorted((path for path in paths if os.path.exists(path)), key=key)
+
+
+def _link_candidate(name, csh, source, scratch, ordinal, linker_text,
+                    original, addr, extent):
+    """Compile and fully link one preprocessed candidate; return raw scores."""
+    stem = os.path.join(scratch, f"candidate-{ordinal}")
+    obj = stem + ".o"
+    compile_result = subprocess.run(
+        [csh, source, "-o", obj], stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE, text=True,
+    )
+    if compile_result.returncode:
+        return {"source": source, "error": "compile failed"}
+
+    script = stem + ".ld"
+    with open(script, "w") as stream:
+        stream.write(rewrite_linker_object(linker_text, name, obj))
+    elf, image, map_path = stem + ".elf", stem + ".bin", stem + ".map"
+    link_result = subprocess.run(
+        [LD, "-EL", "-o", elf, "-Map", map_path,
+         "-T", script, "-T", SYMBOLS, "-T", UNDEFINED_SYMBOLS,
+         "-T", UNDEFINED_FUNCTIONS, "--no-check-sections", "-nostdlib"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+    )
+    if link_result.returncode:
+        tail = link_result.stderr.strip().splitlines()
+        return {"source": source,
+                "error": "link failed" + (f": {tail[-1]}" if tail else "")}
+    subprocess.run([OBJCOPY, "-O", "binary", elf, image], check=True,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with open(image, "rb") as stream:
+        candidate = stream.read()
+    file_offset = matchdiff.FILE_TEXT_OFF + (addr - matchdiff.TEXT_START)
+    target_window = original[file_offset:file_offset + extent]
+    candidate_window = candidate[file_offset:file_offset + extent]
+    return {
+        "source": source,
+        "whole": raw_byte_diff(original, candidate),
+        "window": raw_byte_diff(target_window, candidate_window),
+        "text_size": object_section_size(obj),
+    }
+
+
+def authoritative_rescore(name, work, csh):
+    """Fully link retained candidates and rank them by matchdiff's objective.
+
+    decomp-permuter's scorer intentionally normalizes several details.  That is
+    useful during stochastic search but can rank a real byte regression above a
+    candidate that is closer after relocations and final section placement.
+    This pass uses a private linker script and compares the complete executable,
+    exactly like matchdiff, without replacing source or build-tree objects.
+    """
+    sources = candidate_sources(work)
+    if not sources:
+        print("permute: authoritative rescore: no base/output sources found")
+        return []
+    with open(matchdiff.ORIG, "rb") as stream:
+        original = stream.read()
+    with open(LINKER) as stream:
+        linker_text = stream.read()
+    addr, extent = matchdiff.symbol_slot(name)
+    results = []
+    with tempfile.TemporaryDirectory(prefix=f"tenchu-permute-{name}-") as scratch:
+        for ordinal, source in enumerate(sources):
+            results.append(_link_candidate(
+                name, csh, source, scratch, ordinal, linker_text,
+                original, addr, extent,
+            ))
+
+    valid = sorted((result for result in results if "whole" in result),
+                   key=lambda result: (result["whole"], result["window"],
+                                       result["source"]))
+    print("\npermute: authoritative full-link rescore "
+          "(whole image / function window / .text):")
+    for result in valid[:20]:
+        label = os.path.relpath(result["source"], work)
+        print(f"  {result['whole']:6d} / {result['window']:5d} / "
+              f"{result['text_size']:5d}  {label}")
+    if len(valid) > 20:
+        print(f"  ... {len(valid) - 20} more retained candidates")
+    for result in results:
+        if "error" in result:
+            print(f"  INVALID  {os.path.relpath(result['source'], work)}: "
+                  f"{result['error']}")
+    if valid:
+        best = valid[0]
+        label = os.path.relpath(best["source"], work)
+        if best["whole"] == 0:
+            print(f"permute: ★ AUTHORITATIVE MATCH → {label}")
+        else:
+            print(f"permute: authoritative best → {label} "
+                  f"({best['whole']} whole-image differing bytes)")
+    return valid
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--rescore-only", action="store_true",
+                    help="full-link and rank retained candidates without rerunning permuter")
     ap.add_argument("name")
     ap.add_argument("rest", nargs=argparse.REMAINDER,
                     help="args after `--` are passed to permuter.py")
     args = ap.parse_args()
+    # argparse.REMAINDER intentionally hands everything after NAME to the
+    # child.  Also accept the natural `NAME --rescore-only` spelling locally.
+    if "--rescore-only" in args.rest:
+        args.rescore_only = True
+        args.rest.remove("--rescore-only")
     name = args.name
     src = f"src/main.exe/{name}.c"
     if not os.path.exists(src):
         sys.exit(f"permute: {src} not found")
 
+    work = os.path.join(".shake", "permuter", name)
+    csh = os.path.join(work, "compile.sh")
+    if args.rescore_only:
+        if not os.path.exists(csh):
+            sys.exit(f"permute: {work} has no compile.sh; run a normal bounded "
+                     "permuter pass first")
+        subprocess.run(["./Build"], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, check=True)
+        authoritative_rescore(name, work, csh)
+        return
+
     subprocess.run(["./Build"], stdout=subprocess.DEVNULL, check=False)
     target_s = find_nonmatching_s(name)
 
-    work = os.path.join(".shake", "permuter", name)
     shutil.rmtree(work, ignore_errors=True)
     os.makedirs(work)
 
@@ -357,8 +519,9 @@ def main():
 
     wins = sorted(glob.glob(os.path.join(work, "output-0-*", "source.c")))
     if wins:
-        print(f"\npermute: ★ byte-match found → {wins[0]}\n"
-              f"         clean it up into {src}, then `./Build check`.")
+        print(f"\npermute: proxy score 0 retained → {wins[0]}\n"
+              "         Full-link rescoring below decides whether it really matches.")
+    authoritative_rescore(name, work, csh)
     sys.exit(rc)
 
 

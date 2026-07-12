@@ -77,7 +77,7 @@ CATEGORY_PASSES = {
 CATEGORY_RULES = {
     "regalloc": [
         "type-width", "cmp-polarity", "loop-fence", "loop-range", "split-chain",
-        "or-inplace",
+        "or-inplace", "add-prefix-temp",
     ],
     "cse/coalescing": ["type-width", "loop-fence", "loop-range", "temp-inline"],
     "jump/cross-jump": ["case-fence", "and-nest"],
@@ -87,7 +87,7 @@ CATEGORY_RULES = {
     ],
     "combine/expression": [
         "abs-ge", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
-        "shift16-mul", "plus-group", "split-chain",
+        "shift16-mul", "plus-group", "add-prefix-temp", "split-chain",
     ],
     "structure/length": ["type-width", "and-nest", "temp-inline", "case-fence"],
 }

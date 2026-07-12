@@ -84,15 +84,17 @@ $ ./Build check      # then confirm the whole image
 
 ## Iteration protocol
 
-> **`autorules` and `permute.py` report their OWN score, not raw bytes.** Both
-> optimise an internal objective that can move the wrong way against
-> `tools/matchdiff.py`. Twice in one batch a "winning" edit scored better
-> internally while being semantically wrong or literally worse under matchdiff
-> (a narrow-width change in `DrawModel`/`FUN_8001b2f4`, a loop-bound change in
-> `FUN_800566fc`). **Re-verify every accepted edit with `matchdiff.py`, and the
-> function as a whole with `./Build check`.** Never accept a permuter candidate
-> on its score alone — and bisect it: winning candidates routinely carry dead
-> statements that are not load-bearing.
+> **`autorules` scores the fully linked whole-image raw bytes; decomp-permuter's
+> search score is only a proxy.** Older autorules revisions used an instruction
+> alignment score that could improve while real bytes regressed; that is now
+> fixed. The permuter still deliberately normalises details such as stack slots,
+> relocations, and register allocation, so its lower-numbered output directory is
+> not necessarily closer. `tools/permute.py` now full-links every retained output
+> after a run and prints the authoritative whole-image/window ranking; after an
+> interrupted run use `tools/permute.py <Name> --rescore-only`. **Re-verify every
+> accepted edit with `matchdiff.py`, and the function as a whole with `./Build
+> check`.** Bisect winners: they routinely carry dead statements that are not
+> load-bearing.
 
 The ordered triage — fix categories in THIS order, re-running
 `tools/matchdiff.py <Name>` after every source change:
@@ -1643,6 +1645,17 @@ variable doing double duty** — and its call-argument copy-preference travels w
 into the other region. (`vrealloc`: the grow-branch mask and the memcpy length are
 the same variable.)
 
+Treat a shared physical suffix as stronger evidence than decompiler scopes. In
+`ControlHumanoid`, the player camera's small-angle store and the enemy vertical
+clamp's store both use the target's `$v1`, then jump into one shared
+`UpdateCoordinate` tail. Keeping both signed roles in one function-scope `direction`
+local let jump2 cross-jump the identical `sh` suffix; two tidier block locals left two
+copies and made the exact-length function eight bytes too long. When mutually
+exclusive branches converge through the same hard register and identical store/call
+tail, first try one reused variable plus literal duplicated tails and let cross-jump
+perform the factoring. `rtlguide` classifies the resulting register-only residual;
+do not manually factor the source before testing this identity clue.
+
 ### A promoted `short` parameter is TWO pseudos for free
 
 cc1 gives a promoted `short` parameter two pseudos with no source-level copy: the
@@ -1909,6 +1922,29 @@ association/constant-position trees for exactly two expressions and one integer
 literal. It preserves the relative source order of both nonconstant expressions,
 so two calls are never exchanged merely to move the literal. Exact byte scoring
 chooses the surviving fold tree.
+
+### A narrowed three-term sum may need a named promoted prefix
+
+An outer `(s16)` can make cse treat every leaf of `A + B + C` as narrow-use-only.
+For signed halfword fields that means `lhu` is sufficient until the final
+`sll/sra`, and fold is free to accumulate into the last operand's register. If the
+target instead has signed `lh` loads and preserves `A+B` in its own register, name
+only that promoted seam:
+
+```c
+s32 pair;
+pair = object[0]->rotate.vy + object[1]->rotate.vy;
+arg = (s16)(pair + body->rotate.vy);
+```
+
+Do not automatically name the whole three-term result: that extends a different
+allocno and can rotate all call-argument registers. In `ControlHumanoid`, the
+two-term prefix reduced an exact-length residual from 97 to 57 bytes; a full-sum or
+third-leaf temp regressed to 68. Guided/aggressive autorules rule
+`add-prefix-temp` now tries both contiguous two-term seams for exactly three
+side-effect-free leaves under an explicit signed-16 cast, using a nested C89 block
+to bound the temp's lifetime. The generated `_match_sum` is a probe; rename a
+winning temp for the domain before committing it.
 
 ### Steering allocation: donate a call-arg preference to a low-priority pseudo
 
@@ -2246,6 +2282,16 @@ before local-alloc, so the def is gone before it can bias anything.
   candidate can contain the exact single-statement reorder needed — diff it
   against your base instead of waiting out the random search (PlayerOption
   found its fix in an output-30 dir of a run stuck at 805).
+- **Rank those directories by the linked executable, never by the directory
+  number.** `tools/permute.py` automatically recompiles each retained `source.c`,
+  substitutes its object into a private copy of splat's linker script, resolves
+  gp/branch/rodata relocations at the retail addresses, and reports
+  `whole image / function window / .text size`. It does not touch the source or
+  Shake object tree. Use `tools/permute.py <Name> --rescore-only` after Ctrl-C or
+  an external timeout. `ControlHumanoid` proved why: proxy output-525 was the
+  real 57-byte winner, while several numerically lower proxy candidates were
+  68 bytes away or the wrong length and therefore hundreds of thousands of
+  whole-image bytes worse.
 - **A late reuse of an existing pointer local can recolor an early block at
   zero byte cost**: global.c allocates one pseudo for the variable across the
   whole function, so assigning a far-later same-kind pointer to it changes its

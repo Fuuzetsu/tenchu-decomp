@@ -165,6 +165,33 @@ int F(void) { return Global; }
 """
         self.assertEqual(self.candidates(autorules.rule_plus_group, source), [])
 
+    def test_add_prefix_temp_names_both_contiguous_promoted_seams(self):
+        source = """typedef short s16;
+typedef int s32;
+int sink(s16);
+int F(int a, int b, int c) {
+    return sink((s16)(a + b + c));
+}
+"""
+        out = self.candidates(autorules.rule_add_prefix_temp, source)
+        self.assertEqual(len(out), 2)
+        texts = [candidate for _label, candidate in out]
+        self.assertTrue(any("_match_sum = a + b;" in candidate and
+                            "sink((s16)(_match_sum + c))" in candidate
+                            for candidate in texts))
+        self.assertTrue(any("_match_sum = b + c;" in candidate and
+                            "sink((s16)(a + _match_sum))" in candidate
+                            for candidate in texts))
+
+    def test_add_prefix_temp_rejects_effectful_leaves(self):
+        source = """typedef short s16;
+int next(void);
+int sink(s16);
+int F(int a, int b) { return sink((s16)(a + next() + b)); }
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_add_prefix_temp, source), [])
+
     def test_registered_rules_never_emit_inline_asm(self):
         self.assertNotIn("__asm__", inspect.getsource(autorules))
         for key, _description, rule in autorules.RULES + autorules.AGGRESSIVE_RULES:
@@ -397,6 +424,39 @@ class MatchToolLockTests(unittest.TestCase):
                             pass
             finally:
                 os.chdir(old)
+
+
+class PermuteRescoreTests(unittest.TestCase):
+    def test_raw_byte_diff_counts_content_and_length(self):
+        self.assertEqual(permute.raw_byte_diff(b"abcd", b"abXdY"), 2)
+
+    def test_rewrite_linker_object_replaces_every_section_reference(self):
+        linker = """SECTIONS {
+  .text : { .shake/build/main.exe/F.c.o(.text); }
+  .rodata : { .shake/build/main.exe/F.c.o(.rodata); }
+}
+"""
+        result = permute.rewrite_linker_object(linker, "F", "/tmp/candidate.o")
+        self.assertEqual(result.count("/tmp/candidate.o"), 2)
+        self.assertNotIn(".shake/build/main.exe/F.c.o", result)
+        with self.assertRaises(ValueError):
+            permute.rewrite_linker_object(linker, "Missing", "/tmp/x.o")
+
+    def test_candidate_sources_orders_base_then_proxy_scores(self):
+        with tempfile.TemporaryDirectory() as directory:
+            paths = [
+                os.path.join(directory, "base.c"),
+                os.path.join(directory, "output-25-2", "source.c"),
+                os.path.join(directory, "output-10-1", "source.c"),
+            ]
+            for path in paths:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w") as stream:
+                    stream.write("void F(void) {}\n")
+            found = [os.path.relpath(path, directory)
+                     for path in permute.candidate_sources(directory)]
+            self.assertEqual(found, ["base.c", "output-10-1/source.c",
+                                     "output-25-2/source.c"])
 
 
 class BuildConfigurationTests(unittest.TestCase):

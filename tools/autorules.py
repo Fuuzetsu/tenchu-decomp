@@ -557,6 +557,109 @@ def rule_plus_group(text, name, span):
                        splice(data, expr.start_byte, expr.end_byte, repl).decode())
 
 
+def rule_add_prefix_temp(text, name, span):
+    """Name a promoted two-term seam inside a narrowed three-term sum.
+
+    `(s16)(A + B + C)` lets fold/cse observe that the whole expression is used
+    only narrowly; old cc1 may consequently use unsigned halfword loads and a
+    different add destination for every leaf.  A signed 32-bit temp for A+B
+    preserves that promoted prefix as its own allocno:
+
+        { s32 _match_sum; _match_sum = A + B;
+          use((s16)(_match_sum + C)); }
+
+    This was the 97 -> 57 byte step in ControlHumanoid.  Restrict candidates to
+    exactly three side-effect-free leaves under an explicit 16-bit cast and a
+    standalone expression statement.  The nested block makes the declaration
+    legal C89 and bounds its lifetime; authoritative scoring decides whether
+    the extra allocno is useful.  Both contiguous seams are tried.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    effects = ("call_expression", "assignment_expression", "update_expression")
+    allowed_types = {b"s16", b"short", b"signed short"}
+    for cast in _find(body, ("cast_expression", "call_expression")):
+        cast_type = cast.child_by_field_name("type")
+        value = cast.child_by_field_name("value")
+        pseudo_cast = False
+        if cast.type == "call_expression":
+            # tree-sitter has no typedef table, so `(s16)(expr)` is parsed as
+            # a call through parenthesized identifier `s16`. Recognise only
+            # our explicit narrow type names; ordinary function calls remain
+            # untouched.
+            function = cast.child_by_field_name("function")
+            arguments = cast.child_by_field_name("arguments")
+            function_inner = (_paren_inner(function)
+                              if function is not None and
+                              function.type == "parenthesized_expression"
+                              else None)
+            argument_values = ([child for child in arguments.named_children
+                                if child.type != "comment"]
+                               if arguments is not None else [])
+            if function_inner is None or len(argument_values) != 1:
+                continue
+            cast_type = function_inner
+            value = argument_values[0]
+            pseudo_cast = True
+        if cast_type is None or value is None:
+            continue
+        normalized_type = b" ".join(_txt(data, cast_type).split())
+        if normalized_type not in allowed_types:
+            continue
+        leaves = _plus_leaves(data, value)
+        if len(leaves) != 3 or any(_find(leaf, effects) for leaf in leaves):
+            continue
+        statement = cast
+        while (statement is not None and
+               statement.type not in ("expression_statement", "return_statement")):
+            statement = statement.parent
+        if (statement is None or statement.parent is None or
+                statement.parent.type != "compound_statement"):
+            continue
+        # One outer call or assignment is fine. Nested calls/assignments would
+        # make hoisting the pure prefix observably reorder side effects.
+        calls = _find(statement, ("call_expression",))
+        if pseudo_cast:
+            calls = [call for call in calls if call != cast]
+        assignments = _find(statement, ("assignment_expression",))
+        if len(calls) > 1 or len(assignments) > 1 or \
+                _find(statement, ("update_expression",)):
+            continue
+        line = _line(data, cast.start_byte)
+        if not _guided_site(line):
+            continue
+        temp = "_match_sum"
+        suffix = 2
+        while re.search(rf"\b{re.escape(temp)}\b", text):
+            temp = f"_match_sum{suffix}"
+            suffix += 1
+        leaf_text = [_txt(data, leaf).strip() for leaf in leaves]
+        variants = (
+            ("prefix01", leaf_text[0] + b" + " + leaf_text[1],
+             temp.encode() + b" + " + leaf_text[2]),
+            ("suffix12", leaf_text[1] + b" + " + leaf_text[2],
+             leaf_text[0] + b" + " + temp.encode()),
+        )
+        line_start = data.rfind(b"\n", 0, statement.start_byte) + 1
+        indent = data[line_start:statement.start_byte]
+        if indent.strip():
+            continue
+        raw_statement = data[statement.start_byte:statement.end_byte]
+        relative_start = value.start_byte - statement.start_byte
+        relative_end = value.end_byte - statement.start_byte
+        for tag, prefix, replacement in variants:
+            changed_statement = (raw_statement[:relative_start] + replacement +
+                                 raw_statement[relative_end:])
+            repl = (b"{\n" + indent + b"    s32 " + temp.encode() + b";\n" +
+                    indent + b"    " + temp.encode() + b" = " + prefix + b";\n" +
+                    indent + b"    " + changed_statement + b"\n" + indent + b"}")
+            yield (f"add-prefix-temp {tag} L{line}",
+                   splice(data, statement.start_byte, statement.end_byte,
+                          repl).decode())
+
+
 def rule_abs_ge(text, name, span):
     """Rewrite an abs ternary to its GE form: `(x < 0) ? -x : x` -> `(x >= 0) ? x : -x`.
 
@@ -1285,6 +1388,7 @@ AGGRESSIVE_RULES = [
     ("cmp-polarity", "swap two local comparison operands (regalloc ref-order lever)", rule_cmp_polarity),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
+    ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
     ("case-fence", "if/else -> two-way switch (hard cross-jump CODE_LABEL)", rule_case_fence),
