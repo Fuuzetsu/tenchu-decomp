@@ -519,6 +519,13 @@ plain C is the matched file.
   after its own test, but `if (whence==1) goto a; if (whence==0) goto b; …` with
   the *labels* ordered 0,2,1 reproduces the test sequence and the body addresses
   independently.
+  This also applies when one path must **skip an earlier cleanup/drop block**
+  and enter a later aim/sight block. ProcItemArrow needed an explicit early
+  `goto aim;` for a valid attached human, preserving the retail forward skip
+  around the invalid-human path. ProcSightShot similarly placed drop/common
+  dispose before `sight_mode` and jumped into the later block. Structured
+  nesting or one factored tail changed physical block order and cross-jump
+  scope even though the path conditions were identical.
 - A preceding test that keeps its constant in a **callee-saved register**
   across calls (`li $s4, 0xFF` + later `sb $s4`) is a local variable
   (`u8 ff = 0xff;`) also used by a later store. A path where the same value is
@@ -2420,6 +2427,14 @@ before local-alloc, so the def is gone before it can bias anything.
   memory-chain stores frees their registers for later constants — in
   ProcItemKusuri that one swap released `$s0` for the division magic and
   collapsed a whole extra callee-saved register out of the prologue.
+- **A comparison literal can be named before an earlier guard so its `li`
+  fills that guard's delay slot.** If the target materializes a constant before
+  the comparison that logically owns it, assign a local before the preceding
+  zero/null guard and use that local in the later comparison. Its mode still
+  matters: ProcItemArrow's aim bound had to be `s16`, not `s32`; `type-width`
+  found the narrow form that removed the final `$v0/$v1` tie. Do this only when
+  the local is live on every path reaching the comparison—the early placement
+  is a scheduling/lifetime claim, not cosmetic hoisting.
 - **A same-address store must go through whichever pointer variable holds the
   base register the asm uses** (`it->param` vs a `pp` alias, even when
   numerically identical): value unaffected, but it decides a delay-slot
