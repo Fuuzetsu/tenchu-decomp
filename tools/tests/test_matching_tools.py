@@ -19,6 +19,7 @@ import maspsxflags
 import permute
 import regalloc
 import rtlguide
+import stackplan
 
 
 class AutoRulesAdvancedTests(unittest.TestCase):
@@ -593,6 +594,44 @@ void Target(u32 value)
         self.assertIsNone(permute.contextualize_candidate(
             "Missing", base, "void Other(void) {}\n"
         ))
+
+
+class StackPlanTests(unittest.TestCase):
+    def test_target_frame_and_workspace_are_inferred(self):
+        assembly = """
+glabel F
+    addiu $sp, $sp, -0x60
+    sw $s0, 0x50($sp)
+    sw $ra, 0x5c($sp)
+    sw $a0, 0x18($sp)
+    lw $v0, 0x1c($sp)
+    jal helper
+    sw $zero, 0x10($sp)
+"""
+        info = stackplan.analyze(assembly, args_hint=0x18)
+        self.assertEqual(info["frame"], 0x60)
+        self.assertEqual(info["saved_start"], 0x50)
+        self.assertEqual(info["workspace_start"], 0x18)
+        self.assertEqual(info["workspace_end"], 0x50)
+        self.assertEqual(info["workspace_size"], 0x38)
+        self.assertEqual(info["accesses"][0x18], {"sw": 1})
+        self.assertNotIn(0x10, [offset for offset in info["accesses"]
+                               if offset >= info["workspace_start"]])
+
+    def test_compiler_frame_comment_supplies_args_and_vars(self):
+        assembly = """
+.frame $sp,112,$31 # vars= 72, regs= 4/0, args= 24, extra= 0
+subu $sp,$sp,112
+sw $16,96($sp)
+sw $31,108($sp)
+sw $2,24($sp)
+"""
+        info = stackplan.analyze(assembly)
+        self.assertEqual(info["frame"], 112)
+        self.assertEqual(info["vars"], 72)
+        self.assertEqual(info["args"], 24)
+        self.assertEqual(info["saved_start"], 96)
+        self.assertEqual(info["workspace_size"], 72)
 
 
 class BuildConfigurationTests(unittest.TestCase):

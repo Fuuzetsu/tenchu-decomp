@@ -1361,6 +1361,32 @@ near entry; `AdtMessageBox` wants the inline form.)
   (`(PARAM_ITEM_USE *)buf`, `*(VECTOR *)(buf + 0x10)`, ...). cc1 2.8 does
   **not** share stack slots between sibling scopes, so distinct scoped locals
   can't reproduce the overlap.
+- **For mutually-exclusive aggregate layouts, make the overlap an explicit
+  union instead of hoping scopes share slots.** Run `tools/stackplan.py <Name>`:
+  it reads the candidate's outgoing-argument size, the target's first
+  callee-saved spill, and every target/candidate `sp+offset` access. The reported
+  working window is the exact scratch-union extent. Give the union one struct
+  view per mode/path and use padding to place members at the target offsets.
+  ProcItemFire's ordinary block locals made a 0xb0-byte frame; its target says
+  args end at sp+0x18 and saves begin at sp+0x78, so a 0x60-byte union with
+  particle, drop, explosion and frame views reproduced the exact 0x98-byte
+  frame and every stack offset. This is an explicit layout technique, not a
+  claim that every target used a union—verify the complete byte diff.
+- **A stack aggregate pointer can coexist with DIRECT member spellings, and
+  that mix may be the target.** Keep `p = &local` alive for the one field whose
+  store is base-relative and for the later call, but spell other fields as
+  `local.field`. ProcItemFire needed `launch->user` and `ReqItemDrop(launch)` to
+  retain `$s0`, while direct `launch.start/end` spellings emitted the target's
+  `sp+offset` loads/stores and preserved its loaded-z call delay slot. Making
+  every access `p->field` added a reload and a call-delay `nop`; making every
+  access direct deleted the pointer.
+- **A decrement stored to `u8` but tested later can want a full-width host plus
+  explicit narrow tests.** `s32 count = byte - 1; byte = count;` followed by
+  `if ((u8)count == ...)` keeps one SI pseudo for the add/store/control-flow and
+  emits narrowing only where each path needs it. An `u8 count` may split the
+  decrement and promoted value, leaving a copy and one missing instruction.
+  ProcItemFire's switch matched only with the full-width host; ProcItemSmoke is
+  the same family.
 - The **cast type's alignment drives copy code**: `*(VECTOR *)a =
   *(VECTOR *)b` is a word block move (4×`lw`+4×`sw`, `$t2/$t3/$t4/$t1`
   rotation; a 0x50-byte struct assignment becomes the 16-bytes-per-iteration
@@ -2915,6 +2941,18 @@ stack (the target block-copies them, so they cannot stay in registers), declarin
 as one `long p[3];` instead of three scalars forces genuine stack residency and moves
 the residual toward the target (`SetBleedsDir`: 88 → 68 bytes). Part of the still-open
 "throwaway scratch + second block-copy" residual that SetBleeds/SetSmoke share.
+
+**Separate single-definition rand temps preserve return-register coalescing; a
+named base temp preserves which side owns the bias.** For repeated
+`coordinate - BIAS + rand() % RANGE` expressions, use one `random_x/y/z` per
+call and split `base_x = coordinate - BIAS; result = base_x + random_x % RANGE`.
+Each single-def call result coalesces with `$v0`; one reused multi-def `random`
+creates a copy after every call. The named base prevents combine from
+reassociating the bias onto the remainder, which otherwise sinks the coordinate
+load and removes its target load-hazard `nop`. This exact three-expression shape
+fixed ProcItemFire's last structural gap. When the target instead has the
+reassociated form, inline `rand()` and the bias—the two spellings are deliberate
+opposites.
 
 ### Hoist-invariant vs widen-parameter can be a 2-instruction allocator tie
 

@@ -799,6 +799,8 @@ def print_report(g, max_hunks=12):
     if g["missing_move_registers"]:
         print("    missing-move register targets (inspect .lreg/.greg; no asm emitted): " +
               ", ".join("$" + x for x in g["missing_move_registers"]))
+    if g["primary"] == "structure/length":
+        print(f"    tools/stackplan.py {g['name']} -n  # frame/aggregate overlap")
     print(f"    tools/autorules.py {g['name']} --guided")
     print("  Exact bytes remain authoritative; review any partial-score improvement.")
 

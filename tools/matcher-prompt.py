@@ -297,6 +297,10 @@ def main():
              "signedness/direction (sw vs sh vs sb, lh vs lhu) straight from the "
              "mnemonics; `--order` shows the store SEQUENCE. Use it for struct "
              "layout instead of hand-tracing .s.")
+    P.append(f"- `tools/stackplan.py {name}` — target/candidate frame, outgoing-"
+             "argument boundary, first saved-register spill, and every working "
+             "sp+offset access. Run it when aggregate locals inflate the frame; "
+             "its working-window size is the mechanical scratch-union extent.")
     P.append(f"- `tools/maspsxflags.py {name} --write` — auto-derives + syncs "
              "the gp externs and guarded-variable-div `--expand-div` setting "
              "into Build.hs + permute.py (run after splitting).")
