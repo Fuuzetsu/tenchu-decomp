@@ -42,16 +42,319 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemArrow", ProcItemArrow);
+#include "item.h"
 
-// triage: HARD — 332 insns, mul/div, 1 loop, indirect-call, 15 callees, ~0.28 to ProcItemHappou
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - Register allocation steering: indirect call — null-check-var/call-field
+/*
+ * MATCH.
+ *
+ * ProcItemArrow (0x80047b94) flies, arms, attaches, and renders the homing
+ * arrow.  Before attachment it maintains a 300-unit conflict box and aims
+ * from the previous to current position; a character hit either disposes
+ * the arrow or attaches it to a random model object.  Its final two modes
+ * blink the attached arrow before disposal.
+ *
+ * Matching notes:
+ *  - `v1`, `v2`, and `rot` form the exact sp+0x18..0x3f local window.  The
+ *    two GetVectorRotation outputs are one 8-byte aggregate with useful
+ *    halfwords four bytes apart, matching ReqItemArrow's proven layout.
+ *  - The dead `mode_index = 0` assignment is a zero-code CSE eviction.  It
+ *    forces expand_case to emit a fresh mode `lbu`; otherwise the entry
+ *    guard's load is reused and the function is one instruction short.
+ *  - `ff` is an s32 caller-saved value in a1.  It survives only the no-call
+ *    mode-2 path; call-crossing mode-0 disposal prefixes rematerialize 0xff
+ *    before all copies merge at the common indirect-call tail.
+ *  - The payload guard is explicit control flow so both zero tests target
+ *    the later aiming block.  `kind_one` is deliberately s16: autorules
+ *    found that narrowing this comparison-only constant colors the payload
+ *    byte into v1 and `1` into v0, while still allowing the `li` to fill the
+ *    payload-zero branch's delay slot.  s32 swaps those two registers.
+ *  - `clock` prevents the halfword-load optimization on GameClock.  The
+ *    original reads the declared long with `lw`, shifts it, then narrows at
+ *    the model rotation store.
+ *  - The target model-object cursor is a `ModelType **`: loop-free pointer
+ *    adjustment after the guarded random remainder reproduces the single
+ *    object-array load and the checked variable-division sequence.
+ *  - `objp->locate = item->locate->locate` intentionally remains a whole
+ *    GsCOORDINATE2 assignment.  GCC emits the target five-iteration,
+ *    16-byte block-copy loop before DrawModel.
+ */
+typedef struct
+{
+    ModelType *model;
+    VECTOR position;
+    SVECTOR offset;
+    SVECTOR size;
+    void *common;
+    u8 result[64];
+    u8 pad[0x10];
+} ArrowConflictObject;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+typedef struct
+{
+    u8 fly[0x2c];
+    u8 count;
+} param_arrow;
+
+typedef struct
+{
+    u16 rx;
+    u16 pad0;
+    u16 ry;
+    u16 pad1;
+} ArrowRotation;
+
+extern ArrowConflictObject ConflictObject[];
+extern s32 GameClock;
+
+extern void MoveFly(tag_TItem *item, u8 *param);
+extern void DrawModel(ModelType *model);
+extern s16 InsertConflict(ModelType *model);
+extern s16 GetConflictResult(ModelType *model, s32 n);
+extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern void SetImpact(VECTOR *pos, s32 power, s32 mode);
+extern void SetBleeds(VECTOR *pos, s16 grange, s16 srange, s16 n,
+                      s32 time, s32 color);
+extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
+extern void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix);
+
+void ProcItemArrow(tag_TItem *item)
+{
+    ModelType *objp;
+    param_arrow *param;
+    void (*ppu)(tag_TItem *);
+    s32 ff;
+    u8 mode_index;
+    VECTOR v1;
+    VECTOR v2;
+    ArrowRotation rot;
+
+    objp = item->model;
+    param = (param_arrow *)item->param;
+    ff = 0xff;
+    mode_index = item->mode;
+    if (mode_index == ff)
+    {
+        item->mode = 0;
+        return;
+    }
+
+    mode_index = 0;
+    switch (item->mode)
+    {
+    case 0:
+    {
+        u8 count;
+        s32 cid;
+        s32 one;
+
+        v1.vx = item->locate->locate.coord.t[0];
+        v1.vy = item->locate->locate.coord.t[1];
+        v1.vz = item->locate->locate.coord.t[2];
+        MoveFly(item, (u8 *)param);
+        count = param->count - 1;
+        param->count = count;
+        one = 1;
+        if (count == 0)
+        {
+            s32 n;
+            s32 size;
+
+            DeleteConflict(item->locate);
+            n = InsertConflict(item->locate);
+            size = 300;
+            ConflictObject[n].offset.vx = 0;
+            ConflictObject[n].offset.vz = 0;
+            ConflictObject[n].offset.vy = 0;
+            ConflictObject[n].size.vz = size;
+            ConflictObject[n].size.vy = size;
+            ConflictObject[n].size.vx = size;
+            ConflictObject[n].common = (void *)one;
+            ConflictObject[n].size.pad = one;
+            item->coll_size = size;
+            item->coll_ofsY = 0;
+            item->coll_mode = one;
+            item->coll_pause = 0;
+        }
+
+        if ((item->locate->attribute & 0x8000) == 0)
+        {
+            cid = -1;
+        }
+        else
+        {
+            cid = GetConflictResult(item->locate, -1);
+        }
+        if (cid != -1)
+        {
+            Humanoid *human;
+
+            human = (Humanoid *)ConflictObject[cid].common;
+            if (is_character_state_present_on_stage_(human) != 0)
+            {
+                if ((ConflictObject[cid].size.pad & 1) != 0)
+                {
+                    ppu = item->proc;
+                    if (ppu == 0)
+                    {
+                        return;
+                    }
+                    item->mode = 0xff;
+                    item->proc(item);
+                    DeleteConflict(item->locate);
+                    if (item->mode != 0)
+                    {
+                        AdtMessageBox(D_800121CC, item->type,
+                                      (u32)item->mode);
+                    }
+                    item->owner = 0;
+                    item->proc = 0;
+                    return;
+                }
+                else
+                {
+                    ModelType **models;
+                    ModelType *model;
+
+                    models = human->model->object;
+                    if (human->model->n > 0)
+                    {
+                        models += rand() % human->model->n;
+                    }
+                    model = *models;
+                    SetImpact(GetAbsolutePosition(model, 0, 0, 0),
+                              0x6000, 2);
+                    SoundEx(GetAbsolutePosition(model, 0, 0, 0), 0x30);
+                    ArrangeLocalMatrix(model,
+                                       &item->locate->locate.coord);
+                    item->locate->locate.flg = 0;
+                    item->locate->locate.super =
+                        (GsCOORDINATE2 *)model;
+                    item->locate->locate.coord.t[0] = 0;
+                    item->locate->locate.coord.t[1] = 0;
+                    item->locate->locate.coord.t[2] = 0;
+                    param->count = 0x78;
+                    item->mode = item->mode + 1;
+                    DeleteConflict(item->locate);
+                    break;
+                }
+            }
+            else
+            {
+                goto aim;
+            }
+        }
+
+        {
+            s16 kind_one;
+            u8 kind;
+
+            if (param->fly[0x28] == 0)
+            {
+                goto aim;
+            }
+            kind_one = 1;
+            kind = param->fly[0x0a];
+            if (kind == 0)
+            {
+                goto aim;
+            }
+            if (kind == kind_one)
+            {
+                ppu = item->proc;
+                if (ppu == 0)
+                {
+                    return;
+                }
+                item->mode = 0xff;
+                item->proc(item);
+                DeleteConflict(item->locate);
+                if (item->mode != 0)
+                {
+                    AdtMessageBox(D_800121CC, item->type,
+                                  (u32)item->mode);
+                }
+                item->owner = 0;
+                item->proc = 0;
+                return;
+            }
+            SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
+            SetBleeds((VECTOR *)item->locate->locate.coord.t,
+                      0, 0x19, 0x1e, 0x1e, 0xffff00);
+            param->count = 0x1e;
+            item->mode = item->mode + 1;
+            DeleteConflict(item->locate);
+            return;
+        }
+
+aim:
+        v2.vx = item->locate->locate.coord.t[0];
+        v2.vy = item->locate->locate.coord.t[1];
+        v2.vz = item->locate->locate.coord.t[2];
+        GetVectorRotation(&v1, &v2, &rot.rx, &rot.ry);
+        item->locate->rotate.vx = rot.rx;
+        item->locate->rotate.vy = rot.ry;
+        {
+            s32 clock;
+
+            clock = GameClock;
+            item->locate->rotate.vz = clock << 8;
+        }
+        UpdateCoordinate(item->locate);
+        break;
+    }
+
+    case 1:
+    {
+        u8 count;
+
+        count = param->count - 1;
+        param->count = count;
+        if (count != 0)
+        {
+            break;
+        }
+        param->count = 0xf;
+        item->mode = item->mode + 1;
+        break;
+    }
+
+    case 2:
+    {
+        u8 count;
+
+        count = param->count - 1;
+        param->count = count;
+        if (count == 0)
+        {
+            ppu = item->proc;
+            if (ppu == 0)
+            {
+                return;
+            }
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+        if ((count & 1) != 0)
+        {
+            return;
+        }
+        break;
+    }
+    }
+
+    objp->locate = item->locate->locate;
+    DrawModel(objp);
+}
+
+// Historical Ghidra decompilation reference:
 //
 //
 // void ProcItemArrow(tag_TItem *item)

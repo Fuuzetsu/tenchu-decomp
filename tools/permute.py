@@ -280,6 +280,7 @@ MASPSX_EXTRA = {
     "DrawBlood": ["--expand-div"],
     "FUN_8003562c": ["--expand-div"],
     "SwimCheck": ["--expand-div"],
+    "ProcItemArrow": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
