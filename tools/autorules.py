@@ -1719,6 +1719,40 @@ def rule_cmp_polarity(text, name, span):
                splice(data, comp.start_byte, comp.end_byte, repl).decode())
 
 
+def rule_eq_literal_swap(text, name, span):
+    """Swap ``value ==/!= LITERAL`` to ``LITERAL ==/!= value``.
+
+    Equality is commutative, but old cc1 creates/references the load and
+    constant pseudos in source operand order.  Reversing them can exchange a
+    final ``$v0/$v1`` pair without changing CFG or instruction count.  Limit
+    this guided lever to exactly one literal operand and reject calls,
+    assignments, and updates, so no observable evaluation order moves.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    literal_types = {"number_literal", "char_literal", "true", "false", "null"}
+    side_effects = ("call_expression", "update_expression",
+                    "assignment_expression")
+    for comp in _find(body, ("binary_expression",)):
+        operator = comp.child_by_field_name("operator")
+        left = comp.child_by_field_name("left")
+        right = comp.child_by_field_name("right")
+        if (operator is None or left is None or right is None or
+                _txt(data, operator) not in (b"==", b"!=") or
+                ((left.type in literal_types) == (right.type in literal_types)) or
+                _find(left, side_effects) or _find(right, side_effects)):
+            continue
+        line = _line(data, comp.start_byte)
+        if not _guided_site(line):
+            continue
+        repl = (_txt(data, right).strip() + b" " + _txt(data, operator) +
+                b" " + _txt(data, left).strip())
+        yield (f"eq-literal-swap L{line}",
+               splice(data, comp.start_byte, comp.end_byte, repl).decode())
+
+
 def rule_shift16_mul(text, name, span):
     """Respell a casted narrow `x << 16` as `x * 0x10000`.
 
@@ -2205,6 +2239,7 @@ RULES = [
 
 AGGRESSIVE_RULES = [
     ("cmp-polarity", "swap two local comparison operands (regalloc ref-order lever)", rule_cmp_polarity),
+    ("eq-literal-swap", "swap ==/!= literal operand order (v0/v1 lever)", rule_eq_literal_swap),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),

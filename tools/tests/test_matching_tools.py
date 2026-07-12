@@ -43,6 +43,25 @@ class AutoRulesAdvancedTests(unittest.TestCase):
         self.assertEqual(len(out), 1)
         self.assertIn("turn > direction", out[0][1])
 
+    def test_eq_literal_swap_reverses_commutative_operands(self):
+        source = """int Global;
+int F(void) {
+    if (Global != 0x906) return 1;
+    return 0;
+}
+"""
+        out = self.candidates(autorules.rule_eq_literal_swap, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("0x906 != Global", out[0][1])
+
+    def test_eq_literal_swap_rejects_two_values_or_side_effects(self):
+        values = "int F(int a, int b) { return a == b; }\n"
+        effect = "int next(void); int F(void) { return next() != 1; }\n"
+        self.assertEqual(
+            self.candidates(autorules.rule_eq_literal_swap, values), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_eq_literal_swap, effect), [])
+
     def test_loop_fence_wraps_an_if(self):
         source = """int F(int value) {
     if (value) value++;
