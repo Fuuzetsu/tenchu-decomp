@@ -1948,11 +1948,13 @@ verified absent from `.cse`/`.cse2`/`.combine`). So when the target KEEPS a
 register must be REDEFINED in the interval — funnel the stored values through one
 serially-reused temp (`t = v.vx; p->end.vx = t; t = v.vy; …`) so R is live-again
 and reorg can't delete the reload. Conversely, to make a reload vanish, keep its
-register untouched across the span. (ReqItemUse's lightningbolt end-vector tail —
-this rule and the coloring-order need are mutually exclusive, which is why that
-one case resisted ~12 spellings.) Note: a `sz = 0;`-style dead def can't steer
-this — `delete_trivially_dead_insns` runs post-cse and the ref counts are
-recomputed before local-alloc, so the def is gone before it can bias anything.
+register untouched across the span. ReqItemUse's lightningbolt end-vector tail
+initially exposed a tension between this rule and the required coloring order;
+it was resolved by turning the tail's values into function-scope pseudos and
+giving them byte-neutral uses in a later case (see the multi-anchor rule below).
+Note: a `sz = 0;`-style dead def can't steer this —
+`delete_trivially_dead_insns` runs post-cse and the ref counts are recomputed
+before local-alloc, so the def is gone before it can bias anything.
 - **A shared return variable copy-preferences its sources together — use early
   returns to split their live ranges.** Funnelling two values through one
   `ret` (e.g. `ret = existing_id; … ret = new_index; return ret;`) makes cc1's
@@ -2061,6 +2063,16 @@ recomputed before local-alloc, so the def is gone before it can bias anything.
   `StageMotion` null-check/free made the whole function MATCH. The permuter found
   this as a nonzero `output-25` candidate; bisecting that one edit against raw
   matchdiff proved it was the load-bearing change.
+- **Several byte-neutral late reuses can anchor an entire caller-saved
+  coloring**: when RTL dumps show that a short-lived block local is being
+  claimed by local-alloc, promote the affected same-mode values to
+  function-scope locals and reuse each in a distant block whose target hard
+  register is already known. ReqItemUse reused three SImode locals in its
+  kaginawa case for the items base (`$a1`), `ProcKaginawa` address (`$v0`),
+  and scaled item index (`$v1`). Those statements emit the same instructions
+  as the natural kaginawa spelling, but make all three pseudos globally
+  allocated; reusing two for the earlier lightningbolt sums fixed its final
+  15-instruction register permutation and matched all 5272 bytes.
 - **Byte-neutral respellings are permuter seed levers**: re-reading a cached
   field that cse folds back (`dsp->u = dsp->u + …` for `x + …`) or a
   do{}while(0) around an UNRELATED block shifts pseudo bookkeeping enough to

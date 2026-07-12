@@ -404,8 +404,9 @@ lens.
   `DeleteConflict`, `SetNowMotion`, `GetAbsolutePosition`, `MoveHumanoid`;
   `Sound`/`InsertConflict` are parked NON_MATCHING (sub-C regalloc ties). Next
   high-lev: `AdtMessageBox` (87), `GetConflictResult` (conflict trio), `SoundEx`.
-- **Remaining item family**: the ~16 large `ProcItem*` (784–2468B, Fable tier)
-  and the 5272B `ReqItemUse` dispatcher.
+- **Remaining item family**: the ~16 large `ProcItem*` (784–2468B, Fable tier).
+  The 5272B `ReqItemUse` dispatcher is now MATCHING; RTL-guided, byte-neutral
+  cross-case variable reuse resolved its last register-allocation permutation.
 
 ## The m2c auto-draft sweep (measured; worth productizing)
 

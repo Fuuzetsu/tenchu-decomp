@@ -163,28 +163,18 @@
  * bodies (throw-vector setup + per-type ReqItemXxx call, or an inline
  * item-pool claim for kaginawa/sightshot/teleport/napalm).
  *
- * STATUS: NON_MATCHING — 60 of 5272 bytes differ (15 instructions, ALL inside
- * the ONE 19-word lightningbolt (case 0x17) end-vector tail at
- * 0x800496d4..0x8004971c; every other byte of the 25-case function matches,
- * length exact). Build the draft with `NON_MATCHING=ReqItemUse ./Build`.
+ * STATUS: MATCHING — all 5272 bytes match.
  *
- * The residual is a pure register permutation (t,sx,sz)=(v1,a1,v0) vs the
- * target's (v0,v1,a1): `sz` (the p->start.vz capture) is the tail's only
- * 1-def/1-use block-local pseudo, so local-alloc (which runs BEFORE global
- * alloc and is blind to global pseudos) hands it $v0 via find_free_reg's
- * default order, dominoing t->v1, sx->a1. The target needs sz allocated
- * LAST (global, lowest priority -> $a1), which per the .lreg dumps requires
- * the tail's other values to be 1-def local qtys — but 1-def stored-value
- * temps let reorg's redundant-load elimination delete the three p->end.*
- * reloads ([sw R,x .. lw R,x] with R untouched is deleted at dbr; the
- * reloads only survive because the shared temps t/u/sx REDEFINE the stored
- * register in between). The two requirements are mutually exclusive from C
- * as far as ~12 spellings + two bounded permuter runs could reach (the
- * permuter found the `sx = (p->end.vz = sx + sz);` chain, 23->15 lines,
- * then plateaued). See the dump-backed analysis in the session notes;
- * .lreg/.greg name the decision (`Register <sz> in 2` = local-alloc).
+ * The final residual was a pure register permutation in the 19-word
+ * lightningbolt end-vector tail. RTL dumps showed that its block-local
+ * sz pseudo was claimed by local-alloc before the other values reached
+ * global allocation. Reusing three function-scope SImode locals later in
+ * the kaginawa case gives global allocation byte-neutral anchors: sz holds
+ * the items base ($a1), y the ProcKaginawa address ($v0), and z the scaled
+ * item index ($v1). Reusing y/z for the final lightningbolt sums then
+ * produces the retail register coloring and instruction order.
  *
- * Facts proven while matching (all byte-verified except the parked tail):
+ * Facts proven while matching (all byte-verified):
  *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_USE layout {s32 type;
  *    Humanoid *user; VECTOR start; VECTOR end;} (psxsym size 40 agrees).
  *  - TWO function-scope 0x28 workspaces: `param`@sp+16, `work`@sp+56.
@@ -222,74 +212,6 @@
  *  - jirai's tail needs vx/vy/vz temps for the work-vector reads (multi-use
  *    values in caller-saved regs; matches the batched-loads rule).
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", ReqItemUse);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__switchD);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_2);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_1);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_5);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_7);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_9);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_e);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_8);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_11);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_10);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_f);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_4);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_17);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_6);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_0);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_d);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_18);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_3);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_c);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_14);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_15);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_16);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_b);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_a);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_12);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ReqItemUse", switchD_80048b6c__caseD_13);
-
-/* jump-table pool @ 0x800122ec (25 words; tables at 0x800122ec) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 ReqItemUse_jtbl[25] = {
-    0x800498A4, 0x80048D88, 0x80048B74, 0x80049C00,
-    0x80049554, 0x80048F48, 0x80049730, 0x80049018,
-    0x80049288, 0x800490E8, 0x80049F60, 0x80049F50,
-    0x80049CD0, 0x800499F8, 0x800491B8, 0x80049484,
-    0x800493B4, 0x80049358, 0x80049F70, 0x80049F78,
-    0x80049DA0, 0x80049DB0, 0x80049DC0, 0x80049624,
-    0x80049AC8,
-};
-
-#else /* NON_MATCHING */
 
 /*
  * Retail case map (jump table order; retail case values differ from the
@@ -386,6 +308,9 @@ int ReqItemUse(PARAM_ITEM_USE *p)
     u8 c;
     PARAM_ITEM_USE param;  /* @sp+16: per-case launch params / vector scratch */
     PARAM_ITEM_USE work;   /* @sp+56: makibishi/jirai staging + throw vector */
+    s32 sz;
+    s32 y;
+    s32 z;
 
     c = p->user->item[p->type];
     if (c != 0 && c != 0xff)
@@ -756,7 +681,6 @@ int ReqItemUse(PARAM_ITEM_USE *p)
         s32 ry;
         s32 rz;
         s32 sx;
-        s32 sz;
         s32 t;
         s32 u;
 
@@ -791,9 +715,10 @@ int ReqItemUse(PARAM_ITEM_USE *p)
             p->end.vz = u;
             u = p->start.vy;
             sx = p->end.vz;
-            t = t + u;
-            p->end.vy = t;
-            sx = (p->end.vz = sx + sz);
+            y = t + u;
+            z = sx + sz;
+            p->end.vy = y;
+            p->end.vz = z;
         }
         ReqItemLightningBolt(p);
         break;
@@ -849,12 +774,14 @@ int ReqItemUse(PARAM_ITEM_USE *p)
         s32 i;
 
         i = 0;
+        sz = (s32)items;
         do
         {
             COUNTER_FOR_ITEM_ARRAY_++;
             if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
                 COUNTER_FOR_ITEM_ARRAY_ = 0;
-            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            z = COUNTER_FOR_ITEM_ARRAY_ * sizeof(*items);
+            cur = (tag_TItem *)(z + sz);
             if (cur->proc == 0)
             {
                 it = cur;
@@ -877,10 +804,11 @@ int ReqItemUse(PARAM_ITEM_USE *p)
     found_kaginawa:
         if (it == 0)
             return 0;
+        y = (s32)ProcKaginawa;
         us = p->user;
         ty = p->type;
         it->owner = us;
-        it->proc = ProcKaginawa;
+        it->proc = (void (*)(tag_TItem *))y;
         it->mode = 0;
         it->type = ty;
         it->locate->locate.coord.t[0] = p->start.vx;
@@ -1120,5 +1048,3 @@ int ReqItemUse(PARAM_ITEM_USE *p)
     }
     return 1;
 }
-
-#endif /* NON_MATCHING */
