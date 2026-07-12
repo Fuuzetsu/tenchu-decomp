@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -14,7 +15,424 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8003562c", FUN_8003562c);
+typedef struct AreaNodeType
+{
+    s16 y;
+    s16 dy;
+    s16 x1;
+    s16 z1;
+    s16 x2;
+    s16 z2;
+    u16 attribute;
+    s16 division;
+} AreaNodeType;
+
+typedef union FUN_8003562cScratch
+{
+    SVECTOR screen;
+    struct
+    {
+        SVECTOR velocity;
+        VECTOR position;
+        union
+        {
+            VECTOR position;
+            SVECTOR velocity;
+        } temporary;
+    } bleed;
+} FUN_8003562cScratch;
+
+extern GsSPRITE sprBlood[4];
+extern GsSPRITE sprBlood2[4];
+extern GsOT *OTablePt;
+extern void *GlobalAreaMap;
+extern AreaNodeType *FieldArea;
+extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
+extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
+extern void GetScreenPosition(long x, long y, long z, SVECTOR *screen);
+extern void GsSortSprite(GsSPRITE *spr, GsOT *ot, int priority);
+extern void SoundEx(VECTOR *pos, int sound);
+extern void DrawBleed(TEffectSlot *ef);
+
+/*
+ * MATCH. This is the gore/blood renderer installed by FUN_80035f44.  It is
+ * closely related to DrawBlood, but always emits a small DrawBleed particle
+ * and uses a 60-unit position jitter.
+ *
+ * The explicit scratch union is the original sp+0x18..sp+0x3f workspace:
+ * the projection SVECTOR, bleed VECTOR, and temporary VECTOR/SVECTOR all
+ * overlap, keeping the target's 0x60-byte frame.  sprBlood2 is an alias for
+ * the second four-sprite bank; naming it separately is load-bearing because
+ * the target materializes both bank bases independently.  `node_y` and
+ * `level` must remain separate around ComputeAreaLevel so the flat and sloped
+ * paths cross-jump through the target multiply tail.  Likewise, the named
+ * bleed_x/y/z values prevent reassociation of `(position - 60) + rand()%120`,
+ * and the full-width `green` local preserves the target's li 0x7f10 before a
+ * byte store.
+ */
+void FUN_8003562c(TEffectSlot *ef)
+{
+    BloodType *param;
+    GsSPRITE *spr;
+    GsSPRITE *spr2;
+    FUN_8003562cScratch scratch;
+    u32 index;
+    int state;
+
+    param = &ef->param.blood;
+    index = param->unk22;
+    spr = &sprBlood[index];
+    spr2 = &sprBlood2[index];
+    state = param->unk23;
+
+    if (state == 2)
+    {
+        goto state_two;
+    }
+    if (state < 3)
+    {
+        if (state == 1)
+        {
+            goto state_one;
+        }
+    }
+    else if (state == 3)
+    {
+        u16 fade;
+        s32 fade_shift;
+        s32 brightness;
+        s32 half_brightness;
+        s32 x;
+        s32 y;
+        s32 z;
+        s32 size;
+        s32 rotate;
+        s32 otz;
+        s16 scale;
+        s16 screen_x;
+        s16 screen_y;
+        s32 value;
+        s32 priority;
+
+        fade = *(u16 *)&param->mode - 5;
+        *(u16 *)&param->mode = fade;
+        if ((s16)fade <= 0)
+        {
+            *(u16 *)&param->mode = 0;
+            ef->proc = 0;
+        }
+
+        spr->attribute = 0x50000000;
+        x = param->px;
+        y = param->py + param->vy;
+        z = param->pz;
+        size = param->scale;
+        param->py = y;
+        rotate = param->rotate;
+        fade = *(u16 *)&param->mode;
+        fade_shift = (u32)fade << 16;
+        brightness = (s16)fade;
+        GetScreenPosition(x, y, z, &scratch.screen);
+        otz = scratch.screen.vz;
+        if (otz < 0x25)
+        {
+            return;
+        }
+        scale = (s16)((size * 300) / otz) + 1;
+        spr->scaley = scale;
+        spr->scalex = scale;
+        spr2->scaley = scale;
+        spr2->scalex = scale;
+        spr->rotate = rotate;
+        spr2->rotate = rotate;
+        screen_x = scratch.screen.vx;
+        spr->x = screen_x;
+        spr2->x = screen_x;
+        screen_y = scratch.screen.vy;
+        spr->y = screen_y;
+        spr2->y = screen_y;
+        half_brightness = brightness / 2;
+        spr->r = (u8)brightness;
+        spr->g = (u8)brightness;
+        spr->b = (u8)brightness;
+        spr2->r = (u8)half_brightness;
+        spr2->g = (u8)half_brightness;
+        spr2->b = (u8)half_brightness;
+
+        value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
+        if (value < 0)
+        {
+            goto zero_first;
+        }
+        priority = 0x4e1;
+        if (value < 0x4e2)
+        {
+            priority = value;
+        }
+        goto first_done;
+    zero_first:
+        priority = 0;
+    first_done:
+        GsSortSprite(spr, OTablePt, (u16)priority);
+
+        value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
+        if (value < 0)
+        {
+            goto zero_second;
+        }
+        priority = 0x4e1;
+        if (value < 0x4e2)
+        {
+            priority = value;
+        }
+        goto second_done;
+    zero_second:
+        priority = 0;
+    second_done:
+        GsSortSprite(spr2, OTablePt, (u16)priority);
+        return;
+    }
+
+    goto normal_state;
+
+state_two:
+    {
+        u16 count;
+
+        count = param->time;
+        param->time = count - 1;
+        if ((s16)count <= 0)
+        {
+            param->time = 0x80;
+            param->unk23++;
+        }
+        goto move_and_draw;
+    }
+
+state_one:
+    {
+        u16 count;
+
+        param->scale += rand() % 0x1000;
+        count = param->time;
+        param->time = count - 1;
+        if ((s16)count <= 0)
+        {
+            param->unk23++;
+            param->time = rand() % 90;
+        }
+        goto move_and_draw;
+    }
+
+normal_state:
+    {
+        s32 x;
+        s32 y;
+        s32 z;
+        s32 x10;
+        s32 y10;
+        s32 z10;
+        s32 level;
+        s32 node_y;
+        AreaNodeType *node;
+        int r;
+        int random_x;
+        int random_y;
+        int random_z;
+        s32 bleed_x;
+        s32 bleed_y;
+        s32 bleed_z;
+        u16 count;
+        SVECTOR *temporary;
+        SVECTOR *velocity;
+        long color;
+        long green;
+        int cursor;
+        int searched;
+        TEffectSlot *slot;
+        TEffectSlot *base;
+        TEffectSlot *found;
+        BleedType *bleed;
+
+        x = param->px;
+        y = param->py;
+        z = param->pz;
+        x10 = x / 10;
+        y10 = y / 10;
+        z10 = z / 10;
+        param->vy += 10;
+        node = param->hint;
+        if (node != 0)
+        {
+            node_y = node->y;
+            if (y10 < node_y - 200 || node_y < y10 || x10 < node->x1 ||
+                z10 < node->z1 || node->x2 < x10 || node->z2 < z10)
+            {
+                goto map_level;
+            }
+            goto compute_level;
+        }
+    map_level:
+        level = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z, 0);
+        if (y <= level && FieldArea->division == -1)
+        {
+            param->hint = FieldArea;
+        }
+        goto level_done;
+    compute_level:
+        if (node->dy == 0)
+        {
+            goto flat_level;
+        }
+        level = ComputeAreaLevel(node, x10, z10);
+        if (level == (s32)0x80000000)
+        {
+            goto level_done;
+        }
+        level *= 10;
+        goto level_done;
+    flat_level:
+        level = node_y * 10;
+    level_done:
+        if (param->py < level)
+        {
+            goto expire;
+        }
+        param->vz = 0;
+        param->vy = 0;
+        param->vx = 0;
+        if (level == (s32)0x80000000)
+        {
+            goto no_floor;
+        }
+        param->py = level;
+        goto bounce_done;
+    no_floor:
+        param->vy = rand() % 8 + 8;
+        param->rotate = 0;
+        r = rand();
+        param->unk22 += 2;
+        param->scale = r % 0x2ab + 0x555;
+    bounce_done:
+        param->unk23 = 1;
+        param->time = rand() % 10;
+        SoundEx((VECTOR *)&param->px, 0x37);
+        goto spawn_bleed;
+
+    expire:
+        count = param->time;
+        param->time = count - 1;
+        if ((s16)count <= 0)
+        {
+            ef->proc = 0;
+        }
+
+    spawn_bleed:
+        memset(&scratch.bleed.temporary.position, 0, sizeof(VECTOR));
+        random_x = rand();
+        bleed_x = param->px - 60;
+        scratch.bleed.temporary.position.vx = bleed_x + random_x % 120;
+        random_y = rand();
+        bleed_y = param->py - 60;
+        scratch.bleed.temporary.position.vy = bleed_y + random_y % 120;
+        random_z = rand();
+        bleed_z = param->pz - 60;
+        scratch.bleed.temporary.position.vz = bleed_z + random_z % 120;
+        scratch.bleed.position = scratch.bleed.temporary.position;
+        temporary = &scratch.bleed.temporary.velocity;
+        memset(&scratch.bleed.temporary.velocity, 0, sizeof(SVECTOR));
+        velocity = &scratch.bleed.velocity;
+        color = 0x7f1017;
+        scratch.bleed.temporary.velocity.vx = param->vx / 2;
+        scratch.bleed.temporary.velocity.vy = param->vy / 2;
+        scratch.bleed.temporary.velocity.vz = param->vz / 2;
+        *velocity = *temporary;
+
+        base = EffectSlot;
+        cursor = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        slot = base + cursor;
+        searched = 0;
+        do
+        {
+            cursor++;
+            slot++;
+            if (199 < cursor)
+            {
+                slot = base;
+                cursor = 0;
+            }
+            searched++;
+            if (slot->proc == 0)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = cursor + 1;
+                bleed = &slot->param.bleed;
+                if (199 < CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_)
+                {
+                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                }
+                found = slot;
+                goto bleed_found;
+            }
+        } while (searched < 200);
+        found = &dmy;
+        bleed = &dmy.param.bleed;
+    bleed_found:
+        found->param.bleed.pos = scratch.bleed.position;
+        found->param.bleed.vec = *velocity;
+        bleed->time = 7;
+        bleed->r = 0x7f;
+        green = 0x7f10;
+        bleed->g = green;
+        bleed->b = color;
+        bleed->mode = 0;
+        found->proc = (void (*)())DrawBleed;
+    }
+
+move_and_draw:
+    {
+        s32 size;
+        s32 otz;
+        s16 scale;
+        s32 value;
+        s32 priority;
+
+        param->px += param->vx;
+        param->py += param->vy;
+        param->pz += param->vz;
+        spr->rotate = param->rotate;
+        spr->attribute = 0;
+        spr->r = param->mode;
+        spr->g = param->mode;
+        spr->b = param->mode;
+        size = param->scale;
+        GetScreenPosition(param->px, param->py, param->pz, &scratch.screen);
+        otz = scratch.screen.vz;
+        if (otz < 0x25)
+        {
+            return;
+        }
+        scale = (s16)((size * 300) / otz) + 1;
+        spr->scaley = scale;
+        spr->scalex = scale;
+        spr->x = scratch.screen.vx;
+        spr->y = scratch.screen.vy;
+        value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
+        if (value < 0)
+        {
+            goto zero_final;
+        }
+        priority = 0x4e1;
+        if (value < 0x4e2)
+        {
+            priority = value;
+        }
+        goto final_done;
+    zero_final:
+        priority = 0;
+    final_done:
+        GsSortSprite(spr, OTablePt, (u16)priority);
+    }
+}
 
 // triage: HARD — 582 insns, mul/div, 1 loop, 7 callees, ~0.07 to ProcItemKusuri
 // likely-relevant cookbook sections:

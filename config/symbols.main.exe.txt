@@ -3734,6 +3734,7 @@ ComBuf = 0x800be688;
 map = 0x800be750;
 dmy = 0x800be908;
 sprBlood = 0x800be958;
+sprBlood2 = 0x800be9e8;
 sprSplash = 0x800bea78;
 sprBomb = 0x800beb68;
 SpriteGoshikimai = 0x800bfb80;

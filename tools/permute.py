@@ -227,6 +227,7 @@ GP_EXTERNS = {
     "DamageControl": ["Me_MOTION_C", "MotionUpdateMode", "motID", "dtL", "D_80097F0E", "dtM", "dtR", "D_8009770C", "dtV"],
     "ProcItemNinken": ["NINKEN_CHARACTER_PTR"],
     "ActKAGI": ["dtM", "Me_MOTION_C", "dtL", "D_80097F0E", "motID", "dtR", "MotionUpdateMode", "dtV"],
+    "FUN_8003562c": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
@@ -273,6 +274,7 @@ MASPSX_EXTRA = {
     "ProcItemFire": ["--expand-div"],
     "ProcItemJirai": ["--expand-div"],
     "DrawBlood": ["--expand-div"],
+    "FUN_8003562c": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
