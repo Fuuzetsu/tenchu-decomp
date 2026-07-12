@@ -14,8 +14,7 @@
  * hides/shows body-part models (e.g. legs) while swimming or using a rope
  * item — no confirmed original name.
  *
- * STATUS: NON_MATCHING — 8 of 280 bytes differ (2 missing instructions,
- * one per loop). Root cause found and fixed:
+ * Matching source facts:
  *  - The `if/else` polarity for `last` IS the opposite of Ghidra's literal
  *    "assign-then-override" rendering: write `if (0xc < model->n) last =
  *    0xc; else last = model->n - 1;` — this is what actually forces the
@@ -35,42 +34,18 @@
  *    store, by contrast, DOES want the plain truncating `&= 0xfffe;` form
  *    (andi). Both confirmed against matchdiff.
  *
- * What's LEFT (the actual residual): each loop's per-iteration body is a
- * consistent 2 instructions (8 bytes total) shorter than the target — the
- * target computes the loop counter through an explicit `move $vN,$a1`
- * "working copy" before scaling it (and copies the incremented value back
- * with a second `move`), where our compiled code scales `$a1` in place with
- * no such redundant copy. Tried and confirmed NOT to change codegen at all
- * (byte-for-byte identical output every time): a separate `s16 idx = i;`
- * local for the array subscript (matches DeleteConflict/FUN_800566fc's
- * narrow-index-copy idiom elsewhere, no effect here); computing the
- * increment from idx (`i = idx + 1;`) instead of from i itself; a `for`
- * loop instead of a `while`; reordering the increment/idx-capture
- * statements. autorules found no win (its only "win" retyped the u16
- * `attribute` field to s8, which the cookbook explicitly flags as a
- * rejectable width-narrowing false-positive — verified: it degrades the
- * `lhu`/`sh` accesses to `lbu`/`sb`, wrong per item.h's proven struct).
- * This has the shape of the cookbook's permuter-immune register/scheduling
- * ties (the `la`-reload tie, the delay-slot-fill tie), but is 8 bytes SHORT
- * of target rather than same-length, so it falls outside the "permute one
- * bounded run" recipe (that's for same-length residuals); a background
- * permuter run here timed out with no verified finding. Parked rather than
- * burning further budget — NEW rule for the cookbook: a genuinely
- * unreproducible "redundant working copy before scaling a loop counter"
- * copy, immune to every idx/order/type respelling tried.
+ *  - `model->object[i++]` is the narrow postincremented subscript that makes
+ *    cc1 preserve the target's explicit working copy of `i` around the scale.
+ *  - The pointer and value temporaries are block-local to EACH loop. Sharing
+ *    them across the two disjoint loops merges their allocnos, raises the
+ *    value's priority, and swaps the target's pointer `$a0` / value `$v0`.
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800270f8", FUN_800270f8);
-#else
 
 void FUN_800270f8(Humanoid *human, s16 hide)
 {
     ModelArchiveType *model;
     s16 last;
     s16 i;
-    s16 idx;
-    int attr;
 
     model = human->model;
     if (0xc < model->n) {
@@ -81,23 +56,26 @@ void FUN_800270f8(Humanoid *human, s16 hide)
     if (hide != 0) {
         i = 7;
         while (i <= last) {
-            idx = i;
-            i = idx + 1;
-            attr = *(u16 *)&model->object[idx]->attribute;
+            u16 *attribute;
+            int attr;
+
+            attribute = (u16 *)&model->object[i++]->attribute;
+            attr = *attribute;
             attr = attr | 1;
-            *(u16 *)&model->object[idx]->attribute = attr;
+            *attribute = attr;
         }
         *(u16 *)&model->object[0]->attribute |= 1;
         return;
     }
     i = 7;
     while (i <= last) {
-        idx = i;
-        i = idx + 1;
-        attr = *(u16 *)&model->object[idx]->attribute;
+        u16 *attribute;
+        int attr;
+
+        attribute = (u16 *)&model->object[i++]->attribute;
+        attr = *attribute;
         attr = attr & ~1;
-        *(u16 *)&model->object[idx]->attribute = attr;
+        *attribute = attr;
     }
     *(u16 *)&model->object[0]->attribute &= 0xfffe;
 }
-#endif /* NON_MATCHING */
