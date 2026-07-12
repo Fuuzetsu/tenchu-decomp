@@ -101,6 +101,64 @@ int F(VECTOR *out, VECTOR *src) {
         self.assertEqual(len(out), 1)
         self.assertIn("*(out) = *(src);", out[0][1])
 
+    def test_vector_copy_adjust_splits_and_merges_literal_component(self):
+        source = """typedef struct { long vx, vy, vz; } VECTOR;
+typedef struct { VECTOR query; } Scratch;
+int F(VECTOR *position) {
+    Scratch scratch;
+    scratch.query.vx = position->vx;
+    scratch.query.vy = position->vy - 2000;
+    scratch.query.vz = position->vz;
+    return scratch.query.vy;
+}
+"""
+        split = self.candidates(autorules.rule_vector_copy_adjust, source)
+        self.assertEqual(len(split), 1)
+        self.assertIn("scratch.query.vy = position->vy;", split[0][1])
+        self.assertIn("scratch.query.vz = position->vz;\n"
+                      "    scratch.query.vy -= 2000;", split[0][1])
+
+        merged = self.candidates(autorules.rule_vector_copy_adjust, split[0][1])
+        merge_text = [text for label, text in merged if " merge " in label]
+        self.assertEqual(len(merge_text), 1)
+        self.assertIn("scratch.query.vy = position->vy - 2000;", merge_text[0])
+        self.assertNotIn("scratch.query.vy -= 2000;", merge_text[0])
+
+    def test_flag_assignments_move_after_comparisons(self):
+        source = """int F(int outer, int inner) {
+    int flag;
+    flag = 0;
+    if (outer) {
+        flag = 1;
+        if (inner) outer++;
+    }
+    return flag;
+}
+"""
+        out = self.candidates(autorules.rule_flag_arm_assign, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertLess(candidate.index("if (inner)"), candidate.index("flag = 1;"))
+        self.assertIn("else\n    {\n        flag = 0;", candidate)
+
+    def test_flag_assignment_move_rejects_use_or_early_exit(self):
+        used = """int F(int outer) {
+    int flag;
+    flag = 0;
+    if (outer) { flag = 1; outer += flag; }
+    return flag;
+}
+"""
+        exits = """int F(int outer) {
+    int flag;
+    flag = 0;
+    if (outer) { flag = 1; if (outer > 2) return 3; }
+    return flag;
+}
+"""
+        self.assertEqual(self.candidates(autorules.rule_flag_arm_assign, used), [])
+        self.assertEqual(self.candidates(autorules.rule_flag_arm_assign, exits), [])
+
     def test_shift16_mul_respelled_for_declared_short(self):
         source = """typedef unsigned short u16;
 typedef unsigned int u32;
@@ -305,6 +363,48 @@ class RtlGuideTests(unittest.TestCase):
                       ["addu v1,v1,a0", "sw v1,0(gp)"])
         self.assertEqual(rtlguide.known_residual_signatures([h]),
                          ["commutative-plus-destination"])
+
+    def test_known_copy_then_adjust_signature(self):
+        target = [
+            (0x1000, "sw v0,44(sp)"),
+            (0x1004, "lw v1,8(s0)"),
+            (0x1008, "addiu v0,v0,-2000"),
+            (0x100c, "sw v0,44(sp)"),
+        ]
+        ours = [
+            (0x1000, "nop"),
+            (0x1004, "addiu v0,v0,-2000"),
+            (0x1008, "sw v0,44(sp)"),
+            (0x100c, "lw v1,8(s0)"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            ["copy-then-inplace-adjust"],
+        )
+
+    def test_known_post_comparison_flag_signature(self):
+        target = [
+            (0x1000, "slt v0,v1,a0"),
+            (0x1004, "bnez v0,0x1040"),
+            (0x1008, "move v0,zero"),
+            (0x100c, "slt v0,v1,a0"),
+            (0x1010, "beqz v0,0x1020"),
+            (0x1014, "li v0,1"),
+            (0x1018, "beqz v0,0x1040"),
+        ]
+        ours = [
+            (0x1000, "slt v0,v1,a0"),
+            (0x1004, "bnez v0,0x1040"),
+            (0x1008, "move a1,zero"),
+            (0x100c, "slt v0,v1,a0"),
+            (0x1010, "beqz v0,0x1020"),
+            (0x1014, "li a1,1"),
+            (0x1018, "beqz a1,0x1040"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            ["post-comparison-flag-definition"],
+        )
 
     def test_relocated_addiu_is_combine_reassociation(self):
         target = [

@@ -77,24 +77,41 @@ CATEGORY_PASSES = {
 CATEGORY_RULES = {
     "regalloc": [
         "type-width", "cmp-polarity", "loop-fence", "loop-range", "split-chain",
-        "or-inplace", "add-prefix-temp",
+        "or-inplace", "add-prefix-temp", "flag-arm-assign",
     ],
-    "cse/coalescing": ["type-width", "loop-fence", "loop-range", "temp-inline"],
+    "cse/coalescing": [
+        "type-width", "loop-fence", "loop-range", "temp-inline",
+        "vector-copy-adjust",
+    ],
     "jump/cross-jump": ["case-fence", "and-nest"],
     "schedule/delay": [
         "type-width", "loop-fence", "loop-range", "cmp-swap", "cmp-polarity",
-        "split-chain", "or-inplace",
+        "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign",
     ],
     "combine/expression": [
         "abs-ge", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
         "shift16-mul", "plus-group", "add-prefix-temp", "split-chain",
     ],
-    "structure/length": ["type-width", "and-nest", "temp-inline", "case-fence"],
+    "structure/length": [
+        "type-width", "and-nest", "temp-inline", "case-fence",
+        "vector-copy-adjust",
+    ],
 }
 
 CALL_OPS = {"jal", "jalr"}
 LOAD_OPS = {"lb", "lbu", "lh", "lhu", "lw", "lwl", "lwr"}
 STORE_OPS = {"sb", "sh", "sw", "swl", "swr"}
+
+SIGNATURE_HINTS = {
+    "copy-then-inplace-adjust": (
+        "target stores a stack field before overwriting it with an adjusted value; "
+        "try explicit fieldwise copy followed by an in-place +=/-= adjustment"
+    ),
+    "post-comparison-flag-definition": (
+        "target reuses a comparison register for 0/1 branch-delay definitions; "
+        "assign the flag at the end of each arm, after that arm's comparisons"
+    ),
+}
 
 
 def mnemonic(insn: str) -> str:
@@ -256,13 +273,98 @@ def classify_hunk(hunk):
     return "structure/length"
 
 
-def known_residual_signatures(hunks):
+def _store_parts(insn):
+    """(op, value-reg, displacement, base-reg) for a simple store."""
+    m = re.match(
+        r"^(s[bhw])\s+\$?([a-z0-9]+),\s*"
+        r"(-?(?:0x[0-9a-f]+|\d+))\(\$?([a-z0-9]+)\)$",
+        insn.strip(), re.I,
+    )
+    if not m:
+        return None
+    return m.group(1).lower(), m.group(2).lower(), m.group(3).lower(), m.group(4).lower()
+
+
+def _copy_then_adjust(target, ours):
+    """Detect target `store x; x += C; store x` missing from the candidate.
+
+    The narrow stack-store form is the assembly fingerprint of a fieldwise
+    aggregate copy followed by an in-place adjustment.  It deliberately does
+    not diagnose arbitrary repeated stores through unknown pointers.
+    """
+    ours_by_addr = {addr: insn for addr, insn in ours}
+    for i, (start_addr, first_insn) in enumerate(target):
+        first = _store_parts(first_insn)
+        if first is None or first[3] not in {"sp", "fp", "s8"}:
+            continue
+        op, value, displacement, base = first
+        for j in range(i + 1, min(i + 5, len(target))):
+            arithmetic = target[j][1]
+            regs = registers(arithmetic)
+            if (mnemonic(arithmetic) not in {"add", "addu", "addiu", "sub", "subu"}
+                    or len(regs) < 2 or regs[0] != value or regs[1] != value):
+                continue
+            for k in range(j + 1, min(j + 4, len(target))):
+                second = _store_parts(target[k][1])
+                if second != (op, value, displacement, base):
+                    continue
+                candidate_stores = 0
+                for addr, insn in ours_by_addr.items():
+                    if start_addr <= addr <= target[k][0]:
+                        parts = _store_parts(insn)
+                        if parts and (parts[0], parts[2], parts[3]) == \
+                                (op, displacement, base):
+                            candidate_stores += 1
+                if candidate_stores < 2:
+                    return True
+    return False
+
+
+def _post_comparison_flag(target, ours):
+    """Detect a target condition register reused for 0/1 flag definitions."""
+    ours_by_addr = {addr: insn for addr, insn in ours}
+    for i in range(1, len(target)):
+        addr, target_zero = target[i]
+        ours_zero = ours_by_addr.get(addr, "")
+        tz, oz = registers(target_zero), registers(ours_zero)
+        if (mnemonic(target_zero) != mnemonic(ours_zero) or
+                mnemonic(target_zero) != "move" or len(tz) < 2 or len(oz) < 2 or
+                tz[1] != oz[1] or tz[1] != "zero" or tz[0] == oz[0]):
+            continue
+        target_reg, candidate_reg = tz[0], oz[0]
+        if (mnemonic(target[i - 1][1]) not in BRANCH or
+                target_reg not in registers(target[i - 1][1])):
+            continue
+        saw_one = saw_use = False
+        for addr2, target_insn in target[i + 1:min(i + 12, len(target))]:
+            ours_insn = ours_by_addr.get(addr2, "")
+            tr, or_ = registers(target_insn), registers(ours_insn)
+            if (mnemonic(target_insn) == mnemonic(ours_insn) == "li" and
+                    tr[:1] == [target_reg] and or_[:1] == [candidate_reg] and
+                    re.search(r"(?:^|,)\s*(?:0x0*1|1)$", target_insn)):
+                saw_one = True
+            if (saw_one and mnemonic(target_insn) in {"beqz", "bnez"} and
+                    mnemonic(target_insn) == mnemonic(ours_insn) and
+                    tr[:1] == [target_reg] and or_[:1] == [candidate_reg]):
+                saw_use = True
+                break
+        if saw_one and saw_use:
+            return True
+    return False
+
+
+def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
     """Name narrow, previously root-caused residual shapes.
 
     These are early-stop hints, not automatic proof: the report still directs
     the matcher to confirm the owning RTL pass and bounded source experiments.
     """
     found = []
+    if target_stream is not None and ours_stream is not None:
+        if _copy_then_adjust(target_stream, ours_stream):
+            found.append("copy-then-inplace-adjust")
+        if _post_comparison_flag(target_stream, ours_stream):
+            found.append("post-comparison-flag-definition")
     for hunk in hunks:
         target = [x[1] for x in hunk["target"]]
         ours = [x[1] for x in hunk["ours"]]
@@ -395,7 +497,7 @@ def assembly_guide(name):
         ],
         call_tail_hint=call_count(target) > call_count(ours),
         call_counts=dict(target=call_count(target), candidate=call_count(ours)),
-        known_residual_signatures=known_residual_signatures(hunks),
+        known_residual_signatures=known_residual_signatures(hunks, target, ours),
         register_substitutions=[
             dict(ours=a, target=b, count=n)
             for (a, b), n in substitutions.most_common()
@@ -737,6 +839,10 @@ def print_report(g, max_hunks=12):
     if g.get("known_residual_signatures"):
         print("  known residual signature(s): " +
               ", ".join(g["known_residual_signatures"]))
+        for signature in g["known_residual_signatures"]:
+            hint = SIGNATURE_HINTS.get(signature)
+            if hint:
+                print(f"    {signature}: {hint}")
         print("    confirm the named RTL pass and bounded source levers before parking")
 
     for n, h in enumerate(g["hunks"][:max_hunks], 1):

@@ -1404,6 +1404,17 @@ near entry; `AdtMessageBox` wants the inline form.)
     The local, exact-field-set transform is now the default `autorules` rule
     `vector-copy`; the `pad` requirement prevents it from inventing a partial
     copy or silently changing padding semantics.
+  - **Three field copies plus one adjusted component can require COPY FIRST,
+    ADJUST SECOND.** If the target stores an unmodified component to a stack
+    slot, later modifies that register, then overwrites the same slot, write
+    `dst.vx = src.vx; dst.vy = src.vy; dst.vz = src.vz; dst.vy -= C;`.
+    Folding the middle pair into `dst.vy = src.vy - C;` deletes the first store
+    and leaves a load-delay `nop`; the explicit copy gives sched2 independent
+    address/global work with which to fill that slot. ProcItemNinken gained one
+    semantic store but no machine instruction—the store replaced the `nop`—and
+    matched its full vector setup. `rtlguide` names the
+    `copy-then-inplace-adjust` signature and `autorules`' symmetric
+    `vector-copy-adjust` rule enumerates both spellings for nonvolatile locals.
   - **A whole-pool swap-remove is a plain struct assignment `pool[i] =
     pool[last];`** — Ghidra mis-renders it as a hand `do{}while` over invented
     per-field names with a halfword-typed (`sh`) tail; both wrong. A 0x78-byte
@@ -2094,6 +2105,31 @@ stall, reorg pulls it into the branch slot, and the assembler re-inserts the haz
 path-following cannot unify constants across divergent arms (`vrealloc`'s
 `0x80000000`).
 
+### Define a boolean after each arm's comparisons to reuse their result register
+
+`flag = 0; if (outer) { flag = 1; if (inner) ... }` makes `flag` live across
+both comparison pseudos, so global allocation cannot put it in their `$v0`.
+When the target uses `$v0` for each `slt`, then writes `move v0,zero` / `li v0,1`
+in the corresponding branch delay slots, put each definition after the work
+whose comparison it can reuse:
+
+```c
+if (outer) {
+    if (inner)
+        update();
+    flag = 1;
+} else {
+    flag = 0;
+}
+```
+
+The assignments execute on the same paths, but their RTL live ranges now begin
+after the tests. reorg can place both definitions in the delay slots with no
+register conflict (ProcItemNinken's final three-byte tie). `rtlguide` reports
+`post-comparison-flag-definition`; guided `autorules` can try the bounded
+`flag-arm-assign` rewrite only when the local is nonvolatile, the arm does not
+read it, and no early exit can bypass the moved assignment.
+
 ### Which zero-initialised local is the "master" decides the whole allocation
 
 When several locals are zeroed together, one is literally assigned the constant and
@@ -2709,6 +2745,15 @@ this one is about the tail.
   the differing prefixes, e.g. two different `mode = 0xff` stores, stay
   separate). A shared `goto` label merges *more* than the original (loses the
   duplicated call-site setup) — don't.
+  ProcItemNinken sharpens the indirect-call case: in EACH duplicate, cache
+  `proc = item->proc` for the null check but call through `item->proc(item)`.
+  cse reuses that predecessor-local load and gives the `jalr` the target `$v0`;
+  jump2 then cross-jumps the two cleanup suffixes from the `jalr` backward. If
+  the call is factored behind one explicit `dispose:` label, that join is a CSE
+  boundary and the field spelling reloads `item->proc` plus a hazard `nop`;
+  calling the cached variable instead keeps the wrong `$v1`. ProcItemNapalm is
+  the matched family precedent. Duplicate the source idiom and let jump2—not a
+  hand-written label—recover the shared machine tail.
 - **When two branches build the SAME call with all-different arguments, write
   the call literally twice (once per branch), not funnelled through shared
   locals + one post-merge call.** Cross-jump merges only the byte-identical

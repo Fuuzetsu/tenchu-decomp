@@ -1038,6 +1038,269 @@ def rule_vector_copy(text, name, span):
             )
 
 
+def _vector_assignment(data, statement):
+    """(assignment, lhs aggregate/field, rhs node) for one field store."""
+    if statement.type != "expression_statement":
+        return None
+    expressions = [c for c in statement.named_children if c.type != "comment"]
+    if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+        return None
+    assignment = expressions[0]
+    operator = assignment.child_by_field_name("operator")
+    lhs = assignment.child_by_field_name("left")
+    rhs = assignment.child_by_field_name("right")
+    field = _vector_field_access(data, lhs)
+    if operator is None or lhs is None or rhs is None or field is None:
+        return None
+    return assignment, operator, lhs, field, rhs
+
+
+def _local_aggregate_root(aggregate, locals_):
+    """Whether a dotted aggregate is rooted in a nonvolatile local object."""
+    if not re.fullmatch(rb"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", aggregate):
+        return False
+    match = re.match(rb"([A-Za-z_]\w*)", aggregate)
+    return match is not None and match.group(1) in locals_
+
+
+def _literal_text(data, node):
+    node = _unparen(node)
+    if node is None or node.type != "number_literal":
+        return None
+    value = _txt(data, node).strip()
+    return value if re.fullmatch(rb"(?:0x[0-9a-fA-F]+|\d+)", value) else None
+
+
+def rule_vector_copy_adjust(text, name, span):
+    """Split/merge an adjusted component in a three-field vector copy.
+
+    `d.x=s.x; d.y=s.y-C; d.z=s.z;` and
+    `d.x=s.x; d.y=s.y; d.z=s.z; d.y-=C;` have the same final value for a
+    nonvolatile automatic destination.  The latter preserves the unadjusted
+    stack store and gives sched2 an extra independent instruction.  Restrict
+    both directions to adjacent vx/vy/vz stores, one literal adjustment, and a
+    destination rooted in a local object.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    wanted = {b"vx", b"vy", b"vz"}
+
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+
+        # SPLIT one inline +/- literal into a raw copy plus compound update.
+        for start in range(len(statements) - 2):
+            group = statements[start:start + 3]
+            parsed = [_vector_assignment(data, statement) for statement in group]
+            if any(item is None for item in parsed):
+                continue
+            lhs_aggregate = parsed[0][3][0]
+            if not _local_aggregate_root(lhs_aggregate, locals_):
+                continue
+            fields = []
+            source_aggregate = None
+            adjusted = None
+            valid = True
+            for index, (_assignment, operator, _lhs, lhs_field, rhs) in enumerate(parsed):
+                if _txt(data, operator) != b"=" or lhs_field[0] != lhs_aggregate:
+                    valid = False
+                    break
+                fields.append(lhs_field[1])
+                plain = _vector_field_access(data, _unparen(rhs))
+                if plain is not None and plain[1] == lhs_field[1]:
+                    source = plain
+                else:
+                    binary = _unparen(rhs)
+                    if binary is None or binary.type != "binary_expression":
+                        valid = False
+                        break
+                    bop = binary.child_by_field_name("operator")
+                    source_node = _unparen(binary.child_by_field_name("left"))
+                    left = _vector_field_access(data, source_node)
+                    literal = _literal_text(data, binary.child_by_field_name("right"))
+                    if (bop is None or _txt(data, bop) not in (b"+", b"-") or
+                            left is None or left[1] != lhs_field[1] or literal is None or
+                            adjusted is not None):
+                        valid = False
+                        break
+                    source = left
+                    adjusted = (index, rhs, source_node, _txt(data, bop), literal)
+                if source_aggregate is None:
+                    source_aggregate = source[0]
+                elif source[0] != source_aggregate:
+                    valid = False
+                    break
+            if (not valid or set(fields) != wanted or len(set(fields)) != 3 or
+                    adjusted is None):
+                continue
+            first, last = group[0], group[-1]
+            line = _line(data, group[adjusted[0]].start_byte)
+            if not _guided_site(line):
+                continue
+            index, rhs, source_node, operator, literal = adjusted
+            lhs_text = lhs_aggregate + b"." + fields[index]
+            raw = data[first.start_byte:last.end_byte]
+            rs, re_ = rhs.start_byte - first.start_byte, rhs.end_byte - first.start_byte
+            raw = raw[:rs] + _txt(data, source_node).strip() + raw[re_:]
+            indent = _indent_at(data, last.start_byte)
+            raw += b"\n" + indent + lhs_text + b" " + operator + b"= " + literal + b";"
+            yield (
+                f"vector-copy-adjust split {fields[index].decode()} L{line}",
+                splice(data, first.start_byte, last.end_byte, raw).decode(),
+            )
+
+        # MERGE the exact inverse four-statement form.
+        for start in range(len(statements) - 3):
+            copies = statements[start:start + 3]
+            adjust_statement = statements[start + 3]
+            parsed = [_vector_assignment(data, statement) for statement in copies]
+            adjust = _vector_assignment(data, adjust_statement)
+            if any(item is None for item in parsed) or adjust is None:
+                continue
+            lhs_aggregate = parsed[0][3][0]
+            if not _local_aggregate_root(lhs_aggregate, locals_):
+                continue
+            fields, source_aggregate, rhs_nodes = [], None, {}
+            valid = True
+            for _assignment, operator, _lhs, lhs_field, rhs in parsed:
+                source = _vector_field_access(data, _unparen(rhs))
+                if (_txt(data, operator) != b"=" or lhs_field[0] != lhs_aggregate or
+                        source is None or source[1] != lhs_field[1]):
+                    valid = False
+                    break
+                fields.append(lhs_field[1])
+                rhs_nodes[lhs_field[1]] = rhs
+                if source_aggregate is None:
+                    source_aggregate = source[0]
+                elif source[0] != source_aggregate:
+                    valid = False
+                    break
+            _a, adjust_op, _lhs, adjust_field, adjust_rhs = adjust
+            literal = _literal_text(data, adjust_rhs)
+            op = _txt(data, adjust_op)
+            if (not valid or set(fields) != wanted or len(set(fields)) != 3 or
+                    adjust_field[0] != lhs_aggregate or adjust_field[1] not in wanted or
+                    op not in (b"+=", b"-=") or literal is None or
+                    data[copies[-1].end_byte:adjust_statement.start_byte].strip()):
+                continue
+            line = _line(data, adjust_statement.start_byte)
+            if not _guided_site(line):
+                continue
+            rhs = rhs_nodes[adjust_field[1]]
+            first, last = copies[0], copies[-1]
+            raw = data[first.start_byte:last.end_byte]
+            rs, re_ = rhs.start_byte - first.start_byte, rhs.end_byte - first.start_byte
+            adjusted_rhs = _txt(data, rhs).strip() + b" " + op[:1] + b" " + literal
+            raw = raw[:rs] + adjusted_rhs + raw[re_:]
+            yield (
+                f"vector-copy-adjust merge {adjust_field[1].decode()} L{line}",
+                splice(data, first.start_byte, adjust_statement.end_byte, raw).decode(),
+            )
+
+
+def _zero_or_one(data, node):
+    literal = _literal_text(data, node)
+    if literal is None:
+        return None
+    try:
+        value = int(literal, 0)
+    except ValueError:
+        return None
+    return value if value in (0, 1) else None
+
+
+def rule_flag_arm_assign(text, name, span):
+    """Move a local 0/1 default and override to the ends of their CFG arms.
+
+    This shortens the flag's live range past the comparisons that precede each
+    definition, allowing their hard result register to be reused in the branch
+    delay slots.  Only the safe adjacent shape is enumerated: a nonvolatile
+    local, no existing else, no use of the flag in the condition/body, and no
+    early exit that could bypass the moved override.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    exits = ("break_statement", "continue_statement", "goto_statement",
+             "return_statement")
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for default_statement, iff in zip(statements, statements[1:]):
+            default = _plain_assignment(data, default_statement)
+            if default is None or iff.type != "if_statement" or \
+                    iff.child_by_field_name("alternative") is not None:
+                continue
+            flag, default_rhs = default
+            default_value = _zero_or_one(data, default_rhs)
+            condition = iff.child_by_field_name("condition")
+            consequence = iff.child_by_field_name("consequence")
+            if (flag not in locals_ or
+                    re.search(rb"&\s*" + re.escape(flag) + rb"\b", _txt(data, body)) or
+                    default_value is None or condition is None or
+                    consequence is None or consequence.type != "compound_statement" or
+                    data[default_statement.end_byte:iff.start_byte].strip()):
+                continue
+            arm_statements = [c for c in consequence.named_children if c.type != "comment"]
+            if not arm_statements:
+                continue
+            override_statement = arm_statements[0]
+            override = _plain_assignment(data, override_statement)
+            if override is None or override[0] != flag:
+                continue
+            override_value = _zero_or_one(data, override[1])
+            if override_value is None or {default_value, override_value} != {0, 1}:
+                continue
+            if data[consequence.start_byte + 1:override_statement.start_byte].strip():
+                continue
+            if any(_txt(data, ident) == flag for ident in _find(condition, ("identifier",))):
+                continue
+            remaining = arm_statements[1:]
+            if any(_find(statement, exits) for statement in remaining):
+                continue
+            if any(_txt(data, ident) == flag
+                   for statement in remaining
+                   for ident in _find(statement, ("identifier",))):
+                continue
+            line = _line(data, iff.start_byte)
+            if not _guided_site(line):
+                continue
+
+            # Remove the leading override's whole line, then insert it directly
+            # before the arm's closing brace. Preserve the original condition,
+            # nested body, comments, and formatting around every other statement.
+            yes = data[consequence.start_byte:consequence.end_byte]
+            first_line_start = data.rfind(b"\n", consequence.start_byte,
+                                           override_statement.start_byte) + 1
+            first_line_end = data.find(b"\n", override_statement.end_byte,
+                                       consequence.end_byte)
+            if first_line_end < 0:
+                continue
+            first_line_end += 1
+            rel_start = first_line_start - consequence.start_byte
+            rel_end = first_line_end - consequence.start_byte
+            yes = yes[:rel_start] + yes[rel_end:]
+            close = yes.rfind(b"}")
+            close_line = yes.rfind(b"\n", 0, close) + 1
+            indent = _indent_at(data, iff.start_byte)
+            body_indent = indent + b"    "
+            override_text = _txt(data, override_statement).strip()
+            yes = (yes[:close_line] + body_indent + override_text + b"\n" +
+                   yes[close_line:])
+            prefix = data[iff.start_byte:consequence.start_byte]
+            default_text = _txt(data, default_statement).strip()
+            repl = (prefix + yes + b"\n" + indent + b"else\n" + indent + b"{\n" +
+                    body_indent + default_text + b"\n" + indent + b"}")
+            yield (
+                f"flag-arm-assign {flag.decode()} L{line}",
+                splice(data, default_statement.start_byte, iff.end_byte, repl).decode(),
+            )
+
+
 def rule_min_ternary(text, name, span):
     """Merge a two-statement min/max into a ternary:
     `x = a; if (b < x) x = b;` -> `x = (b < a) ? b : a;` (min), and the `>` max form.
@@ -1511,6 +1774,7 @@ RULES = [
     ("rand-mod", "split/merge x=rand()%K (call-result allocation lever)", rule_rand_mod_split),
     ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
     ("vector-copy", "four vx/vy/vz/pad field copies -> one struct assignment", rule_vector_copy),
+    ("vector-copy-adjust", "split/merge a literal-adjusted vx/vy/vz field copy", rule_vector_copy_adjust),
     ("split-chain", "t = (x-C)>>S -> t = x-C; t = t>>S (split fused chain)", rule_split_chain),
     ("min-ternary", "x=a; if(b<x) x=b; -> x = (b<a)?b:a (min-vs-memory)", rule_min_ternary),
     ("cmp-swap", "a>mem -> mem<a (comparison operand-order lever)", rule_cmp_swap),
@@ -1521,6 +1785,7 @@ AGGRESSIVE_RULES = [
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
+    ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
     ("case-fence", "if/else -> two-way switch (hard cross-jump CODE_LABEL)", rule_case_fence),
