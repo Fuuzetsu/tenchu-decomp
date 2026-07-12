@@ -1209,6 +1209,7 @@ switchD_80052360__caseD_1f = 0x800524e4;
 switchD_80052360__caseD_7 = 0x8005257c;
 switchD_80052360__caseD_2 = 0x8005260c;
 FUN_80052ea8 = 0x80052ea8;
+D_8008ED50 = 0x8008ed50;
 StageEndScreen = 0x80053384;
 mission_score_screen = 0x80054b48;
 start_demo_ = 0x80055d64;

@@ -1,15 +1,190 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80052ea8", FUN_80052ea8);
+/*
+ * FUN_80052ea8 (0x80052ea8) — awards inventory stock at the end of a
+ * stage.  The result kind chooses a deterministic one- or two-item sweep,
+ * optional random bonuses, and the stage-specific reward; locked stock
+ * entries use 0xfe and are opened by adding through the byte value.
+ *
+ * STATUS: MATCHED — exact 1244 bytes / 311 instructions.
+ *
+ * Matching notes:
+ *  - Keep the three deterministic sweeps as separate source loops.  cc1
+ *    emits the target's repeated blocks and keeps their s16 induction
+ *    variables in caller-saved registers; factoring them would change the
+ *    control flow.
+ *  - The final per-character flag first forms a raw row base and then uses
+ *    row[0x41f].  Writing it as state->stock[chr*0x20 + 0x13] makes cc1 add
+ *    0x13 to the index in a separate instruction instead of folding 0x41f
+ *    into the lbu/sb memory operands.
+ *  - `kind` and `remaining` are signed 16-bit values.  An unsigned-width
+ *    mechanical rewrite happens to restore the instruction count while
+ *    replacing the required sll/sra sign extension with andi/sltiu.
+ */
+
+typedef struct
+{
+    u8 pad[10];
+    u16 reward_kind;
+} EndStageResult;
+
+extern s16 D_8008ED50[];
+extern s32 rand(void);
+
+void FUN_80052ea8(PersistentState *state, EndStageResult *result)
+{
+    s16 kind;
+    s16 i;
+    s16 remaining;
+    u8 *row;
+
+    kind = 4 - result->reward_kind;
+    if (kind >= 3)
+    {
+        remaining = 5;
+        if (kind == 4)
+        {
+            remaining = 3;
+        }
+        while (remaining != 0)
+        {
+            i = rand() % 18 + 1;
+            if (i < 9)
+            {
+                if (state->stock[i + state->chr * 0x20] == 0xfe)
+                {
+                    state->stock[i + state->chr * 0x20] =
+                        state->stock[i + state->chr * 0x20] + 2;
+                }
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 1;
+                remaining--;
+            }
+            else if (state->stock[i + state->chr * 0x20] != 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 1;
+                remaining--;
+            }
+        }
+    }
+    else if (kind == 2)
+    {
+        i = 1;
+        do
+        {
+            if (state->stock[i + state->chr * 0x20] == 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 2;
+            }
+            state->stock[i + state->chr * 0x20] =
+                state->stock[i + state->chr * 0x20] + 1;
+            i++;
+        } while (i < 9);
+        while (i < 0x14)
+        {
+            if (state->stock[i + state->chr * 0x20] != 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 1;
+            }
+            i++;
+        }
+    }
+    else if (kind == 1)
+    {
+        i = 1;
+        do
+        {
+            if (state->stock[i + state->chr * 0x20] == 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 2;
+            }
+            state->stock[i + state->chr * 0x20] =
+                state->stock[i + state->chr * 0x20] + 1;
+            i++;
+        } while (i < 9);
+        while (i < 0x14)
+        {
+            if (state->stock[i + state->chr * 0x20] != 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 1;
+            }
+            i++;
+        }
+
+        remaining = 5;
+        do
+        {
+            i = rand() % 18 + 1;
+            if (i < 9)
+            {
+                if (state->stock[i + state->chr * 0x20] == 0xfe)
+                {
+                    state->stock[i + state->chr * 0x20] =
+                        state->stock[i + state->chr * 0x20] + 2;
+                }
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 1;
+                remaining--;
+            }
+            else if (state->stock[i + state->chr * 0x20] != 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 1;
+                remaining--;
+            }
+        } while (remaining != 0);
+    }
+    else
+    {
+        i = 1;
+        do
+        {
+            if (state->stock[i + state->chr * 0x20] == 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 2;
+            }
+            state->stock[i + state->chr * 0x20] =
+                state->stock[i + state->chr * 0x20] + 2;
+            i++;
+        } while (i < 9);
+        while (i < 0x14)
+        {
+            if (state->stock[i + state->chr * 0x20] != 0xfe)
+            {
+                state->stock[i + state->chr * 0x20] =
+                    state->stock[i + state->chr * 0x20] + 2;
+            }
+            i++;
+        }
+
+        i = D_8008ED50[state->stage];
+        if (state->stock[i + state->chr * 0x20] == 0xfe)
+        {
+            state->stock[i + state->chr * 0x20] =
+                state->stock[i + state->chr * 0x20] + 3;
+        }
+    }
+
+    row = (u8 *)state + state->chr * 0x20;
+    if (row[0x41f] != 0xfe)
+    {
+        row[0x41f] = 1;
+    }
+}
 
 // triage: HARD — 311 insns, mul/div, 6 loop, 1 callees, ~0.06 to BriefingAndInventorySelectionScreen
 // likely-relevant cookbook sections:
 //   - Loops: 6 back-edge(s) — for/while/do vs goto shape
 //   - Expressions: mult/div — magic-multiply constants, fold
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (historical reference used for the matched C above):
 //
 //
 // void FUN_80052ea8(int param_1,int param_2)
