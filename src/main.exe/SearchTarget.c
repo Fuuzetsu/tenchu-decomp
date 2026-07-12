@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -37,7 +38,209 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — complete pure-C reconstruction, 1132 bytes versus
+ * the 1128-byte target (283 versus 282 instructions).  The stack plan is
+ * exact: frame 0x50, delta VECTOR at sp+0x10, position VECTOR at sp+0x20,
+ * and passage SVECTOR at sp+0x30.
+ *
+ * The remaining nine aligned diff lines are three local jump/scheduling
+ * choices: the status-10 close-height return keeps a two-instruction return
+ * island where retail folds -2 into the branch delay slot; the initial
+ * delta.vy reload moves by one instruction; and the final passage failure is
+ * a direct return branch where retail retains a one-instruction-longer local
+ * return island.  `rtlguide` classifies these as CSE/cross-jump plus one
+ * scheduling hunk; `regalloc` and bounded guided autorules found no improving
+ * source lever.  There are no semantic, layout, or access-width residuals.
+ *
+ * Key recovered shapes: the three deltas must be one stack VECTOR (three
+ * scalar locals color into s-registers and lose the retail frame plan);
+ * `mode` is s16, whose repeated promotions create retail's mode-copy moves;
+ * and the vertical adjustment needs an updated `delta_y` plus a separate
+ * `base_y`.  Reusing one variable collapses the retail v1-to-a1 copy and
+ * renumbers the complete normalization loop.
+ */
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SearchTarget", SearchTarget);
+#else
+
+typedef struct
+{
+    s32 near_distance;
+    s32 clear_distance;
+    s32 far_distance;
+} SearchSight;
+
+extern s32 GameClock;
+extern Humanoid *StagePlayer;
+extern u32 *GlobalAreaMap;
+extern SearchSight searchsight[];
+
+extern s32 SquareRoot0(s32 value);
+extern s32 ratan2(s32 y, s32 x);
+extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,
+                                 s16 n);
+
+s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree)
+{
+    VECTOR delta;
+    VECTOR vect;
+    SVECTOR svect;
+    s32 raw_degree;
+    s32 roty;
+    s16 mode;
+    s32 limit;
+    s32 absolute;
+    s32 y;
+    s32 base_y;
+    s32 own_height;
+    s32 delta_y;
+    s32 full_height;
+    s32 half_height;
+    s32 adjusted_y;
+    s32 result;
+    u16 player_height;
+    s16 signed_degree;
+    s16 result_degree;
+    s16 n;
+
+    vect = *human->locate;
+    n = 1;
+    if (human->target == 0)
+    {
+        return 0;
+    }
+
+    delta.vx = human->target->locate.coord.t[0] - vect.vx;
+    delta.vy = human->target->locate.coord.t[1] - vect.vy;
+    delta.vz = human->target->locate.coord.t[2] - vect.vz;
+    *distance = SquareRoot0(delta.vx * delta.vx + delta.vy * delta.vy +
+                            delta.vz * delta.vz);
+
+    roty = (u16)human->rotate->vy;
+    raw_degree = ratan2(-delta.vx, -delta.vz) - roty;
+    signed_degree = raw_degree;
+    result_degree = raw_degree;
+    if (signed_degree < 0x801)
+    {
+        goto degree_nested;
+    }
+    result_degree = 0x1000 - raw_degree;
+    goto degree_done;
+degree_nested:
+    if (signed_degree < -0x7ff)
+    {
+        result_degree = raw_degree + 0x1000;
+    }
+degree_done:
+    *degree = result_degree;
+
+    if (((GameClock + human->model->object[0]->id) & 0x1f) != 0)
+    {
+        return 0;
+    }
+
+    mode = (u16)(StagePlayer->status - 0xb) < 2;
+    if (StagePlayer->status == 10)
+    {
+        if (delta.vy >= 0)
+        {
+            return -2;
+        }
+        if (delta.vy < -3000)
+        {
+            if (*distance < 4000)
+            {
+                return -2;
+            }
+        }
+    }
+
+    if (__builtin_abs(delta.vy) >= 3000)
+    {
+        if (FRAMES_UNTIL_END_OF_ALERT == 0)
+        {
+            return -2;
+        }
+        if (*distance < 4000)
+        {
+            return -2;
+        }
+    }
+
+    if (*distance >= searchsight[mode].far_distance)
+    {
+        return -2;
+    }
+
+    absolute = __builtin_abs(*degree);
+    if (absolute < 900)
+    {
+        if (absolute >= 450 && mode != 0)
+        {
+            return -1;
+        }
+        if (*distance >= searchsight[mode].near_distance)
+        {
+            return -1;
+        }
+
+        limit = 500;
+        if (mode != 0)
+        {
+            limit = 300;
+        }
+        y = vect.vy;
+        own_height = human->height;
+        delta_y = delta.vy;
+        y += 300;
+        y -= own_height;
+        delta_y -= 300;
+        vect.vy = y;
+        base_y = delta_y + human->height;
+        delta.vy = base_y;
+        player_height = StagePlayer->height;
+        full_height = (s16)player_height;
+        if (StagePlayer->status == 0xb)
+        {
+            half_height = (s16)player_height / 2;
+            adjusted_y = base_y - half_height;
+        }
+        else
+        {
+            adjusted_y = base_y - full_height;
+        }
+        delta.vy = adjusted_y;
+
+        while (limit < __builtin_abs(delta.vx) ||
+               limit < __builtin_abs(delta.vy) ||
+               limit < __builtin_abs(delta.vz))
+        {
+            n <<= 1;
+            delta.vx >>= 1;
+            delta.vy >>= 1;
+            delta.vz >>= 1;
+        }
+
+        svect.vx = delta.vx;
+        svect.vy = delta.vy;
+        svect.vz = delta.vz;
+        if (GetAreaMapPassage(GlobalAreaMap, &vect, &svect, n) != 0)
+        {
+            return -2;
+        }
+        result = 2;
+        if (*distance < searchsight[mode].clear_distance)
+        {
+            result = 1;
+        }
+        return result;
+    }
+    return -1;
+}
+
+#endif
 
 // triage: HARD — 282 insns, mul/div, 3 loop, 3 callees, ~0.05 to GetDirection
 // likely-relevant cookbook sections:
