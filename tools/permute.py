@@ -203,6 +203,7 @@ GP_EXTERNS = {
     "ActSYURI": ["dtM", "Me_MOTION_C", "motID", "D_80097F0E"],
     "ActHANG": ["dtV", "dtM", "dtPAD", "dtL", "motID", "D_80097F0E", "Me_MOTION_C"],
     "item_use_gun": ["COUNTER_FOR_ITEM_ARRAY_"],
+    "SetupAppearance": ["NowStage", "PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR", "D_800979A6", "AMD_LOADED_FOR_CHARACTER_KIND"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

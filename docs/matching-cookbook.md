@@ -2052,6 +2052,15 @@ recomputed before local-alloc, so the def is gone before it can bias anything.
   candidate can contain the exact single-statement reorder needed — diff it
   against your base instead of waiting out the random search (PlayerOption
   found its fix in an output-30 dir of a run stuck at 805).
+- **A late reuse of an existing pointer local can recolor an early block at
+  zero byte cost**: global.c allocates one pseudo for the variable across the
+  whole function, so assigning a far-later same-kind pointer to it changes its
+  refs/lifetime/preferences even when the late block emits the same instructions.
+  SetupAppearance's 1024-byte draft was otherwise exact but swapped `$a0`/`$v1`
+  in six early instructions; reusing its HumanData pointer temp for the final
+  `StageMotion` null-check/free made the whole function MATCH. The permuter found
+  this as a nonzero `output-25` candidate; bisecting that one edit against raw
+  matchdiff proved it was the load-bearing change.
 - **Byte-neutral respellings are permuter seed levers**: re-reading a cached
   field that cse folds back (`dsp->u = dsp->u + …` for `x + …`) or a
   do{}while(0) around an UNRELATED block shifts pseudo bookkeeping enough to

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -35,8 +36,181 @@
  *     extern struct MotionPackType *StageMotion;
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetupAppearance", SetupAppearance);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetupAppearance", load_chosen_player_character_resources___override__prt_80029d94_407e704c);
+/*
+ * SetupAppearance (0x80029aa4, 0x400 bytes) — frees the current appearance
+ * resources and reloads the stage/player motion packs. The disassembly is
+ * split at an internal PRT marker, but both pieces are one C function.
+ *
+ * Matching notes:
+ *  - `pt = (u8 *)0x80010000` is the recovered `unsigned char *pt` local. It
+ *    keeps the PersistentState base in one register for the +0x58/+0x1a
+ *    reads; the later literal +0x1a clear must rematerialize the address
+ *    after `pt` is repurposed.
+ *  - `human` gives the two HumanData name stores one shared array base.
+ *  - Reusing `human` for the much later StageMotion null-check/free is
+ *    load-bearing: it changes global.c's pseudo coloring so the early
+ *    appearance flag/HumanData base land in the target's $v1/$a0. Without
+ *    that semantically equivalent reuse, the complete 256-instruction
+ *    function differs only by a six-byte $a0/$v1 swap.
+ */
+typedef struct
+{
+    s16 type;
+    s16 wepid;
+    s16 turn;
+    s16 life;
+    s16 width;
+    s16 height;
+    MotionRegistType *mtbl;
+    u8 *name;
+    u32 *model;
+} AppearanceHumanData;
+
+typedef struct
+{
+    u8 *name;
+    s16 wid;
+    u32 *model;
+} AppearanceWeaponModel;
+
+extern AppearanceHumanData HumanData[63];
+extern AppearanceWeaponModel WeaponModel[41];
+extern s16 NowStage;
+extern s16 EngageLevel;
+extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
+extern s16 AMD_LOADED_FOR_CHARACTER_KIND;
+extern s16 D_800979A6;
+extern MotionPackType *CommonMotion;
+extern MotionPackType *PlayerMotion;
+extern MotionPackType *StageMotion;
+extern MotionRegistType MOTcommon[];
+extern u8 D_80011710[];
+extern u8 D_800979A8[];
+extern u8 D_800979B0[];
+extern char D_8001171C[];
+extern char D_80011734[];
+extern char D_8001174C[];
+extern char D_80011774[];
+extern char D_800117A0[];
+extern int strcmp(const char *a, const char *b);
+extern int sprintf(char *dst, const char *fmt, ...);
+
+void SetupAppearance(short mode, short stage)
+{
+    short i;
+    short j;
+    u8 name[100];
+    u8 *pt;
+    AppearanceHumanData *human;
+    u8 appearance;
+
+    NowStage = stage;
+    pt = (u8 *)0x80010000;
+    EngageLevel = 3 - pt[0x58];
+    appearance = pt[0x1a];
+    if (appearance != 0)
+    {
+        human = HumanData;
+        human[0].name = D_80011710;
+        human[1].name = appearance != 0xff ? D_800979A8 : D_800979B0;
+        *((u8 *)0x8001001A) = 0;
+        PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR = -1;
+    }
+
+    i = 0;
+    while (HumanData[i].type != -1)
+    {
+        if (HumanData[i].model != 0)
+        {
+            vfree(HumanData[i].model);
+            HumanData[i].model = 0;
+            j = 0;
+            while (HumanData[j].type != -1)
+            {
+                if (strcmp((char *)HumanData[i].name,
+                           (char *)HumanData[j].name) == 0)
+                {
+                    HumanData[j].model = 0;
+                }
+                j++;
+            }
+        }
+        HumanData[i].model = 0;
+        HumanData[i].mtbl->motion = 0;
+        i++;
+    }
+
+    i = 0;
+    while (WeaponModel[i].wid != -1)
+    {
+        if (WeaponModel[i].model != 0)
+        {
+            vfree(WeaponModel[i].model);
+        }
+        WeaponModel[i].model = 0;
+        i++;
+    }
+
+    if (stage < 0)
+    {
+        if (CommonMotion != 0)
+        {
+            vfree(CommonMotion);
+            CommonMotion = 0;
+        }
+        if (PlayerMotion != 0)
+        {
+            vfree(PlayerMotion);
+            PlayerMotion = 0;
+        }
+        human = (AppearanceHumanData *)StageMotion;
+        if (human != 0)
+        {
+            vfree(human);
+            StageMotion = 0;
+        }
+    }
+    else
+    {
+        if (StageMotion != 0)
+        {
+            vfree(StageMotion);
+        }
+        D_800979A6 = stage;
+        sprintf((char *)name, D_8001171C, D_80011734, (int)stage);
+        StageMotion = LoadMotion(FileRead(name));
+        if (stage != 0)
+        {
+            if (CommonMotion == 0)
+            {
+                CommonMotion = LoadMotion(FileRead((u8 *)D_8001174C));
+                SetupMotionRegist(MOTcommon);
+            }
+            if (PlayerMotion != 0)
+            {
+                if (mode != AMD_LOADED_FOR_CHARACTER_KIND)
+                {
+                    vfree(PlayerMotion);
+                    PlayerMotion = 0;
+                }
+                if (PlayerMotion != 0)
+                {
+                    return;
+                }
+            }
+            AMD_LOADED_FOR_CHARACTER_KIND = mode;
+            if (mode == 0)
+            {
+                pt = (u8 *)D_80011774;
+            }
+            else
+            {
+                pt = (u8 *)D_800117A0;
+            }
+            PlayerMotion = LoadMotion(FileRead(pt));
+        }
+    }
+}
 
 // triage: HARD — 256 insns, 3 loop, 6 callees, ~0.06 to SetupMotionRegist
 // likely-relevant cookbook sections:
