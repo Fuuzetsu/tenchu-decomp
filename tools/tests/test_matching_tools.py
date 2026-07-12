@@ -326,6 +326,85 @@ int F(void) { volatile int x; x = rand() % 30; return x; }
         self.assertEqual(
             self.candidates(autorules.rule_rand_mod_split, volatile_source), [])
 
+    def test_builtin_abs_makes_inlining_explicit(self):
+        source = """int abs(int);
+int F(int value) {
+    return abs(value) > 400;
+}
+"""
+        out = self.candidates(autorules.rule_builtin_abs, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("__builtin_abs(value)", out[0][1])
+        self.assertIn("int abs(int);", out[0][1])
+
+    def test_subscript_postincrement_splits_and_merges(self):
+        merged_source = """int F(int *array) {
+    int i;
+    i = 0;
+    array[i] = 7;
+    i++;
+    return i;
+}
+"""
+        merged = self.candidates(autorules.rule_subscript_postinc, merged_source)
+        self.assertEqual(len(merged), 1)
+        self.assertIn("array[i++] = 7;", merged[0][1])
+        self.assertNotIn("\n    i++;", merged[0][1])
+
+        split = self.candidates(autorules.rule_subscript_postinc, merged[0][1])
+        self.assertEqual(len(split), 1)
+        self.assertIn("array[i] = 7;\n    i++;", split[0][1])
+
+    def test_subscript_postincrement_rejects_other_or_escaped_counter_use(self):
+        reused = """int F(int *array) {
+    int i;
+    array[i] = i;
+    i++;
+    return i;
+}
+"""
+        escaped = """int F(int *array) {
+    int i;
+    int *p;
+    p = &i;
+    array[i] = 1;
+    i++;
+    return *p;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_subscript_postinc, reused), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_subscript_postinc, escaped), [])
+
+    def test_switch_cse_eviction_uses_dead_entry_index_local(self):
+        source = """int F(int *item) {
+    int mode_index;
+    mode_index = item[0];
+    if (mode_index == 255) return 0;
+    switch (item[0]) {
+    case 0: return 1;
+    default: return 2;
+    }
+}
+"""
+        out = self.candidates(autorules.rule_switch_cse_evict, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("mode_index = 0;\n    switch (item[0])", out[0][1])
+        self.assertEqual(
+            self.candidates(autorules.rule_switch_cse_evict, out[0][1]), [])
+
+    def test_switch_cse_eviction_rejects_live_local(self):
+        source = """int F(int *item) {
+    int mode_index;
+    mode_index = item[0];
+    switch (item[0]) { case 0: break; }
+    return mode_index;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_switch_cse_evict, source), [])
+
     def test_registered_rules_never_emit_inline_asm(self):
         self.assertNotIn("__asm__", inspect.getsource(autorules))
         for key, _description, rule in autorules.RULES + autorules.AGGRESSIVE_RULES:
@@ -549,6 +628,31 @@ class RtlGuideTests(unittest.TestCase):
         self.assertEqual(
             rtlguide.known_residual_signatures([], target, ours),
             ["post-comparison-flag-definition"],
+        )
+
+    def test_known_builtin_abs_signature(self):
+        target = [
+            (0x1000, "bgez a0,0x1010"),
+            (0x1004, "move v0,a0"),
+            (0x1008, "negu v0,v0"),
+        ]
+        ours = [
+            (0x1000, "jal 0x80076074 <abs>"),
+            (0x1004, "nop"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            ["builtin-abs-inline"],
+        )
+
+    def test_known_postincrement_working_copy_signature(self):
+        h = self.hunk(
+            ["addiu v0,v1,1", "move v1,v0", "sll v0,v0,0x10"],
+            ["addiu v1,v1,1", "sll v0,v1,0x10"],
+        )
+        self.assertEqual(
+            rtlguide.known_residual_signatures([h]),
+            ["postincrement-working-copy"],
         )
 
     def test_relocated_addiu_is_combine_reassociation(self):

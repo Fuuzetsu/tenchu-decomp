@@ -78,25 +78,25 @@ CATEGORY_RULES = {
     "regalloc": [
         "type-width", "cmp-polarity", "loop-fence", "loop-range", "split-chain",
         "or-inplace", "add-prefix-temp", "flag-arm-assign",
-        "identical-arm-fence",
+        "identical-arm-fence", "subscript-postinc", "switch-cse-evict",
     ],
     "cse/coalescing": [
         "type-width", "loop-fence", "loop-range", "temp-inline",
-        "vector-copy-adjust",
+        "vector-copy-adjust", "subscript-postinc", "switch-cse-evict",
     ],
     "jump/cross-jump": ["case-fence", "and-nest"],
     "schedule/delay": [
         "type-width", "loop-fence", "loop-range", "cmp-swap", "cmp-polarity",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign",
-        "loop-boundary-shift", "identical-arm-fence",
+        "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
     ],
     "combine/expression": [
-        "abs-ge", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
+        "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
         "shift16-mul", "plus-group", "add-prefix-temp", "split-chain",
     ],
     "structure/length": [
         "type-width", "and-nest", "temp-inline", "case-fence",
-        "vector-copy-adjust",
+        "vector-copy-adjust", "builtin-abs", "subscript-postinc",
     ],
 }
 
@@ -117,6 +117,14 @@ SIGNATURE_HINTS = {
     "post-comparison-flag-definition": (
         "target reuses a comparison register for 0/1 branch-delay definitions; "
         "assign the flag at the end of each arm, after that arm's comparisons"
+    ),
+    "builtin-abs-inline": (
+        "candidate calls abs but target has bgez/negu inline; spell the site "
+        "__builtin_abs(...) because the matching cc1 receives -fno-builtin"
+    ),
+    "postincrement-working-copy": (
+        "target increments through a distinct working register and copies it "
+        "back; try merging the adjacent increment into array[index++]"
     ),
 }
 
@@ -360,6 +368,61 @@ def _post_comparison_flag(target, ours):
     return False
 
 
+def _builtin_abs_gap(target, ours):
+    """Candidate calls ``abs`` while the target expands bgez/copy/negu."""
+    candidate_calls_abs = any(
+        mnemonic(insn) in CALL_OPS and (call_symbol(insn) or "").split(".")[0] == "abs"
+        for _addr, insn in ours
+    )
+    target_calls_abs = any(
+        mnemonic(insn) in CALL_OPS and (call_symbol(insn) or "").split(".")[0] == "abs"
+        for _addr, insn in target
+    )
+    if not candidate_calls_abs or target_calls_abs:
+        return False
+    for i, (_addr, branch) in enumerate(target):
+        branch_regs = registers(branch)
+        if mnemonic(branch) != "bgez" or not branch_regs:
+            continue
+        live = {branch_regs[0]}
+        for _addr2, insn in target[i + 1:min(i + 5, len(target))]:
+            regs = registers(insn)
+            if mnemonic(insn) == "move" and len(regs) >= 2 and regs[1] in live:
+                live.add(regs[0])
+            if (mnemonic(insn) == "negu" and len(regs) >= 2 and
+                    (regs[0] in live or regs[1] in live)):
+                return True
+    return False
+
+
+def _postincrement_working_copy(target, ours):
+    """Target ``addiu tmp,index,1; move index,tmp`` vs in-place candidate."""
+    def addiu_one(insn):
+        return (mnemonic(insn) == "addiu" and
+                re.search(r",\s*(?:0x0*1|1)$", insn.strip(), re.I))
+
+    ours_inplace = []
+    for insn in ours:
+        regs = registers(insn)
+        if addiu_one(insn) and len(regs) >= 2 and regs[0] == regs[1]:
+            ours_inplace.append(regs[0])
+    if not ours_inplace:
+        return False
+    for i, insn in enumerate(target):
+        regs = registers(insn)
+        if not addiu_one(insn) or len(regs) < 2 or regs[0] == regs[1]:
+            continue
+        working, index = regs[:2]
+        if index not in ours_inplace:
+            continue
+        for later in target[i + 1:min(i + 4, len(target))]:
+            move_regs = registers(later)
+            if (mnemonic(later) == "move" and len(move_regs) >= 2 and
+                    move_regs[:2] == [index, working]):
+                return True
+    return False
+
+
 def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
     """Name narrow, previously root-caused residual shapes.
 
@@ -372,9 +435,14 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
             found.append("copy-then-inplace-adjust")
         if _post_comparison_flag(target_stream, ours_stream):
             found.append("post-comparison-flag-definition")
+        if _builtin_abs_gap(target_stream, ours_stream):
+            found.append("builtin-abs-inline")
     for hunk in hunks:
         target = [x[1] for x in hunk["target"]]
         ours = [x[1] for x in hunk["ours"]]
+        if (_postincrement_working_copy(target, ours) and
+                "postincrement-working-copy" not in found):
+            found.append("postincrement-working-copy")
 
         # Cancel the aligned instructions common to both sides. A lone addiu
         # left on each side, with identical immediate/self-add shape but at a

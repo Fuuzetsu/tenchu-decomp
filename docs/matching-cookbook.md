@@ -495,6 +495,15 @@ plain C is the matched file.
   long state ladder can therefore need to be restored as one full `switch`, even
   when labels/gotos initially look closer: ProcItemDokudango recovered both the
   compare tree and the physical mode-body order only after doing so.
+- **If an entry guard names that field, a dead overwrite can be required to
+  preserve the switch's fresh reload.** `mode_index = item->mode;` followed by
+  a guard normally leaves a CSE equivalence that lets a later
+  `switch (item->mode)` reuse the first `lbu`. When the target has a second
+  `lbu`, write `mode_index = 0;` immediately before the switch. The assignment
+  is dead and emits no code, but evicts the equivalence before `expand_case`
+  (ProcItemKaengeki). Guided `autorules` enumerates this only when the named
+  automatic local is provably unused from the switch onward, as
+  `switch-cse-evict`.
 - **A jump-table dispatch that opens `lhu / addiu -BASE / sll 16 / sra 16 /
   sltiu N` is a cast-narrowed switch index** — spell it
   `switch ((short)(ptr->mid - 0xA00))`. The `(short)` cast narrows the subtract
@@ -755,6 +764,21 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `base + i*8` every iteration. When the target recomputes but your draft walks a
   pointer, narrow the counter before touching anything else (SetupMotionRegist).
   (Not to be confused with the *3-instruction* GetPad sign-extension class.)
+- **Put a loop increment inside the array subscript when the target increments
+  through a narrow working copy.** `array[i] = value; i++;` updates `i` in
+  place. The equivalent `array[i++] = value;` can instead expand as
+  `addiu work,i,1; move i,work`, then reuse `work` for the counter's narrow
+  sign-extension/test. That apparently redundant copy was the last missing
+  instruction in ActKAGI and is also the documented shape in parked
+  FUN_800270f8. `autorules` tries both forms as `subscript-postinc`, limited to
+  a nonvolatile, non-address-taken local used only once in the affected full
+  expression; `rtlguide` names the `postincrement-working-copy` residual.
+- **Disjoint narrow loops do not have to share one source counter.** Reusing a
+  function's earlier `short i` for a later table scan can join their allocno
+  preferences and rotate the scan's address/index registers even though the
+  live ranges do not overlap. Give the later scan its own block-scoped
+  `short scan_i` when the target uses a different hard-register colouring
+  (ActKAGI). This is a scope/regalloc lever, not a semantic loop change.
 - **Index the table (`T[i].f`) rather than walking a pointer (`e++`) when the
   loop touches two or more fields.** With a walking pointer cc1 strength-reduces
   the induction variable so that the LAST field it touches sits at offset 0 —
@@ -1385,6 +1409,13 @@ near entry; `AdtMessageBox` wants the inline form.)
   particle, drop, explosion and frame views reproduced the exact 0x98-byte
   frame and every stack offset. This is an explicit layout technique, not a
   claim that every target used a union—verify the complete byte diff.
+  The same rule now covers a broad hard-function sample: ProcItemJirai's
+  cleanup/request scratch, DrawBlood's `scr@0x18`/position/temp overlay,
+  FUN_8003562c's 0x28 render scratch, ProcItemShinsoku's position/launch
+  overlap, ProcItemHenshin's packed saved-record view, and ProcItemKaengeki's
+  request/camera-output window. When several independently recovered functions
+  converge on the same target workspace boundary, prefer the explicit union
+  over padding unrelated locals until the frame happens to fit.
 - **A stack aggregate pointer can coexist with DIRECT member spellings, and
   that mix may be the target.** Keep `p = &local` alive for the one field whose
   store is base-relative and for the later call, but spell other fields as
@@ -1871,6 +1902,16 @@ This supersedes the older "the abs `negu` source is not a C-level choice" note A
 "reach abssi2 only inline in a comparison" refinement — it is reachable as a plain
 `x = (a>=0)?a:-a;` assignment (`SoundEx`, `UpdateMotion`).
 
+The matching build now passes `-fno-builtin` to **cc1**. Consequently an
+ordinary `abs(x)` stays a physical library call even when the target has the
+same inline `bgez; move; negu` expansion. Use `__builtin_abs(x)` to request the
+inline form at that one site without changing the translation unit's flags.
+ActKAGI's three-component short-circuit loop required the explicit builtin;
+`autorules` applies `builtin-abs`, and `rtlguide` recognizes a candidate
+`jal abs` against the target inline sequence as `builtin-abs-inline`. Keep a
+plain `abs` call when the retail function really calls the library
+(GetVectorLength).
+
 ### A conditional store via a pre-branch address copy is one assignment, conditional RHS
 
 `move $v0,$a0` in a branch delay slot feeding `sh …,0($v0)` means the source is ONE
@@ -1901,6 +1942,18 @@ registers -- possibly reversed from the target. This is NOT reachable by the
 pointer local (identical tree post-fold): the divergence is baked into which front-end
 expansion path a `SYMBOL + reg*CONST` address takes, not the source array spelling
 (`leSetEnemy`, a genuine un-source-reachable local-alloc order).
+
+### Adjacent global banks may need distinct canonical symbols to prevent base folding
+
+When the target materializes two nearby arrays independently but the candidate
+turns the second into `first_base + CONSTANT`, CSE has learned that both names
+belong to one address expression. Give the second bank its own fixed-address
+symbol and use that canonical name in every C file; FUN_8003562c needed
+`sprBlood2` rather than expressing the second sprite bank as the first plus
+0x90. This is not permission to keep two aliases for one address: DrawBlood's
+old `D_800BE9E8` name stopped linking once `sprBlood2 = 0x800be9e8` was pinned,
+so the integration fix was to update DrawBlood to the shared canonical symbol.
+Separate physical banks; unify source names for the same physical bank.
 
 ### An offset-0 LOCAL-pointer dereference is cse1-canonicalised back to base+const
 
@@ -2210,6 +2263,15 @@ their definitions before reaching for the permuter.
 > is in $s0–$s7 *only* because it survives a call; if the target holds it in a
 > caller-saved reg, shorten its live range so it no longer crosses the call.
 
+- **Source liveness across a call wins over the final scheduled position.** A
+  value assigned immediately before a projection/helper call can be scheduled
+  to an instruction after that call, yet its pseudo still crosses the call and
+  therefore forces a callee-saved register and a larger frame. Moving the
+  assignment after the call may make the visible instruction order look the
+  same while deleting that saved register. DrawBlood and FUN_8003562c both
+  needed the source-before-call form; use `regalloc.py`/stackplan to decide,
+  not the final instruction address alone.
+
 - **A named `zero` local can flip a pure register-swap tie — cheaper than the
   permuter.** Comparing a loop bound against a `zero` local (`int zero = 0; …
   while (n > zero)`) rather than the literal `0` shifts global-alloc's
@@ -2350,9 +2412,24 @@ before local-alloc, so the def is gone before it can bias anything.
   through the field**: `ppu = item->proc; if (ppu == 0) return; ...
   item->proc(item);` — cse reuses the loaded value and allocation lands in
   `$v0`; calling through `ppu` flips it to `$v1`.
+- **A cross-predecessor indirect cleanup can need one function-scope callee
+  pointer.** Assign `call_item = item->proc` separately on every predecessor
+  that reaches the shared cleanup, then null-check/call through that pointer at
+  the join. This gives `jalr` one merged incoming pseudo without forcing a
+  fresh field reload at the label; predecessor-local pointers or a direct
+  field call produce different copy/hazard shapes (ProcItemJirai). This is the
+  complement of the duplicated-cleanup rule below: follow the target's actual
+  join placement before choosing one.
 - Cached pointers that live in `$s`-registers across calls
   (`p = &item->param;`) are real source temporaries — indexing the base
   struct directly doesn't allocate the register (see ProcItemManebue).
+- **But a dead pointer chain may need to remain direct.**
+  `human->model->rotate.vy += K` lets cse overwrite/coalesce the dead `human`
+  and model intermediates into the target register. Naming
+  `Model *model = human->model; model->...` creates a distinct allocno and can
+  rotate the caller-saved registers even though the load/store addresses are
+  identical (ProcItemKaengeki). Cache a pointer only when the target keeps it
+  live or reuses it; direct chains are also an allocation lever.
 - **A pool-search cursor and its post-`found:` continuation can be a SEPARATE
   pseudo that's invisible under low register pressure.** Write the loop cursor
   as `cur = items + COUNTER…;`, then `it = cur;` assigned exactly twice — in

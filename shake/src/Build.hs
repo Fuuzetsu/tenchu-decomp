@@ -427,8 +427,6 @@ ccFlags =
     -- cc1, not cpp, decides whether `abs()` inlines. This lived in cppFlags
     -- for a long time, where it did nothing.
     "-fno-builtin",
-    -- cc1, not cpp, is what decides whether `abs()` inlines. This flag lived
-    -- in cppFlags for a long time, where it did nothing.
     -- -G8: small globals go in .sdata/.sbss and are addressed via $gp, as the
     -- original ASPSX build did. maspsx reproduces the resulting layout; `as`
     -- itself still runs with -G0 (see asFlags).

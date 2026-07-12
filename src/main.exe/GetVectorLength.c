@@ -33,16 +33,12 @@
  *    this build: the real function needs a 40-byte frame saving s0-s3+ra.
  *    The demo build's symbol table is wrong here, not just differently
  *    allocated (docs/matching-cookbook.md's "~2 of 5" PSX.SYM caveat).
- *  - `abs()` MUST be declared taking/returning `long`, not `int`/`s32`.
- *    cc1 recognizes `int abs(int)` as a builtin and inlines it to
- *    branch+negate (no `jal`) even though Build.hs's `-fno-builtin` never
- *    reaches the cc1 step (it's only in `cppFlags`, fed to the separate
- *    `cpp` invocation — verified with a standalone cc1-281 run: plain
- *    `int abs(int)` inlines, `-fno-builtin int abs(int)` and plain
- *    `long abs(long)` both emit a real `jal abs` with byte-identical
- *    `.frame`/`.mask`. The target's 3 `jal 0x80076074` calls (confirmed by
- *    `tools/xref.py`) need the latter spelling — no Build.hs/symbols.txt
- *    change needed once the prototype is right.
+ *  - `abs()` is declared taking/returning `long`, matching the recovered
+ *    original prototype. Build.hs now passes `-fno-builtin` to cc1 (not just
+ *    cpp), so an ordinary `abs` remains a real call for either common integer
+ *    prototype. The target's 3 `jal 0x80076074` calls (confirmed by
+ *    `tools/xref.py`) therefore stay physical. Functions whose targets inline
+ *    `bgez/move/negu` use the explicit `__builtin_abs` spelling instead.
  *  - Ghidra's `bVar1 = false; if (OR-chain) bVar1 = true; if (bVar1) ...`
  *    is the LITERAL source shape here, not an SSA artifact: writing the
  *    equivalent direct `if (OR-chain) {BIG} else {SMALL}` compiles to

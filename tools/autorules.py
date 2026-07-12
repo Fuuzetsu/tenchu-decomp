@@ -707,6 +707,43 @@ def rule_abs_ge(text, name, span):
                splice(data, c.start_byte, c.end_byte, repl).decode())
 
 
+def rule_builtin_abs(text, name, span):
+    """Rewrite a direct ``abs(x)`` call as ``__builtin_abs(x)``.
+
+    The matching build deliberately passes ``-fno-builtin`` to cc1, so an
+    ordinary library call can no longer fold to the target's inline
+    ``bgez/move/negu`` sequence.  The explicit builtin restores that source
+    choice locally without weakening the translation unit's compiler flags.
+    Restrict this to a direct, one-argument call and reject a same-named local;
+    authoritative scoring decides whether the target wanted the call or the
+    inline form.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    if b"abs" in _nonvolatile_local_names(data, body):
+        return
+    for call in _find(body, ("call_expression",)):
+        function = call.child_by_field_name("function")
+        arguments = call.child_by_field_name("arguments")
+        if (function is None or function.type != "identifier" or
+                _txt(data, function) != b"abs" or arguments is None):
+            continue
+        values = [child for child in arguments.named_children
+                  if child.type != "comment"]
+        if len(values) != 1:
+            continue
+        line = _line(data, call.start_byte)
+        if not _guided_site(line):
+            continue
+        yield (
+            f"abs->__builtin_abs L{line}",
+            splice(data, function.start_byte, function.end_byte,
+                   b"__builtin_abs").decode(),
+        )
+
+
 def rule_or_inplace(text, name, span):
     """Rewrite `X = X <op> C;` to the compound `X <op>= C;` for | & + - ^.
 
@@ -875,6 +912,115 @@ def rule_rand_mod_split(text, name, span):
             repl = lhs + b" = rand() % " + modulus + b";"
             yield (f"rand-mod merge {lhs.decode()} L{_line(data, first.start_byte)}",
                    splice(data, first.start_byte, second.end_byte, repl).decode())
+
+
+def _postincrement_name(data, statement):
+    """Plain local name for a whole ``name++;`` expression statement."""
+    if statement.type != "expression_statement":
+        return None
+    expressions = [child for child in statement.named_children
+                   if child.type != "comment"]
+    if len(expressions) != 1 or expressions[0].type != "update_expression":
+        return None
+    update = expressions[0]
+    argument = update.child_by_field_name("argument")
+    operator = update.child_by_field_name("operator")
+    if (argument is None or argument.type != "identifier" or operator is None or
+            _txt(data, operator) != b"++" or
+            not _txt(data, update).rstrip().endswith(b"++")):
+        return None
+    return _txt(data, argument)
+
+
+def rule_subscript_postinc(text, name, span):
+    """Split/merge ``a[i] ...; i++;`` and ``a[i++] ...;``.
+
+    Old cc1 gives the postincremented ARRAY_REF a distinct narrow working copy:
+    the target can contain ``addiu work,i,1; move i,work`` where a separate
+    increment updates ``i`` in place and is one instruction shorter.  The
+    rewrite is limited to a nonvolatile automatic counter used exactly once in
+    the affected statement and never address-taken, so moving its increment
+    within that full expression cannot change an observable value.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    body_text = _txt(data, body)
+
+    def safe_counter(counter, statement):
+        if counter not in locals_:
+            return False
+        if re.search(rb"&\s*" + re.escape(counter) + rb"\b", body_text):
+            return False
+        return sum(_txt(data, ident) == counter
+                   for ident in _find(statement, ("identifier",))) == 1
+
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+
+        # MERGE an adjacent standalone postincrement into the subscript.
+        for first, second in zip(statements, statements[1:]):
+            counter = _postincrement_name(data, second)
+            if (counter is None or first.type != "expression_statement" or
+                    data[first.end_byte:second.start_byte].strip() or
+                    not safe_counter(counter, first)):
+                continue
+            sites = []
+            for subscript in _find(first, ("subscript_expression",)):
+                index = subscript.child_by_field_name("index")
+                if (index is not None and index.type == "identifier" and
+                        _txt(data, index) == counter):
+                    sites.append(index)
+            if len(sites) != 1:
+                continue
+            index = sites[0]
+            raw = data[first.start_byte:first.end_byte]
+            rel_start = index.start_byte - first.start_byte
+            rel_end = index.end_byte - first.start_byte
+            raw = raw[:rel_start] + counter + b"++" + raw[rel_end:]
+            yield (
+                f"subscript-postinc merge {counter.decode()} "
+                f"L{_line(data, first.start_byte)}",
+                splice(data, first.start_byte, second.end_byte, raw).decode(),
+            )
+
+        # SPLIT a postincremented subscript into a following statement.
+        for statement in statements:
+            if statement.type != "expression_statement":
+                continue
+            for subscript in _find(statement, ("subscript_expression",)):
+                index = subscript.child_by_field_name("index")
+                if index is None or index.type != "update_expression":
+                    continue
+                argument = index.child_by_field_name("argument")
+                operator = index.child_by_field_name("operator")
+                if (argument is None or argument.type != "identifier" or
+                        operator is None or _txt(data, operator) != b"++" or
+                        not _txt(data, index).rstrip().endswith(b"++")):
+                    continue
+                counter = _txt(data, argument)
+                if not safe_counter(counter, statement):
+                    continue
+                line_end = data.find(b"\n", statement.end_byte)
+                if line_end < 0:
+                    line_end = len(data)
+                if data[statement.end_byte:line_end].strip():
+                    continue
+                raw = data[statement.start_byte:statement.end_byte]
+                rel_start = index.start_byte - statement.start_byte
+                rel_end = index.end_byte - statement.start_byte
+                raw = raw[:rel_start] + counter + raw[rel_end:]
+                indent = _indent_at(data, statement.start_byte)
+                repl = raw + b"\n" + indent + counter + b"++;"
+                yield (
+                    f"subscript-postinc split {counter.decode()} "
+                    f"L{_line(data, statement.start_byte)}",
+                    splice(data, statement.start_byte, statement.end_byte,
+                           repl).decode(),
+                )
 
 
 def rule_ptr_index_sum(text, name, span):
@@ -1302,6 +1448,68 @@ def rule_flag_arm_assign(text, name, span):
             yield (
                 f"flag-arm-assign {flag.decode()} L{line}",
                 splice(data, default_statement.start_byte, iff.end_byte, repl).decode(),
+            )
+
+
+def rule_switch_cse_evict(text, name, span):
+    """Dead-overwrite an entry index local before re-reading it in a switch.
+
+    ``entry = obj->mode; ... switch (obj->mode)`` is normally CSE'd to one
+    load.  A dead ``entry = 0`` immediately before the switch invalidates that
+    equivalence without emitting code, so ``expand_case`` receives the fresh
+    field load visible in the target.  This is semantics-preserving only when
+    the automatic local is never used from the switch onward; enforce that and
+    reject address-taken/volatile locals.  Guided beam search can retain the
+    byte-neutral eviction until a following structural edit benefits from it.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    body_text = _txt(data, body)
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for position, switch in enumerate(statements):
+            if switch.type != "switch_statement":
+                continue
+            condition = _unparen(switch.child_by_field_name("condition"))
+            if condition is None:
+                continue
+            condition_text = _txt(data, condition).strip()
+            prior = statements[:position]
+            assignments = []
+            for statement in prior:
+                assignment = _plain_assignment(data, statement)
+                if assignment is not None and \
+                        _txt(data, _unparen(assignment[1])).strip() == condition_text:
+                    assignments.append((statement, assignment[0]))
+            if not assignments:
+                continue
+            _definition, local = assignments[-1]
+            if local not in locals_:
+                continue
+            # Do not duplicate an eviction already present immediately before
+            # the switch, regardless of the harmless constant it used.
+            if prior:
+                immediate = _plain_assignment(data, prior[-1])
+                if immediate is not None and immediate[0] == local:
+                    continue
+            if re.search(rb"&\s*" + re.escape(local) + rb"\b", body_text):
+                continue
+            if any(_txt(data, ident) == local
+                   for ident in _find(body, ("identifier",))
+                   if ident.start_byte >= switch.start_byte):
+                continue
+            line = _line(data, switch.start_byte)
+            if not _guided_site(line):
+                continue
+            indent = _indent_at(data, switch.start_byte)
+            repl = local + b" = 0;\n" + indent + _txt(data, switch)
+            yield (
+                f"switch-cse-evict {local.decode()} L{line}",
+                splice(data, switch.start_byte, switch.end_byte, repl).decode(),
             )
 
 
@@ -1897,8 +2105,10 @@ RULES = [
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
+    ("builtin-abs", "abs(x) -> __builtin_abs(x) under cc1 -fno-builtin", rule_builtin_abs),
     ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
     ("rand-mod", "split/merge x=rand()%K (call-result allocation lever)", rule_rand_mod_split),
+    ("subscript-postinc", "split/merge a[i];i++ <-> a[i++] (working-copy lever)", rule_subscript_postinc),
     ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
     ("vector-copy", "four vx/vy/vz/pad field copies -> one struct assignment", rule_vector_copy),
     ("vector-copy-adjust", "split/merge a literal-adjusted vx/vy/vz field copy", rule_vector_copy_adjust),
@@ -1913,6 +2123,7 @@ AGGRESSIVE_RULES = [
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
+    ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
     ("loop-boundary-shift", "move the next statement across an existing LOOP_END", rule_loop_boundary_shift),
