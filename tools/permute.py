@@ -211,6 +211,7 @@ GP_EXTERNS = {
     "AttackLong": ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"],
     "AttackGeneral": ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"],
     "AttackShort": ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"],
+    "DamageControl": ["Me_MOTION_C", "MotionUpdateMode", "motID", "dtL", "D_80097F0E", "dtM", "dtR", "D_8009770C", "dtV"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
@@ -251,6 +252,7 @@ MASPSX_EXTRA = {
     "AttackLong": ["--expand-div"],
     "AttackGeneral": ["--expand-div"],
     "AttackShort": ["--expand-div"],
+    "DamageControl": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

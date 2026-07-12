@@ -185,6 +185,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "AttackLong" = ["--expand-div"]
     extra "AttackGeneral" = ["--expand-div"]
     extra "AttackShort" = ["--expand-div"]
+    extra "DamageControl" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
@@ -375,6 +376,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "AttackLong" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"]
     syms "AttackGeneral" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"]
     syms "AttackShort" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"]
+    syms "DamageControl" = ["Me_MOTION_C", "MotionUpdateMode", "motID", "dtL", "D_80097F0E", "dtM", "dtR", "D_8009770C", "dtV"]
     syms _ = []
 
 as :: FilePath
