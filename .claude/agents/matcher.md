@@ -34,6 +34,15 @@ you only spend judgment on what autorules leaves. When you discover a NEW mechan
 rewrite while matching, report it so it can be ADDED to autorules, not just the cookbook
 (the goal is to shrink what future agents must think about).
 
+**`Script running with session ID ...` means RUNNING, not done.** Poll that exact
+session until it returns an exit code. Do not interpret a yielded command as a
+timeout or launch the next matching tool. `autorules`, `permute`, `matchdiff`,
+`asmdiff`, and `rtlguide` now share a per-worktree advisory lock and a second
+launch will fail with the live owner's PID/target, but you still must monitor the
+original process to completion. Autorules streams candidate scores and restores
+the baseline source on SIGTERM/SIGHUP; after any abnormal exit, verify `git diff`
+and rebuild before continuing.
+
 **Run the permuter SYNCHRONOUSLY and bounded — never as a background task you then
 wait on.** Always wrap it: `nix develop --command bash -c 'timeout 420 tools/permute.py <Name> -- --stop-on-zero -j4'`.
 It either finds a zero and prints it, or the timeout ends it and you move on. Do
@@ -51,6 +60,8 @@ Never run `tools/permute.py` and `tools/matchdiff.py` at the same time: both dri
 `./Build` against the same `.shake/` database, and the torn read yields a garbled
 diff that appears to be a length mismatch in some *other* function. (This is why the
 permuter run above must FINISH — via zero or timeout — before you run matchdiff.)
+The automatic matching-tool lock enforces this for repository tools; the rule
+still applies to direct `./Build` commands and third-party permuter processes.
 
 **When a draft is the CORRECT LENGTH but a few bytes differ and neither respelling
 nor a bounded permuter run closes it, do NOT park it as "below-the-C-level" — READ THE

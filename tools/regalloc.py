@@ -6,8 +6,8 @@ in pure register choice (Sound: OR result in $a1 vs $v0; InsertConflict: id in
 $v1 vs $s0), the residual is cc1's global allocator coloring a value differently
 than the original. Blindly re-rolling the permuter or restructuring is slow.
 
-This runs `cc1 -dg` (the post-global-allocation RTL dump) on the function as the
-build sees it and surfaces WHY each value landed where:
+This runs `cc1 -dl -dg` (liveness plus post-global-allocation RTL) on the
+function as the build sees it and surfaces WHY each value landed where:
   * the pseudo -> hard-register dispositions,
   * which values are live across a call (cc1 only spends a callee-saved $s0-$s7
     on a value that survives a call — so the register CLASS reveals the pressure),
@@ -19,6 +19,8 @@ because of the move-chain at insns N/M — break that chain."
 
   tools/regalloc.py <Name>              # diagnose src/main.exe/<Name>.c as built
   tools/regalloc.py <Name> --rtl        # + the raw greg RTL for the function
+  tools/regalloc.py <Name> --compare 80 81 --enclosed-refs 3
+                                        # exact weighted-ref / fence-depth lever
   tools/regalloc.py <Name> --func NAME  # a specific function if the TU has several
   tools/regalloc.py <file> --raw        # run on an already-preprocessed .c
 
@@ -90,6 +92,38 @@ MOVE = re.compile(r"\(set (\(reg(?:/\w+)?:\w+ \d+ \w+\)) "     # dst reg
                   r"(\(reg(?:/\w+)?:\w+ \d+ \w+\))\)")          # src reg (a copy)
 SETOP = re.compile(r"\(set \(reg(?:/\w+)?:\w+ \d+ (\w+)\)\s*\((\w+):")  # dst name, op
 DEAD = re.compile(r"REG_DEAD \(reg(?:/\w+)?:\w+ \d+ (\w+)\)")
+USAGE = re.compile(
+    r"^Register (\d+) used (\d+) times across (\d+) insns([^\n]*)$",
+    re.M,
+)
+
+
+def alloc_priority(refs, live_length):
+    """gcc-2.8.1 global-alloc priority, omitting common mode-size factor."""
+    if refs <= 0 or live_length <= 0:
+        return 0
+    return ((refs.bit_length() - 1) * refs * 10000) // live_length
+
+
+def extra_refs_to_outrank(first, second, max_extra=10000):
+    """Exact extra weighted refs needed for `first` to outrank `second`.
+
+    flow.c adds one unit of weight per enclosed reference for each loop depth.
+    The lreg total may already include real loops, so guessing a wrapper count
+    directly from that total is unsound; report the exact required delta first.
+    """
+    for extra in range(max_extra + 1):
+        if alloc_priority(first["refs"] + extra, first["live_length"]) > \
+                second["priority"]:
+            return extra
+    return None
+
+
+def wrapper_depths(extra_refs, enclosed_refs):
+    """Loop depths needed when one wrapper weights `enclosed_refs` uses."""
+    if extra_refs is None or enclosed_refs <= 0:
+        return None
+    return (extra_refs + enclosed_refs - 1) // enclosed_refs
 
 
 def split_functions(dump):
@@ -123,7 +157,7 @@ def insns(body):
         yield kind, num, "\n".join(obj)
 
 
-def analyse(name, body):
+def analyse(name, body, usage_body=None):
     disp = {}
     for m in re.finditer(r"(\d+) in (\d+)", body.split(";; Hard regs")[0]):
         disp[int(m.group(1))] = int(m.group(2))
@@ -138,6 +172,18 @@ def analyse(name, body):
             conflicts[int(m.group(1))] = [int(x) for x in m.group(2).split()]
     um = re.search(r";; Hard regs used:\s*(.*)", body)
     used_str = " ".join(rn(int(x)) for x in um.group(1).split()) if um else ""
+    alloc = re.search(r";; \d+ regs to allocate:\s*([0-9 ]+)", body)
+    allocnos = {int(x) for x in alloc.group(1).split()} if alloc else set()
+    usage = {}
+    for pseudo, refs, live_length, tail in USAGE.findall(usage_body or body):
+        refs_i, length_i = int(refs), int(live_length)
+        calls = re.search(r"crosses (\d+) calls", tail)
+        usage[int(pseudo)] = dict(
+            refs=refs_i,
+            live_length=length_i,
+            calls=int(calls.group(1)) if calls else 0,
+            priority=alloc_priority(refs_i, length_i),
+        )
     moves, calls, setops = [], [], {}
     reg_first = {}
     for kind, num, text in insns(body):
@@ -156,10 +202,11 @@ def analyse(name, body):
             nm = rm.group(2)
             reg_first.setdefault(nm, num)
     return dict(disp=disp, preferences=preferences, conflicts=conflicts, used=used_str,
-                moves=moves, calls=calls, setops=setops, reg_first=reg_first)
+                allocnos=allocnos, usage=usage, moves=moves, calls=calls, setops=setops,
+                reg_first=reg_first)
 
 
-def report(name, a, show_rtl, body):
+def report(name, a, show_rtl, body, compare=None, enclosed_refs=None):
     hardnames = sorted({n for _, d, s in a["moves"] for n in (d, s)}
                        | set(a["setops"]) | set(a["reg_first"]),
                        key=lambda x: (x not in CALLEE, x))
@@ -183,11 +230,41 @@ def report(name, a, show_rtl, body):
     else:
         print("    (none)")
     dispositions = []
+    visible = a["allocnos"] or set(a["disp"])
     for p, h in sorted(a["disp"].items()):
+        if p not in visible:
+            continue
         pref = a["preferences"].get(p, [])
         suffix = (" pref=" + "/".join(rn(x) for x in pref)) if pref else ""
         dispositions.append(f"p{p}->{rn(h)}{suffix}")
     print(f"  pseudo dispositions: " + "  ".join(dispositions))
+    allocated_usage = [(p, a["usage"][p]) for p in sorted(visible)
+                       if p in a["usage"]]
+    if allocated_usage:
+        print("  global-allocation priorities (refs / live insns -> score):")
+        for pseudo, item in sorted(
+                allocated_usage, key=lambda x: (-x[1]["priority"], x[0])):
+            print(f"    p{pseudo}: {item['refs']} / {item['live_length']} -> "
+                  f"{item['priority']}  (crosses {item['calls']} calls)")
+    if compare:
+        first, second = compare
+        if first not in a["usage"] or second not in a["usage"]:
+            print(f"  priority comparison unavailable: need p{first} and p{second} "
+                  "in the lreg usage table")
+        else:
+            extra = extra_refs_to_outrank(a["usage"][first], a["usage"][second])
+            if extra is None:
+                result = "more than 10000 extra weighted refs"
+            elif extra == 0:
+                result = "already higher priority"
+            else:
+                result = f"needs +{extra} weighted ref(s)"
+                if enclosed_refs:
+                    depths = wrapper_depths(extra, enclosed_refs)
+                    result += (f" = {depths} wrapper depth(s) if each encloses "
+                               f"{enclosed_refs} ref(s)")
+            print(f"  p{first} > p{second}: {result}")
+            print("    (priority comparison assumes equal register mode/size)")
     print("  reading: a value in $s0-$s7 is there ONLY because it is live across a"
           "\n  call; to move it, shorten its live range past the call or break the"
           "\n  copy-chain above that ties it to that register.")
@@ -203,7 +280,15 @@ def main():
                     help="target is an already-preprocessed .c (skip cpp)")
     ap.add_argument("--func", help="only this function (if the TU has several)")
     ap.add_argument("--rtl", action="store_true", help="also print the greg RTL")
+    ap.add_argument("--compare", nargs=2, type=int, metavar=("FIRST", "SECOND"),
+                    help="weighted refs needed for FIRST to outrank SECOND")
+    ap.add_argument("--enclosed-refs", type=int, metavar="N",
+                    help="with --compare, refs one proposed wrapper encloses")
     args = ap.parse_args()
+    if args.enclosed_refs is not None and args.enclosed_refs <= 0:
+        ap.error("--enclosed-refs must be positive")
+    if args.enclosed_refs is not None and not args.compare:
+        ap.error("--enclosed-refs requires --compare")
 
     if args.raw:
         pp = open(args.target).read()
@@ -214,17 +299,23 @@ def main():
             sys.exit(f"regalloc: {path} not found")
         draft = "ifndef NON_MATCHING" in open(path).read()
         try:
-            result = rtldump.compile_rtl(args.target, ["greg"], draft=draft)
+            result = rtldump.compile_rtl(
+                args.target, ["lreg", "greg"], draft=draft
+            )
         except (FileNotFoundError, ValueError, RuntimeError) as e:
             sys.exit(f"regalloc: {e}")
         greg = next((p for p in result["dumps"] if p.endswith(".greg")), None)
+        lreg = next((p for p in result["dumps"] if p.endswith(".lreg")), None)
         if greg is None:
             sys.exit("regalloc: cc1 produced no greg dump")
         dump = open(greg).read()
+        usage_dump = open(lreg).read() if lreg is not None else ""
         default_func = args.target
     if args.raw:
         dump = run_greg(pp)
+        usage_dump = ""
     funcs = split_functions(dump)
+    usage_funcs = split_functions(usage_dump)
     if not funcs:
         sys.exit("regalloc: no functions in the greg dump (did it compile?)")
 
@@ -233,7 +324,14 @@ def main():
     for i, f in enumerate(chosen):
         if i:
             print()
-        report(f, analyse(f, funcs[f]), args.rtl, funcs[f])
+        report(
+            f,
+            analyse(f, funcs[f], usage_funcs.get(f)),
+            args.rtl,
+            funcs[f],
+            args.compare,
+            args.enclosed_refs,
+        )
 
 
 if __name__ == "__main__":

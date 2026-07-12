@@ -85,13 +85,13 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/gpsyms.py <Name> --write` | derive the gp-extern set from `%gp_rel` and sync Build.hs + permute.py. Shake-oracle-tracked, so it just takes effect. |
 | `tools/clonematch.py <Matched>` | write the `.c` for exact byte-identical unmatched siblings (verified). |
 | `tools/matchdiff.py <Name>` / `tools/asmdiff.py <Name>` | iterate. matchdiff = whole-image gate; asmdiff = aligned view for big/split functions. |
-| `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules and greedily keep what shrinks the authoritative byte diff. `--guided` consumes `rtlguide`, enables pure-C comparison-polarity, one-shot-loop, and real-case-label transforms only near implicated C lines, and uses a bounded beam so a neutral first edit can enable a later win. `--rules`, `--beam`, and `--budget` keep searches reproducible and bounded. It never emits inline asm. |
-| `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties (the stochastic search; autorules is its deterministic, explainable complement). |
+| `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules and greedily keep what shrinks the authoritative byte diff. It now recognizes target-gp anti-sites, aggregate VECTOR copies, and high-word short spellings; `--guided` can fence one statement or a safe 2–4-statement range and try real case labels near RTL-mapped lines. Output is line-buffered for monitoring, interrupted runs restore the source, and the per-worktree matching lock prevents overlap with other build-driving tools. It never emits inline asm. |
+| `tools/permute.py <Name>` | decomp-permuter for pure register-allocation ties (the stochastic search; autorules is its deterministic, explainable complement). It shares the per-worktree matching lock, so an accidental launch during autorules/diff/rtlguide fails immediately with the owning PID/target instead of producing a torn build. |
 | `tools/dedupe-symbols.py [--check]` | one name per address in `config/symbols.main.exe.txt`. splat >= 0.4x refuses duplicates, and our file cannot disambiguate them (it doubles as an ld script, no comment syntax). Re-run after any Ghidra symbol import. |
 | `tools/coverage.py [--all]` | code claimed by NO function — finds under-sized `functions.tsv` entries (a truncated carve still builds green; the tail becomes a `.data` blob that defines the `.L` labels, so nothing complains). `LoadCard` and `FUN_800593a0` are the two in game code. |
 | `tools/rtldump.py <Name> [--pass …] [--draft]` | **the escalation tool** — standalone cc1-281 RTL dumps (`.greg`/`.lreg`/`.loop`/`.combine`/`.jump2`/`.sched2`/`.dbr`), race-free in the scratchpad, ~1 s. When a same-length residual beats respelling + the permuter, dump the pass that owns the diverging decision and read it (cookbook: "Reading cc1's RTL dumps"). Cracked 9 "permuter-immune" ties this session. |
-| `tools/rtlguide.py <Name>` | **mechanical RTL escalation** — aligns target asm with our candidate, classifies each hunk by owning pass, recompiles with debug RTL notes, maps residual instructions back to C lines, names locals in the divergent hard registers, and emits the exact guided autorules command. It also detects target-only physical calls and summarizes the candidate's CALL_INSN result/argument fingerprints through jump2. The target has no RTL; target asm is the specification and our RTL is the causal trace. `--json` is the stable automation interface. |
-| `tools/regalloc.py <Name>` | **diagnose a register tie** — runs `cc1 -dg` and surfaces which values are live across calls (forced callee-saved), the pseudo→hard-reg map, and the copy-chains that bias the coloring. Run this BEFORE blindly permuting a sub-C tie; it tells you which copy-chain to break. |
+| `tools/rtlguide.py <Name>` | **mechanical RTL escalation** — aligns target asm with our candidate, classifies each hunk by owning pass, recompiles with debug RTL notes, maps residual instructions back to C lines, names locals in the divergent hard registers, and emits the exact guided autorules command. It also detects target-only physical calls, summarizes CALL_INSN fingerprints through jump2, and names the proven adjacent-load-order / commutative-PLUS-destination early-stop signatures (still requiring RTL confirmation). The target has no RTL; target asm is the specification and our RTL is the causal trace. `--json` is stable; direct runs share the matching lock. |
+| `tools/regalloc.py <Name>` | **diagnose a register tie** — reads both `-dl` and `-dg`, filters to real global allocnos, shows refs/live-length/computed priority, pseudo→hard-reg dispositions and copy chains. `--compare P Q [--enclosed-refs N]` quantifies how many weighted refs/loop depths P needs to outrank Q (equal-mode comparison). Run this BEFORE blindly permuting a sub-C tie. |
 | `tools/extract-demo.py`, `tools/psxsym.py`, `tools/symdump.py` | carve/parse/dump the demo disc's `PSX.SYM` — original prototypes, locals, structs, TU map. See [psx-sym.md](psx-sym.md). `matcher-prompt.py` injects the per-function facts automatically. |
 | `tools/symmatch.py`, `tools/xbuildnames.py`, `tools/callmatch.py`, `tools/datamatch.py` | recover original **names** (functions, then globals) from `PSX.SYM` + the demo `PSX.EXE`. |
 | `tools/symnote.py --write --all` | stamp every `src/main.exe/*.c` with a `BEGIN PSX.SYM` block: the original prototype, locals (name/type/register-or-stack), touched globals, and any recorded candidate name. Idempotent; `--check` gates staleness; `--rename-params` adopts the authors' parameter names. Comments only — `./Build check` must stay byte-identical. |
@@ -128,6 +128,11 @@ operating rules:
 2. Otherwise paste the generated prompt into the **Agent** tool with
    `isolation: "worktree"` and the model from *Model routing* below. Background
    is fine; you're notified on completion.
+   A command frontend reporting **`Script running with session ID ...` is not a
+   completion notification**. It means that exact process is still live: poll
+   that session until it returns an exit status. Never launch autorules,
+   permute, matchdiff, asmdiff, or rtlguide in the same worktree while such a
+   session remains active.
 3. On the completion notification: **harvest** (below), commit on green, fold
    rules, remove the worktree.
 
@@ -285,6 +290,17 @@ rules**:
   hand-wrote prompts → `matcher-prompt.py`. **Fix a tool bug centrally the
   moment the first agent hits it** — don't let N parallel agents each re-diagnose
   it (the `reverse.py` carve-drop cost ~every agent tokens before it was fixed).
+- A transform that sometimes helps but is categorically wrong at a target site
+  needs an **asm/RTL anti-oracle**, not a wider blind sweep. The extern-array
+  rule now parses target `%gp_rel` operands and excludes those symbols. Prefer
+  this pattern—enumerate source candidates, eliminate impossible sites from
+  target evidence, then byte-score—over adding more unconstrained permutations.
+- A worktree report must include both successful rules and **flat experiments**.
+  AttackLong's commutative PLUS, AttackShort's jump2 threading, and
+  DefaultActionHumanoid's adjacent-load sched2 tie became named early-stop
+  signatures; AttackIndirect's three-statement fence, by contrast, became a
+  mechanical `loop-range` rule. Reflection is what decides which side a lesson
+  belongs on.
 - Sub-C-level residual (≤10-byte register swap / adjacent reorder surviving a
   bounded permuter run) → it's below C; root-cause it, mark NON_MATCHING, move
   on. Don't sink sessions into it (~1.4M tokens for 0 matches taught this).
@@ -374,6 +390,12 @@ lens.
   mismatch in some *downstream* function, so you go hunting in the wrong place. Two
   agents in two worktrees are fine (separate `.shake/`); one agent doing both at once
   is not. If a diff suddenly stops making sense, check for a live permuter first.
+  This is now mechanically enforced for autorules, permute, matchdiff, asmdiff,
+  and rtlguide by `.shake/matching-tool.lock`: a second tool exits with the
+  owning PID/tool/target. The lock is per worktree, inherited by driver helpers
+  such as autorules→matchdiff `-n`, and kernel-released on exit. It prevents new
+  collisions; it does not turn a yielded session into a completed command—keep
+  polling the original session.
 
 - **Never hand-edit `config/splat.main.exe.yaml` carves** — use `reverse.py`;
   the data-offset math is easy to get wrong (bit me twice). It preserves

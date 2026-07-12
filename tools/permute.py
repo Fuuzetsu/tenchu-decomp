@@ -24,6 +24,8 @@ ALWAYS re-verify a permuter win with tools/matchdiff.py before believing it.
 """
 import argparse, glob, os, shutil, subprocess, sys
 
+from matchlock import MatchToolBusy, matching_tool_lock
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -359,4 +361,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    target = next((x for x in sys.argv[1:] if not x.startswith("-")), "-")
+    try:
+        with matching_tool_lock("permute", target):
+            main()
+    except MatchToolBusy as e:
+        sys.exit(f"permute: {e}")

@@ -25,6 +25,8 @@ whole-image byte count is reliable.
 """
 import tempfile, argparse, os, re, subprocess, sys
 
+from matchlock import MatchToolBusy, matching_tool_lock
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -147,4 +149,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    target = next((x for x in sys.argv[1:] if not x.startswith("-")), "-")
+    try:
+        with matching_tool_lock("asmdiff", target):
+            sys.exit(main())
+    except MatchToolBusy as e:
+        sys.exit(f"asmdiff: {e}")

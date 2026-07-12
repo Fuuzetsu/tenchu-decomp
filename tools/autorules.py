@@ -33,8 +33,14 @@ semantically-wrong rewrite simply fails to improve the score and is discarded.
 
 Run inside the nix devShell. Each candidate costs one ./Build (incremental), so
 a run is a few dozen builds — a minute or two, unattended.
+
+Candidate output is line-buffered for monitors. Matching tools share one
+per-worktree lock, and SIGTERM/SIGHUP restore the original source just like
+Ctrl-C, so a yielded or interrupted run cannot silently overlap a permuter.
 """
-import argparse, hashlib, os, re, subprocess, sys
+import argparse, glob, hashlib, os, re, signal, subprocess, sys
+
+from matchlock import MatchToolBusy, matching_tool_lock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -49,10 +55,32 @@ INVALID = 10**9  # candidate did not compile
 # sched/reorg.  Ordinary mechanical rules remain global: they are cheap and
 # were safe before guided mode existed.
 GUIDED_LINES = set()
+_TARGET_GP_CACHE = {}
 
 
 def _guided_site(line):
     return not GUIDED_LINES or any(abs(line - n) <= 2 for n in GUIDED_LINES)
+
+
+def _target_gp_symbols(name):
+    """Symbols the target accesses with `%gp_rel`, cached per function.
+
+    `extern-array` is an absolute-address materialization lever. Trying it on a
+    known gp-relative target can improve a partial alignment score while making
+    the relevant access categorically worse.
+    """
+    if name in _TARGET_GP_CACHE:
+        return _TARGET_GP_CACHE[name]
+    directory = f".shake/gen/main.exe/asm/nonmatchings/{name}"
+    files = sorted(glob.glob(f"{directory}/*.s")) or glob.glob(
+        f".shake/gen/main.exe/asm/nonmatchings/*/{name}.s"
+    )
+    symbols = set()
+    for path in files:
+        with open(path, errors="replace") as stream:
+            symbols.update(re.findall(r"%gp_rel\(([A-Za-z_]\w*)\)", stream.read()))
+    _TARGET_GP_CACHE[name] = symbols
+    return symbols
 
 
 # ---------------------------------------------------------------------------
@@ -572,6 +600,106 @@ def _stmt_expr(data, stmt):
     return None
 
 
+def _vector_field_access(data, node):
+    if node is None or node.type != "field_expression":
+        return None
+    base = node.child_by_field_name("argument")
+    field = node.child_by_field_name("field")
+    operator = node.child_by_field_name("operator")
+    if base is None or field is None or operator is None:
+        return None
+    op = _txt(data, operator)
+    aggregate = _txt(data, base).strip()
+    if op == b"->":
+        aggregate = b"*(" + aggregate + b")"
+    elif op != b".":
+        return None
+    return aggregate, _txt(data, field).strip()
+
+
+def _declared_vector_type(text, aggregate):
+    """VECTOR/SVECTOR type of a simple aggregate expression, or None.
+
+    Restricting the rewrite to visible declarations prevents four same-named
+    fields in a larger struct from becoming an accidental whole-struct copy.
+    """
+    expr = aggregate.decode().strip()
+    pointer = re.fullmatch(r"\*\(\s*([A-Za-z_]\w*)\s*\)", expr)
+    ident = pointer.group(1) if pointer else expr
+    if not re.fullmatch(r"[A-Za-z_]\w*", ident):
+        return None
+    star = r"\s*\*+\s*" if pointer else r"\s+"
+    decl = re.compile(
+        rf"\b(?:struct\s+)?(VECTOR|SVECTOR){star}{re.escape(ident)}\b"
+    )
+    mask = _comment_mask(text)
+    match = next((m for m in decl.finditer(text) if not mask[m.start()]), None)
+    return match.group(1) if match else None
+
+
+def rule_vector_copy(text, name, span):
+    """Collapse four adjacent VECTOR/SVECTOR field copies to struct assignment.
+
+    `dst.vx=src.vx; ... dst.pad=src.pad;` and pointer variants describe one
+    aggregate copy. cc1 expands `dst = src` through a different block-move path,
+    which can recover the target's interleaved four-load/four-store sequence
+    (DamageControl). Restricting the exact field set keeps padding/partial-copy
+    semantics out of the rule.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    wanted = {b"vx", b"vy", b"vz", b"pad"}
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for start in range(len(statements) - 3):
+            group = statements[start:start + 4]
+            fields = []
+            lhs_aggregate = rhs_aggregate = None
+            valid = True
+            for stmt in group:
+                if stmt.type != "expression_statement":
+                    valid = False
+                    break
+                exprs = [c for c in stmt.named_children if c.type != "comment"]
+                if len(exprs) != 1 or exprs[0].type != "assignment_expression":
+                    valid = False
+                    break
+                assignment = exprs[0]
+                operator = assignment.child_by_field_name("operator")
+                if operator is None or _txt(data, operator) != b"=":
+                    valid = False
+                    break
+                lhs = _vector_field_access(
+                    data, assignment.child_by_field_name("left")
+                )
+                rhs = _vector_field_access(
+                    data, assignment.child_by_field_name("right")
+                )
+                if lhs is None or rhs is None or lhs[1] != rhs[1]:
+                    valid = False
+                    break
+                if lhs_aggregate is None:
+                    lhs_aggregate, rhs_aggregate = lhs[0], rhs[0]
+                elif lhs[0] != lhs_aggregate or rhs[0] != rhs_aggregate:
+                    valid = False
+                    break
+                fields.append(lhs[1])
+            if not valid or set(fields) != wanted or len(set(fields)) != 4:
+                continue
+            lhs_type = _declared_vector_type(text, lhs_aggregate)
+            rhs_type = _declared_vector_type(text, rhs_aggregate)
+            if lhs_type is None or lhs_type != rhs_type:
+                continue
+            first, last = group[0], group[-1]
+            repl = lhs_aggregate + b" = " + rhs_aggregate + b";"
+            yield (
+                f"vector-copy L{_line(data, first.start_byte)}",
+                splice(data, first.start_byte, last.end_byte, repl).decode(),
+            )
+
+
 def rule_min_ternary(text, name, span):
     """Merge a two-statement min/max into a ternary:
     `x = a; if (b < x) x = b;` -> `x = (b < a) ? b : a;` (min), and the `>` max form.
@@ -693,6 +821,67 @@ def rule_cmp_polarity(text, name, span):
                splice(data, comp.start_byte, comp.end_byte, repl).decode())
 
 
+def rule_shift16_mul(text, name, span):
+    """Respell a casted narrow `x << 16` as `x * 0x10000`.
+
+    For a declared short, old cc1 emits the multiply spelling as one raw `sll`.
+    Cast-and-shift spellings can instead introduce `andi` or `sll/sra`
+    canonicalization (DamageControl). Restrict this to a bare identifier with a
+    visible 16-bit declaration; the broader algebraic rewrite is not safe.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for expr in _find(body, ("binary_expression",)):
+        operator = expr.child_by_field_name("operator")
+        left = expr.child_by_field_name("left")
+        right = expr.child_by_field_name("right")
+        if (operator is None or left is None or right is None or
+                _txt(data, operator) != b"<<"):
+            continue
+        try:
+            shift = int(_txt(data, right).decode(), 0)
+        except ValueError:
+            continue
+        if shift != 16:
+            continue
+        casts = []
+        value = left
+        while value.type in ("cast_expression", "parenthesized_expression"):
+            if value.type == "cast_expression":
+                ty = value.child_by_field_name("type")
+                if ty is not None:
+                    casts.append(_txt(data, ty).decode())
+                value = value.child_by_field_name("value")
+            else:
+                value = _paren_inner(value)
+            if value is None:
+                break
+        narrow_casts = {
+            "s16", "u16", "short", "signed short", "unsigned short",
+        }
+        normalized_casts = {" ".join(cast.split()) for cast in casts}
+        if (value is None or value.type != "identifier" or
+                not (normalized_casts & narrow_casts)):
+            continue
+        ident = _txt(data, value).decode()
+        narrow_decl = re.compile(
+            rf"\b(?:s16|u16|short|unsigned\s+short|signed\s+short)\s+{re.escape(ident)}\b"
+        )
+        comment_mask = _comment_mask(text)
+        if not any(not comment_mask[m.start()] for m in narrow_decl.finditer(text)):
+            continue
+        line = _line(data, expr.start_byte)
+        if not _guided_site(line):
+            continue
+        repl = b"(" + _txt(data, value).strip() + b" * 0x10000)"
+        yield (
+            f"shift16-mul {ident} L{line}",
+            splice(data, expr.start_byte, expr.end_byte, repl).decode(),
+        )
+
+
 def rule_split_chain(text, name, span):
     """Split a fused shift-of-a-binary into two statements:
     `t = (x - C) >> S;` -> `t = x - C; t = t >> S;` (declaration keeps its type).
@@ -810,12 +999,17 @@ def rule_extern_array(text, name, span):
     Identity-preserving: same linker symbol at the same address, `NAME[0]` reads
     the same object — only the address codegen changes. Confined to decls that
     live IN THIS .c (never a shared header, whose flip would hit other TUs); if
-    the decl isn't here the rule yields nothing for that symbol."""
+    the decl isn't here the rule yields nothing for that symbol. A symbol whose
+    target asm uses `%gp_rel` is excluded: the target has already proved that it
+    must retain small-data addressing."""
     mask = _comment_mask(text)
+    target_gp = _target_gp_symbols(name)
     for m in EXTERN_OBJ.finditer(text):
         if mask[m.start()]:                      # decl commented out
             continue
         sym = m.group(1)
+        if sym in target_gp:
+            continue
         decl_name = (m.start(1), m.end(1))
         occ = [mm.span() for mm in re.finditer(rf"\b{re.escape(sym)}\b", text)
                if not mask[mm.start()]]
@@ -880,6 +1074,52 @@ def rule_loop_fence(text, name, span):
                splice(data, stmt.start_byte, stmt.end_byte, repl).decode())
 
 
+def rule_loop_range(text, name, span):
+    """Wrap two-to-four adjacent statements in one zero-code `do` loop.
+
+    A loop-note fence often needs to cover a producer, intervening tests, and
+    consumer as one unit; fencing any single statement can be neutral or can
+    worsen allocation. AttackIndirect required exactly three adjacent `if`s.
+    Top-level declarations and any nested break/continue/label are excluded so
+    the wrapper cannot change scope or control-flow targets.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    eligible = {
+        "compound_statement", "expression_statement", "for_statement",
+        "goto_statement", "if_statement", "return_statement",
+        "switch_statement", "while_statement",
+    }
+    forbidden = ("break_statement", "continue_statement", "labeled_statement",
+                 "case_statement")
+    for block in _find(body, ("compound_statement",)):
+        if block.parent is not None and block.parent.type == "do_statement":
+            continue
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for count in range(2, 5):
+            for start in range(0, len(statements) - count + 1):
+                group = statements[start:start + count]
+                if any(stmt.type not in eligible for stmt in group):
+                    continue
+                if any(_find(stmt, forbidden) for stmt in group):
+                    continue
+                lines = [_line(data, stmt.start_byte) for stmt in group]
+                if not any(_guided_site(line) for line in lines):
+                    continue
+                first, last = group[0], group[-1]
+                indent = _indent_at(data, first.start_byte)
+                original = data[first.start_byte:last.end_byte]
+                indented = original.replace(b"\n", b"\n  ")
+                repl = (b"do {\n" + indent + b"  " + indented + b"\n" +
+                        indent + b"} while (0);")
+                yield (
+                    f"loop-range {count} statements L{lines[0]}-{lines[-1]}",
+                    splice(data, first.start_byte, last.end_byte, repl).decode(),
+                )
+
+
 def rule_case_fence(text, name, span):
     """Respell a two-arm if as a two-way switch with a real case label.
 
@@ -931,6 +1171,7 @@ RULES = [
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
     ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
     ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
+    ("vector-copy", "four vx/vy/vz/pad field copies -> one struct assignment", rule_vector_copy),
     ("split-chain", "t = (x-C)>>S -> t = x-C; t = t>>S (split fused chain)", rule_split_chain),
     ("min-ternary", "x=a; if(b<x) x=b; -> x = (b<a)?b:a (min-vs-memory)", rule_min_ternary),
     ("cmp-swap", "a>mem -> mem<a (comparison operand-order lever)", rule_cmp_swap),
@@ -938,7 +1179,9 @@ RULES = [
 
 AGGRESSIVE_RULES = [
     ("cmp-polarity", "swap two local comparison operands (regalloc ref-order lever)", rule_cmp_polarity),
+    ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
+    ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
     ("case-fence", "if/else -> two-way switch (hard cross-jump CODE_LABEL)", rule_case_fence),
 ]
 
@@ -1119,6 +1362,10 @@ def beam_search(path, original, name, partial, rules, base, width, depth,
 
 
 def main():
+    # Tool frontends often capture stdout through a pipe.  Stream each scored
+    # candidate immediately so a long guided run remains observable.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser()
     ap.add_argument("name", nargs="?")
     ap.add_argument("--dry", action="store_true", help="report only; don't modify the file")
@@ -1210,6 +1457,18 @@ def main():
     if args.once and beam:
         args.depth = 1
 
+    # exec/session frontends commonly terminate a yielded command with SIGTERM
+    # or SIGHUP.  Python's default SIGTERM action bypasses the exception handler
+    # below and used to leave whichever candidate happened to be under test in
+    # the live source file.  Turn those signals into an exception so restoration
+    # is just as reliable as Ctrl-C.
+    def interrupted(signum, _frame):
+        raise InterruptedError(f"autorules interrupted by signal {signum}")
+
+    old_handlers = {}
+    for sig in (signal.SIGTERM, getattr(signal, "SIGHUP", None)):
+        if sig is not None:
+            old_handlers[sig] = signal.signal(sig, interrupted)
     try:
         if beam:
             cur_text, base, match, applied = beam_search(
@@ -1223,6 +1482,9 @@ def main():
     except BaseException:
         write(path, original.split("\n"))  # never leave a half-mutated file
         raise
+    finally:
+        for sig, handler in old_handlers.items():
+            signal.signal(sig, handler)
 
     print()
     if applied:
@@ -1240,4 +1502,11 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    target = next((x for x in sys.argv[1:] if not x.startswith("-")), "-")
+    try:
+        with matching_tool_lock("autorules", target):
+            sys.exit(main())
+    except MatchToolBusy as e:
+        sys.exit(f"autorules: {e}")
+    except InterruptedError as e:
+        sys.exit(f"autorules: {e}; original source restored")

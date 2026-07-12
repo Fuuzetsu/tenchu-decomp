@@ -34,6 +34,7 @@ import re
 import sys
 
 import asmdiff
+from matchlock import MatchToolBusy, matching_tool_lock
 import matchdiff
 import regalloc
 import rtldump
@@ -75,22 +76,25 @@ CATEGORY_PASSES = {
 }
 CATEGORY_RULES = {
     "regalloc": [
-        "type-width", "cmp-polarity", "loop-fence", "split-chain", "or-inplace",
+        "type-width", "cmp-polarity", "loop-fence", "loop-range", "split-chain",
+        "or-inplace",
     ],
-    "cse/coalescing": ["type-width", "loop-fence", "temp-inline"],
+    "cse/coalescing": ["type-width", "loop-fence", "loop-range", "temp-inline"],
     "jump/cross-jump": ["case-fence", "and-nest"],
     "schedule/delay": [
-        "type-width", "loop-fence", "cmp-swap", "cmp-polarity", "split-chain",
-        "or-inplace",
+        "type-width", "loop-fence", "loop-range", "cmp-swap", "cmp-polarity",
+        "split-chain", "or-inplace",
     ],
     "combine/expression": [
         "abs-ge", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
-        "split-chain",
+        "shift16-mul", "split-chain",
     ],
     "structure/length": ["type-width", "and-nest", "temp-inline", "case-fence"],
 }
 
 CALL_OPS = {"jal", "jalr"}
+LOAD_OPS = {"lb", "lbu", "lh", "lhu", "lw", "lwl", "lwr"}
+STORE_OPS = {"sb", "sh", "sw", "swl", "swr"}
 
 
 def mnemonic(insn: str) -> str:
@@ -219,7 +223,9 @@ def classify_hunk(hunk):
     same_shape = len(t) == len(o) and all(shape(a) == shape(b) for a, b in zip(t, o))
     if same_shape and any(registers(a) != registers(b) for a, b in zip(t, o)):
         return "regalloc"
-    if Counter(tops) == Counter(oops) and tops != oops:
+    # Compare full instructions, not only mnemonics: two independent `lh`s
+    # swapped around each other have identical mnemonic sequences.
+    if Counter(t) == Counter(o) and t != o:
         return "schedule/delay"
     if (sum(x in MOVEISH for x in tops) != sum(x in MOVEISH for x in oops)
             or tops.count("nop") != oops.count("nop")):
@@ -234,6 +240,40 @@ def classify_hunk(hunk):
     if any(x in COMBINE_OPS for x in tops + oops):
         return "combine/expression"
     return "structure/length"
+
+
+def known_residual_signatures(hunks):
+    """Name narrow, previously root-caused residual shapes.
+
+    These are early-stop hints, not automatic proof: the report still directs
+    the matcher to confirm the owning RTL pass and bounded source experiments.
+    """
+    found = []
+    for hunk in hunks:
+        target = [x[1] for x in hunk["target"]]
+        ours = [x[1] for x in hunk["ours"]]
+        if (len(target) == len(ours) == 2 and
+                target == list(reversed(ours)) and
+                all(mnemonic(x) in LOAD_OPS for x in target)):
+            if "adjacent-independent-load-order" not in found:
+                found.append("adjacent-independent-load-order")
+
+        if len(target) != 2 or len(ours) != 2:
+            continue
+        if (mnemonic(target[0]) != "addu" or mnemonic(ours[0]) != "addu" or
+                mnemonic(target[1]) not in STORE_OPS or
+                mnemonic(ours[1]) != mnemonic(target[1])):
+            continue
+        tr, or_ = registers(target[0]), registers(ours[0])
+        ts, os_ = registers(target[1]), registers(ours[1])
+        if (len(tr) >= 3 and len(or_) >= 3 and ts and os_ and
+                tr[0] == tr[1] == or_[2] and
+                or_[0] == or_[1] == tr[2] and
+                ts[0] == tr[0] and os_[0] == or_[0] and
+                shape(target[1]) == shape(ours[1])):
+            if "commutative-plus-destination" not in found:
+                found.append("commutative-plus-destination")
+    return found
 
 
 def _candidate_asm(name):
@@ -310,6 +350,7 @@ def assembly_guide(name):
         ],
         call_tail_hint=call_count(target) > call_count(ours),
         call_counts=dict(target=call_count(target), candidate=call_count(ours)),
+        known_residual_signatures=known_residual_signatures(hunks),
         register_substitutions=[
             dict(ours=a, target=b, count=n)
             for (a, b), n in substitutions.most_common()
@@ -584,11 +625,18 @@ def diagnose(name, build=True, rtl=True):
     )
 
     greg_path = next((p for p in result["dumps"] if p.endswith(".greg")), None)
+    lreg_path = next((p for p in result["dumps"] if p.endswith(".lreg")), None)
     alloc = None
     if greg_path:
-        funcs = regalloc.split_functions(open(greg_path).read())
+        with open(greg_path) as stream:
+            funcs = regalloc.split_functions(stream.read())
         if name in funcs:
-            alloc = regalloc.analyse(name, funcs[name])
+            if lreg_path:
+                with open(lreg_path) as stream:
+                    usage_funcs = regalloc.split_functions(stream.read())
+            else:
+                usage_funcs = {}
+            alloc = regalloc.analyse(name, funcs[name], usage_funcs.get(name))
     for sub in guide["register_substitutions"]:
         sub["variables"] = guide["variables_by_register"].get(sub["ours"], [])
         if alloc and sub["ours"] in REGNUM:
@@ -596,10 +644,13 @@ def diagnose(name, build=True, rtl=True):
             pseudos = []
             for pseudo, home in sorted(alloc["disp"].items()):
                 if home == hard:
-                    pseudos.append(dict(
+                    item = dict(
                         pseudo=pseudo,
                         preferences=[regalloc.rn(x) for x in alloc["preferences"].get(pseudo, [])],
-                    ))
+                    )
+                    if pseudo in alloc["usage"]:
+                        item.update(alloc["usage"][pseudo])
+                    pseudos.append(item)
             sub["pseudos"] = pseudos
     return guide
 
@@ -638,6 +689,10 @@ def print_report(g, max_hunks=12):
                      sorted(g["categories"].items(), key=lambda x: (-x[1], x[0])))
     print(f"  owner: {g['primary']}  [{cats}]")
     print(f"  inspect: {', '.join('.' + x for x in g['passes'])}")
+    if g.get("known_residual_signatures"):
+        print("  known residual signature(s): " +
+              ", ".join(g["known_residual_signatures"]))
+        print("    confirm the named RTL pass and bounded source levers before parking")
 
     for n, h in enumerate(g["hunks"][:max_hunks], 1):
         line = ",".join(map(str, h.get("source_lines", []))) or "?"
@@ -657,6 +712,10 @@ def print_report(g, max_hunks=12):
             vars_ = ",".join(sub.get("variables", [])) or "?"
             prefs = sorted({p for x in sub.get("pseudos", []) for p in x["preferences"]})
             ptext = ("; allocator preferences " + ",".join(prefs)) if prefs else ""
+            priorities = sorted({x["priority"] for x in sub.get("pseudos", [])
+                                 if "priority" in x}, reverse=True)
+            if priorities:
+                ptext += "; alloc priorities " + ",".join(map(str, priorities[:4]))
             print(f"    ${sub['ours']} -> ${sub['target']} x{sub['count']}: "
                   f"locals {vars_}{ptext}")
 
@@ -719,4 +778,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    target = next((x for x in sys.argv[1:] if not x.startswith("-")), "-")
+    try:
+        with matching_tool_lock("rtlguide", target):
+            sys.exit(main())
+    except MatchToolBusy as e:
+        sys.exit(f"rtlguide: {e}")

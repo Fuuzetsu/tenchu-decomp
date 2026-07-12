@@ -7,12 +7,14 @@ from unittest import mock
 import contextlib
 import io
 import inspect
+import fcntl
 
 TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
 
 import autorules
+import matchlock
 import permute
 import regalloc
 import rtlguide
@@ -21,6 +23,7 @@ import rtlguide
 class AutoRulesAdvancedTests(unittest.TestCase):
     def setUp(self):
         autorules.GUIDED_LINES = set()
+        autorules._TARGET_GP_CACHE.clear()
 
     def candidates(self, rule, source):
         return list(rule(source, "F", (0, len(source))))
@@ -56,6 +59,67 @@ class AutoRulesAdvancedTests(unittest.TestCase):
 }
 """
         self.assertEqual(self.candidates(autorules.rule_loop_fence, source), [])
+
+    def test_loop_range_can_fence_three_adjacent_statements(self):
+        source = """int F(int value) {
+    if (value) value++;
+    if (value > 2) value--;
+    if (value < 4) value += 3;
+    return value;
+}
+"""
+        out = self.candidates(autorules.rule_loop_range, source)
+        three = [text for label, text in out if label.startswith("loop-range 3 ")]
+        self.assertTrue(three)
+        self.assertIn("do {", three[0])
+        self.assertIn("if (value < 4) value += 3;", three[0])
+
+    def test_loop_range_rejects_captured_control_flow(self):
+        source = """int F(int value) {
+    while (value) {
+        if (value == 2) break;
+        value--;
+    }
+    return value;
+}
+"""
+        self.assertEqual(self.candidates(autorules.rule_loop_range, source), [])
+
+    def test_vector_fields_collapse_to_aggregate_copy(self):
+        source = """typedef struct { long vx, vy, vz, pad; } VECTOR;
+int F(VECTOR *out, VECTOR *src) {
+    out->vx = src->vx;
+    out->vy = src->vy;
+    out->vz = src->vz;
+    out->pad = src->pad;
+    return 0;
+}
+"""
+        out = self.candidates(autorules.rule_vector_copy, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("*(out) = *(src);", out[0][1])
+
+    def test_shift16_mul_respelled_for_declared_short(self):
+        source = """typedef unsigned short u16;
+typedef unsigned int u32;
+int F(void) {
+    u16 damage;
+    return (u32)(u16)damage << 16;
+}
+"""
+        out = self.candidates(autorules.rule_shift16_mul, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("damage * 0x10000", out[0][1])
+
+    def test_extern_array_skips_target_gp_symbol(self):
+        source = """extern int Global;
+int F(void) { return Global; }
+"""
+        with mock.patch.object(autorules, "_target_gp_symbols",
+                               return_value={"Global"}):
+            self.assertEqual(self.candidates(autorules.rule_extern_array, source), [])
+        with mock.patch.object(autorules, "_target_gp_symbols", return_value=set()):
+            self.assertTrue(self.candidates(autorules.rule_extern_array, source))
 
     def test_case_fence_unwraps_else_clause(self):
         source = """int F(int a) {
@@ -138,6 +202,19 @@ class RtlGuideTests(unittest.TestCase):
                       ["addiu v1,v1,1", "lw v0,0(a0)"])
         self.assertEqual(rtlguide.classify_hunk(h), "schedule/delay")
 
+    def test_known_adjacent_load_order_signature(self):
+        h = self.hunk(["lh v1,88(fp)", "lh a3,30(a2)"],
+                      ["lh a3,30(a2)", "lh v1,88(fp)"])
+        self.assertEqual(rtlguide.classify_hunk(h), "schedule/delay")
+        self.assertEqual(rtlguide.known_residual_signatures([h]),
+                         ["adjacent-independent-load-order"])
+
+    def test_known_commutative_plus_destination_signature(self):
+        h = self.hunk(["addu a0,a0,v1", "sw a0,0(gp)"],
+                      ["addu v1,v1,a0", "sw v1,0(gp)"])
+        self.assertEqual(rtlguide.known_residual_signatures([h]),
+                         ["commutative-plus-destination"])
+
     def test_branch_target_drift_has_same_shape(self):
         self.assertEqual(rtlguide.shape("bnez v0,0x80012340"),
                          rtlguide.shape("bnez v1,0x80012400"))
@@ -209,6 +286,8 @@ class RtlGuideTests(unittest.TestCase):
         rules = {rule for values in rtlguide.CATEGORY_RULES.values() for rule in values}
         self.assertIn("cmp-polarity", rules)
         self.assertIn("loop-fence", rules)
+        self.assertIn("loop-range", rules)
+        self.assertIn("shift16-mul", rules)
         self.assertIn("type-width", rules)
         self.assertFalse(any("barrier" in rule or "clobber" in rule for rule in rules))
 
@@ -237,6 +316,45 @@ class RegallocParserTests(unittest.TestCase):
         self.assertEqual(result["disp"][80], 3)
         self.assertEqual(result["preferences"][80], [2])
         self.assertEqual(result["conflicts"][80], [80, 2, 3])
+
+    def test_lreg_usage_and_priority_are_exposed(self):
+        greg = """;; 2 regs to allocate: 80 81
+;; Register dispositions:
+80 in 16
+81 in 17
+;; Hard regs used: 16 17
+"""
+        lreg = """Register 80 used 3 times across 17 insns; crosses 1 calls; GR_REGS.
+Register 81 used 4 times across 22 insns in block 0; GR_REGS.
+"""
+        result = regalloc.analyse("F", greg, lreg)
+        self.assertEqual(result["allocnos"], {80, 81})
+        self.assertEqual(result["usage"][80]["calls"], 1)
+        self.assertEqual(result["usage"][81]["priority"],
+                         regalloc.alloc_priority(4, 22))
+        self.assertEqual(regalloc.extra_refs_to_outrank(
+            result["usage"][80], result["usage"][81]), 1)
+        self.assertEqual(regalloc.wrapper_depths(5, 2), 3)
+
+
+class MatchToolLockTests(unittest.TestCase):
+    def test_lock_is_reentrant_for_driver_helpers_and_excludes_other_owner(self):
+        old = os.getcwd()
+        with tempfile.TemporaryDirectory() as directory:
+            os.chdir(directory)
+            try:
+                with matchlock.matching_tool_lock("outer", "F"):
+                    with matchlock.matching_tool_lock("helper", "F"):
+                        pass
+                os.makedirs(".shake", exist_ok=True)
+                path = os.path.join(".shake", "matching-tool.lock")
+                with open(path, "a+") as owner:
+                    fcntl.flock(owner.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    with self.assertRaises(matchlock.MatchToolBusy):
+                        with matchlock.matching_tool_lock("other", "G"):
+                            pass
+            finally:
+                os.chdir(old)
 
 
 class BuildConfigurationTests(unittest.TestCase):

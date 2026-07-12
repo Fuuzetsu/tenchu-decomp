@@ -116,10 +116,9 @@ The ordered triage — fix categories in THIS order, re-running
    return-type retype mattered), don't paste it wholesale.
    - **Machine-apply the mechanical rules first.** The moment the draft
      compiles, run `tools/autorules.py <Name>`: it sweeps the *local* rules —
-     every local's integer type (the s16↔s32 index/call-result width lever
-     below, sign toggles), `&&`-chain split/merge (the redundant-chain-collapse
-     rule under Dispatch), and single-use temp inline (the calls-inline-in-
-     expressions rule below) — and greedily keeps what shrinks the asmdiff,
+     integer width/sign, `&&` split/merge, single-use temp inline, expression
+     polarity, extern-array addressing, and four-field VECTOR aggregate copies
+     — and greedily keeps what shrinks the authoritative whole-image byte diff,
      telling you which edit helped. Don't hand-apply these — and if it reports
      no win, the residual is *not* one of them, so move to structure/regalloc
      instead of trying more variants. For a correct-length residual that
@@ -129,12 +128,17 @@ The ordered triage — fix categories in THIS order, re-running
      the owning pass's advanced rules, and keeps a small beam of neutral/slightly
      worse intermediate candidates. This is how zero-code equivalence barriers
      and cross-jump fences become a bounded mechanical search instead of another
-     manual RTL conversation. **Reject an autorules "win" that changes a
+     manual RTL conversation. Guided mode can now fence a contiguous range of
+     two-to-four statements (not just one statement) when RTL implicates a
+     producer/consumer span. **Reject an autorules "win" that changes a
      PROVEN struct field's ACCESS WIDTH** even when it shrinks the byte count: a
      `u16`→`u8` field retype can narrow a correct `lhu` to `lbu` at another,
      already-matched site — autorules scores *total* diff, not per-site
-     correctness, so it reports the net shrink as a win (Think3chase). (Structural rules that need diff-reading
-     to place — loop shape, switch-vs-ladder, union-offset casts — stay manual.)
+     correctness, so it reports the net shrink as a win (Think3chase). Target
+     asm is also an anti-oracle: `extern-array` refuses any symbol whose target
+     access is proven `%gp_rel`, since that symbol categorically must stay on
+     the small-data path. (Structural rules that need diff-reading to place —
+     loop shape, switch-vs-ladder, union-offset casts — stay manual.)
 4. **A whole-image `./Build check` failure while a function is mid-match is
    EXPECTED, not a regression** — a function of the wrong length shifts every
    later object (even already-matched siblings show huge matchdiff diffs).
@@ -195,6 +199,32 @@ The ordered triage — fix categories in THIS order, re-running
        iterations flat at 460, after trying guard-polarity inversion, literal
        Ghidra nesting, named temps and a `do{}while(0)` wrapper. Recognize and
        stop after one bounded run.
+     - **Two adjacent independent loads in the opposite order are a `.sched2`
+       tie once every consumer/register agrees.** If target and draft contain
+       the same two loads into the same hard registers and only their order is
+       reversed, declaration order, narrow/wide temps, and loop-note fences can
+       easily perturb unrelated allocation without changing sched2's ready-list
+       choice. DefaultActionHumanoid is exact-length with only this 6-byte
+       residual after those levers were exhausted. Record the scheduler cause
+       and park; do not contort proven field types to chase it.
+     - **A commutative PLUS whose destination ties to the other dying operand is
+       a combine/local-allocation tie.** When the target and draft differ only
+       as `addu A,A,B; sw A` versus `addu B,B,A; sw B`, inspect `.combine` and
+       `.lreg`. If both source operand orders have already become the same plain
+       commutative PLUS, explicit temps and a bounded permuter stay flat, the
+       destination choice is no longer represented in C. AttackLong parks at
+       exactly this 3-byte residual; inline asm is not an acceptable escape.
+     - **A jump present in the first jump dump but threaded away only by
+       `jump2` can be a real final-pass park.** AttackShort's missing explicit
+       zero-return jump still exists before jump2; direct returns, one-shot
+       loops, and both real-case-label fence layouts all cause jump2 to thread
+       it into the shared sign-extension tail (or merge even more). Once the
+       desired pre-jump2 RTL is proven and all safe CODE_LABEL layouts are flat,
+       preserve the pure-C draft rather than forcing the jump.
+     - **Mechanical detection:** `rtlguide` names the first two signatures above
+       as `adjacent-independent-load-order` and
+       `commutative-plus-destination`. Those labels are triage hints; the pass
+       dump and bounded experiments remain the proof.
      - **BUT the permuter is stronger than this section's tone implies — do not
        skip it when the residual is the SAME LENGTH as the target.** It has since
        cracked: a 5-byte register tie (`FUN_800568b8`, ~400 iters), a 61-byte
@@ -390,6 +420,13 @@ plain C is the matched file.
   default, the textually last case needs no trailing jump if it falls into
   the join point — a real length lever (PlayerOption's order 0,1,3,2
   recovered a wasted j/nop pair).
+- **An explicit `default:` can change CSE even when it only returns.** Omitting
+  the default makes the switch's out-of-range fallthrough another predecessor
+  of the normal continuation; CSE then cannot carry a value proved on the
+  pre-switch path and reloads it. Give the cold switch an explicit default
+  return (and named close/normal labels when layout requires them) to remove
+  that false predecessor. AttackGeneral's close-range `% 4` switch matched only
+  in this form. Treat default presence as CFG data, not cosmetic syntax.
 - **Case-body memory order reveals the source case order** (the compare tree
   always sorts by value): LayoutEnemyOption's inner switch was written
   `case 1, case 2, case 0` — only the bodies show it.
@@ -536,6 +573,15 @@ product/subtraction (`dx*dx`, `a - b`) fed into a later result must be a SEPARAT
 short-lived temp from the value ultimately assigned; reusing one variable forces the whole
 computation into a callee-saved register instead of a caller-saved one (`FUN_80039ddc`).
 
+For paired axes, preserve the **definition order** separately too: cache the X
+coefficient, then compute/apply X's delta; cache a distinct Z coefficient, then
+compute/apply Z. Hoisting both coefficients together or reusing one coefficient
+local changes pseudo lifetimes and load scheduling even though the arithmetic is
+identical. DefaultActionHumanoid's reflection correction needs this
+coefficient-X/input-X/output-X then coefficient-Z/input-Z/output-Z shape. A
+decompiler's one reassigned SSA temp is not evidence that the original reused the
+source variable.
+
 ### A dual-role dispatch test can be the opposite shape of its goto-ladder
 
 Ghidra's `if (A == 0 && (side-effect, B == 0)) { short } else { long }` can really be
@@ -654,6 +700,14 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
 - A hand-rolled `label: if (...) goto...` loop also keeps the top test but
   **loses hoisting** (no loop notes → loop.c skips it): magic divisors and
   invariant addresses get rematerialized per iteration. Wrong.
+- **Repeated per-axis normalization usually has one shared loop, not nested
+  component loops.** A decompiler may render `vx`, `vy`, and `vz` as successive
+  nested tests/divisions because their branches rotate into one another. When
+  the target repeats the same abs-threshold test for all three components,
+  updates a single scale, and shares one back-edge/tail, recover one loop that
+  halves all three components per iteration. Compare the per-axis def/use order
+  in `.loop`/`.jump2`; blind statement permutations obscure the rotation.
+  DamageControl's passage vector is the worked large-function case.
 - **A `short` loop counter SUPPRESSES loop.c's strength reduction.** loop.c needs
   a plain SImode giv to rewrite `arr[i].f` into a walking induction pointer, so an
   `int i` gets you `p += 8` per iteration. A `short i` instead keeps the target's
@@ -1046,6 +1100,14 @@ only narrowed at the end.** `short t` rather than `s32 t` removed both a spuriou
 `andi 0xffff` and a whole register-allocation cascade in `ControlTraceLine`'s degree
 ladder.
 
+**A short moved into the high half has two useful source spellings.** For a
+declared 16-bit value, `(u16)x << 16` and `x * 0x10000` can both reach the raw
+`sll`, while extra outer casts or signed shift-and-extend spellings introduce
+`andi` or `sll/sra` canonicalization. They are not interchangeable once nearby
+assignments and signed tests enter CSE, so score both at the exact site the RTL
+maps. Guided `autorules` exposes the casted-shift→multiply spelling as
+`shift16-mul`; DamageControl needs both shapes on different paths.
+
 **A field compared then re-read inside the hit body wants a named temp captured via a
 comma expression, to preserve `&&` short-circuit.** `if (cond && (z = lv.vz, z < dist))
 { dist = z; … }` gives both the short-circuit AND one load: a bare re-read
@@ -1264,6 +1326,13 @@ near entry; `AdtMessageBox` wants the inline form.)
     align 4) and `.vec = *vec;` (SVECTOR, align 2) reproduce the target's batched
     load-then-batched-store block move exactly; the field-at-a-time transcription
     does not (SetBleed).
+  - **Four adjacent `vx/vy/vz/pad` assignments may be one aggregate VECTOR
+    assignment.** `dst = *src` goes through cc1's block-move expansion and can
+    batch/interleave the four loads and stores differently from
+    `dst.vx=src->vx; ...`. DamageControl's target requires the aggregate form.
+    The local, exact-field-set transform is now the default `autorules` rule
+    `vector-copy`; the `pad` requirement prevents it from inventing a partial
+    copy or silently changing padding semantics.
   - **A whole-pool swap-remove is a plain struct assignment `pool[i] =
     pool[last];`** — Ghidra mis-renders it as a hand `do{}while` over invented
     per-field names with a halfword-typed (`sh`) tail; both wrong. A 0x78-byte
@@ -1810,6 +1879,15 @@ apart. A `do {} while (0)` wrapper can force the same order, but it cascades (it
 boosted `pt` past `header` across a `floor_log2(8)` jump and swapped `$s0`/`$s1`);
 a natural variable merge is the stabler lever when one exists.
 
+This applies to long-lived game roles as well as symmetric temps. DamageControl
+uses one source local first for the attack id and later for damage severity, and
+another across scale/speed/bleed-counter roles; the lifetimes do not overlap, so
+the merged pseudos obtain the target's `$s2`/`$s0` homes. A tidier fresh local for
+each semantic role lowered/split allocation priority and rotated the saved-register
+file. First split decompiler SSA roles for correctness, then deliberately re-merge
+only where `.lreg` proves disjoint lives and target asm proves one hard-register
+home.
+
 ### `A + (B + 2)` and `B + 2 + A` pick different destination registers
 
 fold canonicalises `A + (B + C)` to `(A + C) + B`, so the `addiu` lands on A's
@@ -1988,6 +2066,15 @@ change weighted reference order, while optimized output gains no branch. Guided
 `loop-fence`. It rejects an `if` containing `break` or `continue`, because the new
 wrapper could capture those statements; byte scoring still decides whether an
 otherwise safe fence helps.
+
+The fence may need to cover a **contiguous producer/consumer range**, not one
+AST statement. AttackIndirect's final copy-propagation tie closed only when one
+`do { ... } while (0)` enclosed three adjacent `if` statements together; fencing
+any member alone did not create the needed note boundary around the whole live
+range. Guided `autorules` therefore also enumerates `loop-range`: two-to-four
+adjacent statements, excluding declarations and any nested break/continue/case/
+label whose target or scope could change. This is a bounded RTL-line-guided
+search, not permission to scatter dummy loops blindly.
 
 ### Inline extended asm is an anti-rule, not a matching transformation
 
@@ -2219,6 +2306,12 @@ before local-alloc, so the def is gone before it can bias anything.
   wrapper around defs WITHOUT their consumer lets cse re-canonicalize +
   combine collapse the copy — the function changes length. Wrap
   def+consumer as a unit or not at all.
+  `tools/regalloc.py <Name>` now reads both `.lreg` and `.greg`, prints only the
+  real allocnos with their computed priority, and can quantify a proposed
+  reweighting: `--compare FIRST SECOND` reports the exact additional weighted
+  refs needed; `--enclosed-refs N` converts that delta into wrapper depths when
+  one proposed fence encloses N uses. The comparison assumes equal register
+  mode/size—use the dump, not the number alone, for mixed-mode pseudos.
 - **Huge-frame TUs (offsets past ±32767) spill params to their arg-home
   slots** once the callee-saved file is full; every use rematerializes
   li/addu/lw through reload's spill regs (a3/t0 rotation). Pointer-VALUE
@@ -2361,6 +2454,17 @@ registers for source arguments, and changing a shared callee prototype can alter
 other translation units. Caller-local old-style declarations or typed call
 expressions require case-by-case semantic review, so this diagnosis is not an
 automatic rewrite.
+
+**One physical call can originate as duplicated branch-local calls.** Keep the
+call written in both arms when the target prepares different arguments in each
+predecessor but then has a single tail-merged `jal`. Factoring it into
+`arg = ...; f(arg);` creates join-crossing argument pseudos, changes `%hi` ties,
+and can reorder loads/delay slots even though jump2 still emits one call. This is
+especially visible for narrow parameters and stack-passed arguments: a correct
+caller-local prototype controls HImode extension and which setup remains in the
+predecessor. DefaultActionHumanoid's call tails and DamageControl's duplicated
+MoveHumanoid arms are the worked cases. Inspect call fingerprints through
+`.rtl`→`.jump2`; do not infer source factoring from the final call count.
 
 **A named `goto` label pins cross-jump's choice of primary copy.** When several
 unconditional exits share a tail (e.g. every reject does `x = -1; goto ret;`), route them
@@ -2628,8 +2732,18 @@ absolute → keep the symbol off the list (a plain small extern).
     `extern T NAME[];` + `NAME`→`NAME[0]` and keeps the flip if it moves bytes.
     So on a fresh draft you rarely apply it by hand; run autorules first and it
     finds the split for you (it only touches decls in the `.c`, never a shared
-    header). Reach for the manual respelling only when the decl lives in a
-    header autorules won't edit.
+    header). It first parses the target split asm and **skips every symbol used
+    with `%gp_rel`**: an unknown-size array would force precisely the wrong
+    absolute-address path there, and a misleading partial-score improvement is
+    not evidence against the target. Reach for the manual respelling only when
+    the decl lives in a header autorules won't edit.
+- **`lui`+`addiu(base)`, scaled index, then load at `0(base+index)` identifies a
+  real named array.** A magic absolute pointer plus indexing often lets cc1 fold
+  the address's low half into the final load displacement, losing the target's
+  standalone base materialization. Resolve the address against the symbol/data
+  map, declare the table with its real element width/count, and index it by
+  name. DamageControl's eight-entry `D_80086B6C[deg]` motion table restored both
+  the correct sequence and the exact function length.
 - **A callee-saved value dying at a call whose result lands in the SAME
   s-register is the call-result variable HOSTING the earlier load**:
   `h = pm->locate.coord.t[1]; gy = h; … h = GetAreaMapLevel(…, gy, …);` —
