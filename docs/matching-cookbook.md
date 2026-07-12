@@ -780,6 +780,14 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   FUN_800270f8. `autorules` tries both forms as `subscript-postinc`, limited to
   a nonvolatile, non-address-taken local used only once in the affected full
   expression; `rtlguide` names the `postincrement-working-copy` residual.
+  If that indexed field is both read and written in the iteration, capture its
+  address at the postincrement site—`u16 *attribute =
+  &model->object[i++]->attribute; value = *attribute; ...; *attribute = value;`.
+  The parked `idx=i; i=idx+1; ...object[idx]...` spelling could not produce the
+  working copy because the increment was detached from ARRAY_REF. Also keep the
+  pointer/value temps block-local to **each** disjoint loop: sharing them across
+  FUN_800270f8's set/clear loops merged their allocnos, raised priority, and
+  swapped `$a0/$v0` even though their live ranges never overlap.
 - **Disjoint narrow loops do not have to share one source counter.** Reusing a
   function's earlier `short i` for a later table scan can join their allocno
   preferences and rotate the scan's address/index registers even though the
