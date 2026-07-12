@@ -7,3 +7,4 @@ disks/
 dist-newstyle
 __pycache__
 shake/dist-direct
+scratch/

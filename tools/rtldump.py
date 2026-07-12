@@ -43,6 +43,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -72,8 +73,7 @@ DEFAULT_PASSES = ["greg", "lreg", "jump", "combine"]
 
 SCRATCH = os.environ.get(
     "CLAUDE_SCRATCH",
-    "/tmp/claude-1000/-home-shana-programming-tenchu-decomp/"
-    "5c628fa8-53b7-45f8-8dd9-5e6a32dab93d/scratchpad",
+    os.path.join(tempfile.gettempdir(), "tenchu-rtldump"),
 )
 
 

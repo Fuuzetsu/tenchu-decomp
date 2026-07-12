@@ -267,7 +267,7 @@ def main():
                 if ex_names else "") + ".")
     P.append("")
     P.append("Worktree setup (link untracked inputs from the main checkout):\n"
-             "```\nROOT=/home/shana/programming/tenchu-decomp\n"
+             "```\nROOT=" + ROOT + "\n"
              "for e in slps_019.01 system.cnf tenchu demo; do ln -sfn \"$ROOT/disks/$e\" "
              "\"disks/$e\"; done\nmkdir -p .shake && ln -sfn "
              "\"$ROOT/.shake/ghidra-export\" .shake/ghidra-export\n```\n"
