@@ -779,6 +779,12 @@ phonyRules = do
   phony "report" $
     cmd_ "tools/objdiff-report.py"
 
+  -- Score how close each NON_MATCHING draft is (config/fuzzy.main.exe.tsv), so
+  -- decomp.dev shows partial per-function progress. SLOW: builds every draft
+  -- once; run occasionally and commit the result. See docs/decomp-dev.md.
+  phony "fuzz-score" $
+    cmd_ "tools/fuzz-score.py"
+
 -- | Launch our exe fast: mount the original disc and @-loadexe@ over it (no repack).
 -- Paths are absolutised — pcsx-redux resolves them against its own cwd. @extra@ are
 -- extra emulator flags (e.g. @-8mb@ for the grown mod, whose region is above 2MB).

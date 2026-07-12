@@ -48,6 +48,10 @@ SNAPSHOT_TSV = "config/functions.main.exe.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
 YAML = "config/splat.main.exe.yaml"
 SRC = "src/main.exe"
+# Per-function fuzzy match % for NON_MATCHING drafts (tools/fuzz-score.py). Lets
+# "mostly matching but not byte-exact" functions show partial progress instead
+# of 0%. Optional: absent -> every function is binary 0/100.
+FUZZY = "config/fuzzy.main.exe.tsv"
 DEFAULT_OUT = ".shake/build/tenchu/report.json"
 
 REPORT_VERSION = 2
@@ -120,35 +124,56 @@ def load_matched():
             a = sym_addr[name]
             matched_addrs.add(a)
             addr_to_cfile[a] = f"{SRC}/{f}"
-    return matched_addrs, addr_to_cfile
+    return matched_addrs, addr_to_cfile, sym_addr
 
 
-def measures(total_code, matched_code, total_funcs, matched_funcs,
-             total_units, complete_units):
+def load_fuzzy(sym_addr):
+    """addr -> (fuzzy%, cfile) for NON_MATCHING drafts scored by fuzz-score.py.
+    Keyed by address via the symbol table (as with matched functions). Missing
+    file just means no partials -> every function stays binary 0/100."""
+    fuzzy_by_addr, src_by_addr = {}, {}
+    if not os.path.exists(FUZZY):
+        return fuzzy_by_addr, src_by_addr
+    for line in open(FUZZY):
+        if not line.strip() or line.startswith("#"):
+            continue
+        p = line.rstrip("\n").split("\t")
+        if len(p) < 2 or not p[1] or p[0] not in sym_addr:
+            continue          # no score (e.g. a build failure) -> leave at 0%
+        a = sym_addr[p[0]]
+        fuzzy_by_addr[a] = float(p[1])
+        src_by_addr[a] = f"{SRC}/{p[0]}.c"
+    return fuzzy_by_addr, src_by_addr
+
+
+def measures(total_code, matched_code, fuzzy_weight, complete_code, total_funcs,
+             matched_funcs, total_units, complete_units):
     """An objdiff `Measures`, JSON-encoded like prost+serde: u64 -> string,
-    u32 -> number, float -> number; default (0) fields omitted. `complete_*`
-    tracks fully-matched code, which for us equals `matched_*` (a matched
-    function reassembles byte-identically — there are no partial percentages)."""
+    u32 -> number, float -> number; default (0) fields omitted.
+
+    Following objdiff's own semantics: `matched_code` is the fuzzy-weighted
+    matched bytes (partial credit included), `complete_code` counts only fully
+    (byte-exact) functions. `matched_code` and `fuzzy_weight` (Σ fuzzy_i·size_i)
+    are pre-summed by the caller so aggregates equal the exact sum of their units
+    — the same AddAssign objdiff/decomp.dev use (no rounding drift)."""
     def pct(num, den):
         return round(100.0 * num / den, 6) if den else 0.0
 
-    code_pct = pct(matched_code, total_code)
-    fn_pct = pct(matched_funcs, total_funcs)
     m = {}
-    # fuzzy == matched for us (no sub-function partial credit).
     if total_code:
-        m["fuzzy_match_percent"] = code_pct
+        m["fuzzy_match_percent"] = pct(fuzzy_weight, total_code * 100)
         m["total_code"] = str(total_code)
     if matched_code:
         m["matched_code"] = str(matched_code)
-        m["matched_code_percent"] = code_pct
-        m["complete_code"] = str(matched_code)
-        m["complete_code_percent"] = code_pct
+        m["matched_code_percent"] = pct(matched_code, total_code)
+    if complete_code:
+        m["complete_code"] = str(complete_code)
+        m["complete_code_percent"] = pct(complete_code, total_code)
     if total_funcs:
         m["total_functions"] = total_funcs
     if matched_funcs:
         m["matched_functions"] = matched_funcs
-        m["matched_functions_percent"] = fn_pct
+        m["matched_functions_percent"] = pct(matched_funcs, total_funcs)
     if total_units:
         m["total_units"] = total_units
     if complete_units:
@@ -156,46 +181,56 @@ def measures(total_code, matched_code, total_funcs, matched_funcs,
     return m
 
 
-def build_report(funcs, matched_addrs, addr_to_cfile, include_sdk):
+def build_report(funcs, matched_addrs, addr_to_cfile, fuzzy_by_addr, include_sdk):
     units = []
-    # category id -> accumulator [tc, mc, tf, mf, tu, cu]
-    acc = {cid: [0, 0, 0, 0, 0, 0] for cid, _ in CATEGORIES}
-    tot = [0, 0, 0, 0, 0, 0]
+    # accumulator: [total_code, matched_code, fuzzy_weight, complete_code,
+    #               total_funcs, matched_funcs, total_units, complete_units]
+    # matched_code sums the per-unit ROUNDED bytes, and fuzzy_weight sums
+    # fuzzy·size, so each aggregate is the exact sum of its units.
+    acc = {cid: [0, 0, 0.0, 0, 0, 0, 0, 0] for cid, _ in CATEGORIES}
+    tot = [0, 0, 0.0, 0, 0, 0, 0, 0]
 
     for addr, size, name in funcs:
         is_sdk = addr >= SDK_START
         if is_sdk and not include_sdk:
             continue
         cat = "sdk" if is_sdk else "game"
-        matched = addr in matched_addrs
-        cu = 1 if matched else 0
-        mc = size if matched else 0
-        mf = 1 if matched else 0
+        if addr in matched_addrs:
+            fuzzy = 100.0
+        else:
+            fuzzy = fuzzy_by_addr.get(addr, 0.0)
+        complete = 1 if fuzzy >= 100.0 else 0
+        matched_code = int(round(size * fuzzy / 100.0))
+        fuzzy_weight = fuzzy * size
+        cc = size if complete else 0
 
         for bucket in (acc[cat], tot):
             bucket[0] += size
-            bucket[1] += mc
-            bucket[2] += 1
-            bucket[3] += mf
+            bucket[1] += matched_code
+            bucket[2] += fuzzy_weight
+            bucket[3] += cc
             bucket[4] += 1
-            bucket[5] += cu
+            bucket[5] += complete
+            bucket[6] += 1
+            bucket[7] += complete
 
         func_item = {
             "name": name,
             "size": str(size),
-            "fuzzy_match_percent": 100.0 if matched else 0.0,
+            "fuzzy_match_percent": round(fuzzy, 2),
             "address": str(addr),
         }
         meta = {
-            "complete": matched,
+            "complete": bool(complete),
             "progress_categories": [cat],
             "auto_generated": False,
         }
-        if matched and addr in addr_to_cfile:
+        if addr in addr_to_cfile:            # matched or draft source
             meta["source_path"] = addr_to_cfile[addr]
         units.append({
             "name": name,
-            "measures": measures(size, mc, 1, mf, 1, cu),
+            "measures": measures(size, matched_code, fuzzy_weight, cc,
+                                 1, complete, 1, complete),
             "sections": [],
             "functions": [func_item],
             "metadata": meta,
@@ -204,7 +239,7 @@ def build_report(funcs, matched_addrs, addr_to_cfile, include_sdk):
     categories = []
     for cid, cname in CATEGORIES:
         a = acc[cid]
-        if a[2] == 0:  # no units in this category (e.g. sdk omitted)
+        if a[4] == 0:  # no units (total_functions) in this category (e.g. sdk omitted)
             continue
         categories.append({"id": cid, "name": cname, "measures": measures(*a)})
 
@@ -225,12 +260,18 @@ def main():
     ap.add_argument("--include-sdk", action="store_true",
                     help="also include the PsyQ SDK block (top-level = whole image)")
     ap.add_argument("--functions", help="function-inventory TSV (overrides autodetect)")
+    ap.add_argument("--no-fuzzy", action="store_true",
+                    help="ignore config/fuzzy.main.exe.tsv (binary 0/100 report)")
     args = ap.parse_args()
 
     tsv = resolve_inventory(args.functions)
     funcs = load_functions(tsv)
-    matched_addrs, addr_to_cfile = load_matched()
-    report = build_report(funcs, matched_addrs, addr_to_cfile, args.include_sdk)
+    matched_addrs, addr_to_cfile, sym_addr = load_matched()
+    fuzzy_by_addr, fuzzy_src = ({}, {}) if args.no_fuzzy else load_fuzzy(sym_addr)
+    # A matched (byte-exact) .c wins over a draft .c at the same address.
+    source_by_addr = {**fuzzy_src, **addr_to_cfile}
+    report = build_report(funcs, matched_addrs, source_by_addr, fuzzy_by_addr,
+                          args.include_sdk)
 
     text = json.dumps(report, indent=1)
     if args.stdout:
@@ -241,13 +282,19 @@ def main():
             fh.write(text)
 
     tm = report["measures"]
-    tc, mc = int(tm.get("total_code", 0)), int(tm.get("matched_code", 0))
-    pct = 100.0 * mc / tc if tc else 0.0
+    tc = int(tm.get("total_code", 0))
+    mc = int(tm.get("matched_code", 0))          # fuzzy-weighted
+    cc = int(tm.get("complete_code", 0))          # byte-exact
+    fpct = 100.0 * mc / tc if tc else 0.0
+    cpct = 100.0 * cc / tc if tc else 0.0
     scope = "game+sdk" if args.include_sdk else "game"
+    npart = sum(1 for u in report["units"]
+                if 0.0 < u["functions"][0]["fuzzy_match_percent"] < 100.0)
     print(f"report ({scope}): {len(report['units'])} units, "
-          f"{tm.get('matched_functions', 0)}/{tm.get('total_functions', 0)} functions, "
-          f"{mc}/{tc} bytes ({pct:.2f}%) -> "
-          f"{'stdout' if args.stdout else args.out}", file=sys.stderr)
+          f"complete {tm.get('matched_functions', 0)}/{tm.get('total_functions', 0)} funcs "
+          f"({cc}/{tc}B = {cpct:.2f}%), fuzzy {fpct:.2f}% "
+          f"(+{npart} partial) -> {'stdout' if args.stdout else args.out}",
+          file=sys.stderr)
 
 
 if __name__ == "__main__":

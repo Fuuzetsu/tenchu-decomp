@@ -72,9 +72,26 @@ and default (0) fields may be omitted. Each unit carries `functions[]`
   - Default output is **game code only** (top-level % = game-code progress, the
     project's north-star metric). `--include-sdk` also emits the differently-
     compiled PsyQ SDK block (top-level then = whole image, currently ~19.7%).
+  - **Partial progress.** A byte-exact function is 100% (`complete`); an
+    `INCLUDE_ASM` stub is 0%. Functions with a `#else` NON_MATCHING draft (close
+    but not byte-exact) get a real per-function `fuzzy_match_percent` from
+    `config/fuzzy.main.exe.tsv` — so decomp.dev shows them as partially done
+    instead of 0%. Following objdiff's semantics, `matched_code` is fuzzy-weighted
+    (partial credit; this is the number that rises with partials) while
+    `complete_code` counts only byte-exact functions. `--no-fuzzy` emits the
+    strict binary 0/100 report.
   - Flags: `--out PATH` (default `.shake/build/tenchu/report.json`), `--stdout`,
-    `--include-sdk`, `--functions PATH`.
+    `--include-sdk`, `--no-fuzzy`, `--functions PATH`.
 - **`./Build report`** — Shake phony that runs the generator.
+- **`tools/fuzz-score.py` / `./Build fuzz-score`** — computes the per-function
+  fuzzy percentages into `config/fuzzy.main.exe.tsv`. For each NON_MATCHING draft
+  it builds the draft (`NON_MATCHING=<name> ./Build`), disassembles the original
+  vs our compiled draft, and takes an instruction-sequence similarity ratio (an
+  approximation of objdiff's fuzzy match, reusing `asmdiff.py`'s machinery; a
+  non-exact draft is capped below 100). **Not build-free and slow** (one
+  incremental build per draft) — run it in the nix devShell occasionally and
+  commit the updated TSV; CI and `./Build report` just read it. Build failures
+  are recorded and stay at 0%.
 - **`config/functions.main.exe.tsv`** — a **committed snapshot** of the function
   inventory (`addr<TAB>size<TAB>name`). The live source
   (`.shake/ghidra-export/functions.tsv`) is gitignored (a local Ghidra export), so
