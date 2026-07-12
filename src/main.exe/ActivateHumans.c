@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,16 +35,266 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
+typedef struct
+{
+    s16 stage;
+    s16 chrid;
+    SVECTOR position;
+    s16 think;
+} StageCharType;
+
+extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+extern Humanoid *StagePlayer;
+extern s32 GameClock;
+extern s16 SkipFrame;
+extern s32 D_800976B8;
+extern s16 D_80097F40;
+extern s16 D_80097F42;
+extern s16 D_80097F44;
+extern StageCharType StageChar[18];
+extern s16 Humans;
+extern Humanoid *HumanGroup[32];
+extern s32 StageID;
+extern u_long *GlobalAreaMap;
+extern s16 VISIBLE_ENEMIES_;
+extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
+
+extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
+extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActivateHumans", ActivateHumans);
+#else
+/*
+ * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
+ * 0x68-byte frame and 0x30-byte working stack window.  The current draft is
+ * 1604/1608 bytes (401/402 instructions), with 90 differing structural lines
+ * in 26 blocks.  Build it with `NON_MATCHING=ActivateHumans ./Build`.
+ *
+ * Remaining concentrated residuals:
+ * - Retail's visibility decision coalesces several path-local values into
+ *   $v1.  A single named `active` local remains live across those paths and
+ *   is forced to $a1 instead; rtlguide/regalloc identify this as the largest
+ *   causal register/CFG island.
+ * - Retail shares StageChar's `%hi` value in $s5 with the full base in $s3.
+ *   The two explicit pure-C locals recover the exact six saved-register roles
+ *   and frame, but cc1 still emits one separate base materialization.
+ * - The StageChar scan's short induction variable still strength-reduces as
+ *   add-0x10000/sra rather than retail's add-one/sll/sra sequence.
+ */
+void ActivateHumans(void)
+{
+    s32 i;
+    Humanoid *target;
+    Humanoid *human;
+    VECTOR camera;
+    VECTOR query;
+    VECTOR work;
+    s32 active;
+    s32 distance;
+    s32 activate_distance;
+    s32 n;
+    s32 j;
+    s32 search_i;
+    s32 level;
+    s16 search_index;
+    StageCharType *stage_char;
+    StageCharType *stage_hi;
+    Humanoid *visible_human;
+    ModelType *model;
 
-// triage: HARD — 402 insns, mul/div, 2 loop, 3 callees, ~0.05 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+    target = CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+    camera = *target->locate;
+    activate_distance = 26000;
+    if (StagePlayer->motion->mid != 0xf05)
+    {
+        activate_distance = 13000;
+    }
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+    if (GameClock != (GameClock / 30) * 30 || SkipFrame != 0)
+    {
+        return;
+    }
+
+    n = (0xec78 - D_800976B8) / 5000 - 1;
+    D_80097F40 = n;
+    if ((s16)n < 2)
+    {
+        n = (u16)D_80097F44 - 1;
+    }
+    D_80097F44 = n;
+    if ((s16)n < 7)
+    {
+        if ((s16)n < 3)
+        {
+            n = 3;
+        }
+    }
+    else
+    {
+        n = 6;
+    }
+
+    i = 0;
+    stage_char = StageChar;
+    stage_hi = (StageCharType *)0x80090000;
+    D_80097F44 = n;
+    D_80097F42 = 0;
+human_loop:
+    if ((s16)i >= Humans)
+    {
+        return;
+    }
+    human = HumanGroup[(s16)i];
+    if (human == target)
+    {
+        goto next_human;
+    }
+
+    distance = GetVectorDistance(human->locate, &camera);
+    if (distance >= 17001)
+    {
+        goto set_inactive;
+    }
+    if (((u16)human->type & 0xf0) == 0x80)
+    {
+        goto set_active;
+    }
+    active = 1;
+    if (human->type == 0xa9 || human->life < 0)
+    {
+        goto active_done;
+    }
+    if (GameClock == 30 || StageID == 8)
+    {
+        goto set_active;
+    }
+    if (VISIBLE_ENEMIES_ < D_80097F44)
+    {
+        active = 1;
+        if (D_80097F42 < D_80097F44)
+        {
+            goto active_done;
+        }
+        active = distance < activate_distance;
+        goto active_done;
+    }
+    if (distance < activate_distance)
+    {
+        goto near_human;
+    }
+
+set_inactive:
+    active = 0;
+    goto active_done;
+
+near_human:
+    if (((u16)human->attribute & 0x80) == 0 &&
+        D_80097F42 < D_80097F44)
+    {
+        goto set_active;
+    }
+    goto search_visible;
+
+set_active:
+    active = 1;
+    goto active_done;
+
+search_visible:
+    search_i = 0;
+    search_index = 0;
+    visible_human = VISIBLE_CHARACTERS_ON_STAGE_[0];
+    while (visible_human != human)
+    {
+        search_index = (s16)search_i;
+        search_i++;
+        if (VISIBLE_ENEMIES_ <= search_index)
+        {
+            break;
+        }
+        search_index = (s16)search_i;
+        visible_human = VISIBLE_CHARACTERS_ON_STAGE_[search_index];
+    }
+    active = search_index != VISIBLE_ENEMIES_;
+
+active_done:
+    if (active)
+    {
+        if (((u16)human->attribute & 0x80) == 0)
+        {
+            D_80097F42++;
+            goto next_human;
+        }
+        if (StageID != 8 && human->life >= 0 && GameClock != 30 &&
+            (D_80097F42 >= D_80097F44 || distance <= 13000))
+        {
+            goto next_human;
+        }
+        human->attribute = (u16)human->attribute & 0xff7f;
+        D_80097F42++;
+        model = *human->model->object;
+        model->attribute |= 0x4000;
+        goto next_human;
+    }
+
+    if (((u16)human->attribute & 0x80) != 0 || human->type == 0x84)
+    {
+        goto next_human;
+    }
+    if ((human->type == 0x87 && (u32)(StageID - 6) < 2) ||
+        human->type == 0x83)
+    {
+        j = 0;
+        if (*(s16 *)((u8 *)stage_hi - 0x1924) != -1)
+        {
+            do
+            {
+                if (stage_char[(s16)j].stage == StageID + 1 &&
+                    stage_char[(s16)j].chrid == human->type)
+                {
+                    human->model->locate.coord.t[0] = stage_char[(s16)j].position.vx * 1000;
+                    human->model->locate.coord.t[1] = stage_char[(s16)j].position.vy * 1000;
+                    human->model->locate.coord.t[2] = stage_char[(s16)j].position.vz * 1000;
+                }
+                j++;
+            } while (stage_char[(s16)j].stage != -1);
+        }
+        if (human->type == 0x83 && human->life == 0)
+        {
+            human->life = 1;
+        }
+    }
+    else if (human->status != 0x11 && ((u16)human->attribute & 0x20) == 0)
+    {
+        memset(&work, 0, sizeof(work));
+        work.vx = human->point[0];
+        work.vy = human->locate->vy - 1500;
+        work.vz = human->point[1];
+        query = work;
+        if (GetVectorDistance(&query, &camera) > 17000)
+        {
+            level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
+                                    query.vz, 1);
+            if (level != 0x80000000)
+            {
+                human->model->locate.coord.t[0] = query.vx;
+                human->model->locate.coord.t[1] = level;
+                human->model->locate.coord.t[2] = query.vz;
+            }
+        }
+    }
+
+    human->attribute = (u16)human->attribute | 0x80;
+    model = *human->model->object;
+    model->attribute &= 0xbfff;
+
+next_human:
+    i++;
+    goto human_loop;
+}
+#endif
+
+// Ghidra decompilation (reference):
 //
 //
 // /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
