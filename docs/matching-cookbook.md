@@ -787,13 +787,13 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `addiu work,i,1; move i,work`, then reuse `work` for the counter's narrow
   sign-extension/test. That apparently redundant copy was the last missing
   instruction in ActKAGI and is also the documented shape in parked
-  FUN_800270f8. `autorules` tries both forms as `subscript-postinc`, limited to
+  now-exact FUN_800270f8. `autorules` tries both forms as `subscript-postinc`, limited to
   a nonvolatile, non-address-taken local used only once in the affected full
   expression; `rtlguide` names the `postincrement-working-copy` residual.
   If that indexed field is both read and written in the iteration, capture its
   address at the postincrement site—`u16 *attribute =
   &model->object[i++]->attribute; value = *attribute; ...; *attribute = value;`.
-  The parked `idx=i; i=idx+1; ...object[idx]...` spelling could not produce the
+  The earlier `idx=i; i=idx+1; ...object[idx]...` spelling could not produce the
   working copy because the increment was detached from ARRAY_REF. Also keep the
   pointer/value temps block-local to **each** disjoint loop: sharing them across
   FUN_800270f8's set/clear loops merged their allocnos, raised priority, and
@@ -2362,6 +2362,17 @@ statements (address first) fixed both at once (SetBleed). If a diff shows one
 value duplicated across predecessors and another that "should" be, try reordering
 their definitions before reaching for the permuter.
 
+### Adjacent literal field stores are a bounded scheduling permutation
+
+Two adjacent nonvolatile stores such as `frame->size = 0x3000;
+frame->mode = 0;` have the same final state in either order, but sched2 can use
+their source order to break a later independent scheduling tie. In
+FUN_80037e0c, putting `mode` first fixed the final eight-byte tail residual even
+though both stores themselves already aligned. Guided `autorules` exposes only
+this narrow safe form as `adjacent-field-store-swap`: same base, distinct
+fields, literal RHSes, and no intervening statement. Broader store permutations
+can alias or move side effects and remain out of bounds.
+
 > **Diagnose before you steer: `tools/regalloc.py <Name>`.** It runs `cc1 -dg`
 > and shows which values are live across calls (forced into callee-saved
 > $s0–$s7), the pseudo→hard-reg dispositions, and the register copy-chains that
@@ -2557,6 +2568,15 @@ before local-alloc, so the def is gone before it can bias anything.
   successful conflict-object arm places the load at the target use and can
   keep the alias caller-saved (SwimCheck). Ghidra's entry SSA name is not proof
   of source placement; follow the first machine use and predecessor set.
+  A call can be the boundary between two aliases of the same address:
+  FUN_80037e0c needed `position_base = &work.pos` before `rand()` and
+  `position = position_base` after it. The two names create the target's
+  preserved pointer copy; one alias throughout lets cc1 coalesce it away.
+- **Separate a scanning cursor from the result captured at loop exit.** Even
+  when `found_slot` always receives the current `slot`, assigning it before a
+  shared post-loop label creates the target's pool-exit move and lets the scan
+  cursor die. Reusing `slot` through the consumer extends its allocno and
+  changes the tail colouring (FUN_80037e0c).
 - **But a dead pointer chain may need to remain direct.**
   `human->model->rotate.vy += K` lets cse overwrite/coalesce the dead `human`
   and model intermediates into the target register. Naming
@@ -3221,6 +3241,10 @@ absolute → keep the symbol off the list (a plain small extern).
     absolute-address path there, and a misleading partial-score improvement is
     not evidence against the target. Reach for the manual respelling only when
     the decl lives in a header autorules won't edit.
+    FUN_80037e0c independently confirms the data-object form: declaring the
+    fixed SVECTOR bytes as unknown-size `u8 D_80097A58[]` and casting at the
+    load kept HIGH/LO_SUM in separate registers and allowed the target's
+    intervening stack-copy schedule.
 - **`lui`+`addiu(base)`, scaled index, then load at `0(base+index)` identifies a
   real named array.** A magic absolute pointer plus indexing often lets cc1 fold
   the address's low half into the final load displacement, losing the target's

@@ -71,6 +71,30 @@ int F(void) {
         self.assertIn("if (!(result != 0)) {\n        copy();", out[0][1])
         self.assertIn("else {\n        fail();", out[0][1])
 
+    def test_adjacent_literal_field_stores_swap(self):
+        source = """void F(Frame *frame) {
+    frame->size = 0x3000;
+    frame->mode = 0;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_adjacent_field_store_swap, source)
+        self.assertEqual(len(out), 1)
+        self.assertLess(out[0][1].index("frame->mode = 0"),
+                        out[0][1].index("frame->size = 0x3000"))
+
+    def test_adjacent_field_store_swap_rejects_nonliteral_rhs(self):
+        source = """void F(Frame *frame, int value) {
+    frame->size = value;
+    frame->mode = 0;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        self.assertEqual(
+            self.candidates(autorules.rule_adjacent_field_store_swap, source),
+            [],
+        )
+
     def test_eq_literal_swap_rejects_two_values_or_side_effects(self):
         values = "int F(int a, int b) { return a == b; }\n"
         effect = "int next(void); int F(void) { return next() != 1; }\n"

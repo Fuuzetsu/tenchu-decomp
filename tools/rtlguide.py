@@ -79,7 +79,7 @@ CATEGORY_RULES = {
         "type-width", "cmp-polarity", "loop-fence", "loop-range", "split-chain",
         "or-inplace", "add-prefix-temp", "flag-arm-assign",
         "identical-arm-fence", "subscript-postinc", "switch-cse-evict",
-        "call-arg-pair", "eq-literal-swap",
+        "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap",
     ],
     "cse/coalescing": [
         "type-width", "loop-fence", "loop-range", "temp-inline",
@@ -92,6 +92,7 @@ CATEGORY_RULES = {
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
         "call-arg-pair", "eq-literal-swap", "pointee-volatile",
+        "adjacent-field-store-swap",
     ],
     "combine/expression": [
         "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",

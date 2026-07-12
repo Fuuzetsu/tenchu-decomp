@@ -2302,6 +2302,64 @@ def rule_if_else_invert(text, name, span):
                splice(data, iff.start_byte, iff.end_byte, repl).decode())
 
 
+def _literal_field_store(data, statement):
+    """Return (base, field) for ``base.field = integer_literal;``."""
+    if statement.type != "expression_statement":
+        return None
+    expressions = [child for child in statement.named_children
+                   if child.type != "comment"]
+    if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+        return None
+    assignment = expressions[0]
+    operator = assignment.child_by_field_name("operator")
+    lhs = assignment.child_by_field_name("left")
+    rhs = _unparen(assignment.child_by_field_name("right"))
+    if (operator is None or _txt(data, operator) != b"=" or lhs is None or
+            lhs.type != "field_expression" or rhs is None or
+            rhs.type != "number_literal"):
+        return None
+    base = lhs.child_by_field_name("argument")
+    field = lhs.child_by_field_name("field")
+    if base is None or field is None:
+        return None
+    return _txt(data, base).strip(), _txt(data, field).strip()
+
+
+def rule_adjacent_field_store_swap(text, name, span):
+    """Swap adjacent literal stores to distinct fields of the same base.
+
+    With no intervening observation, volatile qualifier, aliasing RHS, or
+    overlapping field, the final C state is identical. Source order still
+    changes sched2's priority and can flip an unrelated late register/order
+    tie. Literal-only RHSes make that proof deliberately narrow.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for first, second in zip(statements, statements[1:]):
+            left = _literal_field_store(data, first)
+            right = _literal_field_store(data, second)
+            if (left is None or right is None or left[0] != right[0] or
+                    left[1] == right[1]):
+                continue
+            between = data[first.end_byte:second.start_byte]
+            if between.strip():
+                continue
+            line = _line(data, first.start_byte)
+            if not (_guided_site(line) or
+                    _guided_site(_line(data, second.start_byte))):
+                continue
+            replacement = _txt(data, second) + between + _txt(data, first)
+            yield (
+                f"adjacent-field-store-swap {left[1].decode()}/{right[1].decode()} L{line}",
+                splice(data, first.start_byte, second.end_byte, replacement).decode(),
+            )
+
+
 RULES = [
     ("type-width", "flip a local's integer type across width/signedness", rule_type_width),
     ("extern-array", "extern T NAME; -> extern T NAME[]; + NAME->NAME[0] (-G8 split)", rule_extern_array),
@@ -2329,6 +2387,7 @@ AGGRESSIVE_RULES = [
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),
+    ("adjacent-field-store-swap", "swap adjacent literal stores to distinct fields", rule_adjacent_field_store_swap),
     ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
     ("pointee-volatile", "toggle volatile on a local integer pointer's pointee", rule_pointee_volatile),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
