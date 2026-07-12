@@ -2471,6 +2471,14 @@ change weighted reference order, while optimized output gains no branch. Guided
 wrapper could capture those statements; byte scoring still decides whether an
 otherwise safe fence helps.
 
+An assignment alone can be the fenced span. LoadSI's `msg = 0` normally
+propagated the literal directly into later card calls and delayed the real
+`$s1 = 0` definition into a branch slot. Wrapping only that assignment in a
+one-shot `do` stopped the constant/copy propagation, scheduled the definition
+before `valloc`, and made `$s1` feed `MemCardAccept`/`MemCardSync`, with no
+surviving branch. This is already an ordinary guided `loop-fence` candidate;
+the RTL symptom is one missing long-lived zero pseudo, not a wrong constant.
+
 The fence may need to cover a **contiguous producer/consumer range**, not one
 AST statement. AttackIndirect's final copy-propagation tie closed only when one
 `do { ... } while (0)` enclosed three adjacent `if` statements together; fencing
@@ -3077,6 +3085,11 @@ this one is about the tail.
   calling the cached variable instead keeps the wrong `$v1`. ProcItemNapalm is
   the matched family precedent. Duplicate the source idiom and let jump2—not a
   hand-written label—recover the shared machine tail.
+  LoadSI applies the same rule to ordinary error cleanup: spelling
+  `vfree(temp); temp = 0; return 0;` in both error arms prevents cse from
+  caching the earlier `&cmd`/`&result` stack addresses across a shared source
+  label, while jump2 still merges the duplicate cleanup into one physical
+  tail. A factored cleanup was shorter C but produced extra saved pointers.
 - **When two branches build the SAME call with all-different arguments, write
   the call literally twice (once per branch), not funnelled through shared
   locals + one post-merge call.** Cross-jump merges only the byte-identical
