@@ -35,8 +35,88 @@
  *     reg   $s0       unsigned char * icon1
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveCard", SaveCard);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SaveCard", FUN_80056a3c__override__prt_80056d4c_aee7b64a);
+typedef struct
+{
+    u8 bytes[0x20];
+} SaveCardPalette;
+
+typedef struct
+{
+    u8 bytes[0x80];
+} SaveCardIcon;
+
+typedef struct
+{
+    u8 magic[4];
+    u8 title[0x40];
+    u8 reserved[0x1c];
+    SaveCardPalette palette;
+    SaveCardIcon icon1;
+    SaveCardIcon icon2;
+    SaveCardIcon icon3;
+} SaveCardHeader;
+
+extern char *CardVolumeIdPtr;
+extern char CardPathFormat[];
+extern char D_80013BE4[];
+
+extern void *memset(void *dst, s32 value, u32 size);
+extern void *memcpy(void *dst, const void *src, u32 size);
+extern int sprintf(char *buf, char *fmt, ...);
+extern u8 *GetArcData(s32 id);
+extern s32 MemCardCreateFile(s32 chan, char *name, s32 blocks);
+extern s32 MemCardWriteFile(s32 chan, char *name, void *data, s32 offset,
+                            s32 size);
+extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
+
+/*
+ * The 0x200-byte card header and payload are two views into a single 8 KiB
+ * block.  Struct assignment deliberately preserves the original compiler's
+ * aligned/unaligned icon-copy loop pairs.
+ */
+s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
+{
+    u8 fn[200];
+    u8 block[0x2000];
+    s32 cmd;
+    s32 result;
+    s32 chan;
+    SaveCardHeader *header;
+    void *data;
+    u8 *icon1;
+    u8 *icon2;
+    u8 *icon3;
+
+    header = (SaveCardHeader *)block;
+
+    header->magic[0] = 0x53;
+    header->magic[1] = 0x43;
+    header->magic[2] = 0x13;
+    header->magic[3] = 1;
+    memset(header->title, 0, sizeof(header->title));
+    sprintf(header->title, D_80013BE4);
+    memset(header->reserved, 0, sizeof(header->reserved));
+
+    icon1 = GetArcData(0x16);
+    icon2 = GetArcData(0x17);
+    chan = 0;
+    icon3 = GetArcData(0x18);
+    data = block + sizeof(SaveCardHeader);
+    header->palette = *(SaveCardPalette *)(icon1 + 0x14);
+    header->icon1 = *(SaveCardIcon *)(icon1 + 0x40);
+    header->icon2 = *(SaveCardIcon *)(icon2 + 0x40);
+    header->icon3 = *(SaveCardIcon *)(icon3 + 0x40);
+
+    sprintf(fn, CardPathFormat, CardVolumeIdPtr, name);
+    result = MemCardCreateFile(chan, fn, 1);
+    if ((result == 0 || result == 6) && write_data != 0)
+    {
+        memcpy(data, mem, size);
+        result = MemCardWriteFile(chan, fn, block, 0, 0x2000);
+        MemCardSync(0, &cmd, &result);
+    }
+    return result;
+}
 
 // triage: HARD — 239 insns, 6 loop, frame 0x2110, 7 callees, ~0.09 to DebugMenuItemSet
 // likely-relevant cookbook sections:

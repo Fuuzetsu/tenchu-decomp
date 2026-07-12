@@ -340,6 +340,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "StickonCheck" = ["Me_MOTION_C", "dtL", "motID", "D_80097F0E"]
     syms "DeleteCard" = ["CardVolumeIdPtr"]
     syms "LoadCard" = ["CardVolumeIdPtr"]
+    syms "SaveCard" = ["CardVolumeIdPtr"]
     syms "SetupAfterimage" = ["D_80097F3C"]
     syms "MotionAndMove" = ["MotionUpdateMode", "Me_MOTION_C", "motID", "D_80097F0E"]
     syms "FileRead" = ["AccessPower", "ReadMode", "TotalIO"]
