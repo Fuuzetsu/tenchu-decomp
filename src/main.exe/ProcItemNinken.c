@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -32,7 +33,389 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemNinken", ProcItemNinken);
+typedef struct
+{
+    void *hint;
+    s16 vx;
+    s16 vy;
+    s16 vz;
+    u8 status;
+    u8 pad;
+    Humanoid *slave;
+    u16 count;
+    u16 pad2;
+} param_ninken;
+
+typedef struct
+{
+    s32 level;
+    s32 height;
+    u16 attrib;
+    s16 degree;
+    u8 vector;
+    u8 direct;
+    u8 angleL;
+    u8 angleH;
+    struct AreaNodeType *area;
+    struct NodeIndexType *index;
+} NinkenMapVector;
+
+typedef union
+{
+    struct
+    {
+        PARAM_ITEM_STAY saved;
+        u8 pad0[4];
+        PARAM_ITEM_STAY rparam;
+        u8 pad1[4];
+        PARAM_ITEM_USE launch;
+    } drop;
+    struct
+    {
+        VECTOR pos;
+        VECTOR query;
+        NinkenMapVector map;
+    } spawn;
+    SVECTOR effect_vec;
+} ProcItemNinkenScratch;
+
+extern u_long *GlobalAreaMap;
+extern s32 GameClock;
+extern Humanoid *NINKEN_CHARACTER_PTR;
+extern SVECTOR D_80097AF4[];
+
+extern s16 NowReturnNormal(Humanoid *human);
+extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern Humanoid *GetHumanoid(s16 type);
+extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
+extern s32 GetAreaMapVector(u_long *area, NinkenMapVector *map,
+                            VECTOR *position, s32 width, s32 mode);
+extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s16 EquipWeapon(Humanoid *human, s16 mode);
+extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern void FUN_800270f8(Humanoid *human, s16 hide);
+extern void SetupThinkFunction(Humanoid *human, s16 think);
+extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
+extern void TurnAroundAllItems(Humanoid *human);
+extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
+
+void ProcItemNinken(tag_TItem *item)
+{
+    param_ninken *param;
+    u8 ff;
+    s32 one;
+    ProcItemNinkenScratch scratch;
+
+    param = (param_ninken *)item->param;
+    ff = 0xff;
+    if (item->mode == ff)
+    {
+        Humanoid *slave;
+
+        slave = param->slave;
+        if (slave != 0)
+        {
+            NowReturnNormal(slave);
+            param->slave->attribute |= 0x80;
+            param->slave->model->locate.coord.t[0] = 999000;
+            param->slave->model->locate.coord.t[1] = 999000;
+            param->slave->model->locate.coord.t[2] = 999000;
+            UpdateCoordinate((ModelType *)param->slave->model);
+        }
+        item->mode = 0;
+        return;
+    }
+
+    one = 1;
+    switch (item->mode)
+    {
+    case 0:
+    {
+        u8 status;
+
+        MoveKorogari(item, (param_korogari *)param);
+        status = param->status;
+        if (status == one)
+        {
+            void (*dispose_proc)(tag_TItem *);
+
+            dispose_proc = item->proc;
+            if (dispose_proc == 0)
+            {
+                return;
+            }
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+        if (status == 4)
+        {
+            PARAM_ITEM_STAY *saved;
+            PARAM_ITEM_USE *launch;
+
+            memset(&scratch.drop.rparam, 0, sizeof(PARAM_ITEM_STAY));
+            scratch.drop.rparam.type = item->type;
+            scratch.drop.rparam.locate.vx =
+                item->locate->locate.coord.t[0];
+            scratch.drop.rparam.locate.vy =
+                item->locate->locate.coord.t[1];
+            scratch.drop.rparam.locate.vz =
+                item->locate->locate.coord.t[2];
+            scratch.drop.saved = scratch.drop.rparam;
+
+            if (item->proc != 0)
+            {
+                item->mode = ff;
+                item->proc(item);
+                DeleteConflict(item->locate);
+                if (item->mode != 0)
+                {
+                    AdtMessageBox(D_800121CC, item->type,
+                                  (u32)item->mode);
+                }
+                item->owner = 0;
+                item->proc = 0;
+            }
+
+            saved = &scratch.drop.saved;
+            launch = &scratch.drop.launch;
+            scratch.drop.launch.type = saved->type;
+            launch->user = (Humanoid *)1;
+            scratch.drop.launch.start.vx = saved->locate.vx;
+            scratch.drop.launch.start.vy = saved->locate.vy;
+            scratch.drop.launch.start.vz = saved->locate.vz;
+            scratch.drop.launch.end.vx = 0;
+            scratch.drop.launch.end.vy = 0;
+            scratch.drop.launch.end.vz = 0;
+            scratch.drop.launch.start.vy = GetAreaMapLevel(
+                GlobalAreaMap, scratch.drop.launch.start.vx,
+                scratch.drop.launch.start.vy,
+                scratch.drop.launch.start.vz, 0);
+            ReqItemDrop(launch);
+            return;
+        }
+        else
+        {
+            u16 count;
+
+            count = param->count - 1;
+            param->count = count;
+            if ((count << 16) <= 0)
+            {
+                item->mode = item->mode + 1;
+            }
+            UpdateCoordinate(item->locate);
+            item->model->locate = item->locate->locate;
+            DrawSprite(item->model);
+            return;
+        }
+    }
+
+    case 1:
+    {
+        s32 create;
+        s32 valid;
+        Humanoid *slave;
+        VECTOR *position;
+        VECTOR *query;
+        NinkenMapVector *map;
+
+        create = 0;
+        if (is_character_state_present_on_stage_(NINKEN_CHARACTER_PTR) == 0 ||
+            GetHumanoid(0xa9) == 0)
+        {
+            create = 1;
+        }
+        if (create != 0)
+        {
+            NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000,
+                                             999000, 0);
+            NINKEN_CHARACTER_PTR->attribute |= 0x80;
+        }
+
+        position = &scratch.spawn.pos;
+        query = &scratch.spawn.query;
+        map = &scratch.spawn.map;
+        scratch.spawn.pos.vx = item->locate->locate.coord.t[0];
+        scratch.spawn.pos.vy = item->locate->locate.coord.t[1];
+        scratch.spawn.pos.vz = item->locate->locate.coord.t[2];
+        scratch.spawn.query.vx = position->vx;
+        scratch.spawn.query.vy = position->vy;
+        scratch.spawn.query.vz = position->vz;
+        scratch.spawn.query.vy -= 2000;
+        GetAreaMapVector(GlobalAreaMap, map, query, 500, 0);
+
+        if (scratch.spawn.map.level >= position->vy - 500)
+        {
+            if (scratch.spawn.map.level < position->vy)
+            {
+                position->vy = scratch.spawn.map.level;
+            }
+            valid = 1;
+        }
+        else
+        {
+            valid = 0;
+        }
+        if (valid == 0 ||
+            (NINKEN_CHARACTER_PTR->attribute & 0x80) == 0)
+        {
+            item->mode = item->mode - 1;
+            param->count = 15;
+            return;
+        }
+
+        *(SVECTOR *)&scratch.spawn.query = D_80097AF4[0];
+        SetSmoke(&scratch.spawn.pos, (SVECTOR *)&scratch.spawn.query, 10, 6);
+        SoundEx(&scratch.spawn.pos, 0x23);
+        param->slave = NINKEN_CHARACTER_PTR;
+        NINKEN_CHARACTER_PTR->status = 0;
+        slave = param->slave;
+        slave->life = slave->lifemax;
+        param->slave->model->locate.coord.t[0] = scratch.spawn.pos.vx;
+        param->slave->model->locate.coord.t[1] = scratch.spawn.pos.vy;
+        param->slave->model->locate.coord.t[2] = scratch.spawn.pos.vz;
+        param->slave->model->rotate.vx = item->owner->model->rotate.vx;
+        param->slave->model->rotate.vy = item->owner->model->rotate.vy;
+        param->slave->model->rotate.vz = item->owner->model->rotate.vz;
+        EquipWeapon(param->slave, 0);
+        SetNowMotion(param->slave, 0x80f, 1);
+        param->slave->attribute &= 0xfffc;
+        param->slave->attribute = 0;
+        param->slave->target = (ModelType *)item->owner->model;
+        param->slave->motion->count = 0;
+        PlayMotion(param->slave->motion, 1);
+        param->slave->attribute &= 0xff7f;
+        param->slave->model->object[0]->attribute |= 0x4000;
+        FUN_800270f8(param->slave, 0);
+        param->slave->vector.vy = 0;
+        item->mode = item->mode + 1;
+        param->count = 0x708;
+        return;
+    }
+
+    case 2:
+    {
+        u16 count;
+        Humanoid *slave;
+
+        if (is_character_state_present_on_stage_(param->slave) == 0)
+        {
+            if (item->proc != 0)
+            {
+                item->mode = ff;
+                item->proc(item);
+                DeleteConflict(item->locate);
+                if (item->mode != 0)
+                {
+                    AdtMessageBox(D_800121CC, item->type,
+                                  (u32)item->mode);
+                }
+                item->owner = 0;
+                item->proc = 0;
+            }
+        }
+
+        count = param->count - 1;
+        param->count = count;
+        if ((count << 16) <= 0)
+        {
+            goto expire;
+        }
+        slave = param->slave;
+        if (slave->life <= 0)
+        {
+            goto expire;
+        }
+        if ((slave->attribute & 0x80) == 0)
+        {
+            goto active;
+        }
+
+expire:
+        scratch.effect_vec = D_80097AF4[0];
+        SetSmoke((VECTOR *)param->slave->model->locate.coord.t,
+                 &scratch.effect_vec, 10, 6);
+        SoundEx((VECTOR *)param->slave->model->locate.coord.t, 0x23);
+        TurnAroundAllItems(param->slave);
+        {
+            void (*dispose_proc)(tag_TItem *);
+
+            dispose_proc = item->proc;
+            if (dispose_proc == 0)
+            {
+                return;
+            }
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+
+active:
+        {
+            s32 owner_attribute;
+            Humanoid *target;
+            s16 status;
+
+            if (GameClock % 15 != 0)
+            {
+                return;
+            }
+            status = slave->status;
+            if (status == 0x10 || status == 8 || status == 7)
+            {
+                return;
+            }
+
+            owner_attribute = item->owner->attribute;
+            item->owner->attribute = 0x80;
+            target = GetNearestHumanoid(param->slave, 10000);
+            item->owner->attribute = owner_attribute;
+            if (target != 0)
+            {
+                if ((ModelType *)target->model == param->slave->target)
+                {
+                    return;
+                }
+                SetupThinkFunction(param->slave, 0x5449);
+                param->slave->target = (ModelType *)target->model;
+                param->slave->attribute |= 2;
+                EquipWeapon(param->slave, 1);
+                SetNowMotion(param->slave, 0x80e, 1);
+                return;
+            }
+            else
+            {
+                if (param->slave->target == item->locate)
+                {
+                    return;
+                }
+                EquipWeapon(param->slave, 0);
+                SetNowMotion(param->slave, 0x80f, 1);
+                param->slave->attribute &= 0xfffc;
+                SetupThinkFunction(param->slave, 0);
+                param->slave->target = (ModelType *)item->owner->model;
+                return;
+            }
+        }
+    }
+    }
+    return;
+}
 
 // triage: HARD — 575 insns, mul/div, 1 loop, indirect-call, 22 callees, ~0.13 to ProcItemDrop
 // likely-relevant cookbook sections:
