@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -122,12 +123,31 @@ def atomic_write(path: str, text: str) -> None:
         raise
 
 
+def unexpected_unmerged(paths: list[str], unmerged: list[str]) -> list[str]:
+    """Unmerged git paths outside the explicitly authorized metadata files."""
+    allowed = {os.path.normpath(path) for path in paths}
+    return sorted(path for path in map(os.path.normpath, unmerged)
+                  if path not in allowed)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("paths", nargs="*", default=list(DEFAULT_PATHS))
     parser.add_argument("--check", action="store_true",
                         help="validate and report, but do not write")
     args = parser.parse_args()
+
+    status = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        capture_output=True, text=True,
+    )
+    if status.returncode != 0:
+        sys.exit("merge-metadata-conflicts: cannot inspect git unmerged paths")
+    unexpected = unexpected_unmerged(args.paths, status.stdout.splitlines())
+    if unexpected:
+        joined = ", ".join(unexpected)
+        sys.exit("merge-metadata-conflicts: refusing non-metadata conflict(s): " +
+                 joined)
 
     planned: list[tuple[str, str, int]] = []
     try:

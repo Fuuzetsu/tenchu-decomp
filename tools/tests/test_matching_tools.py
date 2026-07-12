@@ -1227,6 +1227,15 @@ MASPSX_EXTRA = {{
                 "shake/src/Build.hs", disagreement
             )
 
+    def test_metadata_merge_rejects_other_unmerged_paths(self):
+        self.assertEqual(
+            merge_metadata_conflicts.unexpected_unmerged(
+                ["shake/src/Build.hs", "tools/permute.py"],
+                ["tools/permute.py", "src/main.exe/F.c"],
+            ),
+            ["src/main.exe/F.c"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
