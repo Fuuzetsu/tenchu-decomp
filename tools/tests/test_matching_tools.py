@@ -95,6 +95,22 @@ int F(void) {
             [],
         )
 
+    def test_ptr_index_sum_handles_later_double_pointer_assignment(self):
+        source = """void F(Node **base, int index) {
+    Node **slot;
+    slot = base + index;
+    use(slot);
+}
+"""
+        out = self.candidates(autorules.rule_ptr_index_sum, source)
+        assignments = [text for label, text in out
+                       if label.startswith("ptr-sum-assign base+index")]
+        self.assertEqual(len(assignments), 1)
+        self.assertIn(
+            "slot = (Node **)((u32)base + index * sizeof(*slot));",
+            assignments[0],
+        )
+
     def test_eq_literal_swap_rejects_two_values_or_side_effects(self):
         values = "int F(int a, int b) { return a == b; }\n"
         effect = "int next(void); int F(void) { return next() != 1; }\n"
@@ -136,6 +152,32 @@ int F(void) { u16 *first, *second; return 0; }
         self.assertEqual(len(out), 1)
         self.assertIn("do {", out[0][1])
         self.assertIn("} while (0);", out[0][1])
+
+    def test_loop_fence_wraps_an_assignment(self):
+        source = """int F(int value) {
+    value = 0;
+    return value;
+}
+"""
+        out = self.candidates(autorules.rule_loop_fence, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("value = 0;", out[0][1])
+        self.assertIn("} while (0);", out[0][1])
+
+    def test_paired_loop_fence_is_one_atomic_candidate(self):
+        source = """int F(int value) {
+    value = value + 1;
+    value = value * 2;
+    value = value - 3;
+    return value;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_paired_loop_fence, source)
+        pair = [text for label, text in out
+                if label.startswith("paired-loop-fence 2+1 L2-4")]
+        self.assertEqual(len(pair), 1)
+        self.assertEqual(pair[0].count("} while (0);"), 2)
 
     def test_loop_fence_rejects_if_with_switch_break(self):
         source = """int F(int a) {

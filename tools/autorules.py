@@ -1198,6 +1198,66 @@ def rule_ptr_index_sum(text, name, span):
             yield (f"{tag} L{_line(data, val.start_byte)}",
                    splice(data, val.start_byte, val.end_byte, repl).decode())
 
+    # The same fold occurs when a pointer is assigned after its declaration.
+    # Recover the visible local's full pointer type (including ** depth), and
+    # use sizeof(*lhs), which is the exact stride of pointer arithmetic.
+    pointer_casts = {}
+    for decl in _find(body, ("declaration",)):
+        ty = decl.child_by_field_name("type")
+        if ty is None:
+            continue
+        for child in decl.named_children:
+            dclr = (child.child_by_field_name("declarator")
+                    if child.type == "init_declarator" else child)
+            if dclr is None or dclr.type != "pointer_declarator":
+                continue
+            stars = 0
+            cursor = dclr
+            while cursor is not None and cursor.type == "pointer_declarator":
+                stars += 1
+                cursor = cursor.child_by_field_name("declarator")
+            if cursor is None or cursor.type != "identifier":
+                continue
+            pointer_casts[_txt(data, cursor)] = (
+                b"(" + _txt(data, ty).strip() + b" " + b"*" * stars + b")"
+            )
+    for statement in _find(body, ("expression_statement",)):
+        expressions = [child for child in statement.named_children
+                       if child.type != "comment"]
+        if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+            continue
+        assignment = expressions[0]
+        operator = assignment.child_by_field_name("operator")
+        lhs = assignment.child_by_field_name("left")
+        value = assignment.child_by_field_name("right")
+        if (operator is None or _txt(data, operator) != b"=" or lhs is None or
+                lhs.type != "identifier" or _txt(data, lhs) not in pointer_casts or
+                value is None or value.type != "binary_expression"):
+            continue
+        plus = value.child_by_field_name("operator")
+        left = value.child_by_field_name("left")
+        right = value.child_by_field_name("right")
+        if (plus is None or _txt(data, plus) != b"+" or
+                left is None or right is None):
+            continue
+        lhs_text = _txt(data, lhs)
+        left_text, right_text = _txt(data, left).strip(), _txt(data, right).strip()
+        cast = pointer_casts[lhs_text]
+        stride = b"sizeof(*" + lhs_text + b")"
+        variants = (
+            (left_text, right_text),
+            (right_text, left_text),
+        )
+        for base, index in variants:
+            replacement = (cast + b"((u32)" + base + b" + " + index +
+                           b" * " + stride + b")")
+            yield (
+                f"ptr-sum-assign {base.decode()}+{index.decode()} "
+                f"L{_line(data, value.start_byte)}",
+                splice(data, value.start_byte, value.end_byte,
+                       replacement).decode(),
+            )
+
 
 def _stmt_expr(data, stmt):
     """(lhs_text, rhs_text) if `stmt` is `X = E;` (assignment or single-init decl)."""
@@ -2034,7 +2094,12 @@ def rule_loop_fence(text, name, span):
     body = _func_body(data, name, _byte_span(text, span))
     if body is None:
         return
-    for stmt in _find(body, ("if_statement", "for_statement", "while_statement")):
+    for stmt in _find(body, (
+            "expression_statement", "if_statement", "for_statement",
+            "while_statement")):
+        if (stmt.type == "expression_statement" and
+                (stmt.parent is None or stmt.parent.type != "compound_statement")):
+            continue
         if stmt.parent is not None and stmt.parent.type == "do_statement":
             continue
         if stmt.type == "if_statement" and _find(
@@ -2050,6 +2115,61 @@ def rule_loop_fence(text, name, span):
                 b"} while (0);")
         yield (f"loop-fence {stmt.type.removesuffix('_statement')} L{line}",
                splice(data, stmt.start_byte, stmt.end_byte, repl).decode())
+
+
+def rule_paired_loop_fence(text, name, span):
+    """Put adjacent statement groups behind two separate one-shot loop notes.
+
+    A useful allocation can require raising two pseudo priorities together;
+    either individual fence can cross the wrong priority boundary or leave a
+    scheduler nop. Enumerate only two-to-four safe adjacent statements and
+    every split into two nonempty groups, as one atomic guided candidate.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    eligible = {
+        "compound_statement", "expression_statement", "for_statement",
+        "goto_statement", "if_statement", "return_statement",
+        "switch_statement", "while_statement",
+    }
+    forbidden = ("break_statement", "continue_statement", "labeled_statement",
+                 "case_statement")
+    for block in _find(body, ("compound_statement",)):
+        if block.parent is not None and block.parent.type == "do_statement":
+            continue
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for count in range(2, 5):
+            for start in range(len(statements) - count + 1):
+                group = statements[start:start + count]
+                if (any(stmt.type not in eligible for stmt in group) or
+                        any(_find(stmt, forbidden) for stmt in group)):
+                    continue
+                lines = [_line(data, stmt.start_byte) for stmt in group]
+                if not any(_guided_site(line) for line in lines):
+                    continue
+                for split in range(1, count):
+                    first_group, second_group = group[:split], group[split:]
+                    first, last = group[0], group[-1]
+                    indent = _indent_at(data, first.start_byte)
+
+                    def fenced(part):
+                        source = data[part[0].start_byte:part[-1].end_byte]
+                        indented = source.replace(b"\n", b"\n  ")
+                        return (b"do {\n" + indent + b"  " + indented + b"\n" +
+                                indent + b"} while (0);")
+
+                    middle = data[first_group[-1].end_byte:
+                                  second_group[0].start_byte]
+                    replacement = fenced(first_group) + middle + fenced(second_group)
+                    yield (
+                        f"paired-loop-fence {split}+{count - split} "
+                        f"L{lines[0]}-{lines[-1]}",
+                        splice(data, first.start_byte, last.end_byte,
+                               replacement).decode(),
+                    )
 
 
 def rule_loop_range(text, name, span):
@@ -2391,6 +2511,7 @@ AGGRESSIVE_RULES = [
     ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
     ("pointee-volatile", "toggle volatile on a local integer pointer's pointee", rule_pointee_volatile),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
+    ("paired-loop-fence", "wrap adjacent groups in two atomic one-shot loops", rule_paired_loop_fence),
     ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
     ("loop-boundary-shift", "move the next statement across an existing LOOP_END", rule_loop_boundary_shift),
     ("identical-arm-fence", "duplicate one statement into zero-code identical arms", rule_identical_arm_fence),

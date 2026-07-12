@@ -1322,7 +1322,11 @@ re-widen. Declare the capturing local `s32` (`DrawFrame`'s size, `DrawSmoke`'s v
 order.** `p = (SVECTOR *)(idx * 0x20 + (s32)tbl);` emits `addu p,index,base`, whereas
 `tbl[i]`, `&tbl[i][0]` and `(u8 *)tbl + n` all emit `addu p,base,index`. When the
 target's `addu` has the index first, spell the address as an explicit integer sum,
-not an array subscript (`SetCameraMode`).
+not an array subscript (`SetCameraMode`). `ptr-index-sum` now handles both a
+pointer declaration initializer and a later bare assignment, including `T **`:
+DrawConstruction's `slot = DrawList + bucket` needed
+`slot = (T **)((u32)DrawList + bucket * sizeof(*slot))` for the terminal
+index-first `addu`.
 
 **A `slti/xori/bnez` (set-condition + branch) success test is a NAMED flag variable.**
 `hitf = call(...) > 0x7ff; if (hitf) goto hit;` compiles the three-instruction
@@ -2495,6 +2499,14 @@ range. Guided `autorules` therefore also enumerates `loop-range`: two-to-four
 adjacent statements, excluding declarations and any nested break/continue/case/
 label whose target or scope could change. This is a bounded RTL-line-guided
 search, not permission to scatter dummy loops blindly.
+
+`paired-loop-fence` is the atomic complement: it splits two-to-four adjacent
+statements into two separate one-shot loops. DrawConstruction needed both
+slot/plimit fences together to keep two allocation priorities ordered; either
+alone crossed a rival priority or created a target-absent scheduler `nop`. The
+paired rule lets scoring see the combination without requiring a regressing
+intermediate beam state. Single `loop-fence` also accepts a plain expression
+statement, covering LoadSI's exact `msg = 0` fence.
 
 ### Inline extended asm is an anti-rule, not a matching transformation
 
