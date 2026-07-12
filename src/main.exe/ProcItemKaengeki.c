@@ -35,16 +35,262 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemKaengeki", ProcItemKaengeki);
+#include "item.h"
 
-// triage: HARD — 319 insns, mul/div, indirect-call, 15 callees, ~0.28 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - Register allocation steering: indirect call — null-check-var/call-field
+/*
+ * MATCH.
+ *
+ * ProcItemKaengeki (0x80043710) runs the fire-breath item.  It starts the
+ * owner's use animation, drops the item if that animation is interrupted,
+ * then spends 40 frames steering the owner and launching camera-relative
+ * napalm requests.
+ *
+ * Matching notes:
+ *  - `rp`, `rx`, and `ry` are one contiguous sp+0x10..0x3f working window.
+ *    The mode-1 path views its first 0x28 bytes as the dropped-item request;
+ *    mode 2 reuses the same request and the trailing two words as camera
+ *    rotation outputs.
+ *  - `mode_index = 0` is a zero-byte CSE eviction.  Naming the entry mode
+ *    load and dead-overwriting that local before the switch makes
+ *    expand_case emit the target's fresh second `lbu`; a direct switch after
+ *    the entry guard incorrectly reuses the first load.
+ *  - `ff` is an s32 caller-saved local in a1.  It remains live from the entry
+ *    compare to mode 2's no-call dispose path, while mode 1 rematerializes a
+ *    literal 0xff after its calls.  That difference keeps the two dispose
+ *    prefixes separate while cross-jump merges them at the indirect call.
+ *  - The completed request assigns user before type.  This prevents the
+ *    type's `li 22` from filling the steering guard's delay slot and yields
+ *    the target load/li/store ordering at the request head.
+ *  - The steering writes use direct compound expressions through
+ *    `human->model`.  That lets CSE overwrite the dead human pointer with the
+ *    model in v1; a named model assignment instead colors the model into a0.
+ *  - The staged vector statements are intentional: copy rotated end to
+ *    start, scale start by 12, add the saved origin, double end, then add
+ *    start.  They reproduce both rounds of stack stores in the target.
+ */
+typedef struct
+{
+    VECTOR start;
+    VECTOR end;
+    u8 count;
+} param_kaengeki;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+typedef struct
+{
+    VECTOR TargetVector;
+    Humanoid *Owner;
+    s32 Mode;
+    s16 DirectionRX;
+    s16 DirectionRY;
+    s32 OldMode;
+    u8 Valiation;
+} KaengekiCameraStatus;
+
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+    s32 rz;
+    GsCOORDINATE2 *super;
+} KaengekiViewInfo;
+
+extern KaengekiCameraStatus CamState;
+extern KaengekiViewInfo ViewInfo;
+
+extern s16 NowReturnNormal(Humanoid *human);
+extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
+extern void RotateVector(VECTOR *vec, s32 rx, s32 ry, s32 rz);
+extern void ReqItemUse(PARAM_ITEM_USE *p);
+
+void ProcItemKaengeki(tag_TItem *item)
+{
+    param_kaengeki *param;
+    PARAM_ITEM_USE rp;
+    void (*ppu)(tag_TItem *);
+    s32 rx;
+    s32 ry;
+    s32 ff;
+    u8 mode_index;
+
+    param = (param_kaengeki *)item->param;
+    ff = 0xff;
+    mode_index = item->mode;
+    if (mode_index == ff)
+    {
+        if (item->owner->motion->mid == 0xf04)
+        {
+            NowReturnNormal(item->owner);
+        }
+        item->mode = 0;
+        return;
+    }
+
+    mode_index = 0;
+    switch (item->mode)
+    {
+    case 0:
+    {
+        Humanoid *human;
+
+        human = item->owner;
+        if (ActionHalt == 0 && human->life > 0)
+        {
+            MotionDataType *motion;
+
+            dispose_weapon_data_of_char_(human, 3);
+            UpdateMotion(human->motion, 0xf04);
+            human->status = 0xf;
+            motion = human->motion->motion;
+            MoveHumanoid(human, motion->orderspd, motion->sidespd);
+        }
+        Sound(item->owner, 0x4c);
+        item->mode = item->mode + 1;
+        return;
+    }
+
+    case 1:
+    {
+        MotionManager *motion;
+
+        motion = item->owner->motion;
+        if (motion->count == 0 && motion->loop != 0)
+        {
+            SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x28);
+            item->mode = item->mode + 1;
+            param->count = 0x28;
+        }
+        if (item->owner->motion->mid == 0xf04)
+        {
+            return;
+        }
+        {
+            VECTOR *pos;
+            Humanoid *human;
+            s32 itemID;
+
+            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
+            human = item->owner;
+            itemID = item->type;
+            memset(&rp, 0, sizeof(PARAM_ITEM_USE));
+            rp.type = itemID;
+            rp.user = human;
+            rp.start.vx = pos->vx;
+            rp.start.vy = pos->vy;
+            rp.start.vz = pos->vz;
+            rp.end.vx = rand() % 200 - 100;
+            rp.end.vy = rand() % 100 - 200;
+            rp.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&rp);
+            ppu = item->proc;
+            if (ppu == 0)
+            {
+                return;
+            }
+            item->mode = 0xff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+    }
+
+    case 2:
+    {
+        Humanoid *human;
+        u16 buttons;
+        u8 count;
+        ModelArchiveType *model;
+        s32 rz;
+
+        if (item->owner->motion->mid != 0xf04)
+        {
+            goto dispose;
+        }
+        count = param->count - 1;
+        param->count = count;
+        if (count == 0)
+        {
+            goto dispose;
+        }
+
+        human = item->owner;
+        buttons = human->pad.data;
+        if ((buttons & 0x2000) != 0)
+        {
+            human->model->rotate.vy = human->model->rotate.vy + 0x20;
+        }
+        else if ((buttons & 0x8000) != 0)
+        {
+            human->model->rotate.vy = human->model->rotate.vy - 0x20;
+        }
+
+        rp.user = item->owner;
+        rp.type = 22;
+        rp.end.vx = param->end.vx;
+        rp.end.vy = param->end.vy;
+        rp.end.vz = param->end.vz;
+        model = item->owner->model;
+        if (CamState.Owner->model == model && CamState.Mode == 1)
+        {
+            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx,
+                              &rx, &ry);
+            rz = 0;
+        }
+        else
+        {
+            rx = model->rotate.vx;
+            rz = model->rotate.vz;
+            ry = model->rotate.vy;
+        }
+        RotateVector(&rp.end, rx, ry, rz);
+
+        rp.start.vx = rp.end.vx;
+        rp.start.vy = rp.end.vy;
+        rp.start.vz = rp.end.vz;
+        rp.start.vx *= 12;
+        rp.start.vy *= 12;
+        rp.start.vz *= 12;
+        rp.start.vx += param->start.vx;
+        rp.start.vy += param->start.vy;
+        rp.start.vz += param->start.vz;
+        rp.end.vx *= 2;
+        rp.end.vy *= 2;
+        rp.end.vz *= 2;
+        rp.end.vx += rp.start.vx;
+        rp.end.vy += rp.start.vy;
+        rp.end.vz += rp.start.vz;
+        ReqItemUse(&rp);
+        return;
+
+dispose:
+        if (item->proc == 0)
+        {
+            return;
+        }
+        item->mode = ff;
+        item->proc(item);
+        DeleteConflict(item->locate);
+        if (item->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+        }
+        item->owner = 0;
+        item->proc = 0;
+        return;
+    }
+    }
+}
+
+// Historical Ghidra decompilation reference:
 //
 //
 // void ProcItemKaengeki(tag_TItem *item)
