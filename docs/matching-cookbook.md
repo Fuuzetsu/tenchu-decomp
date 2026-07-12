@@ -699,6 +699,16 @@ own full tail instead. (See also the shared-tails rule.)
 
 ### Guard-clause `return 0;`s all cross-jump into the LAST plain island
 
+When the target has one conditional branch but the candidate has the inverse
+conditional followed by `nop; j shared_return`, the residual is physical guard
+layout, not missing behavior. `rtlguide` reports this as
+`guard-return-island-layout`. Try the guided `if-else-invert` spelling or one
+explicit shared return label once; if the target/candidate RTL still chooses
+opposite islands, park it rather than reacting to the large address-drift byte
+count. `SearchTarget` was semantically complete with an exact 0x50 frame and
+stack access plan, but one such extra skip instruction made 572 bytes appear
+different despite only five aligned hunks.
+
 Every `return 0;` compiles to its own `[v0=0; j]` island, and jump2's cross-jump merges
 them ALL into the last plain island in emission order. So an `if (cond) { body }
 return 0;` at the end puts the shared `return 0` at the function END, while an inline

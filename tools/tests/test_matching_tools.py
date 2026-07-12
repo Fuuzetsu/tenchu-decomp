@@ -761,6 +761,16 @@ class RtlGuideTests(unittest.TestCase):
             ["enclosing-global-field-load"],
         )
 
+    def test_known_guard_return_island_layout_signature(self):
+        h = self.hunk(
+            ["bnez v0,0x80028f90"],
+            ["beqz v0,0x80028d0c", "nop", "j 0x80028f94"],
+        )
+        self.assertEqual(
+            rtlguide.known_residual_signatures([h]),
+            ["guard-return-island-layout"],
+        )
+
     def test_known_builtin_abs_signature(self):
         target = [
             (0x1000, "bgez a0,0x1010"),

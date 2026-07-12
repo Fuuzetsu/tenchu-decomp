@@ -133,6 +133,12 @@ SIGNATURE_HINTS = {
         "the candidate folds both into one; query the scalar name/address with "
         "tools/symnear.py and try the proven nonzero field of an enclosing global"
     ),
+    "guard-return-island-layout": (
+        "target uses one conditional branch into/out of a shared return island, "
+        "while the candidate emits the inverse guard plus nop and skip jump; "
+        "try if-else-invert or one explicit shared return label once, then park "
+        "if RTL-guided body-layout trials are flat"
+    ),
     "builtin-abs-inline": (
         "candidate calls abs but target has bgez/negu inline; spell the site "
         "__builtin_abs(...) because the matching cc1 receives -fno-builtin"
@@ -569,6 +575,24 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
         if (_enclosing_global_field_load(target, ours) and
                 "enclosing-global-field-load" not in found):
             found.append("enclosing-global-field-load")
+
+        # A one-branch target versus inverse-branch/nop/skip-jump candidate is
+        # the compact signature of a guard body laid out on the wrong physical
+        # side of a shared return island.  Address drift is deliberately
+        # ignored; only the branch polarity, tested registers, and nop+j shape
+        # matter.
+        inverse = {
+            "beq": "bne", "bne": "beq", "beqz": "bnez", "bnez": "beqz",
+            "bgez": "bltz", "bltz": "bgez", "bgtz": "blez", "blez": "bgtz",
+        }
+        if len(target) == 1 and len(ours) == 3:
+            target_op = mnemonic(target[0])
+            ours_op = mnemonic(ours[0])
+            if (inverse.get(target_op) == ours_op and
+                    registers(target[0]) == registers(ours[0]) and
+                    mnemonic(ours[1]) == "nop" and mnemonic(ours[2]) == "j" and
+                    "guard-return-island-layout" not in found):
+                found.append("guard-return-island-layout")
 
         # One memory load and one literal feed a commutative equality branch,
         # with their $v0/$v1 homes exchanged as a pair. This is the exact
