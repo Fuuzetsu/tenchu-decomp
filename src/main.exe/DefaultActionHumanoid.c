@@ -45,18 +45,10 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact target length (656 instructions / 2624
- * bytes), with 6 differing bytes in two adjacent, independent loads:
- *
- *   target: lh v1,88(fp); lh a3,30(a2)
- *   ours:   lh a3,30(a2); lh v1,88(fp)
- *
- * Build this guarded draft with `NON_MATCHING=DefaultActionHumanoid ./Build`.
- * The remaining values and all later consumers use the target registers;
- * only sched2's order differs.  Splitting `object->id` into either an s16
- * or s32 local, changing declaration order, and scheduler-loop fencing were
- * tested and reverted: s16 is equivalence-substituted and remains identical,
- * while s32 adds a load-hazard nop and perturbs the collision-pointer allocno.
+ * The nested one-shot loops around the conflict pointer and object id place
+ * sched1 loop-note fences between the target's pointer, id, and size loads.
+ * The identical yy arms add a zero-code CFG fence without loop-weighting the
+ * collision pointer and rotating its a1/a2 allocation.
  */
 
 typedef struct
@@ -102,9 +94,6 @@ extern s16 Sound(Humanoid *human, s16 id);
 extern s32 rsin(s32 angle);
 extern s32 rcos(s32 angle);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DefaultActionHumanoid", DefaultActionHumanoid);
-#else
 short DefaultActionHumanoid(Humanoid *human)
 {
     HumanMapVector *map;
@@ -417,6 +406,7 @@ apply_reflection:
                 s32 top;
                 s32 object_y;
                 s32 size_y;
+                s32 object_id;
                 HumanConflictObject *conflict;
 
                 human->attribute |= 0x8000;
@@ -436,11 +426,19 @@ apply_reflection:
                         conflict = &ConflictObject[i];
                     }
                     while (0);
+                    object_id = object->id;
                 }
                 while (0);
                 size_y = conflict->size.vy;
-                yy = conflict->position.vy;
-                object_y = ConflictObject[object->id].position.vy;
+                if (object_id != 0)
+                {
+                    yy = conflict->position.vy;
+                }
+                else
+                {
+                    yy = conflict->position.vy;
+                }
+                object_y = ConflictObject[object_id].position.vy;
                 top = yy - size_y;
                 if (object_y < top)
                 {
@@ -566,7 +564,6 @@ apply_reflection:
     }
     return human->attribute;
 }
-#endif
 
 // triage: VERY-HARD — 656 insns, mul/div, 7 loop, 10 callees, ~0.05 to ProcItemDrop
 // likely-relevant cookbook sections:
