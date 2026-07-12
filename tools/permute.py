@@ -209,6 +209,7 @@ GP_EXTERNS = {
     "FUN_8005fe38": ["D_80097E98"],
     "InitMisc": ["EFFECT_SPAWNERS_INITIALISED"],
     "InitializeItem": ["D_80097F48", "D_80097F4C", "D_80097F50", "HAPPOU_SCRATCH_MODEL", "D_80097F5C", "D_80097F60", "D_80097AC8"],
+    "ProcItemNapalm": ["D_80097F60"],
     "DoMiscProc": ["EFFECT_SPAWNERS_INITIALISED"],
     "LoadSI": ["D_80097D8C"],
     "InitializeInfoView": ["fInitialize"],
@@ -266,6 +267,7 @@ MASPSX_EXTRA = {
     "AttackShort": ["--expand-div"],
     "DamageControl": ["--expand-div"],
     "ControlHumanoid": ["--expand-div"],
+    "ProcItemNapalm": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

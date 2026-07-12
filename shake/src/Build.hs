@@ -187,6 +187,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "AttackShort" = ["--expand-div"]
     extra "DamageControl" = ["--expand-div"]
     extra "ControlHumanoid" = ["--expand-div"]
+    extra "ProcItemNapalm" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
@@ -364,6 +365,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "FUN_8003944c" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "InitMisc" = ["EFFECT_SPAWNERS_INITIALISED"]
     syms "InitializeItem" = ["D_80097F48", "D_80097F4C", "D_80097F50", "HAPPOU_SCRATCH_MODEL", "D_80097F5C", "D_80097F60", "D_80097AC8"]
+    syms "ProcItemNapalm" = ["D_80097F60"]
     syms "DoMiscProc" = ["EFFECT_SPAWNERS_INITIALISED"]
     syms "LoadSI" = ["D_80097D8C"]
     syms "InitializeInfoView" = ["fInitialize"]
