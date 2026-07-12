@@ -233,6 +233,7 @@ GP_EXTERNS = {
     "SwimCheck": ["Me_MOTION_C", "motID", "dtM", "dtL", "D_80097F0E", "MotionUpdateMode"],
     "ActivateHumans": ["D_80097F40", "D_80097F44", "D_80097F42", "StageID"],
     "ProcItemNingyo": ["D_80097AE0", "D_80097F50"],
+    "StartStageSequence": ["StageEvent", "StageTime", "FriendHits", "Murders", "Findenemies", "Criticals", "D_80097F7C", "StagePlayer", "StageCitizens", "StageEnemies", "StageBosses"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

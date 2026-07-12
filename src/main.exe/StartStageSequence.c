@@ -39,207 +39,272 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/StartStageSequence", StartStageSequence);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/StartStageSequence", INIT_STAGE_STATS);
+#include "item.h"
 
-// triage: HARD — 378 insns, 7 loop, 5 callees, ~0.04 to GetHumanoid
-// likely-relevant cookbook sections:
-//   - Loops: 7 back-edge(s) — for/while/do vs goto shape
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+/*
+ * MATCH.
+ *
+ * StartStageSequence (0x8004d970) installs the stage-specific characters,
+ * reorders HumanGroup by character class, counts enemies/citizens/bosses,
+ * applies the stage-specific score exclusions, and resets the event and
+ * score clocks.  INIT_STAGE_STATS is an internal symbol at the reset tail,
+ * not a second function.
+ *
+ * Matching notes:
+ *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
+ *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
+ *  - The chrid translation is written as two explicit gotos so the -1 arm
+ *    stays inline and the -2 arm is laid out later.  `stg_think` is a
+ *    short-lived volatile view of the same StageChar row: it prevents CSE of
+ *    the signed comparison load with the unsigned `tp` load, while its named
+ *    pointer makes GCC reuse the derived `&stg->think` induction base (s1).
+ *  - `y` deliberately carries each x/z product to both destination stores;
+ *    repeating the multiplication expression makes GCC recompute it.  The
+ *    StagePlayer model is likewise fetched before the attribute/life stores
+ *    so the target's v1 chain can be interleaved with them.
+ *  - Loop spelling is mixed intentionally.  The first two class-filter scans
+ *    are `while` loops, but the remaining-pointer scan and score-count scan
+ *    are `for` loops.  With the pinned cc1 those loop notes make reorg copy
+ *    `i + 1` into two taken-branch delay slots and recompute it on the other
+ *    path; the equivalent all-while spelling is two instructions short.
+ *  - StageEvent/StagePlayer and the score counters are gp-relative in this
+ *    translation unit; maspsxflags.py records that per-function list.
+ */
+typedef struct
+{
+    s16 stage;
+    u16 chrid;
+    SVECTOR position;
+    s16 think;
+} StageCharType;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Unknown calling convention -- yet parameter storage is locked */
-//
-// void StartStageSequence(void)
-//
-// {
-//   int iVar1;
-//   Humanoid *pHVar2;
-//   long lVar3;
-//   int iVar4;
-//   VECTOR *pVVar5;
-//   ModelType *pMVar6;
-//   int iVar7;
-//   ushort *puVar8;
-//   short sVar9;
-//   ushort uVar10;
-//   int iVar11;
-//   short sVar12;
-//   int iVar13;
-//   undefined4 *puVar14;
-//   short *psVar15;
-//   StageCharType *pSVar16;
-//   int local_b8 [40];
-//
-//   pSVar16 = StageChar;
-//   if (StageChar[0].stage != -1) {
-//     psVar15 = &StageChar[0].think;
-//     do {
-//       if ((int)pSVar16->stage == StageID + 1) {
-//         sVar9 = psVar15[-5];
-//         if (psVar15[-5] == -2) {
-//           sVar9 = 5;
-//           if (StagePlayer->type == 0) {
-//             sVar9 = 6;
-//           }
-//         }
-//         else if ((psVar15[-5] == -1) && (sVar9 = 2, StagePlayer->type == 0)) {
-//           sVar9 = 3;
-//         }
-//         iVar13 = 0;
-//         sVar12 = 0;
-//         if (0 < Humans) {
-//           iVar1 = 0;
-//           do {
-//             sVar12 = (short)iVar13;
-//             iVar13 = iVar13 + 1;
-//             if (**(short **)((int)HumanGroup + (iVar1 >> 0xe)) == sVar9) break;
-//             iVar1 = iVar13 * 0x10000;
-//             sVar12 = (short)iVar13;
-//           } while (iVar13 * 0x10000 >> 0x10 < (int)Humans);
-//         }
-//         if ((int)sVar12 == (int)Humans) {
-//           pHVar2 = (Humanoid *)BreedLife((int)sVar9,0,0,0,0);
-//         }
-//         else {
-//           pHVar2 = HumanGroup[sVar12];
-//         }
-//         iVar13 = ((SVECTOR *)(psVar15 + -4))->vx * 1000;
-//         pHVar2->point[0] = iVar13;
-//         pHVar2->locate->vx = iVar13;
-//         sVar9 = psVar15[-2];
-//         pVVar5 = pHVar2->locate;
-//         pHVar2->point[1] = sVar9 * 1000;
-//         pVVar5->vz = sVar9 * 1000;
-//         pHVar2->locate->vy = psVar15[-3] * 1000;
-//         lVar3 = GetAreaMapLevel(GlobalAreaMap,pHVar2->locate->vx,pHVar2->locate->vy + -1000);
-//         if (lVar3 < pHVar2->locate->vy) {
-//           pHVar2->locate->vy = lVar3;
-//         }
-//         pHVar2->rotate->vy = psVar15[-1];
-//         UpdateCoordinate((ModelType *)pHVar2->model);
-//         SetupThinkFunction(pHVar2,*psVar15);
-//         pMVar6 = (ModelType *)StagePlayer->model;
-//         pHVar2->attribute = pHVar2->attribute & 0xfffbU | 0x82;
-//         pHVar2->life = -1;
-//         pHVar2->target = pMVar6;
-//       }
-//       pSVar16 = pSVar16 + 1;
-//       psVar15 = psVar15 + 7;
-//     } while (pSVar16->stage != -1);
-//   }
-//   iVar1 = 0;
-//   iVar7 = (int)Humans;
-//   iVar13 = 0;
-//   if (0 < iVar7) {
-//     iVar4 = 0;
-//     iVar11 = iVar13;
-//     do {
-//       puVar14 = (undefined4 *)((int)HumanGroup + (iVar4 >> 0xe));
-//       puVar8 = (ushort *)*puVar14;
-//       iVar13 = iVar11;
-//       if ((puVar8 != (ushort *)0x0) && ((*puVar8 & 0xf0) == 0)) {
-//         iVar13 = iVar11 + 1;
-//         *(ushort **)((int)local_b8 + ((iVar11 << 0x10) >> 0xe)) = puVar8;
-//         *puVar14 = 0;
-//       }
-//       iVar1 = iVar1 + 1;
-//       iVar4 = iVar1 * 0x10000;
-//       iVar11 = iVar13;
-//     } while (iVar1 * 0x10000 >> 0x10 < iVar7);
-//     iVar7 = (int)Humans;
-//   }
-//   iVar1 = 0;
-//   if (0 < iVar7) {
-//     iVar4 = 0;
-//     iVar11 = iVar13;
-//     do {
-//       puVar14 = (undefined4 *)((int)HumanGroup + (iVar4 >> 0xe));
-//       puVar8 = (ushort *)*puVar14;
-//       iVar13 = iVar11;
-//       if ((puVar8 != (ushort *)0x0) && ((*puVar8 & 0xf0) == 0x80)) {
-//         iVar13 = iVar11 + 1;
-//         *(ushort **)((int)local_b8 + ((iVar11 << 0x10) >> 0xe)) = puVar8;
-//         *puVar14 = 0;
-//       }
-//       iVar1 = iVar1 + 1;
-//       iVar4 = iVar1 * 0x10000;
-//       iVar11 = iVar13;
-//     } while (iVar1 * 0x10000 >> 0x10 < iVar7);
-//   }
-//   iVar1 = 0;
-//   if (0 < Humans) {
-//     iVar7 = 0;
-//     do {
-//       iVar7 = *(int *)((int)HumanGroup + (iVar7 >> 0xe));
-//       iVar11 = iVar13;
-//       if (iVar7 != 0) {
-//         iVar11 = iVar13 + 1;
-//         *(int *)((int)local_b8 + ((iVar13 << 0x10) >> 0xe)) = iVar7;
-//       }
-//       iVar1 = iVar1 + 1;
-//       iVar7 = iVar1 * 0x10000;
-//       iVar13 = iVar11;
-//     } while (iVar1 * 0x10000 >> 0x10 < (int)Humans);
-//   }
-//   iVar13 = (int)Humans;
-//   iVar1 = 0;
-//   if (0 < iVar13) {
-//     do {
-//       iVar7 = iVar1 << 0x10;
-//       iVar1 = iVar1 + 1;
-//       iVar7 = iVar7 >> 0xe;
-//       *(undefined4 *)((int)HumanGroup + iVar7) = *(undefined4 *)((int)local_b8 + iVar7);
-//     } while (iVar1 * 0x10000 >> 0x10 < iVar13);
-//   }
-//   StageCitizens = 0;
-//   StageEnemies = 0;
-//   StageBosses = 0;
-//   iVar13 = 0;
-//   if (0 < Humans) {
-//     iVar1 = 0;
-//     do {
-//       pHVar2 = *(Humanoid **)((int)HumanGroup + (iVar1 >> 0xe));
-//       if (((-1 < pHVar2->lifemax) && (pHVar2 != StagePlayer)) && (pHVar2->type != 0xa9)) {
-//         uVar10 = pHVar2->type & 0xf0;
-//         if (uVar10 == 0x80) {
-//           StageBosses = StageBosses + 1;
-//         }
-//         else if (uVar10 == 0x90) {
-//           StageCitizens = StageCitizens + 1;
-//           goto LAB_8004de70;
-//         }
-//         StageEnemies = StageEnemies + 1;
-//       }
-// LAB_8004de70:
-//       iVar13 = iVar13 + 1;
-//       iVar1 = iVar13 * 0x10000;
-//     } while (iVar13 * 0x10000 >> 0x10 < (int)Humans);
-//   }
-//   if (StageID < 2) goto LAB_8004def4;
-//   if (3 < StageID) {
-//     if (StageID != 10) goto LAB_8004def4;
-//     StageBosses = StageBosses + -1;
-//     StageEnemies = StageEnemies + -1;
-//     if (StagePlayer->type == 1) goto LAB_8004def4;
-//   }
-//   StageBosses = StageBosses + -1;
-//   StageEnemies = StageEnemies + -1;
-// LAB_8004def4:
-//   GameClock = 0;
-//   StageTime = 0;
-//   ActionHalt = 0;
-//   AttackActionCount = 0;
-//   FriendHits = 0;
-//   Murders = 0;
-//   Findenemies = 0;
-//   Criticals = 0;
-//   if (StageEvent != (EventSeqType *)0x0) {
-//     UpdateEvent(0,0);
-//     DAT_80097f7c = 0;
-//   }
-//   return;
-// }
+typedef struct EventSeqType EventSeqType;
+
+extern StageCharType StageChar[18];
+extern Humanoid *HumanGroup[32];
+extern Humanoid *StagePlayer;
+extern EventSeqType *StageEvent;
+extern EventSeqType *D_80097F7C;
+extern u_long *GlobalAreaMap;
+extern s32 StageID;
+extern s32 GameClock;
+extern s32 StageTime;
+extern s32 AttackActionCount;
+extern s16 Humans;
+extern s16 ActionHalt;
+extern u16 StageCitizens;
+extern u16 StageEnemies;
+extern u16 StageBosses;
+extern u16 FriendHits;
+extern u16 Murders;
+extern u16 Findenemies;
+extern u16 Criticals;
+
+extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
+extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
+extern void UpdateCoordinate(ModelType *model);
+extern void SetupThinkFunction(Humanoid *human, s16 type);
+extern void UpdateEvent(s16 n, s16 id);
+
+void StartStageSequence(void)
+{
+    StageCharType *stg;
+    Humanoid *human;
+    Humanoid *entry;
+    Humanoid *order[40];
+    s32 y;
+    s16 i;
+    s16 tp;
+
+    stg = StageChar;
+    while (stg->stage != -1)
+    {
+        if (stg->stage == StageID + 1)
+        {
+            s16 chrid;
+            volatile u16 *stg_think;
+
+            chrid = (s16)stg->chrid;
+            stg_think = (volatile u16 *)&stg->think;
+            tp = stg_think[-5];
+            if (chrid == -2)
+            {
+                goto chrid_minus_two;
+            }
+            if (chrid != -1)
+            {
+                goto chrid_ready;
+            }
+            tp = 2;
+            if (StagePlayer->type == 0)
+            {
+                tp = 3;
+            }
+            goto chrid_ready;
+
+chrid_minus_two:
+            tp = 5;
+            if (StagePlayer->type == 0)
+            {
+                tp = 6;
+            }
+
+chrid_ready:
+
+            i = 0;
+            while (i < Humans)
+            {
+                if (HumanGroup[i]->type == tp)
+                {
+                    break;
+                }
+                i++;
+            }
+            if (i == Humans)
+            {
+                human = BreedLife(tp, 0, 0, 0, 0);
+            }
+            else
+            {
+                human = HumanGroup[i];
+            }
+
+            y = stg->position.vx * 1000;
+            human->point[0] = y;
+            human->locate->vx = y;
+            y = stg->position.vz * 1000;
+            human->point[1] = y;
+            human->locate->vz = y;
+            human->locate->vy = stg->position.vy * 1000;
+            y = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,
+                                human->locate->vy - 1000,
+                                human->locate->vz, 0);
+            if (y < human->locate->vy)
+            {
+                human->locate->vy = y;
+            }
+            human->rotate->vy = stg->position.pad;
+            UpdateCoordinate((ModelType *)human->model);
+            SetupThinkFunction(human, stg->think);
+            {
+                ModelType *target;
+
+                target = (ModelType *)StagePlayer->model;
+                human->attribute = (human->attribute | 0x82) & 0xfffb;
+                human->life = -1;
+                human->target = target;
+            }
+        }
+        stg++;
+    }
+
+    i = 0;
+    tp = i;
+    while (i < Humans)
+    {
+        entry = HumanGroup[i];
+        if (entry != 0 && (((u16)entry->type & 0xf0) == 0))
+        {
+            order[tp++] = entry;
+            HumanGroup[i] = 0;
+        }
+        i++;
+    }
+
+    i = 0;
+    while (i < Humans)
+    {
+        entry = HumanGroup[i];
+        if (entry != 0 && (((u16)entry->type & 0xf0) == 0x80))
+        {
+            order[tp++] = entry;
+            HumanGroup[i] = 0;
+        }
+        i++;
+    }
+
+    for (i = 0; i < Humans; i++)
+    {
+        entry = HumanGroup[i];
+        if (entry != 0)
+        {
+            order[tp++] = entry;
+        }
+    }
+
+    i = 0;
+    while (i < Humans)
+    {
+        HumanGroup[i] = order[i];
+        i++;
+    }
+
+    StageCitizens = 0;
+    StageEnemies = 0;
+    StageBosses = 0;
+    for (i = 0; i < Humans; i++)
+    {
+        u16 kind;
+
+        human = HumanGroup[i];
+        if ((s16)human->lifemax < 0)
+        {
+            goto next_human;
+        }
+        if (human == StagePlayer)
+        {
+            goto next_human;
+        }
+        if (human->type == 0xa9)
+        {
+            goto next_human;
+        }
+        kind = (u16)human->type & 0xf0;
+        if (kind == 0x80)
+        {
+            StageBosses++;
+        }
+        else if (kind == 0x90)
+        {
+            StageCitizens++;
+            goto next_human;
+        }
+        StageEnemies++;
+next_human:
+        ;
+    }
+
+    if (StageID >= 2)
+    {
+        if (StageID >= 4)
+        {
+            if (StageID != 10)
+            {
+                goto init_stats;
+            }
+            StageBosses--;
+            StageEnemies--;
+            if (StagePlayer->type == 1)
+            {
+                goto init_stats;
+            }
+        }
+        StageBosses--;
+        StageEnemies--;
+    }
+
+init_stats:
+    GameClock = 0;
+    StageTime = 0;
+    ActionHalt = 0;
+    AttackActionCount = 0;
+    FriendHits = 0;
+    Murders = 0;
+    Findenemies = 0;
+    Criticals = 0;
+    if (StageEvent != 0)
+    {
+        UpdateEvent(0, 0);
+        D_80097F7C = 0;
+    }
+}
