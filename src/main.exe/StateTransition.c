@@ -56,16 +56,17 @@
  *    a real label barrier so jump.c does not also merge its preceding type
  *    check with case 1.
  *  - The first FieldAttrib store is the comma side effect in the fifth
- *    GetAreaMapLevel argument.  This keeps its fixed $t1 value live until all
- *    four register arguments have been loaded, matching the original store
- *    schedule.
+ *    GetAreaMapLevel argument.  This keeps the value live until all four
+ *    register arguments have been loaded, matching the original store
+ *    schedule and allocation without a fixed-register declaration.
  *  - The packed word at Humanoid+0xb0 is read with `word >> 16`, not a halfword
  *    pointer cast: the former gives the target `lh` plus delayed copy to pad.
- *  - Empty extended-asms below emit no instructions.  Their `+r` operands
- *    split values that gcc 2.8.1 would otherwise coalesce/propagate; the $v0
- *    clobber invalidates a still-known call result so the target's explicit
- *    `move $v0,$a0` survives.  The fixed-register locals serve the same
- *    allocation-only purpose.
+ *  - The one-shot `do` around the case-0 chase resets emits no control-flow
+ *    instructions.  Its loop-depth notes weight the two pointer uses enough
+ *    for local-alloc to choose the target's $v0/$v1 order naturally.
+ *  - Repeating `me->target` for the two coordinate reads makes cse preserve
+ *    the loaded target pointer with the target's explicit copy.  The >=-form
+ *    ternaries likewise expand the two absolute values directly as abssi2.
  *  - reset_alert_duration has an old-style declaration intentionally.  The
  *    case-0 call carries the already-loaded life value in $a0; the callee takes
  *    no arguments, but preserving that harmless call-site value keeps jump.c
@@ -146,7 +147,6 @@ void StateTransition(Humanoid *human)
         s32 dx;
         s32 dz;
         s16 direction;
-        register s32 turn __asm__("$4");
 
         pad = 0;
         if ((u16)(human->type - 0x10) < 0x70)
@@ -154,17 +154,13 @@ void StateTransition(Humanoid *human)
             dx = human->target->locate.coord.t[0] - human->locate->vx;
             dz = human->target->locate.coord.t[2] - human->locate->vz;
             direction = GetDirection(dx, dz, human->rotate->vy);
-            turn = Me_THINK_C->turn;
-            if (turn < direction)
+            if (direction > Me_THINK_C->turn)
             {
                 pad = 0x2000;
             }
             else
             {
-                register s32 negative_turn __asm__("$2");
-
-                negative_turn = -turn;
-                if (direction < negative_turn)
+                if (-Me_THINK_C->turn > direction)
                 {
                     pad = -0x8000;
                 }
@@ -253,7 +249,7 @@ void StateTransition(Humanoid *human)
                                  Me_THINK_C->locate->vy - 0xbea,
                                  Me_THINK_C->locate->vz + vect.vz, 0x1a);
     {
-        register u16 field_attrib __asm__("$9");
+        u16 field_attrib;
 
         field_attrib = FieldAttrib;
         D_80097F14 = GetAreaMapLevel(GlobalAreaMap,
@@ -276,7 +272,7 @@ void StateTransition(Humanoid *human)
         {
             if (SR == 1)
             {
-                register Humanoid *me __asm__("$2");
+                Humanoid *me;
                 s32 life;
 
                 SetNowMotion(Me_THINK_C, 0x80e, 1);
@@ -287,8 +283,11 @@ void StateTransition(Humanoid *human)
                 me = Me_THINK_C;
                 life = me->life;
                 Attrib = atr0 | 2;
-                me->chase[1] = 0;
-                me->chase[0] = 0;
+                do
+                {
+                    me->chase[1] = 0;
+                    me->chase[0] = 0;
+                } while (0);
                 if (life > 0)
                 {
                     Humanoid *alert_me;
@@ -419,11 +418,11 @@ void StateTransition(Humanoid *human)
 
         if (pad & 0x80)
         {
-            register Humanoid *me __asm__("$4");
+            Humanoid *me;
             s32 dy;
             s32 random;
-            register s32 target_y __asm__("$2");
             s32 me_y;
+            s32 target_y;
 
             if (StagePlayer->motion->mid == 0x1009)
             {
@@ -434,10 +433,7 @@ void StateTransition(Humanoid *human)
             target_y = me->target->locate.coord.t[1];
             me_y = me->locate->vy;
             dy = target_y - me_y;
-            if (dy < 0)
-            {
-                dy = -dy;
-            }
+            dy = dy >= 0 ? dy : -dy;
             if (dy < 2000)
             {
                 goto random_attack;
@@ -463,19 +459,14 @@ void StateTransition(Humanoid *human)
         if (SR == -2)
         {
             Humanoid *me;
-            ModelType *loaded_target;
-            ModelType *target;
             s32 target_x;
             s32 target_z;
 
             me = Me_THINK_C;
-            loaded_target = me->target;
-            target = loaded_target;
-            __asm__("" : "+r"(loaded_target));
-            target_x = loaded_target->locate.coord.t[0];
+            target_x = me->target->locate.coord.t[0];
             Attrib = atr0 | 0x13;
             me->chase[0] = target_x;
-            target_z = target->locate.coord.t[2];
+            target_z = me->target->locate.coord.t[2];
             me->actscnt = 1;
             me->chase[1] = target_z;
         }
@@ -569,11 +560,7 @@ update_hint:
 
             degree = Degree;
             abs_degree = degree;
-            if (degree < 0)
-            {
-                __asm__("" : "+r"(abs_degree));
-                abs_degree = -abs_degree;
-            }
+            abs_degree = abs_degree >= 0 ? abs_degree : -abs_degree;
             pad = 0x1000;
             if (abs_degree >= 500)
             {
@@ -633,13 +620,7 @@ update_hint:
                                              0x1a);
                 if (level == Me_THINK_C->map.level)
                 {
-                    __asm__("" ::: "$2");
-                    abs_next = next_level;
-                    if (next_level < 0)
-                    {
-                        __asm__("" : "+r"(abs_next));
-                        abs_next = -abs_next;
-                    }
+                    abs_next = next_level >= 0 ? next_level : -next_level;
                     if (abs_next < 500)
                     {
                         goto set_obstacle_pad;
