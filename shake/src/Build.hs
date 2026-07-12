@@ -190,6 +190,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "ProcItemNapalm" = ["--expand-div"]
     extra "ProcItemFire" = ["--expand-div"]
     extra "ProcItemJirai" = ["--expand-div"]
+    extra "DrawBlood" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]

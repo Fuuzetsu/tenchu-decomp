@@ -272,6 +272,7 @@ MASPSX_EXTRA = {
     "ProcItemNapalm": ["--expand-div"],
     "ProcItemFire": ["--expand-div"],
     "ProcItemJirai": ["--expand-div"],
+    "DrawBlood": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
