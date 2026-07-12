@@ -388,6 +388,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ProcItemNinken" = ["NINKEN_CHARACTER_PTR"]
     syms "ActKAGI" = ["dtM", "Me_MOTION_C", "dtL", "D_80097F0E", "motID", "dtR", "MotionUpdateMode", "dtV"]
     syms "FUN_8003562c" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "ProcItemHenshin" = ["D_80097AEC", "D_80097AF0"]
     syms _ = []
 
 as :: FilePath

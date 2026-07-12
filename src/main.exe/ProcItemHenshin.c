@@ -39,17 +39,255 @@
  *     extern struct GsSPRITE TargetSprite[1];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemHenshin", ProcItemHenshin);
+#include "item.h"
 
-// triage: HARD — 363 insns, mul/div, 2 loop, indirect-call, 10 callees, ~0.27 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
-//   - Register allocation steering: indirect call — null-check-var/call-field
+/*
+ * MATCH.
+ *
+ * ProcItemHenshin (0x80042c1c) owns the disguise transformation.  It starts
+ * and monitors motion 0xf04, drops itself when that motion is interrupted,
+ * swaps the owner's model-object data to/from two saved snapshots, and tears
+ * down the previous disguise before installing a new one.
+ *
+ * Matching notes:
+ *  - The retail snapshots are overlapping 12-byte records.  Their tmd/x/y
+ *    fields are at +4/+8/+10 and z is the halfword at +12 (the first
+ *    halfword of the next record).  Indexing `saved[i]` by the loop's own
+ *    counter gives loop.c one UNBIASED induction pointer.  A hand-walked
+ *    pointer is biased to record+12 and produces -8/-4/-2/0 offsets instead
+ *    of the target's natural +4/+8/+10/+12 offsets.
+ *  - D_80097AEC and D_80097AF0 use volatile views only to preserve the
+ *    original observable load/store sequence.  In particular, the restore
+ *    path stores the current-disguise pointer before reloading item->owner,
+ *    and mode 2 finishes its mode/count stores before loading owner/type.
+ *    The old disguise pointer is copied once before its null/proc checks so
+ *    volatility does not introduce redundant global reloads.
+ *  - `buf` is the exact sp+0x10..0x37 scratch overlay: a PARAM_ITEM_USE on
+ *    the interrupted-motion path and an unaligned SVECTOR aggregate copy on
+ *    both smoke paths.
+ *  - Case 0 deliberately does not assign D_80097AEC.  It jumps directly to
+ *    the shared mode increment; only the completed mode-1 path installs the
+ *    current item after disposing any prior disguise.
+ */
+extern tag_TItem *volatile D_80097AEC;
+extern volatile u16 D_80097AF0;
+extern SVECTOR D_80097AF4[];
+extern u16 D_800C0630[];
+extern u16 D_800C06F0[];
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern void Sound(Humanoid *human, s32 sound);
+extern s16 NowReturnNormal(Humanoid *human);
+
+typedef struct
+{
+    u16 rotate_pad;
+    u16 pad;
+    u_long *tmd;
+    s16 x;
+    s16 y;
+} HenshinModelState;
+
+void ProcItemHenshin(tag_TItem *item)
+{
+    Humanoid *human;
+    ModelArchiveType *mad;
+    u8 ff;
+    u8 buf[sizeof(PARAM_ITEM_USE)];
+
+    human = item->owner;
+    mad = human->model;
+    ff = 0xff;
+
+    if (item->mode == ff)
+    {
+        if (item == D_80097AEC)
+        {
+            s32 i;
+            HenshinModelState *saved;
+
+            i = 0;
+            mad->rotate.pad = D_800C0630[0];
+            saved = (HenshinModelState *)D_800C0630;
+            if (mad->n > 0)
+            {
+                do
+                {
+                    mad->object[i]->object.tmd = saved[i].tmd;
+                    mad->object[i]->locate.coord.t[0] = saved[i].x;
+                    mad->object[i]->locate.coord.t[1] = saved[i].y;
+                    mad->object[i]->locate.coord.t[2] =
+                        *(s16 *)(saved + i + 1);
+                    i++;
+                } while (i < mad->n);
+            }
+            if (item->owner->status == 0xb)
+            {
+                NowReturnNormal(item->owner);
+            }
+            D_80097AEC = 0;
+            ((volatile tag_TItem *)item)->owner->active_item = 0;
+        }
+        item->mode = 0;
+        return;
+    }
+
+    switch (item->mode)
+    {
+    case 0:
+        SetNowMotion(human, 0xf04, 1);
+        Sound(item->owner, 0x4c);
+        item->mode = item->mode + 1;
+        return;
+
+    case 1:
+    {
+        MotionManager *motion;
+
+        motion = human->motion;
+        if (motion->mid != 0xf04)
+        {
+            VECTOR *pos;
+            Humanoid *drop_owner;
+            s32 itemID;
+
+            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
+            drop_owner = item->owner;
+            itemID = item->type;
+            memset(buf, 0, sizeof(PARAM_ITEM_USE));
+            ((PARAM_ITEM_USE *)buf)->type = itemID;
+            ((PARAM_ITEM_USE *)buf)->user = drop_owner;
+            ((PARAM_ITEM_USE *)buf)->start.vx = pos->vx;
+            ((PARAM_ITEM_USE *)buf)->start.vy = pos->vy;
+            ((PARAM_ITEM_USE *)buf)->start.vz = pos->vz;
+            ((PARAM_ITEM_USE *)buf)->end.vx = rand() % 200 - 100;
+            ((PARAM_ITEM_USE *)buf)->end.vy = rand() % 100 - 200;
+            ((PARAM_ITEM_USE *)buf)->end.vz = rand() % 200 - 100;
+            ReqItemDrop((PARAM_ITEM_USE *)buf);
+            if (item->proc == 0)
+            {
+                return;
+            }
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+        if (motion->count != 0)
+        {
+            return;
+        }
+        if (motion->loop == 0)
+        {
+            return;
+        }
+
+        NowReturnNormal(human);
+        *(SVECTOR *)buf = D_80097AF4[0];
+        SetSmoke((VECTOR *)mad->locate.coord.t, (SVECTOR *)buf, 10, 6);
+        {
+            tag_TItem *old;
+
+            old = D_80097AEC;
+            if (old != 0 && old->proc != 0)
+            {
+                old->mode = ff;
+                old->proc(old);
+                DeleteConflict(old->locate);
+                if (old->mode != 0)
+                {
+                    AdtMessageBox(D_800121CC, old->type, (u32)old->mode);
+                }
+                old->owner = 0;
+                old->proc = 0;
+            }
+        }
+        D_80097AEC = item;
+        item->mode = item->mode + 1;
+        return;
+    }
+
+    case 2:
+    {
+        s32 i;
+        HenshinModelState *saved;
+        volatile tag_TItem *vitem;
+        Humanoid *mode_owner;
+        u16 itemID;
+
+        i = 0;
+        mad->rotate.pad = D_800C06F0[0];
+        saved = (HenshinModelState *)D_800C06F0;
+        if (mad->n > 0)
+        {
+            do
+            {
+                mad->object[i]->object.tmd = saved[i].tmd;
+                mad->object[i]->locate.coord.t[0] = saved[i].x;
+                mad->object[i]->locate.coord.t[1] = saved[i].y;
+                mad->object[i]->locate.coord.t[2] =
+                    *(s16 *)(saved + i + 1);
+                i++;
+            } while (i < mad->n);
+        }
+        vitem = item;
+        vitem->mode = vitem->mode + 1;
+        D_80097AF0 = 600;
+        mode_owner = vitem->owner;
+        itemID = *(volatile u16 *)&vitem->type;
+        FRAMES_UNTIL_END_OF_ALERT = -600;
+        mode_owner->active_item = itemID;
+        return;
+    }
+
+    case 3:
+    {
+        u16 count;
+
+        count = D_80097AF0 - 1;
+        D_80097AF0 = count;
+        if ((s32)(count << 16) > 0 &&
+            item->owner->active_item == item->type &&
+            item->owner->status != 0x10 &&
+            item->owner->status != 0x11)
+        {
+            if (item->owner->status != 7)
+            {
+                return;
+            }
+            if (item->owner->motion->loop >= 0 &&
+                item->owner->motion->mid < 0x714)
+            {
+                return;
+            }
+        }
+        *(SVECTOR *)buf = D_80097AF4[0];
+        SetSmoke((VECTOR *)mad->locate.coord.t, (SVECTOR *)buf, 10, 6);
+        if (item->proc == 0)
+        {
+            return;
+        }
+        item->mode = ff;
+        item->proc(item);
+        DeleteConflict(item->locate);
+        if (item->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+        }
+        item->owner = 0;
+        item->proc = 0;
+        return;
+    }
+    }
+}
+
+// Historical Ghidra decompilation reference:
 //
 //
 // void ProcItemHenshin(tag_TItem *item)
