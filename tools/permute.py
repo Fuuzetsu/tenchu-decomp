@@ -202,6 +202,7 @@ GP_EXTERNS = {
     "InitializeInfoView": ["fInitialize"],
     "ActSYURI": ["dtM", "Me_MOTION_C", "motID", "D_80097F0E"],
     "ActHANG": ["dtV", "dtM", "dtPAD", "dtL", "motID", "D_80097F0E", "Me_MOTION_C"],
+    "item_use_gun": ["COUNTER_FOR_ITEM_ARRAY_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

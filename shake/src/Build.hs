@@ -361,6 +361,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "InitializeInfoView" = ["fInitialize"]
     syms "ActSYURI" = ["dtM", "Me_MOTION_C", "motID", "D_80097F0E"]
     syms "ActHANG" = ["dtV", "dtM", "dtPAD", "dtL", "motID", "D_80097F0E", "Me_MOTION_C"]
+    syms "item_use_gun" = ["COUNTER_FOR_ITEM_ARRAY_"]
     syms _ = []
 
 as :: FilePath

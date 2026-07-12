@@ -111,7 +111,6 @@ cbAccess	64.75	ok
 cbCheckCD	96.27	ok
 character_balma_around_main_routine_	25.00	ok
 handle_char_state_dead_	6.49	ok
-item_use_gun	93.55	ok
 leSetEnemy	55.88	ok
 reset_alert_duration	84.21	ok
 start_demo_	7.01	ok
