@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,7 +35,274 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemShinsoku", ProcItemShinsoku);
+/*
+ * MATCH.
+ *
+ * ProcItemShinsoku (0x8003f8a0, ITEM.C:1324) drives the rapid-movement item:
+ * it starts/monitors motion 0xf05, drops itself if that motion is interrupted,
+ * moves the owner's model with a floor query while steering from the pad, emits
+ * a periodic effect, and restores the normal motion/camera before disposal.
+ *
+ * Matching notes:
+ *  - The stack is two adjacent source objects: `pos_storage` at sp+0x28 and
+ *    `launch_buf` at sp+0x38.  The latter is deliberately re-viewed as the
+ *    mode-1 PARAM_ITEM_USE, mode-2 query/map, and periodic-effect VECTOR.  This
+ *    gives stackplan's exact 0x38-byte working window and 0x78 frame.
+ *  - `launchp = 0` after memset is a zero-byte CSE eviction.  Without that dead
+ *    reassignment, cse2 keeps `&launch_buf` in an extra callee-saved register
+ *    through all three rand calls, adding an s5 save/restore and growing the
+ *    frame.  Eviction makes both call sites re-materialize sp+0x38 like target.
+ *  - The movement position is built through direct `pos_storage` writes, then
+ *    `apos = &pos_storage` is assigned only for the query/level span.  The final
+ *    model-coordinate copies must return to direct stack reads; using `apos`
+ *    there emits s0-relative loads instead.
+ *  - The validity flag is assigned at the END of both comparison arms.  reorg
+ *    then places `valid=0`/`valid=1` in the two guard delay slots and global
+ *    allocation reuses the comparison's v0, rather than the dead a1 map arg.
+ *  - The camera high-base is assigned independently on the effect and skipped
+ *    paths.  `(u32 *)0x80090000` plus the -0x6100 load offset produces the two
+ *    target `lui v0,0x8009` definitions: one in the count guard's delay slot,
+ *    and one after the effect call that clobbers v0.
+ *  - The first mode-2 motion check dereferences `item->owner` directly; sharing
+ *    the later pad-control `human` local changes a0 to a2 at all three loads.
+ */
+
+typedef struct
+{
+    SVECTOR vec;
+    u8 count;
+} param_shinsoku;
+
+typedef struct
+{
+    s32 level;
+    s32 height;
+    s16 attrib;
+    s16 degree;
+    u8 vector;
+    u8 direct;
+    u8 angleL;
+    u8 angleH;
+} ShinsokuMapVector;
+
+extern u_long *GlobalAreaMap;
+
+extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern void Sound(Humanoid *human, s32 sound);
+extern void FUN_80033bc0(VECTOR *pos, s32 spread, s32 divisor, s32 count);
+extern s32 GetAreaMapVector(u_long *area, ShinsokuMapVector *map,
+                            VECTOR *position, s32 width, s32 mode);
+extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b,
+                         s32 color, s32 f, s32 rot, s32 h, s32 i, s32 j);
+extern void SetCameraMode(s32 mode);
+extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
+extern s16 NowReturnNormal(Humanoid *human);
+
+void ProcItemShinsoku(tag_TItem *item)
+{
+    param_shinsoku *param;
+    u8 ff;
+    VECTOR pos_storage;
+    u8 launch_buf[sizeof(PARAM_ITEM_USE)];
+
+    param = (param_shinsoku *)item->param;
+    ff = 0xff;
+    if (item->mode == ff)
+    {
+        item->mode = 0;
+        return;
+    }
+
+    switch (item->mode)
+    {
+    case 0:
+        SetNowMotion(item->owner, 0xf05, 1);
+        Sound(item->owner, 0x4c);
+        item->mode = item->mode + 1;
+        return;
+
+    case 1:
+    {
+        MotionManager *motion;
+
+        motion = item->owner->motion;
+        if (motion->mid != 0xf05)
+        {
+            VECTOR *pos;
+            Humanoid *human;
+            s32 itemID;
+            s32 rand_x;
+            s32 rand_y;
+            s32 rand_z;
+            PARAM_ITEM_USE *launchp;
+
+            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
+            human = item->owner;
+            itemID = item->type;
+            launchp = (PARAM_ITEM_USE *)launch_buf;
+            memset(launchp, 0, sizeof(PARAM_ITEM_USE));
+            launchp = 0;
+            ((PARAM_ITEM_USE *)launch_buf)->type = itemID;
+            ((PARAM_ITEM_USE *)launch_buf)->user = human;
+            ((PARAM_ITEM_USE *)launch_buf)->start.vx = pos->vx;
+            ((PARAM_ITEM_USE *)launch_buf)->start.vy = pos->vy;
+            ((PARAM_ITEM_USE *)launch_buf)->start.vz = pos->vz;
+            rand_x = rand();
+            ((PARAM_ITEM_USE *)launch_buf)->end.vx = rand_x % 200 - 100;
+            rand_y = rand();
+            ((PARAM_ITEM_USE *)launch_buf)->end.vy = rand_y % 100 - 200;
+            rand_z = rand();
+            ((PARAM_ITEM_USE *)launch_buf)->end.vz = rand_z % 200 - 100;
+            ReqItemDrop((PARAM_ITEM_USE *)launch_buf);
+            if (item->proc == 0)
+            {
+                return;
+            }
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+        if (motion->count != 0)
+        {
+            return;
+        }
+        if (motion->loop == 0)
+        {
+            return;
+        }
+        FUN_80033bc0(item->owner->locate, 0x96, 0xc, 8);
+        param->count = 0x4b;
+        item->mode = item->mode + 1;
+        return;
+    }
+
+    case 2:
+    {
+        Humanoid *human;
+        ModelArchiveType *model;
+        s32 valid;
+        u16 buttons;
+        s32 rotate;
+        VECTOR *apos;
+        u32 *camera_base;
+
+        if (item->owner->motion->mid != 0xf05)
+        {
+            if (item->proc == 0)
+            {
+                return;
+            }
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
+
+        pos_storage.vx = item->owner->model->locate.coord.t[0];
+        pos_storage.vy = item->owner->model->locate.coord.t[1];
+        pos_storage.vz = item->owner->model->locate.coord.t[2];
+        pos_storage.vx += param->vec.vx;
+        pos_storage.vy += param->vec.vy;
+        pos_storage.vz += param->vec.vz;
+        apos = &pos_storage;
+        ((VECTOR *)launch_buf)->vx = apos->vx;
+        ((VECTOR *)launch_buf)->vy = apos->vy;
+        ((VECTOR *)launch_buf)->vz = apos->vz;
+        ((VECTOR *)launch_buf)->vy -= 2000;
+        GetAreaMapVector(GlobalAreaMap,
+                         (ShinsokuMapVector *)(launch_buf + 0x10),
+                         (VECTOR *)launch_buf, 500, 0);
+        if (((ShinsokuMapVector *)(launch_buf + 0x10))->level >= apos->vy - 500)
+        {
+            if (((ShinsokuMapVector *)(launch_buf + 0x10))->level < apos->vy)
+            {
+                apos->vy = ((ShinsokuMapVector *)(launch_buf + 0x10))->level;
+            }
+            valid = 1;
+        }
+        else
+        {
+            valid = 0;
+        }
+        if (valid != 0)
+        {
+            item->owner->model->locate.coord.t[0] = pos_storage.vx;
+            item->owner->model->locate.coord.t[1] = pos_storage.vy;
+            item->owner->model->locate.coord.t[2] = pos_storage.vz;
+        }
+
+        if ((param->count & 3) == 0)
+        {
+            *(VECTOR *)launch_buf =
+                *(VECTOR *)item->owner->model->locate.coord.t;
+            ((VECTOR *)launch_buf)->vy -= 300;
+            FUN_8003944c((VECTOR *)launch_buf, 0, 0x2000, 0x5000,
+                         0x808080, 0, 0, -30, 0x10, 3);
+            camera_base = (u32 *)0x80090000;
+        }
+        else
+        {
+            camera_base = (u32 *)0x80090000;
+        }
+        if (*(Humanoid **)((u8 *)camera_base - 0x6100) == item->owner)
+        {
+            SetCameraMode(0xb);
+        }
+
+        human = item->owner;
+        buttons = human->pad.data;
+        if ((buttons & 0x2000) != 0)
+        {
+            model = human->model;
+            rotate = 0x40;
+            model->rotate.vy += rotate;
+            RotateVectorS(&param->vec, 0, rotate, 0);
+        }
+        else if ((buttons & 0x8000) != 0)
+        {
+            model = human->model;
+            rotate = -0x40;
+            model->rotate.vy += rotate;
+            RotateVectorS(&param->vec, 0, rotate, 0);
+        }
+
+        param->count = param->count - 1;
+        if (param->count != 0 && (item->owner->pad.trig & 0xf0) == 0)
+        {
+            return;
+        }
+        NowReturnNormal(item->owner);
+        SetCameraMode(0);
+        if (item->proc == 0)
+        {
+            return;
+        }
+        item->mode = 0xff;
+        item->proc(item);
+        DeleteConflict(item->locate);
+        if (item->mode != 0)
+        {
+            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+        }
+        item->owner = 0;
+        item->proc = 0;
+        return;
+    }
+    }
+}
 
 // triage: HARD — 336 insns, mul/div, indirect-call, 14 callees, ~0.27 to ProcItemKusuri
 // likely-relevant cookbook sections:
