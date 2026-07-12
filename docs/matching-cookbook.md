@@ -1526,6 +1526,12 @@ near entry; `AdtMessageBox` wants the inline form.)
     This exactly recovered LoadCard's 0xe70-byte persistent-state copy,
     SaveCard's 0x20-byte palette copy, and its three 0x80-byte icon copies.
     Do not hand-transcribe the resulting `lwl/lwr/swl/swr` loops.
+    Exception for allocator control: SaveSI had the correct block-move shapes
+    but needed the 0x80-byte icon copies written explicitly as 0x10-byte
+    aligned/unaligned chunk loops. That keeps semantics and the runtime
+    alignment dispatch while exposing `src`, `dst`, alignment, end, and chunk
+    roles as reusable C locals. Use this only after the aggregate form proves
+    structurally exact and RTL shows the residual is cursor allocation.
   - **This holds for a member of a parameter union too, even when Ghidra renders
     it as `long`-by-`long` temp copies.** `ef->param.bleed.pos = *pos;` (VECTOR,
     align 4) and `.vec = *vec;` (SVECTOR, align 2) reproduce the target's batched
@@ -2213,6 +2219,18 @@ live range is disjoint. This is the lever when a same-length register rotation h
 no C-level fix. Found by reading `-dg` on `vrealloc`: pseudo 85 was the top-priority
 allocno with an explicit `preferences: 6` (hard `$a2`) inherited from the give-up
 path's `memcpy` third argument; it took `$a2` first and rotated everything after it.
+Run `tools/regalloc.py <Name> --prefer a2` to list only allocnos carrying that
+preference, their final register, priority, and call-crossing count. SaveSI used
+disjoint later calls as deterministic preference donors for reused copy-loop
+roles (`src`→`$a0`, `dst`→`$a1`, alignment/result→`$v1`, third icon→`$a2`,
+end/result→`$v0`). The donor need not remain adjacent in final assembly; it is
+the merged pseudo and `.greg` preference edge that matters.
+
+Duplicating one call in existing mutually exclusive arms is a related donor
+lever: each source call can keep a block-local result preference, while jump2
+cross-merges the identical output back to one physical call. SaveSI combined
+that with a block-local duplicate of the symbol-address producer and a one-shot
+loop fence, fixing a `%hi` coalescing/schedule tie without a surviving branch.
 
 ### A shared-return `sra` above the epilogue restores means a SECOND `return`
 

@@ -23,6 +23,7 @@ because of the move-chain at insns N/M — break that chain."
                                         # exact weighted-ref / fence-depth lever
   tools/regalloc.py <Name> --between 80 81 82 --enclosed-refs 3
                                         # keep p80 above p81 but below p82
+  tools/regalloc.py <Name> --prefer a0   # allocnos carrying an $a0 preference
   tools/regalloc.py <Name> --func NAME  # a specific function if the TU has several
   tools/regalloc.py <file> --raw        # run on an already-preprocessed .c
 
@@ -57,10 +58,43 @@ REGNAME = ({0: "zero", 1: "at", 2: "v0", 3: "v1", 28: "gp", 29: "sp",
            | {8 + i: f"t{i}" for i in range(8)}
            | {16 + i: f"s{i}" for i in range(8)}
            | {24: "t8", 25: "t9", 26: "k0", 27: "k1"})
+REGNUM = {name: number for number, name in REGNAME.items()}
 
 
 def rn(num):
     return REGNAME.get(num, f"r{num}")
+
+
+def parse_hard_register(value):
+    value = value.lower().lstrip("$")
+    if value in REGNUM:
+        return REGNUM[value]
+    try:
+        number = int(value, 0)
+    except ValueError:
+        raise ValueError(f"unknown hard register: {value}")
+    if number not in REGNAME:
+        raise ValueError(f"unknown hard register number: {number}")
+    return number
+
+
+def preferred_allocnos(analysis, hard_register):
+    """Allocnos that inherit a hard-register preference, with donor evidence."""
+    visible = analysis["allocnos"] or set(analysis["disp"])
+    rows = []
+    for pseudo in sorted(visible):
+        if hard_register not in analysis["preferences"].get(pseudo, []):
+            continue
+        usage = analysis["usage"].get(pseudo, {})
+        rows.append({
+            "pseudo": pseudo,
+            "assigned": rn(analysis["disp"].get(pseudo, -1)),
+            "refs": usage.get("refs"),
+            "live_length": usage.get("live_length"),
+            "calls": usage.get("calls"),
+            "priority": usage.get("priority"),
+        })
+    return rows
 
 
 def preprocess(name):
@@ -244,7 +278,7 @@ def analyse(name, body, usage_body=None):
 
 
 def report(name, a, show_rtl, body, compare=None, between=None,
-           enclosed_refs=None):
+           enclosed_refs=None, prefer=None):
     hardnames = sorted({n for _, d, s in a["moves"] for n in (d, s)}
                        | set(a["setops"]) | set(a["reg_first"]),
                        key=lambda x: (x not in CALLEE, x))
@@ -284,6 +318,17 @@ def report(name, a, show_rtl, body, compare=None, between=None,
                 allocated_usage, key=lambda x: (-x[1]["priority"], x[0])):
             print(f"    p{pseudo}: {item['refs']} / {item['live_length']} -> "
                   f"{item['priority']}  (crosses {item['calls']} calls)")
+    if prefer is not None:
+        rows = preferred_allocnos(a, prefer)
+        print(f"  allocnos preferring ${rn(prefer)} (candidate preference donors):")
+        if not rows:
+            print("    (none)")
+        for row in rows:
+            usage = "usage unavailable"
+            if row["refs"] is not None:
+                usage = (f"{row['refs']} refs / {row['live_length']} insns / "
+                         f"{row['calls']} calls -> priority {row['priority']}")
+            print(f"    p{row['pseudo']} -> ${row['assigned']}: {usage}")
     if compare:
         first, second = compare
         if first not in a["usage"] or second not in a["usage"]:
@@ -357,11 +402,17 @@ def main():
                     help="weighted refs keeping SUBJECT above LOWER and below UPPER")
     ap.add_argument("--enclosed-refs", type=int, metavar="N",
                     help="with --compare/--between, refs one wrapper encloses")
+    ap.add_argument("--prefer", metavar="HARD",
+                    help="focus allocnos carrying a hard-register preference (a0, v1, ...)")
     args = ap.parse_args()
     if args.enclosed_refs is not None and args.enclosed_refs <= 0:
         ap.error("--enclosed-refs must be positive")
     if args.enclosed_refs is not None and not (args.compare or args.between):
         ap.error("--enclosed-refs requires --compare or --between")
+    try:
+        prefer = parse_hard_register(args.prefer) if args.prefer else None
+    except ValueError as error:
+        ap.error(str(error))
 
     if args.raw:
         pp = open(args.target).read()
@@ -405,6 +456,7 @@ def main():
             args.compare,
             args.between,
             args.enclosed_refs,
+            prefer,
         )
 
 

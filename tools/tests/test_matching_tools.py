@@ -1104,6 +1104,15 @@ class RegallocParserTests(unittest.TestCase):
         self.assertEqual(result["disp"][80], 3)
         self.assertEqual(result["preferences"][80], [2])
         self.assertEqual(result["conflicts"][80], [80, 2, 3])
+        self.assertEqual(regalloc.parse_hard_register("$v0"), 2)
+        self.assertEqual(regalloc.preferred_allocnos(result, 2), [{
+            "pseudo": 80,
+            "assigned": "v1",
+            "refs": None,
+            "live_length": None,
+            "calls": None,
+            "priority": None,
+        }])
 
     def test_lreg_usage_and_priority_are_exposed(self):
         greg = """;; 2 regs to allocate: 80 81
