@@ -38,8 +38,249 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — complete pure-C reconstruction, 1132 bytes / 283
+ * instructions versus the 1152-byte / 288-instruction target, with the exact
+ * 0x810 frame.  The retail stack plan is also exact: names at sp+0x18,
+ * ItemName at sp+0x590, output VECTOR at sp+0x7c0, and the zeroed blood
+ * VECTOR at sp+0x7d0.
+ *
+ * The remaining diff is dominated by one allocator/control-flow family in
+ * the nested stage-kind, weapon, and think-menu scans.  Retail holds the
+ * HumanData base in fp, assigns the scan/count values to s2-s5, and keeps the
+ * CHARACTER_KINDS_PER_STAGE and WeaponModel bases in t1/t0, spilling those
+ * two caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  This draft's
+ * equivalent natural loops color the two bases into saved registers instead.
+ * The AddEnemyBloodScratch tail represents those two retail spill words and
+ * preserves the exact frame while the guarded draft retains that coloring.
+ *
+ * `rtlguide` identifies the residue primarily as regalloc/CSE plus loop
+ * structure.  `regalloc`, `.lreg`/`.greg`, guided `autorules` (180-candidate
+ * budget), and direct stage/weapon-loop variants found no justified source
+ * spelling that closes the remaining five instructions.  The mechanical
+ * identical-arm fence did make the length exact by inserting an unrelated
+ * branch at the menu terminator, so it was rejected; likewise, narrowing
+ * count/names_offset superficially improves byte score but contradicts the
+ * target's direct `slti`/`sll` uses and Ghidra's recovered int types.  The
+ * retained guarded draft has 173 asmdiff lines in 53 hunks and scores 53.59
+ * with `tools/fuzz-score.py`.
+ */
+
+#ifndef NON_MATCHING
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/AddEnemy", AddEnemy);
 INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/AddEnemy", debug_menu_enemy_layout_add__override__prt_8005b740_aee7b64a);
+#else
+
+#include "item.h"
+
+typedef struct
+{
+    s16 type;
+    s16 wepid;
+    s16 turn;
+    s16 life;
+    s16 width;
+    s16 height;
+    MotionRegistType *mtbl;
+    u8 *name;
+    u32 *model;
+} AddEnemyHumanData;
+
+typedef struct
+{
+    u8 *name;
+    s16 wid;
+    u32 *model;
+} AddEnemyWeaponModel;
+
+typedef struct
+{
+    u8 *name;
+    s16 value;
+} AddEnemyThinkDB;
+
+typedef struct
+{
+    VECTOR TargetVector;
+    Humanoid *Owner;
+    s32 Mode;
+    s16 DirectionRX;
+    s16 DirectionRY;
+    s32 OldMode;
+    u8 Valiation;
+} AddEnemyCameraStatus;
+
+/* Retail reserves the two words after the temporary VECTOR as the caller-
+ * saved base spills around sprintf.  Keeping them in the same local scratch
+ * object preserves the original 0x810-byte frame even while this guarded C
+ * draft still colors those bases into callee-saved registers. */
+typedef struct
+{
+    VECTOR vector;
+    u32 call_spill[2];
+} AddEnemyBloodScratch;
+
+extern AddEnemyHumanData HumanData[63];
+extern AddEnemyWeaponModel WeaponModel[41];
+extern s16 *CHARACTER_KINDS_PER_STAGE[];
+extern s32 StageID;
+extern AddEnemyThinkDB ThinkDB[20];
+extern AddEnemyCameraStatus CamState;
+extern s32 D_80097D44;
+
+extern char D_80013FA8[];
+extern char D_80013FB4[];
+extern char D_80097D48[];
+extern char D_80097D50[];
+
+extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern int sprintf(char *buf, char *fmt, ...);
+extern void *memset(void *s, int c, u32 n);
+extern s32 leSetEnemy(s32 type, s16 think, s32 x, s32 y, s32 z, s16 r);
+extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
+extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
+                      int time, long col);
+
+void AddEnemy(void)
+{
+    u8 names[70][20];
+    debug_menu_choice ItemName[70];
+    VECTOR pos;
+    AddEnemyBloodScratch blood;
+    s32 count;
+    s32 names_offset;
+    s16 i;
+    s16 j;
+    s32 weapon;
+    s32 type;
+    s32 think;
+    s16 category;
+    s16 think_index;
+    s32 stage;
+    AddEnemyWeaponModel *weapon_entry;
+    debug_menu_choice *item;
+    s16 **kind_base;
+    AddEnemyHumanData *human_data;
+    AddEnemyWeaponModel *weapon_base;
+    char *buffer;
+    ModelArchiveType *model;
+    Humanoid *human;
+    s32 x;
+    s32 y;
+    s32 z;
+    s16 r;
+
+    count = 0;
+    i = 0;
+    if (HumanData[0].type != -1)
+    {
+        names_offset = 0;
+        human_data = HumanData;
+        weapon_base = WeaponModel;
+        kind_base = CHARACTER_KINDS_PER_STAGE;
+        do
+        {
+            if (count >= 70)
+                break;
+
+            stage = StageID;
+#define ADD_ENEMY_STAGE_KINDS \
+    (*(s16 **)((u8 *)kind_base + ((stage + 1) * sizeof(s16 *))))
+            if (ADD_ENEMY_STAGE_KINDS[0] != -1)
+            {
+                j = 0;
+                do
+                {
+                    if (ADD_ENEMY_STAGE_KINDS[j] == human_data[i].type)
+                        break;
+                    j++;
+                } while (ADD_ENEMY_STAGE_KINDS[j] != -1);
+
+                if (ADD_ENEMY_STAGE_KINDS[j] != -1)
+                {
+                    weapon = 0;
+                    weapon_entry = weapon_base;
+                    if (weapon_entry->wid != -1)
+                    {
+                        do
+                        {
+                            if (weapon_entry->wid == human_data[i].wepid)
+                                break;
+                            weapon_entry++;
+                            weapon++;
+                        } while (weapon_entry->wid != -1);
+                    }
+
+                    buffer = (char *)names + names_offset;
+                    names_offset += 20;
+                    sprintf(buffer, D_80097D48, human_data[i].name,
+                            weapon_base[weapon].name);
+                    ItemName[count].choice_name = buffer;
+                    ItemName[count].choice_number = human_data[i].type;
+                    count++;
+                }
+            }
+            i++;
+        } while (human_data[i].type != -1);
+#undef ADD_ENEMY_STAGE_KINDS
+    }
+
+    item = ItemName;
+    item[count].choice_name = D_80097D50;
+    item[count].choice_number = -1;
+    count++;
+    item[count].choice_name = 0;
+    type = (s16)AdtSelect(D_80013FA8, item, 0);
+    if (type == -1)
+        return;
+
+    think = 0;
+    category = 0;
+    do
+    {
+        count = 0;
+        think_index = 0;
+        if (ThinkDB[0].name != 0)
+        {
+            item = ItemName;
+            do
+            {
+                if (count >= 70)
+                    break;
+                if ((s16)category + 0x31 == ThinkDB[think_index].name[0])
+                {
+                    item->choice_name = (char *)ThinkDB[think_index].name;
+                    item->choice_number = ThinkDB[think_index].value;
+                    item++;
+                    count++;
+                }
+                think_index++;
+            } while (ThinkDB[think_index].name != 0);
+        }
+        ItemName[count].choice_name = 0;
+        think |= AdtSelect(D_80013FB4, ItemName, 0);
+    } while ((s16)think != 0x1111 && (s16)think != 0x2222 &&
+             ++category < 4);
+
+    model = CamState.Owner->model;
+    x = model->locate.coord.t[0];
+    y = model->locate.coord.t[1];
+    r = model->rotate.vy;
+    z = model->locate.coord.t[2];
+    D_80097D44 = leSetEnemy(type, (s16)think, x, y, z, r);
+    human = BreedLife(type, x, y, z, 0);
+    human->model->rotate.vy = r;
+    human->target = (ModelType *)CamState.Owner->model;
+
+    memset(&blood.vector, 0, sizeof(VECTOR));
+    blood.vector.vx = human->model->locate.coord.t[0];
+    blood.vector.vy = human->model->locate.coord.t[1] - 1200;
+    blood.vector.vz = human->model->locate.coord.t[2];
+    pos = blood.vector;
+    SetBleeds(&pos, 400, 0, 50, 30, 0xffffff);
+}
+
+#endif /* NON_MATCHING */
 
 // triage: HARD — 288 insns, 5 loop, frame 0x810, 6 callees, ~0.06 to GetMotionID
 // likely-relevant cookbook sections:

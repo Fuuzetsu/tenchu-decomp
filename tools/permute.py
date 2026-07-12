@@ -238,6 +238,7 @@ GP_EXTERNS = {
     "ProcItemNingyo": ["D_80097AE0", "D_80097F50"],
     "StartStageSequence": ["StageEvent", "StageTime", "FriendHits", "Murders", "Findenemies", "Criticals", "D_80097F7C", "StagePlayer", "StageCitizens", "StageEnemies", "StageBosses"],
     "StageSequence": ["StagePlayer", "D_80097F78", "D_80097F7C", "StageTime", "Findenemies", "Murders", "Criticals", "StageEnemies", "StageBosses", "FriendHits", "StageCitizens"],
+    "AddEnemy": ["D_80097D44"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
