@@ -25,6 +25,7 @@ import argparse, collections, difflib, os, re, struct, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import psxsym as P
+import function_inventory as FI
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PLACEHOLDER = re.compile(r"^(D_|DAT_|LAB_|jtbl_|switchD_|__)")
@@ -123,6 +124,15 @@ def load_tsv(path, cols=3):
             yield p
 
 
+def load_retail_functions(functions: str, splat: str, overlay: bool = True):
+    """Load authoritative boundaries with the decomp's current C names."""
+    rows = FI.load_functions(functions)
+    renamed = 0
+    if overlay:
+        rows, renamed = FI.overlay_current_names(rows, splat)
+    return {name: (addr, size) for addr, size, name in rows}, renamed
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("sym", nargs="?", default=f"{REPO}/disks/demo/PSX.SYM")
@@ -130,6 +140,10 @@ def main() -> None:
     ap.add_argument("--psxexe-funcs", default=f"{REPO}/reference/demo-psxexe.functions.tsv")
     ap.add_argument("--psxexe-labels", default=f"{REPO}/reference/demo-psxexe.labels.tsv")
     ap.add_argument("--functions", default=f"{REPO}/.shake/ghidra-export/functions.tsv")
+    ap.add_argument("--splat", default=f"{REPO}/config/splat.main.exe.yaml",
+                    help="current named C subsegments overlaid onto the function inventory")
+    ap.add_argument("--no-name-overlay", action="store_true",
+                    help="use names in --functions verbatim (normally stale after renames)")
     ap.add_argument("--exe", default=f"{REPO}/disks/tenchu/main.exe")
     ap.add_argument("--symbols", default=f"{REPO}/config/symbols.main.exe.txt")
     ap.add_argument("--min-votes", type=int, default=2)
@@ -153,7 +167,10 @@ def main() -> None:
     # ---- retail side
     rexe = open(args.exe, "rb").read()
     rtext, rbase = rexe[0x800:], 0x80011000
-    rfuncs = {p[2]: (int(p[0], 16), int(p[1])) for p in load_tsv(args.functions)}
+    rfuncs, renamed = load_retail_functions(
+        args.functions, args.splat, not args.no_name_overlay
+    )
+    print(f"retail current-name overlays: {renamed}")
     cur: dict[int, str] = {}
     for line in open(args.symbols):
         m = re.match(r"\s*([A-Za-z_]\w*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)

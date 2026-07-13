@@ -322,7 +322,7 @@ A name is adopted only when every vote for X agrees, at least two *distinct*
 functions witness it, and no other address claims the name.
 
 Control precision — retail addresses whose current name is itself a PSX.SYM name —
-is **100% (105/105)**. Note that the two apparent counter-examples in an earlier run
+is **100% (104/104)**. Note that the two apparent counter-examples in an earlier run
 were not errors: our `Me_MOTION_C` is the de-duplicated spelling of the demo's static
 `Me`, and `StageBosses`/`StageEnemies` at `0x80097c74`/`0x80097c76` disagree with the
 demo's single `StageEnemies` short — the tool correctly refused to propose, because the

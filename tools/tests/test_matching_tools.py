@@ -18,6 +18,7 @@ if TOOLS not in sys.path:
 import autorules
 import asmdiff
 import callmatch
+import datamatch
 import function_inventory
 import matchlock
 import matchdiff
@@ -68,6 +69,20 @@ class FunctionInventoryTests(unittest.TestCase):
             )
         finally:
             os.unlink(path)
+
+    def test_datamatch_uses_current_c_names(self):
+        with tempfile.TemporaryDirectory() as td:
+            funcs = os.path.join(td, "functions.tsv")
+            splat = os.path.join(td, "splat.yaml")
+            with open(funcs, "w") as fh:
+                fh.write("80011000\t16\tFUN_80011000\n")
+            with open(splat, "w") as fh:
+                fh.write("  - [0x800, c, RecoveredName]\n")
+
+            functions, changed = datamatch.load_retail_functions(funcs, splat)
+
+        self.assertEqual(changed, 1)
+        self.assertEqual(functions, {"RecoveredName": (0x80011000, 16)})
 
 
 class CallMatchAmbiguityTests(unittest.TestCase):
