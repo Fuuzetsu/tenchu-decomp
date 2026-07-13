@@ -12,6 +12,7 @@
  */
 
 typedef struct tag_TMisc tag_TMisc;
+typedef struct ModelType ModelType;
 
 typedef struct
 {
@@ -28,6 +29,16 @@ typedef struct
 {
     u8 type; /* 0x0 */
 } TSprite;
+
+/* The MISC_DOOR variant of the parameter union (PSX.SYM's TDoor). */
+typedef struct
+{
+    ModelType *locate; /* 0x0 */
+    s16 r;             /* 0x4 */
+    s16 dr;            /* 0x6 */
+    u8 type;           /* 0x8 */
+    u8 pad[3];         /* 0x9 */
+} TDoor;               /* 0xC */
 
 /* The MISC_SNOWFALL variant of the param union (MISC__181fake's `snowfall`
  * member, reference/psxsym-types.h). */
@@ -50,6 +61,7 @@ struct tag_TMisc
     union
     {
         TMiscInit init;
+        TDoor door;
         TSprite sprite;
     } param;                        /* 0x18 */
 };                                  /* 0x24 */
@@ -64,10 +76,8 @@ enum TMiscMessage
 
 /* Opaque here: InitMisc only moves ModelType pointers between LoadModel and
  * the DoorData/PitfallData tables, never dereferences a field (contrast
- * ProcMiscDoor/ProcMiscPitfall, unmatched, which do and would need the full
- * layout — reuse item.h's ModelType there instead of this stub). */
-typedef struct ModelType ModelType;
-
+ * ProcMiscDoor/ProcMiscPitfall, which do and therefore need a full local
+ * layout rather than this forward declaration). */
 /* Sprite3D extended with the embedded 2D GsSPRITE (item.h's Sprite3D is
  * truncated at 0x68, right where this `sprite` field starts — same
  * "local wrapper reuses item.h's Sprite3D instead of redefining it" idea as

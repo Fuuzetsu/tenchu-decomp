@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,143 +35,216 @@
  *     extern struct MISC__183fake DoorData[11];
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ProcMiscDoor", ProcMiscDoor);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ProcMiscDoor", run_door_spawner_action__override__prt_8004c798_2685a9f3);
+/*
+ * Matching notes:
+ *  - The message tests follow their physical target order; the labels keep the
+ *    create/destroy/pause/resume bodies readable without changing that CFG.
+ *  - The one-shot loop around the angle calculation emits no loop at runtime.
+ *    Its RTL loop note gives `t` the original allocation priority, allowing
+ *    `t`, `angle`, and `dir` to reuse $v0 at their non-overlapping lifetimes.
+ *  - `__builtin_abs` is intentional.  This build disables ordinary builtin
+ *    folding, while the explicit builtin produces the target's inline
+ *    bgez/nop/negu sequence and the required DoorData register allocation.
+ */
 
-// triage: MEDIUM — 269 insns, mul/div, 10 callees, ~0.08 to ProcItemMakibishi
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+typedef struct
+{
+    ModelType *model;
+    VECTOR position;
+    SVECTOR offset;
+    SVECTOR size;
+    void *common;
+    u8 result[64];
+    u8 pad[0x10];
+} ConflictObjectType;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void ProcMiscDoor(tag_TMisc *m,TMiscMessage msg)
-//
-// {
-//   byte bVar1;
-//   short sVar2;
-//   short sVar3;
-//   long lVar4;
-//   int iVar5;
-//   int iVar6;
-//   _GsCOORDINATE2 *p_Var7;
-//   int iVar8;
-//   ModelType *pMVar9;
-//   _181fake_23 *p_Var10;
-//
-//   p_Var10 = &m->param;
-//   if (msg == MM_DESTROY) {
-//     DeleteConflict((m->param).door.locate);
-//     DisposeModel((m->param).door.locate);
-//   }
-//   else if (msg == MM_CREATE) {
-//     iVar6 = (m->param).init.b;
-//     iVar5 = (m->param).init.a;
-//     if (10 < iVar6) {
-//       AdtMessageBox("unknown door type %d");
-//       iVar6 = 0;
-//     }
-//     m->mode = '\0';
-//     (m->param).door.r = 0;
-//     (m->param).door.type = (uchar)iVar6;
-//     pMVar9 = LoadModel((ulong *)0x0);
-//     lVar4 = m->x;
-//     (m->param).door.locate = pMVar9;
-//     (pMVar9->locate).coord.t[0] = lVar4;
-//     (((m->param).door.locate)->locate).coord.t[1] = m->y;
-//     (((m->param).door.locate)->locate).coord.t[2] = m->z;
-//     (((m->param).door.locate)->rotate).vx = 0;
-//     (((m->param).door.locate)->rotate).vy = (short)iVar5;
-//     (((m->param).door.locate)->rotate).vz = 0;
-//     UpdateCoordinate((m->param).door.locate);
-//   }
-//   else if (msg == MM_PAUSE) {
-//     DeleteConflict((m->param).door.locate);
-//   }
-//   else if (msg == MM_RESUME) {
-//     sVar2 = InsertConflict((m->param).door.locate);
-//     ConflictObject[sVar2].offset.vx = 0;
-//     sVar3 = DoorData[(m->param).door.type].HitSize;
-//     ConflictObject[sVar2].offset.vz = 0;
-//     ConflictObject[sVar2].offset.vy = (short)(-(int)sVar3 / 2);
-//     sVar3 = DoorData[(m->param).door.type].HitSize;
-//     ConflictObject[sVar2].common = (undefined *)0x2;
-//     ConflictObject[sVar2].size.pad = 8;
-//     ConflictObject[sVar2].size.vy = sVar3;
-//     sVar3 = (short)(((int)sVar3 / 3) * 0x10000 >> 0xf);
-//     ConflictObject[sVar2].size.vx = sVar3;
-//     ConflictObject[sVar2].size.vz = sVar3;
-//     (m->param).door.r = 0;
-//   }
-//   else {
-//     if (m->mode == '\0') {
-//       if (((int)((p_Var10->door).locate)->attribute & 0x8000U) != 0) {
-//         sVar3 = GetConflictResult((p_Var10->door).locate,-1);
-//         if (ConflictObject[sVar3].common != (undefined *)0x2) {
-//           lVar4 = ratan2(ConflictObject[sVar3].position.vz -
-//                          (((p_Var10->door).locate)->locate).coord.t[2],
-//                          ConflictObject[sVar3].position.vx -
-//                          (((p_Var10->door).locate)->locate).coord.t[0]);
-//           iVar5 = lVar4 + (((p_Var10->door).locate)->rotate).vy;
-//           iVar8 = iVar5 + 0x2000;
-//           iVar6 = iVar8;
-//           if (iVar8 < 0) {
-//             iVar6 = iVar5 + 0x2fff;
-//           }
-//           sVar3 = 0x40;
-//           if (0x800 < iVar8 + (iVar6 >> 0xc) * -0x1000) {
-//             sVar3 = -0x40;
-//           }
-//           (m->param).door.dr = sVar3;
-//           m->mode = m->mode + '\x01';
-//           if ((m->param).door.r == 0) {
-//             SoundEx((VECTOR *)(((p_Var10->door).locate)->locate).coord.t,0x40);
-//           }
-//         }
-//       }
-//     }
-//     else if (m->mode == '\x01') {
-//       iVar6 = (int)(m->param).door.r;
-//       if (iVar6 < 0) {
-//         iVar6 = -iVar6;
-//       }
-//       if (iVar6 < 0x3c0) {
-//         (m->param).door.r = (m->param).door.r + (m->param).door.dr;
-//       }
-//       else {
-//         m->mode = '\0';
-//       }
-//     }
-//     bVar1 = (m->param).door.type;
-//     iVar6 = (int)(m->param).door.r;
-//     if (iVar6 < 0) {
-//       iVar6 = -iVar6;
-//     }
-//     pMVar9 = DoorData[bVar1].Model[0];
-//     iVar6 = (int)DoorData[bVar1].HitSize - (DoorData[bVar1].HitSize * iVar6) / 0x2800;
-//     if (pMVar9 != (ModelType *)0xffffffff) {
-//       p_Var7 = (_GsCOORDINATE2 *)(p_Var10->init).a;
-//       (pMVar9->locate).coord.t[0] = -iVar6;
-//       (pMVar9->locate).coord.t[1] = 0;
-//       (pMVar9->locate).coord.t[2] = 0;
-//       (pMVar9->locate).super = p_Var7;
-//       (pMVar9->rotate).vy = (m->param).door.r;
-//       UpdateCoordinate(pMVar9);
-//       DrawModel(pMVar9);
-//     }
-//     pMVar9 = DoorData[(m->param).door.type].Model[1];
-//     if (pMVar9 != (ModelType *)0xffffffff) {
-//       p_Var7 = (_GsCOORDINATE2 *)(p_Var10->init).a;
-//       (pMVar9->locate).coord.t[0] = iVar6;
-//       (pMVar9->locate).coord.t[1] = 0;
-//       (pMVar9->locate).coord.t[2] = 0;
-//       (pMVar9->locate).super = p_Var7;
-//       (pMVar9->rotate).vy = -(m->param).door.r;
-//       UpdateCoordinate(pMVar9);
-//       DrawModel(pMVar9);
-//     }
-//   }
-//   return;
-// }
+struct ModelType
+{
+    GsCOORDINATE2 locate;
+    SVECTOR rotate;
+    s16 id;
+    s16 attribute;
+};
+
+extern char D_800126F8[];
+extern ConflictObjectType ConflictObject[];
+extern ModelType *LoadModel(u_long *adr);
+extern void DisposeModel(ModelType *model);
+extern void DrawModel(ModelType *model);
+extern void UpdateCoordinate(ModelType *model);
+extern void DeleteConflict(ModelType *model);
+extern s16 SoundEx(VECTOR *loc, s16 id);
+extern s16 InsertConflict(ModelType *model);
+extern s16 GetConflictResult(ModelType *model, s32 n);
+extern s32 ratan2(s32 y, s32 x);
+
+void ProcMiscDoor(tag_TMisc *m, enum TMiscMessage msg)
+{
+    TDoor *param;
+
+    param = &m->param.door;
+    if (msg == MM_DESTROY)
+        goto do_destroy;
+    if (msg == MM_CREATE)
+        goto do_create;
+    if (msg == MM_PAUSE)
+        goto do_pause;
+    if (msg == MM_RESUME)
+        goto do_resume;
+    goto do_control;
+
+do_create:
+    {
+        s32 type;
+        s32 t;
+
+        type = m->param.init.b;
+        t = m->param.init.a;
+        if (10 < type)
+        {
+            AdtMessageBox(D_800126F8, type);
+            type = 0;
+        }
+        m->mode = 0;
+        param->r = 0;
+        param->type = (u8)type;
+        param->locate = LoadModel(0);
+        param->locate->locate.coord.t[0] = m->x;
+        param->locate->locate.coord.t[1] = m->y;
+        param->locate->locate.coord.t[2] = m->z;
+        param->locate->rotate.vx = 0;
+        param->locate->rotate.vy = (s16)t;
+        param->locate->rotate.vz = 0;
+        UpdateCoordinate(param->locate);
+        return;
+    }
+
+do_destroy:
+    DeleteConflict(param->locate);
+    DisposeModel(param->locate);
+    return;
+
+do_pause:
+    DeleteConflict(param->locate);
+    return;
+
+do_resume:
+    {
+        s32 cid;
+        s32 t;
+        s16 w;
+
+        cid = InsertConflict(param->locate);
+        ConflictObject[cid].offset.vx = 0;
+        t = DoorData[param->type].HitSize;
+        ConflictObject[cid].offset.vz = 0;
+        ConflictObject[cid].offset.vy = -t / 2;
+        w = DoorData[param->type].HitSize;
+        ConflictObject[cid].common = (void *)2;
+        ConflictObject[cid].size.pad = 8;
+        ConflictObject[cid].size.vy = w;
+        w = (s16)(((w / 3) * 0x10000) >> 15);
+        ConflictObject[cid].size.vx = w;
+        ConflictObject[cid].size.vz = w;
+        param->r = 0;
+        return;
+    }
+
+do_control:
+    {
+        s32 w;
+        ModelType *model;
+
+        switch (m->mode)
+        {
+        case 0:
+            if ((param->locate->attribute & 0x8000) != 0)
+            {
+                s32 cid;
+
+                cid = GetConflictResult(param->locate, -1);
+                if (ConflictObject[cid].common != (void *)2)
+                {
+                    s32 t;
+                    s32 angle;
+                    s32 wrap;
+                    s32 dir;
+
+                    do
+                    {
+                        t = ratan2(
+                                ConflictObject[cid].position.vz - param->locate->locate.coord.t[2],
+                                ConflictObject[cid].position.vx - param->locate->locate.coord.t[0]) +
+                            param->locate->rotate.vy;
+                    } while (0);
+                    wrap = t + 0x2000;
+                    angle = wrap;
+                    if (wrap < 0)
+                        angle = t + 0x2fff;
+                    dir = wrap - ((angle >> 12) << 12) < 0x801;
+                    if (dir != 0)
+                        dir = 0x40;
+                    else
+                        dir = -0x40;
+                    param->dr = dir;
+                    m->mode++;
+                    if (param->r == 0)
+                        SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
+                }
+            }
+            break;
+
+        case 1:
+            {
+            s32 r;
+
+            r = param->r;
+            if (r < 0)
+                r = -r;
+            if (r < 0x3c0)
+                param->r += param->dr;
+            else
+                m->mode = 0;
+            }
+            break;
+        }
+
+draw_models:
+        {
+            s32 r;
+
+            w = DoorData[param->type].HitSize;
+            r = __builtin_abs(param->r);
+            w = w - (w * r) / 0x2800;
+            model = DoorData[param->type].Model[0];
+        }
+        if (model != (ModelType *)-1)
+        {
+            GsCOORDINATE2 *parent;
+
+            parent = &param->locate->locate;
+            model->locate.coord.t[0] = -w;
+            model->locate.coord.t[1] = 0;
+            model->locate.coord.t[2] = 0;
+            model->locate.super = parent;
+            model->rotate.vy = param->r;
+            UpdateCoordinate(model);
+            DrawModel(model);
+        }
+
+        model = DoorData[param->type].Model[1];
+        if (model != (ModelType *)-1)
+        {
+            GsCOORDINATE2 *parent;
+
+            parent = &param->locate->locate;
+            model->locate.coord.t[0] = w;
+            model->locate.coord.t[1] = 0;
+            model->locate.coord.t[2] = 0;
+            model->locate.super = parent;
+            model->rotate.vy = -param->r;
+            UpdateCoordinate(model);
+            DrawModel(model);
+        }
+    }
+}
