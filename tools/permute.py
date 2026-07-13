@@ -370,6 +370,7 @@ MASPSX_EXTRA = {
     "Think3attack": ["--expand-div"],
     "DrawSplash": ["--expand-div"],
     "SetFlyWire": ["--expand-div"],
+    "FUN_8002fd9c": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
