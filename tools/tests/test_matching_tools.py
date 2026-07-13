@@ -3803,6 +3803,67 @@ class RtlGuideTests(unittest.TestCase):
             ["narrow-copy-zero-extension"],
         )
 
+    def test_known_branch_phi_register_tie_signature_and_rule_priority(self):
+        target = [
+            (0x1000, "bnez v1,0x1014"),
+            (0x1004, "li v0,1"),
+            (0x1008, "beqz v1,0x1010"),
+            (0x100c, "li v0,2"),
+            (0x1010, "li v0,1"),
+            (0x1014, "sb v0,0(a0)"),
+        ]
+        candidate = [
+            (0x1000, "bnez v1,0x1014"),
+            (0x1004, "li a1,1"),
+            (0x1008, "beqz v1,0x1014"),
+            (0x100c, "li a1,2"),
+            (0x1010, "li a1,1"),
+            (0x1014, "sb a1,0(a0)"),
+        ]
+        hunks = [
+            self.hunk(["li v0,1"], ["li a1,1"]),
+            self.hunk(["li v0,2", "li v0,1"],
+                      ["li a1,2", "li a1,1"]),
+            self.hunk(["sb v0,0(a0)"], ["sb a1,0(a0)"]),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures(hunks, target, candidate),
+            ["branch-phi-register-tie"],
+        )
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 24, 24, target, candidate)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertIn("branch-phi-register-tie",
+                      guide["known_residual_signatures"])
+        self.assertEqual(
+            guide["rules"][:4],
+            ["shared-tail-assign", "flag-arm-assign", "guard-flag-assign",
+             "type-width"],
+        )
+
+    def test_branch_phi_signature_requires_distinct_arm_literals(self):
+        target = [
+            (0x1000, "bnez v1,0x1010"),
+            (0x1004, "li v0,1"),
+            (0x1008, "beqz v1,0x1010"),
+            (0x100c, "li v0,1"),
+            (0x1010, "sb v0,0(a0)"),
+        ]
+        candidate = [
+            (0x1000, "bnez v1,0x1010"),
+            (0x1004, "li a1,1"),
+            (0x1008, "beqz v1,0x1010"),
+            (0x100c, "li a1,1"),
+            (0x1010, "sb a1,0(a0)"),
+        ]
+        hunks = [self.hunk(
+            ["li v0,1", "li v0,1", "sb v0,0(a0)"],
+            ["li a1,1", "li a1,1", "sb a1,0(a0)"],
+        )]
+        self.assertEqual(
+            rtlguide.known_residual_signatures(hunks, target, candidate), [])
+
     def test_adjacent_load_order_prioritizes_comparison_swap(self):
         target = [
             (0x1000, "lh v0,88(fp)"),

@@ -1738,6 +1738,8 @@ element-size shift, often changing both the instruction order and every scratch
 register in the address block. `think_setting_small_rotation_small_steps_`
 needed `s16 AIDHumanType[][2]` to turn a 23-byte residual into a five-byte
 sub-C-level phi tie while preserving the exact 1,392-byte function length.
+`rtlguide` now names that final shape `branch-phi-register-tie` and puts the
+arm/writeback rules ahead of generic liveness experiments.
 
 **Build a dynamic row base before a large constant field displacement.** For a
 flattened table, `state->stock[chr * stride + field]` encourages cc1 to add the
@@ -2429,6 +2431,21 @@ allocno's `.greg` conflict set. If the desired hard register is listed, no
 priority change can put that pseudo there: change its lifetime, identity, or
 coalescing. `rtlguide` now prints `HARD-CONFLICT` for candidate allocnos in this
 state instead of merely suggesting allocation priorities.
+
+There is a mechanical special case when several branch arms load distinct
+literals into one carrier and one final store consumes it. If target and
+candidate retain the same instruction count, opcodes, immediates, store, and
+physical control-flow inventory, but consistently use different carrier
+registers, `rtlguide` reports **`branch-phi-register-tie`**. It prioritizes
+`shared-tail-assign`, `flag-arm-assign`, and `guard-flag-assign`, followed by
+`type-width`; these are the only useful first trials because they can split the
+source identity or move its definitions without inventing a backend clobber.
+Reject a tempting register win if it adds a physical jump or changes the
+function extent. In `think_setting_small_rotation_small_steps_`, direct-arm and
+explicit-label spellings did exactly that, QI-to-SI was flat, pseudo 107's
+`.greg` conflict set contained hard `$v0`, 160 guided candidates were flat, and
+a correctly late 8,850-iteration permuter run never beat baseline. That is the
+complete stop condition, not an invitation to add `__asm__`.
 
 ActCHASE supplied two exact, reusable forms:
 

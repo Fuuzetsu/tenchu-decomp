@@ -136,6 +136,15 @@ SIGNATURE_HINTS = {
         "If signed copies remove target blocks while unsigned copies preserve "
         "CFG but retain the masks, record the type-mode deadlock and park"
     ),
+    "branch-phi-register-tie": (
+        "target and candidate define the same distinct literals on multiple "
+        "branches and feed one final store, but one carrier register is "
+        "consistently recoloured; try shared-tail-assign, flag-arm-assign, and "
+        "guard-flag-assign before type-width. Reject a register improvement "
+        "that changes the physical branch/jump inventory. If .greg proves the "
+        "target register is a hard conflict and one late permuter run stays "
+        "flat, record the tie and park"
+    ),
     "copy-then-inplace-adjust": (
         "target stores a stack field before overwriting it with an adjusted value; "
         "try explicit fieldwise copy followed by an in-place +=/-= adjustment"
@@ -821,6 +830,74 @@ def _dbr_duplicated_literal_producer(target, ours):
     )
 
 
+def _branch_phi_register_tie(hunks, target, ours):
+    """Detect one consistently recoloured literal phi feeding one store.
+
+    This is narrower than a generic register-allocation residual.  Every
+    displayed instruction must retain its opcode, immediates, addressing, and
+    all but one register; the same candidate->target carrier substitution must
+    cover at least two distinct literal definitions and the final store.  The
+    complete streams must also retain their length and physical control-flow
+    inventory.  A changed branch destination is allowed: preserving the value
+    in a different register can make one target reload unnecessary and bypass
+    it without changing the CFG inventory.
+    """
+    if (len(target) != len(ours) or
+            control_flow_counts(target) != control_flow_counts(ours) or
+            control_flow_counts(target)["conditional_branches"] < 2):
+        return False
+
+    substitution = None
+    literal_values = set()
+    literal_definitions = 0
+    stores = 0
+    differing_instructions = 0
+    for hunk in hunks:
+        target_insns = [insn for _address, insn in hunk["target"]]
+        ours_insns = [insn for _address, insn in hunk["ours"]]
+        if len(target_insns) != len(ours_insns):
+            return False
+        for target_insn, ours_insn in zip(target_insns, ours_insns):
+            if (mnemonic(target_insn) != mnemonic(ours_insn) or
+                    shape(target_insn) != shape(ours_insn) or
+                    NUM_RE.findall(target_insn) != NUM_RE.findall(ours_insn)):
+                return False
+            target_regs = registers(target_insn)
+            ours_regs = registers(ours_insn)
+            if len(target_regs) != len(ours_regs):
+                return False
+            changes = [
+                (index, have, want)
+                for index, (want, have) in enumerate(zip(target_regs, ours_regs))
+                if want != have
+            ]
+            if len(changes) != 1 or changes[0][0] != 0:
+                return False
+            _index, have, want = changes[0]
+            if substitution is None:
+                substitution = (have, want)
+            elif substitution != (have, want):
+                return False
+
+            operation = mnemonic(target_insn)
+            if operation == "li":
+                numbers = NUM_RE.findall(target_insn)
+                if not numbers:
+                    return False
+                literal_values.add(int(numbers[-1], 0))
+                literal_definitions += 1
+            elif operation in STORE_OPS:
+                stores += 1
+            else:
+                return False
+            differing_instructions += 1
+
+    return (
+        substitution is not None and differing_instructions >= 3 and
+        literal_definitions >= 2 and len(literal_values) >= 2 and stores == 1
+    )
+
+
 def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
     """Name narrow, previously root-caused residual shapes.
 
@@ -868,6 +945,8 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
             found.append("shared-return-extension-schedule")
         if _dbr_duplicated_literal_producer(target_stream, ours_stream):
             found.append("dbr-duplicated-literal-producer")
+        if _branch_phi_register_tie(hunks, target_stream, ours_stream):
+            found.append("branch-phi-register-tie")
     for hunk in hunks:
         target = [x[1] for x in hunk["target"]]
         ours = [x[1] for x in hunk["ours"]]
@@ -1083,6 +1162,14 @@ def assembly_guide(name):
     if "narrow-copy-zero-extension" in signatures:
         rules = ["type-width"] + [
             rule for rule in rules if rule != "type-width"
+        ]
+    if "branch-phi-register-tie" in signatures:
+        phi_rules = [
+            "shared-tail-assign", "flag-arm-assign", "guard-flag-assign",
+            "type-width",
+        ]
+        rules = phi_rules + [
+            rule for rule in rules if rule not in phi_rules
         ]
     return dict(
         name=name, address=addr, target_bytes=size, ours_bytes=ours_size,
