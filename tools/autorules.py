@@ -4922,6 +4922,120 @@ def rule_terminal_call_return(text, name, span):
         )
 
 
+def rule_difference_role_fuse(text, name, span):
+    """Fuse a scratch-loaded subtraction chain into direct difference locals.
+
+    ``x=A; scratch=B; z=C; x=x-scratch; z=z-D;`` can be written
+    ``x=A-B; z=C-D;``.  The direct form makes x/z the subtraction result
+    identities from their first definitions, which matters when they survive as
+    later call arguments.  Think1random's old split roles were an exact-length
+    ten-byte allocation tie; this fusion matched directly.
+
+    Restrict this to five adjacent assignments, pure field-read operands,
+    nonvolatile unaddressed locals, and a scratch whose first later occurrence
+    is a plain overwrite.  Thus removing the scratch definition cannot expose
+    an uninitialised read.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    body_text = _txt(data, body)
+    identifiers = _find(body, ("identifier",))
+
+    def field_read(node):
+        node = _unparen(node)
+        if node is None or node.type != "field_expression" or _find(node, (
+                "call_expression", "assignment_expression", "update_expression",
+                "subscript_expression", "pointer_expression")):
+            return None
+        return _txt(data, node).strip()
+
+    def subtraction(rhs, expected_left):
+        rhs = _unparen(rhs)
+        if rhs is None or rhs.type != "binary_expression":
+            return None
+        operator = rhs.child_by_field_name("operator")
+        left = _unparen(rhs.child_by_field_name("left"))
+        right = _unparen(rhs.child_by_field_name("right"))
+        if (operator is None or _txt(data, operator) != b"-" or
+                left is None or left.type != "identifier" or
+                _txt(data, left) != expected_left or right is None):
+            return None
+        return right
+
+    def first_later_is_overwrite(local, end):
+        later = sorted((ident for ident in identifiers
+                        if ident.start_byte >= end and _txt(data, ident) == local),
+                       key=lambda ident: ident.start_byte)
+        if not later:
+            return True
+        ident = later[0]
+        node = ident.parent
+        while node is not None and node.type not in (
+                "assignment_expression", "expression_statement"):
+            node = node.parent
+        if node is None or node.type != "assignment_expression":
+            return False
+        operator = node.child_by_field_name("operator")
+        left = _unparen(node.child_by_field_name("left"))
+        return (operator is not None and _txt(data, operator) == b"=" and
+                left is not None and left.type == "identifier" and
+                _txt(data, left) == local)
+
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for index in range(len(statements) - 4):
+            group = statements[index:index + 5]
+            if any(statement.type != "expression_statement"
+                   for statement in group):
+                continue
+            if any(data[left.end_byte:right.start_byte].strip()
+                   for left, right in zip(group, group[1:])):
+                continue
+            parsed = [_plain_assignment(data, statement) for statement in group]
+            if any(assignment is None for assignment in parsed):
+                continue
+            x, first_rhs = parsed[0]
+            scratch, scratch_rhs = parsed[1]
+            z, third_rhs = parsed[2]
+            if (len({x, scratch, z}) != 3 or
+                    any(local not in locals_ for local in (x, scratch, z)) or
+                    re.search(rb"&\s*\(?\s*" + re.escape(scratch) + rb"\b",
+                              body_text)):
+                continue
+            x_right = subtraction(parsed[3][1], x)
+            z_right = subtraction(parsed[4][1], z)
+            if (parsed[3][0] != x or parsed[4][0] != z or
+                    x_right is None or x_right.type != "identifier" or
+                    _txt(data, x_right) != scratch or z_right is None):
+                continue
+            first = field_read(first_rhs)
+            scratch_value = field_read(scratch_rhs)
+            third = field_read(third_rhs)
+            fourth = field_read(z_right)
+            if any(value is None
+                   for value in (first, scratch_value, third, fourth)) or \
+                    not first_later_is_overwrite(scratch, group[-1].end_byte):
+                continue
+            line = _line(data, group[0].start_byte)
+            if not any(_guided_site(_line(data, statement.start_byte))
+                       for statement in group):
+                continue
+            indent = _indent_at(data, group[0].start_byte)
+            replacement = (
+                x + b" = " + first + b" - " + scratch_value + b";\n" +
+                indent + z + b" = " + third + b" - " + fourth + b";"
+            )
+            yield (
+                f"difference-role-fuse {x.decode()}/{z.decode()} L{line}",
+                splice(data, group[0].start_byte, group[-1].end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_switch_cse_evict(text, name, span):
     """Dead-overwrite an entry index local before re-reading it in a switch.
 
@@ -7748,6 +7862,7 @@ AGGRESSIVE_RULES = [
     ("shared-terminal-tail", "duplicate an adjacent assignment+return into both if/else arms", rule_shared_terminal_tail),
     ("shared-result-return", "funnel two value returns through one result pseudo", rule_shared_result_return),
     ("terminal-call-return", "return a terminal branch call before the shared result join", rule_terminal_call_return),
+    ("difference-role-fuse", "fuse scratch-loaded subtractions into direct difference locals", rule_difference_role_fuse),
     ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("terminal-arm-flip", "negate and swap adjacent arms ending at one terminal tail", rule_terminal_arm_flip),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),

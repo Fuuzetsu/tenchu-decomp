@@ -2878,6 +2878,42 @@ s16 F(int status) {
         self.assertEqual(len(out), 1)
         self.assertNotIn("return helper();", out[0][1])
 
+    def test_difference_role_fuse_builds_direct_subtraction_identities(self):
+        source = """typedef struct Node { int chase_x; int chase_z; int x; int z; } Node;
+int F(Node *p, Node *locate) {
+    int dx, dz, scratch;
+    dx = p->chase_x;
+    scratch = locate->x;
+    dz = p->chase_z;
+    dx = dx - scratch;
+    dz = dz - locate->z;
+    scratch = dx < 0 ? -dx : dx;
+    return use(dx, dz, scratch);
+}
+"""
+        out = self.candidates(autorules.rule_difference_role_fuse, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertIn("dx = p->chase_x - locate->x;", candidate)
+        self.assertIn("dz = p->chase_z - locate->z;", candidate)
+        self.assertNotIn("scratch = locate->x;", candidate)
+
+    def test_difference_role_fuse_rejects_scratch_read_before_overwrite(self):
+        source = """typedef struct Node { int a; int b; int c; int d; } Node;
+int F(Node *p) {
+    int x, z, scratch;
+    x = p->a;
+    scratch = p->b;
+    z = p->c;
+    x = x - scratch;
+    z = z - p->d;
+    use(scratch);
+    return x + z;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_difference_role_fuse, source), [])
+
     def test_shift16_mul_respelled_for_declared_short(self):
         source = """typedef unsigned short u16;
 typedef unsigned int u32;

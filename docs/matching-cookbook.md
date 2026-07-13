@@ -805,6 +805,19 @@ coefficient-X/input-X/output-X then coefficient-Z/input-Z/output-Z shape. A
 decompiler's one reassigned SSA temp is not evidence that the original reused the
 source variable.
 
+The inverse applies when the subtraction result itself survives as a later call
+argument. In `Think1random`, the target ties each loaded locate component to the
+destination of `chase - locate`, then preserves those two differences in `$a0/$a1`
+through separate absolute-value temporaries. The split scratch chain
+`x=A; scratch=B; z=C; x=x-scratch; z=z-D;` created extra operand/result
+identities and a ten-byte allocation tie; writing `x=A-B; z=C-D;` matched
+directly. PSX.SYM's `long vx/vz` names corroborated that those locals were the
+differences, not coordinate scratches. Guided `difference-role-fuse` recognizes
+only five adjacent plain assignments over pure field reads, three nonvolatile
+unaddressed locals, and a scratch whose first later occurrence is an overwrite.
+Use the target's subtraction destination and downstream call argument to decide
+whether this direct-result identity or the separate-raw-temp rule above applies.
+
 ### A dual-role dispatch test can be the opposite shape of its goto-ladder
 
 Ghidra's `if (A == 0 && (side-effect, B == 0)) { short } else { long }` can really be

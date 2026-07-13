@@ -77,7 +77,7 @@ CATEGORY_PASSES = {
 }
 CATEGORY_RULES = {
     "regalloc": [
-        "literal-indirect-inline", "initialized-global-compound", "deferred-global-capture", "shared-result-return", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
+        "difference-role-fuse", "literal-indirect-inline", "initialized-global-compound", "deferred-global-capture", "shared-result-return", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
         "empty-loop-boundary", "loop-fence", "nested-loop-fence",
         "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split", "deref-address-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
@@ -89,7 +89,7 @@ CATEGORY_RULES = {
         "array-alias-remat", "member-scalar-alias",
     ],
     "cse/coalescing": [
-        "literal-indirect-inline", "deferred-global-capture", "shared-result-return", "type-width", "empty-loop-boundary", "loop-fence",
+        "difference-role-fuse", "literal-indirect-inline", "deferred-global-capture", "shared-result-return", "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split", "deref-address-split",
         "vector-copy-adjust", "redundant-field-donor", "subscript-postinc",
         "switch-cse-evict", "assignment-chain",
@@ -97,7 +97,7 @@ CATEGORY_RULES = {
     ],
     "jump/cross-jump": ["default-ladder-hoist", "literal-indirect-inline", "shared-result-return", "shared-writeback-compound", "terminal-arm-flip", "terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
-        "terminal-call-return", "deferred-global-capture", "shared-result-return", "type-width", "empty-loop-boundary", "loop-fence",
+        "difference-role-fuse", "terminal-call-return", "deferred-global-capture", "shared-result-return", "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split", "deref-address-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-writeback-compound", "shared-tail-assign", "shared-terminal-tail",
         "guard-exit-copy",
