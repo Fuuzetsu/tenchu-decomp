@@ -1650,6 +1650,45 @@ void F(s32 left, s32 right) {
         self.assertEqual(candidates[0].count("value = input + 1;"), 2)
         self.assertIn("if (id != 0)", candidates[0])
 
+    def test_identical_arm_condition_reuses_nearby_pure_probe(self):
+        source = """typedef struct { int count; int attribute; } State;
+State *Motion;
+State *Human;
+void F(void) {
+    if (Motion->count != 0) use();
+    value = 0x501;
+    if ((Human->attribute & 0x40) != 0) {
+        flag = 1;
+    } else {
+        flag = 1;
+    }
+}
+"""
+        autorules.GUIDED_LINES = {7}
+        out = self.candidates(autorules.rule_identical_arm_condition, source)
+        probes = [text for label, text in out
+                  if label.startswith("identical-arm-condition L5->L7")]
+        self.assertEqual(len(probes), 1)
+        self.assertIn("if (Motion->count != 0)", probes[0])
+        self.assertEqual(probes[0].count("flag = 1;"), 2)
+
+    def test_identical_arm_condition_rejects_effects_and_different_arms(self):
+        effect = """void F(void) {
+    if (next()) use();
+    if (ready) { flag = 1; } else { flag = 1; }
+}
+"""
+        different = """void F(void) {
+    if (other) use();
+    if (ready) { flag = 1; } else { flag = 2; }
+}
+"""
+        autorules.GUIDED_LINES = {3}
+        self.assertEqual(
+            self.candidates(autorules.rule_identical_arm_condition, effect), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_identical_arm_condition, different), [])
+
     def test_allocation_donor_fence_uses_guided_parameter_off_residual(self):
         source = """typedef struct { int x; } Node;
 void F(Node *pos, int spread) {

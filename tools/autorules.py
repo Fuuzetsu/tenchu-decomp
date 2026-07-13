@@ -466,7 +466,6 @@ def rule_stack_decl_swap(text, name, span):
     body = _func_body(data, name, _byte_span(text, span))
     if body is None:
         return
-
     addressed = set()
     for pointer in _find(body, ("pointer_expression",)):
         operator = pointer.child_by_field_name("operator")
@@ -5467,6 +5466,111 @@ def _guaranteed_defs(data, statement):
     return out
 
 
+def _pure_discriminator_condition(data, condition):
+    """Whether evaluating a condition has no C-visible side effect.
+
+    This is intentionally narrower than a general purity analysis.  It admits
+    scalar/local/global field reads and ordinary comparisons/bit operations,
+    but rejects calls, writes, indexing, division, and increment/decrement.
+    The result is used only to exchange the discriminator of byte-identical
+    arms, whose selected body is independent of the condition.
+    """
+    if condition is None or _find(condition, (
+            "call_expression", "assignment_expression", "update_expression",
+            "comma_expression", "subscript_expression", "sizeof_expression",
+            "alignof_expression")):
+        return False
+    raw = _txt(data, condition)
+    if (_find(condition, ("comment",)) or b"++" in raw or b"--" in raw or
+            b"/" in raw or b"%" in raw):
+        return False
+    return bool(_find(condition, ("identifier",)))
+
+
+def rule_identical_arm_condition(text, name, span):
+    """Permute the condition of an existing byte-identical if/else fence.
+
+    jump2 removes the branch and duplicate body, but the chosen discriminator
+    still changes pre-jump2 liveness, pseudo conflicts, and allocation.  Reuse
+    only side-effect-free conditions already present within 64 source lines;
+    guided exact-byte scoring selects among these source-authentic probes.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    local_names = _nonvolatile_local_names(data, body)
+    condition_sites = []
+    for other in _find(body, ("if_statement",)):
+        condition = other.child_by_field_name("condition")
+        inner = (_paren_inner(condition)
+                 if condition is not None and
+                 condition.type == "parenthesized_expression"
+                 else condition)
+        if _pure_discriminator_condition(data, inner):
+            condition_sites.append((_line(data, other.start_byte), inner))
+
+    for iff in _find(body, ("if_statement",)):
+        condition = iff.child_by_field_name("condition")
+        yes = iff.child_by_field_name("consequence")
+        no = iff.child_by_field_name("alternative")
+        if condition is None or yes is None or no is None:
+            continue
+        if no.type == "else_clause":
+            alternatives = [child for child in no.named_children
+                            if child.type != "comment"]
+            if len(alternatives) != 1:
+                continue
+            no = alternatives[0]
+        if (yes.type != "compound_statement" or
+                no.type != "compound_statement" or
+                _txt(data, yes).strip() != _txt(data, no).strip()):
+            continue
+        current = (_paren_inner(condition)
+                   if condition.type == "parenthesized_expression"
+                   else condition)
+        if not _pure_discriminator_condition(data, current):
+            continue
+        line = _line(data, iff.start_byte)
+        end_line = _line(data, iff.end_byte)
+        if not any(_guided_site(candidate_line)
+                   for candidate_line in range(line - 1, end_line + 2)):
+            continue
+        current_text = _txt(data, current).strip()
+        current_identifiers = {
+            _txt(data, identifier)
+            for identifier in _find(current, ("identifier",))
+        }
+        candidates = []
+        seen = {current_text}
+        for source_line, candidate in sorted(
+                condition_sites, key=lambda item: (abs(item[0] - line), item[0])):
+            candidate_text = _txt(data, candidate).strip()
+            if (abs(source_line - line) > 64 or candidate_text in seen):
+                continue
+            candidate_identifiers = {
+                _txt(data, identifier)
+                for identifier in _find(candidate, ("identifier",))
+            }
+            # A nested automatic from the candidate's original scope may not
+            # exist (or be initialized) at this fence. Globals, parameters,
+            # and locals already used by the fence's original condition are
+            # the bounded safe set.
+            if ((candidate_identifiers & local_names) - current_identifiers):
+                continue
+            seen.add(candidate_text)
+            candidates.append((source_line, candidate_text))
+            if len(candidates) == 12:
+                break
+        for source_line, candidate_text in candidates:
+            replacement = b"(" + candidate_text + b")"
+            yield (
+                f"identical-arm-condition L{source_line}->L{line}",
+                splice(data, condition.start_byte, condition.end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_identical_arm_fence(text, name, span):
     """Duplicate one expression statement into byte-identical if/else arms.
 
@@ -6154,6 +6258,7 @@ AGGRESSIVE_RULES = [
     ("paired-loop-fence", "wrap adjacent groups in two atomic one-shot loops", rule_paired_loop_fence),
     ("loop-range", "wrap 2-4 adjacent statements in one zero-code do loop", rule_loop_range),
     ("loop-boundary-shift", "move the next statement across an existing LOOP_END", rule_loop_boundary_shift),
+    ("identical-arm-condition", "permute the pure discriminator of existing identical arms", rule_identical_arm_condition),
     ("identical-arm-fence", "duplicate one statement into zero-code identical arms", rule_identical_arm_fence),
     ("case-fence", "if/else -> two-way switch (hard cross-jump CODE_LABEL)", rule_case_fence),
     ("sparse-eq-switch", "three literal equality arms -> sparse switch permutations", rule_sparse_eq_switch),

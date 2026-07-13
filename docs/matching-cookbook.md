@@ -3709,6 +3709,21 @@ before local-alloc, so the def is gone before it can bias anything.
   CFG edge differently and removed the conflict with no surviving branch.
   Confirm this in `.greg`'s conflict set before adding the fence; the visible
   C pointer name alone does not reveal the stack-address allocno.
+- **The discriminator of an eliminated identical-arm fence is still allocator
+  input.** jump2 removes both the conditional and duplicate body, but global
+  allocation has already seen the discriminator's live values. ActSTATE's
+  final four-byte residual used identical `D_80097F0E = 1` arms: testing
+  `Me_MOTION_C->attribute` kept the humanoid pointer live across
+  `motID = 0x501` and forced the literal into `$v1`; testing `dtM->count`
+  instead left both pointer and literal in the target `$v0`, with no surviving
+  branch or load. Treat the condition as a liveness probe, not cosmetic syntax.
+  Guided `identical-arm-condition` now recognizes an existing byte-identical
+  if/else fence and tries up to twelve side-effect-free conditions already
+  present within 64 source lines. It rejects calls, writes, indexing,
+  division/modulo, increment/decrement, and automatic locals that belong to a
+  different scope; exact-byte scoring decides which source-authentic probe has
+  the needed pre-jump2 conflicts. As with any global-pointer probe, review the
+  surrounding state invariant before keeping the winning candidate.
 - **A final register swap may need an earlier ALLOCATION DONOR site, not an
   edit at the residual's mapped source line.** In FUN_80033bc0, `pos` had 4
   refs / 252 live insns (priority 317) and lost `$s5` to the EffectSlot base at
