@@ -1941,6 +1941,28 @@ near entry; `AdtMessageBox` wants the inline form.)
   original). Writing `av = d / 10;` at the top extends av's range across the
   call → callee-saved reg + a whole allocation cascade
   (BriefingAndInventorySelectionScreen's item-count digits).
+- **Repeated unrolled digit bodies can require independent source identities
+  even though every copy operates on the same stack sprite.** When the target
+  rematerializes `&sprite` in each copy but the draft retains it in one saved
+  register, give each source copy a block-local pointer, current value, and
+  quotient. A C macro is a convenient way to repeat that scope without emitting
+  a helper call. Do not mechanically localize everything: values which the
+  target carries through all copies must stay function-scoped. In
+  StageEndScreen, a function-wide pointer/value/quotient draft had 3732 byte
+  differences and 50.23% fuzzy similarity. Per-copy pointer, `u32 value`, `s32
+  quotient`, and `s16 signed_value` identities reached the exact 6084-byte/1521-
+  instruction size with 1690 differences and 79.68%; localizing the shared base
+  or negative flag rotated saved registers and regressed. `rtlguide.py` now
+  reports `repeat-block-local-pointer` when a large rematerialization gap and a
+  candidate saved-register cache make this source shape likely.
+
+  A related bottom-test lever is a destructive narrow working copy after the
+  next value has already been saved:
+  `value = quotient; quotient <<= 16; } while (quotient != 0);`. If `quotient`
+  is dead after the test, this produces
+  the target's `move; sll; bnez` chain. Testing `(s16)value` instead can create a
+  fresh temporary and the wrong loop-tail allocation. Confirm the target chain
+  and the quotient's deadness before using this spelling.
 - **The final copy of a repeated digit loop may need a scoped byte base while
   the preceding copies keep a shared word base.** A function-shared `u32 base`
   keeps the repeated post-call `andi base,0xff` and gives the saved byte one

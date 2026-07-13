@@ -1770,6 +1770,23 @@ class RtlGuideTests(unittest.TestCase):
                 "target_sites": 3,
                 "candidate_sites": 1,
                 "candidate_saved_registers": ["s2"],
+                "source_scope_hint": "repeat-block-local-pointer",
+            }],
+        )
+
+    def test_stack_address_retention_hint_needs_strong_gap_for_scope_split(self):
+        target = [
+            (0x1000, "addiu a1,sp,352"),
+            (0x1010, "addiu a0,sp,352"),
+        ]
+        candidate = [(0x1000, "addiu s2,sp,352")]
+        self.assertEqual(
+            rtlguide.stack_address_rematerialization_hints(target, candidate),
+            [{
+                "offset": 352,
+                "target_sites": 2,
+                "candidate_sites": 1,
+                "candidate_saved_registers": ["s2"],
             }],
         )
 

@@ -197,7 +197,11 @@ def stack_address_rematerialization_hints(target, candidate) -> list[dict]:
     Repeated ``addiu reg,sp,K`` sites in the target but only one site in the
     candidate are a strong sign that cc1 kept ``&local`` in a saved-register
     allocno across calls or a loop.  That can enlarge the frame and rotate all
-    saved registers even when the logical C is otherwise correct.
+    saved registers even when the logical C is otherwise correct.  A large
+    multiplicity gap plus an actual saved-register cache is also a useful
+    source-shape discriminator: repeated unrolled bodies may need one
+    block-local pointer identity per body rather than one function-wide
+    pointer.
     """
     pattern = re.compile(
         r"^addiu\s+([a-z0-9]+),sp,(-?(?:0x[0-9a-f]+|[0-9]+))$", re.I
@@ -221,12 +225,16 @@ def stack_address_rematerialization_hints(target, candidate) -> list[dict]:
             continue
         retained = sorted({reg for reg in candidate_regs
                            if re.fullmatch(r"s[0-7]|s8|fp", reg)})
-        hints.append(dict(
+        hint = dict(
             offset=offset,
             target_sites=len(target_regs),
             candidate_sites=len(candidate_regs),
             candidate_saved_registers=retained,
-        ))
+        )
+        if (retained and len(target_regs) >= 3 and
+                len(candidate_regs) * 2 <= len(target_regs)):
+            hint["source_scope_hint"] = "repeat-block-local-pointer"
+        hints.append(hint)
     return sorted(
         hints,
         key=lambda item: (
@@ -1383,6 +1391,9 @@ def print_report(g, max_hunks=12):
             print(f"    sp+{offset:#x}: target rematerializes "
                   f"{item['target_sites']}x, candidate "
                   f"{item['candidate_sites']}x{suffix}")
+            if item.get("source_scope_hint") == "repeat-block-local-pointer":
+                print("      strong multiplicity gap: try one block-local pointer "
+                      "identity per repeated/unrolled source body")
         print("    Inspect the stack-address allocno in .lreg/.greg. Try an "
               "expanded-inline pointer-formal barrier for repeated &local calls, "
               "or a hand-rolled loop/scope split when loop.c retains the base.")
