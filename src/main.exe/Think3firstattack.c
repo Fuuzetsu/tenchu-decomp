@@ -30,121 +30,16 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 28 of 260 bytes differ (right length: the residual
- * doesn't shift anything downstream; `tools/matchdiff.py` whole-image count
- * equals the function-local count).
+ * Build a first-attack control word from the facing direction and weapon
+ * class. Close targets clear SR, civilians set Attrib bit 0x10, ranged
+ * weapons suppress non-turn bits while badly aimed, and targets inside the
+ * per-class atkd2 range add the attack bit.
  *
- * Think3firstattack (0x8002db08, 0x104 bytes) — think-handler, same TU as
- * Think3chase.c/Think1trace.c (s16 return convention; gp-relative
- * Distance/Degree/SR/Attrib/Me_THINK_C). Deliberately does NOT include
- * main.exe.h: this file reads Attrib as u16 (`lhu`/`sh`), conflicting with
- * main.exe.h's `s16 Attrib` — same per-file respelling as
- * Think2contact.c/turn_towards_player_.c.
- *
- * Forwards to turn_towards_player_(0, 0) for the base turn signal, clears SR
- * when close and not already in the "-2" state, flags Attrib bit 0x10 when
- * the character is a civilian (character_kind in 0x90..0x9F — CHONIN/JOCHU/
- * MUSUME/ZAININ/BIZENYA/NAKAI/MEKAKE, game_types.h's civilian run), then
- * derives `wclass` from `(s16)weapon_kind >> 4` — the same weapon-category
- * nibble Think3chase.c's AttackFunc dispatch uses. For ranged weapons
- * (wclass == 3: TEPPO/GUN/YUMI/... all 0x30-0x37) masks the turn signal to
- * just the 0xA000 turn bits (spelled `~0x5FFF`, a negative literal — fits
- * the andi immediate test the OTHER way, li+and not andi, per Think2confirm)
- * and, if badly misaimed (abs(Degree) > 100), returns early with just that
- * masked signal. Otherwise (any weapon, or a ranged one aimed well enough),
- * compares Distance against a per-class engagement threshold in `atkd2` and,
- * if within range, ORs in the "attack" bit (0x80) and flags Attrib 0x10
- * again. ALL BYTE-PROVEN except the residual below (confirmed by matchdiff
- * showing only 7 differing instructions, all register-color/scheduling).
- *
- * `atkd`/`atkd2` (two new adjacent globals at 0x800979e0/0x800979e8, right
- * after Attrib and before Projection — no existing symbol occupied this
- * range): Ghidra's own independent decompilation of the sibling
- * Think3attack (0x8002d0b0, unmatched) already names `atkd` and indexes
- * `atkd[wclass]` directly (wclass 0..3). THIS function's table access
- * resolves to the SAME numeric address atkd+8 would give, but is a
- * SEPARATE, freshly-declared 4-entry symbol, not `atkd[wclass+4]`: per the
- * cookbook's "nonzero offset off a declared symbol always materializes that
- * symbol's OWN address, offset applied at the access" rule, an `atkd[]`
- * indexing expression compiles to `lh $v1,8($v0)` (base = &atkd, +8 folded
- * into the LOAD's displacement) — confirmed empirically here — whereas the
- * target bakes +8 into the SYMBOL's OWN lui/addiu (`lh $v1,0($v0)`, base
- * already = 0x800979e8). Only a genuinely separate symbol at that exact
- * address reproduces the target's bytes; declaring `atkd2` fixed this
- * cleanly (dropped the diff from 115 to 28 bytes).
- *
- * `wclass` is a genuine s16 local (not s32): it re-derives its
- * sign-extension from scratch at the array-index use (a fresh `sll 16/sra
- * 15` computing `(s16)wclass << 1` in a later extended basic block) rather
- * than reusing the s32 value already sitting in the register from the
- * assignment — the "true short variable re-extends at each use past a
- * join" tell (same family as GetDirection/PauseProc's short-vs-int levers).
- *
- * `turn_towards_player_` is declared returning `int` here (not `s16`): the
- * asm's `result = call();` copy right after the `jal` is a bare `addu`, no
- * immediate sll/sra pair — the caller-side extern-return-type-is-an-
- * extension-position lever (Think1trace/BIS's GetRealPad; same as
- * Think2contact.c's identical local declaration).
- *
- * RESIDUAL (28 bytes / 7 instructions, all inside the `wclass == 3` block):
- * the target computes `masked = result & ~0x5FFF` into a register SEPARATE
- * from `result` (v1), leaves it RAW (untruncated) through the abs(Degree)
- * check, and only truncates to s16 ONCE, in the function's single shared
- * return tail (shared by both the early `return masked` and the normal
- * `return result` path) — two genuine scheduler nops appear (load-delay
- * after `lh Degree`, branch-delay after the sign check) because nothing
- * else is independently ready to fill them. Every draft tried here (this
- * exact two-variable shape; `result`/`masked` reassigned in place as one
- * variable à la Ghidra's literal rendering; `result`/`masked` narrowed to
- * u16/s32/s16 in all 4 combinations; reordering the `degree`/`masked`
- * statements; hoisting `result = masked` unconditionally before the
- * abs(Degree) check; declaring `masked` at function scope; swapping
- * `result`/`wclass` declaration order) either reproduces the WRONG mask
- * instruction (`andi` instead of `li`+`and` — needs `result` non-narrow), or
- * a LENGTH mismatch (the scheduler hoists the independent `lh Degree` load
- * earlier and fills both slots with the mask's `li`/`and`, eliminating the
- * two nops — matches when `result`/`masked` are s32), or (the best draft
- * kept below, `result` s16 + `masked` s32) the right LENGTH but with the
- * mask's truncation-to-s16 computed EAGERLY (right after the AND, into a
- * fresh register) instead of deferred to the shared tail — `wclass` also
- * lands in $a2 instead of the target's $a0. `tools/regalloc.py` shows the
- * expected copy-chains (p80->a1, i104 a0->v0) but nothing pinpointing a
- * specific lever beyond what was already tried. One bounded permuter run
- * (~2.5 min, --stop-on-zero -j4) never reached a favorable state — every
- * candidate is reported against a baseline of "230+ errors" that grows over
- * iterations (looks like a harness/scoring mismatch for this function, not
- * real progress; its best-scoring candidate substituted a nonsensical
- * `long long masked`, not a genuine fix) — did not pursue further per the
- * attempt-cap guidance. decomp.me (psyq4.3 preset) would be the next
- * arbiter if revisited.
- *
- * Session addendum (re-verified the "permuter-immune" verdict against the
- * cookbook's named classes first, per the escalation protocol, before
- * re-confirming this park): re-read the delay slots carefully — MIPS delay
- * slots ALWAYS execute, taken or not, which makes `dbac: move a1,v1` look
- * unconditional; it briefly looked like `result = masked;` needed to move
- * ABOVE the `if (degree > 100)` guard (matching that always-executes
- * appearance), but that reorders one instruction too far: it costs +4 bytes
- * (264 vs 260 — `and a0,a1,v0` then TWO explicit widen/truncate pairs,
- * because `result` now needs its own narrowing at the hoisted assignment
- * point AND the `return masked;` path still needs its own). The complementary
- * try — `result &= ~0x5FFF;` (compound, still AFTER the guard, so `masked`
- * serves the early return alone) — undershoots by exactly -4 bytes (256):
- * cc1 finds a genuinely MORE efficient shared truncation (folds the
- * early-return's value and result's mask into one `sra`, filling both
- * scheduler nops) than the target actually uses. So the target's code is
- * bracketed within one instruction's worth of "obviously worse" in both
- * directions by trivial respellings — a real sign this is a genuine
- * scheduling/truncation-timing tie (which of two independent consumers of
- * `masked` triggers cc1's early-truncate optimization), not an unexplored
- * source shape. Also re-ran `tools/autorules.py`: it greedily adopted
- * `result`/`wclass`: s16->u16 by its own structural asmdiff-line metric
- * (13->9 differing lines), but that is a FALSE WIN — matchdiff's authoritative
- * whole-image byte count got WORSE (28->29) and the instruction shape
- * diverged completely (`andi ...,0xffff` masking, a different `bne`
- * sequence entirely). Rejected per the cookbook's "never trust an autorules
- * win that doesn't also shrink the real byte diff" caution; reverted. Left
- * at the documented 28-byte baseline (`result` s16, `wclass` s16).
+ * The duplicated Degree assignment is an intentional cc1 2.8.1 input.
+ * jump2 erases the condition and identical arms, but their dependency keeps
+ * the mask ahead of the Degree load. That preserves the target's two delay
+ * nops and register allocation. Keeping result and masked in SImode likewise
+ * defers the function's s16 conversion to the shared return tail.
  */
 extern character_state *Me_THINK_C;
 extern s32 Distance;
@@ -154,13 +49,9 @@ extern u16 Attrib;
 extern s16 atkd2[4];
 extern int turn_towards_player_(int x_diff, int z_diff);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think3firstattack", Think3firstattack);
-#else /* NON_MATCHING */
-
 s16 Think3firstattack(void)
 {
-    s16 result;
+    s32 result;
     s16 wclass;
     s32 degree;
 
@@ -179,7 +70,14 @@ s16 Think3firstattack(void)
         s32 masked;
 
         masked = result & ~0x5FFF;
-        degree = Degree;
+        if (masked != 0)
+        {
+            degree = Degree;
+        }
+        else
+        {
+            degree = Degree;
+        }
         if (degree < 0)
         {
             degree = -degree;
@@ -197,5 +95,3 @@ s16 Think3firstattack(void)
     }
     return result;
 }
-
-#endif /* NON_MATCHING */
