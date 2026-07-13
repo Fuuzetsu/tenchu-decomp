@@ -1064,7 +1064,10 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   unsigned `sltiu`** even when the value provably stays in byte range. If the
   target has a signed `slti` there instead, declare the local `s32` — the source
   `lbu` load already zero-extends so nothing is lost, and cc1 then keeps the
-  signed compare with no mask (FUN_800576e8).
+  signed compare with no mask (FUN_800576e8). The same boundary occurs when a
+  `u8` field feeds a range guard: copying ProcMiscPitfall's `m->mode` to an
+  `int mode` changed `sltiu` to the target's `slti` and improved its final
+  residual from 7 to 6 bytes.
 - **A boolean flag's declared width (`s16` vs `s32`) changes whether `if (flag)`
   tests it in place or spills through a fresh-register copy — and can shift the
   whole-function instruction count.** When the length is off by a few insns and
@@ -2949,6 +2952,16 @@ before local-alloc, so the def is gone before it can bias anything.
 - Cached pointers that live in `$s`-registers across calls
   (`p = &item->param;`) are real source temporaries — indexing the base
   struct directly doesn't allocate the register (see ProcItemManebue).
+- **A call result used as an array index can require naming the array base
+  before the call.** `base = Global; r = GetResult(); use(base[r]);` makes the
+  address live across the call, where direct `Global[r]` materializes it only
+  afterward. In ProcMiscPitfall, the direct `ConflictObject[r]` form produced
+  218 instructions; a block-local `ConflictObjectType *conflict` assigned
+  before `GetConflictResult` restored the target's 217-instruction length.
+  Keep the declaration at the start of the path-specific block so it remains
+  valid for the original compiler dialect and does not extend the base across
+  unrelated paths. Guided `autorules` mechanizes this immediate
+  call/consumer shape as `ptr-base-split`.
 - **Initialize a pointer alias at its first path-specific use, not
   automatically at function entry.** An early `locate = dtL` keeps the alias
   live across unrelated guards and hoists the gp load. Assigning it only in the

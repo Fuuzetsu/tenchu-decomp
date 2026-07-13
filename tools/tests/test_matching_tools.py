@@ -360,6 +360,40 @@ void F(Node *param) {
         self.assertIn("Node *_match_base = StageConfig;", out[0][1])
         self.assertIn("Node *stage = &_match_base[index];", out[0][1])
 
+    def test_ptr_base_split_keeps_array_base_live_across_call(self):
+        source = """typedef struct Conflict Conflict;
+extern Conflict ConflictObject[];
+void F(void) {
+    int result;
+    result = GetConflictResult();
+    if (ConflictObject[result].common != 0) use();
+}
+"""
+        autorules.GUIDED_LINES = {5}
+        out = self.candidates(autorules.rule_ptr_base_split, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn(
+            "Conflict *_match_base = ConflictObject;\n"
+            "    result = GetConflictResult();",
+            out[0][1],
+        )
+        self.assertIn("_match_base[result].common", out[0][1])
+
+    def test_ptr_base_split_rejects_call_after_executable_statement(self):
+        source = """typedef struct Conflict Conflict;
+extern Conflict ConflictObject[];
+void F(void) {
+    int result;
+    prepare();
+    result = GetConflictResult();
+    if (ConflictObject[result].common != 0) use();
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_ptr_base_split, source),
+            [],
+        )
+
     def test_late_pointer_direct_drops_reassignment_and_rewrites_members(self):
         source = """void F(void) {
     Node *p;

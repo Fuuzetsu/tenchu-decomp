@@ -1538,12 +1538,14 @@ def rule_subscript_postinc(text, name, span):
 
 
 def rule_ptr_base_split(text, name, span):
-    """Name an extern-array base before taking one indexed element address.
+    """Name an extern-array base where its lifetime changes address codegen.
 
     ``T *p = &Global[i]`` and ``T *base = Global; T *p = &base[i]`` are
     equivalent, but the latter gives split-addresses/CSE a distinct base pseudo
-    and scheduling UID.  Keep this guided and limited to a single pointer
-    declarator with an identifier array base.
+    and scheduling UID.  The call-crossing form similarly turns
+    ``r = Call(); use(Global[r])`` into ``T *base = Global; r = Call();
+    use(base[r])`` so the array address can live in a saved register across the
+    call. Keep both forms guided and deliberately narrow.
     """
     data = text.encode()
     body = _func_body(data, name, _byte_span(text, span))
@@ -1595,6 +1597,95 @@ def rule_ptr_base_split(text, name, span):
             splice(data, decl.start_byte, decl.end_byte,
                    temp_decl + rewritten).decode(),
         )
+
+    # Discover simple file-scope `extern T Global[]` declarations. Restricting
+    # the declarator to a direct identifier excludes arrays of pointers and
+    # other cases where reproducing the element type would be less mechanical.
+    root = _TS.parse(data).root_node
+    extern_arrays = {}
+    for decl in root.named_children:
+        if decl.type != "declaration":
+            continue
+        declarators = [child for child in decl.named_children
+                       if child.type in ("array_declarator",
+                                         "pointer_declarator",
+                                         "function_declarator",
+                                         "identifier",
+                                         "init_declarator")]
+        if len(declarators) != 1 or declarators[0].type != "array_declarator":
+            continue
+        array = declarators[0]
+        identifier = array.child_by_field_name("declarator")
+        if identifier is None or identifier.type != "identifier":
+            continue
+        prefix = data[decl.start_byte:array.start_byte].strip()
+        match = re.match(rb"extern\b\s*(.+?)\s*$", prefix)
+        if match is None:
+            continue
+        element_type = match.group(1)
+        if element_type:
+            extern_arrays[_txt(data, identifier)] = element_type
+
+    if not extern_arrays:
+        return
+
+    locals_ = _nonvolatile_local_names(data, body)
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for position, (call_stmt, consumer) in enumerate(
+                zip(statements, statements[1:])):
+            # Inserting a declaration here must remain valid for the original
+            # compiler's declaration-before-statements dialect.
+            if any(stmt.type != "declaration"
+                   for stmt in statements[:position]):
+                continue
+            assignment = _plain_assignment(data, call_stmt)
+            if assignment is None:
+                continue
+            result, rhs = assignment
+            if result not in locals_ or _unparen(rhs).type != "call_expression":
+                continue
+
+            matches = {}
+            for subscript in _find(consumer, ("subscript_expression",)):
+                base = subscript.child_by_field_name("argument")
+                index = _unparen(subscript.child_by_field_name("index"))
+                if (base is None or base.type != "identifier" or
+                        index is None or index.type != "identifier" or
+                        _txt(data, index) != result):
+                    continue
+                symbol = _txt(data, base)
+                if symbol in extern_arrays:
+                    matches.setdefault(symbol, []).append(base)
+
+            line = _line(data, call_stmt.start_byte)
+            if not (_guided_site(line) or
+                    _guided_site(_line(data, consumer.start_byte))):
+                continue
+            for symbol, bases in matches.items():
+                suffix = 0
+                while True:
+                    candidate = (b"_match_base" +
+                                 (str(suffix).encode() if suffix else b""))
+                    if not re.search(rb"\b" + re.escape(candidate) + rb"\b",
+                                     data):
+                        temp = candidate
+                        break
+                    suffix += 1
+                raw = data[call_stmt.start_byte:consumer.end_byte]
+                for base in reversed(bases):
+                    start = base.start_byte - call_stmt.start_byte
+                    end = base.end_byte - call_stmt.start_byte
+                    raw = raw[:start] + temp + raw[end:]
+                indent = _indent_at(data, call_stmt.start_byte)
+                temp_decl = (extern_arrays[symbol] + b" *" + temp + b" = " +
+                             symbol + b";\n" + indent)
+                yield (
+                    f"ptr-base-call-live {symbol.decode()} L{line}",
+                    splice(data, call_stmt.start_byte, consumer.end_byte,
+                           temp_decl + raw).decode(),
+                )
 
 
 def rule_ptr_index_sum(text, name, span):
@@ -3578,7 +3669,7 @@ AGGRESSIVE_RULES = [
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("shift-stage", "split x>>N into every two-stage constant shift", rule_shift_stage),
     ("mul-affine-shape", "toggle x*M+C with (x+C/M)*M", rule_mul_affine_shape),
-    ("ptr-base-split", "name an extern array base before indexed address", rule_ptr_base_split),
+    ("ptr-base-split", "name an extern array base before indexed address/call", rule_ptr_base_split),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
