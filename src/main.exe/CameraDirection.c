@@ -36,7 +36,131 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CameraDirection", CameraDirection);
+#else
+
+#include "item.h"
+
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+    s32 rz;
+    void *super;
+} GsRVIEW2;
+
+typedef struct
+{
+    VECTOR TargetVector;         /* 0x00 */
+    Humanoid *Owner;             /* 0x10 */
+    s32 Mode;                    /* 0x14 */
+    s16 DirectionRX;             /* 0x18 */
+    s16 DirectionRY;             /* 0x1A */
+    u8 OldMode;                  /* 0x1C */
+    u8 CriticalHit;              /* 0x1D */
+} TCameraStatus;
+
+extern TCameraStatus CamState;
+extern GsRVIEW2 ViewInfo;
+
+extern void GetPadXY(s16 no, s16 *x, s16 *y);
+extern void SetCameraMode(s32 mode);
+extern s32 rsin(s32 angle);
+extern s32 rcos(s32 angle);
+extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
+extern void FUN_80030644(VECTOR *pos, s32 amount);
+
+void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
+{
+    GsRVIEW2 target;
+    ModelArchiveType *mad;
+    SVECTOR r;
+    VECTOR CamLoc;
+    s32 sin;
+    s32 cos;
+    s32 y;
+    s16 x;
+    s16 z;
+
+    mad = pl->model;
+    GetPadXY(0, &x, &z);
+    if (CamState.OldMode == 3) {
+        x = x / 2;
+        z = z / 2;
+    } else if ((CamState.Owner->pad.data & 4) == 0) {
+        SetCameraMode(0);
+    }
+
+    CamState.DirectionRX = CamState.DirectionRX - z;
+    CamState.DirectionRY = CamState.DirectionRY + x;
+    if (CamState.DirectionRX >= 0x38F) {
+        CamState.DirectionRX = 0x38E;
+    } else if (CamState.DirectionRX < -0x38E) {
+        CamState.DirectionRX = -0x38E;
+    }
+    if (CamState.DirectionRY >= 0x401) {
+        CamState.DirectionRY = 0x400;
+    } else if (CamState.DirectionRY < -0x400) {
+        CamState.DirectionRY = -0x400;
+    }
+
+    sin = rsin(mad->rotate.vy) / 6;
+    cos = rcos(mad->rotate.vy) / 6;
+    r.vz = 0x4B0;
+    r.vx = 0;
+    r.vy = 0;
+    RotateVectorS(&r,
+                  mad->rotate.vx + CamState.DirectionRX,
+                  mad->rotate.vy + CamState.DirectionRY,
+                  mad->rotate.vz);
+
+    CamLoc.vx = mad->locate.coord.t[0];
+    CamLoc.vy = mad->locate.coord.t[1] - 0x60E;
+    CamLoc.vz = mad->locate.coord.t[2];
+    FUN_80030644(&CamLoc, 1000);
+    CamLoc.vx -= sin;
+    /* A weight-free loop boundary preserves the retail load schedule. */
+    do {
+    } while (0);
+    CamLoc.vz -= cos;
+    y = r.vy;
+    if (y > 0) {
+        CamLoc.vy = CamLoc.vy - y;
+    } else {
+        if (y < 0) {
+            y += 3;
+        }
+        CamLoc.vy = CamLoc.vy + (y >> 2);
+    }
+
+    target.vrx = CamLoc.vx - r.vx;
+    target.vpx = CamLoc.vx + r.vx;
+    target.vry = CamLoc.vy - r.vy;
+    /* Redundant in C, but changes GCC's tail register allocation. */
+    target.vpx = CamLoc.vx + r.vx;
+    target.vrz = CamLoc.vz - r.vz;
+    target.vpy = CamLoc.vy + r.vy;
+    target.vpz = CamLoc.vz + r.vz;
+
+    vDif->vrx = (target.vrx - ViewInfo.vrx) / 4;
+    vDif->vry = (target.vry - ViewInfo.vry) / 4;
+    vDif->vrz = (target.vrz - ViewInfo.vrz) / 4;
+    /* Nested loop notes re-color the ViewInfo base without emitted code. */
+    do {
+        do {
+            vDif->vpx = (target.vpx - ViewInfo.vpx) / 8;
+        } while (0);
+    } while (0);
+    vDif->vpy = (target.vpy - ViewInfo.vpy) / 8;
+    vDif->vpz = (target.vpz - ViewInfo.vpz) / 8;
+}
+
+#endif
 
 // triage: MEDIUM — 215 insns, mul/div, 6 callees, ~0.05 to ProcItemTeleport
 // likely-relevant cookbook sections:
@@ -151,4 +275,137 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CameraDirection", Ca
 //   }
 //   vDif->vpz = iVar5 >> 3;
 //   return;
+// }
+
+// m2c (mipsel-gcc-c reference — cleaner control flow + register
+// temps straight from the asm; Ghidra above has the real types):
+//
+// ? FUN_80030644(s32 *, ?);                           /* extern */
+// ? GetPadXY(?, u16 *, u16 *);                        /* extern */
+// ? RotateVectorS(s16 *, s32, s32, s16);              /* extern */
+// ? SetCameraMode(?);                                 /* extern */
+// s32 rcos(s16);                                      /* extern */
+// s32 rsin(s16, u16, ? *);                            /* extern */
+// extern ? CamState;
+// extern ? ViewInfo;
+//
+// void CameraDirection(void *arg0, void *arg1) {
+//     s32 sp10;
+//     s32 sp14;
+//     s32 sp18;
+//     s32 sp1C;
+//     s32 sp20;
+//     s32 sp24;
+//     s16 sp30;
+//     s16 sp32;
+//     s16 sp34;
+//     s32 sp38;
+//     s32 sp3C;
+//     s32 sp40;
+//     u16 sp48;
+//     u16 sp4A;
+//     s16 var_v1;
+//     s32 temp_s0;
+//     s32 temp_s1;
+//     s32 temp_v0;
+//     s32 var_t1;
+//     s32 var_v0_3;
+//     s32 var_v0_4;
+//     s32 var_v0_5;
+//     s32 var_v0_6;
+//     s32 var_v0_7;
+//     s32 var_v0_8;
+//     u16 temp_v1;
+//     u16 var_v0;
+//     u16 var_v0_2;
+//     void *temp_s3;
+//
+//     temp_s3 = arg0->unk58;
+//     GetPadXY(0, &sp48, &sp4A);
+//     if (CamState.unk1C == 3) {
+//         sp48 = (u16) ((s16) sp48 / 2);
+//         sp4A = (u16) ((s16) sp4A / 2);
+//     } else if (!(CamState.unk10->unk10 & 4)) {
+//         SetCameraMode(0);
+//     }
+//     temp_v1 = CamState.unk18 - sp4A;
+//     CamState.unk18 = temp_v1;
+//     CamState.unk1A = (u16) (CamState.unk1A + sp48);
+//     if ((s16) temp_v1 >= 0x38F) {
+//         var_v0 = 0x38E;
+//         goto block_8;
+//     }
+//     var_v0 = -0x38EU;
+//     if ((s16) temp_v1 < -0x38E) {
+// block_8:
+//         CamState.unk18 = var_v0;
+//     }
+//     if ((s16) CamState.unk1A >= 0x401) {
+//         var_v0_2 = 0x400;
+//         goto block_12;
+//     }
+//     var_v0_2 = -0x400U;
+//     if ((s16) CamState.unk1A < -0x400) {
+// block_12:
+//         CamState.unk1A = var_v0_2;
+//     }
+//     temp_s1 = rsin(temp_s3->unk52, sp48, &CamState) / 6;
+//     temp_s0 = rcos(temp_s3->unk52);
+//     sp34 = 0x4B0;
+//     sp30 = 0;
+//     sp32 = 0;
+//     RotateVectorS(&sp30, temp_s3->unk50 + (s16) CamState.unk18, temp_s3->unk52 + (s16) CamState.unk1A, temp_s3->unk54);
+//     sp38 = temp_s3->unk18;
+//     sp3C = temp_s3->unk1C - 0x60E;
+//     sp40 = temp_s3->unk20;
+//     FUN_80030644(&sp38, 0x3E8);
+//     sp38 -= temp_s1;
+//     var_v1 = sp32;
+//     sp40 -= temp_s0 / 6;
+//     if (var_v1 > 0) {
+//         var_v0_3 = sp3C - var_v1;
+//     } else {
+//         if (var_v1 < 0) {
+//             var_v1 += 3;
+//         }
+//         var_v0_3 = sp3C + (var_v1 >> 2);
+//     }
+//     sp3C = var_v0_3;
+//     temp_v0 = sp38 - sp30;
+//     var_t1 = temp_v0 - ViewInfo.unkC;
+//     sp1C = temp_v0;
+//     sp10 = sp38 + sp30;
+//     sp20 = sp3C - sp32;
+//     sp24 = sp40 - sp34;
+//     sp14 = sp3C + sp32;
+//     sp18 = sp40 + sp34;
+//     if (var_t1 < 0) {
+//         var_t1 += 3;
+//     }
+//     arg1->unkC = (s32) (var_t1 >> 2);
+//     var_v0_4 = sp20 - ViewInfo.unk10;
+//     if (var_v0_4 < 0) {
+//         var_v0_4 += 3;
+//     }
+//     arg1->unk10 = (s32) (var_v0_4 >> 2);
+//     var_v0_5 = sp24 - ViewInfo.unk14;
+//     if (var_v0_5 < 0) {
+//         var_v0_5 += 3;
+//     }
+//     arg1->unk14 = (s32) (var_v0_5 >> 2);
+//     var_v0_6 = sp10 - ViewInfo.unk0;
+//     if (var_v0_6 < 0) {
+//         var_v0_6 += 7;
+//     }
+//     arg1->unk0 = (s32) (var_v0_6 >> 3);
+//     var_v0_7 = sp14 - ViewInfo.unk4;
+//     if (var_v0_7 < 0) {
+//         var_v0_7 += 7;
+//     }
+//     arg1->unk4 = (s32) (var_v0_7 >> 3);
+//     var_v0_8 = sp18 - ViewInfo.unk8;
+//     if (var_v0_8 < 0) {
+//         var_v0_8 += 7;
+//     }
+//     arg1->unk8 = (s32) (var_v0_8 >> 3);
 // }
