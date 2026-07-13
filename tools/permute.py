@@ -363,6 +363,7 @@ MASPSX_EXTRA = {
     "SetWire": ["--expand-div"],
     "SetLightningI": ["--expand-div"],
     "register_character_death": ["--expand-div"],
+    "SweepMotion": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
