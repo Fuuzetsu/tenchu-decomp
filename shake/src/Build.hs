@@ -153,6 +153,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "GetAreaMapLevel" = ["--expand-div"]
     extra "bow_shoot_logic" = ["--expand-div"]
     extra "Think3escape" = ["--expand-div"]
+    extra "think_setting_small_rotation_small_steps_" = ["--expand-div"]
     extra "UpdateTexScroll" = ["--expand-div"]
     extra "DrawSprite" = ["--expand-div"]
     extra "FUN_8003a2a8" = ["--expand-div"]
@@ -410,6 +411,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "LoadConstruction" = ["D_80097A70", "D_80097A74", "StageID"]
     syms "CreateStage" = ["StageID"]
     syms "SetWire" = ["D_80097F28"]
+    syms "think_setting_small_rotation_small_steps_" = ["Me_THINK_C", "Attrib", "FRAMES_UNTIL_END_OF_ALERT", "Degree", "Distance"]
     syms _ = []
 
 as :: FilePath

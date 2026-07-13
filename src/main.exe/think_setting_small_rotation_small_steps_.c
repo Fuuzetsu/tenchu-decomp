@@ -1,171 +1,277 @@
 #include "common.h"
-#include "main.exe.h"
+#include <psxsdk/libgs.h>
+#include "game_types.h"
+#include "item.h"
 
+/*
+ * Multi-stage AI handler used while an alerted character circles in small
+ * steps.  It either chooses a turn command, advances the circling timer, or
+ * spawns a second humanoid when the target remains far away.
+ *
+ * This translation unit reads Attrib unsigned, unlike main.exe.h's signed
+ * declaration, so the small set of globals used here is declared locally.
+ */
+extern character_state *Me_THINK_C;
+extern u16 Attrib;
+extern s16 Degree;
+extern s32 Distance;
+extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern u8 D_80010058;
+extern s16 Humans;
+extern s32 StageID;
+extern u16 StageEnemies;
+extern s16 AIDHumanType[][2];
+extern think_func_ *Think1Func[];
+extern think_func_ *Think2Func[];
+extern think_func_ *Think3Func[];
+extern think_func_ *Think4Func[];
+
+extern s32 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GetDirection(s32 x_diff, s32 z_diff, s16 rotation);
+extern s32 SquareRoot0(s32 value);
+extern int rand(void);
+extern s16 Sound(Humanoid *human, s16 seid);
+extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 rotation);
+extern void EquipWeapon(Humanoid *human, s16 mode);
+extern s16 SetNowMotion(Humanoid *human, s16 motion, s16 move);
+
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/think_setting_small_rotation_small_steps_", think_setting_small_rotation_small_steps_);
+#else /* NON_MATCHING */
 
-// triage: HARD — 348 insns, mul/div, 8 callees, ~0.05 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+/*
+ * STATUS: NON_MATCHING — exact 1392-byte length, frame, calls, and branches;
+ * five bytes remain in the actscnt result phi ($a1 rather than retail $v0).
+ */
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Removing unreachable block (ram,0x8002cb78) */
-//
-// int FUN_8002c86c(void)
-//
-// {
-//   undefined **ppuVar1;
-//   uchar uVar2;
-//   short sVar3;
-//   long lVar4;
-//   Humanoid *human;
-//   uint uVar5;
-//   VECTOR *pVVar6;
-//   short sVar7;
-//   int iVar8;
-//   int iVar9;
-//   uint uVar10;
-//
-//   uVar10 = 0;
-//   iVar9 = Me_THINK_C->chase[0] - Me_THINK_C->locate->vx;
-//   iVar8 = Me_THINK_C->chase[1] - Me_THINK_C->locate->vz;
-//   if (Me_THINK_C->actscnt == '\0') {
-//     uVar10 = FUN_8002b990(iVar9,iVar8);
-//     lVar4 = SquareRoot0(iVar9 * iVar9 + iVar8 * iVar8);
-//     if ((1999 < lVar4) && (iVar8 = uVar10 << 0x10, (Attrib & 0x400U) == 0)) goto LAB_8002cdbc;
-//     DAT_800979c0 = 300;
-//     if (PersistentState._88_1_ == '\x02') {
-//       DAT_800979c0 = 600;
-//     }
-//     Sound(Me_THINK_C,0xe);
-//     if (PersistentState._88_1_ == '\x01') {
-//       iVar8 = rand();
-//       Me_THINK_C->actcnt = (byte)iVar8 & 1;
-//     }
-//     else if ((byte)PersistentState._88_1_ < 2) {
-//       if (PersistentState._88_1_ == '\0') {
-//         Me_THINK_C->actcnt = '\x01';
-//       }
-//     }
-//     else if (PersistentState._88_1_ == '\x02') {
-//       Me_THINK_C->actcnt = '\0';
-//     }
-//     uVar2 = '\x01';
-//     if ((Me_THINK_C->actcnt == '\0') && ((0x1d < Humans || (uVar2 = '\x02', StageID == 8)))) {
-//       uVar2 = '\x01';
-//     }
-//     Me_THINK_C->actscnt = uVar2;
-//   }
-//   else if (Me_THINK_C->actscnt == '\x01') {
-//     Me_THINK_C->actcnt = Me_THINK_C->actcnt + 1 & 0x1f;
-//     if ((Me_THINK_C->actcnt & 8) != 0) {
-//       if (Me_THINK_C->actcnt != 8) {
-//         iVar8 = (uint)(Me_THINK_C->pad).data << 0x10;
-//         goto LAB_8002cdbc;
-//       }
-//       iVar9 = (int)Degree;
-//       iVar8 = iVar9;
-//       if (iVar9 < 0) {
-//         iVar8 = -iVar9;
-//       }
-//       if (iVar8 < 0x2bd) {
-//         iVar8 = rand();
-//         uVar10 = 0x1000;
-//         if (iVar8 != (iVar8 / 5) * 5) {
-//           uVar10 = rand();
-//           iVar8 = 0x20000000;
-//           if ((uVar10 & 1) == 0) goto LAB_8002cdbc;
-//           uVar10 = 0xffff8000;
-//         }
-//       }
-//       else {
-//         uVar10 = 0xffff8000;
-//         if (0 < iVar9) {
-//           uVar10 = 0x2000;
-//         }
-//       }
-//     }
-//   }
-//   else {
-//     sVar3 = GetDirection(iVar9,iVar8,Me_THINK_C->rotate->vy);
-//     iVar8 = (int)sVar3;
-//     uVar5 = 0x2000;
-//     if (0 < iVar8) {
-//       uVar5 = 0x8000;
-//     }
-//     if (iVar8 < 0) {
-//       iVar8 = -iVar8;
-//     }
-//     uVar10 = uVar5 | 0x4000;
-//     if (999 < iVar8) {
-//       uVar10 = uVar5 | 0x1000;
-//     }
-//     if ((Attrib & 0x400U) != 0) {
-//       iVar9 = (int)Degree;
-//       iVar8 = iVar9;
-//       if (iVar9 < 0) {
-//         iVar8 = -iVar9;
-//       }
-//       if ((1000 < iVar8) && (Me_THINK_C->field40_0xb0 == (undefined *)0x0)) {
-//         if (Me_THINK_C->turn == 0) {
-//           trap(0x1c00);
-//         }
-//         uVar5 = 0x20000000;
-//         if (0 < iVar9) {
-//           uVar5 = 0x80000000;
-//         }
-//         Me_THINK_C->field40_0xb0 = (undefined *)(1000 / (int)Me_THINK_C->turn | uVar5);
-//       }
-//     }
-//     iVar8 = uVar10 << 0x10;
-//     if (Distance < 0x4075) goto LAB_8002cdbc;
-//     DAT_800979c0 = 300;
-//     if (PersistentState._88_1_ == '\x02') {
-//       DAT_800979c0 = 600;
-//     }
-//     Me_THINK_C->actscnt = '\0';
-//     Me_THINK_C->actcnt = '\x01';
-//     uVar5 = rand();
-//     sVar7 = 10;
-//     if ((uVar5 & 1) != 0) {
-//       sVar7 = 9;
-//     }
-//     Sound(Me_THINK_C,sVar7);
-//     iVar8 = rand();
-//     sVar7 = AIDHumanType[StageID * 2 + iVar8 % 2];
-//     pVVar6 = Me_THINK_C->locate;
-//     sVar3 = Me_THINK_C->rotate->vy + sVar3;
-//     Me_THINK_C->rotate->vy = sVar3;
-//     human = (Humanoid *)BreedLife((int)sVar7,pVVar6->vx,pVVar6->vy,pVVar6->vz,(int)sVar3);
-//     human->target = Me_THINK_C->target;
-//     human->think[0] = Think1Func[4];
-//     human->think[1] = Think2Func[4];
-//     human->think[2] = Think3Func[4];
-//     ppuVar1 = Think4Func[4];
-//     human->attribute = human->attribute | 4;
-//     human->think[3] = ppuVar1;
-//     EquipWeapon(human,1);
-//     SetNowMotion(human,0x501,1);
-//     human->actscnt = '\0';
-//     human->actcnt = '\x01';
-//     human->attribute = human->attribute | 0x11;
-//     iVar8 = rand();
-//     human->chase[0] = Me_THINK_C->chase[0] + (iVar8 % 5 + -2) * 500;
-//     iVar8 = rand();
-//     human->chase[1] = Me_THINK_C->chase[1] + (iVar8 % 5 + -2) * 500;
-//     uVar5 = rand();
-//     sVar3 = 10;
-//     if ((uVar5 & 1) != 0) {
-//       sVar3 = 9;
-//     }
-//     Sound(human,sVar3);
-//     StageEnemies = StageEnemies + 1;
-//   }
-//   iVar8 = uVar10 << 0x10;
-// LAB_8002cdbc:
-//   return iVar8 >> 0x10;
-// }
+s16 think_setting_small_rotation_small_steps_(void)
+{
+    s32 x_diff;
+    s32 z_diff;
+    s32 result;
+    u8 state;
+    VECTOR *new_var;
+    character_state *self;
+
+    result = 0;
+    x_diff = Me_THINK_C->some_other_x_position -
+             Me_THINK_C->some_kind_of_current_position->vx;
+    z_diff = Me_THINK_C->some_other_z_position -
+             Me_THINK_C->some_kind_of_current_position->vz;
+    state = Me_THINK_C->actscnt;
+
+    if (state == 0)
+    {
+        s32 distance;
+
+        result = turn_towards_player_(x_diff, z_diff);
+        distance = SquareRoot0(x_diff * x_diff + z_diff * z_diff);
+        if (distance < 2000 || (Attrib & 0x400))
+        {
+            s32 alertTime;
+            u8 nextState;
+
+            alertTime = 300;
+            if (D_80010058 == 2)
+            {
+                alertTime = 600;
+            }
+            FRAMES_UNTIL_END_OF_ALERT = alertTime;
+            Sound((Humanoid *)Me_THINK_C, 0xE);
+
+            switch (D_80010058)
+            {
+            case 0:
+                Me_THINK_C->actcnt = 1;
+                break;
+            case 1:
+                Me_THINK_C->actcnt = rand() & 1;
+                break;
+            case 2:
+                Me_THINK_C->actcnt = 0;
+                break;
+            }
+
+            self = Me_THINK_C;
+            nextState = 1;
+            if (self->actcnt == 0 &&
+                (Humans >= 30 || (nextState = 2, StageID == 8)))
+            {
+                nextState = 1;
+            }
+            self->actscnt = nextState;
+            goto done;
+        }
+        goto done;
+    }
+
+    if (state == 1)
+    {
+        u8 count;
+
+        Me_THINK_C->actcnt = (Me_THINK_C->actcnt + 1) & 0x1F;
+        count = Me_THINK_C->actcnt;
+        if (count & 8)
+        {
+            if (count != 8)
+            {
+                result = ((Humanoid *)Me_THINK_C)->pad.data;
+                goto done;
+            }
+            else
+            {
+                s32 degree;
+                s32 absoluteDegree;
+
+                degree = Degree;
+                absoluteDegree = __builtin_abs(degree);
+                if (absoluteDegree >= 0x2BD)
+                {
+                    result = -0x8000;
+                    if (degree > 0)
+                    {
+                        result = 0x2000;
+                    }
+                    goto done;
+                }
+                else
+                {
+                    s32 randomValue;
+
+                    randomValue = rand();
+                    if (randomValue % 5 != 0)
+                    {
+                        result = 0x2000;
+                        if ((rand() & 1) == 0)
+                        {
+                            goto done;
+                        }
+                        result = -0x8000;
+                    }
+                    else
+                    {
+                        result = 0x1000;
+                    }
+                }
+            }
+        }
+        goto done;
+    }
+
+    {
+        s16 direction;
+        s32 absoluteDirection;
+        s32 turnBits;
+
+        direction = GetDirection(x_diff, z_diff,
+            Me_THINK_C->something_about_player_rotation_perhaps->character_rotation);
+        absoluteDirection = direction;
+        turnBits = 0x2000;
+        if (absoluteDirection > 0)
+        {
+            turnBits = 0x8000;
+        }
+        if (absoluteDirection < 0)
+        {
+            absoluteDirection = -absoluteDirection;
+        }
+        result = turnBits | 0x4000;
+        if (absoluteDirection >= 1000)
+        {
+            result = turnBits | 0x1000;
+        }
+
+        if (Attrib & 0x400)
+        {
+            s32 degree;
+            s32 absoluteDegree;
+
+            degree = Degree;
+            absoluteDegree = __builtin_abs(degree);
+            if (absoluteDegree > 1000 && Me_THINK_C->field76_0xb0 == 0)
+            {
+                s32 quotient;
+
+                self = Me_THINK_C;
+                quotient = 1000 / self->character_rotation_speed;
+                self->field76_0xb0 = quotient |
+                    (degree > 0 ? 0x80000000 : 0x20000000);
+            }
+        }
+
+        if (Distance < 0x4075)
+        {
+            goto done;
+        }
+        else
+        {
+            s32 alertTime;
+            s16 soundId;
+            s32 randomValue;
+            s32 type;
+            SVECTOR *rotation;
+            VECTOR *position;
+            s16 newRotation;
+            Humanoid *human;
+            think_func_ *think4;
+
+            alertTime = 300;
+            if (D_80010058 == 2)
+            {
+                alertTime = 600;
+            }
+            FRAMES_UNTIL_END_OF_ALERT = alertTime;
+            Me_THINK_C->actscnt = 0;
+            Me_THINK_C->actcnt = 1;
+
+            randomValue = rand();
+            soundId = 10;
+            if (randomValue & 1)
+            {
+                soundId = 9;
+            }
+            Sound((Humanoid *)Me_THINK_C, soundId);
+
+            type = AIDHumanType[StageID][rand() % 2];
+            rotation = (SVECTOR *)Me_THINK_C->something_about_player_rotation_perhaps;
+            newRotation = rotation->vy + direction;
+            new_var = Me_THINK_C->some_kind_of_current_position;
+            rotation->vy = newRotation;
+            position = new_var;
+            human = BreedLife(type, position->vx, position->vy, position->vz,
+                              newRotation);
+
+            human->target = ((Humanoid *)Me_THINK_C)->target;
+            human->think[0] = Think1Func[4];
+            human->think[1] = Think2Func[4];
+            human->think[2] = Think3Func[4];
+            think4 = Think4Func[4];
+            *(u16 *)&human->attribute |= 4;
+            human->think[3] = think4;
+            EquipWeapon(human, 1);
+            SetNowMotion(human, 0x501, 1);
+            human->actscnt = 0;
+            human->actcnt = 1;
+            *(u16 *)&human->attribute |= 0x11;
+
+            human->chase[0] = Me_THINK_C->some_other_x_position +
+                              (rand() % 5 - 2) * 500;
+            human->chase[1] = Me_THINK_C->some_other_z_position +
+                              (rand() % 5 - 2) * 500;
+            randomValue = rand();
+            soundId = 10;
+            if (randomValue & 1)
+            {
+                soundId = 9;
+            }
+            self = (character_state *)human;
+            Sound((Humanoid *)self, soundId);
+            StageEnemies++;
+        }
+    }
+
+done:
+    return result;
+}
+
+#endif /* NON_MATCHING */
