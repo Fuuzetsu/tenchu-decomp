@@ -1644,7 +1644,14 @@ near entry; `AdtMessageBox` wants the inline form.)
   local even when each component appears independently in Ghidra. SearchTarget
   only recovered its exact 0x50 frame and sp+0x10 access plan with one `VECTOR
   delta`; separate scalars colored into saved registers and erased the retail
-  workspace.
+  workspace. `register_character_death` independently confirms the stronger
+  stack signature: `lw/sw` at sp+0x10/0x14/0x18 followed by an address-taken
+  `SVECTOR` at sp+0x20 is `VECTOR delta; SVECTOR passage;`. The aggregate form
+  collapsed an s0-s6 scalar allocation to the target's s0-s2 and matched all
+  820 bytes. `stackplan` treats any slot that the function both stores and
+  loads as local workspace, so its fallback argument inference no longer hides
+  that VECTOR merely because the following aggregate supplies the first
+  formed stack address.
 - **For mutually-exclusive aggregate layouts, make the overlap an explicit
   union instead of hoping scopes share slots.** Run `tools/stackplan.py <Name>`:
   it reads the candidate's outgoing-argument size, the target's first

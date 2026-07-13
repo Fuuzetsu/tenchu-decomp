@@ -1865,6 +1865,25 @@ glabel F
         self.assertNotIn(0x10, [offset for offset in info["accesses"]
                                if offset >= info["workspace_start"]])
 
+    def test_loaded_slots_precede_addressed_aggregate_are_locals(self):
+        assembly = """
+glabel F
+    addiu $sp, $sp, -0x38
+    sw $s0, 0x28($sp)
+    sw $ra, 0x34($sp)
+    sw $v0, 0x10($sp)
+    sw $v1, 0x14($sp)
+    sw $a0, 0x18($sp)
+    lw $v0, 0x10($sp)
+    lw $v1, 0x14($sp)
+    lw $a0, 0x18($sp)
+    addiu $a2, $sp, 0x20
+"""
+        info = stackplan.analyze(assembly)
+        self.assertEqual(info["args"], 0x10)
+        self.assertEqual(info["workspace_start"], 0x10)
+        self.assertEqual(info["workspace_size"], 0x18)
+
     def test_compiler_frame_comment_supplies_args_and_vars(self):
         assembly = """
 .frame $sp,112,$31 # vars= 72, regs= 4/0, args= 24, extra= 0

@@ -127,17 +127,29 @@ def infer_args_from_accesses(accesses):
 
     Split target assembly often loses cc1's ``args=`` frame comment.  Stores
     below the first formed local address are the stack-passed call arguments;
-    round their end to the ABI's 8-byte stack alignment.  Return None when the
-    target provides no address boundary rather than guessing across locals.
+    round their end to the ABI's 8-byte stack alignment.  A slot which is also
+    loaded by the function is local workspace, not outgoing-only argument
+    space, even when it precedes the first address-taken aggregate.  Use the
+    first such load-bearing slot as a stronger upper bound; this prevents a
+    VECTOR at sp+0x10/14/18 from being hidden merely because a following
+    SVECTOR first has its address formed at sp+0x20.
+
+    Return None when the target provides no address boundary rather than
+    guessing across locals.
     """
     address_offsets = [offset for offset, counts in accesses.items()
                        if counts.get("addr")]
     if not address_offsets:
         return None
     boundary = min(address_offsets)
+    loaded_offsets = [
+        offset for offset, counts in accesses.items()
+        if offset < boundary and any(op.startswith("l") for op in counts)
+    ]
+    argument_ceiling = min(loaded_offsets) if loaded_offsets else boundary
     end = 0x10
     for offset, counts in accesses.items():
-        if offset >= boundary:
+        if offset >= argument_ceiling:
             continue
         width, _ctype = access_width(counts)
         if any(op.startswith("s") for op in counts if op != "addr"):
