@@ -205,6 +205,23 @@ class FuzzyInventoryTests(unittest.TestCase):
                 )
             self.assertEqual(fuzzy_inventory.validate(src, tsv), [])
 
+    def test_partial_rescore_prunes_orphans_but_retains_live_rows(self):
+        rows = {
+            "RenamedOld": "old row",
+            "StillGuarded": "live row",
+            "UnrequestedGuarded": "other live row",
+        }
+
+        kept, removed = fuzzy_inventory.retain_guarded(
+            rows, {"StillGuarded", "UnrequestedGuarded"}
+        )
+
+        self.assertEqual(removed, ["RenamedOld"])
+        self.assertEqual(kept, {
+            "StillGuarded": "live row",
+            "UnrequestedGuarded": "other live row",
+        })
+
 
 class MatcherPromptTests(unittest.TestCase):
     def test_function_lookup_overlays_current_splat_name(self):

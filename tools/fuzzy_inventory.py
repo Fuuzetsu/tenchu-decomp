@@ -47,6 +47,19 @@ def load_rows(path: str) -> tuple[dict[str, list[str]], list[str]]:
     return rows, errors
 
 
+def retain_guarded(rows: dict[str, object], guarded: object) -> tuple[dict[str, object], list[str]]:
+    """Return only rows whose names still identify guarded C drafts.
+
+    Partial fuzzy rescoring must preserve unrequested *live* scores, but a
+    function rename or promotion makes its old row invalid regardless of which
+    new name was requested.  Keep this policy here so the writer and integrity
+    checker share the same definition of an orphan.
+    """
+    keep = set(guarded)
+    removed = sorted(set(rows) - keep)
+    return {name: row for name, row in rows.items() if name in keep}, removed
+
+
 def validate(src_dir: str, tsv: str) -> list[str]:
     sources = guarded_sources(src_dir)
     rows, errors = load_rows(tsv)

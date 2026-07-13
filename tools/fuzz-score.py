@@ -168,7 +168,6 @@ def main():
     requested = ([name.strip() for name in args.only.split(",") if name.strip()]
                  if args.only else sorted(sources))
     names = [name for name in requested if name in sources]
-    dropped = sorted(set(requested) - set(sources))
 
     # Preserve existing scores for anything we're not re-scoring (subset runs).
     prev = {}
@@ -178,17 +177,14 @@ def main():
                 p = line.rstrip("\n").split("\t")
                 if len(p) >= 3:
                     prev[p[0]] = line.rstrip("\n")
-    # A full run owns the whole file: drop stale entries for functions that are
-    # no longer NON_MATCHING drafts (e.g. promoted to a plain matched .c).
-    if not args.only:
-        keep = set(sources)
-        prev = {k: v for k, v in prev.items() if k in keep}
-    else:
-        for name in dropped:
-            if name in prev:
-                del prev[name]
-            print(f"{name}: removed stale row (function is no longer guarded)",
-                  file=sys.stderr)
+    # Orphans are invalid on subset runs too. A rename commonly rescored only
+    # the new name, so retaining the unrequested old-name row made --check fail
+    # and forced a manual TSV edit. Preserve every unrequested LIVE score, but
+    # prune names that no longer identify guarded drafts on every write.
+    prev, removed = FZI.retain_guarded(prev, sources)
+    for name in removed:
+        print(f"{name}: removed stale row (function is no longer guarded)",
+              file=sys.stderr)
 
     results = {}
 
@@ -215,7 +211,7 @@ def main():
         print(f"[{i}/{len(names)}] {name}: {status} {val}", file=sys.stderr)
         merged = flush()  # incremental: crash-safe + monitorable during long runs
 
-    if dropped and not names:
+    if not merged:
         merged = flush()
     scored = [r for r in results.values() if r.split("\t")[1]]
     print(f"\nwrote {OUT}: {len(scored)}/{len(results)} scored this run "
