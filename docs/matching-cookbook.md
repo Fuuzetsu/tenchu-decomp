@@ -483,6 +483,10 @@ plain C is the matched file.
   pushed later in memory (reached by a forward jump). Makibishi's nested
   switch needed `case 4:` before `case 1:` in source though the tests check 1
   first — check body ADDRESSES in the `.s`, not just the test order.
+  In a split jump-table function, the same source order controls the sequence
+  of separately carved case text islands. LoadConstruction's target order
+  `0,5,2,3,11,4` cut its draft's structural block count substantially even
+  though the table's numeric destinations remained value-indexed.
 - **Three sparse literal equalities may need `switch`, even without a jump
   table.** gcc 2.8.1's `expand_case` builds a value-sorted comparison tree but
   keeps case bodies in source order. FUN_8005b17c's `0x20`, `0x2000`, and
@@ -781,6 +785,10 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   **top-test + unconditional back-jump** shape (first insn after the loop
   note is a condjump → no duplication) *and* still gets loop.c's invariant
   hoisting (address pseudos, division magic constants moved to the preheader).
+  LoadConstruction demonstrates the large-function diagnostic: its natural
+  outer record loop and final map loop each hoist the signed-division `16000`
+  magic once, while equivalent hand labels repeat the `lui`/`ori` sequence at
+  every division site.
 - A hand-rolled `label: if (...) goto...` loop also keeps the top test but
   **loses hoisting** (no loop notes → loop.c skips it): magic divisors and
   invariant addresses get rematerialized per iteration. Wrong.
@@ -1524,6 +1532,15 @@ near entry; `AdtMessageBox` wants the inline form.)
   request/camera-output window. When several independently recovered functions
   converge on the same target workspace boundary, prefer the explicit union
   over padding unrelated locals until the frame happens to fit.
+  For a large frame with no trustworthy decompiler locals, add
+  `--emit-overlay`: stackplan also recognizes `addiu reg,sp,offset` as an
+  address-taken aggregate boundary, infers outgoing o32 argument space when the
+  split target lost its `.frame args=` comment, and emits a padded C struct with
+  scalar widths at every target access. LoadConstruction's scaffold recovered
+  the full sp+0x20..0x177 window and led directly to its exact 0x1a0 frame.
+  The generated names are deliberately neutral; replace byte regions with
+  PSX.SYM/Ghidra-proven aggregates before treating it as semantic source. Use
+  `--args N` when the inferred outgoing boundary is ambiguous.
 - **A stack aggregate pointer can coexist with DIRECT member spellings, and
   that mix may be the target.** Keep `p = &local` alive for the one field whose
   store is base-relative and for the later call, but spell other fields as

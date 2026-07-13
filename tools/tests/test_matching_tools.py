@@ -1354,6 +1354,35 @@ void Target(u32 value)
 
 
 class StackPlanTests(unittest.TestCase):
+    def test_address_formation_marks_start_of_hidden_stack_aggregate(self):
+        assembly = """
+glabel F
+    addiu $sp, $sp, -0x60
+    sw $s0, 0x50($sp)
+    sw $ra, 0x5c($sp)
+    addiu $a0, $sp, 0x18
+    lhu $v0, 0x38($sp)
+"""
+        info = stackplan.analyze(assembly, args_hint=0x10)
+        self.assertEqual(info["workspace_start"], 0x18)
+        self.assertEqual(info["accesses"][0x18], {"addr": 1})
+        overlay = stackplan.emit_overlay("F", info)
+        self.assertIn("unsigned char bytes_000[0x20]", overlay)
+        self.assertIn("unsigned short field_020", overlay)
+        self.assertIn("expected base sp+0x18, size 0x38", overlay)
+
+    def test_overlay_uses_signed_width_and_explicit_padding(self):
+        info = {
+            "workspace_start": 0x20,
+            "workspace_end": 0x30,
+            "accesses": {0x20: {"lh": 1}, 0x28: {"sw": 2}},
+        }
+        overlay = stackplan.emit_overlay("F", info)
+        self.assertIn("short field_000", overlay)
+        self.assertIn("unsigned char pad_002[0x6]", overlay)
+        self.assertIn("unsigned int field_008", overlay)
+        self.assertIn("unsigned char pad_00c[0x4]", overlay)
+
     def test_target_frame_and_workspace_are_inferred(self):
         assembly = """
 glabel F

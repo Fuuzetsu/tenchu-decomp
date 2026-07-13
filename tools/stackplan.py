@@ -9,6 +9,7 @@ This tool makes that boundary and every accessed ``sp+offset`` mechanical.
 
   tools/stackplan.py ProcItemFire
   tools/stackplan.py ProcItemFire -n --json
+  tools/stackplan.py LoadConstruction -n --emit-overlay
 
 The report does not claim that a union is always the original source.  It shows
 the exact byte window an explicit scratch union must occupy when independent
@@ -99,7 +100,7 @@ def saved_area_start(text):
 
 
 def stack_accesses(text):
-    """Map each stack offset to its load/store mnemonic counts."""
+    """Map each stack offset to load/store and address-taking counts."""
     accesses = defaultdict(Counter)
     pattern = re.compile(r"(-?(?:0x[0-9a-f]+|\d+))\(\$?sp\)", re.I)
     for raw in text.splitlines():
@@ -109,15 +110,48 @@ def stack_accesses(text):
             continue
         for match in pattern.finditer(line):
             accesses[parse_number(match.group(1))][insn.group(1).lower()] += 1
+        address = re.match(
+            r"addiu?\s+\$?([a-z0-9]+),\s*\$?sp,\s*"
+            r"(-?(?:0x[0-9a-f]+|\d+))$",
+            line, re.I,
+        )
+        if address and address.group(1).lower() != "sp":
+            offset = parse_number(address.group(2))
+            if offset >= 0:
+                accesses[offset]["addr"] += 1
     return {offset: dict(counts) for offset, counts in sorted(accesses.items())}
+
+
+def infer_args_from_accesses(accesses):
+    """Infer o32 outgoing space below the first address-taken local.
+
+    Split target assembly often loses cc1's ``args=`` frame comment.  Stores
+    below the first formed local address are the stack-passed call arguments;
+    round their end to the ABI's 8-byte stack alignment.  Return None when the
+    target provides no address boundary rather than guessing across locals.
+    """
+    address_offsets = [offset for offset, counts in accesses.items()
+                       if counts.get("addr")]
+    if not address_offsets:
+        return None
+    boundary = min(address_offsets)
+    end = 0x10
+    for offset, counts in accesses.items():
+        if offset >= boundary:
+            continue
+        width, _ctype = access_width(counts)
+        if any(op.startswith("s") for op in counts if op != "addr"):
+            end = max(end, offset + max(width, 4))
+    return (end + 7) & ~7
 
 
 def analyze(text, args_hint=None):
     info = frame_info(text)
-    if info["args"] is None:
-        info["args"] = args_hint
     info["saved_start"] = saved_area_start(text)
     info["accesses"] = stack_accesses(text)
+    if info["args"] is None:
+        info["args"] = (args_hint if args_hint is not None else
+                        infer_args_from_accesses(info["accesses"]))
     floor = info["args"] if info["args"] is not None else 16
     ceiling = info["saved_start"]
     working = [offset for offset in info["accesses"]
@@ -164,12 +198,79 @@ def print_side(label, info):
             print(f"    sp+0x{offset:02x}: {counts}")
 
 
+def access_width(counts):
+    """Best scalar C width/type implied at one stack offset."""
+    operations = set(counts) - {"addr"}
+    if operations & {"ld", "sd"}:
+        return 8, "unsigned long long"
+    if operations & {"lw", "lwl", "lwr", "sw", "swl", "swr"}:
+        return 4, "unsigned int"
+    if operations & {"lh", "sh"}:
+        return 2, "short"
+    if "lhu" in operations:
+        return 2, "unsigned short"
+    if "lb" in operations:
+        return 1, "signed char"
+    if operations & {"lbu", "sb"}:
+        return 1, "unsigned char"
+    return 0, None
+
+
+def emit_overlay(name, info):
+    """Emit a conservative C struct pinned to the target workspace offsets.
+
+    Address-only regions become byte arrays up to the next known access.  The
+    scaffold intentionally uses neutral field names: PSX.SYM/local evidence is
+    still needed to replace them with the original aggregates and semantics.
+    """
+    start, end = info["workspace_start"], info["workspace_end"]
+    if start is None or end is None or start >= end:
+        return f"/* {name}: target workspace is not recoverable */"
+    offsets = [offset for offset in info["accesses"] if start <= offset < end]
+    lines = ["typedef struct", "{"]
+    cursor = start
+    for index, offset in enumerate(offsets):
+        if offset < cursor:
+            continue
+        if offset > cursor:
+            lines.append(
+                f"    unsigned char pad_{cursor - start:03x}[0x{offset - cursor:x}];"
+            )
+        counts = info["accesses"][offset]
+        width, ctype = access_width(counts)
+        next_offset = offsets[index + 1] if index + 1 < len(offsets) else end
+        if width == 0:
+            width = max(1, next_offset - offset)
+            declaration = f"unsigned char bytes_{offset - start:03x}[0x{width:x}]"
+        else:
+            declaration = f"{ctype} field_{offset - start:03x}"
+        operations = ", ".join(
+            f"{op}x{count}" for op, count in sorted(counts.items())
+        )
+        lines.append(f"    {declaration}; /* sp+0x{offset:x}: {operations} */")
+        cursor = offset + width
+    if cursor < end:
+        lines.append(
+            f"    unsigned char pad_{cursor - start:03x}[0x{end - cursor:x}];"
+        )
+    lines.extend([
+        f"}} {name}StackOverlay;",
+        f"/* Declare `{name}StackOverlay stack;`: expected base sp+0x{start:x}, "
+        f"size 0x{end - start:x}. Replace neutral fields with proven locals. */",
+    ])
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("name")
     parser.add_argument("-n", "--no-build", action="store_true")
+    parser.add_argument("--args", type=parse_number,
+                        help="override/inject the outgoing-argument byte size")
     parser.add_argument("--json", action="store_true",
                         help="emit the report as machine-readable JSON")
+    parser.add_argument("--emit-overlay", action="store_true",
+                        help="append a padded C workspace-overlay scaffold")
     args = parser.parse_args()
 
     if not args.no_build:
@@ -177,12 +278,15 @@ def main():
     candidate_path = CANDIDATE.format(name=args.name)
     candidate = (open(candidate_path, errors="replace").read()
                  if os.path.exists(candidate_path) else "")
-    candidate_info = analyze(candidate) if candidate else None
-    args_hint = candidate_info["args"] if candidate_info else None
+    candidate_info = analyze(candidate, args_hint=args.args) if candidate else None
+    args_hint = (args.args if args.args is not None else
+                 candidate_info["args"] if candidate_info else None)
     target_info = analyze(target_text(args.name), args_hint=args_hint)
     report = {"name": args.name, "target": target_info,
               "candidate": candidate_info}
     if args.json:
+        if args.emit_overlay:
+            parser.error("--json and --emit-overlay are mutually exclusive")
         print(json.dumps(report, indent=2, sort_keys=True))
         return
 
@@ -197,6 +301,9 @@ def main():
     if target_info["workspace_size"] is not None:
         print("union hint: an explicit scratch overlay for the target working "
               f"window is {fmt(target_info['workspace_size'])} bytes")
+    if args.emit_overlay:
+        print()
+        print(emit_overlay(args.name, target_info))
 
 
 if __name__ == "__main__":
