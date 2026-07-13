@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -13,94 +14,193 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
+/* FUN_80039160's writes and this callback's reads prove a snow-particle
+ * view of EffectParam.  It shares BloodType's storage, but not its field
+ * meanings: the trailing shorts are velocity and the byte at +0x1e is a
+ * sprite selector. */
+typedef struct
+{
+    s32 x;          /* +0x00 */
+    s32 y;          /* +0x04 */
+    s32 z;          /* +0x08 */
+    s32 ground;     /* +0x0c */
+    s32 sample_y;   /* +0x10 */
+    s32 size;       /* +0x14 */
+    s16 velocity[3]; /* +0x18 */
+    u8 sprite;       /* +0x1e */
+} SnowParticleType;
+
+typedef struct
+{
+    GsCOORDINATE2 locate; /* +0x00 */
+    SVECTOR rotate;       /* +0x50 */
+    s16 id;               /* +0x58 */
+    s16 attribute;        /* +0x5a */
+    SVECTOR clip;         /* +0x5c */
+    s32 scale;            /* +0x64 */
+    GsSPRITE sprite;      /* +0x68 */
+} EffectSprite3D;
+
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+} EffectViewInfo;
+
+extern EffectViewInfo ViewInfo;
+extern u_long *GlobalAreaMap;
+extern GsOT *OTablePt;
+extern EffectSprite3D *D_80097F2C[];
+extern s32 abs(s32 value);
+extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
+extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *screen);
+extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
+
+/*
+ * STATUS: NON_MATCHING — exact retail length (182 instructions / 728 bytes)
+ * with 14 differing bytes.  The C is semantically complete; the residual is
+ * two isolated old-GCC allocation/scheduling choices:
+ *
+ *  - At entry, retail keeps velocity-z in $v1 and then velocity-y in $v0;
+ *    cc1 gives those two halfword loads the opposite registers and schedules
+ *    their independent adds in the corresponding opposite order (8 bytes).
+ *  - In the sprite-table lookup, retail builds D_80097F2C in $v0 and the
+ *    byte index in $v1; cc1 assigns the address/index chain to $v1/$v0
+ *    instead (6 bytes).
+ *
+ * `rtlguide` classifies these as local allocation plus one combine/scheduler
+ * consequence; `.greg` already has the correct callee-saved coordinate map.
+ * Flat or worse trials included coordinate-expression folding, statement and
+ * declaration reordering, scalar/member-array aliases, block/comma/assignment
+ * fences, pointer/index respellings, and disjoint-lifetime donor reuse.  The
+ * latter proved the two blocks are coupled but adds a move or recolors the
+ * otherwise-exact callee-saved map.  A near-final permuter run (~1,500
+ * candidates) retained no full-link candidate close to this 14-byte base.
+ * Keep the checkpoint pure C; no inline assembly is needed or wanted.
+ */
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80034dbc", FUN_80034dbc);
+#else
+void FUN_80034dbc(TEffectSlot *effect)
+{
+    SnowParticleType *particle;
+    EffectSprite3D *model;
+    GsSPRITE *sprite;
+    SVECTOR screen;
+    s32 view_z;
+    s32 view_x;
+    s32 view_y;
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 ground;
+    u32 delta_y;
+    u32 delta;
+    u32 offset;
+    s32 state;
+    s32 size;
+    s16 scale;
+    s16 depth;
+    s32 priority;
 
-// triage: MEDIUM — 182 insns, mul/div, 4 callees, ~0.06 to ReqItemShinsoku
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+    particle = (SnowParticleType *)&effect->param;
+    view_x = ViewInfo.vrx;
+    view_y = ViewInfo.vry;
+    view_z = ViewInfo.vrz;
+    {
+        s16 velocity_x;
+        s16 velocity_z;
+        s16 velocity_y;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void FUN_80034dbc(undefined4 *param_1)
-//
-// {
-//   long lVar1;
-//   short sVar2;
-//   int iVar3;
-//   int iVar4;
-//   long lVar5;
-//   uint uVar6;
-//   uint uVar7;
-//   int iVar8;
-//   int iVar9;
-//   long x;
-//   undefined2 local_30;
-//   undefined2 local_2e;
-//   ushort local_2c;
-//
-//   lVar1 = ViewInfo.vrz;
-//   lVar5 = ViewInfo.vrx;
-//   x = param_1[1] + (int)*(short *)(param_1 + 7);
-//   iVar9 = param_1[3] + (int)*(short *)(param_1 + 8);
-//   iVar8 = param_1[2] + (int)*(short *)((int)param_1 + 0x1e);
-//   if ((int)param_1[4] < iVar8) {
-// LAB_80034f60:
-//     *param_1 = 0;
-//   }
-//   else {
-//     uVar6 = iVar8 - ViewInfo.vry;
-//     uVar7 = x - ViewInfo.vrx;
-//     if (3000 < (int)uVar6) {
-//       iVar8 = ViewInfo.vry + (uVar6 % 6000 - 3000);
-//     }
-//     iVar3 = abs(uVar7);
-//     if (3000 < iVar3) {
-//       x = lVar5 + (uVar7 % 6000 - 3000);
-//     }
-//     uVar7 = iVar9 - lVar1;
-//     iVar4 = abs(uVar7);
-//     if (3000 < iVar4) {
-//       iVar9 = lVar1 + (uVar7 % 6000 - 3000);
-//     }
-//     if (3000 < iVar4 || (3000 < iVar3 || 3000 < (int)uVar6)) {
-//       lVar5 = GetAreaMapLevel(GlobalAreaMap,x,param_1[5]);
-//       if (lVar5 < iVar8) goto LAB_80034f60;
-//       param_1[4] = lVar5;
-//     }
-//     param_1[1] = x;
-//     param_1[2] = iVar8;
-//     param_1[3] = iVar9;
-//     iVar8 = (&DAT_80097f2c)[*(byte *)((int)param_1 + 0x22)];
-//     iVar3 = param_1[6];
-//     GetScreenPosition();
-//     iVar9 = (int)(short)local_2c;
-//     if (0x24 < iVar9) {
-//       if (iVar9 == 0) {
-//         trap(0x1c00);
-//       }
-//       if ((iVar9 == -1) && (iVar3 * 300 == -0x80000000)) {
-//         trap(0x1800);
-//       }
-//       sVar2 = (short)((iVar3 * 300) / iVar9) + 1;
-//       *(short *)(iVar8 + 0x86) = sVar2;
-//       *(short *)(iVar8 + 0x84) = sVar2;
-//       *(undefined2 *)(iVar8 + 0x6c) = local_30;
-//       *(undefined2 *)(iVar8 + 0x6e) = local_2e;
-//       iVar9 = (int)((uint)local_2c << 0x10) >> 0x12;
-//       if (iVar9 < 0) {
-//         iVar3 = 0;
-//       }
-//       else {
-//         iVar3 = 0x4e1;
-//         if (iVar9 < 0x4e2) {
-//           iVar3 = iVar9;
-//         }
-//       }
-//       GsSortSprite((GsSPRITE *)(iVar8 + 0x68),OTablePt,(ushort)iVar3);
-//     }
-//   }
-//   return;
-// }
+        x = particle->x;
+        y = particle->y;
+        velocity_x = particle->velocity[0];
+        z = particle->z;
+        velocity_z = particle->velocity[2];
+        x += velocity_x;
+        z += velocity_z;
+        velocity_y = particle->velocity[1];
+        ground = particle->ground;
+        y += velocity_y;
+    }
+    state = 0;
+
+    if (ground < y)
+    {
+        do
+        {
+            effect->proc = 0;
+        } while (0);
+        return;
+    }
+
+    delta_y = y - view_y;
+    delta = x - view_x;
+    if (3000 < (s32)delta_y)
+    {
+        state = 1;
+        offset = delta_y % 6000 - 3000;
+        y = view_y + offset;
+    }
+    if (3000 < abs(delta))
+    {
+        state = 1;
+        offset = delta % 6000 - 3000;
+        x = view_x + offset;
+    }
+    delta = z - view_z;
+    if (3000 < abs(delta))
+    {
+        state = 1;
+        offset = delta % 6000 - 3000;
+        z = view_z + offset;
+    }
+
+    if (state != 0)
+    {
+        state = GetAreaMapLevel(GlobalAreaMap, x, particle->sample_y, z, 8);
+        if (state < y)
+        {
+            effect->proc = 0;
+            return;
+        }
+        particle->ground = state;
+    }
+
+    particle->x = x;
+    particle->y = y;
+    particle->z = z;
+    model = D_80097F2C[particle->sprite];
+    sprite = &model->sprite;
+    size = particle->size;
+    GetScreenPosition(x, y, z, &screen);
+    depth = screen.vz;
+    if (0x24 < depth)
+    {
+        scale = (s16)((size * 300) / depth) + 1;
+        sprite->scaley = scale;
+        sprite->scalex = scale;
+        sprite->x = screen.vx;
+        sprite->y = screen.vy;
+        depth = (s32)((u32)(u16)screen.vz << 16) >> 18;
+        if (depth < 0)
+        {
+            goto zero;
+        }
+        priority = 0x4e1;
+        if (depth < 0x4e2)
+        {
+            priority = depth;
+        }
+        goto draw;
+    zero:
+        priority = 0;
+    draw:
+        GsSortSprite(sprite, OTablePt, (u16)priority);
+    }
+}
+#endif
