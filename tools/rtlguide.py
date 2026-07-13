@@ -77,21 +77,27 @@ CATEGORY_PASSES = {
 }
 CATEGORY_RULES = {
     "regalloc": [
-        "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split",
+        "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
+        "empty-loop-boundary", "loop-fence", "nested-loop-fence",
+        "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign",
         "guard-exit-copy",
-        "shared-tail-assign", "identical-arm-fence", "subscript-postinc", "switch-cse-evict",
+        "shared-tail-assign", "redundant-field-donor", "identical-arm-fence",
+        "subscript-postinc", "switch-cse-evict",
         "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap", "assignment-chain",
         "member-scalar-alias",
     ],
     "cse/coalescing": [
-        "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split",
-        "vector-copy-adjust", "subscript-postinc", "switch-cse-evict", "assignment-chain",
+        "type-width", "empty-loop-boundary", "loop-fence",
+        "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split",
+        "vector-copy-adjust", "redundant-field-donor", "subscript-postinc",
+        "switch-cse-evict", "assignment-chain",
         "pointee-volatile", "member-scalar-alias",
     ],
     "jump/cross-jump": ["case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
-        "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
+        "type-width", "empty-loop-boundary", "loop-fence",
+        "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "shared-tail-assign",
         "guard-exit-copy",
         "shared-return-split",
@@ -106,7 +112,7 @@ CATEGORY_RULES = {
     "structure/length": [
         "type-width", "and-nest", "temp-inline", "case-fence",
         "vector-copy-adjust", "builtin-abs", "subscript-postinc",
-        "call-arg-pair", "if-else-invert",
+        "call-arg-pair", "if-else-invert", "empty-loop-boundary",
     ],
 }
 

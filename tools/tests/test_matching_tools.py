@@ -822,6 +822,73 @@ int F(void) { u16 *first, *second; return 0; }
         self.assertIn("value = 0;", out[0][1])
         self.assertIn("} while (0);", out[0][1])
 
+    def test_empty_loop_boundary_does_not_wrap_either_statement(self):
+        source = """int F(int value) {
+    value = value + 1;
+    value = value * 2;
+    return value;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_empty_loop_boundary, source)
+        boundary = [text for label, text in out
+                    if label.startswith("empty-loop-boundary L2-L3")]
+        self.assertEqual(len(boundary), 1)
+        self.assertIn(
+            "value = value + 1;\n    do {\n    } while (0);\n"
+            "    value = value * 2;",
+            boundary[0],
+        )
+
+    def test_empty_loop_boundary_does_not_stack_empty_fences(self):
+        source = """void F(int value) {
+    value++;
+    do {
+    } while (0);
+    value--;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_empty_loop_boundary, source), [])
+
+    def test_redundant_field_donor_repeats_pure_aggregate_assignment(self):
+        source = """typedef struct { int a, b, c, d; } T;
+void F(void) {
+    T target;
+    T input;
+    target.a = input.a - input.b;
+    target.b = input.a + input.b;
+    target.c = input.c - input.d;
+    target.d = input.c + input.d;
+    use(target);
+}
+"""
+        autorules.GUIDED_LINES = {5}
+        out = self.candidates(autorules.rule_redundant_field_donor, source)
+        donor = [text for label, text in out
+                 if label.startswith("redundant-field-donor target.a L5->L8")]
+        self.assertEqual(len(donor), 1)
+        self.assertEqual(donor[0].count("target.a = input.a - input.b;"), 2)
+        self.assertIn(
+            "target.c = input.c - input.d;\n"
+            "    target.a = input.a - input.b;\n"
+            "    target.d = input.c + input.d;",
+            donor[0],
+        )
+
+    def test_redundant_field_donor_rejects_address_taken_aggregate(self):
+        source = """typedef struct { int a, b; } T;
+void F(void) {
+    T target;
+    T input;
+    target.a = input.a;
+    target.b = input.b;
+    observe(&target);
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_redundant_field_donor, source), [])
+
     def test_paired_loop_fence_is_one_atomic_candidate(self):
         source = """int F(int value) {
     value = value + 1;
@@ -2330,6 +2397,8 @@ class RtlGuideTests(unittest.TestCase):
     def test_guided_registry_is_pure_c(self):
         rules = {rule for values in rtlguide.CATEGORY_RULES.values() for rule in values}
         self.assertIn("cmp-polarity", rules)
+        self.assertIn("empty-loop-boundary", rules)
+        self.assertIn("redundant-field-donor", rules)
         self.assertIn("loop-fence", rules)
         self.assertIn("loop-range", rules)
         self.assertIn("shift16-mul", rules)

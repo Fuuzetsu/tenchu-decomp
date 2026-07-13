@@ -3613,6 +3613,96 @@ def rule_extern_array(text, name, span):
 # ---------------------------------------------------------------------------
 
 
+def _pure_dot_field_assignment(data, statement, locals_):
+    """Return (base, lhs) for a pure `local.field = local-expr` statement."""
+    if statement.type != "expression_statement":
+        return None
+    expressions = [c for c in statement.named_children if c.type != "comment"]
+    if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+        return None
+    assignment = expressions[0]
+    operator = assignment.child_by_field_name("operator")
+    lhs = assignment.child_by_field_name("left")
+    rhs = assignment.child_by_field_name("right")
+    if (operator is None or _txt(data, operator) != b"=" or
+            lhs is None or lhs.type != "field_expression" or rhs is None or
+            b"->" in _txt(data, lhs)):
+        return None
+    argument = lhs.child_by_field_name("argument")
+    while argument is not None and argument.type == "field_expression":
+        if b"->" in _txt(data, argument):
+            return None
+        argument = argument.child_by_field_name("argument")
+    if argument is None or argument.type != "identifier":
+        return None
+    base = _txt(data, argument)
+    if base not in locals_:
+        return None
+    forbidden = (
+        "assignment_expression", "call_expression", "pointer_expression",
+        "subscript_expression", "update_expression",
+    )
+    if (_find(rhs, forbidden) or
+            any(b"->" in _txt(data, field)
+                for field in _find(rhs, ("field_expression",)))):
+        return None
+    identifiers = {_txt(data, ident) for ident in _find(rhs, ("identifier",))}
+    if base in identifiers or not identifiers.issubset(locals_):
+        return None
+    return base, _txt(data, lhs).strip()
+
+
+def rule_redundant_field_donor(text, name, span):
+    """Repeat a pure automatic-struct field assignment after nearby fields.
+
+    cc1 normally removes the repeated store, but its pre-elimination references
+    can change pseudo priorities and hard-register colouring.  Keep this narrow:
+    the aggregate must be nonvolatile and never address-taken, the RHS may read
+    only automatic locals through direct `.` fields, and the intervening one to
+    three statements must initialise other fields of that same aggregate.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    body_text = _txt(data, body)
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for index, statement in enumerate(statements):
+            original = _pure_dot_field_assignment(data, statement, locals_)
+            if original is None:
+                continue
+            base, lhs = original
+            if re.search(rb"&\s*" + re.escape(base) + rb"\b", body_text):
+                continue
+            source_line = _line(data, statement.start_byte)
+            seen_fields = {lhs}
+            for distance in range(1, 4):
+                field_index = index + distance
+                next_index = field_index + 1
+                if next_index >= len(statements):
+                    break
+                following = _pure_dot_field_assignment(
+                    data, statements[field_index], locals_)
+                if following is None or following[0] != base or following[1] in seen_fields:
+                    break
+                seen_fields.add(following[1])
+                next_statement = statements[next_index]
+                destination_line = _line(data, next_statement.start_byte)
+                if not (_guided_site(source_line) or
+                        _guided_site(destination_line)):
+                    continue
+                indent = _indent_at(data, next_statement.start_byte)
+                duplicate = _txt(data, statement).strip() + b"\n" + indent
+                yield (
+                    f"redundant-field-donor {lhs.decode()} "
+                    f"L{source_line}->L{destination_line}",
+                    splice(data, next_statement.start_byte,
+                           next_statement.start_byte, duplicate).decode(),
+                )
+
+
 def _indent_at(data, off):
     start = data.rfind(b"\n", 0, off) + 1
     prefix = data[start:off]
@@ -3800,6 +3890,50 @@ def _one_shot_loop(data, statement):
             loop_body is None or loop_body.type != "compound_statement"):
         return None
     return loop_body
+
+
+def _empty_one_shot_loop(data, statement):
+    """Whether `statement` is a standalone `do { } while (0)` fence."""
+    loop_body = _one_shot_loop(data, statement)
+    return (loop_body is not None and
+            not [c for c in loop_body.named_children if c.type != "comment"])
+
+
+def rule_empty_loop_boundary(text, name, span):
+    """Insert a weight-free LOOP_END scheduler barrier between statements.
+
+    Wrapping a producer in a one-shot loop also raises the allocation weight of
+    every reference it contains.  A standalone empty loop creates the useful
+    post-LOOP_END scheduling fence without reweighting either neighbouring
+    statement.  Enumerate only boundaries between executable statements and
+    avoid stacking another fence directly beside an existing empty one.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    eligible = {
+        "compound_statement", "do_statement", "expression_statement",
+        "for_statement", "goto_statement", "if_statement",
+        "return_statement", "switch_statement", "while_statement",
+    }
+    for block in _find(body, ("compound_statement",)):
+        statements = [c for c in block.named_children if c.type != "comment"]
+        for before, after in zip(statements, statements[1:]):
+            if before.type not in eligible or after.type not in eligible:
+                continue
+            if (_empty_one_shot_loop(data, before) or
+                    _empty_one_shot_loop(data, after)):
+                continue
+            lines = (_line(data, before.start_byte), _line(data, after.start_byte))
+            if not any(_guided_site(line) for line in lines):
+                continue
+            indent = _indent_at(data, after.start_byte)
+            fence = (b"do {\n" + indent + b"} while (0);\n" + indent)
+            yield (
+                f"empty-loop-boundary L{lines[0]}-L{lines[1]}",
+                splice(data, after.start_byte, after.start_byte, fence).decode(),
+            )
 
 
 def rule_loop_boundary_shift(text, name, span):
@@ -4328,6 +4462,8 @@ AGGRESSIVE_RULES = [
     ("pointee-volatile", "toggle volatile on a local integer pointer's pointee", rule_pointee_volatile),
     ("member-scalar-alias", "toggle long field read through s32 lvalue (MEM_IN_STRUCT lever)", rule_member_scalar_alias),
     ("disjoint-local-alias", "join a dead-until-overwrite scalar to an earlier live range", rule_disjoint_local_alias),
+    ("redundant-field-donor", "repeat a pure local-aggregate field assignment", rule_redundant_field_donor),
+    ("empty-loop-boundary", "insert a weight-free LOOP_END between statements", rule_empty_loop_boundary),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("nested-loop-fence", "atomically add two or three loop weights at one site", rule_nested_loop_fence),
     ("paired-loop-fence", "wrap adjacent groups in two atomic one-shot loops", rule_paired_loop_fence),

@@ -2949,6 +2949,35 @@ let `t`, `angle`, and the later `dir` reuse `$v0` at disjoint lifetimes. Prefer
 the smallest `rtlguide`-selected expression fence when the comparison says one
 weight is enough; broader loops can perturb unrelated scheduling.
 
+Sometimes the target needs only the **post-LOOP_END scheduler barrier**, not the
+enclosed reference weight. Insert a standalone `do { } while (0);` *between*
+the producer and consumer in that case. Its empty body contributes no weighted
+references, while sched still gives the first following instruction the full
+pending-register/pending-memory dependency. CameraDirection supplied the
+direct A/B: no boundary made the draft one instruction short; wrapping
+`CamLoc.vx -= sin` restored the schedule but reweighted `sin` and exchanged its
+saved-register home with `cos`; an empty loop immediately after that assignment
+restored the 215-instruction retail length without the register exchange.
+SetupImageToPolyFT4's exact empty boundary after `y += ph` is the earlier
+independent example. Guided `empty-loop-boundary` now enumerates this
+weight-free fence at adjacent statement boundaries; use ordinary `loop-fence`
+when the enclosed value really does need more allocation priority.
+
+A redundant write to an **unobserved automatic aggregate** can be an allocation
+donor too. CameraDirection's bounded permuter first repeated
+`target.vrx = CamLoc.vx - r.vx` after the neighbouring `vpx`/`vry`
+initialisers, reducing the exact-size residual from 72 to 56 bytes. Once
+mechanised, exhaustive local scoring found the stronger `target.vpx` repeat at
+the same boundary (72→47). cse removed the second store in both cases, so
+function length and behaviour were unchanged, but its temporary references
+re-coloured the tail. Guided `redundant-field-donor` tries that narrow shape
+across one to three sibling field initialisers. It requires a nonvolatile,
+non-address-taken local aggregate, direct `.` fields, a
+call/update/dereference-free RHS using only automatic locals, and no
+intervening non-field statement. This is not permission to duplicate pointer,
+global, volatile, or call-bearing assignments: those writes may be observable,
+and a retained extra store is a structure regression rather than evidence.
+
 The fence may need to cover a **contiguous producer/consumer range**, not one
 AST statement. AttackIndirect's final copy-propagation tie closed only when one
 `do { ... } while (0)` enclosed three adjacent `if` statements together; fencing
