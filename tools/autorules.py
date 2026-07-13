@@ -3201,6 +3201,25 @@ def shape_regression_note(before, after, match=False):
     return ""
 
 
+def shape_candidate_allowed(before, after, match=False):
+    """Do not trade an exact-length state for a wrong-length byte-score mirage.
+
+    matchdiff penalizes a length mismatch, but a large exact-length residual can
+    still score above that penalty (StageEndScreen was 4273 bytes different, so
+    a one-instruction-short candidate scored 1004).  Once a search state has
+    zero length delta, a non-matching child with a known nonzero delta cannot be
+    an improvement: all following aligned bytes have shifted.  Reject it before
+    greedy adoption or beam ranking.  Unknown shape diagnostics remain eligible,
+    and a true byte match is always authoritative.
+    """
+    if match or before is None or after is None:
+        return True
+    before_length = before[1]
+    after_length = after[1]
+    return not (before_length == 0 and after_length is not None and
+                after_length != 0)
+
+
 def write(path, lines):
     _write_text(path, "\n".join(lines))
 
@@ -3236,9 +3255,11 @@ def greedy_search(path, original, name, partial, rules, base, once=False,
             ds = "  invalid" if sc == INVALID else f"  {base}→{sc}"
             warning = (shape_regression_note(shape, (l1, l2), m)
                        if sc < base else "")
-            print(f"  {label:34} {ds}{'  ✓' if (sc < base) else ''}"
+            allowed = shape_candidate_allowed(shape, (l1, l2), m)
+            improves = sc < base and allowed
+            print(f"  {label:34} {ds}{'  ✓' if improves else ''}"
                   f"{'  MATCH' if m else ''}{warning}")
-            if sc < base and (best is None or sc < best[0]):
+            if improves and (best is None or sc < best[0]):
                 best = (sc, label, new_text, m, l1, l2)
         if best is None:
             print(f"  (no improving edit among {tried} candidates)")
@@ -3295,10 +3316,13 @@ def beam_search(path, original, name, partial, rules, base, width, depth,
                 ds = "invalid" if sc == INVALID else str(sc)
                 warning = (shape_regression_note(state["shape"], (l1, l2), m)
                            if sc < state["score"] else "")
+                allowed = shape_candidate_allowed(state["shape"], (l1, l2), m)
+                improves_best = allowed and sc < best["score"]
                 print(f"  d{level} {label:31} {state['score']}→{ds}"
-                      f"{'  ✓' if sc < best['score'] else ''}{'  MATCH' if m else ''}"
+                      f"{'  ✓' if improves_best else ''}{'  MATCH' if m else ''}"
                       f"{warning}")
-                if sc == INVALID or sc > start + allow_regress:
+                if (sc == INVALID or not allowed or
+                        sc > start + allow_regress):
                     continue
                 child = dict(
                     text=new_text, score=sc, shape=(l1, l2), match=m,

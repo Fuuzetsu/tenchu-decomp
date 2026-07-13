@@ -1776,6 +1776,19 @@ near entry; `AdtMessageBox` wants the inline form.)
   original). Writing `av = d / 10;` at the top extends av's range across the
   call → callee-saved reg + a whole allocation cascade
   (BriefingAndInventorySelectionScreen's item-count digits).
+- **The final copy of a repeated digit loop may need a scoped byte base while
+  the preceding copies keep a shared word base.** A function-shared `u32 base`
+  keeps the repeated post-call `andi base,0xff` and gives the saved byte one
+  allocator identity across the run. If every complete copy is exact but the
+  LAST optional-sign suffix is one instruction long, clone only that final
+  source block and shadow `base` with a block-local `u8 base`: capture it in the
+  main digit pass, carry it across the sprite call, and reuse it in the optional
+  minus pass. The byte pseudo then needs neither the shared word base's final
+  `andi` nor a new copy. StageEndScreen's first fifteen loops required the shared
+  `u32`; narrowing all sixteen destroyed the target shape, while narrowing only
+  the last loop removed exactly its isolated one-instruction excess. Apply this
+  only after per-region instruction and CFG counts prove that the unmatched tail
+  is not being cancelled by the following repeated block.
 
 - **u16 init `= -1` with `addiu -1` AND `lhu` reloads = a 2-byte union**:
   `union { u16 u; s16 s; } pad; pad.s = -1;` — the unpromoted HImode pseudo
@@ -2328,7 +2341,18 @@ false structure/length hunks.
 association/constant-position trees for exactly two expressions and one integer
 literal. It preserves the relative source order of both nonconstant expressions,
 so two calls are never exchanged merely to move the literal. Exact byte scoring
-chooses the surviving fold tree.
+chooses the surviving fold tree. Once the baseline has zero length delta,
+autorules also rejects any non-matching candidate with a known nonzero length
+delta before greedy adoption or beam ranking: a one-instruction shift can make a
+large residual's aligned byte score look dramatically better without improving
+the function.
+
+StageEndScreen also showed why the right-associated address form is worth trying
+after regional accounting: `(character * 0x1d4 + (stage * 0x24 + BASE))`
+restored one instruction in an independently one-instruction-short post-game
+region. Combined with the scoped final digit base above, all five semantic
+regions reached their exact target lengths; this was not accepted as mere
+whole-function size compensation.
 
 ### A narrowed three-term sum may need a named promoted prefix
 

@@ -719,6 +719,32 @@ int F(void) { int x; int y; x=first(); y=second(); sink(x,y); return 0; }
         finally:
             os.unlink(path)
 
+    def test_beam_rejects_wrong_length_win_from_exact_length_state(self):
+        def shorten(text, _name, _span):
+            if text == "exact":
+                yield "shorten", "shifted"
+
+        with tempfile.NamedTemporaryFile("w+", delete=False) as f:
+            path = f.name
+            f.write("exact")
+        try:
+            def fake_score(_name, _partial, _source_override):
+                with open(path) as stream:
+                    self.assertEqual(stream.read(), "shifted")
+                return (False, 1, 1, 1)
+
+            rules = [("shorten", "", shorten)]
+            with mock.patch.object(autorules, "score", side_effect=fake_score):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    result = autorules.beam_search(
+                        path, "exact", "F", False, rules, 20,
+                        width=2, depth=2, allow_regress=0, budget=4,
+                        shape=(8, 0),
+                    )
+            self.assertEqual(result, ("exact", 20, False, []))
+        finally:
+            os.unlink(path)
+
 
 class AutoRulesLifecycleTests(unittest.TestCase):
     def test_shape_regression_note_flags_equal_length_local_regression(self):
@@ -730,6 +756,45 @@ class AutoRulesLifecycleTests(unittest.TestCase):
         self.assertEqual(
             autorules.shape_regression_note((2, 0), (5, 0), match=True), "",
         )
+
+    def test_exact_length_shape_rejects_nonmatching_length_regression(self):
+        self.assertFalse(
+            autorules.shape_candidate_allowed((10, 0), (1, 1)),
+        )
+        self.assertTrue(
+            autorules.shape_candidate_allowed((10, 0), (1, 0)),
+        )
+        self.assertTrue(
+            autorules.shape_candidate_allowed((10, 2), (1, 1)),
+        )
+        self.assertTrue(
+            autorules.shape_candidate_allowed((10, 0), (0, 1), match=True),
+        )
+
+    def test_greedy_rejects_wrong_length_win_from_exact_length_state(self):
+        def shorten(text, _name, _span):
+            if text == "exact":
+                yield "shorten", "shifted"
+
+        with tempfile.NamedTemporaryFile("w+", delete=False) as f:
+            path = f.name
+            f.write("exact")
+        try:
+            def fake_score(_name, _partial, _source_override):
+                with open(path) as stream:
+                    self.assertEqual(stream.read(), "shifted")
+                return (False, 1, 1, 1)
+
+            rules = [("shorten", "", shorten)]
+            with mock.patch.object(autorules, "score", side_effect=fake_score):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    result = autorules.greedy_search(
+                        path, "exact", "F", False, rules, 20,
+                        shape=(8, 0),
+                    )
+            self.assertEqual(result, ("exact", 20, False, []))
+        finally:
+            os.unlink(path)
 
     def test_score_retains_aligned_shape_as_a_secondary_diagnostic(self):
         def fake_run(args, **kwargs):
