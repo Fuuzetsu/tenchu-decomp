@@ -35,22 +35,11 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING -- 3 of 1248 bytes differ, with the exact target
- * length (312 instructions).  The residual is one commutative addition's
- * destination register in the AttackActionCount update:
+ * STATUS: MATCHING
  *
- *     target: addu a0,a0,v1; sw a0,AttackActionCount
- *     draft:  addu v1,v1,a0; sw v1,AttackActionCount
- *
- * Here a0 is GameClock and v1 is EngageLevel*10.  `rtldump.py` confirms the
- * difference is fixed at combine/local allocation after the expression has
- * become a plain commutative PLUS.  Both operand spellings, explicit temps,
- * compound-assignment shapes, and a bounded 2,500-candidate permuter run
- * were checked; all either preserve these three bytes or regress scheduling
- * and register allocation.  Keep the semantically correct draft rather than
- * introducing register-forcing assembly.
- *
- * Two reusable structural facts closed the rest of the function:
+ * Three source-shape facts close the function:
+ *  - Assigning GameClock to AttackActionCount before compound-adding
+ *    EngageLevel*10 preserves the target's a0 accumulator/writeback.
  *  - `(raw >= 0) ? raw : -raw` reaches GCC's abssi2 expansion and emits the
  *    target's copy-then-self-negu form.  The LT ternary does not.
  *  - Spelling the two random choices as a nested positive arm makes ItemUse
@@ -64,16 +53,12 @@ extern s32 Distance;
 extern s16 Degree;
 extern s16 EngageLevel;
 extern u16 Attrib;
-extern s32 GameClock[];
+extern s32 GameClock;
 extern s32 AttackActionCount;
 
 extern s16 ChasetoTarget(s32 distance);
 extern s16 SetCommand(PADtype *pad, s16 command);
 extern s16 ItemUse(void);
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AttackLong", AttackLong);
-#else /* NON_MATCHING */
 
 short AttackLong(void)
 {
@@ -222,7 +207,8 @@ status7_return:
     {
         if (rand() % (EngageLevel + 1) == 0)
         {
-            AttackActionCount = EngageLevel * 10 + GameClock[0];
+            AttackActionCount = GameClock;
+            AttackActionCount += EngageLevel * 10;
             return pad | 0x80;
         }
     }
@@ -297,5 +283,3 @@ status7_return:
 return_pad:
     return pad;
 }
-
-#endif /* NON_MATCHING */
