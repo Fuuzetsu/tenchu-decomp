@@ -46,7 +46,10 @@
  * keeps that layout, but materialises zero_extendhisi2 at both remaining copy
  * sites.  Signed assignments remove the masks but let jump2 merge four target
  * instructions.  Keep the pure-C near-match rather than forcing the two moves
- * with assembly.
+ * with assembly.  A late 22,046-iteration permuter run over this exact-length
+ * draft was flat at its proxy score of 400, with no improved candidate; this
+ * supports the RTL diagnosis that the residual is a type-mode boundary rather
+ * than ordinary expression ordering or register allocation.
  */
 
 extern Humanoid *Me_THINK_C;
