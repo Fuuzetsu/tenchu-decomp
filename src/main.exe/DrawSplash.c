@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -35,142 +36,137 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawSplash", DrawSplash);
+/*
+ * MATCH notes:
+ * - The scalar aliases on py/pz are intentional.  Plain structure-member
+ *   reads carry cc1's in-structure memory marker, so CSE sinks both loads
+ *   below the scratchpad stores and reuses v0/v1.  Reading the same 32-bit
+ *   representation through scalar lvalues keeps the original long-lived
+ *   y/z values in a1/a2, as recorded by PSX.SYM and emitted by retail.
+ * - D_80097A50 is an array in the original declaration.  Indexing element
+ *   zero, rather than declaring one SVECTOR object, produces the target's
+ *   separately scheduled address high/low around the VECTOR block copy.
+ * - The second z is deliberately scoped after RotTransPers; PSX.SYM records
+ *   it as a distinct int local from the outer long coordinate.
+ */
 
-// triage: MEDIUM — 246 insns, mul/div, 6 callees, ~0.06 to InsertConflict
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+    s32 rz;
+    GsCOORDINATE2 *super;
+} TViewInfo;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void DrawSplash(tag_EffectSlot *ef)
-//
-// {
-//   byte bVar1;
-//   long lVar2;
-//   int iVar3;
-//   uint uVar4;
-//   int iVar5;
-//   int iVar6;
-//   short local_40;
-//   short local_3e;
-//   ushort local_3c;
-//   VECTOR local_38;
-//   SVECTOR local_28;
-//   long local_20;
-//   long local_1c;
-//
-//   Scratchpad[0x14] = 0;
-//   Scratchpad[0x15] = 0;
-//   Scratchpad[0x16] = 0;
-//   Scratchpad[0x17] = 0;
-//   Scratchpad[0x18] = 0;
-//   Scratchpad[0x19] = 0;
-//   Scratchpad[0x1a] = 0;
-//   Scratchpad[0x1b] = 0;
-//   Scratchpad[0x1c] = 0;
-//   Scratchpad[0x1d] = 0;
-//   Scratchpad[0x1e] = 0;
-//   Scratchpad[0x1f] = 0;
-//   Scratchpad._32_2_ = (short)(ef->param).bleed.pos.vx - (short)ViewInfo.vpx;
-//   Scratchpad._34_2_ = (short)(ef->param).blood.px - (short)ViewInfo.vpy;
-//   Scratchpad._36_2_ = (short)(ef->param).blood.py - (short)ViewInfo.vpz;
-//   SetTransMatrix((MATRIX *)Scratchpad);
-//   SetRotMatrix(&GsWSMATRIX);
-//   lVar2 = RotTransPers((SVECTOR *)(Scratchpad + 0x20),(long *)&local_40,(long *)(Scratchpad + 0x28),
-//                        (long *)(Scratchpad + 0x2c));
-//   local_3c = (ushort)lVar2;
-//   iVar5 = (int)(short)local_3c;
-//   if (iVar5 < 0x25) {
-//     return;
-//   }
-//   sprSplash.x = local_40;
-//   sprSplash.y = local_3e;
-//   iVar3 = (ef->param).splash.sx * 300;
-//   if (iVar5 == 0) {
-//     trap(0x1c00);
-//   }
-//   if ((iVar5 == -1) && (iVar3 == -0x80000000)) {
-//     trap(0x1800);
-//   }
-//   iVar6 = iVar3 / iVar5 + 1;
-//   sprSplash.scalex = (short)iVar6;
-//   iVar3 = (ef->param).splash.sy * 300;
-//   if (iVar5 == 0) {
-//     trap(0x1c00);
-//   }
-//   if ((iVar5 == -1) && (iVar3 == -0x80000000)) {
-//     trap(0x1800);
-//   }
-//   iVar5 = iVar3 / iVar5 + 1;
-//   sprSplash.scaley = (short)iVar5;
-//   bVar1 = (ef->param).splash.mode;
-//   if (bVar1 != 1) {
-//     if (1 < bVar1) {
-//       if (bVar1 == 2) {
-//         uVar4 = (uint)(ef->param).splash.speed;
-//         iVar5 = (iVar5 * 0x10000 >> 0x10) * (uVar4 - (ef->param).splash.count);
-//         if (uVar4 == 0) {
-//           trap(0x1c00);
-//         }
-//         if ((uVar4 == 0xffffffff) && (iVar5 == -0x80000000)) {
-//           trap(0x1800);
-//         }
-//         iVar6 = iVar6 * 0x10000;
-//         sprSplash.scalex = (short)((iVar6 >> 0x10) - (iVar6 >> 0x1f) >> 1);
-//         sprSplash.scaley = (short)(iVar5 / (int)uVar4);
-//         bVar1 = (ef->param).splash.count + 1;
-//         (ef->param).splash.count = bVar1;
-//         if ((ef->param).splash.speed <= bVar1) {
-//           ef->proc = (undefined **)0x0;
-//         }
-//       }
-//       goto LAB_80034d60;
-//     }
-//     if (bVar1 != 0) goto LAB_80034d60;
-//     (ef->param).splash.count = '\0';
-//     (ef->param).splash.mode = (ef->param).splash.mode + '\x01';
-//     memset((uchar *)&local_28,'\0',0x10);
-//     local_38.vx = (long)(ef->param).blood.hint;
-//     local_38.vy = (ef->param).blood.px;
-//     local_38.vz = (ef->param).blood.py;
-//     local_38.pad = local_1c;
-//     local_28.vx = (short)DAT_80097a50;
-//     local_28.vy = DAT_80097a50._2_2_;
-//     local_28.vz = (short)DAT_80097a54;
-//     local_28.pad = DAT_80097a54._2_2_;
-//     local_20 = local_38.vz;
-//     SetBleedsDir(&local_38,&local_28,100,6);
-//   }
-//   iVar5 = (int)sprSplash.scaley * (uint)(ef->param).splash.count;
-//   uVar4 = (uint)(ef->param).splash.speed;
-//   if (uVar4 == 0) {
-//     trap(0x1c00);
-//   }
-//   if ((uVar4 == 0xffffffff) && (iVar5 == -0x80000000)) {
-//     trap(0x1800);
-//   }
-//   sprSplash.scaley = (short)(iVar5 / (int)uVar4);
-//   bVar1 = (ef->param).splash.count + 1;
-//   (ef->param).splash.count = bVar1;
-//   if ((ef->param).splash.speed <= bVar1) {
-//     (ef->param).splash.count = '\0';
-//     (ef->param).splash.mode = (ef->param).splash.mode + '\x01';
-//   }
-// LAB_80034d60:
-//   iVar5 = (int)((uint)local_3c << 0x10) >> 0x12;
-//   if (iVar5 < 0) {
-//     iVar3 = 0;
-//   }
-//   else {
-//     iVar3 = 0x4e1;
-//     if (iVar5 < 0x4e2) {
-//       iVar3 = iVar5;
-//     }
-//   }
-//   GsSortSprite(&sprSplash,OTablePt,(ushort)iVar3);
-//   return;
-// }
+extern TViewInfo ViewInfo;
+extern MATRIX GsWSMATRIX;
+extern GsSPRITE sprSplash;
+extern GsOT *OTablePt;
+extern SVECTOR D_80097A50[];
+
+extern void SetTransMatrix(MATRIX *matrix);
+extern void SetRotMatrix(MATRIX *matrix);
+extern s32 RotTransPers(SVECTOR *vector, s32 *screen, void *p, void *flag);
+extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
+                         int time, long col);
+extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, int priority);
+extern void *memset(void *dst, int value, u32 size);
+
+void DrawSplash(TEffectSlot *ef)
+{
+    SplashType *param;
+    GsSPRITE *spr;
+    SVECTOR screen;
+    SVECTOR *screenp;
+    long x;
+    long y;
+    long z;
+    s32 priority;
+
+    param = &ef->param.splash;
+    spr = &sprSplash;
+    x = param->px;
+    y = *(s32 *)&param->py;
+    z = *(s32 *)&param->pz;
+
+    *(s32 *)0x1F800014 = 0;
+    *(s32 *)0x1F800018 = 0;
+    *(s32 *)0x1F80001C = 0;
+    *(s16 *)0x1F800020 = x - (s16)ViewInfo.vpx;
+    *(s16 *)0x1F800022 = y - (s16)ViewInfo.vpy;
+    *(s16 *)0x1F800024 = z - (s16)ViewInfo.vpz;
+    SetTransMatrix((MATRIX *)0x1F800000);
+    SetRotMatrix(&GsWSMATRIX);
+    screenp = &screen;
+    screenp->vz = (s16)RotTransPers((SVECTOR *)0x1F800020, (s32 *)screenp,
+                                    (void *)0x1F800028, (void *)0x1F80002C);
+    {
+        s32 z;
+
+        z = screen.vz;
+        if (z > 0x24)
+        {
+            spr->x = screen.vx;
+            spr->y = screen.vy;
+            spr->scalex = (param->sx * 300) / z + 1;
+            spr->scaley = (param->sy * 300) / z + 1;
+
+            switch (param->mode)
+            {
+            case 0:
+                param->count = 0;
+                param->mode = param->mode + 1;
+                {
+                    VECTOR pos = { param->px, param->py, param->pz };
+                    SVECTOR direction = D_80097A50[0];
+
+                    SetBleedsDir(&pos, &direction, 100, 6, 30, 0x9098A0);
+                }
+                /* fall through */
+            case 1:
+                spr->scaley = (spr->scaley * param->count) / param->speed;
+                param->count = param->count + 1;
+                if (param->count >= param->speed)
+                {
+                    param->count = 0;
+                    param->mode = param->mode + 1;
+                }
+                break;
+            case 2:
+                spr->scaley = (spr->scaley * (param->speed - param->count)) /
+                              param->speed;
+                spr->scalex = spr->scalex / 2;
+                param->count = param->count + 1;
+                if (param->count >= param->speed)
+                {
+                    ef->proc = 0;
+                }
+                break;
+            }
+
+            {
+                s32 t;
+
+                t = (s32)((u16)screen.vz << 16) >> 18;
+                if (t < 0)
+                {
+                    goto zero;
+                }
+                priority = 0x4E1;
+                if (t < 0x4E2)
+                {
+                    priority = t;
+                }
+            }
+            goto done;
+        zero:
+            priority = 0;
+        done:
+            GsSortSprite(spr, OTablePt, (u16)priority);
+        }
+    }
+}

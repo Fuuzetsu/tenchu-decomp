@@ -366,6 +366,7 @@ MASPSX_EXTRA = {
     "register_character_death": ["--expand-div"],
     "SweepMotion": ["--expand-div"],
     "Think3attack": ["--expand-div"],
+    "DrawSplash": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
