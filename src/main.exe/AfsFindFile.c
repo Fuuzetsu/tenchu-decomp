@@ -1,91 +1,119 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/AfsFindFile", AfsFindFile);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/AfsFindFile", FUN_8005eb84__override__prt_8005ecbc_8cf8befb);
+/*
+ * AfsFindFile (0x8005eb84, 0x230 bytes) normalizes an AFS path, resolves each
+ * directory component to its numeric entry prefix, then returns the matching
+ * file-table element.  The two 200-byte arrays account for the target's exact
+ * 0x194-byte working stack window.
+ *
+ * The demo body calls AfsFilenameFix and subAfsFindFile, while retail contains
+ * their instruction bodies twice in-line.  Keeping local inline definitions
+ * recovers those return islands and the byte-offset/index pair used by each
+ * table scan.  The outer scan must remain a real while loop whose first body
+ * statement derives cursorPath in two steps.  cc1 then duplicates the loop
+ * test at entry and independently forms buffer[cursor] for the bottom test and
+ * cursorPath for the next iteration; an if-wrapped do loop CSEs those addresses
+ * and is one instruction short.  The mask parameter is full-width like the
+ * matched subAfsFindFile helper: narrowing it inserts an andi/sign extension.
+ */
+typedef struct FILE FILE;
+typedef struct TAFS TAFS;
+typedef struct TAFSElement TAFSElement;
+typedef struct TAFSFileHandle TAFSFileHandle;
 
-// triage: MEDIUM — 140 insns, 4 loop, 5 callees, ~0.07 to AfsFilenameFix
-// likely-relevant cookbook sections:
-//   - Loops: 4 back-edge(s) — for/while/do vs goto shape
+struct TAFSElement
+{
+    u16 flag;
+    u32 pos;
+    u32 size;
+    u32 psize;
+    u8 name[20];
+};
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// TAFSElement * AfsFindFile(TAFS *handle,char *path,ushort flags)
-//
-// {
-//   char cVar1;
-//   int iVar2;
-//   TAFSElement *pTVar3;
-//   char *cursorPath;
-//   int entryOffset;
-//   uint entryIndex;
-//   int cursor;
-//   char buffer [199];
-//   undefined1 local_f1;
-//   char component [200];
-//
-//   strncpy(buffer,path,199);
-//   cursorPath = buffer;
-//   local_f1 = 0;
-//   cVar1 = buffer[0];
-//   while (cVar1 != '\0') {
-//     cVar1 = toupper(*cursorPath);
-//     *cursorPath = cVar1;
-//     cursorPath = cursorPath + 1;
-//     cVar1 = *cursorPath;
-//   }
-//   cursor = 0;
-//   if (buffer[0] != '\0') {
-//     cursorPath = buffer;
-//     do {
-//       entryIndex = 0;
-//       if (*cursorPath == '\\') {
-//         *cursorPath = '\0';
-//         if (handle->maxElements != 0) {
-//           entryOffset = 0;
-//           do {
-//             iVar2 = strncmp(buffer,(char *)(handle->pElement->name + entryOffset),0x14);
-//             if ((iVar2 == 0) &&
-//                ((*(ushort *)(handle->pElement->name + entryOffset + -0x10) & 2) != 0))
-//             goto LAB_8005ec98;
-//             entryIndex = entryIndex + 1;
-//             entryOffset = entryOffset + 0x24;
-//           } while (entryIndex < handle->maxElements);
-//         }
-//         entryIndex = 0xffffffff;
-// LAB_8005ec98:
-//         if ((int)entryIndex < 0) goto LAB_8005ed68;
-//         strcpy(component,buffer + cursor + 1);
-//         sprintf(buffer,"@%d_%.195s",entryIndex,component);
-//         cursor = 0;
-//       }
-//       else {
-//         cursor = cursor + 1;
-//       }
-//       cursorPath = buffer + cursor;
-//     } while (buffer[cursor] != '\0');
-//   }
-//   entryIndex = 0;
-//   if (handle->maxElements != 0) {
-//     cursor = 0;
-//     do {
-//       entryOffset = strncmp(buffer,(char *)(handle->pElement->name + cursor),0x14);
-//       if ((entryOffset == 0) &&
-//          ((flags & *(ushort *)(handle->pElement->name + cursor + -0x10)) != 0)) goto LAB_8005ed60;
-//       entryIndex = entryIndex + 1;
-//       cursor = cursor + 0x24;
-//     } while (entryIndex < handle->maxElements);
-//   }
-//   entryIndex = 0xffffffff;
-// LAB_8005ed60:
-//   if ((int)entryIndex < 0) {
-// LAB_8005ed68:
-//     pTVar3 = (TAFSElement *)0x0;
-//   }
-//   else {
-//     pTVar3 = handle->pElement + entryIndex;
-//   }
-//   return pTVar3;
-// }
+struct TAFS
+{
+    FILE *fpVol;
+    s32 fModified;
+    u32 posElement;
+    TAFSElement *pElement;
+    u32 maxElements;
+    s32 maxElementArea;
+    TAFSFileHandle *pHandle;
+};
+
+extern char *strncpy(char *dst, const char *src, u32 n);
+extern char *strcpy(char *dst, const char *src);
+extern int strncmp(const char *a, const char *b, u32 n);
+extern int sprintf(char *dst, const char *fmt, ...);
+extern int toupper(int c);
+extern char AfsPathFormat[];
+
+static __inline__ void AfsFilenameFixInline(char *path)
+{
+    char *p;
+
+    if (*path != 0) {
+        p = path;
+        do {
+            *p = toupper(*p);
+            p++;
+        } while (*p != 0);
+    }
+}
+
+static __inline__ u32 subAfsFindFileInline(TAFS *handle, char *name, u32 mask)
+{
+    u32 i;
+
+    i = 0;
+    if (handle->maxElements != 0) {
+        do {
+            if (strncmp(name, (char *)handle->pElement[i].name, 20) == 0 &&
+                (mask & handle->pElement[i].flag) != 0) {
+                return i;
+            }
+            i++;
+        } while (i < handle->maxElements);
+    }
+    return 0xffffffff;
+}
+
+TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
+{
+    char buffer[200];
+    char component[200];
+    char *cursorPath;
+    s32 cursor;
+    s32 entryIndex;
+
+    strncpy(buffer, path, 199);
+    buffer[199] = 0;
+
+    AfsFilenameFixInline(buffer);
+
+    cursor = 0;
+    while (buffer[cursor] != 0) {
+        cursorPath = buffer;
+        cursorPath += cursor;
+        if (*cursorPath == '\\') {
+            *cursorPath = 0;
+            entryIndex = subAfsFindFileInline(handle, buffer, 2);
+            if (entryIndex < 0) {
+                goto not_found;
+            }
+            strcpy(component, buffer + cursor + 1);
+            sprintf(buffer, AfsPathFormat, entryIndex, component);
+            cursor = 0;
+        } else {
+            cursor++;
+        }
+    }
+
+    entryIndex = subAfsFindFileInline(handle, buffer, flags);
+    if (entryIndex < 0) {
+not_found:
+        return 0;
+    }
+    return &handle->pElement[entryIndex];
+}
