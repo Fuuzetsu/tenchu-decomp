@@ -94,13 +94,13 @@ CATEGORY_RULES = {
         "switch-cse-evict", "assignment-chain",
         "pointee-volatile", "array-alias-remat", "member-scalar-alias",
     ],
-    "jump/cross-jump": ["case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
+    "jump/cross-jump": ["terminal-guard-flip", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
         "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-tail-assign",
         "guard-exit-copy",
-        "shared-return-split",
+        "shared-return-split", "terminal-guard-flip",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
         "call-arg-pair", "eq-literal-swap", "pointee-volatile",
         "adjacent-field-store-swap", "assignment-chain", "array-alias-remat",
@@ -113,7 +113,7 @@ CATEGORY_RULES = {
     "structure/length": [
         "type-width", "and-nest", "temp-inline", "case-fence",
         "vector-copy-adjust", "builtin-abs", "subscript-postinc",
-        "call-arg-pair", "if-else-invert", "empty-loop-boundary",
+        "call-arg-pair", "terminal-guard-flip", "if-else-invert", "empty-loop-boundary",
     ],
 }
 
@@ -149,7 +149,8 @@ SIGNATURE_HINTS = {
     "guard-return-island-layout": (
         "target uses one conditional branch into/out of a shared return island, "
         "while the candidate emits the inverse guard plus nop and skip jump; "
-        "try if-else-invert or one explicit shared return label once, then park "
+        "try terminal-guard-flip first for an adjacent equality return/goto, "
+        "then if-else-invert or one explicit shared return label once; park "
         "if RTL-guided body-layout trials are flat"
     ),
     "builtin-abs-inline": (
@@ -872,12 +873,17 @@ def assembly_guide(name):
         for rule in CATEGORY_RULES.get(category, []):
             if rule not in rules:
                 rules.append(rule)
+    signatures = known_residual_signatures(hunks, target, ours)
     rematerializations = stack_address_rematerialization_hints(target, ours)
     if rematerializations:
         # This evidence is more specific than the hunk's broad owning-pass
         # class: spend the guided build budget on the address-shape rule first.
         rules = ["array-alias-remat"] + [
             rule for rule in rules if rule != "array-alias-remat"
+        ]
+    if "guard-return-island-layout" in signatures:
+        rules = ["terminal-guard-flip"] + [
+            rule for rule in rules if rule != "terminal-guard-flip"
         ]
     return dict(
         name=name, address=addr, target_bytes=size, ours_bytes=ours_size,
@@ -896,7 +902,7 @@ def assembly_guide(name):
             candidate=control_flow_counts(ours),
         ),
         stack_address_rematerializations=rematerializations,
-        known_residual_signatures=known_residual_signatures(hunks, target, ours),
+        known_residual_signatures=signatures,
         register_substitutions=[
             dict(ours=a, target=b, count=n)
             for (a, b), n in substitutions.most_common()

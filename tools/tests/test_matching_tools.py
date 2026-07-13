@@ -542,6 +542,72 @@ int F(void) {
         self.assertIn("if (!(result != 0)) {\n        copy();", out[0][1])
         self.assertIn("else {\n        fail();", out[0][1])
 
+    def test_terminal_guard_flip_reverses_return_goto_layout(self):
+        source = """void F(int command) {
+    if (command != 0x14) {
+        return;
+    }
+    goto command_14;
+command_14:
+    use();
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_terminal_guard_flip, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("terminal-guard-flip return-to-goto L2", out[0][0])
+        self.assertIn(
+            "if (command == 0x14)\n    {\n        goto command_14;\n"
+            "    }\n    return;",
+            out[0][1],
+        )
+
+    def test_terminal_guard_flip_is_reversible(self):
+        source = """void F(int command) {
+    if (command == 0x14)
+        goto command_14;
+    return;
+command_14:
+    use();
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_terminal_guard_flip, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("terminal-guard-flip goto-to-return L2", out[0][0])
+        self.assertIn(
+            "if (command != 0x14)\n    {\n        return;\n"
+            "    }\n    goto command_14;",
+            out[0][1],
+        )
+
+    def test_terminal_guard_flip_rejects_nonlocal_layouts(self):
+        with_else = """void F(int x) {
+    if (x != 1) { return; } else { use(); }
+    goto body;
+body:
+    use();
+}
+"""
+        with_comment = """void F(int x) {
+    if (x != 1) return;
+    /* physical body anchor */
+    goto body;
+body:
+    use();
+}
+"""
+        non_equality = """void F(int x) {
+    if (x < 1) return;
+    goto body;
+body:
+    use();
+}
+"""
+        for source in (with_else, with_comment, non_equality):
+            self.assertEqual(
+                self.candidates(autorules.rule_terminal_guard_flip, source), [])
+
     def test_adjacent_literal_field_stores_swap(self):
         source = """void F(Frame *frame) {
     frame->size = 0x3000;
@@ -3078,6 +3144,21 @@ class RtlGuideTests(unittest.TestCase):
             rtlguide.known_residual_signatures([h]),
             ["guard-return-island-layout"],
         )
+
+    def test_guard_return_signature_prioritizes_terminal_flip(self):
+        target = [(0x1000, "bnez v0,0x1040")]
+        ours = [
+            (0x1000, "beqz v0,0x1010"),
+            (0x1004, "nop"),
+            (0x1008, "j 0x1044"),
+        ]
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 4, 12, target, ours)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertIn("guard-return-island-layout",
+                      guide["known_residual_signatures"])
+        self.assertEqual(guide["rules"][0], "terminal-guard-flip")
 
     def test_known_builtin_abs_signature(self):
         target = [

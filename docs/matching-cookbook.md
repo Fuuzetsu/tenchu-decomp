@@ -543,6 +543,14 @@ plain C is the matched file.
   of separately carved case text islands. LoadConstruction's target order
   `0,5,2,3,11,4` cut its draft's structural block count substantially even
   though the table's numeric destinations remained value-indexed.
+- **A shared continuation may live physically inside a later case body.** A
+  decompiler commonly lifts that multi-predecessor block out below the switch,
+  but doing so moves the block after every case. ActSQUAT's cases 2 and 3
+  explicitly `goto move_if_stationary`, a label after case 4's private tests;
+  this preserves the target order `case 2/3 branches -> case 4 prefix -> shared
+  stationary continuation -> case 9`. Follow the jump-table body addresses:
+  when earlier cases target the middle of a later body, keep that label there
+  rather than forcing a cosmetically structured post-switch join.
 - **Identical-valued case bodies can still be distinct physical islands.** Do
   not factor equal case results through a temporary until the target proves
   they were merged. ActCHASE's item switch contains two separate `motID =
@@ -710,6 +718,21 @@ non-trivial bodies testing the ORIGINAL conditions: `if (cond_a) goto A; if (con
 B; return; A: …; B: …;`. Not `if/else`, and not an inline-return for the second guard --
 those change which body falls through (`FUN_8004c59c`/`FUN_8004d6d4` periodic-emitter
 think functions).
+
+### An adjacent equality return/goto guard has two physical spellings
+
+`if (x != K) return; goto body;` and
+`if (x == K) goto body; return;` have identical C control flow, but the old
+compiler sees opposite source consequences and fallthroughs. That changes the
+branch polarity and which terminal island jump2 can cross-jump. ActSQUAT's
+final `dtCMD == 0x14` leaf needed the second spelling so the invalid-command
+return stayed inline while the valid leaf reached the later motion-store body.
+
+Guided `autorules` rule `terminal-guard-flip` now toggles this exact adjacent
+`==`/`!=` shape in either direction. It requires one return and one goto, no
+`else`, and no intervening comments, so it preserves the CFG rather than
+inventing a general body-layout rewrite. `rtlguide` prioritizes it for the
+`guard-return-island-layout` residual before broader `if-else-invert` trials.
 
 ### A per-axis raw computation needs a temp distinct from its final assigned value
 

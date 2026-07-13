@@ -5756,6 +5756,95 @@ def rule_if_else_invert(text, name, span):
                splice(data, iff.start_byte, iff.end_byte, repl).decode())
 
 
+def rule_terminal_guard_flip(text, name, span):
+    """Flip an adjacent equality guard between ``return`` and ``goto``.
+
+    These two source layouts have identical C control flow but expose opposite
+    physical fallthrough arms to jump2/reorg::
+
+        if (x != K) return;     if (x == K) goto body;
+        goto body;              return;
+
+    The equality operands are evaluated exactly once in either spelling, so
+    they may contain ordinary side effects; only ``==``/``!=`` is changed.
+    Keep the transformation deliberately local: the if has no else, its sole
+    consequence and the immediately following statement are one return and
+    one goto, and comments cannot be crossed or discarded.  Guided scoring
+    decides which polarity has the target's terminal block layout.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    def one_statement(node):
+        if node is None:
+            return None
+        if node.type != "compound_statement":
+            return node
+        children = [child for child in node.named_children
+                    if child.type != "comment"]
+        return children[0] if len(children) == 1 else None
+
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for iff, following in zip(statements, statements[1:]):
+            if (iff.type != "if_statement" or
+                    iff.child_by_field_name("alternative") is not None):
+                continue
+            consequence_node = iff.child_by_field_name("consequence")
+            consequence = one_statement(consequence_node)
+            if consequence is None or {consequence.type, following.type} != {
+                    "return_statement", "goto_statement"}:
+                continue
+            if (_find(consequence_node, ("comment",)) or
+                    _find(following, ("comment",)) or
+                    data[iff.end_byte:following.start_byte].strip()):
+                continue
+
+            condition_node = iff.child_by_field_name("condition")
+            condition = _unparen(condition_node)
+            if (condition is None or condition.type != "binary_expression" or
+                    _find(condition_node, ("comment",))):
+                continue
+            operator = condition.child_by_field_name("operator")
+            if operator is None:
+                continue
+            current = _txt(data, operator)
+            flipped_operator = {b"==": b"!=", b"!=": b"=="}.get(current)
+            if flipped_operator is None:
+                continue
+
+            line = _line(data, iff.start_byte)
+            following_line = _line(data, following.start_byte)
+            if not (_guided_site(line) or _guided_site(following_line)):
+                continue
+
+            raw_condition = _txt(data, condition)
+            relative_start = operator.start_byte - condition.start_byte
+            relative_end = operator.end_byte - condition.start_byte
+            flipped_condition = (raw_condition[:relative_start] +
+                                 flipped_operator +
+                                 raw_condition[relative_end:])
+            indent = _indent_at(data, iff.start_byte)
+            rendered_if = (
+                b"if (" + flipped_condition + b")\n" + indent + b"{\n" +
+                indent + b"    " + _txt(data, following).strip() + b"\n" +
+                indent + b"}"
+            )
+            between = data[iff.end_byte:following.start_byte]
+            replacement = (rendered_if + between +
+                           _txt(data, consequence).strip())
+            direction = ("return-to-goto" if consequence.type == "return_statement"
+                         else "goto-to-return")
+            yield (
+                f"terminal-guard-flip {direction} L{line}",
+                splice(data, iff.start_byte, following.end_byte,
+                       replacement).decode(),
+            )
+
+
 def _literal_field_store(data, statement):
     """Return (base, field) for ``base.field = integer_literal;``."""
     if statement.type != "expression_statement":
@@ -5859,6 +5948,7 @@ AGGRESSIVE_RULES = [
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
     ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),
+    ("terminal-guard-flip", "flip an adjacent ==/!= return/goto terminal guard", rule_terminal_guard_flip),
     ("adjacent-field-store-swap", "swap adjacent literal stores to distinct fields", rule_adjacent_field_store_swap),
     ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
     ("pointee-volatile", "toggle volatile on a local integer pointer's pointee", rule_pointee_volatile),
