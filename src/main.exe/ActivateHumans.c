@@ -43,7 +43,13 @@ typedef struct
     s16 think;
 } StageCharType;
 
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+typedef struct
+{
+    u8 pad0[0x10];
+    Humanoid *Owner;
+} ActivateHumansCameraStatus;
+
+extern ActivateHumansCameraStatus CamState;
 extern Humanoid *StagePlayer;
 extern s32 GameClock;
 extern s16 SkipFrame;
@@ -67,9 +73,15 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActivateHumans", Act
 #else
 /*
  * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
- * 0x68-byte frame, 0x30-byte working stack window, and 1,608-byte length.
- * The current draft has 740 differing bytes and 65 structural lines in 16
- * blocks.  Build it with `NON_MATCHING=ActivateHumans ./Build`.
+ * 0x68-byte frame, 0x30-byte working stack window, and 1,608-byte /
+ * 402-instruction length.  Its physical CFG is also exact: 44 conditional
+ * branches, 8 unconditional jumps, 4 calls, and 1 return.  The current draft
+ * has 730 differing bytes, with 54 length-changing structural lines in 10
+ * displayed blocks (81 raw aligned residual lines in 33 blocks).  Build it
+ * with `NON_MATCHING=ActivateHumans ./Build`.
+ *
+ * Spelling the camera owner as `CamState.Owner` reproduces retail's shared
+ * camera-status base and removes ten differing bytes from the opening block.
  *
  * Remaining concentrated residuals:
  * - The path-local active/computed split recovers retail's $v1 flag and
@@ -106,7 +118,7 @@ void ActivateHumans(void)
     Humanoid *visible_human;
     ModelType *model;
 
-    target = CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+    target = CamState.Owner;
     camera = *target->locate;
     activate_distance = 26000;
     if (StagePlayer->motion->mid != 0xf05)
