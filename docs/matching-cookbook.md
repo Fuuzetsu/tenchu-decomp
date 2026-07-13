@@ -2687,6 +2687,48 @@ old `D_800BE9E8` name stopped linking once `sprBlood2 = 0x800be9e8` was pinned,
 so the integration fix was to update DrawBlood to the shared canonical symbol.
 Separate physical banks; unify source names for the same physical bank.
 
+### Split a computed dereference into address and scalar identities
+
+`value = *(T *)address_expression;` gives cc1 one combined expansion in which
+the address pseudo can coalesce with the loaded scalar. When the target keeps
+the computed address and value in distinct registers, name both explicitly:
+
+```c
+T *value_ptr;
+value_ptr = (T *)address_expression;
+value = *value_ptr;
+```
+
+Think3callaid's AID type lookup is the measured case. The combined signed-s16
+load reused `$a0` for the entry address and value, cascading through every
+BreedLife argument. A `s16 *type_ptr` restored the table address in `$v0`, the
+loaded type in `$a0`, StageID's offset in `$v1`, and the humanoid base in `$a2`,
+reducing the exact-length residual from 50 to 37 whole-image bytes.
+Guided `deref-address-split` now enumerates exactly this explicit-cast form for
+a nonvolatile automatic scalar. It inserts the pointer before that scalar's
+declaration (old cc1's declaration-before-statements dialect), rejects calls or
+updates in the address, and preserves evaluation order.
+
+### An assignment-expression lvalue can encode pointer publication as a dependency
+
+If a pointer is published to a global and then immediately used to update one
+of the pointed object's fields, separate statements can make the publication
+and field lvalue independent in RTL even though the game treats them as one
+state transition. Preserve the dependency in the lvalue itself:
+
+```c
+(Current = (State *)spawned)->attribute |= FLAG;
+```
+
+In Think3callaid, this form placed the `Me_THINK_C` store between the attribute
+load and update and simultaneously fixed the Think3/Think4 callback colours.
+It replaced a decompiler-shaped load-temp, global assignment, and later store.
+This is not a blind algebraic rewrite: only move a publication across
+side-effect-free straight-line reads/stores whose aliasing is proven, and use
+the field from the published pointer's actual type (the unsigned
+`character_state` twin, not Humanoid's signed view). Treat it as a guided
+source-recovery pattern until the field-offset/type equivalence is mechanical.
+
 ### An offset-0 LOCAL-pointer dereference is cse1-canonicalised back to base+const
 
 The sibling of the offset-0-alias `%hi` lever, but for a LOCAL pointer variable and cse
@@ -3237,6 +3279,16 @@ SetupImageToPolyFT4's exact empty boundary after `y += ph` is the earlier
 independent example. Guided `empty-loop-boundary` now enumerates this
 weight-free fence at adjacent statement boundaries; use ordinary `loop-fence`
 when the enclosed value really does need more allocation priority.
+
+An artificial fence is a hypothesis, so re-test its **removal after every real
+identity/dependency fix**. Think3callaid first needed an empty loop between its
+Think1Func and Think2Func stores to restore a missing load-delay `nop`. After
+the true possession/attribute assignment-expression dependency was recovered,
+that same fence became the final eight-byte mismatch; removing it naturally
+put `move $a0,$s0` in Think1's delay slot and left the target `nop` after
+Think2. `empty-loop-boundary` now emits removal candidates for existing empty
+one-shot loops as well as insertion candidates, so a guided/greedy resweep can
+discard diagnostic scaffolding automatically.
 
 A redundant write to an **unobserved automatic aggregate** can be an allocation
 donor too. CameraDirection's bounded permuter first repeated

@@ -2139,6 +2139,110 @@ def rule_ptr_base_split(text, name, span):
                 )
 
 
+def rule_deref_address_split(text, name, span):
+    """Split ``value = *(T *)address`` into pointer and value identities.
+
+    A single dereference lets local allocation coalesce the computed address
+    with the loaded scalar.  The original source can instead have named both:
+
+        T *_match_value_ptr;
+        _match_value_ptr = (T *)address;
+        value = *_match_value_ptr;
+
+    That spelling recovered Think3callaid's complete BreedLife argument setup.
+    Keep the guided transform narrow and semantics-preserving: ``value`` is a
+    nonvolatile automatic local, the dereference is through one explicit plain
+    pointer cast, and its address expression contains no call, assignment, or
+    update.  No operation is reordered; the declaration and two statements
+    replace the one assignment at the same source point.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    identifiers = {_txt(data, identifier)
+                   for identifier in _find(body, ("identifier",))}
+
+    for statement in _find(body, ("expression_statement",)):
+        if statement.parent is None or statement.parent.type != "compound_statement":
+            continue
+        assignment = _plain_assignment(data, statement)
+        if assignment is None or assignment[0] not in locals_:
+            continue
+        value, rhs = assignment
+        dereference = _unparen(rhs)
+        if dereference is None or dereference.type != "pointer_expression":
+            continue
+        operator = dereference.child_by_field_name("operator")
+        pointer = _unparen(dereference.child_by_field_name("argument"))
+        if (operator is None or _txt(data, operator) != b"*" or
+                pointer is None or pointer.type != "cast_expression"):
+            continue
+        pointer_type = pointer.child_by_field_name("type")
+        address = pointer.child_by_field_name("value")
+        if pointer_type is None or address is None:
+            continue
+        type_text = _txt(data, pointer_type).strip()
+        if re.fullmatch(
+                rb"(?:(?:const|volatile)\s+)*(?:struct\s+)?[A-Za-z_]\w*\s*\*",
+                type_text) is None:
+            continue
+        if _find(address, ("assignment_expression", "call_expression",
+                           "update_expression")):
+            continue
+        line = _line(data, statement.start_byte)
+        if not _guided_site(line):
+            continue
+
+        stem = re.sub(rb"[^A-Za-z0-9_]", b"_", value)
+        suffix = 0
+        while True:
+            temp = (b"_match_" + stem + b"_ptr" +
+                    (str(suffix).encode() if suffix else b""))
+            if temp not in identifiers:
+                break
+            suffix += 1
+        # Keep old cc1's declaration-before-statements dialect: put the pointer
+        # immediately before the scalar local's own plain declaration, then
+        # split only the later executable statement.
+        value_declaration = None
+        for declaration in statement.parent.named_children:
+            if declaration.type != "declaration" or declaration.start_byte >= statement.start_byte:
+                continue
+            declarators = []
+            for child in declaration.named_children:
+                if child.type == "init_declarator":
+                    identifier = _descend_ident(child.child_by_field_name("declarator"))
+                elif child.type in ("identifier", "pointer_declarator",
+                                    "array_declarator"):
+                    identifier = _descend_ident(child)
+                else:
+                    identifier = None
+                if identifier is not None:
+                    declarators.append(_txt(data, identifier))
+            if declarators == [value]:
+                value_declaration = declaration
+                break
+        if value_declaration is None:
+            continue
+
+        indent = _indent_at(data, statement.start_byte)
+        replacement = (temp + b" = " + _txt(data, pointer).strip() + b";\n" +
+                       indent + value + b" = *" + temp + b";")
+        candidate = splice(data, statement.start_byte, statement.end_byte,
+                           replacement)
+        declaration_indent = _indent_at(data, value_declaration.start_byte)
+        candidate = splice(
+            candidate, value_declaration.start_byte, value_declaration.start_byte,
+            type_text + b" " + temp + b";\n" + declaration_indent,
+        )
+        yield (
+            f"deref-address-split {value.decode()} L{line}",
+            candidate.decode(),
+        )
+
+
 def rule_ptr_index_sum(text, name, span):
     """Rewrite `T *p = base + idx;` to the integer-sum `p = (T*)(idx*sizeof(T) + (int)base)`.
 
@@ -5812,18 +5916,32 @@ def _empty_one_shot_loop(data, statement):
 
 
 def rule_empty_loop_boundary(text, name, span):
-    """Insert a weight-free LOOP_END scheduler barrier between statements.
+    """Insert or remove a weight-free LOOP_END scheduler barrier.
 
     Wrapping a producer in a one-shot loop also raises the allocation weight of
     every reference it contains.  A standalone empty loop creates the useful
     post-LOOP_END scheduling fence without reweighting either neighbouring
-    statement.  Enumerate only boundaries between executable statements and
-    avoid stacking another fence directly beside an existing empty one.
+    statement.  It is diagnostic, not semantic source: once a real dependency
+    repair lands, the fence can become the final mismatch.  Therefore enumerate
+    removal of every guided empty fence as well as insertion at executable
+    boundaries, and avoid stacking another directly beside an existing one.
     """
     data = text.encode()
     body = _func_body(data, name, _byte_span(text, span))
     if body is None:
         return
+
+    for loop in _find(body, ("do_statement",)):
+        if not _empty_one_shot_loop(data, loop):
+            continue
+        line = _line(data, loop.start_byte)
+        if not _guided_site(line):
+            continue
+        yield (
+            f"empty-loop-boundary remove L{line}",
+            splice(data, loop.start_byte, loop.end_byte, b"").decode(),
+        )
+
     eligible = {
         "compound_statement", "do_statement", "expression_statement",
         "for_statement", "goto_statement", "if_statement",
@@ -6676,6 +6794,7 @@ AGGRESSIVE_RULES = [
     ("dead-host-split", "split signed (A+/-B)/K through a dead signed-s32 local", rule_dead_host_split),
     ("mul-affine-shape", "toggle x*M+C with (x+C/M)*M", rule_mul_affine_shape),
     ("ptr-base-split", "name an extern array base before indexed address/call", rule_ptr_base_split),
+    ("deref-address-split", "name a casted dereference address before its scalar load", rule_deref_address_split),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions between pre-zero and two-arm forms", rule_flag_arm_assign),

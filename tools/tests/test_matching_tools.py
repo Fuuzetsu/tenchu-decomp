@@ -1234,6 +1234,44 @@ void F(Node *param) {
         self.assertIn("Node *_match_base = StageConfig;", out[0][1])
         self.assertIn("Node *stage = &_match_base[index];", out[0][1])
 
+    def test_deref_address_split_names_pointer_and_scalar_identities(self):
+        source = """typedef short s16;
+typedef unsigned char u8;
+void F(s16 *table, int index) {
+    s16 type;
+    type = *(s16 *)((u8 *)table + index * 2);
+    use(type);
+}
+"""
+        autorules.GUIDED_LINES = {5}
+        out = self.candidates(autorules.rule_deref_address_split, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertIn("s16 * _match_type_ptr;", candidate)
+        self.assertIn(
+            "_match_type_ptr = (s16 *)((u8 *)table + index * 2);",
+            candidate,
+        )
+        self.assertIn("type = *_match_type_ptr;", candidate)
+
+    def test_deref_address_split_rejects_calls_and_nonlocal_results(self):
+        called = """typedef short s16;
+void F(void) {
+    s16 type;
+    type = *(s16 *)address_for_type();
+    use(type);
+}
+"""
+        global_result = """typedef short s16;
+s16 Type;
+void F(char *address) {
+    Type = *(s16 *)address;
+}
+"""
+        for source in (called, global_result):
+            self.assertEqual(
+                self.candidates(autorules.rule_deref_address_split, source), [])
+
     def test_ptr_base_split_keeps_array_base_live_across_call(self):
         source = """typedef struct Conflict Conflict;
 extern Conflict ConflictObject[];
@@ -1394,7 +1432,7 @@ int F(void) { u16 *first, *second; return 0; }
             boundary[0],
         )
 
-    def test_empty_loop_boundary_does_not_stack_empty_fences(self):
+    def test_empty_loop_boundary_removes_but_does_not_stack_empty_fences(self):
         source = """void F(int value) {
     value++;
     do {
@@ -1402,8 +1440,10 @@ int F(void) { u16 *first, *second; return 0; }
     value--;
 }
 """
-        self.assertEqual(
-            self.candidates(autorules.rule_empty_loop_boundary, source), [])
+        out = self.candidates(autorules.rule_empty_loop_boundary, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("empty-loop-boundary remove L3", out[0][0])
+        self.assertNotIn("do {", out[0][1])
 
     def test_redundant_field_donor_repeats_pure_aggregate_assignment(self):
         source = """typedef struct { int a, b, c, d; } T;
@@ -3228,6 +3268,50 @@ class RtlGuideTests(unittest.TestCase):
             "target": [(0x1000 + i * 4, x) for i, x in enumerate(target)],
             "ours": [(0x1000 + i * 4, x) for i, x in enumerate(ours)],
         }
+
+    def reused_build_fixture(self, source, processed):
+        temporary = tempfile.TemporaryDirectory()
+        root = temporary.name
+        source_path = os.path.join(root, "src", "main.exe", "F.c")
+        processed_path = os.path.join(
+            root, ".shake", "processed", "main.exe", "F.c")
+        linked_path = os.path.join(
+            root, ".shake", "build", "tenchu", "main.exe")
+        for path in (source_path, processed_path, linked_path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(source_path, "w") as stream:
+            stream.write(source)
+        with open(processed_path, "w") as stream:
+            stream.write(processed)
+        with open(linked_path, "wb") as stream:
+            stream.write(b"linked")
+        return temporary, root
+
+    def test_no_build_rejects_default_nonmatching_stub(self):
+        temporary, root = self.reused_build_fixture(
+            "#ifndef NON_MATCHING\nvoid F(void) {}\n#endif\n",
+            '# 0 "src/main.exe/F.c"\nasm/nonmatchings/F/F.s\n',
+        )
+        with temporary, mock.patch.object(rtlguide, "ROOT", root):
+            with self.assertRaisesRegex(RuntimeError, "INCLUDE_ASM stub"):
+                rtlguide.validate_reused_build("F")
+
+    def test_no_build_rejects_staged_candidate_provenance(self):
+        temporary, root = self.reused_build_fixture(
+            "void F(void) {}\n",
+            '# 0 "/tmp/autorules-F/F.c"\nvoid F(void) {}\n',
+        )
+        with temporary, mock.patch.object(rtlguide, "ROOT", root):
+            with self.assertRaisesRegex(RuntimeError, "staged/foreign"):
+                rtlguide.validate_reused_build("F")
+
+    def test_no_build_accepts_current_processed_draft(self):
+        temporary, root = self.reused_build_fixture(
+            "#ifndef NON_MATCHING\nvoid F(void) {}\n#endif\n",
+            '# 0 "src/main.exe/F.c"\nvoid F(void) {}\n',
+        )
+        with temporary, mock.patch.object(rtlguide, "ROOT", root):
+            rtlguide.validate_reused_build("F")
 
     def test_register_rotation_is_regalloc(self):
         h = self.hunk(["addu v0,a0,a1", "sw v0,0(s0)"],

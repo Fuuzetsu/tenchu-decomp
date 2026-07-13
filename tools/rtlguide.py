@@ -79,7 +79,7 @@ CATEGORY_RULES = {
     "regalloc": [
         "literal-indirect-inline", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
         "empty-loop-boundary", "loop-fence", "nested-loop-fence",
-        "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split",
+        "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split", "deref-address-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
         "guard-exit-copy",
         "shared-writeback-compound", "shared-tail-assign", "shared-terminal-tail", "redundant-field-donor",
@@ -90,7 +90,7 @@ CATEGORY_RULES = {
     ],
     "cse/coalescing": [
         "literal-indirect-inline", "type-width", "empty-loop-boundary", "loop-fence",
-        "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split",
+        "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split", "deref-address-split",
         "vector-copy-adjust", "redundant-field-donor", "subscript-postinc",
         "switch-cse-evict", "assignment-chain",
         "pointee-volatile", "array-alias-remat", "member-scalar-alias",
@@ -98,7 +98,7 @@ CATEGORY_RULES = {
     "jump/cross-jump": ["literal-indirect-inline", "shared-writeback-compound", "terminal-arm-flip", "terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
         "type-width", "empty-loop-boundary", "loop-fence",
-        "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
+        "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split", "deref-address-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-writeback-compound", "shared-tail-assign", "shared-terminal-tail",
         "guard-exit-copy",
         "shared-return-split", "terminal-guard-flip",
@@ -109,7 +109,7 @@ CATEGORY_RULES = {
     ],
     "combine/expression": [
         "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
-        "shift16-mul", "plus-group", "add-prefix-temp", "split-chain",
+        "shift16-mul", "plus-group", "add-prefix-temp", "split-chain", "deref-address-split",
     ],
     "structure/length": [
         "type-width", "and-nest", "temp-inline", "case-fence",
@@ -1291,9 +1291,67 @@ def build_candidate(name):
         raise RuntimeError(f"./Build failed (rc={r.returncode}):\n{matchdiff.build_log_tail()}")
 
 
+def validate_reused_build(name):
+    """Reject a ``--no-build`` artifact that is not the checked-in C draft.
+
+    Matching searches deliberately compile private staged candidates through
+    ``TENCHU_MATCH_SOURCE_<Name>``.  Their linked image remains in ``.shake``
+    after the temporary source disappears, and a normal green build of a
+    guarded function contains its exact INCLUDE_ASM stub rather than the draft.
+    Either artifact can make a later ``rtlguide --no-build`` falsely report a
+    match.  The preprocessor's first line marker records the actual source path,
+    while the processed text exposes the default nonmatching include; validate
+    both before treating a cached image as evidence.
+    """
+    source = os.path.join(ROOT, "src", "main.exe", name + ".c")
+    processed = os.path.join(ROOT, ".shake", "processed", "main.exe",
+                             name + ".c")
+    linked = os.path.join(ROOT, ".shake", "build", "tenchu", "main.exe")
+    missing = [path for path in (source, processed, linked)
+               if not os.path.exists(path)]
+    if missing:
+        raise RuntimeError(
+            "--no-build has no reusable artifact (missing " +
+            ", ".join(os.path.relpath(path, ROOT) for path in missing) +
+            "); rerun without --no-build"
+        )
+
+    with open(source, errors="replace") as stream:
+        source_text = stream.read()
+    with open(processed, "rb") as stream:
+        processed_bytes = stream.read()
+    marker = re.match(rb'\s*#\s*0\s+"([^"]+)"', processed_bytes)
+    if marker is None:
+        raise RuntimeError(
+            "--no-build cannot prove the processed source provenance; "
+            "rerun without --no-build"
+        )
+    recorded = os.fsdecode(marker.group(1))
+    recorded_path = (recorded if os.path.isabs(recorded)
+                     else os.path.join(ROOT, recorded))
+    if os.path.realpath(recorded_path) != os.path.realpath(source):
+        raise RuntimeError(
+            "--no-build points at a staged/foreign source " + recorded +
+            "; rerun without --no-build"
+        )
+    if os.path.getmtime(source) > os.path.getmtime(processed):
+        raise RuntimeError(
+            "--no-build processed source predates the checked-in C; "
+            "rerun without --no-build"
+        )
+    if ("ifndef NON_MATCHING" in source_text and
+            ("asm/nonmatchings/" + name).encode() in processed_bytes):
+        raise RuntimeError(
+            "--no-build contains the default INCLUDE_ASM stub, not the C draft; "
+            "rerun without --no-build"
+        )
+
+
 def diagnose(name, build=True, rtl=True):
     if build:
         build_candidate(name)
+    else:
+        validate_reused_build(name)
     guide = assembly_guide(name)
     local, total = _byte_counts(guide["address"], guide["target_bytes"])
     guide.update(local_differing_bytes=local, whole_image_differing_bytes=total)
