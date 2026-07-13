@@ -16,9 +16,32 @@ The split of responsibility:
 
 ## Resuming the hands-off flywheel (quick-start)
 
-**State (keep this line current):** ~322/555 game functions (~58%), ~30% of
-game bytes, whole-image byte-identical (sha256 `0690a5c1…3558`). Live count:
-`nix develop --command tools/progress.py`.
+**State is deliberately not cached here.** Parallel branches make a handwritten
+count stale almost immediately.  Before reporting progress or choosing a target,
+run `tools/progress.py`; the committed whole-image build must remain
+byte-identical (sha256 `0690a5c1…3558`).
+
+### Hard / large-function phase
+
+When the clean seams are exhausted, or the user explicitly asks for difficult
+gameplay functions, keep the same flywheel but assign one large function (or one
+tightly coupled family) per isolated worktree:
+
+1. Record authoritative target/candidate length, instruction count, CFG counts,
+   differing bytes, and fuzzy percentage before editing. Read any parked
+   `STATUS` note before repeating old experiments.
+2. Recover structure with target asm, demo symbols, siblings, xrefs, CFG and RTL.
+   Keep the draft pure C; inline-asm matching patches are not acceptable.
+3. Refresh `fuzz-score.py --only <Name>` after every meaningful guarded-draft
+   change. Run autorules only against a compiling draft. Do not use the permuter
+   as a decompiler: reserve one bounded run for a localized, near-final
+   allocation/scheduling residual after deterministic source and RTL work.
+4. Commit an exact result or an honestly measured improved checkpoint in the
+   worker branch. Root reviews and cherry-picks it, re-runs the global gates,
+   then performs the reflection/tooling pass as a separate commit.
+5. Recycle the slot immediately onto the next live hard target. A partial result
+   is useful only when its `STATUS`, fuzzy row, rejected experiments, and blocker
+   are current enough that the next pass starts ahead of it.
 
 **The loop (repeat until the user stops you):**
 1. `nix develop --command 'tools/triage.py'` → pick a batch of **5 clean-seam
