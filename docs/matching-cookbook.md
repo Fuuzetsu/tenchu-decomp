@@ -2424,6 +2424,17 @@ appears, run `tools/symnear.py <scalar-name-or-address>` to list earlier fixed
 symbols and their exact offsets, then validate the candidate struct field.
 `rtlguide` labels the shape `enclosing-global-field-load`.
 
+`ActivateHumans` independently confirmed the pointer form on a much larger
+exact-length, exact-CFG draft. Its source initially loaded the fixed alias
+`CURRENTLY_SELECTED_CHARACTER_STATE_PTR` at `0x80089f00`; `symnear` reported
+that address as `CamState + 0x10`, and the already-proven camera layout names
+that field `Owner`. Spelling the same load as `CamState.Owner` reduced the
+authoritative residual from 740 to 730 bytes without changing any instruction
+or CFG count. Do not delete or globally rename the alias merely because the
+addresses coincide: different original translation units can legitimately
+name an aggregate field and an absolute alias separately. Choose the spelling
+whose `%hi`/load register identity matches the target at that use site.
+
 Several apparent globals on one fixed page can be fields of the same aggregate.
 Query them together: `tools/symnear.py CHOSEN_CHARACTER CHOSEN_LANGUAGE`
 intersects their preceding-symbol windows and reports `PersistentState` with
