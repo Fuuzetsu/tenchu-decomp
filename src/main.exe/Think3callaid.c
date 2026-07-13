@@ -36,13 +36,7 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 209 of 408 bytes differ. NOT the same length as
- * the target (101 vs 102 instructions: one genuine bare `nop` — a
- * load-delay filler target has no independent work to put there, between
- * loading Think2Func[4] and storing it to think[1] — is missing from this
- * draft, so the back half of the function is address-shifted by 4 bytes;
- * everything past that point in the diff is a CASCADE of that one gap, not
- * independently wrong).
+ * STATUS: MATCHING — pure C, 408/408 bytes exact (102 instructions).
  *
  * Think3callaid (0x8002cddc, 0x198 bytes) — same "think" TU as
  * Think3chase.c/Think3escape.c/Think1trace.c (s16 return; gp-relative
@@ -68,12 +62,10 @@
  * (think_setting0..3) and Ghidra's own independently-built Humanoid
  * (`pointer *think[4]` at the identical offset).
  *
- * `*(u16 *)&human_00->attribute` / `*(u16 *)&Me_THINK_C->some_character_
- * marker_thing` — the first forces the `lhu` this TU's access uses against
- * item.h's proven-signed `s16 attribute` (same divergence as
- * ControlAllHumanoid.c/HumanActionControl.c); the second needs NO cast:
- * character_state's field at that same relative offset
- * (`some_character_marker_thing`) is already proven `u16`.
+ * The possession assignment intentionally updates the attribute through
+ * character_state's unsigned twin (`some_character_marker_thing`), which
+ * emits the target `lhu` against item.h's signed `s16 attribute` at the same
+ * offset (the same cross-TU divergence as ControlAllHumanoid/HumanActionControl).
  *
  * `AIDHumanType[StageID * 2 + iVar4 % 2]` is a signed `s16` table (`lh`,
  * unlike the item-TU's usual unsigned tables) — passed to BreedLife's
@@ -101,11 +93,24 @@
  *    callee-saved register across the call, matching target's
  *    `lui/addiu` into $s0 interleaved with `SR = -1;` before the `jal rand`
  *    (the "table lookup gets its own named local pointer" cookbook rule).
- *  - `uVar1` must stay `u16`, not the `u8` autorules suggests (a 7-line
- *    "win"): `human_00->attribute` is a real proven `s16` field that can
- *    hold values outside byte range; `u8` narrows the read itself to `lbu`
- *    and adds a masking `andi 0xff`, an outright wrong value — same false-win
- *    shape as SuccessionAttack's `uVar3`, reject per the cookbook caveat.
+ *  - Keep a second `s16 *type_ptr` for the selected table entry, then load the
+ *    PSX.SYM-proven `s16 type` in a separate statement. Folding those two
+ *    identities into one dereference lets local allocation reuse $a0 for both
+ *    the address and value; the explicit pointer restores retail's address in
+ *    $v0, `type` in $a0, StageID offset in $v1, and Me_THINK_C base in $a2.
+ *  - Keep possession and the attribute flag as one assignment-expression
+ *    lvalue: `(Me_THINK_C = (character_state *)human_00)->... |= 4`. Splitting
+ *    this through Ghidra's `uVar1` or into an independent global assignment
+ *    loses the dependency that places retail's Me_THINK_C store between the
+ *    halfword load and update, and exchanges the Think3/Think4 callback and
+ *    attribute registers. The field is the character_state twin of Humanoid's
+ *    signed attribute, so the explicit `u16` temporary is unnecessary.
+ *  - An empty one-shot loop between the Think1Func and Think2Func stores was a
+ *    useful intermediate diagnostic: it restored the missing load-delay slot
+ *    while the possession/attribute dependency was still split. Once that
+ *    assignment-expression lvalue was recovered, removing the artificial loop
+ *    placed `move $a0,$s0` and the sole `nop` exactly. Always re-test and remove
+ *    a scheduler fence after fixing the producer identities it was masking.
  */
 extern character_state *Me_THINK_C;
 extern s32 Distance;
@@ -128,17 +133,11 @@ extern void KillHumanoid(Humanoid *human);
 extern void EquipWeapon(Humanoid *human, s16 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think3callaid", Think3callaid);
-#else /* NON_MATCHING */
-
 short Think3callaid(void)
 {
     Humanoid *human;
     Humanoid *human_00;
     s32 iVar4;
-    VECTOR *pVVar5;
-    u16 uVar1;
 
     if (Distance < 0x4074)
     {
@@ -152,24 +151,28 @@ short Think3callaid(void)
     {
         s16 sVar3;
         s16 *aid = AIDHumanType;
+        s16 *type_ptr;
+        s16 type;
         think_func_ *ppuVar2;
 
         SR = -1;
         iVar4 = rand();
-        pVVar5 = Me_THINK_C->some_kind_of_current_position;
-        human_00 = BreedLife(aid[StageID * 2 + iVar4 % 2], pVVar5->vx, pVVar5->vy, pVVar5->vz,
+        type_ptr = (s16 *)((u8 *)aid + ((iVar4 % 2) * 2 + StageID * 4));
+        type = *type_ptr;
+        human_00 = BreedLife(type,
+                             Me_THINK_C->some_kind_of_current_position->vx,
+                             Me_THINK_C->some_kind_of_current_position->vy,
+                             Me_THINK_C->some_kind_of_current_position->vz,
                              (s32)Me_THINK_C->something_about_player_rotation_perhaps->character_rotation + (s32)Degree);
         human = (Humanoid *)Me_THINK_C;
         human_00->target = human->target;
         KillHumanoid(human);
         human_00->think[0] = Think1Func[4];
         human_00->think[1] = Think2Func[4];
-        Pad = &human_00->pad;
-        uVar1 = *(u16 *)&human_00->attribute;
-        Me_THINK_C = (character_state *)human_00;
         human_00->think[2] = Think3Func[4];
+        Pad = &human_00->pad;
         ppuVar2 = Think4Func[4];
-        *(u16 *)&human_00->attribute = uVar1 | 4;
+        (Me_THINK_C = (character_state *)human_00)->some_character_marker_thing |= 4;
         human_00->think[3] = ppuVar2;
         EquipWeapon(human_00, 1);
         SetNowMotion((Humanoid *)Me_THINK_C, 0x501, 1);
@@ -184,5 +187,3 @@ short Think3callaid(void)
         return sVar3;
     }
 }
-
-#endif /* NON_MATCHING */
