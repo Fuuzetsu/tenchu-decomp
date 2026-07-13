@@ -15,6 +15,9 @@ src/main.exe/<name>.c and confirm with `./Build check`.
 Usage (in the nix devShell):  tools/permute.py <name> [-- <permuter args>]
 e.g.  tools/permute.py GetRealPad --stop-on-zero -j4
 
+The wrapper refuses an early broad/structurally-wrong draft.  ``--force-early``
+is an explicit escape hatch only when RTL has proved one allocation cascade.
+
 
 CAVEAT: the permuter's search score ignores stack-frame slot placement. It can
 report score 0 ("perfect") for a candidate that still differs from the target only
@@ -47,6 +50,43 @@ LINKER = ".shake/gen/main.exe/linker/main.exe.ld"
 SYMBOLS = "config/symbols.main.exe.txt"
 UNDEFINED_SYMBOLS = ".shake/gen/main.exe/meta/undefined_symbols_auto.main.exe.txt"
 UNDEFINED_FUNCTIONS = ".shake/gen/main.exe/meta/undefined_functions_auto.main.exe.txt"
+ASMDIFF = "tools/asmdiff.py"
+ASMDIFF_SUMMARY = re.compile(
+    r": (\d+) differing lines in (\d+) blocks; length ours (\d+) vs target (\d+)\]"
+)
+PREFLIGHT_MAX_LINES = 128
+PREFLIGHT_MAX_BLOCKS = 32
+
+
+def permuter_readiness(diff_lines, blocks, ours, target):
+    """Whether a residual is narrow enough for stochastic register search.
+
+    One instruction of length slack is allowed because a local permutation can
+    create/delete a move or scheduling nop.  Broad multi-block residuals are
+    still structural even when their total length happens to balance.
+    """
+    delta = abs(ours - target)
+    if delta > 1:
+        return False, (f"instruction length differs by {delta} "
+                       f"({ours} vs {target})")
+    if diff_lines > PREFLIGHT_MAX_LINES or blocks > PREFLIGHT_MAX_BLOCKS:
+        return False, (f"residual is still broad: {diff_lines} aligned lines in "
+                       f"{blocks} blocks (limits {PREFLIGHT_MAX_LINES}/{PREFLIGHT_MAX_BLOCKS})")
+    return True, (f"near-final residual: {diff_lines} aligned lines in {blocks} "
+                  f"blocks, length {ours}/{target}")
+
+
+def draft_shape(name):
+    """Build the guarded C draft and return asmdiff's near-final shape tuple."""
+    result = subprocess.run(
+        [sys.executable, ASMDIFF, name], capture_output=True, text=True,
+    )
+    match = ASMDIFF_SUMMARY.search(result.stdout)
+    if match is None:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        tail = detail[-1] if detail else "no asmdiff summary"
+        sys.exit(f"permute: could not assess draft shape: {tail}")
+    return tuple(int(value) for value in match.groups())
 
 # Per-function `--gp-extern SYM` maspsx flags — MUST mirror maspsxGpExterns in
 # shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
@@ -584,6 +624,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--rescore-only", action="store_true",
                     help="full-link and rank retained candidates without rerunning permuter")
+    ap.add_argument("--force-early", action="store_true",
+                    help="override the near-final structural preflight")
     ap.add_argument("name")
     ap.add_argument("rest", nargs=argparse.REMAINDER,
                     help="args after `--` are passed to permuter.py")
@@ -593,6 +635,9 @@ def main():
     if "--rescore-only" in args.rest:
         args.rescore_only = True
         args.rest.remove("--rescore-only")
+    if "--force-early" in args.rest:
+        args.force_early = True
+        args.rest.remove("--force-early")
     name = args.name
     src = f"src/main.exe/{name}.c"
     if not os.path.exists(src):
@@ -609,7 +654,17 @@ def main():
         authoritative_rescore(name, work, csh)
         return
 
-    subprocess.run(["./Build"], stdout=subprocess.DEVNULL, check=False)
+    diff_lines, blocks, ours, target = draft_shape(name)
+    ready, reason = permuter_readiness(diff_lines, blocks, ours, target)
+    if not ready and not args.force_early:
+        sys.exit(
+            "permute: refusing an early stochastic search — " + reason + ".\n"
+            "         Finish CFG/loop/expression/stack structure with matchdiff, "
+            "rtlguide, and autorules first.\n"
+            "         Use --force-early only when RTL proves this broad diff is "
+            "one allocation cascade."
+        )
+    print(f"permute: preflight {'OVERRIDDEN — ' if not ready else ''}{reason}")
     target_s = find_nonmatching_s(name)
 
     shutil.rmtree(work, ignore_errors=True)

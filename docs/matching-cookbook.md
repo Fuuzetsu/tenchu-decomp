@@ -96,6 +96,16 @@ $ ./Build check      # then confirm the whole image
 > check`.** Bisect winners: they routinely carry dead statements that are not
 > load-bearing.
 
+> **Do not run the permuter as an early decompiler.** First recover the CFG,
+> loop shapes, expressions, stack plan, calls, and near-final instruction
+> length with the deterministic/RTL tools. Otherwise stochastic proxy wins are
+> usually nonsense C that obscures the real structure. `tools/permute.py` now
+> preflights the draft and refuses length deltas above one instruction or broad
+> residuals above 128 aligned lines / 32 blocks. `--force-early` exists only for
+> a reviewed case where RTL proves the broad diff is one allocation cascade.
+> Even then, preserve the source baseline, linked-rescore, and bisect—never
+> paste a wholesale permuter result into an unmatched large function.
+
 The ordered triage — fix categories in THIS order, re-running
 `tools/matchdiff.py <Name>` after every source change:
 

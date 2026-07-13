@@ -1338,6 +1338,21 @@ class MatchToolLockTests(unittest.TestCase):
 
 
 class PermuteRescoreTests(unittest.TestCase):
+    def test_permuter_preflight_accepts_near_final_allocation_residual(self):
+        ready, reason = permute.permuter_readiness(42, 12, 249, 249)
+        self.assertTrue(ready)
+        self.assertIn("near-final", reason)
+        ready, _reason = permute.permuter_readiness(80, 20, 268, 269)
+        self.assertTrue(ready)
+
+    def test_permuter_preflight_rejects_structure_and_accidental_length_balance(self):
+        ready, reason = permute.permuter_readiness(88, 27, 359, 362)
+        self.assertFalse(ready)
+        self.assertIn("length differs by 3", reason)
+        ready, reason = permute.permuter_readiness(163, 46, 362, 362)
+        self.assertFalse(ready)
+        self.assertIn("residual is still broad", reason)
+
     def test_raw_byte_diff_counts_content_and_length(self):
         self.assertEqual(permute.raw_byte_diff(b"abcd", b"abXdY"), 2)
 
