@@ -58,6 +58,16 @@ These same facts are stamped into the top of each `src/main.exe/*.c` as a
 see them whether or not you came in through a prompt. 448 of 557 files have one; the
 rest are functions `PSX.SYM` never described.
 
+When the committed demo inventory has the same function name, run
+`tools/siblingdiff.py <Name> --demo` before drafting. It disassembles both builds,
+turns intra-function targets into relative labels, and turns relinked calls/jumps
+into shared function names. This made SetFlyWire's earlier 900-byte body a direct
+structural oracle for the 984-byte retail function: its distance clamp, midpoint,
+and three jitter arms retained their statement shape even though the retail effect
+pool scan and `abs` calls changed. Demo register allocation, constants, and layouts
+can differ; use the comparison to recover source structure, never as a byte-match
+claim.
+
 If a function is still `FUN_…`, its block carries the recorded candidate name from
 `reference/psxsym-candidates.tsv` — a suggestion that was not confident enough to
 adopt. Do not rename on it without `tools/callmatch.py --verify`.

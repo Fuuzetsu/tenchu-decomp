@@ -21,6 +21,7 @@ os.chdir(ROOT)
 
 TSV = ".shake/ghidra-export/functions.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
+DEMO_TSV = "reference/demo-psxexe.functions.tsv"
 
 # ---- evolving guidance: the load-bearing lessons every agent should get at
 # launch (deeper detail is in the cookbook, which the agent reads). Edit here. --
@@ -111,6 +112,18 @@ def func(name):
         if len(p) == 3 and p[2] == name:
             return int(p[0], 16), int(p[1])
     sys.exit(f"matcher-prompt: {name} not in {TSV}")
+
+
+def has_demo_body(name):
+    """Whether the committed demo inventory has one same-named function body."""
+    found = 0
+    for line in open(DEMO_TSV):
+        parts = line.rstrip("\n").split("\t")
+        if len(parts) >= 4 and parts[0] == "F":
+            parts = parts[1:]
+        if len(parts) >= 3 and parts[2] == name:
+            found += 1
+    return found == 1
 
 
 def is_jump_table(addr, size):
@@ -291,6 +304,13 @@ def main():
                  "shape) is an allocation tie for rtldump/permute, not a source "
                  "edit. Pass a different candidate as the 2nd arg to compare vs "
                  "another sibling.")
+    if has_demo_body(name):
+        P.append(f"- `tools/siblingdiff.py {name} --demo` — compare retail with the "
+                 "same-named earlier demo body. It relativizes local branches and "
+                 "normalizes cross-build call targets to shared names, exposing "
+                 "preserved statement/control-flow shape without confusing relinked "
+                 "addresses. Treat it as a source-structure oracle; retail bytes "
+                 "remain authoritative.")
     P.append(f"- `tools/xref.py {name}` — callers (pin the prototype) + callees "
              "(matched vs needs-extern).")
     P.append(f"- `tools/access.py {name}` — each pointer offset's WIDTH/"

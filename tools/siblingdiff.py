@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draft a function from its nearest MATCHED sibling — asm diff + the sibling's C.
+"""Draft from a matched sibling, or compare retail with the named demo body.
 
 The single most decisive move when drafting a function in a family (the ProcItem*,
 Act*, Draw*, Think* twins) is: find the already-matched sibling whose asm is the
@@ -9,6 +9,7 @@ files. This does all of it in one shot:
 
     tools/siblingdiff.py <Target>            # auto-pick the nearest matched sibling
     tools/siblingdiff.py <Target> <Sibling>  # force a specific sibling
+    tools/siblingdiff.py <Target> --demo     # same-named Japanese demo function
     tools/siblingdiff.py <Target> --full     # whole aligned listing, not just diffs
     tools/siblingdiff.py <Target> --no-c     # skip printing the sibling's C
 
@@ -21,12 +22,13 @@ different addresses ALIGNS instead of reading as all-different), then prints:
      of identical instructions collapsed to `… N identical`,
   3. the sibling's matched C (src/main.exe/<Sibling>.c) verbatim, ready to transcribe.
 
-Inter-function `jal`/`j` targets are LEFT ABSOLUTE on purpose: a call to the SAME
-callee then reads identical in both (aligns), and a call to a DIFFERENT callee reads
-as a real diff (it is one). Only branches landing inside the function window are
-relativized. Register allocation still shows through — that's deliberate; a diff in
-just the registers usually means the C is right and the residual is an allocation
-tie for rtldump/permute, not a source change. Run inside the nix devShell.
+In ordinary sibling mode, inter-function `jal`/`j` targets are left absolute: both
+bodies came from retail, so the same callee already aligns. In `--demo` mode those
+targets are normalized to function names because the earlier executable was linked
+at different addresses. Only a same-named body from the committed demo inventory is
+accepted. Register allocation and real demo/retail edits still show through — the
+demo is a structural source oracle, never the exact-byte gate. Run inside the nix
+devShell.
 """
 from __future__ import annotations
 
@@ -34,6 +36,7 @@ import argparse
 import difflib
 import os
 import re
+import struct
 import subprocess
 import sys
 
@@ -45,6 +48,8 @@ TEXT_END = 0x80098000
 FILE_TEXT_OFF = 0x800
 ORIG = "disks/tenchu/main.exe"
 TSV = ".shake/ghidra-export/functions.tsv"
+DEMO_ORIG = "disks/demo/PSX.EXE"
+DEMO_TSV = "reference/demo-psxexe.functions.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
 SRC = "src/main.exe"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
@@ -72,6 +77,33 @@ def load_functions():
     return out
 
 
+def load_demo_functions(path=DEMO_TSV):
+    """[(addr, size, name)] from either supported demo TSV spelling."""
+    out = []
+    for line in open(path):
+        parts = line.rstrip("\n").split("\t")
+        if len(parts) >= 4 and parts[0] == "F":
+            parts = parts[1:]
+        if len(parts) < 3:
+            continue
+        try:
+            addr, size = int(parts[0], 16), int(parts[1])
+        except ValueError:
+            continue
+        if size >= 8 and size % 4 == 0:
+            out.append((addr, size, parts[2]))
+    return out
+
+
+def psx_text_start(path):
+    """Read the load address from a PS-X EXE header."""
+    with open(path, "rb") as fh:
+        header = fh.read(FILE_TEXT_OFF)
+    if len(header) < 0x20 or header[:8] != b"PS-X EXE":
+        raise ValueError(f"{path}: not a PS-X EXE")
+    return struct.unpack_from("<I", header, 0x18)[0]
+
+
 def matched_names():
     """Functions with real C (no INCLUDE_ASM) in src/main.exe/."""
     names = set()
@@ -82,11 +114,11 @@ def matched_names():
     return names
 
 
-def all_insns():
+def all_insns(orig=ORIG, text_start=TEXT_START):
     """{addr: (mnemonic, operands)} for the whole text segment, one objdump pass."""
     out = subprocess.run(
-        [OBJDUMP, "-D", "-b", "binary", "-m", "mips", "-EL",
-         "--adjust-vma", hex(TEXT_START - FILE_TEXT_OFF), ORIG],
+        [OBJDUMP, "-D", "-z", "-b", "binary", "-m", "mips", "-EL",
+         "--adjust-vma", hex(text_start - FILE_TEXT_OFF), orig],
         capture_output=True, text=True).stdout
     insns = {}
     pat = re.compile(r"^\s*([0-9a-f]+):\t[0-9a-f]{8} \t(\S+)(?:\s+(.*))?$")
@@ -94,7 +126,7 @@ def all_insns():
         m = pat.match(line)
         if m:
             a = int(m.group(1), 16)
-            if a >= TEXT_START:
+            if a >= text_start:
                 insns[a] = (m.group(2), (m.group(3) or "").strip())
     return insns
 
@@ -108,7 +140,7 @@ def jaccard(a, b):
     return len(a & b) / len(a | b) if a and b else 0.0
 
 
-def norm_line(insns, a, start, end):
+def norm_line(insns, a, start, end, target_names=None):
     """One normalized instruction string; intra-window targets -> L<off>."""
     mnem, ops = insns.get(a, ("?", ""))
 
@@ -116,20 +148,25 @@ def norm_line(insns, a, start, end):
         t = int(m.group(1), 16)
         if BRANCH.match(mnem) and start <= t < end:
             return f"L{t - start:x}"          # relative label, aligns across addrs
+        if BRANCH.match(mnem) and target_names and t in target_names:
+            return target_names[t]            # cross-build call/jump -> shared name
         return m.group(0)                      # inter-function target: keep absolute
 
     return f"{mnem} {TEXTADDR.sub(repl, ops)}".rstrip()
 
 
-def disasm(insns, addr, size):
+def disasm(insns, addr, size, target_names=None):
     end = addr + size
-    return [norm_line(insns, a, addr, end) for a in range(addr, end, 4)]
+    return [norm_line(insns, a, addr, end, target_names)
+            for a in range(addr, end, 4)]
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("target")
     ap.add_argument("sibling", nargs="?", help="force this matched sibling")
+    ap.add_argument("--demo", action="store_true",
+                    help="compare with the same-named function in demo PSX.EXE")
     ap.add_argument("--top", type=int, default=5, help="sibling candidates to list")
     ap.add_argument("--full", action="store_true", help="whole aligned listing")
     ap.add_argument("--context", type=int, default=2, help="context insns per hunk")
@@ -140,38 +177,60 @@ def main():
     byname = {n: (a, s) for a, s, n in funcs}
     if args.target not in byname:
         sys.exit(f"siblingdiff: {args.target} not in {TSV}")
-    matched = matched_names() & set(byname)
-    matched.discard(args.target)
-    if not matched:
-        sys.exit("siblingdiff: no matched functions to compare against")
-
-    insns = all_insns()
     ta, tsz = byname[args.target]
-    tg = ngrams(insns, ta, tsz)
-    ranked = sorted(((jaccard(tg, ngrams(insns, *byname[m])), m) for m in matched),
-                    reverse=True)
+    insns = all_insns()
 
-    if args.sibling:
-        if args.sibling not in matched:
-            sys.exit(f"siblingdiff: {args.sibling} is not a matched sibling")
-        sib = args.sibling
+    if args.demo:
+        if args.sibling:
+            sys.exit("siblingdiff: --demo does not take a sibling argument")
+        demo_funcs = load_demo_functions()
+        demos = [(a, s) for a, s, n in demo_funcs if n == args.target]
+        if len(demos) != 1:
+            sys.exit(f"siblingdiff: expected one demo {args.target}, found {len(demos)}")
+        sa, ssz = demos[0]
+        demo_start = psx_text_start(DEMO_ORIG)
+        ref_insns = all_insns(DEMO_ORIG, demo_start)
+        retail_names = {a: n for a, _, n in funcs}
+        demo_names = {a: n for a, _, n in demo_funcs}
+        ref = disasm(ref_insns, sa, ssz, demo_names)
+        tgt = disasm(insns, ta, tsz, retail_names)
+        print(f"target {args.target}  retail {ta:08x} ({tsz} bytes)")
+        print(f"demo   {args.target}  demo   {sa:08x} ({ssz} bytes)")
+        print("source: disks/demo/PSX.EXE + reference/demo-psxexe.functions.tsv\n")
+        ref_kind = "demo"
+        sib = None
     else:
-        sib = ranked[0][1]
-
-    sa, ssz = byname[sib]
-    print(f"target  {args.target}  ({tsz} bytes)")
-    print(f"sibling {sib}  ({ssz} bytes)  sim {dict((m, j) for j, m in ranked)[sib]:.2f}"
-          f"  -> src/main.exe/{sib}.c")
-    print("candidates: " + ", ".join(f"{m}({j:.2f})" for j, m in ranked[:args.top]))
-    print()
-
-    ref = disasm(insns, sa, ssz)
-    tgt = disasm(insns, ta, tsz)
+        matched = matched_names() & set(byname)
+        matched.discard(args.target)
+        if not matched:
+            sys.exit("siblingdiff: no matched functions to compare against")
+        tg = ngrams(insns, ta, tsz)
+        ranked = sorted(
+            ((jaccard(tg, ngrams(insns, *byname[m])), m) for m in matched),
+            reverse=True)
+        if args.sibling:
+            if args.sibling not in matched:
+                sys.exit(f"siblingdiff: {args.sibling} is not a matched sibling")
+            sib = args.sibling
+        else:
+            sib = ranked[0][1]
+        sa, ssz = byname[sib]
+        print(f"target  {args.target}  ({tsz} bytes)")
+        print(f"sibling {sib}  ({ssz} bytes)  "
+              f"sim {dict((m, j) for j, m in ranked)[sib]:.2f}"
+              f"  -> src/main.exe/{sib}.c")
+        print("candidates: " + ", ".join(
+            f"{m}({j:.2f})" for j, m in ranked[:args.top]))
+        print()
+        ref = disasm(insns, sa, ssz)
+        tgt = disasm(insns, ta, tsz)
+        ref_kind = "sibling"
     sm = difflib.SequenceMatcher(a=ref, b=tgt, autojunk=False)
     same = sum(b - a for tag, a, b, _, _ in sm.get_opcodes() if tag == "equal")
     print(f"asm: {same}/{max(len(ref), len(tgt))} instructions identical after "
           f"normalization  (ratio {sm.ratio():.2f})")
-    print("  ref: = sibling   tgt: = target   Lxx = intra-function label\n")
+    print(f"  ref: = {ref_kind}   tgt: = retail target   "
+          "Lxx = intra-function label\n")
 
     if args.full:
         for tag, i1, i2, j1, j2 in sm.get_opcodes():
@@ -203,7 +262,7 @@ def main():
                 for k in range(j1, j2):
                     print(f"  tgt: {tgt[k]}")
 
-    if not args.no_c:
+    if not args.demo and not args.no_c:
         p = os.path.join(SRC, sib + ".c")
         if os.path.exists(p):
             print(f"\n===== src/main.exe/{sib}.c (transcribe, then edit the diffs) =====")

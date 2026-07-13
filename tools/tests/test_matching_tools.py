@@ -27,6 +27,7 @@ import merge_metadata_conflicts
 import permute
 import regalloc
 import rtlguide
+import siblingdiff
 import stackplan
 import symnear
 
@@ -83,6 +84,40 @@ class FunctionInventoryTests(unittest.TestCase):
 
         self.assertEqual(changed, 1)
         self.assertEqual(functions, {"RecoveredName": (0x80011000, 16)})
+
+
+class SiblingDiffTests(unittest.TestCase):
+    def test_psx_text_start_comes_from_exe_header(self):
+        header = bytearray(0x800)
+        header[:8] = b"PS-X EXE"
+        header[0x18:0x1C] = (0x80010100).to_bytes(4, "little")
+        with tempfile.NamedTemporaryFile(delete=False) as fh:
+            path = fh.name
+            fh.write(header)
+        try:
+            self.assertEqual(siblingdiff.psx_text_start(path), 0x80010100)
+        finally:
+            os.unlink(path)
+
+    def test_demo_mode_normalizes_internal_labels_before_named_calls(self):
+        insns = {
+            0x80010000: ("jal", "80020000"),
+            0x80010004: ("j", "8001000c"),
+        }
+        names = {0x80020000: "SharedCallee", 0x8001000C: "WrongExternalName"}
+
+        self.assertEqual(
+            siblingdiff.norm_line(
+                insns, 0x80010000, 0x80010000, 0x80010010, names
+            ),
+            "jal SharedCallee",
+        )
+        self.assertEqual(
+            siblingdiff.norm_line(
+                insns, 0x80010004, 0x80010000, 0x80010010, names
+            ),
+            "j Lc",
+        )
 
 
 class CallMatchAmbiguityTests(unittest.TestCase):
