@@ -902,6 +902,16 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   pointer/value temps block-local to **each** disjoint loop: sharing them across
   FUN_800270f8's set/clear loops merged their allocnos, raised priority, and
   swapped `$a0/$v0` even though their live ranges never overlap.
+- **A sentinel-record scan with a special first row may need the scan backedge
+  written explicitly.** A structured loop can let cc1 peel or specialize the
+  known `i == 0` row, changing physical block order even when its comparisons
+  look right. In ActDEAD, testing row zero once and then spelling the repeated
+  scan with a label/goto preserved the target's dispatch order. Keep the
+  counter update natural (`i++;`) at that backedge before inventing a `next`
+  temporary: with the `short` counter live across the sentinel test, cc1 emits
+  the target's separate next-index and next-record registers and commits the
+  index in the branch delay slot. This is a CFG/allocation lever, so require
+  the target's branch order and a narrow residual before trying it.
 - **Disjoint narrow loops do not have to share one source counter.** Reusing a
   function's earlier `short i` for a later table scan can join their allocno
   preferences and rotate the scan's address/index registers even though the
@@ -1855,7 +1865,12 @@ near entry; `AdtMessageBox` wants the inline form.)
   the full sp+0x20..0x177 window and led directly to its exact 0x1a0 frame.
   The generated names are deliberately neutral; replace byte regions with
   PSX.SYM/Ghidra-proven aggregates before treating it as semantic source. Use
-  `--args N` when the inferred outgoing boundary is ambiguous.
+  `--args N` when the inferred outgoing boundary is ambiguous. Once the plain
+  report recovers a working window it prints the exact cached
+  `-n --emit-overlay` follow-up, so do not stop at the union hint: emit the
+  scaffold before hand-counting padding. ActDEAD independently recovered a
+  0x28 union this way, placing its `VECTOR` at sp+0x10 and two `SVECTOR`s at
+  sp+0x28/sp+0x30 while retaining semantic aggregate types.
 - **A stack aggregate pointer can coexist with DIRECT member spellings, and
   that mix may be the target.** Keep `p = &local` alive for the one field whose
   store is base-relative and for the later call, but spell other fields as

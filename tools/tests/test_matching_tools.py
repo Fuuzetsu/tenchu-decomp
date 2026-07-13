@@ -3631,6 +3631,16 @@ glabel F
         self.assertIn("unsigned int field_008", overlay)
         self.assertIn("unsigned char pad_00c[0x4]", overlay)
 
+    def test_plain_report_points_to_overlay_scaffold(self):
+        info = {"workspace_size": 0x28}
+        self.assertEqual(
+            stackplan.overlay_followup("ActDEAD", info),
+            "next: tools/stackplan.py ActDEAD -n --emit-overlay",
+        )
+        self.assertIsNone(stackplan.overlay_followup(
+            "NoWorkspace", {"workspace_size": None}
+        ))
+
     def test_target_frame_and_workspace_are_inferred(self):
         assembly = """
 glabel F

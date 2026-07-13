@@ -333,6 +333,13 @@ def emit_overlay(name, info):
     return "\n".join(lines)
 
 
+def overlay_followup(name, info):
+    """Return the actionable scaffold command for a recovered workspace."""
+    if info.get("workspace_size") is None:
+        return None
+    return f"next: tools/stackplan.py {name} -n --emit-overlay"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("name")
@@ -373,6 +380,8 @@ def main():
     if target_info["workspace_size"] is not None:
         print("union hint: an explicit scratch overlay for the target working "
               f"window is {fmt(target_info['workspace_size'])} bytes")
+        if not args.emit_overlay:
+            print(overlay_followup(args.name, target_info))
     if args.emit_overlay:
         print()
         print(emit_overlay(args.name, target_info))
