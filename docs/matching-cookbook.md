@@ -883,6 +883,18 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `short scan_i` when the target uses a different hard-register colouring
   (ActKAGI; independently confirmed by SwimCheck's splash loop and later
   CVAhuman scan). This is a scope/regalloc lever, not a semantic loop change.
+- **Conversely, repeated hard-register identities can recover WHICH named
+  counter drove each disjoint loop.** When PSX.SYM records `int i, j, k` but a
+  decompiler renders every nested scan with anonymous indices, compare the
+  target counters across the separate loops. ArrangeLocalMatrix's first
+  row-normalisation loop and deepest elimination loop both use `$a2`, while
+  the intervening row loop uses `$t4`: the original reused `k` for the two
+  `$a2` loops and reserved `j` for the `$t4` loop. Using `j` for the first two
+  adjacent loops was semantically identical and exact-length, but rotated 44
+  bytes of caller-saved registers; changing only that loop variable to `k`
+  produced a full match. Use `rtlguide`'s local names and `regalloc`'s pseudo
+  dispositions to corroborate the grouping before adding artificial loop
+  weights or narrowing a debug-proven `int`.
 - **Sibling scans in one function can deliberately use different loop forms.**
   In StartStageSequence the first scans are `while`, but the third reorder loop
   and the score loop must be `for`. Their otherwise similar bodies are not a
@@ -4031,8 +4043,11 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     `$t2..$t5`/`$s0` at entry). That needs the register-pinned-locals / inline-asm
     policy — the same open question as `GetPad`/`PClseek`. `triage.py` says
     `GTE CMD — split OK, no C form (inline-asm policy)` and keeps them VERY-HARD.
-    `DrawTMD` and `ArrangeLocalMatrix` are blocked the same way (they pass the
-    handlers their arguments in `$t2..$t6`) despite containing no GTE opcodes.
+    `DrawTMD` is blocked the same way despite containing no GTE command opcode.
+    ArrangeLocalMatrix was previously listed here too, but that was a false
+    inference from its dense use of `$t2..$t6`: those are ordinary internal
+    loop temporaries, while both calls use ABI `$a0/$a1`. Its complete
+    636-byte body now matches in pure C.
   - **m2c can read them**: our m2c carries a PSX GTE/COP2 patch series
     (`nix/m2c/*.patch`). You MUST pass `--input-regs`, or every entry-live value
     becomes `M2C_ERROR(Read from unset register)`. Hand it the whole caller-saved
