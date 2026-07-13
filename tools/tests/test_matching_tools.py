@@ -7,6 +7,7 @@ from unittest import mock
 import contextlib
 import io
 import inspect
+import importlib.util
 import fcntl
 import signal
 import subprocess
@@ -30,6 +31,12 @@ import rtlguide
 import siblingdiff
 import stackplan
 import symnear
+
+MATCHER_PROMPT_SPEC = importlib.util.spec_from_file_location(
+    "matcher_prompt", os.path.join(TOOLS, "matcher-prompt.py")
+)
+matcher_prompt = importlib.util.module_from_spec(MATCHER_PROMPT_SPEC)
+MATCHER_PROMPT_SPEC.loader.exec_module(matcher_prompt)
 
 
 class WorktreeInitTests(unittest.TestCase):
@@ -146,6 +153,28 @@ class FunctionInventoryTests(unittest.TestCase):
 
         self.assertEqual(changed, 1)
         self.assertEqual(functions, {"RecoveredName": (0x80011000, 16)})
+
+
+class MatcherPromptTests(unittest.TestCase):
+    def test_repeated_debug_locals_emit_scope_identity_hint(self):
+        rows = [
+            ["AttackControl", "0", "reg", "$s0", "struct Humanoid *", "enemy"],
+            ["AttackControl", "1", "reg", "$a1", "short", "mid"],
+            ["AttackControl", "2", "reg", "$v0", "struct Humanoid *", "enemy"],
+        ]
+
+        hints = matcher_prompt.repeated_local_scope_hints(rows)
+
+        self.assertIn("Keep them block-scoped initially", hints[0])
+        self.assertEqual(hints[1], "    `enemy` x2 (reg $s0, reg $v0)")
+
+    def test_unique_debug_locals_do_not_emit_scope_hint(self):
+        rows = [
+            ["Function", "0", "reg", "$s0", "long", "x"],
+            ["Function", "1", "stack", "sp+16", "short", "y"],
+        ]
+
+        self.assertEqual(matcher_prompt.repeated_local_scope_hints(rows), [])
 
 
 class SiblingDiffTests(unittest.TestCase):

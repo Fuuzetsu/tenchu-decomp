@@ -177,6 +177,43 @@ def globals_touched(name):
     return out
 
 
+def repeated_local_scope_hints(rows):
+    """Turn repeated PSX.SYM local names into an explicit scope warning.
+
+    The linker debug stream records one row per source declaration, including
+    same-named declarations in nested blocks.  Collapsing those rows into one
+    function-scope C variable also collapses their RTL pseudos, so surface the
+    declaration identity mechanically instead of relying on a worker to notice
+    duplicate names in a long locals list.
+    """
+    grouped = {}
+    order = []
+    for row in rows:
+        if len(row) != 6:
+            continue
+        _, _, kind, where, ty, local_name = row
+        if local_name not in grouped:
+            grouped[local_name] = []
+            order.append(local_name)
+        grouped[local_name].append((kind, where, ty))
+
+    repeated = [(name, grouped[name]) for name in order
+                if len(grouped[name]) > 1]
+    if not repeated:
+        return []
+
+    out = [
+        "- **Scope identity hint:** PSX.SYM records these as separate "
+        "same-named declarations. Keep them block-scoped initially; one "
+        "function-scope variable creates one broad RTL pseudo/hard-register "
+        "identity. Demo register homes are hints, not retail requirements:"
+    ]
+    for local_name, declarations in repeated:
+        sites = ", ".join(f"{kind} {where}" for kind, where, _ in declarations)
+        out.append(f"    `{local_name}` x{len(declarations)} ({sites})")
+    return out
+
+
 def psxsym_facts(name):
     """Original prototype / TU / storage class for `name`, from the demo's PSX.SYM
     (see docs/psx-sym.md).  These are the real names the authors used; a matching
@@ -211,6 +248,7 @@ def psxsym_facts(name):
                        f"name is a nested-block scope, not a duplicate:")
             for _, _, kind, where, ty, vn in mine[:16]:
                 out.append(f"    {kind:5s} {where:8s} {ty} {vn}")
+            out.extend(repeated_local_scope_hints(mine))
     for line in globals_touched(name):
         out.append(line)
     cand = "reference/psxsym-candidates.tsv"

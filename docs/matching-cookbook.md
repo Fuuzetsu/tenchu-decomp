@@ -2410,6 +2410,28 @@ ternary's condition may need to re-read the target memory (`xyz[j] < 0` rather t
 equivalent `t < 0`) to keep cse1's taken-path window from canonicalising the store back
 onto the original address register (`UpdateMotion`, last 4 bytes).
 
+### Two branch-arm stores through one global pointer need a pre-branch local
+
+When both arms write a field through the same global pointer, spelling the global
+directly in each arm can emit one `%gp_rel` load per arm.  Capture it once at the
+join instead:
+
+```c
+enemy = GetNearestHumanoid(Me_MOTION_C, 3000);
+human = Me_MOTION_C;
+if (enemy != NULL)
+    human->target = (ModelType *)enemy->model;
+else
+    human->target = NULL;
+```
+
+This gives both stores one address pseudo and one load before the condition.  In
+AttackControl the direct-global spelling produced two loads plus an extra skip
+jump; the local-base spelling, with the non-null arm first to match physical body
+order, produced retail's `lw v1,Me_MOTION_C; beqz; ...; sw ...,0x74(v1)` tail
+exactly.  Apply only when no intervening call/write can change the global pointer;
+the target's single load before the branch is the anti-oracle.
+
 ### The abs idiom's `negu` source register is not a C-level choice
 
 `at = t; if (t < 0) at = -at;` and `at = (t < 0) ? -t : t;` compile identically:
@@ -3288,7 +3310,13 @@ before local-alloc, so the def is gone before it can bias anything.
   changing runtime code. In SetWire this removed the false distance/final-
   rotation cycle and cut the residual from 418 to 376 bytes; confirm distinct
   pseudos in `.lreg`, since merely renaming overlapping live values does not
-  help.
+  help. A repeated name in PSX.SYM is stronger evidence: each row is a separate
+  source declaration, not one variable reported twice. AttackControl records an
+  early and a late `enemy`; merging them into one function-scope pointer carried
+  the early saved-register identity into the final retarget block, while two
+  nested declarations let the late call result remain directly in `$v0` and
+  removed the extra move. `matcher-prompt.py` now detects repeated debug-local
+  names and emits an explicit scope-identity hint with their demo register homes.
 - **Sometimes the target is a priority WINDOW, not an outrank relation.** In
   ProcItemNingyo, the saved-register order required
   `param=4901 < item=4964 < bounce=5000`; +2 weighted refs left `item` too low
