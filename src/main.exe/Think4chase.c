@@ -33,34 +33,19 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 191 of 404 bytes differ. Right length in the
- * outer dispatch (the `0x5B <= actcnt` guard-polarity fix from
- * Think4contact.c applies identically here and is byte-confirmed); the
- * residual is entirely the SAME systemic turn/Degree dispatch tie
- * documented in Think4contact.c's header (this function's inner dispatch
- * is a 3-way version of that same 2-way one, nested one level deeper under
- * `actcnt < 0x1E`) — see that file for the full mechanism writeup and the
- * list of tried-and-rejected source variants (all byte-identical to each
- * other here too: nested if/else vs if/else-if/else vs goto-ladder vs
- * do{}while(0) wrapper). `tools/permute.py` was not re-run separately for
- * this function since it shares Think4contact's exact residual shape one
- * level deeper; the same jump.c/reorg block-layout conclusion applies.
+ * STATUS: NON_MATCHING — 8 of 404 bytes differ, with exact length and CFG.
+ * The only residual is the order of the adjacent Degree and rotation-speed
+ * loads; every other instruction matches.
  *
- * Think4chase (0x8002f5a8, 0x194 bytes) — think-handler, same "think" TU as
- * Think4contact.c/Think4abandon.c; structurally identical to Think4contact
- * except the no-chase-target branch has a NESTED sub-gate (actcnt < 0x1e,
- * on top of the outer actcnt < 0x5b) and different turn-result constants
- * (0x1000 default/0x3000 right/-0x7000 left, vs Think4contact's 0/0x2000/
- * -0x8000) — see Think4contact.c's header for the shared mechanics
- * (FUN_8002b990 == turn_towards_player_, the one-pseudo `result`, the
- * per-return-site truncation rules).
+ * Turn briefly while no chase point exists, then abandon after 0x5b ticks.
+ * During the first 0x1e ticks, override the default 0x1000 command with a
+ * directional 0x3000 or -0x7000 command. With a chase point, steer toward
+ * it and clear it after arriving or when actscnt wraps.
  *
- * `result = 0x1000;` is set unconditionally right after the actcnt
- * increment (default for BOTH "actcnt >= 0x1e" and the inner "else" arm),
- * then reasserted verbatim in the inner else — a byte-neutral redundant
- * store cc1's local cse collapses back to nothing extra (same register,
- * same value, no intervening call), matching Ghidra's own literal
- * (non-simplified) rendering of the source.
+ * As in Think4contact, the default result must be assigned before the two
+ * comparisons and the nonzero outcomes expressed only as overrides. This
+ * preserves the target's fallthrough bodies, explicit jumps, and inline
+ * return-conversion delay slot.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think4chase", Think4chase);
@@ -97,13 +82,9 @@ s16 Think4chase(void)
                 {
                     result = 0x3000;
                 }
-                else
+                else if (Degree < -Me_THINK_C->character_rotation_speed)
                 {
-                    result = 0x1000;
-                    if (Degree < -Me_THINK_C->character_rotation_speed)
-                    {
-                        result = -0x7000;
-                    }
+                    result = -0x7000;
                 }
             }
         }
