@@ -1876,6 +1876,48 @@ void Target(u32 value)
 
 
 class StackPlanTests(unittest.TestCase):
+    def test_successful_build_diagnostics_stay_in_log(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log_path = os.path.join(directory, "stackplan-build.log")
+
+            def successful_build(_command, stdout, stderr):
+                self.assertIs(stdout, subprocess.DEVNULL)
+                stderr.write(b"compiler warning that must not bury the report\n")
+                return mock.Mock(returncode=0)
+
+            visible_stderr = io.StringIO()
+            with mock.patch.object(stackplan, "BUILD_LOG", log_path), \
+                    mock.patch.object(stackplan.subprocess, "run",
+                                      side_effect=successful_build), \
+                    contextlib.redirect_stderr(visible_stderr):
+                stackplan.build_candidate()
+
+            self.assertEqual(visible_stderr.getvalue(), "")
+            with open(log_path) as log:
+                self.assertIn("compiler warning", log.read())
+
+    def test_failed_build_reports_log_tail(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log_path = os.path.join(directory, "stackplan-build.log")
+
+            def failed_build(_command, stdout, stderr):
+                for line in range(20):
+                    stderr.write(f"diagnostic {line}\n".encode())
+                return mock.Mock(returncode=3)
+
+            with mock.patch.object(stackplan, "BUILD_LOG", log_path), \
+                    mock.patch.object(stackplan.subprocess, "run",
+                                      side_effect=failed_build):
+                with self.assertRaises(SystemExit) as raised:
+                    stackplan.build_candidate()
+
+            message = str(raised.exception)
+            self.assertIn("./Build FAILED (rc=3)", message)
+            self.assertIn(log_path, message)
+            self.assertNotIn("diagnostic 4\n", message)
+            self.assertIn("diagnostic 5\n", message)
+            self.assertTrue(message.endswith("diagnostic 19"))
+
     def test_address_formation_marks_start_of_hidden_stack_aggregate(self):
         assembly = """
 glabel F

@@ -23,6 +23,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 
 from matchlock import MatchToolBusy, matching_tool_lock
 
@@ -34,10 +35,35 @@ CANDIDATE = ".shake/processed/main.exe/{name}.s"
 SAVED_REGS = ({f"s{index}" for index in range(9)} |
               {"fp", "ra", "30", "31"} |
               {str(index) for index in range(16, 24)})
+BUILD_LOG = os.path.join(tempfile.gettempdir(), "tenchu-stackplan-build.log")
 
 
 def parse_number(value):
     return int(value, 0)
+
+
+def build_candidate():
+    """Build quietly, retaining diagnostics for an actionable failure.
+
+    A fresh worktree can compile hundreds of source files before stackplan has
+    a candidate assembly.  Successful compiler warnings are not part of the
+    stack report and can bury it entirely, so keep the full stream in a file.
+    On failure, report the log path and its tail instead of hiding the cause.
+    """
+    with open(BUILD_LOG, "wb") as log:
+        result = subprocess.run(
+            ["./Build"], stdout=subprocess.DEVNULL, stderr=log
+        )
+    if result.returncode != 0:
+        try:
+            with open(BUILD_LOG, errors="replace") as log:
+                tail = "\n".join(log.read().splitlines()[-15:])
+        except OSError:
+            tail = "(build log unavailable)"
+        sys.exit(
+            f"stackplan: ./Build FAILED (rc={result.returncode}), "
+            f"log: {BUILD_LOG}\n{tail}"
+        )
 
 
 def instruction_text(raw):
@@ -286,7 +312,7 @@ def main():
     args = parser.parse_args()
 
     if not args.no_build:
-        subprocess.run(["./Build"], stdout=subprocess.DEVNULL, check=True)
+        build_candidate()
     candidate_path = CANDIDATE.format(name=args.name)
     candidate = (open(candidate_path, errors="replace").read()
                  if os.path.exists(candidate_path) else "")
