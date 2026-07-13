@@ -375,7 +375,11 @@ takes the true size from the Ghidra export (matchdiff's window is capped by
 mid-function symbols like switch tables) and difflib-aligns the instruction
 sequences, so an insert shows as one insert instead of shifting every line
 after it; `--structural` shows only the blocks that change the length (fix
-those first), and pure branch-target drift is suppressed by default.
+those first), and pure branch-target drift is suppressed by default. An empty
+`--structural` view means only that every aligned replacement has equal length;
+it is **not** a byte-match result. The tool now prints both the displayed and
+raw aligned residual plus `exact instruction sequence: NO`; only `matchdiff`
+is the authoritative byte gate.
 
 Treat the differing-byte count as a score to drive down (matchdiff also
 reports the whole-image count: if your function assembles to a different
@@ -1100,6 +1104,24 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   inspect `.rtl` to confirm the address-pseudo split before introducing such a
   helper, and keep it inside a guarded draft so the asm-stub TU cannot emit an
   unused out-of-line copy.
+- **One absolute-state pointer reused across distant phases can become an
+  unwanted saved-register allocno.** If the target rematerialises the same
+  `0x80010000` base with separate `lui` sites but the candidate carries one
+  pointer across calls/loops, declare a fresh block-scoped pointer in each
+  logical phase. mission_score_screen needed separate initialise, rank-display,
+  and table-shift scopes; one function-wide pointer changed the frame and the
+  entire saved-register assignment. This is the absolute-address analogue of
+  the expanded-inline stack-address barrier above: confirm the retained pseudo
+  in `.lreg/.greg`, and confirm target rematerialisation in raw asm before
+  splitting scopes.
+- **A natural counted loop over stack arrays can hoist their bases and enlarge
+  the frame even when the target recomputes each address.** When `.greg` shows
+  a loop-invariant `sp+K` address pseudo crossing the loop and occupying a saved
+  register/spill slot, a hand-rolled label/back-edge can suppress loop.c's
+  invariant treatment while preserving the semantic count. The three-row
+  rank loop in mission_score_screen required this to remove an eight-byte late
+  spill area and restore the exact `0x1B8` frame. This is justified by the RTL
+  allocno plus target `addiu sp,K` rematerialisations—not by frame-size guessing.
 - **Two `u16` out-parameter locals with a 4-byte stack GAP are one `SVECTOR`'s
   `.vx`/`.vz`** (the write skips `.vy`), not two scalars (LightningBolt's
   GetVectorRotation output).

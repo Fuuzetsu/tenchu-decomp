@@ -10,7 +10,8 @@ show as themselves and pure branch-target drift can be suppressed.
 
   tools/asmdiff.py <Name>              aligned diff (structural view)
   tools/asmdiff.py <Name> --all        include pure branch-target drift lines
-  tools/asmdiff.py <Name> --structural only blocks that change the length
+  tools/asmdiff.py <Name> --structural only blocks that change the length;
+                                           never a byte-match verdict
   tools/asmdiff.py <Name> -n           skip ./Build
 
 Exit 0 when the sequences are identical. Run inside the nix devShell.
@@ -78,8 +79,51 @@ def dis(path, addr, size):
     return r
 
 
-def main():
+def aligned_opcodes(target, candidate, show_all=False, structural=False):
+    """Return raw and displayed aligned-diff statistics.
+
+    The structural view deliberately hides same-length replacements.  Keep its
+    displayed count separate from the raw aligned residual so that an empty
+    structural view can never be reported as an exact match.
+    """
     import difflib
+
+    def stem(insn):
+        return re.sub(r"0x[0-9a-f]+$", "", insn)
+
+    opcodes = difflib.SequenceMatcher(
+        None, target, candidate, autojunk=False
+    ).get_opcodes()
+    raw_lines = raw_blocks = 0
+    displayed_lines = displayed_blocks = 0
+    displayed = []
+    for tag, i1, i2, j1, j2 in opcodes:
+        if tag == "equal":
+            continue
+        width = max(i2 - i1, j2 - j1)
+        raw_lines += width
+        raw_blocks += 1
+        drift = (tag == "replace" and (i2 - i1) == (j2 - j1)
+                 and all(stem(target[i1 + k]) == stem(candidate[j1 + k])
+                         for k in range(i2 - i1)))
+        if drift and not show_all:
+            continue
+        if structural and (i2 - i1) == (j2 - j1):
+            continue
+        displayed_lines += width
+        displayed_blocks += 1
+        displayed.append((tag, i1, i2, j1, j2))
+    return {
+        "raw_lines": raw_lines,
+        "raw_blocks": raw_blocks,
+        "displayed_lines": displayed_lines,
+        "displayed_blocks": displayed_blocks,
+        "displayed": displayed,
+        "identical": target == candidate,
+    }
+
+
+def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
     ap.add_argument("-n", "--no-build", action="store_true")
@@ -121,31 +165,31 @@ def main():
     t = [x[1] for x in tgt]
     o = [x[1] for x in ours]
 
-    def stem(x):
-        return re.sub(r"0x[0-9a-f]+$", "", x)
-
-    sm = difflib.SequenceMatcher(None, t, o, autojunk=False)
-    nd = nb = 0
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        if tag == "equal":
-            continue
-        drift = (tag == "replace" and (i2 - i1) == (j2 - j1)
-                 and all(stem(t[i1 + k]) == stem(o[j1 + k])
-                         for k in range(i2 - i1)))
-        if drift and not args.all:
-            continue
-        nd += max(i2 - i1, j2 - j1)
-        nb += 1
-        if args.structural and (i2 - i1) == (j2 - j1):
-            continue
+    stats = aligned_opcodes(t, o, args.all, args.structural)
+    if args.structural:
+        print("[STRUCTURAL FILTER ONLY — empty output is not an exact-match "
+              "claim; run tools/matchdiff.py for the byte gate]")
+    for tag, i1, i2, j1, j2 in stats["displayed"]:
         print(f"--- {tag}")
         for k in range(i1, i2):
             print(f"  T {tgt[k][0]:#x}  {tgt[k][1]}")
         for k in range(j1, j2):
             print(f"  O {ours[k][0]:#x}  {ours[k][1]}")
-    print(f"[{args.name}: {nd} differing lines in {nb} blocks; "
-          f"length ours {len(o)} vs target {len(t)}]")
-    return 0 if (nd == 0 and len(o) == len(t)) else 1
+    if args.structural:
+        print(f"[{args.name}: {stats['displayed_lines']} length-changing lines "
+              f"in {stats['displayed_blocks']} displayed blocks; raw aligned "
+              f"residual {stats['raw_lines']} lines in {stats['raw_blocks']} "
+              f"blocks; length ours {len(o)} vs target {len(t)}; "
+              f"exact instruction sequence: "
+              f"{'YES' if stats['identical'] else 'NO'}]")
+    else:
+        print(f"[{args.name}: {stats['displayed_lines']} displayed differing "
+              f"lines in {stats['displayed_blocks']} blocks; raw aligned "
+              f"residual {stats['raw_lines']} lines in {stats['raw_blocks']} "
+              f"blocks; length ours {len(o)} vs target {len(t)}; "
+              f"exact instruction sequence: "
+              f"{'YES' if stats['identical'] else 'NO'}]")
+    return 0 if stats["identical"] else 1
 
 
 if __name__ == "__main__":

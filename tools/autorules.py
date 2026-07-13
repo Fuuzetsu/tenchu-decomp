@@ -2978,8 +2978,11 @@ AST_RULES = {gen for _key, _desc, gen in RULES + AGGRESSIVE_RULES
 # (INVALID) from "compiled, scored N" — asmdiff alone conflates them.
 # ---------------------------------------------------------------------------
 
-SUMMARY = re.compile(r": (\d+) differing lines in \d+ blocks; "
-                     r"length ours (\d+) vs target (\d+)\]")
+SUMMARY = re.compile(
+    r": (\d+) (?:displayed )?differing lines in \d+ blocks; "
+    r"(?:raw aligned residual \d+ lines in \d+ blocks; )?"
+    r"length ours (\d+) vs target (\d+)(?:;[^\]]*)?\]"
+)
 
 _PR_SET_PDEATHSIG = 1
 _LIBC = ctypes.CDLL(None, use_errno=True) if sys.platform.startswith("linux") else None

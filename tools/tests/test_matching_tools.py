@@ -16,6 +16,7 @@ if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
 
 import autorules
+import asmdiff
 import matchlock
 import matchdiff
 import maspsxflags
@@ -741,7 +742,9 @@ class AutoRulesLifecycleTests(unittest.TestCase):
             self.assertTrue(args[1].endswith("asmdiff.py"))
             return subprocess.CompletedProcess(
                 args, 1,
-                "[F: 3 differing lines in 1 blocks; length ours 8 vs target 8]\n",
+                "[F: 3 displayed differing lines in 1 blocks; raw aligned "
+                "residual 5 lines in 2 blocks; length ours 8 vs target 8; "
+                "exact instruction sequence: NO]\n",
                 "",
             )
 
@@ -837,6 +840,35 @@ class AutoRulesLifecycleTests(unittest.TestCase):
             with self.assertRaises(InterruptedError):
                 autorules.arm_parent_death_signal()
         arm.assert_called_once_with(signal.SIGTERM)
+
+
+class AsmDiffPresentationTests(unittest.TestCase):
+    def test_structural_filter_never_claims_same_length_replacement_matches(self):
+        stats = asmdiff.aligned_opcodes(
+            ["move s0,a0"], ["move s1,a0"], structural=True,
+        )
+        self.assertEqual(stats["displayed_lines"], 0)
+        self.assertEqual(stats["raw_lines"], 1)
+        self.assertFalse(stats["identical"])
+
+    def test_suppressed_branch_target_drift_is_still_not_identical(self):
+        stats = asmdiff.aligned_opcodes(
+            ["beqz v0,0x80001000"],
+            ["beqz v0,0x80001004"],
+        )
+        self.assertEqual(stats["displayed_lines"], 0)
+        self.assertEqual(stats["raw_lines"], 1)
+        self.assertFalse(stats["identical"])
+
+    def test_structural_filter_displays_insertions(self):
+        stats = asmdiff.aligned_opcodes(
+            ["move s0,a0"],
+            ["move s0,a0", "nop"],
+            structural=True,
+        )
+        self.assertEqual(stats["displayed_lines"], 1)
+        self.assertEqual(stats["displayed_blocks"], 1)
+        self.assertFalse(stats["identical"])
 
 
 class RtlGuideTests(unittest.TestCase):
