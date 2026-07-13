@@ -2932,6 +2932,16 @@ before local-alloc, so the def is gone before it can bias anything.
   `StageMotion` null-check/free made the whole function MATCH. The permuter found
   this as a nonzero `output-25` candidate; bisecting that one edit against raw
   matchdiff proved it was the load-bearing change.
+- **The inverse lever is to stop a late block from redefining an existing
+  pointer local.** `p = Global; ... p = Global; p->x ...` makes `p` one
+  multi-definition global allocno even when both assignments load the same
+  address. If the late region has no mutating calls or writes to the global pointer,
+  use `Global->x` directly there: CSE still emits one load for that block, but
+  the named `p` remains single-definition and its earlier coloring can change.
+  ActJUMP's final three-byte `motID == 0x906` `$v0/$v1` tie was fixed solely by
+  dropping a far-later `velocity = dtV` and spelling four air-steering fields
+  through `dtV`; the 1,396-byte function then matched exactly. Autorules rule
+  `late-pointer-direct` now enumerates this bounded, mutation-free form.
 - **Several byte-neutral late reuses can anchor an entire caller-saved
   coloring**: when RTL dumps show that a short-lived block local is being
   claimed by local-alloc, promote the affected same-mode values to

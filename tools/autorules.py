@@ -503,6 +503,116 @@ def rule_temp_inline(text, name, span):
                splice(t1, ds, de, b"").decode())
 
 
+def rule_late_pointer_direct(text, name, span):
+    """Drop a repeated pointer-global assignment and use the global directly.
+
+    ``p = Global; ... p = Global; p->x ...`` gives one automatic pointer two
+    definitions. When the second region has no mutating calls or writes to
+    ``Global``, spelling its member accesses as ``Global->x`` preserves the
+    runtime value while letting CSE make a fresh block-local pointer pseudo.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    pointer_names = set()
+    for decl in _find(body, ("declaration",)):
+        if re.search(rb"\bvolatile\b", _txt(data, decl)):
+            continue
+        for child in decl.named_children:
+            declarator = (child.child_by_field_name("declarator")
+                          if child.type == "init_declarator" else child)
+            if declarator is None or declarator.type != "pointer_declarator":
+                continue
+            identifier = _descend_ident(declarator)
+            if identifier is not None:
+                pointer_names.add(_txt(data, identifier))
+
+    statements = sorted(_find(body, ("expression_statement",)),
+                        key=lambda node: node.start_byte)
+    assignments = []
+    for statement in statements:
+        parsed = _plain_assignment(data, statement)
+        if parsed is not None:
+            assignments.append((statement, parsed[0], _unparen(parsed[1])))
+
+    identifiers = _find(body, ("identifier",))
+    calls = _find(body, ("call_expression",))
+    all_assignments = _find(body, ("assignment_expression",))
+    updates = _find(body, ("update_expression",))
+
+    for index, (statement, local, source) in enumerate(assignments):
+        if (local not in pointer_names or source is None or
+                source.type != "identifier"):
+            continue
+        global_name = _txt(data, source)
+        if global_name == local:
+            continue
+        if not any(previous_local == local and previous_source is not None and
+                   previous_source.type == "identifier" and
+                   _txt(data, previous_source) == global_name
+                   for _previous, previous_local, previous_source
+                   in assignments[:index]):
+            continue
+
+        next_write = next((later.start_byte
+                           for later, later_local, _later_source
+                           in assignments[index + 1:]
+                           if later_local == local), body.end_byte)
+        uses = [identifier for identifier in identifiers
+                if statement.end_byte <= identifier.start_byte < next_write and
+                _txt(data, identifier) == local]
+        if not uses:
+            continue
+        if any(use.parent is None or use.parent.type != "field_expression" or
+               use.parent.child_by_field_name("argument") != use
+               for use in uses):
+            continue
+        region_end = max(use.end_byte for use in uses)
+        def mutating_call(call):
+            function = call.child_by_field_name("function")
+            return not (function is not None and function.type == "identifier" and
+                        _txt(data, function) == b"__builtin_abs")
+
+        if any(statement.end_byte <= call.start_byte < region_end and
+               mutating_call(call) for call in calls):
+            continue
+
+        writes_global = False
+        for assignment in all_assignments:
+            if not (statement.end_byte <= assignment.start_byte < region_end):
+                continue
+            left = assignment.child_by_field_name("left")
+            if (left is not None and left.type == "identifier" and
+                    _txt(data, left) == global_name):
+                writes_global = True
+                break
+        if writes_global or any(
+                statement.end_byte <= update.start_byte < region_end and
+                re.search(rb"\b" + re.escape(global_name) + rb"\b",
+                          _txt(data, update))
+                for update in updates):
+            continue
+
+        rewritten = data
+        for use in sorted(uses, key=lambda node: node.start_byte, reverse=True):
+            rewritten = splice(rewritten, use.start_byte, use.end_byte,
+                               global_name)
+        delete_start = statement.start_byte
+        while (delete_start > 0 and
+               data[delete_start - 1:delete_start] in (b" ", b"\t")):
+            delete_start -= 1
+        delete_end = statement.end_byte
+        if data[delete_end:delete_end + 1] == b"\n":
+            delete_end += 1
+        yield (
+            f"late-pointer-direct {local.decode()}={global_name.decode()} "
+            f"L{_line(data, statement.start_byte)}",
+            splice(rewritten, delete_start, delete_end, b"").decode(),
+        )
+
+
 def rule_call_arg_pair_inline(text, name, span):
     """Inline two adjacent same-call results into one consumer call.
 
@@ -2928,6 +3038,7 @@ RULES = [
     ("extern-array", "extern T NAME; -> extern T NAME[]; + NAME->NAME[0] (-G8 split)", rule_extern_array),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
+    ("late-pointer-direct", "inline a repeated pointer-global assignment in its late region", rule_late_pointer_direct),
     ("call-arg-pair", "inline adjacent same-call temps into one consumer call", rule_call_arg_pair_inline),
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
     ("builtin-abs", "abs(x) -> __builtin_abs(x) under cc1 -fno-builtin", rule_builtin_abs),

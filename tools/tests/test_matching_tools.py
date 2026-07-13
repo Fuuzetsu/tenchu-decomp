@@ -238,6 +238,37 @@ int F(void) {
         self.assertIn("Node *_match_base = StageConfig;", out[0][1])
         self.assertIn("Node *stage = &_match_base[index];", out[0][1])
 
+    def test_late_pointer_direct_drops_reassignment_and_rewrites_members(self):
+        source = """void F(void) {
+    Node *p;
+    p = Global;
+    p->first = 1;
+    p = Global;
+    value = __builtin_abs(value);
+    p->second = 2;
+    value = p->third;
+}
+"""
+        out = self.candidates(autorules.rule_late_pointer_direct, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertEqual(candidate.count("p = Global;"), 1)
+        self.assertIn("Global->second = 2;", candidate)
+        self.assertIn("value = Global->third;", candidate)
+
+    def test_late_pointer_direct_rejects_call_crossing_region(self):
+        source = """void F(void) {
+    Node *p;
+    p = Global;
+    p->first = 1;
+    p = Global;
+    mutate();
+    p->second = 2;
+}
+"""
+        out = self.candidates(autorules.rule_late_pointer_direct, source)
+        self.assertEqual(out, [])
+
     def test_eq_literal_swap_rejects_two_values_or_side_effects(self):
         values = "int F(int a, int b) { return a == b; }\n"
         effect = "int next(void); int F(void) { return next() != 1; }\n"
