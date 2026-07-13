@@ -117,10 +117,10 @@ extern MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
  * END PSX.SYM */
 
 /* Matching checkpoint (retail): the pure-C draft has the exact 0x68 frame,
- * 564 instructions, 33 calls, and target item/param/sentinel homes s3/s4/s5.
- * `tools/matchdiff.py ProcItemNingyo` reports 504 differing bytes.  The
- * remaining clusters are the entry Humans-loop schedule, the decoy launch's
- * s0/s1/s2 rotation, the mode-1 constant schedule, and case-2 cid CFG/color.
+ * 564 instructions, exact 36/12/33/1 branch/jump/call/return inventory, and
+ * target item/param/sentinel homes s3/s4/s5.  The remaining 41 differing
+ * bytes are confined to the entry Humans-loop schedule, the decoy launch's
+ * s0/s1/s2 rotation, and the mode-1 constant schedule.
  *
  * The otherwise-odd one-shot loops are measured allocator/scheduler fences:
  * the launch fence prevents a stack-address pseudo from occupying s3, while
@@ -133,6 +133,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemNingyo", Pro
 void ProcItemNingyo(tag_TItem *item)
 {
     param_ningyo *param;
+    s32 cid;
     s32 ff;
     ProcItemNingyoScratch scratch;
 
@@ -312,7 +313,6 @@ draw_mode0:
     case 2:
     {
         s32 count;
-        s32 cid;
 
         if ((item->locate->attribute & 0x8000) == 0)
         {
@@ -361,9 +361,11 @@ draw_mode0:
         else if (cid != -1)
         {
             ConflictObjectType *conflict;
+            ConflictObjectType *conflicts;
             s32 collision_mode;
 
-            conflict = &ConflictObject[cid];
+            conflicts = ConflictObject;
+            conflict = &conflicts[cid];
             collision_mode = conflict->size.pad;
             if (collision_mode == 1)
             {
@@ -391,6 +393,7 @@ draw_mode0:
                 {
                     s32 vz;
                     s32 vx;
+                    s32 shifted_vx;
                     u8 hp;
 
                     memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
@@ -406,13 +409,14 @@ draw_mode0:
                             vx += 15;
                         }
                     } while (0);
+                    shifted_vx = vx >> 4;
                     vz = -ConflictDistance.vz;
                     if (vz < 0)
                     {
                         vz += 15;
                     }
                     hp = param->hp;
-                    param->vx = vx >> 4;
+                    param->vx = shifted_vx;
                     param->vy = -100;
                     param->vz = vz >> 4;
                     param->hint = 0;
