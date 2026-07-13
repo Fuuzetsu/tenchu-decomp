@@ -822,6 +822,93 @@ void F(Node *param) {
         self.assertEqual(len(removed), 1)
         self.assertIn("y = param->py;", removed[0][1])
 
+    def test_array_alias_remat_emits_single_and_atomic_member_stores(self):
+        source = """typedef unsigned char u8;
+typedef struct { int mx; int my; } Sprite;
+void F(int value) {
+    Sprite bank[5];
+    Sprite *sprite;
+    int i;
+    sprite = &bank[i];
+    sprite->mx = value;
+    sprite->my = 0;
+    use(sprite);
+}
+"""
+        out = self.candidates(autorules.rule_array_alias_remat, source)
+        self.assertEqual(len(out), 3)
+        pair = [candidate for label, candidate in out
+                if "sprite->mx/my L8/9" in label]
+        self.assertEqual(len(pair), 1)
+        self.assertIn(
+            "((Sprite *)((u8 *)(bank) + (i) * sizeof(Sprite)))->mx = value;",
+            pair[0],
+        )
+        self.assertIn(
+            "((Sprite *)((u8 *)(bank) + (i) * sizeof(Sprite)))->my = 0;",
+            pair[0],
+        )
+
+    def test_array_alias_remat_accepts_stable_parameter_index(self):
+        source = """typedef unsigned char u8;
+typedef struct { int x; } Sprite;
+void F(int i) {
+    Sprite bank[2];
+    Sprite *sprite;
+    sprite = &bank[i];
+    sprite->x = 1;
+}
+"""
+        out = self.candidates(autorules.rule_array_alias_remat, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("(i) * sizeof(Sprite)", out[0][1])
+
+    def test_array_alias_remat_rejects_unstable_or_escaped_identities(self):
+        changed_index = """typedef struct { int x; } Sprite;
+void F(void) {
+    Sprite bank[2]; Sprite *sprite; int i;
+    sprite = &bank[i];
+    i++;
+    sprite->x = 1;
+}
+"""
+        escaped_alias = """typedef struct { int x; } Sprite;
+void F(void) {
+    Sprite bank[2]; Sprite *sprite; int i;
+    take(&sprite);
+    sprite = &bank[i];
+    sprite->x = 1;
+}
+"""
+        control_boundary = """typedef struct { int x; } Sprite;
+void F(int flag) {
+    Sprite bank[2]; Sprite *sprite; int i;
+    sprite = &bank[i];
+    if (flag) use(sprite);
+    sprite->x = 1;
+}
+"""
+        mismatched_type = """typedef struct { int x; } Sprite;
+typedef struct { int x; } Other;
+void F(void) {
+    Sprite bank[2]; Other *sprite; int i;
+    sprite = (Other *)&bank[i];
+    sprite->x = 1;
+}
+"""
+        volatile_parameter = """typedef struct { int x; } Sprite;
+void F(volatile int i) {
+    Sprite bank[2];
+    Sprite *sprite;
+    sprite = &bank[i];
+    sprite->x = 1;
+}
+"""
+        for source in (changed_index, escaped_alias, control_boundary,
+                       mismatched_type, volatile_parameter):
+            self.assertEqual(
+                self.candidates(autorules.rule_array_alias_remat, source), [])
+
     def test_member_scalar_alias_rejects_unsafe_shapes(self):
         non_long = """typedef int s32;
 void F(Node *param) {
@@ -2800,6 +2887,29 @@ class RtlGuideTests(unittest.TestCase):
             [],
         )
 
+    def test_stack_address_hint_prioritizes_alias_remat_rule(self):
+        target = [
+            (0x1000, "addiu a0,sp,24"),
+            (0x1004, "sw v0,0(a0)"),
+            (0x1008, "addiu a1,sp,24"),
+            (0x100c, "sw v1,0(a1)"),
+            (0x1010, "jr ra"),
+            (0x1014, "nop"),
+        ]
+        candidate = [
+            (0x1000, "addiu s0,sp,24"),
+            (0x1004, "sw v0,0(s0)"),
+            (0x1008, "sw v1,4(s0)"),
+            (0x100c, "jr ra"),
+            (0x1010, "nop"),
+        ]
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 24, 20, target, candidate)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertTrue(guide["stack_address_rematerializations"])
+        self.assertEqual(guide["rules"][0], "array-alias-remat")
+
     def test_missing_move_is_cse(self):
         h = self.hunk(["move v0,a0"], ["nop"])
         self.assertEqual(rtlguide.classify_hunk(h), "cse/coalescing")
@@ -3149,6 +3259,7 @@ class RtlGuideTests(unittest.TestCase):
         self.assertIn("plus-group", rules)
         self.assertIn("type-width", rules)
         self.assertIn("guard-flag-assign", rules)
+        self.assertIn("array-alias-remat", rules)
         self.assertIn("member-scalar-alias", rules)
         self.assertFalse(any("barrier" in rule or "clobber" in rule for rule in rules))
 

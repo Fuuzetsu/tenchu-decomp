@@ -85,14 +85,14 @@ CATEGORY_RULES = {
         "shared-tail-assign", "redundant-field-donor", "identical-arm-fence",
         "subscript-postinc", "switch-cse-evict",
         "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap", "assignment-chain",
-        "member-scalar-alias",
+        "array-alias-remat", "member-scalar-alias",
     ],
     "cse/coalescing": [
         "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split",
         "vector-copy-adjust", "redundant-field-donor", "subscript-postinc",
         "switch-cse-evict", "assignment-chain",
-        "pointee-volatile", "member-scalar-alias",
+        "pointee-volatile", "array-alias-remat", "member-scalar-alias",
     ],
     "jump/cross-jump": ["case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
@@ -103,7 +103,8 @@ CATEGORY_RULES = {
         "shared-return-split",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
         "call-arg-pair", "eq-literal-swap", "pointee-volatile",
-        "adjacent-field-store-swap", "assignment-chain", "member-scalar-alias",
+        "adjacent-field-store-swap", "assignment-chain", "array-alias-remat",
+        "member-scalar-alias",
     ],
     "combine/expression": [
         "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
@@ -871,6 +872,13 @@ def assembly_guide(name):
         for rule in CATEGORY_RULES.get(category, []):
             if rule not in rules:
                 rules.append(rule)
+    rematerializations = stack_address_rematerialization_hints(target, ours)
+    if rematerializations:
+        # This evidence is more specific than the hunk's broad owning-pass
+        # class: spend the guided build budget on the address-shape rule first.
+        rules = ["array-alias-remat"] + [
+            rule for rule in rules if rule != "array-alias-remat"
+        ]
     return dict(
         name=name, address=addr, target_bytes=size, ours_bytes=ours_size,
         target_instructions=len(target), ours_instructions=len(ours),
@@ -887,8 +895,7 @@ def assembly_guide(name):
             target=control_flow_counts(target),
             candidate=control_flow_counts(ours),
         ),
-        stack_address_rematerializations=
-            stack_address_rematerialization_hints(target, ours),
+        stack_address_rematerializations=rematerializations,
         known_residual_signatures=known_residual_signatures(hunks, target, ours),
         register_substitutions=[
             dict(ours=a, target=b, count=n)
@@ -1400,7 +1407,8 @@ def print_report(g, max_hunks=12):
             if item.get("source_scope_hint") == "repeat-block-local-pointer":
                 print("      strong multiplicity gap: try one block-local pointer "
                       "identity per repeated/unrolled source body")
-        print("    Inspect the stack-address allocno in .lreg/.greg. Try an "
+        print("    Inspect the stack-address allocno in .lreg/.greg. For a typed "
+              "local-array alias, try guided array-alias-remat; otherwise try an "
               "expanded-inline pointer-formal barrier for repeated &local calls, "
               "or a hand-rolled loop/scope split when loop.c retains the base.")
 

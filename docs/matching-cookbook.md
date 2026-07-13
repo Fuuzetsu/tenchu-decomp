@@ -1879,6 +1879,18 @@ near entry; `AdtMessageBox` wants the inline form.)
   `sp+offset` loads/stores and preserved its loaded-z call delay slot. Making
   every access `p->field` added a reload and a call-delay `nop`; making every
   access direct deleted the pointer.
+- **A local ARRAY element pointer can likewise coexist with selected typed
+  byte-offset lvalues.** Keep `sprite = &bank[i]` for calls and the fields whose
+  target accesses stay base-relative, but spell a target-rematerialized store
+  as `((T *)((u8 *)bank + i * sizeof(T)))->field`. The strong signature is
+  repeated target `addiu reg,sp,K` sites while the candidate forms `&bank[i]`
+  once and retains it in a saved register. mission_score_screen needed this for
+  the final `mx`/`my` stores of both sprite banks; using the pointer everywhere
+  suppressed those stack-address formations. `rtlguide` reports the
+  stack-address multiplicity gap and prioritizes guided aggressive rule
+  `array-alias-remat`. The rule accepts only matching-type, unshadowed
+  function-scope array/pointer locals and a stable local/parameter index in one
+  straight-line block; it also emits an atomic adjacent-store pair.
 - **A decrement stored to `u8` but tested later can want a full-width host plus
   explicit narrow tests.** `s32 count = byte - 1; byte = count;` followed by
   `if ((u8)count == ...)` keeps one SI pseudo for the add/store/control-flow and

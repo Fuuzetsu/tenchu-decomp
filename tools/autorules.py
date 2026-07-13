@@ -4800,6 +4800,216 @@ def rule_extern_array(text, name, span):
 # ---------------------------------------------------------------------------
 
 
+def rule_array_alias_remat(text, name, span):
+    """Rebuild selected local-array member addresses instead of retaining an alias.
+
+    ``p = &bank[i]; ... p->field = value;`` normally encourages old cc1 to
+    retain ``p`` across the whole straight-line region.  Re-addressing just the
+    member store through a typed byte offset can instead reproduce a target
+    that emits another ``addiu reg,sp,K`` at that site.  This closed the final
+    rank/character sprite pivot stores in mission_score_screen.
+
+    Keep this guided and deliberately narrow: ``bank`` and ``p`` are
+    unshadowed function-scope automatic locals with exactly matching typedef
+    types, the index is an unshadowed local or parameter, the definition and
+    use are in one straight-line compound block, neither pointer nor index has
+    its address taken, and neither changes between the two statements.  The
+    rewrite changes only the lvalue address spelling; scoring determines which
+    target sites actually rematerialize it.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    arrays = {}
+    pointers = {}
+    shadowed = set()
+    declaration_names = set()
+    array_pattern = re.compile(
+        rb"(?:(?:register|auto)\s+)?([A-Za-z_]\w*)\s+"
+        rb"([A-Za-z_]\w*)\s*\[[^\],;]+\]\s*;"
+    )
+    pointer_pattern = re.compile(
+        rb"(?:(?:register|auto)\s+)?([A-Za-z_]\w*)\s*\*\s*"
+        rb"([A-Za-z_]\w*)\s*;"
+    )
+    for declaration in _find(body, ("declaration",)):
+        names = set()
+        for child in declaration.named_children:
+            if child.type == "init_declarator":
+                ident = _descend_ident(child.child_by_field_name("declarator"))
+            elif child.type in ("identifier", "pointer_declarator",
+                                "array_declarator"):
+                ident = _descend_ident(child)
+            else:
+                ident = None
+            if ident is not None:
+                names.add(_txt(data, ident))
+        declaration_names.update(names)
+        if declaration.parent != body:
+            shadowed.update(names)
+            continue
+        raw = _txt(data, declaration).strip()
+        array = array_pattern.fullmatch(raw)
+        pointer = pointer_pattern.fullmatch(raw)
+        if array is not None:
+            arrays[array.group(2)] = array.group(1)
+        elif pointer is not None:
+            pointers[pointer.group(2)] = pointer.group(1)
+
+    safe_locals = _nonvolatile_function_local_names(data, body)
+    arrays = {local: typ for local, typ in arrays.items()
+              if local in safe_locals and local not in shadowed}
+    pointers = {local: typ for local, typ in pointers.items()
+                if local in safe_locals and local not in shadowed}
+    if not arrays or not pointers:
+        return
+
+    # Parameters are safe index identities too, provided a nested declaration
+    # does not shadow them.  Function-scope locals are already resolved above.
+    parameters = set()
+    function = body.parent
+    declarator = (function.child_by_field_name("declarator")
+                  if function is not None else None)
+    if declarator is not None:
+        for parameter in _find(declarator, ("parameter_declaration",)):
+            if re.search(rb"\bvolatile\b", _txt(data, parameter)):
+                continue
+            ident = _descend_ident(parameter.child_by_field_name("declarator"))
+            if ident is not None:
+                parameters.add(_txt(data, ident))
+    safe_indices = ((safe_locals - set(arrays) - set(pointers)) |
+                    (parameters - declaration_names - shadowed))
+
+    def address_taken(local):
+        for pointer in _find(body, ("pointer_expression",)):
+            operator = pointer.child_by_field_name("operator")
+            argument = _unparen(pointer.child_by_field_name("argument"))
+            if (operator is not None and _txt(data, operator) == b"&" and
+                    argument is not None and argument.type == "identifier" and
+                    _txt(data, argument) == local):
+                return True
+        return False
+
+    def writes(statement, local):
+        for assignment in _find(statement, ("assignment_expression",)):
+            lhs = _unparen(assignment.child_by_field_name("left"))
+            if (lhs is not None and lhs.type == "identifier" and
+                    _txt(data, lhs) == local):
+                return True
+        for update in _find(statement, ("update_expression",)):
+            argument = _unparen(update.child_by_field_name("argument"))
+            if (argument is not None and argument.type == "identifier" and
+                    _txt(data, argument) == local):
+                return True
+        return False
+
+    def alias_definition(statement):
+        assignment = _plain_assignment(data, statement)
+        if assignment is None:
+            return None
+        alias, rhs = assignment
+        rhs = _unparen(rhs)
+        if alias not in pointers or rhs is None or rhs.type != "pointer_expression":
+            return None
+        operator = rhs.child_by_field_name("operator")
+        subscript = _unparen(rhs.child_by_field_name("argument"))
+        if (operator is None or _txt(data, operator) != b"&" or
+                subscript is None or subscript.type != "subscript_expression"):
+            return None
+        bank = _unparen(subscript.child_by_field_name("argument"))
+        index = _unparen(subscript.child_by_field_name("index"))
+        if (bank is None or bank.type != "identifier" or
+                index is None or index.type != "identifier"):
+            return None
+        bank_name = _txt(data, bank)
+        index_name = _txt(data, index)
+        if (bank_name not in arrays or arrays[bank_name] != pointers[alias] or
+                index_name not in safe_indices):
+            return None
+        return alias, bank_name, index_name, pointers[alias]
+
+    def field_store(statement, alias, index):
+        if statement.type != "expression_statement":
+            return None
+        expressions = [child for child in statement.named_children
+                       if child.type != "comment"]
+        if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+            return None
+        assignment = expressions[0]
+        operator = assignment.child_by_field_name("operator")
+        lhs = _unparen(assignment.child_by_field_name("left"))
+        rhs = assignment.child_by_field_name("right")
+        if (operator is None or _txt(data, operator) != b"=" or lhs is None or
+                lhs.type != "field_expression" or rhs is None):
+            return None
+        match = re.fullmatch(
+            re.escape(alias) + rb"->([A-Za-z_]\w*)", _txt(data, lhs).strip()
+        )
+        if match is None:
+            return None
+        if any(_txt(data, ident) == index
+               for ident in _find(rhs, ("identifier",))):
+            return None
+        return lhs, match.group(1)
+
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for definition_index, definition_statement in enumerate(statements):
+            definition = alias_definition(definition_statement)
+            if definition is None:
+                continue
+            alias, bank, index, typ = definition
+            if address_taken(alias) or address_taken(index):
+                continue
+            edits = []
+            for statement_index in range(definition_index + 1, len(statements)):
+                statement = statements[statement_index]
+                # Do not reason across branches, labels, declarations, or
+                # nested loops; the defining pointer may not dominate them.
+                if statement.type != "expression_statement":
+                    break
+                if writes(statement, alias) or writes(statement, index):
+                    break
+                store = field_store(statement, alias, index)
+                if store is None:
+                    continue
+                lhs, field = store
+                line = _line(data, lhs.start_byte)
+                if not _guided_site(line):
+                    continue
+                replacement = (
+                    b"((" + typ + b" *)((u8 *)(" + bank + b") + (" + index +
+                    b") * sizeof(" + typ + b")))->" + field
+                )
+                edits.append((statement_index, lhs.start_byte, lhs.end_byte,
+                              replacement, field, line))
+                yield (
+                    f"array-alias-remat {alias.decode()}->{field.decode()} "
+                    f"L{line}",
+                    splice(data, lhs.start_byte, lhs.end_byte,
+                           replacement).decode(),
+                )
+
+            # Two adjacent pivot/member stores commonly need the same source
+            # identity change together.  Emit that bounded atomic candidate so
+            # a neutral first edit does not hide an exact pair.
+            for first, second in zip(edits, edits[1:]):
+                if second[0] != first[0] + 1:
+                    continue
+                changed = data
+                for edit in (second, first):
+                    changed = splice(changed, edit[1], edit[2], edit[3])
+                yield (
+                    f"array-alias-remat {alias.decode()}->"
+                    f"{first[4].decode()}/{second[4].decode()} "
+                    f"L{first[5]}/{second[5]}",
+                    changed.decode(),
+                )
+
+
 def _pure_dot_field_assignment(data, statement, locals_):
     """Return (base, lhs) for a pure `local.field = local-expr` statement."""
     if statement.type != "expression_statement":
@@ -5652,6 +5862,7 @@ AGGRESSIVE_RULES = [
     ("adjacent-field-store-swap", "swap adjacent literal stores to distinct fields", rule_adjacent_field_store_swap),
     ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
     ("pointee-volatile", "toggle volatile on a local integer pointer's pointee", rule_pointee_volatile),
+    ("array-alias-remat", "rebuild selected local-array member lvalues instead of retaining an alias", rule_array_alias_remat),
     ("member-scalar-alias", "toggle long field read through s32 lvalue (MEM_IN_STRUCT lever)", rule_member_scalar_alias),
     ("disjoint-local-alias", "join a dead-until-overwrite scalar to an earlier live range", rule_disjoint_local_alias),
     ("redundant-field-donor", "repeat a pure local-aggregate field assignment", rule_redundant_field_donor),
