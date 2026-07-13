@@ -3197,6 +3197,19 @@ adjacent statements, excluding declarations and any nested break/continue/case/
 label whose target or scope could change. This is a bounded RTL-line-guided
 search, not permission to scatter dummy loops blindly.
 
+ActACTION gives the delay-slot version of the same rule. Without a fence,
+sched2/reorg duplicated `li 0x7fff` into two predecessor branch delay slots and
+kept a third copy at the join, making the function one instruction long; the
+target has `nop` in both delay slots and one literal beside the eventual mask
+store. Fencing only `motion->mask = 0x7fff` stopped the duplication but left the
+two global pointer loads reversed. The exact range was the complete dependency
+chain, `motion = dtM; human = Me_MOTION_C; motion->mask = 0x7fff;`, in one
+`do`/`while (0)`. `rtlguide` reports this strong assembly fingerprint as
+`dbr-duplicated-literal-producer` and puts `loop-range` first. Confirm the
+transition in `.sched2` -> `.dbr`; work backward from the consumer to include
+its contiguous producers rather than fencing only the visibly duplicated
+literal.
+
 `paired-loop-fence` is the atomic complement: it splits two-to-four adjacent
 statements into two separate one-shot loops. DrawConstruction needed both
 slot/plimit fences together to keep two allocation priorities ordered; either
@@ -3974,6 +3987,12 @@ after a motion-selection if/switch made ActENGAGE emit `sh zero,motID` before
 jump2 retain one D-store while sched2 put the load before the zero store, as in
 the target. Guided `shared-tail-assign` now enumerates the narrow adjacent
 if/else form: two compound arms followed immediately by one plain assignment.
+When the shared suffix is an assignment **and return**, guided
+`shared-terminal-tail` also tries both complete terminal arms atomically. It
+rejects arm-local declarations so moving the suffix inside the compounds cannot
+change identifier binding. ActACTION confirmed the source-shape family:
+independent `motID; D_80097F0E = 1; return;` edges let jump2 retain the distinct
+motion stores while merging only the flag/return suffix.
 Larger switch-wide terminal-tail expansion remains a deliberate CFG rewrite;
 verify the final fallthrough anchor in `.jump2` rather than assuming which copy
 jump2 will choose.

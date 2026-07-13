@@ -2119,6 +2119,59 @@ alternate:
         self.assertEqual(self.candidates(autorules.rule_shared_tail_assign, unbraced), [])
         self.assertEqual(self.candidates(autorules.rule_shared_tail_assign, separated), [])
 
+    def test_shared_terminal_tail_completes_both_arms(self):
+        source = """int F(int select) {
+    int motion;
+    int done;
+    if (select) {
+        motion = 0x501;
+    } else {
+        motion = 0;
+    }
+    done = 1;
+    return motion;
+}
+"""
+        autorules.GUIDED_LINES = {9}
+        out = self.candidates(autorules.rule_shared_terminal_tail, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertEqual(candidate.count("done = 1;"), 2)
+        self.assertEqual(candidate.count("return motion;"), 2)
+        self.assertIn(
+            "motion = 0x501;\n        done = 1;\n        return motion;",
+            candidate,
+        )
+        self.assertIn(
+            "motion = 0;\n        done = 1;\n        return motion;",
+            candidate,
+        )
+
+    def test_shared_terminal_tail_rejects_shadowing_or_comments(self):
+        shadowed = """int F(int select) {
+    int value;
+    if (select) {
+        int done;
+        value = done;
+    } else {
+        value = 0;
+    }
+    done = 1;
+    return value;
+}
+"""
+        commented = """int F(int select) {
+    int value;
+    if (select) { value = 1; } else { value = 0; }
+    done = 1;
+    /* terminal island */
+    return value;
+}
+"""
+        for source in (shadowed, commented):
+            self.assertEqual(
+                self.candidates(autorules.rule_shared_terminal_tail, source), [])
+
     def test_shared_return_split_duplicates_a_direct_return_label(self):
         source = """int F(int fast) {
     int result;
@@ -3027,6 +3080,81 @@ class RtlGuideTests(unittest.TestCase):
         ]
         self.assertEqual(
             rtlguide.known_residual_signatures([], target, ours), [])
+
+    def test_known_dbr_duplicated_literal_producer_signature(self):
+        target = [
+            (0x1000, "beqz v0,0x1020"),
+            (0x1004, "nop"),
+            (0x1008, "beqz a0,0x1020"),
+            (0x100c, "nop"),
+            (0x1010, "lw a0,2140(gp)"),
+            (0x1014, "li v1,32767"),
+            (0x1018, "sh v1,24(a0)"),
+            (0x101c, "jr ra"),
+            (0x1020, "nop"),
+        ]
+        ours = [
+            (0x1000, "beqz v0,0x1020"),
+            (0x1004, "li v0,32767"),
+            (0x1008, "beqz a0,0x1020"),
+            (0x100c, "li v0,32767"),
+            (0x1010, "li v0,32767"),
+            (0x1014, "lw a0,2140(gp)"),
+            (0x1018, "sh v0,24(a0)"),
+            (0x101c, "jr ra"),
+            (0x1020, "nop"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            ["dbr-duplicated-literal-producer"],
+        )
+
+    def test_dbr_literal_signature_requires_multiple_nop_delay_sites(self):
+        target = [
+            (0x1000, "beqz v0,0x1010"),
+            (0x1004, "nop"),
+            (0x1008, "li v0,32767"),
+            (0x100c, "jr ra"),
+        ]
+        ours = [
+            (0x1000, "beqz v0,0x1010"),
+            (0x1004, "li v0,32767"),
+            (0x1008, "li v0,32767"),
+            (0x100c, "jr ra"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours), [])
+
+    def test_dbr_literal_signature_prioritizes_loop_range(self):
+        target = [
+            (0x1000, "beqz v0,0x1020"),
+            (0x1004, "nop"),
+            (0x1008, "beqz a0,0x1020"),
+            (0x100c, "nop"),
+            (0x1010, "lw a0,2140(gp)"),
+            (0x1014, "li v1,32767"),
+            (0x1018, "sh v1,24(a0)"),
+            (0x101c, "jr ra"),
+            (0x1020, "nop"),
+        ]
+        ours = [
+            (0x1000, "beqz v0,0x1020"),
+            (0x1004, "li v0,32767"),
+            (0x1008, "beqz a0,0x1020"),
+            (0x100c, "li v0,32767"),
+            (0x1010, "li v0,32767"),
+            (0x1014, "lw a0,2140(gp)"),
+            (0x1018, "sh v0,24(a0)"),
+            (0x101c, "jr ra"),
+            (0x1020, "nop"),
+        ]
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 36, 36, target, ours)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertIn("dbr-duplicated-literal-producer",
+                      guide["known_residual_signatures"])
+        self.assertEqual(guide["rules"][0], "loop-range")
 
     def test_loop_boundary_lines_parse_first_post_loop_statement(self):
         dump = """;; Function F

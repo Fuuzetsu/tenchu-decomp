@@ -3779,6 +3779,81 @@ def rule_shared_tail_assign(text, name, span):
             )
 
 
+def rule_shared_terminal_tail(text, name, span):
+    """Duplicate an adjacent assignment+return tail into both if/else arms.
+
+    A terminal ``if/else; flag = K; return value;`` and two complete arm-local
+    tails are behaviorally identical, but the latter gives sched2 and jump2
+    independent producers and hard CODE_LABEL boundaries before cross-jump
+    factors the common suffix.  This is the terminal complement of
+    ``shared-tail-assign`` used by ActACTION.
+
+    Moving source into a compound arm could change identifier binding if that
+    arm declares a shadowing local, so reject every arm containing a declaration.
+    Require exact adjacency and compound arms; the transformation never crosses
+    comments or invents a distant switch-case goto.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for index in range(len(statements) - 2):
+            iff, assignment, returned = statements[index:index + 3]
+            if (iff.type != "if_statement" or
+                    _plain_assignment(data, assignment) is None or
+                    returned.type != "return_statement"):
+                continue
+            yes = iff.child_by_field_name("consequence")
+            no = iff.child_by_field_name("alternative")
+            if no is not None and no.type == "else_clause":
+                alternatives = [child for child in no.named_children
+                                if child.type != "comment"]
+                if len(alternatives) != 1:
+                    continue
+                no = alternatives[0]
+            if (yes is None or no is None or
+                    yes.type != "compound_statement" or
+                    no.type != "compound_statement" or
+                    _find(yes, ("declaration",)) or
+                    _find(no, ("declaration",)) or
+                    data[iff.end_byte:assignment.start_byte].strip() or
+                    data[assignment.end_byte:returned.start_byte].strip()):
+                continue
+            lines = (
+                _line(data, iff.start_byte),
+                _line(data, assignment.start_byte),
+                _line(data, returned.start_byte),
+            )
+            if not any(_guided_site(line) for line in lines):
+                continue
+
+            indent = _indent_at(data, iff.start_byte)
+            body_indent = indent + b"    "
+            tail = (_txt(data, assignment).strip() + b"\n" + body_indent +
+                    _txt(data, returned).strip())
+
+            def append_to_arm(arm):
+                raw = _txt(data, arm)
+                close = raw.rfind(b"}")
+                close_line = raw.rfind(b"\n", 0, close) + 1
+                return (raw[:close_line] + body_indent + tail + b"\n" +
+                        raw[close_line:])
+
+            replacement = (
+                data[iff.start_byte:yes.start_byte] + append_to_arm(yes) +
+                data[yes.end_byte:no.start_byte] + append_to_arm(no)
+            )
+            lhs, _rhs = _plain_assignment(data, assignment)
+            yield (
+                f"shared-terminal-tail {lhs.decode()} L{lines[0]}-{lines[2]}",
+                splice(data, iff.start_byte, returned.end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_shared_return_split(text, name, span):
     """Replace one goto to a final return label with that literal return.
 
@@ -5946,6 +6021,7 @@ AGGRESSIVE_RULES = [
     ("guard-flag-assign", "move a local flag definition before a guard or onto both goto edges", rule_guard_flag_assign),
     ("guard-exit-copy", "move a local value copy across its unique loop-break guard", rule_guard_exit_copy),
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
+    ("shared-terminal-tail", "duplicate an adjacent assignment+return into both if/else arms", rule_shared_terminal_tail),
     ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),
     ("terminal-guard-flip", "flip an adjacent ==/!= return/goto terminal guard", rule_terminal_guard_flip),

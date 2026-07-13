@@ -82,7 +82,7 @@ CATEGORY_RULES = {
         "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
         "guard-exit-copy",
-        "shared-tail-assign", "redundant-field-donor", "identical-arm-fence",
+        "shared-tail-assign", "shared-terminal-tail", "redundant-field-donor", "identical-arm-fence",
         "subscript-postinc", "switch-cse-evict",
         "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap", "assignment-chain",
         "array-alias-remat", "member-scalar-alias",
@@ -94,11 +94,11 @@ CATEGORY_RULES = {
         "switch-cse-evict", "assignment-chain",
         "pointee-volatile", "array-alias-remat", "member-scalar-alias",
     ],
-    "jump/cross-jump": ["terminal-guard-flip", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
+    "jump/cross-jump": ["terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
         "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
-        "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-tail-assign",
+        "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-tail-assign", "shared-terminal-tail",
         "guard-exit-copy",
         "shared-return-split", "terminal-guard-flip",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
@@ -113,7 +113,7 @@ CATEGORY_RULES = {
     "structure/length": [
         "type-width", "and-nest", "temp-inline", "case-fence",
         "vector-copy-adjust", "builtin-abs", "subscript-postinc",
-        "call-arg-pair", "terminal-guard-flip", "if-else-invert", "empty-loop-boundary",
+        "call-arg-pair", "terminal-guard-flip", "shared-terminal-tail", "if-else-invert", "empty-loop-boundary",
     ],
 }
 
@@ -175,6 +175,12 @@ SIGNATURE_HINTS = {
         "target sign-extends the return value before restoring saved registers, "
         "while the candidate restores first; run guided shared-return-split to "
         "replace one goto to the final return label with a second literal return"
+    ),
+    "dbr-duplicated-literal-producer": (
+        "candidate duplicates one literal producer into at least two branch "
+        "delay slots where the target keeps nops and one later producer; inspect "
+        ".sched2 -> .dbr, then run guided loop-range over the complete contiguous "
+        "producer chain ending at the consumer, not only the literal/store"
     ),
 }
 
@@ -686,6 +692,58 @@ def _shared_return_extension_schedule(target, ours):
     )
 
 
+def _dbr_duplicated_literal_producer(target, ours):
+    """Detect reorg cloning one ``li`` into multiple branch delay slots.
+
+    A one-shot loop note can keep a shared literal producer at its source
+    consumer instead of allowing dbr to copy it backward into every predecessor.
+    Match only the strong final-assembly fingerprint seen in ActACTION: target
+    and candidate have the same physical control-flow inventory, at least two
+    candidate conditional branches are followed by the same literal load where
+    the target has a nop at that address, and the target retains one occurrence
+    of that literal elsewhere.  Destination registers are intentionally ignored
+    for the retained occurrence because a nearby allocation residual may color
+    the producer differently.
+    """
+    if control_flow_counts(target) != control_flow_counts(ours):
+        return False
+
+    literal = re.compile(
+        r"^li\s+(?:\$)?[a-z0-9]+,\s*(-?(?:0x[0-9a-f]+|\d+))$", re.I
+    )
+
+    def literal_key(insn):
+        match = literal.match(insn.strip())
+        return int(match.group(1), 0) if match is not None else None
+
+    target_by_address = {address: insn for address, insn in target}
+    target_literals = Counter(
+        key for _address, insn in target
+        if (key := literal_key(insn)) is not None
+    )
+    candidate_literals = Counter(
+        key for _address, insn in ours
+        if (key := literal_key(insn)) is not None
+    )
+    duplicated_sites = Counter()
+    for index in range(1, len(ours)):
+        address, insn = ours[index]
+        key = literal_key(insn)
+        if key is None or mnemonic(ours[index - 1][1]) not in CONDITIONAL_BRANCH:
+            continue
+        target_delay = target_by_address.get(address, "")
+        target_branch = target_by_address.get(address - 4, "")
+        if (mnemonic(target_delay) == "nop" and
+                mnemonic(target_branch) in CONDITIONAL_BRANCH):
+            duplicated_sites[key] += 1
+
+    return any(
+        sites >= 2 and target_literals[key] >= 1 and
+        candidate_literals[key] > target_literals[key]
+        for key, sites in duplicated_sites.items()
+    )
+
+
 def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
     """Name narrow, previously root-caused residual shapes.
 
@@ -706,6 +764,8 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
             found.append("call-result-argument-pipeline")
         if _shared_return_extension_schedule(target_stream, ours_stream):
             found.append("shared-return-extension-schedule")
+        if _dbr_duplicated_literal_producer(target_stream, ours_stream):
+            found.append("dbr-duplicated-literal-producer")
     for hunk in hunks:
         target = [x[1] for x in hunk["target"]]
         ours = [x[1] for x in hunk["ours"]]
@@ -884,6 +944,10 @@ def assembly_guide(name):
     if "guard-return-island-layout" in signatures:
         rules = ["terminal-guard-flip"] + [
             rule for rule in rules if rule != "terminal-guard-flip"
+        ]
+    if "dbr-duplicated-literal-producer" in signatures:
+        rules = ["loop-range"] + [
+            rule for rule in rules if rule != "loop-range"
         ]
     return dict(
         name=name, address=addr, target_bytes=size, ours_bytes=ours_size,
