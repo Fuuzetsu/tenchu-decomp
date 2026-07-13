@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -22,193 +23,226 @@
  * END PSX.SYM */
 
 /*
- * ActACTION (0x8001fb98) — TODO one-line description.
+ * ActACTION (0x8001fb98) — controls action-motion cleanup and completion,
+ * including weapon/afterimage teardown, replay transitions, sounds, and the
+ * return to the normal or crouching motion.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ActACTION
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * Matching notes (1,392 bytes / 348 instructions):
+ *  - The one-shot loop around the dtM/Me_MOTION_C loads and mask store leaves
+ *    the original loop note for sched2.  It keeps the 0x7fff literal at the
+ *    shared cleanup join instead of duplicating it into predecessor delay
+ *    slots, and preserves the target's dtM-then-Me_MOTION_C load order.
+ *  - The case-1 and final motion selections write their complete terminal
+ *    motID/D_80097F0E tails independently.  jump2 then shares only the flag
+ *    store, retaining both target motID stores and their branch layout.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", ActACTION);
+typedef struct
+{
+    Humanoid *human;
+    s16 loop;
+    s16 motid;
+} ActActionHumanAnim;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", switchD_8001fbdc__switchD);
+extern MotionManager *dtM;
+extern Humanoid *Me_MOTION_C;
+extern SVECTOR *dtV;
+extern s16 dtPAD;
+extern s16 MotionUpdateMode;
+extern s16 motID;
+extern s16 D_80097F0E;
+extern Humanoid *StagePlayer;
+extern ActActionHumanAnim CVAhuman[5];
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", switchD_8001fbdc__caseD_1);
+extern void DisposeAfterimage(void *afi);
+extern s16 PlayMotion(MotionManager *motion, s16 mode);
+extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern void SetCameraMode(s32 mode);
+extern s16 Sound(Humanoid *human, s16 id);
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", switchD_8001fbdc__caseD_4);
+void ActACTION(void)
+{
+    short i;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", switchD_8001fbdc__caseD_0);
+    switch ((short)(dtM->mid - 0x100))
+    {
+    case 1:
+        if (dtM->loop == 0)
+            return;
+        if (dtPAD == 0)
+            return;
+        if (Me_MOTION_C == StagePlayer)
+            SetCameraMode(0);
+        if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+        {
+            motID = 0x501;
+            D_80097F0E = 1;
+            return;
+        }
+        goto set_normal_motion;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", switchD_8001fbdc__caseD_6);
+    case 4:
+    case 5:
+        if (Me_MOTION_C->life != (s16)Me_MOTION_C->lifemax ||
+            (*(u16 *)&Me_MOTION_C->attribute & 1))
+        {
+            if (Me_MOTION_C == StagePlayer)
+                SetCameraMode(0);
+            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            {
+                motID = 0x501;
+                D_80097F0E = 1;
+            }
+            else
+            {
+                motID = 0;
+                D_80097F0E = 1;
+            }
+        }
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 0xf);
+        }
+        else if (dtM->count == 0 && dtM->loop != 0)
+        {
+            if (Me_MOTION_C == StagePlayer)
+                SetCameraMode(0);
+            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            {
+                motID = 0x501;
+                D_80097F0E = 1;
+            }
+            else
+            {
+                motID = 0;
+                D_80097F0E = 1;
+            }
+        }
+        break;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActACTION", switchD_8001fbdc__caseD_2);
+    case 0:
+        if (dtM->count == 1)
+        {
+            s16 kind;
+            ModelType *model;
+            s16 cleanup_guard;
+            MotionManager *motion;
+            Humanoid *human;
+            OrnamentType **weapon;
 
-/* jump-table pool @ 0x80011308 (7 words; tables at 0x80011308) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 handle_char_state_posing__jtbl[7] = {
-    0x8001FD74, 0x8001FBE4, 0x8002007C, 0x8002007C,
-    0x8001FC54, 0x8001FC54, 0x80020028,
-};
+            kind = (s16)Me_MOTION_C->weapon_kind;
+            switch (kind)
+            {
+            case 2:
+                DeleteConflict(Me_MOTION_C->model->object[8]);
+                model = Me_MOTION_C->model->object[0xb];
+                break;
+            case 3:
+                model = Me_MOTION_C->model->object[2];
+                break;
+            case 0:
+                cleanup_guard = 3;
+                goto skip_afterimage_cleanup;
+            default:
+                DeleteConflict(Me_MOTION_C->model->object[0xd]);
+                model = Me_MOTION_C->model->object[0xe];
+                break;
+            }
+            DeleteConflict(model);
+            cleanup_guard = 3;
+        skip_afterimage_cleanup:
+            if ((cleanup_guard & 2) == 0)
+                goto afterimage_cleanup_done;
+            if (Me_MOTION_C->illusion[0] != 0)
+            {
+                DisposeAfterimage(Me_MOTION_C->illusion[0]);
+                Me_MOTION_C->illusion[0] = 0;
+            }
+            if (Me_MOTION_C->illusion[1] != 0)
+            {
+                DisposeAfterimage(Me_MOTION_C->illusion[1]);
+                Me_MOTION_C->illusion[1] = 0;
+            }
+        afterimage_cleanup_done:
+            do
+            {
+                motion = dtM;
+                human = Me_MOTION_C;
+                motion->mask = 0x7fff;
+            } while (0);
+            weapon = human->weapon;
+            if ((s16)human->weapon_kind == 0x2a && weapon[3] != 0)
+            {
+                weapon[2] = human->weapon[0];
+                human->weapon[0] = weapon[3];
+                weapon[3] = 0;
+                Sound(human, 1);
+            }
+        }
+        {
+            MotionManager *motion;
 
-#else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// void FUN_8001fb98(void)
-// 
-// {
-//   short sVar1;
-//   Humanoid *human;
-//   SVECTOR *pSVar2;
-//   MotionManager *mmp;
-//   int iVar3;
-//   int iVar4;
-//   ModelType *model;
-//   
-//   switch((int)(((ushort)dtM->mid - 0x100) * 0x10000) >> 0x10) {
-//   case 0:
-//     if (dtM->count == 1) {
-//       sVar1 = Me_MOTION_C->wpatk;
-//       if (sVar1 == 2) {
-//         DeleteConflict(Me_MOTION_C->model->object[8]);
-//         model = Me_MOTION_C->model->object[0xb];
-// LAB_8001fe68:
-//         DeleteConflict(model);
-//       }
-//       else {
-//         if (2 < sVar1) {
-//           if (sVar1 != 3) goto LAB_8001fe28;
-//           model = Me_MOTION_C->model->object[2];
-//           goto LAB_8001fe68;
-//         }
-//         if (sVar1 != 0) {
-// LAB_8001fe28:
-//           DeleteConflict(Me_MOTION_C->model->object[0xd]);
-//           model = Me_MOTION_C->model->object[0xe];
-//           goto LAB_8001fe68;
-//         }
-//       }
-//       if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0) {
-//         DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-//         Me_MOTION_C->illusion[0] = (undefined *)0x0;
-//       }
-//       if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0) {
-//         DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-//         Me_MOTION_C->illusion[1] = (undefined *)0x0;
-//       }
-//       human = Me_MOTION_C;
-//       dtM->mask = 0x7fff;
-//       if ((human->wpatk == 0x2a) && (human->weapon[3] != (OrnamentType *)0x0)) {
-//         human->weapon[2] = human->weapon[0];
-//         human->weapon[0] = human->weapon[3];
-//         human->weapon[3] = (OrnamentType *)0x0;
-//         Sound(human,1);
-//       }
-//     }
-//     mmp = dtM;
-//     if ((dtM->count == 0) && (0 < dtM->loop)) {
-//       dtM->count = dtM->motion->time + -1;
-//       PlayMotion(mmp,1);
-//       pSVar2 = dtV;
-//       dtM->loop = -1;
-//       pSVar2->vz = 0;
-//       pSVar2->vx = 0;
-//     }
-//     if ((dtM->loop == -1) && (dtPAD != 0)) {
-//       motID = 0x100c;
-//       DAT_80097f0e = 1;
-//       iVar4 = 0;
-//       if (MotionUpdateMode != 0) {
-//         iVar3 = 0;
-//         do {
-//           iVar4 = iVar4 + 1;
-//           if (*(Humanoid **)((int)&CVAhuman[0].human + (iVar3 >> 0xd)) == Me_MOTION_C)
-//           goto LAB_80020018;
-//           iVar3 = iVar4 * 0x10000;
-//         } while (iVar4 * 0x10000 >> 0x10 < 5);
-//       }
-//       SetNowMotion(Me_MOTION_C,0x100c,1);
-//       DAT_80097f0e = 0xffff;
-// LAB_80020018:
-//       dtM->count = -0xf;
-//     }
-//     break;
-//   case 1:
-//     if (dtM->loop == 0) {
-//       return;
-//     }
-//     if (dtPAD == 0) {
-//       return;
-//     }
-//     if (Me_MOTION_C == StagePlayer) {
-//       SetCameraMode(CMODE_NORMAL);
-//     }
-//     if ((Me_MOTION_C->attribute & 0x40U) == 0) {
-// LAB_800200ec:
-//       motID = 0;
-//     }
-//     else {
-//       motID = 0x501;
-//     }
-//     goto LAB_800200f4;
-//   default:
-//     if (dtM->count != 0) {
-//       return;
-//     }
-//     if (dtM->loop == 0) {
-//       return;
-//     }
-//     if (Me_MOTION_C == StagePlayer) {
-//       SetCameraMode(CMODE_NORMAL);
-//     }
-//     if ((Me_MOTION_C->attribute & 0x40U) == 0) goto LAB_800200ec;
-//     motID = 0x501;
-// LAB_800200f4:
-//     DAT_80097f0e = 1;
-//     break;
-//   case 4:
-//   case 5:
-//     if ((Me_MOTION_C->life != Me_MOTION_C->lifemax) || ((Me_MOTION_C->attribute & 1U) != 0)) {
-//       if (Me_MOTION_C == StagePlayer) {
-//         SetCameraMode(CMODE_NORMAL);
-//       }
-//       if ((Me_MOTION_C->attribute & 0x40U) == 0) {
-//         motID = 0;
-//       }
-//       else {
-//         motID = 0x501;
-//       }
-//       DAT_80097f0e = 1;
-//     }
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,0xf);
-//     }
-//     else if ((dtM->count == 0) && (dtM->loop != 0)) {
-//       if (Me_MOTION_C == StagePlayer) {
-//         SetCameraMode(CMODE_NORMAL);
-//       }
-//       if ((Me_MOTION_C->attribute & 0x40U) == 0) {
-//         motID = 0;
-//         DAT_80097f0e = 1;
-//       }
-//       else {
-//         motID = 0x501;
-//         DAT_80097f0e = 1;
-//       }
-//     }
-//     break;
-//   case 6:
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,6);
-//     }
-//     else if ((dtM->count == 0) && (dtM->loop != 0)) {
-//       motID = 0x80e;
-//       DAT_80097f0e = 1;
-//     }
-//   }
-//   return;
-// }
+            motion = dtM;
+            if (dtM->count == 0 && dtM->loop > 0)
+            {
+                dtM->count = dtM->motion->time - 1;
+                PlayMotion(motion, 1);
+                dtM->loop = -1;
+                dtV->vz = 0;
+                dtV->vx = 0;
+            }
+        }
+        if (dtM->loop == -1 && dtPAD != 0)
+        {
+            motID = 0x100c;
+            D_80097F0E = 1;
+            i = MotionUpdateMode;
+            if (i != 0)
+            {
+                i = 0;
+                do
+                {
+                    if (CVAhuman[i].human == Me_MOTION_C)
+                        goto motion_ready;
+                    i++;
+                } while (i < 5);
+            }
+            SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
+            D_80097F0E = -1;
+        motion_ready:
+            dtM->count = -0xf;
+        }
+        break;
 
-#endif /* NON_MATCHING */
+    case 6:
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 6);
+        }
+        else if (dtM->count == 0 && dtM->loop != 0)
+        {
+            motID = 0x80e;
+            D_80097F0E = 1;
+        }
+        break;
+
+    case 2:
+    case 3:
+    default:
+        if (dtM->count != 0)
+            return;
+        if (dtM->loop == 0)
+            return;
+        if (Me_MOTION_C == StagePlayer)
+            SetCameraMode(0);
+        if ((*(u16 *)&Me_MOTION_C->attribute & 0x40) == 0)
+            goto set_normal_motion;
+        motID = 0x501;
+        D_80097F0E = 1;
+        return;
+    set_normal_motion:
+        motID = 0;
+        D_80097F0E = 1;
+        return;
+    }
+}
