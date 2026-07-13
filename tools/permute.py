@@ -313,6 +313,7 @@ GP_EXTERNS = {
     "FUN_80035f44": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "InitEffect": ["D_80097F34", "LOCAL_COORDINATES_", "D_80097F3C", "D_80097F28", "D_80097F30", "D_80097F32"],
     "FUN_80033bc0": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "AttackControl": ["Me_MOTION_C", "dtL", "dtR", "motID", "D_80097F0E", "dtPAD", "dtM"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
