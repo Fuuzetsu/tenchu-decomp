@@ -84,14 +84,7 @@ extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
 extern void Sound(Humanoid *human, short id);
 extern void PadShockAR(short port, short power, short time, short mode);
 
-/*
- * Pure-C draft: exact 0x40 frame, exact 1,396-byte length, and three differing
- * bytes.  The sole residual is a commutative comparison whose two operands
- * are allocated to v0/v1 in the opposite order.
- */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActJUMP", ActJUMP);
-#else
+/* Jump-state motion, collision response, air steering, and landing control. */
 void ActJUMP(void)
 {
     short old_mid;
@@ -245,15 +238,14 @@ void ActJUMP(void)
             {
                 GetMoveSpeed(&scratch.speed, dtR->vy, 0, 10);
             }
-            velocity = dtV;
             scratch.speed.vx = scratch.speed.vx + dtV->vx;
-            scratch.speed.vz = scratch.speed.vz + velocity->vz;
+            scratch.speed.vz = scratch.speed.vz + dtV->vz;
             if (__builtin_abs(scratch.speed.vx) < 101)
             {
                 if (__builtin_abs(scratch.speed.vz) < 101)
                 {
-                    velocity->vx = scratch.speed.vx;
-                    velocity->vz = scratch.speed.vz;
+                    dtV->vx = scratch.speed.vx;
+                    dtV->vz = scratch.speed.vz;
                 }
             }
         }
@@ -278,7 +270,6 @@ void ActJUMP(void)
         D_80097F0E = 0;
     }
 }
-#endif
 
 // triage: HARD — 349 insns, 2 loop, 8 callees, ~0.05 to MotionAndMove
 // likely-relevant cookbook sections:
