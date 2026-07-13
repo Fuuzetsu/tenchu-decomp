@@ -42,6 +42,17 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/think_setting_small_
 /*
  * STATUS: NON_MATCHING — exact 1392-byte length, frame, calls, and branches;
  * five bytes remain in the actscnt result phi ($a1 rather than retail $v0).
+ * The three literal definitions and final byte store are otherwise identical;
+ * the fifth byte is only the resulting branch-target displacement.
+ *
+ * RTL identifies `nextState` as QImode pseudo 107.  Its live range conflicts
+ * with hard register $v0 in this draft, so allocator-priority/loop weighting
+ * cannot produce the target colour without first changing the pseudo's source
+ * identity or lifetime.  Guided autorules exhausted 160 one- and two-edit
+ * type/fence/liveness candidates without improving the five-byte baseline.
+ * A correctly late, bounded permuter run then explored 8,850 candidates and
+ * never beat its base score of 60.  Parked as a confirmed sub-C-level branch-
+ * phi register tie; retain the pure-C draft behind NON_MATCHING.
  */
 
 s16 think_setting_small_rotation_small_steps_(void)
