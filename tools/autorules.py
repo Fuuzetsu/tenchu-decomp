@@ -503,6 +503,46 @@ def rule_temp_inline(text, name, span):
                splice(t1, ds, de, b"").decode())
 
 
+def rule_param_width(text, name, span):
+    """Flip plain integer function parameters across width/signedness.
+
+    Decompilers often infer a parameter's type only from its narrowing stores.
+    The entry allocation can still prove that the original parameter stayed
+    full-width.  Keep pointers/arrays/function declarators out of this rule;
+    authoritative scoring decides among the bounded scalar alternatives.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    function = body.parent
+    while function is not None and function.type != "function_definition":
+        function = function.parent
+    if function is None:
+        return
+    declarator = function.child_by_field_name("declarator")
+    if declarator is None:
+        return
+    for parameter in _find(declarator, ("parameter_declaration",)):
+        type_node = parameter.child_by_field_name("type")
+        param_declarator = parameter.child_by_field_name("declarator")
+        if (type_node is None or param_declarator is None or
+                param_declarator.type != "identifier"):
+            continue
+        current = _txt(data, type_node).decode()
+        if current not in TYPES:
+            continue
+        width, signed = TYPES[current]
+        identifier = _txt(data, param_declarator).decode()
+        for next_width, next_signed in flip_targets(width, signed):
+            replacement = CANON[(next_width, next_signed)].encode()
+            yield (
+                f"param {identifier}: {current}→{replacement.decode()}",
+                splice(data, type_node.start_byte, type_node.end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_late_pointer_direct(text, name, span):
     """Drop a repeated pointer-global assignment and use the global directly.
 
@@ -3035,6 +3075,7 @@ def rule_adjacent_field_store_swap(text, name, span):
 
 RULES = [
     ("type-width", "flip a local's integer type across width/signedness", rule_type_width),
+    ("param-width", "flip a scalar parameter's integer type across width/signedness", rule_param_width),
     ("extern-array", "extern T NAME; -> extern T NAME[]; + NAME->NAME[0] (-G8 split)", rule_extern_array),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),

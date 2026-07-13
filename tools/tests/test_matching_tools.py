@@ -284,6 +284,19 @@ int F(void) {
         out = self.candidates(autorules.rule_late_pointer_direct, source)
         self.assertEqual(out, [])
 
+    def test_param_width_flips_plain_integer_parameters_only(self):
+        source = """void F(s16 x, u32 y, Node *pointer) {
+    use(x, y, pointer);
+}
+"""
+        out = self.candidates(autorules.rule_param_width, source)
+        labels = [label for label, _candidate in out]
+        self.assertEqual(len(out), 5)
+        self.assertIn("param x: s16→s32", labels)
+        self.assertIn("param x: s16→u16", labels)
+        self.assertIn("param y: u32→s32", labels)
+        self.assertFalse(any("pointer" in label for label in labels))
+
     def test_eq_literal_swap_rejects_two_values_or_side_effects(self):
         values = "int F(int a, int b) { return a == b; }\n"
         effect = "int next(void); int F(void) { return next() != 1; }\n"

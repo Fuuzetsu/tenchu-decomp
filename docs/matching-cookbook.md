@@ -1317,6 +1317,16 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
     is used); the real type is the wide one (PutItemCursor's `rotdif`: Ghidra
     `short`, really `s32`). m2c's per-register width inference is the tiebreaker,
     together with the absence of widen instructions before the arithmetic use.
+  - **The same trap applies to register-passed coordinates used only by narrow
+    stores.** A decompiler (and even m2c) may call `$a2/$a3` `short` merely
+    because every visible destination is `sh`. If retail immediately copies
+    each incoming register to a long-lived `$sN` with a raw `move` and never
+    performs an entry `sll/sra`, test full-width parameters. In
+    `FUN_800515b0`, changing both apparent `short x, short y` coordinates to
+    `s32` changed no arithmetic or stores, but removed the final 22-byte split
+    identity (early `$a2/$a3` uses versus later `$s7/$s6`) and matched all
+    1,036 bytes. Autorules `param-width` now enumerates plain integer parameter
+    widths and signedness mechanically.
 - **A param-union write to OFFSET 0 routes through a fresh `it->param` recast,
   nonzero offsets through the live `pp` pointer** — mechanical, not stylistic:
   `pp` holds its own register so `pp+0` encodes `sw rN,0(pp)`, but a fresh
