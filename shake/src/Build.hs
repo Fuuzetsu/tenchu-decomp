@@ -412,6 +412,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "CreateStage" = ["StageID"]
     syms "SetWire" = ["D_80097F28"]
     syms "think_setting_small_rotation_small_steps_" = ["Me_THINK_C", "Attrib", "FRAMES_UNTIL_END_OF_ALERT", "Degree", "Distance"]
+    syms "ActCHASE" = ["Me_MOTION_C", "dtM", "dtPAD", "MotionUpdateMode", "motID", "D_80097F0E", "dtL", "dtR", "dtCMD"]
     syms _ = []
 
 as :: FilePath
