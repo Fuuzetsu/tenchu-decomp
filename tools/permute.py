@@ -52,10 +52,29 @@ UNDEFINED_SYMBOLS = ".shake/gen/main.exe/meta/undefined_symbols_auto.main.exe.tx
 UNDEFINED_FUNCTIONS = ".shake/gen/main.exe/meta/undefined_functions_auto.main.exe.txt"
 ASMDIFF = "tools/asmdiff.py"
 ASMDIFF_SUMMARY = re.compile(
-    r": (\d+) differing lines in (\d+) blocks; length ours (\d+) vs target (\d+)\]"
+    r": (\d+) (?:displayed )?differing lines in (\d+) blocks; "
+    r"(?:raw aligned residual \d+ lines in \d+ blocks; )?"
+    r"length ours (\d+) vs target (\d+)(?:;[^\]]*)?\]"
 )
 PREFLIGHT_MAX_LINES = 128
 PREFLIGHT_MAX_BLOCKS = 32
+
+# GCC accepts these intrinsic spellings without a declaration, but
+# decomp-permuter's C type map does not.  Give only the generated search input
+# the declarations it needs; the repository source and compiled semantics stay
+# unchanged.
+PERMUTER_PARSER_DECLS = {
+    "__builtin_abs": "extern int __builtin_abs(int);\n",
+}
+
+
+def add_permuter_parser_declarations(source):
+    """Make GCC intrinsic calls visible to decomp-permuter's type parser."""
+    declarations = []
+    for identifier, declaration in PERMUTER_PARSER_DECLS.items():
+        if identifier in source and declaration.strip() not in source:
+            declarations.append(declaration)
+    return "".join(declarations) + source
 
 
 def permuter_readiness(diff_lines, blocks, ours, target):
@@ -284,6 +303,7 @@ GP_EXTERNS = {
     "LoadConstruction": ["D_80097A70", "D_80097A74", "StageID"],
     "CreateStage": ["StageID"],
     "SetWire": ["D_80097F28"],
+    "think_setting_small_rotation_small_steps_": ["Me_THINK_C", "Attrib", "FRAMES_UNTIL_END_OF_ALERT", "Degree", "Distance"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
@@ -318,6 +338,7 @@ MASPSX_EXTRA = {
     "GetAreaMapLevel": ["--expand-div"],
     "bow_shoot_logic": ["--expand-div"],
     "Think3escape": ["--expand-div"],
+    "think_setting_small_rotation_small_steps_": ["--expand-div"],
     "SuccessionAttack": ["--expand-div"],
     "GetSpline": ["--expand-div"],
     "StateTransition": ["--expand-div"],
@@ -689,6 +710,10 @@ def main():
     # for files without the guard), so the permuter perturbs real C either way.
     base = os.path.join(work, "base.c")
     subprocess.run(CPP + ["-DPERMUTER", "-DNON_MATCHING", src, base], check=True)
+    with open(base) as stream:
+        preprocessed = stream.read()
+    with open(base, "w") as stream:
+        stream.write(add_permuter_parser_declarations(preprocessed))
 
     # target.o = the original function, assembled from its nonmatching .s
     # (all pieces concatenated for split/jump-table functions)

@@ -1443,6 +1443,16 @@ CreateStage needed the second spelling for its first scheduling block. Guided
 autorules rule `ptr-base-split` now enumerates it for pointer declaration
 initializers over an identifier array base.
 
+**Independent row and element scaling identifies a multidimensional table, not
+a flattened array.** If retail emits `row << log2(row_bytes)`, separately emits
+`column << log2(element_bytes)`, and only then adds the two offsets, declare the
+extern with its real second dimension and use `table[row][column]`. A flattened
+`table[row * columns + column]` lets fold combine the indices before the final
+element-size shift, often changing both the instruction order and every scratch
+register in the address block. `think_setting_small_rotation_small_steps_`
+needed `s16 AIDHumanType[][2]` to turn a 23-byte residual into a five-byte
+sub-C-level phi tie while preserving the exact 1,392-byte function length.
+
 **Build a dynamic row base before a large constant field displacement.** For a
 flattened table, `state->stock[chr * stride + field]` encourages cc1 to add the
 constant into the dynamic index first, then address the struct base. If retail

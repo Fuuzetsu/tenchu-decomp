@@ -1529,6 +1529,24 @@ class MatchToolLockTests(unittest.TestCase):
 
 
 class PermuteRescoreTests(unittest.TestCase):
+    def test_permuter_declares_gcc_intrinsics_for_type_parser(self):
+        source = "int F(int value) { return __builtin_abs(value); }\n"
+        result = permute.add_permuter_parser_declarations(source)
+        self.assertTrue(result.startswith("extern int __builtin_abs(int);\n"))
+        self.assertEqual(result.count("extern int __builtin_abs(int);"), 1)
+        self.assertEqual(
+            permute.add_permuter_parser_declarations(result), result)
+
+    def test_asmdiff_summary_accepts_structural_filter_annotations(self):
+        summary = (
+            "[F: 27 displayed differing lines in 14 blocks; "
+            "raw aligned residual 28 lines in 15 blocks; "
+            "length ours 346 vs target 346; exact instruction sequence: NO]"
+        )
+        match = permute.ASMDIFF_SUMMARY.search(summary)
+        self.assertIsNotNone(match)
+        self.assertEqual(tuple(map(int, match.groups())), (27, 14, 346, 346))
+
     def test_permuter_preflight_accepts_near_final_allocation_residual(self):
         ready, reason = permute.permuter_readiness(42, 12, 249, 249)
         self.assertTrue(ready)
