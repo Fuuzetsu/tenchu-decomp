@@ -3337,6 +3337,20 @@ before local-alloc, so the def is gone before it can bias anything.
   CFG edge differently and removed the conflict with no surviving branch.
   Confirm this in `.greg`'s conflict set before adding the fence; the visible
   C pointer name alone does not reveal the stack-address allocno.
+- **A final register swap may need an earlier ALLOCATION DONOR site, not an
+  edit at the residual's mapped source line.** In FUN_80033bc0, `pos` had 4
+  refs / 252 live insns (priority 317) and lost `$s5` to the EffectSlot base at
+  priority 330. Duplicating an earlier conditional store into arms selected by
+  `if (pos)` added one temporary RTL reference; jump/cross-jump erased the
+  branch and duplicate store, while global allocation saw `pos` at 5 refs / 260
+  live insns (priority 384) and assigned the target `pos=$s5/base=$s6`. The
+  guided `allocation-donor-fence` rule now takes parameter names directly from
+  rtlguide's register substitutions and searches assignments in existing
+  conditional arms even when they are away from the final diff line. Replaying
+  that rule on the 11-byte baseline tried four bounded `pos` sites and found an
+  independent exact fence around the earlier EffectSlot-cursor reset (11→0).
+  Restrict this lever to initialised nonvolatile parameters: an automatic local
+  may be indeterminate at the artificial test.
 - **An identical-arm discriminator can also be a PREFERENCE DONOR.** Declare it
   at function scope, initialise it for the artificial `if`, then overwrite it
   with the real value immediately before a call that wants a particular

@@ -59,6 +59,11 @@ SOURCE_OVERRIDE_PREFIX = "TENCHU_MATCH_SOURCE_"
 # sched/reorg.  Ordinary mechanical rules remain global: they are cheap and
 # were safe before guided mode existed.
 GUIDED_LINES = set()
+# Names attached by rtlguide to hard registers that differ from the target.
+# These are deliberately separate from GUIDED_LINES: a register-allocation
+# repair may need to add a reference at an earlier donor site, not at the
+# instruction where the final hard-register swap becomes visible.
+GUIDED_VARIABLES = set()
 _TARGET_GP_CACHE = {}
 
 
@@ -3659,6 +3664,87 @@ def rule_identical_arm_fence(text, name, span):
                 )
 
 
+def _nonvolatile_parameter_names(data, body):
+    """Function parameters whose value is safe to read as a discriminator."""
+    function = body.parent
+    while function is not None and function.type != "function_definition":
+        function = function.parent
+    if function is None:
+        return set()
+    declarator = function.child_by_field_name("declarator")
+    if declarator is None:
+        return set()
+    names = set()
+    for parameter in _find(declarator, ("parameter_declaration",)):
+        if re.search(rb"\bvolatile\b", _txt(data, parameter)):
+            continue
+        ident = _descend_ident(parameter.child_by_field_name("declarator"))
+        if ident is not None:
+            names.add(_txt(data, ident))
+    return names
+
+
+def _inside_conditional_arm(statement, body):
+    """Whether a statement is already controlled by an if/else arm."""
+    node = statement.parent
+    while node is not None and node is not body:
+        if node.type in ("if_statement", "else_clause"):
+            return True
+        node = node.parent
+    return False
+
+
+def rule_allocation_donor_fence(text, name, span):
+    """Add one RTL reference to a misplaced parameter at an earlier CFG site.
+
+    A final register-only residual can identify the right local but point at a
+    source line too late to influence global allocation.  Duplicating an
+    assignment into identical arms makes the parameter discriminator take part
+    in the temporary CFG; jump/cross-jump then remove both the test and the
+    duplicate store.  FUN_80033bc0 needed precisely this extra weighted `pos`
+    reference to exchange its $s5/$s6 homes.
+
+    This guided-only variant is intentionally narrow.  Donors must be
+    initialized, nonvolatile function parameters named by rtlguide's register
+    substitutions, and sites must be standalone assignments already inside a
+    conditional arm.  It therefore searches useful off-residual sites without
+    inventing reads of automatic locals or flooding the normal rule sweep.
+    """
+    if not GUIDED_VARIABLES:
+        return
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    donors = sorted(_nonvolatile_parameter_names(data, body) & GUIDED_VARIABLES)
+    if not donors:
+        return
+    for statement in _find(body, ("expression_statement",)):
+        expressions = [c for c in statement.named_children if c.type != "comment"]
+        if (len(expressions) != 1 or
+                expressions[0].type != "assignment_expression" or
+                not _inside_conditional_arm(statement, body)):
+            continue
+        operator = expressions[0].child_by_field_name("operator")
+        if operator is None or _txt(data, operator) != b"=":
+            continue
+        line = _line(data, statement.start_byte)
+        indent = _indent_at(data, statement.start_byte)
+        original = _txt(data, statement).strip().replace(b"\n", b"\n    ")
+        for donor in donors[:4]:
+            repl = (
+                b"if (" + donor + b" != 0)\n" + indent + b"{\n" +
+                indent + b"    " + original + b"\n" + indent + b"}\n" +
+                indent + b"else\n" + indent + b"{\n" + indent + b"    " +
+                original + b"\n" + indent + b"}"
+            )
+            yield (
+                f"allocation-donor-fence {donor.decode()} L{line}",
+                splice(data, statement.start_byte, statement.end_byte,
+                       repl).decode(),
+            )
+
+
 def rule_case_fence(text, name, span):
     """Respell a two-arm if as a two-way switch with a real case label.
 
@@ -3920,6 +4006,7 @@ RULES = [
 ]
 
 AGGRESSIVE_RULES = [
+    ("allocation-donor-fence", "add a guided parameter ref in zero-code identical arms", rule_allocation_donor_fence),
     ("cmp-polarity", "swap two local comparison operands (regalloc ref-order lever)", rule_cmp_polarity),
     ("eq-literal-swap", "swap ==/!= literal operand order (v0/v1 lever)", rule_eq_literal_swap),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
@@ -4389,7 +4476,7 @@ def main():
         print("already byte-identical — nothing to do.")
         return 0
 
-    global GUIDED_LINES
+    global GUIDED_LINES, GUIDED_VARIABLES
     guide = None
     if args.guided:
         try:
@@ -4398,8 +4485,15 @@ def main():
         except (FileNotFoundError, ValueError, RuntimeError) as e:
             sys.exit(f"autorules: rtlguide failed: {e}")
         GUIDED_LINES = set(guide.get("source_lines", []))
+        GUIDED_VARIABLES = {
+            variable.encode()
+            for substitution in guide.get("register_substitutions", [])
+            for variable in substitution.get("variables", [])
+            if re.fullmatch(r"[A-Za-z_]\w*", variable)
+        }
         print(f"guided by {guide['primary']}: lines "
-              f"{','.join(map(str, sorted(GUIDED_LINES))) or '?'}; "
+               f"{','.join(map(str, sorted(GUIDED_LINES))) or '?'}; "
+              f"locals {','.join(x.decode() for x in sorted(GUIDED_VARIABLES)) or '?'}; "
               f"rules {','.join(guide['rules']) or '(none)'}")
 
     requested = [x.strip() for x in (args.rules or "").split(",") if x.strip()]

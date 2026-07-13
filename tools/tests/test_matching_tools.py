@@ -270,6 +270,7 @@ class CallMatchAmbiguityTests(unittest.TestCase):
 class AutoRulesAdvancedTests(unittest.TestCase):
     def setUp(self):
         autorules.GUIDED_LINES = set()
+        autorules.GUIDED_VARIABLES = set()
         autorules._TARGET_GP_CACHE.clear()
 
     def candidates(self, rule, source):
@@ -713,6 +714,39 @@ int F(void) { u16 *first, *second; return 0; }
         self.assertEqual(len(candidates), 1)
         self.assertEqual(candidates[0].count("value = input + 1;"), 2)
         self.assertIn("if (id != 0)", candidates[0])
+
+    def test_allocation_donor_fence_uses_guided_parameter_off_residual(self):
+        source = """typedef struct { int x; } Node;
+void F(Node *pos, int spread) {
+    if (spread > 0) {
+        pos->x = spread;
+    } else {
+        pos->x = -spread;
+    }
+}
+"""
+        # The visible register residual may map to a later source line.  The
+        # allocation donor deliberately searches earlier conditional arms.
+        autorules.GUIDED_LINES = {99}
+        autorules.GUIDED_VARIABLES = {b"pos"}
+        out = self.candidates(autorules.rule_allocation_donor_fence, source)
+        candidates = [text for label, text in out
+                      if label.startswith("allocation-donor-fence pos L6")]
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].count("pos->x = -spread;"), 2)
+        self.assertIn("if (pos != 0)", candidates[0])
+
+    def test_allocation_donor_fence_rejects_automatic_local(self):
+        source = """void F(int input) {
+    int donor;
+    if (input) {
+        input = donor;
+    }
+}
+"""
+        autorules.GUIDED_VARIABLES = {b"donor"}
+        self.assertEqual(
+            self.candidates(autorules.rule_allocation_donor_fence, source), [])
 
     def test_vector_fields_collapse_to_aggregate_copy(self):
         source = """typedef struct { long vx, vy, vz, pad; } VECTOR;
