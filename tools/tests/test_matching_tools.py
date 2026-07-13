@@ -401,6 +401,26 @@ int F(void) {
         out = self.candidates(autorules.rule_shift_stage, source)
         self.assertEqual(len(out), 6)
 
+    def test_mul_affine_shape_toggles_crossjump_equivalent_spelling(self):
+        expanded = """int F(int x) {
+    return x * 3 + 480;
+}
+"""
+        grouped = """int F(int x) {
+    return (x + 160) * 3;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_mul_affine_shape, expanded)
+        self.assertTrue(any("((x + 160) * 3)" in text for _label, text in out))
+        out = self.candidates(autorules.rule_mul_affine_shape, grouped)
+        self.assertTrue(any("((x * 3) + 480)" in text for _label, text in out))
+
+    def test_mul_affine_shape_rejects_nondivisible_constant(self):
+        source = "int F(int x) { return x * 3 + 481; }\n"
+        self.assertEqual(
+            self.candidates(autorules.rule_mul_affine_shape, source), [])
+
     def test_extern_array_skips_target_gp_symbol(self):
         source = """extern int Global;
 int F(void) { return Global; }

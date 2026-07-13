@@ -1067,6 +1067,16 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   omitted: FUN_8005b17c's `$a1` line number is explicitly sign-extended before
   `SetupTelop`, proving the caller-local prototype is
   `SetupTelop(u8 *, short)`, not the one-argument prototype in the old stub.
+- **An expanded inline helper's pointer parameters can be deliberate CSE
+  barriers.** Two direct calls using `&local` let cse carry the same address
+  pseudo across both calls. Wrapping them in a small `static inline` helper with
+  pointer formals creates parameter bindings during expansion and can force the
+  target's fresh local-address formation without moving the aggregate's stack
+  slot. FUN_800519bc needed
+  `TimToDemoSprite(file, &image, &sprite)` around `GetTIMInfo` + `InitSprite`;
+  inspect `.rtl` to confirm the address-pseudo split before introducing such a
+  helper, and keep it inside a guarded draft so the asm-stub TU cannot emit an
+  unused out-of-line copy.
 - **Two `u16` out-parameter locals with a 4-byte stack GAP are one `SVECTOR`'s
   `.vx`/`.vz`** (the write skips `.vy`), not two scalars (LightningBolt's
   GetVectorRotation output).
@@ -3072,6 +3082,16 @@ two-way-switch spellings (`case-fence`) at the implicated `if/else` lines. It
 rejects arms containing a source `break`, whose meaning would change inside a
 switch. Exact-byte scoring decides whether either surviving CODE_LABEL is the
 one the target requires.
+
+**Algebraically equal affine multiply tails can be kept distinct without a
+control-flow fence.** jump2 compares RTL, so `x * 3 + 480` and
+`(x + 160) * 3` compute the same value but do not present the same backward
+instruction suffix. In FUN_800519bc, using one spelling in only one brightness
+arm prevented an unwanted merge that had erased exactly three instructions and
+an unconditional jump; an explicit center label then pinned the retained tail.
+Guided rule `mul-affine-shape` now toggles `x*M+C` with `(x+C/M)*M` whenever
+the constant is exactly divisible, letting scoring place this bounded
+cross-jump barrier mechanically.
 
 **Machine-identical calls can be different to jump2.** Cross-jump compares the
 whole `CALL_INSN`, including its result mode and trailing

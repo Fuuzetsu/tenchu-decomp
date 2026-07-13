@@ -2094,6 +2094,100 @@ def rule_shift_stage(text, name, span):
             )
 
 
+def rule_mul_affine_shape(text, name, span):
+    """Toggle ``x*M+C`` with ``(x+C/M)*M`` when exactly divisible.
+
+    Algebraically identical tails can be merged by jump2.  Reassociating only
+    one arm keeps its RTL distinct and preserves a target's separate multiply
+    tail without adding a runtime fence.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    def literal(node):
+        token = _literal_text(data, node)
+        if token is None:
+            return None
+        try:
+            return int(token, 0)
+        except ValueError:
+            return None
+
+    def add_text(value):
+        return ((b" + " + str(value).encode()) if value >= 0 else
+                (b" - " + str(-value).encode()))
+
+    for expr in _find(body, ("binary_expression",)):
+        operator = expr.child_by_field_name("operator")
+        left = expr.child_by_field_name("left")
+        right = expr.child_by_field_name("right")
+        if operator is None or left is None or right is None:
+            continue
+        op = _txt(data, operator)
+        replacement = tag = None
+        if op in (b"+", b"-"):
+            # Normalize to MULTIPLY + signed constant.
+            multiply, constant_node, sign = left, right, 1 if op == b"+" else -1
+            if multiply.type != "binary_expression" or literal(constant_node) is None:
+                if op != b"+":
+                    continue
+                multiply, constant_node, sign = right, left, 1
+            multiply = _unparen(multiply)
+            if multiply is None or multiply.type != "binary_expression":
+                continue
+            mop = multiply.child_by_field_name("operator")
+            ma = multiply.child_by_field_name("left")
+            mb = multiply.child_by_field_name("right")
+            if mop is None or _txt(data, mop) != b"*" or ma is None or mb is None:
+                continue
+            m = literal(mb)
+            x = ma
+            if m is None:
+                m = literal(ma)
+                x = mb
+            c0 = literal(constant_node)
+            c = sign * c0 if c0 is not None else None
+            if m in (None, 0) or c is None or c % m != 0:
+                continue
+            q = c // m
+            replacement = (b"((" + _txt(data, x).strip() + add_text(q) +
+                           b") * " + str(m).encode() + b")")
+            tag = f"fold {m},{c}"
+        elif op == b"*":
+            m = literal(right)
+            grouped = _unparen(left)
+            if m is None:
+                m = literal(left)
+                grouped = _unparen(right)
+            if m is None or grouped is None or grouped.type != "binary_expression":
+                continue
+            gop = grouped.child_by_field_name("operator")
+            ga = grouped.child_by_field_name("left")
+            gb = grouped.child_by_field_name("right")
+            if (gop is None or _txt(data, gop) not in (b"+", b"-") or
+                    ga is None or gb is None or literal(gb) is None):
+                continue
+            q = literal(gb)
+            if _txt(data, gop) == b"-":
+                q = -q
+            c = q * m
+            replacement = (b"((" + _txt(data, ga).strip() + b" * " +
+                           str(m).encode() + b")" + add_text(c) + b")")
+            tag = f"expand {m},{c}"
+        if replacement is None:
+            continue
+        line = _line(data, expr.start_byte)
+        if not _guided_site(line):
+            continue
+        yield (
+            f"mul-affine-shape {tag} L{line}",
+            splice(data, expr.start_byte, expr.end_byte,
+                   replacement).decode(),
+        )
+
+
 # extern object decl `extern T NAME;` (single line, not already an array/function).
 # Optional leading qualifiers + a single type token + optional one `*` + NAME + `;`.
 EXTERN_OBJ = re.compile(
@@ -2739,6 +2833,7 @@ AGGRESSIVE_RULES = [
     ("eq-literal-swap", "swap ==/!= literal operand order (v0/v1 lever)", rule_eq_literal_swap),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("shift-stage", "split x>>N into every two-stage constant shift", rule_shift_stage),
+    ("mul-affine-shape", "toggle x*M+C with (x+C/M)*M", rule_mul_affine_shape),
     ("ptr-base-split", "name an extern array base before indexed address", rule_ptr_base_split),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
