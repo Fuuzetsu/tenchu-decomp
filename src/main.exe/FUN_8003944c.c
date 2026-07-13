@@ -23,9 +23,9 @@
  * Unlike FUN_80038fdc, this one fills EVERY BloodType field straight from
  * its own 10 parameters (a raw "spawn a blood-family effect exactly as
  * told" setter, not a computed one like SetBlood.c) and hands the slot to
- * FUN_80033f10 (calls RotTransPers/GsSortSprite/GetScreenPosition — the same
- * callee DrawBlood.c uses — so FUN_80033f10 is almost certainly another
- * Draw* in this family). Called by DamageControl, ProcItemGosin and
+ * DrawImpact (calls RotTransPers/GsSortSprite/GetScreenPosition — the same
+ * projection/draw family as DrawBlood.c). Called by DamageControl,
+ * ProcItemGosin and
  * ProcItemShinsoku (all still asm) — likely something like SetBloodDirect/
  * AddBloodEffect; no candidate in reference/psxsym-candidates.tsv to
  * corroborate.
@@ -53,7 +53,7 @@
  * a tooling gap worth fixing centrally, not something to work around by
  * hand here.
  */
-extern void FUN_80033f10(TEffectSlot *ef);
+extern void DrawImpact(TEffectSlot *ef);
 
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8003944c", FUN_8003944c);
@@ -101,7 +101,7 @@ loop:
     }
     goto loop;
 found:
-    ef->proc = (void (*)())FUN_80033f10;
+    ef->proc = (void (*)())DrawImpact;
     ef->param.blood.hint = (struct AreaNodeType *)param_1[0];
     pp = &ef->param.blood;
     pp->px = param_1[1];

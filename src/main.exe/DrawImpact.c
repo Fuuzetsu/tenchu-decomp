@@ -5,14 +5,26 @@
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
+ * static void DrawImpact(struct tag_EffectSlot *ef);
+ *     EFFECT.C:876, 15 src lines, frame 32 bytes, saved-reg mask 0x80070000 (DEMO build -- see below)
  *
- * Globals it touches, as the original declared them:
- *     extern struct GsSPRITE sprSplash;
- *     extern struct GsOT *OTablePt;
+ * Original parameters and locals (the demo build's register allocation may
+ * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
+ * over). A repeated name is a nested-block scope, not a duplicate.
+ * A ZERO-locals record is unverified, not a claim that the function has none:
+ * vfree lists zero locals yet its byte-matched source needs seven.
+ * The frame size and saved-reg mask above are the DEMO's: retail often needs
+ * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
+ * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+ * and a hint at how many values stay live, never as a spec. The asm wins.
+ * Locals:
+ *     param $s2       struct tag_EffectSlot * ef
+ *     reg   $s1       struct ImpactType * param
+ *     reg   $s0       struct Sprite3D * spr
  * END PSX.SYM */
 
 #ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80033f10", FUN_80033f10);
+INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawImpact", DrawImpact);
 #else
 
 #include "effect.h"
@@ -54,7 +66,7 @@ extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
 extern void GsSortSprite(GsSPRITE *spr, GsOT *ot, s32 priority);
 
-void FUN_80033f10(TEffectSlot *ef)
+void DrawImpact(TEffectSlot *ef)
 {
     RetailImpactType *param;
     GsSPRITE *spr;
@@ -199,7 +211,7 @@ void FUN_80033f10(TEffectSlot *ef)
 // /* WARNING: Removing unreachable block (ram,0x80034090) */
 // /* DrawImpact? */
 //
-// void FUN_80033f10(undefined4 *param_1)
+// void DrawImpact(undefined4 *param_1)
 //
 // {
 //   byte bVar1;
@@ -311,7 +323,7 @@ void FUN_80033f10(TEffectSlot *ef)
 // extern ? D_800BEAA8;
 // extern s32 OTablePt;
 //
-// void FUN_80033f10(void *arg0) {
+// void DrawImpact(void *arg0) {
 //     u16 sp10;
 //     s16 sp14;
 //     s16 temp_v0_2;

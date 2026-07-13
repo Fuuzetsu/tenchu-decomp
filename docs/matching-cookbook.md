@@ -2596,6 +2596,15 @@ file. First split decompiler SSA roles for correctness, then deliberately re-mer
 only where `.lreg` proves disjoint lives and target asm proves one hard-register
 home.
 
+The roles need not even look related. DrawImpact's near-match reused fixed-point
+interpolation temporaries in the later projection/priority phase: `inverse` also
+carried `pz` (`$a2`), the green/blue start product also carried `py` and the OT
+priority temporary (`$v1`), and the end product also carried `px`. Those
+byte-neutral reuses cut the exact-length allocator residual to 53 bytes. Use the
+target's repeated hard-register identity as the clue, then confirm in `.lreg` that
+the phases are actually disjoint; semantic similarity of the variable names is
+irrelevant.
+
 ### `A + (B + C)` controls which operand receives the constant
 
 fold canonicalises `A + (B + C)` to `(A + C) + B`, so the `addiu` lands on A's

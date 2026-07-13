@@ -63,7 +63,7 @@
  *    0x808080 literals, stores immediately in offset order (pz, vy, vz,
  *    scale, rotate, time, vx, unk22, bright, mode).
  */
-extern void FUN_80033f10(TEffectSlot *ef);
+extern void DrawImpact(TEffectSlot *ef);
 
 void SetImpact(VECTOR *pos, short size, short type)
 {
@@ -110,7 +110,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     } while (count < 200);
     ef = &dmy;
 found:
-    ef->proc = (void (*)())FUN_80033f10;
+    ef->proc = (void (*)())DrawImpact;
     ef->param.blood.hint = (struct AreaNodeType *)pos->vx;
     fp = &ef->param.blood;
     fp->px = pos->vy;

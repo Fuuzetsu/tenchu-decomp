@@ -259,6 +259,18 @@ retail `FUN_80027730`, while the currently named retail function launches a
 lightning bolt on one frame. Verify signature, parameters, constants, and
 semantics together before adopting a name.
 
+A **named callback setter can bridge a callback that was completely rewritten**
+between builds. `DrawImpact` is the worked case: the demo's `SetImpact` stores
+the relocated address whose low half is the demo `DrawImpact` address (`0x2480`),
+while retail's exact `SetImpact` stores `0x80033f10`. The retail callback then
+consumes the impact fields that setter initialises, projects the point, sorts the
+sprite, advances its lifetime, and clears the slot. `callmatch --verify` reports
+0% callee coverage because the old callback used `rand`, `UpdateCoordinate`, and
+`DrawSprite` while retail replaced that implementation; here that rejection is
+expected, not contrary evidence. Require both the same named setter/parameter
+contract and a producer-consumer field/lifecycle fit before using this signal —
+a callback-address store by itself is not enough.
+
 `callmatch --verify` now blocks this mechanically as `AMBIGUOUS`: after full
 containment it searches for another retail function that contains every demo
 callee, has no more extra named calls, and is at least as close in code size.

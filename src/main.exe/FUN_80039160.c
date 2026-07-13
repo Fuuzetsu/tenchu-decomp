@@ -20,7 +20,7 @@
  * SetBleed/FUN_80038fdc/FUN_8003944c (see SetSplash.c for the shared idiom
  * writeup), filling the slot straight from its 4 caller-supplied parameters
  * (a raw "spawn exactly as told" setter, no randomization) and handing it
- * to FUN_80034dbc — a DIFFERENT draw callback from DrawBlood/FUN_80033f10,
+ * to FUN_80034dbc — a DIFFERENT draw callback from DrawBlood/DrawImpact,
  * still unmatched itself. Called once, from ProcMiscSnowfall.c
  * (`FUN_80039160(&local_30, &local_40, 0x1000, 0);`) — a falling-snowflake
  * spawner, not blood.

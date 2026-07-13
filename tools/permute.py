@@ -399,6 +399,7 @@ MASPSX_EXTRA = {
     "SetSmokeS": ["--expand-div"],
     "FUN_80033f10": ["--expand-div"],
     "FUN_80034dbc": ["--expand-div"],
+    "DrawImpact": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash

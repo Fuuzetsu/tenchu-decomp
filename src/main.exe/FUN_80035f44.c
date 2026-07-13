@@ -21,7 +21,7 @@ extern void GsSetLsMatrix(MATRIX *mat);
 extern void RotTrans(SVECTOR *in, VECTOR *out, long *flag);
 extern void ApplyRotMatrix(SVECTOR *in, VECTOR *out);
 extern void FUN_8003562c(TEffectSlot *ef);
-extern void FUN_80033f10(TEffectSlot *ef);
+extern void DrawImpact(TEffectSlot *ef);
 
 /*
  * MATCH. Converts a model-space position and direction into a blood/gore
@@ -148,7 +148,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         } while (count < 200);
         ef = &dmy;
     impact_found:
-        ef->proc = (void (*)())FUN_80033f10;
+        ef->proc = (void (*)())DrawImpact;
         ef->param.blood.hint = (struct AreaNodeType *)rotated[1].vx;
         param = &ef->param.blood;
         param->px = rotated[1].vy;
@@ -263,7 +263,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 //     } while (iVar6 < 200);
 //     ptVar7 = &dmy;
 // LAB_80036208:
-//     ptVar7->proc = (undefined **)FUN_80033f10;
+//     ptVar7->proc = (undefined **)DrawImpact;
 //     *(int *)&ptVar7->param = (int)sVar1;
 //     *(int *)((int)&ptVar7->param + 4) = (int)sVar2;
 //     (ptVar7->param).blood.vz = 0x50;

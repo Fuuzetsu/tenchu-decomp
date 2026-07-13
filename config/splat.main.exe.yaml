@@ -390,7 +390,7 @@ segments:
       - [0x22EBC, c, SetSmoke]
       - [0x231D0, c, SetSmokeS]
       - [0x233C0, c, FUN_80033bc0]
-      - [0x23710, c, FUN_80033f10]
+      - [0x23710, c, DrawImpact]
       - [0x23A14, c, SetImpact]
       - [0x23B7C, c, DrawBleed]
       - [0x23D90, c, SetBleeds]
