@@ -3953,6 +3953,272 @@ def rule_shared_tail_assign(text, name, span):
             )
 
 
+def rule_shared_writeback_compound(text, name, span):
+    """Inline a shared scalar writeback into direct compound-update arms.
+
+    Old cc1 can allocate a manually factored load/result/store chain quite
+    differently from source that updates the field in each predecessor and
+    lets jump2 rediscover the common store::
+
+        alias = base;                 base->field += delta;
+        old = (T)alias->field;   ->   goto done;
+        result = old + delta;
+        goto writeback;
+        ...
+    writeback:
+        alias->field = result;
+        goto done;
+
+    This guided rule only handles a shared label reached by at least two
+    byte-adjacent four-statement producer chains.  The base must be a pure
+    identifier/field path, the old-value read must be the exact writeback
+    field, and the arithmetic is restricted to ``old +/- pure_read`` (or the
+    commutative ``pure_read + old``).  Every incoming goto must fit, so removing
+    the shared label cannot strand an edge.
+
+    ActNORMAL also needed the arm containing one direct update to become the
+    physical fallthrough arm before jump2 merged the stores.  Emit the useful
+    *atomic* companions which invert a containing compound if/else as well as
+    the plain direct-writeback candidate; this crosses the measured +1-size
+    intermediate without relying on a broad stochastic search.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    def strip_casts(node):
+        node = _unparen(node)
+        while node is not None and node.type == "cast_expression":
+            node = _unparen(node.child_by_field_name("value"))
+        return node
+
+    def pure_read(node):
+        return node is not None and not _find(node, (
+            "assignment_expression", "call_expression", "update_expression",
+            "comma_expression",
+        ))
+
+    def field_assignment(statement):
+        if statement is None or statement.type != "expression_statement":
+            return None
+        expressions = [child for child in statement.named_children
+                       if child.type != "comment"]
+        if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+            return None
+        assignment = expressions[0]
+        operator = assignment.child_by_field_name("operator")
+        lhs = assignment.child_by_field_name("left")
+        rhs = assignment.child_by_field_name("right")
+        if (operator is None or _txt(data, operator) != b"=" or lhs is None or
+                lhs.type != "field_expression" or rhs is None):
+            return None
+        return lhs, rhs
+
+    def goto_label(statement):
+        if statement.type != "goto_statement":
+            return None
+        label = statement.child_by_field_name("label")
+        return _txt(data, label) if label is not None else None
+
+    # A label is eligible only when its own statement is the field store and
+    # the immediately following sibling is the shared terminal exit.
+    for labeled in _find(body, ("labeled_statement",)):
+        label_node = labeled.child_by_field_name("label")
+        label = _txt(data, label_node) if label_node is not None else None
+        children = [child for child in labeled.named_children
+                    if child != label_node and child.type != "comment"]
+        if label is None or len(children) != 1:
+            continue
+        stored = field_assignment(children[0])
+        if stored is None:
+            continue
+        store_lhs, store_rhs = stored
+        store_path = _field_path(data, store_lhs)
+        result_node = strip_casts(store_rhs)
+        if (store_path is None or result_node is None or
+                result_node.type != "identifier"):
+            continue
+        alias, writeback_path = store_path
+        result = _txt(data, result_node)
+
+        parent = labeled.parent
+        if parent is None:
+            continue
+        siblings = [child for child in parent.named_children
+                    if child.type != "comment"]
+        try:
+            label_index = siblings.index(labeled)
+        except ValueError:
+            continue
+        if label_index + 1 >= len(siblings):
+            continue
+        terminal = siblings[label_index + 1]
+        if (terminal.type not in {"goto_statement", "return_statement",
+                                  "break_statement"} or
+                data[labeled.end_byte:terminal.start_byte].strip()):
+            continue
+
+        incoming = [statement for statement in _find(body, ("goto_statement",))
+                    if goto_label(statement) == label]
+        if len(incoming) < 2:
+            continue
+
+        producers = []
+        valid = True
+        for jump in incoming:
+            block = jump.parent
+            if block is None or block.type != "compound_statement":
+                valid = False
+                break
+            statements = [child for child in block.named_children
+                          if child.type != "comment"]
+            try:
+                jump_index = statements.index(jump)
+            except ValueError:
+                valid = False
+                break
+            if jump_index < 3:
+                valid = False
+                break
+            alias_stmt, current_stmt, result_stmt = statements[jump_index - 3:jump_index]
+            chain = [alias_stmt, current_stmt, result_stmt, jump]
+            if any(data[left.end_byte:right.start_byte].strip()
+                   for left, right in zip(chain, chain[1:])):
+                valid = False
+                break
+
+            alias_assignment = _plain_assignment(data, alias_stmt)
+            current_assignment = _plain_assignment(data, current_stmt)
+            result_assignment = _plain_assignment(data, result_stmt)
+            if (alias_assignment is None or current_assignment is None or
+                    result_assignment is None or alias_assignment[0] != alias or
+                    result_assignment[0] != result):
+                valid = False
+                break
+            current, current_rhs = current_assignment
+            base_node = strip_casts(alias_assignment[1])
+            current_field = strip_casts(current_rhs)
+            current_path = (_field_path(data, current_field)
+                            if current_field is not None else None)
+            if (base_node is None or current_path != (alias, writeback_path) or
+                    not pure_read(base_node)):
+                valid = False
+                break
+            base = _txt(data, base_node).strip()
+            if re.fullmatch(
+                    rb"[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*)*", base) is None:
+                valid = False
+                break
+
+            expression = strip_casts(result_assignment[1])
+            if expression is None or expression.type != "binary_expression":
+                valid = False
+                break
+            operator_node = expression.child_by_field_name("operator")
+            left = expression.child_by_field_name("left")
+            right = expression.child_by_field_name("right")
+            operator = _txt(data, operator_node) if operator_node is not None else None
+            left_value = strip_casts(left)
+            right_value = strip_casts(right)
+            left_is_current = (left_value is not None and
+                               left_value.type == "identifier" and
+                               _txt(data, left_value) == current)
+            right_is_current = (right_value is not None and
+                                right_value.type == "identifier" and
+                                _txt(data, right_value) == current)
+            if operator == b"+" and left_is_current and pure_read(right):
+                other = right
+            elif operator == b"+" and right_is_current and pure_read(left):
+                other = left
+            elif operator == b"-" and left_is_current and pure_read(right):
+                other = right
+            else:
+                valid = False
+                break
+
+            direct_lhs = base + writeback_path[len(alias):]
+            indent = _indent_at(data, alias_stmt.start_byte)
+            replacement = (direct_lhs + b" " + operator + b"= " +
+                           _txt(data, other).strip() + b";\n" + indent +
+                           _txt(data, terminal).strip())
+            producers.append((alias_stmt.start_byte, jump.end_byte,
+                              replacement, direct_lhs + b" " + operator + b"="))
+
+        if not valid:
+            continue
+        lines = [_line(data, start) for start, _end, _replacement, _mark in producers]
+        if not (any(_guided_site(line) for line in lines) or
+                _guided_site(_line(data, labeled.start_byte))):
+            continue
+
+        replacements = [(start, end, replacement)
+                        for start, end, replacement, _mark in producers]
+        replacements.append((labeled.start_byte, terminal.end_byte, b""))
+        collapsed = data
+        for start, end, replacement in sorted(replacements, reverse=True):
+            collapsed = splice(collapsed, start, end, replacement)
+
+        tag = f"shared-writeback-compound {label.decode()} x{len(producers)}"
+        yield (tag, collapsed.decode())
+
+        # Pair the collapse with each containing arm inversion. Reparse because
+        # the first phase changed byte offsets; only ifs that now contain one
+        # of our direct compound updates are eligible.
+        collapsed_body = _func_body(collapsed, name, (0, len(collapsed)))
+        if collapsed_body is None:
+            continue
+        markers = {mark for _start, _end, _replacement, mark in producers}
+        for iff in _find(collapsed_body, ("if_statement",)):
+            condition = iff.child_by_field_name("condition")
+            yes = iff.child_by_field_name("consequence")
+            no = iff.child_by_field_name("alternative")
+            if condition is None or yes is None or no is None:
+                continue
+            if no.type == "else_clause":
+                arms = [child for child in no.named_children
+                        if child.type != "comment"]
+                if len(arms) != 1:
+                    continue
+                no = arms[0]
+            if yes.type != "compound_statement" or no.type != "compound_statement":
+                continue
+            arm_text = _txt(collapsed, yes) + _txt(collapsed, no)
+            if not any(marker in arm_text for marker in markers):
+                continue
+            line = _line(collapsed, iff.start_byte)
+            if not _guided_site(line):
+                continue
+            inner = (_paren_inner(condition)
+                     if condition.type == "parenthesized_expression"
+                     else condition)
+            if inner is None:
+                continue
+            condition_text = _txt(collapsed, inner).strip()
+            if inner.type == "binary_expression":
+                comparison = inner.child_by_field_name("operator")
+                replacement_operator = ({b"==": b"!=", b"!=": b"=="}.get(
+                    _txt(collapsed, comparison)) if comparison is not None else None)
+                if replacement_operator is not None:
+                    relative_start = comparison.start_byte - inner.start_byte
+                    relative_end = comparison.end_byte - inner.start_byte
+                    condition_text = (condition_text[:relative_start] +
+                                      replacement_operator +
+                                      condition_text[relative_end:])
+                else:
+                    condition_text = b"!(" + condition_text + b")"
+            else:
+                condition_text = b"!(" + condition_text + b")"
+            replacement = (b"if (" + condition_text + b") " +
+                           _txt(collapsed, no) + b" else " +
+                           _txt(collapsed, yes))
+            yield (
+                f"{tag} + if-else-invert L{line}",
+                splice(collapsed, iff.start_byte, iff.end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_shared_terminal_tail(text, name, span):
     """Duplicate an adjacent assignment+return tail into both if/else arms.
 
@@ -6416,6 +6682,7 @@ AGGRESSIVE_RULES = [
     ("guard-flag-assign", "move a local flag definition before a guard or onto both goto edges", rule_guard_flag_assign),
     ("guard-exit-copy", "move a local value copy across its unique loop-break guard", rule_guard_exit_copy),
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
+    ("shared-writeback-compound", "inline a shared field writeback into compound-update arms", rule_shared_writeback_compound),
     ("shared-terminal-tail", "duplicate an adjacent assignment+return into both if/else arms", rule_shared_terminal_tail),
     ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("terminal-arm-flip", "negate and swap adjacent arms ending at one terminal tail", rule_terminal_arm_flip),

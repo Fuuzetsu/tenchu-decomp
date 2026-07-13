@@ -2390,6 +2390,50 @@ keeps the loaded old value and the new result in separate pseudos; mutating
 this in both rotation blocks before the remaining residual became a true
 allocation-only problem.
 
+### Let direct compound arms create the allocation, then let jump2 share the store
+
+A manually factored writeback can have the exact target length and CFG yet
+make the wrong pseudos compete for the old field value and the arithmetic
+operand:
+
+```c
+rotation = dtR;
+current = (u16)rotation->vy;
+result = current - turn;
+goto store_rotation;
+/* ... another predecessor with current + turn ... */
+store_rotation:
+rotation->vy = result;
+```
+
+When the target itself contains one shared terminal `sh`, do not assume the C
+source shared that store. Try the complete direct lvalues in every predecessor:
+
+```c
+dtR->vy += turn;
+/* ... */
+if (pad_mask == 0) {
+    reset_motion();
+} else {
+    dtR->vy -= turn;
+}
+```
+
+The direct compound expressions establish the desired load/result/operand
+identities first; gcc's `jump2` can then cross-jump the identical stores back
+into one physical tail. The condition polarity is part of the transformation:
+placing the update in the wrong physical arm can leave a duplicated store or
+the same register tie. ActNORMAL's manually shared form was exact-length with
+seven residual bytes; direct `+=`/`-=` alone was one instruction long, while
+pairing it with the case-2 `!=` -> `==` arm inversion matched all 948 bytes.
+
+Guided `shared-writeback-compound` recognizes the narrow safe form: at least
+two complete `alias/base`, old-field, arithmetic-result, `goto writeback`
+chains; every incoming edge must fit; the base and arithmetic operand must be
+side-effect-free. It emits both the direct-arm candidate and atomic variants
+with each containing compound if/else inverted, so search can cross the
+measured one-instruction intermediate without permuter noise.
+
 The same rule applies inside one large state machine: split logically distinct
 lifetimes even when Ghidra gave them one SSA name. A scan's current `candidate`
 and its final `found` result, a pointer used before a call and the equivalent

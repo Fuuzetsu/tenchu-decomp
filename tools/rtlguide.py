@@ -82,7 +82,7 @@ CATEGORY_RULES = {
         "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
         "guard-exit-copy",
-        "shared-tail-assign", "shared-terminal-tail", "redundant-field-donor",
+        "shared-writeback-compound", "shared-tail-assign", "shared-terminal-tail", "redundant-field-donor",
         "identical-arm-condition", "identical-arm-fence",
         "subscript-postinc", "switch-cse-evict",
         "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap", "assignment-chain",
@@ -95,11 +95,11 @@ CATEGORY_RULES = {
         "switch-cse-evict", "assignment-chain",
         "pointee-volatile", "array-alias-remat", "member-scalar-alias",
     ],
-    "jump/cross-jump": ["literal-indirect-inline", "terminal-arm-flip", "terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
+    "jump/cross-jump": ["literal-indirect-inline", "shared-writeback-compound", "terminal-arm-flip", "terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
         "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
-        "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-tail-assign", "shared-terminal-tail",
+        "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-writeback-compound", "shared-tail-assign", "shared-terminal-tail",
         "guard-exit-copy",
         "shared-return-split", "terminal-guard-flip",
         "loop-boundary-shift", "identical-arm-condition", "identical-arm-fence", "subscript-postinc",
@@ -114,7 +114,7 @@ CATEGORY_RULES = {
     "structure/length": [
         "type-width", "and-nest", "temp-inline", "case-fence",
         "vector-copy-adjust", "builtin-abs", "subscript-postinc",
-        "call-arg-pair", "terminal-guard-flip", "shared-terminal-tail", "if-else-invert", "empty-loop-boundary",
+        "call-arg-pair", "shared-writeback-compound", "terminal-guard-flip", "shared-terminal-tail", "if-else-invert", "empty-loop-boundary",
     ],
 }
 

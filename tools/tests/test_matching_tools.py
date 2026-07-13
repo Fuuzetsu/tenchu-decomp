@@ -2321,6 +2321,82 @@ alternate:
         self.assertEqual(self.candidates(autorules.rule_shared_tail_assign, unbraced), [])
         self.assertEqual(self.candidates(autorules.rule_shared_tail_assign, separated), [])
 
+    def test_shared_writeback_compound_collapses_all_edges_and_pairs_inversion(self):
+        source = """typedef struct { short vy; } Rotation;
+Rotation *GlobalRotation;
+void F(int reverse, int turn) {
+    Rotation *rotation;
+    int current;
+    int result;
+    if (reverse) {
+        rotation = GlobalRotation;
+        current = (unsigned short)rotation->vy;
+        result = current - turn;
+        goto writeback;
+    } else {
+        rotation = GlobalRotation;
+        current = (unsigned short)rotation->vy;
+        result = turn + current;
+        goto writeback;
+    }
+writeback:
+    rotation->vy = result;
+    goto done;
+done:
+    use();
+}
+"""
+        out = self.candidates(autorules.rule_shared_writeback_compound, source)
+        self.assertEqual(len(out), 2)
+        collapsed = next(candidate for label, candidate in out
+                         if "if-else-invert" not in label)
+        self.assertIn("GlobalRotation->vy -= turn;\n        goto done;", collapsed)
+        self.assertIn("GlobalRotation->vy += turn;\n        goto done;", collapsed)
+        self.assertNotIn("writeback:", collapsed)
+        inverted = next(candidate for label, candidate in out
+                        if "if-else-invert" in label)
+        self.assertIn("if (!(reverse))", inverted)
+        self.assertLess(inverted.index("GlobalRotation->vy += turn"),
+                        inverted.index("GlobalRotation->vy -= turn"))
+
+    def test_shared_writeback_compound_rejects_incomplete_or_impure_edges(self):
+        one_edge = """void F(int turn) {
+    Rotation *rotation;
+    int current;
+    int result;
+    rotation = GlobalRotation;
+    current = rotation->vy;
+    result = current + turn;
+    goto writeback;
+writeback:
+    rotation->vy = result;
+    return;
+}
+"""
+        impure_base = """void F(int select, int turn) {
+    Rotation *rotation;
+    int current;
+    int result;
+    if (select) {
+        rotation = get_rotation();
+        current = rotation->vy;
+        result = current + turn;
+        goto writeback;
+    } else {
+        rotation = get_rotation();
+        current = rotation->vy;
+        result = current - turn;
+        goto writeback;
+    }
+writeback:
+    rotation->vy = result;
+    return;
+}
+"""
+        for source in (one_edge, impure_base):
+            self.assertEqual(
+                self.candidates(autorules.rule_shared_writeback_compound, source), [])
+
     def test_shared_terminal_tail_completes_both_arms(self):
         source = """int F(int select) {
     int motion;
