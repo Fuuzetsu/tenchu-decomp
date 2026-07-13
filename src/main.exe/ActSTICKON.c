@@ -590,9 +590,8 @@ case12_no_pad:
         pd = motID != 0xC03;
         base_angle = model->object[0]->rotate.vy + dtR->vy;
         base_angle_value = base_angle;
-        next_angle = (pd ? base_angle_value - 0x400
-                           : base_angle_value + 0x400) & 0xF00;
-        angle = next_angle;
+        angle = (pd ? base_angle_value - 0x400
+                    : base_angle_value + 0x400) & 0xF00;
         item.user = Me_MOTION_C;
         item.type = D_80097EF0;
         Me_MOTION_C->item[D_80097EF0]--;
@@ -618,11 +617,7 @@ case12_no_pad:
         {
             for (drop_index = 0; drop_index < 5; drop_index++)
             {
-                do
-                {
-                    next_angle = angle - 10;
-                } while (0);
-                next_angle += rand() % 20;
+                next_angle = angle - 10 + rand() % 20;
                 angle = next_angle;
                 y = next_angle;
                 item.end.vx = (rsin(y) * (-30 - rand() % 200)) >> 12;
