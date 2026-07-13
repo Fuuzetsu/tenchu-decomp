@@ -33,15 +33,22 @@
 
 /*
  * STATUS: NON_MATCHING — exact target length (394 instructions / 1576
- * bytes), with 57 differing bytes.  Apart from the final signed add used as
- * GetDirection's third argument, the residual is one consistent allocation:
- * target keeps the signed direction in v1 and its absolute magnitude in a0,
- * while retail cc1 gives this draft a0 and v1 respectively across all three
- * clamp regions.  `tools/rtlguide.py ControlHumanoid` classifies the remaining
- * hunks as register allocation.  Type-width, expression-order, explicit-abs,
- * donor-lifetime, loop-fence, and bounded autorules/permuter variants were
- * tested; none improved this clean pure-C form without disturbing exact code
- * length or already-matching structure.
+ * bytes), with 17 differing bytes and a 96.45 fuzzy score.  Physical control
+ * flow is exact: 17 calls, 41 conditional branches, seven jumps, and one
+ * return.  The residual is local to five hunks: a six-instruction temporary
+ * register cycle in the player-camera yaw expression, the signed load and
+ * result destination for GetDirection's third argument, and a five-instruction
+ * temporary cycle in the enemy vertical delta.
+ *
+ * Three nested zero-trip loops around that final delta are a zero-code cc1
+ * weighting fence.  They move the function-scope direction allocno from a0 to
+ * retail's v1 (57 -> 42 bytes).  Splitting the delta through the existing
+ * magnitude temporary inside the fence then gives magnitude retail's a0 and
+ * removes the global allocation cascade (42 -> 17 bytes).  A preference-only
+ * one-shot-loop variant also selected direction=v1 and magnitude=a0, but grew
+ * the function to 397 instructions, displaced head, and was rejected.  Two
+ * guided 160-candidate autorules passes and a late four-minute permuter run
+ * found no smaller authoritative full-link residual beyond this pure-C form.
  *
  * Build with `NON_MATCHING=ControlHumanoid ./Build` and inspect with
  * `tools/matchdiff.py ControlHumanoid`.
@@ -273,7 +280,18 @@ draw_done:
             head->rotate.vy = direction;
         }
 
-        direction = (human->target->locate.coord.t[1] - human->locate->vy) / 2;
+        /* Zero-code cc1 loop weighting; see STATUS above. */
+        do
+        {
+            do
+            {
+                magnitude = human->target->locate.coord.t[1] - human->locate->vy;
+                do
+                {
+                    direction = magnitude / 2;
+                } while (0);
+            } while (0);
+        } while (0);
         if (direction != 0)
         {
             if (direction >= -500)
