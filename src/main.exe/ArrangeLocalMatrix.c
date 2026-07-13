@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -29,7 +30,102 @@
  *     reg   $t1       long u
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ArrangeLocalMatrix", ArrangeLocalMatrix);
+/*
+ * MATCH.
+ *
+ * This is a fixed-point Gauss-Jordan pass over the local 3x3 matrix.  Each
+ * pivot row is normalised, the pivot column is eliminated from the other
+ * rows, and a determinant-like scale check decides whether to compose and
+ * publish the result.
+ *
+ * Matching notes:
+ *  - The outer `i` loop and middle `j` loop are explicit top-tested
+ *    `while (1)` loops.  The two `k` loops stay ordinary bottom-tested loops;
+ *    that accounts for the target's two extra guard/jump pairs.
+ *  - The first row-normalisation loop deliberately reuses `k`, as does the
+ *    deepest elimination loop.  Retail therefore gives both counters $a2,
+ *    while the middle `j` loop stays in $t4.  Using `j` for both adjacent
+ *    loops preserves the values but rotates nine caller-saved registers.
+ *  - Spelling the deepest test as `k != i` puts the multiply/subtract path
+ *    first and the variable division later.  The opposite equivalent test is
+ *    one instruction short because its jump delay slot hides the divide
+ *    result's hazard gap.
+ *  - The final whole-MATRIX assignment expands to the target's eight-word
+ *    copy.  Variable divisions require maspsx's `--expand-div` compatibility
+ *    pass to reproduce ASPSX's guarded `div` sequences.
+ */
+
+extern void GsGetLw(GsCOORDINATE2 *coord, MATRIX *matrix);
+extern void MulMatrix(MATRIX *left, MATRIX *right);
+
+void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
+{
+    MATRIX m;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 det;
+
+    GsGetLw(&model->locate, &m);
+    det = 0x1000;
+
+    i = 0;
+    while (1)
+    {
+        s32 t;
+
+        if (!(i < 3))
+        {
+            break;
+        }
+        t = m.m[i][i];
+        if (t == 0)
+        {
+            t = 0x1000;
+        }
+        det = det * t / 0x1000;
+
+        for (k = 0; k < 3; k++)
+        {
+            m.m[i][k] = m.m[i][k] * 0x1000 / t;
+        }
+        m.m[i][i] = 0x1000000 / t;
+
+        j = 0;
+        while (1)
+        {
+            if (!(j < 3))
+            {
+                break;
+            }
+            if (j != i)
+            {
+                s32 u;
+
+                u = m.m[j][i];
+                for (k = 0; k < 3; k++)
+                {
+                    if (k != i)
+                    {
+                        m.m[j][k] -= m.m[i][k] * u / 0x1000;
+                    }
+                    else
+                    {
+                        m.m[j][i] = (-u * 0x1000) / t;
+                    }
+                }
+            }
+            j++;
+        }
+        i++;
+    }
+
+    if ((u32)(det - 0x800) < 0x801)
+    {
+        MulMatrix(&m, matrix);
+        *matrix = m;
+    }
+}
 
 // triage: MEDIUM — 159 insns, mul/div, 2 loop, 2 callees, ~0.08 to AdtFntOpen
 // likely-relevant cookbook sections:
@@ -153,4 +249,113 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ArrangeLocalMatrix",
 //     t->t[2] = local_50.t[2];
 //   }
 //   return;
+// }
+
+// m2c (mipsel-gcc-c reference — cleaner control flow + register
+// temps straight from the asm; Ghidra above has the real types):
+//
+// ? GsGetLw(s32 *);                                   /* extern */
+// ? MulMatrix(s32 *, void *);                         /* extern */
+//
+// void ArrangeLocalMatrix(void *arg1) {
+//     s32 sp10;
+//     s32 sp30;
+//     s16 *temp_a0;
+//     s16 *temp_v0;
+//     s16 temp_t2;
+//     s16 var_t0;
+//     s32 *var_t9;
+//     s32 var_a1;
+//     s32 var_a1_2;
+//     s32 var_a2;
+//     s32 var_a2_2;
+//     s32 var_a3;
+//     s32 var_lo;
+//     s32 var_s0;
+//     s32 var_s2;
+//     s32 var_s3;
+//     s32 var_t4;
+//     s32 var_t6;
+//     s32 var_t7;
+//     s32 var_t8;
+//     s32 var_v0;
+//     u16 *temp_a0_2;
+//
+//     GsGetLw(&sp10);
+//     var_s3 = 0x1000;
+//     var_t8 = 0;
+//     var_s0 = 0;
+//     var_s2 = 0;
+//     var_t9 = &sp10;
+// loop_1:
+//     if (var_t8 < 3) {
+//         var_t0 = *var_t9;
+//         var_lo = var_s3 * var_t0;
+//         if (var_t0 == 0) {
+//             var_t0 = 0x1000;
+//             var_lo = var_s3 * 0x1000;
+//         }
+//         var_s3 = var_lo >> 0xC;
+//         if (var_lo < 0) {
+//             var_s3 = (s32) (var_lo + 0xFFF) >> 0xC;
+//         }
+//         var_a2 = 0;
+//         var_a1 = var_s0;
+//         do {
+//             temp_a0 = &sp10 + var_a1;
+//             var_a2 += 1;
+//             *temp_a0 = (s16) ((s32) (*temp_a0 << 0xC) / var_t0);
+//             var_a1 += 2;
+//         } while (var_a2 < 3);
+//         var_t4 = 0;
+//         var_t7 = var_s2;
+//         var_t6 = 0;
+//         sp30 = var_s0;
+//         *var_t9 = (s16) (0x01000000 / var_t0);
+// loop_9:
+//         if (var_t4 < 3) {
+//             temp_v0 = &sp10 + var_t7;
+//             if (var_t4 != var_t8) {
+//                 var_a2_2 = 0;
+//                 var_a1_2 = var_t6;
+//                 temp_t2 = *temp_v0;
+//                 var_a3 = sp30;
+//                 do {
+//                     if (var_a2_2 != var_t8) {
+//                         var_v0 = *(&sp10 + var_a3) * temp_t2;
+//                         temp_a0_2 = &sp10 + var_a1_2;
+//                         if (var_v0 < 0) {
+//                             var_v0 += 0xFFF;
+//                         }
+//                         *temp_a0_2 -= var_v0 >> 0xC;
+//                     } else {
+//                         *temp_v0 = (s16) ((s32) (temp_t2 * -0x1000) / var_t0);
+//                     }
+//                     var_a3 += 2;
+//                     var_a2_2 += 1;
+//                     var_a1_2 += 2;
+//                 } while (var_a2_2 < 3);
+//             }
+//             var_t7 += 6;
+//             var_t6 += 6;
+//             var_t4 += 1;
+//             goto loop_9;
+//         }
+//         var_s0 += 6;
+//         var_s2 += 2;
+//         var_t9 += 8;
+//         var_t8 += 1;
+//         goto loop_1;
+//     }
+//     if ((u32) (var_s3 - 0x800) < 0x801U) {
+//         MulMatrix(&sp10, arg1);
+//         arg1->unk0 = sp10;
+//         arg1->unk4 = sp14;
+//         arg1->unk8 = sp18;
+//         arg1->unkC = sp1C;
+//         arg1->unk10 = sp20;
+//         arg1->unk14 = sp24;
+//         arg1->unk18 = sp28;
+//         arg1->unk1C = sp2C;
+//     }
 // }

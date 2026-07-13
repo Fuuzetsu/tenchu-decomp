@@ -372,6 +372,7 @@ MASPSX_EXTRA = {
     "DrawSplash": ["--expand-div"],
     "SetFlyWire": ["--expand-div"],
     "FUN_8002fd9c": ["--expand-div"],
+    "ArrangeLocalMatrix": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
