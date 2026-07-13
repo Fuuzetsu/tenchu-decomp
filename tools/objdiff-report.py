@@ -28,8 +28,10 @@ import argparse
 import json
 import os
 import re
-import shutil
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import function_inventory as FI
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -39,10 +41,10 @@ TEXT_START = 0x80011000
 TEXT_END = 0x80098000
 SDK_START = 0x80060000  # 0x80060xxx+ is the differently-compiled PsyQ SDK block
 
-# The Ghidra export (addr<TAB>size<TAB>name) is gitignored; the committed
-# snapshot is the CI / fresh-checkout fallback. When the live export is present
-# it wins AND is copied to the snapshot so a local `./Build report` keeps the
-# committed inventory current (commit the diff alongside the report change).
+# The Ghidra export (addr<TAB>size<TAB>name) is gitignored; the committed,
+# reviewed snapshot is authoritative for reports.  Do not refresh it as a side
+# effect: the snapshot contains corrections for two known bad Ghidra boundaries.
+# Pass --functions explicitly when auditing a new live export.
 LIVE_TSV = ".shake/ghidra-export/functions.tsv"
 SNAPSHOT_TSV = "config/functions.main.exe.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
@@ -63,34 +65,25 @@ CATEGORIES = [
 
 
 def resolve_inventory(explicit):
-    """Pick the function-inventory TSV; refresh the committed snapshot from the
-    live Ghidra export when that is what we read."""
+    """Pick a function inventory without mutating the reviewed snapshot."""
     if explicit:
         return explicit
-    if os.path.exists(LIVE_TSV):
-        # Keep the committed snapshot in lockstep with the local export.
-        if not os.path.exists(SNAPSHOT_TSV) or (
-            open(LIVE_TSV, "rb").read() != open(SNAPSHOT_TSV, "rb").read()
-        ):
-            os.makedirs(os.path.dirname(SNAPSHOT_TSV), exist_ok=True)
-            shutil.copyfile(LIVE_TSV, SNAPSHOT_TSV)
-            print(f"note: refreshed {SNAPSHOT_TSV} from {LIVE_TSV} "
-                  "(commit it)", file=sys.stderr)
-        return LIVE_TSV
     if os.path.exists(SNAPSHOT_TSV):
         return SNAPSHOT_TSV
+    if os.path.exists(LIVE_TSV):
+        return LIVE_TSV
     sys.exit(f"error: no function inventory found ({LIVE_TSV} or {SNAPSHOT_TSV})")
 
 
 def load_functions(tsv):
     """[(addr, size, name)] for real, named functions inside the text window."""
     funcs = []
-    for line in open(tsv):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3 and re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", p[2]):
-            a, s, n = int(p[0], 16), int(p[1]), p[2]
-            if TEXT_START <= a < TEXT_END:
-                funcs.append((a, s, n))
+    rows = FI.load_functions(tsv)
+    if os.path.exists(YAML):
+        rows, _ = FI.overlay_current_names(rows, YAML)
+    for a, s, n in rows:
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", n) and TEXT_START <= a < TEXT_END:
+            funcs.append((a, s, n))
     funcs.sort()
     return funcs
 

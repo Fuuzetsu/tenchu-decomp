@@ -102,6 +102,22 @@ fi
 
 
 class FunctionInventoryTests(unittest.TestCase):
+    def test_known_truncated_boundaries_are_corrected(self):
+        with tempfile.NamedTemporaryFile("w", delete=False) as fh:
+            path = fh.name
+            fh.write("80056f50\t276\tLoadCard\n")
+            fh.write("800593a0\t300\tFUN_800593a0\n")
+        try:
+            self.assertEqual(
+                function_inventory.load_functions(path),
+                [
+                    (0x80056F50, 0x168, "LoadCard"),
+                    (0x800593A0, 0x27C, "FUN_800593a0"),
+                ],
+            )
+        finally:
+            os.unlink(path)
+
     def test_current_c_names_overlay_stale_boundaries(self):
         with tempfile.TemporaryDirectory() as td:
             funcs = os.path.join(td, "functions.tsv")

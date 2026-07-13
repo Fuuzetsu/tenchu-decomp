@@ -16,6 +16,15 @@ import re
 VB = 0x80011000
 FO = 0x800
 
+# Ghidra stops these functions at internal labels even though the splat carve
+# and control flow prove that their bodies continue.  Keep the corrections in
+# the shared loader so every consumer sees the real function extent even when
+# it reads the live (stale) export.
+SIZE_OVERRIDES_BY_ADDR = {
+    0x80056F50: 0x168,  # LoadCard
+    0x800593A0: 0x27C,  # FUN_800593a0
+}
+
 _C_SUBSEGMENT = re.compile(
     r"^\s*-\s*\[\s*(0x[0-9A-Fa-f]+)\s*,\s*c\s*,\s*"
     r"([A-Za-z_][A-Za-z0-9_]*)\s*\]"
@@ -30,7 +39,9 @@ def load_functions(path: str) -> list[tuple[int, int, str]]:
             p = line.rstrip("\n").split("\t")
             if len(p) < 3 or line.startswith("#"):
                 continue
-            out.append((int(p[0], 16), int(p[1]), p[2]))
+            addr = int(p[0], 16)
+            size = SIZE_OVERRIDES_BY_ADDR.get(addr, int(p[1]))
+            out.append((addr, size, p[2]))
     return out
 
 

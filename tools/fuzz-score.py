@@ -33,6 +33,9 @@ import subprocess
 import sys
 import tempfile
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -51,12 +54,7 @@ CAP = 99.9  # a non-byte-exact draft never reads as "complete" (100)
 
 def sizes_by_addr():
     tsv = TSV if os.path.exists(TSV) else SNAPSHOT_TSV
-    out = {}
-    for line in open(tsv):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3:
-            out[int(p[0], 16)] = int(p[1])
-    return out
+    return {addr: size for addr, size, _ in FI.load_functions(tsv)}
 
 
 def load_symbols():

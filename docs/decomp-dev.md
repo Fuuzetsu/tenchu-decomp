@@ -92,13 +92,14 @@ and default (0) fields may be omitted. Each unit carries `functions[]`
   incremental build per draft) — run it in the nix devShell occasionally and
   commit the updated TSV; CI and `./Build report` just read it. Build failures
   are recorded and stay at 0%.
-- **`config/functions.main.exe.tsv`** — a **committed snapshot** of the function
-  inventory (`addr<TAB>size<TAB>name`). The live source
+- **`config/functions.main.exe.tsv`** — a **committed, reviewed snapshot** of the
+  function inventory (`addr<TAB>size<TAB>name`). The live source
   (`.shake/ghidra-export/functions.tsv`) is gitignored (a local Ghidra export), so
-  this snapshot is what makes report generation work on a fresh checkout / in CI
-  without Ghidra. When the live export is present, the generator prefers it **and
-  refreshes the snapshot** — so after re-exporting from Ghidra, run `./Build
-  report` and commit the updated `config/functions.main.exe.tsv` alongside.
+  this snapshot makes report generation work on a fresh checkout / in CI. Report
+  generation never overwrites it: the snapshot carries corrected `LoadCard` and
+  `FUN_800593a0` extents that Ghidra still truncates. Audit a new export explicitly
+  with `tools/objdiff-report.py --functions .shake/ghidra-export/functions.tsv` and
+  review inventory changes before updating the snapshot.
 - **`.github/workflows/report.yml`** — runs the generator and uploads the
   `jp_report` artifact (containing `report.json`) on pushes to the default branch
   (set to `master`, with `main` as a fallback). Adjust `branches:` if yours differs.
