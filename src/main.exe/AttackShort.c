@@ -34,21 +34,19 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING -- 8 of 1668 bytes are absent (415 of 417
- * instructions).  The complete draft below is structurally identical except
- * for the first status-7 return:
+ * STATUS: NON_MATCHING -- 8 of 1668 bytes differ.  The draft has the exact
+ * 417-instruction length and control-flow layout; only two status-7 result
+ * copies differ:
  *
- *     target: beq equal,continue; move s0,zero;
- *             j status7_return; move v0,zero
- *     draft:  bne unequal,status7_return; move s0,zero
+ *     target: move v0,s0
+ *     draft:  andi v0,s0,0xffff
  *
- * GCC 2.8.1's first jump pass still has the desired zero assignment and
- * explicit jump in RTL, but jump2 threads them into the shared signed-short
- * return tail.  Direct returns, one-shot loops, both boolean-switch case-fence
- * spellings, and a raw-difference switch with reversed default/case layout
- * were checked.  They either preserve this exact residual or merge additional
- * return blocks.  Keep the semantically correct C instead of forcing the two
- * instructions with assembly.
+ * A widened result pseudo prevents GCC 2.8.1 jump2 from threading away the
+ * retail-only explicit zero-return block.  Narrowing `status_pad` through u16
+ * keeps that layout, but materialises zero_extendhisi2 at both remaining copy
+ * sites.  Signed assignments remove the masks but let jump2 merge four target
+ * instructions.  Keep the pure-C near-match rather than forcing the two moves
+ * with assembly.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -73,7 +71,7 @@ short AttackShort(void)
 {
     MotionManager *motion;
     s16 pad;
-    s16 status7_result;
+    s32 status7_result;
 
     pad = 0;
     if ((Me_THINK_C->type & 0xf0) == 0xa0)
@@ -110,7 +108,7 @@ status7_continue:
         }
         if (rand() % (EngageLevel + 1) != 0)
         {
-            status7_result = status_pad;
+            status7_result = (u16)status_pad;
             goto status7_return;
         }
 
@@ -134,9 +132,9 @@ choose_status7:
         status_pad |= 0x80;
 
 status7_value:
-        status7_result = status_pad;
+        status7_result = (u16)status_pad;
 status7_return:
-        return status7_result;
+        return (s16)status7_result;
     }
 
     if (Me_THINK_C->status == 9)
