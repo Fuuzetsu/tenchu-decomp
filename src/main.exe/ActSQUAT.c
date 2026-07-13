@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -33,283 +34,375 @@
  * END PSX.SYM */
 
 /*
- * ActSQUAT (0x80024a04) — TODO one-line description.
+ * ActSQUAT (0x80024a04) — updates crouched movement, terrain blocking, and
+ * crouch-state attack/item/action dispatch.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ActSQUAT
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * STATUS: MATCHED — exact 1820 bytes / 455 instructions.
+ *
+ * Matching notes:
+ *  - The demo ActSQUAT is a strong source oracle: it has the same 0x28 frame,
+ *    motion cases 0-4, movement/terrain tails, command tree, and stand/stick
+ *    dispatch. Retail extends that source shape with case 9, jump input, and
+ *    selected-item dispatch.
+ *  - `turn` is only the signed half-turn used by cases 2-4. Motion constants
+ *    are assigned directly to `motID`; jump2 then sinks those stores into the
+ *    target's shared `$v0` tails. Reusing `turn` for them incorrectly keeps
+ *    the constants in `$s0`.
+ *  - Cases 2 and 3 jump into the stationary-motion continuation inside case
+ *    4. That multi-predecessor label preserves the target's physical order:
+ *    continuation, case 9, then the default case.
+ *  - Case 9 uses `time >> 1`, not `/ 2`; the latter adds the signed division
+ *    correction sequence. The signed/unsigned dtPAD views likewise preserve
+ *    the target's site-specific `lh`/`lhu` loads.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", ActSQUAT);
+typedef struct
+{
+    VECTOR TargetVector;
+    Humanoid *Owner;
+    s32 Mode;
+    s16 DirectionRX;
+    s16 DirectionRY;
+    s32 OldMode;
+    u8 Valiation;
+} TCameraStatus;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__switchD);
+extern MotionManager *dtM;
+extern Humanoid *Me_MOTION_C;
+extern u16 dtPAD;
+extern VECTOR *dtL;
+extern SVECTOR *dtR;
+extern SVECTOR *dtV;
+extern s16 dtCMD;
+extern s16 motID;
+extern s16 D_80097F0E;
+extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern u32 *GlobalAreaMap;
+extern Humanoid *StagePlayer;
+extern TCameraStatus CamState;
+extern s32 D_80097F1C;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_0);
+extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            int mode);
+extern s16 Sound(Humanoid *human, s16 id);
+extern void AttackControl(void);
+extern void ReqItemDefault(Humanoid *human, s32 kind);
+extern void SetCameraMode(s32 mode);
+extern void StickonCheck(void);
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_1);
+void ActSQUAT(void)
+{
+    short turn;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_2);
+    turn = Me_MOTION_C->turn / 2;
+    switch ((short)(dtM->mid - 0xB00))
+    {
+    case 0:
+        if (dtM->count == 0 && dtM->loop != 0)
+        {
+            dtM->loop = -1;
+        }
+        if (dtPAD & 0x1000)
+        {
+            motID = 0xB01;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (dtPAD & 0x4000)
+        {
+            motID = 0xB02;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (dtPAD & 0x2000)
+        {
+            motID = 0xB03;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (dtPAD & 0x8000)
+        {
+            motID = 0xB04;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (Me_MOTION_C->pad.trig & 0x40)
+        {
+            motID = 0xB09;
+            D_80097F0E = 1;
+            dtR->vy += 0x800;
+        }
+        goto common_action;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_3);
+    case 1:
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 0x11);
+        }
+        if ((dtPAD & 0x1000) == 0)
+        {
+            motID = 0xB00;
+            D_80097F0E = 1;
+        }
+        else if (Me_MOTION_C->pad.trig & 0x40)
+        {
+            motID = 0xB09;
+            D_80097F0E = 1;
+            dtR->vy += 0x800;
+        }
+        goto common_action;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_4);
+    case 2:
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 0x11);
+        }
+        if ((dtPAD & 0x4000) == 0)
+        {
+            motID = 0xB00;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (dtPAD & 0xA000)
+        {
+            int current;
+            int result;
+            SVECTOR *rotation;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_9);
+            rotation = dtR;
+            current = rotation->vy;
+            if (dtPAD & 0x2000)
+            {
+                result = current + turn;
+            }
+            else
+            {
+                result = current - turn;
+            }
+            rotation->vy = result;
+            dtV->vz = 0;
+            dtV->vx = 0;
+            goto common_action;
+        }
+        goto move_if_stationary;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_80024a64__caseD_5);
+    case 3:
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 0x11);
+        }
+        if ((dtPAD & 0x2000) == 0)
+        {
+            motID = 0xB00;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (dtPAD & 0x4000)
+        {
+            dtR->vy += turn;
+            dtV->vz = 0;
+            dtV->vx = 0;
+            goto common_action;
+        }
+        goto move_if_stationary;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__switchD);
+    case 4:
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 0x11);
+        }
+        if (((s16)dtPAD & 0x8000U) == 0)
+        {
+            motID = 0xB00;
+            D_80097F0E = 1;
+            goto common_action;
+        }
+        if (dtPAD & 0x4000)
+        {
+            dtR->vy -= turn;
+            dtV->vz = 0;
+            dtV->vx = 0;
+            goto common_action;
+        }
+move_if_stationary:
+        if (dtV->vx == 0 && dtV->vz == 0)
+        {
+            MoveHumanoid(Me_MOTION_C,
+                         Me_MOTION_C->motion->motion->orderspd,
+                         Me_MOTION_C->motion->motion->sidespd);
+        }
+        goto common_action;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_2);
+    case 9:
+        if (dtM->count == (dtM->motion->time >> 1))
+        {
+            Sound(Me_MOTION_C, 0x13);
+            *((u8 *)&CamState.OldMode + 1) = 1;
+        }
+        if (dtM->count == 0 && dtM->loop != 0)
+        {
+            motID = 0xB00;
+            D_80097F0E = 1;
+        }
+        goto common_action;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_1);
+    default:
+        if (dtM->count == 1)
+        {
+            Sound(Me_MOTION_C, 0x13);
+            return;
+        }
+        if (dtM->count == 0 && dtM->loop != 0)
+        {
+            motID = 0xB00;
+            D_80097F0E = 1;
+            return;
+        }
+        if (dtV->vx == 0 && dtV->vz == 0)
+        {
+            return;
+        }
+        if (GetAreaMapLevel(GlobalAreaMap,
+                            dtL->vx + dtV->vx * 4,
+                            dtL->vy,
+                            dtL->vz + dtV->vz * 4,
+                            3) < -450)
+        {
+            dtL->vx -= dtV->vx;
+            dtL->vz -= dtV->vz;
+            dtV->vz = 0;
+            dtV->vx = 0;
+        }
+        return;
+    }
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_3);
+common_action:
+    if (motID == 0xB09)
+    {
+        return;
+    }
+    if (motID != 0xB00 && (dtV->vx != 0 || dtV->vz != 0))
+    {
+        if (__builtin_abs(GetAreaMapLevel(GlobalAreaMap,
+                                          dtL->vx + dtV->vx * 16,
+                                          dtL->vy,
+                                          dtL->vz + dtV->vz * 16,
+                                          3)) >= 500)
+        {
+            dtV->vz = 0;
+            dtV->vx = 0;
+        }
+    }
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_6);
+    if (dtCMD != 0)
+    {
+        if (dtCMD == 0x12)
+        {
+            goto command_12;
+        }
+        if (dtCMD < 0x13)
+        {
+            if (dtCMD == 0x11)
+            {
+                goto command_11;
+            }
+            return;
+        }
+        if (dtCMD == 0x13)
+        {
+            goto command_13;
+        }
+        if (dtCMD == 0x14)
+        {
+            goto command_14;
+        }
+        return;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_5);
+command_12:
+        motID = 0xB06;
+        goto command_flag;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_7);
+command_13:
+        motID = 0xB08;
+        goto command_flag;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_0);
+command_11:
+        motID = 0xB05;
+        goto command_flag;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActSQUAT", switchD_8002500c__caseD_4);
+command_14:
+        motID = 0xB07;
 
-/* jump-table pool @ 0x80011568 (22 words; tables at 0x80011568, 0x80011590) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 ActSQUAT_jtbl[22] = {
-    0x80024A6C, 0x80024B0C, 0x80024B90, 0x80024C0C,
-    0x80024C64, 0x80024DB0, 0x80024DB0, 0x80024DB0,
-    0x80024DB0, 0x80024D34, 0x80025044, 0x8002501C,
-    0x80025014, 0x80025024, 0x80025060, 0x80025034,
-    0x8002502C, 0x8002503C, 0x80025060, 0x80025060,
-    0x80025060, 0x80025044,
-};
+command_flag:
+        D_80097F0E = 1;
+        return;
+    }
 
-#else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// void ActSQUAT(void)
-// 
-// {
-//   ushort uVar1;
-//   VECTOR *pVVar2;
-//   SVECTOR *pSVar3;
-//   int iVar4;
-//   MotionDataType *pMVar5;
-//   long lVar6;
-//   short sVar7;
-//   
-//   iVar4 = (uint)(ushort)Me_MOTION_C->turn << 0x10;
-//   sVar7 = (short)((uint)((iVar4 >> 0x10) - (iVar4 >> 0x1f)) >> 1);
-//   switch((int)(((ushort)dtM->mid - 0xb00) * 0x10000) >> 0x10) {
-//   case 0:
-//     if ((dtM->count == 0) && (dtM->loop != 0)) {
-//       dtM->loop = -1;
-//     }
-//     sVar7 = 0xb01;
-//     if (((((dtPAD & 0x1000) == 0) && (sVar7 = 0xb02, (dtPAD & 0x4000) == 0)) &&
-//         (sVar7 = 0xb03, (dtPAD & 0x2000) == 0)) && (sVar7 = 0xb04, (dtPAD & 0x8000) == 0)) {
-//       if (((Me_MOTION_C->pad).trig & 0x40) != 0) {
-//         motID = 0xb09;
-//         DAT_80097f0e = 1;
-//         dtR->vy = dtR->vy + 0x800;
-//       }
-//       goto LAB_80024ea8;
-//     }
-//     goto LAB_80024d9c;
-//   case 1:
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,0x11);
-//     }
-//     if ((dtPAD & 0x1000) == 0) {
-//       motID = 0xb00;
-//       DAT_80097f0e = 1;
-//     }
-//     else if (((Me_MOTION_C->pad).trig & 0x40) != 0) {
-//       motID = 0xb09;
-//       DAT_80097f0e = 1;
-//       dtR->vy = dtR->vy + 0x800;
-//     }
-//     goto LAB_80024ea8;
-//   case 2:
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,0x11);
-//     }
-//     pSVar3 = dtV;
-//     if ((dtPAD & 0x4000) == 0) {
-// LAB_80024c9c:
-//       motID = 0xb00;
-//       DAT_80097f0e = 1;
-//       goto LAB_80024ea8;
-//     }
-//     if ((dtPAD & 0xa000) != 0) {
-//       if ((dtPAD & 0x2000) == 0) {
-//         sVar7 = -sVar7;
-//       }
-//       dtR->vy = dtR->vy + sVar7;
-//       pSVar3->vz = 0;
-//       pSVar3->vx = 0;
-//       goto LAB_80024ea8;
-//     }
-//     break;
-//   case 3:
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,0x11);
-//     }
-//     if ((dtPAD & 0x2000) == 0) goto LAB_80024c9c;
-//     if ((dtPAD & 0x4000) != 0) {
-//       sVar7 = dtR->vy + sVar7;
-// LAB_80024ccc:
-//       pSVar3 = dtV;
-//       dtR->vy = sVar7;
-//       pSVar3->vz = 0;
-//       pSVar3->vx = 0;
-//       goto LAB_80024ea8;
-//     }
-//     break;
-//   case 4:
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,0x11);
-//     }
-//     if (((int)(short)dtPAD & 0x8000U) == 0) goto LAB_80024c9c;
-//     if ((dtPAD & 0x4000) != 0) {
-//       sVar7 = dtR->vy - sVar7;
-//       goto LAB_80024ccc;
-//     }
-//     break;
-//   default:
-//     if (dtM->count == 1) {
-//       Sound(Me_MOTION_C,0x13);
-//       return;
-//     }
-//     if ((dtM->count == 0) && (dtM->loop != 0)) {
-//       motID = 0xb00;
-//       DAT_80097f0e = 1;
-//       return;
-//     }
-//     if ((dtV->vx == 0) && (dtV->vz == 0)) {
-//       return;
-//     }
-//     lVar6 = GetAreaMapLevel(GlobalAreaMap,dtL->vx + dtV->vx * 4,dtL->vy);
-//     pSVar3 = dtV;
-//     pVVar2 = dtL;
-//     if (-0x1c3 < lVar6) {
-//       return;
-//     }
-//     dtL->vx = dtL->vx - (int)dtV->vx;
-//     pVVar2->vz = pVVar2->vz - (int)pSVar3->vz;
-//     pSVar3->vz = 0;
-//     pSVar3->vx = 0;
-//     return;
-//   case 9:
-//     if ((int)dtM->count == (int)((uint)(ushort)dtM->motion->time << 0x10) >> 0x11) {
-//       Sound(Me_MOTION_C,0x13);
-//       CamState.OldMode._1_1_ = 1;
-//     }
-//     if ((dtM->count != 0) || (sVar7 = 0xb00, dtM->loop == 0)) goto LAB_80024ea8;
-// LAB_80024d9c:
-//     DAT_80097f0e = 1;
-//     motID = sVar7;
-//     goto LAB_80024ea8;
-//   }
-//   if ((dtV->vx == 0) && (dtV->vz == 0)) {
-//     pMVar5 = Me_MOTION_C->motion->motion;
-//     MoveHumanoid(Me_MOTION_C,(ushort)pMVar5->orderspd,(ushort)pMVar5->sidespd);
-//   }
-// LAB_80024ea8:
-//   if (motID == 0xb09) {
-//     return;
-//   }
-//   if ((motID != 0xb00) && ((dtV->vx != 0 || (dtV->vz != 0)))) {
-//     iVar4 = GetAreaMapLevel(GlobalAreaMap,dtL->vx + dtV->vx * 0x10,dtL->vy);
-//     pSVar3 = dtV;
-//     if (iVar4 < 0) {
-//       iVar4 = -iVar4;
-//     }
-//     if (499 < iVar4) {
-//       dtV->vz = 0;
-//       pSVar3->vx = 0;
-//     }
-//   }
-//   if (dtCMD == 0) {
-//     uVar1 = (Me_MOTION_C->pad).trig;
-//     if ((uVar1 & 0x80) != 0) {
-//       AttackControl();
-//       return;
-//     }
-//     if ((uVar1 & 0x10) == 0) {
-//       if ((dtPAD & 0x20) != 0) {
-//         if (DAT_80097f1c == 0) {
-//           return;
-//         }
-//         StickonCheck();
-//         return;
-//       }
-//       if (Me_MOTION_C == StagePlayer) {
-//         SetCameraMode(CMODE_NORMAL);
-//       }
-//       sVar7 = 0x501;
-//       if ((Me_MOTION_C->attribute & 0x40U) == 0) {
-//         motID = 0;
-//         DAT_80097f0e = 1;
-//         return;
-//       }
-//     }
-//     else {
-//       switch((int)((DAT_80097b1e + 1) * 0x10000) >> 0x10) {
-//       case 0:
-//       case 0xb:
-//         SoundEx(Me_MOTION_C->locate,0xc);
-//         return;
-//       case 1:
-//         sVar7 = 0x400;
-//         break;
-//       case 2:
-//         sVar7 = 0xe00;
-//         break;
-//       case 3:
-//         sVar7 = 0xf00;
-//         break;
-//       default:
-//         ReqItemDefault(Me_MOTION_C,(int)(short)DAT_80097b1e);
-//         return;
-//       case 5:
-//         sVar7 = 0xf02;
-//         break;
-//       case 6:
-//         sVar7 = 0xf02;
-//         break;
-//       case 7:
-//         sVar7 = 0xf03;
-//       }
-//     }
-//   }
-//   else if (dtCMD == 0x12) {
-//     sVar7 = 0xb06;
-//   }
-//   else if (dtCMD < 0x13) {
-//     sVar7 = 0xb05;
-//     if (dtCMD != 0x11) {
-//       return;
-//     }
-//   }
-//   else if (dtCMD == 0x13) {
-//     sVar7 = 0xb08;
-//   }
-//   else {
-//     sVar7 = 0xb07;
-//     if (dtCMD != 0x14) {
-//       return;
-//     }
-//   }
-//   DAT_80097f0e = 1;
-//   motID = sVar7;
-//   return;
-// }
+    if (Me_MOTION_C->pad.trig & 0x80)
+    {
+        AttackControl();
+        return;
+    }
+    if (Me_MOTION_C->pad.trig & 0x10)
+    {
+        switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+        {
+        case 2:
+            motID = 0xE00;
+            break;
+        case 1:
+            motID = 0x400;
+            break;
+        case 3:
+            motID = 0xF00;
+            break;
+        case 6:
+            motID = 0xF02;
+            break;
+        case 5:
+            motID = 0xF02;
+            break;
+        case 7:
+            motID = 0xF03;
+            break;
+        case 0:
+        case 11:
+            goto item_sound;
+        default:
+            goto item_default;
+        }
+        D_80097F0E = 1;
+        return;
 
-#endif /* NON_MATCHING */
+item_sound:
+        SoundEx(Me_MOTION_C->locate, 0xC);
+        return;
+
+item_default:
+        ReqItemDefault(Me_MOTION_C, CURRENTLY_SELECTED_ITEM_KIND_0_);
+        return;
+    }
+
+    if ((dtPAD & 0x20) == 0)
+    {
+        if (Me_MOTION_C == StagePlayer)
+        {
+            SetCameraMode(0);
+        }
+        if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+        {
+            motID = 0x501;
+            D_80097F0E = 1;
+            return;
+        }
+        motID = 0;
+        D_80097F0E = 1;
+        return;
+    }
+    if (D_80097F1C != 0)
+    {
+        StickonCheck();
+    }
+    return;
+}
