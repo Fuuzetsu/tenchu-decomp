@@ -583,6 +583,41 @@ int F(VECTOR *position) {
         self.assertEqual(self.candidates(autorules.rule_shared_tail_assign, unbraced), [])
         self.assertEqual(self.candidates(autorules.rule_shared_tail_assign, separated), [])
 
+    def test_shared_return_split_duplicates_a_direct_return_label(self):
+        source = """int F(int fast) {
+    int result;
+    if (fast) {
+        result = helper();
+        goto done;
+    }
+    result = fallback();
+done:
+    return result;
+}
+"""
+        # rtlguide maps the epilogue residual to the return, not the remote
+        # goto.  The associated label must still make that goto eligible.
+        autorules.GUIDED_LINES = {9}
+        out = self.candidates(autorules.rule_shared_return_split, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertIn("result = helper();\n        return result;", candidate)
+        self.assertIn("done:\n    return result;", candidate)
+        self.assertEqual(candidate.count("return result;"), 2)
+
+    def test_shared_return_split_rejects_a_label_with_work_before_return(self):
+        source = """int F(int fast) {
+    int result;
+    if (fast) goto done;
+    result = fallback();
+done:
+    result++;
+    return result;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_shared_return_split, source), [])
+
     def test_shift16_mul_respelled_for_declared_short(self):
         source = """typedef unsigned short u16;
 typedef unsigned int u32;
@@ -1244,6 +1279,42 @@ class RtlGuideTests(unittest.TestCase):
         self.assertEqual(rtlguide.classify_hunk(h), "schedule/delay")
         self.assertEqual(rtlguide.known_residual_signatures([h]),
                          ["adjacent-independent-load-order"])
+
+    def test_known_shared_return_extension_schedule_signature(self):
+        target = [
+            (0x1000, "sll v0,s0,0x10"),
+            (0x1004, "sra v0,v0,0x10"),
+            (0x1008, "lw ra,20(sp)"),
+            (0x100c, "lw s0,16(sp)"),
+            (0x1010, "jr ra"),
+            (0x1014, "addiu sp,sp,24"),
+        ]
+        ours = [
+            (0x1000, "sll v0,s0,0x10"),
+            (0x1004, "lw ra,20(sp)"),
+            (0x1008, "lw s0,16(sp)"),
+            (0x100c, "sra v0,v0,0x10"),
+            (0x1010, "jr ra"),
+            (0x1014, "addiu sp,sp,24"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours),
+            ["shared-return-extension-schedule"],
+        )
+
+    def test_shared_return_signature_rejects_other_tail_differences(self):
+        target = [
+            (0x1000, "sra v0,v0,16"),
+            (0x1004, "lw ra,20(sp)"),
+            (0x1008, "jr ra"),
+        ]
+        ours = [
+            (0x1000, "lw ra,24(sp)"),
+            (0x1004, "sra v0,v0,16"),
+            (0x1008, "jr ra"),
+        ]
+        self.assertEqual(
+            rtlguide.known_residual_signatures([], target, ours), [])
 
     def test_loop_boundary_lines_parse_first_post_loop_statement(self):
         dump = """;; Function F

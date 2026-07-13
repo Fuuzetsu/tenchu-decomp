@@ -91,6 +91,7 @@ CATEGORY_RULES = {
     "schedule/delay": [
         "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "shared-tail-assign",
+        "shared-return-split",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
         "call-arg-pair", "eq-literal-swap", "pointee-volatile",
         "adjacent-field-store-swap", "assignment-chain",
@@ -158,6 +159,11 @@ SIGNATURE_HINTS = {
         "target and candidate differ only by load/literal homes and reversed "
         "beq/bne operands; try eq-literal-swap once, then treat a flat result "
         "as a bounded global-allocation tie"
+    ),
+    "shared-return-extension-schedule": (
+        "target sign-extends the return value before restoring saved registers, "
+        "while the candidate restores first; run guided shared-return-split to "
+        "replace one goto to the final return label with a second literal return"
     ),
 }
 
@@ -606,6 +612,61 @@ def _call_result_argument_pipeline(target, ours):
     return has_pipeline(target) and not has_pipeline(ours)
 
 
+def _shared_return_extension_schedule(target, ours):
+    """Detect a narrow return conversion moved across epilogue restores.
+
+    For a signed-short return, this compiler emits ``sra v0,v0,16``.  A
+    second literal return leaves a CODE_LABEL before that conversion during
+    sched2, so the target keeps it above the saved-register loads; a single
+    shared return lets sched2 sink it below them.  Require the complete tail
+    multiset to be identical so ordinary epilogue or register-allocation
+    differences cannot trigger this source-shape recommendation.
+    """
+    saved = {"ra", "fp", "s8", *(f"s{i}" for i in range(8))}
+
+    def tail(stream):
+        returns = [
+            i for i, (_address, insn) in enumerate(stream)
+            if mnemonic(insn) == "jr" and registers(insn)[:1] == ["ra"]
+        ]
+        if not returns:
+            return None
+        end = returns[-1]
+        start = max(0, end - 10)
+        extension = []
+        restores = []
+        for i in range(start, end):
+            insn = stream[i][1]
+            regs = registers(insn)
+            numbers = NUM_RE.findall(insn)
+            if (mnemonic(insn) == "sra" and regs[:2] == ["v0", "v0"] and
+                    numbers and int(numbers[-1], 0) == 16):
+                extension.append(i)
+            if (mnemonic(insn) == "lw" and len(regs) >= 2 and
+                    regs[0] in saved and regs[1] == "sp"):
+                restores.append(i)
+        if len(extension) != 1 or not restores or \
+                not any(registers(stream[i][1])[:1] == ["ra"] for i in restores):
+            return None
+        first = min(extension[0], restores[0])
+        return {
+            "extension": extension[0],
+            "restores": restores,
+            "instructions": [insn for _address, insn in stream[first:end + 1]],
+        }
+
+    target_tail = tail(target)
+    ours_tail = tail(ours)
+    if target_tail is None or ours_tail is None:
+        return False
+    return (
+        target_tail["extension"] < min(target_tail["restores"]) and
+        ours_tail["extension"] > max(ours_tail["restores"]) and
+        Counter(target_tail["instructions"]) ==
+        Counter(ours_tail["instructions"])
+    )
+
+
 def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
     """Name narrow, previously root-caused residual shapes.
 
@@ -624,6 +685,8 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
             found.append("builtin-abs-inline")
         if _call_result_argument_pipeline(target_stream, ours_stream):
             found.append("call-result-argument-pipeline")
+        if _shared_return_extension_schedule(target_stream, ours_stream):
+            found.append("shared-return-extension-schedule")
     for hunk in hunks:
         target = [x[1] for x in hunk["target"]]
         ours = [x[1] for x in hunk["ours"]]

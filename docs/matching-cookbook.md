@@ -2497,6 +2497,16 @@ does NOT sit between two blocks sharing a cse'd value (a shared `lhu` of a globa
 shared struct-pointer load) — cse follows only the fallthrough path
 (`turn_towards_player_`; its `cached != 0x80000000` guard is the unique safe site).
 
+`Think3attack` independently confirmed the same signature at an ordinary
+value-producing early edge: changing `goto return_pad;` to `return pad;` moved
+only the final `sra`, closing a 10-byte residual with no surviving extra code.
+`rtlguide` reports this exact epilogue permutation as
+`shared-return-extension-schedule`; guided `autorules` then enumerates
+`shared-return-split` only for gotos whose destination immediately returns.
+The residual's source line normally belongs to the final return, so the rule
+uses that label line to admit the distant goto without opening a global CFG
+search.
+
 ### cse2 ignores loop notes; evict a merged `&local` arg by reassigning a pointer
 
 `cse1` ends its basic block at `NOTE_INSN_LOOP_END` but `cse2` does NOT, so a

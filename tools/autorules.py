@@ -2176,6 +2176,54 @@ def rule_shared_tail_assign(text, name, span):
             )
 
 
+def rule_shared_return_split(text, name, span):
+    """Replace one goto to a final return label with that literal return.
+
+    ``goto done; ... done: return value;`` and ``return value;`` are
+    semantically equivalent on that edge.  They are not scheduler-equivalent:
+    before jump2 merges the tails, the second source return contributes a hard
+    CODE_LABEL that can keep a narrow return conversion above the epilogue
+    restores.  Only labels whose immediate statement is exactly one return are
+    eligible.  The return label itself is kept so other incoming edges and the
+    ordinary fallthrough remain unchanged.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    returns = {}
+    for labeled in _find(body, ("labeled_statement",)):
+        label = labeled.child_by_field_name("label")
+        statements = [
+            child for child in labeled.named_children
+            if child != label and child.type != "comment"
+        ]
+        if label is None or len(statements) != 1 or \
+                statements[0].type != "return_statement":
+            continue
+        returns[_txt(data, label)] = statements[0]
+
+    for goto in _find(body, ("goto_statement",)):
+        label = goto.child_by_field_name("label")
+        if label is None:
+            continue
+        return_statement = returns.get(_txt(data, label))
+        if return_statement is None:
+            continue
+        goto_line = _line(data, goto.start_byte)
+        return_line = _line(data, return_statement.start_byte)
+        if not (_guided_site(goto_line) or _guided_site(return_line)):
+            continue
+        yield (
+            f"shared-return-split {_txt(data, label).decode()} L{goto_line}",
+            splice(
+                data, goto.start_byte, goto.end_byte,
+                _txt(data, return_statement).strip(),
+            ).decode(),
+        )
+
+
 def rule_switch_cse_evict(text, name, span):
     """Dead-overwrite an entry index local before re-reading it in a switch.
 
@@ -3317,6 +3365,7 @@ AGGRESSIVE_RULES = [
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
+    ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),
     ("adjacent-field-store-swap", "swap adjacent literal stores to distinct fields", rule_adjacent_field_store_swap),
     ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
