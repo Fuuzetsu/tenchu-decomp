@@ -423,6 +423,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "register_character_death" = ["D_800979DE", "FRAMES_UNTIL_END_OF_ALERT"]
     syms "Think3attack" = ["Me_THINK_C", "SR", "Distance", "Degree", "EngageLevel"]
     syms "SetFlyWire" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
+    syms "FUN_80035f44" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms _ = []
 
 as :: FilePath

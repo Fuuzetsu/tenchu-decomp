@@ -310,6 +310,7 @@ GP_EXTERNS = {
     "register_character_death": ["D_800979DE", "FRAMES_UNTIL_END_OF_ALERT"],
     "Think3attack": ["Me_THINK_C", "SR", "Distance", "Degree", "EngageLevel"],
     "SetFlyWire": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "FUN_80035f44": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

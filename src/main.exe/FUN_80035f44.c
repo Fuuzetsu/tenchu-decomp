@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -14,7 +15,157 @@
  * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80035f44", FUN_80035f44);
+extern s32 GameClock;
+extern void GsGetLw(GsCOORDINATE2 *coord, MATRIX *mat);
+extern void GsSetLsMatrix(MATRIX *mat);
+extern void RotTrans(SVECTOR *in, VECTOR *out, long *flag);
+extern void ApplyRotMatrix(SVECTOR *in, VECTOR *out);
+extern void FUN_8003562c(TEffectSlot *ef);
+extern void FUN_80033f10(TEffectSlot *ef);
+
+/*
+ * MATCH. Converts a model-space position and direction into a blood/gore
+ * effect, then emits a larger impact particle every fourth frame.
+ *
+ * The two EffectSlot searches intentionally use distinct scoped locals.  The
+ * first cursor coalesces with the BloodType pointer in $s0; keeping one cursor
+ * variable live through both searches rotates nearly every scan register.
+ * `rotated` is genuinely a two-VECTOR workspace: its second element holds the
+ * three signed position captures at sp+0x58..0x60 while the second pool search
+ * runs.  Independent scalar captures stay in registers, shorten the function,
+ * and lose the target's 0x88-byte frame.  Finally, naming `final_py` immediately
+ * after the px store preserves the target's early load and late py store.
+ */
+void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
+{
+    VECTOR world;
+    MATRIX mat;
+    SVECTOR local_vector;
+    VECTOR rotated[2];
+    long flag[2];
+    u32 clock;
+
+    GsGetLw(coord, &mat);
+    GsSetLsMatrix(&mat);
+    RotTrans(position, &world, flag);
+
+    {
+        int idx;
+        TEffectSlot *base;
+        TEffectSlot *slot;
+        int count;
+        TEffectSlot *ef;
+        BloodType *param;
+
+        count = 0;
+        base = EffectSlot;
+        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        slot = base + idx;
+        do
+        {
+            idx = idx + 1;
+            slot = slot + 1;
+            if (199 < idx)
+            {
+                slot = base;
+                idx = 0;
+            }
+            if (slot->proc == 0)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                if (199 < idx + 1)
+                {
+                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                }
+                ef = slot;
+                goto found;
+            }
+            count = count + 1;
+        } while (count < 200);
+        ef = &dmy;
+    found:
+        param = &ef->param.blood;
+        param->unk22 = rand() % 2;
+        param->scale = 0x2000;
+        param->rotate = (rand() % 360) * 0x1000;
+        param->px = world.vx;
+        param->py = world.vy;
+        param->pz = world.vz;
+        local_vector = *vector;
+        ApplyRotMatrix(&local_vector, rotated);
+        param->vx = (short)rotated[0].vx;
+        param->vy = (short)rotated[0].vy;
+        param->vz = (short)rotated[0].vz;
+        param->time = rand() % 15 + 10;
+        param->hint = 0;
+        *(u16 *)&param->mode = 0x80;
+        param->unk23 = 0;
+        clock = GameClock & 3;
+        ef->proc = (void (*)())FUN_8003562c;
+    }
+
+    if (clock == 0)
+    {
+        int idx;
+        TEffectSlot *base;
+        TEffectSlot *slot;
+        TEffectSlot *ef;
+        int count;
+        BloodType *param;
+        long final_py;
+        long scale;
+        long rotate;
+
+        scale = 0x808080;
+        rotate = 0x808080;
+        rotated[1].vx = position->vx;
+        rotated[1].vy = position->vy;
+        count = 0;
+        rotated[1].vz = position->vz;
+        base = EffectSlot;
+        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        slot = base + idx;
+        do
+        {
+            idx = idx + 1;
+            slot = slot + 1;
+            if (199 < idx)
+            {
+                slot = base;
+                idx = 0;
+            }
+            if (slot->proc == 0)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                if (199 < idx + 1)
+                {
+                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                }
+                ef = slot;
+                goto impact_found;
+            }
+            count = count + 1;
+        } while (count < 200);
+        ef = &dmy;
+    impact_found:
+        ef->proc = (void (*)())FUN_80033f10;
+        ef->param.blood.hint = (struct AreaNodeType *)rotated[1].vx;
+        param = &ef->param.blood;
+        param->px = rotated[1].vy;
+        final_py = rotated[1].vz;
+        param->vz = 0x50;
+        param->time = 0x2000;
+        param->vx = 0x2000;
+        param->unk22 = 3;
+        param->pz = (long)coord;
+        param->vy = 0;
+        param->scale = scale;
+        param->rotate = rotate;
+        param->bright = 0;
+        param->mode = 2;
+        param->py = final_py;
+    }
+}
 
 // triage: MEDIUM — 208 insns, mul/div, 2 loop, 5 callees, ~0.06 to ReqItemNingyo
 // likely-relevant cookbook sections:
