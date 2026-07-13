@@ -118,9 +118,9 @@ extern MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
 
 /* Matching checkpoint (retail): the pure-C draft has the exact 0x68 frame,
  * 564 instructions, exact 36/12/33/1 branch/jump/call/return inventory, and
- * target item/param/sentinel homes s3/s4/s5.  The remaining 25 differing
- * bytes are confined to the decoy launch's s0/s1/s2 rotation and the mode-1
- * constant schedule.
+ * target item/param/sentinel homes s3/s4/s5.  The remaining 19 differing
+ * bytes are confined to the decoy launch's derived-position identity and
+ * modulus-constant register, plus the mode-1 constant schedule.
  *
  * The otherwise-odd one-shot loops are measured allocator/scheduler fences:
  * the launch fence prevents a stack-address pseudo from occupying s3, while
@@ -219,7 +219,7 @@ void ProcItemNingyo(tag_TItem *item)
                 model = item->locate;
                 memset((PARAM_ITEM_USE *)&scratch.vectors.v.vz, 0,
                        sizeof(PARAM_ITEM_USE));
-                if (owner != 0)
+                if (model != 0)
                 {
                     ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
                 }
