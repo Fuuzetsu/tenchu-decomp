@@ -16,11 +16,13 @@ and permute.py in one operation.
   tools/maspsxflags.py <Name> --write  sync both mirrored flag tables
 """
 import argparse
+import ast
 import glob
 import os
 import re
 import sys
 
+import fuzzy_inventory
 import gpsyms
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,6 +30,7 @@ os.chdir(ROOT)
 
 BUILD_HS = "shake/src/Build.hs"
 PERMUTE = "tools/permute.py"
+SRC = "src/main.exe"
 
 
 def _read(path):
@@ -95,6 +98,91 @@ def target_requirements(name):
     }
 
 
+def _quoted_values(raw):
+    return re.findall(r'"([^"]+)"', raw)
+
+
+def build_tables():
+    """Return the gp/extra tables encoded in Build.hs."""
+    text = _read(BUILD_HS)
+    try:
+        body = text.split("maspsxGpExterns src =", 1)[1]
+        extra_body, gp_body = body.split("extra _ = []", 1)
+        gp_body = gp_body.split("syms _ = []", 1)[0]
+    except (IndexError, ValueError):
+        sys.exit("maspsxflags: couldn't parse maspsxGpExterns in Build.hs")
+
+    extras = {}
+    for name, raw in re.findall(
+            r'^\s*extra "([A-Za-z0-9_]+)" = \[([^\n]*)\]$',
+            extra_body, re.M):
+        extras[name] = _quoted_values(raw)
+    gp = {}
+    for name, raw in re.findall(
+            r'^\s*syms "([A-Za-z0-9_]+)" = \[([^\n]*)\]$',
+            gp_body, re.M):
+        gp[name] = _quoted_values(raw)
+    return gp, extras
+
+
+def permute_tables():
+    """Return literal GP_EXTERNS/MASPSX_EXTRA assignments from permute.py."""
+    wanted = {"GP_EXTERNS", "MASPSX_EXTRA"}
+    found = {}
+    for node in ast.parse(_read(PERMUTE), filename=PERMUTE).body:
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if isinstance(target, ast.Name) and target.id in wanted:
+            found[target.id] = ast.literal_eval(node.value)
+    missing = wanted - set(found)
+    if missing:
+        sys.exit("maspsxflags: couldn't parse " + ", ".join(sorted(missing))
+                 + " in permute.py")
+    return found["GP_EXTERNS"], found["MASPSX_EXTRA"]
+
+
+def _normalized(table):
+    return {name: frozenset(flags) for name, flags in table.items()}
+
+
+def audit_guarded_drafts():
+    """Return target-derived metadata errors for every guarded C draft."""
+    build_gp, build_extra = build_tables()
+    permute_gp, permute_extra = permute_tables()
+    errors = []
+
+    if _normalized(build_gp) != _normalized(permute_gp):
+        errors.append("Build.hs and permute.py gp tables are not mirrored")
+    if _normalized(build_extra) != _normalized(permute_extra):
+        errors.append("Build.hs and permute.py extra-flag tables are not mirrored")
+
+    for name in sorted(fuzzy_inventory.guarded_sources(SRC)):
+        req = target_requirements(name)
+        expected_gp = set(req["gp_symbols"])
+        for label, table in (("Build.hs", build_gp),
+                             ("permute.py", permute_gp)):
+            actual_gp = set(table.get(name, []))
+            if expected_gp != actual_gp:
+                missing = sorted(expected_gp - actual_gp)
+                stale = sorted(actual_gp - expected_gp)
+                detail = []
+                if missing:
+                    detail.append("missing " + ", ".join(missing))
+                if stale:
+                    detail.append("stale " + ", ".join(stale))
+                errors.append(f"{name}: {label} gp table " + "; ".join(detail))
+
+        needs_div = req["guarded_divisions"] > 0
+        for label, table in (("Build.hs", build_extra),
+                             ("permute.py", permute_extra)):
+            has_div = "--expand-div" in table.get(name, [])
+            if needs_div != has_div:
+                state = "missing" if needs_div else "stale"
+                errors.append(f"{name}: {label} {state} --expand-div")
+    return errors
+
+
 def _with_flag(raw, flag):
     flags = re.findall(r'"([^"]+)"', raw)
     if flag not in flags:
@@ -149,10 +237,27 @@ def patch_permute_extra(name, flag="--expand-div"):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("name")
+    parser.add_argument("name", nargs="?")
     parser.add_argument("--write", action="store_true",
                         help="sync Build.hs and permute.py")
+    parser.add_argument("--check", action="store_true",
+                        help="audit every guarded draft against target asm")
     args = parser.parse_args()
+
+    if args.check:
+        if args.name or args.write:
+            parser.error("--check does not take a name or --write")
+        errors = audit_guarded_drafts()
+        if errors:
+            for error in errors:
+                print("maspsxflags: " + error, file=sys.stderr)
+            sys.exit(1)
+        count = len(fuzzy_inventory.guarded_sources(SRC))
+        print(f"maspsxflags: OK — {count} guarded drafts have target-derived "
+              "gp/div metadata")
+        return
+    if not args.name:
+        parser.error("NAME is required unless --check is used")
 
     req = target_requirements(args.name)
     gp = req["gp_symbols"]

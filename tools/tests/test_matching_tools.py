@@ -2626,6 +2626,24 @@ MASPSX_EXTRA = {
         self.assertEqual(
             permute_after.count('"F": ["--expand-div"]'), 1)
 
+    def test_global_audit_reports_target_metadata_omissions(self):
+        guarded = {"F": "/tmp/F.c"}
+        requirements = {"gp_symbols": ["Small"], "guarded_divisions": 1}
+        tables = ({}, {}, {}, {})
+        with mock.patch.object(maspsxflags.fuzzy_inventory,
+                               "guarded_sources", return_value=guarded), \
+                mock.patch.object(maspsxflags, "target_requirements",
+                                  return_value=requirements), \
+                mock.patch.object(maspsxflags, "build_tables",
+                                  return_value=tables[:2]), \
+                mock.patch.object(maspsxflags, "permute_tables",
+                                  return_value=tables[2:]):
+            errors = maspsxflags.audit_guarded_drafts()
+        self.assertIn("F: Build.hs gp table missing Small", errors)
+        self.assertIn("F: permute.py gp table missing Small", errors)
+        self.assertIn("F: Build.hs missing --expand-div", errors)
+        self.assertIn("F: permute.py missing --expand-div", errors)
+
 
 class RegallocParserTests(unittest.TestCase):
     def test_preferences_are_exposed(self):

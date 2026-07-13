@@ -339,6 +339,8 @@ Two helpers for the setup phase:
   those gp externs, detects target variable divisions carrying ASPSX's
   `break 7`/`break 6` guards, and synchronizes both the gp and `--expand-div`
   Build.hs/permuter tables. Prefer it when starting a newly split function.
+  After batch work, `tools/maspsxflags.py --check` audits every guarded draft
+  against target asm and verifies that the two metadata tables remain mirrored.
 - `tools/xref.py <Name>` lists callers (their call sites pin the prototype)
   and callees (matched vs needs-extern), resolved against the original image.
 

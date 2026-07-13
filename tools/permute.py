@@ -318,6 +318,20 @@ GP_EXTERNS = {
     "FUN_8005adbc": ["D_80097D20", "D_80097D24", "D_80097D28"],
     "ActDEAD": ["Me_MOTION_C", "dtM", "dtV", "motID", "dtL", "D_80097F0E", "D_8009770C"],
     "ActSTICKON": ["dtM", "Me_MOTION_C", "dtR", "dtCMD", "motID", "D_80097F0E", "MotionUpdateMode", "dtPAD", "dtV", "D_80097EF0", "dtL"],
+    "ActACTION": ["dtM", "Me_MOTION_C", "dtV", "dtPAD", "MotionUpdateMode", "motID", "D_80097F0E"],
+    "ActDAMAGE": ["dtM", "Me_MOTION_C", "dtV", "motID", "D_80097F0E", "dtL"],
+    "ActITEM": ["dtM", "Me_MOTION_C", "motID", "D_80097F0E"],
+    "ActMOVE": ["dtM", "Me_MOTION_C", "dtPAD", "motID", "D_80097F0E", "dtL", "dtR"],
+    "ActNORMAL": ["dtM", "dtPAD", "Me_MOTION_C", "motID", "D_80097F0E", "dtR", "dtCMD"],
+    "ActSQUAT": ["Me_MOTION_C", "dtM", "dtPAD", "dtR", "motID", "D_80097F0E", "dtV", "dtL", "dtCMD"],
+    "ActSTATE": ["dtM", "MotionUpdateMode", "motID", "D_80097F0E", "Me_MOTION_C", "dtV", "dtPAD", "dtR", "dtL"],
+    "ActSWIM": ["dtM", "motID", "D_80097F0E", "dtPAD", "Me_MOTION_C", "dtR", "dtV", "dtL"],
+    "FUN_8005a7a4": ["D_80097D2E", "D_80097D30", "D_80097D18", "D_80097D32", "D_80097D2C"],
+    "FUN_8005aba4": ["D_80097D34", "D_80097D2C"],
+    "FallCheck": ["motID", "Me_MOTION_C", "dtM", "dtL", "D_80097F0E", "MotionUpdateMode"],
+    "ItemControl": ["Me_MOTION_C", "motID", "D_80097F0E"],
+    "character_balma_around_main_routine_": ["D_800976E8", "GlobalAreaMap", "FieldIndex", "FieldArea"],
+    "reset_alert_duration": ["FRAMES_UNTIL_END_OF_ALERT"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
