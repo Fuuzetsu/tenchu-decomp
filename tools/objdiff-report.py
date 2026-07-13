@@ -32,6 +32,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import function_inventory as FI
+import fuzzy_inventory as FZI
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -127,6 +128,11 @@ def load_fuzzy(sym_addr):
     fuzzy_by_addr, src_by_addr = {}, {}
     if not os.path.exists(FUZZY):
         return fuzzy_by_addr, src_by_addr
+    errors = FZI.validate(SRC, FUZZY)
+    if errors:
+        detail = "\n  - ".join(errors)
+        sys.exit("error: fuzzy progress is stale:\n  - " + detail +
+                 "\nrun tools/fuzz-score.py --only <changed names> (or a full run)")
     for line in open(FUZZY):
         if not line.strip() or line.startswith("#"):
             continue

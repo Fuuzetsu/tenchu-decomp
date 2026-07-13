@@ -21,6 +21,7 @@ import asmdiff
 import callmatch
 import datamatch
 import function_inventory
+import fuzzy_inventory
 import matchlock
 import matchdiff
 import maspsxflags
@@ -169,6 +170,40 @@ class FunctionInventoryTests(unittest.TestCase):
 
         self.assertEqual(changed, 1)
         self.assertEqual(functions, {"RecoveredName": (0x80011000, 16)})
+
+
+class FuzzyInventoryTests(unittest.TestCase):
+    def test_detects_missing_orphaned_and_source_stale_rows(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = os.path.join(td, "src")
+            os.makedirs(src)
+            guarded = os.path.join(src, "Guarded.c")
+            with open(guarded, "w") as fh:
+                fh.write("#ifndef NON_MATCHING\n#else\nint Guarded(void) { return 1; }\n#endif\n")
+            with open(os.path.join(src, "Exact.c"), "w") as fh:
+                fh.write("int Exact(void) { return 1; }\n")
+            tsv = os.path.join(td, "fuzzy.tsv")
+            with open(tsv, "w") as fh:
+                fh.write("Orphan\t12.00\tok\tdeadbeef\n")
+
+            errors = fuzzy_inventory.validate(src, tsv)
+            self.assertIn("missing fuzzy row for guarded draft Guarded", errors)
+            self.assertIn("orphan fuzzy row for non-guarded function Orphan", errors)
+
+            with open(tsv, "w") as fh:
+                fh.write("Guarded\t12.00\tok\tdeadbeef\n")
+            self.assertEqual(
+                fuzzy_inventory.validate(src, tsv),
+                ["source-stale fuzzy row for Guarded"],
+            )
+
+            with open(tsv, "w") as fh:
+                fh.write(
+                    "Guarded\t12.00\tok\t"
+                    + fuzzy_inventory.source_hash(guarded)
+                    + "\n"
+                )
+            self.assertEqual(fuzzy_inventory.validate(src, tsv), [])
 
 
 class MatcherPromptTests(unittest.TestCase):

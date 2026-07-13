@@ -89,9 +89,11 @@ and default (0) fields may be omitted. Each unit carries `functions[]`
   vs our compiled draft, and takes an instruction-sequence similarity ratio (an
   approximation of objdiff's fuzzy match, reusing `asmdiff.py`'s machinery; a
   non-exact draft is capped below 100). **Not build-free and slow** (one
-  incremental build per draft) — run it in the nix devShell occasionally and
-  commit the updated TSV; CI and `./Build report` just read it. Build failures
-  are recorded and stay at 0%.
+  incremental build per draft). Run `tools/fuzz-score.py --only <Name>` after
+  every guarded-draft edit and after exact promotion (which removes the stale
+  row), then gate with `tools/fuzz-score.py --check`. Each row carries the
+  source SHA-256; report generation refuses missing, orphaned, or source-stale
+  rows. Build failures are recorded with an empty score and remain at 0%.
 - **`config/functions.main.exe.tsv`** — a **committed, reviewed snapshot** of the
   function inventory (`addr<TAB>size<TAB>name`). The live source
   (`.shake/ghidra-export/functions.tsv`) is gitignored (a local Ghidra export), so
