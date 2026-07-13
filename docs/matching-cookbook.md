@@ -992,6 +992,15 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   the 7+1 form as one of only two load-bearing mutations in its best
   exact-length seed. Guided autorules rule `shift-stage` now tries every
   positive two-part split of shifts 2..31 mechanically.
+- **Signed fixed-point truncation can require the literal bias-and-shift form.**
+  When the target tests a value for negativity, adds `0xfff`, then arithmetic
+  shifts by 12, spell that sequence directly:
+  `if (x < 0) x += 0xfff; x >>= 12;`. A tidier `/ 0x1000` or folded expression
+  can expose a different combine/delay-slot schedule even though it has the
+  same truncation-toward-zero result. SetWire needed Ghidra's explicit form to
+  remove its final length instruction and expose the target loop schedule;
+  verify the raw `bgez`/`addiu 0xfff`/`sra` sequence rather than generalising
+  this to every fixed-point divide.
 - **fold reassociation** (fold-const.c `associate`/`split_tree`): any
   `A - C + B` or `A + (B - C)` gets its constant migrated between operands.
   `t - 500 + rand() % 1000` reassociates the *wrong* way (constant lands on
@@ -2964,6 +2973,15 @@ before local-alloc, so the def is gone before it can bias anything.
   wrapper-depth interval that keeps SUBJECT above LOWER but below UPPER. The
   comparison assumes equal register
   mode/size—use the dump, not the number alone, for mixed-mode pseudos.
+- **Disjoint semantic phases may need separate block-scoped locals even when
+  their arithmetic names repeat.** Reusing one function-scope `dx/dy/dz` set
+  for an early distance calculation and a late rotation calculation lets cse
+  and local/global allocation coalesce unrelated lifetimes into one broad
+  register cycle. Separate nested scopes give gcc distinct pseudos without
+  changing runtime code. In SetWire this removed the false distance/final-
+  rotation cycle and cut the residual from 418 to 376 bytes; confirm distinct
+  pseudos in `.lreg`, since merely renaming overlapping live values does not
+  help.
 - **Sometimes the target is a priority WINDOW, not an outrank relation.** In
   ProcItemNingyo, the saved-register order required
   `param=4901 < item=4964 < bounce=5000`; +2 weighted refs left `item` too low
@@ -3051,6 +3069,15 @@ before local-alloc, so the def is gone before it can bias anything.
     exact offset split. Two fresh computations off the untouched parameter
     (`f(adr + 1); g(adr + 3);`) put the value in a different register and compute
     both offsets fresh: a register swap plus an instruction-shape mismatch.
+  - **A nullable pointer reassigned to a stack fallback must continue to be the
+    base of fallback initialisation.** Use `center = &local; center->y = ...;
+    center->z = ...`, not stores through `local` followed by a later pointer
+    assignment, when the target addresses those fields through the pointer's
+    hard register. SetWire's target used `$s4` for both fallback stores; those
+    two extra references also moved `center` through the exact narrow priority
+    window relative to `end` and the loop flag. This is simultaneously an
+    addressing fact and a measured regalloc lever—inspect the target store
+    bases and `regalloc.py --between` before adopting it.
 - **A value computed into a source temp BEFORE an intervening store frees the
   return register for an earlier expression.** In `AfsGetHeader` the target
   builds `maxElements`'s shift/or chain in `$v0`, then `move $v0,zero` (the

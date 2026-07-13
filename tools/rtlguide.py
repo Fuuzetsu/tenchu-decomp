@@ -182,6 +182,51 @@ def control_flow_counts(insns) -> dict[str, int]:
     }
 
 
+def stack_address_rematerialization_hints(target, candidate) -> list[dict]:
+    """Find target stack addresses that the candidate retains instead.
+
+    Repeated ``addiu reg,sp,K`` sites in the target but only one site in the
+    candidate are a strong sign that cc1 kept ``&local`` in a saved-register
+    allocno across calls or a loop.  That can enlarge the frame and rotate all
+    saved registers even when the logical C is otherwise correct.
+    """
+    pattern = re.compile(
+        r"^addiu\s+([a-z0-9]+),sp,(-?(?:0x[0-9a-f]+|[0-9]+))$", re.I
+    )
+
+    def sites(insns):
+        found = defaultdict(list)
+        for _address, text in insns:
+            match = pattern.match(text.strip())
+            if not match or match.group(1) == "sp":
+                continue
+            found[int(match.group(2), 0)].append(match.group(1))
+        return found
+
+    wanted = sites(target)
+    actual = sites(candidate)
+    hints = []
+    for offset, target_regs in wanted.items():
+        candidate_regs = actual.get(offset, [])
+        if len(target_regs) < 2 or len(candidate_regs) >= len(target_regs):
+            continue
+        retained = sorted({reg for reg in candidate_regs
+                           if re.fullmatch(r"s[0-7]|s8|fp", reg)})
+        hints.append(dict(
+            offset=offset,
+            target_sites=len(target_regs),
+            candidate_sites=len(candidate_regs),
+            candidate_saved_registers=retained,
+        ))
+    return sorted(
+        hints,
+        key=lambda item: (
+            -(item["target_sites"] - item["candidate_sites"]),
+            item["offset"],
+        ),
+    )
+
+
 def call_symbol(insn: str) -> str | None:
     """Best-effort callee name from objdump's `jal ... <symbol>` spelling."""
     m = re.search(r"<([^>+]+)(?:\+0x[0-9a-f]+)?>", insn, re.I)
@@ -762,6 +807,8 @@ def assembly_guide(name):
             target=control_flow_counts(target),
             candidate=control_flow_counts(ours),
         ),
+        stack_address_rematerializations=
+            stack_address_rematerialization_hints(target, ours),
         known_residual_signatures=known_residual_signatures(hunks, target, ours),
         register_substitutions=[
             dict(ours=a, target=b, count=n)
@@ -1237,6 +1284,21 @@ def print_report(g, max_hunks=12):
                 target_flow["conditional_branches"]):
             print("    WARNING: candidate has target-absent conditional branch(es); "
                   "an exact length or lower byte score is not structural proof.")
+
+    rematerializations = g.get("stack_address_rematerializations", [])
+    if rematerializations:
+        print("\n  stack-address retention hints:")
+        for item in rematerializations[:5]:
+            offset = item["offset"]
+            saved = item["candidate_saved_registers"]
+            suffix = ("; candidate retained via " +
+                      ",".join("$" + reg for reg in saved)) if saved else ""
+            print(f"    sp+{offset:#x}: target rematerializes "
+                  f"{item['target_sites']}x, candidate "
+                  f"{item['candidate_sites']}x{suffix}")
+        print("    Inspect the stack-address allocno in .lreg/.greg. Try an "
+              "expanded-inline pointer-formal barrier for repeated &local calls, "
+              "or a hand-rolled loop/scope split when loop.c retains the base.")
 
     print("\n  mechanical search:")
     print(f"    rules: {', '.join(g['rules']) or '(no local rule; source structure first)'}")

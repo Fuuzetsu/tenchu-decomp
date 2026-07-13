@@ -884,6 +884,39 @@ class RtlGuideTests(unittest.TestCase):
                       ["addu v1,a1,a0", "sw v1,0(s1)"])
         self.assertEqual(rtlguide.classify_hunk(h), "regalloc")
 
+    def test_stack_address_retention_hint_finds_saved_cached_local(self):
+        target = [
+            (0x1000, "addiu a1,sp,352"),
+            (0x1010, "addiu a0,sp,352"),
+            (0x1020, "addiu v0,sp,352"),
+        ]
+        candidate = [(0x1000, "addiu s2,sp,352")]
+        self.assertEqual(
+            rtlguide.stack_address_rematerialization_hints(target, candidate),
+            [{
+                "offset": 352,
+                "target_sites": 3,
+                "candidate_sites": 1,
+                "candidate_saved_registers": ["s2"],
+            }],
+        )
+
+    def test_stack_address_hint_ignores_frame_adjust_and_equal_counts(self):
+        target = [
+            (0x1000, "addiu sp,sp,-440"),
+            (0x1004, "addiu a0,sp,24"),
+            (0x1008, "addiu a1,sp,24"),
+        ]
+        candidate = [
+            (0x1000, "addiu sp,sp,-448"),
+            (0x1004, "addiu v0,sp,24"),
+            (0x1008, "addiu v1,sp,24"),
+        ]
+        self.assertEqual(
+            rtlguide.stack_address_rematerialization_hints(target, candidate),
+            [],
+        )
+
     def test_missing_move_is_cse(self):
         h = self.hunk(["move v0,a0"], ["nop"])
         self.assertEqual(rtlguide.classify_hunk(h), "cse/coalescing")
