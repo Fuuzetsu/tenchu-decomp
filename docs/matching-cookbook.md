@@ -3503,6 +3503,23 @@ before local-alloc, so the def is gone before it can bias anything.
   `$s0 -> $v0` return copy-chain that pinned it. (When a value is in `$sN` but
   its C live range doesn't obviously cross a call, suspect a return/temp
   copy-chain dragging it there — regalloc.py shows the chain.)
+  - **The inverse lever is one shared result pseudo when the target preserves an
+    early narrow result across unrelated arithmetic.** In `Think3chase`, a
+    block-local `u16 result; ... return result;` plus the final direct callback
+    return made reload rescue/truncate the early value before the
+    `AttackActionCount` update on two predecessors. Hoisting `result`, changing
+    the early return to a forward `goto`, assigning the callback result, and
+    returning once kept the early value in `$a0`, left the update in `$v0/$v1`,
+    and emitted one shared `sll/sra` conversion. That removed two instructions:
+    the old exact-length diagnostic was really a duplicated return-conversion
+    lifetime, not an arithmetic mismatch. Guided `shared-result-return`
+    mechanically tries this only for exactly two returns, one plain unaddressed
+    integer local, a final direct return, and equal local/function widths; it
+    rejects scope capture, qualifiers, initializers, pointers, and shadowing.
+    Replay of the guarded draft improved `(1008 bytes, 18 aligned lines, +2
+    instructions)` directly to exact. Use the split form when the return copy
+    chain is the problem; use the funnel when one long-lived return identity is
+    what the target demonstrates.
   - **The same split fixes a *flag* return (constant 0/1); the failure shape is
     "default then override".** `ret = 0; if (cond) { …; ret = 1; } return ret;`
     puts `ret`'s default assignment *before* the condition test, so its pseudo

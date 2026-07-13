@@ -77,7 +77,7 @@ CATEGORY_PASSES = {
 }
 CATEGORY_RULES = {
     "regalloc": [
-        "literal-indirect-inline", "initialized-global-compound", "deferred-global-capture", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
+        "literal-indirect-inline", "initialized-global-compound", "deferred-global-capture", "shared-result-return", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
         "empty-loop-boundary", "loop-fence", "nested-loop-fence",
         "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split", "deref-address-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
@@ -89,15 +89,15 @@ CATEGORY_RULES = {
         "array-alias-remat", "member-scalar-alias",
     ],
     "cse/coalescing": [
-        "literal-indirect-inline", "deferred-global-capture", "type-width", "empty-loop-boundary", "loop-fence",
+        "literal-indirect-inline", "deferred-global-capture", "shared-result-return", "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split", "deref-address-split",
         "vector-copy-adjust", "redundant-field-donor", "subscript-postinc",
         "switch-cse-evict", "assignment-chain",
         "pointee-volatile", "array-alias-remat", "member-scalar-alias",
     ],
-    "jump/cross-jump": ["literal-indirect-inline", "shared-writeback-compound", "terminal-arm-flip", "terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
+    "jump/cross-jump": ["literal-indirect-inline", "shared-result-return", "shared-writeback-compound", "terminal-arm-flip", "terminal-guard-flip", "shared-terminal-tail", "case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
-        "deferred-global-capture", "type-width", "empty-loop-boundary", "loop-fence",
+        "deferred-global-capture", "shared-result-return", "type-width", "empty-loop-boundary", "loop-fence",
         "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split", "deref-address-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign", "guard-flag-assign", "shared-writeback-compound", "shared-tail-assign", "shared-terminal-tail",
         "guard-exit-copy",
@@ -112,7 +112,7 @@ CATEGORY_RULES = {
         "shift16-mul", "plus-group", "add-prefix-temp", "split-chain", "deref-address-split",
     ],
     "structure/length": [
-        "type-width", "and-nest", "temp-inline", "case-fence",
+        "shared-result-return", "type-width", "and-nest", "temp-inline", "case-fence",
         "vector-copy-adjust", "builtin-abs", "subscript-postinc",
         "call-arg-pair", "shared-writeback-compound", "terminal-guard-flip", "shared-terminal-tail", "if-else-invert", "empty-loop-boundary",
     ],

@@ -2724,6 +2724,60 @@ done:
         self.assertEqual(
             self.candidates(autorules.rule_shared_return_split, source), [])
 
+    def test_shared_result_return_hoists_and_funnels_equal_width_local(self):
+        source = """typedef short s16;
+typedef unsigned short u16;
+s16 F(int fast) {
+    int degree;
+    if (fast) {
+        u16 result;
+        result = helper();
+        update();
+        return result;
+    }
+    return fallback();
+}
+"""
+        # The residual can map only to the final conversion/return; that must
+        # still admit the distant nested return and declaration.
+        autorules.GUIDED_LINES = {11}
+        out = self.candidates(autorules.rule_shared_result_return, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertIn("int degree;\n    u16 result;", candidate)
+        self.assertEqual(candidate.count("u16 result;"), 1)
+        self.assertIn("update();\n        goto _match_return_result;", candidate)
+        self.assertIn("result = fallback();\n_match_return_result:\n"
+                      "    return result;", candidate)
+
+    def test_shared_result_return_rejects_width_scope_and_extra_return_risks(self):
+        width = """typedef short s16;
+typedef int s32;
+s16 F(int fast) {
+    if (fast) { s32 result; result = helper(); return result; }
+    return fallback();
+}
+"""
+        captured = """typedef short s16;
+typedef unsigned short u16;
+s16 F(int fast) {
+    use(result);
+    if (fast) { u16 result; result = helper(); return result; }
+    return fallback();
+}
+"""
+        extra = """typedef short s16;
+typedef unsigned short u16;
+s16 F(int fast) {
+    if (fast) { u16 result; result = helper(); return result; }
+    if (fallback_ready()) return 2;
+    return fallback();
+}
+"""
+        for source in (width, captured, extra):
+            self.assertEqual(
+                self.candidates(autorules.rule_shared_result_return, source), [])
+
     def test_shift16_mul_respelled_for_declared_short(self):
         source = """typedef unsigned short u16;
 typedef unsigned int u32;
@@ -4083,6 +4137,7 @@ class RtlGuideTests(unittest.TestCase):
         self.assertIn("plus-group", rules)
         self.assertIn("type-width", rules)
         self.assertIn("guard-flag-assign", rules)
+        self.assertIn("shared-result-return", rules)
         self.assertIn("array-alias-remat", rules)
         self.assertIn("member-scalar-alias", rules)
         self.assertFalse(any("barrier" in rule or "clobber" in rule for rule in rules))

@@ -4582,6 +4582,168 @@ def rule_shared_return_split(text, name, span):
         )
 
 
+def rule_shared_result_return(text, name, span):
+    """Funnel one nested local return and the final expression through a label.
+
+    ``if (...) { T result; ...; return result; } return fallback();`` and a
+    function-scope ``result`` assigned on both paths before one labeled return
+    have the same target-width value.  They are not allocation-equivalent in
+    gcc 2.8.1: the single result pseudo can keep the early value in its source
+    register across unrelated arithmetic and emit one shared narrow conversion.
+    Think3chase lost two instructions only after making that source funnel.
+
+    This is deliberately a guided, two-return rewrite.  Require one plain,
+    unaddressed automatic integer local, a final direct return, equal local and
+    function return widths, and no same-named references outside the local's
+    original scope.  Those checks make hoisting the declaration and replacing
+    the early return with a forward goto semantics-preserving; scoring decides
+    whether the old compiler wants the shared pseudo or the split form.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None or body.parent is None or \
+            body.parent.type != "function_definition":
+        return
+
+    function = body.parent
+    return_type = function.child_by_field_name("type")
+    return_name = (_txt(data, return_type).decode().strip()
+                   if return_type is not None else "")
+    if return_name not in TYPES:
+        return
+
+    returns = _find(body, ("return_statement",))
+    direct = [child for child in body.named_children
+              if child.type != "comment"]
+    if len(returns) != 2 or not direct or \
+            direct[-1].type != "return_statement":
+        return
+    final = direct[-1]
+    early = next((statement for statement in returns
+                  if statement != final), None)
+    if early is None:
+        return
+
+    def return_value(statement):
+        values = [child for child in statement.named_children
+                  if child.type != "comment"]
+        return values[0] if len(values) == 1 else None
+
+    early_value = _unparen(return_value(early))
+    final_value = return_value(final)
+    if early_value is None or early_value.type != "identifier" or \
+            final_value is None:
+        return
+    local = _txt(data, early_value)
+    if any(_txt(data, ident) == local
+           for ident in _find(final_value, ("identifier",))):
+        return
+
+    # Find the unique plain scalar declaration of the returned local.  A
+    # multi-declarator, initializer, pointer/array, qualifier, or shadowed
+    # parameter would make the scope expansion unsafe.
+    declarations = []
+    for declaration in _find(body, ("declaration",)):
+        declarator = declaration.child_by_field_name("declarator")
+        ident = _descend_ident(declarator) if declarator is not None else None
+        if ident is not None and _txt(data, ident) == local:
+            declarations.append((declaration, declarator))
+    if len(declarations) != 1:
+        return
+    declaration, declarator = declarations[0]
+    type_node = declaration.child_by_field_name("type")
+    type_name = (_txt(data, type_node).decode().strip()
+                 if type_node is not None else "")
+    declaration_text = _txt(data, declaration)
+    if (type_name not in TYPES or declarator.type != "identifier" or
+            TYPES[type_name][0] != TYPES[return_name][0] or
+            re.search(rb"\b(?:const|volatile|static|register|extern)\b",
+                      declaration_text) or
+            re.search(rb"[,=*\[]", declaration_text)):
+        return
+
+    function_declarator = function.child_by_field_name("declarator")
+    if function_declarator is None or any(
+            _txt(data, ident) == local
+            for parameter in _find(function_declarator,
+                                   ("parameter_declaration",))
+            for ident in _find(parameter, ("identifier",))):
+        return
+    body_text = _txt(data, body)
+    if re.search(rb"&\s*\(?\s*" + re.escape(local) + rb"\b", body_text):
+        return
+
+    declaration_block = declaration.parent
+    if declaration_block is None or declaration_block.type != "compound_statement":
+        return
+    ancestor = early.parent
+    while ancestor is not None and ancestor != declaration_block:
+        ancestor = ancestor.parent
+    if ancestor is None:
+        return
+    # Hoisting must not capture a global/macro reference that was outside the
+    # nested declaration's old lexical scope.
+    if any(_txt(data, ident) == local and
+           not (declaration_block.start_byte <= ident.start_byte <
+                declaration_block.end_byte)
+           for ident in _find(body, ("identifier",))):
+        return
+
+    lines = (_line(data, early.start_byte), _line(data, final.start_byte))
+    if not any(_guided_site(line) for line in lines):
+        return
+
+    label_base = b"_match_return_" + local
+    label = label_base
+    suffix = 2
+    while re.search(rb"\b" + re.escape(label) + rb"\b", body_text):
+        label = label_base + str(suffix).encode()
+        suffix += 1
+
+    edits = [
+        (early.start_byte, early.end_byte, b"goto " + label + b";"),
+    ]
+    final_indent = _indent_at(data, final.start_byte)
+    final_replacement = (
+        local + b" = " + _txt(data, final_value).strip() + b";\n" +
+        label + b":\n" + final_indent + b"return " + local + b";"
+    )
+    edits.append((final.start_byte, final.end_byte, final_replacement))
+
+    if declaration_block != body:
+        # Insert after the function's direct declaration prefix.  If there is
+        # none, place the hoisted declaration on the first body line.
+        direct_declarations = []
+        for child in direct:
+            if child.type != "declaration":
+                break
+            direct_declarations.append(child)
+        raw_declaration = declaration_text.strip()
+        if direct_declarations:
+            anchor = direct_declarations[-1]
+            insertion = (b"\n" + _indent_at(data, anchor.start_byte) +
+                         raw_declaration)
+            edits.append((anchor.end_byte, anchor.end_byte, insertion))
+        else:
+            indent = (_indent_at(data, direct[0].start_byte)
+                      if direct else _indent_at(data, body.start_byte) + b"    ")
+            edits.append((body.start_byte + 1, body.start_byte + 1,
+                          b"\n" + indent + raw_declaration))
+        edits.append((declaration.start_byte, declaration.end_byte, b""))
+
+    rewritten = data
+    last_start = len(data) + 1
+    for start, end, replacement in sorted(edits, reverse=True):
+        if end > last_start:
+            return
+        rewritten = splice(rewritten, start, end, replacement)
+        last_start = start
+    yield (
+        f"shared-result-return {local.decode()} L{lines[0]}->{lines[1]}",
+        rewritten.decode(),
+    )
+
+
 def rule_switch_cse_evict(text, name, span):
     """Dead-overwrite an entry index local before re-reading it in a switch.
 
@@ -7343,6 +7505,7 @@ AGGRESSIVE_RULES = [
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
     ("shared-writeback-compound", "inline a shared field writeback into compound-update arms", rule_shared_writeback_compound),
     ("shared-terminal-tail", "duplicate an adjacent assignment+return into both if/else arms", rule_shared_terminal_tail),
+    ("shared-result-return", "funnel two value returns through one result pseudo", rule_shared_result_return),
     ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("terminal-arm-flip", "negate and swap adjacent arms ending at one terminal tail", rule_terminal_arm_flip),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),

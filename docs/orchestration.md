@@ -341,6 +341,13 @@ rules**:
   switch-vs-ladder, union-offset casts, case ordering) stay cookbook-only until
   an AST transform can place them safely; guided source-line filtering and
   exact-byte scoring now make some structural transforms mechanical too.
+  Keep directionally-opposite rules when both reflect real compiler choices:
+  `shared-return-split` creates a second source return for epilogue scheduling,
+  while `shared-result-return` hoists and funnels exactly two equal-width value
+  returns to create one allocation identity. Historical replay is the gate: on
+  the old `Think3chase` draft the latter changed `(1008 bytes, 18 aligned
+  lines, +2 instructions)` directly to exact, so future agents should run the
+  guided rule instead of rediscovering the return lifetime by hand.
 - A recurring *friction* → **build a tool**. That's the whole game. This session:
   agents hand-traced struct widths → `access.py`; hand-traced the store order →
   `access.py --order`; re-derived gp/div flags → `maspsxflags.py`; the gp edit didn't
