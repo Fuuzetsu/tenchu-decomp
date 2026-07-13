@@ -1623,6 +1623,18 @@ later call's argument (`f(a, b / d)`). `IsVisible`'s three divisions by one vari
 `d` all execute before either `abs()` that consumes them. Give each quotient its own
 named temp and compute them all, in argument order, before the first consuming call.
 
+**Expanded variable divisions feeding adjacent narrow fields may need grouped
+quotient temps before any store.** The target tell is several guarded `divu`/`mflo`
+pairs followed by one contiguous `sb`/`sh` block. Preserve that dataflow literally:
+compute every channel into a scalar local, then assign the fields together. Direct
+`field = numerator / divisor` statements consume each quotient immediately and can
+make maspsx retain an extra hazard `nop` around every expanded division. The A/B in
+`FUN_80036284` was exact and large enough to diagnose mechanically: two three-channel
+fade arms written directly were 752 bytes versus the 728-byte target (six extra
+instructions); grouped quotient locals restored 728 bytes, the target stack layout,
+and the contiguous color stores. Apply this only when the target itself groups the
+stores; an interleaved target still calls for interleaved source.
+
 **A target's "redundant-looking" extra reload means the source used a fresh field
 dereference, not a cached pointer.** `vrealloc` writes `vh.next = vhp->next;` even
 though a `nb` variable computed moments earlier holds the numerically identical
