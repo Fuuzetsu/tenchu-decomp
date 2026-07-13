@@ -1799,6 +1799,16 @@ near entry; `AdtMessageBox` wants the inline form.)
     register up front and emit the batched-loads-then-batched-stores idiom.
     Write it that way whenever Ghidra renders a source table copied to a stack
     local (later indexed by a runtime variable) as separate per-element stores.
+  - **A whole-struct copy from a nonzero enclosing member may also need a NAMED
+    source pointer.** `local = Enclosing.member;` can still fold the member
+    displacement into each `lwl/lwr` source access, leaving only the enclosing
+    symbol's `%hi` base.  The two-statement spelling `T *src =
+    &Enclosing.member; local = *src;` forces one full member address first, then
+    zero-based block-copy accesses.  Use this when the target has
+    `lui base; addiu src,base,%lo(member); lwl/lwr ...,0/3/4/7(src)` rather than
+    loads carrying the member offset themselves.  InitEffect verified the two
+    forms A/B: only the named `blood_src` form produces its target copy of the
+    eight-byte table at `D_80097A38 + 8`.
 - **A truncated per-TU struct breaks when the element is array-INDEXED, not
   just pointer-dereferenced.** The "declare only the fields you touch" truncation
   (DisposeBG-style) is safe for `ptr->field`, but `arr[i]` compiles the index as
@@ -2797,6 +2807,16 @@ one-shot `do` stopped the constant/copy propagation, scheduled the definition
 before `valloc`, and made `$s1` feed `MemCardAccept`/`MemCardSync`, with no
 surviving branch. This is already an ordinary guided `loop-fence` candidate;
 the RTL symptom is one missing long-lived zero pseudo, not a wrong constant.
+
+A producer can sit inside the fenced assignment's **comma RHS** when the
+residual is only instruction order: `do { table[1] = (offset = i * 4, 58); }
+while (0);`.  This keeps the literal definition and store on opposite sides of
+the producer in RTL without adding runtime control flow.  InitEffect's A/B was
+exact and local: separate statements produced either `li; sw; sll` or
+`sll; li; sw`, while the comma form alone produced the target `li; sll; sw`.
+Reserve this for independent nonvolatile local assignments whose final values
+and later uses are unchanged; moving an effectful call, volatile access, or
+possibly aliasing store into a comma expression is not semantics-preserving.
 
 An expression fence can also supply exactly one allocator-priority weight.
 ProcMiscDoor's final three-byte tie had `t` at 3 refs / 5 live insns (priority
