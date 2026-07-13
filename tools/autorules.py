@@ -4805,6 +4805,36 @@ AST_RULES = {gen for _key, _desc, gen in RULES + AGGRESSIVE_RULES
              if gen not in LINE_RULES}
 
 
+def select_rules(requested=(), guided=None, aggressive=False):
+    """Return rules in the caller's priority order.
+
+    ``rtlguide`` orders its suggestions by the residual's dominant compiler
+    pass.  Guided beam search has a finite candidate-build budget, so converting
+    that list to a set and then restoring registry order can spend the entire
+    budget on generic rules before reaching the RTL-ranked ones.  Preserve both
+    rtlguide and explicit ``--rules`` order; ordinary/aggressive sweeps retain
+    their registry order.
+    """
+    available = RULES + AGGRESSIVE_RULES
+    by_key = {entry[0]: entry for entry in available}
+    if requested:
+        keys = requested
+    elif guided is not None:
+        keys = guided
+    elif aggressive:
+        return list(available)
+    else:
+        return list(RULES)
+
+    selected = []
+    seen = set()
+    for key in keys:
+        if key in by_key and key not in seen:
+            selected.append(by_key[key])
+            seen.add(key)
+    return selected
+
+
 # ---------------------------------------------------------------------------
 # Scoring: build the candidate, then asmdiff -n (reuse that build) for the
 # instruction-distance. Separating the build lets us tell "didn't compile"
@@ -5268,15 +5298,11 @@ def main():
     bad = [x for x in requested if x not in known]
     if bad:
         sys.exit(f"autorules: unknown rule(s) {bad}; use --list")
-    if requested:
-        selected_keys = set(requested)
-    elif args.guided:
-        selected_keys = set(guide["rules"])
-    elif args.aggressive:
-        selected_keys = {x[0] for x in RULES + AGGRESSIVE_RULES}
-    else:
-        selected_keys = {x[0] for x in RULES}
-    rules = [x for x in available if x[0] in selected_keys]
+    rules = select_rules(
+        requested=requested,
+        guided=guide["rules"] if args.guided else None,
+        aggressive=args.aggressive,
+    )
     if not rules:
         sys.exit("autorules: no runnable rules selected")
     print("selected: " + ", ".join(x[0] for x in rules))

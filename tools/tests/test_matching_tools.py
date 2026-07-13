@@ -407,6 +407,24 @@ class AutoRulesAdvancedTests(unittest.TestCase):
     def candidates(self, rule, source):
         return list(rule(source, "F", (0, len(source))))
 
+    def test_guided_rule_selection_preserves_rtl_priority(self):
+        priority = [
+            "allocation-donor-fence",
+            "disjoint-local-alias",
+            "type-width",
+            "case-fence",
+        ]
+        selected = autorules.select_rules(guided=priority)
+        self.assertEqual([entry[0] for entry in selected], priority)
+
+    def test_explicit_rule_selection_preserves_cli_order_and_deduplicates(self):
+        requested = ["case-fence", "type-width", "case-fence"]
+        selected = autorules.select_rules(requested=requested)
+        self.assertEqual(
+            [entry[0] for entry in selected],
+            ["case-fence", "type-width"],
+        )
+
     def test_cmp_polarity_swaps_local_operands(self):
         source = """int F(int direction, int turn) {
     if (direction < turn) return 1;

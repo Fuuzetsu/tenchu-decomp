@@ -165,11 +165,13 @@ The ordered triage — fix categories in THIS order, re-running
      `tools/autorules.py <Name> --guided`. The guide aligns target asm to our
      output, uses cc1 debug NOTE objects to map it back to C lines, selects only
      the owning pass's advanced rules, and keeps a small beam of neutral/slightly
-     worse intermediate candidates. This is how zero-code equivalence barriers
-     and cross-jump fences become a bounded mechanical search instead of another
-     manual RTL conversation. Guided mode can now fence a contiguous range of
-     two-to-four statements (not just one statement) when RTL implicates a
-     producer/consumer span. **Reject an autorules "win" that changes a
+     worse intermediate candidates. The finite build budget is consumed in
+     rtlguide's pass-ranked rule order, so dominant-pass allocation/CFG levers
+     are tried before generic registry rules. This is how zero-code equivalence
+     barriers and cross-jump fences become a bounded mechanical search instead
+     of another manual RTL conversation. Guided mode can now fence a contiguous
+     range of two-to-four statements (not just one statement) when RTL
+     implicates a producer/consumer span. **Reject an autorules "win" that changes a
      PROVEN struct field's ACCESS WIDTH** even when it shrinks the byte count: a
      `u16`→`u8` field retype can narrow a correct `lhu` to `lbu` at another,
      already-matched site — autorules scores *total* diff, not per-site
@@ -517,6 +519,17 @@ plain C is the matched file.
   return (and named close/normal labels when layout requires them) to remove
   that false predecessor. AttackGeneral's close-range `% 4` switch matched only
   in this form. Treat default presence as CFG data, not cosmetic syntax.
+- **A case with a value already proven nonzero can deliberately fall through
+  another case's zero-fill guard instead of jumping past it.** A decompiler can
+  render two semantically equivalent gotos: one arm enters the later case's
+  `if (value == 0) value = K;`, while the other skips that test. If every path
+  from the earlier case has already made `value != 0`, remove both gotos and let
+  the case fall through the shared test. gcc can then put the test expression in
+  the preceding branch's delay slot and branch directly into the guard, which
+  is distinct from targeting the following case. DamageControl's item case 0
+  (`dmg` already 20) falling through case 0xe is the worked example. This stays
+  a recognition rule until the nonzero proof can be made mechanically; never
+  apply it when any predecessor can still carry zero.
 - **Case-body memory order reveals the source case order** (the compare tree
   always sorts by value): LayoutEnemyOption's inner switch was written
   `case 1, case 2, case 0` — only the bodies show it.
