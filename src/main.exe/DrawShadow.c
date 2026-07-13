@@ -1,5 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -48,138 +50,194 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawShadow", DrawShadow);
+/*
+ * MATCH.
+ *
+ * DrawShadow (0x80038394, EFFECT.C:1572) updates the humanoid's ground
+ * position/attributes, emits a splash while the character is moving on an
+ * eligible frame, or builds and draws the flattened ground-shadow model.
+ *
+ * Matching notes:
+ *  - The retail 0x60-byte frame is the natural packing of the original
+ *    VECTOR scale, MATRIX, SVECTOR screen result, and two long RotTransPers
+ *    outputs.  No synthetic padding or scratch overlay is needed.
+ *  - `height` comes from the archive's own `model->rotate.pad`, not from
+ *    `object[0]`.  Keeping both archive reads on `human->model` lets CSE
+ *    share that pointer and reproduces the target's argument-zero setup and
+ *    object/rotation load order around GetAbsolutePosition.
+ *  - The first status-3 random result is a block-local single-use temp so
+ *    the rand call precedes the independent Y adjustment without retaining
+ *    a copy.  The other random remainders stay inline; reusing one multi-def
+ *    temp inserted four target-absent moves after the calls.
+ *  - The EffectSlot scan is the established hand-written goto loop.  Its
+ *    separate `effect` result is load-bearing even though it always equals
+ *    `slot` on success: the transfer at the found edge produces the target's
+ *    loop-exit move and restores the idx/count/slot register assignment.
+ *  - D_80097F34 is viewed as ModelType: locate@0, rotate@0x50, and
+ *    object@0x64 account for every use.  The chained scale assignment emits
+ *    the target's reverse z/y/x stack-store order.
+ */
 
-// triage: HARD — 280 insns, mul/div, 1 loop, 9 callees, ~0.07 to ProcItemKusuri
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
+extern long GameClock;
+extern short RefrectVector[16];
+extern SVECTOR UnitVector;
+extern GsOT *OTablePt;
+extern ModelType *D_80097F34;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void DrawShadow(Humanoid *human)
-//
-// {
-//   short sVar1;
-//   ushort uVar2;
-//   GsCOORDINATE2 *pGVar3;
-//   VECTOR *pVVar4;
-//   int iVar5;
-//   int iVar6;
-//   long lVar7;
-//   int iVar8;
-//   tag_EffectSlot *ptVar9;
-//   VECTOR local_50;
-//   MATRIX MStack_40;
-//   long lStack_20;
-//   undefined2 local_1c;
-//   long lStack_18;
-//   long lStack_14;
-//
-//   sVar1 = (human->model->rotate).pad;
-//   pVVar4 = GetAbsolutePosition(*human->model->object,0,0,0);
-//   iVar6 = (human->map).level;
-//   if ((iVar6 < pVVar4->vy) || (iVar6 == -0x80000000)) {
-//     (human->map).attrib = (human->map).attrib | 8;
-//   }
-//   pVVar4->vy = (human->map).level;
-//   pGVar3 = DAT_80097f34;
-//   uVar2 = (human->map).attrib;
-//   if ((uVar2 & 8) == 0) {
-//     if ((uVar2 & 0x100) == 0) {
-//       (DAT_80097f34->coord).t[0] = pVVar4->vx;
-//       (pGVar3->coord).t[1] = pVVar4->vy;
-//       (pGVar3->coord).t[2] = pVVar4->vz;
-//       local_50.vx = sVar1 * -4 - ((human->map).height >> 1);
-//       if ((human->map).angleH == '\0') {
-//         *(undefined2 *)&pGVar3[1].flg = 0;
-//         *(undefined2 *)((int)&pGVar3[1].flg + 2) = 0;
-//         pGVar3[1].coord.m[0][0] = 0;
-//       }
-//       else {
-//         *(undefined2 *)&pGVar3[1].flg = 0x100;
-//         sVar1 = RefrectVector[(human->map).angleH];
-//         pGVar3[1].coord.m[0][0] = 0;
-//         *(short *)((int)&pGVar3[1].flg + 2) = sVar1;
-//       }
-//       local_50.vy = local_50.vx;
-//       local_50.vz = local_50.vx;
-//       RotMatrixYXZ((SVECTOR *)(DAT_80097f34 + 1),&DAT_80097f34->coord);
-//       ScaleMatrix(&DAT_80097f34->coord,&local_50);
-//       pGVar3 = DAT_80097f34;
-//       DAT_80097f34->flg = 0;
-//       GsGetLs(pGVar3,&MStack_40);
-//       GsSetLsMatrix(&MStack_40);
-//       lVar7 = RotTransPers(&UnitVector,&lStack_20,&lStack_18,&lStack_14);
-//       local_1c = (undefined2)lVar7;
-//       if ((lVar7 << 0x10) >> 0x12 < 0x4e2) {
-//         GsSortObject4((GsDOBJ2 *)(DAT_80097f34[1].coord.m[2] + 2),OTablePt,2,(u_long *)Scratchpad);
-//       }
-//     }
-//     else if ((human->map).height == 0) {
-//       if ((GameClock & 0x3fU) == 1) {
-//         FUN_80037e0c(human,1);
-//       }
-//       else if ((GameClock & 0xfU) == 0) {
-//         FUN_80037e0c(human,0);
-//       }
-//     }
-//   }
-//   else {
-//     iVar6._0_2_ = (human->vector).vx;
-//     iVar6._2_2_ = (human->vector).vy;
-//     if ((((iVar6 != 0) || (sVar1 = human->motion->mid, sVar1 == 0x804)) || (sVar1 == 0x710)) &&
-//        (((human->map).height == 0 && ((GameClock & 1U) != 0)))) {
-//       if (human->status == 3) {
-//         iVar6 = rand();
-//         pVVar4->vy = pVVar4->vy + 100;
-//         pVVar4->vx = pVVar4->vx + -300 + iVar6 % 600;
-//         iVar5 = rand();
-//         iVar8 = pVVar4->vz + -300;
-//         iVar6 = (iVar5 / 600) * 0x4b;
-//       }
-//       else {
-//         iVar6 = rand();
-//         pVVar4->vx = pVVar4->vx + -100 + iVar6 % 200;
-//         iVar5 = rand();
-//         iVar8 = pVVar4->vz + -100;
-//         iVar6 = (iVar5 / 200) * 0x19;
-//       }
-//       pVVar4->vz = iVar8 + iVar5 + iVar6 * -8;
-//       iVar5 = 0;
-//       ptVar9 = EffectSlot + DAT_80097a3c;
-//       iVar6 = DAT_80097a3c;
-//       do {
-//         iVar6 = iVar6 + 1;
-//         ptVar9 = ptVar9 + 1;
-//         if (199 < iVar6) {
-//           iVar6 = 0;
-//           ptVar9 = EffectSlot;
-//         }
-//         iVar5 = iVar5 + 1;
-//         if (ptVar9->proc == (undefined **)0x0) {
-//           DAT_80097a3c = iVar6 + 1;
-//           if (199 < DAT_80097a3c) {
-//             DAT_80097a3c = 0;
-//           }
-//           goto LAB_80038620;
-//         }
-//       } while (iVar5 < 200);
-//       ptVar9 = &dmy;
-// LAB_80038620:
-//       (ptVar9->param).blood.hint = (AreaNodeType *)pVVar4->vx;
-//       (ptVar9->param).blood.px = pVVar4->vy;
-//       lVar7 = pVVar4->vz;
-//       (ptVar9->param).splash.sx = 0x2000;
-//       (ptVar9->param).splash.sy = 0x2000;
-//       (ptVar9->param).splash.speed = '\x04';
-//       (ptVar9->param).splash.mode = '\0';
-//       (ptVar9->param).blood.py = lVar7;
-//       ptVar9->proc = (undefined **)DrawSplash;
-//     }
-//   }
-//   return;
-// }
+extern VECTOR *GetAbsolutePosition(ModelType *model, s32 x, s32 y, s32 z);
+extern void FUN_80037e0c(Humanoid *human, s32 mode);
+extern void DrawSplash(TEffectSlot *ef);
+extern MATRIX *RotMatrixYXZ(SVECTOR *rotation, MATRIX *matrix);
+extern MATRIX *ScaleMatrix(MATRIX *matrix, VECTOR *scale);
+extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *matrix);
+extern void GsSetLsMatrix(MATRIX *matrix);
+extern s32 RotTransPers(SVECTOR *vector, s32 *screen, s32 *p, s32 *flag);
+extern void GsSortObject4(GsDOBJ2 *object, GsOT *ot, s32 priority,
+                          u_long *scratch);
+
+void DrawShadow(Humanoid *human)
+{
+    VECTOR scale;
+    MATRIX matrix;
+    SVECTOR screen;
+    s32 p;
+    s32 flag;
+    VECTOR *position;
+    s32 height;
+    u16 attribute;
+
+    height = -human->model->rotate.pad;
+    position = GetAbsolutePosition(human->model->object[0], 0, 0, 0);
+
+    if (human->map.level < position->vy || human->map.level == (s32)0x80000000)
+    {
+        human->attrib |= 8;
+    }
+    position->vy = human->map.level;
+    attribute = human->attrib;
+
+    if (attribute & 8)
+    {
+        s32 vector_xy;
+
+        vector_xy = *(s32 *)&human->vector;
+        if ((vector_xy != 0 || human->motion->mid == 0x804 ||
+             human->motion->mid == 0x710) &&
+            human->map.height == 0 && (GameClock & 1) != 0)
+        {
+            s32 idx;
+            s32 count;
+            TEffectSlot *base;
+            TEffectSlot *slot;
+            TEffectSlot *effect;
+            SplashType *param;
+            s32 z;
+
+            if (human->status == 3)
+            {
+                s32 r = rand();
+
+                position->vy += 100;
+                position->vx += r % 600 - 300;
+                position->vz += rand() % 600 - 300;
+            }
+            else
+            {
+                position->vx += rand() % 200 - 100;
+                position->vz += rand() % 200 - 100;
+            }
+
+            idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+            count = 0;
+            base = EffectSlot;
+            slot = base + idx;
+        loop:
+            idx++;
+            slot++;
+            if (199 < idx)
+            {
+                slot = base;
+                idx = 0;
+            }
+            if (slot->proc == 0)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                if (199 < idx + 1)
+                {
+                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                }
+                effect = slot;
+                goto found;
+            }
+            count++;
+            if (199 < count)
+            {
+                effect = &dmy;
+                goto found;
+            }
+            goto loop;
+        found:
+            param = &effect->param.splash;
+            param->px = position->vx;
+            param->py = position->vy;
+            z = position->vz;
+            param->sx = 0x2000;
+            param->sy = 0x2000;
+            param->speed = 4;
+            param->mode = 0;
+            param->pz = z;
+            effect->proc = (void (*)())DrawSplash;
+        }
+    }
+    else if (attribute & 0x100)
+    {
+        if (human->map.height == 0)
+        {
+            if ((GameClock & 0x3f) == 1)
+            {
+                FUN_80037e0c(human, 1);
+            }
+            else if ((GameClock & 0xf) == 0)
+            {
+                FUN_80037e0c(human, 0);
+            }
+        }
+    }
+    else
+    {
+        u8 angle;
+        s32 depth;
+
+        D_80097F34->locate.coord.t[0] = position->vx;
+        D_80097F34->locate.coord.t[1] = position->vy;
+        D_80097F34->locate.coord.t[2] = position->vz;
+
+        scale.vx = scale.vy = scale.vz = height * 4 - (human->map.height >> 1);
+        angle = *((u8 *)human + 0x2f);
+        if (angle != 0)
+        {
+            D_80097F34->rotate.vx = 0x100;
+            D_80097F34->rotate.vy = RefrectVector[*((u8 *)human + 0x2f)];
+            D_80097F34->rotate.vz = 0;
+        }
+        else
+        {
+            D_80097F34->rotate.vx = 0;
+            D_80097F34->rotate.vy = 0;
+            D_80097F34->rotate.vz = 0;
+        }
+
+        RotMatrixYXZ(&D_80097F34->rotate, &D_80097F34->locate.coord);
+        ScaleMatrix(&D_80097F34->locate.coord, &scale);
+        D_80097F34->locate.flg = 0;
+        GsGetLs(&D_80097F34->locate, &matrix);
+        GsSetLsMatrix(&matrix);
+        depth = RotTransPers(&UnitVector, (s32 *)&screen, &p, &flag);
+        screen.vz = depth;
+        if ((depth << 16) >> 18 < 0x4e2)
+        {
+            GsSortObject4(&D_80097F34->object, OTablePt, 2,
+                          (u_long *)0x1f800000);
+        }
+    }
+}
