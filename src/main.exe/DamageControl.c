@@ -151,10 +151,11 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * damage, knockback, animation, blood, score, and player-feedback effects.
  *
  * STATUS: NON_MATCHING — the C draft has the exact retail extent (5812 bytes,
- * 1453 instructions) with 2479 differing bytes and 96 structural blocks at
- * this checkpoint. The remaining work is expression/CFG scheduling and
- * early-path register allocation; the large humanoid path's persistent
- * registers now agree with the target. The #ifndef NON_MATCHING branch is the stub
+ * 1453 instructions) with 2457 differing bytes, fuzzy 88.23%, and 140 raw
+ * aligned residual blocks from `asmdiff --structural` at this checkpoint.
+ * The remaining work is expression/CFG scheduling and early-path register
+ * allocation; the large humanoid path's persistent registers now agree with
+ * the target. The #ifndef NON_MATCHING branch is the stub
  * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
  * the .rodata carve has bytes); build the draft with `NON_MATCHING=DamageControl
  * ./Build`. On a full match, delete the guards and the _jtbl array.
@@ -176,6 +177,9 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *  - Identical MoveHumanoid calls stay duplicated in their branch arms.  cc1
  *    tail-merges the call while preserving predecessor-specific argument
  *    setup; factoring the call in C loses that shape.
+ *  - Item case 0 deliberately falls through the shared case-0xe damage test.
+ *    Since damage is already 20 this is semantically neutral, but it recovers
+ *    the target's branch into the existing zero-test instead of a later case.
  *  - The signed/unsigned short-to-high-word spellings are intentional.  In
  *    particular `(u16)dmg << 16` and `dmg * 0x10000` reach different
  *    canonicalization paths even where the final arithmetic is equivalent.
@@ -253,20 +257,18 @@ void DamageControl(void)
     SetCameraMode(CMODE_NORMAL);
   }
   if ((Me_MOTION_C->type & 0xf0U) == 0xa0) {
-    pHVar17 = (Humanoid *)ConflictObject[id].common;
-    if (pHVar17 != (Humanoid *)1) {
+    Humanoid *enemy;
+
+    enemy = (Humanoid *)ConflictObject[id].common;
+    if (enemy != (Humanoid *)1) {
       int iVar11;
 
-      Sound(pHVar17,4);
+      Sound(enemy,4);
       DeleteConflict(ConflictObject[id].model);
-      {
-        short attack_id;
-
-        attack_id = GetAttackDBID(pHVar17,pHVar17->motion->mid);
+      deg = GetAttackDBID(enemy,enemy->motion->mid);
       pHVar14 = Me_MOTION_C;
       iVar11 = (u32)(u16)Me_MOTION_C->life -
-               (u32)(u16)BattleDB[attack_id].power;
-      }
+               (u32)(u16)BattleDB[deg].power;
       Me_MOTION_C->life = (short)iVar11;
       if ((iVar11 * 0x10000 < 0) || ((pHVar14->attribute & 0x40U) == 0)) {
         pHVar14->life = 0;
@@ -277,7 +279,7 @@ void DamageControl(void)
                     (((iVar11 >> 0x10) + (int)((u32)iVar11 >> 0x1f)) >> 1);
       local_38.vz = dtL->vz;
       SetImpact(&local_38,0x6000,2);
-      if (StagePlayer == pHVar17) {
+      if (StagePlayer == enemy) {
         PadShockAR(0,0xff,10,10);
       }
     }
@@ -295,7 +297,7 @@ void DamageControl(void)
       motID = 0x1100;
       D_80097F0E = 1;
       if ((Me_MOTION_C->type != 0xa9) &&
-         ((StagePlayer == pHVar17 || (pHVar17 == (Humanoid *)1)))) {
+         ((StagePlayer == enemy || (enemy == (Humanoid *)1)))) {
         if ((Me_MOTION_C->attribute & 0x42U) == 0) {
           Criticals = Criticals + 1;
         }
@@ -378,15 +380,13 @@ LAB_8001da70:
       }
       if ((Me_MOTION_C->type == 0x87) || (Me_MOTION_C->type == 0x8a)) {
         Me_MOTION_C->item[1] = Me_MOTION_C->item[1] + '\x01';
-        goto switchD_8001db0c_caseD_e;
       }
-      goto LAB_8001db64;
+      /* fall through: the shared zero-damage test preserves an existing 20 */
     case 0xe:
   switchD_8001db0c_caseD_e:
       if ((short)dmg == 0) {
         dmg = 0x1e;
       }
-  LAB_8001db64:
   switchD_8001db0c_caseD_13:
       if ((short)dmg == 0) {
         dmg = 0x14;
@@ -468,7 +468,7 @@ LAB_8001da70:
       dmg = ((short)dmg * 7) / 10;
     }
    {
-    int iVar11;
+    s16 iVar11;
 
     iVar11 = (u16)Me_MOTION_C->life - dmg;
     Me_MOTION_C->life = (short)iVar11;
@@ -696,7 +696,8 @@ LAB_8001e6d8:
       dmg = (int)(short)dmg / 3;
     }
     if (enemy->active_item == 0xc) {
-      dmg = (dmg << 0x10) >> 0xf;
+      dmg = (dmg << 0x10);
+      dmg = dmg >> 0xf;
     }
   {
     int iVar11;
@@ -732,10 +733,8 @@ LAB_8001e6d8:
       Humanoid *victim;
 
       victim = Me_MOTION_C;
-      iVar11 = (int)(short)did;
-      if (iVar11 < 0) {
-        iVar11 = -iVar11;
-      }
+      iVar11 = __builtin_abs((int)(short)did);
+
       move_speed = -0x46;
       if (0x400 < iVar11) {
         move_speed = 0x46;
@@ -747,7 +746,7 @@ LAB_8001e6d8:
     }
   }
   {
-    int iVar11;
+    s16 iVar11;
 
     pHVar14 = Me_MOTION_C;
     iVar11 = (u16)Me_MOTION_C->life - dmg;
@@ -882,11 +881,10 @@ LAB_8001ec30:
       D_80097F0E = 1;
     }
   }
-  pMVar2 = dtM;
   pHVar17 = Me_MOTION_C;
   (Me_MOTION_C->pad).time = 0;
   pSVar1 = dtV;
-  if ((pMVar2->mid == 0x300) || (pMVar2->mid == 0x302)) {
+  if ((dtM->mid == 0x300) || (dtM->mid == 0x302)) {
     dtV->vz = 0;
     pSVar1->vx = 0;
     if (pHVar17->life != 0) {
