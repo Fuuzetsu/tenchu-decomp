@@ -17,11 +17,11 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction with the exact target
  * length (6084 bytes / 1521 instructions), 0xf0-byte frame, 81 conditional
- * branches, 15 jumps, and 70 calls.  matchdiff reports 1690 differing bytes
- * and fuzz-score reports 79.68%.  The decimal-rendering region now has the
- * target's per-number stack-address, signed-copy, quotient, and remainder
- * register shape; the residual is scheduling plus the surrounding setup,
- * rank, post-game, and epilogue allocation, not hidden asm.
+ * branches, 15 jumps, and 70 calls.  matchdiff reports 419 differing bytes
+ * and fuzz-score reports 90.27%.  The decimal-rendering region now has the
+ * target's evaluation and scheduling shape; most residuals are register
+ * allocation in the stage scan and digit loops plus setup/post-game load
+ * scheduling, not hidden asm.
  */
 
 #ifndef NON_MATCHING
@@ -149,7 +149,6 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
 
 #define DRAW_SCORE_NUMBER(value_, type_, jump_, label_,                    \
         x_, y_)                                                            \
-    do                                                                     \
     {                                                                      \
         s32 dividend;                                                      \
         s32 remainder;                                                     \
@@ -188,33 +187,15 @@ label_:                                                                    \
         do                                                                 \
         {                                                                  \
             dividend = (s16)value;                                         \
-            do                                                             \
-            {                                                              \
-                do                                                         \
-                {                                                          \
-                    do                                                     \
-                    {                                                      \
-                        do                                                 \
-                        {                                                  \
-                            quotient = dividend / 10;                      \
-                            remainder = dividend - quotient * 10;          \
-                        } while (0);                                       \
-                    } while (0);                                           \
-                } while (0);                                               \
-            } while (0);                                                   \
-            do                                                             \
-            {                                                              \
-                base_u = sprite->u;                                        \
-            } while (0);                                                   \
-            sprite->u = base_u + (s16)remainder * sprite->w;               \
+            quotient = dividend / 10;                                      \
+            remainder = dividend % 10;                                     \
+            sprite->u = (s16)remainder * sprite->w +                       \
+                (base_u = sprite->u);                                      \
             GsSortSprite(sprite, OTablePt, 0);                              \
-            do                                                             \
-            {                                                              \
-                sprite->u = base_u;                                        \
-            } while (0);                                                   \
             sprite->x -= 12;                                               \
             value = quotient;                                              \
             quotient <<= 16;                                               \
+            sprite->u = base_u;                                            \
         } while (quotient != 0);                                           \
         if (negative != 0)                                                 \
         {                                                                  \
@@ -223,10 +204,9 @@ label_:                                                                    \
             GsSortSprite(sprite, OTablePt, 0);                              \
             sprite->u = base_u;                                            \
         }                                                                  \
-    } while (0)
+    }
 
 #define DRAW_LAST_SCORE_NUMBER(value_, label_)                             \
-    do                                                                     \
     {                                                                      \
         s32 dividend;                                                      \
         s32 remainder;                                                     \
@@ -250,33 +230,15 @@ label_:                                                                    \
         do                                                                 \
         {                                                                  \
             dividend = (s16)value;                                         \
-            do                                                             \
-            {                                                              \
-                do                                                         \
-                {                                                          \
-                    do                                                     \
-                    {                                                      \
-                        do                                                 \
-                        {                                                  \
-                            quotient = dividend / 10;                      \
-                            remainder = dividend - quotient * 10;          \
-                        } while (0);                                       \
-                    } while (0);                                           \
-                } while (0);                                               \
-            } while (0);                                                   \
-            do                                                             \
-            {                                                              \
-                base_u = sprite->u;                                        \
-            } while (0);                                                   \
-            sprite->u = base_u + (s16)remainder * sprite->w;               \
+            quotient = dividend / 10;                                      \
+            remainder = dividend % 10;                                     \
+            sprite->u = (s16)remainder * sprite->w +                       \
+                (base_u = sprite->u);                                      \
             GsSortSprite(sprite, OTablePt, 0);                              \
-            do                                                             \
-            {                                                              \
-                sprite->u = base_u;                                        \
-            } while (0);                                                   \
             sprite->x -= 12;                                               \
             value = quotient;                                              \
             quotient <<= 16;                                               \
+            sprite->u = base_u;                                            \
         } while (quotient != 0);                                           \
         if (negative != 0)                                                 \
         {                                                                  \
@@ -284,19 +246,24 @@ label_:                                                                    \
             GsSortSprite(sprite, OTablePt, 0);                              \
             sprite->u = base_u;                                            \
         }                                                                  \
-    } while (0)
+    }
 
 void StageEndScreen(void)
 {
     StageEndScreenStack stack;
     StageScoreResult *score;
     StageScoreStats *record;
-    StageRankIcon *icon;
+    StageScoreStats *layout_record;
+    GsSPRITE *icon;
     u_long *tim;
     u8 *best_stage;
-    s32 selection;
+    s16 selection;
     s32 pulse;
     s32 i;
+    s32 layout_index;
+    s32 next_stage_index;
+    u32 layout_character_offset;
+    u32 layout_stage_offset;
     s32 ten;
     s32 top_y;
     s32 current_x;
@@ -340,64 +307,76 @@ void StageEndScreen(void)
     *(StageScoreStats *)0x8001004c = stack.stats;
 
     {
+        StageScoreStats *base_record;
+        u32 character_offset;
+        u32 stage_offset;
         u8 *state;
 
         state = (u8 *)0x80010000;
-        record = (StageScoreStats *)((u32)state[4] * 0x1d4);
-        record = (StageScoreStats *)((u8 *)record +
-            (u32)state[5] * 0x24 + 0x80010064 +
+        character_offset = (u32)state[4] * 0x1d4;
+        stage_offset = (u32)state[5] * 0x24 + 0x80010064;
+        base_record = (StageScoreStats *)(character_offset + stage_offset);
+        record = (StageScoreStats *)((u8 *)base_record +
             (u32)state[6] * 0xc);
         score = calculate_score(record, state[5]);
     }
     stack.best = *score;
-    if ((s16)stack.best.value[4] < (s16)stack.current.value[4] ||
-        ((s16)stack.best.value[4] == (s16)stack.current.value[4] &&
+    if ((s16)stack.current.value[4] > (s16)stack.best.value[4] ||
+        ((s16)stack.current.value[4] == (s16)stack.best.value[4] &&
         stack.stats.clock < record->clock))
     {
         *record = stack.stats;
         stack.best = stack.current;
     }
 
-    if (StageConfig[StageID].uid == 0)
     {
-        mission_score_screen(StageID);
+        StageEndConfigEntry *config;
+
+        config = &StageConfig[StageID];
+        if (config->uid == 0)
+        {
+            mission_score_screen(StageID);
+        }
     }
 
     {
-        u8 *state;
-
-        state = (u8 *)0x80010000;
-        if (state[5] == 7)
+        best_x = 0x80010000;
+        if (((u8 *)best_x)[5] == 7)
         {
-            if (state[0x5e] == 0)
+            if (((u8 *)best_x)[0x5e] == 0)
             {
-                *(s32 *)(state + 0x46c) |= 0x400;
+                *(s32 *)((u8 *)best_x + 0x46c) |= 0x400;
             }
         }
         else
         {
         tim = FileRead(NUMBER_TIM_PATH);
-        StageEndInitSprite(tim, &stack.image, &stack.digit);
-        top_y = -0x35;
-        stack.digit.attribute |= 0x50000000;
-        stack.digit.x = -0x8c;
-        stack.digit.y = -0x28;
-        stack.digit.r = 0x80;
-        stack.digit.g = 0x80;
-        stack.digit.b = 0x80;
-        stack.digit.mx = stack.digit.w >> 1;
-        stack.digit.my = stack.digit.h >> 1;
-        stack.digit.mx = 0;
-        stack.digit.my = 0;
-        LoadTIMAndFree(tim);
-        stack.digit.w = 12;
+        {
+            GsSPRITE *sprite;
 
-        tim = FileRead(RS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
+            sprite = &stack.digit;
+            StageEndInitSprite(tim, &stack.image, sprite);
+            sprite->attribute |= 0x50000000;
+            top_y = -0x35;
+            sprite->x = -0x8c;
+            sprite->y = -0x28;
+            sprite->r = 0x80;
+            sprite->g = 0x80;
+            sprite->b = 0x80;
+            sprite->mx = sprite->w >> 1;
+            sprite->my = sprite->h >> 1;
+            sprite->mx = 0;
+            sprite->my = 0;
+            LoadTIMAndFree(tim);
+            sprite->w = 12;
+        }
+
+        tim = FileRead(RS_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
         ten = 10;
         stack.background = FUN_8004f4f8(tim);
         vfree(tim);
 
-        stack.rank_archive = FileRead(RANK_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
+        stack.rank_archive = FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
         current_x = 0x52;
         tim = get_tim_from_archive(stack.rank_archive,
             (s16)stack.current.value[5]);
@@ -450,8 +429,8 @@ void StageEndScreen(void)
             FUN_800515b0(&stack.digit, stack.stats.clock, 0x61, -0x5d, 0);
             DRAW_SCORE_NUMBER(stack.stats.criticals, s32, 1, number_0,
                 10, top_y);
-            DRAW_SCORE_NUMBER((s16)stack.stats.enemies - stack.stats.bosses,
-                s32, 1, number_1, 0x28, top_y);
+            DRAW_SCORE_NUMBER((u32)stack.stats.enemies -
+                stack.stats.bosses, s32, 1, number_1, 0x28, top_y);
             DRAW_SCORE_NUMBER(stack.current.value[0], s16, 1, number_2,
                 current_x, top_y);
             DRAW_SCORE_NUMBER(stack.best.value[0], s16, 1, number_3,
@@ -494,27 +473,24 @@ void StageEndScreen(void)
             {
                 pulse += 0xfff;
             }
-            stack.rank.r = (pulse >> 12) + 0x7f;
-            stack.rank.g = stack.rank.r;
-            stack.rank.b = stack.rank.r;
+            stack.rank.r = stack.rank.g = stack.rank.b =
+                (pulse >> 12) + 0x7f;
             GsSortSprite(&stack.rank, OTablePt, 1);
 
             if ((s16)stack.current.value[5] == 4)
             {
-                icon = D_8008E5BC[D_8008ED50[CHOSEN_STAGE]];
-                icon->sprite.x = -0x78;
-                icon->sprite.y = 0x38;
-                icon->sprite.scalex = 0x1000;
-                icon->sprite.scaley = 0x1000;
+                icon = &D_8008E5BC[D_8008ED50[CHOSEN_STAGE]]->sprite;
+                icon->x = -0x78;
+                icon->y = 0x38;
+                icon->scalex = 0x1000;
+                icon->scaley = 0x1000;
                 pulse = rcos((GameClock << 12) / 90) * 0x50;
                 if (pulse < 0)
                 {
                     pulse += 0xfff;
                 }
-                icon->sprite.r = (pulse >> 12) + 0x7f;
-                icon->sprite.g = icon->sprite.r;
-                icon->sprite.b = icon->sprite.r;
-                GsSortSprite(&icon->sprite, OTablePt, 1);
+                icon->r = icon->g = icon->b = (pulse >> 12) + 0x7f;
+                GsSortSprite(icon, OTablePt, 1);
             }
 
             SkipFrame = 2;
@@ -572,44 +548,52 @@ void StageEndScreen(void)
         FUN_800514d8();
     }
 
-    i = selection;
-    switch (i)
+    switch (selection)
     {
     case 0:
         PSTATE->flags48 &= 0xfe;
-        if (PSTATE->stage != 7)
+        if (PSTATE->stage == 7)
         {
-            PSTATE->stage = *(u8 *)&D_8008EA78[
-                StageConfig[PSTATE->stage].uid + 1];
-            record = (StageScoreStats *)((u32)PSTATE->chr * 0x1d4 +
-                ((u32)PSTATE->stage * 0x24 + 0x80010064));
-            i = 0;
+            FUN_8004f6c0(0x12);
+        }
+        else
+        {
+            next_stage_index = StageConfig[PSTATE->stage].uid;
+            next_stage_index++;
+            PSTATE->stage = *(u8 *)&D_8008EA78[next_stage_index];
+            layout_character_offset = (u32)PSTATE->chr * 0x1d4;
+            layout_stage_offset =
+                (u32)PSTATE->stage * 0x24 + 0x80010064;
+            layout_record = (StageScoreStats *)(layout_character_offset +
+                layout_stage_offset);
+            layout_index = 0;
 layout_loop:
-            if (record->bosses + record->enemies == 0)
+            if (layout_record->bosses + layout_record->enemies == 0)
                 goto layout_done;
-            i++;
-            if (i < 3)
+            layout_index++;
+            if (layout_index < 3)
             {
-                record = (StageScoreStats *)((u8 *)record + 0xc);
+                layout_record = (StageScoreStats *)((u8 *)layout_record + 0xc);
                 goto layout_loop;
             }
 layout_done:
-            if (i == 3)
+            if (layout_index == 3)
             {
                 STAGE_LAYOUT_NUMBER = 0xff;
             }
             else
             {
-                STAGE_LAYOUT_NUMBER = i;
+                STAGE_LAYOUT_NUMBER = layout_index;
             }
-        }
-        else
-        {
-            FUN_8004f6c0(0x12);
         }
         break;
     case 1:
-        D_80010048 |= 1;
+        {
+            u8 *state;
+
+            state = (u8 *)0x80010000;
+            state[0x48] |= 1;
+        }
         break;
     case 2:
         STAGE_LAYOUT_NUMBER = 0xff;
