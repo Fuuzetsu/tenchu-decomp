@@ -64,28 +64,26 @@ extern s16 Think1target(void);
 extern void Sound(Humanoid *human, s32 id);
 
 /*
- * NON_MATCHING: exact retail length (617 instructions / 2468 bytes) and only
- * four differing bytes remain.  Both item-disposal copies materialize 0xff in
- * $t1 instead of retail's $v1; the following `sb` therefore differs too.
- * RTL places the choice in reload/reorg after the C pseudos are gone, and a
- * bounded 1089-candidate permuter run never beat the base.  Keep this pure C:
- * all control flow, loads/stores, arithmetic, delay slots, and other registers
- * already match byte-for-byte.
+ * Matching notes (2,468 bytes / 617 instructions):
+ *  - The entry comparison and fast disposal use literal 0xff, allowing CSE to
+ *    retain that value in $s1 across MoveKorogari.  The two later cleanup
+ *    copies rematerialize their own literals in $v1.
+ *  - Each cleanup tests and calls item->proc directly.  Combined with the
+ *    literal stores, this keeps the indirect target in $v0 and lets jump2
+ *    merge the fast cleanup into the final physical copy after its mode store.
+ *    A named proc local or a function-wide `ff` local changes that allocation.
+ *  - The full cleanup sequence and mode-advance tail remain duplicated at
+ *    their semantic exits so late cross-jumping can choose the target copies.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemDokudango", ProcItemDokudango);
-#else
 
 void ProcItemDokudango(tag_TItem *item)
 {
     Sprite3D *model;
     param_dokudango *param;
-    u8 ff;
 
     model = item->model;
     param = (param_dokudango *)item->param;
-    ff = 0xff;
-    if (item->mode == ff)
+    if (item->mode == 0xff)
     {
         param_dokudango *restore;
 
@@ -105,15 +103,12 @@ void ProcItemDokudango(tag_TItem *item)
         (MoveKorogari(item, (param_korogari *)param),
          param->status == 1))
     {
-        void (*proc)(tag_TItem *);
-
-        proc = item->proc;
-        if (proc == 0)
+        if (item->proc == 0)
         {
             return;
         }
-        item->mode = ff;
-        proc(item);
+        item->mode = 0xff;
+        item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
         {
@@ -246,8 +241,6 @@ set_target:
             if (ownerlen < 500)
             {
                 PARAM_ITEM_USE drop;
-                void (*proc)(tag_TItem *);
-
                 do
                 {
                     drop.type = item->type;
@@ -259,11 +252,10 @@ set_target:
                     drop.end.vy = 0;
                     drop.end.vz = 0;
                 } while (0);
-                proc = item->proc;
-                if (proc != 0)
+                if (item->proc != 0)
                 {
-                    item->mode = ff;
-                    proc(item);
+                    item->mode = 0xff;
+                    item->proc(item);
                     DeleteConflict(item->locate);
                     if (item->mode != 0)
                     {
@@ -434,15 +426,12 @@ set_target:
             }
 dispose_case3:
             {
-                void (*proc)(tag_TItem *);
-
-                proc = item->proc;
-                if (proc == 0)
+                if (item->proc == 0)
                 {
                     return;
                 }
-                item->mode = ff;
-                proc(item);
+                item->mode = 0xff;
+                item->proc(item);
                 DeleteConflict(item->locate);
                 if (item->mode != 0)
                 {
@@ -497,16 +486,13 @@ poison_active:
     }
 }
 
-#endif
-
 // triage: VERY-HARD — 617 insns, mul/div, 4 loop, indirect-call, 15 callees, ~0.20 to ProcItemDrop
 // likely-relevant cookbook sections:
 //   - Loops: 4 back-edge(s) — for/while/do vs goto shape
 //   - Expressions: mult/div — magic-multiply constants, fold
 //   - Register allocation steering: indirect call — null-check-var/call-field
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (retained reference):
 //
 //
 // /* WARNING: Type propagation algorithm not settling */
