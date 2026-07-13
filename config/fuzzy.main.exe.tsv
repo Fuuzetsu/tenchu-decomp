@@ -91,6 +91,7 @@ SetBleedsDir	55.58	ok
 SetupFly	38.79	ok
 SetupSpline	62.07	ok
 SetupWeapon	10.28	ok
+StageEndScreen	50.23	ok
 StageSequence	6.32	ok
 StickonCheck	95.31	ok
 SuccessionAttack	94.03	ok
