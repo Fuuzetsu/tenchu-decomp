@@ -1515,6 +1515,22 @@ multi-predecessor label forces a fresh gp load. This is exactly *when* the
 d-globals reload across the `Act*` family (ActHANG case 4's no-reload vs
 ActSYURI's reload after the `.L80025E68` join).
 
+**A same-width scalar alias can deliberately clear a captured member load's
+`MEM_IN_STRUCT_P` marker.** On the 32-bit PS1 ABI, `long y; y = p->field;`
+and `y = *(s32 *)&p->field;` read the same signed 32-bit representation, but
+old cc1 gives only the direct member spelling the structure-memory marker. CSE
+can therefore delete or sink a one-use direct load across fixed-address
+non-struct stores and collapse its hard-register lifetime; the scalar-lvalue
+spelling keeps an early independent load live. In `DrawSplash`, plain `py/pz`
+captures left a 51-byte residual, while the two aliases preserved retail's
+early `a1/a2` loads and matched exactly; `px` needed no alias because it was
+consumed before those stores. Use this only when `.rtl` creates the expected
+locals, `.cse` is the pass that deletes/sinks them, and retail retains the early
+loads. Guided aggressive autorules rule `member-scalar-alias` enumerates the
+pure-C toggle and adjacent same-object pairs atomically (either alias alone
+worsened `DrawSplash`). This is a matching lever for the old compiler and known
+field layout, not a general strict-aliasing recommendation for modern C.
+
 **Two divisions in one function must be computed back-to-back before either's store
 block.** Interleaving store-then-next-division puts stores BETWEEN two reads of the same
 field, invalidating cse1's cached load and forcing a needless reload+move

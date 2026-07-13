@@ -81,11 +81,12 @@ CATEGORY_RULES = {
         "or-inplace", "add-prefix-temp", "flag-arm-assign",
         "shared-tail-assign", "identical-arm-fence", "subscript-postinc", "switch-cse-evict",
         "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap", "assignment-chain",
+        "member-scalar-alias",
     ],
     "cse/coalescing": [
         "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split",
         "vector-copy-adjust", "subscript-postinc", "switch-cse-evict", "assignment-chain",
-        "pointee-volatile",
+        "pointee-volatile", "member-scalar-alias",
     ],
     "jump/cross-jump": ["case-fence", "sparse-eq-switch", "mul-affine-shape", "and-nest", "if-else-invert", "shared-tail-assign"],
     "schedule/delay": [
@@ -94,7 +95,7 @@ CATEGORY_RULES = {
         "shared-return-split",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
         "call-arg-pair", "eq-literal-swap", "pointee-volatile",
-        "adjacent-field-store-swap", "assignment-chain",
+        "adjacent-field-store-swap", "assignment-chain", "member-scalar-alias",
     ],
     "combine/expression": [
         "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",

@@ -213,6 +213,78 @@ int F(void) {
         self.assertIn("p->x = 0x10;\n    p->y = 0x10;", forward[0])
         self.assertIn("p->y = 0x10;\n    p->x = 0x10;", reverse[0])
 
+    def test_member_scalar_alias_toggles_plain_long_field_read(self):
+        source = """typedef int s32;
+void F(Node *param) {
+    long y;
+    y = param->py;
+}
+"""
+        autorules.GUIDED_LINES = {4}
+        added = self.candidates(autorules.rule_member_scalar_alias, source)
+        self.assertEqual(len(added), 1)
+        self.assertIn("y = *(s32 *)&param->py;", added[0][1])
+        removed = self.candidates(
+            autorules.rule_member_scalar_alias, added[0][1])
+        self.assertEqual(len(removed), 1)
+        self.assertIn("y = param->py;", removed[0][1])
+
+    def test_member_scalar_alias_rejects_unsafe_shapes(self):
+        non_long = """typedef int s32;
+void F(Node *param) {
+    s32 y;
+    y = param->py;
+}
+"""
+        side_effect = """void F(void) {
+    long y;
+    y = next();
+}
+"""
+        multi_decl = """void F(Node *param) {
+    long y, z;
+    y = param->py;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_member_scalar_alias, non_long), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_member_scalar_alias, side_effect), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_member_scalar_alias, multi_decl), [])
+
+    def test_member_scalar_alias_resolves_a_later_nested_shadow(self):
+        source = """typedef int s32;
+void F(Node *param) {
+    long z;
+    z = param->pz;
+    {
+        s32 z;
+        z = param->short_field;
+    }
+}
+"""
+        out = self.candidates(autorules.rule_member_scalar_alias, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("z = *(s32 *)&param->pz;", out[0][1])
+        self.assertIn("z = param->short_field;", out[0][1])
+
+    def test_member_scalar_alias_emits_atomic_adjacent_pair(self):
+        source = """typedef int s32;
+void F(Node *param) {
+    long y;
+    long z;
+    y = param->py;
+    z = param->pz;
+}
+"""
+        out = self.candidates(autorules.rule_member_scalar_alias, source)
+        pair = [candidate for label, candidate in out
+                if "add y/z L5/6" in label]
+        self.assertEqual(len(pair), 1)
+        self.assertIn("y = *(s32 *)&param->py;", pair[0])
+        self.assertIn("z = *(s32 *)&param->pz;", pair[0])
+
     def test_adjacent_field_store_swap_rejects_nonliteral_rhs(self):
         source = """void F(Frame *frame, int value) {
     frame->size = value;
@@ -1654,6 +1726,7 @@ class RtlGuideTests(unittest.TestCase):
         self.assertIn("shift16-mul", rules)
         self.assertIn("plus-group", rules)
         self.assertIn("type-width", rules)
+        self.assertIn("member-scalar-alias", rules)
         self.assertFalse(any("barrier" in rule or "clobber" in rule for rule in rules))
 
     def test_json_keeps_hunk_instructions_not_full_streams(self):

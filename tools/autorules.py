@@ -1869,6 +1869,143 @@ def _field_path(data, node):
     return _txt(data, node), text
 
 
+def rule_member_scalar_alias(text, name, span):
+    """Toggle a long field read through an equally wide ``s32`` lvalue.
+
+    Old cc1 marks a direct structure-member load as MEM_IN_STRUCT.  Reading the
+    same PS1 32-bit representation through a scalar lvalue clears that marker,
+    which can stop cse from sinking/coalescing a captured coordinate load.  The
+    lever is intentionally aggressive: only an exact ``long local;`` followed
+    by a side-effect-free field assignment is eligible, and RTL-guided scoring
+    decides whether the changed alias class belongs at that site (DrawSplash).
+
+    The reverse transform is included so the search can back out a stale match
+    cast without a hand edit.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    declarations = {}
+    for declaration in _find(body, ("declaration",)):
+        identifiers = []
+        for child in declaration.named_children:
+            if child.type == "init_declarator":
+                ident = _descend_ident(child.child_by_field_name("declarator"))
+            elif child.type in ("identifier", "pointer_declarator",
+                                "array_declarator"):
+                ident = _descend_ident(child)
+            else:
+                ident = None
+            if ident is not None:
+                identifiers.append(_txt(data, ident))
+        raw = _txt(data, declaration).strip()
+        match = re.fullmatch(rb"long\s+([A-Za-z_]\w*)\s*;", raw)
+        scope = declaration.parent
+        while scope is not None and scope.type != "compound_statement":
+            scope = scope.parent
+        if scope is None:
+            continue
+        scope_key = (scope.start_byte, scope.end_byte)
+        exact = (match.group(1) if match is not None and
+                 identifiers == [match.group(1)] else None)
+        for ident in identifiers:
+            declarations.setdefault(ident, []).append(
+                (scope_key, declaration.start_byte, ident == exact)
+            )
+
+    def is_visible_long_local(statement, ident):
+        """Resolve ``ident`` lexically at this statement, including shadows."""
+        scope_keys = []
+        scope = statement.parent
+        while scope is not None:
+            if scope.type == "compound_statement":
+                scope_keys.append((scope.start_byte, scope.end_byte))
+            scope = scope.parent
+        candidates = []
+        for scope_key, start, exact in declarations.get(ident, []):
+            if start >= statement.start_byte or scope_key not in scope_keys:
+                continue
+            candidates.append((scope_keys.index(scope_key), -start, exact))
+        if not candidates:
+            return False
+        return min(candidates)[2]
+
+    def aliased_field(rhs):
+        """The field under exactly ``*(s32 *)&field``, otherwise None."""
+        dereference = _unparen(rhs)
+        if dereference is None or dereference.type != "pointer_expression":
+            return None
+        operator = dereference.child_by_field_name("operator")
+        cast = _unparen(dereference.child_by_field_name("argument"))
+        if (operator is None or _txt(data, operator) != b"*" or
+                cast is None or cast.type != "cast_expression"):
+            return None
+        cast_type = cast.child_by_field_name("type")
+        address = _unparen(cast.child_by_field_name("value"))
+        if (cast_type is None or
+                re.fullmatch(rb"s32\s*\*", _txt(data, cast_type).strip()) is None or
+                address is None or address.type != "pointer_expression"):
+            return None
+        address_operator = address.child_by_field_name("operator")
+        field = _unparen(address.child_by_field_name("argument"))
+        if (address_operator is None or _txt(data, address_operator) != b"&" or
+                field is None or field.type != "field_expression" or
+                _field_path(data, field) is None):
+            return None
+        return field
+
+    edits = []
+    for statement in _find(body, ("expression_statement",)):
+        assignment = _plain_assignment(data, statement)
+        if assignment is None:
+            continue
+        local, rhs = assignment
+        line = _line(data, statement.start_byte)
+        if not is_visible_long_local(statement, local) or not _guided_site(line):
+            continue
+
+        field = _unparen(rhs)
+        if (field is not None and field.type == "field_expression" and
+                _field_path(data, field) is not None):
+            replacement = b"*(s32 *)&" + _txt(data, field).strip()
+            tag = "add"
+        else:
+            field = aliased_field(rhs)
+            if field is None:
+                continue
+            replacement = _txt(data, field).strip()
+            tag = "remove"
+        root, _path = _field_path(data, field)
+        edits.append((tag, local, root, line, rhs.start_byte, rhs.end_byte,
+                      replacement))
+
+    for tag, local, _root, line, start, end, replacement in edits:
+        yield (
+            f"member-scalar-alias {tag} {local.decode()} L{line}",
+            splice(data, start, end, replacement).decode(),
+        )
+
+    # Coordinate-style captures commonly need two independent live ranges at
+    # once.  A single alias can score worse even though the pair is exact, so
+    # emit adjacent same-object edits atomically rather than relying on a wide
+    # regression allowance in the beam (DrawSplash's py/pz pair).
+    for first, second in zip(edits, edits[1:]):
+        if first[0] != second[0] or first[2] != second[2]:
+            continue
+        tag = first[0]
+        locals_ = first[1].decode() + "/" + second[1].decode()
+        lines = f"L{first[3]}/{second[3]}"
+        changed = data
+        for edit in sorted((first, second), key=lambda item: item[4], reverse=True):
+            changed = splice(changed, edit[4], edit[5], edit[6])
+        yield (
+            f"member-scalar-alias {tag} {locals_} {lines}",
+            changed.decode(),
+        )
+
+
 def rule_assignment_chain(text, name, span):
     """Merge/split same-literal stores to distinct fields of one aggregate.
 
@@ -3451,6 +3588,7 @@ AGGRESSIVE_RULES = [
     ("adjacent-field-store-swap", "swap adjacent literal stores to distinct fields", rule_adjacent_field_store_swap),
     ("switch-cse-evict", "dead-overwrite an entry index before a fresh switch load", rule_switch_cse_evict),
     ("pointee-volatile", "toggle volatile on a local integer pointer's pointee", rule_pointee_volatile),
+    ("member-scalar-alias", "toggle long field read through s32 lvalue (MEM_IN_STRUCT lever)", rule_member_scalar_alias),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("nested-loop-fence", "atomically add two or three loop weights at one site", rule_nested_loop_fence),
     ("paired-loop-fence", "wrap adjacent groups in two atomic one-shot loops", rule_paired_loop_fence),
