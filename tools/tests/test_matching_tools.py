@@ -758,6 +758,67 @@ int F(void) { volatile int x; x = rand() % 30; return x; }
         self.assertEqual(
             self.candidates(autorules.rule_rand_mod_split, volatile_source), [])
 
+    def test_call_result_split_preserves_order_and_handles_separate_blocks(self):
+        source = """typedef int s32;
+int rand(void);
+void sink(int);
+void adjust(void);
+int F(int status) {
+    s32 r;
+    if (status) {
+        r = rand();
+        adjust();
+        sink(r);
+        r = rand();
+        sink(r);
+    } else {
+        r = rand();
+        sink(r);
+        r = rand();
+        sink(r);
+    }
+    return 0;
+}
+"""
+        out = self.candidates(autorules.rule_call_result_split, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertNotIn("s32 r;", candidate)
+        self.assertEqual(candidate.count("s32 _match_r_"), 4)
+        self.assertEqual(candidate.count("sink(_match_r_"), 4)
+        self.assertLess(candidate.index("s32 _match_r_0 = rand();"),
+                        candidate.index("adjust();"))
+        self.assertLess(candidate.index("adjust();"),
+                        candidate.index("sink(_match_r_0);"))
+
+    def test_call_result_split_rejects_multiple_uses_or_escaping_use(self):
+        multiple_uses = """int next(void);
+void sink(int);
+int F(void) {
+    int r;
+    r = next();
+    sink(r);
+    sink(r);
+    r = next();
+    return r;
+}
+"""
+        escaping_use = """int next(void);
+int F(int flag) {
+    int r;
+    if (flag) {
+        r = next();
+    }
+    if (flag) return r;
+    r = next();
+    return r;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_call_result_split, multiple_uses), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_call_result_split, escaping_use), [])
+
     def test_builtin_abs_makes_inlining_explicit(self):
         source = """int abs(int);
 int F(int value) {

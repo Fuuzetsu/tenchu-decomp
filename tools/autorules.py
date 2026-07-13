@@ -212,7 +212,8 @@ def uncommented(lines, rng):
 # (label, new_text): each yielded candidate is the FULL file text with ONE site
 # rewritten. The driver scores them all and greedily keeps the best. Simple
 # token rewrites (type-width) are line/regex based; structural rewrites (&&-nest,
-# temp-inline) parse with tree-sitter (get_parser("c")) and splice byte spans —
+# temp-inline, call-result-split) parse with tree-sitter (get_parser("c")) and
+# splice byte spans —
 # tolerant of the SDK headers / INCLUDE_ASM / preprocessor without fake headers.
 # Add mechanical rules here as the cookbook grows.
 # ---------------------------------------------------------------------------
@@ -501,6 +502,157 @@ def rule_temp_inline(text, name, span):
         de = decl.end_byte + (1 if data[decl.end_byte:decl.end_byte + 1] == b"\n" else 0)
         yield (f"inline {vid.decode()} L{_line(data, decl.start_byte)}",
                splice(t1, ds, de, b"").decode())
+
+
+def rule_call_result_split(text, name, span):
+    """Give every definition of a reused direct-call result its own local.
+
+    ``T r; r = call(); use(r); r = call(); use(r);`` keeps one pseudo alive
+    across all definitions, which can make old cc1 copy each return out of
+    ``$v0``.  Separate single-definition locals can coalesce with the return
+    register.  Unlike ``temp-inline``, this does not move a call across any
+    intervening statement.
+
+    This is deliberately atomic and conservative: the original must be a
+    plain scalar local, every write must be a direct-call assignment, and each
+    definition must have exactly one later use in the same compound statement
+    before the next definition.  Mutually exclusive block-local definitions
+    are supported; uses that escape their defining block are not.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    idents = _find(body, ("identifier",))
+    assignments = _find(body, ("assignment_expression",))
+
+    def nearest_compound(node):
+        node = node.parent
+        while node is not None and node is not body.parent:
+            if node.type == "compound_statement":
+                return (node.start_byte, node.end_byte)
+            node = node.parent
+        return None
+
+    def has_ancestor(node, node_type, stop):
+        node = node.parent
+        while node is not None and node is not stop:
+            if node.type == node_type:
+                return True
+            node = node.parent
+        return False
+
+    for decl in _find(body, ("declaration",)):
+        type_node = decl.child_by_field_name("type")
+        declarator = decl.child_by_field_name("declarator")
+        if (type_node is None or declarator is None or
+                declarator.type != "identifier"):
+            continue
+        type_text = _txt(data, type_node)
+        if type_text.decode() not in TYPES:
+            continue
+        if re.search(rb"\b(?:const|volatile|static|register|extern)\b",
+                     _txt(data, decl)):
+            continue
+
+        original = _txt(data, declarator)
+        defs = []
+        lhs_nodes = set()
+        for assignment in assignments:
+            left = assignment.child_by_field_name("left")
+            right = assignment.child_by_field_name("right")
+            operator = assignment.child_by_field_name("operator")
+            statement = assignment.parent
+            if (left is None or left.type != "identifier" or
+                    _txt(data, left) != original):
+                continue
+            lhs_nodes.add((left.start_byte, left.end_byte))
+            if (right is None or right.type != "call_expression" or
+                    operator is None or _txt(data, operator) != b"=" or
+                    statement is None or
+                    statement.type != "expression_statement" or
+                    statement.parent is None or
+                    statement.parent.type != "compound_statement"):
+                defs = []
+                break
+            defs.append((assignment, statement, right))
+        if len(defs) < 2:
+            continue
+        defs.sort(key=lambda item: item[0].start_byte)
+
+        # A shadow declaration, update, address-take, composite write, or use
+        # inside a call RHS makes the simple definition/use partition unsafe.
+        uses = []
+        unsafe = False
+        for ident in idents:
+            if _txt(data, ident) != original:
+                continue
+            key = (ident.start_byte, ident.end_byte)
+            if key == (declarator.start_byte, declarator.end_byte) or key in lhs_nodes:
+                continue
+            if has_ancestor(ident, "declaration", body):
+                unsafe = True
+                break
+            parent = ident.parent
+            if (parent is not None and parent.type == "update_expression"):
+                unsafe = True
+                break
+            if (parent is not None and parent.type == "pointer_expression" and
+                    _txt(data, parent).lstrip().startswith(b"&")):
+                unsafe = True
+                break
+            # Reject identifiers nested anywhere in another assignment LHS.
+            ancestor = ident.parent
+            while ancestor is not None and ancestor is not body:
+                if ancestor.type == "assignment_expression":
+                    left = ancestor.child_by_field_name("left")
+                    if (left is not None and
+                            left.start_byte <= ident.start_byte < left.end_byte):
+                        unsafe = True
+                    break
+                ancestor = ancestor.parent
+            if unsafe:
+                break
+            uses.append(ident)
+        if unsafe:
+            continue
+
+        paired = []
+        for index, (assignment, statement, right) in enumerate(defs):
+            next_start = (defs[index + 1][0].start_byte
+                          if index + 1 < len(defs) else body.end_byte)
+            region_uses = [use for use in uses
+                           if assignment.end_byte < use.start_byte < next_start]
+            if (len(region_uses) != 1 or
+                    nearest_compound(region_uses[0]) !=
+                    (statement.parent.start_byte, statement.parent.end_byte)):
+                paired = []
+                break
+            paired.append((statement, right, region_uses[0]))
+        if len(paired) != len(defs) or len(uses) != len(defs):
+            continue
+
+        replacements = [(decl.start_byte, decl.end_byte, b"")]
+        existing = {_txt(data, ident) for ident in idents}
+        collision = False
+        for index, (statement, right, use) in enumerate(paired):
+            fresh = b"_match_" + original + b"_" + str(index).encode()
+            if fresh in existing:
+                collision = True
+                break
+            replacement = type_text + b" " + fresh + b" = " + _txt(data, right) + b";"
+            replacements.append((statement.start_byte, statement.end_byte,
+                                 replacement))
+            replacements.append((use.start_byte, use.end_byte, fresh))
+        if collision:
+            continue
+
+        candidate = data
+        for start, end, replacement in sorted(replacements, reverse=True):
+            candidate = splice(candidate, start, end, replacement)
+        yield (f"split call-result {original.decode()} x{len(defs)} "
+               f"L{_line(data, decl.start_byte)}", candidate.decode())
 
 
 def rule_param_width(text, name, span):
@@ -3137,6 +3289,7 @@ RULES = [
     ("extern-array", "extern T NAME; -> extern T NAME[]; + NAME->NAME[0] (-G8 split)", rule_extern_array),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
+    ("call-result-split", "split a reused direct-call result into single-definition locals", rule_call_result_split),
     ("late-pointer-direct", "inline a repeated pointer-global assignment in its late region", rule_late_pointer_direct),
     ("call-arg-pair", "inline adjacent same-call temps into one consumer call", rule_call_arg_pair_inline),
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),

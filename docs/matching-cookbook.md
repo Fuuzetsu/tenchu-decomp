@@ -3697,7 +3697,12 @@ reassociating the bias onto the remainder, which otherwise sinks the coordinate
 load and removes its target load-hazard `nop`. This exact three-expression shape
 fixed ProcItemFire's last structural gap. When the target instead has the
 reassociated form, inline `rand()` and the bias—the two spellings are deliberate
-opposites.
+opposites. DrawShadow independently confirmed the return-register half of this
+rule with four `rand()` calls. Its first call had to stay before an unrelated Y
+adjustment, so blindly inlining the call at the use would have changed side-effect
+order. `tools/autorules.py NAME --rules call-result-split` mechanizes the safe
+version: it atomically gives each direct-call definition a single-use local while
+leaving every call at its original statement position.
 
 ### Hoist-invariant vs widen-parameter can be a 2-instruction allocator tie
 
