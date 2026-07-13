@@ -786,6 +786,77 @@ int F(VECTOR *position) {
         self.assertEqual(self.candidates(autorules.rule_flag_arm_assign, used), [])
         self.assertEqual(self.candidates(autorules.rule_flag_arm_assign, exits), [])
 
+    def test_guard_exit_copy_moves_both_directions(self):
+        arm_local = """int F(int pad) {
+    int exit_pad;
+    while (pad) {
+        if (pad & 0x100) {
+            exit_pad = pad;
+            break;
+        }
+        pad--;
+    }
+    return exit_pad;
+}
+"""
+        hoisted = self.candidates(autorules.rule_guard_exit_copy, arm_local)
+        self.assertEqual(len(hoisted), 1)
+        candidate = hoisted[0][1]
+        self.assertLess(candidate.index("exit_pad = pad;"),
+                        candidate.index("if (pad & 0x100)"))
+
+        sunk = self.candidates(autorules.rule_guard_exit_copy, candidate)
+        self.assertEqual(len(sunk), 1)
+        restored = sunk[0][1]
+        self.assertLess(restored.index("if (pad & 0x100)"),
+                        restored.index("exit_pad = pad;"))
+
+    def test_guard_exit_copy_rejects_fallthrough_use_or_second_break(self):
+        fallthrough_use = """int F(int pad) {
+    int exit_pad;
+    while (pad) {
+        if (pad & 1) { exit_pad = pad; break; }
+        pad += exit_pad;
+    }
+    return exit_pad;
+}
+"""
+        second_break = """int F(int pad) {
+    int exit_pad;
+    while (pad) {
+        if (pad & 1) { exit_pad = pad; break; }
+        if (pad & 2) break;
+        pad--;
+    }
+    return exit_pad;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_guard_exit_copy, fallthrough_use), [])
+        self.assertEqual(
+            self.candidates(autorules.rule_guard_exit_copy, second_break), [])
+
+    def test_guard_exit_copy_checks_forward_goto_path(self):
+        safe = """int F(int pad) {
+    int exit_pad;
+    while (pad) {
+        if (pad & 1) { exit_pad = pad; break; }
+        if (pad & 2) goto alternate;
+        pad--;
+    }
+    if (exit_pad & 4) {
+alternate:
+        pad++;
+    }
+    return pad;
+}
+"""
+        self.assertEqual(
+            len(self.candidates(autorules.rule_guard_exit_copy, safe)), 1)
+        unsafe = safe.replace("pad++;", "pad += exit_pad;")
+        self.assertEqual(
+            self.candidates(autorules.rule_guard_exit_copy, unsafe), [])
+
     def test_shared_tail_assignment_duplicates_into_both_arms(self):
         source = """int F(int select) {
     int value;

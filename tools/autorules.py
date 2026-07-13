@@ -2427,6 +2427,142 @@ def rule_flag_arm_assign(text, name, span):
             )
 
 
+def rule_guard_exit_copy(text, name, span):
+    """Move a simple local copy across a loop's unique break guard.
+
+    ``copy = value; if (test(value)) break;`` and the arm-local spelling
+    ``if (test(value)) { copy = value; break; }`` give the copy different RTL
+    live ranges and allocation preferences even when reorg puts the move in the
+    same branch delay slot.  Enumerate both placements for the narrow shape we
+    can justify mechanically: a nonvolatile, non-address-taken local; a pure
+    condition using the copied identifier; one break in the loop; and no other
+    reference to the destination inside that loop.  A forward goto out of the
+    loop is allowed only when its target and everything after it never read the
+    destination (debug_menu_player_jump's alternate action path).
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+    body_text = _txt(data, body)
+    labels = {}
+    for labelled in _find(body, ("labeled_statement",)):
+        label = labelled.child_by_field_name("label")
+        if label is not None:
+            labels[_txt(data, label)] = labelled
+
+    def loop_safe(loop, destination):
+        if len(_find(loop, ("break_statement",))) != 1:
+            return False
+        if sum(_txt(data, ident) == destination
+               for ident in _find(loop, ("identifier",))) != 1:
+            return False
+        # The value must be observable on the ordinary loop-exit path; without
+        # a later use this rewrite is only dead-source churn.
+        if not any(_txt(data, ident) == destination and ident.start_byte >= loop.end_byte
+                   for ident in _find(body, ("identifier",))):
+            return False
+        for jump in _find(loop, ("goto_statement",)):
+            label = jump.child_by_field_name("label")
+            target = labels.get(_txt(data, label)) if label is not None else None
+            if target is None or target.start_byte <= loop.end_byte:
+                return False
+            if any(_txt(data, ident) == destination and
+                   ident.start_byte >= target.start_byte
+                   for ident in _find(body, ("identifier",))):
+                return False
+        return True
+
+    def parse_copy(statement, condition):
+        parsed = _plain_assignment(data, statement)
+        if parsed is None:
+            return None
+        destination, rhs = parsed
+        rhs = _unparen(rhs)
+        condition_ids = [_txt(data, ident)
+                         for ident in _find(condition, ("identifier",))]
+        if (destination not in locals_ or rhs is None or
+                rhs.type != "identifier" or destination == _txt(data, rhs) or
+                destination in condition_ids or _txt(data, rhs) not in condition_ids or
+                re.search(rb"&\s*" + re.escape(destination) + rb"\b", body_text) or
+                _find(condition, ("assignment_expression", "update_expression",
+                                  "call_expression", "comma_expression"))):
+            return None
+        return destination, _txt(data, rhs)
+
+    def render_if(iff, consequence, statements):
+        indent = _indent_at(data, iff.start_byte)
+        body_indent = indent + b"    "
+        prefix = data[iff.start_byte:consequence.start_byte].rstrip()
+        rendered = [prefix, b"\n", indent, b"{\n"]
+        for statement in statements:
+            rendered.extend((body_indent, statement, b"\n"))
+        rendered.extend((indent, b"}"))
+        return b"".join(rendered)
+
+    loops = ("while_statement", "for_statement", "do_statement")
+    for block in _find(body, ("compound_statement",)):
+        loop = block.parent
+        if (loop is None or loop.type not in loops or
+                loop.child_by_field_name("body") != block):
+            continue
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for index, iff in enumerate(statements):
+            if (iff.type != "if_statement" or
+                    iff.child_by_field_name("alternative") is not None):
+                continue
+            condition = iff.child_by_field_name("condition")
+            consequence = iff.child_by_field_name("consequence")
+            if (condition is None or consequence is None or
+                    consequence.type != "compound_statement" or
+                    any(child.type == "comment" for child in consequence.named_children)):
+                continue
+            arm = [child for child in consequence.named_children
+                   if child.type != "comment"]
+            line = _line(data, iff.start_byte)
+
+            # Arm-local copy -> pre-guard copy.
+            if (len(arm) == 2 and arm[1].type == "break_statement" and
+                    not data[arm[0].end_byte:arm[1].start_byte].strip()):
+                parsed = parse_copy(arm[0], condition)
+                if (parsed is not None and loop_safe(loop, parsed[0]) and
+                        (_guided_site(line) or
+                         _guided_site(_line(data, arm[0].start_byte)))):
+                    assignment = _txt(data, arm[0]).strip()
+                    replacement = (assignment + b"\n" +
+                                   _indent_at(data, iff.start_byte) +
+                                   render_if(iff, consequence,
+                                             [_txt(data, arm[1]).strip()]))
+                    yield (
+                        f"guard-exit-copy hoist {parsed[0].decode()} L{line}",
+                        splice(data, iff.start_byte, iff.end_byte,
+                               replacement).decode(),
+                    )
+
+            # Adjacent pre-guard copy -> arm-local copy.
+            if (len(arm) != 1 or arm[0].type != "break_statement" or index == 0):
+                continue
+            previous = statements[index - 1]
+            if data[previous.end_byte:iff.start_byte].strip():
+                continue
+            parsed = parse_copy(previous, condition)
+            if (parsed is None or not loop_safe(loop, parsed[0]) or
+                    not (_guided_site(line) or
+                         _guided_site(_line(data, previous.start_byte)))):
+                continue
+            replacement = render_if(
+                iff, consequence,
+                [_txt(data, previous).strip(), _txt(data, arm[0]).strip()],
+            )
+            yield (
+                f"guard-exit-copy sink {parsed[0].decode()} L{line}",
+                splice(data, previous.start_byte, iff.end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_shared_tail_assign(text, name, span):
     """Duplicate one shared assignment into both immediately preceding arms.
 
@@ -3793,6 +3929,7 @@ AGGRESSIVE_RULES = [
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
+    ("guard-exit-copy", "move a local value copy across its unique loop-break guard", rule_guard_exit_copy),
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
     ("shared-return-split", "replace a goto to a return label with a second literal return", rule_shared_return_split),
     ("if-else-invert", "invert a compound if/else to swap physical body layout", rule_if_else_invert),

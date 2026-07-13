@@ -1357,6 +1357,18 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
     `p` in one branch and `q` in the other. This forces the full address combine
     at that statement (instead of drifting into the delay slot) AND supplies the
     move reorg steals into the branch's delay slot (PadShock).
+  - **Loop-exit variant — place a tested-value copy before the break guard to
+    change its allocno home.** `exit = value; if (value & MASK) break;` and
+    `if (value & MASK) { exit = value; break; }` can schedule the same move in
+    the guard branch's delay slot and retain identical CFG, length, and calls,
+    yet the earlier definition has a different live range/reference priority.
+    In `debug_menu_player_jump`, the arm-local form was an exact-length,
+    two-byte register residual (`move v0,v1` and a later test from `v0` where
+    the target used `a0`); the pre-guard form byte-matched all 692 bytes.
+    Guided `autorules` exposes both placements as `guard-exit-copy`, restricted
+    to a simple nonvolatile copy, a pure condition, the loop's unique break,
+    and no other in-loop use of the destination. This is a late allocation
+    lever: first prove the copy/test chain with `rtlguide`, then score it.
 - **Ghidra's short-typed call-result variable can be `int` in source**: a
   short-returning call assigned to int extends once at the assignment
   (sll/sra right after the jal, before any joins); a true `short` variable
