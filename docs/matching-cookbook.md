@@ -832,6 +832,17 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `NOTE_INSN_LOOP_BEG` is immediately followed by a simplejump) then copies
   the exit test to the entry, where a provable initial value constant-folds it
   away → **bottom-test do-while shape**.
+- **A bottom-tested scan can require its cursor-pointer derivation at the TOP
+  of a real `while` body.** `i = 0; while (buf[i]) { p = buf; p += i; ...; }`
+  makes the duplicated entry test consume `buf[i]`, then forms `p` as the
+  body's first operation.  At the back edge cc1 independently forms the
+  address for the bottom test and the next iteration's `p` (the latter can
+  fill the branch delay slot).  The logically equivalent
+  `if (buf[0]) do { ...; p = buf + i; } while (buf[i]);` puts both expressions
+  in one extended block, so cse reuses one address and emits an instruction
+  less.  AfsFindFile proved the A/B: only the real-`while`, two-statement
+  cursor spelling reproduces its entry `i=0` placement and distinct bottom
+  `buf[i]`/next-body pointer calculations.
 - **`while (1) { if (!(cond)) break; ...; i++; }`** keeps the original's
   **top-test + unconditional back-jump** shape (first insn after the loop
   note is a condjump → no duplication) *and* still gets loop.c's invariant
@@ -1173,6 +1184,21 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   inspect `.rtl` to confirm the address-pseudo split before introducing such a
   helper, and keep it inside a guarded draft so the asm-stub TU cannot emit an
   unused out-of-line copy.
+- **A demo call that disappears in retail may be an INLINE EXPANSION, not
+  rewritten source.** When `siblingdiff --demo` shows a named helper call in
+  the earlier body but retail contains the helper's instruction shape in its
+  place, reconstruct a small local `static __inline__` definition and keep the
+  source call.  Hand-copying the helper's logic can lose its expanded parameter
+  bindings, return islands, and local identities even when the behavior is
+  identical.  AfsFindFile is the measured case: the 300-byte demo calls
+  AfsFilenameFix once and subAfsFindFile twice; the 560-byte retail body calls
+  neither, while one helper-sized target window contains 12/19 and 27/44 of
+  their retail mnemonic bigrams respectively.  A
+  hand-expanded draft was 36 bytes short; the two inline calls recovered the
+  target CFG and matched in pure C.  `siblingdiff --demo` now reports this only
+  when a missing named call has at least six matching helper bigrams and 60%
+  helper coverage.  Treat it as a drafting hint and confirm the actual target
+  islands—real source edits can also remove calls.
 - **One absolute-state pointer reused across distant phases can become an
   unwanted saved-register allocno.** If the target rematerialises the same
   `0x80010000` base with separate `lui` sites but the candidate carries one

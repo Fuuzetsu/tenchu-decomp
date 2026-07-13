@@ -26,7 +26,10 @@ In ordinary sibling mode, inter-function `jal`/`j` targets are left absolute: bo
 bodies came from retail, so the same callee already aligns. In `--demo` mode those
 targets are normalized to function names because the earlier executable was linked
 at different addresses. Only a same-named body from the committed demo inventory is
-accepted. Register allocation and real demo/retail edits still show through — the
+accepted. When a named demo call disappeared in retail, the tool also checks whether
+the retail target contains most of that callee's mnemonic bigrams. A strong hit is an
+inline-expansion hint: reconstruct a local static-inline call before hand-copying the
+callee body. Register allocation and real demo/retail edits still show through — the
 demo is a structural source oracle, never the exact-byte gate. Run inside the nix
 devShell.
 """
@@ -161,6 +164,61 @@ def disasm(insns, addr, size, target_names=None):
             for a in range(addr, end, 4)]
 
 
+def call_counts(seq):
+    """Named direct calls in a normalized disassembly sequence."""
+    out = {}
+    for line in seq:
+        m = re.match(r"^jal ([A-Za-z_$][\w$]*)$", line)
+        if m:
+            name = m.group(1)
+            out[name] = out.get(name, 0) + 1
+    return out
+
+
+def mnemonic_bigrams(seq):
+    """Multiset of adjacent mnemonic pairs, retaining repeated helper loops."""
+    mnems = [line.split(None, 1)[0] for line in seq]
+    out = {}
+    for i in range(len(mnems) - 1):
+        pair = (mnems[i], mnems[i + 1])
+        out[pair] = out.get(pair, 0) + 1
+    return out
+
+
+def inline_hints(ref, tgt, helpers, min_hits=6, min_coverage=0.60):
+    """Find demo-call deficits whose retail helper body occurs inside target.
+
+    ``helpers`` maps a retail callee name to its normalized disassembly.  The
+    comparison deliberately uses mnemonic bigrams: inline expansion changes hard
+    registers, stack offsets, and local labels, while retaining enough adjacent
+    operation shape to distinguish a real expanded body from an ordinary missing
+    call.  The result is a drafting hint, never a match claim.
+    """
+    ref_calls = call_counts(ref)
+    tgt_calls = call_counts(tgt)
+    rows = []
+    for name, ref_count in sorted(ref_calls.items()):
+        deficit = ref_count - tgt_calls.get(name, 0)
+        helper = helpers.get(name)
+        if deficit <= 0 or not helper:
+            continue
+        helper_pairs = mnemonic_bigrams(helper)
+        total = sum(helper_pairs.values())
+        width = min(len(helper), len(tgt))
+        best = (0, 0)
+        for start in range(max(1, len(tgt) - width + 1)):
+            target_pairs = mnemonic_bigrams(tgt[start:start + width])
+            hits = sum(min(n, target_pairs.get(pair, 0))
+                       for pair, n in helper_pairs.items())
+            best = max(best, (hits, -start))
+        hits, neg_start = best
+        start = -neg_start
+        coverage = hits / total if total else 0.0
+        if hits >= min_hits and coverage >= min_coverage:
+            rows.append((name, deficit, hits, total, coverage, start))
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("target")
@@ -197,6 +255,21 @@ def main():
         print(f"target {args.target}  retail {ta:08x} ({tsz} bytes)")
         print(f"demo   {args.target}  demo   {sa:08x} ({ssz} bytes)")
         print("source: disks/demo/PSX.EXE + reference/demo-psxexe.functions.tsv\n")
+        demo_calls = call_counts(ref)
+        helper_seqs = {
+            name: disasm(insns, *byname[name], retail_names)
+            for name in demo_calls if name in byname
+        }
+        hints = inline_hints(ref, tgt, helper_seqs)
+        if hints:
+            print("inline-expansion hints (demo calls missing from retail):")
+            for name, deficit, hits, total, coverage, start in hints:
+                call_word = "call" if deficit == 1 else "calls"
+                print(f"  {name}: {deficit} missing demo {call_word}; "
+                      f"retail+0x{start * 4:x} window contains {hits}/{total} "
+                      f"helper mnemonic bigrams ({coverage:.0%})")
+            print("  hint only: confirm the target islands, then try a local "
+                  "static-inline helper\n")
         ref_kind = "demo"
         sib = None
     else:

@@ -181,6 +181,48 @@ class SiblingDiffTests(unittest.TestCase):
             "j Lc",
         )
 
+    def test_demo_call_deficit_with_embedded_helper_shape_hints_inline(self):
+        demo = [
+            "jal FixName", "nop", "jal ScanTable", "nop",
+            "jal ScanTable", "nop",
+        ]
+        retail = [
+            "lbu v0,0(a0)", "beqz v0,L10", "jal toupper", "sb v0,0(a0)",
+            "lw v0,16(s0)", "beqz v0,L20", "jal strncmp", "bnez v0,L24",
+            "lw v0,12(s0)", "lhu v0,0(v0)", "and v0,a2,v0",
+            "bnez v0,L28", "addiu a1,a1,1",
+        ]
+        helpers = {
+            "FixName": [
+                "lbu v0,0(a0)", "beqz v0,L10", "jal toupper",
+                "sb v0,0(a0)",
+            ],
+            "ScanTable": [
+                "lw v0,16(a0)", "beqz v0,L20", "jal strncmp",
+                "bnez v0,L24", "lw v0,12(a0)", "lhu v0,0(v0)",
+                "and v0,a2,v0", "bnez v0,L28", "addiu a1,a1,1",
+            ],
+        }
+
+        hints = siblingdiff.inline_hints(
+            demo, retail, helpers, min_hits=3, min_coverage=0.60
+        )
+
+        self.assertEqual([row[0] for row in hints], ["FixName", "ScanTable"])
+        self.assertEqual([row[1] for row in hints], [1, 2])
+
+    def test_inline_hint_rejects_missing_call_without_helper_shape(self):
+        hints = siblingdiff.inline_hints(
+            ["jal ChangedAway", "nop"],
+            ["lw v0,0(a0)", "jr ra", "nop"],
+            {"ChangedAway": [
+                "lbu v0,0(a0)", "jal toupper", "sb v0,0(a0)",
+                "bnez v0,L0", "addiu a0,a0,1", "jr ra", "nop",
+            ]},
+        )
+
+        self.assertEqual(hints, [])
+
 
 class CallMatchAmbiguityTests(unittest.TestCase):
     def test_pareto_better_containment_fit_blocks_confirmation(self):
