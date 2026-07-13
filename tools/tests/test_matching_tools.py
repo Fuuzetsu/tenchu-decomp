@@ -2562,6 +2562,28 @@ done:
 """
         self.assertEqual(maspsxflags.guarded_division_count(asm), 1)
 
+    def test_guarded_unsigned_division_needs_only_divide_by_zero_guard(self):
+        asm = """
+    divu $zero, $v0, $v1
+    bnez $v1, ok
+    nop
+    break 7
+ok:
+    mflo $v0
+"""
+        self.assertEqual(maspsxflags.guarded_division_count(asm), 1)
+
+    def test_signed_division_with_only_break_7_is_not_aspsx_expansion(self):
+        asm = """
+    div $zero, $v0, $v1
+    bnez $v1, ok
+    nop
+    break 7
+ok:
+    mflo $v0
+"""
+        self.assertEqual(maspsxflags.guarded_division_count(asm), 0)
+
     def test_unguarded_division_does_not_request_expand_div(self):
         asm = """
     div $zero, $v0, $v1

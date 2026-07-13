@@ -5,8 +5,8 @@ Two properties are authoritative in the target split assembly but live in
 mirrored hand-maintained Python/Haskell tables when a C draft is compiled:
 
 * every ``%gp_rel(SYM)`` operand needs ``--gp-extern SYM``;
-* an ASPSX-style variable ``div``/``divu`` guarded by ``break 7`` and
-  ``break 6`` needs ``--expand-div``.
+* an ASPSX-style variable ``div``/``divu`` guarded by ``break 7`` (and, for
+  signed division, ``break 6``) needs ``--expand-div``.
 
 ``gpsyms.py`` already owns robust gp-symbol extraction and table editing.  This
 front-end composes it with guarded-division detection and updates both Build.hs
@@ -60,7 +60,12 @@ def instructions(text):
 
 
 def guarded_division_count(text):
-    """Count variable divisions carrying ASPSX's two runtime guards."""
+    """Count variable divisions carrying ASPSX's runtime guard(s).
+
+    Signed ``div`` has both divide-by-zero (break 7) and INT_MIN/-1 overflow
+    (break 6) guards.  Unsigned ``divu`` has no overflow case, so ASPSX emits
+    only break 7.  Requiring both silently missed every unsigned division.
+    """
     insns = list(instructions(text))
     count = 0
     for index, (op, _operands) in enumerate(insns):
@@ -75,7 +80,8 @@ def guarded_division_count(text):
                 breaks.add(int(token, 0))
             except ValueError:
                 pass
-        if {6, 7}.issubset(breaks):
+        required_breaks = {7} if op == "divu" else {6, 7}
+        if required_breaks.issubset(breaks):
             count += 1
     return count
 

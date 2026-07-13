@@ -4093,17 +4093,19 @@ permuter-immune -- park it (UpdateItemState).
 
 ## Dividing by a variable needs `--expand-div`
 
-**A `%` or `/` by a runtime VALUE (not a constant) compiles ~10 instructions shorter
-than the target unless the function is on the `--expand-div` list.** ASPSX guards a
-variable division with `break 7` (divide-by-zero) and `break 6` (overflow, the
-INT_MIN/-1 case); maspsx only reproduces those guards under `--expand-div`. Without
-it maspsx emits a bare `div`/`mflo` and the draft assembles short, shifting
-everything after it (this is a common cause of the "40 bytes short" length mismatch).
+**A `%` or `/` by a runtime VALUE (not a constant) compiles shorter than the target
+unless the function is on the `--expand-div` list.** ASPSX guards both signed and
+unsigned division with `break 7` (divide-by-zero). Signed `div` additionally has
+`break 6` for the INT_MIN/-1 overflow case; unsigned `divu` has no corresponding
+overflow guard. maspsx only reproduces those guards under `--expand-div`. Without
+it maspsx emits a bare division/result sequence and the draft assembles short,
+shifting everything after it (a common cause of a whole-function length mismatch).
 
 The tell, before you even build: **Ghidra renders the guards as `trap(0x1c00)` and
 `trap(0x1800)`** — seeing those in the reference C means the TU divides by a variable.
-In the target `.s` it is a `div`/`divu` followed by two `break` instructions. Division
-by a CONSTANT is a magic-multiply with no guards and needs nothing.
+In the target `.s`, signed `div` is followed by `break 7` and `break 6`, while
+unsigned `divu` is followed by `break 7` alone. Division by a CONSTANT is normally
+a magic-multiply with no guards and needs nothing.
 
 Fix: add the function to BOTH `extra "<Name>" = ["--expand-div"]` in
 `shake/src/Build.hs` and `"<Name>": ["--expand-div"]` in `tools/permute.py`'s
@@ -4113,9 +4115,12 @@ Fix: add the function to BOTH `extra "<Name>" = ["--expand-div"]` in
 `bow_shoot_logic` are on the list for the same reason.
 
 This edit is now mechanical: `tools/maspsxflags.py <Name> --write` reads the
-target split assembly, recognizes the paired guards, and synchronizes this flag
-alongside any `%gp_rel` externs. ProcItemNapalm is the worked combined case (one
-guarded character-model remainder plus six gp-relative `D_80097F60` loads).
+target split assembly, recognizes the signed guard pair or unsigned single guard,
+and synchronizes this flag alongside any `%gp_rel` externs. ProcItemNapalm is the
+worked combined case (one guarded character-model remainder plus six gp-relative
+`D_80097F60` loads). `FUN_80036284` is the unsigned worked case: its six `divu`
+operations each have only `break 7`; that exposed and fixed the detector's former
+signed-only assumption.
 
 ## Matching `main`
 
