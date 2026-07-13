@@ -68,6 +68,17 @@ pool scan and `abs` calls changed. Demo register allocation, constants, and layo
 can differ; use the comparison to recover source structure, never as a byte-match
 claim.
 
+When retail is a composition of preserved demo code plus a family-specific
+insertion, run `tools/siblingdiff.py <Name> --compose`. It aligns the target
+against the same-named demo and several matched retail siblings at once, gives
+the demo first claim on exact runs, fills its gaps from ranked siblings, and
+prints both potential source coverage and the remaining unmapped gaps.
+ActMOVE mapped most of its 215 instructions to demo ActMOVE while its retail-only
+attribute/HangCheck probe matched ActCHASE's already recovered source shape;
+composing those blocks with the shared ActCHASE/ActSWIM item tail produced an
+exact first C draft. The map is provenance evidence, not permission to splice
+machine code: copy the matched C idiom and verify the complete retail function.
+
 If a function is still `FUN_…`, its block carries the recorded candidate name from
 `reference/psxsym-candidates.tsv` — a suggestion that was not confident enough to
 adopt. Do not rename on it without `tools/callmatch.py --verify`.

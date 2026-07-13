@@ -10,6 +10,7 @@ files. This does all of it in one shot:
     tools/siblingdiff.py <Target>            # auto-pick the nearest matched sibling
     tools/siblingdiff.py <Target> <Sibling>  # force a specific sibling
     tools/siblingdiff.py <Target> --demo     # same-named Japanese demo function
+    tools/siblingdiff.py <Target> --compose  # map target spans to demo + siblings
     tools/siblingdiff.py <Target> --full     # whole aligned listing, not just diffs
     tools/siblingdiff.py <Target> --no-c     # skip printing the sibling's C
 
@@ -21,6 +22,14 @@ different addresses ALIGNS instead of reading as all-different), then prints:
   2. a compact SequenceMatcher diff — `ref:` = sibling, `tgt:` = target — with runs
      of identical instructions collapsed to `… N identical`,
   3. the sibling's matched C (src/main.exe/<Sibling>.c) verbatim, ready to transcribe.
+
+`--compose` treats the same-named demo body and several matched retail siblings as
+one ordered provenance pool. The same-named demo claims its exact normalized runs
+first, then ranked siblings fill its gaps; longer runs win within each source. The
+report compresses the winning per-instruction assignments into a source map plus
+explicit unmapped gaps. This exposes the common retail pattern
+"demo body with one block borrowed from a matched sibling" before anyone manually
+eyeballs several pairwise diffs.
 
 In ordinary sibling mode, inter-function `jal`/`j` targets are left absolute: both
 bodies came from retail, so the same callee already aligns. In `--demo` mode those
@@ -219,12 +228,116 @@ def inline_hints(ref, tgt, helpers, min_hits=6, min_coverage=0.60):
     return rows
 
 
+def compose_provenance(target, references, min_run=4):
+    """Map target instruction spans to the best exact runs in many references.
+
+    ``references`` is an ordered ``[(name, sequence)]`` list. Earlier sources
+    win overlaps (the same-named demo is stronger provenance than a generic
+    sibling), and longer runs win within one source. Each winning instruction retains its reference
+    offset, and adjacent assignments are compressed only when both target and
+    reference offsets remain contiguous. ``None`` rows are explicit gaps.
+    """
+    candidates = []
+    for priority, (name, reference) in enumerate(references):
+        matcher = difflib.SequenceMatcher(a=reference, b=target, autojunk=False)
+        for ref_start, target_start, size in matcher.get_matching_blocks():
+            if size < min_run:
+                continue
+            run = target[target_start:target_start + size]
+            informative = sum(line.split(None, 1)[0] != "nop" for line in run)
+            if informative < min(3, size):
+                continue
+            candidates.append((size, priority, target_start, ref_start, name))
+
+    owners = [None] * len(target)
+    for size, priority, target_start, ref_start, name in sorted(
+            candidates, key=lambda item: (item[1], -item[0], item[2], item[3])):
+        delta = 0
+        while delta < size:
+            while delta < size and owners[target_start + delta] is not None:
+                delta += 1
+            segment_start = delta
+            while delta < size and owners[target_start + delta] is None:
+                delta += 1
+            segment_size = delta - segment_start
+            if segment_size < min_run:
+                continue
+            segment = target[
+                target_start + segment_start:target_start + delta
+            ]
+            informative = sum(line.split(None, 1)[0] != "nop"
+                              for line in segment)
+            if informative < min(3, segment_size):
+                continue
+            for item_delta in range(segment_start, delta):
+                index = target_start + item_delta
+                owners[index] = (
+                    name, ref_start + item_delta, size, priority
+                )
+
+    rows = []
+    start = 0
+    while start < len(owners):
+        owner = owners[start]
+        end = start + 1
+        while end < len(owners):
+            following = owners[end]
+            if owner is None:
+                if following is not None:
+                    break
+            elif (following is None or following[0] != owner[0] or
+                  following[1] != owner[1] + (end - start)):
+                break
+            end += 1
+        if owner is None:
+            rows.append((start, end, None, None, None))
+        else:
+            rows.append((start, end, owner[0], owner[1], owner[1] + end - start))
+        start = end
+    return rows
+
+
+def print_composition(target_name, target, references, min_run=4):
+    rows = compose_provenance(target, references, min_run=min_run)
+    potential = {}
+    for name, reference in references:
+        solo = compose_provenance(target, [(name, reference)], min_run=min_run)
+        potential[name] = sum(end - start for start, end, source, _a, _b in solo
+                              if source is not None)
+    covered = {}
+    for start, end, source, _ref_start, _ref_end in rows:
+        if source is not None:
+            covered[source] = covered.get(source, 0) + end - start
+    mapped = sum(covered.values())
+    print(f"compose {target_name}: {mapped}/{len(target)} target instructions "
+          f"mapped by exact normalized runs (minimum {min_run})")
+    print("potential: " + ", ".join(
+        f"{name}={potential[name]}" for name, _reference in references))
+    if covered:
+        print("coverage: " + ", ".join(
+            f"{name}={count}" for name, count in covered.items()))
+    print("source map:")
+    for start, end, source, ref_start, ref_end in rows:
+        target_range = f"target+0x{start * 4:x}..0x{end * 4:x}"
+        if source is None:
+            print(f"  {target_range:<28} {end - start:>3} insns  UNMAPPED")
+        else:
+            print(f"  {target_range:<28} {end - start:>3} insns  "
+                  f"{source}+0x{ref_start * 4:x}..0x{ref_end * 4:x}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("target")
     ap.add_argument("sibling", nargs="?", help="force this matched sibling")
     ap.add_argument("--demo", action="store_true",
                     help="compare with the same-named function in demo PSX.EXE")
+    ap.add_argument("--compose", action="store_true",
+                    help="map target ranges across same-name demo and matched siblings")
+    ap.add_argument("--sources",
+                    help="comma-separated matched siblings for --compose (default: top N)")
+    ap.add_argument("--min-run", type=int, default=4,
+                    help="minimum exact normalized run for --compose")
     ap.add_argument("--top", type=int, default=5, help="sibling candidates to list")
     ap.add_argument("--full", action="store_true", help="whole aligned listing")
     ap.add_argument("--context", type=int, default=2, help="context insns per hunk")
@@ -237,6 +350,60 @@ def main():
         sys.exit(f"siblingdiff: {args.target} not in {TSV}")
     ta, tsz = byname[args.target]
     insns = all_insns()
+
+    if args.compose:
+        if args.demo:
+            sys.exit("siblingdiff: --compose already includes the demo; omit --demo")
+        if args.sibling and args.sources:
+            sys.exit("siblingdiff: use either positional sibling or --sources")
+        if args.min_run < 2:
+            sys.exit("siblingdiff: --min-run must be at least 2")
+        retail_names = {a: n for a, _, n in funcs}
+        target = disasm(insns, ta, tsz, retail_names)
+        references = []
+
+        demo_funcs = load_demo_functions()
+        demos = [(a, s) for a, s, n in demo_funcs if n == args.target]
+        if len(demos) == 1:
+            demo_start = psx_text_start(DEMO_ORIG)
+            demo_insns = all_insns(DEMO_ORIG, demo_start)
+            demo_names = {a: n for a, _, n in demo_funcs}
+            references.append((
+                f"demo:{args.target}",
+                disasm(demo_insns, demos[0][0], demos[0][1], demo_names),
+            ))
+
+        matched = matched_names() & set(byname)
+        matched.discard(args.target)
+        target_ngrams = ngrams(insns, ta, tsz)
+        ranked = sorted(
+            ((jaccard(target_ngrams, ngrams(insns, *byname[name])), name)
+             for name in matched),
+            reverse=True,
+        )
+        if args.sibling:
+            selected = [args.sibling]
+        elif args.sources:
+            selected = [name.strip() for name in args.sources.split(",")
+                        if name.strip()]
+        else:
+            selected = [name for _score, name in ranked[:args.top]]
+        for sibling in selected:
+            if sibling not in matched:
+                sys.exit(f"siblingdiff: {sibling} is not a matched sibling")
+            references.append((
+                sibling,
+                disasm(insns, *byname[sibling], retail_names),
+            ))
+        if not references:
+            sys.exit("siblingdiff: no demo or matched sibling composition sources")
+
+        print(f"target {args.target} retail {ta:08x} ({tsz} bytes)")
+        print("sources: " + ", ".join(name for name, _seq in references))
+        print_composition(args.target, target, references, args.min_run)
+        print("\nhint only: copy source shapes from mapped spans, then use retail "
+              "bytes and matchdiff as the authority")
+        return
 
     if args.demo:
         if args.sibling:

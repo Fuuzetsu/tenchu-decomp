@@ -354,6 +354,46 @@ class SiblingDiffTests(unittest.TestCase):
 
         self.assertEqual(hints, [])
 
+    def test_composition_prefers_long_runs_and_fills_demo_gaps(self):
+        target = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+        references = [
+            ("demo:F", ["a", "b", "c", "d", "x", "g", "h", "z"]),
+            ("Sibling", ["q", "e", "f", "g", "h", "i", "r"]),
+        ]
+
+        rows = siblingdiff.compose_provenance(target, references, min_run=3)
+
+        self.assertEqual(rows, [
+            (0, 4, "demo:F", 0, 4),
+            (4, 9, "Sibling", 1, 6),
+            (9, 10, None, None, None),
+        ])
+
+    def test_composition_rejects_trivial_nop_runs(self):
+        rows = siblingdiff.compose_provenance(
+            ["nop", "nop", "nop", "nop", "real"],
+            [("Noise", ["nop", "nop", "nop", "nop"])],
+            min_run=4,
+        )
+
+        self.assertEqual(rows, [(0, 5, None, None, None)])
+
+    def test_composition_source_order_preserves_demo_provenance(self):
+        rows = siblingdiff.compose_provenance(
+            ["a", "b", "c", "d", "e", "f"],
+            [
+                ("demo:F", ["b", "c", "d", "e"]),
+                ("Sibling", ["a", "b", "c", "d", "e", "f"]),
+            ],
+            min_run=4,
+        )
+
+        self.assertEqual(rows, [
+            (0, 1, None, None, None),
+            (1, 5, "demo:F", 0, 4),
+            (5, 6, None, None, None),
+        ])
+
 
 class CallMatchAmbiguityTests(unittest.TestCase):
     def test_pareto_better_containment_fit_blocks_confirmation(self):
