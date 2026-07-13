@@ -71,31 +71,11 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  *    bytes of misalignment; this is the general "put the short body
  *    earlier, the long body last so it can fall into the shared epilogue"
  *    lever, not specific to this function.
- *
- * STATUS: NON_MATCHING — 14 of 388 bytes differ, but the draft is the
- * CORRECT LENGTH (97/97 instructions) and the ENTIRE control-flow shape is
- * proven right (every other instruction matches). The sole residual: the
- * final `return result;`'s s16-truncating `sra $v0,$v0,0x10` sits BEFORE
- * the epilogue's `lw $ra`/`lw $s0` restores in the target but AFTER them
- * here — same 3 instructions, same registers, only their ORDER relative to
- * the epilogue restores differs. Confirmed via `tools/rtldump.py
- * Think3hitaway --draft`: the `.jump`-pass RTL already shows the
- * sll/sra pair emitted together, correctly, immediately before the
- * function's `(set v0 ...)`/`(use v0)` return — i.e. this is NOT a
- * mis-shaped source construct; whatever reorders it relative to the
- * epilogue happens in a LATER pass (sched2/dbr, post-reload) not covered
- * by this build's `.combine`/`.greg`/`.jump`/`.lreg` dumps. Tried: an early
- * `return AttackFunc[...]();` in place of the dispatch arm's `result =
- * ...;` (hoping to give that path its own untangled epilogue) — regressed
- * to 20 bytes, reverted. `tools/autorules.py` found no width win. A bounded
- * permuter run (`timeout 300 tools/permute.py Think3hitaway --
- * --stop-on-zero -j4`, ~34000 iterations) plateaued at best score 165
- * (from a base of 260), never reaching 0 — consistent with a genuine
- * post-reload scheduling tie below the C level.
+ *  - The hit-status arm returns SuccessionAttack directly. This leaves its
+ *    result in $v0 and lets the jump delay slot start the s16 conversion;
+ *    assigning it to the shared result would add an unnecessary $s0 copy
+ *    and move the conversion below the epilogue restores.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think3hitaway", Think3hitaway);
-#else
 s16 Think3hitaway(void)
 {
     u16 result;
@@ -110,7 +90,7 @@ s16 Think3hitaway(void)
         Me_THINK_C->actflg = 0;
         Me_THINK_C->some_other_z_position = 0;
         Me_THINK_C->some_other_x_position = 0;
-        result = SuccessionAttack(3000, 0x5dc);
+        return SuccessionAttack(3000, 0x5dc);
     }
     else if (Me_THINK_C->actflg != 0)
     {
@@ -149,7 +129,6 @@ s16 Think3hitaway(void)
     }
     return result;
 }
-#endif /* NON_MATCHING */
 
 // triage: MEDIUM — 97 insns, mul/div, indirect-call, 4 callees, ~0.07 to AttackAnimal
 // likely-relevant cookbook sections:
@@ -158,8 +137,7 @@ s16 Think3hitaway(void)
 //   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
 //   - Register allocation steering: indirect call — null-check-var/call-field
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (reference):
 //
 //
 // short Think3hitaway(void)
