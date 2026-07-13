@@ -130,6 +130,12 @@ SIGNATURE_HINTS = {
         "LOG_LINKS and nearby LOOP_END notes, then try boundary-shift or an "
         "identical-arm fence before parking"
     ),
+    "narrow-copy-zero-extension": (
+        "target copies a full register where the candidate masks to 16 bits; "
+        "audit the carrier/copy signedness with type-width and compare jump2. "
+        "If signed copies remove target blocks while unsigned copies preserve "
+        "CFG but retain the masks, record the type-mode deadlock and park"
+    ),
     "copy-then-inplace-adjust": (
         "target stores a stack field before overwriting it with an adjusted value; "
         "try explicit fieldwise copy followed by an in-place +=/-= adjustment"
@@ -874,6 +880,13 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
         if (_enclosing_global_field_load(target, ours) and
                 "enclosing-global-field-load" not in found):
             found.append("enclosing-global-field-load")
+        if (len(target) == len(ours) == 1 and
+                mnemonic(target[0]) == "move" and
+                mnemonic(ours[0]) == "andi" and
+                registers(target[0]) == registers(ours[0]) and
+                re.search(r"(?:^|,)0xffff\s*$", ours[0]) and
+                "narrow-copy-zero-extension" not in found):
+            found.append("narrow-copy-zero-extension")
 
         # A one-branch target versus inverse-branch/nop/skip-jump candidate is
         # the compact signature of a guard body laid out on the wrong physical
@@ -1066,6 +1079,10 @@ def assembly_guide(name):
             rule for rule in rules
             if rule not in {"cmp-swap", "loop-boundary-shift",
                             "identical-arm-fence"}
+        ]
+    if "narrow-copy-zero-extension" in signatures:
+        rules = ["type-width"] + [
+            rule for rule in rules if rule != "type-width"
         ]
     return dict(
         name=name, address=addr, target_bytes=size, ours_bytes=ours_size,

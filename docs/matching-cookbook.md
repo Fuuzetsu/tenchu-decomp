@@ -309,6 +309,18 @@ The ordered triage — fix categories in THIS order, re-running
        it into the shared sign-extension tail (or merge even more). Once the
        desired pre-jump2 RTL is proven and all safe CODE_LABEL layouts are flat,
        preserve the pure-C draft rather than forcing the jump.
+     - **A final `move` versus `andi 0xffff` can be a type-mode/CFG deadlock,
+       not a register tie.** AttackShort ultimately recovered the target's exact
+       417-instruction CFG by keeping an SImode result carrier, but its two
+       `(u16)` edge copies necessarily expanded as `zero_extendhisi2` and became
+       `andi`. Signed copies emitted the desired moves but let jump2 thread away
+       four target instructions; mixed carriers, direct returns, labels, real
+       cases, identities, and volatile/union spellings all worsened length or
+       CFG. A healthy late permuter was flat for 22,046 iterations. `rtlguide`
+       names the aligned `move D,S` / `andi D,S,0xffff` shape
+       `narrow-copy-zero-extension` and prioritizes `type-width`; once the
+       signed-width trial proves the opposing jump2 loss, preserve the pure-C
+       near-match rather than inserting assembly.
      - **Mechanical detection:** `rtlguide` retains the historical
        `adjacent-independent-load-order` signature name, but now warns that it
        is only a hypothesis and reports nearby post-LOOP_END source lines from

@@ -3760,6 +3760,13 @@ class RtlGuideTests(unittest.TestCase):
         self.assertEqual(rtlguide.known_residual_signatures([h]),
                          ["adjacent-independent-load-order"])
 
+    def test_known_narrow_copy_zero_extension_signature(self):
+        h = self.hunk(["move v0,s0"], ["andi v0,s0,0xffff"])
+        self.assertEqual(
+            rtlguide.known_residual_signatures([h]),
+            ["narrow-copy-zero-extension"],
+        )
+
     def test_adjacent_load_order_prioritizes_comparison_swap(self):
         target = [
             (0x1000, "lh v0,88(fp)"),
