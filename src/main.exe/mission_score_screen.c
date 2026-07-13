@@ -5,6 +5,12 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
+ * STATUS: NON_MATCHING -- 2920 of 4636 bytes differ.  The guarded draft has
+ * the exact target length (1159 instructions) and frame size (0x1B8), with
+ * 53/53 conditional branches, 8/8 unconditional jumps, 60/60 calls, and one
+ * return.  No retail-name record was found in PSX.SYM or the demo symbol
+ * export.
+ *
  * The local aggregates reproduce the original stack layout.  In particular,
  * the packed ScoreResult copy starts at sp+50, the two sprite banks start at
  * sp+60/sp+118, and the one GsIMAGE scratch is reused at sp+160 by all seven
@@ -102,6 +108,10 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
     InitSprite(image, sprite);
 }
 
+/* The retail code recomputes each bank address for the final pivot writes. */
+#define SCORE_SPRITE_AT(bank_, index_)                                       \
+    ((GsSPRITE *)((u8 *)(bank_) + (index_) * sizeof(GsSPRITE)))
+
 /* This is deliberately a macro.  The original repeats the decimal loop at
  * every call site, allowing one 0x66666667 reciprocal to stay live across
  * the whole drawing loop. */
@@ -148,11 +158,48 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         (sprite_)->u = oldU;                                                 \
     } while (0)
 
+#define DRAW_SCORE_NUMBER_PREZERO(sprite_, value_, x_, y_)                   \
+    do                                                                       \
+    {                                                                        \
+        drawValue = (value_);                                                \
+        (sprite_)->x = (x_);                                                 \
+        (sprite_)->y = (y_);                                                 \
+        negative = 0;                                                        \
+        if ((s32)drawValue < 0)                                              \
+        {                                                                    \
+            drawValue = -drawValue;                                          \
+            negative = 1;                                                    \
+        }                                                                    \
+        do                                                                   \
+        {                                                                    \
+            digit = (s16)drawValue;                                          \
+            drawValue = (s32)digit / 10;                                     \
+            oldU = (sprite_)->u;                                             \
+            (sprite_)->u = oldU + (s16)(digit % 10) * (sprite_)->w;          \
+            GsSortSprite((sprite_), OTablePt, 0);                             \
+            (sprite_)->u = oldU;                                             \
+            (sprite_)->x -= 12;                                              \
+        } while ((drawValue & 0xFFFF) != 0);                                 \
+        if (negative)                                                        \
+        {                                                                    \
+            (sprite_)->u = oldU + (sprite_)->w * ten;                        \
+            GsSortSprite((sprite_), OTablePt, 0);                             \
+            (sprite_)->u = oldU;                                             \
+        }                                                                    \
+    } while (0)
+
 #define DRAW_LOCAL_SCORE(value_, x_, y_)                                     \
     do                                                                       \
     {                                                                        \
         drawSprite = &number;                                                \
         DRAW_SCORE_NUMBER(drawSprite, (value_), (x_), (y_));                 \
+    } while (0)
+
+#define DRAW_LOCAL_SCORE_PREZERO(value_, x_, y_)                             \
+    do                                                                       \
+    {                                                                        \
+        drawSprite = &number;                                                \
+        DRAW_SCORE_NUMBER_PREZERO(drawSprite, (value_), (x_), (y_));         \
     } while (0)
 
 #ifndef NON_MATCHING
@@ -172,7 +219,7 @@ void mission_score_screen(void)
     register GsSPRITE *sprite;
     register GsSPRITE *numberSprite;
     register GsSPRITE *drawSprite;
-    register Sprite3D *medal;
+    register GsSPRITE *medal;
     register u8 *unlock;
     register s16 i;
     register u16 rowValue;
@@ -201,10 +248,10 @@ void mission_score_screen(void)
     numberSprite->b = 128;
     numberSprite->mx = numberSprite->w >> 1;
     numberSprite->my = numberSprite->h >> 1;
-    numberSprite->mx = 0;
-    numberSprite->my = 0;
+    number.mx = 0;
+    number.my = 0;
     LoadTIMAndFree(tim);
-    numberSprite->w = 12;
+    number.w = 12;
 
     archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
     for (i = 0; i < 5; i++)
@@ -220,8 +267,8 @@ void mission_score_screen(void)
         sprite->mx = sprite->w >> 1;
         sprite->attribute |= 0x50000000;
         sprite->my = sprite->h >> 1;
-        sprite->mx = 0;
-        sprite->my = 0;
+        SCORE_SPRITE_AT(rankSprites, i)->mx = 0;
+        SCORE_SPRITE_AT(rankSprites, i)->my = 0;
         LoadTIM(tim);
     }
 
@@ -237,8 +284,8 @@ void mission_score_screen(void)
         sprite->b = 128;
         sprite->mx = sprite->w >> 1;
         sprite->my = sprite->h >> 1;
-        sprite->mx = 0;
-        sprite->my = 0;
+        SCORE_SPRITE_AT(characterSprites, i)->mx = 0;
+        SCORE_SPRITE_AT(characterSprites, i)->my = 0;
         LoadTIM(tim);
     }
     vfree(archive);
@@ -329,32 +376,32 @@ void mission_score_screen(void)
                          0x2F, -0x47);
         DRAW_LOCAL_SCORE((s16)result.field0, 0x66, -0x47);
 
-        DRAW_LOCAL_SCORE(stats.murders, 0x16, -0x35);
+        DRAW_LOCAL_SCORE_PREZERO(stats.murders, 0x16, -0x35);
         DRAW_SCORE_COLON(numberSprite, 0x1F);
-        DRAW_LOCAL_SCORE(stats.stageEnemies, 0x2F, -0x35);
-        DRAW_LOCAL_SCORE((s16)result.field2, 0x66, -0x35);
+        DRAW_LOCAL_SCORE_PREZERO(stats.stageEnemies, 0x2F, -0x35);
+        DRAW_LOCAL_SCORE_PREZERO((s16)result.field2, 0x66, -0x35);
 
-        DRAW_LOCAL_SCORE(stats.findEnemies, 0x23, -0x24);
-        DRAW_LOCAL_SCORE((s16)result.field6, 0x66, -0x24);
-        DRAW_LOCAL_SCORE(result.score, 0x66, -0x12);
+        DRAW_LOCAL_SCORE_PREZERO(stats.findEnemies, 0x23, -0x24);
+        DRAW_LOCAL_SCORE_PREZERO((s16)result.field6, 0x66, -0x24);
+        DRAW_LOCAL_SCORE_PREZERO(result.score, 0x66, -0x12);
 
         if (result.grade == RANK_GRAND_MASTER)
         {
-            medal = D_8008E5BC[D_8008ED50[CHOSEN_STAGE]];
-            medal->sprite.x = 0x8A;
-            medal->sprite.y = -0xE;
-            medal->sprite.scalex = 0x1000;
-            medal->sprite.scaley = 0x1000;
+            medal = &D_8008E5BC[D_8008ED50[CHOSEN_STAGE]]->sprite;
+            medal->x = 0x8A;
+            medal->y = -0xE;
+            medal->scalex = 0x1000;
+            medal->scaley = 0x1000;
             brightness = rcos((GameClock << 12) / 90) * 80;
             if (brightness < 0)
             {
                 brightness += 0xFFF;
             }
             brightness = (brightness >> 12) + 0x7F;
-            medal->sprite.r = brightness;
-            medal->sprite.g = brightness;
-            medal->sprite.b = brightness;
-            GsSortSprite(&medal->sprite, OTablePt, 1);
+            medal->r = brightness;
+            medal->g = brightness;
+            medal->b = brightness;
+            GsSortSprite(medal, OTablePt, 1);
         }
 
         {
@@ -391,6 +438,8 @@ score_row_loop:
                 }
                 sprite->r = brightness;
                 sprite->g = brightness;
+                do {
+                } while (0);
                 sprite->b = brightness;
                 GsSortSprite(sprite, OTablePt, 1);
 
