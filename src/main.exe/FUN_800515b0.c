@@ -10,7 +10,135 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800515b0", FUN_800515b0);
+extern GsOT *OTablePt;
+extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
+
+/* Draw a minutes/seconds time value and optional separator from a digit sprite. */
+void FUN_800515b0(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
+{
+    s16 value;
+    s32 signedValue;
+    s16 quotient;
+    s32 negative;
+    s32 lastNegative;
+    s16 multiplier;
+    s32 signBase;
+    u8 baseU;
+
+    time /= 30;
+    value = time / 60;
+    sprite->y = y;
+    sprite->x = x - 0x20;
+    do
+    {
+        signedValue = (s16)value;
+    } while (0);
+    negative = 0;
+    if (signedValue < 0)
+    {
+        value = -signedValue;
+        negative = 1;
+    }
+
+    do
+    {
+        quotient = (s16)value / 10;
+        baseU = sprite->u;
+        sprite->u = baseU + ((s16)value % 10) * sprite->w;
+        GsSortSprite(sprite, OTablePt, 0);
+        value = quotient;
+        sprite->u = baseU;
+        sprite->x -= 12;
+    } while ((quotient << 16) != 0);
+
+    if (negative != 0)
+    {
+        multiplier = 10;
+        signBase = baseU & 0xff;
+        sprite->u = signBase + multiplier * sprite->w;
+        GsSortSprite(sprite, OTablePt, 0);
+        sprite->u = signBase;
+    }
+
+    time %= 60;
+    sprite->y = y;
+    sprite->x = x - 12;
+    value = time / 10;
+    signedValue = (s16)value;
+    negative = 0;
+    if (signedValue < 0)
+    {
+        value = -signedValue;
+        negative = 1;
+    }
+
+    do
+    {
+        quotient = (s16)value / 10;
+        baseU = sprite->u;
+        sprite->u = baseU + ((s16)value % 10) * sprite->w;
+        GsSortSprite(sprite, OTablePt, 0);
+        value = quotient;
+        sprite->u = baseU;
+        sprite->x -= 12;
+    } while ((quotient << 16) != 0);
+
+    if (negative != 0)
+    {
+        multiplier = 10;
+        signBase = baseU & 0xff;
+        sprite->u = signBase + multiplier * sprite->w;
+        GsSortSprite(sprite, OTablePt, 0);
+        sprite->u = signBase;
+    }
+
+    sprite->x = x;
+    value = time % 10;
+    signedValue = (s16)value;
+    do
+    {
+        sprite->y = y;
+    } while (0);
+    if (signedValue < 0)
+    {
+        value = -signedValue;
+        lastNegative = 1;
+    }
+    else
+    {
+        lastNegative = 0;
+    }
+
+    do
+    {
+        quotient = (s16)value / 10;
+        baseU = sprite->u;
+        sprite->u = baseU + ((s16)value % 10) * sprite->w;
+        GsSortSprite(sprite, OTablePt, 0);
+        value = quotient;
+        sprite->u = baseU;
+        sprite->x -= 12;
+    } while ((quotient << 16) != 0);
+
+    if (lastNegative != 0)
+    {
+        multiplier = 10;
+        signBase = baseU & 0xff;
+        sprite->u = signBase + multiplier * sprite->w;
+        GsSortSprite(sprite, OTablePt, 0);
+        sprite->u = signBase;
+    }
+
+    if (drawColon != 0)
+    {
+        multiplier = 11;
+        signBase = sprite->u;
+        sprite->u = signBase + multiplier * sprite->w;
+        sprite->x = x - 0x16;
+        GsSortSprite(sprite, OTablePt, 0);
+        sprite->u = signBase;
+    }
+}
 
 // triage: HARD — 259 insns, mul/div, 3 loop, 1 callees, ~0.07 to BriefingAndInventorySelectionScreen
 // likely-relevant cookbook sections:
