@@ -314,7 +314,11 @@ The ordered triage — fix categories in THIS order, re-running
        is only a hypothesis and reports nearby post-LOOP_END source lines from
        `.sched`/`.sched2`. It also names `commutative-plus-destination` and
        prioritizes `initialized-global-compound` for it.
-       `autorules --guided` can then try `loop-boundary-shift` and
+       When the adjacent loads feed one relational comparison, first swap its
+       equivalent source operands: `speed < Degree` and `Degree > speed` emit
+       the same `slt`, but expand evaluates the written left operand first.
+       That one spelling change closed Think4chase's final eight bytes.
+       `rtlguide` now prioritizes `cmp-swap`, then `loop-boundary-shift` and
        `identical-arm-fence`; the pass dump and bounded experiments remain the
        proof.
      - **BUT the permuter is stronger than this section's tone implies — do not

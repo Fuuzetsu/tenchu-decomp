@@ -124,9 +124,11 @@ STORE_OPS = {"sb", "sh", "sw", "swl", "swr"}
 
 SIGNATURE_HINTS = {
     "adjacent-independent-load-order": (
-        "do not assume independence: compare .combine -> .sched -> .sched2, "
-        "then inspect LOG_LINKS and nearby LOOP_END notes; try boundary-shift "
-        "or an identical-arm fence before parking"
+        "first try cmp-swap when both loads feed one relational comparison "
+        "(equivalent operand order changes evaluation order); otherwise do not "
+        "assume independence: compare .combine -> .sched -> .sched2, inspect "
+        "LOG_LINKS and nearby LOOP_END notes, then try boundary-shift or an "
+        "identical-arm fence before parking"
     ),
     "copy-then-inplace-adjust": (
         "target stores a stack field before overwriting it with an adjusted value; "
@@ -1058,6 +1060,12 @@ def assembly_guide(name):
     if "dbr-duplicated-literal-producer" in signatures:
         rules = ["loop-range"] + [
             rule for rule in rules if rule != "loop-range"
+        ]
+    if "adjacent-independent-load-order" in signatures:
+        rules = ["cmp-swap", "loop-boundary-shift", "identical-arm-fence"] + [
+            rule for rule in rules
+            if rule not in {"cmp-swap", "loop-boundary-shift",
+                            "identical-arm-fence"}
         ]
     return dict(
         name=name, address=addr, target_bytes=size, ours_bytes=ours_size,

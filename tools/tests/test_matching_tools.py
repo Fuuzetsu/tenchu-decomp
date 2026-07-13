@@ -3760,6 +3760,27 @@ class RtlGuideTests(unittest.TestCase):
         self.assertEqual(rtlguide.known_residual_signatures([h]),
                          ["adjacent-independent-load-order"])
 
+    def test_adjacent_load_order_prioritizes_comparison_swap(self):
+        target = [
+            (0x1000, "lh v0,88(fp)"),
+            (0x1004, "lh v1,30(a2)"),
+            (0x1008, "slt v0,v1,v0"),
+            (0x100c, "jr ra"),
+        ]
+        candidate = [
+            (0x1000, "lh v1,30(a2)"),
+            (0x1004, "lh v0,88(fp)"),
+            (0x1008, "slt v0,v1,v0"),
+            (0x100c, "jr ra"),
+        ]
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 16, 16, target, candidate)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertIn("adjacent-independent-load-order",
+                      guide["known_residual_signatures"])
+        self.assertEqual(guide["rules"][0], "cmp-swap")
+
     def test_known_shared_return_extension_schedule_signature(self):
         target = [
             (0x1000, "sll v0,s0,0x10"),
