@@ -163,6 +163,11 @@ The ordered triage — fix categories in THIS order, re-running
      access is proven `%gp_rel`, since that symbol categorically must stay on
      the small-data path. (Structural rules that need diff-reading to place —
      loop shape, switch-vs-ladder, union-offset casts — stay manual.)
+     The same semantic veto applies to a local whose signedness is recorded by
+     PSX.SYM: SetupBG's `short sy` became exact-length and reduced the residual
+     when mechanically changed to `u16`, but that contradicts the original
+     debug type and was rejected. A better score cannot overrule original type
+     evidence.
      Autorules does not rewrite the checked-in C while scoring: candidates live
      under `.shake` and Build.hs consumes them through a per-function source
      override. Only an accepted result is atomically published. TERM/HUP also
@@ -2680,6 +2685,14 @@ before local-alloc, so the def is gone before it can bias anything.
   memory-chain stores frees their registers for later constants — in
   ProcItemKusuri that one swap released `$s0` for the division magic and
   collapsed a whole extra callee-saved register out of the prologue.
+- **A chained assignment is a reverse-store and shared-constant lever.** C
+  evaluates `a = b = c = K` right-to-left, so distinct fields store in
+  `c,b,a` order and share the assignment-value lifetime; three standalone
+  statements naturally store forward. SetupBG required chains for RGB,
+  scale-x/scale-y, and cell-width/cell-height to reproduce retail scheduling.
+  `assignment-chain` now mechanically merges two-to-four adjacent same-literal
+  stores to distinct fields of one nonvolatile local aggregate, and splits an
+  existing chain into forward/reverse explicit orders.
 - **A comparison literal can be named before an earlier guard so its `li`
   fills that guard's delay slot.** If the target materializes a constant before
   the comparison that logically owns it, assign a local before the preceding

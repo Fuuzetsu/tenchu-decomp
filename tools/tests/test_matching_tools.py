@@ -83,6 +83,35 @@ int F(void) {
         self.assertLess(out[0][1].index("frame->mode = 0"),
                         out[0][1].index("frame->size = 0x3000"))
 
+    def test_assignment_chain_merges_same_literal_field_stores(self):
+        source = """void F(Frame *frame) {
+    Frame *p = frame;
+    p->r = 0x80;
+    p->g = 0x80;
+    p->b = 0x80;
+}
+"""
+        autorules.GUIDED_LINES = {3}
+        out = self.candidates(autorules.rule_assignment_chain, source)
+        merged = [text for label, text in out
+                  if label.startswith("assignment-chain merge 3 L3")]
+        self.assertEqual(len(merged), 1)
+        self.assertIn("p->r = p->g = p->b = 0x80;", merged[0])
+
+    def test_assignment_chain_splits_forward_and_reverse(self):
+        source = """void F(Frame *frame) {
+    Frame *p = frame;
+    p->x = p->y = 0x10;
+}
+"""
+        autorules.GUIDED_LINES = {3}
+        out = self.candidates(autorules.rule_assignment_chain, source)
+        forward = [text for label, text in out if "split-forward" in label]
+        reverse = [text for label, text in out if "split-reverse" in label]
+        self.assertEqual((len(forward), len(reverse)), (1, 1))
+        self.assertIn("p->x = 0x10;\n    p->y = 0x10;", forward[0])
+        self.assertIn("p->y = 0x10;\n    p->x = 0x10;", reverse[0])
+
     def test_adjacent_field_store_swap_rejects_nonliteral_rhs(self):
         source = """void F(Frame *frame, int value) {
     frame->size = value;

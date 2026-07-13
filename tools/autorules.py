@@ -1472,6 +1472,120 @@ def _literal_text(data, node):
     return value if re.fullmatch(rb"(?:0x[0-9a-fA-F]+|\d+)", value) else None
 
 
+def _field_path(data, node):
+    """(root identifier, textual path) for a plain . / -> field chain."""
+    node = _unparen(node)
+    original = node
+    while node is not None and node.type == "field_expression":
+        node = node.child_by_field_name("argument")
+    if node is None or node.type != "identifier" or original is None:
+        return None
+    text = _txt(data, original).strip()
+    if not re.fullmatch(rb"[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*)+", text):
+        return None
+    return _txt(data, node), text
+
+
+def rule_assignment_chain(text, name, span):
+    """Merge/split same-literal stores to distinct fields of one aggregate.
+
+    C chained assignment evaluates right-to-left, so ``a=b=c=K`` is a compact
+    source lever for reverse store order and constant/register lifetime.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    locals_ = _nonvolatile_local_names(data, body)
+
+    def one(statement):
+        if statement.type != "expression_statement":
+            return None
+        children = [child for child in statement.named_children
+                    if child.type != "comment"]
+        if len(children) != 1 or children[0].type != "assignment_expression":
+            return None
+        assignment = children[0]
+        operator = assignment.child_by_field_name("operator")
+        lhs = assignment.child_by_field_name("left")
+        rhs = assignment.child_by_field_name("right")
+        path = _field_path(data, lhs)
+        literal = _literal_text(data, rhs)
+        if (operator is None or _txt(data, operator) != b"=" or
+                path is None or path[0] not in locals_ or literal is None):
+            return None
+        return path[0], path[1], literal
+
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        # Merge two-to-four adjacent scalar stores as one right-to-left chain.
+        for count in range(2, 5):
+            for start in range(len(statements) - count + 1):
+                group = statements[start:start + count]
+                parsed = [one(statement) for statement in group]
+                if any(item is None for item in parsed):
+                    continue
+                roots = {item[0] for item in parsed}
+                paths = [item[1] for item in parsed]
+                literals = {item[2] for item in parsed}
+                if len(roots) != 1 or len(set(paths)) != count or len(literals) != 1:
+                    continue
+                if any(data[a.end_byte:b.start_byte].strip()
+                       for a, b in zip(group, group[1:])):
+                    continue
+                line = _line(data, group[0].start_byte)
+                if not _guided_site(line):
+                    continue
+                replacement = b" = ".join(paths + [parsed[0][2]]) + b";"
+                yield (
+                    f"assignment-chain merge {count} L{line}",
+                    splice(data, group[0].start_byte, group[-1].end_byte,
+                           replacement).decode(),
+                )
+
+    # Split an existing chain into forward/reverse explicit store orders.
+    for statement in _find(body, ("expression_statement",)):
+        children = [child for child in statement.named_children
+                    if child.type != "comment"]
+        if len(children) != 1 or children[0].type != "assignment_expression":
+            continue
+        paths = []
+        root = None
+        cursor = children[0]
+        while cursor is not None and cursor.type == "assignment_expression":
+            operator = cursor.child_by_field_name("operator")
+            lhs = cursor.child_by_field_name("left")
+            rhs = cursor.child_by_field_name("right")
+            path = _field_path(data, lhs)
+            if operator is None or _txt(data, operator) != b"=" or path is None:
+                paths = []
+                break
+            root = root or path[0]
+            if path[0] != root:
+                paths = []
+                break
+            paths.append(path[1])
+            cursor = rhs
+        literal = _literal_text(data, cursor)
+        if (len(paths) < 2 or len(paths) > 4 or len(set(paths)) != len(paths) or
+                root not in locals_ or literal is None):
+            continue
+        line = _line(data, statement.start_byte)
+        if not _guided_site(line):
+            continue
+        indent = _indent_at(data, statement.start_byte)
+        for tag, order in (("forward", paths), ("reverse", list(reversed(paths)))):
+            replacement = (b";\n" + indent).join(
+                path + b" = " + literal for path in order
+            ) + b";"
+            yield (
+                f"assignment-chain split-{tag} {len(paths)} L{line}",
+                splice(data, statement.start_byte, statement.end_byte,
+                       replacement).decode(),
+            )
+
+
 def rule_vector_copy_adjust(text, name, span):
     """Split/merge an adjusted component in a three-field vector copy.
 
@@ -2822,6 +2936,7 @@ RULES = [
     ("subscript-postinc", "split/merge a[i];i++ <-> a[i++] (working-copy lever)", rule_subscript_postinc),
     ("ptr-index-sum", "T *p = base+idx -> (T*)(idx*sizeof(T)+(int)base)", rule_ptr_index_sum),
     ("vector-copy", "four vx/vy/vz/pad field copies -> one struct assignment", rule_vector_copy),
+    ("assignment-chain", "merge/split same-literal field stores", rule_assignment_chain),
     ("vector-copy-adjust", "split/merge a literal-adjusted vx/vy/vz field copy", rule_vector_copy_adjust),
     ("split-chain", "t = (x-C)>>S -> t = x-C; t = t>>S (split fused chain)", rule_split_chain),
     ("min-ternary", "x=a; if(b<x) x=b; -> x = (b<a)?b:a (min-vs-memory)", rule_min_ternary),
