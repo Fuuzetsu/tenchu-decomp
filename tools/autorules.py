@@ -1141,21 +1141,27 @@ def rule_abs_ge(text, name, span):
 
 
 def rule_builtin_abs(text, name, span):
-    """Rewrite a direct ``abs(x)`` call as ``__builtin_abs(x)``.
+    """Make either common absolute-value spelling an explicit builtin.
 
     The matching build deliberately passes ``-fno-builtin`` to cc1, so an
     ordinary library call can no longer fold to the target's inline
     ``bgez/move/negu`` sequence.  The explicit builtin restores that source
     choice locally without weakening the translation unit's compiler flags.
-    Restrict this to a direct, one-argument call and reject a same-named local;
-    authoritative scoring decides whether the target wanted the call or the
-    inline form.
+
+    Also recognize ``x = value; ...; if (x < 0) x = -x;`` for a nonvolatile
+    automatic local.  Replacing the first assignment and deleting the later
+    sign fix keeps ``value``'s evaluation point unchanged; it crosses only
+    call-free expression statements that do not mention ``x``.  This second
+    form is the ProcMiscDoor register-allocation lever: the builtin's
+    internal value can be locally allocated before the DoorData index chain,
+    unlike a named pseudo spanning the negative arm.
     """
     data = text.encode()
     body = _func_body(data, name, _byte_span(text, span))
     if body is None:
         return
-    if b"abs" in _nonvolatile_local_names(data, body):
+    local_names = _nonvolatile_local_names(data, body)
+    if b"abs" in local_names:
         return
     for call in _find(body, ("call_expression",)):
         function = call.child_by_field_name("function")
@@ -1175,6 +1181,81 @@ def rule_builtin_abs(text, name, span):
             splice(data, function.start_byte, function.end_byte,
                    b"__builtin_abs").decode(),
         )
+
+    def one_statement(node):
+        if node is None:
+            return None
+        if node.type != "compound_statement":
+            return node
+        children = [child for child in node.named_children
+                    if child.type != "comment"]
+        return children[0] if len(children) == 1 else None
+
+    for iff in _find(body, ("if_statement",)):
+        if iff.child_by_field_name("alternative") is not None:
+            continue
+        condition = _unparen(iff.child_by_field_name("condition"))
+        consequence = one_statement(iff.child_by_field_name("consequence"))
+        if (condition is None or condition.type != "binary_expression" or
+                consequence is None):
+            continue
+        operator = condition.child_by_field_name("operator")
+        left = condition.child_by_field_name("left")
+        right = _unparen(condition.child_by_field_name("right"))
+        if (operator is None or _txt(data, operator) != b"<" or
+                left is None or left.type != "identifier" or
+                right is None or right.type != "number_literal" or
+                _txt(data, right).strip() != b"0"):
+            continue
+        local = _txt(data, left)
+        if local not in local_names:
+            continue
+        update = _plain_assignment(data, consequence)
+        if update is None or update[0] != local:
+            continue
+        negated = _txt(data, _unparen(update[1])).strip()
+        if negated not in (b"-" + local, b"- " + local):
+            continue
+
+        parent = iff.parent
+        if parent is None or parent.type != "compound_statement":
+            continue
+        siblings = [child for child in parent.named_children
+                    if child.type != "comment"]
+        try:
+            index = siblings.index(iff)
+        except ValueError:
+            continue
+        producer = None
+        for statement in reversed(siblings[:index]):
+            assignment = _plain_assignment(data, statement)
+            mentions = any(_txt(data, ident) == local
+                           for ident in _find(statement, ("identifier",)))
+            if assignment is not None and assignment[0] == local:
+                producer = assignment[1]
+                break
+            # Moving the sign normalization earlier is semantics-preserving
+            # only across straight-line expressions.  Calls and control-flow
+            # could exit before the old if (or observe undefined INT_MIN
+            # negation on a path that previously skipped it).
+            if (mentions or statement.type != "expression_statement" or
+                    _find(statement, ("call_expression",))):
+                break
+        if producer is None or b"__builtin_abs" in _txt(data, producer):
+            continue
+        line = _line(data, iff.start_byte)
+        if not (_guided_site(line) or
+                _guided_site(_line(data, producer.start_byte))):
+            continue
+
+        # Remove the later if first, so the earlier producer's byte offsets
+        # remain valid for the second splice.
+        rewritten = splice(data, iff.start_byte, iff.end_byte, b"")
+        replacement = b"__builtin_abs(" + _txt(data, producer).strip() + b")"
+        rewritten = splice(rewritten, producer.start_byte, producer.end_byte,
+                           replacement)
+        yield (f"sign-fix->__builtin_abs {local.decode()} L{line}",
+               rewritten.decode())
 
 
 def rule_or_inplace(text, name, span):
@@ -3341,7 +3422,7 @@ RULES = [
     ("late-pointer-direct", "inline a repeated pointer-global assignment in its late region", rule_late_pointer_direct),
     ("call-arg-pair", "inline adjacent same-call temps into one consumer call", rule_call_arg_pair_inline),
     ("abs-ge", "rewrite (x<0)?-x:x -> (x>=0)?x:-x (the abssi2 fold)", rule_abs_ge),
-    ("builtin-abs", "abs(x) -> __builtin_abs(x) under cc1 -fno-builtin", rule_builtin_abs),
+    ("builtin-abs", "abs call/sign-fix -> __builtin_abs under cc1 -fno-builtin", rule_builtin_abs),
     ("or-inplace", "rewrite X = X|C -> X |= C (local-alloc lever)", rule_or_inplace),
     ("rand-mod", "split/merge x=rand()%K (call-result allocation lever)", rule_rand_mod_split),
     ("subscript-postinc", "split/merge a[i];i++ <-> a[i++] (working-copy lever)", rule_subscript_postinc),

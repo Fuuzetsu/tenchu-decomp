@@ -2254,6 +2254,26 @@ ActKAGI's three-component short-circuit loop required the explicit builtin;
 plain `abs` call when the retail function really calls the library
 (GetVectorLength).
 
+The explicit sign-fix spelling can be a different allocation shape even when
+it has the same final branch sequence:
+
+```c
+r = param->r;
+/* independent statements may intervene */
+if (r < 0)
+    r = -r;
+```
+
+Here `r` is a named pseudo spanning the negative arm. In ProcMiscDoor that
+pseudo was globally allocated only after the DoorData index temporaries had
+taken `$v0/$v1`, producing a 37-byte register/schedule cascade. Writing
+`r = __builtin_abs(param->r);` left the builtin's temporary to local allocation
+and made the entire tail exact. `autorules`' `builtin-abs` rule now recognizes
+this sign-fix form too: it changes the producer assignment in place and removes
+the later `if`, crossing only call-free straight-line expression statements
+that do not mention the local. This keeps the original value's evaluation
+point and semantics.
+
 ### A conditional store via a pre-branch address copy is one assignment, conditional RHS
 
 `move $v0,$a0` in a branch delay slot feeding `sh …,0($v0)` means the source is ONE
@@ -2737,6 +2757,15 @@ one-shot `do` stopped the constant/copy propagation, scheduled the definition
 before `valloc`, and made `$s1` feed `MemCardAccept`/`MemCardSync`, with no
 surviving branch. This is already an ordinary guided `loop-fence` candidate;
 the RTL symptom is one missing long-lived zero pseudo, not a wrong constant.
+
+An expression fence can also supply exactly one allocator-priority weight.
+ProcMiscDoor's final three-byte tie had `t` at 3 refs / 5 live insns (priority
+6000) below `angle` at 3 / 4 (7500); `regalloc.py --compare 217 218` reported
+that one weighted ref was sufficient. A one-shot loop around only the ratan2
+assignment emitted no control-flow instruction, raised `t` above `angle`, and
+let `t`, `angle`, and the later `dir` reuse `$v0` at disjoint lifetimes. Prefer
+the smallest `rtlguide`-selected expression fence when the comparison says one
+weight is enough; broader loops can perturb unrelated scheduling.
 
 The fence may need to cover a **contiguous producer/consumer range**, not one
 AST statement. AttackIndirect's final copy-propagation tie closed only when one

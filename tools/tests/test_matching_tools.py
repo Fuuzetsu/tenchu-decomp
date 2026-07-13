@@ -865,6 +865,50 @@ int F(int value) {
         self.assertIn("__builtin_abs(value)", out[0][1])
         self.assertIn("int abs(int);", out[0][1])
 
+    def test_builtin_abs_collapses_explicit_sign_fix(self):
+        source = """typedef struct { int r; } Param;
+int Width;
+int F(Param *param) {
+    int r;
+    int w;
+    r = param->r;
+    w = Width;
+    if (r < 0)
+        r = -r;
+    return r + w;
+}
+"""
+        out = self.candidates(autorules.rule_builtin_abs, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("r = __builtin_abs(param->r);", out[0][1])
+        self.assertNotIn("if (r < 0)", out[0][1])
+        self.assertIn("w = Width;", out[0][1])
+
+    def test_builtin_abs_keeps_intervening_local_observation(self):
+        source = """int F(int value) {
+    int r;
+    r = value;
+    use(r);
+    if (r < 0)
+        r = -r;
+    return r;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_builtin_abs, source), [])
+
+        call = """int F(int value) {
+    int r;
+    r = value;
+    update_world();
+    if (r < 0)
+        r = -r;
+    return r;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_builtin_abs, call), [])
+
     def test_call_argument_pair_inlines_same_call_producers_atomically(self):
         source = """int rand(void);
 void sink(int, int);
