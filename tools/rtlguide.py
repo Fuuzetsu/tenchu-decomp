@@ -168,6 +168,12 @@ SIGNATURE_HINTS = {
         "target increments through a distinct working register and copies it "
         "back; try merging the adjacent increment into array[index++]"
     ),
+    "arithmetic-working-copy": (
+        "target keeps an arithmetic result in a working register, copies it "
+        "to the persistent value, then consumes the working value while the "
+        "candidate folds the result into the persistent register; run guided "
+        "working-copy-seed-merge to move that identity from the seed site"
+    ),
     "call-result-argument-pipeline": (
         "target transforms the first result across the second call and uses "
         "that call's delay slot; inline the adjacent producer pair into their "
@@ -550,6 +556,62 @@ def _postincrement_working_copy(target, ours):
     return False
 
 
+def _arithmetic_working_copy(target, ours):
+    """Target arithmetic-through-work/copy versus folded persistent result.
+
+    ActSTICKON's narrow residual was::
+
+        addu work,work,delta       addu persistent,work,delta
+        move persistent,work       sll  use, persistent,16
+        sll  use,work,16
+
+    Detect the register dataflow rather than the concrete hard registers.  The
+    consumer list is intentionally limited to ordinary destination-first ALU
+    operations; branches and stores do not share that operand convention.
+    """
+    updates = {"add", "addu", "addiu", "sub", "subu"}
+    consumers = {
+        "add", "addu", "addiu", "and", "andi", "move", "or", "ori",
+        "sll", "sra", "srl", "sub", "subu", "xor", "xori",
+    }
+    for ti in range(len(target) - 2):
+        target_update, target_copy, target_consumer = target[ti:ti + 3]
+        update_op = mnemonic(target_update)
+        update_regs = registers(target_update)
+        copy_regs = registers(target_copy)
+        consumer_regs = registers(target_consumer)
+        if (update_op not in updates or len(update_regs) < 2 or
+                mnemonic(target_copy) != "move" or len(copy_regs) < 2 or
+                mnemonic(target_consumer) not in consumers or
+                len(consumer_regs) < 2):
+            continue
+        work = update_regs[0]
+        persistent, copy_source = copy_regs[:2]
+        if (work == persistent or copy_source != work or
+                work not in update_regs[1:] or work not in consumer_regs[1:]):
+            continue
+        for oi in range(len(ours) - 1):
+            ours_update, ours_consumer = ours[oi:oi + 2]
+            ours_update_regs = registers(ours_update)
+            ours_consumer_regs = registers(ours_consumer)
+            if (mnemonic(ours_update) != update_op or
+                    len(ours_update_regs) != len(update_regs) or
+                    ours_update_regs[0] != persistent or
+                    ours_update_regs[1:] != update_regs[1:] or
+                    mnemonic(ours_consumer) != mnemonic(target_consumer) or
+                    len(ours_consumer_regs) != len(consumer_regs) or
+                    ours_consumer_regs[0] != consumer_regs[0]):
+                continue
+            expected_sources = [
+                persistent if register == work else register
+                for register in consumer_regs[1:]
+            ]
+            if (ours_consumer_regs[1:] == expected_sources and
+                    shape(ours_consumer) == shape(target_consumer)):
+                return True
+    return False
+
+
 def _path_result_copy_join(target, ours):
     """Target ``move A,B; move B,A; branch B`` vs coalesced candidate.
 
@@ -804,6 +866,9 @@ def known_residual_signatures(hunks, target_stream=None, ours_stream=None):
         if (_postincrement_working_copy(target, ours) and
                 "postincrement-working-copy" not in found):
             found.append("postincrement-working-copy")
+        if (_arithmetic_working_copy(target, ours) and
+                "arithmetic-working-copy" not in found):
+            found.append("arithmetic-working-copy")
         if (_enclosing_global_field_load(target, ours) and
                 "enclosing-global-field-load" not in found):
             found.append("enclosing-global-field-load")
@@ -985,6 +1050,10 @@ def assembly_guide(name):
     if "commutative-plus-destination" in signatures:
         rules = ["initialized-global-compound"] + [
             rule for rule in rules if rule != "initialized-global-compound"
+        ]
+    if "arithmetic-working-copy" in signatures:
+        rules = ["working-copy-seed-merge"] + [
+            rule for rule in rules if rule != "working-copy-seed-merge"
         ]
     if "dbr-duplicated-literal-producer" in signatures:
         rules = ["loop-range"] + [

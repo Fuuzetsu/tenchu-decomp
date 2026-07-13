@@ -419,22 +419,43 @@ def _paren_inner(cond):
 
 def _func_body(data, name, bspan):
     """The body compound_statement node of function `name` within byte-span
-    `bspan`. `data` is the utf-8 bytes; returns (root_data, body_node)."""
+    `bspan`. `data` is the utf-8 bytes; return its body node."""
     if _TS is None:
         return None
-    root = _TS.parse(data).root_node
     want = name.encode()
-    for n in _find(root, ("function_definition",)):
-        if not (bspan[0] <= n.start_byte and n.end_byte <= bspan[1]):
-            continue
-        fd = n.child_by_field_name("declarator")
-        while fd is not None and fd.type != "function_declarator":
-            fd = fd.child_by_field_name("declarator")
-        if fd is None:
-            continue
-        idn = _descend_ident(fd.child_by_field_name("declarator"))
-        if idn is not None and _txt(data, idn) == want:
-            return n.child_by_field_name("body")
+
+    def locate(root):
+        for n in _find(root, ("function_definition",)):
+            if not (bspan[0] <= n.start_byte and n.end_byte <= bspan[1]):
+                continue
+            fd = n.child_by_field_name("declarator")
+            while fd is not None and fd.type != "function_declarator":
+                fd = fd.child_by_field_name("declarator")
+            if fd is None:
+                continue
+            idn = _descend_ident(fd.child_by_field_name("declarator"))
+            if idn is not None and _txt(data, idn) == want:
+                return n.child_by_field_name("body")
+        return None
+
+    body = locate(_TS.parse(data).root_node)
+    if body is not None:
+        return body
+
+    # Some guarded drafts put raw INCLUDE_ASM macro invocations in the other
+    # preprocessor arm.  tree-sitter-c can recover the tokens but may wrap the
+    # entire #ifndef/#else region in one ERROR node, hiding the perfectly valid
+    # function_definition from every AST rule.  Reparse with bytes outside the
+    # editable arm blanked.  Keeping newlines and byte count intact preserves
+    # every source offset, including UTF-8 header comments, so nodes from the
+    # fallback tree remain safe to splice into the original data.
+    if bspan != (0, len(data)):
+        masked = bytearray(data)
+        for start, end in ((0, bspan[0]), (bspan[1], len(masked))):
+            for index in range(start, end):
+                if masked[index] not in (10, 13):
+                    masked[index] = 32
+        return locate(_TS.parse(bytes(masked)).root_node)
     return None
 
 
@@ -6081,6 +6102,192 @@ def rule_empty_loop_boundary(text, name, span):
             )
 
 
+def rule_working_copy_seed_merge(text, name, span):
+    """Move a working-copy identity from its seed to its update/writeback.
+
+    A common decompiler spelling seeds a temporary and immediately publishes
+    it, then later rebuilds that temporary and updates it in two statements::
+
+        work = seed;
+        persistent = work;
+        ...                         /* no intervening use of work */
+        do { work = persistent - K; } while (0);
+        work += delta;
+        persistent = work;
+        consumer = work;
+
+    Old CSE can coalesce the first pair into ``work; move persistent,work`` but
+    fold the later update directly into ``persistent``, putting the one useful
+    move at the wrong site.  Seed the persistent value directly and merge the
+    rebuild/update instead.  ActSTICKON changed from 372 to 127 differing bytes
+    with exactly this paired edit; either edit alone was one instruction short.
+
+    Keep the transformation deliberately narrow.  ``work`` and ``persistent``
+    must be unique, unaddressed, nonvolatile signed-32 locals of the same type;
+    the rebuild is a pure scalar expression; the compound RHS cannot mention
+    ``work``; and the seed-to-rebuild interval contains no use of ``work``.
+    Calls remain allowed in ``delta`` because neither local is observable and
+    the call is still evaluated exactly once at the same sequence point.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+
+    locals_ = _nonvolatile_local_names(data, body)
+    types = {}
+    counts = {}
+    for declaration in _find(body, ("declaration",)):
+        raw = _txt(data, declaration)
+        type_node = declaration.child_by_field_name("type")
+        if (type_node is None or
+                re.search(rb"\b(?:const|volatile|static|extern|register)\b", raw)):
+            continue
+        type_text = b" ".join(_txt(data, type_node).strip().split()).decode()
+        if TYPES.get(type_text) != (32, True):
+            continue
+        for child in declaration.named_children:
+            declarator = (child.child_by_field_name("declarator")
+                          if child.type == "init_declarator" else child)
+            if declarator is None or declarator.type != "identifier":
+                continue
+            ident = _txt(data, declarator)
+            types[ident] = type_text
+            counts[ident] = counts.get(ident, 0) + 1
+
+    body_text = _txt(data, body)
+    addressed = {
+        token for token in types
+        if re.search(rb"&\s*" + re.escape(token) + rb"\b", body_text)
+    }
+
+    def whole_assignment(statement):
+        if statement.type != "expression_statement":
+            return None
+        expressions = [child for child in statement.named_children
+                       if child.type != "comment"]
+        if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+            return None
+        assignment = expressions[0]
+        operator = assignment.child_by_field_name("operator")
+        lhs = assignment.child_by_field_name("left")
+        rhs = assignment.child_by_field_name("right")
+        if (operator is None or lhs is None or lhs.type != "identifier" or
+                rhs is None):
+            return None
+        return _txt(data, lhs), _txt(data, operator), rhs
+
+    def plain_copy(statement):
+        parsed = whole_assignment(statement)
+        if parsed is None or parsed[1] != b"=":
+            return None
+        lhs, _operator, rhs = parsed
+        rhs = _unparen(rhs)
+        if rhs is None or rhs.type != "identifier":
+            return None
+        return lhs, _txt(data, rhs)
+
+    forbidden_rebuild = (
+        "assignment_expression", "call_expression", "field_expression",
+        "pointer_expression", "subscript_expression", "update_expression",
+    )
+
+    # Find the later rebuild/update/writeback/consumer chain first.  It may
+    # start with either a direct assignment or the one-shot loop frequently
+    # used to preserve the rand call's delay-slot schedule.
+    chains = []
+    for block in _find(body, ("compound_statement",)):
+        statements = [child for child in block.named_children
+                      if child.type != "comment"]
+        for index in range(len(statements) - 3):
+            holder, update, writeback, consumer = statements[index:index + 4]
+            rebuild_statement = holder
+            loop_body = _one_shot_loop(data, holder)
+            if loop_body is not None:
+                loop_statements = [child for child in loop_body.named_children
+                                   if child.type != "comment"]
+                if len(loop_statements) != 1:
+                    continue
+                rebuild_statement = loop_statements[0]
+            rebuild = whole_assignment(rebuild_statement)
+            compound = whole_assignment(update)
+            copied = plain_copy(writeback)
+            consumed = plain_copy(consumer)
+            if (rebuild is None or rebuild[1] != b"=" or compound is None or
+                    compound[1] not in (b"+=", b"-=") or copied is None or
+                    consumed is None):
+                continue
+            work, _equals, rebuild_rhs = rebuild
+            if compound[0] != work or copied[1] != work:
+                continue
+            persistent = copied[0]
+            if (consumed[1] != work or consumed[0] in (work, persistent) or
+                    work == persistent):
+                continue
+            if (work not in locals_ or persistent not in locals_ or
+                    types.get(work) != types.get(persistent) or
+                    counts.get(work) != 1 or counts.get(persistent) != 1 or
+                    work in addressed or persistent in addressed):
+                continue
+            if _find(rebuild_rhs, forbidden_rebuild):
+                continue
+            rebuild_identifiers = [_txt(data, ident)
+                                   for ident in _find(rebuild_rhs, ("identifier",))]
+            if persistent not in rebuild_identifiers or work in rebuild_identifiers:
+                continue
+            delta = compound[2]
+            if any(_txt(data, ident) == work
+                   for ident in _find(delta, ("identifier",))):
+                continue
+            if any(data[first.end_byte:second.start_byte].strip()
+                   for first, second in zip(
+                       (holder, update, writeback),
+                       (update, writeback, consumer))):
+                continue
+            chains.append((holder, update, work, persistent, rebuild_rhs,
+                           compound[1], delta))
+
+    for holder, update, work, persistent, rebuild_rhs, compound_op, delta in chains:
+        for block in _find(body, ("compound_statement",)):
+            statements = [child for child in block.named_children
+                          if child.type != "comment"]
+            for seed_statement, publish_statement in zip(statements, statements[1:]):
+                seed = whole_assignment(seed_statement)
+                publish = plain_copy(publish_statement)
+                if (seed is None or seed[1] != b"=" or seed[0] != work or
+                        publish != (persistent, work) or
+                        publish_statement.end_byte >= holder.start_byte or
+                        data[seed_statement.end_byte:publish_statement.start_byte].strip()):
+                    continue
+                interval = data[publish_statement.end_byte:holder.start_byte]
+                if re.search(rb"\b" + re.escape(work) + rb"\b", interval):
+                    continue
+                lines = (_line(data, holder.start_byte),
+                         _line(data, update.start_byte))
+                if not any(_guided_site(line) for line in lines):
+                    continue
+
+                seed_replacement = (
+                    persistent + b" = " + _txt(data, seed[2]).strip() + b";"
+                )
+                binary_op = b"+" if compound_op == b"+=" else b"-"
+                update_replacement = (
+                    work + b" = " + _txt(data, rebuild_rhs).strip() + b" " +
+                    binary_op + b" " + _txt(data, delta).strip() + b";"
+                )
+                rewritten = splice(data, holder.start_byte, update.end_byte,
+                                   update_replacement)
+                rewritten = splice(
+                    rewritten, seed_statement.start_byte,
+                    publish_statement.end_byte, seed_replacement,
+                )
+                yield (
+                    f"working-copy-seed-merge {work.decode()}->{persistent.decode()} "
+                    f"L{lines[0]}",
+                    rewritten.decode(),
+                )
+
+
 def rule_loop_boundary_shift(text, name, span):
     """Move the following statement inside an existing one-shot loop.
 
@@ -6911,6 +7118,7 @@ AGGRESSIVE_RULES = [
     ("mul-affine-shape", "toggle x*M+C with (x+C/M)*M", rule_mul_affine_shape),
     ("ptr-base-split", "name an extern array base before indexed address/call", rule_ptr_base_split),
     ("deref-address-split", "name a casted dereference address before its scalar load", rule_deref_address_split),
+    ("working-copy-seed-merge", "move a working-copy identity from seed to update/writeback", rule_working_copy_seed_merge),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions between pre-zero and two-arm forms", rule_flag_arm_assign),

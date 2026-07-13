@@ -1490,6 +1490,83 @@ int F(void) { u16 *first, *second; return 0; }
         self.assertIn("empty-loop-boundary remove L3", out[0][0])
         self.assertNotIn("do {", out[0][1])
 
+    def test_working_copy_seed_merge_moves_identity_atomically(self):
+        source = """typedef int s32;
+void F(void) {
+    s32 work;
+    s32 persistent;
+    short consumer;
+    work = seed();
+    persistent = work;
+    use(persistent);
+    do {
+        work = persistent - 10;
+    } while (0);
+    work += rand() % 20;
+    persistent = work;
+    consumer = work;
+    use(persistent, consumer);
+}
+"""
+        autorules.GUIDED_LINES = {9, 12}
+        out = self.candidates(autorules.rule_working_copy_seed_merge, source)
+        self.assertEqual(len(out), 1)
+        candidate = out[0][1]
+        self.assertIn("persistent = seed();", candidate)
+        self.assertNotIn("work = seed();", candidate)
+        self.assertIn("work = persistent - 10 + rand() % 20;", candidate)
+        self.assertNotIn("} while (0);\n    work +=", candidate)
+
+    def test_working_copy_seed_merge_rejects_intervening_work_use(self):
+        source = """typedef int s32;
+void F(void) {
+    s32 work;
+    s32 persistent;
+    short consumer;
+    work = seed();
+    persistent = work;
+    observe(work);
+    do {
+        work = persistent - 10;
+    } while (0);
+    work += rand() % 20;
+    persistent = work;
+    consumer = work;
+}
+"""
+        autorules.GUIDED_LINES = {9, 12}
+        self.assertEqual(
+            self.candidates(autorules.rule_working_copy_seed_merge, source),
+            [],
+        )
+
+    def test_working_copy_seed_merge_parses_guarded_include_asm_draft(self):
+        source = """#ifndef NON_MATCHING
+INCLUDE_ASM("broken", F);
+#else
+typedef int s32;
+void F(void) {
+    s32 work;
+    s32 persistent;
+    short consumer;
+    work = seed();
+    persistent = work;
+    use(persistent);
+    do {
+        work = persistent - 10;
+    } while (0);
+    work += rand() % 20;
+    persistent = work;
+    consumer = work;
+}
+#endif
+"""
+        autorules.GUIDED_LINES = {12, 15}
+        out = list(autorules.rule_working_copy_seed_merge(
+            source, "F", autorules.region_span(source, True)))
+        self.assertEqual(len(out), 1)
+        self.assertIn("persistent = seed();", out[0][1])
+
     def test_redundant_field_donor_repeats_pure_aggregate_assignment(self):
         source = """typedef struct { int a, b, c, d; } T;
 void F(void) {
@@ -3752,6 +3829,27 @@ class RtlGuideTests(unittest.TestCase):
             rtlguide.known_residual_signatures([h]),
             ["postincrement-working-copy"],
         )
+
+    def test_known_arithmetic_working_copy_prioritizes_paired_rule(self):
+        h = self.hunk(
+            ["addu s0,s0,v0", "move s2,s0", "sll s0,s0,0x10"],
+            ["addu s2,s0,v0", "sll s0,s2,0x10"],
+        )
+        self.assertEqual(
+            rtlguide.known_residual_signatures([h]),
+            ["arithmetic-working-copy"],
+        )
+        target = [(0x1000 + index * 4, insn)
+                  for index, insn in enumerate(
+                      ["addu s0,s0,v0", "move s2,s0", "sll s0,s0,0x10"])]
+        ours = [(0x1000 + index * 4, insn)
+                for index, insn in enumerate(
+                    ["addu s2,s0,v0", "sll s0,s2,0x10"])]
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 12, 8, target, ours)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertEqual(guide["rules"][0], "working-copy-seed-merge")
 
     def test_known_call_result_argument_pipeline_signature(self):
         target = [

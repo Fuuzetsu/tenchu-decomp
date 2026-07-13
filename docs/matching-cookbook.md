@@ -953,6 +953,23 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   pointer/value temps block-local to **each** disjoint loop: sharing them across
   FUN_800270f8's set/clear loops merged their allocnos, raised priority, and
   swapped `$a0/$v0` even though their live ranges never overlap.
+- **A working copy's one surviving `move` can migrate between its seed and its
+  writeback.** The narrow RTL/assembly signature is target
+  `addu work,work,delta; move persistent,work; sll use,work,16` versus candidate
+  `addu persistent,work,delta; sll use,persistent,16`, often accompanied by an
+  earlier candidate-only `work = seed; persistent = work` copy. Treat the two
+  sites as one identity problem. Seed the persistent value directly, then
+  merge the later rebuild and compound update:
+  `persistent = seed; ...; work = persistent - K + delta; persistent = work`.
+  In ActSTICKON, changing either site alone made the 812-instruction draft one
+  instruction short; the atomic pair preserved length, moved the copy to the
+  target site, and reduced the authoritative residual from 372 to 127 bytes.
+  `rtlguide` names this `arithmetic-working-copy` and prioritizes guided
+  `working-copy-seed-merge`, which requires unique unaddressed nonvolatile
+  signed-32 locals, a pure rebuild, and no intervening use of the work local.
+  Its checkpoint replay is `(False,372,54,0) -> (False,127,52,0)`. The fuzzy
+  percentage stayed 94.83 despite that large byte win; refresh its source hash
+  anyway because fuzzy is only a structural display heuristic.
 - **A sentinel-record scan with a special first row may need the scan backedge
   written explicitly.** A structured loop can let cc1 peel or specialize the
   known `i == 0` row, changing physical block order even when its comparisons
