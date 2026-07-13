@@ -1675,6 +1675,122 @@ finish:
         self.assertEqual(
             self.candidates(autorules.rule_guard_flag_assign, source), [])
 
+    def test_flag_assignments_move_to_prezero_form(self):
+        source = """int F(int value) {
+    int flag;
+    if (value < 0) {
+        value = -value;
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    return value + flag;
+}
+"""
+        out = self.candidates(autorules.rule_flag_arm_assign, source)
+        self.assertEqual(len(out), 1)
+        label, candidate = out[0]
+        self.assertIn("flag-arm-prezero", label)
+        self.assertIn("flag = 0;\n    if (value < 0)", candidate)
+        self.assertIn("value = -value;\n        flag = 1;", candidate)
+        self.assertNotIn("else", candidate)
+
+    def test_flag_prezero_rejects_observation_or_early_exit(self):
+        observed = """int F(int value) {
+    int flag;
+    if (value < 0) { flag += value; flag = 1; }
+    else { flag = 0; }
+    return flag;
+}
+"""
+        exits = """int F(int value) {
+    int flag;
+    if (value < 0) { if (value < -3) return 2; flag = 1; }
+    else { flag = 0; }
+    return flag;
+}
+"""
+        self.assertEqual(self.candidates(autorules.rule_flag_arm_assign,
+                                         observed), [])
+        self.assertEqual(self.candidates(autorules.rule_flag_arm_assign,
+                                         exits), [])
+
+    def test_flag_prezero_rejects_shadowed_binding(self):
+        source = """int F(int value) {
+    int flag;
+    if (value < 0) {
+        int flag;
+        value = -value;
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    return flag;
+}
+"""
+        self.assertEqual(self.candidates(autorules.rule_flag_arm_assign,
+                                         source), [])
+
+    def test_flag_prezero_rejects_parenthesized_address_alias(self):
+        source = """int F(int value) {
+    int flag;
+    int *alias;
+    alias = &(/* alias */ flag);
+    if (*alias != 0) {
+        value = -value;
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    return value + flag;
+}
+"""
+        self.assertEqual(self.candidates(autorules.rule_flag_arm_assign,
+                                         source), [])
+
+    def test_flag_prezero_rejects_object_and_function_macro_reads(self):
+        object_macro = """#define READ_FLAG flag
+int F(int value) {
+    int flag;
+    if (READ_FLAG < value) { value = -value; flag = 1; }
+    else { flag = 0; }
+    return value + flag;
+}
+"""
+        function_macro = """#define READ_FLAG() flag
+int F(int value) {
+    int flag;
+    if (value < 0) { value += READ_FLAG(); flag = 1; }
+    else { flag = 0; }
+    return value + flag;
+}
+"""
+        unknown_object = object_macro.replace("#define READ_FLAG flag\n", "")
+        for source in (object_macro, function_macro, unknown_object):
+            self.assertEqual(self.candidates(autorules.rule_flag_arm_assign,
+                                             source), [])
+
+    def test_flag_prezero_rejects_call_bearing_condition_or_prefix(self):
+        condition = """int observe(int value);
+int F(int value) {
+    int flag;
+    if (observe(value)) { value = -value; flag = 1; }
+    else { flag = 0; }
+    return value + flag;
+}
+"""
+        prefix = """int observe(int value);
+int F(int value) {
+    int flag;
+    if (value < 0) { observe(value); flag = 1; }
+    else { flag = 0; }
+    return value + flag;
+}
+"""
+        for source in (condition, prefix):
+            self.assertEqual(self.candidates(autorules.rule_flag_arm_assign,
+                                             source), [])
+
     def test_flag_return_split_moves_override_to_success_exit(self):
         source = """typedef int s32;
 int helper(void);

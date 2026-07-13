@@ -1253,6 +1253,18 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   rank loop in mission_score_screen required this to remove an eight-byte late
   spill area and restore the exact `0x1B8` frame. This is justified by the RTL
   allocno plus target `addiu sp,K` rematerialisations—not by frame-size guessing.
+- **A second typed byte-offset view can force a fresh stack-array address
+  without changing the lvalue.** If `sprite = &bank[i]` remains live but the
+  target later recomputes `sp+K + i*sizeof(*bank)` for a final field store,
+  writing `bank[i].field` may still CSE back to `sprite->field`. Spell only the
+  proven fresh accesses as
+  `((T *)((u8 *)bank + i * sizeof(T)))->field`: the value and type stay the
+  same, but cc1 creates the target's independent base/index address pseudo.
+  `mission_score_screen` needed this for the final `mx/my` writes in both local
+  sprite banks; together they restored four target instructions after the
+  normal subscript form coalesced them away. Require the raw target's repeated
+  `addiu sp,K`/index block before using this—do not turn ordinary subscripts
+  into byte arithmetic merely to perturb allocation.
 - **Two `u16` out-parameter locals with a 4-byte stack GAP are one `SVECTOR`'s
   `.vx`/`.vz`** (the write skips `.vy`), not two scalars (LightningBolt's
   GetVectorRotation output).
@@ -2882,6 +2894,36 @@ register conflict (ProcItemNinken's final three-byte tie). `rtlguide` reports
 `post-comparison-flag-definition`; guided `autorules` can try the bounded
 `flag-arm-assign` rewrite only when the local is nonvolatile, the arm does not
 read it, and no early exit can bypass the moved assignment.
+
+The reverse spelling is a separate control-flow lever.  If retail falls through
+the false path while the candidate has an unconditional jump around `else`, use
+the pre-zero form:
+
+```c
+flag = 0;
+if (value < 0) {
+    value = -value;
+    flag = 1;
+}
+```
+
+In `mission_score_screen`, a physical CFG audit showed 14 candidate
+unconditional jumps versus eight in retail.  The first three decimal expansions
+and the row loop use the two-arm form, but the next six pre-zero the sign flag;
+preserving those as two macro variants made the inventory exactly 8/8 without
+changing behavior.  That macro split and the affected invocation routing were
+applied manually: current `autorules` operates on explicit function-body
+statements and does not clone macro definitions or redirect their call sites.
+
+For explicit statements, `flag-arm-assign` now enumerates the reverse rewrite
+only for an unshadowed, nonvolatile function-scope local with a single
+default-only false arm and the opposite 0/1 override at the true arm's end.  It
+follows unary `&` through parentheses and rejects early exits, calls, macro
+names, unknown identifiers, or direct/aliased flag observations in the
+condition and true-arm prefix.  These restrictions matter because moving the
+default across either region can otherwise change what a call, macro expansion,
+or pointer alias sees.  Continue to review macro bodies manually, and do not
+blindly normalize sibling expansions when their target CFGs differ.
 
 ### Split a path-produced result from the final flag at its CFG join
 

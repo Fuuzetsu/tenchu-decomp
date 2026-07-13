@@ -3213,21 +3213,62 @@ def rule_flag_return_split(text, name, span):
 
 
 def rule_flag_arm_assign(text, name, span):
-    """Move a local 0/1 default and override to the ends of their CFG arms.
+    """Move a local 0/1 default between pre-zero and two-arm CFG forms.
 
     This shortens the flag's live range past the comparisons that precede each
     definition, allowing their hard result register to be reused in the branch
     delay slots.  Only the safe adjacent shape is enumerated: a nonvolatile
     local, no existing else, no use of the flag in the condition/body, and no
     early exit that could bypass the moved override.
+
+    The reverse spelling is also useful: ``if (...) { work; flag = 1; } else
+    { flag = 0; }`` becomes ``flag = 0; if (...) { work; flag = 1; }``.  Old
+    cc1 can then fall through the false path instead of emitting an
+    unconditional jump around the else assignment.
     """
     data = text.encode()
     body = _func_body(data, name, _byte_span(text, span))
     if body is None:
         return
-    locals_ = _nonvolatile_local_names(data, body)
+    # Binding identity matters here: a same-spelled declaration in a nested
+    # arm can make the two apparent assignments target different objects.
+    locals_ = _nonvolatile_function_local_names(data, body)
+    known_names = locals_ | _nonvolatile_parameter_names(data, body)
     exits = ("break_statement", "continue_statement", "goto_statement",
              "return_statement")
+
+    # Follow unary `&` through parentheses.  A regex misses `&(flag)` and
+    # comment-separated variants, after which an alias could observe an
+    # assignment moved across the condition or true-arm prefix.
+    addressed = set()
+    for pointer in _find(body, ("pointer_expression",)):
+        operator = pointer.child_by_field_name("operator")
+        argument = _unparen(pointer.child_by_field_name("argument"))
+        if (operator is not None and _txt(data, operator) == b"&" and
+                argument is not None and argument.type == "identifier"):
+            addressed.add(_txt(data, argument))
+
+    # Parsing precedes preprocessing.  Reject every visible macro name in a
+    # moved-over region; an included macro is covered by the unknown-name
+    # check below.  Function-like macros also parse as calls and are rejected.
+    macro_names = set(re.findall(
+        rb"(?m)^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)", data
+    ))
+
+    def observation_free(flag, nodes):
+        """Whether moving a flag definition across `nodes` is conservative."""
+        for node in nodes:
+            if _find(node, ("call_expression",)):
+                return False
+            identifiers = {
+                _txt(data, identifier)
+                for identifier in _find(node, ("identifier",))
+            }
+            if (flag in identifiers or identifiers & macro_names or
+                    not identifiers <= known_names):
+                return False
+        return True
+
     for block in _find(body, ("compound_statement",)):
         statements = [c for c in block.named_children if c.type != "comment"]
         for default_statement, iff in zip(statements, statements[1:]):
@@ -3239,8 +3280,7 @@ def rule_flag_arm_assign(text, name, span):
             default_value = _zero_or_one(data, default_rhs)
             condition = iff.child_by_field_name("condition")
             consequence = iff.child_by_field_name("consequence")
-            if (flag not in locals_ or
-                    re.search(rb"&\s*" + re.escape(flag) + rb"\b", _txt(data, body)) or
+            if (flag not in locals_ or flag in addressed or
                     default_value is None or condition is None or
                     consequence is None or consequence.type != "compound_statement" or
                     data[default_statement.end_byte:iff.start_byte].strip()):
@@ -3257,14 +3297,10 @@ def rule_flag_arm_assign(text, name, span):
                 continue
             if data[consequence.start_byte + 1:override_statement.start_byte].strip():
                 continue
-            if any(_txt(data, ident) == flag for ident in _find(condition, ("identifier",))):
-                continue
             remaining = arm_statements[1:]
             if any(_find(statement, exits) for statement in remaining):
                 continue
-            if any(_txt(data, ident) == flag
-                   for statement in remaining
-                   for ident in _find(statement, ("identifier",))):
+            if not observation_free(flag, [condition] + remaining):
                 continue
             line = _line(data, iff.start_byte)
             if not _guided_site(line):
@@ -3299,6 +3335,61 @@ def rule_flag_arm_assign(text, name, span):
                 f"flag-arm-assign {flag.decode()} L{line}",
                 splice(data, default_statement.start_byte, iff.end_byte, repl).decode(),
             )
+
+    # Reverse the two-arm form into a pre-zero/no-else form.  Keep this as
+    # narrow as the forward rewrite: the false arm is only the default, the
+    # true arm ends in the opposite override, and no earlier statement can
+    # observe the flag or leave before that override.
+    for iff in _find(body, ("if_statement",)):
+        condition = iff.child_by_field_name("condition")
+        consequence = iff.child_by_field_name("consequence")
+        alternative = iff.child_by_field_name("alternative")
+        if condition is None or consequence is None or alternative is None:
+            continue
+        if alternative.type == "else_clause":
+            arms = [c for c in alternative.named_children if c.type != "comment"]
+            if len(arms) != 1:
+                continue
+            alternative = arms[0]
+        if (consequence.type != "compound_statement" or
+                alternative.type != "compound_statement"):
+            continue
+        yes_statements = [c for c in consequence.named_children
+                          if c.type != "comment"]
+        no_statements = [c for c in alternative.named_children
+                         if c.type != "comment"]
+        if not yes_statements or len(no_statements) != 1:
+            continue
+        override_statement = yes_statements[-1]
+        default_statement = no_statements[0]
+        override = _plain_assignment(data, override_statement)
+        default = _plain_assignment(data, default_statement)
+        if override is None or default is None or override[0] != default[0]:
+            continue
+        flag = override[0]
+        override_value = _zero_or_one(data, override[1])
+        default_value = _zero_or_one(data, default[1])
+        if (flag not in locals_ or flag in addressed or override_value is None or
+                default_value is None or
+                {override_value, default_value} != {0, 1}):
+            continue
+        before_override = yes_statements[:-1]
+        if (any(_find(statement, exits) for statement in before_override) or
+                not observation_free(flag, [condition] + before_override)):
+            continue
+        line = _line(data, iff.start_byte)
+        if not _guided_site(line):
+            continue
+
+        indent = _indent_at(data, iff.start_byte)
+        default_text = _txt(data, default_statement).strip()
+        one_arm_if = (data[iff.start_byte:consequence.start_byte] +
+                      _txt(data, consequence))
+        repl = default_text + b"\n" + indent + one_arm_if
+        yield (
+            f"flag-arm-prezero {flag.decode()} L{line}",
+            splice(data, iff.start_byte, iff.end_byte, repl).decode(),
+        )
 
 
 def rule_guard_flag_assign(text, name, span):
@@ -5552,7 +5643,7 @@ AGGRESSIVE_RULES = [
     ("ptr-base-split", "name an extern array base before indexed address/call", rule_ptr_base_split),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
-    ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
+    ("flag-arm-assign", "move local 0/1 definitions between pre-zero and two-arm forms", rule_flag_arm_assign),
     ("guard-flag-assign", "move a local flag definition before a guard or onto both goto edges", rule_guard_flag_assign),
     ("guard-exit-copy", "move a local value copy across its unique loop-break guard", rule_guard_exit_copy),
     ("shared-tail-assign", "duplicate one shared assignment into both preceding arms", rule_shared_tail_assign),
