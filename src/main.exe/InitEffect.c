@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -32,7 +33,204 @@
  *     extern struct Sprite3D *sprBomb[3];
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitEffect", InitEffect);
+/*
+ * InitEffect (0x80032184, 0x388 bytes) -- initialize the sprites, models,
+ * images, and draw primitive used by the game's visual effects.
+ *
+ * Matching notes (docs/matching-cookbook.md):
+ *  - Copying `D_80097A38.blood` through the named `blood_src` pointer makes
+ *    cc1 materialize the enclosing object's full address before the two-word
+ *    stack copy.  A direct member assignment folds the loads into the `%hi`
+ *    base and does not match the target's `lui; addiu; lwl/lwr` sequence.
+ *  - The blood image IDs must stay a flat byte array.  Indexing it with
+ *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
+ *    formed addresses; caching a row of a two-dimensional array does not.
+ *  - Each SetupSprite loop has its own block-scoped `sprite` temporary.
+ *    Sharing one function-scoped pointer extends its lifetime and emits
+ *    three extra return-value moves.
+ *  - The one-shot smoke assignment is an RTL scheduling fence.  Keeping the
+ *    scaled-index assignment in the comma expression gives the target's
+ *    `li 58; sll; sw` order, while `smoke_address` keeps the subsequent
+ *    address add between the two stack stores.  Splitting these into ordinary
+ *    statements leaves the same semantics but swaps adjacent instructions.
+ */
+
+typedef struct
+{
+    u8 image[8];
+} BloodImageIds;
+
+typedef struct
+{
+    u8 pad[8];
+    BloodImageIds blood;
+} EffectImageIds;
+
+typedef struct
+{
+    s32 image[3];
+} BombImageIds;
+
+typedef struct
+{
+    u_long tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    s16 x3, y3;
+} POLY_F4;
+
+extern EffectImageIds D_80097A38;
+extern u8 D_80097A48[5];
+extern BombImageIds D_80011C90;
+extern s32 pat[4];
+
+extern GsSPRITE sprBlood[4];
+extern GsSPRITE sprBlood2[4];
+extern GsSPRITE sprSplash;
+extern GsSPRITE sprFrame[4];
+extern GsSPRITE D_800BEAA8[5];
+extern POLY_F4 plyBleed;
+extern Sprite3D *sprSmoke[2];
+extern Sprite3D *sprBomb[3];
+extern Sprite3D *D_80097F2C[1];
+
+extern ModelType *D_80097F28;
+extern ModelType *D_80097F34;
+extern ModelType *LOCAL_COORDINATES_;
+extern GsIMAGE *D_80097F3C;
+extern s16 D_80097F30;
+extern s16 D_80097F32;
+
+extern GsIMAGE *GetImage(s32 index);
+extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
+extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
+extern u_long *GetArcData(s32 index);
+extern ModelType *LoadModel(u_long *adr);
+extern void FUN_80039c14(void);
+
+void InitEffect(void)
+{
+    BloodImageIds blood_images;
+    BloodImageIds *bloodp;
+    BloodImageIds *blood_src;
+    s32 smoke_images[2];
+    s32 smoke_id;
+    BombImageIds bomb_images;
+    POLY_F4 *poly;
+    GsIMAGE *image;
+    s16 i;
+
+    blood_src = &D_80097A38.blood;
+    blood_images = *blood_src;
+    i = 0;
+    bloodp = &blood_images;
+    for (; i < 4; i++)
+    {
+        image = GetImage(bloodp->image[i * 2]);
+        InitSprite(image, &sprBlood[i]);
+        sprBlood[i].attribute = 0x50000000;
+        image = GetImage(bloodp->image[i * 2 + 1]);
+        InitSprite(image, &sprBlood2[i]);
+        sprBlood2[i].attribute = 0x60000000;
+    }
+
+    image = GetImage(0xE);
+    InitSprite(image, &sprSplash);
+    sprSplash.attribute = 0x50000000;
+    sprSplash.my = sprSplash.h;
+
+    i = 0;
+    while (1)
+    {
+        if (!(i < 4))
+            break;
+        image = GetImage(pat[i]);
+        InitSprite(image, &sprFrame[i]);
+        sprFrame[i].attribute = 0x50000000;
+        i++;
+    }
+
+    i = 0;
+    while (1)
+    {
+        if (!(i < 5))
+            break;
+        image = GetImage(D_80097A48[i]);
+        InitSprite(image, &D_800BEAA8[i]);
+        D_800BEAA8[i].attribute = 0x50000000;
+        i++;
+    }
+
+    poly = &plyBleed;
+    ((u8 *)&poly->tag)[3] = 5;
+    poly->code = 0x28;
+
+    {
+        Sprite3D *sprite;
+        s32 smoke_offset;
+        u8 *smoke_address;
+
+        i = 0;
+        while (1)
+        {
+            if (!(i < 2))
+                break;
+            smoke_id = 6;
+            do {
+                smoke_images[1] = (smoke_offset = i * 4, 0x3A);
+            } while (0);
+            smoke_address = (u8 *)smoke_images + smoke_offset;
+            smoke_images[0] = smoke_id;
+            image = GetImage(*(s32 *)smoke_address);
+            sprite = SetupSprite((Sprite3D *)0, image);
+            sprSmoke[i] = sprite;
+            sprite->sprite.attribute = 0x50000000;
+            i++;
+        }
+    }
+
+    {
+        Sprite3D *sprite;
+
+        i = 0;
+        while (1)
+        {
+            if (!(i < 3))
+                break;
+            bomb_images = D_80011C90;
+            image = GetImage(bomb_images.image[i]);
+            sprite = SetupSprite((Sprite3D *)0, image);
+            sprBomb[i] = sprite;
+            sprite->sprite.attribute = 0x50000000;
+            i++;
+        }
+    }
+
+    D_80097F34 = LoadModel(GetArcData(0x19));
+    LOCAL_COORDINATES_ = LoadModel(GetArcData(0x1F));
+    D_80097F3C = GetImage(0xA);
+    D_80097F28 = LoadModel(GetArcData(0x1A));
+
+    {
+        Sprite3D *sprite;
+
+        i = 0;
+        do
+        {
+            image = GetImage(0x37);
+            sprite = SetupSprite((Sprite3D *)0, image);
+            D_80097F2C[i] = sprite;
+            sprite->sprite.attribute = 0x50000000;
+            i++;
+        } while (i < 1);
+    }
+
+    D_80097F30 = 0x340;
+    D_80097F32 = 0x100;
+    FUN_80039c14();
+}
 
 // triage: MEDIUM — 226 insns, 2 loop, 6 callees, ~0.07 to AddItem2
 // likely-relevant cookbook sections:

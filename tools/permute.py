@@ -311,6 +311,7 @@ GP_EXTERNS = {
     "Think3attack": ["Me_THINK_C", "SR", "Distance", "Degree", "EngageLevel"],
     "SetFlyWire": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "FUN_80035f44": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "InitEffect": ["D_80097F34", "LOCAL_COORDINATES_", "D_80097F3C", "D_80097F28", "D_80097F30", "D_80097F32"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
