@@ -27,22 +27,20 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — the behavioral draft is 488 bytes versus the
- * 496-byte target (8 bytes short) and scores 82.93% fuzzy. The former 44-byte
- * deficit was mostly a tooling error: this function's unsigned variable
- * division has only ASPSX's break-7 guard, which maspsxflags previously failed
- * to recognize. It has the EffectSlot round-robin search, fallback slot, smoke
- * fields, random scale/rotation, and brightness calculation; the remaining
- * source/local shape still needs tuning for the final two instructions and
- * register scheduling. The default build continues to use the byte-identical
- * assembly stub.
+ * MATCHED.
+ *  - Retail narrowed the demo build's `int time` parameter to `unsigned short`:
+ *    the target loads stack+16 with `lhu`. A separate signed `t = (short)time`
+ *    keeps the raw value for the byte store while reproducing the target's
+ *    signed guarded remainder and two-instruction sign extension.
+ *  - `m = smoke->mode - 1` must remain its own statement, as in SetSmoke.
+ *    Inlining it lets fold reassociate the subtraction into `sum + 1`, moving
+ *    the addiu to the wrong side of the final expression.
+ *  - The pool scan uses the SetSmoke/SetExplosion round-robin do-while shape,
+ *    with the fallback slot after the loop and the cursor update on success.
  */
 extern void DrawSmoke(TEffectSlot *ef);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetSmokeS", SetSmokeS);
-#else
-void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time)
+void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
 {
     int idx;
     TEffectSlot *base;
@@ -51,6 +49,8 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time)
     TEffectSlot *ef;
     SmokeType *smoke;
     int r;
+    int t;
+    int m;
 
     count = 0;
     base = EffectSlot;
@@ -91,11 +91,12 @@ found:
     smoke->vec.vz = vz;
     smoke->mode = time;
     r = rand();
+    t = (short)time;
     smoke->unk22 = 0;
-    smoke->bright = (smoke->mode - 1) - (time / 2 + r % time);
+    m = smoke->mode - 1;
+    smoke->bright = m - (t / 2 + r % t);
     ef->proc = (void (*)())DrawSmoke;
 }
-#endif /* NON_MATCHING */
 
 // Ghidra decompilation (reference — turn this into matching C,
 // then drop the INCLUDE_ASM above):
