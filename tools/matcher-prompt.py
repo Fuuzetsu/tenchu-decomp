@@ -16,11 +16,14 @@ Run inside the nix devShell (uses findsimilar for the nearest examples).
 """
 import argparse, bisect, os, re, subprocess, sys
 
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
 TSV = ".shake/ghidra-export/functions.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
+SPLAT = "config/splat.main.exe.yaml"
 DEMO_TSV = "reference/demo-psxexe.functions.tsv"
 
 # ---- evolving guidance: the load-bearing lessons every agent should get at
@@ -107,11 +110,12 @@ GUIDANCE = [
 
 
 def func(name):
-    for line in open(TSV):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3 and p[2] == name:
-            return int(p[0], 16), int(p[1])
-    sys.exit(f"matcher-prompt: {name} not in {TSV}")
+    funcs = FI.load_functions(TSV)
+    funcs, _changed = FI.overlay_current_names(funcs, SPLAT)
+    for addr, size, current_name in funcs:
+        if current_name == name:
+            return addr, size
+    sys.exit(f"matcher-prompt: {name} not in the current function inventory")
 
 
 def has_demo_body(name):

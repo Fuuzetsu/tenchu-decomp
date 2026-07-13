@@ -207,6 +207,21 @@ class FuzzyInventoryTests(unittest.TestCase):
 
 
 class MatcherPromptTests(unittest.TestCase):
+    def test_function_lookup_overlays_current_splat_name(self):
+        with tempfile.TemporaryDirectory() as td:
+            funcs = os.path.join(td, "functions.tsv")
+            splat = os.path.join(td, "splat.yaml")
+            with open(funcs, "w") as fh:
+                fh.write("80011000\t16\tFUN_80011000\n")
+            with open(splat, "w") as fh:
+                fh.write("  - [0x800, c, RecoveredName]\n")
+            with mock.patch.object(matcher_prompt, "TSV", funcs), \
+                    mock.patch.object(matcher_prompt, "SPLAT", splat):
+                self.assertEqual(
+                    matcher_prompt.func("RecoveredName"),
+                    (0x80011000, 16),
+                )
+
     def test_repeated_debug_locals_emit_scope_identity_hint(self):
         rows = [
             ["AttackControl", "0", "reg", "$s0", "struct Humanoid *", "enemy"],
