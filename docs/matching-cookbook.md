@@ -2946,6 +2946,14 @@ before local-alloc, so the def is gone before it can bias anything.
   to float across it, and must extend past a switch's tail if a case arm
   jumps out of the note range — otherwise jump.c moves that arm's block to
   the function end (AddMisc).
+  The barrier can also preserve a target `nop`: in SetLightningI, naked
+  `priority = depth >> 18` moved the `sra` into the preceding positive-depth
+  guard's delay slot, making the function one instruction short. Fencing only
+  that assignment with `do { ... } while (0)` kept the guard delay slot empty
+  and the shift after the following loads, recovering the exact function
+  length and cutting the residual from 229 to 155 bytes. This is a sched-order
+  lever as well as a copy-propagation/regalloc lever; guided `loop-fence`
+  already enumerates expression statements for this shape.
 - **Global-alloc priority is floor_log2(n_refs)·n_refs/live_length·10000·size,
   ties by pseudo number** (global.c allocno_compare; flow adds loop_depth
   per ref). cc1's `-da` dump prints each pseudo's refs/length and the
