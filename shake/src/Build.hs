@@ -455,6 +455,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ItemControl" = ["Me_MOTION_C", "motID", "D_80097F0E"]
     syms "character_balma_around_main_routine_" = ["D_800976E8", "GlobalAreaMap", "FieldIndex", "FieldArea"]
     syms "reset_alert_duration" = ["FRAMES_UNTIL_END_OF_ALERT"]
+    syms "Think3area" = ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"]
     syms _ = []
 
 as :: FilePath

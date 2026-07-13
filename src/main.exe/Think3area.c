@@ -1,5 +1,7 @@
 #include "common.h"
-#include "main.exe.h"
+#include <psxsdk/libgs.h>
+#include "game_types.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -28,7 +30,155 @@
  *     reg   $s0       short pad
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think3area", Think3area);
+/*
+ * Think3area chooses controls while an enemy approaches its assigned area
+ * point.  Weapon class 3 delegates to Think3attack; other classes either run
+ * the active AttackFunc callback or steer toward point[0]/point[1].
+ *
+ * Matching notes:
+ *  - The already-acting callback arm is written before the longer steering
+ *    arm.  This matches retail's physical fallthrough layout, the same shape
+ *    used by Think3hitaway.
+ *  - This THINK_3.C caller sees turn_towards_player_ returning s16.  Declaring
+ *    it s32 adds a deferred result copy and makes the function one instruction
+ *    long; the original-width prototype keeps the return in $v0 until reorg
+ *    moves it into `pad` in the following Attrib branch's delay slot.
+ *  - `__builtin_abs(Degree)` gives the target's two-pseudo abssi2 expansion:
+ *    the raw signed Degree remains in $v0 while the absolute result occupies
+ *    $v1.  Mutating one `degree` local in place leaves a seven-byte residual.
+ */
+
+extern Humanoid *Me_THINK_C;
+extern s32 Distance;
+extern s16 Degree;
+extern s16 SR;
+extern u16 Attrib;
+extern s32 (*AttackFunc[])(void);
+
+extern s32 SquareRoot0(s32 value);
+extern s16 SuccessionAttack(s32 distance, s16 degree);
+extern s16 Think3attack(void);
+extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 SetCommand(PADtype *pad, s16 command);
+extern s16 SetNowMotion(Humanoid *human, s16 motion, s16 mode);
+
+s16 Think3area(void)
+{
+    s16 pad;
+    s32 xx;
+    s32 zz;
+    s32 dist;
+
+    pad = 0;
+    if (Me_THINK_C->status == 7)
+    {
+        return SuccessionAttack(4000, 500);
+    }
+
+    if (Distance < 10000 && SR != -2)
+    {
+        SR = 0;
+    }
+
+    if ((s16)Me_THINK_C->weapon_kind >> 4 == 3)
+    {
+        return Think3attack();
+    }
+
+    xx = Me_THINK_C->point[0] - Me_THINK_C->locate->vx;
+    zz = Me_THINK_C->point[1] - Me_THINK_C->locate->vz;
+    dist = SquareRoot0(xx * xx + zz * zz);
+
+    if (Me_THINK_C->actflg != 0)
+    {
+        pad = AttackFunc[(s16)Me_THINK_C->weapon_kind >> 4]();
+        if (Distance < 4000)
+        {
+            Me_THINK_C->actcnt++;
+            if (Me_THINK_C->actcnt == 0 && dist > 4000)
+            {
+                Me_THINK_C->actflg = 0;
+            }
+        }
+        goto return_pad;
+    }
+
+    if ((Attrib & 0x4000) != 0)
+    {
+        Me_THINK_C->actflg = 1;
+    }
+
+    if (dist < 2000)
+    {
+        s32 degree;
+
+        if ((Me_THINK_C->motion->count & 7) != 0)
+        {
+            pad = Me_THINK_C->pad.data;
+        }
+        else if (Degree >= 501)
+        {
+            pad = 0x2000;
+        }
+        else if (Degree < -500)
+        {
+            pad = -0x8000;
+        }
+        else if (rand() % 10 == 0)
+        {
+            SetNowMotion(Me_THINK_C, 0x713, 1);
+            Me_THINK_C->actflg = 1;
+        }
+
+        if (Distance >= 4000)
+        {
+            goto return_pad;
+        }
+
+        degree = __builtin_abs(Degree);
+
+        if (degree < 100)
+        {
+            pad = SetCommand(&Me_THINK_C->pad, 0x21);
+        }
+        else if (degree < 1000)
+        {
+            pad |= 0x80;
+        }
+        Me_THINK_C->actflg = 1;
+        goto return_pad;
+    }
+
+    pad = turn_towards_player_(xx, zz);
+    if ((Attrib & 0x400) != 0)
+    {
+        Me_THINK_C->actflg = 1;
+    }
+    if (Me_THINK_C->motion->count != 0)
+    {
+        goto return_pad;
+    }
+    if (Distance >= 3000)
+    {
+        goto return_pad;
+    }
+    {
+        s32 degree;
+
+        degree = Degree;
+        if (degree < 0)
+        {
+            degree = -degree;
+        }
+        if (degree < 1000)
+        {
+            pad |= 0x80;
+        }
+    }
+
+return_pad:
+    return pad;
+}
 
 // triage: MEDIUM — 211 insns, mul/div, indirect-call, 7 callees, ~0.06 to ProcItemKusuri
 // likely-relevant cookbook sections:

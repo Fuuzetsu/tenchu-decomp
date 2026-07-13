@@ -332,6 +332,7 @@ GP_EXTERNS = {
     "ItemControl": ["Me_MOTION_C", "motID", "D_80097F0E"],
     "character_balma_around_main_routine_": ["D_800976E8", "GlobalAreaMap", "FieldIndex", "FieldArea"],
     "reset_alert_duration": ["FRAMES_UNTIL_END_OF_ALERT"],
+    "Think3area": ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
