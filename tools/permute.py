@@ -305,6 +305,7 @@ GP_EXTERNS = {
     "SetWire": ["D_80097F28"],
     "think_setting_small_rotation_small_steps_": ["Me_THINK_C", "Attrib", "FRAMES_UNTIL_END_OF_ALERT", "Degree", "Distance"],
     "ActCHASE": ["Me_MOTION_C", "dtM", "dtPAD", "MotionUpdateMode", "motID", "D_80097F0E", "dtL", "dtR", "dtCMD"],
+    "ActENGAGE": ["dtM", "dtV", "dtPAD", "motID", "Me_MOTION_C", "D_80097F0E", "dtL", "dtCMD", "dtR"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -22,86 +23,320 @@
  * END PSX.SYM */
 
 /*
- * ActENGAGE (0x80021270) — TODO one-line description.
+ * ActENGAGE (0x80021270) — updates the player's engage movement and selects
+ * the next command, jump, attack, or item-use motion.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ActENGAGE
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * Matching notes (1,388 bytes / 347 instructions):
+ *  - The successful command and item arms repeat the complete
+ *    motID/D_80097F0E/return tail.  jump2 merges the stores onto the final
+ *    0x602 arm while retaining the target's separate constant-load islands.
+ *  - The two-way switch around the camera branch leaves a referenced case
+ *    label that prevents an otherwise over-aggressive cross-jump merge.
+ *  - Loading dtV before each component value gives the velocity pointer and
+ *    component value the target's $v1/$v0 allocation.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", ActENGAGE);
+extern MotionManager *dtM;
+extern SVECTOR *dtV;
+extern SVECTOR *dtR;
+extern VECTOR *dtL;
+extern s16 dtPAD;
+extern s16 dtCMD;
+extern s16 motID;
+extern s16 D_80097F0E;
+extern s16 ActionHalt;
+extern s32 GameClock;
+extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern Humanoid *Me_MOTION_C;
+extern Humanoid *StagePlayer;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__switchD);
+extern void SetCameraMode(s32 mode);
+extern s16 Sound(Humanoid *human, s16 id);
+extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
+extern void JumpControl(void);
+extern void AttackControl(void);
+extern void ReqItemDefault(Humanoid *user, s32 item_id);
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_1);
+void ActENGAGE(void)
+{
+    short one;
+    unsigned short mask;
+    int random;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_4);
+    switch ((short)(dtM->mid - 0x500))
+    {
+    case 1:
+    {
+        if (dtPAD & 0x2000)
+        {
+            motID = 0x504;
+            D_80097F0E = 0;
+            goto engage_case_post;
+        }
+        if (dtPAD & 0x8000)
+        {
+            motID = 0x505;
+            D_80097F0E = 0;
+            goto engage_case_post;
+        }
+        if (dtCMD == 0x22)
+        {
+            motID = 0x712;
+            D_80097F0E = 1;
+            goto engage_case_post;
+        }
+        if (dtCMD == 0x31)
+        {
+            motID = 0x907;
+            D_80097F0E = 0;
+            MoveHumanoid(Me_MOTION_C, 0x78, 0);
+            goto engage_case_post;
+        }
+        if (dtM->count != 0)
+            goto engage_case_post;
+        random = rand();
+        if (random != (random / 20) * 20)
+            goto engage_case_post;
+        motID = 0x713;
+        D_80097F0E = 1;
+engage_case_post:
+        if (ActionHalt == -1 && dtM->count == 0)
+        {
+            mask = GetMotionID(dtM, 0x503);
+            if ((int)((u32)mask << 16) < 0)
+            {
+                motID = 0x80f;
+                D_80097F0E = 1;
+            }
+            else
+            {
+                motID = 0x503;
+                D_80097F0E = 1;
+            }
+        }
+        break;
+    }
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_5);
+    case 4:
+        dtR->vy = dtR->vy + Me_MOTION_C->turn;
+        one = 1;
+        if (dtM->count == one)
+            Sound(Me_MOTION_C, 0x10);
+        if ((dtPAD & 0x2000) == 0)
+        {
+            motID = 0x501;
+            D_80097F0E = one;
+        }
+        break;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_0);
+    case 5:
+        dtR->vy = dtR->vy - Me_MOTION_C->turn;
+        one = 1;
+        if (dtM->count == one)
+            Sound(Me_MOTION_C, 0x10);
+        if ((dtPAD & 0x8000) == 0)
+        {
+            motID = 0x501;
+            D_80097F0E = one;
+        }
+        break;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_3);
+    case 0:
+    {
+        SVECTOR *velocity;
+        MotionManager *motion;
+        register int value;
+        short count;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_2);
+        velocity = dtV;
+        value = velocity->vx;
+        if (value != 0)
+        {
+            if (value > 0)
+                value -= 4;
+            else
+                value += 4;
+            velocity->vx = value;
+        }
+        velocity = dtV;
+        value = velocity->vz;
+        if (value != 0)
+        {
+            if (value > 0)
+                value -= 4;
+            else
+                value += 4;
+            velocity->vz = value;
+        }
+        motion = dtM;
+        count = motion->count - 1;
+        motion->count = count;
+        if (count < motion->loop)
+        {
+            switch (dtPAD & 0x4000)
+            {
+            default:
+                motID = 0x602;
+                D_80097F0E = 1;
+                break;
+            case 0:
+                if (Me_MOTION_C == StagePlayer)
+                    SetCameraMode(0);
+                if (Me_MOTION_C->attribute & 0x40)
+                {
+                    motID = 0x501;
+                    D_80097F0E = 1;
+                }
+                else
+                {
+                    motID = 0;
+                    D_80097F0E = 1;
+                }
+                break;
+            }
+        }
+        if ((GameClock & 3) != 0)
+            return;
+        FUN_80033bc0(dtL, 300, 10, 5);
+        return;
+    }
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_800212b4__caseD_6);
+    case 3:
+        if (dtM->count != 0)
+            return;
+        if (dtM->loop == 0)
+            return;
+        motID = 0x80f;
+        D_80097F0E = 1;
+        return;
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__switchD);
+    case 2:
+        if (dtM->count != 0)
+            return;
+        if (dtM->loop == 0)
+            return;
+        motID = 0x501;
+        D_80097F0E = 1;
+        return;
+    }
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__caseD_0);
+    if ((Me_MOTION_C->attribute & 0x40) == 0)
+    {
+        motID = 0;
+        D_80097F0E = 1;
+        return;
+    }
+    else if (dtCMD != 0)
+    {
+        switch ((short)(dtCMD - 1))
+        {
+        case 0:
+            motID = 0x607;
+            D_80097F0E = 1;
+            return;
+        case 0x20:
+            motID = 0x70d;
+            D_80097F0E = 1;
+            return;
+        case 1:
+            motID = 0x604;
+            D_80097F0E = 1;
+            return;
+        case 3:
+            motID = 0x605;
+            D_80097F0E = 1;
+            return;
+        case 2:
+            motID = 0x606;
+            D_80097F0E = 1;
+            return;
+        default:
+            return;
+        }
+    }
+    else
+    {
+        mask = Me_MOTION_C->pad.trig;
+        if (mask & 0x40)
+        {
+            JumpControl();
+            return;
+        }
+        if (mask & 0x10)
+        {
+            switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+            {
+            case 2:
+                motID = 0xe00;
+                D_80097F0E = 1;
+                return;
+            case 1:
+                motID = 0x400;
+                D_80097F0E = 1;
+                return;
+            case 3:
+                motID = 0xf00;
+                D_80097F0E = 1;
+                return;
+            case 6:
+                motID = 0xf02;
+                D_80097F0E = 1;
+                return;
+            case 5:
+                motID = 0xf02;
+                D_80097F0E = 1;
+                return;
+            case 7:
+                motID = 0xf03;
+                D_80097F0E = 1;
+                return;
+            case 0:
+            case 0xb:
+                SoundEx(Me_MOTION_C->locate, 0xc);
+                return;
+            default:
+                ReqItemDefault(Me_MOTION_C,
+                               (short)CURRENTLY_SELECTED_ITEM_KIND_0_);
+                return;
+            }
+        }
+        else
+        {
+            if (dtPAD & 0x20)
+            {
+                if (mask & 0x80)
+                {
+                    motID = 0x70c;
+                    D_80097F0E = 1;
+                    return;
+                }
+                motID = 0xb00;
+                D_80097F0E = 1;
+                return;
+            }
+            else
+            {
+                if (mask & 0x80)
+                {
+                    AttackControl();
+                    return;
+                }
+                if (dtPAD & 0x1000)
+                {
+                    motID = 0x600;
+                    D_80097F0E = 1;
+                    return;
+                }
+                if ((dtPAD & 0x4000) == 0)
+                    return;
+                motID = 0x602;
+                D_80097F0E = 1;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__caseD_20);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__caseD_1);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__caseD_3);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__caseD_2);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__switchD);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_2);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_1);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_3);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_6);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_5);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_7);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_0);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_80021700__caseD_4);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/ActENGAGE", switchD_8002166c__caseD_4);
-
-/* jump-table pool @ 0x80011388 (52 words; tables at 0x80011388, 0x800113a0, 0x80011428) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 ActENGAGE_jtbl[52] = {
-    0x80021478, 0x800212BC, 0x800215DC, 0x800215AC,
-    0x800213E0, 0x80021420, 0x80021674, 0x80021684,
-    0x80021694, 0x8002168C, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x800217CC, 0x800217CC,
-    0x800217CC, 0x800217CC, 0x8002167C, 0x00000000,
-    0x80021738, 0x80021710, 0x80021708, 0x80021718,
-    0x80021754, 0x80021728, 0x80021720, 0x80021730,
-    0x80021754, 0x80021754, 0x80021754, 0x80021738,
-};
-
-#else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
+/* Ghidra reference: */
 // 
 // void ActENGAGE(void)
 // 
@@ -315,5 +550,3 @@ static const u32 ActENGAGE_jtbl[52] = {
 // switchD_8002166c_caseD_4:
 //   return;
 // }
-
-#endif /* NON_MATCHING */
