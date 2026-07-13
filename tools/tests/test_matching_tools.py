@@ -367,6 +367,28 @@ int F(void) {
         self.assertEqual(len(out), 1)
         self.assertIn("damage * 0x10000", out[0][1])
 
+    def test_shift_stage_enumerates_constant_right_shift_splits(self):
+        source = """int F(int value) {
+    return (value >> 8) & 0xff;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_shift_stage, source)
+        self.assertEqual(len(out), 7)
+        staged = [text for label, text in out
+                  if label.startswith("shift-stage 7+1 L2")]
+        self.assertEqual(len(staged), 1)
+        self.assertIn("((value >> 7) >> 1)", staged[0])
+
+    def test_shift_stage_does_not_resplit_the_outer_staged_shift(self):
+        source = """int F(int value) {
+    return ((value >> 7) >> 1);
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_shift_stage, source)
+        self.assertEqual(len(out), 6)
+
     def test_extern_array_skips_target_gp_symbol(self):
         source = """extern int Global;
 int F(void) { return Global; }

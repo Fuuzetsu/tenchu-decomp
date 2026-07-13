@@ -957,6 +957,13 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
 
 ## Expressions
 
+- **A constant right shift can be staged without changing the value.** Under
+  this compiler's signed/unsigned shift behavior, `x >> 8` and
+  `(x >> 7) >> 1` are equal, but the intermediate RTL lifetime can perturb a
+  caller-register allocation cycle. SetupTelop's substantive permuter found
+  the 7+1 form as one of only two load-bearing mutations in its best
+  exact-length seed. Guided autorules rule `shift-stage` now tries every
+  positive two-part split of shifts 2..31 mechanically.
 - **fold reassociation** (fold-const.c `associate`/`split_tree`): any
   `A - C + B` or `A + (B - C)` gets its constant migrated between operands.
   `t - 500 + rand() % 1000` reassociates the *wrong* way (constant lands on

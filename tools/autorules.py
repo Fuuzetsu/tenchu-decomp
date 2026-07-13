@@ -1988,6 +1988,52 @@ def rule_split_chain(text, name, span):
                splice(data, stmt.start_byte, stmt.end_byte, two).decode())
 
 
+def rule_shift_stage(text, name, span):
+    """Split one constant right shift into every equivalent two-stage shift.
+
+    ``x >> 8`` and ``(x >> 7) >> 1`` are equal under this compiler's signed
+    and unsigned right-shift behavior, but the intermediate RTL can acquire a
+    distinct allocation lifetime.  Restrict this to guided lines and do not
+    resplit an already staged left operand.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for expr in _find(body, ("binary_expression",)):
+        operator = expr.child_by_field_name("operator")
+        left = expr.child_by_field_name("left")
+        right = expr.child_by_field_name("right")
+        if (operator is None or _txt(data, operator) != b">>" or
+                left is None or right is None):
+            continue
+        bare_left = _unparen(left)
+        if bare_left is not None and bare_left.type == "binary_expression":
+            left_operator = bare_left.child_by_field_name("operator")
+            if left_operator is not None and _txt(data, left_operator) == b">>":
+                continue
+        literal = _literal_text(data, right)
+        try:
+            total = int(literal, 0) if literal is not None else 0
+        except ValueError:
+            continue
+        if total < 2 or total > 31:
+            continue
+        line = _line(data, expr.start_byte)
+        if not _guided_site(line):
+            continue
+        source = _txt(data, left).strip()
+        for first in range(1, total):
+            second = total - first
+            replacement = (b"((" + source + b" >> " + str(first).encode() +
+                           b") >> " + str(second).encode() + b")")
+            yield (
+                f"shift-stage {first}+{second} L{line}",
+                splice(data, expr.start_byte, expr.end_byte,
+                       replacement).decode(),
+            )
+
+
 # extern object decl `extern T NAME;` (single line, not already an array/function).
 # Optional leading qualifiers + a single type token + optional one `*` + NAME + `;`.
 EXTERN_OBJ = re.compile(
@@ -2632,6 +2678,7 @@ AGGRESSIVE_RULES = [
     ("cmp-polarity", "swap two local comparison operands (regalloc ref-order lever)", rule_cmp_polarity),
     ("eq-literal-swap", "swap ==/!= literal operand order (v0/v1 lever)", rule_eq_literal_swap),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
+    ("shift-stage", "split x>>N into every two-stage constant shift", rule_shift_stage),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),
