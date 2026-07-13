@@ -55,7 +55,193 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetLightningI", SetLightningI);
+#else
+
+typedef struct
+{
+    u32 attribute;
+    s16 x0;
+    s16 y0;
+    s16 x1;
+    s16 y1;
+    u8 r;
+    u8 g;
+    u8 b;
+} LightningLine;
+
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+} LightningViewInfo;
+
+extern LightningViewInfo ViewInfo;
+extern MATRIX GsWSMATRIX;
+extern GsOT *OTablePt;
+
+extern void SetTransMatrix(MATRIX *matrix);
+extern void SetRotMatrix(MATRIX *matrix);
+extern s32 RotTransPers(SVECTOR *vector, s32 *screen, void *p, void *flag);
+extern s32 SquareRoot0(s32 value);
+extern s32 abs(s32 value);
+extern int rand(void);
+extern void *memset(void *dst, int value, u32 size);
+extern void GsSortLine(LightningLine *line, GsOT *ot, u16 priority);
+
+void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short b)
+{
+    SVECTOR scr;
+    SVECTOR oldscr;
+    LightningLine line;
+    VECTOR sv;
+    int next_gen;
+    short local_r;
+    short local_g;
+    short local_b;
+    VECTOR *svp;
+    SVECTOR *scrp;
+    long distance;
+    long lcount;
+    int i;
+    int x;
+    int y;
+    int z;
+
+    local_r = r;
+    next_gen = gen - 1;
+    local_g = g;
+    local_b = b;
+    if (gen != 0)
+    {
+        *(s32 *)0x1F800014 = 0;
+        *(s32 *)0x1F800018 = 0;
+        *(s32 *)0x1F80001C = 0;
+        SetTransMatrix((MATRIX *)0x1F800000);
+        SetRotMatrix(&GsWSMATRIX);
+        {
+            long initial_x;
+            long initial_y;
+            long initial_z;
+
+            initial_x = start->vx;
+            initial_y = start->vy;
+            initial_z = start->vz;
+            *(s16 *)0x1F800080 = initial_x - (s16)ViewInfo.vpx;
+            *(s16 *)0x1F800082 = initial_y - (s16)ViewInfo.vpy;
+            *(s16 *)0x1F800084 = initial_z - (s16)ViewInfo.vpz;
+        }
+        oldscr.vz = (s16)RotTransPers((SVECTOR *)0x1F800080, (s32 *)&oldscr,
+                                      (void *)0x1F800000, (void *)0x1F800010);
+
+        line.attribute = 0x50000000;
+        line.r = local_r;
+        line.g = local_g;
+        line.b = local_b;
+
+        {
+            long dx;
+            long dy;
+            long dz;
+            int large;
+
+            large = 0;
+            dx = start->vx - end->vx;
+            dy = start->vy - end->vy;
+            dz = start->vz - end->vz;
+            if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+            {
+                large = 1;
+            }
+
+            if (large)
+            {
+                dx /= 0x100;
+                dy /= 0x100;
+                dz /= 0x100;
+                distance = SquareRoot0(dx * dx + dy * dy + dz * dz) << 8;
+            }
+            else
+            {
+                distance = SquareRoot0(dx * dx + dy * dy + dz * dz);
+            }
+        }
+
+        lcount = distance / 200;
+        i = 1;
+        if (lcount > 0)
+        {
+            svp = &sv;
+            scrp = &scr;
+            while (1)
+            {
+                if (i >= lcount)
+                {
+                    break;
+                }
+
+                x = ((end->vx - start->vx) * i) / lcount + start->vx;
+                y = ((end->vy - start->vy) * i) / lcount + start->vy;
+                z = ((end->vz - start->vz) * i) / lcount + start->vz;
+                x += -0x50 + rand() % 0xa0;
+                y += -0x50 + rand() % 0xa0;
+                z += -0x50 + rand() % 0xa0;
+
+                if ((rand() & 2) == 0)
+                {
+                    memset(svp, 0, sizeof(VECTOR));
+                    sv.vx = x;
+                    sv.vy = y;
+                    sv.vz = z;
+                    SetLightningI(svp, end, next_gen, local_r, local_g, local_b);
+                }
+
+                *(s16 *)0x1F800080 = x - (s16)ViewInfo.vpx;
+                *(s16 *)0x1F800082 = y - (s16)ViewInfo.vpy;
+                *(s16 *)0x1F800084 = z - (s16)ViewInfo.vpz;
+                scrp->vz = (s16)RotTransPers((SVECTOR *)0x1F800080, (s32 *)scrp,
+                                              (void *)0x1F800000, (void *)0x1F800010);
+
+                {
+                    s32 depth;
+
+                    depth = (s32)(u16)scr.vz << 16;
+                    if (depth > 0 && oldscr.vz > 0)
+                    {
+                        int priority;
+
+                        line.y0 = oldscr.vy;
+                        do
+                        {
+                            priority = depth >> 18;
+                        } while (0);
+                        line.x0 = oldscr.vx;
+                        line.x1 = scr.vx;
+                        line.y1 = scr.vy;
+                        if (priority < 0)
+                        {
+                            priority = 0;
+                        }
+                        else if (priority >= 0x4e2)
+                        {
+                            priority = 0x4e1;
+                        }
+                        GsSortLine(&line, OTablePt, (u16)priority);
+                    }
+                }
+                oldscr = scr;
+                i++;
+            }
+        }
+    }
+}
+
+#endif
 
 // triage: HARD — 346 insns, mul/div, 9 callees, ~0.04 to GetVectorRotation
 // likely-relevant cookbook sections:

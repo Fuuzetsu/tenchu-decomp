@@ -336,6 +336,7 @@ MASPSX_EXTRA = {
     "ProcItemArrow": ["--expand-div"],
     "SetupBG": ["--expand-div"],
     "SetWire": ["--expand-div"],
+    "SetLightningI": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
