@@ -1565,6 +1565,121 @@ def rule_or_inplace(text, name, span):
                splice(data, a.start_byte, a.end_byte, repl).decode())
 
 
+def rule_initialized_global_compound(text, name, span):
+    """Split ``Global = A + B`` into initialization plus compound addition.
+
+    A plain commutative expression gives combine/local allocation freedom to
+    choose either operand as the destination.  Original source can instead
+    encode the desired accumulator identity explicitly::
+
+        Global = A;       /* or initialize from B */
+        Global += B;
+
+    AttackLong's last three bytes required ``AttackActionCount = GameClock``
+    followed by ``+= EngageLevel * 10``; a compound update without the
+    initializing store was not enough.  Emit both operand orders, guided and
+    conservatively: the destination must be a nonvolatile file-scope extern,
+    neither pure operand may mention it, and calls, updates, dereferences,
+    fields, subscripts, division, and modulo are rejected so the earlier store
+    cannot become observable through the second expression.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    root = _TS.parse(data).root_node
+    globals_ = set()
+    volatile_globals = set()
+    for declaration in root.named_children:
+        if declaration.type != "declaration":
+            continue
+        raw = _txt(data, declaration)
+        if re.search(rb"\bextern\b", raw) is None:
+            continue
+        names = set()
+        function = False
+        for child in declaration.named_children:
+            if child.type == "function_declarator" or _find(
+                    child, ("function_declarator",)):
+                function = True
+                break
+            if child.type == "init_declarator":
+                identifier = _descend_ident(child.child_by_field_name("declarator"))
+            elif child.type in ("identifier", "pointer_declarator",
+                                "array_declarator"):
+                identifier = _descend_ident(child)
+            else:
+                identifier = None
+            if identifier is not None:
+                names.add(_txt(data, identifier))
+        if function:
+            continue
+        globals_.update(names)
+        if re.search(rb"\bvolatile\b", raw):
+            volatile_globals.update(names)
+
+    locals_ = _nonvolatile_local_names(data, body)
+    forbidden = (
+        "assignment_expression", "call_expression", "conditional_expression",
+        "field_expression", "pointer_expression", "subscript_expression",
+        "update_expression",
+    )
+
+    def safe_operand(node, destination):
+        if node is None or _find(node, forbidden):
+            return False
+        identifiers = {_txt(data, identifier)
+                       for identifier in _find(node, ("identifier",))}
+        if destination in identifiers or identifiers & volatile_globals:
+            return False
+        for binary in _find(node, ("binary_expression",)):
+            operator = binary.child_by_field_name("operator")
+            if operator is not None and _txt(data, operator) in {b"/", b"%"}:
+                return False
+        return True
+
+    for statement in _find(body, ("expression_statement",)):
+        expressions = [child for child in statement.named_children
+                       if child.type != "comment"]
+        if len(expressions) != 1 or expressions[0].type != "assignment_expression":
+            continue
+        assignment = expressions[0]
+        operator = assignment.child_by_field_name("operator")
+        lhs = assignment.child_by_field_name("left")
+        rhs = _unparen(assignment.child_by_field_name("right"))
+        if (operator is None or _txt(data, operator) != b"=" or lhs is None or
+                lhs.type != "identifier" or rhs is None or
+                rhs.type != "binary_expression"):
+            continue
+        destination = _txt(data, lhs)
+        rhs_operator = rhs.child_by_field_name("operator")
+        left = rhs.child_by_field_name("left")
+        right = rhs.child_by_field_name("right")
+        if (destination not in globals_ or destination in volatile_globals or
+                destination in locals_ or rhs_operator is None or
+                _txt(data, rhs_operator) != b"+" or
+                not safe_operand(left, destination) or
+                not safe_operand(right, destination)):
+            continue
+        line = _line(data, statement.start_byte)
+        if not _guided_site(line):
+            continue
+        indent = _indent_at(data, statement.start_byte)
+        for first, second, tag in ((left, right, "left"),
+                                   (right, left, "right")):
+            replacement = (
+                destination + b" = " + _txt(data, first).strip() + b";\n" +
+                indent + destination + b" += " +
+                _txt(data, second).strip() + b";"
+            )
+            yield (
+                f"initialized-global-compound {destination.decode()} "
+                f"from-{tag} L{line}",
+                splice(data, statement.start_byte, statement.end_byte,
+                       replacement).decode(),
+            )
+
+
 def _nonvolatile_local_names(data, body):
     """Plain local identifiers safe for statement-splitting rewrites.
 
@@ -6787,6 +6902,7 @@ RULES = [
 AGGRESSIVE_RULES = [
     ("allocation-donor-fence", "add a guided initialized-value ref in zero-code identical arms", rule_allocation_donor_fence),
     ("field-capture-rhs", "fuse/split an adjacent saved field through the overwrite RHS", rule_field_capture_rhs),
+    ("initialized-global-compound", "split a commutative global sum into accumulator initialization plus +=", rule_initialized_global_compound),
     ("cmp-polarity", "swap two local comparison operands (regalloc ref-order lever)", rule_cmp_polarity),
     ("eq-literal-swap", "swap ==/!= literal operand order (v0/v1 lever)", rule_eq_literal_swap),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),

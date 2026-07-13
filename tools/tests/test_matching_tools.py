@@ -511,6 +511,51 @@ void F(void) {
         self.assertEqual(len(out), 1)
         self.assertIn("turn > direction", out[0][1])
 
+    def test_initialized_global_compound_emits_both_accumulator_orders(self):
+        source = """extern int AttackActionCount;
+extern int GameClock;
+extern short EngageLevel;
+void F(void) {
+    AttackActionCount = EngageLevel * 10 + GameClock;
+}
+"""
+        autorules.GUIDED_LINES = {5}
+        out = self.candidates(autorules.rule_initialized_global_compound, source)
+        self.assertEqual(len(out), 2)
+        candidates = [candidate for _label, candidate in out]
+        self.assertTrue(any(
+            "AttackActionCount = GameClock;\n"
+            "    AttackActionCount += EngageLevel * 10;" in candidate
+            for candidate in candidates
+        ))
+        self.assertTrue(any(
+            "AttackActionCount = EngageLevel * 10;\n"
+            "    AttackActionCount += GameClock;" in candidate
+            for candidate in candidates
+        ))
+
+    def test_initialized_global_compound_rejects_local_or_effectful_sum(self):
+        local = """void F(int a, int b) {
+    int result;
+    result = a + b;
+}
+"""
+        effectful = """extern int Result;
+void F(int value) {
+    Result = helper() + value;
+}
+"""
+        self_reference = """extern int Result;
+void F(int value) {
+    Result = Result + value;
+}
+"""
+        for source in (local, effectful, self_reference):
+            self.assertEqual(
+                self.candidates(autorules.rule_initialized_global_compound, source),
+                [],
+            )
+
     def test_stack_decl_swap_reorders_address_taken_objects(self):
         source = """typedef struct { int x; } VECTOR;
 void F(void) {
@@ -3542,6 +3587,15 @@ class RtlGuideTests(unittest.TestCase):
                       ["addu v1,v1,a0", "sw v1,0(gp)"])
         self.assertEqual(rtlguide.known_residual_signatures([h]),
                          ["commutative-plus-destination"])
+
+    def test_commutative_plus_destination_prioritizes_initialized_global(self):
+        target = [(0x1000, "addu a0,a0,v1"), (0x1004, "sw a0,0(gp)")]
+        ours = [(0x1000, "addu v1,v1,a0"), (0x1004, "sw v1,0(gp)")]
+        with mock.patch.object(
+                rtlguide, "_candidate_asm",
+                return_value=(0x1000, 8, 8, target, ours)):
+            guide = rtlguide.assembly_guide("F")
+        self.assertEqual(guide["rules"][0], "initialized-global-compound")
 
     def test_known_copy_then_adjust_signature(self):
         target = [

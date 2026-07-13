@@ -290,13 +290,18 @@ The ordered triage — fix categories in THIS order, re-running
        were flat. After checking the cleanup's literal/direct/local spellings,
        preserve the pure-C near-match rather than introducing a register-asm
        escape hatch.
-     - **A commutative PLUS whose destination ties to the other dying operand is
-       a combine/local-allocation tie.** When the target and draft differ only
-       as `addu A,A,B; sw A` versus `addu B,B,A; sw B`, inspect `.combine` and
-       `.lreg`. If both source operand orders have already become the same plain
-       commutative PLUS, explicit temps and a bounded permuter stay flat, the
-       destination choice is no longer represented in C. AttackLong parks at
-       exactly this 3-byte residual; inline asm is not an acceptable escape.
+     - **A commutative PLUS destination can be encoded by an initializing store
+       plus compound update.** When target and draft differ only as
+       `addu A,A,B; sw A` versus `addu B,B,A; sw B`, source operand swaps have
+       already become the same plain PLUS by `.combine`. Before calling that an
+       allocation tie, try `Global = A; Global += B;` and the opposite
+       initializer. AttackLong's last three bytes required
+       `AttackActionCount = GameClock; AttackActionCount += EngageLevel * 10;`:
+       this retained `$a0` as accumulator/writeback and matched all 1248 bytes.
+       A bare `AttackActionCount += ...` was insufficient; the initializing
+       store is the source identity bridge. Guided
+       `initialized-global-compound` emits both orders for a nonvolatile extern
+       and rejects effectful/aliasable operands.
      - **A jump present in the first jump dump but threaded away only by
        `jump2` can be a real final-pass park.** AttackShort's missing explicit
        zero-return jump still exists before jump2; direct returns, one-shot
@@ -307,8 +312,9 @@ The ordered triage — fix categories in THIS order, re-running
      - **Mechanical detection:** `rtlguide` retains the historical
        `adjacent-independent-load-order` signature name, but now warns that it
        is only a hypothesis and reports nearby post-LOOP_END source lines from
-       `.sched`/`.sched2`. It also names `commutative-plus-destination`.
-       `autorules --guided` can try `loop-boundary-shift` and
+       `.sched`/`.sched2`. It also names `commutative-plus-destination` and
+       prioritizes `initialized-global-compound` for it.
+       `autorules --guided` can then try `loop-boundary-shift` and
        `identical-arm-fence`; the pass dump and bounded experiments remain the
        proof.
      - **BUT the permuter is stronger than this section's tone implies — do not

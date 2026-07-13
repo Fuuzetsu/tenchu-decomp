@@ -77,7 +77,7 @@ CATEGORY_PASSES = {
 }
 CATEGORY_RULES = {
     "regalloc": [
-        "literal-indirect-inline", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
+        "literal-indirect-inline", "initialized-global-compound", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
         "empty-loop-boundary", "loop-fence", "nested-loop-fence",
         "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split", "deref-address-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
@@ -108,7 +108,7 @@ CATEGORY_RULES = {
         "member-scalar-alias",
     ],
     "combine/expression": [
-        "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
+        "initialized-global-compound", "abs-ge", "builtin-abs", "cmp-swap", "cmp-polarity", "min-ternary", "ptr-index-sum",
         "shift16-mul", "plus-group", "add-prefix-temp", "split-chain", "deref-address-split",
     ],
     "structure/length": [
@@ -981,6 +981,10 @@ def assembly_guide(name):
         rules = ["terminal-arm-flip", "if-else-invert"] + [
             rule for rule in rules
             if rule not in {"terminal-arm-flip", "if-else-invert"}
+        ]
+    if "commutative-plus-destination" in signatures:
+        rules = ["initialized-global-compound"] + [
+            rule for rule in rules if rule != "initialized-global-compound"
         ]
     if "dbr-duplicated-literal-producer" in signatures:
         rules = ["loop-range"] + [
