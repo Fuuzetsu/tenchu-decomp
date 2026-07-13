@@ -33,10 +33,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 8 of 404 bytes differ, with exact length and CFG.
- * The only residual is the order of the adjacent Degree and rotation-speed
- * loads; every other instruction matches.
- *
  * Turn briefly while no chase point exists, then abandon after 0x5b ticks.
  * During the first 0x1e ticks, override the default 0x1000 command with a
  * directional 0x3000 or -0x7000 command. With a chase point, steer toward
@@ -46,10 +42,12 @@
  * comparisons and the nonzero outcomes expressed only as overrides. This
  * preserves the target's fallthrough bodies, explicit jumps, and inline
  * return-conversion delay slot.
+ *
+ * The first comparison is intentionally written `Degree > rotation_speed`.
+ * Its mathematical inverse spelling emits the same slt but evaluates the
+ * field load first; this spelling preserves the target's Degree-first load
+ * order.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think4chase", Think4chase);
-#else
 extern s16 SR;
 extern s16 Attrib;
 extern s16 Degree;
@@ -78,7 +76,7 @@ s16 Think4chase(void)
             result = 0x1000;
             if (Me_THINK_C->actcnt < 0x1E)
             {
-                if (Me_THINK_C->character_rotation_speed < Degree)
+                if (Degree > Me_THINK_C->character_rotation_speed)
                 {
                     result = 0x3000;
                 }
@@ -106,4 +104,3 @@ s16 Think4chase(void)
     }
     return result;
 }
-#endif
