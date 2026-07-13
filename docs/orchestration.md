@@ -134,6 +134,12 @@ operating rules:
 - **Ambiguous ⇒ keep the placeholder, record the candidate.** `reference/psxsym-candidates.tsv`
   and `reference/psxsym-data-candidates.tsv` hold every suggestion we did not adopt;
   `matcher-prompt.py` surfaces them to whoever touches the function next.
+- **A cross-build callback assignment can be decisive naming evidence.** If a
+  byte-matched producer installs retail function X in the same field/lifecycle
+  where its demo counterpart installs original name Y, X's behavior matches that
+  role, and Y is unassigned in retail, adopt Y even when the callback body was
+  heavily rewritten and mnemonic similarity is low. Keep the function match and
+  rename as separate commits so codegen and naming provenance remain reviewable.
 - **Names and data feed each other.** `datamatch.py` can only see a global through a
   function named on *both* sides, so every batch of function renames unlocks more data
   symbols. **Re-run `datamatch.py` after any function renames.** It currently proposes
