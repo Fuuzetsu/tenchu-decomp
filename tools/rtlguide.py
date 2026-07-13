@@ -77,19 +77,19 @@ CATEGORY_PASSES = {
 }
 CATEGORY_RULES = {
     "regalloc": [
-        "type-width", "cmp-polarity", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "split-chain", "shift-stage",
+        "type-width", "cmp-polarity", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign",
         "identical-arm-fence", "subscript-postinc", "switch-cse-evict",
         "call-arg-pair", "eq-literal-swap", "adjacent-field-store-swap",
     ],
     "cse/coalescing": [
-        "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage",
+        "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "temp-inline", "shift-stage", "ptr-base-split",
         "vector-copy-adjust", "subscript-postinc", "switch-cse-evict",
         "pointee-volatile",
     ],
     "jump/cross-jump": ["case-fence", "sparse-eq-switch", "and-nest", "if-else-invert"],
     "schedule/delay": [
-        "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage",
+        "type-width", "loop-fence", "nested-loop-fence", "paired-loop-fence", "loop-range", "cmp-swap", "cmp-polarity", "shift-stage", "ptr-base-split",
         "split-chain", "or-inplace", "vector-copy-adjust", "flag-arm-assign",
         "loop-boundary-shift", "identical-arm-fence", "subscript-postinc",
         "call-arg-pair", "eq-literal-swap", "pointee-volatile",

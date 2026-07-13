@@ -111,6 +111,18 @@ int F(void) {
             assignments[0],
         )
 
+    def test_ptr_base_split_names_global_array_before_indexing(self):
+        source = """Node *F(int index) {
+    Node *stage = &StageConfig[index];
+    return stage;
+}
+"""
+        autorules.GUIDED_LINES = {2}
+        out = self.candidates(autorules.rule_ptr_base_split, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("Node *_match_base = StageConfig;", out[0][1])
+        self.assertIn("Node *stage = &_match_base[index];", out[0][1])
+
     def test_eq_literal_swap_rejects_two_values_or_side_effects(self):
         values = "int F(int a, int b) { return a == b; }\n"
         effect = "int next(void); int F(void) { return next() != 1; }\n"

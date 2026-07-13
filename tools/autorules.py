@@ -1154,6 +1154,66 @@ def rule_subscript_postinc(text, name, span):
                 )
 
 
+def rule_ptr_base_split(text, name, span):
+    """Name an extern-array base before taking one indexed element address.
+
+    ``T *p = &Global[i]`` and ``T *base = Global; T *p = &base[i]`` are
+    equivalent, but the latter gives split-addresses/CSE a distinct base pseudo
+    and scheduling UID.  Keep this guided and limited to a single pointer
+    declarator with an identifier array base.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for decl in _find(body, ("declaration",)):
+        idecs = [child for child in decl.named_children
+                 if child.type == "init_declarator"]
+        if len(idecs) != 1:
+            continue
+        declarator = idecs[0].child_by_field_name("declarator")
+        value = idecs[0].child_by_field_name("value")
+        if (declarator is None or declarator.type != "pointer_declarator" or
+                value is None or value.type != "pointer_expression"):
+            continue
+        operator = value.child_by_field_name("operator")
+        subscript = value.child_by_field_name("argument")
+        if (operator is None or _txt(data, operator) != b"&" or
+                subscript is None or subscript.type != "subscript_expression"):
+            continue
+        base = subscript.child_by_field_name("argument")
+        if base is None or base.type != "identifier":
+            continue
+        line = _line(data, decl.start_byte)
+        if not _guided_site(line):
+            continue
+        identifier = _descend_ident(declarator)
+        if identifier is None:
+            continue
+        suffix = 0
+        while True:
+            candidate = (b"_match_base" +
+                         (str(suffix).encode() if suffix else b""))
+            if not re.search(rb"\b" + re.escape(candidate) + rb"\b", data):
+                temp = candidate
+                break
+            suffix += 1
+        prefix = data[decl.start_byte:declarator.start_byte]
+        stars = data[declarator.start_byte:identifier.start_byte]
+        raw = data[decl.start_byte:decl.end_byte]
+        rel_start = base.start_byte - decl.start_byte
+        rel_end = base.end_byte - decl.start_byte
+        rewritten = raw[:rel_start] + temp + raw[rel_end:]
+        indent = _indent_at(data, decl.start_byte)
+        temp_decl = (prefix + stars + temp + b" = " + _txt(data, base) +
+                     b";\n" + indent)
+        yield (
+            f"ptr-base-split {_txt(data, base).decode()} L{line}",
+            splice(data, decl.start_byte, decl.end_byte,
+                   temp_decl + rewritten).decode(),
+        )
+
+
 def rule_ptr_index_sum(text, name, span):
     """Rewrite `T *p = base + idx;` to the integer-sum `p = (T*)(idx*sizeof(T) + (int)base)`.
 
@@ -2679,6 +2739,7 @@ AGGRESSIVE_RULES = [
     ("eq-literal-swap", "swap ==/!= literal operand order (v0/v1 lever)", rule_eq_literal_swap),
     ("shift16-mul", "casted short x<<16 -> x*0x10000 (raw sll lever)", rule_shift16_mul),
     ("shift-stage", "split x>>N into every two-stage constant shift", rule_shift_stage),
+    ("ptr-base-split", "name an extern array base before indexed address", rule_ptr_base_split),
     ("plus-group", "enumerate 3-term + grouping/constant placement (fold lever)", rule_plus_group),
     ("add-prefix-temp", "name a signed 2-term seam in a narrowed 3-term sum", rule_add_prefix_temp),
     ("flag-arm-assign", "move local 0/1 definitions after each arm's comparisons", rule_flag_arm_assign),

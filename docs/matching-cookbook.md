@@ -1371,6 +1371,14 @@ DrawConstruction's `slot = DrawList + bucket` needed
 `slot = (T **)((u32)DrawList + bucket * sizeof(*slot))` for the terminal
 index-first `addu`.
 
+**Naming an extern array base before indexing is a separate scheduling lever.**
+`T *stage = &StageConfig[StageNo]` and
+`T *base = StageConfig; stage = &base[StageNo]` preserve base-first pointer
+arithmetic but give split-addresses/CSE a distinct base pseudo and earlier UID.
+CreateStage needed the second spelling for its first scheduling block. Guided
+autorules rule `ptr-base-split` now enumerates it for pointer declaration
+initializers over an identifier array base.
+
 **Build a dynamic row base before a large constant field displacement.** For a
 flattened table, `state->stock[chr * stride + field]` encourages cc1 to add the
 constant into the dynamic index first, then address the struct base. If retail
