@@ -166,13 +166,22 @@ short SuccessionAttack(long dist, short deg)
     }
     if (Distance < dist)
     {
-        int d = deg;
-        iVar1 = (int)Degree;
-        if (iVar1 < 0)
+        int d;
+        int raw;
+
+        d = deg;
+        raw = (int)Degree;
+        if (raw < 0)
         {
+            iVar1 = raw;
             iVar1 = -iVar1;
         }
-        if (iVar1 < d) goto LAB_8002fb84;
+        else
+        {
+            iVar1 = raw;
+        }
+        iVar1 = iVar1 < d;
+        if (iVar1) goto LAB_8002fb84;
     }
     iVar1 = rand();
     iVar2 = EngageLevel + 1;
