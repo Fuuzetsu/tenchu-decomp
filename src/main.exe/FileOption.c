@@ -42,13 +42,8 @@
  * image re-init, SystemFlag toggle, music test by StageID, music-select menu,
  * engage-level presets, stock layout load.
  *
- * STATUS: NON_MATCHING — 6 of 1108 bytes differ (275/277 instructions).
- * Build the draft with `NON_MATCHING=FileOption ./Build` (or tools/matchdiff.py,
- * which sets it automatically); the default build keeps the INCLUDE_ASM stub.
- * The ONLY residual is one instruction-ORDER swap in case 0xd:
- *     target: sb v1,6(v0); andi a0,v1,0xff; lw v0,gp(SystemFlag)
- *     ours:   andi a0,v1,0xff; sb v1,6(v0); lw v0,gp(SystemFlag)
- * (same insns, same registers, adjacent swap — 6 differing bytes whole-image).
+ * STATUS: MATCHING — pure C, all 1108 bytes / 277 instructions exact, with
+ * the target's 13 conditional branches, 13 jumps, 21 calls, and 2 returns.
  * Everything derived and verified: menu-table struct copies, (s16) dispatch
  * with case 1 laid out before case 0, u8 buf[7000] scratch sharing, split-
  * address (lui+lo_sum) symbol accesses [-msplit-addresses is ON in this cc1:
@@ -58,39 +53,13 @@
  * terminator's base-first addu via a byte-cast shift index, the cross-jumped
  * leLayoutEnemy(0) tail, gp-relative SystemFlag (this TU defines it).
  *
- * Why the residual swap resists (ROOT-CAUSED via -dc/-dS dumps + gcc 2.8.1
- * sched.c): the combine dump has the CORRECT order [sb][SystemFlag][andi]
- * [call] — it is SCHED1 (before reload) that hoists the andi (a0 = k&0xff,
- * insn 504) up past the store. Mechanism (rank_for_schedule, both insns
- * priority 1 = tie): the %hi(STAGE_LAYOUT_NUMBER) lui BIRTHS its address reg
- * (n_deaths==0, birthing_insn_p) so adjust_priority boosts it to max ->
- * scheduled first; immediately after, the sb is DATA-dependent on that lui
- * (class 1) while the andi is INDEPENDENT (class 3); "choose the highest
- * class" picks the andi. So [andi][sb]. The only source lever that would
- * flip it — making the sb's address reg non-local (computed earlier, so the
- * sb is class-3 independent and the luid tiebreak, sb lower, wins) —
- * CONTRADICTS the target, whose lui is local (in the bltz delay slot). A
- * function-scope pointer const-folds back to the local lui; `(u8)k` instead
- * of `k&0xFF` just moves the andi into the delay slot (wrong filler). So the
- * order is a sched1 tie our source-level repro can't win without a non-local
- * %hi. Every lever tried moves other bytes:
- *  - statement orders/temps for the mask and the SystemFlag RMW: no effect
- *    (T01-T08 all identical);
- *  - do{}while(0) fences (loop notes) around/between the statements DO pin
- *    the order ([sb] first) but then k dies at the andi and local/global
- *    alloc ties k into $a0 (in-place `andi a0,a0`), breaking move/bltz/sb
- *    registers and freeing the jal slot filler — net worse (5 lines);
- *  - multi-def mask hosts don't block the combine drag (links are
- *    per-reaching-def); cross-block defs change the branch-block bytes;
- *  - a `q = &SLN[0]`-style pointer or PSTATE cast either const-folds back
- *    (cse) or becomes the $at macro (small-symbol path).
- * decomp.me/psyq4.3 arbitration or a future idiom may crack it; the permuter
- * (450k iterations, 8 threads) found nothing below score 70.
- * RE-VERIFIED (a later session): re-ran `tools/rtldump.py FileOption --draft
- * --pass sched`; the current `.i.sched` dump still shows insn 504
- * (`zero_extendqisi2`, the andi) scheduled BEFORE insn 489 (`%hi
- * STAGE_LAYOUT_NUMBER`) and insn 492 (the `sb`), i.e. [andi][lui][sb] same as
- * this header describes. Root cause unchanged; re-parked, no new lever found.
+ * The final scheduler tie closes by passing the byte that was just stored:
+ * `load_layout(STAGE_LAYOUT_NUMBER[0])`.  cc1 store-forwards that read to the
+ * same `andi a0,v1,0xff` as the old `k & 0xff` spelling, while the memory
+ * dependency keeps `sb v1,6(v0)` before the mask.  No load survives.  This is
+ * the narrow source-level lever that the earlier statement/fence/permuter
+ * searches missed: express a same-width store-to-load dependency and let CSE
+ * erase the reload, rather than pinning the schedule with loop notes.
  *
  * gp smalls of this TU: SystemFlag (Build.hs maspsxGpExterns + permute.py).
  * EngageLevel/StageID/D_80010058 are other TUs' smalls -> absolute macros.
@@ -143,60 +112,6 @@ extern void PlayMusicFormID(s32 id);
 extern void load_layout(s32 no);
 extern void leLayoutEnemy(s32 n);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", FileOption);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__switchD);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_1);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_0);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_2);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_3);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_4);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_5);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_6);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_7);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_8);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_9);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", debug_menu_file_option__override__prt_8005c898_8d2134c3);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_a);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_b);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_c);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_d);
-
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FileOption", switchD_8005c6cc__caseD_e);
-
-/*
- * Stub-state jump table. The splat yaml routes vram 0x800147B8 through this
- * TU's .rodata ([0x3FB8, .rodata, FileOption]) so the ACTIVE function's
- * compiled switch table lands at the original address. In the stub state the
- * INCLUDE_ASM pieces emit no .rodata, so provide the original 14-entry table
- * verbatim (its absence shifts the whole image by 0x38 bytes). It lives in the
- * stub (#ifndef NON_MATCHING) branch; the NON_MATCHING draft's compiled switch
- * emits its own table, so this XORs out when the draft is built.
- */
-static const u32 switchD_8005c6cc_jtbl[14] = {
-    0x8005C728, 0x8005C6D4, 0x8005C79C, 0x8005C7AC,
-    0x8005C7C4, 0x8005C83C, 0x8005C84C, 0x8005C85C,
-    0x8005C86C, 0x8005C87C, 0x8005C8EC, 0x8005C908,
-    0x8005C928, 0x8005C948,
-};
-
-#else /* NON_MATCHING */
 void FileOption(void)
 {
     s16 n;
@@ -302,9 +217,8 @@ void FileOption(void)
             break;
         STAGE_LAYOUT_NUMBER[0] = k;
         SystemFlag &= ~8;
-        load_layout(k & 0xFF);
+        load_layout(STAGE_LAYOUT_NUMBER[0]);
         leLayoutEnemy(0);
         break;
     }
 }
-#endif /* NON_MATCHING */

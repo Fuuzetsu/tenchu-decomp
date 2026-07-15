@@ -257,10 +257,10 @@ The ordered triage — fix categories in THIS order, re-running
    - **Sub-C-level residual early-stop (SAVES THE MOST TOKENS).** A residual of
      **≤ ~10 bytes** that is a pure **register swap** or **adjacent-instruction
      reorder** (same instructions, same registers, only order/reg-name differs)
-     is almost always below the C level — a `reload`/register-allocator
+     is often below the obvious C level — a `reload`/register-allocator
      rotation or a `sched` tie. These are *permuter-immune*: FileOption burned
-     a 450k-iteration run and AdtSelect an 80k+162k run, both flat, both still
-     stuck. Budget the permuter to **one bounded run (~5–10 min)**; if such a
+     a 450k-iteration run and AdtSelect an 80k+162k run, all flat. Budget the
+     permuter to **one bounded run (~5–10 min)**; if such a
      residual survives it, STOP — root-cause it against the gcc-2.8.1 sources
      (sched.c / reload.c / global.c), write the mechanism into the header, mark
      NON_MATCHING, and move on. Do NOT open more surgical sessions on it; that
@@ -4485,15 +4485,23 @@ before local-alloc, so the def is gone before it can bias anything.
   are the source's real shape. `sizeof(T)` in the memsets is free
   (compile-time constant) and matches.
 
-- **Anti-rule (open problem): sched's equal-priority tiebreak prefers the
+- **A same-width store-to-load can be a byte-neutral scheduling dependency.**
+  Sched's equal-priority tiebreak made FileOption's independent mask precede
+  its byte store, while the target stored first. Writing
+  `STAGE_LAYOUT_NUMBER[0] = k; ... load_layout(STAGE_LAYOUT_NUMBER[0]);`
+  made the call argument depend on the store. CSE store-forwarded the byte
+  read to the same `andi a0,v1,0xff`, so no reload survived, but sched retained
+  the required `sb; andi` order and closed the final six bytes. When the stored
+  object already has the consumer's narrow width, try reading it back before
+  adding a loop fence; confirm that the optimized assembly contains no load.
+- **Anti-rule: sched's equal-priority tiebreak prefers the
   memory-unit insn** — a store and an independent ALU op simultaneously
   ready always emit [alu][store]. A target showing [store][alu] with all
   else matched resisted statement order, temps, multi-def hosts and
-  do{}while(0) fences (fences pin the order but retie the dying operand
-  into $a0). Untried levers: make the pair NOT simultaneously ready
-  (lengthen the store's downstream dependence chain with a byte-neutral
-  field re-read, or derive the ALU operand from a later-completing value).
-  FileOption case 0xd, CURRENT(2).
+  do{}while(0) fences (fences can pin the order but retie a dying operand
+  into the call-argument register). Make the pair not simultaneously ready
+  through a real source dependency such as the store-forwarded reread above;
+  do not keep permuting independent statements.
 
 ## Shared tails
 
@@ -5272,10 +5280,10 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     (every extra piece's symbol contains `__override__prt_`), seeds all pieces,
     and reports green; a real jump table still routes to `split-scaffold.py`.
     30 unmatched game functions still carry an interior marker (`valloc`,
-    `Camera` ×3, `StageSequence` ×4, `LoadConstruction` ×3, …). The root fix —
-    dropping these 79 non-symbols from `symbols.main.exe.txt` — is blocked on
-    `FileOption.c`, whose parked 18-piece stub `INCLUDE_ASM`s an override piece
-    by name.
+    `Camera` ×3, `StageSequence` ×4, `LoadConstruction` ×3, …). FileOption's
+    pure-C promotion removed the old 18-piece-stub blocker; dropping these
+    non-symbols from `symbols.main.exe.txt` can now be evaluated as a separate
+    repository cleanup.
   - **Matching a function can DELETE the very `D_` symbol its C body needs.**
     splat only auto-labels a data address that some still-carved *asm* refers to.
     The moment you replace the last such function with C, the `glabel`/auto-symbol
