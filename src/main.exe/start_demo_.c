@@ -10,10 +10,11 @@
  * recovers the full five-state jump-table loop, including state 2's shared
  * prompt/input tail with state 3, resource ownership, timed sprite fades,
  * pad-edge detection and both cleanup paths. It has the exact 0x1a0 frame and
- * exact 2188-byte/547-instruction extent; fuzzy score 90.39% (up from the
- * comments-only scaffold's 7.01%, and 71.29% before this pass). Remaining
- * differences are localized compiler allocation/scheduling around the setup
- * calls and sprite scratch image. Build with `NON_MATCHING=start_demo_ ./Build`.
+ * exact 2188-byte/547-instruction extent; 98 differing bytes and fuzzy score
+ * 94.34% (up from the comments-only scaffold's 7.01%, 71.29% before the first
+ * matching pass, and 90.39% before this pass). Remaining differences are
+ * localized scheduling around the prologue, fade arguments, archive path and
+ * first state-3 sort. Build with `NON_MATCHING=start_demo_ ./Build`.
  */
 
 #ifndef NON_MATCHING
@@ -96,6 +97,13 @@ extern void DisposeBG(BackGround *background);
 extern void FUN_8004f6c0(s32 mode);
 extern void EndDrawing(s16 mode);
 
+static inline void StartDemoInitSprite(u_long *tim, GsIMAGE *image,
+                                       GsSPRITE *sprite)
+{
+    GetTIMInfo(tim, image);
+    InitSprite(image, sprite);
+}
+
 void start_demo_(void)
 {
     GsIMAGE fade_image;
@@ -123,6 +131,7 @@ void start_demo_(void)
     s32 state;
     s32 title_brightness;
     s32 full_brightness;
+    s32 setup_brightness;
     s32 color;
     s32 increment;
     s32 i;
@@ -167,54 +176,57 @@ void start_demo_(void)
     resource_root = D_800137A0;
     sprintf(archive_path, D_80013B24, resource_root,
             GOV_RESOURCE_PREFIX_PTRS[language_state[0x5e]], suffix);
+    /* Keep the loop brightness in its own pre-resource CSE region. */
+    do {
+    } while (0);
     full_brightness = 0x80;
     fade_archive = FileRead(archive_path);
     tim = get_tim_from_archive(fade_archive, 0);
     background = FUN_8004f4f8(tim);
     gov_archive = PathFileRead(resource_root,
                                GOV_ARCHIVE_PTRS[language_state[0x5e]]);
+    /* This value is only narrowed into u8 fields, where -0x80 is 0x80. */
+    setup_brightness = -0x80;
 
     tim = get_tim_from_archive(gov_archive, 0);
-    GetTIMInfo(tim, &image);
-    InitSprite(&image, &gov_title);
+    StartDemoInitSprite(tim, &image, &gov_title);
     gov_title.y = -0x28;
     gov_title.x = 0;
-    gov_title.r = 0x80;
-    gov_title.g = 0x80;
-    gov_title.b = 0x80;
+    gov_title.r = setup_brightness;
+    gov_title.g = setup_brightness;
+    gov_title.b = setup_brightness;
     gov_title.attribute |= 0x50000000;
-    gov_title.my = gov_title.h >> 1;
     gov_title.mx = gov_title.w >> 1;
+    gov_title.my = gov_title.h >> 1;
     LoadTIM(tim);
 
     tim = get_tim_from_archive(gov_archive, 1);
-    GetTIMInfo(tim, &image);
-    InitSprite(&image, &gov_prompt);
+    StartDemoInitSprite(tim, &image, &gov_prompt);
+    /* Preserve the retail binary's otherwise-dead attribute read. */
+    (void)*(volatile u32 *)&gov_prompt.attribute;
     gov_prompt.y = 0x5f;
     gov_prompt.x = 0;
-    gov_prompt.r = 0x80;
-    gov_prompt.g = 0x80;
-    gov_prompt.b = 0x80;
+    gov_prompt.r = setup_brightness;
+    gov_prompt.g = setup_brightness;
+    gov_prompt.b = setup_brightness;
     gov_prompt.mx = gov_prompt.w >> 1;
     gov_prompt.my = gov_prompt.h >> 1;
     LoadTIM(tim);
 
     tim = get_tim_from_archive(fade_archive, 1);
-    GetTIMInfo(tim, &image);
-    InitSprite(&image, &archive_line_1);
+    StartDemoInitSprite(tim, &image, &archive_line_1);
     archive_line_1.x = 0;
     archive_line_1.y = 0;
     archive_line_1.r = 0;
     archive_line_1.g = 0;
     archive_line_1.b = 0;
     archive_line_1.attribute |= 0x50000000;
-    archive_line_1.my = archive_line_1.h >> 1;
     archive_line_1.mx = archive_line_1.w >> 1;
+    archive_line_1.my = archive_line_1.h >> 1;
     LoadTIM(tim);
 
     tim = get_tim_from_archive(fade_archive, 2);
-    GetTIMInfo(tim, &image);
-    InitSprite(&image, &archive_line_2);
+    StartDemoInitSprite(tim, &image, &archive_line_2);
     archive_line_2.y = 0x14;
     archive_line_2.x = 0;
     archive_line_2.r = 0;
@@ -226,8 +238,7 @@ void start_demo_(void)
     LoadTIM(tim);
 
     tim = get_tim_from_archive(fade_archive, 3);
-    GetTIMInfo(tim, &image);
-    InitSprite(&image, &archive_line_3);
+    StartDemoInitSprite(tim, &image, &archive_line_3);
     archive_line_3.y = 0x28;
     archive_line_3.x = 0;
     archive_line_3.r = 0;
@@ -356,7 +367,9 @@ void start_demo_(void)
 
         case 3:
             previous_pad = old_pad;
-            pad = GetRealPad(0);
+            do {
+                pad = GetRealPad(0);
+            } while (0);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
             GsSortSprite(&gov_title, OTablePt, 0xa);
