@@ -18,11 +18,11 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction with the exact target
  * length (6084 bytes / 1521 instructions), 0xf0-byte frame, 81 conditional
- * branches, 15 jumps, and 70 calls.  matchdiff reports 389 differing bytes
- * and fuzz-score reports 91.26%.  The decimal-rendering region now has the
- * target's evaluation and scheduling shape; most residuals are register
- * allocation in the stage scan and digit loops plus setup/post-game load
- * scheduling, not hidden asm.
+ * branches, 15 jumps, and 70 calls.  matchdiff reports 320 differing bytes
+ * and fuzz-score reports 95.92%.  The long-lived setup and sign-rendering
+ * values now have the target's register families; the residual is concentrated
+ * in the stage scan, setup/final-digit allocation, and post-game scheduling,
+ * not hidden asm.
  */
 
 #ifndef NON_MATCHING
@@ -200,10 +200,12 @@ label_:                                                                    \
         } while (quotient != 0);                                           \
         if (negative != 0)                                                 \
         {                                                                  \
-            base_u = sprite->u;                                            \
-            sprite->u = base_u + sprite->w * ten;                          \
+            u32 sign_base_u;                                               \
+                                                                           \
+            sign_base_u = sprite->u;                                       \
+            sprite->u = sign_base_u + sprite->w * ten;                     \
             GsSortSprite(sprite, OTablePt, 0);                              \
-            sprite->u = base_u;                                            \
+            sprite->u = sign_base_u;                                       \
         }                                                                  \
     }
 
@@ -341,7 +343,20 @@ void StageEndScreen(void)
     }
 
     {
-        best_x = 0x80010000;
+        /* Preserve the target allocator weight for this reused identity. */
+        do
+        {
+            do
+            {
+                do
+                {
+                    do
+                    {
+                        best_x = 0x80010000;
+                    } while (0);
+                } while (0);
+            } while (0);
+        } while (0);
         if (((u8 *)best_x)[5] == 7)
         {
             if (((u8 *)best_x)[0x5e] == 0)
