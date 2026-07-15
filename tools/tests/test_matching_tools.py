@@ -4753,6 +4753,49 @@ void Target(u32 value)
 
 
 class StackPlanTests(unittest.TestCase):
+    def test_stack_copy_hints_recover_vector_copy_chain(self):
+        assembly = """
+    lw $t1, 0x38($sp)
+    lw $t2, 0x3c($sp)
+    lw $t3, 0x40($sp)
+    lw $t0, 0x44($sp)
+    sw $t1, 0x28($sp)
+    sw $t2, 0x2c($sp)
+    sw $t3, 0x30($sp)
+    sw $t0, 0x34($sp)
+    lw $t1, 0x48($sp)
+    lw $t2, 0x4c($sp)
+    lw $t3, 0x50($sp)
+    lw $t0, 0x54($sp)
+    sw $t1, 0x38($sp)
+    sw $t2, 0x3c($sp)
+    sw $t3, 0x40($sp)
+    sw $t0, 0x44($sp)
+"""
+        hints = stackplan.stack_copy_hints(assembly)
+        self.assertEqual(hints, [
+            {"source": 0x38, "destination": 0x28,
+             "size": 0x10, "words": 4},
+            {"source": 0x48, "destination": 0x38,
+             "size": 0x10, "words": 4},
+        ])
+        self.assertEqual(stackplan.stack_copy_chains(hints), [
+            {"size": 0x10, "offsets": [0x48, 0x38, 0x28]},
+        ])
+
+    def test_stack_copy_hints_reject_spills_and_register_reordering(self):
+        assembly = """
+    lw $t0, 0x20($sp)
+    sw $t0, 0x30($sp)
+    lw $t0, 0x40($sp)
+    lw $t1, 0x44($sp)
+    lw $t2, 0x48($sp)
+    sw $t1, 0x50($sp)
+    sw $t0, 0x54($sp)
+    sw $t2, 0x58($sp)
+"""
+        self.assertEqual(stackplan.stack_copy_hints(assembly), [])
+
     def test_vector_array_hint_finds_reused_second_xyz_triplet(self):
         assembly = """
 glabel F
@@ -4785,6 +4828,25 @@ glabel F
             0x60: {"sw": 1},
         }
         self.assertEqual(stackplan.vector_array_hints(accesses), [])
+
+    def test_analyze_drops_vector_hint_crossing_into_saved_area(self):
+        assembly = """
+    addiu $sp, $sp, -0x68
+    sw $s0, 0x58($sp)
+    addiu $a0, $sp, 0x48
+    lw $t0, 0x48($sp)
+    lw $t1, 0x4c($sp)
+    lw $t2, 0x50($sp)
+    sw $t0, 0x58($sp)
+    sw $t1, 0x5c($sp)
+    sw $t2, 0x60($sp)
+    lw $t0, 0x58($sp)
+    lw $t1, 0x5c($sp)
+    lw $t2, 0x60($sp)
+"""
+        info = stackplan.analyze(assembly, args_hint=0x18)
+        self.assertEqual(info["saved_start"], 0x58)
+        self.assertEqual(info["vector_array_hints"], [])
 
     def test_successful_build_diagnostics_stay_in_log(self):
         with tempfile.TemporaryDirectory() as directory:

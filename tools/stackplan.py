@@ -148,6 +148,97 @@ def stack_accesses(text):
     return {offset: dict(counts) for offset, counts in sorted(accesses.items())}
 
 
+def stack_copy_hints(text, minimum_words=3):
+    """Find contiguous word copies between stack aggregates.
+
+    cc1 lowers a same-sized aggregate assignment to a run of ``lw`` from one
+    stack slot followed by matching ``sw`` instructions to another.  Preserve
+    the instruction sequence here: the offset counters alone cannot tell that
+    three adjacent VECTOR-sized regions are distinct locals connected by
+    assignments rather than one overlapping array.
+
+    Require at least three words and identical registers/order on both sides
+    to avoid calling ordinary spill traffic an aggregate copy.  This is still
+    a source-shape hint; the assembly proves the byte ranges and copy graph,
+    not the original C type name.
+    """
+    word = re.compile(
+        r"^(lw|sw)\s+\$?([a-z0-9]+),\s*"
+        r"(-?(?:0x[0-9a-f]+|\d+))\(\$?sp\)$",
+        re.I,
+    )
+    instructions = []
+    for raw in text.splitlines():
+        match = word.match(instruction_text(raw))
+        instructions.append(
+            (match.group(1).lower(), match.group(2).lower(),
+             parse_number(match.group(3))) if match else None
+        )
+
+    hints = []
+    seen = set()
+    for start, first in enumerate(instructions):
+        if first is None or first[0] != "lw":
+            continue
+        loads = []
+        index = start
+        while index < len(instructions):
+            current = instructions[index]
+            if current is None or current[0] != "lw":
+                break
+            if loads and current[2] != loads[-1][2] + 4:
+                break
+            loads.append(current)
+            index += 1
+
+        for words in range(len(loads), minimum_words - 1, -1):
+            stores = instructions[start + words:start + 2 * words]
+            if len(stores) != words or any(store is None for store in stores):
+                continue
+            if any(store[0] != "sw" for store in stores):
+                continue
+            if [load[1] for load in loads[:words]] != [store[1] for store in stores]:
+                continue
+            if any(stores[n][2] != stores[0][2] + 4 * n
+                   for n in range(words)):
+                continue
+            hint = (loads[0][2], stores[0][2], words * 4)
+            if hint not in seen:
+                seen.add(hint)
+                hints.append({"source": hint[0], "destination": hint[1],
+                              "size": hint[2], "words": words})
+            break
+    return hints
+
+
+def stack_copy_chains(hints):
+    """Join compatible aggregate-copy edges into unambiguous chains."""
+    chains = []
+    for size in sorted({hint["size"] for hint in hints}):
+        edges = [hint for hint in hints if hint["size"] == size]
+        outgoing = defaultdict(list)
+        incoming = Counter()
+        for hint in edges:
+            outgoing[hint["source"]].append(hint["destination"])
+            incoming[hint["destination"]] += 1
+        starts = sorted(source for source, destinations in outgoing.items()
+                        if len(destinations) == 1 and not incoming[source])
+        for start in starts:
+            chain = [start]
+            seen = {start}
+            current = start
+            while len(outgoing.get(current, [])) == 1:
+                destination = outgoing[current][0]
+                if incoming[destination] != 1 or destination in seen:
+                    break
+                chain.append(destination)
+                seen.add(destination)
+                current = destination
+            if len(chain) >= 3:
+                chains.append({"size": size, "offsets": chain})
+    return chains
+
+
 def vector_array_hints(accesses):
     """Find a stack signature consistent with ``VECTOR scratch[2]``.
 
@@ -216,7 +307,6 @@ def analyze(text, args_hint=None):
     info = frame_info(text)
     info["saved_start"] = saved_area_start(text)
     info["accesses"] = stack_accesses(text)
-    info["vector_array_hints"] = vector_array_hints(info["accesses"])
     if info["args"] is None:
         info["args"] = (args_hint if args_hint is not None else
                         infer_args_from_accesses(info["accesses"]))
@@ -230,6 +320,23 @@ def analyze(text, args_hint=None):
         ceiling - info["workspace_start"]
         if working and ceiling is not None else None
     )
+    vector_hints = vector_array_hints(info["accesses"])
+    copy_hints = stack_copy_hints(text)
+    if info["workspace_start"] is not None and ceiling is not None:
+        vector_hints = [
+            hint for hint in vector_hints
+            if hint["base"] >= info["workspace_start"] and
+            hint["second"] + 0x10 <= ceiling
+        ]
+        copy_hints = [
+            hint for hint in copy_hints
+            if min(hint["source"], hint["destination"]) >=
+            info["workspace_start"] and
+            max(hint["source"], hint["destination"]) + hint["size"] <= ceiling
+        ]
+    info["vector_array_hints"] = vector_hints
+    info["stack_copy_hints"] = copy_hints
+    info["stack_copy_chains"] = stack_copy_chains(copy_hints)
     return info
 
 
@@ -268,6 +375,15 @@ def print_side(label, info):
         print("  vector-array hint: the xyz words at "
               f"sp+0x{hint['base']:x} and sp+0x{hint['second']:x} fit "
               "one `VECTOR scratch[2]` workspace")
+    for hint in info.get("stack_copy_hints", []):
+        print("  aggregate-copy hint: "
+              f"sp+0x{hint['source']:x} -> sp+0x{hint['destination']:x} "
+              f"({fmt(hint['size'])} bytes / {hint['words']} words)")
+    for chain in info.get("stack_copy_chains", []):
+        offsets = " -> ".join(f"sp+0x{offset:x}" for offset in chain["offsets"])
+        print(f"  aggregate-copy chain: {offsets} "
+              f"({fmt(chain['size'])}-byte same-sized slots; likely distinct "
+              "aggregate locals)")
 
 
 def access_width(counts):
