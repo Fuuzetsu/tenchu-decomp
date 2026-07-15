@@ -2842,9 +2842,30 @@ compound subscripts). So the base symbol's `high`/`lo_sum` gets a LOWER insn UID
 `idx*stride` offset chain, and local-alloc hands the base first pick of the low scratch
 registers -- possibly reversed from the target. This is NOT reachable by the
 `(&arr[0])[i]` respelling (that is the struct-member-through-pointer form) nor a cached
-pointer local (identical tree post-fold): the divergence is baked into which front-end
-expansion path a `SYMBOL + reg*CONST` address takes, not the source array spelling
-(`leSetEnemy`, a genuine un-source-reachable local-alloc order).
+pointer local (identical tree post-fold). Bypass ARRAY_REF entirely with a named signed
+byte offset followed by an INTEGER pointer sum:
+
+```c
+s32 offset;
+T *entry;
+
+offset = idx * (s32)sizeof(T);
+entry = (T *)(offset + (s32)arr);
+```
+
+The separate statement emits the complete multiply/shift chain first; integer addition
+preserves the written offset-first operand order, and only then does split-addresses
+materialize the extern base. `leSetEnemy` changed from `$v1=base/$a0=offset` to the
+target `$v1=offset/$a0=base` and closed its 33-byte residual with this form. A cached
+`entry = &arr[idx]` is still ARRAY_REF and remains flat.
+
+After an address-order fix, recheck nearby stack-parameter loads rather than assuming
+the store statements should be written in final machine order. `leSetEnemy` needed
+`entry->z = z; entry->r = r;`: the lexical `z` assignment exposes its stack load first,
+then sched2 moves the independent `r` store ahead of the `z` store, yielding retail's
+physical `r`-then-`z` order. The inverse lexical order left the load one instruction
+late. Restrict this to distinct nonvolatile fields with side-effect-free right-hand
+sides; otherwise store order is semantic, not a scheduling lever.
 
 ### Adjacent global banks may need distinct canonical symbols to prevent base folding
 

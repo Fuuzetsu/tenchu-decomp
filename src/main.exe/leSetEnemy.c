@@ -53,49 +53,28 @@
  *    opposite (Ghidra's literal `if (result != -1) {...} return -1;`)
  *    relocates the success block to a branch target and is 79 bytes off.
  *
- * STATUS: NON_MATCHING — 33 of 140 bytes differ, all in the `enemy[result]`
- * address computation for the field stores. The draft is arithmetically
- * correct, the right length, and every field STORE matches (same values,
- * same order) — only the base/offset register choice for `&enemy[result]`
- * differs: the target puts the `idx*0x88` offset chain in $v1 (which becomes
- * the final address register, `addu v1,v1,a0`) and the `enemy` base in $a0;
- * this compile swaps them ($a0=chain/result, $v1=base), same two
- * instructions/operand shape (chain register reused as destination, chain
- * operand first), only the hard-register NAMES differ.
+ * STATUS: MATCHING — exact 140-byte pure C. The final 33-byte base/offset
+ * swap came from top-level `enemy[result]`: ARRAY_REF expands the symbol
+ * base before the scaled index, so local allocation gave the base `$v1`
+ * and the offset `$a0`, opposite the target. Name the signed byte offset,
+ * then form the pointer through INTEGER addition:
  *
- * RTL-confirmed (rtldump --pass combine,greg,lreg): the `.combine` dump's
- * RTL tree already has the CORRECT abstract shape — `(plus offset-chain
- * base)`, offset first — so this is not a fold/expand tree-order bug. The
- * divergence is `local-alloc`'s per-block register assignment: the `enemy`
- * base (`high`+`lo_sum` of the symbol) is emitted at a LOWER insn UID than
- * the `idx*0x88` shift/add chain (base is computed for `&enemy[result]`
- * before the multiply, even though the address is for a plain single-index
- * `arr[idx]`, not a compound `arr[a+b*c]` subscript — the cookbook's
- * EXPAND_SUM mult-first special case is for the LATTER shape only; a bare
- * `SYMBOL + reg*CONST` address for a top-level array goes through
- * ARRAY_REF's own base-first expansion instead, confirmed by the UID order
- * in the dump), so local-alloc's per-block scan hands the base pseudo FIRST
- * pick of the low scratch registers ($v1) and the chain gets what's left
- * ($a0) — the reverse of the target. All 7 field stores CSE onto this ONE
- * computed address (the address pseudo has 8 refs across the block), so the
- * computation is genuinely shared, not per-store.
+ *     offset = result * 0x88;
+ *     e = (TEnemyLayout *)(offset + (s32)enemy);
  *
- * Tried and failed to move it: the `(&enemy[0])[result]` index-first
- * respelling that fixed leAddPath.c's identical-looking tie (no effect here
- * — that rule is specific to struct-member array access through a pointer,
- * not a top-level array, consistent with the ARRAY_REF-vs-PLUS_EXPR
- * distinction above); a cached `TEnemyLayout *e = &enemy[result];` pointer
- * (identical tree post-fold to the direct form, no effect); reordering the
- * `result` copy-for-return relative to the field stores. autorules.py found
- * no mechanical win. tools/permute.py ran two bounded passes (an earlier
- * ~285-iteration/10-min run, and a fresh 300s/~36,000-iteration run this
- * session) and both plateaued at score 60 with no candidate beating this
- * residual — below the C level, a local-alloc ordering tie baked into how
- * this cc1 legitimizes `SYMBOL + reg*CONST` addresses under
- * -msplit-addresses for a single-index top-level array, not a source shape
- * reachable from here. Do not retry without a NEW lever (e.g. a way to make
- * the front end route the address through a genuine PLUS_EXPR/EXPAND_SUM
- * path instead of ARRAY_REF's own expansion).
+ * This bypasses ARRAY_REF, emits the full scale chain first into `$v1`,
+ * materializes `enemy` afterward in `$a0`, and preserves the written
+ * offset-first `addu v1,v1,a0`. All seven field stores share `e`.
+ *
+ * One scheduling detail remains source-significant: write `e->z = z`
+ * before `e->r = r`. That places the stack-parameter load before the
+ * halfword assignment; sched2 then moves the independent `r` store ahead
+ * of the final `z` store, producing the target's physical field order
+ * type/ThinkType/nPath/x/y/r/z. Writing the stores lexically in that final
+ * order sinks the `z` load after `r` and leaves a 6-byte residual. The two
+ * assignments target distinct nonvolatile fields, so both spellings have
+ * the same C-visible final layout; only the `z`-before-`r` spelling schedules
+ * exactly.
  */
 
 typedef struct
