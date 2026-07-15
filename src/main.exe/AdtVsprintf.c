@@ -1,44 +1,42 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AdtVsprintf", AdtVsprintf);
+/*
+ * Copy ten argument words into a local array and forward them to sprintf,
+ * provided the destination has room for twice the format-string length.
+ *
+ * Matching notes (252 bytes / 63 instructions):
+ *  - The true carve includes the stack-restoring delay slot at 0x8005fe34;
+ *    Ghidra's 248-byte function entry omits that final instruction.
+ *  - The capacity failure is an early return. A shared result local survives
+ *    both calls, adds a fifth saved register, and lengthens the function.
+ *  - Incrementing args before reading args[-1] fixes the loop's otherwise
+ *    byte-neutral load/increment ordering.
+ *  - copied[10] intentionally reproduces the retail call's eleventh variadic
+ *    word. It reads the word immediately beyond the ten-word array, which is
+ *    the caller's saved $s0 at sp+0x60 in the matched frame.
+ */
 
-// triage: EASY — 62 insns, 1 loop, 2 callees, ~0.17 to AddXG4
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
+extern u32 strlen(const char *s);
+extern int sprintf(char *dst, const char *fmt, ...);
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// int AdtVsprintf(undefined4 *param_1,char *param_2,uint param_3,char *param_4)
-//
-// {
-//   int iVar1;
-//   int iVar2;
-//   undefined4 *puVar3;
-//   undefined4 unaff_s0;
-//   undefined4 local_40 [4];
-//   undefined4 local_30;
-//   undefined4 local_2c;
-//   undefined4 local_28;
-//   undefined4 local_24;
-//   undefined4 local_20;
-//   undefined4 local_1c;
-//
-//   iVar1 = strlen(param_4);
-//   iVar2 = 0;
-//   if ((uint)(iVar1 << 1) <= param_3) {
-//     iVar1 = 0;
-//     puVar3 = local_40;
-//     do {
-//       iVar1 = iVar1 + 1;
-//       *puVar3 = *param_1;
-//       puVar3 = puVar3 + 1;
-//       param_1 = param_1 + 1;
-//     } while (iVar1 < 10);
-//     iVar2 = sprintf(param_2,param_4,local_40[0],local_40[1],local_40[2],local_40[3],local_30,
-//                     local_2c,local_28,local_24,local_20,local_1c,unaff_s0);
-//   }
-//   return iVar2;
-// }
+int AdtVsprintf(s32 *args, char *dst, u32 size, char *fmt)
+{
+    s32 copied[10];
+    s32 *out;
+    int i;
+
+    if (size < (u32)(strlen(fmt) << 1))
+        return 0;
+
+    i = 0;
+    out = copied;
+    do {
+        args++;
+        *out++ = args[-1];
+        i++;
+    } while (i < 10);
+    return sprintf(dst, fmt, copied[0], copied[1], copied[2], copied[3],
+                   copied[4], copied[5], copied[6], copied[7], copied[8],
+                   copied[9], copied[10]);
+}
