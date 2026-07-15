@@ -60,46 +60,22 @@
  *    at the store, the mask happens at the assignment). This part is
  *    byte-identical to the target already.
  *
- * STATUS: NON_MATCHING — 4 of 276 bytes differ (69 vs our 70 instructions).
- * `&o_draw` is used three times: GetDrawEnv(&o_draw) [call arg], the
- * `n_draw = o_draw;` block-move's source-pointer preheader setup, and the
- * final PutDrawEnv(&o_draw). All three are the identical frame-relative
- * address `(plus $sp 40)` with no intervening CODE_LABEL between the FIRST
- * two (GetDrawEnv's own call does not end a basic block, and emit_block_move's
- * preheader setup for the struct-copy loop sits BEFORE that loop's own
- * back-edge label) — so cc1's cse merges the block-move's source-pointer
- * pseudo with GetDrawEnv's call-argument pseudo, extending its live range
- * across the intervening GetDispEnv() call and forcing it into a
- * callee-saved register ($s0: an extra prologue/epilogue save pair, +1
- * instruction / +4 bytes). The target does NOT perform this merge — it
- * recomputes `sp+40` fresh at all three sites, entirely in caller-saved
- * registers ($a0 then $v0 then $a0 again), with no $s-register at all
- * (despite the DEMO PSX.SYM header recording saved-reg mask 0x80010000,
- * i.e. one $s-register used in the demo build — retail's actual asm here
- * uses zero, confirming the "demo allocation may differ from retail"
- * caveat is not just theoretical for this function).
+ * MATCH. The final CSE lever is the identical `GetDispEnv(&o_disp)` call in
+ * both arms of the `AccessPower` test. Before jump cleanup, its control-flow
+ * boundary separates the first `&o_draw` use (`GetDrawEnv`) from the source
+ * pointer emitted for `n_draw = o_draw`; after allocation and scheduling,
+ * jump cleanup erases the test and merges the calls, so the final binary has
+ * no branch or duplicate call. This makes cc1 rematerialize `sp+40` in the
+ * target's caller-saved registers ($a0, then $v0, then $a0) instead of CSEing
+ * it across GetDispEnv into $s0, which had added a save/restore instruction.
+ * The fence must sit on the SECOND call: placing it at function entry pins
+ * the return-address save ahead of the target's body setup, while fencing the
+ * first call delays its argument and changes the color-register allocation.
  *
- * Ruled out (regalloc.py + autorules.py + manual bisection):
- *  - autorules.py: no local-type or chain-collapse edit improves the diff.
- *  - A `do { ... } while (0);` wrapper around the copy+PutDrawEnv(&n_draw)
- *    block does not break the merge (still colours to $s0) and additionally
- *    perturbs an unrelated delay-slot fill 8 bytes later — net worse (34 vs
- *    28 differing lines).
- *  - Local declaration order (`v` before vs after the DRAWENV/DISPENV
- *    locals) has no effect on the tie.
- *  - This is NOT the cookbook's named "la/address-materialization reload
- *    tie" (that's a same-length single/dual-register color swap for ONE
- *    address use; this is a genuine EXTRA instruction from a THIRD use
- *    being folded into the first two) — it is closer to the "Overlapping
- *    big frame buffers" cse-merge mechanism (DoInfoViewProc), but that
- *    section's own "only a CODE_LABEL breaks the window" rule does not
- *    resolve it here since the merging pair (call-arg pseudo, block-move
- *    preheader pseudo) both sit BEFORE any label — recognize this as a
- *    DISTINCT open case: a repeated-frame-address merge across an
- *    intervening call with NO available label to break it. Since the
- *    residual is a wrong INSTRUCTION COUNT (not same-length), it is not
- *    eligible for tools/permute.py per the cookbook's iteration protocol
- *    (permuter only cracks same-length ties); no permuter run was made.
+ * The target also writes `AccessImage.g0` before computing/storing `b0`.
+ * Keeping that source order resolves the remaining independent-store
+ * scheduling tie. A one-shot loop and declaration-order changes did not
+ * affect the address merge; guided autorules likewise found no improvement.
  */
 typedef struct
 {
@@ -151,9 +127,6 @@ extern void DrawPrim(u8 *prim);
 extern s32 AccessPower;
 extern POLY_GT4 AccessImage;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/cbAccess", cbAccess);
-#else
 void cbAccess(void)
 {
     DISPENV o_disp;
@@ -164,8 +137,8 @@ void cbAccess(void)
     v = (AccessPower + 8) & 0xff;
     AccessPower = v;
     AccessImage.r0 = v;
-    AccessImage.b0 = 0xff - AccessImage.r0;
     AccessImage.g0 = AccessImage.r0;
+    AccessImage.b0 = 0xff - AccessImage.r0;
     AccessImage.r1 = AccessImage.r0;
     AccessImage.g1 = AccessImage.b0;
     AccessImage.b1 = AccessImage.r0;
@@ -176,7 +149,10 @@ void cbAccess(void)
     AccessImage.g3 = AccessImage.r0;
     AccessImage.b3 = AccessImage.r0;
     GetDrawEnv(&o_draw);
-    GetDispEnv(&o_disp);
+    if (AccessPower != 0)
+        GetDispEnv(&o_disp);
+    else
+        GetDispEnv(&o_disp);
     n_draw = o_draw;
     n_draw.clip = o_disp.disp;
     n_draw.ofs[0] = o_disp.disp.x;
@@ -185,4 +161,3 @@ void cbAccess(void)
     DrawPrim((u8 *)&AccessImage);
     PutDrawEnv(&o_draw);
 }
-#endif
