@@ -51,22 +51,27 @@
  * The remaining diff is dominated by one allocator/control-flow family in
  * the nested stage-kind, weapon, and think-menu scans.  Retail holds the
  * HumanData base in fp, assigns the scan/count values to s2-s5, and keeps the
- * StageAppearance and WeaponModel bases in t1/t0, spilling those
- * two caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  This draft's
- * equivalent natural loops color the two bases into saved registers instead.
- * The AddEnemyBloodScratch tail represents those two retail spill words and
- * preserves the exact frame while the guarded draft retains that coloring.
+ * StageAppearance and WeaponModel bases in t1/t0, spilling those two
+ * caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  This draft's
+ * equivalent first scan still colors those bases into saved registers.  The
+ * AddEnemyBloodScratch tail represents the two retail spill words and keeps
+ * the frame exact while that allocation remains unresolved.
  *
- * `rtlguide` identifies the residue primarily as regalloc/CSE plus loop
- * structure.  `regalloc`, `.lreg`/`.greg`, guided `autorules` (180-candidate
- * budget), and direct stage/weapon-loop variants found no justified source
- * spelling that closes the remaining five instructions.  The mechanical
- * identical-arm fence did make the length exact by inserting an unrelated
- * branch at the menu terminator, so it was rejected; likewise, narrowing
- * count/names_offset superficially improves byte score but contradicts the
- * target's direct `slti`/`sll` uses and Ghidra's recovered int types.  The
- * retained guarded draft has 173 asmdiff lines in 53 hunks and scores 53.59
- * with `tools/fuzz-score.py`.
+ * The nested single-trip `do` fences below are pure C and optimize away.  They
+ * preserve behavior while adjusting GCC 2.8's internal statement/pseudo
+ * ordering enough to improve the think-menu coloring: think and
+ * category now use the target s2/s3, the menu base and cursor use s0/a1, and
+ * the category character uses a2.  This raises the authoritative fuzzy score
+ * from 53.94 to 57.44.  The candidate remains five instructions short, with
+ * 161 displayed asmdiff lines in 53 blocks (164 raw-aligned lines in 56
+ * blocks; structural filter: 124 lines in 30 blocks).
+ *
+ * `rtlguide`, register-allocation reports, guided permutation, and direct
+ * stage/weapon-loop variants found no justified spelling that closes those
+ * five instructions.  Candidates relying on an unrelated branch or an
+ * uninitialized-value fence were rejected, as were narrowed count/offset
+ * types that contradict the target's direct `slti`/`sll` uses and Ghidra's
+ * recovered int types.
  */
 
 #ifndef NON_MATCHING
@@ -144,6 +149,42 @@ extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
                       int time, long col);
 
+#define ADD_ENEMY_FENCE_6(statement)                                           \
+    do                                                                         \
+    {                                                                          \
+        do                                                                     \
+        {                                                                      \
+            do                                                                 \
+            {                                                                  \
+                do                                                             \
+                {                                                              \
+                    do                                                         \
+                    {                                                          \
+                        do                                                     \
+                        {                                                      \
+                            statement;                                         \
+                        } while (0);                                            \
+                    } while (0);                                                \
+                } while (0);                                                    \
+            } while (0);                                                        \
+        } while (0);                                                            \
+    } while (0)
+
+#define ADD_ENEMY_FENCE_10(statement)                                          \
+    do                                                                         \
+    {                                                                          \
+        do                                                                     \
+        {                                                                      \
+            do                                                                 \
+            {                                                                  \
+                do                                                             \
+                {                                                              \
+                    ADD_ENEMY_FENCE_6(statement);                              \
+                } while (0);                                                    \
+            } while (0);                                                        \
+        } while (0);                                                            \
+    } while (0)
+
 void AddEnemy(void)
 {
     u8 names[70][20];
@@ -160,8 +201,11 @@ void AddEnemy(void)
     s16 category;
     s16 think_index;
     s32 stage;
+    s32 menu_char;
     AddEnemyWeaponModel *weapon_entry;
     debug_menu_choice *item;
+    debug_menu_choice *menu_base;
+    debug_menu_choice *think_item;
     s16 **kind_base;
     AddEnemyHumanData *human_data;
     AddEnemyWeaponModel *weapon_base;
@@ -238,30 +282,34 @@ void AddEnemy(void)
         return;
 
     think = 0;
-    category = 0;
+    ADD_ENEMY_FENCE_10(category = 0);
+    ADD_ENEMY_FENCE_10(menu_base = ItemName);
     do
     {
         count = 0;
         think_index = 0;
         if (ThinkDB[0].name != 0)
         {
-            item = ItemName;
+            think_item = menu_base;
+            ADD_ENEMY_FENCE_6(menu_char = (s16)category + 0x31);
             do
             {
                 if (count >= 70)
                     break;
-                if ((s16)category + 0x31 == ThinkDB[think_index].name[0])
+                if (menu_char == ThinkDB[think_index].name[0])
                 {
-                    item->choice_name = (char *)ThinkDB[think_index].name;
-                    item->choice_number = ThinkDB[think_index].value;
-                    item++;
+                    think_item->choice_name =
+                        (char *)ThinkDB[think_index].name;
+                    think_item->choice_number =
+                        ThinkDB[think_index].value;
+                    think_item++;
                     count++;
                 }
                 think_index++;
             } while (ThinkDB[think_index].name != 0);
         }
-        ItemName[count].choice_name = 0;
-        think |= AdtSelect(D_80013FB4, ItemName, 0);
+        ADD_ENEMY_FENCE_10(menu_base[count].choice_name = 0);
+        ADD_ENEMY_FENCE_10((think |= AdtSelect(D_80013FB4, menu_base, 0)));
     } while ((s16)think != 0x1111 && (s16)think != 0x2222 &&
              ++category < 4);
 
@@ -282,6 +330,9 @@ void AddEnemy(void)
     pos = blood.vector;
     SetBleeds(&pos, 400, 0, 50, 30, 0xffffff);
 }
+
+#undef ADD_ENEMY_FENCE_10
+#undef ADD_ENEMY_FENCE_6
 
 #endif /* NON_MATCHING */
 
