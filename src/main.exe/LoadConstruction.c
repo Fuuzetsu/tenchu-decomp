@@ -75,12 +75,12 @@
  * 0x1a0 frame and exact stack layout, including the filename buffer, both
  * PARAM_ITEM_STAY records, and upper scalar locals. Demo SLD evidence restored
  * the indexed construction-record and ornament loops. Target-evidenced
- * normal-first clone selection, immediate coordinate masks, and local
- * ModelSlot aliases now align the large case-2 region more closely. The draft
- * is 2748 bytes (687 instructions), 24 bytes longer than the
- * 2724-byte/681-instruction split target, with a 76.32 fuzzy score; remaining
- * work is control-flow/regalloc alignment rather than missing behavior. Build
- * it with
+ * top-tested loop forms, a register-resident first-pass model size, and the
+ * final pass's early signed parent carrier now reproduce the target's full
+ * saved-register set and exact 2724-byte/681-instruction extent. The linked
+ * residual is 727 differing bytes with an 83.41 fuzzy score; remaining work is
+ * parameter-home scheduling and regalloc alignment rather than missing
+ * behavior. Build it with
  * `NON_MATCHING=LoadConstruction ./Build`. On a full match, delete the guards
  * and the stub-only _jtbl array.
  */
@@ -247,6 +247,7 @@ extern void jt_init4(void);
 
 short LoadConstruction(u32 *data)
 {
+    OrnamentType *model;
     WorldDataType *wlddt;
     long x;
     long y;
@@ -262,12 +263,23 @@ short LoadConstruction(u32 *data)
         SystemOut(D_800120D8);
     memset(WorldMap, 0, sizeof(WorldMap));
 
-    nModel = 0;
-    scratch.stack.n = vsize(data) >> 5;
-    for (i = 0; i < scratch.stack.n; i++)
     {
-        if (((WorldDataType *)data)[i].type == 2)
-            nModel++;
+        WorldDataType *scan;
+
+        nModel = 0;
+        scratch.stack.n = vsize(data) >> 5;
+        i = nModel;
+        if (scratch.stack.n != 0)
+        {
+            scan = (WorldDataType *)data;
+            do
+            {
+                if (scan->type == 2)
+                    nModel++;
+                i++;
+                scan++;
+            } while (i < *(volatile long *)&scratch.stack.n);
+        }
     }
 
     DisposeAreaMap(GlobalAreaMap);
@@ -339,13 +351,16 @@ short LoadConstruction(u32 *data)
     }
 
     {
-        OrnamentType *model;
+        int msize;
         ObjectSlotType **slot;
         ObjectSlotManager *slotman;
 
         wlddt = scratch.stack.wlddt;
-        for (i = 0; i < scratch.stack.n; i++)
+        i = 0;
+        while (1)
         {
+            if (!(i < scratch.stack.n))
+                break;
             switch (wlddt[i].type)
             {
     case 0:
@@ -409,16 +424,16 @@ short LoadConstruction(u32 *data)
         }
         z &= 7;
 
-        slot = &WorldMap[x][y][z].top;
         GetCenterAndSize(model->object.tmd, &scratch.center, &scratch.size);
+        slot = &WorldMap[x][y][z].top;
         slotman = &ModelSlot;
         shifty = scratch.center.vy;
-        scratch.stack.msize = scratch.size / 2;
+        msize = scratch.size / 2;
         if (slotman->n >= slotman->max)
             AdtMessageBox(D_800120C4);
         slotman->slot[slotman->n].model = model;
         slotman->slot[slotman->n].next = *slot;
-        slotman->slot[slotman->n].ModelSize = scratch.stack.msize;
+        slotman->slot[slotman->n].ModelSize = msize;
         slotman->slot[slotman->n].ShiftY = shifty;
         *slot = &slotman->slot[slotman->n];
         slotman->n++;
@@ -445,12 +460,14 @@ short LoadConstruction(u32 *data)
         ReqItemStay(&scratch.param);
         break;
             }
+            i++;
         }
     }
 
     {
         OrnamentType *model;
         int i;
+        int parent;
         ObjectSlotType **slot;
         ObjectSlotManager *slotman;
 
@@ -462,16 +479,20 @@ short LoadConstruction(u32 *data)
         scratch.stack.ix = (ParentingType *)(scratch.stack.MapModel + 2);
         D_80097A70 = LoadOrnamentArchive(scratch.stack.MapModel, &World);
 
-        for (; i < D_80097A70->n; i++)
+        while (1)
         {
+            if (!(i < D_80097A70->n))
+                break;
+            parent = scratch.stack.ix[i].parent;
             D_80097A70->object[i]->locate.coord.t[0] *= 10;
             D_80097A70->object[i]->locate.coord.t[1] *= 10;
             D_80097A70->object[i]->locate.coord.t[2] *= 10;
-            scratch.stack.msize = scratch.stack.ix[i].parent * -14;
 
             {
                 long a = D_80097A70->object[i]->locate.coord.t[0];
 
+                scratch.stack.msize =
+                    (parent - parent * 8) * 2;
                 if (a >= 0)
                     x = a / 16000;
                 else
@@ -510,6 +531,7 @@ short LoadConstruction(u32 *data)
             slotman->slot[slotman->n].ShiftY = 0;
             *slot = &slotman->slot[slotman->n];
             slotman->n++;
+            i++;
         }
     }
 

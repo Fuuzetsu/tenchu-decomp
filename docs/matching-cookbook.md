@@ -1113,6 +1113,16 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `short scan_i` when the target uses a different hard-register colouring
   (ActKAGI; independently confirmed by SwimCheck's splash loop and later
   CVAhuman scan). This is a scope/regalloc lever, not a semantic loop change.
+- **Disjoint passes need not share one stack-backed carrier.** If the target
+  keeps a value in a callee-saved register in an early pass but reloads the
+  same logical role from a stack slot in a later pass, model them as separate
+  source objects. In LoadConstruction, routing both model-size calculations
+  through the final pass's `scratch.stack.msize` removed `$fp` from the save
+  mask and rotated the whole case-2 register family. A block-local first-pass
+  `msize`, while leaving the later stack field intact, restored the exact save
+  set and helped reduce the linked residual from 2235 to 727 bytes. Require
+  both the target storage classes and disjoint live ranges before splitting;
+  this is an allocation reconstruction, not a generic preference for locals.
 - **Conversely, repeated hard-register identities can recover WHICH named
   counter drove each disjoint loop.** When PSX.SYM records `int i, j, k` but a
   decompiler renders every nested scan with anonymous indices, compare the
