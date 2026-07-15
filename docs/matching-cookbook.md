@@ -3979,6 +3979,18 @@ before local-alloc, so the def is gone before it can bias anything.
   regions. FUN_8005b17c reused `n` this way to keep every lifetime in `$s3`; a
   final `(short)n` supplied the retail return extension. Separate descriptive
   locals changed allocation even though their live ranges did not overlap.
+- **Mutually exclusive switch arms can need one shared source local to move a
+  value from local-alloc to global-alloc.**  ProcMiscPitfall's two block-local
+  `short w` declarations made the resume value pseudo local to one basic block;
+  local-alloc claimed `$s0` for it before global allocation ran.  The hoisted
+  literal `2` then had a hard `$s0` conflict and fell to `$s3`, leaving six
+  otherwise-identical operands.  One function-scope `w`, assigned separately
+  in the resume and draw arms, became a global allocno and reused the disjoint
+  `$s1` home of parameter `m`; the literal was then free to take `$s0`, matching
+  all 868 bytes.  When a low-priority global allocno cannot take the target
+  register, inspect `.lreg` for a block-local value that preclaimed it before
+  adding one-shot priority weight: sharing the source identity across disjoint
+  arms can remove the hard conflict that no global-priority boost can outrank.
 - **Byte-neutral respellings are permuter seed levers**: re-reading a cached
   field that cse folds back (`dsp->u = dsp->u + …` for `x + …`) or a
   do{}while(0) around an UNRELATED block shifts pseudo bookkeeping enough to

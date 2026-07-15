@@ -149,7 +149,6 @@ evidence and rejected experiments.
 |---|---|---|
 | `AttackShort` | 99.52%; exact 1668 B / 417 instructions / CFG; 8 bytes left | two `move v0,s0` vs `andi v0,s0,0xffff` sites; `narrow-copy-zero-extension`; 22,046 permuter iterations flat |
 | `ProcItemNingyo` | 98.40%; exact 2256 B / 564 instructions / CFG; 19 bytes left | launch-position identity, modulus register, and constant scheduling; guided rules and late permuter flat |
-| `ProcMiscPitfall` | exact 868 B / 217 instructions; 6 bytes left | global register-colouring tie; 160 guided candidates and 22,097 permuter candidates flat |
 | `ProcMiscFire` | exact 356 B; 10 bytes left | confirmed `la` reload tie; RTL excludes the known compiler patch; 27,390 permuter candidates flat |
 | `Think1ninja` | exact 356 B; 6 bytes left | fixing local abs shape triggers a worse global-allocation cascade; bounded permuter flat |
 | `think_setting_small_rotation_small_steps_` | 98.84%; exact 1392 B / CFG; 5 bytes left | QImode branch-phi register tie; 160 guided candidates and 8,850 permuter candidates flat |
