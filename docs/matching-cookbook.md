@@ -2147,7 +2147,13 @@ near entry; `AdtMessageBox` wants the inline form.)
   reserves stack for every declared automatic aggregate regardless of use; when
   the gap exactly equals a sibling function's struct size, declare that struct
   as an unused local (AttackGunControl: an unused `PARAM_ITEM_USE p;` = 40 bytes, a
-  refactoring leftover from wrapping bow_shoot_logic).
+  refactoring leftover from wrapping bow_shoot_logic). An earlier-build debug
+  record can make an otherwise suspicious array equally concrete:
+  FUN_8004a6bc's target saves begin 0x20 bytes later than its live values need,
+  while PSX.SYM records `unsigned char image[25]` at sp+16 in the demo's
+  combined InitializeInfoView. Declaring that same unused array in the retail
+  helper reserves 25 bytes plus alignment and recovers the exact frame. Prefer
+  this cross-build name/type/offset evidence over anonymous padding.
 - **Overlapping big frame buffers whose addresses rematerialize at every
   call are INLINED STATIC HELPERS, not locals** (DoInfoViewProc's debug
   menus). Mechanics, all three observable in the bytes:
@@ -4264,6 +4270,15 @@ before local-alloc, so the def is gone before it can bias anything.
   stores that precede it in source, yet the natural owner/proc/mode/type/coord
   statement order matched first try. A load ahead of "earlier" stores is the
   scheduler, not a source reordering.
+- **A table-backed field assignment before a literal field assignment can steer
+  the whole surrounding call schedule.** In FUN_8004a6bc,
+  `slot->rotate = table[i].rotate; slot->attribute = 0x40000000;` emits the
+  target's `lw rotate; li attribute; sw attribute; sw rotate`. Reversing only
+  those independent assignments emits `li; sw; lw; sw`; sched also chooses the
+  slot-address calculation instead of `i++` for the preceding GetImage delay
+  slot. When one load/literal-store pair and an earlier call-delay candidate all
+  rotate together, test the two semantically independent field orders as one
+  bounded scheduling lever.
 - A base-address pseudo appearing mid-sequence (`addiu $a0, $s1, 8` between
   two accesses) is a temp assigned between the statements:
   `t[0] = p->start.vx; st = &p->start; t[1] = st->vy; ...`.
