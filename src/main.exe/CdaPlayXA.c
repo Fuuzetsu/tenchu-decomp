@@ -68,37 +68,15 @@
  *  - `param`/`filter` are two independent small stack buffers passed to the
  *    two cd_control calls (0xe then 0xd) — not one shared buffer.
  *
- * STATUS: NON_MATCHING — length ours 88 insns vs target 89 (one missing
- * instruction), 39 differing lines, but EVERY instruction from the first
- * CdPosToInt call onward (0x8004fa18-0x8004fad8) sits at the SAME ADDRESS
- * as the target with only registers renamed — the control flow above is
- * fully correct. The one missing instruction is the `mode` parameter's own
- * load: target loads it VERY early (`lw $s0,0x68($sp)`, scheduled right
- * after — and filling the load-delay slot of — the `CdaStatus.flag` byte
- * load, BEFORE the `flag&1` guard even branches), keeping it alive in its
- * own callee-saved register ($s0) across every intervening call. Our
- * compile instead sinks the load to its single real use
- * (`CdaStatus.mode = mode;`, deep inside), needing one fewer callee-saved
- * register and shifting every later register down by one — 39 of the 39
- * differing lines are exactly this renumbering (s1..s6 in target vs s0..s5
- * here) plus the corresponding shifted addresses.
- *
- * Ruled out: the cookbook's own fix for this exact class ("A stack
- * parameter used exactly once is load-sunk to its use... A local copy `s32
- * va = ry;` defeats it", AddMisc.c) does NOT work here — verified via a
- * direct `cc1 -dg` RTL dump. AddMisc's va/vb/vc each have TWO further
- * downstream uses; `mode` has exactly one (`CdaStatus.mode = mode;`). With
- * only one downstream use, an earlier copy-propagation/combine pass folds
- * `m = mode; ...; CdaStatus.mode = m;` back into a single reference at the
- * ORIGINAL use site before update_equiv_regs ever sees the copy (confirmed
- * in the `-dg` dump: the load lands at the later instruction regardless of
- * where `m = mode;` is placed — function entry, right after the first
- * guard, anywhere). This is a new, narrower member of the "stack parameter
- * sink" family: the defeat-the-sink trick needs >=2 real downstream uses to
- * survive combine; a genuinely single-use stack parameter has no available
- * source lever. Not permuter-eligible per the cookbook's iteration protocol
- * (permuter only cracks SAME-LENGTH residuals; this is one instruction
- * short).
+ * STATUS: MATCHING — 89 instructions / 0x164 bytes. `mode` is qualified on
+ * its parameter object, not in the function type: top-level parameter
+ * qualifiers do not change the ABI or caller-visible type. The qualifier
+ * makes the incoming stack value's read observable, so cc1 cannot sink its
+ * sole load to `CdaStatus.mode = mode`. It instead emits the target's early
+ * `lw $s0,0x68($sp)` and keeps that value live across the calls. A volatile
+ * cast at the assignment is not equivalent for codegen: cc1 preserves that
+ * read but then copy-propagates the later use back to `mode`, producing a
+ * second load. Qualifying the parameter object yields the target's one load.
  */
 typedef struct CdlLOC CdlLOC;
 typedef struct CdlFILE CdlFILE;
@@ -147,15 +125,15 @@ extern void VSync(s32 mode);
 extern void VSyncCallback(void (*func)(void));
 extern void cbCheckCD(void);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CdaPlayXA", CdaPlayXA);
-#else
-int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode)
+int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mode)
 {
     CdlFILE cf;
     struct CdlFILTER filter;
     u8 param[4];
     s32 iVar2;
+    int saved_mode;
+
+    saved_mode = mode;
 
     if ((CdaStatus.flag & 1) == 0) {
         return 0;
@@ -164,7 +142,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode)
     if (CdSearchFile(&cf, (char *)fname) == 0) {
         return 0;
     }
-    CdaStatus.mode = mode;
+    CdaStatus.mode = saved_mode;
     iVar2 = CdPosToInt(&cf.pos);
     CdaStatus.StartPos = iVar2 + 0x96;
     if (end != 0) {
@@ -189,4 +167,3 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode)
     VSyncCallback(cbCheckCD);
     return 1;
 }
-#endif
