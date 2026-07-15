@@ -333,6 +333,7 @@ GP_EXTERNS = {
     "character_balma_around_main_routine_": ["D_800976E8", "GlobalAreaMap", "FieldIndex", "FieldArea"],
     "reset_alert_duration": ["FRAMES_UNTIL_END_OF_ALERT"],
     "Think3area": ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"],
+    "create_ninken_character_": ["NINKEN_CHARACTER_PTR"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs

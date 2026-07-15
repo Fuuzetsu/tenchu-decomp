@@ -1,7 +1,100 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/create_ninken_character_", create_ninken_character_);
+/*
+ * MATCH.
+ *
+ * Creates the persistent ninken character, then snapshots the selected
+ * character's model and a temporary table-selected character model for the
+ * disguise logic consumed by ProcItemHenshin.
+ *
+ * Matching notes:
+ *  - The two output buffers use ProcItemHenshin's overlapping 12-byte record
+ *    layout: z is stored in the first halfword of the next record, while the
+ *    initial word preserves the archive rotation padding.
+ *  - The two model-copy phases need separate block-scoped model, saved, and
+ *    index locals. Reusing one set across both phases joins their pseudos,
+ *    rotates the caller-saved registers, and fills three target load-delay
+ *    nops; distinct source identities reproduce the exact allocation.
+ *  - CURRENTLY_SELECTED_CHARACTER_STATE_PTR is an unknown-size array in this
+ *    TU so split-address formation matches the target.
+ */
+typedef struct
+{
+    u16 rotate_pad;
+    u16 pad;
+    u_long *tmd;
+    s16 x;
+    s16 y;
+} HenshinModelState;
+
+extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
+extern Humanoid *NINKEN_CHARACTER_PTR;
+extern HenshinModelState D_800C0630[];
+extern HenshinModelState D_800C06F0[];
+extern u8 D_8008E3EC[][2];
+
+extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
+extern void KillHumanoid(Humanoid *human);
+
+void create_ninken_character_(s16 type, s32 stage)
+{
+    NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000, 999000, 0);
+    NINKEN_CHARACTER_PTR->attribute |= 0x80;
+
+    {
+        ModelArchiveType *model;
+        HenshinModelState *saved;
+        s32 i;
+
+        model = CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model;
+        i = 0;
+        *(s32 *)D_800C0630 = model->rotate.pad;
+        saved = D_800C0630;
+        if (model->n > 0)
+        {
+            do
+            {
+                saved[i].tmd = model->object[i]->object.tmd;
+                saved[i].x = model->object[i]->locate.coord.t[0];
+                saved[i].y = model->object[i]->locate.coord.t[1];
+                *(s16 *)(saved + i + 1) =
+                    model->object[i]->locate.coord.t[2];
+                i++;
+            } while (i < model->n);
+        }
+    }
+
+    {
+        Humanoid *human;
+        ModelArchiveType *model;
+        HenshinModelState *saved;
+        s32 i;
+        s32 flag;
+
+        flag = (type == 1);
+        human = BreedLife(D_8008E3EC[(s16)stage][flag],
+                          999000, 999000, 999000, 0);
+        model = human->model;
+        i = 0;
+        *(s32 *)D_800C06F0 = model->rotate.pad;
+        saved = D_800C06F0;
+        if (model->n > 0)
+        {
+            do
+            {
+                saved[i].tmd = model->object[i]->object.tmd;
+                saved[i].x = model->object[i]->locate.coord.t[0];
+                saved[i].y = model->object[i]->locate.coord.t[1];
+                *(s16 *)(saved + i + 1) =
+                    model->object[i]->locate.coord.t[2];
+                i++;
+            } while (i < model->n);
+        }
+        KillHumanoid(human);
+    }
+}
 
 // triage: MEDIUM — 144 insns, 2 loop, 2 callees, ~0.09 to FUN_8004a598
 // likely-relevant cookbook sections:
@@ -60,4 +153,64 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/create_ninken_charac
 //   }
 //   KillHumanoid(human);
 //   return;
+// }
+
+// m2c (mipsel-gcc-c reference — cleaner control flow + register
+// temps straight from the asm; Ghidra above has the real types):
+//
+// void *BreedLife(u8, ?, ?, ?, s32);                  /* extern */
+// ? KillHumanoid(void *);                             /* extern */
+// extern void *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+// extern ? D_8008E3EC;
+// extern s32 D_800C0630;
+// extern s32 D_800C06F0;
+// extern void *NINKEN_CHARACTER_PTR;
+//
+// void create_ninken_character_(s16 arg0, s32 arg1) {
+//     s32 *var_a0;
+//     s32 *var_a1;
+//     s32 temp_v1;
+//     s32 temp_v1_2;
+//     s32 var_a2;
+//     s32 var_a3;
+//     void *temp_a1;
+//     void *temp_a2;
+//     void *temp_v0;
+//     void *temp_v0_2;
+//
+//     temp_v0 = BreedLife(0xA9U, 0xF3E58, 0xF3E58, 0xF3E58, 0);
+//     temp_v0->unk4 = (u16) (temp_v0->unk4 | 0x80);
+//     temp_a1 = CURRENTLY_SELECTED_CHARACTER_STATE_PTR->unk58;
+//     var_a2 = 0;
+//     NINKEN_CHARACTER_PTR = temp_v0;
+//     D_800C0630 = (s32) temp_a1->unk56;
+//     if (temp_a1->unk64 > 0) {
+//         var_a0 = &D_800C0630;
+//         do {
+//             temp_v1 = var_a2 * 4;
+//             var_a0->unk4 = (s32) (*(temp_v1 + temp_a1->unk68))->unk6C;
+//             var_a0->unk8 = (u16) (*(temp_v1 + temp_a1->unk68))->unk18;
+//             var_a0->unkA = (u16) (*(temp_v1 + temp_a1->unk68))->unk1C;
+//             var_a2 += 1;
+//             var_a0->unkC = (u16) (*(temp_v1 + temp_a1->unk68))->unk20;
+//             var_a0 += 0xC;
+//         } while (var_a2 < temp_a1->unk64);
+//     }
+//     temp_v0_2 = BreedLife(*((arg0 == 1) + ((s32) (arg1 << 0x10) >> 0xF) + &D_8008E3EC), 0xF3E58, 0xF3E58, 0xF3E58, 0);
+//     temp_a2 = temp_v0_2->unk58;
+//     var_a3 = 0;
+//     D_800C06F0 = (s32) temp_a2->unk56;
+//     if (temp_a2->unk64 > 0) {
+//         var_a1 = &D_800C06F0;
+//         do {
+//             temp_v1_2 = var_a3 * 4;
+//             var_a1->unk4 = (s32) (*(temp_v1_2 + temp_a2->unk68))->unk6C;
+//             var_a1->unk8 = (u16) (*(temp_v1_2 + temp_a2->unk68))->unk18;
+//             var_a1->unkA = (u16) (*(temp_v1_2 + temp_a2->unk68))->unk1C;
+//             var_a3 += 1;
+//             var_a1->unkC = (u16) (*(temp_v1_2 + temp_a2->unk68))->unk20;
+//             var_a1 += 0xC;
+//         } while (var_a3 < temp_a2->unk64);
+//     }
+//     KillHumanoid(temp_v0_2);
 // }
