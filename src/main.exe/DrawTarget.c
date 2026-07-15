@@ -32,16 +32,16 @@
  * GetScreenPositionS.c/PrepareGetScreenPositionS.c for the scratchpad MATRIX/SVECTOR idiom),
  * but instead of writing OTZ into a caller-supplied output pointer, it reads
  * RotTransPers's packed screen (x,y) back off its own stack scratch and
- * tail-calls DrawTargetS(x, y, otz - 5, arg3) — a line-draw/sort helper
+ * calls DrawTargetS(x, y, otz - 5, arg3) — a line-draw/sort helper
  * (DrawTargetS's only other caller, FUN_8003d768, is also unmatched).
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - `arg0 - (short)ViewInfo.vpx` etc. — same NARROWING lhu-of-a-s32-global
  *    rule as the twin.
- *  - RotTransPers's `sxy` out-param is two adjacent stack shorts (x,y, not
- *    one s32): declared as separate locals matching Ghidra, since the
- *    caller reads them back via two independent `lh`s rather than one
- *    shift-derived pair.
+ *  - RotTransPers's `sxy` out-param is the packed `vx/vy` prefix of one
+ *    address-taken `SVECTOR scr`; its return value is stored into `scr.vz`.
+ *    This is the original PSX.SYM local and legally explains the adjacent
+ *    stack shorts plus the later independent `lh` readbacks.
  *  - Scratchpad zero/coordinate stores are FLAT `*(s32/s16 *)0x1F8000xx`
  *    casts, one macro expansion each (repeated fresh `lui $at,0x1F80` per
  *    store) — NOT a shared cached `MATRIX *`/`SVECTOR *` local like
@@ -49,25 +49,16 @@
  *    function's asm never reuses one register across the individual
  *    zero/coordinate stores, unlike the twins.
  *
- * STATUS: NON_MATCHING — 51 of 204 bytes differ (same length, no diffs
- * outside this function's own window). Every field/argument VALUE and the
- * scratchpad addressing already match; the residual is that the target
- * caches `&x` (the RotTransPers `sxy` out-arg's address) into a
- * callee-saved register ($s0) and reuses it to store the truncated OTZ
- * result (`sh v0,4(s0)`) after the call, then reloads x/y/otz via plain
- * `lh`s off $sp for the DrawTargetS call — while this compile computes
- * `&x` straight into the argument register (no persisting alias) and keeps
- * OTZ live in a register across the truncate/-5 instead of round-tripping
- * it through memory. Tried: taking `&x` into an explicit local pointer and
- * storing OTZ through `p+2` (regressed — forced an unrelated extra
- * callee-saved register for `y`, since introducing the pointer variable
- * disturbed unrelated allocation); the same via an inline
- * `*(short*)((s32*)&x+1)` double-dereference with no named pointer (same
- * regression). autorules.py found no mechanical win. tools/permute.py ran a
- * bounded (~10 min, -j4) search; see its result before doing more surgery
- * here — if it plateaus, this is a frame-address-argument caching decision
- * (calls.c precompute_register_parameters) triggered by the OTZ store's
- * reuse of the SAME address, not a shape this source has found yet.
+ * STATUS: MATCHING — exact 204-byte / 51-instruction pure C with the target
+ * 0x28 frame. A short-lived `SVECTOR *p = &scr` supplies the RotTransPers
+ * SXY argument and the post-call `p->vz` writeback. Because that alias
+ * crosses the call, it is cached in `$s0`; `arg3` consequently takes `$s1`.
+ * The DrawTargetS arguments deliberately use direct `scr.vx/vy/vz` member
+ * spellings, so the values reload as `lh` from `$sp` after the pointer dies.
+ * Using `scr` directly for every access drops the saved pointer and shrinks
+ * the frame to 0x20; using separate x/y/otz scalars does not establish a
+ * legal shared object for RotTransPers's packed SXY write and leaves the OTZ
+ * value live in a register instead of round-tripping through the stack.
  */
 
 typedef struct

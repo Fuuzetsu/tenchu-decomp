@@ -2021,6 +2021,19 @@ near entry; `AdtMessageBox` wants the inline form.)
   `sp+offset` loads/stores and preserved its loaded-z call delay slot. Making
   every access `p->field` added a reload and a call-delay `nop`; making every
   access direct deleted the pointer.
+  DrawTarget supplies the compact output-overlay form: one `SVECTOR scr` is
+  passed to RotTransPers through `SVECTOR *p = &scr`, its returned OTZ is
+  written as `p->vz`, and the following call reads `scr.vx/vy/vz` directly.
+  The pointer therefore survives RotTransPers in `$s0` for the base-relative
+  halfword write, then dies so the direct members reload from `$sp`; the
+  colour argument takes `$s1` and the target 0x28 frame follows naturally.
+  Writing `scr.vz = RotTransPers(..., (s32 *)&scr, ...)` without the pointer
+  keeps the result in a register and shrinks the frame to 0x20. Three separate
+  shorts are not an equivalent alias model: a packed SXY write through the
+  first scalar does not make its neighbours members of one address-taken
+  object. When target stack evidence shows `addr sp+K`, a base-relative
+  write after the call, then direct loads at `sp+K/+2/+4`, try one aggregate
+  plus this mixed pointer/direct view.
 - **A local ARRAY element pointer can likewise coexist with selected typed
   byte-offset lvalues.** Keep `sprite = &bank[i]` for calls and the fields whose
   target accesses stay base-relative, but spell a target-rematerialized store
