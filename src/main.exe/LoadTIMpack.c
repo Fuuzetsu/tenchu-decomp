@@ -25,31 +25,29 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 1 instruction short (68 vs 69), residual is a single
- * reorg delay-slot-fill tie (the named permuter-immune class in
- * docs/matching-cookbook.md's "guard's DELAY-SLOT FILL tie"). Everything else
- * byte-matches: after making `adr` itself the walking cursor (so the incoming
- * pointer register $s0 stays the walker and the fixed table base is the saved
- * copy in $s3 — exactly the target's register roles) the whole loop, the
- * i-in-$s1/n-in-$s2 allocation, the `i+1`-via-$v0-then-`move $s1`-reused-in-the-
- * compare form, and the `adr++` in the loop-back branch's delay slot are all
- * identical. The ONLY diff: the CLUT-present guard `beqz` at 0x80018a54.
- *   - Target: reorg DUPLICATES the branch-taken target's head instruction
- *     (`addiu $v0,$s1,1`, the no-CLUT path's own `i+1`) into the beqz delay
- *     slot and retargets the branch +1 (to the shared `move $s1,$v0` join) —
- *     making the function 69 insns.
- *   - Ours: reorg instead fills that same delay slot from the FALL-THROUGH
- *     (the CLUT block's first instruction, `addiu $a0,$sp,16` — the second
- *     LoadImage's RECT-pointer arg), leaving the branch pointed straight at
- *     the single `addiu $v0,$s1,1`/`move $s1,$v0` — 68 insns.
- * Both candidate fills are equally ready and data-independent of the CLUT bit
- * ($v0), so which one reorg picks is a scheduler tie with no source lever.
- * Confirmed permuter-immune: a bounded `tools/permute.py LoadTIMpack` run
- * (400s / j4, killed at the timeout) plateaued at score 40 and never
- * approached 0; manual attempts at the alternative shapes all diverged (an
- * `if(==0){i++}else{...;i++}` else-duplication inverted the branch polarity to
- * `bnez`; an `if(!=0){...;i++}else{i++}` form duplicated `adr++` too, going one
- * insn LONG at 70). Parked per the cookbook's sub-C-level early-stop.
+ * STATUS: NON_MATCHING — exact 276-byte / 69-instruction extent, with 12
+ * linked and whole-image bytes different. The candidate also has the target's
+ * exact optimized CFG: 4 conditional branches, no unconditional jumps, 5
+ * calls, and 1 return. The full prologue, outer loop, both guards, both call
+ * sites, increment/compare tail, and epilogue are exact.
+ *
+ * This checkpoint closes the old one-instruction-short reorg tie with two
+ * source-level phase boundaries. Naming `tim.clut` and ending a weight-free
+ * empty one-shot loop immediately after its assignment keeps the call's $a1
+ * producer ahead of the four CLUT geometry loads. Wrapping only the second
+ * LoadImage call in a one-shot loop then makes reorg duplicate `i + 1` into
+ * the CLUT guard's delay slot, exactly as retail does, without retaining a
+ * branch or changing the runtime CFG.
+ *
+ * The remaining six aligned lines are one coupled allocation/schedule island.
+ * Retail loads cx/cy/cw/ch into $v0/$v1/$a2/$a3, materializes `&r` in $a0,
+ * then stores all four values; this draft uses $a0 for cw and $a2 for ch,
+ * stores them, and sinks the `&r` addiu to the call delay slot. A bounded
+ * 180-candidate guided loop/boundary/identical-arm search did not beat 12.
+ * Focused producer temporaries, explicit pointer lifetimes, call-argument
+ * comma forms, identical-arm pointer donors, all call-loop ranges, and
+ * duplicated-increment/goto shapes were flat or regressed. Keep the guard;
+ * the 12-byte pure-C checkpoint is useful, but not a match.
  *
  * LoadTIMpack (0x800189b4, 0x114 bytes) — LoadTIM.c's "pack" twin (same TU):
  * a packed archive's header is `adr[1]` (the element COUNT, low halfword)
@@ -110,6 +108,7 @@ short LoadTIMpack(u_long *adr)
     RECT r;
     GsIMAGE tim;
     u_long *puVar2;
+    u_long *clut;
     u16 uVar1;
     short n;
     short i;
@@ -132,11 +131,16 @@ short LoadTIMpack(u_long *adr)
             r.h = tim.ph;
             LoadImage(&r, tim.pixel);
             if ((tim.pmode >> 3 & 1) != 0) {
+                clut = tim.clut;
+                do {
+                } while (0);
                 r.x = tim.cx;
                 r.y = tim.cy;
                 r.w = tim.cw;
                 r.h = tim.ch;
-                LoadImage(&r, tim.clut);
+                do {
+                    LoadImage(&r, clut);
+                } while (0);
             }
             i = i + 1;
             adr = adr + 1;

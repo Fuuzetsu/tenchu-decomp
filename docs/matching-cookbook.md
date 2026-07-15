@@ -3675,6 +3675,18 @@ forced `sw` ahead of `addiu`. When a two-insn tie stays flat, split the shared
 producer first and enumerate boundaries around the producer/consumer phases,
 not just between the two final instructions.
 
+The producer boundary can compose with a **call-only one-shot loop** when
+reorg is choosing between a fall-through call argument and a duplicated
+branch-target instruction. LoadTIMpack was one instruction short because the
+CLUT guard stole `&rect` into its delay slot instead of duplicating the shared
+`i + 1`. Naming the CLUT pointer, placing an empty boundary after that load,
+and wrapping only `LoadImage(&rect, clut)` in `do { ... } while (0)` restored
+the retail 69-instruction extent and exact CFG, reducing the guarded residual
+to 12 bytes. Wrapping the geometry assignments too erased the gain; placing a
+boundary inside them changed their allocation. Treat the pointer-producer and
+call range as separate axes, and verify the resulting argument/field register
+island even when branch reorg becomes exact.
+
 An artificial fence is a hypothesis, so re-test its **removal after every real
 identity/dependency fix**. Think3callaid first needed an empty loop between its
 Think1Func and Think2Func stores to restore a missing load-delay `nop`. After
