@@ -69,11 +69,24 @@ extern void *memset(void *s, int c, u32 n);
  * flags both models' attribute bit 0x8000, and bumps both `offset.pad` counters.
  *
  * Matching notes:
- *  - `confop` (a real PSX.SYM local, ConflictObjectType*) caches `&ConflictObject[i]`
- *    for the WHOLE outer-loop body in both passes. `other` (`&ConflictObject[j]`,
- *    not in PSX.SYM's recorded set — the demo build's local list under-records,
- *    per the standard caveat) is needed to get the target's `a1`-cached-pointer
- *    reuse across all of the inner loop's position/size/model reads.
+ *  - `confop` and `model` (real PSX.SYM locals) belong to pass 1. Pass 2
+ *    deliberately keeps `ConflictObject[i]` as direct indexed expressions;
+ *    cc1 then builds the outer pointer in `$a3`, preserves both its byte
+ *    offset and `i` for the result writes, and copies the pointer to `$a2`
+ *    before the inner loop. Reusing the pass-1 locals here incorrectly kept
+ *    them in `$s1`/`$s0` and removed that target pointer copy.
+ *  - `other` (`&ConflictObject[j]`) is a block-local pointer not recorded in
+ *    the demo local list. It gives the target's `$a1` pointer reuse across
+ *    the inner loop's position, size, model, and counter accesses.
+ *  - Each axis is one direct `__builtin_abs(other position - outer position)`
+ *    expression. The opaque `abssi2` RTL lets cc1 schedule both independent
+ *    size loads around the subtraction before expanding the target's
+ *    `bgez; nop; negu`, eliminating the two load-delay stalls produced by a
+ *    separate source-level sign fix. The commutative sum is written outer
+ *    size first so the two `lh` destinations also match.
+ *  - The two `result[]` writes retain their direct `ConflictObject[i/j]`
+ *    indexing. The target recomputes `base + i*0x78 + j` and the symmetric
+ *    address instead of shortening either store through the cached pointers.
  *  - `model->locate.super == &World.locate`: locate (GsCOORDINATE2) is
  *    ModelType's own first field, so `&model->locate` is model itself (see
  *    GetAbsolutePosition.c's identical `GsGetLw(&model->locate, &m)` idiom).
@@ -82,42 +95,8 @@ extern void *memset(void *s, int c, u32 n);
  *    (DeleteConflict.c/GetConflictResult.c precedent), no explicit redundant
  *    guard needed here.
  *
- * STATUS: NON_MATCHING — 8 of 816 bytes over length (206 vs target 204
- * instructions), confirmed to be a pure INSTRUCTION-SCHEDULING residual, not
- * a structural one: every field access, struct layout, loop shape, and
- * operand is proven correct (traced instruction-by-instruction against the
- * raw target .s in .shake/gen/main.exe/asm/nonmatchings/ComputeAllConflict/).
- * In each of the 3 AABB axis checks (`d = other->position.vN -
- * confop->position.vN; if (d<0) d=-d; if (d <= other->size.vN +
- * confop->size.vN)`), the target interleaves BOTH size loads with the
- * delta/abs computation (loads size.vN for `other` right after the
- * subtraction, size.vN for `confop` right after that — both BEFORE the
- * `bgez`/`negu` abs sequence), so by the time the loaded values are added
- * together enough independent instructions have executed to cover the
- * MIPS I load-delay slot with no stall. Our compile evaluates the 3
- * statements in strict sequence (matching source order) — both size loads
- * happen only when reaching the third statement, back-to-back, so the
- * second load's result is used one instruction after the load, forcing an
- * explicit `nop` load-delay filler each time. Sub-C-level: identical
- * source, target's scheduler (sched1, pre-allocation) chose to hoist two
- * independent loads earlier than a strictly-sequential reading of the same
- * 3 statements would place them. Ruled out: reordering the `size.vN +`
- * operands (no effect, addition is commutative and cc1 folds either
- * spelling to the same RTL); using `ConflictObject[i].result[j]` /
- * `ConflictObject[j].result[i]` direct-index spellings for the two
- * `result[]` stores instead of `confop`/`other` pointers (matches the
- * target's exact 3-term address recompute there, `&ConflictObject +
- * i*0x78 + j` instead of reusing the cached `confop` pointer — CONFIRMED
- * correct against the raw target asm) but this alone made the whole-image
- * residual WORSE (836 vs 824 bytes), so it was not adopted pending a fuller
- * resolution of the scheduling piece. A bounded permuter run (`timeout 300
- * tools/permute.py ComputeAllConflict -- --stop-on-zero -j4`, ~25000+
- * iterations) plateaued at best score 1905 (from a base of 2515), never
- * reaching 0.
+ * STATUS: MATCHED — exact 816 bytes / 204 instructions.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ComputeAllConflict", ComputeAllConflict);
-#else
 void ComputeAllConflict(void)
 {
     short i;
@@ -153,8 +132,7 @@ void ComputeAllConflict(void)
 
     for (i = 0; i < ConflictObjects; i++)
     {
-        confop = &ConflictObject[i];
-        if (confop->model->attribute & 0x4000)
+        if (ConflictObject[i].model->attribute & 0x4000)
         {
             for (j = i + 1; j < ConflictObjects; j++)
             {
@@ -162,28 +140,21 @@ void ComputeAllConflict(void)
 
                 if (other->model->attribute & 0x4000)
                 {
-                    d = other->position.vy - confop->position.vy;
-                    if (d < 0)
-                        d = -d;
-                    if (d <= other->size.vy + confop->size.vy)
+                    d = __builtin_abs(other->position.vy - ConflictObject[i].position.vy);
+                    if (d <= ConflictObject[i].size.vy + other->size.vy)
                     {
-                        d = other->position.vz - confop->position.vz;
-                        if (d < 0)
-                            d = -d;
-                        if (d <= other->size.vz + confop->size.vz)
+                        d = __builtin_abs(other->position.vz - ConflictObject[i].position.vz);
+                        if (d <= ConflictObject[i].size.vz + other->size.vz)
                         {
-                            d = other->position.vx - confop->position.vx;
-                            if (d < 0)
-                                d = -d;
-                            if (d <= other->size.vx + confop->size.vx)
+                            d = __builtin_abs(other->position.vx - ConflictObject[i].position.vx);
+                            if (d <= ConflictObject[i].size.vx + other->size.vx)
                             {
-                                confop->result[j] = other->size.pad | 0x80;
-                                other->result[i] = confop->size.pad | 0x80;
-                                model = confop->model;
-                                model->attribute = model->attribute | 0x8000;
-                                model = other->model;
-                                model->attribute = model->attribute | 0x8000;
-                                confop->offset.pad = confop->offset.pad + 1;
+                                ConflictObject[i].result[j] = other->size.pad | 0x80;
+                                ConflictObject[j].result[i] = ConflictObject[i].size.pad | 0x80;
+                                ConflictObject[i].model->attribute =
+                                    ConflictObject[i].model->attribute | 0x8000;
+                                other->model->attribute = other->model->attribute | 0x8000;
+                                ConflictObject[i].offset.pad = ConflictObject[i].offset.pad + 1;
                                 other->offset.pad = other->offset.pad + 1;
                             }
                         }
@@ -193,15 +164,13 @@ void ComputeAllConflict(void)
         }
     }
 }
-#endif /* NON_MATCHING */
 
 // triage: MEDIUM — 204 insns, 3 loop, 4 callees, ~0.12 to update_something_for_each_visible_enemy_
 // likely-relevant cookbook sections:
 //   - Loops: 3 back-edge(s) — for/while/do vs goto shape
 //   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (reference retained for provenance):
 //
 //
 // /* WARNING: Type propagation algorithm not settling */
