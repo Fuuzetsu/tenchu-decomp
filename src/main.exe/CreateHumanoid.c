@@ -33,36 +33,22 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — ~21 differing instruction lines (7 blocks), all
- * downstream of ONE root cause: the function compiles 1 instruction (4
- * bytes) SHORT of the target, in the `human->rotate = &pmod->rotate;`
- * statement. The target materializes that address as TWO instructions
- * (`move v1,v0` then `addiu v1,v1,80`, preserving pmod's own register
- * unclobbered via an explicit copy) where our build emits the objectively
- * equivalent ONE-instruction form (`addiu v1,v0,80`, dest != src, which
- * ALSO leaves pmod's register unclobbered). Both forms are behaviorally
- * and register-effect identical; this looks like a raw cc1 RTL-expansion
- * artifact for `&callresult->field` assigned to a pointer-typed struct
- * field, not a source-shape choice — every attempted source lever left it
- * unchanged:
- *   - an explicit second pointer copy (`pmod2 = pmod; human->rotate =
- *     &pmod2->rotate;`) — copy-propagated away, zero effect.
- *   - assigning the address through a named `SVECTOR *rotp;` temp before
- *     the store — zero effect.
- *   - reordering `locate`'s computation before `rotate`'s — compiles
- *     WORSE (24 differing lines, a different address literal leaks in).
- *   - inlining the height read (dropping the `hh` local) — zero effect.
- *   - `tools/permute.py CreateHumanoid -- --stop-on-zero -j4`, one bounded
- *     ~6-minute run: plateaued at internal score 270, its only found
- *     "improvement" a dead-store decoy variable, never touching this insn.
- * The one missing instruction cascades into a second block (the
- * height-half computation right after) picking the mirror-image register
- * pair (v1/a0 instead of a0/v0) — a scheduler-driven consequence of the
- * upstream register's availability at that point, not an independent bug.
- * Every OTHER instruction in the function (the guard, vcalloc, model/
- * think/character-parameter setup, GetAreaMapVector call, the
- * ConflictObject writes including the 0x86/0x89 special case, and the
- * Humans/HumanGroup append) matches byte-for-byte.
+ * STATUS: NON_MATCHING — exact 508-byte length, 39 differing bytes, fuzzy
+ * 90.55. The old missing-instruction root is fixed: assigning the loader's
+ * result directly to `human->model`, then spelling `locate` before `rotate`,
+ * gives the target's complete post-call sequence, including
+ * `move v1,v0; addiu v1,v1,80`. The guard, allocation, model/think setup,
+ * character setup, area-map/weapon calls, special 0x86/0x89 writes, and
+ * Humans/HumanGroup append are now byte-for-byte exact.
+ *
+ * The only residual is 0x80027a14..0x80027a58: the collision index/address
+ * and signed half-height chains are scheduled in the opposite order and
+ * consequently receive the mirror register roles. The operations and
+ * stores are equivalent and the instruction count is exact. Named
+ * ConflictObject pointers and manually split index offsets make this block
+ * worse; a bounded 100-candidate guided/aggressive autorules search from
+ * this 39-byte state found no improvement. Treat this as a local scheduler/
+ * allocator problem, not a reason to disturb the now-exact model block.
  *
  * CreateHumanoid (0x800278e4) — allocate and register a new Humanoid: zero
  * it, load its model archive, wire up locate/rotate into the archive's own
@@ -138,7 +124,6 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CreateHumanoid", Cre
 Humanoid *CreateHumanoid(short type, u32 *mad)
 {
     Humanoid *human;
-    ModelArchiveType *pmod;
     s16 idx;
     u16 hh;
     u16 ww;
@@ -154,10 +139,9 @@ Humanoid *CreateHumanoid(short type, u32 *mad)
     human->type = type;
     human->status = 0;
     human->attribute = 0;
-    pmod = LoadModelArchive(mad, &World);
-    human->model = pmod;
-    human->rotate = &pmod->rotate;
-    human->locate = (VECTOR *)pmod->locate.coord.t;
+    human->model = LoadModelArchive(mad, &World);
+    human->locate = (VECTOR *)human->model->locate.coord.t;
+    human->rotate = &human->model->rotate;
     human->model->attribute = 0x1c;
     SetupThinkFunction(human, 0);
     SetupCharacterParameter(type, human);
