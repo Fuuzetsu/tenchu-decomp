@@ -66,6 +66,30 @@
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetWire", SetWire);
 #else
+/*
+ * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
+ * 0x78-byte frame and 1,488-byte / 372-instruction extent.  The physical CFG
+ * inventory is also exact: 22 conditional branches, 3 unconditional jumps,
+ * 17 calls, 2 divide traps, and 1 return.  The guarded draft has 331
+ * differing bytes and 69 aligned residual lines in 32 blocks; fuzzy improves
+ * from 83.79 to 84.07.
+ *
+ * EFFECT.C sibling DrawBleed proves that this depth clamp is a negative-path
+ * `goto`, followed by the high fallback and a shared call join.  Keeping the
+ * computed priority in place while spelling those two labels removes 12
+ * differing bytes and two residual lines without changing length or CFG.
+ * DrawBleed's full default-then-restore spelling reproduces SetWire's local
+ * clamp island more closely, but exposes one independent interpolation spill
+ * and makes this draft one instruction long, so that form was reverted.
+ *
+ * Remaining concentrated residuals are register/schedule islands: the entry
+ * camera-relative VECTOR loads, the fixed-point interpolation weights and
+ * three coordinate accumulators, and the priority result copy.  PSX.SYM and
+ * matched screen-position siblings confirm that the long coordinate locals,
+ * low-half ViewInfo loads, explicit bias-and-shift divisions, split distance
+ * and final-rotation scopes, and nullable center reassignment are intentional;
+ * changing those recovered types or expressions is not an open spelling fix.
+ */
 
 typedef struct
 {
@@ -245,15 +269,16 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             line.y1 = scr.vy;
             if (priority < 0)
             {
-                priority = 0;
+                goto priority_zero;
             }
-            else
+            if (priority >= 0x4e2)
             {
-                if (priority >= 0x4e2)
-                {
-                    priority = 0x4e1;
-                }
+                priority = 0x4e1;
             }
+            goto priority_done;
+        priority_zero:
+            priority = 0;
+        priority_done:
             GsSortLine(&line, OTablePt, (u16)priority);
         }
         oldscr = scr;
