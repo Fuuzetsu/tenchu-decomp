@@ -42,36 +42,34 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — complete pure-C reconstruction, 1132 bytes / 283
- * instructions versus the 1152-byte / 288-instruction target, with the exact
- * 0x810 frame.  The retail stack plan is also exact: names at sp+0x18,
- * ItemName at sp+0x590, output VECTOR at sp+0x7c0, and the zeroed blood
- * VECTOR at sp+0x7d0.
+ * STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
+ * extent (1152 bytes / 288 instructions) and exact 0x810 frame.  The guarded
+ * draft has 537 differing bytes, fuzzy 57.99, with 160 raw-aligned residual
+ * lines in 53 blocks (118 structural lines in 28 blocks).  The retail stack
+ * plan is also exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at
+ * sp+0x7c0, and the zeroed blood VECTOR at sp+0x7d0.
  *
  * The remaining diff is dominated by one allocator/control-flow family in
  * the nested stage-kind, weapon, and think-menu scans.  Retail holds the
  * HumanData base in fp, assigns the scan/count values to s2-s5, and keeps the
  * StageAppearance and WeaponModel bases in t1/t0, spilling those two
- * caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  This draft's
- * equivalent first scan still colors those bases into saved registers.  The
- * AddEnemyBloodScratch tail represents the two retail spill words and keeps
- * the frame exact while that allocation remains unresolved.
+ * caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  Direct references
+ * to the three global arrays are important: the former explicit base-pointer
+ * locals over-constrained their lifetimes, kept the draft five instructions
+ * short, and produced a much broader register cascade.
  *
- * The nested single-trip `do` fences below are pure C and optimize away.  They
- * preserve behavior while adjusting GCC 2.8's internal statement/pseudo
- * ordering enough to improve the think-menu coloring: think and
- * category now use the target s2/s3, the menu base and cursor use s0/a1, and
- * the category character uses a2.  This raises the authoritative fuzzy score
- * from 53.94 to 57.44.  The candidate remains five instructions short, with
- * 161 displayed asmdiff lines in 53 blocks (164 raw-aligned lines in 56
- * blocks; structural filter: 124 lines in 30 blocks).
+ * The identical `weapon_entry = WeaponModel` arms are a zero-code allocation
+ * donor.  The enclosing test has already initialized/read `j`, so the fence is
+ * defined pure C; jump2 erases the branch and duplicate assignment.  Global
+ * allocation still sees the extra weighted `j` reference, which restores the
+ * final missing instruction and cuts the linked residual to 537 bytes.  The
+ * older nested single-trip fences remain useful for the think-menu coloring.
  *
- * `rtlguide`, register-allocation reports, guided permutation, and direct
- * stage/weapon-loop variants found no justified spelling that closes those
- * five instructions.  Candidates relying on an unrelated branch or an
- * uninitialized-value fence were rejected, as were narrowed count/offset
- * types that contradict the target's direct `slti`/`sll` uses and Ghidra's
- * recovered int types.
+ * Two bounded 160-candidate guided searches found this donor and no composing
+ * broad win.  The only follow-up lowered three bytes while increasing the
+ * structural residual, so it was rejected.  Narrowed count/offset types that
+ * contradict the target's direct `slti`/`sll` uses and recovered int types
+ * remain rejected.
  */
 
 #ifndef NON_MATCHING
@@ -206,9 +204,6 @@ void AddEnemy(void)
     debug_menu_choice *item;
     debug_menu_choice *menu_base;
     debug_menu_choice *think_item;
-    s16 **kind_base;
-    AddEnemyHumanData *human_data;
-    AddEnemyWeaponModel *weapon_base;
     char *buffer;
     ModelArchiveType *model;
     Humanoid *human;
@@ -222,9 +217,6 @@ void AddEnemy(void)
     if (HumanData[0].type != -1)
     {
         names_offset = 0;
-        human_data = HumanData;
-        weapon_base = WeaponModel;
-        kind_base = StageAppearance;
         do
         {
             if (count >= 70)
@@ -232,13 +224,13 @@ void AddEnemy(void)
 
             stage = StageID;
 #define ADD_ENEMY_STAGE_KINDS \
-    (*(s16 **)((u8 *)kind_base + ((stage + 1) * sizeof(s16 *))))
+    (StageAppearance[stage + 1])
             if (ADD_ENEMY_STAGE_KINDS[0] != -1)
             {
                 j = 0;
                 do
                 {
-                    if (ADD_ENEMY_STAGE_KINDS[j] == human_data[i].type)
+                    if (ADD_ENEMY_STAGE_KINDS[j] == HumanData[i].type)
                         break;
                     j++;
                 } while (ADD_ENEMY_STAGE_KINDS[j] != -1);
@@ -246,12 +238,19 @@ void AddEnemy(void)
                 if (ADD_ENEMY_STAGE_KINDS[j] != -1)
                 {
                     weapon = 0;
-                    weapon_entry = weapon_base;
+                    if (j != 0)
+                    {
+                        weapon_entry = WeaponModel;
+                    }
+                    else
+                    {
+                        weapon_entry = WeaponModel;
+                    }
                     if (weapon_entry->wid != -1)
                     {
                         do
                         {
-                            if (weapon_entry->wid == human_data[i].wepid)
+                            if (weapon_entry->wid == HumanData[i].wepid)
                                 break;
                             weapon_entry++;
                             weapon++;
@@ -260,15 +259,15 @@ void AddEnemy(void)
 
                     buffer = (char *)names + names_offset;
                     names_offset += 20;
-                    sprintf(buffer, D_80097D48, human_data[i].name,
-                            weapon_base[weapon].name);
+                    sprintf(buffer, D_80097D48, HumanData[i].name,
+                            WeaponModel[weapon].name);
                     ItemName[count].choice_name = buffer;
-                    ItemName[count].choice_number = human_data[i].type;
+                    ItemName[count].choice_number = HumanData[i].type;
                     count++;
                 }
             }
             i++;
-        } while (human_data[i].type != -1);
+        } while (HumanData[i].type != -1);
 #undef ADD_ENEMY_STAGE_KINDS
     }
 

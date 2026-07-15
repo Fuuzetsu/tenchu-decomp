@@ -4378,6 +4378,17 @@ before local-alloc, so the def is gone before it can bias anything.
   from 35 to 24 bytes. Guided `allocation-donor-fence` now searches this bounded
   enclosing-guard case as well as initialized parameters, including donor sites
   away from the residual's mapped line.
+- **Remove invented invariant-base locals before donating allocation weight.**
+  AddEnemy's explicit `HumanData`, `StageAppearance`, and `WeaponModel` base
+  pointers over-constrained three loop-wide lifetimes and left its otherwise
+  complete draft five instructions short. Direct global-array expressions
+  recovered four instructions. An enclosing guard had already read the stage
+  index `j`, so duplicating the following `weapon_entry = WeaponModel`
+  assignment under `if (j)` was a defined zero-code donor: jump2 erased the
+  fence, global allocation retained the extra weighted reference, the draft
+  reached the exact 1152-byte extent, and the linked residual fell to 537
+  bytes. Treat the order as diagnostic: first remove unsupported source
+  aliases, then use a donor only when the value's initialization is proven.
 - **A dead-until-overwrite local can donate a disjoint source identity without
   runtime work.** If uninitialized `later` is untouched before `later = L`, then
   `early = E; use(early); ... later = L` can be written as
