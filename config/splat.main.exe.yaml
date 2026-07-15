@@ -146,6 +146,9 @@ segments:
       - { start: 0x3330, type: .rodata, name: BriefingAndInventorySelectionScreen, linker_section_order: .data }
       - { start: 0x33B0, type: .rodata, name: start_demo_, linker_section_order: .data }
       - [0x33C4, data]
+      # FUN_800593a0's 29-entry primitive-type jump table (vram 0x80013C20).
+      - { start: 0x3420, type: .rodata, name: FUN_800593a0, linker_section_order: .data }
+      - [0x3494, data]
       - { start: 0x3534, type: .rodata, name: FUN_8005a7a4, linker_section_order: .data }
       - [0x3630, data]
       - { start: 0x3634, type: .rodata, name: FUN_8005aba4, linker_section_order: .data }
