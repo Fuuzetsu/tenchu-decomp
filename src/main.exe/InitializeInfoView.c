@@ -37,23 +37,10 @@
  * and the 4-entry ItemSprite3Ds array, then resets enemy layout/info-view
  * state and marks fInitialize.
  *
- * STATUS: NON_MATCHING — 4 of 352 bytes differ (1 extra instruction; the
- * loop-shape/gp/drift fixes below are all verified correct against the
- * target). Residual, in loop 1's body: the target reloads `*piVar3` into
- * `$v1` then fills the load-delay slot with `addiu $s1,$s1,1` (iVar4++)
- * before the `li v0,0x1c` / `sh v0,0x5a($v1)` attribute store; the draft's
- * scheduler instead floats the SAME increment to right after the two `sw`s
- * (an independent instruction with nothing else ready to fill that earlier
- * slot), leaving a genuine `nop` in loop 2's equivalent delay slot later —
- * moving the source statement (`iVar4 = iVar4 + 1;`) to every tried position
- * around the loop body produced byte-identical output each time, so this is
- * sched1's own placement, not reachable from source order. A second,
- * related residual: loop 2's `attr2 = 0x1C;` compiles as `move $s2,$v1`
- * (copy-propagated from loop 1's last-iteration `$v1`, itself dead code the
- * scheduler chose to reuse) instead of the target's fresh `li $s2,0x1c`.
- * Not yet permuter-cracked (bounded run in progress / inconclusive at time
- * of writing) — both are scheduler/copy-propagation ties below the C level,
- * the same class as SelectCameraOwnerOption's parked residual.
+ * STATUS: MATCHING — 352 bytes. The loop-1 SetupSprite result must be
+ * assigned through `*piVar3` in one expression: that assignment chain keeps
+ * the result live long enough for the following slot reload to take `$v1`,
+ * leaving `$v0` for the 0x1C attribute constant.
  *
  * Matching notes:
  *  - Loops 1 and 2 (the ItemImage pool) are HAND-ROLLED GOTO LOOPS, not
@@ -108,19 +95,18 @@ extern void leResetEnemyLayout(void);
 extern void ResetInfoview(s32 stage);
 extern void FUN_8004a6bc(void);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/InitializeInfoView", InitializeInfoView);
-#else
 void InitializeInfoView(void)
 {
     GsIMAGE *pGVar1;
     Sprite3D *pSVar2;
     s32 *piVar3;
+    s32 *base2;
     GsSPRITE *sprite;
     int iVar4;
     s32 scale1;
     s32 scale2;
-    s16 attr2;
+    s32 attr3;
+    s32 attr2;
 
     pGVar1 = GetImage(0x32);
     InitSprite(pGVar1, &CursorImage);
@@ -128,41 +114,43 @@ void InitializeInfoView(void)
     pGVar1 = GetImage(0x33);
     InitSprite(pGVar1, &NumberImage);
     iVar4 = 0;
-    piVar3 = ItemImage;
     scale1 = 0x3000;
+    piVar3 = ItemImage;
 loop1:
     pGVar1 = GetImage(iVar4 + 0x14);
-    pSVar2 = SetupSprite((Sprite3D *)0, pGVar1);
-    *piVar3 = (s32)pSVar2;
+    pSVar2 = (Sprite3D *)(*piVar3 = (s32)SetupSprite((Sprite3D *)0, pGVar1));
     pSVar2->scale = scale1;
     *(s16 *)(*piVar3 + 0x5A) = 0x1C;
-    iVar4 = iVar4 + 1;
     piVar3 = piVar3 + 1;
-    if (iVar4 < 0x14)
+    if (++iVar4 < 0x14)
         goto loop1;
     if (iVar4 < 0x1A)
     {
         scale2 = 0x3000;
         attr2 = 0x1C;
-        piVar3 = ItemImage + iVar4;
+        do
+        {
+            base2 = ItemImage;
+        } while (0);
+        piVar3 = base2 + iVar4;
     loop2:
         pGVar1 = GetImage(0xF);
         pSVar2 = SetupSprite((Sprite3D *)0, pGVar1);
         *piVar3 = (s32)pSVar2;
         pSVar2->scale = scale2;
         *(s16 *)(*piVar3 + 0x5A) = attr2;
-        iVar4 = iVar4 + 1;
         piVar3 = piVar3 + 1;
-        if (iVar4 < 0x1A)
+        if (++iVar4 < 0x1A)
             goto loop2;
     }
     iVar4 = 0;
+    attr3 = 0x50000000;
     sprite = ItemSprite3Ds;
     do
     {
         pGVar1 = GetImage(iVar4 + 0x2E);
         InitSprite(pGVar1, sprite);
-        sprite->attribute = 0x50000000;
+        sprite->attribute = attr3;
         iVar4 = iVar4 + 1;
         sprite = sprite + 1;
     } while (iVar4 < 4);
@@ -171,4 +159,3 @@ loop1:
     FUN_8004a6bc();
     fInitialize = 1;
 }
-#endif /* NON_MATCHING */
