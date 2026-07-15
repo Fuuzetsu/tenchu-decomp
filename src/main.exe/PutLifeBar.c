@@ -128,17 +128,16 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
     s32 t;
     s32 q;
     s16 oldh;
-    u8 color;
+    s32 color;
     s32 dx;
     s32 dy;
     s32 u;
 
     t = n;
-    u = NumberImage.u;
+    NumberImage.w = (dx = LifeBarStyle[style].dx,
+                     dy = LifeBarStyle[style].dy, 4);
     img = &NumberImage;
-    img->w = 4;
-    dx = LifeBarStyle[style].dx;
-    dy = LifeBarStyle[style].dy;
+    u = img->u;
     img->x = x + dx;
     img->y = y + dy;
 
@@ -162,17 +161,22 @@ loop:
     oldh = ou->h;
     ou->h = LifeBarStyle[style].base + q;
 
-    color = 0x80;
-    if (n <= mx / 4)
-    {
-        if ((GameClock & 1) != 0)
-        {
-            color = 0xE6;
-        }
-    }
+    if (mx / 4 < n)
+        color = 0x80;
+    else if ((GameClock & 1) == 0)
+        color = 0x80;
+    else
+        color = 0xE6;
     ou->b = color;
     ou->g = color;
-    ou->r = color;
+    if (ou != 0)
+    {
+        ou->r = color;
+    }
+    else
+    {
+        ou->r = color;
+    }
 
     ou->x = x;
     ou->y = y;
