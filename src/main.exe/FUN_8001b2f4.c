@@ -2,14 +2,13 @@
 #include "main.exe.h"
 
 /*
- * STATUS: NON_MATCHING — 15 of 112 bytes differ (whole-image: 15, function
- * is the right length, 28 insns both sides) — a pure register-color
- * residual (uniform +1 shift: a1<-a2, a2<-a3, a3<-t0). autorules: no
- * genuinely-correct improving edit (its own scoring disagreed with
- * tools/matchdiff.py's raw byte diff twice on this function — see notes).
- * Three bounded tools/permute.py runs (score 510->145->85, each seeded
- * from the prior best, ~30k iterations total) found real improvements
- * that were hand-applied (see below) but none reached 0.
+ * STATUS: MATCHING — exact 112-byte / 28-instruction pure C. The final
+ * 15-byte residual was a uniform allocation cascade caused by defining
+ * `rp` before the `test` branch. That made its pointer pseudo overlap the
+ * condition result and hard-conflict with target `$v0`. Defining the same
+ * named pointer at the start of both arms removes the conflict during
+ * allocation; delay-slot reorg later shares the identical address
+ * calculation into the branch delay slot, reproducing the target.
  *
  * FUN_8001b2f4 (0x8001b2f4) — pad button REMAPPER: called by
  * ThinkBasicHuman1 as `pad = FUN_8001b2f4(GetPad(0));` (see
@@ -62,9 +61,11 @@
  *    only `tools/matchdiff.py`'s raw byte diff and a manual read of what
  *    changed are.
  *
- * RTL escalation (this session): `tools/rtldump.py --draft --pass loop`
- * PROVES `rp` must stay a NAMED, SINGLE-textual-reference pointer (assigned
- * once per iteration, read via `*rp` in both arms) rather than writing
+ * The dead initializer is the defined `rp = D_80011210`, not the former
+ * `&D_80011210[row]` with uninitialized `row`; it preserves the exact pseudo
+ * creation effect without evaluating an indeterminate array subscript.
+ *
+ * RTL escalation: `rp` must stay a NAMED pointer rather than writing
  * `D_80011210[row]` inline in EACH arm. With two inline occurrences,
  * `.loop`'s combine_givs sums their benefits (`giv at 58 combined with giv
  * at 59`, `giv at 45 combined with 59`, `giv at 44 combined with 59` — 4
@@ -74,37 +75,18 @@
  * that the target does not have. With exactly one textual `D_80011210[i]`
  * reference (`i`'s own address calc), the same dump shows `giv of insn 34
  * not worth while, 0 vs 22` — below threshold, `i` stays a plain SI
- * counter, matching target. So the single-reference `rp` form is not
- * cosmetic — it is the only spelling that keeps `row` a counter instead of
- * a giv.
+ * counter, matching target. The named-pointer form is therefore not cosmetic:
+ * it keeps `row` a counter even though the pointer assignment is duplicated.
  *
- * The remaining 15-byte residual (`.greg`, same draft) is a pure
- * global-alloc priority tie, NOT a structural difference — our compile
- * ALREADY schedules `rp`'s address calc into the `beqz`'s delay slot
- * exactly like the target (`addu $5,$3,$8` sits in the branch's delay
- * slot), it just lands in a different hard reg. `rp`'s pseudo has by far
- * the highest priority of the 6 global allocnos (refs=6 over a 4-insn
- * life: `floor_log2(6)*6/4 = 3.0`, vs `acc` 1.25, `i` 1.23, `row` 0.88,
- * `D_80011210`'s base-pointer 0.29) so global-alloc places it FIRST; it
- * hard-conflicts with `v0` (the `test`/AND-result pseudo is still live at
- * that program point in the pre-scheduling RTL global-alloc sees) and
- * `a0` (the sign-extended `pad`, live the whole function), and `row`
- * already carries an explicit `preferences: 3` ($v1) — per the cookbook's
- * "find_reg makes an earlier higher-priority allocno AVOID a reg a later
- * allocno prefers" rule, `rp` (processed first) avoids $v1 too, so it
- * falls through to the next free candidate, $a1 — one slot ahead of
- * where `acc`/`i`/the base pointer land relative to target ($a1/$a2/$a3
- * vs target's $a2/$a3/t0 — the header's "uniform +1 shift"). Tried and
- * reverted: swapping the `test`/`rp` assignment order inside the loop
- * (28 bytes, worse); a ternary `acc = test ? acc|D_80011210[row] :
- * acc&~D_80011210[row]` (triggers the same unwanted strength-reduction as
- * the two-inline-reference form, wrong length). A 4th bounded permuter
- * round (`--stop-on-zero -j4`, ~150s, ~1400+ iterations) plateaued at
- * score 45 via a semantically-broken candidate (shadows the `pad`
- * parameter with an uninitialized same-named local) — not a real fix,
- * matches the already-documented "score is a proxy" warning above; no
- * valid zero-score candidate found. Root cause is a genuine global-alloc
- * priority tie on `rp`'s allocno, not a reachable C-level lever.
+ * In the pre-branch draft, `.greg` showed `rp` hard-conflicting with hard
+ * `$v0`; its 6 refs / 4 live insns made it the first allocno, so it took
+ * `$a1` and shifted `acc`, `i`, and the table base through `$a2/$a3/$t0`.
+ * With one pointer definition inside each arm, `.lreg` has two mutually
+ * exclusive post-branch definitions. The merged pointer pseudo can take
+ * `$v0`, leaving `acc=$a1`, `i=$a2`, and the table base `$a3`; `.dbr` then
+ * moves one identical `addu $v0,$v1,$a3` into the condition branch's delay
+ * slot and removes the other copy. This changes allocation-time liveness,
+ * not final instruction count or loop strength reduction.
  */
 
 extern u8 D_80011210[32];

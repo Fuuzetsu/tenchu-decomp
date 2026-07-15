@@ -2500,6 +2500,31 @@ ActCHASE supplied two exact, reusable forms:
   overwrites its own condition register and all arms converge on one store,
   try duplicated direct lvalue assignments and let the compiler factor them.
 
+`FUN_8001b2f4` supplies the pointer version. A selected-row pointer defined
+before an `if` remained live with the condition pseudo, hard-conflicted with
+target `$v0`, and caused a uniform `$a1/$a2/$a3/$t0` allocation cascade. Write
+the same named pointer assignment as the first statement of both arms instead:
+
+```c
+if (test) {
+    p = &table[row];
+    acc |= *p;
+} else {
+    p = &table[row];
+    acc &= ~*p;
+}
+```
+
+Local/global allocation then sees two mutually exclusive post-branch
+definitions, so the pointer can reuse the dead condition register. Delay-slot
+reorg recognizes the identical address calculations, moves one into the
+conditional branch's delay slot, and removes the other, leaving one physical
+producer exactly where the pre-branch spelling put it. For loops, keep the
+named pointer: inlining `table[row]` into both arms can create enough GIV
+benefit to strength-reduce the counter and change the function length. Check
+both `.greg` (the hard conflict must disappear) and `.loop` (the induction
+shape must remain) before accepting this edge-duplication lever.
+
 Also distinguish an input value from its arithmetic result when the target
 does. `current = rotation->vy; result = current + turn; rotation->vy = result;`
 keeps the loaded old value and the new result in separate pseudos; mutating
