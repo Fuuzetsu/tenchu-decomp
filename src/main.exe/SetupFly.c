@@ -32,10 +32,8 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact 664-byte / 166-instruction extent, with 204
- * differing linked bytes and fuzzy 63.86 (up from 55.26).  The raw aligned
- * residual is 58 lines in 26 blocks; the structural-only view is 31 lines in
- * 9 blocks.  The 0x30 frame and s0-s5+ra save set remain exact.
+ * STATUS: MATCHING — pure C, all 664 bytes / 166 instructions exact.  The
+ * 0x30 frame and s0-s5+ra save set are exact as well.
  *
  * A jump2-erased identical-arm alias separates the long-lived output base
  * (`fly`) from the incoming `pfly` formal.  Unlike the old all-in-one inline
@@ -43,22 +41,18 @@
  * distance call; retail's late argument moves can therefore fill the end-copy
  * load delay slots.  The alias itself takes the target's s2 throughout.
  *
- * Two nested one-shot loops around the Y-magnitude product, plus one around
- * the X midpoint assignment, leave no machine branch.  Their loop notes tune
- * allocation and scheduling after the alias split, recover the exact extent,
- * and reduce the linked residual from the best exact natural form's 415 bytes
- * to 204.  `SubFlyJitter` still makes the Y result a branch return value, so
- * cc1 retains the target's duplicated subtract tails instead of merging them
- * into one post-branch expression.
+ * The scaled-X product has its own caller-saved identity, while `len` is
+ * reused for the scaled-Y product and then for both the X and Y branch
+ * results.  Keeping the asymmetric Y range separate from scaled `yh` gives
+ * retail's s0 range and s5 magnitude simultaneously.  Assigning the final X
+ * and Z coordinates inside both jitter arms retains the target's duplicated
+ * arithmetic tails; `SubFlyJitter` does the same for Y.
  *
- * The remaining cycle colors scaled `yh` in s1 instead of retail's s5 and
- * keeps the first scaled-X product in s3 instead of a3.  That feeds the Y
- * range/midpoint rotation, while the symmetric X/Z tails still cross-jump in
- * the opposite physical layout.  Two bounded guided sweeps and focused
- * lifetime-range donors found no smaller semantics-preserving pure-C result;
- * a tempting s16 midpoint win was rejected because VECTOR coordinates are
- * full-width.  No asm, register pinning, volatile access, or undefined-value
- * fence is used.
+ * Two nested one-shot loops enclose the X midpoint and range assignments.
+ * They leave no machine branch, but their loop notes give the midpoint the
+ * target allocation priority and let the range shift schedule between the
+ * two midpoint loads.  No asm, register pinning, volatile access, or
+ * undefined-value fence is used.
  *
  * Everything structural is reproduced: the 6-arg prototype, mode/speed byte
  * stores, the `dist/time` speed clamp through the byte's own `& 0xff`
@@ -101,10 +95,6 @@
  */
 extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupFly", SetupFly);
-#else
-
 static inline long SubFlyJitter(long mid, long half, long range)
 {
     if (0 < range)
@@ -122,6 +112,10 @@ void SetupFly(long *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
     long midx;
     long midy;
     long midz;
+    long current_z;
+    long x_product;
+    long y_pair;
+    long y_range;
     long *fly;
 
     if (pfly != 0)
@@ -150,52 +144,52 @@ void SetupFly(long *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
     }
     *((u8 *)fly + 0x24) = 1;
 skip_default:
-    yw = len * (yw / 2);
+    x_product = len * (yw / 2);
     *((u8 *)fly + 0x25) = *((u8 *)fly + 0x24);
-    if (yw < 0)
+    if (x_product < 0)
     {
-        yw = yw + 0xfff;
+        x_product = x_product + 0xfff;
     }
-    do {
-      do {
-        yh = len * (yh / 2);
-      } while (0);
-    } while (0);
-    yw = yw >> 12;
-    if (yh < 0)
+    len = len * (yh / 2);
+    yw = x_product >> 12;
+    if (len < 0)
     {
-        yh = yh + 0xfff;
+        len = len + 0xfff;
     }
-    yh = yh >> 12;
-    do {
-      midx = (fly[0] + fly[3]) / 2;
-    } while (0);
-    v8 = yw << 1;
-    if (v8 < 1)
+    yh = len >> 12;
+    do
     {
-        v8 = -yw;
+        do
+        {
+            midx = (fly[0] + fly[3]) / 2;
+            v8 = yw << 1;
+        } while (0);
+    } while (0);
+    if (0 < v8)
+    {
+        len = midx + (rand() % v8 - yw);
     }
     else
     {
-        v8 = rand() % v8 - yw;
+        len = midx - yw;
     }
-    midy = (fly[1] + fly[4]) / 2;
+    y_pair = fly[1] + fly[4];
+    midy = y_pair / 2;
     v3 = yh / 2;
-    yh = yh - v3;
-    fly[6] = midx + v8;
-    v3 = SubFlyJitter(midy, v3, yh);
+    y_range = yh - v3;
+    fly[6] = len;
+    len = SubFlyJitter(midy, v3, y_range);
     midz = (fly[2] + fly[5]) / 2;
     v8 = yw << 1;
-    fly[7] = v3;
-    if (v8 < 1)
+    fly[7] = len;
+    if (0 < v8)
     {
-        yw = -yw;
+        current_z = midz + (rand() % v8 - yw);
     }
     else
     {
-        yw = rand() % v8 - yw;
+        current_z = midz - yw;
     }
-    fly[8] = midz + yw;
+    fly[8] = current_z;
     *((u8 *)fly + 0x24) = *((u8 *)fly + 0x24) - 1;
 }
-#endif

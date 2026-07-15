@@ -4511,13 +4511,28 @@ effectful expressions would change semantics.
   condition, then spelling the six vector copies directly, lets jump2 erase
   the condition while the earlier CFG keeps `fly` as its own source identity.
   The input pointers stay in a1/a2 until their late call-argument moves, and
-  the destination base takes retail's s2. A nested one-shot loop around the
-  Y-magnitude product and a single loop around the X midpoint then supply the
-  remaining allocation/scheduler weights with no output branch: the candidate
-  reached the exact 664-byte extent and cut the best exact natural form from
-  415 to 204 differing bytes. Keep width experiments subordinate to proven
-  data types: an autorules `s16` midpoint scored well but was invalid because
-  both VECTOR inputs and the midpoint arithmetic are full-width.
+  the destination base takes retail's s2.
+
+  The exact finish required preserving the product/result identities visible
+  in the remaining hard registers. A separate `x_product` gives the first
+  `mflo` its caller-saved a3 lifetime before scaled `yw` returns to s3. The
+  distance local `len` is then safely reused for the Y product and for the
+  final X and Y branch results, reproducing a0 at all three disjoint sites.
+  Keep `y_range = yh - half` separate from scaled `yh`: mutating `yh` made the
+  range occupy the magnitude's register, while the split gives retail's s0
+  range and s5 magnitude simultaneously. Finally, assign the complete X/Z
+  coordinate in both jitter arms (and return the complete Y coordinate from
+  the inline helper); this prevents cross-jump from merging the arithmetic
+  tails into the opposite physical layout.
+
+  Two nested one-shot loops around both the X midpoint and its range assignment
+  provide the last allocation weight with no output branch. Keeping the range
+  shift inside the same loop-note window also lets sched place it between the
+  two midpoint loads instead of preserving a stray nop. Together these source
+  identities reduced SetupFly's exact-length checkpoint from 204 linked bytes
+  to a 664-byte pure-C exact match. Keep width experiments subordinate to
+  proven data types: an autorules `s16` midpoint scored well but was invalid
+  because both VECTOR inputs and the midpoint arithmetic are full-width.
 - **A better structural or fuzzy score can still be a worse exact linked
   checkpoint when one early schedule shift moves a long aligned region.** In
   BreedLife, combining a single-load first search, explicit table/name aliases,
