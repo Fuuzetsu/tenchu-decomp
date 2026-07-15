@@ -2502,11 +2502,28 @@ registers, `rtlguide` reports **`branch-phi-register-tie`**. It prioritizes
 `type-width`; these are the only useful first trials because they can split the
 source identity or move its definitions without inventing a backend clobber.
 Reject a tempting register win if it adds a physical jump or changes the
-function extent. In `think_setting_small_rotation_small_steps_`, direct-arm and
-explicit-label spellings did exactly that, QI-to-SI was flat, pseudo 107's
-`.greg` conflict set contained hard `$v0`, 160 guided candidates were flat, and
-a correctly late 8,850-iteration permuter run never beat baseline. That is the
-complete stop condition, not an invitation to add `__asm__`.
+function extent. Allocation priority can never overcome a hard-register
+conflict; the interference graph itself has to change.
+
+Read a target delay-slot literal that overwrites the branch condition register
+as source-identity evidence. Make the destination carrier absorb the preceding
+condition instead of defining the result while a separate condition temporary
+is still live. This can require a whole in-place chain, not just the final test:
+load the first condition into the carrier, assign a comparison result back into
+it, and reuse it for later comparison constants before assigning the final arm
+values. If the other comparison operand must remain separate, reuse a dead named
+local that already has the target secondary-register colour.
+
+`think_setting_small_rotation_small_steps_` is the exact example. Direct-arm
+spellings gained `$v0` but duplicated the store/jump tail; QI-to-SI and priority
+fences were flat because pseudo 107 still hard-conflicted with `$v0`. The match
+made signed-word `nextState` successively carry `actcnt`, `Humans`, the `< 30`
+boolean, the constant `8`, and the final `1`/`2`. Reusing the now-dead
+`alertTime` local for `StageID` kept that operand in `$v1`, removed the last hard
+`$v0` conflict, and reproduced all three delay-slot overwrites with one store.
+An independent prototype audit also corrected both `turn_towards_player_` and
+its receiving `result` to `s16`; the paired correction was byte-neutral but
+restored the source types before the allocation fix.
 
 ActCHASE supplied two exact, reusable forms:
 
