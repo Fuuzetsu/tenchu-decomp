@@ -85,29 +85,20 @@ extern s32 rsin(u32 ang);
  *    earlier draft that hoisted them to function scope cost an extra
  *    saved register (frame 56 vs target's 48) and never converged; scoping
  *    them into the branch fixed the length exactly.
+ *  - The first digit-branch access is the direct `NumberImage.w = 4`, then
+ *    `img = &NumberImage`. That creates the target's address pseudo followed
+ *    by the separate `$s1` copy; writing `img->w = 4` after the assignment
+ *    lets cc1 form the address directly in `$s1` and loses one instruction.
+ *    Reading `base` later through `img` also leaves its `lbu` in the target
+ *    slot between the y producer and store.
+ *  - The one-shot loop around only the final `img->u = base` write emits no
+ *    control flow. Its loop-depth weight raises `base` above `spr` in global
+ *    allocation, placing them in the target's `$s3`/`$s4` respectively.
+ *  - `phase` is genuinely unsigned: the target passes it to `rsin` with one
+ *    `andi`, not a signed `sll`/`sra` pair.
  *
- * STATUS: NON_MATCHING — 194 of 584 bytes differ, but the draft is the
- * CORRECT LENGTH (146/146 instructions). The residual is (1) a pure
- * register-priority swap: target keeps the digit-loop's `base` in $s3 and
- * the dispatched icon `spr` in $s4; this draft has them swapped ($s3=spr,
- * $s4=base) — tried reordering both the declarations and the `spr =
- * ItemSprite3Ds;` statement's position, neither changed it, so it's a
- * global-alloc priority tie rather than a declaration-order lever; and (2)
- * one narrower tie: the `rsin(phase)` call zero-extends `phase` in the
- * target (`andi $a0,$v0,0xffff`, 1 instruction) but sign-extends here
- * (`sll/sra`, 2 instructions) even though `phase` is declared `u16` per
- * PSX.SYM's own `unsigned char`-adjacent field types — reverting `phase`
- * to `u16` (semantically "more correct") REGRESSES the whole-function
- * length by 4 bytes elsewhere (some other site needs the sign-extending
- * `s16` shape to hit the target length), and an explicit `(u16)phase` cast
- * at just the call site made no difference either. A bounded permuter run
- * (`timeout 300 tools/permute.py PutStrain -- --stop-on-zero -j4`,
- * multiple thousand iterations) plateaued at best score 410 (from a base
- * of 880), never reaching 0 — consistent with both being sub-C-level ties.
+ * MATCH — exact 584-byte / 146-instruction pure-C match.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PutStrain", PutStrain);
-#else
 void PutStrain(s32 x, s32 y)
 {
     s32 ratio;
@@ -115,7 +106,7 @@ void PutStrain(s32 x, s32 y)
     s32 delta;
     s32 s;
     s32 iVar4;
-    s16 phase;
+    u16 phase;
     u8 shade;
     s16 scale;
 
@@ -149,13 +140,13 @@ void PutStrain(s32 x, s32 y)
 
             if (ratio > 20000)
                 return;
+            spr = ItemSprite3Ds;
+            NumberImage.w = 4;
             img = &NumberImage;
-            img->w = 4;
             img->x = (s16)(x + 0x22);
             base = img->u;
             img->y = (s16)(y + 8);
             newpow = (20000 - ratio) / 200;
-            spr = ItemSprite3Ds;
         strainloop:
             r = newpow / 10;
             img->u = base + (newpow - r * 10) * 4;
@@ -164,7 +155,10 @@ void PutStrain(s32 x, s32 y)
             newpow = r;
             if (newpow != 0)
                 goto strainloop;
-            img->u = base;
+            do
+            {
+                img->u = base;
+            } while (0);
         }
 
         delta = 20000 - ratio;
@@ -189,7 +183,6 @@ void PutStrain(s32 x, s32 y)
         GsSortSprite(spr, OTablePt, 0);
     }
 }
-#endif /* NON_MATCHING */
 
 // triage: MEDIUM — 146 insns, mul/div, 1 loop, 3 callees, ~0.04 to AdtFntOpen
 // likely-relevant cookbook sections:

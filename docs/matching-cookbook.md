@@ -1776,6 +1776,16 @@ Ghidra's early top-of-function `uVar1 = field;` is frequently an SSA-placement a
 not true source position -- rescoping it into the arm fixed PutStrain's length exactly
 (`NumberImage.u` was read only in the digit-loop branch, not globally).
 
+**When a named global pointer fuses away a target address copy, make the first access a
+direct field operation and name the pointer second.** `NumberImage.w = 4; img =
+&NumberImage;` creates a caller-register address pseudo and then the target's separate
+copy into `img`'s saved register; `img = &NumberImage; img->w = 4;` lets cc1 form the
+address directly in the saved register and is one instruction short. Keep later field
+reads through `img` when the target does: changing PutStrain's later `base = img->u` to
+a direct global read moved the load above four independent sprite stores. This completed
+PutStrain's exact 584-byte match after a call-site loop-depth fence had already recovered
+the `base`/`spr` saved-register order.
+
 **`x++` (postfix) is the general spelling for "test the OLD value; the incremented value
 is stored unconditionally because the other path overwrites it anyway."**
 `if (field++ < K) return; field = 0;` reproduces a single-load + delay-slot-store shape;
