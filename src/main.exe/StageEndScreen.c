@@ -18,11 +18,11 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction with the exact target
  * length (6084 bytes / 1521 instructions), 0xf0-byte frame, 81 conditional
- * branches, 15 jumps, and 70 calls.  matchdiff reports 320 differing bytes
- * and fuzz-score reports 95.92%.  The long-lived setup and sign-rendering
- * values now have the target's register families; the residual is concentrated
- * in the stage scan, setup/final-digit allocation, and post-game scheduling,
- * not hidden asm.
+ * branches, 15 jumps, and 70 calls.  matchdiff reports 247 differing bytes
+ * and fuzz-score reports 96.19%.  The inventory-copy source identity and the
+ * terminal layout-loop register family now follow the target; the residual is
+ * concentrated in the stage scan, setup/first-difference scheduling, final
+ * digit allocation, and the terminal layout setup, not hidden asm.
  */
 
 #ifndef NON_MATCHING
@@ -381,10 +381,10 @@ void StageEndScreen(void)
             sprite->b = 0x80;
             sprite->mx = sprite->w >> 1;
             sprite->my = sprite->h >> 1;
-            sprite->mx = 0;
-            sprite->my = 0;
+            stack.digit.mx = 0;
+            stack.digit.my = 0;
             LoadTIMAndFree(tim);
-            sprite->w = 12;
+            stack.digit.w = 12;
         }
 
         tim = FileRead(RS_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
@@ -555,13 +555,19 @@ void StageEndScreen(void)
     i = 0;
     do
     {
-        PSTATE->backup[i] = PSTATE->stock[i + (PSTATE->chr << 5)];
+        PSTATE->backup[i] = PSTATE->stock[i + (CHOSEN_CHARACTER << 5)];
         i++;
     } while (i < 0x14);
 
-    if (D_8001005C != 0 && CHOSEN_STAGE != 7)
+    if (D_8001005C != 0)
     {
-        FUN_800514d8();
+        volatile PersistentState *state;
+
+        state = (PersistentState *)0x80010000;
+        if (state->stage != 7)
+        {
+            FUN_800514d8();
+        }
     }
 
     switch (selection)
@@ -574,9 +580,18 @@ void StageEndScreen(void)
         }
         else
         {
+            s16 *stage_order;
+
+            do
+            {
+                do
+                {
+                    stage_order = D_8008EA78;
+                } while (0);
+            } while (0);
             next_stage_index = StageConfig[PSTATE->stage].uid;
             next_stage_index++;
-            PSTATE->stage = *(u8 *)&D_8008EA78[next_stage_index];
+            PSTATE->stage = *(u8 *)&stage_order[next_stage_index];
             layout_character_offset = (u32)PSTATE->chr * 0x1d4;
             layout_stage_offset =
                 (u32)PSTATE->stage * 0x24 + 0x80010064;
