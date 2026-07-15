@@ -28,6 +28,26 @@
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawImpact", DrawImpact);
 #else
 
+/*
+ * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
+ * 772-byte / 193-instruction extent and exact physical CFG (19 conditional
+ * branches, 2 jumps, 5 calls, 1 return).  The guarded draft has 28 differing
+ * linked bytes and 23 aligned residual lines in 16 blocks; fuzzy is 88.08%.
+ *
+ * Writing the signed fixed-point quotients as `/ 0x1000` lets cc1 create the
+ * target's short-lived product temporaries instead of one over-reused `end`
+ * pseudo, reducing the residual from 53 bytes to 33.  The one-shot wrapper
+ * around the px capture is byte-neutral: its LOOP_END scheduling boundary
+ * restores the target px/py/super/pz load order and reduces 33 to 28.
+ *
+ * The remainder is one coupled caller-register allocation cycle: ratio is
+ * $t0 instead of $a3, the shared end-colour load is $a3 instead of $a1, the
+ * first size quotient is $a1 instead of $v0, and the three start-colour loads
+ * use $v0 instead of $a0 (with the corresponding green/blue shift carrier).
+ * A bounded 220-candidate RTL-guided sweep found no result below 28; further
+ * work should begin from new identity/preference evidence, not broad fences.
+ */
+
 #include "effect.h"
 
 typedef union
@@ -97,12 +117,7 @@ void DrawImpact(TEffectSlot *ef)
         start = start + 0xfff;
     }
 
-    end = param->end_size * ratio;
-    if (end < 0)
-    {
-        end = end + 0xfff;
-    }
-    size = (start >> 12) + (end >> 12);
+    size = (start >> 12) + (param->end_size * ratio) / 0x1000;
 
     start = param->start_color.channel.r * inverse;
     end_raw = param->end_color.channel.r;
@@ -110,12 +125,7 @@ void DrawImpact(TEffectSlot *ef)
     {
         start = start + 0xfff;
     }
-    end = end_raw * ratio;
-    if (end < 0)
-    {
-        end = end + 0xfff;
-    }
-    spr->r = (start >> 12) + (end >> 12);
+    spr->r = (start >> 12) + (end_raw * ratio) / 0x1000;
 
     start2 = param->start_color.channel.g * inverse;
     end_raw = param->end_color.channel.g;
@@ -123,12 +133,7 @@ void DrawImpact(TEffectSlot *ef)
     {
         start2 = start2 + 0xfff;
     }
-    end = end_raw * ratio;
-    if (end < 0)
-    {
-        end = end + 0xfff;
-    }
-    spr->g = (start2 >> 12) + (end >> 12);
+    spr->g = (start2 >> 12) + (end_raw * ratio) / 0x1000;
 
     start2 = param->start_color.channel.b * inverse;
     end_raw = param->end_color.channel.b;
@@ -136,14 +141,12 @@ void DrawImpact(TEffectSlot *ef)
     {
         start2 = start2 + 0xfff;
     }
-    end = end_raw * ratio;
-    if (end < 0)
-    {
-        end = end + 0xfff;
-    }
-    spr->b = (start2 >> 12) + (end >> 12);
+    spr->b = (start2 >> 12) + (end_raw * ratio) / 0x1000;
 
-    end = param->px;
+    do
+    {
+        end = param->px;
+    } while (0);
     start2 = param->py;
     super = param->super;
     inverse = param->pz;
