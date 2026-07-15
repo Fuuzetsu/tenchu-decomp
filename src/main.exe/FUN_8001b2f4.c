@@ -110,10 +110,6 @@
 extern u8 D_80011210[32];
 extern s16 D_800976F6;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8001b2f4", FUN_8001b2f4);
-#else
-
 s32 FUN_8001b2f4(s16 pad)
 {
     s32 i;
@@ -122,20 +118,21 @@ s32 FUN_8001b2f4(s16 pad)
     s32 test;
     u8 *rp;
 
-    rp = &D_80011210[row];
+    rp = D_80011210;
     acc = pad;
     row = (s32)D_800976F6 << 3;
     i = 0;
     do
     {
         test = pad & D_80011210[i];
-        rp = &D_80011210[row];
         if (test != 0)
         {
+            rp = &D_80011210[row];
             acc = acc | *rp;
         }
         else
         {
+            rp = &D_80011210[row];
             acc = acc & ~*rp;
         }
         i = i + 1;
@@ -143,4 +140,3 @@ s32 FUN_8001b2f4(s16 pad)
     } while (i < 8);
     return (s32)(s16)acc;
 }
-#endif
