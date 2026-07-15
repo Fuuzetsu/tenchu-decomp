@@ -35,100 +35,127 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AntiWall", AntiWall);
+/*
+ * AntiWall (0x80030390, 0x2b4 bytes) — tests camera positions offset to
+ * either side of the target, then rotates a corrective vector away from a
+ * wall and applies it to the target view.
+ *
+ * Matching notes:
+ *  - Retail changed the demo's SVECTOR outputs to VECTORs when it replaced
+ *    ApplyMatrixSV with ApplyRotMatrix. Declaring vsL, vsR, and av in this
+ *    order reproduces the three 16-byte stack slots at sp+0x18/0x28/0x38;
+ *    the original int rx/ry locals follow at sp+0x48/0x4c.
+ *  - The literal scratchpad casts are intentional. Repeated accesses keep
+ *    0x1f800000 in $s2 while call arguments still materialize in $a0.
+ *  - Plain signed `/ 2` expressions produce the target's bias-and-shift
+ *    truncation sequence and retain its intermediate numerator registers.
+ */
 
-// triage: MEDIUM — 173 insns, 6 callees, ~0.06 to AdtFntOpen
+typedef struct
+{
+    s32 vpx;
+    s32 vpy;
+    s32 vpz;
+    s32 vrx;
+    s32 vry;
+    s32 vrz;
+    s32 rz;
+    void *super;
+} GsRVIEW2;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void AntiWall(GsRVIEW2 *vinfo,GsRVIEW2 *target)
-//
-// {
-//   long lVar1;
-//   long lVar2;
-//   char *pcVar3;
-//   char *pcVar4;
-//   int iVar5;
-//   byte bVar6;
-//   int iVar7;
-//   int iVar8;
-//   int iVar9;
-//   int iVar10;
-//   int iVar11;
-//   int iVar12;
-//   VECTOR local_58;
-//   VECTOR local_48;
-//   VECTOR local_38;
-//   byte local_28 [4];
-//   byte local_24 [4];
-//
-//   GetVectorRotation((VECTOR *)target,(VECTOR *)&target->vrx,(int *)local_28,(int *)local_24);
-//   Scratchpad[4] = 0;
-//   Scratchpad[5] = 0;
-//   Scratchpad[0] = local_28[0];
-//   Scratchpad[1] = local_28[1];
-//   Scratchpad[2] = local_24[0];
-//   Scratchpad[3] = local_24[1];
-//   RotMatrixYXZ((SVECTOR *)Scratchpad,(MATRIX *)(Scratchpad + 0x40));
-//   SetRotMatrix((MATRIX *)(Scratchpad + 0x40));
-//   ApplyRotMatrix((SVECTOR *)&DAT_800979f4,&local_58);
-//   ApplyRotMatrix((SVECTOR *)&DAT_800979fc,&local_48);
-//   lVar1 = GetAreaMapLevel(GlobalAreaMap,target->vpx + local_48.vx,target->vpy + local_48.vy);
-//   pcVar3 = (char *)(target->vpx + local_58.vx);
-//   pcVar4 = (char *)(target->vpy + local_58.vy);
-//   iVar5 = target->vpz + local_58.vz;
-//   lVar2 = GetAreaMapLevel(GlobalAreaMap,(long)pcVar3,(long)pcVar4);
-//   bVar6 = lVar2 <= target->vpy;
-//   if ((bool)bVar6) {
-//     FntPrint(&DAT_80097a04,pcVar3,pcVar4,iVar5);
-//   }
-//   if (lVar1 <= target->vpy) {
-//     bVar6 = bVar6 | 2;
-//     FntPrint(&DAT_80097a08,pcVar3,pcVar4,iVar5);
-//   }
-//   if (bVar6 != 0) {
-//     local_38.vx = 0;
-//     local_38.vy = 0;
-//     local_38.vz = 0;
-//     if (bVar6 == 1) {
-//       Scratchpad[0] = 0xe8;
-//       Scratchpad[1] = 3;
-//       Scratchpad[2] = 0;
-//       Scratchpad[3] = 0;
-//       Scratchpad[4] = 0;
-//       Scratchpad[5] = 0;
-//       ApplyRotMatrix((SVECTOR *)Scratchpad,&local_38);
-//     }
-//     if (bVar6 == 2) {
-//       Scratchpad[0] = 0x18;
-//       Scratchpad[1] = 0xfc;
-//       Scratchpad[2] = 0;
-//       Scratchpad[3] = 0;
-//       Scratchpad[4] = 0;
-//       Scratchpad[5] = 0;
-//       ApplyRotMatrix((SVECTOR *)Scratchpad,&local_38);
-//     }
-//     iVar12 = local_38.vx - (local_38.vx >> 0x1f);
-//     iVar11 = local_38.vx / 2;
-//     pcVar3 = (char *)(target->vpx + local_38.vx + iVar11);
-//     iVar10 = local_38.vy - (local_38.vy >> 0x1f);
-//     iVar9 = local_38.vy / 2;
-//     pcVar4 = (char *)(target->vpy + local_38.vy + iVar9);
-//     iVar8 = local_38.vz - (local_38.vz >> 0x1f);
-//     iVar7 = local_38.vz / 2;
-//     iVar5 = target->vpz + local_38.vz + iVar7;
-//     lVar1 = GetAreaMapLevel(GlobalAreaMap,(long)pcVar3,(long)pcVar4);
-//     if (lVar1 <= target->vpy) {
-//       local_38.vx = iVar11 - (iVar12 >> 0x1f) >> 1;
-//       local_38.vy = iVar9 - (iVar10 >> 0x1f) >> 1;
-//       local_38.vz = iVar7 - (iVar8 >> 0x1f) >> 1;
-//       FntPrint(&DAT_80097a0c,pcVar3,pcVar4,iVar5);
-//     }
-//     target->vpx = target->vpx + local_38.vx;
-//     target->vpy = target->vpy + local_38.vy;
-//     target->vpz = target->vpz + local_38.vz;
-//   }
-//   return;
-// }
+extern unsigned long *GlobalAreaMap;
+extern SVECTOR D_800979F4;
+extern SVECTOR D_800979FC;
+extern char D_80097A04[];
+extern char D_80097A08[];
+extern char D_80097A0C[];
+
+extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
+extern void RotMatrixYXZ(SVECTOR *r, MATRIX *m);
+extern void SetRotMatrix(MATRIX *m);
+extern void ApplyRotMatrix(SVECTOR *in, VECTOR *out);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            int mode);
+extern void FntPrint(char *fmt, ...);
+
+void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
+{
+    VECTOR vsL;
+    VECTOR vsR;
+    int lvR;
+    int rmap;
+    VECTOR av;
+    int rx;
+    int ry;
+    int sx;
+    int sy;
+    int sz;
+
+    GetVectorRotation((VECTOR *)target, (VECTOR *)&target->vrx, &rx, &ry);
+    ((SVECTOR *)0x1F800000)->vz = 0;
+    ((SVECTOR *)0x1F800000)->vx = rx;
+    ((SVECTOR *)0x1F800000)->vy = ry;
+    RotMatrixYXZ((SVECTOR *)0x1F800000, (MATRIX *)0x1F800040);
+    SetRotMatrix((MATRIX *)0x1F800040);
+
+    ApplyRotMatrix(&D_800979F4, &vsL);
+    ApplyRotMatrix(&D_800979FC, &vsR);
+
+    lvR = GetAreaMapLevel(GlobalAreaMap,
+                          target->vpx + vsR.vx,
+                          target->vpy + vsR.vy,
+                          target->vpz + vsR.vz, 0);
+    rmap = 0;
+    if (GetAreaMapLevel(GlobalAreaMap,
+                        target->vpx + vsL.vx,
+                        target->vpy + vsL.vy,
+                        target->vpz + vsL.vz, 0) <= target->vpy)
+    {
+        rmap = 1;
+        FntPrint(D_80097A04);
+    }
+    if (lvR <= target->vpy)
+    {
+        rmap |= 2;
+        FntPrint(D_80097A08);
+    }
+
+    rmap &= 3;
+    if (rmap != 0)
+    {
+        av.vx = 0;
+        av.vy = 0;
+        av.vz = 0;
+        if (rmap == 1)
+        {
+            ((SVECTOR *)0x1F800000)->vx = 1000;
+            ((SVECTOR *)0x1F800000)->vy = 0;
+            ((SVECTOR *)0x1F800000)->vz = 0;
+            ApplyRotMatrix((SVECTOR *)0x1F800000, &av);
+        }
+        if (rmap == 2)
+        {
+            ((SVECTOR *)0x1F800000)->vx = -1000;
+            ((SVECTOR *)0x1F800000)->vy = 0;
+            ((SVECTOR *)0x1F800000)->vz = 0;
+            ApplyRotMatrix((SVECTOR *)0x1F800000, &av);
+        }
+
+        sx = av.vx / 2;
+        sy = av.vy / 2;
+        sz = av.vz / 2;
+        if (GetAreaMapLevel(GlobalAreaMap,
+                            target->vpx + av.vx + sx,
+                            target->vpy + av.vy + sy,
+                            target->vpz + av.vz + sz, 0) <= target->vpy)
+        {
+            av.vx = sx / 2;
+            av.vy = sy / 2;
+            av.vz = sz / 2;
+            FntPrint(D_80097A0C);
+        }
+        target->vpx += av.vx;
+        target->vpy += av.vy;
+        target->vpz += av.vz;
+    }
+}
