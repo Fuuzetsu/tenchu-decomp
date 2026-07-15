@@ -27,15 +27,67 @@
  *     stack sp+16     struct PARAM_ITEM_LAUNCH p
  * END PSX.SYM */
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/TurnAroundAllItems", TurnAroundAllItems);
+#include "item.h"
+
+/*
+ * Drop every carried item at the user's root-model position, giving each copy
+ * a small random launch vector, then clear the inventory counts.
+ *
+ * Matching notes:
+ *  - The two top-tested `while (1)` loops preserve the target's explicit
+ *    counter tests and unconditional backedges.
+ *  - `human` and `itemID` are distinct block-local captures.  Together with
+ *    the stack PARAM_ITEM_USE object, they reproduce the original saved-
+ *    register allocation and the call setup for ReqItemDrop.
+ *  - Keep each rand call inline in its modulo expression so its result stays
+ *    in $v0 and the three magic-division sequences retain their target shape.
+ */
+void TurnAroundAllItems(Humanoid *user)
+{
+    s32 i;
+    s32 j;
+    PARAM_ITEM_USE p;
+
+    i = 0;
+    while (1)
+    {
+        if (i >= 0x19)
+            break;
+        j = 0;
+        while (1)
+        {
+            VECTOR *pos;
+            Humanoid *human;
+            s32 itemID;
+
+            if (j >= user->item[i])
+                break;
+            pos = GetAbsolutePosition(user->model->object[0], 0, 0, 0);
+            human = user;
+            itemID = i;
+            memset(&p, 0, sizeof(p));
+            p.type = itemID;
+            p.user = human;
+            p.start.vx = pos->vx;
+            p.start.vy = pos->vy;
+            p.start.vz = pos->vz;
+            p.end.vx = rand() % 200 - 100;
+            p.end.vy = rand() % 100 - 200;
+            p.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&p);
+            j++;
+        }
+        user->item[i] = 0;
+        i++;
+    }
+}
 
 // triage: MEDIUM — 102 insns, mul/div, 4 callees, ~0.11 to ProcItemKusuri
 // likely-relevant cookbook sections:
 //   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
 //   - Expressions: mult/div — magic-multiply constants, fold
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (historical reference):
 //
 //
 // void TurnAroundAllItems(Humanoid *param_1)
