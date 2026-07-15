@@ -31,10 +31,8 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 6 of 268 bytes differ (right length: matchdiff's
- * whole-image count equals the function-local count). Was 25 bytes, then 8;
- * the current source fixes the compare-result register too. The remaining
- * pair is a dump-confirmed delay-slot reorganization choice (see RESIDUAL).
+ * STATUS: MATCHING — pure C, all 268 bytes exact (67 instructions), with
+ * the function-local and whole-image byte counts both at zero.
  *
  * SuccessionAttack (0x8002fabc, 0x10c bytes) — same "think" TU as
  * Think3chase.c/Think3escape.c/Think3firstattack.c/Think1trace.c (s16
@@ -77,7 +75,7 @@
  * ABS-compute to serve as that filler when it is the textually-first
  * reference.
  *
- * FOUR REAL STRUCTURAL FIXES applied across the two focused sessions, found by
+ * FIVE REAL STRUCTURAL FIXES applied across the focused sessions, found by
  * decoding the target's raw instructions address-by-address (not guessing):
  *
  * 1. The tail's `if/else` at LAB_8002fb84 has its arms SWAPPED relative to
@@ -104,33 +102,18 @@
  * 3. Store `iVar1 < d` back into `iVar1` before testing it. This deliberately
  *    reuses Degree's dying carrier, reproducing the target's `slt v1,...` and
  *    `bnez v1` instead of allocating a fresh `$v0` (8 -> 6 bytes).
- * 4. Load Degree into the single-set `raw` pseudo, then assign the ABS result
- *    to `iVar1` in both branch arms. This is not cosmetic: GCC 2.8.1's
- *    pre-reload `adjust_priority` dynamically promotes a single-set birthing
- *    pseudo to LAUNCH priority. It makes `.sched` and `.sched2` emit the
- *    target pre-reorg order `sll; lh Degree; sra; bgez`, while preserving the
- *    target hard-register colouring.
- *
- * RESIDUAL (6 bytes, same length): only 0x8002fb1c and 0x8002fb24 differ.
- * Target has `sra v0,v0,16; bgez v1,L; nop`; ours has `nop; bgez v1,L; sra`.
- * The `.sched` and `.sched2` dumps are now target-ordered, but `.dbr` shows
- * `fill_simple_delay_slots` removing the immediately preceding `sra` and
- * placing it in `bgez`'s slot. The official GCC 2.8.1 `reorg.c` explains the
- * result: its backward scan accepts this one-instruction arithmetic pattern
- * and stops only at a label/jump/barrier/asm or a real resource conflict.
- * Because the target's visible `sra v0` and `bgez v1` are independent, an
- * invisible retained RTL boundary or dependency in the original expansion is
- * the remaining likely difference.
- *
- * Focused rejects: moving declarations/assignments, an extra raw copy,
- * manual two-step sign extension, in-place `d` conversion, branch polarity,
- * ternary/goto spellings, and empty one-shot loops were flat or worsened
- * allocation/length. A preserved-label probe was flattened before reorg;
- * `register volatile int d` added 12 bytes, a real ABS loop added 8, and a
- * one-iteration loop flattened back to CURRENT(6). The earlier bounded
- * permuter found no zero. Do not rerun broad source permutations: the next
- * credible lead needs direct evidence for the original RTL boundary or an
- * exact plain-C dependency that survives through final jump optimization.
+ * 4. Mutate `raw` with `__builtin_abs` before the comparison. GCC keeps this
+ *    as one opaque `abssi2` RTL pattern through delayed-branch reorganization,
+ *    then emits the target's in-place `bgez v1; nop; negu v1`. A manual
+ *    sign-fix exposed the branch early, allowing `fill_simple_delay_slots` to
+ *    steal the preceding `sra v0` into its delay slot. A distinct builtin
+ *    destination emitted the three-register `move` form and added 8 bytes;
+ *    mutating `raw` gives the exact register tie and schedule.
+ * 5. Route the modulo-failure edge through the existing typed `ret` label.
+ *    With opaque `abssi2` reducing the visible RTL jump count, a literal
+ *    `return uVar3` was cross-jump-merged with the initial `return 0`, moving
+ *    the early-return block and cascading 100 bytes. `goto ret` preserves the
+ *    target's distinct immediate-zero return and shared signed-s16 epilogue.
  */
 extern character_state *Me_THINK_C;
 extern s32 Distance;
@@ -152,10 +135,6 @@ typedef struct
 
 extern BattleType BattleDB[];
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SuccessionAttack", SuccessionAttack);
-#else /* NON_MATCHING */
-
 short SuccessionAttack(long dist, short deg)
 {
     int iVar1;
@@ -175,23 +154,15 @@ short SuccessionAttack(long dist, short deg)
 
         d = deg;
         raw = (int)Degree;
-        if (raw < 0)
-        {
-            iVar1 = raw;
-            iVar1 = -iVar1;
-        }
-        else
-        {
-            iVar1 = raw;
-        }
-        iVar1 = iVar1 < d;
+        raw = __builtin_abs(raw);
+        iVar1 = raw < d;
         if (iVar1) goto LAB_8002fb84;
     }
     iVar1 = rand();
     iVar2 = EngageLevel + 1;
     if (iVar1 % iVar2 != 0)
     {
-        return uVar3;
+        goto ret;
     }
 LAB_8002fb84:
     if (Degree >= 0x12d)
@@ -214,5 +185,3 @@ LAB_8002fb84:
 ret:
     return uVar3;
 }
-
-#endif /* NON_MATCHING */
