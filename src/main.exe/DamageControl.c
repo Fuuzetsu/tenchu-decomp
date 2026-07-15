@@ -152,7 +152,7 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * damage, knockback, animation, blood, score, and player-feedback effects.
  *
  * STATUS: NON_MATCHING — the C draft has the exact retail extent (5812 bytes,
- * 1453 instructions) with 2457 differing bytes, fuzzy 88.23%, and 140 raw
+ * 1453 instructions) with 2056 differing bytes, fuzzy 88.16%, and 126 raw
  * aligned residual blocks from `asmdiff --structural` at this checkpoint.
  * The remaining work is expression/CFG scheduling and early-path register
  * allocation; the large humanoid path's persistent registers now agree with
@@ -169,15 +169,22 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *  - The component-halving passage test is one repeated three-axis
  *    normalization loop.  The natural loop/tail-sharing shape is much closer
  *    than Ghidra's nested per-component rendering, though this CFG is still a
- *    major concentration of the structural residual.
+ *    major concentration of the structural residual.  Retail halves all three
+ *    axes with arithmetic shifts; using that direct spelling for `vx` while
+ *    retaining `/ 2` for `vy` and `vz` preserves the exact candidate extent.
  *  - `local_38 = *dtL` is deliberately an aggregate VECTOR copy.  Four field
  *    assignments choose a different block-move/load schedule.
  *  - `D_80086B6C[deg]` is the real eight-entry motion table.  A magic absolute
  *    pointer folded the low address into the load and lost the target's
- *    base-materialization sequence.
+ *    base-materialization sequence.  The `s8` spelling is range-safe for both
+ *    of `deg`'s roles (a 0..77 attack-table index, then a 0..7 direction bucket)
+ *    and improves cc1's sign-extension/allocation pattern.
  *  - Identical MoveHumanoid calls stay duplicated in their branch arms.  cc1
  *    tail-merges the call while preserving predecessor-specific argument
  *    setup; factoring the call in C loses that shape.
+ *  - The identical `pad.time = 0` arms near the exit are a deliberate cc1
+ *    allocation fence.  The condition does not alter behavior, but retaining
+ *    the two predecessor blocks substantially improves register allocation.
  *  - Item case 0 deliberately falls through the shared case-0xe damage test.
  *    Since damage is already 20 this is semantically neutral, but it recovers
  *    the target's branch into the existing zero-test instead of a later case.
@@ -229,7 +236,8 @@ void DamageControl(void)
   SVECTOR *pSVar1;
   MotionManager *pMVar2;
   short did;
-  short deg;
+  /* Attack-table indices are 0..77; the later direction bucket is 0..7. */
+  s8 deg;
   short sVar6;
   int iVar7;
   short TVar8;
@@ -461,7 +469,7 @@ LAB_8001da70:
       else {
         motID = 0x1006;
         motMODE = 0;
-        dtR->vy = item_direction + dtR->vy + 0x800;
+        dtR->vy = (0x800 + item_direction) + dtR->vy;
         MoveHumanoid(Me_MOTION_C,0x46,0);
       }
     }
@@ -533,7 +541,8 @@ LAB_8001da70:
         (100 < (local_40.vz < 0 ? -local_40.vz : local_40.vz))) {
 LAB_8001dfb0:
       TVar8 = TVar8 << 1;
-      local_40.vx /= 2;
+      /* Retail uses a direct arithmetic half for this component. */
+      local_40.vx >>= 1;
       local_40.vy /= 2;
       local_40.vz /= 2;
       if ((100 < (local_40.vx < 0 ? -local_40.vx : local_40.vx)) ||
@@ -883,7 +892,13 @@ LAB_8001ec30:
     }
   }
   pHVar17 = Me_MOTION_C;
-  (Me_MOTION_C->pad).time = 0;
+  /* Deliberate cc1 allocation fence; both arms have identical semantics. */
+  if (1 < (u32)(u16)motID - 0x1005) {
+    (Me_MOTION_C->pad).time = 0;
+  }
+  else {
+    (Me_MOTION_C->pad).time = 0;
+  }
   pSVar1 = dtV;
   if ((dtM->mid == 0x300) || (dtM->mid == 0x302)) {
     dtV->vz = 0;
