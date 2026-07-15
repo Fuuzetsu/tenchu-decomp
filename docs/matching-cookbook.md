@@ -2451,6 +2451,19 @@ Hard reg numbers: `0` zero, `1` at, `2` v0, `3` v1, `4`–`7` a0–a3, `8`–`15
      as `(a-C)+b`, `a - C + b` reassociates; a comparison evaluates op0 first.
    - **`cse` + `jump2`** decide `return`-island merges and guard-test folds; block
      boundaries (a nested `if` vs a wrapper, a label between two blocks) are the lever.
+   - **The priorities printed in a scheduler dump are not necessarily the ready-list
+     priorities used for the final choice.** gcc 2.8.1's `adjust_priority` promotes a
+     single-set producer that births a pseudo before `rank_for_schedule`; equal
+     post-adjustment candidates are then sensitive to their reverse-scheduling LUID
+     order. In SuccessionAttack, splitting the signed Degree load into a single-set
+     `raw` pseudo fixed both scheduler passes even though the initial printed
+     priorities suggested a plain tie.
+   - **`.sched2` being exact does not make a delay-slot `nop` safe.** Reorg's later
+     `fill_simple_delay_slots` can still pull any independent eligible instruction
+     into the branch slot. If `.dbr` alone changes the sequence, stop permuting nearby
+     statements: a real dependency, block boundary, or other source-visible
+     eligibility change is required. SuccessionAttack's remaining six-byte
+     checkpoint is the measured case.
    - **`sched`/`reorg`** are alias-conservative: an address-taken local's load never
      schedules above ANY pointer store — reorder STATEMENTS, don't chase the scheduler.
 4. **Form ONE hypothesis, test it with the fast scoring loop, repeat.** The worked
