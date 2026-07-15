@@ -1,9 +1,48 @@
-# Decompilation flywheel handoff — 2026-07-15
+# Decompilation flywheel handoff — 2026-07-16
 
 This is a dated shutdown snapshot, not a second match-status database.  The
 current source, `tools/progress.py`, `tools/triage.py`, and each guarded
 function's `STATUS` comment are authoritative.  Re-measure before dispatching
 work; do not carry the percentages or target list below forward by assumption.
+
+## Current shutdown state
+
+- Code anchor before this handoff-only update: `f698396` (`Improve
+  mission_score_screen checkpoint`). Master was clean and no push was made.
+- Game code is 474/555 functions (85.41%) and 230620/303244 bytes (76.05%).
+- All four flywheel slots have stopped; there are no assignments to resume in
+  place.
+- The shutdown gate suite passed: all six executables are byte-identical, all
+  guarded fuzzy rows and target-derived maspsx flags are current, PSX.SYM notes
+  and symbol uniqueness/address checks pass, all 304 matching-tool tests pass,
+  and `git diff --check` is clean.
+
+The final harvested checkpoints are all signed Codex commits:
+
+| Function | Commit/result | Authoritative movement |
+|---|---|---|
+| `SearchTarget` | exact pure C, `1685db7` | promoted the complete 1128-byte function |
+| `vmemoryGC` | `69187ea`, reflection `3ef7909` | 52 -> 12 differing bytes; fuzzy 77.95 -> 94.87 |
+| `LoadConstruction` | `47fcd44` | 727 -> 666 differing bytes; fuzzy 83.41 -> 85.46; disposal traversal exact |
+| `DamageControl` | `ff9bba7` | 1399 -> 1328 differing bytes; fuzzy 92.36 -> 92.91 |
+| `mission_score_screen` | `f698396` | 1404 -> 1266 differing bytes at the exact 1159-instruction extent |
+| `StageEndScreen` | no commit | bounded search was flat; remains exact-length with 203 bytes differing |
+
+The untouched-0% audit found no ordinary pure-C target left in that pool: 23
+are GTE opcode bodies, `SetDepthQ` requires direct COP2 moves, and `DrawTMD`
+depends on a live-register indirect-call ABI. Re-audit that conclusion if the
+pure-C/toolchain policy changes; otherwise resume with the largest guarded
+residuals rather than spending a lane on those known hardware/ABI blockers.
+
+One unbanked `ActivateHumans` result is worth retaining. Its current source is
+still authoritative at 360 differing bytes. Changing `active` from `s32` to
+`u8` reproduced the missing retail boolean copy, but made the draft 403 rather
+than 402 instructions because the independent `StageChar` high-half and full
+base still materialized separately. Direct-array and structured-loop attempts
+lost `$s5`/the 0x68 frame and regressed broadly; a guided 160-candidate search
+was flat. The remaining coupled problem is therefore the shared
+`lui s5,%hi(StageChar)` / `addiu s3,s5,%lo(StageChar)` identity, not the boolean
+join by itself.
 
 The rollout described below was the previous shutdown state. The flywheel has
 since resumed with the available four-slot pool. A 2026-07-15 user correction
@@ -14,7 +53,7 @@ checkpoint must carry an honest residual, pass its draft comparison plus the
 default/global gates, and never be counted as a matched function. Exact pure-C
 promotions remain the preferred outcome.
 
-## Clean anchor
+## Prior 2026-07-15 anchor
 
 - code/tool anchor immediately before this note: `36afb3b` (`Document
   identical-arm source identity splits`)
