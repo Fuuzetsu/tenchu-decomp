@@ -336,6 +336,7 @@ GP_EXTERNS = {
     "create_ninken_character_": ["NINKEN_CHARACTER_PTR"],
     "death_camera_something_": ["LOCAL_COORDINATES_"],
     "debug_output_edit_camera_settings": ["BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT", "BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT", "DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX", "CAMERA_PTR_ARRAY_START"],
+    "debug_menu_file_animation_test": ["CVAdata"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
