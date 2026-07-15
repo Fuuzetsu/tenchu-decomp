@@ -139,9 +139,10 @@ def render(name, protos, tu, locals_, cand) -> str | None:
                  f"saved-reg mask {t.get('mask','?')} (DEMO build -- see below)")
     if name in locals_:
         L.append("")
-        L.append("Original parameters and locals (the demo build's register allocation may")
-        L.append("differ from retail, but the COUNT and TYPES drive cc1's codegen and carry")
-        L.append("over). A repeated name is a nested-block scope, not a duplicate.")
+        L.append("Original parameters and locals (the demo COUNT and TYPES are high-value")
+        L.append("codegen evidence, not a retail spec: an earlier-build helper/API change")
+        L.append("can replace either). Retail access widths and callee ABI win. A repeated")
+        L.append("name is a nested-block scope, not a duplicate.")
         L.append("A ZERO-locals record is unverified, not a claim that the function has none:")
         L.append("vfree lists zero locals yet its byte-matched source needs seven.")
         L.append("The frame size and saved-reg mask above are the DEMO's: retail often needs")

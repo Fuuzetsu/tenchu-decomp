@@ -9,9 +9,10 @@
  * void SetBleeds(struct VECTOR *pos, short grange, short srange, short n, int time, long col);
  *     EFFECT.C:963, 11 src lines, frame 88 bytes, saved-reg mask 0xc0ff0000 (DEMO build -- see below)
  *
- * Original parameters and locals (the demo build's register allocation may
- * differ from retail, but the COUNT and TYPES drive cc1's codegen and carry
- * over). A repeated name is a nested-block scope, not a duplicate.
+ * Original parameters and locals (the demo COUNT and TYPES are high-value
+ * codegen evidence, not a retail spec: an earlier-build helper/API change
+ * can replace either). Retail access widths and callee ABI win. A repeated
+ * name is a nested-block scope, not a duplicate.
  * A ZERO-locals record is unverified, not a claim that the function has none:
  * vfree lists zero locals yet its byte-matched source needs seven.
  * The frame size and saved-reg mask above are the DEMO's: retail often needs

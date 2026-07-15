@@ -1,7 +1,7 @@
 # Every parameter and local of the 442 debug functions.
-# storage is from the DEMO build: register allocation may differ in
-# retail, but the NUMBER of locals and their TYPES are what drive cc1's
-# codegen, and those carry over.
+# storage is from the DEMO build. Its local count/types are high-value
+# codegen evidence, not a retail spec: helper/API changes can replace
+# either, so retail access widths and callee ABI win.
 # C_AUTO offsets are frame-pointer relative ($fp == $sp), so the real
 # slot is sp + fsize + offset; we print the resolved sp+N.
 # A name repeated inside one function is a distinct nested-block scope.

@@ -2,18 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct GsRVIEW2 ViewInfo;
- *     extern struct tag_TItem items[30];
- *     extern unsigned long *GlobalAreaMap;
- *     extern struct GsOT *OTablePt;
- * END PSX.SYM */
-
 /* SetSnow's writes and this callback's reads prove a snow-particle
  * view of EffectParam.  It shares BloodType's storage, but not its field
  * meanings: the trailing shorts are velocity and the byte at +0x1e is a

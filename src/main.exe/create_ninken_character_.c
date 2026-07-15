@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * PSX.SYM suggests this may be `GetFreeItemSlot` (LOW confidence, ITEM.C) — NOT
- * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
- * END PSX.SYM */
-
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/create_ninken_character_", create_ninken_character_);
 
 // triage: MEDIUM — 144 insns, 2 loop, 2 callees, ~0.09 to FUN_8004a598

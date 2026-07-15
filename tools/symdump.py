@@ -196,9 +196,9 @@ def main() -> None:
     # ---- locals: the original variables, and where the demo build put them
     with open(f"{args.out}/psxsym-locals.tsv", "w") as f:
         f.write("# Every parameter and local of the 442 debug functions.\n"
-                "# storage is from the DEMO build: register allocation may differ in\n"
-                "# retail, but the NUMBER of locals and their TYPES are what drive cc1's\n"
-                "# codegen, and those carry over.\n"
+                "# storage is from the DEMO build. Its local count/types are high-value\n"
+                "# codegen evidence, not a retail spec: helper/API changes can replace\n"
+                "# either, so retail access widths and callee ABI win.\n"
                 "# C_AUTO offsets are frame-pointer relative ($fp == $sp), so the real\n"
                 "# slot is sp + fsize + offset; we print the resolved sp+N.\n"
                 "# A name repeated inside one function is a distinct nested-block scope.\n"

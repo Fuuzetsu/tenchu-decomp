@@ -255,10 +255,11 @@ def psxsym_facts(name):
         rows = [l.rstrip("\n").split("\t") for l in open(loc) if not l.startswith("#")]
         mine = [r for r in rows if len(r) == 6 and r[0] == name]
         if mine:
-            out.append(f"- **The original locals** ({len(mine)}), from PSX.SYM. The demo "
-                       f"build's register allocation may differ, but the NUMBER of locals "
-                       f"and their TYPES drive cc1's codegen and carry over. A repeated "
-                       f"name is a nested-block scope, not a duplicate:")
+            out.append(f"- **The original locals** ({len(mine)}), from PSX.SYM. Their "
+                       f"NUMBER and TYPES are high-value codegen evidence, not a retail "
+                       f"spec: an earlier-build helper/API change can replace either. "
+                       f"Retail access widths and callee ABI win. A repeated name is a "
+                       f"nested-block scope, not a duplicate:")
             for _, _, kind, where, ty, vn in mine[:16]:
                 out.append(f"    {kind:5s} {where:8s} {ty} {vn}")
             out.extend(repeated_local_scope_hints(mine))

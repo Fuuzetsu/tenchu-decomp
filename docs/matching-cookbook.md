@@ -36,10 +36,12 @@ the function touches with their original declarations.
 
 Three things this buys you:
 
-- **The local count and their types are the single biggest lever on cc1's codegen.**
-  The demo's *register allocation* may differ from retail, but how many locals there
-  were and what type each had carries over. Declare those, in that order, before you
-  start guessing.
+- **The local count and types are often the single biggest lever on cc1's codegen.**
+  Use the demo list, in order, as the first draft—not as a retail specification.
+  Retail sometimes changed the helper/API and therefore the aggregate type itself:
+  `AntiWall` moved from `ApplyMatrixSV`/`SVECTOR` outputs to
+  `ApplyRotMatrix`/`VECTOR`. Target access widths and the retail callee ABI override
+  the demo locals whenever they disagree.
 - **The prototype is not a guess.** `reference/psxsym-protos.h` beats anything Ghidra
   or m2c infers. `reference/psxsym-globals.h` beats inventing a layout for `D_800BC108`
   — the original called it `struct ConflictObjectType ConflictObject[64]`.

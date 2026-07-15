@@ -168,15 +168,17 @@ local lists are a strong prior that retail sometimes overwrote.**
 |---|---|
 | Struct/union layouts and field names | Reliable. `POLY_GT4` gave `SetupImageToPolyGT4` every offset in the `.s`, first try. The `TAFS`/`TAFSElement`/`TAFSFileHandle` layouts carried two AFS functions with no debug info of their own. |
 | Prototypes and parameter names | Reliable. |
-| **Local count and types** | The single biggest lever *when right* — `FileRead`'s exact 2-local list is what matched it. But **wrong twice in five functions**. |
+| **Local count and types** | The single biggest lever *when right* — `FileRead`'s exact 2-local list is what matched it. But retail can replace them when an API changes; verify access widths and callees. |
 | **Array bounds in globals** | Suspect. PSX.SYM says `LifeBar[4]`; retail's asm plainly walks `LifeBar[5]`. |
 
-The two failures, both the same shape — the demo is an *earlier build*:
+Measured failures share one cause — the demo is an *earlier build*:
 
 * `SetupImageToPolyGT4`: PSX.SYM lists 3 locals (`tx`, `ty`, `th`). Retail rewrote the
   function into `SetupImageToPolyFT4`'s shape and needs 10.
 * `LoadFromDEVPC`: PSX.SYM records 1 local. Retail's asm plainly needs `fd`, `size`,
   `buff`.
+* `AntiWall`: the demo records `SVECTOR` outputs for `ApplyMatrixSV`; retail calls
+  `ApplyRotMatrix`, whose 32-bit stores prove three `VECTOR` locals instead.
 
 So: transcribe the local list first, then **check it against the `.s` before you trust
 the count**. `tools/access.py` settles any field offset or width. When they disagree,
