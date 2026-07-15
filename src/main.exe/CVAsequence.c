@@ -41,32 +41,15 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — complete pure-C reconstruction with exact target
- * length (884 bytes / 221 instructions) and exact 0x28 frame.  Only seven
- * instructions (28 raw bytes) differ, in one post-memset scheduling block:
- * retail loads the event cursor into v0, StagePlayer into v1, then interleaves
- * the sound/index setup and the CameraTarget/Humans/cursor updates.  This cc1
- * source emits the same operations as StagePlayer(v0), cursor(v1), and moves
- * the independent Humans load earlier.  `rtlguide` classifies both displayed
- * hunks as structure/scheduling; guided autorules (120-candidate budget),
- * named cursor/player temporaries, a single volatile cursor read, statement
- * ordering, and s16*-versus-struct cursor types did not improve the retained
- * direct-global spelling.
+ * The post-memset cursor is deliberately separate from the scan's `event`.
+ * Updating that short-lived carrier in place preserves the source dependency
+ * that makes cc1 keep the cursor in v0 while loading StagePlayer into v1.
  *
- * Recovered source-shape rules: the event scan must be a hand-rolled goto
- * loop so cc1 does not specialize the already-known first iteration; separate
- * s32 `wanted`/`end_kind` temps create retail's one preheader sign extension
- * and loop-carried -1 register.  The five-entry CVAhuman reset is a for loop;
- * an explicit base plus a separately initialized s32 0x80 class constant
- * gives retail's s2/s0 allocation and hoists the constant.  The motion arm's
- * `(motion = 0, test)` comma expression is load-bearing.  VoiceMode also
- * needed an explicit 0x80097CB4 binding because the generated auto-name had
- * drifted to the adjacent cursor at 0x80097CBC.
+ * Other load-bearing shapes: the event scan is a hand-rolled goto loop;
+ * separate s32 `wanted`/`end_kind` values create the preheader extension and
+ * loop-carried -1; and the motion arm's `(motion = 0, test)` comma expression
+ * selects the retail allocation and schedule.
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CVAsequence", CVAsequence);
-#else
 
 #include "item.h"
 
@@ -133,6 +116,7 @@ extern void CdaStop(void);
 s16 CVAsequence(s16 sid)
 {
     CVASequenceEvent *event;
+    CVASequenceEvent *cursor;
     Humanoid **slot;
     Humanoid *human;
     s16 sound;
@@ -163,10 +147,12 @@ event_found:
         goto return_zero;
 
     memset(CVAhuman, 0, sizeof(CVAhuman));
-    sound = CVAnow->param;
+    cursor = CVAnow;
+    sound = cursor->param;
     i = 0;
     CameraTarget = StagePlayer;
-    CVAnow++;
+    cursor++;
+    CVAnow = cursor;
     D_800C2C50[0] = 0;
     if (Humans > 0)
     {
@@ -247,8 +233,6 @@ run_sequence:
     PadProc();
     return 1;
 }
-
-#endif /* NON_MATCHING */
 
 // triage: HARD — 221 insns, 5 loop, 14 callees, ~0.05 to NowReturnNormal
 // likely-relevant cookbook sections:
