@@ -24,8 +24,99 @@
  *     reg   $s0       int i
  * END PSX.SYM */
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SelectStage", SelectStage);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SelectStage", debug_menu_select_stage__override__prt_8005c4d8_8cf8befb);
+/*
+ * SelectStage (0x8005c404) — builds language, character, and stage debug
+ * menus, then writes the selected values into the caller's persistent-state
+ * record. A stage selection above 10 is the menu's retry entry, so all three
+ * prompts repeat until a real stage is chosen.
+ *
+ * Matching notes:
+ *  - Retail takes `PersistentState *ps`, despite the demo symbol's stale
+ *    `void SelectStage(void)` prototype. Both retail callers pass the state
+ *    pointer in a0, and this body stores its three results at +0x5e/+4/+5.
+ *  - The local declarations reproduce the full 0x500-byte working window:
+ *    language[5] at sp+0x10, player[3] at sp+0x38, stage[14] at sp+0x50,
+ *    and name[11][100] at sp+0xc0. Their padding plus the saved-register
+ *    area gives the target's 0x528 frame.
+ *  - Capturing `StageConfig[i].uid` once keeps it live across `sprintf` in
+ *    s0 and lets both stage-entry stores reuse one computed address. Reading
+ *    the field separately at each use was three instructions too long.
+ *  - The stage scan is deliberately a `while (1)` with an explicit top
+ *    break. A natural `for` is folded into a bottom-tested loop and is two
+ *    instructions short; retail keeps the top test and unconditional back
+ *    jump, with `i++` in its delay slot.
+ *  - `debug_menu_select_stage__override__prt_8005c4d8_8cf8befb` is an
+ *    interior call-site prototype marker, not a second function. Its asm
+ *    piece falls straight into `sprintf` and branches back into the first
+ *    piece; this single C body matches the complete 420-byte carve.
+ */
+
+typedef struct
+{
+    debug_menu_choice e[5];
+} MenuLanguageTable;
+
+typedef struct
+{
+    debug_menu_choice e[3];
+} MenuPlayerTable;
+
+typedef struct
+{
+    u8 uid;
+    u8 pad[3];
+    char *name;
+    char *path;
+    s32 px;
+    s32 py;
+    s32 pz;
+    s32 pr;
+} StageConfigEntry;
+
+extern MenuLanguageTable DEBUG_MENU_LANGUAGE_CHOICES;
+extern MenuPlayerTable D_800141F4;
+extern StageConfigEntry StageConfig[];
+extern char D_80097DC0[];
+extern char D_80097DC8[];
+extern char D_8001420C[];
+extern char D_8001421C[];
+extern char D_8001422C[];
+
+extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern int sprintf(char *buf, char *fmt, ...);
+
+void SelectStage(PersistentState *ps)
+{
+    MenuLanguageTable language;
+    MenuPlayerTable player;
+    debug_menu_choice stage[14];
+    char name[11][100];
+    s32 i;
+    s32 uid;
+
+    language = DEBUG_MENU_LANGUAGE_CHOICES;
+    player = D_800141F4;
+    i = 0;
+    while (1) {
+        if (i >= 11) {
+            break;
+        }
+        uid = StageConfig[i].uid;
+        sprintf(name[i], D_80097DC0, uid, StageConfig[i].name);
+        stage[uid].choice_name = name[i];
+        stage[uid].choice_number = i;
+        i++;
+    }
+    stage[i].choice_name = D_80097DC8;
+    stage[i].choice_number = 11;
+    stage[i + 1].choice_name = NULL;
+
+    do {
+        ps->language = AdtSelect(D_8001420C, language.e, 0);
+        ps->chr = AdtSelect(D_8001421C, player.e, 0);
+        ps->stage = AdtSelect(D_8001422C, stage, 0);
+    } while (ps->stage > 10);
+}
 
 // triage: MEDIUM — 105 insns, 2 loop, frame 0x528, 2 callees, ~0.12 to AddItem2
 // likely-relevant cookbook sections:
