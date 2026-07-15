@@ -310,25 +310,20 @@ The ordered triage — fix categories in THIS order, re-running
        store is the source identity bridge. Guided
        `initialized-global-compound` emits both orders for a nonvolatile extern
        and rejects effectful/aliasable operands.
-     - **A jump present in the first jump dump but threaded away only by
-       `jump2` can be a real final-pass park.** AttackShort's missing explicit
-       zero-return jump still exists before jump2; direct returns, one-shot
-       loops, and both real-case-label fence layouts all cause jump2 to thread
-       it into the shared sign-extension tail (or merge even more). Once the
-       desired pre-jump2 RTL is proven and all safe CODE_LABEL layouts are flat,
-       preserve the pure-C draft rather than forcing the jump.
-     - **A final `move` versus `andi 0xffff` can be a type-mode/CFG deadlock,
-       not a register tie.** AttackShort ultimately recovered the target's exact
-       417-instruction CFG by keeping an SImode result carrier, but its two
-       `(u16)` edge copies necessarily expanded as `zero_extendhisi2` and became
-       `andi`. Signed copies emitted the desired moves but let jump2 thread away
-       four target instructions; mixed carriers, direct returns, labels, real
-       cases, identities, and volatile/union spellings all worsened length or
-       CFG. A healthy late permuter was flat for 22,046 iterations. `rtlguide`
-       names the aligned `move D,S` / `andi D,S,0xffff` shape
-       `narrow-copy-zero-extension` and prioritizes `type-width`; once the
-       signed-width trial proves the opposing jump2 loss, preserve the pure-C
-       near-match rather than inserting assembly.
+     - **A type-mode/`jump2` deadlock can yield to a zero-code narrow
+       round-trip fence.** AttackShort needed two full-width `move v0,s0`
+       copies, but direct SImode copies let `jump2` merge its explicit
+       zero-return island, while `(u16)` copies retained the island as two
+       `andi` instructions. The exact source produces zero in an SImode local,
+       narrows it through an HImode local, inserts an empty one-shot loop, then
+       widens it back in two identical if/else arms. Before `jump2`, those arms
+       keep real CFG and the widened value is no longer tagged equal to literal
+       zero; after allocation, `jump2` erases the dummy CFG and both result
+       edges are plain moves. A short-lived pointer copy across the loop notes
+       also prevents an otherwise extra global-pointer reload. This recovered
+       all 417 instructions after a 22,046-iteration permuter had been flat.
+       For `narrow-copy-zero-extension`, try this measured four-part shape
+       before parking the residual or introducing assembly.
      - **Mechanical detection:** `rtlguide` retains the historical
        `adjacent-independent-load-order` signature name, but now warns that it
        is only a hypothesis and reports nearby post-LOOP_END source lines from
@@ -3530,6 +3525,27 @@ moves the zero-extension onto the copy, while omitting the fence lets reorg
 steal the store into the test branch's delay slot. Use this measured trio when
 the target has a full-width producer, a narrow memory publish, then a plain
 register copy before the first explicitly narrow consumer.
+
+A narrow round trip can make the fence erase an unwanted constant equivalence
+without adding final instructions:
+
+```c
+raw = 0;
+short_value = raw;
+do { } while (0);
+if (discriminator)
+    raw = (s32)short_value;
+else
+    raw = (s32)short_value;
+```
+
+AttackShort's HImode store plus loop notes prevent CSE from tagging the widened
+`raw` as literal zero. The identical arms retain a real pre-`jump2` CFG, then
+disappear; global allocation coalesces the round trip in `$s0`. Consequently an
+earlier `v0 = 0` island no longer cross-jumps with later `v0 = raw` edges, while
+both final edges are plain moves. Capture any already-loaded pointer used after
+the fence in a short-lived local before it: otherwise the loop notes can turn a
+zero-code value fence into one extra reload, as the first AttackShort probe did.
 
 A producer can sit inside the fenced assignment's **comma RHS** when the
 residual is only instruction order: `do { table[1] = (offset = i * 4, 58); }
