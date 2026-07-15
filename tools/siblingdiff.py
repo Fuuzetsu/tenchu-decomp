@@ -52,6 +52,8 @@ import struct
 import subprocess
 import sys
 
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -63,6 +65,7 @@ TSV = ".shake/ghidra-export/functions.tsv"
 DEMO_ORIG = "disks/demo/PSX.EXE"
 DEMO_TSV = "reference/demo-psxexe.functions.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
+SPLAT = "config/splat.main.exe.yaml"
 SRC = "src/main.exe"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
 N = 4  # mnemonic n-gram size, matches findsimilar
@@ -72,20 +75,20 @@ BRANCH = re.compile(r"^(b|beq|bne|beqz|bnez|bgez|bgtz|blez|bltz|bgezal|bltzal"
 TEXTADDR = re.compile(r"\b(?:0x)?(80[0-9a-f]{6})\b")  # objdump prefixes targets 0x
 
 
-def load_functions():
+def load_functions(tsv=TSV, symbols=SYMBOLS, splat=SPLAT):
     """[(addr, size, name)] inside text, real-name-preferred (mirrors findsimilar)."""
     symname = {}
-    for line in open(SYMBOLS):
-        m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
-        if m:
-            symname[int(m.group(2), 16)] = m.group(1)
+    with open(symbols) as stream:
+        for line in stream:
+            m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
+            if m:
+                symname[int(m.group(2), 16)] = m.group(1)
+    carved_names = FI.load_splat_c_names(splat)
     out = []
-    for line in open(TSV):
-        parts = line.rstrip("\n").split("\t")
-        if len(parts) == 3:
-            addr, size, name = int(parts[0], 16), int(parts[1]), parts[2]
-            if TEXT_START <= addr < TEXT_END and size >= 8:
-                out.append((addr, size, symname.get(addr, name)))
+    for addr, size, name in FI.load_functions(tsv):
+        if TEXT_START <= addr < TEXT_END and size >= 8:
+            name = carved_names.get(addr, symname.get(addr, name))
+            out.append((addr, size, name))
     return out
 
 

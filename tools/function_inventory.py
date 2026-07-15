@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Load retail function boundaries with the repository's current names.
+"""Load reviewed retail function boundaries with the repository's current names.
 
-Ghidra's ``functions.tsv`` remains the authoritative boundary/size inventory,
-but it is a snapshot: adopting a name in the decomp does not rewrite that
-export.  The named ``c`` subsegments in splat's current config are the
-authoritative source/object names.  Overlay those names by address so symbol
-recovery does not treat already-renamed functions as placeholders or lose
-their names when resolving callees.
+Ghidra's ``functions.tsv`` is the baseline boundary/size inventory, but it is a
+snapshot: reviewed carve corrections and adopted names do not rewrite that
+export.  Apply the small set of proven boundary corrections here, then overlay
+the named ``c`` subsegments from splat's current config so every consumer sees
+the repository's real source/object names and extents.
 """
 from __future__ import annotations
 
@@ -23,6 +22,16 @@ FO = 0x800
 SIZE_OVERRIDES_BY_ADDR = {
     0x80056F50: 0x168,  # LoadCard
     0x800593A0: 0x27C,  # FUN_800593a0
+    0x8005FD3C: 0xFC,   # AdtVsprintf (Ghidra omitted its delay-slot restore)
+}
+
+# Ghidra split AdtVsprintf's final delay-slot instruction into a phantom
+# function at 0x8005fe34.  The real following function begins one word later.
+# Keep this as a full-row rewrite rather than a size override: consumers must
+# not offer FUN_8005fe34 as a target or attribute its leading instruction to
+# the wrong body.
+ROW_OVERRIDES_BY_ADDR = {
+    0x8005FE34: (0x8005FE38, 0x50, "FUN_8005fe38"),
 }
 
 _C_SUBSEGMENT = re.compile(
@@ -40,8 +49,13 @@ def load_functions(path: str) -> list[tuple[int, int, str]]:
             if len(p) < 3 or line.startswith("#"):
                 continue
             addr = int(p[0], 16)
-            size = SIZE_OVERRIDES_BY_ADDR.get(addr, int(p[1]))
-            out.append((addr, size, p[2]))
+            size = int(p[1])
+            name = p[2]
+            addr, size, name = ROW_OVERRIDES_BY_ADDR.get(
+                addr, (addr, size, name)
+            )
+            size = SIZE_OVERRIDES_BY_ADDR.get(addr, size)
+            out.append((addr, size, name))
     return out
 
 

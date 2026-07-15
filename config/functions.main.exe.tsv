@@ -702,8 +702,8 @@
 8005fc64	64	AdtFntLoad
 8005fca4	144	AdtReleaseDisp
 8005fd34	8	AdtDmyPadRead
-8005fd3c	248	AdtVsprintf
-8005fe34	84	FUN_8005fe34
+8005fd3c	252	AdtVsprintf
+8005fe38	80	FUN_8005fe38
 8005fe88	68	FUN_8005fe88
 8005fecc	776	AdtSelect
 800601d4	12	Exec

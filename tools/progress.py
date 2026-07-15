@@ -18,6 +18,8 @@ converted PSY-Q .OBJs) as library identification improves.
 """
 import argparse, json, os, re
 
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -32,18 +34,24 @@ SYMBOLS = "config/symbols.main.exe.txt"
 YAML = "config/splat.main.exe.yaml"
 
 
+def load_functions(tsv=TSV, splat=YAML):
+    """Reviewed live inventory with current carved C names."""
+    rows = FI.load_functions(tsv)
+    rows, _ = FI.overlay_current_names(rows, splat)
+    return [
+        (a, s, n)
+        for a, s, n in rows
+        if TEXT_START <= a < TEXT_END
+        and re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", n)
+    ]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
-    funcs = []
-    for line in open(TSV):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3 and re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", p[2]):
-            a, s, n = int(p[0], 16), int(p[1]), p[2]
-            if TEXT_START <= a < TEXT_END:
-                funcs.append((a, s, n))
+    funcs = load_functions()
 
     # matched .c filenames -> addresses via config/symbols (Ghidra names for the
     # same function can differ, e.g. initialise_font vs its FUN_ name)

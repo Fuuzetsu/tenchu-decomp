@@ -17,6 +17,8 @@ image, disassembled in one objdump pass. Run inside the nix devShell.
 """
 import argparse, os, re, subprocess, sys
 
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -26,28 +28,30 @@ FILE_TEXT_OFF = 0x800
 ORIG = "disks/tenchu/main.exe"
 TSV = ".shake/ghidra-export/functions.tsv"
 SYMBOLS = "config/symbols.main.exe.txt"
+SPLAT = "config/splat.main.exe.yaml"
 SRC = "src/main.exe"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
 N = 4  # n-gram size
 
 
-def load_functions():
-    """[(addr, size, name)] for functions inside the text segment. Prefer the
-    config/symbols name over the Ghidra TSV's FUN_ name (that's the name the .c
-    file gets), so a function matched under its real name isn't reported as an
-    unmatched target."""
+def load_functions(tsv=TSV, symbols=SYMBOLS, splat=SPLAT):
+    """[(addr, size, name)] for reviewed functions inside the text segment.
+
+    Prefer the current splat C name, then config/symbols, then Ghidra's stale
+    name so an already-matched rename is never offered as a fresh target.
+    """
     symname = {}
-    for line in open(SYMBOLS):
-        m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
-        if m:
-            symname[int(m.group(2), 16)] = m.group(1)
+    with open(symbols) as stream:
+        for line in stream:
+            m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
+            if m:
+                symname[int(m.group(2), 16)] = m.group(1)
+    carved_names = FI.load_splat_c_names(splat)
     out = []
-    for line in open(TSV):
-        parts = line.rstrip("\n").split("\t")
-        if len(parts) == 3:
-            addr, size, name = int(parts[0], 16), int(parts[1]), parts[2]
-            if TEXT_START <= addr < TEXT_END and size >= 8:
-                out.append((addr, size, symname.get(addr, name)))
+    for addr, size, name in FI.load_functions(tsv):
+        if TEXT_START <= addr < TEXT_END and size >= 8:
+            name = carved_names.get(addr, symname.get(addr, name))
+            out.append((addr, size, name))
     return out
 
 

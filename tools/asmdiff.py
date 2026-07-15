@@ -5,8 +5,9 @@ Complements tools/matchdiff.py for BIG or shifted functions: matchdiff
 compares per-address (a one-insn insert makes everything after it "differ")
 while this tool difflib-aligns the instruction sequences, so inserts/deletes
 show as themselves and pure branch-target drift can be suppressed.  The target
-extent comes from the reviewed function inventory; the candidate extent comes
-from the link map, so an internal/early ``jr ra`` cannot truncate the view.
+extent comes from the reviewed splat carve; the candidate extent comes from the
+link map, so stale Ghidra rows and internal/early ``jr ra`` instructions cannot
+truncate the view.
 
   tools/asmdiff.py <Name>              aligned diff (structural view)
   tools/asmdiff.py <Name> --all        include pure branch-target drift lines

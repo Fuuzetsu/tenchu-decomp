@@ -27,6 +27,8 @@ Run inside the nix devShell.
 """
 import argparse, os, re, subprocess, sys
 
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -42,32 +44,39 @@ SYMBOLS = "config/symbols.main.exe.txt"
 SRC = "src/main.exe"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
 COOK = "docs/matching-cookbook.md"
+YAML = "config/splat.main.exe.yaml"
 
 _cache = {}
+
+
+def load_functions(tsv=TSV, symbols=SYMBOLS, splat=YAML):
+    """Reviewed function rows, preferring current carved/source names."""
+    symname = {}
+    with open(symbols) as stream:
+        for line in stream:
+            m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
+            if m:
+                symname[int(m.group(2), 16)] = m.group(1)
+    carved_names = FI.load_splat_c_names(splat)
+    return sorted(
+        (a, s, carved_names.get(a, symname.get(a, n)))
+        for a, s, n in FI.load_functions(tsv)
+        if TEXT_START <= a < TEXT_END and s >= 8
+        and re.match(r"^[A-Za-z_]\w*$", n)
+    )
 
 
 def load():
     if _cache:
         return _cache
-    # config/symbols is the source of truth for names (reverse.py names the .c
-    # file after it), so prefer the symbol name over the Ghidra TSV's FUN_ name —
-    # otherwise a function matched under its real name shows as unmatched here.
-    symname, switchdata = {}, set()
+    # Keep switch-table discovery in config/symbols; load_functions() resolves
+    # reviewed extents and prefers the current splat C name over stale aliases.
+    switchdata = set()
     for line in open(SYMBOLS):
-        m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
-        if m:
-            symname[int(m.group(2), 16)] = m.group(1)
         m = re.search(r"switchD_([0-9a-fA-F]+)__switchdataD_", line)
         if m:
             switchdata.add(int(m.group(1), 16))
-    funcs = []
-    for line in open(TSV):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3 and re.match(r"^[A-Za-z_]\w*$", p[2]):
-            a, s, n = int(p[0], 16), int(p[1]), p[2]
-            if TEXT_START <= a < TEXT_END and s >= 8:
-                funcs.append((a, s, symname.get(a, n)))
-    funcs.sort()
+    funcs = load_functions()
     out = subprocess.run(
         [OBJDUMP, "-D", "-b", "binary", "-m", "mips", "-EL",
          "--adjust-vma", hex(TEXT_START - FILE_OFF), ORIG],

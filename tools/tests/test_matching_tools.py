@@ -18,9 +18,11 @@ if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
 
 import autorules
+import access
 import asmdiff
 import callmatch
 import datamatch
+import findsimilar
 import function_inventory
 import fuzzy_inventory
 import matchlock
@@ -28,11 +30,13 @@ import matchdiff
 import maspsxflags
 import merge_metadata_conflicts
 import permute
+import progress
 import regalloc
 import rtlguide
 import siblingdiff
 import stackplan
 import symnear
+import triage
 import xref
 
 MATCHER_PROMPT_SPEC = importlib.util.spec_from_file_location(
@@ -116,16 +120,58 @@ class FunctionInventoryTests(unittest.TestCase):
             path = fh.name
             fh.write("80056f50\t276\tLoadCard\n")
             fh.write("800593a0\t300\tFUN_800593a0\n")
+            fh.write("8005fd3c\t248\tAdtVsprintf\n")
+            fh.write("8005fe34\t84\tFUN_8005fe34\n")
         try:
             self.assertEqual(
                 function_inventory.load_functions(path),
                 [
                     (0x80056F50, 0x168, "LoadCard"),
                     (0x800593A0, 0x27C, "FUN_800593a0"),
+                    (0x8005FD3C, 0xFC, "AdtVsprintf"),
+                    (0x8005FE38, 0x50, "FUN_8005fe38"),
                 ],
             )
         finally:
             os.unlink(path)
+
+    def test_target_pickers_share_phantom_boundary_correction(self):
+        with tempfile.TemporaryDirectory() as td:
+            funcs = os.path.join(td, "functions.tsv")
+            symbols = os.path.join(td, "symbols.txt")
+            splat = os.path.join(td, "splat.yaml")
+            with open(funcs, "w") as fh:
+                fh.write("8005fd3c\t248\tAdtVsprintf\n")
+                fh.write("8005fe34\t84\tFUN_8005fe34\n")
+                fh.write("8005fe88\t68\tFUN_8005fe88\n")
+            with open(symbols, "w") as fh:
+                fh.write("AdtVsprintf = 0x8005fd3c;\n")
+                fh.write("FUN_8005fe38 = 0x8005fe38;\n")
+                fh.write("FUN_8005fe88 = 0x8005fe88;\n")
+            with open(splat, "w") as fh:
+                fh.write("  - [0x4F53C, c, AdtVsprintf]\n")
+                fh.write("  - [0x4F638, c, FUN_8005fe38]\n")
+                fh.write("  - [0x4F688, c, FUN_8005fe88]\n")
+
+            expected = [
+                (0x8005FD3C, 0xFC, "AdtVsprintf"),
+                (0x8005FE38, 0x50, "FUN_8005fe38"),
+                (0x8005FE88, 0x44, "FUN_8005fe88"),
+            ]
+            consumers = [
+                progress.load_functions(funcs, splat),
+                triage.load_functions(funcs, symbols, splat),
+                findsimilar.load_functions(funcs, symbols, splat),
+                siblingdiff.load_functions(funcs, symbols, splat),
+            ]
+            self.assertEqual(
+                access.bounds("FUN_8005fe38", symbols, funcs),
+                (0x8005FE38, 0x50),
+            )
+
+        for rows in consumers:
+            self.assertEqual(rows, expected)
+            self.assertNotIn("FUN_8005fe34", {n for _, _, n in rows})
 
     def test_current_c_names_overlay_stale_boundaries(self):
         with tempfile.TemporaryDirectory() as td:

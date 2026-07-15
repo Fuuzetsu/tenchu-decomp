@@ -20,6 +20,8 @@ the disassembly. Run inside the nix devShell.
 """
 import argparse, os, re, subprocess, sys
 
+import function_inventory as FI
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -38,20 +40,22 @@ STORES = {"sw": (4, "32"), "sh": (2, "16"), "sb": (1, "8"),
           "swl": (4, "32?"), "swr": (4, "32?")}
 
 
-def bounds(name):
+def bounds(name, symbols=SYMBOLS, tsv=TSV):
     addr = None
-    for line in open(SYMBOLS):
-        m = re.match(rf"{re.escape(name)}\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
-        if m:
-            addr = int(m.group(1), 16)
-            break
+    with open(symbols) as fh:
+        for line in fh:
+            m = re.match(
+                rf"{re.escape(name)}\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line
+            )
+            if m:
+                addr = int(m.group(1), 16)
+                break
     if addr is None:
-        sys.exit(f"access: {name} not in {SYMBOLS}")
-    for line in open(TSV):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3 and int(p[0], 16) == addr:
-            return addr, int(p[1])
-    sys.exit(f"access: no size for {name} in {TSV}")
+        sys.exit(f"access: {name} not in {symbols}")
+    for fn_addr, size, _ in FI.load_functions(tsv):
+        if fn_addr == addr:
+            return addr, size
+    sys.exit(f"access: no size for {name} in {tsv}")
 
 
 def disasm(addr, size):
