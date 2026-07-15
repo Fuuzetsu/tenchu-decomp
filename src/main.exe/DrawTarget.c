@@ -87,14 +87,10 @@ extern void SetRotMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 arg3);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawTarget", DrawTarget);
-#else
 void DrawTarget(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s16 x;
-    s16 y;
-    s16 otz;
+    SVECTOR scr;
+    SVECTOR *p;
 
     *(s32 *)0x1F800014 = 0;
     *(s32 *)0x1F800018 = 0;
@@ -104,7 +100,7 @@ void DrawTarget(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     *(s16 *)0x1F800024 = arg2 - (short)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)0x1F800000);
     SetRotMatrix(&GsWSMATRIX);
-    otz = RotTransPers((SVECTOR *)0x1F800020, (s32 *)&x, (void *)0x1F800028, (void *)0x1F80002C);
-    DrawTargetS(x, y, otz - 5, arg3);
+    p = &scr;
+    p->vz = RotTransPers((SVECTOR *)0x1F800020, (s32 *)p, (void *)0x1F800028, (void *)0x1F80002C);
+    DrawTargetS(scr.vx, scr.vy, scr.vz - 5, arg3);
 }
-#endif
