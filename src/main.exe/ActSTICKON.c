@@ -44,13 +44,22 @@
  * END PSX.SYM */
 
 /*
- * ActSTICKON (0x80025120) — TODO one-line description.
+ * ActSTICKON (0x80025120, 0xcb0 bytes) — controls wall-clinging movement,
+ * transitions, camera/item commands, and item throws.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ActSTICKON
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * STATUS: NON_MATCHING — 119 of 3248 bytes differ at the exact target extent
+ * (812/812 instructions; 50 aligned residual lines in 27 blocks). The
+ * remaining differences are confined to the case-0 reflected-angle register
+ * chain, the pad/camera dispatch allocation and block layout, and the item
+ * throw loop's angle working copy. This is a split jump-table function; the
+ * #ifndef branch remains the byte-exact stub and the #else branch is the
+ * reviewed draft (`NON_MATCHING=ActSTICKON ./Build`).
+ *
+ * The prior exact-length checkpoint had 127 differing bytes. Duplicating
+ * `motMODE = 1` into both final motion-selection arms lets jump2 merge the
+ * common store only after sched2 has placed `li v0,1` before the zero `motID`
+ * store, matching the target's last scheduling pair and removing eight bytes
+ * of residual without changing length or control-flow counts.
  */
 
 #ifndef NON_MATCHING
@@ -689,12 +698,13 @@ common_end:
         if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
         {
             motID = 0x501;
+            motMODE = 1;
         }
         else
         {
             motID = 0;
+            motMODE = 1;
         }
-        motMODE = 1;
     }
 }
 
