@@ -15,9 +15,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 11 of 196 bytes differ (right length: the residual
- * doesn't shift anything downstream; matchdiff's diff stays localized).
- *
  * ControlAllHumanoid (0x800292a4, 0xc4 bytes) — same "Humanoid control" TU
  * as GetHumanoid.c/MoveHumanoid.c/GetMoveSpeed.c/GetTargetDistance.c
  * (HUMAN.C). Clears VISIBLE_ENEMIES_ (proven s16, DoInfoViewProc.c/
@@ -40,36 +37,18 @@
  * same global apparently defeat cc1's CSE here. Declaring `result` as `s32`
  * instead collapses both references back onto ONE load, matching target.
  *
- * RESIDUAL (11 bytes): `result` (Humans's entry value, returned unchanged
- * when the loop never runs, else overwritten with 0 every iteration and
- * returned as 0) lands in $a0 here vs the target's $v0 throughout, forcing a
- * final `move v0,a0` before the epilogue that the target doesn't need.
- * `tools/regalloc.py` shows the real copy-chain (`i111 a0->v0`) but nothing
- * to break it: `result`'s own live range never crosses a call, so it isn't
- * dragged into a callee-saved register the way `human` (which DOES cross
- * the ControlHumanoid/character_balma_around_main_routine_ calls, hence
- * $s0) is — global-alloc simply prefers $a0 for this short-lived value over
- * $v0. Tried: declaration order (result before/after i/human), statement
- * order (result=Humans before/after i=0), an explicit early
- * `if (Humans <= 0) return Humans;` restructuring (WORSE: adds a spurious
- * `sll` + `move v0,zero` pair, growing the function by one instruction — the
- * do-while's own bottom `slt` naturally leaves 0 in $v0 at exit in the
- * ORIGINAL, but not when the guard is split into its own early return), and
- * a named `s16 zero = 0;` comparison local (GetArcData's lever) — none
- * moved the register. `tools/autorules.py` found no width-based win either.
- * One bounded permuter run (~300 iterations, --stop-on-zero -j4) plateaued
- * around score 300 (baseline 310) without reaching 0 — not re-run per the
- * attempt-cap guidance.
+ * `result` deliberately has two roles: it first holds Humans for the empty
+ * loop return, then receives the loop-continuation comparison in
+ * `while (result = i < Humans)`. The final false `slt` is therefore already
+ * the function's zero return in $v0. Writing a separate `result = 0` in the
+ * body gives the value an $a0 home and needs an extra `move v0,a0` in the
+ * epilogue.
  */
 extern s16 Humans;
 extern Humanoid *HumanGroup[];
 extern s16 VISIBLE_ENEMIES_;
 extern void character_balma_around_main_routine_(void);
 extern void ControlHumanoid(Humanoid *human);
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ControlAllHumanoid", ControlAllHumanoid);
-#else /* NON_MATCHING */
 
 short ControlAllHumanoid(void)
 {
@@ -98,9 +77,6 @@ short ControlAllHumanoid(void)
             }
         }
         i = i + 1;
-        result = 0;
-    } while (i < Humans);
+    } while (result = i < Humans);
     return result;
 }
-
-#endif /* NON_MATCHING */
