@@ -4419,6 +4419,21 @@ before local-alloc, so the def is gone before it can bias anything.
   lifetime only changes scheduling and allocation. Treat this as a bounded
   allocation/scheduler lever and verify the optimized CFG, not merely the C
   syntax.
+- **An identical-arm pointer alias can decouple a long-lived destination base
+  without enclosing the source pointers that feed its initial copies.**
+  SetupFly's old inline initializer gave `pfly` enough allocation weight, but
+  it also coalesced `start`/`end` into the later call's a0/a1 too early and left
+  an extra load-use nop. Assigning `fly = pfly` in both arms of a disposable
+  condition, then spelling the six vector copies directly, lets jump2 erase
+  the condition while the earlier CFG keeps `fly` as its own source identity.
+  The input pointers stay in a1/a2 until their late call-argument moves, and
+  the destination base takes retail's s2. A nested one-shot loop around the
+  Y-magnitude product and a single loop around the X midpoint then supply the
+  remaining allocation/scheduler weights with no output branch: the candidate
+  reached the exact 664-byte extent and cut the best exact natural form from
+  415 to 204 differing bytes. Keep width experiments subordinate to proven
+  data types: an autorules `s16` midpoint scored well but was invalid because
+  both VECTOR inputs and the midpoint arithmetic are full-width.
 - **Global-alloc priority is floor_log2(n_refs)·n_refs/live_length·10000·size,
   ties by pseudo number** (global.c allocno_compare; flow adds loop_depth
   per ref). cc1's `-da` dump prints each pseudo's refs/length and the
