@@ -1948,8 +1948,30 @@ store arm changed the behavior, let cc1 cross-jump the disabled tails, and left 
 draft one instruction short. Compute the quotient first, spell the enabled arm as the
 fallthrough, and use separate branch-scoped output-base pointers when retail retains
 distinct address pseudos. That combination restored PadProc's exact 368-byte extent
-and moved its guarded residual from a non-authoritative 364-byte carve to 172 linked
-bytes.
+and first moved its guarded residual from a non-authoritative 364-byte carve to 172
+linked bytes.
+
+**An identical-arm capture fence can stage address and flag identities between a
+multiply and its expanded division without leaving a branch in the output.** Give
+the numerator a named `product`; in both arms of a condition on that product, assign
+the same output-base pointer and flag snapshot; then divide the product into the real
+result. The early CFG keeps the numerator, base and flag as separate pseudos, while
+`jump2` later deletes the identical condition. PadProc needed this in both envelope
+arms, plus a cached release divisor across the join: re-reading the member after the
+fence added a fresh base/load/nop triplet. Layering two smaller allocation donors on
+the attack arm reduced its exact-length residual from 172 to 43 bytes. This is safe
+only when both arms are genuinely identical and the tested expression is already
+evaluated on every path.
+
+**A branch-proven scalar can distinguish otherwise cross-jumpable store tails while
+still compiling to the zero register.** In PadProc's disabled attack arm, assigning
+the tested `int shock` to both motor bytes is equivalent to assigning zero because
+that arm is reached only when `shock == 0`. The distinct value identity stops the old
+jump pass from merging this tail with the release-disabled stores; combine still
+emits `sb zero` for both writes. An `u8 shock` kept the hard register in the stores,
+whereas the promoted `int` form produced the target zero-register stores and cut the
+residual to 41 bytes. Require an immediately dominating equality test before using
+this lever; otherwise it changes behavior.
 
 **Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
 before any intervening call** — even where Ghidra renders one lazily folded into a

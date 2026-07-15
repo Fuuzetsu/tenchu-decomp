@@ -29,11 +29,11 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact 368-byte / 92-instruction extent, with 172
- * differing linked bytes and fuzzy 73.63 (up from 52.46).  The raw aligned
- * residual is 36 lines in 14 blocks.  The previous 208-byte claim came from
- * a 364-byte draft and was therefore only a carved-window estimate; this is
- * the first authoritative exact-length checkpoint.
+ * STATUS: NON_MATCHING — exact 368-byte / 92-instruction extent, with 41
+ * differing linked bytes and fuzzy 80.43 (up from 73.63, and from the first
+ * draft's 52.46).  The raw aligned residual is 23 lines in 14 blocks; the
+ * structural-only view is 11 lines in 8 blocks.  This supersedes the prior
+ * authoritative 172-byte checkpoint without relying on a carved window.
  *
  * PadProc (0x8001ada4) — per-frame pad service: ComPad the direct port (0)
  * and the multitap header (0x10, ComBuf[1]), then run the rumble envelope
@@ -57,19 +57,21 @@
  *    let the first `time + 1` store fill the top-level branch delay slot.  A
  *    SECOND increment at the function's end remains skipped by the deep
  *    motor-off path, preserving retail's "+1 always, +1 unless off" split.
- *  - Both guarded divisions execute BEFORE D_8001005D is tested in retail.
- *    Computing the quotient only in the nonzero arm changes both behavior
- *    and the expanded-div CFG.  Hoisting each quotient and spelling the
- *    active arm first (`D_8001005D != 0`) recovers the target branch polarity.
- *  - Distinct branch-scoped `pad` pointers prevent cc1 from cross-jumping the
- *    attack and release zero-store tails.  The release arm first adds
- *    `release` to `ct`, branches to the late `motor_off` label on `ct <= 0`,
- *    and otherwise keeps the quotient in the shared `ct` carrier.
- *  - The identical `ct / release` arms selected by initialized, nonnull
- *    `pad` are a safe zero-code CFG fence.  jump2 erases the condition, while
- *    the earlier pass boundary preserves the exact extent and closest
- *    release scheduling.  A 140-candidate depth-two guided resweep found no
- *    composing exact-length improvement beyond this checkpoint.
+ *  - Each branch keeps a named multiplication `product`, then uses a
+ *    product-keyed identical-arm fence to capture the typed PadPort base and
+ *    shock byte before assigning the quotient to `ct`.  jump2 erases the
+ *    artificial condition, but the earlier CFG boundary preserves the
+ *    numerator, address and flag as distinct source identities.  This is the
+ *    broad recovery that moved the checkpoint from 172 to 52 bytes.
+ *  - An attack-divisor identical-arm fence and a smaller identical `act1`
+ *    store donor recover the target PadArrange/attack allocation without
+ *    surviving in the output.  Storing the branch-proven `int shock` in the
+ *    disabled attack arm prevents cross-jumping into the release zero tail;
+ *    combine still emits the target's `sb zero` pair.  Keeping `shock` as u8
+ *    instead left those stores sourced from its hard register (43 bytes).
+ *  - Cache `release` before the release product fence.  Re-reading the member
+ *    after that multi-predecessor join costs a fresh PadArrange base/load/nop
+ *    triplet; the cache removes exactly those three instructions.
  *  - field8 (act1) is 0 in EVERY release-branch outcome (zero or nonzero
  *    D_8001005D) and only becomes 1 in the attack branch's nonzero case —
  *    easy to mis-transcribe as symmetric with field8=1 in both branches.
@@ -78,9 +80,10 @@
  * still becomes `nop; subu attack,time`, where retail has
  * `negu time; addiu time,1; addu attack`.  Eliminated diamonds can preserve
  * the negate/add pair but force a second PadArrange base and lose exact
- * length.  The other residuals are the two branch-local PadPort/shock-load
- * schedules around the expanded divides and the final absolute motor-off
- * address form; volatile and surviving-branch variants were rejected.
+ * length.  The other residuals are branch-local multiply-result/address
+ * scheduling and hard-conflict rotations among release, product and shock.
+ * A final 180-candidate depth-two guided resweep found no composing pure-C
+ * improvement beyond 41 bytes.
  */
 
 extern void ComPad(int port, u8 *rxbuf);
@@ -94,6 +97,20 @@ typedef struct
     s32 attack;
     s32 release;
 } PadArrangeStruct;
+
+typedef struct
+{
+    u16 held;
+    s16 x;
+    s16 y;
+    u8 active;
+    u8 analog;
+    u8 act1;
+    u8 act2;
+    u8 actbuf[2];
+    u8 send;
+    u8 pad;
+} PadProcPort;
 
 extern PadArrangeStruct PadArrange;
 
@@ -116,57 +133,88 @@ void PadProc(void)
     ct += attack;
     if (ct >= 1)
     {
-        u8 *pad;
+        PadProcPort *pad;
+        int product;
+        int shock;
 
-        ct = PadArrange.pow * (PadArrange.attack - ct);
-        pad = (u8 *)PadPort;
-        ct = ct / PadArrange.attack;
-        if (D_8001005D != 0)
+        product = PadArrange.pow * (PadArrange.attack - ct);
+        if (product != 0)
         {
-            pad[8] = 1;
-            pad[9] = ct;
+            pad = (PadProcPort *)PadPort;
+            shock = D_8001005D;
         }
         else
         {
-            pad[8] = 0;
-            pad[9] = 0;
+            pad = (PadProcPort *)PadPort;
+            shock = D_8001005D;
+        }
+        if (attack != 0)
+        {
+            ct = product / attack;
+        }
+        else
+        {
+            ct = product / attack;
+        }
+        if (shock != 0)
+        {
+            if (pad != 0)
+            {
+                pad->act1 = 1;
+            }
+            else
+            {
+                pad->act1 = 1;
+            }
+            pad->act2 = ct;
+        }
+        else
+        {
+            pad->act1 = shock;
+            pad->act2 = shock;
         }
     }
     else
     {
-        u8 *pad;
+        PadProcPort *pad;
+        int product;
+        int release;
+        int shock;
 
-        ct += PadArrange.release;
+        release = PadArrange.release;
+        ct += release;
         if (ct <= 0)
             goto motor_off;
 
-        ct = PadArrange.pow * ct;
-        pad = (u8 *)PadPort;
-        if (pad != 0)
+        product = PadArrange.pow * ct;
+        if (product != 0)
         {
-            ct = ct / PadArrange.release;
+            pad = (PadProcPort *)PadPort;
+            shock = D_8001005D;
         }
         else
         {
-            ct = ct / PadArrange.release;
+            pad = (PadProcPort *)PadPort;
+            shock = D_8001005D;
         }
-        if (D_8001005D != 0)
+        ct = product / release;
+        if (shock != 0)
         {
-            pad[8] = 0;
-            pad[9] = ct;
+            pad->act1 = 0;
+            pad->act2 = ct;
         }
         else
         {
-            pad[8] = 0;
-            pad[9] = 0;
+            pad->act1 = 0;
+            pad->act2 = 0;
         }
     }
     PadArrange.time = PadArrange.time + 1;
     goto done;
 
 motor_off:
-    ((u8 *)PadPort)[8] = 0;
-    ((u8 *)PadPort)[9] = 0;
+    ((PadProcPort *)PadPort)->act1 = 0;
+    ((PadProcPort *)PadPort)->act2 = 0;
 done:
     ;
 }
