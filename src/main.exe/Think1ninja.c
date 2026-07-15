@@ -13,10 +13,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 6 of 356 bytes differ (right length: matchdiff's
- * whole-image count equals the function-local count; asmdiff confirms 89
- * instructions on both sides, only 3 differing).
- *
  * Think1ninja (0x8002c238, 0x164 bytes) — think-handler for a ninja-type
  * enemy: does nothing while jumping (character_status == 9); otherwise runs
  * an actscnt-gated (every 31st call, matching Think1watch's/Think1trace's
@@ -57,7 +53,9 @@
  * m2c mis-reads as an argument — the same m2c-over-counts-call-args tell as
  * Think1watch's `rand()`. Confirmed empirically: declaring it with an
  * argument compiled an extra, wrong `lw $a0,Me_THINK_C` reload right before
- * the `jal`.
+ * the `jal`.  Its original s16 return type is equally load-bearing: an s32
+ * declaration creates a full-width return-copy pseudo that CSE carries to a
+ * later return, displacing the real `result` from $s1.
  *
  * `field6_0xc` (already-named placeholder, offset 0xC) is also read here as
  * a move-speed magnitude input (`field6_0xc * 5`) — the SAME field
@@ -71,50 +69,15 @@
  * cookbook's "write the constant once, goto in" rule) — plain nested
  * if/else would re-test d2 and diverge from the asm.
  *
- * RESIDUAL (6 bytes / 3 instructions, inside the `d1 == map.level` block's
- * abs-value computation): the target computes `abs_d2` via an explicit
- * `move $v0,$a0` THEN `negu $v0,$v0` (self-negate, matching the established
- * "conditional negate re-reads its own destination" idiom) on the `d2 < 0`
- * path, sharing ONE `slti $v0,$v0,500` at the join for BOTH paths. This
- * draft's cc1 instead eliminates the redundant move (`negu $v0,$a0`
- * directly) and schedules an extra/relocated `slti` — same final values,
- * one fewer instruction on this path, made up for by a different rescheduled
- * instruction elsewhere in the SAME 3-line span (net length unchanged).
- *
- * CONFIRMED (this session) this IS the cookbook's "abs reaches abssi2 only
- * as the GE ternary" case, and the GE spelling DOES produce exactly the
- * target's 3 instructions in isolation — `abs_d2 = (d2 >= 0) ? d2 : -d2;`
- * (any placement: named local at block scope, named local hoisted to
- * function-top scope, or inlined directly into the `if`; `0 <= d2` reads
- * the same) compiles the `bgez/move/negu` triplet the target has, verified
- * with `tools/rtldump.py --pass all` (the abssi2 machine expansion). BUT it
- * is not a net win here: it deterministically evicts the OUTER `result`
- * pseudo from `$s1` to `$a2` (global-alloc priority cascade — the abssi2
- * expansion's extra internal pseudo shifts a completely unrelated
- * Think1random-return-copy pseudo's local-alloc coalescing, which shifts
- * `result`'s priority below a rival), flipping the prologue's `sw $s1`/`sw
- * $ra` order and every `result`-register byte downstream: 33 bytes differ
- * (worse than this draft's 6). Confirmed with 4 independent GE-ternary
- * spellings, all byte-identical in the resulting (worse) diff. The LT
- * spelling (`d2 < 0 ? -d2 : d2`) reproduces this draft's exact 6-byte
- * residual (does NOT fold to abssi2, per the cookbook rule), confirming the
- * GE-vs-LT fold asymmetry but not helping — this function's residual is a
- * genuine "fixing the near tie exposes a bigger one" case, not an
- * un-diagnosed one. `tools/autorules.py` tried every local's width
- * (actscnt/result/d1/d2/abs_d2) with no improvement; a bounded permuter run
- * (280s, `-j4 --stop-on-zero`) found no zero. Parked on the 6-byte baseline
- * (if/else form) as the strictly smaller residual. decomp.me (psyq4.3
- * preset) would be the next arbiter if revisited — it's the only way to
- * search past this specific global-alloc tie without a source-level lever.
+ * The nonnegative-first absolute-value ternary is also intentional.  It
+ * reaches cc1's abssi2 expansion and emits the target's `bgez`, copy, and
+ * self-negate sequence; the negative-first ternary instead folds the copy
+ * away.  This shape and the s16 call prototype must be changed together.
  */
-extern s32 Think1random(void);
+extern s16 Think1random(void);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 extern void *GlobalAreaMap;
 extern s32 GetAreaMapLevel(void *map, s32 x, s32 y, s32 z, u16 flag);
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/Think1ninja", Think1ninja);
-#else /* NON_MATCHING */
 
 s16 Think1ninja(void)
 {
@@ -149,11 +112,7 @@ s16 Think1ninja(void)
             {
                 s32 abs_d2;
 
-                abs_d2 = d2;
-                if (d2 < 0)
-                {
-                    abs_d2 = -abs_d2;
-                }
+                abs_d2 = (d2 >= 0) ? d2 : -d2;
                 if (abs_d2 < 500)
                 {
                     goto set_1040;
@@ -169,5 +128,3 @@ s16 Think1ninja(void)
     }
     return result;
 }
-
-#endif /* NON_MATCHING */
