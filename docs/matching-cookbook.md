@@ -3123,6 +3123,32 @@ physical `r`-then-`z` order. The inverse lexical order left the load one instruc
 late. Restrict this to distinct nonvolatile fields with side-effect-free right-hand
 sides; otherwise store order is semantic, not a scheduling lever.
 
+`SetupBG` supplied a second exact example: lexical `cell->u = ...; cell->v = py;`
+exposes the longer `u` dependency chain first, but sched2 emits the independent `v`
+byte store before `u`, as in retail. Writing the stores in target machine order left a
+66-byte allocation/schedule residual. When only adjacent independent stores remain,
+score both source orders and trust the authoritative linked diff, not visual order.
+
+### Read a stored narrow parameter back to force an independent narrowing identity
+
+When one signed-short parameter feeds both an early division and a much later shift,
+directly reusing the parameter can make CSE keep the division's `sll` intermediate live
+across the whole region. If the target instead recomputes the sign extension, first
+store the parameter in its real destination field and use that field at the later site:
+
+```c
+bg->w = w;
+/* ... */
+bg->mx = bg->w >> 1;
+```
+
+In `SetupBG`, cc1 store-forwarded the readback to `w` but expanded a fresh
+`move; sll; sra`, so no `lh` survived and the target's independent midpoint identity
+appeared. Applying the same form to `h`, while retaining the raw image mode in a
+separate `u16` capture until its later mask, fixed the whole early register allocation.
+Use this only when the target proves a second narrowing sequence; confirm in assembly
+that the field read was forwarded rather than emitted as an extra load.
+
 ### Adjacent global banks may need distinct canonical symbols to prevent base folding
 
 When the target materializes two nearby arrays independently but the candidate
