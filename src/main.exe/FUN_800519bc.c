@@ -12,10 +12,16 @@
  *     extern short SkipFrame;
  * END PSX.SYM */
 
-/* STATUS: NON_MATCHING — complete pure-C reconstruction, exact 1448-byte
- * length. The guarded draft differs in 493 linked bytes; the remaining
- * residual is register allocation/scheduling around the demo-asset table and
- * strip-width/tpage values. */
+/* STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
+ * length (1448 bytes / 362 instructions). The guarded draft differs in 593
+ * linked bytes, with 75 aligned instruction lines in 39 blocks (improved from
+ * 641 bytes and 80 lines / 41 blocks on the current full-width GetTPage ABI;
+ * the old 493-byte note predated that ABI correction). Preserving the strip
+ * texture X value across FUN_80038ce0 fixes its load/register/schedule; the
+ * signed-width and affine-brightness spellings improve the strip renderer
+ * atomically. Remaining differences are register allocation/scheduling in the
+ * prologue, old-pad loop, strip/tpage/brightness renderer, and scroll
+ * adjustment. Fuzzy: 87.02%. */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800519bc", FUN_800519bc);
 #else
@@ -107,8 +113,10 @@ void FUN_800519bc(void)
     s32 fade_step;
     s32 adjusted;
     s16 strip_width;
+    u16 strip_px;
     s32 intensity;
     s32 brightness;
+    s16 signed_width;
     s16 i;
 
     prefix = (u8 *)D_800137A0;
@@ -143,10 +151,11 @@ void FUN_800519bc(void)
     GetTIMInfo(file, &strip_image);
     LoadTIMAndFree(file);
     strip_width = strip_image.pw;
+    strip_px = (u16)strip_image.px;
     sprite.w = 0x10;
     sprite.y = -0x68;
     FUN_80038ce0();
-    stack.tpage_base = (u16)strip_image.px << 16;
+    stack.tpage_base = (s32)strip_px << 16;
 
     while (1)
     {
@@ -212,6 +221,7 @@ void FUN_800519bc(void)
 
         case 3:
             counter = strip_width - 4;
+            signed_width = strip_width;
             do
             {
                 if (counter >= 0)
@@ -225,7 +235,7 @@ void FUN_800519bc(void)
                                 (stack.tpage_base >> 16) + counter, 0x100);
                         } while (0);
                         position = stack.xbase -
-                            (strip_width - counter) * 8;
+                            (signed_width - counter) * 8;
                         sprite.x = position;
                         if (position < -0xa0)
                         {
@@ -235,7 +245,7 @@ void FUN_800519bc(void)
                         {
                             goto brightness_normal;
                         }
-                        brightness = position * 3 + 0x1e0;
+                        brightness = (position + 0xa0) * 3;
                         goto brightness_common;
 
 brightness_normal:
