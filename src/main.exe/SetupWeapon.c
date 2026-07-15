@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -27,13 +28,14 @@
  * END PSX.SYM */
 
 /*
- * SetupWeapon (0x8002a484) — TODO one-line description.
+ * SetupWeapon (0x8002a484) — initialise a humanoid's weapon ornaments.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=SetupWeapon
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * STATUS: NON_MATCHING — complete guarded pure-C reconstruction at 92.20
+ * fuzzy similarity. The draft has the target's exact 1128-byte / 282-
+ * instruction extent and reproduces every weapon-kind case and call. Only
+ * 47 bytes remain, all in the leading four-slot clear and HumanData search,
+ * where the target keeps the short index in a1 and schedules the clear into
+ * the loop delay slot. Build with `NON_MATCHING=SetupWeapon ./Build`.
  */
 
 #ifndef NON_MATCHING
@@ -90,139 +92,136 @@ static const u32 SetupWeapon_jtbl[53] = {
 };
 
 #else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// void SetupWeapon(Humanoid *human)
-// 
-// {
-//   int iVar1;
-//   short body;
-//   int iVar2;
-//   short sVar3;
-//   short sVar4;
-//   
-//   human->wepid[1] = -1;
-//   human->wepid[0] = -1;
-//   iVar2 = 0;
-//   do {
-//     iVar1 = iVar2 + 1;
-//     *(undefined4 *)((int)human->weapon + ((iVar2 << 0x10) >> 0xe)) = 0;
-//     iVar2 = iVar1;
-//   } while (iVar1 * 0x10000 >> 0x10 < 4);
-//   iVar2 = 0;
-//   sVar4 = 0;
-//   sVar3 = HumanData[0].type;
-//   while (sVar3 != human->type) {
-//     iVar2 = iVar2 + 1;
-//     sVar4 = (short)iVar2;
-//     sVar3 = HumanData[iVar2 * 0x10000 >> 0x10].type;
-//   }
-//   sVar3 = HumanData[sVar4].wepid;
-//   human->wpatk = sVar3;
-//   switch(sVar3) {
-//   case 1:
-//   case 2:
-//     GetWeaponData(human,0,human->wpatk,1);
-//   case 3:
-//     body = 0;
-//     sVar4 = 0;
-//     sVar3 = human->wpatk;
-//     break;
-//   case 5:
-//   case 7:
-//     GetWeaponData(human,0,human->wpatk + 1,-1);
-//   case 4:
-//     GetWeaponData(human,0xd,human->wpatk,0);
-//     body = 0xe;
-//     sVar4 = 1;
-//     sVar3 = human->wpatk;
-//     break;
-//   default:
-//     goto switchD_8002a574_caseD_6;
-//   case 10:
-//   case 0x20:
-//     GetWeaponData(human,0xd,human->wpatk,0);
-//     sVar4 = 1;
-//     sVar3 = human->wpatk;
-//     goto LAB_8002a8cc;
-//   case 0x12:
-//     GetWeaponData(human,0xe,1,1);
-//   case 9:
-//   case 0x10:
-//   case 0x11:
-//   case 0x22:
-//   case 0x23:
-//   case 0x24:
-//   case 0x25:
-//   case 0x26:
-//   case 0x27:
-//   case 0x28:
-//   case 0x29:
-//     body = 0xd;
-//     sVar3 = human->wpatk;
-//     sVar4 = 0;
-//     break;
-//   case 0x14:
-//     GetWeaponData(human,0xd,0x14,0);
-//     body = 1;
-//     sVar3 = 0x15;
-//     sVar4 = -1;
-//     break;
-//   case 0x16:
-//   case 0x19:
-//   case 0x1c:
-//     GetWeaponData(human,0,human->wpatk + 1,-1);
-//     GetWeaponData(human,0,human->wpatk + 2,-1);
-//     (human->weapon[0]->locate).coord.t[0] = ((int)human->width / 3) * 0x10000 >> 0x10;
-//     (human->weapon[0]->locate).coord.t[1] = 0;
-//     (human->weapon[0]->locate).coord.t[2] = 0;
-//     (human->weapon[1]->locate).coord.t[0] = ((int)human->width / 3) * 0x10000 >> 0x10;
-//     (human->weapon[1]->locate).coord.t[1] = 0;
-//     (human->weapon[1]->locate).coord.t[2] = 0;
-//   case 0xc:
-//   case 0x13:
-//     body = 0xd;
-//     sVar4 = 0;
-//     sVar3 = human->wpatk;
-//     break;
-//   case 0x1f:
-//     GetWeaponData(human,0xd,0x1f,0);
-//     GetWeaponData(human,0xe,0x1f,1);
-//     body = 0;
-//     sVar3 = 0x2d;
-//     sVar4 = -1;
-//     break;
-//   case 0x2a:
-//     GetWeaponData(human,0xd,0x2a,0);
-//     GetWeaponData(human,0xe,0x2b,-1);
-//     body = 0xe;
-//     sVar3 = 0x2c;
-//     sVar4 = -1;
-//     break;
-//   case 0x30:
-//   case 0x31:
-//     body = 0xd;
-//     sVar3 = human->wpatk;
-//     sVar4 = -1;
-//     break;
-//   case 0x32:
-//   case 0x35:
-//     sVar3 = 0;
-//     if (human->wpatk != 0x35) {
-//       sVar3 = -1;
-//     }
-//     GetWeaponData(human,0xd,human->wpatk,sVar3);
-//     GetWeaponData(human,1,human->wpatk + 2,-1);
-//     sVar4 = -1;
-//     sVar3 = human->wpatk;
-// LAB_8002a8cc:
-//     sVar3 = sVar3 + 1;
-//     body = 0xe;
-//   }
-//   GetWeaponData(human,body,sVar3,sVar4);
-// switchD_8002a574_caseD_6:
-//   return;
-// }
+typedef struct
+{
+    s16 type;
+    u16 wepid;
+    s16 turn;
+    s16 life;
+    s16 width;
+    s16 height;
+    void *mtbl;
+    u8 *name;
+    u32 *model;
+} SetupWeaponHumanData;
+
+typedef struct
+{
+    GsCOORDINATE2 locate;
+} SetupWeaponOrnament;
+
+extern SetupWeaponHumanData HumanData[63];
+extern void GetWeaponData(Humanoid *human, s16 body, s16 wid, s32 wpid, int wep);
+
+void SetupWeapon(Humanoid *human)
+{
+    s16 i;
+    s16 weapon_kind;
+
+    human->wepid[1] = -1;
+    human->wepid[0] = -1;
+    i = 0;
+    do
+    {
+        human->weapon[i] = 0;
+        i++;
+    } while (i < 4);
+
+    i = 0;
+    while (HumanData[i].type != human->type)
+    {
+        i++;
+    }
+    weapon_kind = HumanData[i].wepid;
+    human->weapon_kind = weapon_kind;
+
+    switch (weapon_kind)
+    {
+    case 1:
+    case 2:
+        GetWeaponData(human, 0, *(s16 *)&human->weapon_kind, 1, -1);
+    case 3:
+        GetWeaponData(human, 0, *(s16 *)&human->weapon_kind, 0, -1);
+        break;
+    case 5:
+    case 7:
+        GetWeaponData(human, 0, human->weapon_kind + 1, -1, 0);
+    case 4:
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 2);
+        GetWeaponData(human, 0xe, *(s16 *)&human->weapon_kind, 1, 3);
+        break;
+    case 10:
+    case 0x20:
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 0);
+        GetWeaponData(human, 0xe, human->weapon_kind + 1, 1, 1);
+        break;
+    case 0x12:
+        GetWeaponData(human, 0xe, 1, 1, -1);
+    case 9:
+    case 0x10:
+    case 0x11:
+    case 0x22:
+    case 0x23:
+    case 0x24:
+    case 0x25:
+    case 0x26:
+    case 0x27:
+    case 0x28:
+    case 0x29:
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 0);
+        break;
+    case 0x14:
+        GetWeaponData(human, 0xd, 0x14, 0, 2);
+        GetWeaponData(human, 1, 0x15, -1, 0);
+        break;
+    case 0x2a:
+        GetWeaponData(human, 0xd, 0x2a, 0, 2);
+        GetWeaponData(human, 0xe, 0x2b, -1, 1);
+        GetWeaponData(human, 0xe, 0x2c, -1, 0);
+        break;
+    case 0x16:
+    case 0x19:
+    case 0x1c:
+        GetWeaponData(human, 0, human->weapon_kind + 1, -1, 1);
+        GetWeaponData(human, 0, human->weapon_kind + 2, -1, 0);
+        ((SetupWeaponOrnament *)human->weapon[0])->locate.coord.t[0] = human->width / 3;
+        ((SetupWeaponOrnament *)human->weapon[0])->locate.coord.t[1] = 0;
+        ((SetupWeaponOrnament *)human->weapon[0])->locate.coord.t[2] = 0;
+        ((SetupWeaponOrnament *)human->weapon[1])->locate.coord.t[0] = human->width / 3;
+        ((SetupWeaponOrnament *)human->weapon[1])->locate.coord.t[1] = 0;
+        ((SetupWeaponOrnament *)human->weapon[1])->locate.coord.t[2] = 0;
+    case 0xc:
+    case 0x13:
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 2);
+        break;
+    case 0x1f:
+        GetWeaponData(human, 0xd, 0x1f, 0, 2);
+        GetWeaponData(human, 0xe, 0x1f, 1, 3);
+        GetWeaponData(human, 0, 0x2d, -1, 0);
+        break;
+    case 0x30:
+    case 0x31:
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, -1, 0);
+        break;
+    case 0x32:
+    case 0x35:
+    {
+        s32 initial_wpid;
+
+        initial_wpid = 0;
+        if (*(s16 *)&human->weapon_kind != 0x35)
+        {
+            initial_wpid = -1;
+        }
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, initial_wpid, 0);
+        GetWeaponData(human, 1, human->weapon_kind + 2, -1, 1);
+        GetWeaponData(human, 0xe, human->weapon_kind + 1, -1, 2);
+        break;
+    }
+    default:
+        return;
+    }
+
+}
 
 #endif /* NON_MATCHING */
