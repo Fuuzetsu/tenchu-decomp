@@ -74,10 +74,13 @@
  * STATUS: NON_MATCHING — complete semantic C draft. It has the target's
  * 0x1a0 frame and exact stack layout, including the filename buffer, both
  * PARAM_ITEM_STAY records, and upper scalar locals. Demo SLD evidence restored
- * the indexed construction-record and ornament loops. The draft is 2748 bytes
- * (687 instructions), 24 bytes longer than the 2724-byte/681-instruction split
- * target, with a 70.03 fuzzy score; remaining work is control-flow/regalloc
- * alignment rather than missing behavior. Build it with
+ * the indexed construction-record and ornament loops. Target-evidenced
+ * normal-first clone selection, immediate coordinate masks, and local
+ * ModelSlot aliases now align the large case-2 region more closely. The draft
+ * is 2748 bytes (687 instructions), 24 bytes longer than the
+ * 2724-byte/681-instruction split target, with a 76.32 fuzzy score; remaining
+ * work is control-flow/regalloc alignment rather than missing behavior. Build
+ * it with
  * `NON_MATCHING=LoadConstruction ./Build`. On a full match, delete the guards
  * and the stub-only _jtbl array.
  */
@@ -338,6 +341,7 @@ short LoadConstruction(u32 *data)
     {
         OrnamentType *model;
         ObjectSlotType **slot;
+        ObjectSlotManager *slotman;
 
         wlddt = scratch.stack.wlddt;
         for (i = 0; i < scratch.stack.n; i++)
@@ -362,15 +366,15 @@ short LoadConstruction(u32 *data)
         break;
 
     case 2:
-        if (wlddt[i].data.name[0] == 0)
-            model = CreateCloneOrnament(
-                scratch.stack.wlddt[wlddt[i].ObjectID].data.model);
-        else
+        if (wlddt[i].data.name[0] != 0)
         {
             model = D_80097A74->object[scratch.stack.ObjectID];
             scratch.stack.ObjectID++;
             wlddt[i].data.model = model;
         }
+        else
+            model = CreateCloneOrnament(
+                scratch.stack.wlddt[wlddt[i].ObjectID].data.model);
 
         model->locate.coord.t[0] = wlddt[i].x;
         model->locate.coord.t[1] = wlddt[i].y;
@@ -385,6 +389,7 @@ short LoadConstruction(u32 *data)
             else
                 x = a / 16000 - 1;
         }
+        x &= 7;
         {
             long a = wlddt[i].y;
 
@@ -393,6 +398,7 @@ short LoadConstruction(u32 *data)
             else
                 y = a / 16000 - 1;
         }
+        y &= 7;
         {
             long a = wlddt[i].z;
 
@@ -401,19 +407,21 @@ short LoadConstruction(u32 *data)
             else
                 z = a / 16000 - 1;
         }
+        z &= 7;
 
+        slot = &WorldMap[x][y][z].top;
         GetCenterAndSize(model->object.tmd, &scratch.center, &scratch.size);
-        slot = &WorldMap[x & 7][y & 7][z & 7].top;
+        slotman = &ModelSlot;
         shifty = scratch.center.vy;
         scratch.stack.msize = scratch.size / 2;
-        if (ModelSlot.n >= ModelSlot.max)
+        if (slotman->n >= slotman->max)
             AdtMessageBox(D_800120C4);
-        ModelSlot.slot[ModelSlot.n].model = model;
-        ModelSlot.slot[ModelSlot.n].next = *slot;
-        ModelSlot.slot[ModelSlot.n].ModelSize = scratch.stack.msize;
-        ModelSlot.slot[ModelSlot.n].ShiftY = shifty;
-        *slot = &ModelSlot.slot[ModelSlot.n];
-        ModelSlot.n++;
+        slotman->slot[slotman->n].model = model;
+        slotman->slot[slotman->n].next = *slot;
+        slotman->slot[slotman->n].ModelSize = scratch.stack.msize;
+        slotman->slot[slotman->n].ShiftY = shifty;
+        *slot = &slotman->slot[slotman->n];
+        slotman->n++;
         break;
 
     case 3:
@@ -444,6 +452,7 @@ short LoadConstruction(u32 *data)
         OrnamentType *model;
         int i;
         ObjectSlotType **slot;
+        ObjectSlotManager *slotman;
 
         sprintf((char *)scratch.name, D_80097A90);
         vfree(scratch.stack.MapModel);
@@ -468,6 +477,7 @@ short LoadConstruction(u32 *data)
                 else
                     x = a / 16000 - 1;
             }
+            x &= 7;
             {
                 long a = D_80097A70->object[i]->locate.coord.t[1];
 
@@ -476,6 +486,7 @@ short LoadConstruction(u32 *data)
                 else
                     y = a / 16000 - 1;
             }
+            y &= 7;
             {
                 long a = D_80097A70->object[i]->locate.coord.t[2];
 
@@ -484,19 +495,21 @@ short LoadConstruction(u32 *data)
                 else
                     z = a / 16000 - 1;
             }
+            z &= 7;
 
             D_80097A70->object[i]->object.attribute |= 0x400;
             UpdateOrnament(D_80097A70->object[i], 0);
-            slot = &WorldMap[x & 7][y & 7][z & 7].top;
+            slot = &WorldMap[x][y][z].top;
+            slotman = &ModelSlot;
             model = D_80097A70->object[i];
-            if (ModelSlot.n >= ModelSlot.max)
+            if (slotman->n >= slotman->max)
                 AdtMessageBox(D_800120C4);
-            ModelSlot.slot[ModelSlot.n].model = model;
-            ModelSlot.slot[ModelSlot.n].next = *slot;
-            ModelSlot.slot[ModelSlot.n].ModelSize = scratch.stack.msize;
-            ModelSlot.slot[ModelSlot.n].ShiftY = 0;
-            *slot = &ModelSlot.slot[ModelSlot.n];
-            ModelSlot.n++;
+            slotman->slot[slotman->n].model = model;
+            slotman->slot[slotman->n].next = *slot;
+            slotman->slot[slotman->n].ModelSize = scratch.stack.msize;
+            slotman->slot[slotman->n].ShiftY = 0;
+            *slot = &slotman->slot[slotman->n];
+            slotman->n++;
         }
     }
 
