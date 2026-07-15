@@ -113,13 +113,12 @@ typedef struct
 
 extern TEnemyLayout enemy[0x1E];
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/leSetEnemy", leSetEnemy);
-#else
 s32 leSetEnemy(s32 type, s16 think, s32 x, s32 y, s32 z, s16 r)
 {
     s32 idx;
     s32 result;
+    s32 offset;
+    TEnemyLayout *e;
 
     idx = 0;
     do
@@ -135,13 +134,14 @@ s32 leSetEnemy(s32 type, s16 think, s32 x, s32 y, s32 z, s16 r)
 found:
     if (result == -1)
         return -1;
-    enemy[result].type = (s16)type;
-    enemy[result].ThinkType = think;
-    enemy[result].nPath = 0;
-    enemy[result].x = x;
-    enemy[result].y = y;
-    enemy[result].r = r;
-    enemy[result].z = z;
+    offset = result * 0x88;
+    e = (TEnemyLayout *)(offset + (s32)enemy);
+    e->type = (s16)type;
+    e->ThinkType = think;
+    e->nPath = 0;
+    e->x = x;
+    e->y = y;
+    e->z = z;
+    e->r = r;
     return result;
 }
-#endif
