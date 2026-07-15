@@ -4206,6 +4206,15 @@ before local-alloc, so the def is gone before it can bias anything.
   erases all three. Guided `identical-arm-fence` already enumerates each local
   site independently; inspect `.cse` and `.greg` between accepted candidates
   instead of assuming every byte-neutral fence is merely a weight donor.
+  A related **source-identity split** can preserve both a raw parameter and a
+  cached full-width copy when a straight assignment is copy-propagated away:
+  `alias = cache = raw; if (initialized_discriminator) raw = alias; else raw =
+  alias;`. Consumers of `raw` and `cache` then remain distinct through cse and
+  global allocation even though jump2 erases the conditional. At the guarded
+  GetAreaMapVector checkpoint this form fixed every persistent saved-register
+  assignment while leaving no runtime branch; it did not fix the remaining
+  scheduler residual, so treat it as a measured late lever rather than proof
+  of original syntax until whole-function bytes match.
   Think3firstattack adds a scheduling-dependency form: duplicating
   `degree = Degree` under `if (masked)` made the mask calculation a predecessor
   dependency, so sched2 could no longer hoist the Degree load or fill the
