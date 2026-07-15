@@ -44,32 +44,24 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
  * extent (1152 bytes / 288 instructions) and exact 0x810 frame.  The guarded
- * draft has 537 differing bytes, fuzzy 57.99, with 160 raw-aligned residual
- * lines in 53 blocks (118 structural lines in 28 blocks).  The retail stack
+ * draft has 183 differing bytes, fuzzy 87.50, with 44 raw-aligned residual
+ * lines in 28 blocks (21 structural lines in 14 blocks).  The retail stack
  * plan is also exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at
  * sp+0x7c0, and the zeroed blood VECTOR at sp+0x7d0.
  *
- * The remaining diff is dominated by one allocator/control-flow family in
- * the nested stage-kind, weapon, and think-menu scans.  Retail holds the
- * HumanData base in fp, assigns the scan/count values to s2-s5, and keeps the
- * StageAppearance and WeaponModel bases in t1/t0, spilling those two
- * caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  Direct references
- * to the three global arrays are important: the former explicit base-pointer
- * locals over-constrained their lifetimes, kept the draft five instructions
- * short, and produced a much broader register cascade.
+ * Explicit top-tested stage-kind, weapon, and think scans recover retail's
+ * loop rotation.  StageAppearance and WeaponModel remain in t1/t0 and spill
+ * at sp+0x7e4/sp+0x7e0 around sprintf.  A CFG join retains the weapon wid
+ * reload, while source-lifetime reuse recovers the demo-symbol identities:
+ * i/s4 across both menu scans, names_offset/type in s7, and count/x in s5.
+ * Narrow single-trip fences steer those live ranges but emit no instructions.
  *
- * The identical `weapon_entry = WeaponModel` arms are a zero-code allocation
- * donor.  The enclosing test has already initialized/read `j`, so the fence is
- * defined pure C; jump2 erases the branch and duplicate assignment.  Global
- * allocation still sees the extra weighted `j` reference, which restores the
- * final missing instruction and cuts the linked residual to 537 bytes.  The
- * older nested single-trip fences remain useful for the think-menu coloring.
- *
- * Two bounded 160-candidate guided searches found this donor and no composing
- * broad win.  The only follow-up lowered three bytes while increasing the
- * structural residual, so it was rejected.  Narrowed count/offset types that
- * contradict the target's direct `slti`/`sll` uses and recovered int types
- * remain rejected.
+ * The residual is now mostly local register choice and scheduling: early base
+ * setup order, v0/v1 and a0/a1 scan temporaries, the ThinkDB high-half base,
+ * swapped think-menu argument setup, the OR/sign-extension transient, and the
+ * s16 BreedLife type conversion.  Attempts to remove the think cast, fold the
+ * stage slot, narrow the weapon id, or eliminate the weapon CFG join either
+ * changed the exact extent or broadened the residual and remain rejected.
  */
 
 #ifndef NON_MATCHING
@@ -116,10 +108,8 @@ typedef struct
     u8 Valiation;
 } AddEnemyCameraStatus;
 
-/* Retail reserves the two words after the temporary VECTOR as the caller-
- * saved base spills around sprintf.  Keeping them in the same local scratch
- * object preserves the original 0x810-byte frame even while this guarded C
- * draft still colors those bases into callee-saved registers. */
+/* Retail reserves the two words after the temporary VECTOR for the caller-
+ * saved WeaponModel and StageAppearance bases around sprintf. */
 typedef struct
 {
     VECTOR vector;
@@ -183,6 +173,29 @@ extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
         } while (0);                                                            \
     } while (0)
 
+/* A zero-code allocator fence.  The nested single-trip loops increase the
+ * source weight of a live range without surviving jump2. */
+#define ADD_ENEMY_FENCE_16(statement)                                          \
+    do                                                                         \
+    {                                                                          \
+        do                                                                     \
+        {                                                                      \
+            do                                                                 \
+            {                                                                  \
+                do                                                             \
+                {                                                              \
+                    do                                                         \
+                    {                                                          \
+                        do                                                     \
+                        {                                                      \
+                            ADD_ENEMY_FENCE_10(statement);                     \
+                        } while (0);                                            \
+                    } while (0);                                                \
+                } while (0);                                                    \
+            } while (0);                                                        \
+        } while (0);                                                            \
+    } while (0)
+
 void AddEnemy(void)
 {
     u8 names[70][20];
@@ -193,81 +206,125 @@ void AddEnemy(void)
     s32 names_offset;
     s16 i;
     s16 j;
+    s16 next_j;
+    s32 human_type;
     s32 weapon;
-    s32 type;
+    s32 weapon_id;
+    s32 human_weapon_id;
     s32 think;
     s16 category;
-    s16 think_index;
     s32 stage;
+    s32 stage_slot;
     s32 menu_char;
+    s16 **kind_base;
+    s16 *stage_kinds;
+    AddEnemyWeaponModel *weapon_base;
     AddEnemyWeaponModel *weapon_entry;
+    AddEnemyWeaponModel *weapon_scan;
+    AddEnemyThinkDB *think_base;
     debug_menu_choice *item;
     debug_menu_choice *menu_base;
     debug_menu_choice *think_item;
     char *buffer;
+    char *format;
+    char *human_name;
+    char *weapon_name;
     ModelArchiveType *model;
     Humanoid *human;
-    s32 x;
     s32 y;
     s32 z;
     s16 r;
 
     count = 0;
-    i = 0;
+    i = count;
     if (HumanData[0].type != -1)
     {
+        kind_base = StageAppearance;
+        weapon_base = WeaponModel;
         names_offset = 0;
-        do
+        while (HumanData[i].type != -1)
         {
             if (count >= 70)
                 break;
 
-            stage = StageID;
 #define ADD_ENEMY_STAGE_KINDS \
-    (StageAppearance[stage + 1])
+    (kind_base[stage_slot])
+            stage = StageID;
+            /* Keep the stage+1 slot named: folding it into the array access
+             * rotates the following scan away from retail's CFG. */
+            stage_slot = stage + 1;
             if (ADD_ENEMY_STAGE_KINDS[0] != -1)
             {
                 j = 0;
-                do
-                {
-                    if (ADD_ENEMY_STAGE_KINDS[j] == HumanData[i].type)
-                        break;
-                    j++;
-                } while (ADD_ENEMY_STAGE_KINDS[j] != -1);
+                human_type = HumanData[i].type;
+add_enemy_stage_scan:
+                stage_slot = stage + 1;
+                stage_kinds = ADD_ENEMY_STAGE_KINDS;
+                next_j = j + 1;
+                if (stage_kinds[j] == human_type)
+                    goto add_enemy_stage_scan_done;
+                j = next_j;
+                if (stage_kinds[next_j] != -1)
+                    goto add_enemy_stage_scan;
+add_enemy_stage_scan_done:
 
-                if (ADD_ENEMY_STAGE_KINDS[j] != -1)
+                if (stage_kinds[j] != -1)
                 {
                     weapon = 0;
-                    if (j != 0)
-                    {
-                        weapon_entry = WeaponModel;
-                    }
-                    else
-                    {
-                        weapon_entry = WeaponModel;
-                    }
+                    weapon_entry = weapon_base;
                     if (weapon_entry->wid != -1)
                     {
-                        do
-                        {
-                            if (weapon_entry->wid == HumanData[i].wepid)
-                                break;
-                            weapon_entry++;
-                            weapon++;
-                        } while (weapon_entry->wid != -1);
+                        human_weapon_id = HumanData[i].wepid;
+                        /* The equal arms create a CFG join between the guard
+                         * and scan.  jump2 erases the branch, while the join
+                         * prevents CSE of retail's second wid load. */
+                        if (i != 0)
+                            weapon_scan = weapon_entry;
+                        else
+                            weapon_scan = weapon_entry;
+                        weapon_id = weapon_scan->wid;
+add_enemy_weapon_scan:
+                        if (weapon_id == human_weapon_id)
+                            goto add_enemy_weapon_scan_done;
+                        weapon_scan++;
+                        weapon_id = weapon_scan->wid;
+                        ADD_ENEMY_FENCE_10(weapon++);
+                        if (weapon_id != -1)
+                            goto add_enemy_weapon_scan;
                     }
+add_enemy_weapon_scan_done:
 
                     buffer = (char *)names + names_offset;
+                    format = D_80097D48;
+                    human_name = (char *)HumanData[i].name;
+                    weapon_name = (char *)weapon_base[weapon].name;
                     names_offset += 20;
-                    sprintf(buffer, D_80097D48, HumanData[i].name,
-                            WeaponModel[weapon].name);
+                    blood.call_spill[0] = (u32)weapon_base;
+                    blood.call_spill[1] = (u32)kind_base;
+                    sprintf(buffer, format, human_name, weapon_name);
                     ItemName[count].choice_name = buffer;
                     ItemName[count].choice_number = HumanData[i].type;
                     count++;
+                    /* Volatile reads retain the two reloads; the ordinary
+                     * stores remain schedulable into sprintf's delay slot. */
+                    if (j != 0)
+                        kind_base =
+                            (s16 **)*(volatile u32 *)&blood.call_spill[1];
+                    else
+                        kind_base =
+                            (s16 **)*(volatile u32 *)&blood.call_spill[1];
+                    if (weapon != 0)
+                        weapon_base =
+                            (AddEnemyWeaponModel *)*(volatile u32 *)
+                                &blood.call_spill[0];
+                    else
+                        weapon_base =
+                            (AddEnemyWeaponModel *)*(volatile u32 *)
+                                &blood.call_spill[0];
                 }
             }
             i++;
-        } while (HumanData[i].type != -1);
+        }
 #undef ADD_ENEMY_STAGE_KINDS
     }
 
@@ -276,49 +333,54 @@ void AddEnemy(void)
     item[count].choice_number = -1;
     count++;
     item[count].choice_name = 0;
-    type = (s16)AdtSelect(D_80013FA8, item, 0);
-    if (type == -1)
+    /* The selection reuses type's original s7 live range. */
+    names_offset = (s16)AdtSelect(D_80013FA8, item, 0);
+    if (names_offset == -1)
         return;
 
     think = 0;
     ADD_ENEMY_FENCE_10(category = 0);
+    think_base = ThinkDB;
     ADD_ENEMY_FENCE_10(menu_base = ItemName);
     do
     {
         count = 0;
-        think_index = 0;
-        if (ThinkDB[0].name != 0)
+        /* Reusing the first scan's i range restores retail's s4 assignment. */
+        ADD_ENEMY_FENCE_16(i = count);
+        if (think_base[0].name != 0)
         {
             think_item = menu_base;
             ADD_ENEMY_FENCE_6(menu_char = (s16)category + 0x31);
-            do
+add_enemy_think_scan:
+            if (count >= 70)
+                goto add_enemy_think_scan_done;
+            if (menu_char == think_base[i].name[0])
             {
-                if (count >= 70)
-                    break;
-                if (menu_char == ThinkDB[think_index].name[0])
-                {
-                    think_item->choice_name =
-                        (char *)ThinkDB[think_index].name;
-                    think_item->choice_number =
-                        ThinkDB[think_index].value;
-                    think_item++;
-                    count++;
-                }
-                think_index++;
-            } while (ThinkDB[think_index].name != 0);
+                think_item->choice_name = (char *)think_base[i].name;
+                think_item->choice_number = think_base[i].value;
+                think_item++;
+                count++;
+            }
+            i++;
+            if (think_base[i].name != 0)
+                goto add_enemy_think_scan;
         }
+add_enemy_think_scan_done:
         ADD_ENEMY_FENCE_10(menu_base[count].choice_name = 0);
-        ADD_ENEMY_FENCE_10((think |= AdtSelect(D_80013FB4, menu_base, 0)));
+        ADD_ENEMY_FENCE_10(
+            think = (s16)(think | AdtSelect(D_80013FB4, menu_base, 0)));
     } while ((s16)think != 0x1111 && (s16)think != 0x2222 &&
              ++category < 4);
 
     model = CamState.Owner->model;
-    x = model->locate.coord.t[0];
+    /* count is dead here and shares retail's s5 range with x. */
+    count = model->locate.coord.t[0];
     y = model->locate.coord.t[1];
     r = model->rotate.vy;
     z = model->locate.coord.t[2];
-    CurrentEnemyID = leSetEnemy(type, (s16)think, x, y, z, r);
-    human = BreedLife(type, x, y, z, 0);
+    CurrentEnemyID =
+        leSetEnemy(names_offset, (s16)think, count, y, z, r);
+    human = BreedLife(names_offset, count, y, z, 0);
     human->model->rotate.vy = r;
     human->target = (ModelType *)CamState.Owner->model;
 
@@ -330,6 +392,7 @@ void AddEnemy(void)
     SetBleeds(&pos, 400, 0, 50, 30, 0xffffff);
 }
 
+#undef ADD_ENEMY_FENCE_16
 #undef ADD_ENEMY_FENCE_10
 #undef ADD_ENEMY_FENCE_6
 
