@@ -32,18 +32,11 @@
  *     stack sp+32     short size
  * END PSX.SYM */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupBG", SetupBG);
-#else
-
-/* Complete semantic draft. The demo SLD line stream recovered the original
- * field/loop order and PSX.SYM supplied the function-scope locals. Retail now
- * has the target 0x60 frame, saved-register set, and exact 1072-byte extent.
- * Separating the pmode capture/mask and py addition reduced the raw residual
- * from 697 to 485 bytes (80.22% fuzzy). The remaining mismatch starts with the
- * h/pmode live-range allocation, then early-init and inner-loop scheduling.
- * An 80-candidate guided search plus bounded width/order probes found no
- * further improving pure-C form. */
+/* Exact retail reconstruction. Keeping the unmasked image mode in its own
+ * unsigned capture preserves h in $s1 until the later mask. Reading w/h back
+ * through their stored fields makes cc1 emit the target's independent
+ * midpoint narrowing. The cell-width capture and source-level u-before-v
+ * stores are also load-bearing for the inner-loop allocation and schedule. */
 
 typedef struct GsCELL
 {
@@ -112,6 +105,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     short n;
     short pmode;
     short size;
+    u16 raw_pmode;
 
     if (image == 0)
         SystemOut((u8 *)D_8001109C);
@@ -121,7 +115,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->attribute = 0;
     memset(bg, 0, sizeof(GsBG));
 
-    pmode = image->pmode;
+    raw_pmode = image->pmode;
     bg->hundle.r = bg->hundle.g = bg->hundle.b = 0x80;
     bg->hundle.scalex = bg->hundle.scaley = 0x1000;
     bg->hundle.w = w;
@@ -129,10 +123,10 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->hundle.map = &bg->map;
     bg->map.cellw = bg->map.cellh = 0x10;
     bg->map.ncellw = w / bg->map.cellw;
-    pmode &= 3;
+    pmode = raw_pmode & 3;
     bg->hundle.attribute = pmode << 24;
-    bg->hundle.mx = w >> 1;
-    bg->hundle.my = h >> 1;
+    bg->hundle.mx = bg->hundle.w >> 1;
+    bg->hundle.my = bg->hundle.h >> 1;
     bg->map.ncellh = h / bg->map.cellh;
 
     size = (short)(bg->map.ncellw * bg->map.ncellh);
@@ -156,17 +150,21 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     {
         for (x = 0; x < n; x++)
         {
-            short px;
+            u8 cellw;
+            short basepx;
             short py;
+            short px;
 
-            cell = &bg->cell[y * n + x];
-            px = image->px;
+            cellw = bg->map.cellw;
             py = image->py;
+            basepx = image->px;
+            px = basepx;
+            px += x * (cellw >> (2 - pmode));
             py += y * bg->map.cellh;
+            cell = &bg->cell[y * n + x];
+            cell->u = ((basepx << (2 - pmode)) +
+                       x * cellw) & size;
             cell->v = py;
-            cell->u = ((px << (2 - pmode)) +
-                       x * bg->map.cellw) & size;
-            px += x * (bg->map.cellw >> (2 - pmode));
             cell->cba = GetClut(image->cx, image->cy);
             cell->flag = 0;
             cell->tpage = GetTPage(pmode, 0, px, py);
@@ -179,8 +177,6 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->sz = 0;
     return bg;
 }
-
-#endif
 
 // triage: HARD — 268 insns, mul/div, 3 loop, 6 callees, ~0.04 to GetVectorRotation
 // likely-relevant cookbook sections:
