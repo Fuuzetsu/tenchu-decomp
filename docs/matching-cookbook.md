@@ -4318,8 +4318,30 @@ and a recompute (`DrawSprite`, the exact missing instruction).
 **An early `return !flag;` right after `flag = 1;` gets constant-folded to a
 literal.** `IsVisible` sets a `fail` flag and has exactly ONE `return !fail;`, at the
 bottom; making the failing branch return locally lets cc1 fold `!1` to `0` there —
-three instructions shorter than the target. Both branches must fall through to the
-single shared `return !fail;` for the real runtime `xori` to appear on both paths.
+three instructions shorter than the target. Keep a distinct merge label with a
+second predecessor when several tests must share one flag assignment:
+
+```c
+flag = 0;
+if (first_bad)
+    goto failed;
+if (second_bad)
+    goto failed;
+goto done;
+failed:
+flag = 1;
+done:
+return !flag;
+```
+
+The success edge into `done` prevents the failure value from becoming constant at
+the return, while both failures still contribute only one `flag = 1` definition.
+This distinction closed `IsVisible`'s pure three-register rotation: duplicating the
+assignment made `fail` 4 refs / 22 live insns (priority 3636), but the shared block
+made it 3 / 20 (1500), below the quotient allocnos at 3333 and 1764, with no emitted
+CFG change. A shared assignment followed immediately by its own local return is the
+constant-folding anti-pattern; a shared assignment feeding a genuine multi-predecessor
+join is an allocation lever.
 
 **When both arms of an if/else end in the same statement on an address-taken
 variable, duplicate it into BOTH arms.** Writing it once after the if/else forces a
