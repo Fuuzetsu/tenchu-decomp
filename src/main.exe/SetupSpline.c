@@ -45,25 +45,27 @@
  * "share one sign-extended pseudo" cookbook rule) recovers the target's
  * register-based `sll/sra` instead of a spurious `lh` reload.
  *
- * STATUS: NON_MATCHING — 83 of 240 bytes differ, with the exact target extent
- * (60 instructions) and physical branch/call inventory. The prior draft was
- * 149/240 bytes different and scored 62.07%; this one scores 71.67%.
+ * STATUS: NON_MATCHING — 12 of 240 bytes differ, with the exact target extent
+ * (60 instructions), 0x28-byte frame, and physical inventory of four
+ * conditional branches, two calls, and one return. The preceding checkpoint
+ * differed by 83 bytes and scored 71.67%; this checkpoint scores 80.00% (the
+ * earlier draft was 149/240 and 62.07%).
  *
- * The explicit byte offset recovers the target's loop arithmetic/order. At
- * both UpdateSplineControl call sites, an identical-arm assignment into a
- * block-local call alias preserves a separate source identity long enough to
- * recover the missing call-setup/copy instruction count; cc1 removes the
- * identical source branch, so no target-absent control flow survives. The
- * one-shot wrapper around the loop call changes only allocator weighting.
+ * Keeping `t` as `int` makes cc1 emit the target's single shared sign-extension
+ * pair at entry and retain that value for both zero-tests. At both
+ * UpdateSplineControl call sites, assigning the identical-arm call alias back
+ * through `spc` before the key1 store is a semantic no-op, but preserves the
+ * target's call-copy/carrier instruction shape. That in turn lets the loop
+ * offset remain the correct `s32`; no narrowed type is needed to force length.
  *
- * Remaining differences are coupled register allocation and scheduling. The
- * target keeps the sign-extended time in s2, the loop counter in s0, the
- * current key in a0, and the control pointer in a1. This draft colors those
- * pseudos differently, moving the loop sign extension and consequently the
- * load/store schedule. The demo-disc SetupSpline is useful negative evidence:
- * its shorter 232-byte implementation passes the control pointer directly in
- * a0 at both calls, so retail's extra copies are an allocator/source-identity
- * change, not evidence for different pointer arithmetic or semantics.
+ * All 12 residual bytes are register fields in six allocator hunks: retail
+ * colors the call-site control pointer/key as a1/a0, while this source chooses
+ * a0/a1 and the coupled v0/v1 carriers in the opposite order. There are no
+ * remaining opcode, immediate, extent, or CFG differences. A bounded guided
+ * exact search and 23,004 source permutations both plateaued at this coloring.
+ * The demo's shorter 232-byte implementation passes the control pointer
+ * directly in a0, corroborating that retail's extra copies are an allocator/
+ * source-identity distinction rather than different pointer arithmetic.
  */
 extern void UpdateSplineControl(SplineControlType *spc);
 
@@ -73,7 +75,7 @@ INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SetupSpline", SetupSpline);
 void SetupSpline(MotionManager *mmp)
 {
     short time;
-    s16 t;
+    int t;
     short i;
     MotionElementType *key;
     SplineControlType *spc;
@@ -91,8 +93,8 @@ void SetupSpline(MotionManager *mmp)
             call_spc = spc;
         else
             call_spc = spc;
-        call_spc->key1 = key + 1;
-        UpdateSplineControl(call_spc);
+        (spc = call_spc)->key1 = key + 1;
+        UpdateSplineControl(spc);
     }
     for (i = 0; i < mmp->n; i++) {
         MotionElementType *loop_key;
@@ -111,8 +113,8 @@ void SetupSpline(MotionManager *mmp)
                     call_spc = spc;
                 else
                     call_spc = spc;
-                call_spc->key1 = loop_key + 1;
-                UpdateSplineControl(call_spc);
+                (spc = call_spc)->key1 = loop_key + 1;
+                UpdateSplineControl(spc);
             }
         } while (0);
     }
