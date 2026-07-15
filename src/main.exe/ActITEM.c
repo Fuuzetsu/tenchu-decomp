@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -26,12 +27,13 @@
  * END PSX.SYM */
 
 /*
- * ActITEM (0x80026074) — TODO one-line description.
+ * ActITEM (0x80026074) — trigger motion-timed item use and return to idle.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=ActITEM
+ * STATUS: NON_MATCHING — full guarded semantic reconstruction. The draft has
+ * the exact 572-byte extent with only 26 differing bytes and fuzzy 90.21 (up
+ * from the comments-only scaffold's 21.68); all three calls and physical CFG
+ * counts match. The residual is a flag/count register-allocation tie plus a
+ * two-instruction tail scheduling swap. Build with `NON_MATCHING=ActITEM
  * ./Build`. On a full match, delete the guards and the _jtbl array.
  */
 
@@ -57,81 +59,99 @@ static const u32 handle_char_state_using_item__jtbl[6] = {
 };
 
 #else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// void FUN_80026074(void)
-// 
-// {
-//   bool bVar1;
-//   VECTOR *pVVar2;
-//   TItemType TVar3;
-//   short sVar4;
-//   PARAM_ITEM_USE local_30;
-//   
-//   bVar1 = false;
-//   switch((int)(((ushort)dtM->mid - 0xf00) * 0x10000) >> 0x10) {
-//   case 0:
-//     bVar1 = false;
-//     if (dtM->count != 10) goto LAB_800261a8;
-//     bVar1 = true;
-//     local_30.type = ITEM_MAKIBISHI;
-//     break;
-//   case 2:
-//     bVar1 = false;
-//     if (dtM->count != 5) goto LAB_800261a8;
-//     sVar4 = 4;
-//     if (Me_MOTION_C == StagePlayer) {
-//       sVar4 = DAT_80097b1e;
-//     }
-//     TVar3 = (TItemType)sVar4;
-//     if ((TVar3 != ITEM_FIRE) && (bVar1 = false, TVar3 != ITEM_SMOKE)) goto LAB_800261a8;
-//     bVar1 = true;
-//     local_30.type = TVar3;
-//     break;
-//   case 3:
-//     bVar1 = false;
-//     if (dtM->count != 5) goto LAB_800261a8;
-//     bVar1 = true;
-//     local_30.type = ITEM_JIRAI;
-//     break;
-//   case 4:
-//   case 5:
-//     if (dtM->count != 0) {
-//       return;
-//     }
-//     if (dtM->loop == 0) {
-//       return;
-//     }
-//     dtM->loop = -1;
-//     return;
-//   }
-// LAB_800261a8:
-//   if (bVar1) {
-//     local_30.user = Me_MOTION_C;
-//     pVVar2 = GetAbsolutePosition(Me_MOTION_C->model->object[2],0,0,0);
-//     local_30.start.vx = pVVar2->vx;
-//     local_30.start.vy = pVVar2->vy;
-//     local_30.start.vz = pVVar2->vz;
-//     local_30.end.pad = local_30.start.pad;
-//     local_30.end.vx = local_30.start.vx;
-//     local_30.end.vy = local_30.start.vy;
-//     local_30.end.vz = local_30.start.vz;
-//     ReqItemUse(&local_30);
-//   }
-//   if ((dtM->count == 0) && (dtM->loop != 0)) {
-//     if (Me_MOTION_C == StagePlayer) {
-//       SetCameraMode(CMODE_NORMAL);
-//     }
-//     if ((Me_MOTION_C->attribute & 0x40U) == 0) {
-//       motID = 0;
-//     }
-//     else {
-//       motID = 0x501;
-//     }
-//     DAT_80097f0e = 1;
-//   }
-//   return;
-// }
+
+enum
+{
+    ITEM_MAKIBISHI = 2,
+    ITEM_FIRE = 4,
+    ITEM_SMOKE = 5,
+    ITEM_JIRAI = 6,
+    CMODE_NORMAL = 0
+};
+
+extern MotionManager *dtM;
+extern Humanoid *Me_MOTION_C;
+extern Humanoid *StagePlayer;
+extern s16 SelectedItem;
+extern s16 motID;
+extern s16 motMODE;
+
+extern void ReqItemUse(PARAM_ITEM_USE *item);
+extern void SetCameraMode(s32 mode);
+
+void ActITEM(void)
+{
+    PARAM_ITEM_USE item;
+    VECTOR *p;
+    s32 item_type;
+    s16 flag;
+    s16 mode;
+
+    flag = 0;
+    switch ((s16)(dtM->mid - 0xF00))
+    {
+    case 0:
+        if (dtM->count != 10)
+            break;
+        flag = 1;
+        item.type = ITEM_MAKIBISHI;
+        break;
+
+    case 2:
+        if (dtM->count != 5)
+            break;
+        mode = ITEM_FIRE;
+        if (Me_MOTION_C == StagePlayer)
+            mode = SelectedItem;
+        item_type = mode;
+        if (item_type != ITEM_FIRE)
+        {
+            flag = 0;
+            if (item_type != ITEM_SMOKE)
+                break;
+        }
+        flag = 1;
+        item.type = item_type;
+        break;
+
+    case 3:
+        if (dtM->count != 5)
+            break;
+        flag = 1;
+        item.type = ITEM_JIRAI;
+        break;
+
+    case 4:
+    case 5:
+        if (dtM->count != 0)
+            return;
+        if (dtM->loop == 0)
+            return;
+        dtM->loop = -1;
+        return;
+    }
+
+    if (flag)
+    {
+        item.user = Me_MOTION_C;
+        p = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, 0, 0);
+        item.start.vx = p->vx;
+        item.start.vy = p->vy;
+        item.start.vz = p->vz;
+        item.end = item.start;
+        ReqItemUse(&item);
+    }
+
+    if (dtM->count == 0 && dtM->loop != 0)
+    {
+        if (Me_MOTION_C == StagePlayer)
+            SetCameraMode(CMODE_NORMAL);
+        if (Me_MOTION_C->attribute & 0x40)
+            motID = 0x501;
+        else
+            motID = 0;
+        motMODE = 1;
+    }
+}
 
 #endif /* NON_MATCHING */
