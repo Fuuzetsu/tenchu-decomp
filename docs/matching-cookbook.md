@@ -4337,6 +4337,16 @@ effectful expressions would change semantics.
   reusing its long-lived scan pointer instead promoted the value to global
   allocation in `$a0`.  Confirm this shape across `.rtl`, `.sched`, `.lreg`,
   and `.sched2`; statement order alone cannot express the missing dependency.
+- **A mutable global may need direct reads in each switch arm, yet a separate
+  read after its update at the shared tail.**  In CVAupdate, keeping an `event`
+  alias alive through several arms created persistent pointer allocnos; reading
+  `CVAnow->field` directly removed them.  At the tail, however,
+  `cursor = CVAnow + 1; CVAnow = cursor;` coalesced away a target move, while
+  `CVAnow++; cursor = CVAnow;` preserved it.  Together with checking the actual
+  `GsRVIEW2` offsets (`vrx/vry/vrz`, not `vpx/vpy/vpz`), these changes moved the
+  guarded draft from wrong-length 2096/524 to exact-length 2104/526 with only
+  allocator residue.  Alias lifetime and field-offset semantics are independent
+  checks; use both before trying allocation-only donors.
 - **`*p = x = expr;` vs `x = expr; *p = x;` flips a scheduling tie** between
   the load feeding expr and the load computing p's address — try the
   chained-assignment fold when two independent insns land swapped and

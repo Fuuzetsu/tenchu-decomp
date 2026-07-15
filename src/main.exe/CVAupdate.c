@@ -41,12 +41,12 @@
  * CVAupdate (0x80050628) — interpret character-animation and camera events.
  *
  * STATUS: NON_MATCHING — full guarded semantic reconstruction. The draft is
- * 2096/2104 bytes with fuzzy 89.14 (up from the scaffold's 6.65); all 19 calls
- * and the physical CFG counts match (44 conditional branches, 13 jumps, two
- * returns). The eight-byte extent residual is one case-2 scheduled load-delay
- * nop and one loop-tail coalesced move; the wider residual is now register
- * allocation. Build with `NON_MATCHING=CVAupdate ./Build`. On a full match,
- * delete the guards and the _jtbl array.
+ * exact-length at 2104/2104 bytes and 526/526 instructions, with fuzzy 95.44
+ * (up from 89.14), 29 linked differing bytes, and 24 raw aligned lines in 13
+ * blocks. Structural filtering is empty and all 19 calls match; the remaining
+ * differences are register allocation only. Build with
+ * `NON_MATCHING=CVAupdate ./Build`. On a full match, delete the guards and the
+ * _jtbl array.
  */
 
 #ifndef NON_MATCHING
@@ -157,6 +157,7 @@ s16 CVAupdate(void)
     long position;
     s32 i;
     s32 active_status;
+    s32 invalid;
     s32 pan_value;
     u32 packed;
     s16 value;
@@ -165,13 +166,14 @@ s16 CVAupdate(void)
     cursor = CVAnow;
     if (cursor->kind != 1)
     {
+        invalid = -1;
         anim_base = CVAhuman;
         do
         {
             switch (cursor->kind)
             {
             case 0:
-                if (CVAnow->param == -1)
+                if (CVAnow->param == invalid)
                     CdaStop();
                 break;
 
@@ -210,22 +212,21 @@ s16 CVAupdate(void)
                     } while (i < model->n);
                 }
 
-                if (StagePlayer != human && human->life == -1)
+                if (StagePlayer != human && human->life == invalid)
                 {
                     human->attribute |= 4;
                     human->life = human->lifemax;
                 }
 
-                event = CVAnow;
-                if (CVAnow->param != -1)
+                if (CVAnow->param != invalid)
                 {
-                    position = event->x * 1000;
+                    position = CVAnow->x * 1000;
                     human->point[0] = position;
                     human->locate->vx = position;
-                    position = event->z * 1000;
+                    position = CVAnow->z * 1000;
                     human->point[1] = position;
                     human->locate->vz = position;
-                    y = event->y * 1000;
+                    y = CVAnow->y * 1000;
                     level = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,
                                             y - 1000, human->locate->vz, 0);
                     human->locate->vy = level;
@@ -248,11 +249,11 @@ s16 CVAupdate(void)
 
                 packed = (u32)(u16)CVAnow->x << 16;
                 active_status = 0x11;
-                if ((s32)packed >> 16 == -1)
+                if ((s32)packed >> 16 == invalid)
                 {
-                    human->life = -1;
+                    human->life = invalid;
                     human->attribute = (human->attribute | 0x82) & 0xFFFB;
-                    human->motion->mid = -1;
+                    human->motion->mid = invalid;
                     SetNowMotion(human, 0, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
@@ -262,14 +263,20 @@ s16 CVAupdate(void)
                     i = (s32)packed >> 24;
                     if (human->status == active_status && (u32)(i - 0x10) > 1)
                         return 0;
-                    if (human->life > 0 && i == 0x11)
+                    if (human->life > 0)
                     {
-                        human->life = 0;
-                        ReqLifeBar(human);
+                        if (i == 0x11)
+                        {
+                            human->life = 0;
+                            ReqLifeBar(human);
+                        }
+                        i = 0;
+                    }
+                    else
+                    {
+                        i = 0;
                     }
 
-                    event = CVAnow;
-                    i = 0;
                     anim = anim_base;
                 scan_case3_human:
                     if (anim->human == human)
@@ -299,8 +306,8 @@ s16 CVAupdate(void)
                             return 0;
                     }
 
-                    human->motion->mid = -1;
-                    SetNowMotion(human, event->x, 1);
+                    human->motion->mid = invalid;
+                    SetNowMotion(human, CVAnow->x, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
                     anim_base[i].human = human;
@@ -325,32 +332,30 @@ s16 CVAupdate(void)
                 break;
 
             case 5:
-                event = CVAnow;
-                if (event->mode == 0)
+                if (CVAnow->mode == 0)
                 {
-                    ViewInfo.vpx = event->x * 100;
-                    ViewInfo.vpy = event->y * 100;
-                    ViewInfo.vpz = event->z * 100;
+                    ViewInfo.vrx = CVAnow->x * 100;
+                    ViewInfo.vry = CVAnow->y * 100;
+                    ViewInfo.vrz = CVAnow->z * 100;
                 }
                 else
                 {
-                    human = GetHumanoid(event->param);
+                    human = GetHumanoid(CVAnow->param);
                     if (human == 0)
                         return 0;
-                    ViewInfo.vpx = human->locate->vx;
-                    ViewInfo.vpy = human->locate->vy - human->height + 300;
-                    ViewInfo.vpz = human->locate->vz;
+                    ViewInfo.vrx = human->locate->vx;
+                    ViewInfo.vry = human->locate->vy - human->height + 300;
+                    ViewInfo.vrz = human->locate->vz;
                     CameraTarget = human;
                 }
                 GsSetRefView2(&ViewInfo);
                 break;
 
             case 6:
-                event = CVAnow;
-                CameraPanMode = (u16)event->mode;
+                CameraPanMode = (u16)CVAnow->mode;
                 pan_value = 20;
-                if (event->param != 0)
-                    pan_value = event->param;
+                if (CVAnow->param != 0)
+                    pan_value = CVAnow->param;
                 D_80097CC8 = pan_value;
                 break;
 
@@ -372,7 +377,7 @@ s16 CVAupdate(void)
                 break;
 
             case 8:
-                if (CVAnow->mode != -1)
+                if (CVAnow->mode != invalid)
                 {
                     SetupTelop((u8 *)strcpy((char *)D_800C2C50,
                                             (char *)CVAdata + CVAnow->mode), 0);
@@ -402,8 +407,8 @@ s16 CVAupdate(void)
                 break;
             }
 
-            cursor = CVAnow + 1;
-            CVAnow = cursor;
+            CVAnow++;
+            cursor = CVAnow;
         } while (cursor->kind != 1);
     }
 
