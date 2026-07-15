@@ -34,12 +34,12 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 138 of 644 bytes differ. Instruction COUNT is
- * EXACT (161 insns both sides) and the whole-function CONTROL FLOW/
- * STRUCTURE is byte-proven correct (every branch target, every field
- * offset, every magic-multiply divisor matches) — the residual is
- * entirely a register-allocation/scheduling tie, confirmed NOT to be
- * loop.c invariant motion (see below).
+ * STATUS: NON_MATCHING — 126 of 644 bytes differ (90.68% fuzzy).
+ * Instruction COUNT is EXACT (161 insns both sides) and the whole-function
+ * CONTROL FLOW/STRUCTURE is byte-proven correct (every branch target, every
+ * field offset, every magic-multiply divisor matches) — the residual is
+ * entirely a register-allocation/scheduling tie, confirmed NOT to be loop.c
+ * invariant motion (see below).
  *
  * WeaponHitWeapon (0x8001f324, 0x284 bytes) — MOTION.C's weapon-clash
  * handler: while `hand` (the swung weapon model) has a live conflict
@@ -54,7 +54,7 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - `p = &ConflictObject[0].position;` (used later as `p = (VECTOR*)((u8*)p
  *    + hand->id * sizeof(ConflictObjectType));`) must be computed
- *    UNCONDITIONALLY at function entry, alongside `base = ConflictObject;` —
+ *    on every path at function entry, alongside `base = ConflictObject;` —
  *    both are compile-time-constant addresses the target keeps alive in
  *    dedicated callee-saved registers ($s2/$s5) across the ENTIRE function
  *    (through the retry loop and both MoveHumanoid calls). Computing `p`
@@ -70,6 +70,12 @@
  *    SetBleed loop, matching Ghidra's own literal statement order) the
  *    draft was 2 instructions SHORT regardless of how the `p`/`base`
  *    rematerialization issue above was resolved.
+ *  - The identical-arm `hand != 0` fence around `p` is an allocation donor:
+ *    final jump cleanup fuses the arms, so the emitted count, CFG and
+ *    semantics stay unchanged, while the earlier passes keep the extra
+ *    `hand` reference long enough to give it the target's $s3 identity. This
+ *    fixes the prologue and every `hand` access, reducing the linked residual
+ *    from 138 to 126 bytes and raising fuzzy similarity from 85.71% to 90.68%.
  *  - RESIDUAL: with the instruction count now exact, the remaining diff is
  *    a register-identity mismatch cascading from ONE root instruction: the
  *    `/100` magic-multiply constant (0x51EB851F, feeding the SetBleed
@@ -77,9 +83,8 @@
  *    BEFORE the retry loop even begins (right after `base`/`p`'s own
  *    setup) but in every draft tried, only ever materializes at the
  *    SetBleed loop's OWN preheader (confirmed via `tools/rtldump.py
- *    --pass loop`: "Insn 134: regno 119 (life 29), move-insn savings 1
- *    moved to 341" — insn 341 sits immediately before the SetBleed loop's
- *    own code_label, not before the retry loop). This rules OUT loop.c
+ *    --pass loop`, immediately before that loop's code_label rather than
+ *    before the retry loop). This rules OUT loop.c
  *    invariant motion as the mechanism (loop.c only ever hoists to the
  *    OWNING loop's immediate preheader; there is no loop.c pathway to
  *    reach further back through an intervening, textually-earlier loop or
@@ -90,14 +95,18 @@
  *    constant materializes even LATER, inline before its first use, since
  *    there's then no loop.c involvement at all), reordering the four early
  *    local initializations (`base`/`p`/`i`) in every declaration/statement
- *    permutation tried. `tools/regalloc.py` confirms `hand` (the
- *    highest-reference-count pseudo) lands in a caller/callee copy-chain
- *    `a0 -> $s5` in every draft tried, vs the target's `a0 -> $s3` — a
- *    downstream symptom of the same unresolved priority ordering, not an
- *    independent lever. Two bounded `tools/permute.py` runs (~300s each,
+ *    permutation tried. In the current draft `hand` is now correct in $s3,
+ *    but `base`/`p`/`id`/`i` occupy $s1/$s2/$s5/$s4 instead of the target's
+ *    $s2/$s5/$s4/$s0; the late multiplier shares $s0 with the dead `slot`,
+ *    whereas retail gives the multiplier $s1 and reuses $s0 for `slot`/`i`.
+ *    Two bounded `tools/permute.py` runs (~300s each,
  *    `--stop-on-zero -j4`, ~18-29k iterations), the second AFTER the
  *    instruction count was already exact, plateaued at best scores 235 and
- *    425 respectively — never approaching 0. Root cause is a genuine
+ *    425 respectively — never approaching 0. A fresh guided audit found no
+ *    further improving path in a 160-candidate loop-fence beam or a
+ *    220-candidate full beam; a one-shot outer range regressed 126 -> 135,
+ *    explicit signed-64 remainder arithmetic grew to 704 bytes, and early
+ *    literal donors grew to 648/660 bytes. Root cause is a genuine
  *    below-the-C-level register-allocation PRIORITY tie (which of several
  *    similarly-weighted long-lived pseudos gets the lowest-numbered
  *    callee-saved register first) that this session could not find a
@@ -143,7 +152,14 @@ void WeaponHitWeapon(ModelType *hand)
     if ((hand->attribute & 0x8000) != 0)
     {
         base = ConflictObject;
-        p = &ConflictObject[0].position;
+        if (hand != 0)
+        {
+            p = &ConflictObject[0].position;
+        }
+        else
+        {
+            p = &ConflictObject[0].position;
+        }
         i = 0;
         do
         {
