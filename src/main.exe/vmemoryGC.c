@@ -63,7 +63,10 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
     if (pt == 0)
         return;
 
-    header = (PoolBlock *)pt - 1;
+    do
+    {
+        header = (PoolBlock *)pt - 1;
+    } while (0);
     mask = 0x80000000;
     if ((header->size & mask) == 0)
         SystemOut(D_8001104C);
@@ -118,34 +121,40 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
  *
  * Matching notes: no `jal vfree` appears anywhere in the target. A single
  * inline helper containing vfree.c's already-matched free+coalesce body is
- * expanded once for `pt` and once for `newp`. This is more than source
+ * expanded once for `pt` and once for `vmpt`. This is more than source
  * cleanup: the helper's distinct formal/local identities recover the target
  * full-width neighbour loads and reduce the exact-length residual from 241
  * to 96 bytes. The repeated `pt`/`vhp`/`svhp` debug locals are consistent
  * with those two inline expansions. Each expansion keeps vfree's leading
- * null guard; jump2 threads the first one into the following `return newp`
+ * null guard; jump2 threads the first one into the following `return vmpt`
  * and the second one into the final compaction block.
- *  - Three nested zero-trip wrappers at the FIRST helper call add no machine
- *    code, but apply call-site loop depth to that inline expansion. This puts
- *    the outer `pt`, header, complement mask, and size in their target saved
- *    registers and cuts 96 differing bytes to 54.
+ *  - PSX.SYM calls the outer allocation result `vmpt` in $s1 and records only
+ *    one outer `svhp` in $a3. Reusing `vmpt` for the final split-tail pointer,
+ *    then reusing the final search cursor for `vh.next` after memcpy, carries
+ *    those source identities through both disjoint ranges. This fixes the
+ *    entire old saved-register cycle and final caller-register tail.
+ *  - One zero-trip wrapper around ONLY the inline helper's header assignment
+ *    adds no code but gives both expanded header pseudos the one extra weighted
+ *    reference needed for target header=$s0 / mask=$s4. With the source reuse
+ *    above it replaces the old three-wrapper first-call workaround and reduces
+ *    the exact-length residual from 41 to 24 bytes.
  *  - One zero-trip wrapper around the final mask definition keeps that value
  *    across memcpy and restores the exact 195-instruction extent. The final
  *    vh-size wrapper resolves another two-byte caller-register tie; neither
  *    wrapper leaves a branch in the optimized assembly.
- *  - The final block's tail materializes with vrealloc.c's exact idiom:
- *    `(PoolBlock *)((u8 *)prev + (hsz << 2) + 8)`.
+ *  - Parenthesizing the final offset as `base + ((hsz << 2) + 8)` selects the
+ *    target addiu-before-addu tree (24 to 16 bytes); reusing `prev` after the
+ *    call for `vh.next` closes the final $a0->$a3 tail (16 to 12 bytes).
  *  - Both coalescing sums are vfree.c's proven `A + (B + 2)` spelling.
  *
  * STATUS: NON_MATCHING — exact target extent (780 bytes / 195 instructions),
- * 52 differing bytes, fuzzy 77.95. The remaining saved-register cycle is
- * `newp` s4→s1, first inline header s1→s0, and the two inline masks s0/s1→s4;
- * the second inline header, outer pt/header, complement mask, size, and final
- * mask already have their target homes. The final search cursor remains v1
- * instead of a3, with the corresponding tail arithmetic/load schedule.
- * Passing the mask through the helper costs two instructions because combine
- * no longer folds the double-release test to `bltz`; signed-guard, late-mask,
- * and whole-outer-block weighting variants also regress extent or bytes.
+ * 12 differing bytes, fuzzy 94.87. Every instruction and hard-register role
+ * now matches except one saved-register swap: complement mask $s6->$s5 and
+ * byte size $s5->$s6 (10 instruction lines / 12 linked bytes). `.greg` gives
+ * them priorities 810 and 1194. Weighting the mask definition flips them but
+ * introduces a prologue load-delay nop (one instruction long); weighting the
+ * inline use fixes those two roles while rotating already-exact helper locals.
+ * A bounded 24,027-candidate permuter run remained flat at proxy score 55.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/vmemoryGC", vmemoryGC);
@@ -156,39 +165,29 @@ void *vmemoryGC(void *pt)
     u32 cmask;
     u32 mask;
     u32 size;
-    void *newp;
+    u32 *vmpt;
 
     cmask = 0x7fffffff;
     header = (PoolBlock *)pt - 1;
     size = header->size << 2;
-    newp = valloc(size);
-    if (newp != 0)
+    vmpt = valloc(size);
+    if (vmpt != 0)
     {
-        if (newp < pt)
+        if ((void *)vmpt < pt)
         {
-            memcpy(newp, pt, size);
-            do
-            {
-                do
-                {
-                    do
-                    {
-                        FreePoolBlockInline(pt, cmask);
-                    } while (0);
-                } while (0);
-            } while (0);
-            return newp;
+            memcpy(vmpt, pt, size);
+            FreePoolBlockInline(pt, cmask);
+            return vmpt;
         }
         else
         {
-            FreePoolBlockInline(newp, cmask);
+            FreePoolBlockInline(vmpt, cmask);
         }
     }
 
     {
         PoolBlock *prev;
         PoolBlock *n2;
-        PoolBlock *tail;
         void *newpt;
         PoolBlock vh;
         s32 sz2;
@@ -216,20 +215,21 @@ void *vmemoryGC(void *pt)
                     newpt = (void *)(prev + 1);
                     vh.size = sz2;
                     vh.next = header->next;
-                    tail = (PoolBlock *)((u8 *)prev + (header->size << 2) + 8);
+                    vmpt = (u32 *)((u8 *)prev + ((header->size << 2) + 8));
                     prev->size = header->size;
-                    prev->next = tail;
+                    prev->next = (PoolBlock *)vmpt;
                     memcpy(newpt, pt, size);
                     pt = newpt;
-                    if (vh.next != 0 && (~vh.next->size & mask) != 0)
+                    prev = vh.next;
+                    if (prev != 0 && (~prev->size & mask) != 0)
                     {
                         do
                         {
-                            vh.size = vh.size + (vh.next->size + 2);
+                            vh.size = vh.size + (prev->size + 2);
                         } while (0);
-                        vh.next = vh.next->next;
+                        vh.next = prev->next;
                     }
-                    *tail = vh;
+                    *(PoolBlock *)vmpt = vh;
                 }
             }
         }
