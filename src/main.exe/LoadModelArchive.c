@@ -40,54 +40,14 @@
 #include "item.h"
 
 /*
- * STATUS: NON_MATCHING — right length within 1 instruction (191 vs 190 insns,
- * 46 differing lines in 14 blocks), the entire residual confined to the loop2
- * "parent lookup" sub-loop (searching prntp[] for the entry whose `id` matches
- * the current record's `parent`). Everything else — the whole header setup,
- * loop1's sub-model creation + TMD linking, the archive-root init, and loop2's
- * outer body / position stores — matches byte-for-byte; every struct offset
- * (ModelArchiveType, ModelType, ParentingType, GsCOORDINATE2) is verified
- * against the raw .s.
+ * STATUS: MATCHING — pure C, all 760 bytes / 190 instructions exact.
  *
- * The residual is the SAME sub-C-level register-allocation cascade the
- * near-identical WORLD.C sibling LoadOrnamentArchive.c is parked on: cc1
- * colours the parent-source pointer (`dim`, PSX.SYM's `$a3`) into a
- * callee-saved register (s0) and shifts the current-submodel pointer (`objp`,
- * `$s0`) up to s1, where the target keeps `dim` in the caller-saved $a3 (it
- * dies at GsInitCoordinate2, before RotMatrixYXZ) and moves it into $a0 at the
- * call — one extra `move a0,a3` the target has that this draft folds away. cc1
- * also reloads `mad->object` inside the found branch (`lw v1,0x68(s2)`) rather
- * than reusing the top-of-loop CSE this draft holds. The objp/dim role
- * assignment is correct per PSX.SYM (objp=current $s0, dim=parent $a3); the
- * divergence is purely which hard registers the coloring assigns and whether
- * `mad->object` is re-CSE'd — allocno-priority ties with no C-level lever. One
- * bounded foreground permuter run (~250 iterations, -j4) found no score-0
- * candidate. Parked, like its WORLD.C twin.
- *
- * LoadModelArchive (0x80017394, 0x2f8 bytes) — 3DCTRL.C's archive loader:
- * given an on-disk archive blob (`adr`) and an optional parent ModelType,
- * allocate a ModelArchiveType and its `object` sub-model table, then in two
- * passes build the hierarchy. Pass 1 (loop1): for each of the `n` records,
- * valloc a fresh ModelType, GsMapModelingData/GsLinkObject4 its TMD if it has
- * one, self-reference its object.coord2, root it under World, zero+RotMatrixYXZ
- * its translation (exactly CreateCloneModelArchive.c's sub-model init, this
- * same TU). Pass 2 (loop2): root each sub-model under its parent — searching
- * the record table for the entry whose `id` matches this record's `parent`
- * (falling back to the archive root `mad` when parent<0 or unmatched, like
- * LoadOrnamentArchive.c's WORLD.C sibling) — and set its translation from the
- * record.
- *
- * Matching notes (see CreateCloneModelArchive.c / LoadOrnamentArchive.c):
- *  - `mad->n` is read once (`lhu`, item.h's signed s16 field feeding a
- *    truncating store) and reused sign-extended for the `n*4` table valloc,
- *    the shared-value-across-widths idiom (CreateCloneModelArchive).
- *  - `i`/`j` are `short` (PSX.SYM) so loop.c does NOT strength-reduce the
- *    `prntp[i]`/`object[i]` indexing to a walking pointer — each iteration
- *    recomputes `((s16)i)*0x10` / `*4` from the base (Loops: short counter).
- *  - `tmdp` and `prntp` alias the same address (adr advanced past the 8-byte
- *    header); the record's TMD field is a byte offset added to `tmdp`.
- *  - The parent search's `j = 0` is initialised between the two `&&` guards
- *    (parent>=0, then n>0) — a comma inside the `&&`.
+ * The second pass follows LoadOrnamentArchive's proven parent-search shape.
+ * Giving its parent pointer a separate `super` identity lets it die in a3 at
+ * GsInitCoordinate2 while `objp` remains in s0. The unsigned count view and
+ * signed `mad->n` field have the same verified 0x64 address but distinct C
+ * identities, preserving the target's adjacent lhu/lh loads instead of cc1
+ * folding them together. `limit` then keeps j in v1 through the inner loop.
  */
 extern void *valloc(u32 size);
 extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
@@ -106,6 +66,12 @@ extern WorldType World;
 
 typedef struct
 {
+    u8 pad[0x64];
+    u16 n;
+} ModelArchiveCountView;
+
+typedef struct
+{
     s16 parent;  /* 0x0 */
     s16 id;      /* 0x2 */
     s16 x;       /* 0x4 */
@@ -114,9 +80,6 @@ typedef struct
     s32 offset;  /* 0xC */
 } ParentingType; /* size 0x10 */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/LoadModelArchive", LoadModelArchive);
-#else
 ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
 {
     ModelArchiveType *mad;
@@ -124,9 +87,13 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     u8 *tmdp;
     short i;
     short j;
+    short limit;
+    u16 count;
     ModelType *dim;
     ModelType *objp;
+    ModelType *super;
     int dtmd;
+    int parent;
 
     if (adr == 0) {
         SystemOut(D_80011064);
@@ -185,39 +152,41 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->locate.flg = 0;
     mad->id = -1;
     mad->attribute = 0;
+    count = ((ModelArchiveCountView *)mad)->n;
     if (0 < mad->n) {
         do {
             objp = mad->object[i];
-            dim = (ModelType *)mad;
-            if (prntp[i].parent >= 0 && (j = 0, 0 < mad->n)) {
+            super = (ModelType *)mad;
+            if (prntp[i].parent >= 0 && (j = 0, 0 < (count << 16))) {
+                parent = prntp[i].parent;
+                limit = mad->n;
                 do {
-                    if (prntp[i].parent == prntp[j].id) {
-                        dim = mad->object[j];
-                        break;
+                    if (parent == prntp[j].id) {
+                        super = mad->object[j];
+                        goto coordinate_init;
                     }
                     j = j + 1;
-                } while (j < mad->n);
+                } while (j < limit);
             }
-            GsInitCoordinate2(&dim->locate, &objp->locate);
+coordinate_init:
+            GsInitCoordinate2(&super->locate, &objp->locate);
             objp->locate.coord.t[0] = prntp[i].x;
             objp->locate.coord.t[1] = prntp[i].y;
             objp->locate.coord.t[2] = prntp[i].z;
             RotMatrixYXZ(&objp->rotate, &objp->locate.coord);
             i = i + 1;
             objp->locate.flg = 0;
+            count = ((ModelArchiveCountView *)mad)->n;
         } while (i < mad->n);
     }
     mad->rotate.pad = (short)mad->object[0]->locate.coord.t[1];
     return mad;
 }
-#endif
-
 // triage: MEDIUM — 190 insns, 3 loop, 6 callees, ~0.13 to LoadModel
 // likely-relevant cookbook sections:
 //   - Loops: 3 back-edge(s) — for/while/do vs goto shape
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation (reference):
 //
 //
 // ModelArchiveType * LoadModelArchive(ulong *adr,ModelType *prnt)
