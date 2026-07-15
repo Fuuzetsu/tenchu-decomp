@@ -3684,6 +3684,18 @@ intervening non-field statement. This is not permission to duplicate pointer,
 global, volatile, or call-bearing assignments: those writes may be observable,
 and a retained extra store is a structure regression rather than evidence.
 
+Donors are not permanent in isolation: after adding a second proven-safe donor,
+re-score the old fence and the source order of nearby automatic-aggregate
+initialisers as one bounded set. A later CameraDirection pass combined the vpx
+and vrx donors, removed the now-counterproductive nested loop around the output,
+and initialized the local `SVECTOR` in vx/vy/vz order. That moved the exact-size
+checkpoint from 47 to 17 linked bytes. The six possible field orders were cheap
+enough to exhaust (the other five scored 19--44), while a subsequent
+100-candidate RTL-guided rule sweep found no result below 17. The lesson is not
+to permute whole functions: exhaust a tiny, semantically independent aggregate
+store group when sched1 shows those stores feeding the residual, then re-test
+diagnostic allocation scaffolding because the new pseudo order can supersede it.
+
 The fence may need to cover a **contiguous producer/consumer range**, not one
 AST statement. AttackIndirect's final copy-propagation tie closed only when one
 `do { ... } while (0)` enclosed three adjacent `if` statements together; fencing

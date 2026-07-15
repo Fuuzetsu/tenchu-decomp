@@ -37,6 +37,28 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — exact retail extent (860 bytes / 215 instructions)
+ * with 17 differing linked bytes: 12 register-only instructions in six
+ * aligned hunks.  Fuzzy match is 94.42%, improved from 91.63% / 47 bytes.
+ * Calls and control flow already match exactly (6 calls, 14 conditional
+ * branches, 4 jumps, and 1 return).
+ *
+ * Two source-order/allocation facts produce this checkpoint.  Initializing
+ * `r` in vx/vy/vz order makes sched1 place all three halfword stores exactly;
+ * all six permutations were measured, and the other five scored 19--44 bytes.
+ * At the tail, two redundant writes to the unobserved automatic `target`
+ * aggregate act as allocation donors.  Keeping both the vpx and vrx donors,
+ * while dropping the older nested loop weight around the vpx output, fixes
+ * both magic-division temporaries and the split ViewInfo high/base registers.
+ *
+ * The residual is one coupled local-allocation cycle over r.vx, r.vy, r.vz,
+ * ViewInfo.vrx, and target.vrx; no instruction, operand value, or schedule is
+ * missing.  A bounded 100-candidate RTL-guided rule sweep found no result
+ * below 17 bytes, so further work should start from new allocation evidence
+ * rather than another broad spelling search.
+ */
+
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/CameraDirection", CameraDirection);
 #else
@@ -112,9 +134,9 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
 
     sin = rsin(mad->rotate.vy) / 6;
     cos = rcos(mad->rotate.vy) / 6;
-    r.vz = 0x4B0;
     r.vx = 0;
     r.vy = 0;
+    r.vz = 0x4B0;
     RotateVectorS(&r,
                   mad->rotate.vx + CamState.DirectionRX,
                   mad->rotate.vy + CamState.DirectionRY,
@@ -142,21 +164,17 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     target.vrx = CamLoc.vx - r.vx;
     target.vpx = CamLoc.vx + r.vx;
     target.vry = CamLoc.vy - r.vy;
-    /* Redundant in C, but changes GCC's tail register allocation. */
-    target.vpx = CamLoc.vx + r.vx;
     target.vrz = CamLoc.vz - r.vz;
     target.vpy = CamLoc.vy + r.vy;
     target.vpz = CamLoc.vz + r.vz;
+    /* Safe allocation donors: target is an unobserved automatic aggregate. */
+    target.vpx = CamLoc.vx + r.vx;
+    target.vrx = CamLoc.vx - r.vx;
 
     vDif->vrx = (target.vrx - ViewInfo.vrx) / 4;
     vDif->vry = (target.vry - ViewInfo.vry) / 4;
     vDif->vrz = (target.vrz - ViewInfo.vrz) / 4;
-    /* Nested loop notes re-color the ViewInfo base without emitted code. */
-    do {
-        do {
-            vDif->vpx = (target.vpx - ViewInfo.vpx) / 8;
-        } while (0);
-    } while (0);
+    vDif->vpx = (target.vpx - ViewInfo.vpx) / 8;
     vDif->vpy = (target.vpy - ViewInfo.vpy) / 8;
     vDif->vpz = (target.vpz - ViewInfo.vpz) / 8;
 }
