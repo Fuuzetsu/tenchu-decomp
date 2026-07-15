@@ -3902,6 +3902,19 @@ before local-alloc, so the def is gone before it can bias anything.
   nearby independent assignment instead (PlayerOption: sliding a global
   store two statements later fixed an $a0/$a1 swap whose first uses were
   earlier).
+- **An in-place short-lived carrier can add the missing sched1 dependency
+  without adding an instruction.**  After a call, the direct spelling
+  `sound = CVAnow->param; CVAnow++;` let cc1 represent the cursor and its
+  incremented result as separate pseudos.  Sched1 moved the add/store before
+  the field load, so both pseudos overlapped; local-alloc gave the cursor
+  `$v1` and the result `$v0`, and sched2 preserved the wrong order.  Spelling
+  the same work as `cursor = CVAnow; sound = cursor->param; cursor++;
+  CVAnow = cursor;` makes the add redefine the carrier, so it cannot cross the
+  earlier field read and the cursor/result coalesce in `$v0`.  CVAsequence's
+  final 28-byte residual then vanished.  Use a fresh local for the carrier:
+  reusing its long-lived scan pointer instead promoted the value to global
+  allocation in `$a0`.  Confirm this shape across `.rtl`, `.sched`, `.lreg`,
+  and `.sched2`; statement order alone cannot express the missing dependency.
 - **`*p = x = expr;` vs `x = expr; *p = x;` flips a scheduling tie** between
   the load feeding expr and the load computing p's address — try the
   chained-assignment fold when two independent insns land swapped and
