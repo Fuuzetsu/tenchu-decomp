@@ -1539,6 +1539,18 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `1`), not when it only feeds stores — plain `sh/sw` of the same literal to
   several fields can reuse the register with NO named C variable
   (Makibishi needed `s32 one=1;`, LightningBolt's store-only case did not).
+- **Two constants with the same stored byte can be distinct allocation
+  identities at a measured checkpoint.** When the target keeps two long-lived
+  constants in different saved registers but cse merges the candidate's
+  identical `u8` store values, give one narrow-only source identity a
+  byte-equivalent signed value: for example, an `s32 setup = -0x80` assigned
+  only to `u8` fields stores the same `0x80` byte as `+0x80`, while remaining a
+  different SImode constant for allocation. In `start_demo_`, this separated
+  the setup-colour lifetime from the later full-brightness lifetime and
+  restored the surrounding saved-register cycle. This is a checkpoint lever,
+  not an exact-match endpoint: the materializing immediate still differs
+  (`-128` versus `+128`). Prove every consumer narrows to one byte, record the
+  residual explicitly, and keep exact byte comparison authoritative.
 - **A callee returning a pointer to a small static struct gets a FULL struct
   copy** even when only one field is read afterward: `sr = *(SmallStruct *)
   f();` — align-2 lwl/lwr+swl/swr block copy, not a selective field load
