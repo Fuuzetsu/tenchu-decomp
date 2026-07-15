@@ -152,7 +152,7 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * damage, knockback, animation, blood, score, and player-feedback effects.
  *
  * STATUS: NON_MATCHING — the C draft has the exact retail extent (5812 bytes,
- * 1453 instructions) with 1418 differing bytes, fuzzy 91.40%, and 111 raw
+ * 1453 instructions) with 1399 differing bytes, fuzzy 92.36%, and 100 raw
  * aligned residual blocks from `asmdiff --structural` at this checkpoint.
  * The remaining work is expression/CFG scheduling and early-path register
  * allocation; the large humanoid path's persistent registers now agree with
@@ -162,6 +162,10 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * ./Build`. On a full match, delete the guards and the _jtbl array.
  *
  * Progress notes retained for the next pass:
+ *  - Retail reuses one `enemy` identity across the early special-target and
+ *    later humanoid paths ($s3), and reuses `did` across the item and humanoid
+ *    direction calculations ($s4).  Keeping separate block locals needlessly
+ *    rotates both allocations.
  *  - The target's long-lived human-path roles are enemy=$s3, direction=$s4,
  *    attack id then severity=$s2, damage=$s1, scale/speed/bleed counter=$s0,
  *    and conflict id=$s5.  Reusing a source local for two non-overlapping
@@ -191,7 +195,11 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *    the two predecessor blocks substantially improves register allocation.
  *  - An identical-arm fence around the item-path life store reduces the
  *    aligned residual to about 1004 bytes, but leaves the draft one instruction
- *    long.  It is a promising paired edit, not a valid checkpoint by itself.
+ *    long.  Splitting the signed death-test value instead makes the generated
+ *    body 5808 bytes (the retail function's true body size), while this carve
+ *    includes the next symbol's first word and therefore requires 5812.  The
+ *    bounded type/fence/CFG partner audit only found exact-length regressions;
+ *    neither spelling is a valid checkpoint by itself.
  *  - Item case 0 deliberately falls through the shared case-0xe damage test.
  *    Since damage is already 20 this is semantically neutral, but it recovers
  *    the target's branch into the existing zero-test instead of a later case.
@@ -250,6 +258,7 @@ void DamageControl(void)
   short sVar12;
   int iVar13;
   Humanoid *pHVar14;
+  Humanoid *enemy;
   short id;
   short dmg;
   Humanoid *pHVar17;
@@ -272,8 +281,6 @@ void DamageControl(void)
     SetCameraMode(CMODE_NORMAL);
   }
   if ((Me_MOTION_C->type & 0xf0U) == 0xa0) {
-    Humanoid *enemy;
-
     enemy = (Humanoid *)ConflictObject[id].common;
     if (enemy != (Humanoid *)1) {
       int iVar11;
@@ -373,7 +380,6 @@ LAB_8001da70:
   AttackCancelControl(3);
   {
   Humanoid *conflict;
-  Humanoid *enemy;
   int next_mot;
 
   TVar8 = id;
@@ -459,23 +465,22 @@ LAB_8001da70:
     }
     if (0 < (Me_MOTION_C->map).height) {
       int iVar11;
-      short item_direction;
 
-      item_direction = GetDirection((int)ConflictDistance.vx,(int)ConflictDistance.vz,dtR->vy);
-      iVar11 = (int)item_direction;
+      did = GetDirection((int)ConflictDistance.vx,(int)ConflictDistance.vz,dtR->vy);
+      iVar11 = (int)did;
       if (iVar11 < 0) {
         iVar11 = -iVar11;
       }
       if (iVar11 < 0x400) {
         motID = 0x1005;
         motMODE = 0;
-        dtR->vy = dtR->vy + item_direction;
+        dtR->vy = dtR->vy + did;
         MoveHumanoid(Me_MOTION_C,-0x46,0);
       }
       else {
         motID = 0x1006;
         motMODE = 0;
-        dtR->vy = (0x800 + item_direction) + dtR->vy;
+        dtR->vy = (0x800 + did) + dtR->vy;
         MoveHumanoid(Me_MOTION_C,0x46,0);
       }
     }
