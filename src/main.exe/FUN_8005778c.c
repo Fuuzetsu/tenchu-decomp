@@ -2,8 +2,7 @@
 #include "main.exe.h"
 
 /*
- * STATUS: NON_MATCHING — 149 of 388 bytes differ (length matches: 97
- * instructions both sides).
+ * STATUS: MATCHING — 388 bytes / 97 instructions.
  *
  * FUN_8005778c (0x8005778c, 0x184 bytes) — draws a bitmap-font glyph: grabs
  * a POLY_GT4 from the work base (and advances it, like FUN_80038c0c's
@@ -29,43 +28,27 @@
  *    reproduces the control flow directly: transcribe literally, don't
  *    "simplify" the comma away (the -4 must survive to the join point even
  *    on the branch where the equality test fails).
- *  - `SetupImageToPolyGT4`'s `w`/`h` parameters must be declared `short`
- *    (not `s32`, even though other TUs' externs use `s32`) — the RAW
- *    `param_3 + sVar3` sum must be truncated to 16 bits AFTER the addition
- *    (matches the target's `addu` then `sll/sra`), not with param_3
- *    sign-extended to int BEFORE the add (a per-TU prototype-width lever,
- *    same family as GetRealPad's caller-side return-type lever).
- *  - Computing the 4th call argument as its OWN statement
- *    (`short h = param_3 + sVar3; SetupImageToPolyGT4(...,param_2,h);`)
- *    rather than inline in the call fixes a param_2/param_3 <-> s2/s3
- *    register-assignment swap (both parameters are referenced exactly
- *    once, at the very end, with otherwise-identical live ranges — a
- *    classic equal-priority tie où global-alloc's processing order
- *    flips based on which pseudo's "final use" instruction comes first
- *    in the RTL stream).
- *  - Residual (149 bytes, same overall length): the two-stage clamp
- *    (`0x1f<uVar4` then `uVar4<0xc0`, folding down by 0x20/0x40) wants a
- *    literal "eager copy, THEN test the copy" shape — the target computes
- *    `a0 = uVar4;` as a real instruction BEFORE testing `a0<0x20`, and
- *    again produces a fresh `a1 = (adjusted)` copy for the second stage —
- *    but no C spelling tried (`t1 = uVar4; if (0x1f < t1) t1 -= 0x20;`,
- *    self-referencing `t1 -= 0x20`, explicit if/else, chained default-
- *    then-override with per-stage temps) stops cc1 from testing the
- *    ORIGINAL register directly and only materializing the copy in the
- *    branch's delay slot (mathematically identical, wrong instruction
- *    order/count — one word short per stage). This shifts the `local_38.
- *    px`/`py` store scheduling and the s0(param_4)-save prologue position
- *    too (same root cause, different symptom). Tried: ~9 source
- *    reshapings, `tools/autorules.py` (found the `sVar3: short->s32`
- *    win, applied), one bounded `tools/permute.py` run (300s/stop-on-
- *    zero, best score 1000 — its top candidate silently DROPPED the
- *    `uVar2 & 0xf` mask, a wrong-value regression, not a real fix).
- *    Recognize as a sub-C-level scheduling/regalloc tie per the cookbook
- *    and park rather than keep guessing respellings.
+ *  - Preserve three full-width identities through the two-stage fold:
+ *    `uVar4` is the unadjusted code, `t1` is the arithmetic working copy,
+ *    and `t2` is the final result. That gives the target its visible
+ *    v1 -> a0 -> a1 copy chain instead of letting CSE test the original
+ *    register and fill the branch delay slot with the first copy.
+ *  - Capture `param_4` into the `u8 narrow` before either work-base call,
+ *    then widen it into `raw` afterwards. This is what keeps the raw a3 ->
+ *    s0 copy in the target prologue while placing `andi s0,s0,0xff` after
+ *    the calls; an in-place mask either rotates the saved-argument stores
+ *    or folds the copy and mask into one instruction.
+ *  - Update px before the signed row adjustment and let py's assignment
+ *    perform the final narrowing. The source order and full-width shift
+ *    reproduce the target's independent column arithmetic before its
+ *    `bgez`, followed by `sra`/`sll` for the row.
+ *  - The local `short h` truncates `param_3 + sVar3` after the addition.
+ *    This TU intentionally promotes it through `h_arg` and declares the
+ *    fourth extern slot `s32`; the callee's PSX.SYM definition calls that
+ *    slot `short`, but old C TUs may carry a different caller declaration.
+ *    The explicit short keeps the passed value identical while the wider
+ *    call slot fixes the adjacent a3/a2 sign-extension schedule.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8005778c", FUN_8005778c);
-#else
 typedef struct
 {
     u_long tag;
@@ -90,7 +73,7 @@ typedef struct
 extern GsIMAGE FONT_IMAGE_;
 extern void *GsGetWorkBase(void);
 extern void GsSetWorkBase(void *workBase);
-extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, short w, short h);
+extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, short w, s32 h);
 extern void AddPrim(u8 *ot, u8 *prim);
 
 void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
@@ -101,13 +84,16 @@ void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
     s32 uVar4;
     s32 t1;
     s32 t2;
+    u32 raw;
+    u8 narrow;
     GsIMAGE local_38;
 
+    narrow = param_4;
     ply = (POLY_GT4 *)GsGetWorkBase();
     GsSetWorkBase(ply + 1);
-    param_4 = param_4 & 0xff;
-    uVar4 = param_4;
-    if (param_4 == 0x92)
+    raw = narrow;
+    uVar4 = raw;
+    if (raw == 0x92)
     {
         uVar4 = 0x27;
     }
@@ -116,31 +102,27 @@ void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
     {
         t1 = t1 - 0x20;
     }
-    if (uVar4 < 0xc0)
+    if (0xbf < uVar4)
     {
-        t2 = t1;
+        t1 = t1 - 0x40;
     }
-    else
-    {
-        t2 = t1 - 0x40;
-    }
-    uVar4 = t2;
-    uVar2 = (u16)uVar4;
+    t2 = t1;
+    uVar2 = (u16)t2;
     local_38 = FONT_IMAGE_;
-    if ((int)uVar4 < 0)
+    local_38.px = local_38.px + (uVar2 & 0xf) * 3;
+    if (t2 < 0)
     {
-        uVar4 = uVar4 + 0xf;
+        t2 = t2 + 0xf;
     }
     local_38.pw = 3;
     local_38.ph = 0x10;
-    local_38.py = local_38.py + (short)((int)uVar4 >> 4) * 0x10;
-    local_38.px = local_38.px + (uVar2 & 0xf) * 3;
-    if ((0x1f < param_4 - 0xc0) || (sVar3 = -4, param_4 == 199))
+    local_38.py = local_38.py + (t2 >> 4) * 0x10;
+    if ((0x1f < raw - 0xc0) || (sVar3 = -4, raw == 199))
     {
-        if (param_4 - 0xe0 < 0x20)
+        if (raw - 0xe0 < 0x20)
         {
             sVar3 = -2;
-            if (param_4 == 0xe7)
+            if (raw == 0xe7)
             {
                 sVar3 = 3;
             }
@@ -152,8 +134,9 @@ void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
     }
     {
         short h = param_3 + sVar3;
-        SetupImageToPolyGT4(&local_38, ply, param_2, h);
+        s32 w_arg = param_2;
+        s32 h_arg = h;
+        SetupImageToPolyGT4(&local_38, ply, w_arg, h_arg);
     }
     AddPrim(param_1, ply);
 }
-#endif
