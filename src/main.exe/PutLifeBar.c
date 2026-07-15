@@ -40,9 +40,7 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 137 of 540 bytes differ (whole-image count equals
- * the window count: the function IS the right length, so this is a pure
- * register-allocation/scheduling residual, not a structural one).
+ * STATUS: MATCHING — pure C, all 540 bytes / 135 instructions exact.
  *
  * PutLifeBar (0x8004ab38, 0x21C bytes) — draws one life-bar "style" (style
  * 0 for the player's own bar via DoInfoViewProc, style 1 for an enemy's via
@@ -81,25 +79,18 @@
  * maspsx --expand-div (Build.hs maspsxGpExterns) for the break-6/break-7
  * guard sequence.
  *
- * Residual (root-caused, not just "close"):
- *  - A `u`/`mx` register-priority tie: `u` (NumberImage.u, saved across the
- *    digit loop's calls) and the parameter `mx` (live to the division near
- *    the end) land in $s4/$s5 swapped from the target ($s4=u/$s5=mx in the
- *    target; this draft gets $s4=mx/$s5=u) — neither reordering the two
- *    statements nor reordering their declarations changed the outcome
- *    (global-alloc's priority formula ties them the other way here;
- *    tools/regalloc.py confirms both cross the same 3 calls). This single
- *    swap cascades through ~20 register-only diffs downstream (every later
- *    use of either value, plus the prologue save/restore slots).
- *  - A second, independent residual: the `color = 0x80; if (n <= mx/4 &&
- *    GameClock odd) color = 0xE6;` default-then-override sequence picks a
- *    different hard register ($a1 vs the target's $v0) and a differently
- *    shaped branch (`beqz`+nop vs the target's `bnez`+delay-slot li),
- *    cascading from the same upstream tie.
- *  - tools/permute.py ran 101k+ iterations (`--stop-on-zero -j4`, well past
- *    the cookbook's bounded-run budget): best score 755 (nonzero), flat —
- *    not a permuter-crackable tie in reasonable time. Parked per the
- *    Iteration protocol's attempt cap.
+ * Matching levers (none adds a target-absent instruction):
+ *  - The identical `ou->r` arms use initialized `u` as their discriminator.
+ *    The temporary extra `u` reference makes global allocation choose the
+ *    target's $s4=u / $s5=mx ordering; testing `ou` left them swapped.
+ *  - Reusing `color` first for `GameClock & 1`, then for 0xE6/0x80, gives
+ *    that result a $v0 preference. A separate clock-test pseudo forced the
+ *    otherwise exact color tail into $v1.
+ *  - The digit quotient is a nested-block `q` whose scope ends before the
+ *    backedge test. That scope boundary stops CSE from replacing the test of
+ *    copied `t` ($a3) with the equivalent quotient source ($s0), resolving
+ *    the final two-byte operand residual. The goto is safe: each entry
+ *    assigns this scalar before use, and the block has no initializer/VLA.
  */
 typedef struct
 {
@@ -118,9 +109,6 @@ extern s32 GameClock;
 
 extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, s32 pri);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PutLifeBar", PutLifeBar);
-#else
 void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
 {
     GsSPRITE *img;
@@ -141,12 +129,16 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
     img->x = x + dx;
     img->y = y + dy;
 
+    {
+        s32 q;
+
 loop:
-    q = t / 10;
-    img->u = u + (t - q * 10) * 4;
-    GsSortSprite(img, OTablePt, 0);
-    img->x = img->x - 6;
-    t = q;
+        q = t / 10;
+        img->u = u + (t - q * 10) * 4;
+        GsSortSprite(img, OTablePt, 0);
+        img->x = img->x - 6;
+        t = q;
+    }
     if (t != 0)
         goto loop;
     img->u = u;
@@ -163,13 +155,17 @@ loop:
 
     if (mx / 4 < n)
         color = 0x80;
-    else if ((GameClock & 1) == 0)
-        color = 0x80;
     else
-        color = 0xE6;
+    {
+        color = GameClock & 1;
+        if (color != 0)
+            color = 0xE6;
+        else
+            color = 0x80;
+    }
     ou->b = color;
     ou->g = color;
-    if (ou != 0)
+    if (u != 0)
     {
         ou->r = color;
     }
@@ -183,4 +179,3 @@ loop:
     GsSortSprite(ou, OTablePt, 0);
     ou->h = oldh;
 }
-#endif

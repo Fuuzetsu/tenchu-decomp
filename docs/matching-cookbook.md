@@ -1861,13 +1861,22 @@ style-field loads earlier RTL UIDs while retaining the target's separate global-
 copy into `img`. Plain sequential assignments either scheduled the width store too early
 or fused the address directly into the saved register.
 
-**For a three-arm default ladder, invert an inner condition together with its arms before
-adding liveness tricks.** The equivalent `if (outer) 0x80; else if ((clock & 1) == 0)
-0x80; else 0xE6;` made cc1 emit the target's `bnez` with `0xE6` in its delay slot and the
-fallback `0x80` immediately after it; testing `!= 0` emitted the opposite branch plus a
-`nop`. PutLifeBar then needed only an eliminated identical-arm fence around its final
-colour store to recover the surrounding allocation/schedule, leaving a bounded
-register-identity residual rather than a control-flow mismatch.
+**When a result must reuse its test register, reuse the result local as the test
+carrier.** In PutLifeBar, the separate `GameClock & 1` comparison pseudo hard-conflicted
+with `color` and forced the otherwise exact colour tail into `$v1`. Writing
+`color = GameClock & 1; if (color != 0) color = 0xE6; else color = 0x80;` inside the
+outer arm gives `color` a `$v0` preference and emits the target's `bnez` with `0xE6` in
+its delay slot plus the fallback `0x80` immediately after it. The eliminated identical-
+arm fence around the final colour store still supplies the independent saved-register
+allocation donor.
+
+**End a loop temporary's source scope before testing its copied working value when CSE
+chooses the wrong equivalent register.** PutLifeBar's digit quotient lives in a nested
+block containing the goto label and `t = q`; the block ends before `if (t != 0) goto
+loop`. That scope-end note makes CSE retain the backedge test of copied `t` in `$a3`
+instead of substituting the equivalent quotient `q` in `$s0`, resolving a final
+two-byte operand residual with no code. Jumping back into the block is safe only when
+the local is an ordinary scalar assigned before every use (no initializer or VLA).
 
 **`x++` (postfix) is the general spelling for "test the OLD value; the incremented value
 is stored unconditionally because the other path overwrites it anyway."**
