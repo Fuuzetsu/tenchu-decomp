@@ -7,12 +7,13 @@
  * then release both archives and dispatch to the selected executable.
  *
  * STATUS: NON_MATCHING — complete guarded pure-C reconstruction. The draft
- * recovers the full five-state jump-table loop, resource ownership, timed
- * sprite fades, pad-edge detection and both cleanup paths. It has the exact
- * 0x1a0 frame and compiles to 2180 bytes versus the 2188-byte target; fuzzy
- * score 71.29% (up from the comments-only scaffold's 7.01%). Remaining work
- * is compiler allocation/scheduling and the two-instruction extent residual,
- * not missing behavior. Build with `NON_MATCHING=start_demo_ ./Build`.
+ * recovers the full five-state jump-table loop, including state 2's shared
+ * prompt/input tail with state 3, resource ownership, timed sprite fades,
+ * pad-edge detection and both cleanup paths. It has the exact 0x1a0 frame and
+ * exact 2188-byte/547-instruction extent; fuzzy score 90.39% (up from the
+ * comments-only scaffold's 7.01%, and 71.29% before this pass). Remaining
+ * differences are localized compiler allocation/scheduling around the setup
+ * calls and sprite scratch image. Build with `NON_MATCHING=start_demo_ ./Build`.
  */
 
 #ifndef NON_MATCHING
@@ -72,7 +73,7 @@ extern GsOT *OTablePt;
 
 extern void SetupAppearance(s16 mode, s16 stage);
 extern void PadShockAR(s32 port, s32 duration, s32 strength, s32 delay);
-extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
+extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
 extern void FUN_80038ce0(void);
 extern void ClearImage(RECT *rect, u8 r, u8 g, u8 b);
 extern s32 DrawSync(s32 mode);
@@ -87,9 +88,9 @@ extern void LoadTIM(u_long *tim);
 extern void _PlayMusic(s32 music, s32 mode);
 extern void StartDrawing(void);
 extern short DrawBG(BackGround *background);
-extern u16 GetRealPad(s32 port);
+extern s32 GetRealPad(s32 port);
 extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
-extern void FUN_80056910(Sprite3D *sprite, u16 shade);
+extern void FUN_80056910(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);
 extern void FUN_8004f6c0(s32 mode);
@@ -106,34 +107,41 @@ void start_demo_(void)
     RECT clear_rect;
     char archive_path[64];
     GsIMAGE image;
-    u16 old_pad;
+    volatile u16 old_pad;
     BackGround *background;
     u_long *gov_archive;
     u_long *tim;
     u_long *fade_archive;
     Sprite3D *fade_sprite;
+    u8 *persistent;
+    u8 *language_state;
+    char *resource_root;
     u16 pad;
+    u16 previous_pad;
     u16 new_press;
     s16 shade;
     s32 state;
     s32 title_brightness;
     s32 full_brightness;
     s32 color;
+    s32 increment;
     s32 i;
-    char suffix;
+    s32 suffix;
 
-    old_pad = 0;
-    shade = 0x80;
     state = 1;
+    shade = 0x80;
     title_brightness = 0;
+    old_pad = 0;
     SetupAppearance(0, -1);
     PadShockAR(0, 0, 0, 0);
 
-    for (i = 0; i < 0x14; i++)
-    {
-        ITEM_LOADOUT_BACKUP[i] =
-            SHOP_STOCK_STATE_BY_CHAR[i + CHOSEN_CHARACTER * 0x20];
-    }
+    i = 0;
+    persistent = (u8 *)0x80010000;
+    do {
+        persistent[0x27 + i] =
+            persistent[i + CHOSEN_CHARACTER * 0x20 + 0x40c];
+        i++;
+    } while (i < 0x14);
 
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
@@ -148,21 +156,23 @@ void start_demo_(void)
     GetTIMInfo(tim, &fade_image);
     LoadTIMAndFree(tim);
     fade_sprite = SetupSprite(0, &fade_image);
+    suffix = 'r';
     fade_sprite->sprite.attribute |= 0x60000000;
 
-    suffix = 'r';
+    language_state = (u8 *)0x80010000;
     if (CHOSEN_CHARACTER != 0)
     {
         suffix = 'a';
     }
-    sprintf(archive_path, D_80013B24, D_800137A0,
-            GOV_RESOURCE_PREFIX_PTRS[CHOSEN_LANGUAGE], suffix);
+    resource_root = D_800137A0;
+    sprintf(archive_path, D_80013B24, resource_root,
+            GOV_RESOURCE_PREFIX_PTRS[language_state[0x5e]], suffix);
     full_brightness = 0x80;
     fade_archive = FileRead(archive_path);
     tim = get_tim_from_archive(fade_archive, 0);
     background = FUN_8004f4f8(tim);
-    gov_archive = PathFileRead(D_800137A0,
-                               GOV_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
+    gov_archive = PathFileRead(resource_root,
+                               GOV_ARCHIVE_PTRS[language_state[0x5e]]);
 
     tim = get_tim_from_archive(gov_archive, 0);
     GetTIMInfo(tim, &image);
@@ -240,24 +250,43 @@ void start_demo_(void)
         switch (state)
         {
         case 1:
-            shade -= 2;
+            do {
+                do {
+                    do {
+                        do {
+                            shade -= 2;
+                        } while (0);
+                    } while (0);
+                } while (0);
+            } while (0);
             if (shade <= 0)
             {
-                state = 2;
+                do {
+                    do {
+                        do {
+                            do {
+                                state = 2;
+                            } while (0);
+                        } while (0);
+                    } while (0);
+                } while (0);
                 shade = 0;
                 clear_rect.x = 0x280;
                 clear_rect.y = 0x168;
                 clear_rect.w = 0x100;
-                clear_rect.h = 0x28;
                 GameClock = 0;
+                clear_rect.h = 0x28;
             }
             FUN_80056910(fade_sprite, shade);
             break;
 
         case 2:
-            pad = GetRealPad(0);
-            new_press = pad & (pad ^ old_pad);
+            previous_pad = old_pad;
+            do {
+                pad = GetRealPad(0);
+            } while (0);
             old_pad = pad;
+            new_press = pad & (pad ^ previous_pad);
             if ((new_press & 0x20) != 0 && GameClock < 0x23b)
             {
                 state = 3;
@@ -288,48 +317,53 @@ void start_demo_(void)
             }
             if (GameClock >= 0x119)
             {
-                color = archive_line_1.b + 1;
-                if (color >= 0x80)
+                increment = archive_line_1.b + 1;
+                color = -0x80;
+                if (increment < 0x80)
                 {
-                    color = 0x80;
+                    color = increment;
                 }
                 archive_line_1.r = archive_line_1.g = archive_line_1.b = color;
                 GsSortSprite(&archive_line_1, OTablePt, 0x50);
             }
             if (GameClock >= 0x15f)
             {
-                color = archive_line_2.b + 1;
-                if (color >= 0x80)
+                increment = archive_line_2.b + 1;
+                color = -0x80;
+                if (increment < 0x80)
                 {
-                    color = 0x80;
+                    color = increment;
                 }
                 archive_line_2.r = archive_line_2.g = archive_line_2.b = color;
                 GsSortSprite(&archive_line_2, OTablePt, 0x50);
             }
             if (GameClock >= 0x1a5)
             {
-                color = archive_line_3.b + 1;
-                if (color >= 0x80)
+                increment = archive_line_3.b + 1;
+                color = -0x80;
+                if (increment < 0x80)
                 {
-                    color = 0x80;
+                    color = increment;
                 }
                 archive_line_3.r = archive_line_3.g = archive_line_3.b = color;
                 GsSortSprite(&archive_line_3, OTablePt, 0x50);
             }
-            if (GameClock >= 0x23b)
+            if (GameClock < 0x23b)
             {
-                GsSortSprite(&gov_prompt, OTablePt, 0x50);
+                break;
             }
-            break;
+            goto sort_prompt_and_handle_input;
 
         case 3:
+            previous_pad = old_pad;
             pad = GetRealPad(0);
-            new_press = pad & (pad ^ old_pad);
             old_pad = pad;
+            new_press = pad & (pad ^ previous_pad);
             GsSortSprite(&gov_title, OTablePt, 0xa);
             GsSortSprite(&archive_line_1, OTablePt, 0x50);
             GsSortSprite(&archive_line_2, OTablePt, 0x50);
             GsSortSprite(&archive_line_3, OTablePt, 0x50);
+        sort_prompt_and_handle_input:
             GsSortSprite(&gov_prompt, OTablePt, 0x50);
             if ((new_press & 0x20) != 0)
             {
@@ -352,10 +386,7 @@ void start_demo_(void)
                 DisposeBG(background);
                 FUN_8004f6c0(0x11);
             }
-            else
-            {
-                FUN_80056910(fade_sprite, shade);
-            }
+            FUN_80056910(fade_sprite, shade);
             break;
 
         case 5:
@@ -370,10 +401,7 @@ void start_demo_(void)
                 STAGE_LAYOUT_NUMBER = 0xff;
                 FUN_8004f6c0(0x10);
             }
-            else
-            {
-                FUN_80056910(fade_sprite, shade);
-            }
+            FUN_80056910(fade_sprite, shade);
             break;
         }
 
