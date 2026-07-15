@@ -2457,7 +2457,13 @@ Hard reg numbers: `0` zero, `1` at, `2` v0, `3` v1, `4`–`7` a0–a3, `8`–`15
      post-adjustment candidates are then sensitive to their reverse-scheduling LUID
      order. In SuccessionAttack, splitting the signed Degree load into a single-set
      `raw` pseudo fixed both scheduler passes even though the initial printed
-     priorities suggested a plain tie.
+     priorities suggested a plain tie. For a cluster of genuinely equal-priority
+     independent loads, reverse their source assignments as one bounded probe:
+     ProcItemNingyo's `owner,type,model` declarations scheduled
+     `model,owner,type`, while spelling `model,type,owner` produced
+     `owner,type,model` and reduced its exact-length residual from six bytes to
+     four. This cannot rotate a separately lower-priority producer, so confirm
+     the post-adjustment priorities before enumerating more orders.
    - **`.sched2` being exact does not make a delay-slot `nop` safe.** Reorg's later
      `fill_simple_delay_slots` can still pull any independent eligible instruction
      into the branch slot. If `.dbr` alone changes the sequence, stop permuting nearby
