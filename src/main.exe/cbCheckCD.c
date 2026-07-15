@@ -30,32 +30,24 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 12 of 488 bytes differ (right structure, wrong
- * length by 3 instructions: 119 vs 122). Every major structural issue is
- * resolved (switch-not-if/else outer dispatch on `ret` — cases in SOURCE
- * order 5-then-2 to get the body layout right per the case-body-memory-order
- * rule; the shared "field9_0x14=0x1B; CheckCount=0; status=0; return" tail
- * reached via explicit goto from both case 5 and the deep mode==1 case;
- * `cs->CheckCount++ < 0xA` for the delay-slot-hoisted increment; an explicit
- * local `TCdaStatus *cs = &CdaStatus;` reused everywhere EXCEPT the two
- * `CdaStatus.StartPos` reads and the `CdaStatus.status = result[0]` store,
- * which the target compiles through a fresh %hi/%lo pair (`D_8008EA50`) —
- * matches the target frame size (56) once `loc` is ONE function-scope local
- * instead of two block-scoped ones).
+ * STATUS: MATCHING — 488 bytes / 122 instructions.
  *
- * Residual: right before the final `CdControlF(0x11, NULL)` call, the
- * target re-materializes `a0=0x11`/`a1=0` TWICE (once for the `com != 0x11`
- * early-out, once more after `CdControl(1, NULL, result)` returns — both
- * caller-saved regs are legitimately clobbered by the intervening calls) and
- * keeps the two call sites SEPARATE with an explicit `j` between them; our
- * draft's identical two instances get merged by cc1's own cross-jump pass
- * into one, dropping the redundant `move a1,zero` + `j`. Every C-level
- * restructuring tried (goto vs plain if for the `com != 0x11` skip,
- * swapping which path falls through) produced byte-identical output either
- * way — this is cc1's cross-jump heuristic deciding NOT to merge in the
- * target where ours does, a below-the-C-level tie. One bounded permuter run
- * (~500 iterations, `-j4`) plateaued flat at the base score with no
- * improvement.
+ * cbCheckCD is the VSync callback that advances CD-audio state, retries or
+ * stops out-of-range playback, and updates CdaStatus from the drive result.
+ * The switch cases stay in source order 5 then 2, and the case-5 path shares
+ * its status-reset tail with the mode-1 range check.
+ *
+ * The final cross-jump requires two source-level CdControlF(0x11, NULL)
+ * calls in the `com == 0x11` if/else. CSE and the first jump pass retain both
+ * calls and therefore both a0/a1 materializations. Late delay-branch cleanup
+ * merges only the calls, leaving the target's explicit jump and repeated
+ * argument setup. This is the same zero-code identical-call barrier used by
+ * cbAccess.
+ *
+ * The target's 0x10-byte working stack window overlays `result` with the two
+ * original same-named CdlLOC scopes: the first view begins at sp+24 and the
+ * second at sp+21. CdaCheckScratch records that overlap explicitly without
+ * changing either access or the 56-byte frame.
  */
 
 typedef struct
@@ -83,6 +75,20 @@ struct CdlLOC
     u8 track;
 };
 
+typedef union
+{
+    struct
+    {
+        u8 result[8];
+        CdlLOC loc;
+    } first;
+    struct
+    {
+        u8 pad[5];
+        CdlLOC loc;
+    } second;
+} CdaCheckScratch;
+
 extern int CdControl(u8 com, u8 *param, u8 *result);
 extern int CdControlF(u8 com, u8 *param);
 extern void CdIntToPos(s32 n, CdlLOC *pos);
@@ -93,20 +99,17 @@ extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
 extern void cd_control(u8 param_1, u8 *param_2, u8 *param_3);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/cbCheckCD", cbCheckCD);
-#else
 void cbCheckCD(void)
 {
     TCdaStatus *cs = &CdaStatus;
-    u8 result[8];
+    CdaCheckScratch scratch;
     s32 ret;
     s32 com;
-    CdlLOC loc;
 
     if (cs->field9_0x14 == 0x1B) {
-        CdIntToPos(CdaStatus.StartPos, &loc);
-        if ((cs->flag & 1) && CdControl(0x1B, (u8 *)&loc, NULL) == 0) {
+        CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
+        if ((cs->flag & 1) &&
+            CdControl(0x1B, (u8 *)&scratch.first.loc, NULL) == 0) {
             return;
         }
         cs->field9_0x14 = 0;
@@ -120,7 +123,7 @@ void cbCheckCD(void)
     }
     cs->CheckCount = 0;
 
-    ret = CdSync(1, result);
+    ret = CdSync(1, scratch.first.result);
     com = CdLastCom();
     switch (ret) {
     case 5:
@@ -130,43 +133,37 @@ void cbCheckCD(void)
         if (com == 9) {
             return;
         }
-        if (com != 0x11) {
-            goto controlf;
-        }
-        cs->CurPos = CdPosToInt(&loc);
-        if ((cs->status & 0x20) &&
-            (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300)) {
-            if (cs->mode != 1) {
-                goto mode_error;
-            }
-            cs->field9_0x14 = 0x1B;
-        shared_tail:
-            cs->CheckCount = 0;
-            cs->status = 0;
-            return;
+        if (com == 0x11) {
+            cs->CurPos = CdPosToInt(&scratch.second.loc);
+            if ((cs->status & 0x20) &&
+                (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300)) {
+                if (cs->mode != 1) {
+                    goto mode_error;
+                }
+                cs->field9_0x14 = 0x1B;
+            shared_tail:
+                cs->CheckCount = 0;
+                cs->status = 0;
+                return;
 
-        mode_error:
-            SsSetSerialAttr(0, 0, 1);
-            SsSetSerialVol(0, 0, 0);
-            cd_control(9, 0, 0);
-            cs->status = 0;
-            return;
+            mode_error:
+                SsSetSerialAttr(0, 0, 1);
+                SsSetSerialVol(0, 0, 0);
+                cd_control(9, 0, 0);
+                cs->status = 0;
+                return;
+            }
+            CdControl(1, NULL, scratch.first.result);
+            CdaStatus.status = scratch.first.result[0];
+            CdControlF(0x11, NULL);
+        } else {
+            CdControlF(0x11, NULL);
         }
-        CdControl(1, NULL, result);
-        CdaStatus.status = result[0];
-    controlf:
-        CdControlF(0x11, NULL);
         break;
     }
 }
-#endif
 
-// triage: MEDIUM — 122 insns, 9 callees, ~0.11 to CdaStop
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
+// Ghidra decompilation reference (retained for type/control-flow provenance):
 //
 //
 // void cbCheckCD(void)
