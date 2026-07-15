@@ -4188,6 +4188,16 @@ before local-alloc, so the def is gone before it can bias anything.
   length and cutting the residual from 229 to 155 bytes. This is a sched-order
   lever as well as a copy-propagation/regalloc lever; guided `loop-fence`
   already enumerates expression statements for this shape.
+  A later SetLightningI checkpoint also proved that the raw shifted value and
+  its clamped call argument need separate source identities: an explicit
+  `raw_priority` plus default-first clamp/gotos reduced the then-current
+  residual from 150 to 130 bytes without changing the target's CFG. An
+  identical-arm fence around the initial `z` load (`if (initial_y) load; else
+  load;`) reduced it again to 124 bytes. jump2 erases both arms into one load,
+  so the final CFG and instruction count stay exact; the temporary pre-jump
+  lifetime only changes scheduling and allocation. Treat this as a bounded
+  allocation/scheduler lever and verify the optimized CFG, not merely the C
+  syntax.
 - **Global-alloc priority is floor_log2(n_refs)·n_refs/live_length·10000·size,
   ties by pseudo number** (global.c allocno_compare; flow adds loop_depth
   per ref). cc1's `-da` dump prints each pseudo's refs/length and the

@@ -56,6 +56,23 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
+/*
+ * STATUS: NON_MATCHING — 124 of 1384 linked bytes differ.  The candidate has
+ * the target's 0x98-byte frame, 334 instructions, and exact control-flow
+ * counts (24 conditional branches, 3 unconditional jumps, 16 calls, and one
+ * return).
+ *
+ * This checkpoint cuts the previous 150-byte residual in two compiler-driven
+ * steps.  Keeping the raw depth-derived priority distinct from the clamped
+ * call argument recovers the target's negative/default clamp shape; the
+ * one-shot loop preserves its otherwise-filled guard delay slot.  The
+ * identical `initial_z` arms are erased by jump2, so they add no runtime
+ * branch, but their temporary RTL lifetime fixes a six-byte register/schedule
+ * residual.  What remains is localized to the initial scratchpad projection,
+ * the 0x66666667 literal placement, the final ViewInfo scratchpad stores, and
+ * depth/raw-priority register allocation.
+ */
+
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetLightningI", SetLightningI);
 #else
@@ -132,7 +149,14 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
 
             initial_x = start->vx;
             initial_y = start->vy;
-            initial_z = start->vz;
+            if (initial_y)
+            {
+                initial_z = start->vz;
+            }
+            else
+            {
+                initial_z = start->vz;
+            }
             *(s16 *)0x1F800080 = initial_x - (s16)ViewInfo.vpx;
             *(s16 *)0x1F800082 = initial_y - (s16)ViewInfo.vpy;
             *(s16 *)0x1F800084 = initial_z - (s16)ViewInfo.vpz;
@@ -214,24 +238,30 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
                     depth = (s32)(u16)scr.vz << 16;
                     if (depth > 0 && oldscr.vz > 0)
                     {
+                        int raw_priority;
                         int priority;
 
                         line.y0 = oldscr.vy;
                         do
                         {
-                            priority = depth >> 18;
+                            raw_priority = depth >> 18;
                         } while (0);
                         line.x0 = oldscr.vx;
                         line.x1 = scr.vx;
                         line.y1 = scr.vy;
-                        if (priority < 0)
+                        if (raw_priority < 0)
                         {
-                            priority = 0;
+                            goto priority_zero;
                         }
-                        else if (priority >= 0x4e2)
+                        priority = 0x4e1;
+                        if (raw_priority < 0x4e2)
                         {
-                            priority = 0x4e1;
+                            priority = raw_priority;
                         }
+                        goto priority_done;
+priority_zero:
+                        priority = 0;
+priority_done:
                         GsSortLine(&line, OTablePt, (u16)priority);
                     }
                 }
