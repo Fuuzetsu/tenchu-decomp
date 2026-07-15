@@ -32,10 +32,7 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 133 of 532 bytes differ, all downstream of a
- * SINGLE extra instruction (function is 1 instr / 4 bytes too long; every
- * byte after that point is just the resulting address shift, not a real
- * diff — see the root cause below).
+ * MATCH.
  *
  * PutMap (0x8004b848, 0x214 bytes) — draws the pause-menu map: a diamond
  * POLY_XF4 wipe outline (fresh each call from the GPU work buffer) plus the
@@ -43,8 +40,7 @@
  * (gp-relative, this TU's own): 0 = just opened (init the wipe position/
  * sound), 1 = wipe animating closed (draws a highlighted-outline "seam"
  * frame each tick, then slides `D_80097F6C` toward 0 by 0x28/tick), 2 =
- * fully closed (draws the player's on-map marker via `FUN_8003d768`, still
- * unmatched).
+ * fully closed (draws the player's on-map marker via `FUN_8003d768`).
  *
  * `rgb` (PSX.SYM's declared local) is a brightness ramp derived from the
  * wipe position: `(0xA0 - D_80097F6C) / 4` — plain integer division by the
@@ -58,11 +54,11 @@
  * `DR_TPAGE` layout SetPolyXF4.c defined (not in a shared header yet per
  * its own comment; redefined locally here, its second caller).
  *
- * Ghidra invents `(CamState.Owner)->model->locate.coord.t[0/2]` for the
- * mode-2 draw call's first two args — the raw asm actually reads through
- * `CURRENTLY_SELECTED_CHARACTER_STATE_PTR` (a different, already-proven
- * `Humanoid *` global — item.h/FUN_8004a368.c/ProcItemLightningBolt.c),
- * NOT CamState; `->model` is item.h's `ModelArchiveType *model` @0x58, and
+ * Ghidra renders `(CamState.Owner)->model->locate.coord.t[0/2]` for the
+ * mode-2 draw call's first two args. The raw asm reaches that same aliased
+ * cell through `CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]` (the
+ * already-proven alias at 0x80089F00). `->model` is item.h's
+ * `ModelArchiveType *model` @0x58, and
  * `.locate.coord.t[0]/.t[2]` are the MATRIX translation X/Z (offsets
  * 0x18/0x20 from `model`, matching the raw `lw 0x18(v1)`/`lw 0x20(v1)`).
  * The 3rd arg is `&D_8008E50C[StageID]` (a still-unnamed per-stage table,
@@ -89,16 +85,15 @@
  * cascading through ~15 register-only diffs; interleaved order matches
  * the target exactly with no register diffs at all.
  *
- * Residual (root-caused): case 2's body needs
- * `CURRENTLY_SELECTED_CHARACTER_STATE_PTR`'s address materialized in the
- * case-2 test branch's OWN delay slot (reorg speculatively hoists it there
- * since the slot is otherwise free — the branch's fallthrough is
- * unreachable "no case matched" dead code). This draft's delay slot
- * instead gets `D_8008E50C`'s address (the call's 3rd argument, evaluated
- * in a different order than the source list) — one extra instruction.
- * Tried and had no effect: introducing a named `Humanoid *h =
- * CURRENTLY_SELECTED_CHARACTER_STATE_PTR;` before the call (to force its
- * evaluation first). A short bounded permuter probe found no candidate.
+ * The alias must be declared as an unknown-size pointer array and read via
+ * `[0]`, as in create_ninken_character_. A scalar-pointer declaration leaves
+ * `lw ...,CURRENTLY_SELECTED_CHARACTER_STATE_PTR` as one assembler pseudo-op,
+ * so reorg instead puts `D_8008E50C`'s `%hi` producer in the case-2 test
+ * branch delay slot; maspsx later expands the pointer load in the case body
+ * and the resulting load-use hazard needs an extra `nop`. The array form makes
+ * cc1 split the alias address itself. Reorg then hoists its `lui` into the
+ * test delay slot and leaves the table `lui` to fill the model-pointer load
+ * delay, removing the extra instruction and reproducing all 532 bytes.
  */
 typedef struct
 {
@@ -139,7 +134,7 @@ extern GsOT *OTablePt;
 extern s32 StageID;
 extern s32 D_80097F6C;
 extern s32 D_80097F70;
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern s32 D_8008E50C[][4];
 
 extern void *GsGetWorkBase(void);
@@ -150,9 +145,6 @@ extern s16 SoundEx(VECTOR *loc, short id);
 extern void FUN_8003d768(s32 x, s32 z, s32 *area);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PutMap", PutMap);
-#else
 void PutMap(void)
 {
     POLY_XF4 *ply;
@@ -209,8 +201,8 @@ void PutMap(void)
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
-        FUN_8003d768(CURRENTLY_SELECTED_CHARACTER_STATE_PTR->model->locate.coord.t[0],
-                     CURRENTLY_SELECTED_CHARACTER_STATE_PTR->model->locate.coord.t[2],
+        FUN_8003d768(CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model->locate.coord.t[0],
+                     CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model->locate.coord.t[2],
                      D_8008E50C[StageID]);
         break;
     }
@@ -222,4 +214,3 @@ void PutMap(void)
     GsSortSprite(&MapImage, OTablePt, 1);
     AddXF4((void *)((u8 *)OTablePt->org + 8), ply);
 }
-#endif
