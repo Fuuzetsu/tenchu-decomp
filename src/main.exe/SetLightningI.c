@@ -57,20 +57,21 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 124 of 1384 linked bytes differ.  The candidate has
+ * STATUS: NON_MATCHING — 65 of 1384 linked bytes differ.  The candidate has
  * the target's 0x98-byte frame, 334 instructions, and exact control-flow
  * counts (24 conditional branches, 3 unconditional jumps, 16 calls, and one
  * return).
  *
- * This checkpoint cuts the previous 150-byte residual in two compiler-driven
- * steps.  Keeping the raw depth-derived priority distinct from the clamped
- * call argument recovers the target's negative/default clamp shape; the
- * one-shot loop preserves its otherwise-filled guard delay slot.  The
- * identical `initial_z` arms are erased by jump2, so they add no runtime
- * branch, but their temporary RTL lifetime fixes a six-byte register/schedule
- * residual.  What remains is localized to the initial scratchpad projection,
- * the 0x66666667 literal placement, the final ViewInfo scratchpad stores, and
- * depth/raw-priority register allocation.
+ * This checkpoint cuts the previous 124-byte residual with pure-C allocation
+ * and scheduling levers.  Single-use aliases recover the initial
+ * RotTransPers argument identities, while erased identical arms and one-shot
+ * loops weight the shared ViewInfo base and its projection values.  Grouping
+ * the four line-coordinate stores around `raw_priority` in target source
+ * order makes the complete depth/clamp/GsSortLine tail exact.  The remaining
+ * differences are localized to the initial ViewInfo address/result register
+ * cycle, placement of the 0x66666667 literal, and the final ViewInfo
+ * scratchpad-store schedule; the function extent, frame, CFG, and calls remain
+ * exact without volatile accesses, inline assembly, or output branches.
  */
 
 #ifndef NON_MATCHING
@@ -130,6 +131,12 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
     int x;
     int y;
     int z;
+    SVECTOR *initial_scrp;
+    s32 *initial_screen;
+    void *initial_matrix;
+    void *initial_flag_base;
+    u16 initial_vpx;
+    LightningViewInfo *initial_view;
 
     local_r = r;
     next_gen = gen - 1;
@@ -142,14 +149,36 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
         *(s32 *)0x1F80001C = 0;
         SetTransMatrix((MATRIX *)0x1F800000);
         SetRotMatrix(&GsWSMATRIX);
+        initial_scrp = (SVECTOR *)0x1F800080;
+        initial_screen = (s32 *)&oldscr;
+        do
+        {
+            initial_matrix = (void *)0x1F800000;
+            initial_flag_base = initial_matrix;
+        } while (0);
+        if (end != 0)
+        {
+            initial_view = &ViewInfo;
+        }
+        else
+        {
+            initial_view = &ViewInfo;
+        }
+        do
+        {
+            initial_vpx = (u16)initial_view->vpx;
+        } while (0);
         {
             long initial_x;
             long initial_y;
             long initial_z;
 
             initial_x = start->vx;
-            initial_y = start->vy;
-            if (initial_y)
+            do
+            {
+                initial_y = start->vy;
+            } while (0);
+            if (end != 0)
             {
                 initial_z = start->vz;
             }
@@ -157,12 +186,12 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
             {
                 initial_z = start->vz;
             }
-            *(s16 *)0x1F800080 = initial_x - (s16)ViewInfo.vpx;
-            *(s16 *)0x1F800082 = initial_y - (s16)ViewInfo.vpy;
-            *(s16 *)0x1F800084 = initial_z - (s16)ViewInfo.vpz;
+            *(s16 *)0x1F800080 = initial_x - initial_vpx;
+            *(s16 *)0x1F800082 = initial_y - (s16)initial_view->vpy;
+            *(s16 *)0x1F800084 = initial_z - (s16)initial_view->vpz;
         }
-        oldscr.vz = (s16)RotTransPers((SVECTOR *)0x1F800080, (s32 *)&oldscr,
-                                      (void *)0x1F800000, (void *)0x1F800010);
+        oldscr.vz = (s16)RotTransPers(initial_scrp, initial_screen,
+                                      initial_matrix, (char *)initial_flag_base + 0x10);
 
         line.attribute = 0x50000000;
         line.r = local_r;
@@ -241,14 +270,14 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
                         int raw_priority;
                         int priority;
 
-                        line.y0 = oldscr.vy;
                         do
                         {
+                            line.x0 = oldscr.vx;
+                            line.y0 = oldscr.vy;
                             raw_priority = depth >> 18;
+                            line.x1 = scr.vx;
+                            line.y1 = scr.vy;
                         } while (0);
-                        line.x0 = oldscr.vx;
-                        line.x1 = scr.vx;
-                        line.y1 = scr.vy;
                         if (raw_priority < 0)
                         {
                             goto priority_zero;

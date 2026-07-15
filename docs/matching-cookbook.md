@@ -4502,16 +4502,22 @@ effectful expressions would change semantics.
   length and cutting the residual from 229 to 155 bytes. This is a sched-order
   lever as well as a copy-propagation/regalloc lever; guided `loop-fence`
   already enumerates expression statements for this shape.
-  A later SetLightningI checkpoint also proved that the raw shifted value and
+  Later SetLightningI checkpoints also proved that the raw shifted value and
   its clamped call argument need separate source identities: an explicit
   `raw_priority` plus default-first clamp/gotos reduced the then-current
   residual from 150 to 130 bytes without changing the target's CFG. An
-  identical-arm fence around the initial `z` load (`if (initial_y) load; else
-  load;`) reduced it again to 124 bytes. jump2 erases both arms into one load,
-  so the final CFG and instruction count stay exact; the temporary pre-jump
-  lifetime only changes scheduling and allocation. Treat this as a bounded
-  allocation/scheduler lever and verify the optimized CFG, not merely the C
-  syntax.
+  identical-arm fence around the initial `z` load reduced it again to 124
+  bytes. jump2 erases both arms into one load, so the final CFG and instruction
+  count stay exact; the temporary pre-jump lifetime only changes scheduling
+  and allocation. The next material step combined that lever with single-use
+  aliases for the initial `RotTransPers` arguments, a shared `ViewInfo` base,
+  and bounded one-shot weights on its initial loads. At the other end of the
+  function, one loop-note region containing `x0`, `y0`, the raw depth shift,
+  `x1`, and `y1` in that source order made the complete priority/clamp/sort
+  tail exact. Together these pure-C changes reduced the exact linked residual
+  from 124 to 65 bytes while preserving the 334-instruction extent and CFG.
+  Treat identical-arm and one-shot constructs as bounded allocation/scheduler
+  levers and verify the optimized CFG, not merely the C syntax.
 - **An identical-arm pointer alias can decouple a long-lived destination base
   without enclosing the source pointers that feed its initial copies.**
   SetupFly's old inline initializer gave `pfly` enough allocation weight, but
