@@ -29,10 +29,10 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact 368-byte / 92-instruction extent, with 41
- * differing linked bytes and fuzzy 80.43 (up from 73.63, and from the first
- * draft's 52.46).  The raw aligned residual is 23 lines in 14 blocks; the
- * structural-only view is 11 lines in 8 blocks.  This supersedes the prior
+ * STATUS: NON_MATCHING — exact 368-byte / 92-instruction extent, with 30
+ * differing linked bytes and fuzzy 82.61 (up from 80.43, 73.63, and the first
+ * draft's 52.46).  The raw aligned residual is 20 lines in 12 blocks; the
+ * structural-only view is 8 lines in 6 blocks.  This supersedes the prior
  * authoritative 172-byte checkpoint without relying on a carved window.
  *
  * PadProc (0x8001ada4) — per-frame pad service: ComPad the direct port (0)
@@ -53,10 +53,13 @@
  *    inlines the ATTACK arm at the branch's fallthrough and reaches the
  *    RELEASE arm only by a forward `blez` — write `if (ct >= 1)
  *    {attack-arm} else {release-arm}` to get the attack arm inlined first.
- *  - Named `time` and `attack` snapshots recover the target's load order and
- *    let the first `time + 1` store fill the top-level branch delay slot.  A
- *    SECOND increment at the function's end remains skipped by the deep
- *    motor-off path, preserving retail's "+1 always, +1 unless off" split.
+ *  - Keep `attack` named, but spell the first update as the single expression
+ *    `ct = -PadArrange.time++`.  PSX.SYM's per-address line records put the
+ *    negate/increment on original line 257 and the attack add on line 258;
+ *    that spelling recovers retail's `negu; addiu; addu` sequence and its
+ *    delay-slot store.  A SECOND increment at the function's end remains
+ *    skipped by the deep motor-off path, preserving retail's "+1 always, +1
+ *    unless off" split.
  *  - Each branch keeps a named multiplication `product`, then uses a
  *    product-keyed identical-arm fence to capture the typed PadPort base and
  *    shock byte before assigning the quotient to `ct`.  jump2 erases the
@@ -76,14 +79,12 @@
  *    D_8001005D) and only becomes 1 in the attack branch's nonzero case —
  *    easy to mis-transcribe as symmetric with field8=1 in both branches.
  *
- * The leading residual remains fold/scheduling: the split pure-C spelling
- * still becomes `nop; subu attack,time`, where retail has
- * `negu time; addiu time,1; addu attack`.  Eliminated diamonds can preserve
- * the negate/add pair but force a second PadArrange base and lose exact
- * length.  The other residuals are branch-local multiply-result/address
- * scheduling and hard-conflict rotations among release, product and shock.
- * A final 180-candidate depth-two guided resweep found no composing pure-C
- * improvement beyond 41 bytes.
+ * The remaining residual is branch-local multiply-result/address scheduling
+ * and hard-conflict rotations among release, product and shock.  Recreating
+ * the likely same-TU PadShock inlining recovers the desired load schedule,
+ * but old cc1 then cross-jumps identical zero-store tails and loses the exact
+ * extent; a focused follow-up found no exact-length composition below 30
+ * linked bytes.
  */
 
 extern void ComPad(int port, u8 *rxbuf);
@@ -120,16 +121,13 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PadProc", PadProc);
 void PadProc(void)
 {
     int ct;
-    int time;
     int attack;
 
     ComPad(0, ComBuf[0]);
     ComPad(0x10, ComBuf[1]);
 
-    time = PadArrange.time;
+    ct = -PadArrange.time++;
     attack = PadArrange.attack;
-    ct = -time;
-    PadArrange.time = time + 1;
     ct += attack;
     if (ct >= 1)
     {

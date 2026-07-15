@@ -2044,6 +2044,17 @@ whereas the promoted `int` form produced the target zero-register stores and cut
 residual to 41 bytes. Require an immediately dominating equality test before using
 this lever; otherwise it changes behavior.
 
+**Per-address PSX.SYM line events can distinguish a compound expression from
+adjacent statements when the disassembly alone cannot.** PadProc's demo line map
+assigns its negate/increment sequence to original line 257 and the following attack
+add to line 258. That evidence selects `ct = -PadArrange.time++;` followed by
+`ct += attack`, rather than three separately written load/negate/increment
+statements. With the same semantics and exact extent, the compound spelling emits
+retail's `negu; addiu; addu` ordering and reduced PadProc's linked residual from 41
+to 30 bytes. Use this only when the PSX.SYM build and a shipping/demo executable
+agree on the instruction-to-line boundary; line tables still describe an earlier
+build and are not retail source text.
+
 **Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
 before any intervening call** — even where Ghidra renders one lazily folded into a
 later call's argument (`f(a, b / d)`). `IsVisible`'s three divisions by one variable
