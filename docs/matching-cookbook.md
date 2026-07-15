@@ -3665,6 +3665,16 @@ independent example. Guided `empty-loop-boundary` now enumerates this
 weight-free fence at adjacent statement boundaries; use ordinary `loop-fence`
 when the enclosed value really does need more allocation priority.
 
+The boundary can partition a **producer phase** rather than the two visibly
+swapped instructions. FUN_8005e8f0 needed `lui/ori magic; lui base; addiu
+cursor; sw magic`. Naming the magic literal, placing an empty one-shot loop
+immediately after its assignment, then spelling base setup, cursor advance,
+and store separately produced that exact order. A boundary after the base
+assignment moved its `lui` ahead of the magic pair; a boundary after the store
+forced `sw` ahead of `addiu`. When a two-insn tie stays flat, split the shared
+producer first and enumerate boundaries around the producer/consumer phases,
+not just between the two final instructions.
+
 An artificial fence is a hypothesis, so re-test its **removal after every real
 identity/dependency fix**. Think3callaid first needed an empty loop between its
 Think1Func and Think2Func stores to restore a missing load-delay `nop`. After

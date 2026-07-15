@@ -150,7 +150,6 @@ gets a distinct, evidence-driven residual instead of another broad search:
 | `ProcItemNingyo` | 2256 B | start from isolated `c10c3ab` (15 bytes); attack only the two six-instruction ordering clusters |
 | `GetAreaMapVector` | 548 B | start from isolated `f2d0a6e` (40 bytes); persistent allocation and loop body are already exact |
 | `FUN_80056910` | 300 B | parked with two extra instructions; seek the specific lifetime/CFG cause |
-| `FUN_8005e8f0` | 88 B | eight bytes in two adjacent instructions; compact RTL escalation target |
 | `PClseek` | 36 B | seven-byte support-code residual; small independent slot |
 | `PutItemList` | 504 B | eight-byte / two-instruction-short checkpoint; needs structure, not permutation |
 | `AdtSelect` | 776 B | nine-byte reload residual; only revisit from its documented huge-frame evidence |
