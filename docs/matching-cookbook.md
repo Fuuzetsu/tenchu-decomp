@@ -2856,6 +2856,26 @@ offsets +4/+0x5e. CVAsetup matched only when all three reads used
 `$s1` across three calls. Separate scalar externs emitted another `lui`, while
 caching only the character value modeled the wrong lifetime.
 
+The inverse can occur at one site even when the surrounding accesses use the
+aggregate. StageEndScreen's inventory-copy loop keeps one `PersistentState`
+base for `backup` and `stock`, but the target rematerializes the standalone
+`CHOSEN_CHARACTER` alias on every iteration. Spelling that index as
+`PSTATE->chr` let cse reuse the aggregate base, deleted the target's independent
+`lui`, and retied the `lbu` to that base; mixing
+`PSTATE->backup`/`PSTATE->stock` with `CHOSEN_CHARACTER` restored it. Treat the
+alias choice as a per-access source decision, not a translation-unit-wide
+naming rule.
+
+When a one-use fixed-page pointer still folds into a symbolic load, a
+site-local pointer-to-volatile aggregate can preserve its address pseudo so the
+base materialization fills an earlier guard's delay slot. Likewise, a pointer
+to an extern array that materializes too late can be assigned inside the
+minimum exact-extent nested `do { } while (0)` fence: the loop notes preserve
+and weight that pointer identity even though no loop survives. StageEndScreen
+needed the volatile view for its post-copy stage guard and two zero-trip levels
+for the terminal stage-order base. Recheck the entire caller-register family;
+these levers can improve a downstream loop while rotating the setup block.
+
 ### A shared `f(0, x)` tail vs two explicit `f(0, lit)` calls place the const arg differently
 
 A shared `f(0, x)` after an if/else hoists one `$a0 = 0` into the merged call's delay
