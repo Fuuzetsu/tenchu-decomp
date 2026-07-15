@@ -1,86 +1,146 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AfsGetEntry", AfsGetEntry);
+/*
+ * AfsGetEntry (0x8005e950, 0x234 bytes) allocates and reads the AFS volume's
+ * big-endian element table.  The demo calls getshort/getlong; retail contains
+ * those helpers inline, including the address-taken stack short used to check
+ * the per-record 0x4958 marker.
+ *
+ * Matching notes:
+ *  - A hand-written back edge preserves the three explicit cursors.  A real
+ *    do/while lets loop.c create parallel biased induction pointers for the
+ *    name and packed-word accesses, making the function nine instructions
+ *    too long.
+ *  - The two error calls are written before the success body.  jump2 merges
+ *    their common call/return suffix at the earlier target address while each
+ *    branch still materializes its string directly in the a0 argument chain.
+ *  - The nested zero-trip loops emit no code.  Their loop-depth weighting,
+ *    plus one local weight on the element-base copy, reproduces the retail
+ *    saved-register priorities.
+ *  - The marker's high and low bytes intentionally use the raw and packed
+ *    cursors respectively; the inline helper also preserves the target's
+ *    address-taken stack-halfword store.
+ */
 
-// triage: MEDIUM — 141 insns, 2 loop, 6 callees, ~0.09 to AfsGetHeader
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
+typedef struct FILE FILE;
+typedef struct TAFS TAFS;
+typedef struct TAFSElement TAFSElement;
+typedef struct TAFSFileHandle TAFSFileHandle;
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// int AfsGetEntry(TAFS *handle)
-//
-// {
-//   int iVar1;
-//   TAFSElement *pTVar2;
-//   undefined *buffer;
-//   ulong uVar3;
-//   char *fmt;
-//   undefined1 *puVar4;
-//   TAFSElement *pTVar5;
-//   undefined *puVar6;
-//   uint uVar7;
-//
-//   if (handle->maxElements == 0) {
-//     AdtMessageBox("AfsGetEntry: empty index");
-//     iVar1 = 0;
-//   }
-//   else {
-//     pTVar2 = (TAFSElement *)valloc(handle->maxElements * 0x24);
-//     if (pTVar2 == (TAFSElement *)0x0) {
-//       AdtMessageBox("AfsGetEnty: memory not enough!");
-//       vfree((undefined *)0x0);
-//       iVar1 = 1;
-//     }
-//     else {
-//       buffer = valloc(handle->maxElements * 0x24);
-//       if (buffer == (undefined *)0x0) {
-//         fmt = "AfsGetEntry: memory not enough!";
-// LAB_8005ea08:
-//         AdtMessageBox(fmt);
-//         iVar1 = 1;
-//       }
-//       else {
-//         uVar7 = 0;
-//         cd_seek();
-//         cd_read((disc_file_descriptor_t *)handle->fpVol,buffer,handle->maxElements * 0x24);
-//         uVar3 = 0;
-//         if (handle->maxElements != 0) {
-//           puVar4 = buffer + 1;
-//           pTVar5 = pTVar2;
-//           puVar6 = buffer;
-//           do {
-//             pTVar5->flag = CONCAT11(puVar4[1],puVar4[2]);
-//             pTVar5->pos = (uint)(byte)puVar4[3] << 0x18 | (uint)(byte)puVar4[4] << 0x10 |
-//                           (uint)(byte)puVar4[5] << 8 | (uint)(byte)puVar4[6];
-//             pTVar5->size = (uint)(byte)puVar4[0xb] << 0x18 | (uint)(byte)puVar4[0xc] << 0x10 |
-//                            (uint)(byte)puVar4[0xd] << 8 | (uint)(byte)puVar4[0xe];
-//             pTVar5->psize =
-//                  (uint)(byte)puVar4[7] << 0x18 | (uint)(byte)puVar4[8] << 0x10 |
-//                  (uint)(byte)puVar4[9] << 8 | (uint)(byte)puVar4[10];
-//             strncpy((char *)pTVar5->name,puVar6 + 0x10,0x13);
-//             pTVar5->name[0x13] = '\0';
-//             if (CONCAT11(*puVar6,*puVar4) != 0x4958) {
-//               fmt = "Illigal index data\n";
-//               goto LAB_8005ea08;
-//             }
-//             puVar4 = puVar4 + 0x24;
-//             puVar6 = puVar6 + 0x24;
-//             pTVar5->name[0x13] = '\0';
-//             uVar7 = uVar7 + 1;
-//             pTVar5 = pTVar5 + 1;
-//           } while (uVar7 < handle->maxElements);
-//           uVar3 = handle->maxElements;
-//         }
-//         handle->pElement = pTVar2;
-//         handle->maxElementArea = uVar3;
-//         vfree(buffer);
-//         iVar1 = 0;
-//       }
-//     }
-//   }
-//   return iVar1;
-// }
+struct TAFSElement
+{
+    u16 flag;
+    u32 pos;
+    u32 size;
+    u32 psize;
+    u8 name[20];
+};
+
+struct TAFS
+{
+    FILE *fpVol;
+    s32 fModified;
+    u32 posElement;
+    TAFSElement *pElement;
+    u32 maxElements;
+    s32 maxElementArea;
+    TAFSFileHandle *pHandle;
+};
+
+extern void AdtMessageBox(char *fmt, ...);
+extern void *valloc(u32 size);
+extern void vfree(void *p);
+extern int cd_seek(FILE *f, int offset, int whence);
+extern int cd_read(FILE *f, void *buffer, int length);
+extern char *strncpy(char *dst, const char *src, u32 n);
+extern char D_800148D4[];
+extern char D_800148F0[];
+extern char D_80014910[];
+extern char D_80014930[];
+
+static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
+{
+    *dst = ((u16)src[0] << 8) | next[0];
+}
+
+int AfsGetEntry(TAFS *handle)
+{
+    TAFSElement *elements;
+    TAFSElement *element;
+    u8 *buffer;
+    u8 *raw;
+    u8 *packed;
+    u32 i;
+    u16 marker;
+
+    if (handle->maxElements == 0) {
+        AdtMessageBox(D_800148D4);
+        return 0;
+    }
+
+    elements = valloc(handle->maxElements * sizeof(TAFSElement));
+    if (elements == 0) {
+        AdtMessageBox(D_800148F0);
+        vfree(0);
+        return 1;
+    }
+
+    buffer = valloc(handle->maxElements * sizeof(TAFSElement));
+    if (buffer != 0) {
+        goto entry_ready;
+    }
+    AdtMessageBox(D_80014910);
+    return 1;
+
+bad_index:
+    AdtMessageBox(D_80014930);
+    return 1;
+
+entry_ready:
+    cd_seek(handle->fpVol, handle->posElement, 0);
+    i = 0;
+    cd_read(handle->fpVol, buffer,
+            handle->maxElements * sizeof(TAFSElement));
+
+    raw = buffer;
+    do {
+        do {
+            if (handle->maxElements != 0) {
+                do {
+                    element = elements;
+                } while (0);
+                packed = raw + 1;
+entry_loop:
+                element->flag = ((u16)packed[1] << 8) | packed[2];
+                element->pos = ((u32)packed[3] << 24) |
+                               ((u32)packed[4] << 16) |
+                               ((u32)packed[5] << 8) | packed[6];
+                element->size = ((u32)packed[11] << 24) |
+                                ((u32)packed[12] << 16) |
+                                ((u32)packed[13] << 8) | packed[14];
+                element->psize = ((u32)packed[7] << 24) |
+                                 ((u32)packed[8] << 16) |
+                                 ((u32)packed[9] << 8) | packed[10];
+                strncpy((char *)element->name, (char *)buffer + 0x10, 0x13);
+                element->name[0x13] = 0;
+                AfsGetShort(&marker, buffer, packed);
+                if (marker != 0x4958) {
+                    goto bad_index;
+                }
+                packed += sizeof(TAFSElement);
+                buffer += sizeof(TAFSElement);
+                element->name[0x13] = 0;
+                element++;
+                if (handle->maxElements > ++i) {
+                    goto entry_loop;
+                }
+            }
+        } while (0);
+    } while (0);
+
+    handle->pElement = elements;
+    handle->maxElementArea = handle->maxElements;
+    vfree(raw);
+    return 0;
+}
