@@ -42,8 +42,9 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — links 808 bytes vs the 876-byte target (17
- * instructions / 68 bytes SHORT). Default build keeps the byte-identical
+ * STATUS: NON_MATCHING — the guarded C now has the target's exact 876-byte /
+ * 219-instruction extent and linked-image layout. Thirteen bytes remain in
+ * the six-instruction store tail; the default build keeps the byte-identical
  * INCLUDE_ASM stub.
  *
  * Matching notes (against SetBleed.c/SetBleeds.c, the same EffectSlot[200]
@@ -53,56 +54,35 @@
  *    SetBleeds' `grange`/`srange` jitter), but `vec` (the direction) is
  *    copied VERBATIM into `v` — no srange/jitter step for it at all (that's
  *    the whole "Dir" distinction from SetBleeds, which jitters both).
- *  - The two `memset(&npos/&v, 0, sizeof(...))` calls are load-bearing, same
- *    as SetBleeds (zero the padding/unused fields before the block-copies).
+ *  - Stack layout is the structural key (the now-matched SetBleeds.c proves
+ *    the idiom): npos@sp+0x10, v@sp+0x20, scratch t@sp+0x28. Position jitter
+ *    is built as a VECTOR through `(VECTOR *)&v`, spanning v and t after a
+ *    16-byte memset, then block-copied into npos. The direction is built in
+ *    t after an 8-byte memset and block-copied into v. This recovered the
+ *    target's two throwaway-scratch copies and the exact 0x58-byte frame.
+ *  - Each position axis is a full if/else with its base load before the
+ *    branch. Naming `g = grange` shares the one target sign extension across
+ *    grange2 and all six arms.
  *  - `time` splits as `half = time / 8; rem = time - half; btime = half +
  *    (rem>0 ? rand()%rem : 0);` — note the DIVISOR is 8 here, not 2 like
  *    SetBleeds' half-split; confirmed by the raw `.s`'s `sra ,3`/`+7`
  *    round-toward-zero shift sequence (the standard signed-divide-by-
  *    power-of-2 compilation), not a `sra ,1`.
- *  - The inner EffectSlot[200] pool scan is SetBleed.c's own hand-rolled
- *    `goto loop;` shape verbatim (count++ only on the NOT-found path, &dmy
- *    assigned after the loop, cursor-store inside the found branch, `n--`
- *    on both exits before the shared tail).
- *  - Field store order into BleedType: pos (block copy), vec (block copy),
- *    r, g, time, b, mode, proc — same order as SetBleed.c/SetBleeds.c, not
- *    struct-offset order.
+ *  - The inner shadow block (`VECTOR *pos = &npos`, `int time = btime`) and
+ *    SetBleed.c's hand-rolled pool scan recover the target a3/t0 carriers,
+ *    count/update branches, and single source `n--` duplicated by reorg.
  *  - `grange * 2`/`rand() % grange2` needs maspsx `--expand-div` for this
  *    file (division by a variable) — added to Build.hs/permute.py.
  *
- * RESIDUAL (68 bytes / 17 instructions short): the SAME unresolved
- * "throwaway stack scratch, then a SECOND block-copy" shape as SetBleeds'
- * own parked residual (see its header) — target computes each of npos's
- * THREE jitter fields into its own memset'd stack scratch, then reloads
- * and re-stores them into npos's real stack slot (8 extra instructions: 4
- * lw + 4 sw) before npos ever gets block-copied again into
- * `ef->param.bleed.pos`. A plain `long px, py, pz;` (SetBleeds.c's own
- * idiom, tried first) let cc1 keep the jitter values resident in
- * REGISTERS and store straight into npos's fields with no intermediate
- * stack bounce at all (692 bytes short residual: 788 vs 876). Declaring
- * them as one array instead — `long p[3];`, `p[0]/p[1]/p[2] = ...; npos.vx
- * = p[0];` etc. — is a REAL, reusable lever: it forced genuine stack
- * residency (arrays don't get promoted to registers as readily as scalars
- * in this pipeline) and cut the residual from 88 to 68 bytes, though it
- * still doesn't reproduce the exact double-copy-through-TWO-different-
- * scratch-addresses shape target uses (target's third jitter value's
- * scratch slot gets REUSED as `v`'s own scratch immediately after, a
- * stack-slot-numbering coincidence downstream of whatever register
- * pressure the real source had that this draft doesn't reach). Consistent
- * with SetBleeds' own conclusion: this is the cookbook's allocator-
- * cost-tie class, not a source-shape bug — parked per the attempt-cap
- * guidance.
- *
- * CAUTION for future attempts: `tools/autorules.py SetBleedsDir` produced
- * actively WRONG local types when run on this draft (narrowed `p`'s
- * 32-bit position-jitter values to `s16`, and `idx`/`count` — both real
- * 0..200 loop counters — to `s16`/`s8`). Because `p` feeds a VECTOR field
- * and idx/count are compared against 200, these aren't just "different
- * register class" ties like the cookbook's usual autorules wins; they're
- * outright semantically wrong despite autorules reporting them as
- * score-improving (and the resulting file failed to even build cleanly
- * once). Sanity-check every autorules-suggested width against what the
- * variable actually holds before accepting it, not just the score delta.
+ * RESIDUAL: the target materializes DrawBleed in v0 before the time/b/mode
+ * byte stores, then places the proc store in the loop-back jump's delay slot.
+ * Putting the assignment last preserves that delay-slot store but schedules
+ * the address after the byte stores (19 bytes); putting it before those
+ * fields, retained below, improves to 13 bytes but stores the proc early and
+ * puts mode in the delay slot. A named proc, one-shot fence, and identical-arm
+ * carrier either stayed at 19 or disturbed the otherwise-exact allocation.
+ * This is the remaining sched/reload tie; do not regress the proven scratch
+ * layout or narrow the VECTOR values / 0..200 scan counters to chase it.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBleedsDir", SetBleedsDir);
@@ -115,103 +95,120 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
 {
     VECTOR npos;
     SVECTOR v;
-    long p[3];
+    SVECTOR t;
     int grange2;
-    long d;
+    long b;
+    int g;
     int half;
     int rem;
     int btime;
-    int idx;
-    TEffectSlot *base;
-    TEffectSlot *slot;
-    int count;
-    TEffectSlot *ef;
-    BleedType *fp;
 
-    grange2 = grange * 2;
+    g = grange;
+    grange2 = g * 2;
     do
     {
         if (n <= 0)
         {
             return;
         }
-        memset(&npos, 0, sizeof(npos));
-        d = -grange;
+        memset(&v, 0, sizeof(VECTOR));
+        b = pos->vx;
         if (grange2 > 0)
         {
-            d = rand() % grange2 - grange;
+            ((VECTOR *)&v)->vx = b + (rand() % grange2 - g);
         }
-        p[0] = pos->vx + d;
-
-        d = -grange;
+        else
+        {
+            ((VECTOR *)&v)->vx = b - g;
+        }
+        b = pos->vy;
         if (grange2 > 0)
         {
-            d = rand() % grange2 - grange;
+            ((VECTOR *)&v)->vy = b + (rand() % grange2 - g);
         }
-        p[1] = pos->vy + d;
-
-        d = -grange;
+        else
+        {
+            ((VECTOR *)&v)->vy = b - g;
+        }
+        b = pos->vz;
         if (grange2 > 0)
         {
-            d = rand() % grange2 - grange;
+            ((VECTOR *)&v)->vz = b + (rand() % grange2 - g);
         }
-        p[2] = pos->vz + d;
-        npos.vx = p[0];
-        npos.vy = p[1];
-        npos.vz = p[2];
-
-        memset(&v, 0, sizeof(v));
-        v = *vec;
+        else
+        {
+            ((VECTOR *)&v)->vz = b - g;
+        }
+        npos = *(VECTOR *)&v;
+        memset(&t, 0, sizeof(SVECTOR));
+        t.vx = vec->vx;
+        t.vy = vec->vy;
+        t.vz = vec->vz;
+        v = t;
 
         half = time / 8;
         rem = time - half;
-        btime = half;
         if (rem > 0)
         {
             btime = rand() % rem + half;
         }
+        else
+        {
+            btime = half;
+        }
+        {
+            VECTOR *pos = &npos;
+            int time = btime;
+            int idx;
+            TEffectSlot *base;
+            TEffectSlot *slot;
+            int count;
+            TEffectSlot *ef;
+            BleedType *fp;
+            u8 r;
 
-        base = EffectSlot;
-        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
-        slot = base + idx;
-        count = 0;
-    loop:
-        idx = idx + 1;
-        slot = slot + 1;
-        if (199 < idx)
-        {
-            slot = base;
-            idx = 0;
-        }
-        if (slot->proc == 0)
-        {
-            CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
-            if (199 < idx + 1)
+            idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+            count = 0;
+            base = EffectSlot;
+            slot = base + idx;
+        loop:
+            idx = idx + 1;
+            slot = slot + 1;
+            if (199 < idx)
             {
-                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                slot = base;
+                idx = 0;
             }
-            ef = slot;
+            if (slot->proc == 0)
+            {
+                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                if (199 < idx + 1)
+                {
+                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                }
+                ef = slot;
+                goto found;
+            }
+            count = count + 1;
+            if (199 < count)
+            {
+                ef = &dmy;
+                goto found;
+            }
+            goto loop;
+        found:
             n = n - 1;
-            goto found;
+            fp = &ef->param.bleed;
+            r = col >> 16;
+            ef->param.bleed.pos = *pos;
+            ef->param.bleed.vec = v;
+            fp->r = r;
+            fp->g = col >> 8;
+            ef->proc = (void (*)())DrawBleed;
+            fp->time = time;
+            fp->b = col;
+            fp->mode = 0;
         }
-        count = count + 1;
-        if (199 < count)
-        {
-            ef = &dmy;
-            n = n - 1;
-            goto found;
-        }
-        goto loop;
-    found:
-        fp = &ef->param.bleed;
-        fp->pos = npos;
-        fp->vec = v;
-        fp->r = col >> 16;
-        fp->g = col >> 8;
-        fp->time = btime;
-        fp->b = col;
-        fp->mode = 0;
-        ef->proc = (void (*)())DrawBleed;
     } while (1);
 }
 #endif
