@@ -23,11 +23,6 @@
  *     param $s2       struct SVECTOR * vect
  *     param $s0       struct SplineControlType * spc
  *     param $s1       short cnt
- *
- * Globals it touches, as the original declared them:
- *     extern struct MotionPackType *StageMotion;
- *     extern struct NodeIndexType *FieldIndex;
- *     extern unsigned short *Command[12];
  * END PSX.SYM */
 
 /*

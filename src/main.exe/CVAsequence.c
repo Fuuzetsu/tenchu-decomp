@@ -33,7 +33,6 @@
  *     extern struct Humanoid *StagePlayer;
  *     extern struct Humanoid *CameraTarget;
  *     extern short Humans;
- *     extern struct GsIMAGE Images[52];
  *     extern struct Humanoid *HumanGroup[32];
  *     extern short ActionHalt;
  *     extern short MotionUpdateMode;

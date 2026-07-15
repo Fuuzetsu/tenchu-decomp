@@ -25,7 +25,6 @@
  *     extern int ReadMode;
  *     extern int TotalIO;
  *     extern unsigned long *virtual_memory_pool;
- *     extern struct GsOT *OTablePt;
  *     extern struct TAFS systemAFS;
  * END PSX.SYM */
 

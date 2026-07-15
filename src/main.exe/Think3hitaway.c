@@ -25,6 +25,7 @@
  * Globals it touches, as the original declared them:
  *     extern long Distance;
  *     extern short SR;
+ *     extern short (*AttackFunc[4])();
  *     extern short Degree;
  *     extern short Attrib;
  * END PSX.SYM */

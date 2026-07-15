@@ -8,7 +8,6 @@
  *
  *
  * Globals it touches, as the original declared them:
- *     extern struct INFOVIEW__196fake LifeBarStyle[2];
  *     extern enum TSystemFlag SystemFlag;
  * END PSX.SYM */
 

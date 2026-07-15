@@ -83,6 +83,21 @@ def declare(d: P.Def, name: str, tagmap: dict[tuple[str, str], str]) -> str:
     return f"{base} {decl}".rstrip()
 
 
+def object_size(d: P.Def) -> int:
+    """Size of the declared object, not the pointed-to type.
+
+    COFF's ``size`` on a bare pointer is the referent size (for example a
+    ``VECTOR *`` reports 16), while the object stored in data is one word.
+    Array records already carry their total byte size.
+    """
+    outer = (d.type >> 4) & 3
+    if outer == P.DT_PTR:
+        return 4
+    if outer == P.DT_FCN:
+        return 0
+    return d.size
+
+
 def rettype_of(d: P.Def, tagmap: dict[tuple[str, str], str]) -> str:
     """Return type of a function symbol: its declarator minus the trailing ()."""
     return declare(d, "", tagmap).replace("()", "").strip()
@@ -269,7 +284,8 @@ def main() -> None:
             if d is None:
                 continue
             where = statfile.get(s2.name)
-            note = f"  /* 0x{repo[s2.name]:08x}" + (f", static in {where}" if where else "") + " */"
+            note = f"  /* 0x{repo[s2.name]:08x}, size 0x{object_size(d):x}" \
+                   + (f", static in {where}" if where else "") + " */"
             f.write(f"extern {declare(d, s2.name, tagmap)};{note}\n")
             emitted.add(s2.name)
             n += 1

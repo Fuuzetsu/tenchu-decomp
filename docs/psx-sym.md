@@ -136,9 +136,19 @@ $ tools/symnote.py --check --all     # non-zero if any block is stale (CI)
 ```
 
 It inserts one `BEGIN PSX.SYM … END PSX.SYM` comment after the last `#include`,
-regenerated in place and idempotent. **448 of 557 files carry one**; the other 109 are
+regenerated in place and idempotent. **434 of 557 files carry one**; the other 123 are
 functions PSX.SYM never described. Comments change no bytes, so `./Build check` is the
 gate.
+
+Global ownership is extent-based, not "nearest typed name". The generated globals
+header records each original object's byte size (with a bare pointer forced to the
+stored four-byte pointer size, not COFF's referent size). `symnote.py` attributes an
+interior reference only when it falls inside that extent, and a meaningful retail
+symbol boundary still splits it. This matters in both directions: a generated
+`D_<addr>` can legitimately be an interior byte of `PadPort`, while the Adt state at
+`0x8008f1b8` must not be claimed by the preceding 40-byte `StageAppearance` table.
+Earlier-build extents are deliberately conservative; if retail enlarged an object,
+the note may omit a true edge rather than invent a false one.
 
 ```c
 /* BEGIN PSX.SYM — the original source's own facts …
@@ -375,7 +385,8 @@ tables record the PSX.SYM address, demo address, and complete witness-function l
 so each decision remains auditable.
 
 Control precision — retail addresses whose current name is itself a PSX.SYM name —
-is **100% (171/171)** after the calibrated-relocation batch. Note that the two
+is **100% (172/172)** after the calibrated-relocation batch and the independently
+corroborated `StageAppearance` rename. Note that the two
 apparent counter-examples in an earlier run
 were not errors: our `Me_MOTION_C` is the de-duplicated spelling of the demo's static
 `Me`, and `StageBosses`/`StageEnemies` at `0x80097c74`/`0x80097c76` disagree with the
@@ -390,7 +401,7 @@ point**, because `difflib` aligns the demo's store to the *first* identical reta
 store. When a vote contradicts an existing name, check how the symbols are *used
 together* before believing it.
 
-`reference/data-symbols-applied.tsv` now records **227 global/data naming
+`reference/data-symbols-applied.tsv` now records **229 global/data naming
 decisions**:
 
 * **35 from `datamatch`** — `struct ConflictObjectType ConflictObject[64]` (21 votes),
@@ -408,8 +419,13 @@ decisions**:
   now define new ones. This historical batch also included 85 address-keyed SDK/text
   labels below retail's data start, so the table's record count is not itself a
   count of real data-region globals.
+* **Two independently corroborated names** — the original `StageAppearance` has
+  one aligned witness plus its exact `short *[10]` type and per-stage indexing in
+  both `AddEnemy` and `SetupCharacterParameter`; the retail-only
+  `AdtMessageBoxCount` has a same-binary Ghidra label and is incremented and printed
+  only by `AdtMessageBox`.
 
-Across all sources, the current symbol configuration has **210 retail data-region
+Across all sources, the current symbol configuration has **211 retail data-region
 names that also occur in PSX.SYM**, up from 139 before relocation synthesis.
 
 `reference/psxsym-globals.h` joins the 113 globals we name with PSX.SYM's original

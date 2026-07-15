@@ -136,7 +136,7 @@ GP_EXTERNS = {
     "HangCheck": ["Me_MOTION_C", "motID", "dtL", "dtR", "MotionUpdateMode", "motMODE"],
     "SoundEx": ["StageSE"],
     "dispose_weapon_data_of_char_": ["Me_MOTION_C", "dtM"],
-    "AdtMessageBox": ["AdtPadRead", "D_80097E94"],
+    "AdtMessageBox": ["AdtPadRead", "AdtMessageBoxCount"],
     "PutItemList": ["SelectedItem", "ItemCursor"],
     "PutMap": ["PutMapMode", "D_80097F6C", "D_80097F70"],
     "UpdateEvent": ["StageEvent", "StagePlayer"],

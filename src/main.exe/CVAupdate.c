@@ -33,7 +33,6 @@
  *     extern struct Humanoid *CameraTarget;
  *     extern short CameraPanMode;
  *     extern struct CVAType *CVAdata;
- *     extern struct GsIMAGE Images[52];
  *     extern int StageID;
  * END PSX.SYM */
 

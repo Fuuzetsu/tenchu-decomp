@@ -35,9 +35,6 @@
  *     stack sp+136    struct SVECTOR sv
  *     stack sp+144    struct SVECTOR sv
  *     reg   $s3       struct tag_TItem * item
- *
- * Globals it touches, as the original declared them:
- *     extern struct GsSPRITE TargetSprite[1];
  * END PSX.SYM */
 
 #include "item.h"

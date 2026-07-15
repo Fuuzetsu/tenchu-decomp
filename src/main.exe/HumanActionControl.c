@@ -31,6 +31,7 @@
  *     extern struct SVECTOR *dtR;
  *     extern struct MotionManager *dtM;
  *     extern short motID;
+ *     extern void (*ActionFunc[18])();
  * END PSX.SYM */
 
 /*

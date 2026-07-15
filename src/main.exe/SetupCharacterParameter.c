@@ -28,6 +28,7 @@
  * Globals it touches, as the original declared them:
  *     extern struct HumanDataType HumanData[63];
  *     extern short NowStage;
+ *     extern short *StageAppearance[10];
  * END PSX.SYM */
 
 /*
@@ -36,7 +37,7 @@
  * .type == -1) and copies the per-type stats (turn/width/height/life) plus
  * motion setup (SetupMotionRegist/SetupMotionManager) into `human`; then
  * resolves a second, unrelated "how manieth non-player kind on this stage"
- * count via CHARACTER_KINDS_PER_STAGE[NowStage] (another sentinel-
+ * count via StageAppearance[NowStage] (another sentinel-
  * terminated, per-stage short list) into human->sound. item.h's proven
  * Humanoid layout (turn@0x6/life@0x8/lifemax@0xA/width@0xC/height@0xE/
  * model@0x58/motion@0x5C/sound@0xAC) accounts for every field written here.
@@ -87,7 +88,7 @@ typedef struct
 
 extern HumanDataType HumanData[63];
 extern s16 NowStage;
-extern s16 *CHARACTER_KINDS_PER_STAGE[];
+extern s16 *StageAppearance[];
 
 Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
 {
@@ -119,7 +120,7 @@ Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
     idx = -1;
     if (1 < (u16)type)
     {
-        idtbl = CHARACTER_KINDS_PER_STAGE[NowStage];
+        idtbl = StageAppearance[NowStage];
         idx = 0;
         while (idtbl[idx] != type)
         {

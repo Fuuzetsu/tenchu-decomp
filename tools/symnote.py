@@ -30,6 +30,9 @@ BEGIN = "/* BEGIN PSX.SYM"
 END = "END PSX.SYM */"
 BLOCK = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.S)
 INCLUDE = re.compile(r"^\s*#\s*include\b.*$", re.M)
+GLOBAL_DECL = re.compile(
+    r"extern (.*);\s+/\* (0x[0-9a-f]+), size (0x[0-9a-f]+)"
+)
 
 
 def safe(s: str) -> str:
@@ -72,6 +75,41 @@ def load():
     return protos, tu, locals_, cand
 
 
+def typed_owner(addr: int, typed: dict[int, tuple[str, int]],
+                real_boundaries: list[int]):
+    """Typed object containing ``addr``, bounded by its PSX.SYM object size.
+
+    A generated ``D_<addr>`` can legitimately name an interior array/struct
+    access, so nearest-symbol ownership is neither necessary nor sufficient.
+    The earlier-build extent is conservative evidence: it may miss a retail
+    object that grew, but it cannot let a pointer or small array claim an
+    unrelated global hundreds of bytes later. A meaningful retail symbol inside
+    that extent still wins as a hard boundary.
+    """
+    import bisect
+    bases = sorted(typed)
+    i = bisect.bisect_right(bases, addr) - 1
+    if i < 0:
+        return None
+    base = bases[i]
+    _, size = typed[base]
+    if addr != base and (size <= 0 or addr >= base + size):
+        return None
+    if addr != base:
+        j = bisect.bisect_right(real_boundaries, base)
+        if j < len(real_boundaries) and real_boundaries[j] <= addr:
+            return None
+    return base
+
+
+def parse_global_decl(line: str):
+    """Parse scalar, array, and function-pointer declarations uniformly."""
+    m = GLOBAL_DECL.match(line)
+    if not m:
+        return None
+    return int(m.group(2), 16), m.group(1), int(m.group(3), 16)
+
+
 def globals_of(name):
     """Globals this function references, typed from PSX.SYM.
 
@@ -89,11 +127,12 @@ def globals_of(name):
     hdr = "reference/psxsym-globals.h"
     if not os.path.exists(hdr):
         return []
-    decl = {}
+    decl: dict[int, tuple[str, int]] = {}
     for line in open(hdr):
-        m = re.match(r"extern (.*?([A-Za-z_]\w*)(?:\[.*?\])*(?:\(\))?);\s+/\* (0x[0-9a-f]+)", line)
-        if m:
-            decl[int(m.group(3), 16)] = m.group(1)
+        parsed = parse_global_decl(line)
+        if parsed:
+            global_addr, declaration, global_size = parsed
+            decl[global_addr] = (declaration, global_size)
     addr = size = None
     for line in open(".shake/ghidra-export/functions.tsv"):
         c = line.rstrip("\n").split("\t")
@@ -102,30 +141,22 @@ def globals_of(name):
             break
     if addr is None or not decl:
         return []
-    import bisect
-    dense = sorted(int(m.group(1), 16) for m in
-                   (re.match(r"\s*[A-Za-z_]\w*\s*=\s*(0x[0-9A-Fa-f]+)\s*;", l)
-                    for l in open("config/symbols.main.exe.txt")) if m)
+    placeholder = re.compile(r"^(?:D_|DAT_|LAB_|jtbl_|switchD_|__)")
+    real_boundaries = []
+    for line in open("config/symbols.main.exe.txt"):
+        m = re.match(r"\s*([A-Za-z_]\w*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
+        if m and not placeholder.match(m.group(1)):
+            real_boundaries.append(int(m.group(2), 16))
+    real_boundaries.sort()
     exe = open("disks/tenchu/main.exe", "rb").read()
     refs, _ = D.data_refs(exe[0x800:], 0x80011000, addr, size, D.RETAIL_GP, *D.RETAIL_TEXT)
     hits = []
     for _, y in refs:
-        i = bisect.bisect_right(dense, y) - 1
-        if i < 0:
+        owner = typed_owner(y, decl, real_boundaries)
+        if owner is None or owner in hits:
             continue
-        owner = dense[i]
-        if owner not in decl or owner in hits:
-            continue
-        if y != owner:
-            # An interior offset only makes sense for an aggregate. A scalar
-            # (`short ConflictObjects;`) cannot own `owner + 0xa` -- that address
-            # simply has no symbol, and attributing it here is how FUN_8001b2f4's
-            # block claimed a global it never touches.
-            d = decl[owner].strip()
-            if "[" not in d and not d.startswith(("struct ", "union ")):
-                continue
         hits.append(owner)
-    return [f"extern {decl[a]};" for a in hits[:12]]
+    return [f"extern {decl[a][0]};" for a in hits[:12]]
 
 
 def render(name, protos, tu, locals_, cand) -> str | None:

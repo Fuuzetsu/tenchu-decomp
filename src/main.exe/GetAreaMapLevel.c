@@ -36,7 +36,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct NodeIndexType *FieldIndex;
  *     extern short FieldAttrib;
- *     extern struct GsOT *OTablePt;
  *     extern struct AreaNodeType *FieldArea;
  * END PSX.SYM */
 

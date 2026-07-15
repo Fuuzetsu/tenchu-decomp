@@ -24,8 +24,8 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern short SkipFrame;
- *     extern struct GsOT OTable[2];
  *     extern short DrawingPage;
+ *     extern struct GsOT OTable[2];
  *     extern struct GsOT *OTablePt;
  *     extern struct GsFOGPARAM Fog;
  *     extern struct tag_TItem items[30];

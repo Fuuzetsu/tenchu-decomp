@@ -41,6 +41,12 @@ MATCHER_PROMPT_SPEC = importlib.util.spec_from_file_location(
 matcher_prompt = importlib.util.module_from_spec(MATCHER_PROMPT_SPEC)
 MATCHER_PROMPT_SPEC.loader.exec_module(matcher_prompt)
 
+SYMNOTE_SPEC = importlib.util.spec_from_file_location(
+    "symnote", os.path.join(TOOLS, "symnote.py")
+)
+symnote = importlib.util.module_from_spec(SYMNOTE_SPEC)
+SYMNOTE_SPEC.loader.exec_module(symnote)
+
 
 class WorktreeInitTests(unittest.TestCase):
     def test_long_worktree_list_does_not_trip_pipefail(self):
@@ -257,6 +263,38 @@ class FunctionInventoryTests(unittest.TestCase):
         self.assertEqual(clean, {})
         self.assertEqual(stats["nonunanimous"], 1)
         self.assertEqual(stats["reverse_conflicts"], 1)
+
+    def test_symnote_typed_owner_uses_object_extent_not_nearest_name(self):
+        typed = {
+            0x8008F188: ("short *StageAppearance[10]", 0x28),
+            0x801D5848: ("struct TPadPort PadPort[2][4]", 0x60),
+        }
+
+        # A generated D_ label at PadPort+7 is an interior access, while the
+        # unrelated Adt global 0x30 bytes after StageAppearance is not.
+        self.assertEqual(
+            symnote.typed_owner(0x801D584F, typed, []), 0x801D5848
+        )
+        self.assertIsNone(symnote.typed_owner(0x8008F1B8, typed, []))
+
+    def test_symnote_meaningful_retail_symbol_splits_demo_extent(self):
+        typed = {0x80001000: ("struct OldLayout table", 0x100)}
+
+        self.assertIsNone(
+            symnote.typed_owner(0x80001090, typed, [0x80001080])
+        )
+        self.assertEqual(
+            symnote.typed_owner(0x80001070, typed, [0x80001080]), 0x80001000
+        )
+
+    def test_symnote_parses_function_pointer_array_global(self):
+        self.assertEqual(
+            symnote.parse_global_decl(
+                "extern short (*Think1Func[10])();  "
+                "/* 0x80089d94, size 0x28, static in THINK_4.C */\n"
+            ),
+            (0x80089D94, "short (*Think1Func[10])()", 0x28),
+        )
 
     def test_xref_uses_current_c_names_with_ghidra_extents(self):
         with tempfile.TemporaryDirectory() as td:

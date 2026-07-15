@@ -40,7 +40,7 @@
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtV;
  *     extern short SelectedItem;
- *     extern struct NodeIndexType *FieldIndex;
+ *     extern struct VECTOR *dtL;
  * END PSX.SYM */
 
 /*

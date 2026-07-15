@@ -109,7 +109,7 @@ typedef struct
 extern AdtFntState D_8008F1B8;
 extern s32 (*AdtPadRead)(s32 port);
 extern s32 AdtDmyPadRead(s32 port);
-extern s32 D_80097E94; /* AdtMessageBox call counter */
+extern s32 AdtMessageBoxCount; /* AdtMessageBox call counter */
 extern char D_80014AAC[]; /* "*** AdtInit not called ***" */
 extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
 extern char D_80014ADC[]; /* "\n\nPress start to continue..." */
@@ -163,8 +163,8 @@ skip:
     if (mode < 2)
     {
         DrawPrim(ad.prim);
-        count = D_80097E94 + 1;
-        D_80097E94 = count;
+        count = AdtMessageBoxCount + 1;
+        AdtMessageBoxCount = count;
         FntPrint(D_80014AC8, count);
     }
     FntPrint(buf);

@@ -240,3 +240,7 @@
 800c77ec	_SsVmMaxVoice	datamatch-reloc	VOTES6;PSX=801d59e0;DEMO=801d5d38;WITNESSES=SsUtAllKeyOff,_SsVmFlush,_SsVmInit,_SsVmSeqKeyOff,_SsVmSetSeqVol,vmNoiseOn	?	?
 800c7820	_svm_auto_kof_mode	datamatch-reloc	VOTES2;PSX=801d64fc;DEMO=801d6854;WITNESSES=_SsVmFlush,_SsVmInit	?	?
 800c7868	_svm_vab_count	datamatch-reloc	VOTES2;PSX=801eb1b8;DEMO=801eb510;WITNESSES=SsVabClose,_SsVmInit	?	?
+
+# Independently corroborated data names (2026-07-15).
+8008f188	StageAppearance	semantic+datamatch	VOTES1;PSX=8008df1c;DEMO=8008e274;WITNESSES=SetupCharacterParameter;TYPE=short*[10];AddEnemy-and-SetupCharacterParameter-index-the-per-stage-table	EXT	short *[10]
+80097e94	AdtMessageBoxCount	retail-ghidra+semantic	same-binary-Ghidra-label=s_adtMessageBoxCount;AdtMessageBox-alone-increments-and-displays-it	?	s32 (retail use)

@@ -33,6 +33,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct HumanDataType HumanData[63];
+ *     extern short *StageAppearance[10];
  *     extern struct WeaponModelType WeaponModel[41];
  *     extern int StageID;
  *     extern struct ThinkDBtype ThinkDB[20];
@@ -50,7 +51,7 @@
  * The remaining diff is dominated by one allocator/control-flow family in
  * the nested stage-kind, weapon, and think-menu scans.  Retail holds the
  * HumanData base in fp, assigns the scan/count values to s2-s5, and keeps the
- * CHARACTER_KINDS_PER_STAGE and WeaponModel bases in t1/t0, spilling those
+ * StageAppearance and WeaponModel bases in t1/t0, spilling those
  * two caller-saved bases at sp+0x7e4/sp+0x7e0 around sprintf.  This draft's
  * equivalent natural loops color the two bases into saved registers instead.
  * The AddEnemyBloodScratch tail represents those two retail spill words and
@@ -124,7 +125,7 @@ typedef struct
 
 extern AddEnemyHumanData HumanData[63];
 extern AddEnemyWeaponModel WeaponModel[41];
-extern s16 *CHARACTER_KINDS_PER_STAGE[];
+extern s16 *StageAppearance[];
 extern s32 StageID;
 extern AddEnemyThinkDB ThinkDB[20];
 extern AddEnemyCameraStatus CamState;
@@ -179,7 +180,7 @@ void AddEnemy(void)
         names_offset = 0;
         human_data = HumanData;
         weapon_base = WeaponModel;
-        kind_base = CHARACTER_KINDS_PER_STAGE;
+        kind_base = StageAppearance;
         do
         {
             if (count >= 70)

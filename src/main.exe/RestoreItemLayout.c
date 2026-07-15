@@ -30,7 +30,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct tag_TItem items[30];
  *     extern unsigned long *GlobalAreaMap;
- *     extern struct WorldType WorldMap[8][8][8];
  * END PSX.SYM */
 
 /*

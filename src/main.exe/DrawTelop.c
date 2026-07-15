@@ -12,7 +12,6 @@
  *     extern struct POLY_F4 TelopbgP;
  *     extern struct GsOT *OTablePt;
  *     extern struct tag_TItem items[30];
- *     extern struct GsIMAGE Images[52];
  * END PSX.SYM */
 
 /*
