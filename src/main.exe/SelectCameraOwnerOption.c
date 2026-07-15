@@ -37,47 +37,13 @@
  * the user pick one, and re-centers the debug camera (ViewInfo) on the
  * chosen Humanoid's model position.
  *
- * STATUS: NON_MATCHING — 4 of 344 bytes differ (1 instruction: same operands,
- * different opcode). Everything else below is verified byte-exact against
- * the original (confirmed via tools/asmdiff.py): frame layout, loop shape,
- * variable unification, store order, and the gp/drift fixes.
- * The sole residual: `sprintf(buffer, hi + 0x7D70, iVar2);` (the FileOption.c
- * "round-constant hi pointer" idiom, `hi = (char *)0x80090000;`) compiles the
- * offset-add as `ori $a1,$s3,0x7d70` here but the target has `addiu
- * $a1,$s3,0x7d70` — bit-identical VALUE (s3's low 16 bits are already zero,
- * so plus and ior agree), different OPCODE ENCODING, so still a byte diff.
- * FileOption.c's OWN COMPILED OUTPUT uses the exact same source idiom and
- * gets `addiu` — the difference must be in surrounding context (FileOption's
- * `hi` lives across a REAL `for` loop with loop notes; this function's `hi`
- * lives across a hand-rolled GOTO loop with none, required instead to keep
- * `&targets[i]` from being loop.c-strength-reduced into a wrong walking
- * pointer — a do-while/while(1)+break here reproduces the `ori` AND breaks
- * the array indexing, so the two constraints could not be reconciled with
- * the levers tried: routing the offset through a named `s32 off = 0x7D70;`
- * (worse — forces a full second register + explicit `or`), reordering `hi`'s
- * assignment, and reordering the `vrx`/`vpx`/`vry`/`vpy`/`vrz`/`vpz` store
- * sequence (which DID fix a separate, now-resolved 4-store residual below).
- * tools/permute.py ran ~20 min (`-j4`, --stop-on-zero) against this exact
- * 1-instruction residual and found nothing better than the base — a named
- * sub-C-level tie (cookbook "sub-C-level residual early-stop"); parked here
- * rather than opening more sessions on it.
- * RTL-CONFIRMED (tools/rtldump.py --draft, .i.combine, re-verified this
- * session): in BOTH functions `hi`'s constant assign is the identical `(set
- * (reg/v:SI N) (const_int -2146893824)) {movsi_internal2}` with the same
- * REG_EQUAL note — same starting fact for cse. The `hi+0x7D70` use sits at
- * each function's loop-top code_label. The one RTL difference there:
- * FileOption's code_label is immediately preceded by `NOTE_INSN_LOOP_BEG`
- * (real `for`, loop.c-processed) and its use compiles to `(plus (reg 88)
- * (const_int 32112)) {addsi3_internal}`; this function's code_label has NO
- * loop note anywhere above it in the whole `.i.combine` dump (grepped for
- * NOTE_INSN_LOOP_BEG — absent) and its use compiles to `(ior (reg 82)
- * (const_int 32112)) {iorsi3}`. The plus->ior fold is gated on the ABSENCE
- * of loop.c-recognised loop structure around the use — exactly the shape
- * `&targets[i]` needs (a goto loop, so loop.c never touches it and can't
- * strength-reduce the array index). The two requirements are mutually
- * exclusive in this cc1: confirmed by direct dump comparison, not inferred.
- *
  * Matching notes:
+ *  - The scoped union initializer is the source-level spelling of the
+ *    original high-word address construction. A plain `(char *)0x80090000`
+ *    gives GCC enough nonzero-bit information to replace `+ 0x7D70` with an
+ *    `ori`; initializing the two 16-bit fields preserves the target's
+ *    `lui s3,0x8009` followed by `addiu a1,s3,0x7D70`, with no stack object
+ *    or emitted initialization overhead.
  *  - Real retail layout differs from PSX.SYM's (earlier-build) recollection:
  *    the raw asm places `msg` at sp+0x130 (304), not PSX.SYM's sp+264, which
  *    means `targets` is 36 entries (0x120 bytes), matching Ghidra's own
@@ -151,15 +117,10 @@ extern char D_80014018[];   /* "select camera owner" */
 extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
 extern void sprintf(char *s, char *fmt, ...);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SelectCameraOwnerOption", SelectCameraOwnerOption);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/SelectCameraOwnerOption", debug_menu_enemy_layout_select_camera_owner__override__prt_8005ba50_8d2134c3);
-#else
 void SelectCameraOwnerOption(void)
 {
     Humanoid *pHVar1;
     char *buffer;
-    char *hi;
     int iVar2;
     Humanoid **ppHVar4;
     debug_menu_choice targets[36];
@@ -170,11 +131,20 @@ void SelectCameraOwnerOption(void)
         iVar2 = 0;
         if (0 < Humans)
         {
-            hi = (char *)0x80090000;
+            union
+            {
+                struct
+                {
+                    u32 low : 16;
+                    u32 high : 16;
+                } parts;
+                char *pointer;
+            } hi = {{0, 0x8009}};
+
             ppHVar4 = HumanGroup;
             buffer = msg;
         inner_loop:
-            sprintf(buffer, hi + 0x7D70, iVar2);
+            sprintf(buffer, hi.pointer + 0x7D70, iVar2);
             targets[iVar2].choice_name = buffer;
             pHVar1 = *ppHVar4;
             ppHVar4 = ppHVar4 + 1;
@@ -194,4 +164,3 @@ void SelectCameraOwnerOption(void)
         ViewInfo.vpz = ViewInfo.vrz;
     }
 }
-#endif /* NON_MATCHING */
