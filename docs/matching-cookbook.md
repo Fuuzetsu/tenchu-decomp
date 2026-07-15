@@ -993,6 +993,15 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   halves all three components per iteration. Compare the per-axis def/use order
   in `.loop`/`.jump2`; blind statement permutations obscure the rotation.
   DamageControl's passage vector is the worked large-function case.
+- **A repeated entry/backedge abs test may need `__builtin_abs` at both
+  sites to stop an unwanted cross-jump.** DamageControl's ternary-abs entry
+  test merged into the loop tail, hiding six instructions; mixed `/ 2` and
+  `>> 1` component updates only compensated for the lost size.  Spelling all
+  three halves as arithmetic shifts and both threshold ladders as
+  `__builtin_abs((int)component)` restores two distinct tests and makes the
+  entire normalization region structurally exact.  That paired change moved
+  the exact-length draft from 2056 to 1418 differing bytes; changing only the
+  halves or only the abs spelling gives a misleading length mismatch.
 - **A `short` loop counter SUPPRESSES loop.c's strength reduction.** loop.c needs
   a plain SImode giv to rewrite `arr[i].f` into a walking induction pointer, so an
   `int i` gets you `p += 8` per iteration. A `short i` instead keeps the target's

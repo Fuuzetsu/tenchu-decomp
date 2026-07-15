@@ -190,7 +190,7 @@ evidence and rejected experiments.
 | `GetAreaMapVector` | isolated `f2d0a6e`, exact 548 B / 40 bytes left | setup load/move/store scheduling and `MIN` early-return ordering; guided 80/160 and ~26k permuter candidates flat |
 | `AttackBowControl` | 75.00%; exact 272 B; 19 bytes left | first-live-local allocator priority swap; 80k+ permuter candidates flat |
 | `StageEndScreen` | 91.26%; exact 6084 B / frame / branch-call inventory; 389 bytes left | complete pure-C reconstruction; broad remaining allocator/scheduling residual |
-| `DamageControl` | 88.23%; exact 5812 B / 1453 instructions; 2457 bytes left | complete structural draft, but 140 aligned residual blocks remain |
+| `DamageControl` | 91.40%; exact 5812 B / 1453 instructions; 1418 bytes left | passage normalization is structurally exact; 111 residual blocks remain, and the ~1004-byte item-life fence checkpoint is still one instruction long |
 
 Only revisit one of these when a *new, specific* compiler/tool insight attacks
 the recorded residual class.  Do not rerun the same broad autorules or

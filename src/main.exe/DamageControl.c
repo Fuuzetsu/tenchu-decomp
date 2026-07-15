@@ -152,7 +152,7 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * damage, knockback, animation, blood, score, and player-feedback effects.
  *
  * STATUS: NON_MATCHING — the C draft has the exact retail extent (5812 bytes,
- * 1453 instructions) with 2056 differing bytes, fuzzy 88.16%, and 126 raw
+ * 1453 instructions) with 1418 differing bytes, fuzzy 91.40%, and 111 raw
  * aligned residual blocks from `asmdiff --structural` at this checkpoint.
  * The remaining work is expression/CFG scheduling and early-path register
  * allocation; the large humanoid path's persistent registers now agree with
@@ -167,24 +167,31 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *    and conflict id=$s5.  Reusing a source local for two non-overlapping
  *    roles was required; cleaner one-role locals rotated these registers.
  *  - The component-halving passage test is one repeated three-axis
- *    normalization loop.  The natural loop/tail-sharing shape is much closer
- *    than Ghidra's nested per-component rendering, though this CFG is still a
- *    major concentration of the structural residual.  Retail halves all three
- *    axes with arithmetic shifts; using that direct spelling for `vx` while
- *    retaining `/ 2` for `vy` and `vz` preserves the exact candidate extent.
+ *    normalization loop.  `__builtin_abs` on both threshold tests keeps the
+ *    entry test separate from the backedge test, while arithmetic shifts on
+ *    all three components reproduce retail's halving block.  This region is
+ *    now structurally exact; the older ternary/mixed-division spelling
+ *    cross-jumped the tests and only happened to preserve the total extent.
  *  - `local_38 = *dtL` is deliberately an aggregate VECTOR copy.  Four field
  *    assignments choose a different block-move/load schedule.
  *  - `D_80086B6C[deg]` is the real eight-entry motion table.  A magic absolute
  *    pointer folded the low address into the load and lost the target's
- *    base-materialization sequence.  The `s8` spelling is range-safe for both
- *    of `deg`'s roles (a 0..77 attack-table index, then a 0..7 direction bucket)
- *    and improves cc1's sign-extension/allocation pattern.
+ *    base-materialization sequence.  Keep `deg` a `short`, as recorded in the
+ *    demo symbols: narrowing it to `s8` adds two severity sign extensions and
+ *    perturbs the early saved-register allocation.
+ *  - Computing the knockback magnitude before the severity tests gives sched2
+ *    enough independent work to fill the final size-balancing delay slot.
+ *    A named intermediate makes that subregion closer but globally rotates
+ *    the early allocation, so keep the direct expression.
  *  - Identical MoveHumanoid calls stay duplicated in their branch arms.  cc1
  *    tail-merges the call while preserving predecessor-specific argument
  *    setup; factoring the call in C loses that shape.
  *  - The identical `pad.time = 0` arms near the exit are a deliberate cc1
  *    allocation fence.  The condition does not alter behavior, but retaining
  *    the two predecessor blocks substantially improves register allocation.
+ *  - An identical-arm fence around the item-path life store reduces the
+ *    aligned residual to about 1004 bytes, but leaves the draft one instruction
+ *    long.  It is a promising paired edit, not a valid checkpoint by itself.
  *  - Item case 0 deliberately falls through the shared case-0xe damage test.
  *    Since damage is already 20 this is semantically neutral, but it recovers
  *    the target's branch into the existing zero-test instead of a later case.
@@ -236,8 +243,7 @@ void DamageControl(void)
   SVECTOR *pSVar1;
   MotionManager *pMVar2;
   short did;
-  /* Attack-table indices are 0..77; the later direction bucket is 0..7. */
-  s8 deg;
+  short deg;
   short sVar6;
   int iVar7;
   short TVar8;
@@ -536,18 +542,18 @@ LAB_8001da70:
     local_40.vx = enemy->locate->vx - dtL->vx;
     local_40.vy = enemy->locate->vy - dtL->vy;
     local_40.vz = enemy->locate->vz - dtL->vz;
-    if ((100 < (local_40.vx < 0 ? -local_40.vx : local_40.vx)) ||
-        (100 < (local_40.vy < 0 ? -local_40.vy : local_40.vy)) ||
-        (100 < (local_40.vz < 0 ? -local_40.vz : local_40.vz))) {
+    if ((100 < __builtin_abs((int)local_40.vx)) ||
+        (100 < __builtin_abs((int)local_40.vy)) ||
+        (100 < __builtin_abs((int)local_40.vz))) {
 LAB_8001dfb0:
       TVar8 = TVar8 << 1;
-      /* Retail uses a direct arithmetic half for this component. */
+      /* Retail uses direct arithmetic halves for all three components. */
       local_40.vx >>= 1;
-      local_40.vy /= 2;
-      local_40.vz /= 2;
-      if ((100 < (local_40.vx < 0 ? -local_40.vx : local_40.vx)) ||
-          (100 < (local_40.vy < 0 ? -local_40.vy : local_40.vy)) ||
-          (100 < (local_40.vz < 0 ? -local_40.vz : local_40.vz))) {
+      local_40.vy >>= 1;
+      local_40.vz >>= 1;
+      if ((100 < __builtin_abs((int)local_40.vx)) ||
+          (100 < __builtin_abs((int)local_40.vy)) ||
+          (100 < __builtin_abs((int)local_40.vz))) {
         goto LAB_8001dfb0;
       }
     }
@@ -717,6 +723,7 @@ LAB_8001e6d8:
       dmg = ((short)dmg * 7) / 10;
       iVar11 = dmg * 0x10000;
     }
+    TVar8 = (short)(((iVar11 >> 0x10) * 5) / 2) + 0x50;
     deg = iVar11 >> 0x13;
     if (3 < deg) {
       deg = 3;
@@ -724,7 +731,6 @@ LAB_8001e6d8:
     if (0 < (Me_MOTION_C->map).height) {
       deg = 3;
     }
-    TVar8 = (short)(((iVar11 >> 0x10) * 5) / 2) + 0x50;
     pSVar1 = dtR;
     sVar12 = pSVar1->vy + did;
     iVar11 = (int)(short)did;
