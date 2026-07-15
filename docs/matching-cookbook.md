@@ -70,6 +70,15 @@ pool scan and `abs` calls changed. Demo register allocation, constants, and layo
 can differ; use the comparison to recover source structure, never as a byte-match
 claim.
 
+The demo can also corroborate an otherwise surprising source-identity hypothesis.
+If `PSX.SYM` assigns two disjoint roles one local name and the same-named demo and
+retail functions repeatedly place those roles in the same hard register, preserve
+that reuse before adding allocator ballast. `AddEnemy`'s demo locals `i`, `type`,
+and `x` predicted retail's reused `$s4`, `$s7`, and `$s5` ranges; its explicit
+caller-saved table-base spills also survived into retail. This is stronger than a
+decompiler's fresh SSA names, but retail access widths, CFG, and complete byte diff
+still decide the result.
+
 When retail is a composition of preserved demo code plus a family-specific
 insertion, run `tools/siblingdiff.py <Name> --compose`. It aligns the target
 against the same-named demo and several matched retail siblings at once, gives
@@ -2675,6 +2684,14 @@ tail, first try one reused variable plus literal duplicated tails and let cross-
 perform the factoring. `rtlguide` classifies the resulting register-only residual;
 do not manually factor the source before testing this identity clue.
 
+The same rule spans sequential phases with no shared tail. In `AddEnemy`, reusing
+the first scan's `short i` for the think-menu scan, the dead name-buffer offset for
+the selected enemy type, and the dead count for the final x coordinate restored
+retail's `$s4`, `$s7`, and `$s5` assignments. Fresh semantic names were cleaner but
+created fresh pseudos and rotated the whole saved-register family. Require both
+disjoint `.lreg` lifetimes and the target's repeated hard-register homes; source
+names alone do not justify merging values.
+
 ### A target-register hard conflict means weighting is the wrong lever
 
 Before adding one-shot-loop depth to a register-only residual, inspect the
@@ -3860,6 +3877,15 @@ let `t`, `angle`, and the later `dir` reuse `$v0` at disjoint lifetimes. Prefer
 the smallest `rtlguide`-selected expression fence when the comparison says one
 weight is enough; broader loops can perturb unrelated scheduling.
 
+Fence depth is itself a bounded allocator lever when one reference is not enough.
+`AddEnemy` needed a deeply nested single-trip fence only around `i = count` at the
+boundary between its two scan phases; all levels vanished after jump2, but the
+weighted reused `i` range outranked `count` and recovered `$s4`/`$s5`. Smaller
+depths were flat, while fencing the inner increment changed the loop CFG. Increase
+depth only against measured `.lreg` priority, keep the fence on the smallest pure
+assignment, and recheck exact extent plus the whole caller-register family after
+every step.
+
 Sometimes the target needs only the **post-LOOP_END scheduler barrier**, not the
 enclosed reference weight. Insert a standalone `do { } while (0);` *between*
 the producer and consumer in that case. Its empty body contributes no weighted
@@ -4066,6 +4092,25 @@ giving them byte-neutral uses in a later case (see the multi-anchor rule below).
 Note: a `sz = 0;`-style dead def can't steer this —
 `delete_trivially_dead_insns` runs post-cse and the ref counts are recomputed
 before local-alloc, so the def is gone before it can bias anything.
+
+A caller-saved base that genuinely survives a call can require an explicit source
+spill rather than a callee-saved local. Store the pointer as a 32-bit word in an
+address-taken scratch object before the call, then reload it through a volatile
+word view after the call. The ordinary store remains schedulable (in `AddEnemy`,
+the second of two base spills fills `sprintf`'s `jal` delay slot), while the
+volatile read retains the post-call reload and starts a new pseudo. Making the
+store volatile pins it too early; making the reload ordinary lets reorg/CSE erase
+it. Use this only when target stack offsets and the 32-bit PSX ABI prove a private
+spill slot.
+
+An equal-arm CFG join can likewise retain a target reload without emitting a final
+branch. Assign the same already-initialized pointer in both arms between a guard
+load and the loop's first load. cse sees separate predecessor identities and keeps
+the second load; jump2 later removes the duplicate arms. `AddEnemy` uses this to
+preserve the weapon sentinel reload and its load-hazard `nop`. Scope the join to a
+defined condition and identical pure assignments—duplicating volatile reads or
+effectful expressions would change semantics.
+
 - **A shared return variable copy-preferences its sources together — use early
   returns to split their live ranges.** Funnelling two values through one
   `ret` (e.g. `ret = existing_id; … ret = new_index; return ret;`) makes cc1's

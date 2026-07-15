@@ -92,6 +92,7 @@ The last assignments closed as follows:
 | `GetAreaMapVector` | guarded 548 B checkpoint, 40 bytes remain | isolated `f2d0a6e`, fuzzy `3764437`; only reflection `36afb3b` integrated | identical arms preserve distinct raw/cached source identities and fix every persistent saved-register assignment, but entry/early-return scheduling remains |
 | `ProcItemNingyo` | best guarded checkpoint has 15 bytes remaining | isolated `c10c3ab`; not integrated | clearing a short-lived launch pointer after `memset` breaks stack-address CSE; destructive model-pointer reuse makes the full derived-position/modulus block exact |
 | `mission_score_screen` | guarded 4636 B checkpoint, 1507 bytes remain | `ec33fbd`; fuzzy 82.83% | an unsigned stored score with a signed use, per-expansion decimal-Y carriers, and one cached inserted-rank identity preserve exact extent/frame while recovering three jumps and removing a 1147-byte residual cascade |
+| `AddEnemy` | guarded 1152 B checkpoint, 183 bytes remain | `c6f1392`; fuzzy 87.50% | explicit top-tested scans, original-local lifetime reuse, and source-level caller-saved spills preserve the exact extent/frame while removing 354 differing bytes |
 
 The Ningyo branch is a materially better starting point than the 19-byte draft
 on `master`: only the three pre-`memset` loads and three mode-1 constants are in
@@ -119,6 +120,20 @@ address shape. Direct stock indexing matches that tail but makes the function
 one instruction short; pairing it with a volatile character-attribute reload
 caused a whole-function allocator regression, so do not repeat that pair
 without an independently evidenced low-risk missing instruction.
+
+`AddEnemy` moved from 537 to 183 differing bytes and from 57.99% to 87.50%
+fuzzy similarity while retaining its exact 288-instruction extent and 0x810
+frame. The useful source identities come directly from the demo symbols and
+same-named executable: the first scan's `i` returns for the think scan, the
+name offset later carries the selected type, and the dead count carries x.
+Explicit private scratch stores keep the WeaponModel/StageAppearance bases in
+retail's caller-saved registers across `sprintf`; volatile readbacks retain the
+reloads while the second ordinary store schedules into the call delay slot. An
+equal-arm pointer join separately defeats CSE of the weapon sentinel reload and
+then vanishes in jump2. The residual is local register choice/scheduling around
+base setup, scan temporaries, ThinkDB addressing, the think OR, and BreedLife's
+narrow first argument. Bank this checkpoint and prioritize untouched 0% targets
+before returning to those 183 bytes.
 
 ## Data-name recovery status
 
