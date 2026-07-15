@@ -120,15 +120,17 @@ extern MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
 
 /* Matching checkpoint (retail): the pure-C draft has the exact 0x68 frame,
  * 564 instructions, exact 36/12/33/1 branch/jump/call/return inventory, and
- * target item/param/sentinel homes s3/s4/s5.  The remaining 19 differing
- * bytes are confined to the decoy launch's derived-position identity and
- * modulus-constant register, plus the mode-1 constant schedule.
+ * target item/param/sentinel homes s3/s4/s5.  The remaining 15 differing
+ * bytes are three pre-memset input loads in the wrong order plus the three
+ * mode-1 constants in the wrong order.
  *
- * The otherwise-odd one-shot loops are measured allocator/scheduler fences:
- * the launch fence prevents a stack-address pseudo from occupying s3, while
- * the dispose fences keep item in the narrow priority window between param
- * and the later bounce temporary and allow the indirect call's target delay
- * slots.  They emit no branch or loop instructions. */
+ * Clearing the short-lived launch pointer after memset breaks the stack-
+ * address CSE that otherwise occupies s3.  Reusing the model pointer for its
+ * embedded position then makes the derived-address and all three shared
+ * modulus-constant sequences exact.  The otherwise-odd dispose one-shot
+ * loops keep item in the narrow priority window between param and the later
+ * bounce temporary and allow the indirect call's target delay slots.  They
+ * emit no branch or loop instructions. */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcItemNingyo", ProcItemNingyo);
 #else
@@ -214,26 +216,23 @@ void ProcItemNingyo(tag_TItem *item)
                 Humanoid *owner;
                 s32 type;
                 ModelType *model;
-                VECTOR *position;
+                PARAM_ITEM_USE *launchp;
 
                 owner = item->owner;
                 type = item->type;
                 model = item->locate;
-                memset((PARAM_ITEM_USE *)&scratch.vectors.v.vz, 0,
-                       sizeof(PARAM_ITEM_USE));
-                if (model != 0)
-                {
-                    ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
-                }
-                else
-                {
-                    ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
-                }
+                launchp = (PARAM_ITEM_USE *)&scratch.vectors.v.vz;
+                memset(launchp, 0, sizeof(PARAM_ITEM_USE));
+                launchp = 0;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
                 ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->user = owner;
-                position = (VECTOR *)model->locate.coord.t;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vx = position->vx;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vy = position->vy;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vz = position->vz;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vx =
+                    ((VECTOR *)model->locate.coord.t)->vx;
+                model = (ModelType *)model->locate.coord.t;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vy =
+                    ((VECTOR *)model)->vy;
+                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vz =
+                    ((VECTOR *)model)->vz;
                 ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vx = rand() % 200 - 100;
                 ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vy = rand() % 100 - 200;
                 ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vz = rand() % 200 - 100;
