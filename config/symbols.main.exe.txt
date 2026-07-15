@@ -3879,3 +3879,5 @@ _SsVmMaxVoice = 0x800c77ec;
 _svm_auto_kof_mode = 0x800c7820;
 _svm_vab_count = 0x800c7868;
 AdtMessageBoxCount = 0x80097e94;
+CardStateFlag = 0x80097D2C;
+CardRetryCount = 0x80097D34;

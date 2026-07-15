@@ -30,7 +30,7 @@ typedef struct
 
 extern u8 *D_80097D24;
 extern MenuSprite *D_80097D28;
-extern s16 D_80097D2C;
+extern s16 CardStateFlag;
 extern s32 D_80097D38;
 extern s32 D_80097D3C;
 extern u8 *D_80097D40;
@@ -171,7 +171,7 @@ question:
     {
         if (page == 3)
         {
-            if (D_80097D2C != 0)
+            if (CardStateFlag != 0)
             {
                 D_800C2D58[2]->sprite.attribute &= 0xbfffffff;
                 D_800C2D58[3]->sprite.attribute |= 0x40000000;
@@ -188,25 +188,25 @@ question:
             switch (pad)
             {
             case 0x20:
-                if (D_80097D2C != 0)
+                if (CardStateFlag != 0)
                 {
                     goto accept;
                 }
                 goto cancel;
 
             case 0x8000:
-                if (D_80097D2C != 1)
+                if (CardStateFlag != 1)
                 {
                     SoundEx(0, 0x30);
-                    D_80097D2C = 1;
+                    CardStateFlag = 1;
                 }
                 break;
 
             case 0x2000:
-                if (D_80097D2C != 0)
+                if (CardStateFlag != 0)
                 {
                     SoundEx(0, 0x30);
-                    D_80097D2C = 0;
+                    CardStateFlag = 0;
                 }
                 break;
             }

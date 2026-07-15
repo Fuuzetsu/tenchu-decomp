@@ -2,13 +2,16 @@
 #include "main.exe.h"
 
 /*
- * FUN_8005aba4 (0x8005aba4) — TODO one-line description.
+ * FUN_8005aba4 (0x8005aba4) — advance the memory-card state/message machine.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=FUN_8005aba4
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * STATUS: NON_MATCHING — the complete C reconstruction has the target's exact
+ * 536-byte / 134-instruction extent, jump-table pool, calls, and linked-image
+ * layout. Thirteen bytes remain across six aligned instructions: combine folds
+ * two `(u16)next_state << 16` operations for the known value 0x28 into `lui`,
+ * while the shared dynamic shift/test has the target's v0/v1 allocation
+ * reversed. Keep the stub and its static jump-table pool until those sub-C
+ * compiler ties are solved; the guarded draft builds with
+ * `NON_MATCHING=FUN_8005aba4 ./Build`.
  */
 
 #ifndef NON_MATCHING
@@ -77,120 +80,169 @@ static const u32 FUN_8005aba4_jtbl[93] = {
 };
 
 #else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// undefined4 FUN_8005aba4(ushort *param_1,undefined2 *param_2)
-// 
-// {
-//   bool bVar1;
-//   short sVar2;
-//   int iVar3;
-//   ushort uVar4;
-//   undefined2 uVar5;
-//   long lStack_20;
-//   int local_1c;
-//   
-//   uVar4 = *param_1;
-//   uVar5 = *param_2;
-//   switch(uVar4) {
-//   case 0:
-//     uVar5 = 0x10;
-//   case 1:
-//   case 2:
-//   case 0x21:
-//   case 0x22:
-//     uVar4 = uVar4 + 1;
-//     break;
-//   case 3:
-//     DAT_80097d34 = 0;
-//     uVar4 = 4;
-//     break;
-//   case 4:
-//     sVar2 = ChkCard();
-//     if (sVar2 == 2) {
-//       uVar4 = 0x14;
-// LAB_8005ac6c:
-//       iVar3 = (uint)uVar4 << 0x10;
-//     }
-//     else if (sVar2 < 3) {
-//       uVar4 = 0x28;
-//       if (sVar2 == 1) {
-//         uVar4 = 10;
-//         goto LAB_8005ac6c;
-//       }
-//       iVar3 = 0x280000;
-//     }
-//     else {
-//       uVar4 = 0x28;
-//       if (sVar2 == 4) {
-//         DAT_80097d2c = 0;
-//         uVar4 = 0x1e;
-//         goto LAB_8005ac6c;
-//       }
-//       iVar3 = 0x280000;
-//     }
-//     if ((iVar3 >> 0x10 != 0x28) &&
-//        (sVar2 = DAT_80097d34 + 1, bVar1 = DAT_80097d34 < 3, DAT_80097d34 = sVar2, bVar1)) {
-//       uVar4 = 4;
-//     }
-//     break;
-//   default:
-//     return 0;
-//   case 10:
-//     uVar5 = 0x12;
-//     break;
-//   case 0xb:
-//   case 0x15:
-//   case 0x5b:
-//     uVar4 = 0xffff;
-//     break;
-//   case 0x14:
-//     uVar5 = 2;
-//     break;
-//   case 0x1e:
-//     local_1c = MemCardExist(0);
-//     MemCardSync(0,&lStack_20,&local_1c);
-//     uVar5 = 3;
-//     if (local_1c == 0) break;
-//     uVar5 = 0;
-//   case 0x25:
-//   case 0x5c:
-//     uVar4 = 0;
-//     break;
-//   case 0x1f:
-//     uVar5 = 10;
-//     DAT_80097d34 = 0;
-//     uVar4 = 0x21;
-//     break;
-//   case 0x20:
-//     uVar4 = 0x5a;
-//     break;
-//   case 0x23:
-//     uVar4 = 0x24;
-//     sVar2 = FormatCard();
-//     iVar3 = 0x240000;
-//     if (sVar2 == 0) {
-//       uVar4 = 0x26;
-//       iVar3 = 0x260000;
-//     }
-//     if ((iVar3 >> 0x10 != 0x26) &&
-//        (sVar2 = DAT_80097d34 + 1, bVar1 = DAT_80097d34 < 3, DAT_80097d34 = sVar2, bVar1)) {
-//       uVar4 = 0x23;
-//     }
-//     break;
-//   case 0x24:
-//     uVar5 = 0xc;
-//     break;
-//   case 0x26:
-//     uVar5 = 0xb;
-//     break;
-//   case 0x5a:
-//     uVar5 = 0x14;
-//   }
-//   *param_1 = uVar4;
-//   *param_2 = uVar5;
-//   return 0xffffffff;
-// }
+
+extern s16 CardStateFlag;
+extern s16 CardRetryCount;
+
+extern s16 ChkCard(void);
+extern s16 FormatCard(void);
+extern s32 MemCardExist(s32 chan);
+extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
+
+s32 FUN_8005aba4(s16 *state, u16 *message)
+{
+    s32 cmd;
+    s32 result;
+    u32 shifted_state;
+    s16 card_status;
+    s16 next_state;
+    u16 next_message;
+
+    next_state = *state;
+    next_message = *message;
+
+    switch (next_state)
+    {
+    case 0:
+        next_message = 0x10;
+        goto increment_state;
+
+    case 3:
+        CardRetryCount = 0;
+        next_state = 4;
+        break;
+
+    case 4:
+        card_status = ChkCard();
+        if (card_status == 2)
+        {
+            goto card_status_two;
+        }
+        if (card_status >= 3)
+        {
+            goto card_status_ge_three;
+        }
+        switch (card_status)
+        {
+        default:
+            next_state = 0x28;
+            break;
+        case 1:
+            goto card_status_one;
+        }
+        shifted_state = (u32)(u16)next_state << 16;
+        goto card_state_test;
+
+card_status_ge_three:
+        switch (card_status)
+        {
+        default:
+            next_state = 0x28;
+            break;
+        case 4:
+            goto card_status_four;
+        }
+        shifted_state = (u32)(u16)next_state << 16;
+        goto card_state_test;
+
+card_status_one:
+        next_state = 10;
+        goto card_state_shift;
+card_status_two:
+        next_state = 0x14;
+        goto card_state_shift;
+card_status_four:
+        CardStateFlag = 0;
+        next_state = 0x1e;
+
+card_state_shift:
+        shifted_state = (u32)(u16)next_state << 16;
+card_state_test:
+        if (((s32)shifted_state >> 16) != 0x28 && CardRetryCount++ < 3)
+        {
+            next_state = 4;
+        }
+        break;
+
+    case 10:
+        next_message = 0x12;
+        break;
+
+    case 0x14:
+        next_message = 2;
+        break;
+
+    case 0x1e:
+        result = MemCardExist(0);
+        MemCardSync(0, &cmd, &result);
+        next_message = 3;
+        if (result == 0)
+        {
+            break;
+        }
+        next_message = 0;
+        /* fallthrough */
+    case 0x25:
+    case 0x5c:
+        next_state = 0;
+        break;
+
+    case 0x1f:
+        next_message = 10;
+        CardRetryCount = 0;
+        next_state = 0x21;
+        break;
+
+    case 0x20:
+        next_state = 0x5a;
+        break;
+
+    case 1:
+    case 2:
+    case 0x21:
+    case 0x22:
+increment_state:
+        next_state++;
+        break;
+
+    case 0x23:
+        next_state = 0x24;
+        card_status = FormatCard();
+        if (card_status == 0)
+        {
+            next_state = 0x26;
+        }
+        if (next_state != 0x26 && CardRetryCount++ < 3)
+        {
+            next_state = 0x23;
+        }
+        break;
+
+    case 0x24:
+        next_message = 0xc;
+        break;
+
+    case 0x26:
+        next_message = 0xb;
+        break;
+
+    case 0x5a:
+        next_message = 0x14;
+        break;
+
+    case 0xb:
+    case 0x15:
+    case 0x5b:
+        next_state = -1;
+        break;
+
+    default:
+        return 0;
+    }
+
+    *state = next_state;
+    *message = next_message;
+    return -1;
+}
 
 #endif /* NON_MATCHING */
