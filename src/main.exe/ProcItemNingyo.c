@@ -120,8 +120,9 @@ extern MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
 
 /* Matching checkpoint (retail): the pure-C draft has the exact 0x68 frame,
  * 564 instructions, exact 36/12/33/1 branch/jump/call/return inventory, and
- * target item/param/sentinel homes s3/s4/s5.  The remaining 6 differing
- * bytes are only the three pre-memset input loads in cyclic order.
+ * target item/param/sentinel homes s3/s4/s5.  The remaining 4 differing
+ * bytes are only the pre-memset owner and model loads exchanged around the
+ * already-exact type load.
  *
  * Clearing the short-lived launch pointer after memset breaks the stack-
  * address CSE that otherwise occupies s3.  Reusing the model pointer for its
@@ -219,9 +220,9 @@ void ProcItemNingyo(tag_TItem *item)
                 ModelType *model;
                 PARAM_ITEM_USE *launchp;
 
-                owner = item->owner;
-                type = item->type;
                 model = item->locate;
+                type = item->type;
+                owner = item->owner;
                 launchp = (PARAM_ITEM_USE *)&scratch.vectors.v.vz;
                 memset(launchp, 0, sizeof(PARAM_ITEM_USE));
                 launchp = 0;
