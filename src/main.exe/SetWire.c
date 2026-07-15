@@ -70,25 +70,23 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetWire", SetWire);
  * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
  * 0x78-byte frame and 1,488-byte / 372-instruction extent.  The physical CFG
  * inventory is also exact: 22 conditional branches, 3 unconditional jumps,
- * 17 calls, 2 divide traps, and 1 return.  The guarded draft has 331
- * differing bytes and 69 aligned residual lines in 32 blocks; fuzzy improves
- * from 83.79 to 84.07.
+ * 17 calls, 2 divide traps, and 1 return.  The guarded draft has 70 differing
+ * bytes and 22 aligned residual lines in 11 blocks; fuzzy is 95.33.
  *
- * EFFECT.C sibling DrawBleed proves that this depth clamp is a negative-path
- * `goto`, followed by the high fallback and a shared call join.  Keeping the
- * computed priority in place while spelling those two labels removes 12
- * differing bytes and two residual lines without changing length or CFG.
- * DrawBleed's full default-then-restore spelling reproduces SetWire's local
- * clamp island more closely, but exposes one independent interpolation spill
- * and makes this draft one instruction long, so that form was reverted.
+ * Keeping the raw square, normalized square, and two center weights as
+ * distinct source values recovers the target's complete fixed-point
+ * interpolation island.  Reusing the dead `t` and `one` carriers for the x/z
+ * accumulators also removes the compensating instruction that had made
+ * DrawBleed's proven default-then-restore priority clamp one instruction too
+ * long; the clamp and all three coordinate accumulators now match exactly.
  *
- * Remaining concentrated residuals are register/schedule islands: the entry
- * camera-relative VECTOR loads, the fixed-point interpolation weights and
- * three coordinate accumulators, and the priority result copy.  PSX.SYM and
- * matched screen-position siblings confirm that the long coordinate locals,
- * low-half ViewInfo loads, explicit bias-and-shift divisions, split distance
- * and final-rotation scopes, and nullable center reassignment are intentional;
- * changing those recovered types or expressions is not an open spelling fix.
+ * The only remaining residuals are the two camera-relative scratchpad
+ * scheduling islands: the entry VECTOR/ViewInfo loads and the per-segment
+ * zero/coordinate stores.  The identical-arm assignment below emits no branch
+ * but supplies the temporary CFG boundary needed for the closest entry
+ * schedule.  DrawBleed documents the same cc1 list-scheduler limitation;
+ * changing the recovered long coordinate types or low-half ViewInfo reads is
+ * not an open spelling fix.
  */
 
 typedef struct
@@ -159,7 +157,14 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 
         initial_x = start->vx;
         initial_y = start->vy;
-        initial_z = start->vz;
+        if (initial_y != 0)
+        {
+            initial_z = start->vz;
+        }
+        else
+        {
+            initial_z = start->vz;
+        }
         *(s32 *)0x1F800014 = 0;
         *(s32 *)0x1F800018 = 0;
         *(s32 *)0x1F80001C = 0;
@@ -222,6 +227,9 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         long Q;
         long R;
         long center_weight;
+        long scaled_Q;
+        long one;
+        long weighted_center;
         long value;
 
         if (i >= ecount)
@@ -229,30 +237,31 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             break;
         }
 
-        t = 0x1000 - (i << 12) / lcount;
+        one = 0x1000;
+        t = one - (i << 12) / lcount;
         Q = t * t;
         center_weight = t * 2;
         if (Q < 0)
         {
             Q += 0xfff;
         }
-        Q >>= 12;
-        R = 0x1000 - center_weight + Q;
-        center_weight -= Q * 2;
+        scaled_Q = Q >> 12;
+        R = one - center_weight + scaled_Q;
+        weighted_center = center_weight - scaled_Q * 2;
 
-        value = R * end->vx + center_weight * center->vx + Q * start->vx;
-        x = value / 0x1000;
-        value = R * end->vy + center_weight * center->vy + Q * start->vy;
+        t = R * end->vx + weighted_center * center->vx + scaled_Q * start->vx;
+        x = t / 0x1000;
+        value = R * end->vy + weighted_center * center->vy + scaled_Q * start->vy;
         y = value / 0x1000;
-        value = R * end->vz + center_weight * center->vz + Q * start->vz;
-        z = value / 0x1000;
+        one = R * end->vz + weighted_center * center->vz + scaled_Q * start->vz;
+        z = one / 0x1000;
 
-        *(s32 *)0x1F800014 = 0;
         *(s32 *)0x1F800018 = 0;
         *(s32 *)0x1F80001C = 0;
+        *(s32 *)0x1F800014 = 0;
         *(s16 *)0x1F800020 = x - (s16)ViewInfo.vpx;
-        *(s16 *)0x1F800022 = y - (s16)ViewInfo.vpy;
         *(s16 *)0x1F800024 = z - (s16)ViewInfo.vpz;
+        *(s16 *)0x1F800022 = y - (s16)ViewInfo.vpy;
         SetTransMatrix((MATRIX *)0x1F800000);
         SetRotMatrix(&GsWSMATRIX);
         scr.vz = (s16)RotTransPers((SVECTOR *)0x1F800020, (s32 *)&scr,
@@ -261,19 +270,21 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         if (((s32)scr.vz << 16) > 0 && oldscr.vz > 0)
         {
             int priority;
+            int raw_priority;
 
-            line.y0 = oldscr.vy;
-            priority = ((s32)scr.vz << 16) >> 18;
             line.x0 = oldscr.vx;
+            line.y0 = oldscr.vy;
+            raw_priority = ((s32)scr.vz << 16) >> 18;
             line.x1 = scr.vx;
             line.y1 = scr.vy;
-            if (priority < 0)
+            if (raw_priority < 0)
             {
                 goto priority_zero;
             }
-            if (priority >= 0x4e2)
+            priority = 0x4e1;
+            if (raw_priority < 0x4e2)
             {
-                priority = 0x4e1;
+                priority = raw_priority;
             }
             goto priority_done;
         priority_zero:
