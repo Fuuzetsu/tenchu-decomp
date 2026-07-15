@@ -41,45 +41,18 @@
  * struct sized to reproduce that spacing — same convention as StickonCheck's
  * own local `AreaMapVectorResult` truncated view.
  *
- * STATUS: NON_MATCHING — 87 of 296 bytes differ (72 vs 74 instructions,
- * ours 2 short). The stack layout above IS proven correct (v1/v2's
- * level/vector offsets match exactly, zero diff in that whole region).
- * The residual is entirely in the RefrectMove-lookup tail:
- *  - `RefrectMove[vec][0]` (the "x" entry) re-read inline (not cached) at
- *    both its comparisons, cast `(s16)` each time — matches Ghidra's own
- *    literal re-reference (it never names this one, only the "z" entry gets
- *    `sVar1`). Even so, our cc1 folds the `lhu`-then-sign-extend into a
- *    single `lh` (semantically identical bit pattern, one instruction)
- *    whenever the value's ONLY use is a nearby signed compare; the target
- *    keeps a separate `lhu` + `sll`/`sra` pair. Tried: naming it a variable
- *    (u16 cast at compare, s16 cast at assign, s16 straight assign — all
- *    three fold to `lh` the same way); reading through an explicit
- *    `struct { u16 x, z; } *r = &RefrectMove[vec];` pointer instead of
- *    2D-array indexing (WORSE — 134 bytes differ; a pointer dereference
- *    doesn't even keep the two lhu's in one combined load, cc1 re-issues a
- *    fresh `lh`/`lh` per field through the pointer).
- *  - The "z" entry's sign-extension (`sll v0,a0,0x10` / `sra v0,v0,0x10`)
- *    appears TWICE in the target at different addresses (0x8003070c and
- *    0x80030720) — cookbook "Shared tails": a cheap expression reached by
- *    two predecessors (the `xAdj==0` skip-store path vs. the store-happened
- *    merge path) gets duplicated into both rather than computed once at the
- *    join. Our code (whether `zAdj` is cast at the read or deferred to each
- *    compare) only ever emits it once — the natural join point after
- *    `skip_x:` does not trigger cc1's tail-duplication here.
- *  - `tools/autorules.py` reports `half: s32→s16` as a "win" (26→25 on its
- *    own score) — REJECTED: `tools/matchdiff.py` shows it makes things much
- *    WORSE (158 vs 87 bytes differ) by introducing an extra 3-instruction
- *    sign-extend/scale in the `amount/2` computation. Textbook case of the
- *    cookbook's "autorules moves the wrong way against matchdiff" warning.
- *  - Root cause not fully pinned: likely the ORIGINAL source shapes the
- *    x/z lookup and the merge-point differently than a straight nested-if
- *    reading a 2D array (maybe via a helper macro/inline function per axis,
- *    given the x/z handling is otherwise a near-exact structural mirror of
- *    itself) — not chased further within budget. `tools/permute.py` was
- *    started but not completed (background run killed to unblock other
- *    functions in this batch; the residual is NOT same-length as the
- *    target, 72 vs 74 instructions, so it is not a strong permuter
- *    candidate per the cookbook's iteration protocol anyway).
+ * Matching notes:
+ *  - `xAdj` and `zAdj` are same-width unsigned captures of the signed table
+ *    entries. This keeps both target `lhu` loads while the casts at their
+ *    signed consumers produce the visible `sll`/`sra` conversions.
+ *  - The byte-neutral identical arms make raw `xAdj` a real dependency before
+ *    combine, preventing its load-plus-conversion from folding to `lh`.
+ *    jump2 removes the condition and duplicate assignment completely.
+ *  - The positive-first labelled arms reproduce the target's physical CFG and
+ *    its duplicated z conversion at the x-store/skip merge. Separate `newx`
+ *    and `newz` carriers preserve `amount` in $s0 while results use $v0.
+ *  - In the fallback arm, copying `half` to `amount` before loading v1.vector
+ *    gives the target's final independent move/load schedule.
  */
 typedef struct
 {
@@ -90,20 +63,20 @@ typedef struct
 } MapVectorResult; /* 0x18 — offsets-only view; true record is bigger, see above */
 
 extern void *GlobalAreaMap;
-extern u16 RefrectMove[16][2];
+extern s16 RefrectMove[16][2];
 extern s32 GetAreaMapVector(void *area, void *mvp, void *pos, s32 wide, s32 mode);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80030644", FUN_80030644);
-#else
 void FUN_80030644(VECTOR *pos, s32 amount)
 {
     MapVectorResult v1;
     MapVectorResult v2;
     s32 half;
     u32 vec;
+    u16 xAdj;
+    s32 signedX;
     u16 zAdj;
     s32 newx;
+    s32 newz;
 
     GetAreaMapVector(GlobalAreaMap, &v1, pos, amount, 0);
     if (v1.level == (s32)0x80000000)
@@ -119,36 +92,46 @@ void FUN_80030644(VECTOR *pos, s32 amount)
     vec = v2.vector;
     if (vec == 0)
     {
-        vec = v1.vector;
         amount = half;
+        vec = v1.vector;
     }
+    xAdj = RefrectMove[vec][0];
     zAdj = RefrectMove[vec][1];
-    if ((s16)RefrectMove[vec][0] < 1)
+    if (xAdj != 0)
     {
-        if (-1 < (s16)RefrectMove[vec][0])
-        {
-            goto skip_x;
-        }
-        newx = pos->vx - amount;
+        signedX = (s16)xAdj;
     }
     else
     {
-        newx = pos->vx + amount;
+        signedX = (s16)xAdj;
     }
+    if (signedX <= 0)
+    {
+        goto x_nonpositive;
+    }
+    newx = pos->vx + amount;
+    goto store_x;
+x_nonpositive:
+    if (signedX >= 0)
+    {
+        goto skip_x;
+    }
+    newx = pos->vx - amount;
+store_x:
     pos->vx = newx;
 skip_x:
-    if ((s16)zAdj < 1)
+    if ((s16)zAdj <= 0)
     {
-        if (-1 < (s16)zAdj)
-        {
-            return;
-        }
-        amount = pos->vz - amount;
+        goto z_nonpositive;
     }
-    else
+    newz = pos->vz + amount;
+    goto store_z;
+z_nonpositive:
+    if ((s16)zAdj >= 0)
     {
-        amount = pos->vz + amount;
+        return;
     }
-    pos->vz = amount;
+    newz = pos->vz - amount;
+store_z:
+    pos->vz = newz;
 }
-#endif
