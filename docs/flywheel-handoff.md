@@ -1,23 +1,24 @@
-# Decompilation flywheel handoff — 2026-07-13
+# Decompilation flywheel handoff — 2026-07-15
 
 This is a dated shutdown snapshot, not a second match-status database.  The
 current source, `tools/progress.py`, `tools/triage.py`, and each guarded
 function's `STATUS` comment are authoritative.  Re-measure before dispatching
 work; do not carry the percentages or target list below forward by assumption.
 
-The flywheel was intentionally wound down at the user's request.  There are no
-matcher agents still running, all harvested work is on `master`, and the root
-worktree was clean when this note was written.  Resume only when the user asks
-to restart matching work.
+The current rollout was intentionally wound down so the user can start a wholly
+new Codex session with a larger agent pool. There are no matcher agents still
+running, all three final worker results were harvested onto `master`, and the
+root worktree was clean before this handoff update. Do not resume this old
+rollout or launch more work from it.
 
 ## Clean anchor
 
-- `master`: `37d661a` (`Recognize branch phi register ties`)
-- preceding function checkpoint: `f161de0` (`Document small-rotation Think
-  allocator tie`)
-- game code: 402/555 functions (72.43%), 191332/302824 bytes (63.18%)
+- code/tool anchor immediately before this note: `dc91927` (`Guard signed
+  autorule semantics`)
+- newest exact function commit: `31aa9d1` (`Match AfsGetEntry`)
+- game code: 408/555 functions (73.51%), 194680/302824 bytes (64.29%)
 - all six executables passed `./Build check-all` byte-identically
-- all 285 matching-tool tests passed
+- all 299 matching-tool tests passed
 - guarded-draft flags, fuzzy fingerprints, symbol notes, symbol uniqueness,
   and `D_<address>` symbol names passed their global checks
 
@@ -59,6 +60,50 @@ nix develop -c python tools/symcheck.py
 nix develop -c python -m unittest tools.tests.test_matching_tools
 ```
 
+## Work completed in the final batch
+
+Three final agents all reached exact, unconditional pure C and were harvested:
+
+| Function | Retail extent | Master commit | Useful source-shape result |
+|---|---:|---|---|
+| `TurnAroundAllItems` | 408 B | `764aec7` | the inherited 84.31% fuzzy row was already byte-exact; always run authoritative `matchdiff` before editing a checkpoint |
+| `death_camera_something_` | 520 B | `75ea59f` | put the fallthrough producer after a returning guard so reorg can use it as that guard's delay slot |
+| `AfsGetEntry` | 564 B | `31aa9d1` | an inline endian helper may need both already-live cursor identities to select the original load bases |
+
+The reflection is committed separately as `dc91927`. It adds both rules to the
+cookbook and matcher prompt. It also fixes a real `autorules type-width` hazard:
+a signed local explicitly compared with zero/negative or arithmetically
+right-shifted is no longer offered as an unsigned candidate. An improving
+partial score had otherwise removed the camera routine's negative correction
+and changed `sra` to `srl`.
+
+## Data-name recovery status
+
+The apparent absence of `_data_` names was mostly a propagation problem, not a
+lack of symbols. `PSX.SYM` data addresses belong to the earlier debug build;
+they map rigidly to the demo executable by `+0x358`, but neither address set maps
+directly to retail. `datamatch.py` now infers that relocation from 323/323 unique
+anchors, reconstructs 201 labels omitted by the demo Ghidra export, preserves
+aliases, checks translation-unit ownership for duplicate statics, and refuses
+unsafe reverse-name conflicts.
+
+Final data commits:
+
+- `85fb921`: recover omitted demo labels and calibrate the relocation.
+- `1dc1f53`: de-duplicate repeated globals generated from `PSX.SYM`.
+- `2fd6b15`: adopt 71 calibrated original names.
+- `1cfab59`: adopt `StageAppearance` and `AdtMessageBoxCount`; make global-note
+  ownership extent-based so a preceding object cannot claim unrelated data.
+
+`reference/data-symbols-applied.tsv` records 229 decisions: 35 earlier
+`datamatch` names, 71 calibrated relocation names, 121 historical Ghidra names,
+and two independently corroborated names. A fresh final run had a 172/172
+control set (100%), zero remaining proposals with two or more witnesses, and 48
+single-witness candidates. Leave those 48 unapplied unless independent type,
+TU, semantic, or same-binary evidence corroborates one. Re-run `datamatch.py`
+after every function-rename batch because new shared function names unlock new
+data-reference witnesses. See [`psx-sym.md`](psx-sym.md) for the full protocol.
+
 ## Target selection
 
 The user's standing preference is **Think\***, **Proc\***, and **Attack\***.
@@ -67,20 +112,26 @@ remaining named functions in those families were already exact or explicitly
 parked after extensive RTL/permuter work, so do not revive one solely because
 its name has priority.
 
-On the 2026-07-13 snapshot, a good fresh hard-gameplay slate was:
+The previously suggested gameplay slate (`AntiWall`,
+`death_camera_something_`, `create_ninken_character_`, `FUN_8004c350`,
+`TurnAroundAllItems`, and `AfsGetEntry`) is now exact. On the 2026-07-15
+snapshot, the best unparked slate is:
 
 | Candidate | Size | Why it is useful |
 |---|---:|---|
-| `AntiWall` | 692 B | substantial gameplay routine, six callees, no known GTE blocker |
-| `death_camera_something_` | 520 B | camera/gameplay logic with eight callees and multiply/divide |
-| `create_ninken_character_` | 576 B | AI/character setup with two loops; near the preferred Think/Proc domain |
-| `FUN_8004c350` | 588 B | misc-handler neighborhood, five callees, some similarity to `ProcMiscSnowfall` |
-| `TurnAroundAllItems` | 408 B | item control, four callees, leverage 3, some similarity to `ProcItemGosin` |
+| `FUN_8003d768` | 672 B | largest fresh non-GTE game target; multiply/divide and three callees |
+| `debug_output_edit_camera_settings` | 628 B | substantial camera/debug loop with a clean C path |
+| `FUN_80058a54` | 540 B | medium-large loop with four callees |
+| `SelectStage` | 420 B | two loops and a diagnostic 0x528-byte frame |
+| `calculate_score` | 352 B | gameplay scoring, multiply/divide, useful call-graph leverage |
+| `debug_menu_file_animation_test` | 260 B | four callees and a 0x328-byte frame |
+| `AdtVsprintf` | 248 B | compact support-code loop, useful if a slot needs a lower-risk target |
 
-Revalidate all five with current triage before using them.  Reasonable next
-substitutes were `AfsGetEntry` (564 B), `FUN_8003d768` (672 B), and
-`SelectStage` (420 B with a large 0x528-byte frame).  `calculate_score` is
-smaller but has call-graph leverage 4.
+Clean, untouched worktrees already exist for all seven under
+`/tmp/tenchu-fw-*-0715`, but they still point at the old `3aa896a` anchor. Do not
+dispatch them as-is. Either recreate them from current `master` with new unique
+names or deliberately fast-forward/rebase only after confirming they remain
+clean. Fresh worktrees are less error-prone.
 
 Do not spend a slot on these merely because they appear difficult:
 
@@ -125,7 +176,9 @@ permuter search.
 5. Run `autorules.py --guided` only on a compiling draft.  Use the permuter
    late: exact or one-instruction-off length, localized allocation/scheduling
    residual, one bounded run.  Never use it as the initial decompiler and do
-   not paste a globally nonsensical winning candidate.
+   not paste a globally nonsensical winning candidate. A better partial score
+   is advisory, not semantic proof; in particular, do not bypass the automatic
+   signed-use veto merely to improve alignment.
 6. One worker owns one function or tightly coupled family in one isolated
    worktree.  Do not run matching tools concurrently against the same
    worktree/lock.
@@ -136,20 +189,26 @@ permuter search.
    land any cookbook, diagnostic, autorule, test, or naming improvement in a
    separate commit.  Tooling must encode a repeatable decision, not one
    function's accidental spelling.
+9. After a high-confidence function rename, re-run `datamatch.py`. Adopt a data
+   name only when the tool's uniqueness controls and independent provenance
+   rules in `psx-sym.md` are satisfied.
 
 Recent mechanical lessons are already in
 [`matching-cookbook.md`](matching-cookbook.md) and the tools/tests: narrow-copy
 zero extension, subtraction-role fusion, branch-phi register ties,
 difference-role fusion, shared-result returns, identical-arm fences, terminal
-call returns, and default-ladder hoisting.  Search the cookbook and
-`rtlguide.py` signatures before inventing a new manual experiment.
+call returns, default-ladder hoisting, returning-guard fallthrough producers,
+and two-cursor inline byte-pack helpers. Search the cookbook and `rtlguide.py`
+signatures before inventing a new manual experiment.
 
 ## Agent and worktree hygiene
 
 Many historical `/tmp/tenchu-*` worktrees and `codex/*` branches still exist.
-They are not evidence of active work.  The final three visible agents
-(`activatehumans2`, `damage2`, and `stageend2`) all completed, and their useful
-changes were already integrated or recreated on `master`.
+They are not evidence of active work. The final three visible agents
+(`turn_items_resume`, `death_camera_resume`, and `afs_entry_resume`) all
+completed, and their exact changes were integrated on `master`. Their worker
+commits are `33c99c8`, `b94a60f`, and `2a4c6a3`; use the master commits listed
+above instead. No matcher agent remains live.
 
 Before touching an old worktree, inspect both its dirt and its branch delta:
 
@@ -163,6 +222,26 @@ Do not blindly cherry-pick old worker hashes: integrated commits often have a
 different hash after conflict resolution or recreation.  Prefer new uniquely
 named worktrees/branches for a restarted batch, and do not delete old user
 state as incidental cleanup.
+
+## Starting the replacement Codex session
+
+The resumed rollout that produced this note was provisioned with only four
+total concurrency slots despite `~/.codex/config.toml` containing
+`[agents] max_threads = 11`. A resumed rollout retains its original runtime
+capacity; changing the config cannot enlarge it in place. Start a completely
+new session, not `codex resume`:
+
+```console
+codex -c agents.max_threads=11 -C /home/shana/programming/tenchu-decomp
+```
+
+Have the new root read this handoff and `docs/orchestration.md`, run the resume
+preflight, then create a fresh parallel batch from current `master`. If a brand
+new session still exposes four total slots, treat that as an external runtime
+quota rather than another repository/configuration issue. Continue the user's
+standing unattended flywheel: harvest each worker, refresh fuzzy metadata,
+run global gates, reflect/tool, commit, and refill slots until asked to wind
+down.
 
 The detailed launch, harvest, conflict, reflection, and shutdown procedures
 remain in [`orchestration.md`](orchestration.md).  This file is only the clean
