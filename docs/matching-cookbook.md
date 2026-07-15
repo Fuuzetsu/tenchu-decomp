@@ -1786,6 +1786,21 @@ a direct global read moved the load above four independent sprite stores. This c
 PutStrain's exact 584-byte match after a call-site loop-depth fence had already recovered
 the `base`/`spr` saved-register order.
 
+**A comma-expression initializer can make independent table loads precede a global
+pointer capture without adding code.** In PutLifeBar, spelling the width write as
+`NumberImage.w = (dx = style.dx, dy = style.dy, 4); img = &NumberImage;` gave the two
+style-field loads earlier RTL UIDs while retaining the target's separate global-address
+copy into `img`. Plain sequential assignments either scheduled the width store too early
+or fused the address directly into the saved register.
+
+**For a three-arm default ladder, invert an inner condition together with its arms before
+adding liveness tricks.** The equivalent `if (outer) 0x80; else if ((clock & 1) == 0)
+0x80; else 0xE6;` made cc1 emit the target's `bnez` with `0xE6` in its delay slot and the
+fallback `0x80` immediately after it; testing `!= 0` emitted the opposite branch plus a
+`nop`. PutLifeBar then needed only an eliminated identical-arm fence around its final
+colour store to recover the surrounding allocation/schedule, leaving a bounded
+register-identity residual rather than a control-flow mismatch.
+
 **`x++` (postfix) is the general spelling for "test the OLD value; the incremented value
 is stored unconditionally because the other path overwrites it anyway."**
 `if (field++ < K) return; field = 0;` reproduces a single-load + delay-slot-store shape;
