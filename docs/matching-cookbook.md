@@ -1215,6 +1215,17 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   straight from the call; a temp (`r = rand(); x = r % ...`) inserts a
   `move`. cc1 evaluates the call operand of a binary expression first, so an
   inline call still executes before the other operand's loads.
+- **Audit a callee's return width before treating its call-result cascade as
+  an allocator-priority problem.**  Think1ninja's callee is independently
+  proven `s16 Think1random(void)`.  Declaring it as `s32` created a full-width
+  call-result pseudo; CSE propagated that pseudo through the assignment to the
+  later narrow return, so it—not the real `s16 result`—crossed three calls and
+  took `$s1`.  Correcting the prototype removed the extra global allocno and
+  kept `result` in `$s1`.  That made the structurally correct
+  `(d2 >= 0) ? d2 : -d2` abssi2 expansion exact instead of triggering a
+  33-byte coloring cascade.  A do-while priority boost cannot repair the
+  wrong value identity: compare the callee definition/PSX.SYM prototype and
+  inspect the call copy chain before weighting either pseudo.
 - `%` by a constant compiles to the magic-multiply sequence (`mult`, `mfhi`,
   shift/add chains) — automatic from natural `%`; the *same* magic constant
   shared by several `%`s in range gets CSE'd into one callee-saved register.
