@@ -5,16 +5,18 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 2654 of 4636 bytes differ.  The guarded draft has
- * the exact target length (1159 instructions) and frame size (0x1B8), with
- * 53/53 conditional branches, 4/8 unconditional jumps, 60/60 calls, and one
- * return.  No retail-name record was found in PSX.SYM or the demo symbol
- * export.
+ * STATUS: NON_MATCHING -- 1507 of 4636 bytes differ (82.83% fuzzy).  The
+ * guarded draft has the exact target length (1159 instructions) and frame
+ * size (0x1B8), with 53/53 conditional branches, 7/8 unconditional jumps,
+ * 60/60 calls, and one return.  No retail-name record was found in PSX.SYM or
+ * the demo symbol export.
  *
  * The local aggregates reproduce the original stack layout.  In particular,
  * the packed ScoreResult copy starts at sp+50, the two sprite banks start at
  * sp+60/sp+118, and the one GsIMAGE scratch is reused at sp+160 by all seven
- * sprite initialisations.
+ * sprite initialisations.  The score result's unsigned storage plus signed
+ * use, per-expansion decimal-Y carriers, and one cached inserted-rank identity
+ * reproduce several otherwise whole-function allocation and jump cascades.
  */
 
 typedef struct
@@ -35,7 +37,7 @@ typedef struct
     u16 field2;
     u16 field4;
     u16 field6;
-    s16 score;
+    u16 score;
     s16 grade;
 } ScoreResult;
 
@@ -114,6 +116,20 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 
 /* This is deliberately a macro.  Retail repeats the decimal loop at every
  * call site, with fresh arithmetic identities but shared sign/base-U state. */
+#define DRAW_SCORE_Y_SEED_0(carrier_, y_)
+#define DRAW_SCORE_Y_SEED_1(carrier_, y_) ((carrier_) = (y_))
+#define DRAW_SCORE_Y_SEED_PICK_(jump_, carrier_, y_)                         \
+    DRAW_SCORE_Y_SEED_##jump_(carrier_, y_)
+#define DRAW_SCORE_Y_SEED_PICK(jump_, carrier_, y_)                          \
+    DRAW_SCORE_Y_SEED_PICK_(jump_, carrier_, y_)
+
+#define DRAW_SCORE_Y_STORE_0(sprite_, carrier_, y_) ((sprite_)->y = (y_))
+#define DRAW_SCORE_Y_STORE_1(sprite_, carrier_, y_) ((sprite_)->y = (carrier_))
+#define DRAW_SCORE_Y_STORE_PICK_(jump_, sprite_, carrier_, y_)               \
+    DRAW_SCORE_Y_STORE_##jump_(sprite_, carrier_, y_)
+#define DRAW_SCORE_Y_STORE_PICK(jump_, sprite_, carrier_, y_)                \
+    DRAW_SCORE_Y_STORE_PICK_(jump_, sprite_, carrier_, y_)
+
 #define DRAW_SCORE_NUMBER(value_, type_, jump_, label_, sprite_, x_, y_)     \
     do                                                                       \
     {                                                                        \
@@ -122,13 +138,15 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         s32 quotient;                                                        \
         u32 value;                                                           \
         s16 signedValue;                                                     \
+        s32 drawY;                                                           \
         GsSPRITE *drawnSprite;                                               \
                                                                              \
         drawnSprite = (sprite_);                                             \
         value = (value_);                                                    \
         signedValue = (type_)value;                                          \
+        DRAW_SCORE_Y_SEED_PICK(jump_, drawY, y_);                            \
         drawnSprite->x = (x_);                                               \
-        drawnSprite->y = (y_);                                               \
+        DRAW_SCORE_Y_STORE_PICK(jump_, drawnSprite, drawY, y_);              \
         if (jump_)                                                           \
         {                                                                    \
             if (signedValue < 0)                                             \
@@ -214,12 +232,15 @@ void mission_score_screen(void)
     register s32 brightness;
     register s32 stageItem;
     register s32 goNext;
+    register s32 rankColour;
     s32 ten;
     u32 baseU;
     register s32 negative;
 
     tail.oldPad = 0;
     init_score_stats(&stats);
+    i = 0;
+    rankColour = 128;
     result = *calculate_score(&stats, CHOSEN_STAGE);
 
     tim = FileRead(NUMBER_TIM_PATH);
@@ -228,9 +249,9 @@ void mission_score_screen(void)
     numberSprite->attribute |= 0x50000000;
     numberSprite->x = -140;
     numberSprite->y = -40;
-    numberSprite->r = 128;
-    numberSprite->g = 128;
-    numberSprite->b = 128;
+    numberSprite->r = rankColour;
+    numberSprite->g = rankColour;
+    numberSprite->b = rankColour;
     numberSprite->mx = numberSprite->w >> 1;
     numberSprite->my = numberSprite->h >> 1;
     number.mx = 0;
@@ -238,28 +259,36 @@ void mission_score_screen(void)
     LoadTIMAndFree(tim);
     number.w = 12;
 
-    archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
-    for (i = 0; i < 5; i++)
     {
+        register u32 attributeMask;
+
+        archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
+        attributeMask = 0x50000000;
+score_rank_sprite_init_loop:
+        {
         u32 attribute;
         u32 width;
 
         tim = get_tim_from_archive(archive, i);
-        initSprite = &rankSprites[i];
+        initSprite = SCORE_SPRITE_AT(rankSprites, i);
         InitScoreSprite(tim, &image, initSprite);
         attribute = initSprite->attribute;
         initSprite->x = -160;
         initSprite->y = -120;
         width = initSprite->w;
-        initSprite->r = 128;
-        initSprite->g = 128;
-        initSprite->b = 128;
+        initSprite->r = rankColour;
+        initSprite->g = rankColour;
+        initSprite->b = rankColour;
         initSprite->mx = width >> 1;
-        initSprite->attribute = attribute | 0x50000000;
+        initSprite->attribute = attribute | attributeMask;
         initSprite->my = initSprite->h >> 1;
         SCORE_SPRITE_AT(rankSprites, i)->mx = 0;
         SCORE_SPRITE_AT(rankSprites, i)->my = 0;
         LoadTIM(tim);
+        }
+        i++;
+        if (i < 5)
+            goto score_rank_sprite_init_loop;
     }
 
     {
@@ -278,7 +307,7 @@ score_character_sprite_init_loop:
             height = initSprite->h;
             initSprite->x = -160;
             initSprite->y = -120;
-            initSprite->r = initSprite->g = characterColour;
+            initSprite->g = initSprite->r = characterColour;
             initSprite->b = characterColour;
             initSprite->mx = width >> 1;
             SCORE_SPRITE_AT(characterSprites, i)->my = height >> 1;
@@ -345,9 +374,14 @@ score_character_sprite_init_loop:
             } while (tail.insertedRank < (s16)i);
         }
 
-        scoreState->scores[tail.insertedRank] = stats.clock;
-        scoreState->characters[tail.insertedRank] = CHOSEN_CHARACTER;
-        scoreState->grades[tail.insertedRank] = result.grade;
+        {
+            register s32 insertedRank = tail.insertedRank;
+
+            scoreState->scores[insertedRank] = stats.clock;
+            scoreState->characters[insertedRank] =
+                ((PersistentState *)scoreState)->chr;
+            scoreState->grades[insertedRank] = result.grade;
+        }
     }
 
     _PlayMusic(12, 1);
