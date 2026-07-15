@@ -256,14 +256,20 @@ The ordered triage — fix categories in THIS order, re-running
      NON_MATCHING, and move on. Do NOT open more surgical sessions on it; that
      is how ~1.4M tokens produced zero additional matches this batch.
      - **The `la`/address-materialization reload tie is a NAMED member of this
-       class — DON'T even start the permuter on it.** When the only diff is a
+       class — DON'T start the permuter on it.** When the only diff is a
        symbol address built `lui $tmp,%hi / addiu $dst,$tmp,%lo` where the
        target puts both halves in one register (`lui $dst,%hi / addiu
        $dst,$dst,%lo`), or vice versa, that's a reload-pass register choice with
-       no source lever. PrepareAccess (2 bytes, 87k permuter iters, flat) and
-       cd_open (4 bytes, ~50 min / **353k agent tokens**, flat) are the identical
-       tie. Recognize the signature, document it, mark NON_MATCHING immediately —
-       a permuter run on this pattern has never once paid off.
+       no direct expression-spelling lever. PrepareAccess (2 bytes, 87k
+       permuter iters, flat) is the historical example. `cd_open` was once
+       parked under the same diagnosis after ~50 minutes / **353k agent
+       tokens**, but later matched exactly: moving its narrow counter increments
+       after the safe early-exit tests let `reorg` place those increments in the
+       target delay slots and restored the target address/copy chain. Treat this
+       signature as an RTL/control-flow escalation trigger, not proof that pure C
+       is unreachable: skip permutation, inspect the surrounding live ranges and
+       delay-slot candidates, then park only if those source-level levers are
+       exhausted.
      - **A guard's DELAY-SLOT FILL tie is a second named member.** When the only
        diff is which of two equally-ready, harmless-either-way instructions fills
        a guard branch's delay slot — the branch's own return-value setup (`move
@@ -2300,6 +2306,11 @@ match the residual against the cookbook's named classes first.
 (same cpp defines, same cc1-281 flags) but STANDALONE in the scratchpad — no Shake, no
 `.shake/` database, so it never races a concurrent build and each run is ~1 s. It writes
 the requested RTL dump passes next to the `.s`:
+
+For a guarded `#ifndef NON_MATCHING` source, "exactly as `./Build` does" means
+the default command compiles the `INCLUDE_ASM` stub. Pass `--draft` whenever the
+RTL question concerns the guarded C body; otherwise the dump is valid but for
+the wrong implementation.
 
 ```
 tools/rtldump.py <Name>                 # greg, lreg, jump, combine (the usual four)
