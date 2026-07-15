@@ -30,9 +30,7 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 98 of 368 bytes differ, all downstream of a
- * SINGLE 2-instruction gap (see residual below); every earlier byte diff
- * is address drift from that gap, not a separate issue.
+ * STATUS: MATCHING — 368 bytes.
  *
  * UpdateEvent (0x8004e624, 0x170 bytes) — searches `StageEvent[]` (a
  * proven `EventSeqType[]`, item.h/reference/psxsym-types.h, stride 0x14)
@@ -71,18 +69,17 @@
  * materialize their own `addiu`) rather than sharing one register — plain
  * repeated inline `id - 2` reproduces this (no named temp).
  *
- * Residual (root-caused): the final `D_80097F80[n]->life` read
- * RE-LOADS the array slot's address-then-value (`lw` via the cached
- * array-base register, then a second `lw`+`lh`) in the target, while this
- * draft's cc1 recognizes `D_80097F80[n]` as unchanged since the earlier
- * null/status/motion checks (no intervening call) and reuses THEIR
- * already-loaded value register directly — 2 fewer instructions (no
- * reload, no filler nop in the now-empty delay slot). Tried and had no
- * effect: naming vs. not naming a `Humanoid *h` local for the repeated
- * `D_80097F80[n]` dereferences (cc1's cse recognizes the equivalence
- * either way). Likely a genuine register-pressure/live-range difference
- * between the two builds' surrounding code, not reachable from source
- * spelling alone.
+ * Matching notes:
+ *  - A named byte offset keeps the short sign-extension/scale chain
+ *    together before the first array base is materialized. Writing both
+ *    pointer sums with the scaled integer first also selects the target's
+ *    commutative `addu` operand order.
+ *  - Initializing `i` before the empty-list sentinel makes its zero value
+ *    fill that guard's delay slot; the cached event-slot pointer follows it.
+ *  - The final life test deliberately reads the pointer slot through a
+ *    volatile-qualified lvalue. This preserves the target's fresh slot
+ *    reload and its load-delay `nop` instead of CSE-reusing the earlier
+ *    Humanoid pointer.
  */
 typedef struct
 {
@@ -105,24 +102,23 @@ extern Humanoid *StagePlayer;
 
 extern Humanoid *GetHumanoid(short type);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/UpdateEvent", UpdateEvent);
-#else
 void UpdateEvent(short n, short id)
 {
     EventSeqType *ev;
+    s32 offset;
     short i;
 
-    D_80097F78[n] = 0;
+    offset = (s16)n * 4;
+    *(EventSeqType **)(offset + (s32)D_80097F78) = 0;
     if (id == 0xFF)
         return;
+    i = 0;
     if (*(s32 *)&StageEvent[0] == -1)
         return;
 
-    i = 0;
     do
     {
-        ev = &StageEvent[i];
+        ev = (EventSeqType *)(i * 20 + (s32)StageEvent);
         if (ev->id == id)
         {
             D_80097F78[n] = ev;
@@ -142,7 +138,7 @@ void UpdateEvent(short n, short id)
                     {
                         return;
                     }
-                    if (D_80097F80[n]->life > 0)
+                    if ((*(Humanoid *volatile *)&D_80097F80[n])->life > 0)
                     {
                         return;
                     }
@@ -154,4 +150,3 @@ void UpdateEvent(short n, short id)
         i = i + 1;
     } while (*(s32 *)&StageEvent[i] != -1);
 }
-#endif
