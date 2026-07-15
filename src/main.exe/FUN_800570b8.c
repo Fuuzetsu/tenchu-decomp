@@ -28,32 +28,11 @@
  * remap as FUN_800576e8: 0x92->0x27, -0x20 if >=0x20, an extra -0x40 for
  * the upper half-width-kana block >=0xC0). No confirmed original name.
  *
- * STATUS: NON_MATCHING — 138 of 352 bytes differ, SAME length as target (88
- * insns both sides). Two real structural/dispatch fixes are folded in
- * (verified via matchdiff, each reduced the diff): (1) the `TelopP.u0/u1`
- * dispatch is a "two independent if (cond) goto L;" ladder, not Ghidra's
- * `if (u0==0 && (cursor=x, u1==0)) {chars} else {quaddraw}` nesting — the
- * quad-draw body is the FALLTHROUGH of both tests (`if(u0!=0) goto
- * quaddraw; if(u1==0) goto charloop;` then quaddraw inline), matching the
- * asm's branch targets exactly; and (2) `cursor=x;` happens unconditionally
- * in the prologue (before the `*str==0` check), not inside it. Left:
- * a cluster of pure register/schedule ties — the quad-draw field stores
- * use TARGET's `s1`(cursor)/`s2`(y) where ours computes `s2`(cursor)/
- * `s1`(y) (a role swap through the whole block); the `a2=0` (GsSortPoly's
- * literal 3rd arg) sits in the branch's own delay slot in target vs
- * hoisted earlier in ours; and the 0x92->0x27 remap's `hi=ch>0xbf` test
- * reads `a0` (a register that, in target, happens to still hold the
- * pre-remap byte on the common path) where ours reads the explicit `hi`
- * temp — tried inlining `if (ch>0xbf)` post-decrement (a decomp-permuter
- * candidate, score 790) but verified via matchdiff it's a real regression
- * (205 bytes, wrong length) despite scoring better on the permuter's own
- * metric — REJECTED, not adopted (the cookbook's "own score, not raw
- * bytes" warning, caught in the act). A same-length decomp-permuter run
- * (~33k iterations, `--stop-on-zero -j4`) bottomed out around score 670
- * without reaching 0; the one verified real fix it surfaced (swapping the
- * newline branch's statement order, `cursor=x;` before `y+=0x10;`) is
- * already folded in above. Parked rather than opening a further surgical
- * session.
+ * STATUS: MATCHING — exact 352-byte / 88-instruction pure-C body.  Separate
+ * cursor, Y-position, and text-pointer aliases recover the original prologue
+ * copy order.  Four chained quad-field assignments recover the store schedule,
+ * and distinct character/index roles preserve the pre-adjustment character for
+ * the upper-kana test.
  */
 
 typedef struct
@@ -76,10 +55,6 @@ typedef struct
 
 struct GsOT_TAG;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800570b8", FUN_800570b8);
-#else
-
 extern TelopPolyType TelopP;
 extern GsOT *OTablePt;
 extern u8 D_8008EF98[];
@@ -89,51 +64,48 @@ extern void GsSortPoly(TelopPolyType *p, GsOT *ot, s32 pri);
 void FUN_800570b8(struct GsOT_TAG *org, s32 x, s32 y, u8 *str)
 {
     s32 cursor;
+    s32 ypos;
+    u8 *text;
     s32 ch;
-    bool hi;
+    s32 index;
 
     cursor = x;
-    if (*str != 0) {
-        if (TelopP.u0 != 0) {
-            goto quaddraw;
+    text = str;
+    ypos = y;
+    if (*text != 0) {
+        if (TelopP.u0 == 0) {
+            if (TelopP.u1 == 0) {
+                goto charloop;
+            }
         }
-        if (TelopP.u1 == 0) {
-            goto charloop;
-        }
-    quaddraw:
-        TelopP.y0 = (s16)y;
-        TelopP.y2 = TelopP.y0 + 0xf;
-        TelopP.x0 = (s16)x;
-        TelopP.x1 = TelopP.x0 + (TelopP.u1 - TelopP.u0);
-        TelopP.y1 = TelopP.y0;
-        TelopP.x2 = TelopP.x0;
-        TelopP.x3 = TelopP.x1;
-        TelopP.y3 = TelopP.y2;
+        TelopP.x0 = TelopP.x2 = cursor;
+        TelopP.y0 = TelopP.y1 = ypos;
+        TelopP.y2 = TelopP.y3 = ypos + 0xf;
+        TelopP.x1 = TelopP.x3 = cursor + (TelopP.u1 - TelopP.u0);
         GsSortPoly(&TelopP, OTablePt, 0);
         goto end;
     charloop:
         do {
-            if (*str == 10) {
+            if (*text == 10) {
                 cursor = x;
-                y = y + 0x10;
+                ypos = ypos + 0x10;
             } else {
-                FUN_8005778c(org, cursor, y, *str);
-                ch = *str;
+                FUN_8005778c(org, cursor, ypos, *text);
+                ch = *text;
                 if (ch == 0x92) {
                     ch = 0x27;
                 }
-                hi = ch > 0xbf;
-                if (ch > 0x1f) {
-                    ch = ch - 0x20;
+                index = ch;
+                if (index > 0x1f) {
+                    index = index - 0x20;
                 }
-                if (hi) {
-                    ch = ch - 0x40;
+                if (ch > 0xbf) {
+                    index = index - 0x40;
                 }
-                cursor = cursor + D_8008EF98[ch];
+                cursor = cursor + D_8008EF98[index];
             }
-            str++;
-        } while (*str != 0);
+            text++;
+        } while (*text != 0);
     end:;
     }
 }
-#endif /* NON_MATCHING */
