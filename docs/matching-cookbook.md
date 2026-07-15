@@ -3643,6 +3643,18 @@ can alias or move side effects and remain out of bounds.
   sched move that definition after the call but before the `$v0` result copy.
   Writing it where the final assembly appears loses that schedule.
 
+- **A pre-call narrow capture plus post-call widening separates a raw saved
+  copy from its later mask.** When the target first copies an incoming word
+  argument into an `$s` register, carries it across calls, and only then emits
+  `andi saved,saved,0xff`, write `u8 narrow = raw_arg;` before the calls and
+  `u32 raw = narrow;` afterwards. The narrow pseudo is live across the calls,
+  but the widening site keeps the raw argument copy and the mask as distinct
+  target instructions. An in-place `raw_arg &= 0xff` after the calls can rotate
+  the other saved-argument stores; moving that same mask before the calls lets
+  combine collapse `move` + `andi` into `andi saved,arg` and makes the function
+  one instruction short. This exact split closed FUN_8005778c while preserving
+  its 388-byte extent and the full downstream `$s0` lifetime.
+
 - **A named `zero` local can flip a pure register-swap tie — cheaper than the
   permuter.** Comparing a loop bound against a `zero` local (`int zero = 0; …
   while (n > zero)`) rather than the literal `0` shifts global-alloc's
