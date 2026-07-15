@@ -77,8 +77,8 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActivateHumans", Act
  * 0x68-byte frame, 0x30-byte working stack window, and 1,608-byte /
  * 402-instruction length.  Its physical CFG is also exact: 44 conditional
  * branches, 8 unconditional jumps, 4 calls, and 1 return.  The current draft
- * has 730 differing bytes, with 54 length-changing structural lines in 10
- * displayed blocks (81 raw aligned residual lines in 33 blocks).  Build it
+ * has 360 differing bytes, with 5 length-changing structural lines in 3
+ * displayed blocks (24 raw aligned residual lines in 22 blocks).  Build it
  * with `NON_MATCHING=ActivateHumans ./Build`.
  *
  * Spelling the camera owner as `CamState.Owner` reproduces retail's shared
@@ -88,13 +88,15 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActivateHumans", Act
  * - The path-local active/computed split recovers retail's $v1 flag and
  *   $v0->$v1 computed-result join.  Retail retains one further $v1->$v0 copy
  *   before the final flag test that cc1 coalesces away in this draft.
- * - The visible-character scan still rotates its counter, limit, and table
- *   base registers even though its loop shape and comparisons now agree.
+ * - One signed-short induction variable shared by the disjoint visible and
+ *   StageChar scans reproduces retail's rotated table loop and caller-register
+ *   roles.  The direct loop condition plus short increment removed the former
+ *   large visible-scan residual without changing the physical CFG.
  * - Retail shares StageChar's `%hi` value in $s5 with the full base in $s3.
  *   The two explicit pure-C locals recover the exact six saved-register roles
  *   and frame, but cc1 still emits one separate base materialization.
- * - The StageChar scan's short induction variable still strength-reduces as
- *   add-0x10000/sra rather than retail's add-one/sll/sra sequence.
+ * - Making that shared induction variable genuinely s16 also recovers
+ *   StageChar's retail add-one/sll/sra sequence exactly.
  */
 void ActivateHumans(void)
 {
@@ -110,13 +112,10 @@ void ActivateHumans(void)
     s32 distance;
     s32 activate_distance;
     s32 n;
-    s32 j;
-    s32 search_i;
     s32 level;
-    s16 search_index;
+    s16 j;
     StageCharType *stage_char;
     StageCharType *stage_hi;
-    Humanoid *visible_human;
     ModelType *model;
 
     target = CamState.Owner;
@@ -218,24 +217,16 @@ set_active:
     goto active_done;
 
 search_visible:
-    search_i = 0;
-    search_index = 0;
-    visible_human = VISIBLE_CHARACTERS_ON_STAGE_[0];
-    do
+    j = 0;
+    while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
     {
-        while (visible_human != human)
+        if (VISIBLE_ENEMIES_ <= j)
         {
-            search_index = (s16)search_i;
-            search_i++;
-            if (VISIBLE_ENEMIES_ <= search_index)
-            {
-                break;
-            }
-            search_index = (s16)search_i;
-            visible_human = VISIBLE_CHARACTERS_ON_STAGE_[search_index];
+            break;
         }
-    } while (0);
-    computed_active = search_index != VISIBLE_ENEMIES_;
+        j++;
+    }
+    computed_active = j != VISIBLE_ENEMIES_;
 
 computed_active_done:
     active = computed_active;
