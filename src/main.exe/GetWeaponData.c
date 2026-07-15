@@ -35,25 +35,22 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 24 of 500 bytes differ (asmdiff: 35 differing
- * lines in 16 blocks, function 1 instruction too long: 126 vs 125). Every
- * block/branch/instruction is structurally right (loop shapes, dispatch,
- * field offsets, calls all confirmed against the raw .s); the residual is
- * a pure register-allocation tie in the FIRST (WeaponDB) search: the
- * target keeps the loop counter `i` in one register and the WeaponDB base
- * address in another (a1) for the whole loop with no extra move, while
- * this draft's cc1 invocation puts the freshly-materialised WeaponDB base
- * in the SAME register cc1 also wants for `i`'s next value, forcing an
- * extra `move` to evacuate it first. Tried: swapping `i`/`w` declaration
- * order (no effect — pure local order doesn't reach this tie), moving the
- * `w = (short)wep` narrowing statement before/after the first search
- * (moving it later made things WORSE, 127 vs 125 — an unrelated `lw`
- * of the raw stack int got scheduled early instead of the intended `lhu`
- * narrowing read). `tools/autorules.py` found no improving edit (8
- * candidates, all net negative). One bounded `tools/permute.py` run
- * (~5 min, -j4, several hundred iterations across many candidates)
- * bottomed out at score 660 — never near 0 — so this is parked per the
- * cookbook's sub-C-level early-stop, not chased further.
+ * STATUS: NON_MATCHING — exact target extent (500 bytes / 125 instructions),
+ * 32 differing bytes, fuzzy 92.00. Moving the WeaponDB search behind an
+ * inline pointer/formal barrier separates its loop counter from the table
+ * base and removes the old evacuation move; that entire first search now
+ * matches byte-for-byte. The same treatment plus distinct `table`/`models`
+ * aliases and a zero-code identical-arm fence recovers the second search's
+ * target extent and base materialisation.
+ *
+ * The residual is confined to the second (WeaponModel) search's initial
+ * compare schedule. The target tests row zero against -1 before copying the
+ * table base and materialising `wid`; this compiler keeps the source while-
+ * condition's `wid` comparison first. Writing an explicit sentinel precheck
+ * lets cc1 prove away the rotated loop tail and makes the function six
+ * instructions short, while returning a row pointer adds saved-register
+ * pressure and makes it three instructions long. Keep this exact-length
+ * checkpoint until a precheck spelling preserves the duplicated tail.
  */
 
 /*
@@ -76,8 +73,8 @@
  * here as a `short` local, matching PSX.SYM's `reg $s2 short wep`.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `short i` (not `int`, per PSX.SYM) reused across BOTH searches — the
- *    narrow counter SUPPRESSES loop.c's strength reduction (Loops: "a
+ *  - Each search uses a `short i` (not `int`, per PSX.SYM) — the narrow
+ *    counter SUPPRESSES loop.c's strength reduction (Loops: "a
  *    short loop counter suppresses loop.c's strength reduction"), so the
  *    target recomputes `&WeaponDB[i]`/`&WeaponModel[i]` from scratch each
  *    iteration (sign-extend refused into the scale) instead of walking a
@@ -123,47 +120,69 @@ extern int sprintf(char *buf, char *fmt, ...);
 extern OrnamentType *LoadOrnament(u32 *adr);
 extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 
+static inline void FindWeaponId(Humanoid *human, s16 wid, s16 wpid)
+{
+    s16 i;
+
+    i = 0;
+    while (WeaponDB[i].ilup1.pad != -1)
+    {
+        if (WeaponDB[i].ilup1.pad == wid)
+        {
+            human->wepid[wpid] = i;
+            break;
+        }
+        i++;
+    }
+}
+
+static inline s16 FindWeaponModel(WeaponModelType *models, s16 wid)
+{
+    s16 i;
+
+    i = 0;
+    while (models[i].wid != wid)
+    {
+        if (models[i].wid == -1)
+        {
+            break;
+        }
+        i++;
+    }
+    return i;
+}
+
 void GetWeaponData(Humanoid *human, s16 body, s16 wid, s16 wpid, int wep)
 {
     s16 w;
     s16 i;
     u8 name[100];
     OrnamentType *base;
+    WeaponModelType *models;
+    WeaponModelType *table;
 
     w = (s16)wep;
     if (wpid >= 0)
     {
-        i = 0;
-        while (WeaponDB[i].ilup1.pad != -1)
-        {
-            if (WeaponDB[i].ilup1.pad == wid)
-            {
-                human->wepid[wpid] = i;
-                break;
-            }
-            i++;
-        }
+        FindWeaponId(human, wid, wpid);
     }
 
     if (w >= 0)
     {
-        i = 0;
-        while (WeaponModel[i].wid != wid)
+        table = WeaponModel;
+        if (wid != 0)
+            models = table;
+        else
+            models = table;
+        i = FindWeaponModel(table, wid);
+        if (models[i].wid != -1)
         {
-            if (WeaponModel[i].wid == -1)
+            if (models[i].model == 0)
             {
-                break;
+                sprintf(name, D_800117EC, D_800117F8, models[i].name);
+                models[i].model = FileRead(name);
             }
-            i++;
-        }
-        if (WeaponModel[i].wid != -1)
-        {
-            if (WeaponModel[i].model == 0)
-            {
-                sprintf(name, D_800117EC, D_800117F8, WeaponModel[i].name);
-                WeaponModel[i].model = FileRead(name);
-            }
-            base = LoadOrnament(WeaponModel[i].model);
+            base = LoadOrnament(models[i].model);
             human->weapon[w] = base;
             GsInitCoordinate2((GsCOORDINATE2 *)human->model->object[body], &base->locate);
         }
