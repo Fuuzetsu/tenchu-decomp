@@ -26,7 +26,7 @@ extern think_func_ *Think2Func[];
 extern think_func_ *Think3Func[];
 extern think_func_ *Think4Func[];
 
-extern s32 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern s16 GetDirection(s32 x_diff, s32 z_diff, s16 rotation);
 extern s32 SquareRoot0(s32 value);
 extern int rand(void);
@@ -35,31 +35,18 @@ extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 rotation);
 extern void EquipWeapon(Humanoid *human, s16 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 motion, s16 move);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/think_setting_small_rotation_small_steps_", think_setting_small_rotation_small_steps_);
-#else /* NON_MATCHING */
-
 /*
- * STATUS: NON_MATCHING — exact 1392-byte length, frame, calls, and branches;
- * five bytes remain in the actscnt result phi ($a1 rather than retail $v0).
- * The three literal definitions and final byte store are otherwise identical;
- * the fifth byte is only the resulting branch-target displacement.
- *
- * RTL identifies `nextState` as QImode pseudo 107.  Its live range conflicts
- * with hard register $v0 in this draft, so allocator-priority/loop weighting
- * cannot produce the target colour without first changing the pseudo's source
- * identity or lifetime.  Guided autorules exhausted 160 one- and two-edit
- * type/fence/liveness candidates without improving the five-byte baseline.
- * A correctly late, bounded permuter run then explored 8,850 candidates and
- * never beat its base score of 60.  Parked as a confirmed sub-C-level branch-
- * phi register tie; retain the pure-C draft behind NON_MATCHING.
+ * `nextState` intentionally carries each condition and its eventual result.
+ * Reusing the dead `alertTime` local for StageID keeps the comparison operand
+ * separate while allowing cc1 to reuse the condition register for the branch
+ * delay-slot assignments.
  */
 
 s16 think_setting_small_rotation_small_steps_(void)
 {
     s32 x_diff;
     s32 z_diff;
-    s32 result;
+    s16 result;
     u8 state;
     VECTOR *new_var;
     character_state *self;
@@ -80,7 +67,7 @@ s16 think_setting_small_rotation_small_steps_(void)
         if (distance < 2000 || (Attrib & 0x400))
         {
             s32 alertTime;
-            u8 nextState;
+            s32 nextState;
 
             alertTime = 300;
             if (D_80010058 == 2)
@@ -104,9 +91,30 @@ s16 think_setting_small_rotation_small_steps_(void)
             }
 
             self = Me_THINK_C;
-            nextState = 1;
-            if (self->actcnt == 0 &&
-                (Humans >= 30 || (nextState = 2, StageID == 8)))
+            nextState = self->actcnt;
+            if (nextState == 0)
+            {
+                nextState = Humans;
+                nextState = nextState < 30;
+                if (nextState == 0)
+                {
+                    nextState = 1;
+                }
+                else
+                {
+                    nextState = 8;
+                    alertTime = StageID;
+                    if (alertTime != nextState)
+                    {
+                        nextState = 2;
+                    }
+                    else
+                    {
+                        nextState = 1;
+                    }
+                }
+            }
+            else
             {
                 nextState = 1;
             }
@@ -284,5 +292,3 @@ s16 think_setting_small_rotation_small_steps_(void)
 done:
     return result;
 }
-
-#endif /* NON_MATCHING */
