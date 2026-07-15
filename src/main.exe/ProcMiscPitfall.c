@@ -37,21 +37,11 @@
  * ProcMiscPitfall (0x8004cb6c, 868 bytes) — creates the pitfall collision
  * volume, advances its opening animation, and draws the two trap-door models.
  *
- * STATUS: NON_MATCHING — the pure-C draft has the exact 217-instruction
- * length, control flow, operations, and scheduling, but 6 of 868 bytes differ.
- * The residual is one global-register colouring tie:
- *
- *     value             target       draft
- *     resume `w`        $s1          $s0
- *     shared literal 2  $s0          $s3
- *
- * Those are the only differing operands (six instructions total). rtlguide
- * classifies the residual as regalloc and reports a hard conflict for the
- * literal allocno's target register. Guided autorules tried 160 candidates
- * without improving 6 bytes; one bounded 300-second permuter run explored
- * 22,097 candidates and stayed flat (authoritative rescore: 6 bytes).
- * Per the cookbook's sub-C register-swap stop rule, keep the default
- * INCLUDE_ASM stub and build this draft with NON_MATCHING=ProcMiscPitfall.
+ * The single function-scope `w` is load-bearing.  Although its two switch-arm
+ * lifetimes never meet, keeping one source identity makes cc1 allocate it
+ * globally and reuse m's $s1 home.  Two block-local `w` declarations instead
+ * put the resume value in $s0 before global allocation and displace the
+ * shared literal 2 to $s3.
  *
  * Two non-obvious source identities are measured and load-bearing: promoting
  * mode to int changes the lone range test from sltiu to the target's slti
@@ -81,12 +71,10 @@ extern short DrawModel(ModelType *model);
 extern short InsertConflict(ModelType *model);
 extern short GetConflictResult(ModelType *model, short index);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ProcMiscPitfall", ProcMiscPitfall);
-#else
 void ProcMiscPitfall(tag_TMisc *m, enum TMiscMessage msg)
 {
     TPitfall *param;
+    short w;
 
     param = &m->param.pitfall;
     switch (msg)
@@ -128,7 +116,6 @@ void ProcMiscPitfall(tag_TMisc *m, enum TMiscMessage msg)
 
     case MM_RESUME:
         {
-            short w;
             int r;
 
             w = PitfallData[param->type].HitSize;
@@ -147,7 +134,6 @@ void ProcMiscPitfall(tag_TMisc *m, enum TMiscMessage msg)
         {
             ModelType *model;
             ConflictObjectType *conflict;
-            short w;
             int r;
             int mode;
 
@@ -210,7 +196,6 @@ void ProcMiscPitfall(tag_TMisc *m, enum TMiscMessage msg)
         return;
     }
 }
-#endif
 
 // triage: MEDIUM — 217 insns, mul/div, 9 callees, ~0.07 to ProcItemLightningBolt
 // likely-relevant cookbook sections:
