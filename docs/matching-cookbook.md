@@ -1075,25 +1075,21 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
     a separately incremented cursor) so cc1 strength-reduces to exactly ONE
     walking pointer no matter how many offsets/fields you touch off it
     (FUN_8004a6bc's `D_8008E4B4[idx]` table, touched at offsets 0/4/5).
-  - **Neither shape may be perfect when the loop ALSO conditionally
-    dispatches through a field.** DoMiscProc's 200-slot cull loop touches
-    five fields (`proc`,`x`,`y`,`z`,`pause`) with two indirect calls through
-    `proc`: a raw walking pointer reproduces the SAME bias this rule warns
-    about (the last-written field, `pause`@0x14, biases the base by +0x14
-    — confirmed by direct trial, 117 vs 113 target instructions), while
-    array indexing (`misc[i].field`) avoids the bias but degrades the
-    loop's OWN exit test from the target's plain counter compare
-    (`slti v0,s1,200`) to a pointer-vs-pointer bound check
-    (`addiu v0,base,7200; slt v0,cursor,v0`) plus an extra register (cc1
-    copies the array base into a second register to serve as the walking
-    cursor once a null-checked field access forces materialization). A
-    third attempt — caching `T *p = &arr[i];` just inside the null-check,
-    narrowing p's scope to avoid the raw-pointer bias — fixed the exit test
-    back to a counter but added its own extra copy (preserving `p` across
-    the call), netting worse (115 vs 113). Parked NON_MATCHING; array
-    indexing was the best of the three (right instruction COUNT, residual
-    confined to register choice) — try this cache-inside-the-if idea again
-    with a LOWER register-pressure sibling before assuming it never works.
+  - **A literal goto backedge can rescue a walking pointer when a field store
+    would otherwise become a second GIV.** DoMiscProc's 200-slot cull loop
+    touches five fields (`proc`,`x`,`y`,`z`,`pause`) and conditionally calls
+    through `proc`.  A genuine pointer loop makes loop.c bias a nonvolatile
+    cursor to `pause` at +0x14 (an extra callee-saved induction pointer); a
+    pointer-to-volatile suppresses that GIV, but its zero store cannot fill an
+    unconditional jump's delay slot, so reorg duplicates the counter increment
+    and makes the function one instruction long.  Spell the same scan as a
+    hand-rolled label/backedge with a NONVOLATILE walking pointer: the missing
+    loop notes suppress strength reduction, while the ordinary `pause = 0`
+    remains movable into the jump delay slot.  Cache the other invariant base
+    (`view = &ViewInfo`) explicitly when the target keeps it in a saved register.
+    This is distinct from an indexed loop: `misc[i].field` created a pointer
+    bound test and an extra base copy here, while the goto form retained the
+    target's `slti counter,200` plus one 0x24-byte cursor increment.
 - **Keep a compared memory read INLINE in both `&&` operands (cc1 CSEs the
   address); hoisting it into a temp can swap two registers.**
   `if (p[n] != K && mx < p[n]) p[n] = mx;` with `mx` declared *before* the `if`
