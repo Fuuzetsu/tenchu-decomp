@@ -29,10 +29,11 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 208 of 368 bytes differ; the root cause is ONE
- * instruction-selection choice (see below) that cascades through the rest
- * of the function's scheduling. Every branch, field offset and condition
- * this function establishes is otherwise correct (independently proven).
+ * STATUS: NON_MATCHING — exact 368-byte / 92-instruction extent, with 172
+ * differing linked bytes and fuzzy 73.63 (up from 52.46).  The raw aligned
+ * residual is 36 lines in 14 blocks.  The previous 208-byte claim came from
+ * a 364-byte draft and was therefore only a carved-window estimate; this is
+ * the first authoritative exact-length checkpoint.
  *
  * PadProc (0x8001ada4) — per-frame pad service: ComPad the direct port (0)
  * and the multitap header (0x10, ComBuf[1]), then run the rumble envelope
@@ -52,42 +53,34 @@
  *    inlines the ATTACK arm at the branch's fallthrough and reaches the
  *    RELEASE arm only by a forward `blez` — write `if (ct >= 1)
  *    {attack-arm} else {release-arm}` to get the attack arm inlined first.
- *  - `PadArrange.time += 1;` right after computing `ct` (unconditional, not
- *    inside any guard) plus a SECOND `+= 1;` at the function's end (not
- *    inside the early-return path) reproduces the target's "+1 always,
- *    +1 more unless the deep guard returns early" split — Ghidra's own
- *    "+1 inside the guard" / "+2 at the end" rendering is the same total
- *    but the WRONG place for reorg to fold the first store into the
- *    top-level branch's delay slot.
- *  - `ct` is reused for the whole function (PSX.SYM's one local, reg $a0):
- *    `attack-time`, then reassigned to `pow*(...)` in each arm — a single
- *    variable, not per-branch temps, matching cc1's CSE of the unions
- *    `PadArrange.attack`/`.release` reads (each field read twice, same
- *    register both times, no intervening store).
+ *  - Named `time` and `attack` snapshots recover the target's load order and
+ *    let the first `time + 1` store fill the top-level branch delay slot.  A
+ *    SECOND increment at the function's end remains skipped by the deep
+ *    motor-off path, preserving retail's "+1 always, +1 unless off" split.
+ *  - Both guarded divisions execute BEFORE D_8001005D is tested in retail.
+ *    Computing the quotient only in the nonzero arm changes both behavior
+ *    and the expanded-div CFG.  Hoisting each quotient and spelling the
+ *    active arm first (`D_8001005D != 0`) recovers the target branch polarity.
+ *  - Distinct branch-scoped `pad` pointers prevent cc1 from cross-jumping the
+ *    attack and release zero-store tails.  The release arm first adds
+ *    `release` to `ct`, branches to the late `motor_off` label on `ct <= 0`,
+ *    and otherwise keeps the quotient in the shared `ct` carrier.
+ *  - The identical `ct / release` arms selected by initialized, nonnull
+ *    `pad` are a safe zero-code CFG fence.  jump2 erases the condition, while
+ *    the earlier pass boundary preserves the exact extent and closest
+ *    release scheduling.  A 140-candidate depth-two guided resweep found no
+ *    composing exact-length improvement beyond this checkpoint.
  *  - field8 (act1) is 0 in EVERY release-branch outcome (zero or nonzero
  *    D_8001005D) and only becomes 1 in the attack branch's nonzero case —
  *    easy to mis-transcribe as symmetric with field8=1 in both branches.
- *  - `&PadPort` is NOT cached across the mutually-exclusive branches —
- *    the target recomputes `lui/addiu` separately in each of the 3 write
- *    sites too (verified: caching it in one named pointer variable made
- *    the diff WORSE, from 91 to 87 instructions vs target's 92 — an
- *    over-optimization the original didn't have either).
  *
- * THE RESIDUAL: `ct = PadArrange.attack - PadArrange.time;` compiles to a
- * single `subu` here, but the target computes it as `negu $a0,time` +
- * `addiu $v0,time,1` + `addu $a0,a0,attack` — i.e. negates `time` FIRST
- * (interleaved with materializing `time+1` for the later store) and adds
- * `attack` second, one instruction longer than the direct `subu`. Every
- * spelling tried compiles to the same `subu` (cc1's fold canonicalizes
- * `a - b`, `-b + a`, and `-(b - a)` identically — verified standalone with
- * cc1-281 directly, all 5 variants collapse to one `subu`): a plain
- * subtraction, two separate assignment statements, and a nested double
- * negation. This looks like a reload/scheduler-level interaction with the
- * immediately-following `time + 1` materialization (both derive from the
- * same loaded `time` register) rather than anything expressible as a
- * source-level rewrite of the subtraction itself; not resolved this
- * session. Every downstream diff is this single extra instruction
- * shifting the rest of the function's addresses and delay-slot fills.
+ * The leading residual remains fold/scheduling: the split pure-C spelling
+ * still becomes `nop; subu attack,time`, where retail has
+ * `negu time; addiu time,1; addu attack`.  Eliminated diamonds can preserve
+ * the negate/add pair but force a second PadArrange base and lose exact
+ * length.  The other residuals are the two branch-local PadPort/shock-load
+ * schedules around the expanded divides and the final absolute motor-off
+ * address form; volatile and surviving-branch variants were rejected.
  */
 
 extern void ComPad(int port, u8 *rxbuf);
@@ -110,46 +103,71 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PadProc", PadProc);
 void PadProc(void)
 {
     int ct;
+    int time;
+    int attack;
 
     ComPad(0, ComBuf[0]);
     ComPad(0x10, ComBuf[1]);
 
-    ct = PadArrange.attack - PadArrange.time;
-    PadArrange.time = PadArrange.time + 1;
+    time = PadArrange.time;
+    attack = PadArrange.attack;
+    ct = -time;
+    PadArrange.time = time + 1;
+    ct += attack;
     if (ct >= 1)
     {
+        u8 *pad;
+
         ct = PadArrange.pow * (PadArrange.attack - ct);
-        if (D_8001005D == 0)
+        pad = (u8 *)PadPort;
+        ct = ct / PadArrange.attack;
+        if (D_8001005D != 0)
         {
-            ((u8 *)PadPort)[8] = 0;
-            ((u8 *)PadPort)[9] = 0;
+            pad[8] = 1;
+            pad[9] = ct;
         }
         else
         {
-            ((u8 *)PadPort)[8] = 1;
-            ((u8 *)PadPort)[9] = ct / PadArrange.attack;
+            pad[8] = 0;
+            pad[9] = 0;
         }
     }
     else
     {
-        if (ct + PadArrange.release < 1)
+        u8 *pad;
+
+        ct += PadArrange.release;
+        if (ct <= 0)
+            goto motor_off;
+
+        ct = PadArrange.pow * ct;
+        pad = (u8 *)PadPort;
+        if (pad != 0)
         {
-            ((u8 *)PadPort)[8] = 0;
-            ((u8 *)PadPort)[9] = 0;
-            return;
-        }
-        ct = PadArrange.pow * (ct + PadArrange.release);
-        if (D_8001005D == 0)
-        {
-            ((u8 *)PadPort)[8] = 0;
-            ((u8 *)PadPort)[9] = 0;
+            ct = ct / PadArrange.release;
         }
         else
         {
-            ((u8 *)PadPort)[8] = 0;
-            ((u8 *)PadPort)[9] = ct / PadArrange.release;
+            ct = ct / PadArrange.release;
+        }
+        if (D_8001005D != 0)
+        {
+            pad[8] = 0;
+            pad[9] = ct;
+        }
+        else
+        {
+            pad[8] = 0;
+            pad[9] = 0;
         }
     }
     PadArrange.time = PadArrange.time + 1;
+    goto done;
+
+motor_off:
+    ((u8 *)PadPort)[8] = 0;
+    ((u8 *)PadPort)[9] = 0;
+done:
+    ;
 }
 #endif

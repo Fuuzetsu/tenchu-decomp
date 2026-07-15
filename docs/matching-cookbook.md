@@ -1865,6 +1865,16 @@ branch's delay slot must be written BEFORE the load whose result feeds the next 
 an intervening store between a load and its first use blocks combine from fusing
 `lhu`+sign-extend into `lh` (`AttackContinuousCheck`).
 
+**An expanded division physically before a flag branch belongs before that guard in
+C too.** PadProc's retail code executes both rumble-envelope divisions before testing
+the shock-enable byte. Leaving `ct / attack` or `ct / release` only in the enabled
+store arm changed the behavior, let cc1 cross-jump the disabled tails, and left the
+draft one instruction short. Compute the quotient first, spell the enabled arm as the
+fallthrough, and use separate branch-scoped output-base pointers when retail retains
+distinct address pseudos. That combination restored PadProc's exact 368-byte extent
+and moved its guarded residual from a non-authoritative 364-byte carve to 172 linked
+bytes.
+
 **Several divisions by the SAME runtime divisor compile eagerly, back-to-back,
 before any intervening call** — even where Ghidra renders one lazily folded into a
 later call's argument (`f(a, b / d)`). `IsVisible`'s three divisions by one variable
