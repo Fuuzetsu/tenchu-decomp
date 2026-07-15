@@ -780,14 +780,25 @@ plain C is the matched file.
   a fresh `li $a2,1` like the original (cse tables don't follow the taken
   edge).
 
-### A boolean temp capturing a test BEFORE a narrowing adjustment is its own shape
+### Preserve the raw value and adjusted table index as separate roles
 
-`ch = f; hi = ch > K; if (ch > J) ch -= J2; if (hi) ch -= K2;` is genuinely distinct
-from inlining the comparison *after* the adjustment (`if (ch > J) ch -= J2;
-if (ch > K) ch -= K2;`). A decomp-permuter candidate may score the inlined-after
-form better and still be a regression: on `FUN_800570b8` it scored 790 against the
-baseline's ~1140 yet produced the wrong length (205 vs 138 bytes). Always re-verify
-a permuter win with `matchdiff`.
+When one remapped character controls both a table index and a later range adjustment,
+keep the remapped character intact and copy it to an index local: `ch = *p; if (ch ==
+0x92) ch = 0x27; index = ch; if (index > 0x1f) index -= 0x20; if (ch > 0xbf) index -=
+0x40;`. In `FUN_800570b8`, that literal split emits the target's branch-delay copy from
+`ch` to `index`, retains `ch` for the upper-kana test, and removes the synthesized
+boolean/`xori` chain. The earlier boolean draft was useful evidence but not the original
+source shape; a lower permuter score for an inlined comparison still produced the wrong
+length, so verify every candidate with `matchdiff`.
+
+The same exact match exposed two adjacent ordering rules. If direct use of several
+parameters makes cc1 save/copy them before an explicitly initialized cursor, introduce
+source-ordered local aliases (`cursor = x; text = str; ypos = y;`) and use those aliases
+throughout; their RTL creation order recovered the prologue and also stopped a later
+constant call argument from being stolen into an earlier branch delay slot. For paired
+quad coordinates, right-associate field assignments in the reverse store order:
+`x0 = x2 = cursor`, `y0 = y1 = ypos`, `y2 = y3 = ypos + 15`, and `x1 = x3 = end_x`
+emit stores to `x2,x0`, `y1,y0`, `y3,y2`, and `x3,x1`, respectively.
 
 ### A "short do-nothing case falls through, both real bodies are jump targets" 3-way
 
