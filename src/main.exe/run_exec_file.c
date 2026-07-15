@@ -1,8 +1,50 @@
 #include "common.h"
 #include "main.exe.h"
 
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/run_exec_file", run_exec_file);
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/run_exec_file", run_exec_file__override__prt_8005e870_13f24ac1);
+/*
+ * Load an executable from CD, waiting first for a successful open and then
+ * for the asynchronous read to finish.  The caller supplies the stack fields
+ * written into the SDK execution record immediately before the hand-off.
+ *
+ * The two INCLUDE_ASM pieces were one function: the interior prototype marker
+ * sits at the printf call in the retry loop, and its branches cross the split.
+ */
+typedef struct
+{
+    u8 pad[0x20];
+    u32 stack;
+    u32 size;
+} ExecRecord;
+
+extern char D_8001484C[];
+extern char D_80014860[];
+extern void FUN_8005e948(void);
+extern void VSyncCallback(void (*func)(void));
+extern int printf(char *fmt, ...);
+extern ExecRecord *CdReadExec(u8 *name);
+extern int CdReadSync(s32 mode, u8 *result);
+extern void StopCallback(void);
+extern void Exec(ExecRecord *exec, s32 argc, char **argv);
+
+void run_exec_file(u8 *name, u32 stack, u32 size)
+{
+    ExecRecord *exec;
+
+    VSyncCallback(FUN_8005e948);
+    do {
+        do {
+            printf(D_8001484C, name);
+            exec = CdReadExec(name);
+        } while (exec == NULL);
+    } while (CdReadSync(0, NULL) != 0);
+
+    VSyncCallback(NULL);
+    printf(D_80014860);
+    exec->stack = stack;
+    exec->size = size;
+    StopCallback();
+    Exec(exec, 0, NULL);
+}
 
 // triage: MEDIUM — 47 insns, 2 loop, 6 callees, ~0.20 to AddXG4
 // likely-relevant cookbook sections:
