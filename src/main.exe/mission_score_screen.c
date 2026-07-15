@@ -5,7 +5,7 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 1507 of 4636 bytes differ (82.83% fuzzy).  The
+ * STATUS: NON_MATCHING -- 1404 of 4636 bytes differ (82.92% fuzzy).  The
  * guarded draft has the exact target length (1159 instructions) and frame
  * size (0x1B8), with 53/53 conditional branches, 7/8 unconditional jumps,
  * 60/60 calls, and one return.  No retail-name record was found in PSX.SYM or
@@ -239,7 +239,11 @@ void mission_score_screen(void)
 
     tail.oldPad = 0;
     init_score_stats(&stats);
-    i = 0;
+    /* Preserve the retail scheduler boundary between the initial index seed
+     * and the colour/score setup. */
+    do {
+        i = 0;
+    } while (0);
     rankColour = 128;
     result = *calculate_score(&stats, CHOSEN_STAGE);
 
@@ -309,7 +313,9 @@ score_character_sprite_init_loop:
             initSprite->y = -120;
             initSprite->g = initSprite->r = characterColour;
             initSprite->b = characterColour;
-            initSprite->mx = width >> 1;
+            /* Keep this pivot on the bank's independently rematerialized
+             * address identity. */
+            SCORE_SPRITE_AT(characterSprites, i)->mx = width >> 1;
             SCORE_SPRITE_AT(characterSprites, i)->my = height >> 1;
             SCORE_SPRITE_AT(characterSprites, i)->mx = 0;
             SCORE_SPRITE_AT(characterSprites, i)->my = 0;
