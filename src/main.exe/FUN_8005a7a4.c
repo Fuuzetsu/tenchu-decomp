@@ -2,13 +2,12 @@
 #include "main.exe.h"
 
 /*
- * FUN_8005a7a4 (0x8005a7a4) — TODO one-line description.
+ * FUN_8005a7a4 (0x8005a7a4) — advance the memory-card save UI state machine.
  *
- * STATUS: NON_MATCHING — split (jump-table) function scaffolded by
- * tools/split-scaffold.py. The #ifndef NON_MATCHING branch is the stub
- * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
- * the .rodata carve has bytes); build the draft with `NON_MATCHING=FUN_8005a7a4
- * ./Build`. On a full match, delete the guards and the _jtbl array.
+ * STATUS: NON_MATCHING — guarded pure-C checkpoint at 98.05 fuzzy similarity.
+ * The draft has the target's exact 1024-byte extent; 14 bytes remain in the
+ * repeated SaveCard tail due to a0/a1 allocation and store/branch scheduling.
+ * Build it with `NON_MATCHING=FUN_8005a7a4 ./Build`.
  */
 
 #ifndef NON_MATCHING
@@ -75,164 +74,215 @@ static const u32 FUN_8005a7a4_jtbl[63] = {
 };
 
 #else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
-// 
-// undefined4 FUN_8005a7a4(undefined4 param_1)
-// 
-// {
-//   ushort uVar1;
-//   short sVar2;
-//   ushort uVar3;
-//   
-//   FUN_8005adbc(0);
-//   switch((int)((DAT_80097d2e - 10) * 0x10000) >> 0x10) {
-//   case 0:
-//     DAT_80097d30 = 0x18;
-//     break;
-//   case 1:
-//   case 0xb:
-//   case 0x3d:
-//     DAT_80097d2e = 0xffff;
-//     break;
-//   default:
-//     sVar2 = FUN_8005aba4(&DAT_80097d2e,&DAT_80097d30);
-//     if (sVar2 == 0) {
-//       DAT_80097d30 = 0;
-//       DAT_80097d32 = 0;
-//       FUN_8005adbc(1);
-//       if ((short)DAT_80097d2e < 0) {
-//         DAT_80097d2e = 3;
-//         return 1;
-//       }
-//       DAT_80097d2e = 3;
-//       return 0xffffffff;
-//     }
-//     break;
-//   case 10:
-//     DAT_80097d30 = 0x19;
-//     break;
-//   case 0x1c:
-//     DAT_80097d2e = 0x28;
-//     break;
-//   case 0x1e:
-//     DAT_80097d2e = 0x2b;
-//     break;
-//   case 0x21:
-//     sVar2 = FUN_80056e30(PTR_s_TENCHU_80097d18);
-//     if (sVar2 == 0) {
-//       DAT_80097d2e = 0x3c;
-//       break;
-//     }
-//     if (sVar2 == 5) {
-//       DAT_80097d2e = 0x32;
-//       break;
-//     }
-//   case 2:
-//   case 0xc:
-//   case 0x3e:
-//     DAT_80097d2e = 0;
-//     break;
-//   case 0x28:
-//     DAT_80097d30 = 7;
-//     DAT_80097d32 = 0;
-//   case 0x1f:
-//   case 0x20:
-//   case 0x29:
-//   case 0x2a:
-//   case 0x35:
-//   case 0x36:
-//     DAT_80097d2e = DAT_80097d2e + 1;
-//     break;
-//   case 0x2b:
-//     SaveCard(0,PTR_s_TENCHU_80097d18,(undefined *)&PersistentState,0xe70);
-//     sVar2 = SaveCard(0,PTR_s_TENCHU_80097d18,(undefined *)&PersistentState,0xe70);
-//     if (sVar2 == 1) {
-//       DAT_80097d2e = 10;
-//     }
-//     else if (sVar2 < 2) {
-//       DAT_80097d2e = 0x38;
-//       if (sVar2 == 0) {
-//         DAT_80097d2e = 0x36;
-//       }
-//     }
-//     else if (sVar2 == 4) {
-//       DAT_80097d2e = 0x1e;
-//       DAT_80097d2c = 0;
-//     }
-//     else {
-//       DAT_80097d2e = 0x38;
-//       if (sVar2 == 7) {
-//         DAT_80097d2e = 0x46;
-//       }
-//     }
-//     uVar3 = 0x35;
-//     uVar1 = DAT_80097d2e;
-//     sVar2 = DAT_80097d32;
-//     goto joined_r0x8005aaa4;
-//   case 0x2c:
-//     if (PersistentState._92_1_ == '\0') {
-//       DAT_80097d30 = 9;
-//       break;
-//     }
-//     goto LAB_8005a984;
-//   case 0x2d:
-// LAB_8005a984:
-//     DAT_80097d2e = 99;
-//     break;
-//   case 0x2e:
-//     DAT_80097d30 = 0xe;
-//     break;
-//   case 0x2f:
-//   case 0x34:
-//     DAT_80097d2e = 0x5a;
-//     break;
-//   case 0x32:
-//     DAT_80097d30 = 0x2c;
-//     break;
-//   case 0x33:
-//     DAT_80097d30 = 7;
-//     DAT_80097d2e = 0x3f;
-//     DAT_80097d32 = 0;
-//     break;
-//   case 0x37:
-//     SaveCard(0,PTR_s_TENCHU_80097d18,(undefined *)&PersistentState,0xe70);
-//     sVar2 = SaveCard(0,PTR_s_TENCHU_80097d18,(undefined *)&PersistentState,0xe70);
-//     if (sVar2 == 1) {
-//       DAT_80097d2e = 10;
-//     }
-//     else if (sVar2 < 2) {
-//       DAT_80097d2e = 0x38;
-//       if (sVar2 == 0) {
-//         DAT_80097d2e = 0x36;
-//       }
-//     }
-//     else if (sVar2 == 4) {
-//       DAT_80097d2e = 0x1e;
-//       DAT_80097d2c = 0;
-//     }
-//     else {
-//       DAT_80097d2e = 0x38;
-//       if (sVar2 == 7) {
-//         DAT_80097d2e = 0x46;
-//       }
-//     }
-//     uVar3 = 0x41;
-//     uVar1 = DAT_80097d2e;
-//     sVar2 = DAT_80097d32;
-// joined_r0x8005aaa4:
-//     DAT_80097d2e = uVar1;
-//     DAT_80097d32 = sVar2;
-//     if ((uVar1 != 0x36) && (DAT_80097d32 = sVar2 + 1, DAT_80097d2e = uVar3, 2 < sVar2)) {
-//       DAT_80097d2e = uVar1;
-//     }
-//     break;
-//   case 0x3c:
-//     DAT_80097d30 = 0x1a;
-//   }
-//   sVar2 = FUN_8005b17c((int)DAT_80097d30,param_1);
-//   DAT_80097d2e = DAT_80097d2e + sVar2;
-//   return 0;
-// }
+extern char *D_80097D18;
+extern s16 D_80097D2C;
+extern s16 D_80097D2E;
+extern s16 D_80097D30;
+extern s16 D_80097D32;
+extern u8 D_8001005C;
+
+extern s32 FUN_8005adbc(s16 mode);
+extern s16 FUN_8005aba4(u16 *state, s16 *page);
+extern s16 FUN_80056e30(char *name);
+extern s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data);
+extern s32 FUN_8005b17c(s32 page, s32 pad);
+
+s32 FUN_8005a7a4(s32 pad)
+{
+    u16 saved_state;
+    s16 value;
+    u16 next_state;
+    u16 assigned;
+    u16 incremented;
+
+    FUN_8005adbc(0);
+    switch ((s16)(D_80097D2E - 10))
+    {
+    case 0:
+        D_80097D30 = 0x18;
+        break;
+    case 10:
+        D_80097D30 = 0x19;
+        break;
+    case 0x1c:
+        D_80097D2E = 0x28;
+        break;
+    case 0x1e:
+        D_80097D2E = 0x2b;
+        break;
+    case 0x21:
+        value = FUN_80056e30(D_80097D18);
+        if (value == 0)
+            goto probe_missing;
+        if (value == 5)
+            goto probe_present;
+        goto clear_state;
+probe_missing:
+        D_80097D2E = 0x3c;
+        break;
+probe_present:
+        D_80097D2E = 0x32;
+        break;
+    case 0x28:
+        D_80097D30 = 7;
+        D_80097D32 = 0;
+        goto increment_state;
+    case 0x2b:
+        SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 0);
+        value = SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 1);
+        if (value == 1)
+            goto save_2b_success;
+        if (value >= 2)
+            goto save_2b_ge2;
+        if (value == 0)
+            goto save_2b_zero;
+        assigned = 0x38;
+        goto save_2b_assign;
+save_2b_ge2:
+        if (value == 4)
+            goto save_2b_four;
+        if (value == 7)
+            goto save_2b_seven;
+        assigned = 0x38;
+        goto save_2b_assign;
+save_2b_zero:
+        assigned = 0x36;
+        goto save_2b_assign;
+save_2b_success:
+        assigned = 10;
+        goto save_2b_assign;
+save_2b_seven:
+        assigned = 0x46;
+        goto save_2b_assign;
+save_2b_four:
+        D_80097D2E = 0x1e;
+        D_80097D2C = 0;
+        goto save_2b_after_assign;
+save_2b_assign:
+        D_80097D2E = assigned;
+save_2b_after_assign:
+        if (D_80097D2E == 0x36)
+            break;
+        next_state = 0x35;
+        saved_state = (u16)D_80097D2E;
+        value = D_80097D32;
+        incremented = value + 1;
+        goto update_count;
+    case 0x2c:
+        if (D_8001005C == 0)
+        {
+            D_80097D30 = 9;
+            break;
+        }
+    case 0x2d:
+        D_80097D2E = 99;
+        break;
+    case 0x2e:
+        D_80097D30 = 0xe;
+        break;
+    case 0x32:
+        D_80097D30 = 0x2c;
+        break;
+    case 0x33:
+        D_80097D30 = 7;
+        D_80097D2E = 0x3f;
+        D_80097D32 = 0;
+        break;
+    case 0x2f:
+    case 0x34:
+        D_80097D2E = 0x5a;
+        break;
+    case 0x1f:
+    case 0x20:
+    case 0x29:
+    case 0x2a:
+    case 0x35:
+    case 0x36:
+increment_state:
+        D_80097D2E++;
+        break;
+    case 0x37:
+        SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 0);
+        value = SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 1);
+        if (value == 1)
+            goto save_37_success;
+        if (value >= 2)
+            goto save_37_ge2;
+        if (value == 0)
+            goto save_37_zero;
+        assigned = 0x38;
+        goto save_37_assign;
+save_37_ge2:
+        if (value == 4)
+            goto save_37_four;
+        if (value == 7)
+            goto save_37_seven;
+        assigned = 0x38;
+        goto save_37_assign;
+save_37_zero:
+        assigned = 0x36;
+        goto save_37_assign;
+save_37_success:
+        assigned = 10;
+        goto save_37_assign;
+save_37_seven:
+        assigned = 0x46;
+        goto save_37_assign;
+save_37_four:
+        D_80097D2E = 0x1e;
+        D_80097D2C = 0;
+        goto save_37_after_assign;
+save_37_assign:
+        D_80097D2E = assigned;
+save_37_after_assign:
+        if (D_80097D2E == 0x36)
+            break;
+        next_state = 0x41;
+        saved_state = (u16)D_80097D2E;
+        value = D_80097D32;
+        incremented = value + 1;
+update_count:
+        D_80097D32 = incremented;
+        D_80097D2E = next_state;
+        if (value > 2)
+        {
+            D_80097D2E = saved_state;
+        }
+        break;
+    case 0x3c:
+        D_80097D30 = 0x1a;
+        break;
+    case 1:
+    case 0xb:
+    case 0x3d:
+        D_80097D2E = -1;
+        break;
+    case 2:
+    case 0xc:
+    case 0x3e:
+clear_state:
+        D_80097D2E = 0;
+        break;
+    default:
+        value = FUN_8005aba4((u16 *)&D_80097D2E, &D_80097D30);
+        if (value == 0)
+        {
+            D_80097D30 = 0;
+            D_80097D32 = 0;
+            FUN_8005adbc(1);
+            if (D_80097D2E < 0)
+            {
+                D_80097D2E = 3;
+                return 1;
+            }
+            D_80097D2E = 3;
+            return -1;
+        }
+        break;
+    }
+
+    D_80097D2E += FUN_8005b17c(D_80097D30, pad);
+    return 0;
+}
 
 #endif /* NON_MATCHING */
