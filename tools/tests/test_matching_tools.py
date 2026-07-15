@@ -625,6 +625,46 @@ void F(void) {
             self.assertFalse(any(label.startswith(skipped + ":")
                                  for label in labels))
 
+    def test_type_width_does_not_unsigned_flip_an_explicit_sign_test(self):
+        source = """typedef int s32;
+void F(void) {
+    s32 amount;
+    amount = produce();
+    if (amount < 0)
+        amount += 0x3ff;
+    consume(amount);
+}
+"""
+        labels = [label for label, _candidate in
+                  self.candidates(autorules.rule_type_width, source)]
+        self.assertIn("amount: s32→s16", labels)
+        self.assertNotIn("amount: s32→u32", labels)
+
+    def test_type_width_does_not_unsigned_flip_an_arithmetic_shift(self):
+        source = """typedef int s32;
+void F(void) {
+    s32 scaled;
+    scaled = produce();
+    consume((scaled) >> 10);
+}
+"""
+        labels = [label for label, _candidate in
+                  self.candidates(autorules.rule_type_width, source)]
+        self.assertIn("scaled: s32→s16", labels)
+        self.assertNotIn("scaled: s32→u32", labels)
+
+    def test_type_width_keeps_unsigned_flip_without_signed_semantics(self):
+        source = """typedef int s32;
+void F(void) {
+    s32 count;
+    count = produce();
+    consume(count + 1);
+}
+"""
+        labels = [label for label, _candidate in
+                  self.candidates(autorules.rule_type_width, source)]
+        self.assertIn("count: s32→u32", labels)
+
     def test_cmp_polarity_swaps_local_operands(self):
         source = """int F(int direction, int turn) {
     if (direction < turn) return 1;

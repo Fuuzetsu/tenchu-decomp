@@ -93,7 +93,18 @@ GUIDANCE = [
     "temps — and greedily keeps what shrinks the asmdiff, reporting which edit "
     "helped (`n: s16->s32: 4->0`). It's the deterministic first pass — if it "
     "reports no win, the residual is NOT one of those mechanical rules (don't "
-    "keep guessing them; it's structure/regalloc — read the diff or permute).",
+    "keep guessing them; it's structure/regalloc — read the diff or permute). "
+    "Type-width deliberately refuses signed->unsigned candidates when the local "
+    "is explicitly sign-tested or arithmetically right-shifted: a better partial "
+    "score cannot justify deleting a negative correction or changing sra to srl.",
+    "If a returning guard's branch delay slot contains the fallthrough's first "
+    "arithmetic producer, keep that producer AFTER the returning `if`; hoisting "
+    "it before the guard lengthens its lifetime and can make reorg steal the "
+    "wrong later instruction instead (death_camera_something_).",
+    "When an inlined endian/byte-pack helper's target loads use two already-live "
+    "cursor registers, pass both cursor identities to the helper and load each "
+    "byte through its target base. This can preserve both inline pseudos and an "
+    "address-taken output store (AfsGetEntry); require the raw asm load bases.",
     "For a pure REGISTER tie (right length, right instructions, a value in the "
     "wrong register — and autorules found nothing + a short permuter run won't "
     "beat the base), don't blind-permute: run `tools/regalloc.py <Name>`. It runs "

@@ -1356,6 +1356,16 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   when a missing named call has at least six matching helper bigrams and 60%
   helper coverage.  Treat it as a drafting hint and confirm the actual target
   islands—real source edits can also remove calls.
+- **An inlined byte-pack helper may need two already-live cursor identities.**
+  If the target's two byte loads use different base registers even though one
+  cursor is derivable from the other, expose both pointers as helper inputs and
+  read the corresponding byte through each input. This preserves the caller's
+  distinct pseudos across inline expansion; it can also retain an address-taken
+  halfword output store that hand-expanding the expression loses. `AfsGetEntry`
+  needed its marker helper to accept both the raw record pointer and the packed
+  `raw + 1` cursor: the high byte loads through the former and the low byte
+  through the latter in the original. Require those exact load bases in the
+  target asm—do not add redundant helper parameters from C semantics alone.
 - **One absolute-state pointer reused across distant phases can become an
   unwanted saved-register allocno.** If the target rematerialises the same
   `0x80010000` base with separate `lui` sites but the candidate carries one
@@ -3083,6 +3093,36 @@ value class by threading one pointer variable through the call sites:
 from the previous value's class, and the dead `pv = 0;` (flow deletes it, zero bytes)
 evicts the last, so the later `&vc`/`&vd` arguments find no equivalent register and
 rebuild the address (`SetCameraMode`).
+
+### Put a fallthrough producer after a returning guard to make it the delay slot
+
+When a conditional branch returns on its taken edge and the target puts an
+arithmetic producer in that branch's delay slot, write the producer as the first
+statement *after* the returning `if`:
+
+```c
+if (special) {
+    handle_special();
+    return;
+}
+timer = chase + STEP;
+chase = timer;
+```
+
+The producer is valid only on the fallthrough path, so reorg can steal it into
+the returning branch's delay slot. Hoisting `timer = ...` before the guard may
+be value-equivalent when the special edge discards it, but it extends the
+producer's lifetime across the test; cc1 may instead fill the slot from a later
+comparison and leave the function one instruction long. In
+`death_camera_something_`, keeping the timer add after the attribute-return
+guard was the source-level cause of the target `addiu` delay slot and the exact
+following store/clamp schedule.
+
+Do not "repair" the resulting signed arithmetic by flipping its local to
+unsigned. If a value is explicitly compared with zero or used as the left
+operand of `>>`, the target's `bltz`/negative correction and `sra` encode signed
+semantics. `autorules type-width` now vetoes signed-to-unsigned candidates at
+those sites while still trying width changes that preserve signedness.
 
 ### An "unconditional" delay-slot move after a compare is NOT a comma-expression
 

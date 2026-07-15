@@ -20,9 +20,10 @@ It is the deterministic, explainable first pass that complements decomp-permuter
 which rule closed how many instructions ("widen `n` to s32: -16"), leaving a
 smaller residual for a permuter run or an agent's judgment.
 
-Safe by construction: byte-identical to the original IS correctness, so a full
-MATCH is always valid; any non-zero result is advisory and gets reviewed. A
-semantically-wrong rewrite simply fails to improve the score and is discarded.
+Safe at the acceptance boundary: byte-identical to the original IS correctness,
+so a full MATCH is always valid; any non-zero result is advisory and gets
+reviewed. Individual rules also reject locally provable semantic regressions;
+an improving partial score is not, by itself, proof that a rewrite is sound.
 
   tools/autorules.py <Name>          sweep + greedy-compose; write the best .c
   tools/autorules.py <Name> --dry    report only, leave the file untouched
@@ -256,6 +257,29 @@ DECL = re.compile(
     + r")(\s+)(\**\s*)(\w+)\s*(?=[;,=\[])")
 
 
+def _has_explicit_signed_use(lines, rng, variable):
+    """Whether changing a signed local to unsigned would visibly change C.
+
+    A partial byte score can improve after an unsigned rewrite even while it
+    deletes a required negative correction or turns an arithmetic ``sra`` into
+    ``srl``. Those are semantic facts, not allocation levers. Keep this test
+    deliberately local and conservative: explicit comparisons against zero or
+    a negative literal, and direct right shifts of the variable, lock its
+    signedness. Width changes that preserve signedness remain available.
+    """
+    code = "\n".join(piece for _i, _raw, piece in uncommented(lines, rng))
+    ident = re.escape(variable)
+    signed_literal = r"(?:0(?:[lL]*)|-\s*(?:0[xX][0-9a-fA-F]+|\d+)(?:[lL]*))"
+    comparisons = (
+        rf"\b{ident}\b\s*(?:<|<=|>|>=)\s*{signed_literal}\b",
+        rf"{signed_literal}\s*(?:<|<=|>|>=)\s*\b{ident}\b",
+    )
+    if any(re.search(pattern, code) for pattern in comparisons):
+        return True
+    # Covers ``x >> n`` and parenthesised ``(x) >> n``.
+    return re.search(rf"\b{ident}\b\s*\)*\s*>>", code) is not None
+
+
 def rule_type_width(text, name, span):
     """Flip a local variable's integer type across width/signedness.
 
@@ -268,8 +292,10 @@ def rule_type_width(text, name, span):
     *distinct* (width, signedness) canonical type.  Pointer, array,
     multi-declarator, and multi-line declarations are excluded: changing a
     shared base type can change another declarator's pointee access width or
-    object layout, not just the scalar local's machine mode. Line-based (robust
-    without the AST); confined to the body.
+    object layout, not just the scalar local's machine mode. A signed local
+    with an explicit sign comparison or arithmetic right shift is never
+    flipped to unsigned: an improving partial score cannot justify deleting
+    that semantics. Line-based (robust without the AST); confined to the body.
     """
     lines, ranges = body_line_ranges(text, span, name)
     for rng in ranges:
@@ -290,7 +316,10 @@ def rule_type_width(text, name, span):
                 continue
             cur = m.group(3)
             w, s = TYPES[cur]
+            signed_use = s and _has_explicit_signed_use(lines, rng, m.group(6))
             for (w2, s2) in flip_targets(w, s):
+                if signed_use and not s2:
+                    continue
                 rep = CANON[(w2, s2)]
                 # rebuild THIS declaration on the real (uncommented-source) line
                 new_line = _swap_decl_type(raw, m, rep)
