@@ -1010,6 +1010,20 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   `base + i*8` every iteration. When the target recomputes but your draft walks a
   pointer, narrow the counter before touching anything else (SetupMotionRegist).
   (Not to be confused with the *3-instruction* GetPad sign-extension class.)
+- **A rotated sentinel scan can be the direct `while (table[i] != needle)`
+  source, with one narrow counter reused by a later disjoint scan.**  For a
+  signed-short `i`, `i = 0; while (table[i] != needle) { if (limit <= i) break;
+  i++; }` emits the initial element load before the loop, computes `i + 1` into
+  a working register, loads the next element through that value, and writes the
+  new `i` in the back-branch delay slot.  A decompiler-shaped wide counter plus
+  separate narrow index obscures that rotation and invites add-0x10000 strength
+  reduction.  If a later scan re-zeroes an equivalent short and the target uses
+  the same hard register for both nonoverlapping lifetimes, reuse the same C
+  local: two separate shorts can still receive different caller registers.
+  `ActivateHumans` combined the direct sentinel loop, the shared short, and the
+  later StageChar induction fix while preserving its exact 1,608-byte extent
+  and physical CFG; the authoritative residual fell 730→360 bytes and the
+  structural report fell 54→5 length-changing lines.
 - **Put a loop increment inside the array subscript when the target increments
   through a narrow working copy.** `array[i] = value; i++;` updates `i` in
   place. The equivalent `array[i++] = value;` can instead expand as
