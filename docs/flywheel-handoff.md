@@ -5,20 +5,22 @@ current source, `tools/progress.py`, `tools/triage.py`, and each guarded
 function's `STATUS` comment are authoritative.  Re-measure before dispatching
 work; do not carry the percentages or target list below forward by assumption.
 
-The current rollout was intentionally wound down so the user can start a wholly
-new Codex session with a larger agent pool. There are no matcher agents still
-running, all three final worker results were harvested onto `master`, and the
-root worktree was clean before this handoff update. Do not resume this old
-rollout or launch more work from it.
+The four-slot resumed rollout was intentionally wound down at the user's
+request so a wholly new Codex session can request the configured larger agent
+pool. There are no matcher agents still running. Exact results and independent
+reflection were harvested onto `master`; nonexact checkpoints remain only on
+their isolated branches. Do not resume this old rollout or launch more work
+from it.
 
 ## Clean anchor
 
-- code/tool anchor immediately before this note: `dc91927` (`Guard signed
-  autorule semantics`)
-- newest exact function commit: `31aa9d1` (`Match AfsGetEntry`)
-- game code: 408/555 functions (73.51%), 194680/302824 bytes (64.29%)
+- code/tool anchor immediately before this note: `36afb3b` (`Document
+  identical-arm source identity splits`)
+- newest exact function commit: `2416459` (`Match small-rotation think
+  handler`)
+- game code: 447/555 functions (80.54%), 211856/302824 bytes (69.96%)
 - all six executables passed `./Build check-all` byte-identically
-- all 299 matching-tool tests passed
+- all 302 matching-tool tests passed
 - guarded-draft flags, fuzzy fingerprints, symbol notes, symbol uniqueness,
   and `D_<address>` symbol names passed their global checks
 
@@ -60,22 +62,43 @@ nix develop -c python tools/symcheck.py
 nix develop -c python -m unittest tools.tests.test_matching_tools
 ```
 
-## Work completed in the final batch
+## Work completed in this resumed rollout
 
-Three final agents all reached exact, unconditional pure C and were harvested:
+Forty exact source promotions landed after the prior `dc91927` shutdown
+anchor. Use `git log --oneline dc91927..36afb3b` for their source/reflection
+history. The promoted functions were:
 
-| Function | Retail extent | Master commit | Useful source-shape result |
-|---|---:|---|---|
-| `TurnAroundAllItems` | 408 B | `764aec7` | the inherited 84.31% fuzzy row was already byte-exact; always run authoritative `matchdiff` before editing a checkpoint |
-| `death_camera_something_` | 520 B | `75ea59f` | put the fallthrough producer after a returning guard so reorg can use it as that guard's delay slot |
-| `AfsGetEntry` | 564 B | `31aa9d1` | an inline endian helper may need both already-live cursor identities to select the original load bases |
+- `debug_output_edit_camera_settings`, `FUN_80058a54`, `calculate_score`,
+  `SelectStage`, `FUN_8003d768`, `run_exec_file`, `AdtVsprintf`,
+  `debug_menu_file_animation_test`, `jt_init4`, and `cd_open`;
+- `FUN_8005679c`, `cbAccess`, `update_pressed_buttons`, `FUN_800593a0`,
+  `InitializeInfoView`, `ControlAllHumanoid`, `ProcMiscFire`,
+  `SelectCameraOwnerOption`, `UpdateEvent`, and `PlayMusicFormID`;
+- `DoMiscProc`, `cbCheckCD`, `MemCardCallback`, `IsVisible`, `CdaPlayXA`,
+  `FUN_8001b2f4`, `ItemControl`, `leSetEnemy`, `DrawTarget`, and
+  `AVCameraControl`;
+- `FUN_8004a6bc`, `DrawTargetS`, `FallCheck`, `ComPad`, `CVAsequence`,
+  `GetAreaMapPassage`, `ProcMiscPitfall`, `Think1ninja`, `AttackShort`, and
+  `think_setting_small_rotation_small_steps_`.
 
-The reflection is committed separately as `dc91927`. It adds both rules to the
-cookbook and matcher prompt. It also fixes a real `autorules type-width` hazard:
-a signed local explicitly compared with zero/negative or arithmetically
-right-shifted is no longer offered as an unsigned candidate. An improving
-partial score had otherwise removed the camera routine's negative correction
-and changed `sra` to `srl`.
+The last assignments closed as follows:
+
+| Function | Result | Integrated/preserved commits | Useful result |
+|---|---|---|---|
+| `AttackShort` | exact 1668 B / 417 instructions | `ad08550`, reflection `9a617b8` | an HImode round trip plus an empty loop and identical widening arms removes a false literal-zero equivalence before `jump2` |
+| `think_setting_small_rotation_small_steps_` | exact 1392 B / 346 instructions | `2416459`, reflection `11a249c` | make one signed-word carrier absorb the entire condition/result chain; reuse a dead local for the other operand to remove a hard `$v0` conflict |
+| `GetAreaMapVector` | guarded 548 B checkpoint, 40 bytes remain | isolated `f2d0a6e`, fuzzy `3764437`; only reflection `36afb3b` integrated | identical arms preserve distinct raw/cached source identities and fix every persistent saved-register assignment, but entry/early-return scheduling remains |
+| `ProcItemNingyo` | best guarded checkpoint has 15 bytes remaining | isolated `c10c3ab`; not integrated | clearing a short-lived launch pointer after `memset` breaks stack-address CSE; destructive model-pointer reuse makes the full derived-position/modulus block exact |
+
+The Ningyo branch is a materially better starting point than the 19-byte draft
+on `master`: only the three pre-`memset` loads and three mode-1 constants are in
+the wrong order. It is isolated solely because nonexact source is never merged,
+not because the 19-byte form is preferred. The GetAreaMapVector branch likewise
+has the exact loop and normal-return path; its 40-byte residual is confined to
+setup scheduling and the `MIN` early return. Do not rerun their already-flat
+broad searches: Ningyo needs a zero-code ordering dependency, while
+GetAreaMapVector needs a scheduler/store-order lever. The latter already saw
+guided budgets 80/160 and a bounded roughly 26k-candidate permuter run.
 
 ## Data-name recovery status
 
@@ -112,31 +135,47 @@ remaining named functions in those families were already exact or explicitly
 parked after extensive RTL/permuter work, so do not revive one solely because
 its name has priority.
 
-The previously suggested gameplay slate (`AntiWall`,
-`death_camera_something_`, `create_ninken_character_`, `FUN_8004c350`,
-`TurnAroundAllItems`, and `AfsGetEntry`) is now exact. On the 2026-07-15
-snapshot, the best unparked slate is:
+The earlier fresh slate is now exact. Default triage has almost exhausted
+non-GTE game targets: the only straightforward fresh candidate is
+`FUN_8005fe34`, while `check_for_known_button_combination` has an unmerged
+near-match. A larger replacement pool can still be useful if each parked slot
+gets a distinct, evidence-driven residual instead of another broad search:
 
-| Candidate | Size | Why it is useful |
+| Candidate | Size | Starting evidence / permitted next attack |
 |---|---:|---|
-| `FUN_8003d768` | 672 B | largest fresh non-GTE game target; multiply/divide and three callees |
-| `debug_output_edit_camera_settings` | 628 B | substantial camera/debug loop with a clean C path |
-| `FUN_80058a54` | 540 B | medium-large loop with four callees |
-| `SelectStage` | 420 B | two loops and a diagnostic 0x528-byte frame |
-| `calculate_score` | 352 B | gameplay scoring, multiply/divide, useful call-graph leverage |
-| `debug_menu_file_animation_test` | 260 B | four callees and a 0x328-byte frame |
-| `AdtVsprintf` | 248 B | compact support-code loop, useful if a slot needs a lower-risk target |
+| `FUN_8005fe34` | 84 B | fresh 21-instruction leaf with one callee; first priority |
+| `check_for_known_button_combination` | 288 B | isolated `fd303e1` is 12 bytes / three instructions away; solve the final register rotation, never merge that checkpoint |
+| `ProcItemNingyo` | 2256 B | start from isolated `c10c3ab` (15 bytes); attack only the two six-instruction ordering clusters |
+| `GetAreaMapVector` | 548 B | start from isolated `f2d0a6e` (40 bytes); persistent allocation and loop body are already exact |
+| `SuccessionAttack` | 268 B | parked at eight bytes; read its source note and target only the recorded residual |
+| `FUN_80056910` | 300 B | parked with two extra instructions; seek the specific lifetime/CFG cause |
+| `FileOption` | 1108 B | six-byte near-match with an instruction-count discrepancy; inspect the existing note before editing |
+| `FUN_8005e8f0` | 88 B | eight bytes in two adjacent instructions; compact RTL escalation target |
+| `PClseek` | 36 B | seven-byte support-code residual; small independent slot |
+| `PutItemList` | 504 B | eight-byte / two-instruction-short checkpoint; needs structure, not permutation |
+| `AdtSelect` | 776 B | nine-byte reload residual; only revisit from its documented huge-frame evidence |
 
-Clean, untouched worktrees already exist for all seven under
-`/tmp/tenchu-fw-*-0715`, but they still point at the old `3aa896a` anchor. Do not
-dispatch them as-is. Either recreate them from current `master` with new unique
-names or deliberately fast-forward/rebase only after confirming they remain
-clean. Fresh worktrees are less error-prone.
+This list deliberately fills up to eleven useful matching roles for a fresh
+session, but the first four have the strongest current evidence. Re-run triage
+before dispatch because the inventory may move. `DrawTMD` appears in default
+triage but still lacks an acceptable pure-C indirect-call path; do not spend a
+slot on it without a new compiler-level idea.
+
+The useful old worktrees are checkpoint evidence, not active workers:
+
+- `/tmp/tenchu-fw15-ningyo-0715` -> `c10c3ab` (15-byte Ningyo checkpoint);
+- `/tmp/tenchu-fw18-get-area-map-vector-0715` -> `f2d0a6e` plus `3764437`
+  (40-byte checkpoint; reflection already integrated);
+- `/tmp/tenchu-fw2-known-buttons-0715` -> `fd303e1` (12-byte checkpoint).
+
+Create fresh uniquely named worktrees from current `master` for new work. If a
+checkpoint is needed, inspect or cherry-pick it only onto that isolated worker
+branch; never import a nonexact checkpoint into `master`.
 
 Do not spend a slot on these merely because they appear difficult:
 
 - GTE/COP2 routines and `DrawTMD` currently lack an acceptable pure-C path.
-- `cd_open` and other unmatched jump-table stubs remain fiddly to harvest.
+- Remaining unmatched jump-table stubs remain fiddly to harvest.
 - Anything hidden by default `tools/triage.py` is parked; read its reason
   before considering it.
 
@@ -147,9 +186,8 @@ evidence and rejected experiments.
 
 | Function | Checkpoint | Why it stopped |
 |---|---|---|
-| `AttackShort` | 99.52%; exact 1668 B / 417 instructions / CFG; 8 bytes left | two `move v0,s0` vs `andi v0,s0,0xffff` sites; `narrow-copy-zero-extension`; 22,046 permuter iterations flat |
-| `ProcItemNingyo` | 98.40%; exact 2256 B / 564 instructions / CFG; 19 bytes left | launch-position identity, modulus register, and constant scheduling; guided rules and late permuter flat |
-| `ProcMiscFire` | exact 356 B; 10 bytes left | confirmed `la` reload tie; RTL excludes the known compiler patch; 27,390 permuter candidates flat |
+| `ProcItemNingyo` | master 19 bytes; isolated `c10c3ab` 15 bytes / 99.65% | pointer/modulus block is exact on the isolated branch; only three input loads and three mode-1 constants are reordered |
+| `GetAreaMapVector` | isolated `f2d0a6e`, exact 548 B / 40 bytes left | setup load/move/store scheduling and `MIN` early-return ordering; guided 80/160 and ~26k permuter candidates flat |
 | `AttackBowControl` | 75.00%; exact 272 B; 19 bytes left | first-live-local allocator priority swap; 80k+ permuter candidates flat |
 | `StageEndScreen` | 91.26%; exact 6084 B / frame / branch-call inventory; 389 bytes left | complete pure-C reconstruction; broad remaining allocator/scheduling residual |
 | `DamageControl` | 88.23%; exact 5812 B / 1453 instructions; 2457 bytes left | complete structural draft, but 140 aligned residual blocks remain |
@@ -179,9 +217,10 @@ permuter search.
 6. One worker owns one function or tightly coupled family in one isolated
    worktree.  Do not run matching tools concurrently against the same
    worktree/lock.
-7. A worker commits either an exact result or an honestly documented improved
-   checkpoint to its branch.  Root reviews and cherry-picks it, resolves only
-   additive metadata conflicts, refreshes fuzzy data, and runs the gates.
+7. A worker may commit an honestly documented nonexact checkpoint to its own
+   branch for preservation, but root never merges nonexact source or its fuzzy
+   row into `master`. Root cherry-picks exact results and independently useful
+   reflection only, resolves additive metadata conflicts, and runs the gates.
 8. Commit the function/checkpoint first.  Then perform the reflection pass and
    land any cookbook, diagnostic, autorule, test, or naming improvement in a
    separate commit.  Tooling must encode a repeatable decision, not one
@@ -192,20 +231,22 @@ permuter search.
 
 Recent mechanical lessons are already in
 [`matching-cookbook.md`](matching-cookbook.md) and the tools/tests: narrow-copy
-zero extension, subtraction-role fusion, branch-phi register ties,
-difference-role fusion, shared-result returns, identical-arm fences, terminal
-call returns, default-ladder hoisting, returning-guard fallthrough producers,
-and two-cursor inline byte-pack helpers. Search the cookbook and `rtlguide.py`
-signatures before inventing a new manual experiment.
+zero extension and round-trip fencing, subtraction-role fusion, in-place
+branch-phi carriers, identical-arm source-identity splits, difference-role
+fusion, shared-result returns, terminal call returns, default-ladder hoisting,
+returning-guard fallthrough producers, and two-cursor inline byte-pack helpers.
+Search the cookbook and `rtlguide.py` signatures before inventing a new manual
+experiment.
 
 ## Agent and worktree hygiene
 
 Many historical `/tmp/tenchu-*` worktrees and `codex/*` branches still exist.
-They are not evidence of active work. The final three visible agents
-(`turn_items_resume`, `death_camera_resume`, and `afs_entry_resume`) all
-completed, and their exact changes were integrated on `master`. Their worker
-commits are `33c99c8`, `b94a60f`, and `2a4c6a3`; use the master commits listed
-above instead. No matcher agent remains live.
+They are not evidence of active work. The final visible agents
+(`match_debug_camera`, `match_fun3d768`, and `match_memcard_callback`) all
+completed and took no replacement targets. AttackShort and the small-rotation
+handler were integrated under the master hashes above. GetAreaMapVector stayed
+isolated; only its cookbook reflection was integrated. Root's Ningyo worktree
+is clean at isolated commit `c10c3ab`. No matcher agent remains live.
 
 Before touching an old worktree, inspect both its dirt and its branch delta:
 
@@ -225,8 +266,11 @@ state as incidental cleanup.
 The resumed rollout that produced this note was provisioned with only four
 total concurrency slots despite `~/.codex/config.toml` containing
 `[agents] max_threads = 11`. A resumed rollout retains its original runtime
-capacity; changing the config cannot enlarge it in place. Start a completely
-new session, not `codex resume`:
+capacity; changing the config cannot enlarge it in place. This was a
+concurrency ceiling, not an elapsed-time limit. There is no discovered
+user-editable wall-clock limit for ordinary subagents;
+`agents.job_max_runtime_seconds` applies only to CSV fan-out jobs. Start a
+completely new session, not `codex resume`:
 
 ```console
 codex -c agents.max_threads=11 -C /home/shana/programming/tenchu-decomp
