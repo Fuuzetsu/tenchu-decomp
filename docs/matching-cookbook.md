@@ -1058,6 +1058,18 @@ CODE_LABEL blocks jump.c from deleting the success return's jump-to-next, lettin
   Array indexing keeps the giv at the table base, so the accesses stay at their
   natural `4($a2)`/`8($a2)` (FUN_800568b8; the `addiu $a2,$a2,0xC` bottom
   increment is identical either way, so the *bias* is the only tell).
+  - **Indexing can also steer preheader scheduling even when the final pointer
+    induction is byte-for-byte the same.** A source pointer cursor creates its
+    initializer before loop optimization; `T[index]` with an `s32` index lets
+    loop.c eliminate the BIV, strength-reduce a GIV, and create the equivalent
+    pointer initializer later. That later RTL UID can move the table address
+    after another hoisted address in sched2 without changing the loop body or
+    registers. In `check_for_known_button_combination`, this changed the three
+    preheader instructions from constant/table/history to the target's
+    constant/history/table and closed the final 12 bytes. Require `.loop` to
+    report the BIV elimination/GIV reduction and `.sched2` to confirm the
+    initializer order; this is a focused scheduling lever, not a reason to
+    rewrite every cursor loop.
   - **At 3+ touched offsets from one base, a walking pointer doesn't just bias
     — it can split into a whole SECOND parallel induction register**, one
     walking pointer materializing a constant offset (e.g. `entry+5`) to serve

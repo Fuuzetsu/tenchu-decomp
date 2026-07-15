@@ -3807,6 +3807,21 @@ class AutoRulesLifecycleTests(unittest.TestCase):
 
 
 class AsmDiffPresentationTests(unittest.TestCase):
+    def test_candidate_extent_comes_from_link_map_not_first_return(self):
+        candidate = [
+            (0x80001000, "jr ra"),
+            (0x80001004, "nop"),
+            (0x80001008, "addiu v0,v0,1"),
+            (0x8000100C, "jr ra"),
+            (0x80001010, "nop"),
+        ]
+        with mock.patch.object(matchdiff, "linked_text_size", return_value=20), \
+                mock.patch.object(asmdiff, "dis", return_value=candidate) as dis:
+            result = asmdiff.candidate_disassembly("F", 0x80001000, 16)
+
+        self.assertEqual(result, candidate)
+        dis.assert_called_once_with(asmdiff.OURS, 0x80001000, 20)
+
     def test_structural_filter_never_claims_same_length_replacement_matches(self):
         stats = asmdiff.aligned_opcodes(
             ["move s0,a0"], ["move s1,a0"], structural=True,

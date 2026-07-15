@@ -3,10 +3,10 @@
 
 Complements tools/matchdiff.py for BIG or shifted functions: matchdiff
 compares per-address (a one-insn insert makes everything after it "differ")
-and sizes the window by the next config/symbols entry (mid-function labels
-cap it). This tool takes the REAL size from the Ghidra export, disassembles
-both images, and difflib-aligns the instruction sequences, so inserts/deletes
-show as themselves and pure branch-target drift can be suppressed.
+while this tool difflib-aligns the instruction sequences, so inserts/deletes
+show as themselves and pure branch-target drift can be suppressed.  The target
+extent comes from the reviewed function inventory; the candidate extent comes
+from the link map, so an internal/early ``jr ra`` cannot truncate the view.
 
   tools/asmdiff.py <Name>              aligned diff (structural view)
   tools/asmdiff.py <Name> --all        include pure branch-target drift lines
@@ -15,14 +15,6 @@ show as themselves and pure branch-target drift can be suppressed.
   tools/asmdiff.py <Name> -n           skip ./Build
 
 Exit 0 when the sequences are identical. Run inside the nix devShell.
-
-
-KNOWN BUG: --structural truncates its comparison window at the ORIGINAL function's
-instruction count instead of reporting that our build is longer. It printed
-"length ours 91 vs target 91" for a GetNearestHumanoid draft that was really 93
-instructions, and the overrun then made the NEXT function look like it was missing a
-prologue. When --structural looks off, cross-check with tools/matchdiff.py, whose
-whole-image byte count is reliable.
 """
 import tempfile, argparse, os, re, subprocess, sys
 
@@ -36,8 +28,6 @@ TEXT_START = 0x80011000
 FILE_TEXT_OFF = 0x800
 ORIG = "disks/tenchu/main.exe"
 OURS = ".shake/build/tenchu/main.exe"
-SYMBOLS = "config/symbols.main.exe.txt"
-TSV = ".shake/ghidra-export/functions.tsv"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
 
 
@@ -54,24 +44,8 @@ def candidate_artifact_error(name):
 
 
 def resolve(name):
-    """(addr, size) — address from config/symbols, size from the Ghidra export."""
-    addr = None
-    for line in open(SYMBOLS):
-        m = re.match(rf"{re.escape(name)}\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
-        if m:
-            addr = int(m.group(1), 16)
-            break
-    if addr is None:
-        sys.exit(f"asmdiff: {name} not in {SYMBOLS}")
-    size = None
-    for line in open(TSV):
-        p = line.rstrip("\n").split("\t")
-        if len(p) == 3 and int(p[0], 16) == addr:
-            size = int(p[1])
-            break
-    if size is None:
-        sys.exit(f"asmdiff: no size for {name} @ {addr:#x} in {TSV}")
-    return addr, size
+    """Return the authoritative current splat carve rather than stale Ghidra rows."""
+    return matchdiff.symbol_slot(name)
 
 
 def dis(path, addr, size):
@@ -136,6 +110,28 @@ def aligned_opcodes(target, candidate, show_all=False, structural=False):
     }
 
 
+def candidate_disassembly(name, addr, target_size):
+    """Disassemble exactly the candidate text the linker placed.
+
+    Old versions guessed the end by taking the first ``jr ra`` near the target
+    size.  A function with an early return therefore lost its real tail (the
+    72-instruction check_for_known_button_combination was displayed as 65).
+    The map's per-object .text extent is authoritative for a compiled draft.
+    Keep the old return heuristic only as a fallback for artifacts whose map
+    has no C-object entry.
+    """
+    linked = matchdiff.linked_text_size(name)
+    if linked is not None:
+        return dis(OURS, addr, max(linked, 4))
+
+    ours = dis(OURS, addr, target_size + 0x100)
+    jrs = [i for i, (_, insn) in enumerate(ours)
+           if insn.startswith("jr ra")
+           and i + 1 >= (target_size // 4) - 0x40]
+    end = jrs[0] + 2 if jrs else len(ours)
+    return ours[:end]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
@@ -175,12 +171,7 @@ def main():
 
     addr, size = resolve(args.name)
     tgt = dis(ORIG, addr, size)
-    # our side may be longer/shorter: disassemble with slack, cut at last jr ra
-    ours = dis(OURS, addr, size + 0x100)
-    jrs = [i for i, (_, x) in enumerate(ours) if x.startswith("jr ra")
-           and i + 1 >= (size // 4) - 0x40]
-    oe = jrs[0] + 2 if jrs else len(ours)
-    ours = ours[:oe]
+    ours = candidate_disassembly(args.name, addr, size)
 
     t = [x[1] for x in tgt]
     o = [x[1] for x in ours]

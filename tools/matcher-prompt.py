@@ -131,6 +131,12 @@ GUIDANCE = [
     "break the specific copy-chain / shorten the live range it names instead of "
     "guessing. (This is a genuine sub-C tie class; cap effort and NON_MATCHING it "
     "if regalloc.py shows the target's register is unreachable from C.)",
+    "If an indexed table loop and a pointer cursor have the same final induction "
+    "instructions but the preheader addresses are scheduled in the wrong order, "
+    "try `T[index]` with an `s32` index. loop.c can eliminate that BIV and create "
+    "the strength-reduced pointer GIV later, changing its RTL UID/order without "
+    "changing the loop body. Require `.loop` BIV/GIV evidence and `.sched2` "
+    "confirmation (check_for_known_button_combination).",
     "N loads adjacent with no use between them are source temps (us/ty), even if "
     "the scheduler later scatters their stores.",
     "Before inventing a `D_XXXXXXXX` name or an anonymous struct layout for an "
