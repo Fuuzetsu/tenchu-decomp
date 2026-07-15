@@ -30,6 +30,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern unsigned char *ImagePath;
+ *     extern unsigned char *CID;
  *     extern int StageID;
  * END PSX.SYM */
 
@@ -62,8 +63,8 @@
  *    buffer plus a cast.
  *  - Stack locals declared in ADDRESS order (fn@0x18, block@0xE0, cmd@0x20E0,
  *    result@0x20E4) to reproduce the 0x20F8 frame exactly.
- *  - `D_80097D8C` is this TU's gp small (a `char *` POINTER variable itself,
- *    not an array — the asm `lw a2,%gp_rel(D_80097D8C)($gp)` loads its
+ *  - `CID` is this TU's gp small (a `char *` POINTER variable itself,
+ *    not an array — the asm `lw a2,%gp_rel(CID)($gp)` loads its
  *    VALUE); Build.hs maspsxGpExterns / tools/gpsyms.py confirm it's the
  *    only %gp_rel symbol in this function.
  *  - D_80097D90/D_80097D98 sit in the same INFOVIEW.C string-table run as
@@ -76,7 +77,7 @@ extern u8 *ImagePath;
 extern s32 StageID;
 extern char D_80097D90[];  /* "%s%s" */
 extern char D_80097D98[];  /* "%s\%d\%s" */
-extern char *D_80097D8C;   /* "BISLPS_00000" */
+extern char *CID;   /* "BISLPS_00000" */
 extern char D_800141A4[];  /* "file read error" */
 extern char D_80014168[];  /* "card error %d" */
 
@@ -119,7 +120,7 @@ void *LoadSI(int target, u8 *name)
         ret = 0;
         goto done;
     }
-    sprintf(fn, D_80097D98, D_80097D8C, StageID, name);
+    sprintf(fn, D_80097D98, CID, StageID, name);
     MemCardReadFile(0, fn, block, 0, 0x2000);
     MemCardSync(0, &cmd, &result);
     if (result != 0)

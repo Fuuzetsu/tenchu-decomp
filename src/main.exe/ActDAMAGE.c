@@ -26,6 +26,7 @@
  *     extern struct MotionManager *dtM;
  *     extern struct SVECTOR *dtV;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct VECTOR *dtL;
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
@@ -56,7 +57,7 @@ extern VECTOR *dtL;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 
 extern s16 Sound(Humanoid *human, s16 id);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
@@ -110,7 +111,7 @@ void ActDAMAGE(void)
             Me_MOTION_C->map.height < 0)
         {
             motID = 0x1007;
-            D_80097F0E = 0;
+            motMODE = 0;
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 0x3c);
@@ -155,7 +156,7 @@ void ActDAMAGE(void)
             Me_MOTION_C->map.height < 0)
         {
             motID = 0x1008;
-            D_80097F0E = 0;
+            motMODE = 0;
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 0x3c);
@@ -174,7 +175,7 @@ void ActDAMAGE(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = 0x1009;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto check_done;
         }
         dtV->vx = dtV->vx - (dtV->vx >> 2);
@@ -210,7 +211,7 @@ void ActDAMAGE(void)
         if (Me_MOTION_C->life - (s16)Me_MOTION_C->lifemax >= dtM->loop)
         {
             motID = 0x100c;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         goto check_done;
 
@@ -283,14 +284,14 @@ check_done:
 
             motID = 0x501;
             attribute = *(u16 *)&human->attribute;
-            D_80097F0E = 1;
+            motMODE = 1;
             attribute = (attribute & 0xfffc) | 2;
             *(u16 *)&human->attribute = attribute;
         }
         else
         {
             motID = 0x80e;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
     }
 }

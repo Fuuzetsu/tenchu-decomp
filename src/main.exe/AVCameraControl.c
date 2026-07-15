@@ -27,6 +27,8 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsRVIEW2 ViewInfo;
+ *     extern short CameraPanMode;
+ *     extern struct Humanoid *CameraTarget;
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 

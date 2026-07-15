@@ -14,8 +14,10 @@
  *     extern short dtPAD;
  *     extern struct Humanoid *StagePlayer;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct SVECTOR *dtR;
  *     extern short dtCMD;
+ *     extern short SelectedItem;
  * END PSX.SYM */
 
 /*
@@ -30,10 +32,10 @@ extern Humanoid *Me_MOTION_C;
 extern s16 dtPAD;
 extern Humanoid *StagePlayer;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern SVECTOR *dtR;
 extern s16 dtCMD;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern s16 SelectedItem;
 
 extern int rand(void);
 extern s16 Sound(Humanoid *human, s16 id);
@@ -55,38 +57,38 @@ void ActNORMAL(void)
             if (dtPAD & 0x4000)
             {
                 motID = 0x102;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             }
             if (dtPAD & 0x2000)
             {
                 motID = 0x101;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             }
             if (dtPAD & 0x8000)
             {
                 motID = 0x106;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             }
             if (dtPAD & 0x1000)
             {
                 motID = 0x100;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             return;
         }
         if (dtPAD & 0x2000)
         {
             motID = 1;
-            D_80097F0E = 0;
+            motMODE = 0;
             goto common_action;
         }
         if (dtPAD & 0x8000)
         {
             motID = 2;
-            D_80097F0E = 0;
+            motMODE = 0;
             goto common_action;
         }
         if (dtM->count == 0 && rand() % 100 == 0)
@@ -94,7 +96,7 @@ void ActNORMAL(void)
             int random;
             short random_motion;
 
-            D_80097F0E = 1;
+            motMODE = 1;
             random = rand();
             random_motion = 0x105;
             if (random & 1)
@@ -113,7 +115,7 @@ void ActNORMAL(void)
         else
         {
             motID = 0;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         break;
 
@@ -124,7 +126,7 @@ void ActNORMAL(void)
         if (rotation_value == 0)
         {
             motID = 0;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else
         {
@@ -140,7 +142,7 @@ common_action:
     if (Me_MOTION_C->attribute & 0x40)
     {
         motID = 0x501;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
 
@@ -166,17 +168,17 @@ common_action:
 
 command_1:
         motID = 0x202;
-        D_80097F0E = command;
+        motMODE = command;
         return;
 
 command_2:
         motID = 0x203;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
 command_3:
         motID = 0x205;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
 command_0:
@@ -191,7 +193,7 @@ command_0:
         }
         if (trig & 0x10)
         {
-            switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+            switch ((short)(SelectedItem + 1))
             {
             case 2:
                 motID = 0xe00;
@@ -217,7 +219,7 @@ command_0:
             default:
                 goto item_default;
             }
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
 
 item_sound:
@@ -226,38 +228,38 @@ item_sound:
 
 item_default:
             ReqItemDefault(Me_MOTION_C,
-                           CURRENTLY_SELECTED_ITEM_KIND_0_);
+                           SelectedItem);
             return;
         }
         if (dtPAD & 0x20)
         {
             motID = 0xb00;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         if (dtPAD & 0x1000)
         {
             motID = 0x200;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         if (dtPAD & 0x4000)
         {
             motID = 0x201;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         if (trig & 0x80)
         {
             motID = 0x80e;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         return;
     }
 
 command_4:
         motID = 0x204;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
 }

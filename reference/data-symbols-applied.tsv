@@ -1,9 +1,14 @@
-# Data symbols newly DEFINED in config/symbols.main.exe.txt.
+# Global/data names adopted in config/symbols.main.exe.txt.
 # datamatch     = reference alignment inside functions named on both sides
 #                 (tools/datamatch.py; 100% control precision on 105 addrs)
+# datamatch-reloc = the same reference alignment after inferring PSX.SYM data
+#                   -> demo PSX.EXE data relocation from 323/323 unique anchors;
+#                   raw reverse uniqueness and duplicate-static TU checks apply.
 # ghidra-export = already named in the Ghidra program for THIS binary but
 #                 never adopted, because import_symbols could only rename
 #                 existing entries, not define new ones.
+# The historical ghidra-export batch also contains address-keyed SDK/text labels;
+# the source column records provenance rather than asserting storage section.
 #addr	name	source	evidence	storage	type
 80010000	PersistentState	ghidra-export	same binary, address-keyed	?	?
 80012980	MusicTable	ghidra-export	same binary, address-keyed	?	?
@@ -161,3 +166,77 @@
 800c77dc	_svm_pg	datamatch	VOTES3	?	?
 800c77e4	_svm_vh	datamatch	VOTES4	?	?
 800dc000	MemoryPool	ghidra-export	same binary, address-keyed	?	?
+
+# Calibrated relocation batch (2026-07-15); full address pair and witnesses
+# are retained in the evidence column.
+8008e5bc	ItemImage	datamatch-reloc	VOTES18;PSX=801d6490;DEMO=801d67e8;WITNESSES=PutItemIcon,PutItemList,ReqItemDokudango,ReqItemDrop,ReqItemFire,ReqItemGoshikimai,ReqItemGosin,ReqItemHenshin,ReqItemJirai,ReqItemKaengeki,ReqItemKawarimi,ReqItemKusuri,ReqItemLightningBolt,ReqItemMakibishi,ReqItemManebue,ReqItemNingyo,ReqItemNinken,ReqItemSmoke	EXT	struct Sprite3D *[25]
+8008f2a0	CD_cbsync	datamatch-reloc	VOTES8;PSX=8008e4d4;DEMO=8008e82c;WITNESSES=CD_cw,CD_init,CD_initintr,CD_sync,CdControl,CdControlB,CdControlF,CdSyncCallback	?	?
+8008f2a4	CD_cbready	datamatch-reloc	VOTES5;PSX=8008e4d8;DEMO=8008e830;WITNESSES=CD_cw,CD_init,CD_initintr,CD_sync,CdReadyCallback	?	?
+8008f2a8	CD_debug	datamatch-reloc	VOTES6;PSX=8008e4e0;DEMO=8008e838;WITNESSES=CD_cw,CdSetDebug,ISO9660_OBJ_108,ISO9660_OBJ_2F8,ISO9660_OBJ_660,ISO9660_OBJ_7F0	?	?
+8008f2ac	CD_status	datamatch-reloc	VOTES5;PSX=8008e4e4;DEMO=8008e83c;WITNESSES=CD_init,CdControl,CdControlB,CdControlF,CdStatus	?	?
+8008f2b0	CD_status1	datamatch-reloc	VOTES2;PSX=8008e4e8;DEMO=8008e840;WITNESSES=CD_init,CD_initintr	?	?
+8008f2bc	CD_mode	datamatch-reloc	VOTES3;PSX=8008e4f4;DEMO=8008e84c;WITNESSES=CD_cw,CD_init,CdMode	?	?
+8008f2bd	CD_com	datamatch-reloc	VOTES5;PSX=8008e4f5;DEMO=8008e84d;WITNESSES=CD_cw,CD_datasync,CD_init,CD_sync,CdLastCom	?	?
+8008f2c4	CD_comstr	datamatch-reloc	VOTES3;PSX=8008e4fc;DEMO=8008e854;WITNESSES=CD_cw,CD_datasync,CD_sync	?	?
+8008f344	CD_intstr	datamatch-reloc	VOTES3;PSX=8008e57c;DEMO=8008e8d4;WITNESSES=CD_cw,CD_datasync,CD_sync	?	?
+8008f7d8	_snd_vmask	datamatch-reloc	VOTES4;PSX=8008e92c;DEMO=8008ec84;WITNESSES=SsUtAllKeyOff,_SsVmSeqKeyOff,_SsVmSetSeqVol,vmNoiseOn	?	?
+8008f990	_spu_rev_reserve_wa	datamatch-reloc	VOTES2;PSX=8008eb54;DEMO=8008eeac;WITNESSES=SpuMalloc,_SpuInit	?	?
+8008f994	_spu_rev_offsetaddr	datamatch-reloc	VOTES2;PSX=8008eb58;DEMO=8008eeb0;WITNESSES=SpuMalloc,_SpuInit	?	?
+8008f9b0	_spu_RQmask	datamatch-reloc	VOTES2;PSX=8008eb74;DEMO=8008eecc;WITNESSES=_SpuInit,_SpuSetAnyVoice	?	?
+8008f9e4	_spu_env	datamatch-reloc	VOTES2;PSX=8008efa8;DEMO=8008f300;WITNESSES=_SpuInit,_SpuSetAnyVoice	?	?
+8008f9f8	_spu_RXX	datamatch-reloc	VOTES12;PSX=8008efbc;DEMO=8008f314;WITNESSES=SPU_OBJ_280,SPU_OBJ_390,SPU_OBJ_D4,S_SVA_OBJ_1A0,S_SVA_OBJ_280,S_SVA_OBJ_480,SpuSetVoiceAttr,_SpuSetAnyVoice,_spu_FsetRXX,_spu_FsetRXXa,_spu_init,_spu_t	?	?
+8008fa10	_spu_tsa	datamatch-reloc	VOTES6;PSX=8008efd4;DEMO=8008f32c;WITNESSES=SPU_OBJ_280,SPU_OBJ_D4,SpuSetTransferStartAddr,_spu_Fw,_spu_init,_spu_t	?	?
+8008fa14	_spu_transMode	datamatch-reloc	VOTES3;PSX=8008efd8;DEMO=8008f330;WITNESSES=_SpuInit,_spu_Fw,_spu_init	?	?
+8008fa1c	_spu_mem_mode	datamatch-reloc	VOTES2;PSX=8008efe0;DEMO=8008f338;WITNESSES=SPU_OBJ_D4,_spu_FsetRXXa	?	?
+8008fa20	_spu_mem_mode_plus	datamatch-reloc	VOTES8;PSX=8008efe4;DEMO=8008f33c;WITNESSES=SPU_OBJ_D4,S_M_M_OBJ_54,SpuMalloc,SpuSetTransferStartAddr,_spu_FsetRXX,_spu_FsetRXXa,_spu_Fw,_spu_t	?	?
+8008fa24	_spu_mem_mode_unit	datamatch-reloc	VOTES2;PSX=8008efe8;DEMO=8008f340;WITNESSES=SPU_OBJ_D4,_spu_FsetRXXa	?	?
+8008fa28	_spu_mem_mode_unitM	datamatch-reloc	VOTES3;PSX=8008efec;DEMO=8008f344;WITNESSES=SPU_OBJ_D4,S_M_M_OBJ_54,_spu_FsetRXXa	?	?
+8008fa58	_spu_AllocBlockNum	datamatch-reloc	VOTES4;PSX=8008f01c;DEMO=8008f374;WITNESSES=S_M_M_OBJ_12C,S_M_M_OBJ_54,SpuFree,_SpuInit	?	?
+8008fa5c	_spu_AllocLastNum	datamatch-reloc	VOTES5;PSX=8008f020;DEMO=8008f378;WITNESSES=S_M_INT_OBJ_270,S_M_INT_OBJ_C4,S_M_M_OBJ_12C,_SpuInit,_spu_gcSPU	?	?
+8008fa60	_spu_memList	datamatch-reloc	VOTES7;PSX=8008f024;DEMO=8008f37c;WITNESSES=S_M_INT_OBJ_270,S_M_INT_OBJ_C4,S_M_M_OBJ_12C,S_M_M_OBJ_54,SpuFree,_SpuInit,_spu_gcSPU	?	?
+80096868	Font	datamatch-reloc	VOTES3;PSX=80095b2c;DEMO=80095e84;WITNESSES=FntFlush,FntLoad,FntPrint	?	?
+80097444	GPU_printf	datamatch-reloc	VOTES13;PSX=80096748;DEMO=80096aa0;WITNESSES=ClearOTag,ClearOTagR,DrawOTag,DrawOTagEnv,DrawSync,DrawSyncCallback,PutDispEnv,PutDrawEnv,ResetGraph,SetDispMask,SetDumpFnt,SetGraphDebug,SetGraphQueue	?	?
+80097b1e	SelectedItem	datamatch-reloc	VOTES8;PSX=80097ebe;DEMO=80098216;WITNESSES=ActCHASE,ActENGAGE,ActITEM,ActMOVE,ActNORMAL,ActSWIM,ItemControl,PutItemList	EXT	short
+80097b20	ItemCursor	datamatch-reloc	VOTES2;PSX=80097ec0;DEMO=80098218;WITNESSES=DoInfoViewProc,PutItemList	STAT	short
+80097cb0	StageSE	datamatch-reloc	VOTES2;PSX=80098064;DEMO=800983bc;WITNESSES=SetupSoundEffect,SoundEx	EXT	struct SoundEffect *
+80097cb4	VoiceMode	datamatch-reloc	VOTES2;PSX=80098068;DEMO=800983c0;WITNESSES=CVAsequence,Sound	EXT	short
+80097cb8	CVAdata	datamatch-reloc	VOTES2;PSX=8009806c;DEMO=800983c4;WITNESSES=CVAsequence,CVAsetup	STAT	struct CVAType *
+80097cbc	CVAnow	datamatch-reloc	VOTES4;PSX=80098070;DEMO=800983c8;WITNESSES=AVCameraSetup,CVArun,CVAsequence,CVAupdate	STAT	struct CVAType *
+80097cc4	CameraTarget	datamatch-reloc	VOTES3;PSX=80098078;DEMO=800983d0;WITNESSES=AVCameraControl,AVCameraSetup,CVAupdate	STAT	struct Humanoid *
+80097cca	CameraPanMode	datamatch-reloc	VOTES2;PSX=8009807e;DEMO=800983d6;WITNESSES=AVCameraControl,CVAupdate	STAT	short
+80097d04	TENCHU_ID	datamatch-reloc	VOTES3;PSX=800980c8;DEMO=80098420;WITNESSES=DeleteCard,LoadCard,SaveCard	STAT	unsigned char *
+80097d44	CurrentEnemyID	datamatch-reloc	VOTES2;PSX=80097ef0;DEMO=80098248;WITNESSES=AddEnemy,LayoutEnemyOption	STAT	int
+80097d8c	CID	datamatch-reloc	VOTES2;PSX=80097ec8;DEMO=80098220;WITNESSES=LoadSI,SaveSI	STAT	unsigned char *
+80097e90	AdtPadRead	datamatch-reloc	VOTES3;PSX=800980e0;DEMO=80098438;WITNESSES=AdtMessageBox,AdtSelect,main	?	?
+80097f0e	motMODE	datamatch-reloc	VOTES28;PSX=8009814a;DEMO=800984a2;WITNESSES=ActACTION,ActATTACK,ActCHASE,ActDAMAGE,ActENGAGE,ActHANG,ActITEM,ActJUMP,ActKAGI,ActMOVE,ActNORMAL,ActSQUAT,ActSTATE,ActSTICKON,ActSWIM,ActSYURI,AttackControl,DamageControl,FallCheck,HangCheck,HumanActionControl,ItemControl,JumpControl,MotionAndMove,NowReturnNormal,ReturnNormal,StickonCheck,SwimCheck	STAT	short
+80097f28	ModelHook	datamatch-reloc	VOTES2;PSX=80098158;DEMO=800984b0;WITNESSES=InitEffect,SetWire	STAT	struct ModelType *
+80097f48	SyurikenModel	datamatch-reloc	VOTES3;PSX=80098180;DEMO=800984d8;WITNESSES=InitializeItem,ReqItemLaunch,ReqItemUse	STAT	struct ModelType *
+80097f4c	ArrowModel	datamatch-reloc	VOTES2;PSX=80098184;DEMO=800984dc;WITNESSES=InitializeItem,ReqItemArrow	STAT	struct ModelType *
+80097f50	NingyoModel	datamatch-reloc	VOTES2;PSX=80098188;DEMO=800984e0;WITNESSES=InitializeItem,ProcItemNingyo	STAT	struct ModelType *
+80097f54	HappouModel	datamatch-reloc	VOTES2;PSX=8009818c;DEMO=800984e4;WITNESSES=InitializeItem,ProcItemHappou	STAT	struct ModelType *
+80097f5c	sprNapalm	datamatch-reloc	VOTES2;PSX=80098190;DEMO=800984e8;WITNESSES=InitializeItem,ReqItemUse	STAT	struct Sprite3D *
+80097f60	sprNapalm2	datamatch-reloc	VOTES2;PSX=80098194;DEMO=800984ec;WITNESSES=InitializeItem,ProcItemNapalm	STAT	struct Sprite3D *
+800c63f8	CLIP2	datamatch-reloc	VOTES2;PSX=801d62c0;DEMO=801d6618;WITNESSES=GS_001_OBJ_1F8,GsSetDrawBuffClip	?	?
+800c6400	PSDCNT	datamatch-reloc	VOTES6;PSX=801eb144;DEMO=801eb49c;WITNESSES=GS_001_OBJ_1F8,GS_133_OBJ_21C,GS_133_OBJ_30,GS_134_OBJ_21C,GS_134_OBJ_30,GsSwapDispBuff	?	?
+800c6404	PSDIDX	datamatch-reloc	VOTES7;PSX=801eb148;DEMO=801eb4a0;WITNESSES=GS_001_OBJ_520,GsGetActiveBuff,GsInitGraph,GsSetDrawBuffClip,GsSetDrawBuffOffset,GsSortClear,GsSwapDispBuff	?	?
+800c6406	PSDGPU	datamatch-reloc	VOTES4;PSX=801eb154;DEMO=801eb4ac;WITNESSES=GS_001_OBJ_74,GsDefDispBuff,GsInitGraph2,GsSetDrawBuffOffset	?	?
+800c6408	DSTACK	datamatch-reloc	VOTES4;PSX=801ea838;DEMO=801eab90;WITNESSES=GS_133_OBJ_30,GS_134_OBJ_30,GsGetLs,GsGetLw	?	?
+800c6488	HWD0	datamatch-reloc	VOTES4;PSX=801d59e4;DEMO=801d5d3c;WITNESSES=GS_001_OBJ_1F8,GsInit3D,GsSortClear,GsSortObject4	?	?
+800c6494	GsLIGHT_MODE	datamatch-reloc	VOTES3;PSX=801ea8b8;DEMO=801eac10;WITNESSES=GsInit3D,GsSetLightMode,OBJT2_OBJ_E0	?	?
+800c6498	GsCLIP3near	datamatch-reloc	VOTES2;PSX=801ea8bc;DEMO=801eac14;WITNESSES=GsInit3D,GsSetNearClip	?	?
+800c6584	GsTON	datamatch-reloc	VOTES33;PSX=801d97e0;DEMO=801d9b38;WITNESSES=GsSortObject4,GsTMDfastF3L,GsTMDfastF3LFG,GsTMDfastF3NL,GsTMDfastF4L,GsTMDfastF4LFG,GsTMDfastF4NL,GsTMDfastG3L,GsTMDfastG3LFG,GsTMDfastG3NL,GsTMDfastG4L,GsTMDfastG4LFG,GsTMDfastG4NL,GsTMDfastNF3,GsTMDfastNF4,GsTMDfastNG3,GsTMDfastNG4,GsTMDfastTF3L,GsTMDfastTF3LFG,GsTMDfastTF3NL,GsTMDfastTF4L,GsTMDfastTF4LFG,GsTMDfastTF4NL,GsTMDfastTG3L,GsTMDfastTG3LFG,GsTMDfastTG3NL,GsTMDfastTG4L,GsTMDfastTG4LFG,GsTMDfastTG4NL,GsTMDfastTNF3,GsTMDfastTNF4,GsTMDfastTNG3,GsTMDfastTNG4	?	?
+800c6758	_snd_openflag	datamatch-reloc	VOTES2;PSX=801d62b0;DEMO=801d6608;WITNESSES=SsSeqCalledTbyT,_SsInit	?	?
+800c675c	VBLANK_MINUS	datamatch-reloc	VOTES2;PSX=801ea820;DEMO=801eab78;WITNESSES=TEMPO_OBJ_130,_SsInit	?	?
+800c6760	_ss_score	datamatch-reloc	VOTES10;PSX=801ea8c0;DEMO=801eac18;WITNESSES=SsSeqCalledTbyT,TEMPO_OBJ_130,_SsGetSeqData,_SsSeqGetEof,_SsSndCrescendo,_SsSndNextSep,_SsSndPause,_SsSndReplay,_SsSndStop,_SsSndTempo	?	?
+800c6fe8	_svm_okon1	datamatch-reloc	VOTES5;PSX=801b3ca0;DEMO=801b3ff8;WITNESSES=_SsVmFlush,_SsVmInit,_SsVmKeyOffNow,_SsVmKeyOnNow,vmNoiseOn	?	?
+800c6fea	_svm_okon2	datamatch-reloc	VOTES5;PSX=801b3ca2;DEMO=801b3ffa;WITNESSES=_SsVmFlush,_SsVmInit,_SsVmKeyOffNow,_SsVmKeyOnNow,vmNoiseOn	?	?
+800c6fec	_svm_orev1	datamatch-reloc	VOTES4;PSX=801b3ca4;DEMO=801b3ffc;WITNESSES=_SsVmFlush,_SsVmInit,_SsVmKeyOnNow,vmNoiseOn	?	?
+800c6fee	_svm_orev2	datamatch-reloc	VOTES4;PSX=801b3ca6;DEMO=801b3ffe;WITNESSES=_SsVmFlush,_SsVmInit,_SsVmKeyOnNow,vmNoiseOn	?	?
+800c7520	_autopan	datamatch-reloc	VOTES2;PSX=801d62b8;DEMO=801d6610;WITNESSES=SsUtAutoPan,_SsVmFlush	?	?
+800c7528	_svm_sreg_buf	datamatch-reloc	VOTES3;PSX=801d6308;DEMO=801d6660;WITNESSES=_SsVmFlush,_SsVmInit,_SsVmSetSeqVol	?	?
+800c76f0	_svm_okof1	datamatch-reloc	VOTES5;PSX=801f2dac;DEMO=801f3104;WITNESSES=_SsVmFlush,_SsVmInit,_SsVmKeyOffNow,_SsVmKeyOnNow,vmNoiseOn	?	?
+800c76f2	_svm_okof2	datamatch-reloc	VOTES4;PSX=801f2dae;DEMO=801f3106;WITNESSES=_SsVmFlush,_SsVmKeyOffNow,_SsVmKeyOnNow,vmNoiseOn	?	?
+800c77e8	_svm_tn	datamatch-reloc	VOTES4;PSX=801d59d8;DEMO=801d5d30;WITNESSES=SsUtKeyOnV,_SsVmSetSeqVol,_SsVmVSetUp,note2pitch2	?	?
+800c77ec	_SsVmMaxVoice	datamatch-reloc	VOTES6;PSX=801d59e0;DEMO=801d5d38;WITNESSES=SsUtAllKeyOff,_SsVmFlush,_SsVmInit,_SsVmSeqKeyOff,_SsVmSetSeqVol,vmNoiseOn	?	?
+800c7820	_svm_auto_kof_mode	datamatch-reloc	VOTES2;PSX=801d64fc;DEMO=801d6854;WITNESSES=_SsVmFlush,_SsVmInit	?	?
+800c7868	_svm_vab_count	datamatch-reloc	VOTES2;PSX=801eb1b8;DEMO=801eb510;WITNESSES=SsVabClose,_SsVmInit	?	?

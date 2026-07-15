@@ -48,7 +48,7 @@
  * two ways (both confirmed against the .s, not just Ghidra):
  *  - `it->model` is unconditionally set from a single fixed global pointer
  *    (Ghidra/the export name it `sprSmoke`, confirmed at 0x80097a68 in
- *    .shake/ghidra-export) — no D_8008E5BC[it->type] lookup by item type.
+ *    .shake/ghidra-export) — no ItemImage[it->type] lookup by item type.
  *  - the end vector is packed into a DIFFERENT param-union view than
  *    param_korogari: tools/access.py shows three plain sh stores at pp+0,
  *    pp+2, pp+4 (Ghidra's "napalm.vec.vx/vy/vz"), not param_korogari's
@@ -83,7 +83,7 @@ extern void ProcItemNemuri(tag_TItem *item);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model sprite (Ghidra/export name: sprSmoke); unlike the
- * D_8008E5BC[]-indexing twins this is a single global, not per-type. */
+ * ItemImage[]-indexing twins this is a single global, not per-type. */
 extern Sprite3D *sprSmoke;
 
 int ReqItemNemuri(PARAM_ITEM_USE *p)

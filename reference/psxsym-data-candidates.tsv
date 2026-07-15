@@ -3,18 +3,52 @@
 # instruction block; two independent functions rarely agree by
 # accident.  Re-run tools/datamatch.py --min-votes 1 to see them
 # in context, and confirm by reading the referencing function.
-#addr	current	candidate	storage	type
-80011004	D_80011004	gspOp6	EXT	struct GsSPRITE
-800975f4	D_800975F4	_padFuncNextPort	?	?
-80097600	D_80097600	_padFuncCurrLimit	?	?
-80098040	D_80098040	Packet	EXT	unsigned char [2][65536]
-800c6380	D_800C6380	GsDRAWENV	?	?
-800c6490	D_800C6490	GsCLIP3far	?	?
-800c64e0	D_800C64E0	GsWSMATRIX_ORG	?	?
-800c657c	D_800C657C	GsMATE_C	?	?
-800c66c0	D_800C66C0	SsFCALL	?	?
-800c7508	D_800C7508	_svm_sreg_dirty	?	?
-800c76f8	D_800C76F8	_svm_rattr	?	?
-800c7790	D_800C7790	_svm_damper	?	?
-800c77da	D_800C77DA	kMaxPrograms	?	?
-800c79c0	D_800C79C0	_spu_RQ	?	?
+#addr	current	candidate	storage	type	psxsym_addr	demo_addr	witnesses
+80011004	D_80011004	gspOp6	EXT	struct GsSPRITE	801b4458	801b47b0	main
+8008f200	D_8008F200	_stacksize	?	?	8008e434	8008e78c	__SN_ENTRY_POINT
+8008f204	D_8008F204	_ramsize	?	?	8008e438	8008e790	__SN_ENTRY_POINT
+8008f2b4	D_8008F2B4	CD_nopen	?	?	8008e4ec	8008e844	CdSearchFile
+8008f2b8	D_8008F2B8	CD_pos	?	?	8008e4f0	8008e848	CdLastPos
+8008f7c8	D_8008F7C8	GsADIVZ	?	?	8008e91c	8008ec74	jt_init4
+8008f7cc	D_8008F7CC	GsADIVW	?	?	8008e920	8008ec78	jt_init4
+8008f7ce	D_8008F7CE	GsADIVH	?	?	8008e922	8008ec7a	jt_init4
+8008f984	D_8008F984	_spu_keystat	?	?	8008eb48	8008eea0	_SpuInit
+8008f988	D_8008F988	_spu_trans_mode	?	?	8008eb4c	8008eea4	_SpuInit
+8008f98c	D_8008F98C	_spu_rev_flag	?	?	8008eb50	8008eea8	_SpuInit
+8008f9ac	D_8008F9AC	_spu_RQvoice	?	?	8008eb70	8008eec8	_SpuInit
+8008f9b4	D_8008F9B4	_spu_voice_centerNote	?	?	8008eb78	8008eed0	SpuSetVoiceAttr
+8008f9e8	D_8008F9E8	_spu_isCalled	?	?	8008efac	8008f304	SpuStart
+8008fa18	D_8008FA18	_spu_addrMode	?	?	8008efdc	8008f334	_spu_init
+8008fa2c	D_8008FA2C	_spu_inTransfer	?	?	8008eff0	8008f348	SPU_OBJ_D4
+8008fa30	D_8008FA30	_spu_transferCallback	?	?	8008eff4	8008f34c	SPU_OBJ_D4
+8008fa34	D_8008FA34	_spu_IRQCallback	?	?	8008eff8	8008f350	SPU_OBJ_D4
+8008ff88	D_8008FF88	_spu_rev_startaddr	?	?	8008f02c	8008f384	_SpuInit
+800956e8	D_800956E8	Hcount	?	?	800949ac	80094d04	VSync
+80096818	D_80096818	Vcount	?	?	80095adc	80095e34	VSync
+800975f4	D_800975F4	_padFuncNextPort	?	?	801d56f4	801d5a4c	PadInitDirect
+800975f8	D_800975F8	_padFuncClrInfo	?	?	801eb15c	801eb4b4	PadInitDirect
+800975fc	D_800975FC	_padFuncGetTxd	?	?	801d64f8	801d6850	PadInitDirect
+80097600	D_80097600	_padFuncCurrLimit	?	?	801d58ac	801d5c04	PadInitDirect
+80097624	D_80097624	_padInfoDir	?	?	800979c4	80097d1c	PadInitDirect
+80097628	D_80097628	_padIntExec	?	?	800979c8	80097d20	PadInitDirect
+80097cc0	D_80097CC0	CVAtime	STAT	short	80098074	800983cc	CVArun
+80097cc8	D_80097CC8	CameraSpeed	STAT	short	8009807c	800983d4	AVCameraControl
+80097f3c	D_80097F3C	AfterIMG	STAT	struct GsIMAGE *	80098160	800984b8	InitEffect
+80098040	D_80098040	Packet	EXT	unsigned char [2][65536]	801b5658	801b59b0	StartDrawing
+800c6380	D_800C6380	GsDRAWENV	?	?	801d5900	801d5c58	GsSetDrawBuffClip
+800c6490	D_800C6490	GsCLIP3far	?	?	801d6288	801d65e0	GsInit3D
+800c64e0	D_800C64E0	GsWSMATRIX_ORG	?	?	801d5750	801d5aa8	GsSetRefView2
+800c657c	D_800C657C	GsMATE_C	?	?	801d5700	801d5a58	GsSortObject4
+800c6588	D_800C6588	GsNDIV	?	?	801eb200	801eb558	GsSortObject4
+800c66c0	D_800C66C0	SsFCALL	?	?	801b3db0	801b4108	_SsGetSeqData
+800c67e0	D_800C67E0	_SsMarkCallback	?	?	801ea940	801eac98	_SsInit
+800c6fe0	D_800C6FE0	_snd_seq_s_max	?	?	801eb140	801eb498	SsSeqCalledTbyT
+800c6fe2	D_800C6FE2	_snd_seq_t_max	?	?	801eb142	801eb49a	SsSeqCalledTbyT
+800c7508	D_800C7508	_svm_sreg_dirty	?	?	801d5658	801d59b0	_SsVmFlush
+800c76a8	D_800C76A8	_autovol	?	?	801d6488	801d67e0	_SsVmFlush
+800c76ac	D_800C76AC	_svm_envx_ptr	?	?	801d7fd8	801d8330	_SsVmFlush
+800c76b0	D_800C76B0	_svm_envx_hist	?	?	801f2d68	801f30c0	_SsVmFlush
+800c76f8	D_800C76F8	_svm_rattr	?	?	801b44f8	801b4850	_SsVmInit
+800c7790	D_800C7790	_svm_damper	?	?	801d57c0	801d5b18	_SsVmInit
+800c77da	D_800C77DA	kMaxPrograms	?	?	801d5978	801d5cd0	_SsVmVSetUp
+800c79c0	D_800C79C0	_spu_RQ	?	?	801d5810	801d5b68	SPU_OBJ_D4

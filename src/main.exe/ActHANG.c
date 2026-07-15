@@ -28,6 +28,7 @@
  *     extern short dtPAD;
  *     extern struct VECTOR *dtL;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
@@ -53,10 +54,10 @@
  *    an `lh` (no sll/sra) — wrong shape.
  *  - Case bodies are emitted in SOURCE order; the original's order is the
  *    MEMORY order 0, 2/3, 4, 1 (case 1 last, falling into the shared tail;
- *    its `motID = 0xA00; D_80097F0E = 1;` island is the physically-last copy
+ *    its `motID = 0xA00; motMODE = 1;` island is the physically-last copy
  *    that case 0's 0xA02/0xA03 stores cross-jump onto, leaving each
  *    predecessor just its own `li` in the branch delay slot).
- *  - `D_80097F0E = 1;` written literally per arm (never hoisted/shared);
+ *  - `motMODE = 1;` written literally per arm (never hoisted/shared);
  *    cc1's cross-jump does all the merging (same rule as ActSYURI.c).
  *  - dtPAD (u16) is `lhu`-loaded for the case-0 mask tests but the original
  *    spells case 2/3's test on a SIGNED view — `((s16)dtPAD & 0xA000)` gives
@@ -69,9 +70,9 @@
  *    load), while a multi-pred label forces the fresh dtM loads elsewhere.
  *  - The climb loop is a plain bottom-tested `do { } while (HangCheck());`
  *    (`y` = PSX.SYM's `long y`, callee-saved across the call); the case-0
- *    GetAreaMapLevel `1` (5th arg) and `D_80097F0E = 1` unify into one
+ *    GetAreaMapLevel `1` (5th arg) and `motMODE = 1` unify into one
  *    call-crossing $s0 pseudo via cse, no named variable.
- *  - gp-externs: dtV, dtM, dtPAD, dtL, motID, D_80097F0E, Me_MOTION_C.
+ *  - gp-externs: dtV, dtM, dtPAD, dtL, motID, motMODE, Me_MOTION_C.
  *    StagePlayer/GlobalAreaMap stay absolute.
  */
 
@@ -80,7 +81,7 @@ extern MotionManager *dtM;
 extern u16 dtPAD;
 extern VECTOR *dtL;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern u32 *GlobalAreaMap;
@@ -108,22 +109,22 @@ void ActHANG(void)
                 dtL->vy = y;
             } while (HangCheck() != 0);
             motID = 0x803;
-            D_80097F0E = 0;
+            motMODE = 0;
         }
         else if (dtPAD & 0x2000)
         {
             motID = 0xA02;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else if (dtPAD & 0x8000)
         {
             motID = 0xA03;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else if ((dtPAD & 0x1000) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != 0x80000000)
         {
             motID = 0xA04;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         break;
     case 2:
@@ -131,12 +132,12 @@ void ActHANG(void)
         if (((s16)dtPAD & 0xA000) == 0)
         {
             motID = 0xA00;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else if (HangCheck() == 0)
         {
             motID = 0x803;
-            D_80097F0E = 0;
+            motMODE = 0;
         }
         if (dtM->count == 1)
         {
@@ -153,11 +154,11 @@ void ActHANG(void)
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             }
             motID = 0;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         if (dtM->count >= 0)
@@ -173,7 +174,7 @@ void ActHANG(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = 0xA00;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         break;
     }
@@ -181,7 +182,7 @@ void ActHANG(void)
     {
         MoveHumanoid(Me_MOTION_C, -10, 0);
         motID = 0x803;
-        D_80097F0E = 0;
+        motMODE = 0;
     }
 }
 

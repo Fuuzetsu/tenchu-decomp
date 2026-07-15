@@ -71,7 +71,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AdtSelect", AdtSelec
 
 #else /* NON_MATCHING */
 
-extern s32 (*AdtReadPadFunc)(s32);
+extern s32 (*AdtPadRead)(s32);
 extern void AdtGetDisp(u8 *buf);
 extern void AdtReleaseDisp(u8 *buf);
 extern void DrawPrim(u8 *prim);
@@ -104,7 +104,7 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
 
     do
     {
-    } while (AdtReadPadFunc(0) != 0);
+    } while (AdtPadRead(0) != 0);
 
     if (title == 0)
         title = D_80014AFC;
@@ -128,7 +128,7 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
     {
         DrawPrim(buf + 0x8078);
         trg = pad;
-        pad = AdtReadPadFunc(0);
+        pad = AdtPadRead(0);
         trg = ~trg & pad;
         page = selection / 0x12;
         first = page * 0x12;

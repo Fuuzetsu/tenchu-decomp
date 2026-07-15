@@ -34,6 +34,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_TItem items[30];
+ *     extern struct ModelType *SyurikenModel;
  * END PSX.SYM */
 
 /*
@@ -44,8 +45,8 @@
  * dispose-on-exhaustion block); like ReqItemJirai/ReqItemDokudango there is
  * no GetAreaMapLevel floor check. It gets ProcItemLaunch as its processor.
  *
- * Unlike every other twin, `it->model` is a FIXED global (D_80097F48), not
- * D_8008E5BC[it->type]. The tail hands the flight to SetupFly (trajectory
+ * Unlike every other twin, `it->model` is a FIXED global (SyurikenModel), not
+ * ItemImage[it->type]. The tail hands the flight to SetupFly (trajectory
  * from p->start to p->end) and then wires up an afterimage trail via
  * SetupAfterimage, stamping its returned struct's two SVECTOR fields and
  * recording the pointer + a trailing count byte in it->param, all at raw
@@ -75,7 +76,7 @@
  *    SetupFly's second argument (same "st survives to a late call" shape as
  *    ReqItemMakibishi's SoundEx(st, ...)).
  *  - us/ty are real temps, same shape as the other twins.
- *  - `it->coll_size = 0; it->model = D_80097F48;` immediately precede
+ *  - `it->coll_size = 0; it->model = SyurikenModel;` immediately precede
  *    SetupFly, same position as the other twins' coll_size/model pair
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
@@ -113,8 +114,8 @@ extern AfterimageType *SetupAfterimage(Sprite3D *model, s32 n);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model for launched items (not indexed by type, unlike the other
- * twins' D_8008E5BC[it->type]). */
-extern Sprite3D *D_80097F48;
+ * twins' ItemImage[it->type]). */
+extern Sprite3D *SyurikenModel;
 
 int ReqItemLaunch(PARAM_ITEM_USE *p)
 {
@@ -171,7 +172,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = D_80097F48;
+    it->model = SyurikenModel;
     SetupFly(pp, st, &p->end, 0x400, 0x400, 0x12c);
     *(u8 *)((u8 *)it->param + 0x28) = 0;
     ai = SetupAfterimage(it->model, 10);

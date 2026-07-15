@@ -27,6 +27,7 @@
  *     extern struct MotionManager *dtM;
  *     extern short RefrectMove[16][2];
  *     extern struct VECTOR *dtL;
+ *     extern short motMODE;
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */

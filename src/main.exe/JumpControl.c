@@ -13,6 +13,7 @@
  *     extern struct VECTOR *dtL;
  *     extern struct MotionManager *dtM;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct Humanoid *StagePlayer;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR *dtV;
@@ -86,7 +87,7 @@ extern Humanoid *StagePlayer;
 extern ConflictObjectType ConflictObject[64];
 extern SVECTOR *dtV;
 extern u16 dtPAD;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern void FUN_80033bc0(VECTOR *pos, int a, int b, int c);
@@ -108,7 +109,7 @@ void JumpControl(void)
             if (!((GetMotionID(dtM, 0x906) << 16) < 0))
             {
                 motID = 0x906;
-                D_80097F0E = 0;
+                motMODE = 0;
                 MoveHumanoid(Me_MOTION_C, 0x7F, 0);
                 if (Me_MOTION_C == StagePlayer)
                 {
@@ -127,14 +128,14 @@ void JumpControl(void)
             dtL->vz = ConflictObject[id].position.vz;
         }
         motID = 0x900;
-        D_80097F0E = 0;
+        motMODE = 0;
         dtV->vy = 0;
         if (dtPAD & 0x1000)
         {
             if (!((GetMotionID(dtM, 0x902) << 16) < 0))
             {
                 motID = 0x902;
-                D_80097F0E = 0;
+                motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, 100, 0);
         }
@@ -143,7 +144,7 @@ void JumpControl(void)
             if (!((GetMotionID(dtM, 0x903) << 16) < 0))
             {
                 motID = 0x903;
-                D_80097F0E = 0;
+                motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
@@ -152,7 +153,7 @@ void JumpControl(void)
             if (!((GetMotionID(dtM, 0x904) << 16) < 0))
             {
                 motID = 0x904;
-                D_80097F0E = 0;
+                motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, 0, -100);
         }
@@ -161,7 +162,7 @@ void JumpControl(void)
             if (!((GetMotionID(dtM, 0x905) << 16) < 0))
             {
                 motID = 0x905;
-                D_80097F0E = 0;
+                motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, 0, 100);
         }

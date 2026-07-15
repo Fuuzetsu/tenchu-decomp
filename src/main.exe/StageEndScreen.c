@@ -10,6 +10,7 @@
  *     extern int StageID;
  *     extern struct GsOT *OTablePt;
  *     extern long GameClock;
+ *     extern struct Sprite3D *ItemImage[25];
  *     extern short SkipFrame;
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
@@ -106,7 +107,7 @@ extern StageEndConfigEntry StageConfig[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
-extern StageRankIcon *D_8008E5BC[];
+extern StageRankIcon *ItemImage[];
 extern StageEndCameraStatus CamState;
 extern s32 StageID;
 extern s32 GameClock;
@@ -479,7 +480,7 @@ void StageEndScreen(void)
 
             if ((s16)stack.current.value[5] == 4)
             {
-                icon = &D_8008E5BC[D_8008ED50[CHOSEN_STAGE]]->sprite;
+                icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
                 icon->x = -0x78;
                 icon->y = 0x38;
                 icon->scalex = 0x1000;
@@ -1193,7 +1194,7 @@ layout_done:
 // extern u8 D_80010048;
 // extern u8 D_8001005C;
 // extern s32 D_8001046C;
-// extern ? D_8008E5BC;
+// extern ? ItemImage;
 // extern s16 D_8008EA78;
 // extern ? D_8008ED50;
 // extern s32 GameClock;
@@ -1834,7 +1835,7 @@ layout_done:
 //                     sp84 = temp_v0_10;
 //                     GsSortSprite(&sp70, OTablePt, 1);
 //                     if ((s16) sp5A == 4) {
-//                         temp_s0_34 = *((*((CHOSEN_STAGE * 2) + &D_8008ED50) * 4) + &D_8008E5BC) + 0x68;
+//                         temp_s0_34 = *((*((CHOSEN_STAGE * 2) + &D_8008ED50) * 4) + &ItemImage) + 0x68;
 //                         temp_s0_34->unk4 = -0x78;
 //                         temp_s0_34->unk6 = 0x38;
 //                         temp_s0_34->unk1C = 0x1000;

@@ -28,6 +28,7 @@
  *     extern long GameClock;
  *     extern struct GsSPRITE NumberImage;
  *     extern struct GsOT *OTablePt;
+ *     extern struct Sprite3D *sprNapalm2;
  * END PSX.SYM */
 
 extern s32 StrainRatio;

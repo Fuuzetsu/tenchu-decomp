@@ -60,6 +60,7 @@
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
  *     extern struct GsOT *OTablePt;
+ *     extern struct ModelType *ModelHook;
  * END PSX.SYM */
 
 #ifndef NON_MATCHING
@@ -97,7 +98,7 @@ typedef struct
 extern WireViewInfo ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern GsOT *OTablePt;
-extern WireModel *D_80097F28;
+extern WireModel *ModelHook;
 
 extern void SetTransMatrix(MATRIX *matrix);
 extern void SetRotMatrix(MATRIX *matrix);
@@ -273,14 +274,14 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         *rxp = ratan2(dy, SquareRoot0(dx * dx + dz * dz));
     }
 
-    D_80097F28->locate.coord.t[0] = x;
-    D_80097F28->locate.coord.t[1] = y;
-    D_80097F28->locate.coord.t[2] = z;
-    D_80097F28->rotate.vx = *rxp;
-    D_80097F28->rotate.vy = *ryp;
-    D_80097F28->rotate.vz = 0;
-    UpdateCoordinate(D_80097F28);
-    DrawModel(D_80097F28);
+    ModelHook->locate.coord.t[0] = x;
+    ModelHook->locate.coord.t[1] = y;
+    ModelHook->locate.coord.t[2] = z;
+    ModelHook->rotate.vx = *rxp;
+    ModelHook->rotate.vy = *ryp;
+    ModelHook->rotate.vz = 0;
+    UpdateCoordinate(ModelHook);
+    DrawModel(ModelHook);
 }
 
 #endif

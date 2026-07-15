@@ -27,6 +27,7 @@
  *     extern struct VECTOR *dtL;
  *     extern short RefrectVector[16];
  *     extern short motID;
+ *     extern short motMODE;
  * END PSX.SYM */
 
 /*
@@ -43,7 +44,7 @@
  * or its reflect value is the -1 sentinel) switches into the stick motion
  * (unless already status 0xc) and returns the query result; otherwise NULL.
  * Same original TU as dispose_weapon_data_of_char_.c/NowReturnNormal.c/
- * ReturnNormal.c/FUN_80027304.c (Me_MOTION_C, dtL, motID, D_80097F0E all
+ * ReturnNormal.c/FUN_80027304.c (Me_MOTION_C, dtL, motID, motMODE all
  * gp-relative here, matching those files' convention).
  *
  * `map` (Ghidra's own data symbol table names it "map" — the
@@ -120,7 +121,7 @@ extern Humanoid *Me_MOTION_C;
 extern VECTOR *dtL;
 extern void *GlobalAreaMap;
 extern u16 motID;
-extern u16 D_80097F0E;
+extern u16 motMODE;
 extern u16 RefrectVector[];
 extern AreaMapVectorResult map;
 extern s32 GetAreaMapVector(void *mvp, void *pos, s32 wide, s32 width, s32 flag);
@@ -157,7 +158,7 @@ void *StickonCheck(void)
     if (Me_MOTION_C->status != 0xc)
     {
         motID = 0xc00;
-        D_80097F0E = 1;
+        motMODE = 1;
     }
     return &map;
 }

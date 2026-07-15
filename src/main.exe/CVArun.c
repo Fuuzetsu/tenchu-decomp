@@ -27,6 +27,7 @@
  *     extern int StageID;
  *     extern struct GsOT *OTablePt;
  *     extern struct HumanAnimType CVAhuman[5];
+ *     extern struct CVAType *CVAnow;
  * END PSX.SYM */
 
 /*
@@ -49,7 +50,7 @@
  *     clear motion->loop and the human's x/z velocity) or (status != DEAD)
  *     start the queued motid via SetNowMotion and clear the slot.
  * Finally advances the CVA frame counter (D_80097CC0) and, once it reaches
- * the current event's own duration (CHOSEN_EVENT_LIST_THING_LOCATION->mode,
+ * the current event's own duration (CVAnow->mode,
  * the same field AVCameraSetup dispatches on — the event record doubles as
  * a duration when read this way), advances to the next 12-byte event
  * record and calls CVAupdate for the new one; returns 1 while still
@@ -117,7 +118,7 @@ typedef struct
     s16 param; /* 0xA */
 } EventListEntry;
 
-extern EventListEntry *CHOSEN_EVENT_LIST_THING_LOCATION;
+extern EventListEntry *CVAnow;
 extern s16 D_80097CC0;
 
 extern void ComputeAllConflict(void);
@@ -200,9 +201,9 @@ short CVArun(void)
     }
 
     D_80097CC0++;
-    if (D_80097CC0 >= CHOSEN_EVENT_LIST_THING_LOCATION->mode)
+    if (D_80097CC0 >= CVAnow->mode)
     {
-        CHOSEN_EVENT_LIST_THING_LOCATION = (EventListEntry *)((u8 *)CHOSEN_EVENT_LIST_THING_LOCATION + 0xC);
+        CVAnow = (EventListEntry *)((u8 *)CVAnow + 0xC);
         return CVAupdate();
     }
     return 1;

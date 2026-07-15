@@ -71,7 +71,7 @@ extern u8 D_8001005C;
 extern u8 D_8001044C[5];
 extern u8 D_80010451[5];
 extern s32 D_80010458[5];
-extern Sprite3D *D_8008E5BC[];
+extern Sprite3D *ItemImage[];
 extern s16 D_8008ED50[];
 
 extern s32 GameClock;
@@ -387,7 +387,7 @@ void mission_score_screen(void)
 
         if (result.grade == RANK_GRAND_MASTER)
         {
-            medal = &D_8008E5BC[D_8008ED50[CHOSEN_STAGE]]->sprite;
+            medal = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
             medal->x = 0x8A;
             medal->y = -0xE;
             medal->scalex = 0x1000;

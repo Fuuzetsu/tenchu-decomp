@@ -34,13 +34,16 @@
  *     reg   $s1       long zz
  *     reg   $s2       long xx
  *     reg   $a1       struct VECTOR * player
+ *
+ * Globals it touches, as the original declared them:
+ *     extern short VoiceMode;
  * END PSX.SYM */
 
 /*
  * Sound (0x8004ff10) — play a character's sound effect. `seid` with any of the
  * high nibble set (0xf0) is an explicit id: play it at the character's position.
  * Otherwise it's a "category" (< 0x10): ids >= 6 are gated by a global mute
- * (D_80097CB4) and the character's 0x80 attribute (e.g. dead/silent), and the
+ * (VoiceMode) and the character's 0x80 attribute (e.g. dead/silent), and the
  * character's own default sound (Humanoid.sound) is OR'd in.
  *
  * Matching notes (this was a parked 5-byte NON_MATCHING; the fix needed BOTH
@@ -66,7 +69,7 @@
  *  - SoundEx returns s16 here (item.h) — the result is Sound's return, so the
  *    `return -1` guards branch straight to the epilogue past its sign-extend.
  */
-extern s16 D_80097CB4;
+extern s16 VoiceMode;
 
 short Sound(Humanoid *human, short seid)
 {
@@ -74,7 +77,7 @@ short Sound(Humanoid *human, short seid)
         return SoundEx(human->locate, seid);
     }
     if (seid > 5) {
-        if (D_80097CB4 != 0) {
+        if (VoiceMode != 0) {
             return -1;
         }
         if ((human->attribute & 0x80) != 0) {

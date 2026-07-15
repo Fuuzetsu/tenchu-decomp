@@ -24,6 +24,8 @@
  *     reg   $a1       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
+ *     extern struct CVAType *CVAnow;
+ *     extern struct Humanoid *CameraTarget;
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
@@ -31,13 +33,13 @@
 /*
  * AVCameraSetup (0x80051074, 0x1b4 bytes) — sets ViewInfo's target position
  * (vpx/vpy/vpz) from a "camera event" record (CHOSEN_EVENT_LIST_THING_
- * LOCATION, already-named — a cursor into PERSISTENT_EVENT_LIST_THING) whose
+ * LOCATION, already-named — a cursor into CVAdata) whose
  * `.mode`@0x2 dispatches: 4 = fixed point (x/y/z@0x4/0x6/0x8, scaled *100);
- * 0..3 = orbit D_80097CC4 (the active camera-owner Humanoid, set by
+ * 0..3 = orbit CameraTarget (the active camera-owner Humanoid, set by
  * CVAsequence to StagePlayer) at a computed angle via GetMoveSpeed, offset
- * by D_80097CC4->locate; 5 = re-target a NEW humanoid (GetHumanoid(event's
+ * by CameraTarget->locate; 5 = re-target a NEW humanoid (GetHumanoid(event's
  * `.param`@0xA), bailing with no GsSetRefView2 call if not found) and adopt
- * it as the new D_80097CC4. item.h's Humanoid (rotate@0x3C, locate@0x38,
+ * it as the new CameraTarget. item.h's Humanoid (rotate@0x3C, locate@0x38,
  * height@0xE) accounts for every field read here.
  *
  * Matching notes (docs/matching-cookbook.md):
@@ -93,8 +95,8 @@ typedef struct
     s16 param; /* 0xA (orbit ordr override, or the mode-5 humanoid id) */
 } EventListEntry;
 
-extern EventListEntry *CHOSEN_EVENT_LIST_THING_LOCATION;
-extern Humanoid *D_80097CC4;
+extern EventListEntry *CVAnow;
+extern Humanoid *CameraTarget;
 
 extern Humanoid *GetHumanoid(s16 type);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);
@@ -107,7 +109,7 @@ void AVCameraSetup(void)
     SVECTOR vect;
     s32 ry;
 
-    event = CHOSEN_EVENT_LIST_THING_LOCATION;
+    event = CVAnow;
     if (event->mode == 4)
     {
         goto case4;
@@ -125,12 +127,12 @@ void AVCameraSetup(void)
 case_orbit:
     if (event->mode >= 0)
     {
-        ry = (u16)D_80097CC4->rotate->vy + (event->mode << 10);
+        ry = (u16)CameraTarget->rotate->vy + (event->mode << 10);
         vect.pad = (s16)ry;
         GetMoveSpeed(&vect, (s16)ry, (event->param != 0) ? event->param : 3000, 0);
-        ViewInfo.vpx = D_80097CC4->locate->vx + vect.vx;
-        ViewInfo.vpy = (D_80097CC4->locate->vy - D_80097CC4->height) + 300;
-        ViewInfo.vpz = D_80097CC4->locate->vz + vect.vz;
+        ViewInfo.vpx = CameraTarget->locate->vx + vect.vx;
+        ViewInfo.vpy = (CameraTarget->locate->vy - CameraTarget->height) + 300;
+        ViewInfo.vpz = CameraTarget->locate->vz + vect.vz;
     }
     goto tail;
 
@@ -149,7 +151,7 @@ case5:
     ViewInfo.vpx = human->locate->vx;
     ViewInfo.vpy = (human->locate->vy - human->height) + 300;
     ViewInfo.vpz = human->locate->vz;
-    D_80097CC4 = human;
+    CameraTarget = human;
 
 tail:
     GsSetRefView2(&ViewInfo);

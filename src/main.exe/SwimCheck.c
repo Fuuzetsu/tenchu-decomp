@@ -32,6 +32,7 @@
  *     extern struct VECTOR *dtL;
  *     extern struct Humanoid *StagePlayer;
  *     extern short ActionHalt;
+ *     extern short motMODE;
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
@@ -58,7 +59,7 @@ extern Humanoid *StagePlayer;
 extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
 extern SwimConflictObject ConflictObject[64];
@@ -152,7 +153,7 @@ short SwimCheck(void)
         if ((s16)motion < 0 || Me_MOTION_C->life == 0)
         {
             motID = 0x1108;
-            D_80097F0E = 1;
+            motMODE = 1;
             Sound(Me_MOTION_C, 8);
             Me_MOTION_C->life = 0;
             ReqLifeBar(Me_MOTION_C);
@@ -160,7 +161,7 @@ short SwimCheck(void)
         else
         {
             motID = 0x300;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
 
         if (MotionUpdateMode != 0)
@@ -175,8 +176,8 @@ short SwimCheck(void)
                 j++;
             } while (j < 5);
         }
-        SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-        D_80097F0E = -1;
+        SetNowMotion(Me_MOTION_C, motID, motMODE);
+        motMODE = -1;
     motion_done:
         Sound(Me_MOTION_C, 0x16);
         reset_alert_duration();

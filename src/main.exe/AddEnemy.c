@@ -37,6 +37,7 @@
  *     extern int StageID;
  *     extern struct ThinkDBtype ThinkDB[20];
  *     extern struct TCameraStatus CamState;
+ *     extern int CurrentEnemyID;
  * END PSX.SYM */
 
 /*
@@ -127,7 +128,7 @@ extern s16 *CHARACTER_KINDS_PER_STAGE[];
 extern s32 StageID;
 extern AddEnemyThinkDB ThinkDB[20];
 extern AddEnemyCameraStatus CamState;
-extern s32 D_80097D44;
+extern s32 CurrentEnemyID;
 
 extern char D_80013FA8[];
 extern char D_80013FB4[];
@@ -268,7 +269,7 @@ void AddEnemy(void)
     y = model->locate.coord.t[1];
     r = model->rotate.vy;
     z = model->locate.coord.t[2];
-    D_80097D44 = leSetEnemy(type, (s16)think, x, y, z, r);
+    CurrentEnemyID = leSetEnemy(type, (s16)think, x, y, z, r);
     human = BreedLife(type, x, y, z, 0);
     human->model->rotate.vy = r;
     human->target = (ModelType *)CamState.Owner->model;

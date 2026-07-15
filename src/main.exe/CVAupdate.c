@@ -24,11 +24,15 @@
  *     reg   $s0       long i
  *
  * Globals it touches, as the original declared them:
+ *     extern struct CVAType *CVAnow;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct SVECTOR UnitVector;
  *     extern struct Humanoid *StagePlayer;
  *     extern unsigned long *GlobalAreaMap;
+ *     extern struct Humanoid *CameraTarget;
+ *     extern short CameraPanMode;
+ *     extern struct CVAType *CVAdata;
  *     extern struct GsIMAGE Images[52];
  *     extern int StageID;
  * END PSX.SYM */

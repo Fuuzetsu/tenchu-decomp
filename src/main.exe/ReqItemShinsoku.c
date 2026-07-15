@@ -45,7 +45,7 @@
  * GetAreaMapLevel floor check. It gets ProcItemShinsoku as its processor, but
  * differs from every other twin in three ways (all confirmed against the
  * .s, not just Ghidra):
- *  - `it->model` is unconditionally zeroed — no D_8008E5BC[it->type] lookup.
+ *  - `it->model` is unconditionally zeroed — no ItemImage[it->type] lookup.
  *  - the end vector is packed into a DIFFERENT param-union view than
  *    param_korogari: tools/access.py shows three PLAIN sh stores at pp+0,
  *    pp+2, pp+4 (Ghidra's "napalm.vec.vx/vy/vz"), not param_korogari's

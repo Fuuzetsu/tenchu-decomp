@@ -22,11 +22,14 @@
  *     param $a0       short mode
  *     param $a1       short stage
  *     stack sp+24     unsigned char [100] name
+ *
+ * Globals it touches, as the original declared them:
+ *     extern struct SoundEffect *StageSE;
  * END PSX.SYM */
 
 /*
  * SetupSoundEffect (0x8004fe70, 0xA0 bytes) — (re)load the stage's ambient
- * sound bank: dispose any previous STAGE_SOUNDS_POINTER, then (if `stage`
+ * sound bank: dispose any previous StageSE, then (if `stage`
  * is a real stage index, i.e. >= 0) build
  * "<language-prefix>STAGE<stage><'A'|'R'>.VAB" and hand it to
  * FileRead + SetupSE.
@@ -56,7 +59,7 @@ extern u_long *FileRead(char *path);
 extern void *SetupSE(u8 *vab);
 extern void sprintf(char *s, char *fmt, ...);
 
-extern void *STAGE_SOUNDS_POINTER;
+extern void *StageSE;
 extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[];
 extern char D_8001359C[]; /* "%sSTAGE%d%c.VAB" */
@@ -65,15 +68,15 @@ void SetupSoundEffect(short mode, short stage)
 {
     char buf[104];
 
-    if (STAGE_SOUNDS_POINTER != 0)
+    if (StageSE != 0)
     {
-        DisposeSE(STAGE_SOUNDS_POINTER);
+        DisposeSE(StageSE);
     }
-    STAGE_SOUNDS_POINTER = 0;
+    StageSE = 0;
     if (stage >= 0)
     {
         sprintf(buf, D_8001359C, STAGE_SOUND_PREFICES[CHOSEN_LANGUAGE], stage,
                 mode == 0 ? 0x52 : 0x41);
-        STAGE_SOUNDS_POINTER = SetupSE((u8 *)FileRead(buf));
+        StageSE = SetupSE((u8 *)FileRead(buf));
     }
 }

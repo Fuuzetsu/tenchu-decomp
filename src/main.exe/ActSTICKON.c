@@ -34,13 +34,13 @@
  *     extern short RefrectVector[16];
  *     extern short dtCMD;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtV;
+ *     extern short SelectedItem;
  *     extern struct NodeIndexType *FieldIndex;
- *     extern struct VECTOR *dtL;
- *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
 /*
@@ -123,14 +123,14 @@ extern SVECTOR *dtV;
 extern VECTOR *dtL;
 extern s16 dtCMD;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 MotionUpdateMode;
 extern s16 dtPAD;
 extern s16 RefrectVector[16];
 extern HumanAnimType CVAhuman[5];
 extern Humanoid *StagePlayer;
 extern TCameraStatus CamState;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern s16 SelectedItem;
 extern s32 D_80097EF0;
 
 extern StickonMapVector *StickonCheck(void);
@@ -173,7 +173,7 @@ void ActSTICKON(void)
             if (map == 0)
             {
                 motID = 0xB00;
-                D_80097F0E = 1;
+                motMODE = 1;
                 dtM->mask = 0x7FFF;
                 return;
             }
@@ -268,7 +268,7 @@ case0_command_14:
             motID = 0xB07;
 
 case0_command_flag:
-            D_80097F0E = 1;
+            motMODE = 1;
 
 case0_command_done:
             if ((s8)((u16)motID >> 8) == 0xB)
@@ -284,8 +284,8 @@ case0_command_done:
                         }
                     }
                 }
-                SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-                D_80097F0E = -1;
+                SetNowMotion(Me_MOTION_C, motID, motMODE);
+                motMODE = -1;
 case0_motion_done:
                 dtM->count = -5;
                 goto common_end;
@@ -387,7 +387,7 @@ camera_right:
 
 camera_done:
 
-            selected_item = CURRENTLY_SELECTED_ITEM_KIND_0_;
+            selected_item = SelectedItem;
             high_item = selected_item;
             D_80097EF0 = selected_item;
             if (selected_item < 6)
@@ -408,7 +408,7 @@ camera_done:
             }
             else
             {
-                D_80097F0E = 1;
+                motMODE = 1;
                 motID = pd;
                 dtM->mask = -2;
             }
@@ -462,7 +462,7 @@ case12_command_14:
             motID = 0xB07;
 
 case12_command_flag:
-            D_80097F0E = 1;
+            motMODE = 1;
 
 case12_command_done:
             if ((s8)((u16)motID >> 8) == 0xB)
@@ -478,8 +478,8 @@ case12_command_done:
                         }
                     }
                 }
-                SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-                D_80097F0E = -1;
+                SetNowMotion(Me_MOTION_C, motID, motMODE);
+                motMODE = -1;
 case12_motion_done:
                 dtM->count = -5;
                 goto common_end;
@@ -569,7 +569,7 @@ case12_motion_done:
 
 case12_no_pad:
         motID = 0xC00;
-        D_80097F0E = 1;
+        motMODE = 1;
         dtM->mask = 0x7FFF;
         goto common_end;
     }
@@ -669,7 +669,7 @@ item_dokudango:
 item_done:
         }
         motID = 0xC00;
-        D_80097F0E = 1;
+        motMODE = 1;
         dtM->mask = 0x7FFF;
         return;
     }
@@ -694,7 +694,7 @@ common_end:
         {
             motID = 0;
         }
-        D_80097F0E = 1;
+        motMODE = 1;
     }
 }
 

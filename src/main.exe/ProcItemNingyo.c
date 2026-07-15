@@ -59,7 +59,7 @@ extern ConflictObjectType ConflictObject[];
 extern SVECTOR ConflictDistance;
 extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
-extern ModelType *D_80097F50;
+extern ModelType *NingyoModel;
 
 extern void MoveKorogari(tag_TItem *item, param_korogari *param);
 extern s16 InsertConflict(ModelType *model);
@@ -113,6 +113,7 @@ extern MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
  *     extern short Humans;
  *     extern struct TCameraStatus CamState;
  *     extern struct Humanoid *HumanGroup[32];
+ *     extern struct ModelType *NingyoModel;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
@@ -287,8 +288,8 @@ draw_mode0:
         RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
         ScaleMatrix(&item->locate->locate.coord, &scratch.vectors.v);
         item->locate->locate.flg = 0;
-        D_80097F50->locate = item->locate->locate;
-        DrawModel(D_80097F50);
+        NingyoModel->locate = item->locate->locate;
+        DrawModel(NingyoModel);
         if (param->count < 16)
         {
             return;
@@ -469,8 +470,8 @@ draw_mode0:
         }
 
         UpdateCoordinate(item->locate);
-        D_80097F50->locate = item->locate->locate;
-        DrawModel(D_80097F50);
+        NingyoModel->locate = item->locate->locate;
+        DrawModel(NingyoModel);
         return;
     }
     }

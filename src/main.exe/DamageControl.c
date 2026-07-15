@@ -64,7 +64,7 @@ extern SVECTOR *dtV;
 extern u32 *GlobalAreaMap;
 extern s16 MotionUpdateMode;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 ActionHalt;
 extern s16 EngageLevel;
 extern s16 Criticals;
@@ -139,12 +139,12 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct BattleType BattleDB[78];
  *     extern struct VECTOR *dtL;
+ *     extern short motMODE;
  *     extern short Criticals;
  *     extern short Murders;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short ActionHalt;
  *     extern struct MotionManager *dtM;
- *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
 /*
@@ -290,13 +290,13 @@ void DamageControl(void)
     ReqLifeBar(Me_MOTION_C);
     if (Me_MOTION_C->life != 0) {
       motID = 0x1000;
-      D_80097F0E = 1;
+      motMODE = 1;
       Sound(Me_MOTION_C,6);
       reset_alert_duration();
     }
     else {
       motID = 0x1100;
-      D_80097F0E = 1;
+      motMODE = 1;
       if ((Me_MOTION_C->type != 0xa9) &&
          ((StagePlayer == enemy || (enemy == (Humanoid *)1)))) {
         if ((Me_MOTION_C->attribute & 0x42U) == 0) {
@@ -322,8 +322,8 @@ LAB_8001d954:
         }
       }
     }
-    SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
-    D_80097F0E = -1;
+    SetNowMotion(Me_MOTION_C,motID,motMODE);
+    motMODE = -1;
   }
 LAB_8001d9c0:
     AttackCancelControl(3);
@@ -346,11 +346,11 @@ LAB_8001da00:
   }
   if ((Me_MOTION_C->attribute & 0x40U) != 0) {
     motID = 0x501;
-    D_80097F0E = 1;
+    motMODE = 1;
   }
   else {
     motID = 0;
-    D_80097F0E = 1;
+    motMODE = 1;
   }
   dtL->vy = dtL->vy + -1;
   return;
@@ -406,7 +406,7 @@ LAB_8001da70:
                     (((iVar11 >> 0x10) + (int)((u32)iVar11 >> 0x1f)) >> 1);
       local_38.vz = dtL->vz;
     }
-      D_80097F0E = 1;
+      motMODE = 1;
       SetBlood(&local_38,5,0x5a);
       break;
     case 0x13:
@@ -426,7 +426,7 @@ LAB_8001da70:
       }
   LAB_8001dc08:
       motID = next_mot;
-      D_80097F0E = 1;
+      motMODE = 1;
       break;
     case 3:
     case 5:
@@ -454,13 +454,13 @@ LAB_8001da70:
       }
       if (iVar11 < 0x400) {
         motID = 0x1005;
-        D_80097F0E = 0;
+        motMODE = 0;
         dtR->vy = dtR->vy + item_direction;
         MoveHumanoid(Me_MOTION_C,-0x46,0);
       }
       else {
         motID = 0x1006;
-        D_80097F0E = 0;
+        motMODE = 0;
         dtR->vy = item_direction + dtR->vy + 0x800;
         MoveHumanoid(Me_MOTION_C,0x46,0);
       }
@@ -477,7 +477,7 @@ LAB_8001da70:
       Me_MOTION_C->life = 0;
       if (1 < (u32)(u16)motID - 0x1005) {
         motID = 0x1100;
-        D_80097F0E = 1;
+        motMODE = 1;
       }
       Sound(Me_MOTION_C,8);
       {
@@ -762,7 +762,7 @@ LAB_8001e6d8:
         short i;
 
         motID = 0x1100;
-        D_80097F0E = 1;
+        motMODE = 1;
         if (MotionUpdateMode != 0) {
           for (i = 0; i < 5; i++) {
             if (CVAhuman[i].human == pHVar14) {
@@ -770,12 +770,12 @@ LAB_8001e6d8:
             }
           }
         }
-        SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
-        D_80097F0E = -1;
+        SetNowMotion(Me_MOTION_C,motID,motMODE);
+        motMODE = -1;
 LAB_8001e91c:
         if ((rand() & 1) != 0) {
           motID = 0x1101;
-          D_80097F0E = 1;
+          motMODE = 1;
         }
         goto LAB_8001e994;
       }
@@ -822,7 +822,7 @@ LAB_8001e994:
       }
       dtM->mid = -1;
       motID = D_80086B6C[deg];
-      D_80097F0E = 0;
+      motMODE = 0;
 LAB_8001eaa8:
       reset_alert_duration();
     }
@@ -879,7 +879,7 @@ LAB_8001ec30:
     Me_MOTION_C->life = Me_MOTION_C->lifemax;
     if (1 < (u32)(u16)motID - 0x1005) {
       motID = 0x1002;
-      D_80097F0E = 1;
+      motMODE = 1;
     }
   }
   pHVar17 = Me_MOTION_C;
@@ -889,11 +889,11 @@ LAB_8001ec30:
     dtV->vz = 0;
     pSVar1->vx = 0;
     if (pHVar17->life != 0) {
-      D_80097F0E = 0xffff;
+      motMODE = 0xffff;
       return;
     }
     motID = 0x1108;
-    D_80097F0E = 1;
+    motMODE = 1;
   }
  {
   short i;
@@ -905,8 +905,8 @@ LAB_8001ec30:
       }
     }
   }
-  SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
-  D_80097F0E = -1;
+  SetNowMotion(Me_MOTION_C,motID,motMODE);
+  motMODE = -1;
  }
   return;
 }

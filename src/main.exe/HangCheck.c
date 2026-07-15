@@ -33,6 +33,7 @@
  *     extern struct SVECTOR *dtR;
  *     extern unsigned long *GlobalAreaMap;
  *     extern short MotionUpdateMode;
+ *     extern short motMODE;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
@@ -147,7 +148,7 @@
  *  - `GlobalAreaMap` and `StagePlayer` are accessed via ABSOLUTE `lui/lw`
  *    (not `%gp_rel`) in this TU — left as plain externs, not added to the
  *    gp-extern list (only Me_MOTION_C/motID/dtL/dtR/MotionUpdateMode/
- *    D_80097F0E are gp-relative here, confirmed by `tools/gpsyms.py`).
+ *    motMODE are gp-relative here, confirmed by `tools/gpsyms.py`).
  */
 typedef struct
 {
@@ -163,7 +164,7 @@ extern s16 MotionUpdateMode;
 extern tag_CVAHumanEntry CVAhuman[5];
 extern Humanoid *StagePlayer;
 extern Humanoid *Me_MOTION_C;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 
 extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
@@ -256,7 +257,7 @@ short HangCheck(void)
         dtL->vy = dtL->vy - (0x69 - y);
     }
     motID = 0xA01;
-    D_80097F0E = 1;
+    motMODE = 1;
     if (MotionUpdateMode != 0)
     {
         for (i = 0; i < 5; i++)
@@ -267,8 +268,8 @@ short HangCheck(void)
             }
         }
     }
-    SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-    D_80097F0E = -1;
+    SetNowMotion(Me_MOTION_C, motID, motMODE);
+    motMODE = -1;
 found:
     Sound(Me_MOTION_C, 0x1B);
     if (StagePlayer != Me_MOTION_C)

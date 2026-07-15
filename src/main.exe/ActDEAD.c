@@ -85,7 +85,7 @@ extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern Humanoid *D_8009770C;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 ActionHalt;
 extern DeadCameraStatus CamState;
 extern DeadEvent *D_80086B0C[];
@@ -174,7 +174,7 @@ check_motion_end:
         dtL->vy--;
         motID = 0x1100;
         ActionHalt = 0;
-        D_80097F0E = 1;
+        motMODE = 1;
         if (dtM->count >= 10)
             return;
         PadShockAR(0, 0xff, 10, 10);

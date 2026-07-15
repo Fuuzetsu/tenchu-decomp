@@ -5,7 +5,7 @@
  * ProcItemHappou (0x8004488c) — the happou (fire cracker / bouncing bomb)
  * item processor. Every frame: fly it (MoveFly), tick its countdown; at 0 register
  * a 300-unit conflict box. Always redraw (into the shared scratch model
- * HAPPOU_SCRATCH_MODEL rather than item->model — the item's own visual is elsewhere)
+ * HappouModel rather than item->model — the item's own visual is elsewhere)
  * and re-draw its afterimage trail. If armed+primed (two flag bytes at
  * param+0x28/+0xA), detonate (SetBleeds/SoundEx, dispose). Separately, if a
  * live character sits in the conflict box, SetImpact+SoundEx+DeleteConflict
@@ -14,7 +14,7 @@
  *
  * Matching notes (see also ProcItemMakibishi.c for the collision-box
  * conventions, ProcItemManebue.c for the countdown idiom):
- *  - `objp = HAPPOU_SCRATCH_MODEL; pp = item->param;` both computed before the entry
+ *  - `objp = HappouModel; pp = item->param;` both computed before the entry
  *    mode==0xff test (objp sequential, pp's addiu fills the entry branch's
  *    delay slot) — same double lever as Makibishi's sprt/pp.
  *  - The countdown is `cnt = pp->count - 1;` (real `addiu -1`, sign-extended)
@@ -70,6 +70,7 @@
  *     reg   $s1       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
+ *     extern struct ModelType *HappouModel;
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
@@ -95,13 +96,13 @@ extern s32 is_character_state_present_on_stage_(Humanoid *h);
 extern ConflictObjectType ConflictObject[];
 /* Ghidra/m2c call this D_80097F54; bound here under a fresh name via
  * config/symbols.main.exe.txt because the data.s-internal `glabel
- * D_80097F54` (and its neighbor D_80097F48, also referenced by
+ * D_80097F54` (and its neighbor SyurikenModel, also referenced by
  * ReqItemLaunch) resolves 8 bytes low — a pre-existing accumulated-offset
  * drift in that data section, upstream of this function. Symbols bound
  * via config/symbols.main.exe.txt (LOCAL_COORDINATES_/NINKEN_CHARACTER_PTR,
  * right next to the drifted ones) resolve correctly regardless, which is
  * how this was diagnosed and is the same mechanism used to route around it. */
-extern ModelType *HAPPOU_SCRATCH_MODEL;
+extern ModelType *HappouModel;
 
 void ProcItemHappou(tag_TItem *item)
 {
@@ -112,7 +113,7 @@ void ProcItemHappou(tag_TItem *item)
     s32 i;
     s32 n;
 
-    objp = HAPPOU_SCRATCH_MODEL;
+    objp = HappouModel;
     pp = item->param;
     if (item->mode == 0xff)
     {
@@ -286,7 +287,7 @@ void ProcItemHappou(tag_TItem *item)
 // ? UpdateCoordinate(void *);                         /* extern */
 // s32 is_character_state_present_on_stage_(s32);      /* extern */
 // extern ? D_800121CC;
-// extern void *HAPPOU_SCRATCH_MODEL;
+// extern void *HappouModel;
 // extern ? ConflictObject;
 //
 // void ProcItemHappou(void *arg0) {
@@ -303,7 +304,7 @@ void ProcItemHappou(tag_TItem *item)
 //     void *var_v0;
 //     void *var_v1;
 //
-//     temp_s2 = HAPPOU_SCRATCH_MODEL;
+//     temp_s2 = HappouModel;
 //     temp_s1 = arg0 + 0x20;
 //     if (arg0->unk54 == 0xFF) {
 //         DisposeAfterimage(temp_s1->unk2C);

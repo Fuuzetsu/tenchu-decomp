@@ -27,10 +27,12 @@
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtR;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct SVECTOR *dtV;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct VECTOR *dtL;
  *     extern short dtCMD;
+ *     extern short SelectedItem;
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
@@ -76,8 +78,8 @@ extern SVECTOR *dtR;
 extern SVECTOR *dtV;
 extern s16 dtCMD;
 extern s16 motID;
-extern s16 D_80097F0E;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern s16 motMODE;
+extern s16 SelectedItem;
 extern u32 *GlobalAreaMap;
 extern Humanoid *StagePlayer;
 extern TCameraStatus CamState;
@@ -107,31 +109,31 @@ void ActSQUAT(void)
         if (dtPAD & 0x1000)
         {
             motID = 0xB01;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (dtPAD & 0x4000)
         {
             motID = 0xB02;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (dtPAD & 0x2000)
         {
             motID = 0xB03;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (dtPAD & 0x8000)
         {
             motID = 0xB04;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (Me_MOTION_C->pad.trig & 0x40)
         {
             motID = 0xB09;
-            D_80097F0E = 1;
+            motMODE = 1;
             dtR->vy += 0x800;
         }
         goto common_action;
@@ -144,12 +146,12 @@ void ActSQUAT(void)
         if ((dtPAD & 0x1000) == 0)
         {
             motID = 0xB00;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else if (Me_MOTION_C->pad.trig & 0x40)
         {
             motID = 0xB09;
-            D_80097F0E = 1;
+            motMODE = 1;
             dtR->vy += 0x800;
         }
         goto common_action;
@@ -162,7 +164,7 @@ void ActSQUAT(void)
         if ((dtPAD & 0x4000) == 0)
         {
             motID = 0xB00;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (dtPAD & 0xA000)
@@ -196,7 +198,7 @@ void ActSQUAT(void)
         if ((dtPAD & 0x2000) == 0)
         {
             motID = 0xB00;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (dtPAD & 0x4000)
@@ -216,7 +218,7 @@ void ActSQUAT(void)
         if (((s16)dtPAD & 0x8000U) == 0)
         {
             motID = 0xB00;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (dtPAD & 0x4000)
@@ -244,7 +246,7 @@ move_if_stationary:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = 0xB00;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         goto common_action;
 
@@ -257,7 +259,7 @@ move_if_stationary:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = 0xB00;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         if (dtV->vx == 0 && dtV->vz == 0)
@@ -336,7 +338,7 @@ command_14:
         motID = 0xB07;
 
 command_flag:
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
 
@@ -347,7 +349,7 @@ command_flag:
     }
     if (Me_MOTION_C->pad.trig & 0x10)
     {
-        switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+        switch ((short)(SelectedItem + 1))
         {
         case 2:
             motID = 0xE00;
@@ -373,7 +375,7 @@ command_flag:
         default:
             goto item_default;
         }
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
 item_sound:
@@ -381,7 +383,7 @@ item_sound:
         return;
 
 item_default:
-        ReqItemDefault(Me_MOTION_C, CURRENTLY_SELECTED_ITEM_KIND_0_);
+        ReqItemDefault(Me_MOTION_C, SelectedItem);
         return;
     }
 
@@ -394,11 +396,11 @@ item_default:
         if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
         {
             motID = 0x501;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         motID = 0;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
     if (D_80097F1C != 0)

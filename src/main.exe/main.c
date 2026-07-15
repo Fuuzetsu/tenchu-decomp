@@ -72,7 +72,7 @@ typedef struct
     u8 field9_0x14; /* 0x14 */
 } TCdaStatus;
 
-extern s32 (*AdtReadPadFunc)(s32 port);
+extern s32 (*AdtPadRead)(s32 port);
 extern s32 GetRealPad(s32 port);
 extern TCdaStatus CdaStatus;
 extern u32 SystemFlag;
@@ -124,7 +124,7 @@ int main(void)
     PersistentState *ps;
     u8 dead[0xF8];
 
-    AdtReadPadFunc = GetRealPad;
+    AdtPadRead = GetRealPad;
     ResetCallback();
     InitPadControl();
     InitFileSystem(2);

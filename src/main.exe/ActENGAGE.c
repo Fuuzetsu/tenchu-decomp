@@ -13,6 +13,7 @@
  *     extern struct MotionManager *dtM;
  *     extern short dtPAD;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern short dtCMD;
  *     extern short ActionHalt;
  *     extern struct SVECTOR *dtR;
@@ -20,6 +21,7 @@
  *     extern struct Humanoid *StagePlayer;
  *     extern long GameClock;
  *     extern struct VECTOR *dtL;
+ *     extern short SelectedItem;
  * END PSX.SYM */
 
 /*
@@ -28,7 +30,7 @@
  *
  * Matching notes (1,388 bytes / 347 instructions):
  *  - The successful command and item arms repeat the complete
- *    motID/D_80097F0E/return tail.  jump2 merges the stores onto the final
+ *    motID/motMODE/return tail.  jump2 merges the stores onto the final
  *    0x602 arm while retaining the target's separate constant-load islands.
  *  - The two-way switch around the camera branch leaves a referenced case
  *    label that prevents an otherwise over-aggressive cross-jump merge.
@@ -43,10 +45,10 @@ extern VECTOR *dtL;
 extern s16 dtPAD;
 extern s16 dtCMD;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 ActionHalt;
 extern s32 GameClock;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern s16 SelectedItem;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 
@@ -70,25 +72,25 @@ void ActENGAGE(void)
         if (dtPAD & 0x2000)
         {
             motID = 0x504;
-            D_80097F0E = 0;
+            motMODE = 0;
             goto engage_case_post;
         }
         if (dtPAD & 0x8000)
         {
             motID = 0x505;
-            D_80097F0E = 0;
+            motMODE = 0;
             goto engage_case_post;
         }
         if (dtCMD == 0x22)
         {
             motID = 0x712;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto engage_case_post;
         }
         if (dtCMD == 0x31)
         {
             motID = 0x907;
-            D_80097F0E = 0;
+            motMODE = 0;
             MoveHumanoid(Me_MOTION_C, 0x78, 0);
             goto engage_case_post;
         }
@@ -98,7 +100,7 @@ void ActENGAGE(void)
         if (random != (random / 20) * 20)
             goto engage_case_post;
         motID = 0x713;
-        D_80097F0E = 1;
+        motMODE = 1;
 engage_case_post:
         if (ActionHalt == -1 && dtM->count == 0)
         {
@@ -106,12 +108,12 @@ engage_case_post:
             if ((int)((u32)mask << 16) < 0)
             {
                 motID = 0x80f;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0x503;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
         break;
@@ -125,7 +127,7 @@ engage_case_post:
         if ((dtPAD & 0x2000) == 0)
         {
             motID = 0x501;
-            D_80097F0E = one;
+            motMODE = one;
         }
         break;
 
@@ -137,7 +139,7 @@ engage_case_post:
         if ((dtPAD & 0x8000) == 0)
         {
             motID = 0x501;
-            D_80097F0E = one;
+            motMODE = one;
         }
         break;
 
@@ -177,7 +179,7 @@ engage_case_post:
             {
             default:
                 motID = 0x602;
-                D_80097F0E = 1;
+                motMODE = 1;
                 break;
             case 0:
                 if (Me_MOTION_C == StagePlayer)
@@ -185,12 +187,12 @@ engage_case_post:
                 if (Me_MOTION_C->attribute & 0x40)
                 {
                     motID = 0x501;
-                    D_80097F0E = 1;
+                    motMODE = 1;
                 }
                 else
                 {
                     motID = 0;
-                    D_80097F0E = 1;
+                    motMODE = 1;
                 }
                 break;
             }
@@ -207,7 +209,7 @@ engage_case_post:
         if (dtM->loop == 0)
             return;
         motID = 0x80f;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
     case 2:
@@ -216,14 +218,14 @@ engage_case_post:
         if (dtM->loop == 0)
             return;
         motID = 0x501;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
 
     if ((Me_MOTION_C->attribute & 0x40) == 0)
     {
         motID = 0;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
     else if (dtCMD != 0)
@@ -232,23 +234,23 @@ engage_case_post:
         {
         case 0:
             motID = 0x607;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         case 0x20:
             motID = 0x70d;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         case 1:
             motID = 0x604;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         case 3:
             motID = 0x605;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         case 2:
             motID = 0x606;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         default:
             return;
@@ -264,31 +266,31 @@ engage_case_post:
         }
         if (mask & 0x10)
         {
-            switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+            switch ((short)(SelectedItem + 1))
             {
             case 2:
                 motID = 0xe00;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             case 1:
                 motID = 0x400;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             case 3:
                 motID = 0xf00;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             case 6:
                 motID = 0xf02;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             case 5:
                 motID = 0xf02;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             case 7:
                 motID = 0xf03;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             case 0:
             case 0xb:
@@ -296,7 +298,7 @@ engage_case_post:
                 return;
             default:
                 ReqItemDefault(Me_MOTION_C,
-                               (short)CURRENTLY_SELECTED_ITEM_KIND_0_);
+                               (short)SelectedItem);
                 return;
             }
         }
@@ -307,11 +309,11 @@ engage_case_post:
                 if (mask & 0x80)
                 {
                     motID = 0x70c;
-                    D_80097F0E = 1;
+                    motMODE = 1;
                     return;
                 }
                 motID = 0xb00;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             }
             else
@@ -324,13 +326,13 @@ engage_case_post:
                 if (dtPAD & 0x1000)
                 {
                     motID = 0x600;
-                    D_80097F0E = 1;
+                    motMODE = 1;
                     return;
                 }
                 if ((dtPAD & 0x4000) == 0)
                     return;
                 motID = 0x602;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
     }

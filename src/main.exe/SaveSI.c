@@ -41,6 +41,7 @@
  * Globals it touches, as the original declared them:
  *     extern unsigned char *ImagePath;
  *     extern int StageID;
+ *     extern unsigned char *CID;
  * END PSX.SYM */
 
 typedef struct
@@ -83,7 +84,7 @@ extern u8 *ImagePath;
 extern s32 StageID;
 extern char D_80097D90[];
 extern char D_80097D98[];
-extern char *D_80097D8C;
+extern char *CID;
 extern SaveSISelectBlock D_800140A8;
 extern char D_80014104[];
 extern char D_80014114[];
@@ -296,7 +297,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         goto done;
 
 create_file:
-        sprintf(fn, D_80097D98, D_80097D8C, StageID, name);
+        sprintf(fn, D_80097D98, CID, StageID, name);
         src = (u8 *)chan;
         if (msg != 0)
         {

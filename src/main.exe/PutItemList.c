@@ -31,10 +31,13 @@
  *     reg   $a0       struct GsSPRITE * spr
  *
  * Globals it touches, as the original declared them:
+ *     extern short SelectedItem;
  *     extern struct GsSPRITE NumberImage;
  *     extern struct GsSPRITE CursorImage;
  *     extern struct TCameraStatus CamState;
  *     extern struct GsOT *OTablePt;
+ *     extern short ItemCursor;
+ *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
 /*
@@ -48,10 +51,10 @@
  * stale 0xA8), if the count is nonzero draws a right-to-left digit strip
  * (same NumberImage idiom as PutNumber.c/PutLifeBar.c, same TU) unless the
  * count is the 0xFF "unlimited" sentinel, then places the item icon sprite
- * (`D_8008E5BC[i]`, PutItemIcon.c's proven `ItemIconType`) — brighter/
+ * (`ItemImage[i]`, PutItemIcon.c's proven `ItemIconType`) — brighter/
  * highlighted with the moving cursor sprite if `i` is the currently
- * selected kind (`CURRENTLY_SELECTED_ITEM_KIND_1_`), dimmer otherwise.
- * `CURRENTLY_SELECTED_ITEM_KIND_0_` records which slot actually got drawn
+ * selected kind (`ItemCursor`), dimmer otherwise.
+ * `SelectedItem` records which slot actually got drawn
  * selected this frame (reset to -1 up front).
  *
  * The digit loop is the same hand-rolled goto as PutNumber/PutLifeBar (the
@@ -64,15 +67,15 @@
  * the target's prologue setting up $s1/$s6 before the loop even starts.
  *
  * `s` (PSX.SYM: a genuine separate `unsigned int`, not just `i`) is the
- * BYTE offset into `D_8008E5BC[]` (+=4 per iteration, parallel to `i`'s
- * +=1) — a second explicit counter alongside `i`, not `D_8008E5BC[i]`
+ * BYTE offset into `ItemImage[]` (+=4 per iteration, parallel to `i`'s
+ * +=1) — a second explicit counter alongside `i`, not `ItemImage[i]`
  * re-multiplied each time.
  *
  * Residual (root-caused): both branches of the `KIND_1_ == i` test compute
- * the identical `D_8008E5BC + s` address (confirmed byte-identical in the
+ * the identical `ItemImage + s` address (confirmed byte-identical in the
  * TARGET too — it's NOT hoisted there, each branch pays for its own
  * lui+addiu). In THIS draft, reorg recognizes the shared `lui
- * %hi(D_8008E5BC)` as valid in the branch's own delay slot (executes
+ * %hi(ItemImage)` as valid in the branch's own delay slot (executes
  * unconditionally either way) and reuses it for both arms — 2 real
  * instructions cheaper than the target, which instead fills that delay
  * slot with the final shared call's `move a2,zero` (a DIFFERENT, otherwise
@@ -100,9 +103,9 @@ extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
 extern TCameraStatus CamState;
 extern GsOT *OTablePt;
-extern ItemIconType *D_8008E5BC[];
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_1_;
+extern ItemIconType *ItemImage[];
+extern s16 SelectedItem;
+extern s16 ItemCursor;
 
 extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, s32 pri);
 
@@ -121,7 +124,7 @@ void PutItemList(void)
     ItemIconType *ic;
     GsSPRITE *spr;
 
-    CURRENTLY_SELECTED_ITEM_KIND_0_ = -1;
+    SelectedItem = -1;
     x = 0x8C;
     i = 0;
     s = i;
@@ -152,7 +155,7 @@ void PutItemList(void)
                 NumberImage.u = ou;
             }
 
-            if (CURRENTLY_SELECTED_ITEM_KIND_1_ == i)
+            if (ItemCursor == i)
             {
                 CursorImage.y = 0x5C;
                 CursorImage.scalex = 0x1000;
@@ -161,8 +164,8 @@ void PutItemList(void)
                 CursorImage.x = x;
                 GsSortSprite(&CursorImage, OTablePt, 1);
 
-                ic = *(ItemIconType **)((u8 *)D_8008E5BC + s);
-                CURRENTLY_SELECTED_ITEM_KIND_0_ = i;
+                ic = *(ItemIconType **)((u8 *)ItemImage + s);
+                SelectedItem = i;
                 spr = &ic->sprite;
                 spr->x = x;
                 spr->y = 0x5C;
@@ -171,7 +174,7 @@ void PutItemList(void)
             }
             else
             {
-                ic = *(ItemIconType **)((u8 *)D_8008E5BC + s);
+                ic = *(ItemIconType **)((u8 *)ItemImage + s);
                 spr = &ic->sprite;
                 spr->x = x;
                 spr->y = 0x5C;

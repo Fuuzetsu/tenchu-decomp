@@ -26,6 +26,7 @@
  *     param $a3       short scale
  *
  * Globals it touches, as the original declared them:
+ *     extern struct Sprite3D *ItemImage[25];
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
@@ -33,7 +34,7 @@
  * PutItemIcon (0x8004c0e4) — position/scale the item-menu icon sprite for
  * ItemID and sort it into the GsOT. Same field-set as PutItemCursor
  * (x/y/scalex/scaley + GsSortSprite), but here the GsSPRITE lives embedded
- * in a per-item slot (D_8008E5BC[ItemID], the same model-pointer array the
+ * in a per-item slot (ItemImage[ItemID], the same model-pointer array the
  * Req/Proc item family indexes by it->type for `it->model`) rather than in
  * a standalone global: Ghidra's raw type extends item.h's Sprite3D (0x68
  * bytes, ends right where this GsSPRITE starts) with an embedded `sprite`
@@ -46,13 +47,13 @@ typedef struct
     GsSPRITE sprite;
 } ItemIconType;
 
-extern ItemIconType *D_8008E5BC[];
+extern ItemIconType *ItemImage[];
 extern GsOT *OTablePt;
 extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
 {
-    GsSPRITE *spr = &D_8008E5BC[ItemID]->sprite;
+    GsSPRITE *spr = &ItemImage[ItemID]->sprite;
 
     spr->x = x;
     spr->y = y;
@@ -87,13 +88,13 @@ void PutItemIcon(s32 ItemID, short x, short y, short scale)
 // temps straight from the asm; Ghidra above has the real types):
 //
 // ? GsSortSprite(void *, s32, ?);                     /* extern */
-// extern ? D_8008E5BC;
+// extern ? ItemImage;
 // extern s32 OTablePt;
 //
 // void PutItemIcon(s32 arg0, s16 arg1, s16 arg2, s16 arg3) {
 //     void *temp_a0;
 //
-//     temp_a0 = *((arg0 * 4) + &D_8008E5BC) + 0x68;
+//     temp_a0 = *((arg0 * 4) + &ItemImage) + 0x68;
 //     temp_a0->unk4 = arg1;
 //     temp_a0->unk6 = arg2;
 //     temp_a0->unk1C = arg3;

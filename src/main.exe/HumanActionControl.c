@@ -25,6 +25,7 @@
  * Globals it touches, as the original declared them:
  *     extern short dtPAD;
  *     extern short dtCMD;
+ *     extern short motMODE;
  *     extern struct SVECTOR *dtV;
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
@@ -40,7 +41,7 @@
  * jump-pad bit out of dtPAD, dispatches through `ActionFunc[human->status]`
  * (an indirect call through a proven 18-entry function-pointer table), and
  * finally runs MotionAndMove() unless the dispatched handler left
- * `D_80097F0E` at its reset sentinel (-1).
+ * `motMODE` at its reset sentinel (-1).
  *
  * THREE struct-field reads in this TU are UNSIGNED (`lhu`) against fields
  * item.h already proves SIGNED (`s16`) in other TUs — the same per-TU
@@ -59,7 +60,7 @@ extern SVECTOR *dtV;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern MotionManager *dtM;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern void (*ActionFunc[18])(void);
 extern short GetCommand(PADtype *pad);
 extern s16 FallCheck(void);
@@ -114,7 +115,7 @@ void HumanActionControl(Humanoid *human)
     dtPAD = human->pad.data;
     Me_MOTION_C = human;
     dtCMD = GetCommand(&human->pad);
-    D_80097F0E = -1;
+    motMODE = -1;
     locate = Me_MOTION_C->locate;
     motion = Me_MOTION_C->motion;
     rotate = Me_MOTION_C->rotate;
@@ -148,7 +149,7 @@ void HumanActionControl(Humanoid *human)
         dtPAD = dtPAD & 0xFFF;
     }
     ActionFunc[Me_MOTION_C->status]();
-    if (D_80097F0E != -1)
+    if (motMODE != -1)
     {
         MotionAndMove();
     }

@@ -34,6 +34,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_TItem items[30];
+ *     extern struct ModelType *ArrowModel;
  * END PSX.SYM */
 
 /*
@@ -41,8 +42,8 @@
  * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemLaunch (same item TU, same
  * pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
  * dispose-on-exhaustion block); like ReqItemLaunch, `it->model` is a FIXED
- * global (D_80097F4C, gp-relative in this TU like ReqItemLaunch's
- * D_80097F48) rather than D_8008E5BC[it->type], and the tail hands off to
+ * global (ArrowModel, gp-relative in this TU like ReqItemLaunch's
+ * SyurikenModel) rather than ItemImage[it->type], and the tail hands off to
  * SetupFly. Unlike every other twin, there's a pre-pool-search step: it
  * computes the aim direction from p->start/p->end (GetVectorRotation), packs
  * it into an SVECTOR, and feeds that to SearchItemTarget2 to find an actual
@@ -92,7 +93,7 @@
  *    halfword), so `rot.rx`/`rot.ry` are `u16`, not ReqItemLightningBolt's
  *    TU's `short *` — same "respell the callee's prototype per-TU" situation
  *    as ReqItemDefault's GetVectorRotation call.
- *  - `it->coll_size = 0; it->model = D_80097F4C;` immediately precede
+ *  - `it->coll_size = 0; it->model = ArrowModel;` immediately precede
  *    SetupFly, same position/interleaving as ReqItemLaunch.
  */
 extern void ProcItemArrow(tag_TItem *item);
@@ -103,9 +104,9 @@ extern void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s3
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model for arrows (not indexed by type, unlike the pool-drop twins'
- * D_8008E5BC[it->type]); gp-relative in this TU like ReqItemLaunch's
- * D_80097F48. */
-extern Sprite3D *D_80097F4C;
+ * ItemImage[it->type]); gp-relative in this TU like ReqItemLaunch's
+ * SyurikenModel. */
+extern Sprite3D *ArrowModel;
 
 int ReqItemArrow(PARAM_ITEM_USE *p)
 {
@@ -175,7 +176,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = D_80097F4C;
+    it->model = ArrowModel;
     SetupFly(pp, st, &target, 0, 0x800, 0x12c);
     pp[0x2c] = 5;
     return 1;

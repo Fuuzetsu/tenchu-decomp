@@ -7,7 +7,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800593a0", FUN_8
 extern int GsLMODE;
 extern int GsLIGNR;
 extern int GsLIOFF;
-extern int D_800C6584;
+extern int GsTON;
 extern int D_800C6588;
 extern u_long *GsOUT_PACKET_P;
 
@@ -39,7 +39,7 @@ void FUN_800593a0(u_long *param_1, u_long param_2, u_long param_3, int param_4) 
     D_800C6588 = *param_1 >> 9 & 7;
     *(u_long *)(param_4 + 0x88) = param_3;
     *(u_long *)(param_4 + 0x90) = param_2;
-    D_800C6584 = uVar1 >> 0x1e & 1;
+    GsTON = uVar1 >> 0x1e & 1;
     *(u_long *)(param_4 + 0x94) = -0xa0;
     *(u_long *)(param_4 + 0x98) = 0xa0;
     *(u_long *)(param_4 + 0x9c) = -0x78;

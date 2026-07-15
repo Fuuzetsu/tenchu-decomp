@@ -34,6 +34,9 @@
  *     reg   $t1       unsigned char * icon3
  *     reg   $s1       unsigned char * icon2
  *     reg   $s0       unsigned char * icon1
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char *TENCHU_ID;
  * END PSX.SYM */
 
 typedef struct
@@ -57,7 +60,7 @@ typedef struct
     SaveCardIcon icon3;
 } SaveCardHeader;
 
-extern char *CardVolumeIdPtr;
+extern char *TENCHU_ID;
 extern char CardPathFormat[];
 extern char D_80013BE4[];
 
@@ -108,7 +111,7 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     header->icon2 = *(SaveCardIcon *)(icon2 + 0x40);
     header->icon3 = *(SaveCardIcon *)(icon3 + 0x40);
 
-    sprintf(fn, CardPathFormat, CardVolumeIdPtr, name);
+    sprintf(fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardCreateFile(chan, fn, 1);
     if ((result == 0 || result == 6) && write_data != 0)
     {

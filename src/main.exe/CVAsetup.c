@@ -23,6 +23,7 @@
  *     stack sp+24     unsigned char [50] name
  *
  * Globals it touches, as the original declared them:
+ *     extern struct CVAType *CVAdata;
  *     extern int StageID;
  *     extern struct POLY_F4 TelopbgP;
  *     extern struct tag_TItem items[30];
@@ -42,7 +43,7 @@
 
 /*
  * CVAsetup (0x8004ff98, 0x218 bytes) — prepares a CVA cutscene: frees any
- * previous PERSISTENT_EVENT_LIST_THING blob and loads the new one
+ * previous CVAdata blob and loads the new one
  * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter selecting the
  * Attract/Retail-ish variant per CHOSEN_CHARACTER), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, x0..x3 = -0xA0/0xA0/-0xA0/0xA0 —
@@ -69,7 +70,7 @@
  *    vararg materialisation.
  */
 
-extern u32 *PERSISTENT_EVENT_LIST_THING;
+extern u32 *CVAdata;
 extern char *STAGE_ANIMATION_PREFICES[];
 extern char D_80013624[]; /* "%sSTAGE%d%c.CAD" */
 extern char D_80013634[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd" */
@@ -122,9 +123,9 @@ void CVAsetup(void)
     u8 name[50];
     GsIMAGE image;
 
-    if (PERSISTENT_EVENT_LIST_THING != 0)
+    if (CVAdata != 0)
     {
-        vfree(PERSISTENT_EVENT_LIST_THING);
+        vfree(CVAdata);
     }
     letter = 0x41;
     if (PSTATE->chr == 0)
@@ -132,7 +133,7 @@ void CVAsetup(void)
         letter = 0x52;
     }
     sprintf(name, D_80013624, STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
-    PERSISTENT_EVENT_LIST_THING = FileRead(name);
+    CVAdata = FileRead(name);
 
     SetPolyF4(&TelopbgP);
     TelopbgP.b0 = 1;

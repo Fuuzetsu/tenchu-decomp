@@ -15,7 +15,7 @@
  * Matching notes (this is ProcItemHappou's skeleton — see that file for the
  * conflict-box and countdown conventions; all deltas verified):
  *  - The scratch model is `item->model` here (Happou draws into its gp-global
- *    HAPPOU_SCRATCH_MODEL instead).
+ *    HappouModel instead).
  *  - The spin block's three stores are inline (`item->locate->rotate.v* =`);
  *    each reloads item->locate (the in-struct stores invalidate the cached
  *    load). GameClock * 0x2AA is the plain literal multiply (shift/add

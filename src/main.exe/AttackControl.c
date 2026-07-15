@@ -35,6 +35,7 @@
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern short Criticals;
  *     extern short dtPAD;
  *     extern struct MotionManager *dtM;
@@ -63,7 +64,7 @@ extern SVECTOR *dtR;
 extern MotionManager *dtM;
 extern u16 dtPAD;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern u16 Criticals;
 
 extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
@@ -160,7 +161,7 @@ enemy_type_ok:
                         enemy->rotate->vy = dtR->vy;
                         enemy->locate->vx = dtL->vx;
                         motID = myid;
-                        D_80097F0E = 1;
+                        motMODE = 1;
                         enemy->locate->vz = dtL->vz;
                         enemy->life = 0;
                         if ((enemy->status != 0x11 || enemy->motion->loop != -1) &&
@@ -202,11 +203,11 @@ enemy_type_ok:
             return;
         }
         motID = 0x700;
-        D_80097F0E = 1;
+        motMODE = 1;
         if (GetMotionID(dtM, 0x70d) >= 0)
         {
             motID = 0x70d;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         goto update_target;
     }
@@ -226,7 +227,7 @@ enemy_type_ok:
     {
         motID = 0x700;
     }
-    D_80097F0E = 1;
+    motMODE = 1;
 
 update_target:
     if (Me_MOTION_C == StagePlayer)

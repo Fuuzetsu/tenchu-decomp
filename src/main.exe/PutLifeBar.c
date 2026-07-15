@@ -34,6 +34,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsSPRITE NumberImage;
+ *     extern struct INFOVIEW__196fake LifeBarStyle[2];
  *     extern struct GsOT *OTablePt;
  *     extern long GameClock;
  * END PSX.SYM */

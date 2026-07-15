@@ -27,6 +27,7 @@
  *     extern struct MotionManager *dtM;
  *     extern struct Humanoid *StagePlayer;
  *     extern short motID;
+ *     extern short motMODE;
  * END PSX.SYM */
 
 /*
@@ -45,10 +46,10 @@
  *    is reorg-stolen into the dispatch beq's delay slot — automatic.
  *  - The `1` in the E00 case is ONE cse-unified pseudo (callee-saved $s0):
  *    the `count == 1` compare constant, `item.type = ITEM_KIND_2_SHURIKEN`
- *    (=1) word store, and all three `D_80097F0E = 1` halfword stores fold
+ *    (=1) word store, and all three `motMODE = 1` halfword stores fold
  *    onto it via cse's taken-edge path following. No named variable needed
  *    (PSX.SYM lists only `p` and `item` — consistent).
- *  - `D_80097F0E = 1;` is DUPLICATED into both arms of each motID=0x501/0
+ *  - `motMODE = 1;` is DUPLICATED into both arms of each motID=0x501/0
  *    if/else (the cookbook's "duplicate the shared trailing statement"
  *    shared-tails rule): in E01 sched2 (which runs BEFORE jump2 here) then
  *    hoists the else-arm's `li v0,1` above its store and cross-jump merges
@@ -60,14 +61,14 @@
  *    the same `*(u16 *)&` memory-reinterpret cast HumanActionControl.c
  *    documents for this TU's attribute/attrib fields.
  *  - gp-externs (MOTION.C's own smalls): dtM, Me_MOTION_C, motID,
- *    D_80097F0E. StagePlayer stays absolute (defined elsewhere).
+ *    motMODE. StagePlayer stays absolute (defined elsewhere).
  */
 
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 
 extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
 extern void ReqItemUse(PARAM_ITEM_USE *p);
@@ -90,7 +91,7 @@ void ActSYURI(void)
             if (dtM->loop == 0)
                 return;
             motID = 0xE01;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -111,7 +112,7 @@ void ActSYURI(void)
         else if (FUN_8004a368(1, Me_MOTION_C) == 0)
         {
             motID = 0xE01;
-            D_80097F0E = 1;
+            motMODE = 1;
             Sound(Me_MOTION_C, 0x1F);
         }
         else if (Me_MOTION_C->pad.trig & 0xE0)
@@ -124,12 +125,12 @@ void ActSYURI(void)
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
         break;
@@ -147,12 +148,12 @@ void ActSYURI(void)
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
         break;

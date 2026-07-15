@@ -22,6 +22,7 @@ extern struct ThinkDBtype ThinkDB[20];  /* 0x80089e40 */
 extern short (*AttackFunc[4])();  /* 0x80089ee0, static in THINK_4.C */
 extern struct TCameraStatus CamState;  /* 0x80089ef0 */
 extern struct ObjectSlotManager ModelSlot;  /* 0x8008dbe0, static in WORLD.C */
+extern struct INFOVIEW__196fake LifeBarStyle[2];  /* 0x8008e414, static in INFOVIEW.C */
 extern struct MISC__183fake DoorData[11];  /* 0x8008e624 */
 extern struct MISC__184fake PitfallData[2];  /* 0x8008e6a8 */
 extern struct MISC__185fake SpriteData[2];  /* 0x8008e6cc */
@@ -57,6 +58,10 @@ extern struct PADtype *Pad;  /* 0x800979d8, static in THINK_4.C */
 extern short Attrib;  /* 0x800979dc, static in THINK_4.C */
 extern int Projection;  /* 0x800979f0, static in CAMERA.C */
 extern unsigned char fInitialize;  /* 0x80097b1c, static in IMAGES.C */
+extern short SelectedItem;  /* 0x80097b1e */
+extern short ItemCursor;  /* 0x80097b20, static in INFOVIEW.C */
+extern unsigned char *CID;  /* 0x80097d8c, static in MEMCARD.C */
+extern int CurrentEnemyID;  /* 0x80097d44, static in INFOVIEW.C */
 extern unsigned char PutMapMode;  /* 0x80097bb1, static in INFOVIEW.C */
 extern struct Humanoid *StagePlayer;  /* 0x80097c60 */
 extern long StageTime;  /* 0x80097c64, static in STAGE.C */
@@ -67,7 +72,13 @@ extern short Murders;  /* 0x80097c70 */
 extern short FriendHits;  /* 0x80097c72 */
 extern short StageEnemies;  /* 0x80097c76 */
 extern short StageCitizens;  /* 0x80097c78 */
-extern unsigned char fInitialize;  /* 0x80097b1c, static in IMAGES.C */
+extern struct SoundEffect *StageSE;  /* 0x80097cb0 */
+extern short VoiceMode;  /* 0x80097cb4 */
+extern struct CVAType *CVAdata;  /* 0x80097cb8, static in CHRANIM.C */
+extern struct CVAType *CVAnow;  /* 0x80097cbc, static in CHRANIM.C */
+extern struct Humanoid *CameraTarget;  /* 0x80097cc4, static in CHRANIM.C */
+extern short CameraPanMode;  /* 0x80097cca, static in CHRANIM.C */
+extern unsigned char *TENCHU_ID;  /* 0x80097d04, static in MEMCARD.C */
 extern short dtCMD;  /* 0x80097ef8, static in MOTION.C */
 extern short dtPAD;  /* 0x80097efa, static in MOTION.C */
 extern struct VECTOR *dtL;  /* 0x80097efc, static in MOTION.C */
@@ -75,6 +86,14 @@ extern struct SVECTOR *dtR;  /* 0x80097f00, static in MOTION.C */
 extern struct SVECTOR *dtV;  /* 0x80097f04, static in MOTION.C */
 extern struct MotionManager *dtM;  /* 0x80097f08, static in MOTION.C */
 extern short motID;  /* 0x80097f0c, static in MOTION.C */
+extern short motMODE;  /* 0x80097f0e, static in MOTION.C */
+extern struct ModelType *ModelHook;  /* 0x80097f28, static in EFFECT.C */
+extern struct ModelType *SyurikenModel;  /* 0x80097f48, static in ITEM.C */
+extern struct ModelType *ArrowModel;  /* 0x80097f4c, static in ITEM.C */
+extern struct ModelType *NingyoModel;  /* 0x80097f50, static in ITEM.C */
+extern struct ModelType *HappouModel;  /* 0x80097f54, static in ITEM.C */
+extern struct Sprite3D *sprNapalm;  /* 0x80097f5c, static in ITEM.C */
+extern struct Sprite3D *sprNapalm2;  /* 0x80097f60, static in ITEM.C */
 extern enum TSystemFlag SystemFlag;  /* 0x80097e74 */
 extern short FieldAttrib;  /* 0x80097ec4 */
 extern struct SVECTOR ConflictDistance;  /* 0x80097ec8 */
@@ -113,6 +132,7 @@ extern struct HumanAnimType CVAhuman[5];  /* 0x800c2cc8 */
 extern struct GsFOGPARAM Fog;  /* 0x800b8070 */
 extern struct WorldType WorldMap[8][8][8];  /* 0x8008dbec */
 extern struct GsRVIEW2 ViewInfo;  /* 0x800b8080 */
+extern struct Sprite3D *ItemImage[25];  /* 0x8008e5bc */
 extern struct ConflictObjectType ConflictObject[64];  /* 0x800bc108 */
 extern struct PADCMD__141fake PadArrange;  /* 0x800be740 */
 extern struct GsOT_TAG ZSortTable[2][2048];  /* 0x800b80a0 */

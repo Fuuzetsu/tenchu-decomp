@@ -375,7 +375,8 @@ tables record the PSX.SYM address, demo address, and complete witness-function l
 so each decision remains auditable.
 
 Control precision — retail addresses whose current name is itself a PSX.SYM name —
-is **100% (104/104)**. Note that the two apparent counter-examples in an earlier run
+is **100% (171/171)** after the calibrated-relocation batch. Note that the two
+apparent counter-examples in an earlier run
 were not errors: our `Me_MOTION_C` is the de-duplicated spelling of the demo's static
 `Me`, and `StageBosses`/`StageEnemies` at `0x80097c74`/`0x80097c76` disagree with the
 demo's single `StageEnemies` short — the tool correctly refused to propose, because the
@@ -389,15 +390,27 @@ point**, because `difflib` aligns the demo's store to the *first* identical reta
 store. When a vote contradicts an existing name, check how the symbols are *used
 together* before believing it.
 
-**156 data symbols were defined**, in `reference/data-symbols-applied.tsv`:
+`reference/data-symbols-applied.tsv` now records **227 global/data naming
+decisions**:
 
 * **35 from `datamatch`** — `struct ConflictObjectType ConflictObject[64]` (21 votes),
   `struct WeaponType WeaponDB[28]`, `short RefrectVector[16]`, `long AttackActionCount`,
   plus Psy-Q internals like `GsOUT_PACKET_P` (26 votes) and `_svm_*`.
+* **71 from calibrated-relocation `datamatch`** — 63 previously unnamed globals and
+  eight replacements for descriptive repository names. Highlights include
+  `ItemImage` (18 witnesses), `motMODE` (28), `CameraTarget`, `VoiceMode`,
+  `SyurikenModel`, `ArrowModel`, `NingyoModel`, `sprNapalm`, `sprNapalm2`, and SDK
+  internals such as `GsTON` (33). Every row retains its PSX.SYM address, demo
+  address, and witness functions.
 * **121 from the Ghidra export** — already named in the Ghidra program for *this*
   binary (`PersistentState`, `MusicTable`, `CdReset`, `GsA4divTNG4`…) but never
   adopted, because `import_symbols.py` could only *rename* existing entries. It can
-  now define new ones. This was free the whole time.
+  now define new ones. This historical batch also included 85 address-keyed SDK/text
+  labels below retail's data start, so the table's record count is not itself a
+  count of real data-region globals.
+
+Across all sources, the current symbol configuration has **210 retail data-region
+names that also occur in PSX.SYM**, up from 139 before relocation synthesis.
 
 `reference/psxsym-globals.h` joins the 113 globals we name with PSX.SYM's original
 type, and `tools/matcher-prompt.py` lists the ones a target function touches:
@@ -409,13 +422,14 @@ type, and `tools/matcher-prompt.py` lists the ones a target function touches:
     `extern struct tag_TItem items[30];`                     /* 0x800bfbb0 */
 ```
 
-14 single-vote suggestions are parked in `reference/psxsym-data-candidates.tsv`.
+48 single-vote suggestions are parked in `reference/psxsym-data-candidates.tsv`.
 One witness can come from a misaligned instruction block; two independent functions
 rarely agree by accident.
 
 ## Still on the table
 
-* **The rest of the 567 globals.** 105 are matched; the remainder are touched only by
+* **The rest of the 567 globals.** 210 PSX.SYM names now have retail data-region
+  addresses; the remainder are touched only by
   functions we have not yet named on both sides, so naming more *functions* directly
   unlocks more *data*. The two loops feed each other — re-run `datamatch.py` after
   every batch of function renames.

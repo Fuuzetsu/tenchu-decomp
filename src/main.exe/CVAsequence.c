@@ -27,14 +27,18 @@
  *     reg   $a1       short j
  *
  * Globals it touches, as the original declared them:
+ *     extern struct CVAType *CVAdata;
+ *     extern struct CVAType *CVAnow;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct Humanoid *StagePlayer;
+ *     extern struct Humanoid *CameraTarget;
  *     extern short Humans;
  *     extern struct GsIMAGE Images[52];
  *     extern struct Humanoid *HumanGroup[32];
  *     extern short ActionHalt;
  *     extern short MotionUpdateMode;
  *     extern struct TCdaStatus CdaStatus;
+ *     extern short VoiceMode;
  * END PSX.SYM */
 
 /*
@@ -42,7 +46,7 @@
  * length (884 bytes / 221 instructions) and exact 0x28 frame.  Only seven
  * instructions (28 raw bytes) differ, in one post-memset scheduling block:
  * retail loads the event cursor into v0, StagePlayer into v1, then interleaves
- * the sound/index setup and the D_80097CC4/Humans/cursor updates.  This cc1
+ * the sound/index setup and the CameraTarget/Humans/cursor updates.  This cc1
  * source emits the same operations as StagePlayer(v0), cursor(v1), and moves
  * the independent Humans load earlier.  `rtlguide` classifies both displayed
  * hunks as structure/scheduling; guided autorules (120-candidate budget),
@@ -56,7 +60,7 @@
  * and loop-carried -1 register.  The five-entry CVAhuman reset is a for loop;
  * an explicit base plus a separately initialized s32 0x80 class constant
  * gives retail's s2/s0 allocation and hoists the constant.  The motion arm's
- * `(motion = 0, test)` comma expression is load-bearing.  D_80097CB4 also
+ * `(motion = 0, test)` comma expression is load-bearing.  VoiceMode also
  * needed an explicit 0x80097CB4 binding because the generated auto-name had
  * drifted to the adjacent cursor at 0x80097CBC.
  */
@@ -98,8 +102,8 @@ typedef struct
     u8 field9_0x14;
 } CVASequenceCdaStatus;
 
-extern CVASequenceEvent *PERSISTENT_EVENT_LIST_THING;
-extern CVASequenceEvent *CHOSEN_EVENT_LIST_THING_LOCATION;
+extern CVASequenceEvent *CVAdata;
+extern CVASequenceEvent *CVAnow;
 extern CVASequenceHumanAnim CVAhuman[5];
 extern Humanoid *StagePlayer;
 extern Humanoid *HumanGroup[32];
@@ -108,8 +112,8 @@ extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
 extern CVASequenceCdaStatus CdaStatus;
 extern u8 D_800C2C50[];
-extern s16 D_80097CB4;
-extern Humanoid *D_80097CC4;
+extern s16 VoiceMode;
+extern Humanoid *CameraTarget;
 extern s16 D_80097CC0;
 extern s16 D_80097CCC;
 
@@ -140,30 +144,30 @@ s16 CVAsequence(s16 sid)
     s32 type_class;
     CVASequenceHumanAnim *anim_base;
 
-    CHOSEN_EVENT_LIST_THING_LOCATION = PERSISTENT_EVENT_LIST_THING;
-    if (PERSISTENT_EVENT_LIST_THING->kind == -1)
+    CVAnow = CVAdata;
+    if (CVAdata->kind == -1)
         goto return_zero;
 
     wanted = (s16)sid;
     end_kind = -1;
 scan_event:
-    event = CHOSEN_EVENT_LIST_THING_LOCATION;
+    event = CVAnow;
     if (event->kind == 0 && event->mode == wanted)
         goto event_found;
-    CHOSEN_EVENT_LIST_THING_LOCATION = event + 1;
+    CVAnow = event + 1;
     if (event[1].kind != end_kind)
         goto scan_event;
 
 event_found:
 
-    if (CHOSEN_EVENT_LIST_THING_LOCATION->kind == -1)
+    if (CVAnow->kind == -1)
         goto return_zero;
 
     memset(CVAhuman, 0, sizeof(CVAhuman));
-    sound = CHOSEN_EVENT_LIST_THING_LOCATION->param;
+    sound = CVAnow->param;
     i = 0;
-    D_80097CC4 = StagePlayer;
-    CHOSEN_EVENT_LIST_THING_LOCATION++;
+    CameraTarget = StagePlayer;
+    CVAnow++;
     D_800C2C50[0] = 0;
     if (Humans > 0)
     {
@@ -209,11 +213,11 @@ run_sequence:
     }
 
     D_80097CC0 = 0;
-    D_80097CB4 = 1;
+    VoiceMode = 1;
     do
     {
     } while (CVArun() != 0);
-    D_80097CB4 = 0;
+    VoiceMode = 0;
     if (ActionHalt != -1)
         ActionHalt = 0;
     MotionUpdateMode = 0;

@@ -25,6 +25,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct Humanoid *StagePlayer;
+ *     extern struct SoundEffect *StageSE;
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
@@ -42,7 +43,7 @@
  *  - The two branches of `if (locate == 0 || locate == pp)` each end their
  *    OWN `return PlaySE(...)` — this is NOT a single shared tail after an
  *    if/else. The asm shows the short branch materializing
- *    STAGE_SOUNDS_POINTER/seid and jumping directly to the `jal PlaySE`
+ *    StageSE/seid and jumping directly to the `jal PlaySE`
  *    instruction, skipping the long branch's own OR-with-angle setup
  *    entirely; jump.c's cross-jumping merged only the byte-identical
  *    `jal PlaySE` + return tail, not the differing argument setup. Ghidra's
@@ -116,7 +117,7 @@ typedef struct
     void *VABhead;
 } SoundEffect;
 
-extern SoundEffect *STAGE_SOUNDS_POINTER;
+extern SoundEffect *StageSE;
 
 extern s32 SquareRoot0(s32 x);
 extern s32 ratan2(s32 y, s32 x);
@@ -134,7 +135,7 @@ short SoundEx(VECTOR *locate, short seid)
 
     pp = StagePlayer->locate;
     if (locate == 0 || locate == pp) {
-        return PlaySE(STAGE_SOUNDS_POINTER, seid, (seid == 0x12) ? 0x3f : 0x7f);
+        return PlaySE(StageSE, seid, (seid == 0x12) ? 0x3f : 0x7f);
     }
 
     dx = locate->vx - pp->vx;
@@ -169,5 +170,5 @@ short SoundEx(VECTOR *locate, short seid)
         }
     }
     vol = (angle << 8) | dist;
-    return PlaySE(STAGE_SOUNDS_POINTER, seid, vol);
+    return PlaySE(StageSE, seid, vol);
 }

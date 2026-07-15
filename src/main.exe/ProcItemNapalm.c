@@ -30,7 +30,7 @@
  *    failure into mode 2's copy.  The two coordinate struct assignments at the
  *    end intentionally lower to the target's 0x50-byte copy loops.
  *  - This TU needs maspsx `--expand-div` for the model-count remainder guards
- *    and `--gp-extern D_80097F60` for the six retail gp-relative loads; Build.hs
+ *    and `--gp-extern sprNapalm2` for the six retail gp-relative loads; Build.hs
  *    and permute.py carry the mirrored per-function settings.
  */
 
@@ -57,7 +57,7 @@ typedef struct
     u8 pad[0x10];                /* 0x68 */
 } ConflictObjectType;            /* 0x78 */
 
-extern FullSprite3D *D_80097F60;
+extern FullSprite3D *sprNapalm2;
 extern u_long *GlobalAreaMap;
 extern ConflictObjectType ConflictObject[];
 
@@ -101,6 +101,7 @@ extern void SetFrame(VECTOR *pos, short size, short time,
  *     reg   $s2       struct tag_TItem * item
  *
  * Globals it touches, as the original declared them:
+ *     extern struct Sprite3D *sprNapalm2;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
@@ -150,11 +151,11 @@ void ProcItemNapalm(tag_TItem *item)
         sprt->sprite.rotate = (rand() % 360) << 12;
         sprt->model.scale = (ex << 12) / 50 + 0x1000;
 
-        D_80097F60->sprite.r = (ff - sprt->sprite.r) / 3;
-        D_80097F60->sprite.g = D_80097F60->sprite.r;
-        D_80097F60->sprite.b = D_80097F60->sprite.r;
-        D_80097F60->sprite.rotate = sprt->sprite.rotate;
-        D_80097F60->model.scale = sprt->model.scale;
+        sprNapalm2->sprite.r = (ff - sprt->sprite.r) / 3;
+        sprNapalm2->sprite.g = sprNapalm2->sprite.r;
+        sprNapalm2->sprite.b = sprNapalm2->sprite.r;
+        sprNapalm2->sprite.rotate = sprt->sprite.rotate;
+        sprNapalm2->model.scale = sprt->model.scale;
 
         if (param->count == 10)
         {
@@ -263,8 +264,8 @@ void ProcItemNapalm(tag_TItem *item)
     }
 
     UpdateCoordinate(item->locate);
-    D_80097F60->model.locate = item->locate->locate;
-    DrawSprite((Sprite3D *)D_80097F60);
+    sprNapalm2->model.locate = item->locate->locate;
+    DrawSprite((Sprite3D *)sprNapalm2);
     sprt->model.locate = item->locate->locate;
     DrawSprite((Sprite3D *)sprt);
 }
@@ -485,7 +486,7 @@ void ProcItemNapalm(tag_TItem *item)
 // s32 rand(s32, void *, s32);                         /* extern */
 // extern ? ConflictObject;
 // extern ? D_800121CC;
-// extern void *D_80097F60;
+// extern void *sprNapalm2;
 // extern s32 GlobalAreaMap;
 //
 // void ProcItemNapalm(void *arg0) {
@@ -559,11 +560,11 @@ void ProcItemNapalm(tag_TItem *item)
 //         temp_s5->unk88 = (s32) ((rand((s32) (temp_v1 * 0xE6) >> 0x1F, (void *) (temp_ret / 25), MULT_HI(temp_ret, 0x51EB851F)) % 360) << 0xC);
 //         temp_s5->unk64 = (s32) (((temp_lo << 0xC) / 50) + 0x1000);
 //         temp_a1_4 = (0xFF - temp_s5->unk7C) / 3;
-//         D_80097F60->unk7C = temp_a1_4;
-//         D_80097F60->unk7D = (u8) D_80097F60->unk7C;
-//         D_80097F60->unk7E = (u8) D_80097F60->unk7C;
-//         D_80097F60->unk88 = (s32) temp_s5->unk88;
-//         D_80097F60->unk64 = (s32) temp_s5->unk64;
+//         sprNapalm2->unk7C = temp_a1_4;
+//         sprNapalm2->unk7D = (u8) sprNapalm2->unk7C;
+//         sprNapalm2->unk7E = (u8) sprNapalm2->unk7C;
+//         sprNapalm2->unk88 = (s32) temp_s5->unk88;
+//         sprNapalm2->unk64 = (s32) temp_s5->unk64;
 //         if (temp_s3->unk8 == 0xA) {
 //             DeleteConflict(arg0->unk10, temp_a1_4, 0x55555556, MULT_HI((temp_lo << 0xC), 0x51EB851F));
 //             temp_v1_2 = (InsertConflict(arg0->unk10) * 0x78) + &ConflictObject;
@@ -632,7 +633,7 @@ void ProcItemNapalm(tag_TItem *item)
 //         default:
 //             UpdateCoordinate(arg0->unk10);
 //             var_v0 = arg0->unk10;
-//             var_v1 = D_80097F60;
+//             var_v1 = sprNapalm2;
 //             temp_a0_3 = var_v0 + 0x50;
 //             do {
 //                 var_v1->unk0 = (s32) var_v0->unk0;
@@ -642,7 +643,7 @@ void ProcItemNapalm(tag_TItem *item)
 //                 var_v0 += 0x10;
 //                 var_v1 += 0x10;
 //             } while (var_v0 != temp_a0_3);
-//             DrawSprite(D_80097F60);
+//             DrawSprite(sprNapalm2);
 //             var_a0_2 = arg0->unk10;
 //             var_v0_2 = temp_s5;
 //             temp_v1_3 = var_a0_2 + 0x50;

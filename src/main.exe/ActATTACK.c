@@ -47,6 +47,7 @@
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct BattleType BattleDB[78];
  *     extern struct SVECTOR *dtR;
  *     extern struct VECTOR *dtL;
@@ -56,7 +57,6 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR *dtV;
  *     extern short ActionHalt;
- *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
 /*
@@ -148,7 +148,7 @@ extern SVECTOR *dtV;
 extern s16 dtPAD;
 extern s16 MotionUpdateMode;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 ActionHalt;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
@@ -216,7 +216,7 @@ void ActATTACK(void)
 
     if (Me_MOTION_C->life == 0) {
       motID = 0x1100;
-      D_80097F0E = 1;
+      motMODE = 1;
       return;
     }
     attack_id = GetAttackDBID(Me_MOTION_C,motID);
@@ -351,7 +351,7 @@ LAB_80021edc:
       else {
         motID = 0x701;
       }
-      D_80097F0E = 1;
+      motMODE = 1;
       i = 0;
       do {
         if (MotionUpdateMode != 0) {
@@ -397,7 +397,7 @@ LAB_80021edc:
       short i;
 
       motID = 0x704;
-      D_80097F0E = 1;
+      motMODE = 1;
       if (MotionUpdateMode != 0) {
         for (i = 0; i < 5; i++) {
           if (CVAhuman[i].human == Me_MOTION_C) {
@@ -421,7 +421,7 @@ LAB_80021edc:
       short i;
 
       motID = 0x705;
-      D_80097F0E = 1;
+      motMODE = 1;
       if (MotionUpdateMode != 0) {
         for (i = 0; i < 5; i++) {
           if (CVAhuman[i].human == Me_MOTION_C) {
@@ -467,7 +467,7 @@ LAB_80021edc:
       else {
         motID = 0x707;
       }
-      D_80097F0E = 1;
+      motMODE = 1;
       i = 0;
       do {
         if (MotionUpdateMode != 0) {
@@ -517,7 +517,7 @@ LAB_800226f8:
 LAB_80022700:
       motID = 0x70a;
 LAB_80022704:
-      D_80097F0E = 1;
+      motMODE = 1;
       i = 0;
       do {
         if (MotionUpdateMode != 0) {
@@ -529,8 +529,8 @@ LAB_80022704:
         }
       } while (0);
 LAB_80022760:
-      sVar8 = SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
-      D_80097F0E = -1;
+      sVar8 = SetNowMotion(Me_MOTION_C,motID,motMODE);
+      motMODE = -1;
 LAB_80022780:
       if (sVar8 != 0) {
         int conflict_id;
@@ -573,7 +573,7 @@ LAB_80022780:
     }
     if ((Me_MOTION_C->attribute & 0x800U) != 0) {
       motID = 0x710;
-      D_80097F0E = 0;
+      motMODE = 0;
       Sound(Me_MOTION_C,0x1a);
       FUN_80033bc0(dtL,300,0xc,10);
     }
@@ -584,7 +584,7 @@ LAB_80022780:
       dtM->loop--;
       if (dtM->loop < -0x1e) {
         motID = 0x803;
-        D_80097F0E = 0;
+        motMODE = 0;
       }
     }
     if (motID != 0x70f) {
@@ -668,7 +668,7 @@ LAB_80022780:
       }
       pMVar6 = dtM;
       motID = 0x501;
-      D_80097F0E = 1;
+      motMODE = 1;
       goto LAB_80023740;
     }
     if (0 < (Me_MOTION_C->map).height) {
@@ -687,7 +687,7 @@ LAB_80022780:
       return;
     }
     motID = 0x501;
-    D_80097F0E = 1;
+    motMODE = 1;
     return;
   case 0x14:
   case 0x15:
@@ -723,7 +723,7 @@ LAB_80022780:
     (pMVar17->locate).coord.t[0] = 0;
     ReturnNormal();
     saved_mid = motID;
-    motion_flag = D_80097F0E;
+    motion_flag = motMODE;
     human = Me_MOTION_C;
     if (((human->status != 0x11) || (human->motion->loop != -1)) &&
         ((shifted_mid = (u32)(u16)saved_mid << 16,
@@ -735,7 +735,7 @@ LAB_80022780:
     dtM->count = 0;
     dtM->loop = 0;
     PlayMotion(dtM,1);
-    D_80097F0E = 0xffff;
+    motMODE = 0xffff;
     (*((u8 *)&CamState.OldMode + 1)) = 1;
     return;
   }
@@ -788,7 +788,7 @@ switchD_80021f18_caseD_2:
       }
     }
     motID = 0x501;
-    D_80097F0E = 1;
+    motMODE = 1;
     dtM->mask = 0x7fff;
     if (MotionUpdateMode != 0) {
       for (i = 0; i < 5; i++) {
@@ -797,8 +797,8 @@ switchD_80021f18_caseD_2:
         }
       }
     }
-    SetNowMotion(Me_MOTION_C,motID,D_80097F0E);
-    D_80097F0E = -1;
+    SetNowMotion(Me_MOTION_C,motID,motMODE);
+    motMODE = -1;
 LAB_8002315c:
     dtR->vy = dtR->vy + (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
     bVar2 = Me_MOTION_C == StagePlayer;

@@ -25,6 +25,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsSPRITE CursorImage;
+ *     extern struct Sprite3D *ItemImage[25];
  *     extern unsigned char fInitialize;
  * END PSX.SYM */
 
@@ -32,7 +33,7 @@
  * InitializeInfoView (0x8004a790, 0x160 bytes) — one-time HUD/inventory init,
  * called from DoInfoViewProc the first frame (guarded by fInitialize) and
  * from main(). Sets up the cursor/digit sprites, a 26-slot pool of debug
- * item-icon sprites (D_8008E5BC, images 0x14.. then padded with image 0xF),
+ * item-icon sprites (ItemImage, images 0x14.. then padded with image 0xF),
  * and the 4-entry ItemSprite3Ds array, then resets enemy layout/info-view
  * state and marks fInitialize.
  *
@@ -55,7 +56,7 @@
  * the same class as SelectCameraOwnerOption's parked residual.
  *
  * Matching notes:
- *  - Loops 1 and 2 (the D_8008E5BC pool) are HAND-ROLLED GOTO LOOPS, not
+ *  - Loops 1 and 2 (the ItemImage pool) are HAND-ROLLED GOTO LOOPS, not
  *    do-whiles, despite Ghidra/m2c rendering plain `do{}while`: loop 1's
  *    0x1C attribute constant is RE-MATERIALIZED every iteration
  *    (`li v0,0x1c` inside the loop body each pass) rather than hoisted to a
@@ -73,7 +74,7 @@
  *    already matches (its one constant, 0x50000000, is likewise just a
  *    plain pre-loop variable read, and the array is walked with a typed
  *    `GsSPRITE *` pointer with no strength-reduction concern).
- *  - `D_8008E5BC` (26 Sprite3D* pointer slots) is walked as a plain `s32 *`
+ *  - `ItemImage` (26 Sprite3D* pointer slots) is walked as a plain `s32 *`
  *    (Ghidra's own cast: `*piVar3 = (int)pSVar2;`), not a typed
  *    `Sprite3D **` — matches the raw `(int)` store and the later
  *    `*(short *)(*piVar3 + 0x5A)` reload-through-the-slot (NOT through the
@@ -84,19 +85,19 @@
  *  - `fInitialize` is this TU's gp small; maspsxGpExterns is PER FILE (each
  *    split function is its own assembly unit), so this file needs its OWN
  *    Build.hs entry — DoInfoViewProc.c's entry only covers DoInfoViewProc.c.
- *  - `D_8008E5BC`'s auto-computed address DRIFTS depending on which nearby
+ *  - `ItemImage`'s auto-computed address DRIFTS depending on which nearby
  *    functions are still raw-asm vs compiled C (this function converting to
  *    C removed the last raw xref that had been anchoring it, and it
  *    resolved +0x28 off) — bound explicitly in config/symbols.main.exe.txt
  *    (plain name: ReqItemDrop/ReqItemMakibishi/
  *    ReqItemManebue already reference this exact symbol as
- *    `extern Sprite3D *D_8008E5BC[];` and need the SAME name fixed under
+ *    `extern Sprite3D *ItemImage[];` and need the SAME name fixed under
  *    them, unlike the 0x80097Dxx string-table drift where nothing else
  *    referenced the bad name).
  */
 extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
-extern s32 D_8008E5BC[];
+extern s32 ItemImage[];
 extern GsSPRITE ItemSprite3Ds[4];
 extern u8 fInitialize;
 
@@ -127,7 +128,7 @@ void InitializeInfoView(void)
     pGVar1 = GetImage(0x33);
     InitSprite(pGVar1, &NumberImage);
     iVar4 = 0;
-    piVar3 = D_8008E5BC;
+    piVar3 = ItemImage;
     scale1 = 0x3000;
 loop1:
     pGVar1 = GetImage(iVar4 + 0x14);
@@ -143,7 +144,7 @@ loop1:
     {
         scale2 = 0x3000;
         attr2 = 0x1C;
-        piVar3 = D_8008E5BC + iVar4;
+        piVar3 = ItemImage + iVar4;
     loop2:
         pGVar1 = GetImage(0xF);
         pSVar2 = SetupSprite((Sprite3D *)0, pGVar1);

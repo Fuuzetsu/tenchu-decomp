@@ -38,6 +38,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_TItem items[30];
+ *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
 /*
@@ -75,7 +76,7 @@ extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Model pointer per item type. */
-extern Sprite3D *D_8008E5BC[];
+extern Sprite3D *ItemImage[];
 
 int ReqItemDokudango(PARAM_ITEM_USE *p)
 {
@@ -129,7 +130,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = D_8008E5BC[it->type];
+    it->model = ItemImage[it->type];
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;

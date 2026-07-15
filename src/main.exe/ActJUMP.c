@@ -36,6 +36,7 @@
  *     extern struct SVECTOR *dtV;
  *     extern struct SVECTOR *dtR;
  *     extern short MotionUpdateMode;
+ *     extern short motMODE;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct Humanoid *StagePlayer;
  *     extern short dtPAD;
@@ -69,7 +70,7 @@ extern SVECTOR *dtV;
 extern SVECTOR *dtR;
 extern s16 dtPAD;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 MotionUpdateMode;
 extern void *GlobalAreaMap;
 extern ActJumpHumanAnim CVAhuman[5];
@@ -132,7 +133,7 @@ void ActJUMP(void)
         if (dtL->vy < level)
         {
             motID = 0x803;
-            D_80097F0E = 0;
+            motMODE = 0;
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -145,8 +146,8 @@ void ActJUMP(void)
                     i++;
                 } while (i < 5);
             }
-            SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-            D_80097F0E = -1;
+            SetNowMotion(Me_MOTION_C, motID, motMODE);
+            motMODE = -1;
         landed_motion_done:
             Sound(Me_MOTION_C, 6);
             dtM->count >>= 2;
@@ -163,12 +164,12 @@ void ActJUMP(void)
             dtR->vy += (*Me_MOTION_C->model->object)->rotate.vy;
             object = *Me_MOTION_C->model->object;
             motID = 0x806;
-            D_80097F0E = 1;
+            motMODE = 1;
             object->rotate.vy = 0;
             return;
         }
         motID = 0x804;
-        D_80097F0E = 0;
+        motMODE = 0;
         return;
     }
     else
@@ -177,7 +178,7 @@ void ActJUMP(void)
         {
             old_mid = (u16)motID;
             motID = 0x803;
-            D_80097F0E = 0;
+            motMODE = 0;
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -190,8 +191,8 @@ void ActJUMP(void)
                     i++;
                 } while (i < 5);
             }
-            SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-            D_80097F0E = -1;
+            SetNowMotion(Me_MOTION_C, motID, motMODE);
+            motMODE = -1;
         fall_motion_done:
             if (old_mid == 0x906)
             {
@@ -268,7 +269,7 @@ void ActJUMP(void)
             return;
         }
         motID = 0x70f;
-        D_80097F0E = 0;
+        motMODE = 0;
     }
 }
 

@@ -13,6 +13,7 @@
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short motID;
+ *     extern short motMODE;
  * END PSX.SYM */
 
 /*
@@ -31,7 +32,7 @@
  *    ordinary 2-instruction short-index form (cookbook toolchain
  *    gotchas: distinct from the blocked 3-instruction sign-extend-split
  *    class, which needs a THIRD sra).
- *  - MotionUpdateMode/motID/D_80097F0E are proven u16 in other TUs
+ *  - MotionUpdateMode/motID/motMODE are proven u16 in other TUs
  *    (NowReturnNormal.c reads motID with `lhu`), but THIS TU's own
  *    accesses are all signed (`lh` reads, `addiu -1` not `ori 0xffff`
  *    for the terminator store) — per-TU divergent type, same precedent
@@ -47,7 +48,7 @@ extern tag_CVAHumanEntry CVAhuman[5];
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 MotionUpdateMode;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 short MotionAndMove(void)
@@ -67,7 +68,7 @@ short MotionAndMove(void)
             i = i + 1;
         } while (i < 5);
     }
-    result = SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-    D_80097F0E = -1;
+    result = SetNowMotion(Me_MOTION_C, motID, motMODE);
+    motMODE = -1;
     return result;
 }

@@ -23,22 +23,28 @@
  *     reg   $s1       int i
  *
  * Globals it touches, as the original declared them:
+ *     extern struct ModelType *SyurikenModel;
+ *     extern struct ModelType *ArrowModel;
+ *     extern struct ModelType *NingyoModel;
  *     extern struct tag_TItem items[30];
+ *     extern struct ModelType *HappouModel;
  *     extern struct GsSPRITE TargetSprite[1];
+ *     extern struct Sprite3D *sprNapalm;
+ *     extern struct Sprite3D *sprNapalm2;
  * END PSX.SYM */
 
 /*
  * InitializeItem (0x8003d3e4, 0x144 bytes) — one-time setup of the item
  * pool: loads four fixed models (the "launch"/"arrow"-family fixed visuals
- * ReqItemLaunch's D_80097F48, ReqItemArrow's D_80097F4C, D_80097F50, and
- * ProcItemHappou's HAPPOU_SCRATCH_MODEL — same globals, different TU-local
+ * ReqItemLaunch's SyurikenModel, ReqItemArrow's ArrowModel, NingyoModel, and
+ * ProcItemHappou's HappouModel — same globals, different TU-local
  * extern spelling: those files see them as `Sprite3D *`, this one as the
  * `ModelType *` LoadModel actually returns; no header shared between them,
  * so no conflict), blanks all 30 item[] slots, then sets up the on-screen
  * target-lock, item-count, and Goshikimai cursor sprites.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - D_80097F5C/D_80097F60 need the FULL Sprite3D (item.h's is truncated at
+ *  - sprNapalm/sprNapalm2 need the FULL Sprite3D (item.h's is truncated at
  *    0x68, right where the embedded GsSPRITE `.sprite` field this function
  *    writes begins) — same "local wrapper composes item.h's Sprite3D
  *    instead of redefining it" idiom as PutItemIcon.c's ItemIconType.
@@ -54,12 +60,12 @@ typedef struct
     GsSPRITE sprite; /* the embedded 2D sprite, +0x68 */
 } FullSprite3D;
 
-extern ModelType *D_80097F48;
-extern ModelType *D_80097F4C;
-extern ModelType *D_80097F50;
-extern ModelType *HAPPOU_SCRATCH_MODEL;
-extern FullSprite3D *D_80097F5C;
-extern FullSprite3D *D_80097F60;
+extern ModelType *SyurikenModel;
+extern ModelType *ArrowModel;
+extern ModelType *NingyoModel;
+extern ModelType *HappouModel;
+extern FullSprite3D *sprNapalm;
+extern FullSprite3D *sprNapalm2;
 extern GsSPRITE TargetSprite[1];
 extern GsSPRITE SpriteGoshikimai;
 /* gp-relative small (this TU defines it; DoItemProc.c already lists it). */
@@ -80,13 +86,13 @@ void InitializeItem(void)
     u32 attr;
 
     arc = GetArcData(0x14);
-    D_80097F48 = LoadModel(arc);
+    SyurikenModel = LoadModel(arc);
     arc = GetArcData(0x15);
-    D_80097F4C = LoadModel(arc);
+    ArrowModel = LoadModel(arc);
     arc = GetArcData(0x1B);
-    D_80097F50 = LoadModel(arc);
+    NingyoModel = LoadModel(arc);
     arc = GetArcData(0x1C);
-    HAPPOU_SCRATCH_MODEL = LoadModel(arc);
+    HappouModel = LoadModel(arc);
 
     for (i = 0; i < 0x1E; i++)
     {
@@ -109,11 +115,11 @@ void InitializeItem(void)
     }
 
     image = GetImage(7);
-    D_80097F5C = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
-    D_80097F5C->sprite.attribute = 0x50000000;
+    sprNapalm = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
+    sprNapalm->sprite.attribute = 0x50000000;
     image = GetImage(6);
-    D_80097F60 = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
-    D_80097F60->sprite.attribute = 0x60000000;
+    sprNapalm2 = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
+    sprNapalm2->sprite.attribute = 0x60000000;
     image = GetImage(0xD);
     InitSprite(image, &SpriteGoshikimai);
 

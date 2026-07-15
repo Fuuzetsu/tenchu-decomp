@@ -1,6 +1,15 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char *TENCHU_ID;
+ * END PSX.SYM */
+
 /*
  * FUN_80056e30 (0x80056e30, 0x94 bytes) — MEMCARD.C family: primes the card
  * system with the standard ChkCard.c/LoadCard.c/DeleteCard.c boilerplate
@@ -24,7 +33,7 @@
  * a0-a3/`jal` call sites (MemCardOpen(chan, path, mode); MemCardClose()
  * takes no visible args and its result is unused).
  *
- * CardVolumeIdPtr/CardPathFormat (0x80097D04/0x80097D08) are bound under
+ * TENCHU_ID/CardPathFormat (0x80097D04/0x80097D08) are bound under
  * fresh names in config/symbols.main.exe.txt, not the splat-auto
  * D_80097D04/D_80097D08: converting this function away from raw asm
  * removed the last raw-bytes anchor for those two addresses, so splat's
@@ -33,7 +42,7 @@
  * the same way.
  */
 
-extern char *CardVolumeIdPtr;  /* -> the volume-id prefix string */
+extern char *TENCHU_ID;  /* -> the volume-id prefix string */
 extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -52,7 +61,7 @@ s16 FUN_80056e30(char *name)
 
     result = MemCardAccept(0);
     MemCardSync(0, &cmd, &result);
-    sprintf(path, CardPathFormat, CardVolumeIdPtr, name);
+    sprintf(path, CardPathFormat, TENCHU_ID, name);
     result2 = MemCardOpen(0, path, 1);
     MemCardSync(0, &cmd2, &result2);
     if (result2 == 0) {

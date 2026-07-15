@@ -25,6 +25,9 @@
  *     stack sp+8416   long cmd
  *     stack sp+8420   long result
  *     stack sp+224    unsigned char [8192] block
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char *TENCHU_ID;
  * END PSX.SYM */
 
 typedef struct
@@ -32,7 +35,7 @@ typedef struct
     u8 bytes[0xe70];
 } LoadCardPersistentBlob;
 
-extern char *CardVolumeIdPtr;
+extern char *TENCHU_ID;
 extern char CardPathFormat[];
 
 extern void *valloc(u32 size);
@@ -60,7 +63,7 @@ s16 LoadCard(s32 target, u8 *name)
     temp = valloc(0x2000);
     result = MemCardAccept(0);
     MemCardSync(0, &cmd, &result);
-    sprintf(fn, CardPathFormat, CardVolumeIdPtr, name);
+    sprintf(fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardReadFile(0, fn, block, 0, 0x2000);
     MemCardSync(0, &cmd, &result);
     if (result != 0)

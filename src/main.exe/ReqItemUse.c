@@ -155,7 +155,9 @@
  *     extern struct TCameraStatus CamState;
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct tag_TItem items[30];
+ *     extern struct ModelType *SyurikenModel;
  *     extern long GameClock;
+ *     extern struct Sprite3D *sprNapalm;
  * END PSX.SYM */
 
 /*
@@ -260,8 +262,8 @@ extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[]; /* == CamState.Owner 
 extern s32 SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[]; /* == CamState.Mode */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 extern long GameClock;
-extern Sprite3D *D_80097F48;     /* shuriken/launch model (gp) */
-extern Sprite3D *D_80097F5C;     /* napalm model (gp) */
+extern Sprite3D *SyurikenModel;     /* shuriken/launch model (gp) */
+extern Sprite3D *sprNapalm;     /* napalm model (gp) */
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
 extern VECTOR D_80012258[];
@@ -416,7 +418,7 @@ int ReqItemUse(PARAM_ITEM_USE *p)
             it->locate->locate.super = 0;
             UpdateCoordinate(it->locate);
             it->coll_size = 0;
-            it->model = D_80097F48;
+            it->model = SyurikenModel;
             pp[0x30] = 5;
             it->owner->item[0x19] = 1;
         }
@@ -1029,7 +1031,7 @@ int ReqItemUse(PARAM_ITEM_USE *p)
         it->locate->locate.super = 0;
         UpdateCoordinate(it->locate);
         it->coll_size = 0;
-        it->model = D_80097F5C;
+        it->model = sprNapalm;
         ((param_napalm *)it->param)->vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;
         pp->vec.vz = p->end.vz - p->start.vz;

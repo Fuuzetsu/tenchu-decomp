@@ -38,6 +38,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_TItem items[30];
+ *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
 /*
@@ -47,7 +48,7 @@
  * twins, kusuri is a plain "use" item with no rolling/placement physics: it
  * never touches it->param at all (no param_korogari view, no end-vector
  * store, no hint/status/count) — confirmed by tools/access.py, whose last
- * body access is the D_8008E5BC[it->type] model load, immediately followed
+ * body access is the ItemImage[it->type] model load, immediately followed
  * by the epilogue register reloads. It gets ProcItemKusuri as its processor
  * and returns 1 on the normal path (like Jirai; Shinsoku is the outlier that
  * returns 0 on both paths).
@@ -72,7 +73,7 @@ extern void ProcItemKusuri(tag_TItem *item);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Model pointer per item type. */
-extern Sprite3D *D_8008E5BC[];
+extern Sprite3D *ItemImage[];
 
 int ReqItemKusuri(PARAM_ITEM_USE *p)
 {
@@ -121,6 +122,6 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = D_8008E5BC[it->type];
+    it->model = ItemImage[it->type];
     return 1;
 }

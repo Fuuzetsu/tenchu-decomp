@@ -26,6 +26,7 @@
  *     extern struct MotionManager *dtM;
  *     extern struct Humanoid *StagePlayer;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct SVECTOR *dtV;
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtR;
@@ -42,7 +43,7 @@
  * Matching notes (2,680 bytes / 670 instructions):
  *  - The two terminal motion-selection paths use signed, full-width motion-id
  *    temporaries.  Their SImode producers keep the source-level tails distinct
- *    until jump2 folds only the duplicated final D_80097F0E store.
+ *    until jump2 folds only the duplicated final motMODE store.
  *  - The redundant count test after the non-special 0x501 selection preserves
  *    the original block notes.  Both arms intentionally perform the same
  *    store; the late jump passes eliminate the test while its earlier RTL
@@ -91,7 +92,7 @@ extern s16 dtPAD;
 extern SVECTOR *dtR;
 extern VECTOR *dtL;
 extern s16 MotionUpdateMode;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern HumanAnimType CVAhuman[5];
 extern TCameraStatus CamState;
 
@@ -182,11 +183,11 @@ void ActSTATE(void)
         motID = 0x501;
         if (dtM->count != 0)
         {
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else
         {
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         return;
 
@@ -222,7 +223,7 @@ void ActSTATE(void)
         }
         }
         motID = 0x501;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
     case 0xe:
@@ -292,7 +293,7 @@ void ActSTATE(void)
             return;
         }
         motID = 0;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
     case 2:
@@ -303,7 +304,7 @@ void ActSTATE(void)
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & 0x80) != 0)
         {
             motID = 0x70f;
-            D_80097F0E = 0;
+            motMODE = 0;
         }
         {
             Humanoid *human;
@@ -322,12 +323,12 @@ void ActSTATE(void)
                 if ((Me_MOTION_C->attribute & 0x40) != 0)
                 {
                     motID = 0x501;
-                    D_80097F0E = 1;
+                    motMODE = 1;
                 }
                 else
                 {
                     motID = 0;
-                    D_80097F0E = 1;
+                    motMODE = 1;
                 }
                 Sound(Me_MOTION_C, 0x19);
                 return;
@@ -345,14 +346,14 @@ void ActSTATE(void)
                 {
                     motID = 0x804;
                 }
-                D_80097F0E = 0;
+                motMODE = 0;
                 return;
 
             random_fall:
                 {
                     Humanoid *fall_human;
 
-                    D_80097F0E = 0;
+                    motMODE = 0;
                     motID = (rand() & 1) ? 0x1007 : 0x1008;
                     fall_human = Me_MOTION_C;
                     fall_human->life -= 10;
@@ -387,7 +388,7 @@ void ActSTATE(void)
             (Me_MOTION_C->pad.trig & 0x40) != 0)
         {
             motID = 0xb09;
-            D_80097F0E = 1;
+            motMODE = 1;
             dtR->vy += 0x800;
         }
         /* fall through */
@@ -466,7 +467,7 @@ void ActSTATE(void)
             }
         }
         motID = 0x600;
-        D_80097F0E = 1;
+        motMODE = 1;
         i = MotionUpdateMode;
         if (i != 0)
         {
@@ -480,8 +481,8 @@ void ActSTATE(void)
                 i++;
             } while (i < 5);
         }
-        SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-        D_80097F0E = -1;
+        SetNowMotion(Me_MOTION_C, motID, motMODE);
+        motMODE = -1;
     motion_ready:
         Sound(Me_MOTION_C, 0x13);
         return;
@@ -506,7 +507,7 @@ void ActSTATE(void)
         }
     zero_motion:
         motID = 0;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
     default:
@@ -514,8 +515,8 @@ void ActSTATE(void)
         return;
     }
 special_positive_motion:
-    D_80097F0E = 1;
+    motMODE = 1;
     return;
 positive_motion:
-    D_80097F0E = 1;
+    motMODE = 1;
 }

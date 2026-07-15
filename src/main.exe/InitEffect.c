@@ -32,6 +32,7 @@
  *     extern struct tag_TItem items[30];
  *     extern struct Sprite3D *sprSmoke;
  *     extern struct Sprite3D *sprBomb[3];
+ *     extern struct ModelType *ModelHook;
  * END PSX.SYM */
 
 /*
@@ -97,7 +98,7 @@ extern Sprite3D *sprSmoke[2];
 extern Sprite3D *sprBomb[3];
 extern Sprite3D *D_80097F2C[1];
 
-extern ModelType *D_80097F28;
+extern ModelType *ModelHook;
 extern ModelType *D_80097F34;
 extern ModelType *LOCAL_COORDINATES_;
 extern GsIMAGE *D_80097F3C;
@@ -212,7 +213,7 @@ void InitEffect(void)
     D_80097F34 = LoadModel(GetArcData(0x19));
     LOCAL_COORDINATES_ = LoadModel(GetArcData(0x1F));
     D_80097F3C = GetImage(0xA);
-    D_80097F28 = LoadModel(GetArcData(0x1A));
+    ModelHook = LoadModel(GetArcData(0x1A));
 
     {
         Sprite3D *sprite;

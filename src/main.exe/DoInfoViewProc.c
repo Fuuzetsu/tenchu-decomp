@@ -36,6 +36,7 @@
  * Globals it touches, as the original declared them:
  *     extern unsigned char fInitialize;
  *     extern enum TSystemFlag SystemFlag;
+ *     extern short ItemCursor;
  *     extern struct TCameraStatus CamState;
  *     extern long GameClock;
  *     extern unsigned char PutMapMode;
@@ -71,7 +72,7 @@
  *    this TU's view disagrees with the item TU's u16 (ProcItemKusuri lhu's
  *    the same field).
  *  - gp smalls of this TU: fInitialize (fInitialize),
- *    CURRENTLY_SELECTED_ITEM_KIND_1_, PutMapMode (Build.hs maspsxGpExterns +
+ *    ItemCursor, PutMapMode (Build.hs maspsxGpExterns +
  *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/D_80097C40 are other
  *    TUs' — plain absolute externs.
  */
@@ -101,7 +102,7 @@ extern s32 GameClock;
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;                       /* fInitialize */
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_1_;
+extern s16 ItemCursor;
 extern u8 PutMapMode;                       /* PutMap latch */
 
 extern MENU_MAIN_TBL DEBUG_MENU_MAIN_SCREEN_OPTIONS;
@@ -242,7 +243,7 @@ void DoInfoViewProc(void)
     {
         if ((trig & 2) != 0)
         {
-            i = CURRENTLY_SELECTED_ITEM_KIND_1_;
+            i = ItemCursor;
             cur = i;
             do
             {
@@ -253,7 +254,7 @@ void DoInfoViewProc(void)
         }
         else if ((trig & 1) != 0)
         {
-            i = CURRENTLY_SELECTED_ITEM_KIND_1_;
+            i = ItemCursor;
             cur = i;
             do
             {
@@ -266,7 +267,7 @@ void DoInfoViewProc(void)
         {
             goto nosel;
         }
-        CURRENTLY_SELECTED_ITEM_KIND_1_ = i;
+        ItemCursor = i;
         SoundEx(0, 0xB);
     }
 nosel:

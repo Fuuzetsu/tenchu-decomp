@@ -7,7 +7,7 @@
  * pool round-robin shape as ReqItemManebue/ReqItemKawarimi/etc, but:
  *  - returns void (no `return 1;`/`return 0;` — Ghidra's decompile shows a
  *    void-returning function; the epilogue never touches $v0)
- *  - instead of `it->model = D_8008E5BC[it->type];`, the tail block-copies
+ *  - instead of `it->model = ItemImage[it->type];`, the tail block-copies
  *    the whole `p->end` VECTOR (4 words, align-4 word block move: 4x lw +
  *    4x sw — see the matching cookbook's "cast type's alignment drives copy
  *    code" rule) onto `it->param` (the union): `*(VECTOR *)it->param =

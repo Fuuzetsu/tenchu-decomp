@@ -30,6 +30,7 @@
  *     extern struct MotionManager *dtM;
  *     extern struct VECTOR *dtL;
  *     extern struct TCameraStatus CamState;
+ *     extern short motMODE;
  *     extern short motID;
  *     extern struct Humanoid *StagePlayer;
  *     extern struct SVECTOR *dtR;
@@ -93,7 +94,7 @@ extern SVECTOR *dtV;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern s16 MotionUpdateMode;
 extern HumanAnimType CVAhuman[5];
 extern TCameraStatus CamState;
@@ -148,7 +149,7 @@ void ActKAGI(void)
             target = &CamState.TargetVector;
             dx = target->vx - locate->vx;
             v.vx = dx;
-            D_80097F0E = 1;
+            motMODE = 1;
             dz = target->vz - locate->vz;
             v.vz = dz;
             if (dx != 0 || dz != 0)
@@ -162,12 +163,12 @@ void ActKAGI(void)
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             goto rope_done;
 
@@ -187,12 +188,12 @@ rope_done:;
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
 
@@ -220,7 +221,7 @@ rope_done:;
             }
             *(u16 *)&model->object[0]->attribute |= 1;
             motID = 0x300;
-            D_80097F0E = 1;
+            motMODE = 1;
             dtM->mask = 0x7fff;
         }
         break;
@@ -258,7 +259,7 @@ rope_done:;
         motID = 0x402;
         mmp->mask = -2;
         attrib = *(u16 *)&human->attrib;
-        D_80097F0E = 1;
+        motMODE = 1;
         if (attrib & 4)
         {
             Sound(human, 0x15);
@@ -341,7 +342,7 @@ rope_done:;
             adjust_root = human->model->object[0];
             motID = 0x803;
             adjust_root->rotate.vy += old_ry - quantized;
-            D_80097F0E = 0;
+            motMODE = 0;
             dtM->mask = 0x7fff;
             if (MotionUpdateMode != 0)
             {
@@ -353,8 +354,8 @@ rope_done:;
                     }
                 }
             }
-            SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-            D_80097F0E = -1;
+            SetNowMotion(Me_MOTION_C, motID, motMODE);
+            motMODE = -1;
 
 motion_active:
             dtM->count >>= 1;

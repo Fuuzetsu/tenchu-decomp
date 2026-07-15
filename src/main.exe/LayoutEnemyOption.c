@@ -25,6 +25,7 @@
  *     stack sp+128    struct TAdtSelect [7] ItemName
  *
  * Globals it touches, as the original declared them:
+ *     extern int CurrentEnemyID;
  *     extern short Humans;
  * END PSX.SYM */
 
@@ -60,7 +61,7 @@
  *    order is case 1, case 2, case 0 — recovered from the target's body
  *    layout (bodies are in source order; the balanced compare tree sorts by
  *    value regardless).
- *  - D_80097D44 is this TU's gp small (Build.hs maspsxGpExterns +
+ *  - CurrentEnemyID is this TU's gp small (Build.hs maspsxGpExterns +
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
 
@@ -82,7 +83,7 @@ typedef struct
 extern TCameraStatus CamState;
 extern s16 Humans;
 /* gp-relative — defined by this (debug-menu) TU; Build.hs maspsxGpExterns */
-extern s32 D_80097D44;                      /* latched enemy (leFindEnemy) */
+extern s32 CurrentEnemyID;                      /* latched enemy (leFindEnemy) */
 
 extern MENU_LAYOUT_TBL DEBUG_MENU_ENEMY_LAYOUT_OPTIONS;
 extern MENU_PATH_TBL DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS;
@@ -143,16 +144,16 @@ void LayoutEnemyOption(void)
                 switch (k)
                 {
                 case 1:
-                    leAddPath(D_80097D44,
+                    leAddPath(CurrentEnemyID,
                               CamState.Owner->model->locate.coord.t[0],
                               CamState.Owner->model->locate.coord.t[1],
                               CamState.Owner->model->locate.coord.t[2]);
                     break;
                 case 2:
-                    leResetPath(D_80097D44);
+                    leResetPath(CurrentEnemyID);
                     break;
                 case 0:
-                    D_80097D44 = leFindEnemy();
+                    CurrentEnemyID = leFindEnemy();
                     break;
                 }
             }

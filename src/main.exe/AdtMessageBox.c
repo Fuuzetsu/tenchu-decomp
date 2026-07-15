@@ -42,7 +42,7 @@
  *    are plain early `return;`s with no `else` — Ghidra's own rendering of
  *    the second one (`if (A==0 || B==0) { <long body> }`, no else) is the
  *    De-Morgan-inverted form of the natural guard clause; the SECOND
- *    `AdtReadPadFunc(0)` call is only ever made when the first already
+ *    `AdtPadRead(0)` call is only ever made when the first already
  *    tested true, so the natural source is the short-circuit `&&` guard
  *    (`if (A && B) return;`) rather than Ghidra's literal `||`.
  *  - D_8008F1B8 (same font-adapter global as AdtFntLoad.c/AdtFntOpen.c/
@@ -107,7 +107,7 @@ typedef struct
 } TAdtDisp;
 
 extern AdtFntState D_8008F1B8;
-extern s32 (*AdtReadPadFunc)(s32 port);
+extern s32 (*AdtPadRead)(s32 port);
 extern s32 AdtDmyPadRead(s32 port);
 extern s32 D_80097E94; /* AdtMessageBox call counter */
 extern char D_80014AAC[]; /* "*** AdtInit not called ***" */
@@ -135,7 +135,7 @@ void AdtMessageBox(char *fmt, ...)
     TAdtDisp ad;
 
     mode = 0;
-    if (AdtReadPadFunc == AdtDmyPadRead)
+    if (AdtPadRead == AdtDmyPadRead)
         fmt = D_80014AAC;
     if (D_8008F1B8.quiet == 1)
         return;
@@ -155,7 +155,7 @@ void AdtMessageBox(char *fmt, ...)
         }
     }
 skip:
-    if ((AdtReadPadFunc(0) & 0x100) && (AdtReadPadFunc(0) & 0x800))
+    if ((AdtPadRead(0) & 0x100) && (AdtPadRead(0) & 0x800))
         return;
 
     AdtVsprintf((s32 *)((char *)&fmt + sizeof(fmt)), buf, 0x1F4, fmt);
@@ -175,9 +175,9 @@ skip:
     VSync(2);
     if (mode == 0)
     {
-        while (AdtReadPadFunc(0) & 0x800)
+        while (AdtPadRead(0) & 0x800)
             VSync(0);
-        while (!(AdtReadPadFunc(0) & 0x800))
+        while (!(AdtPadRead(0) & 0x800))
             VSync(0);
         DrawPrim(ad.prim);
         DrawSync(0);

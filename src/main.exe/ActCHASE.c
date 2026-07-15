@@ -29,10 +29,12 @@
  *     extern short dtPAD;
  *     extern short MotionUpdateMode;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern struct VECTOR *dtL;
  *     extern struct SVECTOR *dtR;
  *     extern short dtCMD;
+ *     extern short SelectedItem;
  * END PSX.SYM */
 
 /*
@@ -54,11 +56,11 @@ extern Humanoid *Me_MOTION_C;
 extern s16 dtPAD;
 extern s16 MotionUpdateMode;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern s16 dtCMD;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern s16 SelectedItem;
 extern ActChaseHumanAnim CVAhuman[5];
 
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
@@ -98,7 +100,7 @@ void ActCHASE(void)
                 short i;
 
                 motID = 0x801;
-                D_80097F0E = 0;
+                motMODE = 0;
                 i = MotionUpdateMode;
                 if (i != 0)
                 {
@@ -112,8 +114,8 @@ void ActCHASE(void)
                         i++;
                     } while (i < 5);
                 }
-                SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-                D_80097F0E = -1;
+                SetNowMotion(Me_MOTION_C, motID, motMODE);
+                motMODE = -1;
             motion_ready:
                 MoveHumanoid(Me_MOTION_C, 0x23, 0);
                 if (dtM->mode & 1)
@@ -178,7 +180,7 @@ void ActCHASE(void)
         {
             motID = 0x501;
         }
-        D_80097F0E = 1;
+        motMODE = 1;
         goto common_action;
     }
 
@@ -192,12 +194,12 @@ void ActCHASE(void)
         if ((dtPAD & 0x4000) == 0)
         {
             motID = 0x501;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else if (dtCMD == 0x22)
         {
             motID = 0x712;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         else if (dtPAD & 0xa000)
         {
@@ -228,11 +230,11 @@ void ActCHASE(void)
         if (Me_MOTION_C->pad.trig & 0x80)
         {
             motID = 0x70c;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         motID = 0xb00;
-        D_80097F0E = 1;
+        motMODE = 1;
         goto common_action;
     }
 
@@ -261,7 +263,7 @@ void ActCHASE(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = 0x501;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         return;
     }
@@ -274,7 +276,7 @@ common_action:
     if (dtCMD == 0x31)
     {
         motID = 0x907;
-        D_80097F0E = 0;
+        motMODE = 0;
         MoveHumanoid(Me_MOTION_C, 0x78, 0);
         return;
     }
@@ -286,7 +288,7 @@ common_action:
     }
     if (Me_MOTION_C->pad.trig & 0x10)
     {
-        switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+        switch ((short)(SelectedItem + 1))
         {
         case 2:
             motID = 0xe00;
@@ -312,7 +314,7 @@ common_action:
         default:
             goto item_default;
         }
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
     item_sound:
@@ -320,7 +322,7 @@ common_action:
         return;
 
     item_default:
-        ReqItemDefault(Me_MOTION_C, CURRENTLY_SELECTED_ITEM_KIND_0_);
+        ReqItemDefault(Me_MOTION_C, SelectedItem);
         return;
     }
     if (Me_MOTION_C->pad.trig & 0x80)

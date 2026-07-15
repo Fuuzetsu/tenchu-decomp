@@ -26,11 +26,13 @@
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
  *     extern short motID;
+ *     extern short motMODE;
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtR;
  *     extern struct SVECTOR *dtV;
  *     extern struct VECTOR *dtL;
  *     extern struct Humanoid *StagePlayer;
+ *     extern short SelectedItem;
  * END PSX.SYM */
 
 /*
@@ -47,8 +49,8 @@ extern SVECTOR *dtV;
 extern VECTOR *dtL;
 extern s16 dtPAD;
 extern s16 motID;
-extern s16 D_80097F0E;
-extern s16 CURRENTLY_SELECTED_ITEM_KIND_0_;
+extern s16 motMODE;
+extern s16 SelectedItem;
 extern Humanoid *StagePlayer;
 
 extern s16 SwimCheck(void);
@@ -70,7 +72,7 @@ void ActSWIM(void)
         if (SwimCheck() == 0)
         {
             motID = 0x301;
-            D_80097F0E = 1;
+            motMODE = 1;
             goto common_action;
         }
         if (((s16)dtPAD & 0xa000) != 0)
@@ -95,7 +97,7 @@ void ActSWIM(void)
         if ((*(u16 *)&dtPAD & 0x5000) == 0)
             goto common_action;
         motID = 0x302;
-        D_80097F0E = 0;
+        motMODE = 0;
         speed = 0x3c;
         if (*(u16 *)&dtPAD & 0x1000)
         {
@@ -123,7 +125,7 @@ void ActSWIM(void)
             if (SwimCheck() == 0)
             {
                 motID = 0x301;
-                D_80097F0E = 1;
+                motMODE = 1;
                 goto common_action;
             }
             if (((s16)dtPAD & 0xa000) != 0)
@@ -189,7 +191,7 @@ void ActSWIM(void)
 
 set_swim_idle:
         motID = 0x300;
-        D_80097F0E = 1;
+        motMODE = 1;
         goto common_action;
 
     case 0x301:
@@ -226,11 +228,11 @@ set_swim_idle:
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
                 return;
             }
             motID = 0;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         if (dtM->count < 0x29)
@@ -249,7 +251,7 @@ common_action:
         human = Me_MOTION_C;
         if ((human->pad.trig & 0x10) == 0)
             return;
-        if (CURRENTLY_SELECTED_ITEM_KIND_0_ != 0)
+        if (SelectedItem != 0)
             return;
         dtM->mask = -2;
 
@@ -277,7 +279,7 @@ common_action:
             *(u16 *)&model->object[0]->attribute &= 0xfffe;
         }
 
-        switch ((short)(CURRENTLY_SELECTED_ITEM_KIND_0_ + 1))
+        switch ((short)(SelectedItem + 1))
         {
         case 2:
             motID = 0xe00;
@@ -303,7 +305,7 @@ common_action:
         default:
             goto item_default;
         }
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
 
 item_sound:
@@ -311,7 +313,7 @@ item_sound:
         return;
 
 item_default:
-        ReqItemDefault(Me_MOTION_C, CURRENTLY_SELECTED_ITEM_KIND_0_);
+        ReqItemDefault(Me_MOTION_C, SelectedItem);
         return;
     }
 }

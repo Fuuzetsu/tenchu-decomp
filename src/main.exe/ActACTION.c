@@ -34,7 +34,7 @@
  *    shared cleanup join instead of duplicating it into predecessor delay
  *    slots, and preserves the target's dtM-then-Me_MOTION_C load order.
  *  - The case-1 and final motion selections write their complete terminal
- *    motID/D_80097F0E tails independently.  jump2 then shares only the flag
+ *    motID/motMODE tails independently.  jump2 then shares only the flag
  *    store, retaining both target motID stores and their branch layout.
  */
 
@@ -51,7 +51,7 @@ extern SVECTOR *dtV;
 extern s16 dtPAD;
 extern s16 MotionUpdateMode;
 extern s16 motID;
-extern s16 D_80097F0E;
+extern s16 motMODE;
 extern Humanoid *StagePlayer;
 extern ActActionHumanAnim CVAhuman[5];
 
@@ -77,7 +77,7 @@ void ActACTION(void)
         if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
         {
             motID = 0x501;
-            D_80097F0E = 1;
+            motMODE = 1;
             return;
         }
         goto set_normal_motion;
@@ -92,12 +92,12 @@ void ActACTION(void)
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
         if (dtM->count == 1)
@@ -111,12 +111,12 @@ void ActACTION(void)
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
             else
             {
                 motID = 0;
-                D_80097F0E = 1;
+                motMODE = 1;
             }
         }
         break;
@@ -196,7 +196,7 @@ void ActACTION(void)
         if (dtM->loop == -1 && dtPAD != 0)
         {
             motID = 0x100c;
-            D_80097F0E = 1;
+            motMODE = 1;
             i = MotionUpdateMode;
             if (i != 0)
             {
@@ -208,8 +208,8 @@ void ActACTION(void)
                     i++;
                 } while (i < 5);
             }
-            SetNowMotion(Me_MOTION_C, motID, D_80097F0E);
-            D_80097F0E = -1;
+            SetNowMotion(Me_MOTION_C, motID, motMODE);
+            motMODE = -1;
         motion_ready:
             dtM->count = -0xf;
         }
@@ -223,7 +223,7 @@ void ActACTION(void)
         else if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = 0x80e;
-            D_80097F0E = 1;
+            motMODE = 1;
         }
         break;
 
@@ -239,11 +239,11 @@ void ActACTION(void)
         if ((*(u16 *)&Me_MOTION_C->attribute & 0x40) == 0)
             goto set_normal_motion;
         motID = 0x501;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     set_normal_motion:
         motID = 0;
-        D_80097F0E = 1;
+        motMODE = 1;
         return;
     }
 }

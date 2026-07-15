@@ -37,7 +37,7 @@
  * null (filename is unused). D_8001113C is the literal string
  * "*** memory load is disabled now ***" living in this TU's rodata blob
  * (unsplit data segment; the address already has an auto symbol, no yaml
- * carve needed — same pattern as D_800121CC/D_80097CB4 elsewhere).
+ * carve needed — same pattern as D_800121CC/VoiceMode elsewhere).
  */
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_8001113C[];

@@ -23,6 +23,9 @@
  *     stack sp+216    long cmd
  *     stack sp+220    long result
  *     stack sp+16     unsigned char [200] fn
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char *TENCHU_ID;
  * END PSX.SYM */
 
 /*
@@ -36,7 +39,7 @@
  * D_80097D04 is %gp_rel (a small in the gp window); D_80097D08, the format
  * string, is reached absolutely.
  *
- * Bound under fresh names (CardVolumeIdPtr/CardPathFormat) in
+ * Bound under fresh names (TENCHU_ID/CardPathFormat) in
  * config/symbols.main.exe.txt instead of the splat-auto D_80097D04/
  * D_80097D08: once FUN_80056e30 (the same TU, same "%s%s" idiom) stopped
  * being raw asm, splat's auto-symbol table lost its only remaining
@@ -47,7 +50,7 @@
  * correct addresses instead of re-using the (now unreliable) auto name.
  */
 
-extern char *CardVolumeIdPtr;  /* -> the volume-id prefix string */
+extern char *TENCHU_ID;  /* -> the volume-id prefix string */
 extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -60,7 +63,7 @@ s16 DeleteCard(char *name)
     s32 cmd;
     s32 result;
 
-    sprintf(path, CardPathFormat, CardVolumeIdPtr, name);
+    sprintf(path, CardPathFormat, TENCHU_ID, name);
     result = MemCardDeleteFile(0, path);
     MemCardSync(0, &cmd, &result);
     return result;

@@ -180,8 +180,10 @@ operating rules:
   rename as separate commits so codegen and naming provenance remain reviewable.
 - **Names and data feed each other.** `datamatch.py` can only see a global through a
   function named on *both* sides, so every batch of function renames unlocks more data
-  symbols. **Re-run `datamatch.py` after any function renames.** It currently proposes
-  zero — it has harvested everything the present 997 shared names can reach.
+  symbols. **Re-run `datamatch.py` after any function renames.** After the calibrated
+  relocation batch adopted 71 names, it currently proposes zero multi-witness names —
+  it has harvested everything the present 999 shared names can safely reach. The 48
+  single-witness rows remain parked for semantic corroboration.
 
 ## Launching an agent
 
