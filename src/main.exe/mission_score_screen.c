@@ -5,18 +5,20 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 1404 of 4636 bytes differ (82.92% fuzzy).  The
+ * STATUS: NON_MATCHING -- 1266 of 4636 bytes differ (81.45% fuzzy).  The
  * guarded draft has the exact target length (1159 instructions) and frame
  * size (0x1B8), with 53/53 conditional branches, 7/8 unconditional jumps,
- * 60/60 calls, and one return.  No retail-name record was found in PSX.SYM or
- * the demo symbol export.
+ * 60/60 calls, and one return.  Its aligned structural residual is 148 lines
+ * in 59 blocks (265 raw lines in 134 blocks).  No retail-name record was found
+ * in PSX.SYM or the demo symbol export.
  *
  * The local aggregates reproduce the original stack layout.  In particular,
  * the packed ScoreResult copy starts at sp+50, the two sprite banks start at
  * sp+60/sp+118, and the one GsIMAGE scratch is reused at sp+160 by all seven
  * sprite initialisations.  The score result's unsigned storage plus signed
- * use, per-expansion decimal-Y carriers, and one cached inserted-rank identity
- * reproduce several otherwise whole-function allocation and jump cascades.
+ * use, per-expansion decimal-Y carriers, a split colour seed, and a signed
+ * table-shift predecessor reproduce several otherwise whole-function
+ * allocation and jump cascades.
  */
 
 typedef struct
@@ -244,7 +246,7 @@ void mission_score_screen(void)
     do {
         i = 0;
     } while (0);
-    rankColour = 128;
+    brightness = rankColour = 128;
     result = *calculate_score(&stats, CHOSEN_STAGE);
 
     tim = FileRead(NUMBER_TIM_PATH);
@@ -253,11 +255,14 @@ void mission_score_screen(void)
     numberSprite->attribute |= 0x50000000;
     numberSprite->x = -140;
     numberSprite->y = -40;
-    numberSprite->r = rankColour;
+    numberSprite->r = brightness;
     numberSprite->g = rankColour;
     numberSprite->b = rankColour;
     numberSprite->mx = numberSprite->w >> 1;
     numberSprite->my = numberSprite->h >> 1;
+    /* Preserve the scheduler boundary before the independent pivot reset. */
+    do {
+    } while (0);
     number.mx = 0;
     number.my = 0;
     LoadTIMAndFree(tim);
@@ -373,9 +378,10 @@ score_character_sprite_init_loop:
         {
             do
             {
-                scoreState->scores[i] = scoreState->scores[i - 1];
-                scoreState->characters[i] = scoreState->characters[i - 1];
-                i--;
+                register s32 previous = i - 1;
+                scoreState->scores[i] = scoreState->scores[previous];
+                scoreState->characters[i] = scoreState->characters[previous];
+                i = previous;
                 scoreState->grades[i + 1] = scoreState->grades[i];
             } while (tail.insertedRank < (s16)i);
         }

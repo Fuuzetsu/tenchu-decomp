@@ -91,7 +91,7 @@ The last assignments closed as follows:
 | `think_setting_small_rotation_small_steps_` | exact 1392 B / 346 instructions | `2416459`, reflection `11a249c` | make one signed-word carrier absorb the entire condition/result chain; reuse a dead local for the other operand to remove a hard `$v0` conflict |
 | `GetAreaMapVector` | guarded 548 B checkpoint, 40 bytes remain | isolated `f2d0a6e`, fuzzy `3764437`; only reflection `36afb3b` integrated | identical arms preserve distinct raw/cached source identities and fix every persistent saved-register assignment, but entry/early-return scheduling remains |
 | `ProcItemNingyo` | best guarded checkpoint has 15 bytes remaining | isolated `c10c3ab`; not integrated | clearing a short-lived launch pointer after `memset` breaks stack-address CSE; destructive model-pointer reuse makes the full derived-position/modulus block exact |
-| `mission_score_screen` | guarded 4636 B checkpoint, 1507 bytes remain | `ec33fbd`; fuzzy 82.83% | an unsigned stored score with a signed use, per-expansion decimal-Y carriers, and one cached inserted-rank identity preserve exact extent/frame while recovering three jumps and removing a 1147-byte residual cascade |
+| `mission_score_screen` | guarded 4636 B checkpoint, 1266 bytes remain | fuzzy 81.45%; exact 1159-instruction extent | the established decimal identities plus a split colour seed, a signed table-shift predecessor, and one pivot-reset scheduler boundary preserve exact extent/frame while removing another 241 differing bytes |
 | `AddEnemy` | guarded 1152 B checkpoint, 183 bytes remain | `c6f1392`; fuzzy 87.50% | explicit top-tested scans, original-local lifetime reuse, and source-level caller-saved spills preserve the exact extent/frame while removing 354 differing bytes |
 
 The Ningyo branch is a materially better starting point than the 19-byte draft
@@ -104,8 +104,9 @@ broad searches: Ningyo needs a zero-code ordering dependency, while
 GetAreaMapVector needs a scheduler/store-order lever. The latter already saw
 guided budgets 80/160 and a bounded roughly 26k-candidate permuter run.
 
-The `mission_score_screen` checkpoint has now moved from 2904 to 1507 differing
-bytes and from 58.07% to 82.83% fuzzy similarity. The earlier per-expansion
+The `mission_score_screen` checkpoint has now moved from 2904 to 1266 differing
+bytes. Its current fuzzy score is 81.45%; that heuristic moved independently of
+the authoritative byte residual. The earlier per-expansion
 decimal identities and labelled sprite-bank loops remain. Three additional
 target facts removed the newest broad cascade: the copied score field is stored
 as `u16` and interpreted as `s16` only at its use (`lhu` plus explicit
@@ -120,6 +121,13 @@ address shape. Direct stock indexing matches that tail but makes the function
 one instruction short; pairing it with a volatile character-attribute reload
 caused a whole-function allocator regression, so do not repeat that pair
 without an independently evidenced low-risk missing instruction.
+
+The later 1507-to-1266 refinement keeps the initial rank colour and first
+number colour as distinct source identities, carries the table-shift
+predecessor as a signed word, and places a zero-code scheduler boundary before
+the number sprite's independent pivot reset. This is an exact-length checkpoint
+(148 structural lines in 59 blocks; 265 raw aligned lines in 134 blocks), not a
+wrong-length byte-window estimate.
 
 `AddEnemy` moved from 537 to 183 differing bytes and from 57.99% to 87.50%
 fuzzy similarity while retaining its exact 288-instruction extent and 0x810
