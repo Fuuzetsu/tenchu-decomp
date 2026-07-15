@@ -91,31 +91,19 @@ typedef struct
 } GsLINE;
 
 extern GsOT *OTablePt;
-extern void GsSortLine(GsLINE *p, GsOT *ot, u16 pri);
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawTargetS", DrawTargetS);
-#else /* NON_MATCHING */
+extern void GsSortLine(GsLINE *p, GsOT *ot, long pri);
 
 void DrawTargetS(long x, long y, long z, long color)
 {
     GsLINE line;
+    GsLINE *p;
+    GsOT *ot;
     long otz;
-    short nearx, neary;
+    long nearx, neary;
+    long callpri;
 
     z = z >> 2;
-    if (z < 0)
-    {
-        otz = 0;
-    }
-    else if (z < 0x4e2)
-    {
-        otz = z;
-    }
-    else
-    {
-        otz = 0x4e1;
-    }
+    otz = z < 0 ? 0 : (z >= 0x4e2 ? 0x4e1 : z);
 
     line.r = (u8)(color >> 16);
     line.attribute = 0;
@@ -123,33 +111,58 @@ void DrawTargetS(long x, long y, long z, long color)
     line.b = (u8)color;
     if (color < 0)
     {
+        p = &line;
+        otz = (u16)otz;
+        callpri = otz;
         nearx = x - 0x14;
         neary = y - 0x14;
         x = x + 0x14;
+        ot = OTablePt;
         y = y + 0x14;
-        line.x0 = nearx;
-        line.y0 = neary;
-        line.x1 = x;
-        line.y1 = y;
-        GsSortLine(&line, OTablePt, (u16)otz);
     }
     else
     {
-        nearx = x - 2;
-        neary = y - 2;
-        x = x + 2;
-        y = y + 2;
-        line.x0 = nearx;
-        line.y0 = neary;
-        line.x1 = x;
-        line.y1 = y;
-        GsSortLine(&line, OTablePt, (u16)otz);
+        p = &line;
+        otz = (u16)otz;
+        callpri = otz;
+        do
+        {
+            nearx = x - 2;
+            do
+            {
+                do
+                {
+                    do
+                    {
+                        neary = y - 2;
+                    } while (0);
+                } while (0);
+            } while (0);
+            do
+            {
+                do
+                {
+                    x = x + 2;
+                } while (0);
+            } while (0);
+        } while (0);
+        ot = OTablePt;
+        do
+        {
+            do
+            {
+                y = y + 2;
+            } while (0);
+        } while (0);
     }
+    line.x0 = nearx;
+    line.y0 = neary;
+    line.x1 = x;
+    line.y1 = y;
+    GsSortLine(p, ot, callpri);
     line.x0 = x;
     line.y0 = neary;
     line.x1 = nearx;
     line.y1 = y;
-    GsSortLine(&line, OTablePt, (u16)otz);
+    GsSortLine(&line, OTablePt, otz);
 }
-
-#endif /* NON_MATCHING */
