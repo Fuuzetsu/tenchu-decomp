@@ -47,24 +47,26 @@
  *
  * This checkpoint routes the two retail-shared height failures through the
  * late passage label and moves the close-distance failure to a final island.
- * That removes the former early skip island, keeps addresses aligned through
- * 0x80028dd8, and improves the guarded draft from 572 to 94 differing bytes
- * (40 to 19 aligned diff lines; fuzzy 98.05 to 98.41).
+ * That removes the former early skip island.  A distinct one-set
+ * `initial_delta_y` producer also gives sched1 the adjusted priority needed
+ * to emit the height load before the delta load.  Addresses now stay aligned
+ * through 0x80028f40, and the guarded draft improves from 572 to 88 differing
+ * bytes (40 to 17 aligned diff lines; fuzzy 98.05 to 98.76).
  *
  * The remaining one-instruction excess is still terminal cross-jump layout:
  * jump2 selects the final close-distance copy, while retail retains the
  * passage-failure `j`/`li -2` island and folds the close-distance return into
- * its conditional branch.  The only body scheduling residual is the adjacent
- * delta.vy/height load order at 0x80028df0.  RTL-guided named-label, guard
- * inversion, shared-result, and zero-code loop-fence probes were flat; there
- * are no semantic, stack-layout, or access-width residuals.
+ * its conditional branch.  RTL-guided named-label, guard inversion, and
+ * zero-code loop-fence probes were flat; shared-result and preassigned-edge
+ * identities regressed and were reverted.  There are no body scheduling,
+ * semantic, stack-layout, or access-width residuals.
  *
  * Key recovered shapes: the three deltas must be one stack VECTOR (three
  * scalar locals color into s-registers and lose the retail frame plan);
  * `mode` is s16, whose repeated promotions create retail's mode-copy moves;
- * and the vertical adjustment needs an updated `delta_y` plus a separate
- * `base_y`.  Reusing one variable collapses the retail v1-to-a1 copy and
- * renumbers the complete normalization loop.
+ * and the vertical adjustment needs distinct `initial_delta_y`, updated
+ * `delta_y`, and `base_y` identities.  Reusing one variable collapses the
+ * retail v1-to-a1 copy and renumbers the complete normalization loop.
  */
 
 #ifndef NON_MATCHING
@@ -101,6 +103,7 @@ s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree)
     s32 y;
     s32 base_y;
     s32 own_height;
+    s32 initial_delta_y;
     s32 delta_y;
     s32 full_height;
     s32 half_height;
@@ -198,10 +201,10 @@ degree_done:
         }
         y = vect.vy;
         own_height = human->height;
-        delta_y = delta.vy;
+        initial_delta_y = delta.vy;
         y += 300;
         y -= own_height;
-        delta_y -= 300;
+        delta_y = initial_delta_y - 300;
         vect.vy = y;
         base_y = delta_y + human->height;
         delta.vy = base_y;
