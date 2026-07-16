@@ -6636,6 +6636,37 @@ def rule_empty_loop_boundary(text, name, span):
             )
 
 
+def rule_fence_unwrap(text, name, span):
+    """Remove an existing non-empty one-shot fence, keeping its body.
+
+    An equivalence fence (``do { ... } while (0);``) is diagnostic scaffolding:
+    it pins scheduling by making its body a separate block.  Once neighbouring
+    repairs land, a stale fence can BE the final mismatch — it blocks cc1 from
+    floating an independent statement (typically a call-argument copy) to the
+    slot the target schedules it in, which reads as a whole exact-length block
+    rotated around one instruction (mission_score_screen: an ~80-byte rotation
+    collapsed to a 9-instruction shift when a stale fence was unwrapped,
+    525 -> 498).  Enumerate unwrapping every non-empty fence; empty fences
+    belong to rule_empty_loop_boundary's removal side.
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for loop in _find(body, ("do_statement",)):
+        loop_body = _one_shot_loop(data, loop)
+        if loop_body is None or _empty_one_shot_loop(data, loop):
+            continue
+        inner = data[loop_body.start_byte + 1:loop_body.end_byte - 1].strip()
+        if not inner:
+            continue
+        line = _line(data, loop.start_byte)
+        yield (
+            f"fence-unwrap L{line}",
+            splice(data, loop.start_byte, loop.end_byte, inner).decode(),
+        )
+
+
 def rule_working_copy_seed_merge(text, name, span):
     """Move a working-copy identity from its seed to its update/writeback.
 
@@ -7956,6 +7987,7 @@ AGGRESSIVE_RULES = [
     ("disjoint-local-alias", "join a dead-until-overwrite scalar to an earlier live range", rule_disjoint_local_alias),
     ("redundant-field-donor", "repeat a pure local-aggregate field assignment", rule_redundant_field_donor),
     ("empty-loop-boundary", "insert a weight-free LOOP_END between statements", rule_empty_loop_boundary),
+    ("fence-unwrap", "remove an existing non-empty one-shot fence, keeping its body", rule_fence_unwrap),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("nested-loop-fence", "atomically add two or three loop weights at one site", rule_nested_loop_fence),
     ("paired-loop-fence", "wrap adjacent groups in two atomic one-shot loops", rule_paired_loop_fence),

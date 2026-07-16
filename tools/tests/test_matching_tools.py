@@ -1721,6 +1721,34 @@ int F(int i) { return Nodes[i]->value; }
         self.assertIn("empty-loop-boundary remove L3", out[0][0])
         self.assertNotIn("do {", out[0][1])
 
+    def test_fence_unwrap_removes_fence_but_keeps_body(self):
+        source = """void F(int value) {
+    value++;
+    do {
+        value = 0;
+        value--;
+    } while (0);
+    value++;
+}
+"""
+        out = self.candidates(autorules.rule_fence_unwrap, source)
+        self.assertEqual(len(out), 1)
+        self.assertIn("fence-unwrap L3", out[0][0])
+        self.assertNotIn("do {", out[0][1])
+        self.assertIn("value = 0;", out[0][1])
+        self.assertIn("value--;", out[0][1])
+
+    def test_fence_unwrap_ignores_empty_fences(self):
+        source = """void F(int value) {
+    value++;
+    do {
+    } while (0);
+    value--;
+}
+"""
+        self.assertEqual(
+            self.candidates(autorules.rule_fence_unwrap, source), [])
+
     def test_working_copy_seed_merge_moves_identity_atomically(self):
         source = """typedef int s32;
 void F(void) {

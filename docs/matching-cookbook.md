@@ -5731,6 +5731,19 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **A large exact-length block that appears ROTATED by one instruction —
+  typically a call-argument copy sitting at the wrong END of the block — is
+  often pinned by an equivalence fence (`do{}while(0)`) splitting the block.**
+  The target schedules the independent arg copy early; the fence blocks cc1
+  from floating it there. Remove a non-load-bearing fence and the arg copy
+  floats toward the target position, collapsing the whole rotation. Verify by
+  byte count; the copy floats up only to the next *required* scheduling
+  barrier (e.g. a brightness/CSE fence), so a partial float can be the true
+  ceiling. (mission_score_screen: an ~80-byte block-rotation hunk collapsed to
+  a 9-instruction shift, 525→498.) `autorules` now enumerates this
+  mechanically as `fence-unwrap` (every non-empty one-shot fence), and
+  `asmdiff` prints each displayed hunk's insn/byte weight so a 20-instruction
+  rotation is no longer indistinguishable from a 4-byte shift.
 - **A whole SDK library can be epilogue-shape unmatchable: check `jr ra`'s
   delay slot before spending anything on an SDK cluster.** cc1-281's
   `mips_expand_epilogue` ALWAYS reorgs a trivial frame's sp-restore into the

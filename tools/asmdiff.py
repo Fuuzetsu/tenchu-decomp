@@ -182,7 +182,8 @@ def main():
         print("[STRUCTURAL FILTER ONLY — empty output is not an exact-match "
               "claim; run tools/matchdiff.py for the byte gate]")
     for tag, i1, i2, j1, j2 in stats["displayed"]:
-        print(f"--- {tag}")
+        width = max(i2 - i1, j2 - j1)
+        print(f"--- {tag} [T{i2 - i1}/O{j2 - j1} insns, weight {width * 4} bytes]")
         for k in range(i1, i2):
             print(f"  T {tgt[k][0]:#x}  {tgt[k][1]}")
         for k in range(j1, j2):
