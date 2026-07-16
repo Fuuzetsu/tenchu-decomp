@@ -1721,6 +1721,20 @@ int F(int i) { return Nodes[i]->value; }
         self.assertIn("empty-loop-boundary remove L3", out[0][0])
         self.assertNotIn("do {", out[0][1])
 
+    def test_length_win_that_costs_aligned_lines_is_flagged(self):
+        # (lines, length_delta): a length-mismatched draft that gets SHORTER but
+        # gains differing lines is the "shortened by deleting correct code"
+        # signature (ChasetoTarget's deg: short->s32 false adoption).
+        note = autorules.shape_regression_note((20, 3), (26, 2))
+        self.assertIn("LENGTH-WIN SHAPE REGRESSION", note)
+        # A length win that also improves (or holds) the aligned lines is normal
+        # length-first progress and must stay silent.
+        self.assertEqual(autorules.shape_regression_note((20, 3), (14, 2)), "")
+        self.assertEqual(autorules.shape_regression_note((20, 3), (20, 2)), "")
+        # A real match is never second-guessed.
+        self.assertEqual(
+            autorules.shape_regression_note((20, 3), (26, 2), match=True), "")
+
     def test_fence_unwrap_removes_fence_but_keeps_body(self):
         source = """void F(int value) {
     value++;

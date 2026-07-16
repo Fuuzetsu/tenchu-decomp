@@ -8202,6 +8202,21 @@ def shape_regression_note(before, after, match=False):
     if (before_lines is not None and after_lines is not None and
             before_length == after_length and after_lines > before_lines):
         return f"  LOCAL-SHAPE REGRESSION {before_lines}→{after_lines} lines"
+    # On an ALREADY length-mismatched draft, matchdiff's score is the length
+    # penalty alone (1000 + |delta|), so ANY edit that shortens the function
+    # toward the target scores better -- including one that shortens it by
+    # DELETING instructions the target has and the draft already matched.
+    # ChasetoTarget adopted `deg: short->s32` this way (1012->1008): it removed
+    # the target's own sll/sra sign-extension pair from a region that was
+    # already byte-correct, and PSX.SYM independently records `deg` as a short.
+    # A length win that costs aligned lines is that signature; report it rather
+    # than refuse, since a genuine length fix can also perturb alignment.
+    if (before_lines is not None and after_lines is not None and
+            before_length is not None and after_length is not None and
+            after_length < before_length and after_lines > before_lines):
+        return (f"  LENGTH-WIN SHAPE REGRESSION {before_lines}→{after_lines} "
+                f"lines while length {before_length}→{after_length} — verify it "
+                f"did not delete instructions the target has")
     return ""
 
 

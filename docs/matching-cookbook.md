@@ -5883,16 +5883,32 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   (`sh $v0,0x10($s0)`); every subsequent field goes through the pointer. This is
   the concrete, reachable mechanism behind a parked note like "requires all
   midpoint pointers scored above X" — not a sub-C tie.
-- **Inline abs into its comparison — not a named temp — to fix scheduling AND
-  allocation priority together.** When the target's abs of a callee-saved
-  value lands in a late-scheduled caller-saved scratch (`$v0`), write
-  `if ((x >= 0 ? x : -x) < K)`, NOT `t = x; if (x < 0) t = -x;`. The named
-  temp (a) schedules its copy early into a free caller-saved reg (so it can't
-  be `$v0`), and (b) its `t = -x` adds a ref to `x` that flips the `.greg`
-  priority so `x`'s sibling loses its callee-saved home. `t = -t` does NOT
-  fix (b) — cse copy-propagates it back to `t = -x`. Only the inline `?:`
-  keeps the neg as `neg $v0,$v0` (ChasetoTarget: flipped `me` to the target's
-  `$s1`).
+- **On a length-mismatched draft, autorules' score is the LENGTH PENALTY ALONE
+  (`1000 + |delta|`) — review every adoption before believing it.** Any edit
+  that shortens the function toward the target scores better, including one that
+  shortens it by DELETING instructions the target has in a region that already
+  matched. ChasetoTarget adopted `deg: short→s32` this way (1012→1008): it
+  removed the target's own `sll/sra` sign-extension pair, and PSX.SYM
+  independently recorded `deg` as a `short`. This is the same class as
+  AddEnemy's `s16→s8` narrow (wrong shift width, and it masked a −14 win).
+  autorules now prints `LENGTH-WIN SHAPE REGRESSION` when a length win costs
+  aligned lines, but the judgment is yours: a type-width edit that changes or
+  deletes a target-present sign-extension is wrong however it scores.
+- **An abs must reach `ABS_EXPR` — but HOW you spell it there does not matter.**
+  `x >= 0 ? x : -x`, `__builtin_abs(x)`, and an assigned `t = __builtin_abs(x)`
+  are all IDENTICAL to cc1 2.8.1: `fold-const.c` ("If we have A op 0 ? A : -A")
+  rewrites the conditional into `ABS_EXPR` before expand, and all three then
+  reach the `mips.md` `abssi2` pattern. What LOSES is the open-coded
+  `t = x; if (x < 0) t = -x;`, which fold cannot see and which never becomes
+  `abssi2`: it (a) schedules its copy early into a free caller-saved register
+  and (b) adds a ref to `x` that flips the `.greg` priority so `x`'s sibling
+  loses its callee-saved home (`t = -t` does NOT fix (b) — cse
+  copy-propagates it back to `t = -x`). ChasetoTarget's win was reaching
+  `ABS_EXPR` at all; an earlier version of this rule credited "inline vs named
+  temp" and was **disproven by direct experiment** (all three spellings emit
+  byte-identical asm) — do not propagate that framing.
+- **Inline a CSE'd pointer-array element into the expression that first uses
+  it, so it loads late and reuses a dying pointer's register.** A named
 - **Inline a CSE'd pointer-array element into the expression that first uses
   it, so it loads late and reuses a dying pointer's register.** A named
   `c1 = chase[1]` temp schedules early (before the target pointer's register
