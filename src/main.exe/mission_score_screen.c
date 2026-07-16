@@ -13,7 +13,9 @@
  * s7/s8 register mentions now match the target exactly (4/4 and 13/13).
  * Exact target length (1159 instructions), frame 0x1B8, 60/60 calls; the whole
  * function is address-aligned except the LoadTIMAndFree arg copy (9 low) and
- * one +4/-4 skew pair (medal bgez delay nop vs the row draw's sra).  No
+ * one +4/-4 skew pair (medal bgez delay nop vs the row draw's sra) — BOTH
+ * halves of that pair are SOLVED and verified in round-7 below, but they are
+ * complementary (+1/-1) and gated on one last insn (round-7 (C)).  No
  * retail-name record in PSX.SYM/demo export.
  *
  * 2026-07-17 round-5 (Fable) landed identities (do not undo):
@@ -221,6 +223,82 @@
  *   <=135 while ten sits at its 21-ref floor, the flip falls out with NO fence at
  *   all and the scaffold deletes itself.  Do not spend another round tuning
  *   fences — the pair cannot be separated by refs.
+ *
+ * 2026-07-17 round-7 (Opus) — THE +4/-4 SKEW PAIR IS SOLVED IN BOTH HALVES.
+ * Both halves are VERIFIED insn-for-insn against the target; neither is
+ * committed because they are EXACTLY complementary (+1 / -1 insn) and a third
+ * piece (below) is still missing, so any subset breaks the 1159 extent.
+ * Round 4 measured each half SEPARATELY, saw each break the length, and parked
+ * both ("both are the SAME parked +-4 pair") — but NEVER COMBINED THEM.
+ *
+ * (A) ROW HALF (+1 insn) — the target's row sign arm reproduces EXACTLY with:
+ *       s16 signedValue; u16 value; s32 widenedValue;
+ *       signedValue = (value_);        // addiu a0,s4,1
+ *       value = signedValue;           // move a1,a0   (back at the LOOP TOP)
+ *       ... x/y stores ...
+ *       widenedValue = signedValue;    // sll a0,a0,0x10 / sra a0,a0,0x10
+ *       if (widenedValue < 0) { value = -widenedValue; negative = 1; goto L; }
+ *       else { negative = 0; }
+ *   Gives target's sll/sra/bgez a0/sh v0,6(s3)[ds]/negu a1,a0 and restores
+ *   `move a1,a0` to the loop top (target 0x8005597c).  WHY (convert.c, read):
+ *   `value = -signedValue` with u16 value / s16 signedValue can NEVER emit a
+ *   sign-extended negate — convert_to_integer NARROWS NEGATE_EXPR through the
+ *   truncation, so cc1 always emits `negu` on the RAW reg and combine then
+ *   collapses the compare to a bare `sll` (one insn short).  Only a separate
+ *   SImode variable makes the sign_extend a real 2-use value (compare + negate),
+ *   which both keeps the sra and blocks that combine fold.  Round 4's rejected
+ *   `sv = (s16)(i+1) << 16; sv >>= 16;` is NOT the same thing (its pair hoists);
+ *   this spelling stays put.
+ *
+ * (B) MEDAL HALF (-1 insn) — the bgez delay nop fills with `move a0,s0` using:
+ *       medal = &ItemImage[...]->sprite;   // + the 4 x/y/scale stores
+ *       brightness = rcos((GameClock << 12) / 90) * 80;   // the rcos CALL
+ *       medalDraw = medal;                 // <- copy AFTER the call
+ *       medal++;                           // <- blocker (see below)
+ *       if (brightness < 0) { brightness += 0xFFF; }
+ *       brightness = (brightness >> 12) + 0x7F;
+ *       medalDraw->r = medalDraw->g = medalDraw->b = brightness;
+ *       GsSortSprite(medalDraw, OTablePt, 1);
+ *   Verified dispositions: `85 in 16` (medal -> s0) and `86 in 4`
+ *   (medalDraw -> a0) — the target's exact configuration; whole medal
+ *   store/call block then matches.  TWO rules make it work:
+ *   - THE COPY MUST BE BORN AFTER THE rcos CALL.  Placed BEFORE it (round 4's
+ *     and my first attempt) the pseudo lives across the call, is forced into a
+ *     CALLEE-SAVED reg (measured: `86 in 16` = s0), and can never be a0 — the
+ *     nop stays.  This is why round 4 concluded the second pointer always fails.
+ *   - ROUND 4'S "any position" FOR THE BLOCKER IS WRONG.  `medal++` must sit
+ *     BETWEEN the copy and medalDraw's uses (it defeats cse1's make_regs_eqv
+ *     re-canon; it is then deleted at COMBINE, verified across dumps).  At the
+ *     END of the block it is a pure no-op — cc1 emits a BYTE-IDENTICAL object
+ *     (Shake content-hashes the .o and correctly skips the relink; that is not
+ *     a stale build).  Without any blocker: copy dies, nop returns (4640).
+ *   RTL PROOF the second pointer is unavoidable: with ONE medal pseudo the arg
+ *   copy (insn 2715 `a0 = medal`) is emitted at the call and is hoisted above
+ *   the r/g/b stores only in the regmove/sched1 window — at `.flow` it is still
+ *   after the stores on reg 85; at `.sched` it is at the TOP of the POST-JOIN
+ *   block with the stores rewritten to a0.  It can never cross the join label,
+ *   so the bgez slot is unreachable.  (Also note: cc1 emits this region in
+ *   `.set reorder`; the bgez slot is filled by the ASSEMBLER from the single
+ *   immediately-preceding insn — not by cc1's dbr.)
+ *
+ * (C) THE ONLY MISSING PIECE (worth +1 insn) — the medal ADDRESS setup.
+ *   Target:  lw v0,0(v0) / nop / addiu s0,v0,104 / li v0,138
+ *   Ours(B): lw s0,0(v0) / li v0,138 / addiu s0,s0,104
+ *   The lw temp (pseudo 777, NO .greg disposition => allocated by LOCAL-alloc)
+ *   takes s0 instead of the target's v0.  With the temp on v0 the load-delay is
+ *   UNFILLABLE (`li v0,138` would clobber the addiu's operand) and the target's
+ *   nop is forced; on s0 cc1 fills it and we lose the insn.  So: temp==v0 <=>
+ *   the nop <=> the 1159 extent with (A)+(B) both in.
+ *   Measured at (A)+(B): 16 insns FIXED (0x80055940-0x8005597c medal slot +
+ *   store/call block + row preheader, and 0x800559a8/ac/b4 row sign arm);
+ *   ~10 real insns broken, ALL inside 0x800558d4-0x800558fc (this address
+ *   setup); the rest of the "broken" set is branch targets skewed by the -4.
+ *   Solve (C) and the state should land near ~117 differing insns (~350B).
+ *   Tried and did NOT move the temp off s0 (all still 4632): medalDraw declared
+ *   before/after medal; medalDraw block-scoped inside the `if`; role swap
+ *   (fresh block-scoped setup pointer + medal as the a0 copy).  Next lead: find
+ *   why local-alloc ties the temp into medal's callee-saved qty here but not in
+ *   the baseline (read .lreg's qty/combine_regs decisions for that block).
  *
  * Remaining classes — RE-MEASURED at 401 (the old "498 bytes" list below was
  * stale; two of its entries are now closed).  A target-vs-draft register-mention

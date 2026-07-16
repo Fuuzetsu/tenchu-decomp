@@ -505,6 +505,10 @@ function already byte-matches on current `master`.
   `tools/matchdiff.py -n <Name>`. Worse, the byte count alone was misleading
   there — a LENGTH MISMATCH (1148 vs 1152) only appeared once the image was
   actually rebuilt.
+- **A 0.1 s "build" is not automatically a stale read.** Shake content-hashes the
+  `.o`, so a dead-code-only edit legitimately produces an identical object and
+  skips the relink. Verify with `.c` -> `.o` -> `main.exe` timestamps rather than
+  assuming either way (a lane briefly mistrusted a correct build over this).
 - **Never read `matchdiff`/`asmdiff` output from a build whose `./Build check` did not
   return 0.** A failed or torn build leaves stale/inconsistent artifacts, and the diff
   against them is fiction. I "diagnosed" a phantom 2-byte gp-offset bug in a
@@ -716,6 +720,11 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   hard veto when a kept type-narrow changes an aligned sll/sra shift AMOUNT
   vs the target; and on plateau, try reverting the sweep's own last kept
   type-narrow before concluding.
+- **autorules: the "narrowed negate" rule** — rewrite `narrow = -narrowVar` as a
+  separate SImode negation operand (convert.c narrows NEGATE_EXPR through the
+  truncation, so the narrow form can never emit the target's sign-extended
+  negate). Mechanical and local; flagged as a good candidate by the lane that
+  found it.
 - **autorules: in-place sign-extend shift-pair rule** — rewrite `x = (s16)x` /
   `x = (s16)src` sites as `x <<= 16; x >>= 16;` (forces in-place sll/sra
   instead of a $v0 scratch; FUN_800519bc paid it manually twice). Also

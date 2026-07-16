@@ -5849,13 +5849,38 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   ARTIFACTS of that late merge rather than source variables. This single
   restructuring took FUN_80057b80 from 494 to 8 bytes after three rounds had
   read the final asm and concluded a label was impossible.
+- **A "narrowed negate" can never be sign-extended: `narrow = -narrowVar` is not
+  the target's shape.** convert.c's `convert_to_integer` narrows `NEGATE_EXPR`
+  THROUGH the truncation, so cc1 emits `negu` on the raw register and combine
+  then folds the compare down to a bare `sll`. To get the target's `sll/sra` plus
+  a `negu` on the EXTENDED value, the negation's operand must be a separate
+  SImode variable — the sign_extend then has two uses (the compare and the
+  negate), which also blocks that combine fold. (mission_score_screen's row
+  draw; mechanical enough to be an autorules candidate.)
+- **An argument-register copy cannot cross a call.** To place an arg copy in an
+  earlier block (e.g. to fill a branch delay slot), introduce a second pointer —
+  but its copy must be born AFTER any intervening call. Born before, the pseudo
+  lives across the call, is forced callee-saved, and the `$a0` allocation you
+  wanted never happens. (This is why mission_score_screen's round 4 concluded "a
+  second pointer always fails" — it had placed the copy before the `rcos` call.)
+  Related correction from the same lane: a dead-store blocker does NOT work "at
+  any position" — at the end of a block it is a no-op and cc1 emits a
+  byte-identical object; it must sit BETWEEN the copy and the copy's uses.
+- **A `bgez` delay slot can be filled by the ASSEMBLER, not cc1.** cc1 emits
+  `.set reorder`, and cc1's own dbr only considers the single immediately
+  preceding insn — so do not reason about such a slot as if `dbr` chose it.
 - **Length-neutral packages cannot land piecemeal — look for the payer.** The
   same FUN_80057b80 change was four "separate" sites that only worked together:
   two saved an instruction each (`sll/sra` -> `lh`), one gained a missing reload,
   and the net -1 exactly paid for a proven `+1` base pointer that had been
   unscoreable for three rounds because it overflowed the carve alone. When a
   proven finding costs +1 and is rejected on length, do not drop it — go find
-  what pays for it.
+  what pays for it. **Second instance, same rollout**: mission_score_screen's
+  round 4 measured the two halves of its ±4 skew SEPARATELY, saw each break the
+  1159-instruction extent, and parked both — its own note even said "both are the
+  SAME parked ±4 pair" — but never combined them. Round 7 proved they are exactly
+  complementary. When a note says two residuals are the same pair, that is an
+  instruction to try them TOGETHER.
 - **Test a shape in a STANDALONE 25-line `.c` compiled directly with cc1-281
   (~1 s/variant) before editing a 750-line draft.** Use `tools/rtldump.py`'s
   CC_FLAGS. FUN_80057b80's X box as a testbed reproduced the forwarding bug and
