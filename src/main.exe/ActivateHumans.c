@@ -73,63 +73,56 @@ extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActivateHumans", ActivateHumans);
 #else
 /*
- * STATUS: NON_MATCHING — 10 of 1608 bytes differ (was 360), at the exact
- * 0x68-byte frame, 0x30-byte working stack window, 1,608-byte /
+ * STATUS: NON_MATCHING — 3 of 1608 bytes differ (was 10, was 360), at the
+ * exact 0x68-byte frame, 0x30-byte working stack window, 1,608-byte /
  * 402-instruction length, and exact physical CFG (44 conditional branches,
  * 8 unconditional jumps, 4 calls, 1 return).  Build with
  * `NON_MATCHING=ActivateHumans ./Build`.
  *
- * SOLVED this session (do not undo):
- * - The coupled StageChar base identity: retail derives $s3 from the $s5
- *   high half (`lui s5,0x8009; addiu s3,s5,-6436`).  The working spelling is
- *   `stage_char = (StageCharType *)((u8 *)stage_hi - 0x1924);` at the clamp
- *   join, with `stage_hi = (StageCharType *)0x80090000;` (plus `i = 0;`)
- *   duplicated into ALL THREE n-clamp arms.  The multi-def in separate
- *   extended basic blocks fences cse1/cse2 constant-folding (a join-block
- *   single def gets folded to `li 0x8008E6DC` = lui+ori, one insn long) and
- *   blocks combine's cross-block const substitution; jump2's cross-jump then
- *   merges the three identical `[move s1,zero; lui s5]` arm tails back to the
- *   join and reorg's delay-slot steal/retarget reproduces the exact retail
- *   clamp layout (beqz->0x8003b950 with move in the slot, j past the merged
- *   move).  Single-def spellings CANNOT work: guard via stage_char[0] gets
- *   cse1-canonicalized to 0(s3) (kills s5), direct StageChar[0].stage is NOT
- *   loop-hoisted (conditional invariant), and stage_hi-derived-later forms
- *   fold.  This removed the whole 90-word one-instruction-shift region
- *   (360 -> 20 differing bytes in one step).
- * - The nested do{}while(0) fence around `human == target` raises target's
- *   weighted refs so it colors $s4 (guided autorules find, 20 -> 13).
- * - The identical-arm fence `if (target) {arm} else {arm}` around the middle
- *   n-clamp arm (both arms = the same `i = 0; stage_hi = ...;`) re-colors
- *   stage_char to $s3: the pre-jump2 duplicate defs shift allocno priorities,
- *   then cross-jump deletes the test entirely (decomp-permuter find, verified
- *   byte-neutral in code layout; 13 -> 10 with the s8 join).  `human` also
- *   works as the condition but is uninitialized there; `target` is clean.
+ * SOLVED this round: the 7-byte callee-saved $s2/$s5 swap.  The previous park
+ * rested on a priority-window "impossibility proof" that was WRONG in two
+ * ways: it held live_length FIXED (priority = floor_log2(refs)*refs/live has
+ * TWO tunable inputs), and it treated the two hunks as independent when they
+ * are one coupled ordering problem.  With stage_hi pinned at 474 the window
+ * for activate_distance is (474, 544) and no integer refs count lands in it —
+ * but dropping stage_hi below target WIDENS that window to (406, 544), where
+ * 7 refs -> 469 lands cleanly.  Retail's order is a single total order:
+ *   human > i > activate_distance > stage_char > target > stage_hi  = $s0..$s5
+ * Final measured (regalloc.py, refs/live -> priority -> reg):
+ *   human 39/214 -> 9112 -> $s0      i 7/251 -> 557 -> $s1
+ *   activate_distance 7/298 -> 469 -> $s2   stage_char 5/246 -> 406 -> $s3
+ *   target 6/303 -> 396 -> $s4       stage_hi 4/249 -> 321 -> $s5
+ *   distance 5/84 -> $a3             VISIBLE_CHARACTERS_ base 3/24 -> $a2
+ * Three coupled levers, all required together (do NOT undo any one alone —
+ * each is load-bearing only in combination with the others):
+ * - stage_hi 6 -> 4 refs: `i = 0; stage_hi = ...;` moved OUT of the three
+ *   n-clamp arms into ONE identical-arm fence `if (target) {arm} else {arm}`
+ *   at the clamp join, so the n-clamp arms carry only `n = 3;` / `n = 6;`.
+ *   2 defs + 2 uses = 4 refs -> 321, below target.  The two-arm duplicate def
+ *   still fences cse1/cse2 constant-folding, so the coupled StageChar base
+ *   identity (`lui s5,0x8009; addiu s3,s5,-6436`, the $s5-derived base)
+ *   SURVIVES — a single join def would fold to `li 0x8008E6DC`.
+ * - i regains its 7th weighted ref via `do { i++; } while (0);` (losing two
+ *   arm defs cost it 7 -> 5 refs = 398, which sank it below $s2/$s3).
+ * - activate_distance +3 weighted refs via a TRIPLE do{}while(0) fence on its
+ *   13000 def ONLY.  Nesting depth n gives a ref weight of n+1; the fence adds
+ *   NO live_length (loop notes are not counted), so 4 -> 7 refs at live 298.
+ * WHY that exact site (measured, each alternative costs bytes):
+ * - Fencing EITHER `distance < activate_distance` use (the natural targets)
+ *   swaps distance/VISIBLE_CHARACTERS_base between $a2/$a3 = 7 bytes: loop
+ *   notes are sched barriers and both uses sit on distance's live range.
+ * - Fencing the 26000 def blocks reorg from stealing `li s2,26000` into the
+ *   `beq $v1,$v0` delay slot at 0x8003b878, costing a nop (length 1612).
+ * - The 13000 def is AFTER that branch and off distance's range: free.
  *
- * Remaining 10 bytes, two independent residuals:
- * - 7 bytes: a callee-saved 2-swap.  Retail colors activate_distance=$s2 and
- *   stage_hi=$s5; ours swaps them (stage_hi=$s2, activate_distance=$s5).
- *   stage_char=$s3, target=$s4, human=$s0, i=$s1 all match retail.
- *   global.c priority = floor_log2(refs)*refs/live_length; measured refs/live
- *   (regalloc.py): stage_hi 6/253, stage_char 5/246, target 5/308,
- *   activate_distance 4/303, i 7/257.  activate_distance needs a score inside
- *   (stage_hi, i) = (0.0474, 0.0545): at live 303 no integer refs value lands
- *   there (7 -> 0.0462, 8 -> 0.0792), and stage_hi cannot drop below target
- *   (0.0325) while the arms structure fixes it at >= 5 refs (>= 0.0395).
- *   The loop-depth/fence lever is quantized past both windows; three full
- *   guided-autorules budgets confirm no reachable candidate improves on 10.
- * - 3 bytes: the join copy at 0x8003baec.  Retail `move v0,v1`; ours (s8
- *   active) `sll v0,v1,0x18` (combine drops the sra under the zero-test).
- *   u8 gives `andi v0,v1,0xff` (4 bytes).  Retail's SImode copy is not
- *   C-reachable here by type: a QI/HI pseudo widening never simplifies to a
- *   bare move (nonzero_bits punts on the paradoxical subreg), and every
- *   same-block SI copy spelling (`final = active; if (final)`, copy-back into
- *   computed_active, identical single-insn arms) is combine-folded back to a
- *   direct test — all verified flat at 401 instructions.
- * Tool budget spent: rtlguide, rtldump (cse/combine/loop dumps read),
- * regalloc.py, 3 guided-autorules budgets (two applied wins), one bounded
- * 420 s permuter run (its only exact-length winner, output-260-1, was the
- * identical-arm fence transplanted above; the lower-proxy candidates were
- * length-broken and rejected by the authoritative full-link rescore).
+ * Remaining 3 bytes: the join copy at 0x8003baec.  Retail `move v0,v1`; ours
+ * (s8 active) `sll v0,v1,0x18` (combine drops the sra under the zero-test).
+ * u8 gives `andi v0,v1,0xff` (4 bytes).  A QI/HI pseudo widening never
+ * simplifies to a bare move (nonzero_bits punts on the paradoxical subreg),
+ * and previously every same-block SI copy spelling (`final = active; if
+ * (final)`, copy-back into computed_active, identical single-insn arms) was
+ * combine-folded back to a direct test — flat at 401 instructions (one SHORT,
+ * i.e. the copy is deleted entirely rather than kept as a move).
  */
 void ActivateHumans(void)
 {
@@ -156,7 +149,7 @@ void ActivateHumans(void)
     activate_distance = 26000;
     if (StagePlayer->motion->mid != 0xf05)
     {
-        activate_distance = 13000;
+        do { do { do { activate_distance = 13000; } while (0); } while (0); } while (0);
     }
 
     if (GameClock != (GameClock / 30) * 30 || SkipFrame != 0)
@@ -176,26 +169,19 @@ void ActivateHumans(void)
         if ((s16)n < 3)
         {
             n = 3;
-            i = 0;
-            stage_hi = (StageCharType *)0x80090000;
-        }
-        else
-        {
-            if (target)
-            {
-                i = 0;
-                stage_hi = (StageCharType *)0x80090000;
-            }
-            else
-            {
-                i = 0;
-                stage_hi = (StageCharType *)0x80090000;
-            }
         }
     }
     else
     {
         n = 6;
+    }
+    if (target)
+    {
+        i = 0;
+        stage_hi = (StageCharType *)0x80090000;
+    }
+    else
+    {
         i = 0;
         stage_hi = (StageCharType *)0x80090000;
     }
@@ -354,7 +340,7 @@ active_done:
     model->attribute &= 0xbfff;
 
 next_human:
-    i++;
+    do { i++; } while (0);
     goto human_loop;
 }
 #endif
