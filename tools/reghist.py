@@ -21,7 +21,8 @@ Also useful: a register the target mentions N times has N-2 body refs (the
 prologue `sw` and epilogue `lw` are the other two), which is the cheapest
 possible check on any "the original's X carries K refs" claim.
 
-  tools/reghist.py <Name>          histogram, differences first
+  tools/reghist.py <Name>          histogram, differences first (builds the
+                                   DRAFT itself for a guarded function)
   tools/reghist.py <Name> --all    every register, including the equal ones
   tools/reghist.py <Name> -n       skip ./Build (reads the image on disk)
 
@@ -57,6 +58,16 @@ ALLOCATABLE = (
 REG_RE = re.compile(r"\b\$?(" + "|".join(ALLOCATABLE) + r")\b")
 
 
+def is_guarded(name):
+    """Whether <name>.c hides its C behind the NON_MATCHING guard."""
+    path = os.path.join("src", "main.exe", name + ".c")
+    if not os.path.exists(path):
+        return False
+    with open(path, errors="replace") as stream:
+        return bool(re.search(r"^\s*#\s*ifndef\s+NON_MATCHING\b",
+                              stream.read(), re.M))
+
+
 def mentions(disassembly):
     """Count register mentions across an instruction listing."""
     counts = collections.Counter()
@@ -79,11 +90,21 @@ def main():
     name = args.name
 
     if not args.no_build:
-        if subprocess.run(["./Build"]).returncode:
+        # Build the DRAFT, not the stub. A parked function's plain `./Build`
+        # links its INCLUDE_ASM stub, so the histogram would compare the target
+        # against its own bytes and report "every register matches exactly" --
+        # a vacuous truth, and the most dangerous possible false negative, since
+        # it tells an agent no lever remains. Set NON_MATCHING ourselves when the
+        # source is guarded rather than relying on the caller to remember.
+        env = dict(os.environ)
+        if is_guarded(name):
+            env["NON_MATCHING"] = name
+        if subprocess.run(["./Build"], env=env).returncode:
             sys.exit("reghist: build failed")
+    # Backstop: whatever the caller did, refuse to measure a stub artifact.
     blocker = asmdiff.candidate_artifact_error(name)
     if blocker:
-        sys.exit(blocker)
+        sys.exit(blocker.replace("asmdiff:", "reghist:", 1))
 
     addr, size = matchdiff.symbol_slot(name)
     target = asmdiff.dis(asmdiff.ORIG, addr, size)

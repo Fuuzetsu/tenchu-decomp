@@ -5852,6 +5852,39 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   AddEnemy's `blood.call_spill[]`-style spills looked load-bearing, but gcc
   spilled the same bases to the same slots (sp+0x7e0/sp+0x7e4) by itself; the
   hack only ever looked right because it agreed with what caller-save already did.
+- **METHOD — when a residual looks unreachable, grep the whole game for the
+  target's SHAPE and check whether any function with it is already MATCHED.**
+  Our matched corpus is an oracle: a matched function's source IS the answer to
+  "what C produces this?". FUN_80057b80's prologue emits the `a1`-copy before the
+  `a0`-copy; exactly three functions in main.exe do that, and BOTH matched ones
+  (`create_ninken_character_(s16 type, s32 stage)`, `cd_control(u8, u8*, u8*)`)
+  have a NARROW first parameter. One grep settled what a lot of source-reading
+  could not. Use this before any deep RTL dive.
+- **A first parameter narrower than a word has its copy DEFERRED past every other
+  parameter copy.** `assign_parms` (function.c:4142) emits each arg-register copy
+  inline in declaration order UNLESS `nominal_mode != passed_mode ||
+  promoted_nominal_mode != promoted_mode`; then it emits `move tempreg,aN` inline
+  but defers the real assignment into `conversion_insns`, flushed only after all
+  parms (function.c:4439). tempreg coalesces into aN, so the deferred insn becomes
+  a plain `move sX,aN` with a LUID GREATER than every other parm copy — and for an
+  unsigned narrow type the truncation moves to the USE site, so it stays a bare
+  `move`, not `sll/sra`. For a pointer or int this can NEVER fire (line 3789
+  forces `passed_mode = nominal_mode = Pmode`). **So: if a prologue emits the
+  a1-copy before the a0-copy, the first parameter is narrow.**
+- **gcc 2.8.1's `sched.c` schedules each basic block BOTTOM-UP, and `priority()`
+  (sched.c:1479) maxes over `LOG_LINKS` — PREDECESSORS.** So priority is depth
+  from the block TOP, not critical-path-to-block-end (that is later-gcc/haifa
+  behaviour — a real trap). The emitted order is the REVERSE of the pick order,
+  and ready-list ties go to the HIGHEST LUID. Read `.sched2`'s
+  `;; ready list at T-N: …` lines directly — they print every priority and every
+  decision. Consequences: a later USE cannot raise an insn's priority (it is a
+  successor, not a predecessor); two reg-reg moves are indistinguishable to every
+  scheduler heuristic (same class, hazard 0), so **LUID is their only
+  discriminator**; and the prologue (save, def) pair order is decided entirely by
+  the DEF's LUID — `schedule_select` picks the largest `potential_hazard` in the
+  first equal-priority group, and mips.md gives a store a memory unit while a
+  reg-reg move has none, which is what drags each `sw` to sit just before its
+  copy regardless of the order `save_restore_insns` emitted them in.
 - **NEVER infer cse-time block structure from the final asm.** cse1 runs BEFORE
   jump2, and jump2's cross-jumping merges identical arms — erasing the very
   labels cse saw. So a store/reload pair that looks impossibly co-located in one

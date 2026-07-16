@@ -4965,6 +4965,30 @@ class RegHistTests(unittest.TestCase):
         self.assertEqual(counts["s0"], 1)
         self.assertEqual(counts["a3"], 1)
 
+    def test_guard_detection_drives_the_draft_build(self):
+        # reghist must build the DRAFT for a guarded function. Building the stub
+        # compares the target against its own bytes and reports "every register
+        # matches exactly" — a vacuous truth, and the worst possible false
+        # negative, since it tells an agent that no lever remains.
+        old = os.getcwd()
+        with tempfile.TemporaryDirectory() as directory:
+            os.chdir(directory)
+            try:
+                os.makedirs(os.path.join("src", "main.exe"))
+                guarded = os.path.join("src", "main.exe", "Guarded.c")
+                with open(guarded, "w") as stream:
+                    stream.write("#ifndef NON_MATCHING\n"
+                                 'INCLUDE_ASM("x", Guarded);\n'
+                                 "#else\nvoid Guarded(void) {}\n#endif\n")
+                plain = os.path.join("src", "main.exe", "Plain.c")
+                with open(plain, "w") as stream:
+                    stream.write("void Plain(void) {}\n")
+                self.assertTrue(reghist.is_guarded("Guarded"))
+                self.assertFalse(reghist.is_guarded("Plain"))
+                self.assertFalse(reghist.is_guarded("DoesNotExist"))
+            finally:
+                os.chdir(old)
+
     def test_unallocatable_registers_are_ignored(self):
         # $at/$sp/$gp/$zero are not allocator-assigned, so a difference in them
         # is never a decomposition lever and must not perturb the delta sum.
