@@ -5811,6 +5811,24 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Ghidra's reused variables are MEGA-PSEUDOS — split them per site.** This is
+  the highest-yield structural check on any big function. Ghidra reuses one
+  variable (`iVar3`, `uVar2`, …) for a dozen unrelated jobs. Each C local is ONE
+  pseudo, and one pseudo gets ONE hard register for ALL its fragments — so a
+  conflict in any single fragment exiles every use. Splitting `iVar3`'s ~12 jobs
+  into per-site/per-block locals took FUN_80057b80 from 759 → 722 → 619 and made
+  a0/a3/t0/s2–s7 match the target exactly.
+  - **Diagnostic, do it FIRST on a big function**: histogram register mentions in
+    the target vs the draft. A caller-saved register carrying ~70 mentions across
+    a whole function is a mega-pseudo — no real source has one (the target had 5).
+  - The proof that they are separate source variables is direct: the target
+    assigns the *same expression* (`puVar4 = param_2[5]`) to **a1, a1, a1, a2**
+    across four blocks. A single pseudo can only ever get one register.
+  - **Corollary — a delay-slot or scheduling difference can be a pure CONSEQUENCE
+    of allocation.** Four surplus `sra`-in-`bgez`-delay-slot sites vanished for
+    free once the split landed: the target's value lives in `$v0`, where the
+    filler would clobber its own input, so the slot must stay `nop`; ours lived in
+    `$a3`, so reorg could speculate it in. Fix the allocation, not the schedule.
 - **Narrow locals are genuine QI/HI pseudos here — not PROMOTE_MODE-promoted.**
   `rtldump` shows `reg/v:QI` / `reg/v:HI` directly, so a narrow local ALWAYS
   needs a real extension (`sll`/`andi`) and can never produce the target's bare

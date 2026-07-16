@@ -508,6 +508,18 @@ function already byte-matches on current `master`.
   whole data region -- the link succeeds and the image is just wrong. Measured: one
   missing entry moved 388 symbols by +16 bytes.
 
+- **An agent's worktree can be based on a STALE commit — tell every round-N
+  lane to check.** Agent worktrees do not reliably branch from master's tip: a
+  FUN_80057b80 round-3 worktree was based on a commit predating round 2, so its
+  `.c` was a bare `INCLUDE_ASM` stub with none of the banked findings; several
+  other lanes silently fast-forwarded before starting. The agent noticed and
+  recovered, but a lane that does NOT notice will re-derive banked work or
+  "improve" a state that master already beat. Put this in every continuation
+  brief: *verify your `src/main.exe/<Name>.c` carries the checkpoint the brief
+  describes; if not, `git merge --ff-only master` (or reset onto it) FIRST and
+  re-measure the baseline before any edit.* The harvest-side defence is already
+  standard: re-measure every returned state yourself and take the file, not the
+  agent's number.
 - **A fresh worktree needs `tools/wt-init.sh` before anything works.** `disks/` (the
   game images) and `.shake/` (which holds the Ghidra export) are both gitignored, so a
   new worktree has neither: `./Build` cannot find the target image, and
