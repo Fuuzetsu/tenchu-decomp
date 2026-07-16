@@ -11,6 +11,11 @@ questions in one second that otherwise cost a round each:
   the DRAFT mentions far more than the target is that tell — splitting the
   variable per site was worth 140 bytes on FUN_80057b80 (`iVar3`: 70 mentions vs
   the target's 5).
+* **Are the OPCODES even the same?** A register histogram is blind to `lh` vs
+  `lhu`: a wrong mnemonic shows an identical register profile and would read as
+  "pure renames", when it is a structural defect no allocation steering can fix
+  (ControlHumanoid's 17-byte park was exactly that). This tool checks the
+  mnemonic histogram first and says so loudly.
 * **Is the decomposition already exhausted?** Read the delta SUM. Deltas that sum
   to ZERO and sit only in the argument registers are the signature of pure
   renames of identical instructions: no splitting lever remains, and the residual
@@ -66,6 +71,21 @@ def is_guarded(name):
     with open(path, errors="replace") as stream:
         return bool(re.search(r"^\s*#\s*ifndef\s+NON_MATCHING\b",
                               stream.read(), re.M))
+
+
+def opcodes(disassembly):
+    """Mnemonic histogram — the guard against a false "pure renames" verdict.
+
+    A register histogram is blind to the OPCODE: a draft emitting `lhu` where the
+    target has `lh` shows an identical register profile and would be reported as
+    "pure renames of identical instructions", when it is structurally wrong and no
+    allocation steering could ever reach the target (ControlHumanoid's 17-byte
+    park was exactly this). Compare the mnemonics before drawing any conclusion.
+    """
+    counts = collections.Counter()
+    for _addr, text in disassembly:
+        counts[text.split()[0]] += 1
+    return counts
 
 
 def mentions(disassembly):
@@ -131,18 +151,43 @@ def main():
         flag = "" if not d else ("  <-- draft-heavy" if d > 0 else "  <-- target-heavy")
         print(f"{reg:>5} {t:>7} {o:>7} {d:>+7}{flag}")
 
+    # A register verdict is only meaningful once the OPCODES agree: a wrong
+    # mnemonic (lh vs lhu) is invisible to a register histogram but is a
+    # structural defect no allocation steering can fix.
+    t_ops, o_ops = opcodes(target), opcodes(candidate)
+    op_delta = sorted((op, o_ops.get(op, 0) - t_ops.get(op, 0))
+                      for op in set(t_ops) | set(o_ops)
+                      if o_ops.get(op, 0) != t_ops.get(op, 0))
+
     print()
+    if op_delta:
+        print("reghist: *** OPCODES DIFFER — the register verdict below is not "
+              "the whole story ***")
+        for op, d in op_delta:
+            print(f"         {op:>8} {d:+d}")
+        print("         A wrong mnemonic is a STRUCTURAL defect (a type/width or "
+              "expression-shape bug),")
+        print("         not an allocation tie — no register steering can reach "
+              "the target from here.")
+        print("         Fix the opcodes first, then re-read the register "
+              "histogram. (See docs/matching-cookbook.md.)")
+        print()
+
     if not shown:
         print("reghist: every allocatable register matches the target exactly.")
-        print("         No mega-pseudo and no splitting lever — the residual is "
-              "allocation/scheduling, not decomposition.")
+        if not op_delta:
+            print("         No mega-pseudo and no splitting lever — the residual "
+                  "is allocation/scheduling, not decomposition.")
         return 0
     print(f"reghist: {len(shown)} register(s) differ; delta sum {total:+d}")
-    if total == 0:
+    if total == 0 and not op_delta:
         print("         Sum ZERO = pure renames of identical instructions: the "
               "variable decomposition already matches the target.")
         print("         Do not hunt a mega-pseudo here; the residual is "
               "allocation/scheduling.")
+    elif total == 0:
+        print("         Sum ZERO, but the OPCODES differ (above) — this is NOT "
+              "'pure renames'.")
     else:
         print("         Non-zero sum = real structural divergence (instructions "
               "our draft has and the target does not, or vice versa).")

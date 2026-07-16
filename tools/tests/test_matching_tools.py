@@ -4965,6 +4965,17 @@ class RegHistTests(unittest.TestCase):
         self.assertEqual(counts["s0"], 1)
         self.assertEqual(counts["a3"], 1)
 
+    def test_opcode_histogram_catches_a_wrong_mnemonic(self):
+        # A register histogram is blind to lh vs lhu: identical register profile,
+        # structurally wrong code. ControlHumanoid's 17-byte park was exactly this
+        # and would have read as "pure renames of identical instructions".
+        target = [(0, "lh v0,4(a0)"), (4, "addu v0,v0,v1")]
+        draft = [(0, "lhu v0,4(a0)"), (4, "addu v0,v0,v1")]
+        self.assertEqual(reghist.mentions(target), reghist.mentions(draft))
+        self.assertNotEqual(reghist.opcodes(target), reghist.opcodes(draft))
+        self.assertEqual(reghist.opcodes(draft)["lhu"], 1)
+        self.assertEqual(reghist.opcodes(target)["lh"], 1)
+
     def test_guard_detection_drives_the_draft_build(self):
         # reghist must build the DRAFT for a guarded function. Building the stub
         # compares the target against its own bytes and reports "every register

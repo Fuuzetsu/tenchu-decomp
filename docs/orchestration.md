@@ -784,6 +784,17 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   many commits the branch is behind master and the exact ff command. Seven lanes
   in one rollout started 26-36 commits stale; one was missing the checkpoint its
   task described, another a tool its task told it to run first.
+- **regalloc.py `--local`**: surface local_alloc quantities (lreg qty -> hard reg
+  + life lengths). It currently shows only `-dg` GLOBAL allocnos, yet local
+  colouring DRIVES global preferences via `set_preference` — ControlHumanoid's
+  whole residual was local quantities, invisible to the tool.
+- **autorules: the fixed-address indexing toggle** — pointer-local vs
+  constant-macro at each fixed-address indexing site, keyed on commutative `addu`
+  operand order (close in spirit to `late-pointer-direct`/`ptr-base-split`). It
+  found 16 bytes that a 37-candidate default sweep missed.
+- **autorules: `add-prefix-temp` should also try the FULL-sum temp**, not only the
+  two contiguous two-term seams — naming the full sum is what closed
+  ControlHumanoid's cluster.
 - **asmdiff `--context N`**: show N unchanged instructions around each hunk.
   asmdiff prints only differing lines, but the SURROUNDING context is what reveals
   delay-slot and cross-jump structure — the ActSTICKON lane hand-rolled a 10-line

@@ -5,8 +5,75 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 346 of 4636 bytes differ (was 401; 413; 433; 437;
- * 476; 498; 525; 1266).
+ * STATUS: NON_MATCHING -- 330 of 4636 bytes differ (was 346; 401; 413; 433;
+ * 437; 476; 498; 525; 1266).  104 differing instructions.
+ *
+ * 2026-07-17 round-9 (Opus) — THE CONSTANT-ADDRESS OPERAND-ORDER LEVER
+ * (346 -> 330), and the bank-address pair is CLOSED as a spelling problem.
+ *
+ * THE NEW RULE (reusable, verified in a standalone cc1-281 reduction before
+ * applying, then measured):
+ *   Indexing a fixed absolute address through a POINTER LOCAL
+ *     `register T *st = (T *)0x80010000;  st->arr[i]`
+ *   makes the element address `(plus reg_st reg_index)`, and expand_binop
+ *   emits `addu t,state,index` — BASE FIRST.  Inlining the constant
+ *     `#define ST ((T *)0x80010000)      ST->arr[i]`
+ *   makes it `(plus reg_index CONST)`, and expand's EXPAND_SUM/form_sum sorts
+ *   the CONSTANT TERM LAST, emitting `addu t,index,base` — INDEX FIRST, the
+ *   target's order.  The single cse'd `lui` per block is PRESERVED, so the
+ *   fresh-lui-per-block shape is a property of the constant being
+ *   rematerialized per block, NOT of the pointer local.
+ *   Sites: rank scan -10B, shift loop -4B, init loop -2B; insert block and the
+ *   three row-loop locals byte-NEUTRAL (kept: they delete 4 locals / 13 lines).
+ *   This CORRECTS the old "separate insert-block pointer (fresh lui)" identity.
+ *   THE RULE IS SITE-DEPENDENT — it pays only where the access is INDEX-SCALED
+ *   (`st->arr[i]`, an addu whose operands can reorder).  Applying it to the
+ *   GRAND-MASTER stock tail (whose accesses are displacement-folded scalars,
+ *   `state->stage` / `state->chr`) REGRESSES 330 -> 334: with no index there is
+ *   no addu to reorder, and inlining only costs the shared base.  Measured and
+ *   reverted; do not retry.  Keep a pointer local for displacement-folded
+ *   blocks, a constant macro for index-scaled ones.
+ *
+ * THE BANK-ADDRESS base-first/index-first PAIR IS CLOSED AT THE C LEVEL — do
+ * not spend another round re-spelling it.  Round 3 said "cc1 address-selection,
+ * not spelling" from 2 spellings; that verdict is now proven at TEN, with the
+ * mechanism:
+ * - CORPUS ORACLE (whole-game disasm, 525 matched fns): the target's shape
+ *   (`addu rX,sp,rI` + a SEPARATE `addiu rX,rX,IMM`) occurs at exactly TWO
+ *   sites in the ENTIRE GAME — 0x80054ca4 and 0x80054d64, BOTH inside this
+ *   function.  It is not an idiom anywhere else, so no matched source can
+ *   supply it.  The 3 matched fns that DO emit `addu rX,sp,idx` (load_layout,
+ *   DrawConstruction, BriefingAndInventorySelectionScreen) all DEREFERENCE
+ *   immediately and fold the frame offset into the load displacement
+ *   (`addu v0,sp,a0` / `lw a1,16(v0)`) — a different construct.
+ * - TESTBED: `&bank[i]`, `bank + i`, the (u8*) cast macro, BOTH operand orders,
+ *   the int-sum form, `&bank[i].a` / `&(bank[i].a)` (COMPONENT_REF), `&(*(bank
+ *   + i))`, and the array at zero AND nonzero virtual-frame offset ALL emit
+ *   byte-identical base-first.  Only `(S*)(i*36 + (int)bank)` differs — worse
+ *   (an extra addu).  C folds `&a[i]` to `a + i`, so every spelling converges.
+ * - MECHANISM (expand + function.c:3130 instantiate_virtual_regs_1, read
+ *   directly).  At expand `p = &bank[i]` is ONE insn, `(set p (plus VIRT idx))`
+ *   — the frame base is the VIRTUAL reg and there is NO constant, so it takes
+ *   instantiate's GENERIC path, which forces the base (`addiu t,sp,96`) and
+ *   yields base-first.  The target's index-first needs the RTL
+ *   `(plus (plus VIRT idx) CONST)`, which hits the special case at :3137
+ *   (`Check for (plus (plus VIRT foo) (const_int)) first`) and emits exactly
+ *   `addu s0,sp,s1 / addiu s0,s0,96`.  Our expand never builds that for a
+ *   pointer-VALUED address; only a MEM address (EXPAND_SUM) gets the constant
+ *   sorted outermost, and then it folds into the displacement instead.
+ * - THEREFORE `REG_N_DEATHS` (and every local-alloc lever) is CATEGORICALLY
+ *   INAPPLICABLE here: the form is decided at expand/instantiate, long before
+ *   local-alloc ever runs.  Do not re-run that lever on this class.
+ * - Round 9 also re-measured: `tools/autorules.py` full default sweep = "no
+ *   improving edit among 37 candidates" (independently re-confirms the
+ *   rankSpriteBase fence: fence-unwrap L1030 346->359).  `tools/permute.py`
+ *   REFUSES this residual as too broad (102 aligned lines in 65 blocks vs
+ *   limits 128/32) — it is not an allocation cascade, so the permuter is not
+ *   the tool until the structure closes further.
+ * - BYTE-ACCOUNT of the 346 (17 clusters, 114 insns): 23 insns were PURE
+ *   PERMUTATION (identical instruction multiset, scheduling only — largely
+ *   GsSortSprite's `move a2,zero` placed early by the target, late by us).
+ *   The SCORE_STATE class above was the largest REAL class, not the sp banks.
  *
  * 2026-07-17 round-8 (Opus) — THE +-4 SKEW PAIR IS LANDED (401 -> 346).
  * Round 7's (A) and (B) are both in; its blocking (C) ("move pseudo 777 off
@@ -509,6 +576,14 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 #define SCORE_SPRITE_AT(bank_, index_)                                       \
     ((GsSPRITE *)((u8 *)(bank_) + (index_) * sizeof(GsSPRITE)))
 
+/* The persistent high-score block, addressed by CONSTANT rather than through a
+ * pointer local.  This is not cosmetic: with a pointer variable the address is
+ * `(plus reg_state reg_index)` and expand_binop emits `addu t,state,index`
+ * (base first); inlining the constant makes it `(plus reg_index CONST)`, and
+ * expand's EXPAND_SUM/form_sum sorts the constant term LAST, emitting
+ * `addu t,index,base` -- the target's operand order. */
+#define SCORE_STATE ((MissionScorePersistent *)0x80010000)
+
 /* This is deliberately a macro.  Retail repeats the decimal loop at every
  * call site, with fresh arithmetic identities but shared sign/base-U state. */
 #define DRAW_SCORE_Y_SEED_0(carrier_, y_) ((carrier_) = (y_))
@@ -884,34 +959,28 @@ score_character_sprite_init_loop:
     vfree(tim);
 
     {
-        register MissionScorePersistent *initState =
-            (MissionScorePersistent *)0x80010000;
-
         for (i = 0; i < 5; i++)
         {
-            if (initState->scores[i] == 0)
+            if (SCORE_STATE->scores[i] == 0)
             {
-                initState->scores[i] = 0x1A5C2;
-                initState->characters[i] = 0;
-                initState->grades[i] = 0;
+                SCORE_STATE->scores[i] = 0x1A5C2;
+                SCORE_STATE->characters[i] = 0;
+                SCORE_STATE->grades[i] = 0;
             }
         }
     }
 
     insertedRank = -1;
     {
-        register MissionScorePersistent *rankState =
-            (MissionScorePersistent *)0x80010000;
-
         for (i = 0; i < 5; i++)
         {
-            if (rankState->grades[i] < result.grade)
+            if (SCORE_STATE->grades[i] < result.grade)
             {
                 insertedRank = i;
                 break;
             }
-            if (rankState->grades[i] == result.grade &&
-                stats.clock < rankState->scores[i])
+            if (SCORE_STATE->grades[i] == result.grade &&
+                stats.clock < SCORE_STATE->scores[i])
             {
                 insertedRank = i;
                 break;
@@ -927,28 +996,23 @@ score_character_sprite_init_loop:
             i = 4;
             if (found < 4)
             {
-                register MissionScorePersistent *scoreState =
-                    (MissionScorePersistent *)0x80010000;
-
                 do
                 {
-                    scoreState->scores[i] = scoreState->scores[i - 1];
-                    scoreState->characters[i] =
-                        scoreState->characters[i - 1];
-                    scoreState->grades[i] = scoreState->grades[i - 1];
+                    SCORE_STATE->scores[i] = SCORE_STATE->scores[i - 1];
+                    SCORE_STATE->characters[i] =
+                        SCORE_STATE->characters[i - 1];
+                    SCORE_STATE->grades[i] = SCORE_STATE->grades[i - 1];
                     i--;
                 } while (insertedRank < (s16)i);
             }
 
             {
-                register MissionScorePersistent *insertState =
-                    (MissionScorePersistent *)0x80010000;
                 register s32 insertedAt = insertedRank;
 
-                insertState->scores[insertedAt] = stats.clock;
-                insertState->characters[insertedAt] =
-                    ((PersistentState *)insertState)->chr;
-                insertState->grades[insertedAt] = result.grade;
+                SCORE_STATE->scores[insertedAt] = stats.clock;
+                SCORE_STATE->characters[insertedAt] =
+                    ((PersistentState *)SCORE_STATE)->chr;
+                SCORE_STATE->grades[insertedAt] = result.grade;
             }
         }
     }
@@ -1033,18 +1097,12 @@ score_character_sprite_init_loop:
             } while (0); } while (0); } while (0); } while (0);
 score_row_loop:
             {
-                register MissionScorePersistent *scoreState;
-                register MissionScorePersistent *characterState;
-                register MissionScorePersistent *rankState;
-
                 DRAW_SCORE_NUMBER_ROW32(i + 1, score_row_number,
                                         rowSprite, -0x8F, i * 0x16 + 0x18);
-                scoreState = (MissionScorePersistent *)0x80010000;
-                FUN_800515b0(&number, scoreState->scores[i],
+                FUN_800515b0(&number, SCORE_STATE->scores[i],
                              0x79, i * 0x16 + 0x18, 1);
 
-                characterState = (MissionScorePersistent *)0x80010000;
-                sprite = &characterSprites[characterState->characters[i]];
+                sprite = &characterSprites[SCORE_STATE->characters[i]];
                 sprite->x = -0x79;
                 sprite->y = i * 0x16 + 0x16;
                 if (i == insertedRank)
@@ -1065,10 +1123,9 @@ score_row_loop:
                 } while (0);
                 GsSortSprite(sprite, OTablePt, 1);
 
-                rankState = (MissionScorePersistent *)0x80010000;
                 {
                     register GsSPRITE *rankSprite =
-                        &rankSpriteBase[rankState->grades[i]];
+                        &rankSpriteBase[SCORE_STATE->grades[i]];
                     rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;
                     rankSprite->scalex = rankSprite->scaley = 0xB33;
                     rankSprite->x = -0x2F;

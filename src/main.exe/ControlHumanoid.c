@@ -33,23 +33,52 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact target length (394 instructions / 1576
- * bytes), with 17 differing bytes and a 96.45 fuzzy score.  Physical control
- * flow is exact: 17 calls, 41 conditional branches, seven jumps, and one
- * return.  The residual is local to five hunks: a six-instruction temporary
- * register cycle in the player-camera yaw expression, the signed load and
- * result destination for GetDirection's third argument, and a five-instruction
- * temporary cycle in the enemy vertical delta.
+ * STATUS: NON_MATCHING — exact target length (394 instructions / 1576 bytes),
+ * 7 differing bytes.  The residual is ONE cluster: the enemy vertical delta at
+ * 0x800280a0-0x800280b4.  Everything else, including the player-camera yaw and
+ * GetDirection's third argument, is byte-exact.
  *
- * Three nested zero-trip loops around that final delta are a zero-code cc1
- * weighting fence.  They move the function-scope direction allocno from a0 to
- * retail's v1 (57 -> 42 bytes).  Splitting the delta through the existing
- * magnitude temporary inside the fence then gives magnitude retail's a0 and
- * removes the global allocation cascade (42 -> 17 bytes).  A preference-only
- * one-shot-loop variant also selected direction=v1 and magnitude=a0, but grew
- * the function to 397 instructions, displaced head, and was rejected.  Two
- * guided 160-candidate autorules passes and a late four-minute permuter run
- * found no smaller authoritative full-link residual beyond this pure-C form.
+ * The previous 17-byte checkpoint was a DEAD END, not a near-match: at
+ * 0x80027ff8 it emitted `lhu` where retail has `lh` — a wrong OPCODE, so no
+ * amount of allocation steering could ever have reached exact from it.  Its
+ * three nested zero-trip "weighting fences" are inert under the correct
+ * decomposition (measured 28 -> 28 with them removed) and have been deleted;
+ * they were scaffolding tuned to the wrong `lhu` shape.  Its claim that the
+ * delta must be split through `magnitude` is what pins the delta into $a0 (see
+ * below), and its claim that the fences move `direction` a0 -> v1 is false —
+ * cluster A's own coloring does that.
+ *
+ * Three findings got 17 -> 7 (all verified against the pinned gcc-2.8.1 source
+ * and a standalone cc1-281 testbed):
+ *   1. GetDirection's third parameter is `short` (reference/psxsym-protos.h),
+ *      and the three-term rotation sum must be narrowed through a VAR_DECL.
+ *      convert_to_integer distributes an outer (s16) cast into a PLUS_EXPR's
+ *      operands, making every halfword leaf narrow-use-only (`lhu`) and folding
+ *      into the last operand's register; it cannot distribute into a VAR_DECL.
+ *   2. The player-yaw sum and the enemy rotation sum are ONE reused variable
+ *      (`rotation_pair`); retail keeps both in $v0.  This alone was 28 -> 7.
+ *   3. global.c:set_preference strips an expression's outer code and takes
+ *      operand 0, and treats a local_alloc'd pseudo as a hard reg.  So
+ *      `direction = CamState.DirectionRY - rotation_pair` donates the CamState
+ *      load's register to `direction` as a hard-reg preference — that, not any
+ *      fence, is what decides direction=$v1 / magnitude=$a0.
+ *
+ * The remaining 7 bytes are a genuine two-sided preference tie, and the two
+ * halves are complementary — neither lands alone:
+ *   - Retail's delta is a compiler TEMP in $v0 (`subu v0,v0,v1`), while
+ *     `magnitude` is $a0; one C variable gets one hard register, so the delta
+ *     cannot be `magnitude`.  Writing it as `direction = (t[1]-vy)/2` does
+ *     reproduce this cluster EXACTLY (verified: 0 diffs there).
+ *   - But `magnitude` only reaches $a0 because `magnitude = t[1]-vy` donates
+ *     the t[1] load's $a0 via set_preference.  With the delta as a temp,
+ *     `magnitude` has no preference of its own, and since find_reg's own-
+ *     preference pass is the only thing that overrides
+ *     `regs_someone_prefers`, it is pushed off $a0 by `direction`'s
+ *     preferences {v1,a0,a2} and lands in $a1 (22 bytes).
+ * Closing this needs a source form that gives `magnitude` an $a0 preference
+ * without putting the delta in it — i.e. an insn `(set magnitude (EXPR X ...))`
+ * whose operand 0 local_alloc colours $a0.  Not found.  A 420 s -j4 permuter
+ * run and two full autorules sweeps (18 and 21 candidates) found nothing.
  *
  * Build with `NON_MATCHING=ControlHumanoid ./Build` and inspect with
  * `tools/matchdiff.py ControlHumanoid`.
@@ -96,7 +125,7 @@ extern s32 DrawClip(ModelType *model, s32 *xy);
 extern s32 FntPrint(char *format, ...);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void UpdateCoordinate(ModelType *model);
-extern s16 GetDirection(s32 dx, s32 dz, s32 rotation);
+extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 
 void ControlHumanoid(Humanoid *human)
 {
@@ -190,13 +219,11 @@ draw_done:
 
     if (human == StagePlayer)
     {
-        do {
-          if (human->status == 0xc)
-          {
-              return;
-          }
-          head = human->model->object[2];
-        } while (0);
+        if (human->status == 0xc)
+        {
+            return;
+        }
+        head = human->model->object[2];
         if (CamState.Mode != 1 && CamState.Mode != 3)
         {
             MotionElementType *rotation;
@@ -218,9 +245,9 @@ draw_done:
         }
         else
         {
-            direction = CamState.DirectionRY -
-                        (human->model->object[0]->rotate.vy +
-                         human->model->object[1]->rotate.vy);
+            rotation_pair = human->model->object[0]->rotate.vy +
+                            human->model->object[1]->rotate.vy;
+            direction = CamState.DirectionRY - rotation_pair;
             magnitude = direction >= 0 ? direction : -direction;
             if (magnitude >= 0x385)
             {
@@ -260,11 +287,12 @@ draw_done:
         }
 
         rotation_pair = human->model->object[0]->rotate.vy +
-                        human->model->object[1]->rotate.vy;
+                        human->model->object[1]->rotate.vy +
+                        human->rotate->vy;
         direction = GetDirection(
             human->target->locate.coord.t[0] - human->locate->vx,
             human->target->locate.coord.t[2] - human->locate->vz,
-            (s16)(rotation_pair + human->rotate->vy));
+            rotation_pair);
         magnitude = direction >= 0 ? direction : -direction;
         if (magnitude >= 0x708)
         {
@@ -281,18 +309,8 @@ draw_done:
             head->rotate.vy = direction;
         }
 
-        /* Zero-code cc1 loop weighting; see STATUS above. */
-        do
-        {
-            do
-            {
-                magnitude = human->target->locate.coord.t[1] - human->locate->vy;
-                do
-                {
-                    direction = magnitude / 2;
-                } while (0);
-            } while (0);
-        } while (0);
+        magnitude = human->target->locate.coord.t[1] - human->locate->vy;
+        direction = magnitude / 2;
         if (direction != 0)
         {
             if (direction >= -500)

@@ -6189,6 +6189,40 @@ while its reasoning did not.
   loop-note ref WEIGHT and a scheduling barrier but no block boundary; an
   identical-arm fence gives a real block boundary. Pick by which one the
   mechanism needs.
+- **A "pure register permutation" residual may be structurally WRONG — check
+  OPCODES first.** A register histogram compares MENTIONS and is blind to `lh` vs
+  `lhu`: a wrong mnemonic shows an identical register profile and reads as "pure
+  renames", when no allocation steering could ever reach the target.
+  ControlHumanoid sat parked at 17 bytes on exactly this — it emitted `lhu` where
+  retail has `lh`, so the whole park was a dead end rather than a near-match, and
+  its three "weighting fences" measured inert once the decomposition was right.
+  `tools/reghist.py` now prints an OPCODES DIFFER banner before any register
+  verdict; heed it, and byte-account by instruction ENCODING, not register delta.
+- **`set_preference` donates a LOCAL colour to a GLOBAL allocno.**
+  `global.c:set_preference` strips the outer RTX code and takes OPERAND 0
+  (`if (GET_RTX_FORMAT(GET_CODE(src))[0]=='e') src = XEXP(src,0)`), then maps
+  through `reg_renumber` — so a local_alloc'd pseudo counts as a HARD REGISTER.
+  `global_var = <expr>` therefore donates operand 0's local_alloc colour to the
+  global as a hard-reg preference: **a local tie in one block decides a
+  function-scope allocno's register.** Fix the local tie and the global falls out.
+  (Which is also why `regalloc.py`, which surfaces only `-dg` global allocnos, can
+  be blind to the real driver.)
+- **An allocno's OWN preference overrides `regs_someone_prefers`.** `find_reg`'s
+  two-pass loop ORs `regs_someone_prefers[allocno]` into `used`, but the
+  preference pass that follows re-copies `used` from `used1` (conflicts only). So
+  a high-priority allocno keeps a register a later allocno prefers ONLY if it has
+  its own preference for it.
+- **Indexing a fixed absolute address: a pointer local vs a constant macro decides
+  commutative `addu` operand order.** `register T *st = (T *)0x80010000;
+  st->arr[i]` makes the address `(plus reg_st reg_index)` and `expand_binop`
+  emits `addu t,state,index` — BASE FIRST. Inlining the constant
+  (`#define ST ((T *)0x80010000)`) makes it `(plus reg_index CONST)`, and
+  expand's `EXPAND_SUM`/`form_sum` sorts the CONSTANT TERM LAST, emitting
+  `addu t,index,base` — INDEX FIRST. The single cse'd `lui` per block survives
+  either way, so "fresh lui per block" is a property of the constant being
+  rematerialized, NOT of the pointer local. **Site-dependent**: it pays only where
+  the access is index-scaled (`st->arr[i]`); on displacement-folded scalar blocks
+  it regresses (measured 330->334). Worth 16 bytes on mission_score_screen.
 - **`optimize_reg_copy_1` lives in `local-alloc.c` in this cc1 — there is no
   `regmove.c` in gcc 2.8.1.** If a copy `dst = src` is followed by a later read of
   `src`, local-alloc rewrites that read to `dst` — so a sign-extension can end up
