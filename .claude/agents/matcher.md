@@ -45,6 +45,9 @@ and rebuild before continuing.
 
 **Run the permuter SYNCHRONOUSLY and bounded — never as a background task you then
 wait on.** Always wrap it: `nix develop --command bash -c 'timeout 420 tools/permute.py <Name> -- --stop-on-zero -j4'`.
+Set the Bash TOOL CALL's own timeout parameter ABOVE the inner `timeout` (e.g.
+480000 ms) — otherwise the harness's default 120 s tool timeout auto-backgrounds
+the call, which is exactly the antipattern this rule exists to prevent.
 It either finds a zero and prints it, or the timeout ends it and you move on. Do
 NOT spawn it in the background and end your turn "waiting for the permuter", and do
 NOT use a Monitor / background-wait / sleep-until tool to watch a permuter process —
@@ -54,7 +57,10 @@ stalled agents across many turns for no gain, and there is NO other agent and NO
 involved: you are one matcher working alone in your own worktree. A bounded run that
 plateaus is a PARK signal, not a reason to wait. If the permuter prints an improved
 candidate, re-verify it with `tools/matchdiff.py` before believing it (its score
-ignores stack-slot placement).
+ignores stack-slot placement), and READ its diff for moved/dropped `goto`s that
+land after an unconditional jump: a dead-code relocation compiles cleanly and
+scores better on the proxy metric while silently changing reachability
+(ActivateHumans's score-160 candidate did exactly this; it was rejected).
 
 Never run `tools/permute.py` and `tools/matchdiff.py` at the same time: both drive
 `./Build` against the same `.shake/` database, and the torn read yields a garbled
