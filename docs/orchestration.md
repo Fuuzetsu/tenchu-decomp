@@ -683,6 +683,15 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
 - **autorules: two guided transforms from ChasetoTarget** — "inline a
   single-use abs/min/max temp into its comparison" and "inline a single-use
   CSE'd array element into its first-use expression" (both were manual).
+- **regalloc.py: per-register REFERENCE-COUNT diff (target vs draft).** The
+  decisive signal on FUN_80057b80 was comparing refs-per-callee-saved-register
+  between target asm and the draft, done by hand with `grep -oE`; the divergence
+  points straight at the "store through the derived pointer" class. Mechanical
+  and missing. (`findsimilar`/`siblingdiff` are useless at that size.)
+- **asmdiff: a register-canonicalizing alignment mode.** A single register swap
+  makes asmdiff invent large phantom reorder hunks (T74/O74, T30/O2) that cost
+  real time to dismiss; canonicalizing register names before aligning would make
+  a true 2-instruction residual obvious.
 - **rtlguide: a delay-slot fill classifier** — report which reorg pass filled
   a branch's slot and why ("branch N's slot filled by fill_simple stealing
   insn M backward, so fill_eager never duplicated the shared return move");

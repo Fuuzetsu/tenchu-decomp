@@ -5811,6 +5811,23 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Independent recompute vs. copy defeats coalescing.** When the target keeps
+  two same-valued pointers in SEPARATE homes (one in a register, one spilled),
+  do NOT write `b = a;` — a register-to-register copy carries a preference edge
+  that makes cc1 coalesce them into one register, losing the spill. Compute both
+  independently from the same base (`a = p + K; b = p + K;`): CSE folds the
+  arithmetic to one `addiu`, but the independent defs carry no preference edge,
+  so the allocator can spill one and keep the other. (`volatile` also forces the
+  spill but over-constrains scheduling — 181 hunks vs 149 on FUN_80057b80.)
+- **Store through the derived pointer, not base + offset.** If the target
+  computes a sub-object pointer (`addiu $s6,$s0,0x10`) and then stores through
+  it (`sh $v0,0x2($s6)`), the source wrote those fields THROUGH that pointer.
+  Writing them as `base + offset` makes cc1 use the base for everything,
+  starving the derived pointer of references so it scores below other values and
+  steals their register. The first store of each block keeps the base
+  (`sh $v0,0x10($s0)`); every subsequent field goes through the pointer. This is
+  the concrete, reachable mechanism behind a parked note like "requires all
+  midpoint pointers scored above X" — not a sub-C tie.
 - **Inline abs into its comparison — not a named temp — to fix scheduling AND
   allocation priority together.** When the target's abs of a callee-saved
   value lands in a late-scheduled caller-saved scratch (`$v0`), write
