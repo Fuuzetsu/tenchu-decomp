@@ -210,12 +210,22 @@ cookbook) as lessons accrue** — every future launch then inherits them.
 
 ## Model routing
 
-- **Sonnet** — sub-~800B, non-jump-table, structural-twin-of-something-matched.
-  It went 4/4 on the easy tier at ~65–110k tokens each; the mid Proc* at ~96k.
-- **Fable** — jump-table functions, >~1000B, heavy register-allocation surgery,
-  or anything with a residual that needs reading gcc-2.8.1 sources. The
-  `matcher-prompt.py` top line flags jump-table; size and float/GTE (from
-  `triage.py`) flag the rest.
+Owner directive (2026-07-16): **do not route subagents to Fable unless it is
+really necessary** — the tooling + cookbook are mature enough that Sonnet, and
+Opus for the hard tier, should carry the flywheel.
+
+- **Sonnet** — the default: clean-seam functions, clone/family batches with a
+  proven recipe, mechanical lanes, and guided finishes of near-exact
+  checkpoints (≤ a few tens of residual bytes with a recorded lead). It went
+  4/4 on the easy tier at ~65–110k tokens each; the mid Proc* at ~96k.
+- **Opus** — the hard tier: jump-table functions, >~1000B, heavy
+  register-allocation/scheduling residuals, RTL-dump reading, novel-technique
+  anchors (first of a family). The `matcher-prompt.py` top line flags
+  jump-table; size and float/GTE (from `triage.py`) flag the rest.
+- **Fable** — exceptional only: an Opus attempt failed with a documented
+  RTL-level blocker, or a wrong convention would propagate across a whole
+  family. Prefer re-briefing Sonnet/Opus with sharper evidence over escalating
+  the model; record the justification when you do escalate.
 
 ## Bundling: one agent for many functions
 

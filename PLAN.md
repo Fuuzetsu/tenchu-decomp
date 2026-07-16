@@ -242,9 +242,19 @@ the SDK the options (in scene-standard order) are:
    file per cluster is a cheap, large jump in the SDK numbers.
    **DONE for the `dmyGs*` cluster (2026-07-16):** all 108 warn-once stubs
    matched via anchor-then-clone (15 `N` no-light variants are 3-arg/`arg2`
-   returns — see the .c headers). Remaining 5+-member clusters from coddog:
-   `CdFlush` ×11, `EVENT_OBJ_BC` ×8, `funcEvSpIOE` ×8, `CdSetDebug` ×7,
-   `ResetCallback` ×6, `SetPolyF4` ×5 (≈55 functions), plus many 2–4s.
+   returns — see the .c headers). **BLOCKED for the CdFlush/CdSetDebug/
+   ResetCallback wrapper clusters (24 fns):** their SDK objects came from a
+   DIFFERENT compiler that leaves the sp-restore BEFORE `jr ra` with a bare
+   nop delay slot — cc1-281 always reorgs it into the delay slot, so the shape
+   is unreachable from any source (verified 6/32 bytes on every member).
+   Their carves + correct-C NON_MATCHING drafts are preserved on branch
+   `codex/sdk-wave2-epilogue-blocked`; do NOT spend agents re-attempting them
+   with this toolchain. Per-library compilers differ (LIBGS `dmyGs*` matched
+   fine), so check a cluster's epilogue shape FIRST. Unassessed clusters:
+   `SetPolyF4` ×5 (looked cc1-compatible per the interrupted agent — true
+   pointer-parameter leaves), `EVENT_OBJ_BC` ×8, `funcEvSpIOE` ×8, plus many
+   2–4s. SDK lanes are paused while the focus is main.exe game code
+   (owner directive 2026-07-16).
 
 Recommended: (1) now, chase the game-code metric, revisit (2) if a "no blobs"
 build is ever wanted; (3) whenever a quick win is nice. Progress uploading

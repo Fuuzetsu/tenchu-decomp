@@ -5731,6 +5731,17 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **A whole SDK library can be epilogue-shape unmatchable: check `jr ra`'s
+  delay slot before spending anything on an SDK cluster.** cc1-281's
+  `mips_expand_epilogue` ALWAYS reorgs a trivial frame's sp-restore into the
+  `jr ra` delay slot. The LIBCD/LIBPAD/LIBMCRD forwarding wrappers (the
+  CdFlush/CdSetDebug/ResetCallback coddog clusters, 24 functions) were built
+  by a different compiler that leaves `addiu sp,sp,N` BEFORE `jr ra` with a
+  bare `nop` in the slot — every member is a permanent 6-of-32-byte
+  NON_MATCHING under our pinned toolchain (drafts preserved on branch
+  `codex/sdk-wave2-epilogue-blocked`). Libraries differ per game: LIBGS's
+  `dmyGs*` stubs (sp-restore IN the slot) matched exactly. The tell costs one
+  objdump line; read it first.
 - **maspsx's `break` wants the single-value form `break 0x107`, not the
   two-operand disassembly `break 0, 263`.** maspsx (`elif op == "break"`) takes
   one immediate and splits it into the two 10-bit fields itself; the
