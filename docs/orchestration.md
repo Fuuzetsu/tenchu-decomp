@@ -208,6 +208,19 @@ the worked examples (which self-update as more functions match), and the
 cross-cutting `GUIDANCE`. **Update `GUIDANCE` in `matcher-prompt.py` (and the
 cookbook) as lessons accrue** — every future launch then inherits them.
 
+## Depth over breadth (owner directive, 2026-07-17)
+
+**Prioritise driving a function to a FULL exact match over widening the
+search to shave bytes off many parked drafts.** The success metric is
+functions CLOSED, not total residual reduced. Concretely: when a lane returns
+an improved-but-not-exact checkpoint, the default next action is to RELAUNCH
+THE SAME FUNCTION (continuation brief carrying the new state + dead ends) —
+try Opus (or Sonnet when the remaining residual looks mechanical/guided)
+before spending Fable, and escalate per the routing below when they stall.
+Rotate to a different target only when the function reaches an
+evidence-complete park (pass-mechanics proofs on every remaining cluster,
+like StageEndScreen's autopsy) or the owner redirects.
+
 ## Model routing
 
 Owner directive (2026-07-16): **do not route subagents to Fable unless it is
