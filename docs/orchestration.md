@@ -287,6 +287,20 @@ Commit the `.c` + `config/splat.main.exe.yaml` + `shake/src/Build.hs` +
 `git worktree remove <path> --force && git branch -D <branch>`.
 
 ### Harvest gotchas (hit in the AI + CD batches)
+- **A "verified uniform" clone batch needs a FULL byte comparison, not spot
+  checks.** The 108-stub `dmyGs*` batch was briefed as one uniform shape, but 15
+  of 108 (the `N` no-light variants) turned out to save/return `$a2` (3 register
+  args), not `$a3` — a genuine SDK ABI fact the uniformity scan missed because it
+  masked exactly the words it expected to vary. Five spot matchdiffs caught one
+  deviant *by luck*; a different five could have missed all 15, and `./Build
+  check`'s single pass/fail wouldn't say which clones were wrong. After a batch
+  builds, compare the whole cluster (or whole image) byte-for-byte against the
+  target in one pass — milliseconds in Python — before declaring done. (The
+  matched batch also proved 3-arg vs 4-arg formals are visible in word 4:
+  `addu s0,a2,zero` vs `addu s0,a3,zero`.)
+- **Generator scripts must anchor stub detection on `^INCLUDE_ASM(`** (line
+  start), not a raw substring grep — the seeded boilerplate comment ("drop the
+  `INCLUDE_ASM` above") contains the same substring and inflates naive counts.
 - **An agent's `INCLUDE_ASM`-free `.c` is NOT proof of a match.** An agent that
   runs out of turn (e.g. parked on a background permuter and never reported) can
   leave a *draft* with the stub already removed. Re-verify every file yourself:

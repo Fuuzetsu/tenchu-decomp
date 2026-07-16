@@ -240,6 +240,11 @@ the SDK the options (in scene-standard order) are:
 3. **Opportunistic decompilation of trivial clusters** — `tools/coddog
    cluster` found e.g. 108 byte-identical `dmyGsPrstF3NL`-style stubs; one C
    file per cluster is a cheap, large jump in the SDK numbers.
+   **DONE for the `dmyGs*` cluster (2026-07-16):** all 108 warn-once stubs
+   matched via anchor-then-clone (15 `N` no-light variants are 3-arg/`arg2`
+   returns — see the .c headers). Remaining 5+-member clusters from coddog:
+   `CdFlush` ×11, `EVENT_OBJ_BC` ×8, `funcEvSpIOE` ×8, `CdSetDebug` ×7,
+   `ResetCallback` ×6, `SetPolyF4` ×5 (≈55 functions), plus many 2–4s.
 
 Recommended: (1) now, chase the game-code metric, revisit (2) if a "no blobs"
 build is ever wanted; (3) whenever a quick win is nice. Progress uploading
