@@ -5781,6 +5781,22 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **A folded pointer-address constant vs the symbol form is a COUPLED trade,
+  not a free fix.** An address whose low 16 bits are ≥0x8000 materializes as
+  `lui HI; ori LO` from a constant, but `lui HI+1; addiu LO-0x10000` from a
+  symbol. When the target shows the symbol/addiu form but switching to the
+  symbol extends a `%hi` live range that defeats a downstream register-reuse
+  coalesce, the constant form is the local optimum: right register, a few
+  wrong immediate bytes (StageEndScreen's terminal `&D_8008EA78`: 8 bytes
+  wrong vs a 33-byte cascade). Check the cascade before "fixing" the addiu.
+- **PARK ON SIGHT — the preheader priority-1 LUID tie.** Two loop-invariant
+  callee-saved constant loads (e.g. a division reciprocal magic and a
+  coordinate constant) contending for the same preheader slot region, both
+  `priority = 1, ref_count = 0` in `.sched`, are tie-broken by pre-scheduling
+  LUID. A CSE/LICM-hoisted magic's LUID is pinned at the preheader dominator
+  and cannot be pushed below a source-level constant assignment, so no
+  statement reordering flips it — and a one-instruction shift over a long
+  block can dominate the whole byte count (~140 of StageEndScreen's 203).
 - **The `do{}while(0)` wall generalizes from a single statement to a whole
   `if`-block**: `do { if (cond) { ... } } while (0)` walls off a copy the local
   allocator would propagate through the block, changing register homes with

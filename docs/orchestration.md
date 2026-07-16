@@ -653,10 +653,16 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   consider a bounded cross-statement move family (`fade_step = -8;` moved
   across one call to fill its delay slot was manual).
 - **permute.py: report the minimal semantic delta of the best
-  authoritatively-rescored candidate** (with dead-declaration flagging). When
-  `timeout` kills a run, the best-candidate summary is lost; start_demo_'s
-  win had to be recovered via `--rescore-only` plus a manual diff against the
-  reformatted `source.c` to extract two real edits from the noise.
+  authoritatively-rescored candidate** (with dead-declaration flagging), and
+  PERSIST the best candidate to a known path on timeout-kill (StageEndScreen's
+  bounded run lost all candidate output; start_demo_'s win had to be recovered
+  via `--rescore-only` plus a manual diff).
+- **rtlguide: a scheduler-tie classifier** — detect "priority-N tie between
+  insns A/B whose order is fixed by pre-scheduling LUID at pass P;
+  source-position-invariant" and advise PARK immediately. StageEndScreen's
+  dominant ~140-byte cluster took ~5 manual build cycles to prove; the .sched
+  `ready list`/`priority`/LUID evidence is mechanical. Highest-value gap for
+  parked drafts.
 
 - **DONE — every game function is carved.** All 555 game functions (plus the two
   SDK ones we had) now have a `c` subsegment, their own

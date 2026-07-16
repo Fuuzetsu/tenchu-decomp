@@ -25,6 +25,30 @@
  * is concentrated in the stage scan, setup/first-difference scheduling, one
  * post-copy base register, and two terminal address-materialization ops, not
  * hidden asm.
+ *
+ * 2026-07-16 full residual autopsy (second flat pass, RTL-evidenced; do not
+ * re-run source moves against these six clusters without a NEW pass-level
+ * lever):
+ *  1. ~140 of the 203 bytes are ONE cluster: our li s7,82 (current_x) hoists
+ *     into the div-magic's slot at 0x800536bc while retail keeps it in the
+ *     RANK_ARCHIVE FileRead delay slot — a one-instruction shift over ~45
+ *     instructions. .sched proves a pure priority-1 tie broken by
+ *     pre-scheduling LUID; the CSE/LICM-hoisted magic's LUID is fixed at the
+ *     preheader dominator, so no source statement order can flip it.
+ *  2. Stage scan {a3,a1,a0}<->{a0,a2,a1} rename: regalloc HARD-CONFLICT
+ *     (stage_index prefers a0, target wants a3).
+ *  3. number_1 subtraction: 3-way coloring permutation (x-const 40 in v0 vs
+ *     target's v1).
+ *  4. FadeOutDirect shared-constant 8 in v0 vs target a2 (context-driven;
+ *     the second identical call matches).
+ *  5. PSTATE->stage volatile base v1<->v0.
+ *  6. Terminal &D_8008EA78: the (u8*)0x80090000-0x1588 constant form is the
+ *     LOCAL OPTIMUM (right register a1, 8 wrong immediate bytes). The symbol
+ *     form fixes the immediates but its %hi live range defeats the a1
+ *     coalesce and cascades to 236 total. Coupled — do not "fix" the addiu.
+ * Measured dead ends: DRAW_SCORE_NUMBER store reorder (LENGTH 6056), symbol
+ * form (236), best_x/current_x source moves (no effect), (u32) cast removal
+ * (no effect), 160 guided candidates + one bounded permuter run (flat).
  */
 
 #ifndef NON_MATCHING
