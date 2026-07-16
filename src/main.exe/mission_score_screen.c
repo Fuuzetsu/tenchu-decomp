@@ -5,8 +5,59 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 401 of 4636 bytes differ (was 413; 433; 437; 476;
- * 498; 525; 1266).
+ * STATUS: NON_MATCHING -- 346 of 4636 bytes differ (was 401; 413; 433; 437;
+ * 476; 498; 525; 1266).
+ *
+ * 2026-07-17 round-8 (Opus) — THE +-4 SKEW PAIR IS LANDED (401 -> 346).
+ * Round 7's (A) and (B) are both in; its blocking (C) ("move pseudo 777 off
+ * $s0 onto $v0") was a MISFRAME and is now DISSOLVED, not solved.  Read this
+ * before touching the medal block.
+ * - (C) WAS NOT A PRE-EXISTING DEFECT: the 401 baseline ALREADY emitted the
+ *   target's `lw v0,0(v0)/nop/addiu s0,v0,104/li v0,138` exactly.  Round 7's
+ *   (B) INTRODUCED it.  ALWAYS diff the region a "missing piece" lives in
+ *   against the CURRENT draft before hunting it: (C) was collateral from (B),
+ *   so there was never a pseudo to relocate.
+ * - MECHANISM (local-alloc.c, read directly).  `combine_regs` ties the lw temp
+ *   into medal's quantity ONLY if `reg_qty[medal] == -2`; the guard is
+ *   `if (reg_qty[sreg] >= -1) return 0;`, and local_alloc seeds
+ *     reg_qty[i] = (REG_BASIC_BLOCK (i) >= 0 && REG_N_DEATHS (i) == 1
+ *                   && (reg_alternate_class (i) == NO_REGS
+ *                       || ! CLASS_LIKELY_SPILLED_P (reg_preferred_class (i))))
+ *                  ? -2 : -1;
+ *   So a tie needs medal BLOCK-LOCAL *and* DYING EXACTLY ONCE.  The 401
+ *   baseline used medal after the join (r/g/b + call) => not block-local =>
+ *   reg_qty -1 => no tie => the temp got its own 2-insn qty and find_free_reg's
+ *   ascending scan gave it $v0.  Round 7's `medalDraw = medal; medal++;` made
+ *   medal's last use fall BEFORE the join (the dead `medal++` is deleted at
+ *   combine, so it never extends the range) => block-local => tie => the temp
+ *   inherited medal's call-crossing callee-saved $s0 and cc1 filled the load
+ *   delay with `li v0,138`.  This is the cookbook's `%hi` reload-tie guard
+ *   running in the INVERSE direction (there: make combine_regs tie; here: make
+ *   it refuse).
+ * - THE FIX — the OTHER half of that guard, `REG_N_DEATHS (i) == 1`: give the
+ *   a0 copy to BOTH arms of the brightness test:
+ *       if (brightness < 0) { medalDraw = medal; brightness += 0xFFF; }
+ *       else                { medalDraw = medal; }
+ *   medal then dies in TWO places, so reg_qty[medal] = -1 and combine_regs
+ *   refuses the tie WITHOUT medal having to outlive the join.  The temp returns
+ *   to $v0 (target's nop restored) AND the copy still reaches the bgez delay
+ *   slot.  Both halves of the parked +-4 pair now hold at once: (A) row +1,
+ *   medal -1, net 0 at the exact 1159-insn extent.  401 -> 346.
+ * - REG_N_DEATHS is a REAL, independent regalloc lever: a value that dies on
+ *   two paths can never be locally tied, whatever its live range.  Reach for it
+ *   whenever a temp is wrongly coalesced into a longer-lived pseudo.
+ * - The medal-block reduction lives in the scratchpad testbed (25 lines,
+ *   cc1-281 direct, ~1 s/variant); it reproduced BOTH known states exactly and
+ *   found this in one sweep.  CAVEAT: it FALSE-POSITIVES on the delay slot —
+ *   `brightness = rcos(...) * 80 / 4096 + 0x7F;` (the natural division spelling
+ *   of the bgez/addiu-4095/sra-12 idiom) fills the slot in the reduction but is
+ *   BYTE-NEUTRAL in the real function (measured 401, exact length; medalDraw
+ *   dissolves).  With one pseudo the copy is born POST-join and only dbr's
+ *   fill_slots_from_thread can steal it, which needs sched2 to leave it as that
+ *   block's first insn — pressure-dependent, and the real function's pressure
+ *   defeats it.  (B)'s copy is emitted in block 0, where fill_simple_delay_slots
+ *   always gets it.  So: screen REGISTER questions in a reduction, but verify
+ *   SCHEDULING questions in the real function.
  *
  * 2026-07-17 round-6: THE ten s7<->s8 SWAP IS SOLVED (the old INFEASIBLE
  * entry below was based on a MISIDENTIFIED pseudo; see "round-6" section).
@@ -573,6 +624,7 @@ label_:                                                                      \
         s32 quotient;                                                        \
         u16 value;                                                           \
         s16 signedValue;                                                     \
+        s32 widenedValue;                                                    \
         s32 drawY;                                                           \
         register s32 negative;                                               \
                                                                              \
@@ -581,9 +633,10 @@ label_:                                                                      \
         drawY = (y_);                                                        \
         (spr_)->x = (x_);                                                    \
         (spr_)->y = drawY;                                                   \
-        if (signedValue < 0)                                                 \
+        widenedValue = signedValue;                                          \
+        if (widenedValue < 0)                                                \
         {                                                                    \
-            value = -signedValue;                                            \
+            value = -widenedValue;                                           \
             negative = 1;                                                    \
             goto label_;                                                     \
         }                                                                    \
@@ -709,6 +762,7 @@ void mission_score_screen(void)
     register GsSPRITE *numberSprite;
     register GsSPRITE *sprite;
     register GsSPRITE *medal;
+    register GsSPRITE *medalDraw;
     register u8 *unlock;
     register PersistentState *statePtr;
     register s16 i;
@@ -955,11 +1009,16 @@ score_character_sprite_init_loop:
             brightness = rcos((GameClock << 12) / 90) * 80;
             if (brightness < 0)
             {
+                medalDraw = medal;
                 brightness += 0xFFF;
             }
+            else
+            {
+                medalDraw = medal;
+            }
             brightness = (brightness >> 12) + 0x7F;
-            medal->r = medal->g = medal->b = brightness;
-            GsSortSprite(medal, OTablePt, 1);
+            medalDraw->r = medalDraw->g = medalDraw->b = brightness;
+            GsSortSprite(medalDraw, OTablePt, 1);
         }
 
         {

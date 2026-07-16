@@ -5852,6 +5852,32 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   AddEnemy's `blood.call_spill[]`-style spills looked load-bearing, but gcc
   spilled the same bases to the same slots (sp+0x7e0/sp+0x7e4) by itself; the
   hack only ever looked right because it agreed with what caller-save already did.
+- **`REG_N_DEATHS` is an independent local-alloc lever.** `local_alloc` seeds
+  `reg_qty[i] = -2` (i.e. TIE-ABLE) only when
+  `REG_BASIC_BLOCK(i) >= 0 && REG_N_DEATHS(i) == 1`, and `combine_regs` bails
+  with `if (reg_qty[sreg] >= -1) return 0;`. So **a value that dies on TWO paths
+  can never be locally tied, whatever its live range.** When a temp is wrongly
+  coalesced into a longer-lived pseudo (inheriting its call-crossing
+  callee-saved home), duplicate the consuming copy into BOTH arms of a branch:
+  the pseudo then has two deaths, the tie is refused, and no live range is
+  extended. (mission_score_screen's medal temp: this returned it to the target's
+  `$v0` while keeping the copy in the bgez delay slot. It is the cookbook's `%hi`
+  reload-tie guard run INVERTED — there you make a tie happen, here you make it
+  refuse.)
+- **Diff the region a "missing piece" lives in against the CURRENT draft BEFORE
+  hunting it.** A defect attributed to the baseline may be collateral from the
+  very edit that supposedly needs it. (mission_score_screen's 401 baseline
+  already emitted the target's `lw/nop/addiu/li` exactly; round 7's own edit
+  introduced the break, so "move pseudo 777 off `$s0`" was chasing its own
+  collateral — four spellings failed before someone diffed the region.)
+- **Screen REGISTER questions in a reduction; verify SCHEDULING questions in the
+  REAL function.** A 25-line cc1-281 testbed reproduced both known allocation
+  states exactly but FALSE-POSITIVED on a delay slot: the natural division
+  spelling filled the slot in the reduction and was byte-neutral in the real
+  function, because with one pseudo the copy is born post-join and only dbr's
+  `fill_slots_from_thread` can steal it — which needs `sched2` to leave it as the
+  block's first insn, and real register pressure defeats that. The testbed is
+  still the cheapest instrument; just know which questions it can answer.
 - **METHOD — when a residual looks unreachable, grep the whole game for the
   target's SHAPE and check whether any function with it is already MATCHED.**
   Our matched corpus is an oracle: a matched function's source IS the answer to

@@ -40,6 +40,13 @@ and `matcher-prompt.py` / `coverage.py` / `triage.py` / `findsimilar.py` /
 `xref.py` all die on `.shake/ghidra-export/functions.tsv`. wt-init.sh symlinks
 both from the primary worktree. It is idempotent.
 
+**Use a PRIVATE scratch directory for testbeds — the scratchpad is SHARED.**
+Sibling agents run concurrently and have collided on obvious paths: one lane's
+`scratchpad/tb/base.c` was clobbered mid-run by another lane's testbed files.
+Put reductions under a path only you would pick (e.g.
+`scratchpad/<Name>-<your-agent-id>/`) and re-verify any measurement whose inputs
+you did not write.
+
 **On a BIG function, run `tools/reghist.py <Name>` first — it costs a second.**
 It histograms register mentions target-vs-draft. A caller-saved register your
 draft mentions far more than the target is a MEGA-PSEUDO: Ghidra reuses one
