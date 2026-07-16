@@ -40,46 +40,32 @@
 /*
  * CVAupdate (0x80050628) — interpret character-animation and camera events.
  *
- * STATUS: NON_MATCHING — full guarded semantic reconstruction. The draft is
- * exact-length at 2104/2104 bytes and 526/526 instructions, with fuzzy 95.44
- * (up from 89.14), 29 linked differing bytes, and 24 raw aligned lines in 13
- * blocks. Structural filtering is empty and all 19 calls match; the remaining
- * differences are register allocation only. Build with
- * `NON_MATCHING=CVAupdate ./Build`. On a full match, delete the guards and the
- * _jtbl array.
+ * Byte-matching. Jump-table function (switch on the event kind).
+ *
+ * Four register-allocation ties were closed by removing draft-only locals; each
+ * one is a cc1-2.8.1 mechanism worth knowing (see the commits for the RTL/pinned
+ * -source evidence):
+ *   - `y = CVAnow->y * 1000`: a dedicated `y` local made the last shift write a
+ *     BLOCK-LOCAL temp whose copy to `y` sched1 sank past the GetAreaMapLevel
+ *     call, so local-alloc's combine_regs tied the whole x1000 chain into one
+ *     call-crossing quantity and forced it callee-saved. combine_regs refuses to
+ *     tie into a pseudo that is not block-local, so reusing the long-lived `i`
+ *     (PSX.SYM: `long i` in $s0, provably dead here) keeps the chain in $v0.
+ *   - `active_status = 0x11`: an explicit local spanned the enclosing `if`,
+ *     making the constant GLOBAL, so local-alloc gave block-local `human->status`
+ *     $v0 and global-alloc took $v1 — the inverse of the target. Inlining the
+ *     literal keeps the constant local to the else-block.
+ *   - `delta`: `if (delta < 0) delta = -delta;` tied each load into its dying
+ *     base's quantity; `__builtin_abs` expands via abssi2 and unties them.
+ *   - `anim`: ONE cursor across case 2 and case 3 is one pseudo, hence one hard
+ *     register everywhere ($a0). Case 2's preheader overlaps `human->motion` in
+ *     $v1 and so must take $a0, and that choice was being carried into case 3,
+ *     where the target uses $v1. Case 3 needs its OWN cursor (`slot`).
+ *
+ * PSX.SYM's three-locals record (vect, human, i) was the through-line: every one
+ * of these was a draft-invented local that the original did not have.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", CVAupdate);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__switchD);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_0);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_2);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_3);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_4);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_5);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_6);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_7);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_8);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/CVAupdate", switchD_80050694__caseD_1);
-
-/* jump-table pool @ 0x80013664 (9 words; tables at 0x80013664) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 CVAupdate_jtbl[9] = {
-    0x8005069C, 0x80050E04, 0x800506C4, 0x80050954,
-    0x80050B44, 0x80050B5C, 0x80050C40, 0x80050C6C,
-    0x80050D14,
-};
-
-#else /* NON_MATCHING */
 
 typedef struct
 {
@@ -146,17 +132,16 @@ s16 CVAupdate(void)
 {
     Humanoid *human;
     HumanAnimType *anim;
+    HumanAnimType *slot;
     HumanAnimType *anim_base;
     ModelArchiveType *model;
     CVAEvent *event;
     CVAEvent *cursor;
     VECTOR vect;
     long level;
-    long y;
     long delta;
     long position;
     s32 i;
-    s32 active_status;
     s32 invalid;
     s32 pan_value;
     u32 packed;
@@ -226,17 +211,15 @@ s16 CVAupdate(void)
                     position = CVAnow->z * 1000;
                     human->point[1] = position;
                     human->locate->vz = position;
-                    y = CVAnow->y * 1000;
+                    i = CVAnow->y * 1000;
                     level = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,
-                                            y - 1000, human->locate->vz, 0);
+                                            i - 1000, human->locate->vz, 0);
                     human->locate->vy = level;
-                    if (y < human->locate->vy || human->locate->vy == (long)0x80000000)
-                        human->locate->vy = y;
+                    if (i < human->locate->vy || human->locate->vy == (long)0x80000000)
+                        human->locate->vy = i;
                     human->rotate->vy = CVAnow->param;
                     UpdateCoordinate((ModelType *)human->model);
-                    delta = human->locate->vy - StagePlayer->locate->vy;
-                    if (delta < 0)
-                        delta = -delta;
+                    delta = __builtin_abs(human->locate->vy - StagePlayer->locate->vy);
                     if (delta > 20000)
                         human->attribute |= 0x80;
                 }
@@ -248,7 +231,6 @@ s16 CVAupdate(void)
                     return 0;
 
                 packed = (u32)(u16)CVAnow->x << 16;
-                active_status = 0x11;
                 if ((s32)packed >> 16 == invalid)
                 {
                     human->life = invalid;
@@ -261,7 +243,7 @@ s16 CVAupdate(void)
                 else
                 {
                     i = (s32)packed >> 24;
-                    if (human->status == active_status && (u32)(i - 0x10) > 1)
+                    if (human->status == 0x11 && (u32)(i - 0x10) > 1)
                         return 0;
                     if (human->life > 0)
                     {
@@ -277,28 +259,28 @@ s16 CVAupdate(void)
                         i = 0;
                     }
 
-                    anim = anim_base;
+                    slot = anim_base;
                 scan_case3_human:
-                    if (anim->human == human)
+                    if (slot->human == human)
                         goto scan_case3_human_done;
                     i++;
                     if (i < 5)
                     {
-                        anim++;
+                        slot++;
                         goto scan_case3_human;
                     }
                 scan_case3_human_done:
                     if (i == 5)
                     {
                         i = 0;
-                        anim = anim_base;
+                        slot = anim_base;
                     scan_case3_empty:
-                        if (anim->human == 0)
+                        if (slot->human == 0)
                             goto scan_case3_empty_done;
                         i++;
                         if (i < 5)
                         {
-                            anim++;
+                            slot++;
                             goto scan_case3_empty;
                         }
                     scan_case3_empty_done:
@@ -414,5 +396,3 @@ s16 CVAupdate(void)
 
     return CVAnow->mode != 0;
 }
-
-#endif /* NON_MATCHING */
