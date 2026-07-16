@@ -640,6 +640,11 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   flag the delay-slot signature mechanically — for every carved function,
   objdump the word at `carve_start+carve_size` and warn when it decodes as
   frame teardown / a return delay slot rather than the next prologue.
+- **autorules: in-place sign-extend shift-pair rule** — rewrite `x = (s16)x` /
+  `x = (s16)src` sites as `x <<= 16; x >>= 16;` (forces in-place sll/sra
+  instead of a $v0 scratch; FUN_800519bc paid it manually twice). Also
+  consider a bounded cross-statement move family (`fade_step = -8;` moved
+  across one call to fill its delay slot was manual).
 - **permute.py: report the minimal semantic delta of the best
   authoritatively-rescored candidate** (with dead-declaration flagging). When
   `timeout` kills a run, the best-candidate summary is lost; start_demo_'s

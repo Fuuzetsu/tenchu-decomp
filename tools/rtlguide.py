@@ -78,7 +78,7 @@ CATEGORY_PASSES = {
 CATEGORY_RULES = {
     "regalloc": [
         "difference-role-fuse", "literal-indirect-inline", "initialized-global-compound", "deferred-global-capture", "shared-result-return", "allocation-donor-fence", "disjoint-local-alias", "type-width", "cmp-polarity",
-        "empty-loop-boundary", "loop-fence", "nested-loop-fence",
+        "fence-unwrap", "fence-unwrap", "fence-unwrap", "empty-loop-boundary", "loop-fence", "nested-loop-fence",
         "paired-loop-fence", "loop-range", "split-chain", "shift-stage", "ptr-base-split", "deref-address-split",
         "or-inplace", "add-prefix-temp", "flag-arm-assign", "guard-flag-assign",
         "guard-exit-copy",

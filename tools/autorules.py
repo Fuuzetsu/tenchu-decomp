@@ -7946,6 +7946,12 @@ RULES = [
     ("clamp-shared-return", "two direct clamp returns -> assignments plus one return", rule_clamp_shared_return),
     ("flag-return-split", "local 0/1 default+override -> literal return sites", rule_flag_return_split),
     ("cmp-swap", "a>mem -> mem<a (comparison operand-order lever)", rule_cmp_swap),
+    # In the DEFAULT set deliberately: fences are our own scaffolding, their
+    # candidate count is tiny (one per existing fence), and their byte effect
+    # can be NON-LOCAL (a prologue-region fence gates spill/init scheduling
+    # ~100 lines away — FUN_800519bc closed 25 bytes; mission_score_screen 27),
+    # so guided line-adjacency must never be the only path to trying removal.
+    ("fence-unwrap", "remove an existing non-empty one-shot fence, keeping its body", rule_fence_unwrap),
 ]
 
 AGGRESSIVE_RULES = [
@@ -7987,7 +7993,6 @@ AGGRESSIVE_RULES = [
     ("disjoint-local-alias", "join a dead-until-overwrite scalar to an earlier live range", rule_disjoint_local_alias),
     ("redundant-field-donor", "repeat a pure local-aggregate field assignment", rule_redundant_field_donor),
     ("empty-loop-boundary", "insert a weight-free LOOP_END between statements", rule_empty_loop_boundary),
-    ("fence-unwrap", "remove an existing non-empty one-shot fence, keeping its body", rule_fence_unwrap),
     ("loop-fence", "wrap an if/loop in a zero-code one-shot do loop", rule_loop_fence),
     ("nested-loop-fence", "atomically add two or three loop weights at one site", rule_nested_loop_fence),
     ("paired-loop-fence", "wrap adjacent groups in two atomic one-shot loops", rule_paired_loop_fence),

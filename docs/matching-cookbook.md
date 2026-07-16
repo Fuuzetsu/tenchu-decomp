@@ -5781,6 +5781,12 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Write an s16→s32 sign-extend as an explicit in-place shift pair on the
+  destination** (`x <<= 16; x >>= 16;`, or `x = src << 16; x >>= 16;`) to force
+  `sll d,d,16; sra d,d,16` IN PLACE instead of routing the intermediate through
+  a `$v0` scratch — a matching lever for `x = (s16)x` / `x = (s16)src` sites
+  (FUN_800519bc, two position sign-extends). Candidate for a future autorules
+  rule (backlog).
 - **A guard comparison's operand order is a branch-encoding lever even when it
   does NOT fix the register tie it was aimed at.** Spelling
   `if (StagePlayer != Me_MOTION_C)` instead of `Me_MOTION_C != StagePlayer`
@@ -5799,7 +5805,13 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   exact-promotion time: challenge each remaining fence (autorules
   `empty-loop-boundary` removal + `fence-unwrap` enumerate exactly these) and
   keep only the ones whose removal breaks MATCH — those are load-bearing and
-  document a real RTL boundary.
+  document a real RTL boundary. **A fence's byte effect can be NON-LOCAL**: a
+  fence wrapping an early prologue-region init (`do{sequence=0;}while(0)`)
+  blocks sched2 from interleaving the callee-saved spills with the init
+  writes, so its bytes surface ~100 lines away in the prologue
+  (FUN_800519bc: removal closed 25 bytes far from the fence). This is why
+  `fence-unwrap` sits in the DEFAULT autorules rule set, ungated by guided
+  line-adjacency — challenge ALL fences, not just residual-adjacent ones.
 - **A large exact-length block that appears ROTATED by one instruction —
   typically a call-argument copy sitting at the wrong END of the block — is
   often pinned by an equivalence fence (`do{}while(0)`) splitting the block.**
