@@ -5842,6 +5842,20 @@ because `jump_optimize(insns, 1, 1, 0)` — the only call with `cross_jump=1`
 out of both arms, so put a dead store inside one arm to make the heads differ.
 Its CONDITION is load-bearing.
 
+**An EMPTY `do{}while(0)` is a PURE barrier — zero ref reweighting — which makes
+it an ATTRIBUTION TEST.** It emits the same `NOTE_INSN_LOOP_BEG/END` sched1
+honours but encloses no refs (jump.c does not strip them). Run the ref-enclosing
+fence and the empty fence at the same point: if both give an IDENTICAL byte
+count, the barrier — not the ref weight — is doing all the work, and you are
+looking at a scheduling problem, not an allocation one. (StageEndScreen: both
+forms gave byte-identical 242, proving the entire +39 was barrier cost.)
+
+**A "source-position-invariant" park note is a claim about source MOVES only.** A
+barrier is a different lever and CAN break such a tie — test it before accepting
+the verdict. On StageEndScreen it did break the sched1 hoist (`li s7,82` left
+0x800536bc), but the sub-block re-scheduled for a net loss: the verdict survived
+while its reasoning did not.
+
 **Failure modes, all paid for in real bytes:**
 - **Over-ballasting.** Too much depth pushes the wrong rival ahead. Compute BOTH
   rivals' priorities from `.lreg` first and pick the SMALLEST depth that wins the
@@ -5979,9 +5993,14 @@ Its CONDITION is load-bearing.
   conflict in any single fragment exiles every use. Splitting `iVar3`'s ~12 jobs
   into per-site/per-block locals took FUN_80057b80 from 759 → 722 → 619 and made
   a0/a3/t0/s2–s7 match the target exactly.
-  - **Diagnostic, do it FIRST on a big function**: histogram register mentions in
-    the target vs the draft. A caller-saved register carrying ~70 mentions across
-    a whole function is a mega-pseudo — no real source has one (the target had 5).
+  - **Diagnostic, do it FIRST on a big function**: `tools/reghist.py <Name>`
+    histograms register mentions target-vs-draft. A caller-saved register the
+    draft mentions ~70 times is a mega-pseudo — no real source has one (the
+    target had 5). It is also a cheap EXHAUSTION proof: **read the delta SUM.**
+    Zero-sum deltas confined to the argument registers are the signature of pure
+    renames of identical instructions — the decomposition already matches and no
+    splitting lever remains (StageEndScreen, AddEnemy). A non-zero sum means real
+    structural divergence.
   - The proof that they are separate source variables is direct: the target
     assigns the *same expression* (`puVar4 = param_2[5]`) to **a1, a1, a1, a2**
     across four blocks. A single pseudo can only ever get one register.

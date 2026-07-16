@@ -32,6 +32,7 @@ import merge_metadata_conflicts
 import permute
 import progress
 import regalloc
+import reghist
 import rtlguide
 import siblingdiff
 import stackplan
@@ -4940,6 +4941,35 @@ class MatchToolLockTests(unittest.TestCase):
                             pass
             finally:
                 os.chdir(old)
+
+
+class RegHistTests(unittest.TestCase):
+    """The register histogram is the first move on a big Ghidra function."""
+
+    def test_counts_objdump_and_dollar_forms_but_not_hex_literals(self):
+        listing = [
+            # objdump prints registers WITHOUT `$`; the tool must count these.
+            (0x80000000, "lw v0,-2536(v0)"),
+            (0x80000004, "addiu a0,a0,20740"),
+            # A hex literal containing a register-like substring must NOT count.
+            (0x80000008, "lui v1,0x800a0"),
+            # The `$` form (hand-written asm / RTL dumps) counts too.
+            (0x8000000C, "move $s0,$a3"),
+            # A symbolic branch target must not be mined for register names.
+            (0x80000010, "jal 800764b4 <printf_a0>"),
+        ]
+        counts = reghist.mentions(listing)
+        self.assertEqual(counts["v0"], 2)
+        self.assertEqual(counts["a0"], 2)      # addiu only; not 0x800a0, not <printf_a0>
+        self.assertEqual(counts["v1"], 1)
+        self.assertEqual(counts["s0"], 1)
+        self.assertEqual(counts["a3"], 1)
+
+    def test_unallocatable_registers_are_ignored(self):
+        # $at/$sp/$gp/$zero are not allocator-assigned, so a difference in them
+        # is never a decomposition lever and must not perturb the delta sum.
+        counts = reghist.mentions([(0, "addiu sp,sp,-24"), (4, "lui at,0x8009")])
+        self.assertEqual(dict(counts), {})
 
 
 class PermuteResultReportTests(unittest.TestCase):

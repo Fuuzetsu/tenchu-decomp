@@ -40,6 +40,15 @@ and `matcher-prompt.py` / `coverage.py` / `triage.py` / `findsimilar.py` /
 `xref.py` all die on `.shake/ghidra-export/functions.tsv`. wt-init.sh symlinks
 both from the primary worktree. It is idempotent.
 
+**On a BIG function, run `tools/reghist.py <Name>` first — it costs a second.**
+It histograms register mentions target-vs-draft. A caller-saved register your
+draft mentions far more than the target is a MEGA-PSEUDO: Ghidra reuses one
+variable for many unrelated jobs, and one pseudo gets ONE hard register for ALL
+its fragments, so a conflict in any fragment exiles every use. Splitting per site
+was worth 140 bytes on FUN_80057b80. Read the delta SUM too: zero-sum deltas
+confined to argument registers mean pure renames — the decomposition already
+matches the target and no splitting lever remains.
+
 **The MOMENT your draft compiles, run `tools/autorules.py <Name>` and let it finish
 BEFORE you reason about the residual.** It sweeps the mechanical rules automatically
 (type-width flips, `&&` split/merge, single-use temp inline, the abssi2 abs->GE fold,

@@ -49,6 +49,53 @@
  * Measured dead ends: DRAW_SCORE_NUMBER store reorder (LENGTH 6056), symbol
  * form (236), best_x/current_x source moves (no effect), (u32) cast removal
  * (no effect), 160 guided candidates + one bounded permuter run (flat).
+ *
+ * 2026-07-17 round 3 — the autopsy's verdicts RE-TESTED against the newer
+ * levers (mega-pseudo histogram, disposition-verified identity, loop-note ref
+ * weight, updated permuter). All four clusters below are CONFIRMED, not
+ * retracted; the evidence is now first-hand rather than inferred:
+ *  A. MEGA-PSEUDO CHECK: NEGATIVE, and decisively so. Register-mention
+ *     histogram (target vs draft, 1521 insns each): s0-s8 match EXACTLY
+ *     (226/80/229/59/21/14/19/8/7) and v0 matches exactly at 811. The only
+ *     deltas are v1 -6, a0 +5, a1 +3, a2 +2, a3 -4 — summing to zero, the
+ *     signature of pure renames of identical instructions. There is no
+ *     mega-pseudo here and no variable-splitting lever: the decomposition's
+ *     variable structure is already the target's. (This is the check that was
+ *     worth 140 bytes on FUN_80057b80; on this function it is exhausted.)
+ *     Corollary: cluster 1 is scheduling, not allocation — s7 is 8 mentions
+ *     in both.
+ *  B. IDENTITY VERIFIED for cluster 2 (the brief's misidentified-pseudo
+ *     worry does NOT apply): .lreg shows `(reg/v:HI 97)` — a user variable in
+ *     HImode — i.e. stage_index itself, with a real p97->a0 disposition (not a
+ *     spilled allocno). Its neighbours are likewise identified from the RTL:
+ *     p105 = the %hi temp (feeds `lo_sum ... symbol_ref("D_8008EA78")`),
+ *     p111 = the full &D_8008EA78 pointer, p121 = the CHOSEN_STAGE limit copy.
+ *     Mechanism, exactly: `;; 138 regs to allocate:` orders p97 at position
+ *     107 but p121/p105/p111 at 125/129/132; p97's only hard conflicts are
+ *     v0/v1, so find_reg's ascending scan hands it a0, which exiles the %hi
+ *     base to a1 and the pointer to a2. The whole cluster is downstream of
+ *     p97 being allocated too early.
+ *     The ref lever CANNOT close it: priorities are p97=13333 vs p121=3750,
+ *     p105=2500, p111=1666 — an 8x gap. floor_log2 is immune here: dropping
+ *     p97 from 6 refs to 2 still leaves 2222 (> 1666), and reaching p111 by
+ *     live_length would need L=9 -> 72. Raising p105 instead needs 3 -> 8
+ *     refs on a compiler-generated %hi temp, which source cannot address.
+ *     This is a genuine structural gap, quantified with verified identities.
+ *  C. Cluster 1 (~140 bytes) — the same-basic-block premise CONFIRMED
+ *     first-hand: between the magic at 0x800536bc and the target's `li s7,82`
+ *     at 0x80053774 there are only `jal`s — no labels, no branches — and calls
+ *     do not split blocks in gcc 2.8, so sched1 really does own both.
+ *     NEW and worth keeping: the autopsy's "source-position-invariant" is true
+ *     only of source MOVES. A `do{}while(0)` around `current_x = 0x52` IS a
+ *     sched barrier and DOES break the hoist (li s7,82 leaves 0x800536bc) —
+ *     but the resulting schedule diverges elsewhere and costs +39 (242).
+ *     Attribution measured: an EMPTY `do{}while(0)` at the same point gives
+ *     byte-identical 242, so the +39 is the BARRIER, not the ref reweighting
+ *     (the empty fence encloses zero refs). Cluster 1 is a pass-level wall in
+ *     sched1: the hoist is reachable, but every barrier that reaches it
+ *     re-schedules the sub-block for a net loss. Do not re-run either fence.
+ *  D. The rewritten permuter (bounded 420s, -j4, --stop-on-zero) is still
+ *     flat at 203 — re-confirmed against the current tool, not the old one.
  */
 
 #ifndef NON_MATCHING
