@@ -123,11 +123,31 @@
  * single-cause story; a story that explains a third of the residual is not a
  * theory of the residual.
  *
- * Remaining residual (52) is TWO independent clusters:
- *   (a) ~19 bytes in loop 1: the WeaponModel base is emitted BEFORE the -1 and
- *       HumanData hoists (retail has it after), plus one dbr delay-slot pick
- *       at 0x8005b620.  See the loop-1 preheader note below.
- *   (b) ~33 bytes: the loop-2 base/type/carrier rotation, below.
+ * Remaining residual (52), byte-accounted EXACTLY (round 5; sums to 52, so it
+ * is the whole residual, not a story about part of it):
+ *   (A) 14 bytes, 0x5d4-0x5e0 (4 insns): loop-1 preheader ORDER only.
+ *   (B)  6 bytes, 0x620-0x624 (2 insns): `move s3,zero` / `sll v1,s4,0x10`
+ *        swapped.  Registers IDENTICAL; a scheduling order pick.
+ *   (C) 32 bytes, 0x7e0-0x924 (13 insns): the loop-2 base/type/carrier
+ *        rotation, driven by the preheader order.  See below.
+ *
+ * ROUND 5 DISPROOF — do not re-run the round-4/5 loop-1 theory.  The brief
+ * asked "find retail's two extra long-lived values, because retail keeps
+ * ELEVEN to our NINE and its bases sit in t0/t1 because they LOST".  That is
+ * FALSE for this checkpoint, and byte-accounting shows it in five minutes:
+ * cluster (A) has IDENTICAL registers on both sides.  Ours already emits
+ *     lui v0,%hi(StageAppearance) / addiu $t1,... / li $s6,-1 /
+ *     addiu $fp,$a0,%lo(HumanData) / lui v0,%hi(WeaponModel) / addiu $t0,... /
+ *     addu $s7,$s5,$zero
+ * i.e. kind_base ALREADY in $t1, weapon_base ALREADY in $t0, -1 in $s6,
+ * HumanData in $fp, giv init last — retail's exact seven insns in retail's
+ * exact registers.  The caller-saves are already present and the length is
+ * already exact.  WE ALREADY KEEP ELEVEN.  There are no two missing
+ * long-lived values.  The nine-vs-eleven deficit belongs only to the
+ * *retail-shaped edit* (direct refs + direct guard), a different program that
+ * drops the call_spill range-split and so lets the bases win callee-saved
+ * regs.  Reapplying it trades a SOLVED allocation for an order fix (-4).
+ * Loop 1 is an ORDER problem, and only an order problem.
  *
  * The loop-2 rotation: both preheaders hold the SAME three
  * instructions in a different ORDER (target 0x8005b7f0, block 22):
@@ -155,10 +175,50 @@
  * a dependency with no data behind it, purely the FENCE_10's notes.  Fences
  * therefore freeze the emitted order of the statements they wrap.
  *
- * Lead for the next pass (loop 2): insn 714 must be HOISTED from inside the
- * loop and discovered AFTER the base's movable (loop.c hoists in body-scan
- * order), or `item`'s live range must reach past the hoists some other way.
- * The loop-1 result below is the worked precedent that this IS reachable.
+ * ROUND 5, loop 2: THE ORDER IS REACHABLE — proved, then reverted.  The lead
+ * above is correct and it works.  Moving `menu_base = ItemName` from a
+ * pre-loop statement to a statement INSIDE the do-while, placed after the
+ * think scan (i.e. after the base's movable in body-scan order), and
+ * initialising the cursor with `think_item = ItemName` instead of
+ * `= menu_base`, emits (verified in the .s):
+ *     addu $17,$18,$zero / lui $23,%hi(ThinkDB) / addiu $21,$23,%lo(ThinkDB)
+ *     / addu $16,$19,$zero / addu $20,$0,$zero
+ * against retail's
+ *     addu $s3,$s2,$zero / lui $fp,%hi(ThinkDB) / addiu $s6,$fp,%lo(ThinkDB)
+ *     / addu $s0,$s1,$zero / addu $s5,$zero,$zero
+ * — the SAME five insns in the SAME order, menu_base landing in retail's $s0,
+ * and the guard still reusing the carrier (`lw $2,%lo(ThinkDB)($23)`).  The
+ * mechanism is loop.c:691-703 case (1), `reg_in_basic_block_p`: it is a
+ * STANDALONE disjunct that does NOT require !maybe_never and does NOT care
+ * that the dest is a user variable, so a NAMED `menu_base` hoists freely
+ * provided every use sits in the set's own basic block.  (That is why the
+ * "named user var blocks the hoist" rule below is only half the story: it
+ * blocks via cases (2)/(3), and case (1) buys it back.)
+ *
+ * It measured 97, NOT a reduction, so it was reverted.  Two costs, both
+ * diagnosed, and they are the whole of the next round's work:
+ *  (1) `item`/`category` swap ($s1<->$s3) plus a knock-on rotation of count
+ *      (s5->s4), i (s4->s3), j (s3->s5), base (s6->s5), carrier (fp->s7),
+ *      type (s7->s6).  A pure allocno_compare inequality — the pattern this
+ *      file already beat once at -9.  `.greg` order was
+ *      `29 regs to allocate: 277 92 87 276 98 86 314 101 100 89 93 95 90 82
+ *       80 88 96 83 99 85 91 94 140 120 270 372 141 81 265`.
+ *  (2) 0x8005b81c: retail `move a1,s0` (think_item = a copy of menu_base) vs
+ *      ours `addiu a1,sp,1424` — cse2 REMATERIALISES the frame address
+ *      because it clears its table at the multi-predecessor loop head, so it
+ *      never learns $s0 == sp+1424 inside the loop.
+ * Deleting `menu_base` entirely (all uses direct `ItemName[...]`) does NOT
+ * fix (2): the copy stops existing at all and the length goes to 1144 (-2).
+ * So `move s0,s1` exists ONLY because a NAMED menu_base exists, yet retail's
+ * 0x81c needs that name's value known INSIDE the loop.  Reconciling those two
+ * is the open question; the order lever itself is solved and cheap to redo.
+ *
+ * NEW RULE (measured here, worth generalising): a do{}while(0) fence CANNOT
+ * ballast a set that loop.c HOISTS.  move_movables emits the insn with
+ * emit_insn_before(loop_start), which lifts it OUT of the fence's
+ * NOTE_INSN_LOOP_BEG/END region, so it loses the loop_depth weighting
+ * entirely.  Wrapping the relocated `menu_base = ItemName` in FENCE_10
+ * changed nothing (97 -> 97).  Ballast only works on sets that STAY PUT.
  *
  * LOOP-1 PREHEADER, and the general rule it establishes.  Retail's order is
  *     [StageAppearance base] [-1] [HumanData base] [WeaponModel base] [giv]
@@ -202,11 +262,14 @@
  * retail's and grab callee-saved regs instead of being pushed into caller-
  * saved t0/t1.  Retail's bases are in t0/t1 *because they lost*: `find_reg`
  * gave them no callee-saved reg, and caller-save.c then spilled them.
- * NEXT ROUND, loop 1 = one bounded question: make the two hoisted bases rank
- * BELOW the nine callee-saved allocnos (or find the two extra long-lived
- * values retail has — note retail burns s0 and s1 on loop-BODY temps: `sll
- * $s0,$v0,1` at 0x710, `addiu $s1,$sp,0x18` at 0x6f4).  Score both against
- * `.greg`'s `;; N regs to allocate:` oracle before editing.
+ * SUPERSEDED by the ROUND 5 DISPROOF above: this paragraph's premise ("our
+ * bases outrank retail's and win callee-saved regs") is true ONLY of the
+ * retail-shaped edit, never of this checkpoint, whose bases are already in
+ * t0/t1.  Do not go looking for "two extra long-lived values" — we already
+ * keep eleven.  Loop 1's 20 bytes are order, not pressure.  The real loop-1
+ * question is the same one loop 2 answers: how to emit the WeaponModel base
+ * as a movable discovered AFTER the -1/HumanData movables while KEEPING the
+ * t0 allocation and the four caller-saves that the named-var shape earns.
  *
  * ALSO CONFIRMED, and it retires a piece of scaffolding: the two `sw` around
  * sprintf are gcc's CALLER-SAVE of the two bases, not source stores.  With
@@ -235,6 +298,15 @@
  *  - Relocating that ballast to FENCE_10(think_item = menu_base): 126.
  *  - autorules: no improving edit among 50 candidates.
  *  - Bounded permuter (420s, -j4, --stop-on-zero): no zero.
+ * Rejected in ROUND 5, each measured (see the loop-2 note above for detail):
+ *  - `menu_base = ItemName` relocated below the think scan + `think_item =
+ *    ItemName`: 97.  ORDER CORRECT (this is the advance), but it costs the
+ *    item/category swap and 0x81c rematerialises.  Redo it only WITH a fix
+ *    for those two; the shape itself is right.
+ *  - FENCE_10 on that relocated statement, to restore item's lost ballast:
+ *    97 (no change) — a hoisted set escapes its fence's notes.
+ *  - Deleting `menu_base` entirely, all uses direct `ItemName[...]`: LENGTH
+ *    1144 (-2).  The `move s0,s1` copy stops being emitted at all.
  */
 
 #ifndef NON_MATCHING

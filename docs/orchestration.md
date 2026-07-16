@@ -222,10 +222,20 @@ minutes and worked the cluster the brief never mentioned (72 -> 52).
 
 The same discipline applies to every "impossible" verdict a brief inherits: the
 verdict describes a decomposition, and the numbers behind it are often about a
-fraction of the bytes. Three briefs in this rollout carried premises that their
+fraction of the bytes. FIVE briefs in this rollout carried premises that their
 lanes disproved with arithmetic (the allocno tie-break, the "8 weighted refs"
-debt, this one). Write briefs that hand over EVIDENCE and open questions, not
-conclusions.
+debt, the AddEnemy single-cause story, the "local-alloc is a different lever"
+claim, and the AddEnemy "find retail's two extra long-lived values" question).
+Write briefs that hand over EVIDENCE and open questions, not conclusions.
+
+**The orchestrator is the repeat offender here, so make this mechanical.** A
+lane's closing diagnosis is a HYPOTHESIS, not a finding: do not forward it into
+the next brief as fact without byte-accounting it yourself, or it becomes a
+premise the next lane must spend a round refuting. AddEnemy's "retail keeps
+eleven long-lived values to our nine — find the two extra" survived into two
+briefs before a lane checked and found our draft ALREADY keeps eleven; the
+deficit belonged to a hypothetical edit, not to the draft. Forward the numbers
+and the disagreement; let the lane conclude.
 
 ## Depth over breadth (owner directive, 2026-07-17)
 
