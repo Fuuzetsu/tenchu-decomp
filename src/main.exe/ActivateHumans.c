@@ -69,60 +69,53 @@ extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ActivateHumans", ActivateHumans);
-#else
 /*
- * STATUS: NON_MATCHING — 3 of 1608 bytes differ (was 10, was 360), at the
- * exact 0x68-byte frame, 0x30-byte working stack window, 1,608-byte /
- * 402-instruction length, and exact physical CFG (44 conditional branches,
- * 8 unconditional jumps, 4 calls, 1 return).  Build with
- * `NON_MATCHING=ActivateHumans ./Build`.
+ * MATCHED — 1,608 bytes / 402 instructions, 0x68-byte frame, exact CFG.
  *
- * SOLVED this round: the 7-byte callee-saved $s2/$s5 swap.  The previous park
- * rested on a priority-window "impossibility proof" that was WRONG in two
- * ways: it held live_length FIXED (priority = floor_log2(refs)*refs/live has
- * TWO tunable inputs), and it treated the two hunks as independent when they
- * are one coupled ordering problem.  With stage_hi pinned at 474 the window
- * for activate_distance is (474, 544) and no integer refs count lands in it —
- * but dropping stage_hi below target WIDENS that window to (406, 544), where
- * 7 refs -> 469 lands cleanly.  Retail's order is a single total order:
- *   human > i > activate_distance > stage_char > target > stage_hi  = $s0..$s5
- * Final measured (regalloc.py, refs/live -> priority -> reg):
- *   human 39/214 -> 9112 -> $s0      i 7/251 -> 557 -> $s1
- *   activate_distance 7/298 -> 469 -> $s2   stage_char 5/246 -> 406 -> $s3
- *   target 6/303 -> 396 -> $s4       stage_hi 4/249 -> 321 -> $s5
- *   distance 5/84 -> $a3             VISIBLE_CHARACTERS_ base 3/24 -> $a2
- * Three coupled levers, all required together (do NOT undo any one alone —
- * each is load-bearing only in combination with the others):
- * - stage_hi 6 -> 4 refs: `i = 0; stage_hi = ...;` moved OUT of the three
- *   n-clamp arms into ONE identical-arm fence `if (target) {arm} else {arm}`
- *   at the clamp join, so the n-clamp arms carry only `n = 3;` / `n = 6;`.
- *   2 defs + 2 uses = 4 refs -> 321, below target.  The two-arm duplicate def
- *   still fences cse1/cse2 constant-folding, so the coupled StageChar base
- *   identity (`lui s5,0x8009; addiu s3,s5,-6436`, the $s5-derived base)
- *   SURVIVES — a single join def would fold to `li 0x8008E6DC`.
- * - i regains its 7th weighted ref via `do { i++; } while (0);` (losing two
- *   arm defs cost it 7 -> 5 refs = 398, which sank it below $s2/$s3).
- * - activate_distance +3 weighted refs via a TRIPLE do{}while(0) fence on its
- *   13000 def ONLY.  Nesting depth n gives a ref weight of n+1; the fence adds
- *   NO live_length (loop notes are not counted), so 4 -> 7 refs at live 298.
- * WHY that exact site (measured, each alternative costs bytes):
- * - Fencing EITHER `distance < activate_distance` use (the natural targets)
- *   swaps distance/VISIBLE_CHARACTERS_base between $a2/$a3 = 7 bytes: loop
- *   notes are sched barriers and both uses sit on distance's live range.
- * - Fencing the 26000 def blocks reorg from stealing `li s2,26000` into the
- *   `beq $v1,$v0` delay slot at 0x8003b878, costing a nop (length 1612).
- * - The 13000 def is AFTER that branch and off distance's range: free.
+ * Every fence below is load-bearing: each was re-challenged at the exact match
+ * and each removal costs bytes (measured).  Do NOT "clean up" any of them.
  *
- * Remaining 3 bytes: the join copy at 0x8003baec.  Retail `move v0,v1`; ours
- * (s8 active) `sll v0,v1,0x18` (combine drops the sra under the zero-test).
- * u8 gives `andi v0,v1,0xff` (4 bytes).  A QI/HI pseudo widening never
- * simplifies to a bare move (nonzero_bits punts on the paradoxical subreg),
- * and previously every same-block SI copy spelling (`final = active; if
- * (final)`, copy-back into computed_active, identical single-insn arms) was
- * combine-folded back to a direct test — flat at 401 instructions (one SHORT,
- * i.e. the copy is deleted entirely rather than kept as a move).
+ * 1. Callee-saved order.  global-alloc priority = floor_log2(refs)*refs/live,
+ *    which has TWO tunable inputs (an earlier "impossibility proof" wrongly
+ *    held live_length fixed).  Retail's single total order is
+ *      human > i > activate_distance > stage_char > target > stage_hi = $s0..$s5
+ *    measured (regalloc.py, refs/live -> priority -> reg):
+ *      human 39/214 -> 9112 -> $s0            i 7/251 -> 557 -> $s1
+ *      activate_distance 7/298 -> 469 -> $s2  stage_char 5/246 -> 406 -> $s3
+ *      target 6/303 -> 396 -> $s4             stage_hi 4/249 -> 321 -> $s5
+ *      distance 5/84 -> $a3   VISIBLE_CHARACTERS_ base 3/24 -> $a2
+ *    Three coupled levers hold that order; none works alone:
+ *    - stage_hi 6 -> 4 refs: `i = 0; stage_hi = ...;` lives in ONE identical-arm
+ *      fence `if (target) {arm} else {arm}` at the n-clamp join, so the clamp
+ *      arms carry only `n = 3;` / `n = 6;`.  The duplicate def also fences
+ *      cse1/cse2, preserving the $s5-derived StageChar base
+ *      (`lui s5,0x8009; addiu s3,s5,-6436`); a single join def folds to
+ *      `li 0x8008E6DC`.  Collapsing the fence -> 1612 bytes.
+ *    - `do { i++; } while (0);` restores i's 7th weighted ref.  Unwrap -> 12 bytes.
+ *    - the TRIPLE do{}while(0) on the 13000 def only: nesting depth n gives ref
+ *      weight n+1 and adds NO live_length (loop notes are not counted), so
+ *      activate_distance goes 4 -> 7 refs at live 298.  Unwrap -> 16 bytes.
+ *      It must sit on the 13000 def: fencing either `distance < activate_distance`
+ *      use swaps $a2/$a3 (loop notes are sched barriers on distance's live
+ *      range), and fencing the 26000 def blocks reorg from stealing
+ *      `li s2,26000` into the delay slot at 0x8003b878 (-> 1612).
+ * 2. The double do{}while(0) around `if (human == target)`.  Unwrap -> 10 bytes.
+ * 3. The `active`/`final` join at 0x8003baec (retail `move v0,v1`).  `active`
+ *    must be SImode: narrow locals are genuine QI/HI pseudos here (no
+ *    PROMOTE_MODE), so a narrow `active` always widens via sll/andi and can
+ *    never yield a bare move (s8 -> `sll v0,v1,0x18`, u8 -> `andi v0,v1,0xff`;
+ *    nonzero_bits punts on the paradoxical subreg).  But a plain SImode
+ *    `final = active; if (final)` is folded back to a direct test, because
+ *    flow.c only builds a LOG_LINK when BLOCK_NUM(use) == BLOCK_NUM(set), and
+ *    cse propagates the copy within one extended block.  The identical-arm
+ *    fence supplies the block boundary that defeats both -- but jump1 HOISTS a
+ *    common leading insn out of two identical arms, which destroys it.  The
+ *    dead `final = 0;` makes the arm heads differ so the hoist cannot fire;
+ *    jump2 (the only pass with cross_jump=1) then cross-jumps the identical
+ *    tails and drops the branch, leaving exactly `move v0,v1; beqz v0`.
+ *    Measured: drop `final = 0;` or hoist it out of the arm -> 1604 bytes (the
+ *    copy vanishes); `human ? active : active` -> 1604 (fold-const collapses
+ *    `a ? b : b`); `if (target)` instead of `if (human)` -> 10 bytes.
  */
 void ActivateHumans(void)
 {
@@ -132,7 +125,8 @@ void ActivateHumans(void)
     VECTOR camera;
     VECTOR query;
     VECTOR work;
-    s8 active;
+    s32 active;
+    s32 final;
     s32 initial_active;
     s32 computed_active;
     s32 distance;
@@ -269,7 +263,16 @@ search_visible:
 computed_active_done:
     active = computed_active;
 active_done:
-    if (active)
+    if (human)
+    {
+        final = 0;
+        final = active;
+    }
+    else
+    {
+        final = active;
+    }
+    if (final)
     {
         if (((u16)human->attribute & 0x80) == 0)
         {
@@ -343,7 +346,6 @@ next_human:
     do { i++; } while (0);
     goto human_loop;
 }
-#endif
 
 // Ghidra decompilation (reference):
 //
