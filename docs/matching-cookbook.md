@@ -5814,6 +5814,22 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     (0x1CC); the stolen word at file `0x5F34` decodes to `addiu sp,sp,0x438`,
     sitting in `jr ra`'s delay slot. Note Ghidra's own `functions.tsv` was
     under-sized too, so `coverage.py` is the check, not the export.
+    Fourth: `BreedLife` (0x8002a018), carved 628 where the truth is 632 — the
+    return-delay-slot `addiu sp,sp,0xA8` was orphaned as a `.text`-ordered data
+    blob at 0x19A8C between it and GetWeaponData (fixed; the carve is honest
+    now).
+  - **Meta-rule — when a parked NON_MATCHING draft carries padding/counterweight
+    hacks to reach its length, first verify the carve is not under-sized.**
+    objdump the word at `carve_start + carve_size`: if it is a `jr ra` delay
+    slot or `addiu sp,sp,+N` frame teardown (not the next function's
+    `addiu sp,sp,-N` prologue), the carve dropped the delay slot. Fixing the
+    carve can make the hacks removable and unlock the real structure —
+    BreedLife fell 214→59 differing bytes this way, and its entire type-range
+    tail became byte-identical.
+  - Tool gap (backlog): `reverse.py --size` cannot RE-carve an existing `c`
+    subsegment (it prints "already a `c` subsegment" and returns); until it
+    can absorb a trailing orphan blob, the mechanical fix is deleting the
+    orphan `{ start, type: data }` yaml line, exactly like the valloc variant.
 
   - **Variant: the missing tail can land inside a NEIGHBOURING phantom function
     instead of an orphan `.data` blob, if Ghidra also independently placed a

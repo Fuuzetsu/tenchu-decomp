@@ -620,6 +620,13 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   had to disentangle by reading split-piece `.s` by hand. Wanted: per-pseudo
   wrong-reg mapping, plus a "disjoint pseudos coalesced in ours but split in
   target → try split/ballast" diagnostic.
+- **`reverse.py --size` should re-size an existing `c` carve** (absorb the
+  trailing orphan data blob). Today it no-ops on already-carved functions, so
+  the BreedLife under-sized fix needed a manual yaml line deletion.
+- **Under-sized-carve detector**: teach `coverage.py` (or a small sibling) to
+  flag the delay-slot signature mechanically — for every carved function,
+  objdump the word at `carve_start+carve_size` and warn when it decodes as
+  frame teardown / a return delay slot rather than the next prologue.
 
 - **DONE — every game function is carved.** All 555 game functions (plus the two
   SDK ones we had) now have a `c` subsegment, their own
