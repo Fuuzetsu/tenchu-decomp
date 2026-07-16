@@ -37,60 +37,16 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 59 of 632 bytes differ, down from 214; the extent is
- * now exact at 632 bytes / 158 instructions (see CARVE FIX below), the length
- * matches (158/158), and the whole type-range TAIL (0x8002a1d4..end) is now
- * byte-identical. Physical CFG counts all agree (15/15 cond branches, 9/9
- * calls, 1/1 return, 2/2 jumps).
+ * MATCHED — byte-exact at the full 632-byte / 158-instruction extent,
+ * fence-free and volatile-free.
  *
- * CARVE FIX (the unlock): the Ghidra functions.tsv size for BreedLife (628)
- * is UNDER-SIZED by one word — the same class as LoadCard / FUN_800593a0 /
- * AdtVsprintf (see src/main.exe/FUN_8005fe38.c and the cookbook's "UNDER-SIZED
- * functions.tsv entry" rule). objdump at 0x8002a018+628 (=0x8002a28c) shows
- * `addiu sp,sp,168` — BreedLife's OWN return-delay-slot frame teardown, not
- * GetWeaponData's prologue (that begins at 0x8002a290). splat had parked that
- * word as a `{ start:0x19A8C, type:data, linker_section_order:.text }` blob
- * between BreedLife and GetWeaponData. Deleting that data line in
- * config/splat.main.exe.yaml extends BreedLife's `c` carve to its true 632
- * bytes; `./Build check` stays byte-identical. With the true 158-insn extent
- * exposed, the old draft's two length-hacks that had been tuned to the wrong
- * 157-insn window became removable: (1) the `(void)*(volatile s32*)&point[0]`
- * "counterweight" read, and (2) the "separately captured high attribute"
- * (`high_attribute = human->attribute; ... high_attribute|0x20`). The target
- * reads attribute FRESH at the high_type store (0x8002a250: lhu/nop/ori/sh);
- * writing `human->attribute = human->attribute | 0x20` inline matches it, and
- * removing both hacks made the whole tail exact.  autorules --guided then
- * found the `do{}while(0)` empty-loop-boundary after the empty-table check
- * (80->59), which recovers retail's folded `lui a1;lh v0,-30068(a1)` read of
- * HumanData[0].type by preventing `base=HumanData`'s addiu from hoisting above
- * the check.
- *
- * REMAINING 59 bytes — two sub-C register-allocation ties (RTL-confirmed via
- * rtldump .greg/.lreg; permuter cannot beat 59, its lower fuzzy scores are all
- * length-increasing artifacts):
- *  (a) First search (~20 bytes): target keeps the table base in $a1 (in-place
- *      `addiu a1,a1,-30068` reusing the %hi reg) and the advancing walker in
- *      $v1 (`move v1,a1`), so sVar1 loads to $v0.  cc1 instead colours the
- *      more-used walker (9 refs) into the freed %hi reg $a1 and pushes base
- *      (3 refs) to $a3, so sVar1 lands in $v1.  rtlguide reports this as a
- *      HARD-CONFLICT (search->v1 blocked by the %hi pseudo): priority/decl-order
- *      levers cannot move it; only an interference-graph change would, and every
- *      base/search respelling tried (reversed assignment, decl order, pointer
- *      arithmetic) is byte-identical (cc1 CSEs them back).
- *  (b) Filename scan (~35 bytes): target computes the scan's %hi/base ($s1/$s3)
- *      BEFORE `idx*24`, so idx is still live when %hi is coloured -> %hi avoids
- *      $s0 -> pp reuses idx's $s0 (the idx->pp->human $s0 chain).  In the draft,
- *      cc1's fixed expansion of `&HumanData[idx]` emits `idx*24` first (.lreg
- *      insns 141-144), idx dies, then the %hi (insn 145) grabs the just-freed
- *      $s0, forcing pp to $s1.  This is not hard-conflicted but is an expansion-
- *      ORDER artifact: making the base an explicit shared pointer (`tbl`) is
- *      either inert (cc1 CSEs it) or adds a callee-saved live range (+2 insns,
- *      640 bytes); a fresh `HumanData[idx]` guard adds +1.  The $s1/$s3 rotation
- *      and the `bne v1,s3` (draft caches -1 in the freed $s3) vs target's
- *      re-materialised `li v0,-1` at 0x8002a150 are downstream of this one
- *      choice.
- * The exact 59-byte form is authoritative; the register homes above are the
- * whole residual.
+ * CARVE FIX (kept for the record): the Ghidra functions.tsv size for
+ * BreedLife (628) was UNDER-SIZED by one word — the same class as LoadCard /
+ * FUN_800593a0 / AdtVsprintf (cookbook: "UNDER-SIZED functions.tsv entry").
+ * The word at 0x8002a28c is BreedLife's own return-delay-slot `addiu
+ * sp,sp,168`, which splat had parked as a data blob between BreedLife and
+ * GetWeaponData; deleting that `{ start:0x19A8C, type:data, ... }` line in
+ * config/splat.main.exe.yaml exposed the true 632-byte carve.
  *
  * BreedLife (0x8002a018, 0x278 bytes) — spawns a new Humanoid of `type` at
  * ground position (x,z) with yaw `r`: resolves `type` to its HumanData[]
@@ -128,20 +84,48 @@
  *    INDEPENDENT tests reach the one `SystemOut` call site: the initial
  *    `HumanData[0].type == -1` (empty table) skips the search loop
  *    entirely via a direct branch, and the search loop's own post-loop
- *    `HumanData[idx].type == -1` (not found) falls into the same call —
- *    spelled as two `if (cond) goto callit;` tests sharing one label
- *    (the two-independent-goto-into-one-label family), not a nested
- *    if/return.
- *  - The search loop is a genuine walking-pointer `do { ... } while`, not an
- *    index-based search (unlike SetupCharacterParameter's sibling loop in
- *    the same TU): the raw `.s` increments a real HumanDataType* by 0x18
- *    every iteration (Ghidra's own `pHVar5 = pHVar5 + 1;` is literal, not
- *    an SSA artifact here). The `idx` counter only increments on iterations
- *    that DON'T break, so it deliberately diverges from the pointer's own
- *    position — the post-loop code recomputes `&HumanData[idx]` from `idx`
- *    via the `*24` strength reduction (`idx*3<<3`), it does NOT reuse the
- *    walking pointer's final value (confirmed: no register carries the
- *    pointer out of the loop).
+ *    `base[idx].type != -1` (found) branches around the same call —
+ *    spelled as two goto tests sharing one label (the
+ *    two-independent-goto-into-one-label family), not a nested if/return.
+ *  - The first search is SetupCharacterParameter's index-based while idiom
+ *    (same TU), NOT a source-level walking pointer: plain re-indexed reads
+ *    in the while condition and the break test. Everything the asm shows is
+ *    compiler machinery: loop.c strength-reduces the two reads into one
+ *    walking-pointer giv ($v1, `addiu +0x18`), hoists the in-loop (s16)type
+ *    widen and the cont-test's -1 into the preheader (the -1 cse2-folds
+ *    onto the empty-check's still-tracked `li v1,-1`, giving `move a2,v1`),
+ *    and reorg retargets the backedge past the redundant loop-top reload
+ *    (0x8002a090 -> 0x8002a07c, skipping the 0x8002a078 lh that only the
+ *    entry path runs). The explicit empty-table check is load-bearing: it
+ *    makes jump.c's machine copy of the exit test fold away (cse's
+ *    record_jump_equiv knows the value != -1 on the fall-through). Without
+ *    it, the machine dup survives and derails the giv reduction (s8 frame,
+ *    in-loop idx*24 recompute).
+ *  - `base = HumanData` is deliberately the loop's FIRST BODY STATEMENT:
+ *    as a loop.c movable it is hoisted into the post-check preheader slot
+ *    (0x8002a070 `addiu a1,a1,%lo` in-place on the shared %hi), which is a
+ *    position no pre-loop source statement can reach (a pre-loop assignment
+ *    lands before the check's folded lh and re-homes every preheader
+ *    register). It stays live to the post-loop found-check `base[idx]`
+ *    (0x8002a0a4 `addu v0,v0,a1`); the giv init cse2-folds onto it
+ *    (`move v1,a1`). Reachability is sound because every found-check path
+ *    runs >= 1 loop body iteration (the empty path branches straight to
+ *    SystemOut).
+ *  - The join recomputes the row as a named base plus an INTEGER pointer
+ *    sum: `tbl = HumanData; pp = (HumanDataType *)(idx*sizeof + (u32)tbl);`.
+ *    The separate tbl statement puts %hi/lo_sum BEFORE the idx*24 chain, so
+ *    %hi is born while idx is still live: %hi -> $s1 (not idx's freed $s0),
+ *    pp -> $s0, tbl -> $s3, and dbr copies the join's lui into the
+ *    found-check's delay slot (0x8002a0b4) with the label split at
+ *    0x8002a0c4/0x8002a0c8. A plain `&HumanData[idx]` emits the mult chain
+ *    first and rotates all three homes.
+ *  - The filename scan is a GOTO-loop (label + `if (...) goto`), not a
+ *    do/while: with no LOOP notes, loop.c cannot hoist the scan's -1, which
+ *    keeps retail's in-loop `li v0,-1` (0x8002a150). `q = pp` before the
+ *    loop is the real copy retail has at 0x8002a124 (`move s1,s0`): pp dies
+ *    at the copy so pp shares idx's $s0, and q takes the dead %hi's $s1.
+ *    The copy survives because q's uses sit behind the loop label
+ *    (optimize_reg_copy_1 cannot cross it).
  *  - `human->model->locate.coord.t[N]`/`.rotate.vy` are each written via a
  *    FRESH re-dereference of `human->model` (5 separate `lw`s at the same
  *    +0x58 offset, one per access, including across the intervening
@@ -165,11 +149,6 @@
  *    directly (no De Morgan inversion needed here, unlike several other
  *    guard-clause functions in this TU family).
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BreedLife", BreedLife);
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/BreedLife", create_character__override__prt_8002a100_aee7b64a);
-#else /* NON_MATCHING */
 
 typedef struct
 {
@@ -206,40 +185,41 @@ Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r)
     /* PSX.SYM and the retail multiply both show a full-width counter. */
     u32 idx;
     s32 sVar1;
-    /* Keep only the filename walker volatile; its signed loads are cast back
-     * to the ordinary row type so cc1 emits one `lh`, not lhu+sign extension. */
-    HumanDataType *search;
-    volatile HumanDataType *pHVar5;
+    HumanDataType *pHVar5;
     HumanDataType *base;
     u32 *model;
     HumanDataType *pp;
+    HumanDataType *tbl;
+    HumanDataType *q;
     Humanoid *human;
     u8 name[100];
 
     idx = 0;
     if (HumanData[0].type == -1)
         goto illegal_type;
-    do {
-    } while (0);
-    base = HumanData;
-    search = base;
-    do
+    /* First-search idiom as in SetupCharacterParameter (same TU): plain
+     * re-indexed reads in the while condition and the break test; loop.c
+     * strength-reduces them into one walking-pointer giv and hoists the
+     * widen/-1, and reorg retargets the backedge past the redundant
+     * loop-top reload. The explicit empty-table check makes jump.c's
+     * machine copy of the exit test fold away (cse knows the value != -1
+     * on the fall-through), and `base` — assigned as the loop's first
+     * statement — is a loop.c movable, hoisted after that check, keeping
+     * the table base alive for the post-loop found-check. */
+    while (HumanData[idx].type != -1)
     {
-        sVar1 = search->type;
-        search = search + 1;
-        /* Semantics-free cc1 CSE/scheduling boundary; emits no instruction. */
-        do {
-        } while (0);
-        if (sVar1 == type)
+        base = HumanData;
+        if (base[idx].type == type)
             break;
         idx = idx + 1;
-    } while (search->type != -1);
+    }
     if (base[idx].type != -1)
         goto type_found;
 illegal_type:
     SystemOut(D_800117C8);
 type_found:
-    pp = &HumanData[idx];
+    tbl = HumanData;
+    pp = (HumanDataType *)(idx * sizeof(HumanDataType) + (u32)tbl);
     model = pp->model;
     if (model == 0)
     {
@@ -249,16 +229,17 @@ type_found:
         sVar1 = HumanData[0].type;
         if (sVar1 != -1)
         {
+            q = pp;
             pHVar5 = HumanData;
-            do
+scan_next:
+            if (strcmp((char *)q->name, (char *)pHVar5->name) == 0)
             {
-                if (strcmp((char *)pp->name, (char *)pHVar5->name) == 0)
-                {
-                    pHVar5->model = model;
-                }
-                pHVar5 = pHVar5 + 1;
-                sVar1 = ((HumanDataType *)pHVar5)->type;
-            } while (sVar1 != -1);
+                pHVar5->model = model;
+            }
+            pHVar5 = pHVar5 + 1;
+            sVar1 = pHVar5->type;
+            if (sVar1 != -1)
+                goto scan_next;
         }
     }
 
@@ -275,32 +256,28 @@ type_found:
     {
         human->item[3] = 1;
     }
-    do
-    {
-        if (type < 0x8B)
-            goto low_type;
-        if (type >= 0xA8)
-            goto done;
-        if (type < 0xA6)
-            goto done;
-        goto high_type;
+    if (type < 0x8B)
+        goto low_type;
+    if (type >= 0xA8)
+        goto done;
+    if (type < 0xA6)
+        goto done;
+    goto high_type;
 
 low_type:
-        if (type >= 0x81)
-            goto equip;
-        if (type >= 2)
-            goto done;
-        if (type < 0)
-            goto done;
-equip:
-        human->attribute = human->attribute | 2;
-        EquipWeapon(human, 1);
-        SetNowMotion(human, 0x501, 1);
+    if (type >= 0x81)
+        goto equip;
+    if (type >= 2)
         goto done;
+    if (type < 0)
+        goto done;
+equip:
+    human->attribute = human->attribute | 2;
+    EquipWeapon(human, 1);
+    SetNowMotion(human, 0x501, 1);
+    goto done;
 high_type:
-        human->attribute = human->attribute | 0x20;
-    } while (0);
+    human->attribute = human->attribute | 0x20;
 done:
     return human;
 }
-#endif /* NON_MATCHING */
