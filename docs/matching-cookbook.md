@@ -5811,6 +5811,28 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Count the TARGET's mentions of a register before theorising about ref counts
+  — it costs one grep.** If the target mentions a register N times, the original
+  pseudo has N-2 body refs (the prologue `sw` and epilogue `lw` are the other
+  two). A whole mission_score_screen round was justified by "the original's
+  rankSpriteBase carries 8 weighted refs"; `grep -c '\$s7'` on the target shows
+  exactly 4 mentions — 1 def + 1 use, the same raw shape as ours — and the story
+  was dead in one command. Confirm a pseudo's identity by its DISPOSITION, then
+  confirm its ref count against the TARGET's mentions, before building any
+  argument on top.
+- **A fence's cost can be INHERENT to the loop notes, not collateral.** Shrinking
+  mission_score_screen's rank scaffold from the whole block to just the def
+  (same weighted refs) recovered exactly ZERO bytes. If tightening a fence's
+  footprint changes nothing, its ~30B is the notes themselves, and the answer is
+  to stop needing the fence — not to tune it.
+- **`do{}while(0)` fences raise LOCAL-alloc priority too, not just global.**
+  `QTY_CMP_PRI = floor_log2(n_refs)*n_refs*size/(death-birth)*10000` uses the
+  same loop-depth-weighted `n_refs` as `global.c`, so a fence inflates enclosed
+  SHORT-LIVED CONSTANTS, allocating them earlier so they grab a lower hard reg
+  (`find_free_reg` scans ascending; MIPS has no `REG_ALLOC_ORDER`). An
+  unexplained caller-saved register shift near fenced code is usually this — not
+  an independent local-alloc problem, and there is no separate local-alloc knob
+  to reach for.
 - **Siting a `do{}while(0)` ref-fence: histogram BOTH rivals, not just the pseudo
   you want to lift.** The fence weights EVERY pseudo whose refs it encloses, so a
   region that mentions the rival more makes the gap WORSE (a Z-block fence moved

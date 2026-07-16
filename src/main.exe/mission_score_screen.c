@@ -130,11 +130,38 @@
  *   3 at 8, so its priority jumps 544 -> 1632, clearing ten's 1375.  It is then
  *   allocated first and takes s7; ten is pushed to $30.  This is surgical: 1632
  *   lands between p83 (3036) and p94 (1375), so NOTHING else moves.
- * - CAVEAT (honest): the 4-nested-fence spelling is SCAFFOLDING, a proxy for
- *   "the original's rankSpriteBase carries 8 weighted refs".  The mechanism is
- *   real and measured, but the original almost certainly reached 8 refs another
- *   way (e.g. 3 cse-surviving uses at main-loop depth == def@2 + 3*2 = 8).
- *   Finding that spelling should drop the ~32B this scaffolding costs elsewhere.
+ * - CAVEAT (honest): the 4-nested-fence spelling is SCAFFOLDING.  It now fences
+ *   the DEF (`rankSpriteBase = rankSprites;`, lifting it 2 -> 6, refs 6+2 = 8)
+ *   rather than the whole rank block (which lifted the USE, 2 -> 6, refs 2+6 =
+ *   8).  Both give byte-identical 401 and the same p798 8/147 -> 1632; the def
+ *   form is kept because it encloses ONE statement instead of the entire rank
+ *   block.  That equivalence is itself the finding: the scaffold's ~32B cost is
+ *   NOT collateral from the refs it encloses (shrinking the footprint to one
+ *   assignment recovered exactly 0 bytes) — it is inherent to the loop notes
+ *   themselves (they also gate cse1 const-folding and loop.c, not just flow.c
+ *   depth).  So do not chase the cost by moving/shrinking the fence again.
+ * - DISPROVEN (round-6, Opus): the "original reached 8 refs another way (e.g. 3
+ *   cse-surviving uses)" hypothesis is DEAD.  The target's $s7 is mentioned
+ *   exactly FOUR times in the whole function (prologue sw, `addiu s7,sp,0x60`
+ *   def, ONE use `addu a0,s7,a0`, epilogue lw) — i.e. the original's
+ *   rankSpriteBase has 1 def + 1 use, the SAME raw shape as our draft, so it
+ *   carries 4 weighted refs (priority 544), not 8.  Counting the target's
+ *   mentions of a register is a cheap, decisive check on any "the original had
+ *   more refs" story — do it before theorising.
+ * - WHY THAT MATTERS (the arithmetic, base depth = 1 per flow.c's `depth = 1`
+ *   init, verified in the pinned source): ten is 1 def + 10 `mult v0,fp` uses,
+ *   and all 10 uses are inside the main for(;;), so its weighted refs have a
+ *   hard FLOOR of 1 + 10*2 = 21 -> priority 592 (live 1418).  rankSpriteBase at
+ *   the target's 4-ref shape tops out at 544 (live 147).  592 > 544: NO
+ *   fence-free spelling can flip the pair.  The scaffold is not standing in for
+ *   a prettier spelling of the same structure — it is the price of the flip.
+ * - THEREFORE the real lead is elsewhere: for the target's numbers to be
+ *   self-consistent the original must have had NO draw-macro fences (ten at 21
+ *   refs) AND either ten live >= 1545 or rankSpriteBase live <= 135 (our 147;
+ *   the target's asm span between def and use is 136).  I.e. the draw-macro
+ *   fences are themselves scaffolding, and the ~50B that unwrapping them costs
+ *   (measured: 419/420) is a DIFFERENT unsolved problem hiding behind them.
+ *   That is where the ~32B lives — not in the rankSpriteBase fence.
  * - Measured alternatives (all worse; do not retry): unwrapping the draw macros'
  *   fences drops ten 39->21 refs (1375->592) and needs only +1 ref on
  *   rankSpriteBase, but the unwrap itself costs ~50B and nets 419.  A single
@@ -147,6 +174,54 @@
  *   region re-derives.  The goto-loop must stay; that is why the flip has to be
  *   bought with fences instead.
  *
+ * 2026-07-17 round-6 (Opus) — THE COLON/x=102 CLASS IS THE SAME PROBLEM, NOT A
+ * LOCAL-ALLOC LEVER.  The standing brief called it "a genuinely different lever
+ * (local-alloc, not global priority)".  It is not; it is a SYMPTOM of the same
+ * draw-macro fences, and the fix is not independently available.
+ * - The four sites are the four `type_ = s16` draws (2/5/7/8, x=0x66).  Our
+ *   block is INSTRUCTION-FOR-INSTRUCTION identical to the target's; only the
+ *   register differs (x const: ours $v0, target $t1; drawY: ours $t1, target
+ *   $t2).  Everything else in the block (drawnSprite->s2, value->v1, the sll
+ *   temp->v0, signedValue->v0) already matches.
+ * - Read from the .lreg dump: the x const is pseudo 429, `Register 429 used 8
+ *   times across 4 insns in block 35; 2 bytes`.  It has only TWO real refs (def
+ *   1274, use 1276) — the 8 is 2 x loop_depth 4 (base 1 + main for(;;) +
+ *   DRAW_SCORE_NUMBER + DRAW_SCORE_NUMBER_).  local-alloc ranks quantities by
+ *   QTY_CMP_PRI = floor_log2(n_refs)*n_refs*size/(death-birth)*10000 — the SAME
+ *   shape as global.c's — so the fences inflate it to 3*8*2/4*10000 = 120000.
+ *   Block 35 holds exactly two local qtys: 431 (the `sll` temp, SImode, 8/2 ->
+ *   480000) and 429 (120000).  431 allocates first and takes $2 over [1280,1281);
+ *   429's window [1274,1276) is DISJOINT, so find_free_reg (ascending scan, no
+ *   REG_ALLOC_ORDER on MIPS) finds $2 still free and takes it.  The target's 429
+ *   instead lands at $9, i.e. its priority there is low enough to allocate after
+ *   something that occupies $2 across its window.
+ * - So refs (fences) is the only term that differs; window and size are already
+ *   identical to the target's.  There is no separate local-alloc knob to turn.
+ * - MEASURED this round (all at the exact 1159-insn extent):
+ *     baseline (4 fences, sign arm inside DRAW_SCORE_NUMBER_)  ten 39/1375  401
+ *     sign arm moved OUT of DRAW_SCORE_NUMBER_'s fence, 3 fences ten 31/874  401
+ *     + outer wrapper do{}while(0) -> plain {}, 1 fence       ten 23/648  420
+ *     + outer wrapper -> plain {}, 4 fences                   ten 23/648  420
+ *   Conclusions: (a) relocating the ten-using sign arm out of the inner fence is
+ *   byte-NEUTRAL and drops ten 1375 -> 874; (b) the scaffold's fence COUNT is
+ *   byte-neutral over 1..4 (only the threshold it must clear matters); (c) the
+ *   whole +19 is the OUTER WRAPPER's do{}while(0) — it is worth 19B somewhere
+ *   unrelated, and that is the real thing to explain before any unwrap pays.
+ * - HARD ARITHMETIC LIMIT (why no fence tuning can ever finish this): with the
+ *   wrapper kept, ten's weighted-ref floor is 31 (874); with it unwrapped, 21
+ *   (592).  rankSpriteBase at the TARGET's shape (1 def + 1 use, live 147) tops
+ *   out at 544.  592 > 544, so even a FULL unwrap cannot reproduce the target's
+ *   configuration.  The residual must therefore be a LIVE-LENGTH difference:
+ *   either ten live >= 1545 (ours 1418) or rankSpriteBase live <= 135 (ours 147;
+ *   80000/135 = 593 > 592).  The target's asm span between `addiu s7,sp,0x60`
+ *   and `addu a0,s7,a0` is 136 insns — 11 shorter than our 147.
+ * - THE ROUND-7 LEAD (a genuine reframing): the s7/s8 flip is probably a
+ *   CONSEQUENCE of the row body reaching the target's length, not a cause.  Fix
+ *   the remaining row-body diffs first; if rankSpriteBase's live range falls to
+ *   <=135 while ten sits at its 21-ref floor, the flip falls out with NO fence at
+ *   all and the scaffold deletes itself.  Do not spend another round tuning
+ *   fences — the pair cannot be separated by refs.
+ *
  * Remaining classes — RE-MEASURED at 401 (the old "498 bytes" list below was
  * stale; two of its entries are now closed).  A target-vs-draft register-mention
  * histogram (the cookbook's mega-pseudo diagnostic) comes back CLEAN: s0-s8 all
@@ -155,8 +230,12 @@
  * 4/4 and 13/13 (round-6, above).  Of the 144 differing rows, 85 are PURE
  * REORDER (identical insn text at a different address = scheduling), and only
  * 59 are real.  The real ones, largest first:
- *   - colon x=0x66 store deferral: `li t1,102`/`sh t1,4(s2)` x4 vs li/sh v0 (8
- *     insns, 32B) — the last big coherent class.
+ *   - colon x=0x66 register shift: target `li t1,102`/`sh t1,4(s2)` x4 vs our
+ *     li/sh v0 (8 insns, 32B).  NOTE the old name "store deferral" was a
+ *     misreading: the stores are NOT deferred, our block is insn-for-insn
+ *     identical to the target and only the register differs.  Diagnosed in the
+ *     round-6 section above — it is fence-inflated local-alloc priority, i.e.
+ *     the SAME root cause as the ten/s7-s8 pair, not an independent lever.
  *   - scan/shift/bank addu operand orders (addu v0,v0,s1 vs addu v0,sp,s1 etc).
  *   - the SV32 subtraction draw's v1/a0 role swap (lbu/subu/bgez/negu block).
  *   - entry a0/128 dbr delay-slot fill; LoadTIMAndFree arg copy 9 low
@@ -811,7 +890,10 @@ score_character_sprite_init_loop:
 
             i = 0;
             rowSprite = &number;
-            rankSpriteBase = rankSprites;
+            do { do { do { do
+            {
+                rankSpriteBase = rankSprites;
+            } while (0); } while (0); } while (0); } while (0);
 score_row_loop:
             {
                 register MissionScorePersistent *scoreState;
@@ -847,7 +929,6 @@ score_row_loop:
                 GsSortSprite(sprite, OTablePt, 1);
 
                 rankState = (MissionScorePersistent *)0x80010000;
-                do { do { do { do
                 {
                     register GsSPRITE *rankSprite =
                         &rankSpriteBase[rankState->grades[i]];
@@ -856,7 +937,7 @@ score_row_loop:
                     rankSprite->x = -0x2F;
                     rankSprite->y = i * 0x16 + 0x16;
                     GsSortSprite(rankSprite, OTablePt, 1);
-                } while (0); } while (0); } while (0); } while (0);
+                }
             }
             i++;
             if (i < 3)
