@@ -5811,6 +5811,28 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Keeping a redundant SImode copy alive (`move rX,rY` before a zero-test) — and
+  why `do{}while(0)` CANNOT do it.** combine folds `t = v; if (t)` only when
+  flow.c built a LOG_LINK, and `mark_set_1` builds one only when
+  `BLOCK_NUM(use) == BLOCK_NUM(set)`; cse separately propagates the copy within
+  one extended block. So the copy survives only with a real **CODE_LABEL**
+  between it and its use. A `do{}while(0)` can never supply that boundary:
+  `find_basic_blocks` starts a block only at a `CODE_LABEL` or after a
+  `JUMP_INSN`/`BARRIER`/`CALL_INSN`, and **loop notes only adjust `depth`**.
+  An identical-arm fence `if (c) { A } else { A }` DOES supply the label and
+  costs nothing in the end, because `jump_optimize(insns, 1, 1, 0)` — the only
+  call with `cross_jump=1` (toplev.c:3548) — runs AFTER combine. The catch:
+  **jump1 hoists a common leading insn out of two identical arms** and destroys
+  the boundary before flow runs, so put a dead store (`final = 0;`) INSIDE one
+  arm to make the heads differ. Measured on ActivateHumans (its last 3 bytes):
+  correct form → MATCH; drop the dead store or hoist it out of the arm → the
+  copy vanishes; `c ? v : v` → also gone (fold-const collapses `a ? b : b`).
+  The fence's CONDITION is load-bearing too (`if (human)` matched; `if (target)`
+  cost 10 bytes).
+  **This is the sharp line between the two fence idioms**: `do{}while(0)` gives
+  loop-note ref WEIGHT and a scheduling barrier but no block boundary; an
+  identical-arm fence gives a real block boundary. Pick by which one the
+  mechanism needs.
 - **Confirm a pseudo's IDENTITY via its DISPOSITION before believing any priority
   verdict about it.** `regalloc.py`'s priority list and its disposition list are
   separate, and an allocno with a priority but NO `pN->reg` disposition is a
