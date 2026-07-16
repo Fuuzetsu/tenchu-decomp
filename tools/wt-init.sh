@@ -67,6 +67,10 @@ link .shake/ghidra-export
 # tool its task told it to run first. The contract mandates checking this by
 # hand; do it here so nobody has to remember.
 base=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+# NOTE the bootstrap hole this cannot close by itself: a worktree branched from a
+# commit OLDER than this check runs the OLD script and is never warned. A lane 42
+# commits stale hit exactly that. matcher-prompt.py carries the same check for
+# that reason — it runs from the PRIMARY worktree, so it is always current.
 if git rev-parse --verify --quiet master >/dev/null; then
   behind=$(git rev-list --count HEAD..master 2>/dev/null || echo 0)
   ahead=$(git rev-list --count master..HEAD 2>/dev/null || echo 0)

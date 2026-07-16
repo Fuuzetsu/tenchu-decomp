@@ -14,7 +14,8 @@ inherits the lesson.
 
 Run inside the nix devShell (uses findsimilar for the nearest examples).
 """
-import argparse, bisect, os, re, subprocess, sys
+import argparse
+import bisect, os, re, subprocess, sys
 
 import function_inventory as FI
 
@@ -437,6 +438,23 @@ def main():
     print(f"# suggested model: {args.model}"
           + ("  |  JUMP-TABLE function" if split else "")
           + (f"  |  {fam}" if fam else ""))
+    # Stamp master's tip into the prompt. wt-init.sh's staleness warning has a
+    # bootstrap hole -- a worktree branched BEFORE that check landed runs the old
+    # script and is never warned (one lane was 42 commits stale that way). This
+    # runs in the PRIMARY worktree, so it is always current, and the expected SHA
+    # travels inside the brief itself.
+    head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                          text=True).stdout.strip()
+    subject = subprocess.run(["git", "log", "-1", "--format=%s"],
+                             capture_output=True, text=True).stdout.strip()
+    if head:
+        print(f"\nBASE CHECK (do this before ANY edit): master was at {head[:12]}"
+              f' ("{subject}") when this task was written.\n'
+              f"  git merge-base --is-ancestor {head[:12]} HEAD || git merge --ff-only master\n"
+              "Worktrees are routinely branched from a stale commit -- lanes have "
+              "started 26-42 commits behind, one missing the very checkpoint its\n"
+              "task described, another missing a tool its task told it to run first. "
+              "Re-measure your baseline after fast-forwarding.")
     print("\n".join(P))
 
 

@@ -96,48 +96,89 @@
  *    SAME value under TWO names, and the name each site reads is what decides
  *    both the hoist and the cascade.  0x81c is now exact.
  *
- * Remaining residual (42), byte-accounted by cluster:
- *   (A) 16 bytes, 0x5d4/0x5dc: loop-1 WeaponModel-base ORDER (unchanged; see
- *       the loop-1 section below — it is an order problem, not pressure).
- *   (B)  8 bytes, 0x620/0x624: `sll v1,s4,0x10` position.  Registers
- *       IDENTICAL; a sched order pick.
- *   (C) 12 bytes, 0x81c-0x85c: an $a0/$a1 SWAP — retail has think_item in $a1
- *       and the `ThinkDB[i]` pointer in $a0; we have them swapped.  This is
- *       NEW and is FENCE_19's own side effect: the fence wraps
- *       `think_item = item`, so it ballasts the SET_DEST (think_item, p101)
- *       as well as the source (item, p99), and think_item then outranks the
- *       ThinkDB[i] temp and takes $a0 first.  A ballast site pays EVERY reg
- *       the statement mentions, not just the one you meant.
- *   (D)  4 bytes, 0x884: `addu v0,s0,v0` vs ours `addu v0,v0,s0` — a plus
- *       operand order, likely knock-on of pseudo numbering.
- *   (E)  8 bytes, 0x8dc/0x8e4: `move a0,s7` position.  The REGISTER is now
- *       right (type is $s7); only sched order differs.
+ * ROUND 7 — byte accounting CORRECTED, and (C) re-diagnosed from the gcc
+ * source.  Round 6's cluster table summed to 48, not 42, and its per-cluster
+ * counts were each wrong; it also claimed "0x81c is now exact" when 0x81c is
+ * in the diff.  Byte-account with matchdiff before trusting any of this.
+ * The REAL residual (verified: 14+6+8+2+12 = 42, so this is the whole of it):
+ *   (A) 14 bytes, 0x5d4-0x5e0 (4 insns): loop-1 preheader ORDER.  Target
+ *       [SA][-1][HD][WM][giv]; ours [SA][WM][-1][HD][giv].  Only the
+ *       WeaponModel base pair is out of place.  Registers IDENTICAL.
+ *   (B)  6 bytes, 0x620-0x624 (2 insns): `move s3,zero` / `sll v1,s4,0x10`
+ *       swapped.  Registers IDENTICAL; a sched order pick.
+ *   (C)  8 bytes, 0x81c-0x85c (7 insns): an $a0/$a1 swap AND a source-register
+ *       difference.  Target `move a1,s0` reads $s0 (the loop-2 base); ours
+ *       `move a0,s1` reads $s1 (`item`).  Round 6 fixed only the FORM.
+ *   (D)  2 bytes, 0x884 (1 insn): `addu v0,s0,v0` vs ours `addu v0,v0,s0`.
+ *   (E) 12 bytes, 0x8dc-0x8e4 (3 insns): `move a0,s7` is FIRST in the exit
+ *       block; ours is third, after the CamState la.  Registers IDENTICAL.
  *
- * (C) is PROVED IMPOSSIBLE from the single `think_item = item` site — do not
- * spend another round dialling that fence.  Both regs are ballasted by the
- * same wrapper, and they want opposite things.  With fence depth d:
- *     item      (p99):  8 + d refs / 71 live.  Needs >= 27 to pass category
- *                       (14814), i.e. d >= 19.
- *     think_item(p101): 15 + d refs / 21 live.  Needs <= 23 to fall below the
- *                       ThinkDB[i] temp p276 (9/6 -> 45000) and cede $a0,
- *                       i.e. d <= 8.
- * d >= 19 and d <= 8 have no solution.  (Both bounds are floor_log2 steps:
- * 27 refs -> 4*27/71 = 15211; 23 refs -> 4*23/21 = 43809 < 45000, while 24
- * refs -> 45714 > 45000.)  So (C) needs item ballasted at a site that does
- * NOT mention think_item — and the obvious such site is already measured:
- *     `ADD_ENEMY_FENCE_20(item = ItemName)` (depth 20: that site is pre-loop,
- *     so it starts at depth 1 and needs +19) is 58, WORSE than 42.  The
- *     pre-loop fence's sched barrier disturbs the tight, currently-exact
- *     0x7a8-0x7d8 block, where item's def is interleaved with the AdtSelect
- *     arg setup.
- * A ballast site must therefore be chosen for THREE things at once: the refs
- * it adds, every register the statement mentions, and its sched
- * neighbourhood.  The open lead for (C) is a third item-only ref sited inside
- * loop 2 whose neighbourhood is already pinned — or lowering think_item's
- * INTRINSIC 15 refs (e.g. spelling the cursor so it is loop.c's giv of count
- * rather than a named local, the trick that killed `names_offset` in loop 1;
- * note its init would then read `item`, giving `move a1,s1` where retail has
- * `move a1,s0`, so it must be weighed against that +4).
+ * The la/extern-completion rule does NOT apply anywhere here (checked, round
+ * 7): no differing byte is a lui/addiu differing only in destination reg.
+ * 0x8e0/0x8e4 are the same-register (unsplit) form on BOTH sides and differ
+ * only in position; 0x5d4-0x5e0's pair is split identically on both sides.
+ * `.extern CamState, 36` is already complete.  autorules re-run on THIS
+ * source (round 6 changed the program materially): 46 candidates, no win.
+ *
+ * (C) IS UNREACHABLE VIA ANY loop.c MOVABLE — proved from the gcc 2.8.1
+ * source, not inferred.  loop.c:697-703 makes a set movable if ANY of:
+ *     (3) ! maybe_never && ! loop_reg_used_before_p (...)
+ *     (2) ! REG_USERVAR_P (SET_DEST) && ! REG_LOOP_TEST_P (SET_DEST)
+ *     (1) reg_in_basic_block_p (p, SET_DEST)
+ * and each is independently dead for the loop-2 base:
+ *  - case (3): loop.c:922-931 sets `maybe_never = 1` past ANY CODE_LABEL *or*
+ *    JUMP_INSN (only a loop-top simplejump is exempt) — NOT merely backward
+ *    jumps, which is the half-rule that has been assumed here.  The
+ *    `if (ThinkDB[0].name != 0)` branch therefore poisons everything after it.
+ *  - case (2): needs a compiler temp.  MEASURED (round 7): deleting menu_base
+ *    and using direct `ItemName[...]` gives 1144, and the .s shows why — the
+ *    address is rematerialised as `addu $reg,$sp,1424` at ALL FOUR sites and
+ *    never hoisted at all.  NEW RULE, worth generalising: **loop.c cannot
+ *    hoist a frame-address invariant (`sp+K`).  cse/combine fold it into one
+ *    cheap addiu per use, so there is no invariant SET for move_movables to
+ *    move, and case (2) can never engage.  A frame address becomes a register
+ *    ONLY as a NAMED user variable via case (1).**
+ *  - case (1): reg_in_basic_block_p's first test is
+ *    `REGNO_FIRST_UID (regno) != INSN_UID (insn) -> return 0`, so the set must
+ *    be the reg's first mention in the WHOLE function — it forbids the scan
+ *    reading the base.  CONFIRMED by measurement: `think_item = menu_base`
+ *    alone is LENGTH 1156 (+1 insn, the hoist dies).
+ * And the ORDER pins case (1) as the only survivor: the ThinkDB *base*
+ * (lo_sum, $s6) is discovered at the first INDEXED `ThinkDB[i]` (0x830), which
+ * is INSIDE the scan — the `ThinkDB[0]` guard folds its %lo into the load
+ * (`lw $v0,%lo(ThinkDB)($fp)`) and creates only the *carrier* movable.  So the
+ * base must be discovered after the scan to land 3rd in the preheader, i.e.
+ * its set must sit after the scan, i.e. it can never be read inside the scan.
+ * {hoisted 3rd in the preheader} AND {read inside the scan} is UNSATISFIABLE.
+ *
+ * SO 0x7f8's `move s0,s1` IS A GIV INIT, NOT A HOIST.  strength_reduce
+ * (loop.c:6405) emits giv inits with emit_insn_before(loop_start) AFTER
+ * move_movables has run — the ONLY mechanism that can legally land after every
+ * hoist in a preheader (this file already proved it once, for loop 1's
+ * `addu s7,s5,zero` at 0x5e4).  Two independent pieces of target evidence:
+ *  - $s0 holds -1 at 0x7c0 (`addiu $s0,$zero,-0x1`, feeding the `type == -1`
+ *    test at 0x7e4), so $s0 is BORN at 0x7f8 — it is not a pre-loop pointer.
+ *  - 0x81c's `addu $a1,$s0,$zero` is the last insn of the INNER scan loop's
+ *    preheader (0x810-0x81c: menu_char hoisted out of the scan, then the
+ *    copy), immediately before .L8005B820 — the canonical giv-init slot, and
+ *    the same `reg = reg` shape as loop 1's giv init.  The scan cursor is
+ *    loop.c's giv of `count` (base + count*8, count==0 at entry), exactly as
+ *    `names_offset` turned out to be in loop 1.
+ * ROUND 8 should therefore ask what makes $s0 a GIV of the OUTER loop, not
+ * where to put a `menu_base` statement.  Do NOT re-run fence-depth work on
+ * (C) (round 6's own proof: item's allocno conflicts with hard regs 16 AND 17,
+ * so it cannot hold $s1 at any priority) and do NOT re-site menu_base as a
+ * movable (proved unsatisfiable above).
+ *
+ * (E) is likewise not a statement-order lever.  gcc 2.8's sched is a BACKWARD
+ * list scheduler (dump reads T-1 = block END; only the block-end insn is ready
+ * initially), and `rank_for_schedule` is priority DESC, then class, then
+ * DESCENDING LUID.  In block 32 the CamState `high` (insn 1607) already has
+ * priority 1 — the floor — so to be emitted first `move a0,s7` must be picked
+ * last, needing either priority < 1 (impossible) or a LOWER LUID than 1607
+ * (impossible: expand_call emits hard-reg arg moves only after every arg is
+ * evaluated).  Reordering the tail statements cannot move it; (E) needs the
+ * CamState chain to carry priority > 1, i.e. a different dependency shape.
  *
  * The stack is exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at
  * sp+0x7c0, and the zeroed blood VECTOR at sp+0x7d0.
@@ -392,6 +433,15 @@
  *  - Relocating that ballast to FENCE_10(think_item = menu_base): 126.
  *  - autorules: no improving edit among 50 candidates.
  *  - Bounded permuter (420s, -j4, --stop-on-zero): no zero.
+ * Rejected in ROUND 7, each measured on THIS source (not inherited claims):
+ *  - `think_item = menu_base` (one word, everything else unchanged): LENGTH
+ *    1156.  The case-(1) hoist dies exactly as predicted.  This is the first
+ *    independent confirmation of round 6's rule; it holds.
+ *  - Deleting `menu_base` again, all loop-2 uses direct `ItemName[...]`, on
+ *    the round-6 structure (NOT a repeat of round 5 — the program changed):
+ *    LENGTH 1144, same as round 5.  The result is robust, and the .s finally
+ *    explains it: four `addu $reg,$sp,1424`, no hoist anywhere.
+ *  - autorules on the round-6 source: 46 candidates, no improving edit.
  * Rejected in ROUND 5, each measured (see the loop-2 note above for detail):
  *  - `menu_base = ItemName` relocated below the think scan + `think_item =
  *    ItemName`: 97.  ORDER CORRECT (this is the advance), but it costs the

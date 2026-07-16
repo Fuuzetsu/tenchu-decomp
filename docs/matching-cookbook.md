@@ -6189,6 +6189,56 @@ while its reasoning did not.
   loop-note ref WEIGHT and a scheduling barrier but no block boundary; an
   identical-arm fence gives a real block boundary. Pick by which one the
   mechanism needs.
+- **loop.c CANNOT hoist a frame-address invariant (`sp+K`).** cse/combine fold it
+  into one cheap `addiu` per use, so there is no invariant SET for
+  `move_movables` to move and case (2) can never engage. A frame address becomes
+  a register ONLY as a NAMED user variable via case (1). (Measured on AddEnemy:
+  deleting `menu_base` for direct `ItemName[...]` gives 1144, and the `.s` shows
+  four `addu $reg,$sp,1424` and no hoist anywhere.) Note how this pairs with the
+  "delete the variable to get the hoist" rule: for a frame address the variable
+  is the ONLY way in.
+  - Correction to a half-rule in circulation: loop.c sets `maybe_never` past
+    **any** `CODE_LABEL` or `JUMP_INSN`, not merely a backward jump.
+- **gcc 2.8's `sched` is a BACKWARD list scheduler** (the dump's `T-1` is the
+  block's END). So "emit this insn FIRST" means "make it LOSE the ranking", not
+  win it — the goal is routinely inverted when reading `.sched2`.
+- **A reference that combine later FOLDS AWAY still counts in `reg_n_refs` — use
+  it as a FREE ref to cross the `floor_log2` step.** `global.c:604` scores an
+  allocno `floor_log2(n_refs) * n_refs / live_length`, so the 3->4 ref step jumps
+  the numerator 3 -> 8 — a 2.67x priority swing at ZERO instruction cost. When a
+  value needs a higher priority but every real use is spent, add a use that is a
+  provable no-op for the consumer: `(X & 0x7fffffff) << 2` is identical to
+  `X << 2` because `<< 2` discards bit 31, so combine's `force_to_mode` deletes
+  the `and` — but flow.c counted it first. vmemoryGC's whole 12-byte park fell to
+  exactly this, and it is also the HONEST spelling there (the size field reserves
+  its sign bit as an in-use flag). The repo had already banked the mechanism
+  without naming it: vfree.c documents that its `mask` second use, "which combine
+  still folds to `bltz`", is what tips cc1 into a callee-saved register.
+  - **Prefer it to a `do{}while(0)` on the DEFINITION of a value the target
+    schedules early**: the fence's `LOOP_BEG` note bars sched2 from interleaving
+    that def among the prologue saves and can strand a load-delay slot (+1 nop,
+    structurally unfixable). Fence weight also hits EVERY variable in the fenced
+    statement and BOTH expansions of an inlined helper, so it overshoots easily.
+    **Aim at a specific ref count**: read the target window off `regalloc.py`'s
+    priority list first (vmemoryGC needed a priority inside `(1194, 2307)`, i.e.
+    exactly 4 refs; 5 refs overshot a neighbour at 2702 vs 2727).
+- **Hoist a compare with `cond = x < K`, never `cond = x > K-1`.** A comparison
+  used as a VALUE goes through `store_flag`, which cannot place the constant in
+  the immediate field for `>` and folds to `lui`/`slt` against `K<<16`; the `<`
+  spelling is `store_flag`'s natural `slti`. FUN_8005a7a4's round 1 measured
+  `> 2` at 13 bytes and parked the whole lever — `< 3` was byte-neutral and became
+  half the match. **A `cond` local that "does not help" may be the right lever
+  with the wrong spelling.**
+- **A `do{}while(0)` is a BASIC-BLOCK BOUNDARY (it emits real `CODE_LABEL`s), and
+  that blocks two more passes**: combine will not merge a compare into its branch
+  across one (so a hoisted compare STAYS hoisted instead of being re-split at the
+  branch), and reorg's backward delay-slot scan stops dead at one. **Two tells,
+  one cause**: a compare separated from its branch, or an empty delay slot with an
+  obvious candidate sitting right before the branch. (FUN_8005a7a4: both, and both
+  fell to one fence.) Note this REFINES the earlier "do{}while(0) gives NO block
+  boundary" line — the `CODE_LABEL`s are real; what it cannot do is keep a copy
+  alive past combine the way an identical-arm fence does, because jump1 deletes an
+  unreferenced label.
 - **A "pure register permutation" residual may be structurally WRONG — check
   OPCODES first.** A register histogram compares MENTIONS and is blind to `lh` vs
   `lhu`: a wrong mnemonic shows an identical register profile and reads as "pure
