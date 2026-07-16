@@ -5811,6 +5811,51 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+### The two fence idioms: what each one ACTUALLY does
+
+Fences became this project's dominant lever, so know precisely what you are
+buying. They are reconstruction scaffolding (see the fence-debt rule) — every one
+must be re-challenged at exact promotion — but the mechanisms below are real.
+
+**`do{}while(0)` gives THREE things, and you rarely want all three:**
+1. **Ref weight.** flow.c does `reg_n_refs += loop_depth`, and the fence leaves
+   real `NOTE_INSN_LOOP_BEG/END`, so enclosing K refs one level deeper buys +K
+   weighted refs at ZERO asm cost. Depth is a DIAL, not a boolean: a double fence
+   (depth 3) buys +2/ref. This feeds BOTH `global.c`'s
+   `floor_log2(refs)*refs/live_length` AND local-alloc's `QTY_CMP_PRI`
+   (same weighted refs) — so it also re-ranks short-lived constants.
+2. **A scheduling barrier.** In `sched_analyze_insn` a mid-block loop note is a
+   full barrier (it must be, or `loop_depth` would be wrong): every following
+   insn gains a dependency on all prior sets — i.e. **a fence PINS the emitted
+   order of the statement it wraps.** The tell is a LOG_LINK with no data behind
+   it. When a fenced statement sits where the target's does not, the fence is the
+   suspect.
+3. **Nothing else — in particular NO basic-block boundary.** `find_basic_blocks`
+   starts a block only at a `CODE_LABEL` or after a `JUMP_INSN`/`BARRIER`/
+   `CALL_INSN`; loop notes only change `depth`. So a fence can never keep a copy
+   alive past combine, and it does NOT block cse store-to-load forwarding.
+
+**An identical-arm fence (`if (c) { A } else { A }`) gives the thing the other
+cannot: a real CODE_LABEL / block boundary**, and costs nothing in the end
+because `jump_optimize(insns, 1, 1, 0)` — the only call with `cross_jump=1`
+(toplev.c:3548) — runs AFTER combine. Caveat: jump1 hoists a common leading insn
+out of both arms, so put a dead store inside one arm to make the heads differ.
+Its CONDITION is load-bearing.
+
+**Failure modes, all paid for in real bytes:**
+- **Over-ballasting.** Too much depth pushes the wrong rival ahead. Compute BOTH
+  rivals' priorities from `.lreg` first and pick the SMALLEST depth that wins the
+  inequality. (AddEnemy's own `FENCE_10` on `category = 0` stole `$s2` from
+  `think` — a 9-byte self-inflicted wound, fixed by dropping it to `FENCE_6`.)
+- **Mis-siting.** A fence weights EVERY pseudo it encloses, so site it where your
+  pseudo's refs OUTNUMBER the rival's — histogram both. Prefer the opposite
+  branch of an if/else from the collateral pseudos.
+- **Mis-bounding.** A value defined just outside and used inside gets reloaded
+  (+1 insn): pull the defining statement in. A fence that looks inherently
+  expensive is often mis-bounded by one line.
+- **Inherent cost.** If tightening the footprint changes nothing, the cost IS the
+  notes; stop tuning and remove the need for the fence.
+
 - **Count the TARGET's mentions of a register before theorising about ref counts
   — it costs one grep.** If the target mentions a register N times, the original
   pseudo has N-2 body refs (the prologue `sw` and epilogue `lw` are the other

@@ -44,7 +44,7 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
  * extent (1152 bytes / 288 instructions) and exact 0x810 frame.  The guarded
- * draft has 81 differing bytes (down from 125).  The retail stack plan is
+ * draft has 72 differing bytes (183 -> 161 -> 125 -> 81 -> 72).  The stack is
  * exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at sp+0x7c0,
  * and the zeroed blood VECTOR at sp+0x7d0.
  *
@@ -81,19 +81,69 @@
  * loop.c-hoisted invariant of the indexed `ThinkDB[i]` accesses, not a source
  * pointer, which is why the guard keeps its own `%lo(ThinkDB)($fp)` form.
  *
- * Remaining residual (81) is now REGISTER NAMING, not shape — every retail
- * instruction is present in the right order except one sched1 tie:
- *  - A consistent rotation: think s3 (retail s2), category s2 (retail s3),
- *    type s6 (retail s7), ThinkDB base s1 (retail s6), ThinkDB %hi carrier s7
- *    (retail s8, a persistent callee-saved carrier).
- *  - Early base setup order (li -1 / HumanData base vs the WeaponModel pair)
- *    and the names_offset/format `%lo` at sprintf are sched1 ties.
- *  - `addu v0,s0,v0` at 0x8005b884 is a combine operand-order tie.
+ * Closed this pass (-9): the think/category $s2/$s3 SWAP was an
+ * `allocno_compare` inequality, computed from the dumps rather than guessed
+ * (cookbook: "A pure callee-saved SWAP residual is an allocno_compare
+ * inequality — add ballast").  `.lreg` gives
+ *     think    (pseudo 90, reg/v:HI): 26 refs / 62 insns -> 4*26/62 = 16774
+ *     category (pseudo 91, reg/v:HI): 24 refs / 54 insns -> 4*24/54 = 17778
+ * and `.greg`'s allocation order shows it literally ("... 91 90 ..."):
+ * category outranks think and takes $s2 first.  category was over-ballasted
+ * by its OWN fence — flow.c weights every ref by loop_depth, so FENCE_10 on
+ * `category = 0` bought ~10 weighted refs for a single set.  Dropping that one
+ * site to FENCE_6 costs 4 weighted refs, puts think ahead, and emits nothing.
+ * A fence's DEPTH is a tunable dial, not a boolean: prefer the smallest depth
+ * that wins the inequality, and compute both priorities before touching it.
+ *
+ * Remaining residual (72) is REGISTER NAMING only, and the base/type/carrier
+ * rotation is ONE cause, not three ties.  Both preheaders hold the SAME three
+ * instructions in a different ORDER (target 0x8005b7f0, block 22):
+ *     target: lui s8 / addiu s6,s8,-25024 / move s0,s1
+ *     ours:   move s0,s1 / lui s7         / addiu s1,s7,-25024
+ * `move s0,s1` is insn 714, `menu_base = ItemName`, which cse2 rewrites to a
+ * copy of `item` (pseudo 100, $s1) — and 100 DIES there.  Retail's base is
+ * born BEFORE that death, so base and `item` overlap, the base cannot reuse
+ * $s1, and it takes $s6; that pushes type $s6->$s7 and the %hi carrier
+ * $s7->$s8.  Ours frees $s1 one insn early, so the base reuses it and no
+ * cascade happens.  Fix the ORDER and all 72 bytes should follow.
+ *
+ * Why the order resists: loop.c emits the hoists (insn 1662 `high(ThinkDB)`
+ * = carrier, insn 1664 `lo_sum` = base) with emit_insn_before(loop_start),
+ * i.e. immediately before NOTE_INSN_LOOP_BEG and therefore AFTER every
+ * pre-loop statement.  `menu_base = ItemName` is pre-loop source, so it can
+ * only ever precede them unless sched1 swaps — and sched1 will not.
+ *
+ * NEW, and the reason a fence is never "zero-cost": in gcc 2.8
+ * `sched_analyze_insn`, a NOTE_INSN_LOOP_BEG/END in mid-block is a FULL
+ * scheduling barrier (it must be, or the loop_depth that weights reg_n_refs
+ * would go wrong) — every following insn gains a dependency on all prior
+ * sets.  So a do{}while(0) fence has TWO effects: ref ballast AND a hard
+ * sched1 order pin.  Proof here: insn 1662's LOG_LINKS is `(insn_list 714)`,
+ * a dependency with no data behind it, purely the FENCE_10's notes.  Fences
+ * therefore freeze the emitted order of the statements they wrap.
+ *
+ * Lead for the next pass: insn 714 must be HOISTED from inside the loop and
+ * discovered AFTER the base's movable (loop.c hoists in body-scan order), or
+ * `item`'s live range must reach past the hoists some other way.
  *
  * Rejected (do not repeat): folding the stage slot, narrowing the weapon id,
  * eliminating the weapon CFG join, the s8-next_j allocation hack (autorules
  * now scores it 1004 — a clear length regression, not the recorded -2), and
  * menu_base[count]->ItemName[count] (recomputes the base, +2).
+ * Rejected THIS pass, each measured:
+ *  - `menu_base = ItemName` moved to the loop-body TOP: 119.  loop.c hoists
+ *    movables in discovery order, so at the top it is still found before the
+ *    base's and the order does not flip.
+ *  - `think_base` as a real source pointer for the indexed accesses: LENGTH
+ *    +1 (1156).  It breaks the carrier SHARING — the `ThinkDB[0]` guard stops
+ *    reusing the hoisted %hi and emits its own `lui v0` / `lw v0,-25024(v0)`
+ *    where retail has one `lw v0,-25024(s8)`.  This is why the base must stay
+ *    a loop.c-hoisted invariant, confirming the earlier note.
+ *  - Unfencing `menu_base = ItemName` to drop the sched1 pin: 119.  The order
+ *    does NOT flip (sched1 still keeps 714 first) and `item` loses $s1.
+ *  - Relocating that ballast to FENCE_10(think_item = menu_base): 126.
+ *  - autorules: no improving edit among 50 candidates.
+ *  - Bounded permuter (420s, -j4, --stop-on-zero): no zero.
  */
 
 #ifndef NON_MATCHING
@@ -205,8 +255,13 @@ extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
         } while (0);                                                            \
     } while (0)
 
-/* A zero-code allocator fence.  The nested single-trip loops increase the
- * source weight of a live range without surviving jump2. */
+/* An allocator fence.  The nested single-trip loops increase the source
+ * weight of a live range (flow.c weights every ref by loop_depth) without
+ * surviving jump2.  Zero-code but NOT side-effect-free: the loop notes are
+ * also a hard sched1 barrier (gcc 2.8 sched_analyze_insn refuses to schedule
+ * across a NOTE_INSN_LOOP_BEG/END, else loop_depth would be wrong), so a
+ * fence pins the emitted order of the statement it wraps.  The depth is a
+ * dial — use the smallest that wins the allocno_compare inequality. */
 #define ADD_ENEMY_FENCE_16(statement)                                          \
     do                                                                         \
     {                                                                          \
@@ -411,7 +466,7 @@ add_enemy_weapon_scan_done:
         return;
 
     think = 0;
-    ADD_ENEMY_FENCE_10(category = 0);
+    ADD_ENEMY_FENCE_6(category = 0);
     ADD_ENEMY_FENCE_10(menu_base = ItemName);
     do
     {
