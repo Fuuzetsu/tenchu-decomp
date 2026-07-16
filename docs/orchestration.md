@@ -515,6 +515,14 @@ function already byte-matches on current `master`.
   `tools/matchdiff.py -n <Name>`. Worse, the byte count alone was misleading
   there — a LENGTH MISMATCH (1148 vs 1152) only appeared once the image was
   actually rebuilt.
+- **"Identical byte count across edits" has TWO causes — distinguish them before
+  alarming.** It is the tell for reading a stale image (skipping the
+  `NON_MATCHING=<Name> ./Build`), but it is ALSO what a genuinely
+  byte-identical object legitimately produces: Shake content-hashes the `.o`, so
+  a dead-code-only or allocation-neutral edit rightly skips the relink. An
+  AddEnemy lane lost real time to a self-diagnosed "build-dep gap" that turned
+  out to be Shake being correct. Check the dispositions or the `.o` timestamp,
+  not the byte count alone.
 - **A 0.1 s "build" is not automatically a stale read.** Shake content-hashes the
   `.o`, so a dead-code-only edit legitimately produces an identical object and
   skips the relink. Verify with `.c` -> `.o` -> `main.exe` timestamps rather than

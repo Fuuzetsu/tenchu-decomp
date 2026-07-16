@@ -44,8 +44,102 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
  * extent (1152 bytes / 288 instructions) and exact 0x810 frame.  The guarded
- * draft has 52 differing bytes (183 -> 161 -> 125 -> 81 -> 72 -> 52).  The
- * stack is exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at
+ * draft has 42 differing bytes (183 -> 161 -> 125 -> 81 -> 72 -> 52 -> 42).
+ *
+ * ROUND 6 (-10): loop 2's preheader ORDER, carrier, base and type are now ALL
+ * EXACT.  Three things had to be true at once; each alone measured worse:
+ *  (1) `menu_base = ItemName` RELOCATED from a pre-loop statement to a
+ *      statement inside the do-while, below the think scan.  A hoist is
+ *      emitted with emit_insn_before(loop_start) — i.e. AFTER every pre-loop
+ *      statement — so a pre-loop `menu_base` can NEVER follow the hoists.
+ *      Relocated, it becomes a third movable discovered after the base's, and
+ *      move_movables emits movables in discovery order (loop.c appends:
+ *      `last_movable->next = m`).  Round 5 found this; alone it is 97.
+ *  (2) `think_item = item`, NOT `= ItemName` (round 5) and NOT `= menu_base`.
+ *      This is the whole trick.  loop.c:691-703 case (1) is
+ *      `reg_in_basic_block_p`, whose FIRST test is
+ *      `REGNO_FIRST_UID (regno) != INSN_UID (insn) -> return 0`: the set must
+ *      be the reg's FIRST mention in the WHOLE function.  So a relocated
+ *      `menu_base` cannot be read earlier in the loop — `think_item =
+ *      menu_base` kills the hoist outright.  Round 5 therefore wrote
+ *      `think_item = ItemName`, which cse2 rematerialises as
+ *      `addiu a1,sp,1424`.  Reading `item` instead satisfies BOTH: menu_base
+ *      keeps no earlier mention (case (1) holds, the hoist lands after the
+ *      base), AND `item` stays LIVE across the loop, so cse2 still rewrites
+ *      the hoisted `menu_base = ItemName` into `move s0,s1`, and — the
+ *      cascade retail depends on — the ThinkDB base can no longer reuse $s1,
+ *      taking $s6, pushing the carrier to $s8 and type to $s7.  All exact.
+ *      This alone is 84: correct structure, pure 4-cycle rename left.
+ *  (3) ADD_ENEMY_FENCE_19 on `think_item = item`.  Keeping `item` live costs
+ *      it priority (8 refs / 71 insns -> 3380 vs category's 20/54 -> 14814),
+ *      which rotated {item,category,i,count} through {s5,s1,s3,s4}.  ONE
+ *      ballast site fixes the whole cycle: `tools/regalloc.py AddEnemy
+ *      --between 99 90 95 --enclosed-refs 1` says "+19..+20 weighted refs",
+ *      and depth 19 lands item at 27 refs -> 15211, above category (14814)
+ *      and below p95 (16000).  Order becomes item,category,i,count = retail's
+ *      s1,s3,s4,s5.  Do NOT overshoot: 32 refs crosses a floor_log2 step
+ *      (4->5) and doubles the priority.
+ *
+ * ROUND 6 DISPROOF — the brief's two "diagnosed costs" were both WRONG, and
+ * both are cheap to re-check, so do not re-derive them:
+ *  - "The item/category swap is an allocno_compare inequality; add ballast"
+ *    is FALSE for round 5's structure.  Dropping `category = 0` to FENCE_5
+ *    flips the allocation ORDER exactly as the arithmetic predicts
+ *    (`... 93 95 90 82 80 ...` -> `... 93 95 82 90 80 ...`) and changes NOT
+ *    ONE BYTE, because round-5's `item` allocno carries hard regs 16 AND 17
+ *    in its CONFLICT list — it cannot hold $s1 at any priority.  A swap is
+ *    only a priority question once you have checked the loser CAN hold the
+ *    winner's register.  Read the conflict list BEFORE computing priorities.
+ *  - "0x8005b81c needs menu_base's value known inside the loop, yet deleting
+ *    menu_base removes the copy" was a real contradiction, and `think_item =
+ *    item` dissolves it: the copy's source and the cursor's source are the
+ *    SAME value under TWO names, and the name each site reads is what decides
+ *    both the hoist and the cascade.  0x81c is now exact.
+ *
+ * Remaining residual (42), byte-accounted by cluster:
+ *   (A) 16 bytes, 0x5d4/0x5dc: loop-1 WeaponModel-base ORDER (unchanged; see
+ *       the loop-1 section below — it is an order problem, not pressure).
+ *   (B)  8 bytes, 0x620/0x624: `sll v1,s4,0x10` position.  Registers
+ *       IDENTICAL; a sched order pick.
+ *   (C) 12 bytes, 0x81c-0x85c: an $a0/$a1 SWAP — retail has think_item in $a1
+ *       and the `ThinkDB[i]` pointer in $a0; we have them swapped.  This is
+ *       NEW and is FENCE_19's own side effect: the fence wraps
+ *       `think_item = item`, so it ballasts the SET_DEST (think_item, p101)
+ *       as well as the source (item, p99), and think_item then outranks the
+ *       ThinkDB[i] temp and takes $a0 first.  A ballast site pays EVERY reg
+ *       the statement mentions, not just the one you meant.
+ *   (D)  4 bytes, 0x884: `addu v0,s0,v0` vs ours `addu v0,v0,s0` — a plus
+ *       operand order, likely knock-on of pseudo numbering.
+ *   (E)  8 bytes, 0x8dc/0x8e4: `move a0,s7` position.  The REGISTER is now
+ *       right (type is $s7); only sched order differs.
+ *
+ * (C) is PROVED IMPOSSIBLE from the single `think_item = item` site — do not
+ * spend another round dialling that fence.  Both regs are ballasted by the
+ * same wrapper, and they want opposite things.  With fence depth d:
+ *     item      (p99):  8 + d refs / 71 live.  Needs >= 27 to pass category
+ *                       (14814), i.e. d >= 19.
+ *     think_item(p101): 15 + d refs / 21 live.  Needs <= 23 to fall below the
+ *                       ThinkDB[i] temp p276 (9/6 -> 45000) and cede $a0,
+ *                       i.e. d <= 8.
+ * d >= 19 and d <= 8 have no solution.  (Both bounds are floor_log2 steps:
+ * 27 refs -> 4*27/71 = 15211; 23 refs -> 4*23/21 = 43809 < 45000, while 24
+ * refs -> 45714 > 45000.)  So (C) needs item ballasted at a site that does
+ * NOT mention think_item — and the obvious such site is already measured:
+ *     `ADD_ENEMY_FENCE_20(item = ItemName)` (depth 20: that site is pre-loop,
+ *     so it starts at depth 1 and needs +19) is 58, WORSE than 42.  The
+ *     pre-loop fence's sched barrier disturbs the tight, currently-exact
+ *     0x7a8-0x7d8 block, where item's def is interleaved with the AdtSelect
+ *     arg setup.
+ * A ballast site must therefore be chosen for THREE things at once: the refs
+ * it adds, every register the statement mentions, and its sched
+ * neighbourhood.  The open lead for (C) is a third item-only ref sited inside
+ * loop 2 whose neighbourhood is already pinned — or lowering think_item's
+ * INTRINSIC 15 refs (e.g. spelling the cursor so it is loop.c's giv of count
+ * rather than a named local, the trick that killed `names_offset` in loop 1;
+ * note its init would then read `item`, giving `move a1,s1` where retail has
+ * `move a1,s0`, so it must be weighed against that +4).
+ *
+ * The stack is exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at
  * sp+0x7c0, and the zeroed blood VECTOR at sp+0x7d0.
  *
  * Explicit top-tested stage-kind, weapon, and think scans recover retail's
@@ -382,7 +476,7 @@ extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
                       int time, long col);
 
-#define ADD_ENEMY_FENCE_6(statement)                                           \
+#define ADD_ENEMY_FENCE_5(statement)                                           \
     do                                                                         \
     {                                                                          \
         do                                                                     \
@@ -393,14 +487,17 @@ extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
                 {                                                              \
                     do                                                         \
                     {                                                          \
-                        do                                                     \
-                        {                                                      \
-                            statement;                                         \
-                        } while (0);                                            \
+                        statement;                                             \
                     } while (0);                                                \
                 } while (0);                                                    \
             } while (0);                                                        \
         } while (0);                                                            \
+    } while (0)
+
+#define ADD_ENEMY_FENCE_6(statement)                                           \
+    do                                                                         \
+    {                                                                          \
+        ADD_ENEMY_FENCE_5(statement);                                          \
     } while (0)
 
 #define ADD_ENEMY_FENCE_10(statement)                                          \
@@ -442,6 +539,18 @@ extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
                         } while (0);                                            \
                     } while (0);                                                \
                 } while (0);                                                    \
+            } while (0);                                                        \
+        } while (0);                                                            \
+    } while (0)
+
+#define ADD_ENEMY_FENCE_19(statement)                                          \
+    do                                                                         \
+    {                                                                          \
+        do                                                                     \
+        {                                                                      \
+            do                                                                 \
+            {                                                                  \
+                ADD_ENEMY_FENCE_16(statement);                                 \
             } while (0);                                                        \
         } while (0);                                                            \
     } while (0)
@@ -627,7 +736,6 @@ add_enemy_weapon_scan_done:
 
     think = 0;
     ADD_ENEMY_FENCE_6(category = 0);
-    ADD_ENEMY_FENCE_10(menu_base = ItemName);
     do
     {
         count = 0;
@@ -644,7 +752,7 @@ add_enemy_weapon_scan_done:
                  * think_item cursor, which lands them in $a2/$a1 as the
                  * target does. */
                 ADD_ENEMY_FENCE_6(menu_char = (s16)category + 0x31);
-                think_item = menu_base;
+                ADD_ENEMY_FENCE_19(think_item = item);
 add_enemy_think_scan:
                 if (count >= 70)
                     goto add_enemy_think_scan_done;
@@ -661,6 +769,7 @@ add_enemy_think_scan:
             }
         } while (0);
 add_enemy_think_scan_done:
+        menu_base = ItemName;
         ADD_ENEMY_FENCE_10(menu_base[count].choice_name = 0);
         ADD_ENEMY_FENCE_10(
             think = think | AdtSelect(D_80013FB4, menu_base, 0));

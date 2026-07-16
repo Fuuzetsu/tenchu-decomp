@@ -6145,6 +6145,23 @@ while its reasoning did not.
   loop-note ref WEIGHT and a scheduling barrier but no block boundary; an
   identical-arm fence gives a real block boundary. Pick by which one the
   mechanism needs.
+- **A register SWAP is only a PRIORITY question once you have checked the loser
+  CAN HOLD the winner's register.** Read the allocno's CONFLICT LIST for the
+  target hard reg BEFORE computing any priority or touching a fence depth — a
+  flipped allocation order over a hard-reg conflict is a guaranteed no-op.
+  Measured: AddEnemy's `category = 0` fence was dropped to FENCE_5, the
+  allocation order flipped EXACTLY as the arithmetic predicted (`95 90 82` ->
+  `95 82 90`), and **not one byte changed** — the `item` allocno carries hard
+  regs 16 AND 17 in its conflict list and cannot hold `$s1` at any priority. No
+  fence depth could ever have worked. This check is one line of `.greg` and it
+  invalidates whole rounds of priority arithmetic.
+- **A ballast site pays for EVERY register the statement mentions, not just the
+  one you meant** — so choose it for three things at once: the refs it adds, every
+  register it mentions, and its scheduling neighbourhood. Both failure modes are
+  measured on AddEnemy: `FENCE_19` on `think_item = item` ballasts the
+  destination too (creating a fresh `$a0`/`$a1` swap), and relocating that
+  ballast to the pre-loop `item = ItemName` costs 16 bytes by disturbing an
+  already-exact scheduled block.
 - **Confirm a pseudo's IDENTITY via its DISPOSITION before believing any priority
   verdict about it.** `regalloc.py`'s priority list and its disposition list are
   separate, and an allocno with a priority but NO `pN->reg` disposition is a
