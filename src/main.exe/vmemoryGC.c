@@ -139,26 +139,41 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
  *    above it replaces the old three-wrapper first-call workaround and reduces
  *    the exact-length residual from 41 to 24 bytes.
  *  - One zero-trip wrapper around the final mask definition keeps that value
- *    across memcpy and restores the exact 195-instruction extent. The final
- *    vh-size wrapper resolves another two-byte caller-register tie; neither
- *    wrapper leaves a branch in the optimized assembly.
+ *    across memcpy and restores the exact 195-instruction extent (without it
+ *    the function is 776 bytes); it leaves no branch in the optimized asm.
+ *    Both surviving wrappers were re-challenged at MATCH and are load-bearing:
+ *    unwrapping the helper's header assignment costs 25 bytes. A third wrapper
+ *    around the final `vh.size` sum, previously believed to resolve a two-byte
+ *    caller-register tie, was re-tested at MATCH and is NOT load-bearing --
+ *    removed.
  *  - Parenthesizing the final offset as `base + ((hsz << 2) + 8)` selects the
  *    target addiu-before-addu tree (24 to 16 bytes); reusing `prev` after the
  *    call for `vh.next` closes the final $a0->$a3 tail (16 to 12 bytes).
  *  - Both coalescing sums are vfree.c's proven `A + (B + 2)` spelling.
+ *  - **`size = (header->size & cmask) << 2` is what closed the last 12 bytes**
+ *    (a saved-register swap: complement mask $s6->$s5, byte size $s5->$s6).
+ *    The `and` is NOT in the target and is not meant to be: `<< 2` discards
+ *    bit 31 regardless, so combine's force_to_mode deletes it. But flow.c has
+ *    already counted the reference, and global.c:604 scores an allocno
+ *    `floor_log2(n_refs) * n_refs / live_length`. That fourth ref carries
+ *    cmask over the floor_log2 3->4 step (numerator 3 -> 8): 810 -> 2162,
+ *    above `size`'s 1194, so cmask is allocated first and takes $s5. It is
+ *    also the honest spelling — the header's `size` field reserves its sign
+ *    bit as an in-use flag, so masking it off before the shift is what the
+ *    original author would write. Same lever as vfree.c's `mask` second use.
+ *    Do NOT "simplify" it back to `header->size << 2`: that is the 12-byte
+ *    regression.
  *
- * STATUS: NON_MATCHING — exact target extent (780 bytes / 195 instructions),
- * 12 differing bytes, fuzzy 94.87. Every instruction and hard-register role
- * now matches except one saved-register swap: complement mask $s6->$s5 and
- * byte size $s5->$s6 (10 instruction lines / 12 linked bytes). `.greg` gives
- * them priorities 810 and 1194. Weighting the mask definition flips them but
- * introduces a prologue load-delay nop (one instruction long); weighting the
- * inline use fixes those two roles while rotating already-exact helper locals.
- * A bounded 24,027-candidate permuter run remained flat at proxy score 55.
+ * The two rejected alternatives, for the record: a `do{}while(0)` around the
+ * cmask definition also flips the pair, but its LOOP_BEG note bars sched2
+ * from interleaving the lui/ori up among the prologue saves (the target has
+ * it between `sw s5` and `sw ra`), stranding the load-delay slot -> +1 nop,
+ * 196 insns. Fencing the inline `sz` use instead gives cmask 5 refs (2702),
+ * which overshoots the outer `header`'s 2727 and rotates it plus mask/helper
+ * header -> 38 bytes. 4 refs is the only value in the window (1194, 2307).
+ *
+ * STATUS: MATCH — 780 bytes / 195 instructions, 0 differing bytes.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/vmemoryGC", vmemoryGC);
-#else
 void *vmemoryGC(void *pt)
 {
     PoolBlock *header;
@@ -169,7 +184,7 @@ void *vmemoryGC(void *pt)
 
     cmask = 0x7fffffff;
     header = (PoolBlock *)pt - 1;
-    size = header->size << 2;
+    size = (header->size & cmask) << 2;
     vmpt = valloc(size);
     if (vmpt != 0)
     {
@@ -223,10 +238,7 @@ void *vmemoryGC(void *pt)
                     prev = vh.next;
                     if (prev != 0 && (~prev->size & mask) != 0)
                     {
-                        do
-                        {
-                            vh.size = vh.size + (prev->size + 2);
-                        } while (0);
+                        vh.size = vh.size + (prev->size + 2);
                         vh.next = prev->next;
                     }
                     *(PoolBlock *)vmpt = vh;
@@ -236,7 +248,6 @@ void *vmemoryGC(void *pt)
     }
     return pt;
 }
-#endif /* NON_MATCHING */
 
 // triage: MEDIUM — 195 insns, 3 loop, 3 callees, ~0.06 to ReqItemMakibishi
 // likely-relevant cookbook sections:

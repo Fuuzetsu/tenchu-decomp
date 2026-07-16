@@ -4,104 +4,45 @@
 /*
  * FUN_8005a7a4 (0x8005a7a4) — advance the memory-card save UI state machine.
  *
- * STATUS: NON_MATCHING — 12 of 1024 bytes differ, at the target's exact extent.
- * Build it with `NON_MATCHING=FUN_8005a7a4 ./Build`.
+ * The target selects the new state into a register and does ONE store. A
+ * ternary is NOT equivalent (cc1 duplicates the D_80097D32 store into both
+ * arms, +8). Three constructs in the shared `update_count` tail are
+ * load-bearing; each is measured, and removing any of them costs bytes.
  *
- * The earlier "14 bytes / a0-a1 allocation + store scheduling" verdict was
- * WRONG on both counts and has been retired:
- *   - The register half was a DECOMPOSITION error, not allocation. The target
- *     selects the new state into a register and does ONE store; the old draft
- *     stored next_state then conditionally overwrote it (TWO stores). The
- *     `if (value > 2) next_state = saved_state;` + single store below is the
- *     target's shape. (A ternary is NOT equivalent here: cc1 duplicates the
- *     D_80097D32 store into both arms, +8 bytes.)
- *   - What remained was then a pure register tie, closed exactly as
- *     regalloc.py predicted (`p83 > p117: needs +1 weighted ref`). See the
- *     fence comment below.
+ * The tail's block is LOAD-FREE, so sched cannot reorder it (every insn_cost
+ * is 1, so priority() collapses to 1 and nothing moves) — its order is expand
+ * order, and the answer had to be source structure:
  *
- * The whole residual is now ONE instruction: the D_80097D32 store sits before
- * the sll; the target has it between the slti and the bnez:
- *     target:  sll / sra / slti / sh v1,1690(gp) / bnez / nop / move a0,a1
- *     ours:    sh v1,1690(gp) / sll / sra / slti / bnez / nop / move a0,a1
- * This is NOT a scheduling tie that a permuter or a source reorder can reach:
- *   - The shared tail is a LOAD-FREE block, so every insn_cost is 1 and
- *     gcc-2.8.1 sched.c's priority() collapses every priority to 1 ("when all
- *     instructions have a latency of 1 ... no scheduling will be done"). The
- *     emitted order IS the RTL order, so the target's order must come from
- *     source order, not from sched.
- *   - But expand emits the compare and the branch adjacently, and separating
- *     them with a `cond` local does not help: combine merges the compare into
- *     the branch and re-splits it AT the branch, relocating it back below the
- *     store (measured: 13 bytes, and it rewrites sra/slti into lui/slt).
- *   - Moving the store after the `if` puts it in the branch's delay slot
- *     (reorg), which is 4 bytes SHORT (1020) — the wrong length.
- * A 420 s permuter run plateaued at 12; autorules found no improving edit.
+ *   - `cond = value < 3;` ahead of the store. cc1 emits a compare and its
+ *     branch TOGETHER from the MIPS branch expander (`cmpsi` only records the
+ *     operands and emits nothing), so no statement can be parked between them;
+ *     hoisting the compare into a local is the only way to emit `slti` before
+ *     the store. It MUST be spelled `< 3`, never `> 2`: as a *value*, `> 2`
+ *     goes through store_flag, which cannot put the constant in the immediate
+ *     and folds to `lui`/`slt` against 2<<16 (measured: 13). `< 3` is
+ *     store_flag's natural `slti` — the target's exact instruction.
+ *
+ *   - the do{}while(0) around the D_80097D32 store. A fence emits CODE_LABELs,
+ *     i.e. a basic-block boundary, and that boundary is what pins the result:
+ *       * combine will not merge the compare into the branch across it, so the
+ *         `slti` stays put instead of being re-split back down at the branch.
+ *         Without the fence the `cond` local is entirely byte-neutral (12).
+ *       * reorg's backward delay-slot scan stops dead at the label — which is
+ *         why the target's `bnez` keeps an empty delay slot even though the
+ *         `sh` sits right before it and never touches v0.
+ *     Both of the target's oddities come from that single boundary.
+ *
+ *   - the do{}while(0) around the D_80097D2E store buys next_state one
+ *     loop-depth-weighted ref, winning it a0 (regalloc.py: `p83 > p117: needs
+ *     +1 weighted ref`). It must enclose ONLY this read: wrapping the `if`
+ *     would also double saved_state's refs, and its shorter live range would
+ *     then outrank next_state and take a0 the wrong way.
+ *
+ * Measured, so nobody re-derives them: cond alone 12, fence alone 12, both 0;
+ * unwrapping the D_80097D2E fence 7. Moving the store after the `if` lets
+ * reorg take it into the delay slot: 1020 bytes, 4 short.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", FUN_8005a7a4);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__switchD);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_0);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_a);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_1c);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_1e);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_21);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_28);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_2b);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_2c);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_2d);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_2e);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_32);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_33);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_2f);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_1f);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_37);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_3c);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_1);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_2);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/FUN_8005a7a4", switchD_8005a7f4__caseD_3);
-
-/* jump-table pool @ 0x80013d34 (63 words; tables at 0x80013d34) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 FUN_8005a7a4_jtbl[63] = {
-    0x8005A7FC, 0x8005AAF0, 0x8005AB00, 0x8005AB0C,
-    0x8005AB0C, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005AB0C, 0x8005AB0C, 0x8005A80C, 0x8005AAF0,
-    0x8005AB00, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005AB0C, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005AB0C, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005AB0C, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005A81C, 0x8005AB0C, 0x8005A82C, 0x8005A9DC,
-    0x8005A9DC, 0x8005A83C, 0x8005AB0C, 0x8005AB0C,
-    0x8005AB0C, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005A884, 0x8005A9DC, 0x8005A9DC, 0x8005A898,
-    0x8005A95C, 0x8005A980, 0x8005A990, 0x8005A9CC,
-    0x8005AB0C, 0x8005AB0C, 0x8005A9A0, 0x8005A9B0,
-    0x8005A9CC, 0x8005A9DC, 0x8005A9DC, 0x8005A9F4,
-    0x8005AB0C, 0x8005AB0C, 0x8005AB0C, 0x8005AB0C,
-    0x8005AAE0, 0x8005AAF0, 0x8005AB00,
-};
-
-#else /* NON_MATCHING */
 extern char *D_80097D18;
 extern s16 CardStateFlag;
 extern s16 D_80097D2E;
@@ -119,6 +60,7 @@ s32 FUN_8005a7a4(s32 pad)
 {
     u16 saved_state;
     s16 value;
+    s32 cond;
     u16 next_state;
     u16 assigned;
     u16 incremented;
@@ -270,12 +212,15 @@ save_37_after_assign:
         value = D_80097D32;
         incremented = value + 1;
 update_count:
-        D_80097D32 = incremented;
-        if (value > 2)
+        cond = value < 3;
+        do {
+            D_80097D32 = incremented;
+        } while (0);
+        if (!cond)
             next_state = saved_state;
         /*
-         * Load-bearing fence (autorules fence-unwrap: removing it costs 7
-         * bytes, 12 -> 19). It buys next_state ONE loop-depth-weighted ref:
+         * Load-bearing fence (autorules fence-unwrap: unwrapping it costs 7
+         * bytes, 0 -> 7). It buys next_state ONE loop-depth-weighted ref:
          * reg_n_refs is loop-depth weighted and global.c's priority is
          * floor_log2(refs) * refs/live_length. next_state (p83) scores
          * 2*4/16*10000 = 5000 and loses a0 to p117/p151 at 3/5 -> 6000;
@@ -324,5 +269,3 @@ clear_state:
     D_80097D2E += FUN_8005b17c(D_80097D30, pad);
     return 0;
 }
-
-#endif /* NON_MATCHING */
