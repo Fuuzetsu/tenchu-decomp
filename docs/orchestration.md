@@ -540,6 +540,12 @@ function already byte-matches on current `master`.
   AddEnemy lane lost real time to a self-diagnosed "build-dep gap" that turned
   out to be Shake being correct. Check the dispositions or the `.o` timestamp,
   not the byte count alone.
+- **Read `n_refs` from `.lreg`, never hand-count source references.** A brief this
+  session claimed a pseudo carried 16 refs (hand-counted) when the committed draft
+  measured 19 — the lever built on it could not have worked, and the lane spent a
+  round proving that. Every "the original's X carries K refs" claim must cite a
+  dump. (`tools/reghist.py` gives the cheap cross-check: a register the target
+  mentions N times has N-2 body refs.)
 - **A 0.1 s "build" is not automatically a stale read — and `touch` will NEVER
   trigger a rebuild.** Shake keys on CONTENT DIGESTS, not mtimes. So (a) a
   dead-code-only or codegen-neutral edit legitimately produces an identical `.o`

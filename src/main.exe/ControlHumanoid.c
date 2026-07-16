@@ -33,117 +33,69 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact target length (394 instructions / 1576 bytes),
- * 7 differing bytes.  The residual is ONE cluster: the enemy vertical delta at
- * 0x800280a0-0x800280b4.  Everything else, including the player-camera yaw and
- * GetDirection's third argument, is byte-exact.
+ * MATCHED.  394 instructions / 1576 bytes, 0 differing bytes.
  *
- * The previous 17-byte checkpoint was a DEAD END, not a near-match: at
- * 0x80027ff8 it emitted `lhu` where retail has `lh` — a wrong OPCODE, so no
- * amount of allocation steering could ever have reached exact from it.  Its
- * three nested zero-trip "weighting fences" are inert under the correct
- * decomposition (measured 28 -> 28 with them removed) and have been deleted;
- * they were scaffolding tuned to the wrong `lhu` shape.  Its claim that the
- * delta must be split through `magnitude` is what pins the delta into $a0 (see
- * below), and its claim that the fences move `direction` a0 -> v1 is false —
- * cluster A's own coloring does that.
+ * Three source facts are load-bearing here; all three were verified against the
+ * pinned gcc-2.8.1 source (global.c) and the .lreg/.greg dumps.
  *
- * Three findings got 17 -> 7 (all verified against the pinned gcc-2.8.1 source
- * and a standalone cc1-281 testbed):
- *   1. GetDirection's third parameter is `short` (reference/psxsym-protos.h),
- *      and the three-term rotation sum must be narrowed through a VAR_DECL.
- *      convert_to_integer distributes an outer (s16) cast into a PLUS_EXPR's
- *      operands, making every halfword leaf narrow-use-only (`lhu`) and folding
- *      into the last operand's register; it cannot distribute into a VAR_DECL.
- *   2. The player-yaw sum and the enemy rotation sum are ONE reused variable
- *      (`rotation_pair`); retail keeps both in $v0.  This alone was 28 -> 7.
- *   3. global.c:set_preference strips an expression's outer code and takes
- *      operand 0, and treats a local_alloc'd pseudo as a hard reg.  So
- *      `direction = CamState.DirectionRY - rotation_pair` donates the CamState
- *      load's register to `direction` as a hard-reg preference — that, not any
- *      fence, is what decides direction=$v1 / magnitude=$a0.
+ * 1. GetDirection's third parameter is `short` (reference/psxsym-protos.h), and
+ *    the three-term rotation sum must be narrowed through a VAR_DECL.
+ *    convert_to_integer distributes an outer (s16) cast into a PLUS_EXPR's
+ *    operands, making every halfword leaf narrow-use-only (`lhu`) and folding
+ *    into the last operand's register; it cannot distribute into a VAR_DECL.
+ *    Naming the full sum (`rotation_pair`) is the fix.
+ * 2. The player-yaw sum and the enemy rotation sum are ONE reused variable
+ *    (`rotation_pair`); retail keeps both in $v0.  Splitting them per branch
+ *    drops both sums to 2 refs each, which hands them to local_alloc and
+ *    perturbs the whole player block (measured: 68 bytes).
+ * 3. The abs magnitude is THREE separate variables, one per site -- spelled as
+ *    the PSX.SYM header describes ("a repeated name is a nested-block scope"),
+ *    i.e. the two player sites shadow the enemy one.  Only the DISTINCT VAR_DECLs
+ *    matter; the names do not.  This is what puts each magnitude in $a0, and it
+ *    is pure global-alloc priority:
  *
- * The remaining 7 bytes are a genuine two-sided preference tie, and the two
- * halves are complementary — neither lands alone:
- *   - Retail's delta is a compiler TEMP in $v0 (`subu v0,v0,v1`), while
- *     `magnitude` is $a0; one C variable gets one hard register, so the delta
- *     cannot be `magnitude`.  Writing it as `direction = (t[1]-vy)/2` does
- *     reproduce this cluster EXACTLY (verified: 0 diffs there).
- *   - But `magnitude` only reaches $a0 because `magnitude = t[1]-vy` donates
- *     the t[1] load's $a0 via set_preference.  With the delta as a temp,
- *     `magnitude` has no preference of its own and lands in $a1 (22 bytes).
+ *      global.c:allocno_compare ranks allocnos by
+ *          floor_log2(n_refs) * n_refs / live_length * 10000 * size
+ *      (descending), and `.lreg` prints both inputs as
+ *      "Register N used R times across L insns".
  *
- * ROUND 2 read the allocator dumps and built an EXACT model of the tie.  The
- * pseudos are 84=direction, 85=magnitude, 86=rotation_pair, 83=head.  In the
- * .greg dump the 7-byte and 22-byte drafts differ in exactly ONE line —
- * `85 preferences: 4`.  Conflicts, priority order and direction's preferences
- * are byte-identical between them.  The mechanism, all verified against the
- * pinned gcc-2.8.1 source and reproduced numerically:
- *   a. Priority (global.c:allocno_compare) is
- *      floor_log2(n_refs)*n_refs/live_length*10000*size, and .lreg prints both
- *      inputs ("Register N used R times across L insns").  Baseline: 85=26206,
- *      86=20000, 84=17037, 83=7010 -> allocno_order `85 86 84 83`, exactly the
- *      dump.  So magnitude is coloured FIRST, before direction.
- *   b. regs_someone_prefers[85] = union of full-prefs of LOWER-priority
- *      CONFLICTING allocnos, MINUS 85's own full-prefs.  It is {3,4,6} from 84.
- *      85's own preference is the only thing that can reclaim $a0 from it —
- *      hence exactly one line deciding 7 vs 22.
- *   c. direction does NOT prefer $a0 on its own.  global.c:expand_preferences
- *      unions the hard-reg preferences of a SET_DEST global allocno and any
- *      non-conflicting global with a REG_DEAD note on the same insn, BOTH WAYS.
- *      `direction = CamState.DirectionRY - rotation_pair` carries REG_DEAD 86
- *      and 84/86 do not conflict, so direction INHERITS all of rotation_pair's
- *      preferences.  rotation_pair prefers $a0 because its player-branch sum
- *      `(set 86 (plus 259 265))` has operand 0 = the obj[0] load, which
- *      local_alloc colours $a0 (`lh $a0,0x52($v1)` at 0x80027EA0 — retail).
- *      $a0 is then pruned from 86 (it conflicts with hard $a0) but NOT from 84.
- *      This corrects round 1's note above: the {a0,a2} in direction's
- *      preferences are rotation_pair's, not direction's own.
- *   d. set_preference also fires on USES: `(set LOCAL_X (EXPR global ...))`
- *      donates LOCAL_X's colour to the global (mark_reg_store calls it for
- *      every store).  That is how rotation_pair gets $a2 — from the argument
- *      narrowing `sll $a2,$v0,16`.  magnitude's uses all produce $v0 locals,
- *      and $v0 is pruned because magnitude conflicts with hard $v0 (live
- *      across the *900 / div).  So no use of magnitude can donate $a0.
+ *    `direction` is 20 refs / 45 insns = 17777.  A SINGLE `magnitude` covering
+ *    all three sites is 16 refs / 26 insns = 24615, so it is coloured FIRST.
+ *    It has no hard-reg preference of its own (set_preference strips one level
+ *    of the src expression and takes operand 0; for `(set mag (abs dir))` that
+ *    is a global pseudo, and every other donating site yields $v0, which
+ *    magnitude hard-conflicts with).  Meanwhile `direction` INHERITS $a0 from
+ *    `rotation_pair`: expand_preferences unions hard-reg preferences BOTH WAYS
+ *    between a single_set's global dest and any non-conflicting global carrying
+ *    a REG_DEAD note on that insn, and `direction = CamState.DirectionRY -
+ *    rotation_pair` kills rotation_pair.  rotation_pair prefers $a0 because its
+ *    player-branch sum `(set rp (plus obj0_load obj1_load))` has operand 0 =
+ *    the obj[0] load, which local_alloc colours $a0 (`lh $a0,0x52($v1)`).
+ *    prune_preferences then puts $a0 into regs_someone_prefers[magnitude] (the
+ *    union of LOWER-priority conflicting allocnos' preferences), so the single
+ *    magnitude avoids $a0 and lands in $a1 -- 22 bytes, a pure 19-instruction
+ *    a0->a1 rename.
  *
- * This yields a CONTRADICTION that bounds round 3.  The player branch is
- * byte-exact, which forces (c): direction always inherits $a0.  With magnitude
- * coloured first, magnitude must therefore own an $a0 preference.  The only
- * insn that supplies one is a def of magnitude whose operand 0 is a local
- * coloured $a0 — and the sole such local in the enemy tail is the t[1] load,
- * i.e. `magnitude = t[1]-vy`, which is what pins the delta.  So one premise
- * must break; the two live candidates are:
- *   - the priority order differs in retail (84 before 85 makes variant A match
- *     by find_reg's fallback scan — derived, not measured).  That needs
- *     magnitude's live_length >= 37 (now 26) or n_refs <= 15 (now 16; 16 is
- *     exactly a power of two, so ONE fewer ref drops floor_log2 4->3 and flips
- *     the order).  n_refs 16 = 5 player-yaw + 5 player-pitch + 6 enemy-yaw.
- *   - a def/use of magnitude tied to an $a0 local that round 2 did not find.
- * Measured and rejected this round:
- *   - `direction = (t[1]-vy)/2`: 22 (cluster exact, magnitude -> $a1).
- *   - splitting rotation_pair per branch: 68.  It makes both sums LOCAL
- *     pseudos, which perturbs local_alloc across the whole player block
- *     (259/265/270 recolour).  The shared variable is load-bearing — this is
- *     the mechanical confirmation of finding 2 above.  Note the VAR_DECL
- *     narrowing of finding 1 is a TREE-level property and survives the split;
- *     the two requirements are independent.
- *   - `magnitude = t[0]-vx` passed as GetDirection's arg 0, to buy an $a0
- *     COPY preference from `(set (reg a0) (reg 85))`: no effect, byte-identical
- *     to variant A.  combine folds a single-use def into the argument insn and
- *     flow deletes it, so the copy never exists.  A value must have >= 2 uses
- *     to donate a copy preference this way.
- *   - a third autorules sweep (17 candidates, incl. the new abs-ge / cmp-swap /
- *     fence-unwrap rules) and a second bounded -j4 permuter run: nothing.
- * Read .lreg directly, not regalloc.py: every quantity here is local_alloc's
- * and regalloc.py surfaces only global allocnos.
+ *    Splitting per site drops each magnitude through a floor_log2 step and
+ *    below `direction`, so `direction` is coloured first, takes its own $v1,
+ *    and leaves regs_someone_prefers empty for each magnitude -- whose fallback
+ *    scan then hits $a0 (it conflicts with hard $v0, and $v1 is taken):
+ *        enemy magnitude   6 refs / 12 insns = 10000
+ *        yaw   magnitude   5 refs /  7 insns = 14285
+ *        pitch magnitude   5 refs /  7 insns = 14285
+ *    all < direction's 17777.  The three sites are disjoint, so all three share
+ *    $a0.  Each half still spans basic blocks (the abs itself branches), so
+ *    unlike rotation_pair they remain GLOBAL allocnos -- which is why splitting
+ *    magnitude wins where splitting rotation_pair loses.
  *
- * Build with `NON_MATCHING=ControlHumanoid ./Build` and inspect with
- * `tools/matchdiff.py ControlHumanoid`.
+ * Dead ends, measured, so they are not retried: a `do{}while(0)` weighting
+ * fence on the enemy-vertical block does add loop-depth-weighted refs to
+ * `direction` (20 -> 24) and leaves live_length alone, but its LOOP_END note
+ * lands next to the cross-jumped `UpdateCoordinate` tail and blocks the merge:
+ * 282 bytes.  There is no free ref to remove from magnitude either -- its 16
+ * refs correspond exactly to 19 emitted instructions (3 abs defs of 2 insns
+ * each + 13 single-insn uses), so none is combine-folded.
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ControlHumanoid", ControlHumanoid);
-#else
 
 typedef struct
 {
@@ -304,26 +256,33 @@ draw_done:
         {
             rotation_pair = human->model->object[0]->rotate.vy +
                             human->model->object[1]->rotate.vy;
-            direction = CamState.DirectionRY - rotation_pair;
-            magnitude = direction >= 0 ? direction : -direction;
-            if (magnitude >= 0x385)
             {
-                head->rotate.vy = magnitude * 900 / direction;
-            }
-            else
-            {
-                head->rotate.vy = direction;
-            }
+                s32 magnitude;
 
-            direction = CamState.DirectionRX;
-            magnitude = direction >= 0 ? direction : -direction;
-            if (magnitude > 500)
-            {
-                head->rotate.vx = magnitude * 500 / direction;
+                direction = CamState.DirectionRY - rotation_pair;
+                magnitude = direction >= 0 ? direction : -direction;
+                if (magnitude >= 0x385)
+                {
+                    head->rotate.vy = magnitude * 900 / direction;
+                }
+                else
+                {
+                    head->rotate.vy = direction;
+                }
             }
-            else
             {
-                head->rotate.vx = direction;
+                s32 magnitude;
+
+                direction = CamState.DirectionRX;
+                magnitude = direction >= 0 ? direction : -direction;
+                if (magnitude > 500)
+                {
+                    head->rotate.vx = magnitude * 500 / direction;
+                }
+                else
+                {
+                    head->rotate.vx = direction;
+                }
             }
         }
         UpdateCoordinate(head);
@@ -366,8 +325,7 @@ draw_done:
             head->rotate.vy = direction;
         }
 
-        magnitude = human->target->locate.coord.t[1] - human->locate->vy;
-        direction = magnitude / 2;
+        direction = (human->target->locate.coord.t[1] - human->locate->vy) / 2;
         if (direction != 0)
         {
             if (direction >= -500)
@@ -389,14 +347,6 @@ draw_done:
         UpdateCoordinate(head);
     }
 }
-
-#endif
-
-// triage: HARD — 394 insns, mul/div, 13 callees, ~0.05 to ProcItemDrop
-// likely-relevant cookbook sections:
-//   - Dispatch: if/switch ladder — reload vs CSE, signed vs unsigned
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
 
 // Ghidra decompilation (reference — turn this into matching C,
 // then drop the INCLUDE_ASM above):

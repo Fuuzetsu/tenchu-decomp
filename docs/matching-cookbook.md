@@ -2761,6 +2761,37 @@ scratch — base and index registers swapped, exactly as the target does
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
 
+### Splitting a shared pseudo per site is a PRIORITY lever, not only a decomposition lever
+
+`global.c`'s priority is `floor_log2(n_refs) * n_refs / live_length` (times
+10000*size) — **superlinear in `n_refs`**. So splitting one variable into
+disjoint per-site variables does not merely relieve conflicts: it **demotes the
+value past its rivals without touching a single instruction**. ControlHumanoid's
+last 7 bytes fell to exactly this (1576/1576, nothing else changed):
+
+| allocno | refs/live | priority | outcome |
+|---|---|---|---|
+| one shared `magnitude` | 16/26 | **24615** | colours FIRST, takes `$a1` (wrong) |
+| rival `direction` | 20/45 | 17777 | |
+| -> split into 3 per-site | 6/12, 5/7, 5/7 | **10000 / 14285 / 14285** | all BELOW the rival (right) |
+
+Once `direction` colours first it takes its own `$v1`, each split half then finds
+`regs_someone_prefers` EMPTY, and every fallback scan lands on `$a0` — and because
+the sites are disjoint, all three share it.
+
+**Check first that each half still spans basic blocks.** If a half collapses into
+one block, `local_alloc` claims it before `global_alloc` ever sees it and the
+lever evaporates — splitting ControlHumanoid's `rotation_pair` that way REGRESSED
+it from 7 bytes to 68. The `abs` branches are what keep the `magnitude` halves
+global.
+
+### When a hard-reg tie will not break, demote the WINNER rather than promote the loser
+
+`regs_someone_prefers` is built ONLY from **lower-priority conflicting allocnos**.
+So reordering the colouring deletes the blocking set outright, whereas adding refs
+to the loser requires manufacturing a preference that may not exist at all. Prefer
+the demotion (see the priority table above) — it is cheaper and more reliable.
+
 ### gcc 2.8.1 never splits a pseudo's live range: one C variable = one hard register
 
 For its whole life. So when the target shows one *logical* value in two different
@@ -6303,6 +6334,16 @@ where it is equally valid and finds scaffolding years earlier.
   its three "weighting fences" measured inert once the decomposition was right.
   `tools/reghist.py` now prints an OPCODES DIFFER banner before any register
   verdict; heed it, and byte-account by instruction ENCODING, not register delta.
+### Two measured facts about the weighting fence
+
+* **Its NOTES do not count toward `reg_live_length`.** Measured on ControlHumanoid:
+  fencing took `direction` from 20 to 24 refs while live length stayed 45. A fence
+  moves the priority NUMERATOR only — which is why the ratio can be steered more
+  precisely than expected.
+* **Never fence a block adjacent to a cross-jumped shared tail.** The `LOOP_END`
+  note blocks the merge. Fencing ControlHumanoid's vertical block bought +4 refs
+  and cost **282 bytes**. Check `.jump2` for a shared tail before fencing.
+
 ### Reading global.c's preference machinery (the four rules that explain a tie)
 
 1. **`set_preference` donates a LOCAL colour to a GLOBAL allocno.**
@@ -6918,3 +6959,11 @@ where it is equally valid and finds scaffolding years earlier.
 - The canonical cc1 correctly reads the **low** halfword for
   `(short) = (int)` truncation; if you see a high-half `lhu` (offset+2),
   something reintroduced the old non-canonical binary.
+
+**`set_preference` strips exactly ONE level, so TERM COUNT silently decides whether
+a preference exists at all.** It descends `GET_RTX_FORMAT (code)[0] == 'e'` to
+operand 0 ONCE and bails unless what it finds is a REG. Therefore
+`(set X (plus a b))` donates `a`'s colour to `X`, but `(set X (plus (plus a b) c))`
+— a three-term sum — donates **NOTHING**. Adding or removing a term can create or
+destroy a preference without changing a single emitted instruction. Check the term
+count before concluding that a preference "should" be there.
