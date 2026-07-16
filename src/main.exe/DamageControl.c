@@ -152,11 +152,15 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * damage, knockback, animation, blood, score, and player-feedback effects.
  *
  * STATUS: NON_MATCHING — the C draft has the exact retail extent (5812 bytes,
- * 1453 instructions) with 1328 differing bytes, fuzzy 92.91%, and 94 raw
- * aligned residual blocks from `asmdiff --structural` at this checkpoint.
+ * 1453 instructions) with 1320 differing bytes, fuzzy 92.70%, and 96 raw
+ * aligned residual blocks from `asmdiff --structural` at this checkpoint
+ * (was 1328 bytes / fuzzy 92.91% / 94 blocks last session; -8 bytes this pass).
  * The remaining work is expression/CFG scheduling and early-path register
  * allocation; the large humanoid path's persistent registers now agree with
- * the target. The #ifndef NON_MATCHING branch is the stub
+ * the target.  rtlguide now classifies EVERY register goal as HARD-CONFLICT
+ * (weighting/priority cannot move them; only a live-range/identity change can),
+ * so the residual is genuinely below the C level for this cc1 — see the notes
+ * dated 2026-07-16.  The #ifndef NON_MATCHING branch is the stub
  * (INCLUDE_ASM pieces + the jump-table pool as one static const array so
  * the .rodata carve has bytes); build the draft with `NON_MATCHING=DamageControl
  * ./Build`. On a full match, delete the guards and the _jtbl array.
@@ -216,6 +220,41 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *  - The signed/unsigned short-to-high-word spellings are intentional.  In
  *    particular `(u16)dmg << 16` and `dmg * 0x10000` reach different
  *    canonicalization paths even where the final arithmetic is equivalent.
+ *
+ *  Session 2026-07-16 (1328 -> 1320 bytes):
+ *  - The humanoid guard `if (StagePlayer != Me_MOTION_C)` is written with
+ *    StagePlayer as op0 deliberately.  Although the target evaluates Me first
+ *    into $a0, spelling this guard StagePlayer-first realigns the branch
+ *    operand encodings across the whole do-while region for a net -6 bytes
+ *    (verified in isolation: 1328->1322).  The underlying delay-slot drift
+ *    (target defers `move s2,v0` for `deg` into the Me==SP branch delay slot
+ *    because it loads StagePlayer into $v1; ours loads it into $v0, forcing an
+ *    early capture + one extra load-delay nop) is a pure allocator tie: neither
+ *    operand order nor a bounded guided sweep moves the StagePlayer temp off
+ *    $v0, and it is a HARD-CONFLICT in .greg.
+ *  - The `if (conflict != 0) motID = next_mot; else motID = next_mot;`
+ *    identical-arm fence at LAB_8001dc08 (found by `autorules --guided`)
+ *    is zero-code (cross-jumped; extent stays 1453, no invented branch) and
+ *    fixes the case-0x15 motID store SCHEDULING (the `sh ...,motID` now sits
+ *    before the `li 1`, matching the target) for -2 bytes.  next_mot itself is
+ *    still $v1 vs the target's $v0 — a $v1->$v0 HARD-CONFLICT that survives.
+ *  - RULED OUT this pass (do not retry): `dtM->loop = -dmg - 8` REGRESSES (+3)
+ *    vs the kept `-8 - dmg` (the target's `negu; addiu -8` is a scheduling
+ *    outcome, not this spelling).  Two full guided autorules sweeps
+ *    (allocation-donor-fence across the item path, then cmp-swap / cmp-polarity
+ *    / type-width / difference-role-fuse / shared-tail-assign / flag-arm-assign
+ *    / disjoint-local-alias / plus-group / shift16-mul / member-scalar-alias
+ *    across all guided sites) found NO further improving path.  The
+ *    `enemy->motion->loop = -(dmg/3) - 1` sites (both) emit a `nor` because
+ *    cc1 combine always folds `-x - 1` -> `~x`; the target fuses the negation
+ *    into the division (`subu sign,mulhi; addiu -1`) and no source spelling
+ *    reaches that here.
+ *  - The dominant residual is the `$a1 -> $a0` family (pHVar14 / pHVar17 /
+ *    sound_id / move_speed, 19 sites): $a0 is live during each cached-`Me`
+ *    range (call-argument setup), so pseudos p89/p108/p425/p842/p906/p1052 all
+ *    hard-conflict $a0.  cc1 has already split pHVar14 into these disjoint
+ *    pseudos; a C-level split cannot remove a liveness conflict, so this needs
+ *    a schedule that keeps Me in $a0 across the call args (below the C level).
  */
 
 #ifndef NON_MATCHING
@@ -455,7 +494,14 @@ LAB_8001da70:
         }
       }
   LAB_8001dc08:
-      motID = next_mot;
+      if (conflict != 0)
+      {
+          motID = next_mot;
+      }
+      else
+      {
+          motID = next_mot;
+      }
       motMODE = 1;
       break;
     case 3:
@@ -586,7 +632,7 @@ LAB_8001e028:
                        enemy->locate->vz - dtL->vz,dtR->vy);
     deg = GetAttackDBID(enemy,enemy->motion->mid);
     do {
-      if (Me_MOTION_C != StagePlayer) {
+      if (StagePlayer != Me_MOTION_C) {
         if ((((Me_MOTION_C->status != 7) &&
              ((Me_MOTION_C->attribute & 0x40U) != 0)) &&
             ((Me_MOTION_C->map).height == 0)) &&
