@@ -151,15 +151,12 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  * DamageControl (0x8001d6bc) — resolves item and humanoid collisions into
  * damage, knockback, animation, blood, score, and player-feedback effects.
  *
- * STATUS: NON_MATCHING — exact retail extent (5812 bytes, 1453 instructions),
- * 118 differing bytes at this checkpoint (was 1320 before this session; the
- * Fable escalation pass re-derived the source decomposition from the target
- * RTL shapes, then landed the s16 hp life-decrement tie and the unconditional
- * dtR->vy store before the knockback abs test).
- * The #ifndef NON_MATCHING branch is the stub (INCLUDE_ASM pieces + the
- * jump-table pool as one static const array so the .rodata carve has bytes);
- * build the draft with `NON_MATCHING=DamageControl ./Build`.  On a full match,
- * delete the guards and the _jtbl array.
+ * STATUS: MATCH — 5812 bytes / 1453 instructions, byte-exact including the
+ * compiled switch's own .rodata jump table (was 1320 -> 112 across the first
+ * Fable escalation, 112 -> 90 -> 6 -> 0 in the continuation; the first pass
+ * re-derived the source decomposition from the target RTL shapes and landed
+ * the s16 hp life-decrement tie; the continuation recovered the id/TVar8/deg
+ * identity and the assigned-abs knockback shape, see below).  Fence-free.
  *
  * What this session PROVED (the prior "below the C level / HARD-CONFLICT"
  * verdict was an artifact of the old decomposition, not a cc1 limit):
@@ -198,55 +195,46 @@ extern void ReqItemDefault(Humanoid *user, s32 item);
  *    identical-arm fence was scaffolding and is gone.
  *  - PSX.SYM roles that survive: dmg=$s1, enemy=$s3, did=$s4, id=$s5.
  *
- * Remaining 145 bytes, three families (see the session log in git):
- *  1. deg/TVar8 role swap: ours deg=$s0/TVar8=$s2, target deg=$s2/TVar8=$s0
- *     (~24 single-register sites, incl. the %100 magic constant reg pairing
- *     with the blood counter).  Pure global-alloc ordering; needs .greg
- *     analysis or a priority nudge.
- *  2. 0x8001d7c0: iVar11 (life-power) should tie into the life-load register
- *     (subu v1,v1,v0) with the store BEFORE sll/bltz+nop; the plain
- *     minus-expression unties (subu v0,v1,v0), and `-=` respellings so far
- *     either untie or let the store sink into the delay slot.
- *  3. 0x8001e7d8-e858: dtR-temp/sVar12 registers rotated (ours dtR=$a0,
- *     sVar12=v1-tie; target dtR=$v1, sVar12=$a0) which also blocks the
- *     deg-arm's early `lw a0,Me` hoist (a0 busy), costing the j/nop shape at
- *     e84c-e858.  Likely falls out of family 1/scheduling; else .greg.
+ * What the CONTINUATION proved (112 -> 90):
+ *  - `id` is an INT loaded via `(u16)vector.pad` (lhu s5) with `(short)id`
+ *    casts at every signed use (sll/sra 0x10).  The prior `s8 id` was
+ *    BALLAST: its lbu/sll24 bytes were wrong, but the QI->HI conversion kept
+ *    2 extra flow-time refs on TVar8 that held the deg/TVar8 allocation
+ *    order.  With the correct width those refs belong to the switch-head
+ *    extension TEMP (both sides read $s0=temp: `addu a1,s0` args), so the
+ *    order had to come from somewhere real:
+ *  - The passage halving loop is a REAL `while` loop, not the Ghidra
+ *    if+goto.  cc1 duplicates the 3-way abs entry test at -O2 (identical
+ *    bytes), and the NOTE_INSN_LOOP notes make flow2 count the body's
+ *    `TVar8 <<= 1` refs at loop weight: p84 14->16 refs = priority
+ *    2413->3678, restoring TVar8 > deg > enemy = s0/s2/s3 (dmg stays s1).
+ *    19 single-register rows (incl. the %100 magic in s2 and the blood
+ *    counter in s0) fell together.  regalloc.py's `--between 82 87 84`
+ *    window plus the .flow dump's `Register N used M times` lines are the
+ *    measurement loop for this class.
+ *
+ * What the 90 -> 0 step proved (the 0x8001e7d8-e858 knockback family):
+ *  - The knockback abs is the ASSIGNED-abs statement
+ *    `iVar13 = __builtin_abs((int)(short)did);` — cc1's mips abssi2 is ONE
+ *    type-"multi" insn whose template emits `bgez %1,1f%# / subu %0,$0,%0 /
+ *    1:` internally (same-register form; identical bytes to bgez/nop/negu).
+ *    Because the branch lives INSIDE the template, reorg never sees an
+ *    unfilled bgez: nothing can steal the `move s0,a1` TVar8 copy out of
+ *    the lhu load-delay slot (the explicit `if (ad < 0) ad = -ad;` spelling
+ *    exposes a real branch whose backward scan ALWAYS steals that copy —
+ *    provably, from reorg.c's fill_simple_delay_slots), and the missing
+ *    block boundary lets the whole surrounding schedule and allocation
+ *    (dtR=$v1, vy=$v0, sVar12=$a0 fresh) fall out with NO fence.  The
+ *    unconditional dtR->vy store sits between the abs and the <0x400 test,
+ *    where reorg lands it in the beqz delay.
+ *  - The deg==3 arm is `MoveHumanoid(Me, (0x400 < __builtin_abs(
+ *    (int)(short)did)) ? 0x46 : -0x46, 0)` — the abs INSIDE the call's
+ *    ternary arg: a0=Me evaluates first (lw at the arm top, e830), the
+ *    ±0x46 branches jump straight to the call point (no move_speed
+ *    variable, no extra j/lw pair; the default-then-override spelling cost
+ *    +4 length and 18 bytes).
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", DamageControl);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__switchD);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_1);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_0);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_e);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_13);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_14);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_15);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_3);
-
-INCLUDE_ASM(".shake/gen/main.exe/asm/nonmatchings/DamageControl", switchD_8001db0c__caseD_2);
-
-/* jump-table pool @ 0x80011278 (23 words; tables at 0x80011278) — stub-only, one array because the object has one .rodata section; the draft's compiled switch emits its own. */
-static const u32 DamageControl_jtbl[23] = {
-    0x8001DB20, 0x8001DB14, 0x8001DC58, 0x8001DC1C,
-    0x8001DC58, 0x8001DC1C, 0x8001DC58, 0x8001DC58,
-    0x8001DC58, 0x8001DC58, 0x8001DC58, 0x8001DC58,
-    0x8001DC58, 0x8001DC58, 0x8001DB60, 0x8001DC58,
-    0x8001DC58, 0x8001DC58, 0x8001DC58, 0x8001DB70,
-    0x8001DB80, 0x8001DBF0, 0x8001DC1C,
-};
-
-#else /* NON_MATCHING */
-/* Draft — turn this into matching C, then delete the #ifndef/#else/
-   #endif guards and the _jtbl array(s) above.  Reference: */
 
 /* WARNING: Unknown calling convention -- yet parameter storage is locked */
 
@@ -261,13 +249,13 @@ void DamageControl(void)
   short sVar12;
   int iVar13;
   Humanoid *enemy;
-  s8 id;
+  int id;
   short dmg;
   SVECTOR local_40;
   VECTOR local_38;
   SVECTOR local_28;
 
-  id = (Me_MOTION_C->vector).pad;
+  id = (u16)(Me_MOTION_C->vector).pad;
   dmg = 0;
   if (Me_MOTION_C->life < 1) {
     return;
@@ -282,12 +270,12 @@ void DamageControl(void)
     SetCameraMode(CMODE_NORMAL);
   }
   if ((Me_MOTION_C->type & 0xf0U) == 0xa0) {
-    enemy = (Humanoid *)ConflictObject[id].common;
+    enemy = (Humanoid *)ConflictObject[(short)id].common;
     if (enemy != (Humanoid *)1) {
       int iVar11;
 
       Sound(enemy,4);
-      DeleteConflict(ConflictObject[id].model);
+      DeleteConflict(ConflictObject[(short)id].model);
       deg = GetAttackDBID(enemy,enemy->motion->mid);
       {
         s16 hp;
@@ -545,22 +533,15 @@ LAB_8001da70:
     local_40.vx = enemy->locate->vx - dtL->vx;
     local_40.vy = enemy->locate->vy - dtL->vy;
     local_40.vz = enemy->locate->vz - dtL->vz;
-    if ((100 < __builtin_abs((int)local_40.vx)) ||
-        (100 < __builtin_abs((int)local_40.vy)) ||
-        (100 < __builtin_abs((int)local_40.vz))) {
-LAB_8001dfb0:
+    while ((100 < __builtin_abs((int)local_40.vx)) ||
+           (100 < __builtin_abs((int)local_40.vy)) ||
+           (100 < __builtin_abs((int)local_40.vz))) {
       TVar8 = TVar8 << 1;
       /* Retail uses direct arithmetic halves for all three components. */
       local_40.vx >>= 1;
       local_40.vy >>= 1;
       local_40.vz >>= 1;
-      if ((100 < __builtin_abs((int)local_40.vx)) ||
-          (100 < __builtin_abs((int)local_40.vy)) ||
-          (100 < __builtin_abs((int)local_40.vz))) {
-        goto LAB_8001dfb0;
-      }
     }
-LAB_8001e028:
     local_38 = *dtL;
     local_38.vy = local_38.vy + -1000;
     if (GetAreaMapPassage(GlobalAreaMap,&local_38,&local_40,TVar8) != (VECTOR *)0x0) {
@@ -635,7 +616,7 @@ LAB_8001e1e8:
             PadShockAR(0,0x7f,10,0);
           }
         }
-        DeleteConflict(ConflictObject[id].model);
+        DeleteConflict(ConflictObject[(short)id].model);
         blood_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2],0,(short)(dmg * 10 + 100),0);
       {
         TVar8 = 0;
@@ -727,15 +708,10 @@ LAB_8001e6d8:
     }
     TVar8 = (short)dmg * 5 / 2 + 0x50;
     {
-      int ad;
-
-      ad = (int)(short)did;
       sVar12 = dtR->vy + did;
+      iVar13 = __builtin_abs((int)(short)did);
       dtR->vy = sVar12;
-      if (ad < 0) {
-        ad = -ad;
-      }
-      if (ad < 0x400) {
+      if (iVar13 < 0x400) {
         TVar8 = -TVar8;
       }
       else {
@@ -743,18 +719,8 @@ LAB_8001e6d8:
       }
     }
     if (deg == 3) {
-      int move_speed;
-      int ad;
-
-      ad = did;
-      if (ad < 0) {
-        ad = -ad;
-      }
-      move_speed = -0x46;
-      if (0x400 < ad) {
-        move_speed = 0x46;
-      }
-      MoveHumanoid(Me_MOTION_C,move_speed,0);
+      MoveHumanoid(Me_MOTION_C,
+                   (0x400 < __builtin_abs((int)(short)did)) ? 0x46 : -0x46,0);
     }
     else {
       MoveHumanoid(Me_MOTION_C,TVar8,0);
@@ -848,7 +814,7 @@ LAB_8001eaa8:
         PadShockAR(0,0xff,10,10);
       }
     }
-    DeleteConflict(ConflictObject[id].model);
+    DeleteConflict(ConflictObject[(short)id].model);
   {
     int iVar11;
 
@@ -930,4 +896,3 @@ LAB_8001ec30:
   return;
 }
 
-#endif /* NON_MATCHING */
