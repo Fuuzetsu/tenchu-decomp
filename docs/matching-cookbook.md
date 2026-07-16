@@ -3359,6 +3359,32 @@ enclosing base, or vice versa, that is the lever -- confirmed on FUN_8004c59c vi
 `.cse`/`.cse2`/`.lreg` dumps (`.greg` shows the pointer correctly in $s1, but cse1 had
 already rewritten the offset-0 store to base-relative).
 
+### A pseudo loaded from a MEM and used in ONE basic block gets REG_EQUIV — and is then SUBSTITUTED, not spilled
+
+`local-alloc.c`'s `update_equiv_regs` attaches a `REG_EQUIV` note to a pseudo
+whose single set is from a MEM, **iff `REG_BASIC_BLOCK (regno) >= 0`** — i.e. the
+pseudo is referenced in only ONE basic block (`flow.c:1961` sets it to the block
+number, or to `REG_BLOCK_GLOBAL` = -2 when a second block references it) — and
+`validate_equiv_mem` confirms the MEM is unchanged for the register's life. The
+comment says it outright: *"see if this insn is loading a register used only in
+one basic block from a MEM."*
+
+Two consequences, both observable:
+* The pseudo's value becomes **substitutable**: reload may re-materialise the
+  `(mem ...)` rather than keep it in a register. So if the pseudo spills, its
+  operand is a **double MEM** — `(mem (mem (plus sp K)))` — which needs TWO
+  reloads at one opnum (address materialisation + inner load) and therefore can
+  never share a register (see the next section).
+* `REG_LIVE_LENGTH (regno) *= 2` — so the note ALSO perturbs `global.c`'s
+  priority. A pseudo whose live length looks inexplicably doubled has a REG_EQUIV.
+
+**The lever: reference the variable from a SECOND basic block.** `REG_BASIC_BLOCK`
+becomes `REG_BLOCK_GLOBAL`, the note is never created, and the pseudo is a genuine
+spilled pseudo whose reload is `RELOAD_FOR_INPUT` — which MAY share its own
+address reload's register (`lw a3,0(a3)`). This is the one known escape from the
+two-reload bar, and unlike the operand-constraint and copy levers it is reachable
+from C.
+
 ### Two reloads at one opnum can NEVER share a register
 
 **(This section has been wrong three times — a record, and a lesson in itself.
