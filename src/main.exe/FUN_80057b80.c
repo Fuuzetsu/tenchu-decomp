@@ -8,6 +8,8 @@
  * inline-GTE macros (gte_ldv3/gte_rtpt/gte_stsxy3/gte_stsz3) at two RTPT sites.
  *
  * STATUS: NON_MATCHING — 8 of 3796 bytes differ. LENGTH IS EXACT.
+ * CLOSED (round 8): the residual is PROVEN UNREACHABLE from C. Do not reopen
+ * without new information; the search space is enumerated and exhausted below.
  * (Round history: 759 -> 722 -> 619 -> 506 -> 494 -> 253 -> 208 -> 42 -> 36 -> 8.)
  *
  * The ENTIRE residual is ONE hunk: the two parameter-copy chains in the
@@ -149,10 +151,12 @@
  * CSE them (declaring sVar1 as u16 collapses them and costs 2 insns).
  *
  * ---------------------------------------------------------------------------
- * THE LAST 8 BYTES — CLOSED AT THE C LEVEL. The lever is the SIGNATURE, and it
- * is NOT reachable from the body. Round 7 proved this from the gcc sources and
- * from the two matched functions that already have the target's shape.
- * DO NOT re-walk any of the below; DO NOT try another statement order.
+ * THE LAST 8 BYTES — NOT REACHABLE FROM C AT ALL. Round 7 established that the
+ * body cannot move them (only the first parameter's declared type could) and
+ * concluded the SIGNATURE was the open lever. Round 8 CLOSED that lever too: no
+ * declared type of the first parameter reproduces the target (see ROUND 8 below).
+ * DO NOT re-walk any of the below; DO NOT try another statement order; DO NOT
+ * try another signature.
  *
  * WHAT THE RESIDUAL IS: exactly one binary choice in .sched2, at T-20.
  *   ;; ready list at T-20: 6 (1) 4 (1), now 6 4          <- picks 6. We need 4.
@@ -197,28 +201,68 @@
  * are SImode (line 3789 forces passed_mode = nominal_mode = Pmode when
  * passed_pointer), so it can NEVER fire.
  *
- * THE EVIDENCE (this is why the above is not a theory). Exactly THREE functions
- * in main.exe emit the a1-copy before the a0-copy — this one, and:
- *   create_ninken_character_  MATCHED:  void create_ninken_character_(s16 type, s32 stage)
- *   cd_control                MATCHED:  void cd_control(u8 param_1, u8 *param_2, u8 *param_3)
- * BOTH have a NARROW FIRST PARAMETER. Reproduced standalone in 7 lines: a
- * (int*,int*,int) signature gives our order; changing p1 to `unsigned char`
- * reproduces cd_control's asm exactly — a0-copy last, PLAIN move, with the
- * `andi` truncation pushed out to the USE site (so s0 holds the raw a0, which is
- * why the deferred copy is a bare `move` and not a sll/sra).
+ * ROUND 8 — THE QUESTION IS SETTLED: param_1 IS A POINTER, AND *NO* DECLARED
+ * TYPE OF IT CAN PRODUCE THE TARGET'S PROLOGUE. The two facts the target shows
+ * are MUTUALLY EXCLUSIVE under the deferral. This is the reusable rule:
  *
- * WHY IT IS STILL 8: param_1 here is used as a POINTER BASE — `addiu t0,s0,0x88`
- * at 0x80057b94, copied to fp and dereferenced — so it cannot be a narrow type,
- * and the deferral cannot fire. A local copy cannot substitute either: s0 must
- * hold a0's value across calls, so the a0->s0 copy IS the parm copy (any
- * `int *ctx = param_1;` is folded by cse / coalesced by the allocator).
- * => The 8 bytes are NOT reachable by ANY statement order, fence, or respelling
- *    of the body. Only the first parameter's DECLARED TYPE can move them.
- * NEXT ROUND, START HERE: recover the original prototype (docs/psx-sym.md — the
- * demo disc's debug symbols) and look at the FIRST parameter's type. If it is
- * narrow, the body's role assignment for s0 needs re-reading; if it is a
- * pointer, this residual is a genuine compiler-input difference and the function
- * should be promoted as-is at 8.
+ * *** THE DEFERRED PARM-COPY IS A BARE `move` ONLY IF THE NARROW PARM IS USED  ***
+ * *** AS A VALUE. IF IT IS USED AS A POINTER BASE, THE DEFERRED INSN *IS* THE  ***
+ * *** TRUNCATION AND *REPLACES* THE `move`.                                    ***
+ *
+ * Round 7 inferred "narrow first parameter" from the a1-before-a0 order alone,
+ * generalising from cd_control, where the u8 parm is used as a VALUE: gcc keeps
+ * it in a promoted subreg (SUBREG_PROMOTED_VAR) and truncates lazily at the use
+ * sites, so the deferred copy really is a bare `move`. That does NOT generalise.
+ * When the parm is a POINTER BASE the address must be materialised in the
+ * register immediately, so the deferred insn is the truncation itself. Measured
+ * standalone (cc1-281, rtldump.py's CC_FLAGS, ~1s/variant), same body, only the
+ * first parameter's spelling changed:
+ *      int* / unsigned / long / void* / const int* / int p1[]  -> a0-copy FIRST
+ *      K&R defn, decl-list order p1,p2,p3 AND p2,p1,p3         -> a0-copy FIRST
+ *      narrow 3rd parm; 4 parms with narrow 4th                -> a0-copy FIRST
+ *      unsigned char  -> a1-copy first, but `andi $16,$4,0x00ff` REPLACES the move
+ *      unsigned short -> a1-copy first, but `andi $16,$4,0xffff` REPLACES the move
+ *      short          -> a1-copy first, but `sll;sra`          REPLACES the move
+ *      struct-by-value / long long (DImode a0+a1)   -> neither shape
+ * The target needs the a1-before-a0 ORDER *and* a bare `move s0,a0`. Nothing
+ * gives both, because the order REQUIRES narrowness and narrowness + a pointer
+ * use PUTS THE TRUNCATION IN THAT EXACT SLOT.
+ *
+ * THE TARGET'S OWN BYTES CONFIRM param_1 IS A POINTER, three ways:
+ *   - `andi` occurs ZERO times in all 945 instructions; no sll/sra/srl on s0.
+ *     s0 is WRITTEN EXACTLY ONCE (`move s0,a0`) and restored once. A deferred
+ *     narrow parm used as a pointer base cannot leave zero truncations.
+ *   - s0 is dereferenced directly: `lw v0,0(s0)`, `lw v1,4(s0)`, `addiu t0,s0,136`.
+ *   - all four recursive calls pass a0 = `16(sp)` = the saved `t0 = s0+136`, i.e.
+ *     pointer arithmetic on param_1. (Round 7's brief read `lw a0,16(sp)` as an
+ *     EXTERNAL caller's word-passing; 0x8005859c is INSIDE this function — it is
+ *     one of the recursive sites. There is no external-caller contradiction.)
+ *
+ * CORPUS-ORACLE CAVEAT (transferable): the oracle matched create_ninken_character_
+ * and cd_control on PROLOGUE SHAPE alone and produced a FALSE POSITIVE. Two
+ * functions can share a prologue shape and have incompatible causes. Match on the
+ * parameter's USE KIND (value vs pointer base), not just the shape.
+ *
+ * VERIFIED FROM THE PINNED SOURCES (do not re-derive):
+ *   - The deferral gate is ONLY function.c:4142. The other five
+ *     `push_to_sequence (conversion_insns)` sites cannot fire: 4010 is inside
+ *     `#if 0`; 4225 needs FUNCTION_ARG_CALLEE_COPIES (undefined on MIPS); and
+ *     4369/4391/4403 are the `else` branch for a parm that lives in the STACK.
+ *   - explow.c `promote_mode` only moves INTEGER/ENUMERAL/BOOLEAN/CHAR/REAL/
+ *     OFFSET types; POINTER_TYPE moves only under POINTERS_EXTEND_UNSIGNED, and
+ *     then only to Pmode = SImode. A pointer parm can NEVER satisfy line 4142.
+ *   - `passed_pointer` (3787) sets passed_mode = nominal_mode = Pmode and leaves
+ *     promoted_* both SImode (RECORD_TYPE hits promote_mode's `default:`), so
+ *     struct-by-invisible-reference does NOT defer either.
+ *   - sched.c `priority()` maxes over LOG_LINKS (PREDECESSORS) => depth from the
+ *     block top, floored at 1; MIPS ADJUST_COST zeroes the anti-dep, so BOTH
+ *     copies are pinned at priority 1 by structure. `rank_for_schedule`'s last
+ *     tiebreak returns INSN_LUID(y) - INSN_LUID(x), a DESCENDING-LUID sort, which
+ *     reproduces the natural order. LUID is genuinely the only discriminator.
+ *
+ * => The 8 bytes are a genuine COMPILER-INPUT difference we cannot express in C.
+ *    This is an evidence-complete park at 8/3796 with LENGTH EXACT and every
+ *    register and delay slot identical. DO NOT reopen on the signature.
  *
  * TRIED AND MEASURED, ALL STILL 8 (do not repeat):
  *   piVar13/local_30/proto in all 6 statement orders (proto first: 36;

@@ -5906,6 +5906,14 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   (`create_ninken_character_(s16 type, s32 stage)`, `cd_control(u8, u8*, u8*)`)
   have a NARROW first parameter. One grep settled what a lot of source-reading
   could not. Use this before any deep RTL dive.
+  - **CAVEAT, learned by the same function one round later: match on the CAUSE,
+    not the shape.** That very oracle produced a FALSE POSITIVE — it matched
+    `create_ninken_character_` and `cd_control` on prologue SHAPE alone, and
+    FUN_80057b80's first parameter turned out to be a pointer, which cannot
+    produce that shape at all (below). Two functions can share a shape with
+    incompatible causes. Before trusting a corpus hit, check that the
+    *mechanism* transfers — here, the parameter's USE KIND (value vs pointer
+    base), not the instruction pattern.
 - **A first parameter narrower than a word has its copy DEFERRED past every other
   parameter copy.** `assign_parms` (function.c:4142) emits each arg-register copy
   inline in declaration order UNLESS `nominal_mode != passed_mode ||
@@ -5915,8 +5923,26 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   a plain `move sX,aN` with a LUID GREATER than every other parm copy — and for an
   unsigned narrow type the truncation moves to the USE site, so it stays a bare
   `move`, not `sll/sra`. For a pointer or int this can NEVER fire (line 3789
-  forces `passed_mode = nominal_mode = Pmode`). **So: if a prologue emits the
-  a1-copy before the a0-copy, the first parameter is narrow.**
+  forces `passed_mode = nominal_mode = Pmode`).
+  **But the deferred copy stays a bare `move` ONLY if the narrow parm is used as
+  a VALUE.** gcc then keeps it in a promoted subreg and truncates lazily at the
+  use sites (that is `cd_control`). Used as a POINTER BASE, the address must be
+  materialised immediately, so the deferred insn IS the truncation and REPLACES
+  the move (`andi $16,$4,0xff` for u8, `sll;sra` for s16 — measured in a
+  testbed). So a prologue showing BOTH the a1-before-a0 order AND a bare
+  `move sX,a0` with no truncation anywhere **cannot come from a narrow first
+  parameter** — the two requirements are mutually exclusive. (FUN_80057b80:
+  order requires narrowness, its pointer use puts the truncation in exactly that
+  slot; the signature lever is closed, and its 8 bytes are a genuine
+  compiler-INPUT difference.) The earlier form of this rule — "a1-copy first
+  implies a narrow first parameter" — is too strong; it is a NECESSARY condition,
+  not a sufficient one.
+  Also banked from that investigation: the deferral gate is ONLY function.c:4142
+  (the other five `push_to_sequence` sites are `#if 0`, or
+  `FUNCTION_ARG_CALLEE_COPIES` which MIPS does not define, or the stack-parm
+  else-branch); `promote_mode` never moves POINTER_TYPE except under
+  `POINTERS_EXTEND_UNSIGNED` (and Pmode is SImode anyway); and `passed_pointer`
+  leaves both promoted modes SImode.
 - **gcc 2.8.1's `sched.c` schedules each basic block BOTTOM-UP, and `priority()`
   (sched.c:1479) maxes over `LOG_LINKS` — PREDECESSORS.** So priority is depth
   from the block TOP, not critical-path-to-block-end (that is later-gcc/haifa
