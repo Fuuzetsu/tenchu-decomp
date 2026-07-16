@@ -44,15 +44,34 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
  * extent (1152 bytes / 288 instructions) and exact 0x810 frame.  The guarded
- * draft has 72 differing bytes (183 -> 161 -> 125 -> 81 -> 72).  The stack is
- * exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at sp+0x7c0,
- * and the zeroed blood VECTOR at sp+0x7d0.
+ * draft has 52 differing bytes (183 -> 161 -> 125 -> 81 -> 72 -> 52).  The
+ * stack is exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at
+ * sp+0x7c0, and the zeroed blood VECTOR at sp+0x7d0.
  *
  * Explicit top-tested stage-kind, weapon, and think scans recover retail's
  * loop rotation.  StageAppearance and WeaponModel remain in t1/t0 and spill
  * at sp+0x7e4/sp+0x7e0 around sprintf.  A CFG join retains the weapon wid
  * reload.  i/s4 is reused across both menu scans and count/x share s5.
  * Narrow single-trip fences steer those live ranges but emit no instructions.
+ *
+ * Closed this pass (-20): THERE IS NO `names_offset` VARIABLE.  The names
+ * cursor is loop.c's own strength-reduced GIV of `count`: `names_offset` and
+ * `count` are updated in lockstep (both only on the success path, both from
+ * 0), so `names_offset == count * 20` identically and the source is simply
+ * `buffer = (char *)names[count]`.  Spelling it as a hand-written biv put
+ * TWO things in the wrong place at once, and writing `names[count]` fixed
+ * both for free:
+ *  (1) its init.  A source `names_offset = 0` is a PRE-loop statement, and
+ *      loop.c emits hoists with emit_insn_before(loop_start) — i.e. after
+ *      every pre-loop statement — so the init could only ever precede the
+ *      hoists.  Retail has it LAST in the preheader (`addu s7,s5,zero` at
+ *      0x8005b5e4) because strength_reduce (loop.c:6405) emits giv inits
+ *      before loop_start AFTER move_movables has already run.  A giv init is
+ *      the ONLY thing that can legally sit after a hoist in a preheader.
+ *  (2) its increment.  As a giv, `addiu s7,s7,20` is emitted at the biv's
+ *      update point rather than mid-block, which stops sched1 floating it up
+ *      to 0x8005b6fc and lets dbr fill sprintf's delay slot with it exactly
+ *      as retail does (0x8005b738).  That alone was a 16-byte cluster.
  *
  * Closed this pass (-44 bytes), as ONE atomic three-part edit — each part
  * alone breaks the 288-insn length, which is why they were parked separately:
@@ -95,8 +114,22 @@
  * A fence's DEPTH is a tunable dial, not a boolean: prefer the smallest depth
  * that wins the inequality, and compute both priorities before touching it.
  *
- * Remaining residual (72) is REGISTER NAMING only, and the base/type/carrier
- * rotation is ONE cause, not three ties.  Both preheaders hold the SAME three
+ * CORRECTED (round 3 got this wrong, and it cost a round): the residual was
+ * NOT "register naming only" and NOT one cause.  Byte-accounting the diff by
+ * cluster is a 5-minute check that would have caught it: of the 72, a full 40
+ * lay in loop 1 / the prologue with IDENTICAL registers on both sides,
+ * differing only in ORDER — they could not possibly be caused by loop 2's
+ * preheader.  Always attribute the bytes to clusters BEFORE adopting a
+ * single-cause story; a story that explains a third of the residual is not a
+ * theory of the residual.
+ *
+ * Remaining residual (52) is TWO independent clusters:
+ *   (a) ~19 bytes in loop 1: the WeaponModel base is emitted BEFORE the -1 and
+ *       HumanData hoists (retail has it after), plus one dbr delay-slot pick
+ *       at 0x8005b620.  See the loop-1 preheader note below.
+ *   (b) ~33 bytes: the loop-2 base/type/carrier rotation, below.
+ *
+ * The loop-2 rotation: both preheaders hold the SAME three
  * instructions in a different ORDER (target 0x8005b7f0, block 22):
  *     target: lui s8 / addiu s6,s8,-25024 / move s0,s1
  *     ours:   move s0,s1 / lui s7         / addiu s1,s7,-25024
@@ -122,9 +155,67 @@
  * a dependency with no data behind it, purely the FENCE_10's notes.  Fences
  * therefore freeze the emitted order of the statements they wrap.
  *
- * Lead for the next pass: insn 714 must be HOISTED from inside the loop and
- * discovered AFTER the base's movable (loop.c hoists in body-scan order), or
- * `item`'s live range must reach past the hoists some other way.
+ * Lead for the next pass (loop 2): insn 714 must be HOISTED from inside the
+ * loop and discovered AFTER the base's movable (loop.c hoists in body-scan
+ * order), or `item`'s live range must reach past the hoists some other way.
+ * The loop-1 result below is the worked precedent that this IS reachable.
+ *
+ * LOOP-1 PREHEADER, and the general rule it establishes.  Retail's order is
+ *     [StageAppearance base] [-1] [HumanData base] [WeaponModel base] [giv]
+ * and ours is
+ *     [StageAppearance base] [WeaponModel base] [-1] [HumanData base] [giv]
+ * i.e. the ONLY thing left out of place is the WeaponModel base.  Round 3
+ * called this shape unreachable because loop.c emits every hoist after every
+ * pre-loop statement.  That is true but it is the wrong lever: the fix is to
+ * stop the value being a pre-loop statement at all.  move_movables emits
+ * movables in BODY-SCAN DISCOVERY order, so a loop-invariant assignment
+ * written INSIDE the body lands at its scan position.  Our body scan order is
+ * already StageAppearance -> -1 -> HumanData -> WeaponModel, exactly retail's.
+ * THE RULE (read this before touching loop 1 again — it is why a NAMED base
+ * can never be hoisted).  loop.c:691-703 will only move a set if one of:
+ *     (1) it is used only in the same basic block as the set, OR
+ *     (2) `! REG_USERVAR_P (SET_DEST (set)) && ! REG_LOOP_TEST_P (...)`, OR
+ *     (3) the set is guaranteed executed once the loop starts and the reg is
+ *         not used until after that.
+ * So **assigning a loop invariant to a NAMED USER VARIABLE blocks the hoist**
+ * whenever the value is also used in another block and the set sits under a
+ * conditional (`maybe_never`).  A compiler TEMP — what a direct indexed
+ * reference like `WeaponModel[weapon].name` or `WeaponModel[0].wid` produces —
+ * takes case (2) and hoists freely.  This one flag explains every loop-1
+ * result, including two that look contradictory:
+ *  - `weapon_base = WeaponModel;` written in the body: 1124 (-7).  User var,
+ *    maybe_never, multi-block -> all three cases fail -> not hoisted at all.
+ *  - direct refs but keeping `weapon_entry = WeaponModel;`: 1140 (-3).  The
+ *    lo_sum's dest is the user var, so only the *temp* `high` hoists and each
+ *    `%lo` is folded into its use.
+ *  - direct refs AND a direct guard `if (WeaponModel[0].wid != -1)` (retail's
+ *    own shape: `lh $v0,0x4($t0)` at 0x6a4, cursor `addu $v1,$t0,$zero` at
+ *    0x6d0): the guard's indexed load creates the temp FIRST, cse1 then makes
+ *    the later `weapon_entry = WeaponModel` a copy of it, and the whole lo_sum
+ *    hoists.  **This reproduces retail's loop-1 preheader EXACTLY** — same 7
+ *    insns, same order, giv init last.  Verified in the .s.
+ *
+ * That shape is 1136 (-4), and the -4 is fully diagnosed: it is exactly the
+ * four caller-save insns (2 `sw` + 2 `lw`).  Our masks are IDENTICAL to
+ * retail's (0xc0ff0000 = s0-s7+fp+ra), but retail keeps ELEVEN long-lived
+ * values (those nine PLUS t0/t1) where we keep nine, so our two bases outrank
+ * retail's and grab callee-saved regs instead of being pushed into caller-
+ * saved t0/t1.  Retail's bases are in t0/t1 *because they lost*: `find_reg`
+ * gave them no callee-saved reg, and caller-save.c then spilled them.
+ * NEXT ROUND, loop 1 = one bounded question: make the two hoisted bases rank
+ * BELOW the nine callee-saved allocnos (or find the two extra long-lived
+ * values retail has — note retail burns s0 and s1 on loop-BODY temps: `sll
+ * $s0,$v0,1` at 0x710, `addiu $s1,$sp,0x18` at 0x6f4).  Score both against
+ * `.greg`'s `;; N regs to allocate:` oracle before editing.
+ *
+ * ALSO CONFIRMED, and it retires a piece of scaffolding: the two `sw` around
+ * sprintf are gcc's CALLER-SAVE of the two bases, not source stores.  With
+ * `blood.call_spill[]` deleted entirely, gcc spilled them on its own to
+ * sp+0x7e0 / sp+0x7e4 — byte-identical slots to the hand-written hack, which
+ * is why the hack ever looked right.  `call_spill` and the volatile-reload
+ * if/else pair are therefore MODELLING A COMPILER PASS and must go with the
+ * edit above; they are kept here only because the 52 checkpoint needs the
+ * exact length and that edit is -4 until the allocation is solved.
  *
  * Rejected (do not repeat): folding the stage slot, narrowing the weapon id,
  * eliminating the weapon CFG join, the s8-next_j allocation hack (autorules
@@ -290,7 +381,6 @@ void AddEnemy(void)
     VECTOR pos;
     AddEnemyBloodScratch blood;
     s32 count;
-    s32 names_offset;
     s32 type;
     s16 i;
     s16 j;
@@ -328,7 +418,6 @@ void AddEnemy(void)
     {
         kind_base = StageAppearance;
         weapon_base = WeaponModel;
-        names_offset = 0;
         while (HumanData[i].type != -1)
         {
             if (count >= 70)
@@ -418,11 +507,10 @@ add_enemy_weapon_scan:
                     }
 add_enemy_weapon_scan_done:
 
-                    buffer = (char *)names + names_offset;
+                    buffer = (char *)names[count];
                     format = D_80097D48;
                     human_name = (char *)HumanData[i].name;
                     weapon_name = (char *)weapon_base[weapon].name;
-                    names_offset += 20;
                     blood.call_spill[0] = (u32)weapon_base;
                     blood.call_spill[1] = (u32)kind_base;
                     sprintf(buffer, format, human_name, weapon_name);

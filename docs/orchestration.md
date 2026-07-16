@@ -209,6 +209,24 @@ the worked examples (which self-update as more functions match), and the
 cross-cutting `GUIDANCE`. **Update `GUIDANCE` in `matcher-prompt.py` (and the
 cookbook) as lessons accrue** — every future launch then inherits them.
 
+## Byte-account before you theorise (orchestrator discipline)
+
+**A single-cause story that explains a third of the residual is not a theory of
+it.** Before writing a brief that names THE cause, split the diff into clusters
+and attribute bytes to each; five minutes of arithmetic beats a confident
+narrative. Measured cost of skipping it: an AddEnemy brief asserted "72 is ONE
+cause — fix the loop-2 preheader and all 72 follow", but 40 of those 72 sat in
+loop 1 and the prologue with IDENTICAL registers on both sides, differing only in
+order — they could not be caused by loop 2 at all. The lane found this in five
+minutes and worked the cluster the brief never mentioned (72 -> 52).
+
+The same discipline applies to every "impossible" verdict a brief inherits: the
+verdict describes a decomposition, and the numbers behind it are often about a
+fraction of the bytes. Three briefs in this rollout carried premises that their
+lanes disproved with arithmetic (the allocno tie-break, the "8 weighted refs"
+debt, this one). Write briefs that hand over EVIDENCE and open questions, not
+conclusions.
+
 ## Depth over breadth (owner directive, 2026-07-17)
 
 **Prioritise driving a function to a FULL exact match over widening the

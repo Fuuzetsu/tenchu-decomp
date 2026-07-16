@@ -5811,6 +5811,33 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Assigning a loop invariant to a NAMED USER VARIABLE blocks loop.c's hoist.**
+  loop.c:691-703 moves a set only if (1) it is used only in the set's own basic
+  block, (2) `!REG_USERVAR_P(SET_DEST(set)) && !REG_LOOP_TEST_P(...)`, or (3) the
+  set is guaranteed executed once the loop starts. A named base under a
+  conditional, used in another block, fails all three — while a compiler TEMP,
+  which a direct indexed reference (`WeaponModel[0].wid`) produces, takes case
+  (2) and hoists freely. So **the fix for a missing hoist is often to DELETE the
+  variable**, not to move it.
+  - **Corollary — a giv init is the ONLY thing that can legally sit after a hoist
+    in a preheader.** `strength_reduce` (loop.c:6405) emits giv inits after
+    `move_movables` has run, whereas a source pre-loop statement can only ever
+    PRECEDE the hoists. So a preheader value that must follow a hoist is a giv,
+    never a source statement — and if you are hand-spelling it, that is the bug.
+    (AddEnemy: there is no `names_offset` variable at all — it and `count` update
+    in lockstep from 0, so `names_offset == count*20` identically; the source is
+    just `buffer = (char *)names[count]` and loop.c strength-reduces the biv.
+    Hand-writing it misplaced both the init and the increment: as a giv the
+    `addiu s7,s7,20` lands at the biv update point, where sched1 stops floating
+    it and dbr fills sprintf's delay slot with it as retail does — a 16-byte
+    cluster on its own.)
+  - **A `do{}while(0)` cannot fix a preheader ORDER problem.** The fence pins
+    order *within* a block; hoist placement is decided in loop.c, long before
+    sched1 ever runs.
+- **Hand-written spill arrays model caller-save.c — delete them and check.**
+  AddEnemy's `blood.call_spill[]`-style spills looked load-bearing, but gcc
+  spilled the same bases to the same slots (sp+0x7e0/sp+0x7e4) by itself; the
+  hack only ever looked right because it agreed with what caller-save already did.
 - **NEVER infer cse-time block structure from the final asm.** cse1 runs BEFORE
   jump2, and jump2's cross-jumping merges identical arms — erasing the very
   labels cse saw. So a store/reload pair that looks impossibly co-located in one
