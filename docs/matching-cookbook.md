@@ -3235,6 +3235,17 @@ materialize the extern base. `leSetEnemy` changed from `$v1=base/$a0=offset` to 
 target `$v1=offset/$a0=base` and closed its 33-byte residual with this form. A cached
 `entry = &arr[idx]` is still ARRAY_REF and remains flat.
 
+**The multi-dimensional extension (LoadConstruction, −21 bytes at two sites):** a
+`&arr[i][j][k].field` on a top-level extern array can need the fully-explicit integer
+form `(k<<sk) + ((i<<si) + (j<<sj)) + (int)arr`. cc1's ARRAY_REF folds the base symbol
+into the offset chain early and emits the outermost index's stride first; the target
+instead computes the pure integer offset with the **lowest-stride (innermost) term
+first**, the two higher-stride terms **grouped in a parenthesised sub-sum**, and the
+base symbol added as a **separate trailing `(int)arr` term**. `&WorldMap[x][y][z].top`
+needed `(z<<2) + ((x<<8) + (y<<5)) + (int)WorldMap`; the plain ARRAY_REF and a cached
+`entry = &arr[i][j][k]` both stay flat. (Candidate for a future autorules rule — needs
+the declared dimensions to derive strides; on the tooling backlog.)
+
 After an address-order fix, recheck nearby stack-parameter loads rather than assuming
 the store statements should be written in final machine order. `leSetEnemy` needed
 `entry->z = z; entry->r = r;`: the lexical `z` assignment exposes its stack load first,

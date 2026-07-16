@@ -607,6 +607,20 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
 
 ## Tooling backlog (recurring friction → build these)
 
+- **autorules `cmp-swap` site selection misses regalloc-owned guard hunks** (it
+  targets combine/expression-owned hunks). DamageControl's −6 operand-order win
+  sat in a regalloc drift region and had to be found by hand. Extend the site
+  filter.
+- **autorules: multi-dim explicit-index rule** — convert `&arr[i][j][k].field`
+  on a top-level extern into `(k<<sk) + ((i<<si) + (j<<sj)) + (int)arr`
+  (innermost term first, higher strides grouped, base trailing). Needs declared
+  dimensions to derive strides. LoadConstruction paid −21 manually.
+- **rtlguide aggregates register goals too coarsely** — it lumped five pseudos
+  as one "$s2→$s3 / $s3→$s4" when only x/y had actually rotated, and the agent
+  had to disentangle by reading split-piece `.s` by hand. Wanted: per-pseudo
+  wrong-reg mapping, plus a "disjoint pseudos coalesced in ours but split in
+  target → try split/ballast" diagnostic.
+
 - **DONE — every game function is carved.** All 555 game functions (plus the two
   SDK ones we had) now have a `c` subsegment, their own
   `asm/nonmatchings/<Name>/<Name>.s`, and a `.c` (a stub where unmatched).
