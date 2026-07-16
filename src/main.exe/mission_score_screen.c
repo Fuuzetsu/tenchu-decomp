@@ -5,11 +5,28 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 476 of 4636 bytes differ (was 498; 525; 1266).  Exact
- * target length (1159 instructions), frame 0x1B8, 60/60 calls, 8/8 unconditional
- * jumps; the whole function is address-aligned except the LoadTIMAndFree arg
- * copy (9 low) and one +4/-4 skew pair inside the row-number draw.  No
+ * STATUS: NON_MATCHING -- 433 of 4636 bytes differ (was 437; 476; 498; 525; 1266).
+ * Exact target length (1159 instructions), frame 0x1B8, 60/60 calls; the whole
+ * function is address-aligned except the LoadTIMAndFree arg copy (9 low) and
+ * one +4/-4 skew pair (medal bgez delay nop vs the row draw's sra).  No
  * retail-name record in PSX.SYM/demo export.
+ *
+ * 2026-07-17 round-4 (Fable) landed identities (do not undo):
+ * - The ROW draw is its own macro (DRAW_SCORE_NUMBER_ROW32): s16 signedValue
+ *   seeded from i+1 (HImode addiu a0,s4,1 — NO pre-extension of i), u16 value
+ *   = signedValue (plain HImode move a1,a0 — no andi), draws through the
+ *   pre-loop rowSprite pointer (no drawnSprite copy), and declares its OWN
+ *   `negative` (target row uses s2 vs s3 elsewhere: per "one variable = one
+ *   hard reg", the row's flag was a distinct local in the original).  This
+ *   fixed value->a1 (incl. `move a1,s0` quotient reload), negu a1,a0, the
+ *   j+two-arm sign shape, the y-store delay-slot fill, the backedge
+ *   `addiu a0,s4,1` delay fill, and beqz s2 — the old rowValue->a0
+ *   "hard-conflict p91" dissolved once value became the copy (born second)
+ *   instead of the andi owner (born first).  476 -> 437.
+ * - rowSprite = &number sits between i = 0 and rankSpriteBase = rankSprites
+ *   (target order: move s4,zero / addiu sp,24 / addiu sp,96).  The old
+ *   "separate rowNumber pointer spills rankSpriteBase" verdict was an
+ *   artifact of the drawnSprite-copy shape; with _ROW32 there is no spill.
  *
  * Proven identities added this session (do not undo):
  * - insertedRank is a PLAIN s32 LOCAL, spilled by reload to sp+392: the
@@ -85,6 +102,26 @@
  * The local aggregates reproduce the original stack layout: packed
  * ScoreResult copy at sp+50, sprite banks at sp+60/sp+118, one GsIMAGE
  * scratch at sp+160 reused by all seven sprite initialisations.
+ *
+ * 2026-07-17 round-4 REJECTED (measured; do not repeat):
+ * - Row s32 carrier with `sv = (s16)(i+1) << 16; ... sv >>= 16;` (in-place
+ *   sll/sra pair like the target's 559a8/ac): correct-length head but the
+ *   pair HOISTS to the block top (its statement's early LUID; the pair is
+ *   sched-mobile) and the medal nop stays -> +1 insn overall.  The v2 s16
+ *   spelling instead lets combine fold sra+bgez (one short) which exactly
+ *   cancels the medal nop; both are the SAME parked ±4 pair.
+ * - The medal bgez delay nop (target fills it with the `move a0,s0` arg
+ *   copy): a second `medalSprite` pointer is REQUIRED (sbs+call via a0-born
+ *   pre-branch), but every spelling that keeps its pseudo alive perturbs the
+ *   global conflict web and flips draws 0/2/3's jump1 sign arms (their
+ *   drawY-t0 carriers dissolve, j's vanish, -3 insns): initializer form
+ *   aliases at expand (2 refs); declare-then-assign dies to cse1
+ *   -fcse-skip-blocks (uses re-canoned to medal across the skipped
+ *   brightness arm); do{}while(0) around the copy makes loop.c
+ *   move_movables SUBSTITUTE it away (reg=reg movable); a dead `medal++`
+ *   blocker (straight-line or arm-local, any position) preserves the copy
+ *   and fills the slot EXACTLY like the target but always costs the
+ *   drawY collateral.  4 candidate spellings measured 4624/4640; parked.
  *
  * 2026-07-16 round-3 closure (flat at 476; do not retry these):
  * - The drawY-carrier lead is CLOSED at the C level: for constant-y draws
@@ -243,10 +280,118 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, drawnSprite,        \
                            x_, y_, S);                                       \
     } while (0)
-/* The row site draws through its pointer variable directly (retail keeps
- * every access on the same register with no drawnSprite copy). */
-#define DRAW_SCORE_NUMBER_ROW(value_, type_, jump_, label_, sprite_, x_, y_) \
-    DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, sprite_, x_, y_, S)
+/* The subtraction draw's carrier is a plain s32 (u8 - u8 int arithmetic):
+ * the subu itself IS signedValue (single def, no sll/sra), and `value` is
+ * the paste-twice cse copy, which sched sinks into the sign branch's delay
+ * slot.  Everything else matches the jump_=1 shape. */
+#define DRAW_SCORE_NUMBER_SV32(value_, label_, sprite_, x_, y_)               \
+    do                                                                       \
+    {                                                                        \
+        GsSPRITE *drawnSprite;                                               \
+        s32 dividend;                                                        \
+        s32 remainder;                                                       \
+        s32 quotient;                                                        \
+        u16 value;                                                           \
+        s32 signedValue;                                                     \
+        s32 drawY;                                                           \
+                                                                             \
+        drawnSprite = (sprite_);                                             \
+        signedValue = (value_);                                              \
+        value = signedValue;                                                 \
+        drawY = (y_);                                                        \
+        drawnSprite->x = (x_);                                               \
+        drawnSprite->y = drawY;                                              \
+        if (signedValue < 0)                                                 \
+        {                                                                    \
+            value = -signedValue;                                            \
+            negative = 1;                                                    \
+            goto label_;                                                     \
+        }                                                                    \
+        else                                                                 \
+        {                                                                    \
+            negative = 0;                                                    \
+        }                                                                    \
+label_:                                                                      \
+        do                                                                   \
+        {                                                                    \
+            dividend = (s16)value;                                           \
+            quotient = dividend / 10;                                        \
+            remainder = dividend % 10;                                       \
+            baseU = drawnSprite->u;                                          \
+            drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;        \
+            GsSortSprite(drawnSprite, OTablePt, 0);                           \
+            drawnSprite->x -= 12;                                            \
+            value = quotient;                                                \
+            quotient <<= 16;                                                 \
+            drawnSprite->u = baseU;                                          \
+        } while (quotient != 0);                                             \
+        if (negative != 0)                                                   \
+        {                                                                    \
+            u32 signBaseU;                                                   \
+                                                                             \
+            signBaseU = drawnSprite->u;                                      \
+            drawnSprite->u = signBaseU + drawnSprite->w * ten;               \
+            GsSortSprite(drawnSprite, OTablePt, 0);                           \
+            drawnSprite->u = signBaseU;                                      \
+        }                                                                    \
+    } while (0)
+
+/* The row site's carrier is an s16 whose HImode add needs NO pre-extension
+ * of i (addiu straight off the promoted register); `value` is u16 so the
+ * copy is a plain HImode move (no andi).  The sign test then emits the
+ * carrier's sll/sra extension pair right before the branch — the carrier
+ * dies there, so the extension result inherits its register.  Draws go
+ * through the pre-loop rowSprite pointer directly (no drawnSprite copy). */
+#define DRAW_SCORE_NUMBER_ROW32(value_, label_, spr_, x_, y_)                 \
+    do                                                                       \
+    {                                                                        \
+        s32 dividend;                                                        \
+        s32 remainder;                                                       \
+        s32 quotient;                                                        \
+        u16 value;                                                           \
+        s16 signedValue;                                                     \
+        s32 drawY;                                                           \
+        register s32 negative;                                               \
+                                                                             \
+        signedValue = (value_);                                              \
+        value = signedValue;                                                 \
+        drawY = (y_);                                                        \
+        (spr_)->x = (x_);                                                    \
+        (spr_)->y = drawY;                                                   \
+        if (signedValue < 0)                                                 \
+        {                                                                    \
+            value = -signedValue;                                            \
+            negative = 1;                                                    \
+            goto label_;                                                     \
+        }                                                                    \
+        else                                                                 \
+        {                                                                    \
+            negative = 0;                                                    \
+        }                                                                    \
+label_:                                                                      \
+        do                                                                   \
+        {                                                                    \
+            dividend = (s16)value;                                           \
+            quotient = dividend / 10;                                        \
+            remainder = dividend % 10;                                       \
+            baseU = (spr_)->u;                                               \
+            (spr_)->u = baseU + (s16)remainder * (spr_)->w;                  \
+            GsSortSprite((spr_), OTablePt, 0);                                \
+            (spr_)->x -= 12;                                                 \
+            value = quotient;                                                \
+            quotient <<= 16;                                                 \
+            (spr_)->u = baseU;                                               \
+        } while (quotient != 0);                                             \
+        if (negative != 0)                                                   \
+        {                                                                    \
+            u32 signBaseU;                                                   \
+                                                                             \
+            signBaseU = (spr_)->u;                                           \
+            (spr_)->u = signBaseU + (spr_)->w * ten;                         \
+            GsSortSprite((spr_), OTablePt, 0);                                \
+            (spr_)->u = signBaseU;                                           \
+        }                                                                    \
+    } while (0)
 
 #define DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, spr_, x_, y_,       \
                            seed_)                                            \
@@ -344,7 +489,6 @@ void mission_score_screen(void)
     register u8 *unlock;
     register PersistentState *statePtr;
     register s16 i;
-    register u16 rowValue;
     register s16 newPress;
     s32 brightness;
     register s32 stageItem;
@@ -558,8 +702,8 @@ score_character_sprite_init_loop:
         DRAW_SCORE_NUMBER(stats.criticals, s32, 1, score_number_0,
                           &number, 0x16, -0x47);
         DRAW_SCORE_COLON(numberSprite, 0x1F);
-        DRAW_SCORE_NUMBER(stats.stageEnemies - stats.stageBosses,
-                          s32, 1, score_number_1, numberSprite, 0x2F, -0x47);
+        DRAW_SCORE_NUMBER_SV32(stats.stageEnemies - stats.stageBosses,
+                               score_number_1, numberSprite, 0x2F, -0x47);
         DRAW_SCORE_NUMBER(result.field0, s16, 1, score_number_2,
                           &number, 0x66, -0x47);
 
@@ -597,8 +741,10 @@ score_character_sprite_init_loop:
 
         {
             GsSPRITE *rankSpriteBase;
+            register GsSPRITE *rowSprite;
 
             i = 0;
+            rowSprite = &number;
             rankSpriteBase = rankSprites;
 score_row_loop:
             {
@@ -606,9 +752,8 @@ score_row_loop:
                 register MissionScorePersistent *characterState;
                 register MissionScorePersistent *rankState;
 
-                rowValue = i + 1;
-                DRAW_SCORE_NUMBER(rowValue, s16, 1, score_row_number,
-                                  &number, -0x8F, i * 0x16 + 0x18);
+                DRAW_SCORE_NUMBER_ROW32(i + 1, score_row_number,
+                                        rowSprite, -0x8F, i * 0x16 + 0x18);
                 scoreState = (MissionScorePersistent *)0x80010000;
                 FUN_800515b0(&number, scoreState->scores[i],
                              0x79, i * 0x16 + 0x18, 1);
