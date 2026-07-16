@@ -7,9 +7,12 @@
  * renderer of the DrawTMD handler family. Compiled-style C using the PsyQ
  * inline-GTE macros (gte_ldv3/gte_rtpt/gte_stsxy3/gte_stsz3) at two RTPT sites.
  *
- * STATUS: NON_MATCHING — LENGTH IS NOW EXACT (945 real instructions, 3796
- * bytes, no knock-on shift to the rest of the image). Residual: 759 differing
- * bytes, dominated by the param_1/param_2 $s0/$s1 swap.
+ * STATUS: NON_MATCHING — 619 of 3796 bytes differ. LENGTH IS EXACT (945
+ * captured instructions / 949 words, no knock-on shift to the rest of the
+ * image). Residual is now ESSENTIALLY JUST the param_1/param_2 $s0/$s1 swap:
+ * 774 of 949 instructions match under a mechanical s0<->s1 rename vs 658
+ * as-is, and the mnemonic stream aligns everywhere except the four sites in
+ * "ROUND 3" below.
  *
  * The `lwc2; nop; nop; RTPT` shape at both command sites (0x80058320,
  * 0x80058548) is confirmed from the raw image bytes, so the nop-carrying
@@ -40,13 +43,39 @@
  *      surplus instructions; fixing the declaration made the length exact.
  *
  * ---------------------------------------------------------------------------
- * ROUND 2 FINDINGS — read before touching this again.
+ * ROUND 3 — WHAT CHANGED (759 -> 619) AND THE ONE THING LEFT.
  *
- * The length is exact, but it balances by CANCELLATION (-1 -1 +1 +1), not
- * because every site is right. Align on MNEMONICS ONLY to see the real
- * structure (a plain per-index diff desynchronises after the first
- * insert/delete, and difflib cannot align across the s0/s1 swap). The four
- * open sites, all confirmed against the target asm:
+ * THE ROUND-3 WIN (the reusable rule, worth 140 bytes here):
+ *   GHIDRA REUSES ONE VARIABLE FOR MANY UNRELATED JOBS; EACH SUCH VARIABLE IS
+ *   ONE PSEUDO, AND ONE PSEUDO GETS ONE HARD REGISTER FOR ALL ITS FRAGMENTS.
+ *   A conflict in ANY fragment therefore exiles EVERY use of it. Ghidra's
+ *   `iVar3` did ~12 jobs (two pointer merges, three z-compares, the leaf prim
+ *   pointer, the four recursive divisions, the final param_2[5] merge) and the
+ *   whole lot landed in $a3 — 70 mentions, where the target's $a3 has 5.
+ *   Same for puVar4/puVar5/iVar6/iVar8/uVar2, reused across all four recursive
+ *   blocks. Splitting them into per-site / per-block locals: 759 -> 722 -> 619.
+ *
+ *   HOW IT WAS FOUND (do this first on any big function): histogram the
+ *   REGISTER MENTIONS of target vs draft. a2/a3 were 25/5 in the target but
+ *   72/70 in the draft — a caller-saved register carrying 70 mentions across
+ *   the whole function is a mega-pseudo, and no real source has one. The proof
+ *   that these are separate source variables is direct: the target assigns
+ *   `puVar4 = param_2[5]` to a1,a1,a1,a2 across the four blocks, and a single
+ *   pseudo can only ever get ONE register.
+ *
+ *   Two downstream effects came free, which is why this is worth more than the
+ *   register names: (a) v0 went 657 -> 695 (target 692) and a0/a3/t0/s2..s7 now
+ *   match EXACTLY; (b) the four `sra` in the recursive-division delay slots
+ *   disappeared. Those were never a source bug — the target's value lives in
+ *   v0, so `sra v0,v0,2` would clobber its own input and the delay slot must
+ *   stay `nop`; ours lived in a3, so the filler could speculate it in. A
+ *   delay-slot/scheduling difference can be a pure CONSEQUENCE of register
+ *   allocation — fix the allocation, not the schedule.
+ *
+ * Align on MNEMONICS ONLY to see the real structure (a plain per-index diff
+ * desynchronises after the first insert/delete, and difflib cannot align
+ * across the s0/s1 swap). The four open sites, all confirmed against the
+ * target asm:
  *
  *   A. MISSING (-1) `addiu a2,param_2,76` at target index 25 (0x80057be0).
  *      PROVEN: the target keeps a base pointer to `param_2 + 0x13` and the
@@ -90,23 +119,76 @@
  *      reload through the same base register, so the real source blocks the
  *      forwarding some other way. Do not ship the ctx alias.
  *
- *   D. The dominant byte residual: param_1/param_2 swapped between $s0/$s1.
- *      Measured with tools/regalloc.py (allocnos identified by the copy-chains
- *      `i4 a0->s1` = p80 = param_1, `i6 a1->s0` = p81 = param_2):
- *          p80 param_1: 74 refs / 1316 live -> 3373
- *          p81 param_2: 104 refs / 1470 live -> 4244
- *      p81 outranks p80, so param_2 takes $s0 first; the target has param_1 in
- *      $s0. `regalloc.py FUN_80057b80 --compare 80 81` says p80 needs +20
- *      weighted refs (+18 with `proto` applied). Ballast alone is a big ask;
- *      note allocno_compare ties break on the LOWER allocno number, and p80 <
- *      p81 — so making the two priorities EQUAL also hands param_1 $s0.
+ *   D. THE WHOLE REMAINING RESIDUAL: param_1/param_2 swapped between $s0/$s1.
+ *          p80 param_1: 74 refs / 1318 live -> 3368
+ *          p81 param_2: 104 refs / 1470 live -> 4244   (102 -> 4157 with proto)
+ *      p81 outranks p80, so param_2 takes $s0 first; the target has param_1
+ *      there. VERIFIED against the pinned gcc-2.8.1 source
+ *      (/nix/store/117i80brbgcdmcl46gmpzwizikbjyx5m-gcc-2.8.1.tar.gz):
+ *        - global.c allocno_compare is exactly regalloc.py's model:
+ *          pri = (floor_log2(n_refs)*n_refs / live_length) * 10000 * size,
+ *          sorted priority-descending, ties broken by LOWER allocno number.
+ *        - MIPS does NOT define REG_ALLOC_ORDER, so find_reg scans plain
+ *          register order and the first free callee-saved reg is $s0 (16).
+ *        - prune_preferences() strips the a0/a1 copy preferences from any
+ *          allocno that crosses a call, so NO preference biases this — the
+ *          sort order alone decides who gets $s0.
  *
- * Aligned operand residual: 629/945 instructions match as-is; 745/945 would
- * match under a mechanical s0<->s1 rename (the ~6 prologue save-slot lines
- * that rename wrongly flips are position-fixed, not swapped).
+ *      CORRECTION TO ROUND 2: "just EQUALISE the priorities, ties break to the
+ *      lower allocno" IS NOT A CHEAPER LEVER — it is arithmetically empty.
+ *      pri80(N) = int(60000*N/1318) steps ~45 per ref: N=93 -> 4234 (lose),
+ *      N=94 -> 4279 (win). No N lands on 4244, so the tie-break never fires.
+ *      The ask is simply pri80 >= pri81, i.e. UNCHANGED at +20 refs.
  *
- * Do NOT re-run: autorules (46 candidates, no win) or the permuter (refused
- * outright for gte.h functions — its parser cannot read inline asm).
+ *      AND THE REF LEVER IS EXHAUSTED — this is the round-3 dead end, stated
+ *      precisely so round 4 does not re-walk it. reg_n_refs is counted by
+ *      flow.c immediately before global_alloc, so it tracks the FINAL asm
+ *      mention count (our draft: 74 refs/76 mentions and 104 refs/106
+ *      mentions — a constant +2). The TARGET's asm mentions param_1 76 times
+ *      and param_2 107 times. Our draft after the four fixes lands on exactly
+ *      those numbers (106 +1 D-adj +1 B +1 C -3 leaf-reads-via-proto +1 proto
+ *      = 107). So the target's own p80 is ~74 refs, NOT the ~94 the priority
+ *      needs. param_1 CANNOT be given +20 refs and still emit the target's
+ *      asm.
+ *
+ *      => The flip must come from LIVE_LENGTH, not refs. Required:
+ *         L80 <= L81 * 74/105 ~= 1036 (we are at 1318; ~-280).
+ *      That means param_1 must DIE ~280 insns earlier than in our draft.
+ *      Unresolved tension for round 4: the target still reads param_1[1] off
+ *      $s0 at 0x8005891c, deep in the 4th recursive block, so a naive
+ *      first-use..last-use span gives L80/L81 ~= 0.9, not the needed 0.70.
+ *      Either param_1 is DEAD across a long stretch our draft keeps it live
+ *      (flow.c counts live_length as insns-live + insns-set, accumulated only
+ *      where actually live, so a branch that never mentions param_1 costs it
+ *      nothing), or regalloc.py's live_length is read from an earlier pass
+ *      than the one global_alloc uses — note 1470 > 949, so the parsed dump is
+ *      pre-combine RTL. RESOLVE THAT FIRST: confirm which dump regalloc.py
+ *      parses vs which life_analysis global_alloc consumes. If they differ,
+ *      the +20 number itself is suspect and the swap may fall to a much
+ *      smaller change.
+ *
+ * Aligned operand residual: 658/949 instructions match as-is; 774/949 match
+ * under a mechanical s0<->s1 rename. Of the 175 that do not, most are
+ * MISALIGNMENT artifacts of the four sites above (an index-aligned compare
+ * desynchronises from the missing `move s8,t0` at index 7 until `addiu
+ * a2,s1,76` at index 24 resyncs it, and again from the missing reload at 37
+ * to the B site at 98) — the mnemonic alignment shows only those four real
+ * regions, so the swap plus the four sites is plausibly the entire residual.
+ *
+ * Do NOT re-run / re-derive (all spent, all negative):
+ *   - autorules (46 candidates, no win) and the permuter (refuses gte.h
+ *     functions outright — its parser cannot read inline asm).
+ *   - `proto` (finding A) as a swap lever: measured on the ROUND-3 draft it
+ *     moves p81 104->102 refs and 4244->4157, still needing +18. It does NOT
+ *     flip the swap, and alone it costs +1 insn (3800 > the 3796 carve), so it
+ *     can only ever land packaged with a B/C payback.
+ *   - "equalise the priorities" (see the CORRECTION under D).
+ *
+ * WARNING for round 4: every register-allocation finding above numbered 1-3
+ * was established on the PRE-SPLIT draft. The mega-pseudo split rewrote the
+ * conflict graph, so re-verify rather than assume — in particular finding 1
+ * (local_30 must not be copied from piVar13) has NOT been re-tested since.
+ *
  * Build the draft with `NON_MATCHING=FUN_80057b80 ./Build`.
  */
 
@@ -117,13 +199,43 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
 {
     short sVar1;
     u16 uVar2;
+    u16 uVar2_a;
+    u16 uVar2_b;
+    u16 uVar2_c;
+    u16 uVar2_d;
     int iVar3;
-    u32 *puVar4;
-    u32 *puVar5;
-    int iVar6;
+    int pMin;
+    int zA;
+    int zB;
+    int zC;
+    int pCx;
+    int pCy;
+    int prim;
+    int pv;
+    int pv2;
+    int dz1;
+    int dz2;
+    int dz3;
+    int dz4;
+    u32 *otp;
+    u32 *puVar4_a;
+    u32 *puVar4_b;
+    u32 *puVar4_c;
+    u32 *puVar4_d;
+    u32 *puVar5_a;
+    u32 *puVar5_b;
+    u32 *puVar5_c;
+    u32 *puVar5_d;
+    int iVar6_a;
+    int iVar6_b;
+    int iVar6_c;
+    int iVar6_d;
     short *psVar7;
     long *r2;
-    int iVar8;
+    int iVar8_a;
+    int iVar8_b;
+    int iVar8_c;
+    int iVar8_d;
     short *psVar10;
     long *r2_00;
     SVECTOR *r2_01;
@@ -139,51 +251,51 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
     if (*(int *)(*param_1 + 0x10) > *(int *)(param_1[1] + 0x10))
     {
         param_2[6] = *(int *)(*param_1 + 0x10);
-        iVar3 = param_1[1];
+        pMin = param_1[1];
     }
     else
     {
         param_2[6] = *(int *)(param_1[1] + 0x10);
-        iVar3 = *param_1;
+        pMin = *param_1;
     }
-    param_2[7] = *(int *)(iVar3 + 0x10);
-    iVar3 = *(int *)(param_1[2] + 0x10);
-    if (iVar3 < param_2[7])
+    param_2[7] = *(int *)(pMin + 0x10);
+    zA = *(int *)(param_1[2] + 0x10);
+    if (zA < param_2[7])
     {
-        param_2[7] = iVar3;
+        param_2[7] = zA;
     }
-    else if (param_2[6] < iVar3)
+    else if (param_2[6] < zA)
     {
-        param_2[6] = iVar3;
+        param_2[6] = zA;
     }
-    iVar3 = *(int *)(param_1[3] + 0x10);
-    if (iVar3 < param_2[7])
+    zB = *(int *)(param_1[3] + 0x10);
+    if (zB < param_2[7])
     {
-        param_2[7] = iVar3;
+        param_2[7] = zB;
     }
-    else if (param_2[6] < iVar3)
+    else if (param_2[6] < zB)
     {
-        param_2[6] = iVar3;
+        param_2[6] = zB;
     }
-    iVar3 = param_2[6];
-    if (iVar3 < 0)
+    zC = param_2[6];
+    if (zC < 0)
     {
-        iVar3 = iVar3 + 3;
+        zC = zC + 3;
     }
-    param_2[6] = iVar3 >> 2;
-    if (param_2[8] <= iVar3 >> 2)
+    param_2[6] = zC >> 2;
+    if (param_2[8] <= zC >> 2)
     {
         if (*(short *)(*param_1 + 0xc) > *(short *)(param_1[1] + 0xc))
         {
             *(u16 *)(param_2 + 0xc) = *(u16 *)(*param_1 + 0xc);
-            iVar3 = param_1[1];
+            pCx = param_1[1];
         }
         else
         {
             *(u16 *)(param_2 + 0xc) = *(u16 *)(param_1[1] + 0xc);
-            iVar3 = *param_1;
+            pCx = *param_1;
         }
-        *(u16 *)(param_2 + 0xb) = *(u16 *)(iVar3 + 0xc);
+        *(u16 *)(param_2 + 0xb) = *(u16 *)(pCx + 0xc);
         sVar1 = *(short *)(param_1[2] + 0xc);
         uVar2 = *(u16 *)(param_1[2] + 0xc);
         if (sVar1 < *(short *)(param_2 + 0xb))
@@ -210,14 +322,14 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
             if (*(short *)(*param_1 + 0xe) > *(short *)(param_1[1] + 0xe))
             {
                 *(u16 *)((int)param_2 + 0x32) = *(u16 *)(*param_1 + 0xe);
-                iVar3 = param_1[1];
+                pCy = param_1[1];
             }
             else
             {
                 *(u16 *)((int)param_2 + 0x32) = *(u16 *)(param_1[1] + 0xe);
-                iVar3 = *param_1;
+                pCy = *param_1;
             }
-            *(u16 *)((int)param_2 + 0x2e) = *(u16 *)(iVar3 + 0xe);
+            *(u16 *)((int)param_2 + 0x2e) = *(u16 *)(pCy + 0xe);
             sVar1 = *(short *)(param_1[2] + 0xe);
             uVar2 = *(u16 *)(param_1[2] + 0xe);
             if (sVar1 < *(short *)((int)param_2 + 0x2e))
@@ -245,25 +357,25 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
                     ((*(short *)(param_2 + 0xc) - *(short *)(param_2 + 0xb) < 0xff) &&
                      (*(short *)((int)param_2 + 0x32) - *(short *)((int)param_2 + 0x2e) < 0x7f)))
                 {
-                    iVar3 = param_2[5];
-                    *(u32 *)(iVar3 + 8) = *(u32 *)(*param_1 + 0xc);
-                    *(u32 *)(iVar3 + 0x14) = *(u32 *)(param_1[1] + 0xc);
-                    *(u32 *)(iVar3 + 0x20) = *(u32 *)(param_1[2] + 0xc);
-                    *(u32 *)(iVar3 + 0x2c) = *(u32 *)(param_1[3] + 0xc);
-                    *(u32 *)(iVar3 + 0xc) = *(u32 *)(*param_1 + 0x14);
-                    *(u32 *)(iVar3 + 0x18) = *(u32 *)(param_1[1] + 0x14);
-                    *(u32 *)(iVar3 + 0x24) = *(u32 *)(param_1[2] + 0x14);
-                    *(u32 *)(iVar3 + 0x30) = *(u32 *)(param_1[3] + 0x14);
-                    *(u32 *)(iVar3 + 4) = *(u32 *)(*param_1 + 8);
-                    *(u32 *)(iVar3 + 0x10) = *(u32 *)(param_1[1] + 8);
-                    *(u32 *)(iVar3 + 0x1c) = *(u32 *)(param_1[2] + 8);
-                    *(u32 *)(iVar3 + 0x28) = *(u32 *)(param_1[3] + 8);
-                    *(u16 *)(iVar3 + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    *(u16 *)(iVar3 + 0x1a) = *(u16 *)((int)param_2 + 0x66);
+                    prim = param_2[5];
+                    *(u32 *)(prim + 8) = *(u32 *)(*param_1 + 0xc);
+                    *(u32 *)(prim + 0x14) = *(u32 *)(param_1[1] + 0xc);
+                    *(u32 *)(prim + 0x20) = *(u32 *)(param_1[2] + 0xc);
+                    *(u32 *)(prim + 0x2c) = *(u32 *)(param_1[3] + 0xc);
+                    *(u32 *)(prim + 0xc) = *(u32 *)(*param_1 + 0x14);
+                    *(u32 *)(prim + 0x18) = *(u32 *)(param_1[1] + 0x14);
+                    *(u32 *)(prim + 0x24) = *(u32 *)(param_1[2] + 0x14);
+                    *(u32 *)(prim + 0x30) = *(u32 *)(param_1[3] + 0x14);
+                    *(u32 *)(prim + 4) = *(u32 *)(*param_1 + 8);
+                    *(u32 *)(prim + 0x10) = *(u32 *)(param_1[1] + 8);
+                    *(u32 *)(prim + 0x1c) = *(u32 *)(param_1[2] + 8);
+                    *(u32 *)(prim + 0x28) = *(u32 *)(param_1[3] + 8);
+                    *(u16 *)(prim + 0xe) = *(u16 *)((int)param_2 + 0x5a);
+                    *(u16 *)(prim + 0x1a) = *(u16 *)((int)param_2 + 0x66);
                     *(int *)param_2[5] = param_2[0x13];
-                    puVar4 = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar4;
-                    *(u32 *)param_2[5] = *puVar4 & 0xffffff | 0xc000000;
+                    otp = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
+                    param_2[0xe] = (int)otp;
+                    *(u32 *)param_2[5] = *otp & 0xffffff | 0xc000000;
                     *(u32 *)param_2[0xe] = param_2[5] & 0xffffff;
                     iVar3 = param_2[5] + 0x34;
                 }
@@ -337,142 +449,142 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
                     gte_stsz3(param_1 + 8, param_1 + 0xe, r2);
                     gte_ldv3(r2_01, r1, r2_02);
                     gte_rtpt();
-                    iVar3 = *param_1;
+                    pv = *param_1;
                     piVar13[1] = (int)r0;
                     piVar13[2] = (int)r1_00;
                     piVar13[3] = (int)r2_02;
-                    *piVar13 = iVar3;
+                    *piVar13 = pv;
                     gte_stsxy3(r2_00, param_1 + 0x19, param_1 + 0x1f);
                     gte_stsz3(r2, param_1 + 0x1a, param_1 + 0x20);
                     param_3 = param_3 + 1;
                     FUN_80057b80(local_30, param_2, param_3);
-                    iVar6 = *param_1;
-                    puVar4 = (u32 *)param_2[5];
-                    iVar8 = param_1[1];
-                    puVar4[2] = *(u32 *)(iVar6 + 0xc);
-                    puVar4[5] = *(u32 *)(iVar8 + 0xc);
-                    puVar4[8] = *(u32 *)&r0[1].vz;
-                    iVar3 = *(int *)(iVar6 + 0x10);
-                    if (iVar3 < 0)
+                    iVar6_a = *param_1;
+                    puVar4_a = (u32 *)param_2[5];
+                    iVar8_a = param_1[1];
+                    puVar4_a[2] = *(u32 *)(iVar6_a + 0xc);
+                    puVar4_a[5] = *(u32 *)(iVar8_a + 0xc);
+                    puVar4_a[8] = *(u32 *)&r0[1].vz;
+                    dz1 = *(int *)(iVar6_a + 0x10);
+                    if (dz1 < 0)
                     {
-                        iVar3 = iVar3 + 3;
+                        dz1 = dz1 + 3;
                     }
-                    param_2[6] = iVar3 >> 2;
-                    puVar4[3] = (u32)*(u16 *)(iVar6 + 0x14);
-                    puVar4[6] = (u32)*(u16 *)(iVar8 + 0x14);
-                    puVar4[9] = (u32)(u16)r0[2].vz;
-                    puVar4[1] = *(u32 *)(iVar6 + 8);
-                    puVar4[4] = *(u32 *)(iVar8 + 8);
-                    puVar4[7] = *(u32 *)(r0 + 1);
-                    *(u16 *)((int)puVar4 + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2 = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4 + 3) = 9;
-                    *(u8 *)((int)puVar4 + 7) = 0x34;
-                    *(u16 *)((int)puVar4 + 0x1a) = uVar2;
-                    puVar5 = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5;
-                    *puVar4 = *puVar5 & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4 & 0xffffff;
+                    param_2[6] = dz1 >> 2;
+                    puVar4_a[3] = (u32)*(u16 *)(iVar6_a + 0x14);
+                    puVar4_a[6] = (u32)*(u16 *)(iVar8_a + 0x14);
+                    puVar4_a[9] = (u32)(u16)r0[2].vz;
+                    puVar4_a[1] = *(u32 *)(iVar6_a + 8);
+                    puVar4_a[4] = *(u32 *)(iVar8_a + 8);
+                    puVar4_a[7] = *(u32 *)(r0 + 1);
+                    *(u16 *)((int)puVar4_a + 0xe) = *(u16 *)((int)param_2 + 0x5a);
+                    uVar2_a = *(u16 *)((int)param_2 + 0x66);
+                    *(u8 *)((int)puVar4_a + 3) = 9;
+                    *(u8 *)((int)puVar4_a + 7) = 0x34;
+                    *(u16 *)((int)puVar4_a + 0x1a) = uVar2_a;
+                    puVar5_a = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
+                    param_2[0xe] = (int)puVar5_a;
+                    *puVar4_a = *puVar5_a & 0xffffff | 0x9000000;
+                    *(u32 *)param_2[0xe] = (u32)puVar4_a & 0xffffff;
                     param_2[5] = param_2[5] + 0x28;
                     *piVar13 = (int)r0;
-                    iVar3 = param_1[1];
+                    pv2 = param_1[1];
                     piVar13[2] = (int)r2_02;
-                    piVar13[1] = iVar3;
+                    piVar13[1] = pv2;
                     piVar13[3] = (int)r1;
                     FUN_80057b80(local_30, param_2, param_3);
-                    iVar6 = param_1[2];
-                    puVar4 = (u32 *)param_2[5];
-                    iVar8 = *param_1;
-                    puVar4[2] = *(u32 *)(iVar6 + 0xc);
-                    puVar4[5] = *(u32 *)(iVar8 + 0xc);
-                    puVar4[8] = *(u32 *)&r1_00[1].vz;
-                    iVar3 = *(int *)(iVar6 + 0x10);
-                    if (iVar3 < 0)
+                    iVar6_b = param_1[2];
+                    puVar4_b = (u32 *)param_2[5];
+                    iVar8_b = *param_1;
+                    puVar4_b[2] = *(u32 *)(iVar6_b + 0xc);
+                    puVar4_b[5] = *(u32 *)(iVar8_b + 0xc);
+                    puVar4_b[8] = *(u32 *)&r1_00[1].vz;
+                    dz2 = *(int *)(iVar6_b + 0x10);
+                    if (dz2 < 0)
                     {
-                        iVar3 = iVar3 + 3;
+                        dz2 = dz2 + 3;
                     }
-                    param_2[6] = iVar3 >> 2;
-                    puVar4[3] = (u32)*(u16 *)(iVar6 + 0x14);
-                    puVar4[6] = (u32)*(u16 *)(iVar8 + 0x14);
-                    puVar4[9] = (u32)(u16)r1_00[2].vz;
-                    puVar4[1] = *(u32 *)(iVar6 + 8);
-                    puVar4[4] = *(u32 *)(iVar8 + 8);
-                    puVar4[7] = *(u32 *)(r1_00 + 1);
-                    *(u16 *)((int)puVar4 + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2 = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4 + 3) = 9;
-                    *(u8 *)((int)puVar4 + 7) = 0x34;
-                    *(u16 *)((int)puVar4 + 0x1a) = uVar2;
-                    puVar5 = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5;
-                    *puVar4 = *puVar5 & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4 & 0xffffff;
+                    param_2[6] = dz2 >> 2;
+                    puVar4_b[3] = (u32)*(u16 *)(iVar6_b + 0x14);
+                    puVar4_b[6] = (u32)*(u16 *)(iVar8_b + 0x14);
+                    puVar4_b[9] = (u32)(u16)r1_00[2].vz;
+                    puVar4_b[1] = *(u32 *)(iVar6_b + 8);
+                    puVar4_b[4] = *(u32 *)(iVar8_b + 8);
+                    puVar4_b[7] = *(u32 *)(r1_00 + 1);
+                    *(u16 *)((int)puVar4_b + 0xe) = *(u16 *)((int)param_2 + 0x5a);
+                    uVar2_b = *(u16 *)((int)param_2 + 0x66);
+                    *(u8 *)((int)puVar4_b + 3) = 9;
+                    *(u8 *)((int)puVar4_b + 7) = 0x34;
+                    *(u16 *)((int)puVar4_b + 0x1a) = uVar2_b;
+                    puVar5_b = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
+                    param_2[0xe] = (int)puVar5_b;
+                    *puVar4_b = *puVar5_b & 0xffffff | 0x9000000;
+                    *(u32 *)param_2[0xe] = (u32)puVar4_b & 0xffffff;
                     param_2[5] = param_2[5] + 0x28;
                     *piVar13 = (int)r1_00;
                     piVar13[1] = (int)r2_02;
                     piVar13[2] = param_1[2];
                     piVar13[3] = (int)r2_01;
                     FUN_80057b80(local_30, param_2, param_3);
-                    iVar6 = param_1[3];
-                    puVar4 = (u32 *)param_2[5];
-                    iVar8 = param_1[2];
-                    puVar4[2] = *(u32 *)(iVar6 + 0xc);
-                    puVar4[5] = *(u32 *)(iVar8 + 0xc);
-                    puVar4[8] = *(u32 *)&r2_01[1].vz;
-                    iVar3 = *(int *)(iVar6 + 0x10);
-                    if (iVar3 < 0)
+                    iVar6_c = param_1[3];
+                    puVar4_c = (u32 *)param_2[5];
+                    iVar8_c = param_1[2];
+                    puVar4_c[2] = *(u32 *)(iVar6_c + 0xc);
+                    puVar4_c[5] = *(u32 *)(iVar8_c + 0xc);
+                    puVar4_c[8] = *(u32 *)&r2_01[1].vz;
+                    dz3 = *(int *)(iVar6_c + 0x10);
+                    if (dz3 < 0)
                     {
-                        iVar3 = iVar3 + 3;
+                        dz3 = dz3 + 3;
                     }
-                    param_2[6] = iVar3 >> 2;
-                    puVar4[3] = (u32)*(u16 *)(iVar6 + 0x14);
-                    puVar4[6] = (u32)*(u16 *)(iVar8 + 0x14);
-                    puVar4[9] = (u32)(u16)r2_01[2].vz;
-                    puVar4[1] = *(u32 *)(iVar6 + 8);
-                    puVar4[4] = *(u32 *)(iVar8 + 8);
-                    puVar4[7] = *(u32 *)(r2_01 + 1);
-                    *(u16 *)((int)puVar4 + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2 = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4 + 3) = 9;
-                    *(u8 *)((int)puVar4 + 7) = 0x34;
-                    *(u16 *)((int)puVar4 + 0x1a) = uVar2;
-                    puVar5 = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5;
-                    *puVar4 = *puVar5 & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4 & 0xffffff;
+                    param_2[6] = dz3 >> 2;
+                    puVar4_c[3] = (u32)*(u16 *)(iVar6_c + 0x14);
+                    puVar4_c[6] = (u32)*(u16 *)(iVar8_c + 0x14);
+                    puVar4_c[9] = (u32)(u16)r2_01[2].vz;
+                    puVar4_c[1] = *(u32 *)(iVar6_c + 8);
+                    puVar4_c[4] = *(u32 *)(iVar8_c + 8);
+                    puVar4_c[7] = *(u32 *)(r2_01 + 1);
+                    *(u16 *)((int)puVar4_c + 0xe) = *(u16 *)((int)param_2 + 0x5a);
+                    uVar2_c = *(u16 *)((int)param_2 + 0x66);
+                    *(u8 *)((int)puVar4_c + 3) = 9;
+                    *(u8 *)((int)puVar4_c + 7) = 0x34;
+                    *(u16 *)((int)puVar4_c + 0x1a) = uVar2_c;
+                    puVar5_c = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
+                    param_2[0xe] = (int)puVar5_c;
+                    *puVar4_c = *puVar5_c & 0xffffff | 0x9000000;
+                    *(u32 *)param_2[0xe] = (u32)puVar4_c & 0xffffff;
                     param_2[5] = param_2[5] + 0x28;
                     *piVar13 = (int)r2_02;
                     piVar13[1] = (int)r1;
                     piVar13[2] = (int)r2_01;
                     piVar13[3] = param_1[3];
                     FUN_80057b80(local_30, param_2, param_3);
-                    iVar8 = param_1[1];
-                    puVar4 = (u32 *)param_2[5];
-                    iVar6 = param_1[3];
-                    puVar4[2] = *(u32 *)(iVar8 + 0xc);
-                    puVar4[5] = *(u32 *)(iVar6 + 0xc);
-                    puVar4[8] = *(u32 *)&r1[1].vz;
-                    iVar3 = *(int *)(iVar8 + 0x10);
-                    if (iVar3 < 0)
+                    iVar8_d = param_1[1];
+                    puVar4_d = (u32 *)param_2[5];
+                    iVar6_d = param_1[3];
+                    puVar4_d[2] = *(u32 *)(iVar8_d + 0xc);
+                    puVar4_d[5] = *(u32 *)(iVar6_d + 0xc);
+                    puVar4_d[8] = *(u32 *)&r1[1].vz;
+                    dz4 = *(int *)(iVar8_d + 0x10);
+                    if (dz4 < 0)
                     {
-                        iVar3 = iVar3 + 3;
+                        dz4 = dz4 + 3;
                     }
-                    param_2[6] = iVar3 >> 2;
-                    puVar4[3] = (u32)*(u16 *)(iVar8 + 0x14);
-                    puVar4[6] = (u32)*(u16 *)(iVar6 + 0x14);
-                    puVar4[9] = (u32)(u16)r1[2].vz;
-                    puVar4[1] = *(u32 *)(iVar8 + 8);
-                    puVar4[4] = *(u32 *)(iVar6 + 8);
-                    puVar4[7] = *(u32 *)(r1 + 1);
-                    *(u16 *)((int)puVar4 + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2 = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4 + 3) = 9;
-                    *(u8 *)((int)puVar4 + 7) = 0x34;
-                    *(u16 *)((int)puVar4 + 0x1a) = uVar2;
-                    puVar5 = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5;
-                    *puVar4 = *puVar5 & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4 & 0xffffff;
+                    param_2[6] = dz4 >> 2;
+                    puVar4_d[3] = (u32)*(u16 *)(iVar8_d + 0x14);
+                    puVar4_d[6] = (u32)*(u16 *)(iVar6_d + 0x14);
+                    puVar4_d[9] = (u32)(u16)r1[2].vz;
+                    puVar4_d[1] = *(u32 *)(iVar8_d + 8);
+                    puVar4_d[4] = *(u32 *)(iVar6_d + 8);
+                    puVar4_d[7] = *(u32 *)(r1 + 1);
+                    *(u16 *)((int)puVar4_d + 0xe) = *(u16 *)((int)param_2 + 0x5a);
+                    uVar2_d = *(u16 *)((int)param_2 + 0x66);
+                    *(u8 *)((int)puVar4_d + 3) = 9;
+                    *(u8 *)((int)puVar4_d + 7) = 0x34;
+                    *(u16 *)((int)puVar4_d + 0x1a) = uVar2_d;
+                    puVar5_d = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
+                    param_2[0xe] = (int)puVar5_d;
+                    *puVar4_d = *puVar5_d & 0xffffff | 0x9000000;
+                    *(u32 *)param_2[0xe] = (u32)puVar4_d & 0xffffff;
                     iVar3 = param_2[5] + 0x28;
                 }
                 param_2[5] = iVar3;
