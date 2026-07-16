@@ -13,16 +13,31 @@
  * END PSX.SYM */
 
 /* STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
- * length (1448 bytes / 362 instructions). The guarded draft differs in 118
- * linked bytes, with 44 aligned instruction lines in 21 blocks; the structural
- * view is 27 lines in 11 blocks. Snapshotting old_pad before its write lets the
- * store fill the target branch delay slot. In the strip renderer, a distinct
- * full-word tpage capture preserves retail's lw/nop/sra sequence, while the
- * widened position carrier remains live across GetTPage and is destructively
- * reused by the brightness ladder. Capturing the call result and xbase before
- * their stores recovers the target load-delay schedule. Remaining differences
- * are prologue scheduling, four small caller-register clusters, and the scroll
- * adjustment's load order. Fuzzy: 90.88% (up from 87.29%). */
+ * length (1448 bytes / 362 instructions). The guarded draft differs in 87 linked
+ * bytes (down from 118), 36 aligned instruction lines in 15 blocks.
+ * KEY FINDING: the `do{sequence=0;}while(0)` fence was NOT load-bearing — it walled
+ * off the basic block sched2 needs in order to interleave the callee-saved register
+ * spills with the init writes; removing it (plain `sequence = 0;`) let the saves
+ * interleave as retail does and closed 25 bytes on its own. Moving `fade_step = -8`
+ * to just after the first PathFileRead lets it fill that call's branch delay slot.
+ * Both position narrowings are now explicit in-place shifts (`position <<= 16;
+ * position >>= 16;` and `position = counter << 16; position >>= 16;`) so the
+ * sign-extend is `sll s0,s0,16; sra s0,s0,16` in place of a v0 scratch.
+ * Retained: snapshotting old_pad before its write (delay slot), the distinct
+ * full-word tpage capture (lw/nop/sra), capturing the call result/xbase before
+ * their stores. LOAD-BEARING (confirmed by regression on removal): the outer strip
+ * `do{}while(0)` (length mismatch without it) and the nested position-carrier
+ * fences (regress to 100).
+ * REMAINING (all greg register/schedule ties, no source lever found; rejected:
+ * single-expr scroll=128, brightness explicit temp, tpage/xbase var-merge, `3*x`):
+ * (1) prologue — the prefix/s2 setup schedules after the sequence/fade spills
+ * instead of first, and the two init constants land in v0 where retail reuses t0
+ * (xbase materialized 0xff60/ori vs retail -160/addiu); (2) four caller-saved ties
+ * where retail reuses t0 for load temps (tpage_word->a2, xbase_value->v1,
+ * scroll-adjusted->a2) and v1 for the brightness `0xa0-position` intermediate (->v0)
+ * — rtlguide hard-conflicts a2->v0 (p89/p96/p197), v0->v1 (p82); (3) position=counter's
+ * in-place sign-extend is scheduled two insns before the GetTPage(0,0) arg moves.
+ * Fuzzy: 93.09% (up from 90.88%). */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800519bc", FUN_800519bc);
 #else
@@ -126,18 +141,15 @@ void FUN_800519bc(void)
     s16 i;
 
     prefix = (u8 *)D_800137A0;
-    do
-    {
-        sequence = 0;
-    } while (0);
+    sequence = 0;
     fade = 0xfe;
     stack.scroll = -0xa000;
     stack.old_pad = 0;
     stack.xbase = -0xa0;
-    fade_step = -8;
 
     file = PathFileRead(prefix,
                         D_8008EA90[PSTATE->language][PSTATE->stage].background);
+    fade_step = -8;
     stack.background = FUN_8004f4f8(file);
     vfree(file);
 
@@ -232,10 +244,7 @@ void FUN_800519bc(void)
             {
                 if (counter >= 0)
                 {
-                    do
-                    {
-                        tpage_word = stack.tpage_base;
-                    } while (0);
+                    tpage_word = stack.tpage_base;
                     if (strip_width != 0)
                         tpage_value = tpage_word >> 16;
                     else
@@ -244,7 +253,8 @@ void FUN_800519bc(void)
                     do
                     {
                         sprite.u = counter << 2;
-                        position = counter;
+                        position = counter << 16;
+                        position >>= 16;
                         tpage_result = GetTPage(0, 0,
                             tpage_value + position, 0x100);
                         do
@@ -265,7 +275,8 @@ void FUN_800519bc(void)
                             position = xbase_value - position;
                         } while (0);
                         sprite.x = position;
-                        position = (s16)position;
+                        position <<= 16;
+                        position >>= 16;
                         if (position < -0xa0)
                         {
                             goto brightness_zero;
