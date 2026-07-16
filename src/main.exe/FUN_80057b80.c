@@ -7,12 +7,15 @@
  * renderer of the DrawTMD handler family. Compiled-style C using the PsyQ
  * inline-GTE macros (gte_ldv3/gte_rtpt/gte_stsxy3/gte_stsz3) at two RTPT sites.
  *
- * STATUS: NON_MATCHING — 619 of 3796 bytes differ. LENGTH IS EXACT (945
+ * STATUS: NON_MATCHING — 506 of 3796 bytes differ. LENGTH IS EXACT (945
  * captured instructions / 949 words, no knock-on shift to the rest of the
- * image). Residual is now ESSENTIALLY JUST the param_1/param_2 $s0/$s1 swap:
- * 774 of 949 instructions match under a mechanical s0<->s1 rename vs 658
- * as-is, and the mnemonic stream aligns everywhere except the four sites in
- * "ROUND 3" below.
+ * image).
+ *
+ * ROUND 5 CLOSED THE $s0/$s1 SWAP (619 -> 506). param_1 now lands in $s0 and
+ * param_2 in $s1, as in the target, via the `do{}while(0)` fence around the
+ * LEAF vertex-copy block (see ROUND 5 at the bottom — read that first). Every
+ * other pseudo disposition is byte-identical to the pre-fence draft. The
+ * residual is now ONLY the four sites A/B/C/D-adj described under "ROUND 3".
  *
  * The `lwc2; nop; nop; RTPT` shape at both command sites (0x80058320,
  * 0x80058548) is confirmed from the raw image bytes, so the nop-carrying
@@ -257,6 +260,94 @@
  *    (body 298/300/328/331/333/362/364/366, all param_1[0..3] AFTER the
  *    recursive calls) are what hold it live — that is the ladder to attack.
  *
+ * ---------------------------------------------------------------------------
+ * ROUND 5 — THE SWAP IS CLOSED (619 -> 506), LENGTH STILL EXACT.
+ *
+ * The fence lever round 4 found is now PAID FOR, and both of round 4's open
+ * questions had the same answer: SITE THE FENCE SOMEWHERE ELSE.
+ *
+ * 1. WHERE TO FENCE — histogram BOTH rivals, not just the one you want to
+ *    lift. A `do{}while(0)` weights EVERY pseudo whose refs it encloses, so a
+ *    region that mentions param_2 more than param_1 makes the gap WORSE.
+ *    Measured net (param_1 - param_2) source mentions per region:
+ *        Z block   [317..353]  10 vs 13  = -3     X box [356..386] 10 vs 11 = -1
+ *        Y box     [390..420]  10 vs 11  = -1     leaf OT [441..448] 0 vs 12 = -12
+ *        recursive [520..656]  16 vs 47  = -31
+ *        leaf vtx copies [429..440]  12 vs 0  = +12   <-- ONLY these two
+ *        midpoints       [452..517]  26 vs 0  = +26   <-- have param_1 > param_2
+ *    DISPROOF OF A ROUND-4 ASSUMPTION: a fence on the Z block moves p81 MORE
+ *    than p80 (74->88 but 104->128), taking the ask from +20 to +40 refs.
+ *    Round 4 tried 8 regions, ALL inside [384..458] — i.e. all in the midpoint
+ *    block, which is exactly where p124..p128 (the midpoint SVECTOR pointers)
+ *    live. That is why every one of them permuted s2-s7: the fence was sited
+ *    ON TOP of the collateral. The LEAF vertex-copy block is the OTHER BRANCH
+ *    of the same if/else, so it cannot touch the midpoint pointers at all.
+ *
+ * 2. THE FENCE (what is actually in the source now): a DOUBLE `do{}while(0)`
+ *    around leaf lines [428..440]. Depth 3 => each enclosed ref counts 3x
+ *    instead of 1x, i.e. +2 per ref, so 12 mentions buy +24: p80 74 -> 98
+ *    (3368 -> 4461) and p81 104 -> 106 (4244 -> 4326). p80 now outranks p81
+ *    and takes $s0 first. A SINGLE fence there is NOT enough (+12 -> 86 refs,
+ *    still under p81) — the nesting depth is load-bearing.
+ *    RESULT: p80->s0 / p81->s1 (the target's), and p84/p116/p118..p122/p124..
+ *    p129/p630 dispositions are ALL UNCHANGED from the pre-fence draft. Zero
+ *    collateral — the swap is bought for nothing.
+ *
+ * 3. WHY ROUND 4's "+1 nop" TAX WAS NOT INHERENT (its stated cause is WRONG).
+ *    Round 4 blamed the nop on the register permutation ("with p122 in a2 the
+ *    anti-dependence vanishes, the scheduler hoists the addiu"). But the leaf
+ *    fence permutes NOTHING and STILL cost +1 (3800) when sited at [429..440].
+ *    The real cause: a fence's NOTE_INSN_LOOP_BEG/END are cse/scheduling
+ *    BARRIERS. `prim = param_2[5]` (line 428) sat just OUTSIDE the fence while
+ *    all 12 of its uses sat inside, so the begin-note cut the definition off
+ *    from its uses and param_2[5] was RELOADED (a surplus `lw v1,20(s1)` at
+ *    0x80057ed4; the target loads it once at 0x80057ed8). Moving the fence one
+ *    line up to [428..440], so the DEFINING statement is inside with its uses,
+ *    removed the reload and the length went back to exact.
+ *    => GENERAL RULE: put a fence's boundary where no value defined just
+ *    outside is used just inside. Cost the boundary, not just the contents.
+ *
+ * 3b. A SECOND FENCE PAID TOO: one around the FIRST Z min/max update
+ *    (`if (zA < zmin) ... else if (zmax < zA) ...`) took 506 -> 494 with the
+ *    length still exact, and shortened the aligned residual 77 -> 66 lines.
+ *    That is the shape of a MINMAX macro, so it is plausible source, not just
+ *    a lever. It lifts p81 104 -> 108 refs (4244 -> 4408) against p80's 4461,
+ *    leaving only 53 points of margin — every further param_2-heavy fence eats
+ *    into that.
+ *
+ * 3c. DISPROOFS — do NOT re-walk these (all measured this round):
+ *    - Fencing the SECOND Z min/max (zB) as well: 494 -> 574. It BREAKS the
+ *      flip. Its read of param_2[7] already follows a join, so it reloads
+ *      anyway and the fence buys nothing but p81 refs. A fence pays ONLY where
+ *      it creates a barrier the target actually needs; elsewhere it is pure
+ *      cost. (This is the cleanest confirmation of the whole ref model.)
+ *    - Fencing the X-box min/max (site B): +1 length and the sll/sra DOES NOT
+ *      become `lh`. So a loop note does NOT block cse's store-to-load
+ *      forwarding. CORRECTION to note 3 above: the `prim` reload the leaf
+ *      fence caused was a SCHEDULING effect, not a cse one. Sites B/C/D-adj
+ *      are therefore still unspelled, and the fence is not the tool for them.
+ *
+ * 3d. RTL GROUND TRUTH for the B/C/D-adj forwarding (.cse dump, draft):
+ *    at the D-adj site the store is
+ *      (insn 63 (set (mem/s:SI (plus (reg/v:SI 81) (const_int 28))) (reg:SI 140)))
+ *    and the compare three insns later uses `(reg:SI 140)` DIRECTLY — cse
+ *    forwarded and deleted the load. The SAME read after `code_label 95`
+ *    (insn 103) is a genuine reload. So the boundary is all that matters.
+ *    In cse.c the recording of a store's destination is skipped only when
+ *    `sets[i].src_elt == 0` ("if we didn't put a REG_EQUAL value or a source
+ *    into the hash table, there is no point is recording DEST"), which fires
+ *    for ZERO_EXTRACT/SIGN_EXTRACT (bit-field) destinations and for sources
+ *    that set `do_not_record` (volatile). Neither is reachable here without
+ *    changing the emitted store, so the spelling remains open — the next lever
+ *    to try is something that makes the STORE's source unhashable while still
+ *    emitting a plain `sh`/`sw` through param_2's own register.
+ *
+ * 4. flow.c ground truth for the two levers (gcc 2.8.1, pinned tarball):
+ *    reg_live_length is incremented once per insn where the reg is live
+ *    (propagate_block's final pass) plus once for the insn that sets it — it
+ *    is an accumulation over insns-where-live, NOT a first-use..last-use span.
+ *    reg_n_refs is `+= loop_depth` at each ref, which is the whole fence lever.
+ *
  * Build the draft with `NON_MATCHING=FUN_80057b80 ./Build`.
  */
 
@@ -328,6 +419,7 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
     }
     param_2[7] = *(int *)(pMin + 0x10);
     zA = *(int *)(param_1[2] + 0x10);
+    do {
     if (zA < param_2[7])
     {
         param_2[7] = zA;
@@ -336,6 +428,7 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
     {
         param_2[6] = zA;
     }
+    } while (0);
     zB = *(int *)(param_1[3] + 0x10);
     if (zB < param_2[7])
     {
@@ -425,6 +518,7 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
                     ((*(short *)(param_2 + 0xc) - *(short *)(param_2 + 0xb) < 0xff) &&
                      (*(short *)((int)param_2 + 0x32) - *(short *)((int)param_2 + 0x2e) < 0x7f)))
                 {
+                    do { do {
                     prim = param_2[5];
                     *(u32 *)(prim + 8) = *(u32 *)(*param_1 + 0xc);
                     *(u32 *)(prim + 0x14) = *(u32 *)(param_1[1] + 0xc);
@@ -438,6 +532,7 @@ void FUN_80057b80(int *param_1, int *param_2, int param_3)
                     *(u32 *)(prim + 0x10) = *(u32 *)(param_1[1] + 8);
                     *(u32 *)(prim + 0x1c) = *(u32 *)(param_1[2] + 8);
                     *(u32 *)(prim + 0x28) = *(u32 *)(param_1[3] + 8);
+                    } while (0); } while (0);
                     *(u16 *)(prim + 0xe) = *(u16 *)((int)param_2 + 0x5a);
                     *(u16 *)(prim + 0x1a) = *(u16 *)((int)param_2 + 0x66);
                     *(int *)param_2[5] = param_2[0x13];

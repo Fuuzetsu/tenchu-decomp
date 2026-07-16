@@ -5811,6 +5811,32 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Siting a `do{}while(0)` ref-fence: histogram BOTH rivals, not just the pseudo
+  you want to lift.** The fence weights EVERY pseudo whose refs it encloses, so a
+  region that mentions the rival more makes the gap WORSE (a Z-block fence moved
+  p80 74→88 but p81 104→128, taking the ask from +20 to +40). Prefer a region on
+  the OPPOSITE BRANCH of an if/else from the collateral pseudos — it cannot touch
+  them. FUN_80057b80's swap closed the moment the fence moved from the midpoint
+  block (26 param_1 refs but where the midpoint pointers live, so it permuted
+  s2–s7 every time) to the leaf vertex copies (12 vs 0 — the other branch), where
+  every other disposition stayed put and the swap came free.
+- **Cost a fence's BOUNDARY, not just its contents.** `NOTE_INSN_LOOP_BEG/END` are
+  scheduling barriers, so any value DEFINED just outside the fence and USED inside
+  gets reloaded (+1 instruction). Pull the defining statement inside the fence. A
+  fence that looks inherently expensive is often just mis-bounded by one line:
+  FUN_80057b80's "+1 nop tax" was blamed on the register permutation for a whole
+  round, but the leaf fence permutes nothing and still cost +1 — the real cause
+  was `prim = param_2[5]` sitting one line outside the fence while all 12 uses
+  sat inside. Moving the boundary restored the exact length.
+- **Fence nesting depth is load-bearing.** `reg_n_refs` is `+= loop_depth`, so a
+  DOUBLE `do{}while(0)` (depth 3) buys +2 per enclosed ref where a single buys
+  +1 — a 12-ref region can suffice where one fence over the same region cannot.
+- **A loop note does NOT block cse store-to-load forwarding.** Fencing a
+  same-block read does not turn its `sll/sra` back into an `lh`; the fence is a
+  scheduling barrier, not an aliasing one (FUN_80057b80 site B: +1 and no fold).
+  A fence pays ONLY where it creates a barrier the target actually needs —
+  fencing a read that already follows a join buys the rival refs and breaks the
+  flip (494→574).
 - **Keeping a redundant SImode copy alive (`move rX,rY` before a zero-test) — and
   why `do{}while(0)` CANNOT do it.** combine folds `t = v; if (t)` only when
   flow.c built a LOG_LINK, and `mark_set_1` builds one only when

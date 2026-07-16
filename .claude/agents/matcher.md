@@ -16,6 +16,23 @@ your `./Build` fight every sibling agent for the same `.shake/` database lock. I
 you catch yourself typing the primary path, stop and use a path relative to your
 own worktree root instead. (This has gone wrong more than once.)
 
+**SECOND, ALWAYS: check your worktree's BASE.** Your worktree is often branched
+from a STALE commit — three consecutive rounds on one function got worktrees 20+
+commits behind, one of them missing the entire checkpoint the task described (its
+`.c` was a bare `INCLUDE_ASM` stub). Before any edit: confirm
+`src/main.exe/<Name>.c` contains the state your task describes and that your
+measured baseline matches the number you were given. If it does not,
+`git merge --ff-only master` (your branch has no commits yet, so this is safe) and
+re-measure. Say so in your report. A lane that skips this silently re-derives
+banked work or "improves" a state master already beat.
+
+**MEASURE ONLY AFTER BUILDING THE DRAFT.** `tools/matchdiff.py -n` means
+`--no-build`: it reads whatever image is on disk. The sequence is always
+`NON_MATCHING=<Name> ./Build` **then** `tools/matchdiff.py -n <Name>`. An agent
+that skips the rebuild gets the PREVIOUS image's number — the tell is an identical
+byte count across several different edits (one lane reported 125 three times this
+way, and a real LENGTH MISMATCH only surfaced once it rebuilt).
+
 **FIRST COMMAND, ALWAYS: `tools/wt-init.sh`.** You run in your own git worktree.
 `disks/` (the game images) and `.shake/` (which holds the Ghidra export) are both
 gitignored, so your worktree has neither: `./Build` cannot find its target image
