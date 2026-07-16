@@ -183,7 +183,7 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 
 /* This is deliberately a macro.  Retail repeats the decimal loop at every
  * call site, with fresh arithmetic identities but shared sign/base-U state. */
-#define DRAW_SCORE_Y_SEED_0(carrier_, y_)
+#define DRAW_SCORE_Y_SEED_0(carrier_, y_) ((carrier_) = (y_))
 #define DRAW_SCORE_Y_SEED_1(carrier_, y_) ((carrier_) = (y_))
 #define DRAW_SCORE_Y_SEED_PICK_(jump_, carrier_, y_)                         \
     DRAW_SCORE_Y_SEED_##jump_(carrier_, y_)
@@ -405,9 +405,10 @@ score_rank_sprite_init_loop:
     }
 
     {
-        register s32 characterColour = 128;
+        register s32 characterColour;
 
         i = 0;
+        characterColour = 128;
 score_character_sprite_init_loop:
         {
             u32 attribute;
@@ -611,6 +612,8 @@ score_row_loop:
                     brightness = 0x80;
                 }
                 sprite->r = sprite->g = sprite->b = brightness;
+                do {
+                } while (0);
                 GsSortSprite(sprite, OTablePt, 1);
 
                 rankState = (MissionScorePersistent *)0x80010000;
