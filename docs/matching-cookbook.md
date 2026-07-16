@@ -3359,54 +3359,57 @@ enclosing base, or vice versa, that is the lever -- confirmed on FUN_8004c59c vi
 `.cse`/`.cse2`/`.lreg` dumps (`.greg` shows the pointer correctly in $s1, but cse1 had
 already rewritten the offset-0 store to base-relative).
 
-### A spilled pseudo self-ties iff its OPERAND ITSELF requires a register
+### Two reloads at one opnum can NEVER share a register
 
-**(This section has now been wrong twice. It first read "a huge-offset-spilled
-pointer dereference can NEVER self-tie … do not retry it" — retracted. Its
-replacement said the discriminator was "bare operand vs inside a MEM": the right
-CONCLUSION, the wrong REASON, and one worked example backwards. This is the
-measured version.)**
+**(This section has been wrong three times — a record, and a lesson in itself.
+v1: "a huge-offset-spilled pointer deref can NEVER self-tie … do not retry it"
+(retracted; the discriminator was invented). v2: "bare operand vs inside a MEM"
+(right conclusion, wrong reason). v3: "whether the OPERAND ITSELF requires a
+register" (the escape it named would not have helped). Each version was written
+from a correct reading of the mechanics and a wrong model of what the mechanics
+imply. This one is verified against the pinned reload.c/reload1.c AND the `.greg`
+RTL.)**
 
-**The discriminator is whether the OPERAND ITSELF gets reloaded — i.e. whether its
-constraint accepts `'m'`.** The step that is easy to miss is `reload.c:3812`: once
-a MEM operand's ADDRESS has been reloaded, `(mem (reg a3))` matches movsi's `'m'`,
-so the operand is never reloaded (`operand_reloadnum < 0`) and **both** address
-reloads are retyped to `RELOAD_FOR_OPERAND_ADDRESS` (`reload.c:3854`).
-`reload1.c:4623` then bars the second from the first's register via
-`reload_reg_used_in_op_addr`, and `reload_reg_class_lower`'s `r1 - r2` tiebreak
-(`reload1.c:4345`) fixes the order. The escape is `reload.c:3812`'s
-`operand_reloadnum >= 0`: **the operand must REQUIRE a register.** A branch or
-`addu` operand does (-> `RELOAD_FOR_INPUT`, which per `reload1.c:4560` only scans
-`i > opnum`, so it self-ties). A MEM used as an address never does.
+**`reload_reg_free_p` bars the second reload from the first's register on BOTH
+paths, so the retype is NOT a discriminator:**
+* **retyped** (the address was reloaded, so `(mem (reg))` matches movsi's `'m'`
+  and the operand itself is not reloaded — `reload.c:3812/3854`): both become
+  `RELOAD_FOR_OPERAND_ADDRESS`, which bars `reload_reg_used_in_op_addr`.
+* **un-retyped** (the escape earlier versions chased): the
+  `RELOAD_FOR_INPUT_ADDRESS` case explicitly bars BOTH
+  `reload_reg_used_in_input_addr[opnum]` AND `reload_reg_used_in_inpaddr_addr[opnum]`.
+  Same outcome — and it would ADD a third reload (`RELOAD_FOR_INPUT`) on top of
+  the two, not merge them.
 
-**Three sites, TWO mechanisms — do not group them.** `if (title == 0)`,
-`menu[i]` and `menu[selection]` self-tie because their operands require registers.
-But **`p = menu` does NOT self-tie at all**: movsi's `'m'` absorbs the MEM, so
-there is no value reload in the first place — `lw v1,0(t0)` loads straight into
-`p`'s home.
+**The only sharing reload type is `RELOAD_FOR_INPUT`**, whose free-check scans
+`input_addr`/`inpaddr_addr` only for `i > opnum` (`reload1.c:4560`) — so an INPUT
+reload MAY share its own address reload's register. That requires the pseudo's
+VALUE to be a bare register operand (`if (title == 0)`, `menu[i]`,
+`menu[selection]` — the sites that already match, emitting `lw a3,0(a3)`). A
+`p->field` deref never is: it is a standalone `movsi` whose `'m'` absorbs
+`(mem (reg))`. **Do not chase "make the operand require a register"** — no C
+spelling reaches it anyway (every MIPS pattern with a `'d'`-only constraint carries
+a `register_operand` predicate, so combine's recog refuses a MEM, and
+`register_operand`'s only MEM escape at recog.c:883-892 is a pre-reload
+`(subreg (mem))`, unreachable for a same-mode SImode deref).
 
-**A copy cannot fix a barred site** (AdtSelect's round-2 dead end): a surviving
-copy `X = menu` puts the value in X's ALLOCATED register, and `$a3`/`$t0` are
-RELOAD registers — the `.greg` dispositions here only ever use
-`$v0/$v1/$a0/$s0-$s7/$fp/HI`. So a copy can only ever emit `lw v1,0(a3); lw
-v0,0(v1)`, never the target's `lw a3,0(a3)`. (Measured with `rtldump.py --src`:
-the multi-use copy still emits `lw $8,0($7)` with `p` in `$3`; combine also
-copy-propagates `p = menu` into the deref even when `p` is multi-use, so the
-"single-use yet outlives combine" catch-22 was never even reachable.) Every
-fence/`REG_N_DEATHS` lever points at this same dead lever.
-
-**The one live question** for a barred site: make the operand REQUIRE a register so
-`reload.c:3812`'s retype cannot fire. Already dead: `if (menu->choice_name != 0)`
-cannot fold into the branch (MIPS `branch_zero` has a `register_operand`
-PREDICATE, so combine's recog rejects it), and adding a bare-operand use of `menu`
-raises its ref count until it un-spills into `$fp` and the whole shape changes.
+**A copy cannot help either**: it puts the value in an ALLOCATED register, but the
+target's is a RELOAD register (AdtSelect's `.greg` dispositions only ever use
+`$v0/$v1/$a0/$s0-$s7/$fp/HI`), so a copy can only emit `lw v1,0(a3); lw v0,0(v1)`.
 
 **A reload-register-only diff downstream of a reload-COUNT difference is ONE root
-cause, not many.** `allocate_reload_reg` round-robins from `last_spill_reg`
-(`reload1.c:5082-5091`, updated at `:5185`), so consuming one extra reload
-register ANYWHERE shifts every later reload by one position. AdtSelect's regs run
-`a3, t0, a3, t0…`, and site 1 taking two regs instead of one is the SOLE cause of
-site 2's `t0<->a3` flip. Do not chase the downstream sites.
+cause.** `allocate_reload_reg` round-robins from `last_spill_reg`
+(`reload1.c:5082-5091`, updated at `:5185`), so one extra reload register anywhere
+shifts every later reload. Do not chase the downstream sites.
+
+**The real open question (AdtSelect, parked evidence-complete at 9/776):** the
+TARGET emits ONE reload register at the barred site, which this source structure
+provably cannot — `.greg` shows insn 48 carrying `REG_EQUIV (mem (mem (plus sp
+32972)))`, a DOUBLE mem, so reload emits A (`a3=32972; a3+=sp`), B
+(`t0=mem[a3]`), then the movsi. So the question is not a C-spelling question at
+all: it is **why the original has ONE reload where this structure gives TWO**.
+Start from `.greg` and `reload.c:4296`; do NOT re-open the operand-constraint or
+copy levers.
 
 ### A `%hi` reload tie is `combine_regs` refusing to tie a block-crossing pseudo
 

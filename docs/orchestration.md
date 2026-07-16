@@ -540,10 +540,15 @@ function already byte-matches on current `master`.
   AddEnemy lane lost real time to a self-diagnosed "build-dep gap" that turned
   out to be Shake being correct. Check the dispositions or the `.o` timestamp,
   not the byte count alone.
-- **A 0.1 s "build" is not automatically a stale read.** Shake content-hashes the
-  `.o`, so a dead-code-only edit legitimately produces an identical object and
-  skips the relink. Verify with `.c` -> `.o` -> `main.exe` timestamps rather than
-  assuming either way (a lane briefly mistrusted a correct build over this).
+- **A 0.1 s "build" is not automatically a stale read — and `touch` will NEVER
+  trigger a rebuild.** Shake keys on CONTENT DIGESTS, not mtimes. So (a) a
+  dead-code-only or codegen-neutral edit legitimately produces an identical `.o`
+  and rightly skips the relink, and (b) probing the build with `touch` proves
+  nothing: it changes no content, so doing nothing is CORRECT. Three separate
+  lanes have now mis-diagnosed this — one filed a "build-dep gap", one distrusted
+  a valid measurement, one concluded `./Build` had silently no-op'd after a
+  `touch`. Verify with the `.c` -> `.o` -> `main.exe` content/timestamps, or just
+  use `tools/matchdiff.py <Name>` (no `-n`), which does its own build.
 - **Never read `matchdiff`/`asmdiff` output from a build whose `./Build check` did not
   return 0.** A failed or torn build leaves stale/inconsistent artifacts, and the diff
   against them is fiction. I "diagnosed" a phantom 2-byte gp-offset bug in a

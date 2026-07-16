@@ -22,47 +22,71 @@
  * reuses the address register a3, we take t0.  Site 2's t0<->a3 is NOT an
  * independent difference — see the round-robin note below.
  *
- * ---- WHY (verified line-by-line against the nix-pinned gcc-2.8.1 sources) ----
+ * ---- WHY (verified line-by-line against the nix-pinned gcc-2.8.1 sources,
+ *          and against the .greg RTL dump — see ROUND 3 correction below) ----
  *
  * For `name = menu->choice_name` the insn is `(set (reg 93) (mem (reg 81)))`
  * with reg 81 = menu spilled (reg_equiv_address = sp+32972; 32972 > 32767 so
- * the address must be materialised).  Reload does:
+ * the address must be materialised).  The .greg dump confirms the operand is a
+ * DOUBLE MEM — insn 48 carries
+ *   REG_EQUIV (mem/s:SI (mem:SI (plus:SI (reg 29 sp) (const_int 32972))))
+ * and reload emits exactly three insns:
+ *   470/472  a3 = 32972 ; a3 = a3 + sp      <- reload A (materialise the slot)
+ *   475      t0 = mem[a3]                   <- reload B (load menu's value)
+ *   48       v0 = mem[t0]                   <- the movsi ('m' absorbs it)
+ * Site 2 (`p = menu`, insns 479/481/55) has only ONE reload, hence one reg.
  *
  *   reload.c 2552   a MEM operand goes STRAIGHT to find_reloads_address — it
  *                   never reaches find_reloads_toplev.
  *   reload.c 4296   reg_equiv_address branch: recurse on the sp+32972 PLUS
  *                   (RELOAD_FOR_INPADDR_ADDRESS via ADDR_TYPE), THEN
  *                   push_reload menu's value (RELOAD_FOR_INPUT_ADDRESS).
- *   reload.c 3812   *** the step round 1 missed ***  `(mem (reg a3))` matches
- *                   movsi's 'm' constraint, so the OPERAND ITSELF is never
- *                   reloaded (operand_reloadnum[1] < 0).  Both address reloads
- *                   are therefore RETYPED to RELOAD_FOR_OPERAND_ADDRESS
- *                   (reload.c 3854).
- *   reload1.c 4623  RELOAD_FOR_OPERAND_ADDRESS returns 0 for any reg in
- *                   reload_reg_used_in_op_addr — i.e. the second one may not
- *                   reuse the first one's register.  ==> t0.
+ *                   A is therefore ALWAYS pushed before B.
  *   reload1.c 4345  reload_reg_class_lower's last tiebreak is `r1 - r2`
- *                   (push order), and both reloads share class/nregs, so the
- *                   materialisation is ALWAYS allocated first and always wins
- *                   a3.  The order is not perturbable.
+ *                   (push order); A and B tie on every earlier key (both
+ *                   non-optional, both GR_REGS, non-solitary, nregs 1), so A is
+ *                   ALWAYS allocated first and always wins a3.  Not perturbable.
  *
- * This is unconditional for the deref shape, so NO respelling of
- * `menu->choice_name` can self-tie it.
+ * ---- ROUND 3 CORRECTION: the "operand must require a register" escape is
+ *      NOT the discriminator.  Rounds 1-2 (and the cookbook) had this wrong. ----
  *
- * The escape hatch in reload.c 3812 is `operand_reloadnum[opnum] >= 0` — the
- * operand must ITSELF be reloaded, which happens only when the operand needs a
- * REGISTER rather than accepting 'm'.  That is the real discriminator, and it
- * explains all four menu sites:
- *   - `if (title == 0)` and the print/tail `menu[i]` / `menu[selection]`:
- *     bare operands of a branch/addu, which require a register.  The operand
- *     is reloaded (RELOAD_FOR_INPUT), so the address reload KEEPS
- *     RELOAD_FOR_INPUT_ADDRESS, and RELOAD_FOR_INPUT (reload1.c 4560) only
- *     scans i > opnum — so it self-ties.  `lw a3,0(a3)`.
- *   - `p = menu`: movsi's 'm' absorbs the MEM, so there is NO value reload at
- *     all — `lw v1,0(t0)` loads straight into p's home.  (This site does NOT
- *     "self-tie"; the old note grouped it with the two above by mistake.)
- *   - `menu->choice_name`: 'm' absorbs it too, but here the MEM is an ADDRESS,
- *     so the retype fires and the second reload is barred.  ==> the residual.
+ * reload1.c's reload_reg_free_p bars B from A's register on BOTH paths, so
+ * defeating reload.c 3812's retype would NOT produce the target:
+ *   - RETYPED (what we get): both become RELOAD_FOR_OPERAND_ADDRESS, whose
+ *     free-check returns 0 for any reg in reload_reg_used_in_op_addr.  A marks
+ *     it, so B is barred.  ==> t0.
+ *   - UN-RETYPED (the proposed escape): A stays RELOAD_FOR_INPADDR_ADDRESS and
+ *     B stays RELOAD_FOR_INPUT_ADDRESS — but the RELOAD_FOR_INPUT_ADDRESS case
+ *     explicitly bars BOTH reload_reg_used_in_input_addr[opnum] AND
+ *     reload_reg_used_in_inpaddr_addr[opnum].  A marks the latter.  ==> t0 again.
+ * So B can NEVER share A's register, retype or no retype.  The escape is dead
+ * not because no C spelling reaches it, but because reaching it changes nothing.
+ *
+ * The self-tie that DOES exist is a different reload type.  `if (title == 0)`
+ * emits `lw a3,0(a3)` at 0x8005FF3C — and we already match those bytes.  There
+ * the pseudo's VALUE is a bare operand requiring a register, so it is reloaded
+ * as RELOAD_FOR_INPUT, whose free-check scans input_addr/inpaddr_addr only for
+ * `i > opnum` — an INPUT reload may therefore share its OWN address reload's
+ * register.  Same for `menu[i]` / `menu[selection]`.  That is the real rule.
+ *
+ * Two consequences for site 1:
+ *   1. Making the operand require a register would ADD a third reload
+ *      (RELOAD_FOR_INPUT, on top of A and B) — it cannot merge A and B.
+ *   2. No C spelling can make it anyway: every MIPS pattern with a 'd'-only
+ *      constraint carries a register_operand PREDICATE (branch_zero, addsi3,
+ *      mulsi3 …), so combine's recog refuses a MEM; and register_operand's only
+ *      MEM escape (recog.c 883-892, `(subreg (mem))` pre-reload) is unreachable
+ *      for a same-mode SImode pointer deref.  The deref is always a standalone
+ *      movsi whose 'm' absorbs the MEM.
+ *
+ * WHAT THIS LEAVES: the target's site 1 emits `ori a3,0x80CC; addu a3,a3,sp;
+ * lw a3,0(a3)` — ONE reload register.  Since two reloads at one opnum can never
+ * share, the target must have only ONE reload there, i.e. menu's load is an
+ * INPUT-type reload (like title's) rather than an INPUT_ADDRESS/INPADDR pair.
+ * That is a sharper open question than round 3's brief posed, and it is NOT
+ * answerable by respelling the deref: it needs a source shape in which menu's
+ * value is a bare register operand whose reload register is then reused as the
+ * deref address — which the copy lever (below) provably cannot supply either.
  *
  * ---- WHAT ROUND 2 DISPROVED (do not re-derive) ----
  *
@@ -102,10 +126,27 @@
  * source property, not a frame-size artefact.  All other allocation (9
  * callee-saved pseudos + 2 spilled params) matches.
  *
- * WHAT WOULD ACTUALLY CLOSE IT: the target's site-1 operand must be one that
- * REQUIRES A REGISTER (so reload.c 3812's retype does not fire).  Every C
- * spelling of the deref tried so far accepts 'm'.  A round 3 should attack
- * that single question and ignore combine entirely.
+ * ---- STATUS AFTER ROUND 3: EVIDENCE-COMPLETE, PARKED ----
+ *
+ * Round 3 was asked to make site 1's operand require a register.  That question
+ * is answered NO twice over (see the ROUND 3 CORRECTION above): no C spelling
+ * can do it, AND doing it would not produce the target anyway, because
+ * reload_reg_free_p bars the second reload from the first's register on both
+ * the retyped and un-retyped paths.  The lever the last two rounds were aimed
+ * at does not exist.
+ *
+ * Every source-level lever is now closed with measurements: autorules (23
+ * candidates, none improving), a bounded permuter run (flat at 9), reghist
+ * (194/194 insns, delta sum 0), both do{}while(0) fences load-bearing (+16 each
+ * if unwrapped), the copy lever (dead — reload regs are not allocatable), and
+ * every respelling of the deref (identical RTL: the operand is always a
+ * standalone movsi absorbing (mem (reg 81)) via 'm').  The demo build emits the
+ * same split at a different frame (0x80E0/0x80E4), so it is not a frame artefact.
+ *
+ * The remaining question is NOT a C-spelling question: it is why the original's
+ * site 1 has ONE reload where gcc-2.8.1 gives this source structure TWO.  Any
+ * future round should start there — from the .greg RTL and reload.c 4296 — and
+ * should NOT re-open the operand-constraint or copy levers.
  */
 
 #ifndef NON_MATCHING
