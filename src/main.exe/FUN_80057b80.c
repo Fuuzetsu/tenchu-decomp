@@ -183,11 +183,79 @@
  *     flip the swap, and alone it costs +1 insn (3800 > the 3796 carve), so it
  *     can only ever land packaged with a B/C payback.
  *   - "equalise the priorities" (see the CORRECTION under D).
+ *   - the `do{}while(0)` fence as a swap lever: it DOES flip p80/p81 (ROUND 4
+ *     note 3) but every region costs +1 nop. Do not re-derive the flip; only
+ *     revisit if a -1 payback exists to pair with it.
+ *   - "regalloc.py reads the wrong dump" (ROUND 4 note 1: it does not).
  *
  * WARNING for round 4: every register-allocation finding above numbered 1-3
  * was established on the PRE-SPLIT draft. The mega-pseudo split rewrote the
  * conflict graph, so re-verify rather than assume — in particular finding 1
  * (local_30 must not be copied from piVar13) has NOT been re-tested since.
+ *
+ * ---------------------------------------------------------------------------
+ * ROUND 4 — the swap lever is FOUND and PROVEN, but costs +1 nop. Still 619.
+ *
+ * 1. regalloc.py IS CORRECT — do NOT "fix" it. The suspicion that its
+ *    live_length (1470 for a 949-insn function) is a stale PRE-COMBINE read is
+ *    DISPROVEN. `dump_conflicts` prints `;; N regs to allocate:` in
+ *    allocno_order, i.e. the real POST-qsort order — ground truth for any
+ *    priority model. Scoring the 54 listed allocnos against that order:
+ *      .lreg live_length (p80 1318 / p81 1470):  0 violations / 53 pairs
+ *      .flow live_length (p80  763 / p81  838): 15 violations / 53 pairs
+ *    The .lreg table is exactly what global_alloc consumes. live_length is
+ *    simply NOT bounded by the final instruction count (it is not a naive
+ *    per-insn count of the final chain), so "1470 > 949" is a red herring.
+ *    REUSABLE: that `regs to allocate:` line is a free oracle — regalloc.py
+ *    currently parses it as a SET and throws the ORDER away.
+ *
+ * 2. `reg_n_refs` IS LOOP-DEPTH WEIGHTED — flow.c adds one unit of weight per
+ *    enclosed reference per loop depth (regalloc.py's own `--enclosed-refs`
+ *    models this). So refs do NOT track asm mentions, and "the ref lever is
+ *    exhausted because the target only mentions param_1 76x" is UNSOUND
+ *    REASONING. It happens to hold here only because this function has no
+ *    loops (verified: 0 real backward branches; the four that a naive scan
+ *    finds are the recursive `jal FUN_80057b80` branching back to the entry
+ *    glabel — a FALSE POSITIVE, exclude calls). Target mentions, for the
+ *    record: s0=76 s1=107 s2=20 s3=17 s4=18 s5=13 s6=18 s7=18 fp=19.
+ *
+ * 3. THE FENCE LEVER WORKS AND FLIPS THE SWAP. A `do{}while(0)` emits no code
+ *    but DOES leave the loop notes flow.c weights by. Wrapping ~20 param_1
+ *    refs one level deeper takes p80 74 -> 94 refs, priority 3368 -> 4279 >
+ *    p81's 4244, and the allocation flips to the target's p80->s0 / p81->s1.
+ *    Verified at the cc1 level: `move $16,$4` / `move $17,$5` (vs the base's
+ *    `move $17,$4` / `move $16,$5`), and the .s is the SAME LENGTH (766 = 766)
+ *    — the flip is FREE inside the compiler. Every region tried flipped it:
+ *    [384..437] [396..458] [408..458] [408..457] [396..449] [411..458]
+ *    [384..444] [384..458] (file lines; param_1's refs cumulate to 20 at f437).
+ *
+ * 4. WHY IT STILL COSTS +4 (3800 > the 3796 carve): the fence re-weights EVERY
+ *    pseudo inside it, and a short live range gains more priority per ref than
+ *    a long one — so the s2-s7 neighbours permute. Under [396..458]:
+ *    p125 (14/239 -> 1757) becomes 25/239 -> 4184 and OVERTAKES p124
+ *    (16/345 -> 1855 -> 27/345 -> 3130). Best variants leave only two swaps
+ *    (p124<->p125, p128<->p630); [384..444] instead moves p122 a1 -> a2.
+ *    Either way exactly ONE nop appears, always from a broken load-delay-slot
+ *    fill. The whole-function objdump A/B is a single hunk:
+ *      base:  lbu v0,21(a0); lbu v1,21(a1); addiu a1,s1,76   <- addiu fills
+ *      fence: addiu a1,s0,76; lbu v0,21(a0); lbu v1,21(a2); nop
+ *    With p122 in a2 the anti-dependence on a1 vanishes, the scheduler hoists
+ *    the addiu, and the slot goes unfilled. TARGET GROUND TRUTH @0x800584EC:
+ *      lbu $v0,0x15($a0); lbu $v1,0x15($a1); addiu $a1,$s0,0x4C; addu ...
+ *    i.e. the target has the FENCE's register ($s0) AND the BASE's ordering.
+ *    Correcting the permutation cascades (p124 would need +5 more refs, which
+ *    then breaks p126/p128), so no fence isolates param_1 here: its refs are
+ *    structurally interleaved with the s2-s7 midpoint pointers.
+ *
+ * 5. ROUND 5 — IT MUST BE live_length, AND ONLY param_1's CAN MOVE. With
+ *    refs pinned at 74/104, pri80 > pri81 needs LL81/LL80 > 642/456 = 1.408;
+ *    ours is 1470/1318 = 1.115. So LL80 <= 1044 (-274) or LL81 >= 1853 (+383).
+ *    p81's flow-pass range is ALREADY MAXIMAL (838 of 839 insns — param_2 is
+ *    passed to all four recursive calls, the last at insn 1732), so LL81
+ *    CANNOT grow: param_1's range must SHRINK. param_1 dies at body line 366
+ *    (`iVar6_d = param_1[3]`), param_2 at 393 of 400. The late param_1 reads
+ *    (body 298/300/328/331/333/362/364/366, all param_1[0..3] AFTER the
+ *    recursive calls) are what hold it live — that is the ladder to attack.
  *
  * Build the draft with `NON_MATCHING=FUN_80057b80 ./Build`.
  */

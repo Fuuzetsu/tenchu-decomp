@@ -702,6 +702,17 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
 - **autorules: two guided transforms from ChasetoTarget** — "inline a
   single-use abs/min/max temp into its comparison" and "inline a single-use
   CSE'd array element into its first-use expression" (both were manual).
+- **regalloc.py: self-validate the priority model against `.greg`'s allocno
+  order.** The `;; N regs to allocate:` line is printed in real post-qsort
+  order; regalloc.py parses it as a SET and throws the order away. Scoring the
+  model against it is free and would have answered "is regalloc.py reading the
+  right dump?" instantly (it is — `.lreg`, 0 violations in 53 pairs).
+- **A backward-branch scan must EXCLUDE calls.** A recursive `jal` back to the
+  function's own entry glabel reads as a loop; FUN_80057b80 was briefly credited
+  with 4 loops when it has 0. Affects any loop-counting heuristic.
+- **rtldump's output directory changes per `nix develop` invocation**
+  (`/tmp/nix-shell.XXXX/`), so an A/B across two invocations silently compares
+  stale files. Capture the path rtldump prints, per invocation.
 - **regalloc.py: per-register REFERENCE-COUNT diff (target vs draft).** The
   decisive signal on FUN_80057b80 was comparing refs-per-callee-saved-register
   between target asm and the draft, done by hand with `grep -oE`; the divergence

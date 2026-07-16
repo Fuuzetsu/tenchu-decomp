@@ -5811,6 +5811,32 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **The ref lever is NEVER "exhausted" by asm-mention count: `reg_n_refs` is
+  LOOP-DEPTH WEIGHTED, and a `do{}while(0)` buys weight for free.** flow.c adds
+  one unit per enclosed ref per loop depth, and a `do{}while(0)` emits no code
+  but DOES leave the `NOTE_INSN_LOOP_BEG/END` notes flow.c weights by — so
+  enclosing K refs one level deeper is exactly +K weighted refs at ZERO asm
+  cost. (`regalloc.py --enclosed-refs` already models this.) Proven on
+  FUN_80057b80: fencing param_1's refs took p80 74→94 weighted refs, priority
+  3368→4279 > p81's 4244, producing the target's `p80→$s0 / p81→$s1` — verified
+  at cc1 level and free inside the compiler (766 insns either way).
+  **Costs**: it re-weights EVERY pseudo inside the fence, and a short live range
+  gains more priority per ref than a long one, so close-scoring neighbours
+  permute; on FUN_80057b80 all 8 fence regions flipped the swap but each cost
+  +1 nop (a broken load-delay-slot fill) because param_1's refs are structurally
+  interleaved with the midpoint pointers. So: reach for this on any
+  priority-window park, but budget for the collateral.
+  This also means an argument of the form "the target's asm only mentions X N
+  times, so its priority cannot exceed P" is UNSOUND whenever the function has
+  loops — refs are not mentions.
+- **`.lreg` live_length is what `global_alloc` consumes — and `.greg` hands you a
+  free oracle to prove it.** `.greg`'s `;; N regs to allocate:` line is printed
+  in allocno_order, i.e. the real post-qsort order. Score a model against it:
+  `.lreg`'s live_length gave 0 violations across 53 adjacent pairs, `.flow`'s
+  gave 15. (`live_length` > instruction count is NOT a "pre-combine" tell — it
+  is not a naive per-insn count. `.flow` IS the pre-combine dump and it is the
+  one that fails.) Use this oracle before believing any claim that a regalloc
+  model is reading the wrong dump.
 - **Ghidra's reused variables are MEGA-PSEUDOS — split them per site.** This is
   the highest-yield structural check on any big function. Ghidra reuses one
   variable (`iVar3`, `uVar2`, …) for a dozen unrelated jobs. Each C local is ONE
