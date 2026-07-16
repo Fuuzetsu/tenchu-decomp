@@ -87,6 +87,14 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetWire", SetWire);
  * schedule.  DrawBleed documents the same cc1 list-scheduler limitation;
  * changing the recovered long coordinate types or low-half ViewInfo reads is
  * not an open spelling fix.
+ *
+ * 2026-07-16 second pass (interrupted before its final report): a bounded
+ * permuter run over this scheduling residual produced ONLY invalid
+ * candidates — invented if/else CFG fences that make unconditional calls
+ * conditional (breaking the exact 22-branch inventory) and dead-variable
+ * noise (ecount=dz, x^0, comma-expressions, dropped u16 casts). Treat the
+ * permuter as definitively unhelpful here; no source improvement was found
+ * before the session was interrupted.
  */
 
 typedef struct
