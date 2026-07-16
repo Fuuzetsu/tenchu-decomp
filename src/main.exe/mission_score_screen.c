@@ -5,20 +5,63 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 1266 of 4636 bytes differ (81.45% fuzzy).  The
- * guarded draft has the exact target length (1159 instructions) and frame
- * size (0x1B8), with 53/53 conditional branches, 7/8 unconditional jumps,
- * 60/60 calls, and one return.  Its aligned structural residual is 148 lines
- * in 59 blocks (265 raw lines in 134 blocks).  No retail-name record was found
- * in PSX.SYM or the demo symbol export.
+ * STATUS: NON_MATCHING -- 525 of 4636 bytes differ (was 1266).  Exact target
+ * length (1159 instructions), frame 0x1B8, 60/60 calls, 8/8 unconditional
+ * jumps; the whole function is address-aligned except one +4/-4 skew pair
+ * inside the row-number draw.  No retail-name record in PSX.SYM/demo export.
  *
- * The local aggregates reproduce the original stack layout.  In particular,
- * the packed ScoreResult copy starts at sp+50, the two sprite banks start at
- * sp+60/sp+118, and the one GsIMAGE scratch is reused at sp+160 by all seven
- * sprite initialisations.  The score result's unsigned storage plus signed
- * use, per-expansion decimal-Y carriers, a split colour seed, and a signed
- * table-shift predecessor reproduce several otherwise whole-function
- * allocation and jump cascades.
+ * Proven identities added this session (do not undo):
+ * - insertedRank is a PLAIN s32 LOCAL, spilled by reload to sp+392: the
+ *   li t0,-1/sw + lw t1/t2/t3 spill-reload sequence is reproduced exactly.
+ *   tail shrank to {oldPad, pad, background}.
+ * - Both rank-scan hit arms are `insertedRank = i; break;` INSIDE the loop:
+ *   cc1 relocates loop-exiting arms to the function end (goNext arms first,
+ *   then these, cross-jumped into ONE island `j join; sw a0,392(sp)`).
+ *   An explicit source-level island (`goto`+label at the bottom) does NOT
+ *   reproduce this (breaks the shared-jal cross-jump; wrong island order).
+ * - The insert region uses a one-copy guard (`found = insertedRank`),
+ *   block-scoped shift pointer, separate insert-block pointer (fresh lui),
+ *   inline i-1 subscripts, and grades[i]=grades[i-1] BEFORE i--.
+ * - rankColour = 128 alone at entry; the number-init brightness is
+ *   `brightness = rankColour;` behind a do{}while(0) fence (the loop note
+ *   stops cse1 from const-folding the copy AND stops sched1 hoisting; both
+ *   effects are required to keep `move v0,s3` + the v0 anti-dependence that
+ *   pins the lhu w/h loads after the r/g/b stores).
+ * - Medal + row brightness are chained `r = g = b =` stores (reverse 22/21/20
+ *   order) with brightness a plain (caller-saved) local; row uses if/else.
+ * - numberSprite is TWO variables: a block-scoped init pointer and the
+ *   loop-phase `numberSprite = &number` set before the main for(;;)
+ *   (target re-materializes addiu s6,sp,24 in the preheader).
+ * - DRAW2/DRAW5 (the two draws after colons) pass numberSprite (move s2,s6
+ *   class); other draws pass &number (fresh addiu).  The colon x-store is
+ *   the OBJECT form `number.x = x_` (sp-direct, pinned at block top).
+ * - The char loop keeps retail's dead attribute load via a site-local
+ *   volatile read; its w>>1/h>>1 stores go through initSprite while the
+ *   zero pivots recompute the bank address (SCORE_SPRITE_AT).
+ * - The stock tail is direct indexing (displacement-folded 1036) — no
+ *   unlock pointer; statePtr = (PersistentState *)0x80010000 behind a
+ *   do{}while(0) fence supplies the s0 base for the layout=0xFF store
+ *   (the lui fills the FUN_80038ce0 delay slot).
+ *
+ * REJECTED this session (do not repeat):
+ * - Integer-sum (leSetEnemy) spellings for the rank/char initSprite address:
+ *   cse then folds the pivot recomputation into the same register and the
+ *   loops SHRINK.  The two coexisting shapes (main index-first, pivot
+ *   base-first) remain unsolved; current draft keeps both length-neutral.
+ * - `signedValue = expr; value = signedValue;` for DRAW2/row (coalesces,
+ *   one short) and pasting the expression twice (cse does NOT fold, grows).
+ * - A separate rowNumber pointer for the row draw (spills rankSpriteBase).
+ *
+ * Remaining classes (525 bytes): entry a0/128 scheduling; LoadTIMAndFree
+ * arg-copy position; s5/s6 numberSprite-vs-magic swap; ten s7-vs-s8 and
+ * rankSpriteBase s8-vs-s7 swap; preheader hoist order ([magic][10][sp+24]
+ * in target — bottom-of-body placement for ten/numberSprite still untested);
+ * DRAW2/row value/sv register roles; scan/shift addu operand orders;
+ * row-loop transient +4 skew; various GsSortSprite a0/a2 arg schedules.
+ *
+ * The local aggregates reproduce the original stack layout: packed
+ * ScoreResult copy at sp+50, sprite banks at sp+60/sp+118, one GsIMAGE
+ * scratch at sp+160 reused by all seven sprite initialisations.
  */
 
 typedef struct
@@ -57,7 +100,6 @@ typedef struct
     u16 oldPad;
     u16 pad;
     void *background;
-    s32 insertedRank;
 } MissionScoreTail;
 
 extern u8 CHOSEN_CHARACTER;
@@ -132,7 +174,40 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 #define DRAW_SCORE_Y_STORE_PICK(jump_, sprite_, carrier_, y_)                \
     DRAW_SCORE_Y_STORE_PICK_(jump_, sprite_, carrier_, y_)
 
+/* VALUE_SEED_V: memory-sourced sites define value first, then narrow.
+ * VALUE_SEED_S: computed sites define the signed value first, then copy. */
+#define DRAW_SCORE_VALUE_SEED_V(value_, type_)                               \
+    (value = (value_), signedValue = (type_)value)
+/* Computed sites paste the expression twice; cse turns the second
+ * evaluation into the retail value-copy of the signed carrier. */
+#define DRAW_SCORE_VALUE_SEED_S(value_, type_)                               \
+    (signedValue = (value_), value = (value_))
+
 #define DRAW_SCORE_NUMBER(value_, type_, jump_, label_, sprite_, x_, y_)     \
+    do                                                                       \
+    {                                                                        \
+        GsSPRITE *drawnSprite;                                               \
+                                                                             \
+        drawnSprite = (sprite_);                                             \
+        DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, drawnSprite,        \
+                           x_, y_, V);                                       \
+    } while (0)
+#define DRAW_SCORE_NUMBER_SV(value_, type_, jump_, label_, sprite_, x_, y_)  \
+    do                                                                       \
+    {                                                                        \
+        GsSPRITE *drawnSprite;                                               \
+                                                                             \
+        drawnSprite = (sprite_);                                             \
+        DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, drawnSprite,        \
+                           x_, y_, S);                                       \
+    } while (0)
+/* The row site draws through its pointer variable directly (retail keeps
+ * every access on the same register with no drawnSprite copy). */
+#define DRAW_SCORE_NUMBER_ROW(value_, type_, jump_, label_, sprite_, x_, y_) \
+    DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, sprite_, x_, y_, S)
+
+#define DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, spr_, x_, y_,       \
+                           seed_)                                            \
     do                                                                       \
     {                                                                        \
         s32 dividend;                                                        \
@@ -141,14 +216,11 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         u32 value;                                                           \
         s16 signedValue;                                                     \
         s32 drawY;                                                           \
-        GsSPRITE *drawnSprite;                                               \
                                                                              \
-        drawnSprite = (sprite_);                                             \
-        value = (value_);                                                    \
-        signedValue = (type_)value;                                          \
+        DRAW_SCORE_VALUE_SEED_##seed_(value_, type_);                        \
         DRAW_SCORE_Y_SEED_PICK(jump_, drawY, y_);                            \
-        drawnSprite->x = (x_);                                               \
-        DRAW_SCORE_Y_STORE_PICK(jump_, drawnSprite, drawY, y_);              \
+        (spr_)->x = (x_);                                                    \
+        DRAW_SCORE_Y_STORE_PICK(jump_, spr_, drawY, y_);                     \
         if (jump_)                                                           \
         {                                                                    \
             if (signedValue < 0)                                             \
@@ -176,22 +248,22 @@ label_:                                                                      \
             dividend = (s16)value;                                           \
             quotient = dividend / 10;                                        \
             remainder = dividend % 10;                                       \
-            baseU = drawnSprite->u;                                          \
-            drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;        \
-            GsSortSprite(drawnSprite, OTablePt, 0);                           \
-            drawnSprite->x -= 12;                                            \
+            baseU = (spr_)->u;                                               \
+            (spr_)->u = baseU + (s16)remainder * (spr_)->w;                  \
+            GsSortSprite((spr_), OTablePt, 0);                                \
+            (spr_)->x -= 12;                                                 \
             value = quotient;                                                \
             quotient <<= 16;                                                 \
-            drawnSprite->u = baseU;                                          \
+            (spr_)->u = baseU;                                               \
         } while (quotient != 0);                                             \
         if (negative != 0)                                                   \
         {                                                                    \
             u32 signBaseU;                                                   \
                                                                              \
-            signBaseU = drawnSprite->u;                                      \
-            drawnSprite->u = signBaseU + drawnSprite->w * ten;               \
-            GsSortSprite(drawnSprite, OTablePt, 0);                           \
-            drawnSprite->u = signBaseU;                                      \
+            signBaseU = (spr_)->u;                                           \
+            (spr_)->u = signBaseU + (spr_)->w * ten;                         \
+            GsSortSprite((spr_), OTablePt, 0);                                \
+            (spr_)->u = signBaseU;                                           \
         }                                                                    \
     } while (0)
 
@@ -201,7 +273,7 @@ label_:                                                                      \
         u8 oldU;                                                             \
         s32 colonDigit;                                                      \
                                                                              \
-        (sprite_)->x = (x_);                                                 \
+        number.x = (x_);                                                     \
         oldU = (sprite_)->u;                                                 \
         colonDigit = 12;                                                     \
         (sprite_)->u = oldU + (sprite_)->w * colonDigit;                     \
@@ -228,16 +300,18 @@ void mission_score_screen(void)
     register GsSPRITE *numberSprite;
     register GsSPRITE *medal;
     register u8 *unlock;
+    register PersistentState *statePtr;
     register s16 i;
     register u16 rowValue;
     register s16 newPress;
-    register s32 brightness;
+    s32 brightness;
     register s32 stageItem;
     register s32 goNext;
     register s32 rankColour;
     s32 ten;
     u32 baseU;
     register s32 negative;
+    s32 insertedRank;
 
     tail.oldPad = 0;
     init_score_stats(&stats);
@@ -246,20 +320,26 @@ void mission_score_screen(void)
     do {
         i = 0;
     } while (0);
-    brightness = rankColour = 128;
+    rankColour = 128;
     result = *calculate_score(&stats, CHOSEN_STAGE);
 
     tim = FileRead(NUMBER_TIM_PATH);
-    numberSprite = &number;
-    InitScoreSprite(tim, &image, numberSprite);
-    numberSprite->attribute |= 0x50000000;
-    numberSprite->x = -140;
-    numberSprite->y = -40;
-    numberSprite->r = brightness;
-    numberSprite->g = rankColour;
-    numberSprite->b = rankColour;
-    numberSprite->mx = numberSprite->w >> 1;
-    numberSprite->my = numberSprite->h >> 1;
+    {
+        register GsSPRITE *initNumber = &number;
+
+        InitScoreSprite(tim, &image, initNumber);
+        initNumber->attribute |= 0x50000000;
+        initNumber->x = -140;
+        initNumber->y = -40;
+        do {
+        } while (0);
+        brightness = rankColour;
+        initNumber->r = brightness;
+        initNumber->g = brightness;
+        initNumber->b = brightness;
+        initNumber->mx = initNumber->w >> 1;
+        initNumber->my = initNumber->h >> 1;
+    }
     /* Preserve the scheduler boundary before the independent pivot reset. */
     do {
     } while (0);
@@ -306,22 +386,24 @@ score_rank_sprite_init_loop:
         i = 0;
 score_character_sprite_init_loop:
         {
+            u32 attribute;
             u32 width;
             u32 height;
 
             tim = get_tim_from_archive(archive, i + 5);
             initSprite = &characterSprites[i];
             InitScoreSprite(tim, &image, initSprite);
+            /* Retail keeps this dead attribute load (value overwritten
+             * before any use) — a leftover of the rank-loop copy. */
+            attribute = *(u32 volatile *)&initSprite->attribute;
             width = initSprite->w;
             height = initSprite->h;
             initSprite->x = -160;
             initSprite->y = -120;
             initSprite->g = initSprite->r = characterColour;
             initSprite->b = characterColour;
-            /* Keep this pivot on the bank's independently rematerialized
-             * address identity. */
-            SCORE_SPRITE_AT(characterSprites, i)->mx = width >> 1;
-            SCORE_SPRITE_AT(characterSprites, i)->my = height >> 1;
+            initSprite->mx = width >> 1;
+            initSprite->my = height >> 1;
             SCORE_SPRITE_AT(characterSprites, i)->mx = 0;
             SCORE_SPRITE_AT(characterSprites, i)->my = 0;
             LoadTIM(tim);
@@ -351,53 +433,64 @@ score_character_sprite_init_loop:
         }
     }
 
-    tail.insertedRank = -1;
+    insertedRank = -1;
     {
         register MissionScorePersistent *rankState =
             (MissionScorePersistent *)0x80010000;
 
         for (i = 0; i < 5; i++)
         {
-            if (rankState->grades[i] < result.grade ||
-                (rankState->grades[i] == result.grade &&
-                 stats.clock < rankState->scores[i]))
+            if (rankState->grades[i] < result.grade)
             {
-                tail.insertedRank = i;
+                insertedRank = i;
+                break;
+            }
+            if (rankState->grades[i] == result.grade &&
+                stats.clock < rankState->scores[i])
+            {
+                insertedRank = i;
                 break;
             }
         }
     }
 
-    if (tail.insertedRank >= 0)
     {
-        register MissionScorePersistent *scoreState =
-            (MissionScorePersistent *)0x80010000;
+        register s32 found = insertedRank;
 
-        i = 4;
-        if (tail.insertedRank < 4)
+        if (found >= 0)
         {
-            do
+            i = 4;
+            if (found < 4)
             {
-                register s32 previous = i - 1;
-                scoreState->scores[i] = scoreState->scores[previous];
-                scoreState->characters[i] = scoreState->characters[previous];
-                i = previous;
-                scoreState->grades[i + 1] = scoreState->grades[i];
-            } while (tail.insertedRank < (s16)i);
-        }
+                register MissionScorePersistent *scoreState =
+                    (MissionScorePersistent *)0x80010000;
 
-        {
-            register s32 insertedRank = tail.insertedRank;
+                do
+                {
+                    scoreState->scores[i] = scoreState->scores[i - 1];
+                    scoreState->characters[i] =
+                        scoreState->characters[i - 1];
+                    scoreState->grades[i] = scoreState->grades[i - 1];
+                    i--;
+                } while (insertedRank < (s16)i);
+            }
 
-            scoreState->scores[insertedRank] = stats.clock;
-            scoreState->characters[insertedRank] =
-                ((PersistentState *)scoreState)->chr;
-            scoreState->grades[insertedRank] = result.grade;
+            {
+                register MissionScorePersistent *insertState =
+                    (MissionScorePersistent *)0x80010000;
+                register s32 insertedAt = insertedRank;
+
+                insertState->scores[insertedAt] = stats.clock;
+                insertState->characters[insertedAt] =
+                    ((PersistentState *)insertState)->chr;
+                insertState->grades[insertedAt] = result.grade;
+            }
         }
     }
 
     _PlayMusic(12, 1);
     ten = 10;
+    numberSprite = &number;
     for (;;)
     {
         u16 pad = GetRealPad(0);
@@ -422,7 +515,7 @@ score_character_sprite_init_loop:
                           &number, 0x16, -0x47);
         DRAW_SCORE_COLON(numberSprite, 0x1F);
         DRAW_SCORE_NUMBER(stats.stageEnemies - stats.stageBosses,
-                          s32, 1, score_number_1, &number, 0x2F, -0x47);
+                          s32, 1, score_number_1, numberSprite, 0x2F, -0x47);
         DRAW_SCORE_NUMBER(result.field0, s16, 1, score_number_2,
                           &number, 0x66, -0x47);
 
@@ -430,7 +523,7 @@ score_character_sprite_init_loop:
                           &number, 0x16, -0x35);
         DRAW_SCORE_COLON(numberSprite, 0x1F);
         DRAW_SCORE_NUMBER(stats.stageEnemies, s32, 0, score_number_4,
-                          &number, 0x2F, -0x35);
+                          numberSprite, 0x2F, -0x35);
         DRAW_SCORE_NUMBER(result.field2, s16, 0, score_number_5,
                           &number, 0x66, -0x35);
 
@@ -454,16 +547,15 @@ score_character_sprite_init_loop:
                 brightness += 0xFFF;
             }
             brightness = (brightness >> 12) + 0x7F;
-            medal->r = brightness;
-            medal->g = brightness;
-            medal->b = brightness;
+            medal->r = medal->g = medal->b = brightness;
             GsSortSprite(medal, OTablePt, 1);
         }
 
         {
-            GsSPRITE *rankSpriteBase = rankSprites;
+            GsSPRITE *rankSpriteBase;
 
             i = 0;
+            rankSpriteBase = rankSprites;
 score_row_loop:
             {
                 register MissionScorePersistent *scoreState;
@@ -481,8 +573,7 @@ score_row_loop:
                 sprite = &characterSprites[characterState->characters[i]];
                 sprite->x = -0x79;
                 sprite->y = i * 0x16 + 0x16;
-                brightness = 0x80;
-                if (i == tail.insertedRank)
+                if (i == insertedRank)
                 {
                     brightness = rsin((GameClock << 12) / 90) * 60;
                     if (brightness < 0)
@@ -491,11 +582,11 @@ score_row_loop:
                     }
                     brightness = (brightness >> 12) + 100;
                 }
-                sprite->r = brightness;
-                sprite->g = brightness;
-                do {
-                } while (0);
-                sprite->b = brightness;
+                else
+                {
+                    brightness = 0x80;
+                }
+                sprite->r = sprite->g = sprite->b = brightness;
                 GsSortSprite(sprite, OTablePt, 1);
 
                 rankState = (MissionScorePersistent *)0x80010000;
@@ -525,10 +616,9 @@ score_row_loop:
         register PersistentState *state = (PersistentState *)0x80010000;
 
         stageItem = D_8008ED50[state->stage];
-        unlock = &state->stock[stageItem + (state->chr << 5)];
-        if (*unlock == 0xFE)
+        if (state->stock[stageItem + (state->chr << 5)] == 0xFE)
         {
-            *unlock += 3;
+            state->stock[stageItem + (state->chr << 5)] += 3;
         }
         stageItem = D_8008ED50[state->stage];
         if (state->backup[stageItem] == 0xFE)
@@ -539,6 +629,9 @@ score_row_loop:
 
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
+    do {
+        statePtr = (PersistentState *)0x80010000;
+    } while (0);
     if (D_8001005C != 0)
     {
         LoadTIMAndFree(PathFileRead(D_80013AA8, D_80013AC0));
@@ -552,7 +645,7 @@ score_row_loop:
     }
     else
     {
-        STAGE_LAYOUT_NUMBER = 0xFF;
+        statePtr->layout = 0xFF;
         FUN_8004f6c0(0x10);
     }
 }
