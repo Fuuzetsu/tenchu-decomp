@@ -5526,6 +5526,31 @@ class GtePolicyTests(unittest.TestCase):
                     offenders.append(rel)
         self.assertEqual(offenders, [])
 
+    def test_handwritten_reconstructions_use_the_raw_command_macros(self):
+        """A handwritten original scheduled COP2 latency itself — no macro nops.
+
+        The `gte_<cmd>()` macros carry `nop;nop` because that is what a COMPILED
+        caller's PsyQ macro emitted. Using them in a reconstruction of handwritten
+        assembly silently adds two instructions per command: it put drawF3 24 bytes
+        over its 296-byte carve, and fuzz-score did not catch it (only the linked
+        length did). Pin the distinction instead of re-learning it.
+        """
+        import re
+        root = os.path.dirname(TOOLS)
+        with open(os.path.join(root, "config", "handwritten-asm.txt")) as stream:
+            handwritten = {line.split("#")[0].strip() for line in stream} - {""}
+        nop_form = re.compile(r"\bgte_(rtps|rtpt|nclip|dpcs)\s*\(")
+        offenders = []
+        for name in sorted(handwritten):
+            path = os.path.join(root, "src", "main.exe", name + ".c")
+            if not os.path.exists(path):
+                continue
+            with open(path, errors="replace") as stream:
+                code = self._strip_comments(stream.read())
+            if nop_form.search(code):
+                offenders.append(name)
+        self.assertEqual(offenders, [])
+
     def test_every_gte_h_includer_is_whitelisted(self):
         import re
         root = os.path.dirname(TOOLS)

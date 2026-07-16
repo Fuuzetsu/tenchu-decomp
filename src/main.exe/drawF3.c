@@ -112,7 +112,7 @@ loop:
         r2 = (SVECTOR *)((int)r2 + vbase);
         gte_ldv3(r0, r1, r2);
         mask = 0x1C66000;
-        gte_rtpt();
+        gte_rtpt_raw();
         if (code != 0)
         {
             *ot_slot = (u_long)packet;
@@ -126,7 +126,7 @@ loop:
          * the flag test; see the coupled two-word residual above. */
         if ((flag & mask) == (code = 0))
         {
-            gte_nclip();
+            gte_nclip_raw();
             gte_stsz3(r0, r1, r2);
             ot_slot = (u_long *)((int)r0 + (int)r1);
             ot_slot = (u_long *)((int)ot_slot + (int)r2);
@@ -146,7 +146,7 @@ loop:
                         gte_ldrgb(prim->rgb);
                         ot_slot = (u_long *)((int)ot_slot + ot_base);
                         mac0 = *ot_slot;
-                        gte_dpcs();
+                        gte_dpcs_raw();
                         *packet = mac0;
                         mask = 4;
                         *((u8 *)packet + 3) = mask;
