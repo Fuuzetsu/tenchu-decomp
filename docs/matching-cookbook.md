@@ -3359,23 +3359,48 @@ enclosing base, or vice versa, that is the lever -- confirmed on FUN_8004c59c vi
 `.cse`/`.cse2`/`.lreg` dumps (`.greg` shows the pointer correctly in $s1, but cse1 had
 already rewritten the offset-0 store to base-relative).
 
-### A huge-offset-spilled pointer dereference can NEVER self-tie (un-matchable)
+### A spilled pseudo self-ties iff it appears as a BARE OPERAND
 
-If the target self-ties the `%hi` address and the value-load registers of a `ptr->field`
-where `ptr` itself is spilled at a frame offset beyond the signed-16-bit range, that
-shape is UN-MATCHABLE in this cc1 — the original did not use one combined dereference,
-and no C respelling forces it. `find_reloads_address`'s `reg_equiv_address` branch always
-pushes the address-of-the-spill-slot reload (`RELOAD_FOR_INPADDR_ADDRESS`) BEFORE the
-value-used-as-address reload (`RELOAD_FOR_INPUT_ADDRESS`); `reload_reg_free_p`'s
-`RELOAD_FOR_INPUT_ADDRESS` case hardcodes a reject on the first reload's register
-(`reload_reg_used_in_inpaddr_addr[opnum]`); and `reload_reg_class_lower`'s tiebreak
-`return r1 - r2` makes the push order deterministic. `combine.c` refolds any intermediate
-single-use pointer temp (`q = menu; name = q->choice_name;`) back to the same mem-of-mem
-before reload runs, so you cannot break it up either. Contrast a PLAIN whole-value read of
-the same spilled variable (`if (title == 0)`) — that is `RELOAD_FOR_INPUT`, has no reject
-rule, and self-ties freely. `AdtSelect` (`menu->choice_name`, frame offset 0x80CC) is
-parked on exactly this; do not retry it. Proven by reading reload.c/reload1.c, twice
-empirically.
+**(This section previously read "A huge-offset-spilled pointer dereference can NEVER
+self-tie (un-matchable) … AdtSelect is parked on exactly this; do not retry it."
+That framing was WRONG and is retracted — see the disproof below. The reload
+mechanics it described are literally correct; the DISCRIMINATOR was not.)**
+
+Whether a spilled pseudo can self-tie depends on WHERE THE PSEUDO APPEARS, not on
+frame size or offset magnitude:
+
+* **As a bare operand** (`if (title == 0)`, `p = menu`, `menu[i]`) it goes through
+  `find_reloads_toplev` and becomes one `RELOAD_FOR_INPUT`, which only checks
+  `input_addr[i]` for `i > opnum` — so it **self-ties freely**. `gen_reload` then
+  materializes the address into the reload's own destination
+  (`ori a3; addu a3,a3,sp; lw a3,0(a3)`) — note this is ONE reload, not a tie
+  between two.
+* **Inside a MEM** (`menu->choice_name`) it goes through `find_reloads_address`'s
+  `reg_equiv_address` branch, which pushes the address-of-the-spill-slot reload
+  (`RELOAD_FOR_INPADDR_ADDRESS`) BEFORE the value-used-as-address reload
+  (`RELOAD_FOR_INPUT_ADDRESS`); `reload_reg_free_p`'s `RELOAD_FOR_INPUT_ADDRESS`
+  case hardcodes a reject on the first reload's register
+  (`reload_reg_used_in_inpaddr_addr[opnum]`), and `reload_reg_class_lower`'s
+  `return r1 - r2` tiebreak makes the order deterministic. That site is **barred**.
+
+**The same spilled pseudo does BOTH in one function.** AdtSelect reloads `menu`
+from the same sp+0x80CC slot at FOUR sites; **three already self-tie and
+byte-match** (`p = menu`, the print loop's `menu[i]`, the tail's
+`menu[selection]`) and only the offset-0 deref is barred. A criterion that a
+function's own matched instructions contradict cannot be a park criterion — and
+the frame offset is irrelevant: the demo build's AdtSelect has a different frame
+(0x80E0/0x80E4) and emits the same shape.
+
+**Fixing a barred site needs a copy that is SINGLE-USE (so a later fresh read
+survives) yet OUTLIVES COMBINE (which folds exactly single-use copies within a
+block).** Measured on AdtSelect: a single-use copy is refolded (9); a multi-use
+copy survives but eats the second read (764, 3 insns short); an identical-arm
+fence is merged by cse1 BEFORE combine (760); `T *volatile p` does emit the
+target's load-then-deref at the barred site but makes the pseudo memory-resident
+at all four, so the other three stop being bare-operand reloads (51). A real
+block boundary would do it, but then the copy's load lands on the far side while
+the target's load is adjacent to its deref. **That is the open question — not an
+impossibility.**
 
 ### A `%hi` reload tie is `combine_regs` refusing to tie a block-crossing pseudo
 

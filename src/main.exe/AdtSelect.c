@@ -17,53 +17,71 @@
  *   target:  lw a3,0(a3); lw v0,0(a3);  ...  li t0,0x80CC; addu; lw v1,0(t0)
  *   ours:    lw t0,0(a3); lw v0,0(t0);  ...  li a3,0x80CC; addu; lw v1,0(a3)
  *
- * PROVEN impossible to fix by C respelling (this session escalated past the
- * earlier "round-robin" guess to the exact reload1.c mechanism — see
- * docs/matching-cookbook.md's RTL-dump section for the method).  The frame
- * is 0x80C8 bytes, so the spilled params title/menu live at sp+0x80C8 /
- * sp+0x80CC — offsets > 32767 that no lw can encode, so every raw `menu`
- * read goes through `find_reloads_address`'s `reg_equiv_address[regno]`
- * branch (reload.c ~4304): it recurses on the "sp+32972" PLUS first (giving
- * a reload of type `RELOAD_FOR_INPADDR_ADDRESS`, since `ADDR_TYPE` maps
- * RELOAD_FOR_INPUT_ADDRESS -> RELOAD_FOR_INPADDR_ADDRESS, reload.c ~302),
- * *then* pushes a second reload — for menu's own value, used as the address
- * of the `->choice_name` mem — typed `RELOAD_FOR_INPUT_ADDRESS` (the type is
- * passed through unchanged).  `reload_reg_free_p`'s RELOAD_FOR_INPUT_ADDRESS
- * case (reload1.c ~4567) explicitly rejects any hard reg already marked in
- * `reload_reg_used_in_inpaddr_addr[opnum]` — i.e. the FIRST reload's own
- * register — so the second reload can NEVER reuse the first's register.
- * And this isn't a coin flip: `reload_reg_class_lower`, the qsort comparator
- * that orders same-class reloads for allocation (reload1.c ~4315), breaks
- * ties with `return r1 - r2` (reload NUMBER, i.e. push order) — and the
- * PLUS-reload is *always* pushed before the value-reload inside this one
- * `reg_equiv_address` branch, unconditionally, as a fact of the branch's own
- * code order, not of anything the C source can shape.  So this exact
- * "dereference a huge-offset-spilled pointer in one combined expression"
- * shape can PROVABLY never self-tie in this compiler — the earlier guess
- * that a source respelling might force the input-reload shape was wrong;
- * there is no such respelling.  (The title test `if (title == 0)` and the
- * return path `menu[selection].choice_number` DO self-tie, byte-matched,
- * because there the spilled value is the WHOLE read operand, not the
- * address of a further mem — that's plain RELOAD_FOR_INPUT, which has no
- * such reject rule.)
- * Confirmed twice more this session that introducing an intermediate
- * pointer local for the first access (`q = menu; name = q->choice_name;`,
- * and separately dropping `name` for `if (menu->choice_name != 0)`) changes
- * NOTHING — byte-identical 9-diff output both times — because `combine.c`
- * refolds any single-def/single-use temp back into the same combined
- * mem-of-mem RTL before reload ever runs (it doesn't yet know `menu` will
- * end up reg_equiv_address'd).  For target's a3-self-tie to exist, its
- * original source must avoid the reg_equiv_address recursion for this
- * access entirely — e.g. a pointer local that combine can't fold away
- * because it has a second, later use or crosses a boundary combine won't
- * cross (cf. "cse1 stops at NOTE_INSN_LOOP_END" in the cookbook) — but no
- * such construct was found that doesn't also change the (already-matching)
- * instruction count elsewhere.  menu[count] with unknown count emits an
- * extra sll, K&R params change nothing, and an 80k-iteration
- * decomp-permuter run never beat the score-10 base (expected: this is a
- * pre-AST, reload-pass decision, permuter-immune by construction).  All
- * other register allocation (9 callee-saved pseudos + 2 spilled params)
- * matches.
+ * The residual is a COMBINE problem, not the reload problem this file used to
+ * claim.  The earlier note said "a huge-offset-spilled pointer dereference can
+ * NEVER self-tie".  Its reload mechanism is real (re-verified line-by-line
+ * against the nix-pinned gcc-2.8.1 sources) but its FRAMING is wrong, and the
+ * wrong framing is what kept the function parked:
+ *
+ *   reload.c ~4296  `reg_equiv_address` branch: recurses on the "sp+32972"
+ *                   PLUS first (RELOAD_FOR_INPADDR_ADDRESS via ADDR_TYPE),
+ *                   THEN push_reload's menu's value (RELOAD_FOR_INPUT_ADDRESS).
+ *   reload1.c ~4567 RELOAD_FOR_INPUT_ADDRESS rejects any reg already in
+ *                   reload_reg_used_in_inpaddr_addr[opnum] — the first
+ *                   reload's own register.
+ *   reload1.c ~4315 reload_reg_class_lower ties break on `r1 - r2` (push
+ *                   order), so INPADDR_ADDRESS is always allocated first.
+ *
+ * All three are literally correct — but they are NOT a property of "huge
+ * offsets" or of "spilled pointers".  They are a property of WHERE THE PSEUDO
+ * APPEARS.  A pseudo INSIDE a MEM (`menu->choice_name`) goes through
+ * find_reloads_address and is barred from self-tying.  The SAME pseudo as a
+ * BARE OPERAND goes through find_reloads_toplev and becomes a single
+ * RELOAD_FOR_INPUT, which only checks input_addr[i] for i > opnum — so it
+ * self-ties freely.  Proof that this is the real discriminator: this very
+ * function reloads this very `menu` pseudo from this very sp+0x80CC slot at
+ * FOUR sites, and THREE of them already self-tie and byte-match —
+ * `p = menu` (a bare copy), the print loop's `menu[i]` and the tail's
+ * `menu[selection]` (bare operands of an addu).  Only the offset-0 deref,
+ * where menu sits inside the MEM, is barred.  "Huge-offset-spilled" is not
+ * the discriminator and must not be used as a park criterion.
+ *
+ * The self-tie is also not a "tie" between two reloads: at the bare-operand
+ * sites it is ONE reload whose gen_reload sequence materialises the address
+ * into its own destination (`ori a3; addu a3,a3,sp; lw a3,0(a3)`).
+ *
+ * So the target's site 1 is `X = menu; name = X->choice_name;` with the copy
+ * surviving to reload (X in a3).  The shape IS reachable — declaring the
+ * param `debug_menu_choice *volatile menu` breaks the mem-of-mem fold and
+ * emits exactly the target's separate load-then-deref here — so "there is no
+ * such respelling" was false.  It is not USABLE: volatile makes menu
+ * memory-resident at all four sites, so the other three stop being
+ * bare-operand reloads and global allocation shifts (s3/s4) — 9 -> 51 bytes.
+ *
+ * The real blocker, newly characterised, is a combine catch-22 measured this
+ * round:
+ *   - single-use copy (`q = menu; name = q->choice_name`): combine folds it
+ *     back to (mem (reg 81)) within the block  ->  9 bytes  (unchanged)
+ *   - multi-use copy (`p = menu; if (p->choice_name)...` reusing p as the
+ *     loop cursor): the copy SURVIVES and site 1 self-ties correctly, but p
+ *     then serves the loop too and the target's second, fresh `p = menu`
+ *     read disappears  ->  764 bytes (12 short, i.e. 3 insns)
+ *   - identical-arm fence around the copy: the arms are identical, so cse1
+ *     merges them before combine ever sees the CODE_LABEL  ->  760 bytes
+ * i.e. site 1 needs a copy that is SINGLE-USE (so read 2 survives) yet
+ * survives combine (which folds exactly single-use copies inside a block).
+ * A real basic-block boundary between the copy and its use would do it, but
+ * the copy's load then lands on the far side of that boundary, and the
+ * target's load is adjacent to its deref.  That is the open question; it is
+ * not "no C respelling exists".
+ *
+ * Ruled out this round: autorules (23 candidates, no improving edit; both
+ * do{}while(0) fences are load-bearing, unwrapping either costs +16), a
+ * bounded decomp-permuter run (flat at 9, base best), and the demo build,
+ * whose AdtSelect has a DIFFERENT frame (0x80E0/0x80E4) yet emits the same
+ * `lw a3,0(a3)` — so the shape is a stable source property, not a
+ * frame-size artefact.  All other allocation (9 callee-saved pseudos + 2
+ * spilled params) matches.
  */
 
 #ifndef NON_MATCHING

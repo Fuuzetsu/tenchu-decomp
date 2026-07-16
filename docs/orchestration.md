@@ -485,6 +485,23 @@ rules**:
   bounded permuter run) → it's below C; root-cause it, mark NON_MATCHING, move
   on. Don't sink sessions into it (~1.4M tokens for 0 matches taught this).
 
+## A park verdict is a hypothesis — and "do not retry it" is a bug
+
+This rollout retracted a cookbook section that ended *"AdtSelect is parked on
+exactly this; do not retry it."* Its reload mechanics were literally correct
+(verified line-by-line against the pinned sources); its DISCRIMINATOR was wrong,
+and the disproof was sitting inside the function itself — three of its four
+reloads of that same pseudo already self-tie and byte-match.
+
+Two habits follow, both cheap:
+- **Test a park criterion against the function's own MATCHED instructions.** If
+  the criterion forbids something the target already does elsewhere in the same
+  function, the criterion is wrong, not the target.
+- **Never write "do not retry" into the cookbook.** Record the mechanism, the
+  measurements, and the open question. Eleven "impossible" verdicts fell in two
+  days; the ones that cost the most were the ones phrased as instructions rather
+  than evidence.
+
 ## Picking targets
 
 `tools/triage.py` (easiest first, or `--leverage` for high call in-degree, or
@@ -767,6 +784,11 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   many commits the branch is behind master and the exact ff command. Seven lanes
   in one rollout started 26-36 commits stale; one was missing the checkpoint its
   task described, another a tool its task told it to run first.
+- **regalloc.py `--spill-uses <Name>`**: for a spilled pseudo, list each use as
+  BARE (self-tie legal) or IN-MEM (self-tie barred). That single distinction was
+  the whole of AdtSelect's round — done by hand-grepping `reg/v:SI 81` in the
+  combine dump and eyeballing `(mem/s:SI (reg 81))` vs `(plus … (reg 81))`. It is
+  mechanical, and it retired a "do not retry it" verdict.
 - **matchdiff `--account`**: group the diff into clusters with byte weights and a
   per-cluster classification (register-swap / inserted / moved). The revival
   addendum MANDATES byte-accounting and every lane still does it by hand from hex
