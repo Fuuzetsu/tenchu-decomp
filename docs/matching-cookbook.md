@@ -2107,6 +2107,19 @@ the pointer object stored in the array slot, not to `Object`, and must not be ad
 to the shared extern declaration. This closed `UpdateEvent`'s exact two-instruction
 gap; use it only when the raw target proves the redundant slot reload.
 
+**A `volatile` local added as a matching hack also inserts a scheduling barrier
+at every access — and that barrier itself can BE the residual.** If the barrier
+sits at the local's initialization before an early call (e.g.
+`volatile u16 old_pad; old_pad = 0;` preceding the first call), it can pin a
+following argument-constant load below the prologue register-save block, showing
+up as a whole-prologue rotation (every save appears shifted by one). If the
+target hoists that constant up into the saves, make the local **non-volatile** —
+cc1 can then schedule the register-only load across the now-ordinary store, and
+non-volatile is usually the correct semantics anyway. (start_demo_: closed the
+entire prologue `li a1,-1` cluster, 98→75.) The audit direction: every
+`volatile` in a draft is a barrier at each of its accesses; when a residual
+block ROTATES around one, suspect the qualifier before the schedule.
+
 **Corroborate an otherwise dead target load in another shipped build before
 encoding it.** A load whose result is never consumed can be a real volatile-style
 source access, but it can also be a bad carve, alignment artefact, or mistaken

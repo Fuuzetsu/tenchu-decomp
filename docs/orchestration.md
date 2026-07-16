@@ -342,6 +342,13 @@ Commit the `.c` + `config/splat.main.exe.yaml` + `shake/src/Build.hs` +
   dep-tracking latent issue). `./Build clean` (~7s) fixes it; harvests in a
   churny region (e.g. the 0x8005fxxx CD block) may as well `./Build clean` up
   front.
+- **Never pipe `git cherry-pick` through another command** (`| tail` etc.) —
+  the pipe eats the conflict exit status, the `&&` chain barrels on, and you
+  end up running verification builds against a tree with conflict markers in
+  `config/fuzzy.main.exe.tsv` (its rows conflict whenever two branches touched
+  adjacent lines). Run cherry-pick bare; on a tsv conflict, resolve by
+  `git checkout --ours` + `fuzz-score.py --only <name>` (regeneration, never
+  hand-merge), then `--continue`.
 - **Write the commit message to a file and use `git commit -F`.** These messages
   are full of backticks (`` `as` ``, `` `c2` ``, `` `--parked` ``); inside a
   double-quoted `-m "…"` bash runs them as command substitution. `` `as` ``
@@ -627,6 +634,11 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   flag the delay-slot signature mechanically — for every carved function,
   objdump the word at `carve_start+carve_size` and warn when it decodes as
   frame teardown / a return delay slot rather than the next prologue.
+- **permute.py: report the minimal semantic delta of the best
+  authoritatively-rescored candidate** (with dead-declaration flagging). When
+  `timeout` kills a run, the best-candidate summary is lost; start_demo_'s
+  win had to be recovered via `--rescore-only` plus a manual diff against the
+  reformatted `source.c` to extract two real edits from the noise.
 
 - **DONE — every game function is carved.** All 555 game functions (plus the two
   SDK ones we had) now have a `c` subsegment, their own
