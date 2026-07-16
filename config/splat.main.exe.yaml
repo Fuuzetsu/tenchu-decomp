@@ -328,7 +328,6 @@ segments:
       - [0x192A4, c, SetupAppearance]
       - [0x196A4, c, SetupCharacterParameter]
       - [0x19818, c, BreedLife]
-      - { start: 0x19A8C, type: data, linker_section_order: .text }
       - [0x19A90, c, GetWeaponData]
       - [0x19C84, c, SetupWeapon]
       - [0x1A0EC, c, GetAttackDBID]

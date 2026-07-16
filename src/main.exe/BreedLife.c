@@ -37,36 +37,60 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 214 of 628 bytes differ, down from 451; the extent
- * remains exact at 628 bytes / 157 instructions and the fuzzy score improved
- * from 57.32 to 84.08. The target and candidate now both use a 0xA8-byte
- * frame with $s0-$s7 (the old draft unnecessarily consumed $s8). Their
- * physical CFG counts also agree for conditional branches (15/15), calls
- * (9/9), returns (1/1), and unconditional jumps (2/2).
- * `asmdiff -n --structural` reports 38 length-changing lines in 13 displayed
- * blocks (52 raw aligned lines in 23 blocks), so the residual is not being
- * misreported as a pure register tie.
+ * STATUS: NON_MATCHING — 59 of 632 bytes differ, down from 214; the extent is
+ * now exact at 632 bytes / 158 instructions (see CARVE FIX below), the length
+ * matches (158/158), and the whole type-range TAIL (0x8002a1d4..end) is now
+ * byte-identical. Physical CFG counts all agree (15/15 cond branches, 9/9
+ * calls, 1/1 return, 2/2 jumps).
  *
- * The first search now retains a separate table base while its walker advances;
- * expressing the next-row sentinel as the loop condition recovers retail's
- * load/branch shape without rematerializing the base after the loop.  The map
- * argument is loaded directly into a0, and an explicit high/low type tail plus
- * a separately captured high attribute recovers the target's total CFG.  The
- * captured attribute folds two high-path instructions; a safe volatile read of
- * the already-written point[0] field supplies the one-instruction exact-extent
- * counterweight without changing the value-level behavior.
+ * CARVE FIX (the unlock): the Ghidra functions.tsv size for BreedLife (628)
+ * is UNDER-SIZED by one word — the same class as LoadCard / FUN_800593a0 /
+ * AdtVsprintf (see src/main.exe/FUN_8005fe38.c and the cookbook's "UNDER-SIZED
+ * functions.tsv entry" rule). objdump at 0x8002a018+628 (=0x8002a28c) shows
+ * `addiu sp,sp,168` — BreedLife's OWN return-delay-slot frame teardown, not
+ * GetWeaponData's prologue (that begins at 0x8002a290). splat had parked that
+ * word as a `{ start:0x19A8C, type:data, linker_section_order:.text }` blob
+ * between BreedLife and GetWeaponData. Deleting that data line in
+ * config/splat.main.exe.yaml extends BreedLife's `c` carve to its true 632
+ * bytes; `./Build check` stays byte-identical. With the true 158-insn extent
+ * exposed, the old draft's two length-hacks that had been tuned to the wrong
+ * 157-insn window became removable: (1) the `(void)*(volatile s32*)&point[0]`
+ * "counterweight" read, and (2) the "separately captured high attribute"
+ * (`high_attribute = human->attribute; ... high_attribute|0x20`). The target
+ * reads attribute FRESH at the high_type store (0x8002a250: lhu/nop/ori/sh);
+ * writing `human->attribute = human->attribute | 0x20` inline matches it, and
+ * removing both hacks made the whole tail exact.  autorules --guided then
+ * found the `do{}while(0)` empty-loop-boundary after the empty-table check
+ * (80->59), which recovers retail's folded `lui a1;lh v0,-30068(a1)` read of
+ * HumanData[0].type by preventing `base=HumanData`'s addiu from hoisting above
+ * the check.
  *
- * The main remaining cascade starts in the HumanData searches: target
- * materializes the table base and carries the found row/model as
- * $s0/$s2, then explicitly rotates roles before the filename-sharing scan;
- * this draft carries them as $s1/$s2. That row/base rotation feeds the second
- * search, where the draft preserves the -1 sentinel in $s3 instead of
- * rematerializing it into $v0 after strcmp. An explicit filename-row alias
- * recovered the target's $s0->$s1 rotation but shifted the whole call region
- * and scored 335 linked bytes; a fully target-shaped tail is one instruction
- * long because the original carve excludes the return delay slot. Keep those
- * forms as structural evidence, not checkpoints. The current exact 214-byte
- * form is authoritative.
+ * REMAINING 59 bytes — two sub-C register-allocation ties (RTL-confirmed via
+ * rtldump .greg/.lreg; permuter cannot beat 59, its lower fuzzy scores are all
+ * length-increasing artifacts):
+ *  (a) First search (~20 bytes): target keeps the table base in $a1 (in-place
+ *      `addiu a1,a1,-30068` reusing the %hi reg) and the advancing walker in
+ *      $v1 (`move v1,a1`), so sVar1 loads to $v0.  cc1 instead colours the
+ *      more-used walker (9 refs) into the freed %hi reg $a1 and pushes base
+ *      (3 refs) to $a3, so sVar1 lands in $v1.  rtlguide reports this as a
+ *      HARD-CONFLICT (search->v1 blocked by the %hi pseudo): priority/decl-order
+ *      levers cannot move it; only an interference-graph change would, and every
+ *      base/search respelling tried (reversed assignment, decl order, pointer
+ *      arithmetic) is byte-identical (cc1 CSEs them back).
+ *  (b) Filename scan (~35 bytes): target computes the scan's %hi/base ($s1/$s3)
+ *      BEFORE `idx*24`, so idx is still live when %hi is coloured -> %hi avoids
+ *      $s0 -> pp reuses idx's $s0 (the idx->pp->human $s0 chain).  In the draft,
+ *      cc1's fixed expansion of `&HumanData[idx]` emits `idx*24` first (.lreg
+ *      insns 141-144), idx dies, then the %hi (insn 145) grabs the just-freed
+ *      $s0, forcing pp to $s1.  This is not hard-conflicted but is an expansion-
+ *      ORDER artifact: making the base an explicit shared pointer (`tbl`) is
+ *      either inert (cc1 CSEs it) or adds a callee-saved live range (+2 insns,
+ *      640 bytes); a fresh `HumanData[idx]` guard adds +1.  The $s1/$s3 rotation
+ *      and the `bne v1,s3` (draft caches -1 in the freed $s3) vs target's
+ *      re-materialised `li v0,-1` at 0x8002a150 are downstream of this one
+ *      choice.
+ * The exact 59-byte form is authoritative; the register homes above are the
+ * whole residual.
  *
  * BreedLife (0x8002a018, 0x278 bytes) — spawns a new Humanoid of `type` at
  * ground position (x,z) with yaw `r`: resolves `type` to its HumanData[]
@@ -190,12 +214,13 @@ Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r)
     u32 *model;
     HumanDataType *pp;
     Humanoid *human;
-    u16 high_attribute;
     u8 name[100];
 
     idx = 0;
     if (HumanData[0].type == -1)
         goto illegal_type;
+    do {
+    } while (0);
     base = HumanData;
     search = base;
     do
@@ -246,7 +271,6 @@ type_found:
     human->model->rotate.vy = r;
     UpdateCoordinate((ModelType *)human->model);
 
-    (void)*(volatile s32 *)&human->point[0];
     if (type == 0x87)
     {
         human->item[3] = 1;
@@ -259,7 +283,6 @@ type_found:
             goto done;
         if (type < 0xA6)
             goto done;
-        high_attribute = human->attribute;
         goto high_type;
 
 low_type:
@@ -275,7 +298,7 @@ equip:
         SetNowMotion(human, 0x501, 1);
         goto done;
 high_type:
-        human->attribute = high_attribute | 0x20;
+        human->attribute = human->attribute | 0x20;
     } while (0);
 done:
     return human;
