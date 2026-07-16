@@ -5749,6 +5749,32 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     inference from its dense use of `$t2..$t6`: those are ordinary internal
     loop temporaries, while both calls use ABI `$a0/$a1`. Its complete
     636-byte body now matches in pure C.
+  - **The drawF3 anchor's verified GTE-family conventions** (reuse for the
+    compiled-style GTE functions; full detail in drawF3.c + gte.h):
+    file-scope GLOBAL register variables (`register int x __asm__("$16");` at
+    file scope) reserve a callee-saved/handed-back register with NO
+    prologue save — a local reg var forces the 4-instruction save pair; a
+    global reg var also keeps "dead" writes alive and out of the `jr` delay
+    slot. Compute each guard's delay-slot value BEFORE its `if` — reorg's
+    backward simple-fill sinks it into the previous guard's slot even when it
+    clobbers a loop-carried register. A `goto`-loop (label + `if(c) goto`)
+    carries NO loop notes, so loop.c hoists nothing — use it when the target
+    rematerializes invariants per-iteration. Un-pin a loop-carried pointer
+    the target reuses for transients by seeding a regular variable from a
+    pinned reader (cc1 coalesces the seed; direct pinning forces scratch+move).
+    An "m"-constraint COP2 macro folds a struct-member offset into the
+    instruction displacement (`lwc2 $6,4($t5)` from `gte_ldrgb(prim->rgb)`).
+    Splitting `a+b+c` into `x=a+b; x+=c;` and vertex `idx*8+base` into
+    all-sll-then-all-addu statements controls accumulator choice and batches
+    the scheduler.
+  - **Two park-on-sight cc1 invariants (any function, not just GTE):** the
+    target byte-form `addiu r,$zero,0` for `x = 0` is UNREACHABLE (cc1 movsi
+    always emits `move r,$0`; nonzero constants correctly give `li`), and a
+    two-register equality branch always orders the LOWER regno first —
+    `beq $v1,$v0` is unreachable. One such instruction in a target is decisive
+    evidence of a HANDWRITTEN-assembly original (the whole draw*/DrawTMD
+    family: exactly one `li r,0` tell each; see docs/gte-policy.md for the
+    compiled-vs-handwritten split and scan).
   - **m2c can read them**: our m2c carries a PSX GTE/COP2 patch series
     (`nix/m2c/*.patch`). You MUST pass `--input-regs`, or every entry-live value
     becomes `M2C_ERROR(Read from unset register)`. Hand it the whole caller-saved

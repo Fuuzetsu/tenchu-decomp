@@ -73,12 +73,38 @@ drawzF4 drawFT4 drawzGT3 drawzG4 drawGT4 drawzFT4 drawzGT4`, the twin pairs
 `FUN_80058c70/FUN_80059008`, `FUN_80059ff4/FUN_8005a3cc`,
 `FUN_8005961c/FUN_80059b08`, and `FUN_80057b80`.
 
-## Matching order for the family
+## Compiled vs HANDWRITTEN split (established by the drawF3 anchor, 2026-07-16)
+
+The drawF3 anchor reached 72/74 instructions exact and proved the remaining 2
+instructions are cc1-2.8.1 invariant violations — forms this compiler cannot
+emit from ANY C:
+
+1. `x = 0` always compiles to `move r,$0`; the target's `addiu r,$zero,0`
+   (`li r,0`) is unreachable (a nonzero constant correctly gives `li`).
+2. A two-register equality branch always puts the LOWER-regno operand first;
+   the target's `beq $v1,$v0` is unreachable.
+
+Scanning every whitelist function for the `addiu r,$zero,0` tell splits the
+family cleanly:
+
+- **HANDWRITTEN (17)**: all 16 `draw*` renderers (exactly 1 tell each — the
+  same `code = 0` site drawF3 could not reach) and `DrawTMD` (2 tells). Their
+  original source was assembly; a C reconstruction is documentation, not a
+  faithful source form. drawF3's 8-byte NON_MATCHING draft (72/74 exact) is
+  kept as the documented reference reconstruction; DO NOT clone the other 15
+  as ~8-byte parked drafts — the owner decides the class's accounting
+  (committed-canonical-asm vs excluded) before any further lanes.
+- **COMPILED-STYLE (8)**: `SetDepthQ` (matched), the twin pairs
+  `FUN_80058c70/FUN_80059008` (920 B), `FUN_80059ff4/FUN_8005a3cc` (984 B),
+  `FUN_8005961c/FUN_80059b08` (1260 B), and `FUN_80057b80` (3796 B) — 10,084
+  unmatched bytes where the gte.h layer is exactly the original mechanism.
+
+## Matching order for the family (revised)
 
 1. ~~`SetDepthQ`~~ — DONE (the spike).
-2. `drawF3` — the family anchor: smallest renderer, establishes the macro set,
-   the non-ABI entry spelling, and the loop shape.
-3. The other 15 `draw*` — anchor-then-clone with per-primitive deltas.
-4. The three twin pairs (920/984/1260 B — each pair is near-identical).
-5. `FUN_80057b80` (3796 B, only 2 GTE commands — mostly ordinary C).
-6. `DrawTMD` (no GTE opcodes; needs the pinned-register indirect-call setup).
+2. ~~`drawF3`~~ — anchor DONE as the documented 8-byte reconstruction; family
+   conventions + macro set landed in `gte.h`.
+3. `FUN_80057b80` (3796 B, 2 GTE commands — mostly ordinary C).
+4. The three twin pairs: match one anchor per pair, clone its twin.
+5. The 15 remaining `draw*` + `DrawTMD`: BLOCKED on the owner's
+   handwritten-class accounting decision.
