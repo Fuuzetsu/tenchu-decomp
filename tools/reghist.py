@@ -99,8 +99,13 @@ def main():
         env = dict(os.environ)
         if is_guarded(name):
             env["NON_MATCHING"] = name
-        if subprocess.run(["./Build"], env=env).returncode:
-            sys.exit("reghist: build failed")
+        build = subprocess.run(["./Build"], env=env, capture_output=True,
+                               text=True)
+        if build.returncode:
+            # Only show the log when it explains a failure — otherwise Shake's
+            # per-file chatter buries the histogram this tool exists to print.
+            sys.exit((build.stdout or "") + (build.stderr or "")
+                     + "\nreghist: build failed")
     # Backstop: whatever the caller did, refuse to measure a stub artifact.
     blocker = asmdiff.candidate_artifact_error(name)
     if blocker:
