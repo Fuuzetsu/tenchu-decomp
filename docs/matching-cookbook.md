@@ -6033,12 +6033,27 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
   across the region, the array form recomputes the base and REGRESSES
   (AddEnemy: fresh `sp+0x590` base → −4; cached `s0` base → +2). Pick the form
   from the target's addu order at each site, not globally.
-- **PARK ON SIGHT — the `acc = acc | call()` OR-temp copy-move.** When the
-  target keeps an accumulator live via `or $tmp,$acc,$ret; move $acc,$tmp`
-  (so a later `(short)acc` narrows the temp), C cannot reproduce the `move`:
-  `optimize_reg_copy_1` propagates the copy and coalesces the temp back
-  in-place regardless of explicit temps, single/nested walls, or fence
-  removal (AddEnemy: five spellings + a bounded permuter, all coalesced).
+- **The `acc = acc | call()` OR-temp copy-move is FORCEABLE — by narrowing the
+  ACCUMULATOR, not by respelling the copy.** (This rule previously said PARK ON
+  SIGHT; that was wrong and is retracted.) The target keeps the accumulator live
+  via `or $tmp,$acc,$ret; move $acc,$tmp` so a later `(short)acc` narrows the
+  temp. No spelling of the copy survives — `optimize_reg_copy_1` propagates and
+  coalesces it (five spellings + a bounded permuter all failed). The lever is the
+  accumulator's TYPE: make it a HImode `s16` (which is what PSX.SYM recorded —
+  `reg $s2 short think`), and the compare then sign-extends from `$v0`, the OR
+  result, instead of from the accumulator. That keeps the copy's SOURCE live past
+  the copy, so `optimize_reg_copy_1` declines to fold it and the `move` survives
+  (AddEnemy, 125→81). **The general lesson: when a park note says "only a
+  different data flow would fix this", that sentence is the lead — a data-flow
+  change usually means a TYPE or lifetime change, not another spelling.**
+- **Do NOT fuse two locals to chase a demo symbol's register — that MAKES the
+  conflict.** An earlier AddEnemy pass fused `names_offset` and `type` into one
+  local because PSX.SYM showed both in `$s7`. The fused local had three reaching
+  defs (`=0`, `+=20`, `=(s16)AdtSelect(...)`), which blocked
+  `num_sign_bit_copies` and forced a call-arg narrow. Split apart, the allocator
+  puts both in `$s7` anyway — their ranges are disjoint. This is the mega-pseudo
+  rule in reverse: the demo's shared register is a RESULT of the original's
+  lifetimes, not an instruction to share a variable.
 - **combine's `num_sign_bit_copies` elides a redundant call-arg narrow only
   for a SINGLE-assignment `(s16)`-cast local.** A variable reused across two
   roles (a loop-phase `addiu` offset + a selected value) carries the

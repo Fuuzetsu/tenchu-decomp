@@ -478,6 +478,14 @@ function already byte-matches on current `master`.
   SetBleedsDir's 88 stray bytes into the default image this way, caught only by an
   explicit default `./Build check`.
 
+- **`matchdiff -n` means --no-build: BUILD THE DRAFT FIRST, then `-n`.** Writing
+  "matchdiff -n is the metric" in a brief invites reading a stale image: an
+  AddEnemy lane measured three consecutive edits against the previous build and
+  got a suspiciously identical 125 each time (the identical number is the tell).
+  The correct sequence is always `NON_MATCHING=<Name> ./Build` **then**
+  `tools/matchdiff.py -n <Name>`. Worse, the byte count alone was misleading
+  there — a LENGTH MISMATCH (1148 vs 1152) only appeared once the image was
+  actually rebuilt.
 - **Never read `matchdiff`/`asmdiff` output from a build whose `./Build check` did not
   return 0.** A failed or torn build leaves stale/inconsistent artifacts, and the diff
   against them is fiction. I "diagnosed" a phantom 2-byte gp-offset bug in a

@@ -44,50 +44,56 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction at the exact target
  * extent (1152 bytes / 288 instructions) and exact 0x810 frame.  The guarded
- * draft has 161 differing bytes (down from 183).  The retail stack plan is
+ * draft has 81 differing bytes (down from 125).  The retail stack plan is
  * exact: names at sp+0x18, ItemName at sp+0x590, output VECTOR at sp+0x7c0,
  * and the zeroed blood VECTOR at sp+0x7d0.
  *
  * Explicit top-tested stage-kind, weapon, and think scans recover retail's
  * loop rotation.  StageAppearance and WeaponModel remain in t1/t0 and spill
  * at sp+0x7e4/sp+0x7e0 around sprintf.  A CFG join retains the weapon wid
- * reload, while source-lifetime reuse recovers the demo-symbol identities:
- * i/s4 across both menu scans, names_offset/type in s7, and count/x in s5.
+ * reload.  i/s4 is reused across both menu scans and count/x share s5.
  * Narrow single-trip fences steer those live ranges but emit no instructions.
  *
- * Closed this pass (-22 bytes): (1) the two ItemName cancel/type stores use
- * the ARRAY_REF `ItemName[count]`, not the `item[count]` pointer deref, so the
- * `addu` is base-first as retail's; (2) the whole think-scan guard is wrapped
- * in one do{}while(0) that walls off a local-alloc copy propagation; (3) the
- * think menu emits `menu_char` before `think_item`, landing them in $a2/$a1.
+ * Closed this pass (-44 bytes), as ONE atomic three-part edit — each part
+ * alone breaks the 288-insn length, which is why they were parked separately:
+ *  (1) `names_offset` was a MEGA-PSEUDO: one s32 local doing two unrelated
+ *      jobs (the names cursor `=0`/`+=20`, and the AdtSelect result reused as
+ *      `type`).  Three reaching defs stop combine's num_sign_bit_copies from
+ *      proving sign-extension, forcing a narrow on BreedLife's arg0.  Giving
+ *      `type` its OWN single-assignment local drops that narrow (-1 insn).
+ *      The earlier pass FUSED them deliberately to chase the demo symbol's
+ *      "$s7 type"; the allocator lands both in s7 anyway once split, because
+ *      the ranges are disjoint.  Forcing a register by source reuse is what
+ *      created the conflict.
+ *  (2) `think` is `s16` (PSX.SYM: `reg $s2 short think`), not a cast s32.
+ *  (3) the update is `think = think | AdtSelect(...)` with NO cast at the
+ *      assignment; the loop test and leSetEnemy arg narrow per-use.
+ * (2)+(3) restore retail's OR-temp `move s2,v0` (+1 insn), which a previous
+ * pass recorded as an un-forceable coalescing tie.  It is forceable: as a
+ * HImode store the copy's SOURCE ($v0, the OR result) stays LIVE past the
+ * copy because the comparison sign-extends from $v0 (`sll v0,v0,16`), not
+ * from the accumulator.  optimize_reg_copy_1 only rewrites the producer when
+ * the copy's source DIES at the copy, so it declines here.  Spelling the
+ * accumulator differently never moved it; changing which value the compare
+ * reads did.
  *
- * Remaining residual is register/schedule ties, all investigated:
- *  - Think representation (the OR transient, leSetEnemy `(s16)think` move, and
- *    the BreedLife narrow) is config A: `think` narrowed at assignment.  Retail
- *    is config B: `think` FULL, narrowed per-use, with an OR-temp `move s2,v0`
- *    in the update.  Reaching B needs the names_offset/type split so combine's
- *    num_sign_bit_copies elides BreedLife's narrow — but that split drops one
- *    insn only the update copy-move restores, and that copy-move is an
- *    un-forceable OR-temp coalescing tie (five spellings + a bounded permuter
- *    run all coalesced).  A and B are the only length-valid think configs.
- *  - Stage-scan `next_j` is a $v0/$v1 swap (greg hard-conflict).  next_j is
- *    s16 (retail `sll 0x10`); declaring it s8 nets -2 via an allocation
- *    coincidence but emits a wrong char-width `sll 0x18` — rejected.
- *  - Weapon-scan CFG-join `weapon_scan` hard-conflicts with $v1; human_weapon_id
- *    sits in $a1 vs retail $a0.  ThinkDB %hi wants a persistent callee-saved
- *    $s8 (global conversion gets the shape but rotates the base to $s1, +8).
- *    Preheader hoist order and the names_offset/format `%lo` are sched1 ties.
+ * `think_base` was deleted (byte-neutral): retail's $s6 ThinkDB base is a
+ * loop.c-hoisted invariant of the indexed `ThinkDB[i]` accesses, not a source
+ * pointer, which is why the guard keeps its own `%lo(ThinkDB)($fp)` form.
  *
- * BreedLife dependency (recorded, not acted on): the BreedLife-arg0 `move a0,s7`
- * (no narrow) is NOT a BreedLife-signature issue — arg0 is `short` (PSX.SYM) and
- * that is correct.  It is intrinsic to AddEnemy: retail's single-assignment
- * (s16)-cast `type` local lets combine drop the narrow.  No cross-TU constraint
- * on the BreedLife lane.
+ * Remaining residual (81) is now REGISTER NAMING, not shape — every retail
+ * instruction is present in the right order except one sched1 tie:
+ *  - A consistent rotation: think s3 (retail s2), category s2 (retail s3),
+ *    type s6 (retail s7), ThinkDB base s1 (retail s6), ThinkDB %hi carrier s7
+ *    (retail s8, a persistent callee-saved carrier).
+ *  - Early base setup order (li -1 / HumanData base vs the WeaponModel pair)
+ *    and the names_offset/format `%lo` at sprintf are sched1 ties.
+ *  - `addu v0,s0,v0` at 0x8005b884 is a combine operand-order tie.
  *
- * Rejected (do not repeat): removing the think cast in isolation, folding the
- * stage slot, narrowing the weapon id, eliminating the weapon CFG join, the
- * s8-next_j allocation hack, and menu_base[count]->ItemName[count] (recomputes
- * the base, +2).
+ * Rejected (do not repeat): folding the stage slot, narrowing the weapon id,
+ * eliminating the weapon CFG join, the s8-next_j allocation hack (autorules
+ * now scores it 1004 — a clear length regression, not the recorded -2), and
+ * menu_base[count]->ItemName[count] (recomputes the base, +2).
  */
 
 #ifndef NON_MATCHING
@@ -230,6 +236,7 @@ void AddEnemy(void)
     AddEnemyBloodScratch blood;
     s32 count;
     s32 names_offset;
+    s32 type;
     s16 i;
     s16 j;
     s16 next_j;
@@ -237,7 +244,7 @@ void AddEnemy(void)
     s32 weapon;
     s32 weapon_id;
     s32 human_weapon_id;
-    s32 think;
+    s16 think;
     s16 category;
     s32 stage;
     s32 stage_slot;
@@ -247,7 +254,6 @@ void AddEnemy(void)
     AddEnemyWeaponModel *weapon_base;
     AddEnemyWeaponModel *weapon_entry;
     AddEnemyWeaponModel *weapon_scan;
-    AddEnemyThinkDB *think_base;
     debug_menu_choice *item;
     debug_menu_choice *menu_base;
     debug_menu_choice *think_item;
@@ -396,14 +402,16 @@ add_enemy_weapon_scan_done:
     ItemName[count].choice_number = -1;
     count++;
     ItemName[count].choice_name = 0;
-    /* The selection reuses type's original s7 live range. */
-    names_offset = (s16)AdtSelect(D_80013FA8, item, 0);
-    if (names_offset == -1)
+    /* `type` is its OWN single-assignment local, not a reuse of the names
+     * cursor's range: one sign-extended reaching def lets combine's
+     * num_sign_bit_copies elide BreedLife's arg0 narrow.  The allocator still
+     * lands it in retail's s7 because the two ranges are disjoint. */
+    type = (s16)AdtSelect(D_80013FA8, item, 0);
+    if (type == -1)
         return;
 
     think = 0;
     ADD_ENEMY_FENCE_10(category = 0);
-    think_base = ThinkDB;
     ADD_ENEMY_FENCE_10(menu_base = ItemName);
     do
     {
@@ -415,7 +423,7 @@ add_enemy_weapon_scan_done:
          * restoring retail's register choices there (zero-code fence). */
         do
         {
-            if (think_base[0].name != 0)
+            if (ThinkDB[0].name != 0)
             {
                 /* Retail emits menu_char (the compared constant) before the
                  * think_item cursor, which lands them in $a2/$a1 as the
@@ -425,23 +433,23 @@ add_enemy_weapon_scan_done:
 add_enemy_think_scan:
                 if (count >= 70)
                     goto add_enemy_think_scan_done;
-                if (menu_char == think_base[i].name[0])
+                if (menu_char == ThinkDB[i].name[0])
                 {
-                    think_item->choice_name = (char *)think_base[i].name;
-                    think_item->choice_number = think_base[i].value;
+                    think_item->choice_name = (char *)ThinkDB[i].name;
+                    think_item->choice_number = ThinkDB[i].value;
                     think_item++;
                     count++;
                 }
                 i++;
-                if (think_base[i].name != 0)
+                if (ThinkDB[i].name != 0)
                     goto add_enemy_think_scan;
             }
         } while (0);
 add_enemy_think_scan_done:
         ADD_ENEMY_FENCE_10(menu_base[count].choice_name = 0);
         ADD_ENEMY_FENCE_10(
-            think = (s16)(think | AdtSelect(D_80013FB4, menu_base, 0)));
-    } while ((s16)think != 0x1111 && (s16)think != 0x2222 &&
+            think = think | AdtSelect(D_80013FB4, menu_base, 0));
+    } while (think != 0x1111 && think != 0x2222 &&
              ++category < 4);
 
     model = CamState.Owner->model;
@@ -451,8 +459,8 @@ add_enemy_think_scan_done:
     r = model->rotate.vy;
     z = model->locate.coord.t[2];
     CurrentEnemyID =
-        leSetEnemy(names_offset, (s16)think, count, y, z, r);
-    human = BreedLife(names_offset, count, y, z, 0);
+        leSetEnemy(type, think, count, y, z, r);
+    human = BreedLife(type, count, y, z, 0);
     human->model->rotate.vy = r;
     human->target = (ModelType *)CamState.Owner->model;
 
