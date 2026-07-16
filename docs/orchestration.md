@@ -222,10 +222,17 @@ Opus for the hard tier, should carry the flywheel.
   register-allocation/scheduling residuals, RTL-dump reading, novel-technique
   anchors (first of a family). The `matcher-prompt.py` top line flags
   jump-table; size and float/GTE (from `triage.py`) flag the rest.
-- **Fable** — exceptional only: an Opus attempt failed with a documented
-  RTL-level blocker, or a wrong convention would propagate across a whole
-  family. Prefer re-briefing Sonnet/Opus with sharper evidence over escalating
-  the model; record the justification when you do escalate.
+- **Fable** — the escalation tier (owner policy, 2026-07-16): when a
+  Sonnet/Opus pass on a target comes back failed or flat, ONE Fable resume of
+  that target is sanctioned. Start it from the banked checkpoint plus the
+  failed pass's evidence (report + STATUS updates), and point it at RTL-level
+  work — the vrealloc precedent: a stronger model told to ignore the C and
+  read the `-dg`/`-dl` dumps cracked a "permuter-immune" tie in one pass by
+  restructuring the allocno graph (a merged variable), not by fighting
+  priorities inside it. Also sanctioned for family-convention anchors where a
+  wrong convention would propagate. Record the justification in the lane note;
+  if the Fable pass is also flat, the park is final until a new
+  compiler-level insight.
 
 ## Bundling: one agent for many functions
 
