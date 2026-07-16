@@ -5781,6 +5781,42 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **The LoadConstruction escalation lessons (643→0, fence-free)** — six rules
+  from the pass that dissolved two recorded "unreachable" verdicts:
+  1. *Rotating t0–t3 reloads mean plain SPILLED LOCALS, not an addressable
+     struct.* Target reloading stack scalars into rotating t-regs at use
+     sites, homing params at the arg slot early, parking spill stores in
+     delay slots, and narrowing a field-store reload to `lhu` = locals whose
+     pseudos lost allocation. Spill slots are assigned in pseudo-number order
+     = DECLARATION order (function scope first, later blocks after), so the
+     target's slot order dictates the declaration order. The
+     addressable-struct+volatile reconstruction instead gives v0/a0/v1 homes
+     and frozen scheduling (~300 of the 643 bytes).
+  2. *gcc 2.8.1 rounds each BLKmode local's stack slot up to 8 bytes.* Odd
+     20-byte aggregates spaced 24 apart are N separate locals, not a packed
+     struct with pads; a wrapper struct rounds only its total and shifts
+     every later slot.
+  3. *Div-and-mask single-def idiom:* target `andi $sN,v0,7` as the ONLY def
+     of a callee-saved home = `long a, q; if (a >= 0) q = a/16000; else
+     q = a/16000 - 1; x = q & 7;`. The anonymous ternary ties the dividend
+     into v1; the NAMED q keeps it in a0 with untied sign temps, and the
+     single def drops the home's priority, un-packing coalesced families.
+  4. *Offset-then-base split steers tree shape AND the allocno ladder:*
+     `p = (T)((z<<2)+((x<<8)+(y<<5))); p = (T)((int)p + (int)Base);` puts the
+     partial sum in the carrier's own register and the +2 refs lift the
+     carrier above a loop giv — where the one-expression form leaves a temp.
+  5. *Param-indexed counting loop:* base reloading from the param home slot,
+     advance in the backedge delay slot, hoisted comparison constant BEFORE
+     the base load, nop at loop top = direct `((T *)param)[i]` indexing
+     strength-reduced by loop.c; a hand walker variable reverses the
+     preheader order.
+  6. *Engineer the allocation ladder with regalloc.py, ±1–2 refs at a time.*
+     find_reg is an ascending scan with sharing (an allocno takes the lowest
+     hard reg with no conflicting resident), so allocation ORDER is the whole
+     game; the printed priority `floor_log2(refs)*refs/live*10000` is exact
+     integer math. Steer with statement splits — preferred over fences; every
+     fence in this function was eventually replaced and the match is
+     fence-free.
 - **A folded pointer-address constant vs the symbol form is a COUPLED trade,
   not a free fix.** An address whose low 16 bits are ≥0x8000 materializes as
   `lui HI; ori LO` from a constant, but `lui HI+1; addiu LO-0x10000` from a

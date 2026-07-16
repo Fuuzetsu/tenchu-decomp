@@ -232,7 +232,11 @@ Opus for the hard tier, should carry the flywheel.
   priorities inside it. Also sanctioned for family-convention anchors where a
   wrong convention would propagate. Record the justification in the lane note;
   if the Fable pass is also flat, the park is final until a new
-  compiler-level insight.
+  compiler-level insight. Precedent: the LoadConstruction escalation took a
+  643-byte "parameter-home/regalloc, unreachable" park to a fence-free exact
+  MATCH by re-deriving the decomposition (spilled-locals diagnosis +
+  allocation-ladder engineering — see the cookbook's LoadConstruction
+  lessons).
 
 ## Bundling: one agent for many functions
 
