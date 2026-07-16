@@ -6274,15 +6274,39 @@ where it is equally valid and finds scaffolding years earlier.
   its three "weighting fences" measured inert once the decomposition was right.
   `tools/reghist.py` now prints an OPCODES DIFFER banner before any register
   verdict; heed it, and byte-account by instruction ENCODING, not register delta.
-- **`set_preference` donates a LOCAL colour to a GLOBAL allocno.**
-  `global.c:set_preference` strips the outer RTX code and takes OPERAND 0
-  (`if (GET_RTX_FORMAT(GET_CODE(src))[0]=='e') src = XEXP(src,0)`), then maps
-  through `reg_renumber` — so a local_alloc'd pseudo counts as a HARD REGISTER.
-  `global_var = <expr>` therefore donates operand 0's local_alloc colour to the
-  global as a hard-reg preference: **a local tie in one block decides a
-  function-scope allocno's register.** Fix the local tie and the global falls out.
-  (Which is also why `regalloc.py`, which surfaces only `-dg` global allocnos, can
-  be blind to the real driver.)
+### Reading global.c's preference machinery (the four rules that explain a tie)
+
+1. **`set_preference` donates a LOCAL colour to a GLOBAL allocno.**
+   `global.c:set_preference` strips the outer RTX code and takes OPERAND 0
+   (`if (GET_RTX_FORMAT(GET_CODE(src))[0]=='e') src = XEXP(src,0)`), then maps
+   through `reg_renumber` — so a local_alloc'd pseudo counts as a HARD REGISTER.
+   `global_var = <expr>` therefore donates operand 0's local_alloc colour to the
+   global: **a local tie in one block decides a function-scope allocno's
+   register.** It fires on USES too, not just defs (`mark_reg_store` calls it for
+   every store), so `(set LOCAL_X (EXPR global ...))` donates LOCAL_X's colour to
+   that global. (This is also why `regalloc.py`, which surfaces only `-dg` global
+   allocnos, can be blind to the real driver — read `.lreg`.)
+2. **`expand_preferences` unions hard-reg preferences BOTH WAYS** between a
+   SET_DEST global allocno and any NON-CONFLICTING global carrying a `REG_DEAD`
+   note on that insn. **So a global can inherit a preference it never touched.**
+   When a register tie is unexplainable from an allocno's own insns, **find the
+   `REG_DEAD` partner.** (ControlHumanoid: `direction = CamState.DirectionRY -
+   rotation_pair` kills `rotation_pair`, they do not conflict, so `direction`
+   inherits the `$a0` that `rotation_pair` got from its own sum's operand 0 — the
+   lever was two variables away from where the residual showed. Verified
+   numerically: the 7-byte and 22-byte drafts differ in EXACTLY ONE `.greg` line,
+   `85 preferences: 4`, with conflicts and priority order byte-identical.)
+3. **`regs_someone_prefers[A]` = the union of the full-prefs of LOWER-priority
+   CONFLICTING allocnos, MINUS A's own full-prefs.** An allocno's OWN preference
+   is the only thing that reclaims a register a lower-priority allocno wants
+   (find_reg's preference pass re-copies `used` from `used1`, conflicts only).
+4. **Global allocation order is computable BY HAND**: priority =
+   `floor_log2(n_refs) * n_refs / live_length * 10000 * size`, and `.lreg`'s
+   "Register N used R times across L insns" gives both inputs. **A power-of-two
+   `n_refs` is a knife-edge** — one ref either way flips `floor_log2`.
+- **A single-use value assigned straight into a call argument cannot donate a copy
+  preference**: combine folds `(set P expr)` + `(set (reg a0) P)` into one insn and
+  flow deletes the dead def. It needs >= 2 uses to survive as a donor.
 - **An allocno's OWN preference overrides `regs_someone_prefers`.** `find_reg`'s
   two-pass loop ORs `regs_someone_prefers[allocno]` into `used`, but the
   preference pass that follows re-copies `used` from `used1` (conflicts only). So

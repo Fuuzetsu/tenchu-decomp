@@ -762,6 +762,10 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   address split) iff the type is complete and `0 < sizeof <= -G`. Bounded,
   byte-safe, and it would have closed RestoreItemLayout's park in one unattended
   minute — the fix was a single character.
+- **autorules: reject the single-use-into-call-argument rewrite class** — combine
+  folds `(set P expr)` + `(set (reg a0) P)` into one insn and flow deletes the
+  dead def, so such a value can never donate a copy preference. Flagged by the
+  ControlHumanoid lane as the one mechanical rule of its four findings.
 - **autorules: the "narrowed negate" rule** — rewrite `narrow = -narrowVar` as a
   separate SImode negation operand (convert.c narrows NEGATE_EXPR through the
   truncation, so the narrow form can never emit the target's sign-extended

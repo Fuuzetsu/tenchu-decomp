@@ -71,14 +71,71 @@
  *     reproduce this cluster EXACTLY (verified: 0 diffs there).
  *   - But `magnitude` only reaches $a0 because `magnitude = t[1]-vy` donates
  *     the t[1] load's $a0 via set_preference.  With the delta as a temp,
- *     `magnitude` has no preference of its own, and since find_reg's own-
- *     preference pass is the only thing that overrides
- *     `regs_someone_prefers`, it is pushed off $a0 by `direction`'s
- *     preferences {v1,a0,a2} and lands in $a1 (22 bytes).
- * Closing this needs a source form that gives `magnitude` an $a0 preference
- * without putting the delta in it — i.e. an insn `(set magnitude (EXPR X ...))`
- * whose operand 0 local_alloc colours $a0.  Not found.  A 420 s -j4 permuter
- * run and two full autorules sweeps (18 and 21 candidates) found nothing.
+ *     `magnitude` has no preference of its own and lands in $a1 (22 bytes).
+ *
+ * ROUND 2 read the allocator dumps and built an EXACT model of the tie.  The
+ * pseudos are 84=direction, 85=magnitude, 86=rotation_pair, 83=head.  In the
+ * .greg dump the 7-byte and 22-byte drafts differ in exactly ONE line —
+ * `85 preferences: 4`.  Conflicts, priority order and direction's preferences
+ * are byte-identical between them.  The mechanism, all verified against the
+ * pinned gcc-2.8.1 source and reproduced numerically:
+ *   a. Priority (global.c:allocno_compare) is
+ *      floor_log2(n_refs)*n_refs/live_length*10000*size, and .lreg prints both
+ *      inputs ("Register N used R times across L insns").  Baseline: 85=26206,
+ *      86=20000, 84=17037, 83=7010 -> allocno_order `85 86 84 83`, exactly the
+ *      dump.  So magnitude is coloured FIRST, before direction.
+ *   b. regs_someone_prefers[85] = union of full-prefs of LOWER-priority
+ *      CONFLICTING allocnos, MINUS 85's own full-prefs.  It is {3,4,6} from 84.
+ *      85's own preference is the only thing that can reclaim $a0 from it —
+ *      hence exactly one line deciding 7 vs 22.
+ *   c. direction does NOT prefer $a0 on its own.  global.c:expand_preferences
+ *      unions the hard-reg preferences of a SET_DEST global allocno and any
+ *      non-conflicting global with a REG_DEAD note on the same insn, BOTH WAYS.
+ *      `direction = CamState.DirectionRY - rotation_pair` carries REG_DEAD 86
+ *      and 84/86 do not conflict, so direction INHERITS all of rotation_pair's
+ *      preferences.  rotation_pair prefers $a0 because its player-branch sum
+ *      `(set 86 (plus 259 265))` has operand 0 = the obj[0] load, which
+ *      local_alloc colours $a0 (`lh $a0,0x52($v1)` at 0x80027EA0 — retail).
+ *      $a0 is then pruned from 86 (it conflicts with hard $a0) but NOT from 84.
+ *      This corrects round 1's note above: the {a0,a2} in direction's
+ *      preferences are rotation_pair's, not direction's own.
+ *   d. set_preference also fires on USES: `(set LOCAL_X (EXPR global ...))`
+ *      donates LOCAL_X's colour to the global (mark_reg_store calls it for
+ *      every store).  That is how rotation_pair gets $a2 — from the argument
+ *      narrowing `sll $a2,$v0,16`.  magnitude's uses all produce $v0 locals,
+ *      and $v0 is pruned because magnitude conflicts with hard $v0 (live
+ *      across the *900 / div).  So no use of magnitude can donate $a0.
+ *
+ * This yields a CONTRADICTION that bounds round 3.  The player branch is
+ * byte-exact, which forces (c): direction always inherits $a0.  With magnitude
+ * coloured first, magnitude must therefore own an $a0 preference.  The only
+ * insn that supplies one is a def of magnitude whose operand 0 is a local
+ * coloured $a0 — and the sole such local in the enemy tail is the t[1] load,
+ * i.e. `magnitude = t[1]-vy`, which is what pins the delta.  So one premise
+ * must break; the two live candidates are:
+ *   - the priority order differs in retail (84 before 85 makes variant A match
+ *     by find_reg's fallback scan — derived, not measured).  That needs
+ *     magnitude's live_length >= 37 (now 26) or n_refs <= 15 (now 16; 16 is
+ *     exactly a power of two, so ONE fewer ref drops floor_log2 4->3 and flips
+ *     the order).  n_refs 16 = 5 player-yaw + 5 player-pitch + 6 enemy-yaw.
+ *   - a def/use of magnitude tied to an $a0 local that round 2 did not find.
+ * Measured and rejected this round:
+ *   - `direction = (t[1]-vy)/2`: 22 (cluster exact, magnitude -> $a1).
+ *   - splitting rotation_pair per branch: 68.  It makes both sums LOCAL
+ *     pseudos, which perturbs local_alloc across the whole player block
+ *     (259/265/270 recolour).  The shared variable is load-bearing — this is
+ *     the mechanical confirmation of finding 2 above.  Note the VAR_DECL
+ *     narrowing of finding 1 is a TREE-level property and survives the split;
+ *     the two requirements are independent.
+ *   - `magnitude = t[0]-vx` passed as GetDirection's arg 0, to buy an $a0
+ *     COPY preference from `(set (reg a0) (reg 85))`: no effect, byte-identical
+ *     to variant A.  combine folds a single-use def into the argument insn and
+ *     flow deletes it, so the copy never exists.  A value must have >= 2 uses
+ *     to donate a copy preference this way.
+ *   - a third autorules sweep (17 candidates, incl. the new abs-ge / cmp-swap /
+ *     fence-unwrap rules) and a second bounded -j4 permuter run: nothing.
+ * Read .lreg directly, not regalloc.py: every quantity here is local_alloc's
+ * and regalloc.py surfaces only global allocnos.
  *
  * Build with `NON_MATCHING=ControlHumanoid ./Build` and inspect with
  * `tools/matchdiff.py ControlHumanoid`.
