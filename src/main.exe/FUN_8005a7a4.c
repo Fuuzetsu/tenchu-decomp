@@ -4,10 +4,38 @@
 /*
  * FUN_8005a7a4 (0x8005a7a4) — advance the memory-card save UI state machine.
  *
- * STATUS: NON_MATCHING — guarded pure-C checkpoint at 98.05 fuzzy similarity.
- * The draft has the target's exact 1024-byte extent; 14 bytes remain in the
- * repeated SaveCard tail due to a0/a1 allocation and store/branch scheduling.
+ * STATUS: NON_MATCHING — 12 of 1024 bytes differ, at the target's exact extent.
  * Build it with `NON_MATCHING=FUN_8005a7a4 ./Build`.
+ *
+ * The earlier "14 bytes / a0-a1 allocation + store scheduling" verdict was
+ * WRONG on both counts and has been retired:
+ *   - The register half was a DECOMPOSITION error, not allocation. The target
+ *     selects the new state into a register and does ONE store; the old draft
+ *     stored next_state then conditionally overwrote it (TWO stores). The
+ *     `if (value > 2) next_state = saved_state;` + single store below is the
+ *     target's shape. (A ternary is NOT equivalent here: cc1 duplicates the
+ *     D_80097D32 store into both arms, +8 bytes.)
+ *   - What remained was then a pure register tie, closed exactly as
+ *     regalloc.py predicted (`p83 > p117: needs +1 weighted ref`). See the
+ *     fence comment below.
+ *
+ * The whole residual is now ONE instruction: the D_80097D32 store sits before
+ * the sll; the target has it between the slti and the bnez:
+ *     target:  sll / sra / slti / sh v1,1690(gp) / bnez / nop / move a0,a1
+ *     ours:    sh v1,1690(gp) / sll / sra / slti / bnez / nop / move a0,a1
+ * This is NOT a scheduling tie that a permuter or a source reorder can reach:
+ *   - The shared tail is a LOAD-FREE block, so every insn_cost is 1 and
+ *     gcc-2.8.1 sched.c's priority() collapses every priority to 1 ("when all
+ *     instructions have a latency of 1 ... no scheduling will be done"). The
+ *     emitted order IS the RTL order, so the target's order must come from
+ *     source order, not from sched.
+ *   - But expand emits the compare and the branch adjacently, and separating
+ *     them with a `cond` local does not help: combine merges the compare into
+ *     the branch and re-splits it AT the branch, relocating it back below the
+ *     store (measured: 13 bytes, and it rewrites sra/slti into lui/slt).
+ *   - Moving the store after the `if` puts it in the branch's delay slot
+ *     (reorg), which is 4 bytes SHORT (1020) — the wrong length.
+ * A 420 s permuter run plateaued at 12; autorules found no improving edit.
  */
 
 #ifndef NON_MATCHING
@@ -75,7 +103,7 @@ static const u32 FUN_8005a7a4_jtbl[63] = {
 
 #else /* NON_MATCHING */
 extern char *D_80097D18;
-extern s16 D_80097D2C;
+extern s16 CardStateFlag;
 extern s16 D_80097D2E;
 extern s16 D_80097D30;
 extern s16 D_80097D32;
@@ -156,7 +184,7 @@ save_2b_seven:
         goto save_2b_assign;
 save_2b_four:
         D_80097D2E = 0x1e;
-        D_80097D2C = 0;
+        CardStateFlag = 0;
         goto save_2b_after_assign;
 save_2b_assign:
         D_80097D2E = assigned;
@@ -230,7 +258,7 @@ save_37_seven:
         goto save_37_assign;
 save_37_four:
         D_80097D2E = 0x1e;
-        D_80097D2C = 0;
+        CardStateFlag = 0;
         goto save_37_after_assign;
 save_37_assign:
         D_80097D2E = assigned;
@@ -243,11 +271,23 @@ save_37_after_assign:
         incremented = value + 1;
 update_count:
         D_80097D32 = incremented;
-        D_80097D2E = next_state;
         if (value > 2)
-        {
-            D_80097D2E = saved_state;
-        }
+            next_state = saved_state;
+        /*
+         * Load-bearing fence (autorules fence-unwrap: removing it costs 7
+         * bytes, 12 -> 19). It buys next_state ONE loop-depth-weighted ref:
+         * reg_n_refs is loop-depth weighted and global.c's priority is
+         * floor_log2(refs) * refs/live_length. next_state (p83) scores
+         * 2*4/16*10000 = 5000 and loses a0 to p117/p151 at 3/5 -> 6000;
+         * doubling this one ref gives 5 weighted refs -> 6250 -> a0, which
+         * fixes all six register-swapped instructions at once.
+         * The fence must enclose ONLY this next_state read: wrapping the `if`
+         * would also double saved_state's refs, and its shorter live range
+         * (3/11) would then outrank next_state and take a0 the wrong way.
+         */
+        do {
+            D_80097D2E = next_state;
+        } while (0);
         break;
     case 0x3c:
         D_80097D30 = 0x1a;

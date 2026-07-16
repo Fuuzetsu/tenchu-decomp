@@ -61,4 +61,31 @@ fi
 
 link .shake/ghidra-export
 
+# Staleness check. An agent worktree is often branched from an OLD commit: lanes
+# in one rollout started 26-36 commits behind, one of them missing the entire
+# checkpoint its task described (a bare INCLUDE_ASM stub), and another missing a
+# tool its task told it to run first. The contract mandates checking this by
+# hand; do it here so nobody has to remember.
+base=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+if git rev-parse --verify --quiet master >/dev/null; then
+  behind=$(git rev-list --count HEAD..master 2>/dev/null || echo 0)
+  ahead=$(git rev-list --count master..HEAD 2>/dev/null || echo 0)
+  if [ "${behind:-0}" -gt 0 ]; then
+    echo
+    echo "wt-init: *** YOUR BRANCH ($base) IS $behind COMMIT(S) BEHIND master ***"
+    if [ "${ahead:-0}" -eq 0 ]; then
+      echo "wt-init: you have no commits yet, so fast-forward BEFORE any edit:"
+      echo "wt-init:     git merge --ff-only master"
+    else
+      echo "wt-init: you have $ahead commit(s) of your own — do NOT ff blindly;"
+      echo "wt-init: rebase or report, and re-measure your baseline either way."
+    fi
+    echo "wt-init: then re-measure: a stale base can hide the checkpoint your"
+    echo "wt-init: task describes, or a tool it tells you to run."
+    echo
+  else
+    echo "wt-init: branch $base is up to date with master"
+  fi
+fi
+
 echo "wt-init: ready. Verify with: nix develop --command bash -c './Build check'"

@@ -6145,6 +6145,34 @@ while its reasoning did not.
   loop-note ref WEIGHT and a scheduling barrier but no block boundary; an
   identical-arm fence gives a real block boundary. Pick by which one the
   mechanism needs.
+- **`sched` CANNOT reorder a LOAD-FREE block — so a misplaced instruction there
+  is SOURCE ORDER, not a scheduling tie.** gcc-2.8.1's `sched.c:1521` computes
+  `priority(x) + insn_cost(x,…) - 1`, and its own comment says it outright:
+  *"When all instructions have a latency of 1 … all instructions will end up with
+  a priority of one, and hence no scheduling will be done."* Only a LOAD (cost 2)
+  differentiates. So in a block of pure ALU/store/branch insns, stop permuting
+  and stop reading `.sched2` — fix the statement order. (Corollary: if the
+  target's order is unreachable from ANY source order in such a block, that is a
+  real park.) `-O2` does enable both schedulers and reorg (toplev.c:3798/3815).
+- **You cannot park a statement between a compare and its branch.** Hoisting the
+  compare into a `cond` local fails: combine merges it into the branch and
+  `find_split_point` re-splits it AT the branch, relocating it back below your
+  statement. The tell is that the compare's SHAPE changes too (`sra`/`slti` ->
+  `lui`/`slt` against `2<<16`).
+- **`bnez / nop / move dst,src / L: sh dst` is a SELECT with ONE store.**
+  Reproduce it with `if (c) next = saved; X = next;` — NEVER a ternary, which
+  makes cc1 duplicate the surrounding store into both arms (+8 on FUN_8005a7a4).
+  **A two-store draft masquerades as a register-allocation difference**: the tell
+  is that the store both sides agree on is already absent from the diff. Once the
+  select was right there, `regalloc.py --compare` quantified the rest exactly
+  (`needs +1 weighted ref`) and one fence around only the `next_state` read
+  delivered it — six swapped instructions fell at once.
+- **Before adding `D_XXXXXXXX = 0x…;` for an undefined reference, grep
+  `config/symbols.main.exe.txt` for the ADDRESS** — it may already exist under
+  its real name, and splat will reject the duplicate (`Duplicate symbol
+  detected!`). A sibling lane's rename landing on master can break a parked
+  draft's auto-label this way: the fix is to rename in the draft, not to re-add
+  the symbol (FUN_8005a7a4 vs `CardStateFlag` at 0x80097D2C).
 - **A register SWAP is only a PRIORITY question once you have checked the loser
   CAN HOLD the winner's register.** Read the allocno's CONFLICT LIST for the
   target hard reg BEFORE computing any priority or touching a fence depth — a

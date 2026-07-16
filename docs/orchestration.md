@@ -763,6 +763,21 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
 - **autorules: two guided transforms from ChasetoTarget** — "inline a
   single-use abs/min/max temp into its comparison" and "inline a single-use
   CSE'd array element into its first-use expression" (both were manual).
+- ~~wt-init staleness warning~~ **BUILT** — `tools/wt-init.sh` now prints how
+  many commits the branch is behind master and the exact ff command. Seven lanes
+  in one rollout started 26-36 commits stale; one was missing the checkpoint its
+  task described, another a tool its task told it to run first.
+- **matchdiff `--account`**: group the diff into clusters with byte weights and a
+  per-cluster classification (register-swap / inserted / moved). The revival
+  addendum MANDATES byte-accounting and every lane still does it by hand from hex
+  columns — and three briefs' premises died to it, so it is the single most
+  load-bearing manual step left.
+- **regalloc.py `--names`**: join pseudo -> source variable (rtldump already
+  shows `(reg/v:HI 85)`). Lanes hand-count refs to identify pseudos, and the
+  "confirm identity via disposition" rule exists precisely because that misread
+  costs rounds.
+- **asmdiff/rtldump: flag a LOAD-FREE block** ("sched cannot reorder this — it is
+  your source order"), turning a multi-step source dive into a printed line.
 - **regalloc.py: self-validate the priority model against `.greg`'s allocno
   order.** The `;; N regs to allocate:` line is printed in real post-qsort
   order; regalloc.py parses it as a SET and throws the order away. Scoring the
