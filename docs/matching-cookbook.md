@@ -5783,6 +5783,23 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **Inline abs into its comparison — not a named temp — to fix scheduling AND
+  allocation priority together.** When the target's abs of a callee-saved
+  value lands in a late-scheduled caller-saved scratch (`$v0`), write
+  `if ((x >= 0 ? x : -x) < K)`, NOT `t = x; if (x < 0) t = -x;`. The named
+  temp (a) schedules its copy early into a free caller-saved reg (so it can't
+  be `$v0`), and (b) its `t = -x` adds a ref to `x` that flips the `.greg`
+  priority so `x`'s sibling loses its callee-saved home. `t = -t` does NOT
+  fix (b) — cse copy-propagates it back to `t = -x`. Only the inline `?:`
+  keeps the neg as `neg $v0,$v0` (ChasetoTarget: flipped `me` to the target's
+  `$s1`).
+- **Inline a CSE'd pointer-array element into the expression that first uses
+  it, so it loads late and reuses a dying pointer's register.** A named
+  `c1 = chase[1]` temp schedules early (before the target pointer's register
+  dies) and can't reuse it; inlining `chase[1]` into the consuming expression
+  loads it after the pointer frees its register (ChasetoTarget: reused `$a1`
+  exactly like retail — while its sibling `c0` stayed a named temp because
+  the target loads it separately).
 - **The LoadConstruction escalation lessons (643→0, fence-free)** — six rules
   from the pass that dissolved two recorded "unreachable" verdicts:
   1. *Rotating t0–t3 reloads mean plain SPILLED LOCALS, not an addressable

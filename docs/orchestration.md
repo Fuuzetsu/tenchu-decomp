@@ -661,6 +661,13 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   PERSIST the best candidate to a known path on timeout-kill (StageEndScreen's
   bounded run lost all candidate output; start_demo_'s win had to be recovered
   via `--rescore-only` plus a manual diff).
+- **autorules: two guided transforms from ChasetoTarget** — "inline a
+  single-use abs/min/max temp into its comparison" and "inline a single-use
+  CSE'd array element into its first-use expression" (both were manual).
+- **rtlguide: a delay-slot fill classifier** — report which reorg pass filled
+  a branch's slot and why ("branch N's slot filled by fill_simple stealing
+  insn M backward, so fill_eager never duplicated the shared return move");
+  ChasetoTarget's final diagnosis needed a hand-read of gcc reorg.c.
 - **rtlguide: a scheduler-tie classifier** — detect "priority-N tie between
   insns A/B whose order is fixed by pre-scheduling LUID at pass P;
   source-position-invariant" and advise PARK immediately. StageEndScreen's
