@@ -5767,14 +5767,16 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     Splitting `a+b+c` into `x=a+b; x+=c;` and vertex `idx*8+base` into
     all-sll-then-all-addu statements controls accumulator choice and batches
     the scheduler.
-  - **Two park-on-sight cc1 invariants (any function, not just GTE):** the
-    target byte-form `addiu r,$zero,0` for `x = 0` is UNREACHABLE (cc1 movsi
-    always emits `move r,$0`; nonzero constants correctly give `li`), and a
-    two-register equality branch always orders the LOWER regno first —
-    `beq $v1,$v0` is unreachable. One such instruction in a target is decisive
-    evidence of a HANDWRITTEN-assembly original (the whole draw*/DrawTMD
-    family: exactly one `li r,0` tell each; see docs/gte-policy.md for the
-    compiled-vs-handwritten split and scan).
+  - **One park-on-sight cc1 invariant (any function, not just GTE):** the
+    target byte-form `addiu r,$zero,0` for `x = 0` is UNREACHABLE from plain C
+    (cc1 movsi always emits `move r,$0`; nonzero constants correctly give
+    `li`). The whole draw*/DrawTMD family has this tell (one per handler, two in
+    DrawTMD); see docs/gte-policy.md for the scan and the independent non-ABI
+    calling-convention evidence. Do **not** use reversed equality operands as
+    the same proof: a direct equality between fixed `$v0/$v1` values does
+    canonicalize lower-regno first, but a subtract-then-zero-test through the
+    fixed `$v1` carrier combines to `beq $v1,$v0`. drawF3 now uses that pure-C
+    form and matches the opening branch exactly.
   - **m2c can read them**: our m2c carries a PSX GTE/COP2 patch series
     (`nix/m2c/*.patch`). You MUST pass `--input-regs`, or every entry-live value
     becomes `M2C_ERROR(Read from unset register)`. Hand it the whole caller-saved

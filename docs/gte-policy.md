@@ -75,14 +75,22 @@ drawzF4 drawFT4 drawzGT3 drawzG4 drawGT4 drawzFT4 drawzGT4`, the twin pairs
 
 ## Compiled vs HANDWRITTEN split (established by the drawF3 anchor, 2026-07-16)
 
-The drawF3 anchor reached 72/74 instructions exact and proved the remaining 2
-instructions are cc1-2.8.1 invariant violations — forms this compiler cannot
-emit from ANY C:
+The drawF3 anchor is 72/74 instructions exact. An early investigation called
+both residual sites cc1-2.8.1 invariants. The equality claim was too strong:
+computing `0x304 - input_v0` in the pinned `$v1` carrier and testing that result
+for zero lets combine emit the target's `beq $v1,$v0` with no subtraction left.
+That instruction is therefore reachable from C.
 
-1. `x = 0` always compiles to `move r,$0`; the target's `addiu r,$zero,0`
-   (`li r,0`) is unreachable (a nonzero constant correctly gives `li`).
-2. A two-register equality branch always puts the LOWER-regno operand first;
-   the target's `beq $v1,$v0` is unreachable.
+The zero materialization remains a real backend boundary. An integer `x = 0`
+uses cc1's movsi form, `move r,$0`; the target uses `addiu r,$zero,0`
+(`li r,0`). This held for ordinary and fixed-register carriers, varied source
+expressions, cc1 2.6.3 and 2.8.1, and every current cc1-produced assembly file.
+The two words still differing in the best pure-C draft are coupled scheduling
+effects around that one reset: using `$s0` as the comparison RHS keeps the
+`move` between `cfc2` and `and` and preserves the target's delay-slot `nop`.
+One diagnostic inline `li` at the reset makes drawF3 byte-exact, but it is an
+ordinary MIPS instruction rather than a GTE operation and is not retained or
+hidden inside `gte.h`.
 
 Scanning every whitelist function for the `addiu r,$zero,0` tell splits the
 family cleanly:
@@ -90,9 +98,12 @@ family cleanly:
 - **HANDWRITTEN (17)**: all 16 `draw*` renderers (exactly 1 tell each — the
   same `code = 0` site drawF3 could not reach) and `DrawTMD` (2 tells). Their
   original source was assembly; a C reconstruction is documentation, not a
-  faithful source form. drawF3's 8-byte NON_MATCHING draft (72/74 exact) is
-  kept as the documented reference reconstruction; DO NOT clone the other 15
-  as ~8-byte parked drafts — the owner decides the class's accounting
+  faithful source form. The non-ABI dispatcher also calls each handler with
+  live state in `$v0/$t0/$t2-$t6/$t9/$s0`, without marshalling C arguments;
+  the handlers return updated state in those same registers. drawF3's
+  5-differing-byte NON_MATCHING draft (72/74 exact) is kept as the documented
+  reference reconstruction; DO NOT clone the other 15 as ~8-byte parked drafts
+  — the owner decides the class's accounting
   (committed-canonical-asm vs excluded) before any further lanes.
 - **COMPILED-STYLE (8)**: `SetDepthQ` (matched), the twin pairs
   `FUN_80058c70/FUN_80059008` (920 B), `FUN_80059ff4/FUN_8005a3cc` (984 B),
@@ -102,8 +113,8 @@ family cleanly:
 ## Matching order for the family (revised)
 
 1. ~~`SetDepthQ`~~ — DONE (the spike).
-2. ~~`drawF3`~~ — anchor DONE as the documented 8-byte reconstruction; family
-   conventions + macro set landed in `gte.h`.
+2. ~~`drawF3`~~ — anchor DONE as the documented 5-differing-byte reconstruction;
+   family conventions + macro set landed in `gte.h`.
 3. `FUN_80057b80` (3796 B, 2 GTE commands — mostly ordinary C).
 4. The three twin pairs: match one anchor per pair, clone its twin.
 5. ~~The 15 remaining `draw*` + `DrawTMD`~~ — RESOLVED (owner decision,
@@ -111,5 +122,5 @@ family cleanly:
    source form (scene-standard, like SM64's handwritten `.s`);
    `config/handwritten-asm.txt` is the machine-readable list, `progress.py`
    counts them in the `game done (C+asm)` line, and `triage.py` hides them
-   from targets permanently. drawF3's 8-byte C reconstruction remains as
-   documentation; no further C lanes for this class.
+   from targets permanently. drawF3's 5-differing-byte C reconstruction
+   remains as documentation; no further C lanes for this class.

@@ -6,28 +6,30 @@
  * drawF3 (0x8005d0d4, 0x128 bytes) — the flat-triangle (POLY_F3) primitive
  * renderer of the DrawTMD handler family, and the anchor for the restricted
  * gte.h inline-asm policy (docs/gte-policy.md).  The carved .s marks it a
- * "Handwritten function": it was authored in assembly, not compiled from C.
+ * "Handwritten function", and the calling convention below independently
+ * supports that classification.
  *
- * STATUS: NON_MATCHING — 8 of 296 bytes differ (72 of 74 instructions exact).
- * The two residuals are cc1-2.8.1 codegen INVARIANTS that the hand-written
- * original does not follow; no C construct, register pinning, statement order,
- * or compiler flag reproduces them (verified against cc1-281 directly):
+ * STATUS: NON_MATCHING — 5 of 296 byte values differ (72 of 74 instructions
+ * exact).  An earlier reconstruction incorrectly called the opening
+ * `beq $v1,$v0` unreachable from C.  Computing the sentinel difference in the
+ * already-pinned $v1 carrier lets combine turn the zero test back into exactly
+ * that branch, with no subtraction left in the output.
  *
- *   1. 0x8005d0d8  `beq $v1,$v0` (const first) vs cc1's `beq $v0,$v1`.
- *      cc1 canonicalises a two-register equality to put the lower-regno
- *      operand ($v0 = $2, the incoming count) first.  The count is pinned to
- *      $2 by the non-ABI entry, and 0x304 cannot occupy a register below $2,
- *      so cc1 can only emit $v0 first.  Tried: `!=` / `==` both orders, a
- *      ternary, and a named-sentinel compare — all identical.
- *   2. 0x8005d14c/0x8005d150  the `code = 0` reset.  The hand author wrote
- *      `addiu $s0,$zero,0` (li) placed AFTER `cfc2`; cc1 emits `addu $s0,$0,$0`
- *      (the `move reg,$0` form its movsi ALWAYS uses for an integer set-to-0 —
- *      confirmed for pseudos AND register variables; `= 0x20` correctly gives
- *      `li`).  It must also sit BEFORE `cfc2` so the volatile barrier stops
- *      reorg from sinking it into the flag-test branch delay slot (which the
- *      target leaves a `nop`); placing it after cfc2 loses that nop and the
- *      length.  So both the opcode (addu vs addiu) and the cfc2/reset order are
- *      forced by cc1.
+ * The remaining two words are a coupled consequence of the reset at 0x8005d150:
+ * the target has `addiu $s0,$zero,0` and tests the masked flag against $zero;
+ * cc1's integer-zero movsi is `addu $s0,$zero,$zero` (`move`), and retaining
+ * $s0 as the RHS of the comparison is the pure-C dependency that keeps that
+ * reset between `cfc2` and `and` while preserving the target's branch-delay
+ * `nop`.  Comparing against literal zero instead lets reorg sink the reset into
+ * the delay slot and makes the function one instruction short.
+ *
+ * As a diagnostic, replacing the RHS assignment with one volatile inline
+ * `li %0,0` immediately after gte_stflg and testing literal zero produces an
+ * exact 0-byte diff.  It is deliberately not retained: `li` is not a GTE
+ * operation and hiding it in gte.h would only disguise assembly as C.  A scan
+ * of cc1-produced assembly found no C zero assignment spelled `li`; all 17
+ * target `addiu r,$zero,0` occurrences are confined to DrawTMD and its 16
+ * draw handlers.
  *
  * Everything else is exact, including all COP2 data moves, the three GTE
  * commands, the deferred ordering-table insertion, and every guard delay slot.
@@ -91,8 +93,11 @@ void drawF3(void)
     int mac0;
 
     ot_slot = ot_in;
+    /* The temporary subtraction survives long enough to preserve operand
+     * order, then combine reduces this back to the target equality branch. */
+    mask = 0x304u - (u32)r_v0;
     n = 1;
-    if (r_v0 != 0x304)
+    if (mask != 0)
     {
         n = r_v0;
     }
@@ -116,9 +121,10 @@ loop:
             *((u8 *)packet + 7) = (u8)code;
             packet += 5;
         }
-        code = 0;
         gte_stflg(flag);
-        if ((flag & mask) == 0)
+        /* This assignment expression keeps the reset after cfc2 and before
+         * the flag test; see the coupled two-word residual above. */
+        if ((flag & mask) == (code = 0))
         {
             gte_nclip();
             gte_stsz3(r0, r1, r2);
