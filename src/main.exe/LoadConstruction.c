@@ -81,11 +81,39 @@
  * initial disposal test with hoisted pointer masks now matches that traversal
  * exactly; preserving the shared nModel/WorldMap-top source identity and the
  * case-2 and final-preparation allocation boundaries also recover the target's
- * first-pass slot and model registers. The linked residual is 666 differing
- * bytes with an 85.46 fuzzy score; remaining work is parameter-home scheduling
- * and regalloc alignment rather than missing behavior. Build it with
- * `NON_MATCHING=LoadConstruction ./Build`. On a full match, delete the guards
- * and the stub-only _jtbl array.
+ * first-pass slot and model registers.
+ *
+ * The linked residual is now 643 differing bytes (fuzzy 86.34), down from 666.
+ * What closed this pass: BOTH WorldMap slot addresses (case-2 nModel, final-pass
+ * slot) are spelled as explicit integer offset arithmetic
+ * `(z<<2) + ((x<<8) + (y<<5)) + (int)WorldMap` instead of `&WorldMap[x][y][z].top`.
+ * The ARRAY_REF form folded the base early and evaluated z last; the target
+ * computes the pure offset (z-term first, x/y grouped) and adds the base symbol
+ * as a separate trailing integer term (rule "arr[idx] expands base-first"),
+ * matching the target's evaluation tree exactly (only the x/y register homes
+ * still differ). A guided-autorules do{}while(0) fence on the case-2 clone load
+ * (L~401) closed 2 more bytes.
+ *
+ * Remaining residual is entirely parameter-home scheduling + regalloc rotation,
+ * not missing behavior:
+ *   - x/y are one callee-saved register LOW vs retail (ours x=$s4/y=$s3, retail
+ *     x=$s5/y=$s4; z=$s0, model=$s2, nModel=$s3 all match). Root: ours coalesces
+ *     the disjoint {y, nModel} into $s3 while retail keeps them apart. The demo
+ *     SLD ALSO coalesces (x=$s4,y=$s3), so this is a retail-only non-coalescing
+ *     divergence. Splitting the case-2 WorldMap addr into its own short-lived
+ *     `slot` local (the demo's separate `slot` var) forces the split but REGRESSES
+ *     +5 (rotates the first-pass), confirming the shared nModel identity is
+ *     load-bearing. Raising nModel priority to out-rank y needs ~64 refs
+ *     (unreachable); y and nModel are genuinely disjoint so no conflict forces
+ *     the split. Not reachable by the C-level levers tried.
+ *   - The `data` param-home store `sw a0,0x1A0(sp)` schedules LATE (after the
+ *     callee saves) vs the target's position 2. `data` is the lowest-priority
+ *     pseudo (reg 80, 47 call-crossings / few refs) so reload spills it as a body
+ *     insn placed after the RTL register saves; the target homes it first.
+ *     `u32 *volatile data` regressed +4; statement reorder of the vsize/i=nModel
+ *     pair regressed +2.
+ * Build it with `NON_MATCHING=LoadConstruction ./Build`. On a full match, delete
+ * the guards and the stub-only _jtbl array.
  */
 
 #ifndef NON_MATCHING
@@ -398,7 +426,9 @@ short LoadConstruction(u32 *data)
             {
                 if (wlddt[i].data.name[0] != 0)
                 {
-                    model = D_80097A74->object[scratch.stack.ObjectID];
+                    do {
+                      model = D_80097A74->object[scratch.stack.ObjectID];
+                    } while (0);
                     scratch.stack.ObjectID++;
                     wlddt[i].data.model = model;
                 }
@@ -442,7 +472,7 @@ short LoadConstruction(u32 *data)
         z &= 7;
 
         GetCenterAndSize(model->object.tmd, &scratch.center, &scratch.size);
-        nModel = (int)&WorldMap[x][y][z].top;
+        nModel = (z << 2) + ((x << 8) + (y << 5)) + (int)WorldMap;
         slotman = &ModelSlot;
         shifty = scratch.center.vy;
         msize = scratch.size / 2;
@@ -539,7 +569,7 @@ short LoadConstruction(u32 *data)
 
             D_80097A70->object[i]->object.attribute |= 0x400;
             UpdateOrnament(D_80097A70->object[i], 0);
-            slot = &WorldMap[x][y][z].top;
+            slot = (ObjectSlotType **)((z << 2) + ((x << 8) + (y << 5)) + (int)WorldMap);
             slotman = &ModelSlot;
             model = D_80097A70->object[i];
             if (slotman->n >= slotman->max)
