@@ -12,8 +12,39 @@
  * `in_v0`/`in_v1` (error code / result): `if (in_v0 != 0) in_v1 = -1; return
  * in_v1;`.
  *
- * STATUS: NON_MATCHING — 7 of 36 bytes differ (whole-image). Two compounding
- * problems, not just one:
+ * STATUS: NON_MATCHING — 7 of 36 bytes differ (whole-image), but the reason
+ * below is a MISDIAGNOSIS, corrected 2026-07-17: this function is almost
+ * certainly HANDWRITTEN ASSEMBLY, in which case its `.s` IS the faithful
+ * source and there is nothing to match. The question was never "which inline
+ * asm reproduces it" but "was this ever C at all" — and three independent
+ * tells say no:
+ *
+ *   1. `break 0, 263` (0x107) is the ONLY two-operand break in the entire
+ *      image. The compiler's own trap codes appear in bulk — `break 7`
+ *      (divide-by-zero) 139 times, `break 6` (overflow) 131 times — because
+ *      cc1 emits them from mips.md. 263 belongs to no cc1 pattern: it is the
+ *      host-link trap code the dev kit's handler dispatches on. A compiler
+ *      does not emit a code it does not own.
+ *   2. The args are shifted UP one register (fd:$a0->$a1, offset:$a1->$a2,
+ *      mode:$a2->$a3) so the trap handler can read them from $a1-$a3. No C
+ *      calling convention produces that; it only makes sense hand-written
+ *      against a handler's private ABI.
+ *   3. `$v1` is read as a SECOND return value alongside `$v0` (error code /
+ *      result), which the MIPS C ABI has no way to express — and the target's
+ *      own branch label is `LSEEK_OBJ_1C`, i.e. the original object's label
+ *      survived into the image.
+ *
+ * Under docs/gte-policy.md's owner-approved rule (proven handwritten =>
+ * the asm is canonical => counted done), this belongs in
+ * config/handwritten-asm.txt alongside the GTE family. It is NOT listed there
+ * yet: membership is attributed to an explicit owner decision, so the addition
+ * is flagged for ratification rather than taken unilaterally. Do NOT spend a
+ * matcher round trying to reach these bytes from C.
+ *
+ * (Note this is SDK code — 0x80060224 is above the 0x80060000 game boundary —
+ * so it does not affect the game-code scoreboard either way.)
+ *
+ * The original park's reasoning, kept for the record:
  *
  * 1. `break 0x0,0x107` has NO C representation at all — the only way to
  *    emit it is inline asm with register-pinned variables (confirmed

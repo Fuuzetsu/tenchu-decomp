@@ -138,3 +138,31 @@ family cleanly:
    counts them in the `game done (C+asm)` line, and `triage.py` hides them
    from targets permanently. drawF3's 5-differing-byte C reconstruction
    remains as documentation; no further C lanes for this class.
+
+## Candidate for the handwritten class: PClseek (flagged, NOT yet added)
+
+`PClseek` (0x80060224, SDK region) is almost certainly handwritten assembly, on
+the same principle that classified the GTE 17 — but it is **not** in
+`config/handwritten-asm.txt` yet, because membership there is attributed to an
+explicit owner decision. Flagged for ratification. The evidence is three
+independent tells, the first quantitative:
+
+* **`break 0, 263` (0x107) is the ONLY two-operand break in the whole image.**
+  cc1's own trap codes appear in bulk — `break 7` (divide-by-zero) 139 times,
+  `break 6` (overflow) 131 times — because they come from `mips.md`. 263 belongs
+  to no cc1 pattern; it is the dev kit's host-link trap code. **A compiler does
+  not emit a code it does not own.** This is a clean general tell: survey the
+  trap codes, and the ones that appear once are not compiler output.
+* **The args are shifted UP one register** (`$a0->$a1`, `$a1->$a2`, `$a2->$a3`) so
+  the trap handler can read them from `$a1-$a3`. No C calling convention produces
+  that.
+* **`$v1` is read as a SECOND return value** beside `$v0` (error code / result),
+  inexpressible in the MIPS C ABI — and the target's own branch label is
+  `LSEEK_OBJ_1C`, i.e. the original object's label survived into the image.
+
+The existing park in `src/main.exe/PClseek.c` diagnosed this as "needs inline asm,
+pending a project decision". That was the wrong question: it is not *which* inline
+asm reproduces the bytes, but whether the function was ever C. It was not. The
+same correction may apply to its siblings (`PCopen`, `PCcreat`, `PCclose`,
+`PCread`, `PCwrite` — all in the same PsyQ host-file-I/O family, all in the SDK
+region above 0x80060000, none of which affect the game-code scoreboard).
