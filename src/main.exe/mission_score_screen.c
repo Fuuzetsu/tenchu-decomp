@@ -5,7 +5,7 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 498 of 4636 bytes differ (was 525; was 1266).  Exact
+ * STATUS: NON_MATCHING -- 476 of 4636 bytes differ (was 498; 525; 1266).  Exact
  * target length (1159 instructions), frame 0x1B8, 60/60 calls, 8/8 unconditional
  * jumps; the whole function is address-aligned except the LoadTIMAndFree arg
  * copy (9 low) and one +4/-4 skew pair inside the row-number draw.  No
@@ -85,6 +85,25 @@
  * The local aggregates reproduce the original stack layout: packed
  * ScoreResult copy at sp+50, sprite banks at sp+60/sp+118, one GsIMAGE
  * scratch at sp+160 reused by all seven sprite initialisations.
+ *
+ * 2026-07-16 round-3 closure (flat at 476; do not retry these):
+ * - The drawY-carrier lead is CLOSED at the C level: for constant-y draws
+ *   (5/7/8, y=-53/-36/-18) copy-prop/constant-rematerialization dissolves
+ *   any carrier (seed AND store through it are strict no-ops), so it cannot
+ *   pin y live to force v0/t1. The only computed-y site (the row draw) is
+ *   separately blocked: rowValue->a0 is a p91 HARD-CONFLICT, which also
+ *   produces the self-cancelling +4/-4 skew pair (medal nop / merged j).
+ * - Draws 5/7/8's v0-vs-t1 shift is a sched1 y-load sink tied to their s16
+ *   (lhu) value loads; jump restructuring regresses the matching sign branch.
+ * - The bank-address base-first/base-last swap is cc1 address-selection, not
+ *   spelling (subscript and cast-macro forms diverge identically).
+ * - Other measured dead ends: rankColour entry fence (no-op), row value as
+ *   i+1 (length) or (u16)(i+1) (480), y-seed/x-store fence (+2 insns),
+ *   160 guided candidates (no improving path).
+ * Remaining residual classes: ten $s7<->$s8 x10 (priority-infeasible,
+ * measured round 1), $v0->$a0 x7 hard-conflicts p91, $s2->$s3 x13, and the
+ * scheduling islands above — all regalloc/sched ties; park pending a NEW
+ * pass-level lever.
  */
 
 typedef struct
