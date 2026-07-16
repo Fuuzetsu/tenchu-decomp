@@ -5731,6 +5731,25 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
     file and let m2c ignore the unused ones:
     `--input-regs v0,v1,a0,a1,a2,a3,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,s0`
     → zero `M2C_ERROR` on `FUN_8005d1fc`.
+- **A guard comparison's operand order is a branch-encoding lever even when it
+  does NOT fix the register tie it was aimed at.** Spelling
+  `if (StagePlayer != Me_MOTION_C)` instead of `Me_MOTION_C != StagePlayer`
+  realigned branch operand encodings across the enclosing drift region for −6
+  bytes in DamageControl, *without* moving the StagePlayer temp off its
+  (still-wrong) $v0 home. In a same-length drift region, try both operand
+  orders of a guard as a bounded probe — a net byte win can come from encoding
+  alignment alone. (`autorules --guided`'s `cmp-swap` currently misses these:
+  its site selection targets combine/expression-owned hunks, not
+  regalloc-owned guard hunks — extending it is on the tooling backlog.)
+- **do{}while(0) fences are reconstruction scaffolding, not original idiom —
+  treat them as debt.** They reproduce LOOP_BEG/LOOP_END RTL effects
+  (scheduling barrier; allocation weight when non-empty) that the original
+  source got from its real shapes. The byte gate legitimizes them, but every
+  fence is an admission that the faithful spelling wasn't found. REQUIRED at
+  exact-promotion time: challenge each remaining fence (autorules
+  `empty-loop-boundary` removal + `fence-unwrap` enumerate exactly these) and
+  keep only the ones whose removal breaks MATCH — those are load-bearing and
+  document a real RTL boundary.
 - **A large exact-length block that appears ROTATED by one instruction —
   typically a call-argument copy sitting at the wrong END of the block — is
   often pinned by an equivalence fence (`do{}while(0)`) splitting the block.**

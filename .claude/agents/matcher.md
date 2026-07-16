@@ -81,6 +81,12 @@ for operand order, `.sched2`/`.dbr` for a delay slot, `.jump2` for a return/bran
 read what it decided, work backward to the source. This is a mechanical procedure, not a
 special skill — do it before parking.
 
+**Before committing an exact MATCH, challenge every `do{}while(0)` fence left in
+the source**: try removing (empty) or unwrapping (non-empty) each one — autorules'
+`empty-loop-boundary` and `fence-unwrap` rules enumerate exactly these — and keep
+the removals that stay MATCH. Fences are reconstruction scaffolding, not original
+idiom; only load-bearing ones may survive into a matched file.
+
 If you convert an `INCLUDE_ASM` stub to real C, run `tools/symcheck.py` afterwards.
 A missing `--gp-extern` entry silently relocates a whole data region -- the link
 succeeds and the image is just wrong.
