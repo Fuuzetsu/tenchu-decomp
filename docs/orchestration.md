@@ -557,6 +557,13 @@ function already byte-matches on current `master`.
   `dslot`/`length` eligibility and `LABEL_NUSES` per branch target, and said outright
   "that table IS the whole answer here". An `asmdiff`/`rtldump` annotation would make
   StickonCheck's entire analysis one call.
+- **`tools/siblingdiff.py --demo` is the most underused tool in the box.** It has now
+  been decisive twice and named so by both lanes: it answers "is this real codegen or
+  our scaffolding?" in ONE call, before a round is spent. FadeOutDirect's demo emits
+  the block instruction-for-instruction identically to retail — proof it was source,
+  not scheduling. Its park had instead concluded "a decomp.me session would be the
+  next lever"; the demo build was. **Name it in every brief for a function with a
+  demo twin.**
 - **A byte-account is not a byte account unless you checked the UNITS.** I
   propagated mission_score_screen's cluster table through three briefs as BYTES; the
   numbers were INSTRUCTION counts, ~3x off (84 insns = 254 bytes, so the "16-byte"

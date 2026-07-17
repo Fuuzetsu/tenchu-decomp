@@ -31,9 +31,7 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 12 differing asm lines, function 103 insns vs the
- * target's 104 (default `./Build` keeps the byte-identical INCLUDE_ASM stub;
- * build the draft with `NON_MATCHING=FadeOutDirect ./Build`).
+ * STATUS: MATCH (exact).
  *
  * Matching notes (all verified against the original bytes):
  *  - PSX.SYM types the 5th param `int b`, but the raw asm loads it with a
@@ -51,70 +49,56 @@
  *  - RECT/DRAWENV/DISPENV are the proven layouts from AdtReleaseDisp.c/
  *    DrawPause.c (same original TU family); DR_TPAGE/POLY_F4/POLY_XF4 are
  *    SetPolyXF4.c's proven layout (same EFFECT.C TU) — reused verbatim.
- *  - The `n_draw`/`PutDrawEnv(&n_draw)` group NEEDS a `do{}while(0)`
- *    wrapper (a byte-neutral scheduling lever, see cookbook "Register
- *    allocation steering"): without it, cc1 rematerializes `&n_draw`
- *    into `$a0` immediately after the block-copy loop (a0 is idle for the
- *    whole `ply` setup that follows) and holds it there unused for ~20
- *    instructions instead of computing it just-in-time right before the
- *    call, the way the target and DrawPause.c (same source shape, already
- *    matched) both do. The wrapper's loop-depth weighting is what keeps
- *    the address's materialization pinned next to its use. Confirmed by
- *    direct trial: identical source WITHOUT the wrapper reproducibly
- *    inserts the extra `addiu a0,sp,136` early.
+ *  - The `n_draw`/`PutDrawEnv(&n_draw)` group needs NO `do{}while(0)`
+ *    wrapper. An earlier checkpoint carried one and asserted it was
+ *    load-bearing ("without it cc1 hoists `addiu a0,sp,136` early"); that
+ *    was true only of THAT draft, where the `while(1)+break` loop below
+ *    made loop.c hoist `&ply` and inflated register pressure. With the
+ *    goto loop and `pp` in place the fence is not merely unnecessary but
+ *    HARMFUL: it is worth the last 8 bytes (autorules' `fence-unwrap`
+ *    found this). Fences are reconstruction scaffolding, not idiom.
  *  - The quad's four corners: `x0=y0=y1=x2=0`, `x1=x3=o_disp.disp.w`,
  *    `y2=y3=o_disp.disp.h` (a full-screen rect using the CURRENT display
  *    width/height, read fresh from `o_disp` a second time here, not
  *    reused from the `n_draw.clip` copy above).
- *  - The `time`-counted draw loop is `while (1) { if (time == 0) break;
- *    ...; time = time - 1; }`, not a plain `for`/`while (time != 0)`: the
- *    target has a TOP test + unconditional back-jump with the decrement
- *    in the back-jump's delay slot (cookbook Loops: this shape keeps
- *    loop.c's hoisting without jump.c rotating it into a guarded
- *    bottom-tested do-while, which a plain `for(;time!=0;time--)` would
- *    get instead). `time` is the reused PARAMETER (prologue `move
- *    $s1,$a0`), not a fresh local.
- *
- * RESIDUAL (12 lines / 1 instruction, everything else byte-identical):
- *  - The `ply.ply.code` byte is set in TWO steps in the target, not one:
- *    `= 0x28;` first, then (after the unrelated tpage-mode-word
- *    computation) re-read and OR'd with `2` and stored back — a genuine
- *    `lbu`/`ori 2`/`sb` at that stack slot, not a single `sb` of the final
- *    0x2A ('*') the way SetPolyXF4's own `ply->ply.code = '*';` compiles.
- *    Ghidra's decompilation collapses this to one `local_31 = 0x2a;`
- *    literal, hiding the two-store shape entirely — the raw `.s` is the
- *    only evidence it exists. Writing the identical two statements here
- *    (`= 0x28;` then `= ply.ply.code | 2;`, with the intervening
- *    `*(u_char*)&ply.tpage.tag+3 = 1;` store in between, in every
- *    statement order tried — adjacent, split, before/after the
- *    tpage.code[0] computation) lets THIS cc1 prove the intermediate
- *    store is dead (no aliasing ambiguity — same base register, disjoint
- *    constant offsets) and fold straight to `li v0,42`, one instruction
- *    SHORTER than the target. Marking the field `volatile` at the access
- *    (`*(volatile u_char*)&ply.ply.code`) DOES force the genuine
- *    lbu/ori/sb sequence and recovers the missing instruction (104 vs
- *    104) — but it also introduces a NEW divergence: with volatile
- *    present, the scheduler spreads the reload and the store-back across
- *    the surrounding `ply.tpage.code[0]` computation (arriving far apart)
- *    instead of adjacent the way the target keeps them, netting the SAME
- *    12-line residual by a different route. `volatile` is also not a
- *    plausible reading of 1998 PSX game source for a plain stack local,
- *    so it isn't used here. Tried: every relative ordering of the two
- *    `code` touches and the `tpage.tag`/`tpage.code[0]` statements
- *    (adjacent, interleaved, before, after); `do{}while(0)` around the
- *    OR alone and around the whole tag/code group (autorules found no
- *    improving edit; a bounded decomp-permuter run, ~230 iterations
- *    across the search, best internal score unrelated to this residual —
- *    every candidate it tried still has the fold). This looks like a
- *    genuine gcc-2.8.1 cse.c/local dead-store-elimination difference
- *    triggered by something about the ORIGINAL statement shape that none
- *    of the tried respellings reproduce — a decomp.me (psyq4.3) session
- *    would be the next lever, not a further permuter run.
- *  - A SEPARATE one-instruction scheduling tie rides along: the target's
- *    `ply.ply.tag`+3=5 store's `li v0,5` sits right after `lui
- *    a1,0xE100`/`addiu v1,sp,0xE8`; this draft's compiles one instruction
- *    earlier (before those two), a tie not resolved by the wrapper that
- *    fixed the `&n_draw` hoist.
+ *  - The `time`-counted draw loop is a HAND-ROLLED `goto` loop, not
+ *    `while (1) { if (time == 0) break; … }`. Both spellings give the same
+ *    top test + unconditional back-jump with the decrement in the
+ *    back-jump's delay slot, so the control flow alone does not choose
+ *    between them — but `while(1)+break` still emits loop notes, so loop.c
+ *    hoists the loop-invariant `&ply` into the preheader and pins it in a
+ *    callee-saved register (`addiu s0,sp,232` + `move a0,s0`). The target
+ *    RECOMPUTES that invariant inside the loop (`addiu a0,sp,232` at
+ *    0x80038bc4), which is the cookbook's tell for the goto form ("A
+ *    top-test loop that never hoists its invariants is a hand-rolled goto
+ *    loop"). `time` is the reused PARAMETER (prologue `move $s1,$a0`).
+ *  - `pp` (the `&ply` base register, `$v1`) is what makes the `ply.ply.code`
+ *    byte take TWO steps in the target — `= 0x28` through the pointer
+ *    (`sb v0,0xF(v1)`), then a genuine `lbu`/`ori 2`/`sb` back at the SAME
+ *    field spelled sp-relative (`0xF7(sp)`). The two accesses use different
+ *    ADDRESS RTX, and gcc-2.8.1's cse hashes memory by address, so it cannot
+ *    forward the stored 0x28 to the reload. Spelling both accesses directly
+ *    on the local (`ply.ply.code = 0x28; ply.ply.code |= 2;`) makes both
+ *    `0xF7(sp)`, cse forwards, `fold` collapses `0x28|2`, and you get a
+ *    single `li v0,0x2A` — one instruction SHORT, which is exactly how the
+ *    earlier checkpoint stalled. Note this is cse VALUE FORWARDING, not
+ *    dead-store elimination: that draft still emitted the `= 0x28` store.
+ *    The pointer offsets decode the target exactly: `&pp->ply.tag+3` -> 11,
+ *    `pp->ply.code` -> 15, `&pp->tpage.tag+3` -> 3, all off `$v1 = &ply`.
+ *  - `pp` does not appear in the demo's PSX.SYM local list, which records
+ *    register locals for this function (all five params are listed). So the
+ *    ORIGINAL almost certainly reached these three bytes through PsyQ's
+ *    pointer-taking packet macros (`setlen(&p->ply,5)` / `setcode(&p->ply,
+ *    0x28)` / `setlen(&p->tpage,1)`, libgpu.h) rather than a named local;
+ *    `pp` is the reconstruction that reproduces their addressing. That the
+ *    demo build (a separate compile of the same source, 0x80031fbc) emits
+ *    this ply-setup block instruction-for-instruction identically to retail
+ *    is what proves the shape is source, not a scheduling accident.
+ *  - Sibling SetPolyXF4 (same TU, EFFECT.C:1770) writes these same fields
+ *    but takes `POLY_XF4 *ply` as a PARAMETER, so there the direct and the
+ *    through-pointer spellings are indistinguishable and it matched with
+ *    `ply->ply.code = '*';`. Its source is therefore NOT evidence for how
+ *    to spell the accesses here, where `ply` is a local aggregate.
  */
 typedef struct
 {
@@ -167,31 +151,26 @@ extern void DrawPrim(u8 *prim);
 extern int DrawSync(int mode);
 extern int VSync(int mode);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FadeOutDirect", FadeOutDirect);
-#else /* NON_MATCHING */
-
 void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
 {
     DISPENV o_disp;
     DRAWENV o_draw;
     DRAWENV n_draw;
     POLY_XF4 ply;
+    POLY_XF4 *pp;
 
     GetDrawEnv(&o_draw);
     GetDispEnv(&o_disp);
-    do
-    {
-        n_draw = o_draw;
-        n_draw.clip = o_disp.disp;
-        n_draw.ofs[0] = o_disp.disp.x;
-        n_draw.ofs[1] = o_disp.disp.y;
-        PutDrawEnv(&n_draw);
-    } while (0);
-    *((u_char *)&ply.ply.tag + 3) = 5;
-    ply.ply.code = 0x28;
-    *((u_char *)&ply.tpage.tag + 3) = 1;
+    n_draw = o_draw;
+    n_draw.clip = o_disp.disp;
+    n_draw.ofs[0] = o_disp.disp.x;
+    n_draw.ofs[1] = o_disp.disp.y;
+    PutDrawEnv(&n_draw);
+    pp = &ply;
+    *((u_char *)&pp->ply.tag + 3) = 5;
+    pp->ply.code = 0x28;
     ply.ply.code = ply.ply.code | 2;
+    *((u_char *)&pp->tpage.tag + 3) = 1;
     ply.tpage.code[0] = ((attrib & 3) << 5) | 0xE1000200;
     ply.ply.x0 = 0;
     ply.ply.y0 = 0;
@@ -204,19 +183,17 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     ply.ply.y2 = o_disp.disp.h;
     ply.ply.x3 = o_disp.disp.w;
     ply.ply.y3 = o_disp.disp.h;
-    while (1)
+loop:
+    if (time == 0)
     {
-        if (time == 0)
-        {
-            break;
-        }
-        DrawPrim((u8 *)&ply.ply);
-        DrawPrim((u8 *)&ply.tpage);
-        DrawSync(0);
-        VSync(0);
-        time = time - 1;
+        goto end;
     }
+    DrawPrim((u8 *)&ply.ply);
+    DrawPrim((u8 *)&ply.tpage);
+    DrawSync(0);
+    VSync(0);
+    time = time - 1;
+    goto loop;
+end:
     PutDrawEnv(&o_draw);
 }
-
-#endif /* NON_MATCHING */

@@ -141,6 +141,13 @@ def main():
                     help="also show pure branch-target drift")
     ap.add_argument("--structural", action="store_true",
                     help="only show blocks that change the instruction count")
+    ap.add_argument("--context", type=int, default=0, metavar="N",
+                    help="show N matching instructions either side of each hunk. "
+                         "Asked for three times: this tool prints only DIFFERING "
+                         "lines, so an insn that is present and CORRECT is invisible "
+                         "-- and that absence has twice been the fact that refuted a "
+                         "park (FadeOutDirect's surviving `sb v0,0xf7(sp)` disproved "
+                         "its dead-store story).")
     args = ap.parse_args()
 
     if not args.no_build:
@@ -199,15 +206,30 @@ def main():
             o_at.setdefault(ours[k][1], ours[k][0])
     moved = sorted(x for x in set(t_side) & set(o_side) if t_side[x] == o_side[x])
 
+    def context_rows(rows, lo, hi):
+        """The N matching rows either side of a hunk, clipped to the listing."""
+        n = args.context
+        before = rows[max(0, lo - n):lo]
+        after = rows[hi:hi + n]
+        return before, after
+
     for tag, i1, i2, j1, j2 in stats["displayed"]:
         width = max(i2 - i1, j2 - j1)
         print(f"--- {tag} [T{i2 - i1}/O{j2 - j1} insns, edit-weight {width * 4}B]")
+        if args.context:
+            before, _ = context_rows(tgt, i1, i2)
+            for a, txt in before:
+                print(f"    {a:#x}  {txt}")
         for k in range(i1, i2):
             note = "   <- MOVED, not missing" if tgt[k][1] in moved else ""
             print(f"  T {tgt[k][0]:#x}  {tgt[k][1]}{note}")
         for k in range(j1, j2):
             note = "   <- MOVED, not new" if ours[k][1] in moved else ""
             print(f"  O {ours[k][0]:#x}  {ours[k][1]}{note}")
+        if args.context:
+            _, after = context_rows(tgt, i1, i2)
+            for a, txt in after:
+                print(f"    {a:#x}  {txt}")
     if moved:
         print()
         print("asmdiff: these instructions MOVED — they exist on BOTH sides at "

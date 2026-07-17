@@ -6496,6 +6496,31 @@ it gains deps on everything before and everything after depends on it. A fence p
 whichever store follows it, rarely the one you want. FUN_8003944c's fence WAS its
 residual.
 
+### On a LOCAL aggregate, `((T *)&obj.member)->field` and `obj.member.field` are NOT interchangeable
+
+**gcc-2.8.1's cse hashes memory by ADDRESS RTX.** So a store spelled `sb v0,K(rN)`
+(through a pinned register base) **cannot forward** to a load of the same field
+spelled `lbu v0,OFF(sp)`. The through-pointer spelling pins a register base, and that
+base BLOCKS forwarding.
+
+**When the target reaches ONE field BOTH ways, both spellings are in the source** —
+and the differing address forms are exactly what keep a `store C; load; or; store`
+from folding into a single `li C|2`. (FadeOutDirect: the target reaches three bytes
+via `v1 = &ply` but the same `ply.ply.code` sp-relative for the `|= 2`.)
+
+**Diagnostic — this is the tell that names the mechanism:** if your draft is exactly
+one instruction SHORT and folded a read-modify-write to a constant **while STILL
+emitting the original store**, the mechanism is **cse forwarding, not dead-store
+elimination**. Look for a base-pointer spelling, not a statement order.
+FadeOutDirect's park asserted cc1 "proves the intermediate store is dead" — the store
+was right there in our own bytes, and that misdiagnosis cost it statement-order
+hunts, a `volatile` experiment and a permuter run.
+
+**Corollary: a matched sibling that takes `T *p` as a PARAMETER is NO evidence for
+which spelling to use.** With a pointer param the two forms are identical, so the
+sibling matched either way (SetPolyXF4 vs FadeOutDirect — same TU, same four field
+writes, and the sibling proves nothing about the local-aggregate case).
+
 ### A struct store kills cse's store-to-load forwarding for EVERY offset off that base
 
 **`memrefs_conflict_p`'s offset math predicts dismissal that does not happen —
