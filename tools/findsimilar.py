@@ -165,6 +165,18 @@ def main():
     ap.add_argument("--top", type=int, default=15)
     ap.add_argument("--max-size", type=int, default=0x800,
                     help="--targets: ignore functions bigger than this (bytes)")
+    ap.add_argument("--scope", choices=["game", "sdk", "all"], default="game",
+                    help="--targets: which population to rank. DEFAULT game — the "
+                         "SDK (>=0x80060000) is stock Sony library code linked from "
+                         "prebuilt .LIBs, not part of Tenchu's source, so its asm is "
+                         "the faithful form and decompiling it is a different project. "
+                         "This default exists because the RANKING IS BY SIMILARITY TO "
+                         "MATCHED CODE, i.e. by EASINESS, and small simple SDK leaves "
+                         "dominate it: the top 50 was 41 SDK / 9 game, while the "
+                         "remaining UNDRAFTED game functions sat at rank 367-382 "
+                         "(similarity 0.05, because they are large and unique). The "
+                         "orchestrator read the top of that list and spent a session "
+                         "on libgs.")
     args = ap.parse_args()
 
     funcs = load_functions()
@@ -177,8 +189,32 @@ def main():
 
     if args.targets:
         rows = []
+        omitted_scope = omitted_size = omitted_hw = 0
+        # The owner-decided handwritten-asm originals are NOT matching targets --
+        # their asm IS the faithful source. triage knows; this picker did not, and
+        # kept listing the whole draw* family as candidates. matcher-prompt refuses
+        # to brief them, but by then a human or agent has already spent thought on
+        # one (drawF3 got a full round that way).
+        try:
+            import triage as _triage
+            handwritten = set(_triage.HANDWRITTEN)
+        except Exception:
+            handwritten = set()
         for a, s, n in funcs:
-            if n in matched or s > args.max_size:
+            if n in matched:
+                continue
+            if n in handwritten:
+                omitted_hw += 1
+                continue
+            in_sdk = a >= 0x80060000
+            if args.scope == "game" and in_sdk:
+                omitted_scope += 1
+                continue
+            if args.scope == "sdk" and not in_sdk:
+                omitted_scope += 1
+                continue
+            if s > args.max_size:
+                omitted_size += 1
                 continue
             g = ngrams(mn, a, s)
             best, bestm = 0.0, ""
@@ -188,9 +224,34 @@ def main():
                     best, bestm = j, m
             rows.append((best, s, n, bestm))
         rows.sort(key=lambda r: (-r[0], r[1]))
+        print(f"scope={args.scope}: {len(rows)} candidates ranked BY SIMILARITY TO "
+              f"MATCHED CODE — i.e. by how EASY they look, NOT by what matters.")
+        # A truncation must state its consequence. This list silently showed its top
+        # 15 (easiest) while the remaining undrafted GAME functions sat at rank
+        # 367-382 -- large, unique, similarity 0.05 -- and a whole session went into
+        # small SDK leaves that float to the top instead.
+        if omitted_scope:
+            other = "SDK" if args.scope == "game" else "game"
+            print(f"  ({omitted_scope} {other} function(s) omitted by --scope; "
+                  f"--scope all to include them)")
+        if omitted_size:
+            print(f"  ({omitted_size} omitted as bigger than --max-size "
+                  f"{args.max_size}; raise it to see them)")
+        if omitted_hw:
+            print(f"  ({omitted_hw} handwritten-asm original(s) omitted — owner "
+                  f"decision, config/handwritten-asm.txt; never targets)")
+        shown = rows[:args.top]
+        print()
         print(f"{'sim':>5} {'size':>6}  {'function':32} nearest matched")
-        for best, s, n, bestm in rows[:args.top]:
+        for best, s, n, bestm in shown:
             print(f"{best:5.2f} {s:6}  {n:32} {bestm}")
+        if len(rows) > len(shown):
+            print(f"\n  ... {len(rows) - len(shown)} more NOT shown (--top {args.top}). "
+                  f"LOW SIMILARITY IS NOT LOW VALUE:")
+            print(f"  a big unique function scores ~0.05 and sinks; that is a "
+                  f"statement about resemblance,")
+            print(f"  not about whether it is worth matching. Check the tail before "
+                  f"concluding you are done.")
         return
 
     if not args.name:

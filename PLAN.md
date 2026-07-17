@@ -74,7 +74,29 @@ parks", and the closest sit at 4–20 residual bytes. Their residuals are overwh
 sub-C (allocation / scheduling / reload ties), which is why the tooling investment (see
 below) has overtaken raw target-picking as the lever.
 
-**After the parks, the project's centre of gravity moves to the SDK**: ~958 unmatched
+**THE SDK IS NOT A TARGET (owner decision, 2026-07-17).** Everything at/above
+0x80060000 is stock Sony library code — libgte/libgs/libapi/libcard — linked in from
+prebuilt `.LIB` files. **Tenchu's original source tree never contained `libgte.c`**, so
+for those objects the ASM IS the faithful source form, exactly the argument already
+accepted for the `draw*` family. Decompiling PsyQ is a different project and ones
+already exist. `tools/findsimilar.py --targets` now defaults to `--scope game` and says
+how many SDK functions it omitted.
+
+*Why this needs writing down: `--targets` ranks by similarity to already-matched code —
+a proxy for EASY — and small simple SDK leaves dominate it. The top 50 was 41 SDK / 9
+game, while the remaining UNDRAFTED game functions sat at rank 367-382 (similarity 0.05,
+because they are large and unique). Reading the top of that list sent a whole session
+into libgs. The SDK functions matched along the way (GsSetLsMatrix, _card_clear,
+GsMulCoord0/2/3, PAD_init, InitPAD) are byte-identical and green, so they stay — but
+they are not where effort goes.*
+
+**The remaining game work is 38 functions: 33 parked drafts + 5 undrafted**
+(`FUN_80059008`, `FUN_8005961c`, `FUN_80059b08`, `FUN_80059ff4`, `FUN_8005a3cc` —
+920-1260 bytes each, never attempted). `tools/findsimilar.py --targets` prints exactly
+this set. Note `--max-size` (default 2048) also hides `start_demo_` and
+`mission_score_screen`; raise it or they are invisible.
+
+~~**After the parks, the project's centre of gravity moves to the SDK**~~: ~958 unmatched
 functions and ~146k bytes, versus ~40k bytes left in game code. That is stock PsyQ
 library code — a different regime (per-TU flags like `-mno-split-addresses` proved
 necessary for `MemCardCallback`; see the cookbook's SDK boundary notes) and it wants its
