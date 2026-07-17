@@ -6804,7 +6804,32 @@ Consequences:
   live 7 -> 18, priority -> 5555, allocated 7th) and can cost it its hard register —
   **check `tools/regalloc.py --order` first.**
 
-### A hard-register argument move is a PERMANENT scheduling floor — park on sight
+### ~~A hard-register argument move is a PERMANENT scheduling floor — park on sight~~ — **FALSE, DO NOT APPLY (2026-07-17)**
+
+> **This rule is REFUTED and is retained only so nobody re-derives it.** Its premise —
+> "it has `LOG_LINKS (nil)`, so it is **priority 1**" — is false: `move aN,rX` depends
+> on whatever produced `rX`, so it has producers. Measured on **its own cited
+> function**, FUN_80057b80's sched2 dump:
+>
+>     argument moves found: 30
+>       at priority 1 : 7
+>       ABOVE prio 1  : 23
+>       priorities seen above 1: [2, 11, 12, 14, 25, 28, 51, 52, 53]
+>
+> Being an argument move does not imply the floor — 23 of 30 sit above it, one at 53.
+> **Do not park on this.** Run `tools/sched-deps.py <Name> --pass sched2`, which prints
+> that census as an explicit falsification rather than a park verdict.
+>
+> How it survived is the lesson, and it is the most expensive shape of error we have:
+> the model was checked, it "PASSES — it reproduces our exact bytes" on AddEnemy
+> cluster E, and it was then generalised to **park on sight**. A model that reproduces
+> ONE function's bytes is not thereby a general mechanism. A false *park* rule is worse
+> than a false *fix* rule: a wrong fix gets measured and fails loudly next round, while
+> a wrong park tells a lane to stop, costs a match we could have had, and nobody ever
+> goes back to check it.
+>
+> The `calls.c:1632` LUID observation below may still be sound; only the priority step
+> is refuted. The rest is preserved unedited for that reason.
 
 `calls.c:1632` precomputes **all** register parameters before filling any hard reg
 ("It isn't safe to compute anything once we have started filling any specific hard
