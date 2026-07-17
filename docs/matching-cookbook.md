@@ -6341,6 +6341,39 @@ tried moving the fenced seed so its `LOOP_BEG/END` notes no longer abut the stor
 and fence placement generally: every variant landed on an identical 4632 vs the 4636
 carve — a LENGTH MISMATCH, a hard regression, not a tunable trade.
 
+### A guard's delay slot is decided by what leads its SKIP LABEL — not by branch prediction
+
+**For the inline `if (c) return 0;` shape**, `fill_simple_delay_slots` packs the
+`v0=0` into the `goto epilogue`'s own slot, so the guard's fallthrough is a
+**SEQUENCE** and `stop_search_p` returns 1 instantly. **The fallthrough can NEVER
+fill the guard's slot.** The 2-insn target shape (`bnez -> epilogue` + `v0=0`) only
+appears when the **TARGET-thread attempt finds NOTHING**, after which
+`relax_delay_slots` collapses the branch-around and the branch inherits the `goto`'s
+slot.
+
+**So the question is what leads the SKIP LABEL.** Two things block the steal — and
+StickonCheck contains a clean control for each:
+* the skip label **leads with a LOAD** (`dslot=yes` ⇒ ineligible per `mips.md`'s
+  `define_delay`) — guards 1/2/5;
+* the skip label has **>= 2 uses** (`own_target=0`) — guard 4, which leads with an
+  ELIGIBLE `sll` and is still blocked, proving eligibility alone is not sufficient;
+* **guard 3** alone leads with an eligible, OWNED `lui %hi(...)` — so it gets robbed,
+  costing +1 insn.
+
+**Do NOT reach for the `do{}while(0)` LOOP_BEG flip here** — see the direction note
+in the reorg-prediction section: it returns 2 and makes reorg try the target thread
+FIRST, the opposite of what this shape needs.
+
+**StickonCheck is parked evidence-complete at 90/256**, both blockers unreachable
+from C for guard 3: `EXPAND_SUM` fixes address-before-index, so the `lui` leads the
+block regardless of statement splitting (re-verified 90 -> 90), and a second label
+reference cannot be created without emitting an extra branch. Also refuted there:
+the park's "reorg prediction" story (guard 3's condition is `EQ`, so
+`mostly_true_jump` already returns 0 and reorg already tries the fallthrough first),
+and the background assumption that cross-jumping merged the five `return 0` blocks —
+`.jump` shows it never did, so all five guards reach reorg with identical RTL and the
+divergence cannot be a source-shape difference between them.
+
 ### A returning guard's delay slot is won by SOURCE POSITION, not by a fence
 
 If the target fills a guard's delay slot with a cheap independent assignment and
@@ -6495,6 +6528,14 @@ reaches it. That flips the prediction, and the prediction decides which thread
   finds no BARRIER). It must **COPY** the merge block's leading insn into the slot
   and redirect the label past it: **+1 insn, that insn duplicated.** This is what
   retail does.
+
+**THE FLIP HAS A DIRECTION — check which outcome you want before reaching for it.**
+LOOP_BEG makes `mostly_true_jump` return **2**, which makes reorg try the **TARGET
+thread FIRST**. That is right when you want the +1 COPY (LoadTIMpack) and exactly
+wrong when you want to PREVENT a target-thread steal (StickonCheck: measured 90 ->
+90, no effect, because the guard's `EQ` condition already returns 0 and reorg was
+already trying the fallthrough first). A brief handed this rule to a lane pointing
+the wrong way; the lane measured it and refuted it.
 
 **Corollary: MIPS loads (`lw`/`lhu`/`lb`) are INELIGIBLE for a branch delay slot.**
 When judging what reorg can steal from a block, skip the loads — the first

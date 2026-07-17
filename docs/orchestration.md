@@ -553,6 +553,15 @@ function already byte-matches on current `master`.
   conclusion: declaration order was doing two jobs, and one of them (slot placement)
   is DETERMINED arithmetic, not a search. When two constraints fight over one lever,
   find a second lever for the constraint that has one.
+- **TOOLING BACKLOG — a delay-slot eligibility table.** A lane hand-derived
+  `dslot`/`length` eligibility and `LABEL_NUSES` per branch target, and said outright
+  "that table IS the whole answer here". An `asmdiff`/`rtldump` annotation would make
+  StickonCheck's entire analysis one call.
+- **A rule with a DIRECTION must say so, or it gets applied backwards.** The
+  LOOP_BEG prediction flip matched LoadTIMpack (which wanted the +1 copy) and is
+  exactly wrong for StickonCheck (which needs to PREVENT a target-thread steal) — I
+  briefed it as a bare lever and the lane measured 90 -> 90 disproving it. When
+  folding a rule that selects between two outcomes, name the outcome it selects.
 - **TOOLING BACKLOG — `tools/passtrace.py <Name> <rtx-pattern>` (HIGH VALUE, asked
   for twice).** Two lanes hand-rolled the same per-pass sweep — grep an insn across
   `*.i.*` dumps in pass order to find which pass FIRST rewrites a register — and both

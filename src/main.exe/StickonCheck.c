@@ -31,8 +31,9 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 90 of 256 bytes differ, all from ONE reorg
- * delay-slot-fill tie (see below); every field offset/type this function
+ * STATUS: NON_MATCHING — 90 of 256 bytes differ, all downstream of ONE
+ * reorg delay-slot STEAL at guard 3 (mechanism established from the
+ * cc1-2.8.1 reorg.c source, see below); every field offset/type this function
  * establishes is still correct (proven independently of the residual).
  *
  * StickonCheck (0x8001d374, 0x100 bytes) — "can the character stick to the
@@ -75,39 +76,65 @@
  *    load (one `lhu`, reused, with an explicit re-sign-extend for the
  *    second test) — the established u16-field/signed-compare-cast pattern.
  *
- * THE RESIDUAL: the `if ((map.attrib & 0xC000) != 0) return 0;` guard
- * right after the GetAreaMapVector call is byte-correct in every respect
- * (condition, operands, both branch targets) except which instruction fills
- * its delay slot. The target fills it with the return path's own `move
- * $v0,zero` (harmless either way, since $v0 is about to be overwritten on
- * the fallthrough path too); our build instead has reorg pull the
- * FALLTHROUGH's first instruction (`lui $v0,%hi(RefrectVector)`, the next
- * statement's array-base load — data-independent and therefore an equally
- * "ready" candidate) into the slot, which then needs an extra explicit `j`
- * to reach the return path — a net +1 instruction that is exactly offset by
- * a *different* reorg choice much later (the final `status != 0xc` guard's
- * own delay slot picks up `li $v0,0xc00`, eliding a `nop` target keeps as
- * separate), so the whole-function length still matches (256 bytes both
- * sides) even though ~20 instructions in between sit at addresses shifted
- * by 4. Tried and reverted, no effect on this specific tie: swapping the
- * guard to Ghidra's literal (nested, non-early-return) polarity — this
- * restructured much more of the function AND got WORSE (67 differing bytes
- * but now with an actual length mismatch, because it also changed how
- * `Me_MOTION_C->status` CSEs across the two later reads); a named `u8 vec`
- * temp for `map.vector` (zero effect, address-then-index evaluation
- * order is fixed by EXPAND_SUM regardless of source statement split); a
- * `do { guard } while (0);` wrapper around just this guard (zero effect on
- * the delay slot choice). `tools/autorules.py` found no improving edit
- * (u16/u8/u32/s16 retypes of `idxval`, `&&`-split all scored >= baseline).
- * `tools/permute.py StickonCheck -- --stop-on-zero -j4` ran a full bounded
- * ~6-minute / ~34,000-iteration pass (per the cookbook's sub-C-level
- * early-stop budget): the score never dropped below the 460 baseline —
- * flat, confirming this is a reorg/sched delay-slot-fill tie with no
- * source-level lever, the same permuter-immune signature as the `la`-reload
- * class (PrepareAccess/cd_open), just one mechanism over (delay-slot choice
- * between two equally-ready, equally-harmless candidate instructions rather
- * than a register pick). Parked per the cookbook's "do NOT open more
- * surgical sessions on it" guidance.
+ * THE RESIDUAL — mechanism established from the cc1-2.8.1 SOURCE (reorg.c)
+ * plus .jump/.sched2 dumps, correcting this park's earlier "reorg branch
+ * PREDICTION" claim, which is WRONG (see "disproved" below).
+ *
+ * All five `return 0` guards enter reorg with IDENTICAL RTL — .jump proves
+ * cross-jumping never merged them, so each is inline:
+ *     if (!cond) goto L_skip;  v0=0;  goto L_epilogue;  BARRIER;  L_skip:
+ * `fill_simple_delay_slots` packs the `v0=0` into the `goto L_epilogue`'s
+ * own slot. That makes every guard's FALLTHROUGH a SEQUENCE, and
+ * `stop_search_p` returns 1 on a SEQUENCE — so the fallthrough attempt can
+ * NEVER fill a guard's slot, whatever the prediction. Each guard therefore
+ * depends on the TARGET-thread (skip-label) attempt finding NOTHING: only
+ * then does `relax_delay_slots` collapse `cond-jump-around-uncond-jump`
+ * into ONE inverted branch that INHERITS the `goto`'s `v0=0` slot — the
+ * target's 2-instruction shape (`bnez $v0,.L8001D464` + `addu $v0,$zero,$zero`).
+ *
+ * The steal is blocked at four of the five guards, for two distinct reasons:
+ *   - guards 1/2/5: their skip label leads with a LOAD (`lh`/`lw`). MIPS
+ *     `(define_delay (eq_attr "type" "branch") [(and (eq_attr "dslot" "no")
+ *     (eq_attr "length" "1")) ...])` — a -mips1 load has dslot=yes, so it is
+ *     INELIGIBLE. The scan then can't take the next insn either (it reads the
+ *     load's dest, which is now in `set`) → nothing → collapse.
+ *   - guard 4: its skip label .L8001D420 leads with an ELIGIBLE `sll`, but the
+ *     label has TWO uses (0x8001d410 and 0x8001d418 both branch to it), so
+ *     `own_thread_p` → own_target=0 → steal blocked → collapse. This is the
+ *     control case proving eligibility alone is not sufficient.
+ * Guard 3 alone leads with an eligible, OWNED `lui $v0,%hi(RefrectVector)`
+ * (arith, length 1, dslot=no; label has one use and a BARRIER before it), so
+ * reorg MOVES it into the slot and redirects the label past it. Its slot is
+ * now non-empty, `relax_delay_slots` can no longer collapse the branch-around,
+ * and the guard stays in the 4-instruction form: +1 insn. That +1 is exactly
+ * repaid later (the final `status != 0xc` guard's slot takes `li $v0,0xc00`,
+ * eliding a `nop` the target keeps), so the length still matches (256 both
+ * sides) while ~20 instructions in between sit 4 bytes off.
+ *
+ * To match, reorg must find nothing eligible at guard 3's skip label. Both
+ * blockers are unreachable from C here: EXPAND_SUM fixes address-before-index
+ * (so the `lui` leads the block no matter how the statement is split — the
+ * `lbu` cannot be made to lead), and a second reference to that label cannot
+ * be created without emitting an extra branch.
+ *
+ * DISPROVED here, measured, do not retry:
+ *  - "reorg predicted the branch differently" — no. For guard 3 the condition
+ *    is EQ, so `mostly_true_jump` already returns 0 and reorg ALREADY tries the
+ *    fallthrough FIRST. It fails on the SEQUENCE, then the target-thread
+ *    attempt succeeds. Prediction cannot be the discriminator.
+ *  - The `do {} while (0)` at the END of the guard body (the LOOP_BEG
+ *    prediction-flip that matched LoadTIMpack): measured 90 → 90, NO effect,
+ *    and it is the WRONG DIRECTION — LOOP_BEG makes `mostly_true_jump` return
+ *    2, which makes reorg try the TARGET thread first, i.e. exactly the steal
+ *    we are trying to prevent.
+ *  - A named `u8 vec` temp for `map.vector` (90 → 90; EXPAND_SUM, as above).
+ *  - Ghidra's literal nested polarity: 67 differing bytes but a real LENGTH
+ *    mismatch (it also changes how `Me_MOTION_C->status` CSEs across the two
+ *    later reads).
+ *  - `tools/autorules.py`: 6 candidates, none improving (u8/u32/s16 retypes of
+ *    `idxval`, `&&`-split, extern-array all >= baseline).
+ *  - `tools/permute.py -- --stop-on-zero -j4`: ~34,000 iterations, flat at 460.
+ *    Superseded by the RTL/source reading above; do not re-burn it.
  */
 typedef struct
 {
