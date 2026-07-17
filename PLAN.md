@@ -60,6 +60,37 @@ byte-identical `main.exe`.
   artifact-driven and still needs a GitHub repo (private OK with a self-hosted
   instance) — full setup in [`docs/decomp-dev.md`](docs/decomp-dev.md).
 
+## Human-source matching — the standing lever (owner directive, 2026-07-18)
+
+**The original was C a human wrote, and a byte-chased park is often a LOCAL OPTIMUM AWAY
+FROM THAT SOURCE** — full of fences, split variables, dead-carrier reuse and seed temps
+no person types, and those props are frequently exactly what pins the residual above 0.
+So when a residual is stuck, WRITE THE FUNCTION THE WAY A HUMAN WOULD and refine from
+there, expecting worse bytes at first. `tools/matcher-prompt.py` carries this as standing
+guidance now.
+
+Evidence it works, this session:
+- **SetWire 70 -> 80 (adopted the WORSE number):** the byte-chased 70's fence was
+  provably not original (the target refutes it), and EFFECT.C:1428's own arithmetic
+  reproduced the whole interpolation island byte-for-byte. Owner adopted the human 80 as
+  the honest, live base.
+- **mission_score_screen 145 -> 187 (adopted the WORSE number):** ~20 of its 24 fences
+  turned out to be the author's own `DRAW_SCORE_NUMBER` macro (defined in matched sibling
+  StageEndScreen.c), not our scaffolding. 866 lines vs 2076.
+- **DecodeTMD family ~620 -> 0:** the whole breakthrough was recognising the hand-rolled
+  `goto` loop as a WRONG FIX propping up damage it caused (it killed the loop-depth ref
+  weighting), and the TU wanting `-fno-strength-reduce`. FUN_80058c70/FUN_80059008 -> 26;
+  FUN_80059ff4/FUN_8005a3cc -> **0**; the 1260-pair (FUN_8005961c/FUN_80059b08, 2520
+  bytes) is in flight with the recon done.
+
+The levers: PSX.SYM's `BEGIN PSX.SYM` block gives the authors' own declarations (names,
+types, nested-block scopes — list order is REVERSED per block); the matched sibling's
+MACROS tell you which `do{}while(0)` clusters are legitimate human fences; and the target
+is a source oracle (a const/copy def next to its uses = set once = birthing bump; a load
+above a byte store = the human wrote the load first = QImode alias pin). SCOPE: main.exe
+game code only — the SDK (>=0x80060000, libgte/libgs/libapi) is stock Sony library code
+and NOT a target.
+
 ## Where the work actually is now (2026-07-17)
 
 **38 game functions remain. That is the whole board.** `tools/findsimilar.py --targets`
