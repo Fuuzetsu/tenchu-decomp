@@ -96,6 +96,67 @@ def jaccard(a, b):
     return len(a & b) / len(a | b)
 
 
+
+# The PSX.SYM header each `.c` carries records its ORIGINAL translation unit
+# ("3DCTRL.C:240"). 394 of 665 functions have one. Same TU + a high similarity score
+# is the condition under which a matched sibling is an ANSWER KEY rather than an
+# analogy -- and three lanes in a row found the answer in a sibling's C by eye
+# because nothing said so. DrawClip's key (DrawSprite, 0.48, same TU) sat unread
+# through an entire park; transcribing it matched on the first build.
+TU_RE = re.compile(rb"([A-Z0-9_]+\.C):\d+")
+
+
+def original_tu(name):
+    """The function's original TU per its PSX.SYM header, or None."""
+    path = os.path.join("src", "main.exe", name + ".c")
+    if not os.path.exists(path):
+        return None
+    with open(path, "rb") as stream:
+        m = TU_RE.search(stream.read(4000))
+    return m.group(1).decode() if m else None
+
+
+def verdict(name, rows, byname):
+    """Say TRANSCRIBE when a matched sibling is an answer key, or why not.
+
+    Never fires on similarity alone: signature outranks shape (the symmatch
+    frame-shape lesson). The TU is the evidence that two functions came from one
+    author's one file, which is what makes a body transcribable.
+    """
+    mine = original_tu(name)
+    best = next(((j, m) for j, m in rows if m != name), None)
+    print()
+    if best is None:
+        print("verdict: no matched sibling to compare against.")
+        return
+    j, m = best
+    theirs = original_tu(m)
+    same_tu = mine and theirs and mine == theirs
+    if j >= 0.35 and same_tu:
+        print(f"verdict: *** TRANSCRIBE {m}.c — it is an ANSWER KEY, not an analogy "
+              f"***")
+        print(f"  score {j:.2f} AND same original TU ({mine}). Read its C and copy the "
+              "body shape;")
+        print("  change only what the target's own bytes force. Three lanes found the "
+              "answer in a")
+        print("  sibling's C by eye because nothing said this — DrawClip's key sat "
+              "unread through a")
+        print("  whole park, then matched on the FIRST BUILD once transcribed.")
+        print("  Look especially at: goto/label PLACEMENT, guard shape, and where "
+              "shared tails live —")
+        print("  those do not show up in an instruction diff.")
+    else:
+        why = []
+        if j < 0.35:
+            why.append(f"top score {j:.2f} < 0.35")
+        if not same_tu:
+            why.append(f"different TU ({mine or '?'} vs {theirs or '?'})"
+                       if mine or theirs else "no TU recorded for either")
+        print(f"verdict: no transcription candidate — {'; '.join(why)}.")
+        print("  Similarity alone is NOT enough (signature outranks shape), so work "
+              "from the dumps.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("name", nargs="?")
@@ -140,7 +201,10 @@ def main():
     rows = sorted(((jaccard(g, gm), m) for m, gm in mgrams.items()), reverse=True)
     print(f"{args.name} ({byname[args.name][1]} bytes) vs matched corpus:")
     for j, m in rows[:args.top]:
-        print(f"{j:5.2f}  {m} ({byname[m][1]} bytes) — src/main.exe/{m}.c")
+        tu = original_tu(m)
+        tag = f"  [{tu}]" if tu else ""
+        print(f"{j:5.2f}  {m} ({byname[m][1]} bytes) — src/main.exe/{m}.c{tag}")
+    verdict(args.name, rows, byname)
 
 
 if __name__ == "__main__":
