@@ -6401,21 +6401,49 @@ and the background assumption that cross-jumping merged the five `return 0` bloc
 `.jump` shows it never did, so all five guards reach reorg with identical RTL and the
 divergence cannot be a source-shape difference between them.
 
-### A park's "already at the priority floor" claim is worth re-reading — it is often inverted
+### `priority()` is DEPTH-FROM-TOP, not height-to-bottom — and cc1 PRINTS it
 
-AddEnemy's cluster (E) was parked for five rounds on the claim that the CamState
-`high` "already has priority 1 — the floor", so no lever could demote it. The
-`.sched` dump says the **reverse**: the high HEADS a ~7-deep chain to the `jal`,
-while `move a0,s7` (LOG_LINKS `(nil)`, one USE below it) **is** the floor. That
-inversion explains why both the fence and a 420 s permuter run failed — **they were
-aimed at a tie that does not exist.** Retail emits the lowest-height insn before the
-highest, which no statement reorder reaches.
+**(This section previously said the opposite: that a park's "already at the priority
+floor" claim "is often inverted", and that a value heading a long chain "is at the
+CEILING, not the floor". That was WRONG, it was folded from a hand-derived reading,
+and it was then briefed to the next round. The original park was right. Kept visible
+because the error is the lesson.)**
 
-The park stands; its reason was backwards. **When a park says "X is already at the
-floor", read the LOG_LINKS: a value that heads a long dependence chain is at the
-CEILING, not the floor** — and the next round should attack HEIGHT, not order.
+`priority()` (`sched.c:1452`) initialises `max_priority = 1` and raises it only by
+walking **LOG_LINKS — which are PRODUCERS**. So it measures **depth from the top of
+the block**, and an insn with `LOG_LINKS (nil)` has priority **exactly 1**,
+unconditionally. MIPS defines no `ADJUST_PRIORITY`. **Nothing can lift it.** So
+"attack the insn's HEIGHT" asks for what the code forbids.
 
-### A returning guard's delay slot is won by SOURCE POSITION, not by a fence
+**"Heads a long chain" describes `ref_count`/`INSN_DEPEND` — CONSUMERS — which is a
+different column and does not feed priority.** Confusing the two is what happened
+here: a round read a `ref_count = 7` as a 7-deep priority chain, and the 7 belonged
+to a *different insn* two lines away.
+
+**The tell**: priorities that INCREASE as you walk DOWN a chain are depth; a height
+metric runs the other way. AddEnemy's measured trace is `1, 1, 1, 2, 3, 4` downward.
+
+**Read the trace; do not derive it.** `tools/schedtrace.py <Name>` tabulates cc1's
+own `;; insn[NNNN]: priority = P, ref_count = R` lines (`sched.c:3686` — 250 of them
+on AddEnemy) with each insn's RTL, and flags the floor. **Never hand-derive a
+priority the dump prints verbatim.**
+
+### A hard-register argument move is a PERMANENT scheduling floor — park on sight
+
+`calls.c:1632` precomputes **all** register parameters before filling any hard reg
+("It isn't safe to compute anything once we have started filling any specific hard
+regs"), so a `move aN,rX` is **LUID-last**; and it has `LOG_LINKS (nil)`, so it is
+**priority 1**. `sched` is a **BACKWARD** scheduler taking `ready[0]`, ranking
+priority DESC -> class DESC -> **LUID DESC** — so of two insns tied at 1, the
+**higher LUID is selected first and lands LAST**.
+
+**Therefore an arg move can NEVER be emitted before a priority-1 insn belonging to
+its own call's argument evaluation.** Both escapes are closed: priority < 1 is
+impossible, and `LUID(argmove) < LUID(chain)` is impossible by `calls.c:1632`. If the
+target does that, **it is unreachable from C — park on sight.** (AddEnemy cluster E,
+12 bytes: the model is falsifiable and PASSES — it reproduces our exact bytes.)
+
+### A returning guard's delay slot is won by SOURCE POSITION, not by a fence### A returning guard's delay slot is won by SOURCE POSITION, not by a fence
 
 If the target fills a guard's delay slot with a cheap independent assignment and
 starts the if-body with the fallthrough's first chain, **put that assignment ABOVE

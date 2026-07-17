@@ -557,6 +557,20 @@ function already byte-matches on current `master`.
   `dslot`/`length` eligibility and `LABEL_NUSES` per branch target, and said outright
   "that table IS the whole answer here". An `asmdiff`/`rtldump` annotation would make
   StickonCheck's entire analysis one call.
+- **NEVER HAND-DERIVE WHAT THE DUMP PRINTS.** The `.sched` dump contains cc1's own
+  `;; insn[NNNN]: priority = P, ref_count = R` trace (`sched.c:3686`, 250 lines on
+  AddEnemy). A round derived a priority from the RTL by hand, read the `ref_count`
+  column as priority, and inverted a correct 6-round-old park — I folded the
+  inversion into the cookbook AND briefed the next round on it, which spent itself
+  restoring the original reading. `tools/schedtrace.py <Name>` now tabulates the
+  trace. **Before folding a rule derived by reading RTL, ask whether the dump states
+  it outright.**
+- **A REFUTATION CAN ITSELF BE WRONG — and I amplify whichever one arrives last.**
+  Round 7 was right, round 12 "refuted" it, round 13 refuted the refutation and
+  restored round 7. My failure mode is treating the newest report as authoritative
+  because it is the most detailed. Weight by EVIDENCE KIND, not recency: round 12
+  hand-derived, round 13 read cc1's own printed table. A claim citing a dump line
+  beats a claim citing an inference, regardless of order.
 - **`tools/siblingdiff.py --demo` is the most underused tool in the box.** It has now
   been decisive twice and named so by both lanes: it answers "is this real codegen or
   our scaffolding?" in ONE call, before a round is spent. FadeOutDirect's demo emits

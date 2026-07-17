@@ -47,11 +47,58 @@
  * draft has 27 differing bytes
  * (183 -> 161 -> 125 -> 81 -> 72 -> 52 -> 42 -> 35 -> 29 -> 27).
  *
- * ROUND 12 (-2): CLUSTER (D) CLOSED.  Byte accounting of the 27 that remain,
- * re-measured per instruction this round (matchdiff, not inherited):
+ * ROUND 13 (+-0): (E) IS CLOSED WITH A PROOF, AND ROUND 12's "INVERSION" WAS
+ * ITSELF THE ERROR.  ROUND 7 WAS RIGHT ALL ALONG.  All 27 remaining bytes now
+ * have a mechanism-level proof of unreachability from C; there is no live
+ * lead.  Byte accounting, re-measured this round (matchdiff -n after a real
+ * rebuild, not inherited):
  *     (A) 14B  0x5d4-0x5e0  loop-1 preheader ORDER   — barred, needs E3
  *     (C)  1B  0x81c        `move a1,s0` vs `,s1`    — barred (loop.c/cse2)
- *     (E) 12B  0x8dc-0x8e4  `move a0,s7` position    — barred, see below
+ *     (E) 12B  0x8dc-0x8e4  `move a0,s7` position    — PROVED UNREACHABLE
+ *
+ * (0) **DO NOT REOPEN (E).  cc1 PRINTS THE REFUTATION ITSELF.**  Round 12
+ *     wrote that the CamState `high` "HEADS a ~7-deep chain ... i.e. the
+ *     HIGHEST height in the block", declared round 7's "priority 1 — the
+ *     floor" inverted, and re-chartered (E) as "attack HEIGHT, not ORDER".
+ *     That is wrong, and the fix is to READ THE TRACE rather than the RTL
+ *     body: the `.sched` dump already contains cc1's own priority print
+ *     (sched.c:3686), and for THIS draft it says
+ *         ;; insn[1460]: priority = 1, ref_count = 1   <- CamState high
+ *         ;; insn[1488]: priority = 1, ref_count = 1   <- move a0,s7
+ *         ;; insn[1465]: priority = 2, ref_count = 7
+ *         ;; insn[1468]: priority = 3, ref_count = 5
+ *         ;; insn[1492]: priority = 4, ref_count = 1
+ *     The two insns are TIED at the floor.  Two independent tells that
+ *     `priority` is DEPTH-FROM-TOP and not height-to-the-jal: it *increases*
+ *     down the chain (1,1,1,2,3,4 — a height metric would run the other way),
+ *     and priority() (sched.c:1452) initialises `max_priority = 1` and only
+ *     raises it by walking LOG_LINKS, which are PRODUCERS.  An insn with
+ *     `LOG_LINKS (nil)` therefore has priority exactly 1, unconditionally, and
+ *     MIPS defines no ADJUST_PRIORITY hook.  Round 12's "~7-deep" is the
+ *     `ref_count = 7` column — and it belongs to insn 1465, not 1460.
+ *
+ *     The proof that (E) is unreachable, each step verified against the pinned
+ *     gcc-2.8.1 (nix store 117i80brbgcdmcl46gmpzwizikbjyx5m):
+ *      1. sched is a BACKWARD list scheduler: schedule_insn walks LOG_LINKS to
+ *         ready the PRODUCER ("in the backwards dataflow sense"), and
+ *         schedule_block does `tail = insn` for the FIRST insn scheduled.  So
+ *         first-selected == placed LAST.
+ *      2. It takes `ready[0]` (sched.c:3785), and rank_for_schedule is
+ *         priority DESC -> class DESC -> **LUID DESC**.
+ *      3. 1460 and 1488 are both priority 1 (measured above), so the tie falls
+ *         through to LUID: the HIGHER LUID is selected first and lands LATER.
+ *      4. LUID(1488) > LUID(1460) — hence our [high][lo_sum][a0=type].
+ *      5. Both escapes are closed.  priority(1488) < 1 is impossible (1 is the
+ *         initialiser floor).  LUID(1488) < LUID(1460) is impossible because
+ *         calls.c:1632 precomputes ALL register parameters before filling any
+ *         hard reg ("It isn't safe to compute anything once we have started
+ *         filling any specific hard regs"), and the CamState chain feeds THIS
+ *         call's own arguments (a2=x, a3=y, 16(sp)=z, 20(sp)=r).
+ *     Round 7's note (below) reached this by reading the same code; round 12
+ *     overturned it on a misread column.  The model is falsifiable and it
+ *     PASSES: reversing our block [1460][1461][1488][1463] gives the selection
+ *     order 1463 -> 1488 -> 1461 -> 1460, which is exactly what LUID DESC over
+ *     a priority-1 tie predicts.  It reproduces our bytes.
  *
  * (1) **(D) FELL TO AN ARRAY_REF CARRIER.**  Round 11 identified the cause
  *     (ARRAY_REF expands base-first via get_inner_reference; a pointer index
@@ -77,8 +124,12 @@
  *        on a COMPONENT_REF it walks to operand 0 (c-typeck.c:3365) and an
  *        INDIRECT_REF hits the permissive default.
  *
- * (2) **ROUND 7's MECHANISM FOR (E) IS INVERTED — the park survives, the
- *     reason does not.**  Round 7 wrote "the CamState `high` (insn 1607)
+ * (2) **[RETRACTED BY ROUND 13 — READ (0) ABOVE FIRST.  THIS NOTE IS WRONG.
+ *     Round 7 was NOT inverted; cc1's own trace prints priority = 1 for insn
+ *     1460, tied with 1488.  "Heads a ~7-deep chain" is the ref_count column,
+ *     and it belongs to insn 1465.  Kept only so the error is legible.]**
+ *     ~~ROUND 7's MECHANISM FOR (E) IS INVERTED — the park survives, the
+ *     reason does not.~~  Round 7 wrote "the CamState `high` (insn 1607)
  *     already has priority 1 — the floor".  MEASURED from our own .sched dump
  *     this round: the CamState high (now insn 1460) has LOG_LINKS (nil) but
  *     HEADS a ~7-deep chain 1460 -> 1461 -> 1463 -> 1465 -> {1468,1471,1474,
