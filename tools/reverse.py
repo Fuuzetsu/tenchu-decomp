@@ -335,7 +335,18 @@ def main():
     ap.add_argument("--ghidra-export", metavar="DIR")
     ap.add_argument("--addr", type=lambda s: int(s, 0))
     ap.add_argument("--size", type=lambda s: int(s, 0))
-    ap.add_argument("--no-check", action="store_true", help="skip ./Build check")
+    ap.add_argument("--no-check", action="store_true",
+                    help="skip ./Build check. **Think before using this.** The check "
+                         "is what catches a carve whose [start,size) boundary is wrong "
+                         "or whose region has rodata splat needs told about — a bad "
+                         "split changes the IMAGE, and if you skip the check you will "
+                         "not find out here, you will find out later as a mysterious "
+                         "red build with several carves in flight. The orchestrator "
+                         "passed --no-check reflexively on six carves for speed; five "
+                         "were fine and the sixth (GsInitCoordinate2) went red, then "
+                         "cost more time to bisect by hand than the six checks would "
+                         "have taken. Use it only when you are about to run the check "
+                         "yourself anyway.")
     args = ap.parse_args()
 
     ghidra_c = None
