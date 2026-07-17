@@ -309,6 +309,33 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 
 ## Scheduling (sched.c) and reorg
 
+- **A `do{}while(0)` fence is a TOTAL, BIDIRECTIONAL scheduling barrier — never a
+  priority hint.** An insn carrying loop notes (`sched.c:2091-2114`) gets
+  `add_dependence` on **every** `reg_last_uses[i]` (anti) and **every**
+  `reg_last_sets[i]` (true), then sets `reg_pending_sets_all = 1` and calls
+  `flush_pending_lists`. So it depends on everything before it and everything
+  after depends on it: **nothing crosses at any priority.** gcc says why in
+  place — *"we must be sure that no instructions are scheduled across it,
+  otherwise the reg_n_refs info (which depends on loop_depth) would become
+  incorrect"*. Three consequences:
+    1. **Never model a fence as a ranking/priority lever** — it does not compete,
+       it forbids.
+    2. **The TARGET can REFUTE a fence.** If retail shows any insn crossing a
+       span, the original had NO fence in that span, full stop —
+       mission_score_screen's `move a0,s2` reaches its `jal` across 20 insns,
+       which `reg_pending_sets_all` makes impossible under a loop note. This is
+       rare, cheap, *negative* evidence: read it off the asm before theorising.
+    3. **Only LOOP/EH/SETJMP notes qualify** (`sched.c:2293`). A BLOCK note — a
+       bare `{ s32 pad; }` scope — is **not** a barrier (though loop.c:404 gives
+       both a LUID), so a scope pad cannot substitute for a fence.
+- **Splitting a mega-pseudo changes WHICH ALLOCATOR owns each fragment.** A
+  variable live in >=2 blocks is a global allocno; split per-site and each
+  fragment becomes block-local, handing it to `local_alloc` — whose
+  `combine_regs`/`REG_N_DEATHS` interlock may itself be load-bearing. So a split
+  is not a uniform "reduce pressure" move: it re-homes the decision. Re-check
+  LENGTH after every split (mission_score_screen: `brightness` split cleanly at
+  the row, but not at the medal or number-init — both measured 4632).
+
 - **Both schedulers are BACKWARD list schedulers**: T-1 is the block's LAST slot,
   filled first — an insn picked earlier lands LATER. "Emit first" = "lose the
   ranking". **T is NOT an address index**: `clock += stalls` (3747) skips T

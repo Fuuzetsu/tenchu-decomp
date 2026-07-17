@@ -294,7 +294,20 @@ def report_clusters(name, bad_insns, diffs, off, addr, o_dis, m_dis, gap):
                 kinds.add("branch-retarget")
             else:
                 kinds.add("operands")
+        # IS THE CLUSTER A PURE REORDER? The per-address test above compares the
+        # target's mnemonic at X against ours at X, so a ROTATION -- the same
+        # instructions at shifted addresses -- differs at EVERY position and reads as
+        # "opcode", indistinguishable from a real structural defect. That misread sent
+        # a lane a brief saying mission_score_screen's residual was "structural, not
+        # allocation ties, do not treat this as a register-tie hunt"; its cluster 1 was
+        # a pure 9-position rotation, and reghist said so in one call. Compare the
+        # MULTISET: equal multiset = the code is right and only its POSITION is wrong.
+        tgt_ms = sorted(_mnemonic(o_dis[a]) for a in g if a in o_dis)
+        our_ms = sorted(_mnemonic(m_dis[a]) for a in g if a in m_dis)
+        rotated = bool(tgt_ms) and tgt_ms == our_ms and "opcode" in kinds
         kind = "+".join(sorted(kinds))
+        if rotated:
+            kind += "  <- MULTISET-EQUAL: a REORDER, not structure"
         kinds_seen.append(kind)
         print(f"  {i:>3} {lo:#010x}..{hi + 4:#010x} {len(g):>6} {nb:>6}  {kind}")
     # Only say it when it is TRUE. This was an unconditional legend, and it made the

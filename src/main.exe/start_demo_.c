@@ -10,37 +10,96 @@
  * recovers the full five-state jump-table loop, including state 2's shared
  * prompt/input tail with state 3, resource ownership, timed sprite fades,
  * pad-edge detection and both cleanup paths. It has the exact 0x1a0 frame and
- * exact 2188-byte/547-instruction extent; 75 differing bytes (down from 98).
+ * exact 2188-byte/547-instruction extent; 39 differing bytes (down from 75).
  * Build with `NON_MATCHING=start_demo_ ./Build`.
  *
- * This pass (98 -> 75): the prologue `li a1,-1` placement cluster closed by
- * making `old_pad` a plain `s16` instead of `volatile u16` — the volatile
- * store at `old_pad = 0` was a scheduling barrier that pinned the SetupAppearance
- * argument load below the register-save block; non-volatile lets cc1 hoist it
- * into the prologue exactly as the target does (and non-volatile is the correct
- * semantics — the pad shadow was never volatile). `color` also narrows to `u32`.
- * Both were found by the decomp-permuter (output-665; authoritative full-link
- * rescore) and re-derived by hand; an unused `GsSPRITE *new_var` the permuter
- * added was dead and excluded.
+ * This pass (75 -> 39), four independent levers found via autorules +
+ * permuter + regalloc.py/rtlguide, applied and re-measured one at a time:
+ *   1. (75 -> 48) The state-3 `do { pad = GetRealPad(0); } while (0);` fence
+ *      was actively HARMFUL, not neutral: unwrapping it (autorules
+ *      fence-unwrap) let cc1 schedule the whole GsSortSprite(&gov_title,...)
+ *      argument setup (a0/a1/a2 materialization) BEFORE `old_pad = pad;
+ *      new_press = pad & (pad^previous_pad);` instead of after, which is what
+ *      lets reorg sink the final `and` (computing new_press) into the FIRST
+ *      GsSortSprite call's jal delay slot exactly as the target does
+ *      (0x56444-0x56464 cluster, -27 bytes in one edit).
+ *   2. (48 -> 43) A fresh, single-use `s32 clear_b = 0;` at the top of the
+ *      function, passed as `ClearImage(&clear_rect, 0, 0, clear_b)` instead
+ *      of a literal `0`, closes the FadeOutDirect(0x20,2,8,8,8) shared-constant
+ *      cluster (0x55df4-0x55e04) — a global-allocation-priority rebalancing
+ *      effect with NO textual connection to FadeOutDirect (found by the
+ *      permuter; verified `color` cannot substitute for `clear_b` — reusing
+ *      an existing local instead of a fresh one costs a frame slot, LENGTH
+ *      MISMATCH +4). See the new cookbook rule below.
+ *   3. (43 -> 42, then 42 -> 39 combined with #4) Naming the persistent[]
+ *      loop's multiply subterm as `chr_offset = CHOSEN_CHARACTER * 0x20;`
+ *      before `persistent[(i + chr_offset) + 0x40c]` closes the `addu`
+ *      operand-order tie at 0x55dd8. Verified the ALGEBRA is irrelevant —
+ *      `16 * (2 * CHOSEN_CHARACTER)` in place of `CHOSEN_CHARACTER * 0x20`
+ *      compiles byte-identical to the unnamed form (cc1 folds the
+ *      reassociation); only the fresh NAMED TEMP's presence moves bytes.
+ *   4. (42 -> 39 combined) Pre-computing the sprintf 4th argument into
+ *      `char *prefix = GOV_RESOURCE_PREFIX_PTRS[language_state[0x5e]];`
+ *      (mirroring how `resource_root` is already pre-assigned) shrinks the
+ *      sprintf address-materialization cluster from 11 insns/38 bytes to 9
+ *      insns/35 bytes and gets the FINAL `lw a3,0(v0)` into the correct `a3`
+ *      register (previously the whole chain was 8 insns of pure insert/delete
+ *      against target). Order matters: `resource_root` must be assigned
+ *      BEFORE `prefix`, not after (swapping costs +6 bytes, 46 vs 40).
  *
- * Residual 75 bytes are hard sub-C allocation/scheduling ties, all confirmed
- * immovable by autorules --guided (80-candidate beam), a full 420s permuter run,
- * regalloc.py and rtlguide (several HARD-CONFLICT):
- *   - suffix lives in a2, target a3 (0x55e7c/0x55ea8): suffix (p100, prio 2000)
- *     and color (p97, prio 36363) are NON-conflicting live ranges the allocator
- *     assigned to a2/a3 in the opposite order from the target; both computed at
- *     the same position, so no live-range lever exists.
- *   - the sprintf archive-path address materialization (0x55ebc-0x55ee4) is the
- *     scheduling/coalescing cascade of that a2/a3 swap plus a v0-vs-v1 index reg.
- *   - FadeOutDirect(0x20,2,8,8,8): the shared constant 8 stays in a temp (v0) in
- *     the target, coalesces into a2 for us (0x55df4-0x55e04).
- *   - the `addu` operand order at 0x55dd8 (commutative, hard-conflict p98).
- *   - the state-3 first GsSortSprite delay slot (0x56444-0x56460): the target
- *     sinks `new_press = pad & (pad^prev)`'s final `and` into the jal delay slot.
- *   - a v0-vs-v1 stack reload at 0x55fd0.
- *   - setup_brightness must stay -0x80 (see below): a plain 0x80 CSEs with
- *     full_brightness/shade and collapses the frame (98 -> 346); the lone
- *     `li s0,-128` vs `li s0,128` at 0x55f64 is the unavoidable cost.
+ * Ideas tried and REJECTED (measured, not guessed):
+ *   - `GOV_RESOURCE_PREFIX_PTRS[CHOSEN_LANGUAGE]` in place of
+ *     `[language_state[0x5e]]` at one or both use sites: the disassembly's
+ *     `%lo(CHOSEN_LANGUAGE)` label on the FIRST access and raw `0x5E` on the
+ *     second is a splat SYMBOL-BY-ADDRESS relabeling artifact, not evidence
+ *     of two source spellings — both sites are the same pointer-offset
+ *     expression in the original. Using CHOSEN_LANGUAGE at one site only
+ *     breaks the two accesses' shared `%hi` (LENGTH MISMATCH, +4); at both
+ *     sites it's LENGTH-correct but 130 bytes (badly wrong shape).
+ *   - `u8 suffix` instead of `s32 suffix`, and a bare pointer-arithmetic
+ *     `*(GOV_RESOURCE_PREFIX_PTRS + language_state[0x5e])` instead of
+ *     `GOV_RESOURCE_PREFIX_PTRS[language_state[0x5e]]`: both compile
+ *     byte-identical (nullcheck confirms the type change is real codegen,
+ *     just not a helpful one; cc1 folds `a[i]` and `*(a+i)` identically).
+ *   - Naming `lang_idx = language_state[0x5e];` separately from `prefix`:
+ *     no additional effect beyond `chr_offset` alone.
+ *
+ * Residual 39 bytes, 5 clusters — all confirmed HARD-CONFLICT or previously
+ * cost-verified, via regalloc.py/rtlguide on the CURRENT (39-byte) draft:
+ *   - suffix lives in t0, target a3 (0x55e7c/0x55ea8, 1 byte each): rtlguide
+ *     names this HARD-CONFLICT — pseudo p100 (suffix) conflicts with hard
+ *     regs v0,v1,a0-a3 AND the long-lived s3-s6 pseudos simultaneously in
+ *     the current decomposition (regalloc.py: `100 conflicts: 80 85 87 92 93
+ *     94 100 2 3 4 5 6 7 16 17 29`) — no priority/respelling lever exists;
+ *     needs a live-range or source-identity change neither `prefix` nor any
+ *     tested variant produced.
+ *   - the sprintf archive-path address materialization (0x55ec4-0x55ee8, 9
+ *     insns/35 bytes): same HARD-CONFLICT family — a v0-vs-v1 base/index
+ *     role swap (rtlguide: candidate v1->target v0 conflicts with p98/p315)
+ *     plus suffix's register plus WHEN the resource_root->a2 move schedules
+ *     (target moves it early, right after computing D_800137A0; ours delays
+ *     it to the jal's delay slot). All three are entangled; fixing one
+ *     without the others was not found.
+ *   - a v0-vs-v1 stack reload at 0x55fd0 (unchanged from prior rounds): the
+ *     volatile `gov_prompt.attribute` dead-read's register identity.
+ *   - setup_brightness must stay -0x80 (unchanged from prior rounds): a
+ *     plain 0x80 CSEs with full_brightness/shade and collapses the frame
+ *     (98 -> 346 in an earlier measurement); the lone `li s0,-128` vs
+ *     `li s0,128` at 0x55f64 is the unavoidable cost.
+ *
+ * NEW COOKBOOK RULE (report for §3.9 / autorules): a fresh, single-use local
+ * assigned a constant ONCE and read ONCE at an otherwise-literal call
+ * argument (`s32 clear_b = 0; ...; f(a, b, clear_b);` in place of a literal
+ * `0`) can close an UNRELATED register-identity cluster elsewhere in the
+ * SAME function — pure global-allocation-priority rebalancing from the
+ * pseudo's mere existence, no textual/data connection to the site it fixes.
+ * The lever requires a GENUINELY FRESH local: substituting an existing
+ * same-typed local that is read again later (tested: `color`) costs a frame
+ * slot (LENGTH MISMATCH) instead of helping, because its live range now
+ * spans from the earlier site to its real later use. Re-verify
+ * `matchdiff --clusters` (not just the total) after adopting a permuter
+ * candidate of this shape — the win and the candidate's own edit site are
+ * often in different clusters.
  */
 
 #ifndef NON_MATCHING
@@ -162,19 +221,23 @@ void start_demo_(void)
     s32 increment;
     s32 i;
     s32 suffix;
+    s32 clear_b;
+    char *prefix;
+    s32 chr_offset;
 
     state = 1;
     shade = 0x80;
     title_brightness = 0;
     old_pad = 0;
+    clear_b = 0;
     SetupAppearance(0, -1);
     PadShockAR(0, 0, 0, 0);
 
     i = 0;
     persistent = (u8 *)0x80010000;
     do {
-        persistent[0x27 + i] =
-            persistent[i + CHOSEN_CHARACTER * 0x20 + 0x40c];
+        chr_offset = CHOSEN_CHARACTER * 0x20;
+        persistent[0x27 + i] = persistent[(i + chr_offset) + 0x40c];
         i++;
     } while (i < 0x14);
 
@@ -184,7 +247,7 @@ void start_demo_(void)
     clear_rect.y = 0;
     clear_rect.w = 0x400;
     clear_rect.h = 0x200;
-    ClearImage(&clear_rect, 0, 0, 0);
+    ClearImage(&clear_rect, 0, 0, clear_b);
     DrawSync(0);
 
     tim = FileRead(D_80013AFC);
@@ -200,8 +263,8 @@ void start_demo_(void)
         suffix = 'a';
     }
     resource_root = D_800137A0;
-    sprintf(archive_path, D_80013B24, resource_root,
-            GOV_RESOURCE_PREFIX_PTRS[language_state[0x5e]], suffix);
+    prefix = GOV_RESOURCE_PREFIX_PTRS[language_state[0x5e]];
+    sprintf(archive_path, D_80013B24, resource_root, prefix, suffix);
     /* Keep the loop brightness in its own pre-resource CSE region. */
     do {
     } while (0);
@@ -396,9 +459,7 @@ void start_demo_(void)
 
         case 3:
             previous_pad = old_pad;
-            do {
-                pad = GetRealPad(0);
-            } while (0);
+            pad = GetRealPad(0);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
             GsSortSprite(&gov_title, OTablePt, 0xa);

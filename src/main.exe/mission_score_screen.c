@@ -5,8 +5,116 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 239 of 4636 bytes differ (was 254; 330; 346; 401;
- * 413; 433; 437; 476; 498; 525; 1266).  76 differing instructions.
+ * STATUS: NON_MATCHING -- 233 of 4636 bytes differ (was 239; 254; 330; 346;
+ * 401; 413; 433; 437; 476; 498; 525; 1266).  81 differing instructions.
+ * (NOTE the insn count ROSE 76 -> 81 while bytes FELL 239 -> 233.  That is real
+ * and is explained below: round 14 removed a scaffold that was MASKING a
+ * separate allocation defect.  Judge per-cluster, not on the total.)
+ *
+ * 2026-07-17 round-14 (Opus) -- 239 -> 233.  THE do{}while(0) FENCE IS A TOTAL
+ * SCHEDULING BARRIER.  This is a gcc-source FACT, not a model, and it dissolves
+ * round 13's question rather than answering it.  Two of round 13's three premises
+ * were false; the third was against the wrong pass.
+ *
+ * THE MECHANISM (sched.c:2086-2114, read directly -- gcc's OWN comment):
+ *     "If there is a {LOOP,EHREGION}_{BEG,END} note in the middle of a basic
+ *      block, then we must be sure that no instructions are scheduled across it.
+ *      Otherwise, the reg_n_refs info (which depends on loop_depth) would
+ *      become incorrect."
+ *   The implementation: the insn CARRYING the loop_notes gets add_dependence on
+ *   EVERY reg_last_uses[i] and reg_last_sets[i] for ALL i, plus
+ *   flush_pending_lists(), plus reg_pending_sets_all = 1 -- which then makes
+ *   every LATER insn depend on IT.  So a do{}while(0) fence is a HARD,
+ *   BIDIRECTIONAL barrier: nothing crosses it in either direction, at any
+ *   priority.  sched.c:2293 collects ONLY LOOP/EH_REGION/SETJMP notes; BLOCK
+ *   notes are NOT collected and are NOT barriers.
+ * - THEREFORE round 13's "what makes the a0 arg copy outrank `brightness` for
+ *   the slot right after the preceding call?" was MOOT.  It was never a ranking
+ *   question: insn 150 was pinned by a dependence edge.  Its stated reason ("the
+ *   a0 copy has the HIGHEST uid, so a UID tie-break places it last") also rests
+ *   on the tiebreak REFUTED in ba40102 the same day -- rank_for_schedule only
+ *   SORTS; schedule_select (2689-2703) picks max potential_hazard within the
+ *   equal-priority group, and LUID decides only among equal priority AND equal
+ *   hazard.  sched-deps prints those swaps outright ("<- HAZARD SWAP: beat insn
+ *   150", three times, on screen).
+ * - AND IT WAS THE WRONG PASS (AddEnemy's lesson, repeating).  With the fence
+ *   gone, `sched-deps --asm` shows sched1 ALREADY hoists the a0 copy to idx 22 --
+ *   and SCHED2 sinks it to asm 43.  Every sched1 priority round 13 cites
+ *   describes an ordering a later pass overwrites.  The remaining fight is in
+ *   sched2 (uid 137, priority 2 against neighbours at 3-4).
+ * - THE TARGET PROVES THE ORIGINAL HAD NO FENCE HERE.  `move a0,s2` sits at
+ *   0x80054bf8 and its `jal LoadTIMAndFree` at 0x80054c48 -- it crosses 20 insns
+ *   with no intervening a0 write.  reg_pending_sets_all means ANY loop note
+ *   between InitScoreSprite and that copy would forbid the crossing.  So the
+ *   fence is not merely unhelpful, it is PROVABLY not in the original.  (This
+ *   also explains round 13's measured "fence moved ABOVE the attribute chain =
+ *   266, buys nothing" -- a barrier anywhere in the region blocks it.)
+ *
+ * LANDED (do not undo):
+ * - The empty fence before `brightness = rankColour` is DELETED.
+ * - `rowBrightness` is a SEPARATE local.  `brightness` was a THREE-WAY
+ *   MEGA-PSEUDO (number-init 0x80054c1c, medal 0x80055938, row 0x80055b38) --
+ *   one function-scope s32 doing three unrelated jobs, so one hard register
+ *   served all three and freeing fragment 1's live range exiled fragments 2+3
+ *   to $a1.  reghist named it at baseline ("$v0 draft-heavy by 13 -- suspect a
+ *   MEGA-PSEUDO") and the two distant damage sites were EXACTLY the other two
+ *   fragments.  Splitting the row is byte-neutral WITH the fence and worth -6
+ *   WITHOUT it (it removed both distant row clusters, 12B + 1B).
+ * - THE SPLIT IS ASYMMETRIC AND THE ASYMMETRY IS MEASURED: `brightness` must
+ *   keep the number-init AND medal fragments TOGETHER.  Splitting the medal off
+ *   (medalBrightness) = 4632 LENGTH MISMATCH; splitting the number-init off
+ *   (initBrightness, medal+row shared) = 4632 LENGTH MISMATCH.  Both lose the
+ *   medal bgez delay nop: sharing keeps the pseudo a GLOBAL allocno, and
+ *   splitting makes it block-local, handing it to local_alloc -- the very
+ *   allocator whose combine_regs/REG_N_DEATHS interlock round 8 proved the nop
+ *   depends on.  Only the row splits cleanly.
+ *
+ * BYTE ACCOUNT of the 239 -> 233 (exact, re-measured; the rows sum):
+ *     0x80054bf8 a0-copy rotation   35B -> 21B   (-14)  fence deleted
+ *     0x80055b38 row brightness      0B ->  0B   ( +0)  was +12 before the split
+ *     0x80055afc row tail            0B ->  0B   ( +0)  was  +1 before the split
+ *     0x80055938 medal brightness    0B ->  8B   ( +8)  UNFIXED, see below
+ *   net -6.
+ *
+ * FOR ROUND 15 -- the question is now ONE allocation, and it is worth ~27B:
+ *   "why does `brightness` get $a1 instead of the target's $v0?"
+ *   With the barrier gone, sched1 hoists `brightness = rankColour` (a bare
+ *   const_int 128, the lowest-priority thing in the block) to the region TOP, so
+ *   its live range now spans the attribute chain's $v0 uses (lw/or/sw/li/li) and
+ *   it is exiled to $a1.  That ONE fact causes ALL of the remaining new damage:
+ *     (a) it steals the top slot the target gives to `move a0,s2`;
+ *     (b) in $a1 the r/g/b stores are `sb a1,..`, so the `lhu v0,8(s0)` /
+ *         `lhu v1,10(s0)` pair LOSES the $v0 anti-dependence that pins it BELOW
+ *         the stores in the target, and hoists above them (the 19B cluster);
+ *     (c) the shared medal fragment follows it to $a1 (the 8B cluster).
+ *   Get `brightness` back on $v0 with a SHORT live range and (a),(b),(c) all
+ *   fall together -- ~27B, and cluster 0's entry rotation (10B) is the same
+ *   class.  CONFIRMED WHY IT IS $a1 (regalloc.py): brightness is caller-saved
+ *   (never live across a call) and global_alloc scans hard regs ASCENDING, so it
+ *   takes the first FREE one -- the hoisted range conflicts with $v0 (attribute
+ *   chain + the two li's + the lhu), $v1 (lui 0x5000, lhu 10(s0)) AND $a0 (the
+ *   arg copy), so $a1 is simply the first survivor.  Shorten the range and $v0
+ *   is free again; there is no weighting to tune.
+ *   HONEST CAVEAT: `rowBrightness` is only worth its -6 BECAUSE of this defect
+ *   (it stops the row fragment following brightness to $a1).  It is byte-neutral
+ *   at the fenced baseline, so it may be scaffolding for damage round 14
+ *   introduced -- if round 15 lands brightness on $v0, RE-CHALLENGE the row split
+ *   (the original most likely had ONE `brightness`; the split's own asymmetry
+ *   above is evidence that per-site brightness locals are not the original shape).  Round 5's note that the fence "stops cse1 from const-folding the
+ *   copy" is FALSE as measured: the RTL is `(set (reg/v:SI 90) (const_int 128))`
+ *   WITH the fence too; the target's `move v0,s3` is reload_cse_regs rewriting
+ *   `li v0,128`, not a surviving copy.  Do NOT re-derive that.
+ *   Start at `tools/regalloc.py`, not the permuter, and NOT at fence placement --
+ *   that search is closed by the source fact above.
+ *
+ * THE BIG STRUCTURAL LEAD (unexplored, ~63B): clusters at 0x800551b8/0x800551f8
+ * are "GsSortSprite arg sched -- target places `move a2,zero` early, we place it
+ * late".  That is the SAME SHAPE as the a0 copy, and the draw macros carry 4
+ * nested do{}while(0) fences (round 6).  Those fences are total sched barriers by
+ * the fact above, so they are very likely blocking those argmoves too.  Round 6
+ * priced unwrapping them at ~50B and lost the s7/s8 flip -- but round 6 modelled
+ * them ONLY as flow.c loop_depth/ref-count levers and did not know they were
+ * scheduling barriers, and its numbers date from the 401 baseline.  Re-measure.
  *
  * 2026-07-17 round-13 (Opus) -- NO byte change (239 HELD).  Round 12's lever is
  * EXHAUSTED, and the two "rotation" clusters are now ONE located mechanism.
@@ -860,6 +968,7 @@ void mission_score_screen(void)
     register s16 i;
     register s16 newPress;
     s32 brightness;
+    s32 rowBrightness;
     register s32 stageItem;
     register s32 goNext;
     register s32 rankColour;
@@ -885,8 +994,6 @@ void mission_score_screen(void)
         initNumber->attribute |= 0x50000000;
         initNumber->x = -140;
         initNumber->y = -40;
-        do {
-        } while (0);
         brightness = rankColour;
         initNumber->r = brightness;
         initNumber->g = brightness;
@@ -1770,18 +1877,18 @@ score_row_loop:
                 sprite->y = i * 0x16 + 0x16;
                 if (i == insertedRank)
                 {
-                    brightness = rsin((GameClock << 12) / 90) * 60;
-                    if (brightness < 0)
+                    rowBrightness = rsin((GameClock << 12) / 90) * 60;
+                    if (rowBrightness < 0)
                     {
-                        brightness += 0xFFF;
+                        rowBrightness += 0xFFF;
                     }
-                    brightness = (brightness >> 12) + 100;
+                    rowBrightness = (rowBrightness >> 12) + 100;
                 }
                 else
                 {
-                    brightness = 0x80;
+                    rowBrightness = 0x80;
                 }
-                sprite->r = sprite->g = sprite->b = brightness;
+                sprite->r = sprite->g = sprite->b = rowBrightness;
                 do {
                 } while (0);
                 GsSortSprite(sprite, OTablePt, 1);
