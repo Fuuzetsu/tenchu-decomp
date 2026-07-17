@@ -38,109 +38,61 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 48 of 488 bytes differ (same instruction COUNT —
- * length matches exactly; every differing instruction is a duplicate/
- * reordering of an instruction the draft already has elsewhere, never a
- * wrong value or missing logic).
+ * DrawModelArchive (0x8001768c) — MATCHED.
  *
- * DrawModelArchive (0x8001768c) — same TU as DrawModel.c/DrawSprite.c
- * (3DCTRL.C): the ModelArchiveType twin of DrawModel's visibility gauntlet
- * (same GsGetLs+GsSetLsMatrix / attribute&1/2/4/8/0x10 clip test / UnitVector
- * RotTransPers), gated by a demo-only `SkipFrame` early-out and a `gap<0`
- * bypass, and instead of a single DrawTMD call it walks `mad->object[0..n)`
- * drawing each visible (attribute&1==0) sub-model with `gap` as the DrawTMD
- * mode.
- *
- * Residual root cause (RTL-verified, see docs/matching-cookbook.md "Reading
- * cc1's RTL dumps"): TWO independent ties, both downstream of source, both
- * confirmed by `tools/rtldump.py DrawModelArchive --draft --pass all`:
- *  1. (4 bytes) The `if (gap < 0) goto loop;` guard's delay slot: target
- *     leaves it a bare `nop`; this draft's reorg fills it with the
- *     GsGetLs first-argument `move a0,s2` (harmless either way — a0 already
- *     equals mad from the caller's own convention). This is the cookbook's
- *     NAMED "guard's delay-slot fill tie" class (Iteration protocol §5,
- *     StickonCheck) — reorg picks between two equally-valid fillers with no
- *     source lever.
- *  2. (44 bytes) The `reject`/DrawTMDmode-arm block ORDER at the tail: target
- *     places `reject` (2 predecessors: the box check's iv2>=0xb5 fail, and
- *     unit_vector's own sz>=0x4e3 fail) EARLY, right after the sz>=0x4e3
- *     test, needing its own `j tail` — and the DrawTMDmode==0 arm LAST,
- *     falling straight into `tail:` with no jump. This draft's cc1 instead
- *     merges the shared `reject` body to be LAST/adjacent-to-tail, forcing
- *     the DrawTMDmode==0 arm to need its own jump instead — same
- *     instructions, same length, swapped position. Traced via
- *     `tools/rtldump.py`: the `.jump`-pass RTL already has target's own
- *     order (`if_then_else (eq reg 0) (pc) (label_ref DrawTMDmode)` — reject
- *     is the fallthrough, matching target); the swap happens LATER, between
- *     `.sched2` and `.dbr` (confirmed absent in `.sched2`, present in
- *     `.dbr`) — i.e. it's reorg/jump2's OWN cross-jump merge-candidate
- *     choice among the several byte-identical `result = -1; goto tail;`
- *     sites, not a source-level decision. Read gcc-2.8.1's own `jump.c`
- *     (`find_cross_jump`/`do_cross_jump`, the `simplejump_p` "cross jumping
- *     of unconditional jumps" path with its `jump_chain` same-target scan):
- *     candidate jumps whose OWN preceding block is a lone `if(cond){A;goto
- *     L;}` guard get folded into a compact conditional branch EARLIER in the
- *     SAME pass (dropping out of the jump_chain entirely, matching why
- *     attribute&1/&4/iv1/reject_check each keep their OWN separate `li
- *     v0,-1` — confirmed, none of them merge with anything); `reject`
- *     survives as a genuine standalone `simplejump` (it has 2 predecessors,
- *     not foldable into one guard) and is the one instruction stream cross-
- *     jump's minimum-length scan finds a match against. Tried and disproved
- *     as REAL levers (all byte-IDENTICAL output, confirming the tie is
- *     below the C AST): (a) `goto reject;` vs a literal duplicated
- *     `result=-1;goto tail;` at the iv2>=0xb5 site — same bytes; (b) an
- *     explicit trailing `goto tail;` after `result = sz;` vs relying on
- *     implicit fallthrough — same bytes; (c) inverting the whole `if
- *     (sz>=0x4e3) {reject} DrawTMDmode-if/else` to `if (sz<0x4e3)
- *     {DrawTMDmode-if/else; goto tail;} reject:` (textually swapping which
- *     block is "last") — same bytes; (d) reverting attribute&1 to its
- *     un-optimized direct-literal form (confirming issue 1 and issue 2 are
- *     independent — reject's mis-position persists either way, and with
- *     attribute&1 broken it instead merges into attribute&1's OWN leftover
- *     `j;li` island, further evidence this is pure cross-jump candidate
- *     selection, not a source shape). `tools/permute.py` ran one bounded
- *     (300 s, -j4) foreground pass; no candidate reported (permuter
- *     transforms the C AST — this divergence is chosen in `jump2`, a later
- *     RTL pass, so it cannot reach it, consistent with the cookbook's
- *     characterization of this residual class).
+ * Same TU as DrawModel.c/DrawSprite.c (3DCTRL.C): the ModelArchiveType twin
+ * of DrawModel's visibility gauntlet (same GsGetLs+GsSetLsMatrix /
+ * attribute&1/2/4/8/0x10 clip test / UnitVector RotTransPers), gated by a
+ * SkipFrame early-out and a `gap<0` bypass, and instead of a single DrawTMD
+ * call it walks `mad->object[0..n)` drawing each visible (attribute&1==0)
+ * sub-model with `gap` as the DrawTMD mode.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The reject-site split follows DrawSprite's `sz`/`result` two-variable
- *    shape: `sz` ($v1) holds the OTZ from either RotTransPers (re-tested by
- *    the attribute&4/&0x10 guards), `result` ($v0) is the "-1 = reject / else
- *    the accepted OTZ" value the tail sums with `gap` — assigned only at
- *    each exit edge (never once up front), so cc1 rematerialises `li v0,-1`
- *    at each direct reject and leaves `result` caller-saved.
- *  - FOUR reject sites are DIRECT branches straight to the tail's sum-test
- *    (own `result = -1;` in the branch's own delay slot): attribute&1 set,
- *    (attribute&4 set && sz==0), the box check's FIRST threshold
- *    (iv1>=0xf1), and reject_check (attribute&0x10 set && sz>0x4e2). TWO
- *    reject sites SHARE one physical stub (`li v0,-1; j tail`) placed inside
- *    unit_vector: the box check's SECOND threshold (iv2>=0xb5) via an
- *    explicit `goto reject;`, and unit_vector's own sz>=0x4e3 fail (the
- *    guard's fallthrough, which the `reject:` label sits on). This is a
- *    slightly different direct/shared split than DrawSprite (whose
- *    attribute&1 test shares the same stub) — read off the actual branch
- *    TARGETS, not assumed from the sibling.
+ *  - `sz`/`result` follow DrawSprite's two-variable shape: `sz` ($v1) holds
+ *    the OTZ from either RotTransPers (re-tested by the attribute&4/&0x10
+ *    guards), `result` ($v0) is the "-1 = reject / else the accepted OTZ"
+ *    value the tail sums with `gap` — assigned only at each exit edge, never
+ *    once up front, so cc1 rematerialises `li v0,-1` per reject.
+ *  - There is exactly ONE shared `reject:` block. Every reject site reaches
+ *    it with `goto reject;` — including attribute&1, exactly as the matched
+ *    sibling DrawSprite spells it. The asm LOOKS like four independent
+ *    "direct to tail" rejects (`bcond tail` + own `li v0,-1` in the delay
+ *    slot) plus one branch to a shared stub, but that is reorg's doing, not
+ *    the source's: reorg steals reject's own `li v0,-1` into each eligible
+ *    branch's delay slot and retargets the branch THROUGH reject's `j tail`
+ *    to tail itself. The iv2>=0xb5 site (0x8001775c) still points at the real
+ *    `reject:` only because its delay slot was already taken by
+ *    `andi v0,s0,0x10`, so reorg had nothing to steal with. The five
+ *    `li v0,-1` in the target are one real + four stolen copies.
+ *    Do NOT spell any reject as its own `result = -1; goto tail;` body: a
+ *    trailing `result=-1` block adjacent to `tail:` gets a free fallthrough,
+ *    which is an identical instruction stream to reject's `li v0,-1; j tail`,
+ *    so it absorbs reject and swaps reject with the DrawTMDmode==0 arm
+ *    (44 bytes).
+ *  - `if (SkipFrame == 1) goto ret1;` must be a GOTO to the function's single
+ *    trailing `return 1;`, not an inline `return 1;`. An inline early return
+ *    leaves a join CODE_LABEL (RTL `code_label 25`) between the `mad`
+ *    parameter copy and the first `GsGetLs` call. cse's basic block ends at
+ *    every CODE_LABEL, so the a0 == mad equivalence dies there and cc1 emits
+ *    a redundant `move a0,s2`, which reorg then hoists into the `bltz s3`
+ *    delay slot the target leaves as a bare `nop`. Spelled as a goto, the
+ *    body is a lone jump, so jump.c folds the guard and deletes the label
+ *    (exactly as it already folds `if (gap < 0) goto loop;`); cse's block
+ *    then spans the prologue through the call and deletes the copy, leaving
+ *    a0 holding the incoming `mad`. The `nop` is the SYMPTOM — with the copy
+ *    gone the fallthrough block starts with the `jal`, which is ineligible
+ *    for a delay slot. Verified with `tools/rtldump.py --pass rtl,jump,cse`.
  *  - `RotTransPers(&UnitVector, ...)` passes a literal NULL sxy pointer here
- *    (there's no sprite-relative xy address to fill, unlike DrawSprite's
- *    `xy`), so there is no `if (xy != 0)` tail arm — `result = sz;` sits
- *    directly after the DrawTMDmode if/else.
- *  - The tail test is `result + gap`, not `result == -1`: DrawModel/
- *    DrawSprite's callers pass a fixed mode, but DrawModelArchive folds the
- *    caller's `gap` into the same sentinel arithmetic (`-1 + gap < 0` is
- *    true for any `gap >= 0`, so a genuine reject always returns 0; a
- *    accepted OTZ only rejects if it's very negative relative to `gap`,
- *    which never happens for a valid OTZ — the two-variable split still
- *    matters for the internal &4/&0x10/unit_vector re-tests).
+ *    (no sprite-relative xy to fill, unlike DrawSprite's `xy`), so there is
+ *    no `if (xy != 0)` tail arm — `result = sz;` sits directly after the
+ *    DrawTMDmode if/else and is the last block before `tail:`.
+ *  - The tail test is `result + gap`, not `result == -1`: DrawModelArchive
+ *    folds the caller's `gap` into the same sentinel arithmetic.
  *  - The sub-model loop is a plain `for (i = 0; i < mad->n; i++)` over
- *    `mad->object[i]` — cc1's own loop rotation duplicates the `0 < mad->n`
- *    entry test for free (no hand-written outer `if`, the KillHumanoid
- *    lever). `i` is `short`: the per-iteration address is recomputed from
- *    `mad->object` + `i*4` via the fused `sll 16/sra 14` sign-extend+scale
- *    (the short-counter idiom that suppresses loop.c's strength reduction —
- *    same family as SetupMotionRegist's `(i<<16)>>13`, here `>>14` for a
- *    4-byte pointer element).
+ *    `mad->object[i]`; cc1's own loop rotation duplicates the `0 < mad->n`
+ *    entry test for free. `i` is `short`: the per-iteration address is
+ *    recomputed via the fused `sll 16/sra 14` sign-extend+scale (the
+ *    short-counter idiom that suppresses loop.c's strength reduction).
  */
 
 extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
@@ -152,9 +104,6 @@ extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawModelArchive", DrawModelArchive);
-#else
 short DrawModelArchive(ModelArchiveType *mad, long gap)
 {
     MATRIX mat;
@@ -168,73 +117,68 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
     short rxy[2];
 
     if (SkipFrame == 1)
-        return 1;
+        goto ret1;
     if (gap < 0)
         goto loop;
     GsGetLs(&mad->locate, &mat);
     GsSetLsMatrix(&mat);
     attr = mad->attribute;
-    if ((attr & 1) == 0)
+    if ((attr & 1) != 0)
+        goto reject;
+    if ((attr & 2) == 0)
     {
-        if ((attr & 2) == 0)
+        sz = RotTransPers(&mad->clip, (s32 *)rxy, 0, 0) >> 2;
+        if ((attr & 4) != 0 && sz == 0)
         {
-            sz = RotTransPers(&mad->clip, (s32 *)rxy, 0, 0) >> 2;
-            if ((attr & 4) != 0 && sz == 0)
+            result = -1;
+            goto tail;
+        }
+        if ((attr & 8) != 0)
+        {
+            iv = rxy[0];
+            if (iv < 0)
             {
-                result = -1;
-                goto tail;
+                iv = -iv;
             }
-            if ((attr & 8) != 0)
+            if (iv < 0xf1)
             {
-                iv = rxy[0];
+                iv = rxy[1];
                 if (iv < 0)
                 {
                     iv = -iv;
                 }
-                if (iv < 0xf1)
+                if (iv < 0xb5)
                 {
-                    iv = rxy[1];
-                    if (iv < 0)
-                    {
-                        iv = -iv;
-                    }
-                    if (iv < 0xb5)
-                    {
-                        goto reject_check;
-                    }
-                    goto reject;
+                    goto reject_check;
                 }
-                result = -1;
-                goto tail;
+                goto reject;
             }
-        reject_check:
-            if ((attr & 0x10) != 0 && 0x4e2 < sz)
-            {
-                result = -1;
-                goto tail;
-            }
-            goto unit_vector;
+            result = -1;
+            goto tail;
         }
-        else
+    reject_check:
+        if ((attr & 0x10) != 0 && 0x4e2 < sz)
         {
-        unit_vector:
-            sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
-            if (sz >= 0x4e3)
-            {
-            reject:
-                result = -1;
-                goto tail;
-            }
-            if (sz >= 300)
-                DrawTMDmode = 0x20;
-            else
-                DrawTMDmode = 0;
-            result = sz;
+            result = -1;
+            goto tail;
         }
+        goto unit_vector;
     }
     else
     {
-        result = -1;
+    unit_vector:
+        sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
+        if (sz >= 0x4e3)
+        {
+        reject:
+            result = -1;
+            goto tail;
+        }
+        if (sz >= 300)
+            DrawTMDmode = 0x20;
+        else
+            DrawTMDmode = 0;
+        result = sz;
     }
 tail:
     if (result + gap < 0)
@@ -252,6 +196,6 @@ loop:
             DrawTMD(&objp->object, OTablePt, gap);
         }
     }
+ret1:
     return 1;
 }
-#endif

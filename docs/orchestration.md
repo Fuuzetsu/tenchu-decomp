@@ -566,6 +566,14 @@ function already byte-matches on current `master`.
   brief that summarized it". **Check `length ours N vs target N` before calling
   anything surplus, and use `--context`** — which exists for this and which I did not
   run.
+- **`asmdiff` NORMALISES branch targets, so a brief built from it alone is
+  STRUCTURALLY INCOMPLETE — cross-check `matchdiff --max 400`.** It strips the trailing
+  address to align, which makes a harmless drift and a genuine RETARGET
+  indistinguishable, and hides both by default. On DrawModelArchive the hidden row was
+  the entire diagnosis (`beqz v0,0x8001779c` vs `beqz v0,0x800177c4` = 44 of 48 bytes,
+  the signature of a relocated block). It has now cost two lanes. asmdiff now COUNTS
+  what it hides and says what it might mean; `--all` shows them. **Only matchdiff's raw
+  byte view doesn't normalise.**
 - **THREE briefs tonight were built from a truncated `asmdiff | head -N` and all three
   mis-stated the residual** (PadProc 4x under, CreateHumanoid called an interleave
   "surplus instructions", DrawBleed missed an entirely different operation at

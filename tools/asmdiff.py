@@ -76,6 +76,8 @@ def aligned_opcodes(target, candidate, show_all=False, structural=False):
     """
     import difflib
 
+    suppressed_drift = [0]
+
     def stem(insn):
         return re.sub(r"0x[0-9a-f]+$", "", insn)
 
@@ -91,10 +93,19 @@ def aligned_opcodes(target, candidate, show_all=False, structural=False):
         width = max(i2 - i1, j2 - j1)
         raw_lines += width
         raw_blocks += 1
+        # `stem` strips the trailing hex target, so "branch drift" (an address
+        # that moved because code above it shifted) and a genuine RETARGET (the
+        # branch now goes somewhere ELSE) are indistinguishable here -- and the
+        # default silently drops both. That cost two lanes the diagnosis on
+        # DrawModelArchive: `beqz v0,0x8001779c` vs `beqz v0,0x800177c4` was THE
+        # informative row -- same instruction, different destination, the
+        # signature of a RELOCATED BLOCK -- and it was suppressed. Count what we
+        # hide and say what it might mean.
         drift = (tag == "replace" and (i2 - i1) == (j2 - j1)
                  and all(stem(target[i1 + k]) == stem(candidate[j1 + k])
                          for k in range(i2 - i1)))
         if drift and not show_all:
+            suppressed_drift[0] += max(i2 - i1, j2 - j1)
             continue
         if structural and (i2 - i1) == (j2 - j1):
             continue
@@ -107,6 +118,7 @@ def aligned_opcodes(target, candidate, show_all=False, structural=False):
         "displayed_lines": displayed_lines,
         "displayed_blocks": displayed_blocks,
         "displayed": displayed,
+        "suppressed_drift": suppressed_drift[0],
         "identical": target == candidate,
     }
 
@@ -259,6 +271,22 @@ def main():
               f"blocks; length ours {len(o)} vs target {len(t)}; "
               f"exact instruction sequence: "
               f"{'YES' if stats['identical'] else 'NO'}]")
+    if stats.get("suppressed_drift") and not args.all:
+        print()
+        print(f"asmdiff: *** {stats['suppressed_drift']} branch line(s) HIDDEN as "
+              "'target drift' — re-run with --all ***")
+        print("  A hidden line is `same opcode, DIFFERENT target`. That is EITHER a "
+              "harmless address")
+        print("  shift OR a genuine RETARGET — the signature of a RELOCATED BLOCK — "
+              "and this tool")
+        print("  cannot tell them apart, because it strips the trailing address to "
+              "align. On")
+        print("  DrawModelArchive the hidden row WAS the whole diagnosis "
+              "(`beqz v0,0x8001779c` vs")
+        print("  `beqz v0,0x800177c4` = 44 of 48 bytes). Cross-check with "
+              f"`tools/matchdiff.py {args.name} --max 400`,")
+        print("  whose raw byte view does not normalise.")
+
     if not stats["identical"]:
         # The per-hunk `edit-weight` is an ALIGNMENT metric (differing slots x 4),
         # NOT the byte count -- the two disagree in both directions, since a moved

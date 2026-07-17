@@ -6740,6 +6740,48 @@ immediately proved the fence was not doing what the park claimed.
 `tools/rtldump.py <Name> --src <variant>` dumps a scratch variant without touching
 the tracked file; use it to falsify, not just to describe.
 
+### N direct rejects each with a sentinel in a delay slot is the POST-REORG view of N `goto reject;` sites
+
+**This is a cause/effect inversion that cost DrawModelArchive a whole park, and the
+park explicitly warned future rounds INTO it** ("read off the actual branch TARGETS,
+not assumed from the sibling" — exactly backwards: **after reorg, a branch target is
+NOT the source-level goto target**).
+
+`reorg` steals the shared `reject:` block's first insn (`li v0,-1`) into each caller's
+delay slot and **retargets that branch THROUGH reject's own `j tail`**. So five
+`li v0,-1` in the asm = **one real block + four stolen copies**, and asm that reads as
+N independent direct rejects is really N `goto reject;` sites. **The tell: a site
+still pointing at the REAL block is the one whose delay slot was ALREADY FULL** (in
+DrawModelArchive, the iv2 site's slot held `andi v0,s0,0x10`, so reorg had nothing to
+steal with).
+
+**So never spell an error exit as its own `result = SENTINEL; goto tail;` body when a
+shared `reject:` exists.** A trailing sentinel block physically adjacent to `tail:`
+takes a free fallthrough (`li v0,K`, no jump) — an identical instruction stream to the
+shared block's `li v0,K; j tail` — so **cross-jump absorbs the shared block** and its
+predecessors retarget to the end of the function, swapping it with whichever arm should
+have owned the fallthrough. Route every site through `goto reject;`. (The matched
+sibling DrawSprite had it in plain sight: `if ((attr & 1) != 0) goto reject;` — and the
+park's list of "tried and disproved" levers never tested it. **Read the sibling's C.**)
+
+### An inline early `return` mid-function leaves a join CODE_LABEL that ends cse's block
+
+**If the target reuses an incoming argument register directly** — a `jal` with no
+`move aN,sM`, its delay slot a bare `nop` — **but your draft emits a redundant
+`move aN,sM`, look for an `if (cond) return K;` between the parameter copy and the
+call.** cse's basic block ends at every `CODE_LABEL`, so the join label kills the
+`aN == param` equivalence and cc1 re-materialises the copy.
+
+**Spell it `if (cond) goto retK;`** against the function's single trailing
+`return K;`: a **lone-jump body is foldable**, so jump.c deletes the label — the same
+fold it already applies to `if (x) goto label;` guards — cse's block then spans the
+prologue through the call, and the copy dies.
+
+Verify with `rtldump --pass rtl,jump`: **if `code_label N` survives `.jump` immediately
+before a `(set (reg aN) (reg/v pseudo))`, that label is the blocker.** And note the
+filled delay slot here is the SYMPTOM, not the cause — with the copy gone the block
+leads with the `jal`, which is ineligible, so the target's `nop` follows for free.
+
 ### An empty branch delay slot is a SYMPTOM — read the block LEADER, not the branch
 
 **reorg can only steal the merge block's FIRST insn, and loads are ineligible
