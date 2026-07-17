@@ -2810,6 +2810,46 @@ keeps the value, and BOTH outcomes are attested:
 So: check where the TARGET keeps each half before deciding. A half that must be
 local-allocated is not a broken split — it is the split the original had.
 
+### A `*(u16 *)&p->field` width-forcing cast silently pins every later fixed-address global store
+
+**This was HumanActionControl's entire 11-byte residual, and one typedef closed
+it.** gcc 2.8.1's `sched.c:860 anti_dependence()` dismisses a load->store
+dependence only when the LOAD is `MEM_IN_STRUCT_P` (`/s`) with a varying address
+AND the STORE is a non-struct fixed address. A width-forcing cast
+`*(u16 *)&p->field` is an **INDIRECT_REF, which CLEARS `/s`**;
+`((View *)p)->field` stays a **COMPONENT_REF and KEEPS it**. So the cast turns a
+freely-schedulable load into a **barrier for every `%gp_rel` store after it**.
+
+**The tell is already in the dump**: plain member reads carry `/s` and generate NO
+anti-deps, while each `*(u16 *)&` cast load appears as `REG_DEP_ANTI <uid>` in the
+LOG_LINKS of every later store. **Read a displaced store's LOG_LINKS before calling
+it a scheduler tie.**
+
+Fix: read the field through a TU-local unsigned view struct
+(`typedef struct { u16 mid; } MotionManagerU;`) — you get `lhu` **and** `/s`.
+
+This is the exact **INVERSE of the `member-scalar-alias` lever** (DrawSplash),
+which uses the cast deliberately to CLEAR `/s`. Same knob, opposite directions;
+know which one you want. (`autorules`' `member-scalar-alias` now sweeps BOTH.)
+
+### An equal-priority `potential_hazard` swap in `.sched2` is a SYMPTOM — find what made the priorities EQUAL
+
+`priority(insn) = max over LOG_LINKS of [priority(producer) + insn_cost - 1]`, and
+`schedule_select` runs its "greater potential hazard" swap **only within a group of
+EQUAL priority**. So demoting one contender by a single point removes it from the
+group and the swap never fires at all.
+
+The asymmetry to exploit: **a store fed by a LOAD holds priority N+1** via the
+load-use cost of 2 regardless, while **a store fed by an ALU op (cost 1) sits one
+lower** — and is the one a dismissed anti-dep can demote. HumanActionControl's
+`sw dtV` (fed by `addiu`) dropped 4 -> 3 while `sw dtL/dtR/dtM` (each fed by a `lw`)
+stayed at 4 — exactly the asymmetry the target needed.
+
+**Corollary — this REOPENS a class we had written off.** The note below about
+"sched's equal-priority tiebreak prefers the memory-unit insn" (the FileOption case
+0xd class) is NOT an un-matchable class: it is a prompt to ask **why the priorities
+tied**. Any park resting on "it's a sched tie" deserves a re-read of the LOG_LINKS.
+
 ### A same-length register residual inside ONE basic block is a local_alloc quantity-ORDER tie — seed the loser with a copy
 
 **First, tell a LOCAL tie from a GLOBAL one** with `tools/regalloc.py <Name>`: if
@@ -5192,6 +5232,9 @@ effectful expressions would change semantics.
   (compile-time constant) and matches.
 
 - **A same-width store-to-load can be a byte-neutral scheduling dependency.**
+  (But see "An equal-priority `potential_hazard` swap in `.sched2` is a SYMPTOM":
+  an equal-priority tie is a question, not a verdict — ask what made the two
+  priorities equal, and demote one by a single point to dissolve the group.)
   Sched's equal-priority tiebreak made FileOption's independent mask precede
   its byte store, while the target stored first. Writing
   `STAGE_LAYOUT_NUMBER[0] = k; ... load_layout(STAGE_LAYOUT_NUMBER[0]);`

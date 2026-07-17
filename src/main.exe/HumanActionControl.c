@@ -48,10 +48,44 @@
  * item.h already proves SIGNED (`s16`) in other TUs — the same per-TU
  * load-width divergence as lifemax/attrib elsewhere: `human->attribute`
  * (@0x4), `human->attrib` (@0x28), and `human->motion->mid` (MotionManager
- * @0x0). Force each with a `*(u16 *)&field` pointer-reinterpret cast (a
- * value-level `(u16)` cast does NOT change the load width — only re-typing
- * the memory operand itself does).
+ * @0x0). A value-level `(u16)` cast does NOT change the load width — only
+ * re-typing the memory operand itself does. But the TWO spellings that do
+ * that are NOT interchangeable, and picking the wrong one costs 11 bytes:
+ *
+ *   - `*(u16 *)&field` is an INDIRECT_REF: it clears the RTL memory
+ *     operand's MEM_IN_STRUCT_P (`/s`) marker.
+ *   - `((View *)p)->field` stays a COMPONENT_REF: it KEEPS `/s`.
+ *
+ * `/s` is load-bearing here because gcc 2.8.1 `sched.c`'s `anti_dependence()`
+ * dismisses a load->store dependence only when the LOAD is in-struct with a
+ * varying address and the STORE is a non-struct fixed address. All five
+ * d-global stores are non-struct fixed-address (`sw v0,%gp_rel(dtV)`), so a
+ * `/s` load never pins them, but a cast load does. `mid` is read BEFORE the
+ * `dtV` store, so spelling it `*(u16 *)&motion->mid` hands insn `sw dtV` a
+ * REG_DEP_ANTI on the mid load, which (a) forbids the store from issuing
+ * above it and (b) raises the store's sched priority from 3 to 4, tying it
+ * with the `andi` — and sched.c's equal-priority `potential_hazard` tiebreak
+ * then hands the slot to the memory-unit store. The MotionManagerU view kills
+ * that anti-dep. Only `sw dtV` is demoted by this: dtL/dtR/dtM each consume a
+ * *load* result (load-use cost 2 -> priority 4 regardless), while dtV consumes
+ * the `addiu`'s result (cost 1 -> priority 3). See docs/matching-cookbook.md,
+ * "Reading cc1's RTL dumps".
+ *
+ * `attribute`/`attrib` are read but never stored, so their `/s` marker is
+ * measured NEUTRAL (a struct view for `attr` also matches); they keep the
+ * cheaper cast spelling rather than invent a padded Humanoid view. Only
+ * `mid` — the one cast load that precedes a d-global store — is load-bearing.
  */
+
+/* TU-local UNSIGNED view of MotionManager's leading `mid` (item.h keeps the
+ * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - 0x100)`
+ * in ActACTION.c). Reading through this view is what gives MOTION.C's `lhu`
+ * while keeping the access a COMPONENT_REF — see the note above; the
+ * `*(u16 *)&motion->mid` cast spelling costs 11 bytes. */
+typedef struct
+{
+    u16 mid;                     /* 0x0 */
+} MotionManagerU;
 
 extern Humanoid *Me_MOTION_C;
 extern u16 dtPAD;
@@ -70,40 +104,16 @@ extern void SwimCheck(void);
 extern void DamageControl(void);
 extern short MotionAndMove(void);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/HumanActionControl", HumanActionControl);
-#else
 /*
- * STATUS: NON_MATCHING — same length, 11 of 292 bytes differ (down from an
- * earlier 31-byte park; a stale header previously described a v0/v1 register
- * tie that no longer applies).
- *
- * The `locate`/`motion`/`rotate`/`mid`/`attr`/`dtV` STATEMENT ORDER below was
- * found by exhaustively trying all 720 orderings (respecting `mid` needing
- * `motion` first) via a byte-diff scorer, plus separately sliding `dtV`
- * through all 10 possible positions — this specific order is the unique
- * minimum. It reproduces the target's whole register-coloring shape: the base
+ * The `locate`/`motion`/`rotate`/`mid`/`attr`/`dtV` STATEMENT ORDER below is
+ * load-bearing: it reproduces the target's register-coloring shape. The base
  * pointer reload lands in the SAME hard reg as the just-consumed `GetCommand`
  * return value (reused, not a fresh register) and survives through
  * locate/motion/rotate/attr to be overwritten IN PLACE by the `dtV` address
- * computation (`addu $2,$2,64`), exactly like the target's `addiu v0,v0,64`.
- *
- * RESIDUAL (11 bytes): the target orders [dtV-store, mid-load, andi] but this
- * draft orders [mid-load, andi, dtV-store] — a pure instruction-scheduling
- * tie among three MUTUALLY INDEPENDENT ready instructions (a store with no
- * consumer, and a load+andi chain), matching the cookbook's documented open
- * problem "sched's equal-priority tiebreak prefers the memory-unit insn"
- * (FileOption case 0xd class). Tried and failed to move it: every statement
- * position for `dtV` (10 positions), every ordering of the other 5
- * assignments (720 combos, scored via a fast standalone cc1|maspsx|as loop),
- * and a bounded permuter run (300s, --stop-on-zero -j4, ~12k iterations)
- * that plateaued at this exact residual and never found better. `attr &=
- * 0x4000;` as an explicit statement (vs inlining `attr & 0x4000` in the
- * `if`) has zero effect either way — cc1's scheduler treats the AND as
- * freely movable regardless of where the source states it. Untried per the
- * cookbook's own note on this class: lengthening the store's downstream
- * dependence chain, or deriving the andi's operand from a later-completing
- * value, to break the two candidates' simultaneous readiness.
+ * computation, exactly like the target's `addiu v0,v0,64`. Moving the `dtV`
+ * assignment above `mid` also fixes the schedule but lengthens the base's live
+ * range past the `addiu` (sched1 then sinks `rotate` below the store), which
+ * breaks that coalesce and costs 31 bytes.
  */
 void HumanActionControl(Humanoid *human)
 {
@@ -120,7 +130,7 @@ void HumanActionControl(Humanoid *human)
     locate = Me_MOTION_C->locate;
     motion = Me_MOTION_C->motion;
     rotate = Me_MOTION_C->rotate;
-    mid = *(u16 *)&motion->mid;
+    mid = ((MotionManagerU *)motion)->mid;
     attr = *(u16 *)&Me_MOTION_C->attribute;
     dtV = &Me_MOTION_C->vector;
     dtL = locate;
@@ -155,4 +165,3 @@ void HumanActionControl(Humanoid *human)
         MotionAndMove();
     }
 }
-#endif

@@ -555,6 +555,22 @@ function already byte-matches on current `master`.
   them, which suggests retail has no such hack. Fences, volatile hacks and call
   aliases are reconstruction DEBT; when a pass "refuses" to do something, check
   whether our own scaffolding is what forbids it.
+- **TOOLING BACKLOG — `struct-view` autorules rule (HIGH VALUE, fully specified).**
+  `member-scalar-alias` sweeps the cast direction (COMPONENT_REF -> INDIRECT_REF,
+  clearing `/s`, the DrawSplash lever) but NOT its inverse, and the inverse matched
+  HumanActionControl unattended-able: rewrite `*(u16 *)&p->field` to a read through
+  a TU-local view struct (`typedef struct { u16 mid; } MotionManagerU;`), which
+  emits the same `lhu` while KEEPING `/s`. Needs a file-scope typedef insertion, so
+  it is larger than an in-function splice. Every width-forcing cast in a parked
+  draft is a candidate.
+- **TOOLING BACKLOG — `sched-deps <Name>`.** A lane hand-derived, from the dumps
+  alone: UID -> mnemonic/C-line mapping (grepping `.combine`, correlating 13 UIDs
+  against the target `.s`); inverting `.sched2`'s backward `T-1…T-25` pick order to
+  forward; the priority arithmetic; and the five `anti_dependence` clause
+  evaluations. All four are deterministic functions of the dump. The tool should
+  emit, per displaced insn: its LOG_LINKS, its derived priority, and the verdict —
+  e.g. *"REG_DEP_ANTI 50 exists only because load 50 lacks `/s` -> try a struct
+  view."* That is an entire round's reasoning chain, mechanised.
 - **A tool's VERDICT is a claim, and a wrong one costs a whole round.** reghist told
   a lane "Sum ZERO = pure renames … the variable decomposition already matches the
   target. Do not hunt a mega-pseudo here" — authoritative, and wrong: a zero-sum

@@ -183,7 +183,7 @@ def main():
               "claim; run tools/matchdiff.py for the byte gate]")
     for tag, i1, i2, j1, j2 in stats["displayed"]:
         width = max(i2 - i1, j2 - j1)
-        print(f"--- {tag} [T{i2 - i1}/O{j2 - j1} insns, weight {width * 4} bytes]")
+        print(f"--- {tag} [T{i2 - i1}/O{j2 - j1} insns, edit-weight {width * 4}B]")
         for k in range(i1, i2):
             print(f"  T {tgt[k][0]:#x}  {tgt[k][1]}")
         for k in range(j1, j2):
@@ -202,6 +202,15 @@ def main():
               f"blocks; length ours {len(o)} vs target {len(t)}; "
               f"exact instruction sequence: "
               f"{'YES' if stats['identical'] else 'NO'}]")
+    if not stats["identical"]:
+        # The per-hunk `edit-weight` is an ALIGNMENT metric (differing slots x 4),
+        # NOT the byte count -- the two disagree in both directions, since a moved
+        # instruction perturbs bytes at both positions. A brief this session read
+        # "weight 4 bytes" x2 as "8 bytes" and told a lane the residual was 8 when
+        # matchdiff (and the file's own STATUS) said 11.
+        print("  NB edit-weight above is an alignment metric, not a byte count. "
+              "For bytes, use")
+        print(f"     tools/matchdiff.py {args.name}.")
     return 0 if stats["identical"] else 1
 
 
