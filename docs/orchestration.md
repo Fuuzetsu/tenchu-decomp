@@ -553,6 +553,20 @@ function already byte-matches on current `master`.
   conclusion: declaration order was doing two jobs, and one of them (slot placement)
   is DETERMINED arithmetic, not a search. When two constraints fight over one lever,
   find a second lever for the constraint that has one.
+- **TOOLING BACKLOG — `tools/passtrace.py <Name> <rtx-pattern>` (HIGH VALUE, asked
+  for twice).** Two lanes hand-rolled the same per-pass sweep — grep an insn across
+  `*.i.*` dumps in pass order to find which pass FIRST rewrites a register — and both
+  called it their highest-value step. GetAreaMapVector's answer was "`.cse`/`.loop`
+  keep reg 91, `.cse2` rewrites it to reg 100", which named the cause outright. The
+  sweep is mechanical: print the operand per pass, in pass order.
+- **TOOLING BACKLOG — a per-block load classifier.** Nothing surfaces "which load is
+  free to move": printing each load's LOG_LINKS classified as FIXED (`symbol_ref`,
+  floats anywhere) vs VARYING (`(plus (reg N) K)`, pinned below every preceding
+  store) would have named FUN_8004c59c's 23-byte lever immediately.
+- **TOOLING BACKLOG — autorules `join-store` and `guard-expr-inline`.** Both
+  mechanical, both byte-safe, both matched a function by hand tonight: hoist a store
+  duplicated in both if/else arms into a single post-if statement (and its inverse);
+  replace a pre-loaded compare local with the direct expression.
 - **RE-PRICE THE RESIDUAL EVERY ROUND. Rounds 5-10 on AddEnemy all spent
   themselves on cluster A while 20 of 35 bytes were ordering questions NO round had
   attacked.** A byte-account is a snapshot, not a standing truth: the clusters move

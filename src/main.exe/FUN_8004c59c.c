@@ -11,36 +11,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 29 of 412 bytes differ; RIGHT LENGTH (103
- * instructions both sides, confirmed by asmdiff: no inserts/deletes, only
- * register-name/operand-order replacements in 3 small clusters). Both
- * clusters are the same permuter-immune family this cookbook already
- * documents: which of two independent, data-flow-equivalent loads the
- * scheduler issues first when nothing else is ready to fill the delay
- * slot (verified: swapping declaration order of the two operands in
- * source has NO effect on the compiled order — tried both ways).
- *  - Reset body: the `tmp.max` load (`this+0x20`) and its store schedule
- *    with an unfilled `nop`, while `GameClock`'s load/store interleave
- *    tightly with `tmp.sndIdx`'s — a scheduler tie over which independent
- *    load fills which delay slot, not a source-order question (confirmed:
- *    the field-assignment order in the C already matches the target's
- *    dataflow; only the *scheduled* instruction order differs).
- *  - Reschedule guard: `sched->max`/`sched->min` load in the opposite
- *    order from the target's `max`-then-`min` in BOTH the initial compare
- *    and the post-`rand()` reload, regardless of which local (`hi`/`lo`)
- *    is declared/assigned first.
- *  - Final store: the shared-tail `sched->next = GameClock + lo;` (written
- *    once per if/else arm so cc1 keeps two separate `GameClock` reloads,
- *    matching the target) addresses through `this+0x18` (`$s0`) instead of
- *    through the already-live `sched` pointer (`$s1`) — a coloring/
- *    rematerialization choice, not a spelling issue (`sched->next = ...`
- *    is exactly how it's written).
- * `tools/permute.py` ran one bounded ~280s run (`--stop-on-zero -j4`): best
- * scores found were 375/380/440 (its own weighted metric, not raw bytes),
- * never 0, and never monotonically improving — consistent with the
- * cookbook's "same-length residual a bounded run doesn't close is a PARK
- * signal". Parked per the sub-C-level early-stop.
- *
  * FUN_8004c59c (0x8004c59c, 0x19C bytes) — periodic-sound-emitter think
  * function (message-style: called with `(this, msg)`, no direct `jal`
  * callers found — reached through a function-pointer table like
@@ -59,88 +29,51 @@
  *    assignment `*sched = tmp;` through a freshly-built local `Schedule
  *    tmp`, which is why cc1 emits 3 WORD lw/sw pairs through the stack
  *    (emit_block_move on a 3-word-aligned struct) instead of narrow
- *    per-field stores (cookbook: "the cast type's alignment drives copy
- *    code"). `tmp`'s own fields are read from DIFFERENT offsets than
- *    where they end up: `tmp.max` is read from `this+0x20` (sched's own
- *    `sndIdx` position, reinterpreted as u16 — reading 1 real byte plus 1
- *    pad byte) and `tmp.sndIdx` is read from `this+0x18` (sched's own
- *    `next`, truncated to its low byte) — the reset intentionally recycles
- *    the old `next`/`sndIdx` bytes into the new `sndIdx`/`max` slots.
- *    `tmp.min` is a plain same-value copy-through (`this+0x1C`), and
- *    `tmp.next` is fresh `GameClock`. The two copy-through reads
- *    (`tmp.min`/`tmp.max`) load `lhu` regardless of `min`'s true `s16`-ness
- *    (cookbook: "a pure narrowing struct-field copy uses lhu/lbu even for
- *    signed fields") — only the explicit `u16 *` cast reproduces that.
+ *    per-field stores. `tmp`'s own fields are read from DIFFERENT offsets
+ *    than where they end up: `tmp.max` is read from `this+0x20` (sched's own
+ *    `sndIdx` position, reinterpreted as u16) and `tmp.sndIdx` from
+ *    `this+0x18` (sched's own `next`, truncated to its low byte) — the reset
+ *    intentionally recycles the old `next`/`sndIdx` bytes into the new
+ *    `sndIdx`/`max` slots. The copy-through reads use `lhu` regardless of
+ *    `min`'s true s16-ness (cookbook: "a pure narrowing struct-field copy
+ *    uses lhu/lbu even for signed fields") — only the `u16 *` cast does that.
  *  - The three early-return guards (msg<4, played!=0, GameClock<sched.next)
- *    are flat guard clauses (IsVisible's shape), not one nested `&&`-chain
- *    — each is its own conditional `return`.
+ *    are flat guard clauses (IsVisible's shape), not one nested `&&`-chain.
  *  - The position is copied through TWO separate VECTOR locals (a memset
- *    scratch, then a whole-struct-copied second local whose address is
- *    what's actually passed to SoundEx) — same "two same-type address-
- *    taken stack objects, by REFERENCE order" shape as leLayoutEnemy.
- *  - `sched->min`/`sched->max` in the reschedule arithmetic are read via
- *    the persistent `Schedule *sched` pointer (computed once, before the
- *    reset-vs-else branch, and used by the msg>=4 body) — the reset branch
- *    instead addresses `this` directly with raw offset casts, since it
- *    never uses `sched` as a variable.
+ *    scratch, then a whole-struct-copied second local whose address is what
+ *    is actually passed to SoundEx) — the leLayoutEnemy shape.
+ *  - `sched->min`/`sched->max` in the reschedule arithmetic are read via the
+ *    persistent `Schedule *sched` pointer (computed once, before the
+ *    reset-vs-else branch); the reset branch instead addresses `this`
+ *    directly with raw offset casts, since it never uses `sched`.
  *  - Needs maspsx's --expand-div (rand() % (max-min) divides by a runtime
  *    value); no explicit trap() calls belong in the C.
  *
- * Session addendum (re-verified the "permuter-immune" verdict against the
- * cookbook's named classes first, then escalated to `tools/rtldump.py
- * --draft --pass all` for the two clusters with the most bytes, per the
- * escalation protocol, before re-confirming this park):
- *  - Reschedule guard order (cluster 2, `sched->max`/`sched->min`):
- *    RE-TESTED the declared-order swap (`hi = sched->max; lo = sched->min;`
- *    instead of `lo = ...; hi = ...;`) in isolation — byte-for-byte
- *    IDENTICAL output, confirming the header's claim precisely. Also
- *    noticed the header's "both the initial compare and the post-rand()
- *    reload" is now stale: only the FIRST occurrence (0x8004c6a4) still
- *    differs from target; the second (0x8004c6c4, inside `rand() %
- *    (sched->max - sched->min)`) already matches (max read before min,
- *    matching the subexpression's own textual order) — a prior session's
- *    partial fix that the header text wasn't updated for.
- *  - Final store address (cluster 3, `sched->next = GameClock + lo;`,
- *    0x8004c720): DUMP-CONFIRMED root cause, not just "coloring". `.greg`'s
- *    register-disposition list shows pseudo 82 (`sched`) correctly
- *    allocated to `$s1` (`82 in 17`) — allocation is NOT the problem. The
- *    RAW `.rtl` dump (pre-optimization) shows both `sched->next` stores as
- *    `(set (mem (reg 82)) ...)` — a bare zero-offset dereference, exactly
- *    as written. By the `.cse`/`.cse2`/`.loop`/`.lreg` dumps (all AFTER
- *    cse1), both stores have ALREADY been rewritten to `(set (mem (plus
- *    (reg 80) 24)) ...)` — `reg 80` is `this` (`arg0`), and `sched`'s own
- *    defining insn is literally `reg82 = reg80 + 24` (`sched = (Schedule
- *    *)(arg0 + 0x18)`). cse1 canonicalizes the OFFSET-ZERO dereference
- *    `MEM(reg82)` back to its defining expression `MEM(reg80+24)` — but
- *    does NOT do this for the NONZERO-offset dereferences of the same
- *    pointer (`sched->min`/`max`/`sndIdx` at +4/+6/+8 all correctly keep
- *    `reg82` unmodified, confirmed in the same dumps). This is the
- *    "offset-0 alias vs enclosing-struct-member" cookbook lever's sibling
- *    mechanism for a LOCAL pointer instead of a global `%hi` symbol: a
- *    bare-register MEM address (offset 0) is available for cse's
- *    value-substitution in a way a `(plus reg N)` MEM address is not — the
- *    substitution costs the SAME instruction count either way (a MIPS `sw`
- *    embeds a 16-bit offset for free), so nothing downstream can tell cse
- *    to prefer the register. Tried and REJECTED: `sched = sched;`
- *    (self-assignment; cc1 elides it as dead, no RTL effect, confirmed via
- *    rebuild). NOT yet tried: restructuring `sched`'s own definition so its
- *    defining insn is NOT a simple `reg+const` cse can fold back to (e.g. a
- *    genuine function PARAMETER `Schedule *sched` instead of a locally
- *    derived pointer) — would require re-deriving the ORIGINAL function's
- *    true signature/call sites first (no direct `jal` callers found per
- *    the header), so not attempted this session.
- *  - Reset body (cluster 1, the bulk of the residual): `.sched`'s "basic
- *    block number 3" dump for the `emit_block_move`-generated struct copy
- *    shows an 11-insn dependency DAG (insns 33-61) with TWO explicit
- *    scheduler STALLS reported (`launching 48 before 50 with 1 stalls`,
- *    `launching 33 before 35 with 1 stalls`) — genuine list-scheduling
- *    complexity, not a simple 2-candidate tie. Consistent with the header's
- *    existing verdict; not pursued further (out of proportion to the ~20
- *    of 29 residual bytes it accounts for, given the confirmed-unfixable
- *    precedent from cluster 2's identical-order-swap-no-effect test).
- *  - `tools/autorules.py` re-run: no improving edit found (5 candidates,
- *    all worse or exactly tied) — confirms no false wins remain.
- * Left at the documented 29-byte baseline; no source changes this session.
+ * Three ordering facts drove the last 29 bytes; each is a source-structure
+ * lever, NOT a scheduler tie (an earlier park called all three un-matchable):
+ *  1. RESET FIELD ORDER — `tmp.sndIdx` must be assigned BEFORE `tmp.next`.
+ *     In `.sched`'s LOG_LINKS every VARYING-base load (`mem(reg80+N)`) takes
+ *     a true dep on EVERY preceding store to `tmp`, while the FIXED-address
+ *     `GameClock` load (`mem(symbol_ref)`) has LOG_LINKS `(nil)` — no deps at
+ *     all — so it alone floats. With `next` written before `sndIdx`, the
+ *     sndIdx load is pinned below next's store and cannot fill GameClock's
+ *     load-use slot, so `max`'s load fills it instead and the max pair sinks.
+ *     Writing sndIdx first frees it to fill the slot, reproducing the target
+ *     exactly (both nops and the v0/v0/v0/v1 assignment).
+ *  2. GUARD OPERAND ORDER — the `max`-before-`min` load order comes from
+ *     writing the guard as the EXPRESSION `sched->max - sched->min > 0`, not
+ *     from two pre-loaded locals. With `s16 hi = sched->max;` combine fuses
+ *     the load into a `sign_extend` and RELOCATES it to its use, so neither
+ *     declaration order nor an s32 flip moves it (both verified inert).
+ *  3. FINAL STORE ADDRESSING — `sw v0,0(s1)` (not `sw v0,24(s0)`) requires
+ *     the store to sit in a JOIN block, i.e. one `sched->next = lo;` AFTER
+ *     the if/else rather than one store per arm. cse1's find_best_addr
+ *     rewrites the offset-0 `MEM(reg82)` to `MEM(reg80+24)` using sched's
+ *     defining insn `reg82 = reg80 + 24`, but only where that equivalence is
+ *     in its table; cse1 rebuilds the table at a multi-predecessor label, so
+ *     a store in the join block keeps `reg82`. The two GameClock loads still
+ *     survive because jump2's cross-jump stops at the if-arm's extra
+ *     `addu v1,v1,a0`, merging only `addu v0,v0,v1; sw`.
  */
 
 typedef struct
@@ -156,17 +89,12 @@ extern s16 SoundEx(VECTOR *loc, s32 id);
 extern s32 rand(void);
 extern void *memset(void *dst, s32 c, u32 n);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8004c59c", FUN_8004c59c);
-#else
-
 void FUN_8004c59c(u8 *arg0, u32 arg1)
 {
     Schedule *sched;
     Schedule tmp;
     VECTOR pos;
     VECTOR snd;
-    s16 hi;
     s32 lo;
 
     sched = (Schedule *)(arg0 + 0x18);
@@ -178,8 +106,8 @@ void FUN_8004c59c(u8 *arg0, u32 arg1)
 reset:
     tmp.min = *(u16 *)(arg0 + 0x1C);
     tmp.max = *(u16 *)(arg0 + 0x20);
-    tmp.next = GameClock;
     tmp.sndIdx = *(u8 *)(arg0 + 0x18);
+    tmp.next = GameClock;
     *sched = tmp;
     *(arg0 + 0x15) = 0;
     return;
@@ -195,13 +123,10 @@ normal:
     pos = snd;
     SoundEx(&pos, sched->sndIdx + 0x44);
 
-    lo = sched->min;
-    hi = sched->max;
-    if (hi - lo > 0) {
-        lo = rand() % (sched->max - sched->min) + sched->min;
-        sched->next = GameClock + lo;
+    if (sched->max - sched->min > 0) {
+        lo = GameClock + (rand() % (sched->max - sched->min) + sched->min);
     } else {
-        sched->next = GameClock + lo;
+        lo = GameClock + sched->min;
     }
+    sched->next = lo;
 }
-#endif

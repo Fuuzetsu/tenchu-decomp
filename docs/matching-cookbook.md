@@ -6369,53 +6369,103 @@ swap a regalloc tie:
 **Check the base's DECLARED TYPE.** (AddEnemy's `addu v0,s0,v0` vs our
 `addu v0,v0,s0` is exactly this shape.)
 
-### A load can NEVER hoist past a struct store — if retail's load looks hoisted, the STORE sank
+### A load's freedom is decided by its ADDRESS KIND — not by `/s`
 
-**This inverts an entire class of reasoning, and it matched FUN_8003944c.**
-`sched_analyze_2` gives a load a true dep on **every** pending write that
-`true_dependence` will not dismiss — and the fixed-scalar/varying-struct dismissal
-**does not fire** for a plain sp-relative `(mem:SI (plus (reg sp) K))` (a
-rematerialised stack param, no `/s`, fixed address) against `mem/s` varying-address
-stores. That is the **textbook dismissal shape and it still does not take**. Verify
-in `.sched2`; do NOT infer it from the `/s` flags.
+**(This section's first version said "a load can NEVER hoist past a struct store"
+and blamed the `/s` flag. That over-generalised from ONE dump and a lane refuted it
+within hours. Both observations were right; the discriminator was wrong. This
+version unifies them.)**
 
-So no fence, priority, or spelling lever can move that load up — ever. **Stores, by
-contrast, reorder freely across each other at distinct constant offsets.**
+Read a load's LOG_LINKS in `.sched` and classify its ADDRESS:
 
-**Therefore: when a same-length residual shows a load too late and the stores
-shifted by one, do not reach for a fence or a priority lever. Write the store at
-the load's position in source order and let sched2 sink it.** (FUN_8003944c:
-dropping a `rot` local for a direct `pp->rotate = param_6;` put the load where
-retail has it; sched2 then sank the store to the tail and reorg took it for the
-return delay slot.)
+* **VARYING base** — `(mem (plus (reg N) K))` — takes a true dep on **every**
+  preceding store to an address-taken local, and can never hoist past one.
+  **Crucially this includes sp-relative loads**: `(mem:SI (plus (reg sp) 20))` is a
+  varying base in RTL terms even though the address is "obviously" fixed to a human.
+  That is why FUN_8003944c's rematerialised stack param was pinned despite looking
+  like the textbook dismissal shape — it was never the shape the dismissal wants.
+* **FIXED address** — `(mem (symbol_ref "GameClock"))`, i.e. a global — gets
+  LOG_LINKS **`(nil)`** and **floats anywhere in the block**. The dismissal DOES
+  fire here.
+
+**The lever this creates (FUN_8004c59c: 23 of 29 bytes).** In a run of `local.f = …`
+field writes, the ONE global read is the only insn free to move — so it gets pulled
+in to fill a load-use slot, **stealing the filler from whichever field load would
+otherwise have taken it**. Every later field load is pinned below the global's
+store. So **the lever is which field is written BEFORE the global read**: order the
+field writes so the intended filler is assigned FIRST.
+
+**And when the load genuinely is pinned** (varying base), the corollary from
+FUN_8003944c still holds: if retail's load looks hoisted, **the STORE sank
+instead** — stores reorder freely across each other at distinct constant offsets, so
+write the store at the load's position in source order and let sched2 sink it.
 
 **Corollary — a `do{}while(0)` fence's notes make the NEXT insn a TOTAL barrier**:
-it gains deps on everything before it and everything after depends on it. So a
-fence pins whichever store happens to follow it, which is rarely the one you want.
-FUN_8003944c's fence gave `sh 26` deps on all 13 preceding insns with 6 depending
-on it — the fence WAS the residual, built on a model that was never true.
+it gains deps on everything before and everything after depends on it. A fence pins
+whichever store follows it, rarely the one you want. FUN_8003944c's fence WAS its
+residual.
 
-### Check that your edit did ANYTHING before modelling what it did: `tools/nullcheck.py <Name>`
+### A struct store kills cse's store-to-load forwarding for EVERY offset off that base
 
-**`s32 xPos; xPos = 0x66; ->x = xPos;` at four sites produces a BYTE-IDENTICAL
-object.** cse1 folds the constant into the store and the seed dies before loop.c
-ever sees it. A whole round's model was built on that edit doing something, and a
-lane had to hand-roll `sha256sum` + revert + rebuild to discover it did not.
+**`memrefs_conflict_p`'s offset math predicts dismissal that does not happen —
+bisect before believing it.** GetAreaMapVector: `attrib` (`sh`, +8), `area` (+0x10)
+and `index` (+0x14) each block forwarding of a load at a *disjoint* offset
+**independently**. Move the load above all three and cse finally emits
+`(set (reg 91) (reg 100))`.
 
-`tools/nullcheck.py <Name>` answers it in one command (working tree vs HEAD, or
-`--against <ref>`): exit 1 = your edit was a **no-op**, exit 0 = codegen changed. It
-reads naturally as a guard — `nullcheck.py X && matchdiff.py X`.
+**So if retail COPIES where you RELOAD and a struct store intervenes, forwarding is
+NOT the mechanism.** Use a **chained assignment** — `a = p->f = call();` — which
+yields the assigned value with **no load at all**. (That also recovered retail's
+`subu v0,v1,v0` operand order via `p->height = a - pos->vy`.)
 
-Corollaries worth knowing before you spend a round:
-* **A bare per-site local is usually a no-op** — the seed must be READ by the
-  following expression or it is dead (see the `copy-seed` rule). What made
-  mission_score_screen's group work was its **scope pads**, not the extra variable.
-* **Fast is NOT skipped.** cc1-281 compiles a TU in ~0.1 s, and Shake keys on
-  CONTENT, so a codegen-neutral edit legitimately yields an identical `.o` and skips
-  the relink. Four lanes have now mis-diagnosed a quick `./Build` as stale. **The
-  reliable tell is the object, not the wall clock** — that is what this tool checks.
+This corrects a brief that pointed at cse store-to-load forwarding (the FUN_80057b80
+round 6 worked example) for a function where a struct store made it impossible; the
+lane falsified it with a control variant in about a minute.
 
-### Dump a CONTROL variant, not just the current draft
+### `code_label` blocks cse1's copy canonicalisation but NOT cse2's
+
+`make_regs_eqv` promotes a copy's DEST to canonical **only if it outlives the
+current extended block**. `cse2` runs with `after_loop=1` and a **wider** block — so
+a copy that cse1 kept gets folded back onto its **SOURCE**, extending the source's
+live range and exiling it from its hard register.
+
+**When `.cse` and `.cse2` disagree about a register, this is why — and the fix is
+NOT another fence.** GetAreaMapVector measured it: `.cse`/`.loop` keep the `subu` on
+reg 91 (what retail wants) and `.cse2` rewrites it to reg 100; reg 100 then stays
+live past `lui v0,0x8000`, loses `$v0`, and costs an extra `move a2,v0`. A dead
+store in one fence arm does not help — the `code_label` **is** present in `.cse2`
+and does not stop it (measured 552).
+
+**GetAreaMapVector is parked evidence-complete at 20/548.** The one untried
+direction: a source shape that ends cse2's EXTENDED BLOCK before the height calc — a
+real multi-predecessor join, not a fence and not a followable single-use label.
+Barred (all measured): forwarding (impossible, above); dead store in a fence arm
+(552); `return initial_level` to extend the last use (556); dropping the fence (548
+but **45** — the fence is the only reason the copy survives at all).
+
+### `s16 local = p->field;` does NOT pin the load at the assignment
+
+`combine` fuses the load into a `sign_extend` and **relocates it to its USE**, so
+swapping the declarations — or flipping the type to `s32` — is **inert** (verified
+both). To control which of two struct fields loads first, write the comparison as a
+direct EXPRESSION (`p->max - p->min > 0`); the subexpression's own textual order
+then decides. **Tell-tale in `.sched`**: a `/v` pseudo for one operand and a bare
+temp `(set (reg N) (sign_extend (mem/s …)))` for the other.
+
+### cse1's `find_best_addr` folds an offset-0 `MEM(ptr)` only where the equivalence is in its table
+
+`find_best_addr` rewrites `MEM(ptr)` to `MEM(base+K)` using the pointer's defining
+insn `ptr = base + K` — but **only where that equivalence is in cse1's table, and
+cse1 REBUILDS the table at a multi-predecessor label**. So:
+* a store **duplicated in both arms** of an if/else gets folded (`sw v0,24(s0)`),
+* the SAME store written **once in the join block** keeps the pointer
+  (`sw v0,0(s1)`).
+
+Nonzero offsets off the same pointer are never folded. Bisect with
+`--pass rtl,jump,cse`: the fold appears between `.jump` and `.cse`. Note cross-jumping
+still leaves per-arm work duplicated when the arms differ just above the common tail.
+
+### Dump a CONTROL variant, not just the current draft### Dump a CONTROL variant, not just the current draft
 
 FUN_8003944c's park paired an accurate OBSERVATION ("retail loads it immediately
 after scale and keeps it in `$v1` until the return delay slot") with an

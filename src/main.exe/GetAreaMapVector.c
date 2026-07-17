@@ -44,8 +44,9 @@
  * (mvp=$s0, pos=$s2, wide=$s7, x=$s6, y=$s3, z=$s5, raw mode=$s1,
  * cached mode=$s4, truncated mode=$fp), and the loop plus normal return path
  * are byte-exact.  Keep the INCLUDE_ASM guard: the remaining differences are
- * two localized scheduling/value-provenance equivalences in the setup after
- * the prologue and first GetAreaMapLevel call.
+ * two displacements plus one `move`-vs-`lw` in the setup after the prologue
+ * and first GetAreaMapLevel call.  The `move` is reachable from C (see THE
+ * RESIDUAL below) — it is a costed trade-off, not an equivalence.
  *
  * GetAreaMapVector (0x80019ea0) — probes the height at `pos` plus the height
  * of the 4 neighbouring cells listed in the static `direction` table
@@ -94,11 +95,40 @@
  *
  * THE RESIDUAL is limited to: the setup stack-mode load occurs before y/z
  * instead of after them; and the first result is reloaded from `mvp->level`
- * instead of copied from $v0, which exchanges the adjacent FieldArea store and
- * MIN `lui`. One bounded 300-second permuter run (~26k candidates), guided
- * autorules sweeps of 80 and 160, and focused lifetime/CFG probes found no
- * zero. A later identical-arm-condition probe plus the XOR spelling above
- * reduced the guarded checkpoint from 33 to 20 differing image bytes.
+ * (`lw v1,0(s0)`) where retail copies it (`move v1,v0`), which exchanges the
+ * adjacent FieldArea store and MIN `lui`. One bounded 300-second permuter run
+ * (~26k candidates), guided autorules sweeps of 80 and 160, and focused
+ * lifetime/CFG probes found no zero.
+ *
+ * The `move` vs `lw` is NOT a sub-C "value-provenance equivalence" (an earlier
+ * checkpoint's wording) and NOT permuter-immune — it is REACHABLE from C, but
+ * every route to it measured WORSE than this 548/20 checkpoint. Measured, with
+ * RTL dumps (rtldump --pass cse,cse2,loop; reg 100 = call result, reg 91 =
+ * initial_level):
+ *  - cc1 CANNOT forward the store `mvp->level = <call>` to the later load
+ *    `initial_level = mvp->level`: ANY struct store through the same base
+ *    pointer invalidates cse's record of the earlier store EVEN AT A DISJOINT
+ *    CONSTANT OFFSET. Bisected — `attrib` (sh, +8), `area` (+0x10) and `index`
+ *    (+0x14) each independently block it; move the load above all three and
+ *    cse emits `(set (reg 91) (reg 100))`. So retail's `move` never came from
+ *    store-to-load forwarding (the FUN_80057b80 round-6 mechanism does not
+ *    apply here), and `memrefs_conflict_p`'s offset math does NOT predict this.
+ *  - The copy IS obtainable with a chained assignment, which yields the value
+ *    without a reload: `initial_level = mvp->level = GetAreaMapLevel(...)`.
+ *    Paired with `mvp->height = initial_level - pos->vy` (which also recovers
+ *    retail's `subu v0,v1,v0` operand order) that gives retail's `move`, but
+ *    lands at 552 (+1 insn) — see below. Without the height change: 564.
+ *  - The +1 is cse2: `.cse`/`.loop` keep the subu on reg 91 (what retail wants),
+ *    `.cse2` rewrites it to reg 100 — `make_regs_eqv` only makes the copy's DEST
+ *    canonical if it outlives the current extended block, and cse2's block
+ *    (after_loop=1) is wider. reg 100 then stays live past `lui v0,0x8000`,
+ *    is exiled from $v0, and costs an extra `move a2,v0`.
+ *  - Refuted levers (all measured, none beat 20): a dead store in one fence arm
+ *    to keep the heads distinct (552 — the `code_label` is present in .cse2 and
+ *    does NOT stop it; cse2 follows the jump); extending initial_level's last
+ *    use to the tail via `return initial_level` (556); dropping the
+ *    `do{}while(0)` (548 but 45 — the fence is the ONLY reason the copy
+ *    survives at all: without it cse2 collapses reg 91 into reg 100 outright).
  */
 
 struct AreaNodeType;
