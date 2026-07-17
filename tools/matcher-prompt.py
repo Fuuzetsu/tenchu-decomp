@@ -387,7 +387,8 @@ def main():
         print(f"#   1. cp src/main.exe/{twin}.c src/main.exe/{name}.c  (substitute "
               f"the function name; item Req/Proc twins also swap Proc<Twin>-><this>)")
         print(f"#   2. tools/reverse.py {name} --ghidra-export .shake/ghidra-export "
-              f"--no-check  (carve); ./Build; tools/maspsxflags.py {name} --write")
+              f"  (carve — let it run its check); ./Build; tools/maspsxflags.py {name} "
+              f"--write")
         print(f"#   3. tools/matchdiff.py {name} — it shows the few differing insns "
               f"(a %lo(symbol) or an li immediate); change the matching source "
               f"constants; a local `j` that only differs in target auto-relocates.")

@@ -65,6 +65,34 @@ def matched_names():
     return names
 
 
+def parked_names():
+    """Functions with a NON_MATCHING draft — real C behind an INCLUDE_ASM guard.
+
+    THESE ARE REFERENCES TOO, and leaving them out was a serious blind spot. A park
+    has real C and, usually, a fully root-caused header explaining its structure —
+    everything a near-clone needs. But `matched_names` rejects anything containing an
+    INCLUDE_ASM line, and a park's guard contains exactly that, so every parked draft
+    was invisible as a reference.
+
+    What that cost, measured: FUN_80059008 vs the parked FUN_80058c70 is similarity
+    **1.00** — instruction-for-instruction identical modulo three constants, with the
+    sibling's structure already solved and documented. `--targets` reported
+    FUN_80059008's nearest reference as RotateVectorS at **0.05** and matcher-prompt's
+    NEAR-CLONE path (>=0.99, "don't spawn an agent, clone it inline") never fired. A
+    full agent round rediscovered the relationship by hand. Two more pairs were hidden
+    the same way (FUN_8005961c/FUN_80059b08 and FUN_80059ff4/FUN_8005a3cc, both 1.00).
+    """
+    names = set()
+    for f in os.listdir(SRC):
+        if not f.endswith(".c"):
+            continue
+        body = open(os.path.join(SRC, f)).read()
+        if re.search(r"^\s*INCLUDE_ASM", body, re.M) and \
+           re.search(r"#\s*ifndef\s+NON_MATCHING", body):
+            names.add(f[:-2])
+    return names
+
+
 def all_mnemonics():
     """{addr: mnemonic} for the whole text segment, one objdump pass."""
     # The EXE has a FILE_TEXT_OFF (0x800) header before the text; adjust so file
@@ -190,8 +218,12 @@ def main():
     matched = matched_names() & set(byname)
     if not matched:
         sys.exit("findsimilar: no matched functions found in src/main.exe")
+    # Parked drafts are references too — they have real C and a root-caused header.
+    # Excluding them hid three 1.00 near-clone pairs; see parked_names().
+    parked = (parked_names() & set(byname)) - matched
+    refs = matched | parked
     mn = all_mnemonics()
-    mgrams = {m: ngrams(mn, *byname[m]) for m in matched}
+    mgrams = {m: ngrams(mn, *byname[m]) for m in refs}
 
     if args.targets:
         rows = []
@@ -225,9 +257,13 @@ def main():
             g = ngrams(mn, a, s)
             best, bestm = 0.0, ""
             for m, gm in mgrams.items():
+                if m == n:
+                    continue
                 j = jaccard(g, gm)
                 if j > best:
                     best, bestm = j, m
+            if bestm in parked:
+                bestm += "  [PARKED — clone its C, read its header]"
             rows.append((best, s, n, bestm))
         if args.by_value:
             # Rank by what a match is WORTH. The byte counter is ALL-OR-NOTHING per
@@ -258,9 +294,36 @@ def main():
         if omitted_hw:
             print(f"  ({omitted_hw} handwritten-asm original(s) omitted — owner "
                   f"decision, config/handwritten-asm.txt; never targets)")
+        # CLONE GROUPS AMONG THE TARGETS THEMSELVES. Two undrafted functions cannot
+        # be each other's "reference" (neither has C), so the ref scan above misses
+        # them entirely -- yet FUN_8005961c/FUN_80059b08 and FUN_80059ff4/FUN_8005a3cc
+        # are each 1.00 mnemonic-identical pairs. That is a 2-for-1: solve one and the
+        # twin is a constants edit. Worth stating outright, because the orchestrator
+        # hand-diffed their disassembly (addresses included), concluded "same shape,
+        # not clones", and briefed two lanes on that.
+        tgrams = {n: ngrams(mn, *byname[n]) for _b, _s, n, _m in rows}
+        names = [r[2] for r in rows]
+        groups, seen_in_group = [], set()
+        for i, a_name in enumerate(names):
+            if a_name in seen_in_group:
+                continue
+            twins = [b_name for b_name in names[i + 1:]
+                     if b_name not in seen_in_group
+                     and jaccard(tgrams[a_name], tgrams[b_name]) >= 0.99]
+            if twins:
+                groups.append([a_name] + twins)
+                seen_in_group.update([a_name] + twins)
+        if groups:
+            print()
+            print("  CLONE GROUPS among these targets (>=0.99 — identical mnemonics, "
+                  "differing constants):")
+            for grp in groups:
+                print(f"    {' == '.join(grp)}")
+            print("    Solve ONE and the rest are a constants edit "
+                  "(tools/matcher-prompt.py prints the inline clone recipe).")
         shown = rows[:args.top]
         print()
-        print(f"{'sim':>5} {'size':>6}  {'function':32} nearest matched")
+        print(f"{'sim':>5} {'size':>6}  {'function':32} nearest reference")
         for best, s, n, bestm in shown:
             print(f"{best:5.2f} {s:6}  {n:32} {bestm}")
         if len(rows) > len(shown):
