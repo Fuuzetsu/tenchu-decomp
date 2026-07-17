@@ -36,6 +36,7 @@ problem, which is arithmetic (see docs/matching-cookbook.md, "When two constrain
 fight over ONE lever"), not a search.
 """
 import argparse, difflib, glob, os, re, shutil, subprocess, sys, tempfile
+import time
 
 from matchlock import MatchToolBusy, matching_tool_lock
 import matchdiff

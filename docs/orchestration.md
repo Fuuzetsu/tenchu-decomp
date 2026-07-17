@@ -579,6 +579,28 @@ function already byte-matches on current `master`.
   "surplus instructions", DrawBleed missed an entirely different operation at
   0x80034440: `lhu v0,4(v1)` vs `lw v0,4(s1)`). The pattern is mine, not the lanes'.
   **Pipe the whole diff and run `--context`, or say the excerpt is an excerpt.**
+- **I "verified" two fixes by grepping my own source for a string instead of RUNNING
+  the code — and both were broken.** (1) My `import time` splice into `permute.py`
+  targeted a standalone `import tempfile` that does not exist (the file uses a comma
+  list), so the rescue deadline raised `NameError` on EVERY SIGTERM path — the exact
+  path the contract mandates — and I "confirmed" it with
+  `print("deadline enforced:", "time.monotonic" in src)`. (2) `_no_target` stripped the
+  trailing address but not the leading hex ENCODING, so `branch-retarget` could never
+  fire — the identical hex-prefix bug I had fixed in `_mnemonic` an hour earlier and
+  failed to carry across. **A test that greps the source proves the edit landed, not
+  that it works. Run the thing.**
+- **NEVER screen with `matchdiff -n`.** Every `-n` screen I ran after a `./Build check`
+  read whatever image was on disk — sometimes the stub, sometimes another function's
+  draft. That produced a FALSE cross-validation ("--clusters and asmdiff agree on
+  DrawBleed") and a phantom finding briefed to two lanes. With a real build the
+  classifier is exactly right (DrawBleed: two `branch-retarget` clusters at 0x80034398
+  and 0x800343b0 — precisely asmdiff's two hidden lines). **The guard catches a linked
+  STUB; it cannot catch a stale draft of a DIFFERENT function.**
+- **A tool's static LEGEND is data to anything that greps.** `--clusters` printed a
+  `branch-retarget` explainer unconditionally; my screening grep matched the LEGEND and
+  I briefed two lanes to "start at the branch-retarget" on a function that has none. The
+  lane's words: "the brief read the boilerplate as a finding." The legend is now printed
+  only when a retarget is actually present.
 - **A tool asserted a claim its OWN output disproved, on the same screen.**
   `schedtrace` printed "Nothing can lift them: MIPS defines no ADJUST_PRIORITY, so an
   insn with LOG_LINKS (nil) is at 1 unconditionally" — while printing

@@ -222,7 +222,15 @@ def _mnemonic(text):
 
 
 def _no_target(text):
-    """Strip a trailing branch/jump target so a RETARGET is detectable."""
+    """Strip BOTH the leading hex encoding and the trailing target address.
+
+    The encoding must go too: it differs for every instruction in the diff by
+    definition, so comparing with it left in made `branch-retarget` unfirable — the
+    identical hex-prefix bug as `_mnemonic`, missed when that one was fixed.
+    """
+    parts = text.split()
+    if parts and len(parts[0]) == 8 and all(c in "0123456789abcdef" for c in parts[0]):
+        text = " ".join(parts[1:])
     return re.sub(r"0x[0-9a-f]+\s*$", "", text).strip()
 
 
@@ -265,6 +273,7 @@ def report_clusters(name, bad_insns, diffs, off, addr, o_dis, m_dis, gap):
           "'separate' clusters.)")
     print()
     print(f"  {'#':>3} {'range':>21} {'insns':>6} {'bytes':>6}  kind")
+    kinds_seen = []
     for i, g in enumerate(groups):
         lo, hi = g[0], g[-1]
         nb = sum(1 for b in byte_addrs if lo <= b < hi + 4)
@@ -286,12 +295,23 @@ def report_clusters(name, bad_insns, diffs, off, addr, o_dis, m_dis, gap):
             else:
                 kinds.add("operands")
         kind = "+".join(sorted(kinds))
+        kinds_seen.append(kind)
         print(f"  {i:>3} {lo:#010x}..{hi + 4:#010x} {len(g):>6} {nb:>6}  {kind}")
-    print()
-    print("  `branch-retarget` = same opcode, DIFFERENT target — the signature of a "
-          "RELOCATED BLOCK.")
-    print("  asmdiff HIDES those by default (it normalises the address); one was 44 "
-          "of 48 bytes.")
+    # Only say it when it is TRUE. This was an unconditional legend, and it made the
+    # word `branch-retarget` appear in output that had none -- an orchestrator grep
+    # matched the LEGEND and briefed two lanes to "start at the branch-retarget" on a
+    # function whose clusters are all operands/opcode. The lane's words: "that
+    # paragraph is matchdiff's static footer legend... the brief read the boilerplate
+    # as a finding." A legend that reads like a result IS a result to anything that
+    # greps.
+    if any("branch-retarget" in k for k in kinds_seen):
+        print()
+        print("  `branch-retarget` above = same opcode, DIFFERENT target — the "
+              "signature of a")
+        print("  RELOCATED BLOCK. asmdiff HIDES those by default (it normalises the "
+              "address);")
+        print("  one was 44 of 48 bytes on DrawModelArchive, and its park never saw "
+              "it.")
     return 1
 
 

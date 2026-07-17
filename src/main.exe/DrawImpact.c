@@ -31,8 +31,9 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawImpact", DrawImp
 /*
  * STATUS: NON_MATCHING — 4 of 772 bytes differ (was 28).  Exact 772-byte /
  * 193-instruction extent, exact physical CFG, and exact instruction sequence;
- * the residual is 2 register fields, mirrored across the green and blue
- * channels: the start-colour load is $v0 where the target uses $a0.
+ * the residual is 4 register fields (2 clusters x 2 insns, 1 byte each),
+ * mirrored across the green and blue channels: the start-colour load is $v0
+ * where the target uses $a0.
  *
  * WHAT FIXED 28 -> 4 (both instances of ONE rule; see the cookbook entry
  * "Give the value the variable's identity"):
@@ -56,14 +57,69 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawImpact", DrawImp
  * but costs +4 bytes; the identity rule above fixes it for free and subsumes
  * it, so `end_raw` stays shared here.
  *
- * The remaining 4 bytes: green/blue want the load in $a0 while their product
- * stays in $v1 ($start2), so unlike red the load must be a SEPARATE pseudo
- * that nonetheless lands on $a0.  It is a local_alloc colour (`;; Register N
- * in 2.` in .lreg), taken before global_alloc runs, and local_alloc walks hard
- * regs numerically and takes $v0 as the lowest free.  Measured and rejected:
- * routing green/blue loads through `start` (20 bytes — extends `start`'s range
- * to $a1); operand swap `inverse * ...` (4, but emits `mult a2,v0`); a shared
- * per-channel load carrier; autorules (54 candidates, nothing).
+ * ROUND 2 re-derived the residual from scratch and CORRECTS the round-1 note
+ * above on three points.  The residual itself is unchanged: 2 clusters,
+ * 4 insns, 4 bytes, all register-field-only —
+ *     T  lbu a0,17(s0) / mult a0,a2      O  lbu v0,17(s0) / mult v0,a2
+ *     T  lbu a0,16(s0) / mult a0,a2      O  lbu v0,16(s0) / mult v0,a2
+ * The green/blue start-colour load is $v0; the target uses $a0.  Their product
+ * correctly stays $v1 (start2), so the load is a separate pseudo — reg131
+ * (green) and reg138 (blue) in the .lreg RTL, each born at the load and dead
+ * at the mult.  (Round 1 named "reg126" as the start_colour load; in the
+ * current source reg126 is an `ashiftrt` operand.  Its `;; 125 conflicts: 2
+ * 29` vs `;; 130 conflicts: 29` grep refers to pseudo numbers that no longer
+ * exist — do not start there.)
+ *
+ * WHY $a0 IS EARNED, AND WHY IT IS OUT OF REACH FROM C HERE.  `start` (p85)
+ * gets $a0 because it is live across the size computation, where $v0 (size's
+ * end product) and $v1 (red's `start >> 12`) are both occupied — hence its
+ * `conflicts: v0 v1` in `regalloc.py --order`.  The green/blue loads occupy a
+ * 2-insn window in which nothing else is live, so they conflict with nothing
+ * and take the lowest free reg, $v0.  Every lever that grants them those
+ * conflicts also perturbs something that already matches:
+ *
+ *   - Routing green+blue through `start` -> 20 bytes.  NOT for round 1's
+ *     stated reason ("extends `start`'s range to $a1").  Measured: p85's refs
+ *     go 12 -> 16, and floor_log2 is a STEP (3 -> 4), so its priority jumps
+ *     18947 -> 27826 and it moves from allocation slot #4 to #0, where it
+ *     takes $a1 and exiles end_raw to $a0.
+ *   - ...but the priority is NOT the lever either: routing GREEN ONLY gives
+ *     p85 refs 14 / priority exactly 20000 / slot #1, identical
+ *     `conflicts: v0 v1` — and it STILL takes $a1 (20 bytes).  p85 takes $a0
+ *     at slot #4 and $a1 at slots #0 and #1 with the same conflict set, so the
+ *     deciding factor is find_reg's register CHOICE, not the order.
+ *     regalloc.py --order self-validates the ORDER only; its "takes the lowest
+ *     free register each time" model does not predict this (the FUN_80036284
+ *     caveat).  Any plan of the form "move pseudo X to slot N so it takes the
+ *     lowest free reg" must be MEASURED, not derived.
+ *   - A shared green+blue load carrier (`s32 col; col = ...g; start2 = col *
+ *     inverse;`) is a literal NO-OP — `nullcheck.py` exits 1, identical
+ *     codegen.  It DOES do what it looks like (col is promoted out of
+ *     local_alloc into a global allocno, p87), but with refs 4 / live 4 its
+ *     priority is 20000 -> slot #1, where nothing conflicts and it takes $v0
+ *     anyway.  Recorded because it looks promising and costs a round.
+ *   - The same carrier extended to all THREE channels -> 24 bytes.  The $v0 /
+ *     $v1 values live across red's load are GLOBAL allocnos (p123 = size's end
+ *     product, p124 = red's `start >> 12`), not local qtys, so they inject
+ *     allocno conflicts, not hard-reg conflicts; col at slot #1 is coloured
+ *     BEFORE them, grabs $v0 and exiles them (ratio -> $t0, end_raw -> $a3,
+ *     red's load -> $v0).
+ *   - Hoisting the carrier's load one statement (above the preceding channel's
+ *     store) -> 764 bytes, LENGTH MISMATCH.  The target's two load-delay nops
+ *     (0x80034024, 0x80034064) are load-bearing: the hoist lets the scheduler
+ *     fill BOTH (2 x 4 = the 8 missing bytes).  So the load must be born
+ *     immediately before its mult and NO range-extension lever exists on the
+ *     load side — which is what closes off the conflict-injection route.
+ *
+ * Also measured and rejected: operand swap `inverse * ...` (4, but emits
+ * `mult a2,v0`); `end_raw` per-site split (776); full-inline `/0x1000` (784);
+ * hoisting the load before `size` (45); a named `end_q` (776, kills the
+ * delay-slot fill).  The `do{}while(0)` below is LOAD-BEARING (fence-unwrap
+ * costs 5).  autorules: 54 candidates, nothing — and this run DID include the
+ * repaired `binop-operand-seed` (20 real scores, no `invalid`).  permuter:
+ * 18715 iterations, plateaued at its base score, no candidate below it.
+ * `siblingdiff --demo` is a dead end (demo body 236 bytes vs retail 772,
+ * 6/193 insns); the PSX.SYM local list above describes the DEMO body.
  */
 #include "effect.h"
 

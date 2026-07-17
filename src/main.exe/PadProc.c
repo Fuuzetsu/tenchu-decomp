@@ -61,64 +61,78 @@
  *    delay-slot store.  A SECOND increment at the function's end remains
  *    skipped by the deep motor-off path, preserving retail's "+1 always, +1
  *    unless off" split.
- *  - The identical-arm fences are NOT about "preserving source identities";
- *    measured, their whole job is REFERENCE COUNTING for global_alloc.  See
- *    the residual analysis below before touching them.
+ *  - The identical-arm fences are NOT about "preserving source identities",
+ *    and NOT (as this file previously claimed) about reference counting for
+ *    global_alloc.  Their real and only job is to give `pad`/`shock` a SECOND
+ *    ASSIGNMENT, which defeats sched1's birthing_insn_p sink.  See the
+ *    residual analysis below before touching them.
  *  - field8 (act1) is 0 in EVERY release-branch outcome (zero or nonzero
  *    D_8001005D) and only becomes 1 in the attack branch's nonzero case —
  *    easy to mis-transcribe as symmetric with field8=1 in both branches.
  *
- * ---- The residual (28 bytes), measured and traced to the RTL ----
+ * ---- The residual (28 bytes), measured and traced to cc1's own source ----
  *
  * 16 of the 28 bytes are two `mflo`/`lui %hi(PadPort)` swaps (one per branch);
  * the other 12 are single register-field bytes from one rotation per branch.
  *
- * REFUTED: the `mflo` displacement is NOT downstream of the D_8001005D load's
- * register, and the two are not one question.  A control build in which the
- * attack branch's `shock` DID land in v0 (matching retail) still emitted
- * `mult; mflo; lui %hi(PadPort)` — the `mflo` did not move.  The gap-filler is
- * the PadPort address `high` insn, not the global read.
+ * THE MECHANISM (was "a still-open sched2 priority question"; it is neither
+ * still-open nor sched2).  It is sched1's birthing_insn_p / adjust_priority,
+ * read straight out of gcc-2.8.1 sched.c and confirmed in the ready lists:
  *
- * WHY `shock` cannot reach v0 while it is a global pseudo (from .greg):
- *   ;; 94 conflicts: 80 81 92 93 94 2 29     <- 94 = shock(attack) -> "94 in 7"
- * EVERY global allocno conflicts with hard reg 2 (v0), because local_alloc
- * runs first and hands v0 to the whole chain of block-local %hi scratches
- * (89,100,102,104,105,107,109,111,112,113 "in 2").  So global_alloc can never
- * colour anything v0.  Retail's `lbu v0,%lo(D_8001005D)(v0)` reuses the dying
- * address scratch as the destination — only local_alloc does that.  `shock`
- * must therefore be a LOCAL pseudo: defined and dead inside one cc1 block.
+ *   birthing_insn_p(pat): returns 0 if reload_completed == 1  -> SCHED1 ONLY.
+ *   Otherwise, for `(set (REG dest) ...)` with dest live in bb_live_regs,
+ *   it returns REG_N_SETS(dest) == 1.
+ *   adjust_priority(prev): n_deaths is ALWAYS 0 (a comment in the file admits
+ *   the REG_DEAD scan "has no effect, because REG_DEAD notes are removed
+ *   before we ever get here"), so it always reaches `case 0:` and raises a
+ *   birthing insn to max_priority — LAUNCH_PRIORITY 0x7f000001 while an insn
+ *   is being scheduled (sched.c sets that on the current insn around the
+ *   schedule_insn call).  Its stated intent: "Prefer scheduling insns which
+ *   make registers live" — and sched is BACKWARD, so "prefer scheduling" means
+ *   PLACE AS LATE AS POSSIBLE, shortening the live range.
  *
- * WHY making it local costs more than it buys (all three measured):
- *  a) `shock` local needs the lbu, the div and the `beqz` in ONE block, i.e.
- *     no divisor fence.  With the fence, the lbu sinks below the div and lands
- *     against the `beqz`; maspsx must insert a load-delay nop -> 372 bytes.
- *  b) Without the divisor fence, `attack` loses the two duplicated
- *     `product / attack` refs.  global_alloc orders allocnos by
- *     floor_log2(refs)*refs/live_length*10000:
- *        base28   p81 attack 8/21 -> 11428 , p92 base_hi 8/21 -> 11428  (TIE,
- *                 broken by allocno number, 81 < 92, so attack takes a1)
- *        unfenced p81 attack 7/19 ->  7368 , p92 base_hi 7/16 ->  8750
- *     so base_hi wins a1, attack is pushed to a2, and BOTH branches' `pad`
- *     collapse onto a1 — retail keeps attack-pad in a2 and release-pad in a1.
- *  c) With both `pad`s in one register the two `sb zero; sb zero` motor-off
- *     tails become identical, jump2 cross-jumps them, and the function loses
- *     3 instructions -> 356 bytes.  Retail's tails survive ONLY because the
- *     registers differ; no source-level donor prevents the merge without
- *     re-extending `shock` into the second block (which re-globalises it).
+ * So: a SINGLE-ASSIGNMENT local SINKS toward its use.  With the fence removed,
+ * the block merges and `tools/schedtrace.py PadProc --pass sched` shows all
+ * four address insns bumped and therefore sunk below the div:
+ *   ;; ready list at T-2: 53 (7f000001) 74 (d), now 53 74      <- 74 = div
+ *   ;; ready list at T-3: 74 (d) 52 (7f000001) 57 (7f000001)
+ *   ;; ready list at T-4: 52 (7f000001) 74 (d) 55 (7f000001)
+ * (52 = lui %hi(PadPort), 53 = addiu pad, 55 = lui %hi(D_8001005D),
+ *  57 = lbu shock.)  The lbu then lands against the `beqz` -> load-delay nop
+ * -> 372.  The fence's ONLY job is to give pad/shock a second assignment so
+ * REG_N_SETS != 1 and the bump never fires.  Nothing to do with refcounts.
  *
- * Attempts to buy `attack` its 8th ref (the floor_log2 cliff at 8 is what
- * creates the tie) without re-splitting the block all failed at the LENGTH
- * gate: re-keying either fence to `attack` adds only one ref (356); wrapping
- * shock+div+test in a divisor fence stops the arms cross-jumping (428);
- * duplicating the mult into the arms reaches the 7/22-vs-7/22 tie but leaves
- * the duplicate in (396); duplicating only the `pow` load reaches 368 but
- * re-rotates the whole frame (102).
+ * PROOF the sink is the whole 16 bytes: declare pad/product/shock at FUNCTION
+ * scope (each branch then assigns the same variable -> REG_N_SETS == 2, no
+ * bump, no branch, no block split).  `lui v0,0x800c` immediately moves into
+ * the mult shadow and matches retail byte-for-byte at 0x8001ae00, as does
+ * `lui v0,0x8001` at 0x8001ae0c.
  *
- * So the 28 bytes are one coupled choice — `shock` in v0 REQUIRES a block
- * merge that costs `attack` the a1 tie-break — and the exact 368-byte extent
- * is only reachable on the losing side of it.  The `mflo` swap is a separate,
- * still-open sched2 priority question (both sides' v0 dependency chains are
- * the same length, so it is not the anti-dep chain).
+ * WHY THAT IS NOT THE ANSWER — the dilemma, measured (sweep over which locals
+ * are function-scope; scratch script kept out of tree):
+ *   (none shared) 372 | pad 356 | product 372 | shock 368/169B
+ *   pad+product 356 | pad+shock 356 | product+shock 368/170B | all three 356
+ * Retail needs `pad` BOTH ways at once:
+ *   - not sinking  => REG_N_SETS(pad) >= 2 => the two branches assign ONE
+ *     variable => ONE pseudo => ONE hard register;
+ *   - but retail's attack-pad is a2 and release-pad is a1 => TWO pseudos.
+ *   With one register the two `sb zero; sb zero` tails become identical,
+ *   jump2 cross-jumps them and the function loses 3 insns -> 356.
+ * A block-scoped pad with two straight-line assignments is not reachable: the
+ * second is redundant and cse folds it before flow computes REG_N_SETS, and
+ * any construct that stops cse folding it (a label) re-splits the block and
+ * re-loses the mult shadow.  Sharing only `shock` keeps the exact 368 length
+ * but rotates 56 insns (169B) because `pad` still sinks.
+ *
+ * So the 28 bytes remain one coupled choice, but the coupling is NOT the
+ * global_alloc a1 tie-break this file used to claim — it is REG_N_SETS: retail
+ * wants pad to have two sets and two registers, and C gives you one or the
+ * other.  The unexplored lever is a source shape where `pad` is not a variable
+ * at all (retail's third PadPort address, motor_off's, lives in v0 and is
+ * built from a `lui` parked in the blez delay slot — three distinct address
+ * pseudos, which is what a no-`pad`-variable source would produce).  PSX.SYM
+ * lists exactly ONE local for this function (`int ct`), which is evidence for
+ * that shape and against the pad/product/shock locals this draft uses.
  */
 
 extern void ComPad(int port, u8 *rxbuf);
