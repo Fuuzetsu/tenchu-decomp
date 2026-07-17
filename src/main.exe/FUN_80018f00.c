@@ -29,59 +29,63 @@
  * No candidate name in reference/psxsym-candidates.tsv; not proposing one
  * without corroboration.
  *
- * STATUS: NON_MATCHING — 11 of 272 bytes differ (both drafts below are the
- * SAME 68-instruction length as the target — no whole-image shift).
+ * MATCH. This function is cbAccess.c's twin and needs cbAccess.c's TWO
+ * levers TOGETHER; an earlier checkpoint parked at 11 bytes because it
+ * treated them as mutually exclusive alternatives.
  *
- * `&o_draw` is used 3 times (GetDrawEnv's arg, the `n_draw = o_draw;`
- * block-move's source, and the final `PutDrawEnv(&o_draw)` restore), exactly
- * cbAccess.c's already-documented open case: cc1 merges the FIRST TWO uses
- * (the ones either side of the single intervening GetDispEnv() call) into
- * ONE value kept live in a callee-saved register, where the target instead
- * recomputes `sp+40` fresh at all three sites in caller-saved regs with no
- * $s-register at all. Declaring `o_draw` FIRST among the three locals (this
- * file's current order) avoids that merge entirely and reaches the target's
- * exact 68-instruction count and register content — a NEW lever beyond
- * cbAccess's failed attempts (autorules, a do{}while(0) wrapper, declaration
- * order was tried there but not this specific "address-taken-first" ordering)
- * — but it also feeds cc1's stack-slot allocator, which assigns slots in
- * LOCAL-DECLARATION order (first declared = lowest address): with `o_draw`
- * declared first it lands at sp+16 and `o_disp` at sp+112, whereas the
- * target has `o_disp` at sp+16 and `o_draw` at sp+40 (`n_draw` is correctly
- * at sp+136 either way). Declaring `o_disp` first instead (matching the
- * target's slot order) reintroduces the register merge (69 vs 68
- * instructions, the cbAccess shape) — every declaration order tried
- * (all 6 permutations, plus nesting `o_disp`/`n_draw` inside the `if` body)
- * gave EITHER the correct length XOR the correct slots, never both.
- * `tools/permute.py` reports its base (this file) as score 0 immediately
- * (no candidate written) — its scorer does not penalize this stack-offset
- * residual, so it is USELESS here; `tools/matchdiff.py` (11 bytes) is the
- * only trustworthy signal. `tools/autorules.py` finds no improving edit.
- * Root cause is the same open "repeated frame address recomputed vs.
- * CSE-merged across one intervening call" class as cbAccess.
+ * Two independent constraints must hold at once:
  *
- * RTL escalation (this session, `tools/rtldump.py --draft` + `.greg`):
- * with `o_disp` declared first (correct slot order), `.greg` shows only 3
- * pseudos left to global-alloc — 107/106/108, the block-move's
- * source/dest/limit cursors — with `107 preferences: 16` ($s0): 107 is a
- * copy of the loop-preheader's re-materialization of `&o_draw`, which
- * local-alloc has ALREADY committed to hard reg 16 because its live range
- * (first use at `GetDrawEnv`'s call arg, next use after the intervening
- * `GetDispEnv` call) crosses two calls — global-alloc just inherits that
- * preference. This is a LOCAL-ALLOC decision made before global-alloc runs,
- * keyed on the pseudo's live range shape, not its stack address value.
- * Also tried and ALSO merges (ruling out block-scope depth as an
- * independent lever): keeping `o_disp` in the outer function scope (for
- * correct slot order) while nesting `o_draw`/`n_draw` alone inside the `if`
- * body — identical `.s` to the flat `o_disp,o_draw,n_draw` order, byte for
- * byte. So the tie is governed by `o_draw`'s DECL being function-first
- * among the three (regardless of nesting depth or the resulting stack
- * offset): declared first, its address pseudo's live range apparently
- * starts/ends such that local-alloc doesn't fix it early, and each of the
- * three uses gets a fresh caller-saved recompute instead. No source
- * respelling found that gets `o_draw` both declared-first (avoids the
- * cross-call fixation) AND slotted second (the target's frame layout) —
- * recognize this as a genuine local-alloc-before-global-alloc tie, not an
- * unexplored declaration-order gap.
+ * 1. STACK SLOTS. cc1 gives each address-taken local a slot in DECLARATION
+ *    order, ascending from the outgoing-arg boundary (sp+16), each rounded
+ *    up to 8. With DRAWENV=92 and DISPENV=20 that makes the six orders pure
+ *    arithmetic, and exactly ONE reaches the target's o_disp=16 / o_draw=40
+ *    (n_draw=136):
+ *        o_disp, o_draw, n_draw ->  16 /  40 / 136   <- target
+ *        o_draw, o_disp, n_draw -> 112 /  16 / 136
+ *        o_draw, n_draw, o_disp -> 208 /  16 / 112
+ *        o_disp, n_draw, o_draw ->  16 / 136 /  40
+ *        n_draw, o_draw, o_disp -> 208 / 112 /  16
+ *        n_draw, o_disp, o_draw -> 112 / 136 /  16
+ *    So slot order is DETERMINED, not searchable: `o_disp` must be declared
+ *    first. (The 11-byte residual was only ever 2 free slots: the three
+ *    `&o_draw` sites, `&o_disp` + its `disp` reads, and the block-move's
+ *    LIMIT cursor at `&o_draw + 80` — sp+120 target / sp+96 ours — which is
+ *    a derived cursor, not a fourth object. `n_draw` lands at 136 under both
+ *    orders, which is why its address never appears in the diff.)
+ *
+ * 2. NO CSE MERGE. `&o_draw` is used 3 times (GetDrawEnv's arg, the
+ *    `n_draw = o_draw;` block-move's source, and the final
+ *    `PutDrawEnv(&o_draw)` restore). With `o_disp` declared first, cc1
+ *    otherwise merges the first two uses — the ones either side of the
+ *    single intervening `GetDispEnv()` call — into one value kept live in
+ *    $s0, costing a save/restore (69 insns / 276 bytes, a LENGTH MISMATCH).
+ *    The target instead recomputes `sp+40` fresh at all three sites in
+ *    caller-saved regs ($a0, then $v0, then $a0 — the identical register
+ *    pattern cbAccess.c documents).
+ *
+ * The parked checkpoint found that declaring `o_draw` FIRST also defeats the
+ * merge, and concluded the two constraints were unsatisfiable together
+ * ("EITHER the correct length XOR the correct slots"). But declaration order
+ * is not the only lever on the merge, and it is the WRONG one — it is spoken
+ * for by constraint 1. The merge has its own INDEPENDENT lever, already
+ * proven in cbAccess.c: the identical `GetDispEnv(&o_disp)` call duplicated
+ * into both arms of a test. Its control-flow boundary separates the first
+ * `&o_draw` use from the block-move's source pointer during CSE; after
+ * allocation and scheduling, jump cleanup cross-jumps the identical arms and
+ * erases the test, so the final binary has no branch and no duplicate call.
+ * With `o_disp` declared first (slots) PLUS the fence (no merge), both
+ * constraints hold and the function matches exactly.
+ *
+ * The fence is load-bearing and verified so: unwrapping it to a single
+ * `GetDispEnv(&o_disp)` call restores the $s0 merge and yields 276 bytes.
+ * As in cbAccess.c the fence must sit on the SECOND call; the outer
+ * `AccessPower >= 0` test already loads AccessPower, so the inner
+ * `AccessPower != 0` test reuses that value via CSE and leaves nothing
+ * behind once cross-jumping removes it.
+ *
+ * Note `tools/permute.py` scores this file's base 0 and writes no candidate —
+ * its scorer does not penalize a pure stack-offset residual, so it is useless
+ * on this class; `tools/matchdiff.py` was the only trustworthy signal.
  */
 typedef struct
 {
@@ -134,13 +138,10 @@ extern void DrawPrim(u8 *prim);
 extern s32 AccessPower;
 extern POLY_GT4 AccessImage;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80018f00", FUN_80018f00);
-#else
 void FUN_80018f00(void)
 {
-    DRAWENV o_draw;
     DISPENV o_disp;
+    DRAWENV o_draw;
     DRAWENV n_draw;
 
     VSyncCallback(0);
@@ -159,7 +160,10 @@ void FUN_80018f00(void)
         AccessImage.g3 = 0;
         AccessImage.b3 = 0;
         GetDrawEnv(&o_draw);
-        GetDispEnv(&o_disp);
+        if (AccessPower != 0)
+            GetDispEnv(&o_disp);
+        else
+            GetDispEnv(&o_disp);
         n_draw = o_draw;
         n_draw.clip = o_disp.disp;
         n_draw.ofs[0] = o_disp.disp.x;
@@ -169,5 +173,4 @@ void FUN_80018f00(void)
         PutDrawEnv(&o_draw);
     }
 }
-#endif
 

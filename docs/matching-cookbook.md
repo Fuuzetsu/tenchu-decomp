@@ -6274,6 +6274,42 @@ directions, not one).
   (Editing gotcha: `sed 's/#.*//'` written literally inside a C block comment
   embeds a `*/` and silently truncates the comment.)
 
+### When two constraints fight over ONE lever, find a second lever for the constraint that has one
+
+**FUN_80018f00's park was a FALSE DILEMMA, and the answer was already byte-proven
+in the matched sibling next to it.** Its header concluded that all six declaration
+orders gave "correct length XOR correct slots, never both" — because it was
+spending declaration order on TWO jobs at once: breaking cc1's CSE merge of a
+repeated frame address, and placing the stack slots.
+
+**Declaration order is not available for the merge.** `assign_stack_local` assigns
+slots in declaration order, ascending from the outgoing-arg boundary, each rounded
+up to 8 — so with sizes known, all six orders are pure ARITHMETIC and exactly one
+can produce the target's slots. Slot order is **determined, not searchable**; do
+not build six variants, compute them. (FUN_80018f00: DRAWENV=92, DISPENV=20,
+target 16/40/136 -> `o_disp, o_draw, n_draw` uniquely.)
+
+**Break the merge with the INDEPENDENT lever instead: the identical-arm CSE
+fence.** Duplicate the intervening call identically into both arms of a test —
+`if (c) f(&x); else f(&x);`. The control-flow boundary separates the uses during
+CSE; `jump` cleanup later cross-jumps the identical arms and erases the test,
+leaving **no branch and no duplicate call**. Verified on cbAccess.c and
+FUN_80018f00 (same 3x`&o_draw` / `$a0,$v0,$a0` shape); `o_disp`-first PLUS the
+fence matched first try.
+
+**And read your matched siblings before theorising.** FUN_80018f00's header had
+recorded that exact fence as one of "cbAccess's FAILED attempts" — it is the thing
+that made cbAccess MATCH. The detailed `.greg` escalation in the park was real work
+aimed at a lever that was never available.
+
+### Byte-account the census before inferring an object count
+
+A lone odd `addiu sp,K` in a frame that does a block move is usually the copy
+loop's **limit cursor**, not another local. FUN_80018f00's target `sp+120` vs our
+`sp+96` looked like a 24-byte discrepancy implying a fourth or differently-sized
+object; both are just `&o_draw + 80` (40+80 and 16+80). **Compute
+`&src + 16*chunks` before inferring anything about the object set.**
+
 ### The two fence idioms: what each one ACTUALLY does
 
 Fences became this project's dominant lever, so know precisely what you are

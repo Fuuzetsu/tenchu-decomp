@@ -26,6 +26,14 @@ see. It also ranks some register-allocation wins that are real byte regressions.
 This wrapper therefore full-links every retained output and prints matchdiff's raw
 whole-image ranking after the run. Use `<name> --rescore-only` after interrupting
 one, and still verify an adopted/cleaned candidate with tools/matchdiff.py.
+
+The scorer is BLIND to stack-slot offsets. A residual that is purely
+`addiu a0,sp,K` placement (FUN_80018f00's whole 11 bytes) scores base 0 and the
+permuter writes no candidate at all — it cannot see the defect, so a bounded run
+on that class is pure wasted wall-clock. Check `tools/asmdiff.py` first: if every
+differing line is an `sp+K` offset, this is an `assign_stack_local` DECLARATION-ORDER
+problem, which is arithmetic (see docs/matching-cookbook.md, "When two constraints
+fight over ONE lever"), not a search.
 """
 import argparse, difflib, glob, os, re, shutil, subprocess, sys, tempfile
 
