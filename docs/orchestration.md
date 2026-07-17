@@ -433,6 +433,13 @@ names past a struct's known extent.
 
 ## The reflection loop (how the tooling compounds)
 
+**"Fold a rule" first asks: is this a decision procedure over an artifact
+(a dump, a diff, a table)?** If yes, it is a TOOL TICKET (backlog below), not a
+cookbook edit — as prose it is executed by a different fallible reader per lane
+per round; as code it is executed once, tested, and pinned. The cookbook keeps
+only judgment: mapping a tool's verdict to a source shape. After editing the
+cookbook, run `tools/cookbooklint.py` (it is also in the test suite).
+
 After each agent, read its report's **"where I reasoned manually"** and **new
 rules**:
 - A new *idiom* → fold into `matching-cookbook.md` (quote the agent verbatim;
@@ -515,6 +522,27 @@ preflight the live worktree with `tools/matchdiff.py <Name>` and
 `tools/progress.py`. Target inventories become stale as parallel branches land;
 this cheap check prevents spending an agent turn rediscovering that the chosen
 function already byte-matches on current `master`.
+
+### coddog (similarity at scale)
+
+[coddog](https://github.com/ethteck/coddog) complements findsimilar.
+`tools/coddog` builds it on first use (needs network + registry nixpkgs — the
+flake's rust is too old); it reads `decomp.yaml`, whose input ELF is synthesized
+by `tools/coddog-elf.py` from the original bytes + the Ghidra function table
+(our real ELF/map aren't consumable). **Regenerate after the Ghidra export
+changes or after new matches** (also refreshes the stems dir that keeps the
+"(decompiled)" tag truthful):
+
+```console
+$ tools/coddog-elf.py
+$ tools/coddog cluster -m 4        # identical-function families: match one,
+                                   #   apply to the whole cluster
+$ tools/coddog submatch <Name> 20  # who shares a ≥20-insn chunk with <Name> —
+                                   #   the "stuck on this idiom" tool
+$ tools/coddog match <Name> -t 0.5 # similar whole functions; good for BIG
+                                   #   ones, noisy under ~300 bytes — use
+                                   #   findsimilar for small ones
+```
 
 ## Gotchas (all learned the hard way)
 
@@ -1054,6 +1082,59 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
 
 ## Tooling backlog (recurring friction → build these)
 
+**The cookbook-restructure tickets (2026-07-17), ranked by lane-rounds already
+paid.** The restructured cookbook keeps compressed decision procedures for
+exactly these, each marked `TOOL TICKET (name)` inline; when one is built, the
+marked prose shrinks to a router line. Specs: docs/cookbook-audit.md §4.
+
+1. ~~`sched-deps`~~ **BUILT** (82bf8cc + 56987f0): equal-priority-group
+   analyzer, `.flow`-vs-`.sched` block-leader report, and the argmove priority
+   CENSUS — which REFUTED the old "argmove floor — park on sight" rule on its
+   own cited function (23/30 above priority 1); schedtrace's ready-list "pick"
+   reading was also fixed (the pick is the head of the LAST `, now` — on a
+   hazard cycle the first list's head is the LOSER). Remaining ticket:
+   **the remat-split detector** (UID rewritten to a const set + store at fresh
+   UID → "reload split — not a sched tie, not fence-fixable") — deliberately
+   unshipped, no live case to pin a test against; build it with the next one.
+   Absorbs the backlog's "scheduler-tie classifier" entry below.
+2. **`regalloc --spill-uses` / `--names` / `--local`** (≥5 rounds; three lanes
+   asked) — entries below; `--order`'s self-validation is BUILT.
+3. **`matchdiff --baseline <saved.json>`** — per-cluster delta table across an
+   edit (+7 totals must never again hide −27/+34); `--clusters` itself is
+   BUILT.
+4. **`loadclass`** (~3 rounds) — per-load address-kind classification
+   (FIXED symbol_ref / CHAINED lo_sum / VARYING reg+K incl. sp) + anti-dep
+   lists + the struct-view verdict; cookbook §3.13 is the spec.
+5. **`dslot`** (~3 rounds) — per-branch: condition class, `mostly_true_jump`
+   result WITH DIRECTION, thread ownership, skip-label leader eligibility +
+   LABEL_NUSES, actual fill + which reorg routine; cross-checks its prediction
+   against the bytes and prints MODEL-DIVERGES. Absorbs the "delay-slot fill
+   classifier" entry below.
+6. **`slotcalc`** (stackplan extension, 1–2 rounds) — model assign_stack_local
+   from declared sizes + target sp+K accesses → unique declaration order +
+   "N compiler spill slots implied"; 0 or >1 orders fit ⇒ fail loudly.
+7. **`passtrace <Name> <pattern>`** — first-rewrite sweep across pass dumps by
+   PATTERN (rtldump `--trace UID` is BUILT; the pattern form remains); zero
+   matches across all passes is an error, and remind that reload_cse_regs has
+   no dump.
+8. **`selfsim`** (1–2 rounds) — target self-similarity: residual inside
+   instance k of a repeated block whose instance j matches ⇒ "spelling
+   asymmetry — diff your sites, stop looking at the compiler".
+9. **autorules batch** (each cites a win): `struct-view` (HumanActionControl),
+   `guard-clause-invert` (GetNearestHumanoid), `invariant-inline`
+   (SetBleedsDir — would have matched unattended), `chain-order-swap`
+   (DrawSnow), `return-to-goto` (§3.11's join-label rule), `merge-def-swap`
+   (SetBleed), `redundant-entry-guard` (KillHumanoid), `neg-mul-strength`
+   (EndDrawing), plus the entries already listed below (extern-complete-size,
+   narrowed-negate, signext-inplace-pair, arrayref-int-sum/multi-dim,
+   cmp-swap guard extension, ChasetoTarget's two).
+10. **permute-rand-message** — permute.py should print its own abort reasons:
+    the rand() typemap KeyError today reads as a crash (it already prints one
+    for gte.h functions).
+
+The audit's `findrule` (T10) is dropped: the restructured router IS the static
+findrule.
+
 - **autorules `cmp-swap` site selection misses regalloc-owned guard hunks** (it
   targets combine/expression-owned hunks). DamageControl's −6 operand-order win
   sat in a regalloc drift region and had to be found by hand. Extend the site
@@ -1135,22 +1216,19 @@ against context prototypes), so a small m2c fix-up layer is where more zeros hid
   the whole of AdtSelect's round — done by hand-grepping `reg/v:SI 81` in the
   combine dump and eyeballing `(mem/s:SI (reg 81))` vs `(plus … (reg 81))`. It is
   mechanical, and it retired a "do not retry it" verdict.
-- **matchdiff `--account`**: group the diff into clusters with byte weights and a
-  per-cluster classification (register-swap / inserted / moved). The revival
-  addendum MANDATES byte-accounting and every lane still does it by hand from hex
-  columns — and three briefs' premises died to it, so it is the single most
-  load-bearing manual step left.
+- ~~matchdiff `--account`~~ **BUILT as `matchdiff --clusters`** (insns AND bytes
+  per cluster, units in the header). Remaining: the per-cluster classification
+  (register-swap / inserted / moved) and `--baseline` (ticket 3 above).
 - **regalloc.py `--names`**: join pseudo -> source variable (rtldump already
   shows `(reg/v:HI 85)`). Lanes hand-count refs to identify pseudos, and the
   "confirm identity via disposition" rule exists precisely because that misread
   costs rounds.
 - **asmdiff/rtldump: flag a LOAD-FREE block** ("sched cannot reorder this — it is
   your source order"), turning a multi-step source dive into a printed line.
-- **regalloc.py: self-validate the priority model against `.greg`'s allocno
-  order.** The `;; N regs to allocate:` line is printed in real post-qsort
-  order; regalloc.py parses it as a SET and throws the order away. Scoring the
-  model against it is free and would have answered "is regalloc.py reading the
-  right dump?" instantly (it is — `.lreg`, 0 violations in 53 pairs).
+- ~~regalloc.py: self-validate the priority model against `.greg`'s allocno
+  order~~ **BUILT as `regalloc --order`** (prints cc1's own order, ours, and a
+  self-validation verdict that REFUSES divergent output; 12 functions / 267
+  allocnos, zero divergence).
 - **A backward-branch scan must EXCLUDE calls.** A recursive `jal` back to the
   function's own entry glabel reads as a loop; FUN_80057b80 was briefly credited
   with 4 loops when it has 0. Affects any loop-counting heuristic.

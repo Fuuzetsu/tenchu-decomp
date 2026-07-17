@@ -12,6 +12,7 @@ import importlib.util
 import fcntl
 import signal
 import subprocess
+import re
 
 TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if TOOLS not in sys.path:
@@ -19,6 +20,7 @@ if TOOLS not in sys.path:
 
 import autorules
 import access
+import cookbooklint
 import asmdiff
 import callmatch
 import datamatch
@@ -5655,6 +5657,100 @@ class GtePolicyTests(unittest.TestCase):
         self.assertEqual(offenders, [])
 
 
+class CookbookLintTests(unittest.TestCase):
+    """docs/matching-cookbook.md regression guards (docs/cookbook-audit.md §5.4).
+
+    Every lint rule has a failing fixture here — a lint that cannot fail
+    loudly on a fixture is not a lint. The suite also pins the generated
+    autorules index to the live rule tables, so adding an autorules rule
+    without regenerating the index fails CI.
+    """
+
+    KEYS = {"type-width", "copy-seed"}
+
+    def _codes(self, text, keys=None, orch=""):
+        findings = cookbooklint.lint_text("fixture.md", text, keys or
+                                          self.KEYS, orch)
+        return [msg.split()[0] for _n, _l, msg in findings]
+
+    def test_current_docs_lint_clean(self):
+        self.assertEqual(cookbooklint.run_lint(), [])
+
+    def test_forbidden_phrase_detected(self):
+        self.assertIn("L1", self._codes("A rule.\n\nNow mechanized: x.\n"))
+        self.assertIn("L1", self._codes("It is now mechanised too.\n"))
+
+    def test_forbidden_phrase_ignored_in_code_blocks(self):
+        self.assertEqual(
+            self._codes("```\nNow mechanized: quoted history\n```\n"), [])
+
+    def test_duplicate_heading_detected(self):
+        text = "### One rule\n\nbody\n\n### One rule\n"
+        self.assertIn("L2", self._codes(text))
+
+    def test_self_duplicated_heading_detected(self):
+        text = "### A very damaged heading A very damaged heading\n"
+        self.assertIn("L3", self._codes(text))
+
+    def test_duplicate_consecutive_line_detected(self):
+        text = "- the same bullet duplicated by a splice\n" \
+               "- the same bullet duplicated by a splice\n"
+        self.assertIn("L4", self._codes(text))
+
+    def test_double_numbered_list_detected(self):
+        text = "1. first\n2. second\n2. second again\n"
+        self.assertIn("L5", self._codes(text))
+        # the audit's original damage: two items numbered 4
+        text = "3. third\n4. fourth\n4. fourth again\n"
+        self.assertIn("L5", self._codes(text))
+
+    def test_fresh_list_restart_allowed(self):
+        # a new list starting at 1 after another list is not a finding
+        text = "1. first\n2. second\n\nProse.\n\n1. other list\n2. more\n"
+        self.assertEqual(self._codes(text), [])
+
+    def test_unknown_rule_key_detected(self):
+        self.assertIn("L6", self._codes("run `no-such-rule` here\n"))
+
+    def test_known_rule_key_and_non_keys_allowed(self):
+        ok = "run `type-width` on `file.md` with `--loop-log` and `x_y`\n"
+        self.assertEqual(self._codes(ok), [])
+
+    def test_ticket_tracking(self):
+        text = "**TOOL TICKET (frobnicate)**: build it.\n"
+        self.assertIn("L7", self._codes(text, orch="no mention"))
+        self.assertEqual(self._codes(text, orch="frobnicate backlog"), [])
+
+    def test_index_contains_every_rule_and_signature(self):
+        text = cookbooklint.generate_index()
+        for key, _desc, _gen in autorules.RULES + autorules.AGGRESSIVE_RULES:
+            self.assertIn(f"`{key}`", text, key)
+        for sig in rtlguide.SIGNATURE_HINTS:
+            self.assertIn(f"`{sig}`", text, sig)
+
+    def test_index_on_disk_is_fresh(self):
+        with open(cookbooklint.INDEX, encoding="utf-8") as fh:
+            on_disk = fh.read()
+        self.assertEqual(on_disk.rstrip("\n"),
+                         cookbooklint.generate_index().rstrip("\n"),
+                         "docs/autorules-index.md is stale — run "
+                         "tools/cookbooklint.py gen")
+
+    def test_index_tables_escape_pipes(self):
+        # `or-inplace`'s description contains a literal | — it must not
+        # produce a broken table row (a row with more cells than the header).
+        for line in cookbooklint.generate_index().splitlines():
+            if line.startswith("|") and "\\|" not in line:
+                self.assertLessEqual(line.count("|"), 4, line)
+
+    def test_router_names_only_live_tools(self):
+        # every tools/<name>.py the cookbook references must exist
+        with open(cookbooklint.COOKBOOK, encoding="utf-8") as fh:
+            text = fh.read()
+        for m in re.finditer(r"tools/([A-Za-z0-9_.-]+\.(?:py|sh))", text):
+            self.assertTrue(
+                os.path.exists(os.path.join(TOOLS, m.group(1))),
+                f"cookbook references missing tool {m.group(1)}")
 # ---------------------------------------------------------------------------
 # sched-deps: cc1's scheduler trace, re-rendered forward.
 #
