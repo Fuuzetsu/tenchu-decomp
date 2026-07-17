@@ -2863,6 +2863,33 @@ stayed at 4 — exactly the asymmetry the target needed.
 0xd class) is NOT an un-matchable class: it is a prompt to ask **why the priorities
 tied**. Any park resting on "it's a sched tie" deserves a re-read of the LOG_LINKS.
 
+### Operand-BIRTH order decides local_alloc's colours — seed the RIGHT operand
+
+**`expand` emits a binary op's operand loads LEFT-TO-RIGHT.** So in `x = A - B`
+(both operands loads), the LEFT operand's pseudo is always born first and is
+therefore the **LONGER-lived** quantity. `local_alloc` colours
+**shortest-lived-first**, so **the RIGHT operand is always coloured first and takes
+the LOWER hard register.**
+
+**When the target has the opposite assignment** (left operand in the lower
+register), name the RIGHT operand in a **PRECEDING statement**:
+
+```c
+    bosses = stats.stageBosses;
+    signedValue = (stats.stageEnemies - bosses);   /* 8 insns fixed, 0 new diffs */
+```
+
+That births B first, inverts the two lifetimes, and flips the colours; the copy
+coalesces away. (mission_score_screen: **-15 bytes**.)
+
+**The seed must be a DEDICATED LOCAL sitting exactly between the preceding statement
+and the op.** Measured: a *global* allocno as the temp is a **no-op**; moving the
+seed one statement earlier, or fencing it, each cost **+4 and a LENGTH MISMATCH**.
+
+`autorules`' **`binop-operand-seed`** sweeps this automatically (both directions).
+Note `copy-seed` does NOT cover it — that pattern is `x = E(y)`, one variable
+substituted into its own expression; this is two distinct operands.
+
 ### A same-length register residual inside ONE basic block is a local_alloc quantity-ORDER tie — seed the loser with a copy
 
 **First, tell a LOCAL tie from a GLOBAL one** with `tools/regalloc.py <Name>`: if

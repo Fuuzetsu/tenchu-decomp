@@ -5,8 +5,61 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 254 of 4636 bytes differ (was 330; 346; 401; 413;
- * 433; 437; 476; 498; 525; 1266).  85 differing instructions.
+ * STATUS: NON_MATCHING -- 239 of 4636 bytes differ (was 254; 330; 346; 401;
+ * 413; 433; 437; 476; 498; 525; 1266).  76 differing instructions.
+ *
+ * 2026-07-17 round-12 (Opus) -- 254 -> 239 via a NEW REUSABLE RULE: the
+ * OPERAND-BIRTH ORDER lever.  The SV32 enemies/bosses v1/a0 mirror is CLOSED.
+ *
+ * THE RULE (verified in the RTL before applying, then measured):
+ *   In `x = A - B` (any binary op whose operands are both loads), expand emits
+ *   the operand loads LEFT-TO-RIGHT, so the LEFT operand's pseudo is always
+ *   BORN FIRST and is therefore the LONGER-lived quantity.  local_alloc
+ *   colours quantities SHORTEST-LIVED-FIRST, so the RIGHT operand is always
+ *   coloured first and takes the LOWER hard register.  When the target has the
+ *   opposite assignment (left operand in the lower register), name the RIGHT
+ *   operand in a PRECEDING statement -- `t = B; x = A - t;`.  That births B
+ *   first, inverts the two lifetimes, and flips the colours.  The copy itself
+ *   coalesces away; only the register assignment changes.
+ *
+ * Applied here as `bosses = stats.stageBosses; signedValue =
+ * (stats.stageEnemies - bosses);`.  Evidence chain, all read not guessed:
+ * - regalloc.py: p402 (stageEnemies, mem[fp+65]) and p403 (stageBosses,
+ *   mem[fp+64]) are both LOCAL-ONLY -> local_alloc owns them, and it runs
+ *   BEFORE global_alloc, so p398/p399 (value/signedValue, both global) merely
+ *   FOLLOW the local decision.  Neither pair is INSEPARABLE -> the cluster was
+ *   live, not a no-lever tie.
+ * - .lreg sched1 order was 1199(p402) .. 1219 .. 1200(p403) .. 1211,1213,1216
+ *   .. 1202(minus): p402 spanned 5 insns, p403 spanned 3.  p403 shorter ->
+ *   coloured first -> took v1 -> p402 got a0.  The target's p402->v1 therefore
+ *   required p402 to be the SHORTER quantity, i.e. p403 born earlier.
+ * - RESULT: 8 insns fixed, ZERO new diffs.  The whole mirror chain went
+ *   (subu/bgez/move/negu/sll), AND it took out two clusters round-10 had
+ *   accounted SEPARATELY -- the sign-arm a2/a0 sched at 0x800550d0/e0 and
+ *   `move a0,s0` at 0x800551d8.  Beware the byte-account's independence
+ *   assumption: those were downstream of this one allocation, not their own
+ *   levers.
+ * - NOTE the final asm order is 65-then-64 in BOTH target and draft; the
+ *   lifetimes that decide the colours are the SCHED1 ones, which sched2/reload
+ *   then re-order.  Do not read local_alloc's input off the final .s.
+ * - autorules' `copy-seed` does NOT cover this: its pattern is `x = E(y)` with
+ *   a single variable y.  This wants a two-operand form.  Suggested new
+ *   autorules rule `binop-operand-seed`: for `x = A op B` where A and B are
+ *   both loads, try `t = B; x = A op t;` (and the mirror `t = A; x = t op B;`).
+ *
+ * Round-12 byte-account (measured, 76 insns / 239 bytes -- note round-10/11
+ * quoted INSN counts, not bytes; the two are ~3x apart):
+ *   0x800551b8-0x8005524c  19 insns  63B  GsSortSprite arg sched + x=102 site1
+ *   0x80054c98-0x80054d04  13 insns  38B  bank main pair (CLOSED, round 9)
+ *   0x80054bf8-0x80054c1c  10 insns  35B  LoadTIMAndFree rotation (fence-parked)
+ *   0x80054d58-0x80054dc0   8 insns  27B  bank pivot pair (CLOSED, round 9)
+ *   0x8005513c-0x80055150   6 insns  21B  SV32 head: registers now CORRECT,
+ *                                         pure 6-insn sched permutation left
+ *   0x80054b84-0x80054b98   3 insns  10B  entry rotation
+ *   0x80055518/0x800556dc/0x800557c0  9 insns 27B  x=102 sites 2-4 (DEAD)
+ *   0x8005542c-0x80055430   2 insns   8B  colon-2 tail
+ *   0x80055024-0x80055028   2 insns   6B  draw-0 head li/lbu swap
+ *   0x80055c50-0x80055c84   4 insns   4B  stock-tail addu chain (v0/v1 mirror)
  *
  * 2026-07-17 round-11 (Opus) -- NO byte change (254 held).  Chased round-10's
  * one live lead (the x=102 class, 13 insns) to its mechanical floor and CLOSED
@@ -1041,11 +1094,13 @@ score_character_sprite_init_loop:
             s32 signedValue;
             s32 drawY;
             GsSPRITE *numberSprite;
+            s32 bosses;
 
             do {
                 numberSprite = &number;
             } while (0);
-            signedValue = (stats.stageEnemies - stats.stageBosses);
+            bosses = stats.stageBosses;
+            signedValue = (stats.stageEnemies - bosses);
             value = signedValue;
             drawY = (-0x47);
             (numberSprite)->x = (0x2F);

@@ -557,6 +557,17 @@ function already byte-matches on current `master`.
   `dslot`/`length` eligibility and `LABEL_NUSES` per branch target, and said outright
   "that table IS the whole answer here". An `asmdiff`/`rtldump` annotation would make
   StickonCheck's entire analysis one call.
+- **A byte-account is not a byte account unless you checked the UNITS.** I
+  propagated mission_score_screen's cluster table through three briefs as BYTES; the
+  numbers were INSTRUCTION counts, ~3x off (84 insns = 254 bytes, so the "16-byte"
+  GsSortSprite cluster is really 63). And its INDEPENDENCE assumption was false —
+  fixing one allocation also removed two clusters the table listed separately, as
+  they were downstream of it. Clusters are a hypothesis about causes, not a
+  partition; state the units and re-derive them.
+- **TOOLING BACKLOG — `matchdiff --clusters`.** Every round hand-rolls per-cluster
+  counts because matchdiff reports only a total, and that is exactly how the insn/byte
+  mix-up above survived three briefs. A flag printing range / insns / BYTES per
+  cluster would prevent the class outright.
 - **Do not tell a lane master has a fix before you have COMMITTED it.** I sent a
   rule correction saying "master now has the fixed version, `git merge --ff-only
   master`" — between harvesting and committing. Master was still at the lane's own

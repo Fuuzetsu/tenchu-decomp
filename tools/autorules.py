@@ -807,6 +807,79 @@ def rule_copy_seed(text, name, span):
                    splice(data, st.start_byte, st.end_byte, new_text).decode())
 
 
+def rule_binop_operand_seed(text, name, span):
+    """Seed a binop's RIGHT operand into a preceding local: `x = A op B;` ->
+    `t = B; x = A op t;` (and the mirror for the left operand).
+
+    **Operand-birth order decides local_alloc's colours.** `expand` emits a binary
+    op's operand loads LEFT-TO-RIGHT, so the LEFT operand's pseudo is always born
+    first and is therefore the LONGER-lived quantity. local_alloc colours quantities
+    SHORTEST-LIVED-FIRST, so the RIGHT operand is always coloured first and takes the
+    LOWER hard register. When the target has the opposite assignment (left operand in
+    the lower register), naming the RIGHT operand in a PRECEDING statement births it
+    first, inverts the two lifetimes, and flips the colours — the copy coalesces away.
+
+    Worth 15 bytes on mission_score_screen (8 instructions fixed, zero new diffs):
+    `bosses = stats.stageBosses; signedValue = (stats.stageEnemies - bosses);`
+
+    `rule_copy_seed` does NOT cover this: its pattern is `x = E(y)` — one variable,
+    substituted into its own expression. This is two distinct operands, and the seed
+    must be a DEDICATED LOCAL sitting exactly between the preceding statement and the
+    op (a global as the temp measured a no-op; moving the seed one statement earlier
+    or fencing it both cost +4 and a LENGTH MISMATCH).
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for st in _find(body, ("expression_statement",)):
+        asg = next((c for c in st.named_children
+                    if c.type == "assignment_expression"), None)
+        if asg is None:
+            continue
+        op = asg.child_by_field_name("operator")
+        if op is not None and _txt(data, op) != b"=":
+            continue
+        val = asg.child_by_field_name("right")
+        lhs = asg.child_by_field_name("left")
+        if val is None or lhs is None:
+            continue
+        # Unwrap one layer of parens so `x = (A - B);` is eligible too.
+        inner = val
+        while inner.type == "parenthesized_expression" and inner.named_child_count:
+            inner = inner.named_children[0]
+        if inner.type != "binary_expression":
+            continue
+        left = inner.child_by_field_name("left")
+        right = inner.child_by_field_name("right")
+        if left is None or right is None:
+            continue
+        ls = data.rfind(b"\n", 0, st.start_byte) + 1
+        indent = data[ls:st.start_byte]
+        if indent.strip():
+            continue
+        vid = _txt(data, lhs)
+        for tag, operand in (("right", right), ("left", left)):
+            # Only a side-effect-free operand may be hoisted above the other.
+            if _find(operand, ("call_expression", "assignment_expression",
+                               "update_expression")):
+                continue
+            otext = _txt(data, operand)
+            if otext == vid or not otext.strip():
+                continue
+            # A bare literal has no pseudo to birth -- seeding it is a no-op.
+            if operand.type in ("number_literal", "char_literal"):
+                continue
+            temp = b"_seed_" + re.sub(rb"[^A-Za-z0-9]", b"_", otext)[:20]
+            head = _txt(data, st)[:operand.start_byte - st.start_byte]
+            tail = _txt(data, st)[operand.end_byte - st.start_byte:]
+            stmt = (b"s32 " + temp + b" = " + otext + b";\n" + indent
+                    + head + temp + tail)
+            yield (f"binop-operand-seed {tag} {temp.decode()} "
+                   f"L{_line(data, st.start_byte)}",
+                   splice(data, st.start_byte, st.end_byte, stmt).decode())
+
+
 def rule_call_result_split(text, name, span):
     """Give every definition of a reused direct-call result its own local.
 
@@ -8049,6 +8122,7 @@ RULES = [
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
     ("copy-seed", "x = E(y); -> x = y; x = E(x); (local_alloc quantity-order lever)", rule_copy_seed),
+    ("binop-operand-seed", "x = A op B; -> t = B; x = A op t; (operand-birth order)", rule_binop_operand_seed),
     ("call-result-split", "split a reused direct-call result into single-definition locals", rule_call_result_split),
     ("late-pointer-direct", "inline a repeated pointer-global assignment in its late region", rule_late_pointer_direct),
     ("literal-indirect-inline", "atomically inline a byte literal and indirect-call field temps", rule_literal_indirect_inline),

@@ -480,9 +480,17 @@ def report(name, a, show_rtl, body, compare=None, between=None,
     if a["allocnos"]:
         local = sorted(set(a["disp"]) - a["allocnos"])
         if local:
+            # Tag each entry. The dispositions line above prints the SAME
+            # `pNNN->reg` shape, so a lane that grepped the whole FILE for
+            # `p398->` got a hit from the dispositions map and concluded p398 was
+            # local-only when it was not -- which would have inverted its lever
+            # choice. `LOCAL:pNNN` is unambiguous to grep.
             print(f"  LOCAL-ONLY (local_alloc coloured these — global_alloc never "
-                  f"saw them): " + "  ".join(f"p{p}->{rn(a['disp'][p])}"
+                  f"saw them): " + "  ".join(f"LOCAL:p{p}->{rn(a['disp'][p])}"
                                              for p in local))
+            print("    (grep `LOCAL:pNNN` — the dispositions line above uses the "
+                  "same pNNN->reg")
+            print("    shape, so grepping the whole file conflates the two.)")
             print("    Weighting/splitting levers DO NOT APPLY to these. A "
                   "same-length register")
             print("    residual among them is a quantity-ORDER tie: local_alloc "
