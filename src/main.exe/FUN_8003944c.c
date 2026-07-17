@@ -12,10 +12,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 16 of 248 linked and whole-image bytes differ. The
- * candidate has the target's exact 62 instructions and optimized CFG: 4
- * conditional branches, 1 unconditional jump, no calls, and 1 return.
- *
  * FUN_8003944c (0x8003944c, 0xf8 bytes) — EFFECT.C effect-pool allocator:
  * same EffectSlot[200] round-robin search as SetSplash/SetFrame/SetBleed/
  * FUN_80038fdc (see SetSplash.c for the full writeup of the shared idioms).
@@ -37,23 +33,26 @@
  * previously unnamed alignment padding, but this function's `sb` store
  * there is a genuine write, not an artifact.
  *
- * A weight-free empty one-shot loop immediately after the scale assignment
- * fixes the old scheduler island: cc1 now loads the stack argument, preserves
- * the target load-delay `nop`, stores scale, and restores the exact extent.
- * The remaining three aligned lines are only the rotate producer: retail
- * loads it immediately after scale and keeps it in $v1 until the return delay
- * slot; this draft sinks that same load to just before the final stores.
- * Empty and weighted producer boundaries were flat. An erased identical-arm
- * use and a redundant early rotate store loaded it at function entry and
- * disturbed the whole allocation, so they were rejected. Keep the guarded
- * 16-byte checkpoint; revisit the rotate lifetime only after the requested
- * untouched/zero-percent target pool.
+ * The two `lw $v1,N($sp)` in the tail are param_5/param_6 rematerialized from
+ * their REG_EQUIV incoming slots: register pressure across the search loop is
+ * high enough that neither pseudo gets a hard register, so reload re-reads
+ * each one at its single use. Both nops there are maspsx load-delay artifacts
+ * of a load landing adjacent to its use, NOT scheduler gaps.
+ *
+ * The store order below is plain source order, which is the whole trick. A
+ * long-standing 16-byte checkpoint tried to explain retail's early
+ * `lw $v1,0x14($sp)` as a *hoisted* rotate load and reached for a
+ * `do{}while(0)` scheduler fence to move it. That is impossible: a load
+ * carries a true dependence on EVERY preceding struct store (sched.c's
+ * fixed-scalar/varying-struct dismissal does not fire for a plain sp-relative
+ * `mem` against `mem/s` stores), so it can never hoist. Retail's load is early
+ * because `pp->rotate = param_6;` sits right here in source order, and sched2
+ * SANK the store — stores at distinct constant offsets disambiguate freely —
+ * until reorg took it for the return delay slot. Assigning through a `rot`
+ * local instead pushed the load to its use and cost the fence 16 bytes.
  */
 extern void DrawImpact(TEffectSlot *ef);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8003944c", FUN_8003944c);
-#else
 void FUN_8003944c(long *param_1, long param_2, short param_3, short param_4,
                    long param_5, long param_6, u16 param_7, u16 param_8,
                    u16 param_9, u16 param_10)
@@ -65,7 +64,6 @@ void FUN_8003944c(long *param_1, long param_2, short param_3, short param_4,
     TEffectSlot *ef;
     BloodType *pp;
     long py;
-    long rot;
 
     idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
     count = 0;
@@ -106,15 +104,11 @@ found:
     pp->vy = param_7;
     pp->vz = param_8;
     pp->scale = param_5;
-    do {
-    } while (0);
-    rot = param_6;
-    pp->vx = param_4;
+    pp->rotate = param_6;
     pp->time = param_3;
+    pp->vx = param_4;
     pp->unk22 = (u8)param_9;
     pp->bright = 0;
     pp->mode = (u8)param_10;
     pp->py = py;
-    pp->rotate = rot;
 }
-#endif

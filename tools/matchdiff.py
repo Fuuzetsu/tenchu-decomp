@@ -13,6 +13,13 @@ Usage:
 The function's address comes from config/symbols.main.exe.txt; its size is the
 distance to the next symbol (same slot logic as mkmod). Exit status: 0 on a
 byte-match, 1 otherwise — usable as a gate in scripts.
+
+This tool is the byte GATE and aligns by ADDRESS. That makes it the authority on
+"how many bytes differ" and a poor witness for "what moved": a pure displacement
+renders as a clean one-slot shift, and an adjacent swap can sit inside a region
+this reports as identical (FUN_8003944c's `sh 24`/`sh 26` swap hid exactly there,
+and the lane found it only by dumping the raw target `.s`). For ORDER questions use
+`tools/asmdiff.py`, which aligns by CONTENT and flags MOVED instructions.
 """
 import argparse, tempfile, os, re, subprocess, sys
 

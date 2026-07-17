@@ -6323,6 +6323,43 @@ loop's **limit cursor**, not another local. FUN_80018f00's target `sp+120` vs ou
 object; both are just `&o_draw + 80` (40+80 and 16+80). **Compute
 `&src + 16*chunks` before inferring anything about the object set.**
 
+### A load can NEVER hoist past a struct store — if retail's load looks hoisted, the STORE sank
+
+**This inverts an entire class of reasoning, and it matched FUN_8003944c.**
+`sched_analyze_2` gives a load a true dep on **every** pending write that
+`true_dependence` will not dismiss — and the fixed-scalar/varying-struct dismissal
+**does not fire** for a plain sp-relative `(mem:SI (plus (reg sp) K))` (a
+rematerialised stack param, no `/s`, fixed address) against `mem/s` varying-address
+stores. That is the **textbook dismissal shape and it still does not take**. Verify
+in `.sched2`; do NOT infer it from the `/s` flags.
+
+So no fence, priority, or spelling lever can move that load up — ever. **Stores, by
+contrast, reorder freely across each other at distinct constant offsets.**
+
+**Therefore: when a same-length residual shows a load too late and the stores
+shifted by one, do not reach for a fence or a priority lever. Write the store at
+the load's position in source order and let sched2 sink it.** (FUN_8003944c:
+dropping a `rot` local for a direct `pp->rotate = param_6;` put the load where
+retail has it; sched2 then sank the store to the tail and reorg took it for the
+return delay slot.)
+
+**Corollary — a `do{}while(0)` fence's notes make the NEXT insn a TOTAL barrier**:
+it gains deps on everything before it and everything after depends on it. So a
+fence pins whichever store happens to follow it, which is rarely the one you want.
+FUN_8003944c's fence gave `sh 26` deps on all 13 preceding insns with 6 depending
+on it — the fence WAS the residual, built on a model that was never true.
+
+### Dump a CONTROL variant, not just the current draft
+
+FUN_8003944c's park paired an accurate OBSERVATION ("retail loads it immediately
+after scale and keeps it in `$v1` until the return delay slot") with an
+UNFALSIFIABLE mechanism. What killed the theory in one shot was reading `.sched2`
+LOG_LINKS on the **no-fence variant** — a dump of a variant with the suspected
+cause REMOVED. The deps were identical with and without the fence, which
+immediately proved the fence was not doing what the park claimed.
+`tools/rtldump.py <Name> --src <variant>` dumps a scratch variant without touching
+the tracked file; use it to falsify, not just to describe.
+
 ### An empty `do{}while(0)` at the END of an `if` body flips reorg's branch prediction — at ZERO instruction cost
 
 **A guard whose body is one instruction short or long, with a plausible delay slot,
