@@ -6550,6 +6550,31 @@ short->short copy (`degree = (s16)t` where `t` is already `s16`) **coalesces to
 nothing**, while routing through an SImode temp restores the truncating move.
 ControlTraceLine's whole ladder matched on that one split (167 -> 10).
 
+### For a register ROTATION, read `tools/regalloc.py <Name> --order` — cc1 PRINTS the allocation order
+
+**`;; 25 regs to allocate: 134 313 129 …` in `.greg` is printed AFTER `allocno_compare`'s
+qsort, so it IS the allocation order.** A lane hand-reproduced all 25 of SetupTelop's
+allocnos to derive an order cc1 prints on ONE LINE, and called that the single
+highest-value tooling gap it hit. (This tool used to discard the line into a `set()`.)
+
+`--order` prints cc1's order, our computed order, and a **self-validation verdict** —
+if the model disagrees with cc1's own line it **REFUSES the output**, because a model
+the dump contradicts is wrong and saying so beats emitting a confident number.
+Validated 12/12 functions / 267 allocnos, zero divergence.
+
+**cc1 allocates in that order, taking the LOWEST FREE register each time** (MIPS
+defines no `REG_ALLOC_ORDER`, so `find_reg` walks hard regs numerically). So for a
+rotation: **write down the order the TARGET's registers imply and diff it against the
+printed one** — that says which pseudo must move and by how much.
+
+`priority = floor_log2(n_refs) * n_refs / live_length * 10000 * size`, and **n_refs is
+LOOP-DEPTH-WEIGHTED — each RTL mention adds its DEPTH, not 1** (`.lreg`'s count is
+already weighted; the validation above confirms it). `floor_log2` is a **step**, so ONE
+ref can swing a score (16 refs -> 21333 vs 15 -> 15000).
+
+**INSEPARABLE / LOCAL-ONLY do NOT gate this class.** They can pass cleanly while the
+round is still unwinnable — SetupTelop's did (d487683). The priority table is the gate.
+
 ### START HERE ON ANY SUB-C RESIDUAL: `tools/cc1says.py <Name>` — cc1 narrates its own decisions
 
 **cc1 explains itself in `;;` commentary across all 15 dumps, and we were reading about

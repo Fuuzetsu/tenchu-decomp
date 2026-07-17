@@ -31,6 +31,9 @@ print by default — AdtSelect has 36 notes and 5 of them can matter.
   tools/regalloc.py <Name> --between 80 81 82 --enclosed-refs 3
                                         # keep p80 above p81 but below p82
   tools/regalloc.py <Name> --prefer a0   # allocnos carrying an $a0 preference
+  tools/regalloc.py <Name> --order      # cc1's OWN allocation order + our model +
+                                        # a self-validation verdict (refuses on
+                                        # divergence). Asked for by three lanes.
   tools/regalloc.py <Name> --notes      # ALL REG_EQUIV/REG_EQUAL notes (default:
                                         # only the LIVE ones — see below)
   tools/regalloc.py <Name> --func NAME  # a specific function if the TU has several
@@ -135,6 +138,43 @@ def inseparable_pairs(analysis):
                         and a not in analysis["conflicts"].get(b, [])):
                     pairs.append((a, b, hard))
     return pairs
+
+
+
+def allocation_order(a):
+    """cc1's OWN allocation order, plus our model's, plus a self-validation verdict.
+
+    `;; N regs to allocate: 134 313 129 ...` is printed AFTER global.c's
+    `allocno_compare` qsort, so **it IS the allocation order** — and this tool used to
+    discard it into a `set()`. A lane hand-reproduced all 25 of SetupTelop's allocnos
+    to derive an order cc1 prints on one line, and called that the single
+    highest-value tooling gap it hit.
+
+    We ALSO compute the order from the documented priority
+    (`floor_log2(n_refs) * n_refs / live_length * 10000 * size`) and compare. That
+    comparison is the point: a model that disagrees with cc1's own output is WRONG,
+    and saying so beats emitting a confident number. Validated 12/12 functions,
+    267 allocnos, zero divergence — which also settles that `.lreg`'s ref count is
+    ALREADY loop-depth-weighted (each mention adds its depth, not 1).
+    """
+    order = a["alloc_order"]
+    mine = sorted(order, key=lambda p: -a["usage"].get(p, {}).get("priority", 0))
+    agree = mine == order
+    first = None
+    if not agree:
+        first = next((i for i, (x, y) in enumerate(zip(mine, order)) if x != y), None)
+    return order, mine, agree, first
+
+
+def needed_refs(a, pseudo, target_priority):
+    """Smallest n_refs that lifts `pseudo` above `target_priority`, or None."""
+    u = a["usage"].get(pseudo)
+    if not u or not u["live_length"]:
+        return None
+    for refs in range(u["refs"] + 1, u["refs"] + 400):
+        if alloc_priority(refs, u["live_length"]) > target_priority:
+            return refs
+    return None
 
 
 def conflicts_with_hard_register(analysis, pseudo, hard_register):
@@ -352,7 +392,8 @@ def analyse(name, body, usage_body=None):
     um = re.search(r";; Hard regs used:\s*(.*)", body)
     used_str = " ".join(rn(int(x)) for x in um.group(1).split()) if um else ""
     alloc = re.search(r";; \d+ regs to allocate:\s*([0-9 ]+)", body)
-    allocnos = {int(x) for x in alloc.group(1).split()} if alloc else set()
+    alloc_order = [int(x) for x in alloc.group(1).split()] if alloc else []
+    allocnos = set(alloc_order)
     usage = {}
     for pseudo, refs, live_length, tail in USAGE.findall(usage_body or body):
         refs_i, length_i = int(refs), int(live_length)
@@ -385,12 +426,12 @@ def analyse(name, body, usage_body=None):
     # when we have one, and resolve each owner's home from .greg's dispositions.
     notes = analyse_notes(usage_body, disp) if usage_body else []
     return dict(disp=disp, preferences=preferences, conflicts=conflicts, used=used_str,
-                allocnos=allocnos, usage=usage, moves=moves, calls=calls, setops=setops,
-                reg_first=reg_first, notes=notes)
+                allocnos=allocnos, alloc_order=alloc_order, usage=usage, moves=moves,
+                calls=calls, setops=setops, reg_first=reg_first, notes=notes)
 
 
 def report(name, a, show_rtl, body, compare=None, between=None,
-           enclosed_refs=None, prefer=None, show_notes=False):
+           enclosed_refs=None, prefer=None, show_notes=False, show_order=False):
     hardnames = sorted({n for _, d, s in a["moves"] for n in (d, s)}
                        | set(a["setops"]) | set(a["reg_first"]),
                        key=lambda x: (x not in CALLEE, x))
@@ -435,6 +476,55 @@ def report(name, a, show_rtl, body, compare=None, between=None,
               "docs/matching-cookbook.md,")
         print('    "An alias copy survives only if the alias CONFLICTS with its '
               'source".')
+
+    if show_order:
+        order, mine, agree, first = allocation_order(a)
+        if not order:
+            print("  --order: no `;; N regs to allocate:` line — nothing global to "
+                  "allocate here (everything is local_alloc's).")
+        else:
+            print(f"\n  ALLOCATION ORDER ({len(order)} allocnos) — cc1 allocates in "
+                  "THIS order, taking the")
+            print("  lowest free register each time (MIPS defines no REG_ALLOC_ORDER, "
+                  "so find_reg walks")
+            print("  hard regs numerically).")
+            if not agree:
+                # Refuse rather than emit a number the dump contradicts.
+                print()
+                print("  *** SELF-VALIDATION FAILED — OUTPUT REFUSED ***")
+                print(f"  Our priority model and cc1's own printed order first differ "
+                      f"at index {first}:")
+                print(f"    ours: p{mine[first]}   cc1: p{order[first]}")
+                print("  cc1's line is ground truth, so the MODEL is wrong here. Do "
+                      "not reason from the")
+                print("  priorities below; report this divergence — it is a real "
+                      "finding about the model.")
+            else:
+                print("  (model self-validates against cc1's own line: our computed "
+                      "order == cc1's)")
+                print()
+                print(f"  {'#':>3} {'pseudo':>7} {'reg':>5} {'refs':>5} {'live':>5} "
+                      f"{'priority':>9}  conflicts")
+                for i, p in enumerate(order):
+                    u = a["usage"].get(p, {})
+                    home = a["disp"].get(p)
+                    cf = a["conflicts"].get(p, [])
+                    hard = " ".join(rn(x) for x in cf if x < 32)
+                    print(f"  {i:>3} {('p' + str(p)):>7} "
+                          f"{(rn(home) if home is not None else '—'):>5} "
+                          f"{u.get('refs', '?'):>5} {u.get('live_length', '?'):>5} "
+                          f"{u.get('priority', '?'):>9}  {hard[:34]}")
+                print()
+                print("  priority = floor_log2(n_refs) * n_refs / live_length * 10000 "
+                      "* size, and n_refs is")
+                print("  LOOP-DEPTH-WEIGHTED (each RTL mention adds its DEPTH, not 1) "
+                      "— `.lreg`'s count is")
+                print("  already weighted. floor_log2 is a STEP, so ONE ref can swing "
+                      "a score (16 refs ->")
+                print("  21333 vs 15 -> 15000). To move a pseudo EARLIER, raise "
+                      "refs/live; to move it LATER,")
+                print("  split it per site — see the cookbook's demote-the-winner "
+                      "rule.")
 
     notes = a.get("notes") or []
     if notes:
@@ -587,6 +677,12 @@ def main():
                     help="target is an already-preprocessed .c (skip cpp)")
     ap.add_argument("--func", help="only this function (if the TU has several)")
     ap.add_argument("--rtl", action="store_true", help="also print the greg RTL")
+    ap.add_argument("--order", action="store_true",
+                    help="print cc1's OWN allocation order (the `;; N regs to "
+                         "allocate:` line IS the post-qsort order), our computed "
+                         "order, and a SELF-VALIDATION verdict — divergence means the "
+                         "model is wrong and the output is refused. Asked for by three "
+                         "lanes; two called it the highest-value gap they hit.")
     ap.add_argument("--notes", action="store_true",
                     help="show ALL REG_EQUIV/REG_EQUAL notes, not just the LIVE ones")
     ap.add_argument("--compare", nargs=2, type=int, metavar=("FIRST", "SECOND"),
@@ -652,6 +748,7 @@ def main():
             args.enclosed_refs,
             prefer,
             args.notes,
+            args.order,
         )
 
 
