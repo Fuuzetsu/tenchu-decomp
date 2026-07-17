@@ -258,6 +258,27 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 
 ## reload
 
+- **WHICH reload entry point handles a spilled pseudo is decided by how the C
+  USES it — dereference vs bare use — and that is the whole BARE-vs-IN-MEM
+  fork.** A struct/pointer DEREFERENCE of a spilled parameter (`p->field`)
+  routes through `find_reloads_address`'s `reg_equiv_address` recursion
+  (reload.c:2554, 4296) and ALWAYS pushes two reloads that retype into the
+  mutually-barring `RELOAD_FOR_OPERAND_ADDRESS` class (3806-3855) — **no C
+  spelling of the dereference escapes it**. A BARE use of the same spilled
+  pseudo (a comparison `if (title == 0)`, or a plain copy `p = menu;`) routes
+  through `find_reloads_toplev` and pushes ONE `RELOAD_FOR_INPUT` reload whose
+  free-check never bars its own address register. **That is the only shape that
+  can self-tie a materialize+load pair onto one hard register** (AdtSelect
+  0x8005FF3C; every cited line re-verified by hand against the pinned tree).
+  This is the distinction `regalloc --spill-uses` was specced for — the flag
+  does not exist, so this fork currently costs a reload.c read.
+- **`order_regs_for_reload` is ALSO `#ifdef REG_ALLOC_ORDER`/else-ascending**
+  (reload1.c:3918-3936), so "MIPS defines no REG_ALLOC_ORDER ⇒ numeric walk"
+  extends to reload's own spill-register pool, not just `global.c`'s `find_reg`
+  and `local-alloc.c`'s `find_free_reg`. But for reload registers it is usually
+  preempted by the categorical `reload_reg_free_p` conflict check, so it is a
+  much WEAKER lever there than for ordinary allocno ties — do not reason about
+  reload registers as if they were allocnos (AdtSelect).
 - **The self-tie retype gate** (reload.c:3806-3855) fires iff the operand is NOT
   itself reloaded (`operand_reloadnum < 0`), converting INPADDR/INPUT_ADDRESS
   reloads to `RELOAD_FOR_OPERAND_ADDRESS`, which bars sharing. `branch_zero`'s

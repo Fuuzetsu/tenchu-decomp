@@ -199,6 +199,142 @@
  * site 1 has ONE reload where gcc-2.8.1 gives this source structure TWO.  Any
  * future round should start there — from the .greg RTL and reload.c 4296 — and
  * should NOT re-open the operand-constraint or copy levers.
+ *
+ * ---- ROUND 5: independently re-verified against the pinned reload.c/reload1.c
+ *      source (not the header's prose) — ROUND 4's VERDICT HOLDS, and the exact
+ *      discriminator the audit wanted a `--spill-uses` flag for is now named ----
+ *
+ * This round was briefed with two "tractability" claims: (1) mips.h defines no
+ * REG_ALLOC_ORDER, so find_reg walks hard regs numerically and whichever pseudo
+ * the target put in $a3 was "allocated earlier"; (2) the target's `lw a3,0(a3)`
+ * is a "reuse a dying variable / coalesce upward" shape reachable by giving the
+ * address and the value ONE C variable instead of two.  Neither survives
+ * contact with the actual pinned source (`/nix/store/*-source/reload.c`,
+ * `reload1.c`, `reload.h` — not memory, read fresh this round, every line
+ * number below checked with `sed -n` against that tree):
+ *
+ * 1. Claim 1 is TRUE but does not apply to the registers in question.
+ *    `tools/regalloc.py AdtSelect --order` (self-validated against cc1's own
+ *    `;; 18 regs to allocate:` line) lists 18 allocnos; NONE of them dispose to
+ *    $a3 or $t0 — p80/p81 (title/menu) are IN the list, at priority 930/819,
+ *    but their disposition is "—" (spilled).  $a3/$t0 here are RELOAD
+ *    registers, chosen by reload1.c's own, separate mechanism
+ *    (`allocate_reload_reg`, reload1.c:5031), not by global.c's `find_reg`.
+ *    That said, the underlying FACT generalises: reload1.c:3918-3936
+ *    (`order_regs_for_reload`, which builds `potential_reload_regs[]`, the
+ *    pool `allocate_reload_reg` round-robins over) is ALSO `#ifdef
+ *    REG_ALLOC_ORDER` / `#else` ascending-by-regno, so absent that macro
+ *    reload's own candidate pool is ALSO built low-to-high.  This is a real,
+ *    previously-undocumented fact about this cc1 — but it decides which
+ *    register a reload tries FIRST among registers that are already free; it
+ *    cannot make a CATEGORICALLY-conflicting register free.  See point 3.
+ *
+ * 2. Claim 2 is FALSE for this exact operand shape, and the reason is now
+ *    precise instead of prose.  Two DIFFERENT reload functions handle a
+ *    reg_equiv_address pseudo, chosen by whether it is DEREFERENCED (used as
+ *    a MEM's address) or used BARE (used as a value):
+ *      - `menu->choice_name` makes reg81 the address inside `(mem (reg 81))`
+ *        — a MEM operand — so `find_reloads` (reload.c:2554) hands it to
+ *        `find_reloads_address`, whose REG case (reload.c:4296,
+ *        `reg_equiv_address[regno] != 0`) RECURSES: push a reload for the
+ *        spill slot's own address typed `ADDR_TYPE(type)` = INPADDR_ADDRESS
+ *        (reload.h's `ADDR_TYPE` macro, reload.c:302-306), THEN push a
+ *        second reload for menu's value typed INPUT_ADDRESS (reload.c
+ *        4296's `push_reload(tem, ..., type)`, unchanged `type`) — TWO
+ *        reloads, A pushed strictly before B.
+ *      - `if (title == 0)` and `p = menu` use their pseudo BARE (title as
+ *        branch_zero's compared value; menu as the plain SET source with no
+ *        `->`).  A bare REG operand goes to `find_reloads_toplev`
+ *        (reload.c:4066), whose OWN reg_equiv_address branch
+ *        (reload.c:4090) builds `(mem (its own equiv address))` ONE level
+ *        and calls `find_reloads_address` on THAT — an address that is a
+ *        PLUS (sp + const), not a bare REG, so it never enters the
+ *        recursive REG-in-REG branch at all.  ONE reload, type RELOAD_FOR_
+ *        INPUT (reload.c:2520-2521, since `modified[i]==RELOAD_READ`).
+ *    Confirmed directly in the current draft's own `.greg` RTL
+ *    (`tools/regalloc.py AdtSelect --rtl`): site 1 is insns 470/472 (a3 =
+ *    32972; a3 = a3+sp) + 475 (t0 = mem[a3]) + insn 48 (v0 = mem[t0]) — TWO
+ *    reload insns before the original deref, exactly the two-push shape.
+ *    Site 2 is insns 479/481 (a3 = 32972; a3 = a3+sp) + insn 55 itself
+ *    (`v1 = mem[a3]`, the ORIGINAL low-UID insn, not a reload insn) — ONE
+ *    reload, the value lands straight in p's own destination register.
+ *    `tools/cc1says.py AdtSelect --pass greg` prints this demand verbatim:
+ *    `Need 2 regs of class GR_REGS (for insn 38)` (site 1's insn number
+ *    this round) — nothing analogous for site 2.
+ *
+ * 3. WHY the two reloads can never share a register — verified against
+ *    reload.c 3806-3855 (the retype) and reload1.c 4514-4630
+ *    (`reload_reg_free_p`), not summarised:
+ *      - The retype (reload.c:3806, gated on `operand_reloadnum[opnum] < 0`)
+ *        fires for INPUT_ADDRESS/INPADDR_ADDRESS reloads whose OPERAND
+ *        itself was never separately reloaded — true here, since the movsi's
+ *        'm' alternative absorbs the MEM without a whole-operand reload.  It
+ *        does NOT fire for RELOAD_FOR_INPUT (reload.c:3806's condition list
+ *        has no INPUT case) — so title/p's single reload is never touched by
+ *        this block at all; it was never eligible to begin with.
+ *      - Site 1's A and B both retype to RELOAD_FOR_OPERAND_ADDRESS
+ *        (reload.c:3855).  `reload_reg_free_p`'s OPERAND_ADDRESS case
+ *        (reload1.c:4618) checks a single INSN-WIDE bit,
+ *        `reload_reg_used_in_op_addr` (set by `mark_reload_reg_in_use`,
+ *        reload1.c:4419) — not indexed by opnum, so ANY two OPERAND_ADDRESS
+ *        reloads in the same insn conflict, unconditionally.  This is why
+ *        the ROUND 3 CORRECTION's "un-retyped escape" also fails:
+ *        RELOAD_FOR_INPUT_ADDRESS's own free-check (reload1.c:4567) tests
+ *        `reload_reg_used_in_inpaddr_addr[opnum]` for the SAME opnum, and A
+ *        (INPADDR_ADDRESS) sets exactly that bit (reload1.c:4407) — barred
+ *        either way, verified both paths.
+ *      - RELOAD_FOR_INPUT's free-check (reload1.c:4546) is different in
+ *        kind, not degree: it scans `reload_reg_used_in_input_addr`/
+ *        `_inpaddr_addr` only for LATER opnums (`i = opnum+1 ...`), never the
+ *        reload's OWN opnum.  So a RELOAD_FOR_INPUT reload is free to sit in
+ *        whatever register ITS OWN address reload (same opnum) just used —
+ *        this is the entire mechanism behind title's self-tie, and it is
+ *        categorically unavailable to a MEM operand, because a MEM operand
+ *        never gets a RELOAD_FOR_INPUT of its own (the 'm' alternative
+ *        absorbs it with no separate operand-level reload to retype from).
+ *    None of this is a priority/ordering question — `reload_reg_used_in_op_
+ *    addr` is a hard conflict bit, not a preference.  Per the cookbook's own
+ *    rule ("a flipped allocation order over a hard-reg conflict is a
+ *    guaranteed no-op"), claim 1's true-but-inapplicable REG_ALLOC_ORDER
+ *    fact cannot rescue this: there is no ordering of reload requests that
+ *    turns a categorical bar into a free register.
+ *
+ * 4. This closes the audit's own open item (docs/cookbook-audit.md T2,
+ *    "`--spill-uses`: each use BARE vs IN-MEM (the AdtSelect discriminator)")
+ *    by hand: BARE-vs-IN-MEM is exactly the find_reloads_toplev-vs-
+ *    find_reloads_address fork above, and it is fully determined by whether
+ *    the C-level use is a dereference (always IN-MEM, always two reloads,
+ *    always barred) or a plain value use (always BARE, always one reload,
+ *    always self-tie-eligible).  `menu->choice_name` is irreducibly a
+ *    dereference — no C spelling changes which reload function handles it —
+ *    so site 1 can never reach the BARE path while site 2 and title's check
+ *    already sit on it.  `tools/regalloc.py` still has no `--spill-uses`
+ *    flag (checked: absent from its argparse definitions on master as of
+ *    this round) — it would have saved the manual reload.c/reload1.c read
+ *    above, and is worth building for the next residual of this shape, but
+ *    this round did NOT hand-simulate its output — it read the compiler's
+ *    actual source and the actual `.greg` RTL, which is the escalation the
+ *    cookbook prescribes for a sub-C tie once the tooling gap is confirmed.
+ *
+ * 5. Fresh measurements this round, current tooling, current master (c2e25ea
+ *    base): `tools/autorules.py AdtSelect` — 28 rules / 31 candidates (up
+ *    from round 4's 23; the ruleset has grown), still zero improving edits.
+ *    A bounded permuter run (`timeout 240 tools/permute.py AdtSelect --
+ *    --stop-on-zero -j4`, 22459 iterations + the authoritative rescore) —
+ *    still `9 / 9 / 776`, best candidate is the unmodified base.  The
+ *    permuter's own preflight now names this residual class on sight:
+ *    "a <=10-byte register-swap / adjacent-reorder residual is usually
+ *    sub-C-level (reload/sched) and permuter-immune."
+ *
+ * STATUS UNCHANGED: CURRENT(9), still parked.  Unlike some other functions'
+ * park prose in this project, round 4's mechanical citations were checked
+ * line-by-line against the real pinned gcc-2.8.1 source this round and are
+ * ALL accurate — this is not a re-assertion, it is an independent
+ * reproduction with exact line numbers.  A future round should only re-open
+ * this if it can show the target's site 1 is NOT `menu->choice_name` at all
+ * (e.g. a different field order, or the counting loop computing `name`
+ * as a byproduct) — anything that keeps it a dereference of a spilled
+ * pointer-to-struct cannot self-tie in this cc1.
  */
 
 #ifndef NON_MATCHING

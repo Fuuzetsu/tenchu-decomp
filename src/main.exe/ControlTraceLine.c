@@ -181,6 +181,70 @@
  * semantically broken (degree holds +-0x1000) and emits `sll ..,0x18` /
  * `sra ..,0x18` where the target has 0x10. Rejected.
  *
+ * THIS ROUND (independent re-derivation, no new bytes - CLOSES the reuse
+ * search rather than just re-trying it): a fresh task brief re-proposed
+ * "fix the double read first" as though untried. Re-verified both halves
+ * with a cleaner idiom, `d32 = *(u16 *)&trcl->point[idx].pad;` (a genuine
+ * pointer-retype, not the value-cast `(u16)x` already logged as a no-op):
+ *   - Double read ALONE (no `li` hoist): 512 bytes. asmdiff confirms the
+ *     split itself WORKS (`lhu a1,10(v1)` + `lh v1,10(v1)` both appear,
+ *     cse1 does not re-merge them), but with nothing to hold -1 early, the
+ *     tail needs a 5th instruction (`lh`,`lhu`,`li`,`bne`,`or`) instead of
+ *     the target's 4. Confirms the header's 508-byte finding for a
+ *     different double-read spelling was about the PAIRING, not that one
+ *     idiom - fixing the read alone is a real, reproducible regression, not
+ *     a spelling artifact. Do not re-propose it as a standalone fix.
+ *   - Double read + `a0`-reuse (this round's exact respelling: `s32 a0;
+ *     a0 = t; ... ; a0 = -1; if (sentinel == a0)`): 508 bytes. asmdiff shows
+ *     the `li` DOES land at the target's exact slot, 0x80029134 - the hoist
+ *     mechanism is confirmed working a second time, independently - but as
+ *     `li a1,-1`, not `a0`, and the whole ladder above it (0x80029094 to
+ *     0x800290c0) trades `a0`<->`a1` throughout, while the tail's base
+ *     register flips to `v0` and the `lh`/`lhu` order reverses (the load
+ *     that overwrites the base must come second). Byte-identical mechanism
+ *     to the already-recorded cascade, reproduced from scratch.
+ *   - NEW evidence that CLOSES the search (not just another failed try):
+ *     `tools/regalloc.py --order` on the committed baseline lists exactly
+ *     two `a0`-preferring pseudos (p128, p138). `tools/rtldump.py
+ *     ControlTraceLine --pass lreg` identifies p128 at insn 131,
+ *     `(reg:SI 128) = ashiftrt(ashift(t_pseudo,16),16)` - the compiler-
+ *     synthesized sign-extended value of `a0` itself, CSE'd across both
+ *     ladder comparisons (`0x801<=a0` and `a0<-0x7FF`). It is not an
+ *     independent candidate, it is the SAME C variable already tried. There
+ *     is no third natural a0 occupant in this function.
+ *   - General argument, not just another empirical negative: ANY reuse
+ *     needs the constant's pseudo to have REG_N_SETS >= 2 via a genuinely
+ *     LIVE (non-dead) earlier set. A pair of sets confined to the tail
+ *     block (e.g. a fresh `x = 0; x = -1;` immediately before the branch)
+ *     has no intervening read on ANY path, so gcc-2.8.1's flow.c removes
+ *     the first set as dead before sched1 ever runs - REG_N_SETS is back to
+ *     1 regardless of source distance between the two sets. The only way to
+ *     survive that is reusing a value with a REAL separate need elsewhere,
+ *     which is exactly what causes the cascade above. The two requirements
+ *     (non-dead second set / short live range) are structurally
+ *     unsatisfiable together in this function, not just unsolved.
+ *   - Fresh bounded permuter run (240s, -j4; tooling since updated with the
+ *     90s authoritative-rescore deadline). Authoritative full-link rescore:
+ *     base 10/10/504; best candidate 9/9/504
+ *     (`.shake/permuter/ControlTraceLine/RESULT.md`,
+ *     output-415-1/source.c). REJECTED after verifying by direct build:
+ *     it rewrites `if (sentinel == -1)` as
+ *     `if (sentinel == (new_var = -1))` with a freshly-introduced
+ *     `unsigned char new_var`. `-1` truncates to 255 through that assignment
+ *     - confirmed by disassembling the actual candidate build, which emits
+ *     `li v0,255` (`240200ff`), not `-1`. That silently changes the
+ *     wraparound-sentinel condition from `pad == -1` to `pad == 255`, which
+ *     would essentially never fire on real level data - a functional bug,
+ *     not a match, despite scoring lower on the proxy metric. This confirms
+ *     (with a concrete mechanism) the prior round's "not obviously better
+ *     structurally; not applied" caution on the same-shaped candidate.
+ * No improvement found this round; still parked at 10/504. Both open levers
+ * from the prior round (the double read alone, and the register-reuse
+ * hoist) are now independently reproduced AND, for the reuse lever,
+ * structurally closed - not just re-affirmed. Do not re-propose either
+ * without new RTL evidence naming a DIFFERENT pseudo/register than p128/
+ * p138/the a0<->a1 cascade already on record.
+ *
  * ControlTraceLine (0x80028fb0) - steer a character along its trace line:
  * distance to the current waypoint drives a "turn toward it" pad-like
  * result (`pad`, 0x1000 base), degree-of-turn escalates the result the same

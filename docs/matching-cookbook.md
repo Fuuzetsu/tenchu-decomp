@@ -1449,6 +1449,18 @@ re-check cheaply before honoring them:
   one bounded permuter pass before any RTL archaeology on a same-length
   residual; the ladder's autorules → permuter → RTL order stands even when a
   checkpoint's confident prose primes you to distrust re-running.
+- **A permuter WIN can be a semantic BUG — disassemble the constants whenever a
+  candidate introduces a new local.** A better proxy score is not a match, and
+  the failure is not always the known reachability trap (a moved/dropped `goto`
+  after an unconditional jump); this one corrupts a VALUE. ControlTraceLine's
+  best candidate scored 9/9/504 against a base of 10 by rewriting
+  `if (sentinel == -1)` as `if (sentinel == (new_var = -1))` through a fresh
+  **`unsigned char`** — silently truncating −1 to 255 (`li v0,255`,
+  `0x240200ff`, confirmed by disassembling the build). It compiles cleanly,
+  scores better, and would have made a wraparound-sentinel check never fire.
+  The permuter mutates C, not semantics — an assignment-expression inside a
+  comparison through a narrower fresh type is a whole class it can reach.
+  Re-running matchdiff on the score is NOT enough: read the emitted immediate.
 - **A length-neutral residual refuses control-flow fixes by arithmetic**: pure
   register tie + pure reorder with no missing/extra insns means a new branch
   (≥8 bytes on MIPS) converts a small tie into a strictly worse length
