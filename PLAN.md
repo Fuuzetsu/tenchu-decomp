@@ -80,22 +80,29 @@ library code — a different regime (per-TU flags like `-mno-split-addresses` pr
 necessary for `MemCardCallback`; see the cookbook's SDK boundary notes) and it wants its
 own plan before it is worth batching agents at.
 
-**Establish the asm boundary BEFORE that push — the ~958 figure overstates what is
-matchable.** The first libgte primitive touched (`TransMatrix`, 2026-07-17) turns out to
-be a **handwritten-asm original**, on two independent cc1-invariant tells: it colours
-its temps `t0/t1/t2` while `v1/a0/a1` sit free (impossible — mips.h defines no
-`REG_ALLOC_ORDER`, so *both* allocators walk hard regs numerically: `global.c:960`,
-`local-alloc.c:2266`), and it leaves a `jr ra` delay slot empty with an independent
-filler directly above it (reorg always fills that). PsyQ's libgte matrix primitives were
-historically hand-written assembly, so this is likely a class, not an instance — the
-same call the owner already made for `drawF3` + the 16 `draw*` siblings
-(`config/handwritten-asm.txt`, docs/gte-policy.md). A third flavour exists too: `SetRii`
-and `SetGeomOffset` are pure `ctc2` GTE register writes, reachable only through the
-`gte.h` macro layer + allowlist. **So the SDK is at least three populations — plain C,
-GTE-macro, and handwritten asm — and sizing it means classifying them first.** Each
-`handwritten-asm.txt` addition is an owner decision; `TransMatrix` is parked with its
-evidence awaiting one. `tools/matcher-prompt.py` refuses to brief anything already on
-that list.
+**The ~958 figure may overstate what is matchable — but that is a HYPOTHESIS with ONE
+data point, and it is not to be acted on until it has real data behind it** (owner
+directive, 2026-07-17). `TransMatrix` is parked as unmatchable on two cc1-invariant
+tells (temps in `t0/t1/t2` with `v1/a0/a1` free, which no numeric-walk allocation
+reaches — `global.c:960`, `local-alloc.c:2266`; and a `jr ra` delay slot left empty with
+an independent filler directly above it). Those tells are solid **for that one
+function**. What is NOT established is that they generalise to a class. Generalising a
+mechanism from one function's bytes is precisely how the argmove park-on-sight rule
+became false and cost us unknown matches (see the cookbook's §4 monument) — so the same
+move is not licensed here just because it points at "less work".
+
+Counter-evidence already exists: **`GsSetLsMatrix` MATCHED** (2026-07-17, first build) —
+a real libgs entry compiled from C. So the SDK is not uniformly asm, and at least three
+populations plausibly coexist: plain C, GTE-macro functions reachable only via `gte.h` +
+the allowlist (`SetRii`, `SetGeomOffset` are pure `ctc2` register writes), and possibly
+handwritten-asm originals. **Sizing the SDK means classifying it with data — a survey
+applying the tells mechanically across the SDK, not one function at a time.**
+
+**Current policy: park the clearly-asm-looking ones with their evidence and move on;
+prefer targets that are likely NOT asm until we run out.** Do not add to
+`config/handwritten-asm.txt` on inference — that list is an owner decision and each
+entry silently removes a function from the board forever. `tools/matcher-prompt.py`
+refuses to brief anything already on it.
 
 **The cookbook is being restructured** (audit: `docs/cookbook-audit.md`). It reached
 8,251 lines and the owner's read is that many of its rules are wrong or are mechanised

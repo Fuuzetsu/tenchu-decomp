@@ -41,17 +41,26 @@
  *    directly above it; reorg fills that slot every time — our build does exactly
  *    that, which is the whole 4-byte length difference. No C makes cc1 decline.
  *
- * Same class as drawF3 and the draw* family: an original whose asm IS the faithful
- * source. Historically consistent too — PsyQ's libgte matrix primitives were
- * hand-written assembly. If the owner agrees, add TransMatrix to
- * config/handwritten-asm.txt; progress.py will then count it as done-by-asm and
- * triage/matcher-prompt will refuse it as a target (matcher-prompt refuses that
- * class since d36384f). Until then it stays parked and honest.
+ * SCOPE OF THIS CLAIM — read this before citing the file. The two tells above are
+ * measured and they are about THIS FUNCTION. They do NOT establish a class. It is
+ * tempting to say "PsyQ's libgte primitives were hand-written assembly, so the
+ * SDK's matrix code is all asm" — that is a plausible story with ONE data point
+ * behind it, and generalising a mechanism from one function's bytes is exactly how
+ * the argmove "park on sight" rule became false and told lanes to abandon
+ * reachable functions (see the cookbook's §4). Counter-evidence already exists:
+ * GsSetLsMatrix, a real libgs entry, MATCHED from C on the first build.
  *
- * WORTH CHECKING BEFORE THE SDK PUSH: if libgte's primitives are broadly
- * hand-written, the "959 SDK functions remaining" figure in PLAN.md overstates
- * what is actually matchable, and the SDK plan should establish the boundary
- * first rather than discover it one function at a time.
+ * So: parked, not classified. NOT added to config/handwritten-asm.txt — that list
+ * is an owner decision and each entry silently removes a function from the board
+ * forever, which is a false-park risk at scale. Owner directive (2026-07-17):
+ * park the clearly-asm-looking ones, do not conclude the class without real data,
+ * and prefer likely-not-asm targets until we run out.
+ *
+ * If the class question is ever worth settling, settle it with a SURVEY, not a
+ * story: apply both tells mechanically across the SDK (a numeric-walk violation is
+ * decidable from the disassembly plus the free-register set; an unfilled delay slot
+ * with an independent producer directly above it is decidable too) and count. That
+ * is data. One function is an anecdote.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/TransMatrix", TransMatrix);

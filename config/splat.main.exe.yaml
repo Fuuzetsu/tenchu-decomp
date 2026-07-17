@@ -834,4 +834,6 @@ segments:
       - { start: 0x67B78, type: data, linker_section_order: .text }
       - [0x717EC, c, MemCardCallback]
       - { start: 0x71800, type: data, linker_section_order: .text }
+      - [0x722B4, c, _card_clear]
+      - { start: 0x722E8, type: data, linker_section_order: .text }
   - [0x87800]
