@@ -25,8 +25,16 @@
                      "lwc2\t$4, 0(%2);lwc2\t$5, 4(%2)"                         \
                      : : "r"(r0), "r"(r1), "r"(r2))
 
-/* Load the RGB/code word (C2 data reg 6) from memory. */
-#define gte_ldrgb(mem) __asm__ volatile("lwc2\t$6, %0" : : "m"(mem))
+/* Load the RGB/code word (C2 data reg 6) through a POINTER — verbatim PsyQ
+ * INLINE_N.H form ("r" operand, so the address is materialised in a register
+ * and never folded into the lwc2 displacement; FUN_80059ff4's target proves
+ * the `addiu t0,t3,4; lwc2 $6,0(t0)` shape). */
+#define gte_ldrgb(r0) __asm__ volatile("lwc2\t$6, 0( %0 )" : : "r"(r0))
+
+/* Reconstruction helper for HANDWRITTEN asm (drawF3): the "m" spelling lets
+ * cc1 fold a constant offset into the lwc2 displacement, which the compiled
+ * INLINE_N.H form above cannot produce. */
+#define gte_ldrgb_mem(mem) __asm__ volatile("lwc2\t$6, %0" : : "m"(mem))
 
 /* Load a value into IR0 (C2 data reg 8) — the interpolation factor consumed
  * by DPCS/DPCT/INTPL. Verbatim from the real PsyQ SDK's INLINE_C.H, which
@@ -34,8 +42,13 @@
  * depth-cueing pipeline, not specific to one command). */
 #define gte_lddp(r) __asm__ volatile("mtc2\t%0, $8" : : "r"(r))
 
-/* Store RGB2 (C2 data reg 22, the last depth-cued colour) to memory. */
-#define gte_strgb(mem) __asm__ volatile("swc2\t$22, %0" : "=m"(mem))
+/* Store RGB2 (C2 data reg 22, the last depth-cued colour) through a POINTER —
+ * verbatim PsyQ INLINE_N.H form. */
+#define gte_strgb(r0) __asm__ volatile("swc2\t$22, 0( %0 )" : : "r"(r0) : "memory")
+
+/* Reconstruction helper for HANDWRITTEN asm (drawF3): offset-foldable "m"
+ * spelling, see gte_ldrgb_mem. */
+#define gte_strgb_mem(mem) __asm__ volatile("swc2\t$22, %0" : "=m"(mem))
 
 /* Store SXY0/SXY1/SXY2 (C2 data regs 12/13/14) into a POLY_F3 packet's
  * three screen-XY fields (offsets 8/0xC/0x10). */
@@ -75,8 +88,23 @@
                      "swc2\t$18, 0(%2);swc2\t$19, 0(%3)"                       \
                      : : "r"(a), "r"(b), "r"(c), "r"(d))
 
-/* Read the FLAG control register (C2 control reg 31) into a CPU register. */
-#define gte_stflg(r) __asm__ volatile("cfc2\t%0, $31" : "=r"(r))
+/* Read the FLAG control register (C2 control reg 31) and store it through a
+ * POINTER — verbatim PsyQ INLINE_N.H form: the value stages through the
+ * HARDCODED $12 (t4) with the cop-move hazard nop, and the store is inside
+ * the asm. FUN_80059ff4's target (`cfc2 t4,$31; nop; sw t4,0(v0)`) is this
+ * macro exactly; a "=r" spelling can never reach $12 there (v1/a0/t0 are all
+ * free at that point and the allocator walks upward from $2). */
+#define gte_stflg(r0)                                                          \
+    __asm__ volatile("cfc2\t$12, $31;"                                         \
+                     "nop;"                                                    \
+                     "sw\t$12, 0( %0 )"                                        \
+                     :                                                         \
+                     : "r"(r0)                                                 \
+                     : "$12", "memory")
+
+/* Reconstruction helper for HANDWRITTEN asm (drawF3): read FLAG straight into
+ * a C variable — the hand-scheduled shape, not the INLINE_N.H macro. */
+#define gte_stflg_reg(r) __asm__ volatile("cfc2\t%0, $31" : "=r"(r))
 
 /* Read SZ1/SZ2/SZ3 (C2 data regs 17/18/19) into CPU REGISTERS.
  * `gte_stsz3` proper is the memory-store form above (that is what INLINE_N.H's

@@ -7,289 +7,249 @@
  * renderer, TMD primitive code 0x25 in FUN_800593a0's switch (paired there
  * with FUN_8005961c/FUN_80059b08/FUN_8005a3cc — all four called with the
  * identical (u_short *, u_long, u_long *, u_short, u_long *) signature).
- * Builds one POLY_GT3 (Gouraud-shaded, textured triangle, GPU code 0x34 —
- * reference/psxsym-types.h's recorded 40-byte layout matches every offset
- * this function touches exactly) output packet per input record: transforms
- * the record's 3 vertex indices through the GTE (RTPT), discards
- * back-facing/degenerate triangles (NCLIP MAC0 <= 0), discards triangles
- * whose screen-space bbox misses the caller's clip rectangle, computes an
- * OTZ bucket index from the rounded max depth, applies depth-cueing (DPCS)
- * to each vertex's pre-baked color when within the far-fog range, then
- * copies the finished packet into the caller's output list and re-links the
- * caller's OT bucket to point at it.
+ * Builds one POLY_GT3 (Gouraud-shaded, textured triangle, GPU code 0x34)
+ * output packet per input record: transforms the record's 3 vertex indices
+ * through the GTE (RTPT), discards back-facing/degenerate triangles (NCLIP
+ * MAC0 <= 0), discards triangles whose screen-space bbox misses the caller's
+ * clip rectangle, computes an OTZ bucket index from the max depth / 4,
+ * applies depth-cueing (DPCS) to each vertex's baked colour when beyond the
+ * far-fog range, then copies the finished packet into the caller's output
+ * list and re-links the caller's OT bucket to point at it.
  *
  * param_5 ("work") is the shared per-call rendering context also used by the
- * sibling pair FUN_80058c70/FUN_80059008 (offsets 0x94/0x98/0x9c/0xa0 =
- * screen clip box match FUN_800593a0's own setup of that same struct at
- * entry) — this function additionally uses +0x34 (POLY_GT3 staging), +0x38
- * (a SEPARATE cached pointer 4 bytes into the same staging area — see
- * below), +0x5c/+0x60/+0x64 (per-vertex SZ), +0x74 (GTE FLAG), +0x78 (OTZ
- * index), +0x80 (NCLIP/MAC0 winding), +0x84 (near-Z reject threshold), +0x88
- * (OT bucket shift), +0x8c (far-fog Z), +0x90 (indirect OT table pointer).
+ * sibling pair FUN_80058c70/FUN_80059008: +0x34 POLY_GT3 staging, +0x38 the
+ * staging code byte's word, +0x5c/+0x60/+0x64 per-vertex SZ, +0x74 GTE FLAG,
+ * +0x78 OTZ index, +0x80 NCLIP/MAC0 winding, +0x84 near-Z reject threshold,
+ * +0x88 OT bucket shift, +0x8c far-fog Z, +0x90 indirect OT table pointer,
+ * +0x94/+0x98/+0x9c/+0xa0 screen clip box.
  *
- * Matching notes:
- *  - Compiled-style GTE function under the restricted gte.h policy
- *    (docs/gte-policy.md, config/gte-allowlist.txt) — the COP2 moves and
- *    commands are the original INLINE_N.H mechanism. Two macros were
- *    missing and are added in gte.h, both verbatim from the real PsyQ SDK's
- *    INLINE_C.H (the INLINE_N.H equivalent in the extracted psyq4.5 tree):
- *    `gte_lddp` (mtc2 to $8/IR0, feeds DPCS's depth-cue factor) and
- *    `gte_stsxy3_gt3` (the GT3-strided SXY store, offsets 8/0x14/0x20 —
- *    Ghidra had already guessed this exact name from the offset pattern;
- *    the real header confirms it byte for byte, no nops on either macro).
- *  - GOTO LOOP, not do-while. The sibling pair FUN_80058c70/FUN_80059008
- *    (same DrawTMD render family, same "walking record pointer read at
- *    small fixed offsets" shape) independently measured that a genuine
- *    do-while triggers loop.c strength reduction into a second parallel
- *    induction register; only a hand `goto` loop (no NOTE_INSN_LOOP, no
- *    hoisting) reproduced the target. Applied here on the same evidence: all
- *    six values live across every iteration (prim, codeAddr, codeVal,
- *    rec, and the two pointers folded into gte_stsz3's call) are plain
- *    locals assigned once before `loop_top:`, reproducing the target's six
- *    simultaneously-live preheader registers (t3/t8/t9/t7/t6/t5) with no
- *    loop optimizer involved.
- *  - `int param_4`, not u_short, mirrors the caller's unmasked
- *    `addiu a3,a3,-1; bnez a3` — same lesson as FUN_80058c70 (the caller's
- *    extern says u_short count; the callee is ABI-compatible as int, and
- *    the unmasked branch proves it is one).
- *  - The whole guard chain (FLAG<0, winding<=0, X/Y bbox miss, near-Z miss)
- *    is a flat `if (reject) goto next;` ladder, not nested ifs — all seven
- *    reject branches in the target address the exact same label (the
- *    decrement-and-continue tail), the multi-guard-clause shape (cookbook
- *    3.2).
- *  - Each min/max-of-3 ladder (screen X, screen Y, then the three raw SZs)
- *    is `lo=a; hi=b; if (b<a) {lo=b;hi=a;} if (c<lo) lo=c; else if (hi<c)
- *    hi=c;` — traced instruction-by-instruction off the raw asm (the
- *    interesting bit is that the compare-then-delay-slot pairing makes `a0`
- *    end up holding the true min and `t0` the true max on EVERY exit path,
- *    so no third "which-one-changed" temp is needed, unlike Ghidra's
- *    comma-expression rendering of the same bytes).
- *  - The OTZ index is a plain signed `/4`: cc1's magic sequence for signed
- *    division by a power of two (`(hi<0 ? hi+3 : hi) >> 2`) reproduces the
- *    target's `bgez/addiu 3/sra 2` exactly; do not hand-spell the +3.
- *  - `work->farZ` (+0x8c) is captured in a local ONLY for the outer guard +
- *    the first DPCS block (matching the target reusing one register there);
- *    the second and third DPCS blocks re-read `*(s32 *)(...+0x8c)` fresh —
- *    the target reloads it every time even though nothing clobbers the
- *    register in between, so this is source structure, not allocator
- *    behaviour ("target's redundant reload = a fresh field dereference in
- *    source", cookbook 3.4).
- *  - The color word at `rec+0` is read three separate times (once before
- *    NCLIP for vertex0, twice more after NCLIP for vertex1/vertex2 — all
- *    three vertices share ONE baked color): three literal dereferences, not
- *    a cached temp, matching the target's three un-CSE'd `lw`s.
- *  - The final packet copy (40 bytes: two 16-byte loop iterations then an
- *    8-byte remainder) and the "mask low 24 bits into the OT slot" tail are
- *    IDENTICAL in the sibling FUN_8005a3cc's own disassembly (confirmed
- *    with `tools/tdis.py` on both) — the two functions are
- *    instruction-for-instruction identical, differing only in embedded
- *    constants (record stride/offsets, packet field layout). Whatever
- *    structure closes this function should transcribe directly.
+ * Matching notes (this file applies the FUN_80058c70 recipe; read that
+ * header for the full mechanism account):
+ *  - -fno-strength-reduce FOR THIS TU (Build.hs ccExtraFlags + permute.py
+ *    CC_EXTRA_FLAGS). Tell in THIS leaf: the target walks ONE record cursor
+ *    (t5, offsets -12..+8, bumped 0x1c in the loop-back delay slot); with SR
+ *    on, loop.c reduces the rec-relative giv class into a second base the
+ *    target provably lacks (the old draft's t8=a0+12 alongside t9=a0+16).
+ *    Real do-while loop notes stay ON (ref weighting drives the priority
+ *    allocation that fills every caller-saved register).
+ *  - The 40-byte packet copy is a STRUCT ASSIGNMENT, not a hand loop:
+ *    mips.c expand_block_move (40 > 2*MAX_MOVE_BYTES) emits copy_addr_to_reg
+ *    copies (move t2,a2 / move t0,t3), final_src (addiu a0,t0,0x20), a
+ *    16-byte movstrsi_internal loop and an 8-byte straight remainder. The
+ *    lw/sw temps are the FOUR match_scratch "=&d" clobbers of that one insn,
+ *    assigned by RELOAD from potential_reload_regs — and order_regs_for_reload
+ *    (no REG_ALLOC_ORDER) lists [unused caller-saved ascending] then [unused
+ *    callee-saved ascending]. Every caller-saved reg is occupied by a pseudo
+ *    here, so the scratches get s0-s3: the target's copy-loop registers and
+ *    its entire prologue (only s0-s3 saved) fall out of reload, not the
+ *    allocator. No C-level copy temps can reproduce that.
+ *  - gte_stflg is the SDK INLINE_N.H pointer form (cfc2 $12; nop; sw $12) —
+ *    the target's cfc2 t4 is the macro's HARDCODED staging register, not an
+ *    allocated variable (v1/a0/t0 are free there; no "=r" local can reach
+ *    t4). gte_ldrgb/gte_strgb likewise take the POINTER ("r"), keeping the
+ *    rgbPtr addiu materialised (the "m" forms folded it into the lwc2).
+ *  - The three invariant GTE address temps (work+0x74/+0x80/+0x64) are
+ *    IN-MACRO-ARG expressions, exactly like the matched sibling's
+ *    gte_stopz(pkt + 6): each is a fresh single-use temp that local_alloc
+ *    colours v0, scheduled BELOW the preceding mem-to-mem copy (the target's
+ *    stall nops before them are real: an own-statement `addr =` variable
+ *    instead gets backward-scheduled into the load-delay bubble, overlaps
+ *    the colour temp's v0 life, and is exiled to v1 — measured, 3 sites).
+ *    58-threshold move_movables does NOT hoist them (score ~116-174 vs
+ *    insn_count ~210).
+ *  - Min/max ladders: `lo` doubles as the FIRST operand (no separate `a`),
+ *    and `hi = lo` sits INSIDE the then-arm: `if (b < lo) { hi = lo;
+ *    lo = b; } else hi = b;`. Outside the arm, optimize_reg_copy_1
+ *    propagates the copy into the compare (slt reads hi), transferring lo's
+ *    refs to hi and inverting their allocation ranks; inside, the immediate
+ *    `lo = b` redefinition blocks the scan. reorg then steals hi=lo (the
+ *    fallthrough leader) into the beqz delay slot — it executes on both
+ *    paths, dead on the else path.
+ *  - The SZ ladder's max is a SEPARATE variable from the screen ladders'
+ *    (`otz`, the depth that becomes the OT bucket index — its /4's three
+ *    RTL mentions plus z1<otz would otherwise push a merged `hi` to 36
+ *    weighted refs / live 50 = priority 36000, outranking lo's 42/65 =
+ *    32307 and stealing a0). Split: lo(42w) > otz(29090) > hi(28571), so
+ *    lo->a0 first and both maxes share t0 (disjoint lives).
+ *  - DPCS blocks: two reused scratch locals. z1 = farZ guard (block 1) then
+ *    sz1/sz2 (blocks 2/3); z2 = sz0 (block 1) then the farZ RELOADS (blocks
+ *    2/3, one load each, held across dpcs). Each field is read ONCE per
+ *    block into its local; the register role swap between block 1 and
+ *    blocks 2/3 (a0/v1) is exactly this variable identity. Each strgb
+ *    guard's CONDITION is written into the dying z2 itself (`z2 = z1 < z2;
+ *    if (z2 != 0)`) — one variable one register, so the slt/beqz pair reads
+ *    v1 where a fresh compare temp would take v0.
+ *  - The OTZ index is a plain signed otz/4 (bgez/addiu 3/sra 2), and
+ *    `*(work+0x78) = otz/4` precedes the near-Z guard so the store lands in
+ *    the reject branch's delay slot.
+ *  - `prim = work + 0x34` sits ABOVE the `if (param_4 != 0)` guard: it is
+ *    the only insn reorg's backward scan may steal into the entry beqz's
+ *    delay slot (inside the guard, the scan takes `sw s0,0(sp)` instead and
+ *    the whole prologue rotates). Dead but harmless when param_4 == 0.
  */
 
-/*
- * STATUS: NON_MATCHING at 619/984 — and that number is the finding, not a failure.
- * Its two family siblings sit at 620/920 (FUN_80058c70) and 620/920
- * (FUN_80059008). Three independent drafts, three ~620-byte residuals, and
- * FUN_80059008's round confirmed the same `.greg` signature driving all of them:
- * one conflict (param_1's pseudo vs the hard register $a0) cascading across the
- * whole function — `matchdiff --clusters` puts 185 of 230 insns in ONE cluster.
- * Landing on the sibling's exact residual from an independent draft is
- * cross-validation that this is a family-wide compiler limitation rather than a
- * drafting error.
- *
- * The permuter cannot search this class at all: gte.h's inline asm defeats its C
- * parser, and permute.py refuses up front and says so (docs/gte-policy.md).
- * autorules found no improving edit.
- *
- * PROVENANCE: salvaged. The lane that drafted this backgrounded a tool, ended its
- * turn waiting for a notification that cannot wake a finished agent, and died
- * without committing — the second lane to do that today. The draft, its identity
- * work (POLY_GT3 / TMD primitive code 0x25, layout cross-checked against
- * reference/psxsym-types.h) and the gte.h `gte_lddp` addition are all sound: the
- * default build is byte-identical, the draft builds, and a full `./Build clean &&
- * ./Build check` proves the shared-header change breaks no other GTE function.
- * The whole family is on config/gte-allowlist.txt, so the macros are legitimate.
- *
- * NEXT: do not re-derive the shape — clone it. FUN_8005a3cc is a 1.00 mnemonic
- * clone of this function (findsimilar now reports clone groups), so whatever
- * moves this one moves that one for a constants edit. The lever, if it exists, is
- * the param_1/$a0 conflict and it is shared with FUN_80058c70/FUN_80059008: fix it
- * once, collect ~3.9k bytes.
- */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80059ff4", FUN_80059ff4);
-#else
+typedef struct {
+    u_long tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad2;
+} POLY_GT3; /* 40 bytes — reference/psxsym-types.h */
+
 u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int param_4, u_long *param_5)
 {
-    u8 *rec;
+    u8 *work;
     u8 *prim;
     u8 *codeAddr;
     s32 codeVal;
     u_long *sz0Ptr;
     u_long *sz1Ptr;
-    u32 idx0, idx1, idx2;
-    s16 flag;
-    s32 a, b, c, lo, hi;
-    s32 farZ;
-    u_long *otSlot;
+    u8 *rec;
     u_long *rgbPtr;
-    s32 *flagAddr;
-    u_long *src;
-    u_long *dst;
-    u_long *bound;
-    u_long tag;
-    u_long w0, w1, w2, w3;
-    u_long maskedAddr;
+    u_long *otSlot;
+    u32 idx0, idx1, idx2;
+    s32 b, c, lo, hi, otz;
+    s32 z1, z2;
 
+    work = (u8 *)param_5;
+    prim = work + 0x34;
     if (param_4 != 0) {
-        prim = (u8 *)param_5 + 0x34;
-        codeAddr = (u8 *)param_5 + 0x38;
+        codeAddr = work + 0x38;
         codeVal = 0x34;
-        sz0Ptr = (u_long *)((u8 *)param_5 + 0x5C);
-        sz1Ptr = (u_long *)((u8 *)param_5 + 0x60);
+        sz0Ptr = (u_long *)(work + 0x5C);
+        sz1Ptr = (u_long *)(work + 0x60);
         rec = (u8 *)param_1 + 0x10;
-
         do {
-        idx0 = *(u16 *)(rec + 4);
-        idx1 = *(u16 *)(rec + 6);
-        idx2 = *(u16 *)(rec + 8);
-        gte_ldv3((SVECTOR *)(idx0 * 8 + param_2), (SVECTOR *)(idx1 * 8 + param_2),
-                 (SVECTOR *)(idx2 * 8 + param_2));
-        gte_rtpt();
+            idx0 = *(u16 *)(rec + 4);
+            idx1 = *(u16 *)(rec + 6);
+            idx2 = *(u16 *)(rec + 8);
+            gte_ldv3((SVECTOR *)(idx0 * 8 + param_2), (SVECTOR *)(idx1 * 8 + param_2),
+                     (SVECTOR *)(idx2 * 8 + param_2));
+            gte_rtpt();
 
-        *(s32 *)(prim + 0xC) = *(s32 *)(rec - 12);
-        *(s32 *)(prim + 0x18) = *(s32 *)(rec - 8);
-        *(s32 *)(prim + 0x24) = *(s32 *)(rec - 4);
-        *(s32 *)(prim + 4) = *(s32 *)rec;
-        *(codeAddr + 3) = (u8)codeVal;
-        flagAddr = (s32 *)((u8 *)param_5 + 0x74);
-        gte_stflg(flag);
-        *flagAddr = flag;
-        if (*(volatile s32 *)((u8 *)param_5 + 0x74) < 0) goto next;
+            *(s32 *)(prim + 0xC) = *(s32 *)(rec - 12);
+            *(s32 *)(prim + 0x18) = *(s32 *)(rec - 8);
+            *(s32 *)(prim + 0x24) = *(s32 *)(rec - 4);
+            *(s32 *)(prim + 4) = *(s32 *)rec;
+            codeAddr[3] = codeVal;
+            gte_stflg((u_long *)(work + 0x74));
+            if (*(s32 *)(work + 0x74) < 0) goto next;
 
-        gte_nclip();
-        *(s32 *)(prim + 0x10) = *(s32 *)rec;
-        *(s32 *)(prim + 0x1C) = *(s32 *)rec;
-        gte_stopz((u_long *)((u8 *)param_5 + 0x80));
-        if (*(s32 *)((u8 *)param_5 + 0x80) <= 0) goto next;
+            gte_nclip();
+            *(s32 *)(prim + 0x10) = *(s32 *)rec;
+            *(s32 *)(prim + 0x1C) = *(s32 *)rec;
+            gte_stopz((u_long *)(work + 0x80));
+            if (*(s32 *)(work + 0x80) <= 0) goto next;
 
-        gte_stsxy3_gt3(prim);
+            gte_stsxy3_gt3(prim);
 
-        a = *(s16 *)(prim + 8);
-        b = *(s16 *)(prim + 0x14);
-        if (b < a) {
-            lo = b;
-            hi = a;
-        } else {
-            lo = a;
-            hi = b;
-        }
-        c = *(s16 *)(prim + 0x20);
-        if (c < lo) {
-            lo = c;
-        } else if (hi < c) {
-            hi = c;
-        }
-        if (hi < *(s32 *)((u8 *)param_5 + 0x94)) goto next;
-        if (*(s32 *)((u8 *)param_5 + 0x98) < lo) goto next;
+            lo = *(s16 *)(prim + 8);
+            b = *(s16 *)(prim + 0x14);
+            if (b < lo) {
+                hi = lo;
+                lo = b;
+            } else {
+                hi = b;
+            }
+            c = *(s16 *)(prim + 0x20);
+            if (c < lo) {
+                lo = c;
+            } else if (hi < c) {
+                hi = c;
+            }
+            if (hi < *(s32 *)(work + 0x94)) goto next;
+            if (*(s32 *)(work + 0x98) < lo) goto next;
 
-        a = *(s16 *)(prim + 0xA);
-        b = *(s16 *)(prim + 0x16);
-        if (b < a) {
-            lo = b;
-            hi = a;
-        } else {
-            lo = a;
-            hi = b;
-        }
-        c = *(s16 *)(prim + 0x22);
-        if (c < lo) {
-            lo = c;
-        } else if (hi < c) {
-            hi = c;
-        }
-        if (hi < *(s32 *)((u8 *)param_5 + 0x9C)) goto next;
-        if (*(s32 *)((u8 *)param_5 + 0xA0) < lo) goto next;
+            lo = *(s16 *)(prim + 0xA);
+            b = *(s16 *)(prim + 0x16);
+            if (b < lo) {
+                hi = lo;
+                lo = b;
+            } else {
+                hi = b;
+            }
+            c = *(s16 *)(prim + 0x22);
+            if (c < lo) {
+                lo = c;
+            } else if (hi < c) {
+                hi = c;
+            }
+            if (hi < *(s32 *)(work + 0x9C)) goto next;
+            if (*(s32 *)(work + 0xA0) < lo) goto next;
 
-        gte_stsz3(sz0Ptr, sz1Ptr, (u_long *)((u8 *)param_5 + 0x64));
-        a = *(s32 *)((u8 *)param_5 + 0x5C);
-        b = *(s32 *)((u8 *)param_5 + 0x60);
-        if (b < a) {
-            lo = b;
-            hi = a;
-        } else {
-            lo = a;
-            hi = b;
-        }
-        c = *(s32 *)((u8 *)param_5 + 0x64);
-        if (c < lo) {
-            lo = c;
-        } else if (hi < c) {
-            hi = c;
-        }
-        *(s32 *)((u8 *)param_5 + 0x78) = hi / 4;
-        if (*(s32 *)((u8 *)param_5 + 0x84) < lo) goto next;
+            gte_stsz3(sz0Ptr, sz1Ptr, (u_long *)(work + 0x64));
+            lo = *(s32 *)(work + 0x5C);
+            b = *(s32 *)(work + 0x60);
+            if (b < lo) {
+                otz = lo;
+                lo = b;
+            } else {
+                otz = b;
+            }
+            c = *(s32 *)(work + 0x64);
+            if (c < lo) {
+                lo = c;
+            } else if (otz < c) {
+                otz = c;
+            }
+            *(s32 *)(work + 0x78) = otz / 4;
+            if (*(s32 *)(work + 0x84) < lo) goto next;
 
-        farZ = *(s32 *)((u8 *)param_5 + 0x8C);
-        if (farZ < hi) {
-            rgbPtr = (u_long *)(prim + 4);
-            gte_ldrgb(*rgbPtr);
-            gte_lddp(*(s32 *)((u8 *)param_5 + 0x5C) - farZ);
-            gte_dpcs();
-            if (farZ < *(s32 *)((u8 *)param_5 + 0x5C)) {
-                gte_strgb(*rgbPtr);
+            z1 = *(s32 *)(work + 0x8C);
+            if (z1 < otz) {
+                rgbPtr = (u_long *)(prim + 4);
+                z2 = *(s32 *)(work + 0x5C);
+                gte_ldrgb(rgbPtr);
+                gte_lddp(z2 - z1);
+                gte_dpcs();
+                z2 = z1 < z2;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
+
+                rgbPtr = (u_long *)(prim + 0x10);
+                z1 = *(s32 *)(work + 0x60);
+                gte_ldrgb(rgbPtr);
+                z2 = *(s32 *)(work + 0x8C);
+                gte_lddp(z1 - z2);
+                gte_dpcs();
+                z2 = z2 < z1;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
+
+                rgbPtr = (u_long *)(prim + 0x1C);
+                z1 = *(s32 *)(work + 0x64);
+                gte_ldrgb(rgbPtr);
+                z2 = *(s32 *)(work + 0x8C);
+                gte_lddp(z1 - z2);
+                gte_dpcs();
+                z2 = z2 < z1;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
             }
 
-            rgbPtr = (u_long *)(prim + 0x10);
-            gte_ldrgb(*rgbPtr);
-            gte_lddp(*(s32 *)((u8 *)param_5 + 0x60) - *(s32 *)((u8 *)param_5 + 0x8C));
-            gte_dpcs();
-            if (*(s32 *)((u8 *)param_5 + 0x8C) < *(s32 *)((u8 *)param_5 + 0x60)) {
-                gte_strgb(*rgbPtr);
-            }
+            otSlot = *(u_long **)(*(u_long *)(work + 0x90) + 4) +
+                     (*(s32 *)(work + 0x78) >> *(s32 *)(work + 0x88));
+            *(u_long *)prim = *otSlot;
+            prim[3] = 9;
+            *(POLY_GT3 *)param_3 = *(POLY_GT3 *)prim;
+            *otSlot = (u_long)param_3 & 0xFFFFFF;
+            param_3 += 10;
 
-            rgbPtr = (u_long *)(prim + 0x1C);
-            gte_ldrgb(*rgbPtr);
-            gte_lddp(*(s32 *)((u8 *)param_5 + 0x64) - *(s32 *)((u8 *)param_5 + 0x8C));
-            gte_dpcs();
-            if (*(s32 *)((u8 *)param_5 + 0x8C) < *(s32 *)((u8 *)param_5 + 0x64)) {
-                gte_strgb(*rgbPtr);
-            }
-        }
-
-        dst = param_3;
-        src = (u_long *)prim;
-        otSlot = *(u_long **)(*(u_long *)((u8 *)param_5 + 0x90) + 4) +
-                 (*(s32 *)((u8 *)param_5 + 0x78) >> *(s32 *)((u8 *)param_5 + 0x88));
-        bound = src + 8;
-        tag = *otSlot;
-        *(u_long *)prim = tag;
-        *(prim + 3) = 9;
-    copy_top:
-        w0 = src[0];
-        w1 = src[1];
-        w2 = src[2];
-        w3 = src[3];
-        dst[0] = w0;
-        dst[1] = w1;
-        dst[2] = w2;
-        dst[3] = w3;
-        src += 4;
-        dst += 4;
-        if (src != bound) goto copy_top;
-        maskedAddr = (u_long)param_3 & 0xFFFFFF;
-        param_3 += 10;
-        w1 = src[1];
-        dst[0] = src[0];
-        dst[1] = w1;
-        *otSlot = maskedAddr;
-
-    next:
-        param_4--;
-        rec += 0x1C;
+        next:
+            param_4--;
+            rec += 0x1C;
         } while (param_4 != 0);
     }
     return param_3;
 }
-#endif

@@ -142,11 +142,11 @@ loop:
         {
             *ot_slot = (u_long)packet;
             *((u8 *)ot_slot + 3) = 0;
-            gte_strgb(packet[1]);
+            gte_strgb_mem(packet[1]);
             *((u8 *)packet + 7) = (u8)code;
             packet += 5;
         }
-        gte_stflg(flag);
+        gte_stflg_reg(flag);
         /* This assignment expression keeps the reset after cfc2 and before
          * the flag test; see the coupled two-word residual above. */
         if ((flag & mask) == (code = 0))
@@ -168,7 +168,7 @@ loop:
                     ot_slot = (u_long *)((int)ot_slot * 4);
                     if (half < 0)
                     {
-                        gte_ldrgb(prim->rgb);
+                        gte_ldrgb_mem(prim->rgb);
                         ot_slot = (u_long *)((int)ot_slot + ot_base);
                         mac0 = *ot_slot;
                         gte_dpcs_raw();
@@ -192,7 +192,7 @@ loop:
     {
         *ot_slot = (u_long)packet;
         *((u8 *)ot_slot + 3) = 0;
-        gte_strgb(packet[1]);
+        gte_strgb_mem(packet[1]);
         *((u8 *)packet + 7) = (u8)code;
         packet += 5;
     }
