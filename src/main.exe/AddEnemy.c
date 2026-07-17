@@ -47,58 +47,95 @@
  * draft has 27 differing bytes
  * (183 -> 161 -> 125 -> 81 -> 72 -> 52 -> 42 -> 35 -> 29 -> 27).
  *
- * ROUND 13 (+-0): (E) IS CLOSED WITH A PROOF, AND ROUND 12's "INVERSION" WAS
- * ITSELF THE ERROR.  ROUND 7 WAS RIGHT ALL ALONG.  All 27 remaining bytes now
- * have a mechanism-level proof of unreachability from C; there is no live
- * lead.  Byte accounting, re-measured this round (matchdiff -n after a real
- * rebuild, not inherited):
- *     (A) 14B  0x5d4-0x5e0  loop-1 preheader ORDER   — barred, needs E3
- *     (C)  1B  0x81c        `move a1,s0` vs `,s1`    — barred (loop.c/cse2)
- *     (E) 12B  0x8dc-0x8e4  `move a0,s7` position    — PROVED UNREACHABLE
+ * ROUND 14 (+-0): ROUND 13's FIVE-STEP PROOF OF (E) IS WITHDRAWN — IT READS
+ * THE WRONG PASS AND THE WRONG TIEBREAK.  (E) is still unmatched, but it is
+ * NOT "proved unreachable"; the mechanism that decides it has been misnamed
+ * for two rounds.  Byte accounting, re-measured this round (matchdiff -n after
+ * a real rebuild, not inherited):
+ *     (A) 14B  0x5d4-0x5e0  loop-1 preheader ORDER   — same ROTATION as (E)
+ *     (C)  1B  0x81c        `move a1,s0` vs `,s1`    — untested since (E) moved
+ *     (E) 12B  0x8dc-0x8e4  `move a0,s7` position    — OPEN, mechanism renamed
  *
- * (0) **DO NOT REOPEN (E).  cc1 PRINTS THE REFUTATION ITSELF.**  Round 12
- *     wrote that the CamState `high` "HEADS a ~7-deep chain ... i.e. the
- *     HIGHEST height in the block", declared round 7's "priority 1 — the
- *     floor" inverted, and re-chartered (E) as "attack HEIGHT, not ORDER".
- *     That is wrong, and the fix is to READ THE TRACE rather than the RTL
- *     body: the `.sched` dump already contains cc1's own priority print
- *     (sched.c:3686), and for THIS draft it says
- *         ;; insn[1460]: priority = 1, ref_count = 1   <- CamState high
- *         ;; insn[1488]: priority = 1, ref_count = 1   <- move a0,s7
- *         ;; insn[1465]: priority = 2, ref_count = 7
- *         ;; insn[1468]: priority = 3, ref_count = 5
- *         ;; insn[1492]: priority = 4, ref_count = 1
- *     The two insns are TIED at the floor.  Two independent tells that
- *     `priority` is DEPTH-FROM-TOP and not height-to-the-jal: it *increases*
- *     down the chain (1,1,1,2,3,4 — a height metric would run the other way),
- *     and priority() (sched.c:1452) initialises `max_priority = 1` and only
- *     raises it by walking LOG_LINKS, which are PRODUCERS.  An insn with
- *     `LOG_LINKS (nil)` therefore has priority exactly 1, unconditionally, and
- *     MIPS defines no ADJUST_PRIORITY hook.  Round 12's "~7-deep" is the
- *     `ref_count = 7` column — and it belongs to insn 1465, not 1460.
+ * (0) **(E) IS DECIDED IN sched2, NOT sched1, AND BY potential_hazard, NOT
+ *     LUID.**  Round 13's proof is built entirely on the `.sched` (sched1)
+ *     priority print.  Two of its steps are measurably false; reproduce with
+ *     `tools/sched-deps.py AddEnemy --pass sched --block 32 --asm` (the tool
+ *     self-validates against cc1's own post-pass chain and refuses to print on
+ *     divergence):
  *
- *     The proof that (E) is unreachable, each step verified against the pinned
- *     gcc-2.8.1 (nix store 117i80brbgcdmcl46gmpzwizikbjyx5m):
- *      1. sched is a BACKWARD list scheduler: schedule_insn walks LOG_LINKS to
- *         ready the PRODUCER ("in the backwards dataflow sense"), and
- *         schedule_block does `tail = insn` for the FIRST insn scheduled.  So
- *         first-selected == placed LAST.
- *      2. It takes `ready[0]` (sched.c:3785), and rank_for_schedule is
- *         priority DESC -> class DESC -> **LUID DESC**.
- *      3. 1460 and 1488 are both priority 1 (measured above), so the tie falls
- *         through to LUID: the HIGHER LUID is selected first and lands LATER.
- *      4. LUID(1488) > LUID(1460) — hence our [high][lo_sum][a0=type].
- *      5. Both escapes are closed.  priority(1488) < 1 is impossible (1 is the
- *         initialiser floor).  LUID(1488) < LUID(1460) is impossible because
- *         calls.c:1632 precomputes ALL register parameters before filling any
- *         hard reg ("It isn't safe to compute anything once we have started
- *         filling any specific hard regs"), and the CamState chain feeds THIS
- *         call's own arguments (a2=x, a3=y, 16(sp)=z, 20(sp)=r).
- *     Round 7's note (below) reached this by reading the same code; round 12
- *     overturned it on a misread column.  The model is falsifiable and it
- *     PASSES: reversing our block [1460][1461][1488][1463] gives the selection
- *     order 1463 -> 1488 -> 1461 -> 1460, which is exactly what LUID DESC over
- *     a priority-1 tie predicts.  It reproduces our bytes.
+ *      - **WRONG PASS.**  sched1 emits [1460][1461][1463][1465][1488] — 1488
+ *        is LAST, at index 4.  The `--asm` bridge (cc1's own -dp annotation)
+ *        puts the final asm at 1460->192, 1461->193, **1488->194**, 1463->195:
+ *        sched2 MOVED 1488 from index 4 to index 2, and sched2's order IS the
+ *        emitted order.  Every priority number in round 13's proof is a sched1
+ *        number describing an ordering sched2 overwrote.
+ *      - **WRONG TIEBREAK.**  Step 2 says "it takes ready[0], and
+ *        rank_for_schedule is priority DESC -> class DESC -> LUID DESC".
+ *        rank_for_schedule only sets the SORT.  schedule_select (sched.c:2647)
+ *        then walks the ready list in EQUAL-PRIORITY GROUPS and, when more
+ *        than one member survives the actual_hazard queueing, picks the
+ *        largest **potential_hazard** (2689-2703) — not ready[0], not LUID.
+ *        LUID decides only among EQUAL hazards (`>` is strict, so the
+ *        earliest-sorted wins).  cc1 prints this and sched-deps renders it:
+ *            3  195  53  1463  ... <- HAZARD SWAP: beat insn 1488
+ *        In sched2, insn 1463 (a LOAD, non-zero potential_hazard) BEAT 1488
+ *        (`move a0,s7`, an ALU op, hazard 0).  That swap is what put 1488 at
+ *        194.  The priority-1 tie is real; "the tie falls through to LUID" is
+ *        not.
+ *
+ *     So the live question for (E) is no longer "break a priority-1 LUID tie".
+ *     It is: **1488 is an ALU move with potential_hazard 0, tied at priority 1
+ *     with 1460/1461 (`high`/`lo_sum`, also hazard 0); among equal hazards the
+ *     highest LUID is picked first and lands last, and 1488's LUID is highest
+ *     because sched1 emitted it last.**  The reachable lever is therefore
+ *     sched1's OUTPUT ORDER (which is what assigns sched2's LUIDs), or giving
+ *     the group unequal hazards.  Neither has been tried.
+ *
+ * (0a) **THE BIRTHING/adjust_priority ESCAPE: REFUTED FOR (E), TWICE OVER.**
+ *     The round-14 brief correctly established the machinery — verified here
+ *     with `tools/ccsrc.py adjust_priority` / `birthing_insn_p`: the n_deaths
+ *     switch IS dead ("REG_DEAD notes are removed before we ever get here"),
+ *     the ADJUST_PRIORITY macro's absence on MIPS IS irrelevant (the bump
+ *     lives in the function), and sched.c:3923 DOES park LAUNCH_PRIORITY
+ *     (0x7f000001) on the scheduling insn immediately before schedule_insn, so
+ *     2605's `max_priority = MAX(INSN_PRIORITY(ready[0]), INSN_PRIORITY(insn))`
+ *     is always >= 0x7f000001 and a birthing producer really is bumped clean
+ *     off the floor.  It still cannot reach (E):
+ *      1. **The bump is gated off in sched2.**  birthing_insn_p returns 0 when
+ *         `reload_completed == 1` (sched.c:2504) and adjust_priority's whole
+ *         body is under `if (reload_completed == 0)` (2540).  (E) is decided in
+ *         sched2, where reload_completed == 1.  The bump CANNOT FIRE there.
+ *      2. **1488 could never be birthing anyway.**  It is
+ *         `(set (reg:SI 4 a0) (reg/v:SI 81))` — the dest is HARD REG a0.
+ *         birthing_insn_p returns `REG_N_SETS(REGNO(dest)) == 1`, and every one
+ *         of AddEnemy's many call sites sets a0, so REG_N_SETS(4) >> 1.  No
+ *         source change reaches this.
+ *     Note (2) generalises and is worth keeping: **a hard-register argument
+ *     move can never be BIRTHING in a multi-call function.**  This is NOT the
+ *     refuted "argmoves are a priority floor" rule (argmoves routinely sit
+ *     above priority 1 via their producers, and 1488's own group proves the
+ *     hazard tiebreak outranks LUID) — it closes only the birthing escape.
+ *
+ * (0b) **THE STALE PERMUTER NEGATIVE IS REFUTED — AND THE WIN WAS REJECTED.**
+ *     Round 13's "(E) IS PERMUTER-IMMUNE AND FENCE-IMMUNE" did not survive one
+ *     fresh bounded run (`timeout 240 ... --stop-on-zero -j4`, 15899 iters):
+ *     the full-link rescore found **26** vs base's 27.  Its minimal semantic
+ *     delta was three edits the header already called impossible individually
+ *     (L299 "relocate `weapon_base = WeaponModel` into the loop body CANNOT
+ *     WORK", L489 `think |=` measured 42-93, plus dropping `stage_kinds`).
+ *     Measured this round, separated:
+ *         stage_kinds-elim + `think |=`, weapon_base pre-loop : 27  (neutral)
+ *         + `weapon_base = WeaponModel` moved INTO the loop   : 26
+ *     So the whole gain is the weapon_base move — and it is a LOCAL OPTIMUM
+ *     AWAY FROM RETAIL.  It buys 2 bytes on the (A) rotation (`li s6,-1` /
+ *     `addiu s8,a0,-30068` start matching) and gives 1 back as a NEW
+ *     divergence retail does not have: 0x8005b790 `bne v0,s6,0x8005b5e8`
+ *     (target) becomes `bne v0,s6,0x8005b5e0` (ours).  That displacement IS the
+ *     loop head: retail materialises the WeaponModel address ONCE, above the
+ *     loop; the 26-state re-executes the lui/addiu every iteration.  Retail's
+ *     own branch target is the evidence that `weapon_base = WeaponModel`
+ *     belongs PRE-LOOP, which is where it is.  Rejected; the tree keeps 27.
+ *     (Do not re-derive this: the 26 is reproducible, it is just wrong.)
  *
  * (1) **(D) FELL TO AN ARRAY_REF CARRIER.**  Round 11 identified the cause
  *     (ARRAY_REF expands base-first via get_inner_reference; a pointer index

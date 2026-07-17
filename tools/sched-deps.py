@@ -73,7 +73,11 @@ Facts this tool relies on, each read out of sched.c rather than recalled:
   T values outright -- FUN_80057b80 block 26 goes T-2 -> T-4 with no T-3.  The
   PICK ORDER maps to the address, reversed; T does not.  This tool prints the
   index, not the T.
-* Ties break priority DESC -> class DESC -> LUID DESC (`rank_for_schedule`, 2415).
+* `rank_for_schedule` (2415) SORTS priority DESC -> class DESC -> LUID DESC, but it does
+  NOT decide the pick: `schedule_select` (2689-2703) then moves the LARGEST
+  `potential_hazard` insn of each EQUAL-PRIORITY group to the front. LUID breaks only
+  equal-priority AND equal-hazard ties. This tool marks every override
+  `<- HAZARD SWAP: beat insn M`.
 * The block-tail insn's priority is `TAIL_PRIORITY - i` (3338) where `i` is a
   STALE loop variable -- the initialiser was `#if 0`'d out at 3365.  That is why
   the tail prints 2147482912 and not a round number.  It is not a depth.
@@ -566,7 +570,8 @@ def print_verdicts(blocks, bodies, order, which, name):
             print(f"    block {b.num} T-{g['t']}: insns {g['group']} all tie at "
                   f"priority {g['priority']}.")
             print(f"      cc1's sort put {g['displaced']} first "
-                  f"(priority DESC -> class DESC -> LUID DESC);")
+                  f"(priority DESC -> class DESC -> LUID DESC) — but "
+                  f"schedule_select's hazard scan overrides it per group;")
             print(f"      potential_hazard overrode it and picked {g['winner']} "
                   f"-> {g['winner']} lands LATER than {g['displaced']}.")
         if len(groups) > 12:

@@ -1449,6 +1449,15 @@ re-check cheaply before honoring them:
   one bounded permuter pass before any RTL archaeology on a same-length
   residual; the ladder's autorules → permuter → RTL order stands even when a
   checkpoint's confident prose primes you to distrust re-running.
+- **A permuter WIN can be a STRUCTURAL regression — read the BRANCH DISPLACEMENTS
+  in the new diff, not just the byte count.** AddEnemy's fresh run beat its base
+  26 vs 27 (killing a "PERMUTER-IMMUNE" claim), and the win was a trap: the whole
+  delta was hoisting `weapon_base = WeaponModel` INTO a loop, buying 2 bytes on a
+  preheader rotation and paying 1 back as `bne v0,s6,0x8005b5e8` → `0x8005b5e0`.
+  **That displacement IS the loop head** — retail materialises the address once
+  ABOVE the loop; the 26-state re-executes it every iteration. Rejected. **The
+  target's own branch targets are evidence for where a statement belongs**, and a
+  score cannot see them.
 - **A permuter WIN can be a semantic BUG — disassemble the constants whenever a
   candidate introduces a new local.** A better proxy score is not a match, and
   the failure is not always the known reachability trap (a moved/dropped `goto`

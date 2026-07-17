@@ -49,13 +49,22 @@ before the `schedule_insn` call — **which is why a bumped birthing insn shows 
 
 `sched.c:3756` prints `UID (INSN_PRIORITY in hex)` for each ready insn **before**
 `SCHED_SORT`; `sched.c:3793` prints the UIDs again **after** the sort, and
-`last_scheduled_insn = insn = ready[0]` — **so the first UID after `now` IS THE PICK.**
-Because the print precedes this iteration's `LAUNCH_PRIORITY` store, a `(7f000001)` in
-the printed list is a *durable* birthing bump from an earlier iteration, not the
-transient marker.
+`last_scheduled_insn = insn = ready[0]`. **The pick is the head of the LAST `, now` on
+the line** — see the hazard-cycle trap below, where a line carries TWO. Because the
+print precedes this iteration's `LAUNCH_PRIORITY` store, a `(7f000001)` in the printed
+list is a *durable* birthing bump from an earlier iteration, not the transient marker.
 
-**`rank_for_schedule` ties break priority DESC → class DESC → LUID DESC**, and **class
-is a CEILING, not a lever.** An insn `link == 0` (independent of `last_scheduled_insn`)
+**`rank_for_schedule` only sets the SORT — it does NOT decide the pick.** Its ties break
+priority DESC -> class DESC -> LUID DESC, but `schedule_select` (`sched.c:2689-2703`)
+then walks each EQUAL-PRIORITY group and moves the insn with the **largest
+`potential_hazard`** to the front, and THAT is what gets scheduled. **So LUID decides
+only among insns equal in priority AND equal in hazard.** cc1 announces every override
+itself (`;; insn N has a greater potential hazard`), and `sched-deps` marks it
+`<- HAZARD SWAP: beat insn M`. Any note reasoning "the priority tie falls through to
+LUID" has skipped the hazard scan — that exact gap propped up AddEnemy's cluster-E park
+for twelve rounds, and its five-step unreachability proof rested on it.
+
+And **class is a CEILING, not a lever.** An insn `link == 0` (independent of `last_scheduled_insn`)
 *or* with `insn_cost == 1` gets class **3** — the maximum — unconditionally; only a
 dependence with cost ≠ 1 drops you to class 1 (data) or 2 (anti/output). Since the sort
 is descending, **perturbing a dependence's cost can only sort the DEPENDENT insn LATER.
@@ -185,7 +194,10 @@ def main():
               "itself.")
     print("  sched is BACKWARD: T-1 is the LAST slot and is filled FIRST, so an insn "
           "PICKED EARLIER")
-    print("  LANDS LATER. Ties break priority DESC -> class DESC -> LUID DESC.")
+    print("  LANDS LATER. rank_for_schedule sorts priority DESC -> class DESC -> LUID")
+    print("  DESC, but it does NOT decide the pick: schedule_select (sched.c:2689) moves the")
+    print("  LARGEST-potential_hazard insn of each equal-priority group to the front. LUID")
+    print("  decides only among equal-priority AND equal-hazard insns.")
     print("  ref_count = CONSUMERS (INSN_DEPEND). 'heads a long chain' is THIS "
           "column, NOT priority.")
     # The pre-bump caveat is SCHED1-ONLY: adjust_priority (sched.c:2535) is gated on
@@ -197,9 +209,8 @@ def main():
               "`reload_completed == 0`")
         print("  and does not run here. **This column IS the scheduler's first sort "
               "key** (ties then")
-        print("  break class DESC -> LUID DESC). That is not true in sched1 — do not "
-              "carry this")
-        print("  reading across.")
+        print("  break class DESC, then the potential_hazard scan, then LUID). That is not")
+        print("  true in sched1 — do not carry this reading across.")
     else:
         print("  *** The `priority` COLUMN BELOW IS NOT WHAT THE SCHEDULER USED. *** "
               "sched1's")
@@ -277,8 +288,10 @@ def main():
               "table full of 1s")
         print("  is a genuine LUID-ordered tie, and **LUID (source/emission order) is "
               "your lever**.")
-        print("  Ties break priority DESC -> class DESC -> LUID DESC, and class is a "
-              "CEILING: an insn")
+        print("  rank_for_schedule sorts priority DESC -> class DESC -> LUID DESC, but")
+        print("  schedule_select (2689) then hands the pick to the LARGEST potential_hazard")
+        print("  in each equal-priority group — LUID only breaks equal-hazard ties. Class")
+        print("  is a CEILING: an insn")
         print("  independent of `last_scheduled_insn` (or with insn_cost 1) is class 3 "
               "already, so")
         print("  perturbing a dependence's cost can only sort the DEPENDENT insn "

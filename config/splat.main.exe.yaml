@@ -721,6 +721,8 @@ segments:
       - { start: 0x4FA48, type: data, linker_section_order: .text }
       - [0x54900, c, GsSetLsMatrix]
       - { start: 0x5492C, type: data, linker_section_order: .text }
+      - [0x54A80, c, GsMulCoord2]
+      - { start: 0x54B00, type: data, linker_section_order: .text }
       - [0x56304, c, dmyGsPrstF3NL]
       - [0x5634C, c, dmyGsPrstF3LFG]
       - [0x56394, c, dmyGsPrstF3L]

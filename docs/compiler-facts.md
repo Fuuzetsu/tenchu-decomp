@@ -310,23 +310,57 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 ## Scheduling (sched.c) and reorg
 
 - **Both schedulers are BACKWARD list schedulers**: T-1 is the block's LAST slot,
-  filled first — an insn picked earlier lands LATER. Ready-list ties go to the
-  HIGHEST LUID. "Emit first" = "lose the ranking".
-- **`priority()` (sched.c:1452) maxes over LOG_LINKS — PREDECESSORS** — it is
-  depth-from-top, not height-to-bottom (that is later-gcc behaviour).
-  `ref_count` counts CONSUMERS and does not feed priority — confusing the two
-  inverted a correct park once.
-- **`adjust_priority` (sched.c:2535) bumps a BIRTHING insn to LAUNCH_PRIORITY
-  (0x7f000001) at launch time**: pattern `(set (REG) …)`, dest live,
-  `REG_N_SETS(dest) == 1`; gated on `reload_completed == 0`, NOT on an
-  ADJUST_PRIORITY macro. The `;; insn[N]: priority` TABLE is not what the
-  scheduler used — read the `;; ready list at T-k:` lines (`schedtrace` names
-  bumped insns). A `(set (SUBREG …) …)` dest is never birthing — every compound
-  assignment to a short local. A re-assigned local (`REG_N_SETS != 1`) silently
-  loses the bump (CreateHumanoid).
-- **`rank_for_schedule`'s class key tests LOG_LINKS of the LAST SCHEDULED insn**
-  (its producers), with an `insn_cost == 1` escape — making a dependence cost ≠ 1
-  flips an equal-priority tie without touching LUID (FUN_80057b80's header).
+  filled first — an insn picked earlier lands LATER. "Emit first" = "lose the
+  ranking". **T is NOT an address index**: `clock += stalls` (3747) skips T
+  values, so "each T decrement = +4 bytes" is false (monotonic, not evenly
+  spaced). Use `sched-deps`' INDEX column.
+- **`rank_for_schedule` (2415) only SORTS — it does NOT decide the pick.** Its
+  ties break priority DESC → class DESC → LUID DESC, but `schedule_select`
+  (**2689-2703**) then walks each EQUAL-PRIORITY group and moves the insn with
+  the largest **`potential_hazard`** to the front, and that is what is scheduled.
+  **LUID decides only among insns equal in priority AND equal in hazard.** cc1
+  announces each override (`;; insn N has a greater potential hazard`);
+  `sched-deps` marks it `<- HAZARD SWAP: beat insn M`. Any note reasoning "the
+  priority tie falls through to LUID" has skipped the hazard scan — that gap held
+  up AddEnemy's cluster-E "unreachability proof" for twelve rounds.
+- **A ready-list line prints `, now` TWICE on a hazard cycle, and the FIRST
+  list's head is the LOSER.** `schedule_select` (2713) prints before its swap and
+  only when it swaps, then names the winner; `schedule_block` (3793) prints after
+  the pick. **The pick is the head of the LAST `, now`.** ("The pick is the first
+  insn of the `now` list" was "verified across 11 consecutive insns" — against
+  FUN_80057b80 block 0's ELEVEN HAZARD SWAPS, the only cycles where it breaks.)
+- **`priority()` (sched.c:1452) is NOT depth**: it accumulates
+  `priority(x) + insn_cost(x, prev, insn) - 1` over LOG_LINKS (producers), and
+  gcc's own comment on that `- 1` says it exists so *"when all instructions have a
+  latency of 1 ... all instructions will end up with a priority of one, and hence
+  no scheduling will be done."* **So priority 1 means UNIT LATENCY, not "no
+  producers"** — an insn printing 1 while DEPENDING on another priority-1 insn is
+  correct, not a bug. `ref_count` counts CONSUMERS and does not feed priority —
+  confusing the two inverted a correct park once.
+- **`adjust_priority` (sched.c:2535) does exactly ONE thing**: its `n_deaths`
+  switch is DEAD (gcc's own *"??? This code has no effect, because REG_DEAD notes
+  are removed before we ever get here"*), so only `case 0` runs — if
+  `birthing_insn_p`, set `INSN_PRIORITY(prev) = max_priority` (2605:
+  `MAX(INSN_PRIORITY(ready[0]), INSN_PRIORITY(insn))`, and `insn` holds
+  LAUNCH_PRIORITY from 3923 at that moment, which is why a bumped insn surfaces as
+  `(7f000001)`). **It is SCHED1-ONLY** — both it (2540) and `birthing_insn_p`
+  (2504) are gated on `reload_completed == 0`. The macro `ADJUST_PRIORITY` is
+  undefined on MIPS and that is IRRELEVANT: the bump is in the FUNCTION.
+- **`birthing_insn_p` (2499) fires iff `(set (REG) …)`, dest live,
+  `REG_N_SETS(dest) == 1`.** A `(set (SUBREG …) …)` dest is never birthing (every
+  compound assignment to a short local). A re-assigned local (`REG_N_SETS != 1`)
+  silently loses the bump (CreateHumanoid). **A hard-register ARGUMENT move can
+  never be birthing** — its dest is `a0..a3`, and `REG_N_SETS` counts every call
+  site in the function (AddEnemy). *(Distinct from the REFUTED "argmoves are a
+  priority floor" rule — argmoves routinely sit above priority 1 via their
+  producers; this closes only the birthing escape.)*
+- **`rank_for_schedule`'s class is a CEILING, not a lever.** An insn independent of
+  `last_scheduled_insn` (`link == 0`) **or** reachable at `insn_cost == 1` gets
+  class 3 — the maximum — unconditionally; only a dependence with cost ≠ 1 drops
+  to class 1 (data) or 2 (anti/output), and the sort is DESCENDING. So perturbing
+  a dependence's cost can only sort the DEPENDENT insn **later**. "Make the dep
+  cost ≠ 1 to flip the tie" was proposed once as an open lever and is exactly
+  backwards (FUN_80057b80).
 - **All-latency-1 blocks cannot be reordered by sched** (sched.c:1521's own
   comment) — only a LOAD (cost 2) differentiates; a misplaced insn in a load-free
   block is SOURCE ORDER.
