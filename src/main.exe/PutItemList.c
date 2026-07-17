@@ -41,9 +41,11 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact 504-byte/126-instruction extent; 51 bytes
- * differ (13 aligned assembly lines in 5 blocks, and the whole-image count
- * equals the function-window count, so there is no upstream drift).
+ * STATUS: NON_MATCHING — exact 504-byte/126-instruction extent; 27 bytes
+ * differ (6 aligned assembly lines in 2 blocks, and the whole-image count
+ * equals the function-window count, so there is no upstream drift). Down
+ * from a 51-byte park (this round: 51->34->33->27, all via a bounded
+ * FOREGROUND permuter plus direct verification — see below).
  *
  * PutItemList (0x8004ade4, 0x1F8 bytes) — draws the shop/inventory item
  * list: for each of the 25 item kinds (`CamState.Owner->item[i]`, the
@@ -80,28 +82,77 @@
  * of the usual source-funnelling instinct: duplicate a mergeable call in C
  * when the target shares the call but not its argument producers.
  *
- * The two one-statement do/while(0) wrappers are byte-neutral allocation and
- * scheduling levers. They put the NumberImage base, `ou`, `i`, and `x` in
- * the target's $s1/$s2/$s3/$s4 homes (greg priorities 4666/4444/4105/4062).
- * Moving CursorImage.x first likewise gives the target's cursor-store order.
+ * This round's three permuter-found, individually-verified wins (each ported
+ * by hand from the retained candidate and re-measured with matchdiff, never
+ * trusted from the proxy score alone):
+ *  - `scale` (51->34): the ARM-LOCAL `CursorImage.scalex = 0x1000;` was one of
+ *    FOUR uses of the literal 0x1000 in the `ItemCursor==i` arm. Naming just
+ *    THIS one site's constant into a local assigned immediately before
+ *    `CursorImage.x = x;` (the other three sites stay literal) retunes
+ *    allocation enough to fix the $s1/$s6/$s7 preheader hoist order.
+ *  - `numY` (34->33): same lever on `NumberImage.y = 0x64;`, but this local's
+ *    win is POSITION-DEPENDENT in a way `scale`'s is not — it only pays if
+ *    declared+assigned at the very top of the function (right after
+ *    `SelectedItem = -1;`); the same substitution assigned at its point of
+ *    use, or inside its own do-while fence, measured back to 34 (tested both;
+ *    see git history). Declaration-order alone (swapping locals to match
+ *    PSX.SYM's reverse-printed order for i/x/s/n/ou) is provably NEUTRAL here
+ *    (measured, unlike SetWire's s0/s1 flip) — reverted, not worth the
+ *    unmotivated deviation from natural order.
+ *  - The identical-arm fence (33->27): `NumberImage.w = 4;` duplicated under
+ *    `if (n) {...} else {...}` (condition on `n`, already live from the
+ *    enclosing `n != 0`/`n != 0xFF` tests) fixed the $v0/$a3 digit-setup tie
+ *    AND, as a side effect, let the `NumberImage.y` do-while fence be deleted
+ *    outright (bare statement, byte-neutral once the arm-fence exists) — this
+ *    is the book's `identical-arm-condition` lever (cookbook §3.10), and the
+ *    enclosing `do{}while(0)` around the if/else itself is NOT load-bearing
+ *    (autorules' fence-unwrap confirmed 27->27; removed for a cleaner source
+ *    — the if/else alone supplies the block boundary, per the cookbook's
+ *    "buys... a real block boundary" mechanism, the do-while adds nothing
+ *    once that boundary exists).
  *
- * Remaining residual (root-caused):
+ * Remaining residual (root-caused, RTL-read, permuter-searched — 2 clusters,
+ * 8 insns, 27 bytes, both MULTISET-EQUAL reorders of already-correct
+ * instructions/registers, not missing/wrong content):
  *  - The prologue has the same saves, constants, addresses, and register
- *    homes, but sched places the $s5 save/`s=i` copy before SelectedItem and
- *    places CursorImage's address before the $fp/$s7 constants. The target
- *    schedules those operations later (10 aligned lines total).
- *  - In the digit setup, the target keeps `x+22` live in $v0, materializes
- *    y=100 in $a3, then stores x/y. This draft stores x first and reuses $v0
- *    for 100 (3 aligned lines). Flat statement orders, comma expressions,
- *    direct while/for/do loop spellings, counter-update placement, a
- *    symbol-backed single-`n` digit loop, and a bounded 40-candidate guided
- *    autorules pass did not improve this checkpoint.
- *
- * Tool gap: rtlguide correctly classifies the residue as CSE/coalescing plus
- * scheduling, but neither it nor autorules proposes the decisive combination
- * of repeated debug-local scopes, duplicated branch calls, and a shared
- * post-branch delay-slot producer; nor can it target this constant-vs-store
- * scheduler tie.
+ *    HOMES (confirmed via regalloc.py: p84->s5 and p143->fp both match target
+ *    exactly), but the relative POSITION of two preheader movable-groups is
+ *    swapped: target orders [SelectedItem, &NumberImage, 92(->$fp/s8),
+ *    4096(->$s7), &CursorImage, s=i(->$s5)] — i.e. the `s=i` copy is the
+ *    LAST thing before the loop test, immediately preceding it, matching the
+ *    cookbook's "a giv init is the ONLY thing that can follow a hoist"
+ *    shape (§3.14) even though `s` is an explicit source variable, not an
+ *    implicit array-index giv. This draft instead schedules `s=i` FIRST
+ *    (before even `SelectedItem=-1`) and the 92-constant LAST.
+ *  - `tools/cc1says.py`, `tools/schedtrace.py --pass sched2`, and
+ *    `tools/sched-deps.py --pass sched2` (self-validated, forward-
+ *    reconstructed) all confirm this is decided by sched2's backward list
+ *    scheduler on priority-1 "FLOOR" instructions (all these preheader sets
+ *    are independent, unit-latency, and tie on priority), falling through to
+ *    its LUID/hazard-swap tiebreak — a genuine post-reload scheduling
+ *    decision, not a cse/combine/loop content difference.
+ *  - Directly tested and REGRESSED or NEUTRAL (all reverted, preserved in
+ *    git history): moving `s = i;` to the very top of the function (51);
+ *    wrapping just `s = i;` in its own do-while fence (63); swapping `i`/`x`
+ *    init order (51); swapping the `NumberImage.x`-store/`NumberImage.y`-fence
+ *    source order (50); `s = i;` vs `s = 0;` in the SAME position (neutral,
+ *    34->34, confirmed a real edit via nullcheck); an identical-arm fence
+ *    around `s = i;` keyed on the always-true `i == 0` (neutral, real edit,
+ *    not kept — no live/meaningful condition exists this early, unlike `n`'s
+ *    fence); an early-materialized `cursorY` local for the 92 constant
+ *    (LENGTH REGRESSION — 492 vs 504 bytes, a whole instruction CSE'd away);
+ *    full PSX.SYM-reversed declaration order for i/x/s/n/ou (neutral).
+ *  - FOUR bounded foreground permuter rounds this session (~89000 total
+ *    iterations: 21762/23022/21520/22851), two of which found the wins
+ *    above and two of which (rounds on the 33- and 27-byte checkpoints)
+ *    confirmed the running checkpoint as their OWN best candidate — i.e. the
+ *    search itself now prefers this state to everything it tried, including
+ *    a chained `i = (s = 0);` variant (scored 30, worse). autorules (4 runs
+ *    across this round's checkpoints) found nothing beyond the wins above.
+ *  - This is evidence-complete for this decomposition, not proof of
+ *    unreachability: a joint (not single-factor) source restructuring might
+ *    still crack it, but the cheap ladder (reghist -> autorules -> bounded
+ *    permuter -> RTL) is exhausted for this round.
  */
 typedef struct
 {
@@ -132,6 +183,8 @@ void PutItemList(void)
 {
     s32 i;
     s32 x;
+    s32 numY;
+    s32 scale;
     u32 s;
     s32 n;
     s32 ou;
@@ -139,6 +192,7 @@ void PutItemList(void)
     s32 q;
 
     SelectedItem = -1;
+    numY = 0x64;
     x = 0x8C;
     i = 0;
     s = i;
@@ -153,16 +207,17 @@ void PutItemList(void)
             if (n != 0xFF)
             {
                 t = n;
-                do
+                if (n)
                 {
                     NumberImage.w = 4;
-                } while (0);
+                }
+                else
+                {
+                    NumberImage.w = 4;
+                }
                 NumberImage.x = x + 0x16;
                 ou = NumberImage.u;
-                do
-                {
-                    NumberImage.y = 0x64;
-                } while (0);
+                NumberImage.y = numY;
 
             numloop:
                 q = t / 10;
@@ -180,9 +235,10 @@ void PutItemList(void)
                 s32 ItemID;
                 GsSPRITE *spr;
 
+                scale = 0x1000;
                 CursorImage.x = x;
                 CursorImage.y = 0x5C;
-                CursorImage.scalex = 0x1000;
+                CursorImage.scalex = scale;
                 CursorImage.scaley = 0x1000;
                 CursorImage.rotate = CursorImage.rotate - 0x6000;
                 GsSortSprite(&CursorImage, OTablePt, 1);

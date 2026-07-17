@@ -904,6 +904,12 @@ The identity canon — the cheapest questions on the board, asked in order:
    collapsed 3 clusters in one edit (PlayVoice 9→4). **PSX.SYM naming two things
    the same is a nested-block SCOPE hint, not licence to share one pseudo across
    disjoint branches.**
+   **A "materialize a constant into a named local" seed is POSITION-sensitive, not
+   just present-or-absent.** The same edit pays off at one site and regresses at
+   another: PutItemList's `scale` local worked assigned at its point-of-use, but a
+   byte-identical `numY` for `NumberImage.y = 0x64` only paid off declared at the
+   FUNCTION TOP — at point-of-use or inside a fence it measured strictly worse.
+   When porting this class, sweep the DECLARATION POINT, not only the presence.
 5. **Split shared pseudos as a PRIORITY lever** — splitting demotes each half
    superlinearly (ControlHumanoid's magnitude 24615 → 10000/14285/14285, last
    7 bytes). A plain COPY cannot split an allocno (cse folds it back — a
