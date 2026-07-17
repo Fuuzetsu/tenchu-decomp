@@ -6529,6 +6529,27 @@ still lands at the declaration position — only the CONVERSION is deferred.** T
 a narrow parm shows the truncation REPLACING the move rather than a bare move moving
 later.
 
+### Two loads of one short field at one address are `combine`'s `added_sets_2` — the lever is WHICH READ COMES FIRST
+
+cc1 loads a short field into an **HImode pseudo** and extends per use. `combine` fuses
+`(set (reg:HI N) (mem:HI))` + `sll` + `sra` into a single `lh` **only when N has ONE
+use**. So if the sign-extending read is the load's FIRST use, combine fuses it **and
+retains the original `lhu`** for the later narrow use — giving **two loads, one
+address, one `lw`**.
+
+**The lever is which read comes first, not a cast.** A `(u16)` cast here is a literal
+no-op: same-width HImode->HImode, and cc1 erases it (`nullcheck` exit 1). A park read
+this as "cc1 still CSEs the identical address" — a correct observation with an inverted
+conclusion. It is combine, not cse1.
+
+### `short` locals are plain HImode pseudos on this target, so a WRITE truncates
+
+There is **no `PROMOTE_MODE`** here, so a `short` local is `reg/v:HI` and
+`(set (reg:HI var) (subreg:HI (reg:SI expr)))` is a **real move**. Consequence: a
+short->short copy (`degree = (s16)t` where `t` is already `s16`) **coalesces to
+nothing**, while routing through an SImode temp restores the truncating move.
+ControlTraceLine's whole ladder matched on that one split (167 -> 10).
+
 ### START HERE ON ANY SUB-C RESIDUAL: `tools/cc1says.py <Name>` — cc1 narrates its own decisions
 
 **cc1 explains itself in `;;` commentary across all 15 dumps, and we were reading about

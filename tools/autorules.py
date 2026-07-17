@@ -8575,6 +8575,11 @@ def main():
         sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser()
     ap.add_argument("name", nargs="?")
+    ap.add_argument("--allow-length-mismatch", action="store_true",
+                    help="sweep even from a wrong-length baseline. The score is then "
+                         "the LENGTH PENALTY ALONE, so a semantically broken edit that "
+                         "shortens the function outscores a correct one. Hand-verify "
+                         "every adoption.")
     ap.add_argument("--dry", action="store_true", help="report only; don't modify the file")
     ap.add_argument("--once", action="store_true", help="one pass, no greedy re-sweep")
     ap.add_argument("--list", action="store_true", help="list the registered rules")
@@ -8622,6 +8627,35 @@ def main():
     if match:
         print("already byte-identical — nothing to do.")
         return 0
+
+    # REFUSE to sweep from a LENGTH-MISMATCHED baseline. score() returns
+    # `1000 + |delta|` for a wrong-length draft, so the greedy search optimises
+    # LENGTH ALONE and every edit that shortens the function toward the target
+    # scores better REGARDLESS OF CORRECTNESS. That is not theoretical: on
+    # ControlTraceLine it adopted `degree: s16 -> s8` (1004 -> 154), which is
+    # semantically BROKEN — `degree` holds +/-0x1000 — and emits `sll ..,0x18`
+    # where the target has `0x10`. The lane caught it and said "a smaller model
+    # would very likely have banked that".
+    #
+    # The cookbook has warned about this in prose for weeks ("review every
+    # adoption before believing it") and the tool shipped the broken edit anyway.
+    # A guard the tool enforces beats a rule the reader must remember.
+    if base >= 1000 and not args.allow_length_mismatch:
+        sys.exit(
+            f"autorules: {name}'s baseline is a LENGTH MISMATCH (score {base} = "
+            f"1000 + |delta|).\n"
+            "  REFUSING to sweep: with a wrong-length draft the score is the LENGTH "
+            "PENALTY ALONE, so\n"
+            "  the greedy search optimises length and will happily adopt a "
+            "SEMANTICALLY BROKEN edit that\n"
+            "  happens to shorten the function (measured: ControlTraceLine banked "
+            "`s16 -> s8` on a value\n"
+            "  holding +/-0x1000).\n"
+            "  Fix the LENGTH first — that is step 1 of the Iteration protocol — then "
+            "sweep.\n"
+            "  Override with --allow-length-mismatch only if you will hand-verify "
+            "every adoption."
+        )
 
     global GUIDED_LINES, GUIDED_VARIABLES
     guide = None
