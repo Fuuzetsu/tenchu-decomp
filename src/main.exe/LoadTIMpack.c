@@ -25,29 +25,38 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact 276-byte / 69-instruction extent, with 12
- * linked and whole-image bytes different. The candidate also has the target's
- * exact optimized CFG: 4 conditional branches, no unconditional jumps, 5
- * calls, and 1 return. The full prologue, outer loop, both guards, both call
- * sites, increment/compare tail, and epilogue are exact.
+ * MATCHED (276/276 bytes, 69 instructions, 0 whole-image diffs).
  *
- * This checkpoint closes the old one-instruction-short reorg tie with two
- * source-level phase boundaries. Naming `tim.clut` and ending a weight-free
- * empty one-shot loop immediately after its assignment keeps the call's $a1
- * producer ahead of the four CLUT geometry loads. Wrapping only the second
- * LoadImage call in a one-shot loop then makes reorg duplicate `i + 1` into
- * the CLUT guard's delay slot, exactly as retail does, without retaining a
- * branch or changing the runtime CFG.
+ * The two LoadImage sites are byte-identical in retail apart from the `tim`
+ * field offsets, so they are spelled identically here — the CLUT site is just
+ * the pixel site again. An earlier checkpoint parked at 12 bytes by naming
+ * `tim.clut` into a local and wrapping the second call in a one-shot loop;
+ * both were scaffolding, and both were the cause of the 12 bytes rather than
+ * a partial cure. Removing them fixes the register naming outright ($a2/$a3
+ * for cw/ch, `&r` materialised early) because sched1 can then hoist the
+ * `addiu $a0,$sp,0x10` above the four stores, which makes $a0 conflict with
+ * the geometry temps and pushes them off $a0/$a1.
  *
- * The remaining six aligned lines are one coupled allocation/schedule island.
- * Retail loads cx/cy/cw/ch into $v0/$v1/$a2/$a3, materializes `&r` in $a0,
- * then stores all four values; this draft uses $a0 for cw and $a2 for ch,
- * stores them, and sinks the `&r` addiu to the call delay slot. A bounded
- * 180-candidate guided loop/boundary/identical-arm search did not beat 12.
- * Focused producer temporaries, explicit pointer lifetimes, call-argument
- * comma forms, identical-arm pointer donors, all call-loop ranges, and
- * duplicated-increment/goto shapes were flat or regressed. Keep the guard;
- * the 12-byte pure-C checkpoint is useful, but not a match.
+ * The trailing empty `do {} while (0)` IS load-bearing — without it the
+ * function is 68 instructions, one SHORT (measured 272). It costs zero
+ * instructions and only flips reorg's branch prediction:
+ *
+ *   reorg.c `mostly_true_jump` scans BACKWARD from the branch's target label
+ *   over NOTES ONLY; reaching a NOTE_INSN_LOOP_BEG it returns 2 = mostly
+ *   taken. An empty one-shot loop emits LOOP_BEG/LOOP_CONT/LOOP_END with no
+ *   insns between, so the scan from the endif label reaches LOOP_BEG and the
+ *   CLUT guard is predicted TAKEN. `fill_eager_delay_slots` therefore fills
+ *   from the TARGET thread first, and since the fallthrough falls into the
+ *   merge block reorg does NOT own that thread — so it must COPY the merge
+ *   block's leading `addiu $v0,$s1,1` into the delay slot and redirect the
+ *   label past it: +1 insn, `i + 1` duplicated, exactly as retail does.
+ *   Predicted NOT taken, reorg instead raids the FALLTHROUGH, which it DOES
+ *   own, and MOVES `addiu $a0,$sp,0x10` out of the block into the slot: one
+ *   instruction short, with a hole where the `&r` materialisation was.
+ *   (The four `lhu`s are ineligible for a delay slot — MIPS loads carry
+ *   hazard=delay — and every `sh` references a register the skipped loads put
+ *   in reorg's `set`, so that `addiu` is the only thing the fallthrough
+ *   offers.)
  *
  * LoadTIMpack (0x800189b4, 0x114 bytes) — LoadTIM.c's "pack" twin (same TU):
  * a packed archive's header is `adr[1]` (the element COUNT, low halfword)
@@ -99,16 +108,11 @@ extern void SystemOut(char *msg);
 extern short DrawSync(int mode);
 extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/LoadTIMpack", LoadTIMpack);
-#else
-
 short LoadTIMpack(u_long *adr)
 {
     RECT r;
     GsIMAGE tim;
     u_long *puVar2;
-    u_long *clut;
     u16 uVar1;
     short n;
     short i;
@@ -131,15 +135,12 @@ short LoadTIMpack(u_long *adr)
             r.h = tim.ph;
             LoadImage(&r, tim.pixel);
             if ((tim.pmode >> 3 & 1) != 0) {
-                clut = tim.clut;
-                do {
-                } while (0);
                 r.x = tim.cx;
                 r.y = tim.cy;
                 r.w = tim.cw;
                 r.h = tim.ch;
+                LoadImage(&r, tim.clut);
                 do {
-                    LoadImage(&r, clut);
                 } while (0);
             }
             i = i + 1;
@@ -148,4 +149,3 @@ short LoadTIMpack(u_long *adr)
     }
     DrawSync(0);
 }
-#endif

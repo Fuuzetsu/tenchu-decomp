@@ -2761,6 +2761,19 @@ scratch — base and index registers swapped, exactly as the target does
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
 
+### If the target repeats a block byte-identically and only ONE of yours matches, the bug is your SPELLING ASYMMETRY
+
+**Diff the TARGET's repeated sites against EACH OTHER before theorising about
+codegen.** LoadTIMpack's two LoadImage sites are byte-identical apart from the
+`tim` field offsets, and site 1 already matched — so site 2 was never a puzzle at
+all: our source simply spelled the two sites differently. The park had described
+the residual as a "12-byte coupled allocation/schedule island", and every lever in
+that description was aimed at a phantom.
+
+This costs one look at the carve and can dissolve an entire park. `tools/asmdiff.py
+<Name>` shows the residual; then read whether the target's own repeated blocks are
+identical. If they are and only one of yours matches, stop looking at the compiler.
+
 ### TWO REGISTERS FOR ONE VALUE MEANS THE ORIGINAL HAD TWO VARIABLES — read it off the target
 
 **gcc 2.8.1 never splits a live range: one C variable gets ONE hard register for
@@ -6309,6 +6322,32 @@ loop's **limit cursor**, not another local. FUN_80018f00's target `sp+120` vs ou
 `sp+96` looked like a 24-byte discrepancy implying a fourth or differently-sized
 object; both are just `&o_draw + 80` (40+80 and 16+80). **Compute
 `&src + 16*chunks` before inferring anything about the object set.**
+
+### An empty `do{}while(0)` at the END of an `if` body flips reorg's branch prediction — at ZERO instruction cost
+
+**A guard whose body is one instruction short or long, with a plausible delay slot,
+is THIS — not a regalloc tie.** (LoadTIMpack's final instruction; measured across
+three variants at 272/276/25.)
+
+`reorg.c`'s `mostly_true_jump` scans **BACKWARD from the branch's target label over
+NOTES ONLY** and returns 2 (mostly-taken) on `NOTE_INSN_LOOP_BEG`. An empty one-shot
+loop emits `LOOP_BEG`/`LOOP_CONT`/`LOOP_END` with **no insns between**, so the scan
+reaches it. That flips the prediction, and the prediction decides which thread
+`fill_eager_delay_slots` raids:
+
+* **Predicted NOT-TAKEN** — it raids the FALLTHROUGH, which it **owns**, so it
+  **MOVES** an insn out: **-1 insn**, leaving a hole in the block.
+* **Predicted TAKEN** — it tries the TARGET thread first, which it does **not** own
+  (the fallthrough falls into the merge block, so `own_thread_p(target,target,0)`
+  finds no BARRIER). It must **COPY** the merge block's leading insn into the slot
+  and redirect the label past it: **+1 insn, that insn duplicated.** This is what
+  retail does.
+
+**Corollary: MIPS loads (`lw`/`lhu`/`lb`) are INELIGIBLE for a branch delay slot.**
+When judging what reorg can steal from a block, skip the loads — the first
+*arithmetic* insn is the real candidate. (In LoadTIMpack every `sh` also referenced
+a register the skipped loads put in reorg's `set`, which left a free `&local`
+`addiu` as the only thing the fallthrough offered.)
 
 ### The two fence idioms: what each one ACTUALLY does
 

@@ -181,13 +181,48 @@ def main():
     if args.structural:
         print("[STRUCTURAL FILTER ONLY — empty output is not an exact-match "
               "claim; run tools/matchdiff.py for the byte gate]")
+    # An instruction that MOVED (notably into a branch delay slot) is reported as a
+    # delete/replace on one side and an insert/replace on the other, which reads as
+    # "an instruction vanished" — a lane hand-mapped two whole streams to discover an
+    # `addiu` had merely moved into a delay slot. Pair identical texts that appear on
+    # BOTH sides of the displayed residual (across any hunk kinds) and say so. Compare
+    # by COUNT so a text genuinely added N extra times is not mislabelled a move.
+    import collections as _c
+    t_side, o_side = _c.Counter(), _c.Counter()
+    t_at, o_at = {}, {}
+    for tag, i1, i2, j1, j2 in stats["displayed"]:
+        for k in range(i1, i2):
+            t_side[tgt[k][1]] += 1
+            t_at.setdefault(tgt[k][1], tgt[k][0])
+        for k in range(j1, j2):
+            o_side[ours[k][1]] += 1
+            o_at.setdefault(ours[k][1], ours[k][0])
+    moved = sorted(x for x in set(t_side) & set(o_side) if t_side[x] == o_side[x])
+
     for tag, i1, i2, j1, j2 in stats["displayed"]:
         width = max(i2 - i1, j2 - j1)
         print(f"--- {tag} [T{i2 - i1}/O{j2 - j1} insns, edit-weight {width * 4}B]")
         for k in range(i1, i2):
-            print(f"  T {tgt[k][0]:#x}  {tgt[k][1]}")
+            note = "   <- MOVED, not missing" if tgt[k][1] in moved else ""
+            print(f"  T {tgt[k][0]:#x}  {tgt[k][1]}{note}")
         for k in range(j1, j2):
-            print(f"  O {ours[k][0]:#x}  {ours[k][1]}")
+            note = "   <- MOVED, not new" if ours[k][1] in moved else ""
+            print(f"  O {ours[k][0]:#x}  {ours[k][1]}{note}")
+    if moved:
+        print()
+        print("asmdiff: these instructions MOVED — they exist on BOTH sides at "
+              "different positions:")
+        for text_ in moved:
+            print(f"    {text_:<26} target {t_at[text_]:#x} -> ours {o_at[text_]:#x}")
+        print("  A move is a SCHEDULING / delay-slot question, not a missing or "
+              "surplus instruction.")
+        print("  Read the moved insn's LOG_LINKS before calling it a tie (a real "
+              "REG_DEP_ANTI")
+        print("  looks identical from here). MIPS loads are INELIGIBLE for a delay "
+              "slot. See")
+        print("  docs/matching-cookbook.md, \"An empty `do{}while(0)` at the END of "
+              "an `if` body")
+        print("  flips reorg's branch prediction\".")
     if args.structural:
         print(f"[{args.name}: {stats['displayed_lines']} length-changing lines "
               f"in {stats['displayed_blocks']} displayed blocks; raw aligned "
