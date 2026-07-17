@@ -6550,6 +6550,37 @@ short->short copy (`degree = (s16)t` where `t` is already `s16`) **coalesces to
 nothing**, while routing through an SImode temp restores the truncating move.
 ControlTraceLine's whole ladder matched on that one split (167 -> 10).
 
+### A ternary is NOT a spelling variant of `if/else` — it forces a MERGE PSEUDO and a SINGLE store
+
+**When both arms of a two-way choice assign the SAME destination**, `cond ? A : B`
+computes both arms into **one pseudo** and stores the destination **exactly once at the
+join**:
+
+```
+  j L ; addu v0,s1,v1        <- rand arm  -> v0
+  L_degen: subu v0,s1,v1     <- degen arm -> v0
+  L: sw v0,16(sp)            <- ONE store, at the join
+```
+
+The `if/else` spelling gives each arm its **own `sw`** and no join. **Two stores vs one
+is visible directly in the target asm: an unmarked store that the taken arm `j`s to and
+the fallthrough arm falls INTO is a JOIN — write a ternary.**
+
+**Diagnose by STORE COUNT per destination, not by the delay slots.** The wrong shape
+cascades far past the store: with no pending store at the join, reorg fills the guard's
+delay slot by stealing the degenerate arm's first arithmetic insn (and retargets the
+branch one insn earlier, where the target keeps a bare `nop`), and a later branch the
+target fills *with the sunk store* loses its filler too. Reading those delay slots first
+is exactly what produced FUN_8004d6d4's park verdict of a "below-the-C-level scheduler
+tie" — **wrong on every point**: it claimed "2 symmetric clusters", "only
+operand/register replacements", and that "each arm computes the FULL field directly".
+Two ternaries took it **55 -> 0 in a single edit**.
+
+**Corollary — when Ghidra renders a shared trailing assignment after an `if/else`, that
+is EVIDENCE OF A JOIN. Check the store count before overriding it.** That park
+explicitly rejected Ghidra's `local_28.vx = iVar3 + local_28.vx;` as an artifact and
+talked three rounds away from the answer key.
+
 ### For a register ROTATION, read `tools/regalloc.py <Name> --order` — cc1 PRINTS the allocation order
 
 **`;; 25 regs to allocate: 134 313 129 …` in `.greg` is printed AFTER `allocno_compare`'s

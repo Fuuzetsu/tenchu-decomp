@@ -11,29 +11,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 55 of 416 bytes differ; RIGHT LENGTH (104
- * instructions both sides, confirmed by asmdiff: no inserts/deletes, only
- * operand/register replacements in 2 symmetric clusters, one per jittered
- * axis). Each cluster is the SAME residual: the degenerate arm's
- * `x - dx`/`z - dz` subtraction — computed from values already loaded
- * before the `blez` branch — gets speculatively hoisted by cc1's reorg
- * into the branch's OWN delay slot in this build (executed unconditionally,
- * harmless on the non-degenerate path since it's overwritten there), while
- * the target leaves that delay slot a bare `nop` and computes the
- * subtraction only at the degenerate label itself. Tried and confirmed
- * NOT the lever: swapping which operand is written first in the
- * subtraction (`-dx + x` vs `x - dx`), and routing the rand-path result
- * through a named temp before the store (both left the byte diff
- * unchanged) — a genuine reorg/scheduler choice below the C level, not a
- * source-shape question. `tools/autorules.py` found no improving edit.
- * `tools/permute.py` ran two bounded passes (~260s then ~200s,
- * `--stop-on-zero -j4`); its best candidate (score 395, own weighted
- * metric) only wrapped the Z-axis rand result through a redundant temp
- * plus unrelated dead stores — re-verified with `matchdiff.py`: applying
- * just the temp-wrap left the byte diff at 55/416, unchanged, confirming
- * the cookbook's "a permuter winner can carry red herrings" warning.
- * Parked per the sub-C-level early-stop.
- *
  * FUN_8004d6d4 (0x8004d6d4, 0x1A0 bytes) — periodic smoke/splash-puff think
  * function (message-style `(this, msg)`, no direct `jal` callers found —
  * reached through a function-pointer table). Same 3-way dispatch shape as
@@ -60,12 +37,17 @@
  *    spelling for the second test does NOT reproduce it (verified on
  *    FUN_8004c59c: only `if (3 < arg1) goto normal;` placed reset between
  *    the two guard tests and normal's continuation, matching the target).
- *  - Each axis's jitter is ONE expression per branch, not a shared
- *    trailing `+x`: `vx = x - dx;` (degenerate, dx<=0) vs
- *    `vx = x + (rand() % (dx << 1) - dx);` (normal) — Ghidra renders a
- *    shared `local_28.vx = iVar3 + local_28.vx;` after the if/else, but
- *    the target's single `subu`/`addu` fusing x with the branch's own
- *    result means each arm computes the FULL field directly.
+ *  - Each axis's jitter is a TERNARY, so both arms compute into ONE merge
+ *    pseudo and the field is stored exactly ONCE at the join:
+ *      `j L; addu v0,s1,v1; L_degen: subu v0,s1,v1; L: sw v0,16(sp)`
+ *    An `if/else` whose arms each assign `pos.vx` directly gives each arm
+ *    its OWN `sw` (two stores, no join), which cascades into both visible
+ *    residuals: reorg then steals the degenerate arm's `subu` into the
+ *    `blez`'s delay slot (target keeps a bare `nop` there and retargets one
+ *    insn earlier), and the Z store is no longer available to fill the
+ *    GameClock `bnez`'s delay slot the way the target does
+ *    (`bnez v0,...; sw v1,24(sp)`). Ghidra's shared trailing
+ *    `local_28.vx = iVar3 + local_28.vx;` was reporting this join correctly.
  *  - The degenerate test is `(dx << 1) < 1`, not `dx <= 0` — the target
  *    tests the DOUBLED value (feeding the same shift into the `blez`),
  *    not the raw field. Written here as the DE MORGAN'd `1 <= (dx << 1)`
@@ -86,10 +68,6 @@ extern s32 rand(void);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vect, s16 n, s16 time);
 extern void SetSplash(VECTOR *pos, s16 sx, s16 sy, s32 speed);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8004d6d4", FUN_8004d6d4);
-#else
-
 void FUN_8004d6d4(u8 *arg0, u32 arg1)
 {
     VECTOR pos;
@@ -108,19 +86,15 @@ normal:
     if (*(arg0 + 0x15) != 0) return;
 
     x = *(s32 *)(arg0 + 4);
-    if (1 <= (*(s32 *)(arg0 + 0x1C) << 1)) {
-        pos.vx = x + (rand() % (*(s32 *)(arg0 + 0x1C) << 1) - *(s32 *)(arg0 + 0x1C));
-    } else {
-        pos.vx = -*(s32 *)(arg0 + 0x1C) + x;
-    }
+    pos.vx = (1 <= (*(s32 *)(arg0 + 0x1C) << 1))
+                 ? x + (rand() % (*(s32 *)(arg0 + 0x1C) << 1) - *(s32 *)(arg0 + 0x1C))
+                 : x - *(s32 *)(arg0 + 0x1C);
 
     pos.vy = *(s32 *)(arg0 + 8);
     z = *(s32 *)(arg0 + 0xC);
-    if (1 <= (*(s32 *)(arg0 + 0x20) << 1)) {
-        pos.vz = z + (rand() % (*(s32 *)(arg0 + 0x20) << 1) - *(s32 *)(arg0 + 0x20));
-    } else {
-        pos.vz = z - *(s32 *)(arg0 + 0x20);
-    }
+    pos.vz = (1 <= (*(s32 *)(arg0 + 0x20) << 1))
+                 ? z + (rand() % (*(s32 *)(arg0 + 0x20) << 1) - *(s32 *)(arg0 + 0x20))
+                 : z - *(s32 *)(arg0 + 0x20);
 
     if ((GameClock & 1) == 0) {
         dir.vx = 0;
@@ -132,4 +106,3 @@ normal:
         SetSplash(&pos, 0x4000, 0x2000, 10);
     }
 }
-#endif

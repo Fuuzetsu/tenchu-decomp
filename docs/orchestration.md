@@ -579,6 +579,14 @@ function already byte-matches on current `master`.
   "surplus instructions", DrawBleed missed an entirely different operation at
   0x80034440: `lhu v0,4(v1)` vs `lw v0,4(s1)`). The pattern is mine, not the lanes'.
   **Pipe the whole diff and run `--context`, or say the excerpt is an excerpt.**
+- **I pasted a tool's REFUSAL MESSAGE into two briefs under a heading claiming it was
+  data.** I ran `matchdiff --clusters -n` after a `./Build check` had relinked the stub;
+  the guard correctly refused, and I pasted the refusal under "### The FULL cluster
+  table (both units, never truncated)". A lane caught it: *"a refusal message got pasted
+  under a 'never truncated' heading and read as data."* The numbers in my prose came
+  from an earlier correct run and happened to be right — which is worse, not better.
+  **Never pipe a tool's output into a brief without reading it. `-n` is exactly when a
+  guard fires, and a guard firing is not a table.**
 - **Never quote a TRUNCATED tool head as a byte-account.** I built PadProc's brief
   from `asmdiff | head -9` and presented 4 diff lines as the residual; the real one is
   18 differing instructions across TWO `mflo` sites. The lane called it a 4x
