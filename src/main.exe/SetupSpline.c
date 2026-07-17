@@ -63,7 +63,31 @@
  * a0/a1 and the coupled v0/v1 carriers in the opposite order. There are no
  * remaining opcode, immediate, extent, or CFG differences. A bounded guided
  * exact search and 23,004 source permutations both plateaued at this coloring;
- * a further bounded permuter run (--stop-on-zero -j4) also plateaued at 12, and
+ * ~~a further bounded permuter run (--stop-on-zero -j4) also plateaued at 12~~ —
+ * **VOID (2026-07-17): THAT RUN NEVER HAPPENED.** The permuter cannot search this
+ * function at all. Its own compile of its REWRITTEN source fails —
+ * `stdin:941: conversion to non-scalar type requested` / `Unable to compile
+ * .shake/permuter/SetupSpline/base.c` — so it evaluates ZERO candidates and exits,
+ * and permute.py then printed `authoritative best -> base.c (12 ...)`, which reads
+ * exactly like "searched and found nothing". It did not plateau; it crashed.
+ * permute.py now REFUSES loudly on this (b4b7742), so the mistake cannot recur.
+ *
+ * Note the sanity compile could never have caught it: OUR base.c builds fine (the
+ * draft builds). The permuter PARSES and REGENERATES that C, and its regenerated
+ * source is what will not compile — a decomp-permuter/pycparser limitation, not a
+ * defect in this draft. Suspects in this body: the cpp-expanded struct definitions,
+ * the nested `spc->dd0.pad`, or the `(spc = call_spc)->key1` assignment-expression
+ * deref.
+ *
+ * SO THIS PARK IS NOT EVIDENCE-BACKED ON THE SEARCH AXIS. 12 bytes across 12 insns,
+ * every one a register field (3 clusters, all `operands`) is a PURE register
+ * permutation — the permuter's ideal shape, and it has never actually run here.
+ * TOOL TICKET: make the permuter able to parse this function (or find the construct
+ * and spell it differently), then give it a real bounded run before anyone calls
+ * this residual sub-C. Surveyed 2026-07-17: AddEnemy, FUN_800514d8, AdtSelect,
+ * StageEndScreen, mission_score_screen, PlayVoice, SetLightningI and SetWire all
+ * search fine, so this is not a widespread outage — but it is a real one here.
+ *
  * tools/autorules.py reports no improving edit among 12 candidates.
  *
  * MEASURED EVIDENCE (do not re-derive; every number below was measured here):
