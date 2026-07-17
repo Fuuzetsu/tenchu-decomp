@@ -6529,6 +6529,32 @@ still lands at the declaration position — only the CONVERSION is deferred.** T
 a narrow parm shows the truncation REPLACING the move rather than a bare move moving
 later.
 
+### START HERE ON ANY SUB-C RESIDUAL: `tools/cc1says.py <Name>` — cc1 narrates its own decisions
+
+**cc1 explains itself in `;;` commentary across all 15 dumps, and we were reading about
+three of those tables and hand-deriving the rest.** Every hand-derivation of something
+cc1 prints has cost a round, and twice produced a confident WRONG conclusion. Run this
+FIRST; escalate to reading raw RTL only for what it does not cover.
+
+What it surfaces, with the round each cost before it existed:
+
+| dump | cc1 prints | cost of not reading it |
+|---|---|---|
+| `.dbr` | `12 insns needing delay slots / 4 got 0 delays, 8 got 1 delays` | **FOUR delay-slot rounds** ran blind to cc1's own fill count |
+| `.loop` | `Loop from 33 to 380: 114 real insns` + `moved to 388` / `not desirable` | SetBleedsDir's whole 13-byte residual; "the single highest-value artifact here" |
+| `.sched2` | `ready list at T-20: 6 (1) 4 (1), now 6 4` | FUN_80057b80's entire 8-byte residual is ONE line |
+| `.sched` | `insn[N]: priority = P, ref_count = R` | a round read ref_count as priority and INVERTED a correct park |
+| `.sched` | `insn N has a greater potential hazard, now …` | **cc1 NAMES the swap** a whole cookbook rule is about |
+| `.sched` | `register N no longer crosses calls` / `life extended from N to N` | sched CHANGES live ranges, and that feeds allocation |
+| `.sched` | `blocking insn N for N cycles` | a real latency, printed — not a tie |
+| `.cse`/`.cse2` | `Processing block from 2 to 76, 29 sets` | we hand-derive "cse's block ends at a CODE_LABEL" constantly; **these ARE the blocks** |
+| `.combine` | `138 attempts, 101 substitutions, 17 successes` | the direct answer to "did my combine fire?" |
+| `.greg` | `Need 1 reg of class ALL_REGS (for insn N)` | reload's own spill demand, per insn and per class |
+| `.lreg` | `Register 82 in 16.` | local-alloc's dispositions, outright |
+
+**Diff it against a matched sibling.** SetBleedsDir vs SetBleeds: identical movable,
+opposite verdicts, one discriminator (the loop's insn count) — that WAS the residual.
+
 ### `priority()` is DEPTH-FROM-TOP, not height-to-bottom — and cc1 PRINTS it
 
 **(This section previously said the opposite: that a park's "already at the priority

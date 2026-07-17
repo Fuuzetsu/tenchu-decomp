@@ -120,6 +120,15 @@ permuter run above must FINISH — via zero or timeout — before you run matchd
 The automatic matching-tool lock enforces this for repository tools; the rule
 still applies to direct `./Build` commands and third-party permuter processes.
 
+**On ANY sub-C residual, run `tools/cc1says.py <Name>` BEFORE reading raw RTL.** cc1
+narrates its own decisions in `;;` commentary across all 15 dumps — the delay-slot fill
+count, loop.c's hoist verdicts, sched's ready lists and hazard swaps, cse's block
+boundaries, combine's success count, reload's spill demands. We were reading three of
+those tables and hand-deriving the rest; every hand-derivation cost a round and two
+produced confident WRONG conclusions. **Diff it against a matched sibling** — identical
+movables with opposite verdicts, or differing delay-slot fill counts, are usually the
+whole residual.
+
 **When a draft is the CORRECT LENGTH but a few bytes differ and neither respelling
 nor a bounded permuter run closes it, do NOT park it as "below-the-C-level" — READ THE
 RTL.** Run `tools/rtldump.py <Name>` (standalone cc1-281 dumps, race-free; it compiles
