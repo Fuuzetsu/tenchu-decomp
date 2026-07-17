@@ -255,9 +255,9 @@ The ordered triage — fix categories in THIS order, re-running
      just the right size), later functions' comparisons become meaningful
      again (this batch: InitializeItem (earliest) needed fixing before
      ProcMiscSprite's diff made any sense at all).
-4. Don't trust the byte count alone — read the diff. A change can improve the
+5. Don't trust the byte count alone — read the diff. A change can improve the
    count while shifting registers globally (worse), or vice versa.
-5. **Attempt cap.** If ~10 meaningful source changes haven't reduced the diff,
+6. **Attempt cap.** If ~10 meaningful source changes haven't reduced the diff,
    stop and preserve the best draft with the **NON_MATCHING convention** (see
    below): the default build keeps the byte-identical stub while the draft
    stays first-class and buildable. Mark the residual (`STATUS: NON_MATCHING —
@@ -6131,21 +6131,6 @@ retail). The "unexplained frame gap = unused aggregate" rule applied to main.
 - **Whether loop.c hoists a set: read the THREE disjuncts, they are independent.**
   loop.c:691-703 moves a set if (1) it is used only in the set's own basic block
   (`reg_in_basic_block_p`), OR (2) `!REG_USERVAR_P(SET_DEST(set)) &&
-
-**Correction (AddEnemy round 10): `loop.c:697-708` is TWO gates, not one.**
-Gate 1 is the cases (1)/(2)/(3) DISJUNCTION (`reg_in_basic_block_p` /
-`!REG_USERVAR_P` / `!maybe_never`); gate 2 is
-`invariant_p && (n_times_set == 1 || consec_sets_invariant_p) && !trap`. So citing
-`n_times_set == 1` as a bare REQUIREMENT is wrong — it is a disjunct — and a NAMED
-user variable usually dies at gate 1 anyway, making gate 2 the wrong thing to argue
-about. (A brief asserted the `n_times_set` version and a lane spent a round
-disproving it.)
-
-**Correction (AddEnemy round 9):** `reg_in_basic_block_p` (loop.c:1066) has a
-SECOND test that several rounds missed — the reg's LAST USE must also be in the
-set's basic block, not just the set. Any contradiction derived from this rule is
-therefore STRONGER than it first appears (AddEnemy's cluster C is dead in both
-directions, not one).
   !REG_LOOP_TEST_P(...)`, OR (3) the set is guaranteed executed once the loop
   starts. Two useful consequences, and they pull in opposite directions:
   - A named base under a conditional and used in ANOTHER block fails all three,
@@ -6359,6 +6344,21 @@ directions, not one).
   function `swc2 $17,...` is COP2 register 17, NOT `$s1`.
   (Editing gotcha: `sed 's/#.*//'` written literally inside a C block comment
   embeds a `*/` and silently truncates the comment.)
+
+**Correction (AddEnemy round 10): `loop.c:697-708` is TWO gates, not one.**
+Gate 1 is the cases (1)/(2)/(3) DISJUNCTION (`reg_in_basic_block_p` /
+`!REG_USERVAR_P` / `!maybe_never`); gate 2 is
+`invariant_p && (n_times_set == 1 || consec_sets_invariant_p) && !trap`. So citing
+`n_times_set == 1` as a bare REQUIREMENT is wrong — it is a disjunct — and a NAMED
+user variable usually dies at gate 1 anyway, making gate 2 the wrong thing to argue
+about. (A brief asserted the `n_times_set` version and a lane spent a round
+disproving it.)
+
+**Correction (AddEnemy round 9):** `reg_in_basic_block_p` (loop.c:1066) has a
+SECOND test that several rounds missed — the reg's LAST USE must also be in the
+set's basic block, not just the set. Any contradiction derived from this rule is
+therefore STRONGER than it first appears (AddEnemy's cluster C is dead in both
+directions, not one).
 
 ### When two constraints fight over ONE lever, find a second lever for the constraint that has one
 
@@ -6597,7 +6597,7 @@ impossible, and `LUID(argmove) < LUID(chain)` is impossible by `calls.c:1632`. I
 target does that, **it is unreachable from C — park on sight.** (AddEnemy cluster E,
 12 bytes: the model is falsifiable and PASSES — it reproduces our exact bytes.)
 
-### A returning guard's delay slot is won by SOURCE POSITION, not by a fence### A returning guard's delay slot is won by SOURCE POSITION, not by a fence
+### A returning guard's delay slot is won by SOURCE POSITION, not by a fence
 
 If the target fills a guard's delay slot with a cheap independent assignment and
 starts the if-body with the fallthrough's first chain, **put that assignment ABOVE
@@ -6824,7 +6824,7 @@ made `$zero` look like a deliberate choice); another had `rare_destination` retu
 **A mechanism claim in a report or a park is worth exactly as much as the source line
 it cites.**
 
-### Dump a CONTROL variant, not just the current draft### Dump a CONTROL variant, not just the current draft
+### Dump a CONTROL variant, not just the current draft
 
 FUN_8003944c's park paired an accurate OBSERVATION ("retail loads it immediately
 after scale and keeps it in `$v1` until the return delay slot") with an
@@ -7672,8 +7672,6 @@ outcome is pure `allocno_compare` ORDER, and the lever is priority, not preferen
   `ABS_EXPR` at all; an earlier version of this rule credited "inline vs named
   temp" and was **disproven by direct experiment** (all three spellings emit
   byte-identical asm) — do not propagate that framing.
-- **Inline a CSE'd pointer-array element into the expression that first uses
-  it, so it loads late and reuses a dying pointer's register.** A named
 - **Inline a CSE'd pointer-array element into the expression that first uses
   it, so it loads late and reuses a dying pointer's register.** A named
   `c1 = chase[1]` temp schedules early (before the target pointer's register
