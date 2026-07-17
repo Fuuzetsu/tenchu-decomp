@@ -140,7 +140,12 @@ run it in the FOREGROUND (blocking, inside the single `timeout ... bash -c '...'
 its exit returns control to you directly. Waiting on it out-of-band has repeatedly
 stalled agents across many turns for no gain, and there is NO other agent and NO sub-agent
 involved: you are one matcher working alone in your own worktree. A bounded run that
-plateaus is a PARK signal, not a reason to wait.
+plateaus is a PARK signal, not a reason to wait — **but a plateau is per-CHECKPOINT, not
+per-function.** If you ADOPT a permuter win (or any edit that shrinks the residual),
+RE-SEED a fresh bounded run from the new source: the search starts from disk, so a
+smaller residual opens a different neighbourhood the old run never saw. DrawBleed went
+47→12→8 across three sequential re-seeded rounds. This is still one foreground bounded
+call each time — it does NOT license backgrounding.
 
 **The SAME rule applies to `tools/autorules.py --guided`, and it is the one that keeps
 killing lanes.** A guided sweep is ~160 full builds; three lanes ran it, it exceeded

@@ -1558,6 +1558,27 @@ re-check cheaply before honoring them:
   The permuter mutates C, not semantics — an assignment-expression inside a
   comparison through a narrower fresh type is a whole class it can reach.
   Re-running matchdiff on the score is NOT enough: read the emitted immediate.
+  A subtler instance: a candidate can score by reading a fresh pseudo with NO
+  reaching definition on any path — real UB that only "works" because gcc-2.8.1
+  records no conflict for an undefined pseudo (DrawBleed's rejected 8→4). If a win
+  depends on a variable that is never assigned before use, it is not the original.
+- **RE-SEED the permuter after ADOPTING a partial win — "one bounded run" means
+  once per CHECKPOINT, not once per function.** The search starts from whatever
+  source is on disk, so a checkpoint that shrank the residual opens a DIFFERENT
+  neighbourhood; a run that plateaued against the OLD baseline says nothing about
+  the new one. DrawBleed ran three bounded rounds in sequence, each seeded from
+  the previous checkpoint — 47→12 (a second pointer identity beating sched1's
+  priority sink), 12→8 (a temp-before-intervening-read capture) — both verified by
+  porting the semantic delta, never by score. (This does NOT license
+  background-and-wait; each run is still one foreground bounded call.)
+- **"An alias copy survives only if it CONFLICTS with its source" is a diagnosis,
+  NOT a recipe.** It reads like "make the source dead after the copy and the copy
+  coalesces away for free" — but the conflict exists BECAUSE both values are
+  genuinely live at once, and routing every later use through the alias so the
+  original dies does not remove that need, it relabels which pseudo carries it.
+  The pressure resurfaces elsewhere, often as a LENGTH MISMATCH (DrawBleed:
+  routing `dx`/`r`/`g`/`b` through the alias cost +4 bytes of length instead of
+  coalescing). Build and measure the "eliminate the conflict" edit like any other.
 - **A length-neutral residual refuses control-flow fixes by arithmetic**: pure
   register tie + pure reorder with no missing/extra insns means a new branch
   (≥8 bytes on MIPS) converts a small tie into a strictly worse length

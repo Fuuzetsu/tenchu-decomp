@@ -37,10 +37,9 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 47 of 532 bytes differ (same instruction COUNT —
- * length matches exactly; every differing instruction is a genuine
- * instruction the draft already has elsewhere, only its SCHEDULED position
- * differs — no wrong value, no missing/extra logic).
+ * STATUS: NON_MATCHING — 8 of 532 bytes differ (down from a 47-byte park with
+ * zero prior autorules/permuter/RTL history; length still matches exactly —
+ * this residual is a register-coalescing question, not a wrong value).
  *
  * DrawBleed (0x8003437c, EFFECT.C:910) — the blood-drip effect's per-frame
  * draw: while `mode==0` and `time!=0`, advances the drip position by its
@@ -105,88 +104,99 @@
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
  *    MASPSX_EXTRA), same as DrawSprite/DrawSpriteXYZ/FUN_8003a148.
  *
- * RESIDUAL (47 bytes). The whole residual is ONE clean MIRROR SWAP of two
- * load pairs — the instruction MULTISET is identical, only which pair is
- * scheduled early differs:
+ * PRIOR PARK (47 bytes) was ONE clean mirror swap: sched1 (the PRE-RA
+ * scheduler) dragged `dy`/`dz`'s loads from the top of the merge block to the
+ * bottom, shortening their live range so global-alloc gave them v0/v1 while
+ * `lui %hi(ViewInfo)` took the block-leader slot and a1/a2 instead of `dy`/
+ * `dz`. That park correctly proved `.flow` already matches the target (so no
+ * STATEMENT reorder inside the block can fix it — sched1 overrides source
+ * order) and that the lever must be sched1's PRIORITY model. It did not have
+ * `tools/sched-deps.py`/`tools/rtlguide.py` yet (both landed after that
+ * park) and its one permuter run predated `d02da20` (permute.py's own
+ * CC_FLAGS mirror still had `-fno-builtin` in the wrong flag group, so that
+ * negative was searching a DIFFERENT PROGRAM than the build — void).
+ *
+ * THIS ROUND (47 -> 8) found the actual lever: a genuinely SEPARATE pseudo
+ * for the value `param` already holds, introduced right where sched1 was
+ * choosing to sink `dy`/`dz`. A fresh bounded permuter run (post-fno-builtin-
+ * fix) found it census-first as a random-variable mutation; the win was
+ * verified by porting the semantic delta and re-measuring with
+ * `tools/matchdiff.py`, never trusting the permuter's own proxy score:
+ *
+ *   1. `param2 = param;` seeded at the tail of BOTH inner branches (the
+ *      `time==0` -> `ef->proc=0` arm and the velocity-update `else` arm),
+ *      then `dy = param2->pos.vy; dz = param2->pos.vz;` after the if. Having
+ *      a second RTL identity for the same pointer value changes sched1's
+ *      priority computation enough that `dy`/`dz` land early again (47->12).
+ *      Per `tools/regalloc.py`'s own diagnosis ("gcc-2.8.1 has NO coalescing
+ *      pass ... An alias copy survives ONLY if the alias CONFLICTS with its
+ *      source"): `param` is still live after the copy (needed for `dx` and
+ *      later `r`/`g`/`b`), so the copy DOES conflict and survives as a real
+ *      `move` — that's the residual's fixed cost from here on.
+ *   2. `savedTime = param->time;` seeded BEFORE the `dy`/`dz` reads, with
+ *      `param->time = savedTime - 1;` at the original position — the
+ *      "compute into a named temp before an intervening read" idiom
+ *      (§3.13, AfsGetHeader family) fixed the remaining `time`-vs-`dy`
+ *      ordering tie (12->8).
+ *
+ * RESIDUAL (8 bytes), all one issue — `param2` needs its OWN register
+ * because it conflicts with `param` (proven above), and the allocator picks
+ * a2 instead of coalescing with s1:
  *
  *              TARGET                          OURS
- *   0x3f8  lui v1,%hi(ViewInfo)            lbu v0,27(s1)      (time)
- *   0x3fc  lbu v0,27(s1)                   lui a2,%hi(ViewInfo)
- *   0x400  lw a1,4(s1)  \ pos.vy/vz        addiu/sb           (time)
- *   0x404  lw a2,8(s1)  /  EARLY -> a1,a2
- *   0x414  lhu a3,vpx / addiu &ViewInfo    lhu a1,4(a2) \ ViewInfo.vpy/vpz
- *   0x418                                  lhu a2,8(a2) /  EARLY -> a1,a2
- *   0x440  lhu v0,4(v1) \ ViewInfo         lw v0,4(s1)  \ pos.vy/vz
- *   0x444  lhu v1,8(v1) /  LATE -> v0,v1   lw v1,8(s1)  /  LATE -> v0,v1
+ *   0x3ac  nop                             move  a2,s1        (param2=param)
+ *   0x400  lw a1,4(s1)  pos.vy             lw a1,4(a2)
+ *   0x404  lw a2,8(s1)  pos.vz             lw a2,8(a2)
  *
- * Whichever pair loads first wins a1/a2; the loser gets v0/v1. PSX.SYM is
- * decisive that the target's pair is the RIGHT one: it records `long y` in
- * $a1 and `long z` in $a2, and the target's `lw a1,4(s1)`/`lw a2,8(s1)` put
- * pos.vy/vz in exactly those homes. Ours puts ViewInfo there.
+ * `tools/rtlguide.py DrawBleed` names this precisely: owner
+ * cse/coalescing+regalloc, register goal "a2 -> s1 x2". Confirmed
+ * UNREACHABLE from well-defined C this round, three ways:
+ *   - `tools/autorules.py DrawBleed --guided` (the rules rtlguide names for
+ *     this exact signature: ptr-base-split, deref-address-split,
+ *     disjoint-local-alias, identical-arm-fence, etc., beam depth 2, 160
+ *     compiled candidates): no improving edit.
+ *   - Covering the THIRD path too (`param2 = param;` also on the implicit
+ *     `mode!=0` fast path, as an `else` on the outer `if`) costs +2 bytes
+ *     (8->10): that path's `bnez` delay slot is already spoken for by the
+ *     ViewInfo `lui` in the target, with provably zero spare room.
+ *   - Making `param` fully dead after the copy (routing `dx` and the
+ *     `r`/`g`/`b` reads through `param2` too, so the alias no longer
+ *     conflicts, satisfying regalloc's own coalescing condition) does not
+ *     coalesce the copy away — it costs a LENGTH MISMATCH (536 vs 532)
+ *     instead. The register pressure moves, it does not disappear.
  *
- * MECHANISM (proved from the RTL, `tools/rtldump.py DrawBleed --pass
- * flow,sched`) — it is sched1, the PRE-register-allocation scheduler:
- *   .flow  (before sched1): LABEL, 79 dy, 82 dz, 85 lbu time, 89 sb, 92 dx,
- *                           111 lui, 112, 114
- *   .sched (after  sched1): LABEL, 85 lbu time, 89 sb, 111 lui, 92 dx, 114,
- *                           112, 79 dy, 82 dz
- * sched1 drags `dy`/`dz` from the TOP of the merge block to the BOTTOM. That
- * shortens their live ranges, so the allocator hands them v0/v1 instead of
- * a1/a2 (greg dispositions: `84 in 2  85 in 3`), and the `lui` loses the
- * block-leader slot to `lbu`.
- *
- * The EMPTY DELAY SLOT IS A SYMPTOM, NOT THE CAUSE — do not chase it. reorg
- * can only steal the merge block's LEADER; the target's leader is `lui`
- * (arithmetic, eligible) so it gets stolen, ours is `lbu` (a LOAD, `dslot=yes`,
- * ineligible per mips.md's define_delay) so reorg finds nothing and emits nop.
- * Which insn leads the block is sched1's call, made long before reorg runs.
- * Note also that the fill SHIFTS NOTHING: the `nop` and the `lui` are both 4
- * bytes at 0x8003439c. The target's 0x3fc-vs-0x3f8 branch target is reorg
- * COPYING the `lui` (the label has 2 uses -> own_target=0) and redirecting
- * both jumps past the copy; the copy at 0x800343f8 must survive because the
- * `pos+=vec` fallthrough path clobbers v1.
- *
- * The `.flow` RTL order ALREADY MATCHES the target, so expand/cse/combine are
- * all doing the right thing and the C statement order is NOT the lever — this
- * is why a previous round's "moving dy/dz earlier produced byte-identical
- * output" is EXPECTED rather than informative: sched1 overrides source order
- * within a basic block. The lever must change sched1's PRIORITY (chain length
- * or a block/barrier boundary), not the statement position.
- *
- * The demo twin (`tools/siblingdiff.py DrawBleed --demo`, demo @ 0x8002e67c)
- * emits this schedule IDENTICALLY (105/133 insns identical; the only deltas
- * are ViewInfo's address 0x801d vs 0x800c and the scratchpad base 0x80 vs
- * 0x20). So the target's schedule is a stable property of the ORIGINAL source
- * across two independent builds, not a fluke — a source form that produces it
- * exists and has not been found yet.
+ * A REJECTED further permuter find (8 -> 4, found twice independently by
+ * fresh bounded runs seeded from the 12- and 8-byte checkpoints): deleting
+ * the `param2 = param;` assignment ENTIRELY (from both branches, leaving
+ * `param2` read via `dy = param2->pos.vy` with no reaching definition on ANY
+ * path) links to 4 whole-image differing bytes. This is a genuinely
+ * uninitialized local — gcc-2.8.1 has no def for `param2`'s pseudo, so
+ * global-alloc records no conflict against it and happens to hand it s1,
+ * making the read coincidentally correct FOR THIS EXACT COMPILATION. It is
+ * not adopted: every well-defined attempt to reproduce the same "no
+ * conflict" state (see above) either failed to move the bytes or cost length,
+ * and a construct whose correctness depends on an absent conflict edge
+ * rather than a proven value is exactly the "scores better while being
+ * further from the target's shape" trap the permuter contract warns about.
+ * Left here as a lead: if a later round finds a WELL-DEFINED source shape
+ * that reaches 4 (or 0), the candidate is banked at
+ * `.shake/permuter/DrawBleed/output-10-1/source.c` (regenerated per-run, not
+ * committed) — the transformation to reproduce is
+ * `git diff` against this file with both `param2 = param;` lines removed
+ * and `param->vec.vy = param2->vec.vy + 1;` reverted to `param->vec.vy += 1`.
  *
  * LOAD WIDTH is separately settled and must not be regressed: `pos.vx/vy/vz`
  * (VECTOR, `long`) must be captured into plain `s32` temps BEFORE the
  * narrowing scratchpad store, or cc1 narrows the LOAD itself to `lhu` (valid
  * for the truncated subtraction, but the target uses `lw`).
  *
- * MEASURED and rejected this round (all rebuilt + re-measured; the draft sits
- * on a narrow 532-byte ridge and every neighbour collapses):
- *   - struct-typed scratchpad `((MATRIX *)0x1F800000)->t[0]` /
- *     `((SVECTOR *)0x1F800020)->vx`  -> 496 (cc1 CSEs the struct base into a
- *     register across the stores, collapsing the per-store `lui at,0x1f80`;
- *     this is what DrawTarget.c's header means by "NOT a shared cached
- *     MATRIX/SVECTOR pointer local" — a CONSTANT-folded struct cast
- *     collapses the same way).
- *   - statement reorders: time-first/y,z,x | x,y,z-then-time |
- *     time-first/x,y,z                     -> 512 each
- *   - x/y/z hold the DIFFERENCES instead of the raw positions -> 512
- *   - dropping the `(short)` casts on the ViewInfo reads      -> 512
- *   - `volatile` scratchpad stores (a sched1 barrier; the target's schedule
- *     IS "source order preserved relative to the scratchpad stores"):
- *     all six volatile -> 536 (+1 insn); only the 3 zero stores -> 524;
- *     only the 3 coordinate stores -> 524. Closest non-baseline result, and
- *     non-monotonic — worth another look, but no form found that lands 532.
- *   - `tools/autorules.py`: no improving edit among 32 candidates.
- *   - `tools/permute.py` bounded run: 39687 iterations, never reached 0
- *     (best proxy scores 405-1325, 517+ accumulated errors). Consistent with
- *     the mechanism above — the choice is made by sched1's priority model,
- *     which the permuter's C-AST mutations do not address.
+ * Also measured and rejected in the ORIGINAL 47-byte park (still true, not
+ * re-tested this round — the multiset argument doesn't depend on the byte
+ * count): struct-typed scratchpad casts (CSE folds the base, -> 496);
+ * plain statement reorders inside the merge block (sched1 overrides them,
+ * -> 512); x/y/z holding differences instead of raw positions (-> 512);
+ * dropping the ViewInfo `(short)` casts (-> 512); volatile scratchpad
+ * stores (536 / 524 / 524, non-monotonic, no form found that lands 532).
  */
 typedef struct
 {
@@ -223,6 +233,8 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawBleed", DrawBlee
 void DrawBleed(TEffectSlot *ef)
 {
     BleedType *param = &ef->param.bleed;
+    BleedType *param2;
+    u8 savedTime;
     SVECTOR scr;
     SVECTOR *scrp;
     s32 dx, dy, dz;
@@ -236,18 +248,21 @@ void DrawBleed(TEffectSlot *ef)
         if (param->time == 0)
         {
             ef->proc = 0;
+            param2 = param;
         }
         else
         {
             param->pos.vx += param->vec.vx;
             param->pos.vy += param->vec.vy;
             param->pos.vz += param->vec.vz;
-            param->vec.vy = param->vec.vy + 1;
+            param2 = param;
+            param->vec.vy = param2->vec.vy + 1;
         }
     }
-    dy = param->pos.vy;
-    dz = param->pos.vz;
-    param->time = param->time - 1;
+    savedTime = param->time;
+    dy = param2->pos.vy;
+    dz = param2->pos.vz;
+    param->time = savedTime - 1;
 
     dx = param->pos.vx;
     *(s32 *)0x1F800014 = 0;
