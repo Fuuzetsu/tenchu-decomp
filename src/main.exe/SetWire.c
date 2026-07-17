@@ -67,74 +67,80 @@
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetWire", SetWire);
 #else
 /*
- * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
- * 0x78-byte frame and 1,488-byte / 372-instruction extent.  The physical CFG
- * inventory is also exact: 22 conditional branches, 3 unconditional jumps,
- * 17 calls, 2 divide traps, and 1 return.  The guarded draft has 70 differing
- * bytes and 22 aligned residual lines in 11 blocks; fuzzy is 95.33.
+ * STATUS: NON_MATCHING — 80 of 1488 bytes differ. HUMAN-STRUCTURE REWRITE
+ * (the EFFECT.C:1428 experiment): written from PSX.SYM's own declarations and
+ * blocks, no fences, no seed temps, no goto webs. The fully natural spelling
+ * measures 85; the ONE compensator kept below (the loop cluster's zero/store
+ * statement order, marked "COMPENSATOR") buys 85 -> 80. The previous 70 was
+ * fence-propped (its own park refuted the fence by sched2 evidence) and is
+ * banked in git history — do not resurrect it; this is the honest base.
  *
- * Keeping the raw square, normalized square, and two center weights as
- * distinct source values recovers the target's complete fixed-point
- * interpolation island.  Reusing the dead `t` and `one` carriers for the x/z
- * accumulators also removes the compensating instruction that had made
- * DrawBleed's proven default-then-restore priority clamp one instruction too
- * long; the clamp and all three coordinate accumulators now match exactly.
+ * WHAT THE HUMAN STRUCTURE PROVED (all byte-verified this round):
+ *   - The ENTIRE t/Q/R interpolation island matches from the author's own
+ *     spelling: single-set `one = 0x1000`, `t = one - i*0x1000/lcount`,
+ *     `Q = t*2`, `R = t*t/0x1000`, `A = one - Q + R`, `B = Q - R*2`, and
+ *     x/y/z = (A*end + B*center + R*start)/0x1000 — where the old draft
+ *     needed 8 temps and dead-carrier reuse. PSX.SYM's homes (t=$v0, Q=$a0,
+ *     R=$a2) equal retail's for t, t*2, t*t/4096.
+ *   - The priority clamp matches as a plain nested if/else with the PSX.SYM
+ *     `int z` shadow (old draft: goto web). `p = z<0x4e2 ? z : 0x4e1` shape
+ *     comes out of reorg's delay-slot fill on its own.
+ *   - The distance block is GetVectorDistance's matched body (EFFECT.C:509)
+ *     inlined; the tail is GetVectorRotation's (EFFECT.C:532) on
+ *     (start, end, &rx, &ry) with pointer locals (see rxp/ryp note below).
+ *   - `i * 0x1000` == `(i << 12)`; `long abs(long)`; (u16)/(s16) casts on
+ *     ViewInfo reads are byte-neutral here.
  *
- * The only remaining residuals are the two camera-relative scratchpad
- * scheduling islands, 35 bytes each: the entry VECTOR/ViewInfo loads
- * (clusters at 0x800372f0..0x80037368) and the per-segment zero/coordinate
- * stores (0x800376c4..0x80037700).
+ * THE RESIDUAL (two clusters, both pure emission order, all priority-1
+ * sched2 ties):
+ *   1. Entry ViewInfo cluster (~50B, 0x2f0..0x368): retail needs allocation
+ *      {x:v0, hi:v1, y:a1, z:a2, vpx:a3, vpy:v0-recycled, vpz:v1-recycled} —
+ *      then every position follows from anti-deps (vpx->a3 is pinned UNDER
+ *      `sw a3,0x84` = len's home save; vpy->v0 under x's death; vpz->v1
+ *      under the addiu base). Ours allocates {hi:a2, vpx:v1, vpy:a1, vpz:a2}
+ *      because THIS cc1's sched1 statement-sinks the single-use y/z loads
+ *      below the x-store before RA runs, so vpy/vpz are born early and take
+ *      a1/a2. Measured levers, all: statement order is INVISIBLE (zeros
+ *      first/mid/last, x-store-first: all 85/80); subtract-first = 111;
+ *      compound `-=` = 115; entry store scramble = 87; (u16)=(s16);
+ *      autorules 92 candidates = 0; bounded permuter (240s+90s, post
+ *      -fno-builtin) best VALID = base (its 82 "win" was `y & 0xFFu` — an
+ *      lbu, semantically wrong, rejected).
+ *   2. Loop store cluster (~30B, 0x6c4..0x6fc): same class; the statement-
+ *      order compensator below recovers 5 of it (a 14-combo sweep of
+ *      zero/store orders found zeros 18,1C,14 + stores x,z,y optimal — the
+ *      same tuning the old draft carried; natural zeros + x,z,y = 82,
+ *      scrambled zeros + x,y,z = 83; y-first/z-first orders shift length).
  *
- * 2026-07-17 third pass — MECHANISM PINNED, and two earlier claims corrected.
- * Refute anything below in one command; every number is `NON_MATCHING=SetWire
- * ./Build` then `tools/matchdiff.py -n SetWire`.
+ * DEMO-BUILD FACTS THIS ROUND ESTABLISHED (tools/siblingdiff.py --demo):
+ *   - Demo and retail agree byte-for-byte-in-structure on BOTH residual
+ *     clusters (incl. lui ViewInfo among the prologue saves and the late
+ *     `sra z`) — the original source hits them from a plain spelling that
+ *     this draft cannot reach; the divergence is in sched1's sink choices.
+ *   - The demo loop is ROTATED (guard blez + bottom test) with `li 4096`
+ *     and `&ViewInfo` HOISTED to the preheader; retail is top-test with the
+ *     li in-loop. With cookbook §3.14 (user-var invariant + maybe_never)
+ *     this pins the original as having a SINGLE-SET `one`-style variable,
+ *     and means the author CHANGED the loop between builds (demo: plain
+ *     for/while that rotated; retail: break-style that cannot).
+ *   - Demo abs() was builtin/macro (inline branch+negate, NO flag); retail
+ *     calls abs() and materializes the flag in $s5 — the author edited this
+ *     between builds; GetVectorDistance's retail body is the proven shape.
  *
- * `tools/reghist.py SetWire`: delta sum ZERO, only v0/v1/a1/a2 differ (+2/+2/
- * -2/-2). The variable decomposition already matches the target; the residual
- * is EMISSION POSITION, not structure. `tools/sched-deps.py SetWire --pass
- * sched2 --verdicts` names it exactly: entry block 0 is 18 insns that ALL tie
- * at priority 1, resolved by 9 potential_hazard swaps. In sched2 there is no
- * bump path (adjust_priority is gated on reload_completed == 0), so among
- * floor insns the order is class-then-LUID, i.e. the order they ENTER sched2.
- *
- * CORRECTION 1 — the identical-arm fence below is NOT original; it is a
- * scoring hack, and a known-wrong one. It is load-bearing (removing it costs
- * 70 -> 80), but sched2 shows block 0 ENDS at the fence's jump (insn 25),
- * which strands `lui %hi(ViewInfo)` (insn 58) in block 3. Retail schedules
- * that lui at 0x800372f0, in among the prologue saves (`addu $s4,$a2,$zero` /
- * lui / `sw $ra,0x74($sp)`), which is only possible if the ViewInfo reference
- * and the prologue share ONE block. Per the cookbook's fence corollary, the
- * target therefore refutes any fence here. The fence-free draft (80 bytes)
- * places that lui at 0x800372f0 CORRECTLY and is the structurally honest
- * base; it loses only because sched2 then drags lhu+addiu up with it and
- * scatters the start-> loads. Whoever closes this should probably start from
- * the 80 and fight sched2, not from this 70.
- *
- * CORRECTION 2 — "the permuter is definitively unhelpful" was written by an
- * INTERRUPTED session and overstates its evidence. A fresh bounded foreground
- * run (`timeout 240 tools/permute.py SetWire -- --stop-on-zero -j4`) confirms
- * no win: authoritative best 82 vs this base's 70. BUT its own base.c does not
- * round-trip this draft — the rescore prints `291357 / 1004 / 1492 base.c`
- * where the draft on disk is 1488 bytes / 70 differing. The permuter searched
- * from a degraded import and never explored this draft's neighborhood, so its
- * negative is a statement about that import, not about this source.
- *
- * Measured levers (all real edits; tools/nullcheck.py exit 0):
- *   - The fence's CONDITION OPERAND selects the entry load order, because the
- *     value feeding the branch is pulled into block 0 first. `if (initial_y)`
- *     -> lw 4/0/8(s3) = 70 (wrong order, better score). `if (initial_x)` ->
- *     lw 0/4/8(s3) = 71, which is the TARGET's order (v0/a1/a2 homes still
- *     differ). 70 is banked as the better number; 71 is the better shape.
- *   - The per-segment store order below (0x18,0x1C,0x14 then x,z,y) is TUNED
- *     to produce the target's emitted order and must not be "fixed" to look
- *     sequential: rewriting it to 0x14,0x18,0x1C then x,y,z costs 70 -> 76.
- *     Retail's asm reads sequential (sh 0x20/0x22/0x24 at 0x800376ec..0x80037708)
- *     but that is the SCHEDULER's output, not the statement order — do not
- *     read source order off emitted asm here.
- *   - tools/autorules.py: 147 candidates, no improving edit. Note its
- *     `fence-unwrap` rule is SELECTED but generates ZERO candidates against
- *     this file — it matches do{}while(0), not identical-arm if/else — so the
- *     fence above is NOT covered by the mechanical sweep.
+ * REUSABLE FACTS (report to orchestrator for the cookbook):
+ *   - PSX.SYM lists block locals in REVERSE declaration order: writing
+ *     `long dz, dy, dx;` as listed swapped s0/s1 vs target; the declared
+ *     order was dx, dy, dz (pseudos are created at DECLARATION for block
+ *     scalars, so multi-declarator order is codegen-relevant).
+ *   - `*(&x) = v` does NOT stack-force x in this cc1: the fold beats
+ *     mark_addressable (frame shrank 8 bytes, sw/lhu roundtrip vanished).
+ *     A macro out-param needs a real pointer local (`int *rxp = &rx` /
+ *     draft's rxp/ryp) to keep the address taken.
+ *   - Rvalue pow2 division on a fresh temp (`t*t/0x1000`, sums, lcount*len)
+ *     emits the IN-PLACE `bgez; addiu 0xFFF; sra` shape; only a store-back
+ *     div on a user var (`dx /= 0x100`) emits the copy-in-delay shape — so
+ *     the human's plain `/ONE` spellings reproduce both shapes with no
+ *     explicit rounding code.
  */
 
 typedef struct
@@ -175,7 +181,7 @@ extern void SetRotMatrix(MATRIX *matrix);
 extern s32 RotTransPers(SVECTOR *vector, s32 *screen, void *p, void *flag);
 extern s32 SquareRoot0(s32 value);
 extern s32 ratan2(s32 y, s32 x);
-extern s32 abs(s32 value);
+extern long abs(long value);
 extern void GsSortLine(GsLINE *line, GsOT *ot, u16 priority);
 extern void UpdateCoordinate(WireModel *model);
 extern void DrawModel(WireModel *model);
@@ -183,69 +189,51 @@ extern void DrawModel(WireModel *model);
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 {
     VECTOR StockCenter;
-    SVECTOR scr;
-    SVECTOR oldscr;
-    GsLINE line;
-    int rx;
-    int ry;
-    int *rxp;
-    int *ryp;
-    int x;
-    int y;
-    int z;
-    long distance;
     long lcount;
     int i;
     int ecount;
+    SVECTOR scr;
+    SVECTOR oldscr;
+    int x, y, z;
+    GsLINE line;
+    long distance;
 
     {
-        long initial_x;
-        long initial_y;
-        long initial_z;
+        long x, y, z;
 
-        initial_x = start->vx;
-        initial_y = start->vy;
-        if (initial_y != 0)
-        {
-            initial_z = start->vz;
-        }
-        else
-        {
-            initial_z = start->vz;
-        }
+        x = start->vx;
+        y = start->vy;
+        z = start->vz;
         *(s32 *)0x1F800014 = 0;
         *(s32 *)0x1F800018 = 0;
         *(s32 *)0x1F80001C = 0;
-        *(s16 *)0x1F800020 = initial_x - (s16)ViewInfo.vpx;
-        *(s16 *)0x1F800022 = initial_y - (s16)ViewInfo.vpy;
-        *(s16 *)0x1F800024 = initial_z - (s16)ViewInfo.vpz;
+        *(s16 *)0x1F800020 = x - (u16)ViewInfo.vpx;
+        *(s16 *)0x1F800022 = y - (u16)ViewInfo.vpy;
+        *(s16 *)0x1F800024 = z - (u16)ViewInfo.vpz;
     }
     SetTransMatrix((MATRIX *)0x1F800000);
     SetRotMatrix(&GsWSMATRIX);
     oldscr.vz = (s16)RotTransPers((SVECTOR *)0x1F800020, (s32 *)&oldscr,
                                   (void *)0x1F800028, (void *)0x1F80002C);
 
-    {
-        long dx;
-        long dy;
-        long dz;
-        int large;
+    line.attribute = 0;
+    line.r = 0x50;
+    line.g = 0x48;
+    line.b = 0x38;
 
-        line.r = 0x50;
-        line.g = 0x48;
-        large = 0;
-        line.attribute = 0;
-        line.b = 0x38;
+    {
+        long dx, dy, dz;
+        int big;
 
         dx = start->vx - end->vx;
         dy = start->vy - end->vy;
         dz = start->vz - end->vz;
+        big = 0;
         if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
         {
-            large = 1;
+            big = 1;
         }
-
-        if (large)
+        if (big)
         {
             dx /= 0x100;
             dy /= 0x100;
@@ -267,18 +255,12 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         center->vz = (end->vz + start->vz) / 2;
     }
 
-    ecount = (lcount * len) / 0x1000;
+    ecount = lcount * len / 0x1000;
     i = 0;
     while (1)
     {
-        long t;
-        long Q;
-        long R;
-        long center_weight;
-        long scaled_Q;
-        long one;
-        long weighted_center;
-        long value;
+        long t, Q, R;
+        long one, A, B;
 
         if (i >= ecount)
         {
@@ -286,30 +268,26 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         }
 
         one = 0x1000;
-        t = one - (i << 12) / lcount;
-        Q = t * t;
-        center_weight = t * 2;
-        if (Q < 0)
-        {
-            Q += 0xfff;
-        }
-        scaled_Q = Q >> 12;
-        R = one - center_weight + scaled_Q;
-        weighted_center = center_weight - scaled_Q * 2;
+        t = one - i * 0x1000 / lcount;
+        Q = t * 2;
+        R = t * t / 0x1000;
+        A = one - Q + R;
+        B = Q - R * 2;
+        x = (A * end->vx + B * center->vx + R * start->vx) / 0x1000;
+        y = (A * end->vy + B * center->vy + R * start->vy) / 0x1000;
+        z = (A * end->vz + B * center->vz + R * start->vz) / 0x1000;
 
-        t = R * end->vx + weighted_center * center->vx + scaled_Q * start->vx;
-        x = t / 0x1000;
-        value = R * end->vy + weighted_center * center->vy + scaled_Q * start->vy;
-        y = value / 0x1000;
-        one = R * end->vz + weighted_center * center->vz + scaled_Q * start->vz;
-        z = one / 0x1000;
-
+        /* COMPENSATOR: statement order only. The human order (zeros
+         * 14,18,1C + stores x,y,z) measures +5; this order makes sched2's
+         * tie-breaks emit the target's schedule. Retail's own emitted order
+         * IS the natural one — this scramble stands in for an upstream
+         * sched1/allocation difference, not for the original text. */
         *(s32 *)0x1F800018 = 0;
         *(s32 *)0x1F80001C = 0;
         *(s32 *)0x1F800014 = 0;
-        *(s16 *)0x1F800020 = x - (s16)ViewInfo.vpx;
-        *(s16 *)0x1F800024 = z - (s16)ViewInfo.vpz;
-        *(s16 *)0x1F800022 = y - (s16)ViewInfo.vpy;
+        *(s16 *)0x1F800020 = x - (u16)ViewInfo.vpx;
+        *(s16 *)0x1F800024 = z - (u16)ViewInfo.vpz;
+        *(s16 *)0x1F800022 = y - (u16)ViewInfo.vpy;
         SetTransMatrix((MATRIX *)0x1F800000);
         SetRotMatrix(&GsWSMATRIX);
         scr.vz = (s16)RotTransPers((SVECTOR *)0x1F800020, (s32 *)&scr,
@@ -317,55 +295,55 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 
         if (((s32)scr.vz << 16) > 0 && oldscr.vz > 0)
         {
-            int priority;
-            int raw_priority;
+            int z;
+            int p;
 
             line.x0 = oldscr.vx;
             line.y0 = oldscr.vy;
-            raw_priority = ((s32)scr.vz << 16) >> 18;
+            z = ((s32)scr.vz << 16) >> 18;
             line.x1 = scr.vx;
             line.y1 = scr.vy;
-            if (raw_priority < 0)
+            if (z >= 0)
             {
-                goto priority_zero;
+                if (z < 0x4e2)
+                    p = z;
+                else
+                    p = 0x4e1;
             }
-            priority = 0x4e1;
-            if (raw_priority < 0x4e2)
+            else
             {
-                priority = raw_priority;
+                p = 0;
             }
-            goto priority_done;
-        priority_zero:
-            priority = 0;
-        priority_done:
-            GsSortLine(&line, OTablePt, (u16)priority);
+            GsSortLine(&line, OTablePt, (u16)p);
         }
         oldscr = scr;
         i++;
     }
 
     {
-        long dx;
-        long dy;
-        long dz;
+        int rx, ry;
 
-        dx = end->vx - start->vx;
-        dz = end->vz - start->vz;
-        dy = end->vy - start->vy;
-        rxp = &rx;
-        ryp = &ry;
-        *ryp = ratan2(-dx, -dz);
-        *rxp = ratan2(dy, SquareRoot0(dx * dx + dz * dz));
+        {
+            int *rxp, *ryp;
+            int dx, dy, dz;
+
+            dx = end->vx - start->vx;
+            dz = end->vz - start->vz;
+            dy = end->vy - start->vy;
+            rxp = &rx;
+            ryp = &ry;
+            *ryp = ratan2(-dx, -dz);
+            *rxp = ratan2(dy, SquareRoot0(dx * dx + dz * dz));
+        }
+        ModelHook->locate.coord.t[0] = x;
+        ModelHook->locate.coord.t[1] = y;
+        ModelHook->locate.coord.t[2] = z;
+        ModelHook->rotate.vx = rx;
+        ModelHook->rotate.vy = ry;
+        ModelHook->rotate.vz = 0;
+        UpdateCoordinate(ModelHook);
+        DrawModel(ModelHook);
     }
-
-    ModelHook->locate.coord.t[0] = x;
-    ModelHook->locate.coord.t[1] = y;
-    ModelHook->locate.coord.t[2] = z;
-    ModelHook->rotate.vx = *rxp;
-    ModelHook->rotate.vy = *ryp;
-    ModelHook->rotate.vz = 0;
-    UpdateCoordinate(ModelHook);
-    DrawModel(ModelHook);
 }
 
 #endif
