@@ -57,7 +57,11 @@ CC_FLAGS = ("-mcpu=3000 -quiet -G8 -w -O2 -funsigned-char -fpeephole -ffunction-
 # this table in sync with Build.hs's ccExtraFlags so every candidate is scored
 # with the flags that produced the authoritative build object.
 CC_EXTRA_FLAGS = {
+    # Stock PsyQ library leaves need not share the game's address-splitting
+    # default. Keep in sync with Build.hs's ccExtraFlags -- a permuter search
+    # under different flags than the build is searching a different program.
     "MemCardCallback": ["-mno-split-addresses"],
+    "GS_107_OBJ_4B8": ["-mno-split-addresses"],
 }
 AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").split()
 LD = "mipsel-unknown-linux-gnu-ld"

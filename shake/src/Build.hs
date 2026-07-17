@@ -523,6 +523,7 @@ ccFlags =
 ccExtraFlags :: FilePath -> [String]
 ccExtraFlags src = case takeBaseName src of
   "MemCardCallback" -> ["-mno-split-addresses"]
+  "GS_107_OBJ_4B8" -> ["-mno-split-addresses"]
   _ -> []
 
 cppFlags :: [String]
