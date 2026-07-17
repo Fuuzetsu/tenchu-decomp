@@ -5,11 +5,130 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 233 of 4636 bytes differ (was 239; 254; 330; 346;
- * 401; 413; 433; 437; 476; 498; 525; 1266).  81 differing instructions.
- * (NOTE the insn count ROSE 76 -> 81 while bytes FELL 239 -> 233.  That is real
- * and is explained below: round 14 removed a scaffold that was MASKING a
- * separate allocation defect.  Judge per-cluster, not on the total.)
+ * STATUS: NON_MATCHING -- 145 of 4636 bytes differ (was 233; 239; 254; 330;
+ * 346; 401; 413; 433; 437; 476; 498; 525; 1266).
+ *
+ * 2026-07-17 round-15 (Fable) -- 233 -> 145.  THREE gcc-source facts, each
+ * verified in the pinned source AND by bytes.  Read these before ANY further
+ * scheduling work on this function; they subsume several older questions.
+ *
+ * FACT 1 -- THE BIRTHING BUMP NEEDS A SINGLE-SET PSEUDO (sched.c:2518,2567).
+ *   sched1 is BACKWARD (T-1 fills the last slot; picked-earlier lands later).
+ *   When an insn's consumers are all scheduled, adjust_priority bumps it to
+ *   max_priority (the 7f000001 entries in the ready lists) so it lands
+ *   ADJACENT to its use cluster -- but ONLY if birthing_insn_p: SET dest is a
+ *   REG, live in bb, and REG_N_SETS(dest) == 1.  Round 14's shared `brightness`
+ *   (1 init + 3 medal sets) could NEVER receive the bump, so insn 99 sat at
+ *   priority 2, lost every cycle, was picked dead last and landed at the BLOCK
+ *   TOP -- that hoisted range is what exiled it to $a1 (rounds 13-14).  The
+ *   split (s16 brightness for init, s32 medalBrightness for medal) fires the
+ *   bump; the copy lands directly above the sb r/g/b stores, local_alloc's
+ *   ascending scan gives it $v0, and clusters (a) top slot, (b) lhu w/h pair,
+ *   (c) medal $a1 ALL fell (-29B).  Round 14's "the split loses the medal bgez
+ *   delay nop" was a MISATTRIBUTION: the missing insn in the 4632 states was
+ *   the coalesced-away COPY (see FACT 2), never the medal nop.  The medal
+ *   block is now byte-exact with its own 3-set s32 variable.
+ * FACT 2 -- CSE'S COALESCE HAS A MODE GUARD (cse.c insert_regs:
+ *   `GET_MODE (classp->exp) == GET_MODE (x)`).  A single-set SImode
+ *   `brightness = rankColour` (or `= 128`) joins s3's const-128 equivalence
+ *   class and cse re-canons the sb uses onto s3, DELETING the copy (that is
+ *   the real 4632 LENGTH MISMATCH).  An s16 (HImode) local CANNOT join the
+ *   SImode class -- the `li v0,128` survives, and reload_cse_regs rewrites it
+ *   to the target's `move v0,s3` (reload_cse_regno_equal_p accepts CONST_INT
+ *   across modes <= word).  So: `s16 brightness; brightness = 128;`.
+ * FACT 3 -- true_dependence's STRUCT/SCALAR ESCAPE EXCLUDES QImode STORES
+ *   (sched.c:849-852, `GET_MODE (mem) != QImode`).  The decimal-loop u-store
+ *   (sb, QImode, struct, varying base) therefore CONFLICTS with the
+ *   fixed-address `lw a1,OTablePt` that load_register_parameters emits AFTER
+ *   it -- the load is data-dep PINNED below the byte store (verified:
+ *   insn 1274's LOG_LINKS named the sb), while the TARGET has the load ABOVE.
+ *   Since the pair's order is emission order whenever aliasing is unprovable,
+ *   the original EMITTED the load first.  Spelling: block-local
+ *   `GsOT *ot; ... ot = OTablePt;` placed BEFORE the u-store statement, call
+ *   passes `ot`.  combine cannot re-merge the load forward into the call (the
+ *   intervening may-alias store blocks it), and the `a1 = ot` copy
+ *   SELF-DELETES: local_alloc's ascending scan finds v0/v1/a0 all conflicting
+ *   in ot's window and hands it $a1 (dump shows `reg/v:SI 5 a1`).  Both SV32
+ *   GsSortSprite windows collapsed (-47B): move-a2-zero-early, mflo/addu
+ *   after the a1 pair, sb in the jal delay slot -- the whole "GsSortSprite
+ *   arg sched" shape was ONE pinned load.  A TU-WIDE `extern GsOT *const
+ *   OTablePt` (RTX_UNCHANGING escape, sched.c:843) fixes these two sites but
+ *   wrecks every other site: 737.  Per-site `*(GsOT *const *)&OTablePt` is a
+ *   NO-OP (the front end folds *& back to the plain decl).  Only the early
+ *   pointer-local read works.
+ *
+ * ROUND-15 LANDED (do not undo):
+ * - s16 brightness (init only, `brightness = 128;`); s32 medalBrightness.
+ * - Entry fence DELETED (target-refuted: our `move a0,s0`, emitted after
+ *   `rankColour = 128`, sits at 0x80054b84 ABOVE `li s3,128` at b98 -- with
+ *   the fence's reg_pending_sets_all barrier that crossing is impossible).
+ *   Byte-neutral at deletion time; the old "removing it regresses to 578" was
+ *   measured against the round-4 draft and is OBSOLETE.
+ * - `rankColour = 128;` before `i = 0;` (entry seed LUID order, -2B).
+ * - `ot = OTablePt` + `GsSortSprite(sprite, ot, 0)` at the SV32 decimal-loop
+ *   and sign-arm sites (FACT 3).
+ * - draw-0 head: x-store statement BEFORE the criticals value-load statement
+ *   (emission-order tie; fixed the 0x80055024 li/lbu rotation, -6B).
+ * - The outer fence of the field2/x=102-site-2 draw is UNWRAPPED to a plain
+ *   block (byte-neutral; target-refuted as a barrier -- the next-draw
+ *   `move s2,s6` crosses it in retail).  autorules' fence-unwrap could not
+ *   test most fences here (nested unwraps produce "invalid" edits -- 17 of 20
+ *   candidates); manual unwraps still required.
+ * - Stock tail: `brightness = stageItem;` and the FIRST stock[] access
+ *   indexes through the s16 (permuter find at 145, verified byte-for-byte:
+ *   fixes exactly the 4-insn v0/v1 accumulator mirror at 0x80055c50-84;
+ *   value-class safe -- the source is an lh of an s16 table).  OPEN
+ *   MICRO-QUESTION: this adds a second SET of brightness yet the init
+ *   cluster's bump SURVIVED -- likely combine merges the copy into the lh
+ *   (single-use first stageItem def) and maintains reg_n_sets; if a later
+ *   round touches this, re-verify 0x80054c1c first.  A cleaner spelling
+ *   (fresh s16 local, or s16 stageItem) was NOT tried -- pseudo identity
+ *   matters to the tail allocation, so re-measure before beautifying.
+ *
+ * ROUND-15 MEASURED AND REVERTED (do not blind-retry):
+ * - SV32 head x-store hoist: before the bosses load = 4632; between value and
+ *   drawY = 4632.  Both LENGTH MISMATCH; cause not diagnosed.
+ * - TU-wide const OTablePt = 737 (see FACT 3).
+ * - Entry i/rankColour seed order AFTER the calculate_score call: unbuildable
+ *   conclusion -- insns emitted after a call carry REG_DEP_ANTI on it and can
+ *   never cross back above (the window-2 pin), so the target's b84/b98 pair
+ *   cannot come from post-call statements.
+ *
+ * RESIDUAL AT 145 (cluster / approx bytes / standing):
+ * - entry pair b84/b98 (~7B): the pre-jal slot pick among class-3 prio-1
+ *   insns {a0copy, i=0, s3=128} goes to max LUID; the a0copy is emitted at
+ *   the call and always carries the max LUID reachable from legal statement
+ *   positions, so `li s3,128` cannot win the slot by ORDER alone.  Target
+ *   wants pick order 19,30,22,28 (LUIDs 28<22<19, hazard-promoted 30) --
+ *   requires an emission we could not construct.  Something in the original's
+ *   entry differed (unknown).  PARKED with the analysis.
+ * - bank main + pivot pairs (~71B): CLOSED categorically (round 9 --
+ *   expand/instantiate address form; corpus oracle).  Do not respell.
+ * - SV32 head rotation (~21B): open; both cheap hoists break length.
+ * - window-A lbu-vs-lw pair (~7B): both emission orders yield lui/lw above
+ *   lbu (some promotion under equal priority/class); target has lbu first.
+ *   Note the target ITSELF alternates shapes across its 8 decimal-loop sites
+ *   ([lbu,lui,lw,mflo] at 55094/551bc/554a0 vs [lbu,mflo,...,lui,lw]
+ *   elsewhere), so the answer is site-conditional scheduling, not a global
+ *   rule.
+ * - x=102 class: site 1 t1/t2 (~11B) + sites 2-4 (~24B): round-11 park
+ *   stands (reload splits the remat off the store; store sinks to priority 1;
+ *   every fenced variant = 4632).  The FACT-3 alias lever does NOT apply
+ *   (these draws have no byte store before their symbol loads; x/y are
+ *   HImode and escape the conflict).
+ * - colon-2 tail move/sb swap (~5B): the `move s2,s6` must cross the
+ *   PREVIOUS draw's two fence closers (their LOOP_END notes ride on it);
+ *   unwrapping only the NEXT draw's own fence was byte-neutral.  Unwrapping
+ *   the previous draw's fences touches the ten/s7-s8 loop_depth economy
+ *   (round 6) -- re-measure there first if attempted.
+ *
+ * TOOLING NOTES for the orchestrator: (1) autorules fence-unwrap emits
+ * "invalid" for 17/20 nested fences here -- its unwrapper mis-pairs closers;
+ * (2) a mechanical "swap two adjacent leaf statements" rule (store-vs-load
+ * emission order) would have found the draw-0 head fix and possibly more;
+ * (3) sched-deps/schedtrace/cc1says carried this entire round -- the ready
+ * lists with the 7f000001 bump markers are the single most decisive artifact
+ * for rotation clusters.
  *
  * 2026-07-17 round-14 (Opus) -- 239 -> 233.  THE do{}while(0) FENCE IS A TOTAL
  * SCHEDULING BARRIER.  This is a gcc-source FACT, not a model, and it dissolves
@@ -967,7 +1086,8 @@ void mission_score_screen(void)
     register PersistentState *statePtr;
     register s16 i;
     register s16 newPress;
-    s32 brightness;
+    s16 brightness;
+    s32 medalBrightness;
     s32 rowBrightness;
     register s32 stageItem;
     register s32 goNext;
@@ -978,12 +1098,8 @@ void mission_score_screen(void)
 
     tail.oldPad = 0;
     init_score_stats(&stats);
-    /* Preserve the retail scheduler boundary between the initial index seed
-     * and the colour/score setup. */
-    do {
-        i = 0;
-    } while (0);
     rankColour = 128;
+    i = 0;
     result = *calculate_score(&stats, CHOSEN_STAGE);
 
     tim = FileRead(NUMBER_TIM_PATH);
@@ -994,7 +1110,7 @@ void mission_score_screen(void)
         initNumber->attribute |= 0x50000000;
         initNumber->x = -140;
         initNumber->y = -40;
-        brightness = rankColour;
+        brightness = 128;
         initNumber->r = brightness;
         initNumber->g = brightness;
         initNumber->b = brightness;
@@ -1176,8 +1292,8 @@ score_character_sprite_init_loop:
                 s32 drawY;
 
                 ((drawY) = (-0x47));
-                (value = (stats.criticals), signedValue = (s32)value);
                 (drawnSprite)->x = (0x16);
+                (value = (stats.criticals), signedValue = (s32)value);
                 ((drawnSprite)->y = (drawY));
                 if (1)
                 {
@@ -1275,12 +1391,15 @@ score_character_sprite_init_loop:
         score_number_1:
             do
             {
+                GsOT *ot;
+
                 dividend = (s16)value;
                 quotient = dividend / 10;
                 remainder = dividend % 10;
                 baseU = sprite->u;
+                ot = OTablePt;
                 sprite->u = baseU + (s16)remainder * sprite->w;
-                GsSortSprite(sprite, OTablePt, 0);
+                GsSortSprite(sprite, ot, 0);
                 sprite->x -= 12;
                 value = quotient;
                 quotient <<= 16;
@@ -1290,11 +1409,13 @@ score_character_sprite_init_loop:
             {
                 u32 signBaseU;
                 s32 ten;
+                GsOT *ot;
 
                 ten = 10;
                 signBaseU = sprite->u;
+                ot = OTablePt;
                 sprite->u = signBaseU + sprite->w * ten;
-                GsSortSprite(sprite, OTablePt, 0);
+                GsSortSprite(sprite, ot, 0);
                 sprite->u = signBaseU;
             }
         } while (0);
@@ -1513,7 +1634,6 @@ score_character_sprite_init_loop:
                 }
             } while (0);
         } while (0);
-        do
         {
             GsSPRITE *drawnSprite;
 
@@ -1578,7 +1698,7 @@ score_character_sprite_init_loop:
                     (drawnSprite)->u = signBaseU;
                 }
             } while (0);
-        } while (0);
+        }
 
         do
         {
@@ -1786,18 +1906,18 @@ score_character_sprite_init_loop:
             medal->y = -0xE;
             medal->scalex = 0x1000;
             medal->scaley = 0x1000;
-            brightness = rcos((GameClock << 12) / 90) * 80;
-            if (brightness < 0)
+            medalBrightness = rcos((GameClock << 12) / 90) * 80;
+            if (medalBrightness < 0)
             {
                 medalDraw = medal;
-                brightness += 0xFFF;
+                medalBrightness += 0xFFF;
             }
             else
             {
                 medalDraw = medal;
             }
-            brightness = (brightness >> 12) + 0x7F;
-            medalDraw->r = medalDraw->g = medalDraw->b = brightness;
+            medalBrightness = (medalBrightness >> 12) + 0x7F;
+            medalDraw->r = medalDraw->g = medalDraw->b = medalBrightness;
             GsSortSprite(medalDraw, OTablePt, 1);
         }
 
@@ -1919,9 +2039,10 @@ score_row_loop:
         register PersistentState *state = (PersistentState *)0x80010000;
 
         stageItem = D_8008ED50[state->stage];
-        if (state->stock[stageItem + (state->chr << 5)] == 0xFE)
+        brightness = stageItem;
+        if (state->stock[brightness + (state->chr << 5)] == 0xFE)
         {
-            state->stock[stageItem + (state->chr << 5)] += 3;
+            state->stock[brightness + (state->chr << 5)] += 3;
         }
         stageItem = D_8008ED50[state->stage];
         if (state->backup[stageItem] == 0xFE)

@@ -329,6 +329,23 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 
 ## Scheduling (sched.c) and reorg
 
+- **A QImode (byte) store PINS every later fixed-address load below it.**
+  `true_dependence`'s struct/scalar escape — the clause that lets a varying struct
+  ref not conflict with a fixed non-struct ref — is guarded by
+  `GET_MODE (mem) != QImode` (**sched.c:846-857**). So a byte store to a struct
+  takes no escape and conflicts with everything after it, INCLUDING call-argument
+  loads emitted by `load_register_parameters`. **Read it backwards to recover the
+  source**: if retail shows such a load ABOVE a byte store, the original emitted
+  the load first — spell `ot = GLOBAL;` before the store and pass `ot`. combine
+  cannot re-sink it (the may-alias store blocks the merge) and the arg-reg copy
+  self-deletes via local_alloc's ascending scan. Worth ~47 bytes in two windows on
+  mission_score_screen.
+- **cse's `insert_regs` coalesces a copy into an older equivalent register only
+  when the MODES MATCH** (`GET_MODE (classp->exp) == GET_MODE (x)`). So an `s16`
+  local assigned a constant that an SImode register already holds keeps its own
+  `li` — HImode cannot join the SImode class. `reload_cse_regs` later rewrites
+  `li`→`move` across modes for CONST_INTs. **Use a narrower local to keep a wanted
+  copy/`li` alive** (mission_score_screen).
 - **A `do{}while(0)` fence is TWO barriers at once, and the second one is the
   expensive surprise.** Its loop notes bound sched (below) AND bound **cse1's
   extended block** (which ends at every CODE_LABEL and at `NOTE_INSN_LOOP_END` —
@@ -416,6 +433,16 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   ref_count BEFORE REG_N_SETS**; a live-out constant with no in-block use is
   unreachable by this lever, and giving it a consumer means changing what the C
   does with it.
+- **Read the birthing gate BACKWARDS to recover the original's variable
+  structure.** Since only a `REG_N_SETS == 1` def can be bumped, and a bumped def
+  is picked first and therefore lands LAST (adjacent to its uses), **a target that
+  shows a const/copy def sitting next to its use cluster is telling you the
+  original set that variable EXACTLY ONCE** — so split your shared variable into
+  per-site fragments. A shared def is picked last, lands at the block top,
+  stretches its live range and gets exiled from the ascending-scan register. That
+  is what a 4-set `brightness` was doing to mission_score_screen (233 -> 145 once
+  split, with the cse mode-guard above needed to stop cse coalescing the split
+  copy back).
 - **`birthing_insn_p` (2499) fires iff `(set (REG) …)`, dest live,
   `REG_N_SETS(dest) == 1`.** A `(set (SUBREG …) …)` dest is never birthing (every
   compound assignment to a short local). A re-assigned local (`REG_N_SETS != 1`)
