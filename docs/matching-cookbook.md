@@ -2761,6 +2761,24 @@ scratch — base and index registers swapped, exactly as the target does
 `cse.c` mechanism that declines to merge the second occurrence is not root-caused,
 so treat this as a shape to try, not a law.
 
+### TWO REGISTERS FOR ONE VALUE MEANS THE ORIGINAL HAD TWO VARIABLES — read it off the target
+
+**gcc 2.8.1 never splits a live range: one C variable gets ONE hard register for
+all its fragments.** So if the TARGET holds what your draft calls one value in two
+different registers — AttackBowControl's table pointer is `$v1` at site 1 and `$v0`
+at site 2 — the original source had **two variables**. Full stop. No priority
+arithmetic, no dump, no theory: it is a direct reading of the target's own bytes.
+
+Check this BEFORE reaching for the priority machinery below. AttackBowControl's
+park note read those exact lines and concluded "not reachable from this source
+shape"; it was two variables all along, and the function matched once they were
+split. This is the cheapest question on the board and it is almost never asked.
+
+The converse trap: do NOT infer that same-register-at-both-sites means one
+variable. AttackBowControl's `idx` is `$v0` at both target sites, and re-sharing it
+REGRESSED 15 -> 17. **Disjoint halves simply fall back onto the same free
+register.** Two registers proves two variables; one register proves nothing.
+
 ### Splitting a shared pseudo per site is a PRIORITY lever, not only a decomposition lever
 
 `global.c`'s priority is `floor_log2(n_refs) * n_refs / live_length` (times
@@ -2779,11 +2797,41 @@ Once `direction` colours first it takes its own `$v1`, each split half then find
 `regs_someone_prefers` EMPTY, and every fallback scan lands on `$a0` — and because
 the sites are disjoint, all three share it.
 
-**Check first that each half still spans basic blocks.** If a half collapses into
-one block, `local_alloc` claims it before `global_alloc` ever sees it and the
-lever evaporates — splitting ControlHumanoid's `rotation_pair` that way REGRESSED
-it from 7 bytes to 68. The `abs` branches are what keep the `magnitude` halves
-global.
+**If a half collapses into ONE basic block, `local_alloc` claims it before
+`global_alloc` ever sees it.** Whether that is fatal depends on where the target
+keeps the value, and BOTH outcomes are attested:
+* **Fatal**: splitting ControlHumanoid's `rotation_pair` that way REGRESSED it from
+  7 bytes to 68. The `abs` branches are what keep the `magnitude` halves global.
+* **Required**: AttackBowControl's site-2 half collapsed into one block *and had
+  to* — the target's site-2 pointer lives in `$v0`, a local-alloc register. (This
+  corrects the original phrasing of this caveat, which said the lever "evaporates";
+  a lane disproved that within hours by matching 272/272 with a collapsed half.)
+
+So: check where the TARGET keeps each half before deciding. A half that must be
+local-allocated is not a broken split — it is the split the original had.
+
+### A same-length register residual inside ONE basic block is a local_alloc quantity-ORDER tie — seed the loser with a copy
+
+**First, tell a LOCAL tie from a GLOBAL one** with `tools/regalloc.py <Name>`: if
+the value is not in the global allocno list, the weighting and splitting levers
+above **do not apply at all** and every hour spent on them is wasted.
+
+`local_alloc` colours quantities **shortest-lived-first**, and the first one takes
+`$v0`. So when the target's longer chain (`sll`->`sra`->`addu`->`lh`) holds `$v0`
+while a short address temp (`lui`->`addiu`, dead at the `addu`) holds `$v1`, and
+your draft has them swapped, **no respelling of the site will move it** —
+AttackBowControl plateaued at exactly 15 across 13 variants.
+
+**The fix: add a redundant `x = src;` before the chain's first operation.** It
+births the quantity EARLIER, flips the order, and coalesces away — leaving 68/68
+identical instructions. This is the INVERSE of the single-use-temp-inline rule, and
+worth reaching for whenever inlining is what you would normally do.
+
+It also explained a `nop` that looked like a separate defect: `reorg` duplicates a
+merge block's leading `sll` into all four incoming delay slots, which is legal only
+when the destination is dead on the fallthrough. `$v0` was (the fallthrough
+`lh $v0,2($v1)` overwrites it); `$v1` was live as `p`. **One register flip, both
+symptoms** — do not byte-account a delay-slot `nop` as an independent cause.
 
 ### When a hard-reg tie will not break, demote the WINNER rather than promote the loser
 

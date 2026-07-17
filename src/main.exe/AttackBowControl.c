@@ -29,13 +29,6 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 19 of 272 bytes differ. Residual is a pure
- * register-naming swap (a1<->v1 for `count`, a0<->v0 for the
- * `D_80097714`-table address, same instructions/order/length, 68 insns
- * both sides) inside the `count == 1` guard and its merge point — see the
- * matching notes below for the two source-shape fixes that got it this
- * far, and the permuter note for why it's parked here.
- *
  * AttackBowControl (0x8001f5a8, 0x110 bytes) — bow attack-frame callback.
  * PSX.SYM's demo build took NO parameters at all (and never touched
  * FieldIndex/MotionUpdateMode); retail's `.s` proves a real `s16 n` PARAMETER
@@ -70,53 +63,41 @@
  *    and the base address second (when evaluating the pointer-arithmetic
  *    expression that consumes it) — matching the target exactly. Same
  *    value, same final instructions, pure source-shape-driven ORDER lever.
- *  - The residual 19-byte register swap (a1<->v1 for `count`, a0<->v0 for
- *    the table address) survived autorules.py (no improving edit among 8
- *    candidates: count's width, idx's width, p's width) and one bounded
- *    decomp-permuter run (`tools/permute.py AttackBowControl --stop-on-zero
- *    -j4`, ~80k+ iterations, flat at score 115, no score-0 hit) — the named
- *    sub-C-level class (same instructions/order/length, pure register
- *    choice for the very first live locals `count`/the table address).
- *    Parked per the cookbook's sub-C-level early-stop; do not re-permute.
- *
- * RTL escalation (this session, `.greg`/`.lreg`): the swap is a genuine
- * global-alloc PRIORITY tie, not a reachable respelling. `.greg` lists
- * `5 regs to allocate: 85 84 87 81 80` — that IS the descending-priority
- * processing order (`floor_log2(refs)*refs/live_length`, computed from
- * `.lreg`'s `used N times across M insns`): `p`(85, refs=5/life=8)=1.25,
- * `idx`(84, refs=4/life=9)=0.89, `count`(87, refs=4/life=13)=0.615,
- * raw-`n`(81)=0.5, cached-`n`(80)=0.07. `p`/`idx` are processed FIRST and
- * both hard-conflict with `v0` AND `v1` (`85/84 conflicts: ... 2 3 ...`),
- * so they fall through to the next class candidate, `$a0` (search order is
- * v0,v1,a0,a1,a2,a3,... for this port); `count` is processed after and
- * conflicts only with `v0` + the already-placed pseudos (no `3`/`v1` in
- * its conflict list), so it takes the next free candidate in that order —
- * `v1`. The target's own asm proves `count`(a1) and the table pointer
- * (v1) ARE simultaneously live across the same range-check span (both
- * used twice, non-overlapping recompute) exactly like our draft — so the
- * target isn't using a delay-slot/scratch-reuse trick here (unlike
- * FUN_8001b2f4's `rp`); it is coloured with `count` in `a1` and the
- * pointer in `v1`, meaning in the TARGET's compile `count` must be
- * processed at HIGHER priority than the table pointer/idx (opposite
- * order from ours) so it claims a register before `v0`/`v1` are excluded
- * for it. Since `count`'s own refs/life are fixed by real control flow
- * (read once, used in the `==1` test and both range-check compares — no
- * legitimate extra reference or shortened life available), and `p`/`idx`
- * likewise (reused across the two textually-separate `(n<<16)>>14`
- * computations per the note above), no ballast or reordering changes the
- * priority order without changing what the function computes. The SAME
- * pattern repeats a third time at the final `dtM->count` re-read
- * (`a0`<->`v1` for `dtM` itself) — consistent with one whole-function
- * priority ordering, not three independent local ties. Root cause is a
- * genuine global-alloc priority tie; not reachable from this source
- * shape.
+ *  - **`idx`/`p` are TWO variables per site, not one shared pair** (19 -> 15
+ *    bytes). The target holds the table pointer in `$v1` at the range-check
+ *    site but `$v0` at the merge site; since cc1 2.8.1 never splits a live
+ *    range, one C variable = one hard register for its whole life, so two
+ *    registers for one logical value PROVES two variables. Sharing them
+ *    built one mega-pseudo whose conflict set was the union of both
+ *    fragments: it hard-conflicted with `v0`+`v1`, fell back to `$a0`, and
+ *    exiled `count` to `$v1`. Splitting per site (a pure decomposition
+ *    change — not one instruction moved) let `p`(85) take `$v1` and `count`
+ *    (89) take `$a1`, both matching. NB `idx` is `$v0` at *both* target
+ *    sites, which looks like one shared variable but is not: re-sharing it
+ *    regressed to 17 and re-exiled `count`. Two disjoint split halves simply
+ *    fall back onto the same free register (cookbook: "Splitting a shared
+ *    pseudo per site is a PRIORITY lever").
+ *  - **The last 15 bytes were a `local_alloc` quantity-ORDER tie, broken by
+ *    the redundant-looking `idx2 = n;` copy.** After the split, site 2's
+ *    `idx2`/`p2` live in ONE basic block, so `local_alloc` — not
+ *    `global_alloc` — colours them. Its two quantities there are the idx
+ *    chain (`sll`->`sra`->`addu`->`lh`) and the table base (`lui`->`addiu`,
+ *    dead at the `addu`). `local_alloc` orders the SHORTER-lived quantity
+ *    first and it takes `$v0` (search order v0,v1,a0,...), so the base won
+ *    `$v0` and the idx chain got `$v1` — the mirror of the target. Seeding
+ *    `idx2` with a plain copy of `n` before the shift pair BIRTHS the idx
+ *    quantity earlier, flipping the order so the idx chain claims `$v0`;
+ *    the copy itself is coalesced away, leaving 68/68 identical
+ *    instructions. The `$v1`->`$v0` flip also fixes the delay slot at
+ *    0x8001f600 for free: reorg duplicates the merge block's leading `sll`
+ *    into all four incoming edges, which is only legal when its destination
+ *    is dead on the fallthrough — `$v0` is (the fallthrough `lh $v0,2($v1)`
+ *    overwrites it), but `$v1` was live there as `p`, forcing our `nop`.
+ *    Found by `tools/permute.py`; 13 hand-written respellings of site 2
+ *    (inlining `p2`/`idx2`, `n*4`, struct-array subscripts, `s16*` views,
+ *    naming the loaded max, a `count2` temp, compare-swap, declaration
+ *    order) all plateaued at exactly 15 — the copy is the only lever.
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AttackBowControl", AttackBowControl);
-#else
-/* Draft — turn this into matching C, then delete the #ifndef/#else/#endif
-   guards. Reference: */
 
 extern s16 D_80097714[]; /* byte-addressed; {min,max} pairs, stride 4 */
 extern MotionManager *dtM;
@@ -136,6 +117,8 @@ void AttackBowControl(s16 n)
     SVECTOR vect;         /* PSX.SYM's "struct SVECTOR vect" (also unused) */
     s32 idx;
     u8 *p;
+    s32 idx2;
+    u8 *p2;
 
     count = dtM->count;
     if (count == 1)
@@ -152,13 +135,13 @@ void AttackBowControl(s16 n)
             DrawOrnament(Me_MOTION_C->weapon[2]);
         }
     }
-    idx = (n << 16) >> 14;
-    p = (u8 *)D_80097714 + idx;
-    if (dtM->count == *(s16 *)(p + 2))
+    idx2 = n;
+    idx2 = (idx2 << 16) >> 14;
+    p2 = (u8 *)D_80097714 + idx2;
+    if (dtM->count == *(s16 *)(p2 + 2))
     {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);
         bow_shoot_logic(0x15, pos);
         Sound(Me_MOTION_C, 3);
     }
 }
-#endif /* NON_MATCHING */

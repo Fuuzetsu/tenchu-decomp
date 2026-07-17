@@ -416,6 +416,30 @@ def report(name, a, show_rtl, body, compare=None, between=None,
         suffix = (" pref=" + "/".join(rn(x) for x in pref)) if pref else ""
         dispositions.append(f"p{p}->{rn(h)}{suffix}")
     print(f"  pseudo dispositions: " + "  ".join(dispositions))
+
+    # Which pseudos global_alloc never saw. A lane spent hours applying global
+    # levers (priority weighting, per-site splitting) to a value local_alloc had
+    # already claimed -- they cannot move it, because it is not in the global
+    # allocno list at all. Saying so is the whole point: `;; N regs to allocate:`
+    # IS the global list, so anything holding a register but absent from it was
+    # coloured by local_alloc, which orders quantities shortest-lived-first.
+    if a["allocnos"]:
+        local = sorted(set(a["disp"]) - a["allocnos"])
+        if local:
+            print(f"  LOCAL-ONLY (local_alloc coloured these — global_alloc never "
+                  f"saw them): " + "  ".join(f"p{p}->{rn(a['disp'][p])}"
+                                             for p in local))
+            print("    Weighting/splitting levers DO NOT APPLY to these. A "
+                  "same-length register")
+            print("    residual among them is a quantity-ORDER tie: local_alloc "
+                  "colours")
+            print("    shortest-lived-first and the first takes $v0. Seed the "
+                  "loser with a")
+            print("    redundant `x = src;` before its first operation to birth it "
+                  "earlier;")
+            print("    the copy coalesces away. See docs/matching-cookbook.md, "
+                  "\"A same-length")
+            print("    register residual inside ONE basic block\".")
     allocated_usage = [(p, a["usage"][p]) for p in sorted(visible)
                        if p in a["usage"]]
     if allocated_usage:
