@@ -37,7 +37,54 @@
  * scroll-adjusted->a2) and v1 for the brightness `0xa0-position` intermediate (->v0)
  * — rtlguide hard-conflicts a2->v0 (p89/p96/p197), v0->v1 (p82); (3) position=counter's
  * in-place sign-extend is scheduled two insns before the GetTPage(0,0) arg moves.
- * Fuzzy: 93.09% (up from 90.88%). */
+ * Fuzzy: 93.09% (up from 90.88%).
+ * ROUND 2 (fresh, skeptical re-verification of the above — all CONFIRMED, not
+ * refuted): tools/autorules.py unguided (73 candidates) and --guided off a fresh
+ * rtlguide run (160 candidates, budget-capped beam) both report no improving
+ * edit; tools/permute.py (-j4, 16457 iterations, stop-on-zero) plateaus exactly
+ * at 87 with zero candidates beating base.c. Four NEW hypotheses tested and
+ * REJECTED (each rebuilt+remeasured, not just reasoned):
+ * - `xbase` as `s16` (to get retail's `addiu -160` instead of `ori 0xff60` per
+ *   the addiu/ori-names-the-type rule): regresses 87->1464. Root cause read off
+ *   the objdump: cc1's CSE now recognises the signed -160 constant as the SAME
+ *   value as the later `sprite.x = -0xa0;` (also genuinely -160 in target) and
+ *   merges them into ONE persistent value, promoted to a callee-saved register
+ *   (`li s3,-160` + an extra spill) to survive the 6 intervening calls — even
+ *   though TARGET keeps these two materialisations separate (t0 early, v0 late,
+ *   never merged) despite being the identical constant. Whatever makes retail
+ *   avoid that merge is not reproduced by simply signing the constant.
+ * - Same constant via a two-step signed local (`s16 xbase_init = -0xa0; stack.xbase
+ *   = xbase_init;`, field left `u16`): identical regression to 1464, same root
+ *   cause (the local still carries -160 as a signed SImode constant that CSE
+ *   coalesces with sprite.x's).
+ * - Replacing every `PSTATE->stage`/`PSTATE->language` in this function with the
+ *   named externs `CHOSEN_STAGE`/`CHOSEN_LANGUAGE` (used elsewhere in this file
+ *   for CHOSEN_CHARACTER/STAGE_LAYOUT_NUMBER, and pervasively in StageEndScreen/
+ *   mission_score_screen): regresses 87->1488. cc1 cannot fold two INDEPENDENT
+ *   extern symbol_refs' `%hi` together, so every use re-materialises its own
+ *   lui+lbu instead of sharing one base register. CAUTION for future readers:
+ *   the target .s file's own `%hi(CHOSEN_STAGE)` labels are NOT evidence of the
+ *   source spelling — they are splat's disassembler matching the final computed
+ *   address against the symbol table, and our baseline's `PSTATE->stage` access
+ *   already produces BYTE-IDENTICAL bytes for that instruction (confirmed: it
+ *   was never part of any diffed cluster). Do not re-attempt this lever without
+ *   new evidence.
+ * - Merging `adjusted = stack.scroll; adjusted += D_8008ECF8[lang][stage];` into
+ *   one statement `adjusted = stack.scroll + D_8008ECF8[lang][stage];`: regresses
+ *   87->97, same length, but DOES prove the two-statement split is a live,
+ *   non-neutral lever for that hunk (load order changed) — just backwards from
+ *   what's needed here. The reverse pairing (index loads merged some other way)
+ *   was not tried; a future round could probe adjacent orderings of this hunk
+ *   specifically (target: PSTATE->language/PSTATE->stage lbus BEFORE the
+ *   `stack.scroll` reload, i.e. index computed before the reload it's added to).
+ * rtlguide's "register goals" section (re-run fresh) shows the a2<->v0 and
+ * v0<->v1 swaps are genuine HARD-CONFLICTs (cannot be reached by priority/weight
+ * alone), but the four ->t0 goals (v0->t0 x4, a2->t0 x3, v1->t0 x2) carry NO
+ * hard-conflict annotation — t0 is simply never tried by find_reg's numeric
+ * search because a lower-numbered register is always free first. No source lever
+ * was found this round to make t0 the winner; a future attempt should look for
+ * what makes v0/v1/a2 UNAVAILABLE at those points in target (extend some other
+ * value's live range to occupy them), not try to prefer t0 directly. */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800519bc", FUN_800519bc);
 #else

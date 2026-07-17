@@ -146,6 +146,18 @@ stays NON_MATCHING (StateTransition is the worked correction).
 
 Look up what the authors wrote before drafting anything.
 
+- **A `%hi(SYMBOL)` / `%lo(SYMBOL)` label in the TARGET's disassembly is NOT evidence
+  the original named that symbol.** Those labels are splat matching the final computed
+  ADDRESS against its own symbol table — they are our annotation, not the compiler's
+  instruction selection. `lui s6,%hi(CHOSEN_STAGE)` does not mean the source said
+  `CHOSEN_STAGE`; a `PSTATE->stage` field access through a base pointer lands on the
+  same address and assembles to the same bytes. **Check whether your current spelling
+  ALREADY produces those exact bytes before rewriting toward the label.** FUN_800519bc
+  spent a full build-and-revert cycle rewriting proven-identical code into named
+  externs because the label read like a demand (and the rewrite regressed 1448 → 1488).
+  The same caution applies to any name in a disassembly comment: `tools/tdis.py` and
+  objdump print OUR symbol table, not the original's.
+
 - **PSX.SYM** (docs/psx-sym.md): for 442 functions, the prototype with parameter
   names, source file:line, and every local (name, type, register/stack home).
   `tools/matcher-prompt.py <Name>` prints it; each `.c` carries it as a
