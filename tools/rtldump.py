@@ -201,30 +201,59 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
     return result
 
 
+def is_guarded(name, src=None):
+    """Whether <name>.c hides its C behind the NON_MATCHING guard."""
+    src = src or os.path.join("src", "main.exe", name + ".c")
+    if not os.path.exists(src):
+        return False
+    with open(src, errors="replace") as stream:
+        return "ifndef NON_MATCHING" in stream.read()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
     ap.add_argument("--pass", dest="passes", default=",".join(DEFAULT_PASSES),
                     help="comma list from " + ",".join(sorted(PASS_FLAG)) + " (or 'all')")
     ap.add_argument("--draft", action="store_true",
-                    help="compile the #else NON_MATCHING draft (define NON_MATCHING)")
+                    help="compile the #else NON_MATCHING draft (the DEFAULT for a "
+                         "guarded function; this flag is only needed to be explicit)")
+    ap.add_argument("--stub", action="store_true",
+                    help="compile the INCLUDE_ASM stub of a guarded function. Almost "
+                         "never what you want: the stub's RTL describes the ASM "
+                         "TRAMPOLINE, not your C.")
     ap.add_argument("--src", help="override the .c path")
     ap.add_argument("--lines", action="store_true",
                     help="preserve C-line notes and emit a line-mapped .o/.objdump")
     args = ap.parse_args()
     want = [p.strip() for p in args.passes.split(",") if p.strip()]
+
+    # Default to the DRAFT whenever the source is guarded. Dumping the stub is
+    # never useful -- its RTL is the INCLUDE_ASM trampoline, so every pass reads
+    # empty and any conclusion drawn from it is fiction. rtldump is the
+    # escalation tool of last resort and a guarded function is precisely when
+    # you reach for it, so the old stub-by-default behaviour meant the tool was
+    # at its most misleading exactly when it mattered most. A warning was not
+    # enough: a lane confirmed it would be easy to read the stub's RTL and draw
+    # confident nonsense from it (and reghist had the identical bug -- see its
+    # is_guarded() note). --stub still opts in explicitly.
+    draft = args.draft
+    if not draft and not args.stub and is_guarded(args.name, args.src):
+        draft = True
+        print(f"rtldump: {args.name} is guarded — dumping its C DRAFT "
+              "(pass --stub for the INCLUDE_ASM stub's RTL).", file=sys.stderr)
     try:
-        result = compile_rtl(args.name, want, args.draft, args.src,
+        result = compile_rtl(args.name, want, draft, args.src,
                              debug_lines=args.lines, assemble=args.lines)
     except (FileNotFoundError, ValueError, RuntimeError) as e:
         sys.exit(f"rtldump: {e}")
     outdir, sfile, err = result["outdir"], result["asm"], result["stderr"]
     dumps = [os.path.basename(p) for p in result["dumps"]]
     if result["guarded_stub"]:
-        print(f"rtldump: WARNING: {args.name} is guarded; this run compiled the "
-              "INCLUDE_ASM stub, not its C draft. Re-run with --draft.",
-              file=sys.stderr)
-    print(f"rtldump: {args.name}{' (draft)' if args.draft else ''} -> {outdir}")
+        print(f"rtldump: WARNING: {args.name} is guarded and you passed --stub, so "
+              "this run compiled the INCLUDE_ASM trampoline, NOT your C draft. "
+              "Every pass below describes the stub. Drop --stub.", file=sys.stderr)
+    print(f"rtldump: {args.name}{' (draft)' if draft else ''} -> {outdir}")
     print(f"  asm:   {sfile}")
     print(f"  dumps: {', '.join(dumps) if dumps else '(none — check the pass names)'}")
     if args.lines:

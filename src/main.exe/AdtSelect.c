@@ -126,14 +126,66 @@
  * source property, not a frame-size artefact.  All other allocation (9
  * callee-saved pseudos + 2 spilled params) matches.
  *
- * ---- STATUS AFTER ROUND 3: EVIDENCE-COMPLETE, PARKED ----
+ * ---- ROUND 4: the REG_EQUIV hypothesis is REFUTED, and the real
+ *      discriminator is now named (reload.c 3806-3855, the RETYPE) ----
+ *
+ * Round 4 was asked to kill the double-MEM REG_EQUIV note by giving its pseudo
+ * a second-basic-block reference.  Two measured findings:
+ *
+ * 1. THE NOTE IS NOT ON `menu`.  update_equiv_regs uses regno = REGNO(SET_DEST),
+ *    so the note belongs to `name` (reg 93), whose .greg home is a HARD REGISTER
+ *    ($v0).  Its *value* merely mentions menu's slot.  Everything in reload1.c
+ *    keyed on reg_equiv_memory_loc[93] is gated on `reg_renumber[93] < 0`, so
+ *    with reg 93 in $v0 the note is INERT.
+ *
+ * 2. KILLING IT CHANGES NOTHING AT SITE 1 (measured).  Reusing `name` as the
+ *    count-loop's test variable makes reg_n_sets[93]==2, so update_equiv_regs
+ *    skips it: insn 48's note list becomes (nil) and the double-MEM count in
+ *    .greg drops to 0.  Site 1 still emits `lw t0,0(a3)`, byte-for-byte.  The
+ *    edit costs +4 (13/776: a pure v0<->v1 rename downstream).  REVERTED.
+ *    => The note was never causal.  Do not re-open it.
+ *
+ * THE ACTUAL DISCRIMINATOR (read from the pinned gcc-2.8.1 sources, and it
+ * explains the title-vs-menu asymmetry the earlier rounds only described):
+ *
+ *   reload.c 2564  find_reloads passes address_type[i] (= RELOAD_FOR_INPUT_
+ *                  ADDRESS for a read operand) into find_reloads_toplev.
+ *   reload.c 4296  so the reg_equiv_address branch gives A = INPADDR_ADDRESS
+ *                  (the recursion, via ADDR_TYPE) and B = INPUT_ADDRESS.
+ *   reload.c 3806  THE RETYPE, gated on
+ *                    `operand_reloadnum[reload_opnum[i]] < 0 || reload_optional[…]`
+ *                  i.e. it fires exactly when THE OPERAND ITSELF IS NOT RELOADED.
+ *                  Both A and B then become RELOAD_FOR_OPERAND_ADDRESS (3855).
+ *   reload1.c 4618 RELOAD_FOR_OPERAND_ADDRESS returns 0 for any reg in
+ *                  reload_reg_used_in_op_addr — A marks it, so B is barred.
+ *
+ * Why `if (title == 0)` self-ties and `name = menu->choice_name` cannot:
+ * branch_zero's 'd' constraint RELOADS the operand, so operand_reloadnum >= 0
+ * and THE RETYPE NEVER FIRES; A stays INPUT_ADDRESS and B is the operand's own
+ * RELOAD_FOR_INPUT, which scans input_addr/inpaddr_addr only for `i > opnum`
+ * (reload1.c 4558) and so may take A's register => `lw a3,0(a3)`.  The deref's
+ * movsi 'm' absorbs (mem (reg 81)), so its operand is never reloaded, the retype
+ * always fires, and RELOAD_FOR_INPUT additionally bars reload_reg_used_in_op_addr
+ * (reload1.c 4546) — which poisons the INPUT path too, even if one were reached.
+ *
+ * So the target's site 1 is NOT this insn shape at all: it needs menu's VALUE as
+ * a bare register operand.  Round 3 already proved no C spelling reaches that for
+ * a deref (register_operand rejects a MEM), and round 2 proved a copy cannot
+ * supply it (copies get ALLOCATED regs, never a3/t0).  Both re-verified here
+ * against the actual sources — every claim in the ROUND 3 CORRECTION checks out.
+ *
+ * The demo build's ORIGINAL also self-ties at site 1 at a different frame
+ * (0x80E0/0x80E4 vs 0x80C8/0x80CC), so it is a robust property of the original
+ * source, not a frame artefact — but nothing reachable from this C reproduces it.
+ *
+ * ---- STATUS AFTER ROUND 4: EVIDENCE-COMPLETE, PARKED ----
  *
  * Round 3 was asked to make site 1's operand require a register.  That question
  * is answered NO twice over (see the ROUND 3 CORRECTION above): no C spelling
  * can do it, AND doing it would not produce the target anyway, because
  * reload_reg_free_p bars the second reload from the first's register on both
  * the retyped and un-retyped paths.  The lever the last two rounds were aimed
- * at does not exist.
+ * at does not exist.  Round 4 closed the REG_EQUIV lever the same way.
  *
  * Every source-level lever is now closed with measurements: autorules (23
  * candidates, none improving), a bounded permuter run (flat at 9), reghist

@@ -540,6 +540,16 @@ function already byte-matches on current `master`.
   AddEnemy lane lost real time to a self-diagnosed "build-dep gap" that turned
   out to be Shake being correct. Check the dispositions or the `.o` timestamp,
   not the byte count alone.
+- **A tool that can silently measure the STUB is the worst bug class in this repo.**
+  Three instances now: `reghist` built the stub and reported "every register matches
+  exactly" (a vacuous truth that tells an agent no lever remains); `matchdiff -n`
+  reads a stale image; `rtldump` dumped the INCLUDE_ASM trampoline for guarded
+  functions, whose `.greg` is **0 lines against the draft's 1338** — every pass
+  reads empty, so any conclusion drawn from it is invention. All three are fixed by
+  the same move: **detect `is_guarded()` and do the right thing by default**, rather
+  than warn and hope. rtldump now defaults to `--draft` when guarded (`--stub` opts
+  in loudly). When adding a tool that compiles a function, ask what it does on a
+  guarded source before shipping it.
 - **Read `n_refs` from `.lreg`, never hand-count source references.** A brief this
   session claimed a pseudo carried 16 refs (hand-counted) when the committed draft
   measured 19 — the lever built on it could not have worked, and the lane spent a

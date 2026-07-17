@@ -3390,83 +3390,80 @@ enclosing base, or vice versa, that is the lever -- confirmed on FUN_8004c59c vi
 `.cse`/`.cse2`/`.lreg` dumps (`.greg` shows the pointer correctly in $s1, but cse1 had
 already rewritten the offset-0 store to base-relative).
 
-### A pseudo loaded from a MEM and used in ONE basic block gets REG_EQUIV — and is then SUBSTITUTED, not spilled
+### REG_EQUIV: correct mechanics, and the two traps that make it useless anyway
 
-`local-alloc.c`'s `update_equiv_regs` attaches a `REG_EQUIV` note to a pseudo
-whose single set is from a MEM, **iff `REG_BASIC_BLOCK (regno) >= 0`** — i.e. the
-pseudo is referenced in only ONE basic block (`flow.c:1961` sets it to the block
-number, or to `REG_BLOCK_GLOBAL` = -2 when a second block references it) — and
-`validate_equiv_mem` confirms the MEM is unchanged for the register's life. The
-comment says it outright: *"see if this insn is loading a register used only in
-one basic block from a MEM."*
+`local-alloc.c`'s `update_equiv_regs` attaches `REG_EQUIV` to a pseudo whose single
+set is from a MEM, **iff `REG_BASIC_BLOCK (regno) >= 0`** — referenced in only ONE
+basic block (`flow.c:1961` writes `REG_BLOCK_GLOBAL` = -2 once a second block
+touches it) — and `validate_equiv_mem` confirms the MEM is unchanged for the
+register's life. It also does `REG_LIVE_LENGTH (regno) *= 2`, so a pseudo whose
+live length looks inexplicably doubled has one.
 
-Two consequences, both observable:
-* The pseudo's value becomes **substitutable**: reload may re-materialise the
-  `(mem ...)` rather than keep it in a register. So if the pseudo spills, its
-  operand is a **double MEM** — `(mem (mem (plus sp K)))` — which needs TWO
-  reloads at one opnum (address materialisation + inner load) and therefore can
-  never share a register (see the next section).
-* `REG_LIVE_LENGTH (regno) *= 2` — so the note ALSO perturbs `global.c`'s
-  priority. A pseudo whose live length looks inexplicably doubled has a REG_EQUIV.
+**That is all true, and it cost a round anyway. Two traps:**
 
-**The lever: reference the variable from a SECOND basic block.** `REG_BASIC_BLOCK`
-becomes `REG_BLOCK_GLOBAL`, the note is never created, and the pseudo is a genuine
-spilled pseudo whose reload is `RELOAD_FOR_INPUT` — which MAY share its own
-address reload's register (`lw a3,0(a3)`). This is the one known escape from the
-two-reload bar, and unlike the operand-constraint and copy levers it is reachable
-from C.
+1. **The note belongs to `SET_DEST`, not to whatever pseudo its VALUE mentions.**
+   `update_equiv_regs` uses `regno = REGNO (SET_DEST (set))`. A note reading
+   `REG_EQUIV (mem (mem (plus sp 32972)))` on insn 48 does NOT mean the pseudo
+   spilled at `sp+32972` owns it — it means the SET's destination owns a note that
+   happens to mention that slot. (This is exactly the misread that sent AdtSelect
+   round 4 chasing the wrong pseudo. `.lreg` insn 48 was `(set (reg 93) (mem (reg
+   81)))`: the note was reg 93's; reg 81 was the spilled one and had no note.)
+2. **A note on a pseudo that GOT a hard register is INERT.** Everything in
+   `reload1.c` keyed on `reg_equiv_memory_loc[N]` is gated on
+   `reg_renumber[N] < 0`. So before theorising about any REG_EQUIV, check `.greg`
+   for whether its owner was allocated: if it was (`93 in 2` = `$v0`), the note
+   changes nothing and there is no lever there.
 
-### Two reloads at one opnum can NEVER share a register
+**Read the note's owner and its home BEFORE building a theory on it.** Killing a
+note that turns out to be inert is a measurable no-op — round 4 did it (via
+`reg_n_sets == 2`, which makes `update_equiv_regs` skip the pseudo outright),
+confirmed zero double-MEMs in `.greg`, and the bytes did not move.
 
-**(This section has been wrong three times — a record, and a lesson in itself.
-v1: "a huge-offset-spilled pointer deref can NEVER self-tie … do not retry it"
-(retracted; the discriminator was invented). v2: "bare operand vs inside a MEM"
-(right conclusion, wrong reason). v3: "whether the OPERAND ITSELF requires a
-register" (the escape it named would not have helped). Each version was written
-from a correct reading of the mechanics and a wrong model of what the mechanics
-imply. This one is verified against the pinned reload.c/reload1.c AND the `.greg`
-RTL.)**
+### The self-tie discriminator: the retype fires iff the OPERAND is not itself reloaded
 
-**`reload_reg_free_p` bars the second reload from the first's register on BOTH
-paths, so the retype is NOT a discriminator:**
-* **retyped** (the address was reloaded, so `(mem (reg))` matches movsi's `'m'`
-  and the operand itself is not reloaded — `reload.c:3812/3854`): both become
-  `RELOAD_FOR_OPERAND_ADDRESS`, which bars `reload_reg_used_in_op_addr`.
-* **un-retyped** (the escape earlier versions chased): the
-  `RELOAD_FOR_INPUT_ADDRESS` case explicitly bars BOTH
-  `reload_reg_used_in_input_addr[opnum]` AND `reload_reg_used_in_inpaddr_addr[opnum]`.
-  Same outcome — and it would ADD a third reload (`RELOAD_FOR_INPUT`) on top of
-  the two, not merge them.
+**(Four versions. v1 invented a discriminator; v2 was right for the wrong reason;
+v3 named an escape that would not have helped; v4 — this one — finally names the
+gate, verified against the pinned reload.c/reload1.c and the `.greg` RTL. The
+history is the lesson: every version was a correct reading of the mechanics paired
+with a wrong model of what they imply.)**
 
-**The only sharing reload type is `RELOAD_FOR_INPUT`**, whose free-check scans
-`input_addr`/`inpaddr_addr` only for `i > opnum` (`reload1.c:4560`) — so an INPUT
-reload MAY share its own address reload's register. That requires the pseudo's
-VALUE to be a bare register operand (`if (title == 0)`, `menu[i]`,
-`menu[selection]` — the sites that already match, emitting `lw a3,0(a3)`). A
-`p->field` deref never is: it is a standalone `movsi` whose `'m'` absorbs
-`(mem (reg))`. **Do not chase "make the operand require a register"** — no C
-spelling reaches it anyway (every MIPS pattern with a `'d'`-only constraint carries
-a `register_operand` predicate, so combine's recog refuses a MEM, and
-`register_operand`'s only MEM escape at recog.c:883-892 is a pre-reload
-`(subreg (mem))`, unreachable for a same-mode SImode deref).
+`find_reloads` passes `address_type[i]` (= `RELOAD_FOR_INPUT_ADDRESS`) into
+`find_reloads_toplev` (reload.c:2564), so `reg_equiv_address` (4296) produces
+A = `INPADDR_ADDRESS` and B = `INPUT_ADDRESS`. **The retype at reload.c:3806-3855
+is gated on `operand_reloadnum[reload_opnum[i]] < 0`** — it fires exactly when the
+operand is NOT itself reloaded, turning both into `RELOAD_FOR_OPERAND_ADDRESS`,
+which bars any register in `reload_reg_used_in_op_addr` (reload1.c:4618). A marks
+it, so B is barred.
 
-**A copy cannot help either**: it puts the value in an ALLOCATED register, but the
-target's is a RELOAD register (AdtSelect's `.greg` dispositions only ever use
-`$v0/$v1/$a0/$s0-$s7/$fp/HI`), so a copy can only emit `lw v1,0(a3); lw v0,0(v1)`.
+* **`if (title == 0)` self-ties** (`lw a3,0(a3)`): `branch_zero`'s `'d'` constraint
+  reloads the operand, so `operand_reloadnum >= 0`, so **the retype never fires**.
+  A stays `INPUT_ADDRESS` and B is the operand's own `RELOAD_FOR_INPUT`, whose
+  free-check scans `input_addr`/`inpaddr_addr` only for `i > opnum`
+  (reload1.c:4560) — so it MAY share its own address reload's register.
+* **`p->field` cannot**: movsi's `'m'` absorbs `(mem (reg))`, the operand is never
+  reloaded, and the retype always fires. `RELOAD_FOR_INPUT` also bars
+  `reload_reg_used_in_op_addr` (reload1.c:4546), so the retype poisons the INPUT
+  path too — this is why round 3's "defeating the retype changes nothing" reading
+  was right about the outcome while missing the gate.
+* **`RELOAD_FOR_OPADDR_ADDR`** checks only `op_addr_reload`, not `op_addr`, so it
+  COULD share — but reload.c:3826 assigns it only to SECONDARY reloads, which MIPS
+  never needs for GR_REGS. Dead end; do not re-derive it.
 
 **A reload-register-only diff downstream of a reload-COUNT difference is ONE root
 cause.** `allocate_reload_reg` round-robins from `last_spill_reg`
-(`reload1.c:5082-5091`, updated at `:5185`), so one extra reload register anywhere
-shifts every later reload. Do not chase the downstream sites.
+(reload1.c:5082-5091, updated at :5185), so one extra reload register anywhere
+shifts every later reload. Do not chase the downstream sites. (AdtSelect's 9 bytes
+are exactly this: the target self-ties at site 1 and spends ONE reload register, so
+the next site takes `t0`; we spend two, so it wraps back to `a3`.)
 
-**The real open question (AdtSelect, parked evidence-complete at 9/776):** the
-TARGET emits ONE reload register at the barred site, which this source structure
-provably cannot — `.greg` shows insn 48 carrying `REG_EQUIV (mem (mem (plus sp
-32972)))`, a DOUBLE mem, so reload emits A (`a3=32972; a3+=sp`), B
-(`t0=mem[a3]`), then the movsi. So the question is not a C-spelling question at
-all: it is **why the original has ONE reload where this structure gives TWO**.
-Start from `.greg` and `reload.c:4296`; do NOT re-open the operand-constraint or
-copy levers.
+**AdtSelect is parked evidence-complete at 9/776 after four rounds.** The demo's
+ORIGINAL also self-ties at site 1, at a different frame (0x80E0/0x80E4 vs
+0x80C8/0x80CC) — so the self-tie is a robust property of the original source, not a
+frame artefact. Nothing reachable from the current decomposition reproduces it.
+Barred, all proven dead: make the operand require a register (no MIPS `'d'`-only
+pattern accepts a MEM — they all carry `register_operand`); insert a copy (it
+yields an ALLOCATED register, the target's is a RELOAD register); kill the
+REG_EQUIV (inert — see the section above).
 
 ### A `%hi` reload tie is `combine_regs` refusing to tie a block-crossing pseudo
 

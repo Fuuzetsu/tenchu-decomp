@@ -104,7 +104,8 @@ still applies to direct `./Build` commands and third-party permuter processes.
 
 **When a draft is the CORRECT LENGTH but a few bytes differ and neither respelling
 nor a bounded permuter run closes it, do NOT park it as "below-the-C-level" — READ THE
-RTL.** Run `tools/rtldump.py <Name>` (standalone cc1-281 dumps, race-free) and follow
+RTL.** Run `tools/rtldump.py <Name>` (standalone cc1-281 dumps, race-free; it compiles
+your DRAFT automatically when the function is guarded) and follow
 docs/matching-cookbook.md, "Reading cc1's RTL dumps (the escalation method)". Nine such
 "permuter-immune register ties" fell this way; every one was reachable source structure
 (a guard's operand order, a statement position, a block boundary, a fold reassociation,
