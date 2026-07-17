@@ -62,10 +62,58 @@
  * colors the call-site control pointer/key as a1/a0, while this source chooses
  * a0/a1 and the coupled v0/v1 carriers in the opposite order. There are no
  * remaining opcode, immediate, extent, or CFG differences. A bounded guided
- * exact search and 23,004 source permutations both plateaued at this coloring.
- * The demo's shorter 232-byte implementation passes the control pointer
- * directly in a0, corroborating that retail's extra copies are an allocator/
- * source-identity distinction rather than different pointer arithmetic.
+ * exact search and 23,004 source permutations both plateaued at this coloring;
+ * a further bounded permuter run (--stop-on-zero -j4) also plateaued at 12, and
+ * tools/autorules.py reports no improving edit among 12 candidates.
+ *
+ * MEASURED EVIDENCE (do not re-derive; every number below was measured here):
+ *
+ * 1. reghist's "delta sum ZERO = pure rename" verdict is MISLEADING for this
+ *    function. The instruction COUNTS match, but the four copies are NOT the
+ *    target's copies. Retail spells them (per site) `k = key` -> `move v0,<key>`
+ *    and `p = spc` -> `move a0,a1`, with `k + 1` coalescing back into k's own
+ *    register (`addiu v0,v0,8`). This draft instead emits a pointer round-trip
+ *    (`move v0,a0` / `move a0,v0`) plus a direct `addiu v0,v1,8`. Same count,
+ *    different identity — so a zero-sum register histogram cannot distinguish a
+ *    rename from a same-count/different-identity copy structure.
+ *
+ * 2. The NATURAL source (no alias scaffolding at all: `spc->key1 = key + 1;
+ *    UpdateSplineControl(spc);` at both sites) compiles to 224 bytes — exactly
+ *    four copies short of retail's 240 — and colors spc=a0 / loop_key=a1: the
+ *    SAME a0/a1 swap as this draft. The swap is therefore NOT caused by the
+ *    scaffolding, and the four missing copies are precisely the copies that
+ *    would exist if spc lived in a1.
+ *
+ * 3. The demo build corroborates the shape, not the coloring:
+ *    `tools/siblingdiff.py SetupSpline --demo` aligns 43/60 instructions and
+ *    shows the demo ALSO emits `move v0,v1` + `addiu v0,v0,8` at site 1. Demo
+ *    (232) differs from retail (240) by exactly the two `move a0,a1` — which
+ *    exist only because retail puts spc in a1. Demo's site 2 has no copies at
+ *    all because there loop_key is already v0 and spc already a0, so both
+ *    copies degenerate to `move x,x` and are deleted.
+ *
+ * 4. Why spc takes a0 (the blocker). `.greg` reports `85 preferences: 4` for
+ *    spc, but the preference is not the cause: routing the call through a
+ *    separate alias (`UpdateSplineControl(call_spc)`) moves the a0 preference
+ *    onto the alias, and spc STILL takes a0 (that variant measures 232). spc
+ *    wins a0 by PRIORITY — regalloc.py gives spc 29 refs/26 live -> 44615 vs
+ *    loop_key 10/10 -> 30000 — with a0 simply the first free register in the
+ *    scan. So a0 must be BLOCKED by a conflicting allocno colored earlier.
+ *
+ * 5. Why the brief's "split the shared pseudo per site" lever cannot apply
+ *    here. Splitting spc into per-site variables demotes it, but site 1's half
+ *    does not conflict with loop_key (disjoint regions), so a0 stays free and
+ *    the half takes a0 — while retail needs a1 at site 1 too (`lw a1,24(s1)`,
+ *    `sw v1,0(a1)`, `sh s3,14(a1)`). Demoting spc can only fix site 2.
+ *
+ * 6. Why the alias cannot supply the blocking conflict. For the copy `p = spc`
+ *    to survive at all, p and spc must CONFLICT; otherwise they share one hard
+ *    register and the copy is deleted as `move a0,a0`. Hoisting the alias to
+ *    function scope to raise its priority measures 224 and `.greg` shows
+ *    exactly this collapse: `85 in 4` and `86 in 4`, with 85 absent from 86's
+ *    conflict list. Nothing in this function reads spc after the alias
+ *    assignment, so no C spelling of the alias creates the conflict that would
+ *    push spc off a0. That is the specific, measured reason this is parked.
  */
 extern void UpdateSplineControl(SplineControlType *spc);
 

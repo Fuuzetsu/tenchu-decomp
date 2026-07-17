@@ -173,18 +173,45 @@ def main():
               "histogram. (See docs/matching-cookbook.md.)")
         print()
 
+    # A `move` in either listing is exactly where equal counts hide UNEQUAL
+    # IDENTITIES: `move v0,v1` (k = key) and a pointer round-trip
+    # (`move v0,a0` / `move a0,v0`) have the same opcode and register counts and
+    # a completely different decomposition. This tool told a lane "the
+    # decomposition already matches the target; do not hunt a mega-pseudo" on
+    # SetupSpline, and that steer was wrong and cost most of a round. Hedge
+    # whenever copies are present rather than stating a verdict.
+    copies = sum(1 for _a, t in target if t.split()[0] == "move")
+    copies += sum(1 for _a, t in candidate if t.split()[0] == "move")
+
+    def rename_caveat():
+        if not copies:
+            return
+        print("         *** CAVEAT: the listings contain `move` copies. A "
+              "zero-sum histogram")
+        print("         CANNOT distinguish a rename from a same-count / "
+              "different-IDENTITY copy")
+        print("         structure. Check which C value each register actually "
+              "carries before")
+        print("         accepting the verdict above — and read `tools/siblingdiff.py "
+              "--demo`,")
+        print("         which answers 'is this copy real codegen or our "
+              "scaffolding?' in one call.")
+
     if not shown:
         print("reghist: every allocatable register matches the target exactly.")
         if not op_delta:
-            print("         No mega-pseudo and no splitting lever — the residual "
-                  "is allocation/scheduling, not decomposition.")
+            print("         Probably no mega-pseudo and no splitting lever — the "
+                  "residual is likely")
+            print("         allocation/scheduling rather than decomposition.")
+            rename_caveat()
         return 0
     print(f"reghist: {len(shown)} register(s) differ; delta sum {total:+d}")
     if total == 0 and not op_delta:
-        print("         Sum ZERO = pure renames of identical instructions: the "
-              "variable decomposition already matches the target.")
-        print("         Do not hunt a mega-pseudo here; the residual is "
-              "allocation/scheduling.")
+        print("         Sum ZERO is CONSISTENT WITH pure renames of identical "
+              "instructions,")
+        print("         which would mean the variable decomposition already "
+              "matches the target.")
+        rename_caveat()
     elif total == 0:
         print("         Sum ZERO, but the OPCODES differ (above) — this is NOT "
               "'pure renames'.")

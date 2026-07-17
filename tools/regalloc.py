@@ -106,6 +106,37 @@ def preferred_allocnos(analysis, hard_register):
     return rows
 
 
+def inseparable_pairs(analysis):
+    """Allocno pairs that share a hard register and do NOT conflict.
+
+    gcc-2.8.1 has **no coalescing pass**: two allocnos that do not conflict
+    simply land on the same hard register, and any copy between them vanishes as
+    `move a0,a0`. So an alias copy survives ONLY if the alias conflicts with its
+    source — i.e. the source is still live after the copy.
+
+    That makes this an early-stop ORACLE, and a decisive one: if the source is
+    absent from the alias's conflict list, **no priority or preference lever can
+    ever separate them**, and the register tie is unreachable from C. SetupSpline
+    parked at 12 bytes on exactly this fact (`85 in 4`, `86 in 4`, 85 absent from
+    86's conflicts, measured 224 vs 240) — and the lane had to read `;; N
+    conflicts:` by hand to find it, because this tool printed priorities and
+    dispositions but never the conflict sets.
+    """
+    visible = analysis["allocnos"] or set(analysis["disp"])
+    by_reg = {}
+    for pseudo, hard in analysis["disp"].items():
+        if pseudo in visible:
+            by_reg.setdefault(hard, []).append(pseudo)
+    pairs = []
+    for hard, group in sorted(by_reg.items()):
+        for i, a in enumerate(sorted(group)):
+            for b in sorted(group)[i + 1:]:
+                if (b not in analysis["conflicts"].get(a, [])
+                        and a not in analysis["conflicts"].get(b, [])):
+                    pairs.append((a, b, hard))
+    return pairs
+
+
 def conflicts_with_hard_register(analysis, pseudo, hard_register):
     """Whether global allocation forbids ``pseudo`` from ``hard_register``.
 
@@ -382,6 +413,29 @@ def report(name, a, show_rtl, body, compare=None, between=None,
             print(f"    i{num:<4} {src:>3} -> {dst:<3}{tag}")
     else:
         print("    (none)")
+    # The early-stop oracle: gcc-2.8.1 has no coalescing pass, so allocnos that
+    # share a register without conflicting can NEVER be separated by any priority
+    # or preference lever, and a copy between them vanishes as `move a0,a0`.
+    pairs = inseparable_pairs(a)
+    if pairs:
+        print("  INSEPARABLE (share a register, do NOT conflict — no lever can "
+              "split them):")
+        for x, y, hard in pairs:
+            print(f"    p{x} & p{y} both in ${rn(hard)}  (p{y} absent from p{x}'s "
+                  f"conflicts)")
+        print("    gcc-2.8.1 has NO coalescing pass: non-conflicting allocnos "
+              "simply land on")
+        print("    one hard register and any copy between them disappears. An "
+              "alias copy")
+        print("    survives ONLY if the alias CONFLICTS with its source — i.e. "
+              "the source is")
+        print("    still live AFTER the copy. If it is not, the register tie is "
+              "unreachable")
+        print("    from C; do not spend a round on priority. See "
+              "docs/matching-cookbook.md,")
+        print('    "An alias copy survives only if the alias CONFLICTS with its '
+              'source".')
+
     notes = a.get("notes") or []
     if notes:
         live = [n for n in notes if n["home"] is None]

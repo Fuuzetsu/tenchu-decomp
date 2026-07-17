@@ -555,6 +555,13 @@ function already byte-matches on current `master`.
   them, which suggests retail has no such hack. Fences, volatile hacks and call
   aliases are reconstruction DEBT; when a pass "refuses" to do something, check
   whether our own scaffolding is what forbids it.
+- **A tool's VERDICT is a claim, and a wrong one costs a whole round.** reghist told
+  a lane "Sum ZERO = pure renames … the variable decomposition already matches the
+  target. Do not hunt a mega-pseudo here" — authoritative, and wrong: a zero-sum
+  histogram cannot tell a rename from a same-count/different-IDENTITY copy
+  structure. It now hedges when `move` copies are present. When adding a heuristic
+  verdict to a tool, write down what it CANNOT distinguish, in the output, next to
+  the verdict.
 - **A tool that can silently measure the STUB is the worst bug class in this repo.**
   Three instances now: `reghist` built the stub and reported "every register matches
   exactly" (a vacuous truth that tells an agent no lever remains); `matchdiff -n`

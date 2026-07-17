@@ -2845,6 +2845,46 @@ when the destination is dead on the fallthrough. `$v0` was (the fallthrough
 `lh $v0,2($v1)` overwrites it); `$v1` was live as `p`. **One register flip, both
 symptoms** — do not byte-account a delay-slot `nop` as an independent cause.
 
+### An alias copy survives only if the alias CONFLICTS with its source — the early-stop oracle
+
+**gcc-2.8.1 has NO coalescing pass.** Two allocnos that do not conflict simply land
+on the same hard register, and any copy between them disappears as `move a0,a0`.
+So `p = spc` survives ONLY if `spc` is still live AFTER the copy.
+
+**This is an early-stop oracle, and it is decisive.** Before spending a round on
+"make the alias colour first so it blocks `$a0`", run `tools/regalloc.py <Name>` and
+read its **INSEPARABLE** line: if the source is absent from the alias's conflict
+list, **no priority or preference lever can ever separate them** and the register
+tie is unreachable from C. SetupSpline parked at 12/240 on exactly this — `85 in 4`,
+`86 in 4`, 85 absent from 86's conflicts, hoisting the alias measured 224 vs 240 —
+and nothing in the function reads `spc` after the alias assignment, so no C spelling
+creates the conflict.
+
+### reghist's zero-sum verdict does NOT prove a rename
+
+A zero-sum register histogram **cannot distinguish a rename from a same-count /
+different-IDENTITY copy structure**. SetupSpline's delta sum is zero and the two
+sides are genuinely different decompositions:
+
+* retail: `move v0,v1` (`k = key`) + `move a0,a1` (`p = spc`), with `k+1`
+  coalescing into k's own register (`addiu v0,v0,8`)
+* ours: a pointer round-trip (`move v0,a0` / `move a0,v0`) + a direct
+  `addiu v0,v1,8`
+
+Same opcodes, same counts, different variables. reghist now hedges whenever the
+listings contain `move` copies (it previously stated "the decomposition already
+matches the target; do not hunt a mega-pseudo", which cost a lane most of a round).
+**Confirm which C value each register actually carries before accepting a rename
+verdict.**
+
+**`tools/siblingdiff.py --demo` is the first move for a same-length copy residual.**
+It answers "is this copy real codegen or our scaffolding?" in one call. On
+SetupSpline it was decisive: the demo emits `move v0,v1` + `addiu v0,v0,8` too, and
+demo(232) vs retail(240) differ by exactly the two `move a0,a1` — which exist only
+because retail puts `spc` in `$a1`. That also refuted the assumption that the swap
+came from our scaffolding: the natural source measures 224 and ALREADY colours
+`spc=a0`/`loop_key=a1`.
+
 ### When a hard-reg tie will not break, demote the WINNER rather than promote the loser
 
 `regs_someone_prefers` is built ONLY from **lower-priority conflicting allocnos**.
