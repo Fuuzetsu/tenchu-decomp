@@ -54,6 +54,12 @@ SYMNOTE_SPEC = importlib.util.spec_from_file_location(
 symnote = importlib.util.module_from_spec(SYMNOTE_SPEC)
 SYMNOTE_SPEC.loader.exec_module(symnote)
 
+SCHED_DEPS_SPEC = importlib.util.spec_from_file_location(
+    "sched_deps", os.path.join(TOOLS, "sched-deps.py")
+)
+sched_deps = importlib.util.module_from_spec(SCHED_DEPS_SPEC)
+SCHED_DEPS_SPEC.loader.exec_module(sched_deps)
+
 
 class WorktreeInitTests(unittest.TestCase):
     def test_long_worktree_list_does_not_trip_pipefail(self):
@@ -5745,6 +5751,353 @@ class CookbookLintTests(unittest.TestCase):
             self.assertTrue(
                 os.path.exists(os.path.join(TOOLS, m.group(1))),
                 f"cookbook references missing tool {m.group(1)}")
+# ---------------------------------------------------------------------------
+# sched-deps: cc1's scheduler trace, re-rendered forward.
+#
+# Every fixture below is real cc1 2.8.1 output (FUN_80057b80, sched2), not
+# invented, so a format change breaks these rather than the field.
+# ---------------------------------------------------------------------------
+
+# Block 0 of FUN_80057b80's .i.sched2, trimmed to the shapes that matter:
+# a plain cycle, a hazard-swap cycle (TWO `, now` lists), a stall, the tail
+# insn's TAIL_PRIORITY, and the post-pass RTL chain cc1 prints afterwards.
+SCHED_FIXTURE = """;; Function FUN_80057b80
+
+;;\t -- basic block number 0 from 1998 to 33 --
+;; ready list initially:
+;; 33 
+
+;; insn[1998]: priority =    1, ref_count =   12
+;; insn[  15]: priority =    1, ref_count =    2
+;; insn[1950]: priority =    1, ref_count =    4
+;; insn[  18]: priority =    1, ref_count =    1
+;; insn[   8]: priority =    1, ref_count =    5
+;; insn[  33]: priority = 2147482912, ref_count =    0
+;; ready list at T-1: 33 (7ffffd20), now 33
+;; ready list at T-2: 18 (1) 8 (1) 1950 (1), now 18 1950 8
+;; insn 1950 has a greater potential hazard, now 1950 18 8
+;; ready list at T-3: 18 (1) 8 (1), now 18 8
+;; launching 15 before 18 with 1 stalls at T-4
+;; ready list at T-5: 8 (1) 15 (1), now 8 15
+;; ready list at T-6: 15 (1), now 15
+;; ready list at T-7: 1998 (1), now 1998
+;; total time = 7
+;; new basic block head = 1998
+;; new basic block end = 33
+
+(note 12 10 1998 "" NOTE_INSN_BLOCK_BEG)
+
+(insn 1998 12 15 (set (reg:SI 29 sp)
+        (minus:SI (reg:SI 29 sp)
+            (const_int 64))) 16 {subsi3_internal} (nil)
+    (nil))
+
+(insn:HI 15 1998 8 (set (reg:SI 8 t0)
+        (plus:SI (reg/v:SI 16 s0)
+            (const_int 136))) 3 {addsi3_internal} (insn_list 4 (nil))
+    (nil))
+
+(insn 8 15 18 (set (reg:SI 4 a0)
+        (mem:SI (reg:SI 2 v0))) 172 {movsi_internal2} (nil)
+    (nil))
+
+(insn 18 8 1950 (set (reg/v:SI 30 $fp)
+        (reg:SI 8 t0)) 172 {movsi_internal2} (nil)
+    (nil))
+
+(insn 1950 18 33 (set (mem:SI (plus:SI (reg:SI 29 sp)
+                (const_int 40)))
+        (reg:SI 5 a1)) 172 {movsi_internal2} (nil)
+    (nil))
+
+(jump_insn 33 1950 34 (set (pc)
+        (label_ref 40)) 232 {branch_zero} (nil)
+    (nil))
+"""
+
+
+class SchedDepsParseTests(unittest.TestCase):
+    def setUp(self):
+        self.trace, self.rtl = sched_deps.split_dump(SCHED_FIXTURE)
+        self.blocks = sched_deps.parse_blocks(self.trace)
+        self.order = sched_deps.rtl_order(self.rtl)
+
+    def test_split_dump_cuts_at_the_first_rtl_line(self):
+        self.assertIn("total time = 7", self.trace)
+        self.assertNotIn("(insn 1998", self.trace)
+        self.assertTrue(self.rtl.startswith("(note 12"))
+
+    def test_block_header_and_table_are_cc1s_own_numbers(self):
+        self.assertEqual(len(self.blocks), 1)
+        b = self.blocks[0]
+        self.assertEqual((b.num, b.first, b.last), (0, 1998, 33))
+        self.assertEqual(b.total_time, 7)
+        # priority AND ref_count, distinct columns -- reading one as the other
+        # is the misreading that inverted a correct park.
+        self.assertEqual(b.table[1998], (1, 12))
+        self.assertEqual(b.table[8], (1, 5))
+        # the tail insn's TAIL_PRIORITY - <stale i> (sched.c:3338), not a depth
+        self.assertEqual(b.table[33], (2147482912, 0))
+
+    def test_table_key_order_is_the_pre_sched_chain_order(self):
+        # sched.c:3684 walks the insn chain to print this, so insertion order
+        # IS the pre-sched order -- that is what makes reordered() possible
+        # without a second dump.
+        self.assertEqual(list(self.blocks[0].table),
+                         [1998, 15, 1950, 18, 8, 33])
+
+
+class SchedDepsPickTests(unittest.TestCase):
+    """The pick rule. This is the whole tool; everything else rests on it."""
+
+    def setUp(self):
+        trace, self.rtl = sched_deps.split_dump(SCHED_FIXTURE)
+        self.block = sched_deps.parse_blocks(trace)[0]
+        self.recs = {r.t: r for r in self.block.records}
+
+    def test_plain_cycle_pick_is_the_only_now_list_head(self):
+        r = self.recs[3]
+        self.assertEqual(r.nows, [[18, 8]])
+        self.assertEqual(r.pick, 18)
+        self.assertFalse(r.swapped)
+        self.assertIsNone(r.displaced)
+
+    def test_hazard_swap_pick_is_the_LAST_now_head_not_the_first(self):
+        # THE REGRESSION PIN. cc1 prints two `, now` lists on a swap cycle:
+        # schedule_select's PRE-swap list (sched.c:2713) and schedule_block's
+        # POST-pick list (3793). The folklore rule "the pick is the first insn
+        # of the now list" reads the first and gets 18. The pick is 1950 --
+        # cc1 names it on the very next line and the post-pass RTL chain agrees.
+        r = self.recs[2]
+        self.assertEqual(r.nows, [[18, 1950, 8], [1950, 18, 8]])
+        self.assertTrue(r.swapped)
+        self.assertEqual(r.hazard, 1950)
+        self.assertEqual(r.pick, 1950)
+        self.assertNotEqual(r.pick, r.nows[0][0])
+
+    def test_hazard_swap_names_the_insn_the_sort_had_put_first(self):
+        # §2848's 'symptom' half: 18 won the sort, potential_hazard took 1950.
+        self.assertEqual(self.recs[2].displaced, 18)
+
+    def test_cc1_names_the_hazard_winner_and_it_equals_our_pick(self):
+        # Two independent cc1 prints must agree; if they ever stop, the parse
+        # is wrong and we want to know loudly rather than average them.
+        for r in self.block.records:
+            if r.swapped:
+                self.assertEqual(r.hazard, r.pick)
+
+    def test_ready_list_column_is_pre_sort_and_hex(self):
+        # 3756 prints INSN_PRIORITY in HEX and BEFORE SCHED_SORT, so the order
+        # here is not the sort order and the digits are not decimal.
+        self.assertEqual(self.recs[1].ready, [(33, 0x7ffffd20)])
+        self.assertEqual(self.recs[2].ready, [(18, 1), (8, 1), (1950, 1)])
+
+    def test_stall_is_attributed_and_skips_a_T_value(self):
+        # `clock += stalls` (3747): T-4 never happens. This is exactly why the
+        # tool prints an INDEX and not the T as an address proxy.
+        self.assertNotIn(4, self.recs)
+        self.assertEqual(self.recs[5].launched, [(15, 18, 1, 4)])
+
+    def test_emission_is_the_reverse_of_the_pick_order(self):
+        self.assertEqual(self.block.picks, [33, 1950, 18, 8, 15, 1998])
+        self.assertEqual(self.block.emission, [1998, 15, 8, 18, 1950, 33])
+
+    def test_a_cycle_with_no_now_list_scheduled_nothing(self):
+        # schedule_select queued everything -> new_ready == 0 -> 3777 prints a
+        # bare newline and the loop `continue`s (3781). No pick.
+        r = sched_deps.TRecord(9)
+        self.assertIsNone(r.pick)
+        blocked, = sched_deps.parse_blocks(
+            ";;\t -- basic block number 0 from 1 to 2 --\n"
+            ";; insn[   1]: priority =    1, ref_count =    0\n"
+            ";; ready list at T-1: 1 (1)\n"
+            ";; blocking insn 1 for 2 cycles\n")[0].records
+        self.assertEqual(blocked.blocked, [(1, 2)])
+        self.assertIsNone(blocked.pick)
+
+
+class SchedDepsValidationTests(unittest.TestCase):
+    """The self-validation, and proof that it fires."""
+
+    def setUp(self):
+        trace, rtl = sched_deps.split_dump(SCHED_FIXTURE)
+        self.blocks = sched_deps.parse_blocks(trace)
+        self.order = sched_deps.rtl_order(rtl)
+
+    def test_rtl_head_matches_a_moded_insn(self):
+        # `(insn:HI 15 ...)` carries a MODE, not just /flags. Matching only
+        # `/\w+` dropped every moded insn from the chain and made the validator
+        # report a false divergence -- a validator that cries wolf gets ignored.
+        self.assertEqual(self.order, [1998, 15, 8, 18, 1950, 33])
+
+    def test_reconstruction_agrees_with_cc1s_own_post_pass_chain(self):
+        self.assertEqual(sched_deps.validate(self.blocks, self.order), [])
+
+    def test_validation_FIRES_on_the_folklore_pick_rule(self):
+        # FAULT INJECTION: re-implement the exact misreading this tool exists to
+        # prevent (pick = head of the FIRST `, now`) and prove the guard catches
+        # it. A guard never observed failing is not known to work.
+        with mock.patch.object(
+                sched_deps.TRecord, "pick",
+                property(lambda self: self.nows[0][0] if self.nows and self.nows[0]
+                         else None)):
+            bad = sched_deps.validate(self.blocks, self.order)
+        self.assertTrue(bad)
+        self.assertIn("diverges", bad[0])
+
+    def test_validation_FIRES_on_a_dropped_insn(self):
+        with mock.patch.object(
+                sched_deps.TRecord, "pick",
+                property(lambda self: 99999 if self.t == 2 else
+                         (self.nows[-1][0] if self.nows and self.nows[-1] else None))):
+            bad = sched_deps.validate(self.blocks, self.order)
+        self.assertTrue(bad)
+        self.assertIn("absent from the post-pass RTL chain", bad[0])
+
+    def test_validation_refuses_an_empty_rtl_listing(self):
+        # No chain means nothing to check against -- that is a refusal, never a
+        # silent pass.
+        bad = sched_deps.validate(self.blocks, [])
+        self.assertTrue(bad)
+        self.assertIn("cannot self-validate", bad[0])
+
+
+class SchedDepsDpTests(unittest.TestCase):
+    """cc1's own `-dp` UID -> asm annotation, and the #nop trap."""
+
+    def test_parse_dp_counts_a_real_nop_and_skips_a_commented_one(self):
+        # THE #nop TRAP, pinned. maspsx writes `nop # DEBUG:` for a real
+        # load-delay nop and `#nop # DEBUG:` for one it decided against. A round
+        # counted the commented form as an instruction and manufactured a
+        # phantom '+3 surplus refs' theory from it.
+        asm = (
+            "\t.text\n"
+            "\tsubu\t$sp,$sp,64  # 1998 subsi3_internal\n"
+            "#nop # DEBUG: 'subu\t$3,$0,$4  # 305 negsi2' does not load from $2\n"
+            "\tnop # DEBUG: Reuse of '$3'. 'subu\t$2,$2,$3' does not use $at\n"
+            "\tsw\t$16,24($sp)  # 2018 movsi_internal2/7\n"
+            "$L12:\n"
+            "\tjr\t$31  # 33 return_internal\n"
+        )
+        rows = sched_deps.parse_dp(asm)
+        self.assertEqual([r[0] for r in rows], [1998, None, 2018, 33])
+        self.assertEqual([r[1] for r in rows],
+                         ["subsi3_internal", None, "movsi_internal2",
+                          "return_internal"])
+        self.assertEqual(rows[1][2], "nop")
+
+    def test_dp_carry_fills_the_uid_down_to_continuation_insns(self):
+        # final.c clears debug_insn after the FIRST asm insn of an RTL insn, so
+        # a macro's later instructions carry no comment and belong to the same
+        # UID.
+        rows = [(7, "movsi", "lui $2,%hi(x)"), (None, None, "lw $2,%lo(x)($2)"),
+                (9, "addsi3", "addu $2,$2,$3")]
+        self.assertEqual([r[0] for r in sched_deps.dp_carry(rows)], [7, 7, 9])
+
+    def test_dp_carry_leaves_a_leading_unannotated_insn_unowned(self):
+        self.assertEqual(sched_deps.dp_carry([(None, None, "nop")])[0][0], None)
+
+
+class SchedDepsVerdictTests(unittest.TestCase):
+    def setUp(self):
+        trace, rtl = sched_deps.split_dump(SCHED_FIXTURE)
+        self.blocks = sched_deps.parse_blocks(trace)
+        self.bodies = sched_deps.rtl_bodies(rtl)
+
+    def test_rtl_bodies_flattens_a_multi_line_insn(self):
+        self.assertIn("(set (reg:SI 8 t0) (plus:SI (reg/v:SI 16 s0)",
+                      self.bodies[15])
+
+    def test_hazard_groups_report_the_tie_the_winner_and_the_displaced(self):
+        groups = sched_deps.hazard_groups(self.blocks[0])
+        self.assertEqual(len(groups), 1)
+        g = groups[0]
+        self.assertEqual(g["winner"], 1950)
+        self.assertEqual(g["displaced"], 18)
+        self.assertEqual(g["priority"], 1)
+        self.assertEqual(sorted(g["group"]), [8, 18, 1950])
+
+    def test_argmove_census_separates_the_floor_from_the_rest(self):
+        # §6559 is run as a FALSIFICATION: insn 8 sets $a0 and IS at the floor
+        # here, but 'argmove => floor' is not a rule -- on the real
+        # FUN_80057b80 only 7 of 30 argmoves are at priority 1 and one reaches
+        # 53. The census exists so the verdict cannot be quoted without its own
+        # counterexamples.
+        floor, above, peak = sched_deps.argmove_census(self.blocks, self.bodies)
+        self.assertEqual([(m[1], m[2], m[3]) for m in floor], [(8, "a0", 1)])
+        self.assertEqual(above, [])
+        self.assertIsNone(peak)
+
+    def test_argmove_census_finds_a_counterexample_above_the_floor(self):
+        blocks = sched_deps.parse_blocks(
+            ";;\t -- basic block number 0 from 1 to 2 --\n"
+            ";; insn[   1]: priority =    1, ref_count =    0\n"
+            ";; insn[   2]: priority =   53, ref_count =    0\n")
+        bodies = {1: "(insn 1 0 2 (set (reg:SI 4 a0) (reg:SI 9 t1)))",
+                  2: "(insn 2 1 3 (set (reg:SI 6 a2) (mem:SI (reg:SI 3 v1))))"}
+        floor, above, peak = sched_deps.argmove_census(blocks, bodies)
+        self.assertEqual([m[1] for m in floor], [1])
+        self.assertEqual([m[1] for m in above], [2])
+        self.assertEqual((peak[1], peak[2], peak[3]), (2, "a2", 53))
+
+    def test_argmove_census_ignores_a_set_of_a_non_argument_register(self):
+        blocks = sched_deps.parse_blocks(
+            ";;\t -- basic block number 0 from 1 to 1 --\n"
+            ";; insn[   1]: priority =    1, ref_count =    0\n")
+        bodies = {1: "(insn 1 0 2 (set (reg:SI 8 t0) (reg:SI 9 t1)))"}
+        floor, above, _ = sched_deps.argmove_census(blocks, bodies)
+        self.assertEqual((floor, above), ([], []))
+
+    def test_reordered_compares_pre_sched_chain_with_emission(self):
+        before, after, moved = sched_deps.reordered(self.blocks[0])
+        self.assertEqual(before, [1998, 15, 1950, 18, 8, 33])
+        self.assertEqual(after, [1998, 15, 8, 18, 1950, 33])
+        self.assertTrue(moved)
+
+    def test_reordered_is_false_when_sched_left_the_block_alone(self):
+        trace = (";;\t -- basic block number 0 from 1 to 2 --\n"
+                 ";; insn[   1]: priority =    1, ref_count =    0\n"
+                 ";; insn[   2]: priority =    2, ref_count =    0\n"
+                 ";; ready list at T-1: 2 (2), now 2\n"
+                 ";; ready list at T-2: 1 (1), now 1\n"
+                 ";; total time = 2\n")
+        block, = sched_deps.parse_blocks(trace)
+        before, after, moved = sched_deps.reordered(block)
+        self.assertEqual(before, after)
+        self.assertFalse(moved)
+
+    def test_reorg_moves_spots_an_insn_pulled_into_a_delay_slot(self):
+        # Verified live on FUN_80057b80: sched2 emits ... 30, 21, 32, 33 and the
+        # asm reads ... 30, 32, 33, 21 -- insn 21 went into the branch's delay
+        # slot. That is reorg, AFTER sched2, and no priority edit touches it.
+        trace = (";;\t -- basic block number 0 from 21 to 33 --\n"
+                 ";; insn[  21]: priority =    1, ref_count =    0\n"
+                 ";; insn[  32]: priority =    3, ref_count =    0\n"
+                 ";; insn[  33]: priority = 2147482912, ref_count =    0\n"
+                 ";; ready list at T-1: 33 (7ffffd20), now 33\n"
+                 ";; ready list at T-2: 32 (3), now 32\n"
+                 ";; ready list at T-3: 21 (1), now 21\n"
+                 ";; total time = 3\n")
+        blocks = sched_deps.parse_blocks(trace)
+        self.assertEqual(blocks[0].emission, [21, 32, 33])
+        rows = [(32, "slt_si", "slt $2,$3,$4"), (33, "branch_zero", "beq $2,$0,$L1"),
+                (21, "addsi3_internal", "addu $6,$17,$8")]
+        emitted, sched, moved = sched_deps.reorg_moves(rows, blocks)
+        self.assertEqual(emitted, [32, 33, 21])
+        self.assertEqual(sched, [21, 32, 33])
+        self.assertTrue(moved)
+
+    def test_reorg_moves_is_quiet_when_the_asm_matches_the_pass(self):
+        trace = (";;\t -- basic block number 0 from 1 to 2 --\n"
+                 ";; insn[   1]: priority =    1, ref_count =    0\n"
+                 ";; insn[   2]: priority =    2, ref_count =    0\n"
+                 ";; ready list at T-1: 2 (2), now 2\n"
+                 ";; ready list at T-2: 1 (1), now 1\n"
+                 ";; total time = 2\n")
+        blocks = sched_deps.parse_blocks(trace)
+        _e, _s, moved = sched_deps.reorg_moves(
+            [(1, "movsi", "move $2,$3"), (2, "movsi", "move $4,$5")], blocks)
+        self.assertFalse(moved)
 
 
 if __name__ == "__main__":

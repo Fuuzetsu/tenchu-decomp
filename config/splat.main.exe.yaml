@@ -719,6 +719,8 @@ segments:
       - { start: 0x4F9D4, type: data, linker_section_order: .text }
       - [0x4FA24, c, PClseek]
       - { start: 0x4FA48, type: data, linker_section_order: .text }
+      - [0x54900, c, GsSetLsMatrix]
+      - { start: 0x5492C, type: data, linker_section_order: .text }
       - [0x56304, c, dmyGsPrstF3NL]
       - [0x5634C, c, dmyGsPrstF3LFG]
       - [0x56394, c, dmyGsPrstF3L]
@@ -828,6 +830,8 @@ segments:
       - [0x580D4, c, dmyGsPrstG3GLFG]
       - [0x5811C, c, dmyGsPrstG3GNL]
       - { start: 0x58164, type: data, linker_section_order: .text }
+      - [0x67B54, c, TransMatrix]
+      - { start: 0x67B78, type: data, linker_section_order: .text }
       - [0x717EC, c, MemCardCallback]
       - { start: 0x71800, type: data, linker_section_order: .text }
   - [0x87800]

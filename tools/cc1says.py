@@ -29,7 +29,14 @@ And these were surfaced by NOTHING until this tool — despite rounds spent on e
 
   tools/cc1says.py <Name>              every table, every pass
   tools/cc1says.py <Name> --pass loop  just one pass
+  tools/cc1says.py <Name> --full       do not cap bulk tables (see below)
   tools/cc1says.py <Name> --raw        also dump the `;;` lines we do not interpret yet
+
+Bulk tables are capped so sched's 250-row priority list cannot drown the rare, valuable
+lines — but a cap must always leave a route to the rest. It did not: it showed 6 of
+`.lreg`'s 46 rows and named no way through, and a lane hand-correlated the raw dump to
+answer "does this LOCAL-ONLY pseudo have a conflicting sibling in its own block?".
+The suppression notice now prints the count, `--full`, and the raw dump's path.
 
 Compare two functions (e.g. a draft against its matched sibling) by running it on each:
 identical movables with opposite verdicts, or differing delay-slot fill counts, are
@@ -93,9 +100,12 @@ TABLES = {
     ]),
     "sched": ("sched1 — priority table, ready lists, and cc1's OWN explanations", [
         (r"^;; insn\[\s*\d+\]: priority = \s*\d+, ref_count = \s*\d+",
-         "priority = DEPTH-FROM-TOP (walks LOG_LINKS = PRODUCERS); ref_count = "
-         "CONSUMERS. They are DIFFERENT metrics and reading one as the other has "
-         "inverted a park."),
+         "priority is NOT depth: priority() accumulates `priority(x) + insn_cost(...) "
+         "- 1` over LOG_LINKS, and gcc's own comment says that `- 1` exists so an "
+         "ALL-LATENCY-1 chain floors at 1. So priority 1 means UNIT LATENCY, NOT 'no "
+         "producers'. ref_count = CONSUMERS. They are DIFFERENT metrics and reading "
+         "one as the other has inverted a park. In sched1 this column is also "
+         "PRE-BUMP (adjust_priority promotes birthing insns) — read the ready lists."),
         (r"^;;.*ready list at T-\d+:.*", None),
         (r"^;;.*insn \d+ has a greater potential hazard.*",
          "cc1 NAMES the hazard swap. We have a whole rule about this swap being a "
@@ -134,6 +144,10 @@ def main():
     ap.add_argument("--pass", dest="only", help="just this pass")
     ap.add_argument("--raw", action="store_true",
                     help="also list the `;;` lines this tool does not interpret yet")
+    ap.add_argument("--full", action="store_true",
+                    help="do not cap bulk tables. The cap exists so sched's 250-row "
+                         "priority list cannot drown the rare lines — but it hid 40 of "
+                         ".lreg's 46 rows from a lane that needed exactly those.")
     args = ap.parse_args()
 
     path = os.path.join("src", "main.exe", args.name + ".c")
@@ -171,7 +185,7 @@ def main():
         # (`insn N has a greater potential hazard` — the exact thing a cookbook rule
         # is about). Bulk tables get a pointer to the tool that reads them properly;
         # rare explanations get printed in full.
-        BULK = 6
+        BULK = 10**9 if args.full else 6
         counts = {}
         rows, notes = [], []
         for ln in body:
@@ -193,10 +207,21 @@ def main():
             seen = printed.get(i, 0)
             if total > BULK * 2 and seen >= BULK:
                 if seen == BULK:
-                    tool = ("tools/schedtrace.py" if name.startswith("sched")
-                            else "tools/regalloc.py" if name == "greg" else None)
-                    hint = f" — read them with {tool}" if tool else ""
-                    print(f"    … ({total} rows of this shape{hint})")
+                    # A cap MUST leave a route to the rest. This printed 6 of .lreg's
+                    # 46 rows and suggested NOTHING (regalloc.py covers GLOBAL
+                    # allocnos, not local quantities), so a lane hand-correlated the
+                    # raw dump to answer "does this LOCAL-ONLY pseudo have a
+                    # conflicting sibling in its own block". Always name a way through.
+                    tool = ("tools/schedtrace.py " + args.name
+                            if name.startswith("sched")
+                            else "tools/regalloc.py " + args.name + " --order"
+                            if name == "greg" else None)
+                    hint = (f"\n      -> read them all: {tool}" if tool else "")
+                    print(f"    … ({total - BULK} more rows of this shape SUPPRESSED "
+                          f"of {total} total){hint}")
+                    print(f"      -> or: tools/cc1says.py {args.name} --pass {name} "
+                          f"--full")
+                    print(f"      -> the raw dump is {by_pass[name]}")
                     printed[i] = seen + 1
                 continue
             print(f"    {ln}")

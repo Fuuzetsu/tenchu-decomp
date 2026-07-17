@@ -136,7 +136,7 @@ def cc_flags_for(name):
 
 
 def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
-                assemble=False):
+                assemble=False, extra_flags=None):
     """Compile one source file and return paths to its asm/RTL artifacts.
 
     This is the reusable backend for rtldump.py, regalloc/guide-style tools,
@@ -144,6 +144,21 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
     participate in the real build, but causes source NOTE objects to survive in
     every RTL pass.  `assemble` additionally runs the exact maspsx/as pipeline
     and writes an objdump whose instructions retain their originating C line.
+
+    **`-g` RENUMBERS EVERY UID.** Its extra NOTE objects consume UIDs, so a UID
+    read from a `debug_lines=True` dump does NOT name the same insn as the same
+    number in a normal dump -- on FUN_80057b80 every UID shifts by 45 (insn 1998
+    becomes 2043).  The emitted instruction SEQUENCE is unchanged (verified: the
+    `-dp` pattern sequence is identical with and without `-g`), so the honest
+    bridge between the two compiles is the instruction INDEX, never the UID.
+    sched-deps.py does exactly that, and guards it by comparing the two pattern
+    sequences.
+
+    `extra_flags` are appended to cc1's command line.  `-dp` is the intended
+    use: it makes cc1 annotate the FIRST asm insn of each RTL insn with
+    `# <uid> <pattern>` (final.c:2549), which is cc1's own UID -> asm mapping and
+    the only non-hand-rolled bridge from a dump UID to an emitted instruction.
+    It is comment-only and cannot change codegen.
 
     Returns a dict with outdir, preprocessed, asm, dumps, stderr and, when
     requested, processed_asm/object/objdump.
@@ -190,7 +205,8 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
 
     dflags = sorted({PASS_FLAG[p] for p in want})
     debug = ["-g"] if debug_lines else []
-    r = subprocess.run([CC, *cc_flags_for(name), *debug, *dflags, ic, "-o", sfile],
+    r = subprocess.run([CC, *cc_flags_for(name), *debug, *dflags,
+                        *(extra_flags or []), ic, "-o", sfile],
                        stderr=subprocess.PIPE, text=True, cwd=outdir)
     err = (r.stderr or "").strip()
     if not os.path.exists(sfile):
@@ -350,7 +366,13 @@ def main() -> None:
                          "TRAMPOLINE, not your C.")
     ap.add_argument("--src", help="override the .c path")
     ap.add_argument("--lines", action="store_true",
-                    help="preserve C-line notes and emit a line-mapped .o/.objdump")
+                    help="preserve C-line notes and emit a line-mapped .o/.objdump. "
+                         "**This adds cc1's -g, which RENUMBERS EVERY UID** (its extra "
+                         "NOTE objects consume UIDs — every UID on FUN_80057b80 shifts "
+                         "by 45, insn 1998 -> 2043). A UID from a --lines dump does NOT "
+                         "name the same insn as that number in a normal dump; the "
+                         "emitted SEQUENCE is identical, so the honest bridge between "
+                         "the two compiles is the instruction INDEX, never the UID.")
     ap.add_argument("--loop-log", action="store_true",
                     help="surface `.loop`'s own MOVABLE DECISION LOG (`Loop from A to "
                          "B: N real insns` + per-insn `moved to N` / `not desirable`). "

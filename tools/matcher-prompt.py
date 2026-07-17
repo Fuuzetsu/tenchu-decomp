@@ -18,6 +18,7 @@ import argparse
 import bisect, os, re, subprocess, sys
 
 import function_inventory as FI
+import triage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -326,8 +327,41 @@ def main():
     ap.add_argument("name")
     ap.add_argument("--model", default="sonnet",
                     help="suggested model (annotation only)")
+    ap.add_argument("--force", action="store_true",
+                    help="brief a target triage EXCLUDES (handwritten-asm canonical). "
+                         "Only if the owner decision in config/handwritten-asm.txt "
+                         "changed — not to 'try anyway'.")
     args = ap.parse_args()
     name = args.name
+
+    # REFUSE an excluded target before doing anything else. The orchestrator picked
+    # drawF3 by ranking parked drafts on raw residual byte count -- bypassing
+    # findsimilar/triage, which rank it 0.008 (dead LAST of ~1010) and hide it by
+    # design -- and briefed a lane onto a HANDWRITTEN-ASM original whose asm IS the
+    # canonical source. The lane spent a full round re-deriving an owner-closed
+    # investigation. Worse, the brief pointed at `li r,0` vs `move r,zero` as the
+    # opportunity: that spelling is the very cc1-invariant TELL the exclusion is
+    # based on, and the cookbook has a standing park-on-sight rule for it.
+    # "Is this a legitimate target?" is a decision over data we already have --
+    # so it is a program, not something a brief-writer should remember.
+    reason = triage.parked(name)
+    if reason and "handwritten-asm CANONICAL" in reason and not args.force:
+        sys.exit(
+            f"matcher-prompt: REFUSING to brief {name} — it is NOT a matching "
+            f"target.\n"
+            f"  {reason}\n"
+            f"  It is listed in config/handwritten-asm.txt (owner decision, "
+            f"docs/gte-policy.md);\n"
+            f"  progress.py counts it as done-by-asm and triage.py hides it from "
+            f"targets.\n"
+            f"  A residual byte count for this function is MEANINGLESS: there is no C "
+            f"that\n"
+            f"  reaches it, so 'only N bytes left' is not evidence of closeness.\n"
+            f"  Pick targets with `tools/findsimilar.py --targets` or "
+            f"`tools/triage.py`, which\n"
+            f"  exclude this class already. Override with --force only if the owner "
+            f"decision changed.")
+
     addr, size = func(name)
     split = is_jump_table(addr, size)
     near = nearest_matched(name)

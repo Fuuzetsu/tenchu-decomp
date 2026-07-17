@@ -16,8 +16,9 @@ byte-identical `main.exe`.
   `cpp | cc1-281 -G8 | maspsx --aspsx-version=2.77 | as | ld`; reproducible/offline
   via nix (no cabal/wine). maspsx is integrated (see [`docs/toolchain.md`](docs/toolchain.md)).
 - **Every game function is carved (555/555)**; matched count is live in
-  `tools/progress.py` (206/555 game functions, 14.1% of game-code bytes at the time
-  of writing), whole-image byte-identical throughout (see `git log` for the
+  `tools/progress.py` (**499/555 game functions, 84.63% of game-code bytes** as of
+  2026-07-17; **516/555, 86.66% counting the 17 canonical-asm originals**),
+  whole-image byte-identical throughout (see `git log` for the
   per-function record; `tools/progress.py` for the live count). The engine is
   the matcher-agent pipeline ([`docs/orchestration.md`](docs/orchestration.md))
   driven **family-first**: map a subsystem's shared struct ONCE and clone/reuse
@@ -31,8 +32,8 @@ byte-identical `main.exe`.
   tokens** on Sonnet; pick targets with `tools/triage.py` / `tools/findsimilar.py`.
 - **Partial matches** (blocked on sub-C-level residuals, kept via the
   NON_MATCHING convention — default build stays green byte-identical, draft
-  builds with `NON_MATCHING=<Name> ./Build`): **~30 functions parked**, each
-  root-caused in its file header. Residuals are consistently sub-C —
+  builds with `NON_MATCHING=<Name> ./Build`): **36 functions parked** (2026-07-17),
+  each root-caused in its file header. Residuals are consistently sub-C —
   register-allocation / scheduling / reload-pass ties the source can't steer:
   the named **`la` address-materialization tie** (`%hi` in a temp vs the target
   reg — `PrepareAccess`, `cd_open`, `PlayMusicFromID`, `FUN_8004a368`),
@@ -58,6 +59,53 @@ byte-identical `main.exe`.
   `config/functions.main.exe.tsv` + config), so CI is Python-only. decomp.dev is
   artifact-driven and still needs a GitHub repo (private OK with a self-hosted
   instance) — full setup in [`docs/decomp-dev.md`](docs/decomp-dev.md).
+
+## Where the work actually is now (2026-07-17)
+
+**Game code is in its endgame; the SDK is the remaining bulk.** `tools/progress.py`:
+
+    game code            499/555   functions (89.91%)   256628/303244  bytes (84.63%)
+    game done (C+asm)    516/555   functions (92.97%)   262780/303244  bytes (86.66%)
+    SDK (>0x80060000)    109/1068  functions (10.21%)     7796/153760  bytes ( 5.07%)
+
+That leaves **39 game functions**, and **36 of them are already parked drafts** — so
+essentially nothing on the game side is unattempted. The board is now "crack the 36
+parks", and the closest sit at 4–20 residual bytes. Their residuals are overwhelmingly
+sub-C (allocation / scheduling / reload ties), which is why the tooling investment (see
+below) has overtaken raw target-picking as the lever.
+
+**After the parks, the project's centre of gravity moves to the SDK**: ~958 unmatched
+functions and ~146k bytes, versus ~40k bytes left in game code. That is stock PsyQ
+library code — a different regime (per-TU flags like `-mno-split-addresses` proved
+necessary for `MemCardCallback`; see the cookbook's SDK boundary notes) and it wants its
+own plan before it is worth batching agents at.
+
+**Establish the asm boundary BEFORE that push — the ~958 figure overstates what is
+matchable.** The first libgte primitive touched (`TransMatrix`, 2026-07-17) turns out to
+be a **handwritten-asm original**, on two independent cc1-invariant tells: it colours
+its temps `t0/t1/t2` while `v1/a0/a1` sit free (impossible — mips.h defines no
+`REG_ALLOC_ORDER`, so *both* allocators walk hard regs numerically: `global.c:960`,
+`local-alloc.c:2266`), and it leaves a `jr ra` delay slot empty with an independent
+filler directly above it (reorg always fills that). PsyQ's libgte matrix primitives were
+historically hand-written assembly, so this is likely a class, not an instance — the
+same call the owner already made for `drawF3` + the 16 `draw*` siblings
+(`config/handwritten-asm.txt`, docs/gte-policy.md). A third flavour exists too: `SetRii`
+and `SetGeomOffset` are pure `ctc2` GTE register writes, reachable only through the
+`gte.h` macro layer + allowlist. **So the SDK is at least three populations — plain C,
+GTE-macro, and handwritten asm — and sizing it means classifying them first.** Each
+`handwritten-asm.txt` addition is an owner decision; `TransMatrix` is parked with its
+evidence awaiting one. `tools/matcher-prompt.py` refuses to brief anything already on
+that list.
+
+**The cookbook is being restructured** (audit: `docs/cookbook-audit.md`). It reached
+8,251 lines and the owner's read is that many of its rules are wrong or are mechanised
+already; 43 of 132 sections are duplicates/superseded/mechanised, 37 more are
+true-but-low-yield, and two "sections" are 826- and 634-line landfills. Target is
+~1,800–2,200 lines across 4 files + a generated index, with a **router** (residual
+signature → tool → rule family) so a lane reads ~600 routed lines instead of 8,000
+unrouted ones. The governing lesson: *every rule of the form "read the dump, if X
+conclude Y" is a program* — cc1 prints its own decisions and only tools get them read
+correctly. Tool backlog is ranked in the audit's §4 (T1 `sched-deps` first).
 
 New session: read this file + [`docs/README.md`](docs/README.md) (the docs index).
 
@@ -91,7 +139,7 @@ output for an earlier, lost build. It is now parsed, dumped and mined — see
 [`docs/psx-sym.md`](docs/psx-sym.md), which is the resume point for this whole thread.
 
 - **Every game function is carved** (555/555), so `permute.py`/`m2c`/the sweep work on
-  any of them. `tools/progress.py` is the live count (206/555 game functions when this
+  any of them. `tools/progress.py` is the live count (499/555 game functions when this
   was written).
 - **Recovered from `PSX.SYM`**: 442 prototypes with the authors' parameter names, 2516
   locals (name, type, register-or-stack), 415 structs/unions/enums with real field

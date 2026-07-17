@@ -100,15 +100,26 @@ rescore deadline and says how many candidates it skipped, so `timeout 240` + a
 the tool timeout but not the inner one). Override with `PERMUTE_RESCORE_SECONDS=<n>`
 if you genuinely need every candidate rescored.
 
-**REDIRECT the permuter to a FILE — never pipe it.** Two lanes had `timeout 240` and
-even `timeout 200` blow through the harness's 600 s cap while PIPED. The timeout is not
-the problem: permute's `-j4` workers inherit the pipe's write end and outlive the
-SIGTERM, so `tail`/`head` never sees EOF and the pipeline hangs long after permute
-itself is dead. Write to a file and read it after:
-`... 'timeout 240 tools/permute.py <Name> -- --stop-on-zero -j4 > /tmp/p.log 2>&1'; tail -40 /tmp/p.log`.
-The same trap applies to any tool with background workers — and piping
-`tools/nullcheck.py` into `tail` additionally destroys its exit code (`$?` becomes
-tail's), which is the whole point of that tool.
+**BUDGET the permuter as `timeout N` + 90 s + one link — `timeout N` bounds the SEARCH,
+not the tool.** This is the single most misreported thing about this tool. When the
+search's timeout fires, permute catches it and then runs `authoritative_rescore`, which
+FULL-LINKS each retained candidate under its own `PERMUTE_RESCORE_SECONDS` deadline
+(default 90 s, and the first candidate always links regardless). So the wall clock is
+roughly **N + 90 + one link**, which is exactly why a lane watched it alive at **526 s
+under a 420 s bound** (420 + 90 = 510). Under the harness's 600 s cap use
+**`timeout 240`**, or lower `PERMUTE_RESCORE_SECONDS`. It is not hanging; it is still
+working, and the rescore is the part that decides whether a proxy-score-0 candidate
+really matches.
+
+*A previous version of this contract blamed the overruns on piping — "the `-j4` workers
+inherit the pipe's write end and outlive the SIGTERM, so `tail` never sees EOF". **That
+is false and is now pinned as false** (`tools/tests/test_proclife.py`): teardown
+escalates SIGTERM to SIGKILL across the whole session, so even grandchildren that
+explicitly ignore SIGTERM are reaped and the pipe closes — measured teardown ~2 s for
+exactly that shape. Piping is still worth avoiding because `tail` hides the progress you
+want to read, so prefer `> /tmp/p.log 2>&1` then read the file — but do not expect it to
+change your budget. And note piping `tools/nullcheck.py` into `tail` is a real bug: it
+replaces the exit code with tail's, and the exit code IS that tool's output.*
 
 **Do not `pkill -f "tools/permute.py <Name>"`** — the pattern SELF-MATCHES the
 invoking shell and kills your own bash (a lane exited 144 that way). Kill by PID.

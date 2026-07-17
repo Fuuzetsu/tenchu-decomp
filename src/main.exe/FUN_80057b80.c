@@ -8,11 +8,14 @@
  * inline-GTE macros (gte_ldv3/gte_rtpt/gte_stsxy3/gte_stsz3) at two RTPT sites.
  *
  * STATUS: NON_MATCHING — 8 of 3796 bytes differ. LENGTH IS EXACT.
- * CLOSED (round 9): the residual is PROVEN UNREACHABLE from C — closed by a
- * PROOF over all C types (see ROUND 9 below), not by sampling spellings. Round 9
- * re-measured the baseline (8/3796, confirmed) and re-derived the park from cc1's
- * own sched2 ready-list trace plus the pinned gcc-2.8.1 sources. Do not reopen
- * without genuinely new information.
+ * CLOSED (round 9, re-verified and completed round 10): the residual is PROVEN
+ * UNREACHABLE from C — closed by a PROOF over all C types (see ROUND 9 below),
+ * not by sampling spellings. Round 10 re-measured the baseline (8/3796,
+ * confirmed), checked every load-bearing step of that proof against the PINNED
+ * gcc-2.8.1 SOURCES instead of from memory, closed the one case round 9 left
+ * unquantified, and refuted the one lever round 9 left open (see ROUND 10 — two
+ * of round 9's stated REASONS were wrong; the verdict is unchanged).
+ * Do not reopen without genuinely new information.
  * (Round history: 759 -> 722 -> 619 -> 506 -> 494 -> 253 -> 208 -> 42 -> 36 -> 8.)
  *
  * The ENTIRE residual is ONE hunk: the two parameter-copy chains in the
@@ -282,8 +285,13 @@
  *     and a `move`->`addiu` latency IS 1, so insn 4 gets class 3, the same class
  *     as the independent insn 6. Round 8's "LUID is the only discriminator" is
  *     therefore RIGHT, but only because of the latency-1 escape — not because the
- *     class key is inapplicable. Anything that made that dependence cost != 1
- *     would flip the tie without touching LUID.
+ *     class key is inapplicable.
+ *     [ROUND 10 CORRECTION] Round 9 ended this bullet with "anything that made
+ *     that dependence cost != 1 would flip the tie without touching LUID" and
+ *     promoted it to the one open lever. IT IS BACKWARDS — see ROUND 10 (A).
+ *     insn 6 is INDEPENDENT of insn 15, so its class is 3 UNCONDITIONALLY; that
+ *     is a CEILING insn 4 can tie but never beat, and the class sort is
+ *     DESCENDING. Cost != 1 would drop insn 4 to class 1 and sort it LATER.
  *   - LUID: `INSN_LUID(y) - INSN_LUID(x)` => DESCENDING LUID. MEASURED in `.greg`:
  *     the chain is `insn 4 -> insn 6 -> insn 8`, i.e. declaration order, so
  *     LUID(4) < LUID(6); 6 sorts first, is picked first, and lands last.
@@ -334,9 +342,81 @@
  *    (a different cc1 build/patch, or a source form outside standard C). This is
  *    an evidence-complete park at 8/3796 with LENGTH EXACT and every register and
  *    delay slot identical. DO NOT reopen on the signature or the parm types: the
- *    space is now closed by proof, not by sampling. The only untried lever the
- *    analysis leaves is making insn 4 -> insn 15's dependence cost != 1 (see (2)),
- *    which is a property of the MIPS latency tables, not of C.
+ *    space is now closed by proof, not by sampling. Round 9 left ONE lever open
+ *    here ("make insn 4 -> insn 15's dependence cost != 1"). ROUND 10 REFUTED IT
+ *    — it is directionally backwards and there is now NO open lever. See (A).
+ *
+ * ---------------------------------------------------------------------------
+ * ROUND 10 — PARK UPHELD. Round 9's VERDICT is right; two of its stated REASONS
+ * are wrong, and the one case it never quantified over is now closed. Round 10
+ * added no bytes and changed no code: it re-measured (8/3796, confirmed) and
+ * checked each load-bearing step against the PINNED gcc-2.8.1 SOURCES, which are
+ * unpacked and readable in the nix store — find them with
+ *     ls -d /nix/store/ | grep gcc-2.8.1     (a DIRECTORY despite the .tar.gz name)
+ * NOTE: write that glob WITHOUT a trailing slash-star-slash — a shell glob ending
+ * in star-slash TERMINATES this comment block and yields a parse error 80 lines
+ * further down. (Cost round 10 one build.)
+ * Reading them is cheap and settles in one grep what costs a round to model.
+ * VERIFIED THERE (round 9 asserted these from memory; all four hold):
+ *   - mips.h defines PROMOTE_PROTOTYPES (:1341) and NOT PROMOTE_MODE, NOT
+ *     POINTERS_EXTEND_UNSIGNED. Both arms of explow.c's promote_mode (:748, :755)
+ *     are #ifdef'd on exactly those, so promote_mode IS the identity on MIPS and
+ *     the deferral gate really does collapse to `nominal_mode != passed_mode`.
+ *   - function.c:4142 is the gate; :4166 emits `move tempreg,entry_parm` IN
+ *     STREAM at the declaration position; only :4168-4175 is deferred; :4127
+ *     makes parmreg NARROW exactly when the gate fires. So the deferred insn is
+ *     necessarily the CONVERSION. Round 9's reading is exact.
+ *
+ * (A) ROUND 9's "ONLY UNTRIED LEVER" IS BACKWARDS. DO NOT SPEND A PROBE ON IT.
+ * sched.c:2435-2452 classes BOTH ready insns against LOG_LINKS(last_scheduled_insn):
+ * `link == 0 || insn_cost(...) == 1` -> class 3, else data dep -> 1, else -> 2;
+ * and :2451 sorts class DESCENDING. insn 6 (`move s1,a1`) is INDEPENDENT of insn
+ * 15, so `link == 0` and its class is 3 UNCONDITIONALLY — a ceiling insn 4 can
+ * tie but never beat. Making the 4->15 cost != 1 drops insn 4 to class 1 and
+ * sorts it LATER, cementing our order. The class key can never favour insn 4, so
+ * LUID is not "the discriminator thanks to the latency-1 escape" — it is the only
+ * key that could EVER discriminate here. There is no open lever.
+ *
+ * (B) WHY BOTH PRIORITIES PRINT 1 (round 9's reason is wrong, and this one bites).
+ * Round 9 said "both copies have no producers at all, so both floor at 1". insn 4
+ * DOES have a producer: the REG_DEP_ANTI from its own `sw s0,24(sp)`. The real
+ * cause is the `- 1` term in sched.c:1521 (`priority(x) + insn_cost(...) - 1`),
+ * whose own comment says that with all latencies 1 every insn ends up priority 1
+ * so that no scheduling is done. This also explains what otherwise reads as a bug
+ * and WILL send the next lane hunting: insn 15 prints priority 1 even though it
+ * depends on insn 4, which is priority 1 (1 + 1 - 1 = 1). A flat priority column
+ * does NOT mean "no dependences" — it means unit latency. (Consistent with the
+ * brief's standing warning not to trust the priority column.)
+ *
+ * (C) THE ONE CASE ROUND 9 NEVER QUANTIFIED OVER — NOW CLOSED.
+ * Round 9's proof ranges over the DECLARED TYPE of the first parameter, assuming
+ * the emitted `move s0,a0` MUST be assign_parms' own copy. It need not be: if that
+ * copy were coalesced away and a LATER copy survived, its LUID would exceed
+ * LUID(6) and the tie would flip with no narrow parm anywhere. Measured
+ * standalone (~1s/variant), same body, first parm only:
+ *      int *p1 = q1;  (plain local copy)         -> byte-identical to baseline
+ *      same, but q1 ALSO used after the copy     -> byte-identical to baseline
+ *      int *volatile q1 (qualified parm object)  -> `sw $4,32($sp)`/`lw $17,32($sp)`
+ * cse1 propagates the parm pseudo into every use and flow deletes the dead copy,
+ * so the survivor is always insn 4. `volatile` does force a distinct home, but a
+ * MEMORY one — a store+reload, not a bare move, and the target has neither. No C
+ * construct puts a second, later `move sX,a0` in the stream.
+ *
+ * (D) THE EMITTED ORDER TRACKS PARM ORDER, NOT REGISTER NUMBER — AND THE SHAPE
+ * TESTBED IS A TRAP. A 9-line prologue testbed (two pointer parms live across a
+ * call, first body insn `p1 + 136`) reproduces the TARGET'S SHAPE — under the
+ * WRONG allocation:
+ *      p1 -> $17, p2 -> $16:   sw $17 / move $17,$4 / sw $16 / move $16,$5
+ *      p1 -> $16, p2 -> $17:   sw $16 / move $16,$4 / sw $17 / move $17,$5
+ * The first line looks exactly like the target (the `sw s1` pair first!) but is
+ * a0-copy-FIRST; it only resembles it because p1 happened to get $17. Under BOTH
+ * allocations the a0 copy is emitted first. The target needs the a1 copy first
+ * WITH p1 in $16 (its s0 is dereferenced as param_1: `lw v0,0(s0)`,
+ * `addiu t0,s0,136`) — the second line's allocation with the first line's order.
+ * cc1-281 emits neither. This confirms the park WITHOUT the sched2 trace at all,
+ * and it is a second instance of round 8's corpus-oracle caveat: MATCHING ON
+ * PROLOGUE SHAPE ALONE IS A FALSE-POSITIVE GENERATOR. Check which register each
+ * parm actually landed in before believing a reproduction.
  *
  * TRIED AND MEASURED, ALL STILL 8 (do not repeat):
  *   piVar13/local_30/proto in all 6 statement orders (proto first: 36;

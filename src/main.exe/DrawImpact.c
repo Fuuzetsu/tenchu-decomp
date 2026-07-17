@@ -120,6 +120,61 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawImpact", DrawImp
  * 18715 iterations, plateaued at its base score, no candidate below it.
  * `siblingdiff --demo` is a dead end (demo body 236 bytes vs retail 772,
  * 6/193 insns); the PSX.SYM local list above describes the DEMO body.
+ *
+ * ROUND 3 independently RE-DERIVED the local_alloc claim above from raw RTL
+ * (not just regalloc.py's summary) and it holds; one more lever was measured
+ * and closed.  All facts below cross-check ROUND 2; none of it moves the 4.
+ *
+ *   - `tools/regalloc.py DrawImpact --order` confirms p131/p138 are absent
+ *     from the 19-entry GLOBAL allocno table (`;; 19 regs to allocate: 86 127
+ *     134 141 85 123 87 90 92 88 93 81 84 124 82 117 97 89 80` — matches
+ *     `cc1says.py --pass greg` exactly) and appear only in the LOCAL-ONLY
+ *     list, both `->v0`.
+ *   - Reading the raw `.lreg` dump (`tools/rtldump.py DrawImpact --pass
+ *     lreg`) rather than trusting the summary: green's load (reg131) is "in
+ *     block 8" and so is reg130, and NOTHING ELSE is local to block 8.
+ *     reg130 is red's finished `spr->r` sum (born at its `addu`, dead at its
+ *     `sb`); reg131 is the green load (born at `lbu`, dead at `mult`) — the
+ *     two do not overlap (130 dies exactly when 131 is born), so both
+ *     independently take $v0 for free; block 8's "Registers live at start"
+ *     lists only cross-block GLOBAL pseudo NUMBERS (80 81 82 84 89 97 124
+ *     127), which local_alloc cannot yet be avoiding since it runs BEFORE
+ *     global_alloc assigns them a hard reg.  There is no SECOND local
+ *     quantity in this window to reorder against — which is exactly the
+ *     precondition the AttackBowControl "seed the loser" trick
+ *     (docs/matching-cookbook.md) needs and does not have here.
+ *   - Proved that absence matters, not just asserted it: mirrored the RED
+ *     fix onto GREEN ALONE (not a shared carrier — round 2 tested carriers,
+ *     not this) — `start2 = param->start_color.channel.g; start2 = start2 *
+ *     inverse;`.  `nullcheck.py` confirms it is a REAL edit (codegen hash
+ *     changes), but it merges the load into `start2`'s (p86) own eventual
+ *     register, $v1 — not $a0 — emitting `lbu v1,17(s0)` / `mult v1,a2`.
+ *     Still 4 bytes, same two clusters, just a different wrong register.
+ *     Mechanically this is why: RED's identity trick worked because `start`
+ *     (p85) itself already resolves to $a0; GREEN/BLUE's persisting variable
+ *     `start2` (p86) resolves to $v1, so identity-merging is GUARANTEED to
+ *     reproduce $v1, never $a0.  This closes "give it identity" as a lever
+ *     for green/blue specifically (it is not a re-run of round 2's carrier
+ *     experiments, which shared the two channels; this is the per-channel,
+ *     unshared form regalloc.py's own LOCAL-ONLY hint suggests first).
+ *   - Fresh bounded permuter run (240s wall, output redirected to a FILE per
+ *     the pipe-hang contract note, current post-cc38bd2 tooling): 20603
+ *     iterations, base score 20 never beaten.  Authoritative post-SIGTERM
+ *     full-link rescore ties base.c and all 3 retained candidates at exactly
+ *     4/4/772 differing bytes.  Independently reconfirms round 2's 18715-
+ *     iteration plateau under the now-fixed rescore path.
+ *   - `tools/reghist.py`: delta sum 0 (v0 +4 / a0 -4), a pure register-field
+ *     swap, no opcode or count difference anywhere in 193 insns.
+ *
+ * Do not re-open this without a genuinely new SOURCE-STRUCTURE theory: two
+ * independent methods (regalloc.py's conflict list; raw .lreg block
+ * liveness) now agree the load's 2-insn window is provably conflict-free on
+ * our side, and the identity-merge experiment shows the "give it identity"
+ * lever is mechanically guaranteed to land on the wrong register here. A
+ * tool that, given a LOCAL-ONLY pseudo, printed its block's full local-only
+ * roster plus pairwise conflict status directly (regalloc.py --order already
+ * does this for GLOBAL allocnos) would have made this cross-check one call
+ * instead of hand-correlating cc1says --pass lreg against the raw dump.
  */
 #include "effect.h"
 
