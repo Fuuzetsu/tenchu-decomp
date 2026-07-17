@@ -29,13 +29,26 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — exact length (364 bytes / 91 instructions), fuzzy
- * 98.90. One instruction identity remains, accounting for two image bytes:
- * target `move s2,zero`, ours `move s2,s4`. Before reload the loop-counter
- * initialization is a literal zero with REG_EQUAL 0; `best` in s4 also has
- * REG_EQUAL 0, so reload's equivalence substitution rewrites the source to
- * s4. The target retains the architectural zero register. Control flow,
- * scheduling, registers, relocations, and every other instruction match.
+ * GetNearestHumanoid (0x80029864) returns the nearest other live, visible,
+ * type-filtered Humanoid within `distance`, or 0. It searches only while the
+ * input Humanoid is at ground level (map.height == 0). The type/attribute
+ * mask tests intentionally use unsigned halfword loads; status/life use
+ * signed halfword loads, matching their comparisons and item.h declarations.
+ *
+ * The height check MUST be an early-return guard clause, not an `if (height
+ * == 0) { for (...) }` wrapper, even though both spell the same behaviour and
+ * both fold to the same `bnez -> epilogue` branch. cc1's post-reload
+ * `reload_cse_regs` (toplev.c:3501, after .greg, before sched2) rewrites a
+ * constant SET_SRC into a copy from the first hard register (scanning regno 0
+ * upward) already recorded as holding that value -- unconditionally; there is
+ * no cost comparison, and $zero never qualifies because no insn ever sets it.
+ * With the wrapper form nothing separates `best = 0` (s4) from the loop's
+ * `i = 0`, so s4 is still recorded as 0 and the preheader degrades to
+ * `move s2,s4`. reload_cse_regs forgets every register value at a CODE_LABEL,
+ * and the early return's `if_false` label lands exactly between the two
+ * zeroes, so s4 is forgotten and `i = 0` stays `move s2,zero` as in the
+ * target. jump2 cross-jumping then merges the two identical `return best`
+ * tails, which is why the final asm is otherwise identical.
  *
  * The indexed `for` is intentional: cc1 strength-reduces HumanGroup[i] to
  * the target's s1 walking pointer while keeping i in s2. `__builtin_abs`
@@ -45,27 +58,12 @@
  * target's distinct v1 output lifetime; dx is overwritten before its
  * distance use. Flattening the guard loses that lifetime and coalesces the
  * abs input/output in v0.
- *
- * Bounded pure-C trials included manual abs/square forms, helper and block
- * lifetimes, do/while and combined-guard variants, declaration/type/order
- * permutations, and scheduler fences. Guided autorules (160 candidates) and
- * two bounded permuter passes found no exact source-level spelling. No asm,
- * volatile, named-register variables, or undefined-value tricks are used.
- *
- * GetNearestHumanoid (0x80029864) returns the nearest other live, visible,
- * type-filtered Humanoid within `distance`, or 0. It searches only while the
- * input Humanoid is at ground level (map.height == 0). The type/attribute
- * mask tests intentionally use unsigned halfword loads; status/life use
- * signed halfword loads, matching their comparisons and item.h declarations.
  */
 extern s32 SquareRoot0(s32 val);
 
 extern s16 Humans;
 extern Humanoid *HumanGroup[];
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetNearestHumanoid", GetNearestHumanoid);
-#else
 Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
 {
     Humanoid *cur;
@@ -77,29 +75,29 @@ Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
 
     best = 0;
     best_dist = 20000;
-    if (human->map.height == 0)
+    if (human->map.height != 0)
     {
-        for (i = 0; i < Humans; i = i + 1)
+        return best;
+    }
+    for (i = 0; i < Humans; i = i + 1)
+    {
+        cur = HumanGroup[i];
+        if (cur != human && cur->status != 0x11 &&
+            (cur->attribute & 0x80) == 0)
         {
-            cur = HumanGroup[i];
-            if (cur != human && cur->status != 0x11 &&
-                (cur->attribute & 0x80) == 0)
+            dx = 0x90;
+            if ((cur->type & 0xf0) != dx && -1 < cur->life)
             {
-                dx = 0x90;
-                if ((cur->type & 0xf0) != dx && -1 < cur->life)
+                dx = __builtin_abs(cur->locate->vx - human->locate->vx);
+                dz = __builtin_abs(cur->locate->vz - human->locate->vz);
+                dist = SquareRoot0(dx * dx + dz * dz);
+                if (dist < distance && dist < best_dist)
                 {
-                    dx = __builtin_abs(cur->locate->vx - human->locate->vx);
-                    dz = __builtin_abs(cur->locate->vz - human->locate->vz);
-                    dist = SquareRoot0(dx * dx + dz * dz);
-                    if (dist < distance && dist < best_dist)
-                    {
-                        best_dist = dist;
-                        best = cur;
-                    }
+                    best_dist = dist;
+                    best = cur;
                 }
             }
         }
     }
     return best;
 }
-#endif /* NON_MATCHING */

@@ -217,6 +217,61 @@ def is_guarded(name, src=None):
         return "ifndef NON_MATCHING" in stream.read()
 
 
+# Pass order as cc1 runs them, so --trace lines the dumps up chronologically
+# rather than alphabetically. A rewrite with no dump of its own (reload_cse_regs)
+# shows up as a delta between the two passes that bracket it.
+# cc1 2.8.1's real rest_of_compilation order (toplev.c). Ordering these
+# ALPHABETICALLY, or omitting a pass so it sorts to the end, would put cse2/bp
+# after dbr and invent a transformation that never happened -- the whole point of
+# --trace is that ADJACENCY carries the meaning.
+# Verified against the pinned toplev.c's own dump sequence, not recalled.
+PASS_ORDER = ["rtl", "jump", "addressof", "cse", "loop", "cse2", "bp", "flow",
+              "combine", "sched", "lreg", "greg", "sched2", "jump2", "dbr"]
+
+
+def trace_insn(result, uid, want):
+    """Print one insn's RTL across every dumped pass, in cc1's own pass order.
+
+    Three lanes asked for this and each hand-rolled it with `grep -A3 "insn 27 "`
+    across the dump files. It is what makes an invisible pass visible: GetNearestHumanoid's
+    `(const_int 0)` survives to `.greg` and is a register copy by `.sched2`, which
+    localises the rewrite to `reload_cse_regs` (toplev.c:3501) — a pass that emits
+    no dump at all and is only legible as a delta between its neighbours.
+    """
+    import re as _re
+    head = _re.compile(r"^\((?:insn|call_insn|jump_insn)(?:/\w+)? %d " % uid)
+    order = {p: i for i, p in enumerate(PASS_ORDER)}
+    unknown = [p.rsplit(".", 1)[-1] for p in result["dumps"]
+               if p.rsplit(".", 1)[-1] not in order]
+    if unknown:
+        # Never silently sort an unknown pass to the end: --trace's meaning is
+        # positional, so a mis-placed pass fabricates a delta.
+        print(f"  rtldump: WARNING: pass(es) {sorted(set(unknown))} are not in "
+              "PASS_ORDER; their position below is NOT cc1's order.")
+    dumps = sorted(result["dumps"],
+                   key=lambda p: order.get(p.rsplit(".", 1)[-1], 99))
+    print(f"\n  --- insn {uid} across {len(dumps)} pass(es), in cc1's pass order ---")
+    prev = None
+    for path in dumps:
+        name = path.rsplit(".", 1)[-1]
+        body, keep, buf = open(path, errors="replace").read(), False, []
+        for line in body.splitlines():
+            if head.match(line):
+                keep, buf = True, [line]
+            elif keep:
+                if line.startswith("(") or not line.strip():
+                    break
+                buf.append(line)
+        text = " ".join(" ".join(buf).split())[:150] if buf else "(absent)"
+        mark = "  <-- CHANGED" if prev is not None and text != prev else ""
+        print(f"  {name:>8}: {text}{mark}")
+        prev = text
+    print("  A change between two passes with no dump between them is that pass's "
+          "doing —")
+    print("  e.g. .greg -> .sched2 brackets reload_cse_regs (toplev.c:3501), which "
+          "has no dump.")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
@@ -232,6 +287,13 @@ def main() -> None:
     ap.add_argument("--src", help="override the .c path")
     ap.add_argument("--lines", action="store_true",
                     help="preserve C-line notes and emit a line-mapped .o/.objdump")
+    ap.add_argument("--trace", metavar="UID", type=int,
+                    help="print insn UID across EVERY pass, in pass order — the "
+                         "single highest-value ask from three lanes, each of which "
+                         "hand-rolled it with grep. A transformation is often only "
+                         "visible as a delta BETWEEN two dumps (reload_cse_regs runs "
+                         "after .greg and before .sched2 and has no dump of its own), "
+                         "and that delta is invisible unless you line the passes up.")
     args = ap.parse_args()
     want = [p.strip() for p in args.passes.split(",") if p.strip()]
 
@@ -268,6 +330,8 @@ def main() -> None:
         print(f"  lines:  {result['objdump']}")
     if err:
         print(f"  cc1 stderr: {err.splitlines()[-1]}")
+    if args.trace is not None:
+        trace_insn(result, args.trace, want)
     print("\n  reg legend: 2 v0  3 v1  4-7 a0-a3  8-15 t0-t7  16-23 s0-s7  30 fp  31 ra")
     print("  read .greg for `N in H` (pseudo N in hard reg H), `N preferences: H`,")
     print("  `N conflicts: …`; .loop for hoist decisions; see docs/matching-cookbook.md")

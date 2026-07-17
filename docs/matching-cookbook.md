@@ -6401,6 +6401,42 @@ and the background assumption that cross-jumping merged the five `return 0` bloc
 `.jump` shows it never did, so all five guards reach reorg with identical RTL and the
 divergence cannot be a source-shape difference between them.
 
+### `move rX,zero` where you emit `move rX,rY`: put a CODE_LABEL between the two zeroes
+
+**This matched GetNearestHumanoid first try, zero bytes, and every intuition about it
+was backwards.**
+
+cc1's post-reload **`reload_cse_regs`** (`toplev.c:3501`) rewrites a constant
+`SET_SRC` into a copy from the **first hard register, scanning regno 0 upward**,
+already recorded as holding that value. Three facts, all from `reload1.c`:
+
+* **The replacement is UNCONDITIONAL — there is no cost comparison against the
+  constant.** So a second `= 0` after a live `= 0` ALWAYS degrades to a register copy.
+  ("`$zero` is free so rematerialising is normal" is exactly wrong.)
+* **`$zero` can never win**: `reg_values[]` is populated only by OBSERVED SETS, and
+  nothing ever sets `$zero`. So `move rX,zero` is **not a choice cc1 made** — it is
+  what survives when **no register qualifies at all**.
+* Its main loop **forgets every register value at a `CODE_LABEL`** ("we don't try to
+  do anything clever around jumps").
+
+**Therefore `move rX,zero` in the target PROVES a `CODE_LABEL` intervenes** between
+the two zeroes. Convert an `if (c) { body }` wrapper into an **early-return guard
+clause** — `if (!c) return v;` — which lands the `if_false` label exactly between
+them. `jump2` cross-jumping then merges the identical `return` tails, so the rest of
+the asm is untouched.
+
+**Diagnose it in one call**: `tools/rtldump.py <Name> --pass all --trace <uid>`. A
+constant at `.greg` that is a copy at `.sched2` is **always** `reload_cse_regs` —
+the pass runs BETWEEN those two dumps and emits none of its own, so it is invisible
+except as that delta. **A `.greg` dump showing `(const_int 0)` does NOT clear
+reload.** (GetNearestHumanoid's park blamed "reload's equivalence substitution"; the
+trace refutes it outright.)
+
+`autorules` candidate, fully specified: **guard-clause inversion** — rewrite a
+whole-body `if (c) { ... }` wrapper into `if (!c) return <init>;` plus the unwrapped
+body. It generalises to any function whose target keeps `$zero` where the draft
+copies a register.
+
 ### `priority()` is DEPTH-FROM-TOP, not height-to-bottom — and cc1 PRINTS it
 
 **(This section previously said the opposite: that a park's "already at the priority
@@ -6608,6 +6644,19 @@ cse1 REBUILDS the table at a multi-predecessor label**. So:
 Nonzero offsets off the same pointer are never folded. Bisect with
 `--pass rtl,jump,cse`: the fold appears between `.jump` and `.cse`. Note cross-jumping
 still leaves per-arm work duplicated when the arms differ just above the common tail.
+
+### The gcc 2.8.1 source is ON DISK and it is the authority — do not work from recall
+
+`/nix/store/117i80brbgcdmcl46gmpzwizikbjyx5m-gcc-2.8.1.tar.gz/` is an **unpacked
+directory** despite the name. Read it.
+
+Two lanes have now reported that their recollection of a specific function was wrong
+in a way that would have produced a confident wrong conclusion: one "remembered" a
+cost comparison in `reload_cse_simplify_set` **that does not exist** (it would have
+made `$zero` look like a deliberate choice); another had `rare_destination` returning
+1 for a `CODE_LABEL` when it returns **0**. Both caught it only by opening the file.
+**A mechanism claim in a report or a park is worth exactly as much as the source line
+it cites.**
 
 ### Dump a CONTROL variant, not just the current draft### Dump a CONTROL variant, not just the current draft
 
