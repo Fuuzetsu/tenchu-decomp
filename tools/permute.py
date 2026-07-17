@@ -920,6 +920,29 @@ def main():
     subprocess.run(CPP + ["-DPERMUTER", "-DNON_MATCHING", src, base], check=True)
     with open(base) as stream:
         preprocessed = stream.read()
+    # Strip cpp's `# N "file"` line markers from base.c.
+    #
+    # NOT because they change codegen -- they do not. I claimed they did, from
+    # diffing two `.s` files that differ only in `.stabn` directives and
+    # -fverbose-asm comments, neither of which reaches the bytes. Compared on
+    # INSTRUCTIONS ONLY, marker-stripped and marker-carrying base.c are identical.
+    #
+    # The real reason is READABILITY, and it is a measured cost: the permuter parses
+    # base.c with pycparser and REGENERATES C, and that printer drops every marker
+    # and re-splits every declaration. So base.c (29 markers, `long vx, vy, vz;`)
+    # against a candidate (0 markers, three separate declarations) produces a diff in
+    # which the actual edit is invisible -- a lane reported "521 diff lines for 3 real
+    # edits" and hand-built a filter to find them. Stripping markers here removes the
+    # largest source of that noise so RESULT.md's "minimal semantic delta" is worth
+    # reading.
+    #
+    # The deeper caveat stands regardless: the permuter's world is pycparser-reprinted
+    # and the build's is not, so a candidate's score is a claim about ITS source, not
+    # ours. ALWAYS port a win's semantic delta into the real .c and re-measure with
+    # matchdiff -- never adopt a score. (SetupTelop: a candidate scored 9 vs base 11,
+    # and its only readable edit -- a declaration move -- was a nullcheck NO-OP in the
+    # real source.)
+    preprocessed = re.sub(r"^# [0-9]+ \"[^\n]*\n", "", preprocessed, flags=re.M)
     with open(base, "w") as stream:
         stream.write(add_permuter_parser_declarations(preprocessed))
 

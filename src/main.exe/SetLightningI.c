@@ -72,6 +72,55 @@
  * cycle, placement of the 0x66666667 literal, and the final ViewInfo
  * scratchpad-store schedule; the function extent, frame, CFG, and calls remain
  * exact without volatile accesses, inline assembly, or output branches.
+ *
+ * 2026-07-17 evidence-complete pass (parked, no byte movement): reghist showed
+ * delta sum 0 (v0 +4, t1 -2, t2 -2) with no OPCODES-DIFFER banner -- pure
+ * allocation/scheduling, confirmed structure-correct.  tools/autorules.py (103
+ * candidates) and tools/autorules.py --guided (160 candidates, rtlguide-keyed
+ * to lines 165,169,190,191,233-235,259,260) both found zero improving edits.
+ * A bounded permuter run (timeout 240 + 90s authoritative rescore) found
+ * nothing better than base: best candidate output-1150-1 scored 77 (worse).
+ * tools/rtlguide.py names the owner as `regalloc` (3 of 4 clusters) and prints
+ * an explicit HARD-CONFLICT: pseudo p106 (`initial_view`) is INSEPARABLE-
+ * packed into hard register $v1 alongside NINE unrelated pseudos
+ * (p154/p159/p172/p180/p188/p196/p208/p220/p261 -- the `raw_priority`-family
+ * values inside the hot loop, priority 26666-60000 from loop-depth-weighted
+ * ref counts) per tools/regalloc.py --order's self-validated allocation
+ * order.  gcc-2.8.1 has no coalescing pass, so any pseudo whose live range
+ * does not CONFLICT with the top-priority in-loop claimant falls into $v1 for
+ * free, regardless of where in the function it lives -- this ties the
+ * cluster-0/1 register identity (initial_view, used once before the loop) to
+ * unrelated code hundreds of instructions later, a genuine whole-function
+ * register-pressure interaction rather than a local spelling choice.  Two
+ * hypothesis-driven edits derived from this analysis were tested and reverted
+ * as regressions: naming `vpy`/`vpz` temps at the loop-body ViewInfo access
+ * let CSE unify the two independently-scheduled `high(ViewInfo)` computations
+ * (target keeps them as two separate `lui`s into v0 and t6) and dropped one
+ * instruction (65 -> LENGTH MISMATCH, 1380 vs 1384); rewriting the y/z
+ * subtractions as in-place `initial_y -= ...` compound assignments (to match
+ * target's `subu t1,t1,v0` self-reuse) reached the right SHAPE for that one
+ * hunk but reassigned an unrelated load's register (`lw t2,8(s6)` -> `lw
+ * t0,8(s6)`) and regressed net (65 -> 68).  Swapping the y/z statement order
+ * regressed to 71; reordering `i = 1;`/`lcount = distance / 200;` was a
+ * confirmed no-op (tools/nullcheck.py).  Cluster 2 (the 0x66666667 magic
+ * constant vs. svp/scrp address setup, a pure MULTISET-EQUAL reorder) traces
+ * to the same class of priority-driven scheduling choice via
+ * tools/cc1says.py/sched-deps.py but has no tested fix.
+ *
+ * Sibling relationship: SetWire.c (similarity 0.30, also NON_MATCHING) writes
+ * the analogous x/y/z-minus-ViewInfo scratchpad-store idiom in its OWN
+ * clean/no-pointer-variable style (direct `ViewInfo.vpx/vpy/vpz`, no
+ * `initial_view`-equivalent) and STILL carries the identical unresolved
+ * residual class in its own header ("the entry VECTOR/ViewInfo loads and the
+ * per-segment zero/coordinate stores... a bounded permuter run... produced
+ * ONLY invalid candidates... treat the permuter as definitively unhelpful
+ * here").  Two independent matchers, two independent source idioms for the
+ * same original code shape, the same scheduler/regalloc residual class in
+ * both: this is not idiom-specific.  Next lever, if picked back up: try
+ * jointly perturbing the `raw_priority`/`priority` clamp code's own pseudo
+ * identities (the actual $v1 claimant) together with the ViewInfo block,
+ * since single-hunk edits on either side alone have now been exhausted on
+ * both functions.
  */
 
 #ifndef NON_MATCHING
