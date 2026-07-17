@@ -66,10 +66,20 @@ CPP_DEFS = [
 ]
 
 # pass name -> cc1 -d letter. -da = all passes.
+# Verified against the pinned toplev.c's own `case` labels (grep `_dump = 1`), NOT
+# recalled. Two entries here were WRONG and each silently handed back the wrong
+# pass:
+#   * `jump2` mapped to `-dj`, which is jump_opt_dump -- so `--pass jump2` dumped
+#     `.jump`, the FIRST jump pass. `-dJ` is jump2_opt_dump. A brief sent a lane to
+#     read `.jump2` and it got `.jump`.
+#   * `-dR` is sched2_dump, not reorg -- so there was no `sched2` key at all, and a
+#     lane could not read the pass that owned 16 of its 28 bytes. reorg's dump is
+#     `.dbr` (`-dd`), which is what `reorg` now aliases.
 PASS_FLAG = {
-    "rtl": "-dr", "jump": "-dj", "jump2": "-dj", "cse": "-ds", "loop": "-dL",
-    "combine": "-dc", "flow": "-df", "lreg": "-dl", "greg": "-dg", "sched": "-dS",
-    "reorg": "-dR", "dbr": "-dd", "all": "-da",
+    "rtl": "-dr", "addressof": "-dD", "jump": "-dj", "cse": "-ds", "loop": "-dL",
+    "cse2": "-dt", "flow": "-df", "combine": "-dc", "sched": "-dS", "lreg": "-dl",
+    "greg": "-dg", "sched2": "-dR", "jump2": "-dJ", "dbr": "-dd", "reorg": "-dd",
+    "all": "-da",
 }
 DEFAULT_PASSES = ["greg", "lreg", "jump", "combine"]
 

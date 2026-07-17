@@ -6494,6 +6494,34 @@ the guard, not inside it.**
 Free when the variable is dead on the else path: **no fence, no loop-depth weight**.
 (AddEnemy round 11, -6 bytes.)
 
+### An `extern` scalar that retail loads via `lui %hi` + `lbu $d,%lo(...)($hi)` may want to be an ARRAY
+
+Declare it `extern u8 G[];` and read `G[0]`. The **scalar** form hands a whole fixed
+address to the assembler to expand through one register; the **array** form makes cc1
+split the address into `high` + `lo_sum` RTL, putting the `%hi` in its own scratch —
+and it changes the load from a free `(mem (symbol_ref))` into a scheduler-chained
+`(mem (lo_sum ...))`. `autorules` sweeps this as `extern scalar->unknown-array`.
+(PadProc: 2 bytes, fully automatic.)
+
+### An identical-arm fence's real effect can be REFERENCE COUNTING, not the CFG boundary
+
+**Before deleting a fence, check what it is actually buying.** A fence whose arms
+duplicate `x / y` gives `y` **two extra refs** — and `global_alloc` orders allocnos by
+`floor_log2(refs)*refs/live_length*10000`. **`floor_log2` steps at 8**, so the 7th ->
+8th ref can flip a register outright. Run `tools/regalloc.py` and compare the priority
+table across the edit: if removing the fence drops a pseudo below a `floor_log2` step,
+the register rotation that follows **is the fence's real job** — not the CFG boundary
+the park credits it with. (PadProc's park claimed its fences "preserve source
+identities"; they were reference counting.)
+
+### Two identical tails survive in the target only because their BASE REGISTERS differ
+
+`jump2` cross-jumps identical tails. So when the target keeps two `sb zero` tails that
+you merge, **no source-level donor can prevent it** — the anti-merge is an
+**allocation outcome**, not a source distinction. Chase the register split; a
+"distinguishing store" donor may work only by re-globalising a value, which is
+usually what exiled it from the register you wanted in the first place.
+
 ### An `addu` operand swap is a DECLARED-TYPE question — and the obvious fix is DEAD ON ARRIVAL
 
 Same C syntax, different tree:
@@ -6542,6 +6570,13 @@ Read a load's LOG_LINKS in `.sched` and classify its ADDRESS:
 * **FIXED address** — `(mem (symbol_ref "GameClock"))`, i.e. a global — gets
   LOG_LINKS **`(nil)`** and **floats anywhere in the block**. The dismissal DOES
   fire here.
+
+**But the DECLARATION decides which of those two forms you get, so check the RTL
+rather than assuming "it's a global, so it floats".** An `extern` SCALAR yields the
+free `(mem (symbol_ref))`; an `extern` UNKNOWN-SIZE ARRAY makes cc1 split the address
+itself into `high` + `lo_sum`, so the load becomes `(mem (lo_sum ...))` — **chained,
+not free**. PadProc's global read looked like the free case and was not, after its
+array fix; the "fixed-address global floats anywhere" rule was a red herring there.
 
 **The lever this creates (FUN_8004c59c: 23 of 29 bytes).** In a run of `local.f = …`
 field writes, the ONE global read is the only insn free to move — so it gets pulled

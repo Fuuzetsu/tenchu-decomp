@@ -557,6 +557,17 @@ function already byte-matches on current `master`.
   `dslot`/`length` eligibility and `LABEL_NUSES` per branch target, and said outright
   "that table IS the whole answer here". An `asmdiff`/`rtldump` annotation would make
   StickonCheck's entire analysis one call.
+- **Never quote a TRUNCATED tool head as a byte-account.** I built PadProc's brief
+  from `asmdiff | head -9` and presented 4 diff lines as the residual; the real one is
+  18 differing instructions across TWO `mflo` sites. The lane called it a 4x
+  under-count and re-derived it. Pipe the whole diff, or say explicitly that the
+  excerpt is an excerpt.
+- **A tool's flag table is a claim too — verify it against the source.** `rtldump`'s
+  PASS_FLAG had `jump2 -> -dj`, which is `jump_opt_dump`: `--pass jump2` silently
+  dumped `.jump`, the FIRST jump pass, and a brief sent a lane to read it. And `-dR`
+  is `sched2_dump`, not reorg, so there was no `sched2` key at all — a lane could not
+  read the pass owning 16 of its 28 bytes and said so. Both are fixed against
+  toplev.c's own `case` labels.
 - **NEVER HAND-DERIVE WHAT THE DUMP PRINTS.** The `.sched` dump contains cc1's own
   `;; insn[NNNN]: priority = P, ref_count = R` trace (`sched.c:3686`, 250 lines on
   AddEnemy). A round derived a priority from the RTL by hand, read the `ref_count`
