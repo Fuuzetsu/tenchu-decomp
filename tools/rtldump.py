@@ -366,7 +366,13 @@ def main() -> None:
                          "TRAMPOLINE, not your C.")
     ap.add_argument("--src", help="override the .c path")
     ap.add_argument("--lines", action="store_true",
-                    help="preserve C-line notes and emit a line-mapped .o/.objdump")
+                    help="preserve C-line notes and emit a line-mapped .o/.objdump. "
+                         "**This adds cc1's -g, which RENUMBERS EVERY UID** (its extra "
+                         "NOTE objects consume UIDs — every UID on FUN_80057b80 shifts "
+                         "by 45, insn 1998 -> 2043). A UID from a --lines dump does NOT "
+                         "name the same insn as that number in a normal dump; the "
+                         "emitted SEQUENCE is identical, so the honest bridge between "
+                         "the two compiles is the instruction INDEX, never the UID.")
     ap.add_argument("--loop-log", action="store_true",
                     help="surface `.loop`'s own MOVABLE DECISION LOG (`Loop from A to "
                          "B: N real insns` + per-insn `moved to N` / `not desirable`). "

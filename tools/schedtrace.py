@@ -62,12 +62,30 @@ is descending, **perturbing a dependence's cost can only sort the DEPENDENT insn
 Never propose "change the dep cost" as a lever to promote a dependent insn** (that
 "open lever" was proposed once, and it was backwards).
 
-It also prints cc1's `;; ready list at T-N: ... , now ...` trace — the scheduler's
-actual decisions. **sched is BACKWARD: T-1 is the LAST slot and is filled FIRST, so an
-insn PICKED EARLIER LANDS LATER.** FUN_80057b80's entire 8-byte residual is one such
-line:
+**For the ready-list trace, prefer `tools/sched-deps.py`.** It reconstructs the schedule
+FORWARD and self-validates against cc1's own post-pass insn chain (78 runs, 3,464 blocks,
+zero divergences; fault-injected twice). This tool printed two false readings of the raw
+lines, both since corrected here, and both worth knowing if you read a raw dump:
 
-    ;; ready list at T-20: 6 (1) 4 (1), now 6 4     -> picks 6, so 6 lands last
+* **A hazard cycle prints `, now` TWICE, and the FIRST one's head is the LOSER.**
+  `schedule_select` (`sched.c:2713`) prints the ready list *before* the swap and *only*
+  when it swaps (`if (best_insn != 0)`), then names the winner; `schedule_block` (3793)
+  prints it again after the pick. On a quiet cycle only the second prints — which is why
+  "the pick is the first insn of the `now` list" looks right and was "verified across 11
+  consecutive insns". Those 11 were FUN_80057b80 block 0's **11 hazard swaps**, i.e. the
+  reading that only works if you take the LAST `, now`. Reconstructing with the first
+  fails validation on 8 blocks; with the last it validates 55/55 and matches cc1's `-dp`
+  asm instruction-for-instruction. Example, verbatim:
+
+      ;; ready list at T-8: 18 (1) 6 (1) ... 1950 (1), now 18 1950 8 6 2014 ...
+      ;; insn 1950 has a greater potential hazard, now 1950 18 8 6 2014 ...
+                  ^^^^ the PICK — not the 18 heading the first `, now`
+
+* **T is not an address index.** `clock += stalls` (3747) skips T values outright, so
+  "each T decrement = +4 bytes" is false. T is monotonic but not evenly spaced.
+
+**sched is BACKWARD: T-1 is the LAST slot and is filled FIRST, so an insn PICKED EARLIER
+LANDS LATER.**
 
   tools/schedtrace.py <Name>                the sched1 trace, in dump order
   tools/schedtrace.py <Name> --pass sched2  the post-reload scheduler
@@ -212,13 +230,24 @@ def main():
     if ready:
         print()
         print(f"  --- ready-list trace ({len(ready)} decisions) ---")
-        print("  T maps DIRECTLY to the emitted address: HIGHER T = EARLIER address, "
-              "each T decrement")
-        print("  = +4 bytes, and the PICK is the FIRST insn of the `now` list. (A lane "
-              "verified this")
-        print("  across 11 consecutive insns against `tdis --both`.) So this trace IS "
-              "the schedule —")
-        print("  you do not have to reason about scheduler direction to read it.")
+        print(f"  *** Prefer `tools/sched-deps.py {args.name} --pass {args.which}`: it "
+              "reconstructs this")
+        print("  trace FORWARD and self-validates against cc1's own post-pass insn "
+              "chain (78 runs,")
+        print("  3,464 blocks, zero divergences). The raw lines below have two traps "
+              "this tool")
+        print("  used to get wrong:")
+        print("  1. A hazard cycle prints `, now` TWICE. `schedule_select` "
+              "(sched.c:2713) prints the")
+        print("     list BEFORE the swap and only when it swaps, then names the winner; "
+              "`schedule_block`")
+        print("     (3793) prints it after. **The PICK is the head of the LAST `, now` "
+              "on the line** —")
+        print("     on a hazard cycle the FIRST one's head is the LOSER.")
+        print("  2. T is NOT an address index: `clock += stalls` (3747) SKIPS T values "
+              "outright, so")
+        print("     'each T decrement = +4 bytes' is false. T is monotonic, not evenly "
+              "spaced.")
         for ln in ready:
             mark = "   <-- BUMPED" if "7f000001" in ln else ""
             print("  " + ln.strip() + mark)
