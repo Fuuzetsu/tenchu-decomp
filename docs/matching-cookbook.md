@@ -7029,12 +7029,51 @@ live past `lui v0,0x8000`, loses `$v0`, and costs an extra `move a2,v0`. A dead
 store in one fence arm does not help — the `code_label` **is** present in `.cse2`
 and does not stop it (measured 552).
 
-**GetAreaMapVector is parked evidence-complete at 20/548.** The one untried
-direction: a source shape that ends cse2's EXTENDED BLOCK before the height calc — a
-real multi-predecessor join, not a fence and not a followable single-use label.
-Barred (all measured): forwarding (impossible, above); dead store in a fence arm
-(552); `return initial_level` to extend the last use (556); dropping the fence (548
-but **45** — the fence is the only reason the copy survives at all).
+**~~GetAreaMapVector is parked evidence-complete at 20/548.~~ IT MATCHED (2026-07-17),
+and this whole park was wrong in the most instructive way available.** Keep this
+section only as the worked example of how a park's negatives lie.
+
+It was neither the "one untried direction" (ending cse2's extended block with a real
+multi-predecessor join) nor any cse-forwarding question. **`mode` is read exactly ONCE
+in the entire function** — the early `if (!(mode & 4))` test — so every `mode =
+rawmode;` after that point is a **DEAD STORE**. Its retail-matching effect was never
+about the value; it was about giving cc1 a live write to `mode`'s pseudo at a
+particular program point. Relocating that write out of the `if (mvp->attrib != 0)` arm
+into the loop's non-`vector`-blocked path collapsed **both** clusters at once, 20 -> 8.
+Then the `do{}while(0)` fence — recorded here as load-bearing — turned out to be
+unnecessary too: plain `if (mvp->attrib == 0) { mode = rawmode; }` matches exactly.
+
+**Read the barred list above and notice what it actually says.** "Dropping the fence
+(548 but **45** — the fence is the only reason the copy survives at all)" is a real
+measurement and a false conclusion: it was measured *with the dead store pinned at its
+original site*. Move the store, and dropping the fence is free. **A negative measured
+while holding another free variable fixed is a statement about that pair, never about
+the lever.** Write negatives as "X failed WITH Z fixed at W" — this park is why.
+
+Three rules earned here:
+
+1. **A dead store's matching effect is entirely POSITION, not value — and position is a
+   FREE VARIABLE.** When a local is written and never subsequently read (the "defeat
+   copy propagation" trick), do not assume the textually natural site (symmetrically
+   paired in an if/else) is where retail put it. Sweep other reachable points,
+   including inside a later loop body.
+2. **A stale permuter negative is not evidence.** This park's header claimed a
+   ~26k-candidate run had found nothing; a FRESH run on the IDENTICAL source found the
+   8-byte improvement immediately, and a second run then found the fence removal on
+   iteration 1. Tooling and RNG both move between rounds — permute.py has since gained
+   an authoritative full-link rescore. **Re-run the permuter before starting an RTL
+   archaeology session on a same-length residual.** The lane that matched this said its
+   deep `.cse`/`.cse2`/ready-list reading was intellectually satisfying, produced a real
+   negative result, and "wasn't what found the fix" — it was made moot by a permuter run
+   minutes later. The cookbook's own ordering (autorules -> permuter -> RTL) is right;
+   it inverted it because the checkpoint's confident prose primed it to distrust
+   re-running.
+3. **A length-neutral residual rules out any fix that adds control flow, by arithmetic.**
+   If the diff is a pure register-choice tie plus a pure reorder, with no missing or
+   extra instructions, then a new branch (to force a cse2 block boundary, say) costs >=8
+   bytes on MIPS and converts a small tie into a strictly worse length mismatch. Do not
+   build and measure it — the byte budget already refuses it. That argument is what
+   killed the "one untried direction" above without a single build.
 
 ### `s16 local = p->field;` does NOT pin the load at the assignment
 
