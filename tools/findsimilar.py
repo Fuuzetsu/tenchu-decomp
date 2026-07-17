@@ -165,6 +165,12 @@ def main():
     ap.add_argument("--top", type=int, default=15)
     ap.add_argument("--max-size", type=int, default=0x800,
                     help="--targets: ignore functions bigger than this (bytes)")
+    ap.add_argument("--by-value", action="store_true",
+                    help="--targets: rank by FUNCTION SIZE (what a match is worth) "
+                         "instead of by similarity (what looks easy). The byte counter "
+                         "is all-or-nothing per function, so a 97%%-exact park on a "
+                         "6084-byte function is worth 6084 bytes and a matched 48-byte "
+                         "function is worth 48. Similarity ranking buries the prize.")
     ap.add_argument("--scope", choices=["game", "sdk", "all"], default="game",
                     help="--targets: which population to rank. DEFAULT game — the "
                          "SDK (>=0x80060000) is stock Sony library code linked from "
@@ -223,9 +229,21 @@ def main():
                 if j > best:
                     best, bestm = j, m
             rows.append((best, s, n, bestm))
-        rows.sort(key=lambda r: (-r[0], r[1]))
-        print(f"scope={args.scope}: {len(rows)} candidates ranked BY SIMILARITY TO "
-              f"MATCHED CODE — i.e. by how EASY they look, NOT by what matters.")
+        if args.by_value:
+            # Rank by what a match is WORTH. The byte counter is ALL-OR-NOTHING per
+            # function -- a park at 97% exact contributes ZERO matched bytes, because
+            # the default build still links its INCLUDE_ASM stub. So the payoff for
+            # cracking a function is its FULL SIZE, and similarity ranking (= ease)
+            # systematically buries the prize: the remaining board's top 4 functions
+            # are 42% of all unmatched game bytes while the bottom 10 are ~2%, and a
+            # session went into 4- and 9-byte parks on 500-byte functions.
+            rows.sort(key=lambda r: (-r[1], -r[0]))
+            order = "SIZE — i.e. by what a match is WORTH (all-or-nothing per function)"
+        else:
+            rows.sort(key=lambda r: (-r[0], r[1]))
+            order = ("SIMILARITY TO MATCHED CODE — i.e. by how EASY they look, NOT by "
+                     "what matters. Try --by-value")
+        print(f"scope={args.scope}: {len(rows)} candidates ranked BY {order}.")
         # A truncation must state its consequence. This list silently showed its top
         # 15 (easiest) while the remaining undrafted GAME functions sat at rank
         # 367-382 -- large, unique, similarity 0.05 -- and a whole session went into

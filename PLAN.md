@@ -68,6 +68,23 @@ prints exactly this set (it defaults to `--scope game`):
     game code            500/555   functions (90.09%)   257176/303244  bytes (84.81%)
     game done (C+asm)    517/555   functions              (the 17 canonical-asm draw*)
 
+  * **THE BYTES ARE IN THE BIG ONES — rank by SIZE, not by residual**
+    (`tools/findsimilar.py --targets --by-value`). The counter is ALL-OR-NOTHING per
+    function: a park at 97% exact contributes ZERO matched bytes, because the default
+    build still links its stub. So the payoff is the function's FULL SIZE.
+
+        6084  15.2%  StageEndScreen        (residual 203 — 96.7% exact)
+        4636  26.9%  mission_score_screen  (residual 239 — 94.8% exact)
+        3796  36.4%  FUN_80057b80          (residual   8)
+        2188  41.8%  start_demo_           (residual  75 — 96.6% exact)
+        1448  49.2%  FUN_800519bc          (residual  87 — 94.0% exact)
+        ...
+          48 100.0%  FUN_8001b174
+
+    **The top 4 are 42% of everything left; the bottom 10 are ~2%.** All four are
+    94-97% exact, and each has ONE dominant cluster (StageEndScreen's cluster 2 alone
+    is 169 of its 203 bytes). Chasing 4- and 9-byte parks on 500-byte functions ranks
+    by probability and ignores the prize — a 20-100x error in expected bytes.
   * **33 parked drafts** — each root-caused in its own `.c` header, closest at 1-10
     residual bytes. Residuals are overwhelmingly sub-C (allocation / scheduling /
     reload ties), which is why the tooling investment has overtaken target-picking as
