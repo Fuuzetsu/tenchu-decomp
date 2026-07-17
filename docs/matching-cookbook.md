@@ -2822,10 +2822,22 @@ while a short address temp (`lui`->`addiu`, dead at the `addu`) holds `$v1`, and
 your draft has them swapped, **no respelling of the site will move it** —
 AttackBowControl plateaued at exactly 15 across 13 variants.
 
-**The fix: add a redundant `x = src;` before the chain's first operation.** It
-births the quantity EARLIER, flips the order, and coalesces away — leaving 68/68
+**The fix: seed the local, and make the chain READ THE SEED.**
+
+```c
+    idx2 = n;                     /* seed: births the quantity here */
+    idx2 = (idx2 << 16) >> 14;    /* NOT (n << 16) >> 14 */
+```
+
+It births the quantity EARLIER, flips the order, and coalesces away — leaving 68/68
 identical instructions. This is the INVERSE of the single-use-temp-inline rule, and
 worth reaching for whenever inlining is what you would normally do.
+
+**The substitution is the whole point: a seed the next expression does not read is
+DEAD, and cc1 deletes it.** `idx2 = n; idx2 = (n << 16) >> 14;` is a no-op. The
+value must flow through the seed. (`autorules`' `copy-seed` rule sweeps this
+automatically now; it fires only where the seed cannot truncate — x 32-bit, y a
+no-wider integer — since x == y at the seed makes `E(x) == E(y)` only then.)
 
 It also explained a `nop` that looked like a separate defect: `reorg` duplicates a
 merge block's leading `sll` into all four incoming delay slots, which is legal only

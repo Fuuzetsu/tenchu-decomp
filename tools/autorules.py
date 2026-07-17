@@ -687,6 +687,126 @@ def rule_temp_inline(text, name, span):
                splice(t1, ds, de, b"").decode())
 
 
+# Types wide enough that seeding from any narrower integer is lossless, so
+# rewriting E to read the seed cannot change E's value (see rule_copy_seed).
+WIDE_TYPES = {b"s32", b"u32", b"int", b"unsigned", b"unsigned int", b"long",
+              b"unsigned long", b"signed int", b"signed"}
+INT_TYPES = WIDE_TYPES | {b"s8", b"u8", b"s16", b"u16", b"char", b"short",
+                          b"signed char", b"unsigned char", b"signed short",
+                          b"unsigned short", b"short int"}
+
+
+def _declared_type(data, body, ident):
+    """The declared type spelling of `ident` in `body` or its parameter list.
+
+    Searches the enclosing function_definition, not just the body: parameters
+    live in the DECLARATOR, so a body-only search silently reports None for
+    every parameter — which made this rule sweep nothing on its first outing.
+    """
+    scope = body
+    while scope is not None and scope.type != "function_definition":
+        scope = scope.parent
+    scope = scope or body
+    for decl in _find(scope, ("declaration", "parameter_declaration")):
+        for d in _find(decl, ("identifier",)):
+            if _txt(data, d) != ident:
+                continue
+            spec = decl.child_by_field_name("type")
+            if spec is None:
+                return None
+            # A pointer/array declarator means the type is not the bare spelling.
+            for dd in decl.named_children:
+                if dd.type in ("pointer_declarator", "array_declarator",
+                               "init_declarator"):
+                    inner = dd.child_by_field_name("declarator") or dd
+                    if inner.type in ("pointer_declarator", "array_declarator"):
+                        return None
+                if dd.type in ("pointer_declarator", "array_declarator"):
+                    return None
+            return _txt(data, spec)
+    return None
+
+
+def rule_copy_seed(text, name, span):
+    """Seed a local from a value its next expression reads, and make the
+    expression read the SEED: `x = E(y);` -> `x = y; x = E(x);`.
+
+    The INVERSE of rule_temp_inline, and the edit that matched AttackBowControl's
+    last 15 bytes (`idx2 = n; idx2 = (idx2 << 16) >> 14;`). `local_alloc` colours
+    quantities SHORTEST-LIVED-FIRST and the first one takes $v0, so when the
+    target's longer chain holds $v0 while a short address temp holds $v1 but the
+    draft has them swapped, no respelling of the site moves it (13 variants
+    plateaued at exactly 15). Seeding births the quantity EARLIER, flips the
+    order, and the copy coalesces away — leaving identical instructions.
+
+    **The substitution is the whole point.** A seed the following expression does
+    not read is DEAD, and cc1 deletes it, so `x = y; x = E(y);` is a no-op — this
+    rule emitted exactly that in its first draft and would have swept nothing.
+    E must be rewritten to read x.
+
+    Safety: at the seed, x == y, so E(x) == E(y) — provided the assignment to x
+    does not truncate. So this only fires when x's declared type is 32-bit and y's
+    is a no-wider integer. Both types must be plain scalars (a pointer or array
+    declarator disqualifies).
+    """
+    data = text.encode()
+    body = _func_body(data, name, _byte_span(text, span))
+    if body is None:
+        return
+    for st in _find(body, ("expression_statement",)):
+        asg = next((c for c in st.named_children
+                    if c.type == "assignment_expression"), None)
+        if asg is None:
+            continue
+        lhs = asg.child_by_field_name("left")
+        val = asg.child_by_field_name("right")
+        if lhs is None or val is None or lhs.type != "identifier":
+            continue
+        if _txt(data, asg)[:len(_txt(data, lhs))] != _txt(data, lhs):
+            continue
+        op = asg.child_by_field_name("operator")
+        if op is not None and _txt(data, op) != b"=":
+            continue  # compound assignment already reads x
+        if not _find(val, ("binary_expression",)):
+            continue  # no chain to reorder
+        vid = _txt(data, lhs)
+        vtype = _declared_type(data, body, vid)
+        if vtype is None or vtype not in WIDE_TYPES:
+            continue
+        ls = data.rfind(b"\n", 0, st.start_byte) + 1
+        indent = data[ls:st.start_byte]
+        if indent.strip():
+            continue
+        seen = set()
+        for src in _find(val, ("identifier",)):
+            sid = _txt(data, src)
+            if sid == vid or sid in seen:
+                continue
+            if src.parent is not None and src.parent.type == "call_expression":
+                continue
+            stype = _declared_type(data, body, sid)
+            if stype is None or stype not in INT_TYPES:
+                continue
+            seen.add(sid)
+            # Rewrite every read of y inside E to read the seed instead.
+            expr, shift = bytearray(_txt(data, val)), 0
+            base = val.start_byte
+            for occ in _find(val, ("identifier",)):
+                if _txt(data, occ) != sid:
+                    continue
+                if occ.parent is not None and occ.parent.type == "call_expression":
+                    continue
+                s = occ.start_byte - base + shift
+                e = occ.end_byte - base + shift
+                expr[s:e] = vid
+                shift += len(vid) - (occ.end_byte - occ.start_byte)
+            new_text = (vid + b" = " + sid + b";\n" + indent
+                        + vid + b" = " + bytes(expr) + b";")
+            yield (f"copy-seed {vid.decode()}={sid.decode()} "
+                   f"L{_line(data, st.start_byte)}",
+                   splice(data, st.start_byte, st.end_byte, new_text).decode())
+
+
 def rule_call_result_split(text, name, span):
     """Give every definition of a reused direct-call result its own local.
 
@@ -7928,6 +8048,7 @@ RULES = [
     ("extern-array", "extern T NAME; -> extern T NAME[]; + NAME->NAME[0] (-G8 split)", rule_extern_array),
     ("and-nest", "split/merge if(a && b) <-> nested ifs (no else)", rule_and_nest),
     ("temp-inline", "inline a single-use local temp into its use", rule_temp_inline),
+    ("copy-seed", "x = E(y); -> x = y; x = E(x); (local_alloc quantity-order lever)", rule_copy_seed),
     ("call-result-split", "split a reused direct-call result into single-definition locals", rule_call_result_split),
     ("late-pointer-direct", "inline a repeated pointer-global assignment in its late region", rule_late_pointer_direct),
     ("literal-indirect-inline", "atomically inline a byte literal and indirect-call field temps", rule_literal_indirect_inline),
