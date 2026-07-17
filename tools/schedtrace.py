@@ -21,9 +21,22 @@ and the wrong reading was then folded into the cookbook and briefed to the next 
 So "attack the insn's height" is asking for what the code forbids: nothing can lift a
 `LOG_LINKS (nil)` insn off priority 1.
 
-  tools/schedtrace.py <Name>            the trace, in dump order
-  tools/schedtrace.py <Name> --sort     ordered by priority, floor first
-  tools/schedtrace.py <Name> --floor    only the priority-1 insns (the ties)
+It also prints cc1's `;; ready list at T-N: ... , now ...` trace — the scheduler's
+actual decisions. **sched is BACKWARD: T-1 is the LAST slot and is filled FIRST, so an
+insn PICKED EARLIER LANDS LATER.** FUN_80057b80's entire 8-byte residual is one such
+line:
+
+    ;; ready list at T-20: 6 (1) 4 (1), now 6 4     -> picks 6, so 6 lands last
+
+  tools/schedtrace.py <Name>                the sched1 trace, in dump order
+  tools/schedtrace.py <Name> --pass sched2  the post-reload scheduler
+  tools/schedtrace.py <Name> --sort         ordered by priority, floor first
+  tools/schedtrace.py <Name> --floor        only the priority-1 insns (the ties)
+
+**A PROLOGUE or PARM-COPY ordering question lives ONLY in `--pass sched2`.** The
+prologue does not exist until after reload, so parm copies never enter sched1's table
+at all. This tool was sched1-only and a lane hand-decoded the raw `.i.sched2` instead
+— it called that the single biggest cost of its round.
 
 Run inside the nix devShell.
 """
@@ -66,6 +79,14 @@ def main():
                     help="order by priority (floor first) rather than dump order")
     ap.add_argument("--floor", action="store_true",
                     help="only priority-1 insns — the ones tied at the floor")
+    ap.add_argument("--pass", dest="which", choices=["sched", "sched2"],
+                    default="sched",
+                    help="which scheduler. **A PROLOGUE / PARM-COPY ordering question "
+                         "lives ONLY in sched2**: the prologue does not exist until "
+                         "after reload, so parm copies never enter sched1's table. "
+                         "This tool was sched1-only and a lane had to hand-decode the "
+                         "raw .i.sched2 — it called that the single biggest cost of "
+                         "its round.")
     args = ap.parse_args()
 
     path = os.path.join("src", "main.exe", args.name + ".c")
@@ -74,11 +95,14 @@ def main():
     with open(path, errors="replace") as stream:
         draft = "ifndef NON_MATCHING" in stream.read()
     try:
-        result = rtldump.compile_rtl(args.name, ["sched"], draft=draft)
+        result = rtldump.compile_rtl(args.name, [args.which], draft=draft)
     except (FileNotFoundError, ValueError, RuntimeError) as e:
         sys.exit(f"schedtrace: {e}")
 
-    dump = next((p for p in result["dumps"] if "sched" in p), None)
+    # Match the suffix EXACTLY: `"sched" in p` also matches `.sched2`, so the
+    # sched1/sched2 choice would silently depend on dump order.
+    dump = next((p for p in result["dumps"]
+                 if p.rsplit(".", 1)[-1] == args.which), None)
     if dump is None:
         sys.exit("schedtrace: cc1 produced no sched dump")
     body = open(dump, errors="replace").read()
@@ -89,8 +113,16 @@ def main():
                  "cc1 emits them from sched.c:3686; check the pass ran")
     gist = insn_text(body)
 
-    print(f"{args.name}: cc1's own scheduler trace ({len(rows)} insns) — {dump}")
+    print(f"{args.name}: cc1's own {args.which} trace ({len(rows)} insns) — {dump}")
     print()
+    if args.which == "sched2":
+        print("  sched2 runs AFTER reload, so this is the ONLY pass that sees the "
+              "prologue and its")
+        print("  parm copies. Its `;; ready list at T-N: ...` lines are the decision "
+              "itself.")
+    print("  sched is BACKWARD: T-1 is the LAST slot and is filled FIRST, so an insn "
+          "PICKED EARLIER")
+    print("  LANDS LATER. Ties break priority DESC -> class DESC -> LUID DESC.")
     print("  priority = DEPTH-FROM-TOP (walks LOG_LINKS = PRODUCERS). "
           "LOG_LINKS (nil) => priority 1, the FLOOR.")
     print("  ref_count = CONSUMERS (INSN_DEPEND). 'heads a long chain' is THIS "
@@ -108,6 +140,14 @@ def main():
     for uid, pri, ref in shown:
         flag = "  <- FLOOR" if pri == 1 else ""
         print(f"  {uid:>6} {pri:>9} {ref:>10}  {gist.get(uid, '')}{flag}")
+
+    ready = [ln for ln in body.splitlines() if "ready list at T-" in ln]
+    if ready:
+        print()
+        print(f"  --- ready-list trace ({len(ready)} decisions) — the pick is the "
+              "last field ---")
+        for ln in ready:
+            print("  " + ln.strip())
 
     floor = [r for r in rows if r[1] == 1]
     print()

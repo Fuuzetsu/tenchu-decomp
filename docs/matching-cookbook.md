@@ -6483,6 +6483,52 @@ whole-body `if (c) { ... }` wrapper into `if (!c) return <init>;` plus the unwra
 body. It generalises to any function whose target keeps `$zero` where the draft
 copies a register.
 
+### A prologue / parm-copy ordering question lives ONLY in sched2
+
+**The prologue does not exist until after reload, so parm copies never enter sched1's
+table.** Use `tools/schedtrace.py <Name> --pass sched2` (it was sched1-only until a
+lane hand-decoded the raw dump and called that its biggest cost).
+
+**FUN_80057b80's whole 8-byte residual is ONE printable line:**
+
+```
+;; ready list at T-20: 6 (1) 4 (1), now 6 4    -> picks 6
+```
+
+uid 4 = `move s0,a0`, uid 6 = `move s1,a1`. **sched is BACKWARD — T-1 is the LAST slot
+and is filled FIRST — so the insn PICKED EARLIER LANDS LATER.** The target needs 4
+picked at T-20.
+
+**`rank_for_schedule`'s class key tests `LOG_LINKS(last_scheduled_insn)` — the
+PRODUCERS of the last scheduled insn, not its consumers.** So do not conclude "the
+class key doesn't apply to insn 4": it DOES (4 produces insn 15's `addiu t0,s0,136`),
+and it **ties at class 3 via the `insn_cost(...) == 1` escape** (`move`->`addiu`
+latency is 1). **Anything making that dependence cost != 1 flips the tie without
+touching LUID** — that is the real lever, and round 8's "LUID is genuinely the only
+discriminator" was right by accident.
+
+### On this MIPS target `promote_mode` is the IDENTITY — never reason about which types it moves
+
+`mips.h` defines **no `PROMOTE_MODE`** and no `POINTERS_EXTEND_UNSIGNED` (only
+`PROMOTE_PROTOTYPES`). So `promote_mode` is the identity, **function.c:4142's second
+disjunct is DEAD CODE**, and assign_parms' deferral gate reduces to exactly
+`nominal_mode != passed_mode` — purely `DECL_ARG_TYPE` vs the declared type.
+
+**This closes FUN_80057b80 with a proof over ALL C types, not a sample.**
+`DECL_ARG_TYPE` is set in only two places (c-decl.c:5048-5065, 5437-5444) and overrides
+the declared type only for `float`->`double` and the **closed**
+`C_PROMOTING_INTEGER_TYPE_P` list (char/short family)->`int`. Every such case has
+nominal_mode QI/HI/SF — **never SI**. So: the gate fires => a sub-word pseudo, which
+cannot hold a 32-bit pointer, and the deferred insn is the CONVERSION; a bare
+`move s0,a0` => the gate is silent => `LUID(4) < LUID(6)` => our order. The target needs
+both. **Mutually exclusive over every C type** — FUN_80057b80's 8 bytes are unreachable,
+proven rather than enumerated.
+
+**And when the deferral DOES fire, the in-stream `emit_move_insn(tempreg, entry_parm)`
+still lands at the declaration position — only the CONVERSION is deferred.** That is why
+a narrow parm shows the truncation REPLACING the move rather than a bare move moving
+later.
+
 ### `priority()` is DEPTH-FROM-TOP, not height-to-bottom — and cc1 PRINTS it
 
 **(This section previously said the opposite: that a park's "already at the priority

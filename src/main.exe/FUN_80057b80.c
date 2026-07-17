@@ -8,8 +8,11 @@
  * inline-GTE macros (gte_ldv3/gte_rtpt/gte_stsxy3/gte_stsz3) at two RTPT sites.
  *
  * STATUS: NON_MATCHING — 8 of 3796 bytes differ. LENGTH IS EXACT.
- * CLOSED (round 8): the residual is PROVEN UNREACHABLE from C. Do not reopen
- * without new information; the search space is enumerated and exhausted below.
+ * CLOSED (round 9): the residual is PROVEN UNREACHABLE from C — closed by a
+ * PROOF over all C types (see ROUND 9 below), not by sampling spellings. Round 9
+ * re-measured the baseline (8/3796, confirmed) and re-derived the park from cc1's
+ * own sched2 ready-list trace plus the pinned gcc-2.8.1 sources. Do not reopen
+ * without genuinely new information.
  * (Round history: 759 -> 722 -> 619 -> 506 -> 494 -> 253 -> 208 -> 42 -> 36 -> 8.)
  *
  * The ENTIRE residual is ONE hunk: the two parameter-copy chains in the
@@ -243,26 +246,97 @@
  * functions can share a prologue shape and have incompatible causes. Match on the
  * parameter's USE KIND (value vs pointer base), not just the shape.
  *
- * VERIFIED FROM THE PINNED SOURCES (do not re-derive):
- *   - The deferral gate is ONLY function.c:4142. The other five
- *     `push_to_sequence (conversion_insns)` sites cannot fire: 4010 is inside
- *     `#if 0`; 4225 needs FUNCTION_ARG_CALLEE_COPIES (undefined on MIPS); and
- *     4369/4391/4403 are the `else` branch for a parm that lives in the STACK.
- *   - explow.c `promote_mode` only moves INTEGER/ENUMERAL/BOOLEAN/CHAR/REAL/
- *     OFFSET types; POINTER_TYPE moves only under POINTERS_EXTEND_UNSIGNED, and
- *     then only to Pmode = SImode. A pointer parm can NEVER satisfy line 4142.
- *   - `passed_pointer` (3787) sets passed_mode = nominal_mode = Pmode and leaves
- *     promoted_* both SImode (RECORD_TYPE hits promote_mode's `default:`), so
- *     struct-by-invisible-reference does NOT defer either.
- *   - sched.c `priority()` maxes over LOG_LINKS (PREDECESSORS) => depth from the
- *     block top, floored at 1; MIPS ADJUST_COST zeroes the anti-dep, so BOTH
- *     copies are pinned at priority 1 by structure. `rank_for_schedule`'s last
- *     tiebreak returns INSN_LUID(y) - INSN_LUID(x), a DESCENDING-LUID sort, which
- *     reproduces the natural order. LUID is genuinely the only discriminator.
+ * ---------------------------------------------------------------------------
+ * ROUND 9 — PARK RE-PRICED AND UPHELD, WITH A CLOSED-FORM PROOF.
  *
- * => The 8 bytes are a genuine COMPILER-INPUT difference we cannot express in C.
- *    This is an evidence-complete park at 8/3796 with LENGTH EXACT and every
- *    register and delay slot identical. DO NOT reopen on the signature.
+ * Round 8's CONCLUSION is correct. Round 9 re-derived it from cc1's own dumps
+ * plus the pinned sources and replaces round 8's 12-sample ENUMERATION ("we
+ * tried these spellings and none worked") with a proof QUANTIFIED OVER ALL C
+ * TYPES. Two of round 8's stated reasons were subtly wrong; the outcome is not.
+ *
+ * (1) THE DECISION IS ONE PRINTABLE TIE, IN sched2, IN BASIC BLOCK 0.
+ * `rtldump.py --pass sched2` prints cc1's own backward-schedule ready list.
+ * (schedtrace.py is sched1-ONLY and is USELESS here: the prologue does not
+ * exist until after reload, so the parm copies never appear in its table.)
+ * Read `.i.sched2`, "basic block number 0":
+ *      ;; ready list at T-19: 15 (1) 6 (1), now 15 6      -> picks 15
+ *      ;; ready list at T-20:  6 (1) 4 (1), now 6 4       -> picks 6  <== THE TIE
+ *      ;; ready list at T-21:  4 (1) 2016 (1), now 4 2016 -> picks 2016
+ *      ;; ready list at T-22:  4 (1), now 4               -> picks 4
+ * uids: 4 = `move s0,a0`, 6 = `move s1,a1`, 2016 = `sw s1,28`, 2018 = `sw s0,24`,
+ * 15 = `addiu t0,s0,136`, 1998 = `addiu sp,sp,-64`. sched is BACKWARD (T-1 is the
+ * LAST slot, filled first), so the insn picked EARLIER lands LATER. Picking 6 at
+ * T-20 and 4 at T-22 emits 4 before 6 — our 8 bytes. The target needs 4 picked at
+ * T-20. ALL 3796 bytes hang on that single comparison.
+ *
+ * (2) WHY THE TIE BREAKS ON LUID (round 8 said this; here is the real reason).
+ * `rank_for_schedule` (sched.c) tries three keys in order:
+ *   - PRIORITY: cc1 PRINTS both as 1, the floor. Do not hand-derive it; the
+ *     dump's own `insn[N]: priority = 1` settles it. (Round 8's route to this —
+ *     "ADJUST_COST zeroes the anti-dep" — is not why; priority is depth-from-top
+ *     and BOTH copies have no producers at all, so both floor at 1 regardless.)
+ *   - CLASS: this keys off `LOG_LINKS (last_scheduled_insn)` = the PRODUCERS of
+ *     the last insn scheduled, NOT its consumers. At T-20 last_scheduled_insn is
+ *     15, and insn 4 *IS* in LOG_LINKS(15) — so the class test DOES look at it.
+ *     It still ties: the rule is `link == 0 || insn_cost(...) == 1 => class 3`,
+ *     and a `move`->`addiu` latency IS 1, so insn 4 gets class 3, the same class
+ *     as the independent insn 6. Round 8's "LUID is the only discriminator" is
+ *     therefore RIGHT, but only because of the latency-1 escape — not because the
+ *     class key is inapplicable. Anything that made that dependence cost != 1
+ *     would flip the tie without touching LUID.
+ *   - LUID: `INSN_LUID(y) - INSN_LUID(x)` => DESCENDING LUID. MEASURED in `.greg`:
+ *     the chain is `insn 4 -> insn 6 -> insn 8`, i.e. declaration order, so
+ *     LUID(4) < LUID(6); 6 sorts first, is picked first, and lands last.
+ * => To flip we need LUID(4) > LUID(6): the a0 copy EMITTED AFTER the a1 copy.
+ *
+ * (3) ONLY ONE THING IN cc1 CAN DO THAT, AND IT CANNOT DO IT HERE.
+ * assign_parms walks DECL_ARGUMENTS in order and emits each parm's copy in
+ * stream, so a0's copy is always first — UNLESS the conversion_insns deferral at
+ * function.c:4142 fires. NOTE WHAT THAT PATH ACTUALLY EMITS (4164-4176): even
+ * when it fires, `emit_move_insn (tempreg, entry_parm)` STILL goes in stream at
+ * the declaration position; ONLY the conversion is deferred to 4439. So the
+ * deferred insn is the CONVERSION, which is exactly why round 8 measured `andi`
+ * REPLACING the move (the in-stream `move tempreg,a0` coalesces into a0).
+ *
+ * THE PROOF (this is what upgrades the park from a sample to a theorem):
+ *   a. mips.h defines NO `PROMOTE_MODE` — only PROMOTE_PROTOTYPES (mips.h:1341).
+ *      Every arm of explow.c's `promote_mode` is `#ifdef PROMOTE_MODE` /
+ *      `#ifdef POINTERS_EXTEND_UNSIGNED`, and MIPS defines neither, so on this
+ *      target **promote_mode is the IDENTITY for every type**. Hence
+ *      promoted_mode == passed_mode and promoted_nominal_mode == nominal_mode
+ *      ALWAYS, and the gate `nominal_mode != passed_mode || promoted_nominal_mode
+ *      != promoted_mode` collapses to EXACTLY `nominal_mode != passed_mode`.
+ *      (Round 8 reasoned about which TYPES promote_mode moves. On MIPS it moves
+ *      none — the second disjunct is dead code here.)
+ *   b. nominal_mode = TYPE_MODE(TREE_TYPE(parm)); passed_mode = TYPE_MODE(
+ *      DECL_ARG_TYPE(parm)). DECL_ARG_TYPE is set in exactly two places:
+ *      c-decl.c:5048-5065 (no prototype) and c-decl.c:5437-5444 (prototype,
+ *      under PROMOTE_PROTOTYPES, which MIPS DOES define). Between them they
+ *      override the declared type ONLY for: `float` -> double; a
+ *      C_PROMOTING_INTEGER_TYPE_P type -> int/unsigned (c-tree.h:133 — that macro
+ *      is a CLOSED LIST: char, signed char, unsigned char, short, unsigned short);
+ *      and INTEGER/ENUMERAL with TYPE_PRECISION < that of int -> int.
+ *   c. In every one of those cases nominal_mode is QImode, HImode or SFmode —
+ *      NEVER SImode. (An enum without -fshort-enums has TYPE_MODE == SImode ==
+ *      passed_mode, so the gate stays silent; it is not an escape.)
+ * => GATE FIRES  ==>  nominal_mode != SImode  ==>  parmreg = gen_reg_rtx(
+ *    nominal_mode) is a sub-word pseudo that CANNOT hold a 32-bit pointer, and
+ *    the deferred insn is necessarily the conversion, not a bare move.
+ * => BARE `move s0,a0`  ==>  gate silent  ==>  LUID(4) < LUID(6)  ==>  our order.
+ * The target needs BOTH. They are mutually exclusive over ALL C types, not just
+ * over the twelve round 8 happened to try.
+ *
+ * The target's bytes independently confirm the antecedent: `andi` occurs ZERO
+ * times in all 945 instructions, no sll/sra/srl touches s0, s0 is WRITTEN EXACTLY
+ * ONCE, and s0 is dereferenced directly (`lw v0,0(s0)`, `addiu t0,s0,136`).
+ *
+ * => The 8 bytes are a genuine COMPILER-INPUT difference we cannot express in C
+ *    (a different cc1 build/patch, or a source form outside standard C). This is
+ *    an evidence-complete park at 8/3796 with LENGTH EXACT and every register and
+ *    delay slot identical. DO NOT reopen on the signature or the parm types: the
+ *    space is now closed by proof, not by sampling. The only untried lever the
+ *    analysis leaves is making insn 4 -> insn 15's dependence cost != 1 (see (2)),
+ *    which is a property of the MIPS latency tables, not of C.
  *
  * TRIED AND MEASURED, ALL STILL 8 (do not repeat):
  *   piVar13/local_30/proto in all 6 statement orders (proto first: 36;
