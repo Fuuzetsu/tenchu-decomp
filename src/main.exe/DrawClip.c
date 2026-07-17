@@ -29,13 +29,7 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 62 of 296 bytes differ; function IS the right
- * length (74 insns both sides). Pure cross-jump/tail-layout residual, same
- * class as DrawModel's — see notes below. One bounded `tools/permute.py`
- * run (400s, ~9800 iterations) plateaued at score 720 vs baseline 730
- * (never approaching 0); parked per the cookbook's sub-C-level early-stop.
- *
- * DrawClip (0x80018320) — same TU as DrawModel.c/UpdateCoordinate.c/
+ * DrawClip (0x80018320, 296 bytes) — same TU as DrawModel.c/UpdateCoordinate.c/
  * GetAbsolutePosition.c (3DCTRL.C): a visibility/clip test twin of
  * DrawModel's body without the actual DrawTMD call. `objp->clip` is
  * RotTransPers'd into a stack `rxy` pair first (skipped when attribute&2),
@@ -51,95 +45,113 @@
  *    `s16` — every use here is a small positive bitwise `&`, so combine
  *    folds the sign_extend+mask into a zero_extend load (DrawModel.c's
  *    twin does the same); not a type mismatch.
- *  - Every `return -1;` (attribute&1 fails outright, the four inner
- *    rejects) shares the SAME physical epilogue: reorg steals the `-1`
- *    load into whichever branch's own delay slot is empty, exactly as
- *    Ghidra's literal multi-`return -1` rendering shows — write it
- *    literally, no manual goto-merging needed.
- *  - Residual: the target's cross-jump pass merges THREE of the five
- *    `return -1;` sites (attribute&1, the second box-edge reject, and the
- *    OTZ>=0x4e3 fallthrough) into ONE physical 2-insn stub
- *    (`j epilogue; li v0,-1`) reached by jumps, while the OTHER two
- *    (attribute&4, the first box-edge reject, attribute&0x10) get their
- *    OWN direct branch straight to the epilogue with `-1` in ITS delay
- *    slot. Our draft's cross-jump instead sends every site directly to
- *    the epilogue (no intermediate stub) — a length-neutral (SAME 74
- *    insns), pure layout/tail-merge-grouping difference. Tried: literal
- *    `return -1` at every site (Ghidra's own spelling) vs `goto` to a
- *    shared label — byte-identical either way, confirming this is cc1's
- *    own cross-jump heuristic, not a source spelling choice.
+ *  - This is DrawSprite.c's body transcribed one-to-one (same TU, same
+ *    source template) with the sprite tail replaced by `return result;`.
+ *    Read DrawSprite.c's notes for the full derivation; the two levers:
+ *      * `result` ($v0) is assigned ONLY on the edges that reach `ret:`,
+ *        never once at the top, so it stays caller-saved and cc1
+ *        rematerialises `li $v0,-1` per reject — the target's four
+ *        `li v0,-1` + three `move v0,v1`.
+ *      * The reject sites split into DIRECT (own branch to the epilogue,
+ *        `li v0,-1` stolen into its delay slot: sz==0, iv>=0xf1,
+ *        attr&0x10 && sz>0x4e2) and SHARED (`goto reject`, routed through
+ *        the block's own `j ret`: the attr&1 early-out and the iv>=0xb5
+ *        box fail). We do not choose the split — reorg does — but the C
+ *        controls what it CAN do: the two SHARED sites are exactly the two
+ *        whose branch delay slot is ALREADY FULL (`move s1,a1` at
+ *        0x80018340, `andi v0,s0,0x10` at 0x800183c0), so they cannot
+ *        inline the `li` and must route through the shared block.
+ *  - `reject:`'s PHYSICAL POSITION is load-bearing, and it is what the
+ *    earlier 62-byte park missed: the label must sit INSIDE the
+ *    `if (sz >= 0x4e3)` guard in the unit_vector block, making the shared
+ *    block that guard's body (target 0x800183fc `j 0x80018434; li v0,-1`,
+ *    reached by jumps from both full-delay-slot sites). The park had tried
+ *    "literal `return -1` vs a goto to a shared label" and found them
+ *    byte-identical — true, but the variable it never moved was WHERE the
+ *    label lives. A trailing `reject:` next to `ret:` takes a free
+ *    fallthrough and cross-jump swaps it with the arm that should have
+ *    owned it; that swap was the whole 62-byte residual.
+ *  - The `if (sz >= 300) DrawTMDmode = 0x20; else = 0;` two-armer is
+ *    spelled NEGATED so the `= 0` arm sits adjacent to the tail and takes
+ *    the fallthrough (target 0x8001842c) — same swap-non-invariance
+ *    DrawModel and DrawSprite needed.
  */
 
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
 extern SVECTOR UnitVector;
 extern s32 DrawTMDmode;
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawClip", DrawClip);
-#else
-
 long DrawClip(ModelType *objp, long *xy)
 {
     u16 attr;
-    long lv;
-    s32 otz;
+    long sz;
+    long result;
     s32 iv;
     short rxy[2];
 
     attr = objp->attribute;
-    if ((attr & 1) == 0)
+    if ((attr & 1) != 0)
+        goto reject;
+    if ((attr & 2) == 0)
     {
-        if ((attr & 2) == 0)
+        sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
+        if ((attr & 4) != 0 && sz == 0)
         {
-            lv = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0);
-            otz = lv >> 2;
-            if ((attr & 4) != 0 && otz == 0)
+            result = -1;
+            goto ret;
+        }
+        if ((attr & 8) != 0)
+        {
+            iv = rxy[0];
+            if (iv < 0)
             {
-                return -1;
+                iv = -iv;
             }
-            if ((attr & 8) != 0)
+            if (iv < 0xf1)
             {
-                iv = rxy[0];
-                if (iv < 0)
-                {
-                    iv = -iv;
-                }
-                if (0xf0 < iv)
-                {
-                    return -1;
-                }
                 iv = rxy[1];
                 if (iv < 0)
                 {
                     iv = -iv;
                 }
-                if (0xb4 < iv)
+                if (iv < 0xb5)
                 {
-                    return -1;
+                    goto reject_check;
                 }
+                goto reject;
             }
-            if ((attr & 0x10) != 0 && 0x4e2 < otz)
-            {
-                return -1;
-            }
+            result = -1;
+            goto ret;
         }
-        lv = RotTransPers(&UnitVector, xy, 0, 0);
-        otz = lv >> 2;
-        if (otz < 0x4e3)
+    reject_check:
+        if ((attr & 0x10) != 0 && 0x4e2 < sz)
         {
-            if (xy != 0)
-            {
-                return otz;
-            }
-            if (otz < 300)
-            {
-                DrawTMDmode = 0;
-                return otz;
-            }
-            DrawTMDmode = 0x20;
-            return otz;
+            result = -1;
+            goto ret;
         }
+        goto unit_vector;
     }
-    return -1;
+    else
+    {
+    unit_vector:
+        sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
+        if (sz >= 0x4e3)
+        {
+        reject:
+            result = -1;
+            goto ret;
+        }
+        if (xy != 0)
+        {
+            result = sz;
+            goto ret;
+        }
+        if (sz >= 300)
+            DrawTMDmode = 0x20;
+        else
+            DrawTMDmode = 0;
+        result = sz;
+    }
+ret:
+    return result;
 }
-#endif

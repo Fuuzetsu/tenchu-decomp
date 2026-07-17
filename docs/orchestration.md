@@ -604,6 +604,13 @@ function already byte-matches on current `master`.
   because it is the most detailed. Weight by EVIDENCE KIND, not recency: round 12
   hand-derived, round 13 read cc1's own printed table. A claim citing a dump line
   beats a claim citing an inference, regardless of order.
+- **TOOLING BACKLOG — siblingdiff should say "TRANSCRIBE THIS", not diff instructions.**
+  Three lanes in a row found the answer sitting in a matched sibling's C and got there
+  by eye: DrawSprite is ranked 0.48 to DrawClip and shares its TU, and its body is a
+  one-to-one answer key. The lane's words: "nothing in the loop told me to just
+  transcribe it… autorules/permute/rtldump would all have missed this — it's block
+  PLACEMENT, and none of the tools model that." When a sibling scores high AND shares a
+  TU, the tool should say *transcribe this body, change only the tail*.
 - **`tools/siblingdiff.py --demo` is the most underused tool in the box.** It has now
   been decisive twice and named so by both lanes: it answers "is this real codegen or
   our scaffolding?" in ONE call, before a round is spent. FadeOutDirect's demo emits
@@ -656,6 +663,15 @@ function already byte-matches on current `master`.
   re-deriving what was already correct (76 insns / 239 bytes / 23 clusters, rows summing
   exactly). Corrections expire too; re-check a warning against the current file before
   repeating it.
+- **A NULL EXPERIMENT reported as a negative result is worse than no experiment — it
+  warns later rounds away from the real lever.** DrawClip's park A/B'd `return -1` at
+  every site against `goto shared;` and found them byte-identical, concluding the layout
+  was "cc1's own cross-jump heuristic, not a source spelling choice". Both arms held the
+  shared LABEL at the bottom next to `ret:`, where both collapse to the same thing — the
+  one variable it never moved was label POSITION, which is the entire lever. Three later
+  rounds trusted the negative. It matched on the first build once the label moved.
+  **Before recording "X vs Y made no difference", ask what Z you held fixed in both
+  arms** — and write the negative as "with Z fixed at W", never as "unreachable".
 - **A park's STATUS number is a claim from the round that wrote it, and several are
   badly stale — do not select targets from them.** DrawSnow's header said 203; it
   measures **14**. SetBleedsDir and SetupTelop, both never touched, measure **13** and

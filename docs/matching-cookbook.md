@@ -6760,9 +6760,27 @@ shared `reject:` exists.** A trailing sentinel block physically adjacent to `tai
 takes a free fallthrough (`li v0,K`, no jump) — an identical instruction stream to the
 shared block's `li v0,K; j tail` — so **cross-jump absorbs the shared block** and its
 predecessors retarget to the end of the function, swapping it with whichever arm should
-have owned the fallthrough. Route every site through `goto reject;`. (The matched
-sibling DrawSprite had it in plain sight: `if ((attr & 1) != 0) goto reject;` — and the
-park's list of "tried and disproved" levers never tested it. **Read the sibling's C.**)
+have owned the fallthrough. Route every site through `goto reject;`.
+
+**"Route every site through `goto reject;`" is only HALF the rule. The other half is
+WHERE `reject:` LIVES — and that is what makes it work.** (This section said only the
+first half for three hours; DrawClip supplied the rest.) **The label must sit INSIDE
+THE GUARD WHOSE BODY IT IS** — for the DrawSprite/DrawClip template, inside
+`if (sz >= 0x4e3)` in the unit_vector block. A `reject:` parked at the bottom next to
+`ret:` takes the free fallthrough and cross-jump swaps it with the arm that should have
+owned it, **no matter which spelling you use at the call sites**.
+
+**Which makes DrawClip's park a NULL EXPERIMENT reported as a negative result.** It
+recorded: *"Tried: literal `return -1` at every site vs `goto` to a shared label —
+byte-identical either way, confirming this is cc1's own cross-jump heuristic, not a
+source spelling choice."* The A/B was real and it was under-powered: **both arms held
+the label at the bottom**, so both collapsed to the same thing. The conclusion
+("unreachable from C") then warned three later rounds away from the only lever that
+works. DrawClip matched on the FIRST BUILD once the label moved.
+
+(The matched sibling DrawSprite had it in plain sight: `if ((attr & 1) != 0) goto
+reject;` — and DrawModelArchive's park never tested it either. **Read the sibling's
+C.**)
 
 ### An inline early `return` mid-function leaves a join CODE_LABEL that ends cse's block
 
