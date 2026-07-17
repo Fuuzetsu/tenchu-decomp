@@ -7430,6 +7430,52 @@ struct to make the slots land there. A second, non-circular signature: retail sa
 `$t1` **in the jal delay slot** and restores in **reverse order** at block end — no
 source-level store is emitted that way.
 
+### Frame slots are assigned in THREE phases — a DECLARED local can never sit above a reload spill
+
+`assign_parms` (addressable params) -> `expand_decl` (declared locals) -> reload's
+`alter_reg` (spilled pseudos, **in pseudo-number order**). So **a declared local is
+always placed BELOW any reload spill.**
+
+**Read the layout to learn what the original wrote.** If the target shows spilled params
+at the lowest local slots with another value above them (`y@0x10`, `z@0x12`,
+`tmp@0x14`), then **all of them are reload spills ordered by pseudo number** — and no
+`volatile`/declared local can reproduce that layout. FUN_80032720's park called its
+stack round-trip "otherwise-unreachable" and framed the residual as tweakable slot
+ordering; both false. A declared `volatile u32` *necessarily* squats on 0x10 and pushes
+the params up — that IS its 25 bytes. Qualifying the PARAMS `volatile` does snap the
+offsets to the target's, but pins their accesses against sched and shatters the
+prologue/tail (107 bytes).
+
+**And the reachable shape exists**: a hand-rolled outer loop with the sign-extension
+sunk into the inner `if` builds at the exact 560-byte extent with a **natural** spill at
+the correct slot and all 140 mnemonics matching — 7 clusters, every one `operands`-only,
+a pure register permutation. It measures worse (56) but it is **the only shape that can
+reach 0**.
+
+### A `sll r,x,16` before a loop with a `sw` of the SHIFTED value is a sign-extension SPLIT BY A SPILL
+
+`sll` before the loop, `sw` of the shifted value, then `lw` + `sra r,t,16` INSIDE the
+loop is **not** a source-level "shifted variable" — it is one sign-extension split by a
+reload spill. The shifted value is the one live across the loop, and **that extra live
+value is itself what forces the spill** (the N+1th value competing for N callee-saved
+registers).
+
+### PRICE loop.c's gate before theorising about it
+
+`threshold * savings * lifetime >= insn_count`, threshold 29. A value live across a loop
+scores **~1102 against an insn_count of ~37 — three orders of magnitude clear**. **When
+the gate is that far from its boundary it is not a lever and cannot be tuned**; the only
+way to keep the insn in the loop is to deny loop.c the loop notes entirely (hand-roll
+`top:`/`goto top;`). Contrast SetBleedsDir, where the margin was **two instructions** and
+inlining an invariant flipped it. `rtldump --pass loop --loop-log` prints the numbers —
+price it, do not argue about it.
+
+**If you do hand-roll the loop, put the invariant's computation INSIDE the inner `if`,
+not at the top of the outer body.** loop.c(inner) hoists it into the outer body anyway,
+and leaving `i = 0` as the body's first insn lets reorg duplicate it into the outer
+back-edge delay slot. At the top of the outer body the loop top becomes the reload, reorg
+fills from the fall-through, and the draft comes out one insn SHORT.
+
 ### A loop-invariant `symbol_ref` reload REMATERIALISES is a loop.c HOIST-THRESHOLD artifact — the lever is the loop's INSN COUNT
 
 **Three symptoms that look like three separate bugs are ONE cause**, and this park

@@ -100,6 +100,16 @@ rescore deadline and says how many candidates it skipped, so `timeout 240` + a
 the tool timeout but not the inner one). Override with `PERMUTE_RESCORE_SECONDS=<n>`
 if you genuinely need every candidate rescored.
 
+**REDIRECT the permuter to a FILE — never pipe it.** Two lanes had `timeout 240` and
+even `timeout 200` blow through the harness's 600 s cap while PIPED. The timeout is not
+the problem: permute's `-j4` workers inherit the pipe's write end and outlive the
+SIGTERM, so `tail`/`head` never sees EOF and the pipeline hangs long after permute
+itself is dead. Write to a file and read it after:
+`... 'timeout 240 tools/permute.py <Name> -- --stop-on-zero -j4 > /tmp/p.log 2>&1'; tail -40 /tmp/p.log`.
+The same trap applies to any tool with background workers — and piping
+`tools/nullcheck.py` into `tail` additionally destroys its exit code (`$?` becomes
+tail's), which is the whole point of that tool.
+
 **Do not `pkill -f "tools/permute.py <Name>"`** — the pattern SELF-MATCHES the
 invoking shell and kills your own bash (a lane exited 144 that way). Kill by PID.
 It either finds a zero and prints it, or the timeout ends it and you move on. Do
