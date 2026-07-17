@@ -17,6 +17,13 @@ function as the build sees it and surfaces WHY each value landed where:
 It turns "guess a source form and re-score" into "the dump says $s0 holds `id`
 because of the move-chain at insns N/M — break that chain."
 
+It also reports each REG_EQUIV/REG_EQUAL note's OWNER and whether the note is
+LIVE, because both facts are easy to get wrong and a round was lost to exactly
+that: the note belongs to SET_DEST, not to whatever pseudo its VALUE mentions,
+and a note whose owner got a hard register is INERT (every reload path keyed on
+`reg_equiv_memory_loc[N]` is gated on `reg_renumber[N] < 0`). Only LIVE notes
+print by default — AdtSelect has 36 notes and 5 of them can matter.
+
   tools/regalloc.py <Name>              # diagnose src/main.exe/<Name>.c as built
   tools/regalloc.py <Name> --rtl        # + the raw greg RTL for the function
   tools/regalloc.py <Name> --compare 80 81 --enclosed-refs 3
@@ -24,6 +31,8 @@ because of the move-chain at insns N/M — break that chain."
   tools/regalloc.py <Name> --between 80 81 82 --enclosed-refs 3
                                         # keep p80 above p81 but below p82
   tools/regalloc.py <Name> --prefer a0   # allocnos carrying an $a0 preference
+  tools/regalloc.py <Name> --notes      # ALL REG_EQUIV/REG_EQUAL notes (default:
+                                        # only the LIVE ones — see below)
   tools/regalloc.py <Name> --func NAME  # a specific function if the TU has several
   tools/regalloc.py <file> --raw        # run on an already-preprocessed .c
 
@@ -132,6 +141,63 @@ def run_greg(pp_text):
         if not os.path.exists(greg):
             sys.exit("regalloc: cc1 produced no greg dump:\n" + r.stderr[:2000])
         return open(greg).read()
+
+
+# `(insn 48 47 49 (set (reg:SI 93) (mem:SI (reg:SI 81))) -1 (nil)` — the SET_DEST
+# pseudo, which update_equiv_regs uses as the note's owner
+# (`regno = REGNO (SET_DEST (set))`).
+SET_DEST_PSEUDO = re.compile(r"\(set \(reg(?:/\w+)?:\w+ (\d+)\)")
+NOTE = re.compile(r"(REG_EQUIV|REG_EQUAL)\s+(.*)")
+
+
+def balanced(text):
+    """The first fully-parenthesised expression in `text`.
+
+    The note's value runs to the end of the flattened insn otherwise, dragging
+    the enclosing `(nil))))` tail in with it and burying the fact being read.
+    """
+    depth = 0
+    for i, ch in enumerate(text):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                return text[:i + 1]
+            if depth < 0:
+                return text[:i]
+    return text
+
+
+def analyse_notes(lreg_body, disp):
+    """Map each REG_EQUIV/REG_EQUAL note to its OWNING pseudo and its home.
+
+    Exists because a lane lost a round to the two traps this reports, and I set
+    that trap myself in the brief that sent it there:
+
+      1. The note belongs to SET_DEST, NOT to whatever pseudo its VALUE mentions.
+         `REG_EQUIV (mem (mem (plus sp 32972)))` does not mean the pseudo spilled
+         at sp+32972 owns it.
+      2. A note whose owner GOT a hard register is INERT: everything in reload1.c
+         keyed on reg_equiv_memory_loc[N] is gated on reg_renumber[N] < 0.
+
+    Reading those two facts off a dump is a five-minute round. Hand-tracing
+    .lreg -> .greg to recover them is a whole one. See docs/matching-cookbook.md,
+    "REG_EQUIV: correct mechanics, and the two traps that make it useless anyway".
+    """
+    found = []
+    for kind, num, text in insns(lreg_body):
+        if "REG_EQUIV" not in text and "REG_EQUAL" not in text:
+            continue
+        flat = " ".join(text.split())
+        owner = SET_DEST_PSEUDO.search(flat)
+        note = NOTE.search(flat)
+        if not owner or not note:
+            continue
+        pseudo = int(owner.group(1))
+        found.append(dict(insn=num, pseudo=pseudo, kind=note.group(1),
+                          value=balanced(note.group(2))[:100], home=disp.get(pseudo)))
+    return found
 
 
 REG = re.compile(r"\(reg(?:/\w+)?:\w+ (\d+) (\w+)\)")          # (reg/v:SI 17 s1)
@@ -283,13 +349,17 @@ def analyse(name, body, usage_body=None):
         for rm in REG.finditer(flat):
             nm = rm.group(2)
             reg_first.setdefault(nm, num)
+    # Notes are only legible BEFORE allocation: .greg has already substituted
+    # hard registers, so the owning pseudo's number is gone. Use the lreg body
+    # when we have one, and resolve each owner's home from .greg's dispositions.
+    notes = analyse_notes(usage_body, disp) if usage_body else []
     return dict(disp=disp, preferences=preferences, conflicts=conflicts, used=used_str,
                 allocnos=allocnos, usage=usage, moves=moves, calls=calls, setops=setops,
-                reg_first=reg_first)
+                reg_first=reg_first, notes=notes)
 
 
 def report(name, a, show_rtl, body, compare=None, between=None,
-           enclosed_refs=None, prefer=None):
+           enclosed_refs=None, prefer=None, show_notes=False):
     hardnames = sorted({n for _, d, s in a["moves"] for n in (d, s)}
                        | set(a["setops"]) | set(a["reg_first"]),
                        key=lambda x: (x not in CALLEE, x))
@@ -312,6 +382,31 @@ def report(name, a, show_rtl, body, compare=None, between=None,
             print(f"    i{num:<4} {src:>3} -> {dst:<3}{tag}")
     else:
         print("    (none)")
+    notes = a.get("notes") or []
+    if notes:
+        live = [n for n in notes if n["home"] is None]
+        inert = [n for n in notes if n["home"] is not None]
+        # Only LIVE notes can matter, and they are rare (AdtSelect: 5 of 36).
+        # Printing all of them buries the signal, so summarise the inert ones.
+        shown = notes if show_notes else live
+        print(f"  REG_EQUIV/REG_EQUAL notes: {len(notes)} "
+              f"({len(live)} LIVE, {len(inert)} inert)")
+        for n in shown:
+            if n["home"] is None:
+                state = "LIVE  — owner SPILLED, so reload paths keyed on it apply"
+            else:
+                state = f"inert — owner got ${rn(n['home'])} (reg_renumber >= 0)"
+            print(f"    i{n['insn']:<4} {n['kind']} owned by pseudo {n['pseudo']}"
+                  f"  {state}")
+            print(f"          value: {n['value']}")
+        if not show_notes and inert:
+            print(f"    ({len(inert)} inert note(s) hidden — --notes for the full table.")
+            print("     An owner with a hard register makes its note INERT: every")
+            print("     reload path keyed on reg_equiv_memory_loc[N] is gated on")
+            print("     reg_renumber[N] < 0.)")
+        print("    NB a note belongs to SET_DEST, NOT to any pseudo its VALUE")
+        print("    mentions. Both traps cost a round once; see the cookbook's")
+        print('    "REG_EQUIV: correct mechanics, and the two traps".')
     dispositions = []
     visible = a["allocnos"] or set(a["disp"])
     for p, h in sorted(a["disp"].items()):
@@ -406,6 +501,8 @@ def main():
                     help="target is an already-preprocessed .c (skip cpp)")
     ap.add_argument("--func", help="only this function (if the TU has several)")
     ap.add_argument("--rtl", action="store_true", help="also print the greg RTL")
+    ap.add_argument("--notes", action="store_true",
+                    help="show ALL REG_EQUIV/REG_EQUAL notes, not just the LIVE ones")
     ap.add_argument("--compare", nargs=2, type=int, metavar=("FIRST", "SECOND"),
                     help="weighted refs needed for FIRST to outrank SECOND")
     ap.add_argument("--between", nargs=3, type=int,
@@ -468,6 +565,7 @@ def main():
             args.between,
             args.enclosed_refs,
             prefer,
+            args.notes,
         )
 
 
