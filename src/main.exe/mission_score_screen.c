@@ -8,6 +8,59 @@
  * STATUS: NON_MATCHING -- 254 of 4636 bytes differ (was 330; 346; 401; 413;
  * 433; 437; 476; 498; 525; 1266).  85 differing instructions.
  *
+ * 2026-07-17 round-11 (Opus) -- NO byte change (254 held).  Chased round-10's
+ * one live lead (the x=102 class, 13 insns) to its mechanical floor and CLOSED
+ * three spellings.  Everything below is measured, not modelled.
+ *
+ * - A BARE per-site local IS A NO-OP.  `s32 xPos; xPos = 0x66;
+ *   (drawnSprite)->x = xPos;` at all four sites compiles to a BYTE-IDENTICAL
+ *   .o (sha256 0e3bd802... for baseline AND for the edit, verified by
+ *   reverting and rebuilding).  cse1 folds the constant into the store and
+ *   delete_trivially_dead_insns removes the seed, so no movable ever reaches
+ *   loop.c.  Round-10's "4-site variable group" was therefore load-bearing ON
+ *   ITS SCOPE PADS, not on the extra variable.  Do not retry the bare form.
+ * - THE CHEAP SPELLING FOR THE t1 CLASS: `do { xPos = (0x66); } while (0);`
+ *   (fence-the-SEED) reproduces round-10's result in ONE line per site, with
+ *   no scope pads.  Verified in the RTL, not just the bytes: .sched has
+ *   exactly ONE `(set (reg/v:SI 445) (const_int 102))` in the preheader of
+ *   basic block 18 immediately before NOTE_INSN_LOOP_BEG (the loop.c hoist),
+ *   and .dbr has FOUR `(set (reg:HI 9 t1) (const_int 102))` movhi remats --
+ *   i.e. hoisted-and-SPILLED, exactly the target's $t1 fingerprint, at all
+ *   four sites.  The register class is thus reachable cheaply; it is NOT the
+ *   blocker.
+ * - THE BLOCKER, LOCATED EXACTLY: reload SPLITS the x-store.  At .sched the
+ *   store is one insn, uid 2184, `(set (mem/s:HI (plus (reg 591) 4))
+ *   (subreg:HI (reg/v:SI 445) 0))`, and it is correctly ordered BEFORE
+ *   `negative = 0` (uid 2227) -- sched1 is already right.  Reload then rewrites
+ *   2184 IN PLACE into the remat `(set (reg:HI 9 t1) (const_int 102))` and
+ *   emits the actual store as a NEW insn (uid 4164).  The y-store's LOG_LINKS
+ *   still name 2184, so the memory dep now points at the REMAT, and the real
+ *   store 4164 is left with NO in-block dependents -> priority 1 -> sched2
+ *   sinks it to the end -> reorg hands it the bgez delay slot.  Result at
+ *   sites 2/3/4: `bgez v0 / sh t1,4(s2)` where the target has `bgez v0 /
+ *   move s3,zero` and keeps `sh t1,4(s2)` at 0x80055520.
+ * - COST: every fenced variant is 4632 bytes vs the 4636 carve -- a LENGTH
+ *   MISMATCH (the sunk store fills a slot that was a nop), so this is a hard
+ *   regression, not a 254-vs-266 trade.
+ * - REFUTED (all three give byte-identical 4632; do not retry):
+ *   (a) the fence's empty LOOP_BEG/LOOP_END notes abut the store (loop.c moves
+ *       the seed insn out but leaves the notes), so they look like a barrier
+ *       isolating it -- but moving the fenced seed ABOVE the value/signedValue
+ *       load, so the notes no longer touch the store, does NOT free it;
+ *   (b) fencing the store as well (`do { (drawnSprite)->x = xPos; } while(0);`)
+ *       does not free it either;
+ *   (c) fence placement is irrelevant in general -- all variants land on the
+ *       same 4632 and the same delay-slot theft.
+ *   The sink is a property of the reload SPLIT, not of the fence site.
+ * - FOR ROUND 12: the question is no longer "the store's sched position" in the
+ *   abstract; it is specifically "how does the target's x-store keep an
+ *   in-block dependent (or a priority > 1) AFTER reload splits the remat off
+ *   it?".  Note the target's y-store sits at 6(s2) directly after the x-store
+ *   at 4(s2) -- if that memory dep survived the split, the x-store would hold
+ *   priority(y-store)+1 and never sink.  Worth testing whether a spelling that
+ *   makes the two stores provably-aliasing (or the x-store's value reach a
+ *   later reader in-block) survives reload's rewrite of uid 2184.
+ *
  * 2026-07-17 round-10 (Fable, macro-expansion escalation) -- 330 -> 254 via
  * THE LOOP.C MOVABLE BUDGET.  Two preliminary facts, then the model:
  * - EXPANSION IS FREE: every function-like draw macro was expanded to its

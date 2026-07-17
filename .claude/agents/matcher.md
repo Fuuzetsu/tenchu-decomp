@@ -56,6 +56,14 @@ was worth 140 bytes on FUN_80057b80. Read the delta SUM too: zero-sum deltas
 confined to argument registers mean pure renames — the decomposition already
 matches the target and no splitting lever remains.
 
+**If an edit does not move the bytes, run `tools/nullcheck.py <Name>` before
+theorising about WHY.** It compares your codegen against HEAD's: exit 1 means your
+edit was a literal no-op (cc1 folded it away — a bare per-site local, a dead probe,
+a constant cse1 folds into its store), exit 0 means it was real. A round has been
+lost modelling what a no-op edit "did". It also settles the fast-build question for
+good: cc1-281 compiles a TU in ~0.1 s and Shake keys on CONTENT, so **fast is not
+skipped** — the object is the tell, not the wall clock.
+
 **The MOMENT your draft compiles, run `tools/autorules.py <Name>` and let it finish
 BEFORE you reason about the residual.** It sweeps the mechanical rules automatically
 (type-width flips, `&&` split/merge, single-use temp inline, the abssi2 abs->GE fold,

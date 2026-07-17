@@ -6323,6 +6323,24 @@ loop's **limit cursor**, not another local. FUN_80018f00's target `sp+120` vs ou
 object; both are just `&o_draw + 80` (40+80 and 16+80). **Compute
 `&src + 16*chunks` before inferring anything about the object set.**
 
+### Reload's remat SPLIT orphans the store — and LOG_LINKS still name the pre-split UID
+
+**A store that sank AFTER you made its value a movable is not a sched tie and not a
+fence-placement problem.** When a spilled movable feeds a store, reload rewrites the
+store insn **in place** into the remat (`li t1,K`) and emits the real store as a
+**NEW insn**. Every dependent recorded against the original UID — including the
+memory dep from a following store to the same base — keeps pointing at the
+**remat**. So the real store inherits **no in-block dependents, priority 1**, sched2
+sinks it to the block end, and reorg takes it for the branch delay slot.
+
+**The check**: compare the store's UID in `.sched` against `.dbr`. If that same UID
+now holds `(set (reg:HI <hard>) (const_int K))` and the store appears at a fresh
+UID, reload split it. **Fence placement cannot fix this** — mission_score_screen
+tried moving the fenced seed so its `LOOP_BEG/END` notes no longer abut the store
+(they do abut it, which *looks* exactly like a barrier), fencing the store as well,
+and fence placement generally: every variant landed on an identical 4632 vs the 4636
+carve — a LENGTH MISMATCH, a hard regression, not a tunable trade.
+
 ### A load can NEVER hoist past a struct store — if retail's load looks hoisted, the STORE sank
 
 **This inverts an entire class of reasoning, and it matched FUN_8003944c.**
@@ -6348,6 +6366,26 @@ it gains deps on everything before it and everything after depends on it. So a
 fence pins whichever store happens to follow it, which is rarely the one you want.
 FUN_8003944c's fence gave `sh 26` deps on all 13 preceding insns with 6 depending
 on it — the fence WAS the residual, built on a model that was never true.
+
+### Check that your edit did ANYTHING before modelling what it did: `tools/nullcheck.py <Name>`
+
+**`s32 xPos; xPos = 0x66; ->x = xPos;` at four sites produces a BYTE-IDENTICAL
+object.** cse1 folds the constant into the store and the seed dies before loop.c
+ever sees it. A whole round's model was built on that edit doing something, and a
+lane had to hand-roll `sha256sum` + revert + rebuild to discover it did not.
+
+`tools/nullcheck.py <Name>` answers it in one command (working tree vs HEAD, or
+`--against <ref>`): exit 1 = your edit was a **no-op**, exit 0 = codegen changed. It
+reads naturally as a guard — `nullcheck.py X && matchdiff.py X`.
+
+Corollaries worth knowing before you spend a round:
+* **A bare per-site local is usually a no-op** — the seed must be READ by the
+  following expression or it is dead (see the `copy-seed` rule). What made
+  mission_score_screen's group work was its **scope pads**, not the extra variable.
+* **Fast is NOT skipped.** cc1-281 compiles a TU in ~0.1 s, and Shake keys on
+  CONTENT, so a codegen-neutral edit legitimately yields an identical `.o` and skips
+  the relink. Four lanes have now mis-diagnosed a quick `./Build` as stale. **The
+  reliable tell is the object, not the wall clock** — that is what this tool checks.
 
 ### Dump a CONTROL variant, not just the current draft
 

@@ -616,6 +616,11 @@ function already byte-matches on current `master`.
   round proving that. Every "the original's X carries K refs" claim must cite a
   dump. (`tools/reghist.py` gives the cheap cross-check: a register the target
   mentions N times has N-2 body refs.)
+- **`tools/nullcheck.py <Name>` now answers "did my edit do ANYTHING?" — use it
+  instead of re-deriving.** Four lanes have burned time on this: one hand-rolled
+  sha256+revert+rebuild to find that a four-site edit produced a byte-identical
+  object (cse1 folded it), three mis-read a fast build as skipped. Exit 1 = no-op,
+  exit 0 = codegen changed.
 - **A 0.1 s "build" is not automatically a stale read — and `touch` will NEVER
   trigger a rebuild.** Shake keys on CONTENT DIGESTS, not mtimes. So (a) a
   dead-code-only or codegen-neutral edit legitimately produces an identical `.o`
