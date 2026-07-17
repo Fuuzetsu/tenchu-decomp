@@ -42,13 +42,59 @@
  * Humans/HumanGroup append are now byte-for-byte exact.
  *
  * The only residual is 0x80027a14..0x80027a58: the collision index/address
- * and signed half-height chains are scheduled in the opposite order and
- * consequently receive the mirror register roles. The operations and
- * stores are equivalent and the instruction count is exact. Named
- * ConflictObject pointers and manually split index offsets make this block
- * worse; a bounded 100-candidate guided/aggressive autorules search from
- * this 39-byte state found no improvement. Treat this as a local scheduler/
- * allocator problem, not a reason to disturb the now-exact model block.
+ * chain (A) and the signed half-height chain (B) are interleaved in the
+ * opposite order and consequently receive the mirror register roles.
+ *   target:  A1..A4, lhu, A5, B1..B5, sh     (address chain first)
+ *   ours:    lhu, A1, B1..B5, A2..A5, sh     (half chain first)
+ * The instruction MULTISET is identical (127/127 insns, same ops, same
+ * operands) — this is a pure reorder, not a missing/surplus instruction.
+ *
+ * NOT a division-idiom bug. The target HAS the signed divide-by-2 trio
+ * (`srl a0,a0,0x1f; addu v0,v0,a0; sra v0,v0,0x1` at 0x80027a34..3c) and the
+ * `sll 16/sra 16` sign-extension (0x80027a2c/30) — they sit 4 instructions
+ * lower than ours, so a diff read column-wise makes them look absent. Do not
+ * "fix" this by trying `>>1` or an unsigned dividend: both chains already
+ * match the target instruction-for-instruction. tools/access.py proves
+ * height@0xE is `lhu` on BOTH reads and width@0xC is `lh`+`lhu`, and the
+ * target's lhu+sll/sra (rather than a bare `lh`) proves the value passes
+ * through a u16 REGISTER before sign-extension — so the `hh`/`ww` u16 locals
+ * are required, not incidental.
+ *
+ * MEASURED DEAD ENDS (do not re-derive):
+ *  - RTL STATEMENT ORDER IS INERT HERE. `expand_assignment` really is
+ *    LHS-first for a COMPONENT_REF/ARRAY_REF destination (get_inner_reference
+ *    + offset expand before store_field expands the RHS), so
+ *    `ConflictObject[idx].size.vy = half = (s16)(hh = human->height) / 2;`
+ *    provably moves the load from RTL line 15 to line 66, putting chain A
+ *    ahead of it in the .rtl dump — and still yields a BYTE-IDENTICAL object
+ *    (tools/nullcheck.py: same hash). sched2 re-derives its schedule from the
+ *    DAG; LUID is only its last-resort tiebreak and never reaches it here.
+ *  - `ConflictObjectType *co = &ConflictObject[idx];` -> 52. It collapses the
+ *    address into one pseudo and SINKS the `lui/addiu` from 0x80027a08 to
+ *    0x80027a34. The repeated ARRAY_REF is correct: `lui %hi` has no operands,
+ *    so sched2 hoists it into the post-call slots, which is what the target does.
+ *  - `s32 idx` -> 53 (also 53 combined with the RHS fold): it moves the
+ *    sign-extend to the assignment (line 153), emitting `sll,sra,lui` where the
+ *    target has `lui,addiu,sll,sra`. `s16 idx` is correct — the target's
+ *    sign-extend belongs to the SUBSCRIPT USE, not the assignment.
+ *  - tools/autorules.py: 27 candidates, no improvement (`hh: u16->s16` and
+ *    `half: s32->s16` are both inert at 39). Permuter: 420 s, -j4, nothing.
+ *
+ * WHERE IT ACTUALLY DIVERGES (for whoever picks this up): sched2 owns it. In
+ * the .sched2 dump our order is 182,183,184,170,185,... — after scheduling 184
+ * (`sll v0,v0,16`) the ready list holds 185 (`sra v0,v0,16`, dependent) and 170
+ * (the lhu, independent); ours takes 170, the target takes 185. Since the DAG
+ * and the RTL order both reproduce ours, the target's DAG must differ upstream
+ * in a way not yet identified — the lhu's chain must outrank chain A for us and
+ * not for it.
+ *
+ * This is NOT "just a scheduler tie": tools/siblingdiff.py --demo shows the
+ * DEMO build (0x800247fc, ConflictObject stride 0x68 -> a 6-insn *104 chain
+ * instead of retail's 4-insn *120) ALSO completes the whole address chain
+ * before `lhu v0,14(s0)`. Two builds with different strides and register roles
+ * agree on address-first, so the order is a source-structure property that is
+ * still reachable from C. Keep hunting the source difference; do not disturb
+ * the now-exact model block.
  *
  * CreateHumanoid (0x800278e4) — allocate and register a new Humanoid: zero
  * it, load its model archive, wire up locate/rotate into the archive's own

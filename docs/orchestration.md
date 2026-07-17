@@ -557,6 +557,15 @@ function already byte-matches on current `master`.
   `dslot`/`length` eligibility and `LABEL_NUSES` per branch target, and said outright
   "that table IS the whole answer here". An `asmdiff`/`rtldump` annotation would make
   StickonCheck's entire analysis one call.
+- **`asmdiff`'s `O` column is OURS. An `insert` hunk is not a surplus instruction.**
+  I read CreateHumanoid's `O`-side insert hunks as instructions the target lacked and
+  briefed a divide-idiom fix. The multiset is IDENTICAL (`length ours 127 vs target
+  127`) — the target has them four instructions lower, and difflib was rendering an
+  INTERLEAVE. The lane's verdict: taking the brief's advice "would have BROKEN a chain
+  that already matches", and "the park note in the file was more accurate than the
+  brief that summarized it". **Check `length ours N vs target N` before calling
+  anything surplus, and use `--context`** — which exists for this and which I did not
+  run.
 - **Never quote a TRUNCATED tool head as a byte-account.** I built PadProc's brief
   from `asmdiff | head -9` and presented 4 diff lines as the residual; the real one is
   18 differing instructions across TWO `mflo` sites. The lane called it a 4x
@@ -690,6 +699,13 @@ function already byte-matches on current `master`.
   structure. It now hedges when `move` copies are present. When adding a heuristic
   verdict to a tool, write down what it CANNOT distinguish, in the output, next to
   the verdict.
+- **My own fix introduced the failure it was preventing.** rtldump's dump dir was
+  shared across agents (a lane nearly read a sibling's stale `.greg`), so I keyed it to
+  the worktree via `tempfile.gettempdir()` — which reads TMPDIR, and **`nix develop`
+  mints a fresh TMPDIR per invocation.** The path then changed every run: a lane
+  captured one, reused it, silently diffed two EMPTY files and got a clean
+  "IDENTICAL". Now anchored to a fixed base. **A path used to compare two runs must be
+  stable ACROSS runs — verify that by printing it twice, not by reasoning about it.**
 - **A tool that can silently measure the STUB is the worst bug class in this repo.**
   Three instances now: `reghist` built the stub and reported "every register matches
   exactly" (a vacuous truth that tells an agent no lever remains); `matchdiff -n`

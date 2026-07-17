@@ -83,15 +83,23 @@ PASS_FLAG = {
 }
 DEFAULT_PASSES = ["greg", "lreg", "jump", "combine"]
 
-# Key the dump directory to THIS worktree. The old default was a bare shared
-# `<tmp>/tenchu-rtldump`, so every concurrent agent wrote RTL dumps for the same
-# function name to the same path — and a lane was nearly misled by a sibling's
-# stale `.greg` before it noticed and overrode CLAUDE_SCRATCH by hand. Dumps are
-# the ground truth these tools reason from; a torn read there produces confident
-# nonsense, which is the same failure the private-scratch rule exists to prevent.
+# Key the dump directory to THIS worktree, at a STABLE path.
+#
+# Two failures shaped this, in order:
+#  1. The original default was a bare shared `<tmp>/tenchu-rtldump`, so every
+#     concurrent agent wrote dumps for the same function name to one path and a
+#     lane was nearly misled by a sibling's stale `.greg`. Hence the ROOT hash.
+#  2. The fix then used `tempfile.gettempdir()`, which reads TMPDIR — and
+#     `nix develop` mints a FRESH TMPDIR PER INVOCATION. So the path changed on
+#     every run: a lane captured one, reused it next call, silently diffed two
+#     EMPTY files and got a clean "IDENTICAL" — a false measurement, which is
+#     the exact class this tool exists to prevent. Hence the fixed base.
+#
+# `/tmp` rather than gettempdir(): it must be stable ACROSS invocations for a
+# two-variant RTL comparison to be possible at all, and every nix-shell tmpdir
+# lives under it anyway. CLAUDE_SCRATCH still overrides.
 SCRATCH = os.environ.get("CLAUDE_SCRATCH") or os.path.join(
-    tempfile.gettempdir(),
-    "tenchu-rtldump-" + hashlib.sha1(ROOT.encode()).hexdigest()[:10],
+    "/tmp", "tenchu-rtldump-" + hashlib.sha1(ROOT.encode()).hexdigest()[:10],
 )
 
 

@@ -2863,6 +2863,29 @@ stayed at 4 — exactly the asymmetry the target needed.
 0xd class) is NOT an un-matchable class: it is a prompt to ask **why the priorities
 tied**. Any park resting on "it's a sched tie" deserves a re-read of the LOG_LINKS.
 
+### RTL statement order is INERT when sched2 re-derives the schedule
+
+**When two independent chains in one basic block are interleaved wrongly and the
+instruction multiset ALREADY MATCHES, statement order is not the lever.** sched2
+rebuilds its order from the DAG; **LUID is only its last-resort tiebreak.**
+
+Proven, not argued: `expand_assignment` IS LHS-first for a COMPONENT_REF/ARRAY_REF
+destination (`get_inner_reference` + offset expand before `store_field` expands the
+RHS), so folding a load into a store's RHS —
+`dst.field = local = (s16)(tmp = p->f) / 2;` — **provably moves that load in the
+`.rtl` dump** (measured: line 15 -> line 66, chain A now ahead of it) and **still
+produces a BYTE-IDENTICAL object** (`nullcheck`: same hash). The RTL moved; the bytes
+did not.
+
+### `siblingdiff.py --demo` is an oracle for SCHEDULE-SHAPE, not just statement shape
+
+**If the demo build shows the same chain ORDER as retail despite different struct
+strides and register roles, the order is a SOURCE-STRUCTURE property and the residual
+is still reachable from C — do NOT park it as a scheduler tie.** CreateHumanoid: the
+demo (stride 0x68, a 6-insn `*104` chain vs retail's 4-insn `*120`) also completes the
+whole address chain before `lhu v0,14(s0)`. Two builds with different strides agreeing
+on ORDER is strong evidence the order came from the source, not the scheduler.
+
 ### Operand-BIRTH order decides local_alloc's colours — seed the RIGHT operand
 
 **`expand` emits a binary op's operand loads LEFT-TO-RIGHT.** So in `x = A - B`
