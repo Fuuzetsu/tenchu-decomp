@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * PAD_init (0x800833b0) — stock PsyQ libapi: tear down any existing pad
+ * InitPAD (0x80083440) — stock PsyQ libapi: tear down any existing pad
  * handler, patch the pad ISR under a critical section, hand the caller's four
  * buffers to PAD_init2, and record that the pad system is up.
  *
@@ -34,8 +34,11 @@
  * even looked like a win on its own (25 vs 26) while being a SHAPE regression —
  * see the negatives below.
  *
- * InitPAD (0x80083440) is the SAME function with one instruction different — its
- * final `jal` goes to 0x80083694 instead of PAD_init2 — so it is a near-clone.
+ * The near-clone of PAD_init (0x800833b0): identical but for its final `jal`,
+ * which goes to InitPAD2 rather than PAD_init2. PAD_init's header carries the
+ * full account of why the fence and the plain `extern s32` are load-bearing —
+ * this file is a transcription of that matched shape, not an independent
+ * derivation.
  *
  * MEASURED NEGATIVES (do not re-try):
  *   - `extern s32 D_800975D8[];` + `D_800975D8[0] = 1;` alone: 25, and further
@@ -52,11 +55,11 @@ extern void _patch_pad(void);
 extern void ExitCriticalSection(void);
 extern void ChangeClearPAD(long mode);
 extern void FUN_80083538(void);
-extern void PAD_init2(u_long a, u_long b, u_long c, u_long d);
+extern void InitPAD2(u_long a, u_long b, u_long c, u_long d);
 
 extern s32 D_800975D8;
 
-void PAD_init(u_long a, u_long b, u_long c, u_long d)
+void InitPAD(u_long a, u_long b, u_long c, u_long d)
 {
     int new_var;
 
@@ -67,7 +70,7 @@ void PAD_init(u_long a, u_long b, u_long c, u_long d)
         ExitCriticalSection();
         ChangeClearPAD(0);
         FUN_80083538();
-        PAD_init2(a, b, c, d);
+        InitPAD2(a, b, c, d);
         new_var = 1;
         D_800975D8 = new_var;
     } while (0);
