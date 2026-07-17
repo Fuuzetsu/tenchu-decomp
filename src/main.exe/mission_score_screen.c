@@ -5,8 +5,103 @@
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
- * STATUS: NON_MATCHING -- 330 of 4636 bytes differ (was 346; 401; 413; 433;
- * 437; 476; 498; 525; 1266).  104 differing instructions.
+ * STATUS: NON_MATCHING -- 254 of 4636 bytes differ (was 330; 346; 401; 413;
+ * 433; 437; 476; 498; 525; 1266).  85 differing instructions.
+ *
+ * 2026-07-17 round-10 (Fable, macro-expansion escalation) -- 330 -> 254 via
+ * THE LOOP.C MOVABLE BUDGET.  Two preliminary facts, then the model:
+ * - EXPANSION IS FREE: every function-like draw macro was expanded to its
+ *   literal per-site text and verified byte-identical (same cpp token
+ *   stream via mipsel cpp -P | tr, same .o sha256).  The hypothesis that a
+ *   shared macro spelling *itself* costs bytes is REFUTED -- cpp expands
+ *   textually, sites already compiled per-site.  What expansion buys is
+ *   EDITABILITY: the wins below are per-site variations a shared macro
+ *   could not express.  17 macros deleted; only SCORE_STATE (object-like)
+ *   remains.
+ * - THE PREHEADER ORDER IS A move_movables CHAIN (fixed the F cluster, 4
+ *   insns, and the whole draw-4/N-O scheduling cluster fell with it):
+ *   target preheader is lui/ori s5 (the /10 magic), li s8,10, addiu
+ *   s6,sp,24 IN THAT ORDER.  Source-preheader insns can never follow the
+ *   magic (loop.c emits all moved insns immediately before LOOP_BEG, after
+ *   any source code), so ten/numberSprite must themselves be MOVED
+ *   MOVABLES whose chain position (= scan order of the head's SET) is
+ *   after the magic's.  The per-site structure delivers exactly that:
+ *   `ten = 10` inside EACH sign arm (10 sites) and `numberSprite =
+ *   &number` at EACH use site (colon 1, SV32, colon 2, draw 4).
+ *   combine_movables (loop.c:1239) merges same-value set-once movables
+ *   (n_times_used is a COPY OF n_times_set -- multi-use members are fine)
+ *   into the first-scanned head, summing savings and lifetimes; the merged
+ *   set is emitted once at the head's chain position.  Draw-0's sign arm
+ *   scans after draw-0's division (magic head), colon 1 after that: magic,
+ *   ten, ns.  EXACTLY the target.
+ * - THE BUDGET (loop.c:1620-1728, read directly): each moved movable costs
+ *   `threshold -= 3` for every LATER movable in the chain, and a movable
+ *   moves iff already_moved || threshold*savings*lifetime >= insn_count
+ *   (this loop: threshold 29 = 1*(1+28 non-fixed regs), insn_count 795
+ *   "real insns", both printed by -dL).  The function needs FIVE moves in
+ *   chain order: -71 drawY group (draws 0/1/2, jump-1 y consts; hoisted
+ *   head spills, reload REMATERIALIZES li t0/t2 at each store -- that is
+ *   where the target's t-register y constants come from), the magic, ten,
+ *   ns, and the row 0x80010000 group (scores/chars lui cse-folds into one
+ *   pseudo + grades lui; hoisted+spilled => remat lui t1/t2 in the row).
+ *   Gates as landed: -71 at 29 needs life >= 10: draw-0's drawY seed moved
+ *   BEFORE its value seed (life 9 -> 11; at life 9 the group is refused
+ *   and the y consts become sunk local v0 li's, dbr steals the else arm
+ *   into the bgez slot and both jump-1 draws lose their `j` -- that is the
+ *   shape the group's remat protects).  Row group at threshold 17 needs
+ *   savings*life >= 47, had 2*22: fixed by `{ s32 rowScopePad; }` after
+ *   the row FUN_800515b0 call -- BLOCK_BEG/END notes RECEIVE LUIDS
+ *   (loop.c:404 assigns ++i to every non-line-number note) but are not
+ *   real insns, so the scope block stretches the head's set-to-last-use
+ *   span (19 -> 21, group 24) without touching insn_count or cse.  The
+ *   scope-pad is the note-emitting sibling of the do{}while(0) fence: use
+ *   pads to lengthen a movable lifetime, fences to break cse1.
+ * - reg_single_usage (loop.c:740): a set-once single-use pointer whose use
+ *   folds to a legitimate address is SUBSTITUTED AND DELETED by loop.c
+ *   (measured: a fenced `ps = (PersistentState *)0x80010000; ...
+ *   D_8008ED50[ps->stage]` collapses to (mem (const)) -- absolute const
+ *   addresses ARE legitimate on MIPS via CONSTANT_ADDRESS_P).  Only
+ *   index-scaled uses survive substitution (the fold produces an
+ *   illegitimate reg+bigconst sum and validate_replace_rtx refuses).
+ *   Dead probes are equally futile: delete_trivially_dead_insns iterates
+ *   before loop.c and removes dead chains (a `base = ...; dummy = *base;`
+ *   probe vanishes entirely).
+ * - SV32's `sprite = (numberSprite);` copy must sit behind a do{}while(0)
+ *   fence now: with the ns seed in-block, cse1 otherwise re-canons
+ *   sprite's decimal-loop uses onto ns and deletes the copy (the target's
+ *   move s2,s6).  Same idiom as the medal-block blocker, cheaper spelling.
+ * - MEASURED AND REVERTED (do not retry blind):
+ *   - x=102 as a 4-site variable group with scope pads: the group MOVES
+ *     and remats as li t1 at all four sites (confirming the target's t1 is
+ *     the same remat mechanism, and draw-2's -71 then remats to t2 exactly
+ *     like the target), but the x-store loses its v0-reuse interlock and
+ *     sched1 lifts the sll/sra sign-extension above it: net 254 -> 266.
+ *     The register class is understood; the blocker is the store's sched
+ *     position, not allocation.  A future round needs a way to keep the
+ *     sh before the extension with the group pseudo (the target does).
+ *   - The row accessed via D_80010458/D_8001044C/D_80010451 symbols:
+ *     without -msplit-addresses (mips.h LEGITIMIZE_ADDRESS gates the
+ *     HIGH/LO_SUM split on mips_split_addresses) a symbol+index address
+ *     materializes la (lui+addiu) and the %lo never folds into the load:
+ *     +3 insns.  The const (SCORE_STATE) form is correct; the target's
+ *     %hi/%lo notation is just splat labeling of identical words.
+ *   - Init-loop pivot writes through a (fenced) pointer local: cse1
+ *     hash-unifies the seed's RHS with initSprite's value upstream of any
+ *     fence and deletes the recompute (-4 insns).  MEM-context keeps the
+ *     recompute but is index-first (instantiate's special case); pointer
+ *     context is base-first but folds.  The pivot half of the bank-address
+ *     pair is therefore closed at the C level in BOTH directions, matching
+ *     the round-9 verdict from the main-address half.
+ * - Residual 254 = 85 insns: entry rotation (3), LoadTIMAndFree block
+ *   rotation (10, brightness-fence-parked), bank main pairs (10, CLOSED) +
+ *   attr/w load order + or/srl/store order (7, source-order-neutral --
+ *   measured) + pivot pairs (4, CLOSED above), draw-0 head li/lbu swap (2)
+ *   + sign-arm a2/a0 sched (2), colon-1 tail + SV32 head role mirror
+ *   (~12: enemies lbu lands v1 in target vs a0 in ours, everything
+ *   downstream mirrors; local-alloc window/priority cascade seeded by
+ *   sched placing our lbu 65(sp) one slot earlier -- needs the testbed),
+ *   SV32 decimal+sign GsSortSprite arg scheduling (16), x=102 heads (13,
+ *   see above), colon-2 tail move/sb swap (2), stock-tail addu chains (4).
  *
  * 2026-07-17 round-9 (Opus) — THE CONSTANT-ADDRESS OPERAND-ORDER LEVER
  * (346 -> 330), and the bank-address pair is CLOSED as a spelling problem.
@@ -572,9 +667,12 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
     InitSprite(image, sprite);
 }
 
-/* The retail code recomputes each bank address for the final pivot writes. */
-#define SCORE_SPRITE_AT(bank_, index_)                                       \
-    ((GsSPRITE *)((u8 *)(bank_) + (index_) * sizeof(GsSPRITE)))
+/* Round-10: every function-like draw macro (DRAW_SCORE_NUMBER family,
+ * DRAW_SCORE_COLON, SCORE_SPRITE_AT) is EXPANDED to its literal per-site
+ * text, verified byte-identical (same cpp token stream, same .o sha256).
+ * cpp expands textually, so this is the same program cc1 always saw --
+ * but each of the ~13 draw/colon/bank sites is now INDEPENDENTLY tunable,
+ * which a shared macro spelling forbade.  */
 
 /* The persistent high-score block, addressed by CONSTANT rather than through a
  * pointer local.  This is not cosmetic: with a pointer variable the address is
@@ -583,241 +681,6 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
  * expand's EXPAND_SUM/form_sum sorts the constant term LAST, emitting
  * `addu t,index,base` -- the target's operand order. */
 #define SCORE_STATE ((MissionScorePersistent *)0x80010000)
-
-/* This is deliberately a macro.  Retail repeats the decimal loop at every
- * call site, with fresh arithmetic identities but shared sign/base-U state. */
-#define DRAW_SCORE_Y_SEED_0(carrier_, y_) ((carrier_) = (y_))
-#define DRAW_SCORE_Y_SEED_1(carrier_, y_) ((carrier_) = (y_))
-#define DRAW_SCORE_Y_SEED_PICK_(jump_, carrier_, y_)                         \
-    DRAW_SCORE_Y_SEED_##jump_(carrier_, y_)
-#define DRAW_SCORE_Y_SEED_PICK(jump_, carrier_, y_)                          \
-    DRAW_SCORE_Y_SEED_PICK_(jump_, carrier_, y_)
-
-#define DRAW_SCORE_Y_STORE_0(sprite_, carrier_, y_) ((sprite_)->y = (y_))
-#define DRAW_SCORE_Y_STORE_1(sprite_, carrier_, y_) ((sprite_)->y = (carrier_))
-#define DRAW_SCORE_Y_STORE_PICK_(jump_, sprite_, carrier_, y_)               \
-    DRAW_SCORE_Y_STORE_##jump_(sprite_, carrier_, y_)
-#define DRAW_SCORE_Y_STORE_PICK(jump_, sprite_, carrier_, y_)                \
-    DRAW_SCORE_Y_STORE_PICK_(jump_, sprite_, carrier_, y_)
-
-/* VALUE_SEED_V: memory-sourced sites define value first, then narrow.
- * VALUE_SEED_S: computed sites define the signed value first, then copy. */
-#define DRAW_SCORE_VALUE_SEED_V(value_, type_)                               \
-    (value = (value_), signedValue = (type_)value)
-/* Computed sites paste the expression twice; cse turns the second
- * evaluation into the retail value-copy of the signed carrier. */
-#define DRAW_SCORE_VALUE_SEED_S(value_, type_)                               \
-    (signedValue = (value_), value = (value_))
-
-#define DRAW_SCORE_NUMBER(value_, type_, jump_, label_, sprite_, x_, y_)     \
-    do                                                                       \
-    {                                                                        \
-        GsSPRITE *drawnSprite;                                               \
-                                                                             \
-        drawnSprite = (sprite_);                                             \
-        DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, drawnSprite,        \
-                           x_, y_, V);                                       \
-    } while (0)
-#define DRAW_SCORE_NUMBER_SV(value_, type_, jump_, label_, sprite_, x_, y_)  \
-    do                                                                       \
-    {                                                                        \
-        GsSPRITE *drawnSprite;                                               \
-                                                                             \
-        drawnSprite = (sprite_);                                             \
-        DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, drawnSprite,        \
-                           x_, y_, S);                                       \
-    } while (0)
-/* The subtraction draw's carrier is a plain s32 (u8 - u8 int arithmetic):
- * the subu itself IS signedValue (single def, no sll/sra), and `value` is
- * the paste-twice cse copy, which sched sinks into the sign branch's delay
- * slot.  Everything else matches the jump_=1 shape. */
-/* Draw 1 reuses the function-scoped `sprite` pointer (also the row's
- * character-sprite carrier): the merged pseudo outranks rowSprite, blocking
- * s2 for it, which rotates rowSprite->s3 and negative/sprite->s2 (target). */
-#define DRAW_SCORE_NUMBER_SV32(value_, label_, sprite_, x_, y_)               \
-    do                                                                       \
-    {                                                                        \
-        s32 dividend;                                                        \
-        s32 remainder;                                                       \
-        s32 quotient;                                                        \
-        u16 value;                                                           \
-        s32 signedValue;                                                     \
-        s32 drawY;                                                           \
-                                                                             \
-        signedValue = (value_);                                              \
-        value = signedValue;                                                 \
-        drawY = (y_);                                                        \
-        (sprite_)->x = (x_);                                                 \
-        (sprite_)->y = drawY;                                                \
-        sprite = (sprite_);                                                  \
-        if (signedValue < 0)                                                 \
-        {                                                                    \
-            value = -signedValue;                                            \
-            negative = 1;                                                    \
-            goto label_;                                                     \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-            negative = 0;                                                    \
-        }                                                                    \
-label_:                                                                      \
-        do                                                                   \
-        {                                                                    \
-            dividend = (s16)value;                                           \
-            quotient = dividend / 10;                                        \
-            remainder = dividend % 10;                                       \
-            baseU = sprite->u;                                          \
-            sprite->u = baseU + (s16)remainder * sprite->w;        \
-            GsSortSprite(sprite, OTablePt, 0);                           \
-            sprite->x -= 12;                                            \
-            value = quotient;                                                \
-            quotient <<= 16;                                                 \
-            sprite->u = baseU;                                          \
-        } while (quotient != 0);                                             \
-        if (negative != 0)                                                   \
-        {                                                                    \
-            u32 signBaseU;                                                   \
-                                                                             \
-            signBaseU = sprite->u;                                      \
-            sprite->u = signBaseU + sprite->w * ten;               \
-            GsSortSprite(sprite, OTablePt, 0);                           \
-            sprite->u = signBaseU;                                      \
-        }                                                                    \
-    } while (0)
-
-/* The row site's carrier is an s16 whose HImode add needs NO pre-extension
- * of i (addiu straight off the promoted register); `value` is u16 so the
- * copy is a plain HImode move (no andi).  The sign test then emits the
- * carrier's sll/sra extension pair right before the branch — the carrier
- * dies there, so the extension result inherits its register.  Draws go
- * through the pre-loop rowSprite pointer directly (no drawnSprite copy). */
-#define DRAW_SCORE_NUMBER_ROW32(value_, label_, spr_, x_, y_)                 \
-    do                                                                       \
-    {                                                                        \
-        s32 dividend;                                                        \
-        s32 remainder;                                                       \
-        s32 quotient;                                                        \
-        u16 value;                                                           \
-        s16 signedValue;                                                     \
-        s32 widenedValue;                                                    \
-        s32 drawY;                                                           \
-        register s32 negative;                                               \
-                                                                             \
-        signedValue = (value_);                                              \
-        value = signedValue;                                                 \
-        drawY = (y_);                                                        \
-        (spr_)->x = (x_);                                                    \
-        (spr_)->y = drawY;                                                   \
-        widenedValue = signedValue;                                          \
-        if (widenedValue < 0)                                                \
-        {                                                                    \
-            value = -widenedValue;                                           \
-            negative = 1;                                                    \
-            goto label_;                                                     \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-            negative = 0;                                                    \
-        }                                                                    \
-label_:                                                                      \
-        do                                                                   \
-        {                                                                    \
-            dividend = (s16)value;                                           \
-            quotient = dividend / 10;                                        \
-            remainder = dividend % 10;                                       \
-            baseU = (spr_)->u;                                               \
-            (spr_)->u = baseU + (s16)remainder * (spr_)->w;                  \
-            GsSortSprite((spr_), OTablePt, 0);                                \
-            (spr_)->x -= 12;                                                 \
-            value = quotient;                                                \
-            quotient <<= 16;                                                 \
-            (spr_)->u = baseU;                                               \
-        } while (quotient != 0);                                             \
-        if (negative != 0)                                                   \
-        {                                                                    \
-            u32 signBaseU;                                                   \
-                                                                             \
-            signBaseU = (spr_)->u;                                           \
-            (spr_)->u = signBaseU + (spr_)->w * ten;                         \
-            GsSortSprite((spr_), OTablePt, 0);                                \
-            (spr_)->u = signBaseU;                                           \
-        }                                                                    \
-    } while (0)
-
-#define DRAW_SCORE_NUMBER_(value_, type_, jump_, label_, spr_, x_, y_,       \
-                           seed_)                                            \
-    do                                                                       \
-    {                                                                        \
-        s32 dividend;                                                        \
-        s32 remainder;                                                       \
-        s32 quotient;                                                        \
-        u32 value;                                                           \
-        s16 signedValue;                                                     \
-        s32 drawY;                                                           \
-                                                                             \
-        DRAW_SCORE_VALUE_SEED_##seed_(value_, type_);                        \
-        DRAW_SCORE_Y_SEED_PICK(jump_, drawY, y_);                            \
-        (spr_)->x = (x_);                                                    \
-        DRAW_SCORE_Y_STORE_PICK(jump_, spr_, drawY, y_);                     \
-        if (jump_)                                                           \
-        {                                                                    \
-            if (signedValue < 0)                                             \
-            {                                                                \
-                value = -signedValue;                                        \
-                negative = 1;                                                \
-                goto label_;                                                 \
-            }                                                                \
-            else                                                             \
-            {                                                                \
-                negative = 0;                                                \
-            }                                                                \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-            negative = 0;                                                    \
-            if (signedValue >= 0)                                            \
-                goto label_;                                                 \
-            value = -signedValue;                                            \
-            negative = 1;                                                    \
-        }                                                                    \
-label_:                                                                      \
-        do                                                                   \
-        {                                                                    \
-            dividend = (s16)value;                                           \
-            quotient = dividend / 10;                                        \
-            remainder = dividend % 10;                                       \
-            baseU = (spr_)->u;                                               \
-            (spr_)->u = baseU + (s16)remainder * (spr_)->w;                  \
-            GsSortSprite((spr_), OTablePt, 0);                                \
-            (spr_)->x -= 12;                                                 \
-            value = quotient;                                                \
-            quotient <<= 16;                                                 \
-            (spr_)->u = baseU;                                               \
-        } while (quotient != 0);                                             \
-        if (negative != 0)                                                   \
-        {                                                                    \
-            u32 signBaseU;                                                   \
-                                                                             \
-            signBaseU = (spr_)->u;                                           \
-            (spr_)->u = signBaseU + (spr_)->w * ten;                         \
-            GsSortSprite((spr_), OTablePt, 0);                                \
-            (spr_)->u = signBaseU;                                           \
-        }                                                                    \
-    } while (0)
-
-#define DRAW_SCORE_COLON(sprite_, x_)                                        \
-    do                                                                       \
-    {                                                                        \
-        u8 oldU;                                                             \
-        s32 colonDigit;                                                      \
-                                                                             \
-        number.x = (x_);                                                     \
-        oldU = (sprite_)->u;                                                 \
-        colonDigit = 12;                                                     \
-        (sprite_)->u = oldU + (sprite_)->w * colonDigit;                     \
-        GsSortSprite((sprite_), OTablePt, 0);                                 \
-        (sprite_)->u = oldU;                                                 \
-    } while (0)
 
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/mission_score_screen", mission_score_screen);
@@ -834,7 +697,6 @@ void mission_score_screen(void)
     register u_long *tim;
     register u_long *archive;
     register GsSPRITE *initSprite;
-    register GsSPRITE *numberSprite;
     register GsSPRITE *sprite;
     register GsSPRITE *medal;
     register GsSPRITE *medalDraw;
@@ -846,7 +708,6 @@ void mission_score_screen(void)
     register s32 stageItem;
     register s32 goNext;
     register s32 rankColour;
-    s32 ten;
     u32 baseU;
     register s32 negative;
     s32 insertedRank;
@@ -898,7 +759,7 @@ score_rank_sprite_init_loop:
         u32 width;
 
         tim = get_tim_from_archive(archive, i);
-        initSprite = SCORE_SPRITE_AT(rankSprites, i);
+        initSprite = ((GsSPRITE *)((u8 *)(rankSprites) + (i) * sizeof(GsSPRITE)));
         InitScoreSprite(tim, &image, initSprite);
         attribute = initSprite->attribute;
         initSprite->x = -160;
@@ -910,8 +771,8 @@ score_rank_sprite_init_loop:
         initSprite->mx = width >> 1;
         initSprite->attribute = attribute | attributeMask;
         initSprite->my = initSprite->h >> 1;
-        SCORE_SPRITE_AT(rankSprites, i)->mx = 0;
-        SCORE_SPRITE_AT(rankSprites, i)->my = 0;
+        ((GsSPRITE *)((u8 *)(rankSprites) + (i) * sizeof(GsSPRITE)))->mx = 0;
+        ((GsSPRITE *)((u8 *)(rankSprites) + (i) * sizeof(GsSPRITE)))->my = 0;
         LoadTIM(tim);
         }
         i++;
@@ -944,8 +805,8 @@ score_character_sprite_init_loop:
             initSprite->b = characterColour;
             initSprite->mx = width >> 1;
             initSprite->my = height >> 1;
-            SCORE_SPRITE_AT(characterSprites, i)->mx = 0;
-            SCORE_SPRITE_AT(characterSprites, i)->my = 0;
+            ((GsSPRITE *)((u8 *)(characterSprites) + (i) * sizeof(GsSPRITE)))->mx = 0;
+            ((GsSPRITE *)((u8 *)(characterSprites) + (i) * sizeof(GsSPRITE)))->my = 0;
             LoadTIM(tim);
         }
         i++;
@@ -979,7 +840,7 @@ score_character_sprite_init_loop:
                 insertedRank = i;
                 break;
             }
-            if (SCORE_STATE->grades[i] == result.grade &&
+            if (result.grade == SCORE_STATE->grades[i] &&
                 stats.clock < SCORE_STATE->scores[i])
             {
                 insertedRank = i;
@@ -1018,8 +879,6 @@ score_character_sprite_init_loop:
     }
 
     _PlayMusic(12, 1);
-    ten = 10;
-    numberSprite = &number;
     for (;;)
     {
         u16 pad = GetRealPad(0);
@@ -1040,28 +899,621 @@ score_character_sprite_init_loop:
         DrawBG(tail.background);
         FUN_800515b0(&number, stats.clock, 0x46, -0x61, 1);
 
-        DRAW_SCORE_NUMBER(stats.criticals, s32, 1, score_number_0,
-                          &number, 0x16, -0x47);
-        DRAW_SCORE_COLON(numberSprite, 0x1F);
-        DRAW_SCORE_NUMBER_SV32(stats.stageEnemies - stats.stageBosses,
-                               score_number_1, numberSprite, 0x2F, -0x47);
-        DRAW_SCORE_NUMBER(result.field0, s16, 1, score_number_2,
-                          &number, 0x66, -0x47);
+        do
+        {
+            GsSPRITE *drawnSprite;
 
-        DRAW_SCORE_NUMBER(stats.murders, s32, 0, score_number_3,
-                          &number, 0x16, -0x35);
-        DRAW_SCORE_COLON(numberSprite, 0x1F);
-        DRAW_SCORE_NUMBER(stats.stageEnemies, s32, 0, score_number_4,
-                          numberSprite, 0x2F, -0x35);
-        DRAW_SCORE_NUMBER(result.field2, s16, 0, score_number_5,
-                          &number, 0x66, -0x35);
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
 
-        DRAW_SCORE_NUMBER(stats.findEnemies, s32, 0, score_number_6,
-                          &number, 0x23, -0x24);
-        DRAW_SCORE_NUMBER(result.field6, s16, 0, score_number_7,
-                          &number, 0x66, -0x24);
-        DRAW_SCORE_NUMBER(result.score, s16, 0, score_number_8,
-                          &number, 0x66, -0x12);
+                ((drawY) = (-0x47));
+                (value = (stats.criticals), signedValue = (s32)value);
+                (drawnSprite)->x = (0x16);
+                ((drawnSprite)->y = (drawY));
+                if (1)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_0;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_0;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_0:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+        do
+        {
+            u8 oldU;
+            s32 colonDigit;
+            GsSPRITE *numberSprite;
+
+            numberSprite = &number;
+            number.x = (0x1F);
+            oldU = (numberSprite)->u;
+            colonDigit = 12;
+            (numberSprite)->u = oldU + (numberSprite)->w * colonDigit;
+            GsSortSprite((numberSprite), OTablePt, 0);
+            (numberSprite)->u = oldU;
+        } while (0);
+        do
+        {
+            s32 dividend;
+            s32 remainder;
+            s32 quotient;
+            u16 value;
+            s32 signedValue;
+            s32 drawY;
+            GsSPRITE *numberSprite;
+
+            do {
+                numberSprite = &number;
+            } while (0);
+            signedValue = (stats.stageEnemies - stats.stageBosses);
+            value = signedValue;
+            drawY = (-0x47);
+            (numberSprite)->x = (0x2F);
+            (numberSprite)->y = drawY;
+            sprite = (numberSprite);
+            if (signedValue < 0)
+            {
+                value = -signedValue;
+                negative = 1;
+                goto score_number_1;
+            }
+            else
+            {
+                negative = 0;
+            }
+        score_number_1:
+            do
+            {
+                dividend = (s16)value;
+                quotient = dividend / 10;
+                remainder = dividend % 10;
+                baseU = sprite->u;
+                sprite->u = baseU + (s16)remainder * sprite->w;
+                GsSortSprite(sprite, OTablePt, 0);
+                sprite->x -= 12;
+                value = quotient;
+                quotient <<= 16;
+                sprite->u = baseU;
+            } while (quotient != 0);
+            if (negative != 0)
+            {
+                u32 signBaseU;
+                s32 ten;
+
+                ten = 10;
+                signBaseU = sprite->u;
+                sprite->u = signBaseU + sprite->w * ten;
+                GsSortSprite(sprite, OTablePt, 0);
+                sprite->u = signBaseU;
+            }
+        } while (0);
+        do
+        {
+            GsSPRITE *drawnSprite;
+
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (result.field0), signedValue = (s16)value);
+                ((drawY) = (-0x47));
+                (drawnSprite)->x = (0x66);
+                ((drawnSprite)->y = (drawY));
+                if (1)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_2;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_2;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_2:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+
+        do
+        {
+            GsSPRITE *drawnSprite;
+
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (stats.murders), signedValue = (s32)value);
+                ((drawY) = (-0x35));
+                (drawnSprite)->x = (0x16);
+                ((drawnSprite)->y = (-0x35));
+                if (0)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_3;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_3;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_3:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+        do
+        {
+            u8 oldU;
+            s32 colonDigit;
+            GsSPRITE *numberSprite;
+
+            numberSprite = &number;
+            number.x = (0x1F);
+            oldU = (numberSprite)->u;
+            colonDigit = 12;
+            (numberSprite)->u = oldU + (numberSprite)->w * colonDigit;
+            GsSortSprite((numberSprite), OTablePt, 0);
+            (numberSprite)->u = oldU;
+        } while (0);
+        do
+        {
+            GsSPRITE *drawnSprite;
+            GsSPRITE *numberSprite;
+
+            numberSprite = &number;
+            drawnSprite = (numberSprite);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (stats.stageEnemies), signedValue = (s32)value);
+                ((drawY) = (-0x35));
+                (drawnSprite)->x = (0x2F);
+                ((drawnSprite)->y = (-0x35));
+                if (0)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_4;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_4;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_4:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+        do
+        {
+            GsSPRITE *drawnSprite;
+
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (result.field2), signedValue = (s16)value);
+                ((drawY) = (-0x35));
+                (drawnSprite)->x = (0x66);
+                ((drawnSprite)->y = (-0x35));
+                if (0)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_5;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_5;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_5:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+
+        do
+        {
+            GsSPRITE *drawnSprite;
+
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (stats.findEnemies), signedValue = (s32)value);
+                ((drawY) = (-0x24));
+                (drawnSprite)->x = (0x23);
+                ((drawnSprite)->y = (-0x24));
+                if (0)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_6;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_6;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_6:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+        do
+        {
+            GsSPRITE *drawnSprite;
+
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (result.field6), signedValue = (s16)value);
+                ((drawY) = (-0x24));
+                (drawnSprite)->x = (0x66);
+                ((drawnSprite)->y = (-0x24));
+                if (0)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_7;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_7;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_7:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
+        do
+        {
+            GsSPRITE *drawnSprite;
+
+            drawnSprite = (&number);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s16 signedValue;
+                s32 drawY;
+
+                (value = (result.score), signedValue = (s16)value);
+                ((drawY) = (-0x12));
+                (drawnSprite)->x = (0x66);
+                ((drawnSprite)->y = (-0x12));
+                if (0)
+                {
+                    if (signedValue < 0)
+                    {
+                        value = -signedValue;
+                        negative = 1;
+                        goto score_number_8;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                }
+                else
+                {
+                    negative = 0;
+                    if (signedValue >= 0)
+                        goto score_number_8;
+                    value = -signedValue;
+                    negative = 1;
+                }
+        score_number_8:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (drawnSprite)->u;
+                    (drawnSprite)->u = baseU + (s16)remainder * (drawnSprite)->w;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (drawnSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = (drawnSprite)->u;
+                    (drawnSprite)->u = signBaseU + (drawnSprite)->w * ten;
+                    GsSortSprite((drawnSprite), OTablePt, 0);
+                    (drawnSprite)->u = signBaseU;
+                }
+            } while (0);
+        } while (0);
 
         if (result.grade == RANK_GRAND_MASTER)
         {
@@ -1097,10 +1549,64 @@ score_character_sprite_init_loop:
             } while (0); } while (0); } while (0); } while (0);
 score_row_loop:
             {
-                DRAW_SCORE_NUMBER_ROW32(i + 1, score_row_number,
-                                        rowSprite, -0x8F, i * 0x16 + 0x18);
+                do
+                {
+                    s32 dividend;
+                    s32 remainder;
+                    s32 quotient;
+                    u16 value;
+                    s16 signedValue;
+                    s32 widenedValue;
+                    s32 drawY;
+                    register s32 negative;
+
+                    signedValue = (i + 1);
+                    value = signedValue;
+                    drawY = (i * 0x16 + 0x18);
+                    (rowSprite)->x = (-0x8F);
+                    (rowSprite)->y = drawY;
+                    widenedValue = signedValue;
+                    if (widenedValue < 0)
+                    {
+                        value = -widenedValue;
+                        negative = 1;
+                        goto score_row_number;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+                score_row_number:
+                    do
+                    {
+                        dividend = (s16)value;
+                        quotient = dividend / 10;
+                        remainder = dividend % 10;
+                        baseU = (rowSprite)->u;
+                        (rowSprite)->u = baseU + (s16)remainder * (rowSprite)->w;
+                        GsSortSprite((rowSprite), OTablePt, 0);
+                        (rowSprite)->x -= 12;
+                        value = quotient;
+                        quotient <<= 16;
+                        (rowSprite)->u = baseU;
+                    } while (quotient != 0);
+                    if (negative != 0)
+                    {
+                        u32 signBaseU;
+                        s32 ten;
+
+                        ten = 10;
+                        signBaseU = (rowSprite)->u;
+                        (rowSprite)->u = signBaseU + (rowSprite)->w * ten;
+                        GsSortSprite((rowSprite), OTablePt, 0);
+                        (rowSprite)->u = signBaseU;
+                    }
+                } while (0);
                 FUN_800515b0(&number, SCORE_STATE->scores[i],
                              0x79, i * 0x16 + 0x18, 1);
+                {
+                    s32 rowScopePad;
+                }
 
                 sprite = &characterSprites[SCORE_STATE->characters[i]];
                 sprite->x = -0x79;

@@ -6558,6 +6558,62 @@ struct to make the slots land there. A second, non-circular signature: retail sa
 `$t1` **in the jal delay slot** and restores in **reverse order** at block end — no
 source-level store is emitted that way.
 
+### The loop.c movable budget: preheader ORDER is a chain, and lifetime is buyable for free
+
+**mission_score_screen's 76-byte drop (330 -> 254) came from this, and it is
+mechanically verified against the pinned loop.c.** Four facts:
+
+**1. Preheader hoist order = movable CHAIN order.** `move_movables` emits hoists in
+scan order of each group head's SET, and **all of them land after any
+source-preheader insn**. So a source-level assignment can NEVER follow a loop.c
+hoist. To place `reg = const` or `reg = &frameobj` AFTER the magic constant, it must
+itself be a movable whose head scans later — i.e. **seed it per site** (set-once,
+same-block-use) so `combine_movables` merges the sites and emits at the first site's
+scan position.
+
+**2. `combine_movables` merges same-value SET-ONCE movables** — and note
+`n_times_used` is a *copy of* `n_times_set`, so multi-USE members merge fine. It
+sums savings and lifetimes into the first head.
+
+**3. The gate is a shrinking budget:**
+`threshold * savings * lifetime >= insn_count`, with **`threshold -= 3` for every
+movable already moved** (loop.c:1728) and `threshold0 = (has_call ? 1 : 2) * (1 +
+n_non_fixed_regs)`. Every verdict is printed in the `-dL` dump
+(`tools/rtldump.py <Name> --pass loop`) — **read it rather than modelling it.**
+Five groups had to clear in chain order here (drawY, magic, ten, ns, and the row
+`0x80010000` group).
+
+**4. A bare `{ s32 pad; }` scope block buys LIFETIME FOR FREE.** BLOCK_BEG/END notes
+**receive luids** (loop.c:404) but are not insns — so a scope block stretches a
+movable's lifetime **with zero byte, cse, or instruction-count effect**. That is
+what got the row group over `savings x life >= 47` at threshold 17. It is the
+lifetime-sibling of the cse-blocking `do{}while(0)` fence: same "free scaffolding"
+family, different currency.
+
+### Recurring t-register constants are the fingerprint of a hoisted-and-SPILLED movable group
+
+When the target shows the same constant materialised into `$t` registers at several
+sites (`li t0`/`li t2`), that is a **matched-movable group that was hoisted and then
+spilled**: reload rematerialises it at each use and deletes the preheader set.
+**`local_alloc` cannot produce that shape** — post-call windows hand out `$v0`/`$a0`,
+not `$t`. So the `$t` class itself tells you the value went through loop.c.
+
+### Fence the SEED, not the copy
+
+`do { ns = &number; } while(0); … sprite = ns;` blocks cse1's re-canonicalisation
+identically to fencing the copy, but leaves the copy **free to schedule**. Fencing
+the copy instead pinned it into a branch delay slot. When a fence has a choice of
+site, put it on the DEFINITION.
+
+Related loop.c facts from the same run, all verified in the pinned source:
+* `reg_single_usage` **substitutes-and-deletes** a set-once single-use pointer when
+  the folded address stays legitimate — and absolute constant addresses ARE
+  legitimate (`CONSTANT_ADDRESS_P`). Index-scaled uses survive.
+* **Dead probes never reach loop.c**: `delete_trivially_dead_insns` iterates.
+* **Fences are "phony" loops to loop.c**, but their `LOOP_END` still ends cse1's
+  block — and **cse2 crosses notes**, so a fence can NEVER permanently split
+  same-value `lui`s.
+
 ### A fence weights EVERY allocno the statement mentions — not just your target
 
 **This cost AddEnemy three rounds and 7 bytes.** A depth-19 fence on
@@ -6753,26 +6809,37 @@ outcome is pure `allocno_compare` ORDER, and the lever is priority, not preferen
   is not a naive per-insn count. `.flow` IS the pre-combine dump and it is the
   one that fails.) Use this oracle before believing any claim that a regalloc
   model is reading the wrong dump.
-- **A shared local MACRO is a MEGA-EXPANSION — the mega-pseudo mistake one level
-  up. Expand it per site.** Measured across the whole corpus: **0 of 593 matched
-  drafts contain a function-like local `#define`; of 51 parked drafts only 3 do —
-  and they are precisely the three most stubborn functions in the project**
-  (mission_score_screen 17 macros / 9 rounds, AddEnemy 5 / 7 rounds,
-  StageEndScreen 2 / parked). Size is not the discriminator: DamageControl
+- **A shared local MACRO does not make BYTES wrong — it makes the FIX
+  UNWRITABLE. Expand it per site.** *(Reworded after mission_score_screen's
+  Fable-max science run measured both halves of the original claim.)*
+
+  **The codegen half is REFUTED.** Expanding all 17 of mission_score_screen's
+  function-like macros to literal per-site text is byte-identical: same cpp token
+  stream AND same `.o` sha256, with a live canary proving the pipeline detects a
+  1-byte source change. **Macros cost zero bytes**; cpp expands textually and cc1
+  always compiled each site separately anyway. Do not expect an expansion to move
+  a single byte on its own.
+
+  **The editability half is CONFIRMED, and it is worth a lot.** The first two
+  per-site variations tried after expanding were worth **76 bytes** (330 -> 254),
+  and both were *inexpressible* through the shared spelling: a per-site `ten = 10`
+  inside each sign arm, and per-site `numberSprite = &number` seeds. A macro forces
+  N sites to share ONE spelling, so any per-site variation the original had cannot
+  be written down — the residual then concentrates exactly where the sites must
+  differ.
+
+  The corpus correlation is real and still worth knowing: **0 of 593 matched drafts
+  contain a function-like local `#define`; of 51 parked drafts only 3 do — and they
+  are the three most stubborn functions in the project** (mission_score_screen 17
+  macros, AddEnemy 5, StageEndScreen 2). Size is not the discriminator: DamageControl
   (5812 B), ActSTICKON (3248 B), LoadConstruction and CVAupdate are all large,
-  macro-free, and matched.
-  **Why**: a macro forces N call sites to share ONE spelling, but the original
-  author wrote each site and cc1 compiled each in its own context (register
-  pressure, live ranges, neighbours). Any per-site variation the original had is
-  inexpressible, so the residual concentrates exactly where the sites must
-  differ. The history shows it directly — every time a lane SPLIT a macro, bytes
-  fell (mission_score_screen's row draw became its own `_ROW32` macro: 476→437,
-  and its own note says "the row's flag was a distinct local in the original").
-  **The refactor is FREE**: cpp expands a macro textually before cc1 sees
-  anything, so replacing a call with its expansion is byte-neutral BY
-  CONSTRUCTION — verify the count is unchanged, then tune each site
-  independently. (AddEnemy confirmed the neutrality three ways: identical
-  preprocessed token streams, a byte-identical `.o`, and an unchanged matchdiff.)
+  macro-free, and matched. But read the correlation correctly — the macro is a
+  symptom of a decomposition that cannot express the original's per-site variation,
+  not a cause of wrong bytes.
+
+  **So: expand FIRST (free, byte-neutral BY CONSTRUCTION — verify the count is
+  unchanged), then tune each site independently. The expansion is not the win; it
+  is what makes the win writable.**
   - **Honest scope, measured on AddEnemy: the MECHANISM is real but hidden bytes
     are NOT guaranteed.** Its `FENCE_10` genuinely drove THREE unrelated sites
     from one dial, and the sites are independently sensitive with different

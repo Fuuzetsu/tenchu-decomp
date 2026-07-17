@@ -40,6 +40,7 @@ Hard register numbers: 0 zero, 1 at, 2 v0, 3 v1, 4-7 a0-a3, 8-15 t0-t7, 16-23 s0
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import shutil
 import subprocess
@@ -72,9 +73,15 @@ PASS_FLAG = {
 }
 DEFAULT_PASSES = ["greg", "lreg", "jump", "combine"]
 
-SCRATCH = os.environ.get(
-    "CLAUDE_SCRATCH",
-    os.path.join(tempfile.gettempdir(), "tenchu-rtldump"),
+# Key the dump directory to THIS worktree. The old default was a bare shared
+# `<tmp>/tenchu-rtldump`, so every concurrent agent wrote RTL dumps for the same
+# function name to the same path — and a lane was nearly misled by a sibling's
+# stale `.greg` before it noticed and overrode CLAUDE_SCRATCH by hand. Dumps are
+# the ground truth these tools reason from; a torn read there produces confident
+# nonsense, which is the same failure the private-scratch rule exists to prevent.
+SCRATCH = os.environ.get("CLAUDE_SCRATCH") or os.path.join(
+    tempfile.gettempdir(),
+    "tenchu-rtldump-" + hashlib.sha1(ROOT.encode()).hexdigest()[:10],
 )
 
 
