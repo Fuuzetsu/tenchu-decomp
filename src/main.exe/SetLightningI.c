@@ -120,11 +120,69 @@
  * needs local-alloc.c's block_alloc actually traced. TOOL TICKET
  * (regalloc --local): print local-alloc's qty walk (order, birth/death
  * luids, suggestion passes) the way --order does for global allocnos; this
- * residual class is invisible to every current tool. Note the no-carrier
- * spelling (z -= (u16)ViewInfo.vpz, 29 bytes) is structurally CLOSER to the
- * target (its vpz recycles the base register as the target's does; the
- * carrier's dest hijack caps this form above ~8) — a next round that cracks
- * the walk order should restart from that 29 form, not from this 15.
+ * residual class is invisible to every current tool (still absent as of
+ * this round — regalloc.py --help carries no --local flag).
+ *
+ * ROUND 2 (this round — restarted from 29 per the handoff, as directed):
+ *   - Fresh bounded permuter (post -fno-builtin fix, so the pre-existing
+ *     negatives were void per the day's brief) found NOTHING better from
+ *     EITHER seed: 240s/~17.9k iters from the banked 15 (best stayed
+ *     base.c); a second 240s/~18k-iter run from the 21-byte checkpoint
+ *     below (a structurally different, pure-operand-diff neighbourhood the
+ *     15-seeded search never saw) also stayed at base. Both authoritative
+ *     rescores confirm: no candidate beat its own seed.
+ *   - Manually traced local-alloc.c's block_alloc/qty_compare/QTY_CMP_PRI
+ *     against the raw .lreg + .sched dumps (ccsrc.py) and derived the
+ *     mechanism the earlier TOOL TICKET couldn't reach by formula alone:
+ *     the target's register reuse is TWO CHAINS — {hi,base,vpz} on v1 (the
+ *     address computation naturally extends into holding vpz's own value,
+ *     since base is only consumed once more after vpz's load) and {x,vpy}
+ *     on v0 (needs the explicit carrier, since x's death and vpy's birth
+ *     are otherwise unrelated). The chain only self-overwrites correctly
+ *     when vpy's access is scheduled BEFORE vpz's — if vpz's load happens
+ *     first, base is still needed for the upcoming vpy load and can't be
+ *     overwritten, forcing an extra register. Every combination that let
+ *     vpz's access get prioritized ahead of vpy's (below) cost bytes.
+ *   - Exhaustively swept the reachable Y/Z carrier x pointer combinations
+ *     on the 29-byte base (each independently built and measured):
+ *       plain Y      + plain Z      = 29 (the base)
+ *       pointer Y    + plain Z      = 29 (nullcheck: real edit, 0 effect —
+ *                                     a REG_EQUIV pointer alone does nothing
+ *                                     without the carrier already present)
+ *       carrier(x) Y + plain Z      = 28
+ *       carrier(x) Y + carrier(y) Z = LENGTH MISMATCH (grew 4 bytes)
+ *       carrier(x) Y + carrier(x) Z = 77, 10 clusters (x's pseudo reused a
+ *                                     3rd time destabilizes GLOBAL alloc
+ *                                     function-wide — the compiler-facts.md
+ *                                     "+1 cascade" class, not a local tie)
+ *       carrier(x) Y + pointer Z    = 21 (closest non-banked point; still
+ *                                     wrong because Z's fresh pointer beats
+ *                                     Y's carrier for scheduling priority,
+ *                                     violating the vpy-before-vpz order)
+ *       pointer Y    + pointer Z    = 29
+ *       pointer(vpyp)Y + carrier(x) Z = 15 (the banked form — confirmed the
+ *                                     unique best of this space)
+ *     15 is a genuine local optimum of the reachable carrier/pointer
+ *     combinator space, not an overlooked spot in it.
+ *   - Also tested reversing the entry `long x, y, z;` block's declaration
+ *     order to `long z, y, x;` per PSX.SYM's reverse-listing rule (listed
+ *     x,y,z -> declared z,y,x): nullcheck confirms a real codegen change,
+ *     but the final bytes are IDENTICAL to the unreversed form — a new
+ *     verified-inert data point, not a lever here (sched1's block-scan
+ *     birth order evidently doesn't chain back to raw declaration REGNO in
+ *     a way that survives to the qty walk for this specific block).
+ *   - Net: no ordering, pointer/carrier combination, or permuter seed
+ *     reachable this round beats 15. The remaining gap is specifically
+ *     WHY the target's sched1 places vpy's load before x's store even
+ *     dies (an anti-dependency the carrier reproduces) while ALSO ordering
+ *     vpy before vpz with no comparable source-level anti-dependency
+ *     forcing that second half — i.e. two coupled scheduling decisions,
+ *     and only one is currently reproducible from C. The no-carrier 29
+ *     form's note (vpz recycles the base register the way the target does)
+ *     still stands as the structurally-closer starting shape; what's now
+ *     also established is that the SPECIFIC combination needed on top of
+ *     it is narrower than "the walk order" alone suggests — it is this
+ *     Y-before-Z scheduling coupling, not just a qty priority reordering.
  */
 
 #ifndef NON_MATCHING
