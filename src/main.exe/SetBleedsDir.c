@@ -42,51 +42,55 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — the guarded C now has the target's exact 876-byte /
- * 219-instruction extent and linked-image layout. Thirteen bytes remain in
- * the six-instruction store tail; the default build keeps the byte-identical
- * INCLUDE_ASM stub.
- *
- * Matching notes (against SetBleed.c/SetBleeds.c, the same EffectSlot[200]
+ * Matched. Notes (against SetBleed.c/SetBleeds.c, the same EffectSlot[200]
  * pool spawner family — see their headers for the idiom writeups):
  *  - `SetBleedsDir` is the "given direction" variant: `pos` is jittered by
  *    `grange` (same 3-axis default-then-conditionally-overwritten idiom as
- *    SetBleeds' `grange`/`srange` jitter), but `vec` (the direction) is
- *    copied VERBATIM into `v` — no srange/jitter step for it at all (that's
- *    the whole "Dir" distinction from SetBleeds, which jitters both).
- *  - Stack layout is the structural key (the now-matched SetBleeds.c proves
- *    the idiom): npos@sp+0x10, v@sp+0x20, scratch t@sp+0x28. Position jitter
- *    is built as a VECTOR through `(VECTOR *)&v`, spanning v and t after a
- *    16-byte memset, then block-copied into npos. The direction is built in
- *    t after an 8-byte memset and block-copied into v. This recovered the
- *    target's two throwaway-scratch copies and the exact 0x58-byte frame.
- *  - Each position axis is a full if/else with its base load before the
- *    branch. Naming `g = grange` shares the one target sign extension across
- *    grange2 and all six arms.
- *  - `time` splits as `half = time / 8; rem = time - half; btime = half +
- *    (rem>0 ? rand()%rem : 0);` — note the DIVISOR is 8 here, not 2 like
- *    SetBleeds' half-split; confirmed by the raw `.s`'s `sra ,3`/`+7`
- *    round-toward-zero shift sequence (the standard signed-divide-by-
- *    power-of-2 compilation), not a `sra ,1`.
- *  - The inner shadow block (`VECTOR *pos = &npos`, `int time = btime`) and
- *    SetBleed.c's hand-rolled pool scan recover the target a3/t0 carriers,
- *    count/update branches, and single source `n--` duplicated by reorg.
- *  - `grange * 2`/`rand() % grange2` needs maspsx `--expand-div` for this
- *    file (division by a variable) — added to Build.hs/permute.py.
+ *    SetBleeds' jitter), but `vec` (the direction) is copied VERBATIM into
+ *    `v` — no srange/jitter step for it at all (that's the whole "Dir"
+ *    distinction from SetBleeds, which jitters both).
+ *  - Stack layout: npos@sp+0x10, v@sp+0x20, scratch t@sp+0x28. Position
+ *    jitter is built as a VECTOR through `(VECTOR *)&v`, spanning v and t
+ *    after a 16-byte memset, then block-copied into npos. The direction is
+ *    built in t after an 8-byte memset and block-copied into v. This gives
+ *    the target's two throwaway-scratch copies and the exact 0x58 frame.
+ *  - The `time` split's DIVISOR is 8 here, not 2 like SetBleeds' half-split:
+ *    the `.s` shows the `bgez`/`+7`/`sra ,3` round-toward-zero sequence.
+ *    `time / 8` is spelled out at all three sites (cse1 folds them into the
+ *    one `sra`); a named `half` temp also matches but is not needed.
+ *  - `rand() % (g * 2)` needs maspsx `--expand-div` for this file (division
+ *    by a variable) — already in Build.hs/permute.py.
  *
- * RESIDUAL: the target materializes DrawBleed in v0 before the time/b/mode
- * byte stores, then places the proc store in the loop-back jump's delay slot.
- * Putting the assignment last preserves that delay-slot store but schedules
- * the address after the byte stores (19 bytes); putting it before those
- * fields, retained below, improves to 13 bytes but stores the proc early and
- * puts mode in the delay slot. A named proc, one-shot fence, and identical-arm
- * carrier either stayed at 19 or disturbed the otherwise-exact allocation.
- * This is the remaining sched/reload tie; do not regress the proven scratch
- * layout or narrow the VECTOR values / 0..200 scan counters to chase it.
+ *  - THE KEY, and why this sat parked at 13/19 bytes: `g * 2` MUST be spelled
+ *    inline at its three loop-body sites rather than hoisted into a
+ *    `grange2 = g * 2;` temp before the loop. Not for the multiply itself —
+ *    cse/loop still hoist it back out to the single `sll s2,s3,0x1` in the
+ *    prologue — but purely for its effect on loop.c's INSN COUNT.
+ *
+ *    cc1's loop.c hoists a loop-invariant only when
+ *        threshold * savings * lifetime >= insn_count      (loop.c:1640)
+ *    with threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)
+ *    = 1 * (1 + 28) = 29 here. The `high`/`lo_sum` pair for DrawBleed's
+ *    address gets savings 2 / lifetime 2 from force_movables (loop.c:1200),
+ *    which rewards a high->lo_sum chain, so its score is 29*2*2 = 116.
+ *    With `grange2` precomputed the loop is 114 real insns, 116 >= 114 holds,
+ *    and loop.c hoists DrawBleed's address to the function entry. It is then
+ *    live across the whole loop (across rand()/memset()) with no callee-saved
+ *    register free, so it gets no hard reg and reload REMATERIALIZES it from
+ *    its REG_EQUAL note at the use site — emitting lui/addiu glued to the sw,
+ *    after sched1 has already run. That single cause produced all three
+ *    symptoms of the old park: address in the wrong register (a reload temp,
+ *    t1, not v0), address not hoisted above the byte stores, and the proc
+ *    store not sinking into the delay slot.
+ *
+ *    Inlining `g * 2` at 3 sites lifts the loop to 117 real insns, 116 >= 117
+ *    is false, loop.c leaves the address in the tail block as ordinary insns,
+ *    and sched1 then schedules them into the target's exact order. The margin
+ *    is TWO insns: 115 still hoists, 117 does not. Verified against the
+ *    matched sibling SetBleeds, whose loop is 135 real insns and which
+ *    therefore never hoists (its `.loop` log says "not desirable"), and
+ *    against the demo build, whose SetBleedsDir has the identical tail.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetBleedsDir", SetBleedsDir);
-#else
 extern void DrawBleed(TEffectSlot *ef);
 extern void *memset(void *s, int c, u32 n);
 extern int rand(void);
@@ -96,15 +100,12 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
     VECTOR npos;
     SVECTOR v;
     SVECTOR t;
-    int grange2;
     long b;
     int g;
-    int half;
     int rem;
     int btime;
 
     g = grange;
-    grange2 = g * 2;
     do
     {
         if (n <= 0)
@@ -113,27 +114,27 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         }
         memset(&v, 0, sizeof(VECTOR));
         b = pos->vx;
-        if (grange2 > 0)
+        if (g * 2 > 0)
         {
-            ((VECTOR *)&v)->vx = b + (rand() % grange2 - g);
+            ((VECTOR *)&v)->vx = b + (rand() % (g * 2) - g);
         }
         else
         {
             ((VECTOR *)&v)->vx = b - g;
         }
         b = pos->vy;
-        if (grange2 > 0)
+        if (g * 2 > 0)
         {
-            ((VECTOR *)&v)->vy = b + (rand() % grange2 - g);
+            ((VECTOR *)&v)->vy = b + (rand() % (g * 2) - g);
         }
         else
         {
             ((VECTOR *)&v)->vy = b - g;
         }
         b = pos->vz;
-        if (grange2 > 0)
+        if (g * 2 > 0)
         {
-            ((VECTOR *)&v)->vz = b + (rand() % grange2 - g);
+            ((VECTOR *)&v)->vz = b + (rand() % (g * 2) - g);
         }
         else
         {
@@ -146,15 +147,14 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         t.vz = vec->vz;
         v = t;
 
-        half = time / 8;
-        rem = time - half;
+        rem = time - time / 8;
         if (rem > 0)
         {
-            btime = rand() % rem + half;
+            btime = rand() % rem + time / 8;
         }
         else
         {
-            btime = half;
+            btime = time / 8;
         }
         {
             VECTOR *pos = &npos;
@@ -204,11 +204,10 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             ef->param.bleed.vec = v;
             fp->r = r;
             fp->g = col >> 8;
-            ef->proc = (void (*)())DrawBleed;
             fp->time = time;
             fp->b = col;
             fp->mode = 0;
+            ef->proc = (void (*)())DrawBleed;
         }
     } while (1);
 }
-#endif

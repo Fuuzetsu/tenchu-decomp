@@ -254,6 +254,45 @@ PASS_ORDER = ["rtl", "jump", "addressof", "cse", "loop", "cse2", "bp", "flow",
               "combine", "sched", "lreg", "greg", "sched2", "jump2", "dbr"]
 
 
+def loop_log(result):
+    """Print `.loop`'s own movable decision log — cc1 states its verdicts outright.
+
+    This is the third artifact in a row that cc1 PRINTS and no tool surfaced (after
+    sched's priority table and sched2's ready list). SetBleedsDir's whole 13-byte
+    residual was one line of it, and the lane found it only by reading the raw dump:
+
+        ours:      Insn 363: regno 164 (life 2), move-insn savings 2  moved to 388
+        SetBleeds: Insn 455: regno 194 (life 2), move-insn savings 2 not desirable
+
+    Identical movable, opposite verdicts, one discriminator: the loop's REAL INSN
+    COUNT. loop.c:1640 hoists when `threshold * savings * lifetime >= insn_count`,
+    with `threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` = 29 for this
+    cc1/MIPS. A `high`/`lo_sum` address pair gets savings 2 / lifetime 2 from
+    `force_movables` (loop.c:1200), so it scores 116 and hoists out of ANY loop of
+    <= 116 real insns.
+    """
+    dump = next((p for p in result["dumps"] if p.endswith(".loop")), None)
+    if dump is None:
+        print("  rtldump: --loop-log needs the `loop` pass (add it to --pass)")
+        return
+    lines = [ln.rstrip() for ln in open(dump, errors="replace").read().splitlines()
+             if ("Loop from" in ln or "moved to" in ln or "not desirable" in ln
+                 or "not worth moving" in ln)]
+    print(f"\n  --- .loop movable decisions ({len(lines)} lines) ---")
+    for ln in lines:
+        mark = "   <-- HOISTED" if "moved to" in ln else ""
+        print(f"  {ln}{mark}")
+    print("  Gate: threshold*savings*lifetime >= insn_count (loop.c:1640); threshold =")
+    print("  (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs) = 29 here. A high/lo_sum")
+    print("  address pair scores 116, so it hoists out of any loop of <= 116 real "
+          "insns.")
+    print("  A hoisted symbol_ref that then gets no hard reg is REMATERIALISED by "
+          "reload at")
+    print("  its use site AFTER sched1 — which looks like three separate bugs. See")
+    print('  docs/matching-cookbook.md, "A loop-invariant symbol_ref address that '
+          'reload".')
+
+
 def trace_insn(result, uid, want):
     """Print one insn's RTL across every dumped pass, in cc1's own pass order.
 
@@ -312,6 +351,13 @@ def main() -> None:
     ap.add_argument("--src", help="override the .c path")
     ap.add_argument("--lines", action="store_true",
                     help="preserve C-line notes and emit a line-mapped .o/.objdump")
+    ap.add_argument("--loop-log", action="store_true",
+                    help="surface `.loop`'s own MOVABLE DECISION LOG (`Loop from A to "
+                         "B: N real insns` + per-insn `moved to N` / `not desirable`). "
+                         "cc1 prints it and NOTHING pointed at it: a lane called it "
+                         "'the single highest-value artifact here' and found it only by "
+                         "reading the raw dump. The gate is "
+                         "threshold*savings*lifetime >= insn_count (loop.c:1640).")
     ap.add_argument("--trace", metavar="UID", type=int,
                     help="print insn UID across EVERY pass, in pass order — the "
                          "single highest-value ask from three lanes, each of which "
@@ -355,6 +401,8 @@ def main() -> None:
         print(f"  lines:  {result['objdump']}")
     if err:
         print(f"  cc1 stderr: {err.splitlines()[-1]}")
+    if args.loop_log:
+        loop_log(result)
     if args.trace is not None:
         trace_insn(result, args.trace, want)
     print("\n  reg legend: 2 v0  3 v1  4-7 a0-a3  8-15 t0-t7  16-23 s0-s7  30 fp  31 ra")

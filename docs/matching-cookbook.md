@@ -7182,6 +7182,49 @@ struct to make the slots land there. A second, non-circular signature: retail sa
 `$t1` **in the jal delay slot** and restores in **reverse order** at block end — no
 source-level store is emitted that way.
 
+### A loop-invariant `symbol_ref` reload REMATERIALISES is a loop.c HOIST-THRESHOLD artifact — the lever is the loop's INSN COUNT
+
+**Three symptoms that look like three separate bugs are ONE cause**, and this park
+diagnosed them as "a register difference plus a store placement — possibly two":
+* the address lands in a **reload temp** instead of the allocator's register,
+* it **fails to hoist** above neighbouring stores,
+* its store **won't sink** into a delay slot.
+
+**Mechanism**: loop.c hoisted `(set (reg) (symbol_ref))` to the preheader; the pseudo
+is live across the loop's calls with no callee-saved register free, so it gets **no
+hard reg**, and **reload rematerialises it from its `REG_EQUAL` note** — emitting
+`lui/addiu` glued to the `sw` **after sched1 has already run**, where no scheduler can
+separate them.
+
+**Diagnose in ONE step**: `tools/rtldump.py <Name> --pass loop --loop-log` prints
+cc1's own verdicts. The comparison that cracked SetBleedsDir:
+
+```
+ours:      Loop from 33 to 380: 114 real insns.
+  Insn 363: regno 164 (life 2), move-insn savings 2  moved to 388   <- HOISTED
+SetBleeds: Loop from 49 to 472: 135 real insns.
+  Insn 455: regno 194 (life 2), move-insn savings 2 not desirable   <- NOT
+```
+
+**Identical movable, opposite verdicts, one discriminator: the loop's REAL INSN
+COUNT.** The gate is `threshold * savings * lifetime >= insn_count` (loop.c:1640) with
+`threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` = **29** for this
+cc1/MIPS. A `high`/`lo_sum` pair gets `savings 2 / lifetime 2` from `force_movables`
+(loop.c:1200), so an address scores **116 and hoists out of ANY loop of <= 116 real
+insns**.
+
+**The fix is to make the loop BIGGER**: spell a precomputed loop-invariant temp
+(`grange2 = g * 2`) **INLINE at its use sites**. cse/loop hoist the value straight back
+out, so the asm is unchanged — but the extra pre-loop-pass insns lift `insn_count` past
+the gate. SetBleedsDir: 114 -> 117, `116 >= 117` false, address stays in the tail, sched1
+emits the target's order. **The margin is TWO insns** (115 hoists, 117 does not).
+
+**Verify against a matched sibling's `.loop` count** — SetBleeds' 135-insn loop never
+hoists; SetBleedsDir's 114-insn one always did. (And read the sibling's C: SetBleeds
+puts `ef->proc` LAST, which this park had recorded as a *failed* attempt worth 19 bytes.
+**The 13-byte state was a local optimum AWAY from the original source and the note
+enshrined it.**)
+
 ### The loop.c movable budget: preheader ORDER is a chain, and lifetime is buyable for free
 
 **mission_score_screen's 76-byte drop (330 -> 254) came from this, and it is
