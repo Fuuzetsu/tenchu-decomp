@@ -2774,6 +2774,36 @@ This costs one look at the carve and can dissolve an entire park. `tools/asmdiff
 <Name>` shows the residual; then read whether the target's own repeated blocks are
 identical. If they are and only one of yours matches, stop looking at the compiler.
 
+### GIVE THE VALUE THE VARIABLE'S IDENTITY — the load IS the variable, not a temp
+
+**When the target reuses ONE register across a load, its multiply, and the product**:
+
+```
+  lbu  a0,X(s0)      <- load
+  mult a0,a2         <- multiply
+  mflo a0            <- product        ALL $a0
+```
+
+…the load is **not a separate temp — it IS the variable**. Split the one-expression form:
+
+```c
+    start = param->start_color.channel.r;   /* NOT: start = ...r * inverse; */
+    start = start * inverse;
+```
+
+cc1 2.8.1 **cannot fold a load into `mulsi3_internal`** (its operands are
+`register_operand`), so the load survives as its own insn — but now writes **the
+variable's pseudo** instead of a fresh local that `local_alloc` colours independently.
+DrawImpact: **28 -> 8** on that one line. The converse applies to a shift carrier:
+`v = v >> 12;` as **its own statement** makes `sra` reuse the register — **8 -> 4**.
+
+**Diagnose by asking whether the TARGET's load and product share a register — not by
+counting differing registers.** DrawImpact's park called it "a coupled allocation cycle
+needing new identity/preference evidence" and sent three rounds chasing preferences;
+the whole cycle was one missing identity, and fixing it dissolved every symptom at once
+(`ratio`->`a3`, end-colour load->`a1`, size quotient->`v0` all fell out together). The
+register the symptom appears in is the LAST thing allocated, not the cause.
+
 ### TWO REGISTERS FOR ONE VALUE MEANS THE ORIGINAL HAD TWO VARIABLES — read it off the target
 
 **gcc 2.8.1 never splits a live range: one C variable gets ONE hard register for
@@ -2914,6 +2944,20 @@ RHS), so folding a load into a store's RHS —
 `.rtl` dump** (measured: line 15 -> line 66, chain A now ahead of it) and **still
 produces a BYTE-IDENTICAL object** (`nullcheck`: same hash). The RTL moved; the bytes
 did not.
+
+### CHECK THE DEMO IS THE SAME FUNCTION before trusting its body — or its PSX.SYM header
+
+**The demo build is a DIFFERENT BUILD, and some functions were rewritten wholesale
+between it and retail.** DrawImpact's demo body is **236 bytes against retail's 772**,
+with **6 of 193 instructions matching (ratio 0.05)**. `siblingdiff --demo` is a dead end
+there — and worse, **the PSX.SYM header's local list describes the 236-byte DEMO body**,
+so reading "3 register locals" as a retail spec is reading the wrong function.
+
+**Check the size ratio first.** A demo twin at ~1:1 is an oracle (it settled four
+functions this session); a demo twin at 0.05 is a different function wearing the same
+name. The header already warns that the demo's frame/mask are the DEMO's — this extends
+to its LOCALS, and the failure is quieter because a plausible local list invites you to
+trust it.
 
 ### `siblingdiff.py --demo` is an oracle for SCHEDULE-SHAPE, not just statement shape
 

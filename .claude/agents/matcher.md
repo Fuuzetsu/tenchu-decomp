@@ -85,17 +85,20 @@ the baseline source on SIGTERM/SIGHUP; after any abnormal exit, verify `git diff
 and rebuild before continuing.
 
 **Run the permuter SYNCHRONOUSLY and bounded — never as a background task you then
-wait on.** Always wrap it: `nix develop --command bash -c 'timeout 300 tools/permute.py <Name> -- --stop-on-zero -j4'`.
+wait on.** Always wrap it: `nix develop --command bash -c 'timeout 240 tools/permute.py <Name> -- --stop-on-zero -j4'`.
 Set the Bash TOOL CALL's own timeout parameter WELL above the inner `timeout` (e.g.
 600000 ms).
 
-**Budget generously, because the inner `timeout` bounds the SEARCH, not the tool.**
-On SIGTERM permute deliberately rescores what the search retained — which runs
-BUILDS — so the process legitimately lives past its own timeout. A lane set
-`timeout 420` under a 480 s tool timeout, watched it still alive at 526 s, and the
-harness backgrounded the call: the exact antipattern this rule exists to prevent.
-`nix develop`'s startup is charged to the tool timeout but not the inner one, which
-eats the margin too. 300 inner / 600 tool leaves room for both.
+**The inner `timeout` bounds the SEARCH, not the tool** — on SIGTERM permute rescores
+what the search retained, one FULL LINK per candidate. That used to be unbounded and
+made the whole wrapper unusable: one lane watched it alive at 526 s under a 420 s
+bound; another had inner bounds of BOTH 300 s and 240 s blow through the harness's
+**600 000 ms hard cap** (a larger tool timeout is silently clamped), reporting that
+"the documented 300/600 guidance cannot work". permute now enforces its own 90 s
+rescore deadline and says how many candidates it skipped, so `timeout 240` + a
+600000 ms tool timeout fits with room for `nix develop`'s startup (which is charged to
+the tool timeout but not the inner one). Override with `PERMUTE_RESCORE_SECONDS=<n>`
+if you genuinely need every candidate rescored.
 
 **Do not `pkill -f "tools/permute.py <Name>"`** — the pattern SELF-MATCHES the
 invoking shell and kills your own bash (a lane exited 144 that way). Kill by PID.

@@ -29,25 +29,42 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawImpact", DrawImp
 #else
 
 /*
- * STATUS: NON_MATCHING — complete pure-C behavior with the target's exact
- * 772-byte / 193-instruction extent and exact physical CFG (19 conditional
- * branches, 2 jumps, 5 calls, 1 return).  The guarded draft has 28 differing
- * linked bytes and 23 aligned residual lines in 16 blocks; fuzzy is 88.08%.
+ * STATUS: NON_MATCHING — 4 of 772 bytes differ (was 28).  Exact 772-byte /
+ * 193-instruction extent, exact physical CFG, and exact instruction sequence;
+ * the residual is 2 register fields, mirrored across the green and blue
+ * channels: the start-colour load is $v0 where the target uses $a0.
  *
- * Writing the signed fixed-point quotients as `/ 0x1000` lets cc1 create the
- * target's short-lived product temporaries instead of one over-reused `end`
- * pseudo, reducing the residual from 53 bytes to 33.  The one-shot wrapper
- * around the px capture is byte-neutral: its LOOP_END scheduling boundary
- * restores the target px/py/super/pz load order and reduces 33 to 28.
+ * WHAT FIXED 28 -> 4 (both instances of ONE rule; see the cookbook entry
+ * "Give the value the variable's identity"):
+ *   - `start = param->start_color.channel.r; start = start * inverse;`
+ *     instead of the one-expression `start = ...r * inverse;`.  The load then
+ *     IS the `start` pseudo rather than a separate local temp, reproducing the
+ *     target's `lbu a0,18(s0) / mult a0,a2 / mflo a0` (all $a0).  This ALSO
+ *     dissolved the whole "coupled allocation cycle" the previous checkpoint
+ *     described: ratio -> $a3, the end-colour load -> $a1 and the size
+ *     quotient -> $v0 all fell out at once.  28 -> 8.
+ *   - `start2 = start2 >> 12;` as its own statement before the store, so the
+ *     shifted value is `start2` itself: `sra v1,v1,0xc` (was `sra a1,v1,0xc`).
+ *     8 -> 4.
  *
- * The remainder is one coupled caller-register allocation cycle: ratio is
- * $t0 instead of $a3, the shared end-colour load is $a3 instead of $a1, the
- * first size quotient is $a1 instead of $v0, and the three start-colour loads
- * use $v0 instead of $a0 (with the corresponding green/blue shift carrier).
- * A bounded 220-candidate RTL-guided sweep found no result below 28; further
- * work should begin from new identity/preference evidence, not broad fences.
+ * The previous note's diagnosis was inverted.  It read the four wrong
+ * registers as one irreducible cycle needing "new identity/preference
+ * evidence"; in fact ratio's $t0 was a SYMPTOM.  The cause was the shared
+ * `end_raw` mega-pseudo (6 refs) winning $a3 at allocation slot #9 and exiling
+ * ratio (priority 2068, slot #18) to $t0 — confirmed with `regalloc.py
+ * --order`.  Splitting `end_raw` per site does fix ratio -> $a3 on its own,
+ * but costs +4 bytes; the identity rule above fixes it for free and subsumes
+ * it, so `end_raw` stays shared here.
+ *
+ * The remaining 4 bytes: green/blue want the load in $a0 while their product
+ * stays in $v1 ($start2), so unlike red the load must be a SEPARATE pseudo
+ * that nonetheless lands on $a0.  It is a local_alloc colour (`;; Register N
+ * in 2.` in .lreg), taken before global_alloc runs, and local_alloc walks hard
+ * regs numerically and takes $v0 as the lowest free.  Measured and rejected:
+ * routing green/blue loads through `start` (20 bytes — extends `start`'s range
+ * to $a1); operand swap `inverse * ...` (4, but emits `mult a2,v0`); a shared
+ * per-channel load carrier; autorules (54 candidates, nothing).
  */
-
 #include "effect.h"
 
 typedef union
@@ -119,7 +136,8 @@ void DrawImpact(TEffectSlot *ef)
 
     size = (start >> 12) + (param->end_size * ratio) / 0x1000;
 
-    start = param->start_color.channel.r * inverse;
+    start = param->start_color.channel.r;
+    start = start * inverse;
     end_raw = param->end_color.channel.r;
     if (start < 0)
     {
@@ -133,7 +151,8 @@ void DrawImpact(TEffectSlot *ef)
     {
         start2 = start2 + 0xfff;
     }
-    spr->g = (start2 >> 12) + (end_raw * ratio) / 0x1000;
+    start2 = start2 >> 12;
+    spr->g = start2 + (end_raw * ratio) / 0x1000;
 
     start2 = param->start_color.channel.b * inverse;
     end_raw = param->end_color.channel.b;
@@ -141,7 +160,8 @@ void DrawImpact(TEffectSlot *ef)
     {
         start2 = start2 + 0xfff;
     }
-    spr->b = (start2 >> 12) + (end_raw * ratio) / 0x1000;
+    start2 = start2 >> 12;
+    spr->b = start2 + (end_raw * ratio) / 0x1000;
 
     do
     {

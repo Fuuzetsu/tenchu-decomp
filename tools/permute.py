@@ -681,13 +681,32 @@ def authoritative_rescore(name, work, csh):
     with open(LINKER) as stream:
         linker_text = stream.read()
     addr, extent = matchdiff.symbol_slot(name)
-    results = []
+    # The rescore runs one FULL LINK per retained candidate, and it runs AFTER the
+    # search's `timeout` has already fired -- so `timeout 300 permute.py` bounds the
+    # SEARCH, not the tool. Two lanes were bitten: one watched the process alive at
+    # 526 s under a 420 s bound; another had inner bounds of 300 s AND 240 s both blow
+    # through the harness's 600 000 ms HARD CAP, reporting "the documented 300/600
+    # guidance cannot work". Enforce our own wall-clock deadline over the rescore and
+    # report what we have, rather than being killed mid-loop with nothing.
+    budget = float(os.environ.get("PERMUTE_RESCORE_SECONDS", "90"))
+    started = time.monotonic()
+    results, skipped = [], 0
     with tempfile.TemporaryDirectory(prefix=f"tenchu-permute-{name}-") as scratch:
         for ordinal, source in enumerate(sources):
+            if ordinal and time.monotonic() - started > budget:
+                skipped = len(sources) - ordinal
+                break
             results.append(_link_candidate(
                 name, csh, source, scratch, ordinal, linker_text,
                 original, addr, extent, sources[0],
             ))
+    if skipped:
+        # Never silently truncate a measurement -- say what was dropped.
+        print(f"\npermute: rescore DEADLINE hit ({budget:.0f}s) — {skipped} of "
+              f"{len(sources)} candidate(s) NOT rescored.")
+        print("  The ones below are real; the skipped ones are unknown, not bad. "
+              "Raise with")
+        print("  PERMUTE_RESCORE_SECONDS=<n> if you need them all.")
 
     valid = sorted((result for result in results if "whole" in result),
                    key=lambda result: (result["whole"], result["window"],
