@@ -32,6 +32,52 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
+/* STATUS: NON_MATCHING — 11 of 1076 bytes differ (10 insns, all in loop 1).
+ *
+ * Exact instruction sequence; the ONLY residual is a 3-cycle register
+ * rotation in the bitmap-fill loop:
+ *     col (inner var)  ours $a1  <->  target $t0
+ *     bits             ours $t1  <->  target $a1
+ *     fill_white       ours $t0  <->  target $t1
+ *
+ * DIAGNOSIS (global.c allocno_compare, verified against all 25 allocnos of
+ * this function via tools/regalloc.py):
+ *     priority = floor_log2(n_refs) * n_refs / live_length * 10000
+ * where n_refs is LOOP-DEPTH-WEIGHTED (each RTL mention counts its depth).
+ * Measured here: col 16/30 -> 21333, font 19/43 -> 17674, v 35/111 -> 15765,
+ * fill_white 19/80 -> 9500, bits 7/19 -> 7368. Allocation walks that order and
+ * takes the lowest free reg (MIPS REG_ALLOC_ORDER v0,v1,a0,a1,a2,a3,t0,t1...),
+ * which reproduces our a1,a2,a3,t0,t1 exactly.
+ *
+ * The target's registers require the order  bits > font > v > col > fill_white.
+ * So bits must outrank font: >17674 needs n_refs >= 12 at live_length 19.
+ * bits has exactly TWO RTL mentions -- def at loop depth 3 (+3) and one use at
+ * depth 4 (+4) = 7, and that is forced by the (already byte-identical) insn
+ * sequence. Every extra mention costs an instruction. The only other way to
+ * claim $a1 from last place is a hard-reg preference (regs_someone_prefers),
+ * and gcc-2.8.1 records those ONLY from a pseudo<->hard-reg copy, i.e. a call;
+ * loop 1 contains none. Both levers are therefore out of reach from C.
+ *
+ * MEASURED, so the next lane need not re-derive (all rebuilt + matchdiff'd):
+ *   - col == u merged (PSX.SYM lists one `u`):  11 -> 38. Refuted. Target's
+ *     loop-1 inner var and loop-2 `u` share $t0 but are NOT one variable --
+ *     merging raises n_refs, so the pseudo allocates EARLIER and takes a LOWER
+ *     reg ($a2), displacing font.
+ *   - `*pixel = 0x7fff` literal instead of fill_white: LENGTH 1084 != 1076.
+ *     Refuted -- fill_white must be a real local despite PSX.SYM's 7-local list.
+ *   - dropping `final_u = fill_white`: 11 -> 33, but it DOES move fill_white
+ *     t0->t1 (correct!) by removing one depth-4 ref. This is the one verified
+ *     lever on this residual; it regresses the tail because final_u is reused
+ *     at the GetTPage block.
+ *   - byte-swap inlined into the `if` (as Ghidra renders it): 11 -> 13. loop.c
+ *     still hoists it to 0x80057384, and the rotation is UNCHANGED -- an
+ *     explicit variable and a loop-hoisted temp score identically. It also
+ *     shows the target's srl-before-sll needs the two-statement form
+ *     (`bits = raw_bits >> 8; bits |= raw_bits << 8;`); the fused expression
+ *     flips the operand order.
+ *   - tools/autorules.py: no improving edit among 73 candidates.
+ *   - tools/permute.py, bounded 300s -j4 --stop-on-zero: no improvement.
+ */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupTelop", SetupTelop);
 #else
