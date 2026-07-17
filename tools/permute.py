@@ -62,6 +62,7 @@ CC_EXTRA_FLAGS = {
     # under different flags than the build is searching a different program.
     "MemCardCallback": ["-mno-split-addresses"],
     "GS_107_OBJ_4B8": ["-mno-split-addresses"],
+    "GS_107_OBJ_51C": ["-mno-split-addresses"],
 }
 AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").split()
 LD = "mipsel-unknown-linux-gnu-ld"

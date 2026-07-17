@@ -726,7 +726,8 @@ segments:
       - [0x54B00, c, GsMulCoord3]
       - { start: 0x54B80, type: data, linker_section_order: .text }
       - [0x5529C, c, GS_107_OBJ_4B8]
-      - { start: 0x55300, type: data, linker_section_order: .text }
+      - [0x55300, c, GS_107_OBJ_51C]
+      - { start: 0x5534C, type: data, linker_section_order: .text }
       - [0x56304, c, dmyGsPrstF3NL]
       - [0x5634C, c, dmyGsPrstF3LFG]
       - [0x56394, c, dmyGsPrstF3L]

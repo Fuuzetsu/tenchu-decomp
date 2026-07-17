@@ -524,6 +524,7 @@ ccExtraFlags :: FilePath -> [String]
 ccExtraFlags src = case takeBaseName src of
   "MemCardCallback" -> ["-mno-split-addresses"]
   "GS_107_OBJ_4B8" -> ["-mno-split-addresses"]
+  "GS_107_OBJ_51C" -> ["-mno-split-addresses"]
   _ -> []
 
 cppFlags :: [String]
@@ -607,7 +608,7 @@ main = do
             -- "3": one-time bump so every .s rule recorded the GpFlags oracle
             -- dependency. "4": recompile after adding the LIBMCRD-specific
             -- cc flag; command-line contents are not otherwise tracked.
-            shakeVersion = "4"
+            shakeVersion = "5"
           }
   shakeArgs opts rules
 
@@ -615,6 +616,7 @@ rules :: Rules ()
 rules = do
   _ <- addOracle (liftIO . runIdOracle)
   _ <- addOracle (\(GpFlags f) -> pure (maspsxGpExterns f))
+  _ <- addOracle (\(CcFlags f) -> pure (ccExtraFlags f))
   want [mainExe]
   objRules
   mapM_ exeRules targets
@@ -680,8 +682,9 @@ objRules = do
     -- reproduces ASPSX's bytes; it leaves INCLUDE_ASM's .include/.section/.set
     -- directives untouched, so stubs pass through unchanged.
     gpFlags <- askOracle (GpFlags processed)
+    ccExtra <- askOracle (CcFlags processed)
     withTempFile $ \ccOut -> do
-      cmd_ (FileStdin processed) (FileStdout ccOut) cc (ccFlags <> ccExtraFlags processed)
+      cmd_ (FileStdin processed) (FileStdout ccOut) cc (ccFlags <> ccExtra)
       cmd_ (FileStdin ccOut) (FileStdout out) maspsx
         (maspsxFlags <> gpFlags)
 
@@ -1023,6 +1026,28 @@ instance NFData GpFlags
 instance Binary GpFlags
 
 type instance RuleResult GpFlags = [String]
+
+-- | The per-file cc1 extra flags. IDENTICAL bug to GpFlags above, and it sat
+-- here unnoticed because the table had exactly one entry (MemCardCallback) that
+-- never changed after it was added. The moment a second entry arrived it bit:
+-- adding @-mno-split-addresses@ for a function did NOT rebuild its @.s@, so the
+-- flag silently did not apply and the experiment measured a STALE object —
+-- reporting "the flag does nothing" for a function the flag demonstrably does
+-- change (verified by running cc1 directly both ways). @touch@ does not help
+-- either: Shake keys on CONTENT. A per-TU compiler-input flag whose effect
+-- depends on whether you happened to edit the source in the same breath is worse
+-- than no flag at all. Same oracle treatment: the @.s@ now depends on the flag
+-- VALUE.
+newtype CcFlags = CcFlags FilePath
+  deriving (Generic, Show, Eq)
+
+instance Hashable CcFlags
+
+instance NFData CcFlags
+
+instance Binary CcFlags
+
+type instance RuleResult CcFlags = [String]
 
 data GenData = GenData
   { lastRunId :: UUID.UUID,
