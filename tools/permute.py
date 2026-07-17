@@ -77,6 +77,8 @@ CC_EXTRA_FLAGS = {
     "FUN_80059008": ["-fno-strength-reduce"],
     "FUN_80059ff4": ["-fno-strength-reduce"],
     "FUN_8005a3cc": ["-fno-strength-reduce"],
+    "FUN_8005961c": ["-fno-strength-reduce"],
+    "FUN_80059b08": ["-fno-strength-reduce"],
 }
 AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").split()
 LD = "mipsel-unknown-linux-gnu-ld"

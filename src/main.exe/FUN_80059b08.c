@@ -1,197 +1,234 @@
 #include "common.h"
 #include "main.exe.h"
+#include "gte.h"
 
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80059b08", FUN_80059b08);
+/*
+ * FUN_80059b08 (0x80059b08, 0x4ec bytes) — DecodeTMD-family primitive
+ * renderer, the 1.00 mnemonic clone of FUN_8005961c (the POLY_GT4 pair of
+ * the family; all members share the (u_short *, u_long, u_long *, int,
+ * u_long *) signature). The ONLY differences from FUN_8005961c are the
+ * record layout constants: rec starts at param_1+0x14 (not +0x20), the four
+ * UV words sit at rec-0x10..rec-4 (not rec-0x1C..rec-0x10), all FOUR
+ * per-vertex colour words read the ONE source word at rec+0 (the
+ * flat-colour variant — FUN_8005961c reads four distinct words at
+ * rec-0xC..rec+0), and the record stride is 0x20 (not 0x2C). Everything
+ * else — including every matching note — is FUN_8005961c.c verbatim; read
+ * that file's header for the full mechanism account.
+ *
+ * Matching notes: applies the FUN_80059ff4 recipe verbatim (read that
+ * header); -fno-strength-reduce for this TU (Build.hs ccExtraFlags +
+ * permute.py CC_EXTRA_FLAGS). New vs the leaf: work lives as TWO variables
+ * (work + the prim copy — the packet accesses go through prim, the context
+ * fields through work); flagAddr is a precomputed loop invariant (used by
+ * BOTH gte_stflg sites); the 52-byte POLY_GT4 struct assignment emits a
+ * 3-chunk movstrsi loop + 4-byte remainder.
+ */
 
-// triage: VERY-HARD — 315 insns, 7 GTE CMD — UN-SPLITTABLE (as can't assemble), 2 loop, 0 callees, ~0.04 to DeleteConflict
-// likely-relevant cookbook sections:
-//   - Loops: 2 back-edge(s) — for/while/do vs goto shape
-//   - Toolchain gotchas: GTE command opcodes — `as` rejects them, so the per-function split does not even assemble; needs the GTE->.word pass first
+typedef struct {
+    u_long tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad2;
+    u8 r3, g3, b3, p3;
+    s16 x3, y3;
+    u8 u3, v3;
+    u16 pad3;
+} POLY_GT4; /* 52 bytes — reference/psxsym-types.h */
 
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// uint * FUN_80059b08(int param_1,int param_2,uint *param_3,int param_4,uint *param_5)
-//
-// {
-//   uint uVar1;
-//   int iVar2;
-//   int iVar3;
-//   uint uVar4;
-//   uint uVar5;
-//   uint *puVar6;
-//   int iVar7;
-//   int iVar8;
-//   uint uVar9;
-//   CVECTOR *pCVar10;
-//   uint *puVar11;
-//   uint *puVar12;
-//   uint *r0;
-//   uint *puVar13;
-//   uint *r0_00;
-//   uint *r0_01;
-//   uint *puVar14;
-//   undefined4 uVar15;
-//
-//   if (param_4 != 0) {
-//     r0_00 = param_5 + 0x1d;
-//     puVar14 = param_5 + 1;
-//     uVar15 = 0x3c;
-//     r0_01 = param_5 + 0x17;
-//     puVar13 = (uint *)(param_1 + 0x14);
-//     r0 = param_5;
-//     do {
-//       gte_ldv3((SVECTOR *)((uint)(ushort)puVar13[1] * 8 + param_2),
-//                (SVECTOR *)((uint)*(ushort *)((int)puVar13 + 6) * 8 + param_2),
-//                (SVECTOR *)((uint)(ushort)puVar13[2] * 8 + param_2));
-//       gte_rtpt();
-//       r0[3] = puVar13[-4];
-//       r0[6] = puVar13[-3];
-//       r0[9] = puVar13[-2];
-//       gte_stflg((long *)r0_00);
-//       if (-1 < (int)param_5[0x1d]) {
-//         gte_nclip();
-//         r0[1] = *puVar13;
-//         *(char *)((int)puVar14 + 3) = (char)uVar15;
-//         gte_stopz((long *)(param_5 + 0x20));
-//         if (0 < (int)param_5[0x20]) {
-//           gte_stsxy3_gt3(r0);
-//           gte_ldv0((SVECTOR *)((uint)*(ushort *)((int)puVar13 + 10) * 8 + param_2));
-//           gte_rtps();
-//           r0[0xc] = puVar13[-1];
-//           r0[4] = *puVar13;
-//           r0[7] = *puVar13;
-//           r0[10] = *puVar13;
-//           gte_stflg((long *)r0_00);
-//           if (-1 < (int)param_5[0x1d]) {
-//             gte_stsxy((long *)(r0 + 0xb));
-//             iVar7 = (int)(short)r0[2];
-//             iVar2 = (int)(short)r0[5];
-//             iVar8 = iVar7;
-//             if (iVar2 < iVar7) {
-//               iVar8 = iVar2;
-//               iVar2 = iVar7;
-//             }
-//             iVar3 = (int)(short)r0[8];
-//             iVar7 = iVar3;
-//             if ((iVar8 <= iVar3) && (iVar7 = iVar8, iVar2 < iVar3)) {
-//               iVar2 = iVar3;
-//             }
-//             iVar3 = (int)(short)r0[0xb];
-//             iVar8 = iVar3;
-//             if ((iVar7 <= iVar3) && (iVar8 = iVar7, iVar2 < iVar3)) {
-//               iVar2 = iVar3;
-//             }
-//             if (((int)param_5[0x25] <= iVar2) && (iVar8 <= (int)param_5[0x26])) {
-//               iVar7 = (int)*(short *)((int)r0 + 10);
-//               iVar2 = (int)*(short *)((int)r0 + 0x16);
-//               iVar8 = iVar7;
-//               if (iVar2 < iVar7) {
-//                 iVar8 = iVar2;
-//                 iVar2 = iVar7;
-//               }
-//               iVar3 = (int)*(short *)((int)r0 + 0x22);
-//               iVar7 = iVar3;
-//               if ((iVar8 <= iVar3) && (iVar7 = iVar8, iVar2 < iVar3)) {
-//                 iVar2 = iVar3;
-//               }
-//               iVar3 = (int)*(short *)((int)r0 + 0x2e);
-//               iVar8 = iVar3;
-//               if ((iVar7 <= iVar3) && (iVar8 = iVar7, iVar2 < iVar3)) {
-//                 iVar2 = iVar3;
-//               }
-//               if (((int)param_5[0x27] <= iVar2) && (iVar8 <= (int)param_5[0x28])) {
-//                 gte_stsz4((long *)r0_01,(long *)(param_5 + 0x18),(long *)(param_5 + 0x19),
-//                           (long *)(param_5 + 0x1a));
-//                 uVar9 = param_5[0x17];
-//                 uVar4 = param_5[0x18];
-//                 uVar1 = uVar9;
-//                 if ((int)uVar4 < (int)uVar9) {
-//                   uVar1 = uVar4;
-//                   uVar4 = uVar9;
-//                 }
-//                 uVar5 = param_5[0x19];
-//                 uVar9 = uVar5;
-//                 if (((int)uVar1 <= (int)uVar5) && (uVar9 = uVar1, (int)uVar4 < (int)uVar5)) {
-//                   uVar4 = uVar5;
-//                 }
-//                 uVar5 = param_5[0x1a];
-//                 uVar1 = uVar5;
-//                 if (((int)uVar9 <= (int)uVar5) && (uVar1 = uVar9, (int)uVar4 < (int)uVar5)) {
-//                   uVar4 = uVar5;
-//                 }
-//                 if ((int)uVar1 <= (int)param_5[0x21]) {
-//                   uVar1 = uVar4;
-//                   if ((int)uVar4 < 0) {
-//                     uVar1 = uVar4 + 3;
-//                   }
-//                   uVar9 = param_5[0x23];
-//                   param_5[0x1e] = (int)uVar1 >> 2;
-//                   pCVar10 = (CVECTOR *)(r0 + 1);
-//                   if ((int)uVar9 < (int)uVar4) {
-//                     uVar1 = param_5[0x17];
-//                     gte_ldrgb(pCVar10);
-//                     gte_ldIR0(uVar1 - uVar9);
-//                     gte_dpcs();
-//                     if ((int)uVar9 < (int)uVar1) {
-//                       gte_strgb(pCVar10);
-//                     }
-//                     pCVar10 = (CVECTOR *)(r0 + 4);
-//                     uVar1 = param_5[0x18];
-//                     gte_ldrgb(pCVar10);
-//                     gte_ldIR0(uVar1 - param_5[0x23]);
-//                     gte_dpcs();
-//                     if ((int)param_5[0x23] < (int)uVar1) {
-//                       gte_strgb(pCVar10);
-//                     }
-//                     pCVar10 = (CVECTOR *)(r0 + 7);
-//                     uVar1 = param_5[0x19];
-//                     gte_ldrgb(pCVar10);
-//                     gte_ldIR0(uVar1 - param_5[0x23]);
-//                     gte_dpcs();
-//                     if ((int)param_5[0x23] < (int)uVar1) {
-//                       gte_strgb(pCVar10);
-//                     }
-//                     pCVar10 = (CVECTOR *)(r0 + 10);
-//                     uVar1 = param_5[0x1a];
-//                     gte_ldrgb(pCVar10);
-//                     gte_ldIR0(uVar1 - param_5[0x23]);
-//                     gte_dpcs();
-//                     if ((int)param_5[0x23] < (int)uVar1) {
-//                       gte_strgb(pCVar10);
-//                     }
-//                   }
-//                   puVar6 = (uint *)(*(int *)(param_5[0x24] + 4) +
-//                                    ((int)param_5[0x1e] >> (param_5[0x22] & 0x1f)) * 4);
-//                   *r0 = *puVar6;
-//                   *(undefined1 *)((int)r0 + 3) = 0xc;
-//                   puVar11 = r0;
-//                   puVar12 = param_3;
-//                   do {
-//                     uVar1 = puVar11[1];
-//                     uVar4 = puVar11[2];
-//                     uVar9 = puVar11[3];
-//                     *puVar12 = *puVar11;
-//                     puVar12[1] = uVar1;
-//                     puVar12[2] = uVar4;
-//                     puVar12[3] = uVar9;
-//                     puVar11 = puVar11 + 4;
-//                     puVar12 = puVar12 + 4;
-//                   } while (puVar11 != r0 + 0xc);
-//                   uVar1 = (uint)param_3 & 0xffffff;
-//                   param_3 = param_3 + 0xd;
-//                   *puVar12 = *puVar11;
-//                   *puVar6 = uVar1;
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       }
-//       param_4 = param_4 + -1;
-//       puVar13 = puVar13 + 8;
-//     } while (param_4 != 0);
-//   }
-//   return param_3;
-// }
+u_long *FUN_80059b08(u_short *param_1, u_long param_2, u_long *param_3, int param_4, u_long *param_5)
+{
+    u8 *work;
+    u8 *prim;
+    u_long *flagAddr;
+    u8 *codeAddr;
+    s32 codeVal;
+    u_long *sz0Ptr;
+    u8 *rec;
+    u_long *rgbPtr;
+    u_long *otSlot;
+    u32 idx0, idx1, idx2;
+    s32 b, c, lo, hi, otz;
+    s32 z1, z2;
+
+    work = (u8 *)param_5;
+    prim = work;
+    if (param_4 != 0) {
+        flagAddr = (u_long *)(work + 0x74);
+        codeAddr = work + 4;
+        codeVal = 0x3C;
+        sz0Ptr = (u_long *)(work + 0x5C);
+        rec = (u8 *)param_1 + 0x14;
+        do {
+            idx0 = *(u16 *)(rec + 4);
+            idx1 = *(u16 *)(rec + 6);
+            idx2 = *(u16 *)(rec + 8);
+            gte_ldv3((SVECTOR *)(idx0 * 8 + param_2), (SVECTOR *)(idx1 * 8 + param_2),
+                     (SVECTOR *)(idx2 * 8 + param_2));
+            gte_rtpt();
+
+            *(s32 *)(prim + 0xC) = *(s32 *)(rec - 0x10);
+            *(s32 *)(prim + 0x18) = *(s32 *)(rec - 0xC);
+            *(s32 *)(prim + 0x24) = *(s32 *)(rec - 8);
+            gte_stflg(flagAddr);
+            if (*(s32 *)(work + 0x74) < 0) goto next;
+
+            gte_nclip();
+            *(s32 *)(prim + 4) = *(s32 *)rec;
+            codeAddr[3] = codeVal;
+            gte_stopz((u_long *)(work + 0x80));
+            if (*(s32 *)(work + 0x80) <= 0) goto next;
+
+            gte_stsxy3_gt3(prim);
+            gte_ldv0((SVECTOR *)(*(u16 *)(rec + 0xA) * 8 + param_2));
+            gte_rtps();
+
+            *(s32 *)(prim + 0x30) = *(s32 *)(rec - 4);
+            *(s32 *)(prim + 0x10) = *(s32 *)rec;
+            *(s32 *)(prim + 0x1C) = *(s32 *)rec;
+            *(s32 *)(prim + 0x28) = *(s32 *)rec;
+            gte_stflg(flagAddr);
+            if (*(s32 *)(work + 0x74) < 0) goto next;
+
+            gte_stsxy((u_long *)(prim + 0x2C));
+
+            lo = *(s16 *)(prim + 8);
+            b = *(s16 *)(prim + 0x14);
+            if (b < lo) {
+                hi = lo;
+                lo = b;
+            } else {
+                hi = b;
+            }
+            c = *(s16 *)(prim + 0x20);
+            if (c < lo) {
+                lo = c;
+            } else if (hi < c) {
+                hi = c;
+            }
+            c = *(s16 *)(prim + 0x2C);
+            if (c < lo) {
+                lo = c;
+            } else if (hi < c) {
+                hi = c;
+            }
+            if (hi < *(s32 *)(work + 0x94)) goto next;
+            if (*(s32 *)(work + 0x98) < lo) goto next;
+
+            lo = *(s16 *)(prim + 0xA);
+            b = *(s16 *)(prim + 0x16);
+            if (b < lo) {
+                hi = lo;
+                lo = b;
+            } else {
+                hi = b;
+            }
+            c = *(s16 *)(prim + 0x22);
+            if (c < lo) {
+                lo = c;
+            } else if (hi < c) {
+                hi = c;
+            }
+            c = *(s16 *)(prim + 0x2E);
+            if (c < lo) {
+                lo = c;
+            } else if (hi < c) {
+                hi = c;
+            }
+            if (hi < *(s32 *)(work + 0x9C)) goto next;
+            if (*(s32 *)(work + 0xA0) < lo) goto next;
+
+            gte_stsz4(sz0Ptr, (u_long *)(work + 0x60), (u_long *)(work + 0x64),
+                      (u_long *)(work + 0x68));
+            lo = *(s32 *)(work + 0x5C);
+            b = *(s32 *)(work + 0x60);
+            if (b < lo) {
+                otz = lo;
+                lo = b;
+            } else {
+                otz = b;
+            }
+            c = *(s32 *)(work + 0x64);
+            if (c < lo) {
+                lo = c;
+            } else if (otz < c) {
+                otz = c;
+            }
+            c = *(s32 *)(work + 0x68);
+            if (c < lo) {
+                lo = c;
+            } else if (otz < c) {
+                otz = c;
+            }
+            if (*(s32 *)(work + 0x84) < lo) goto next;
+
+            *(s32 *)(work + 0x78) = otz / 4;
+            z1 = *(s32 *)(work + 0x8C);
+            if (z1 < otz) {
+                rgbPtr = (u_long *)(prim + 4);
+                z2 = *(s32 *)(work + 0x5C);
+                gte_ldrgb(rgbPtr);
+                gte_lddp(z2 - z1);
+                gte_dpcs();
+                z2 = z1 < z2;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
+
+                rgbPtr = (u_long *)(prim + 0x10);
+                z1 = *(s32 *)(work + 0x60);
+                gte_ldrgb(rgbPtr);
+                z2 = *(s32 *)(work + 0x8C);
+                gte_lddp(z1 - z2);
+                gte_dpcs();
+                z2 = z2 < z1;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
+
+                rgbPtr = (u_long *)(prim + 0x1C);
+                z1 = *(s32 *)(work + 0x64);
+                gte_ldrgb(rgbPtr);
+                z2 = *(s32 *)(work + 0x8C);
+                gte_lddp(z1 - z2);
+                gte_dpcs();
+                z2 = z2 < z1;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
+
+                rgbPtr = (u_long *)(prim + 0x28);
+                z1 = *(s32 *)(work + 0x68);
+                gte_ldrgb(rgbPtr);
+                z2 = *(s32 *)(work + 0x8C);
+                gte_lddp(z1 - z2);
+                gte_dpcs();
+                z2 = z2 < z1;
+                if (z2 != 0) {
+                    gte_strgb(rgbPtr);
+                }
+            }
+
+            otSlot = *(u_long **)(*(u_long *)(work + 0x90) + 4) +
+                     (*(s32 *)(work + 0x78) >> *(s32 *)(work + 0x88));
+            *(u_long *)prim = *otSlot;
+            prim[3] = 0xC;
+            *(POLY_GT4 *)param_3 = *(POLY_GT4 *)prim;
+            *otSlot = (u_long)param_3 & 0xFFFFFF;
+            param_3 += 0xD;
+
+        next:
+            param_4--;
+            rec += 0x20;
+        } while (param_4 != 0);
+    }
+    return param_3;
+}

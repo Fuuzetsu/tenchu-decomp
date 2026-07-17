@@ -528,6 +528,8 @@ ccExtraFlags src = case takeBaseName src of
   "FUN_80059008" -> ["-fno-strength-reduce"]
   "FUN_80059ff4" -> ["-fno-strength-reduce"]
   "FUN_8005a3cc" -> ["-fno-strength-reduce"]
+  "FUN_8005961c" -> ["-fno-strength-reduce"]
+  "FUN_80059b08" -> ["-fno-strength-reduce"]
   "GS_107_OBJ_51C" -> ["-mno-split-addresses"]
   _ -> []
 
