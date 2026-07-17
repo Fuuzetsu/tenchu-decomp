@@ -579,6 +579,13 @@ function already byte-matches on current `master`.
   "surplus instructions", DrawBleed missed an entirely different operation at
   0x80034440: `lhu v0,4(v1)` vs `lw v0,4(s1)`). The pattern is mine, not the lanes'.
   **Pipe the whole diff and run `--context`, or say the excerpt is an excerpt.**
+- **"MEASURED DEAD END" lists are the greedy search's blind spot, and briefs treat them
+  as closed.** CreateHumanoid matched on THREE edits each of which is inert alone — two
+  scored a literal `nullcheck` NO-OP and one scored zero. Three rounds recorded them
+  separately as dead ends and every measurement was correct. **A brief that hands a lane
+  a dead-end list is handing it a list of things not to try TOGETHER.** When a residual
+  survives a clean autorules sweep AND several independent dead-end notes, say so as
+  evidence FOR a joint lever, not against one.
 - **I "verified" two fixes by grepping my own source for a string instead of RUNNING
   the code — and both were broken.** (1) My `import time` splice into `permute.py`
   targeted a standalone `import tempfile` that does not exist (the file uses a comma

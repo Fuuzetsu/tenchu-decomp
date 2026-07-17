@@ -79,7 +79,7 @@ def main():
                     help="order by priority (floor first) rather than dump order")
     ap.add_argument("--floor", action="store_true",
                     help="only priority-1 insns — the ones tied at the floor")
-    ap.add_argument("--pass", dest="which", choices=["sched", "sched2"],
+    ap.add_argument("--pass", dest="which", choices=["sched", "sched1", "sched2"],
                     default="sched",
                     help="which scheduler. **A PROLOGUE / PARM-COPY ordering question "
                          "lives ONLY in sched2**: the prologue does not exist until "
@@ -88,6 +88,10 @@ def main():
                          "raw .i.sched2 — it called that the single biggest cost of "
                          "its round.")
     args = ap.parse_args()
+    # cc1 names the dump `.sched`, but everyone (and my own docs) says "sched1".
+    # Two lanes hit `invalid choice: 'sched1'` before this alias existed.
+    if args.which == "sched1":
+        args.which = "sched"
 
     path = os.path.join("src", "main.exe", args.name + ".c")
     if not os.path.exists(path):
@@ -123,13 +127,16 @@ def main():
     print("  sched is BACKWARD: T-1 is the LAST slot and is filled FIRST, so an insn "
           "PICKED EARLIER")
     print("  LANDS LATER. Ties break priority DESC -> class DESC -> LUID DESC.")
-    print("  priority = DEPTH-FROM-TOP (walks LOG_LINKS = PRODUCERS). "
-          "LOG_LINKS (nil) => priority 1, the FLOOR.")
     print("  ref_count = CONSUMERS (INSN_DEPEND). 'heads a long chain' is THIS "
-          "column, and it is NOT priority.")
-    print("  Ties break priority DESC -> class DESC -> LUID DESC; sched is BACKWARD, "
-          "so higher LUID is")
-    print("  selected first and lands LAST.")
+          "column, NOT priority.")
+    print("  *** The `priority` COLUMN BELOW IS NOT WHAT THE SCHEDULER USED. *** It "
+          "is the pre-bump")
+    print("  value, and it is not a clean depth either — a lane measured insns 182 "
+          "and 183 both")
+    print("  printing 9 while 183 DEPENDS on 182, and lost two probes to a depth "
+          "model built on")
+    print("  the legend this tool used to print. **Read the `ready list at T-k:` "
+          "lines.**")
     print()
     print(f"  {'uid':>6} {'priority':>9} {'ref_count':>10}  insn")
     shown = rows
@@ -144,10 +151,17 @@ def main():
     ready = [ln for ln in body.splitlines() if "ready list at T-" in ln]
     if ready:
         print()
-        print(f"  --- ready-list trace ({len(ready)} decisions) — the pick is the "
-              "last field ---")
+        print(f"  --- ready-list trace ({len(ready)} decisions) ---")
+        print("  T maps DIRECTLY to the emitted address: HIGHER T = EARLIER address, "
+              "each T decrement")
+        print("  = +4 bytes, and the PICK is the FIRST insn of the `now` list. (A lane "
+              "verified this")
+        print("  across 11 consecutive insns against `tdis --both`.) So this trace IS "
+              "the schedule —")
+        print("  you do not have to reason about scheduler direction to read it.")
         for ln in ready:
-            print("  " + ln.strip())
+            mark = "   <-- BUMPED" if "7f000001" in ln else ""
+            print("  " + ln.strip() + mark)
 
     # The TABLE is NOT what the scheduler used. sched1's adjust_priority bumps a
     # BIRTHING insn to LAUNCH_PRIORITY (0x7f000001) at LAUNCH TIME, so an insn the

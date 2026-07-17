@@ -6732,6 +6732,46 @@ own `;; insn[NNNN]: priority = P, ref_count = R` lines (`sched.c:3686` — 250 o
 on AddEnemy) with each insn's RTL, and flags the floor. **Never hand-derive a
 priority the dump prints verbatim.**
 
+### SCORE INTERACTING FACTORS JOINTLY — two "measured dead ends" can be one match
+
+**CreateHumanoid matched 39 -> 0 on three edits, EACH OF WHICH IS INERT ALONE:**
+
+| edit | alone | cumulative |
+|---|---|---|
+| 1. LHS-first fold (`dst.f = half = (s16)hh2 / 2;`) | **`nullcheck` NO-OP** | — |
+| 2. split the reused local (`half` / `nhalf`) | **39** (nothing) | 1+2 = **20** |
+| 3. split `hh` per read site | **NO-OP** | 1+2+3 = **MATCH** |
+
+**Three rounds recorded each factor as a measured dead end, and each measurement was
+CORRECT.** The conclusion was not. **A factor that fixes the TIEBREAK is invisible while
+a different factor still pins the PRIMARY KEY** — so a one-at-a-time sweep can only ever
+see zero.
+
+**This is a structural limit, not a lapse.** `autorules` is a GREEDY search: it keeps
+edits that improve and discards the rest, so it can NEVER find an n-factor interaction
+where every 1-subset scores zero. When a residual survives a clean autorules sweep AND
+several independent "dead end" notes, **that pattern is itself evidence for a joint
+lever** — try the dead ends in combination before parking. Its `--beam`/`--depth` exist
+for exactly this.
+
+### A re-assigned local silently disables sched1's LAUNCH_PRIORITY bump
+
+`half = …; half = -half;` sets the local **twice**, so `REG_N_SETS != 1` and
+`birthing_insn_p` never fires — its chain's last insn stays at plain priority and
+**loses every ready-list contest** to a competing chain of once-set temps. The
+competing chain then lands last and the two chains emit in the wrong order.
+
+**Split the reused local per value (`half` / `nhalf`).** They **coalesce onto one hard
+register** — gcc-2.8.1 has no coalescing pass, so non-conflicting allocnos simply land
+together — meaning **the split costs ZERO instructions** and preserves the in-place
+`negu`. (This is the mirror of PadProc, where a second assignment was wanted precisely
+to SUPPRESS the bump. Same knob, opposite directions — check which outcome you need.)
+
+**And the reading discipline:** `.greg` (post-reload) IS sched2's input; if it already
+equals the emitted order, **sched2 changed nothing and the decision is sched1's**. A
+`.sched2` "greater potential hazard" swap there is sched2 faithfully re-deriving a
+pre-set order — a red herring.
+
 ### sched1 BUMPS a birthing insn to LAUNCH_PRIORITY — the priority TABLE is not what it used
 
 **`adjust_priority` (sched.c:2535) raises an insn to `LAUNCH_PRIORITY` (0x7f000001) iff
