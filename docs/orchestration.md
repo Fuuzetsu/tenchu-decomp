@@ -604,6 +604,18 @@ function already byte-matches on current `master`.
   because it is the most detailed. Weight by EVIDENCE KIND, not recency: round 12
   hand-derived, round 13 read cc1's own printed table. A claim citing a dump line
   beats a claim citing an inference, regardless of order.
+- **LEAD BRIEFS WITH THE CHEAP EXPERIMENT, NOT THE DEEP MACHINERY.** DrawSnow's lane:
+  "the brief's framing pushed hard toward sub-C machinery for what were two one-line
+  source edits. The cheap experiment came first and ended it." I spent most of that
+  brief on schedtrace / rtldump --trace / siblingdiff --demo / the permuter; the answer
+  was swapping two statements and a cookbook rule applied verbatim. **Put the one-build
+  experiments at the TOP and the escalation path at the bottom.**
+- **TOOLING BACKLOG — a `findrule` lookup: residual SHAPE -> candidate cookbook
+  sections.** DrawSnow's lane found §3459 (`arr[idx]` base-first) by grepping the
+  section index and recognising "base/offset colour swap" — both its fixes were cookbook
+  rules applied verbatim, and nothing ROUTED it there. The cookbook is now large enough
+  that finding the right rule is itself a skill. (Its `arr[idx]` -> offset-first rewrite
+  is also a clean autorules candidate — mechanical and byte-checkable.)
 - **TOOLING BACKLOG — siblingdiff should say "TRANSCRIBE THIS", not diff instructions.**
   Three lanes in a row found the answer sitting in a matched sibling's C and got there
   by eye: DrawSprite is ranked 0.48 to DrawClip and shares its TU, and its body is a
@@ -672,12 +684,18 @@ function already byte-matches on current `master`.
   rounds trusted the negative. It matched on the first build once the label moved.
   **Before recording "X vs Y made no difference", ask what Z you held fixed in both
   arms** — and write the negative as "with Z fixed at W", never as "unreachable".
-- **A park's STATUS number is a claim from the round that wrote it, and several are
-  badly stale — do not select targets from them.** DrawSnow's header said 203; it
-  measures **14**. SetBleedsDir and SetupTelop, both never touched, measure **13** and
-  **11**. Selecting on STATUS text would have skipped all three as far from done.
-  **Rank with `config/fuzzy.main.exe.tsv` (free, no builds) and confirm with a real
-  `matchdiff`.** The top of that ranking is where the cheap wins are:
+- **RETRACTED (and the retraction is the lesson): "park STATUS numbers are badly
+  stale — don't select targets from them" was MY error, not the parks'.** I measured
+  DrawSnow at 14 and "corrected" its header, which had said 14 all along — the 203 I
+  quoted was **StageEndScreen's** number, which I misattributed while surveying with a
+  truncating grep and filled the gap from memory. SetBleedsDir's header said thirteen
+  bytes and measures 13. SetupTelop has no STATUS at all. **The headers were the honest
+  artifact in the chain; the orchestrator was not.** The lane caught it: "The '203'
+  claim was third-hand and false; the header was the one honest artifact."
+  **When a survey and an artifact disagree, suspect the survey first** — and never
+  generalize a rule from a number you did not read in the file you are talking about.
+- **Rank with `config/fuzzy.main.exe.tsv` — it is free and needs no builds.** Still the
+  right selection tool, but because it is cheap and total, NOT because the headers lie:
 
       99.79%  FUN_80057b80    98.17%  SetBleedsDir    97.81%  GetAreaMapVector
       98.61%  AddEnemy        98.16%  StageEndScreen  96.28%  SetupTelop

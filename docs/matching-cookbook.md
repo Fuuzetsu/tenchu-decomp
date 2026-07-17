@@ -2863,6 +2863,29 @@ stayed at 4 — exactly the asymmetry the target needed.
 0xd class) is NOT an un-matchable class: it is a prompt to ask **why the priorities
 tied**. Any park resting on "it's a sched tie" deserves a re-read of the LOG_LINKS.
 
+### Two independent same-shape chains in one basic block emit in REVERSE source order
+
+**When two independent chains of identical shape (`load` -> `accumulate`) sit in one
+basic block and the target runs them in the OPPOSITE order to your source, write them
+in the opposite order — cc1 inverts the pair.** DrawSnow: the draft had
+`velocity[2]`/`z` first (the target's PHYSICAL order) and emitted `velocity[1]`/`y`
+first; writing the Y-chain first produced retail's Z-then-Y exactly. **14 -> 0 in one
+build.**
+
+**A draft already written in the target's MACHINE order is the classic stuck state
+here** — it looks right and is exactly backwards. DrawSnow's park had the mechanism
+sitting in its own text ("cc1 gives those two halfword loads the opposite registers and
+schedules their independent adds in the corresponding opposite order") and read it as
+evidence of an unreachable tie rather than as a lever to push the other way; it then
+burned a ~1,500-candidate permuter run.
+
+**This does NOT contradict the next section.** "RTL statement order is INERT when sched2
+re-derives the schedule" holds when the instruction MULTISET already matches and the
+chains differ only by INTERLEAVE. When two chains are **whole-chain swapped** (the load
+AND its consumer), LUID reaches the output and the swap is one build away.
+
+**Score both source orders before parking — it costs ONE BUILD.**
+
 ### RTL statement order is INERT when sched2 re-derives the schedule
 
 **When two independent chains in one basic block are interleaved wrongly and the

@@ -49,35 +49,11 @@ extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *screen);
 extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
 
 /*
- * STATUS: NON_MATCHING — exact retail length (182 instructions / 728 bytes)
- * with 14 differing bytes.  The C is semantically complete; the residual is
- * two isolated old-GCC allocation/scheduling choices:
- *
- *  - At entry, retail keeps velocity-z in $v1 and then velocity-y in $v0;
- *    cc1 gives those two halfword loads the opposite registers and schedules
- *    their independent adds in the corresponding opposite order (8 bytes).
- *  - In the sprite-table lookup, retail builds D_80097F2C in $v0 and the
- *    byte index in $v1; cc1 assigns the address/index chain to $v1/$v0
- *    instead (6 bytes).
- *
  * Naming: retail added this pair after the demo build. SetSnow is called only
  * by ProcMiscSnowfall and installs this callback; this body advances exactly
  * those snow-particle fields and draws the dedicated sprite. The unused
  * SetSnow/DrawSnow pair follows every surrounding EffectSlot setter/callback.
- *
- * `rtlguide` classifies these as local allocation plus one combine/scheduler
- * consequence; `.greg` already has the correct callee-saved coordinate map.
- * Flat or worse trials included coordinate-expression folding, statement and
- * declaration reordering, scalar/member-array aliases, block/comma/assignment
- * fences, pointer/index respellings, and disjoint-lifetime donor reuse.  The
- * latter proved the two blocks are coupled but adds a move or recolors the
- * otherwise-exact callee-saved map.  A near-final permuter run (~1,500
- * candidates) retained no full-link candidate close to this 14-byte base.
- * Keep the checkpoint pure C; no inline assembly is needed or wanted.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawSnow", DrawSnow);
-#else
 void DrawSnow(TEffectSlot *effect)
 {
     SnowParticleType *particle;
@@ -94,6 +70,7 @@ void DrawSnow(TEffectSlot *effect)
     u32 delta_y;
     u32 delta;
     u32 offset;
+    s32 tbl_offset;
     s32 state;
     s32 size;
     s16 scale;
@@ -113,21 +90,18 @@ void DrawSnow(TEffectSlot *effect)
         y = particle->y;
         velocity_x = particle->velocity[0];
         z = particle->z;
-        velocity_z = particle->velocity[2];
-        x += velocity_x;
-        z += velocity_z;
         velocity_y = particle->velocity[1];
-        ground = particle->ground;
+        x += velocity_x;
         y += velocity_y;
+        velocity_z = particle->velocity[2];
+        ground = particle->ground;
+        z += velocity_z;
     }
     state = 0;
 
     if (ground < y)
     {
-        do
-        {
-            effect->proc = 0;
-        } while (0);
+        effect->proc = 0;
         return;
     }
 
@@ -167,7 +141,8 @@ void DrawSnow(TEffectSlot *effect)
     particle->x = x;
     particle->y = y;
     particle->z = z;
-    model = D_80097F2C[particle->sprite];
+    tbl_offset = particle->sprite * (s32)sizeof(EffectSprite3D *);
+    model = *(EffectSprite3D **)(tbl_offset + (s32)D_80097F2C);
     sprite = &model->sprite;
     size = particle->size;
     GetScreenPosition(x, y, z, &screen);
@@ -196,4 +171,3 @@ void DrawSnow(TEffectSlot *effect)
         GsSortSprite(sprite, OTablePt, (u16)priority);
     }
 }
-#endif
