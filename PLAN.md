@@ -62,79 +62,59 @@ byte-identical `main.exe`.
 
 ## Where the work actually is now (2026-07-17)
 
-**Game code is in its endgame; the SDK is the remaining bulk.** `tools/progress.py`:
+**38 game functions remain. That is the whole board.** `tools/findsimilar.py --targets`
+prints exactly this set (it defaults to `--scope game`):
 
-    game code            499/555   functions (89.91%)   256628/303244  bytes (84.63%)
-    game done (C+asm)    516/555   functions (92.97%)   262780/303244  bytes (86.66%)
-    SDK (>0x80060000)    109/1068  functions (10.21%)     7796/153760  bytes ( 5.07%)
+    game code            500/555   functions (90.09%)   257176/303244  bytes (84.81%)
+    game done (C+asm)    517/555   functions              (the 17 canonical-asm draw*)
 
-That leaves **39 game functions**, and **36 of them are already parked drafts** — so
-essentially nothing on the game side is unattempted. The board is now "crack the 36
-parks", and the closest sit at 4–20 residual bytes. Their residuals are overwhelmingly
-sub-C (allocation / scheduling / reload ties), which is why the tooling investment (see
-below) has overtaken raw target-picking as the lever.
+  * **33 parked drafts** — each root-caused in its own `.c` header, closest at 1-10
+    residual bytes. Residuals are overwhelmingly sub-C (allocation / scheduling /
+    reload ties), which is why the tooling investment has overtaken target-picking as
+    the lever. **Park prose is a hypothesis** — this week alone, GetAreaMapVector's
+    "evidence-complete" park MATCHED once a dead store moved, AddEnemy's five-step
+    unreachability proof fell to a tiebreak rule that was simply wrong, and
+    SetupSpline's "permuter plateaued" was a crash. Re-check cheaply before honoring
+    one (cookbook §4).
+  * **5 undrafted** — `FUN_80059008` (920), `FUN_8005961c` (1260), `FUN_80059b08`
+    (1260), `FUN_80059ff4` (984), `FUN_8005a3cc` (984). Never attempted. The pairs of
+    equal size are worth checking for clone relationships first.
+  * Also present but hidden by `--max-size 2048`: **`start_demo_`** (2188) and
+    **`mission_score_screen`** (4636). Raise the flag or they are invisible.
 
 **THE SDK IS NOT A TARGET (owner decision, 2026-07-17).** Everything at/above
 0x80060000 is stock Sony library code — libgte/libgs/libapi/libcard — linked in from
 prebuilt `.LIB` files. **Tenchu's original source tree never contained `libgte.c`**, so
 for those objects the ASM IS the faithful source form, exactly the argument already
 accepted for the `draw*` family. Decompiling PsyQ is a different project and ones
-already exist. `tools/findsimilar.py --targets` now defaults to `--scope game` and says
-how many SDK functions it omitted.
+already exist. `progress.py` still counts the SDK separately (116/1068) because the
+image contains it; that number is not a work queue.
 
-*Why this needs writing down: `--targets` ranks by similarity to already-matched code —
-a proxy for EASY — and small simple SDK leaves dominate it. The top 50 was 41 SDK / 9
-game, while the remaining UNDRAFTED game functions sat at rank 367-382 (similarity 0.05,
-because they are large and unique). Reading the top of that list sent a whole session
-into libgs. The SDK functions matched along the way (GsSetLsMatrix, _card_clear,
-GsMulCoord0/2/3, PAD_init, InitPAD) are byte-identical and green, so they stay — but
-they are not where effort goes.*
+*Why this needed writing down — the tooling actively pointed the wrong way.*
+`--targets` ranks by similarity to already-matched code, which is a proxy for EASY, and
+small simple SDK leaves dominate it: the top 50 was **41 SDK / 9 game**, while the five
+undrafted game functions sat at **rank 367-382** (similarity 0.05, because they are
+large and unique — a statement about resemblance, not value). Reading the top 15 of a
+998-row list sent a whole session into libgs. The picker now defaults to game scope and
+states every omission (SDK, handwritten-asm, over-size). The SDK functions matched on
+that detour (`GsSetLsMatrix`, `_card_clear`, `GsMulCoord0/2/3`, `PAD_init`, `InitPAD`)
+are byte-identical and green so they stay, and it did pay for itself twice — the
+`-mno-split-addresses` per-TU lever and the `ccExtraFlags` oracle bug (a Build.hs defect
+that silently made per-TU flag experiments measure stale objects). But it is not where
+effort goes.
 
-**The remaining game work is 38 functions: 33 parked drafts + 5 undrafted**
-(`FUN_80059008`, `FUN_8005961c`, `FUN_80059b08`, `FUN_80059ff4`, `FUN_8005a3cc` —
-920-1260 bytes each, never attempted). `tools/findsimilar.py --targets` prints exactly
-this set. Note `--max-size` (default 2048) also hides `start_demo_` and
-`mission_score_screen`; raise it or they are invisible.
+**`TransMatrix` and `GsInitCoordinate2`** are parked SDK drafts; leave them. The
+"libgte is handwritten asm" idea is a hypothesis with one data point and is moot now
+that the SDK is out of scope — if it ever matters, settle it with a survey that applies
+the tells mechanically and counts, not with a story.
 
-~~**After the parks, the project's centre of gravity moves to the SDK**~~: ~958 unmatched
-functions and ~146k bytes, versus ~40k bytes left in game code. That is stock PsyQ
-library code — a different regime (per-TU flags like `-mno-split-addresses` proved
-necessary for `MemCardCallback`; see the cookbook's SDK boundary notes) and it wants its
-own plan before it is worth batching agents at.
-
-**The ~958 figure may overstate what is matchable — but that is a HYPOTHESIS with ONE
-data point, and it is not to be acted on until it has real data behind it** (owner
-directive, 2026-07-17). `TransMatrix` is parked as unmatchable on two cc1-invariant
-tells (temps in `t0/t1/t2` with `v1/a0/a1` free, which no numeric-walk allocation
-reaches — `global.c:960`, `local-alloc.c:2266`; and a `jr ra` delay slot left empty with
-an independent filler directly above it). Those tells are solid **for that one
-function**. What is NOT established is that they generalise to a class. Generalising a
-mechanism from one function's bytes is precisely how the argmove park-on-sight rule
-became false and cost us unknown matches (see the cookbook's §4 monument) — so the same
-move is not licensed here just because it points at "less work".
-
-Counter-evidence already exists: **`GsSetLsMatrix` MATCHED** (2026-07-17, first build) —
-a real libgs entry compiled from C. So the SDK is not uniformly asm, and at least three
-populations plausibly coexist: plain C, GTE-macro functions reachable only via `gte.h` +
-the allowlist (`SetRii`, `SetGeomOffset` are pure `ctc2` register writes), and possibly
-handwritten-asm originals. **Sizing the SDK means classifying it with data — a survey
-applying the tells mechanically across the SDK, not one function at a time.**
-
-**Current policy: park the clearly-asm-looking ones with their evidence and move on;
-prefer targets that are likely NOT asm until we run out.** Do not add to
-`config/handwritten-asm.txt` on inference — that list is an owner decision and each
-entry silently removes a function from the board forever. `tools/matcher-prompt.py`
-refuses to brief anything already on it.
-
-**The cookbook is being restructured** (audit: `docs/cookbook-audit.md`). It reached
-8,251 lines and the owner's read is that many of its rules are wrong or are mechanised
-already; 43 of 132 sections are duplicates/superseded/mechanised, 37 more are
-true-but-low-yield, and two "sections" are 826- and 634-line landfills. Target is
-~1,800–2,200 lines across 4 files + a generated index, with a **router** (residual
-signature → tool → rule family) so a lane reads ~600 routed lines instead of 8,000
-unrouted ones. The governing lesson: *every rule of the form "read the dump, if X
-conclude Y" is a program* — cc1 prints its own decisions and only tools get them read
-correctly. Tool backlog is ranked in the audit's §4 (T1 `sched-deps` first).
+**The cookbook was restructured** (audit: `docs/cookbook-audit.md`): 8,251 unrouted
+lines → `matching-cookbook.md` (1,483: contract, evidence, **router**, 19 families, park
+discipline) + `compiler-facts.md` (410, every claim with a gcc `file:line`) +
+`shape-zoo.md` (195) + generated `autorules-index.md`. A lane now reads ~600 routed
+lines. `tools/cookbooklint.py` guards regrowth. The governing lesson: *every rule of the
+form "read the dump, if X conclude Y" is a program* — cc1 prints its own decisions and
+only tools get them read correctly. Tool backlog is ranked in the audit's §4.
 
 New session: read this file + [`docs/README.md`](docs/README.md) (the docs index).
 
