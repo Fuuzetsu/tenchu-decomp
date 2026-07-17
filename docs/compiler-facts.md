@@ -329,6 +329,17 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 
 ## Scheduling (sched.c) and reorg
 
+- **A `do{}while(0)` fence is TWO barriers at once, and the second one is the
+  expensive surprise.** Its loop notes bound sched (below) AND bound **cse1's
+  extended block** (which ends at every CODE_LABEL and at `NOTE_INSN_LOOP_END` —
+  see the cse section). Both facts were recorded here separately for a long time
+  and nobody joined them. So removing a fence does not just re-schedule: it lets
+  cse propagate values across the span, which can reallocate the whole function.
+  Measured: start_demo_'s fence removal cost **679 bytes** against a 39-byte
+  residual — a 17x overshoot that reads as "the fence was load-bearing" without
+  saying WHY. Price both effects before touching one (and note cse2 runs
+  `after_loop=1` and crosses loop notes anyway, so the cse half is a cse1-only
+  lever).
 - **A `do{}while(0)` fence is a TOTAL, BIDIRECTIONAL scheduling barrier — never a
   priority hint.** An insn carrying loop notes (`sched.c:2091-2114`) gets
   `add_dependence` on **every** `reg_last_uses[i]` (anti) and **every**
