@@ -36,16 +36,35 @@
  */
 extern u8 D_8001005D;
 
-void PadShock(s32 port, s8 p1, s8 p2)
+typedef struct
 {
-    u8 *p = (u8 *)&PadPort[port >> 4][port & 3];
-    u8 *q = p;
+    u16 held;
+    s16 x;
+    s16 y;
+    u8 active;
+    u8 analog;
+    u8 act1;
+    u8 act2;
+    u8 actbuf[2];
+    u8 send;
+    u8 pad;
+} PadShockPort;
+
+static inline void PadShockApply(s32 port, s32 p1, s32 p2)
+{
+    PadShockPort *p = (PadShockPort *)&PadPort[port >> 4][port & 3];
+    PadShockPort *q = p;
 
     if (D_8001005D != 0) {
-        p[8] = p1;
-        p[9] = p2;
-        return;
+        p->act1 = p1;
+        p->act2 = p2;
+    } else {
+        q->act1 = 0;
+        q->act2 = 0;
     }
-    q[8] = 0;
-    q[9] = 0;
+}
+
+void PadShock(s32 port, s32 p1, s32 p2)
+{
+    PadShockApply(port, p1, p2);
 }
