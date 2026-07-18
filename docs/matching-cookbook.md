@@ -525,6 +525,16 @@ negated. Everything else here is corollaries:
   different arguments per predecessor but shows one merged `jal`
   (DefaultActionHumanoid, DamageControl, ActSWIM — where the last residual was
   only WHICH terminal arm is the fallthrough: `terminal-arm-flip`).
+- **A shared success tail in final asm can be two ordinary source arms, and
+  both copies count for allocation before jump2 merges them.**  Write the
+  complete semantically-identical tail in each real success arm, e.g.
+  `if (mode == A) { flag = 1; field = mode; } else if (mode == B) { flag = 1;
+  field = mode; }`.  This is not an invented identical-arm fence: the arms are
+  the human control flow, and jump2 runs after allocation.  ActITEM's factored
+  guard needed a fake `flag = 0` to colour `flag` correctly, which then filled
+  a target `nop`; restoring the two valid-mode arms removed the invented local
+  and reset, retained the target allocation, cross-jumped back to one emitted
+  tail, and closed 2 → 0 bytes.
 - **A referenced `case` label is a hard cross-jump fence** — a boolean `switch`
   keeps an exceptional copy distinct where if/fences/unreferenced labels cannot
   (StateTransition; `case-fence` mechanises the two-way form). Algebraically

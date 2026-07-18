@@ -77,6 +77,12 @@ Evidence it works, this session:
 - **mission_score_screen 145 -> 187 (adopted the WORSE number):** ~20 of its 24 fences
   turned out to be the author's own `DRAW_SCORE_NUMBER` macro (defined in matched sibling
   StageEndScreen.c), not our scaffolding. 866 lines vs 2076.
+- **ActITEM 2 -> 0:** the two-byte park invented an `s32 item_type` and a redundant
+  `flag = 0`, contradicting PSX.SYM's four-local record.  Restoring two ordinary
+  valid-mode arms, each with the same `flag`/field writes, lets jump2 merge their
+  tails after allocation.  That keeps the target `$a1` colour and removes the
+  delay-slot instruction.  This directly falsified the function header's detailed
+  “sub-C floor” proof.
 - **DecodeTMD family ~620 -> 0:** the whole breakthrough was recognising the hand-rolled
   `goto` loop as a WRONG FIX propping up damage it caused (it killed the loop-depth ref
   weighting), and the TU wanting `-fno-strength-reduce`. **FOUR of six now MATCHED:**
@@ -100,15 +106,17 @@ above a byte store = the human wrote the load first = QImode alias pin). SCOPE: 
 game code only — the SDK (>=0x80060000, libgte/libgs/libapi) is stock Sony library code
 and NOT a target.
 
-### Batch 2026-07-18: the remaining parks are a confirmed sub-C FLOOR
+### Batch 2026-07-18: a broad sweep found apparent sub-C floors
 
 A 13-lane sweep across the whole value spectrum (DrawImpact 4, FUN_80057b80 8,
 AdtSelect 9, SetupTelop 9, SetLightningI 15, CameraDirection 7, FUN_80058c70/9008
 26, start_demo_ 39, PutItemList 27, PadProc 28, FUN_80036284 34, FUN_800519bc 87,
 StageEndScreen 202) re-tested every park with the repaired tooling (regalloc
 --local, the `-fno-builtin`-fixed permuter). **Result: 0 new full matches; every
-one confirmed a genuine sub-C tie** unreachable from any C spelling in cc1 2.8.1.
-The tie taxonomy is now COMPLETE and documented in the cookbook — local-alloc
+one reached a well-characterised tie in the source structures tested.**  These
+are strong local diagnoses, not proofs against every human C structure: ActITEM
+subsequently matched by replacing the very structure its park treated as fixed.
+The observed tie taxonomy is documented in the cookbook — local-alloc
 (conflict-free-window, containment, interference-wall), sched1 LUID wall, sched2
 emission-order (prologue parm-copy, biv-init), dbr delay-slot, reload round-robin,
 hard-conflict register renames, register-coloring cascade. Residual SIZE does not
@@ -122,24 +130,26 @@ its wins are non-human seed-temp/no-op scaffolds (SetLightningI 12, FUN_80036284
 16/12, FUN_80058c70 22) — all correctly REJECTED per the human-source directive; the
 clean park is the honest state. The human-source discipline held in every lane.
 
-**The frontier has moved off "match more parks."** Both remaining leads were pursued to
+The batch's conclusion was that the frontier had moved off "match more parks." Both
+remaining leads were pursued to
 conclusion: (1) FUN_80058c70/FUN_80059008 — the "provably-solvable" lead — advanced 26->25
 (rotation solved with human structure, above), but its final v0/v1 bit is proven out of
 single-statement reach; a full match now needs a non-single-statement restructuring insight
 nobody has yet. (2) the fixed-permuter sweep of the last untested small non-gte.h parks
 (DrawBleed, ControlTraceLine, FUN_800514d8, DrawHinoko, PlayVoice) returned 0 matches — all
-floors (drawF3 is gte.h, permuter-ineligible). So EVERY game park is now a characterised
-sub-C floor: matching is ~90% done and the tail is unreachable in this toolchain. The
-productive frontier is a PHASE decision (accept the floor / reimplementation build / modding
-/ glitch research), not more matching rounds.
+floors (drawF3 is gte.h, permuter-ineligible). **ActITEM's later 2 → 0 match
+supersedes the universal conclusion:** a compiler-pass explanation can prove why
+one spelling is stuck without proving that the original human control flow is
+unreachable.  Continue to rank targets by value and evidence, and treat every park
+as a falsifiable hypothesis rather than declaring the C-matching tail closed.
 
 ## Where the work actually is now (2026-07-18)
 
-**38 game functions remain. That is the whole board.** `tools/findsimilar.py --targets`
+**31 game functions remain after ActITEM.** `tools/findsimilar.py --targets`
 prints exactly this set (it defaults to `--scope game`):
 
-    game code            500/555   functions (90.09%)   257176/303244  bytes (84.81%)
-    game done (C+asm)    517/555   functions              (the 17 canonical-asm draw*)
+    game code            507/555   functions (91.35%)   263272/303244  bytes (86.82%)
+    game done (C+asm)    524/555   functions              (the 17 canonical-asm draw*)
 
   * **THE BYTES ARE IN THE BIG ONES — rank by SIZE, not by residual**
     (`tools/findsimilar.py --targets --by-value`). The counter is ALL-OR-NOTHING per
