@@ -1689,6 +1689,25 @@ re-check cheaply before honoring them:
   "passed" by reproducing ONE function's bytes — a model that reproduces one
   function is not thereby a general mechanism. Before adding any park-on-sight
   rule, demand a falsification a TOOL prints, not a derivation.
+- **When a park's scaffolding is dense AND a MATCHED sibling exists, rebuild
+  from the sibling — do not refine the scaffold.** A byte-chased draft that
+  carries carriers, fence-seeded value groups, brightness/raw aliases, and
+  stacked fences is usually STANDING IN for the plain variables the sibling
+  used; refining it deepens the local minimum. The move is to transcribe the
+  matched sibling's structure and re-derive, accepting a worse byte count if the
+  shape is human. Worked example (2026-07-18): `mission_score_screen` rebuilt
+  from matched `StageEndScreen`'s `DRAW_SCORE_NUMBER` macro + plain
+  `topY`/`resultX` pre-loop variables (StageEnd's `top_y`/`current_x`/`best_x`)
+  replaced `drawY` carriers, fence-seeded x-groups, a brightness-alias and 4
+  nested rankSprite fences — the plain variables lose allocation, keep their
+  REG_EQUIV constants, and reload-rematerialise them, which IS the target's
+  `li` constant shape the scaffolds were faking. +18 bytes (169→187) but ONE
+  labelled `do{}while(0)` remains where many fences stood. **A "cluster is
+  unreachable / ref_count=0" park conclusion reached on the SCAFFOLDED draft is
+  suspect for the same reason** — the constant a carrier fakes has no consumer,
+  but the sibling's plain variable does; re-test unreachability under the
+  sibling structure before honoring it (StageEndScreen's cluster-2 s7=0x52 is
+  the open case).
 - **Park format**: STATUS line with byte count, the residual's cluster
   addresses, the mechanism WITH its falsification, what was measured (numbers,
   not adjectives), and the named levers already burned. The next reader should
