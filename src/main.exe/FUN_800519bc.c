@@ -147,7 +147,52 @@
  *   including all 5 fence-unwrap candidates individually) finds no improving
  *   edit; a bounded fresh permuter run (240s search + rescore, base score
  *   1095) never beats its own base score, consistent with round 2's
- *   16457-iteration run. No orphaned permuter state left behind. */
+ *   16457-iteration run. No orphaned permuter state left behind.
+ * ROUND 4 (re-verify with the -fno-builtin permute.py CC_FLAGS fix + hunt a
+ * STRUCTURAL lever, per an owner directive that an 87B residual "hides a
+ * missing/mis-shaped block"). RESULT: the structural premise is FALSIFIED and
+ * 87 is re-confirmed as the hard floor.
+ *   - CFG IS IDENTICAL: matchdiff/asmdiff show 362 vs 362 insns, no missing or
+ *     extra branch, all 15 diff blocks are register renames + 2 local schedule
+ *     swaps (prologue prefix-order, GetTPage(0,0) arg-move vs position sign-ext).
+ *     There is no missing/mis-shaped block to find — the residual is genuinely
+ *     sub-C register allocation (t0 numeric-order, the a2->v0/v0->v1 hard-conflicts).
+ *   - FRESH permuter WITH the -fno-builtin fix (the reason this round exists):
+ *     19444 iterations, -j4, --stop-on-zero. Authoritative full-link rescore:
+ *     base.c 87 is best; every retained candidate rescores >=87 (output-860 has a
+ *     BETTER proxy score 860 but rescores to 91). The fix changed nothing; the
+ *     round-2/3 plateau claim stands.
+ *   - autorules re-run (73 candidates) — no improving edit (unchanged).
+ *   - NEW structural hypotheses tested & REJECTED (each rebuilt+remeasured):
+ *     * index-first scroll (`adjusted = D_8008ECF8[..]; adjusted += stack.scroll;`
+ *       — round 2's own "untried" suggestion): 87->102. The scroll-first split is
+ *       optimal; the reverse pairing is worse, not better.
+ *     * tpage_value as a direct `stack.tpage_base >> 16` OR a plain two-statement
+ *       capture (dropping the identical-arm `if (strip_width!=0)`): LENGTH
+ *       MISMATCH 1440 (-2 insns). That `if` is LOAD-BEARING: it is a control-flow
+ *       merge that blocks cse's store->load forwarding of the prologue
+ *       `stack.tpage_base = strip_px<<16;`, forcing the target's fresh lw/sra
+ *       reload instead of reusing strip_px. Not scaffolding — it reconstructs a
+ *       real target reload (cookbook "a redundant reload = a fresh dereference").
+ *     * shared brightness intermediate (one `bright_base` var feeding both
+ *       `(position+0xa0)*3` and `(0xa0-position)*3`): LENGTH MISMATCH 1436;
+ *       cc1 merges the arms. Target keeps them separate (branch1 intermediate on
+ *       v1, branch2 on v0 — the residual v0/v1 tie, a HARD-CONFLICT per rtlguide).
+ *     * capturing the first PathFileRead 2nd arg into a local before the inits
+ *       (to occupy v0 across the const materialisations, per round 2's hint):
+ *       87->127; it hoists the whole index calc and reshuffles the prologue.
+ *     * reorder `signed_width` birth before tpage + flatten the position-carriers
+ *       (test whether birth-order gives target's s1/s2 without the fences):
+ *       LENGTH MISMATCH 1452. Birth-order does NOT substitute for the loop_depth
+ *       ref-weighting the nested fences provide.
+ *   - FENCE VERDICT (owner asked to challenge them): the position-carrier nested
+ *     do{}while(0) is the SAME matched technique as the matched sibling
+ *     BriefingAndInventorySelectionScreen (lever #3: "NESTED do{}while(0) (two
+ *     deep)... each level adds +1 loop_depth to flow.c's ref weighting, flipping
+ *     the {v0,v1} pairing"; lever #5: do{}while(0) carrier fences). That sibling
+ *     matched at 0 WITH these. So the fences ARE "the human structure the matched
+ *     sibling shows", not invented scaffolding — KEPT. No demo twin exists
+ *     (siblingdiff --demo: 0) to arbitrate the register order directly. */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800519bc", FUN_800519bc);
 #else
