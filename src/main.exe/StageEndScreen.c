@@ -18,13 +18,54 @@
 /*
  * STATUS: NON_MATCHING — complete pure-C reconstruction with the exact target
  * length (6084 bytes / 1521 instructions), 0xf0-byte frame, 81 conditional
- * branches, 15 jumps, and 70 calls.  matchdiff reports 202 differing bytes
- * and fuzz-score reports 98.16%; the raw aligned residual is 33 lines in 17
- * blocks (16 structural lines in 6 blocks).  The final digit allocation and
- * terminal layout-loop register family now follow the target.  The residual
- * is concentrated in the stage scan, setup/first-difference scheduling, one
- * post-copy base register, and two terminal address-materialization ops, not
- * hidden asm.
+ * branches, 15 jumps, and 70 calls.  matchdiff reports 199 differing bytes.
+ * The residual clusters: A stage-scan register permutation (~40B), B the
+ * current_x=0x52 sched displacement (~168B), C the number_1 subtraction
+ * coloring (partially closed), D two terminal &D_8008EA78 ops.
+ *
+ * 2026-07-18 round 5 (agent, fresh permuter after the -fno-builtin fix):
+ *  - 202->199.  A FRESH bounded permuter run (the park's "flat" was measured
+ *    with the -fno-builtin bug that searched a different program) found ONE
+ *    real edit: the number_1 draw's x-coordinate 0x28 as a PRE-LOOP variable
+ *    `second_x` (set after _PlayMusic) instead of a site literal.  This
+ *    changes cluster C's coloring (the "x-const 40 in v0 vs v1" permutation)
+ *    and closes 3 of its bytes.  Verified by full-link authoritative rescore
+ *    AND by reproduction (matchdiff 199).  Re-seeding continues from here.
+ *  - The re-seeded permuter (from the 199 checkpoint, fresh -j4 run) then
+ *    PLATEAUED: authoritative rescore shows nothing beats base 199.  This
+ *    neighbourhood is exhausted; cluster B needs a pass-level lever, not a
+ *    permuter mutation.
+ *  - Cluster B RE-CONFIRMED intractable at the C level, first-hand this round:
+ *    * sched-deps: current_x is insn 558 in block 17 with pri=1 REF=0 (the
+ *      round-4 ref_count claim VERIFIED by the tool, not inferred).  The
+ *      div-magic (regno 301, const 0x66666667) is emitted right after it.
+ *    * .loop: the div-magic IS in loop.c's moved list (hoisted to the
+ *      preheader, high LUID); current_x is NOT moved (stays at source LUID).
+ *      So current_x's low source-LUID precedes the hoisted div-magic's LUID
+ *      and sched1 emits current_x first — a pure LUID tie, un-raisable
+ *      because current_x is a bare constant (no cost!=1 producer).
+ *    * SOURCE MOVES, both measured NO-OP-or-worse: current_x at while(1) TOP
+ *      is nullcheck NO-OP (movable found before the div-magic's first use ->
+ *      lower LUID -> re-hoisted to 0x800536bc); current_x just before number_2
+ *      (after the div-magic's first use in number_0/1) is CATASTROPHIC (611) —
+ *      loop.c will not cleanly re-hoist it from mid-loop.
+ *    * HUMAN-STRUCTURE hypothesis (the cookbook §4 "open case") FALSIFIED:
+ *      rebuilding the best_x region with clean externs (CHOSEN_STAGE /
+ *      CHOSEN_LANGUAGE / D_8001046C instead of the best_x=0x80010000 dual-life
+ *      + nested fences) is a LENGTH MISMATCH (6104 > 6084).  The dual-life is
+ *      NOT superfluous scaffolding — it is FAITHFUL to the target (s5 =
+ *      %hi(CHOSEN_LANGUAGE) reused for best_x, verified in the .s) and
+ *      load-bearing: the pointer form folds base+offset that the extern form
+ *      re-materialises.  current_x (s7) is independent of best_x (s5); the
+ *      scaffolding is not what pins cluster B.  Cluster B is a genuine sched1
+ *      wall, not a scaffold artefact.
+ *  - Other clusters re-tested this round (all measured, all rejected):
+ *    * C bosses-operand-birth seed (the sibling's draw-1 idiom): 199->201.
+ *    * D symbol form `&D_8008EA78[i]` (vs the 0x80090000-0x1588 constant):
+ *      199->232 — CONFIRMS the round-4 coupling (the %hi live range defeats
+ *      the a1 coalesce).  The constant/page-minus form is the local optimum.
+ *    * A stage-scan {a0,a2,a1} vs target {a3,a1,a0}: regalloc.py --local shows
+ *      a local-alloc coloring conflict on stage_index; no C lever found.
  *
  * 2026-07-16 full residual autopsy (second flat pass, RTL-evidenced; do not
  * re-run source moves against these six clusters without a NEW pass-level
@@ -420,6 +461,7 @@ void StageEndScreen(void)
     u32 layout_stage_offset;
     s16 ten;
     s32 top_y;
+    s32 second_x;
     s32 current_x;
     s32 best_x;
     s16 stage_index;
@@ -561,6 +603,7 @@ void StageEndScreen(void)
         LoadTIM(tim);
 
         _PlayMusic(12, 1);
+        second_x = 0x28;
         while (1)
         {
             pad = GetRealPad(0);
@@ -596,7 +639,7 @@ void StageEndScreen(void)
             DRAW_SCORE_NUMBER(stack.stats.criticals, s32, 1, number_0,
                 10, top_y);
             DRAW_SCORE_NUMBER((u32)stack.stats.enemies -
-                stack.stats.bosses, s32, 1, number_1, 0x28, top_y);
+                stack.stats.bosses, s32, 1, number_1, second_x, top_y);
             DRAW_SCORE_NUMBER(stack.current.value[0], s16, 1, number_2,
                 current_x, top_y);
             DRAW_SCORE_NUMBER(stack.best.value[0], s16, 1, number_3,
