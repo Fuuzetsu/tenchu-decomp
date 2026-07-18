@@ -105,7 +105,13 @@ stays NON_MATCHING (StateTransition is the worked correction).
 5. **Permuter discipline** (operating detail in matcher.md): never as an early
    decompiler — recover CFG/loops/stack/length deterministically first
    (permute.py preflights and refuses broad residuals). One bounded run for a
-   sub-C-looking residual; linked rescore is authoritative (`--rescore-only`
+   sub-C-looking residual — **but NOT for a `gte.h`/gte-allowlist function: the
+   permuter is a NON-LEVER for those at ANY residual size** (permute.py:985
+   refuses inline-asm functions before compiling — its parser can't read the
+   macro layer, so it never searches and the -fno-builtin fix is irrelevant). A
+   small residual on a gte.h function LOOKS like a permuter target and is not
+   (FUN_80057b80's 8-byte / FUN_80058c70's prologue sched2 ties) — escalate
+   STRAIGHT to RTL. linked rescore is authoritative (`--rescore-only`
    after interrupts; ControlHumanoid's real winner was proxy output-525).
    Bisect winners — they carry dead statements (bow_shoot_logic). Read a
    plateaued run's best `output-*` dirs for the single load-bearing edit
