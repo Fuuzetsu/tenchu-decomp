@@ -1,5 +1,34 @@
 # Decompilation flywheel handoff — 2026-07-16
 
+## Continuation snapshot — 2026-07-19
+
+The dated shutdown material below is historical. Fresh measurement on master
+reports 534/555 pure-C game functions (290012/303244 bytes, 95.64%) and 551/555
+complete functions when the 17 canonical handwritten-assembly originals are
+included (296164/303244 bytes, 97.67%). Only four game functions remain:
+
+| Function | Size | Current evidence |
+|---|---:|---|
+| `mission_score_screen` | 4636 | exact-length 32-byte residual; shared human drawing-macro/local identities are being reconstructed from `StageEndScreen` and fresh scheduler output |
+| `FUN_800519bc` | 1448 | exact-length 76-byte residual in seven clusters; demo homolog confirms the normal loop and direct texture-page expression |
+| `AdtSelect` | 776 | exact-length nine-byte residual; both fake control-flow fences are gone and the remaining difference is one parameter-reload/self-tie decision also present in the demo |
+| `FUN_8001c730` | 220 | 212-byte draft; ordinary Hermite/GTE implementation established, with matrix packing and multiply scheduling still being reconciled |
+
+The current exact-source run also promoted `start_demo_`, `AddEnemy`,
+`FUN_80036284`, `FUN_80032720`, `WeaponHitWeapon`, `DrawHinoko`,
+`FUN_8001b174`, `GetPadXY`, and `GetPad`. `drawF3` and `PClseek` now have exact
+guarded reference reconstructions while retaining their handwritten/SDK
+classification. In particular, the three-shift controller-port sequence was
+not a mysterious sign-extension split: the human source encodes a port with
+`no << 4` and indexes `PadPort[port >> 4][port & 3]`. Any older cookbook or
+function-header rule that parks that shape is superseded.
+
+Standing method: shipping bytes plus fresh cc1/RTL/scheduler output are the
+source of truth. Demo bodies, PSX.SYM types/locals, matched siblings, and
+ordinary human control flow should reshape the source before premutters or
+synthetic fences are considered. A compiler proof applies to the tested pseudo
+graph, not automatically to every plausible source identity.
+
 This is a dated shutdown snapshot, not a second match-status database.  The
 current source, `tools/progress.py`, `tools/triage.py`, and each guarded
 function's `STATUS` comment are authoritative.  Re-measure before dispatching

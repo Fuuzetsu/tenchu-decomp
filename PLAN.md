@@ -16,8 +16,9 @@ byte-identical `main.exe`.
   `cpp | cc1-281 -G8 | maspsx --aspsx-version=2.77 | as | ld`; reproducible/offline
   via nix (no cabal/wine). maspsx is integrated (see [`docs/toolchain.md`](docs/toolchain.md)).
 - **Every game function is carved (555/555)**; matched count is live in
-  `tools/progress.py` (**499/555 game functions, 84.63% of game-code bytes** as of
-  2026-07-17; **516/555, 86.66% counting the 17 canonical-asm originals**),
+  `tools/progress.py` (**534/555 game functions, 95.64% of game-code bytes** as of
+  2026-07-19; **551/555 functions and 97.67% of bytes counting the 17
+  canonical-asm originals**),
   whole-image byte-identical throughout (see `git log` for the
   per-function record; `tools/progress.py` for the live count). The engine is
   the matcher-agent pipeline ([`docs/orchestration.md`](docs/orchestration.md))
@@ -30,18 +31,21 @@ byte-identical `main.exe`.
   family, and small render/util helpers. **The clean seam** (non-jump-table,
   ≤~500-byte, non-dispatch functions) matches **4–5/5 per batch at ~65–250k
   tokens** on Sonnet; pick targets with `tools/triage.py` / `tools/findsimilar.py`.
-- **Partial matches** (blocked on sub-C-level residuals, kept via the
+- **Partial matches** (kept via the
   NON_MATCHING convention — default build stays green byte-identical, draft
-  builds with `NON_MATCHING=<Name> ./Build`): **36 functions parked** (2026-07-17),
-  each root-caused in its file header. Residuals are consistently sub-C —
-  register-allocation / scheduling / reload-pass ties the source can't steer:
+  builds with `NON_MATCHING=<Name> ./Build`): only **four game functions remain**
+  (2026-07-19): `mission_score_screen`, `FUN_800519bc`, `AdtSelect`, and
+  `FUN_8001c730`. Older headers often describe residuals as proven sub-C floors,
+  but repeated exact matches have falsified that conclusion. Those diagnostics
+  describe one tested pseudo graph, not everything human C can express. Common
+  residuals still include
   the named **`la` address-materialization tie** (`%hi` in a temp vs the target
   reg — `PrepareAccess`, `cd_open`, `PlayMusicFromID`, `FUN_8004a368`),
   goto-merge copy-chains (`turn_towards_player_`, `Think3chase`), and the
-  big-handler flag/frame ties (`handle_char_state_*`/`Think3*` dispatchers,
-  ~1400–1700 bytes — the **tie-prone bucket**). The permuter is *provably immune*
-  to the reload-tie class, so these are parked (the sub-C early-stop protocol),
-  not burned on. [`docs/matching-cookbook.md`](docs/matching-cookbook.md)
+  big-handler flag/frame ties. The permuter is often immune to these late-pass
+  decisions, so fresh compiler dumps, demo homologs, original types/macros, and
+  a different human source identity take priority over local byte shaving.
+  [`docs/matching-cookbook.md`](docs/matching-cookbook.md)
   records ~60 verified matching idioms. The early sessions pinned down the real
   gp model (ASPSX gp-addresses only TU-local definitions; externs are absolute)
   and produced the reusable infrastructure in
@@ -145,10 +149,31 @@ reported floors; the DecodeTMD twins matched after their one-statement proof;
 FUN_80057b80 matched after a quantified signature proof. Continue to rank by
 value and evidence, but treat every park as a falsifiable claim about one graph.
 
-## Where the work actually is now (2026-07-18)
+## Where the work actually is now (2026-07-19)
 
-**31 game functions remain after ActITEM.** `tools/findsimilar.py --targets`
-prints exactly this set (it defaults to `--scope game`):
+Fresh `tools/progress.py` and `tools/findsimilar.py --targets --by-value` leave
+exactly four game-code functions:
+
+| Function | Size | Authoritative current draft |
+|---|---:|---|
+| `mission_score_screen` | 4636 | exact length; 32 differing bytes / 14 instructions; ordinary shared score-drawing macro structure is under active reconstruction |
+| `FUN_800519bc` | 1448 | exact length; 76 differing bytes / 28 instructions in seven clusters; demo homolog confirms an ordinary renderer loop |
+| `AdtSelect` | 776 | exact length; nine differing bytes in one huge-frame reload decision; clean indexed count loop and ordinary D-pad control flow |
+| `FUN_8001c730` | 220 | 212-byte draft; 36 aligned lines in ten blocks; compiler evidence identifies ordinary Hermite evaluation plus GTE matrix packing |
+
+All four are active in the current four-slot flywheel. Compiler output and
+shipping/demo bytes remain the gate. Cookbook rules and old “unreachable”
+claims are hypotheses, especially when they were derived from a scaffolded
+local minimum.
+
+### Historical 2026-07-18 frontier
+
+The snapshot below recorded the earlier 31-function frontier and is retained to
+explain the source-identity breakthroughs. Its counts and target ranking are no
+longer current.
+
+**31 game functions remained after ActITEM.** `tools/findsimilar.py --targets`
+printed this set (it defaults to `--scope game`):
 
     game code            507/555   functions (91.35%)   263272/303244  bytes (86.82%)
     game done (C+asm)    524/555   functions              (the 17 canonical-asm draw*)
