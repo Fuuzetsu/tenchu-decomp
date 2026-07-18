@@ -120,8 +120,12 @@
  * needs local-alloc.c's block_alloc actually traced. TOOL TICKET
  * (regalloc --local): print local-alloc's qty walk (order, birth/death
  * luids, suggestion passes) the way --order does for global allocnos; this
- * residual class is invisible to every current tool (still absent as of
- * this round — regalloc.py --help carries no --local flag).
+ * residual class is invisible to every current tool.
+ *   [ROUND 3 UPDATE: this TOOL TICKET is now FULFILLED. `regalloc.py --local`
+ *   exists and self-validates — its simulated block_alloc reproduced all 90
+ *   of cc1's printed homes for our draft, 0 divergences. block 4 is the entry
+ *   ViewInfo cluster; its 13-quantity walk is now printable. The residual is
+ *   confirmed a LOCAL-alloc qty->reg tie, exactly as suspected.]
  *
  * ROUND 2 (this round — restarted from 29 per the handoff, as directed):
  *   - Fresh bounded permuter (post -fno-builtin fix, so the pre-existing
@@ -183,6 +187,28 @@
  *     also established is that the SPECIFIC combination needed on top of
  *     it is narrower than "the walk order" alone suggests — it is this
  *     Y-before-Z scheduling coupling, not just a qty priority reordering.
+ *
+ * ROUND 3 (regalloc --local now exists; permuter genuinely post -fno-builtin):
+ *   - regalloc --local self-validated our 90 homes (0 divergences); the entry
+ *     residual is a LOCAL-alloc qty->reg tie (TOOL TICKET above: fulfilled).
+ *   - Fresh bounded permuter (240s/~16.5k iters) from the banked 15 found ONE
+ *     new lever the earlier rounds' bug had hidden: inserting `z++; z--` right
+ *     after the x-store scores 12 (verified by matchdiff, whole-image). It
+ *     cleanly fixes the ADDRESS-COMPUTATION half {hi, vpx, base} (those three
+ *     now match exactly), collapsing the residual to a pure x<->z register
+ *     SWAP: target wants x=v0 (short live range, dies at its store so vpy
+ *     reuses v0) and z=t2 (lives late), ours has x=t2/z=v0; vpy/vpz follow.
+ *   - `z++; z--` is a literal no-op live-range nudge = invented scaffolding
+ *     for the last 3 bytes. REJECTED per the owner's human-structure directive
+ *     ("don't invent scaffolding for the last bytes"); banked 15 retained.
+ *     Re-seeding a second 240s permuter run from that 12-byte state PLATEAUS
+ *     (best candidate 13, worse than its own 12 seed) — no clean 0 reachable.
+ *   - Tried to reproduce z++;z--'s effect HUMANLY: clean z-before-y store
+ *     reorder (drop carrier+vpyp, `z -= vpz; store; y -= vpy; store;`) = 29
+ *     AND changes the emitted store schedule — the effect is NOT reachable by
+ *     human statement reordering. The x<->z lever is genuinely sub-C: only a
+ *     synthetic ref-count nudge on z reaches it. Net: 15 stands as the honest
+ *     human-structure checkpoint; the sole sub-15 path is non-human no-ops.
  */
 
 #ifndef NON_MATCHING
