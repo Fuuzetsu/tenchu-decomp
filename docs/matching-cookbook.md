@@ -1056,6 +1056,18 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   allocnos** — if the residual registers are absent from its local homes, the tie
   is GLOBAL; cross-check `--order` (SetupTelop's 4-clique read as "local" for
   three rounds until --local's exclusion list proved it global).
+- **The interference wall (third local-alloc failure mode).** When regalloc
+  --local's self-validated walk shows the pseudo you want in register R CONFLICTS
+  higher-priority pseudos that grab R first, no reweighting or seed-copy reaches
+  R — it is an interference wall, not a priority flip. Only SHORTENING that
+  pseudo's live range below the conflictors' births frees R, and if the construct
+  that shortens it also changes the frame length, the tie is genuinely sub-C
+  (CameraDirection: target.vrx p224 [14,50) conflicts the pri-40000 field pseudos
+  p234/p239 that take `$v0`; the second `target.vrx =` store that would shorten it
+  IS the +4 bytes making the frame 860). COROLLARY: **a donor added purely for
+  LENGTH can itself be the tie's root cause** (dual-purpose scaffolding) — verify a
+  length donor is inert to the tie before "removing scaffolding," or removing it
+  regresses length AND does not close the tie.
 - **Local-alloc's conflict-free-window trap (the LOCAL analog of the hard-conflict
   rule above)**: a value born-and-dead inside ONE conflict-free window always
   takes the lowest free register (`find_reg` hands a conflict-free quantity the
