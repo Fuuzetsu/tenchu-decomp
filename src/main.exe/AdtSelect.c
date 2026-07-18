@@ -33,9 +33,19 @@
  *   target is unreachable by this compiler.
  * - Fresh RTL localizes the remaining distinction: initial CSE turns the first
  *   test into a direct MEM through spilled menu, while loop strength reduction
- *   later creates a bare cursor pseudo. Volatile/address-taken experiments can
- *   force a one-reload path but damage allocation elsewhere; they are evidence
- *   about the pass boundary, not an acceptable fix.
+ *   later creates a bare cursor pseudo. A fresh re-run corrected an earlier
+ *   claim about volatile/address-taken spellings: NONE reproduced the target
+ *   self-tie. A volatile parameter made 784 bytes, a volatile pointer local
+ *   made 796 bytes, and loading through a volatile alias kept 776 bytes but
+ *   caused a 51-byte allocation cascade. The only exact-length split-copy
+ *   diagnostic was an empty asm constraint; it reduced the residual to two
+ *   bytes but allocated the temporary/value in v0, not a3. It is lifetime
+ *   evidence only, not acceptable source.
+ * - The 776-byte body, including the a3 self-tie, is byte-identical in the
+ *   shipped ENDING.EXE, MAIN.EXE, MENU.EXE, and TRIAL.EXE. This strongly points
+ *   to one reused ADT library object. cc1-2.6.3 and a focused gcc-2.8.1 flag
+ *   sweep did not reproduce the target from this source, so there is no current
+ *   evidence for a simple compiler-version or per-library-flag explanation.
  *
  * Current honest state: clean human-shaped C, 9 differing bytes, still open.
  * Any absolute "no natural C" or "do not retry" language in the historical
