@@ -32,10 +32,22 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-/* STATUS: NON_MATCHING — 9 of 1076 bytes differ (8 insns, all in loop 1).
- * (ROUND 3 improved this from 11/1076 -- see that section. ROUND 1/2 below
- * describe the ORIGINAL 3-way rotation as first found; read ROUND 3 for the
- * current, simpler 2-way shape and what actually moved.)
+/* STATUS: MATCHED — exact 1076 bytes / 269 instructions.
+ *
+ * ROUND 5 disproved the parked allocation floor by replacing the byte-chased
+ * glyph loop as one coherent source package.  The retail target preserves the
+ * demo's human structure: the PSX.SYM `u` local is the inner pixel counter;
+ * `bitmap[v][15 - u]` is one ternary assignment; and the font-selection
+ * if/else is plain control flow.  Removing the five nested one-shot fences
+ * around that selection demoted `font` naturally, so `bits`/font/u landed in
+ * the target $a1/$a2/$t0 homes with no carrier or weighting trick.  Writing
+ * `v = 0` before `fill_white = 0x7fff` then put the zero init in the guard's
+ * delay slot and closed the final two-instruction reorder.
+ *
+ * ROUNDS 1–4 below are retained as a falsified local-minimum autopsy: their
+ * priority and conflict measurements were accurate for the scaffolded draft,
+ * but their conclusions did not transfer to the human decomposition.
+ * (ROUND 3 improved that old draft from 11/1076; ROUND 4 parked it at 9.)
  *
  * Exact instruction sequence; the ORIGINAL residual (ROUND 1/2) was a 3-cycle
  * register rotation in the bitmap-fill loop:
@@ -343,10 +355,6 @@
  *     previously-live local (here the U-coordinate `u`) over an arbitrary one --
  *     any previously-live local supplies the pressure, so pick the human one.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/SetupTelop", SetupTelop);
-#else
-
 typedef struct
 {
     s16 x, y, w, h;
@@ -392,10 +400,7 @@ void SetupTelop(u8 *telop, short line)
     s16 n;
     s16 u;
     s16 v;
-    s16 col;
     s16 *font;
-    s16 *pixel;
-    s32 pixel_offset;
     s16 bits;
     u16 raw_bits;
     s16 north;
@@ -404,7 +409,6 @@ void SetupTelop(u8 *telop, short line)
     s32 scaled_y;
     s32 line_y;
     s32 signed_v;
-    s32 final_u;
     s32 final_v;
     s32 final_v2;
 
@@ -423,15 +427,12 @@ void SetupTelop(u8 *telop, short line)
         rect.w = 0x10;
         rect.h = 0xf;
 
-        do
+        if (*telop == 0)
         {
-            if (*telop == 0)
-            {
-                TelopP.u1 = 0;
-                TelopP.u0 = 0;
-                return;
-            }
-        } while (0);
+            TelopP.u1 = 0;
+            TelopP.u0 = 0;
+            return;
+        }
 
         n = 0;
         while (1)
@@ -441,65 +442,31 @@ void SetupTelop(u8 *telop, short line)
                 break;
             }
 
-            do
+            if (telop[n] == 0x81 && telop[n + 1] == 0x99)
             {
-                do
-                {
-                    do
-                    {
-                        do
-                        {
-                            do
-                            {
-                                if (telop[n] == 0x81 && telop[n + 1] == 0x99)
-                                {
-                                    font = D_8008F078;
-                                }
-                                else
-                                {
-                                    font = Krom2RawAdd((telop[n] << 8) | telop[n + 1]);
-                                }
-                            } while (0);
-                        } while (0);
-                    } while (0);
-                } while (0);
-            } while (0);
+                font = D_8008F078;
+            }
+            else
+            {
+                font = Krom2RawAdd((telop[n] << 8) | telop[n + 1]);
+            }
 
             if (font != (s16 *)-1)
             {
-                fill_white = 0x7fff;
                 v = 0;
+                fill_white = 0x7fff;
                 do
                 {
                     raw_bits = font[v];
                     bits = raw_bits >> 8;
                     bits |= raw_bits << 8;
-                    col = 0;
+                    u = 0;
                     do
                     {
-                        do
-                        {
-                            pixel_offset = (15 - col) * 2 + v * 0x20;
-                        } while (0);
-                        final_u = fill_white;
-                        pixel = (s16 *)((u8 *)bitmap + pixel_offset);
-                        if ((bits >> col) & 1)
-                        {
-                            *pixel = final_u;
-                        }
-                        else
-                        {
-                            *pixel = 0;
-                        }
-                        col++;
-                    } while (col < 16);
-                    do
-                    {
-                        do
-                        {
-                            v++;
-                        } while (0);
-                    } while (0);
+                        bitmap[v][15 - u] = ((bits >> u) & 1) ? fill_white : 0;
+                        u++;
+                    } while (u < 16);
+                    v++;
                 } while (v < 15);
 
                 outline_white = 0x7fff;
@@ -518,10 +485,7 @@ void SetupTelop(u8 *telop, short line)
                             bitmap[v][u] = 0x1ce7;
                         }
                     }
-                    do
-                    {
-                        u++;
-                    } while (0);
+                    u++;
                     signed_v = v;
                     if (u >= 15)
                     {
@@ -564,8 +528,6 @@ void SetupTelop(u8 *telop, short line)
                                0x1f0 - (s16)line_y);
     }
 }
-
-#endif
 
 // triage: HARD — 269 insns, 4 loop, frame 0x230, 6 callees, ~0.04 to BriefingAndInventorySelectionScreen
 // likely-relevant cookbook sections:
