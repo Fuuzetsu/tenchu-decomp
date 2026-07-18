@@ -28,30 +28,26 @@
  * END PSX.SYM */
 
 /*
- * GetPadXY (0x8001b480) — writes the x/y analog-stick fields of
- * PadPort[no][0] (offsets 2/4 of controller_input, i.e. unk_2[0]/unk_2[1])
- * through the out-parameters. Like GetPad/FUN_8001b174 (not GetRealPad/
- * PadShock) this indexes PadPort by the plain row `no` only, scaling by the
- * whole 0x38 (4*14) row stride — there is no `>>4`/`&3` column split here.
+ * GetPadXY (0x8001b480) — writes the x/y analog-stick fields through the
+ * out-parameters. `port = no << 4` converts the plain controller number to
+ * the encoded row/slot convention used by the PADCMD.C family; the normal
+ * `port >> 4` / `port & 3` lookup therefore selects PadPort[no][0]. Keeping
+ * that encoded value and the selected record as ordinary locals makes cc1
+ * emit the target's sll16/sra12/sra4 chain and compute the shared address
+ * once. No optimizer barrier is needed.
  *
- * STATUS: NON_MATCHING — this is the SAME sign-extension shift-split as
- * GetPad/FUN_8001b174 (see GetPad.c). The target sign-extends `no` as
- * sll16/sra12/sra4 (three shifts, the extend fused with the element
- * scale); the natural-C draft below compiles the textbook sll16/sra16
- * (two shifts, CSE'd once and shared by both field reads — cc1's
- * fold/combine refolds every plain-arithmetic respelling back to this
- * form) — confirmed via `tools/matchdiff.py GetPadXY`: carve extent 60
- * bytes, this draft links to 56 bytes (4 bytes / one instruction SHORT —
- * the missing extra `sra`, exactly the GetPad-class signature). GetPad.c's
- * header has the full verified byte-exact-but-inline-asm-barrier form and
- * the open project policy question; that decision applies identically here.
+ * This exact human-shaped source falsifies the former SIGNEXT-SPLIT park.
+ * The demo's same-named function has the same three-shift prefix and the
+ * same two field stores, with only its earlier 12-byte record stride and
+ * trivial-frame epilogue differing from retail.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GetPadXY", GetPadXY);
-#else
 void GetPadXY(short no, short *x, short *y)
 {
-    *x = (short)PadPort[no][0].unk_2[0];
-    *y = (short)PadPort[no][0].unk_2[1];
+    s32 port;
+    controller_input *pad;
+
+    port = no << 4;
+    pad = &PadPort[port >> 4][port & 3];
+    *x = (short)pad->unk_2[0];
+    *y = (short)pad->unk_2[1];
 }
-#endif
