@@ -154,6 +154,126 @@
  *    and restores $s0. `short deg` is correct — do not let autorules re-adopt.
  *
  * Permuter is inapplicable (refuses a >1-instruction length delta).
+ *
+ * ROUND 3 (humanise pass) — mechanism CONFIRMED against the real target
+ * bytes and the pinned gcc-2.8.1 reorg.c source (not just RTL-dump inference
+ * as before), plus a critical NEW counter-example. Net: still 340, but the
+ * search space for the next attempt is now much smaller.
+ *
+ * Exact target bytes for all four return-0 sites, from the raw disassembly
+ * (config/../.shake/gen/main.exe/asm/nonmatchings/ChasetoTarget/ChasetoTarget.s),
+ * confirm every one branches DIRECTLY to the epilogue label (.L8002BC94,
+ * where the `lw ra,...`/restore sequence begins) with its OWN `addu
+ * v0,zero,zero` in the delay slot — there is no surviving intermediate
+ * "ret0" label in the target at all:
+ *   beqz  a1,.L8002BC94 / addu v0,zero,zero      (null check)
+ *   bnez  v0,.L8002BC94 / addu v0,zero,zero      (abs(zz)<500, the goto-ret0 site)
+ *   bnez  v0,.L8002BC94 / addu v0,zero,zero      ((Attrib&0x400)!=0)
+ *   bnez  v0,.L8002BC94 / addu v0,zero,zero      (Distance<1000)
+ * Our draft already reaches this exact shape for the LAST THREE (verified in
+ * our own compiled .s: `bne $2,$0,$L9 / move $2,$0`, landing directly on the
+ * shared epilogue label with no intermediate island) — only the null check
+ * (the first, entry-block one) fails, producing the extra `$L5: move $2,$0`
+ * island plus the `j $L9` needed to hop over it, plus a THIRD cost not
+ * previously itemised: since `addiu $20,$17,128` (chase) gets pulled into
+ * the null check's delay slot, the `lw $5,116($17)` immediately before it is
+ * now directly followed by `beq $5,...` with nothing between them, so
+ * maspsx must insert its own load-delay `#nop` there (absent from the
+ * target, where `addiu` naturally occupies that gap). All three costs (nop +
+ * island + hop) are downstream of the SAME single reorg decision.
+ *
+ * Root cause, confirmed against gcc-2.8.1's actual source
+ * (`tools/ccsrc.py fill_simple_delay_slots` / `stop_search_p`, reorg.c
+ * :2975-3129 and :684-715): `fill_simple_delay_slots` always tries a
+ * BACKWARD scan of the branch's own block FIRST (before ever considering
+ * stealing from the branch's target), walking `prev_nonnote_insn` one insn
+ * at a time. It only stops outright (`stop_search_p`) at a CODE_LABEL,
+ * JUMP_INSN, BARRIER, or an already-filled SEQUENCE/asm insn; anything else
+ * that conflicts (sets/reads a register the branch needs, or that an
+ * already-rejected earlier candidate needed) is REJECTED but does NOT stop
+ * the scan — its own read/write set is folded into the accumulated
+ * needed/set resources and the walk continues further back
+ * (reorg.c:3095-3129). For our null check: `lw $a1,...` is rejected (it SETS
+ * $a1, the branch's own tested register) but is not a hard stop, so the scan
+ * continues and reaches `addiu $s4,$s1,0x80` (chase) next — which touches
+ * neither $a1 nor $s1 in any needed/set way — so it is taken immediately.
+ * This holds regardless of textual order (matches the already-recorded
+ * "reordering the two entry insns cannot help" finding) because the
+ * accumulate-and-continue behaviour reaches `addiu` whichever of {lw,addiu}
+ * is closer. The other three sites are protected only because their
+ * immediately-preceding insn is a `slt`/`andi` that DEFINES the exact
+ * register their own branch tests (an unavoidable feature of a `<`/`&`-style
+ * compiled test), which is rejected AND then hits a hard stop (a CODE_LABEL
+ * or a prior branch's already-filled SEQUENCE) within 1-2 more steps — so
+ * they always fall through to stealing "addu v0,zero,zero" from the shared
+ * tail instead. The null check has no such compare insn (a direct pointer
+ * `!= 0` test compiles straight to `beqz`, no intermediate flag), which is
+ * structurally why it alone is exposed. An independently-matched sibling,
+ * DrawModelArchive.c, documents the exact same family (reorg steals a
+ * shared reject block's leading insn into each eligible branch's delay slot
+ * and retargets through it) with the identical failure mode at ONE of its
+ * five sites for the identical reason ("its delay slot was already taken by
+ * `andi v0,s0,0x10`, so reorg had nothing to steal with") — and that site
+ * stays un-collapsed in the MATCHED target, i.e. this reorg quirk is real
+ * and sometimes simply wins.
+ *
+ * BUT: `tools/siblingdiff.py ChasetoTarget --demo` disproves "unreachable
+ * from C" as a conclusion here. The demo's ChasetoTarget (THINK.C:269, a
+ * much bigger 468-byte body that inlines what became turn_towards_player_)
+ * has, at its own null check, the EXACT same local shape as retail —
+ * `lw a1,108(s1) / addiu s4,s1,120 / beqz a1,L1ac` — and its delay slot is
+ * ALSO won by `move v0,zero`, not by `addiu`. Since the demo and retail were
+ * compiled at different times against different surrounding code and BOTH
+ * land on the collapsed form for this identical local instruction pattern,
+ * some source construct reliably avoids the steal — the deterministic
+ * backward-scan argument above must be missing a real difference between
+ * our draft and the true source, not a property of the instruction shapes
+ * being wrong in principle. I could not find it this round; see the ruled-
+ * out list below.
+ *
+ * NEW this round, all measured, all confirmed genuine no-ops via
+ * `tools/nullcheck.py` (not "tried and failed to help" — cc1 produced
+ * byte-IDENTICAL .o both ways, so these are eliminated as levers entirely,
+ * not just deprioritised):
+ *  - Dropping the named `vx`/`vz` locals and storing the rcos()/rsin()
+ *    results directly (`me->some_other_x_position = rcos(deg)*length>>12;`
+ *    etc.): no-op. cc1's local-alloc already collapses their trivially-short
+ *    live ranges to the same registers regardless of whether they are named.
+ *  - Declaring locals in PSX.SYM's reversed order (the general §1 rule —
+ *    `short pad`(unused)/`deg`/`vz`/`vx`/`chase`/`c0`/`zz`/`xx`, since the
+ *    listed order is xx,zz,chase,vx,vz,deg): no-op. This function's pseudo
+ *    numbering evidently never hits a QTY_CMP_PRI tie that declaration order
+ *    would break — consistent with `regalloc.py --local` (below) already
+ *    self-validating the CURRENT order as exactly correct.
+ *  - Naming `me->another_camera_related_perhaps` into its own local
+ *    (`target = me->another_camera_related_perhaps; if (target != 0) ...`,
+ *    using `target->` throughout): no-op, byte-identical codegen either way.
+ *  - `tools/regalloc.py ChasetoTarget --local` (new this session): self-
+ *    validated, 0 divergences — reproduces cc1's exact 21-pseudo home table.
+ *    This independently reconfirms (via a different tool than the prior
+ *    rounds used) that register allocation is not where the residual lives;
+ *    it is entirely a post-allocation reorg/delay-slot decision.
+ *  - `tools/autorules.py ChasetoTarget`: refuses outright (length mismatch;
+ *    correctly, since the greedy score would just be the length penalty).
+ *  - Fresh permuter runs with the corrected (`-fno-builtin`-fixed) build,
+ *    BOTH plain (which still refuses: "instruction length differs by 3")
+ *    AND `--force-early` (240s bounded, ~21800 iterations): found no match.
+ *    The best candidates by whole-image score were 332-336 bytes (4-8 over,
+ *    down from 12) but every one relies on a construct that fails the
+ *    "would a person write this" bar on its own terms — e.g. its closest
+ *    candidate (332 bytes) only gets there via `c0 = 12; vz = (rsin(deg) *
+ *    length) >> c0;`, reusing an already-dead, semantically-unrelated
+ *    variable purely to force a variable-shift instruction in place of an
+ *    immediate shift. Not ported.
+ *
+ * Net: the residual is unchanged at 340 (12 bytes / 3 insns), now with a
+ * byte-and-source-verified mechanism, a proof (via the demo) that a fix
+ * exists in principle, and a substantially narrowed set of remaining
+ * candidates (declaration order, naming, and the named-temp question are
+ * all now closed off). Whoever picks this up next should look at what
+ * ELSE differs about the demo's wider function body that might change
+ * `unfilled_slots_base` processing order or the entry block's true RTL
+ * shape — not at this local neighbourhood's own spelling.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/ChasetoTarget", ChasetoTarget);

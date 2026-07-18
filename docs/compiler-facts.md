@@ -554,7 +554,14 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   if exactly ONE independent instruction is reachable in that block, it is stolen
   **wherever you put it textually** — moving it is not a lever, and a
   `do{}while(0)` fence does not help because NOTEs return 0 from `stop_search_p`
-  (the scan walks straight through). ActITEM proved this across 9 source-shape
+  (the scan walks straight through). **A rejected candidate is NOT a hard stop**
+  (reorg.c:3095-3129): only a CODE_LABEL / JUMP_INSN / BARRIER / already-filled
+  SEQUENCE / asm insn stops the scan; a candidate that merely conflicts with the
+  branch's operands has its OWN read/write set folded into the accumulator and the
+  scan CONTINUES backward — so an independent insn two or more steps back is still
+  reachable and stolen. That is why "reorder the two entry insns" is never a lever
+  when exactly one truly-independent candidate exists anywhere in the
+  backward-reachable prefix (ChasetoTarget, traced to reorg.c by UID). ActITEM proved this across 9 source-shape
   variants (4 statement positions, a fence, an if/else duplication, a De Morgan
   merge): every alternative regressed or mismatched length. **If your draft fills
   a slot the target leaves as a bare `nop`, count the independent candidates in
