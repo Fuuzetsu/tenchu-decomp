@@ -64,6 +64,53 @@
  * it collapses them back onto one register (regresses to 26 bytes). See
  * docs/matching-cookbook.md, "TWO REGISTERS FOR ONE VALUE MEANS THE
  * ORIGINAL HAD TWO VARIABLES" and "gcc-2.8.1 has NO coalescing pass".
+ *
+ * RE-VERIFIED independently this round (the two permuter runs above
+ * PRE-DATE the day's `-fno-builtin` fix — d02da20 landed ~4h after this
+ * file's 26->2 commit 725ca61, so their negatives were formally void; every
+ * conclusion below was re-derived, not assumed):
+ *  - `tools/ccsrc.py fill_simple_delay_slots` (reorg.c:2975-3130) read
+ *    directly: the backward scan (reorg.c:3083, `prev_nonnote_insn` until
+ *    `stop_search_p`) tests only whether a trial SETS a resource the
+ *    branch NEEDS (reorg.c:3098-3099); a trial that fails is folded into
+ *    the accumulated state and the scan CONTINUES past it — failing the
+ *    test does not stop the scan, only a CODE_LABEL/JUMP_INSN/BARRIER
+ *    does. There is no `own_thread_p` label-ownership gate in this path
+ *    (that's `fill_eager_delay_slots`, StickonCheck's mechanism, not this
+ *    one) — confirms the header's citation exactly.
+ *  - `tools/sched-deps.py ActITEM --block 8 --verdicts`: sched1 (runs
+ *    BEFORE reorg) reorders this block's pre-sched chain `[sll, sra,
+ *    flag=0, li-4]` into emitted `[flag=0, sll, sra, li-4]` — moves
+ *    `flag = 0;`'s insn (uid 74) to the FRONT of the block, right after
+ *    the StagePlayer-merge label. This looks load-bearing but isn't: the
+ *    label blocks the backward scan regardless of `flag=0`'s position
+ *    inside the block, because `sll`/`sra`/`li` all SET v0 or v1 (the
+ *    branch's needed resources) and are skipped, not stopped, by the
+ *    scan — `flag=0` is reachable from whichever of the 4 slots it lands
+ *    in.
+ *  - `tools/regalloc.py ActITEM --local`: self-validated, 0 divergences
+ *    across all 45 printed homes — this is NOT a register-home tie
+ *    (`flag` already sits in the correct hard register, $a1; the problem
+ *    is that an instruction exists at that address at all).
+ *  - Tried a 10th source shape, not clearly one of the "4 positions"
+ *    above: `flag = 0;` as the FIRST statement of case 2, strictly before
+ *    `mode = ITEM_FIRE;` — the one placement that puts it before the
+ *    StagePlayer-merge label, in a different reorg-scan block. Measured
+ *    directly (not just inferred): LENGTH MISMATCH, 576 vs 572 bytes
+ *    (+4) — escaping the block this way costs more than it saves.
+ *  - Fresh bounded permuter under the corrected flags (`timeout 240
+ *    tools/permute.py ActITEM -- --stop-on-zero -j4`, 21,904 iterations):
+ *    authoritative full-link rescore ranks base.c's 2 whole-image bytes
+ *    as the best of everything it kept (next: 3, 3, 6, 12 — all worse;
+ *    the rest are length-mismatched at 576 bytes). No score-0 candidate.
+ *  - Fresh `tools/autorules.py ActITEM`: 12 candidates (type-width flips
+ *    on item_type/flag/mode, extern-array retypes of StagePlayer/
+ *    SelectedItem, an &&-merge/-split), none improving (`flag: s16->s32`
+ *    regresses 2->1012).
+ * Conclusion unchanged: 2/572 is the floor for this source structure under
+ * this cc1 — a proven sub-C park (reorg.c's own backward-scan predicate
+ * has no source-reachable escape here but leaving the block), not a
+ * stalled search.
  */
 
 #ifndef NON_MATCHING

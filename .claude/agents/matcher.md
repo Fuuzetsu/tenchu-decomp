@@ -85,9 +85,19 @@ the baseline source on SIGTERM/SIGHUP; after any abnormal exit, verify `git diff
 and rebuild before continuing.
 
 **Run the permuter SYNCHRONOUSLY and bounded — never as a background task you then
-wait on.** Always wrap it: `nix develop --command bash -c 'timeout 240 tools/permute.py <Name> -- --stop-on-zero -j4'`.
-Set the Bash TOOL CALL's own timeout parameter WELL above the inner `timeout` (e.g.
-600000 ms).
+wait on.** Always wrap it: `nix develop --command bash -c 'timeout 240 tools/permute.py <Name> -- --stop-on-zero -j4' > /tmp/p.log 2>&1`.
+**SET THE BASH TOOL CALL's own `timeout` parameter to 600000** — this is the single
+most-missed step and the one that kills lanes. The permuter runs ~330 s (240 search +
+90 rescore + link), which EXCEEDS the Bash tool's 120 s default, so if you leave the
+default the harness auto-backgrounds the call and you are in the failure below.
+
+**IF you forget and it gets backgrounded, RECOVER — do not end your turn.** A lane that
+recovered did this and lost nothing: `pgrep -f 'permute.py <Name>'` for the live PID,
+then ONE blocking Bash call `timeout 400 tail --pid=<PID> -f /dev/null` (this blocks
+until the process exits — it is not Monitor, not a sleep-poll), then read `/tmp/p.log`.
+The lane that instead said "I'll resume when it notifies" TERMINATED and the notification
+never came. **The recovery is a single blocking wait on the PID; the fatal move is ending
+your turn.**
 
 *This is not a style preference, and here is what it costs. A PAD_init lane
 backgrounded its run, ended its turn saying it would resume when the run notified,
