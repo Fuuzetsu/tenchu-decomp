@@ -1326,6 +1326,19 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   8-byte objects are not automatically small (whole-struct assignment wants the
   split — DoBriefingAndInventorySelection's RECT; PutMap's pointer cell as
   `[]`+`[0]` exposing the HIGH to reorg). When probing, grep `\bla\b` too.
+  For an extern BYTE the form depends on USE CONTEXT: read as an assigned lvalue
+  (`x = D[0]`) wants the ARRAY form `extern u8 D[]` (split: `lui %hi` in a reg +
+  `lbu %lo(reg)`); read in a CONDITION (`if (D != 0)`) wants the SCALAR
+  `extern u8 D;` — so one symbol legitimately takes different declarations in two
+  TUs (PadProc array 28 vs scalar 30; sibling PadShock scalar).
+- **A `lui $rN,0xHHHH` in a byte-diff may not belong to the symbol you suspect** —
+  `%hi` rounds UP when `%lo` is negative, so `lui 0x800c` can be `%hi` of a
+  `0x800bXXXX` symbol (PadProc: the `lui 0x800c` blamed on `D_8001005D` was really
+  `%hi(PadPort)`, 0x800be6d8). Decode the raw instruction word and cross-ref the
+  splat `.s` (`%hi(SYM)`) / `undefined_symbols_auto` before chasing a data-symbol
+  lead — matchdiff renders the immediate but not the owning symbol. **TOOL TICKET
+  (matchdiff/asmdiff --annotate-hi)**: tag each `lui $rN,0xHHHH` diff line with its
+  owning `%hi(SYM)` from the splat `.s` — settles these leads in one glance.
 - **A bare `lui` with NO `addiu`, reused as a base**, is a LOCAL holding a
   literal pointer cast (`(PersistentState *)0x80010000` — %lo is 0)
   (FUN_8001b2b8); a read-modify-reread absolute across a call wants a raw
