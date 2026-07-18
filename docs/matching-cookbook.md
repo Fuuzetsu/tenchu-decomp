@@ -1114,6 +1114,22 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   into another callee-saved reg that LATER dereferences — does the alias reproduce
   real structure, ADOPT (DrawBleed's `param2`: target has `move a2,s1`). Same
   candidate SHAPE, opposite verdicts, decided by the target's registers.
+- **A v0/v1 flip in a divide/arithmetic region is a local-alloc `QTY_CMP_PRI`
+  contest — and can conflict IRRECONCILABLY with a scheduling need.** Arithmetic
+  dests tie into their dying first operand's qty (`combine_regs`), so a `/2` chain
+  forms a refs-N qty whose SPAN (birth `lw` → the sched1 store slot) decides
+  whether a short single-use temp qty (score 10000) out-ranks it: a stretched span
+  lowers `floor_log2(refs)·refs·size/span` below 10000 and the temp takes v0
+  (target), a compact span raises it and the chain steals v0. The trap
+  (FUN_80058c70): the SAME statement position that stretches the span for the
+  color is the one that must stay compact for a sched1 bubble (§3.13) — **one
+  protectable tick, two claimants.** When a coloring requirement and a
+  scheduling-bubble requirement both need the single may-alias-gated empty tick,
+  they are irreconcilable at single-statement reach (proven via `.i.sched` T-lists
+  + `.lreg` QTY_CMP_PRI arithmetic): neither raising the temp's refs (no ungated
+  reader exists without +4 length; dead reads are flow-deleted before the recount)
+  nor lowering the chain's (the addu-dividend tie must survive, and `qty_compare`'s
+  tie-break picks birth order) escapes it. Bank the arithmetic and move on.
 - **Priorities and windows**: ballast the winner-to-be by adding an insn inside
   its live range (hoist a one-arm constant into a pre-branch variable — free
   when the target materialises it anyway, SoundEx); prefer DEMOTING the winner
