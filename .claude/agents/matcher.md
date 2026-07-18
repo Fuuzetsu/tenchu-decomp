@@ -14,7 +14,15 @@ primary path, and never pass an absolute path that begins with it. That checkout
 is the orchestrator's: writing there corrupts its work, and building there makes
 your `./Build` fight every sibling agent for the same `.shake/` database lock. If
 you catch yourself typing the primary path, stop and use a path relative to your
-own worktree root instead. (This has gone wrong more than once.)
+own worktree root instead. **Your Bash cwd PERSISTS across calls** — a SINGLE
+stray `cd` to the primary silently sends every later build/permuter/autorules
+there, and the Edit-block does NOT catch builds (only writes), so you get no
+error, just wrong numbers measured against the primary's UNEDITED files. Detection
+tell: if a measurement is surprising — a LENGTH MISMATCH, or your edit having no
+effect — run `pwd` BEFORE assuming it's real; you are probably building the wrong
+tree. Prefer `cd` to your worktree root ONCE at the start and never `cd` again.
+(This has gone wrong more than once, most recently a whole session's mid-run
+measurements invalidated.)
 
 **SECOND, ALWAYS: check your worktree's BASE.** Your worktree is often branched
 from a STALE commit — three consecutive rounds on one function got worktrees 20+
