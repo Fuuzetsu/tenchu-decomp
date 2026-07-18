@@ -1022,6 +1022,25 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   assignment into both arms so it can reuse the dead condition register
   (FUN_8001b2f4), or one function-scope local across mutually-exclusive arms to
   move the value from local- to global-alloc (ProcMiscPitfall).
+- **Local-alloc's conflict-free-window trap (the LOCAL analog of the hard-conflict
+  rule above)**: a value born-and-dead inside ONE conflict-free window always
+  takes the lowest free register (`find_reg` hands a conflict-free quantity the
+  lowest number — typically `$v0`). To earn a HIGHER register (e.g. `$a0`) it
+  must become a GLOBAL allocno whose conflict set contains the lower regs, which
+  requires its live range to REACH the only block where those lower regs are
+  simultaneously busy (typically an interleave). `regalloc --local` prints the
+  quantity's conflict set (self-validated) — an EMPTY set on a value you wanted
+  in a high reg means the window is the cage. If the sole variable able to span
+  that busy block flips its OWN home when extended (measure it — extend the range
+  and re-`--local`), the tie is unreachable from C: park it. Worked example,
+  DrawImpact's green/blue colour loads — the only `$v0/$v1`-conflicting values
+  live in the size×red interleave, green/blue are emitted after it, and the one
+  variable (`start`, p85) that could span it flips `$a0→$a1` when extended (the
+  load/product split variant measured 20 bytes, worse). This is stronger than
+  "conflict-free window" alone: it names WHY the only conflict source is out of
+  reach. Do not re-open such a park without a new SOURCE-STRUCTURE theory — two
+  methods (regalloc's conflict list; raw `.lreg` block liveness) agreeing on
+  conflict-free is a genuine sub-C floor.
 - **Priorities and windows**: ballast the winner-to-be by adding an insn inside
   its live range (hoist a one-arm constant into a pre-branch variable — free
   when the target materialises it anyway, SoundEx); prefer DEMOTING the winner
@@ -1063,8 +1082,16 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   is one root cause — fix the count, ignore the sites (AdtSelect).
   **TOOL TICKET (regalloc --spill-uses)**: print each use BARE vs IN-MEM — the
   discriminator that retired a wrong park verdict. **TOOL TICKET (regalloc
-  --names/--local)**: pseudo→C-name (UNIDENTIFIED when unprovable) and
-  local-alloc quantities (invisible for ControlHumanoid).
+  --names)**: pseudo→C-name (UNIDENTIFIED when unprovable). **`regalloc --local`
+  is BUILT** (2026-07-18): prints the local-alloc quantity walk (QTY_CMP_PRI
+  priorities, walk order, per-quantity conflict set), self-validating by
+  simulating block_alloc against cc1's printed `;; Register N in M` homes and
+  REFUSING (raw view only) on divergence — proven on DrawImpact (46/46 homes,
+  0 divergences). **Open ticket (conflict-source-locator)**: given a register
+  tie `target R vs ours L`, print the target window(s) where R is simultaneously
+  busy with the lower regs, and whether the tied value's live range can reach
+  that window without changing its own home — DrawImpact needed this
+  hand-correlated from `tdis`.
 - **Macros**: expanding a function-like local macro is byte-neutral BY
   CONSTRUCTION (measured: same cpp tokens, same .o sha) — expand FIRST anyway,
   because per-site variation is inexpressible through a shared spelling and the
