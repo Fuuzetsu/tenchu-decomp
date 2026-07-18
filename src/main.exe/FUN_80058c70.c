@@ -11,39 +11,25 @@
  * Compiled-style GTE function under the restricted gte.h policy
  * (docs/gte-policy.md).
  *
- * STATUS: NON_MATCHING — 26 of 920 bytes differ (correct length, 230/230
- * instructions). Register roles: s0=pkt/param_7, s1=puVar4, s2=param_2,
- * s3=local_38, s4=param_4 (the loop counter, direct), s5=iVar3 via `move s5,v0`,
- * s6/s7/s8=r0_00/r2/r1, a3=r0 with caller-save around the jal, t0=puVar5 spilled.
+ * STATUS: MATCHED in pure C — 0 of 920 bytes differ.
  *
- * === THE HWD0/VWD0 COLOR BIT IS SOLVED (fresh-eyes rewrite, owner-directed) ===
- * The whole divide region is now BYTE-IDENTICAL to the target. The fix is the
- * NATURAL human order: read VWD0 BEFORE storing HWD0/2 (`iVar2 = VWD0;` sits
- * between `local_38 = puVar5;` and the HWD0/2 store). That makes cc1 interleave
- * VWD0's load into the HWD0/2 divide chain, stretching that qty's span so the
- * li-'4' temp (score 10000) out-ranks it and takes v0 — exactly the target's
- * iVar1(HWD0)=v1, '4'=v0. This REFUTES the prior "color proven irreconcilable":
- * it was only irreconcilable *with the VWD0-late bubble*, a byte-chased hack.
- * The counter is `param_4` counted down directly — the matched sibling
- * FUN_80059ff4's exact form, no invented `cnt`.
+ * The last residual was not solved by another scheduler fence. It came from
+ * two decompiler-style carrier locals that happened to improve one region but
+ * trapped the function in a local minimum. The coherent source shape is:
  *
- * THE ONE REMAINING RESIDUAL: the prologue s4-group. `sw s4,48(sp); move s4,a3`
- * (param_4's entry copy) is emitted at prologue position 2 (right after the s2
- * copy); the target emits it at ~position 5, AFTER the s0-group (sw s0,32; lw
- * s0,96=pkt) + HWD0 + li-4. Everything else — the loop, the color region, every
- * field store — is byte-exact. The target defers param_4's copy (a low-frequency
- * once-per-iteration counter) past the pkt load (needed immediately by *pkt=4);
- * our sched2 tops it out.
+ *  - read `param_6` directly for the packet word;
+ *  - keep the unrelated colour word from `param_5` in its own `colorWord`
+ *    local instead of reusing `uVar7`, whose later life is a GTE address;
+ *  - initialize `pkt[8]`, then `pkt[3]`, before the byte/code fields.
  *
- * THE TRADE (why not yet 0): the color fix wants VWD0-early; the OLD rotation
- * fix was the VWD0-late "bubble"; the two want VWD0 in opposite places
- * (VWD0-late => 25, rotation ok/color wrong; VWD0-early => 26, color ok/rotation
- * wrong). The target has BOTH, so a structure exists that defers the s4-copy
- * WITHOUT the VWD0-late bubble. c70's beqz delay slot already matches the target,
- * so this is a sched2 entry-copy PLACEMENT (not the sibling's reorg-delay-slot
- * steal). ~12 multi-statement variants tried; color banked, rotation open.
+ * Compiler dumps confirm the mechanism. The distinct single-set colour local
+ * changes sched1's birthing priorities and places the volatile stack reads in
+ * the target order. In sched2 that also leaves the natural `param_4` entry copy
+ * after the s0/HWD0/li-4 leaders, matching the target prologue. The natural
+ * VWD0-early `/ 2` expressions remain intact; no manual strength expansion,
+ * dummy control flow, register pinning, or artificial `cnt` local is needed.
  *
- * === PRIOR ROUND (superseded above; kept for the mechanism trail): =========
+ * === HISTORICAL INVESTIGATION (all residual/open claims below superseded) ===
  * the old residual (s4-group [sw s4,48; move s4,a3] emitted before the s0-group
  * [sw s0,32; lw s0,96; lui/lw HWD0; li v0,4]) is now byte-exact via TWO source
  * changes, and the residual moved to a NEW, SMALLER, single-decision tie:
@@ -188,22 +174,14 @@
  *    loop.c runs before combine so the kill survives the rename) and the
  *    volatile read's birthing bump.
  *
- * Falsify the remaining 26: the residual is now the s4-group prologue rotation
- * ONLY (color solved, above). The lever is whatever source structure makes
- * sched2 defer param_4's entry copy past the s0/HWD0/li-4 leaders while keeping
- * VWD0-early. The matched sibling FUN_80059ff4 defers its own param_4 copy with
- * `prim = work + 0x34` above the guard (its reorg delay-slot steal target) — the
- * c70 analog did not transfer (c70's delay slot already matches), so this is a
- * pure sched2 placement question, still open.
+ * Final verification: the unguarded C object has 224 target/body instructions
+ * and byte-matches the 0x398-byte target extent exactly.
  */
 
 extern int HWD0;
 extern int VWD0;
 extern void FUN_80057b80(u_long *outv, u_long *packet, int mode);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80058c70", FUN_80058c70);
-#else
 u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int param_4,
                      volatile u_long param_5, volatile u_long param_6, u_long *param_7)
 {
@@ -212,7 +190,6 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     u_long uVar3;
     int iVar3;
     int iVar4;
-    u_long uVar5;
     u_long *pkt;
     u_long uVar7;
     u_long uVar8;
@@ -224,6 +201,7 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     SVECTOR *r2;
     SVECTOR *r1;
     u_long *local_38;
+    u_long colorWord;
 
     pkt = param_7;
     iVar1 = HWD0;
@@ -233,13 +211,12 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     iVar2 = VWD0;
     *(short *)(pkt + 0xd) = (short)(iVar1 / 2);
     *(short *)((int)pkt + 0x36) = (short)(iVar2 / 2);
-    uVar5 = param_6;
-    uVar7 = param_5;
-    uVar3 = *(u_long *)(uVar5 + 4);
+    uVar3 = *(u_long *)(param_6 + 4);
+    colorWord = param_5;
     pkt[8] = 0x96;
+    pkt[3] = colorWord;
     *(u_char *)((int)pkt + 0x4f) = 0xc;
     iVar4 = 0x3c;
-    pkt[3] = uVar7;
     pkt[5] = (u_long)param_3;
     *(u_char *)((int)pkt + 0x53) = iVar4;
     pkt[4] = uVar3;
@@ -304,4 +281,3 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     }
     return (u_long *)pkt[5];
 }
-#endif
