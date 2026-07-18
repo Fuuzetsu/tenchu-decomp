@@ -70,10 +70,10 @@ there, expecting worse bytes at first. `tools/matcher-prompt.py` carries this as
 guidance now.
 
 Evidence it works, this session:
-- **SetWire 70 -> 80 (adopted the WORSE number):** the byte-chased 70's fence was
-  provably not original (the target refutes it), and EFFECT.C:1428's own arithmetic
-  reproduced the whole interpolation island byte-for-byte. Owner adopted the human 80 as
-  the honest, live base.
+- **SetWire 70 -> 80 -> 0:** accepting the worse human draft exposed that both
+  projection islands were the body of EFFECT.C's earlier GetScreenPosition.
+  Reconstructing that debug-proven function as a local inline helper matched all
+  1488 bytes and deleted the remaining store-order scramble.
 - **mission_score_screen 145 -> 187 (adopted the WORSE number):** ~20 of its 24 fences
   turned out to be the author's own `DRAW_SCORE_NUMBER` macro (defined in matched sibling
   StageEndScreen.c), not our scaffolding. 866 lines vs 2076.
@@ -87,16 +87,11 @@ Evidence it works, this session:
   `goto` loop as a WRONG FIX propping up damage it caused (it killed the loop-depth ref
   weighting), and the TU wanting `-fno-strength-reduce`. **FOUR of six now MATCHED:**
   FUN_80059ff4/FUN_8005a3cc AND the 1260-pair FUN_8005961c/FUN_80059b08 all -> **0**.
-  FUN_80058c70/FUN_80059008 now at **25** (26->25, Fable 2026-07-18): the prologue-leader
-  ROTATION — the park's entire documented residual — is SOLVED with human structure
-  (`cnt = param_4` counted down + `iVar2 = VWD0` moved between the two sh stores, opening
-  a one-tick sched1 ready-list BUBBLE that lifts the counter copy's LUID above the
-  leaders; the prior "cnt coalesces to a no-op" was a misdiagnosis). Ported to both twins.
-  The residual is now ONE local-alloc v0/v1 divide-chain color bit, PROVEN out of
-  single-statement reach (one may-alias-gated protectable tick, two claimants — the bubble
-  needs VWD0 compact, the color needs it stretched; full `.i.sched`/`.lreg` proof in
-  FUN_80058c70.c). A full match would need a non-single-statement (length-neutral
-  restructuring) insight; the rotation technique is banked in cookbook §3.13.
+  FUN_80058c70/FUN_80059008 subsequently went **25 -> 0**. The single-statement
+  reach proof was accurate only for that decomposition: one twin uses a dedicated
+  `colorWord` instead of reusing a later GTE-address carrier; the other uses the
+  real loop counter plus one two-set packet initializer. Both ordinary local
+  decompositions reshape the quantity/birthing graph and match all 920 bytes.
 
 The levers: PSX.SYM's `BEGIN PSX.SYM` block gives the authors' own declarations (names,
 types, nested-block scopes — list order is REVERSED per block); the matched sibling's
@@ -112,10 +107,13 @@ A 13-lane sweep across the whole value spectrum (DrawImpact 4, FUN_80057b80 8,
 AdtSelect 9, SetupTelop 9, SetLightningI 15, CameraDirection 7, FUN_80058c70/9008
 26, start_demo_ 39, PutItemList 27, PadProc 28, FUN_80036284 34, FUN_800519bc 87,
 StageEndScreen 202) re-tested every park with the repaired tooling (regalloc
---local, the `-fno-builtin`-fixed permuter). **Result: 0 new full matches; every
-one reached a well-characterised tie in the source structures tested.**  These
-are strong local diagnoses, not proofs against every human C structure: ActITEM
-subsequently matched by replacing the very structure its park treated as fixed.
+--local, the `-fno-builtin`-fixed permuter). Its immediate result was 0 full
+matches and well-characterised ties in the structures tested. The follow-up
+human-source pass then falsified most of the closest "floors": SetupTelop,
+DrawImpact, CameraDirection, FUN_80057b80, FUN_80058c70, FUN_80059008,
+SetLightningI, SetWire, DrawBleed, and ControlTraceLine are now exact. These
+outcomes are the durable result: compiler diagnostics prove properties of a
+pseudo graph, not that the original human decomposition cannot create another.
 The observed tie taxonomy is documented in the cookbook — local-alloc
 (conflict-free-window, containment, interference-wall), sched1 LUID wall, sched2
 emission-order (prologue parm-copy, biv-init), dbr delay-slot, reload round-robin,
@@ -130,18 +128,14 @@ its wins are non-human seed-temp/no-op scaffolds (SetLightningI 12, FUN_80036284
 16/12, FUN_80058c70 22) — all correctly REJECTED per the human-source directive; the
 clean park is the honest state. The human-source discipline held in every lane.
 
-The batch's conclusion was that the frontier had moved off "match more parks." Both
-remaining leads were pursued to
-conclusion: (1) FUN_80058c70/FUN_80059008 — the "provably-solvable" lead — advanced 26->25
-(rotation solved with human structure, above), but its final v0/v1 bit is proven out of
-single-statement reach; a full match now needs a non-single-statement restructuring insight
-nobody has yet. (2) the fixed-permuter sweep of the last untested small non-gte.h parks
-(DrawBleed, ControlTraceLine, FUN_800514d8, DrawHinoko, PlayVoice) returned 0 matches — all
-floors (drawF3 is gte.h, permuter-ineligible). **ActITEM's later 2 → 0 match
-supersedes the universal conclusion:** a compiler-pass explanation can prove why
-one spelling is stuck without proving that the original human control flow is
-unreachable.  Continue to rank targets by value and evidence, and treat every park
-as a falsifiable hypothesis rather than declaring the C-matching tail closed.
+The batch's original conclusion that the frontier had moved off "match more
+parks" is withdrawn. The productive frontier was changing source identity at a
+larger scale than the permuter searched: same-TU inline helpers, ordered local
+copies of formals, direct control-flow tails, and purpose-specific reused locals.
+DrawBleed and ControlTraceLine both matched after their bounded searches had
+reported floors; the DecodeTMD twins matched after their one-statement proof;
+FUN_80057b80 matched after a quantified signature proof. Continue to rank by
+value and evidence, but treat every park as a falsifiable claim about one graph.
 
 ## Where the work actually is now (2026-07-18)
 
@@ -210,16 +204,12 @@ prints exactly this set (it defaults to `--scope game`):
     unreachability proof fell to a tiebreak rule that was simply wrong, and
     SetupSpline's "permuter plateaued" was a crash. Re-check cheaply before honoring
     one (cookbook §4).
-  * **The DecodeTMD primitive-renderer family (updated 2026-07-18)** — 6 members,
-    all sharing FUN_80058c70's recipe: **FUN_8005961c (1260), FUN_80059b08 (1260),
-    FUN_80059ff4 (984), FUN_8005a3cc (984) are now MATCHED** (byte-verified 0 this
-    session — the earlier "undrafted, never attempted" note was stale). Only
-    `FUN_80058c70` (920) and its twin `FUN_80059008` (920) remain, both at **25**
-    (26->25, prologue-leader rotation SOLVED — see the DecodeTMD note above). Their
-    shared residual is one local-alloc v0/v1 divide-chain color bit proven out of
-    single-statement reach; the 4 matched siblings have no `jal` in their loop so
-    they never grow the rotation leader and could not have referenced the fix — the
-    solution came from RTL archaeology on the pair itself.
+  * **The DecodeTMD primitive-renderer family (updated 2026-07-18)** — all six
+    members now MATCH: FUN_8005961c/FUN_80059b08 (1260 each),
+    FUN_80059ff4/FUN_8005a3cc (984 each), and FUN_80058c70/FUN_80059008
+    (920 each). The final pair closed by replacing decompiler carrier reuse with
+    coherent colour/counter/initializer identities; their former v0/v1 floor was
+    decomposition-relative.
   * Also present but hidden by `--max-size 2048`: **`start_demo_`** (2188) and
     **`mission_score_screen`** (4636). Raise the flag or they are invisible.
 

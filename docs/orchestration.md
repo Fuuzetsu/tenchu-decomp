@@ -488,9 +488,14 @@ rules**:
   signatures; AttackIndirect's three-statement fence, by contrast, became a
   mechanical `loop-range` rule. Reflection is what decides which side a lesson
   belongs on.
-- Sub-C-level residual (≤10-byte register swap / adjacent reorder surviving a
-  bounded permuter run) → it's below C; root-cause it, mark NON_MATCHING, move
-  on. Don't sink sessions into it (~1.4M tokens for 0 matches taught this).
+- A ≤10-byte register swap / adjacent reorder surviving a bounded permuter run
+  proves only that the CURRENT source graph has a compiler-pass tie. Root-cause
+  it, then perform one human-structure null check before parking: delete
+  donors/fences, restore PSX.SYM locals, try same-TU inline helper boundaries,
+  and replace decompiler carrier reuse with purpose-specific locals. In one
+  2026-07-18 sweep those moves turned 9/15/8/7/4-byte "sub-C floors" into exact
+  SetupTelop, SetLightningI, FUN_80057b80, CameraDirection, and DrawImpact.
+  Bound tuning of a fixed decomposition; do not bound structural falsification.
 
 ## A park verdict is a hypothesis — and "do not retry it" is a bug
 

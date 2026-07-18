@@ -85,7 +85,9 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 
 - **`promote_mode` is the IDENTITY on this target**: mips.h defines no
   `PROMOTE_MODE` and no `POINTERS_EXTEND_UNSIGNED`. Never reason about which types
-  it moves (FUN_80057b80's closed-form park proof, in its header).
+  it moves. This constrains direct formal-parameter conversion; it does not
+  constrain later ordinary local copies (the distinction that matched
+  FUN_80057b80).
 - **Narrow locals are genuine QI/HI pseudos** (`reg/v:QI`, `reg/v:HI`); a narrow
   local always needs a real extension and can never produce a bare `move` at a
   join (ActivateHumans). A `short`→`short` copy coalesces to NOTHING; routing
@@ -179,15 +181,17 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   (`move_movables` emits in `scan_loop` discovery order), and hoists land AFTER any
   insn the source already put in the preheader. **So a target preheader with a
   hoisted CONSTANT before pointer assignments proves those pointers were assigned
-  IN-LOOP, at their use sites** — a pre-loop assignment is the unreachable state.
-  This read the human structure straight off the target for SetLightningI (65->15)
-  and start_demo_.
+  IN-LOOP, at their use sites** — a pre-loop assignment is unreachable for that
+  particular pseudo. This diagnosed SetLightningI's 65->15 draft and
+  start_demo_; SetLightningI ultimately matched by replacing those manual
+  pseudos with the same-TU inline projection helpers.
 - **A `p = &Global.field` pointer set with a REG_EQUIV const note costs ZERO final
   instructions** — reload deletes it — **yet it shifts local-alloc quantity spans
   while it exists.** That makes it a legal, byte-free register-STEERING lever for a
   local-alloc rotation residual: introduce the `&Global.field` local to move the
-  qty walk without adding an instruction (SetLightningI). It is the benign cousin
-  of the mega-pseudo split.
+  qty walk without adding an instruction. It is a useful diagnostic/steering
+  device (SetLightningI's partial draft), but the exact source may instead have
+  a helper parameter identity; zero-byte steering is not evidence of authorship.
 - **A whole-function `+1` cascade of caller-saved temp choices is ONE defect, not
   N.** reload's spill-register pick is a FUNCTION-WIDE usage census
   (`order_regs_for_reload`), so one divergent cluster shifts every downstream temp
@@ -328,8 +332,10 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   of the clique takes the Nth register, so demoting the current #1 to free its
   register for a desired #4 does not work in isolation — the freed slot goes to
   whoever is next-highest. Simulate or `--compare` the FULL resulting order before
-  spending a round on a weighting edit (SetupTelop: col/font/bits/v are a 4-clique;
-  dropping `col` alone misfires and hands `$a1` to `font`).
+  spending a round on a weighting edit (SetupTelop's scaffolded draft had a
+  col/font/bits/v 4-clique; dropping `col` alone handed `$a1` to `font`). This
+  predicts one interference graph only: SetupTelop matched after deleting the
+  fences that created that graph and restoring the original local identities.
 - **`find_reg`'s preference machinery can only promote a pseudo to a register that
   is ALREADY outside its excluded set** (global.c:900-1037) — it can never override
   a real conflict. A value crossing zero calls carries no preferences and gets
@@ -522,7 +528,8 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   to class 1 (data) or 2 (anti/output), and the sort is DESCENDING. So perturbing
   a dependence's cost can only sort the DEPENDENT insn **later**. "Make the dep
   cost ≠ 1 to flip the tie" was proposed once as an open lever and is exactly
-  backwards (FUN_80057b80).
+  backwards. FUN_80057b80 confirmed the scheduler fact, then bypassed the tie by
+  defining ordered local pointer copies instead of using formal pseudos directly.
 - **All-latency-1 blocks cannot be reordered by sched** (sched.c:1521's own
   comment) — only a LOAD (cost 2) differentiates; a misplaced insn in a load-free
   block is SOURCE ORDER.
@@ -617,7 +624,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   (FUN_800519bc).
 - **`jump_optimize(insns,1,1,0)` — the only cross_jump=1 call (toplev.c:3548) —
   runs AFTER combine and AFTER allocation**: never infer pre-jump2 block
-  structure or allocation constraints from final asm (FUN_80057b80 494→8;
+  structure or allocation constraints from final asm (FUN_80057b80 494→8→0;
   ActSTICKON's "register cycle" was a jump2 artifact). jump1 hoists a common
   leading insn out of identical arms — a dead store in one arm keeps the heads
   different.

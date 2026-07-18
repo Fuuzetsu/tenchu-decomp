@@ -246,8 +246,17 @@ Look up what the authors wrote before drafting anything.
   function wearing the same name — and its PSX.SYM locals describe the DEMO
   body. A demo call that disappears in retail may be an INLINE EXPANSION —
   reconstruct a local `static __inline__` helper and keep the call (AfsFindFile;
-  siblingdiff reports the bigram tell). `--compose` maps target ranges across
-  demo + matched siblings at once (ActMOVE).
+  siblingdiff reports the bigram tell). The stronger version is a repeated
+  instruction island that is the body of a small function defined earlier in
+  the SAME PSX.SYM translation unit: reconstruct that function's exact scalar
+  parameters and typed output as a local inline helper instead of manually
+  expanding its statements. SetWire's two GetScreenPosition islands went
+  80→0 this way; SetLightningI's PrepareGetScreenPositionS +
+  GetScreenPositionS pair removed four compensators and went 15→0. The
+  helper boundary creates the original parameter pseudos, and a debug-proven
+  `SVECTOR *` field store retains a memory dependency that an `s32 *`/`short *`
+  reconstruction loses. `--compose` maps target ranges across demo + matched
+  siblings at once (ActMOVE).
 - **Names**: a `FUN_…` block carries the candidate name from
   `reference/psxsym-candidates.tsv` — adopt only via `tools/callmatch.py
   --verify` (it blocks a conservative subset as AMBIGUOUS; don't override with
@@ -276,9 +285,11 @@ Look up what the authors wrote before drafting anything.
   cross-build agreement on the boundary.
 - **The matched corpus is an oracle**: grep the whole game for the target's
   SHAPE and check whether a function with that shape is already matched — its
-  source IS the answer to "what C produces this?" (FUN_80057b80's prologue
-  question: one grep). **Match on the CAUSE, not the shape** — the same oracle
-  false-positived when the mechanism (parameter USE KIND) did not transfer.
+  source is evidence for "what C produces this?" **Match on the CAUSE, not
+  only the shape**, but do not mistake a failed direct transcription for a
+  contradiction. FUN_80057b80's target prologue existed in the corpus; its
+  pointer formal could not use the narrow-parameter cause, but ordinary local
+  pointer copies reproduced the same emitted shape exactly.
 
 ## §2 THE ROUTER — residual signature → tool → family
 
@@ -303,7 +314,7 @@ prints — that habit has produced confidently wrong rounds (see cc1says below).
 | Preheader contents/order | `rtldump --loop-log` | loop.c economy §3.14 — price the gate, never argue with it |
 | Equal-priority sched tie | `sched-deps <Name>`, `schedtrace` | §3.13: what made the priorities EQUAL? sched-deps prints the group + demotion candidates; LAUNCH_PRIORITY bumps; ready-list lines are the truth |
 | Empty/odd delay slot, block-leader question | `sched-deps <Name>` (flow-vs-sched leader report), `cc1says` | §3.13 delay-slot family |
-| Prologue / parm-copy order | `schedtrace --pass sched2`, `sched-deps --pass sched2` | sched1 never sees the prologue (compiler-facts) |
+| Prologue / parm-copy order | `schedtrace --pass sched2`, `sched-deps --pass sched2` | sched1 never sees the prologue. Before changing the signature, copy formals into ordinary locals in the target order and use those locals throughout; coalescing can retain bare moves while moving their definitions out of `assign_parms` (FUN_80057b80 8→0) |
 | Target repeats a block; one of your sites matches | `asmdiff`, then diff the TARGET's sites against each other | Spelling asymmetry — stop looking at the compiler (LoadTIMpack). **TOOL TICKET (selfsim)** |
 | Frame size / slot layout | `stackplan [--emit-overlay]` | §3.7: unions, three-phase rule, slot arithmetic, spill-count residue. **TOOL TICKET (slotcalc)** |
 | Guard polarity / return island | `rtlguide` (`guard-return-island-layout`) | `terminal-guard-flip` / `if-else-invert` (index), §3.1–§3.2 |
@@ -1048,55 +1059,40 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   assignment into both arms so it can reuse the dead condition register
   (FUN_8001b2f4), or one function-scope local across mutually-exclusive arms to
   move the value from local- to global-alloc (ProcMiscPitfall).
-- **Containment kills the pressure lever.** Two mutually-conflicting allocnos
-  where one's live range STRICTLY CONTAINS the other's cannot be register-
-  separated by any conflict/pressure trick (adding a tail allocno that occupies
-  the wanted register, etc.) — their assignment is fixed purely by relative
-  priority, and the lower-priority one takes the higher-numbered register. A
-  global-pressure lever can only move an allocno whose conflicts are PARTIAL:
-  SetupTelop's fill_white conflicts with v ONLY (movable — the a1-pressure trick
-  worked), but `bits` is loop-invariant so loop.c hoists it and its range CONTAINS
-  col's, so col/bits are unseparable and col(21333) > bits(7368) pins col=`$a1`,
-  bits=`$t0`, full stop. Check containment (regalloc's live ranges) before
-  spending a round shifting a tie via pressure. And when such a tie forces a
-  dead-local-reuse CARRIER, prefer the semantically-correct previously-live local
-  over an arbitrary one — any previously-live local supplies the pressure, so
-  pick the human one (SetupTelop's `u` texture-coord, not the `north` pixel-local;
-  same bytes, faithful source). **`regalloc --local` does NOT list GLOBAL
-  allocnos** — if the residual registers are absent from its local homes, the tie
-  is GLOBAL; cross-check `--order` (SetupTelop's 4-clique read as "local" for
-  three rounds until --local's exclusion list proved it global).
-- **The interference wall (third local-alloc failure mode).** When regalloc
-  --local's self-validated walk shows the pseudo you want in register R CONFLICTS
-  higher-priority pseudos that grab R first, no reweighting or seed-copy reaches
-  R — it is an interference wall, not a priority flip. Only SHORTENING that
-  pseudo's live range below the conflictors' births frees R, and if the construct
-  that shortens it also changes the frame length, the tie is genuinely sub-C
-  (CameraDirection: target.vrx p224 [14,50) conflicts the pri-40000 field pseudos
-  p234/p239 that take `$v0`; the second `target.vrx =` store that would shorten it
-  IS the +4 bytes making the frame 860). COROLLARY: **a donor added purely for
-  LENGTH can itself be the tie's root cause** (dual-purpose scaffolding) — verify a
-  length donor is inert to the tie before "removing scaffolding," or removing it
-  regresses length AND does not close the tie.
-- **Local-alloc's conflict-free-window trap (the LOCAL analog of the hard-conflict
-  rule above)**: a value born-and-dead inside ONE conflict-free window always
-  takes the lowest free register (`find_reg` hands a conflict-free quantity the
-  lowest number — typically `$v0`). To earn a HIGHER register (e.g. `$a0`) it
-  must become a GLOBAL allocno whose conflict set contains the lower regs, which
-  requires its live range to REACH the only block where those lower regs are
-  simultaneously busy (typically an interleave). `regalloc --local` prints the
-  quantity's conflict set (self-validated) — an EMPTY set on a value you wanted
-  in a high reg means the window is the cage. If the sole variable able to span
-  that busy block flips its OWN home when extended (measure it — extend the range
-  and re-`--local`), the tie is unreachable from C: park it. Worked example,
-  DrawImpact's green/blue colour loads — the only `$v0/$v1`-conflicting values
-  live in the size×red interleave, green/blue are emitted after it, and the one
-  variable (`start`, p85) that could span it flips `$a0→$a1` when extended (the
-  load/product split variant measured 20 bytes, worse). This is stronger than
-  "conflict-free window" alone: it names WHY the only conflict source is out of
-  reach. Do not re-open such a park without a new SOURCE-STRUCTURE theory — two
-  methods (regalloc's conflict list; raw `.lreg` block liveness) agreeing on
-  conflict-free is a genuine sub-C floor.
+- **Containment kills a pressure lever only inside the CURRENT decomposition.**
+  Two mutually-conflicting allocnos where one's live range strictly contains the
+  other's cannot be separated by reweighting those same two allocnos; adding
+  pressure just moves the same contest. That is a useful rejection of a LOCAL
+  edit, not a proof about the original C. SetupTelop's documented four-clique
+  "floor" disappeared when the nested font fences were deleted, PSX.SYM's real
+  `u` coordinate was reused, and the glyph write/swap were restored as ordinary
+  human statements: the function stayed the exact target length and went 9→0.
+  Therefore check containment to stop tuning the present graph, then question
+  why those pseudos exist and whether a donor/fence manufactured the graph.
+  **`regalloc --local` does NOT list GLOBAL allocnos** — if the residual
+  registers are absent from its local homes, the tie is GLOBAL; cross-check
+  `--order`. Passing either diagnostic scopes the next rewrite; it never proves
+  that a different source decomposition cannot match.
+- **An interference wall rejects tuning, not restructuring.** When
+  `regalloc --local` shows the wanted register occupied by a conflicting,
+  higher-priority pseudo, no priority nudge on the loser can cross that wall;
+  shorten/delete an identity or rebuild the decomposition. Do not promote
+  "the shortening construct changed length" to "sub-C": CameraDirection's
+  parked proof did exactly that, yet deleting every donor/fence, restoring
+  PSX.SYM's `rx`/`ry`/`x`/`y` locals, and using an ordinary independent-field
+  statement order kept the exact 860-byte extent and went 7→0. A donor added
+  for length can manufacture both the conflict and the apparent length floor.
+  Run the clean-source null check before accepting any wall as a park.
+- **Local-alloc's conflict-free-window trap is a graph fact, not a source
+  impossibility.** A value born and dead inside one conflict-free window takes
+  the lowest free register; reweighting that same quantity cannot make it earn
+  a higher one. `regalloc --local` prints this accurately. The escape may be a
+  different, real identity spanning disjoint uses: DrawImpact went 4→0 by
+  reusing one ordinary `s32 work` local for byte inputs and a later coordinate
+  pointer. The later, higher-value use changed allocation of the earlier
+  fragments without a fake read or semantic no-op. Thus an empty conflict set
+  means "stop tuning this temporary"; search PSX.SYM and the human algorithm
+  for a naturally reused local before parking.
 - **A permuter no-op ref-count nudge (`z++; z--`) that lowers bytes is a
   DIAGNOSTIC, not a fix.** When the permuter closes bytes by inserting a literal
   no-op that only shifts a pseudo's live-range/ref-count, it has PROVEN the
@@ -1104,12 +1100,14 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   sub-cluster it repairs — read the asmdiff of the nudged version (SetLightningI's
   `z++;z--` after the x-store fixed the `{hi,vpx,base}` address-computation half,
   collapsing the rest to a pure x↔z swap). USE it to characterise the residual,
-  then REJECT the nudge per the human-source directive (invented scaffolding). If
-  reproducing its effect with a real construct (a clean store reorder) costs MORE
-  bytes or changes the emitted schedule, the tie is genuinely sub-C — keep the
-  human draft (SetLightningI's human reorder measured 29 and moved the store
-  schedule; banked 15 kept). The nudge tells you WHERE the tie is; it is not the
-  match. **And the `-fno-builtin` permuter fix is MATERIAL, not cosmetic**: this
+  then REJECT the nudge per the human-source directive. A failed clean store
+  reorder proves only that the missing source boundary is larger than one
+  statement. SetLightningI's supposed 15-byte floor vanished when its repeated
+  projection islands were restored as the same-TU inline helpers named by
+  PSX.SYM; the helper parameter identities produced the desired allocation with
+  no carrier or no-op. The nudge tells you WHERE the current graph is sensitive;
+  it is not evidence that C cannot reach another graph. **And the
+  `-fno-builtin` permuter fix is MATERIAL, not cosmetic**: this
   run found a 12-byte candidate two earlier "post-fix" rounds missed (they still
   searched the wrong program) — any permuter-plateau claim dated before the fix
   (CPP→CC_FLAGS) is void for a non-gte.h function; re-verify with a fresh run.
@@ -1124,22 +1122,16 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   into another callee-saved reg that LATER dereferences — does the alias reproduce
   real structure, ADOPT (DrawBleed's `param2`: target has `move a2,s1`). Same
   candidate SHAPE, opposite verdicts, decided by the target's registers.
-- **A v0/v1 flip in a divide/arithmetic region is a local-alloc `QTY_CMP_PRI`
-  contest — and can conflict IRRECONCILABLY with a scheduling need.** Arithmetic
-  dests tie into their dying first operand's qty (`combine_regs`), so a `/2` chain
-  forms a refs-N qty whose SPAN (birth `lw` → the sched1 store slot) decides
-  whether a short single-use temp qty (score 10000) out-ranks it: a stretched span
-  lowers `floor_log2(refs)·refs·size/span` below 10000 and the temp takes v0
-  (target), a compact span raises it and the chain steals v0. The trap
-  (FUN_80058c70): the SAME statement position that stretches the span for the
-  color is the one that must stay compact for a sched1 bubble (§3.13) — **one
-  protectable tick, two claimants.** When a coloring requirement and a
-  scheduling-bubble requirement both need the single may-alias-gated empty tick,
-  they are irreconcilable at single-statement reach (proven via `.i.sched` T-lists
-  + `.lreg` QTY_CMP_PRI arithmetic): neither raising the temp's refs (no ungated
-  reader exists without +4 length; dead reads are flow-deleted before the recount)
-  nor lowering the chain's (the addu-dividend tie must survive, and `qty_compare`'s
-  tie-break picks birth order) escapes it. Bank the arithmetic and move on.
+- **A v0/v1 divide-region contest is scoped to the present quantity identities.**
+  `.lreg` and `QTY_CMP_PRI` can correctly prove that no single-statement move
+  changes a color without destroying a sched1 bubble; that is a request for a
+  multi-statement human decomposition, not an irreconcilable floor. Both cited
+  twins now match. FUN_80058c70 removed an unrelated carrier, kept the packet
+  colour in a dedicated `colorWord`, and read the later GTE address directly.
+  FUN_80059008 used the real loop counter `cnt` and one two-set packet initializer
+  (`4`, then `0x96`); the multi-set quantity suppresses the birthing bump and
+  produces the exact sched1/sched2 order. Purposeful local identity and ordinary
+  reuse can change the quantity graph in ways a statement-position sweep cannot.
 - **Priorities and windows**: ballast the winner-to-be by adding an insn inside
   its live range (hoist a one-arm constant into a pre-branch variable — free
   when the target materialises it anyway, SoundEx); prefer DEMOTING the winner
@@ -1468,33 +1460,19 @@ LUID, barriers). The levers:
   promoted producers (ProcItemNingyo's `loaded_model`). Cluster of genuinely
   equal loads: reverse the source assignments as one bounded probe
   (ProcItemNingyo 6→4).
-- **Prologue-leader rotation between a callee-saved PARM entry-copy and BODY
-  leaders is a pure `INSN_LUID` sched2 backward tie.** When a param's
-  `assign_parms` entry copy is forced to a callee-saved reg (a loop `jal` evicts
-  the arg from its caller-saved home), its low LUID pins it to emit FIRST among
-  the pri-1/class-3 leaders — moves+consts have no function unit, so hazard/tick
-  don't apply and LUID alone decides (read `.i.sched2`'s `ready list at T-N`).
-  To lift the entry copy's LUID above the leaders, a late loop-counter copy
-  `cnt = param` does NOT simply coalesce away — that was a FUN_80057b80-specific
-  misread. combine folds the entry copy INTO the counter and it SURVIVES with a
-  hard-`a3` source; the real obstacle is sched1, which HOISTS the surviving copy
-  to the block top because `adjust_priority` boosts only SINGLE-SET-dest ready
-  insns to LAUNCH_PRIORITY (`birthing_insn_p`, `REG_N_SETS==1`) and a 2-set
-  counter copy never wins a birthing-contested tick against the leaders. The lever
-  is NOT de-birthing (fusing sets breaks the block-local qty — "dies more than
-  once" — and flow deletes dead second sets before sched1 recounts): it is a
-  STATEMENT REORDER that opens a one-tick sched1 ready-list BUBBLE mid-block (move
-  a nearby single-set global read so its launch drains, leaving the copy ALONE
-  ready for one tick), where the pri-1 copy is picked and its sched2 LUID clears
-  the leaders. **FUN_80058c70's rotation SOLVED this way (26→25):** `cnt=param_4`
-  counted down + the `VWD0` read moved between the two `sh` stores. Diagnose with
-  `.greg` (survival) + `.i.sched` (pick order), never byte-count alone. **Contrast
-  FUN_80057b80** (proven-closed): its two competitors are BOTH entry parm-copies
-  with rigid declaration order — no body-leader bubble to exploit. Do NOT let
-  `rtlguide` mislead
-  you here: it frames this rotation as a `cse/coalescing register goal`
-  (`$s4`→`$s2`) from aligning the two swapped blocks — a red herring; the register
-  roles are identical, the tie is sched2 emit-order alone.
+- **A prologue-copy tie has two source layers.** `sched2` accurately reports the
+  final backward LUID/hazard choice, but it cannot prove the definitions must
+  originate in `assign_parms`. First try ordinary local copies and use the
+  locals throughout. In FUN_80057b80, `param_2 = arg_2; param_1 = arg_1;`
+  coalesces to the same bare `move s1,a1` / `move s0,a0` instructions while
+  retaining local-assignment order; the alleged rigid formal-vs-formal floor
+  went 8→0. For formal-vs-body leaders, purposeful multi-set locals are also
+  real levers: FUN_80059008's loop counter and two-set packet initializer
+  suppress the relevant birthing bump and match the target, while its twin
+  FUN_80058c70 matches with separate colour and later GTE-address identities.
+  Read `.greg`, `.sched`, and `.sched2` to verify survival/order, but treat the
+  result as a diagnosis of the current definition sites. "Both are parm
+  copies" and "one ready-list tick" are not source-level impossibility proofs.
 - **Store-to-load source dependencies beat fences**: read back the just-stored
   narrow object (`sb; andi` order with no surviving load, FileOption) — the
   memory-unit tiebreak anti-rule means [store][alu] is unreachable for
@@ -1869,10 +1847,14 @@ re-check cheaply before honoring them:
 - **Diff the region a "missing piece" lives in against the CURRENT draft before
   hunting it** — the defect may be collateral from the edit that "needs" it
   (mission_score_screen round 7).
-- **Park-on-sight classes** (each with its printed/verifiable tell): SDK
-  epilogue shape; the 3-insn SIGNEXT split; `addiu r,$zero,0`; the preheader
-  priority-1 LUID tie between two hoisted constant loads (StageEndScreen,
-  ~140 bytes); INSEPARABLE pairs with no post-copy read.
+- **There are no C-source park-on-sight classes.** SDK/handwritten-assembly
+  exclusions are project-scope decisions; every compiler signature merely
+  selects the next diagnostic. A SIGNEXT split, `addiu r,$zero,0`, priority-1
+  LUID tie, or INSEPARABLE pair may close edits on the CURRENT pseudos. Before
+  parking, perform one clean-decomposition null check: remove donors/fences,
+  restore debug locals or same-TU inline helpers, and verify target length
+  again. This batch dissolved the cited prologue, containment, interference,
+  conflict-free-window, and divide-color "floors" without changing compilers.
 - **A false PARK rule is the most expensive error shape we have** — a wrong fix
   fails loudly next round; a wrong park tells lanes to abandon functions and
   nobody re-checks. The monument: the "hard-register argmove floor — park on
