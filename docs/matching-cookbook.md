@@ -743,6 +743,20 @@ judgment:
   (PadProc); grouped quotient temps when the target groups the stores
   (FUN_80036284); signed fixed-point bias-and-shift spelled literally
   (SetWire). Variable division needs `--expand-div` (§3.16).
+- **Match a quotient temporary's destination width before steering its
+  allocation.** A value used only by `sb` can still be a QImode source local;
+  widening three natural color bytes to a tuned `u32/u16/u32` mix left the
+  mnemonics and stores intact but manufactured a 34-byte register rotation in
+  `FUN_80036284`. Restoring three plain `u8` temporaries made the whole first
+  fade case exact. Source mode is part of value identity even when the final
+  machine store already truncates.
+- **A repeated pure expression and a named destructive update need not have
+  the same register identity.** In `FUN_80036284` case 2, writing
+  `(duration - elapsed)` in each of three channel expressions lets CSE share a
+  separate pseudo in v1. `elapsed = duration - elapsed`, and the seemingly
+  cleaner `remaining = duration - elapsed`, both tie the value to a1 and leave
+  a 14-byte register-only residual. Trust the compiler dump before declaring
+  repeated human source impossible or replacing it with donor copies.
 - **Two loads of one short field at one address** = combine's one-use gate —
   the lever is WHICH READ COMES FIRST, not a cast (compiler-facts). An
   intervening store between a load and its first use likewise blocks combine
