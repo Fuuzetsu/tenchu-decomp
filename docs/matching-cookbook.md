@@ -1448,13 +1448,24 @@ LUID, barriers). The levers:
   the arg from its caller-saved home), its low LUID pins it to emit FIRST among
   the pri-1/class-3 leaders — moves+consts have no function unit, so hazard/tick
   don't apply and LUID alone decides (read `.i.sched2`'s `ready list at T-N`).
-  The coalescing loophole (assign a late loop counter `= param` to raise its
-  LUID) is a NO-OP — cc1 folds it back into the entry copy (FUN_80057b80
-  round 10-C; FUN_80058c70). **Provably-closed ONLY if both competitors are
-  parm-copies** (rigid declaration order — FUN_80057b80's 8-byte tie); if ONE
-  competitor is a BODY group and the target demonstrably reaches the other order,
-  a C construct lifting the entry-copy's LUID past the body MUST exist — NOT
-  proven-closed, keep hunting (FUN_80058c70's 26). Do NOT let `rtlguide` mislead
+  To lift the entry copy's LUID above the leaders, a late loop-counter copy
+  `cnt = param` does NOT simply coalesce away — that was a FUN_80057b80-specific
+  misread. combine folds the entry copy INTO the counter and it SURVIVES with a
+  hard-`a3` source; the real obstacle is sched1, which HOISTS the surviving copy
+  to the block top because `adjust_priority` boosts only SINGLE-SET-dest ready
+  insns to LAUNCH_PRIORITY (`birthing_insn_p`, `REG_N_SETS==1`) and a 2-set
+  counter copy never wins a birthing-contested tick against the leaders. The lever
+  is NOT de-birthing (fusing sets breaks the block-local qty — "dies more than
+  once" — and flow deletes dead second sets before sched1 recounts): it is a
+  STATEMENT REORDER that opens a one-tick sched1 ready-list BUBBLE mid-block (move
+  a nearby single-set global read so its launch drains, leaving the copy ALONE
+  ready for one tick), where the pri-1 copy is picked and its sched2 LUID clears
+  the leaders. **FUN_80058c70's rotation SOLVED this way (26→25):** `cnt=param_4`
+  counted down + the `VWD0` read moved between the two `sh` stores. Diagnose with
+  `.greg` (survival) + `.i.sched` (pick order), never byte-count alone. **Contrast
+  FUN_80057b80** (proven-closed): its two competitors are BOTH entry parm-copies
+  with rigid declaration order — no body-leader bubble to exploit. Do NOT let
+  `rtlguide` mislead
   you here: it frames this rotation as a `cse/coalescing register goal`
   (`$s4`→`$s2`) from aligning the two swapped blocks — a red herring; the register
   roles are identical, the tie is sched2 emit-order alone.
