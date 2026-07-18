@@ -185,6 +185,17 @@ Look up what the authors wrote before drafting anything.
   the human base for the next round even at a small byte cost. `siblingdiff --demo`
   can even show the author editing the source between builds (SetWire's `abs`
   changed from builtin to a called flag-setting form demo→retail).
+- **A permuter win that routes a value through a dead local is usually a matched
+  SIBLING's idiom in disguise — write the human version, not the permuter's.** When
+  a candidate's real win is a variable-routing trick (routing a call return through
+  an already-declared, momentarily-dead local; capturing an old value before
+  overwrite), grep the matched siblings in the TU for the same IDIOM before adopting
+  the permuter's literal phrasing. FUN_800514d8's permuter reconstructed
+  `prev = lastpad` from scratch in an awkward position; the matched sibling
+  `update_pressed_buttons.c` already had the human form
+  (`previously_pressed = buttons->currently_pressed;`). Same bytes, real code. And a
+  same-scoring `result++; result--;` ballast alternative was rejected for it — when
+  two spellings tie, take the one a person would write.
 - **NOT every fence is scaffolding — there are THREE cases and conflating them
   damages both directions.** Before deleting a `do{}while(0)`, classify it:
   (a) **a MATCHED SIBLING'S MACRO** — grep the TU's `.h` and `.c` `#define`s for
