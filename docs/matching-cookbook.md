@@ -1855,7 +1855,10 @@ re-check cheaply before honoring them:
   parking, perform one clean-decomposition null check: remove donors/fences,
   restore debug locals or same-TU inline helpers, and verify target length
   again. This batch dissolved the cited prologue, containment, interference,
-  conflict-free-window, and divide-color "floors" without changing compilers.
+  conflict-free-window, and divide-color "floors" without changing compilers;
+  StageEndScreen's supposed 140-byte preheader wall likewise disappeared when
+  five real block-local score positions reconstructed the original movable
+  group.
 - **A false PARK rule is the most expensive error shape we have** — a wrong fix
   fails loudly next round; a wrong park tells lanes to abandon functions and
   nobody re-checks. The monument: the "hard-register argmove floor — park on
@@ -1881,17 +1884,19 @@ re-check cheaply before honoring them:
   unreachable / ref_count=0" park conclusion reached on the SCAFFOLDED draft is
   worth re-testing under the sibling structure** — the constant a carrier fakes
   may have no consumer while the sibling's plain variable does. BUT verify the
-  target's LOAD COUNT first, or you conflate two opposite cases: if the target
-  loads the constant ONCE into a persistent callee-saved reg (`grep -c` the reg
-  = 1 load, N reads), it is a sched1 LUID WALL — the constant's low source-LUID
-  precedes any hoisted loop-invariant so sched1 emits it first, un-raisable — NOT
-  a REG_EQUIV loser that rematerialises per-use. Only the latter is the
-  mission_score_screen `resultX` case where the sibling-transcribe helps.
-  StageEndScreen's cluster-2 s7=0x52 was TESTED (2026-07-18) and FALSIFIED:
-  current_x is persistent (one `addiu s7,zero,0x52`, 5 reads) = a genuine sched1
-  LUID wall, and its best_x neighbour's dual-life `0x80010000` pointer is FAITHFUL
-  to the target (clean externs = LENGTH MISMATCH 6104>6084), not scaffold. The
-  transfer hypothesis was conflating the two — don't.
+  target's LOAD COUNT, but do not infer one source variable from one target
+  load.  StageEndScreen is the counterexample.  Five direct `x = 0x52` stores
+  were recognized as one movable group, but `.loop` rejected it because the
+  first constant pseudo lived for only five RTL insns.  Capturing `x_` in a
+  separate block local before each current-score macro invocation lengthened
+  those real lifetimes; loop.c then combined all five movables into the one
+  persistent `s7` load seen in retail.  Per-sign block-local `ten = 10`
+  declarations put the actual movable order at `/10` magic, ten, then x, and
+  the complete function byte-matched with no dead seed or hard-register bind.
+  Thus `ref_count=0` and low LUID proved only that the function-wide
+  `current_x` draft could not move; they did not prove the target source was
+  unreachable.  The best_x neighbour's dual-life `0x80010000` pointer remains
+  faithful (clean externs still produce a length mismatch).
 - **Park format**: STATUS line with byte count, the residual's cluster
   addresses, the mechanism WITH its falsification, what was measured (numbers,
   not adjectives), and the named levers already burned. The next reader should

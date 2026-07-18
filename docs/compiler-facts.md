@@ -506,12 +506,16 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   that nothing in the block depends on is never passed to it and is **never
   bumped, whatever its REG_N_SETS**. The tell is printed: **`ref_count = 0`** in
   the `;; insn[N]` table means no `INSN_DEPEND`, i.e. live-out with no consumer
-  here. Worked example: StageEndScreen's `(set (reg/v:SI 95) (const_int 82))` —
-  `priority = 1, ref_count = 0`, bumped 0 times across 650 bumps elsewhere in the
-  same function. **So "can this constant be lifted off the floor?" is answered by
-  ref_count BEFORE REG_N_SETS**; a live-out constant with no in-block use is
-  unreachable by this lever, and giving it a consumer means changing what the C
-  does with it.
+  here. In StageEndScreen's old function-wide-coordinate draft,
+  `(set (reg/v:SI 95) (const_int 82))` had `priority = 1, ref_count = 0` and was
+  bumped 0 times across 650 bumps elsewhere in the function. **So "can this
+  particular def be lifted off the floor?" is answered by ref_count BEFORE
+  REG_N_SETS**; a live-out constant with no in-block use is unreachable by this
+  lever.  This is not a proof that the target source used the same def: the
+  matched StageEndScreen source has five block-local `x = 82` movables which
+  loop.c combines into the target's one saved-register load.  Always treat the
+  dump as truth about the compiled candidate, not proof of a unique source
+  decomposition.
 - **Read the birthing gate BACKWARDS to recover the original's variable
   structure.** Since only a `REG_N_SETS == 1` def can be bumped, and a bumped def
   is picked first and therefore lands LAST (adjacent to its uses), **a target that

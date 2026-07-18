@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -16,209 +17,14 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — complete pure-C reconstruction with the exact target
- * length (6084 bytes / 1521 instructions), 0xf0-byte frame, 81 conditional
- * branches, 15 jumps, and 70 calls.  matchdiff reports 199 differing bytes.
- * The residual clusters: A stage-scan register permutation (~40B), B the
- * current_x=0x52 sched displacement (~168B), C the number_1 subtraction
- * coloring (partially closed), D two terminal &D_8008EA78 ops.
+ * Byte-identical C reconstruction (6084 bytes).
  *
- * 2026-07-18 round 5 (agent, fresh permuter after the -fno-builtin fix):
- *  - 202->199.  A FRESH bounded permuter run (the park's "flat" was measured
- *    with the -fno-builtin bug that searched a different program) found ONE
- *    real edit: the number_1 draw's x-coordinate 0x28 as a PRE-LOOP variable
- *    `second_x` (set after _PlayMusic) instead of a site literal.  This
- *    changes cluster C's coloring (the "x-const 40 in v0 vs v1" permutation)
- *    and closes 3 of its bytes.  Verified by full-link authoritative rescore
- *    AND by reproduction (matchdiff 199).  Re-seeding continues from here.
- *  - The re-seeded permuter (from the 199 checkpoint, fresh -j4 run) then
- *    PLATEAUED: authoritative rescore shows nothing beats base 199.  This
- *    neighbourhood is exhausted; cluster B needs a pass-level lever, not a
- *    permuter mutation.
- *  - Cluster B RE-CONFIRMED intractable at the C level, first-hand this round:
- *    * sched-deps: current_x is insn 558 in block 17 with pri=1 REF=0 (the
- *      round-4 ref_count claim VERIFIED by the tool, not inferred).  The
- *      div-magic (regno 301, const 0x66666667) is emitted right after it.
- *    * .loop: the div-magic IS in loop.c's moved list (hoisted to the
- *      preheader, high LUID); current_x is NOT moved (stays at source LUID).
- *      So current_x's low source-LUID precedes the hoisted div-magic's LUID
- *      and sched1 emits current_x first — a pure LUID tie, un-raisable
- *      because current_x is a bare constant (no cost!=1 producer).
- *    * SOURCE MOVES, both measured NO-OP-or-worse: current_x at while(1) TOP
- *      is nullcheck NO-OP (movable found before the div-magic's first use ->
- *      lower LUID -> re-hoisted to 0x800536bc); current_x just before number_2
- *      (after the div-magic's first use in number_0/1) is CATASTROPHIC (611) —
- *      loop.c will not cleanly re-hoist it from mid-loop.
- *    * HUMAN-STRUCTURE hypothesis (the cookbook §4 "open case") FALSIFIED:
- *      rebuilding the best_x region with clean externs (CHOSEN_STAGE /
- *      CHOSEN_LANGUAGE / D_8001046C instead of the best_x=0x80010000 dual-life
- *      + nested fences) is a LENGTH MISMATCH (6104 > 6084).  The dual-life is
- *      NOT superfluous scaffolding — it is FAITHFUL to the target (s5 =
- *      %hi(CHOSEN_LANGUAGE) reused for best_x, verified in the .s) and
- *      load-bearing: the pointer form folds base+offset that the extern form
- *      re-materialises.  current_x (s7) is independent of best_x (s5); the
- *      scaffolding is not what pins cluster B.  Cluster B is a genuine sched1
- *      wall, not a scaffold artefact.
- *  - Other clusters re-tested this round (all measured, all rejected):
- *    * C bosses-operand-birth seed (the sibling's draw-1 idiom): 199->201.
- *    * D symbol form `&D_8008EA78[i]` (vs the 0x80090000-0x1588 constant):
- *      199->232 — CONFIRMS the round-4 coupling (the %hi live range defeats
- *      the a1 coalesce).  The constant/page-minus form is the local optimum.
- *    * A stage-scan {a0,a2,a1} vs target {a3,a1,a0}: regalloc.py --local shows
- *      a local-alloc coloring conflict on stage_index; no C lever found.
- *
- * 2026-07-16 full residual autopsy (second flat pass, RTL-evidenced; do not
- * re-run source moves against these six clusters without a NEW pass-level
- * lever):
- *  1. ~140 of the 203 bytes are ONE cluster: our li s7,82 (current_x) hoists
- *     into the div-magic's slot at 0x800536bc while retail keeps it in the
- *     RANK_ARCHIVE FileRead delay slot — a one-instruction shift over ~45
- *     instructions. .sched proves a pure priority-1 tie.
- *     [2026-07-17 round 4: the tie is REAL but this item's stated MECHANISM
- *     was WRONG and is retracted — see round 4 §1. There is no "CSE/LICM
- *     hoist" of insn 559 and no "preheader dominator" pinning its LUID: the
- *     .combine chain puts insn 559 at its plain source position. The
- *     conclusion (source order cannot flip it) survives; the reason does not.]
- *  2. Stage scan {a3,a1,a0}<->{a0,a2,a1} rename: regalloc HARD-CONFLICT
- *     (stage_index prefers a0, target wants a3).
- *  3. number_1 subtraction: 3-way coloring permutation (x-const 40 in v0 vs
- *     target's v1).
- *  4. FadeOutDirect shared-constant 8 in v0 vs target a2 (context-driven;
- *     the second identical call matches).
- *  5. PSTATE->stage volatile base v1<->v0.
- *  6. Terminal &D_8008EA78: the (u8*)0x80090000-0x1588 constant form is the
- *     LOCAL OPTIMUM (right register a1, 8 wrong immediate bytes). The symbol
- *     form fixes the immediates but its %hi live range defeats the a1
- *     coalesce and cascades to 236 total. Coupled — do not "fix" the addiu.
- * Measured dead ends: DRAW_SCORE_NUMBER store reorder (LENGTH 6056), symbol
- * form (236), best_x/current_x source moves (no effect), (u32) cast removal
- * (no effect), 160 guided candidates + one bounded permuter run (flat).
- *
- * 2026-07-17 round 3 — the autopsy's verdicts RE-TESTED against the newer
- * levers (mega-pseudo histogram, disposition-verified identity, loop-note ref
- * weight, updated permuter). All four clusters below are CONFIRMED, not
- * retracted; the evidence is now first-hand rather than inferred:
- *  A. MEGA-PSEUDO CHECK: NEGATIVE, and decisively so. Register-mention
- *     histogram (target vs draft, 1521 insns each): s0-s8 match EXACTLY
- *     (226/80/229/59/21/14/19/8/7) and v0 matches exactly at 811. The only
- *     deltas are v1 -6, a0 +5, a1 +3, a2 +2, a3 -4 — summing to zero, the
- *     signature of pure renames of identical instructions. There is no
- *     mega-pseudo here and no variable-splitting lever: the decomposition's
- *     variable structure is already the target's. (This is the check that was
- *     worth 140 bytes on FUN_80057b80; on this function it is exhausted.)
- *     Corollary: cluster 1 is scheduling, not allocation — s7 is 8 mentions
- *     in both.
- *  B. IDENTITY VERIFIED for cluster 2 (the brief's misidentified-pseudo
- *     worry does NOT apply): .lreg shows `(reg/v:HI 97)` — a user variable in
- *     HImode — i.e. stage_index itself, with a real p97->a0 disposition (not a
- *     spilled allocno). Its neighbours are likewise identified from the RTL:
- *     p105 = the %hi temp (feeds `lo_sum ... symbol_ref("D_8008EA78")`),
- *     p111 = the full &D_8008EA78 pointer, p121 = the CHOSEN_STAGE limit copy.
- *     Mechanism, exactly: `;; 138 regs to allocate:` orders p97 at position
- *     107 but p121/p105/p111 at 125/129/132; p97's only hard conflicts are
- *     v0/v1, so find_reg's ascending scan hands it a0, which exiles the %hi
- *     base to a1 and the pointer to a2. The whole cluster is downstream of
- *     p97 being allocated too early.
- *     The ref lever CANNOT close it: priorities are p97=13333 vs p121=3750,
- *     p105=2500, p111=1666 — an 8x gap. floor_log2 is immune here: dropping
- *     p97 from 6 refs to 2 still leaves 2222 (> 1666), and reaching p111 by
- *     live_length would need L=9 -> 72. Raising p105 instead needs 3 -> 8
- *     refs on a compiler-generated %hi temp, which source cannot address.
- *     This is a genuine structural gap, quantified with verified identities.
- *  C. Cluster 1 (~140 bytes) — the same-basic-block premise CONFIRMED
- *     first-hand: between the magic at 0x800536bc and the target's `li s7,82`
- *     at 0x80053774 there are only `jal`s — no labels, no branches — and calls
- *     do not split blocks in gcc 2.8, so sched1 really does own both.
- *     NEW and worth keeping: the autopsy's "source-position-invariant" is true
- *     only of source MOVES. A `do{}while(0)` around `current_x = 0x52` IS a
- *     sched barrier and DOES break the hoist (li s7,82 leaves 0x800536bc) —
- *     but the resulting schedule diverges elsewhere and costs +39 (242).
- *     Attribution measured: an EMPTY `do{}while(0)` at the same point gives
- *     byte-identical 242, so the +39 is the BARRIER, not the ref reweighting
- *     (the empty fence encloses zero refs). Cluster 1 is a pass-level wall in
- *     sched1: the hoist is reachable, but every barrier that reaches it
- *     re-schedules the sub-block for a net loss. Do not re-run either fence.
- *  D. The rewritten permuter (bounded 420s, -j4, --stop-on-zero) is still
- *     flat at 203 — re-confirmed against the current tool, not the old one.
- *
- * 2026-07-17 round 4 — now 202. autorules found ONE real edit
- * (`sprite->r = sprite->g = 0x80`, assignment-chain merge L454: 203->202).
- * The rest of the round went to cluster 2, and it CLOSED the question of
- * whether cluster 2 is source-reachable. It is not. Evidence, first-hand:
- *
- *  1. SIZE OF THE PRIZE, exactly. Cluster 2 is not "~45 instructions of
- *     scheduling"; it is ONE instruction. Decoding both images: ours puts
- *     `addiu s7,zero,0x52` at 0x800536bc, where retail has `lui s4,0x6666`.
- *     From there ours is target+4 for 46 slots and RE-SYNCS at 0x8005378c.
- *     168 of the 202 bytes are that single displacement. Retail's copy sits
- *     in the `jal FileRead` delay slot at 0x80053774; ours, already spent,
- *     forces reorg to fill that slot with `li s5,127` instead, which is the
- *     whole tail of the cluster (the sw/move swap at 0x80053780..0x80053788).
- *     Fix the placement and the cluster collapses entirely.
- *
- *  2. RETRACTION of the 2026-07-16 item 1 mechanism. That item said the
- *     magic is CSE/LICM-hoisted and its LUID "fixed at the preheader
- *     dominator". Both halves are false. In .combine (the chain sched1
- *     actually reads) insn 559 `(set (reg/v:SI 95) (const_int 82))` sits at
- *     line 1475 — immediately after call_insn 552, i.e. exactly where the C
- *     statement is. Nothing hoisted it. The div magic (uid 4204/4205) is not
- *     in .combine at all. The park reached a TRUE conclusion from a FALSE
- *     mechanism, which is why it also mispredicted the reason moves fail.
- *
- *  3. WHY SOURCE MOVES ARE NO-OPS — now proven, not observed. Moving
- *     `current_x = 0x52` to the loop preheader gives BYTE-IDENTICAL codegen
- *     (tools/nullcheck.py exit 1). Reason: the pick order among priority-1
- *     insns only changes if the move crosses another priority-1 insn, and the
- *     next one above 559 is uid 4186 at chain 1725 — loop.c's hoisted
- *     `(set (reg:SI 323) (const_int 10))`, sitting in the loop preheader
- *     between call_insn 658 (_PlayMusic) and (note 660 NOTE_INSN_LOOP_BEG).
- *     Every position between 1475 and ~1710 is the same pick. Do not re-run
- *     any move of current_x that stays inside block 17.
- *
- *  4. THE PRIORITY LEVER DOES NOT EXIST FOR THIS INSN — the load-bearing new
- *     fact. A priority-1 insn cannot reach retail's slot, so the only way out
- *     would be to raise 559's priority. sched-deps.py's §2848 verdict (from
- *     cc1's own tables): "Priority rises only via a cost!=1 producer
- *     (sched.c:1521), so the lever is what FEEDS the insn — e.g. sourcing it
- *     from a load rather than a register." `addiu s7,zero,0x52` is a bare
- *     constant: it HAS no producer, and any source form that gives it one
- *     stops being `li`. Its priority is pinned at 1 by its own shape.
- *     Corollary — two levers that look adjacent are already known-backwards
- *     and must not be tried: class (rank_for_schedule gives class 3, the
- *     maximum, to anything independent or cost-1, so a cost!=1 dep sorts you
- *     LATER) and potential_hazard (a SYMPTOM of the tie, not a lever).
- *
- *  5. MEASURED DEAD END, new: manufacturing an anti-dependence by giving
- *     current_x a first life as the PSTATE pointer (`current_x = 0x80010000`
- *     feeding the RS_ARCHIVE FileRead's [0x5e] read, so that `current_x =
- *     0x52` would carry a WAR dep) is a LITERAL NO-OP — byte-identical 202,
- *     verified after a real relink. cse1 constant-propagates the literal
- *     pointer and the def dies before it can carry a dependence. This is also
- *     positive evidence the current single-pointer reconstruction is RIGHT:
- *     retail reads both archive tables' language byte through the SAME base
- *     (`lbu v0,%lo(CHOSEN_LANGUAGE)(s5)` at 0x80053724 AND 0x8005375c), so
- *     there is exactly one pointer pseudo, and best_x's dual life is real.
- *
- *  6. NOT A MEGA-PSEUDO, re-confirmed by a stronger check than round 3's
- *     histogram: retail's s7 is written ONCE (0x80053774) and read 5 times
- *     (`sh s7,0x4(s2)`), matching our 5 current_x call sites exactly. There
- *     is no earlier identity to split off, and none to merge in.
- *
- *  7. The four nested do{}while(0) at L423-L429 are LOAD-BEARING, measured:
- *     autorules' fence-unwrap scores each at 202->227. They are not
- *     scaffolding; do not remove them.
- *
- * Round 4 verdict: cluster 2 is a sched1 priority-1 tie whose ONLY documented
- * lever (a cost!=1 producer) is unreachable for a constant-materialising insn.
- * Unless a NEW pass-level lever appears, the remaining honest target is the
- * 34 bytes OUTSIDE cluster 2, not the 168 inside it.
+ * The five current-score fields deliberately capture x = 0x52 in separate
+ * block locals.  GCC 2.8.1 combines those real loop movables into the target's
+ * single saved-register constant, after the decimal /10 magic and per-sign
+ * ten constants.  A function-wide coordinate initializes too early and
+ * produces a different schedule.
  */
-
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/StageEndScreen", StageEndScreen);
-#else
-
-#include "item.h"
 
 typedef struct
 {
@@ -274,8 +80,6 @@ typedef struct
     u16 old_pad;                    /* sp+0xb8 */
     u8 pad_0a2[2];
     BackGround *background;         /* sp+0xbc */
-    u_long *rank_archive;           /* sp+0xc0 */
-    u8 pad_0ac[4];
 } StageEndScreenStack;
 
 #define PSTATE ((PersistentState *)0x80010000)
@@ -337,6 +141,12 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
     InitSprite(image, sprite);
 }
 
+static inline s32 StageEndNextStageOffset(s32 index)
+{
+    index++;
+    return index * 2;
+}
+
 #define DRAW_SCORE_NUMBER(value_, type_, jump_, label_,                    \
         x_, y_)                                                            \
     {                                                                      \
@@ -390,7 +200,9 @@ label_:                                                                    \
         if (negative != 0)                                                 \
         {                                                                  \
             u32 sign_base_u;                                               \
+            s32 ten;                                                       \
                                                                            \
+            ten = 10;                                                      \
             sign_base_u = sprite->u;                                       \
             sprite->u = sign_base_u + sprite->w * ten;                     \
             GsSortSprite(sprite, OTablePt, 0);                              \
@@ -435,7 +247,9 @@ label_:                                                                    \
         if (negative != 0)                                                 \
         {                                                                  \
             u32 sign_base_u;                                               \
+            s32 ten;                                                       \
                                                                            \
+            ten = 10;                                                      \
             sign_base_u = sprite->u;                                       \
             sprite->u = sign_base_u + sprite->w * ten;                     \
             GsSortSprite(sprite, OTablePt, 0);                              \
@@ -451,20 +265,18 @@ void StageEndScreen(void)
     StageScoreStats *layout_record;
     GsSPRITE *icon;
     u_long *tim;
+    u_long *rank_archive;
     u8 *best_stage;
     s16 selection;
+    s32 dispatch;
     s32 pulse;
     s32 i;
     s32 layout_index;
-    s32 next_stage_index;
     u32 layout_character_offset;
     u32 layout_stage_offset;
-    s16 ten;
     s32 top_y;
-    s32 second_x;
-    s32 current_x;
+    s16 second_x;
     s32 best_x;
-    s16 stage_index;
     s16 item_index;
     u16 pad;
     u16 pressed;
@@ -478,19 +290,16 @@ void StageEndScreen(void)
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
 
-    stage_index = 0;
-    if (D_8008EA78[0] != CHOSEN_STAGE)
+    item_index = 0;
+    while (D_8008EA78[item_index] != CHOSEN_STAGE)
     {
-        do
-        {
-            stage_index++;
-        } while (D_8008EA78[stage_index] != CHOSEN_STAGE);
+        item_index++;
     }
     {
         u8 *state;
 
         state = (u8 *)0x80010000;
-        *(s32 *)(state + 0x46c) |= 1 << (stage_index - 1);
+        *(s32 *)(state + 0x46c) |= 1 << (item_index - 1);
         if (state[5] == 7 && state[0x5e] == 0)
         {
             *(s32 *)(state + 0x46c) |= 0x400;
@@ -559,155 +368,232 @@ void StageEndScreen(void)
         }
         else
         {
-        tim = FileRead(NUMBER_TIM_PATH);
-        {
-            GsSPRITE *sprite;
-
-            sprite = &stack.digit;
-            StageEndInitSprite(tim, &stack.image, sprite);
-            sprite->attribute |= 0x50000000;
-            sprite->x = -0x8c;
-            sprite->y = -0x28;
-            sprite->r = sprite->g = 0x80;
-            sprite->b = 0x80;
-            sprite->mx = sprite->w >> 1;
-            sprite->my = sprite->h >> 1;
-            stack.digit.mx = 0;
-            stack.digit.my = 0;
-            LoadTIMAndFree(tim);
-            top_y = -0x35;
-            stack.digit.w = 12;
-        }
-
-        tim = FileRead(RS_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
-        ten = 10;
-        stack.background = FUN_8004f4f8(tim);
-        vfree(tim);
-
-        stack.rank_archive = FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
-        current_x = 0x52;
-        tim = get_tim_from_archive(stack.rank_archive,
-            (s16)stack.current.value[5]);
-        best_x = 0x7f;
-        StageEndInitSprite(tim, &stack.image, &stack.rank);
-        stack.rank.x = -0xa0;
-        stack.rank.y = -0x78;
-        stack.rank.r = 0x80;
-        stack.rank.g = 0x80;
-        stack.rank.b = 0x80;
-        stack.rank.attribute |= 0x50000000;
-        stack.rank.mx = stack.rank.w >> 1;
-        stack.rank.my = stack.rank.h >> 1;
-        stack.rank.mx = 0;
-        stack.rank.my = 0;
-        LoadTIM(tim);
-
-        _PlayMusic(12, 1);
-        second_x = 0x28;
-        while (1)
-        {
-            pad = GetRealPad(0);
-            pressed = pad & (pad ^ stack.old_pad);
-            stack.old_pad = pad;
-            if ((pressed & 0x20) != 0)
+            tim = FileRead(NUMBER_TIM_PATH);
             {
-                selection = 0;
-                break;
+                GsSPRITE *sprite;
+
+                sprite = &stack.digit;
+                StageEndInitSprite(tim, &stack.image, sprite);
+                sprite->attribute |= 0x50000000;
+                sprite->x = -0x8c;
+                sprite->y = -0x28;
+                sprite->r = 0x80;
+                sprite->g = 0x80;
+                sprite->b = 0x80;
+                sprite->mx = sprite->w >> 1;
+                sprite->my = sprite->h >> 1;
+                stack.digit.mx = 0;
+                stack.digit.my = 0;
+                LoadTIMAndFree(tim);
+                top_y = -0x35;
+                stack.digit.w = 12;
             }
-            if ((pressed & 0x40) != 0)
+
+            tim = FileRead(RS_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
+            stack.background = FUN_8004f4f8(tim);
+            vfree(tim);
+            rank_archive =
+                FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
+            tim = get_tim_from_archive(rank_archive,
+                (s16)stack.current.value[5]);
+            best_x = 0x7f;
+            StageEndInitSprite(tim, &stack.image, &stack.rank);
+            stack.rank.x = -0xa0;
+            stack.rank.y = -0x78;
+            stack.rank.r = 0x80;
+            stack.rank.g = 0x80;
+            stack.rank.b = 0x80;
+            stack.rank.attribute |= 0x50000000;
+            stack.rank.mx = stack.rank.w >> 1;
+            stack.rank.my = stack.rank.h >> 1;
+            stack.rank.mx = 0;
+            stack.rank.my = 0;
+            LoadTIM(tim);
+
+            _PlayMusic(12, 1);
+            second_x = 0x28;
+            while (1)
             {
-                switch (!!pad)
+                pad = GetRealPad(0);
+                pressed = pad & (pad ^ stack.old_pad);
+                stack.old_pad = pad;
+                if ((pressed & 0x20) != 0)
                 {
-                case 0:
-                    selection = 2;
-                    break;
-                default:
-                    selection = 2;
+                    selection = 0;
                     break;
                 }
-                break;
-            }
-            selection = 1;
-            if ((pressed & 0x800) != 0)
-            {
-                break;
-            }
+                if ((pressed & 0x40) != 0)
+                {
+                    switch (!!pad)
+                    {
+                    case 0:
+                        selection = 2;
+                        break;
+                    default:
+                        selection = 2;
+                        break;
+                    }
+                    break;
+                }
+                selection = 1;
+                if ((pressed & 0x800) != 0)
+                {
+                    break;
+                }
 
-            StartDrawing();
-            DrawBG(stack.background);
-            FUN_800515b0(&stack.digit, stack.stats.clock, 0x61, -0x5d, 0);
-            DRAW_SCORE_NUMBER(stack.stats.criticals, s32, 1, number_0,
-                10, top_y);
-            DRAW_SCORE_NUMBER((u32)stack.stats.enemies -
-                stack.stats.bosses, s32, 1, number_1, second_x, top_y);
-            DRAW_SCORE_NUMBER(stack.current.value[0], s16, 1, number_2,
-                current_x, top_y);
-            DRAW_SCORE_NUMBER(stack.best.value[0], s16, 1, number_3,
-                best_x, top_y);
+                StartDrawing();
+                DrawBG(stack.background);
+                FUN_800515b0(&stack.digit, stack.stats.clock, 0x61, -0x5d, 0);
+                DRAW_SCORE_NUMBER(stack.stats.criticals, s32, 1, number_0,
+                    10, top_y);
+                {
+                    s32 dividend;
+                    s32 remainder;
+                    s32 quotient;
+                    u32 value;
+                    GsSPRITE *sprite;
+                    s32 enemy_count;
 
-            DRAW_SCORE_NUMBER(stack.stats.murders, s32, 0, number_4,
-                10, -0x1a);
-            DRAW_SCORE_NUMBER(stack.stats.enemies, s32, 0, number_5,
-                0x28, -0x1a);
-            DRAW_SCORE_NUMBER(stack.current.value[1], s16, 0, number_6,
-                current_x, -0x1a);
-            DRAW_SCORE_NUMBER(stack.best.value[1], s16, 0, number_7,
-                best_x, -0x1a);
+                    do
+                    {
+                        sprite = &stack.digit;
+                    } while (0);
+                    enemy_count = stack.stats.enemies;
+                    i = stack.stats.bosses;
+                    dispatch = second_x;
+                    sprite->x = dispatch;
+                    sprite->y = top_y;
+                    pulse = enemy_count - i;
+                    value = pulse;
+                    if (pulse < 0)
+                    {
+                        value = -pulse;
+                        negative = 1;
+                        goto number_1;
+                    }
+                    else
+                    {
+                        negative = 0;
+                    }
+number_1:
+                    do
+                    {
+                        dividend = (s16)value;
+                        quotient = dividend / 10;
+                        remainder = dividend % 10;
+                        base_u = sprite->u;
+                        sprite->u = base_u + (s16)remainder * sprite->w;
+                        GsSortSprite(sprite, OTablePt, 0);
+                        sprite->x -= 12;
+                        value = quotient;
+                        quotient <<= 16;
+                        sprite->u = base_u;
+                    } while (quotient != 0);
+                    if (negative != 0)
+                    {
+                        u32 sign_base_u;
+                        s32 ten;
 
-            DRAW_SCORE_NUMBER(stack.stats.hidden_finds, s32, 0, number_8,
-                0x1c, 1);
-            DRAW_SCORE_NUMBER(stack.current.value[3], s16, 0, number_9,
-                current_x, 1);
-            DRAW_SCORE_NUMBER(stack.best.value[3], s16, 0, number_10,
-                best_x, 1);
+                        ten = 10;
+                        sign_base_u = sprite->u;
+                        sprite->u = sign_base_u + sprite->w * ten;
+                        GsSortSprite(sprite, OTablePt, 0);
+                        sprite->u = sign_base_u;
+                    }
+                }
+                {
+                    s32 x;
 
-            DRAW_SCORE_NUMBER(stack.stats.friendly_hits, s32, 0, number_11,
-                0x1c, 0x1a);
-            DRAW_SCORE_NUMBER(stack.current.value[2], s16, 0, number_12,
-                current_x, 0x1a);
-            DRAW_SCORE_NUMBER(stack.best.value[2], s16, 0, number_13,
-                best_x, 0x1a);
+                    x = 0x52;
+                    DRAW_SCORE_NUMBER(stack.current.value[0], s16, 1, number_2,
+                        x, top_y);
+                }
+                DRAW_SCORE_NUMBER(stack.best.value[0], s16, 1, number_3,
+                    best_x, top_y);
 
-            DRAW_SCORE_NUMBER(stack.current.value[4], s16, 0, number_14,
-                current_x, 0x38);
-            DRAW_LAST_SCORE_NUMBER(stack.best.value[4], number_15);
+                DRAW_SCORE_NUMBER(stack.stats.murders, s32, 0, number_4,
+                    10, -0x1a);
+                DRAW_SCORE_NUMBER(stack.stats.enemies, s32, 0, number_5,
+                    0x28, -0x1a);
+                {
+                    s32 x;
 
-            do
-            {
-                stack.rank.x = -0x19;
-                stack.rank.y = 0x4e;
-                pulse = rsin((GameClock << 12) / 90) * 0x7f;
-            } while (0);
-            if (pulse < 0)
-            {
-                pulse += 0xfff;
-            }
-            stack.rank.r = stack.rank.g = stack.rank.b =
-                (pulse >> 12) + 0x7f;
-            GsSortSprite(&stack.rank, OTablePt, 1);
+                    x = 0x52;
+                    DRAW_SCORE_NUMBER(stack.current.value[1], s16, 0, number_6,
+                        x, -0x1a);
+                }
+                DRAW_SCORE_NUMBER(stack.best.value[1], s16, 0, number_7,
+                    best_x, -0x1a);
 
-            if ((s16)stack.current.value[5] == 4)
-            {
-                icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
-                icon->x = -0x78;
-                icon->y = 0x38;
-                icon->scalex = 0x1000;
-                icon->scaley = 0x1000;
-                pulse = rcos((GameClock << 12) / 90) * 0x50;
+                DRAW_SCORE_NUMBER(stack.stats.hidden_finds, s32, 0, number_8,
+                    0x1c, 1);
+                {
+                    s32 x;
+
+                    x = 0x52;
+                    DRAW_SCORE_NUMBER(stack.current.value[3], s16, 0, number_9,
+                        x, 1);
+                }
+                DRAW_SCORE_NUMBER(stack.best.value[3], s16, 0, number_10,
+                    best_x, 1);
+
+                DRAW_SCORE_NUMBER(stack.stats.friendly_hits, s32, 0, number_11,
+                    0x1c, 0x1a);
+                {
+                    s32 x;
+
+                    x = 0x52;
+                    DRAW_SCORE_NUMBER(stack.current.value[2], s16, 0, number_12,
+                        x, 0x1a);
+                }
+                DRAW_SCORE_NUMBER(stack.best.value[2], s16, 0, number_13,
+                    best_x, 0x1a);
+
+                {
+                    s32 x;
+
+                    x = 0x52;
+                    DRAW_SCORE_NUMBER(stack.current.value[4], s16, 0, number_14,
+                        x, 0x38);
+                }
+                DRAW_LAST_SCORE_NUMBER(stack.best.value[4], number_15);
+
+                do
+                {
+                    stack.rank.x = -0x19;
+                    stack.rank.y = 0x4e;
+                    pulse = rsin((GameClock << 12) / 90) * 0x7f;
+                } while (0);
                 if (pulse < 0)
                 {
                     pulse += 0xfff;
                 }
-                icon->r = icon->g = icon->b = (pulse >> 12) + 0x7f;
-                GsSortSprite(icon, OTablePt, 1);
+                stack.rank.r = stack.rank.g = stack.rank.b =
+                    (pulse >> 12) + 0x7f;
+                GsSortSprite(&stack.rank, OTablePt, 1);
+
+                if ((s16)stack.current.value[5] == 4)
+                {
+                    icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
+                    icon->x = -0x78;
+                    icon->y = 0x38;
+                    icon->scalex = 0x1000;
+                    icon->scaley = 0x1000;
+                    pulse = rcos((GameClock << 12) / 90) * 0x50;
+                    if (pulse < 0)
+                    {
+                        pulse += 0xfff;
+                    }
+                    icon->r = icon->g = icon->b = (pulse >> 12) + 0x7f;
+                    GsSortSprite(icon, OTablePt, 1);
+                }
+
+                SkipFrame = 2;
+                EndDrawing(0);
             }
 
-            SkipFrame = 2;
-            EndDrawing(0);
-        }
-
             DisposeBG(stack.background);
-            vfree(stack.rank_archive);
+            vfree(rank_archive);
         }
     }
 
@@ -754,16 +640,16 @@ void StageEndScreen(void)
 
     if (D_8001005C != 0)
     {
-        volatile PersistentState *state;
-
-        state = (PersistentState *)0x80010000;
-        if (state->stage != 7)
+        dispatch = 0x80010000;
+        dispatch = *(volatile u8 *)(dispatch + 5);
+        if (dispatch != 7)
         {
             FUN_800514d8();
         }
     }
 
-    switch (selection)
+    dispatch = selection;
+    switch (dispatch)
     {
     case 0:
         PSTATE->flags48 &= 0xfe;
@@ -773,23 +659,13 @@ void StageEndScreen(void)
         }
         else
         {
-            s16 *stage_order;
-            u8 *stage_order_page;
+            u8 *next_stage;
             u32 layout_base;
 
             layout_base = 0x80010064;
-            do
-            {
-                do
-                {
-                    /* Preserve the fixed image's high-page source identity. */
-                    stage_order_page = (u8 *)0x80090000;
-                } while (0);
-            } while (0);
-            next_stage_index = StageConfig[PSTATE->stage].uid;
-            stage_order = (s16 *)(stage_order_page - 0x1588);
-            next_stage_index++;
-            PSTATE->stage = *(u8 *)&stage_order[next_stage_index];
+            next_stage = (u8 *)D_8008EA78;
+            PSTATE->stage = next_stage[StageEndNextStageOffset(
+                StageConfig[PSTATE->stage].uid)];
             layout_character_offset = (u32)PSTATE->chr * 0x1d4;
             layout_stage_offset =
                 (u32)PSTATE->stage * 0x24 + layout_base;
@@ -836,1349 +712,3 @@ layout_done:
 #undef DRAW_SCORE_NUMBER
 #undef DRAW_LAST_SCORE_NUMBER
 #undef PSTATE
-
-#endif
-
-// triage: VERY-HARD — 1521 insns, mul/div, 22 loop, 28 callees, ~0.12 to BriefingAndInventorySelectionScreen
-// likely-relevant cookbook sections:
-//   - Loops: 22 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// /* WARNING: Removing unreachable block (ram,0x80054230) */
-// /* WARNING: Removing unreachable block (ram,0x80053c10) */
-// /* WARNING: Removing unreachable block (ram,0x80053cf0) */
-// /* WARNING: Removing unreachable block (ram,0x800542bc) */
-// /* WARNING: Removing unreachable block (ram,0x80053c9c) */
-// /* WARNING: Removing unreachable block (ram,0x80053d7c) */
-// /* WARNING: Removing unreachable block (ram,0x80053f90) */
-// /* WARNING: Removing unreachable block (ram,0x8005401c) */
-//
-// void StageEndScreen(void)
-//
-// {
-//   bool bVar1;
-//   uchar uVar2;
-//   char cVar3;
-//   ushort uVar4;
-//   short sVar5;
-//   uint *puVar6;
-//   ulong *puVar7;
-//   int iVar8;
-//   int iVar9;
-//   ushort uVar10;
-//   undefined4 uVar11;
-//   byte *pbVar12;
-//   int iVar13;
-//   uint *puVar14;
-//   uint uVar15;
-//   GsSPRITE local_d8;
-//   uint local_b0;
-//   uint local_ac;
-//   uint local_a8;
-//   undefined4 local_a0;
-//   undefined4 local_9c;
-//   undefined4 local_98;
-//   undefined4 local_90;
-//   undefined4 local_8c;
-//   uint local_88;
-//   GsSPRITE local_80;
-//   GsIMAGE GStack_58;
-//   ushort local_38;
-//   BackGround *local_34;
-//   ulong *local_30;
-//
-//   uVar15 = 0;
-//   local_38 = 0;
-//   SetupAppearance(0,-1);
-//   PadShockAR(0,0,0,0);
-//   FadeOutDirect(0x20,2,'\b','\b');
-//   FUN_80038ce0();
-//   iVar13 = 0;
-//   sVar5 = 0;
-//   uVar4 = DAT_8008ea78;
-//   while (uVar4 != (byte)PersistentState._5_1_) {
-//     iVar13 = iVar13 + 1;
-//     sVar5 = (short)iVar13;
-//     uVar4 = *(ushort *)((int)&DAT_8008ea78 + (iVar13 * 0x10000 >> 0xf));
-//   }
-//   PersistentState._1132_4_ = PersistentState._1132_4_ | 1 << ((int)sVar5 - 1U & 0x1f);
-//   if ((PersistentState._5_1_ == '\a') && (PersistentState._94_1_ == '\0')) {
-//     PersistentState._1132_4_ = PersistentState._1132_4_ | 0x400;
-//   }
-//   FUN_8004e964(&local_b0);
-//   puVar6 = (uint *)FUN_8004e794(&local_b0,PersistentState._5_1_);
-//   local_a0 = *puVar6;
-//   local_9c = puVar6[1];
-//   local_98 = puVar6[2];
-//   PersistentState._76_4_ = local_b0;
-//   PersistentState._80_4_ = local_ac;
-//   PersistentState._84_4_ = local_a8;
-//   puVar14 = (uint *)((uint)(byte)PersistentState._4_1_ * 0x1d4 +
-//                      (uint)(byte)PersistentState._5_1_ * 0x24 + -0x7ffeff9c +
-//                     (uint)(byte)PersistentState._6_1_ * 0xc);
-//   puVar6 = (uint *)FUN_8004e794(puVar14,PersistentState._5_1_);
-//   local_90 = *puVar6;
-//   local_8c = puVar6[1];
-//   local_88 = puVar6[2];
-//   if (((short)local_88 < (short)local_98) ||
-//      (((short)local_98 == (short)local_88 && ((int)local_a8 < (int)puVar14[2])))) {
-//     *puVar14 = local_b0;
-//     puVar14[1] = local_ac;
-//     puVar14[2] = local_a8;
-//     local_90 = local_a0;
-//     local_8c = local_9c;
-//     local_88 = local_98;
-//   }
-//   if (StageConfig[StageID].uid == '\0') {
-//     FUN_80054b48();
-//   }
-//   if (PersistentState._5_1_ == '\a') {
-//     if (PersistentState._94_1_ == '\0') {
-//       PersistentState._1132_4_ = PersistentState._1132_4_ | 0x400;
-//     }
-//   }
-//   else {
-//     puVar7 = FileRead("K:\\WORK\\CDIMAGE\\DEMO\\number.tim");
-//     GetTIMInfo(puVar7,&GStack_58);
-//     InitSprite(&GStack_58,&local_d8);
-//     local_d8.attribute = local_d8.attribute | 0x50000000;
-//     local_d8.x = -0x8c;
-//     local_d8.y = -0x28;
-//     local_d8.r = 0x80;
-//     local_d8.g = 0x80;
-//     local_d8.b = 0x80;
-//     local_d8.mx = 0;
-//     local_d8.my = 0;
-//     LoadTIMAndFree(puVar7);
-//     local_d8.w = 0xc;
-//     puVar7 = FileRead((&PTR_s_K__WORK_CDIMAGE_DEMO_rs_eng_tim_8008ef38)
-//                       [(byte)PersistentState._94_1_]);
-//     local_34 = (BackGround *)FUN_8004f4f8(puVar7);
-//     vfree((undefined *)puVar7);
-//     local_30 = FileRead((&PTR_s_K__WORK_CDIMAGE_DEMO_Ranks_e_Arc_8008ef48)
-//                         [(byte)PersistentState._94_1_]);
-//     puVar7 = (ulong *)FUN_8004f1d8(local_30,(int)local_98._2_2_);
-//     GetTIMInfo(puVar7,&GStack_58);
-//     InitSprite(&GStack_58,&local_80);
-//     local_80.x = -0xa0;
-//     local_80.y = -0x78;
-//     local_80.r = 0x80;
-//     local_80.g = 0x80;
-//     local_80.b = 0x80;
-//     local_80.attribute = local_80.attribute | 0x50000000;
-//     local_80.mx = 0;
-//     local_80.my = 0;
-//     LoadTIM(puVar7);
-//     _PlayMusic(0xc,1);
-//     while( true ) {
-//       uVar4 = GetRealPad(0);
-//       uVar10 = uVar4 & (uVar4 ^ local_38);
-//       local_38 = uVar4;
-//       if ((uVar10 & 0x20) != 0) break;
-//       if ((uVar10 & 0x40) != 0) {
-//         uVar15 = 2;
-//         goto LAB_800547c8;
-//       }
-//       uVar15 = 1;
-//       if ((uVar10 & 0x800) != 0) goto LAB_800547c8;
-//       StartDrawing();
-//       DrawBG(local_34);
-//       FUN_800515b0(&local_d8,local_a8,0x61,0xffffffa3,0);
-//       uVar2 = local_d8.u;
-//       uVar15 = local_ac & 0xff;
-//       local_d8.x = 10;
-//       local_d8.y = -0x35;
-//       if ((int)uVar15 < 0) {
-//         uVar15 = -uVar15;
-//         bVar1 = true;
-//       }
-//       else {
-//         bVar1 = false;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       local_d8.x = 0x28;
-//       local_d8.y = -0x35;
-//       uVar15 = (local_b0 >> 8 & 0xff) - (local_b0 & 0xff);
-//       if ((int)uVar15 < 0) {
-//         uVar15 = -uVar15;
-//         bVar1 = true;
-//       }
-//       else {
-//         bVar1 = false;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_a0 & 0xffff;
-//       local_d8.x = 0x52;
-//       local_d8.y = -0x35;
-//       if ((short)local_a0 < 0) {
-//         uVar15 = -(int)(short)local_a0;
-//         bVar1 = true;
-//       }
-//       else {
-//         bVar1 = false;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_90 & 0xffff;
-//       local_d8.x = 0x7f;
-//       local_d8.y = -0x35;
-//       if ((short)local_90 < 0) {
-//         uVar15 = -(int)(short)local_90;
-//         bVar1 = true;
-//       }
-//       else {
-//         bVar1 = false;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_b0 >> 0x18;
-//       local_d8.x = 10;
-//       local_d8.y = -0x1a;
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       uVar15 = local_b0 >> 8 & 0xff;
-//       local_d8.x = 0x28;
-//       local_d8.y = -0x1a;
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       uVar15 = (uint)local_a0._2_2_;
-//       local_d8.x = 0x52;
-//       local_d8.y = -0x1a;
-//       bVar1 = false;
-//       if ((short)local_a0._2_2_ < 0) {
-//         uVar15 = -(int)(short)local_a0._2_2_;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = (uint)local_90._2_2_;
-//       local_d8.x = 0x7f;
-//       local_d8.y = -0x1a;
-//       bVar1 = false;
-//       if ((short)local_90._2_2_ < 0) {
-//         uVar15 = -(int)(short)local_90._2_2_;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_b0 >> 0x10 & 0xff;
-//       local_d8.x = 0x1c;
-//       local_d8.y = 1;
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       uVar15 = (uint)local_9c._2_2_;
-//       local_d8.x = 0x52;
-//       local_d8.y = 1;
-//       bVar1 = false;
-//       if ((short)local_9c._2_2_ < 0) {
-//         uVar15 = -(int)(short)local_9c._2_2_;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = (uint)local_8c._2_2_;
-//       local_d8.x = 0x7f;
-//       local_d8.y = 1;
-//       bVar1 = false;
-//       if ((short)local_8c._2_2_ < 0) {
-//         uVar15 = -(int)(short)local_8c._2_2_;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_ac >> 8 & 0xff;
-//       local_d8.x = 0x1c;
-//       local_d8.y = 0x1a;
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       uVar15 = local_9c & 0xffff;
-//       local_d8.x = 0x52;
-//       local_d8.y = 0x1a;
-//       bVar1 = false;
-//       if ((short)local_9c < 0) {
-//         uVar15 = -(int)(short)local_9c;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_8c & 0xffff;
-//       local_d8.x = 0x7f;
-//       local_d8.y = 0x1a;
-//       bVar1 = false;
-//       if ((short)local_8c < 0) {
-//         uVar15 = -(int)(short)local_8c;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_98 & 0xffff;
-//       local_d8.x = 0x52;
-//       local_d8.y = 0x38;
-//       bVar1 = false;
-//       if ((short)local_98 < 0) {
-//         uVar15 = -(int)(short)local_98;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       uVar15 = local_88 & 0xffff;
-//       local_d8.x = 0x7f;
-//       local_d8.y = 0x38;
-//       bVar1 = false;
-//       if ((short)local_88 < 0) {
-//         uVar15 = -(int)(short)local_88;
-//         bVar1 = true;
-//       }
-//       do {
-//         sVar5 = (short)uVar15;
-//         uVar15 = (int)sVar5 / 10;
-//         local_d8.u = uVar2 + (char)((uint)(((int)sVar5 % 10) * 0x10000) >> 0x10) * (char)local_d8.w;
-//         GsSortSprite(&local_d8,OTablePt,0);
-//         local_d8.x = local_d8.x + -0xc;
-//       } while ((uVar15 & 0xffff) != 0);
-//       if (bVar1) {
-//         local_d8.u = uVar2 + (char)local_d8.w * '\n';
-//         GsSortSprite(&local_d8,OTablePt,0);
-//       }
-//       local_80.x = -0x19;
-//       local_80.y = 0x4e;
-//       local_d8.u = uVar2;
-//       iVar13 = rsin((GameClock * 0x1000) / 0x5a);
-//       iVar13 = iVar13 * 0x7f;
-//       if (iVar13 < 0) {
-//         iVar13 = iVar13 + 0xfff;
-//       }
-//       local_80.r = (char)(iVar13 >> 0xc) + '\x7f';
-//       local_80.g = local_80.r;
-//       local_80.b = local_80.r;
-//       GsSortSprite(&local_80,OTablePt,1);
-//       if (local_98._2_2_ == 4) {
-//         iVar8 = GameClock * 0x1000;
-//         iVar13 = (&DAT_8008e5bc)[*(short *)(&DAT_8008ed50 + (uint)(byte)PersistentState._5_1_ * 2)];
-//         *(undefined2 *)(iVar13 + 0x6c) = 0xff88;
-//         *(undefined2 *)(iVar13 + 0x6e) = 0x38;
-//         *(undefined2 *)(iVar13 + 0x84) = 0x1000;
-//         *(undefined2 *)(iVar13 + 0x86) = 0x1000;
-//         iVar8 = rcos(iVar8 / 0x5a);
-//         iVar8 = iVar8 * 0x50;
-//         if (iVar8 < 0) {
-//           iVar8 = iVar8 + 0xfff;
-//         }
-//         cVar3 = (char)(iVar8 >> 0xc) + '\x7f';
-//         *(char *)(iVar13 + 0x7e) = cVar3;
-//         *(char *)(iVar13 + 0x7d) = cVar3;
-//         *(char *)(iVar13 + 0x7c) = cVar3;
-//         GsSortSprite((GsSPRITE *)(iVar13 + 0x68),OTablePt,1);
-//       }
-//       SkipFrame = 2;
-//       EndDrawing(0);
-//     }
-//     uVar15 = 0;
-// LAB_800547c8:
-//     DisposeBG(local_34);
-//     vfree((undefined *)local_30);
-//   }
-//   FUN_80052ea8(&PersistentState,&local_a0);
-//   FadeOutDirect(0x20,2,'\b','\b');
-//   FUN_80038ce0();
-//   iVar13 = 1;
-//   if ((byte)(&PersistentState.field_0x60)[(byte)PersistentState._4_1_] <
-//       StageConfig[(byte)PersistentState._5_1_].uid) {
-//     (&PersistentState.field_0x60)[(byte)PersistentState._4_1_] =
-//          StageConfig[(byte)PersistentState._5_1_].uid;
-//   }
-//   iVar8 = 0x10000;
-//   do {
-//     iVar8 = iVar8 >> 0x10;
-//     if ((CamState.Owner)->item[iVar8] == 0xff) {
-//       (&PersistentState.field_0x40c)[iVar8 + (uint)(byte)PersistentState._4_1_ * 0x20] = 0xff;
-//     }
-//     else if ((CamState.Owner)->item[iVar8] != '\0') {
-//       iVar9 = iVar8 + (uint)(byte)PersistentState._4_1_ * 0x20;
-//       if ((&PersistentState.field_0x40c)[iVar9] == -2) {
-//         (&PersistentState.field_0x40c)[iVar9] = 0;
-//       }
-//       iVar9 = iVar8 + (uint)(byte)PersistentState._4_1_ * 0x20;
-//       (&PersistentState.field_0x40c)[iVar9] =
-//            (&PersistentState.field_0x40c)[iVar9] + (CamState.Owner)->item[iVar8];
-//       iVar8 = iVar8 + (uint)(byte)PersistentState._4_1_ * 0x20;
-//       if (99 < (byte)(&PersistentState.field_0x40c)[iVar8]) {
-//         (&PersistentState.field_0x40c)[iVar8] = 99;
-//       }
-//     }
-//     (&PersistentState.field_0x7)[(short)iVar13] = 0;
-//     iVar13 = iVar13 + 1;
-//     iVar8 = iVar13 * 0x10000;
-//   } while (iVar13 * 0x10000 >> 0x10 < 0x14);
-//   iVar13 = 0;
-//   do {
-//     iVar8 = iVar13 + 1;
-//     (&PersistentState.field_0x27)[iVar13] =
-//          (&PersistentState.field_0x40c)[iVar13 + (uint)(byte)PersistentState._4_1_ * 0x20];
-//     iVar13 = iVar8;
-//   } while (iVar8 < 0x14);
-//   if ((PersistentState._92_1_ != '\0') && (PersistentState._5_1_ != '\a')) {
-//     FUN_800514d8();
-//   }
-//   if (uVar15 == 1) {
-//     PersistentState._72_1_ = PersistentState._72_1_ | 1;
-//     goto LAB_80054b10;
-//   }
-//   if (uVar15 < 2) {
-//     if (uVar15 != 0) goto LAB_80054b10;
-//     PersistentState._72_1_ = PersistentState._72_1_ & 0xfe;
-//     if (PersistentState._5_1_ != '\a') {
-//       PersistentState._5_1_ =
-//            *(undefined1 *)(&DAT_8008ea78 + StageConfig[(byte)PersistentState._5_1_].uid + 1);
-//       iVar13 = 0;
-//       pbVar12 = (byte *)((uint)(byte)PersistentState._4_1_ * 0x1d4 +
-//                         (uint)(byte)PersistentState._5_1_ * 0x24 + -0x7ffeff9c);
-//       do {
-//         if ((uint)*pbVar12 + (uint)pbVar12[1] == 0) break;
-//         iVar13 = iVar13 + 1;
-//         pbVar12 = pbVar12 + 0xc;
-//       } while (iVar13 < 3);
-//       if (iVar13 == 3) {
-//         PersistentState._6_1_ = 0xff;
-//       }
-//       else {
-//         PersistentState._6_1_ = SUB41(iVar13,0);
-//       }
-//       goto LAB_80054b10;
-//     }
-//     uVar11 = 0x12;
-//   }
-//   else {
-//     if (uVar15 != 2) goto LAB_80054b10;
-//     PersistentState._6_1_ = 0xff;
-//     uVar11 = 0x10;
-//   }
-//   FUN_8004f6c0(uVar11);
-// LAB_80054b10:
-//   FUN_8004f6c0(0x11);
-//   return;
-// }
-
-// m2c (mipsel-gcc-c reference — cleaner control flow + register
-// temps straight from the asm; Ghidra above has the real types):
-//
-// ? DisposeBG(s32);                                   /* extern */
-// ? DrawBG(s32);                                      /* extern */
-// ? EndDrawing(?);                                    /* extern */
-// ? FUN_80038ce0();                                   /* extern */
-// s32 FUN_8004f4f8(s32);                              /* extern */
-// ? FUN_8004f6c0(?);                                  /* extern */
-// ? FUN_800514d8(s32, ? *, u8 *, s16);                /* extern */
-// ? FUN_800515b0(s32 *, s32, ?, ?, s32);              /* extern */
-// ? FUN_80052ea8(?, u16 *);                           /* extern */
-// ? FadeOutDirect(?, ?, ?, ?, s32);                   /* extern */
-// s32 FileRead(? *);                                  /* extern */
-// u16 GetRealPad(?);                                  /* extern */
-// ? GetTIMInfo(s32, ? *);                             /* extern */
-// ? GsSortSprite(s32 *, s32, ?);                      /* extern */
-// ? InitSprite(? *, s32 *);                           /* extern */
-// ? LoadTIM(s32);                                     /* extern */
-// ? LoadTIMAndFree(s32);                              /* extern */
-// ? PadShockAR(?, ?, ?, ?);                           /* extern */
-// ? SetupAppearance(?, ?);                            /* extern */
-// ? StartDrawing();                                   /* extern */
-// ? _PlayMusic(?, ?);                                 /* extern */
-// void *calculate_score(s32 *, u8, ?);                /* extern */
-// s32 get_tim_from_archive(s32, s16);                 /* extern */
-// ? init_score_stats(s32 *, s32 *);                   /* extern */
-// ? mission_score_screen(s32);                        /* extern */
-// s32 rcos(s32);                                      /* extern */
-// s32 rsin(s32);                                      /* extern */
-// ? vfree(s32);                                       /* extern */
-// extern u8 CHOSEN_CHARACTER;
-// extern u8 CHOSEN_LANGUAGE;
-// extern u8 CHOSEN_STAGE;
-// extern ? CamState;
-// extern u8 D_80010048;
-// extern u8 D_8001005C;
-// extern s32 D_8001046C;
-// extern ? ItemImage;
-// extern s16 D_8008EA78;
-// extern ? D_8008ED50;
-// extern s32 GameClock;
-// extern ? NUMBER_TIM_PATH;
-// extern s32 OTablePt;
-// extern ? RANK_ARCHIVE_PTRS;
-// extern ? RS_ARCHIVE_PTRS;
-// extern u8 SELECTED_ITEM_COUNTS;
-// extern ? SHOP_STOCK_STATE_BY_CHAR;
-// extern s8 STAGE_LAYOUT_NUMBER;
-// extern s16 SkipFrame;
-// extern ? StageConfig;
-// extern s32 StageID;
-//
-// void StageEndScreen(void) {
-//     s32 sp18;
-//     s16 sp20;
-//     s16 sp30;
-//     s16 sp32;
-//     s32 sp40;
-//     u16 sp50;
-//     u16 sp54;
-//     s16 sp58;
-//     u16 sp60;
-//     u16 sp64;
-//     s16 sp68;
-//     s32 sp70;
-//     s16 sp74;
-//     s16 sp76;
-//     s8 sp84;
-//     s8 sp85;
-//     s8 sp86;
-//     s16 sp88;
-//     s16 sp8A;
-//     ? sp98;
-//     u16 spB8;
-//     s32 spBC;
-//     s32 spC0;
-//     ? var_a0_2;
-//     s16 temp_s0_4;
-//     s16 temp_v0;
-//     s16 temp_v0_12;
-//     s16 temp_v0_9;
-//     s16 var_a3;
-//     s16 var_a3_2;
-//     s16 var_v1_2;
-//     s32 *temp_s0;
-//     s32 *temp_s0_34;
-//     s32 temp_a0;
-//     s32 temp_a1_2;
-//     s32 temp_v0_4;
-//     s32 temp_v0_5;
-//     s32 temp_v0_6;
-//     s32 temp_v0_7;
-//     s32 temp_v1_2;
-//     s32 var_a0;
-//     s32 var_s1;
-//     s32 var_s3;
-//     s32 var_s3_10;
-//     s32 var_s3_11;
-//     s32 var_s3_12;
-//     s32 var_s3_13;
-//     s32 var_s3_14;
-//     s32 var_s3_15;
-//     s32 var_s3_16;
-//     s32 var_s3_2;
-//     s32 var_s3_3;
-//     s32 var_s3_4;
-//     s32 var_s3_5;
-//     s32 var_s3_6;
-//     s32 var_s3_7;
-//     s32 var_s3_8;
-//     s32 var_s3_9;
-//     s32 var_v0;
-//     s32 var_v0_2;
-//     s32 var_v0_3;
-//     s32 var_v0_4;
-//     s8 temp_v0_10;
-//     s8 temp_v0_11;
-//     s8 var_a1;
-//     u16 temp_s0_14;
-//     u16 temp_s0_16;
-//     u16 temp_s0_20;
-//     u16 temp_s0_22;
-//     u16 temp_s0_26;
-//     u16 temp_s0_28;
-//     u16 temp_s0_30;
-//     u16 temp_s0_32;
-//     u16 temp_s0_6;
-//     u16 temp_s0_8;
-//     u16 temp_v0_8;
-//     u16 temp_v1;
-//     u16 var_v1_10;
-//     u16 var_v1_11;
-//     u16 var_v1_13;
-//     u16 var_v1_14;
-//     u16 var_v1_15;
-//     u16 var_v1_16;
-//     u16 var_v1_3;
-//     u16 var_v1_4;
-//     u16 var_v1_7;
-//     u16 var_v1_8;
-//     u8 *temp_a0_2;
-//     u8 *temp_a1;
-//     u8 *temp_v0_13;
-//     u8 *temp_v1_6;
-//     u8 *temp_v1_7;
-//     u8 temp_s0_10;
-//     u8 temp_s0_11;
-//     u8 temp_s0_12;
-//     u8 temp_s0_13;
-//     u8 temp_s0_15;
-//     u8 temp_s0_17;
-//     u8 temp_s0_18;
-//     u8 temp_s0_19;
-//     u8 temp_s0_21;
-//     u8 temp_s0_23;
-//     u8 temp_s0_24;
-//     u8 temp_s0_25;
-//     u8 temp_s0_27;
-//     u8 temp_s0_29;
-//     u8 temp_s0_2;
-//     u8 temp_s0_31;
-//     u8 temp_s0_33;
-//     u8 temp_s0_3;
-//     u8 temp_s0_5;
-//     u8 temp_s0_7;
-//     u8 temp_s0_9;
-//     u8 temp_s1;
-//     u8 temp_s1_10;
-//     u8 temp_s1_11;
-//     u8 temp_s1_12;
-//     u8 temp_s1_13;
-//     u8 temp_s1_14;
-//     u8 temp_s1_15;
-//     u8 temp_s1_16;
-//     u8 temp_s1_2;
-//     u8 temp_s1_3;
-//     u8 temp_s1_4;
-//     u8 temp_s1_5;
-//     u8 temp_s1_6;
-//     u8 temp_s1_7;
-//     u8 temp_s1_8;
-//     u8 temp_s1_9;
-//     u8 temp_v0_14;
-//     u8 temp_v0_15;
-//     u8 temp_v1_3;
-//     u8 temp_v1_4;
-//     u8 temp_v1_5;
-//     u8 temp_v1_8;
-//     u8 var_v1;
-//     u8 var_v1_12;
-//     u8 var_v1_5;
-//     u8 var_v1_6;
-//     u8 var_v1_9;
-//     void *temp_v0_2;
-//     void *temp_v0_3;
-//     void *var_a0_3;
-//
-//     var_s1 = 0;
-//     spB8 = 0;
-//     SetupAppearance(0, -1);
-//     PadShockAR(0, 0, 0, 0);
-//     FadeOutDirect(0x20, 2, 8, 8, 8);
-//     FUN_80038ce0();
-//     var_a3 = 0;
-//     if (D_8008EA78 != CHOSEN_STAGE) {
-//         do {
-//             temp_v0 = var_a3 + 1;
-//             var_a3 = temp_v0;
-//         } while (*(((s32) (temp_v0 << 0x10) >> 0xF) + &D_8008EA78) != CHOSEN_STAGE);
-//     }
-//     temp_a0 = D_8001046C | (1 << (var_a3 - 1));
-//     D_8001046C = temp_a0;
-//     if ((u8) D_8001046C == 7) {
-//         if ((u8) D_8001046C == 0) {
-//             D_8001046C = temp_a0 | 0x400;
-//         }
-//     }
-//     init_score_stats(&sp40, &D_8001046C);
-//     temp_v0_2 = calculate_score(&sp40, CHOSEN_STAGE);
-//     sp50 = (unaligned s32) temp_v0_2->unk0;
-//     sp54 = (unaligned s32) temp_v0_2->unk4;
-//     sp58 = (unaligned s32) temp_v0_2->unk8;
-//     (void *)0x8001004C->unk0 = sp40;
-//     (void *)0x8001004C->unk4 = sp44;
-//     (void *)0x8001004C->unk8 = sp48;
-//     temp_s0 = (*(u8 *)0x80010000 * 0x1D4) + ((*(u8 *)0x80010000 * 0x24) + 0x80010064) + (*(u8 *)0x80010000 * 0xC);
-//     temp_v0_3 = calculate_score(temp_s0, *(u8 *)0x80010000, 0x80010064);
-//     sp60 = (unaligned s32) temp_v0_3->unk0;
-//     sp64 = (unaligned s32) temp_v0_3->unk4;
-//     sp68 = (unaligned s32) temp_v0_3->unk8;
-//     if ((sp68 < sp58) || ((sp58 == sp68) && (sp48 < temp_s0->unk8))) {
-//         temp_s0->unk0 = sp40;
-//         temp_s0->unk4 = sp44;
-//         temp_s0->unk8 = sp48;
-//         sp60 = (unaligned s32) sp50;
-//         sp64 = (unaligned s32) sp54;
-//         sp68 = (unaligned s32) sp58;
-//     }
-//     if (*((StageID * 0x1C) + &StageConfig) == 0) {
-//         mission_score_screen(StageID);
-//     }
-//     if (CHOSEN_STAGE == 7) {
-//         if (CHOSEN_LANGUAGE == 0) {
-//             CHOSEN_LANGUAGE = (s32) ((s32) CHOSEN_LANGUAGE | 0x400);
-//         }
-//     } else {
-//         temp_v0_4 = FileRead(&NUMBER_TIM_PATH);
-//         GetTIMInfo(temp_v0_4, &sp98);
-//         InitSprite(&sp98, &sp18);
-//         sp18 |= 0x50000000;
-//         sp18.unk4 = -0x8CU;
-//         sp18.unk6 = -0x28;
-//         sp18.unk14 = 0x80;
-//         sp18.unk15 = 0x80;
-//         sp18.unk16 = 0x80;
-//         sp18.unk18 = (s16) ((u16) sp18.unk8 >> 1);
-//         sp18.unk1A = (s16) ((u16) sp18.unkA >> 1);
-//         sp30 = 0;
-//         sp32 = 0;
-//         LoadTIMAndFree(temp_v0_4);
-//         sp20 = 0xC;
-//         temp_v0_5 = FileRead(*((CHOSEN_LANGUAGE * 4) + &RS_ARCHIVE_PTRS));
-//         spBC = FUN_8004f4f8(temp_v0_5);
-//         vfree(temp_v0_5);
-//         temp_v0_6 = FileRead(*((CHOSEN_LANGUAGE * 4) + &RANK_ARCHIVE_PTRS));
-//         spC0 = temp_v0_6;
-//         temp_v0_7 = get_tim_from_archive(temp_v0_6, (s16) sp5A);
-//         GetTIMInfo(temp_v0_7, &sp98);
-//         InitSprite(&sp98, &sp70);
-//         sp74 = -0xA0;
-//         sp76 = -0x78;
-//         sp84 = 0x80;
-//         sp85 = 0x80;
-//         sp86 = 0x80;
-//         sp70 |= 0x50000000;
-//         sp88 = (s16) (sp78 >> 1);
-//         sp88 = 0;
-//         sp8A = (s16) (sp7A >> 1);
-//         sp8A = 0;
-//         LoadTIM(temp_v0_7);
-//         _PlayMusic(0xC, 1);
-// loop_19:
-//         temp_v0_8 = GetRealPad(0);
-//         temp_v1 = spB8;
-//         spB8 = temp_v0_8;
-//         temp_v1_2 = temp_v0_8 & (temp_v0_8 ^ temp_v1);
-//         if (!(temp_v1_2 & 0x20)) {
-//             if (!(temp_v1_2 & 0x40)) {
-//                 var_s1 = 1;
-//                 if (!(temp_v1_2 & 0x800)) {
-//                     StartDrawing();
-//                     DrawBG(spBC);
-//                     FUN_800515b0(&sp18, sp48, 0x61, -0x5D, 0);
-//                     var_v1 = (u8) sp44;
-//                     sp18.unk4 = 0xAU;
-//                     sp18.unk6 = -0x35;
-//                     if ((s32) var_v1 < 0) {
-//                         var_v1 = (u8) -(s32) var_v1;
-//                         var_s3 = 1;
-//                     } else {
-//                         var_s3 = 0;
-//                     }
-//                     do {
-//                         temp_s0_2 = var_v1 / 10;
-//                         temp_s1 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1 + ((s16) (var_v1 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1 = temp_s0_2;
-//                         sp18.unkE = temp_s1;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_2 << 0x10) != 0);
-//                     if (var_s3 != 0) {
-//                         temp_s0_3 = temp_s1 & 0xFF;
-//                         sp18.unkE = (u8) (temp_s0_3 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_3;
-//                     }
-//                     sp18.unk4 = 0x28U;
-//                     sp18.unk6 = -0x35;
-//                     temp_v0_9 = unksp41 - (u8) sp40;
-//                     var_v1_2 = temp_v0_9;
-//                     if (temp_v0_9 < 0) {
-//                         var_v1_2 = -temp_v0_9;
-//                         var_s3_2 = 1;
-//                     } else {
-//                         var_s3_2 = 0;
-//                     }
-//                     do {
-//                         temp_s0_4 = var_v1_2 / 10;
-//                         temp_s1_2 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_2 + ((s16) (var_v1_2 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_2 = temp_s0_4;
-//                         sp18.unkE = temp_s1_2;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_4 << 0x10) != 0);
-//                     temp_s0_5 = temp_s1_2 & 0xFF;
-//                     if (var_s3_2 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_5 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_5;
-//                     }
-//                     var_v1_3 = sp50;
-//                     sp18.unk4 = 0x52U;
-//                     sp18.unk6 = -0x35;
-//                     if ((s16) var_v1_3 < 0) {
-//                         var_v1_3 = (u16) -(s16) var_v1_3;
-//                         var_s3_3 = 1;
-//                     } else {
-//                         var_s3_3 = 0;
-//                     }
-//                     do {
-//                         temp_s0_6 = var_v1_3 / 10;
-//                         temp_s1_3 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_3 + ((s16) (var_v1_3 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_3 = temp_s0_6;
-//                         sp18.unkE = temp_s1_3;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_6 << 0x10) != 0);
-//                     temp_s0_7 = temp_s1_3 & 0xFF;
-//                     if (var_s3_3 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_7 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_7;
-//                     }
-//                     var_v1_4 = sp60;
-//                     sp18.unk4 = 0x7FU;
-//                     sp18.unk6 = -0x35;
-//                     if ((s16) var_v1_4 < 0) {
-//                         var_v1_4 = (u16) -(s16) var_v1_4;
-//                         var_s3_4 = 1;
-//                     } else {
-//                         var_s3_4 = 0;
-//                     }
-//                     do {
-//                         temp_s0_8 = var_v1_4 / 10;
-//                         temp_s1_4 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_4 + ((s16) (var_v1_4 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_4 = temp_s0_8;
-//                         sp18.unkE = temp_s1_4;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_8 << 0x10) != 0);
-//                     temp_s0_9 = temp_s1_4 & 0xFF;
-//                     if (var_s3_4 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_9 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_9;
-//                     }
-//                     var_v1_5 = unksp43;
-//                     sp18.unk4 = 0xAU;
-//                     sp18.unk6 = -0x1A;
-//                     var_s3_5 = 0;
-//                     if ((s32) var_v1_5 < 0) {
-//                         var_v1_5 = (u8) -(s32) var_v1_5;
-//                         var_s3_5 = 1;
-//                     }
-//                     do {
-//                         temp_s0_10 = var_v1_5 / 10;
-//                         temp_s1_5 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_5 + ((s16) (var_v1_5 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_5 = temp_s0_10;
-//                         sp18.unkE = temp_s1_5;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_10 << 0x10) != 0);
-//                     temp_s0_11 = temp_s1_5 & 0xFF;
-//                     if (var_s3_5 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_11 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_11;
-//                     }
-//                     var_v1_6 = unksp41;
-//                     sp18.unk4 = 0x28U;
-//                     sp18.unk6 = -0x1A;
-//                     var_s3_6 = 0;
-//                     if ((s32) var_v1_6 < 0) {
-//                         var_v1_6 = (u8) -(s32) var_v1_6;
-//                         var_s3_6 = 1;
-//                     }
-//                     do {
-//                         temp_s0_12 = var_v1_6 / 10;
-//                         temp_s1_6 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_6 + ((s16) (var_v1_6 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_6 = temp_s0_12;
-//                         sp18.unkE = temp_s1_6;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_12 << 0x10) != 0);
-//                     temp_s0_13 = temp_s1_6 & 0xFF;
-//                     if (var_s3_6 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_13 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_13;
-//                     }
-//                     var_v1_7 = (u16) sp52;
-//                     sp18.unk4 = 0x52U;
-//                     sp18.unk6 = -0x1A;
-//                     var_s3_7 = 0;
-//                     if ((s16) var_v1_7 < 0) {
-//                         var_v1_7 = (u16) -(s16) var_v1_7;
-//                         var_s3_7 = 1;
-//                     }
-//                     do {
-//                         temp_s0_14 = var_v1_7 / 10;
-//                         temp_s1_7 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_7 + ((s16) (var_v1_7 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_7 = temp_s0_14;
-//                         sp18.unkE = temp_s1_7;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_14 << 0x10) != 0);
-//                     temp_s0_15 = temp_s1_7 & 0xFF;
-//                     if (var_s3_7 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_15 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_15;
-//                     }
-//                     var_v1_8 = sp62;
-//                     sp18.unk4 = 0x7FU;
-//                     sp18.unk6 = -0x1A;
-//                     var_s3_8 = 0;
-//                     if ((s16) var_v1_8 < 0) {
-//                         var_v1_8 = (u16) -(s16) var_v1_8;
-//                         var_s3_8 = 1;
-//                     }
-//                     do {
-//                         temp_s0_16 = var_v1_8 / 10;
-//                         temp_s1_8 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_8 + ((s16) (var_v1_8 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_8 = temp_s0_16;
-//                         sp18.unkE = temp_s1_8;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_16 << 0x10) != 0);
-//                     temp_s0_17 = temp_s1_8 & 0xFF;
-//                     if (var_s3_8 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_17 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_17;
-//                     }
-//                     var_v1_9 = unksp42;
-//                     sp18.unk4 = 0x1CU;
-//                     sp18.unk6 = 1;
-//                     var_s3_9 = 0;
-//                     if ((s32) var_v1_9 < 0) {
-//                         var_v1_9 = (u8) -(s32) var_v1_9;
-//                         var_s3_9 = 1;
-//                     }
-//                     do {
-//                         temp_s0_18 = var_v1_9 / 10;
-//                         temp_s1_9 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_9 + ((s16) (var_v1_9 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_9 = temp_s0_18;
-//                         sp18.unkE = temp_s1_9;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_18 << 0x10) != 0);
-//                     temp_s0_19 = temp_s1_9 & 0xFF;
-//                     if (var_s3_9 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_19 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_19;
-//                     }
-//                     var_v1_10 = (u16) sp56;
-//                     sp18.unk4 = 0x52U;
-//                     sp18.unk6 = 1;
-//                     var_s3_10 = 0;
-//                     if ((s16) var_v1_10 < 0) {
-//                         var_v1_10 = (u16) -(s16) var_v1_10;
-//                         var_s3_10 = 1;
-//                     }
-//                     do {
-//                         temp_s0_20 = var_v1_10 / 10;
-//                         temp_s1_10 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_10 + ((s16) (var_v1_10 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_10 = temp_s0_20;
-//                         sp18.unkE = temp_s1_10;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_20 << 0x10) != 0);
-//                     temp_s0_21 = temp_s1_10 & 0xFF;
-//                     if (var_s3_10 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_21 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_21;
-//                     }
-//                     var_v1_11 = sp66;
-//                     sp18.unk4 = 0x7FU;
-//                     sp18.unk6 = 1;
-//                     var_s3_11 = 0;
-//                     if ((s16) var_v1_11 < 0) {
-//                         var_v1_11 = (u16) -(s16) var_v1_11;
-//                         var_s3_11 = 1;
-//                     }
-//                     do {
-//                         temp_s0_22 = var_v1_11 / 10;
-//                         temp_s1_11 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_11 + ((s16) (var_v1_11 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_11 = temp_s0_22;
-//                         sp18.unkE = temp_s1_11;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_22 << 0x10) != 0);
-//                     temp_s0_23 = temp_s1_11 & 0xFF;
-//                     if (var_s3_11 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_23 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_23;
-//                     }
-//                     var_v1_12 = unksp45;
-//                     sp18.unk4 = 0x1CU;
-//                     sp18.unk6 = 0x1A;
-//                     var_s3_12 = 0;
-//                     if ((s32) var_v1_12 < 0) {
-//                         var_v1_12 = (u8) -(s32) var_v1_12;
-//                         var_s3_12 = 1;
-//                     }
-//                     do {
-//                         temp_s0_24 = var_v1_12 / 10;
-//                         temp_s1_12 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_12 + ((s16) (var_v1_12 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_12 = temp_s0_24;
-//                         sp18.unkE = temp_s1_12;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_24 << 0x10) != 0);
-//                     temp_s0_25 = temp_s1_12 & 0xFF;
-//                     if (var_s3_12 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_25 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_25;
-//                     }
-//                     var_v1_13 = sp54;
-//                     sp18.unk4 = 0x52U;
-//                     sp18.unk6 = 0x1A;
-//                     var_s3_13 = 0;
-//                     if ((s16) var_v1_13 < 0) {
-//                         var_v1_13 = (u16) -(s16) var_v1_13;
-//                         var_s3_13 = 1;
-//                     }
-//                     do {
-//                         temp_s0_26 = var_v1_13 / 10;
-//                         temp_s1_13 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_13 + ((s16) (var_v1_13 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_13 = temp_s0_26;
-//                         sp18.unkE = temp_s1_13;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_26 << 0x10) != 0);
-//                     temp_s0_27 = temp_s1_13 & 0xFF;
-//                     if (var_s3_13 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_27 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_27;
-//                     }
-//                     var_v1_14 = sp64;
-//                     sp18.unk4 = 0x7FU;
-//                     sp18.unk6 = 0x1A;
-//                     var_s3_14 = 0;
-//                     if ((s16) var_v1_14 < 0) {
-//                         var_v1_14 = (u16) -(s16) var_v1_14;
-//                         var_s3_14 = 1;
-//                     }
-//                     do {
-//                         temp_s0_28 = var_v1_14 / 10;
-//                         temp_s1_14 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_14 + ((s16) (var_v1_14 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_14 = temp_s0_28;
-//                         sp18.unkE = temp_s1_14;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_28 << 0x10) != 0);
-//                     temp_s0_29 = temp_s1_14 & 0xFF;
-//                     if (var_s3_14 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_29 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_29;
-//                     }
-//                     var_v1_15 = (u16) sp58;
-//                     sp18.unk4 = 0x52U;
-//                     sp18.unk6 = 0x38;
-//                     var_s3_15 = 0;
-//                     if ((s16) var_v1_15 < 0) {
-//                         var_v1_15 = (u16) -(s16) var_v1_15;
-//                         var_s3_15 = 1;
-//                     }
-//                     do {
-//                         temp_s0_30 = var_v1_15 / 10;
-//                         temp_s1_15 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_15 + ((s16) (var_v1_15 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_15 = temp_s0_30;
-//                         sp18.unkE = temp_s1_15;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_30 << 0x10) != 0);
-//                     temp_s0_31 = temp_s1_15 & 0xFF;
-//                     if (var_s3_15 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_31 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_31;
-//                     }
-//                     var_v1_16 = (u16) sp68;
-//                     sp18.unk4 = 0x7FU;
-//                     sp18.unk6 = 0x38;
-//                     var_s3_16 = 0;
-//                     if ((s16) var_v1_16 < 0) {
-//                         var_v1_16 = (u16) -(s16) var_v1_16;
-//                         var_s3_16 = 1;
-//                     }
-//                     do {
-//                         temp_s0_32 = var_v1_16 / 10;
-//                         temp_s1_16 = sp18.unkE;
-//                         sp18.unkE = (u8) (temp_s1_16 + ((s16) (var_v1_16 % 10) * sp18.unk8));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         var_v1_16 = temp_s0_32;
-//                         sp18.unkE = temp_s1_16;
-//                         sp18.unk4 = (u16) (sp18.unk4 - 0xC);
-//                     } while ((temp_s0_32 << 0x10) != 0);
-//                     temp_s0_33 = temp_s1_16 & 0xFF;
-//                     if (var_s3_16 != 0) {
-//                         sp18.unkE = (u8) (temp_s0_33 + (sp18.unk8 * 0xA));
-//                         GsSortSprite(&sp18, OTablePt, 0);
-//                         sp18.unkE = temp_s0_33;
-//                     }
-//                     sp74 = -0x19;
-//                     sp76 = 0x4E;
-//                     var_v0 = rsin((GameClock << 0xC) / 90) * 0x7F;
-//                     if (var_v0 < 0) {
-//                         var_v0 += 0xFFF;
-//                     }
-//                     temp_v0_10 = (var_v0 >> 0xC) + 0x7F;
-//                     sp86 = temp_v0_10;
-//                     sp85 = temp_v0_10;
-//                     sp84 = temp_v0_10;
-//                     GsSortSprite(&sp70, OTablePt, 1);
-//                     if ((s16) sp5A == 4) {
-//                         temp_s0_34 = *((*((CHOSEN_STAGE * 2) + &D_8008ED50) * 4) + &ItemImage) + 0x68;
-//                         temp_s0_34->unk4 = -0x78;
-//                         temp_s0_34->unk6 = 0x38;
-//                         temp_s0_34->unk1C = 0x1000;
-//                         temp_s0_34->unk1E = 0x1000;
-//                         var_v0_2 = rcos((GameClock << 0xC) / 90) * 0x50;
-//                         if (var_v0_2 < 0) {
-//                             var_v0_2 += 0xFFF;
-//                         }
-//                         temp_v0_11 = (var_v0_2 >> 0xC) + 0x7F;
-//                         temp_s0_34->unk16 = temp_v0_11;
-//                         temp_s0_34->unk15 = temp_v0_11;
-//                         temp_s0_34->unk14 = temp_v0_11;
-//                         GsSortSprite(temp_s0_34, OTablePt, 1);
-//                     }
-//                     SkipFrame = 2;
-//                     EndDrawing(0);
-//                     goto loop_19;
-//                 }
-//             } else {
-//                 var_s1 = 2;
-//             }
-//         } else {
-//             var_s1 = 0;
-//         }
-//         DisposeBG(spBC);
-//         vfree(spC0);
-//     }
-//     FUN_80052ea8(0x80010000, &sp50);
-//     FadeOutDirect(0x20, 2, 8, 8, 8);
-//     FUN_80038ce0();
-//     temp_a1 = &(&CHOSEN_CHARACTER)[CHOSEN_CHARACTER];
-//     temp_v1_3 = *((CHOSEN_CHARACTER * 0x1C) + &StageConfig);
-//     var_a3_2 = 1;
-//     if ((u8) temp_a1->unk60 < temp_v1_3) {
-//         temp_a1->unk60 = temp_v1_3;
-//     }
-//     var_v0_3 = 1 << 0x10;
-//     do {
-//         temp_a1_2 = var_v0_3 >> 0x10;
-//         temp_v1_4 = (CamState.unk10 + temp_a1_2)->unkB4;
-//         if (temp_v1_4 == 0xFF) {
-//             (&SELECTED_ITEM_COUNTS)[temp_a1_2 + (SELECTED_ITEM_COUNTS << 5)] = temp_v1_4;
-//             goto block_124;
-//         }
-//         var_v0_4 = var_a3_2 << 0x10;
-//         if (temp_v1_4 != 0) {
-//             temp_a0_2 = &(&SELECTED_ITEM_COUNTS)[temp_a1_2 + (SELECTED_ITEM_COUNTS << 5)];
-//             temp_v1_5 = *temp_a0_2;
-//             if (temp_v1_5 == 0xFE) {
-//                 *temp_a0_2 = temp_v1_5 + 2;
-//             }
-//             temp_v0_13 = &(&SELECTED_ITEM_COUNTS)[temp_a1_2 + (SELECTED_ITEM_COUNTS << 5)];
-//             *temp_v0_13 += (CamState.unk10 + temp_a1_2)->unkB4;
-//             temp_v1_6 = &(&SELECTED_ITEM_COUNTS)[temp_a1_2 + (SELECTED_ITEM_COUNTS << 5)];
-//             var_v0_4 = var_a3_2 << 0x10;
-//             if ((u8) *temp_v1_6 >= 0x64U) {
-//                 *temp_v1_6 = 0x63;
-// block_124:
-//                 var_v0_4 = var_a3_2 << 0x10;
-//             }
-//         }
-//         (&SELECTED_ITEM_COUNTS)[var_v0_4 >> 0x10] = 0;
-//         temp_v0_12 = var_a3_2 + 1;
-//         var_a3_2 = temp_v0_12;
-//         var_v0_3 = var_a3_2 << 0x10;
-//     } while (temp_v0_12 < 0x14);
-//     var_a0 = 0;
-//     do {
-//         temp_v1_7 = var_a0 + &SHOP_STOCK_STATE_BY_CHAR;
-//         temp_v0_14 = *(var_a0 + (CHOSEN_CHARACTER << 5) + &SHOP_STOCK_STATE_BY_CHAR);
-//         var_a0 += 1;
-//         *temp_v1_7 = temp_v0_14;
-//     } while (var_a0 < 0x14);
-//     if (D_8001005C != 0) {
-//         if (CHOSEN_STAGE != 7) {
-//             FUN_800514d8(var_a0, &SHOP_STOCK_STATE_BY_CHAR, &SELECTED_ITEM_COUNTS, var_a3_2);
-//         }
-//     }
-//     switch (var_s1) {                               /* irregular */
-//     case 0:
-//         temp_v1_8 = D_80010048;
-//         D_80010048 &= 0xFE;
-//         if (temp_v1_8 == 7) {
-//             var_a0_2 = 0x12;
-// block_149:
-//             FUN_8004f6c0(var_a0_2);
-//         } else {
-//             temp_v0_15 = D_80010048;
-//             var_a1 = 0;
-//             D_80010048 = (&D_8008EA78)[*((D_80010048 * 0x1C) + &StageConfig) + 1];
-//             var_a0_3 = (temp_v0_15 * 0x1D4) + ((D_80010048 * 0x24) + 0x80010064);
-// loop_141:
-//             if ((var_a0_3->unk0 + var_a0_3->unk1) != 0) {
-//                 var_a1 += 1;
-//                 var_a0_3 += 0xC;
-//                 if (var_a1 >= 3) {
-//
-//                 } else {
-//                     goto loop_141;
-//                 }
-//             }
-//             if (var_a1 == 3) {
-//                 STAGE_LAYOUT_NUMBER = -1;
-//             } else {
-//                 STAGE_LAYOUT_NUMBER = var_a1;
-//             }
-//         }
-//         break;
-//     case 1:
-//         D_80010048 |= 1;
-//         break;
-//     case 2:
-//         STAGE_LAYOUT_NUMBER = -1;
-//         var_a0_2 = 0x10;
-//         goto block_149;
-//     }
-//     FUN_8004f6c0(0x11);
-// }
