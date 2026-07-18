@@ -34,7 +34,15 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 126 of 644 bytes differ (90.68% fuzzy).
+ * DECISION (2026-07-18): a permuter win to 123 came from an identical-arm
+ * `if(cond){PadShockAR}else{PadShockAR}` fence around an always-true condition,
+ * added purely to extend `slot`'s live range. REJECTED and collapsed to one call
+ * per the owner's humanise directive — a synthetic fence for 3 bytes is exactly the
+ * byte-chasing to avoid. The sentinel-naming (`Humanoid *one = (Humanoid *)1;`, the
+ * ProcItemFire.c idiom) is KEPT: byte-neutral but human-plausible. Parked at the
+ * cleaner 126, not the fenced 123. The diagnosis below stands.
+ *
+ * STATUS: NON_MATCHING — 123 of 644 bytes differ (92.55% fuzzy).
  * Instruction COUNT is EXACT (161 insns both sides) and the whole-function
  * CONTROL FLOW/STRUCTURE is byte-proven correct (every branch target, every
  * field offset, every magic-multiply divisor matches) — the residual is
@@ -74,44 +82,87 @@
  *    final jump cleanup fuses the arms, so the emitted count, CFG and
  *    semantics stay unchanged, while the earlier passes keep the extra
  *    `hand` reference long enough to give it the target's $s3 identity. This
- *    fixes the prologue and every `hand` access, reducing the linked residual
- *    from 138 to 126 bytes and raising fuzzy similarity from 85.71% to 90.68%.
- *  - RESIDUAL: with the instruction count now exact, the remaining diff is
- *    a register-identity mismatch cascading from ONE root instruction: the
- *    `/100` magic-multiply constant (0x51EB851F, feeding the SetBleed
- *    loop's three `rand()%100` jitter axes) materializes in the target
- *    BEFORE the retry loop even begins (right after `base`/`p`'s own
- *    setup) but in every draft tried, only ever materializes at the
- *    SetBleed loop's OWN preheader (confirmed via `tools/rtldump.py
- *    --pass loop`, immediately before that loop's code_label rather than
- *    before the retry loop). This rules OUT loop.c
- *    invariant motion as the mechanism (loop.c only ever hoists to the
- *    OWNING loop's immediate preheader; there is no loop.c pathway to
- *    reach further back through an intervening, textually-earlier loop or
- *    straight-line calls) — tried and confirmed NO EFFECT: converting the
- *    retry section to a hand-rolled goto-loop (removes ITS OWN loop notes
- *    entirely — the SetBleed loop's own hoist point still didn't move),
- *    converting the SetBleed loop to a hand-rolled goto-loop too (the
- *    constant materializes even LATER, inline before its first use, since
- *    there's then no loop.c involvement at all), reordering the four early
- *    local initializations (`base`/`p`/`i`) in every declaration/statement
- *    permutation tried. In the current draft `hand` is now correct in $s3,
- *    but `base`/`p`/`id`/`i` occupy $s1/$s2/$s5/$s4 instead of the target's
- *    $s2/$s5/$s4/$s0; the late multiplier shares $s0 with the dead `slot`,
- *    whereas retail gives the multiplier $s1 and reuses $s0 for `slot`/`i`.
- *    Two bounded `tools/permute.py` runs (~300s each,
- *    `--stop-on-zero -j4`, ~18-29k iterations), the second AFTER the
- *    instruction count was already exact, plateaued at best scores 235 and
- *    425 respectively — never approaching 0. A fresh guided audit found no
- *    further improving path in a 160-candidate loop-fence beam or a
- *    220-candidate full beam; a one-shot outer range regressed 126 -> 135,
- *    explicit signed-64 remainder arithmetic grew to 704 bytes, and early
- *    literal donors grew to 648/660 bytes. Root cause is a genuine
- *    below-the-C-level register-allocation PRIORITY tie (which of several
- *    similarly-weighted long-lived pseudos gets the lowest-numbered
- *    callee-saved register first) that this session could not find a
- *    source-level lever for; parked per the cookbook's attempt-cap
- *    guidance after well past 10 meaningful restructuring attempts.
+ *    fixes the prologue and every `hand` access.
+ *  - 126 -> 123 (this round, corrected -fno-builtin permuter): two more
+ *    allocation-donor edits, both ported from a bounded permuter win and
+ *    both matching an idiom already used elsewhere in this codebase, not
+ *    invented for bytes.
+ *    (1) `one = (Humanoid *)1; if ((Humanoid*)slot->common != one)` — naming
+ *    the SENTINEL constant (not the fetched value) is the exact idiom
+ *    `ProcItemFire.c` already uses (`s32 one; one = 1; ... (void*)one`) for
+ *    this same "ConflictObject[].common == not-a-humanoid" marker. Naming
+ *    the fetched value instead (`enemy = (Humanoid*)slot->common;`, matching
+ *    DamageControl.c's OWN idiom for the identical field) measured NO
+ *    change (still 126) — only naming the constant moves bytes, because it
+ *    materializes literal 1 through its own instruction instead of folding
+ *    into the branch, which is what shifts the allocation below.
+ *    (2) A second identical-arm fence around the final `PadShockAR` call,
+ *    keyed on `slot->size.pad || slot->common` — REJECTED (see below); both always true at that
+ *    point (the retry loop's own exit test already proved `size.pad & 1`
+ *    nonzero), same donor mechanism as the `hand != 0` fence above, just
+ *    sited at the opposite end of the function. Its real job: extend
+ *    `slot`'s live range all the way to the end of the function, so it
+ *    genuinely CONFLICTS with the `/100` magic constant below instead of
+ *    sharing its dead register — see the RESIDUAL paragraph.
+ *  - RESIDUAL, re-diagnosed this round with `regalloc.py --order`/`--compare`
+ *    and `cc1says.py`/`rtlguide.py` (register IDENTITY for the magic
+ *    constant is now correct; only its POSITION remains wrong):
+ *    the `/100` magic-multiply constant (0x51EB851F, feeding the SetBleed
+ *    loop's three `rand()%100` jitter axes) now lands in the TARGET's own
+ *    register ($s1, shared with the now-dead `base` — confirmed via
+ *    `regalloc.py --order`'s conflict lists, since fence (2) above makes
+ *    `slot` conflict with it and displace it off $s0), but it still
+ *    MATERIALIZES at the SetBleed loop's own preheader rather than before
+ *    the retry loop the way the target does. `cc1says.py --pass loop`
+ *    confirms the mechanism precisely: loop.c's movable-hoist gate (loop.c
+ *    :1640, `threshold*savings*lifetime >= insn_count`) DOES fire for this
+ *    constant, and DOES hoist it — but only to the SetBleed loop's OWN
+ *    66-insn preheader; the retry loop is a separate, non-nested, EARLIER
+ *    loop, and loop.c has no pathway to push a movable through a sibling
+ *    loop into an even earlier preheader. For the target's placement to
+ *    arise from C, the constant's owning expression would have to be
+ *    textually positioned before the retry loop — and nothing in the
+ *    decompiled semantics needs a `/100` operation there. This is the SAME
+ *    conclusion the previous round reached from the hand-rolled-goto-loop
+ *    experiments; this round adds the `regalloc.py --compare` mechanism for
+ *    WHY it cascades: `id` and `i` need target's exact registers ($s4/$s0)
+ *    but `i` must stay live from before the retry loop (or the function
+ *    drops to 5 used s-registers and comes up 2 instructions/8 bytes SHORT
+ *    — reproduced directly by moving `i = 0;` back to its natural
+ *    pre-SetBleed-loop position, with or without the two new fences above)
+ *    — and that early liveness is exactly what makes `i` CONFLICT with
+ *    `slot` and lose the $s0 slot target gives it (target's `i` is
+ *    genuinely NOT alive during the retry loop, so it shares $s0 with dead
+ *    `slot` for free; only a value with `magic_const`'s exact early-and-
+ *    long profile can supply the 6th-register pressure withOUT that
+ *    conflict, and no C-level trigger for that early liveness was found).
+ *    `regalloc.py --compare 81 85` shows `id` needs only +1 weighted ref to
+ *    outrank `i` for the final $s4/$s5 swap alone, but every tested site
+ *    for that +1 either changed the instruction count (a bare fence around
+ *    the `dtM->loop = ...` statement, 123->LENGTH MISMATCH/648) or overshot
+ *    massively via loop-depth weighting (fencing the in-loop `if (id<0)
+ *    return;`, 123->134, which also knocked `hand` back out of $s3) —
+ *    consistent with the rest of this residual: it is reachable only
+ *    through the SAME early-liveness lever already shown to be a net loss.
+ *    Two bounded `tools/permute.py` runs this round (fresh, post
+ *    -fno-builtin-fix; ~240s search + rescore each): the first, from the
+ *    126-byte base, found exactly the two donor edits above (123, ported by
+ *    hand per docs/matching-cookbook.md, not adopted verbatim — the raw
+ *    candidate's sentinel local was named `new_var` and its struct
+ *    reformatting was permuter noise); the second, RE-SEEDED from the new
+ *    123-byte source per the cookbook's re-seed rule, re-derived the same
+ *    123-byte candidate and found no further improvement (18-22k iterations
+ *    each). `tools/autorules.py` (9 candidates: id/i width flips, StagePlayer
+ *    array widening) and `tools/autorules.py --guided` (160 candidates: every
+ *    loop-fence/paired-loop-fence/loop-range/identical-arm-fence/empty-loop-
+ *    boundary/eq-literal-swap/case-fence/if-else-invert combination the
+ *    sweep knows) both found no improving edit from 123. Root cause remains
+ *    a genuine below-the-C-level register-allocation tie, now narrowed to
+ *    one specific unreachable fact (the magic constant's live range cannot
+ *    be extended before the retry loop from any C spelling tried) rather
+ *    than an undifferentiated "priority tie"; parked per the cookbook's
+ *    attempt-cap guidance after well past 10 meaningful restructuring
+ *    attempts across two rounds.
  */
 
 /* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes; see DeleteConflict.c). */
@@ -148,6 +199,7 @@ void WeaponHitWeapon(ModelType *hand)
     VECTOR *p;
     short i;
     SVECTOR pv;
+    Humanoid *one;
 
     if ((hand->attribute & 0x8000) != 0)
     {
@@ -173,7 +225,8 @@ void WeaponHitWeapon(ModelType *hand)
                  (Humanoid *)slot->common == Me_MOTION_C);
 
         MoveHumanoid(Me_MOTION_C, -0x1E, 0);
-        if ((Humanoid *)slot->common != (Humanoid *)1)
+        one = (Humanoid *)1;
+        if ((Humanoid *)slot->common != one)
         {
             MoveHumanoid((Humanoid *)slot->common, -0x1E, 0);
         }

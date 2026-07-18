@@ -130,6 +130,13 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   loop notes.** `make_regs_eqv` promotes a copy's dest to canonical only if it
   outlives the block — so cse2 can fold back a copy cse1 kept
   (GetAreaMapVector). A fence can never permanently split same-value `lui`s.
+- **Naming the SENTINEL constant vs naming the FETCHED value are DIFFERENT
+  allocation levers** for a `(T*)field != (T*)SENTINEL` compare. Only naming the
+  constant (`T *one = (T *)1; if (field != one)`, ProcItemFire.c's idiom) forces a
+  separate materialising insn that participates in allocation; naming the fetched
+  value (`enemy = field;`, DamageControl.c's idiom) does not reproduce that win.
+  Test both independently before concluding a permuter's local-introduction is
+  inert (WeaponHitWeapon, verified both ways).
 - **`record_jump_equiv`** records a guard's comparison on its FIRST slt operand's
   quantity (GetConflictResult), and on a `beq reg,CONST` taken edge records
   pseudo==constant — surviving calls (ProcItemGun's literal case stores).
