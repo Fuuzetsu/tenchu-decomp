@@ -265,7 +265,7 @@ prints — that habit has produced confidently wrong rounds (see cc1says below).
 | Wrong LENGTH | `maspsxflags --check`, `coverage.py` (carve!), `rtlguide` | §3.1–§3.3, §3.7 structure families; §3.17 carve integrity |
 | High-similarity sibling exists | `findsimilar <Name>` | On `TRANSCRIBE` verdict (score ≥0.35 AND same original TU): copy the sibling's C; change only unaligned spans |
 | Big function, first pass | `reghist <Name>` | Mega-pseudo split (§3.8); heed the OPCODES-DIFFER banner; zero-sum delta = decomposition already matches — stop splitting |
-| Same length, registers only, ONE basic block | `regalloc <Name>` (is it even a global allocno?) | LOCAL tie → `copy-seed`/`binop-operand-seed` (index); local-alloc facts §3.9 |
+| Same length, registers only, ONE basic block | `regalloc <Name> --local` (the quantity walk, self-validated) then `--order` for globals | LOCAL tie → `copy-seed`/`binop-operand-seed` (index); local-alloc facts §3.9 |
 | Same length, registers, across blocks | `regalloc --order`, `rtlguide` | Identity canon §3.8 first (two-regs-for-one-value?), then allocation steering §3.9 |
 | Target holds one value in TWO regs | (read the target) | Two source variables — §3.8. Cheapest question on the board |
 | Rotation of many registers | `regalloc --order` | Diff cc1's printed order vs the target-implied order (§3.9). If orders MATCH, the lever is find_reg exclusions / pre-RA insn order, not weighting (FUN_80036284) |

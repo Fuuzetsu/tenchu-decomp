@@ -287,6 +287,18 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   identity, or the interference graph (AddEnemy's `category = 0` fence: order
   flipped exactly as computed, zero bytes moved).
 
+- **`regalloc.py --local` prints local-alloc's quantity walk** — the per-block
+  `QTY_CMP_PRI` order, coalesced quantities, hard-reg homes and conflict sets that
+  `--order` gives for GLOBAL allocnos but nobody printed for LOCAL ones (four lanes
+  hand-traced it). It SIMULATES `block_alloc` and refuses the derived view if its
+  assignment diverges from cc1's printed homes (self-validated across ~150
+  functions, 0 divergences; fault-injected). Six `block_alloc` rules it models,
+  each a correction someone would otherwise get wrong: **`qty_size` is in WORDS**
+  (`PSEUDO_REGNO_SIZE`), not `GET_MODE_SIZE` bytes; the `next_qty<=3` sort is an
+  INCOMPLETE compare-exchange that can hand a low-priority quantity the low
+  register; tying is operand-0 only and a MEM is opaque; a hard operand commits the
+  output and blocks a later tie; a re-set of an already-live pseudo cannot tie;
+  call-crossers are restricted to `$s0-$s7`.
 - **`.greg`'s conflict dump is the STATIC interference graph, printed BEFORE
   coloring** (`dump_conflicts`, global.c:555 — the line before the
   `for (i = 0; i < max_allocno; i++)` allocation loop). So a register absent from
