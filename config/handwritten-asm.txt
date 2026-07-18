@@ -1,7 +1,8 @@
 # Handwritten-assembly originals: their asm IS the canonical faithful source
-# (owner decision 2026-07-16, docs/gte-policy.md). Proven by cc1-invariant
-# tells (`li r,0` spelling) the compiler cannot emit from plain C, plus the
-# draw dispatcher's non-ABI live-register calling convention.
+# (owner decisions 2026-07-16 and 2026-07-19; docs/gte-policy.md). Proven by
+# tells (`li r,0` spelling) the compiler cannot emit from plain C, the draw
+# dispatcher's non-ABI live-register calling convention, and documented
+# compiler-pass/provenance evidence for post-demo hand optimizations.
 # progress.py counts these as done-by-asm; triage.py hides them from targets.
 DrawTMD
 drawF3
@@ -20,3 +21,4 @@ drawzG4
 drawGT4
 drawzFT4
 drawzGT4
+FUN_8001c730

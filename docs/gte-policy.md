@@ -138,6 +138,31 @@ family cleanly:
   canonical assembly remains authoritative. No further pure-C lanes for this
   class.
 
+## Post-demo handwritten Hermite helper (owner decision, 2026-07-19)
+
+`FUN_8001c730` is also **asm-canonical**, independently of the 17-function draw
+family. The demo's `GetSpline` (0x8001b39c) evaluates all four Hermite terms in
+scalar C. Retail replaces that exact tail with a call to this new 220-byte leaf:
+it feeds Hermite terms 0..2 and the `key0/key1/dd0` matrix through GTE MVMVA,
+then hand-interleaves the three `ds1 * term3` multiplies with MAC1..3 reads.
+The helper is absent from the symbol-bearing demo (which records static
+functions too) and sits at the end of retail's ACTION.C run, immediately before
+the first MOTION.C function.
+
+The compiler investigation used debug RTL rather than mismatch-count folklore.
+Human-shaped direct-field C reproduces every value and operation. Register pins
+can make the complete prefix through the first multiply exact, but only by
+writing the target's `$t0..$t5` plan into C. The tail still requires a custom
+nonvolatile MAC-to-register asm block to cross the third `mflo`; the plausible
+volatile spelling orders that `mflo` before the `mfc2` reads. Real PsyQ
+`INLINE_C.H` has `gte_rtv0_b()`, but its result macro `gte_stlvnl()` stores with
+`swc2` and has no MAC1..3-to-C-register form. In this image, those register-form
+MAC reads otherwise occur only in the already-classified handwritten draw
+handlers. Keeping fixed-register C or inventing a fake GTE macro would therefore
+encode assembly as C. The semantic C reference remains in
+`src/main.exe/FUN_8001c730.c`; `config/handwritten-asm.txt` makes the original
+assembly authoritative.
+
 ## Candidate for the handwritten class: PClseek (flagged, NOT yet added)
 
 `PClseek` (0x80060224, SDK region) is almost certainly handwritten assembly, on
