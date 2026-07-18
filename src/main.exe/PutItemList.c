@@ -153,6 +153,36 @@
  *    unreachability: a joint (not single-factor) source restructuring might
  *    still crack it, but the cheap ladder (reghist -> autorules -> bounded
  *    permuter -> RTL) is exhausted for this round.
+ *
+ * RE-VERIFICATION (independent round, current toolchain, permute.py post
+ * -fno-builtin fix — all the above reconfirmed, nothing beats 27):
+ *  - Fresh bounded permuter (22584 iters, --stop-on-zero -j4): authoritative
+ *    full-link rescore keeps base.c at 27; every candidate scored >=30. The
+ *    -fno-builtin CC_FLAGS change is inert here (this function has no builtin
+ *    calls; /10 lowers to mult regardless), so the prior plateau stands.
+ *  - regalloc.py --order: EVERY pseudo home already matches the target
+ *    (p80->s3 i, p86->s2 ou, p84->s5 s, p96->s1 &Num, p142->s6 &Cur,
+ *    p146->fp 92, p83->s7 4096, p81->s4 x). The residual is therefore PURE
+ *    sched2 emission order of correctly-allocated registers, not a colour tie
+ *    the "seed a redundant copy" lever could touch.
+ *  - loop.c dump: `s` is verified biv 84 (init insn 23, value 0), "Cannot
+ *    eliminate biv 84: biv used in insn 240" — NOT strength-reduced, so its
+ *    init IS a source-position insn (low LUID 23) and sched2's backward
+ *    LUID-DESC tiebreak lands it early. The target's late `move s5,s3` is the
+ *    same biv init; only sched2's pick order differs.
+ *  - Human-structure levers tried and REJECTED (each regressed, all reverted):
+ *    `ItemImage[i]` array-index in place of the explicit `s` byte offset ->
+ *    484 bytes (loop.c combines base+offset into a hoisted POINTER giv,
+ *    deleting the per-arm `&ItemImage` rematerialization the target keeps);
+ *    dropping `t` to loop on `n` directly (demo lists no `t`) -> 500 bytes
+ *    (the target HAS the separate `v1=s0` loop-var copy `t=n` fills into the
+ *    0xFF-test delay slot, so `t` is structurally required, cf. PutNumber's
+ *    `cols`); dropping the identical-arm -> i/ou swap to s2/s3 (the fence is
+ *    register STEERING for i->s3, per the demo, not just a schedule nudge);
+ *    dropping `numY` -> 40 bytes. No clean-at-slightly-worse alternative
+ *    exists (the owner's human-structure preference is satisfied by the demo-
+ *    faithful core: explicit `s`, per-arm spr/call merged by jump2, goto loop,
+ *    `t` copy — the three props are the irreducible schedule/alloc levers).
  */
 typedef struct
 {
