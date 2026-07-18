@@ -91,7 +91,7 @@ above a byte store = the human wrote the load first = QImode alias pin). SCOPE: 
 game code only — the SDK (>=0x80060000, libgte/libgs/libapi) is stock Sony library code
 and NOT a target.
 
-## Where the work actually is now (2026-07-17)
+## Where the work actually is now (2026-07-18)
 
 **38 game functions remain. That is the whole board.** `tools/findsimilar.py --targets`
 prints exactly this set (it defaults to `--scope game`):
@@ -104,8 +104,8 @@ prints exactly this set (it defaults to `--scope game`):
     function: a park at 97% exact contributes ZERO matched bytes, because the default
     build still links its stub. So the payoff is the function's FULL SIZE.
 
-        6084  15.2%  StageEndScreen        (residual 203 — 96.7% exact)
-        4636  26.9%  mission_score_screen  (residual 239 — 94.8% exact)
+        6084  15.2%  StageEndScreen        (residual 202 — 96.7% exact)
+        4636  26.9%  mission_score_screen  (residual 187 — HUMAN-STRUCTURE rewrite, see below)
         3796  36.4%  FUN_80057b80          (residual   8)
         2188  41.8%  start_demo_           (residual  75 — 96.6% exact)
         1448  49.2%  FUN_800519bc          (residual  87 — 94.0% exact)
@@ -127,6 +127,20 @@ prints exactly this set (it defaults to `--scope game`):
     not collectable at any price, and the prize ranking should move to
     `mission_score_screen` (4636) or `FUN_80057b80` (3796, residual 8). **Read the
     dominant cluster's mechanism before spending a round on size alone.**
+
+    **Worked example of the human-source lever paying off (2026-07-18):
+    `mission_score_screen` was rebuilt from scratch to the shape of its MATCHED
+    sibling `StageEndScreen` — the `DRAW_SCORE_NUMBER` macro family, plain
+    `topY`/`resultX` pre-loop variables (StageEnd's `top_y`/`current_x`/`best_x`),
+    an s16 `stageItem` lh.** The banked byte-chased draft (169) had propped itself
+    up with `drawY` carriers, fence-seeded x-groups, a brightness-alias scaffold,
+    and 4 nested fences for the rankSprite flip. The rewrite is +18 bytes (187) but
+    the function is guarded (INCLUDE_ASM ships the ORIGINAL bytes, so `./Build check`
+    stays byte-identical GREEN — the raw image is unchanged), and it collapses the
+    scaffolding to ONE labelled `do{}while(0)`. This is the directive in action:
+    prefer the sibling-derived human shape that escapes the carrier/fence local
+    minimum over a lower byte count built on invented constructs. **StageEndScreen
+    (202) is the reverse-transfer target — same macro family, the larger sibling.**
   * **33 parked drafts** — each root-caused in its own `.c` header, closest at 1-10
     residual bytes. Residuals are overwhelmingly sub-C (allocation / scheduling /
     reload ties), which is why the tooling investment has overtaken target-picking as
