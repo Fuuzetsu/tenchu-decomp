@@ -83,6 +83,13 @@ Evidence it works, this session:
   tails after allocation.  That keeps the target `$a1` colour and removes the
   delay-slot instruction.  This directly falsified the function header's detailed
   “sub-C floor” proof.
+- **AddEnemy 26 -> 0:** the 1,600-line park modelled caller saves with a scratch
+  struct, volatile reloads, cursor joins, and deep zero-code fences. The demo's
+  same-named 1,148-byte body instead exposed two ordinary sentinel scans and the
+  author's compact local reuse. Rebuilding the complete 58-line shape made gcc
+  emit both caller saves itself and matched all 1,152 retail bytes. It also
+  falsified the blanket rule that every PSX.SYM block-local list must be reversed:
+  this function matches only in the displayed order.
 - **DecodeTMD family ~620 -> 0:** the whole breakthrough was recognising the hand-rolled
   `goto` loop as a WRONG FIX propping up damage it caused (it killed the loop-depth ref
   weighting), and the TU wanting `-fno-strength-reduce`. **FOUR of six now MATCHED:**
@@ -94,7 +101,8 @@ Evidence it works, this session:
   decompositions reshape the quantity/birthing graph and match all 920 bytes.
 
 The levers: PSX.SYM's `BEGIN PSX.SYM` block gives the authors' own declarations (names,
-types, nested-block scopes — list order is REVERSED per block); the matched sibling's
+types and nested-block scopes; declaration order is ambiguous at group boundaries and
+must be checked against the recorded hard-register homes); the matched sibling's
 MACROS tell you which `do{}while(0)` clusters are legitimate human fences; and the target
 is a source oracle (a const/copy def next to its uses = set once = birthing bump; a load
 above a byte store = the human wrote the load first = QImode alias pin). SCOPE: main.exe

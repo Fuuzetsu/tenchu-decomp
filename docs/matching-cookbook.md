@@ -175,11 +175,16 @@ Look up what the authors wrote before drafting anything.
   `tools/access.py`); a repeated local name is a nested-block scope — and
   therefore a lifetime-boundary hint (PlayVoice's two `min`/`sec` pairs;
   AttackControl's two `enemy`s); `.NNNfake` struct tags were per-TU.
-  **PSX.SYM lists a block's locals in REVERSE declaration order** — a listed
-  `dz, dy, dx` means the source declared `long dx, dy, dz;`. Block scalars get
-  pseudos AT DECLARATION, so transcribing the listed order verbatim swaps register
-  roles (measured s0/s1 flip on SetWire). Reverse each block's list before writing
-  it.
+  **PSX.SYM local order is not a whole-block reversal rule.** SetWire's listed
+  `dz, dy, dx` had to be written as `long dx, dy, dz`, but AddEnemy is the
+  counterexample: keeping its displayed `names, ItemName, i, human, type, x, y,
+  z, r, think` order is byte-exact, while reversing the block rotates the four
+  long-lived x/i/r/y registers. This is likely sensitive to declaration groups
+  (including comma declarators), which the flat debug records do not preserve.
+  Block scalars get pseudos at declaration, so test the displayed order and
+  plausible per-group reversals against the compiler's allocation; do not
+  mechanically reverse the complete list. The recorded hard-register homes and
+  exact target bytes decide.
 - **The human structure can be the RIGHT base even when it scores WORSE**, because
   a byte-chased draft is a local optimum away from the source and can be a dead
   end. SetWire from EFFECT.C:1428's own 23 declarations measured 85 vs a banked
@@ -849,7 +854,8 @@ ROTATES around a volatile, suspect the qualifier). Site-local forms, in
 preference order: a pointer-to-volatile view for one access
 (`(*(Object *volatile *)&Objects[i])->field`, UpdateEvent; StartStageSequence's
 `volatile u16 *stg_think` — `pointee-volatile` sweeps the local-pointer form);
-a volatile word view of an explicit spill slot (AddEnemy's post-call reload); a
+a volatile word view of an explicit spill slot only when independently proven
+(the former AddEnemy draft used one, but its exact human rewrite disproved it); a
 volatile-qualified parameter OBJECT for a single proven early stack read
 (CdaPlayXA). Never make a shared extern declaration volatile. Corroborate an
 otherwise-dead target load in another shipped build before encoding it

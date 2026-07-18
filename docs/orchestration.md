@@ -830,6 +830,9 @@ $ tools/coddog match <Name> -t 0.5 # similar whole functions; good for BIG
   them, which suggests retail has no such hack. Fences, volatile hacks and call
   aliases are reconstruction DEBT; when a pass "refuses" to do something, check
   whether our own scaffolding is what forbids it.
+  **Confirmed 2026-07-19:** reconstructing the demo-proven sentinel loops and
+  original local economy removed the hack and every fence; gcc emitted the two
+  caller saves naturally and all 1,152 bytes matched.
 - **TOOLING BACKLOG — `struct-view` autorules rule (HIGH VALUE, fully specified).**
   `member-scalar-alias` sweeps the cast direction (COMPONENT_REF -> INDIRECT_REF,
   clearing `/s`, the DrawSplash lever) but NOT its inverse, and the inverse matched
