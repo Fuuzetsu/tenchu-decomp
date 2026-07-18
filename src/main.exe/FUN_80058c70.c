@@ -11,58 +11,82 @@
  * Compiled-style GTE function under the restricted gte.h policy
  * (docs/gte-policy.md).
  *
- * STATUS: NON_MATCHING — 26 of 920 byte values differ (correct length,
- * 230/230 instructions). Everything semantic is exact: the whole loop, the
- * store tail, the frame (72), every register role (s0=pkt/param_7, s1=puVar4,
- * s2=param_2, s3=local_38, s4=param_4, s5=iVar3 via `move s5,v0`,
+ * STATUS: NON_MATCHING — 25 of 920 byte values differ (correct length,
+ * 230/230 instructions). Register roles: s0=pkt/param_7, s1=puVar4,
+ * s2=param_2, s3=local_38, s4=cnt(=param_4), s5=iVar3 via `move s5,v0`,
  * s6/s7/s8=r0_00/r2/r1, a3=r0 with caller-save around the jal, t0=puVar5
- * spilled). The residual is ONE 7-insn prologue-leader ROTATION: two ADJACENT
- * groups, SWAPPED — s0-group [sw s0,32; lw s0,96(=pkt); lui/lw HWD0; li v0,4]
- * and s4-group [sw s4,48; move s4,a3(=param_4)]. Target = s0-group first; ours
- * = s4-group first.
+ * spilled.
  *
- * === THIS ROUND (RTL archaeology; permuter is a NON-LEVER — gte.h) ===========
- * SAME CLASS AS FUN_80057b80 (this function's own CALLEE), which is parked at
- * 8/3796 as a PROVEN-UNREACHABLE sched2 backward-scheduler LUID tie. The tie
- * here is ONE printable sched2 pick — `.i.sched2` ready list at T-34:
- *     ;; ready list at T-34: 25(1) 10(1) 6(1) 12(1) 22(1)   (12,22 block: loads)
- *                             now 25 10 6   -> PICKS 25.  Target needs 10.
- * uids: 25=`li v0,4`(*pkt=4), 10=`move s4,a3`(param_4 copy), 6=`move s2,a1`,
- * 12=`lw s0,96`(pkt), 22=HWD0. All priority 1, class 3 (moves/consts, latency
- * 1), no function unit -> pure INSN_LUID, DESCENDING. sched2 is BACKWARD, so the
- * highest-LUID ready insn is picked and lands LAST; 25 (highest) lands below 10,
- * so the s4-group emits FIRST = our rotation. To flip, move-s4 (uid10) must
- * out-rank 25/22/12, i.e. LUID(move-s4) > LUID(body). But move-s4 is param_4's
- * assign_parms ENTRY copy; the `.greg` chain is 6 -> 10 -> 12 -> ... -> 25, so
- * LUID(10) < LUID(body) is pinned by the ABI: a3 is copied to a callee-saved reg
- * AT ENTRY because the loop's jal to FUN_80057b80 forces param_4 off caller-saved
- * a3. (The 5-param matched siblings FUN_80059ff4/5a3cc/5961c/59b08 have NO jal in
- * their loop, keep the counter in a3/t-regs, never grow this leader, and so their
- * sched2 cannot embody the fix — confirmed by reading their target prologues.)
+ * === ROUND 3 (this round): the 26-park's 7-insn PROLOGUE ROTATION IS SOLVED —
+ * the old residual (s4-group [sw s4,48; move s4,a3] emitted before the s0-group
+ * [sw s0,32; lw s0,96; lui/lw HWD0; li v0,4]) is now byte-exact via TWO source
+ * changes, and the residual moved to a NEW, SMALLER, single-decision tie:
  *
- * REFUTED this round (each measured on the real build):
- *  - late loop counter `cnt=param_4; if(cnt) ... cnt--` -> cc1 COALESCES cnt into
- *    the entry copy: NO-OP, still 26 (== FUN_80057b80 round 10(C)).
- *  - narrow param_4 -> assign_parms deferral puts a TRUNCATION (sll/sra or andi)
- *    in that slot, not the target's bare `move` (FUN_80057b80 round 8 proof).
- *  - non-volatile param_5/param_6 -> LENGTH MISMATCH (+4): volatile is load-bearing.
- *  - permuter -> REFUSES at permute.py:985 (gte.h inline asm; -fno-builtin fix is
- *    irrelevant to this class). autorules --guided -> no improving path.
+ * 1. `cnt = param_4;` as the LAST statement before the guard (loop counts cnt).
+ *    The old header's "cc1 COALESCES it -> no-op" was a MISDIAGNOSIS: the copy
+ *    SURVIVES (combine folds insn10's p83=a3 into it, making it read HARD a3 and
+ *    deleting the entry copy — .greg proof), but sched1 was hoisting it to the
+ *    TOP of block 1, keeping its sched2 LUID below the body leaders. Mechanism
+ *    (sched.c): the backward list scheduler's adjust_priority() boosts insns
+ *    whose dest is SINGLE-SET ("birthing", REG_N_SETS==1) to LAUNCH_PRIORITY
+ *    0x7f000001 when they become ready; 12/22/25 are all birthing, the cnt-copy
+ *    (2 sets: init+decrement) never is, so it loses every contested tick and the
+ *    LAST backward pick = TOPMOST placement. rank_for_schedule tie-break within
+ *    equal priority is INSN_LUID DESCENDING (confirmed in source).
+ * 2. Statement order `sh#1(iVar1/2); iVar2 = VWD0; sh#2` — the VWD0 read moved
+ *    AFTER the HWD0 sh (was before local_38). This opens a one-tick BUBBLE at
+ *    sched1 T-20 (the VWD0 chain's launches drain first; .i.sched shows ready
+ *    list = {copy} ALONE) where the cnt-copy is picked mid-block -> chain pos 10
+ *    -> sched2 LUID above all three leaders -> the leader cluster emits
+ *    [12][22][25][sw s4; move s4,a3] = TARGET. The bubble is the whole lever:
+ *    with VWD0 read early (any earlier position — swept), the copy tops out and
+ *    the old 26-rotation returns.
  *
- * autorules(default) DOES find `extern int HWD0[]`+`HWD0[0]` -> 22 (the earlier
- * header's "every source-order knob byte-inert" claim was WRONG). REJECTED as a
- * non-human local optimum: HWD0/VWD0 are plain adjacent int globals (0x800c6488/
- * 0x800c648c, symbols.main.exe.txt); the array form breaks the target's fused
- * `lui v1; lw v1,%lo(HWD0)(v1)` into a split `lui v0; ...; lw v1,..(v0)`
- * (structurally FURTHER from target), and VWD0[] scores 1004 — a codegen accident,
- * not the source type (human-source lever, docs owner directive).
+ * NEW RESIDUAL (25 bytes = ONE local-alloc color bit): the HWD0/VWD0 divide
+ * region has v0<->v1 swapped: target iVar1(HWD0)=v1, li-4 temp=v0, HWD0-div
+ * addu/sra accumulate in v1 (addu v1,v1,v0 — local-alloc ties the addu dest to
+ * the DYING dividend'S qty; the tie fires in ours too, whole qty just colored
+ * v0), VWD0=v0 both. Ours: iVar1-qty=v0, '4'=v1. The sh#1-vs-lui slide at
+ * 0x80058cc8 is a forced anti-dep consequence of the same bit (our VWD0 lw v0
+ * must wait for sh-v0; target's sh reads v1 so its lw hoists). ONE decision.
  *
- * NOT CLOSED like FUN_80057b80 (whose two competitors were BOTH entry parm-copies,
- * making declaration order rigid). HERE the competitor is a BODY group and the
- * TARGET demonstrably reaches move-s4-after-body, so a C construct lifting the
- * entry-copy's LUID past the body MUST exist in the original; it was not found.
- * That single question — what makes param_4's a3-copy out-rank the *pkt=4 li4 in
- * .greg's chain order — is the whole remaining lever.
+ * REFUTED this round (each measured; ~20 builds):
+ *  - de-birthing the leaders to un-boost them (2nd sets via {4,0x96} or
+ *    {HWD0,VWD0} variable fusion, dead exit-block sets, carrying the return
+ *    through the '4' var or pkt): every variant either (a) makes the fused var
+ *    die TWICE in block 1 -> local-alloc drops its qty (combine_regs requires
+ *    qty; comment "not local to this block or dies more than once") -> the
+ *    div-chain addu loses the dividend tie -> addu v0,... (wrong, 21..64 bytes),
+ *    or (b) makes the var GLOBAL -> global.c colors it v0-first (no
+ *    REG_ALLOC_ORDER on MIPS) -> same color loss; dead sets are flow-deleted
+ *    BEFORE sched1 recounts REG_N_SETS, so they never de-birth anything.
+ *  - guard-variable/counter splits (single-set cnt for a birthing boost, n=cnt
+ *    in preheader): allocation wall — cnt never reaches s4: its a3 copy-pref
+ *    wins while a3 is free (V1 build: beq a3 + preheader move s4,a3), and with
+ *    a3 conflicted it falls to v1/t1 (find_reg numeric order), never s4.
+ *  - statement-permutation sweep under the working core (10 variants: local_38
+ *    positions, const-store hoists, cnt positions, iVar1/iVar2 decl swap):
+ *    all 25 (color bit inert) or worse (64-81: moving iVar1=HWD0 after *pkt=4
+ *    flips the leader LUID order; hoisting VWD0 reverts the rotation).
+ *  - narrow param_4, non-volatile param_5/6, HWD0[] array form: as before
+ *    (see git history for the prior header's full text).
+ *
+ * The color bit DECODED (QTY_CMP_PRI = floor_log2(refs)*refs*1e4/(death-birth),
+ * qsort desc, then qty# asc): the contested qty is the TIE-CHAIN TRIPLE
+ * {iVar1(85), addu-dest, sra-dest} — block_alloc ties each op's dest to its
+ * dying first operand — refs 3+2+2=7, log2=2. Its rival, the li-4 temp qty
+ * (refs 2, span [li..sw]=2 suids), scores 10000. The triple's span runs from
+ * the HWD0 lw to the sh#1 STORE's sched1 slot: in the color-good (pre-bubble,
+ * VWD0-early) chain the VWD0 lw interleaves INTO the div chain, stretching the
+ * span to 16 suids -> 8750 < 10000 -> '4' allocates first, takes v0, and the
+ * overlapped triple falls to v1 = TARGET. In the bubble chain the div chain is
+ * compact (12 suids -> 11667 > 10000) -> triple takes v0 first = our 25.
+ * Span-stretch attempts (split `h = iVar1/2; iVar2 = VWD0; sh#1 = (short)h`
+ * with fresh h / iVar1-self-update / iVar3-reuse) all re-broke the WINDOW
+ * (26/26/43) — the stretch and the bubble compete for the same sched1 slots.
+ * Next lane: find a source shape whose sched1 chain BOTH leaves the T-20-class
+ * bubble for the cnt-copy AND interleaves one insn into [addu..sh#1] (span
+ * >= 14 suids flips the coin); or trace find_free_reg/regs_live_at directly.
  * ============================================================================
  *
  * WHAT UNLOCKED THE 620 PARK (each independently measured; the park's
@@ -110,10 +134,10 @@
  *    loop.c runs before combine so the kill survives the rename) and the
  *    volatile read's birthing bump.
  *
- * Falsify the remaining 26: see the "THIS ROUND" block above — the tie is pure
- * INSN_LUID in sched2 (NOT the potential_hazard/INSN_TICK an earlier header
- * guessed), and the only lever is lifting param_4's a3-entry-copy LUID above the
- * *pkt=4 / HWD0 / pkt-load body leaders in .greg's chain order.
+ * Falsify the remaining 25: see the "ROUND 3" block above — the window/LUID
+ * story is CLOSED (cnt + the VWD0-late bubble); what's left is one local-alloc
+ * v0/v1 qty-coloring decision in block 1 (iVar1-div qty vs the li-4 temp),
+ * proven chain-order-sensitive but not yet reached from source.
  */
 
 extern int HWD0;
@@ -143,14 +167,15 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     SVECTOR *r2;
     SVECTOR *r1;
     u_long *local_38;
+    int cnt;
 
     pkt = param_7;
     iVar1 = HWD0;
     *pkt = 4;
     puVar5 = pkt + 0x38;
-    iVar2 = VWD0;
     local_38 = puVar5;
     *(short *)(pkt + 0xd) = (short)(iVar1 / 2);
+    iVar2 = VWD0;
     *(short *)((int)pkt + 0x36) = (short)(iVar2 / 2);
     uVar5 = param_6;
     uVar7 = param_5;
@@ -162,7 +187,8 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     pkt[5] = (u_long)param_3;
     *(u_char *)((int)pkt + 0x53) = iVar4;
     pkt[4] = uVar3;
-    if (param_4 != 0) {
+    cnt = param_4;
+    if (cnt != 0) {
         r0 = (SVECTOR *)(pkt + 0x20);
         r1 = (SVECTOR *)(pkt + 0x26);
         r2 = (SVECTOR *)(pkt + 0x2c);
@@ -217,9 +243,9 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
                 *(short *)((int)pkt + 0x66) = *puVar4;
                 FUN_80057b80(puVar5, pkt, 0);
             }
-            param_4 = param_4 + -1;
+            cnt = cnt + -1;
             puVar4 = puVar4 + 0x16;
-        } while (param_4 != 0);
+        } while (cnt != 0);
     }
     return (u_long *)pkt[5];
 }
