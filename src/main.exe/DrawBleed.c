@@ -37,15 +37,19 @@
  * END PSX.SYM */
 
 /*
- * STATUS: NON_MATCHING — 8 of 532 bytes differ (down from a 47-byte park with
- * zero prior autorules/permuter/RTL history; length still matches exactly —
- * this residual is a register-coalescing question, not a wrong value).
+ * STATUS: MATCHING — exact 532-byte pure C.
  *
- * ROUND 2026-07-18: fixed-permuter re-screened (timeout 300, -j4,
- * --stop-on-zero, ~28k iters). Authoritative full-link rescore: base.c is
- * best at 8; the only sub-8 lead remains the REJECTED uninitialized-`param2`
- * scaffold documented below (not even re-found this run). Plateau at 8 — floor
- * stands.
+ * The 8-byte park was a local minimum created by its own `param2` and
+ * `savedTime` scaffolding.  Restoring the PSX.SYM `long x, y, z` captures and
+ * the ordinary `param->time -= 1` removes both invented identities.  The two
+ * later coordinates deliberately read through scalar `s32` lvalues, matching
+ * the already-proven DrawSplash source shape: direct nested-VECTOR member
+ * reads carry cc1's structure-memory marker and sched1 sinks them, whereas the
+ * scalar views let the loads remain early in `$a1/$a2`, exactly as both the
+ * retail target and same-sized demo build show.  The demo's 532-byte body is
+ * otherwise instruction-for-instruction identical through this whole state
+ * update and projection setup, making this a source reconstruction rather than
+ * an allocation nudge.
  *
  * DrawBleed (0x8003437c, EFFECT.C:910) — the blood-drip effect's per-frame
  * draw: while `mode==0` and `time!=0`, advances the drip position by its
@@ -110,11 +114,11 @@
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
  *    MASPSX_EXTRA), same as DrawSprite/DrawSpriteXYZ/FUN_8003a148.
  *
- * PRIOR PARK (47 bytes) was ONE clean mirror swap: sched1 (the PRE-RA
- * scheduler) dragged `dy`/`dz`'s loads from the top of the merge block to the
- * bottom, shortening their live range so global-alloc gave them v0/v1 while
- * `lui %hi(ViewInfo)` took the block-leader slot and a1/a2 instead of `dy`/
- * `dz`. That park correctly proved `.flow` already matches the target (so no
+ * HISTORICAL 47-BYTE PARK (superseded) was ONE clean mirror swap: sched1 (the
+ * PRE-RA scheduler) dragged `dy`/`dz`'s loads from the top of the merge block
+ * to the bottom, shortening their live range so global-alloc gave them v0/v1
+ * while `lui %hi(ViewInfo)` took the block-leader slot and a1/a2 instead of
+ * `dy`/`dz`. That park correctly proved `.flow` already matches the target (so no
  * STATEMENT reorder inside the block can fix it — sched1 overrides source
  * order) and that the lever must be sched1's PRIORITY model. It did not have
  * `tools/sched-deps.py`/`tools/rtlguide.py` yet (both landed after that
@@ -122,7 +126,7 @@
  * CC_FLAGS mirror still had `-fno-builtin` in the wrong flag group, so that
  * negative was searching a DIFFERENT PROGRAM than the build — void).
  *
- * THIS ROUND (47 -> 8) found the actual lever: a genuinely SEPARATE pseudo
+ * The historical 47 -> 8 checkpoint introduced a genuinely SEPARATE pseudo
  * for the value `param` already holds, introduced right where sched1 was
  * choosing to sink `dy`/`dz`. A fresh bounded permuter run (post-fno-builtin-
  * fix) found it census-first as a random-variable mutation; the win was
@@ -145,18 +149,20 @@
  *      (§3.13, AfsGetHeader family) fixed the remaining `time`-vs-`dy`
  *      ordering tie (12->8).
  *
- * RESIDUAL (8 bytes), all one issue — `param2` needs its OWN register
- * because it conflicts with `param` (proven above), and the allocator picks
- * a2 instead of coalescing with s1:
+ * Its former residual (8 bytes) was all one issue — `param2` needed its OWN
+ * register because it conflicts with `param` (proven above), and the allocator
+ * picks a2 instead of coalescing with s1:
  *
  *              TARGET                          OURS
  *   0x3ac  nop                             move  a2,s1        (param2=param)
  *   0x400  lw a1,4(s1)  pos.vy             lw a1,4(a2)
  *   0x404  lw a2,8(s1)  pos.vz             lw a2,8(a2)
  *
- * `tools/rtlguide.py DrawBleed` names this precisely: owner
- * cse/coalescing+regalloc, register goal "a2 -> s1 x2". Confirmed
- * UNREACHABLE from well-defined C this round, three ways:
+ * `tools/rtlguide.py DrawBleed` named this precisely: owner
+ * cse/coalescing+regalloc, register goal "a2 -> s1 x2".  The previous round
+ * called that unreachable, but only after holding the invented alias structure
+ * fixed.  The exact source above disproves the conclusion; these three tests
+ * remain useful only as a record of that local minimum:
  *   - `tools/autorules.py DrawBleed --guided` (the rules rtlguide names for
  *     this exact signature: ptr-base-split, deref-address-split,
  *     disjoint-local-alias, identical-arm-fence, etc., beam depth 2, 160
@@ -192,13 +198,13 @@
  * and `param->vec.vy = param2->vec.vy + 1;` reverted to `param->vec.vy += 1`.
  *
  * LOAD WIDTH is separately settled and must not be regressed: `pos.vx/vy/vz`
- * (VECTOR, `long`) must be captured into plain `s32` temps BEFORE the
- * narrowing scratchpad store, or cc1 narrows the LOAD itself to `lhu` (valid
- * for the truncated subtraction, but the target uses `lw`).
+ * (VECTOR, `long`) must be captured full-width before the narrowing
+ * scratchpad store; the y/z scalar `s32` views are also what prevent sched1
+ * from sinking those loads.  An early narrowing cast instead emits `lhu`.
  *
- * Also measured and rejected in the ORIGINAL 47-byte park (still true, not
- * re-tested this round — the multiset argument doesn't depend on the byte
- * count): struct-typed scratchpad casts (CSE folds the base, -> 496);
+ * Also measured and rejected inside the original 47-byte decomposition (not
+ * claims about other source structures): struct-typed scratchpad casts (CSE
+ * folds the base, -> 496);
  * plain statement reorders inside the merge block (sched1 overrides them,
  * -> 512); x/y/z holding differences instead of raw positions (-> 512);
  * dropping the ViewInfo `(short)` casts (-> 512); volatile scratchpad
@@ -233,17 +239,12 @@ extern void SetRotMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
 extern void GsSortPoly(POLY_F4 *p, GsOT *ot, s32 pri);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/DrawBleed", DrawBleed);
-#else
 void DrawBleed(TEffectSlot *ef)
 {
     BleedType *param = &ef->param.bleed;
-    BleedType *param2;
-    u8 savedTime;
     SVECTOR scr;
     SVECTOR *scrp;
-    s32 dx, dy, dz;
+    long x, y, z;
     s32 t;
     s32 otz;
     s16 pri;
@@ -254,29 +255,26 @@ void DrawBleed(TEffectSlot *ef)
         if (param->time == 0)
         {
             ef->proc = 0;
-            param2 = param;
         }
         else
         {
             param->pos.vx += param->vec.vx;
             param->pos.vy += param->vec.vy;
             param->pos.vz += param->vec.vz;
-            param2 = param;
-            param->vec.vy = param2->vec.vy + 1;
+            param->vec.vy += 1;
         }
     }
-    savedTime = param->time;
-    dy = param2->pos.vy;
-    dz = param2->pos.vz;
-    param->time = savedTime - 1;
+    x = param->pos.vx;
+    y = *(s32 *)&param->pos.vy;
+    z = *(s32 *)&param->pos.vz;
+    param->time -= 1;
 
-    dx = param->pos.vx;
     *(s32 *)0x1F800014 = 0;
     *(s32 *)0x1F800018 = 0;
     *(s32 *)0x1F80001C = 0;
-    *(s16 *)0x1F800020 = dx - (short)ViewInfo.vpx;
-    *(s16 *)0x1F800022 = dy - (short)ViewInfo.vpy;
-    *(s16 *)0x1F800024 = dz - (short)ViewInfo.vpz;
+    *(s16 *)0x1F800020 = x - (short)ViewInfo.vpx;
+    *(s16 *)0x1F800022 = y - (short)ViewInfo.vpy;
+    *(s16 *)0x1F800024 = z - (short)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)0x1F800000);
     SetRotMatrix(&GsWSMATRIX);
     scrp = &scr;
@@ -315,4 +313,3 @@ void DrawBleed(TEffectSlot *ef)
         GsSortPoly(&plyBleed, OTablePt, (u16)pri);
     }
 }
-#endif
