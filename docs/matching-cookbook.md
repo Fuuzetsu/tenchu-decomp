@@ -215,6 +215,16 @@ Look up what the authors wrote before drafting anything.
   `fence-unwrap`, which sweeps each singly) measurably regresses. **KEEP it**:
   measured necessity, not macro provenance, decides (StageEndScreen's 4-nest at
   L423 scores 202→227 unwrapped; FUN_800519bc's 5 fences, no macro, cost 87→91..1012).
+  **Classify (b) vs (c) by the UNWRAPPED RESIDUAL, not the byte delta**: read the
+  asmdiff of the unwrapped version — if the regressed bytes are ENTIRELY
+  callee-saved register renames (sN↔sM shuffles, identical mnemonics/operand
+  shapes), the fence is a pure global-allocation nudge with nothing better behind
+  it → case (c), KEEP (AdtSelect's two fences unwrap to 37 bytes of pure
+  s1↔s2/s3↔s4 renames). Only when the unwrapped residual shows a genuinely
+  different or more-complete control/expression structure is it case (b). **TOOL
+  TICKET (fence-unwrap --classify)**: label each unwrapped residual "N%
+  register-rename / M% structural" to mechanize this read — currently a manual
+  asmdiff.
   **The "adopt the worse byte count" move is ONLY for case (b)** — a bare fence
   with nothing better behind it is not a reason to regress. And test fence
   clusters as SUBSETS, not singletons: FUN_800519bc's three position-carriers act
@@ -1047,6 +1057,22 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   reach. Do not re-open such a park without a new SOURCE-STRUCTURE theory — two
   methods (regalloc's conflict list; raw `.lreg` block liveness) agreeing on
   conflict-free is a genuine sub-C floor.
+- **A permuter no-op ref-count nudge (`z++; z--`) that lowers bytes is a
+  DIAGNOSTIC, not a fix.** When the permuter closes bytes by inserting a literal
+  no-op that only shifts a pseudo's live-range/ref-count, it has PROVEN the
+  residual is a live-range-sensitive local-alloc tie AND localised which
+  sub-cluster it repairs — read the asmdiff of the nudged version (SetLightningI's
+  `z++;z--` after the x-store fixed the `{hi,vpx,base}` address-computation half,
+  collapsing the rest to a pure x↔z swap). USE it to characterise the residual,
+  then REJECT the nudge per the human-source directive (invented scaffolding). If
+  reproducing its effect with a real construct (a clean store reorder) costs MORE
+  bytes or changes the emitted schedule, the tie is genuinely sub-C — keep the
+  human draft (SetLightningI's human reorder measured 29 and moved the store
+  schedule; banked 15 kept). The nudge tells you WHERE the tie is; it is not the
+  match. **And the `-fno-builtin` permuter fix is MATERIAL, not cosmetic**: this
+  run found a 12-byte candidate two earlier "post-fix" rounds missed (they still
+  searched the wrong program) — any permuter-plateau claim dated before the fix
+  (CPP→CC_FLAGS) is void for a non-gte.h function; re-verify with a fresh run.
 - **Priorities and windows**: ballast the winner-to-be by adding an insn inside
   its live range (hoist a one-arm constant into a pre-branch variable — free
   when the target materialises it anyway, SoundEx); prefer DEMOTING the winner
