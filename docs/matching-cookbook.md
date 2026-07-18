@@ -1394,6 +1394,22 @@ LUID, barriers). The levers:
   promoted producers (ProcItemNingyo's `loaded_model`). Cluster of genuinely
   equal loads: reverse the source assignments as one bounded probe
   (ProcItemNingyo 6→4).
+- **Prologue-leader rotation between a callee-saved PARM entry-copy and BODY
+  leaders is a pure `INSN_LUID` sched2 backward tie.** When a param's
+  `assign_parms` entry copy is forced to a callee-saved reg (a loop `jal` evicts
+  the arg from its caller-saved home), its low LUID pins it to emit FIRST among
+  the pri-1/class-3 leaders — moves+consts have no function unit, so hazard/tick
+  don't apply and LUID alone decides (read `.i.sched2`'s `ready list at T-N`).
+  The coalescing loophole (assign a late loop counter `= param` to raise its
+  LUID) is a NO-OP — cc1 folds it back into the entry copy (FUN_80057b80
+  round 10-C; FUN_80058c70). **Provably-closed ONLY if both competitors are
+  parm-copies** (rigid declaration order — FUN_80057b80's 8-byte tie); if ONE
+  competitor is a BODY group and the target demonstrably reaches the other order,
+  a C construct lifting the entry-copy's LUID past the body MUST exist — NOT
+  proven-closed, keep hunting (FUN_80058c70's 26). Do NOT let `rtlguide` mislead
+  you here: it frames this rotation as a `cse/coalescing register goal`
+  (`$s4`→`$s2`) from aligning the two swapped blocks — a red herring; the register
+  roles are identical, the tie is sched2 emit-order alone.
 - **Store-to-load source dependencies beat fences**: read back the just-stored
   narrow object (`sb; andi` order with no surviving load, FileOption) — the
   memory-unit tiebreak anti-rule means [store][alu] is unreachable for
