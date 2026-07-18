@@ -452,10 +452,12 @@ rarely agree by accident.
 * **Statics.** 73 functions and 231 objects the original build declared `static`.
   A `static` never gets a `%gp` extern and changes how the symbol is emitted; this list
   should feed `tools/gpsyms.py`.
-* **The SLD stream.** We use the per-function line records but discard the
-  per-instruction line deltas (`0x80`/`0x82`/`0x84`/`0x86`). Those give an
-  address→source-line map for the demo build, which would let a matcher see exactly
-  which instructions came from which statement.
+* **The SLD stream.** The parser uses the per-function line records but still
+  discards the per-instruction line deltas (`0x80`/`0x82`/`0x84`/`0x86`). The raw
+  records were manually decoded for `SetupSpline`: ACTION.C:349-358 exposed the
+  statement boundaries and ordering that turned a 12-byte register-only residual
+  into an exact 240-byte match. Exposing the address→source-line map in a tool would
+  make that evidence routinely available instead of requiring a one-off decoder.
 * **Block structure.** `0x90`/`0x92` block start/end records (with line numbers) give
   the nesting depth of every function. Parsed and skipped today.
 * **`MENU.EXE` / `ENDING.EXE`.** The unplaced `OPENING.C`/`OPMOVIE.C`/`MOJI.C` functions

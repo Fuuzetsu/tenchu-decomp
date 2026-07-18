@@ -282,7 +282,13 @@ Look up what the authors wrote before drafting anything.
   mnemonic knows a union store's width. Per-address PSX.SYM LINE events can
   distinguish a compound expression from adjacent statements when the bytes
   cannot (PadProc's `ct = -PadArrange.time++;`) — demo line tables, so require
-  cross-build agreement on the boundary.
+  cross-build agreement on the boundary. They can also break an apparent
+  register-allocation floor by recovering statement order: manually decoding
+  ACTION.C:349-358 for `SetupSpline` showed direct `key0` field assignments,
+  `key1` derived from that field, and the loop's key store before its time store.
+  That ordinary source removed a 12-byte pure-register residual and matched all
+  240 bytes; the alias fences in the parked draft had preserved the wrong value
+  identities while imitating the copy count.
 - **The matched corpus is an oracle**: grep the whole game for the target's
   SHAPE and check whether a function with that shape is already matched — its
   source is evidence for "what C produces this?" **Match on the CAUSE, not
