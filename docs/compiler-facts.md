@@ -229,6 +229,14 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   `move_movables`** — the only thing that can legally sit after a hoist in a
   preheader is a giv init; a source statement can only precede the hoists
   (AddEnemy's `names_offset` non-variable).
+- **`combine_givs` can merge identical arithmetic givs from disjoint branch
+  scopes without absorbing the array base.** PutItemList's two local
+  `ItemID = i * 4` computations reduce to one integer offset initialized after
+  the hoists and incremented by four, while each branch still re-materializes
+  `ItemImage` before adding that offset. Therefore a target `la base; addu
+  base,off` at multiple loop sites does not by itself prove a hand-written
+  offset counter; the `.loop` lines `giv at A combined with giv at B` settle
+  whether the offset was compiler-created.
 - **`move_movables` emits with `emit_insn_before(loop_start)`** — a hoisted set
   escapes any enclosing fence's notes, so ballast cannot weight it (AddEnemy).
 - **Identical invariant else-arm constants COMBINE, so their hoist savings SUM**

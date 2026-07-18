@@ -1567,20 +1567,21 @@ have matched SetBleedsDir unattended.
   that can follow a hoist — if you hand-spelled one, that's the bug (AddEnemy's
   `names_offset`). Recurring `$t`-register constants = a hoisted-then-SPILLED
   movable group (local_alloc can't produce that class).
-- **Array-index vs explicit-byte-offset biv is a LENGTH diagnostic.** When the
-  target re-materialises an array's base address INSIDE the loop (`lui/addiu SYM;
-  addu off,SYM; lw` per use) instead of hoisting it, the source must use an
-  explicit byte-offset biv — `*(T*)((u8*)Arr + s)`, `s += sizeof(elem)` — NOT
-  `Arr[i]`. loop.c combines the `Arr[i]` form's base+index into ONE
-  strength-reduced POINTER giv (init `p=&Arr` in the preheader, `lw 0(p)` at the
-  use), hoisting the base and deleting the per-iteration rematerialisation → the
-  draft is SHORTER than the target (PutItemList `Arr[i]`→484 vs required 504).
-  Check the biv/giv verdict in the raw `.i.loop` dump (`Cannot eliminate biv N` =
-  a real byte-offset biv survives; `giv not worth while`), which `cc1says`'
-  hoist table does not surface. Corollary: a demo local list that OMITS a loop-var
-  copy `t` can still require it — if the target recomputes a distinct loop-var
-  register from a callee-saved quotient each iteration (`v1=s0`), the source needs
-  the explicit `t=n` copy (500 vs 504 without it).
+- **A re-materialised array base does NOT prove a hand-written offset biv.** A
+  direct `Arr[i]` still tends to become one strength-reduced POINTER giv (init
+  `p=&Arr`, then `lw 0(p)`) and can make a draft too short. But PutItemList's
+  exact source disproved the old stronger rule that the only alternative was a
+  function-wide `s += sizeof(elem)` counter. Its two branch-local identities
+  each do `ItemID = i * sizeof(Arr[0]); ItemID = *(int *)((u8 *)Arr + ItemID);`.
+  `combine_givs` merges those same arithmetic givs into ONE reduced integer
+  offset, while the symbol base remains branch-local and is re-materialised at
+  both uses. The generated giv init lands after the invariant hoists and the
+  backedge increments it by the element size. The raw `.i.loop` proof is
+  `giv at A combined with giv at B` followed by both being reduced to the same
+  new register; that evidence outranks a plausible-looking explicit counter.
+  Route this target shape by the debug scopes: repeated per-arm integer locals
+  suggest branch-local byte-offset computations; a true source offset counter
+  instead appears as a verified surviving biv (`Cannot eliminate biv N`).
 - **Unbiased cursor + surviving counter**: goto backedge + explicit preheader
   caches in target order (UpdateItemState 293→0); put a hand-rolled loop's
   invariant computation INSIDE the inner if (outer-body placement lets reorg
