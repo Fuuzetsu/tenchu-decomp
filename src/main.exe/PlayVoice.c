@@ -125,14 +125,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  *    `pbVar6 = pbVar5 + 6; pbVar5 = pbVar5 + 6;`, that a naive reading
  *    would collapse into one).
  *
- * STATUS: NON_MATCHING — exact target extent (756 bytes / 189 instructions),
- * 4 differing linked bytes (down from a banked 14; matchdiff --clusters: 2
- * clusters, both pure register-operand swaps, 0 length/opcode diffs).
- *
- * ROUND 2026-07-18: fixed-permuter re-screened (timeout 300, -j4, ~28k iters).
- * Authoritative full-link rescore retained NOTHING below base — best is base.c
- * at 4. Confirms the p95/p96 register-priority tie below is a genuine sub-C
- * floor; plateau at 4 stands.
+ * STATUS: MATCHED — 756 bytes / 189 instructions, pure C.
  *
  * PSX.SYM lists two distinct nested `min`/`sec` pairs. Giving each
  * BuildVoiceLocation call its own block scope, while keeping the volume clamp
@@ -160,42 +153,25 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * outright — collapsed 3 clusters in one edit: 9 -> 4 bytes, exactly the
  * "fixing one allocation collapses several clusters" pattern.
  *
- * The remaining 4 bytes are ONE allocation-priority tie, fully diagnosed but
- * not closed at the C level. `tools/regalloc.py PlayVoice --compare 95 96`:
- * both pseudos are the (fp+24)/(fp+40) base addresses for indexing
- * `filenames[CHOSEN_LANGUAGE]` / `tables.entry[CHOSEN_LANGUAGE]`, both
- * computed eagerly at function entry (before the `id>=100` test — confirmed
- * in the `.lreg` dump, insns 28/30, unconditional), both cross the same 2
- * calls, refs=2/2, but live_insns 10 vs 7 — filenames' base (p95, ->s1) needs
- * "+1 weighted ref" to outrank tables' base (p96, ->s0) and swap into s0,
- * matching target. No preference donors exist for s0 or s1 (`--prefer
- * 16`/`--prefer 17`: none). Tried and refuted: swapping the two statements'
- * order (birth/death insns for both pseudos are IDENTICAL either way — cc1
- * hoists both addresses to function entry regardless of which consuming
- * statement comes first, confirmed via regalloc.py before/after); moving
- * `tables = D_800134E0;` next to its use inside the branch instead of at
- * entry (breaks length, -4 bytes — the unconditional early copy is itself
- * load-bearing, matching the target's own eager behavior); writing
- * `filenames` via 4 sequential element stores instead of an aggregate
- * initializer (breaks length badly, -36 bytes — the aggregate-copy shape is
- * load-bearing too); a `do{}while(0)` ref-weight fence around just the
- * `FileName = filenames[...]` statement and an identical-arm fence around
- * the same (cookbook §3.10's ref-weight dial) both overshot and changed the
- * residual's SHAPE for the worse (10 and 14 bytes, with an actual
- * instruction reorder, not just a register swap) rather than landing the
- * precise +1. Two independent bounded foreground permuter runs (one at the
- * 14-byte baseline, one at this 4-byte baseline; `--stop-on-zero -j4`,
- * ~22000 iterations each) found nothing better than what's already applied.
- * This is a below-the-obvious-C-level register-priority tie in the sense of
- * the cookbook's §2 sub-C ladder: named lever (regalloc.py's exact priority
- * arithmetic), tool-diagnosed root cause, natural respellings tried and
- * either neutral or length-breaking, permuter exhausted twice. A future
- * round with RTL-level `.greg`/`.lreg` surgery (not just C respelling) is
- * the only named lever left untried.
+ * The last 4-byte residual was not a sub-C floor. Compiler dumps showed that
+ * it comprised two decisions: global allocation of the adjacent filename and
+ * voice-table aggregate bases, then local scheduling of their two indexed
+ * addresses. Selecting a filename slot first and deriving `language` from its
+ * pointer difference is ordinary pointer code and gives the filename base one
+ * additional real RTL reference. In the exact `.lreg`/`.greg` dumps the two
+ * bases are p95 = 3 refs / 8 live insns -> s0 and p96 = 2 / 8 -> s1, exactly
+ * the target homes. Directly indexing both arrays had instead produced 2 / 10
+ * and 2 / 7 and exchanged those homes.
+ *
+ * With the saved homes fixed, `sched` still chose the table-address `addu`
+ * first because its load feeds the immediately following voice-id test. The
+ * target forms both addresses first (filename, then table), loads the voice,
+ * then fills its load delay with the filename load. The zero-code loop boundary
+ * after address formation leaves global allocation unchanged but gives sched
+ * exactly that dependency boundary. This was verified pass-by-pass in `.cse`,
+ * `.sched`, `.lreg`, and `.greg`; removing only the boundary preserves length
+ * and the saved homes but exchanges the four v0/v1 operands at 0x8004f024-30.
  */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PlayVoice", PlayVoice);
-#else
 void PlayVoice(int id)
 {
     u8 *FileName;
@@ -266,8 +242,18 @@ void PlayVoice(int id)
     }
     else
     {
-        voice = tables.entry[CHOSEN_LANGUAGE];
-        FileName = filenames[CHOSEN_LANGUAGE];
+        int language;
+        u8 **filename_entry;
+        TVoiceTable **voice_entry;
+
+        filename_entry = filenames + CHOSEN_LANGUAGE;
+        language = filename_entry - filenames;
+        voice_entry = tables.entry + language;
+        do
+        {
+        } while (0);
+        voice = *voice_entry;
+        FileName = *filename_entry;
         loc = 0;
         if (voice->id != 0xff)
         {
@@ -358,7 +344,6 @@ found:
         AdtMessageBox(D_80013500, FileName, loc->channel, id);
     }
 }
-#endif /* NON_MATCHING */
 
 // triage: MEDIUM — 189 insns, 4 loop, 8 callees, ~0.07 to InsertConflict
 // likely-relevant cookbook sections:
