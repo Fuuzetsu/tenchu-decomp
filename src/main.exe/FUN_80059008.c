@@ -11,84 +11,23 @@
  * Compiled-style GTE function under the restricted gte.h policy
  * (docs/gte-policy.md).
  *
- * NEAR-CLONE of FUN_80058c70 (findsimilar 1.00): same body, three verified
- * differences (per-vertex cursor stride +0x10 not +0x16; vertex-index
- * halfwords puVar4[7..10] not [0xd..0x10]; the four packet words all read
- * ONE source word *(puVar4+5)). Everything in FUN_80058c70.c's header —
- * the -fno-strength-reduce TU flag, the volatile stack parms, the pkt copy,
- * the puVar5/local_38 split, iVar4, and the gte scratch reuse — applies
- * verbatim and was transferred wholesale; both land on the identical
- * 26-byte prologue-leader rotation.
+ * This is the +0x10-record sibling of FUN_80058c70.  It requires
+ * -fno-strength-reduce so the source cursor remains the target's sole loop
+ * induction register.
  *
- * STATUS: NON_MATCHING — 26 of 920 bytes differ. The HWD0/VWD0 COLOR BIT IS
- * SOLVED (the divide region is byte-identical to the target), via the twin
- * FUN_80058c70's fresh-eyes fix ported verbatim: the NATURAL order `iVar2 = VWD0;`
- * BEFORE the HWD0/2 store (VWD0-early) + `param_4` counted down directly (the
- * matched sibling's form, no invented `cnt`). This refuted the prior "color
- * irreconcilable" claim. The ONE remaining residual is the prologue s4-group
- * rotation (`sw s4,48; move s4,a3` emitted ~5 insns too early) — a sched2
- * entry-copy PLACEMENT, identical to c70's. See FUN_80058c70.c for the full
- * account and the open lever. The permuter is a NON-LEVER here (gte.h,
- * permute.py:985).
- *
- * WHAT UNLOCKED THE 620 PARK (each independently measured; the park's
- * "failed" singles were pair-negatives, cookbook §4):
- *
- * 1. -fno-strength-reduce FOR THIS TU (Build.hs ccExtraFlags + permute.py
- *    CC_EXTRA_FLAGS, LIBMCRD precedent). The provenance is forced two ways:
- *    r0 lives in $a3 with caller-save spill/reload around the jal
- *    (sw a3,24(sp) in the delay slot / lw a3,24(sp) after), and
- *    CALLER_SAVE_PROFITABLE(refs,calls) = 4*calls < refs needs r0's refs
- *    loop-depth-weighted (flow.c REG_N_REFS += loop_depth) => real LOOP
- *    NOTES (do-while, not the park's goto hack); with notes, loop.c would
- *    reduce the 21-giv cursor class (combine_givs sums benefits) into a
- *    second induction register the target provably lacks — no C spelling
- *    denies a 21-member DEST_ADDR class, so SR was off. This one flag +
- *    do-while replaces the park's items 1-2 (the goto loop was compensating
- *    for the wrong root cause and killed the ref weighting).
- * 2. volatile u_long param_5/param_6 (CdaPlayXA parameter-qualifier
- *    precedent), read once each into uVar5/uVar7 at their statement
- *    positions. Plain stack parms' entry copies are pinned at the top and
- *    local-alloc colours them a1/a0 — p85->a0 is what evicted param_1 into
- *    the park's `move t0,a0`. Volatile keeps the reads at their use sites
- *    (lw v0,92/lw v1,88 late), a0 stays free, param_1's pseudo takes its
- *    copy-preference for $a0 and the entry move vanishes.
- * 3. pkt = param_7 local copy carrying ALL body uses. update_equiv_regs
- *    DOUBLES a REG_EQUIV-noted single-set parm's live length
- *    (local-alloc.c:1153), halving param_7's global priority (17880) below
- *    puVar4's (21120) -> wrong s0/s1. The unnoted local scores ~2x and wins
- *    s0 first; the copy coalesces away via the hard-reg copy preference.
- * 4. puVar5/local_38: BOTH defined above the guard (puVar5 = pkt+0x38;
- *    local_38 = puVar5), loop stores via local_38 (the copy -> s3), call arg
- *    = puVar5 (the original -> spilled 16(sp), reload-inherited move s3,t0 +
- *    sw t0,16(sp) in the beqz delay slot, lw a0,16(sp) at the call).
- *    This is the park's two "failed" singles applied JOINTLY.
- * 5. iVar4 = 0x3c named once (li v0,60), stored to +0x53 through it, and
- *    iVar3 = iVar4 inside the guard -> the target's `move s5,v0` (a real
- *    register copy, not a rematerialised li).
- * 6. The gte address-argument scratch reuse: uVar3/uVar8/uVar7 (and their
- *    disjoint second lives) host the stsxy3/stsz4 address temps as OWN
- *    STATEMENTS (in-macro-arg assignments get renamed by combine's
- *    new-pseudo path — measured, +8 bytes): uVar3 = pkt+0x24 (a1, also the
- *    packet-word life), uVar8 = pkt+0x23 / pkt+0x2a (a0 pair), uVar7 =
- *    pkt+0x30 (v1, also the param_5 read). Multi-set kills both
- *    move_movables hoisting (the +144/+168 temps hoisted+spilled otherwise;
- *    loop.c runs before combine so the kill survives the rename) and the
- *    volatile read's birthing bump.
- *
- * Falsify the remaining 26: the residual is the s4-group prologue rotation ONLY
- * (color solved, above) — sched2 defers param_4's entry copy past the s0/HWD0/li-4
- * leaders in the target but tops it out here. See FUN_80058c70.c's header for the
- * full analysis and the open lever; the fix, when found, transfers verbatim.
+ * The final prologue match comes from two ordinary reused locals.  The loop
+ * counts down a body-local copy of param_4, and one scalar initializes both
+ * packet words (4 and 0x96).  The latter makes the two constant definitions
+ * one multi-set quantity.  cc1 therefore does not give the first definition a
+ * birthing priority bump, leaving a sched1 slot for the count copy; sched2 then
+ * emits the s4 save/copy after the packet pointer, HWD0, and length leaders.
+ * This replaces the old claimed 26-byte scheduling floor with coherent source.
  */
 
 extern int HWD0;
 extern int VWD0;
 extern void FUN_80057b80(u_long *outv, u_long *packet, int mode);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_80059008", FUN_80059008);
-#else
 u_long *FUN_80059008(u_short *param_1, u_long param_2, u_long *param_3, int param_4,
                      volatile u_long param_5, volatile u_long param_6, u_long *param_7)
 {
@@ -97,6 +36,8 @@ u_long *FUN_80059008(u_short *param_1, u_long param_2, u_long *param_3, int para
     u_long uVar3;
     int iVar3;
     int iVar4;
+    int cnt;
+    int init;
     u_long uVar5;
     u_long *pkt;
     u_long uVar7;
@@ -112,7 +53,8 @@ u_long *FUN_80059008(u_short *param_1, u_long param_2, u_long *param_3, int para
 
     pkt = param_7;
     iVar1 = HWD0;
-    *pkt = 4;
+    init = 4;
+    *pkt = init;
     puVar5 = pkt + 0x38;
     local_38 = puVar5;
     iVar2 = VWD0;
@@ -121,14 +63,16 @@ u_long *FUN_80059008(u_short *param_1, u_long param_2, u_long *param_3, int para
     uVar5 = param_6;
     uVar7 = param_5;
     uVar3 = *(u_long *)(uVar5 + 4);
-    pkt[8] = 0x96;
+    init = 0x96;
+    pkt[8] = init;
     *(u_char *)((int)pkt + 0x4f) = 0xc;
     iVar4 = 0x3c;
     pkt[3] = uVar7;
     pkt[5] = (u_long)param_3;
     *(u_char *)((int)pkt + 0x53) = iVar4;
     pkt[4] = uVar3;
-    if (param_4 != 0) {
+    cnt = param_4;
+    if (cnt != 0) {
         r0 = (SVECTOR *)(pkt + 0x20);
         r1 = (SVECTOR *)(pkt + 0x26);
         r2 = (SVECTOR *)(pkt + 0x2c);
@@ -183,10 +127,9 @@ u_long *FUN_80059008(u_short *param_1, u_long param_2, u_long *param_3, int para
                 *(short *)((int)pkt + 0x66) = *puVar4;
                 FUN_80057b80(puVar5, pkt, 0);
             }
-            param_4 = param_4 + -1;
+            cnt = cnt + -1;
             puVar4 = puVar4 + 0x10;
-        } while (param_4 != 0);
+        } while (cnt != 0);
     }
     return (u_long *)pkt[5];
 }
-#endif
