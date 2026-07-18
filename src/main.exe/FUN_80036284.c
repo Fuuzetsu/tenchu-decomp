@@ -168,6 +168,51 @@ extern void GsSetWorkBase(void *workBase);
  *     allocation even starts) rather than re-deriving the pz/duration
  *     priority math, which is now settled twice.
  *
+ * ROUND 3 (2026-07-18): fast-forwarded to master HEAD (a21a758), re-confirmed
+ * baseline 34 (file + whole image). This round SETTLES the round-1/2 open
+ * thread and closes off the permuter as a clean lever:
+ *   - FRESH permuter run from base (my own, -fno-builtin confirmed active in
+ *     Build.hs + permute.py): reaches 16 whole-image bytes — LOWER than round
+ *     2's 31, and a DIFFERENT mutation family. It is NOT the "reuse duration
+ *     as scratch" trap round 2 warned about; it is a case-0 register-tie
+ *     (q0 computed into b, then copied to r; g copied to new_var2):
+ *       b = (elapsed*unk0)/duration;  r = b;
+ *       g = (elapsed*unk1)/duration;  new_var2 = g;
+ *       b = (elapsed*unk2)/duration;  then stores r0=r, g0=new_var2, b0=b
+ *     The copy `r = b` register-ties r<->b, which perturbs the GLOBAL coloring
+ *     and FIXES the core divergence: duration lands in a2 and pz in a0 (p84->a2),
+ *     exactly the target. Verified by matchdiff: after this edit the entry-block
+ *     lw/subu/sltu diffs and the case-0 divisor all vanish; residual 16 is just
+ *     (a) case-0 b: v0(tgt) vs a1, and (b) case-2 new_elapsed: v1(tgt) vs a1
+ *     plus its product cascade.
+ *   - RE-SEEDED the permuter from that 16 (contract's re-seed protocol): it
+ *     reaches 12 — but ONLY by STACKING another seed-temp copy in case 2
+ *     (`r = elapsed; r = (r*unk0)/duration;`). So the 34->16->12 ladder is a
+ *     chain of human-implausible register-tie copies; each improving edit is a
+ *     synthetic seed temp. REJECTED per the owner's standing directive (prefer
+ *     clean human structure even at higher bytes; SetWire 70->80,
+ *     mission_score_screen 145->187). Kept the clean 34.
+ *   - This is now DIAGNOSTIC-COMPLETE: the target's case-0 AND case-2 both
+ *     compute the channels in unk0,unk1,unk2 ORDER and store r0,g0,b0 — read
+ *     straight off the target asm (mult v1,v0 x3 then sb x3 in each case), i.e.
+ *     the target's SOURCE STRUCTURE IS IDENTICAL TO THIS DRAFT'S. The only
+ *     divergence is the register coloring, and the permuter proves it is
+ *     drivable to a match ONLY through register-tie copies no human writes.
+ *     The mechanism (fresh .greg trace): duration=p84 is coloured 7th and
+ *     takes a0 as its first numerically-free reg (v0/v1/t4/a3 excluded by the
+ *     six 15000-priority temps); reaching the target's duration->a2 requires a0
+ *     ALSO excluded at p84's turn, which needs a conflicting value tied into a0
+ *     — achievable only by an artificial copy. No clean C creates that tie.
+ *   - New NO-OPs confirmed this round (nullcheck identical-hash): separate
+ *     case-2 variable `nel = duration - elapsed` (RE-confirmed — the old
+ *     elapsed is dead at the subu so the pseudo colours to a1 regardless of
+ *     name); and reordering the scalar local DECLARATIONS (u32 b/u16 g/u32 r)
+ *     — gcc defers scalar pseudo allocation to first-use, so declaration order
+ *     cannot renumber the allocnos. Neither is a lever.
+ * Bottom line for round 4: do NOT re-run the permuter expecting a clean win —
+ * its entire improving neighbourhood here is seed-temp register-ties. This is a
+ * genuine sub-C coloring tie with a structurally-identical source; leave parked.
+ *
  * Keep this pure-C draft guarded; do not replace the residual with inline asm.
  */
 
