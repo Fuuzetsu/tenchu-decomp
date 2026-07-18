@@ -69,33 +69,48 @@
  *     to fence only target.*: 868 bytes) — the vDif-> tail must stay inside
  *     the fence.  Permuter round 2, candidate output-30-1.
  *
- * The residual 7 bytes are a single LOCAL-ONLY (`regalloc.py` confirms:
- * local_alloc coloured these, global_alloc never saw them) quantity-order
- * tie between r.vx (pseudo, wants target's $t0) and the `CamLoc.vx - r.vx`
- * temp that becomes target.vrx (pseudo, wants target's $v0) — our compile
- * has them the other way around ($v0 for r.vx, $t0 for the temp).  Per
- * compiler-facts.md, local_alloc colours quantities by descending
- * QTY_CMP_PRI = floor_log2(n_refs)*n_refs*size/(death-birth), i.e.
- * shortest-lived-and-most-referenced first, and the first coloured takes
- * $v0; no tool computes this arithmetic for LOCAL-ONLY quantities (unlike
- * global_alloc's priority, which `regalloc.py --compare/--between` computes
- * exactly).  Three "birth it earlier" seed attempts were tried and rejected
- * because each changed the compiled LENGTH (never mind the register):
+ * The residual 7 bytes are a single LOCAL-ONLY quantity-INTERFERENCE tie
+ * between r.vx (pseudo 220, wants target's $t0) and the `CamLoc.vx - r.vx`
+ * temp that becomes target.vrx (pseudo 224, wants target's $v0) — our compile
+ * has them the other way around ($v0 for r.vx, $t0 for the temp).
+ *
+ * `tools/regalloc.py --local` now prints and SELF-VALIDATES the block_alloc
+ * walk against cc1's printed homes (this postdates the older note that "no
+ * tool computes LOCAL qty arithmetic" — it does now).  The walk for block 17
+ * (the target/vDif tail) shows the tie is NOT a plain priority flip:
+ *     p220 r.vx           refs 6, live [8,20),  QTY_CMP_PRI 10000, home $v0
+ *     p224 target.vrx     refs 8, live [14,50), QTY_CMP_PRI  6666, home $t0
+ * plus two pri-40000, ~2-insn field pseudos p234 [32,34) / p239 [36,38) that
+ * take $v0 FIRST.  p224 lives to index 50 (its second store — see below) and
+ * therefore CONFLICTS p234/p239, so it can never land in $v0 no matter how it
+ * is reweighted: outranking pri-40000 needs ~32 refs (unreachable), and p224
+ * cannot avoid the conflict without dying before index 32.  r.vx (p220) does
+ * NOT conflict p234/p239 (disjoint) so it freely shares $v0.  To match, p224
+ * must die early (like retail, where target.vrx's $v0 is recycled into
+ * target.vry one insn later); ours keeps it live because the vrx computation
+ * is stored TWICE to sp+28 (the vrx donor is a real second `target.vrx =`
+ * assignment; jump-opt keeps both across the /4 bias branch — `rtldump
+ * --pass rtl,jump`: fp+28 mem-refs 2 -> 5).  But that second store is exactly
+ * the +4 bytes that make the frame 860: removing it (or any donor) drops to
+ * 856 (measured — same as the historical `sin = CamLoc.vx` -4).  So the donor
+ * is load-bearing for LENGTH and simultaneously the cause of the tie; no
+ * length-neutral respelling found this round splits those two effects.
+ *
+ * Rejected length experiments (each changes the compiled LENGTH):
  *   - `sin = CamLoc.vx;` before the real computation: 856 bytes (-4).
  *   - `cos = r.vx;` before the real computation: 848 bytes (-12).
- *   - `target.vrx = CamLoc.vx; target.vrx -= r.vx;` (same-destination
- *     two-step, hoping cse would collapse it to one store): 864 bytes (+4).
- * Two bounded foreground permuter runs at this checkpoint (7 bytes) — one
- * immediately after reaching it, one after the guided autorules sweep below
- * — both plateaued at base with no candidate beating 7.  Plain autorules,
- * guided autorules (rtlguide + `--guided`, 160 compiled candidates including
- * type-width, empty-loop-boundary, loop-fence, nested-loop-fence, and
- * redundant-field-donor variants at every candidate line), and swapping the
- * two donor statements' order all confirmed no win below 7.  Further work
- * should start from precise LOCAL qty arithmetic (hand-derive n_refs/size/
- * birth/death from the RTL for pseudos 220 and 224 — see
- * CameraDirection.i.lreg in a fresh `rtldump.py --pass lreg` run) rather than
- * another blind seed guess.
+ *   - dropping the vrx/vpx donors + the tail fence entirely: 856 bytes (-4).
+ *   - `target.vrx = CamLoc.vx; target.vrx -= r.vx;` two-step: 864 bytes (+4).
+ *
+ * THREE bounded foreground permuter runs at this checkpoint have plateaued at
+ * 7 with the authoritative full-link rescore keeping base.c best — the third
+ * (this round) was AFTER the documented permuter `-fno-builtin` fix and still
+ * found nothing, so the plateau is not a stale-tooling artifact.  Plain +
+ * guided autorules (type-width, empty-loop-boundary, loop-fence, nested-loop-
+ * fence, redundant-field-donor, fence-unwrap, cmp-swap, seed variants) and
+ * swapping the donor order all confirmed no win below 7.  Genuine sub-C local-
+ * alloc interference tie: only a find_reg / jump-store-dedup change (not a
+ * source change) can move it.  Do not re-open with more surgical sessions.
  */
 
 #ifndef NON_MATCHING
