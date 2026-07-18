@@ -79,9 +79,12 @@ Evidence it works, this session:
   StageEndScreen.c), not our scaffolding. 866 lines vs 2076.
 - **DecodeTMD family ~620 -> 0:** the whole breakthrough was recognising the hand-rolled
   `goto` loop as a WRONG FIX propping up damage it caused (it killed the loop-depth ref
-  weighting), and the TU wanting `-fno-strength-reduce`. FUN_80058c70/FUN_80059008 -> 26;
-  FUN_80059ff4/FUN_8005a3cc -> **0**; the 1260-pair (FUN_8005961c/FUN_80059b08, 2520
-  bytes) is in flight with the recon done.
+  weighting), and the TU wanting `-fno-strength-reduce`. **FOUR of six now MATCHED:**
+  FUN_80059ff4/FUN_8005a3cc AND the 1260-pair FUN_8005961c/FUN_80059b08 all -> **0**.
+  Only FUN_80058c70/FUN_80059008 remain at 26 (a sched2 prologue PARM-entry-copy LUID
+  tie — NOT proven-closed: one competitor is a body group and the target reaches the
+  order, so a LUID-lifting C construct must exist; the one documented open full-match
+  lever left in the game code, worth 2×920 bytes).
 
 The levers: PSX.SYM's `BEGIN PSX.SYM` block gives the authors' own declarations (names,
 types, nested-block scopes — list order is REVERSED per block); the matched sibling's
@@ -90,6 +93,38 @@ is a source oracle (a const/copy def next to its uses = set once = birthing bump
 above a byte store = the human wrote the load first = QImode alias pin). SCOPE: main.exe
 game code only — the SDK (>=0x80060000, libgte/libgs/libapi) is stock Sony library code
 and NOT a target.
+
+### Batch 2026-07-18: the remaining parks are a confirmed sub-C FLOOR
+
+A 13-lane sweep across the whole value spectrum (DrawImpact 4, FUN_80057b80 8,
+AdtSelect 9, SetupTelop 9, SetLightningI 15, CameraDirection 7, FUN_80058c70/9008
+26, start_demo_ 39, PutItemList 27, PadProc 28, FUN_80036284 34, FUN_800519bc 87,
+StageEndScreen 202) re-tested every park with the repaired tooling (regalloc
+--local, the `-fno-builtin`-fixed permuter). **Result: 0 new full matches; every
+one confirmed a genuine sub-C tie** unreachable from any C spelling in cc1 2.8.1.
+The tie taxonomy is now COMPLETE and documented in the cookbook — local-alloc
+(conflict-free-window, containment, interference-wall), sched1 LUID wall, sched2
+emission-order (prologue parm-copy, biv-init), dbr delay-slot, reload round-robin,
+hard-conflict register renames, register-coloring cascade. Residual SIZE does not
+indicate structural-vs-tie: even 87-byte FUN_800519bc is identical-CFG register
+renames.
+
+**What still moves, and what doesn't.** The `-fno-builtin` permuter fix is the ONE
+lever that produced progress: it found StageEndScreen 202->199 (a human-plausible
+named coordinate variable earlier rounds' buggy permuter missed). But on most ties
+its wins are non-human seed-temp/no-op scaffolds (SetLightningI 12, FUN_80036284
+16/12, FUN_80058c70 22) — all correctly REJECTED per the human-source directive; the
+clean park is the honest state. The human-source discipline held in every lane.
+
+**The frontier has moved off "match more parks."** The remaining game-code full-match
+opportunities are: (1) FUN_80058c70/FUN_80059008 — the one documented open LUID-lift
+lever (2×920 bytes); (2) a fixed-permuter sweep of the few UNTESTED small non-gte.h
+parks (drawF3 5, DrawBleed 8, ControlTraceLine 10, FUN_800514d8 12, DrawHinoko 18,
+PlayVoice 4) to harvest any StageEndScreen-style human-plausible win. Beyond those,
+the ~35 remaining game functions are a genuine floor: matching is ~90% done and the
+tail is unreachable in this toolchain, so the productive frontier is a PHASE decision
+(accept the floor / reimplementation build / modding / glitch research), not more
+matching rounds.
 
 ## Where the work actually is now (2026-07-18)
 
