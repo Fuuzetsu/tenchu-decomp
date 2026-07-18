@@ -18,6 +18,34 @@
  * Do not reopen without genuinely new information.
  * (Round history: 759 -> 722 -> 619 -> 506 -> 494 -> 253 -> 208 -> 42 -> 36 -> 8.)
  *
+ * ROUND 11 — RE-CONFIRMED ON TODAY'S TOOLCHAIN; THE TWO POST-ROUND-10 LEVERS ARE
+ * MOOT. Added no bytes, changed no code. Prompted to re-try the permuter "now that
+ * the -fno-builtin fix means it searches the correct program", and regalloc.py
+ * --local. Both are inapplicable HERE, and the verdict was re-verified against a
+ * FRESH sched2 dump from today's cc1 (not from memory):
+ *  - THE PERMUTER IS NOT A LEVER FOR THIS FUNCTION AND NEVER WAS. permute.py (:985)
+ *    REFUSES any function that #includes gte.h BEFORE compiling anything — its C
+ *    parser cannot read the inline asm. It never searched a "wrong program"; it
+ *    never searched at all, so the -fno-builtin fix changes nothing here. Confirmed
+ *    empirically (exits at the gte.h gate after a preflight that re-reports the same
+ *    4-line residual). RULE: for any gte-allowlisted near-match the permuter is a
+ *    non-lever regardless of residual size — escalate straight to RTL.
+ *  - regalloc.py --local does NOT target this residual: it is NOT a register tie
+ *    (both s0/s1 ARE correctly homed), it is a sched2 EMIT-ORDER tie.
+ *  - THE TIE IS REAL AND LUID-BOUND (re-read .i.sched2, basic block 0): T-20 ready
+ *    list `6 (1) 4 (1)` -> keeps `6 4` (picks 6). No hazard note at T-20 (both are
+ *    reg-reg moves with no function unit); insn 2016 (sw s1) DOES get one at T-21.
+ *    The post-reload stream chains 2018->4->2016->6, and insn 4 is a BARE
+ *    `(set (reg/v:SI 16 s0)(reg:SI 4 a0))` movsi with REG_DEP_ANTI to its own save —
+ *    no andi/sll, so param_1 is a pointer with NO narrow deferral. LUID(4)<LUID(6)
+ *    by declaration order and nothing in C flips it. Rounds 6-10 stand verbatim.
+ *  - THE FENCE IS LOAD-BEARING, NOT scaffolding for the 8 bytes (re-measured):
+ *    unwrapping it swaps param_1/param_2 across s0<->s1 for 179 insns (+171 bytes);
+ *    a SINGLE human-plausible do{}while(0) is still 179. The triple fence
+ *    reconstructs an allocation the human got by unknown means; the 8-byte prologue
+ *    residual is INDEPENDENT of it. Per the owner's clean-structure directive the
+ *    fence is ugly but justified: the only "cleaner" alternative is +171 bytes.
+ *
  * The ENTIRE residual is ONE hunk: the two parameter-copy chains in the
  * prologue are emitted s0-first where the target emits s1-first.
  *      target: sw s1,28(sp); move s1,a1; sw s0,24(sp); move s0,a0
