@@ -3,16 +3,20 @@
 ## Continuation snapshot — 2026-07-19
 
 The dated shutdown material below is historical. Fresh measurement on master
-reports 534/555 pure-C game functions (290012/303244 bytes, 95.64%) and 551/555
-complete functions when the 17 canonical handwritten-assembly originals are
-included (296164/303244 bytes, 97.67%). Only four game functions remain:
+reports 535/555 pure-C game functions (294648/303244 bytes, 97.17%) and 553/555
+complete functions when the 18 canonical handwritten-assembly originals are
+included (301020/303244 bytes, 99.27%). Only two game functions remain:
 
 | Function | Size | Current evidence |
 |---|---:|---|
-| `mission_score_screen` | 4636 | exact-length 32-byte residual; shared human drawing-macro/local identities are being reconstructed from `StageEndScreen` and fresh scheduler output |
 | `FUN_800519bc` | 1448 | exact-length 76-byte residual in seven clusters; demo homolog confirms the normal loop and direct texture-page expression |
 | `AdtSelect` | 776 | exact-length nine-byte residual; both fake control-flow fences are gone and the remaining difference is one parameter-reload/self-tie decision also present in the demo |
-| `FUN_8001c730` | 220 | 212-byte draft; ordinary Hermite/GTE implementation established, with matrix packing and multiply scheduling still being reconciled |
+
+`mission_score_screen` now matches all 4636 bytes from a shared function-scope
+sprite-attribute identity. `FUN_8001c730` is classified as the eighteenth
+canonical handwritten-assembly original: it is absent from the demo's PSX.SYM
+function inventory, reads GTE MAC registers directly, and only follows retail
+scheduling when expressed as a hand schedule rather than normal C.
 
 The current exact-source run also promoted `start_demo_`, `AddEnemy`,
 `FUN_80036284`, `FUN_80032720`, `WeaponHitWeapon`, `DrawHinoko`,

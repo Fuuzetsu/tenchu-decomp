@@ -16,8 +16,8 @@ byte-identical `main.exe`.
   `cpp | cc1-281 -G8 | maspsx --aspsx-version=2.77 | as | ld`; reproducible/offline
   via nix (no cabal/wine). maspsx is integrated (see [`docs/toolchain.md`](docs/toolchain.md)).
 - **Every game function is carved (555/555)**; matched count is live in
-  `tools/progress.py` (**534/555 game functions, 95.64% of game-code bytes** as of
-  2026-07-19; **551/555 functions and 97.67% of bytes counting the 17
+  `tools/progress.py` (**535/555 game functions, 97.17% of game-code bytes** as of
+  2026-07-19; **553/555 functions and 99.27% of bytes counting the 18
   canonical-asm originals**),
   whole-image byte-identical throughout (see `git log` for the
   per-function record; `tools/progress.py` for the live count). The engine is
@@ -33,9 +33,10 @@ byte-identical `main.exe`.
   tokens** on Sonnet; pick targets with `tools/triage.py` / `tools/findsimilar.py`.
 - **Partial matches** (kept via the
   NON_MATCHING convention — default build stays green byte-identical, draft
-  builds with `NON_MATCHING=<Name> ./Build`): only **four game functions remain**
-  (2026-07-19): `mission_score_screen`, `FUN_800519bc`, `AdtSelect`, and
-  `FUN_8001c730`. Older headers often describe residuals as proven sub-C floors,
+  builds with `NON_MATCHING=<Name> ./Build`): only **two game functions remain**
+  (2026-07-19): `FUN_800519bc` and `AdtSelect`. `mission_score_screen` is now
+  exact pure C; `FUN_8001c730` is classified as a canonical handwritten GTE
+  helper. Older headers often describe residuals as proven sub-C floors,
   but repeated exact matches have falsified that conclusion. Those diagnostics
   describe one tested pseudo graph, not everything human C can express. Common
   residuals still include
@@ -152,16 +153,19 @@ value and evidence, but treat every park as a falsifiable claim about one graph.
 ## Where the work actually is now (2026-07-19)
 
 Fresh `tools/progress.py` and `tools/findsimilar.py --targets --by-value` leave
-exactly four game-code functions:
+exactly two game-code functions:
 
 | Function | Size | Authoritative current draft |
 |---|---:|---|
-| `mission_score_screen` | 4636 | exact length; 32 differing bytes / 14 instructions; ordinary shared score-drawing macro structure is under active reconstruction |
 | `FUN_800519bc` | 1448 | exact length; 76 differing bytes / 28 instructions in seven clusters; demo homolog confirms an ordinary renderer loop |
 | `AdtSelect` | 776 | exact length; nine differing bytes in one huge-frame reload decision; clean indexed count loop and ordinary D-pad control flow |
-| `FUN_8001c730` | 220 | 212-byte draft; 36 aligned lines in ten blocks; compiler evidence identifies ordinary Hermite evaluation plus GTE matrix packing |
 
-All four are active in the current four-slot flywheel. Compiler output and
+`mission_score_screen` closed at 0/4636 from one shared function-scope sprite
+attribute identity. `FUN_8001c730` is the eighteenth canonical assembly body:
+the post-demo helper has no PSX.SYM function record, reads GTE MAC registers
+directly, and requires hand scheduling when forced through C.
+
+Both remaining functions are active in the current four-slot flywheel. Compiler output and
 shipping/demo bytes remain the gate. Cookbook rules and old “unreachable”
 claims are hypotheses, especially when they were derived from a scaffolded
 local minimum.
