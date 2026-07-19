@@ -18,7 +18,10 @@ This opt-in proof rewrites only generated build products:
   generated data input before the final link;
 * new C files under the normal-link extension directory receive ordinary
   text/data/small-BSS/BSS input patterns instead of falling into ``/DISCARD/``;
-  and
+* when requested by the normal relink, small initialized/uninitialized data
+  newly emitted by an existing game C object is collected in the same
+  ``$gp``-near hooks (and residual COMMON storage is retained) instead of
+  falling into ``/DISCARD/``; and
 * the retail proof represents the fixed virtual-memory pool as an explicit
   NOBITS reservation; the composed relink preserves that base while BSS fits
   in the retail gap, then advances it to aligned BSS and shrinks the
@@ -230,6 +233,7 @@ def make_bss_body(
     bss_input_lines: list[str],
     tail_object: str,
     extension_object_glob: str,
+    ordinary_c_object_glob: str | None,
     aliases: list[Symbol],
     dynamic_pool: bool = False,
 ) -> str:
@@ -242,6 +246,13 @@ def make_bss_body(
         f"{inner}{tail_object}(.bss);\n",
         f"{inner}{extension_object_glob}(.sbss .sbss.* .scommon);\n",
     ]
+    if ordinary_c_object_glob is not None:
+        # cc1 is run with -G8. maspsx consequently lowers <=8-byte tentative
+        # definitions (cc1's .comm/.lcomm) into .sbss, so these inputs must sit
+        # next to the original gp-small BSS prefix, not at the far BSS end.
+        lines.append(
+            f"{inner}{ordinary_c_object_glob}(.sbss .sbss.* .scommon);\n"
+        )
     lines.extend(bss_input_lines)
     cursor = BSS_PAD_END
     for symbol in aliases:
@@ -259,6 +270,18 @@ def make_bss_body(
         [
             f"{inner}. += 0x{final_gap:x};\n",
             f"{inner}{extension_object_glob}(.bss .bss.* COMMON);\n",
+        ]
+    )
+    if ordinary_c_object_glob is not None:
+        # The generated linker already enumerates each ordinary object's base
+        # .bss section. Repeating it is harmless (it is empty by this point)
+        # and also makes .bss.* plus any residual GNU COMMON fail-safe rather
+        # than silently discarding a newly introduced definition.
+        lines.append(
+            f"{inner}{ordinary_c_object_glob}(.bss .bss.* COMMON);\n"
+        )
+    lines.extend(
+        [
             f"{inner}__bss_end = .;\n",
             f"{inner}D_800CDBA8 = .;\n",
             f"{inner}main_exe_BSS_END = .;\n",
@@ -366,6 +389,7 @@ def rewrite_linker(
     new_tail_object: str,
     extension_object_glob: str,
     aliases: list[Symbol],
+    ordinary_c_object_glob: str | None = None,
     object_replacements: Sequence[tuple[str, str]] = (),
     dynamic_pool: bool = False,
 ) -> str:
@@ -453,12 +477,22 @@ def rewrite_linker(
     if vram_index != rom_index + 1:
         raise LaneError("unexpected content between generated ROM and VRAM end markers")
     indent = _indent_of(lines[rom_index])
-    extension_body = "".join(
-        [
+    extension_lines = [
             f"{indent}/* Normal-link extension sources. */\n",
             f"{indent}.main_exe_extension : AT(__romPos) SUBALIGN(4)\n",
             f"{indent}{{\n",
             f"{indent}    __tenchu_extension_start = .;\n",
+    ]
+    if ordinary_c_object_glob is not None:
+        # Existing game objects already own fixed text/rodata/data positions,
+        # but those generated clauses omit -G8's .sdata output. Collect only
+        # the missing small initialized sections here, immediately after the
+        # original loaded tail so their signed gp offsets stay short.
+        extension_lines.append(
+            f"{indent}    {ordinary_c_object_glob}(.sdata .sdata.*);\n"
+        )
+    extension_lines.extend(
+        [
             f"{indent}    {extension_object_glob}"
             "(.text .text.* .rodata .rodata.* .data .data.* .sdata .sdata.*);\n",
             f"{indent}    __tenchu_extension_end = .;\n",
@@ -468,6 +502,7 @@ def rewrite_linker(
             f"{indent}. = ALIGN(., 4);\n",
         ]
     )
+    extension_body = "".join(extension_lines)
     lines[rom_index] = (
         extension_body
         + lines[rom_index]
@@ -477,6 +512,7 @@ def rewrite_linker(
             bss_input_lines=bss_input_lines,
             tail_object=new_tail_object,
             extension_object_glob=extension_object_glob,
+            ordinary_c_object_glob=ordinary_c_object_glob,
             aliases=aliases,
             dynamic_pool=dynamic_pool,
         )
@@ -498,6 +534,7 @@ def generate(
     old_tail_object: str,
     new_tail_object: str,
     extension_object_glob: str,
+    ordinary_c_object_glob: str | None = None,
     object_replacements: Sequence[tuple[str, str]] = (),
     dynamic_pool: bool = False,
 ) -> tuple[int, int, int]:
@@ -550,6 +587,7 @@ def generate(
         new_tail_object=new_tail_object,
         extension_object_glob=extension_object_glob,
         aliases=aliases,
+        ordinary_c_object_glob=ordinary_c_object_glob,
         object_replacements=object_replacements,
         dynamic_pool=dynamic_pool,
     )
@@ -754,6 +792,14 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     generate_parser.add_argument("--new-tail-object", required=True)
     generate_parser.add_argument("--extension-object-glob", required=True)
     generate_parser.add_argument(
+        "--ordinary-c-object-glob",
+        help=(
+            "normal-relink glob for already enumerated game C objects; retain "
+            "their newly emitted .sdata/.sbss/.scommon/COMMON sections in "
+            "gp-near/owned output hooks (omitted by the retail proof)"
+        ),
+    )
+    generate_parser.add_argument(
         "--dynamic-pool",
         action="store_true",
         help=(
@@ -809,6 +855,7 @@ def main(argv: list[str] | None = None) -> int:
                 old_tail_object=args.old_tail_object,
                 new_tail_object=args.new_tail_object,
                 extension_object_glob=args.extension_object_glob,
+                ordinary_c_object_glob=args.ordinary_c_object_glob,
                 object_replacements=replacements,
                 dynamic_pool=args.dynamic_pool,
             )
