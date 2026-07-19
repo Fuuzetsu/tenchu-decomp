@@ -102,6 +102,23 @@ HEADER_PLACEHOLDERS = {
     ("header.s.o", ".data", 0x18): "PS-X EXE load placeholder",
 }
 
+# The strict linker script selects these into an INFO output guarded by a
+# zero-size assertion. They are therefore owned only while empty; an unknown
+# zero-sized alloc section is still rejected rather than silently discarded.
+EXPECTED_EMPTY_INPUT_SECTIONS = frozenset(
+    {
+        ".text",
+        ".data",
+        ".rodata",
+        ".sdata",
+        ".bss",
+        ".sbss",
+        ".scommon",
+        ".rel.dyn",
+        ".rela.dyn",
+    }
+)
+
 MOVABLE_OUTPUT_SECTIONS = frozenset(
     {".main_exe", ".main_exe_extension", ".main_exe_bss"}
 )
@@ -548,14 +565,16 @@ def audit_alloc_section_ownership(
     *,
     object_name: str,
 ) -> tuple[list[Finding], Counter[str]]:
-    """Reject nonempty alloc sections not selected into a runtime owner."""
+    """Reject alloc sections not selected into a runtime/zero-size owner."""
 
     findings: list[Finding] = []
     reviewed: Counter[str] = Counter()
     for section in sections:
-        if not (section.flags & SHF_ALLOC) or section.size == 0:
+        if not (section.flags & SHF_ALLOC):
             continue
         if section.index in owned_indices:
+            continue
+        if section.size == 0 and section.name in EXPECTED_EMPTY_INPUT_SECTIONS:
             continue
         metadata = reviewed_alloc_metadata(section)
         if metadata is not None:
@@ -570,7 +589,7 @@ def audit_alloc_section_ownership(
                 word=f"0x{section.size:x}",
                 target=None,
                 detail=(
-                    "nonempty SHF_ALLOC input section is not selected by a "
+                    "SHF_ALLOC input section is not selected by a "
                     "normal-link runtime owner and is not exact reviewed MIPS "
                     f"metadata (type=0x{section.type:x}, flags=0x{section.flags:x})"
                 ),

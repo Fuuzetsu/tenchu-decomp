@@ -520,6 +520,18 @@ class AllocSectionOwnershipTests(unittest.TestCase):
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0].section, ".reginfo")
 
+    def test_only_expected_empty_alloc_companions_are_zero_size_owned(self) -> None:
+        expected_empty = self.section(1, ".text", size=0)
+        unknown_empty = self.section(2, ".debug_payload", size=0)
+        findings, reviewed = audit.audit_alloc_section_ownership(
+            [expected_empty, unknown_empty],
+            set(),
+            object_name="empty.o",
+        )
+        self.assertEqual(reviewed, {})
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].section, ".debug_payload")
+
 
 class CurrentRelinkIntegrationTests(unittest.TestCase):
     def test_current_loaded_inputs_have_no_unowned_alloc_runtime_bytes(self) -> None:
