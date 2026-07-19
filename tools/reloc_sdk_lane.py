@@ -4,9 +4,9 @@
 This deliberately bounded relocation gate consumes the linker-owned game
 lane.  It removes absolute symbol assignments for the SDK/CRT text stream now
 emitted from relocatable C and canonical assembly, and can insert controlled
-probe sizes immediately before that stream.  The raw ``72CD0.data.s`` input at
-``0x800834d0`` is the explicit stopping point: it still begins with SDK
-instructions and is outside this proof.
+probe sizes immediately before that stream.  ``UnitVector2`` at ``0x80086764``
+is the explicit stopping point: it begins the remaining loaded-data input and
+is outside this proof.
 """
 
 from __future__ import annotations
@@ -25,9 +25,9 @@ except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
 
 
 SDK_TEXT_START = 0x800601D4
-SDK_TEXT_END = 0x800834D0
-EXPECTED_SDK_SYMBOLS = 1919
-EXPECTED_SDK_SECTION_SYMBOLS = 1801
+SDK_TEXT_END = 0x80086764
+EXPECTED_SDK_SYMBOLS = 2010
+EXPECTED_SDK_SECTION_SYMBOLS = 1892
 EXPECTED_OMITTED_INTERNAL_ALIASES = 118
 FIRST_SDK_INPUT = "/LIBAPI_4F9D4.s.o(.text);"
 
@@ -106,14 +106,18 @@ EXPECTED_CANONICAL_OBJECTS: dict[str, tuple[int, dict[int, int]]] = {
         0x8C8,
         {R_MIPS_26: 65, R_MIPS_HI16: 114, R_MIPS_LO16: 114, R_MIPS_PC16: 8},
     ),
+    "SDK_TEXT_72CD0.s.o": (
+        0x3294,
+        {R_MIPS_26: 196, R_MIPS_HI16: 249, R_MIPS_LO16: 249, R_MIPS_PC16: 7},
+    ),
 }
 
-EXPECTED_CANONICAL_TEXT_BYTES = 0x20C44
+EXPECTED_CANONICAL_TEXT_BYTES = 0x23ED8
 EXPECTED_CANONICAL_RELOCATIONS = {
-    R_MIPS_26: 1501,
-    R_MIPS_HI16: 2144,
-    R_MIPS_LO16: 2144,
-    R_MIPS_PC16: 1050,
+    R_MIPS_26: 1697,
+    R_MIPS_HI16: 2393,
+    R_MIPS_LO16: 2393,
+    R_MIPS_PC16: 1057,
 }
 
 # The only raw high-half constants which still look like KSEG addresses after
@@ -646,10 +650,11 @@ def verify(
     for name, address in emitted.items():
         require_symbol(base, shifted, name, address, delta=delta)
 
-    # The linker-owned game stayed before the probe.  StartPAD is the first
-    # symbol in untouched raw 72CD0.data.s and is the checked fixed boundary.
+    # The linker-owned game stayed before the probe.  UnitVector2 is the first
+    # symbol in the remaining loaded-data input and is the checked fixed
+    # boundary.
     require_fixed_symbol(base, shifted, "main", 0x800162A4, absolute=False)
-    require_fixed_symbol(base, shifted, "StartPAD", SDK_TEXT_END, absolute=True)
+    require_fixed_symbol(base, shifted, "UnitVector2", SDK_TEXT_END, absolute=True)
 
     # Exercise linked words from the early CRT, the first newly canonical
     # libgs carve, the middle libgte/libapi stream, and the final card input.
@@ -666,6 +671,11 @@ def verify(
         require_jump(elf, "UserFuncOpen", 0x28, "USERFUNC_OBJ_7C", 2)
         require_jump(elf, "_card_open", 0x08, "InitCARD", 3)
         require_hi_lo(elf, "_card_start", 0x20, "funcEvSpIOE")
+        require_jump(elf, "StartPAD", 0x08, "StartPAD2", 3)
+        require_hi_lo(elf, "FUN_80083538", 0x20, "func_800835E8")
+        require_hi_lo(elf, "_ExitCard", 0x24, "D_80083A74")
+        require_hi_lo(elf, "_ExitCard", 0x2C, "D_80083A80")
+        require_jump(elf, "FUN_80085f0c", 0x14, "bzero", 3)
 
         # These six words are PsyQ signatures/return stubs, not addresses.
         # They travel with the section but intentionally carry no relocation.

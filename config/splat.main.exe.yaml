@@ -878,5 +878,6 @@ segments:
       - [0x722E8, asm, SDK_TEXT_722E8]
       - [0x72BB0, c, PAD_init]
       - [0x72C40, c, InitPAD]
-      - { start: 0x72CD0, type: data, linker_section_order: .text }
+      - [0x72CD0, asm, SDK_TEXT_72CD0]
+      - { start: 0x75F64, type: data, linker_section_order: .text }
   - [0x87800]

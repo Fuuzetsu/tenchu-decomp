@@ -57,8 +57,9 @@ class GenerateTests(unittest.TestCase):
 game = 0x800601D0;
 Exec = 0x800601D4;
 middle = 0x80070000;
-last = 0x800834CC;
 StartPAD = 0x800834D0;
+last = 0x80086760;
+UnitVector2 = 0x80086764;
 """
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -73,14 +74,15 @@ StartPAD = 0x800834D0;
                 linker_in, symbols_in, linker_out, symbols_out, pad=4
             )
 
-            self.assertEqual(removed, 3)
+            self.assertEqual(removed, 4)
             self.assertIn("LONG(0x00000000);", linker_out.read_text())
             filtered = symbols_out.read_text()
             self.assertIn("game = 0x800601D0;", filtered)
             self.assertNotIn("Exec =", filtered)
             self.assertNotIn("middle =", filtered)
+            self.assertNotIn("StartPAD =", filtered)
             self.assertNotIn("last =", filtered)
-            self.assertIn("StartPAD = 0x800834D0;", filtered)
+            self.assertIn("UnitVector2 = 0x80086764;", filtered)
 
     def test_rejects_changed_retail_symbol_inventory_before_writing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -125,7 +127,7 @@ class InventoryTests(unittest.TestCase):
 
         self.assertEqual(text_size, lane.EXPECTED_CANONICAL_TEXT_BYTES)
         self.assertEqual(counts, lane.EXPECTED_CANONICAL_RELOCATIONS)
-        self.assertEqual(sum(counts.values()), 6839)
+        self.assertEqual(sum(counts.values()), 7540)
 
     def test_source_audit_accepts_only_reviewed_literals(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
