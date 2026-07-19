@@ -142,7 +142,7 @@ def merge_assignments(*sources: str) -> dict[str, int]:
 def is_owned_assignment(name: str, address: int) -> bool:
     return (
         BSS_START <= address < BSS_END
-        or name in {"_gp", "HEAP_START", "MemoryPool"}
+        or name in {"D_800CDBA8", "_gp", "HEAP_START", "MemoryPool"}
     )
 
 
@@ -237,6 +237,7 @@ def make_bss_body(
         [
             f"{inner}. += 0x{final_gap:x};\n",
             f"{inner}__bss_end = .;\n",
+            f"{inner}D_800CDBA8 = .;\n",
             f"{inner}main_exe_BSS_END = .;\n",
             f"{inner}main_exe_BSS_SIZE = "
             "ABSOLUTE(main_exe_BSS_END - main_exe_BSS_START);\n",
@@ -394,7 +395,12 @@ def generate(
     filtered_symbols, removed_symbols = filter_symbol_script(symbol_source)
     filtered_undefined, removed_undefined = filter_symbol_script(undefined_source)
     removed = set(removed_symbols) | set(removed_undefined)
-    required = set(bss_assignments) | {"_gp", "HEAP_START", "MemoryPool"}
+    required = set(bss_assignments) | {
+        "D_800CDBA8",
+        "_gp",
+        "HEAP_START",
+        "MemoryPool",
+    }
     missing = sorted(required - removed)
     if missing:
         raise LaneError("owned symbols were not removed from scripts: " + ", ".join(missing))
@@ -514,6 +520,7 @@ def validate_elf(
         "GsInitCoord2param": (0x800650D4, {"T", "t"}),
         "__bss_start": (BSS_START, {"B", "b"}),
         "__bss_end": (BSS_END, {"B", "b"}),
+        "D_800CDBA8": (BSS_END, {"B", "b"}),
         "HEAP_START": (HEAP_START, {"B", "b"}),
         "MemoryPool": (MEMORY_POOL_START, {"B", "b"}),
         "_gp": (GP_ADDRESS, set("TtDdRrSsGg")),

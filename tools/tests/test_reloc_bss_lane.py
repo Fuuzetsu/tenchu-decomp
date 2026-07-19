@@ -22,6 +22,7 @@ BeforeBss = 0x80097eac;
 OTablePt = 0x80097eb0;
 LastBssWord = 0x800cdba4;
 AtBssEnd = 0x800cdba8;
+D_800CDBA8 = 0x800cdba8;
 HEAP_START = 0x800cdbac;
 MemoryPool = 0x800dc000;
 Handoff = 0x80100000;
@@ -39,6 +40,7 @@ Handoff = 0x80100000;
                 "_gp": lane.GP_ADDRESS,
                 "OTablePt": lane.BSS_START,
                 "LastBssWord": lane.BSS_END - 4,
+                "D_800CDBA8": lane.BSS_END,
                 "HEAP_START": lane.HEAP_START,
                 "MemoryPool": lane.MEMORY_POOL_START,
             },
@@ -119,6 +121,7 @@ SECTIONS
         self.assertIn("object/One.c.o(.bss);", output)
         self.assertIn(". += 0x18;\n        OTable = .;", output)
         self.assertIn("HEAP_START = . + 4;", output)
+        self.assertIn("D_800CDBA8 = .;", output)
         self.assertIn(".main_exe_memory_pool 0x800dc000 (NOLOAD)", output)
         self.assertIn("MemoryPool = .;\n        . += 0x120000;", output)
 
@@ -165,6 +168,7 @@ class ValidationTests(unittest.TestCase):
 OTablePt B ffffffff80097eb0 8
 __bss_start B ffffffff80097eb0
 __bss_end B ffffffff800cdba8
+D_800CDBA8 B ffffffff800cdba8
 HEAP_START {heap_type} ffffffff800cdbac
 MemoryPool B ffffffff800dc000
 _gp T ffffffff80097698 8
