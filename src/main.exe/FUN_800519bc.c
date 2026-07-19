@@ -13,13 +13,12 @@
  * END PSX.SYM */
 
 /* STATUS: NON_MATCHING — clean pure-C reconstruction at the exact target
- * length (1448 bytes / 362 instructions), currently 58 differing linked bytes
- * across 23 instructions. There are no allocator-only no-op loop fences: the
+ * length (1448 bytes / 362 instructions), currently 11 differing linked bytes
+ * across 9 instructions. There are no allocator-only no-op loop fences: the
  * normal fade update and guarded strip loop recover the target frame naturally.
- * Initializing scroll/xbase before the first PathFileRead and the transient
- * sequence/fade/pad/fade-step state after it is the key real live-range split.
- * The residual is a 43-byte multiset-equal prologue reorder plus four small
- * renderer register-allocation clusters (15 bytes total).
+ * Writing the first PathFileRead before all state initializers is the key natural
+ * live-range split: cc1 hoists those independent writes around the call into the
+ * target's exact prologue order. Only renderer register identities remain.
  *
  * HISTORICAL NOTES BELOW ARE SUPERSEDED and retained only as an experiment log.
  * KEY FINDING: the `do{sequence=0;}while(0)` fence was NOT load-bearing — it walled
@@ -332,13 +331,13 @@ void FUN_800519bc(void)
     s16 signed_width;
     s16 i;
 
-    scroll = -0xa000;
-    xbase = (u16)(scroll >> 8);
     file = PathFileRead((u8 *)D_800137A0,
                         D_8008EA90[PSTATE->language][PSTATE->stage].background);
     sequence = 0;
     fade = 0xfe;
+    scroll = -0xa000;
     old_pad = 0;
+    xbase = (u16)(scroll >> 8);
     fade_step = -8;
     background = FUN_8004f4f8(file);
     vfree(file);
