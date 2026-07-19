@@ -87,6 +87,7 @@ works from anywhere in the tree.
 ```console
 ./Build                 # build .shake/build/tenchu/main.exe
 ./Build check           # build + assert sha256 == disks/tenchu/main.exe
+./Build check-reloc-game  # alternate normal link: game symbols are linker-owned
 ./Build all             # build all six executables
 ./Build check-all       # build + assert sha256 for all six
 ./Build clean           # remove .shake/{gen,build,processed}
@@ -97,6 +98,14 @@ Everything must run inside the devShell (`nix develop`, or `direnv allow` once).
 
 Cold `./Build` is ~25 s; cold `./Build check-all` ~35 s. `check` deliberately
 stays main-only because `tools/matchdiff.py` calls it once per iteration.
+
+`check-reloc-game` is an opt-in exact-at-retail proof lane. It generates a
+filtered symbol script and a linker script with section-relative anchors for
+all 555 game inputs, then writes
+`.shake/build/tenchu/main_reloc_game.exe{,.elf}`. It does not replace the
+default build and does not yet permit a runnable grown image: the raw SDK
+owners, fixed PS-EXE header, and fixed BSS layout remain unchanged. See
+[`relocatable-build.md`](relocatable-build.md).
 
 ## The other five executables
 

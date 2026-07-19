@@ -107,6 +107,27 @@ repository.
 
 Keep two build lanes with different dependency contracts:
 
+### Implemented first gate: linker-owned game functions
+
+`./Build check-reloc-game` now performs a second, normal GNU `ld` link using
+the same relocatable inputs and ordering as the reference build. A small
+generator removes every absolute assignment in the retail game-code range
+`0x80016134..0x800601d4` and emits `Function = .;` immediately before each of
+the 555 game inputs. The current-location anchors preserve original `static`
+functions across this decompilation's artificial one-function object split;
+they are not fixed-address assignments or trampolines.
+
+At retail sizes the alternate executable is byte-identical to the shipped
+image. Its ELF reports game functions as section-relative text symbols rather
+than absolute symbols, proving that the linker owns their placement. Generated
+scripts and the alternate ELF/executable remain under `.shake/build`.
+
+This gate intentionally stops at the game/SDK boundary. A grown game function
+would still move raw SDK instruction blobs without relocating them, leave the
+PS-EXE entry point and load size stale, and consume the fixed BSS address range.
+Passing `check-reloc-game` therefore proves the first prerequisite, not a
+runnable size-changing build. The remaining stages below are still required.
+
 ### 1. Reference matching lane
 
 The current default remains hermetic after the user supplies the retail disc.

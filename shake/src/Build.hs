@@ -53,6 +53,18 @@ processedDir = shakeDir </> "processed"
 mainExe :: FilePath
 mainExe = buildDir </> "tenchu" </> "main.exe"
 
+-- | Opt-in proof link where the 555 game inputs own their public symbols.
+-- It is retail-sized and byte-exact; SDK/header/BSS relocation is later work.
+mainRelocGameExe, mainRelocGameElf, mainRelocGameMap :: FilePath
+mainRelocGameExe = buildDir </> "tenchu" </> "main_reloc_game.exe"
+mainRelocGameElf = mainRelocGameExe <.> "elf"
+mainRelocGameMap = buildDir </> "tenchu" </> "main_reloc_game.exe.map"
+
+relocGameDir, relocGameLinker, relocGameSymbols :: FilePath
+relocGameDir = buildDir </> "reloc-game"
+relocGameLinker = relocGameDir </> "main.exe.ld"
+relocGameSymbols = relocGameDir </> "symbols.main.exe.txt"
+
 -- | The modded (non-matching) build: hooked functions patched in place by
 -- tools/mkmod.py, so it stays the same size as main.exe (disc rebuild is faithful).
 mainModExe :: FilePath
@@ -969,6 +981,61 @@ exeRules t = do
 -- | Things that only make sense for the executable we are actually decompiling.
 mainExtraRules :: Rules ()
 mainExtraRules = do
+  -- First normal-link shiftability gate. Splat already places all inputs
+  -- sequentially, but config/symbols.main.exe.txt overwrites the game objects'
+  -- symbols with retail absolute addresses. Generate alternate scripts which
+  -- remove those game-range assignments and add `name = .` before each of the
+  -- 555 artificial one-function inputs. The latter also exports original
+  -- `static` leaves across our artificial object split without changing C.
+  [relocGameLinker, relocGameSymbols] &%> \_outs -> do
+    let t = mainTarget
+        gen = tgGen t
+        baseLinker = tgGenDir t </> linkerDir </> tgName t <.> "ld"
+        tool = "tools" </> "reloc_game_lane.py"
+    _generatedFiles <- getGeneratedFiles gen
+    need [baseLinker, tgSymbols t, tool]
+    liftIO $ IO.createDirectoryIfMissing True relocGameDir
+    cmd_ "python3" tool
+      [ "--linker-in", baseLinker,
+        "--symbols-in", tgSymbols t,
+        "--linker-out", relocGameLinker,
+        "--symbols-out", relocGameSymbols
+      ]
+
+  mainRelocGameElf %> \out -> do
+    let t = mainTarget
+        genD = tgGenDir t
+        tBuildDir = tgBuildDir t
+        undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
+        undefinedFunctions = genD </> metaDir </> "undefined_functions_auto.main.exe.txt"
+    _generatedFiles <- getGeneratedFiles (tgGen t)
+    sFiles <- liftIO $ getDirectoryFilesIO (genD </> asmDir) ["*.s", "data/*.s"]
+    cFiles <- liftIO $ do
+      userFiles <- Set.fromList <$> getDirectoryFilesIO (tgSrcDir t) ["//*.c"]
+      genFiles <- Set.fromList <$> getDirectoryFilesIO (genD </> srcDir) ["//*.c"]
+      pure $ Set.toList (userFiles <> genFiles)
+    assetFiles <- liftIO $ getDirectoryFilesIO (genD </> assetsDir) ["//*.bin"]
+    let oFiles = map (\f -> tBuildDir </> f <.> "o") (cFiles <> sFiles <> assetFiles)
+        sFilesExp = map (\f -> genD </> asmDir </> f) sFiles
+        assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
+    need $ sFilesExp <> assetFilesExp <> oFiles <>
+      [relocGameLinker, relocGameSymbols, undefinedSymbols, undefinedFunctions]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    cmd_ ld ldFlags
+      [ "-o", out,
+        "-Map", mainRelocGameMap,
+        "-T", relocGameLinker,
+        "-T", relocGameSymbols,
+        "-T", undefinedSymbols,
+        "-T", undefinedFunctions,
+        "--no-check-sections",
+        "-nostdlib"
+      ]
+
+  mainRelocGameExe %> \_out -> do
+    need [mainRelocGameElf]
+    cmd_ objcopy objcopyFlags [mainRelocGameElf, mainRelocGameExe]
+
   -- Non-matching build: mkmod patches hooked functions in place. It reads main.exe's
   -- symbol table (via nm on the elf), compiles every src/mod/main.exe/*.c, and aborts
   -- if one outgrows its slot -- so depend on the exe+elf, the mod sources, AND the
@@ -1059,6 +1126,24 @@ phonyRules = do
   -- The matching gate: main.exe only, so it stays fast (matchdiff runs ./Build once
   -- per function). `check-all` verifies every executable on the disc.
   phony "check" $ checkTarget mainTarget
+
+  -- Opt-in exact-at-retail gate for the normal linker-owned game-symbol lane.
+  -- This deliberately does not claim that a grown image is runnable yet: raw
+  -- SDK code, the fixed PS-EXE header, and fixed BSS symbols are later stages.
+  phony "check-reloc-game" $ do
+    need [mainRelocGameExe, tgImage mainTarget]
+    StdoutTrim ref <- cmd "sha256sum" (tgImage mainTarget)
+    StdoutTrim ours <- cmd "sha256sum" mainRelocGameExe
+    let refSha = head $ words ref
+        ourSha = head $ words ours
+    when (refSha /= tgSha mainTarget) $
+      fail $ unwords ["Reference", tgImage mainTarget, "has sha256", refSha,
+                      "but expected known-good", tgSha mainTarget,
+                      "- wrong/corrupt base image?"]
+    when (ourSha /= refSha) $
+      fail $ unwords ["Expected", mainRelocGameExe, "to have sha256 of", refSha,
+                      "but it's", ourSha]
+    putInfo "check-reloc-game: linker-owned game symbols are retail-exact"
 
   -- Optional, evidence-preserving lane for the complete stock GS_107.OBJ.
   -- Nothing proprietary is fetched or tracked: point this one target at a
