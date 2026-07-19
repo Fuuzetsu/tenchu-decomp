@@ -160,6 +160,8 @@ segments:
       # debug_menu_stage_option's switch jump table (vram 0x800147F0), same scheme.
       - { start: 0x3FF0, type: .rodata, name: debug_menu_stage_option, linker_section_order: .data }
       - [0x400C, data]
+      - { start: 0x4874, type: .rodata, name: Gssub_make_matrix, linker_section_order: .data }
+      - [0x4900, data]
       - [0x5934, c, InitPersistentState]
       - [0x5AA4, c, main]
       - [0x5CE0, c, DoBriefingAndInventorySelection]
@@ -742,6 +744,8 @@ segments:
       - { start: 0x55530, type: data, linker_section_order: .text }
       - [0x55534, c, GsGetTimInfo]
       - { start: 0x55618, type: data, linker_section_order: .text }
+      - [0x55624, c, Gssub_make_matrix]
+      - { start: 0x556EC, type: data, linker_section_order: .text }
       - [0x55704, c, GsGetWorkBase]
       - { start: 0x55714, type: data, linker_section_order: .text }
       - [0x56304, c, dmyGsPrstF3NL]

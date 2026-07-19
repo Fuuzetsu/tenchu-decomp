@@ -5674,6 +5674,7 @@ class BuildConfigurationTests(unittest.TestCase):
             "GS_113.OBJ": "gs113ObjectMembers",
             "GS_121.OBJ": "gs121ObjectMembers",
             "GS_122.OBJ": "gs122ObjectMembers",
+            "GS_123.OBJ": "gs123ObjectMembers",
             "GS_125.OBJ": "gs125ObjectMembers",
             "GS_107.OBJ": "gs107ObjectMembers",
             "ADT.OBJ": "adtObjectMembers",
@@ -5723,6 +5724,10 @@ class BuildConfigurationTests(unittest.TestCase):
             self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
         for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
             self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
+        self.assertIn(
+            "-fsigned-char", permute.cc_flags_for("Gssub_make_matrix")
+        )
+        self.assertNotIn("-fsigned-char", permute.cc_flags_for("Other"))
         self.assertNotIn("-mno-split-addresses", permute.cc_flags_for("Other"))
         self.assertEqual(permute.cc_executable_for("AdtSelect"), "cc1-280")
         self.assertEqual(permute.cc_executable_for("AdtGetDisp"), "cc1-280")
@@ -5734,6 +5739,9 @@ class BuildConfigurationTests(unittest.TestCase):
         self.assertEqual(permute.cc_executable_for("GsClearOt"), "cc1-272")
         self.assertEqual(permute.cc_executable_for("gte_init"), "cc1-272")
         self.assertEqual(permute.cc_executable_for("GsGetTimInfo"), "cc1-272")
+        self.assertEqual(
+            permute.cc_executable_for("Gssub_make_matrix"), "cc1-272"
+        )
         self.assertEqual(permute.cc_executable_for("GsGetWorkBase"), "cc1-281")
         for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
             self.assertEqual(

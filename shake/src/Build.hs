@@ -604,6 +604,13 @@ gs122ObjectMembers =
   [ "GsGetTimInfo"
   ]
 
+-- GS_123.OBJ has one public member. Its private switch labels and jump table
+-- remain part of the same object/profile, never function-level tuning.
+gs123ObjectMembers :: [String]
+gs123ObjectMembers =
+  [ "Gssub_make_matrix"
+  ]
+
 -- GS_125.OBJ is a complete one-public-member object too. The natural getter
 -- is byte-invariant between 2.7.2 and the default 2.8.1, so it needs no older
 -- compiler attribution or exceptional options.
@@ -621,6 +628,9 @@ originalObjectCcFlags src
   | name `elem` gs113ObjectMembers = []
   | name `elem` gs121ObjectMembers = []
   | name `elem` gs122ObjectMembers = []
+  -- Undo the game-wide -funsigned-char for this complete vendor object. The
+  -- source's ordinary char axis is signed under the SDK object's defaults.
+  | name `elem` gs123ObjectMembers = ["-fsigned-char"]
   | name `elem` gs125ObjectMembers = []
   | name `elem` gs107ObjectMembers = ["-mno-split-addresses"]
   | name `elem` adtObjectMembers = []
@@ -655,6 +665,7 @@ originalObjectCcExecutable src
   | takeBaseName src `elem` gs113ObjectMembers = "cc1-272"
   | takeBaseName src `elem` gs121ObjectMembers = "cc1-272"
   | takeBaseName src `elem` gs122ObjectMembers = "cc1-272"
+  | takeBaseName src `elem` gs123ObjectMembers = "cc1-272"
   | takeBaseName src `elem` gs107ObjectMembers = "cc1-281-gs107"
   | takeBaseName src `elem` adtObjectMembers = "cc1-280"
   | otherwise = ccDefault

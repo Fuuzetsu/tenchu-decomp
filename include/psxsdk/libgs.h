@@ -359,6 +359,10 @@ PACKET *GsA4divTNG4(TMD_P_TNG4 *primitive, VERT *vertices, PACKET *packet,
                     int count, int shift, GsOT *ot, u_long *scratch);
 
 extern PACKET *GsOUT_PACKET_P;
+extern MATRIX GsWSMATRIX;
+extern MATRIX GsWSMATRIX_ORG;
+extern MATRIX GsIDMATRIX;
+extern MATRIX GsIDMATRIX2;
 extern long HWD0, VWD0;
 extern u_long GsLMODE, GsLIGNR, GsLIOFF, GsTON;
 

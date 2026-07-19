@@ -137,6 +137,23 @@ tools such as PSYLIB and ASPSX; the PsyQ 4.5 `CC1PSX.EXE` currently aborts under
 wibo, so the deterministic native reconstructed compilers remain the build
 path.
 
+### GS_123.OBJ: stock GCC 2.7.2 with signed `char`
+
+`GS_123.OBJ` has one public member, `Gssub_make_matrix`, plus private switch
+labels, a 35-entry jump table, and alignment padding. The converted object's
+relocation-normalised `.text` and `.rdata` are identical to Tenchu. Its natural
+source copies `GsIDMATRIX`, then switches on `X`/`Y`/`Z` (and lowercase) to
+replace the appropriate sine/cosine matrix elements.
+
+This complete object selects `cc1-272` and `-fsigned-char`. The latter undoes
+the game's global `-funsigned-char`; it represents the stock compiler's normal
+signed-`char` semantics for this vendor source file, not a function-specific
+tuning flag. With an ordinary `char axis`, compiler RTL performs the target's
+in-place sign extension before the switch. GCC 2.7.2 then emits all 200 text
+bytes and 140 jump-table bytes exactly. GCC 2.8.1 changes the block-copy
+registers, table-base materialisation, and shared-return branches, leaving 117
+differing bytes despite identical semantics.
+
 ### GS_125.OBJ: compiler-invariant default profile
 
 PsyQ 4.5's `GS_125.OBJ` has one public member, `GsGetWorkBase`, and its complete

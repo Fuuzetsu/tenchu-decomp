@@ -97,6 +97,9 @@ ORIGINAL_OBJECT_MEMBERS = {
     "GS_122.OBJ": (
         "GsGetTimInfo",
     ),
+    "GS_123.OBJ": (
+        "Gssub_make_matrix",
+    ),
     "GS_125.OBJ": (
         "GsGetWorkBase",
     ),
@@ -118,6 +121,8 @@ ORIGINAL_OBJECT_CC_FLAGS = {
     "GS_113.OBJ": (),
     "GS_121.OBJ": (),
     "GS_122.OBJ": (),
+    # Undo the game TU's global option for this complete vendor object.
+    "GS_123.OBJ": ("-fsigned-char",),
     "GS_125.OBJ": (),
     "GS_107.OBJ": ("-mno-split-addresses",),
     "ADT.OBJ": (),
@@ -129,6 +134,7 @@ ORIGINAL_OBJECT_CC_EXECUTABLES = {
     "GS_113.OBJ": "cc1-272",
     "GS_121.OBJ": "cc1-272",
     "GS_122.OBJ": "cc1-272",
+    "GS_123.OBJ": "cc1-272",
     "GS_107.OBJ": "cc1-281-gs107",
     "ADT.OBJ": "cc1-280",
 }
