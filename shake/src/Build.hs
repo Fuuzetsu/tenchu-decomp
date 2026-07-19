@@ -92,6 +92,28 @@ relocSdkShiftLinker, relocSdkShiftSymbols :: FilePath
 relocSdkShiftLinker = relocSdkShiftDir </> "main.exe.ld"
 relocSdkShiftSymbols = relocSdkShiftDir </> "symbols.main.exe.txt"
 
+-- | Opt-in proof link where initialized data, BSS, and the virtual-memory pool
+-- are separate linker-owned regions.  The binary output is deliberately named
+-- "logical": it stops at initialized data, before the retail PS-X EXE's 0x150
+-- bytes of sector padding.  This lane proves ownership/layout only; it is not
+-- yet the final size-changing executable path.
+mainRelocBssLogical, mainRelocBssElf, mainRelocBssMap :: FilePath
+mainRelocBssLogical = buildDir </> "tenchu" </> "main_reloc_bss.logical"
+mainRelocBssElf = buildDir </> "tenchu" </> "main_reloc_bss.exe.elf"
+mainRelocBssMap = buildDir </> "tenchu" </> "main_reloc_bss.exe.map"
+
+relocBssDir, relocBssLinker, relocBssSymbols, relocBssUndefined :: FilePath
+relocBssDir = buildDir </> "reloc-bss"
+relocBssLinker = relocBssDir </> "main.exe.ld"
+relocBssSymbols = relocBssDir </> "symbols.main.exe.txt"
+relocBssUndefined = relocBssDir </> "undefined_symbols_auto.main.exe.txt"
+
+relocBssTailAsm, relocBssTailObject :: FilePath
+relocBssTailAsm = relocBssDir </> "generated" </> "72CD0.bss.s"
+-- Keep this below an extra directory so the ordinary generated-asm wildcard
+-- cannot mistake it for a splat-owned target input.
+relocBssTailObject = relocBssDir </> "obj" </> "72CD0.bss.s.o"
+
 -- | The modded (non-matching) build: hooked functions patched in place by
 -- tools/mkmod.py, so it stays the same size as main.exe (disc rebuild is faithful).
 mainModExe :: FilePath
@@ -1129,6 +1151,76 @@ mainExtraRules = do
     need [input]
     cmd_ objcopy objcopyFlags [input, out]
 
+  -- Second normal-link proof: turn the zero-filled end of 72CD0 into a real
+  -- NOBITS input, move every C .bss input into a following NOLOAD output, and
+  -- reserve the fixed virtual-memory pool explicitly. Inputs are generated
+  -- from the already linker-owned game lane so the two proofs compose.
+  [relocBssLinker, relocBssSymbols, relocBssUndefined, relocBssTailAsm] &%> \_outs -> do
+    let t = mainTarget
+        genD = tgGenDir t
+        undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
+        tailSource = genD </> asmDir </> "data" </> "72CD0.data.s"
+        oldTailObject = tgBuildDir t </> "data" </> "72CD0.data.s.o"
+        tool = "tools" </> "reloc_bss_lane.py"
+    _generatedFiles <- getGeneratedFiles (tgGen t)
+    need [relocGameLinker, relocGameSymbols, undefinedSymbols, tailSource, tool]
+    liftIO $ IO.createDirectoryIfMissing True relocBssDir
+    cmd_ "python3" tool
+      [ "generate",
+        "--linker-in", relocGameLinker,
+        "--symbols-in", relocGameSymbols,
+        "--undefined-in", undefinedSymbols,
+        "--tail-in", tailSource,
+        "--linker-out", relocBssLinker,
+        "--symbols-out", relocBssSymbols,
+        "--undefined-out", relocBssUndefined,
+        "--tail-out", relocBssTailAsm,
+        "--old-tail-object", oldTailObject,
+        "--new-tail-object", relocBssTailObject
+      ]
+
+  relocBssTailObject %> \out -> do
+    need [relocBssTailAsm]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    withTempFile $ \depFile -> do
+      cmd_ as asFlags ["--MD", depFile, "-o", out, relocBssTailAsm]
+      neededAsmDeps depFile
+
+  mainRelocBssElf %> \out -> do
+    let t = mainTarget
+        genD = tgGenDir t
+        tBuildDir = tgBuildDir t
+        undefinedFunctions = genD </> metaDir </> "undefined_functions_auto.main.exe.txt"
+    _generatedFiles <- getGeneratedFiles (tgGen t)
+    sFiles <- liftIO $ getDirectoryFilesIO (genD </> asmDir) ["*.s", "data/*.s"]
+    cFiles <- liftIO $ do
+      userFiles <- Set.fromList <$> getDirectoryFilesIO (tgSrcDir t) ["//*.c"]
+      genFiles <- Set.fromList <$> getDirectoryFilesIO (genD </> srcDir) ["//*.c"]
+      pure $ Set.toList (userFiles <> genFiles)
+    assetFiles <- liftIO $ getDirectoryFilesIO (genD </> assetsDir) ["//*.bin"]
+    let oFiles = map (\f -> tBuildDir </> f <.> "o") (cFiles <> sFiles <> assetFiles)
+        sFilesExp = map (\f -> genD </> asmDir </> f) sFiles
+        assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
+    need $ sFilesExp <> assetFilesExp <> oFiles <>
+      [ relocBssLinker, relocBssSymbols, relocBssUndefined,
+        relocBssTailObject, undefinedFunctions
+      ]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    cmd_ ld ldFlags
+      [ "-o", out,
+        "-Map", mainRelocBssMap,
+        "-T", relocBssLinker,
+        "-T", relocBssSymbols,
+        "-T", relocBssUndefined,
+        "-T", undefinedFunctions,
+        "--no-check-sections",
+        "-nostdlib"
+      ]
+
+  mainRelocBssLogical %> \out -> do
+    need [mainRelocBssElf]
+    cmd_ objcopy objcopyFlags [mainRelocBssElf, out]
+
   -- Non-matching build: mkmod patches hooked functions in place. It reads main.exe's
   -- symbol table (via nm on the elf), compiles every src/mod/main.exe/*.c, and aborts
   -- if one outgrows its slot -- so depend on the exe+elf, the mod sources, AND the
@@ -1266,6 +1358,34 @@ phonyRules = do
         "--delta", "4"
       ]
     putInfo "check-reloc-sdk: canonical SDK prefix is retail-exact and +4-relocatable"
+
+  -- Opt-in exact-at-retail ownership proof for BSS boundaries and the fixed
+  -- virtual-memory pool.  objcopy emits only the logical initialized prefix;
+  -- the validator proves the reference's 0x150-byte suffix is sector padding,
+  -- checks every known BSS symbol is section-relative, and requires both
+  -- reservations to be NOBITS.  It intentionally does not produce a runnable
+  -- grown PS-X EXE yet.
+  phony "check-reloc-bss" $ do
+    let t = mainTarget
+        undefinedSymbols = tgGenDir t </> metaDir </> "undefined_symbols_auto.main.exe.txt"
+        tool = "tools" </> "reloc_bss_lane.py"
+    need [ mainRelocBssLogical, mainRelocBssElf, tgImage t, relocGameSymbols,
+           undefinedSymbols, tool ]
+    StdoutTrim ref <- cmd "sha256sum" (tgImage t)
+    let refSha = head $ words ref
+    when (refSha /= tgSha t) $
+      fail $ unwords ["Reference", tgImage t, "has sha256", refSha,
+                      "but expected known-good", tgSha t,
+                      "- wrong/corrupt base image?"]
+    cmd_ "python3" tool
+      [ "validate",
+        "--logical", mainRelocBssLogical,
+        "--reference", tgImage t,
+        "--elf", mainRelocBssElf,
+        "--symbols-in", relocGameSymbols,
+        "--undefined-in", undefinedSymbols
+      ]
+    putInfo "check-reloc-bss: linker-owned BSS/pool layout is retail-exact"
 
   -- Optional, evidence-preserving lane for the complete stock GS_107.OBJ.
   -- Nothing proprietary is fetched or tracked: point this one target at a

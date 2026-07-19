@@ -181,6 +181,59 @@ data moves more than 64 KiB away from the still-fixed `_gp`, producing
 and its small-data/BSS ownership into the normal linker layout must precede
 that large-shift proof.
 
+### Implemented second gate: linker-owned BSS boundaries
+
+`./Build check-reloc-bss` composes with `check-reloc-game` and proves the next
+piece of layout ownership. It converts the zero-filled end of generated
+`72CD0.data.s` to a NOBITS input, moves the C `.bss` inputs into a following
+NOLOAD output section, removes the corresponding fixed symbol-script
+assignments, and represents the virtual-memory pool as an explicit NOLOAD
+reservation.
+
+The retail layout established by crt0, the executable bytes, and the alternate
+ELF is:
+
+| region or boundary | half-open range / address | evidence in the proof ELF |
+|---|---:|---|
+| initialized image | `0x80011000..0x80097eb0` | PROGBITS, `0x86eb0` bytes |
+| crt0-cleared BSS | `0x80097eb0..0x800cdba8` | NOBITS, `0x35cf8` bytes |
+| `HEAP_START` | `0x800cdbac` | section-relative, four bytes after BSS |
+| unused BSS-to-pool headroom | `0x800cdba8..0x800dc000` | `0xe458` bytes (58,456) |
+| `MemoryPool` reservation | `0x800dc000..0x801fc000` | NOBITS, `0x120000` bytes |
+| initial stack | `0x801ffff0` | pool ends `0x3ff0` below it |
+
+All 158 known symbols in crt0's BSS clear range are `B`/`b` symbols at their
+retail addresses. `__bss_start`, `__bss_end`, `HEAP_START`, and `MemoryPool`
+are likewise section-relative rather than absolute. `_gp` now comes from the
+real initialized-data label at `0x80097698` instead of a linker-script absolute
+assignment.
+
+The shipped file has one important representational wrinkle. Its last nonzero
+initialized byte is at `0x80097eac`; the logical initialized prefix ends at
+file size `0x876b0`, but the 555,008-byte PS-X EXE continues with `0x150` zero
+bytes to the next sector boundary. Those bytes overlap the beginning of the
+address range crt0 clears. The alternate `objcopy` result deliberately stops
+at the logical prefix. The gate proves that adding exactly the reference's
+all-zero padding reproduces the retail executable, rather than pretending the
+padding is initialized storage. A later runnable lane must have
+`tools/psxexe.py` own both this padding and the mutable PS-X EXE header.
+
+This is deliberately an **exact-at-retail ownership proof**, not permission to
+grow code yet. Its linker script still asserts the retail BSS start/end, `_gp`,
+heap, and pool addresses. The 122 post-padding BSS names are linker-relative
+aliases, but most do not yet come from real source storage declarations. Raw
+crt0 and SDK/data carves still embed address constants, and the PS-X EXE header
+is not regenerated in this lane.
+
+For a growth-enabled link, BSS must be allowed to follow the grown initialized
+image, crt0's clear boundaries must be symbolic/relocatable, and the retail
+equality assertions must become relative collision assertions. Keeping
+`MemoryPool` fixed permits at most the `0xe458` bytes of immediate BSS growth;
+larger changes require making its base/size linker-derived or deliberately
+shrinking/moving the reservation in the source that initializes it. The fixed
+handoff record at `0x80100000..0x8010005c` intentionally lies *inside* that
+pool reservation, so those two ranges must not be modelled as disjoint.
+
 ### 1. Reference matching lane
 
 The current default remains hermetic after the user supplies the retail disc.

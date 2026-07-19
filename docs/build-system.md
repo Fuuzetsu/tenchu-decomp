@@ -88,6 +88,7 @@ works from anywhere in the tree.
 ./Build                 # build .shake/build/tenchu/main.exe
 ./Build check           # build + assert sha256 == disks/tenchu/main.exe
 ./Build check-reloc-game  # alternate normal link: game symbols are linker-owned
+./Build check-reloc-bss   # alternate link: BSS/pool are real NOBITS regions
 ./Build all             # build all six executables
 ./Build check-all       # build + assert sha256 for all six
 ./Build clean           # remove .shake/{gen,build,processed}
@@ -106,6 +107,16 @@ all 555 game inputs, then writes
 default build and does not yet permit a runnable grown image: the raw SDK
 owners, fixed PS-EXE header, and fixed BSS layout remain unchanged. See
 [`relocatable-build.md`](relocatable-build.md).
+
+`check-reloc-bss` composes with that first gate. It emits a logical initialized
+prefix at `.shake/build/tenchu/main_reloc_bss.logical` plus an ELF/map, then
+checks a real linker-owned NOLOAD BSS, an explicit NOLOAD `MemoryPool`
+reservation, and every known BSS symbol. The logical file omits the retail
+PS-X EXE's `0x150` bytes of zero sector padding; the validator proves that
+adding those reference padding bytes is byte-exact. This is still a
+retail-address ownership proof, not a runnable grown executable. See the BSS
+layout and remaining blockers in
+[`relocatable-build.md`](relocatable-build.md#implemented-second-gate-linker-owned-bss-boundaries).
 
 ## The other five executables
 

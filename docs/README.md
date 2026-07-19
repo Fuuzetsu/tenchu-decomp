@@ -34,8 +34,9 @@ decisions behind the toolchain. It's the reference companion to the terse
   or vendor Sony's SDK.
 - [relocatable-build.md](relocatable-build.md) — why shiftability does not
   require decompiling every PsyQ routine into C, how MGS/Silent Hill/SOTN handle
-  stock SDK code, the exact `GS_107.OBJ` relocation proof, and the proposed
-  optional external-object lane.
+  stock SDK code, the exact `GS_107.OBJ` relocation proof, the implemented
+  linker-owned game/SDK-prefix/BSS gates, and the remaining path to a grown
+  executable.
 - [psx-exe-finalizer.md](psx-exe-finalizer.md) — the standalone, not-yet-wired
   PS-X EXE finalizer/validator for a future normal-link lane: ELF/map symbol
   resolution, sector padding, regenerated PC/load/size fields, and header
