@@ -242,6 +242,26 @@ it byte-identically. Carving a function out is then the `main.exe` workflow — 
 config grows `c` subsegments in the same shape. `newexe.py` refuses to overwrite a
 config that already has `c` subsegments unless you pass `--force`.
 
+`tools/scaffold_exe.py <name>...` is the next stage, applied to `menu.exe`,
+`ending.exe`, and `trial.exe` (2026-07-20): it rewrites the code segment into
+one `c` subsegment per known function start, so splat generates an
+INCLUDE_ASM stub TU for every function and the executable is decomp-ready in
+exactly main.exe's day-zero shape. Starts come from the composed name tables
+(`reference/xexe-<name>.tsv` — our transferred names plus demo placements),
+every `jal` target, and the header entry point; a bounded control-flow pass
+merges starts that a branch or local `j` proves to be mid-function
+(handwritten-SDK label entries keep their names as mid-file global labels via
+`config/symbols.<name>.txt`). Real text ends at the last `jr ra`; the tail
+becomes a `data` subsegment so splat can define referenced `D_*` labels, and
+`section_order` is rewritten text-first because splat lays subsegments out
+grouped by section, not by address. The symbols file also defines `_gp` (GNU
+ld resolves `R_MIPS_GPREL16` against it) and a definition for every
+gp-referenced data address. `config/functions.<name>.tsv` feeds the progress
+report, which gives each scaffolded executable its own decomp.dev category.
+Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
+identically regardless — they only shape stub granularity, refinable later
+with `tools/reverse.py`.
+
 **`textbin`, not `data` — splat groups a segment's subsegments by section, not by
 address.** The output section for each subsegment is chosen by type (`c`/`asm` →
 `.text`, `data` → `.data`), and the linker script emits them grouped, in

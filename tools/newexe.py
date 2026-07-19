@@ -14,6 +14,10 @@ with the same `tools/reverse.py` workflow.
 Writes `config/splat.<name>.yaml` and an empty `config/symbols.<name>.txt`.
 Refuses to overwrite a config that has real subsegments in it (i.e. one somebody
 has started carving), unless you pass --force.
+
+The next stage is `tools/scaffold_exe.py`, which rewrites a blob config into
+per-function INCLUDE_ASM stubs named from `reference/xexe-<name>.tsv` — the
+decomp-ready shape menu.exe/ending.exe/trial.exe carry now.
 """
 from __future__ import annotations
 

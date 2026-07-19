@@ -128,8 +128,10 @@ def main_functions(min_size: int = MIN_SIZE) -> list[tuple[str, int, int, bytes]
     for a, sz, name in rows:
         if not (MAIN[1] <= a < MAIN_TEXT_END) or sz < min_size:
             continue
-        if name.startswith("FUN_") and a in adopted:
-            name = adopted[a]
+        # config/symbols is where adopted spellings live (FUN_ renames, but
+        # also assembler-safe forms like _2D_SP0_OBJ_* for PSY-Q names the
+        # snapshot keeps in raw digit-leading form).
+        name = adopted.get(a, name)
         off = a - MAIN[1] + 0x800
         b = img[off : off + sz]
         if len(b) == sz:

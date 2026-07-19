@@ -470,13 +470,21 @@ Best remaining leads, roughly in value order:
    **Composed naming landed (2026-07-20):** `xexe.py --merged-tsv` copies our
    current adopted names first (splat + config overlays) and lets demo
    PSX.EXE names fill only unclaimed ranges, disagreements reported. The
-   committed inventories are `reference/xexe-menu.exe.tsv` (598 ours + 34
-   demo) and `reference/xexe-ending.exe.tsv` (623 + 25), including the `St*`
-   stream-ring API and `GsTMDfast*` renderers. The evolved
-   OPENING/OPMOVIE/MOJI bodies (`get_stream`, `strInit`, `PutMoji`,
-   `Opening`) resist body identity; the next step for them is generalizing
-   `callmatch` to `--target menu.exe` anchored on these ~640 names — which
-   would also hand the movie-EOF runtime gate its MENU-side anchor.
+   committed inventories are `reference/xexe-menu.exe.tsv`,
+   `reference/xexe-ending.exe.tsv`, and `reference/xexe-trial.exe.tsv`,
+   including the `St*` stream-ring API and `GsTMDfast*` renderers.
+   `--place-by-calls` (callmatch-style, iterated to fixpoint with guarded
+   containment) additionally placed the evolved OPMOVIE.C entry points —
+   `open_stream`/`close_stream`/`strInit` in both MENU and ENDING (the
+   movie-EOF gate's anchors) — while `Opening`/`PutMoji`/`strNext` remain
+   honestly below the evidence threshold.
+
+   **Decomp scaffolds landed (2026-07-20):** `tools/scaffold_exe.py` split
+   `menu.exe`, `ending.exe`, and `trial.exe` into per-function INCLUDE_ASM
+   stub TUs under the recovered names (FUN_ placeholders elsewhere), with
+   byte-identical `./Build check-all` and per-exe decomp.dev categories from
+   `config/functions.<name>.tsv`. See docs/build-system.md §the other five
+   executables for the boundary/section/gp lessons baked into the tool.
 3. **The `statics` list** (73 functions, 231 objects) should feed `tools/gpsyms.py`: a
    `static` never gets a `%gp` extern.
 4. **The SLD stream** (per-instruction line deltas) and the `0x90`/`0x92` block markers
