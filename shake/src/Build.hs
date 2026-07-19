@@ -65,6 +65,33 @@ relocGameDir = buildDir </> "reloc-game"
 relocGameLinker = relocGameDir </> "main.exe.ld"
 relocGameSymbols = relocGameDir </> "symbols.main.exe.txt"
 
+-- | Bounded second relocation proof.  Splat emits the two raw parts of
+-- 0x800601d4..0x80065100 as canonical assembly, with PClseek's existing
+-- relocatable object between them.  The base link is retail-exact; a controlled
+-- +4 link before Exec audits ordinary J/JAL and HI16/LO16 relocation.
+mainRelocSdkExe, mainRelocSdkElf, mainRelocSdkMap :: FilePath
+mainRelocSdkExe = buildDir </> "tenchu" </> "main_reloc_sdk.exe"
+mainRelocSdkElf = mainRelocSdkExe <.> "elf"
+mainRelocSdkMap = buildDir </> "tenchu" </> "main_reloc_sdk.exe.map"
+
+mainRelocSdkShiftExe, mainRelocSdkShiftElf, mainRelocSdkShiftMap :: FilePath
+mainRelocSdkShiftExe = buildDir </> "tenchu" </> "main_reloc_sdk_shift4.exe"
+mainRelocSdkShiftElf = mainRelocSdkShiftExe <.> "elf"
+mainRelocSdkShiftMap = buildDir </> "tenchu" </> "main_reloc_sdk_shift4.exe.map"
+
+relocSdkDir, relocSdkBaseDir, relocSdkShiftDir :: FilePath
+relocSdkDir = buildDir </> "reloc-sdk"
+relocSdkBaseDir = relocSdkDir </> "base"
+relocSdkShiftDir = relocSdkDir </> "shift4"
+
+relocSdkBaseLinker, relocSdkBaseSymbols :: FilePath
+relocSdkBaseLinker = relocSdkBaseDir </> "main.exe.ld"
+relocSdkBaseSymbols = relocSdkBaseDir </> "symbols.main.exe.txt"
+
+relocSdkShiftLinker, relocSdkShiftSymbols :: FilePath
+relocSdkShiftLinker = relocSdkShiftDir </> "main.exe.ld"
+relocSdkShiftSymbols = relocSdkShiftDir </> "symbols.main.exe.txt"
+
 -- | The modded (non-matching) build: hooked functions patched in place by
 -- tools/mkmod.py, so it stays the same size as main.exe (disc rebuild is faithful).
 mainModExe :: FilePath
@@ -1036,6 +1063,72 @@ mainExtraRules = do
     need [mainRelocGameElf]
     cmd_ objcopy objcopyFlags [mainRelocGameElf, mainRelocGameExe]
 
+  [relocSdkBaseLinker, relocSdkBaseSymbols] &%> \_outs -> do
+    let tool = "tools" </> "reloc_sdk_lane.py"
+    need [relocGameLinker, relocGameSymbols, tool]
+    liftIO $ IO.createDirectoryIfMissing True relocSdkBaseDir
+    cmd_ "python3" tool
+      [ "generate",
+        "--linker-in", relocGameLinker,
+        "--symbols-in", relocGameSymbols,
+        "--linker-out", relocSdkBaseLinker,
+        "--symbols-out", relocSdkBaseSymbols
+      ]
+
+  [relocSdkShiftLinker, relocSdkShiftSymbols] &%> \_outs -> do
+    let tool = "tools" </> "reloc_sdk_lane.py"
+    need [relocGameLinker, relocGameSymbols, tool]
+    liftIO $ IO.createDirectoryIfMissing True relocSdkShiftDir
+    cmd_ "python3" tool
+      [ "generate",
+        "--linker-in", relocGameLinker,
+        "--symbols-in", relocGameSymbols,
+        "--linker-out", relocSdkShiftLinker,
+        "--symbols-out", relocSdkShiftSymbols,
+        "--pad", "4"
+      ]
+
+  [mainRelocSdkElf, mainRelocSdkShiftElf] |%> \out -> do
+    let t = mainTarget
+        genD = tgGenDir t
+        tBuildDir = tgBuildDir t
+        undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
+        undefinedFunctions = genD </> metaDir </> "undefined_functions_auto.main.exe.txt"
+        shifted = out == mainRelocSdkShiftElf
+        linkerScript = if shifted then relocSdkShiftLinker else relocSdkBaseLinker
+        symbolScript = if shifted then relocSdkShiftSymbols else relocSdkBaseSymbols
+        mapFile = if shifted then mainRelocSdkShiftMap else mainRelocSdkMap
+    _generatedFiles <- getGeneratedFiles (tgGen t)
+    sFiles <- liftIO $ getDirectoryFilesIO (genD </> asmDir) ["*.s", "data/*.s"]
+    cFiles <- liftIO $ do
+      userFiles <- Set.fromList <$> getDirectoryFilesIO (tgSrcDir t) ["//*.c"]
+      genFiles <- Set.fromList <$> getDirectoryFilesIO (genD </> srcDir) ["//*.c"]
+      pure $ Set.toList (userFiles <> genFiles)
+    assetFiles <- liftIO $ getDirectoryFilesIO (genD </> assetsDir) ["//*.bin"]
+    let oFiles = map (\f -> tBuildDir </> f <.> "o") (cFiles <> sFiles <> assetFiles)
+        sFilesExp = map (\f -> genD </> asmDir </> f) sFiles
+        assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
+    need $ sFilesExp <> assetFilesExp <> oFiles <>
+      [linkerScript, symbolScript, undefinedSymbols, undefinedFunctions]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    cmd_ ld ldFlags
+      [ "-o", out,
+        "-Map", mapFile,
+        "-T", linkerScript,
+        "-T", symbolScript,
+        "-T", undefinedSymbols,
+        "-T", undefinedFunctions,
+        "--no-check-sections",
+        "-nostdlib"
+      ]
+
+  [mainRelocSdkExe, mainRelocSdkShiftExe] |%> \out -> do
+    let input = if out == mainRelocSdkShiftExe
+          then mainRelocSdkShiftElf
+          else mainRelocSdkElf
+    need [input]
+    cmd_ objcopy objcopyFlags [input, out]
+
   -- Non-matching build: mkmod patches hooked functions in place. It reads main.exe's
   -- symbol table (via nm on the elf), compiles every src/mod/main.exe/*.c, and aborts
   -- if one outgrows its slot -- so depend on the exe+elf, the mod sources, AND the
@@ -1144,6 +1237,35 @@ phonyRules = do
       fail $ unwords ["Expected", mainRelocGameExe, "to have sha256 of", refSha,
                       "but it's", ourSha]
     putInfo "check-reloc-game: linker-owned game symbols are retail-exact"
+
+  -- Bounded canonical-assembly proof for the first contiguous SDK/CRT prefix.
+  -- The retail-address link must still match; a controlled +4 link before Exec
+  -- audits final linked J/JAL and HI/LO words.  This is not yet a runnable grown
+  -- PS-EXE: the next raw SDK block, BSS, and header remain fixed.
+  phony "check-reloc-sdk" $ do
+    let tool = "tools" </> "reloc_sdk_lane.py"
+        sdkObject = tgBuildDir mainTarget </> "CRT_SDK_4FA48.s.o"
+    need [ mainRelocSdkExe, mainRelocSdkShiftExe, tgImage mainTarget,
+           tool, sdkObject ]
+    StdoutTrim ref <- cmd "sha256sum" (tgImage mainTarget)
+    StdoutTrim ours <- cmd "sha256sum" mainRelocSdkExe
+    let refSha = head $ words ref
+        ourSha = head $ words ours
+    when (refSha /= tgSha mainTarget) $
+      fail $ unwords ["Reference", tgImage mainTarget, "has sha256", refSha,
+                      "but expected known-good", tgSha mainTarget,
+                      "- wrong/corrupt base image?"]
+    when (ourSha /= refSha) $
+      fail $ unwords ["Expected", mainRelocSdkExe, "to have sha256 of", refSha,
+                      "but it's", ourSha]
+    cmd_ "python3" tool
+      [ "verify",
+        "--base-elf", mainRelocSdkElf,
+        "--shifted-elf", mainRelocSdkShiftElf,
+        "--sdk-object", sdkObject,
+        "--delta", "4"
+      ]
+    putInfo "check-reloc-sdk: canonical SDK prefix is retail-exact and +4-relocatable"
 
   -- Optional, evidence-preserving lane for the complete stock GS_107.OBJ.
   -- Nothing proprietary is fetched or tracked: point this one target at a

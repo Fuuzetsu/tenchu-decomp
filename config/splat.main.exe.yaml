@@ -718,9 +718,19 @@ segments:
       - [0x4F638, c, FUN_8005fe38]
       - [0x4F688, c, FUN_8005fe88]
       - [0x4F6CC, c, AdtSelect]
-      - { start: 0x4F9D4, type: data, linker_section_order: .text }
+      # The first CRT/PsyQ prefix is generated as canonical assembly instead
+      # of literal `.word` data.  GNU as therefore records real J/JAL and
+      # HI16/LO16 relocations; `./Build check-reloc-sdk` proves the retail link
+      # exact and then inserts a controlled four-byte probe before Exec.
+      - [0x4F9D4, asm, LIBAPI_4F9D4]
+      # PClseek is already a relocation-bearing canonical-assembly object via
+      # its existing guarded source, so keep that independently classified
+      # object between the two generated assembly carves.
       - [0x4FA24, c, PClseek]
-      - { start: 0x4FA48, type: data, linker_section_order: .text }
+      - [0x4FA48, asm, CRT_SDK_4FA48]
+      # GsSetLsMatrix is already a relocatable object, but remains the explicit
+      # fixed boundary of this first SDK proof.  The next literal raw input
+      # begins at 0x5492C.
       - [0x54900, c, GsSetLsMatrix]
       - { start: 0x5492C, type: data, linker_section_order: .text }
       - [0x549F0, c, GsMulCoord0]

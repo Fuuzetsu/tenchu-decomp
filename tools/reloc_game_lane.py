@@ -33,7 +33,7 @@ GAME_TEXT_END = 0x800601D4
 EXPECTED_GAME_INPUTS = 555
 
 TEXT_START_MARKER = "main_exe_TEXT_START = .;"
-FIRST_SDK_OWNER = "/data/4F9D4.data.s.o(.data);"
+FIRST_SDK_OWNER = "/LIBAPI_4F9D4.s.o(.text);"
 
 ABSOLUTE_SYMBOL_RE = re.compile(
     r"^\s*([A-Za-z_.$][A-Za-z0-9_.$]*)\s*=\s*"

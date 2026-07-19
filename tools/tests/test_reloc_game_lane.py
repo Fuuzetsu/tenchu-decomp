@@ -48,7 +48,7 @@ SECTIONS
   main_exe_TEXT_START = .;
   .shake/build/main.exe/First.c.o(.text);
   .shake/build/main.exe/StaticLeaf.c.o(.text);
-  .shake/build/main.exe/data/4F9D4.data.s.o(.data);
+  .shake/build/main.exe/LIBAPI_4F9D4.s.o(.text);
   .shake/build/main.exe/Sdk.c.o(.text);
 }
 """
@@ -68,7 +68,7 @@ SECTIONS
             lane.rewrite_linker(self.LINKER, expected_inputs=3)
 
     def test_requires_sdk_boundary(self) -> None:
-        source = self.LINKER.replace(lane.FIRST_SDK_OWNER, "/data/OTHER.data.s.o(.data);")
+        source = self.LINKER.replace(lane.FIRST_SDK_OWNER, "/OTHER.s.o(.text);")
         with self.assertRaisesRegex(lane.LaneError, "missing first SDK owner"):
             lane.rewrite_linker(source, expected_inputs=2)
 

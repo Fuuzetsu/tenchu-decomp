@@ -122,11 +122,64 @@ image. Its ELF reports game functions as section-relative text symbols rather
 than absolute symbols, proving that the linker owns their placement. Generated
 scripts and the alternate ELF/executable remain under `.shake/build`.
 
-This gate intentionally stops at the game/SDK boundary. A grown game function
-would still move raw SDK instruction blobs without relocating them, leave the
-PS-EXE entry point and load size stale, and consume the fixed BSS address range.
-Passing `check-reloc-game` therefore proves the first prerequisite, not a
-runnable size-changing build. The remaining stages below are still required.
+This gate intentionally stops assigning ownership at the game/SDK boundary.
+The next gate now covers the first SDK prefix, but later raw SDK instruction
+blobs would still move without relocating, the PS-EXE entry point and load size
+would remain stale, and the fixed BSS address range would be consumed. Passing
+`check-reloc-game` therefore proves the first prerequisite, not a runnable
+size-changing build. The remaining stages below are still required.
+
+### Implemented second gate: canonical CRT/SDK prefix
+
+The first contiguous CRT/PsyQ prefix, virtual addresses
+`0x800601d4..0x80065100`, is now relocation-aware without reconstructing Sony
+library C. Splat emits the two previously raw ranges as canonical MIPS assembly:
+
+- file `0x4f9d4..0x4fa24` (`Exec` through `PCclose`);
+- file `0x4fa48..0x54900` (`PCcreat` through `GsInitCoord2param`).
+
+The existing `PClseek` canonical-assembly object lies between those ranges.
+`GsSetLsMatrix` is already a relocatable object, but deliberately remains the
+fixed boundary of this first proof. The first remaining literal instruction
+input follows it: `5492C.data.s`, beginning at `GsSetLightMatrix`.
+
+This is a source-form change, not a C decompilation and not a trampoline. The
+ordinary reference link still reproduces the shipped executable exactly. The
+larger generated assembly object has `0x4eb8` bytes of `.text` and 1,435
+`.rel.text` records reported by GNU `readelf`:
+
+```text
+R_MIPS_26      285
+R_MIPS_HI16    498
+R_MIPS_LO16    498
+R_MIPS_PC16    154
+```
+
+`./Build check-reloc-sdk` builds on the game-symbol lane, removes 261 absolute
+assignments in this bounded prefix, and performs two normal links. The first is
+byte-identical to retail. The second inserts one file-backed four-byte word
+immediately before `Exec`. The verifier checks the linked ELF, not assembly
+text: representative prefix symbols from `Exec` through `GsInitCoord2param`
+move by four bytes and remain section-owned, while internal `J`, `JAL`, and
+`LUI`/`ADDIU` code-address pairs retarget to the moved symbols. The external
+`jal main` remains pointed at the unchanged linker-owned game function.
+`GsSetLsMatrix` deliberately remains absolute at `0x80065100`, making the
+current stopping point explicit and machine-checked.
+
+The shifted artifact is a relocation probe, **not a runnable grown PS-EXE**.
+Everything after `0x80065100` still shifts physically even though later raw
+instructions and their public symbols remain fixed; the header and BSS layout
+also remain unchanged. Continue carving later raw ranges or replace them with
+manifest-verified original PsyQ objects before treating arbitrary game growth
+as runnable.
+
+The generator and ELF verifier accept a `+0x10004` probe so the same checks can
+exercise an `R_MIPS_HI16` carry. A whole-executable probe of that size is the
+next gate, not a passing claim today: GNU `ld` rejects it because later small
+data moves more than 64 KiB away from the still-fixed `_gp`, producing
+`R_MIPS_GPREL16` truncations (for example against `D_8009770C`). Moving `_gp`
+and its small-data/BSS ownership into the normal linker layout must precede
+that large-shift proof.
 
 ### 1. Reference matching lane
 
