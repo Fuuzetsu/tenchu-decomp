@@ -36,6 +36,8 @@ decisions behind the toolchain. It's the reference companion to the terse
   require decompiling every PsyQ routine into C, how MGS/Silent Hill/SOTN handle
   stock SDK code, the exact `GS_107.OBJ` relocation proof, and the proposed
   optional external-object lane.
+- [psyq-object-lane.md](psyq-object-lane.md) — run the implemented, opt-in
+  `GS_107.OBJ` link audit against a user-supplied PsyQ 4.4–4.6 `LIBGS.LIB`.
 - [matching-get-held-buttons.md](matching-get-held-buttons.md) — a worked
   case study of trying to byte-match a real function, and what makes it hard.
 - [modding-and-nonmatching.md](modding-and-nonmatching.md) — building

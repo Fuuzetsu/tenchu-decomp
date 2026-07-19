@@ -77,8 +77,8 @@ SquareRoot0       0x800779a4
 SetColorMatrix    0x80078524
 ```
 
-Replacing the complete mixed raw/C `GS_107` range in a temporary copy of the
-real Tenchu linker script with only this object also produced the shipped
+Replacing the complete mixed raw/C `GS_107` range in the Tenchu linker script
+with only this object also produced the shipped
 555,008-byte executable and its expected SHA-256. Linking the same input at
 unrelated text/BSS addresses also succeeded; after masking all sixteen
 relocation words, the retail-address and moved-address text was identical.
@@ -116,9 +116,13 @@ must not fetch a proprietary SDK.
 
 ### 2. Relocatable lane
 
-An opt-in lane accepts a user-supplied `PSYQ_SDK` directory, identifies the
-exact archive version/member for each Tenchu range, converts each proven member
-to ELF, and links the resulting objects by symbol. Its manifest must record:
+The first opt-in lane is implemented for `GS_107.OBJ`; see
+[`psyq-object-lane.md`](psyq-object-lane.md). It accepts a user-supplied PsyQ
+4.4–4.6 `LIBGS.LIB`, hash-gates the archive and member, validates the converted
+ELF, and proves the complete alternate executable byte-identical. Expanding
+that manifest-driven lane requires identifying the exact archive
+version/member for each Tenchu range, converting each proven member to ELF,
+and linking the resulting objects by symbol. Its manifest must record:
 
 - archive version and member name;
 - all text/data/BSS sections and original alignment;

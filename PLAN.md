@@ -496,11 +496,13 @@ combined `game done (C+asm)` line). For the SDK the options are:
    complete-object evidence makes it a clean editable-source win, while the
    external-object lane handles bulk relocation.
 
-Recommended: keep (1) in the hermetic reference build; implement (2) as an
-optional external-object lane for the long-term shiftability goal; use (3) for
+Recommended: keep (1) in the hermetic reference build; expand the now-working
+`GS_107.OBJ` implementation of (2) into an optional external-object lane for
+the long-term shiftability goal; use (3) for
 readability or SDK routines we intend to modify. This follows MGS and Silent
 Hill precedent and is backed by an exact-at-retail/links-at-new-address
-`GS_107.OBJ` experiment documented in `docs/relocatable-build.md`. Progress
+`GS_107.OBJ` lane documented in `docs/psyq-object-lane.md` and
+`docs/relocatable-build.md`. Progress
 uploading (frogress / decomp.dev) can consume `tools/progress.py --json` from
 CI later.
 

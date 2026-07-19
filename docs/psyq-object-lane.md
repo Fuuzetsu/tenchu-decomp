@@ -7,10 +7,13 @@ replace the current mixed raw/C reconstruction without changing one byte of
 Supply a local PsyQ 4.4, 4.5, or 4.6 `LIBGS.LIB`:
 
 ```sh
-TENCHU_PSYQ_LIBGS=/path/to/LIBGS.LIB ./Build check-psyq-gs107
+nix develop -c env TENCHU_PSYQ_LIBGS=/path/to/LIBGS.LIB \
+  ./Build check-psyq-gs107
 ```
 
-The Nix shell supplies only the open-source `psyqdump` and `psyq2elf` tools.
+If already inside `nix develop` (or a direnv shell), omit the
+`nix develop -c env` prefix. The Nix shell supplies only the open-source
+`psyqdump` and `psyq2elf` tools.
 No SDK archive or object is fetched or tracked.  The target first checks the
 whole archive against the allowlist in
 `config/psyq-objects.main.exe.json`, extracts `GS_107.OBJ`, and independently
