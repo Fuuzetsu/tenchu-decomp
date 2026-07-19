@@ -147,7 +147,6 @@ extern u32 D_800976B8;
 extern s32 time;
 
 extern s32 VSync(s32 mode);
-extern void ResetGraph(int mode);
 
 void EndDrawing(s16 sync)
 {

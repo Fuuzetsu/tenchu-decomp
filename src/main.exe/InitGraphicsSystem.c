@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -73,7 +74,6 @@ extern s32 SlightPoint;
  */
 #define STARTING_RNG_SEED (*(s32 *)0x80010e70)
 
-extern void SetDispMask(s32 mask);
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void GsSetNearClip(s32 near);
 extern void AdtFntLoad(int tx, int ty);

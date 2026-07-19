@@ -414,7 +414,6 @@
 
 extern s32 (*AdtPadRead)(s32);
 extern void FntPrint(char *fmt, ...);
-extern s32 FntFlush(s32 id);
 extern s32 VSync(s32 mode);
 
 extern char D_80014AFC[]; /* "select item" */

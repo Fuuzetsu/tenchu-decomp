@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -76,7 +77,6 @@ extern void *valloc(u32 size);
 extern SVECTOR UnitVector;
 extern GsIMAGE *D_80097F3C;
 extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, s32 w, s32 h);
-extern void SetSemiTrans(void *quad, s32 abe);
 
 AfterimageType *SetupAfterimage(ModelType *model, short len)
 {
@@ -102,4 +102,3 @@ AfterimageType *SetupAfterimage(ModelType *model, short len)
     SetSemiTrans(&pAVar4->poly, 1);
     return pAVar4;
 }
-

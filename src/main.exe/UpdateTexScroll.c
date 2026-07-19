@@ -85,7 +85,6 @@ typedef struct
 } TexScroll;
 
 extern GsOT *OTablePt;
-extern void AddPrim(u8 *ot, u8 *prim);
 
 void UpdateTexScroll(TexScroll *tscr)
 {

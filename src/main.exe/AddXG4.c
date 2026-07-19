@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -32,8 +33,6 @@
  * parameters read twice need no separate temps — cookbook's cached-pointer
  * rule).
  */
-extern void AddPrim(u8 *ot, u8 *prim);
-
 void AddXG4(u8 *ot, u8 *ply)
 {
     AddPrim(ot, ply + 8);

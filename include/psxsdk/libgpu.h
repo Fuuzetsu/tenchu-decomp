@@ -417,6 +417,13 @@ DRAWENV *GetDrawEnv(DRAWENV *env);
 DRAWENV *PutDrawEnv(DRAWENV *env);
 DRAWENV *SetDefDrawEnv(DRAWENV *env, int x, int y, int w, int h);
 
+int FntOpen(int x, int y, int w, int h, int isbg, int n);
+u_long *FntFlush(int id);
+void FntLoad(int tx, int ty);
+int ResetGraph(int mode);
+void SetDispMask(int mask);
+
+void AddPrim(void *ot, void *p);
 int ClearImage(RECT *rect, u_char r, u_char g, u_char b);
 int ClearImage2(RECT *rect, u_char r, u_char g, u_char b);
 void DrawPrim(void *p);
@@ -428,6 +435,7 @@ int StoreImage2(RECT *rect, u_long *p);
 int MoveImage(RECT *rect, int x, int y);
 int MoveImage2(RECT *rect, int x, int y);
 void SetDrawMove(DR_MOVE *p, RECT *rect, int x, int y);
+void SetSemiTrans(void *p, int abe);
 u_short GetClut(int x, int y);
 u_short GetTPage(int tp, int abr, int x, int y);
 

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * AdtFntLoad (0x8005fc64) — font-adapter load: loads the font pattern into
@@ -21,7 +22,6 @@ typedef struct
 } AdtFntState;
 
 extern AdtFntState D_8008F1B8;
-extern void FntLoad(int tx, int ty);
 
 void AdtFntLoad(int tx, int ty)
 {

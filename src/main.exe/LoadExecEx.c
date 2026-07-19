@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -39,7 +40,6 @@ extern void FUN_8001b2b8(void);
 extern void CdaStop(void);
 extern void SsEnd(void);
 extern void FUN_8006ebe4(void);
-extern void ResetGraph(int mode);
 extern void PadStopCom(void);
 extern void MemCardStop(void);
 extern void MemCardEnd(void);

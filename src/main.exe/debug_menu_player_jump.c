@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * debug_menu_player_jump (0x8005cbbc, 0x2b4 bytes) — lets the debug menu
@@ -38,7 +39,6 @@ extern char D_80014704[];
 extern void EndDrawing(s32 sync);
 extern void StartDrawing(void);
 extern s32 FntPrint(char *fmt, ...);
-extern s32 FntFlush(s32 id);
 extern u32 GetRealPad(s32 port);
 extern s32 GetAreaMapLevel(u32 *area, s32 x, s32 y, s32 z, s32 mode);
 

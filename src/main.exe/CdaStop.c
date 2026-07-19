@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -48,7 +49,6 @@ extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
 extern void VSyncCallback(void *func);
 extern void cd_control(u8 param_1, u8 *param_2, u8 *param_3);
-extern void CdFlush(void);
 
 void CdaStop(void)
 {

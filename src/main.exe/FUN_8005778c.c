@@ -52,7 +52,6 @@
  */
 extern GsIMAGE FONT_IMAGE_;
 extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, short w, s32 h);
-extern void AddPrim(u8 *ot, u8 *prim);
 
 void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
 {

@@ -27,8 +27,6 @@ typedef struct
 } AdtFntState;
 
 extern AdtFntState D_8008F1B8;
-extern void FntLoad(int tx, int ty);
-extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
 
 void AdtReleaseDisp(TAdtDisp *ad)
 {

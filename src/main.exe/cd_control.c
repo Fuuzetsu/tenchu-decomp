@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * cd_control (0x8005f738) — thin retry wrapper over the BIOS CdControlB:
@@ -8,7 +9,6 @@
  * attempts.
  */
 
-extern int CdControlB(u8 com, u8 *param, u8 *result);
 extern int VSync(int mode);
 
 void cd_control(u8 param_1, u8 *param_2, u8 *param_3)

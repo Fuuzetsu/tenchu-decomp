@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * AdtFntOpen (0x8005fbdc) — font-adapter open: opens the PSYQ libgpu font
@@ -25,7 +26,6 @@ typedef struct
 } AdtFntOpenState;
 
 extern AdtFntOpenState D_8008F1B8;
-extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
 
 void AdtFntOpen(int x, int y, int w, int h, int isbg, int n)
 {

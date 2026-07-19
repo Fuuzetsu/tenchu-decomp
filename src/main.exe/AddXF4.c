@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -29,8 +30,6 @@
  * table, +8 then +0, via AddPrim(ot, prim). `ot` and `ply` are cached in
  * callee-saved regs across both calls (cookbook's cached-pointer rule).
  */
-extern void AddPrim(u8 *ot, u8 *prim);
-
 void AddXF4(u8 *ot, u8 *ply)
 {
     AddPrim(ot, ply + 8);

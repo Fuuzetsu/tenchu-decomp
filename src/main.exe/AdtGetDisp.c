@@ -28,10 +28,6 @@ typedef struct
 
 extern AdtFntState D_8008F1B8;
 
-extern void SetDispMask(int mask);
-extern void FntLoad(int tx, int ty);
-extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
-
 void AdtGetDisp(TAdtDisp *disp)
 {
     DRAWENV de;

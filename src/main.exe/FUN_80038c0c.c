@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * FUN_80038c0c (0x80038c0c, 0xd4 bytes) — builds two GPU primitives (likely a
@@ -31,8 +32,6 @@
  *    that part was verified NOT load-bearing and dropped per the cookbook's
  *    "bisect a multi-diff score-0 candidate" rule).
  */
-
-extern void AddPrim(u8 *ot, u8 *prim);
 
 void FUN_80038c0c(u8 *arg0, s8 arg1, s8 arg2, s8 arg3)
 {
