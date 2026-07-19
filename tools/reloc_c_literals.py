@@ -4,14 +4,16 @@
 The retail matching sources for six functions contain numeric address
 materialisation chosen solely to reproduce the shipped instruction schedule.
 With ``TENCHU_RELOCATABLE`` defined, those same translation units use ordinary
-symbolic C instead.  This verifier reads the resulting ELF objects directly
-and requires the expected MIPS HI16/LO16 relocation records.  It also rejects
-an unrelocated matching-only high half (``0x8009`` or ``0x800d``) in these
-bounded objects.
+symbolic C instead.  The allocator pair additionally consumes a linker-derived
+``MemoryPoolCapacity`` count, so neither the pool base nor its retail size is
+embedded in the normal-link code.  This verifier reads the resulting ELF
+objects directly and requires the expected MIPS HI16/LO16 relocation records.
+It also rejects unrelocated matching-only address high halves and the old
+``0x47ffe`` pool-capacity materialisation in these bounded objects.
 
-This is a bounded object/link-input gate, not a claim that the whole executable
-can grow yet.  Later raw code/data, BSS/$gp ownership, and PS-X EXE finalisation
-remain separate normal-link blockers.
+This remains a bounded object/link-input gate.  The composed normal-link gate
+separately verifies the canonical SDK stream, reviewed loaded data, linker-owned
+BSS/pool bounds, and PS-X EXE finalisation together.
 """
 
 from __future__ import annotations
@@ -49,7 +51,16 @@ EXPECTED_LINKER_REFERENCES = 4
 FIRST_SDK_TEXT_INPUT = ".shake/build/main.exe/LIBAPI_4F9D4.s.o(.text);"
 SHN_ABS = 0xFFF1
 SDK_TEXT_START = 0x800601D4
-SDK_TEXT_END = 0x800834D0
+SDK_TEXT_END = 0x80086764
+MEMORY_POOL_START = 0x800DC000
+MEMORY_POOL_END = 0x801FC000
+MEMORY_POOL_ALIGNMENT = 16
+MINIMUM_MEMORY_POOL_SIZE = 0x10
+RETAIL_MEMORY_POOL_CAPACITY = 0x47FFE
+POOL_CAPACITY_PROVISION = (
+    "PROVIDE(MemoryPoolCapacity = "
+    f"0x{RETAIL_MEMORY_POOL_CAPACITY:08x});\n"
+)
 
 # The natural objects start at the same place as their exact counterparts, then
 # move later functions by the cumulative eight-byte shrink in ActivateHumans
@@ -120,10 +131,18 @@ OBJECT_SPECS = {
         {"StageChar": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}}, (0x8009,)
     ),
     "vinit": ObjectSpec(
-        {"MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}}, (0x800D,)
+        {
+            "MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 1},
+            "MemoryPoolCapacity": {R_MIPS_HI16: 1, R_MIPS_LO16: 1},
+        },
+        (0x800D,),
     ),
     "valloc": ObjectSpec(
-        {"MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 2}}, (0x800D,)
+        {
+            "MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 2},
+            "MemoryPoolCapacity": {R_MIPS_HI16: 1, R_MIPS_LO16: 1},
+        },
+        (0x800D,),
     ),
 }
 
@@ -333,6 +352,26 @@ def find_literal_high_halves(
     return findings
 
 
+def find_literal_pool_capacity(text: bytes) -> list[int]:
+    """Return LUI/ORI pairs which still materialise retail ``0x47ffe``."""
+
+    findings: list[int] = []
+    for offset in range(0, len(text) - 7, 4):
+        high = struct.unpack_from("<I", text, offset)[0]
+        low = struct.unpack_from("<I", text, offset + 4)[0]
+        high_register = (high >> 16) & 0x1F
+        if (
+            high >> 26 == 0x0F
+            and high & 0xFFFF == RETAIL_MEMORY_POOL_CAPACITY >> 16
+            and low >> 26 == 0x0D
+            and (low >> 21) & 0x1F == high_register
+            and (low >> 16) & 0x1F == high_register
+            and low & 0xFFFF == RETAIL_MEMORY_POOL_CAPACITY & 0xFFFF
+        ):
+            findings.append(offset)
+    return findings
+
+
 def verify_contract(elf: ElfObject, spec: ObjectSpec, description: str) -> str:
     text = elf.section_data(".text")
     relocations = elf.relocations(".rel.text")
@@ -383,6 +422,15 @@ def verify_contract(elf: ElfObject, spec: ObjectSpec, description: str) -> str:
                 f"text offset(s) {rendered}"
             )
 
+    if description in {"vinit", "valloc"}:
+        literals = find_literal_pool_capacity(text)
+        if literals:
+            rendered = ", ".join(f"0x{offset:x}" for offset in literals)
+            raise AuditError(
+                f"{description}: unrelocated pool capacity 0x"
+                f"{RETAIL_MEMORY_POOL_CAPACITY:x} at text offset(s) {rendered}"
+            )
+
     details = []
     for symbol_name, expected in spec.targets.items():
         details.append(
@@ -406,7 +454,12 @@ def rewrite_linker(
             "normal-C linker padding is "
             f"{padding}, expected 0 or {EXPECTED_TEXT_SHRINK}"
         )
-    output = source
+    if "MemoryPoolCapacity" in source:
+        raise AuditError("input linker already defines MemoryPoolCapacity")
+    # The bounded symbolic-C probe predates linker-owned BSS. Give it the
+    # retail scalar value without pinning the composed relink: GNU ld's PROVIDE
+    # is suppressed once reloc_bss_lane supplies the real derived definition.
+    output = POOL_CAPACITY_PROVISION + source
     for name in OBJECT_SPECS:
         old = str(reference_objects[name])
         new = str(variant_objects[name])
@@ -474,6 +527,20 @@ def generate_linker(
 def sign_extend_16(value: int) -> int:
     value &= 0xFFFF
     return value - 0x10000 if value & 0x8000 else value
+
+
+def memory_pool_start_for_bss(bss_end: int) -> int:
+    aligned = (bss_end + MEMORY_POOL_ALIGNMENT - 1) & ~(
+        MEMORY_POOL_ALIGNMENT - 1
+    )
+    return max(MEMORY_POOL_START, aligned)
+
+
+def memory_pool_capacity_from_bounds(start: int, end: int) -> int:
+    size = end - start
+    if size < MINIMUM_MEMORY_POOL_SIZE or size % 4:
+        raise AuditError(f"MemoryPool has invalid size 0x{size:x}")
+    return size // 4 - 2
 
 
 def verify_linked(
@@ -694,6 +761,8 @@ def verify_normal_link(
     crt0_bss_end = variant.symbol("D_800CDBA8")
     heap_start = variant.symbol("HEAP_START")
     memory_pool = variant.symbol("MemoryPool")
+    memory_pool_end = variant.symbol("MemoryPoolEnd")
+    memory_pool_capacity = variant.symbol("MemoryPoolCapacity")
     boundaries = (
         extension_start,
         extension_end,
@@ -703,6 +772,7 @@ def verify_normal_link(
         crt0_bss_end,
         heap_start,
         memory_pool,
+        memory_pool_end,
     )
     if any(symbol.section_index in (SHN_UNDEF, SHN_ABS) for symbol in boundaries):
         raise AuditError("normal-link extension/BSS/pool boundary is not section-owned")
@@ -720,8 +790,30 @@ def verify_normal_link(
         raise AuditError("crt0 clear end does not follow linked BSS end")
     if heap_start.value != bss_end.value + 4:
         raise AuditError("heap start does not follow linked BSS end")
+    expected_pool_start = memory_pool_start_for_bss(bss_end.value)
+    if memory_pool.value != expected_pool_start:
+        raise AuditError(
+            f"MemoryPool starts at 0x{memory_pool.value:08x}, "
+            f"expected retail minimum/aligned BSS end 0x{expected_pool_start:08x}"
+        )
     if bss_end.value > memory_pool.value:
         raise AuditError("linked BSS overlaps MemoryPool")
+    if memory_pool_end.value != MEMORY_POOL_END:
+        raise AuditError(
+            f"MemoryPoolEnd is 0x{memory_pool_end.value:08x}, "
+            f"expected 0x{MEMORY_POOL_END:08x}"
+        )
+    pool_size = memory_pool_end.value - memory_pool.value
+    expected_capacity = memory_pool_capacity_from_bounds(
+        memory_pool.value, memory_pool_end.value
+    )
+    if memory_pool_capacity.section_index != SHN_ABS:
+        raise AuditError("MemoryPoolCapacity is not a computed absolute count")
+    if memory_pool_capacity.value != expected_capacity:
+        raise AuditError(
+            f"MemoryPoolCapacity is 0x{memory_pool_capacity.value:x}, "
+            f"expected 0x{expected_capacity:x} from linked bounds"
+        )
 
     reports = [
         f"normal C changed text by {delta:+d} bytes with no boundary pad",
@@ -729,6 +821,8 @@ def verify_normal_link(
         "extension size "
         f"0x{extension_end.value - extension_start.value:x}; "
         f"BSS 0x{bss_start.value:08x}..0x{bss_end.value:08x}",
+        f"MemoryPool 0x{memory_pool.value:08x}..0x{memory_pool_end.value:08x}; "
+        f"capacity 0x{memory_pool_capacity.value:x} words",
     ]
     reports.extend(verify_linked_relocations(variant, objects))
 

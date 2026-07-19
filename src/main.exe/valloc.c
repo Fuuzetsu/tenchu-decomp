@@ -85,10 +85,12 @@
  *    loop guard's delay slot; sprintf then receives `maxsize` raw.
  *  - The self-init branch duplicates vinit.c's `size == 0` arm literally
  *    (pool = 0x800DC000; vh.size = 0x47ffe; vh.next = 0) — no call, cc1
- *    2.8.1 does not inline. `TENCHU_RELOCATABLE` changes only the
- *    matching-only address literal to the declared MemoryPool symbol. cc1
- *    then emits one HI16 and two LO16 relocations: the second low half is its
- *    natural rematerialization for the following aggregate store.
+ *    2.8.1 does not inline. `TENCHU_RELOCATABLE` instead uses linker-owned
+ *    MemoryPool and MemoryPoolCapacity symbols; the linker derives the latter
+ *    from MemoryPool..MemoryPoolEnd. Image growth consumes the retail gap
+ *    first, then moves the pool base and shrinks its capacity without leaving
+ *    either retail constant in the code. The exact relocation counts are
+ *    compiler output and are gated by tools/reloc_c_literals.py.
  *  - The request rounding is `if (size & 3) size += 4;` (NOT `(size+3)&~3`)
  *    — read off the raw immediate; keep the odd shape.
  *  - Both whole-struct stores (`*virtual_memory_pool = vh;`, `*(PoolBlock *)
@@ -105,6 +107,7 @@ typedef struct PoolBlock
 extern PoolBlock *virtual_memory_pool;
 #ifdef TENCHU_RELOCATABLE
 extern PoolBlock MemoryPool[];
+extern u8 MemoryPoolCapacity[];
 #endif
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -132,7 +135,11 @@ void *valloc(u32 size)
 #else
         virtual_memory_pool = (PoolBlock *)0x800DC000;
 #endif
+#ifdef TENCHU_RELOCATABLE
+        vh.size = (u32)MemoryPoolCapacity;
+#else
         vh.size = 0x47ffe;
+#endif
         vh.next = 0;
         *virtual_memory_pool = vh;
     }

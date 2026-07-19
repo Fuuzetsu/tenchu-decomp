@@ -61,9 +61,12 @@
  *    pointer is read directly (no separate `p` local caching it): it changes
  *    across the addr==0 branch, so cc1 cannot keep it live in a register
  *    across that join and reloads gp_rel fresh at the point of use.
- *  - `TENCHU_RELOCATABLE` uses the declared MemoryPool symbol. The literal is
- *    retained only in the byte-matching lane; it must not pin a future pool
- *    placement chosen by the linker.
+ *  - `TENCHU_RELOCATABLE` uses linker-owned MemoryPool and
+ *    MemoryPoolCapacity symbols. The linker derives the latter from the
+ *    MemoryPool..MemoryPoolEnd bounds. Linker-defined scalar values are exposed
+ *    to C through their address, the normal embedded-C idiom. The address and
+ *    fixed retail word count are retained only in the byte-matching lane;
+ *    neither pins the normal relink's pool placement or capacity.
  */
 
 typedef struct PoolBlock
@@ -75,6 +78,7 @@ typedef struct PoolBlock
 extern PoolBlock *virtual_memory_pool;
 #ifdef TENCHU_RELOCATABLE
 extern PoolBlock MemoryPool[];
+extern u8 MemoryPoolCapacity[];
 #endif
 
 void vinit(void *adr, u32 size)
@@ -91,8 +95,13 @@ void vinit(void *adr, u32 size)
 
     if (size != 0)
         h.size = (size >> 2) - 2;
+#ifdef TENCHU_RELOCATABLE
+    else
+        h.size = (u32)MemoryPoolCapacity;
+#else
     else
         h.size = 0x47ffe;
+#endif
     h.next = 0;
     *virtual_memory_pool = h;
 }

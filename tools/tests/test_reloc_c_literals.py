@@ -83,6 +83,13 @@ class ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(audit.AuditError, "HI16.*not LUI"):
             audit.verify_contract(elf, self.SPEC, "Example")
 
+    def test_finds_matching_only_pool_capacity_materialisation(self) -> None:
+        text = struct.pack("<II", 0x3C020004, 0x34427FFE)
+        self.assertEqual(audit.find_literal_pool_capacity(text), [0])
+
+        symbolic = struct.pack("<II", 0x3C020000, 0x24420000)
+        self.assertEqual(audit.find_literal_pool_capacity(symbolic), [])
+
 
 class InventoryTests(unittest.TestCase):
     def test_requires_exact_fixed_inventory(self) -> None:
@@ -92,6 +99,33 @@ class InventoryTests(unittest.TestCase):
     def test_rejects_malformed_mapping(self) -> None:
         with self.assertRaisesRegex(audit.AuditError, "expected NAME=PATH"):
             audit.parse_objects(["FileOption"])
+
+
+class MemoryPoolLayoutTests(unittest.TestCase):
+    def test_retail_gap_preserves_original_pool_capacity(self) -> None:
+        start = audit.memory_pool_start_for_bss(audit.MEMORY_POOL_START - 4)
+        self.assertEqual(start, audit.MEMORY_POOL_START)
+        self.assertEqual(
+            audit.memory_pool_capacity_from_bounds(start, audit.MEMORY_POOL_END),
+            audit.RETAIL_MEMORY_POOL_CAPACITY,
+        )
+
+    def test_growth_past_retail_base_moves_and_shrinks_pool(self) -> None:
+        retail_capacity = audit.memory_pool_capacity_from_bounds(
+            audit.MEMORY_POOL_START, audit.MEMORY_POOL_END
+        )
+        start = audit.memory_pool_start_for_bss(audit.MEMORY_POOL_START + 0x11)
+        capacity = audit.memory_pool_capacity_from_bounds(
+            start, audit.MEMORY_POOL_END
+        )
+        self.assertEqual(start, audit.MEMORY_POOL_START + 0x20)
+        self.assertEqual(capacity, retail_capacity - 8)
+
+    def test_rejects_exhausted_pool(self) -> None:
+        with self.assertRaisesRegex(audit.AuditError, "invalid size"):
+            audit.memory_pool_capacity_from_bounds(
+                audit.MEMORY_POOL_END - 8, audit.MEMORY_POOL_END
+            )
 
 
 class LinkerRewriteTests(unittest.TestCase):
@@ -116,6 +150,7 @@ class LinkerRewriteTests(unittest.TestCase):
             variants,
             padding=audit.EXPECTED_TEXT_SHRINK,
         )
+        self.assertTrue(output.startswith(audit.POOL_CAPACITY_PROVISION))
         for name in audit.OBJECT_SPECS:
             self.assertNotIn(str(references[name]), output)
             self.assertEqual(output.count(str(variants[name])), 4)
@@ -158,6 +193,19 @@ class LinkerRewriteTests(unittest.TestCase):
         with self.assertRaisesRegex(audit.AuditError, "padding is 8, expected 0 or 12"):
             audit.rewrite_linker(
                 self.linker(references), references, variants, padding=8
+            )
+
+    def test_rejects_preexisting_capacity_definition(self) -> None:
+        references = self.mappings("old")
+        variants = self.mappings("new")
+        with self.assertRaisesRegex(
+            audit.AuditError, "already defines MemoryPoolCapacity"
+        ):
+            audit.rewrite_linker(
+                "MemoryPoolCapacity = 1;\n" + self.linker(references),
+                references,
+                variants,
+                padding=audit.EXPECTED_TEXT_SHRINK,
             )
 
 

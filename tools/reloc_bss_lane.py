@@ -19,8 +19,10 @@ This opt-in proof rewrites only generated build products:
 * new C files under the normal-link extension directory receive ordinary
   text/data/small-BSS/BSS input patterns instead of falling into ``/DISCARD/``;
   and
-* the fixed virtual-memory pool is represented as an explicit NOBITS
-  reservation.
+* the retail proof represents the fixed virtual-memory pool as an explicit
+  NOBITS reservation; the composed relink preserves that base while BSS fits
+  in the retail gap, then advances it to aligned BSS and shrinks the
+  reservation toward its fixed upper bound.
 
 At retail sizes objcopy intentionally emits the logical 0x876b0-byte prefix.
 ``validate`` proves that appending the reference image's 0x150 zero-byte sector
@@ -55,6 +57,9 @@ GP_ADDRESS = 0x80097698
 MEMORY_POOL_START = 0x800DC000
 MEMORY_POOL_SIZE = 0x120000
 MEMORY_POOL_END = MEMORY_POOL_START + MEMORY_POOL_SIZE
+MEMORY_POOL_ALIGNMENT = 16
+MINIMUM_MEMORY_POOL_SIZE = 0x10
+MEMORY_POOL_CAPACITY = MEMORY_POOL_SIZE // 4 - 2
 HANDOFF_START = 0x80100000
 HANDOFF_END = 0x8010005C
 STACK_START = 0x801FFFF0
@@ -226,6 +231,7 @@ def make_bss_body(
     tail_object: str,
     extension_object_glob: str,
     aliases: list[Symbol],
+    dynamic_pool: bool = False,
 ) -> str:
     inner = indent + "    "
     lines = [
@@ -262,12 +268,46 @@ def make_bss_body(
             f"{indent}}}\n",
             f"{indent}main_exe_VRAM_END = .;\n",
             "\n",
-            f"{indent}.main_exe_memory_pool 0x{MEMORY_POOL_START:08x} (NOLOAD) :\n",
-            f"{indent}{{\n",
-            f"{inner}MemoryPool = .;\n",
-            f"{inner}. += 0x{MEMORY_POOL_SIZE:x};\n",
-            f"{inner}main_exe_MEMORY_POOL_END = .;\n",
-            f"{indent}}}\n",
+        ]
+    )
+    if dynamic_pool:
+        lines.extend(
+            [
+                f"{indent}__tenchu_memory_pool_size = ABSOLUTE("
+                f"0x{MEMORY_POOL_END:08x} "
+                f"- MAX(0x{MEMORY_POOL_START:08x}, "
+                f"ALIGN(ABSOLUTE(main_exe_BSS_END), "
+                f"{MEMORY_POOL_ALIGNMENT})));\n",
+                f"{indent}.main_exe_memory_pool MAX(0x{MEMORY_POOL_START:08x}, "
+                f"ALIGN(ABSOLUTE(main_exe_BSS_END), "
+                f"{MEMORY_POOL_ALIGNMENT})) (NOLOAD) :\n",
+                f"{indent}{{\n",
+                f"{inner}MemoryPool = .;\n",
+                f"{inner}. += __tenchu_memory_pool_size;\n",
+                f"{inner}MemoryPoolEnd = .;\n",
+                f"{inner}main_exe_MEMORY_POOL_END = .;\n",
+                f"{indent}}}\n",
+                "\n",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                f"{indent}.main_exe_memory_pool 0x{MEMORY_POOL_START:08x} "
+                "(NOLOAD) :\n",
+                f"{indent}{{\n",
+                f"{inner}MemoryPool = .;\n",
+                f"{inner}. += 0x{MEMORY_POOL_SIZE:x};\n",
+                f"{inner}MemoryPoolEnd = .;\n",
+                f"{inner}main_exe_MEMORY_POOL_END = .;\n",
+                f"{indent}}}\n",
+                "\n",
+            ]
+        )
+    lines.extend(
+        [
+            f"{indent}MemoryPoolCapacity = ABSOLUTE("
+            "(MemoryPoolEnd - MemoryPool) / 4 - 2);\n",
             "\n",
             f"{indent}__tenchu_handoff_start = ABSOLUTE(0x{HANDOFF_START:08x});\n",
             f"{indent}__tenchu_handoff_end = ABSOLUTE(0x{HANDOFF_END:08x});\n",
@@ -279,12 +319,37 @@ def make_bss_body(
             '"heap start does not follow BSS")\n',
             f'{indent}ASSERT(_gp >= __load_start && _gp < main_exe_INITIALIZED_END, '
             '"_gp lies outside the initialized image")\n',
-            f'{indent}ASSERT(MemoryPool == 0x{MEMORY_POOL_START:08x}, '
-            '"retail MemoryPool changed")\n',
+        ]
+    )
+    if dynamic_pool:
+        lines.extend(
+            [
+                f'{indent}ASSERT(MemoryPool == MAX(0x{MEMORY_POOL_START:08x}, '
+                f'ALIGN(ABSOLUTE(main_exe_BSS_END), '
+                f'{MEMORY_POOL_ALIGNMENT})), '
+                '"dynamic MemoryPool does not follow its minimum/aligned BSS")\n',
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                f'{indent}ASSERT(MemoryPool == 0x{MEMORY_POOL_START:08x}, '
+                '"retail MemoryPool changed")\n',
+            ]
+        )
+    lines.extend(
+        [
+            f'{indent}ASSERT(MemoryPoolEnd == main_exe_MEMORY_POOL_END, '
+            '"virtual-memory pool end aliases disagree")\n',
             f'{indent}ASSERT(main_exe_MEMORY_POOL_END == 0x{MEMORY_POOL_END:08x}, '
-            '"retail MemoryPool end changed")\n',
+            '"virtual-memory pool upper bound changed")\n',
             f'{indent}ASSERT(main_exe_BSS_END <= MemoryPool, '
-            '"BSS overlaps the fixed virtual-memory pool")\n',
+            '"BSS overlaps the virtual-memory pool")\n',
+            f'{indent}ASSERT(MemoryPoolEnd - MemoryPool >= '
+            f'0x{MINIMUM_MEMORY_POOL_SIZE:x}, '
+            '"virtual-memory pool is too small")\n',
+            f'{indent}ASSERT((MemoryPoolEnd - MemoryPool) % 4 == 0, '
+            '"virtual-memory pool is not word-aligned")\n',
             f'{indent}ASSERT(main_exe_BSS_END <= __tenchu_handoff_start, '
             '"BSS overlaps the fixed executable handoff record")\n',
             f'{indent}ASSERT(main_exe_MEMORY_POOL_END <= 0x{STACK_START:08x}, '
@@ -302,6 +367,7 @@ def rewrite_linker(
     extension_object_glob: str,
     aliases: list[Symbol],
     object_replacements: Sequence[tuple[str, str]] = (),
+    dynamic_pool: bool = False,
 ) -> str:
     lines = source.splitlines(keepends=True)
     for old_object, new_object in object_replacements:
@@ -412,6 +478,7 @@ def rewrite_linker(
             tail_object=new_tail_object,
             extension_object_glob=extension_object_glob,
             aliases=aliases,
+            dynamic_pool=dynamic_pool,
         )
     )
     del lines[vram_index]
@@ -432,6 +499,7 @@ def generate(
     new_tail_object: str,
     extension_object_glob: str,
     object_replacements: Sequence[tuple[str, str]] = (),
+    dynamic_pool: bool = False,
 ) -> tuple[int, int, int]:
     symbol_source = symbols_input.read_text()
     undefined_source = undefined_input.read_text()
@@ -483,6 +551,7 @@ def generate(
         extension_object_glob=extension_object_glob,
         aliases=aliases,
         object_replacements=object_replacements,
+        dynamic_pool=dynamic_pool,
     )
 
     atomic_write(linker_output, rewritten_linker)
@@ -600,6 +669,7 @@ def validate_elf(
         "D_800CDBA8": (BSS_END, {"B", "b"}),
         "HEAP_START": (HEAP_START, {"B", "b"}),
         "MemoryPool": (MEMORY_POOL_START, {"B", "b"}),
+        "MemoryPoolEnd": (MEMORY_POOL_END, {"B", "b"}),
         "_gp": (GP_ADDRESS, set("TtDdRrSsGg")),
     }
     for name, (expected_address, allowed_types) in boundary_expectations.items():
@@ -614,6 +684,13 @@ def validate_elf(
             )
         if symbol_type == "A":
             raise LaneError(f"{name} is still absolute")
+
+    capacity = symbols.get("MemoryPoolCapacity")
+    if capacity != (MEMORY_POOL_CAPACITY, "A"):
+        raise LaneError(
+            f"MemoryPoolCapacity is {capacity}, expected "
+            f"(0x{MEMORY_POOL_CAPACITY:x}, A)"
+        )
 
     readelf_result = subprocess.run(
         [readelf, "-SW", str(elf)],
@@ -677,6 +754,15 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     generate_parser.add_argument("--new-tail-object", required=True)
     generate_parser.add_argument("--extension-object-glob", required=True)
     generate_parser.add_argument(
+        "--dynamic-pool",
+        action="store_true",
+        help=(
+            "preserve the retail MemoryPool base until linked BSS reaches it, "
+            "then align the pool after BSS and reserve through 0x801fc000; the "
+            "default always keeps the retail pool layout"
+        ),
+    )
+    generate_parser.add_argument(
         "--replace-object",
         action="append",
         default=[],
@@ -724,6 +810,7 @@ def main(argv: list[str] | None = None) -> int:
                 new_tail_object=args.new_tail_object,
                 extension_object_glob=args.extension_object_glob,
                 object_replacements=replacements,
+                dynamic_pool=args.dynamic_pool,
             )
             print(
                 f"reloc-bss lane: moved {initialized_symbols} initialized and "

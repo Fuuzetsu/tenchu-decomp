@@ -134,6 +134,12 @@ SECTIONS
         self.assertIn("D_800CDBA8 = .;", output)
         self.assertIn(".main_exe_memory_pool 0x800dc000 (NOLOAD)", output)
         self.assertIn("MemoryPool = .;\n        . += 0x120000;", output)
+        self.assertIn("MemoryPoolEnd = .;", output)
+        self.assertIn(
+            "MemoryPoolCapacity = ABSOLUTE("
+            "(MemoryPoolEnd - MemoryPool) / 4 - 2);",
+            output,
+        )
         self.assertIn(".main_exe_extension : AT(__romPos)", output)
         self.assertIn("build/reloc/*.c.o(.text .text.*", output)
         self.assertIn("build/reloc/*.c.o(.sbss .sbss.* .scommon);", output)
@@ -156,7 +162,41 @@ SECTIONS
         )
         self.assertIn(
             'ASSERT(main_exe_BSS_END <= MemoryPool, '
-            '"BSS overlaps the fixed virtual-memory pool")',
+            '"BSS overlaps the virtual-memory pool")',
+            output,
+        )
+
+    def test_dynamic_pool_follows_aligned_bss_and_keeps_fixed_upper_bound(self) -> None:
+        output = lane.rewrite_linker(
+            self.LINKER,
+            old_tail_object="old/72CD0.data.s.o",
+            new_tail_object="new/72CD0.reloc.s.o",
+            extension_object_glob="build/reloc/*.c.o",
+            aliases=[],
+            dynamic_pool=True,
+        )
+        self.assertNotIn(".main_exe_memory_pool 0x800dc000", output)
+        self.assertIn(
+            ".main_exe_memory_pool MAX(0x800dc000, "
+            "ALIGN(ABSOLUTE(main_exe_BSS_END), 16)) (NOLOAD)",
+            output,
+        )
+        self.assertIn(
+            "__tenchu_memory_pool_size = ABSOLUTE(0x801fc000 "
+            "- MAX(0x800dc000, "
+            "ALIGN(ABSOLUTE(main_exe_BSS_END), 16)));",
+            output,
+        )
+        self.assertIn(". += __tenchu_memory_pool_size;", output)
+        self.assertIn(
+            'ASSERT(MemoryPool == MAX(0x800dc000, '
+            'ALIGN(ABSOLUTE(main_exe_BSS_END), 16)), '
+            '"dynamic MemoryPool does not follow its minimum/aligned BSS")',
+            output,
+        )
+        self.assertIn(
+            'ASSERT(MemoryPoolEnd - MemoryPool >= 0x10, '
+            '"virtual-memory pool is too small")',
             output,
         )
 
@@ -215,6 +255,8 @@ __bss_end B ffffffff800cdba8
 D_800CDBA8 B ffffffff800cdba8
 HEAP_START {heap_type} ffffffff800cdbac
 MemoryPool B ffffffff800dc000
+MemoryPoolEnd B ffffffff801fc000
+MemoryPoolCapacity A 00047ffe
 _gp T ffffffff80097698 8
 __load_start T ffffffff80011000
 main T ffffffff800162a4
