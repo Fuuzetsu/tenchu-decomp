@@ -80,7 +80,6 @@ extern GsSPRITE TargetSprite;
 extern GsOT *OTablePt;
 
 extern void SetCameraMode(s32 mode);
-extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from,
                               VECTOR *target);

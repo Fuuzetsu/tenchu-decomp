@@ -32,8 +32,6 @@
  *    "bisect a multi-diff score-0 candidate" rule).
  */
 
-extern void *GsGetWorkBase(void);
-extern void GsSetWorkBase(void *workBase);
 extern void AddPrim(u8 *ot, u8 *prim);
 
 void FUN_80038c0c(u8 *arg0, s8 arg1, s8 arg2, s8 arg3)

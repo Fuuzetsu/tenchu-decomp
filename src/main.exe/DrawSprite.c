@@ -124,10 +124,7 @@ typedef struct
     GsSPRITE sprite;      /* +0x68 */
 } Sprite3D;
 
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
-extern void GsSetLsMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, u16 pri);
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;

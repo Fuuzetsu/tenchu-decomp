@@ -77,7 +77,6 @@ extern void SnapCameraTargetVector(void);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern void SetBleeds(VECTOR *pos, s32 a, s32 b, s32 c, s32 d, s32 col);
 extern void SetCameraMode(int mode);
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;

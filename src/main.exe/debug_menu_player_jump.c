@@ -41,7 +41,6 @@ extern s32 FntPrint(char *fmt, ...);
 extern s32 FntFlush(s32 id);
 extern u32 GetRealPad(s32 port);
 extern s32 GetAreaMapLevel(u32 *area, s32 x, s32 y, s32 z, s32 mode);
-extern void GsSetRefView2(GsRVIEW2 *view);
 
 void debug_menu_player_jump(void)
 {

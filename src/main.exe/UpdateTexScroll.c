@@ -85,8 +85,6 @@ typedef struct
 } TexScroll;
 
 extern GsOT *OTablePt;
-extern void *GsGetWorkBase(void);
-extern void GsSetWorkBase(void *workBase);
 extern void AddPrim(u8 *ot, u8 *prim);
 
 void UpdateTexScroll(TexScroll *tscr)

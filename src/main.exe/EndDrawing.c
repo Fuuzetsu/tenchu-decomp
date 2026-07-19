@@ -146,12 +146,8 @@ extern u8 D_80098040[];
 extern u32 D_800976B8;
 extern s32 time;
 
-extern void *GsGetWorkBase(void);
 extern s32 VSync(s32 mode);
 extern void ResetGraph(int mode);
-extern void GsSwapDispBuff(void);
-extern void GsSortClear(u8 r, u8 g, u8 b, struct GsOT *ot);
-extern void GsDrawOt(struct GsOT *ot);
 
 void EndDrawing(s16 sync)
 {

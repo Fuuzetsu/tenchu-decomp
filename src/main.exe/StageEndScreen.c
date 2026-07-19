@@ -125,7 +125,6 @@ extern u16 GetRealPad(s32 port);
 extern void StartDrawing(void);
 extern void DrawBG(BackGround *background);
 extern void FUN_800515b0(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
-extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
 extern s32 rsin(s32 angle);
 extern s32 rcos(s32 angle);
 extern void EndDrawing(s32 mode);

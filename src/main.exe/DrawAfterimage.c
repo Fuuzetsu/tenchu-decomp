@@ -130,10 +130,7 @@ typedef struct
     POLY_GT4 poly;        /* 0x24 */
 } AfterimageType;
 
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
-extern void GsSetLsMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
-extern void GsSortPoly(POLY_GT4 *p, GsOT *ot, s32 pri);
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 

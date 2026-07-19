@@ -62,7 +62,6 @@ extern void SetRotMatrix(MATRIX *matrix);
 extern s32 RotTransPers(SVECTOR *vector, s32 *screen, void *p, void *flag);
 extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
                          int time, long col);
-extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, int priority);
 extern void *memset(void *dst, int value, u32 size);
 
 void DrawSplash(TEffectSlot *ef)

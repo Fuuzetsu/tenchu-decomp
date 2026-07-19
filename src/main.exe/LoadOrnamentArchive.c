@@ -77,7 +77,6 @@ typedef struct
 } ParentingType;  /* size 0x10 */
 
 extern void *valloc(u32 size);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern OrnamentType *LoadOrnament(u32 *adr);
 extern void SystemOut(char *msg);

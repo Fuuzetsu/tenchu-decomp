@@ -35,8 +35,6 @@
  * offset into a shared static VECTOR (D_80097F90) whose address is returned.
  * &model->locate is model itself (locate is GsCOORDINATE2 at offset 0).
  */
-extern void GsGetLw(GsCOORDINATE2 *coord, MATRIX *m);
-extern void GsSetLsMatrix(MATRIX *m);
 extern void RotTrans(SVECTOR *v0, VECTOR *sxy, long *flag);
 extern VECTOR D_80097F90;
 

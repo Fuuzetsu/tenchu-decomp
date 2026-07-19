@@ -37,7 +37,6 @@
  */
 
 extern GsOT *OTablePt;
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 
 void FUN_8005679c(GsSPRITE *sp, u32 dist, s16 x, s16 y)
 {

@@ -52,7 +52,6 @@
  */
 extern GsOT *OTablePt;
 extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 
 void FUN_80039fb0(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 size, long rotate, s32 color)
 {
@@ -121,4 +120,3 @@ void FUN_80039fb0(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 size, l
         GsSortSprite(sp1, OTablePt, (u16)pri);
     }
 }
-

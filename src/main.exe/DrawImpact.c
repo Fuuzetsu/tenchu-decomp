@@ -257,11 +257,8 @@ typedef struct
 
 extern GsSPRITE D_800BEAA8[];
 extern GsOT *OTablePt;
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
-extern void GsSetLsMatrix(MATRIX *m);
 extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
-extern void GsSortSprite(GsSPRITE *spr, GsOT *ot, s32 priority);
 
 void DrawImpact(TEffectSlot *ef)
 {

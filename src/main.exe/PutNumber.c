@@ -70,7 +70,6 @@
 extern GsSPRITE NumberImage;
 extern struct GsOT *OTablePt;
 
-extern void GsSortSprite(GsSPRITE *sp, struct GsOT *ot, int pri);
 
 void PutNumber(int x, int y, int cols, int n)
 {

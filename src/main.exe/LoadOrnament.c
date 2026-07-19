@@ -49,10 +49,7 @@ typedef struct
 } WorldType;
 
 extern void *valloc(u32 size);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 extern MATRIX *RotMatrixYXZ(SVECTOR *r, MATRIX *m);
-extern void GsMapModelingData(u_long *adr);
-extern void GsLinkObject4(u_long id, GsDOBJ2 *obj, s32 unk);
 extern SVECTOR UnitVector;
 extern WorldType World;
 

@@ -51,7 +51,6 @@ typedef struct
 } WorldType;
 
 extern void *valloc(u32 size);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 extern MATRIX *RotMatrixYXZ(SVECTOR *r, MATRIX *m);
 extern SVECTOR UnitVector;
 extern WorldType World;

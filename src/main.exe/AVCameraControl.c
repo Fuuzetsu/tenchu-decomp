@@ -57,7 +57,6 @@ extern s32 SquareRoot0(s32 value);
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);
 extern void Camera(void);
-extern void GsSetRefView2(GsRVIEW2 *view);
 
 void AVCameraControl(void)
 {

@@ -26,8 +26,6 @@ extern long GameClock;
 extern GsOT *OTablePt;
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
-extern void *GsGetWorkBase(void);
-extern void GsSetWorkBase(void *workBase);
 
 /*
  * STATUS: MATCH (exact).

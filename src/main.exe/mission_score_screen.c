@@ -105,7 +105,6 @@ extern void StartDrawing(void);
 extern void DrawBG(void *background);
 extern void EndDrawing(s32 arg);
 extern void DisposeBG(void *background);
-extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
 extern void FUN_800515b0(GsSPRITE *number, s32 value, s16 x, s32 y,
                          s32 mode);
 extern s32 rcos(s32 angle);

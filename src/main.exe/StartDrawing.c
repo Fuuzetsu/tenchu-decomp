@@ -59,8 +59,6 @@ extern GsOT *OTablePt;
 extern s32 GameClock;
 extern u8 D_80098040[];
 
-extern void GsSetWorkBase(void *workBase);
-extern void GsClearOt(s32 tx, s32 ty, GsOT *ot);
 
 void StartDrawing(void)
 {

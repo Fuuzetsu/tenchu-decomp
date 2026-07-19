@@ -107,7 +107,6 @@ extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
 extern s32 GameClock;
 
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, s32 pri);
 
 void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
 {

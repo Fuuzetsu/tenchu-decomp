@@ -111,10 +111,7 @@ extern s32 D_80097F70;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern s32 D_8008E50C[][4];
 
-extern void *GsGetWorkBase(void);
-extern void GsSetWorkBase(void *workBase);
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, s32 pri);
 extern s16 SoundEx(VECTOR *loc, short id);
 extern void FUN_8003d768(s32 x, s32 z, s32 *area);
 extern void AddXF4(void *ot, POLY_XF4 *ply);

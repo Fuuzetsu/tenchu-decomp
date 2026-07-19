@@ -218,7 +218,6 @@ extern MATRIX GsWSMATRIX;
 extern void SetTransMatrix(MATRIX *m);
 extern void SetRotMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
-extern void GsSortPoly(POLY_F4 *p, GsOT *ot, s32 pri);
 
 void DrawBleed(TEffectSlot *ef)
 {

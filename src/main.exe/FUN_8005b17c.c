@@ -27,7 +27,6 @@ extern MenuSprite *D_800C2D58[];
 extern GsOT *OTablePt;
 
 extern short SoundEx(VECTOR *locate, short seid);
-extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 pri);
 extern void SetupTelop(u8 *telop, short line);
 extern s32 FUN_800576e8(u8 *str);
 extern void FUN_800570b8(struct GsOT_TAG *org, s32 x, s32 y, u8 *str);

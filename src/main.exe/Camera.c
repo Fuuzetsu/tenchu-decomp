@@ -52,9 +52,7 @@ extern s16 GetPad(s16 no);
 extern void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif);
 extern void CameraType1(Humanoid *pl, GsRVIEW2 *vDif);
 extern void SetCameraMode(s32 mode);
-extern void GsSetRefView2(GsRVIEW2 *view);
 extern void FntPrint(char *fmt, ...);
-extern void GsSetProjection(s32 dist);
 extern void debug_output_edit_camera_settings(s16 param);
 
 void Camera(void)

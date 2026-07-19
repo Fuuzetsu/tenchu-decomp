@@ -92,7 +92,6 @@ extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern void SetCameraMode(int mode);
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;

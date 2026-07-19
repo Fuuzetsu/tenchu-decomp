@@ -50,7 +50,6 @@ typedef struct
 } SpriteGridType;
 
 extern GsOT *OTablePt;
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 
 void FUN_80056910(SpriteGridType *g, u16 dir)
 {

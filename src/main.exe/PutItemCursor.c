@@ -54,7 +54,6 @@
  */
 extern GsSPRITE CursorImage;
 extern GsOT *OTablePt;
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 
 void PutItemCursor(short x, short y, short size, s32 rotdif)
 {

@@ -117,11 +117,8 @@
  */
 extern GsSPRITE sprFrame[4];
 extern GsOT *OTablePt;
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
-extern void GsSetLsMatrix(MATRIX *m);
 extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, s32 pri);
 
 void DrawFrame(TEffectSlot *ef)
 {

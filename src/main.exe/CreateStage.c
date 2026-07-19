@@ -105,7 +105,6 @@ extern BackGround *FUN_8004f4f8(u_long *data);
 extern void vfree(void *ptr);
 extern void FUN_80038ce0(void);
 extern void StartDrawing(void);
-extern void GsSortPoly(POLY_FT4 *poly, GsOT *ot, s32 pri);
 extern short DrawBG(BackGround *bg);
 extern void EndDrawing(s32 mode);
 extern void DisposeBG(BackGround *bg);

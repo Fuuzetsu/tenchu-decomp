@@ -58,7 +58,6 @@ extern void _PlayMusic(s32 music, s32 mode);
 extern void StartDrawing(void);
 extern short DrawBG(BackGround *background);
 extern s32 GetRealPad(s32 port);
-extern void GsSortSprite(GsSPRITE *sprite, GsOT *ot, s32 priority);
 extern void FUN_80056910(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);

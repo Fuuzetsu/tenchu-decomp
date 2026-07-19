@@ -66,7 +66,6 @@ typedef struct
 } Sprite3D;
 
 extern void *valloc(u32 size);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 extern MATRIX *RotMatrixYXZ(SVECTOR *r, MATRIX *m);
 extern void *memset(void *s, s32 c, u32 n);
 

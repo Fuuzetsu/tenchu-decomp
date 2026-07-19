@@ -54,7 +54,6 @@ typedef struct BackGround
 extern char D_8001109C[];
 extern void SystemOut(u8 *message);
 extern void *valloc(u32 size);
-extern void GsInitFixBg16(GsBG *bg, u32 *work);
 
 BackGround *SetupBG(GsIMAGE *image, short w, short h)
 {

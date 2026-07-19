@@ -90,12 +90,7 @@ extern void FUN_80037e0c(Humanoid *human, s32 mode);
 extern void DrawSplash(TEffectSlot *ef);
 extern MATRIX *RotMatrixYXZ(SVECTOR *rotation, MATRIX *matrix);
 extern MATRIX *ScaleMatrix(MATRIX *matrix, VECTOR *scale);
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *matrix);
-extern void GsSetLsMatrix(MATRIX *matrix);
 extern s32 RotTransPers(SVECTOR *vector, s32 *screen, s32 *p, s32 *flag);
-extern void GsSortObject4(GsDOBJ2 *object, GsOT *ot, s32 priority,
-                          u_long *scratch);
-
 void DrawShadow(Humanoid *human)
 {
     VECTOR scale;

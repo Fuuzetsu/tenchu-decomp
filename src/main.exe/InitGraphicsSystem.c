@@ -74,16 +74,7 @@ extern s32 SlightPoint;
 #define STARTING_RNG_SEED (*(s32 *)0x80010e70)
 
 extern void SetDispMask(s32 mask);
-extern void GsInitGraph(s32 w, s32 h, s32 mode, s32 dith, s32 mask);
-extern void GsDefDispBuff(s32 x0, s32 y0, s32 x1, s32 y1);
-extern void GsInit3D(void);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 extern void SetDepthQ(s32 dqa, s32 dqb);
-extern void GsSetFogParam(GsFOGPARAM *fog);
-extern void GsSetLightMode(s32 mode);
-extern void GsSetAmbient(s32 r, s32 g, s32 b);
-extern void GsSetProjection(s32 dist);
-extern void GsSetRefView2(GsRVIEW2 *view);
 extern void GsSetNearClip(s32 near);
 extern void AdtFntLoad(int tx, int ty);
 extern void AdtFntOpen(int x, int y, int w, int h, int isbg, int n);

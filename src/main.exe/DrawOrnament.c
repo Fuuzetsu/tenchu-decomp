@@ -54,8 +54,6 @@ typedef struct
     GsDOBJ2 object;       /* 0x50 */
 } OrnamentType;
 
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
-extern void GsSetLsMatrix(MATRIX *m);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern GsOT *OTablePt;
 

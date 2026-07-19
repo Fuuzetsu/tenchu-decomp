@@ -49,7 +49,6 @@ typedef struct
 
 extern ItemIconType *ItemImage[];
 extern GsOT *OTablePt;
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, int pri);
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
 {

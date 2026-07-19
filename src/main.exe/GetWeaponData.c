@@ -113,7 +113,6 @@ extern char D_800117F8[]; /* "K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\" */
 extern u32 *FileRead(u8 *filename);
 extern int sprintf(char *buf, char *fmt, ...);
 extern OrnamentType *LoadOrnament(u32 *adr);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 
 static inline void FindWeaponId(Humanoid *human, s16 wid, s16 wpid)
 {

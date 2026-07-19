@@ -128,8 +128,6 @@ extern void DrawShadow(Humanoid *human);
 extern void register_character_death(Humanoid *human);
 extern void death_camera_something_(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
-extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *mat);
-extern void GsSetLsMatrix(MATRIX *mat);
 extern s32 DrawClip(ModelType *model, s32 *xy);
 extern s32 FntPrint(char *format, ...);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);

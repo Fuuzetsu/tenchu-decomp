@@ -50,10 +50,7 @@
  * folding them together. `limit` then keeps j in v1 through the inner loop.
  */
 extern void *valloc(u32 size);
-extern void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
 extern MATRIX *RotMatrixYXZ(SVECTOR *r, MATRIX *m);
-extern void GsMapModelingData(u_long *tmd);
-extern void GsLinkObject4(u_long tmd, GsDOBJ2 *obj, int n);
 extern void SystemOut(char *msg);
 extern char D_80011064[]; /* "NO MODEL ARCHIVE DATA" */
 

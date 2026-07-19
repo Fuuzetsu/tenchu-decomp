@@ -85,7 +85,6 @@ extern ItemIconType *ItemImage[];
 extern s16 SelectedItem;
 extern s16 ItemCursor;
 
-extern void GsSortSprite(GsSPRITE *sp, GsOT *ot, s32 pri);
 
 static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
 {

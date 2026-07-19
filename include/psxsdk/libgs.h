@@ -289,5 +289,37 @@ struct GsIMAGE
 };
 
 void GsGetTimInfo(unsigned long *image, GsIMAGE *tim);
+void GsInitGraph(unsigned short x, unsigned short y, unsigned short intmode,
+                 unsigned short dith, unsigned short vrammode);
+void GsInit3D(void);
+void GsMapModelingData(unsigned long *model);
+void GsSetProjection(long distance);
+void GsSetLightMode(int mode);
+void GsSetFogParam(GsFOGPARAM *fog);
+void GsSetAmbient(long r, long g, long b);
+void GsDrawOt(GsOT *ot);
+void GsSetWorkBase(PACKET *work);
+void GsSortObject4(GsDOBJ2 *object, GsOT *ot, int shift,
+                   unsigned long *scratch);
+void GsSortSprite(GsSPRITE *sprite, GsOT *ot, unsigned short priority);
+/* DrawTargetS still needs its target-proven full-width declaration; centralize
+ * GsSortLine once its canonical unsigned-short call shape is recovered. */
+void GsSortPoly(void *primitive, GsOT *ot, unsigned short priority);
+void GsClearOt(unsigned short offset, unsigned short point, GsOT *ot);
+void GsDefDispBuff(unsigned short x0, unsigned short y0,
+                   unsigned short x1, unsigned short y1);
+void GsSortClear(unsigned char r, unsigned char g, unsigned char b, GsOT *ot);
+void GsSwapDispBuff(void);
+void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base);
+void GsMulCoord0(MATRIX *m1, MATRIX *m2, MATRIX *m3);
+void GsMulCoord2(MATRIX *m1, MATRIX *m2);
+void GsMulCoord3(MATRIX *m1, MATRIX *m2);
+void GsGetLw(GsCOORDINATE2 *coord, MATRIX *matrix);
+void GsGetLs(GsCOORDINATE2 *coord, MATRIX *matrix);
+void GsLinkObject4(unsigned long model, GsDOBJ2 *object, int index);
+int GsSetRefView2(GsRVIEW2 *view);
+void GsSetLsMatrix(MATRIX *matrix);
+void GsInitFixBg16(GsBG *background, unsigned long *work);
+PACKET *GsGetWorkBase(void);
 
 #endif

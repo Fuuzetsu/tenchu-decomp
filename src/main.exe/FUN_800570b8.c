@@ -59,7 +59,6 @@ extern TelopPolyType TelopP;
 extern GsOT *OTablePt;
 extern u8 D_8008EF98[];
 extern void FUN_8005778c(struct GsOT_TAG *org, s32 x, s32 y, u32 ch);
-extern void GsSortPoly(TelopPolyType *p, GsOT *ot, s32 pri);
 
 void FUN_800570b8(struct GsOT_TAG *org, s32 x, s32 y, u8 *str)
 {

@@ -50,7 +50,6 @@ extern AreaNodeType *FieldArea;
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
 extern void GetScreenPosition(long x, long y, long z, SVECTOR *screen);
-extern void GsSortSprite(GsSPRITE *spr, GsOT *ot, int priority);
 extern void SoundEx(VECTOR *pos, int sound);
 extern void DrawBleed(TEffectSlot *ef);
 
