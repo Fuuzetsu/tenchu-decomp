@@ -35,7 +35,7 @@ decisions behind the toolchain. It's the reference companion to the terse
 - [relocatable-build.md](relocatable-build.md) — why shiftability does not
   require decompiling every PsyQ routine into C, how MGS/Silent Hill/SOTN handle
   stock SDK code, the exact `GS_107.OBJ` relocation proof, the implemented
-  linker-owned game/SDK-prefix/BSS gates, and the remaining path to a grown
+  linker-owned game/SDK-text/BSS gates, and the remaining path to a grown
   executable.
 - [relocatable-data.md](relocatable-data.md) — the loaded-data pointer
   inventory, exact-interior-label policy, and the manifest-driven

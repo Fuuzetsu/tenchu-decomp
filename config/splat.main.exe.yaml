@@ -728,39 +728,39 @@ segments:
       # object between the two generated assembly carves.
       - [0x4FA24, c, PClseek]
       - [0x4FA48, asm, CRT_SDK_4FA48]
-      # GsSetLsMatrix is already a relocatable object, but remains the explicit
-      # fixed boundary of this first SDK proof.  The next literal raw input
-      # begins at 0x5492C.
+      # GsSetLsMatrix and the existing C/canonical-object islands stay separate.
+      # Every remaining raw input in the SDK text stream is emitted as
+      # canonical assembly so GNU as can retain symbolic code relocations.
       - [0x54900, c, GsSetLsMatrix]
-      - { start: 0x5492C, type: data, linker_section_order: .text }
+      - [0x5492C, asm, SDK_TEXT_5492C]
       - [0x549F0, c, GsMulCoord0]
       - [0x54A80, c, GsMulCoord2]
       - [0x54B00, c, GsMulCoord3]
-      - { start: 0x54B80, type: data, linker_section_order: .text }
+      - [0x54B80, asm, SDK_TEXT_54B80]
       - [0x54D54, c, GsMapModelingData]
       - [0x54DC4, c, GsSetProjection]
-      - { start: 0x54DE4, type: data, linker_section_order: .text }
+      - [0x54DE4, asm, SDK_TEXT_54DE4]
       - [0x5529C, c, GS_107_OBJ_4B8]
       - [0x55300, c, GS_107_OBJ_51C]
-      - { start: 0x5534C, type: data, linker_section_order: .text }
+      - [0x5534C, asm, SDK_TEXT_5534C]
       - [0x553D4, c, GsSetFogParam]
-      - { start: 0x55420, type: data, linker_section_order: .text }
+      - [0x55420, asm, SDK_TEXT_55420]
       - [0x55424, c, GsSetAmbient]
-      - { start: 0x5544C, type: data, linker_section_order: .text }
+      - [0x5544C, asm, SDK_TEXT_5544C]
       - [0x55454, c, GsDrawOt]
-      - { start: 0x55478, type: data, linker_section_order: .text }
+      - [0x55478, asm, SDK_TEXT_55478]
       - [0x55484, c, GsClearOt]
-      - { start: 0x554DC, type: data, linker_section_order: .text }
+      - [0x554DC, asm, SDK_TEXT_554DC]
       - [0x554E4, c, gte_init]
-      - { start: 0x55530, type: data, linker_section_order: .text }
+      - [0x55530, asm, SDK_TEXT_55530]
       - [0x55534, c, GsGetTimInfo]
-      - { start: 0x55618, type: data, linker_section_order: .text }
+      - [0x55618, asm, SDK_TEXT_55618]
       - [0x55624, c, Gssub_make_matrix]
-      - { start: 0x556EC, type: data, linker_section_order: .text }
+      - [0x556EC, asm, SDK_TEXT_556EC]
       - [0x55704, c, GsGetWorkBase]
-      - { start: 0x55714, type: data, linker_section_order: .text }
+      - [0x55714, asm, SDK_TEXT_55714]
       - [0x55CB4, c, gte_rotate_z_matrix]
-      - { start: 0x55D68, type: data, linker_section_order: .text }
+      - [0x55D68, asm, SDK_TEXT_55D68]
       - [0x56304, c, dmyGsPrstF3NL]
       - [0x5634C, c, dmyGsPrstF3LFG]
       - [0x56394, c, dmyGsPrstF3L]
@@ -869,13 +869,13 @@ segments:
       - [0x5808C, c, dmyGsPrstG3GL]
       - [0x580D4, c, dmyGsPrstG3GLFG]
       - [0x5811C, c, dmyGsPrstG3GNL]
-      - { start: 0x58164, type: data, linker_section_order: .text }
+      - [0x58164, asm, SDK_TEXT_58164]
       - [0x67B54, c, TransMatrix]
-      - { start: 0x67B78, type: data, linker_section_order: .text }
+      - [0x67B78, asm, SDK_TEXT_67B78]
       - [0x717EC, c, MemCardCallback]
-      - { start: 0x71800, type: data, linker_section_order: .text }
+      - [0x71800, asm, SDK_TEXT_71800]
       - [0x722B4, c, _card_clear]
-      - { start: 0x722E8, type: data, linker_section_order: .text }
+      - [0x722E8, asm, SDK_TEXT_722E8]
       - [0x72BB0, c, PAD_init]
       - [0x72C40, c, InitPAD]
       - { start: 0x72CD0, type: data, linker_section_order: .text }

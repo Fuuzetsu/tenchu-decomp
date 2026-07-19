@@ -14,10 +14,11 @@ This distinction gives the PsyQ block three valid source forms:
 3. the original PsyQ library member, converted to a MIPS ELF relocatable object.
 
 Only a raw byte blob with embedded absolute addresses is incompatible with a
-relocatable build. That is the current problem in ranges such as generated
-`5492C.data.s`: calls, `lui`/`addiu` address pairs, and instructions are emitted
-as literal `.word` values with no ELF relocations. An exact C match is therefore
-a readability and provenance win, not a prerequisite for shiftability.
+relocatable build. The standalone SDK text carves before file offset `0x72cd0`
+have now been converted from that form, but generated `72CD0.data.s` still
+begins with raw SDK instructions before continuing into loaded data. An exact C
+match is therefore a readability and provenance win, not a prerequisite for
+shiftability.
 
 ## What other PS1 decompilations do
 
@@ -123,55 +124,67 @@ than absolute symbols, proving that the linker owns their placement. Generated
 scripts and the alternate ELF/executable remain under `.shake/build`.
 
 This gate intentionally stops assigning ownership at the game/SDK boundary.
-The next gate now covers the first SDK prefix, but later raw SDK instruction
-blobs would still move without relocating, the PS-EXE entry point and load size
-would remain stale, and the fixed BSS address range would be consumed. Passing
-`check-reloc-game` therefore proves the first prerequisite, not a runnable
-size-changing build. The remaining stages below are still required.
+The next gate now covers the following SDK/CRT text stream through
+`0x800834d0`, but raw instructions at that boundary would still move without
+relocating, the PS-EXE entry point and load size would remain stale, and the
+fixed BSS address range would be consumed. Passing `check-reloc-game` therefore
+proves the first prerequisite, not a runnable size-changing build. The
+remaining stages below are still required.
 
-### Implemented second gate: canonical CRT/SDK prefix
+### Implemented second gate: canonical CRT/SDK text
 
-The first contiguous CRT/PsyQ prefix, virtual addresses
-`0x800601d4..0x80065100`, is now relocation-aware without reconstructing Sony
-library C. Splat emits the two previously raw ranges as canonical MIPS assembly:
-
-- file `0x4f9d4..0x4fa24` (`Exec` through `PCclose`);
-- file `0x4fa48..0x54900` (`PCcreat` through `GsInitCoord2param`).
-
-The existing `PClseek` canonical-assembly object lies between those ranges.
-`GsSetLsMatrix` is already a relocatable object, but deliberately remains the
-fixed boundary of this first proof. The first remaining literal instruction
-input follows it: `5492C.data.s`, beginning at `GsSetLightMatrix`.
+The CRT/PsyQ text stream at virtual addresses
+`0x800601d4..0x800834d0` is now relocation-aware without reconstructing Sony
+library C. Splat emits 19 raw ranges as canonical MIPS assembly: the two
+previously implemented `LIBAPI_4F9D4`/`CRT_SDK_4FA48` carves and all 17
+remaining standalone raw `.text` inputs from file offset `0x5492c` through
+`0x722e8`. Existing C and canonical-assembly islands keep their own objects and
+remain in the original order.
 
 This is a source-form change, not a C decompilation and not a trampoline. The
 ordinary reference link still reproduces the shipped executable exactly. The
-larger generated assembly object has `0x4eb8` bytes of `.text` and 1,435
-`.rel.text` records reported by GNU `readelf`:
+19 generated objects contain `0x20c44` bytes (134,212 bytes) of `.text` and
+6,839 `.rel.text` records reported by GNU `readelf`:
 
 ```text
-R_MIPS_26      285
-R_MIPS_HI16    498
-R_MIPS_LO16    498
-R_MIPS_PC16    154
+R_MIPS_26     1501
+R_MIPS_HI16   2144
+R_MIPS_LO16   2144
+R_MIPS_PC16   1050
 ```
 
-`./Build check-reloc-sdk` builds on the game-symbol lane, removes 261 absolute
-assignments in this bounded prefix, and performs two normal links. The first is
-byte-identical to retail. The second inserts one file-backed four-byte word
-immediately before `Exec`. The verifier checks the linked ELF, not assembly
-text: representative prefix symbols from `Exec` through `GsInitCoord2param`
-move by four bytes and remain section-owned, while internal `J`, `JAL`, and
-`LUI`/`ADDIU` code-address pairs retarget to the moved symbols. The external
-`jal main` remains pointed at the unchanged linker-owned game function.
-`GsSetLsMatrix` deliberately remains absolute at `0x80065100`, making the
-current stopping point explicit and machine-checked.
+`./Build check-reloc-sdk` builds on the game-symbol lane, removes all 1,919
+absolute symbol-script aliases in this bounded stream, and performs two normal
+links. At retail placement, 1,801 names are emitted by their real sections and
+the 118 remaining aliases disappear from both links; those names described
+internal C labels which are neither public definitions nor relocation targets.
+The first link is byte-identical to retail. The second inserts one file-backed
+four-byte word immediately before `Exec`. The verifier checks every emitted
+name in the linked ELFs: all 1,801 move by four bytes and remain section-owned.
+It also decodes representative early, middle, and late linked `J`, `JAL`, and
+`LUI`/`ADDIU` pairs and checks that they retarget to the corresponding moved
+symbols. The external `jal main` remains pointed at the unchanged linker-owned
+game function.
+
+The source/object audit closes two easy loopholes in that aggregate proof. It
+requires the exact 19-object inventory and per-object section/relocation counts,
+rejects numeric `J`/`JAL` operands, and rejects new address-looking high-half
+literals. The only allowed high values were reviewed as KSEG masks, packed GPU
+values, or an SPU bitfield. Six literal `.word` values are also allowlisted as
+two PsyQ signatures/return stubs. Removing 31 synthetic
+`__override__prt_*` labels was necessary: they were not real function
+boundaries, and several split genuine address-materialisation pairs, causing
+Splat to preserve numeric high halves instead of emitting `%hi`/`%lo`
+relocations.
 
 The shifted artifact is a relocation probe, **not a runnable grown PS-EXE**.
-Everything after `0x80065100` still shifts physically even though later raw
-instructions and their public symbols remain fixed; the header and BSS layout
-also remain unchanged. Continue carving later raw ranges or replace them with
-manifest-verified original PsyQ objects before treating arbitrary game growth
-as runnable.
+The first untouched input is `72CD0.data.s`; its first symbol, `StartPAD` at
+`0x800834d0`, remains absolute and machine-checked. That mixed carve still
+begins with SDK instructions and later contains loaded data, so it shifts
+physically in the probe without its embedded references or public symbols
+following. The PS-X EXE header and BSS layout also remain unchanged. Canonicalise
+or replace that remaining code, migrate loaded pointers, and make the later
+layout linker-owned before treating arbitrary game growth as runnable.
 
 The generator and ELF verifier accept a `+0x10004` probe so the same checks can
 exercise an `R_MIPS_HI16` carry. A whole-executable probe of that size is the
@@ -181,7 +194,7 @@ data moves more than 64 KiB away from the still-fixed `_gp`, producing
 and its small-data/BSS ownership into the normal linker layout must precede
 that large-shift proof.
 
-### Implemented second gate: linker-owned BSS boundaries
+### Implemented parallel gate: linker-owned BSS boundaries
 
 `./Build check-reloc-bss` builds on the linker-owned game and canonical
 SDK-prefix scripts, then proves the next piece of layout ownership. It converts

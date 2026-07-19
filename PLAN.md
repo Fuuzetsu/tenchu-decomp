@@ -464,8 +464,11 @@ combined `game done (C+asm)` line). For the SDK the options are:
 
 1. **Use symbolic assembly** — a valid relocatable source form when references
    are labels/relocations rather than embedded absolute words, and the right
-   representation for proven handwritten routines. The current generated
-   `.word` SDK data carves are byte-exact but are not yet this form.
+   representation for proven handwritten routines. **Implemented through the
+   standalone SDK text stream at `0x800601d4..0x800834d0`:** all raw `.text`
+   inputs before `72CD0.data.s` are now canonical assembly, retail-exact, and
+   covered by a `+4` linked relocation proof. `72CD0.data.s` itself still begins
+   with raw SDK instructions and is the explicit next boundary.
 2. **Link original PSY-Q objects**: convert SDK `.OBJ`/`.LIB` members with
    a pinned converter such as PCSX-Redux's `psyq-obj-parser` and let the
    linker use them instead of asm blobs. Needs a user-provided PSY-Q SDK

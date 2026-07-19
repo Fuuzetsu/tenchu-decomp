@@ -65,10 +65,10 @@ relocGameDir = buildDir </> "reloc-game"
 relocGameLinker = relocGameDir </> "main.exe.ld"
 relocGameSymbols = relocGameDir </> "symbols.main.exe.txt"
 
--- | Bounded second relocation proof.  Splat emits the two raw parts of
--- 0x800601d4..0x80065100 as canonical assembly, with PClseek's existing
--- relocatable object between them.  The base link is retail-exact; a controlled
--- +4 link before Exec audits ordinary J/JAL and HI16/LO16 relocation.
+-- | Bounded second relocation proof.  Splat emits every raw SDK text carve in
+-- 0x800601d4..0x800834d0 as canonical assembly, preserving the existing C and
+-- canonical-object islands between them.  The base link is retail-exact; a
+-- controlled +4 link before Exec audits ordinary J/JAL and HI16/LO16 relocation.
 mainRelocSdkExe, mainRelocSdkElf, mainRelocSdkMap :: FilePath
 mainRelocSdkExe = buildDir </> "tenchu" </> "main_reloc_sdk.exe"
 mainRelocSdkElf = mainRelocSdkExe <.> "elf"
@@ -1403,15 +1403,42 @@ phonyRules = do
                       "but it's", ourSha]
     putInfo "check-reloc-game: linker-owned game symbols are retail-exact"
 
-  -- Bounded canonical-assembly proof for the first contiguous SDK/CRT prefix.
-  -- The retail-address link must still match; a controlled +4 link before Exec
-  -- audits final linked J/JAL and HI/LO words.  This is not yet a runnable grown
-  -- PS-EXE: the next raw SDK block, BSS, and header remain fixed.
+  -- Bounded canonical-assembly proof for the SDK/CRT text stream through the
+  -- input immediately before raw 72CD0.data.s.  The retail-address link must
+  -- still match; a controlled +4 link before Exec audits final linked J/JAL and
+  -- HI/LO words plus ownership of all 1,919 text aliases.  This is not yet a
+  -- runnable grown PS-EXE: 72CD0 still starts with raw SDK instructions, loaded
+  -- data/BSS and _gp remain fixed, and the header is not regenerated.
   phony "check-reloc-sdk" $ do
     let tool = "tools" </> "reloc_sdk_lane.py"
-        sdkObject = tgBuildDir mainTarget </> "CRT_SDK_4FA48.s.o"
+        sdkNames =
+          [ "LIBAPI_4F9D4",
+            "CRT_SDK_4FA48",
+            "SDK_TEXT_5492C",
+            "SDK_TEXT_54B80",
+            "SDK_TEXT_54DE4",
+            "SDK_TEXT_5534C",
+            "SDK_TEXT_55420",
+            "SDK_TEXT_5544C",
+            "SDK_TEXT_55478",
+            "SDK_TEXT_554DC",
+            "SDK_TEXT_55530",
+            "SDK_TEXT_55618",
+            "SDK_TEXT_556EC",
+            "SDK_TEXT_55714",
+            "SDK_TEXT_55D68",
+            "SDK_TEXT_58164",
+            "SDK_TEXT_67B78",
+            "SDK_TEXT_71800",
+            "SDK_TEXT_722E8"
+          ]
+        sdkObjects = map (\name -> tgBuildDir mainTarget </> name <.> "s" <.> "o") sdkNames
+        sdkSources = map (\name -> tgGenDir mainTarget </> asmDir </> name <.> "s") sdkNames
+        sdkObjectArgs = concatMap (\object -> ["--sdk-object", object]) sdkObjects
+        sdkSourceArgs = concatMap (\source -> ["--sdk-source", source]) sdkSources
     need [ mainRelocSdkExe, mainRelocSdkShiftExe, tgImage mainTarget,
-           tool, sdkObject ]
+           tool, tgSymbols mainTarget ]
+    need $ sdkObjects <> sdkSources
     StdoutTrim ref <- cmd "sha256sum" (tgImage mainTarget)
     StdoutTrim ours <- cmd "sha256sum" mainRelocSdkExe
     let refSha = head $ words ref
@@ -1423,14 +1450,14 @@ phonyRules = do
     when (ourSha /= refSha) $
       fail $ unwords ["Expected", mainRelocSdkExe, "to have sha256 of", refSha,
                       "but it's", ourSha]
-    cmd_ "python3" tool
+    cmd_ "python3" tool $
       [ "verify",
         "--base-elf", mainRelocSdkElf,
         "--shifted-elf", mainRelocSdkShiftElf,
-        "--sdk-object", sdkObject,
+        "--symbols-in", tgSymbols mainTarget,
         "--delta", "4"
-      ]
-    putInfo "check-reloc-sdk: canonical SDK prefix is retail-exact and +4-relocatable"
+      ] <> sdkObjectArgs <> sdkSourceArgs
+    putInfo "check-reloc-sdk: canonical SDK text is retail-exact and +4-relocatable"
 
   -- Opt-in exact-at-retail ownership proof for BSS boundaries and the fixed
   -- virtual-memory pool. objcopy emits only the logical initialized prefix;

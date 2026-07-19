@@ -5,6 +5,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 import unittest
+from unittest import mock
 
 from tools import reloc_sdk_lane as lane
 
@@ -51,13 +52,13 @@ SECTIONS
 
 
 class GenerateTests(unittest.TestCase):
-    def test_filters_only_canonical_sdk_prefix_and_writes_probe(self) -> None:
+    def test_filters_only_canonical_sdk_text_and_writes_probe(self) -> None:
         symbols = """\
 game = 0x800601D0;
 Exec = 0x800601D4;
-middle = 0x80062000;
-last = 0x800650FC;
-GsSetLsMatrix = 0x80065100;
+middle = 0x80070000;
+last = 0x800834CC;
+StartPAD = 0x800834D0;
 """
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -79,7 +80,7 @@ GsSetLsMatrix = 0x80065100;
             self.assertNotIn("Exec =", filtered)
             self.assertNotIn("middle =", filtered)
             self.assertNotIn("last =", filtered)
-            self.assertIn("GsSetLsMatrix = 0x80065100;", filtered)
+            self.assertIn("StartPAD = 0x800834D0;", filtered)
 
     def test_rejects_changed_retail_symbol_inventory_before_writing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -110,6 +111,56 @@ class InstructionDecodeTests(unittest.TestCase):
 
     def test_hi_lo_decode_sign_extends_low_half(self) -> None:
         self.assertEqual(lane.hi_lo_target(0x3C028009, 0x2442F204), 0x8008F204)
+
+
+class InventoryTests(unittest.TestCase):
+    def test_canonical_object_inventory_totals_are_self_consistent(self) -> None:
+        text_size = sum(
+            size for size, _counts in lane.EXPECTED_CANONICAL_OBJECTS.values()
+        )
+        counts: dict[int, int] = {}
+        for _size, object_counts in lane.EXPECTED_CANONICAL_OBJECTS.values():
+            for relocation_type, count in object_counts.items():
+                counts[relocation_type] = counts.get(relocation_type, 0) + count
+
+        self.assertEqual(text_size, lane.EXPECTED_CANONICAL_TEXT_BYTES)
+        self.assertEqual(counts, lane.EXPECTED_CANONICAL_RELOCATIONS)
+        self.assertEqual(sum(counts.values()), 6839)
+
+    def test_source_audit_accepts_only_reviewed_literals(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "only.s"
+            path.write_text(
+                '.section .text, "ax"\n'
+                'lui $t0, (0x80000000 >> 16)\n'
+                '.word 0x12345678\n'
+            )
+            with (
+                mock.patch.object(
+                    lane, "EXPECTED_CANONICAL_OBJECTS", {"only.s.o": (0, {})}
+                ),
+                mock.patch.object(
+                    lane, "EXPECTED_HIGH_LITERAL_COUNTS", lane.Counter({0x80000000: 1})
+                ),
+                mock.patch.object(
+                    lane, "EXPECTED_LITERAL_WORDS", lane.Counter({0x12345678: 1})
+                ),
+            ):
+                self.assertEqual(lane.canonical_source_audit([path]), 1)
+
+    def test_source_audit_rejects_numeric_jump_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "only.s"
+            path.write_text('.section .text, "ax"\njal 0x80001234\n')
+            with (
+                mock.patch.object(
+                    lane, "EXPECTED_CANONICAL_OBJECTS", {"only.s.o": (0, {})}
+                ),
+                mock.patch.object(lane, "EXPECTED_HIGH_LITERAL_COUNTS", lane.Counter()),
+                mock.patch.object(lane, "EXPECTED_LITERAL_WORDS", lane.Counter()),
+            ):
+                with self.assertRaisesRegex(lane.LaneError, "numeric J/JAL"):
+                    lane.canonical_source_audit([path])
 
 
 class ElfReaderTests(unittest.TestCase):
