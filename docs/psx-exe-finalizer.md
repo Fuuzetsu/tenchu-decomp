@@ -1,9 +1,8 @@
 # PS-X EXE header finalizer and validator
 
-`tools/psxexe.py` is a standalone output-finalization tool for the future
-normally-linked `main.exe` lane. It is **not** part of the current Shake graph,
-and running the normal matching build does not invoke it or change the retail
-header.
+`tools/psxexe.py` is the downstream output-finalization tool used by
+`./Build check-reloc-bss`. Running the normal matching build does not invoke it
+or change the retail header; only the opt-in normal-link proof uses it.
 
 The tool addresses one narrow part of shiftability: once the linker has chosen
 the code/data layout, the PS-X EXE header must describe the result. It does not
@@ -106,14 +105,14 @@ not require the proprietary disc or cross toolchain:
 $ python -m unittest tools.tests.test_psxexe
 ```
 
-The implementation was also checked manually against the current built image:
+The implementation is wired into the normal-link layout proof:
 
 ```console
-$ tools/psxexe.py finalize .shake/build/tenchu/main.exe -o /tmp/main.exe \
-    --elf .shake/build/tenchu/main.exe.elf \
-    --entry-symbol __SN_ENTRY_POINT
-$ cmp .shake/build/tenchu/main.exe /tmp/main.exe
+$ ./Build check-reloc-bss
 ```
 
-The comparison is identical. Build-system integration should remain a later
-step, after the normal linker lane exposes real entry/load/BSS/heap symbols.
+That lane obtains both `__SN_ENTRY_POINT` and `__load_start` from its linked
+ELF, pads the logical payload by `0x150` bytes at retail size, and requires the
+finalized image to be byte-identical to the shipped executable. A grown image
+will therefore get PC, load address, and load size from its actual link instead
+of inheriting stale retail header words.

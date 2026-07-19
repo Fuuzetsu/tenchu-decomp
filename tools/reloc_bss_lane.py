@@ -18,9 +18,9 @@ This opt-in proof rewrites only generated build products:
 
 At retail sizes objcopy intentionally emits the logical 0x876b0-byte prefix.
 ``validate`` proves that appending the reference image's 0x150 zero-byte sector
-padding gives the shipped executable exactly.  A future normal-link lane must
-delegate that padding and the mutable PS-X EXE header to ``tools/psxexe.py``;
-this tool does not duplicate its finalizer role.
+padding gives the shipped executable exactly. The Shake gate delegates that
+padding and the mutable PS-X EXE header to ``tools/psxexe.py``; this tool does
+not duplicate the finalizer role.
 
 This remains a layout proof, not a size-changing runnable build.  In
 particular the raw crt0 and SDK instruction carves still embed addresses.
@@ -38,6 +38,7 @@ import tempfile
 
 
 INITIALIZED_END = 0x80097EB0
+MAIN_LOAD_ADDRESS = 0x80011000
 BSS_START = INITIALIZED_END
 BSS_PAD_END = 0x80098000
 BSS_END = 0x800CDBA8
@@ -301,6 +302,29 @@ def rewrite_linker(
         )
     del lines[gp_indices[0]]
 
+    main_section_indices = [
+        index
+        for index, line in enumerate(lines)
+        if ".main_exe 0x80011000" in line
+    ]
+    if len(main_section_indices) != 1:
+        raise LaneError(
+            "expected one retail-address .main_exe output section, found "
+            f"{len(main_section_indices)}"
+        )
+    main_section_index = main_section_indices[0]
+    brace_indices = [
+        index
+        for index in range(main_section_index + 1, min(main_section_index + 4, len(lines)))
+        if lines[index].strip() == "{"
+    ]
+    if len(brace_indices) != 1:
+        raise LaneError("could not locate the .main_exe output-section body")
+    brace_index = brace_indices[0]
+    newline = "\r\n" if lines[brace_index].endswith("\r\n") else "\n"
+    body_indent = _indent_of(lines[brace_index]) + "    "
+    lines.insert(brace_index + 1, f"{body_indent}__load_start = .;{newline}")
+
     old_tail_line = f"{old_tail_object}(.data);"
     tail_indices = [index for index, line in enumerate(lines) if old_tail_line in line]
     if len(tail_indices) != 1:
@@ -484,6 +508,7 @@ def validate_elf(
             raise LaneError(f"{name} is type {symbol_type}, expected linker-owned BSS")
 
     boundary_expectations = {
+        "__load_start": (MAIN_LOAD_ADDRESS, set("TtRrDd")),
         "__bss_start": (BSS_START, {"B", "b"}),
         "__bss_end": (BSS_END, {"B", "b"}),
         "HEAP_START": (HEAP_START, {"B", "b"}),

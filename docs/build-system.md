@@ -111,11 +111,12 @@ owners, fixed PS-EXE header, and fixed BSS layout remain unchanged. See
 `check-reloc-bss` composes with that first gate. It emits a logical initialized
 prefix at `.shake/build/tenchu/main_reloc_bss.logical` plus an ELF/map, then
 checks a real linker-owned NOLOAD BSS, an explicit NOLOAD `MemoryPool`
-reservation, and every known BSS symbol. The logical file omits the retail
-PS-X EXE's `0x150` bytes of zero sector padding; the validator proves that
-adding those reference padding bytes is byte-exact. This is still a
-retail-address ownership proof, not a runnable grown executable. See the BSS
-layout and remaining blockers in
+reservation, and every known BSS symbol. The PS-X EXE finalizer reads
+`__SN_ENTRY_POINT` and `__load_start` from that ELF, derives the load size, and
+adds the required sector padding; the resulting
+`.shake/build/tenchu/main_reloc_bss.exe` is byte-exact at retail layout. This is
+still a retail-address ownership proof, not a runnable grown executable. See
+the BSS layout and remaining blockers in
 [`relocatable-build.md`](relocatable-build.md#implemented-second-gate-linker-owned-bss-boundaries).
 
 ## The other five executables

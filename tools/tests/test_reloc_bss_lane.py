@@ -112,6 +112,7 @@ SECTIONS
             aliases=[lane.Symbol("OTable", 0x80098018)],
         )
         self.assertNotIn("_gp = 0x80097698", output)
+        self.assertIn("__load_start = .;", output)
         self.assertIn("new/72CD0.reloc.s.o(.data);", output)
         self.assertIn(".main_exe_bss (NOLOAD)", output)
         self.assertIn("new/72CD0.reloc.s.o(.bss);", output)
@@ -167,6 +168,7 @@ __bss_end B ffffffff800cdba8
 HEAP_START {heap_type} ffffffff800cdbac
 MemoryPool B ffffffff800dc000
 _gp T ffffffff80097698 8
+__load_start T ffffffff80011000
 """
 
     READELF_OUTPUT = """\

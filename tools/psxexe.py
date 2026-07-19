@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Finalize and validate a sector-aligned PS-X EXE image.
 
-This is a standalone building block for a future normally-linked executable
-lane.  It is deliberately not wired into Shake: the current byte-matching
-output keeps using its generated retail header unchanged.
+The normal-link BSS/layout proof invokes this tool downstream of GNU ``ld``;
+the current byte-matching output still keeps using its generated retail header
+unchanged.
 
 ``finalize`` takes an EXE-shaped linker/objcopy output whose first 0x800 bytes
 are a PS-X EXE header template.  It preserves that template byte-for-byte
@@ -550,7 +550,10 @@ def _add_layout_options(parser: argparse.ArgumentParser) -> None:
 def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Finalize or validate a sector-aligned PS-X EXE header.",
-        epilog="This tool is standalone and does not modify the current Shake build graph.",
+        epilog=(
+            "The matching build keeps its generated retail header; the normal-link "
+            "layout proof uses this tool as a downstream finalization step."
+        ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

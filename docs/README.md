@@ -40,8 +40,8 @@ decisions behind the toolchain. It's the reference companion to the terse
 - [relocatable-data.md](relocatable-data.md) — the loaded-data pointer
   inventory, exact-interior-label policy, and the first manifest-driven
   `R_MIPS_32` slice with `+4`/`+0x10004` linker proofs.
-- [psx-exe-finalizer.md](psx-exe-finalizer.md) — the standalone, not-yet-wired
-  PS-X EXE finalizer/validator for a future normal-link lane: ELF/map symbol
+- [psx-exe-finalizer.md](psx-exe-finalizer.md) — the PS-X EXE
+  finalizer/validator used by the normal-link BSS proof: ELF/map symbol
   resolution, sector padding, regenerated PC/load/size fields, and header
   invariants.
 - [psyq-object-lane.md](psyq-object-lane.md) — run the implemented, opt-in

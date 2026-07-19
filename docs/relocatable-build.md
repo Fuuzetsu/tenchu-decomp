@@ -213,17 +213,19 @@ initialized byte is at `0x80097eac`; the logical initialized prefix ends at
 file size `0x876b0`, but the 555,008-byte PS-X EXE continues with `0x150` zero
 bytes to the next sector boundary. Those bytes overlap the beginning of the
 address range crt0 clears. The alternate `objcopy` result deliberately stops
-at the logical prefix. The gate proves that adding exactly the reference's
-all-zero padding reproduces the retail executable, rather than pretending the
-padding is initialized storage. A later runnable lane must have
-`tools/psxexe.py` own both this padding and the mutable PS-X EXE header.
+at the logical prefix. `tools/psxexe.py` then obtains section-owned
+`__SN_ENTRY_POINT` and `__load_start` from the proof ELF, derives the payload
+size, appends exactly `0x150` zero bytes at retail size, and regenerates PC,
+`t_addr`, and `t_size`. The finalized result is byte-identical to retail; the
+padding is no longer modelled as initialized storage.
 
 This is deliberately an **exact-at-retail ownership proof**, not permission to
 grow code yet. Its linker script still asserts the retail BSS start/end, `_gp`,
 heap, and pool addresses. The 122 post-padding BSS names are linker-relative
 aliases, but most do not yet come from real source storage declarations. Raw
-crt0 and SDK/data carves still embed address constants, and the PS-X EXE header
-is not regenerated in this lane.
+crt0 and SDK/data carves still embed address constants. Header regeneration is
+implemented, but a grown output is not runnable until those references and the
+retail boundary assertions are dealt with.
 
 For a growth-enabled link, BSS must be allowed to follow the grown initialized
 image, crt0's clear boundaries must be symbolic/relocatable, and the retail

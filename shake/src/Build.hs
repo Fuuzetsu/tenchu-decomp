@@ -97,8 +97,9 @@ relocSdkShiftSymbols = relocSdkShiftDir </> "symbols.main.exe.txt"
 -- "logical": it stops at initialized data, before the retail PS-X EXE's 0x150
 -- bytes of sector padding.  This lane proves ownership/layout only; it is not
 -- yet the final size-changing executable path.
-mainRelocBssLogical, mainRelocBssElf, mainRelocBssMap :: FilePath
+mainRelocBssLogical, mainRelocBssExe, mainRelocBssElf, mainRelocBssMap :: FilePath
 mainRelocBssLogical = buildDir </> "tenchu" </> "main_reloc_bss.logical"
+mainRelocBssExe = buildDir </> "tenchu" </> "main_reloc_bss.exe"
 mainRelocBssElf = buildDir </> "tenchu" </> "main_reloc_bss.exe.elf"
 mainRelocBssMap = buildDir </> "tenchu" </> "main_reloc_bss.exe.map"
 
@@ -1221,6 +1222,22 @@ mainExtraRules = do
     need [mainRelocBssElf]
     cmd_ objcopy objcopyFlags [mainRelocBssElf, out]
 
+  -- Finalize the normal link downstream of ld. Entry and load addresses come
+  -- from section-owned ELF symbols; payload size comes from the actual logical
+  -- output and is padded to a PS-X sector by the finalizer.
+  mainRelocBssExe %> \out -> do
+    let tool = "tools" </> "psxexe.py"
+    need [mainRelocBssLogical, mainRelocBssElf, tool]
+    cmd_ "python3" tool
+      [ "finalize", mainRelocBssLogical,
+        "-o", out,
+        "--elf", mainRelocBssElf,
+        "--entry-symbol", "__SN_ENTRY_POINT",
+        "--load-symbol", "__load_start",
+        "--expect", "gp=0",
+        "--expect", "sp=0x801ffff0"
+      ]
+
   -- Non-matching build: mkmod patches hooked functions in place. It reads main.exe's
   -- symbol table (via nm on the elf), compiles every src/mod/main.exe/*.c, and aborts
   -- if one outgrows its slot -- so depend on the exe+elf, the mod sources, AND the
@@ -1360,23 +1377,28 @@ phonyRules = do
     putInfo "check-reloc-sdk: canonical SDK prefix is retail-exact and +4-relocatable"
 
   -- Opt-in exact-at-retail ownership proof for BSS boundaries and the fixed
-  -- virtual-memory pool.  objcopy emits only the logical initialized prefix;
-  -- the validator proves the reference's 0x150-byte suffix is sector padding,
-  -- checks every known BSS symbol is section-relative, and requires both
-  -- reservations to be NOBITS.  It intentionally does not produce a runnable
-  -- grown PS-X EXE yet.
+  -- virtual-memory pool. objcopy emits only the logical initialized prefix;
+  -- the finalizer derives entry/load/size from the link and emits sector
+  -- padding, while the validator checks every known BSS symbol and both NOBITS
+  -- reservations. It intentionally does not claim a grown image is runnable.
   phony "check-reloc-bss" $ do
     let t = mainTarget
         undefinedSymbols = tgGenDir t </> metaDir </> "undefined_symbols_auto.main.exe.txt"
         tool = "tools" </> "reloc_bss_lane.py"
-    need [ mainRelocBssLogical, mainRelocBssElf, tgImage t, relocGameSymbols,
+    need [ mainRelocBssLogical, mainRelocBssExe, mainRelocBssElf,
+           tgImage t, relocGameSymbols,
            undefinedSymbols, tool ]
     StdoutTrim ref <- cmd "sha256sum" (tgImage t)
+    StdoutTrim finalized <- cmd "sha256sum" mainRelocBssExe
     let refSha = head $ words ref
+        finalizedSha = head $ words finalized
     when (refSha /= tgSha t) $
       fail $ unwords ["Reference", tgImage t, "has sha256", refSha,
                       "but expected known-good", tgSha t,
                       "- wrong/corrupt base image?"]
+    when (finalizedSha /= refSha) $
+      fail $ unwords ["Expected finalized", mainRelocBssExe,
+                      "to have sha256 of", refSha, "but it's", finalizedSha]
     cmd_ "python3" tool
       [ "validate",
         "--logical", mainRelocBssLogical,
@@ -1385,7 +1407,7 @@ phonyRules = do
         "--symbols-in", relocGameSymbols,
         "--undefined-in", undefinedSymbols
       ]
-    putInfo "check-reloc-bss: linker-owned BSS/pool layout is retail-exact"
+    putInfo "check-reloc-bss: linker-owned BSS/pool and finalized PS-X EXE are retail-exact"
 
   -- Optional, evidence-preserving lane for the complete stock GS_107.OBJ.
   -- Nothing proprietary is fetched or tracked: point this one target at a
