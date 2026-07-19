@@ -597,6 +597,14 @@ gs113ObjectMembers =
   [ "GsClearOt"
   ]
 
+-- GS_119.OBJ has one public member and one private return label. Its natural
+-- row-major Z-rotation source reproduces the complete function with the
+-- default 2.8.x compiler profile and no exceptional options.
+gs119ObjectMembers :: [String]
+gs119ObjectMembers =
+  [ "gte_rotate_z_matrix"
+  ]
+
 -- GS_121.OBJ has one public member and its complete 0x50-byte text is
 -- Tenchu's gte_init slot. The natural initializer uses the same 2.7.2
 -- epilogue as the neighbouring proven libgs objects.
@@ -635,6 +643,7 @@ originalObjectCcFlags src
   | name `elem` gs110ObjectMembers = []
   | name `elem` gs111ObjectMembers = []
   | name `elem` gs113ObjectMembers = []
+  | name `elem` gs119ObjectMembers = []
   | name `elem` gs121ObjectMembers = []
   | name `elem` gs122ObjectMembers = []
   -- Undo the game-wide -funsigned-char for this complete vendor object. The

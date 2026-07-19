@@ -749,6 +749,8 @@ segments:
       - { start: 0x556EC, type: data, linker_section_order: .text }
       - [0x55704, c, GsGetWorkBase]
       - { start: 0x55714, type: data, linker_section_order: .text }
+      - [0x55CB4, c, gte_rotate_z_matrix]
+      - { start: 0x55D68, type: data, linker_section_order: .text }
       - [0x56304, c, dmyGsPrstF3NL]
       - [0x5634C, c, dmyGsPrstF3LFG]
       - [0x56394, c, dmyGsPrstF3L]

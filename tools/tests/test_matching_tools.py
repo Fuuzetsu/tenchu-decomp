@@ -5673,6 +5673,7 @@ class BuildConfigurationTests(unittest.TestCase):
             "GS_110.OBJ": "gs110ObjectMembers",
             "GS_111.OBJ": "gs111ObjectMembers",
             "GS_113.OBJ": "gs113ObjectMembers",
+            "GS_119.OBJ": "gs119ObjectMembers",
             "GS_121.OBJ": "gs121ObjectMembers",
             "GS_122.OBJ": "gs122ObjectMembers",
             "GS_123.OBJ": "gs123ObjectMembers",
@@ -5741,6 +5742,9 @@ class BuildConfigurationTests(unittest.TestCase):
         self.assertEqual(permute.cc_executable_for("GsSetAmbient"), "cc1-272")
         self.assertEqual(permute.cc_executable_for("GsDrawOt"), "cc1-272")
         self.assertEqual(permute.cc_executable_for("GsClearOt"), "cc1-272")
+        self.assertEqual(
+            permute.cc_executable_for("gte_rotate_z_matrix"), "cc1-281"
+        )
         self.assertEqual(permute.cc_executable_for("gte_init"), "cc1-272")
         self.assertEqual(permute.cc_executable_for("GsGetTimInfo"), "cc1-272")
         self.assertEqual(

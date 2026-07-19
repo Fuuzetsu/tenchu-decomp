@@ -94,6 +94,9 @@ ORIGINAL_OBJECT_MEMBERS = {
     "GS_113.OBJ": (
         "GsClearOt",
     ),
+    "GS_119.OBJ": (
+        "gte_rotate_z_matrix",
+    ),
     "GS_121.OBJ": (
         "gte_init",
     ),
@@ -123,6 +126,7 @@ ORIGINAL_OBJECT_CC_FLAGS = {
     "GS_110.OBJ": (),
     "GS_111.OBJ": (),
     "GS_113.OBJ": (),
+    "GS_119.OBJ": (),
     "GS_121.OBJ": (),
     "GS_122.OBJ": (),
     # Undo the game TU's global option for this complete vendor object.

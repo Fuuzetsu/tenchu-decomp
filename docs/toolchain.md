@@ -137,6 +137,22 @@ tools such as PSYLIB and ASPSX; the PsyQ 4.5 `CC1PSX.EXE` currently aborts under
 wibo, so the deterministic native reconstructed compilers remain the build
 path.
 
+### GS_119.OBJ: default GCC 2.8.x profile
+
+PsyQ 4.3, 4.4, 4.5, and 4.6 contain an identical `GS_119.OBJ`. It has one
+public member, `gte_rotate_z_matrix`, three call relocations, and `0xC0` bytes
+of text: a `0xB4`-byte function followed by three alignment words. Linking the
+converted complete object at Tenchu's addresses reproduces all `0xC0` bytes.
+
+The matching source computes sine and cosine from `angle / 360`, fills a local
+`MATRIX` as an ordinary row-major Z rotation when the angle is nonzero, then
+calls `MulMatrix`. That human ordering is codegen-significant: rewriting the
+assignments in disassembly store order removes the live sine copy and produces
+a shorter nonmatch. Both GCC 2.8.0 and the default GCC 2.8.1 emit all `0xB4`
+function bytes exactly; GCC 2.7.2 uses the older empty return-delay-slot
+epilogue. The complete object therefore stays on the default compiler with no
+exceptional flags.
+
 ### GS_123.OBJ: stock GCC 2.7.2 with signed `char`
 
 `GS_123.OBJ` has one public member, `Gssub_make_matrix`, plus private switch
