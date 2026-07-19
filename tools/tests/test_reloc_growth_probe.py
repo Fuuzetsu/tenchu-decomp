@@ -38,23 +38,54 @@ class FakeElf:
 
 
 class RelocGrowthProbeTests(unittest.TestCase):
-    def test_extension_inputs_follow_sources_and_ignore_stale_objects(self) -> None:
+    def test_extension_inputs_mirror_recursive_user_and_generated_union(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            source_dir = root / "src/main.exe/reloc"
+            user_dir = root / "src/main.exe/reloc"
+            generated_dir = root / ".shake/gen/main.exe/src/reloc"
             object_dir = root / ".shake/build/main.exe/reloc"
-            source_dir.mkdir(parents=True)
+            user_dir.mkdir(parents=True)
+            generated_dir.mkdir(parents=True)
             object_dir.mkdir(parents=True)
-            (source_dir / "live.c").write_text("int live(void) { return 1; }\n")
-            (object_dir / "live.c.o").touch()
+
+            user_sources = ("live.c", "nested/user.c", "shared.c")
+            generated_sources = ("generated.c", "nested/generated.c", "shared.c")
+            for relative in user_sources:
+                source = user_dir / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_text("int user_source(void) { return 1; }\n")
+            for relative in generated_sources:
+                source = generated_dir / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_text("int generated_source(void) { return 1; }\n")
+
+            expected_sources = sorted(set(user_sources) | set(generated_sources))
+            for relative in expected_sources:
+                obj = object_dir / f"{relative}.o"
+                obj.parent.mkdir(parents=True, exist_ok=True)
+                obj.touch()
             (object_dir / "stale.c.o").touch()
-            (source_dir / "nested").mkdir()
-            (source_dir / "nested/unsupported.c").touch()
 
             self.assertEqual(
                 reloc_growth_probe.extension_object_inputs(root),
-                [Path(".shake/build/main.exe/reloc/live.c.o")],
+                [
+                    Path(f".shake/build/main.exe/reloc/{relative}.o")
+                    for relative in expected_sources
+                ],
             )
+
+    def test_extension_inputs_require_each_source_backed_object(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / ".shake/gen/main.exe/src/reloc/nested/missing.c"
+            source.parent.mkdir(parents=True)
+            source.touch()
+
+            with self.assertRaisesRegex(
+                reloc_growth_probe.ProbeError,
+                r"extension object for reloc/nested/missing\.c",
+            ):
+                reloc_growth_probe.extension_object_inputs(root)
 
     def test_injects_one_ordinary_input_after_main(self) -> None:
         source = """\

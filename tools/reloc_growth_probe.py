@@ -196,15 +196,33 @@ def require_file(path: Path, description: str) -> None:
 
 
 def extension_object_inputs(root: Path) -> list[Path]:
-    """Return source-backed extension objects using linker-script-relative paths."""
+    """Mirror Shake's source-backed extension-object inventory.
 
-    source_root = root / "src/main.exe"
+    Shake recursively unions the user and generated C trees by their path
+    relative to ``main.exe``, then passes every object below ``reloc/`` to ld.
+    Derive the growth inputs from the same two source trees so a deleted source
+    cannot leave a stale build object in the proof and a user override of a
+    generated relative path contributes exactly one object.
+    """
+
+    source_roots = (
+        root / "src/main.exe",
+        root / ".shake/gen/main.exe/src",
+    )
     build_root = Path(".shake/build/main.exe")
+    relative_sources: set[Path] = set()
+    for source_root in source_roots:
+        reloc_root = source_root / "reloc"
+        if not reloc_root.is_dir():
+            continue
+        relative_sources.update(
+            source.relative_to(source_root)
+            for source in reloc_root.rglob("*.c")
+            if source.is_file()
+        )
+
     inputs: list[Path] = []
-    # Keep this one level deep to match reloc_bss_lane's
-    # ``.shake/build/main.exe/reloc/*.c.o`` ownership hook.
-    for source in sorted((source_root / "reloc").glob("*.c")):
-        relative_source = source.relative_to(source_root)
+    for relative_source in sorted(relative_sources):
         relative_object = build_root / Path(f"{relative_source}.o")
         require_file(root / relative_object, f"extension object for {relative_source}")
         inputs.append(relative_object)
