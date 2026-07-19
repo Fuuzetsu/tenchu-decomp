@@ -1608,11 +1608,12 @@ mainExtraRules = do
       cmd_ as asFlags ["--MD", depFile, "-o", out, normalRelinkTailAsm]
       neededAsmDeps depFile
 
-  mainRelinkElf %> \out -> do
+  [mainRelinkElf, mainRelinkMap] &%> \_outs -> do
     let t = mainTarget
         genD = tgGenDir t
         tBuildDir = tgBuildDir t
         undefinedFunctions = genD </> metaDir </> "undefined_functions_auto.main.exe.txt"
+        inputAuditTool = "tools" </> "reloc_input_audit.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
     sFiles <- liftIO $ getDirectoryFilesIO (genD </> asmDir) ["*.s", "data/*.s"]
     userFiles <- Set.fromList <$> getDirectoryFiles (tgSrcDir t) ["//*.c"]
@@ -1627,11 +1628,11 @@ mainExtraRules = do
         assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
     need $ sFilesExp <> assetFilesExp <> oFiles <> relocCLiteralObjects <>
       [ normalRelinkLinker, normalRelinkSymbols, normalRelinkUndefined,
-        normalRelinkTailObject, undefinedFunctions
+        normalRelinkTailObject, undefinedFunctions, inputAuditTool
       ] <> relocDataObjects
-    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory mainRelinkElf)
     cmd_ ld ldFlags
-      [ "-o", out,
+      [ "-o", mainRelinkElf,
         "-Map", mainRelinkMap,
         "-T", normalRelinkLinker,
         "-T", normalRelinkSymbols,
@@ -1641,6 +1642,7 @@ mainExtraRules = do
         "--no-check-sections",
         "-nostdlib"
       ] extensionObjects
+    cmd_ "python3" inputAuditTool
 
   mainRelinkLogical %> \out -> do
     need [mainRelinkElf]
@@ -1784,7 +1786,7 @@ phonyRules = do
   -- to grow and accepts new sources under src/main.exe/reloc/. `check-relink`
   -- runs the structural/header/static-address gates; `check-reloc-bss` remains
   -- the byte-exact retail-layout oracle.
-  phony "relink" $ need [mainRelinkExe]
+  phony "relink" $ need [mainRelinkExe, mainRelinkMap]
 
   phony "check-relink-growth" runRelinkGrowthProbe
 
@@ -1798,7 +1800,11 @@ phonyRules = do
     verifyNormalRelink
     let psxExeTool = "tools" </> "psxexe.py"
         auditTool = "tools" </> "reloc_audit.py"
-    need [mainRelinkExe, mainRelinkElf, psxExeTool, auditTool]
+        inputAuditTool = "tools" </> "reloc_input_audit.py"
+    need
+      [ mainRelinkExe, mainRelinkElf, mainRelinkMap, psxExeTool, auditTool,
+        inputAuditTool
+      ]
     cmd_ "python3" psxExeTool
       [ "validate", mainRelinkExe,
         "--elf", mainRelinkElf,
@@ -1808,6 +1814,7 @@ phonyRules = do
         "--expect", "sp=0x801ffff0"
       ]
     cmd_ "python3" auditTool ["--fail-on-findings"]
+    cmd_ "python3" inputAuditTool
     runRelinkGrowthProbe
     putInfo "check-relink: normal C/SDK/data/BSS/header composition is structurally valid"
 
