@@ -163,7 +163,7 @@ relocIntegratedDataDir = relocBssDir </> "data"
 
 relocDataNames :: [String]
 relocDataNames =
-  [ "E58", "1160", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
+  [ "E58", "1160", "1490", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
     "75F64"
   ]
 
@@ -253,13 +253,16 @@ tgSymbols t = configDir </> "symbols." <> tgName t <> ".txt"
 tgBuildDir t = buildDir </> tgName t
 tgSrcDir t = srcDir </> tgName t
 
--- | Bootable disc images repacked from our exe. The matching build and the mod
--- build get distinct names so they can each be their own Shake target.
-tenchuBin, tenchuCue, tenchuModBin, tenchuModCue :: FilePath
+-- | Bootable disc images repacked from our exe. Matching, same-slot mod, and
+-- normal-relink builds get distinct names so each can be a real Shake target.
+tenchuBin, tenchuCue, tenchuModBin, tenchuModCue,
+  tenchuRelinkBin, tenchuRelinkCue :: FilePath
 tenchuBin = buildDir </> "tenchu" </> "tenchu.bin"
 tenchuCue = buildDir </> "tenchu" </> "tenchu.cue"
 tenchuModBin = buildDir </> "tenchu" </> "tenchu-mod.bin"
 tenchuModCue = buildDir </> "tenchu" </> "tenchu-mod.cue"
+tenchuRelinkBin = buildDir </> "tenchu" </> "tenchu-relink.bin"
+tenchuRelinkCue = buildDir </> "tenchu" </> "tenchu-relink.cue"
 
 cross :: String -> FilePath
 cross t = "mipsel-unknown-linux-gnu-" <> t
@@ -1585,13 +1588,15 @@ mainExtraRules = do
         "--symbols-in", normalRelinkSdkSymbols,
         "--undefined-in", undefinedSymbols,
         "--tail-in", relocData75F64Asm,
+        "--dynamic-pool",
         "--linker-out", normalRelinkLinker,
         "--symbols-out", normalRelinkSymbols,
         "--undefined-out", normalRelinkUndefined,
         "--tail-out", normalRelinkTailAsm,
         "--old-tail-object", oldTailObject,
         "--new-tail-object", normalRelinkTailObject,
-        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o"
+        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o",
+        "--ordinary-c-object-glob", tBuildDir </> "*.c.o"
       ] <> replacementArgs
 
   normalRelinkTailObject %> \out -> do
@@ -1667,16 +1672,37 @@ mainExtraRules = do
   -- dynamically ($TENCHU_CUE / disks/ / ~/tenchu-iso/), so a disc swap isn't a
   -- tracked input: `./Build clean` (or touch the exe) to force a repack then.
   [tenchuBin, tenchuCue] &%> \_out -> do
-    need [mainExe]
-    cmd_ "tools/mkiso.py"
+    let tool = "tools" </> "mkiso.py"
+    need [mainExe, tool]
+    cmd_ tool
 
   [tenchuModBin, tenchuModCue] &%> \_out -> do
-    need [mainModExe]
-    cmd_ "tools/mkiso.py" ["--exe", mainModExe,
-                           "--out", buildDir </> "tenchu" </> "tenchu-mod"]
+    let tool = "tools" </> "mkiso.py"
+    need [mainModExe, tool]
+    cmd_ tool ["--exe", mainModExe,
+               "--out", buildDir </> "tenchu" </> "tenchu-mod"]
+
+  [tenchuRelinkBin, tenchuRelinkCue] &%> \_out -> do
+    let tool = "tools" </> "mkiso.py"
+    need [mainRelinkExe, tool]
+    cmd_ tool ["--exe", mainRelinkExe,
+               "--out", buildDir </> "tenchu" </> "tenchu-relink"]
 
 phonyRules :: Rules ()
 phonyRules = do
+  let runRelinkGrowthProbe = do
+        let tool = "tools" </> "reloc_growth_probe.py"
+            undefinedFunctions = tgGenDir mainTarget </> metaDir </>
+              "undefined_functions_auto.main.exe.txt"
+        need
+          [ mainRelinkExe, mainRelinkElf, mainRelinkLogical,
+            normalRelinkLinker, normalRelinkSymbols, normalRelinkUndefined,
+            undefinedFunctions, configDir </> "reloc-data.main.exe.json",
+            tool, "tools" </> "psxexe.py", "tools" </> "reloc_audit.py",
+            "tools" </> "reloc_c_literals.py"
+          ]
+        cmd_ "python3" tool
+
   phony "clean" $ do
     liftIO $
       removeFiles
@@ -1694,6 +1720,7 @@ phonyRules = do
   phony "mod" $ need [mainModExe]
   phony "iso" $ need [tenchuCue]
   phony "iso-mod" $ need [tenchuModCue]
+  phony "iso-relink" $ need [tenchuRelinkCue]
 
   -- `run` / `run-mod`: fast path — mount the original disc and `-loadexe` our exe
   -- over it, no ISO repack. Tenchu boots SLPS_019.01 -> ... -> MAIN.EXE, so this
@@ -1706,6 +1733,10 @@ phonyRules = do
   phony "run-mod" $ do
     need [mainModExe]
     launchLoadExe [] mainModExe
+
+  phony "run-relink" $ do
+    need [mainRelinkExe]
+    launchLoadExe [] mainRelinkExe
 
   -- `run-iso` / `run-iso-mod`: faithful — boot the repacked disc (built by the file
   -- rules above only when the exe changed), so the real SLPS_019.01 -> ... -> MAIN.EXE
@@ -1720,6 +1751,10 @@ phonyRules = do
   phony "run-iso-mod" $ do
     need [tenchuModCue]
     launchIso [] tenchuModCue
+
+  phony "run-iso-relink" $ do
+    need [tenchuRelinkCue]
+    launchIso [] tenchuRelinkCue
 
   -- Verify a target reproduces its original image byte for byte. The reference sha
   -- is pinned so a swapped/corrupt base image is caught, rather than merely proving
@@ -1742,11 +1777,13 @@ phonyRules = do
   -- per function). `check-all` verifies every executable on the disc.
   phony "check" $ checkTarget mainTarget
 
-  -- Experimental normal GNU-ld output. Unlike the same-slot `mod` target this
-  -- allows sections to grow and accepts new sources under src/main.exe/reloc/.
-  -- Remaining raw-address audits still gate treating a changed image as
-  -- runnable; `check-reloc-bss` is the exact-at-retail structural check.
+  -- Normal GNU-ld output. Unlike the same-slot `mod` target this allows sections
+  -- to grow and accepts new sources under src/main.exe/reloc/. `check-relink`
+  -- runs the structural/header/static-address gates; `check-reloc-bss` remains
+  -- the byte-exact retail-layout oracle.
   phony "relink" $ need [mainRelinkExe]
+
+  phony "check-relink-growth" runRelinkGrowthProbe
 
   -- Structural integration gate for the real no-pad artifact.  The compiler
   -- object delta is measured, every unique canonical-SDK symbol must follow
@@ -1756,9 +1793,10 @@ phonyRules = do
   phony "check-relink" $ do
     verifyRelocCLiteralObjects
     verifyNormalRelink
-    let tool = "tools" </> "psxexe.py"
-    need [mainRelinkExe, mainRelinkElf, tool]
-    cmd_ "python3" tool
+    let psxExeTool = "tools" </> "psxexe.py"
+        auditTool = "tools" </> "reloc_audit.py"
+    need [mainRelinkExe, mainRelinkElf, psxExeTool, auditTool]
+    cmd_ "python3" psxExeTool
       [ "validate", mainRelinkExe,
         "--elf", mainRelinkElf,
         "--entry-symbol", "__SN_ENTRY_POINT",
@@ -1766,6 +1804,8 @@ phonyRules = do
         "--expect", "gp=0",
         "--expect", "sp=0x801ffff0"
       ]
+    cmd_ "python3" auditTool ["--fail-on-findings"]
+    runRelinkGrowthProbe
     putInfo "check-relink: normal C/SDK/data/BSS/header composition is structurally valid"
 
   -- Focused input gate for the first six matching-C address constructions.

@@ -126,7 +126,23 @@ dlabel Start
         self.assertEqual(records[1].value, 0x80011A44)
         self.assertEqual(records[1].source_region, "leading_data")
 
-    def test_analysis_finds_jump_hi_lo_and_only_aligned_data_pointer(self) -> None:
+    def test_byte_parser_recovers_little_endian_pointer_fields(self) -> None:
+        records = audit.parse_word_source(
+            """\
+dlabel StageConfig
+    /* 171C 80011F1C */ .byte 0x9C
+    /* 171D 80011F1D */ .byte 0x1C
+    /* 171E 80011F1E */ .byte 0x01
+    /* 171F 80011F1F */ .byte 0x80
+""",
+            "1490.data.s",
+        )
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].source, 0x80011F1C)
+        self.assertEqual(records[0].value, 0x80011C9C)
+        self.assertEqual(records[0].owner, "StageConfig")
+
+    def test_analysis_finds_jump_hi_lo_and_unaligned_data_pointer(self) -> None:
         text = """\
 dlabel Lead
     /* 800 80011000 441A0180 */ .word 0x80011A44
@@ -149,7 +165,7 @@ dlabel Tail
         )
         self.assertEqual(
             [item["source"] for item in result["literal_pointers"]],
-            ["0x80011000", "0x80089e40"],
+            ["0x80011000", "0x80089e40", "0x80089e44"],
         )
 
 
@@ -192,10 +208,12 @@ dlabel Tail
         self.assertIn("literal J/JAL candidates: 1 (jal=1)", rendered)
         self.assertIn("findings: 3 (audit-only", rendered)
 
-    def test_help_describes_allowlist_and_controlled_shift_direction(self) -> None:
+    def test_help_describes_enforced_gate_and_large_growth_probe(self) -> None:
         help_text = audit.parser().format_help()
-        self.assertIn("allowlist", help_text)
+        self.assertIn("./Build check-relink", help_text)
         self.assertIn("+0x10004", help_text)
+        self.assertIn("HI16", help_text)
+        self.assertIn("PS-X header", help_text)
         self.assertIn("--fail-on-findings", help_text)
         self.assertIn("--object-source", help_text)
 

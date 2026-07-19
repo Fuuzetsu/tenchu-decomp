@@ -41,7 +41,7 @@ DEFAULT_LINKER = Path(".shake/build/relink/layout/main.exe.ld")
 DEFAULT_RAW_DIR = Path(".shake/gen/main.exe/asm/data")
 DEFAULT_NM = "mipsel-unknown-linux-gnu-nm"
 
-# The normal relink currently substitutes all nine reviewed pointer-bearing
+# The normal relink currently substitutes all reviewed pointer-bearing
 # generated assembly objects.
 # These are convenience defaults only: exact ``--object-source`` arguments are
 # authoritative, and defaults which are not named by the selected linker are
@@ -52,6 +52,8 @@ DEFAULT_OBJECT_SOURCES = {
         ".shake/build/reloc-bss/data/E58.data.s",
     ".shake/build/reloc-bss/obj/1160.data.s.o":
         ".shake/build/reloc-bss/data/1160.data.s",
+    ".shake/build/reloc-bss/obj/1490.data.s.o":
+        ".shake/build/reloc-bss/data/1490.data.s",
     ".shake/build/reloc-bss/obj/207C.data.s.o":
         ".shake/build/reloc-bss/data/207C.data.s",
     ".shake/build/reloc-bss/obj/2EB0.data.s.o":
@@ -80,6 +82,10 @@ NM_RE = re.compile(r"^([0-9A-Fa-f]+)\s+([Aa])\s+(.+)$")
 WORD_RE = re.compile(
     r"/\*\s*([0-9A-Fa-f]+)\s+([0-9A-Fa-f]+)"
     r"(?:\s+[0-9A-Fa-f]{8})?\s*\*/\s*\.word\s+([^\s#,]+)"
+)
+BYTE_RE = re.compile(
+    r"/\*\s*([0-9A-Fa-f]+)\s+([0-9A-Fa-f]+)"
+    r"(?:\s+[0-9A-Fa-f]{2})?\s*\*/\s*\.byte\s+([^\s#,]+)"
 )
 DLABEL_RE = re.compile(r"^\s*dlabel\s+(\S+)")
 
@@ -319,27 +325,70 @@ def linked_raw_sources(
 
 def parse_word_source(text: str, filename: str) -> list[WordRecord]:
     records: list[WordRecord] = []
+    byte_values: dict[int, tuple[int, int, str | None, str]] = {}
     owner: str | None = None
     for line_number, raw in enumerate(text.splitlines(), 1):
         label = DLABEL_RE.match(raw)
         if label is not None:
             owner = label.group(1)
-        match = WORD_RE.search(raw)
-        if match is None:
+        word = WORD_RE.search(raw)
+        if word is not None:
+            source = int(word.group(2), 16)
+            operand = word.group(3).rstrip(",")
+            try:
+                value: int | None = int(operand, 0) & 0xFFFFFFFF
+            except ValueError:
+                value = None
+            records.append(
+                WordRecord(
+                    source=source,
+                    file=filename,
+                    line=line_number,
+                    owner=owner,
+                    operand=operand,
+                    value=value,
+                    source_region=source_region(source),
+                )
+            )
             continue
-        source = int(match.group(2), 16)
-        operand = match.group(3).rstrip(",")
+
+        byte = BYTE_RE.search(raw)
+        if byte is None:
+            continue
+        source = int(byte.group(2), 16)
+        operand = byte.group(3).rstrip(",")
         try:
-            value: int | None = int(operand, 0) & 0xFFFFFFFF
+            value = int(operand, 0)
         except ValueError:
-            value = None
+            continue
+        if not 0 <= value <= 0xFF:
+            raise AuditError(
+                f"{filename}:{line_number}: .byte operand {operand} is out of range"
+            )
+        byte_values[source] = (value, line_number, owner, operand)
+
+    # Splat emits genuinely untyped structures as one .byte per source byte.
+    # Reconstruct aligned little-endian words so embedded pointer fields remain
+    # visible to the same audit as ordinary .word directives. Once transformed
+    # to symbolic .word source, the four byte records disappear automatically.
+    for source in sorted(byte_values):
+        if source % 4 or not all(source + offset in byte_values for offset in range(4)):
+            continue
+        value = sum(
+            byte_values[source + offset][0] << (offset * 8)
+            for offset in range(4)
+        )
+        _first_value, line_number, byte_owner, _first_operand = byte_values[source]
+        operands = ",".join(
+            byte_values[source + offset][3] for offset in range(4)
+        )
         records.append(
             WordRecord(
                 source=source,
                 file=filename,
                 line=line_number,
-                owner=owner,
-                operand=operand,
+                owner=byte_owner,
+                operand=f"bytes({operands})",
                 value=value,
                 source_region=source_region(source),
             )
@@ -451,7 +500,6 @@ def analyse_words(records: Iterable[WordRecord]) -> dict[str, object]:
 
         if (
             record.source_region in {"leading_data", "trailing_data"}
-            and value % 4 == 0
             and is_movable(value)
         ):
             pointers.append(
@@ -601,7 +649,7 @@ def render_text(report: dict[str, object], *, details: bool = False) -> str:
         + _format_counts(summary["conservative_hi_lo_by_target_region"])
     )
     lines.append(
-        f"  literal aligned data pointers: {summary['literal_pointers']}"
+        f"  literal data pointers: {summary['literal_pointers']}"
     )
     lines.append(
         "    targets: "
@@ -691,12 +739,10 @@ def parser() -> argparse.ArgumentParser:
             "words in the current MAIN.EXE link."
         ),
         epilog=(
-            "The initial mode is deliberately an audit: findings exit zero unless "
-            "--fail-on-findings is used. Before enabling that switch in CI, split "
-            "fixed hardware/ABI symbols into a reviewed allowlist and make every "
-            "movable code/data symbol linker-owned. The eventual acceptance gate "
-            "should pair this static audit with controlled +4 and +0x10004 relinks "
-            "so HI16 carry and header/BSS updates are tested, not merely inferred."
+            "Findings exit zero unless --fail-on-findings is used. "
+            "./Build check-relink enables that gate and pairs it with the full "
+            "+0x10004 growth probe, so HI16 carry, loaded pointers, BSS/pool "
+            "layout, and the PS-X header are tested rather than inferred."
         ),
     )
     argument_parser.add_argument("--root", type=Path, default=ROOT)
@@ -720,7 +766,7 @@ def parser() -> argparse.ArgumentParser:
     argument_parser.add_argument(
         "--fail-on-findings",
         action="store_true",
-        help="exit 1 when the report has findings (intended for the future allowlisted gate)",
+        help="exit 1 when the composed link still has movable-address findings",
     )
     return argument_parser
 
