@@ -13,6 +13,7 @@ import argparse
 from collections import Counter
 from dataclasses import asdict, dataclass
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -35,12 +36,33 @@ CODE_END = 0x80086764
 LOADED_END = 0x80098000
 MOVABLE_END = 0x800CDBAC
 
-DEFAULT_ELF = Path(".shake/build/tenchu/main.exe.elf")
-DEFAULT_LINKER = Path(".shake/gen/main.exe/linker/main.exe.ld")
+DEFAULT_ELF = Path(".shake/build/tenchu/main_relink.exe.elf")
+DEFAULT_LINKER = Path(".shake/build/relink/layout/main.exe.ld")
 DEFAULT_RAW_DIR = Path(".shake/gen/main.exe/asm/data")
 DEFAULT_NM = "mipsel-unknown-linux-gnu-nm"
 
-LINKED_RAW_RE = re.compile(r"data/([0-9A-Fa-f]+\.data\.s)\.o")
+# The normal relink currently substitutes three generated assembly objects.
+# These are convenience defaults only: exact ``--object-source`` arguments are
+# authoritative, and defaults which are not named by the selected linker are
+# ignored.  Keeping the mapping object-based prevents an old generated source
+# with the same retail address from being audited after its object was replaced.
+DEFAULT_OBJECT_SOURCES = {
+    ".shake/build/reloc-bss/obj/207C.data.s.o":
+        ".shake/build/reloc-bss/data/207C.data.s",
+    ".shake/build/reloc-bss/obj/2EB0.data.s.o":
+        ".shake/build/reloc-bss/data/2EB0.data.s",
+    ".shake/build/relink/obj/72CD0.bss.s.o":
+        ".shake/build/relink/layout/72CD0.bss.s",
+    # The retail-exact structural lane uses the same transformed data but a
+    # separate combined tail.  This lets an explicit alternate ELF/linker audit
+    # work without weakening the normal-relink defaults above.
+    ".shake/build/reloc-bss/obj/72CD0.bss.s.o":
+        ".shake/build/reloc-bss/generated/72CD0.bss.s",
+}
+
+LINKER_OBJECT_RE = re.compile(r"(?P<object>[^\s;()]+\.o)\s*\(")
+RAW_OBJECT_RE = re.compile(r"^[0-9A-Fa-f]+\.(?:data|bss)\.s\.o$")
+STANDARD_RAW_OBJECT_RE = re.compile(r"^(?P<name>[0-9A-Fa-f]+\.data\.s)\.o$")
 NM_RE = re.compile(r"^([0-9A-Fa-f]+)\s+([Aa])\s+(.+)$")
 WORD_RE = re.compile(
     r"/\*\s*([0-9A-Fa-f]+)\s+([0-9A-Fa-f]+)"
@@ -71,6 +93,15 @@ class WordRecord:
     operand: str
     value: int | None
     source_region: str
+
+
+@dataclass(frozen=True)
+class RawInput:
+    """One generated word source selected by an exact linked object."""
+
+    object: str
+    source: str
+    mapped: bool
 
 
 def hex32(value: int) -> str:
@@ -151,12 +182,126 @@ def run_nm(elf: Path, command: str = DEFAULT_NM) -> str:
     return result.stdout
 
 
+def _normal_object(path: str) -> str:
+    return os.path.normpath(path)
+
+
+def linked_object_inputs(linker_text: str) -> list[str]:
+    """Return exact object tokens in first-link order, excluding comments."""
+    uncommented = re.sub(r"/\*.*?\*/", "", linker_text, flags=re.DOTALL)
+    uncommented = re.sub(r"#.*$", "", uncommented, flags=re.MULTILINE)
+    result: list[str] = []
+    seen: set[str] = set()
+    for match in LINKER_OBJECT_RE.finditer(uncommented):
+        object_name = _normal_object(match.group("object"))
+        if object_name not in seen:
+            seen.add(object_name)
+            result.append(object_name)
+    return result
+
+
 def linked_raw_inputs(linker_text: str) -> list[str]:
-    """Return only raw generated inputs actually named by the linker script."""
-    return sorted(
-        set(LINKED_RAW_RE.findall(linker_text)),
-        key=lambda name: int(name.split(".", 1)[0], 16),
-    )
+    """Return ordinary generated raw inputs named by the linker script.
+
+    This compatibility view intentionally excludes substituted objects outside
+    a generated ``data/`` directory.  Use :func:`linked_raw_sources` for an
+    audit: it adds exact object-to-source mappings and rejects unmapped
+    generated replacements instead of silently omitting them.
+    """
+    result: list[str] = []
+    for object_name in linked_object_inputs(linker_text):
+        path = Path(object_name)
+        match = STANDARD_RAW_OBJECT_RE.fullmatch(path.name)
+        if path.parent.name == "data" and match is not None:
+            result.append(match.group("name"))
+    return sorted(set(result), key=lambda name: int(name.split(".", 1)[0], 16))
+
+
+def parse_object_sources(specifications: Iterable[str]) -> dict[str, Path]:
+    """Parse repeated exact ``OBJECT=SOURCE`` mappings."""
+    result: dict[str, Path] = {}
+    for specification in specifications:
+        if "=" not in specification:
+            raise AuditError(
+                f"invalid --object-source {specification!r}; expected OBJECT=SOURCE"
+            )
+        raw_object, raw_source = specification.split("=", 1)
+        if not raw_object or not raw_source:
+            raise AuditError(
+                f"invalid --object-source {specification!r}; expected OBJECT=SOURCE"
+            )
+        object_name = _normal_object(raw_object)
+        source = Path(os.path.normpath(raw_source))
+        if object_name in result:
+            raise AuditError(f"duplicate --object-source for {object_name}")
+        result[object_name] = source
+    return result
+
+
+def default_object_sources(linker_text: str) -> dict[str, Path]:
+    """Return only convenience mappings which occur in this exact linker."""
+    linked = set(linked_object_inputs(linker_text))
+    return {
+        _normal_object(object_name): Path(source)
+        for object_name, source in DEFAULT_OBJECT_SOURCES.items()
+        if _normal_object(object_name) in linked
+    }
+
+
+def linked_raw_sources(
+    linker_text: str,
+    raw_dir: Path,
+    object_sources: dict[str, Path],
+) -> list[RawInput]:
+    """Resolve every linked generated word object to the source it consumed.
+
+    Ordinary Splat inputs resolve through ``raw_dir``.  A transformed or
+    combined input must have an exact object mapping.  Conversely, every
+    supplied mapping must name an object in this linker.  These two checks are
+    what stop a composed audit from reading a replaced retail source or from
+    skipping a new generated object.
+    """
+    linked_objects = linked_object_inputs(linker_text)
+    linked_set = set(linked_objects)
+    mappings = {_normal_object(name): path for name, path in object_sources.items()}
+    unlinked = sorted(set(mappings) - linked_set)
+    if unlinked:
+        raise AuditError(
+            "--object-source object is not linked: " + ", ".join(unlinked)
+        )
+
+    result: list[RawInput] = []
+    seen_sources: dict[str, str] = {}
+    for object_name in linked_objects:
+        object_path = Path(object_name)
+        standard = STANDARD_RAW_OBJECT_RE.fullmatch(object_path.name)
+        mapped_source = mappings.get(object_name)
+        if mapped_source is not None:
+            source = mapped_source
+            mapped = True
+        elif object_path.parent.name == "data" and standard is not None:
+            source = raw_dir / standard.group("name")
+            mapped = False
+        elif RAW_OBJECT_RE.fullmatch(object_path.name) is not None:
+            raise AuditError(
+                f"linked generated raw object has no source mapping: {object_name}; "
+                "pass --object-source OBJECT=SOURCE"
+            )
+        else:
+            continue
+
+        source_name = os.path.normpath(str(source))
+        previous = seen_sources.get(source_name)
+        if previous is not None and previous != object_name:
+            raise AuditError(
+                f"raw source {source_name} is mapped from two linked objects: "
+                f"{previous} and {object_name}"
+            )
+        seen_sources[source_name] = object_name
+        result.append(
+            RawInput(object=object_name, source=source_name, mapped=mapped)
+        )
+    return result
 
 
 def parse_word_source(text: str, filename: str) -> list[WordRecord]:
@@ -327,7 +472,7 @@ def _counter_dict(values: Iterable[str]) -> dict[str, int]:
 
 def build_report(
     abs_symbols: Iterable[AbsSymbol],
-    raw_inputs: Iterable[str],
+    raw_inputs: Iterable[RawInput],
     words: Iterable[WordRecord],
 ) -> dict[str, object]:
     symbols = list(abs_symbols)
@@ -348,6 +493,7 @@ def build_report(
 
     summary = {
         "linked_raw_inputs": len(inputs),
+        "mapped_raw_inputs": sum(item.mapped for item in inputs),
         "absolute_symbols": len(symbols),
         "movable_absolute_symbols": len(movable_symbols),
         "absolute_symbols_by_region": _counter_dict(symbol.region for symbol in symbols),
@@ -376,7 +522,7 @@ def build_report(
     )
 
     return {
-        "schema": 1,
+        "schema": 2,
         "layout": {
             "main_start": hex32(MAIN_START),
             "leading_data_end": hex32(LEADING_DATA_END),
@@ -387,7 +533,7 @@ def build_report(
         },
         "summary": summary,
         "raw_word_summary": analysis["raw_word_summary"],
-        "linked_raw_inputs": inputs,
+        "linked_raw_inputs": [asdict(item) for item in inputs],
         "absolute_symbols": serial_symbols,
         "literal_jumps": jumps,
         "conservative_hi_lo": hi_lo,
@@ -406,7 +552,10 @@ def render_text(report: dict[str, object], *, details: bool = False) -> str:
     raw = report["raw_word_summary"]
     assert isinstance(summary, dict) and isinstance(raw, dict)
     lines = ["reloc-audit main.exe"]
-    lines.append(f"  linked raw inputs: {summary['linked_raw_inputs']}")
+    lines.append(
+        f"  linked raw inputs: {summary['linked_raw_inputs']} "
+        f"(mapped replacements={summary['mapped_raw_inputs']})"
+    )
     lines.append(
         "  final ABS symbols: "
         f"{summary['absolute_symbols']} total; "
@@ -452,6 +601,11 @@ def render_text(report: dict[str, object], *, details: bool = False) -> str:
 
     if details:
         lines.append("  details:")
+        for item in report["linked_raw_inputs"]:
+            mapping = "mapped" if item["mapped"] else "generated"
+            lines.append(
+                f"    INPUT {item['object']} -> {item['source']} ({mapping})"
+            )
         for symbol in report["absolute_symbols"]:
             if symbol["movable"]:
                 lines.append(
@@ -476,25 +630,44 @@ def resolve(root: Path, path: Path) -> Path:
     return path if path.is_absolute() else root / path
 
 
-def collect(root: Path, elf: Path, linker: Path, raw_dir: Path, nm: str) -> dict[str, object]:
+def collect(
+    root: Path,
+    elf: Path,
+    linker: Path,
+    raw_dir: Path,
+    nm: str,
+    object_sources: dict[str, Path] | None = None,
+) -> dict[str, object]:
     elf = resolve(root, elf)
     linker = resolve(root, linker)
-    raw_dir = resolve(root, raw_dir)
-    for path, description in ((elf, "ELF"), (linker, "linker script"), (raw_dir, "raw input directory")):
+    raw_source_dir = raw_dir
+    resolved_raw_dir = resolve(root, raw_dir)
+    for path, description in (
+        (elf, "ELF"),
+        (linker, "linker script"),
+        (resolved_raw_dir, "raw input directory"),
+    ):
         if not path.exists():
             raise AuditError(
                 f"missing {description}: {path}; run `./Build` before the audit"
             )
 
-    inputs = linked_raw_inputs(linker.read_text())
+    linker_text = linker.read_text()
+    effective_sources = default_object_sources(linker_text)
+    if object_sources is not None:
+        effective_sources.update(object_sources)
+    inputs = linked_raw_sources(linker_text, raw_source_dir, effective_sources)
     if not inputs:
         raise AuditError(f"{linker}: no linked generated data inputs found")
     words: list[WordRecord] = []
-    for name in inputs:
-        source = raw_dir / name
+    for item in inputs:
+        object_file = resolve(root, Path(item.object))
+        if not object_file.is_file():
+            raise AuditError(f"linked raw object is missing: {object_file}")
+        source = resolve(root, Path(item.source))
         if not source.is_file():
             raise AuditError(f"linked raw input is missing: {source}")
-        words.extend(parse_word_source(source.read_text(), name))
+        words.extend(parse_word_source(source.read_text(), item.source))
     return build_report(parse_nm(run_nm(elf, nm)), inputs, words)
 
 
@@ -517,6 +690,17 @@ def parser() -> argparse.ArgumentParser:
     argument_parser.add_argument("--elf", type=Path, default=DEFAULT_ELF)
     argument_parser.add_argument("--linker", type=Path, default=DEFAULT_LINKER)
     argument_parser.add_argument("--raw-dir", type=Path, default=DEFAULT_RAW_DIR)
+    argument_parser.add_argument(
+        "--object-source",
+        action="append",
+        default=None,
+        metavar="OBJECT=SOURCE",
+        help=(
+            "map an exact linked replacement object to its generated assembly "
+            "source; repeat for each substitution (explicit mappings override "
+            "the applicable composed-relink defaults)"
+        ),
+    )
     argument_parser.add_argument("--nm", default=DEFAULT_NM)
     argument_parser.add_argument("--json", action="store_true", help="emit the complete machine-readable report")
     argument_parser.add_argument("--details", action="store_true", help="list every movable ABS symbol and raw candidate")
@@ -531,7 +715,19 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
-        report = collect(args.root, args.elf, args.linker, args.raw_dir, args.nm)
+        object_sources = (
+            None
+            if args.object_source is None
+            else parse_object_sources(args.object_source)
+        )
+        report = collect(
+            args.root,
+            args.elf,
+            args.linker,
+            args.raw_dir,
+            args.nm,
+            object_sources,
+        )
     except (AuditError, OSError) as error:
         print(f"reloc-audit: {error}", file=sys.stderr)
         return 2

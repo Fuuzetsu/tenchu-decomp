@@ -48,6 +48,69 @@ foo/data/not-a-generated-name.s.o(.data);
             ["800.data.s", "4FA48.data.s"],
         )
 
+    def test_composed_inventory_uses_exact_linked_object_sources(self) -> None:
+        linker = """\
+/* stale/data/207C.data.s.o(.data); */
+build/main.exe/data/800.data.s.o(.data);
+build/reloc/obj/207C.data.s.o(.data);
+build/reloc/obj/72CD0.bss.s.o(.data);
+build/reloc/obj/72CD0.bss.s.o(.bss);
+"""
+        mappings = audit.parse_object_sources(
+            [
+                "build/reloc/obj/207C.data.s.o=generated/207C.data.s",
+                "build/reloc/obj/72CD0.bss.s.o=generated/72CD0.bss.s",
+            ]
+        )
+        inputs = audit.linked_raw_sources(
+            linker, Path("generated/original"), mappings
+        )
+        self.assertEqual(
+            [(item.object, item.source, item.mapped) for item in inputs],
+            [
+                (
+                    "build/main.exe/data/800.data.s.o",
+                    "generated/original/800.data.s",
+                    False,
+                ),
+                (
+                    "build/reloc/obj/207C.data.s.o",
+                    "generated/207C.data.s",
+                    True,
+                ),
+                (
+                    "build/reloc/obj/72CD0.bss.s.o",
+                    "generated/72CD0.bss.s",
+                    True,
+                ),
+            ],
+        )
+
+    def test_unmapped_replacement_fails_instead_of_being_omitted(self) -> None:
+        linker = "build/reloc/obj/72CD0.bss.s.o(.data);"
+        with self.assertRaisesRegex(audit.AuditError, "no source mapping"):
+            audit.linked_raw_sources(linker, Path("generated"), {})
+
+    def test_mapping_must_name_an_exact_linked_object(self) -> None:
+        mappings = audit.parse_object_sources(
+            ["build/reloc/obj/207C.data.s.o=generated/207C.data.s"]
+        )
+        with self.assertRaisesRegex(audit.AuditError, "is not linked"):
+            audit.linked_raw_sources(
+                "build/main.exe/data/800.data.s.o(.data);",
+                Path("generated"),
+                mappings,
+            )
+
+    def test_duplicate_mapping_is_rejected_after_path_normalisation(self) -> None:
+        with self.assertRaisesRegex(audit.AuditError, "duplicate"):
+            audit.parse_object_sources(
+                [
+                    "build/reloc/obj/207C.data.s.o=generated/one.s",
+                    "build/reloc/obj/../obj/207C.data.s.o=generated/two.s",
+                ]
+            )
+
     def test_word_parser_retains_source_owner_and_symbolic_words(self) -> None:
         records = audit.parse_word_source(
             """\
@@ -102,12 +165,20 @@ dlabel Tail
 """,
             "fixture.data.s",
         )
-        return audit.build_report(symbols, ["fixture.data.s"], words)
+        inputs = [
+            audit.RawInput(
+                object="fixture.data.s.o",
+                source="fixture.data.s",
+                mapped=True,
+            )
+        ]
+        return audit.build_report(symbols, inputs, words)
 
     def test_json_schema_has_full_machine_readable_findings(self) -> None:
         report = self.fixture_report()
         encoded = json.loads(json.dumps(report))
-        self.assertEqual(encoded["schema"], 1)
+        self.assertEqual(encoded["schema"], 2)
+        self.assertEqual(encoded["summary"]["mapped_raw_inputs"], 1)
         self.assertEqual(encoded["summary"]["movable_absolute_symbols"], 1)
         self.assertEqual(encoded["summary"]["literal_jumps"], 1)
         self.assertEqual(encoded["summary"]["literal_pointers"], 1)
@@ -116,6 +187,7 @@ dlabel Tail
     def test_text_output_is_stable_and_calls_out_audit_only_mode(self) -> None:
         rendered = audit.render_text(self.fixture_report())
         self.assertIn("reloc-audit main.exe\n", rendered)
+        self.assertIn("linked raw inputs: 1 (mapped replacements=1)", rendered)
         self.assertIn("final ABS symbols: 2 total; 1 in movable MAIN", rendered)
         self.assertIn("literal J/JAL candidates: 1 (jal=1)", rendered)
         self.assertIn("findings: 3 (audit-only", rendered)
@@ -125,6 +197,7 @@ dlabel Tail
         self.assertIn("allowlist", help_text)
         self.assertIn("+0x10004", help_text)
         self.assertIn("--fail-on-findings", help_text)
+        self.assertIn("--object-source", help_text)
 
     def test_missing_artifacts_fail_without_writing(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

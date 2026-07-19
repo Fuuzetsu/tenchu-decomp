@@ -150,7 +150,7 @@ assumption:
   reviewed source offsets and against their exact target symbols;
 - each target symbol is section-relative at the expected interior offset in
   `207C.data.s.o` or `2EB0.data.s.o`, never `ABS`;
-- a retail-address partial link reproduces all 32 shipped pointer words;
+- a retail-address partial link reproduces all 108 shipped pointer words;
 - moving all touched loaded-data inputs by `+4` increments every pointer by
   `+4`; and
 - moving them by `+0x10004` increments every pointer by `+0x10004`, including
@@ -167,6 +167,16 @@ $ python3 -m unittest -v \
 Applying the manifest to the current generated `72CD0.data.s` reduces its live
 literal-pointer candidates from 185 to 77. The ordinary generated input is
 unchanged; the composed normal relink consumes the transformed copy.
+
+The default `tools/reloc_audit.py` invocation audits that composed normal
+relink, not the untouched matching linker. It resolves ordinary raw objects
+through `.shake/gen/main.exe/asm/data` and maps the substituted `207C`, `2EB0`,
+and combined `72CD0` objects to their transformed sources. The audit rejects a
+linked generated replacement without an exact object-to-source mapping, and it
+rejects a mapping whose object is absent from the selected linker. This keeps a
+stale retail source from being counted after its object has been replaced. Use
+repeatable `--object-source OBJECT=SOURCE` arguments when auditing another
+composed layout; the explicit mappings override the applicable defaults.
 
 ## Scaling without inventing source
 
