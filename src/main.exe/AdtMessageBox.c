@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
 /*
  * AdtMessageBox (0x8005f958, 624 bytes) — the "Adt" debug console's modal
@@ -52,7 +53,7 @@
  *    view therefore covers all nine fields.
  *  - The DRAWENV/DISPENV/RECT/backup-buffer/primitive locals must be ONE
  *    combined struct local (TAdtDisp, see AdtReleaseDisp.c, extended here
- *    with a trailing 24-byte primitive field this TU also touches), NOT
+ *    with a trailing POLY_F4 field this TU also touches), NOT
  *    five separate top-level array/struct locals — even though Ghidra
  *    renders them as separate acStack_8298/DStack_80a0/DStack_8044/
  *    RStack_8030/auStack_8028/auStack_28 locals. cc1's stack-frame
@@ -70,41 +71,10 @@
  */
 typedef struct
 {
-    s16 x, y, w, h;
-} RECT; /* 0x8 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT clip;        /* +0x00 */
-    s16 ofs[2];       /* +0x08 */
-    RECT tw;          /* +0x0c */
-    u16 tpage;        /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];   /* +0x1c: tag + code[15] */
-} DRAWENV; /* 0x5c (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT disp;   /* +0x00 */
-    RECT screen; /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV; /* 0x14 (PSYQ libgpu.h) */
-
-typedef struct
-{
     s32 x, y, w, h, isbg, n; /* +0x00-0x14, FntOpen args */
     s32 tx, ty;              /* +0x18, +0x1c, FntLoad args */
     s32 quiet;               /* +0x20, AdtQuiet() flag */
 } AdtFntState;
-
-typedef struct
-{
-    DRAWENV draw;      /* +0x0000 */
-    DISPENV disp;      /* +0x005c */
-    RECT rect;         /* +0x0070 */
-    u_long backup[8192]; /* +0x0078 */
-    u8 prim[24];       /* +0x8078 */
-} TAdtDisp;
 
 extern AdtFntState D_8008F1B8;
 extern s32 (*AdtPadRead)(s32 port);
@@ -115,17 +85,11 @@ extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
 extern char D_80014ADC[]; /* "\n\nPress start to continue..." */
 
 extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
-extern void AdtGetDisp(DRAWENV *env);
-extern void DrawPrim(u8 *prim);
 extern void FntPrint(char *fmt, ...);
 extern s32 FntFlush(s32 id);
-extern int DrawSync(int mode);
 extern s32 VSync(s32 mode);
 extern void FntLoad(int tx, int ty);
 extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
-extern int LoadImage(RECT *rect, u_long *p);
-extern void PutDrawEnv(DRAWENV *env);
-extern void PutDispEnv(DISPENV *env);
 
 void AdtMessageBox(char *fmt, ...)
 {
@@ -159,10 +123,10 @@ skip:
         return;
 
     AdtVsprintf((s32 *)((char *)&fmt + sizeof(fmt)), buf, 0x1F4, fmt);
-    AdtGetDisp(&ad.draw);
+    AdtGetDisp(&ad);
     if (mode < 2)
     {
-        DrawPrim(ad.prim);
+        DrawPrim(&ad.bg);
         count = AdtMessageBoxCount + 1;
         AdtMessageBoxCount = count;
         FntPrint(D_80014AC8, count);
@@ -179,7 +143,7 @@ skip:
             VSync(0);
         while (!(AdtPadRead(0) & 0x800))
             VSync(0);
-        DrawPrim(ad.prim);
+        DrawPrim(&ad.bg);
         DrawSync(0);
     }
     FntLoad(D_8008F1B8.tx, D_8008F1B8.ty);

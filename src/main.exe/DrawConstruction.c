@@ -62,33 +62,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-typedef unsigned char PACKET;
-
-struct GsOT_TAG
-{
-    u32 tag;
-};
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
-
-typedef struct
-{
-    s32 vpx;
-    s32 vpy;
-    s32 vpz;
-    s32 vrx;
-    s32 vry;
-    s32 vrz;
-    s32 rz;
-    GsCOORDINATE2 *super;
-} GsRVIEW2;
-
 typedef struct OrnamentType OrnamentType;
 struct OrnamentType
 {

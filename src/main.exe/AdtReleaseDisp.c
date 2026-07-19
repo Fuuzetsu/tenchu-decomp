@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
 /*
  * AdtReleaseDisp (0x8005fca4, 0x90 bytes) — counterpart of AdtGetDisp:
@@ -21,36 +22,6 @@
  */
 typedef struct
 {
-    s16 x, y, w, h;
-} RECT; /* 0x8 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT clip;       /* +0x00 */
-    s16 ofs[2];       /* +0x08 */
-    RECT tw;         /* +0x0c */
-    u16 tpage;        /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];   /* +0x1c: tag + code[15] */
-} DRAWENV; /* 0x5c (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT disp;   /* +0x00 */
-    RECT screen; /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV; /* 0x14 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    DRAWENV draw;      /* +0x0000 */
-    DISPENV disp;      /* +0x005c */
-    RECT rect;         /* +0x0070 */
-    u8 backup[0x8000]; /* +0x0078 */
-} TAdtDisp;
-
-typedef struct
-{
     s32 x, y, w, h, isbg, n;
     s32 tx, ty;
 } AdtFntState;
@@ -58,10 +29,6 @@ typedef struct
 extern AdtFntState D_8008F1B8;
 extern void FntLoad(int tx, int ty);
 extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
-extern int LoadImage(RECT *rect, u_long *p);
-extern int DrawSync(int mode);
-extern void PutDrawEnv(DRAWENV *env);
-extern void PutDispEnv(DISPENV *env);
 
 void AdtReleaseDisp(TAdtDisp *ad)
 {

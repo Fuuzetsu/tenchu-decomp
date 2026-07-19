@@ -86,14 +86,6 @@ typedef struct
 
 typedef struct
 {
-    long vpx, vpy, vpz;
-    long vrx, vry, vrz;
-    long rz;
-    void *super;
-} GsRVIEW2;
-
-typedef struct
-{
     u8 pad[0x5A];
     u16 attribute;
 } PositionalEntry;

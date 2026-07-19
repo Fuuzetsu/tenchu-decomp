@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -46,9 +47,8 @@
  *  - `n_draw.clip = o_disp.disp;` is ALSO a plain struct-to-struct copy
  *    (RECT is align-2, so cc1 emits the lwl/lwr+swl/swr block-move idiom
  *    for it) rather than four separate scalar field assignments.
- *  - RECT/DRAWENV/DISPENV are the proven layouts from AdtReleaseDisp.c/
- *    DrawPause.c (same original TU family); DR_TPAGE/POLY_F4/POLY_XF4 are
- *    SetPolyXF4.c's proven layout (same EFFECT.C TU) — reused verbatim.
+ *  - RECT/DRAWENV/DISPENV, DR_TPAGE, and POLY_F4 use their canonical PsyQ
+ *    declarations; POLY_XF4 is the game's DR_TPAGE-plus-POLY_F4 wrapper.
  *  - The `n_draw`/`PutDrawEnv(&n_draw)` group needs NO `do{}while(0)`
  *    wrapper. An earlier checkpoint carried one and asserted it was
  *    load-bearing ("without it cc1 hoists `addiu a0,sp,136` early"); that
@@ -102,53 +102,10 @@
  */
 typedef struct
 {
-    s16 x, y, w, h;
-} RECT; /* 0x8 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT clip;                     /* +0x00 */
-    s16 ofs[2];                    /* +0x08 */
-    RECT tw;                       /* +0x0c */
-    u16 tpage;                     /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];                /* +0x1c: tag + code[15] */
-} DRAWENV;                         /* 0x5c (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT disp;                       /* +0x00 */
-    RECT screen;                     /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV;                           /* 0x14 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    u_long tag;
-    u_long code[1];
-} DR_TPAGE;
-
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    short x1, y1;
-    short x2, y2;
-    short x3, y3;
-} POLY_F4;
-
-typedef struct
-{
     DR_TPAGE tpage;
     POLY_F4 ply;
 } POLY_XF4;
 
-extern void GetDrawEnv(DRAWENV *env);
-extern void GetDispEnv(DISPENV *env);
-extern void PutDrawEnv(DRAWENV *env);
-extern void DrawPrim(u8 *prim);
-extern int DrawSync(int mode);
 extern int VSync(int mode);
 
 void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -94,18 +95,8 @@
  *    reloads the FULL `lw` (needs all 32 bits for `>> 3 & 1`), independent
  *    of any earlier access — different machine modes/uses don't CSE.
  */
-typedef struct
-{
-    s16 x; /* 0x0 */
-    s16 y; /* 0x2 */
-    s16 w; /* 0x4 */
-    s16 h; /* 0x6 */
-} RECT;    /* 0x8 (PSYQ libgpu.h) */
-
 extern void GsGetTimInfo(u_long *tim, GsIMAGE *im);
-extern int LoadImage(RECT *rect, u_long *p);
 extern void SystemOut(char *msg);
-extern short DrawSync(int mode);
 extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
 
 short LoadTIMpack(u_long *adr)

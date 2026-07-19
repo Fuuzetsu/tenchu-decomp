@@ -67,14 +67,6 @@
 
 typedef struct
 {
-    s32 vpx, vpy, vpz;
-    s32 vrx, vry, vrz;
-    s32 rz;
-    void *super;
-} GsRVIEW2;
-
-typedef struct
-{
     VECTOR TargetVector;
     Humanoid *Owner;
     s32 Mode;

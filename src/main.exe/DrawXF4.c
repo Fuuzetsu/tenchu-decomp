@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -29,8 +30,6 @@
  * AdtSelect.c already does). arg0 cached across both calls needs no
  * separate temp (cookbook's cached-pointer rule).
  */
-extern void DrawPrim(u8 *prim);
-
 void DrawXF4(u8 *arg0)
 {
     DrawPrim(arg0 + 8);

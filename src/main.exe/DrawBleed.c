@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -210,16 +211,6 @@
  * dropping the ViewInfo `(short)` casts (-> 512); volatile scratchpad
  * stores (536 / 524 / 524, non-monotonic, no form found that lands 532).
  */
-typedef struct
-{
-    u_long tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    s16 x1, y1;
-    s16 x2, y2;
-    s16 x3, y3;
-} POLY_F4;
-
 typedef struct
 {
     s32 vpx;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -135,30 +136,6 @@
  * 0x800976b8, directly between SkipFrame and `time`).
  */
 
-struct GsOT_TAG
-{
-    u32 p : 24;
-    u8 num : 8;
-};
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
-
-typedef struct
-{
-    short dqa;  /* 0x0 */
-    long dqb;   /* 0x4 */
-    u8 rfc;     /* 0x8 */
-    u8 gfc;     /* 0x9 */
-    u8 bfc;     /* 0xA */
-} GsFOGPARAM;
-
 extern s32 GameClock;
 extern s16 SkipFrame;
 extern struct GsOT OTable[];
@@ -170,7 +147,6 @@ extern u32 D_800976B8;
 extern s32 time;
 
 extern void *GsGetWorkBase(void);
-extern int DrawSync(int mode);
 extern s32 VSync(s32 mode);
 extern void ResetGraph(int mode);
 extern void GsSwapDispBuff(void);

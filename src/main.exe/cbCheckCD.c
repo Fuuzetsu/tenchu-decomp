@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -66,15 +67,6 @@ typedef struct
 
 extern TCdaStatus CdaStatus;
 
-typedef struct CdlLOC CdlLOC;
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
 typedef union
 {
     struct
@@ -89,11 +81,6 @@ typedef union
     } second;
 } CdaCheckScratch;
 
-extern int CdControl(u8 com, u8 *param, u8 *result);
-extern int CdControlF(u8 com, u8 *param);
-extern void CdIntToPos(s32 n, CdlLOC *pos);
-extern int CdPosToInt(CdlLOC *pos);
-extern int CdSync(int mode, u8 *result);
 extern int CdLastCom(void);
 extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);

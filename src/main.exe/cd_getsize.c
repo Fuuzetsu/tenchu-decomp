@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * cd_getsize (0x8005f6d8) — thin CD-file-handle size accessor: given a
@@ -19,24 +20,7 @@
  * layout — verified on cd_close.
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {

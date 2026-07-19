@@ -26,12 +26,8 @@
  * DrawingPage/OTable/GameClock are Ghidra-recovered names (symbols.tsv);
  * D_80098040 (the GPU work/packet buffer immediately following OTable's two
  * entries — OTable+2*sizeof(GsOT) == 0x80098018+0x28 == 0x80098040) has no
- * Ghidra name, so it keeps splat's auto name. GsOT is only forward-declared
- * (opaque) in include/psxsdk/libgs.h ("only passed around by pointer" —
- * true of every OTHER matched caller); this is the first function that
- * needs its actual layout (to index OTable), so it's completed here from
- * the Ghidra type export (5 words, 0x14 bytes) — completing an
- * already-opaque tag locally, not inventing a new struct name.
+ * Ghidra name, so it keeps splat's auto name. GsOT uses the canonical
+ * five-word PsyQ LIBGS layout shared by every ordering-table caller.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - DrawingPage is signed `short` (Ghidra's own `(short)` cast on the
@@ -56,17 +52,6 @@
  *    don't source-shape their bodies, only this call site's argument
  *    setup).
  */
-
-struct GsOT_TAG;
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
 
 extern short DrawingPage;
 extern GsOT OTable[];

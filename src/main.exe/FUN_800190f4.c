@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * MATCH.
@@ -27,55 +28,10 @@
  *    `.s` still referenced; keep them as `extern char D_XXXXXXXX[];` (never
  *    write fresh string literals here) — see config/symbols.main.exe.txt.
  */
-typedef struct
-{
-    s16 x, y, w, h;
-} RECT; /* 0x8 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT clip;                     /* +0x00 */
-    s16 ofs[2];                    /* +0x08 */
-    RECT tw;                       /* +0x0c */
-    u16 tpage;                     /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];                /* +0x1c: tag + code[15] */
-} DRAWENV;                         /* 0x5c (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT disp;                       /* +0x00 */
-    RECT screen;                     /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV;                           /* 0x14 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    u_char u0, v0;
-    u_short clut;
-    short x1, y1;
-    u_char u1, v1;
-    u_short tpage;
-    short x2, y2;
-    u_char u2, v2;
-    u_short pad1;
-    short x3, y3;
-    u_char u3, v3;
-    u_short pad2;
-} POLY_FT4;
-
 extern char D_8001118C[];
 extern char D_800111B0[];
 extern u_long *FileRead(char *path);
 extern void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y);
-extern void GetDrawEnv(DRAWENV *env);
-extern void GetDispEnv(DISPENV *env);
-extern void PutDrawEnv(DRAWENV *env);
-extern void DrawPrim(u8 *prim);
-extern int DrawSync(int mode);
 
 void FUN_800190f4(void)
 {
@@ -107,4 +63,3 @@ void FUN_800190f4(void)
     DrawSync(0);
     PutDrawEnv(&draw);
 }
-

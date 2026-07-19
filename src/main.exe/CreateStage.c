@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -59,18 +60,6 @@ typedef struct
 
 typedef struct
 {
-    s32 vpx;
-    s32 vpy;
-    s32 vpz;
-    s32 vrx;
-    s32 vry;
-    s32 vrz;
-    s32 rz;
-    GsCOORDINATE2 *super;
-} GsRVIEW2;
-
-typedef struct
-{
     VECTOR TargetVector;
     Humanoid *Owner;
 } TCameraStatus;
@@ -81,24 +70,6 @@ typedef struct
 {
     char *path[4];
 } TitlePathBlock;
-
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    u_char u0, v0;
-    u_short clut;
-    short x1, y1;
-    u_char u1, v1;
-    u_short tpage;
-    short x2, y2;
-    u_char u2, v2;
-    u_short pad1;
-    short x3, y3;
-    u_char u3, v3;
-    u_short pad2;
-} POLY_FT4;
 
 typedef struct
 {

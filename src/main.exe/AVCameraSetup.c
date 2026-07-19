@@ -75,14 +75,6 @@
  *    into the call's 3rd argument position fixed it in one edit.
  */
 
-typedef struct
-{
-    long vpx, vpy, vpz;
-    long vrx, vry, vrz;
-    long rz;
-    void *super;
-} GsRVIEW2;
-
 extern GsRVIEW2 ViewInfo;
 
 typedef struct

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -72,16 +73,6 @@ typedef struct
 {
     s32 image[3];
 } BombImageIds;
-
-typedef struct
-{
-    u_long tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    s16 x1, y1;
-    s16 x2, y2;
-    s16 x3, y3;
-} POLY_F4;
 
 extern EffectImageIds D_80097A38;
 extern u8 D_80097A48[5];

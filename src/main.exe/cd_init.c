@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -23,24 +24,7 @@
  * Walks the pool backwards from index 9 to 0.
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {

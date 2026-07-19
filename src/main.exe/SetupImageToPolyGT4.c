@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -39,29 +40,7 @@
  * retail's version was rewritten to match FT4's shape, so the FT4 locals are
  * what reproduce the bytes here.
  */
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    u_char u0, v0;
-    u_short clut;
-    u_char r1, g1, b1, p1;
-    short x1, y1;
-    u_char u1, v1;
-    u_short tpage;
-    u_char r2, g2, b2, p2;
-    short x2, y2;
-    u_char u2, v2;
-    u_short pad2;
-    u_char r3, g3, b3, p3;
-    short x3, y3;
-    u_char u3, v3;
-    u_short pad3;
-} POLY_GT4;
-
 extern void SetPolyGT4(POLY_GT4 *p);
-extern u16 GetClut(s16 x, s16 y);
 
 void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
 {

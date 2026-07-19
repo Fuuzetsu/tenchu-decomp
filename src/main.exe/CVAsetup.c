@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -75,23 +76,6 @@ extern char *STAGE_ANIMATION_PREFICES[];
 extern char D_80013624[]; /* "%sSTAGE%d%c.CAD" */
 extern char D_80013634[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd" */
 extern int StageID;
-
-typedef struct
-{
-    u_long tag;  /* 0x0 */
-    u_char r0;   /* 0x4 */
-    u_char g0;   /* 0x5 */
-    u_char b0;   /* 0x6 */
-    u_char code; /* 0x7 */
-    s16 x0;      /* 0x8 */
-    s16 y0;      /* 0xA */
-    s16 x1;      /* 0xC */
-    s16 y1;      /* 0xE */
-    s16 x2;      /* 0x10 */
-    s16 y2;      /* 0x12 */
-    s16 x3;      /* 0x14 */
-    s16 y3;      /* 0x16 */
-} POLY_F4;
 
 extern POLY_F4 TelopbgP;
 

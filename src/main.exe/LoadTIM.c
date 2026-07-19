@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -32,24 +33,13 @@
  * SystemOut is annotated noreturn by Ghidra but the compiled code falls
  * straight through after the call (no early return) - same shape as
  * InsertConflict.c/LoadAreaMap.c's identical SystemOut-then-continue idiom.
- * Per-TU RECT convention as FUN_80038ce0.c/DemoPatchInit.c (no libgpu.h
- * vendored in this repo). All matched callers (BriefingAndInventorySelectionScreen.c,
+ * All matched callers (BriefingAndInventorySelectionScreen.c,
  * FUN_8004f598.c, LoadTIMAndFree.c) already pin the prototype as
  * `void LoadTIM(u_long *tim)` - the DrawSync(0) return value is discarded
  * (no move/sign-extend after the call in the asm), matching void.
  */
-typedef struct
-{
-    s16 x;                        /* 0x0 */
-    s16 y;                        /* 0x2 */
-    s16 w;                        /* 0x4 */
-    s16 h;                        /* 0x6 */
-} RECT;                           /* 0x8 (PSYQ libgpu.h) */
-
-extern int LoadImage(RECT *rect, u_long *p);
 extern void GsGetTimInfo(u_long *tim, GsIMAGE *im);
 extern void SystemOut(char *msg);
-extern int DrawSync(int mode);
 extern char D_800110B8[]; /* "NO IMAGE DATA" */
 
 void LoadTIM(u_long *adr)

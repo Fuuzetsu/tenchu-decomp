@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -54,10 +55,9 @@
  *    (model/vector1/vector2/maxn/n/p1/p2/sz/poly) — reused verbatim except
  *    `poly` is given its real `POLY_GT4` type here (SetupAfterimage never
  *    touches individual poly fields, so it left it `u8[0x34]`).
- *  - `POLY_GT4` isn't vendored anywhere in this repo; declared locally in
- *    full (Ghidra's own independently-built struct, reference/
- *    ghidra_types.h:4511 — cross-checked against psxsym-types.h's `size
- *    52`). `p1`/`p2` entries are `long`s that PACK a screen (x,y) pair (x
+ *  - `POLY_GT4` is the canonical PsyQ LIBGPU record (52 bytes, independently
+ *    confirmed by PSX.SYM). `p1`/`p2` entries are `long`s that PACK a screen
+ *    (x,y) pair (x
  *    in the low 16 bits, y in the high 16 — RotTransPers's own `sxy`
  *    out-param convention); every `poly->xN/yN` pair is therefore written
  *    as ONE 32-bit store through `*(s32 *)&poly->xN`, matching the
@@ -127,38 +127,19 @@ typedef struct
     long *p1;            /* 0x18 */
     long *p2;            /* 0x1C */
     s32 sz;              /* 0x20 */
-    struct POLY_GT4
-    {
-        u_long tag;   /* 0x00 */
-        u8 r0, g0, b0, code;
-        s16 x0, y0;   /* 0x08 */
-        u8 u0, pad0h;
-        u16 clut;
-        u8 r1, g1, b1, p1c;
-        s16 x1, y1;   /* 0x14 */
-        u8 u1, pad1h;
-        u16 tpage;
-        u8 r2, g2, b2, p2c;
-        s16 x2, y2;   /* 0x20 */
-        u8 u2, v2;
-        u16 pad2;
-        u8 r3, g3, b3, p3c;
-        s16 x3, y3;   /* 0x2C */
-        u8 u3, v3;
-        u16 pad3;
-    } poly;              /* 0x24 */
+    POLY_GT4 poly;        /* 0x24 */
 } AfterimageType;
 
 extern void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
 extern void GsSetLsMatrix(MATRIX *m);
 extern s32 RotTransPers(SVECTOR *v0, s32 *sxy, void *p, void *flg);
-extern void GsSortPoly(struct POLY_GT4 *p, GsOT *ot, s32 pri);
+extern void GsSortPoly(POLY_GT4 *p, GsOT *ot, s32 pri);
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 
 short DrawAfterimage(AfterimageType *afi, short disp)
 {
-    struct POLY_GT4 *poly;
+    POLY_GT4 *poly;
     MATRIX mat;
     short i;
     s32 otz;

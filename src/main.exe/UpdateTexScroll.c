@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -54,31 +55,6 @@
  *    remainder in a register — matches every reload-heavy sibling in this
  *    TU (DrawHinoko.c).
  */
-struct GsOT_TAG;
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
-
-typedef struct
-{
-    short x; /* +0x0 */
-    short y; /* +0x2 */
-    short w; /* +0x4 */
-    short h; /* +0x6 */
-} RECT;
-
-typedef struct
-{
-    u32 tag;     /* +0x0 */
-    u32 code[5]; /* +0x4 */
-} DR_MOVE;
-
 /* The sub-struct starting right after the untouched leading 4 bytes.
  * `u` sits at ITS offset 0 — a "zero-offset member" gets written through a
  * fresh outer recast (`tscr->info.u`, folding the whole +4 into ONE
@@ -111,7 +87,6 @@ typedef struct
 extern GsOT *OTablePt;
 extern void *GsGetWorkBase(void);
 extern void GsSetWorkBase(void *workBase);
-extern void SetDrawMove(DR_MOVE *p, RECT *r, s32 w, s32 h);
 extern void AddPrim(u8 *ot, u8 *prim);
 
 void UpdateTexScroll(TexScroll *tscr)

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * STATUS: MATCH.
@@ -114,21 +115,7 @@
  *    threshold economy").
  */
 
-typedef struct CdlLOC CdlLOC;
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-extern int CdControlB(u8 com, u8 *param, u8 *result);
 extern int VSync(int mode);
-extern int CdReady(int mode, u8 *result);
-extern int CdGetSector(void *madr, int size);
-extern int CdPosToInt(CdlLOC *pos);
-extern void CdIntToPos(s32 n, CdlLOC *pos);
 
 void FUN_8005f380(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
 {

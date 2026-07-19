@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -22,11 +23,8 @@
  * to the text-draw helper FUN_800570b8 along with the ordering-table's `org`
  * pointer.
  *
- * TelopbgP is a POLY_F4 (real PSYQ libgpu.h primitive — not vendored here,
- * so only the accessed y0..y3 fields are declared, matching this TU's RECT
- * convention). GsOT is only forward-declared (opaque) in libgs.h; completed
- * locally here (same as StartDrawing.c, a different TU — each TU that needs
- * OTablePt->org must complete it itself).
+ * TelopbgP is a canonical PsyQ POLY_F4, and the text helper receives the
+ * canonical GsOT ordering table's `org` pointer.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - The second GsSortPoly's field stores address TelopbgP through $a0 (the
@@ -39,27 +37,6 @@
  *    the width-derived arg2 is computed before arg1 (OTablePt->org, a fresh
  *    load right before the call).
  */
-typedef struct
-{
-    u_long tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0; /* 0x8 */
-    s16 x1, y1; /* 0xC */
-    s16 x2, y2; /* 0x10 */
-    s16 x3, y3; /* 0x14 */
-} POLY_F4;
-
-struct GsOT_TAG;
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
-
 extern POLY_F4 TelopbgP;
 extern GsOT *OTablePt;
 extern u8 D_800C2C50[];

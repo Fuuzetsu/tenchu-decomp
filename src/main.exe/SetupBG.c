@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -38,45 +39,6 @@
  * midpoint narrowing. The cell-width capture and source-level u-before-v
  * stores are also load-bearing for the inner-loop allocation and schedule. */
 
-typedef struct GsCELL
-{
-    u8 u;
-    u8 v;
-    u16 cba;
-    u16 flag;
-    u16 tpage;
-} GsCELL;
-
-typedef struct GsMAP
-{
-    u8 cellw;
-    u8 cellh;
-    u16 ncellw;
-    u16 ncellh;
-    GsCELL *base;
-    u16 *index;
-} GsMAP;
-
-typedef struct GsBG
-{
-    u32 attribute;
-    s16 x;
-    s16 y;
-    s16 w;
-    s16 h;
-    s16 scrollx;
-    s16 scrolly;
-    u8 r;
-    u8 g;
-    u8 b;
-    GsMAP *map;
-    s16 mx;
-    s16 my;
-    s16 scalex;
-    s16 scaley;
-    s32 rotate;
-} GsBG;
-
 typedef struct BackGround
 {
     GsBG hundle;
@@ -92,7 +54,6 @@ typedef struct BackGround
 extern char D_8001109C[];
 extern void SystemOut(u8 *message);
 extern void *valloc(u32 size);
-extern u16 GetClut(s16 x, s16 y);
 extern void GsInitFixBg16(GsBG *bg, u32 *work);
 
 BackGround *SetupBG(GsIMAGE *image, short w, short h)

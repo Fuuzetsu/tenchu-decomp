@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -357,11 +358,6 @@
  */
 typedef struct
 {
-    s16 x, y, w, h;
-} RECT;
-
-typedef struct
-{
     u8 pad[3];
     u8 len;
 } TelopTag;
@@ -387,10 +383,7 @@ typedef struct
 extern TelopPoly TelopP;
 extern u16 D_8008F078[];
 
-extern int ClearImage(RECT *rect, u8 r, u8 g, u8 b);
-extern int DrawSync(int mode);
 extern s16 *Krom2RawAdd(u32 code);
-extern int LoadImage(RECT *rect, u_long *pixels);
 extern void *memset(void *dst, int value, u32 size);
 
 void SetupTelop(u8 *telop, short line)

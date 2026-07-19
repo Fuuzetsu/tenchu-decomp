@@ -61,18 +61,6 @@
  *    is taken — ordinary scheduling, no special spelling.
  */
 
-typedef struct
-{
-    s32 vpx;
-    s32 vpy;
-    s32 vpz;
-    s32 vrx;
-    s32 vry;
-    s32 vrz;
-    s32 rz;
-    void *super;
-} GsRVIEW2;
-
 extern s32 GameClock;
 extern s32 DrawTMDmode;
 extern GsRVIEW2 ViewInfo;

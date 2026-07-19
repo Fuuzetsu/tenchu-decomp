@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -46,14 +47,6 @@ typedef struct
     TVoiceTable *entry[4];
 } TVoiceTableList;
 
-typedef struct
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-} CdlLOC;
-
 extern u8 CHOSEN_LANGUAGE;
 extern u8 D_8001005B;
 
@@ -82,8 +75,6 @@ extern void CdaStop(void);
 extern void SsSetMVol(int voll, int volr);
 extern void FUN_8004fbf4(u8 voll, u8 volr);
 extern void *memset(void *s, int c, u32 n);
-extern s32 CdPosToInt(CdlLOC *pos);
-extern void CdIntToPos(s32 n, CdlLOC *pos);
 extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);
 
 static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)

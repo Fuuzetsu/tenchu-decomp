@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * cd_close (0x8005f558) — thin CD-file-handle closer: given a `FILE *`
@@ -9,24 +10,7 @@
  * returns -1 instead of crashing.
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {

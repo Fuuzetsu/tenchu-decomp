@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -87,54 +88,7 @@
  * its scorer does not penalize a pure stack-offset residual, so it is useless
  * on this class; `tools/matchdiff.py` was the only trustworthy signal.
  */
-typedef struct
-{
-    s16 x, y, w, h;
-} RECT; /* 0x8 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT clip;                     /* +0x00 */
-    s16 ofs[2];                    /* +0x08 */
-    RECT tw;                       /* +0x0c */
-    u16 tpage;                     /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];                /* +0x1c: tag + code[15] */
-} DRAWENV;                         /* 0x5c (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT disp;                       /* +0x00 */
-    RECT screen;                     /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV;                           /* 0x14 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    u32 tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    u8 u0, v0;
-    u16 clut;
-    u8 r1, g1, b1, p1;
-    s16 x1, y1;
-    u8 u1, v1;
-    u16 tpage;
-    u8 r2, g2, b2, p2;
-    s16 x2, y2;
-    u8 u2, v2;
-    u16 pad2;
-    u8 r3, g3, b3, p3;
-    s16 x3, y3;
-    u8 u3, v3;
-    u16 pad3;
-} POLY_GT4; /* 0x34 (PSYQ libgpu.h) */
-
 extern void VSyncCallback(void (*f)(void));
-extern void GetDrawEnv(DRAWENV *env);
-extern void GetDispEnv(DISPENV *env);
-extern void PutDrawEnv(DRAWENV *env);
-extern void DrawPrim(u8 *prim);
 extern s32 AccessPower;
 extern POLY_GT4 AccessImage;
 
@@ -173,4 +127,3 @@ void FUN_80018f00(void)
         PutDrawEnv(&o_draw);
     }
 }
-

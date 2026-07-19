@@ -81,18 +81,6 @@ typedef struct
 
 typedef struct
 {
-    s32 vpx;      /* 0x00 */
-    s32 vpy;      /* 0x04 */
-    s32 vpz;      /* 0x08 */
-    s32 vrx;      /* 0x0C */
-    s32 vry;      /* 0x10 */
-    s32 vrz;      /* 0x14 */
-    s32 rz;       /* 0x18 */
-    void *super;  /* 0x1C */
-} GsRVIEW2;
-
-typedef struct
-{
     s16 div;     /* +0x0 */
     s16 spd;     /* +0x2 */
     SVECTOR bef; /* +0x4 */

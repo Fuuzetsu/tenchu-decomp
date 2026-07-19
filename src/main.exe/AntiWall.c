@@ -52,18 +52,6 @@
  *    truncation sequence and retain its intermediate numerator registers.
  */
 
-typedef struct
-{
-    s32 vpx;
-    s32 vpy;
-    s32 vpz;
-    s32 vrx;
-    s32 vry;
-    s32 vrz;
-    s32 rz;
-    void *super;
-} GsRVIEW2;
-
 extern unsigned long *GlobalAreaMap;
 extern SVECTOR D_800979F4;
 extern SVECTOR D_800979FC;

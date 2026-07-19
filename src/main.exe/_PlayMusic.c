@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -98,14 +99,6 @@ typedef struct
     u8 pad[3];   /* 0x9 */
 } TMusicTable; /* 0xC */
 
-typedef struct
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-} CdlLOC;
-
 extern TMusicTable MusicTable[];
 extern u8 D_8001005A;
 extern char D_8001349C[];  /* "bad music no" */
@@ -119,8 +112,6 @@ extern int sprintf(char *buf, char *fmt, ...);
 extern void SsSetMVol(int voll, int volr);
 extern void FUN_8004fbf4(u8 voll, u8 volr);
 extern void *memset(void *s, int c, u32 n);
-extern s32 CdPosToInt(CdlLOC *pos);
-extern void CdIntToPos(s32 n, CdlLOC *pos);
 extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);
 
 static inline void InitMusicLocation(CdlLOC *location, u8 minute, u8 second)

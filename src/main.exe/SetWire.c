@@ -73,18 +73,6 @@
 
 typedef struct
 {
-    u32 attribute;
-    s16 x0;
-    s16 y0;
-    s16 x1;
-    s16 y1;
-    u8 r;
-    u8 g;
-    u8 b;
-} GsLINE;
-
-typedef struct
-{
     s32 vpx;
     s32 vpy;
     s32 vpz;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
 /*
  * AdtGetDisp (0x8005f7f4) — save the current screen to the backup buffer and
@@ -9,7 +10,7 @@
  * texture coords (D_8008F1B8.tx/ty) into the backup RECT, StoreImage's the
  * framebuffer into TAdtDisp.backup, resets the draw/disp envs to the standard
  * 320x240 layout, reloads the font, and builds a semi-transparent POLY_F4 quad
- * primitive in TAdtDisp.prim (the 0x8078 offset forces cc1's large-displacement
+ * primitive in TAdtDisp.bg (the 0x8078 offset forces cc1's large-displacement
  * `addu base,param,0x8000` + small-offset stores).
  *
  * The RECT x/y take the low u16 of the s32 tx/ty (narrowing store -> lhu+sh);
@@ -20,53 +21,14 @@
 
 typedef struct
 {
-    s16 x, y, w, h;
-} RECT; /* 0x8 */
-
-typedef struct
-{
-    RECT clip;                     /* +0x00 */
-    s16 ofs[2];                    /* +0x08 */
-    RECT tw;                       /* +0x0c */
-    u16 tpage;                     /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];                /* +0x1c */
-} DRAWENV; /* 0x5c */
-
-typedef struct
-{
-    RECT disp;                       /* +0x00 */
-    RECT screen;                     /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV; /* 0x14 */
-
-typedef struct
-{
     u8 pad[0x18];
     s32 tx;
     s32 ty;
 } AdtFntState;
 
-typedef struct
-{
-    DRAWENV draw;        /* +0x0000 */
-    DISPENV disp;        /* +0x005c */
-    RECT rect;           /* +0x0070 */
-    u_long backup[8192]; /* +0x0078 */
-    u8 prim[24];         /* +0x8078 */
-} TAdtDisp;
-
 extern AdtFntState D_8008F1B8;
 
 extern void SetDispMask(int mask);
-extern int DrawSync(int mode);
-extern void StoreImage(RECT *rect, u_long *p);
-extern void GetDrawEnv(DRAWENV *env);
-extern void GetDispEnv(DISPENV *env);
-extern void SetDefDrawEnv(DRAWENV *env, int x, int y, int w, int h);
-extern void SetDefDispEnv(DISPENV *env, int x, int y, int w, int h);
-extern void PutDrawEnv(DRAWENV *env);
-extern void PutDispEnv(DISPENV *env);
 extern void FntLoad(int tx, int ty);
 extern int FntOpen(int x, int y, int w, int h, int isbg, int n);
 
@@ -91,19 +53,10 @@ void AdtGetDisp(TAdtDisp *disp)
     PutDispEnv(&di);
     FntLoad(D_8008F1B8.tx, D_8008F1B8.ty);
     FntOpen(0x20, 0x20, 0x100, 0xb0, 0, 0x200);
-    disp->prim[3] = 5;
-    disp->prim[7] = 0x28;
-    *(u16 *)&disp->prim[8] = 0x20;
-    *(u16 *)&disp->prim[0xA] = 0x20;
-    *(u16 *)&disp->prim[0xC] = 0x120;
-    *(u16 *)&disp->prim[0xE] = 0x20;
-    *(u16 *)&disp->prim[0x10] = 0x20;
-    *(u16 *)&disp->prim[0x12] = 0xD0;
-    *(u16 *)&disp->prim[0x14] = 0x120;
-    *(u16 *)&disp->prim[0x16] = 0xD0;
-    disp->prim[4] = 1;
-    disp->prim[5] = 1;
-    disp->prim[6] = 0x64;
+    setPolyF4(&disp->bg);
+    setXY4(&disp->bg, 0x20, 0x20, 0x120, 0x20,
+           0x20, 0xD0, 0x120, 0xD0);
+    setRGB0(&disp->bg, 1, 1, 0x64);
 }
 
 // triage: EASY — 89 insns, 11 callees, ~0.10 to FUN_80038c0c

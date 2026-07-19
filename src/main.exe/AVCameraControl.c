@@ -48,14 +48,6 @@
  * coalesces the input/result into the wrong register.
  */
 
-typedef struct
-{
-    long vpx, vpy, vpz;
-    long vrx, vry, vrz;
-    long rz;
-    void *super;
-} GsRVIEW2;
-
 extern GsRVIEW2 ViewInfo;
 extern s16 CameraPanMode;
 extern s16 D_80097CC8;

@@ -95,18 +95,6 @@ typedef struct
     u8 Valiation;                /* 0x20 */
 } TCameraStatus;
 
-typedef struct
-{
-    s32 vpx;
-    s32 vpy;
-    s32 vpz;
-    s32 vrx;
-    s32 vry;
-    s32 vrz;
-    s32 rz;
-    GsCOORDINATE2 *super;
-} GsRVIEW2;
-
 extern TCameraStatus CamState;
 extern s16 Humans;
 extern Humanoid *HumanGroup[];

@@ -58,21 +58,6 @@
  *    already narrow otz in place. This preserves the target's plain `move
  *    a2,s3` at the second call instead of inserting a redundant mask.
  */
-/* GsLINE isn't in include/psxsdk/libgs.h (only the Gs types other TUs
- * needed are there); declared locally from reference/psxsym-types.h's
- * proven layout rather than editing the shared SDK header. */
-typedef struct
-{
-    u32 attribute;  /* +0x0 */
-    short x0;       /* +0x4 */
-    short y0;       /* +0x6 */
-    short x1;       /* +0x8 */
-    short y1;       /* +0xa */
-    u8 r;           /* +0xc */
-    u8 g;           /* +0xd */
-    u8 b;           /* +0xe */
-} GsLINE;
-
 extern GsOT *OTablePt;
 extern void GsSortLine(GsLINE *p, GsOT *ot, long pri);
 

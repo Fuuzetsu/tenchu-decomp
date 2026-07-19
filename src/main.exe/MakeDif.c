@@ -48,18 +48,6 @@
  * OldMode's high byte only if DirectionRX(0x18)/DirectionRY(0x1A) precede
  * OldMode(0x1C), matching Ghidra, not psxsym.
  */
-typedef struct
-{
-    s32 vpx;   /* +0x00 */
-    s32 vpy;   /* +0x04 */
-    s32 vpz;   /* +0x08 */
-    s32 vrx;   /* +0x0C */
-    s32 vry;   /* +0x10 */
-    s32 vrz;   /* +0x14 */
-    s32 rz;    /* +0x18 */
-    void *super; /* +0x1C */
-} GsRVIEW2;
-
 /* Truncated to the one byte MakeDif actually touches (byte 1 of the
  * 4-byte OldMode enum at +0x1C) — this repo's per-TU local-view
  * convention (FUN_800565f0.c's TCameraStatus precedent). */

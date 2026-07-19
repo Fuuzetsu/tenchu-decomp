@@ -33,10 +33,8 @@
  * onto the existing STARTING_RNG_SEED.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - GsOT is only forward-declared (opaque) in include/psxsdk/libgs.h;
- *    completed locally from the Ghidra type export, same per-TU convention
- *    as StartDrawing.c/DrawTelop.c/UpdateTexScroll.c (each own copy, not a
- *    shared header — none of them index more than `length`/`org`).
+ *  - GsOT, GsOT_TAG, GsRVIEW2, and GsFOGPARAM use the canonical PsyQ LIBGS
+ *    declarations, independently confirmed by PSX.SYM.
  *  - `SetDepthQ(-0x7ef4, 0x2f282e0)` and the later `Fog.dqa`/`Fog.dqb` stores
  *    use the SAME two numeric constants, but the asm rematerializes both
  *    from `$zero` a SECOND time after the call instead of keeping either
@@ -51,42 +49,6 @@
  */
 extern ModelType World;
 extern void UpdateCoordinate(ModelType *dim);
-
-typedef struct
-{
-    short dqa;  /* 0x0 */
-    long dqb;   /* 0x4 */
-    u8 rfc;     /* 0x8 */
-    u8 gfc;     /* 0x9 */
-    u8 bfc;     /* 0xA */
-} GsFOGPARAM;
-
-typedef struct
-{
-    long vpx; /* 0x00 */
-    long vpy; /* 0x04 */
-    long vpz; /* 0x08 */
-    long vrx; /* 0x0C */
-    long vry; /* 0x10 */
-    long vrz; /* 0x14 */
-    long rz;  /* 0x18 */
-    GsCOORDINATE2 *super; /* 0x1C */
-} GsRVIEW2;
-
-struct GsOT_TAG
-{
-    u32 p : 24;
-    u8 num : 8;
-};
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
 
 extern GsFOGPARAM Fog;
 extern GsRVIEW2 ViewInfo;

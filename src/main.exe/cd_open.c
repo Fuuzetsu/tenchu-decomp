@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * cd_open (0x8005f278, 0x108 bytes) — formats a CD-ROM path, claims the
@@ -27,24 +28,7 @@
  * STATUS: MATCH (66/66 instructions).
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {
@@ -60,7 +44,6 @@ extern char D_80014A08[];
 extern char D_80014A1C[];
 
 extern int sprintf(char *buf, char *fmt, ...);
-extern CdlFILE *CdSearchFile(CdlFILE *file, char *name);
 extern int puts(char *s);
 
 FILE *cd_open(char *name)

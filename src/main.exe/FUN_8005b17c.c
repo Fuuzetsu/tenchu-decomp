@@ -11,17 +11,6 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-struct GsOT_TAG;
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
-
 typedef struct
 {
     u8 pad[0x68];

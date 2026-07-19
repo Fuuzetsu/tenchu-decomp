@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * cd_seek (0x8005f634) — classic fseek(handle, offset, whence) over the
@@ -32,24 +33,7 @@
  * always inline right after its own test).
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -38,22 +39,6 @@
  *    `((attrib & 3) << 5) | 0xE1000200` — a DR_TPAGE-style mode word (0xE1
  *    = draw-mode GPU command, with the low tpage bits ORed in).
  */
-typedef struct
-{
-    u_long tag;
-    u_long code[1];
-} DR_TPAGE;
-
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    short x1, y1;
-    short x2, y2;
-    short x3, y3;
-} POLY_F4;
-
 typedef struct
 {
     DR_TPAGE tpage;

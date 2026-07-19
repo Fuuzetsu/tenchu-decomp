@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * start_demo_ (0x80055d64) loads and runs the localized post-stage demo
@@ -29,14 +30,6 @@ typedef struct
     GsSPRITE sprite;
 } Sprite3D;
 
-typedef struct
-{
-    s16 x;
-    s16 y;
-    s16 w;
-    s16 h;
-} RECT;
-
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 D_80010048;
@@ -53,8 +46,6 @@ extern void SetupAppearance(s16 mode, s16 stage);
 extern void PadShockAR(s32 port, s32 duration, s32 strength, s32 delay);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
 extern void FUN_80038ce0(void);
-extern void ClearImage(RECT *rect, u8 r, u8 g, u8 b);
-extern s32 DrawSync(s32 mode);
 extern s32 VSync(s32 mode);
 extern u_long *FileRead(char *path);
 extern Sprite3D *SetupSprite(Sprite3D *original, GsIMAGE *image);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -78,30 +79,6 @@
  * read but then copy-propagates the later use back to `mode`, producing a
  * second load. Qualifying the parameter object yields the target's one load.
  */
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
-
-struct CdlFILTER
-{
-    u8 file;
-    u8 chan;
-};
-
 typedef struct
 {
     s32 StartPos;   /* 0x00 */
@@ -118,8 +95,6 @@ typedef struct
 
 extern TCdaStatus CdaStatus;
 extern void CdaStop(void);
-extern CdlFILE *CdSearchFile(CdlFILE *loc, char *name);
-extern s32 CdPosToInt(CdlLOC *pos);
 extern void cd_control(u8 cmd, u8 *param, u8 *result);
 extern void VSync(s32 mode);
 extern void VSyncCallback(void (*func)(void));
@@ -128,7 +103,7 @@ extern void cbCheckCD(void);
 int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mode)
 {
     CdlFILE cf;
-    struct CdlFILTER filter;
+    CdlFILTER filter;
     u8 param[4];
     s32 iVar2;
     int saved_mode;

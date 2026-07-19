@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -36,10 +37,8 @@
  * lighten-towards-white gradient from that value, then swaps in a draw
  * environment with the display's own clip rect (so the meter draws
  * unclipped over the current frame), draws it, and restores the original
- * draw environment. Same DRAWENV/DISPENV/RECT layout as the still-unmatched
- * sibling FUN_80018f00.c (identical o_disp/o_draw/n_draw copy shape — read
- * that one too if this one's copy loop needs re-deriving) and the matched
- * AdtReleaseDisp.c (source of these local typedefs).
+ * draw environment. Same canonical DRAWENV/DISPENV/RECT types as sibling
+ * FUN_80018f00.c and AdtReleaseDisp.c.
  *
  * Matching notes:
  *  - `n_draw = o_draw;` is a plain DRAWENV (align-4, 0x5c bytes) struct
@@ -77,53 +76,6 @@
  * scheduling tie. A one-shot loop and declaration-order changes did not
  * affect the address merge; guided autorules likewise found no improvement.
  */
-typedef struct
-{
-    s16 x, y, w, h;
-} RECT; /* 0x8 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT clip;       /* +0x00 */
-    s16 ofs[2];       /* +0x08 */
-    RECT tw;         /* +0x0c */
-    u16 tpage;        /* +0x14 */
-    u8 dtd, dfe, isbg, r0, g0, b0; /* +0x16..+0x1b */
-    u32 dr_env[16];   /* +0x1c: tag + code[15] */
-} DRAWENV; /* 0x5c (PSYQ libgpu.h) */
-
-typedef struct
-{
-    RECT disp;   /* +0x00 */
-    RECT screen; /* +0x08 */
-    u8 isinter, isrgb24, pad0, pad1; /* +0x10..+0x13 */
-} DISPENV; /* 0x14 (PSYQ libgpu.h) */
-
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    u_char u0, v0;
-    u_short clut;
-    u_char r1, g1, b1, p1;
-    short x1, y1;
-    u_char u1, v1;
-    u_short tpage;
-    u_char r2, g2, b2, p2;
-    short x2, y2;
-    u_char u2, v2;
-    u_short pad2;
-    u_char r3, g3, b3, p3;
-    short x3, y3;
-    u_char u3, v3;
-    u_short pad3;
-} POLY_GT4;
-
-extern void GetDrawEnv(DRAWENV *env);
-extern void GetDispEnv(DISPENV *env);
-extern void PutDrawEnv(DRAWENV *env);
-extern void DrawPrim(u8 *prim);
 extern s32 AccessPower;
 extern POLY_GT4 AccessImage;
 

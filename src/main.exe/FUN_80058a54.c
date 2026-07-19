@@ -20,16 +20,6 @@ extern u_long GsTON;
 extern u_long D_800C6588;
 extern u_long *GsOUT_PACKET_P;
 
-typedef struct {
-    u_long *vertop;
-    u_long vern;
-    u_long *nortop;
-    u_long norn;
-    u_long *primtop;
-    u_long primn;
-    u_long scale;
-} TMD_STRUCT;
-
 extern u_long *FUN_80058c70(u_short *primitive, u_long vertices,
                             u_long *packet, u_short count, u_long arg2,
                             u_long arg1, u_long arg3);
@@ -47,12 +37,12 @@ void FUN_80058a54(GsDOBJ2 *param_1, u_long param_2, u_long param_3,
                   u_long param_4)
 {
     int iVar1;
-    TMD_STRUCT *puVar3;
+    struct TMD_STRUCT *puVar3;
     u_short *puVar4;
     int iVar5;
     u_long uVar6;
 
-    puVar3 = (TMD_STRUCT *)param_1->tmd;
+    puVar3 = (struct TMD_STRUCT *)param_1->tmd;
     GsLMODE = param_1->attribute >> 3 & 3;
     puVar4 = (u_short *)puVar3->primtop;
     iVar5 = puVar3->primn;

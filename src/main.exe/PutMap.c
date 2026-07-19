@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -97,36 +98,9 @@
  */
 typedef struct
 {
-    u_long tag;
-    u_long code[1];
-} DR_TPAGE;
-
-typedef struct
-{
-    u_long tag;
-    u_char r0, g0, b0, code;
-    short x0, y0;
-    short x1, y1;
-    short x2, y2;
-    short x3, y3;
-} POLY_F4;
-
-typedef struct
-{
     DR_TPAGE tpage;
     POLY_F4 ply;
 } POLY_XF4;
-
-struct GsOT_TAG;
-
-struct GsOT
-{
-    u32 length;
-    struct GsOT_TAG *org;
-    u32 offset;
-    u32 point;
-    struct GsOT_TAG *tag;
-};
 
 extern u8 PutMapMode;
 extern GsSPRITE MapImage;

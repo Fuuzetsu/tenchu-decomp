@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * AfsRead (0x8005f048, 0xC4 bytes) — reads `length` bytes from a TAFS file
@@ -19,27 +20,10 @@
  * need to preserve Ghidra's comma-expression shape.
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
 typedef struct TAFS TAFS;
 typedef struct TAFSElement TAFSElement;
 typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {

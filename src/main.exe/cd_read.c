@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /*
  * cd_read (0x8005f590) — reads up to `length` bytes from a CD file handle
@@ -17,24 +18,7 @@
  * forwards to the raw sector reader.
  */
 
-typedef struct CdlLOC CdlLOC;
-typedef struct CdlFILE CdlFILE;
 typedef struct FILE FILE;
-
-struct CdlLOC
-{
-    u8 minute;
-    u8 second;
-    u8 sector;
-    u8 track;
-};
-
-struct CdlFILE
-{
-    CdlLOC pos;
-    u32 size;
-    s8 name[16];
-};
 
 struct FILE
 {
@@ -44,7 +28,6 @@ struct FILE
 };
 
 extern int puts(char *s);
-extern int CdPosToInt(CdlLOC *p);
 extern void FUN_8005f380(void *buffer, int sector, int byteOffset, int byteLength);
 extern char D_80014A94[]; /* "cd_read:invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same

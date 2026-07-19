@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "effect.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -76,13 +77,6 @@
  * These source identities and the exact SDK prototype match all 560 bytes.
  */
 
-typedef struct RECT RECT;
-struct RECT
-{
-    short x, y, w, h;
-};
-
-extern int MoveImage(RECT *rect, int x, int y);
 extern void UpdateTexScroll(void);
 extern s16 D_80097F30;
 extern s16 D_80097F32;

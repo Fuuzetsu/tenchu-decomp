@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 #include "gte.h"
 
 /*
@@ -87,22 +88,6 @@
  *    delay slot (inside the guard, the scan takes `sw s0,0(sp)` instead and
  *    the whole prologue rotates). Dead but harmless when param_4 == 0.
  */
-
-typedef struct {
-    u_long tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    u8 u0, v0;
-    u16 clut;
-    u8 r1, g1, b1, p1;
-    s16 x1, y1;
-    u8 u1, v1;
-    u16 tpage;
-    u8 r2, g2, b2, p2;
-    s16 x2, y2;
-    u8 u2, v2;
-    u16 pad2;
-} POLY_GT3; /* 40 bytes — reference/psxsym-types.h */
 
 u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int param_4, u_long *param_5)
 {

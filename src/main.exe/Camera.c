@@ -34,14 +34,6 @@
 
 typedef struct
 {
-    long vpx, vpy, vpz;
-    long vrx, vry, vrz;
-    long rz;
-    void *super;
-} GsRVIEW2;
-
-typedef struct
-{
     VECTOR TargetVector; /* 0x00 */
     Humanoid *Owner;     /* 0x10 */
     s32 Mode;            /* 0x14 */

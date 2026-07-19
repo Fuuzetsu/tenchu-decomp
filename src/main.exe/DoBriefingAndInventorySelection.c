@@ -1,10 +1,10 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * DoBriefingAndInventorySelection (0x800164e0, 0x8c bytes) — snapshot the
- * briefing screen's VRAM rect (_gp, a fixed RECT — same per-TU
- * convention as DemoPatchInit.c/FUN_80038ce0.c, no libgpu.h vendored here)
+ * briefing screen's VRAM rect (_gp, a fixed canonical PsyQ RECT)
  * into a freshly valloc'd buffer via StoreImage2, run the briefing/inventory
  * screen, then restore the VRAM via LoadImage2 and free the buffer.
  *
@@ -14,20 +14,10 @@
  * still holding the copy's second word); Ghidra's single-argument
  * `valloc(0x20000)` is the real call (m2c over-count rule).
  */
-typedef struct
-{
-    s16 x;                        /* 0x0 */
-    s16 y;                        /* 0x2 */
-    s16 w;                        /* 0x4 */
-    s16 h;                        /* 0x6 */
-} RECT;                           /* 0x8 (PSYQ libgpu.h) */
-
 extern RECT _gp[];
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);
-extern int StoreImage2(RECT *rect, u_long *p);
-extern int LoadImage2(RECT *rect, u_long *p);
 extern void ResetInventory(void);
 extern void BriefingAndInventorySelectionScreen(void);
 

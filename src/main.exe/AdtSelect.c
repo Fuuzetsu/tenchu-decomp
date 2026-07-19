@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
 /*
  * AdtSelect (0x8005fecc, 776 bytes) — modal debug-menu selection widget:
@@ -411,19 +412,7 @@
  * pointer-to-struct cannot self-tie in this cc1.
  */
 
-typedef struct
-{
-    u8 draw[0x5c];
-    u8 disp[0x14];
-    u8 rect[8];
-    u8 backup[0x8000];
-    u8 prim[24];
-} TAdtDisp;
-
 extern s32 (*AdtPadRead)(s32);
-extern void AdtGetDisp(TAdtDisp *ad);
-extern void AdtReleaseDisp(TAdtDisp *ad);
-extern void DrawPrim(u8 *prim);
 extern void FntPrint(char *fmt, ...);
 extern s32 FntFlush(s32 id);
 extern s32 VSync(s32 mode);
@@ -465,7 +454,7 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
 
     for (;;)
     {
-        DrawPrim(ad.prim);
+        DrawPrim(&ad.bg);
         trg = pad;
         pad = AdtPadRead(0);
         trg = ~trg & pad;
