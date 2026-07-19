@@ -38,7 +38,6 @@
  * `void LoadTIM(u_long *tim)` - the DrawSync(0) return value is discarded
  * (no move/sign-extend after the call in the asm), matching void.
  */
-extern void GsGetTimInfo(u_long *tim, GsIMAGE *im);
 extern void SystemOut(char *msg);
 extern char D_800110B8[]; /* "NO IMAGE DATA" */
 

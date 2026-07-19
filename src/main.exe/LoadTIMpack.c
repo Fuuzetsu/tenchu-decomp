@@ -95,7 +95,6 @@
  *    reloads the FULL `lw` (needs all 32 bits for `>> 3 & 1`), independent
  *    of any earlier access — different machine modes/uses don't CSE.
  */
-extern void GsGetTimInfo(u_long *tim, GsIMAGE *im);
 extern void SystemOut(char *msg);
 extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
 

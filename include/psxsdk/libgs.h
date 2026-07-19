@@ -288,4 +288,6 @@ struct GsIMAGE
     u_long *clut;
 };
 
+void GsGetTimInfo(unsigned long *image, GsIMAGE *tim);
+
 #endif

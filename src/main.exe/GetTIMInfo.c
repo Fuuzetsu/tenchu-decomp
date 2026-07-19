@@ -31,8 +31,6 @@
  * types the return `short`/literal 1, so return an explicit `(void *)1` to
  * stay compatible with the header's declared type. */
 
-extern void GsGetTimInfo(u_long *tim, GsIMAGE *im);
-
 void *GetTIMInfo(u_long *adr, GsIMAGE *image)
 {
     GsGetTimInfo(adr + 1, image);
