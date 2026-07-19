@@ -13,12 +13,13 @@
  * END PSX.SYM */
 
 /* STATUS: NON_MATCHING — clean pure-C reconstruction at the exact target
- * length (1448 bytes / 362 instructions), currently 11 differing linked bytes
- * across 9 instructions. There are no allocator-only no-op loop fences: the
+ * length (1448 bytes / 362 instructions), currently 7 differing linked bytes
+ * across 6 instructions. There are no allocator-only no-op loop fences: the
  * normal fade update and guarded strip loop recover the target frame naturally.
  * Writing the first PathFileRead before all state initializers is the key natural
  * live-range split: cc1 hoists those independent writes around the call into the
- * target's exact prologue order. Only renderer register identities remain.
+ * target's exact prologue order. Explicit, ordinary base/scale temporaries make
+ * both edge-brightness arms byte-exact; only three renderer register ties remain.
  *
  * HISTORICAL NOTES BELOW ARE SUPERSEDED and retained only as an experiment log.
  * KEY FINDING: the `do{sequence=0;}while(0)` fence was NOT load-bearing — it walled
@@ -324,6 +325,8 @@ void FUN_800519bc(void)
     u16 tpage_result;
     s32 intensity;
     u8 brightness;
+    s32 left_brightness;
+    s32 scaled_left_brightness;
     s32 edge_brightness;
     s32 scaled_brightness;
     s32 tpage_word;
@@ -458,7 +461,11 @@ void FUN_800519bc(void)
                         {
                             goto brightness_normal;
                         }
-                        brightness = (page_x + 0xa0) * 3;
+                        left_brightness = page_x + 0xa0;
+                        scaled_left_brightness = left_brightness;
+                        scaled_left_brightness <<= 1;
+                        scaled_left_brightness += left_brightness;
+                        brightness = scaled_left_brightness;
                         goto brightness_left_store;
 
 brightness_normal:
