@@ -85,7 +85,6 @@ extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
 extern char D_80014ADC[]; /* "\n\nPress start to continue..." */
 
 extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
-extern void FntPrint(char *fmt, ...);
 extern s32 VSync(s32 mode);
 
 void AdtMessageBox(char *fmt, ...)

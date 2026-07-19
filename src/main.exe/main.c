@@ -114,7 +114,6 @@ extern void update_something_for_each_visible_enemy_(void);
 extern u32 GetPad(s32 port);
 extern void *vgetfreesize(void);
 extern void *vgetmaxsize(void);
-extern void FntPrint(char *fmt, ...);
 extern void EndDrawing(s32 mode);
 
 int main(void)

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -65,8 +66,6 @@ extern void SetRotMatrix(MATRIX *m);
 extern void ApplyRotMatrix(SVECTOR *in, VECTOR *out);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
-extern void FntPrint(char *fmt, ...);
-
 void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 {
     VECTOR vsL;

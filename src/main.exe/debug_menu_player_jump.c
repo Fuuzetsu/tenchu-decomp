@@ -38,7 +38,6 @@ extern char D_80014704[];
 
 extern void EndDrawing(s32 sync);
 extern void StartDrawing(void);
-extern s32 FntPrint(char *fmt, ...);
 extern u32 GetRealPad(s32 port);
 extern s32 GetAreaMapLevel(u32 *area, s32 x, s32 y, s32 z, s32 mode);
 

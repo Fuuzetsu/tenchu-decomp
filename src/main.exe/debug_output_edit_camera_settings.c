@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /*
  * debug_output_edit_camera_settings (0x8003076c, 0x274 bytes) edits one of
@@ -39,8 +40,6 @@ extern SVECTOR *CAMERA_POINTERS[4];
 extern char *CAMERA_PROPERTIES[4];
 extern CameraDefaultVectors D_80011BC0;
 extern char D_80011A50[];
-
-extern void FntPrint(char *fmt, ...);
 
 void debug_output_edit_camera_settings(s16 pad)
 {

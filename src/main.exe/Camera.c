@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -52,7 +53,6 @@ extern s16 GetPad(s16 no);
 extern void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif);
 extern void CameraType1(Humanoid *pl, GsRVIEW2 *vDif);
 extern void SetCameraMode(s32 mode);
-extern void FntPrint(char *fmt, ...);
 extern void debug_output_edit_camera_settings(s16 param);
 
 void Camera(void)

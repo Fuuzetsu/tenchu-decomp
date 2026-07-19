@@ -68,7 +68,6 @@
  *    iVar7;` to float BEFORE the `x`/`y` updates (same instructions, wrong
  *    order); the loop-note barrier pins it after, matching the target.
  */
-extern void SetPolyFT4(POLY_FT4 *p);
 
 void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
 {

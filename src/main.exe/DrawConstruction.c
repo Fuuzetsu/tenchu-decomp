@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -108,7 +109,6 @@ extern s32 IsVisible(s32 x, s32 y, s32 z, s32 range);
 extern void AdtMessageBox(char *message);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern s32 GetPad(s32 port);
-extern s32 FntPrint(char *format, ...);
 
 void DrawConstruction(void)
 {

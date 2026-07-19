@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -137,7 +138,6 @@ extern char D_80097C8C[];
 
 extern void UpdateEvent(s16 n, s16 id);
 extern void SetCameraMode(s32 mode);
-extern void FntPrint(char *format, ...);
 extern void PlayMusicFormID(s32 id);
 extern s16 CVAsequence(s16 sid);
 extern ScoreStats *init_score_stats(ScoreStats *stats);

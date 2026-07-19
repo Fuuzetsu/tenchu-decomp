@@ -418,6 +418,7 @@ DRAWENV *PutDrawEnv(DRAWENV *env);
 DRAWENV *SetDefDrawEnv(DRAWENV *env, int x, int y, int w, int h);
 
 int FntOpen(int x, int y, int w, int h, int isbg, int n);
+int FntPrint();
 u_long *FntFlush(int id);
 void FntLoad(int tx, int ty);
 int ResetGraph(int mode);
@@ -435,6 +436,9 @@ int StoreImage2(RECT *rect, u_long *p);
 int MoveImage(RECT *rect, int x, int y);
 int MoveImage2(RECT *rect, int x, int y);
 void SetDrawMove(DR_MOVE *p, RECT *rect, int x, int y);
+void SetPolyF4(POLY_F4 *p);
+void SetPolyFT4(POLY_FT4 *p);
+void SetPolyGT4(POLY_GT4 *p);
 void SetSemiTrans(void *p, int abe);
 u_short GetClut(int x, int y);
 u_short GetTPage(int tp, int abr, int x, int y);

@@ -40,7 +40,6 @@
  * retail's version was rewritten to match FT4's shape, so the FT4 locals are
  * what reproduce the bytes here.
  */
-extern void SetPolyGT4(POLY_GT4 *p);
 
 void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
 {
