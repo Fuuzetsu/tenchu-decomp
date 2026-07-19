@@ -118,9 +118,10 @@ the normal maspsx 2.77 pipeline emits the extracted object's exact
 This does not infer a compiler from archive adjacency: both the actual object
 bytes and the compiler's debug output were checked. `GS_106.OBJ` is enumerated
 as a complete object in the profile oracle, and receives no exceptional flags.
-`wibo` is useful for compatible original Win32 archive tools such as PSYLIB and
-ASPSX; the PsyQ 4.5 `CC1PSX.EXE` currently aborts under wibo, so the deterministic
-native reconstructed compilers remain the build path.
+The dev shell includes nixpkgs `wibo` for compatible original Win32 archive
+tools such as PSYLIB and ASPSX; the PsyQ 4.5 `CC1PSX.EXE` currently aborts under
+wibo, so the deterministic native reconstructed compilers remain the build
+path.
 
 ### GS_107.OBJ: reconstructed libgs backend
 

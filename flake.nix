@@ -320,6 +320,10 @@
           # glob, it skips .shake/ and .git by default, and it is what the tools
           # and docs assume from here on.
           pkgs.ripgrep
+          # Lightweight Win32 compatibility for inspecting original PsyQ
+          # tools. PSYLIB/ASPSX work; compilation itself stays on the pinned
+          # native cc1 profiles because PsyQ 4.5 CC1PSX currently aborts here.
+          pkgs.wibo
           pkgs.spimdisasm
           m2c-bin
           pkgs.splat
