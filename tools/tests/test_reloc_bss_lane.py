@@ -15,8 +15,12 @@ from tools import reloc_bss_lane as lane
 
 
 class SymbolScriptTests(unittest.TestCase):
-    def test_filters_bss_and_owned_boundaries_only(self) -> None:
+    def test_filters_loaded_image_bss_and_owned_boundaries(self) -> None:
         source = """\
+BeforeImage = 0x80010ffc;
+LeadingData = 0x80012000;
+GameText = 0x80020000;
+TrailingData = 0x80090000;
 _gp = 0x80097698;
 BeforeBss = 0x80097eac;
 OTablePt = 0x80097eb0;
@@ -30,14 +34,18 @@ Handoff = 0x80100000;
         output, removed = lane.filter_symbol_script(source)
         self.assertEqual(
             output,
-            "BeforeBss = 0x80097eac;\n"
+            "BeforeImage = 0x80010ffc;\n"
             "AtBssEnd = 0x800cdba8;\n"
             "Handoff = 0x80100000;\n",
         )
         self.assertEqual(
             removed,
             {
+                "LeadingData": 0x80012000,
+                "GameText": 0x80020000,
+                "TrailingData": 0x80090000,
                 "_gp": lane.GP_ADDRESS,
+                "BeforeBss": lane.BSS_START - 4,
                 "OTablePt": lane.BSS_START,
                 "LastBssWord": lane.BSS_END - 4,
                 "D_800CDBA8": lane.BSS_END,
@@ -116,6 +124,7 @@ SECTIONS
         )
         self.assertNotIn("_gp = 0x80097698", output)
         self.assertIn("__load_start = .;", output)
+        self.assertIn("PutMapMode = D_80097BA0 + 0x11;", output)
         self.assertIn("new/72CD0.reloc.s.o(.data);", output)
         self.assertIn(".main_exe_bss (NOLOAD)", output)
         self.assertIn("new/72CD0.reloc.s.o(.bss);", output)
@@ -244,6 +253,40 @@ GsInitCoord2param T ffffffff800650d4
             nm="nm",
             readelf="readelf",
             expected_bss_symbols={"OTablePt": lane.BSS_START},
+        )
+
+    @mock.patch("tools.reloc_bss_lane.subprocess.run")
+    def test_elf_gate_rejects_absolute_initialized_symbol(
+        self, run: mock.Mock
+    ) -> None:
+        run.return_value = subprocess.CompletedProcess(
+            [], 0, stdout=self.nm_output("B") + "StageChar A ffffffff8008e6dc\n"
+        )
+        with self.assertRaisesRegex(lane.LaneError, "section-owned"):
+            lane.validate_elf(
+                elf=Path("main.elf"),
+                nm="nm",
+                readelf="readelf",
+                expected_bss_symbols={"OTablePt": lane.BSS_START},
+                expected_initialized_symbols={"StageChar": 0x8008E6DC},
+            )
+
+    @mock.patch("tools.reloc_bss_lane.subprocess.run")
+    def test_elf_gate_allows_obsolete_unreferenced_initialized_alias(
+        self, run: mock.Mock
+    ) -> None:
+        run.side_effect = [
+            subprocess.CompletedProcess([], 0, stdout=self.nm_output("B")),
+            subprocess.CompletedProcess([], 0, stdout=self.READELF_OUTPUT),
+        ]
+        lane.validate_elf(
+            elf=Path("main.elf"),
+            nm="nm",
+            readelf="readelf",
+            expected_bss_symbols={"OTablePt": lane.BSS_START},
+            expected_initialized_symbols={
+                "switchD_8001cd44__switchdataD_80011240": 0x80011240
+            },
         )
 
 

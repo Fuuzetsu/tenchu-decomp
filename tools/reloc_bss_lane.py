@@ -11,8 +11,11 @@ This opt-in proof rewrites only generated build products:
 * the zero tail of ``72CD0.data.s`` becomes a NOBITS ``.bss`` section;
 * the generated linker's zero-sized BSS input list moves into a real NOLOAD
   output section following initialized data;
-* script-assigned BSS symbols become section-relative labels and ``_gp`` is
-  allowed to come from its real initialized-data input label;
+* every script-assigned symbol in the loaded MAIN.EXE image is allowed to come
+  from its real input label, including initialized data, the remaining mixed
+  SDK/data carve, BSS, and ``_gp``;
+* every manifest-transformed pointer target object can replace its matching
+  generated data input before the final link;
 * new C files under the normal-link extension directory receive ordinary
   text/data/small-BSS/BSS input patterns instead of falling into ``/DISCARD/``;
   and
@@ -25,8 +28,9 @@ padding gives the shipped executable exactly. The Shake gate delegates that
 padding and the mutable PS-X EXE header to ``tools/psxexe.py``; this tool does
 not duplicate the finalizer role.
 
-This remains a layout proof, not a size-changing runnable build.  In
-particular the raw crt0 and SDK instruction carves still embed addresses.
+This remains a layout proof, not a size-changing runnable build. In particular,
+the final mixed SDK instruction carve still needs symbolic instruction
+relocations even after its public labels become section-owned.
 """
 
 from __future__ import annotations
@@ -61,6 +65,12 @@ REFERENCE_PADDING_SIZE = RETAIL_FILE_SIZE - LOGICAL_FILE_SIZE
 
 TAIL_SPLIT_MARKER = "nonmatching OTablePt"
 TAIL_SECTION_DIRECTIVE = '.section .bss, "aw", @nobits'
+# PutMapMode is the byte at 0x80097bb1 inside the three-byte alignment tail
+# following the ``D_80097BA0`` string pool. Splat cannot emit a dlabel in the
+# implicit bytes produced by ``.align``, so retain the exact proven interior
+# relationship as a relocatable in-output-section alias instead of an absolute
+# retail address.
+INITIALIZED_INTERIOR_ALIASES = (("PutMapMode", "D_80097BA0", 0x11),)
 OLD_BSS_START_MARKER = "main_exe_BSS_START = .;"
 OLD_BSS_END_MARKER = (
     "main_exe_BSS_SIZE = ABSOLUTE(main_exe_BSS_END - main_exe_BSS_START);"
@@ -145,7 +155,7 @@ def merge_assignments(*sources: str) -> dict[str, int]:
 
 def is_owned_assignment(name: str, address: int) -> bool:
     return (
-        BSS_START <= address < BSS_END
+        MAIN_LOAD_ADDRESS <= address < BSS_END
         or name in {"D_800CDBA8", "_gp", "HEAP_START", "MemoryPool"}
     )
 
@@ -343,6 +353,11 @@ def rewrite_linker(
     newline = "\r\n" if lines[brace_index].endswith("\r\n") else "\n"
     body_indent = _indent_of(lines[brace_index]) + "    "
     lines.insert(brace_index + 1, f"{body_indent}__load_start = .;{newline}")
+    for alias, owner, addend in reversed(INITIALIZED_INTERIOR_ALIASES):
+        lines.insert(
+            brace_index + 2,
+            f"{body_indent}{alias} = {owner} + 0x{addend:x};{newline}",
+        )
 
     old_tail_line = f"{old_tail_object}(.data);"
     tail_indices = [index for index, line in enumerate(lines) if old_tail_line in line]
@@ -417,7 +432,7 @@ def generate(
     new_tail_object: str,
     extension_object_glob: str,
     object_replacements: Sequence[tuple[str, str]] = (),
-) -> tuple[int, int]:
+) -> tuple[int, int, int]:
     symbol_source = symbols_input.read_text()
     undefined_source = undefined_input.read_text()
     assignments = merge_assignments(symbol_source, undefined_source)
@@ -432,12 +447,12 @@ def generate(
     filtered_symbols, removed_symbols = filter_symbol_script(symbol_source)
     filtered_undefined, removed_undefined = filter_symbol_script(undefined_source)
     removed = set(removed_symbols) | set(removed_undefined)
-    required = set(bss_assignments) | {
-        "D_800CDBA8",
-        "_gp",
-        "HEAP_START",
-        "MemoryPool",
+    owned_assignments = {
+        name
+        for name, address in assignments.items()
+        if is_owned_assignment(name, address)
     }
+    required = owned_assignments
     missing = sorted(required - removed)
     if missing:
         raise LaneError("owned symbols were not removed from scripts: " + ", ".join(missing))
@@ -474,7 +489,12 @@ def generate(
     atomic_write(symbols_output, filtered_symbols)
     atomic_write(undefined_output, filtered_undefined)
     atomic_write(tail_output, transformed_tail)
-    return len(bss_assignments), len(aliases)
+    initialized_assignments = {
+        name
+        for name, address in assignments.items()
+        if MAIN_LOAD_ADDRESS <= address < BSS_START
+    }
+    return len(bss_assignments), len(aliases), len(initialized_assignments)
 
 
 def parse_nm_posix(source: str) -> dict[str, tuple[int, str]]:
@@ -532,6 +552,7 @@ def validate_elf(
     nm: str,
     readelf: str,
     expected_bss_symbols: dict[str, int],
+    expected_initialized_symbols: dict[str, int] | None = None,
 ) -> None:
     nm_result = subprocess.run(
         [nm, "-P", "-n", str(elf)],
@@ -540,6 +561,23 @@ def validate_elf(
         stdout=subprocess.PIPE,
     )
     symbols = parse_nm_posix(nm_result.stdout)
+    for name, expected_address in (expected_initialized_symbols or {}).items():
+        actual = symbols.get(name)
+        if actual is None:
+            # C-owned switch tables and other private compiler objects can
+            # make a historic Splat alias obsolete: their relocations target
+            # the input section directly and no public definition survives.
+            # The link itself rejects an absent alias that still has users.
+            continue
+        address, symbol_type = actual
+        if address != expected_address:
+            raise LaneError(
+                f"{name} is 0x{address:08x}, expected 0x{expected_address:08x}"
+            )
+        if symbol_type.upper() in {"A", "U"} or symbol_type == "?":
+            raise LaneError(
+                f"{name} is type {symbol_type}, expected a section-owned symbol"
+            )
     for name, expected_address in expected_bss_symbols.items():
         actual = symbols.get(name)
         if actual is None:
@@ -607,12 +645,18 @@ def run_validate(args: argparse.Namespace) -> None:
         for name, address in assignments.items()
         if BSS_START <= address < BSS_END
     }
+    expected_initialized_symbols = {
+        name: address
+        for name, address in assignments.items()
+        if MAIN_LOAD_ADDRESS <= address < BSS_START
+    }
     validate_reference(args.logical.read_bytes(), args.reference.read_bytes())
     validate_elf(
         elf=args.elf,
         nm=args.nm,
         readelf=args.readelf,
         expected_bss_symbols=expected_bss_symbols,
+        expected_initialized_symbols=expected_initialized_symbols,
     )
 
 
@@ -667,7 +711,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 old_object, new_object = replacement.split("=", 1)
                 replacements.append((old_object, new_object))
-            bss_symbols, aliases = generate(
+            bss_symbols, aliases, initialized_symbols = generate(
                 linker_input=args.linker_in,
                 symbols_input=args.symbols_in,
                 undefined_input=args.undefined_in,
@@ -682,7 +726,8 @@ def main(argv: list[str] | None = None) -> int:
                 object_replacements=replacements,
             )
             print(
-                f"reloc-bss lane: moved {bss_symbols} BSS symbols; "
+                f"reloc-bss lane: moved {initialized_symbols} initialized and "
+                f"{bss_symbols} BSS symbols; "
                 f"generated {aliases} post-padding aliases"
             )
         else:

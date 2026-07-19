@@ -161,14 +161,25 @@ relocBssTailObject = relocBssDir </> "obj" </> "72CD0.bss.s.o"
 relocIntegratedDataDir :: FilePath
 relocIntegratedDataDir = relocBssDir </> "data"
 
-relocData207CAsm, relocData2EB0Asm, relocData72CD0Asm :: FilePath
-relocData207CAsm = relocIntegratedDataDir </> "207C.data.s"
-relocData2EB0Asm = relocIntegratedDataDir </> "2EB0.data.s"
-relocData72CD0Asm = relocIntegratedDataDir </> "72CD0.data.s"
+relocDataNames :: [String]
+relocDataNames =
+  [ "E58", "1160", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
+    "72CD0"
+  ]
 
-relocData207CObject, relocData2EB0Object :: FilePath
-relocData207CObject = relocBssDir </> "obj" </> "207C.data.s.o"
-relocData2EB0Object = relocBssDir </> "obj" </> "2EB0.data.s.o"
+relocDataTargetNames :: [String]
+relocDataTargetNames = filter (/= "72CD0") relocDataNames
+
+relocDataAsm, relocDataObject :: String -> FilePath
+relocDataAsm name = relocIntegratedDataDir </> name <.> "data.s"
+relocDataObject name = relocBssDir </> "obj" </> name <.> "data.s.o"
+
+relocDataAsms, relocDataObjects :: [FilePath]
+relocDataAsms = map relocDataAsm relocDataNames
+relocDataObjects = map relocDataObject relocDataTargetNames
+
+relocData72CD0Asm :: FilePath
+relocData72CD0Asm = relocDataAsm "72CD0"
 
 -- | Growth-capable composition.  Unlike the retail-exact BSS oracle above,
 -- this linker chain consumes the natural TENCHU_RELOCATABLE C objects without
@@ -1423,13 +1434,12 @@ mainExtraRules = do
     need [input]
     cmd_ objcopy objcopyFlags [input, out]
 
-  [relocData207CAsm, relocData2EB0Asm, relocData72CD0Asm] &%> \_outs -> do
+  relocDataAsms &%> \_outs -> do
     let t = mainTarget
         dataDir = tgGenDir t </> asmDir </> "data"
         manifest = configDir </> "reloc-data.main.exe.json"
         tool = "tools" </> "reloc_data.py"
-        inputs = map (dataDir </>)
-          ["207C.data.s", "2EB0.data.s", "72CD0.data.s"]
+        inputs = map (dataDir </>) $ map (<.> "data.s") relocDataNames
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need $ [manifest, tool] <> inputs
     cmd_ "python3" tool
@@ -1438,10 +1448,9 @@ mainExtraRules = do
         "--output-dir", relocIntegratedDataDir
       ]
 
-  [relocData207CObject, relocData2EB0Object] |%> \out -> do
-    let source = if out == relocData207CObject
-          then relocData207CAsm
-          else relocData2EB0Asm
+  relocDataObjects |%> \out -> do
+    let name = takeWhile (/= '.') (takeFileName out)
+        source = relocDataAsm name
     need [source]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     withTempFile $ \depFile -> do
@@ -1460,13 +1469,18 @@ mainExtraRules = do
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
         tailSource = relocData72CD0Asm
         oldTailObject = tgBuildDir t </> "data" </> "72CD0.data.s.o"
-        old207CObject = tgBuildDir t </> "data" </> "207C.data.s.o"
-        old2EB0Object = tgBuildDir t </> "data" </> "2EB0.data.s.o"
+        replacementArgs = concatMap
+          (\name ->
+            [ "--replace-object",
+              (tgBuildDir t </> "data" </> name <.> "data.s.o") <>
+                "=" <> relocDataObject name
+            ])
+          relocDataTargetNames
         tool = "tools" </> "reloc_bss_lane.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need [relocSdkBaseLinker, relocSdkBaseSymbols, undefinedSymbols, tailSource, tool]
     liftIO $ IO.createDirectoryIfMissing True relocBssDir
-    cmd_ "python3" tool
+    cmd_ "python3" tool $
       [ "generate",
         "--linker-in", relocSdkBaseLinker,
         "--symbols-in", relocSdkBaseSymbols,
@@ -1478,10 +1492,8 @@ mainExtraRules = do
         "--tail-out", relocBssTailAsm,
         "--old-tail-object", oldTailObject,
         "--new-tail-object", relocBssTailObject,
-        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o",
-        "--replace-object", old207CObject <> "=" <> relocData207CObject,
-        "--replace-object", old2EB0Object <> "=" <> relocData2EB0Object
-      ]
+        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o"
+      ] <> replacementArgs
 
   relocBssTailObject %> \out -> do
     need [relocBssTailAsm]
@@ -1509,9 +1521,8 @@ mainExtraRules = do
         assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
     need $ sFilesExp <> assetFilesExp <> oFiles <>
       [ relocBssLinker, relocBssSymbols, relocBssUndefined,
-        relocBssTailObject, relocData207CObject, relocData2EB0Object,
-        undefinedFunctions
-      ]
+        relocBssTailObject, undefinedFunctions
+      ] <> relocDataObjects
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     cmd_ ld ldFlags
       [ "-o", out,
@@ -1556,14 +1567,19 @@ mainExtraRules = do
         tBuildDir = tgBuildDir t
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
         oldTailObject = tBuildDir </> "data" </> "72CD0.data.s.o"
-        old207CObject = tBuildDir </> "data" </> "207C.data.s.o"
-        old2EB0Object = tBuildDir </> "data" </> "2EB0.data.s.o"
+        replacementArgs = concatMap
+          (\name ->
+            [ "--replace-object",
+              (tBuildDir </> "data" </> name <.> "data.s.o") <>
+                "=" <> relocDataObject name
+            ])
+          relocDataTargetNames
         tool = "tools" </> "reloc_bss_lane.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need [ normalRelinkSdkLinker, normalRelinkSdkSymbols, undefinedSymbols,
            relocData72CD0Asm, tool ]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory normalRelinkLinker)
-    cmd_ "python3" tool
+    cmd_ "python3" tool $
       [ "generate",
         "--linker-in", normalRelinkSdkLinker,
         "--symbols-in", normalRelinkSdkSymbols,
@@ -1575,10 +1591,8 @@ mainExtraRules = do
         "--tail-out", normalRelinkTailAsm,
         "--old-tail-object", oldTailObject,
         "--new-tail-object", normalRelinkTailObject,
-        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o",
-        "--replace-object", old207CObject <> "=" <> relocData207CObject,
-        "--replace-object", old2EB0Object <> "=" <> relocData2EB0Object
-      ]
+        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o"
+      ] <> replacementArgs
 
   normalRelinkTailObject %> \out -> do
     need [normalRelinkTailAsm]
@@ -1606,9 +1620,8 @@ mainExtraRules = do
         assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
     need $ sFilesExp <> assetFilesExp <> oFiles <> relocCLiteralObjects <>
       [ normalRelinkLinker, normalRelinkSymbols, normalRelinkUndefined,
-        normalRelinkTailObject, relocData207CObject, relocData2EB0Object,
-        undefinedFunctions
-      ]
+        normalRelinkTailObject, undefinedFunctions
+      ] <> relocDataObjects
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     cmd_ ld ldFlags
       [ "-o", out,
