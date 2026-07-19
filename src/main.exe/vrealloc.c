@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -86,12 +87,6 @@
  *    regions. Splitting them left vhp/mask swapped (a2/a3) with no
  *    C-level lever at all.
  */
-
-typedef struct PoolBlock
-{
-    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
-    struct PoolBlock *next;
-} PoolBlock;
 
 extern void *valloc(u32 size);
 extern void vfree(void *pt);

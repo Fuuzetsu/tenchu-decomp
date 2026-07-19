@@ -93,7 +93,7 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     s32 q0, q2;
     s32 fail;
 
-    view = (s32 *)0x1F800038;
+    view = (s32 *)TENCHU_SCRATCHPAD(0x38);
 
     dx = x - view[0];
     if (30000 < abs(dx))
@@ -107,12 +107,13 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     if (!(abs(dz) < 0x7531))
         return 0;
 
-    ((SVECTOR *)0x1F800010)->vx = (s16)dx;
-    ((SVECTOR *)0x1F800010)->vy = (s16)dy;
-    ((SVECTOR *)0x1F800010)->vz = (s16)dz;
-    ApplyRotMatrix((SVECTOR *)0x1F800010, (VECTOR *)0x1F800000);
+    ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vx = (s16)dx;
+    ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vy = (s16)dy;
+    ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vz = (s16)dz;
+    ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD(0x10),
+                   (VECTOR *)TENCHU_SCRATCHPAD_ADDRESS);
 
-    scratch = (s32 *)0x1F800000;
+    scratch = (s32 *)TENCHU_SCRATCHPAD_ADDRESS;
     iVar1 = scratch[2] + s;
     if (iVar1 < 0x97)
         return 0;

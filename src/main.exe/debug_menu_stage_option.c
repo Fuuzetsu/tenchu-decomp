@@ -47,7 +47,7 @@ typedef struct
     u16 grade;    /* 0xA */
 } ScoreResult;    /* 0xC */
 
-#define PSTATE ((PersistentState *)0x80010000)
+#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern MENU_STAGE_TBL DEBUG_MENU_STAGE_OPTIONS;
 extern char D_80014648[];  /* "stage option" (AdtSelect title) */

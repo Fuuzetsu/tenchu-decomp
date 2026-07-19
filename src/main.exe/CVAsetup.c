@@ -94,7 +94,7 @@ extern short GetTIMpackInfo(u32 *adr, GsIMAGE *image, int idx);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void LoadTIMpackAndFree(u32 *adr);
 
-#define PSTATE ((PersistentState *)0x80010000)
+#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void CVAsetup(void)
 {

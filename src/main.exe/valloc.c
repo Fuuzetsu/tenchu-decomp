@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -85,30 +86,17 @@
  *    loop guard's delay slot; sprintf then receives `maxsize` raw.
  *  - The self-init branch duplicates vinit.c's `size == 0` arm literally
  *    (pool = 0x800DC000; vh.size = 0x47ffe; vh.next = 0) — no call, cc1
- *    2.8.1 does not inline. `TENCHU_RELOCATABLE` instead uses linker-owned
- *    MemoryPool and MemoryPoolCapacity symbols; the linker derives the latter
- *    from MemoryPool..MemoryPoolEnd. Image growth consumes the retail gap
- *    first, then moves the pool base and shrinks its capacity without leaving
- *    either retail constant in the code. The exact relocation counts are
- *    compiler output and are gated by tools/reloc_c_literals.py.
+ *    2.8.1 does not inline. VMEM_DEFAULT_POOL/VMEM_DEFAULT_CAPACITY put the
+ *    exact-literal vs linker-symbol representation choice in vmemory.h. Image
+ *    growth consumes the retail gap first, then moves the pool base and shrinks
+ *    its capacity without leaving either retail constant in normal-link code.
+ *    The exact relocation counts are gated by tools/reloc_c_literals.py.
  *  - The request rounding is `if (size & 3) size += 4;` (NOT `(size+3)&~3`)
  *    — read off the raw immediate; keep the odd shape.
  *  - Both whole-struct stores (`*virtual_memory_pool = vh;`, `*(PoolBlock *)
  *    vmpt = vh;`) are aggregate assignments: two field stores to the stack
  *    slot, then the $t1/$t2 reload+store block copy (vinit.c's idiom).
  */
-
-typedef struct PoolBlock
-{
-    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
-    struct PoolBlock *next;
-} PoolBlock;
-
-extern PoolBlock *virtual_memory_pool;
-#ifdef TENCHU_RELOCATABLE
-extern PoolBlock MemoryPool[];
-extern u8 MemoryPoolCapacity[];
-#endif
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern void SystemOut(u8 *string);
@@ -130,16 +118,8 @@ void *valloc(u32 size)
     {
         PoolBlock vh; /* nested shadow, sp+0x20 */
 
-#ifdef TENCHU_RELOCATABLE
-        virtual_memory_pool = MemoryPool;
-#else
-        virtual_memory_pool = (PoolBlock *)0x800DC000;
-#endif
-#ifdef TENCHU_RELOCATABLE
-        vh.size = (u32)MemoryPoolCapacity;
-#else
-        vh.size = 0x47ffe;
-#endif
+        virtual_memory_pool = VMEM_DEFAULT_POOL;
+        vh.size = VMEM_DEFAULT_CAPACITY;
         vh.next = 0;
         *virtual_memory_pool = vh;
     }

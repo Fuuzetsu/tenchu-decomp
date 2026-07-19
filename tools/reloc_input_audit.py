@@ -14,7 +14,10 @@ The checks are deliberately narrow and machine-verifiable:
 * an unrelocated LUI, optionally followed by a canonical ADDI(U), ORI, or
   load/store low half, may not form an address in movable MAIN RAM;
 * a four-byte window in compiled alloc-data which targets movable MAIN needs
-  ``R_MIPS_32`` (generated assembly remains word-aligned by design).
+  ``R_MIPS_32`` (generated assembly remains word-aligned by design); and
+* if the central persistent ABI is reconfigured, no linked instruction or
+  alloc-data word may retain an unrelocated address from the retail symbol
+  oracle.
 
 Reviewed fixed PS1 contracts (persistent save state, executable handoff,
 scratchpad/MMIO, RAM end and initial stack) are reported but accepted.  The
@@ -43,11 +46,17 @@ import struct
 import sys
 from typing import Iterable
 
+try:
+    from tools import ram_layout
+except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
+    import ram_layout  # type: ignore[no-redef]
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LINKER = Path(".shake/build/relink/layout/main.exe.ld")
 DEFAULT_ELF = Path(".shake/build/tenchu/main_relink.exe.elf")
 DEFAULT_MAP = Path(".shake/build/tenchu/main_relink.exe.map")
+RETAIL_SYMBOLS = Path("config/symbols.main.exe.txt")
 
 EM_MIPS = 8
 ET_REL = 1
@@ -80,18 +89,29 @@ LINKER_INPUT_RE = re.compile(
 )
 MAP_LOAD_RE = re.compile(r"^LOAD\s+(?P<object>.+\.o)\s*$")
 GLOB_MAGIC_RE = re.compile(r"[*?[]")
+SYMBOL_ASSIGNMENT_RE = re.compile(
+    r"^\s*(?P<name>[A-Za-z_.$][A-Za-z0-9_.$]*)\s*=\s*"
+    r"(?P<address>0[xX][0-9A-Fa-f]+);\s*(?:[#].*)?$"
+)
 
-MAIN_START = 0x80011000
-HANDOFF_START = 0x80100000
-PERSISTENT_START = 0x80010000
-PERSISTENT_END = 0x80010E70
-HANDOFF_END = 0x8010005C
-SCRATCH_START = 0x1F800000
-SCRATCH_END = 0x1F800400
-MMIO_START = 0x1F801000
-MMIO_END = 0x1F803000
-INITIAL_STACK = 0x801FFFF0
-RAM_END_VALUES = frozenset({0x80200000, 0x80200008})
+MAIN_START = ram_layout.LAYOUT.main_load_address
+HANDOFF_START = ram_layout.LAYOUT.executable_handoff_address
+PERSISTENT_START = ram_layout.LAYOUT.persistent_state_address
+PERSISTENT_END = ram_layout.LAYOUT.persistent_rng_end
+HANDOFF_END = ram_layout.LAYOUT.executable_handoff_end
+SCRATCH_START = ram_layout.LAYOUT.scratchpad_address
+SCRATCH_END = ram_layout.LAYOUT.scratchpad_end
+MMIO_START = ram_layout.LAYOUT.mmio_address
+MMIO_END = ram_layout.LAYOUT.mmio_end
+INITIAL_STACK = ram_layout.LAYOUT.initial_stack_address
+PC_MEMORY_START = ram_layout.LAYOUT.pc_memory_pool_address
+PC_MEMORY_END = ram_layout.LAYOUT.pc_memory_handshake_end
+RAM_END_VALUES = frozenset(
+    {
+        ram_layout.LAYOUT.cached_ram_end,
+        ram_layout.LAYOUT.cached_ram_end_plus_header,
+    }
+)
 
 # _SsVmSetSeqVol uses this as a multiply/divide magic value, not an address.
 # Key the exception on the canonical object, section, exact instruction
@@ -122,8 +142,11 @@ SAFE_GP_LO16_USES = frozenset(
     }
 )
 
-# psxexe.py regenerates PC at +0x10 and load address at +0x18 from the linked
-# ELF.  No other literal in the header is exempt.
+# Canonical header.s is a retail oracle, so these are deliberately the historic
+# placeholder words rather than current policy aliases.  psxexe.py regenerates
+# PC at +0x10 and load address at +0x18 from the linked ELF; no other literal in
+# the header is exempt.  Changing ram_layout.h therefore cannot silently bless
+# a stale runtime value here.
 HEADER_PLACEHOLDERS = {
     (
         ".shake/build/main.exe/header.s.o",
@@ -219,6 +242,27 @@ class LowUse:
     offset: int
     kind: str
     target: int
+
+
+@dataclass(frozen=True)
+class PersistentOracle:
+    """Map shipped persistent addresses to the configured MAIN.EXE ABI."""
+
+    retail_base: int
+    retail_rng: int
+    target_base: int
+    target_rng: int
+    rng_size: int = 4
+
+    def expected_target(self, value: int) -> int | None:
+        value &= 0xFFFFFFFF
+        if self.retail_base <= value < self.retail_rng:
+            expected = self.target_base + (value - self.retail_base)
+        elif self.retail_rng <= value < self.retail_rng + self.rng_size:
+            expected = self.target_rng + (value - self.retail_rng)
+        else:
+            return None
+        return expected if expected != value else None
 
 
 @dataclass(frozen=True)
@@ -785,9 +829,9 @@ def scan_lui_low_uses(
 
 def fixed_contract(value: int) -> str | None:
     value &= 0xFFFFFFFF
-    if PERSISTENT_START <= value <= PERSISTENT_END:
+    if PERSISTENT_START <= value < PERSISTENT_END:
         return "persistent_state"
-    if HANDOFF_START <= value <= HANDOFF_END:
+    if HANDOFF_START <= value < HANDOFF_END:
         return "executable_handoff"
     if SCRATCH_START <= value < SCRATCH_END:
         return "scratchpad"
@@ -797,7 +841,46 @@ def fixed_contract(value: int) -> str | None:
         return "initial_stack"
     if value in RAM_END_VALUES:
         return "ram_end"
+    if PC_MEMORY_START <= value < PC_MEMORY_END:
+        return "pc_link_memory"
     return None
+
+
+def persistent_oracle(root: Path) -> PersistentOracle:
+    """Read retail bounds from the extraction oracle, never copied literals."""
+
+    path = root / RETAIL_SYMBOLS
+    try:
+        source = path.read_text()
+    except OSError as error:
+        raise AuditError(f"cannot read retail symbol oracle {path}: {error}") from error
+    assignments: dict[str, list[int]] = {
+        "PersistentState": [],
+        "STARTING_RNG_SEED": [],
+    }
+    for line in source.splitlines():
+        match = SYMBOL_ASSIGNMENT_RE.fullmatch(line)
+        if match is None or match.group("name") not in assignments:
+            continue
+        assignments[match.group("name")].append(
+            int(match.group("address"), 16)
+        )
+    for name, values in assignments.items():
+        if len(values) != 1:
+            raise AuditError(
+                f"retail symbol oracle must define {name} exactly once"
+            )
+    retail_base = assignments["PersistentState"][0]
+    retail_rng = assignments["STARTING_RNG_SEED"][0]
+    if retail_rng <= retail_base:
+        raise AuditError("retail persistent RNG does not follow PersistentState")
+    return PersistentOracle(
+        retail_base=retail_base,
+        retail_rng=retail_rng,
+        target_base=PERSISTENT_START,
+        target_rng=ram_layout.LAYOUT.persistent_rng_address,
+        rng_size=ram_layout.LAYOUT.persistent_rng_size,
+    )
 
 
 def _hex32(value: int) -> str:
@@ -834,6 +917,7 @@ def analyse_executable_section(
     *,
     object_name: str,
     section_name: str,
+    persistent_addresses: PersistentOracle | None = None,
 ) -> tuple[list[Finding], Counter[str], Counter[str]]:
     if len(data) % 4:
         raise AuditError(
@@ -943,6 +1027,45 @@ def analyse_executable_section(
         if safe_constant is not None:
             reviewed["numeric_constant"] += 1
             continue
+        stale_uses = [
+            (use, expected)
+            for use in uses
+            if persistent_addresses is not None
+            and (expected := persistent_addresses.expected_target(use.target))
+            is not None
+        ]
+        stale_high = (
+            persistent_addresses.expected_target(high_base)
+            if persistent_addresses is not None
+            else None
+        )
+        if stale_uses or stale_high is not None:
+            if stale_uses:
+                use, expected = stale_uses[0]
+                target = use.target
+                detail = (
+                    f"unrelocated retail persistent address {_hex32(target)} "
+                    f"must follow the configured ABI to {_hex32(expected)}"
+                )
+            else:
+                target = high_base
+                assert stale_high is not None
+                detail = (
+                    f"unrelocated retail persistent base {_hex32(target)} "
+                    f"must follow the configured ABI to {_hex32(stale_high)}"
+                )
+            findings.append(
+                Finding(
+                    kind="stale_retail_persistent_address",
+                    object=object_name,
+                    section=section_name,
+                    offset=f"0x{offset:x}",
+                    word=_hex32(word),
+                    target=_hex32(target),
+                    detail=detail,
+                )
+            )
+            continue
         bad_uses = [use for use in uses if model.in_text_movable_ram(use.target)]
         if bad_uses:
             targets = ", ".join(
@@ -996,6 +1119,7 @@ def analyse_data_section(
     *,
     object_name: str,
     section_name: str,
+    persistent_addresses: PersistentOracle | None = None,
 ) -> tuple[list[Finding], Counter[str], Counter[str]]:
     findings: list[Finding] = []
     reviewed: Counter[str] = Counter()
@@ -1014,6 +1138,27 @@ def analyse_data_section(
             evidence["symbolic_data_words"] += 1
             continue
         value = struct.unpack_from("<I", data, offset)[0]
+        expected = (
+            persistent_addresses.expected_target(value)
+            if persistent_addresses is not None
+            else None
+        )
+        if expected is not None:
+            findings.append(
+                Finding(
+                    kind="stale_retail_persistent_address",
+                    object=object_name,
+                    section=section_name,
+                    offset=f"0x{offset:x}",
+                    word=_hex32(value),
+                    target=_hex32(value),
+                    detail=(
+                        f"unrelocated retail persistent pointer must follow "
+                        f"the configured ABI to {_hex32(expected)}"
+                    ),
+                )
+            )
+            continue
         if not model.in_data_movable_ram(value, compiled=compiled):
             continue
         placeholder = HEADER_PLACEHOLDERS.get(
@@ -1050,6 +1195,7 @@ def collect(
     loaded = loaded_object_paths(map_path.read_text(), root)
     selections = filter_loaded_selections(expanded, loaded, root)
     model = MovableModel.from_elf(Elf32(elf_path))
+    persistent_addresses = persistent_oracle(root)
     counts = Counts(objects=len(selections))
     findings: list[Finding] = []
     reviewed: Counter[str] = Counter()
@@ -1084,6 +1230,7 @@ def collect(
                     model,
                     object_name=selection.display,
                     section_name=section.name,
+                    persistent_addresses=persistent_addresses,
                 )
             else:
                 counts.data_sections += 1
@@ -1093,6 +1240,7 @@ def collect(
                     model,
                     object_name=selection.display,
                     section_name=section.name,
+                    persistent_addresses=persistent_addresses,
                 )
             findings.extend(new_findings)
             reviewed.update(new_reviewed)
@@ -1105,6 +1253,10 @@ def collect(
         "linker": _display_path(linker_path, root),
         "elf": _display_path(elf_path, root),
         "map": _display_path(map_path, root),
+        "retail_persistent_oracle": {
+            "base": _hex32(persistent_addresses.retail_base),
+            "rng": _hex32(persistent_addresses.retail_rng),
+        },
         "movable_ranges": [
             {"start": _hex32(start), "end": _hex32(end), "section": name}
             for start, end, name in model.ranges

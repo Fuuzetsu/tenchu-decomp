@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -61,25 +62,11 @@
  *    pointer is read directly (no separate `p` local caching it): it changes
  *    across the addr==0 branch, so cc1 cannot keep it live in a register
  *    across that join and reloads gp_rel fresh at the point of use.
- *  - `TENCHU_RELOCATABLE` uses linker-owned MemoryPool and
- *    MemoryPoolCapacity symbols. The linker derives the latter from the
- *    MemoryPool..MemoryPoolEnd bounds. Linker-defined scalar values are exposed
- *    to C through their address, the normal embedded-C idiom. The address and
- *    fixed retail word count are retained only in the byte-matching lane;
- *    neither pins the normal relink's pool placement or capacity.
+ *  - VMEM_DEFAULT_POOL/VMEM_DEFAULT_CAPACITY centralize the one necessary
+ *    exact-vs-linked representation choice in vmemory.h. The normal expansion
+ *    uses linker-owned MemoryPool/MemoryPoolCapacity; the exact expansion uses
+ *    the central retail policy constants. The function body is identical.
  */
-
-typedef struct PoolBlock
-{
-    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
-    struct PoolBlock *next;
-} PoolBlock;
-
-extern PoolBlock *virtual_memory_pool;
-#ifdef TENCHU_RELOCATABLE
-extern PoolBlock MemoryPool[];
-extern u8 MemoryPoolCapacity[];
-#endif
 
 void vinit(void *adr, u32 size)
 {
@@ -87,21 +74,12 @@ void vinit(void *adr, u32 size)
 
     virtual_memory_pool = adr;
     if (adr == 0)
-#ifdef TENCHU_RELOCATABLE
-        virtual_memory_pool = MemoryPool;
-#else
-        virtual_memory_pool = (PoolBlock *)0x800DC000;
-#endif
+        virtual_memory_pool = VMEM_DEFAULT_POOL;
 
     if (size != 0)
         h.size = (size >> 2) - 2;
-#ifdef TENCHU_RELOCATABLE
     else
-        h.size = (u32)MemoryPoolCapacity;
-#else
-    else
-        h.size = 0x47ffe;
-#endif
+        h.size = VMEM_DEFAULT_CAPACITY;
     h.next = 0;
     *virtual_memory_pool = h;
 }

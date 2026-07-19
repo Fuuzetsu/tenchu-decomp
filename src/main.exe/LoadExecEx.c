@@ -62,5 +62,5 @@ void LoadExecEx(u8 *file, u32 stack, u32 size)
     StopCallback();
     FUN_8005e8f0(file, stack, size);
     CdInit();
-    run_exec_file(D_800111D4, 0x801ffff0, 0);
+    run_exec_file(D_800111D4, TENCHU_INITIAL_STACK_ADDRESS, 0);
 }

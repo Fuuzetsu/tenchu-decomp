@@ -33,16 +33,16 @@ void FUN_8004f6c0(int param_1)
 {
     switch (param_1) {
     case 0x10:
-        LoadExecEx((u8 *)D_800128FC, 0x801ffff0, 0);
+        LoadExecEx((u8 *)D_800128FC, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     case 0x11:
-        LoadExecEx((u8 *)D_80012918, 0x801ffff0, 0);
+        LoadExecEx((u8 *)D_80012918, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     case 0x12:
-        LoadExecEx((u8 *)D_80012934, 0x801ffff0, 0);
+        LoadExecEx((u8 *)D_80012934, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     case 0x13:
-        LoadExecEx((u8 *)D_80012950, 0x801ffff0, 0);
+        LoadExecEx((u8 *)D_80012950, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     default:
         AdtMessageBox(D_8001296C, param_1);

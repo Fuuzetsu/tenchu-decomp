@@ -105,6 +105,11 @@ BUILD GREEN (byte-identical)
   with no first-chance exception. The repacked image also reached relocated
   `OPEN06.STR` decode and `STAGES.XA` setup/callback checkpoints; EOF, physical
   XA audio output, and broad gameplay remain unproven.
+- `./Build shiftability-report` is the single progress/work-queue command for
+  that lane. It distinguishes active relocation blockers from exact-source
+  debt, intentional address contracts, configurable RAM policy, and bounded
+  proof claims. Fixed layout/policy values are centralized in
+  `src/main.exe/ram_layout.h`; movable game objects remain linker symbols.
 
 ## What was wrong, and what got fixed
 

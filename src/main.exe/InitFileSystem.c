@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "filesystem.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -66,12 +67,6 @@
  *    since the save/restore is a no-op when the guard is false, but this
  *    placement is what the asm's instruction order actually shows).
  */
-typedef struct PoolBlock
-{
-    s32 size;
-    struct PoolBlock *next;
-} PoolBlock;
-
 typedef struct
 {
     u8 b[16];
@@ -85,7 +80,6 @@ extern void *vcalloc(u32 size, u8 c);
 extern int AfsOpenVolume(TAFS *handle, char *path);
 extern char D_800110F0[]; /* "ACQUREMEMORYDISK" */
 extern char D_80011104[]; /* "TENCHU\DATA" */
-extern PoolBlock *virtual_memory_pool;
 extern void *D_80097EB8;
 extern s32 ReadMode;
 extern s32 TotalIO;
@@ -104,18 +98,21 @@ void InitFileSystem(int mode)
         break;
     case 1:
         PCinit();
-        if (strncmp((char *)0x807f0000, D_800110F0, 0x10) != 0) {
+        if (strncmp((char *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
+                    D_800110F0, TENCHU_PC_MEMORY_HANDSHAKE_SIZE) != 0) {
             vinit(0, 0);
-            *(Buf16 *)0x807f0000 = *(Buf16 *)D_800110F0;
+            *(Buf16 *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS =
+                *(Buf16 *)D_800110F0;
             ReadMode = ReadMode | 9;
         }
         if (ReadMode & 9) {
             saved_pool = virtual_memory_pool;
-            vinit((void *)0x80200000, 0x5f0000);
+            vinit((void *)TENCHU_PC_MEMORY_POOL_ADDRESS,
+                  TENCHU_PC_MEMORY_POOL_SIZE);
             vcalloc(0x8000, 0);
             virtual_memory_pool = saved_pool;
         }
-        D_80097EB8 = (void *)0x80200008;
+        D_80097EB8 = (void *)TENCHU_PC_MEMORY_PAYLOAD_ADDRESS;
         break;
     case 2:
         CdInit();

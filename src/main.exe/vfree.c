@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -83,14 +84,6 @@
  *    compiles to a different shape (see above). The SYM's local list can
  *    under-record; treat a zero-locals record as unverified.
  */
-
-typedef struct PoolBlock
-{
-    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
-    struct PoolBlock *next;
-} PoolBlock;
-
-extern PoolBlock *virtual_memory_pool;
 
 extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" — still referenced by
                               the unmatched vmemoryGC asm; reuse it rather

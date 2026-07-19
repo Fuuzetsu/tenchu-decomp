@@ -403,12 +403,59 @@ class LiteralInstructionTests(unittest.TestCase):
             "ram_end": words(
                 instruction_lui(2, 0x8020), instruction_ori(2, 2, 0x08)
             ),
+            "pc_link_memory": words(
+                instruction_lui(2, 0x807F), instruction_ori(2, 2, 0)
+            ),
         }
         for expected, text in fixtures.items():
             with self.subTest(expected):
                 findings, reviewed, _evidence = self.analyse(text)
                 self.assertEqual(findings, [])
                 self.assertEqual(reviewed[expected], 1)
+
+    def test_fixed_contract_ranges_are_half_open(self) -> None:
+        self.assertEqual(
+            audit.fixed_contract(audit.PERSISTENT_END - 1),
+            "persistent_state",
+        )
+        self.assertIsNone(audit.fixed_contract(audit.PERSISTENT_END))
+        self.assertEqual(
+            audit.fixed_contract(audit.HANDOFF_END - 1),
+            "executable_handoff",
+        )
+        self.assertIsNone(audit.fixed_contract(audit.HANDOFF_END))
+
+    def test_changed_persistent_policy_rejects_retail_literal_code(self) -> None:
+        persistent = audit.PersistentOracle(
+            retail_base=0x80010000,
+            retail_rng=0x80010E70,
+            target_base=0x80008000,
+            target_rng=0x80008F00,
+        )
+        text = words(
+            instruction_lui(2, 0x8001), instruction_ori(2, 2, 0x0058)
+        )
+        findings, _reviewed, _evidence = audit.analyse_executable_section(
+            text,
+            {},
+            model(),
+            object_name="stale.s.o",
+            section_name=".text",
+            persistent_addresses=persistent,
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].kind, "stale_retail_persistent_address")
+        self.assertIn("0x80008058", findings[0].detail)
+
+        findings, _reviewed, _evidence = audit.analyse_executable_section(
+            text,
+            {0: {audit.R_MIPS_HI16}, 4: {audit.R_MIPS_LO16}},
+            model(),
+            object_name="symbolic.s.o",
+            section_name=".text",
+            persistent_addresses=persistent,
+        )
+        self.assertEqual(findings, [])
 
     def test_known_sdk_numeric_mask_is_narrowly_scoped(self) -> None:
         instructions = words(
@@ -532,8 +579,51 @@ class LiteralDataTests(unittest.TestCase):
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0].offset, "0x10")
 
+    def test_changed_persistent_policy_rejects_retail_literal_data(self) -> None:
+        persistent = audit.PersistentOracle(
+            retail_base=0x80010000,
+            retail_rng=0x80010E70,
+            target_base=0x80008000,
+            target_rng=0x80008F00,
+        )
+        findings, _reviewed, _evidence = audit.analyse_data_section(
+            words(0x8001046C),
+            {},
+            model(),
+            object_name="stale.data.s.o",
+            section_name=".data",
+            persistent_addresses=persistent,
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].kind, "stale_retail_persistent_address")
+        self.assertIn("0x8000846c", findings[0].detail)
+
+        findings, _reviewed, _evidence = audit.analyse_data_section(
+            words(0x8001046C),
+            {0: {audit.R_MIPS_32}},
+            model(),
+            object_name="symbolic.data.s.o",
+            section_name=".data",
+            persistent_addresses=persistent,
+        )
+        self.assertEqual(findings, [])
+
 
 class LinkerInventoryTests(unittest.TestCase):
+    def test_persistent_oracle_comes_from_retail_symbol_input(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = root / "config"
+            config.mkdir()
+            (config / "symbols.main.exe.txt").write_text(
+                "PersistentState = 0x80010000;\n"
+                "STARTING_RNG_SEED = 0x80010e70;\n"
+            )
+            persistent = audit.persistent_oracle(root)
+        self.assertEqual(persistent.retail_base, 0x80010000)
+        self.assertEqual(persistent.retail_rng, 0x80010E70)
+        self.assertEqual(persistent.target_base, audit.PERSISTENT_START)
+
     def test_exact_and_glob_selectors_union_and_comments_do_not_link(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

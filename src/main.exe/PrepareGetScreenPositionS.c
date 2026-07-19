@@ -21,7 +21,7 @@ extern MATRIX GsWSMATRIX;
 
 void PrepareGetScreenPositionS(void)
 {
-    MATRIX *m = (MATRIX *)0x1F800000;
+    MATRIX *m = (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS;
 
     m->t[0] = 0;
     m->t[1] = 0;

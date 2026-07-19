@@ -142,11 +142,22 @@ The historical focused gates remain useful exact oracles:
 the no-pad link, PS-X header, widened fixed-address audit, and a complete
 `+0x10004` GNU-ld growth link.
 
+`./Build shiftability-report` presents those checks as one human/agent work
+queue. BLOCKER means a relocation, ownership, layout, or growth proof failed;
+DEBT is an exact-vs-normal source variant whose normal object is already safe;
+CONTRACT and POLICY distinguish intentional addresses from stale internal
+pointers. `python3 tools/shiftability_report.py --json` exposes the same result
+for tooling. The default command runs the growth proof; `--no-growth` is
+explicitly reported as a partial static-only result.
+
 ## Compiler-produced C references
 
-Five otherwise matched C files still construct retail addresses numerically to
-hold cc1's matching schedule. The normal lane compiles those translation units
-with one build-wide `TENCHU_RELOCATABLE` definition and ordinary symbolic C.
+Five otherwise matched functions still need alternate normal-link objects.
+Three C files construct retail addresses numerically to hold cc1's matching
+schedule; the normal lane compiles those translation units with one build-wide
+`TENCHU_RELOCATABLE` definition and ordinary symbolic C. `vinit` and `valloc`
+instead use shared `VMEM_DEFAULT_POOL`/`VMEM_DEFAULT_CAPACITY` names, with the
+unavoidable exact-vs-symbolic representation selected once in `vmemory.h`.
 `ProcItemShinsoku` has already collapsed to one ordinary symbolic source: its
 CamState relocations resolve to the exact retail words when the exact linker
 pins CamState. There are no function-specific compiler flags. The compiler
@@ -164,9 +175,9 @@ valloc                   MemoryPoolCapacity  HI16=1 LO16=1
 ```
 
 `MemoryPoolCapacity` is a linker-defined scalar exposed through the usual
-embedded-C symbol-address idiom. The exact branch retains the retail address
-and `0x47ffe` word count; neither literal is present in the normal-link
-allocator paths. With the current sources the five replacement objects shrink
+embedded-C symbol-address idiom. The exact allocator definitions retain the
+retail address and derived `0x47ffe` word count; neither literal is present in
+the normal-link allocator paths. With the current sources the five replacement objects shrink
 the game stream by 12 bytes; ordinary `ProcItemShinsoku` has zero size delta.
 The no-pad relink moves every later owned input by that amount.
 `check-relink` reports 3,739 unique section-owned SDK symbols following the
@@ -174,9 +185,10 @@ change and resolves all eight target pairs in the final ELF. Its fixed ordinary
 object contract additionally requires ProcItemShinsoku's CamState HI16 records
 at text offsets `0x394` and `0x40c` and its LO16 record at `0x410`.
 
-The five remaining source switches are not all the same kind of debt. The
-current direct symbolic forms of `SelectCameraOwnerOption`, `FileOption`, and
-`ActivateHumans` change cc1's register allocation, scheduling, or frame shape.
+The five remaining source variants are not all the same kind of debt. The
+three per-source switches are `SelectCameraOwnerOption`, `FileOption`, and
+`ActivateHumans`; their current direct symbolic forms change cc1's register
+allocation, scheduling, or frame shape.
 Those forms do not match, but that is not proof that human-written symbolic C
 cannot match; they remain source-reconstruction problems and may be local
 minima created by the numeric scaffolds.
@@ -197,9 +209,10 @@ by sign-extending `ADDIU`; the other two differences are `ORI` versus `ADDIU`.
 The linker can fill instruction immediates but cannot change an opcode.
 `valloc` also rematerializes the pool low half and grows by one instruction.
 Consequently those two functions cannot use their current generic symbolic C
-unconditionally while preserving retail bytes; removing their switches needs
-a genuinely different representation or an explicit decision to relax the
-exact lane, not merely more retail linker pins.
+unconditionally while preserving retail bytes. Their function bodies now use
+one semantic allocator interface, but eliminating the underlying build-lane
+choice needs a genuinely different representation or an explicit decision to
+relax the exact lane, not merely more retail linker pins.
 
 ## Ordinary C output-section coverage
 
@@ -337,6 +350,46 @@ zero findings does not mean deleting every hexadecimal constant.
 
 ## BSS, allocator, and PS-X header
 
+`src/main.exe/ram_layout.h` is the single source of truth for fixed MAIN.EXE
+contracts and configurable allocator/RAM-budget policy. Matching C includes
+it directly; linker generators and audits consume it through
+`tools/ram_layout.py`, and the build tracks both as dependencies. A source scan
+in `shiftability-report` rejects duplicate fixed-address literals in active game
+C and headers (comments and the authority header itself are excluded).
+
+This authority intentionally excludes section-owned objects such as
+`StageChar`, `CamState`, and `D_80097D70`. They must remain linker symbols so
+their addresses follow ordinary code/data growth. The `0x80090000` values in
+three exact-source schedules are compiler scaffolds, not a semantic globals
+base. Likewise, `0x800dc000` is the virtual allocator's preferred retail floor,
+not the start of PS1 RAM; the normal linker may advance it.
+
+There are three different kinds of “base,” and treating them alike creates
+stale pointers:
+
+- `HEAP_START` is always a linker-derived alias for `BSS_END + 4`; it is not a
+  tunable absolute address and is separate from the valloc arena.
+- the MAIN load origin and valloc floor/ceiling/alignment are normal-link layout
+  inputs. The linker/finalizer consume the central values and derive section
+  placement and pool capacity from them.
+- persistent launcher state, the executable-handoff record, initial stack,
+  PC-link record, scratchpad, MMIO, and RAM end are fixed ABI or hardware
+  contracts. Centralizing them prevents drift, but moving a cross-executable
+  ABI also requires the launcher/menu executables to be changed in concert;
+  hardware addresses cannot be moved.
+
+Retail config, generated assembly, and tests can still quote shipped addresses
+as oracle data. Those copies describe the input being reconstructed rather
+than current normal-link policy. The dashboard checks the linked aliases
+against the central header so changing one field cannot silently leave a mixed
+layout. In particular, the linker generator derives the retail
+`PersistentState`/`STARTING_RNG_SEED` interval from the input symbol scripts,
+rebases every retained alias by central base plus offset, and places the RNG
+after the configured state size. The input audit rejects any linked raw retail
+instruction or data pointer left behind after such a change. This covers
+MAIN.EXE; moving that cross-executable ABI still requires coordinated changes
+to the programs that hand the state to MAIN.EXE.
+
 At the retail layout the linked regions are:
 
 | region or boundary | half-open range / address |
@@ -451,7 +504,7 @@ STR decoding and XA command/callback paths follow the relocated disc layout;
 the probe did not run either asset to EOF and did not establish physical audio
 output or broad gameplay.
 
-## Addresses that intentionally remain fixed
+## Fixed contracts versus layout policy
 
 The rule is “no numeric address for something the linker may move,” not “no
 numeric address anywhere.” The normal lane deliberately retains:
@@ -460,8 +513,12 @@ numeric address anywhere.” The normal lane deliberately retains:
 - the pre-load persistent state at `0x80010000..0x80010e70`;
 - PS1 BIOS, MMIO, and scratchpad addresses;
 - the cross-executable handoff record at `0x80100000..0x8010005c`;
-- the allocator upper bound at `0x801fc000`; and
 - the initial stack at `0x801ffff0`.
+
+The current allocator floor and upper budget are policy, not hardware. Change
+them only in `ram_layout.h`; the normal linker recomputes `MemoryPool`, its
+reservation, and `MemoryPoolCapacity`, while its assertions reject overlap or
+an unusably small arena.
 
 Code/data/BSS definitions inside movable MAIN must instead be section-owned,
 and references to them must carry relocations. A relocation against an `ABS`

@@ -176,12 +176,15 @@ draw:
 
     if (hint != 0)
     {
-        *(s16 *)0x1F800020 = px;
-        *(s16 *)0x1F800022 = py;
-        *(s16 *)0x1F800024 = pz;
-        GsGetLs(hint, (MATRIX *)0x1F800000);
-        GsSetLsMatrix((MATRIX *)0x1F800000);
-        scr.vz = (s16)RotTransPers((SVECTOR *)0x1F800020, (s32 *)&scr, (void *)0x1F800028, (void *)0x1F80002C);
+        *(s16 *)TENCHU_SCRATCHPAD(0x20) = px;
+        *(s16 *)TENCHU_SCRATCHPAD(0x22) = py;
+        *(s16 *)TENCHU_SCRATCHPAD(0x24) = pz;
+        GsGetLs(hint, (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        scr.vz = (s16)RotTransPers(
+            (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)&scr,
+            (void *)TENCHU_SCRATCHPAD(0x28),
+            (void *)TENCHU_SCRATCHPAD(0x2c));
     }
     else
     {

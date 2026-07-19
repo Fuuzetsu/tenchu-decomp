@@ -12,6 +12,7 @@ $ ./Build             # reference layout/matching branches; same-size edits only
 $ ./Build mod         # patch selected same-slot sources into main_mod.exe
 $ ./Build relink      # normal GNU-ld layout; functions/data/BSS may move
 $ ./Build check-relink # structural audit plus full +0x10004 growth proof
+$ ./Build shiftability-report # current blocker queue and composed proofs
 ```
 
 `./Build check` is only for verifying that the reference decomp still matches
@@ -144,6 +145,17 @@ the grown fixture; no per-function slot, cave, trampoline, or fixed downstream
 address is involved. Its extension list mirrors the normal link's recursive
 user/generated source union, so nested `src/main.exe/reloc/` helpers participate
 in the same proof.
+
+Run `./Build shiftability-report` when deciding what to fix next. A BLOCKER is
+a failed relocation, ownership, or layout proof. DEBT means the normal link
+already uses a safe symbolic object but the byte-matching and normal source
+shapes have not converged; CONTRACT and POLICY entries are intentional
+boundaries, not stale pointers. Fixed contracts and configurable RAM-budget
+values are centralized in `src/main.exe/ram_layout.h`. `HEAP_START` itself is
+linker-derived as BSS end plus four, so it is intentionally not another numeric
+constant. Section-owned globals are deliberately not offsets from a numeric
+“game globals base”: ordinary source must name their linker symbols so they
+follow layout changes.
 
 The current controlled growth artifact also passes the bounded PCSX-Redux
 runtime probe in both modes: direct `-loadexe` and an auto-LBA repack through

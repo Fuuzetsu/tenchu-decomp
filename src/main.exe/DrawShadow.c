@@ -230,7 +230,7 @@ void DrawShadow(Humanoid *human)
         if ((depth << 16) >> 18 < 0x4e2)
         {
             GsSortObject4(&D_80097F34->object, OTablePt, 2,
-                          (u_long *)0x1f800000);
+                          (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
         }
     }
 }

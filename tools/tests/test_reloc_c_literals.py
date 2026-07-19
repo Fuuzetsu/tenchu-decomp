@@ -106,6 +106,51 @@ class ContractTests(unittest.TestCase):
 
 
 class InventoryTests(unittest.TestCase):
+    def test_classifies_every_replacement_as_exact_source_debt(self) -> None:
+        self.assertEqual(
+            set(audit.SOURCE_VARIANT_DEBT),
+            set(audit.REPLACEMENT_OBJECT_SPECS),
+        )
+        self.assertEqual(
+            {
+                name
+                for name, debt in audit.SOURCE_VARIANT_DEBT.items()
+                if debt.category == audit.SOURCE_RECONSTRUCTION
+            },
+            {"SelectCameraOwnerOption", "FileOption", "ActivateHumans"},
+        )
+        self.assertEqual(
+            {
+                name
+                for name, debt in audit.SOURCE_VARIANT_DEBT.items()
+                if debt.category == audit.EXACT_OPCODE_CONFLICT
+            },
+            {"vinit", "valloc"},
+        )
+        self.assertTrue(
+            all(debt.detail for debt in audit.SOURCE_VARIANT_DEBT.values())
+        )
+
+    def test_rejects_source_debt_inventory_drift(self) -> None:
+        incomplete = dict(audit.SOURCE_VARIANT_DEBT)
+        del incomplete["FileOption"]
+        with self.assertRaisesRegex(
+            audit.AuditError,
+            "debt inventory differs.*missing FileOption",
+        ):
+            audit.validate_source_variant_debt_inventory(incomplete)
+
+        extra = dict(audit.SOURCE_VARIANT_DEBT)
+        extra["ProcItemShinsoku"] = audit.SourceVariantDebt(
+            audit.SOURCE_RECONSTRUCTION,
+            "already resolved",
+        )
+        with self.assertRaisesRegex(
+            audit.AuditError,
+            "debt inventory differs.*extra ProcItemShinsoku",
+        ):
+            audit.validate_source_variant_debt_inventory(extra)
+
     def test_separates_replacement_and_ordinary_object_inventories(self) -> None:
         self.assertNotIn("ProcItemShinsoku", audit.REPLACEMENT_OBJECT_SPECS)
         self.assertEqual(
@@ -142,6 +187,16 @@ class InventoryTests(unittest.TestCase):
 
 
 class MemoryPoolLayoutTests(unittest.TestCase):
+    def test_capacity_policy_comes_from_the_central_layout(self) -> None:
+        self.assertEqual(
+            audit.MEMORY_POOL_HEADER_WORDS,
+            audit.ram_layout.LAYOUT.memory_pool_header_words,
+        )
+        self.assertEqual(
+            audit.MINIMUM_MEMORY_POOL_SIZE,
+            audit.ram_layout.LAYOUT.memory_pool_minimum_size,
+        )
+
     def test_retail_gap_preserves_original_pool_capacity(self) -> None:
         start = audit.memory_pool_start_for_bss(audit.MEMORY_POOL_START - 4)
         self.assertEqual(start, audit.MEMORY_POOL_START)

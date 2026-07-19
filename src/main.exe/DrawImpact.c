@@ -329,14 +329,16 @@ void DrawImpact(TEffectSlot *ef)
     inverse = param->pz;
     if (work != 0)
     {
-        *(s16 *)0x1f800020 = end;
-        *(s16 *)0x1f800022 = start2;
-        *(s16 *)0x1f800024 = inverse;
-        GsGetLs((GsCOORDINATE2 *)work, (MATRIX *)0x1f800000);
-        GsSetLsMatrix((MATRIX *)0x1f800000);
-        scr.vz = (s16)RotTransPers((SVECTOR *)0x1f800020, (s32 *)&scr,
-                                   (void *)0x1f800028,
-                                   (void *)0x1f80002c);
+        *(s16 *)TENCHU_SCRATCHPAD(0x20) = end;
+        *(s16 *)TENCHU_SCRATCHPAD(0x22) = start2;
+        *(s16 *)TENCHU_SCRATCHPAD(0x24) = inverse;
+        GsGetLs((GsCOORDINATE2 *)work,
+                (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        scr.vz = (s16)RotTransPers(
+            (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)&scr,
+            (void *)TENCHU_SCRATCHPAD(0x28),
+            (void *)TENCHU_SCRATCHPAD(0x2c));
     }
     else
     {

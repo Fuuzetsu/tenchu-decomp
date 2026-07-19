@@ -34,14 +34,14 @@ void ResetInventory(void)
 {
     s16 i;
 
-    ((PersistentState *)0x80010000)->counts[0] = 0xff;
+    ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[0] = 0xff;
     i = 1;
     do {
-        ((PersistentState *)0x80010000)->counts[i] = 0;
+        ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[i] = 0;
         i++;
     } while (i < 9);
     while (i < 0x14) {
-        ((PersistentState *)0x80010000)->counts[i] = 0xfe;
+        ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[i] = 0xfe;
         i++;
     }
 }

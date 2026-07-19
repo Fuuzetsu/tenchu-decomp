@@ -132,7 +132,7 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
  * (base first); inlining the constant makes it `(plus reg_index CONST)`, and
  * expand's EXPAND_SUM/form_sum sorts the constant term LAST, emitting
  * `addu t,index,base` -- the target's operand order. */
-#define SCORE_STATE ((MissionScorePersistent *)0x80010000)
+#define SCORE_STATE ((MissionScorePersistent *)TENCHU_PERSISTENT_STATE_ADDRESS)
 #define result storage.result
 #define rankSprites storage.rankSprites
 #define characterSprites storage.characterSprites
@@ -1067,7 +1067,7 @@ score_row_loop:
                 {
                     GsSPRITE *characterSpriteBase = characterSprites;
                     MissionScorePersistent *rowState =
-                        (MissionScorePersistent *)0x80010000;
+                        (MissionScorePersistent *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
                     sprite = &characterSpriteBase[
                         rowState->characters[i]];
@@ -1115,7 +1115,8 @@ score_row_loop:
 
     if (result.grade == RANK_GRAND_MASTER)
     {
-        register PersistentState *state = (PersistentState *)0x80010000;
+        register PersistentState *state =
+            (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
         stageItem = D_8008ED50[state->stage];
         brightness = stageItem;
@@ -1133,7 +1134,7 @@ score_row_loop:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
     do {
-        statePtr = (PersistentState *)0x80010000;
+        statePtr = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
     } while (0);
     if (D_8001005C != 0)
     {

@@ -98,8 +98,12 @@ probe_present:
         D_80097D32 = 0;
         goto increment_state;
     case 0x2b:
-        SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 0);
-        value = SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 1);
+        SaveCard(0, (u8 *)D_80097D18,
+                 (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                 TENCHU_PERSISTENT_STATE_SIZE, 0);
+        value = SaveCard(0, (u8 *)D_80097D18,
+                         (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                         TENCHU_PERSISTENT_STATE_SIZE, 1);
         if (value == 1)
             goto save_2b_success;
         if (value >= 2)
@@ -172,8 +176,12 @@ increment_state:
         D_80097D2E++;
         break;
     case 0x37:
-        SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 0);
-        value = SaveCard(0, (u8 *)D_80097D18, (void *)0x80010000, 0xe70, 1);
+        SaveCard(0, (u8 *)D_80097D18,
+                 (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                 TENCHU_PERSISTENT_STATE_SIZE, 0);
+        value = SaveCard(0, (u8 *)D_80097D18,
+                         (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                         TENCHU_PERSISTENT_STATE_SIZE, 1);
         if (value == 1)
             goto save_37_success;
         if (value >= 2)

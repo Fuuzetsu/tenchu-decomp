@@ -106,7 +106,7 @@ void SetupAppearance(short mode, short stage)
     u8 appearance;
 
     NowStage = stage;
-    pt = (u8 *)0x80010000;
+    pt = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
     EngageLevel = 3 - pt[0x58];
     appearance = pt[0x1a];
     if (appearance != 0)
@@ -114,7 +114,7 @@ void SetupAppearance(short mode, short stage)
         human = HumanData;
         human[0].name = D_80011710;
         human[1].name = appearance != 0xff ? D_800979A8 : D_800979B0;
-        *((u8 *)0x8001001A) = 0;
+        *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
         PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR = -1;
     }
 

@@ -118,12 +118,13 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
     scratch_rot_1f800040.vx = orgrot->vx + FUN_8002fd9c(cs->Owner);
     scratch_rot_1f800040.vy = orgrot->vy;
     scratch_rot_1f800040.vz = orgrot->vz;
-    RotMatrixYXZ((SVECTOR *)0x1F800040, (MATRIX *)0x1F800080);
+    RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
+                 (MATRIX *)TENCHU_SCRATCHPAD(0x80));
     scratch_trans_1f800094[0] = orgpos->vx;
     scratch_trans_1f800094[1] = orgpos->vy;
     scratch_trans_1f800094[2] = orgpos->vz;
-    SetRotMatrix((MATRIX *)0x1F800080);
-    SetTransMatrix((MATRIX *)0x1F800080);
+    SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
+    SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
 
     RotTrans(campos, &va, flag);
     RotTrans(campos + 1, &vb, flag);

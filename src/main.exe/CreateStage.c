@@ -202,12 +202,13 @@ void CreateStage(int StageNo, int CharType)
     CamState.Owner = human;
 
     for (i = 0; i < 20; i++)
-        human->item[i] = ((PersistentState *)0x80010000)->counts[i];
+        human->item[i] =
+            ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[i];
 
     create_ninken_character_(CharType, StageNo);
-    if (((PersistentState *)0x80010000)->layout >= 3)
+    if (((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)
     {
-        ((PersistentState *)0x80010000)->layout = rand() % 3;
+        ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % 3;
         SystemFlag |= 8;
     }
     else

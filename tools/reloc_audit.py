@@ -21,13 +21,18 @@ import subprocess
 import sys
 from typing import Iterable
 
+try:
+    from tools import ram_layout
+except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
+    import ram_layout  # type: ignore[no-redef]
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
 # Retail MAIN.EXE layout.  These boundaries classify the audit; they are not a
 # proposed future linker layout.  The movable interval ends where the current
 # BSS meets HEAP_START.
-MAIN_START = 0x80011000
+MAIN_START = ram_layout.LAYOUT.main_load_address
 LEADING_DATA_END = 0x80016134
 # AdtSelect ends at 0x800601d4.  Exec and the small PC* wrappers immediately
 # after it are PsyQ/runtime inputs too; __SN_ENTRY_POINT is not the SDK boundary.
@@ -141,7 +146,7 @@ def address_region(value: int) -> str:
         return "trailing_loaded"
     if value < MOVABLE_END:
         return "bss"
-    if value < 0x80200000:
+    if value < ram_layout.LAYOUT.cached_ram_end:
         return "heap_or_later"
     return "outside_main"
 

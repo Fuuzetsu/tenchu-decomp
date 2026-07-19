@@ -173,6 +173,30 @@ class FinalizeTests(unittest.TestCase):
         self.assertEqual(second_padding, 0)
         self.assertEqual(second, first)
 
+    def test_normal_link_can_override_the_preserved_stack_contract(self) -> None:
+        configured_stack = 0x801FEFF0
+        result, header, _padding = psxexe.finalize_image(
+            make_exe(PAYLOAD_CONTAINING_ENTRY),
+            entry=ENTRY,
+            load_address=LOAD,
+            overrides={"sp": configured_stack},
+            expected={"sp": configured_stack},
+        )
+        self.assertEqual(header.sp, configured_stack)
+        self.assertEqual(
+            struct.unpack_from("<I", result, psxexe.HEADER_FIELDS["sp"])[0],
+            configured_stack,
+        )
+
+    def test_override_cannot_replace_a_linker_derived_field(self) -> None:
+        with self.assertRaisesRegex(psxexe.PsxExeError, "regenerated"):
+            psxexe.finalize_image(
+                make_exe(PAYLOAD_CONTAINING_ENTRY),
+                entry=ENTRY,
+                load_address=LOAD,
+                overrides={"pc": ENTRY},
+            )
+
     def test_conflicting_expected_layout_is_rejected(self) -> None:
         with self.assertRaisesRegex(psxexe.PsxExeError, "conflicts with finalized"):
             psxexe.finalize_image(

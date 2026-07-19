@@ -10,6 +10,6 @@ places these sections after the retail initialized inputs and before the
 linker-owned BSS. Existing decompiled functions can be edited in place; this
 directory is only needed for brand-new translation units or helpers.
 
-The fixed `MemoryPool` currently limits added initialized/BSS storage to the
-available RAM gap, and the remaining relocation audits still determine whether
-a changed executable is runnable. See `docs/relocatable-build.md`.
+The fixed pool ceiling/current RAM budget limits added initialized/BSS storage
+to the available RAM gap, and the remaining relocation audits still determine
+whether a changed executable is runnable. See `docs/relocatable-build.md`.

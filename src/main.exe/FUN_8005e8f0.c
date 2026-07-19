@@ -61,7 +61,7 @@ void FUN_8005e8f0(char *arg0, u32 arg1, u32 arg2)
     magic = 0xDEF0C0DE;
     do {
     } while (0);
-    rec = (BootExecRecord *)0x80100000;
+    rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
     arg0 = arg0 + 6;
     rec->magic = magic;
     i = 0;

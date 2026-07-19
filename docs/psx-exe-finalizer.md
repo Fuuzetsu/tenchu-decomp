@@ -16,7 +16,7 @@ The input is an EXE-shaped linker/`objcopy` output:
 - bytes `0x000..0x7ff` are a PS-X EXE header template;
 - bytes from `0x800` onward are the file-backed payload.
 
-`finalize` copies the header template and changes only these words:
+`finalize` copies the header template and always regenerates these words:
 
 | Offset | Field | Generated value |
 |---:|---|---|
@@ -24,16 +24,21 @@ The input is an EXE-shaped linker/`objcopy` output:
 | `0x18` | `t_addr` / load address | explicit address, ELF load segment, or named symbol |
 | `0x1c` | `t_size` / load size | payload length after zero-padding to `0x800` |
 
-Every other header byte is preserved, including GP, data/BSS fields, stack
-fields, reserved words, and the license/marker area. Input and output paths must
-be different, so an experiment cannot silently rewrite the linker artifact or
-the matching build.
+Every other header byte is preserved unless the caller explicitly supplies a
+repeatable `--set FIELD=VALUE`. The normal-link build uses
+`--set sp=<TENCHU_INITIAL_STACK_ADDRESS>` so the executable header consumes the
+same central RAM policy as the linker; PC, `t_addr`, and `t_size` cannot be set
+this way because they are always linker/payload-derived. GP, data/BSS fields,
+reserved words, and the license/marker area otherwise remain untouched. Input
+and output paths must be different, so an experiment cannot silently rewrite
+the linker artifact or the matching build.
 
 With explicit addresses:
 
 ```console
 $ tools/psxexe.py finalize linked.exe -o game.exe \
     --entry 0x80060268 --load-address 0x80011000 \
+    --set sp=0x801ffff0 \
     --expect gp=0 --expect sp=0x801ffff0
 ```
 
@@ -112,7 +117,8 @@ $ ./Build check-reloc-bss
 ```
 
 That lane obtains both `__SN_ENTRY_POINT` and `__load_start` from its linked
-ELF, pads the logical payload by `0x150` bytes at retail size, and requires the
-finalized image to be byte-identical to the shipped executable. A grown image
-will therefore get PC, load address, and load size from its actual link instead
-of inheriting stale retail header words.
+ELF, obtains the configured stack from `src/main.exe/ram_layout.h`, pads the
+logical payload by `0x150` bytes at retail size, and requires the finalized
+image to be byte-identical to the shipped executable. A grown or reconfigured
+image therefore gets PC, load address, load size, and stack policy from current
+inputs instead of inheriting stale retail header words.

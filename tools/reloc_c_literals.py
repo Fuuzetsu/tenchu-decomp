@@ -28,8 +28,10 @@ import struct
 
 try:
     from tools.reloc_game_lane import atomic_write
+    from tools import ram_layout
 except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
     from reloc_game_lane import atomic_write
+    import ram_layout  # type: ignore[no-redef]
 
 
 EM_MIPS = 8
@@ -54,11 +56,13 @@ FIRST_SDK_TEXT_INPUT = ".shake/build/main.exe/LIBAPI_4F9D4.s.o(.text);"
 SHN_ABS = 0xFFF1
 SDK_TEXT_START = 0x800601D4
 SDK_TEXT_END = 0x80086764
-MEMORY_POOL_START = 0x800DC000
-MEMORY_POOL_END = 0x801FC000
-MEMORY_POOL_ALIGNMENT = 16
-MINIMUM_MEMORY_POOL_SIZE = 0x10
-RETAIL_MEMORY_POOL_CAPACITY = 0x47FFE
+MEMORY_POOL_START = ram_layout.LAYOUT.memory_pool_floor
+MEMORY_POOL_END = ram_layout.LAYOUT.memory_pool_end
+MEMORY_POOL_ALIGNMENT = ram_layout.LAYOUT.memory_pool_alignment
+MINIMUM_MEMORY_POOL_SIZE = ram_layout.LAYOUT.memory_pool_minimum_size
+MEMORY_POOL_HEADER_WORDS = ram_layout.LAYOUT.memory_pool_header_words
+BSS_ALIGNMENT = ram_layout.LAYOUT.bss_alignment
+RETAIL_MEMORY_POOL_CAPACITY = ram_layout.LAYOUT.retail_memory_pool_capacity
 POOL_CAPACITY_PROVISION = (
     "PROVIDE(MemoryPoolCapacity = "
     f"0x{RETAIL_MEMORY_POOL_CAPACITY:08x});\n"
@@ -118,6 +122,14 @@ class ObjectSpec:
     relocation_offsets: dict[str, dict[int, tuple[int, ...]]] | None = None
 
 
+@dataclass(frozen=True)
+class SourceVariantDebt:
+    """Why exact and normal links still compile different source shapes."""
+
+    category: str
+    detail: str
+
+
 REPLACEMENT_OBJECT_SPECS = {
     "SelectCameraOwnerOption": ObjectSpec(
         {"D_80097D70": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}}, (0x8009,)
@@ -133,14 +145,47 @@ REPLACEMENT_OBJECT_SPECS = {
             "MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 1},
             "MemoryPoolCapacity": {R_MIPS_HI16: 1, R_MIPS_LO16: 1},
         },
-        (0x800D,),
+        (MEMORY_POOL_START >> 16,),
     ),
     "valloc": ObjectSpec(
         {
             "MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 2},
             "MemoryPoolCapacity": {R_MIPS_HI16: 1, R_MIPS_LO16: 1},
         },
-        (0x800D,),
+        (MEMORY_POOL_START >> 16,),
+    ),
+}
+
+# These are exact-source reconstruction debts, not normal-relink blockers.  The
+# categories record what the compiler and relocation output currently prove;
+# they are not a claim that the remaining retail source is unrecoverable.
+SOURCE_RECONSTRUCTION = "source_reconstruction"
+EXACT_OPCODE_CONFLICT = "exact_opcode_conflict"
+SOURCE_VARIANT_DEBT = {
+    "SelectCameraOwnerOption": SourceVariantDebt(
+        SOURCE_RECONSTRUCTION,
+        "symbolic C relinks safely, but its human-written retail source shape "
+        "has not yet been recovered from compiler output",
+    ),
+    "FileOption": SourceVariantDebt(
+        SOURCE_RECONSTRUCTION,
+        "symbolic C relinks safely, but its human-written retail source shape "
+        "has not yet been recovered from compiler output",
+    ),
+    "ActivateHumans": SourceVariantDebt(
+        SOURCE_RECONSTRUCTION,
+        "symbolic C relinks safely, but its human-written retail source shape "
+        "has not yet been recovered from compiler output",
+    ),
+    "vinit": SourceVariantDebt(
+        EXACT_OPCODE_CONFLICT,
+        "retail ORI address materialisation conflicts with ABI HI16/LO16 "
+        "relocation output; the symbolic variant uses ADDIU",
+    ),
+    "valloc": SourceVariantDebt(
+        EXACT_OPCODE_CONFLICT,
+        "retail ORI address materialisation conflicts with ABI HI16/LO16 "
+        "relocation output; the symbolic variant uses ADDIU",
     ),
 }
 
@@ -166,6 +211,29 @@ OBJECT_SPECS = {**REPLACEMENT_OBJECT_SPECS, **ORDINARY_OBJECT_SPECS}
 
 class AuditError(RuntimeError):
     """An ELF or relocation-lane invariant failed."""
+
+
+def validate_source_variant_debt_inventory(
+    debt: dict[str, SourceVariantDebt] = SOURCE_VARIANT_DEBT,
+    replacement_specs: dict[str, ObjectSpec] = REPLACEMENT_OBJECT_SPECS,
+) -> None:
+    """Require every replacement object to have exactly one reviewed reason."""
+
+    missing = sorted(set(replacement_specs) - set(debt))
+    extra = sorted(set(debt) - set(replacement_specs))
+    if missing or extra:
+        details = []
+        if missing:
+            details.append("missing " + ", ".join(missing))
+        if extra:
+            details.append("extra " + ", ".join(extra))
+        raise AuditError(
+            "source-variant debt inventory differs from replacement objects: "
+            + "; ".join(details)
+        )
+
+
+validate_source_variant_debt_inventory()
 
 
 class ElfObject:
@@ -576,7 +644,7 @@ def memory_pool_capacity_from_bounds(start: int, end: int) -> int:
     size = end - start
     if size < MINIMUM_MEMORY_POOL_SIZE or size % 4:
         raise AuditError(f"MemoryPool has invalid size 0x{size:x}")
-    return size // 4 - 2
+    return size // 4 - MEMORY_POOL_HEADER_WORDS
 
 
 def verify_linked(
@@ -824,7 +892,9 @@ def verify_normal_link(
         raise AuditError("normal-link extension end precedes its start")
     if initialized_end.value != extension_end.value:
         raise AuditError("initialized end does not follow the normal-link extension")
-    expected_bss_start = (initialized_end.value + 15) & ~15
+    expected_bss_start = (
+        initialized_end.value + BSS_ALIGNMENT - 1
+    ) & ~(BSS_ALIGNMENT - 1)
     if bss_start.value != expected_bss_start:
         raise AuditError(
             f"BSS starts at 0x{bss_start.value:08x}, "

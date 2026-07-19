@@ -180,7 +180,7 @@ have_z:
         DrawList[j] = 0;
 
     SetRotMatrix(&GsWSMATRIX);
-    *(GsRVIEW2 *)0x1F800038 = ViewInfo;
+    *(GsRVIEW2 *)TENCHU_SCRATCHPAD(0x38) = ViewInfo;
 
     j = sx;
 scan_x:
@@ -232,7 +232,8 @@ scan_cur:
                     do
                     {
                         signed_size = cur->ModelSize;
-                        bucket = ((*(s32 *)0x1F800008 - signed_size) >> 8) - 11;
+                        bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
+                                   signed_size) >> 8) - 11;
                         plimit = (u16)cur->ModelSize;
                     } while (0);
                 } while (0);
@@ -284,9 +285,11 @@ draw_near:
         goto draw_far_start;
     if (cur->model != 0)
     {
-        GsGetLs(&cur->model->locate, (MATRIX *)0x1F800000);
-        GsSetLsMatrix((MATRIX *)0x1F800000);
-        GsSortObject4(&cur->model->object, &ot, 2, (u_long *)0x1F800000);
+        GsGetLs(&cur->model->locate,
+                (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsSortObject4(&cur->model->object, &ot, 2,
+                      (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
     }
     cur = cur->next;
     goto draw_near;
@@ -302,8 +305,9 @@ draw_far:
         goto next_bucket;
     if (cur->model != 0)
     {
-        GsGetLs(&cur->model->locate, (MATRIX *)0x1F800000);
-        GsSetLsMatrix((MATRIX *)0x1F800000);
+        GsGetLs(&cur->model->locate,
+                (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         DrawTMD(&cur->model->object, OTablePt, 0);
     }
     if ((u32)(GsGetWorkBase() - packet_base) > 0x6400)

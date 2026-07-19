@@ -49,23 +49,31 @@ import subprocess
 import tempfile
 from typing import Sequence
 
+try:
+    from tools import ram_layout
+except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
+    import ram_layout  # type: ignore[no-redef]
 
+
+RAM_LAYOUT = ram_layout.LAYOUT
 INITIALIZED_END = 0x80097EB0
-MAIN_LOAD_ADDRESS = 0x80011000
+MAIN_LOAD_ADDRESS = RAM_LAYOUT.main_load_address
 BSS_START = INITIALIZED_END
 BSS_PAD_END = 0x80098000
 BSS_END = 0x800CDBA8
 HEAP_START = BSS_END + 4
 GP_ADDRESS = 0x80097698
-MEMORY_POOL_START = 0x800DC000
-MEMORY_POOL_SIZE = 0x120000
-MEMORY_POOL_END = MEMORY_POOL_START + MEMORY_POOL_SIZE
-MEMORY_POOL_ALIGNMENT = 16
-MINIMUM_MEMORY_POOL_SIZE = 0x10
-MEMORY_POOL_CAPACITY = MEMORY_POOL_SIZE // 4 - 2
-HANDOFF_START = 0x80100000
-HANDOFF_END = 0x8010005C
-STACK_START = 0x801FFFF0
+MEMORY_POOL_START = RAM_LAYOUT.memory_pool_floor
+MEMORY_POOL_END = RAM_LAYOUT.memory_pool_end
+MEMORY_POOL_SIZE = MEMORY_POOL_END - MEMORY_POOL_START
+BSS_ALIGNMENT = RAM_LAYOUT.bss_alignment
+MEMORY_POOL_ALIGNMENT = RAM_LAYOUT.memory_pool_alignment
+MINIMUM_MEMORY_POOL_SIZE = RAM_LAYOUT.memory_pool_minimum_size
+MEMORY_POOL_HEADER_WORDS = RAM_LAYOUT.memory_pool_header_words
+MEMORY_POOL_CAPACITY = RAM_LAYOUT.retail_memory_pool_capacity
+HANDOFF_START = RAM_LAYOUT.executable_handoff_address
+HANDOFF_END = RAM_LAYOUT.executable_handoff_end
+STACK_START = RAM_LAYOUT.initial_stack_address
 
 LOGICAL_FILE_SIZE = 0x876B0
 RETAIL_FILE_SIZE = 0x87800
@@ -89,6 +97,11 @@ VRAM_END_MARKER = "main_exe_VRAM_END = .;"
 ASSIGNMENT_RE = re.compile(
     r"^\s*([A-Za-z_.$][A-Za-z0-9_.$]*)\s*=\s*"
     r"(0[xX][0-9A-Fa-f]+);\s*(?:[#].*)?$"
+)
+MAIN_OUTPUT_SECTION_RE = re.compile(
+    r"(?P<prefix>\.main_exe\s+)"
+    r"(?P<address>0[xX][0-9A-Fa-f]+)"
+    r"(?P<suffix>\s*:)"
 )
 DLABEL_RE = re.compile(r"^\s*dlabel\s+([A-Za-z_.$][A-Za-z0-9_.$]*)\s*$")
 NM_POSIX_RE = re.compile(
@@ -206,14 +219,32 @@ def merge_assignments(*sources: str) -> dict[str, int]:
     return merged
 
 
-def is_owned_assignment(name: str, address: int) -> bool:
+def parse_main_output_address(source: str) -> int:
+    matches = [
+        match
+        for line in source.splitlines()
+        if (match := MAIN_OUTPUT_SECTION_RE.search(line)) is not None
+    ]
+    if len(matches) != 1:
+        raise LaneError(
+            "expected one addressed source .main_exe output section, found "
+            f"{len(matches)}"
+        )
+    return int(matches[0].group("address"), 16)
+
+
+def is_owned_assignment(
+    name: str, address: int, *, source_main_load_address: int
+) -> bool:
     return (
-        MAIN_LOAD_ADDRESS <= address < BSS_END
+        source_main_load_address <= address < BSS_END
         or name in {"D_800CDBA8", "_gp", "HEAP_START", "MemoryPool"}
     )
 
 
-def filter_symbol_script(source: str) -> tuple[str, dict[str, int]]:
+def filter_symbol_script(
+    source: str, *, source_main_load_address: int
+) -> tuple[str, dict[str, int]]:
     removed: dict[str, int] = {}
     output: list[str] = []
     for line in source.splitlines(keepends=True):
@@ -221,7 +252,9 @@ def filter_symbol_script(source: str) -> tuple[str, dict[str, int]]:
         if match is not None:
             name, raw_address = match.groups()
             address = int(raw_address, 16)
-            if is_owned_assignment(name, address):
+            if is_owned_assignment(
+                name, address, source_main_load_address=source_main_load_address
+            ):
                 previous = removed.get(name)
                 if previous is not None and previous != address:
                     raise LaneError(f"conflicting removed symbol {name}")
@@ -232,7 +265,6 @@ def filter_symbol_script(source: str) -> tuple[str, dict[str, int]]:
     expected = {
         "_gp": GP_ADDRESS,
         "HEAP_START": HEAP_START,
-        "MemoryPool": MEMORY_POOL_START,
     }
     for name, address in removed.items():
         if name in expected and address != expected[name]:
@@ -241,6 +273,59 @@ def filter_symbol_script(source: str) -> tuple[str, dict[str, int]]:
                 f"0x{expected[name]:08x} to 0x{address:08x}"
             )
     return "".join(output), removed
+
+
+def rebase_persistent_assignments(
+    source: str,
+    layout: ram_layout.RamLayout,
+    *,
+    source_state_address: int,
+    source_rng_address: int,
+) -> str:
+    """Rewrite source persistent aliases using the central layout policy.
+
+    Most aliases retain their byte offset from ``PersistentState``.  The RNG
+    seed is the exception: it follows the configured end of that state, so a
+    state-size change cannot leave it behind at the retail offset.
+    """
+    output: list[str] = []
+    for line in source.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        match = ASSIGNMENT_RE.fullmatch(body)
+        if match is None:
+            output.append(line)
+            continue
+
+        name, raw_address = match.groups()
+        address = int(raw_address, 16)
+        if name == "STARTING_RNG_SEED":
+            if address != source_rng_address:
+                raise LaneError(
+                    "source STARTING_RNG_SEED disagrees with the merged symbol "
+                    f"oracle: 0x{source_rng_address:08x} versus 0x{address:08x}"
+                )
+            rebased = layout.persistent_rng_address
+        elif source_state_address <= address < source_rng_address:
+            rebased = layout.persistent_state_address + (
+                address - source_state_address
+            )
+        else:
+            output.append(line)
+            continue
+
+        # Keeping an unchanged line verbatim makes the current policy output
+        # byte-for-byte identical, including its mixed hex case and comments.
+        if rebased == address:
+            output.append(line)
+            continue
+        start, end = match.span(2)
+        output.append(
+            body[:start]
+            + f"0x{rebased:08x}"
+            + body[end:]
+            + line[len(body) :]
+        )
+    return "".join(output)
 
 
 def transform_tail_source(source: str) -> tuple[str, set[str]]:
@@ -314,6 +399,7 @@ def make_bss_body(
 ) -> str:
     inner = indent + "    "
     lines = [
+        f"{indent}. = ALIGN(., {BSS_ALIGNMENT});\n",
         f"{indent}.main_exe_bss (NOLOAD) : AT(main_exe_ROM_END) SUBALIGN(4)\n",
         f"{indent}{{\n",
         f"{inner}main_exe_BSS_START = .;\n",
@@ -407,11 +493,13 @@ def make_bss_body(
     lines.extend(
         [
             f"{indent}MemoryPoolCapacity = ABSOLUTE("
-            "(MemoryPoolEnd - MemoryPool) / 4 - 2);\n",
+            f"(MemoryPoolEnd - MemoryPool) / 4 - "
+            f"{MEMORY_POOL_HEADER_WORDS});\n",
             "\n",
             f"{indent}__tenchu_handoff_start = ABSOLUTE(0x{HANDOFF_START:08x});\n",
             f"{indent}__tenchu_handoff_end = ABSOLUTE(0x{HANDOFF_END:08x});\n",
-            f'{indent}ASSERT(main_exe_BSS_START == ALIGN(main_exe_INITIALIZED_END, 16), '
+            f'{indent}ASSERT(main_exe_BSS_START == '
+            f'ALIGN(main_exe_INITIALIZED_END, {BSS_ALIGNMENT}), '
             '"BSS does not follow aligned initialized data")\n',
             f'{indent}ASSERT(D_800CDBA8 == main_exe_BSS_END, '
             '"crt0 clear end disagrees with linker BSS end")\n',
@@ -499,17 +587,25 @@ def rewrite_linker(
         )
     del lines[gp_indices[0]]
 
-    main_section_indices = [
-        index
+    main_sections = [
+        (index, match)
         for index, line in enumerate(lines)
-        if ".main_exe 0x80011000" in line
+        if (match := MAIN_OUTPUT_SECTION_RE.search(line)) is not None
     ]
-    if len(main_section_indices) != 1:
+    if len(main_sections) != 1:
         raise LaneError(
-            "expected one retail-address .main_exe output section, found "
-            f"{len(main_section_indices)}"
+            "expected one addressed source .main_exe output section, found "
+            f"{len(main_sections)}"
         )
-    main_section_index = main_section_indices[0]
+    main_section_index, main_section_match = main_sections[0]
+    main_address = int(main_section_match.group("address"), 16)
+    if main_address != MAIN_LOAD_ADDRESS:
+        address_start, address_end = main_section_match.span("address")
+        lines[main_section_index] = (
+            lines[main_section_index][:address_start]
+            + f"0x{MAIN_LOAD_ADDRESS:08x}"
+            + lines[main_section_index][address_end:]
+        )
     brace_indices = [
         index
         for index in range(main_section_index + 1, min(main_section_index + 4, len(lines)))
@@ -621,9 +717,20 @@ def generate(
     dynamic_pool: bool = False,
     strict_orphans: bool = False,
 ) -> tuple[int, int, int]:
+    linker_source = linker_input.read_text()
+    source_main_load_address = parse_main_output_address(linker_source)
     symbol_source = symbols_input.read_text()
     undefined_source = undefined_input.read_text()
     assignments = merge_assignments(symbol_source, undefined_source)
+    try:
+        source_state_address = assignments["PersistentState"]
+        source_rng_address = assignments["STARTING_RNG_SEED"]
+    except KeyError as error:
+        raise LaneError(
+            f"symbol scripts lack persistent layout oracle {error.args[0]}"
+        ) from error
+    if source_rng_address <= source_state_address:
+        raise LaneError("persistent RNG oracle does not follow PersistentState")
     bss_assignments = {
         name: address
         for name, address in assignments.items()
@@ -632,13 +739,21 @@ def generate(
     if not bss_assignments:
         raise LaneError("symbol scripts contain no retail BSS assignments")
 
-    filtered_symbols, removed_symbols = filter_symbol_script(symbol_source)
-    filtered_undefined, removed_undefined = filter_symbol_script(undefined_source)
+    filtered_symbols, removed_symbols = filter_symbol_script(
+        symbol_source, source_main_load_address=source_main_load_address
+    )
+    filtered_undefined, removed_undefined = filter_symbol_script(
+        undefined_source, source_main_load_address=source_main_load_address
+    )
     removed = set(removed_symbols) | set(removed_undefined)
     owned_assignments = {
         name
         for name, address in assignments.items()
-        if is_owned_assignment(name, address)
+        if is_owned_assignment(
+            name,
+            address,
+            source_main_load_address=source_main_load_address,
+        )
     }
     required = owned_assignments
     missing = sorted(required - removed)
@@ -665,7 +780,7 @@ def generate(
         if address >= BSS_PAD_END
     ]
     rewritten_linker = rewrite_linker(
-        linker_input.read_text(),
+        linker_source,
         old_tail_object=old_tail_object,
         new_tail_object=new_tail_object,
         extension_object_glob=extension_object_glob,
@@ -677,13 +792,29 @@ def generate(
     )
 
     atomic_write(linker_output, rewritten_linker)
-    atomic_write(symbols_output, filtered_symbols)
-    atomic_write(undefined_output, filtered_undefined)
+    atomic_write(
+        symbols_output,
+        rebase_persistent_assignments(
+            filtered_symbols,
+            RAM_LAYOUT,
+            source_state_address=source_state_address,
+            source_rng_address=source_rng_address,
+        ),
+    )
+    atomic_write(
+        undefined_output,
+        rebase_persistent_assignments(
+            filtered_undefined,
+            RAM_LAYOUT,
+            source_state_address=source_state_address,
+            source_rng_address=source_rng_address,
+        ),
+    )
     atomic_write(tail_output, transformed_tail)
     initialized_assignments = {
         name
         for name, address in assignments.items()
-        if MAIN_LOAD_ADDRESS <= address < BSS_START
+        if source_main_load_address <= address < BSS_START
     }
     return len(bss_assignments), len(aliases), len(initialized_assignments)
 
@@ -891,7 +1022,8 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help=(
             "preserve the retail MemoryPool base until linked BSS reaches it, "
-            "then align the pool after BSS and reserve through 0x801fc000; the "
+            f"then align the pool after BSS and reserve through "
+            f"0x{MEMORY_POOL_END:08x}; the "
             "default always keeps the retail pool layout"
         ),
     )

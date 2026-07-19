@@ -44,7 +44,8 @@ typedef struct
 
 s32 InitPersistentState(void)
 {
-    PersistentState *pg = (PersistentState *)0x80010000;
+    PersistentState *pg =
+        (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
     PersistentState *ps;
     s32 i;
     u32 magic;
@@ -52,13 +53,14 @@ s32 InitPersistentState(void)
     u8 *stockp;
 
     if ((pg->chr & 0xfe) != 0 || 10 < pg->stage) {
-        memset((void *)0x80010000, 0, 0xe70);
+        memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
+               TENCHU_PERSISTENT_STATE_SIZE);
         magic = 0x19981110;
         
         fill = 0xfe;
         i = 0x1f;
-        stockp = (u8 *)(0x80010000 | i);
-        ps = (PersistentState *)0x80010000;
+        stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
+        ps = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
         *(u32 *)ps = magic;
         ((u8 *)ps)[0x58] = 0;
         ((u8 *)ps)[0x59] = 1;

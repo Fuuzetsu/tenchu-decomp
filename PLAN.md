@@ -72,6 +72,12 @@ byte-identical `main.exe`.
   checked and special canonical/header allowances are exact-site scoped.
   `./Build check-relink` reruns that gate and the final-image audit, then
   performs the full `+0x10004` GNU-ld growth proof.
+  `./Build shiftability-report` composes those proofs into a single human/agent
+  dashboard and separates active stale-address blockers from exact-source debt,
+  intentional hardware/cross-executable contracts, and configurable RAM
+  policy. Fixed contract/policy literals now have one C/Python/linker authority
+  in `src/main.exe/ram_layout.h`; active game C and headers contain no duplicate
+  fixed-address copies outside that authority.
   The exact grown image passes a bounded PCSX-Redux direct-load smoke and an
   auto-LBA `SLPS_019.01 → MENU.EXE → MAIN.EXE` boot to the moved entry and
   `PadProc`, with later VSyncs and no first-chance exception. The auto-packed

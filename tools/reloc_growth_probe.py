@@ -31,9 +31,10 @@ import sys
 from typing import Iterable
 
 try:
-    from tools import psxexe, reloc_audit, reloc_c_literals, reloc_data
+    from tools import psxexe, ram_layout, reloc_audit, reloc_c_literals, reloc_data
 except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
     import psxexe  # type: ignore[no-redef]
+    import ram_layout  # type: ignore[no-redef]
     import reloc_audit  # type: ignore[no-redef]
     import reloc_c_literals  # type: ignore[no-redef]
     import reloc_data  # type: ignore[no-redef]
@@ -42,8 +43,11 @@ except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
 ROOT = Path(__file__).resolve().parents[1]
 
 DEFAULT_GROWTH = 0x10004
-POOL_ALIGNMENT = 16
-POOL_MINIMUM_START = 0x800DC000
+POOL_ALIGNMENT = ram_layout.LAYOUT.memory_pool_alignment
+POOL_MINIMUM_START = ram_layout.LAYOUT.memory_pool_floor
+BSS_ALIGNMENT = ram_layout.LAYOUT.bss_alignment
+POOL_HEADER_WORDS = ram_layout.LAYOUT.memory_pool_header_words
+INITIAL_STACK = ram_layout.LAYOUT.initial_stack_address
 
 BASE_ELF = Path(".shake/build/tenchu/main_relink.exe.elf")
 BASE_LOGICAL = Path(".shake/build/tenchu/main_relink.logical")
@@ -341,9 +345,9 @@ def verify_bss_and_pool(
     base_bss_end = symbol(base, "__bss_end").value
     grown_bss_end = symbol(grown, "__bss_end").value
 
-    if base_bss_start != align_up(base_initialized_end, 16):
+    if base_bss_start != align_up(base_initialized_end, BSS_ALIGNMENT):
         raise ProbeError("baseline BSS does not follow aligned initialized data")
-    if grown_bss_start != align_up(grown_initialized_end, 16):
+    if grown_bss_start != align_up(grown_initialized_end, BSS_ALIGNMENT):
         raise ProbeError("grown BSS does not follow aligned initialized data")
     if grown_bss_end - grown_bss_start != base_bss_end - base_bss_start:
         raise ProbeError("growth fixture unexpectedly changed BSS size")
@@ -389,7 +393,7 @@ def verify_bss_and_pool(
         (grown, grown_pool, grown_pool_end),
     ):
         capacity = elf.symbol("MemoryPoolCapacity")
-        expected = (pool_end - pool_start) // 4 - 2
+        expected = (pool_end - pool_start) // 4 - POOL_HEADER_WORDS
         if capacity.section_index != reloc_c_literals.SHN_ABS:
             raise ProbeError(f"{elf.path}: MemoryPoolCapacity is not a scalar")
         if capacity.value != expected:
@@ -597,7 +601,7 @@ def verify_headers(
     base_header = psxexe.validate_image(
         base_exe.read_bytes(),
         source=str(base_exe),
-        expected={"gp": 0, "sp": 0x801FFFF0},
+        expected={"gp": 0, "sp": INITIAL_STACK},
     )
     entry = symbol(grown_elf, "__SN_ENTRY_POINT").value
     load = symbol(grown_elf, "__load_start").value
@@ -606,7 +610,8 @@ def verify_headers(
         entry=entry,
         load_address=load,
         source=str(grown_logical),
-        expected={"gp": 0, "sp": 0x801FFFF0},
+        overrides={"sp": INITIAL_STACK},
+        expected={"gp": 0, "sp": INITIAL_STACK},
     )
     grown_exe.write_bytes(finalized)
 

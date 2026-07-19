@@ -36,7 +36,7 @@ typedef struct
 } TCameraStatus;
 
 extern TCameraStatus CamState;
-#define PSTATE ((PersistentState *)0x80010000)
+#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void FUN_800565f0(void)
 {

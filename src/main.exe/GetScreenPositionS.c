@@ -60,10 +60,12 @@ extern GsRVIEW2 ViewInfo;
 
 void GetScreenPositionS(s32 arg0, s32 arg1, s32 arg2, s32 *arg3)
 {
-    SVECTOR *sv = (SVECTOR *)0x1F800080;
+    SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(0x80);
 
     sv->vx = arg0 - (short)ViewInfo.vpx;
     sv->vy = arg1 - (short)ViewInfo.vpy;
     sv->vz = arg2 - (short)ViewInfo.vpz;
-    *(short *)(arg3 + 1) = RotTransPers(sv, arg3, (void *)0x1F800000, (void *)0x1F800010);
+    *(short *)(arg3 + 1) = RotTransPers(
+        sv, arg3, (void *)TENCHU_SCRATCHPAD_ADDRESS,
+        (void *)TENCHU_SCRATCHPAD(0x10));
 }

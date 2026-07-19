@@ -32,7 +32,7 @@
 
 typedef struct
 {
-    u8 bytes[0xe70];
+    u8 bytes[TENCHU_PERSISTENT_STATE_SIZE];
 } LoadCardPersistentBlob;
 
 extern char *TENCHU_ID;
@@ -73,7 +73,7 @@ s16 LoadCard(s32 target, u8 *name)
     }
     else
     {
-        *(LoadCardPersistentBlob *)0x80010000 =
+        *(LoadCardPersistentBlob *)TENCHU_PERSISTENT_STATE_ADDRESS =
             *(LoadCardPersistentBlob *)(block + 0x200);
     }
     vfree(temp);

@@ -37,6 +37,16 @@ mainGen = genDir </> "main.exe.done"
 configDir :: FilePath
 configDir = "config"
 
+ramLayoutHeader, ramLayoutTool :: FilePath
+ramLayoutHeader = srcDir </> "main.exe" </> "ram_layout.h"
+ramLayoutTool = "tools" </> "ram_layout.py"
+
+ramLayoutValue :: String -> Action String
+ramLayoutValue field = do
+  need [ramLayoutTool, ramLayoutHeader]
+  StdoutTrim value <- cmd "python3" ramLayoutTool field
+  pure value
+
 asmDir :: FilePath
 asmDir = "asm"
 
@@ -940,7 +950,7 @@ verifyRelocCLiteralObjects = do
       objectArgs = concatMap
         (\name -> ["--object", name <> "=" <> relocCLiteralAuditObject name])
         relocCLiteralAuditNames
-  need $ tool : relocCLiteralAuditObjects
+  need $ [tool, ramLayoutTool, ramLayoutHeader] <> relocCLiteralAuditObjects
   cmd_ "python3" tool ("verify-objects" : objectArgs)
 
 verifyRelocCLiteralLink :: Action ()
@@ -949,7 +959,8 @@ verifyRelocCLiteralLink = do
       objectArgs = concatMap
         (\name -> ["--object", name <> "=" <> relocCLiteralAuditObject name])
         relocCLiteralAuditNames
-  need $ [tool, mainRelocGameElf, mainRelocCLiteralElf, mainRelocCLiteralExe] <>
+  need $ [ tool, ramLayoutTool, ramLayoutHeader, mainRelocGameElf,
+           mainRelocCLiteralElf, mainRelocCLiteralExe ] <>
     relocCLiteralAuditObjects
   cmd_ "python3" tool
     ([ "verify-linked",
@@ -969,7 +980,8 @@ verifyNormalRelink = do
             name <> "=" <> relocCLiteralReferenceObject name
           ])
         relocCLiteralNames
-  need $ [ tool, mainRelocBssElf, mainRelinkElf, normalRelinkCLinker ] <>
+  need $ [ tool, ramLayoutTool, ramLayoutHeader, mainRelocBssElf,
+           mainRelinkElf, normalRelinkCLinker ] <>
     relocCLiteralAuditObjects <> relocCLiteralReferenceObjects
   cmd_ "python3" tool
     ([ "verify-normal-link",
@@ -1309,7 +1321,7 @@ mainExtraRules = do
               name <> "=" <> relocCLiteralReferenceObject name
             ])
           relocCLiteralNames
-    need $ [relocGameLinker, tool] <>
+    need $ [relocGameLinker, tool, ramLayoutTool, ramLayoutHeader] <>
       relocCLiteralObjects <> relocCLiteralReferenceObjects
     cmd_ "python3" tool
       ([ "generate-linker",
@@ -1368,7 +1380,7 @@ mainExtraRules = do
               name <> "=" <> relocCLiteralReferenceObject name
             ])
           relocCLiteralNames
-    need $ [relocGameLinker, tool] <>
+    need $ [relocGameLinker, tool, ramLayoutTool, ramLayoutHeader] <>
       relocCLiteralObjects <> relocCLiteralReferenceObjects
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
     cmd_ "python3" tool
@@ -1500,7 +1512,8 @@ mainExtraRules = do
           relocDataTargetNames
         tool = "tools" </> "reloc_bss_lane.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
-    need [relocSdkBaseLinker, relocSdkBaseSymbols, undefinedSymbols, tailSource, tool]
+    need [ relocSdkBaseLinker, relocSdkBaseSymbols, undefinedSymbols,
+           tailSource, tool, ramLayoutTool, ramLayoutHeader ]
     liftIO $ IO.createDirectoryIfMissing True relocBssDir
     cmd_ "python3" tool $
       [ "generate",
@@ -1566,6 +1579,7 @@ mainExtraRules = do
   -- output and is padded to a PS-X sector by the finalizer.
   mainRelocBssExe %> \out -> do
     let tool = "tools" </> "psxexe.py"
+    stack <- ramLayoutValue "initial_stack_address"
     need [mainRelocBssLogical, mainRelocBssElf, tool]
     cmd_ "python3" tool
       [ "finalize", mainRelocBssLogical,
@@ -1573,8 +1587,9 @@ mainExtraRules = do
         "--elf", mainRelocBssElf,
         "--entry-symbol", "__SN_ENTRY_POINT",
         "--load-symbol", "__load_start",
+        "--set", "sp=" <> stack,
         "--expect", "gp=0",
-        "--expect", "sp=0x801ffff0"
+        "--expect", "sp=" <> stack
       ]
 
   -- Compose the no-pad C/SDK chain with reviewed loaded-data relocations and
@@ -1599,7 +1614,7 @@ mainExtraRules = do
         tool = "tools" </> "reloc_bss_lane.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need [ normalRelinkSdkLinker, normalRelinkSdkSymbols, undefinedSymbols,
-           relocData75F64Asm, tool ]
+           relocData75F64Asm, tool, ramLayoutTool, ramLayoutHeader ]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory normalRelinkLinker)
     cmd_ "python3" tool $
       [ "generate",
@@ -1650,7 +1665,8 @@ mainExtraRules = do
         assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
     need $ sFilesExp <> assetFilesExp <> oFiles <> relocCLiteralObjects <>
       [ normalRelinkLinker, normalRelinkSymbols, normalRelinkUndefined,
-        normalRelinkTailObject, undefinedFunctions, inputAuditTool
+        normalRelinkTailObject, undefinedFunctions, inputAuditTool,
+        ramLayoutTool, ramLayoutHeader, tgSymbols mainTarget
       ] <> relocDataObjects
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory mainRelinkElf)
     cmd_ ld ldFlags
@@ -1664,7 +1680,10 @@ mainExtraRules = do
         "--no-check-sections",
         "-nostdlib"
       ] extensionObjects
-    cmd_ "python3" inputAuditTool
+    -- Keep the artifact available to the composed dashboard even when this
+    -- diagnostic finds a new blocker. Public `relink` and `check-relink`
+    -- immediately rerun the same audit strictly.
+    cmd_ "python3" inputAuditTool ["--allow-findings"]
 
   mainRelinkLogical %> \out -> do
     need [mainRelinkElf]
@@ -1672,6 +1691,7 @@ mainExtraRules = do
 
   mainRelinkExe %> \out -> do
     let tool = "tools" </> "psxexe.py"
+    stack <- ramLayoutValue "initial_stack_address"
     need [mainRelinkLogical, mainRelinkElf, tool]
     cmd_ "python3" tool
       [ "finalize", mainRelinkLogical,
@@ -1679,8 +1699,9 @@ mainExtraRules = do
         "--elf", mainRelinkElf,
         "--entry-symbol", "__SN_ENTRY_POINT",
         "--load-symbol", "__load_start",
+        "--set", "sp=" <> stack,
         "--expect", "gp=0",
-        "--expect", "sp=0x801ffff0"
+        "--expect", "sp=" <> stack
       ]
 
   -- Non-matching build: mkmod patches hooked functions in place. It reads main.exe's
@@ -1726,8 +1747,26 @@ phonyRules = do
             normalRelinkLinker, normalRelinkSymbols, normalRelinkUndefined,
             undefinedFunctions, configDir </> "reloc-data.main.exe.json",
             tool, "tools" </> "psxexe.py", "tools" </> "reloc_audit.py",
-            "tools" </> "reloc_c_literals.py"
+            "tools" </> "reloc_c_literals.py", ramLayoutTool, ramLayoutHeader
           ]
+        cmd_ "python3" tool
+
+      runShiftabilityReport = do
+        let tool = "tools" </> "shiftability_report.py"
+            undefinedFunctions = tgGenDir mainTarget </> metaDir </>
+              "undefined_functions_auto.main.exe.txt"
+        need $
+          [ mainRelinkExe, mainRelinkElf, mainRelinkMap, mainRelinkLogical,
+            mainRelocBssElf, normalRelinkLinker, normalRelinkCLinker,
+            normalRelinkSymbols, normalRelinkUndefined, undefinedFunctions,
+            configDir </> "reloc-data.main.exe.json", tool,
+            "tools" </> "reloc_input_audit.py",
+            "tools" </> "reloc_audit.py",
+            "tools" </> "reloc_c_literals.py",
+            "tools" </> "reloc_growth_probe.py",
+            "tools" </> "reloc_data.py", "tools" </> "psxexe.py",
+            ramLayoutTool, ramLayoutHeader, tgSymbols mainTarget
+          ] <> relocCLiteralAuditObjects <> relocCLiteralReferenceObjects
         cmd_ "python3" tool
 
   phony "clean" $ do
@@ -1808,7 +1847,17 @@ phonyRules = do
   -- to grow and accepts new sources under src/main.exe/reloc/. `check-relink`
   -- runs the structural/header/static-address gates; `check-reloc-bss` remains
   -- the byte-exact retail-layout oracle.
-  phony "relink" $ need [mainRelinkExe, mainRelinkMap]
+  phony "relink" $ do
+    let inputAuditTool = "tools" </> "reloc_input_audit.py"
+    need [mainRelinkExe, mainRelinkMap, inputAuditTool, tgSymbols mainTarget]
+    cmd_ "python3" inputAuditTool
+
+  -- A user/agent-facing dashboard rather than another independent audit: it
+  -- composes the mandatory input scan, final-image scan, compiler-object
+  -- contracts, current layout budget, and the real +0x10004 growth proof. It
+  -- labels exact-source variants and intentional fixed PS1/game contracts
+  -- separately so neither is mistaken for a stale-address blocker.
+  phony "shiftability-report" runShiftabilityReport
 
   phony "check-relink-growth" runRelinkGrowthProbe
 
@@ -1823,9 +1872,10 @@ phonyRules = do
     let psxExeTool = "tools" </> "psxexe.py"
         auditTool = "tools" </> "reloc_audit.py"
         inputAuditTool = "tools" </> "reloc_input_audit.py"
+    stack <- ramLayoutValue "initial_stack_address"
     need
       [ mainRelinkExe, mainRelinkElf, mainRelinkMap, psxExeTool, auditTool,
-        inputAuditTool
+        inputAuditTool, ramLayoutTool, ramLayoutHeader, tgSymbols mainTarget
       ]
     cmd_ "python3" psxExeTool
       [ "validate", mainRelinkExe,
@@ -1833,7 +1883,7 @@ phonyRules = do
         "--entry-symbol", "__SN_ENTRY_POINT",
         "--load-symbol", "__load_start",
         "--expect", "gp=0",
-        "--expect", "sp=0x801ffff0"
+        "--expect", "sp=" <> stack
       ]
     cmd_ "python3" auditTool ["--fail-on-findings"]
     cmd_ "python3" inputAuditTool
@@ -1936,7 +1986,7 @@ phonyRules = do
     need ["check-reloc-data"]
     need [ mainRelocBssLogical, mainRelocBssExe, mainRelocBssElf,
            tgImage t, relocSdkBaseSymbols,
-           undefinedSymbols, tool ]
+           undefinedSymbols, tool, ramLayoutTool, ramLayoutHeader ]
     StdoutTrim ref <- cmd "sha256sum" (tgImage t)
     StdoutTrim finalized <- cmd "sha256sum" mainRelocBssExe
     let refSha = head $ words ref

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -19,14 +20,6 @@
  * vinit.c/vgetfreesize.c for PoolBlock) and returns the size of the LARGEST
  * free block (top bit clear), in BYTES (word count << 2).
  */
-
-typedef struct PoolBlock
-{
-    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
-    struct PoolBlock *next;
-} PoolBlock;
-
-extern PoolBlock *virtual_memory_pool;
 
 u32 vgetmaxsize(void)
 {

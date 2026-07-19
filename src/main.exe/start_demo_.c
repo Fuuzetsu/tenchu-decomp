@@ -115,7 +115,7 @@ void start_demo_(void)
     PadShockAR(0, 0, 0, 0);
 
     i = 0;
-    persistent = (u8 *)0x80010000;
+    persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
     do {
         chr_offset = CHOSEN_CHARACTER * 0x20;
         persistent[0x27 + i] = persistent[(i + chr_offset) + 0x40c];
@@ -138,7 +138,7 @@ void start_demo_(void)
     suffix = 'r';
     fade_sprite->sprite.attribute |= 0x60000000;
 
-    language_state = (PersistentState *)0x80010000;
+    language_state = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
     if (CHOSEN_CHARACTER != 0)
     {
         suffix = 'a';

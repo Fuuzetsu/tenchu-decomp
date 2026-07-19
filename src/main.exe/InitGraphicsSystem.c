@@ -72,7 +72,7 @@ extern s32 SlightPoint;
  * read-modified-and-reread across a call wants a raw address literal, not
  * a named extern").
  */
-#define STARTING_RNG_SEED (*(s32 *)0x80010e70)
+#define STARTING_RNG_SEED (*(s32 *)TENCHU_PERSISTENT_RNG_ADDRESS)
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void GsSetNearClip(s32 near);

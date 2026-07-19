@@ -5,6 +5,7 @@ Run: nix develop -c python3 -m unittest tools.tests.test_reloc_bss_lane
 
 from __future__ import annotations
 
+from dataclasses import replace
 import re
 import shutil
 import subprocess
@@ -33,7 +34,9 @@ HEAP_START = 0x800cdbac;
 MemoryPool = 0x800dc000;
 Handoff = 0x80100000;
 """
-        output, removed = lane.filter_symbol_script(source)
+        output, removed = lane.filter_symbol_script(
+            source, source_main_load_address=0x80011000
+        )
         self.assertEqual(
             output,
             "BeforeImage = 0x80010ffc;\n"
@@ -58,7 +61,71 @@ Handoff = 0x80100000;
 
     def test_rejects_changed_boundary_address(self) -> None:
         with self.assertRaisesRegex(lane.LaneError, "_gp moved"):
-            lane.filter_symbol_script("_gp = 0x8009769c;\n")
+            lane.filter_symbol_script(
+                "_gp = 0x8009769c;\n",
+                source_main_load_address=0x80011000,
+            )
+
+    def test_configured_pool_floor_does_not_redefine_the_retail_input(self) -> None:
+        output, removed = lane.filter_symbol_script(
+            "MemoryPool = 0x81234000;\n",
+            source_main_load_address=0x80011000,
+        )
+        self.assertEqual(output, "")
+        self.assertEqual(removed, {"MemoryPool": 0x81234000})
+
+    def test_retail_persistent_rebase_is_byte_preserving(self) -> None:
+        source = """\
+PersistentState = 0x80010000;
+D_8001046C = 0x8001046C; # retain spelling
+STARTING_RNG_SEED = 0x80010e70;
+Unrelated = 0x80010e74;
+"""
+        self.assertEqual(
+            lane.rebase_persistent_assignments(
+                source,
+                lane.RAM_LAYOUT,
+                source_state_address=0x80010000,
+                source_rng_address=0x80010E70,
+            ),
+            source,
+        )
+
+    def test_persistent_aliases_follow_base_but_rng_follows_state_size(self) -> None:
+        layout = replace(
+            lane.RAM_LAYOUT,
+            persistent_state_address=0x80008000,
+            persistent_state_size=0xF00,
+        )
+        source = """\
+PersistentState = 0x80010000;
+D_80010058 = 0x80010058;
+D_8001046C = 0x8001046C;
+STARTING_RNG_SEED = 0x80010e70;
+Unrelated = 0x80011000;
+"""
+        self.assertEqual(
+            lane.rebase_persistent_assignments(
+                source,
+                layout,
+                source_state_address=0x80010000,
+                source_rng_address=0x80010E70,
+            ),
+            "PersistentState = 0x80008000;\n"
+            "D_80010058 = 0x80008058;\n"
+            "D_8001046C = 0x8000846c;\n"
+            "STARTING_RNG_SEED = 0x80008f00;\n"
+            "Unrelated = 0x80011000;\n",
+        )
+
+    def test_rejects_noncanonical_retail_rng_seed(self) -> None:
+        with self.assertRaisesRegex(lane.LaneError, "merged symbol oracle"):
+            lane.rebase_persistent_assignments(
+                "STARTING_RNG_SEED = 0x80010e6c;\n",
+                lane.RAM_LAYOUT,
+                source_state_address=0x80010000,
+                source_rng_address=0x80010E70,
+            )
 
 
 class TailTransformTests(unittest.TestCase):
@@ -143,7 +210,8 @@ SECTIONS
         self.assertIn("MemoryPoolEnd = .;", output)
         self.assertIn(
             "MemoryPoolCapacity = ABSOLUTE("
-            "(MemoryPoolEnd - MemoryPool) / 4 - 2);",
+            f"(MemoryPoolEnd - MemoryPool) / 4 - "
+            f"{lane.MEMORY_POOL_HEADER_WORDS});",
             output,
         )
         self.assertIn(".main_exe_extension : AT(__romPos)", output)
@@ -174,13 +242,36 @@ SECTIONS
         self.assertNotIn("retail BSS start changed", output)
         self.assertNotIn("retail _gp changed", output)
         self.assertIn(
-            'ASSERT(main_exe_BSS_START == ALIGN(main_exe_INITIALIZED_END, 16), '
+            'ASSERT(main_exe_BSS_START == ALIGN(main_exe_INITIALIZED_END, '
+            f'{lane.BSS_ALIGNMENT}), '
             '"BSS does not follow aligned initialized data")',
             output,
         )
         self.assertIn(
             'ASSERT(main_exe_BSS_END <= MemoryPool, '
             '"BSS overlaps the virtual-memory pool")',
+            output,
+        )
+
+    def test_main_origin_and_bss_alignment_follow_central_policy(self) -> None:
+        with (
+            mock.patch.object(lane, "MAIN_LOAD_ADDRESS", 0x80012000),
+            mock.patch.object(lane, "BSS_ALIGNMENT", 32),
+        ):
+            output = lane.rewrite_linker(
+                self.LINKER,
+                old_tail_object="old/72CD0.data.s.o",
+                new_tail_object="new/72CD0.reloc.s.o",
+                extension_object_glob="build/reloc/*.c.o",
+                aliases=[],
+            )
+        self.assertIn(".main_exe 0x80012000 :", output)
+        self.assertNotIn(".main_exe 0x80011000 :", output)
+        self.assertIn(
+            ". = ALIGN(., 32);\n    .main_exe_bss (NOLOAD)", output
+        )
+        self.assertIn(
+            "main_exe_BSS_START == ALIGN(main_exe_INITIALIZED_END, 32)",
             output,
         )
 
@@ -267,6 +358,74 @@ SECTIONS
     def test_pool_and_transient_handoff_intentionally_overlap(self) -> None:
         self.assertLess(lane.MEMORY_POOL_START, lane.HANDOFF_START)
         self.assertLess(lane.HANDOFF_END, lane.MEMORY_POOL_END)
+
+
+class GenerationTests(unittest.TestCase):
+    def test_generated_symbol_scripts_rebase_persistent_aliases(self) -> None:
+        layout = replace(
+            lane.RAM_LAYOUT,
+            main_load_address=0x80012000,
+            persistent_state_address=0x80008000,
+            persistent_state_size=0xF00,
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            linker_input = root / "input.ld"
+            symbols_input = root / "symbols.txt"
+            undefined_input = root / "undefined.txt"
+            tail_input = root / "tail.s"
+            linker_output = root / "output.ld"
+            symbols_output = root / "symbols-output.txt"
+            undefined_output = root / "undefined-output.txt"
+            tail_output = root / "tail-output.s"
+
+            linker_input.write_text(LinkerRewriteTests.LINKER)
+            symbols_input.write_text(
+                "PersistentState = 0x80010000;\n"
+                "STARTING_RNG_SEED = 0x80010e70;\n"
+                "RetailText = 0x80011000;\n"
+                "OTablePt = 0x80097eb0;\n"
+            )
+            undefined_input.write_text(
+                "D_80010058 = 0x80010058;\n"
+                "D_8001046C = 0x8001046C;\n"
+            )
+            tail_input.write_text(TailTransformTests.SOURCE)
+
+            with (
+                mock.patch.object(lane, "RAM_LAYOUT", layout),
+                mock.patch.object(
+                    lane, "MAIN_LOAD_ADDRESS", layout.main_load_address
+                ),
+            ):
+                counts = lane.generate(
+                    linker_input=linker_input,
+                    symbols_input=symbols_input,
+                    undefined_input=undefined_input,
+                    tail_input=tail_input,
+                    linker_output=linker_output,
+                    symbols_output=symbols_output,
+                    undefined_output=undefined_output,
+                    tail_output=tail_output,
+                    old_tail_object="old/72CD0.data.s.o",
+                    new_tail_object="new/72CD0.reloc.s.o",
+                    extension_object_glob="build/reloc/*.c.o",
+                )
+
+            self.assertEqual(counts, (1, 0, 1))
+            self.assertIn(
+                ".main_exe 0x80012000 :", linker_output.read_text()
+            )
+            self.assertEqual(
+                symbols_output.read_text(),
+                "PersistentState = 0x80008000;\n"
+                "STARTING_RNG_SEED = 0x80008f00;\n",
+            )
+            self.assertEqual(
+                undefined_output.read_text(),
+                "D_80010058 = 0x80008058;\n"
+                "D_8001046C = 0x8000846c;\n",
+            )
 
 
 class OrdinaryGlobalIntegrationTests(unittest.TestCase):

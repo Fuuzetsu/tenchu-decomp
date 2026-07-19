@@ -246,16 +246,19 @@ void DrawBleed(TEffectSlot *ef)
     z = *(s32 *)&param->pos.vz;
     param->time -= 1;
 
-    *(s32 *)0x1F800014 = 0;
-    *(s32 *)0x1F800018 = 0;
-    *(s32 *)0x1F80001C = 0;
-    *(s16 *)0x1F800020 = x - (short)ViewInfo.vpx;
-    *(s16 *)0x1F800022 = y - (short)ViewInfo.vpy;
-    *(s16 *)0x1F800024 = z - (short)ViewInfo.vpz;
-    SetTransMatrix((MATRIX *)0x1F800000);
+    *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(0x1c) = 0;
+    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (short)ViewInfo.vpx;
+    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (short)ViewInfo.vpy;
+    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (short)ViewInfo.vpz;
+    SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
     scrp = &scr;
-    scrp->vz = (s16)RotTransPers((SVECTOR *)0x1F800020, (s32 *)scrp, (void *)0x1F800028, (void *)0x1F80002C);
+    scrp->vz = (s16)RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20),
+                                 (s32 *)scrp,
+                                 (void *)TENCHU_SCRATCHPAD(0x28),
+                                 (void *)TENCHU_SCRATCHPAD(0x2c));
 
     t = (s32)((u32)(u16)scr.vz << 16);
     otz = t >> 16;

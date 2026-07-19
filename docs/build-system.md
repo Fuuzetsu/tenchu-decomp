@@ -89,6 +89,7 @@ works from anywhere in the tree.
 ./Build check           # build + assert sha256 == disks/tenchu/main.exe
 ./Build relink          # normal GNU-ld/finalized PS-X EXE; changed sizes allowed
 ./Build check-relink    # relink + header + zero-findings audit + 0x10004 growth proof
+./Build shiftability-report # blocker/debt/contract dashboard + growth proof
 ./Build check-relink-growth # run the full GNU-ld growth proof directly
 ./Build run-relink      # fast emulator launch of the normal-link executable
 ./Build iso-relink      # auto-pack the normal-link executable into a disc image
@@ -158,6 +159,17 @@ the current 767 owned allocatable PROGBITS sections and all 6,918 direct
 counts, metadata validation, and heuristic limits are in
 [`relocatable-build.md`](relocatable-build.md#mandatory-input-object-relocation-audit).
 
+`./Build shiftability-report` is the consolidated progress view for this work.
+It builds the current normal relink, reruns the input/final/compiler checks and
+the real `+0x10004` growth link, and prints one active blocker queue. It keeps
+safe-but-divergent exact source, intentional fixed PS1/cross-executable
+contracts, configurable RAM-budget policy, and proof limits out of that queue.
+Layout fields originate in `src/main.exe/ram_layout.h`; Python linker,
+finalizer, and audit tools parse those same definitions through
+`tools/ram_layout.py`. Generated extraction/config files can still contain
+retail literals as historical input oracles; they are not a second runtime
+policy source.
+
 `./Build check-relink` verifies that composition without assuming a fixed
 extension size: it derives the game-text delta from the actual compiler
 objects, requires every unique section-owned canonical-SDK symbol to follow,
@@ -187,14 +199,17 @@ The same repacked image later reached relocated `OPEN06.STR` decode and
 was run to EOF and physical audio output remains unverified.
 
 `check-reloc-c-literals` is the focused compiler-input half of that lane. It
-builds five matched sources under the single global `TENCHU_RELOCATABLE`
-variant, audits those objects plus ordinary symbolic `ProcItemShinsoku`, and
+builds five alternate normal-link objects under the single global
+`TENCHU_RELOCATABLE` variant, audits those objects plus ordinary symbolic
+`ProcItemShinsoku`, and
 requires their ELF HI16/LO16 records (including linker-derived
 `MemoryPoolCapacity` in both allocator paths). The controlled link substitutes
 only the five divergent objects; ProcItemShinsoku remains its ordinary input
 and resolves byte-identically under the retail CamState pin. The exact lane
-keeps matching branches only in the five still-divergent sources. Its bounded
-pad isolates this focused oracle only; `relink` has no such pad.
+keeps per-source matching branches in three reconstruction debts; the two
+allocator functions share the centralized `VMEM_DEFAULT_*` interface in
+`vmemory.h`. Its bounded pad isolates this focused oracle only; `relink` has no
+such pad.
 
 ## The other five executables
 

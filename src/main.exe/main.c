@@ -143,7 +143,7 @@ int main(void)
     InitSoundEffect();
     DemoPatchInit();
     InitPersistentState();
-    ps = (PersistentState *)0x80010000;
+    ps = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
     D_800976F6 = ps->field_0x5f[0];
     CreateStage(ps->stage, ps->chr);
     FUN_8001b4bc();

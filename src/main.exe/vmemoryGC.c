@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -36,14 +37,6 @@
  * Globals it touches, as the original declared them:
  *     extern unsigned long *virtual_memory_pool;
  * END PSX.SYM */
-
-typedef struct PoolBlock
-{
-    s32 size; /* word count, sign bit reserved as an in-use flag by valloc */
-    struct PoolBlock *next;
-} PoolBlock;
-
-extern PoolBlock *virtual_memory_pool;
 
 extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" */
 extern void SystemOut(char *);

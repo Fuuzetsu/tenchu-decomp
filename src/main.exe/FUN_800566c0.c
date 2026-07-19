@@ -18,7 +18,7 @@
  * leaving the standard bottom-test do-while shape (jump.c
  * duplicate_loop_exit_test).
  */
-#define PSTATE ((PersistentState *)0x80010000)
+#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void FUN_800566c0(void)
 {

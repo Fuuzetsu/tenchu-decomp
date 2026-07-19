@@ -152,13 +152,14 @@ void SetCameraMode(s32 mode)
             scratch_rot_1f800040.vx = rot->vx + FUN_8002fd9c(cs->Owner);
             scratch_rot_1f800040.vy = rot->vy;
             scratch_rot_1f800040.vz = rot->vz;
-            RotMatrixYXZ((SVECTOR *)0x1F800040, (MATRIX *)0x1F800080);
+            RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
+                         (MATRIX *)TENCHU_SCRATCHPAD(0x80));
         } while (0);
         scratch_trans_1f800094[0] = pos->vx;
         scratch_trans_1f800094[1] = pos->vy;
         scratch_trans_1f800094[2] = pos->vz;
-        SetRotMatrix((MATRIX *)0x1F800080);
-        SetTransMatrix((MATRIX *)0x1F800080);
+        SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
+        SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
         do {
             RotTrans(p, &va, fp);
             RotTrans(p + 1, &vb, fp);

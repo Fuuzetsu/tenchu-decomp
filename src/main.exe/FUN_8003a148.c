@@ -64,13 +64,15 @@ void FUN_8003a148(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *co
 
     if (coord != 0)
     {
-        SVECTOR *sv = (SVECTOR *)0x1F800020;
+        SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(0x20);
         sv->vx = x;
         sv->vy = y;
         sv->vz = z;
-        GsGetLs(coord, (MATRIX *)0x1F800000);
-        GsSetLsMatrix((MATRIX *)0x1F800000);
-        scr.vz = (s16)RotTransPers(sv, (s32 *)&scr, (void *)0x1F800028, (void *)0x1F80002C);
+        GsGetLs(coord, (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        scr.vz = (s16)RotTransPers(
+            sv, (s32 *)&scr, (void *)TENCHU_SCRATCHPAD(0x28),
+            (void *)TENCHU_SCRATCHPAD(0x2c));
     }
     else
     {

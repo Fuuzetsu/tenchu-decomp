@@ -276,7 +276,8 @@ enddlabel StageConfig
                 "MemoryPoolEnd": 0x801FC000,
                 "main_exe_MEMORY_POOL_END": 0x801FC000,
                 "MemoryPoolCapacity": (
-                    (0x801FC000 - 0x800DC000) // 4 - 2,
+                    (0x801FC000 - 0x800DC000) // 4
+                    - reloc_growth_probe.POOL_HEADER_WORDS,
                     reloc_c_literals.SHN_ABS,
                 ),
             }
@@ -292,7 +293,8 @@ enddlabel StageConfig
                 "MemoryPoolEnd": 0x801FC000,
                 "main_exe_MEMORY_POOL_END": 0x801FC000,
                 "MemoryPoolCapacity": (
-                    (0x801FC000 - 0x800DDBB0) // 4 - 2,
+                    (0x801FC000 - 0x800DDBB0) // 4
+                    - reloc_growth_probe.POOL_HEADER_WORDS,
                     reloc_c_literals.SHN_ABS,
                 ),
             }

@@ -62,8 +62,8 @@ extern MATRIX GsWSMATRIX;
 
 void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr)
 {
-    MATRIX *m = (MATRIX *)0x1F800000;
-    SVECTOR *sv = (SVECTOR *)0x1F800020;
+    MATRIX *m = (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS;
+    SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(0x20);
 
     m->t[0] = 0;
     m->t[1] = 0;
@@ -73,5 +73,7 @@ void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr)
     sv->vz = z - (short)ViewInfo.vpz;
     SetTransMatrix(m);
     SetRotMatrix(&GsWSMATRIX);
-    scr->vz = RotTransPers(sv, (s32 *)scr, (void *)0x1F800028, (void *)0x1F80002C);
+    scr->vz = RotTransPers(sv, (s32 *)scr,
+                           (void *)TENCHU_SCRATCHPAD(0x28),
+                           (void *)TENCHU_SCRATCHPAD(0x2c));
 }

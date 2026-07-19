@@ -77,11 +77,12 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
     int sz;
 
     GetVectorRotation((VECTOR *)target, (VECTOR *)&target->vrx, &rx, &ry);
-    ((SVECTOR *)0x1F800000)->vz = 0;
-    ((SVECTOR *)0x1F800000)->vx = rx;
-    ((SVECTOR *)0x1F800000)->vy = ry;
-    RotMatrixYXZ((SVECTOR *)0x1F800000, (MATRIX *)0x1F800040);
-    SetRotMatrix((MATRIX *)0x1F800040);
+    ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
+    ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = rx;
+    ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = ry;
+    RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS,
+                 (MATRIX *)TENCHU_SCRATCHPAD(0x40));
+    SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x40));
 
     ApplyRotMatrix(&D_800979F4, &vsL);
     ApplyRotMatrix(&D_800979FC, &vsR);
@@ -113,17 +114,17 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
         av.vz = 0;
         if (rmap == 1)
         {
-            ((SVECTOR *)0x1F800000)->vx = 1000;
-            ((SVECTOR *)0x1F800000)->vy = 0;
-            ((SVECTOR *)0x1F800000)->vz = 0;
-            ApplyRotMatrix((SVECTOR *)0x1F800000, &av);
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = 1000;
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
+            ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS, &av);
         }
         if (rmap == 2)
         {
-            ((SVECTOR *)0x1F800000)->vx = -1000;
-            ((SVECTOR *)0x1F800000)->vy = 0;
-            ((SVECTOR *)0x1F800000)->vz = 0;
-            ApplyRotMatrix((SVECTOR *)0x1F800000, &av);
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = -1000;
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
+            ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS, &av);
         }
 
         sx = av.vx / 2;

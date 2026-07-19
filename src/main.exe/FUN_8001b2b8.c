@@ -34,7 +34,8 @@
 
 void FUN_8001b2b8(void)
 {
-    PersistentState *ps = (PersistentState *)0x80010000;
+    PersistentState *ps =
+        (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
     if (((u8 *)PadPort)[7] != 0) {
         ps->field_0x3b[0xC] |= 1;
