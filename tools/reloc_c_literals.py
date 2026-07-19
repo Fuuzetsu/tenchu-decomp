@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit the first symbolic-C objects used by the normal relink lane.
 
-The retail matching sources for five functions contain numeric address
+The retail matching sources for six functions contain numeric address
 materialisation chosen solely to reproduce the shipped instruction schedule.
 With ``TENCHU_RELOCATABLE`` defined, those same translation units use ordinary
 symbolic C instead.  This verifier reads the resulting ELF objects directly
@@ -44,27 +44,30 @@ SECTION_HEADER = struct.Struct("<IIIIIIIIII")
 SYMBOL_ENTRY = struct.Struct("<IIIBBH")
 REL_ENTRY = struct.Struct("<II")
 
-EXPECTED_TEXT_SHRINK = 16
+EXPECTED_TEXT_SHRINK = 12
 EXPECTED_LINKER_REFERENCES = 4
 FIRST_SDK_TEXT_INPUT = ".shake/build/main.exe/LIBAPI_4F9D4.s.o(.text);"
 SHN_ABS = 0xFFF1
+SDK_TEXT_START = 0x800601D4
+SDK_TEXT_END = 0x800834D0
 
 # The natural objects start at the same place as their exact counterparts, then
 # move later functions by the cumulative eight-byte shrink in ActivateHumans
-# and SelectCameraOwnerOption.  A 16-byte boundary pad deliberately restores
+# and SelectCameraOwnerOption.  A 12-byte boundary pad deliberately restores
 # the still-raw SDK to retail placement.
 LINKED_SYMBOL_DELTAS = {
-    "vinit": 0,
-    "ActivateHumans": 0,
-    "DrawConstruction": -8,
-    "ProcItemShinsoku": -8,
-    "ReqItemShinsoku": -8,
-    "SelectCameraOwnerOption": -8,
-    "LayoutEnemyOption": -16,
-    "FileOption": -16,
-    "debug_menu_stage_option": -16,
-    "AdtSelect": -16,
-    "AdtDmyPadRead": -16,
+    "valloc": 0,
+    "vinit": 4,
+    "ActivateHumans": 4,
+    "DrawConstruction": -4,
+    "ProcItemShinsoku": -4,
+    "ReqItemShinsoku": -4,
+    "SelectCameraOwnerOption": -4,
+    "LayoutEnemyOption": -12,
+    "FileOption": -12,
+    "debug_menu_stage_option": -12,
+    "AdtSelect": -12,
+    "AdtDmyPadRead": -12,
     "Exec": 0,
 }
 
@@ -118,6 +121,9 @@ OBJECT_SPECS = {
     ),
     "vinit": ObjectSpec(
         {"MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}}, (0x800D,)
+    ),
+    "valloc": ObjectSpec(
+        {"MemoryPool": {R_MIPS_HI16: 1, R_MIPS_LO16: 2}}, (0x800D,)
     ),
 }
 
@@ -393,11 +399,12 @@ def rewrite_linker(
     *,
     padding: int,
 ) -> str:
-    """Substitute all five object sections and restore the raw-SDK boundary."""
+    """Substitute every audited object section and optionally pad the shrink."""
 
-    if padding != EXPECTED_TEXT_SHRINK or padding % 4:
+    if padding not in (0, EXPECTED_TEXT_SHRINK) or padding % 4:
         raise AuditError(
-            f"normal-C linker padding is {padding}, expected {EXPECTED_TEXT_SHRINK}"
+            "normal-C linker padding is "
+            f"{padding}, expected 0 or {EXPECTED_TEXT_SHRINK}"
         )
     output = source
     for name in OBJECT_SPECS:
@@ -429,9 +436,7 @@ def rewrite_linker(
     return "".join(padded)
 
 
-def generate_linker(
-    linker_input: Path,
-    linker_output: Path,
+def text_shrink(
     reference_objects: dict[str, Path],
     variant_objects: dict[str, Path],
 ) -> int:
@@ -440,11 +445,27 @@ def generate_linker(
         reference_size = ElfObject(reference_objects[name]).section(".text").size
         variant_size = ElfObject(variant_objects[name]).section(".text").size
         shrink += reference_size - variant_size
+    return shrink
+
+
+def generate_linker(
+    linker_input: Path,
+    linker_output: Path,
+    reference_objects: dict[str, Path],
+    variant_objects: dict[str, Path],
+    *,
+    restore_boundary: bool = True,
+) -> int:
+    shrink = text_shrink(reference_objects, variant_objects)
+    if restore_boundary and shrink != EXPECTED_TEXT_SHRINK:
+        raise AuditError(
+            f"normal-C text shrink is {shrink}, expected {EXPECTED_TEXT_SHRINK}"
+        )
     rewritten = rewrite_linker(
         linker_input.read_text(),
         reference_objects,
         variant_objects,
-        padding=shrink,
+        padding=shrink if restore_boundary else 0,
     )
     atomic_write(linker_output, rewritten)
     return shrink
@@ -510,28 +531,50 @@ def verify_linked(
             f"expected AdtDmyPadRead=0x{variant_pad_target:08x}"
         )
 
-    unchanged_ranges = (
-        (exec_address, pad_read_address - exec_address),
-        (pad_read_address + 4, base_end - pad_read_address - 4),
-    )
-    for address, size in unchanged_ranges:
-        base_bytes = base.bytes_at_address(address, size)
-        variant_bytes = variant.bytes_at_address(address, size)
-        if variant_bytes != base_bytes:
-            first = next(
-                index
-                for index, (left, right) in enumerate(zip(base_bytes, variant_bytes))
-                if left != right
-            )
+    base_symbols_by_value: dict[int, set[str]] = {}
+    variant_symbols_by_value: dict[int, set[str]] = {}
+    for elf, output in (
+        (base, base_symbols_by_value),
+        (variant, variant_symbols_by_value),
+    ):
+        for symbol in elf.symbols:
+            if symbol.section_index in (SHN_UNDEF, SHN_ABS):
+                continue
+            output.setdefault(symbol.value, set()).add(symbol.name)
+
+    changed_pointer_words = 0
+    for address in range(exec_address, base_end, 4):
+        base_word = base.word_at_address(address)
+        variant_word = variant.word_at_address(address)
+        if base_word == variant_word:
+            continue
+        common_targets = (
+            base_symbols_by_value.get(base_word, set())
+            & variant_symbols_by_value.get(variant_word, set())
+        )
+        if not common_targets:
             raise AuditError(
-                f"linked post-Exec bytes differ unexpectedly at "
-                f"0x{address + first:08x}"
+                f"linked post-Exec word changed unexpectedly at 0x{address:08x}: "
+                f"0x{base_word:08x} -> 0x{variant_word:08x}"
             )
+        changed_pointer_words += 1
     tail_size = base_end - exec_address
     reports.append(
-        f"post-Exec 0x{tail_size:x} bytes unchanged except relocated AdtPadRead"
+        f"post-Exec 0x{tail_size:x} bytes changed only in "
+        f"{changed_pointer_words} section-owned pointer words"
     )
 
+    reports.extend(verify_linked_relocations(variant, objects))
+    return reports
+
+
+def verify_linked_relocations(
+    variant: ElfObject,
+    objects: dict[str, Path],
+) -> list[str]:
+    """Require every audited compiler relocation to be applied in one link."""
+
+    reports: list[str] = []
     for function_name, spec in OBJECT_SPECS.items():
         obj = ElfObject(objects[function_name])
         relocations = obj.relocations(".rel.text")
@@ -547,15 +590,23 @@ def verify_linked(
                 for relocation in target_relocations
                 if relocation.type == R_MIPS_LO16
             ]
-            if len(low_relocations) != 1:
+            if not low_relocations:
                 raise AuditError(
-                    f"{function_name}: expected one {target_name} LO16 addend"
+                    f"{function_name}: expected at least one {target_name} LO16 addend"
                 )
             object_text = obj.section_data(".text")
-            low_object_word = instruction_word(
-                object_text, low_relocations[0].offset, function_name
-            )
-            addend = sign_extend_16(low_object_word)
+            addends = {
+                sign_extend_16(
+                    instruction_word(object_text, relocation.offset, function_name)
+                )
+                for relocation in low_relocations
+            }
+            if len(addends) != 1:
+                raise AuditError(
+                    f"{function_name}: {target_name} LO16 addends differ: "
+                    + ", ".join(f"{addend:+d}" for addend in sorted(addends))
+                )
+            addend = next(iter(addends))
             target = (variant.symbol(target_name).value + addend) & 0xFFFFFFFF
             expected_high = ((target + 0x8000) >> 16) & 0xFFFF
             expected_low = target & 0xFFFF
@@ -577,6 +628,119 @@ def verify_linked(
                         f"expected 0x{expected_immediate:04x}"
                     )
             reports.append(f"{function_name}->{target_name}=0x{target:08x}")
+    return reports
+
+
+def _unique_section_symbols(elf: ElfObject, start: int, end: int) -> list[Symbol]:
+    candidates = [
+        symbol
+        for symbol in elf.symbols
+        if start <= symbol.value < end
+        and symbol.section_index not in (SHN_UNDEF, SHN_ABS)
+    ]
+    counts = Counter(symbol.name for symbol in candidates)
+    return [symbol for symbol in candidates if counts[symbol.name] == 1]
+
+
+def verify_normal_link(
+    base: ElfObject,
+    variant: ElfObject,
+    reference_objects: dict[str, Path],
+    objects: dict[str, Path],
+    linker_source: str,
+) -> list[str]:
+    """Verify that the no-pad C objects reached the composed normal link.
+
+    The extension section is allowed to have any size.  Movement of the SDK is
+    derived from the compiler objects' measured net text change rather than a
+    fixed address delta, so adding a normal-link helper does not weaken this
+    check.
+    """
+
+    shrink = text_shrink(reference_objects, objects)
+    if shrink % 4:
+        raise AuditError(f"normal-C text change {shrink} is not word-aligned")
+
+    lines = linker_source.splitlines()
+    markers = [index for index, line in enumerate(lines) if FIRST_SDK_TEXT_INPUT in line]
+    if len(markers) != 1:
+        raise AuditError(
+            f"normal linker has {len(markers)} SDK boundary markers, expected one"
+        )
+    marker = markers[0]
+    if marker and "LONG(0x00000000)" in lines[marker - 1]:
+        raise AuditError("normal linker still pads the C/SDK boundary")
+
+    delta = -shrink
+    sdk_symbols = _unique_section_symbols(base, SDK_TEXT_START, SDK_TEXT_END)
+    if not sdk_symbols:
+        raise AuditError("base link has no section-owned SDK symbols")
+    for symbol in sdk_symbols:
+        shifted = variant.symbol(symbol.name)
+        expected = (symbol.value + delta) & 0xFFFFFFFF
+        if shifted.value != expected:
+            raise AuditError(
+                f"normal-link {symbol.name}=0x{shifted.value:08x}, "
+                f"expected 0x{expected:08x} ({delta:+d})"
+            )
+        if shifted.section_index in (SHN_UNDEF, SHN_ABS):
+            raise AuditError(f"normal-link {symbol.name} is not section-owned")
+
+    extension_start = variant.symbol("__tenchu_extension_start")
+    extension_end = variant.symbol("__tenchu_extension_end")
+    initialized_end = variant.symbol("main_exe_INITIALIZED_END")
+    bss_start = variant.symbol("__bss_start")
+    bss_end = variant.symbol("__bss_end")
+    crt0_bss_end = variant.symbol("D_800CDBA8")
+    heap_start = variant.symbol("HEAP_START")
+    memory_pool = variant.symbol("MemoryPool")
+    boundaries = (
+        extension_start,
+        extension_end,
+        initialized_end,
+        bss_start,
+        bss_end,
+        crt0_bss_end,
+        heap_start,
+        memory_pool,
+    )
+    if any(symbol.section_index in (SHN_UNDEF, SHN_ABS) for symbol in boundaries):
+        raise AuditError("normal-link extension/BSS/pool boundary is not section-owned")
+    if extension_end.value < extension_start.value:
+        raise AuditError("normal-link extension end precedes its start")
+    if initialized_end.value != extension_end.value:
+        raise AuditError("initialized end does not follow the normal-link extension")
+    expected_bss_start = (initialized_end.value + 15) & ~15
+    if bss_start.value != expected_bss_start:
+        raise AuditError(
+            f"BSS starts at 0x{bss_start.value:08x}, "
+            f"expected aligned 0x{expected_bss_start:08x}"
+        )
+    if crt0_bss_end.value != bss_end.value:
+        raise AuditError("crt0 clear end does not follow linked BSS end")
+    if heap_start.value != bss_end.value + 4:
+        raise AuditError("heap start does not follow linked BSS end")
+    if bss_end.value > memory_pool.value:
+        raise AuditError("linked BSS overlaps MemoryPool")
+
+    reports = [
+        f"normal C changed text by {delta:+d} bytes with no boundary pad",
+        f"{len(sdk_symbols)} unique section-owned SDK symbols followed {delta:+d}",
+        "extension size "
+        f"0x{extension_end.value - extension_start.value:x}; "
+        f"BSS 0x{bss_start.value:08x}..0x{bss_end.value:08x}",
+    ]
+    reports.extend(verify_linked_relocations(variant, objects))
+
+    stale_targets = []
+    for name in ("D_80097D70", "CamState", "StageChar"):
+        symbol = variant.symbol(name)
+        if symbol.section_index == SHN_ABS:
+            stale_targets.append(name)
+    if stale_targets:
+        reports.append(
+            "known runtime blockers remain ABS: " + ", ".join(stale_targets)
+        )
     return reports
 
 
@@ -603,14 +767,14 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     verify_objects = subparsers.add_parser(
-        "verify-objects", help="audit the five compiler-produced ELF objects"
+        "verify-objects", help="audit the six compiler-produced ELF objects"
     )
     verify_objects.add_argument(
         "--object",
         action="append",
         default=[],
         metavar="NAME=PATH",
-        help="one of the five fixed symbolic-C object inputs",
+        help="one of the fixed symbolic-C object inputs",
     )
 
     generate = subparsers.add_parser(
@@ -624,6 +788,14 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     generate.add_argument(
         "--object", action="append", default=[], metavar="NAME=PATH"
     )
+    generate.add_argument(
+        "--no-boundary-pad",
+        action="store_true",
+        help=(
+            "substitute the natural objects without restoring their text shrink; "
+            "used only by the composed normal relink"
+        ),
+    )
 
     verify_link = subparsers.add_parser(
         "verify-linked", help="audit the linked placement/substitution probe"
@@ -631,6 +803,20 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     verify_link.add_argument("--base-elf", type=Path, required=True)
     verify_link.add_argument("--variant-elf", type=Path, required=True)
     verify_link.add_argument(
+        "--object", action="append", default=[], metavar="NAME=PATH"
+    )
+
+    verify_normal = subparsers.add_parser(
+        "verify-normal-link",
+        help="audit the no-pad C objects in the composed growth-capable link",
+    )
+    verify_normal.add_argument("--base-elf", type=Path, required=True)
+    verify_normal.add_argument("--variant-elf", type=Path, required=True)
+    verify_normal.add_argument("--linker", type=Path, required=True)
+    verify_normal.add_argument(
+        "--reference-object", action="append", default=[], metavar="NAME=PATH"
+    )
+    verify_normal.add_argument(
         "--object", action="append", default=[], metavar="NAME=PATH"
     )
     return parser.parse_args(argv)
@@ -645,7 +831,7 @@ def main(argv: list[str] | None = None) -> int:
                 verify_contract(ElfObject(objects[name]), OBJECT_SPECS[name], name)
                 for name in sorted(OBJECT_SPECS)
             ]
-            print("reloc-c-literals: verified five symbolic-C objects")
+            print("reloc-c-literals: verified six symbolic-C objects")
             for report in reports:
                 print(f"  {report}")
         elif args.command == "generate-linker":
@@ -654,18 +840,43 @@ def main(argv: list[str] | None = None) -> int:
                 args.reference_object, option="--reference-object"
             )
             shrink = generate_linker(
-                args.linker_in, args.linker_out, references, objects
+                args.linker_in,
+                args.linker_out,
+                references,
+                objects,
+                restore_boundary=not args.no_boundary_pad,
             )
-            print(
-                "reloc-c-literals: substituted five symbolic-C objects; "
-                f"restored SDK boundary with {shrink} bytes"
-            )
+            if args.no_boundary_pad:
+                print(
+                    "reloc-c-literals: substituted six symbolic-C objects; "
+                    f"left compiler text delta {-shrink:+d} bytes linker-owned"
+                )
+            else:
+                print(
+                    "reloc-c-literals: substituted six symbolic-C objects; "
+                    f"restored SDK boundary with {shrink} bytes"
+                )
         elif args.command == "verify-linked":
             objects = parse_objects(args.object)
             reports = verify_linked(
                 ElfObject(args.base_elf), ElfObject(args.variant_elf), objects
             )
             print("reloc-c-literals: linked substitution probe verified")
+            for report in reports:
+                print(f"  {report}")
+        elif args.command == "verify-normal-link":
+            objects = parse_objects(args.object)
+            references = parse_objects(
+                args.reference_object, option="--reference-object"
+            )
+            reports = verify_normal_link(
+                ElfObject(args.base_elf),
+                ElfObject(args.variant_elf),
+                references,
+                objects,
+                args.linker.read_text(),
+            )
+            print("reloc-c-literals: composed normal link verified")
             for report in reports:
                 print(f"  {report}")
         else:  # argparse enforces the choices; keep type-checkers honest.

@@ -65,7 +65,7 @@ relocGameDir = buildDir </> "reloc-game"
 relocGameLinker = relocGameDir </> "main.exe.ld"
 relocGameSymbols = relocGameDir </> "symbols.main.exe.txt"
 
--- | Matching-only numeric address constructions remain in five exact C
+-- | Matching-only numeric address constructions remain in six exact C
 -- objects.  The normal relink compiles the same sources under one build-wide
 -- define into this isolated directory, where an ELF audit requires symbolic
 -- HI16/LO16 relocations.  A separate substitution probe shifts game functions
@@ -87,6 +87,7 @@ relocCLiteralNames =
     "FileOption",
     "ProcItemShinsoku",
     "ActivateHumans",
+    "valloc",
     "vinit"
   ]
 
@@ -168,6 +169,33 @@ relocData72CD0Asm = relocIntegratedDataDir </> "72CD0.data.s"
 relocData207CObject, relocData2EB0Object :: FilePath
 relocData207CObject = relocBssDir </> "obj" </> "207C.data.s.o"
 relocData2EB0Object = relocBssDir </> "obj" </> "2EB0.data.s.o"
+
+-- | Growth-capable composition.  Unlike the retail-exact BSS oracle above,
+-- this linker chain consumes the natural TENCHU_RELOCATABLE C objects without
+-- restoring their size difference at the game/SDK boundary.  Canonical SDK
+-- text and every later linker-owned boundary are therefore free to follow the
+-- changed game layout.  It deliberately remains separate because unresolved
+-- raw loaded-data references still prevent a runtime-ready claim.
+mainRelinkLogical, mainRelinkExe, mainRelinkElf, mainRelinkMap :: FilePath
+mainRelinkLogical = buildDir </> "tenchu" </> "main_relink.logical"
+mainRelinkExe = buildDir </> "tenchu" </> "main_relink.exe"
+mainRelinkElf = buildDir </> "tenchu" </> "main_relink.exe.elf"
+mainRelinkMap = buildDir </> "tenchu" </> "main_relink.exe.map"
+
+normalRelinkDir, normalRelinkCLinker, normalRelinkSdkLinker :: FilePath
+normalRelinkDir = buildDir </> "relink"
+normalRelinkCLinker = normalRelinkDir </> "c" </> "main.exe.ld"
+normalRelinkSdkLinker = normalRelinkDir </> "sdk" </> "main.exe.ld"
+
+normalRelinkSdkSymbols, normalRelinkLinker, normalRelinkSymbols :: FilePath
+normalRelinkSdkSymbols = normalRelinkDir </> "sdk" </> "symbols.main.exe.txt"
+normalRelinkLinker = normalRelinkDir </> "layout" </> "main.exe.ld"
+normalRelinkSymbols = normalRelinkDir </> "layout" </> "symbols.main.exe.txt"
+
+normalRelinkUndefined, normalRelinkTailAsm, normalRelinkTailObject :: FilePath
+normalRelinkUndefined = normalRelinkDir </> "layout" </> "undefined_symbols_auto.main.exe.txt"
+normalRelinkTailAsm = normalRelinkDir </> "layout" </> "72CD0.bss.s"
+normalRelinkTailObject = normalRelinkDir </> "obj" </> "72CD0.bss.s.o"
 
 -- | The modded (non-matching) build: hooked functions patched in place by
 -- tools/mkmod.py, so it stays the same size as main.exe (disc rebuild is faithful).
@@ -898,6 +926,27 @@ verifyRelocCLiteralLink = do
        "--variant-elf", mainRelocCLiteralElf
      ] <> objectArgs)
 
+verifyNormalRelink :: Action ()
+verifyNormalRelink = do
+  let tool = "tools" </> "reloc_c_literals.py"
+      objectArgs = concatMap
+        (\name -> ["--object", name <> "=" <> relocCLiteralObject name])
+        relocCLiteralNames
+      referenceArgs = concatMap
+        (\name ->
+          [ "--reference-object",
+            name <> "=" <> relocCLiteralReferenceObject name
+          ])
+        relocCLiteralNames
+  need $ [ tool, mainRelocBssElf, mainRelinkElf, normalRelinkCLinker ] <>
+    relocCLiteralObjects <> relocCLiteralReferenceObjects
+  cmd_ "python3" tool
+    ([ "verify-normal-link",
+       "--base-elf", mainRelocBssElf,
+       "--variant-elf", mainRelinkElf,
+       "--linker", normalRelinkCLinker
+     ] <> referenceArgs <> objectArgs)
+
 main :: IO ()
 main = do
   topD <- getProjectRoot
@@ -935,7 +984,7 @@ rules = do
 objRules :: Rules ()
 objRules = do
   -- Compile the bounded normal-link C variant under one global define.  The
-  -- five source files choose natural symbolic expressions in this lane while
+  -- six source files choose natural symbolic expressions in this lane while
   -- the ordinary processed/build directories retain their exact-match source.
   relocCLiteralDir </> "*.i" %> \out -> do
     let name = takeBaseName out
@@ -1212,8 +1261,8 @@ mainExtraRules = do
     need [mainRelocGameElf]
     cmd_ objcopy objcopyFlags [mainRelocGameElf, mainRelocGameExe]
 
-  -- Substitute the five natural symbolic-C objects into the linker-owned game
-  -- lane.  Their text is 16 bytes smaller in total, so a file-backed boundary
+  -- Substitute the six natural symbolic-C objects into the linker-owned game
+  -- lane.  Their text is 12 bytes smaller in total, so a file-backed boundary
   -- pad keeps the not-yet-movable SDK at retail placement.  This is a linked
   -- relocation probe, not the final arbitrary-growth layout.
   relocCLiteralLinker %> \out -> do
@@ -1270,6 +1319,43 @@ mainExtraRules = do
   mainRelocCLiteralExe %> \_out -> do
     need [mainRelocCLiteralElf]
     cmd_ objcopy objcopyFlags [mainRelocCLiteralElf, mainRelocCLiteralExe]
+
+  -- The real normal-link composition uses the same audited C variant but does
+  -- not insert the retail proof's compensating boundary words.  The following
+  -- SDK transform therefore sees and relocates the layout produced by those C
+  -- objects, rather than an artificially restored retail address stream.
+  normalRelinkCLinker %> \out -> do
+    let tool = "tools" </> "reloc_c_literals.py"
+        objectArgs = concatMap
+          (\name -> ["--object", name <> "=" <> relocCLiteralObject name])
+          relocCLiteralNames
+        referenceArgs = concatMap
+          (\name ->
+            [ "--reference-object",
+              name <> "=" <> relocCLiteralReferenceObject name
+            ])
+          relocCLiteralNames
+    need $ [relocGameLinker, tool] <>
+      relocCLiteralObjects <> relocCLiteralReferenceObjects
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    cmd_ "python3" tool
+      ([ "generate-linker",
+         "--linker-in", relocGameLinker,
+         "--linker-out", out,
+         "--no-boundary-pad"
+       ] <> referenceArgs <> objectArgs)
+
+  [normalRelinkSdkLinker, normalRelinkSdkSymbols] &%> \_outs -> do
+    let tool = "tools" </> "reloc_sdk_lane.py"
+    need [normalRelinkCLinker, relocGameSymbols, tool]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory normalRelinkSdkLinker)
+    cmd_ "python3" tool
+      [ "generate",
+        "--linker-in", normalRelinkCLinker,
+        "--symbols-in", relocGameSymbols,
+        "--linker-out", normalRelinkSdkLinker,
+        "--symbols-out", normalRelinkSdkSymbols
+      ]
 
   [relocSdkBaseLinker, relocSdkBaseSymbols] &%> \_outs -> do
     let tool = "tools" </> "reloc_sdk_lane.py"
@@ -1458,6 +1544,100 @@ mainExtraRules = do
         "--expect", "sp=0x801ffff0"
       ]
 
+  -- Compose the no-pad C/SDK chain with reviewed loaded-data relocations and
+  -- relative initialized/BSS layout.  This is intentionally a separate output
+  -- from main_reloc_bss: the latter remains byte-exact and can keep serving as
+  -- the retail structural oracle.
+  [ normalRelinkLinker, normalRelinkSymbols,
+    normalRelinkUndefined, normalRelinkTailAsm
+    ] &%> \_outs -> do
+    let t = mainTarget
+        genD = tgGenDir t
+        tBuildDir = tgBuildDir t
+        undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
+        oldTailObject = tBuildDir </> "data" </> "72CD0.data.s.o"
+        old207CObject = tBuildDir </> "data" </> "207C.data.s.o"
+        old2EB0Object = tBuildDir </> "data" </> "2EB0.data.s.o"
+        tool = "tools" </> "reloc_bss_lane.py"
+    _generatedFiles <- getGeneratedFiles (tgGen t)
+    need [ normalRelinkSdkLinker, normalRelinkSdkSymbols, undefinedSymbols,
+           relocData72CD0Asm, tool ]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory normalRelinkLinker)
+    cmd_ "python3" tool
+      [ "generate",
+        "--linker-in", normalRelinkSdkLinker,
+        "--symbols-in", normalRelinkSdkSymbols,
+        "--undefined-in", undefinedSymbols,
+        "--tail-in", relocData72CD0Asm,
+        "--linker-out", normalRelinkLinker,
+        "--symbols-out", normalRelinkSymbols,
+        "--undefined-out", normalRelinkUndefined,
+        "--tail-out", normalRelinkTailAsm,
+        "--old-tail-object", oldTailObject,
+        "--new-tail-object", normalRelinkTailObject,
+        "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o",
+        "--replace-object", old207CObject <> "=" <> relocData207CObject,
+        "--replace-object", old2EB0Object <> "=" <> relocData2EB0Object
+      ]
+
+  normalRelinkTailObject %> \out -> do
+    need [normalRelinkTailAsm]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    withTempFile $ \depFile -> do
+      cmd_ as asFlags ["--MD", depFile, "-o", out, normalRelinkTailAsm]
+      neededAsmDeps depFile
+
+  mainRelinkElf %> \out -> do
+    let t = mainTarget
+        genD = tgGenDir t
+        tBuildDir = tgBuildDir t
+        undefinedFunctions = genD </> metaDir </> "undefined_functions_auto.main.exe.txt"
+    _generatedFiles <- getGeneratedFiles (tgGen t)
+    sFiles <- liftIO $ getDirectoryFilesIO (genD </> asmDir) ["*.s", "data/*.s"]
+    userFiles <- Set.fromList <$> getDirectoryFiles (tgSrcDir t) ["//*.c"]
+    genFiles <- Set.fromList <$> getDirectoryFiles (genD </> srcDir) ["//*.c"]
+    let cFiles = Set.toList (userFiles <> genFiles)
+    assetFiles <- liftIO $ getDirectoryFilesIO (genD </> assetsDir) ["//*.bin"]
+    let oFiles = map (\f -> tBuildDir </> f <.> "o") (cFiles <> sFiles <> assetFiles)
+        extensionObjects =
+          map (\f -> tBuildDir </> f <.> "o") $
+            filter (\f -> ["reloc"] `isPrefixOf` splitDirectories f) cFiles
+        sFilesExp = map (\f -> genD </> asmDir </> f) sFiles
+        assetFilesExp = map (\f -> genD </> assetsDir </> f) assetFiles
+    need $ sFilesExp <> assetFilesExp <> oFiles <> relocCLiteralObjects <>
+      [ normalRelinkLinker, normalRelinkSymbols, normalRelinkUndefined,
+        normalRelinkTailObject, relocData207CObject, relocData2EB0Object,
+        undefinedFunctions
+      ]
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    cmd_ ld ldFlags
+      [ "-o", out,
+        "-Map", mainRelinkMap,
+        "-T", normalRelinkLinker,
+        "-T", normalRelinkSymbols,
+        "-T", normalRelinkUndefined,
+        "-T", undefinedFunctions,
+        "--no-check-sections",
+        "-nostdlib"
+      ] extensionObjects
+
+  mainRelinkLogical %> \out -> do
+    need [mainRelinkElf]
+    cmd_ objcopy objcopyFlags [mainRelinkElf, out]
+
+  mainRelinkExe %> \out -> do
+    let tool = "tools" </> "psxexe.py"
+    need [mainRelinkLogical, mainRelinkElf, tool]
+    cmd_ "python3" tool
+      [ "finalize", mainRelinkLogical,
+        "-o", out,
+        "--elf", mainRelinkElf,
+        "--entry-symbol", "__SN_ENTRY_POINT",
+        "--load-symbol", "__load_start",
+        "--expect", "gp=0",
+        "--expect", "sp=0x801ffff0"
+      ]
+
   -- Non-matching build: mkmod patches hooked functions in place. It reads main.exe's
   -- symbol table (via nm on the elf), compiles every src/mod/main.exe/*.c, and aborts
   -- if one outgrows its slot -- so depend on the exe+elf, the mod sources, AND the
@@ -1553,15 +1733,34 @@ phonyRules = do
   -- allows sections to grow and accepts new sources under src/main.exe/reloc/.
   -- Remaining raw-address audits still gate treating a changed image as
   -- runnable; `check-reloc-bss` is the exact-at-retail structural check.
-  phony "relink" $ need [mainRelocBssExe]
+  phony "relink" $ need [mainRelinkExe]
 
-  -- Focused input gate for the first five matching-C address constructions.
+  -- Structural integration gate for the real no-pad artifact.  The compiler
+  -- object delta is measured, every unique canonical-SDK symbol must follow
+  -- it, and extension/BSS/header bounds are checked without requiring a fixed
+  -- extension size.  Known ABS loaded-data targets remain reported blockers.
+  phony "check-relink" $ do
+    verifyRelocCLiteralObjects
+    verifyNormalRelink
+    let tool = "tools" </> "psxexe.py"
+    need [mainRelinkExe, mainRelinkElf, tool]
+    cmd_ "python3" tool
+      [ "validate", mainRelinkExe,
+        "--elf", mainRelinkElf,
+        "--entry-symbol", "__SN_ENTRY_POINT",
+        "--load-symbol", "__load_start",
+        "--expect", "gp=0",
+        "--expect", "sp=0x801ffff0"
+      ]
+    putInfo "check-relink: no-pad C/SDK/layout/header composition is structurally valid; raw loaded-data blockers remain"
+
+  -- Focused input gate for the first six matching-C address constructions.
   -- It deliberately audits a separate, globally-defined normal-link variant;
   -- the retail `check` continues to compile the exact-match branches.
   phony "check-reloc-c-literals" $ do
     verifyRelocCLiteralObjects
     verifyRelocCLiteralLink
-    putInfo "check-reloc-c-literals: five symbolic-C objects carry and apply linker relocations"
+    putInfo "check-reloc-c-literals: six symbolic-C objects carry and apply linker relocations"
 
   -- Opt-in exact-at-retail gate for the normal linker-owned game-symbol lane.
   -- This deliberately does not claim that a grown image is runnable yet: raw

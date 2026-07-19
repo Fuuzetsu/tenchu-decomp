@@ -90,6 +90,7 @@ works from anywhere in the tree.
 ./Build check-reloc-game  # alternate normal link: game symbols are linker-owned
 ./Build check-reloc-bss   # alternate link: BSS/pool are real NOBITS regions
 ./Build relink            # experimental normal GNU-ld/finalized PS-X EXE output
+./Build check-relink      # verify no-pad C/SDK/data/BSS/header composition
 ./Build check-reloc-c-literals # natural C address expressions carry/apply relocs
 ./Build all             # build all six executables
 ./Build check-all       # build + assert sha256 for all six
@@ -121,19 +122,30 @@ still a retail-address ownership proof, not a runnable grown executable. See
 the BSS layout and remaining blockers in
 [`relocatable-build.md`](relocatable-build.md#implemented-second-gate-linker-owned-bss-boundaries).
 
-`./Build relink` builds that same composed GNU-ld/finalizer artifact without
-requiring retail hashes. Existing functions may grow, and new helper sources
-under `src/main.exe/reloc/` are collected into ordinary text/rodata/data,
-small-BSS, and BSS sections. The linker uses relative BSS/heap/GP assertions and
-rejects collision with the fixed `MemoryPool`. This target is an integration
-surface, not yet a claim that changed images run: remaining raw SDK/data and
-literal-reference blockers are tracked in `relocatable-build.md`.
+`./Build relink` builds a distinct no-boundary-pad GNU-ld/finalizer artifact at
+`.shake/build/tenchu/main_relink.exe`. It consumes the globally defined natural
+C variants before the canonical SDK and linker-owned layout transforms instead
+of reusing the retail-exact BSS artifact. Existing functions may grow, and new
+helper sources under `src/main.exe/reloc/` are collected into ordinary
+text/rodata/data, small-BSS, and BSS sections. The linker uses relative
+BSS/heap/GP assertions and rejects collision with the fixed `MemoryPool`. This
+target is an integration surface, not yet a claim that changed images run:
+remaining raw SDK/data and literal-reference blockers are tracked in
+`relocatable-build.md`.
+
+`./Build check-relink` verifies that composition without assuming a fixed
+extension size: it derives the game-text delta from the actual compiler
+objects, requires every unique section-owned canonical-SDK symbol to follow,
+checks the applied C HI/LO records and dynamic extension/BSS boundaries, and
+validates the finalized PS-X EXE header. It also reports the still-absolute
+loaded targets (`D_80097D70`, `CamState`, and `StageChar`) as explicit runtime
+blockers.
 
 `check-reloc-c-literals` is the focused compiler-input half of that lane. It
-builds five matched sources under the single global `TENCHU_RELOCATABLE`
+builds six matched sources under the single global `TENCHU_RELOCATABLE`
 variant, audits their ELF HI16/LO16 records, substitutes them in a controlled
 link, and verifies the linked addresses. The exact lane keeps its matching
-branches. The controlled link pads the net 16-byte shrink before the still-raw
+branches. The controlled link pads the net 12-byte shrink before the still-raw
 SDK, so this is not yet the arbitrary-growth linker.
 
 ## The other five executables

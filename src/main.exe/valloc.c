@@ -85,7 +85,10 @@
  *    loop guard's delay slot; sprintf then receives `maxsize` raw.
  *  - The self-init branch duplicates vinit.c's `size == 0` arm literally
  *    (pool = 0x800DC000; vh.size = 0x47ffe; vh.next = 0) — no call, cc1
- *    2.8.1 does not inline.
+ *    2.8.1 does not inline. `TENCHU_RELOCATABLE` changes only the
+ *    matching-only address literal to the declared MemoryPool symbol. cc1
+ *    then emits one HI16 and two LO16 relocations: the second low half is its
+ *    natural rematerialization for the following aggregate store.
  *  - The request rounding is `if (size & 3) size += 4;` (NOT `(size+3)&~3`)
  *    — read off the raw immediate; keep the odd shape.
  *  - Both whole-struct stores (`*virtual_memory_pool = vh;`, `*(PoolBlock *)
@@ -100,6 +103,9 @@ typedef struct PoolBlock
 } PoolBlock;
 
 extern PoolBlock *virtual_memory_pool;
+#ifdef TENCHU_RELOCATABLE
+extern PoolBlock MemoryPool[];
+#endif
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern void SystemOut(u8 *string);
@@ -121,7 +127,11 @@ void *valloc(u32 size)
     {
         PoolBlock vh; /* nested shadow, sp+0x20 */
 
+#ifdef TENCHU_RELOCATABLE
+        virtual_memory_pool = MemoryPool;
+#else
         virtual_memory_pool = (PoolBlock *)0x800DC000;
+#endif
         vh.size = 0x47ffe;
         vh.next = 0;
         *virtual_memory_pool = vh;

@@ -119,11 +119,26 @@ class LinkerRewriteTests(unittest.TestCase):
         for name in audit.OBJECT_SPECS:
             self.assertNotIn(str(references[name]), output)
             self.assertEqual(output.count(str(variants[name])), 4)
-        self.assertEqual(output.count("LONG(0x00000000);"), 4)
+        self.assertEqual(
+            output.count("LONG(0x00000000);"),
+            audit.EXPECTED_TEXT_SHRINK // 4,
+        )
         self.assertIn(
             "LONG(0x00000000);\n  " + audit.FIRST_SDK_TEXT_INPUT,
             output,
         )
+
+    def test_substitutes_every_section_without_normal_link_padding(self) -> None:
+        references = self.mappings("old")
+        variants = self.mappings("new")
+        output = audit.rewrite_linker(
+            self.linker(references), references, variants, padding=0
+        )
+        for name in audit.OBJECT_SPECS:
+            self.assertNotIn(str(references[name]), output)
+            self.assertEqual(output.count(str(variants[name])), 4)
+        self.assertNotIn("LONG(0x00000000);", output)
+        self.assertIn(audit.FIRST_SDK_TEXT_INPUT, output)
 
     def test_rejects_incomplete_object_inventory_in_linker(self) -> None:
         references = self.mappings("old")
@@ -140,9 +155,9 @@ class LinkerRewriteTests(unittest.TestCase):
     def test_rejects_unexpected_net_text_change(self) -> None:
         references = self.mappings("old")
         variants = self.mappings("new")
-        with self.assertRaisesRegex(audit.AuditError, "padding is 12, expected 16"):
+        with self.assertRaisesRegex(audit.AuditError, "padding is 8, expected 0 or 12"):
             audit.rewrite_linker(
-                self.linker(references), references, variants, padding=12
+                self.linker(references), references, variants, padding=8
             )
 
 

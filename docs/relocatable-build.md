@@ -133,13 +133,14 @@ remaining stages below are still required.
 
 ### Implemented game-C address input gate
 
-Five otherwise matched C files used numeric address construction solely to
+Six otherwise matched C files used numeric address construction solely to
 hold retail code generation: `SelectCameraOwnerOption` and `FileOption` built
 the `D_80097D70` format-string address from `0x80090000`,
 `ProcItemShinsoku` did the same for `CamState.Owner`, `ActivateHumans` did it
-for `StageChar`, and `vinit` used literal `0x800dc000` for `MemoryPool`. The
-literal instructions had no ELF relocation records, so moving the pointed-to
-data or pool would silently leave stale pointers.
+for `StageChar`, and both `valloc`'s lazy initializer and `vinit` used literal
+`0x800dc000` for `MemoryPool`. The literal instructions had no ELF relocation
+records, so moving the pointed-to data or pool would silently leave stale
+pointers.
 
 `./Build check-reloc-c-literals` compiles those same sources under one global
 `TENCHU_RELOCATABLE` definition. There are no per-function compiler options:
@@ -156,30 +157,50 @@ FileOption               D_80097D70  HI16=1 LO16=1
 ProcItemShinsoku         CamState    HI16=2 LO16=1
 ActivateHumans           StageChar   HI16=1 LO16=1
 vinit                    MemoryPool  HI16=1 LO16=1
+valloc                   MemoryPool  HI16=1 LO16=2
 ```
 
 It also rejects the corresponding unrelocated literal `LUI` high halves. The
 two `CamState` HI16 records are expected compiler output: the high half is
-materialised on both sides of a call and shares one LO16 field load.
+materialised on both sides of a call and shares one LO16 field load. `valloc`'s
+second `MemoryPool` LO16 is likewise real compiler output: cc1 naturally
+rematerialises the symbol's low half for the following aggregate store.
 
-This is a linked proof, not just an object-table check. The five natural
-objects are substituted into the linker-owned game lane. `ActivateHumans` and
-`SelectCameraOwnerOption` are each eight bytes smaller, so downstream game
-symbols move by 8 then 16 bytes and remain section-owned. A deliberate
-16-byte file-backed pad at the game/SDK boundary restores `Exec` to its retail
+This is a linked proof, not just an object-table check. The six natural
+objects are substituted into the linker-owned game lane. `valloc` grows by
+four bytes while `ActivateHumans` and `SelectCameraOwnerOption` are each eight
+bytes smaller, so the net text change is a 12-byte shrink. A deliberate
+12-byte file-backed pad at the game/SDK boundary restores `Exec` to its retail
 address, isolating the later raw SDK while this bounded probe is green. The
-verifier reads the final ELF instructions and proves that all five symbolic
-references resolve to their targets. It also proves that the existing
-`R_MIPS_32` data relocation in `AdtPadRead` follows the 16-byte movement of
-`AdtDmyPadRead`; every other post-`Exec` file-backed byte remains unchanged.
+verifier reads the final ELF instructions and proves that all six symbolic
+references resolve to their targets. It also proves that 55 existing
+section-owned pointer words in post-`Exec` data follow the induced game-symbol
+movement; every other post-`Exec` file-backed word remains unchanged.
 
-That boundary pad is neither a trampoline nor the final normal-link layout.
+That boundary pad is neither a trampoline nor part of the final normal-link
+layout.
 The target data symbols and `MemoryPool` still have fixed script assignments;
 the achievement here is that these C inputs no longer embed those placements.
 Once data/BSS/pool ownership moves to the linker and the remaining raw ranges
 are relocation-aware, the pad can disappear and the symbols can move normally.
 `check-reloc-game` includes this input/link proof as well as its retail-exact
 ownership check.
+
+`./Build relink` consumes the same six compiler objects through a distinct
+linker chain with **no boundary pad**. It then applies canonical SDK ownership,
+the reviewed loaded-data objects, linker-owned BSS/heap boundaries, and PS-X
+EXE header regeneration. `./Build check-relink` measures the compiler-object
+delta instead of assuming one, requires 3,529 unique section-owned SDK symbols
+to follow it, reapplies every audited HI/LO record in the final ELF, validates
+extension/BSS collision bounds, and checks the finalized header. With the
+current source the SDK and `_gp` move by 12 bytes and the entry PC becomes
+`0x8006025c`.
+
+This is a structural integration milestone, not yet a runtime-ready image.
+`D_80097D70`, `CamState`, and `StageChar` are still absolute loaded-data script
+assignments, so the compiler relocations resolve to stale retail addresses even
+though the underlying bytes moved. The gate prints those three names as known
+blockers rather than hiding the discrepancy.
 
 ### Implemented second gate: canonical CRT/SDK text
 
@@ -286,8 +307,9 @@ padding is no longer modelled as initialized storage.
 `check-reloc-bss` is deliberately an **exact-at-retail verification**, while
 the generated linker itself now expresses BSS start, crt0 clear end, heap, and
 `_gp` with relative layout/collision assertions rather than retail equality
-pins. `./Build relink` exposes that artifact without a hash requirement.
-Existing inputs may grow, and new helper files under `src/main.exe/reloc/` feed
+pins. `./Build relink` uses a separate no-pad composition of those same layout
+rules with the natural C and canonical SDK inputs. Existing inputs may grow,
+and new helper files under `src/main.exe/reloc/` feed
 explicit extension text/rodata/data, small-BSS, and BSS inputs instead of being
 lost to `/DISCARD/`. The 122 post-padding BSS names are linker-relative aliases,
 but most do not yet come from real source storage declarations. Raw SDK/data
@@ -297,9 +319,13 @@ a changed output is not runnable until those references are dealt with.
 For a growth-enabled link, BSS must be allowed to follow the grown initialized
 image; the implemented crt0 symbols and relative assertions already follow it.
 Keeping `MemoryPool` fixed permits at most the `0xe458` bytes of immediate BSS
-growth;
-larger changes require making its base/size linker-derived or deliberately
-shrinking/moving the reservation in the source that initializes it. The fixed
+growth. Both default initializers now reference its symbol, but both also use
+the free-word constant `0x47ffe`, which describes exactly the current
+`0x120000`-byte reservation ending at `0x801fc000`. Moving only the base would
+therefore overrun that end and potentially the stack. A future dynamic-pool
+lane must keep the end fixed (or choose a new reviewed end) and derive the free
+word count from linker-owned `MemoryPool`/`MemoryPoolEnd` in **both** `vinit`
+and `valloc`; merely making the base symbolic is insufficient. The fixed
 handoff record at `0x80100000..0x8010005c` intentionally lies *inside* that
 pool reservation, so those two ranges must not be modelled as disjoint.
 
