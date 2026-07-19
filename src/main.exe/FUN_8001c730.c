@@ -31,6 +31,22 @@
  * cc1 consumes the first two products early.  Retaining either register pins
  * or a fake GTE macro would disguise assembly as C, so the original assembly
  * is the canonical source form and the #else body is documentation only.
+ *
+ * INDEPENDENT RE-AUDIT (2026-07-19). The most natural macro-shaped source was
+ * also compiled with Sony GCC 2.6.3, 2.7.2, 2.8.0, 2.8.1, 2.91.66 and 2.95.2.
+ * Versions 2.6.3 through 2.8.1 produce identical multiply/MFLO scheduling;
+ * the newer pair only changes hard-register homes and moves farther away. A
+ * human-order rewrite (issue MVMVA, then form the three weighted residuals)
+ * exposes two additional compiler tells. First, cc1 keeps each first/second
+ * multiply's MFLO ahead of the following component loads, unlike the target's
+ * hand-interleaved `mult; lh; lh; mflo`. Second, with the debug-consistent
+ * ordinary `SVECTOR *out`, the dbr dump explicitly reports `1 got 1 delays`
+ * and moves the final `sh` into `jr ra`; the target ends `sh; jr ra; nop`.
+ * Only changing the API to an unjustified `volatile SVECTOR *out` suppresses
+ * that fill. The real INLINE_C.H `gte_stlvnl` alternative is also structurally
+ * excluded: it emits three SWC2 stores through memory, while this target reads
+ * MAC1/2/3 with MFC2 into integer registers. Thus the stock compiler revisions,
+ * natural operation order and actual SDK result macro all fail independently.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_8001c730", FUN_8001c730);
