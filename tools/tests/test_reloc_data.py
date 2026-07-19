@@ -74,12 +74,13 @@ class Fixture:
 class RewriteTests(unittest.TestCase):
     def test_repository_manifest_contains_only_reviewed_named_tables(self) -> None:
         entries = reloc_data.load_manifest(ROOT / "config/reloc-data.main.exe.json")
-        self.assertEqual(len(entries), 32)
+        self.assertEqual(len(entries), 108)
         self.assertEqual(
             {entry.source_owner for entry in entries},
             {
                 "STAGE_SOUND_PREFICES",
                 "STAGE_ANIMATION_PREFICES",
+                "D_8008EA90",
                 "ITEM_SEL_SPRITE_PTRS",
                 "RS_ARCHIVE_PTRS",
                 "RANK_ARCHIVE_PTRS",
@@ -93,21 +94,74 @@ class RewriteTests(unittest.TestCase):
             {
                 "D_80013500",
                 "D_8001359C",
+                "D_800136B0",
                 "D_800137A0",
                 "ITEM_HELP_TIM_PATHS",
                 "D_80013AC0",
             },
         )
+        demo_sources = {
+            address
+            for language in range(4)
+            for stage in range(11)
+            for field, address in enumerate(
+                (
+                    0x8008EA90 + language * 0x84 + stage * 0xC,
+                    0x8008EA94 + language * 0x84 + stage * 0xC,
+                )
+            )
+            # Stage 9 has no assets; mojo11 already uses the existing exact
+            # D_800136B0 symbol in Splat's generated input.
+            if stage != 8 and not (stage == 10 and field == 1)
+        }
         self.assertEqual(
             {entry.source_address for entry in entries},
             set(range(0x8008EA58, 0x8008EA78, 4))
+            | demo_sources
             | set(range(0x8008EF28, 0x8008EF78, 4))
             | set(range(0x8008EF88, 0x8008EF98, 4)),
         )
         self.assertEqual(
             len({(entry.target_file, entry.target_address) for entry in entries}),
-            28,
+            47,
         )
+        demo_entries = [
+            entry for entry in entries if entry.source_owner == "D_8008EA90"
+        ]
+        self.assertEqual(len(demo_entries), 76)
+        self.assertEqual(
+            {entry.source_address for entry in demo_entries}, demo_sources
+        )
+        expected_demo_targets = {
+            "demo_background_st011_tim_name": 0x800136BC,
+            "demo_foreground_mojo10_tim_name": 0x800136C8,
+            "demo_background_st010_tim_name": 0x800136D4,
+            "demo_foreground_mojo8_tim_name": 0x800136E0,
+            "demo_background_st008_tim_name": 0x800136EC,
+            "demo_foreground_mojo7_tim_name": 0x800136F8,
+            "demo_background_st007_tim_name": 0x80013704,
+            "demo_foreground_mojo6_tim_name": 0x80013710,
+            "demo_background_st006_tim_name": 0x8001371C,
+            "demo_foreground_mojo5_tim_name": 0x80013728,
+            "demo_background_st005_tim_name": 0x80013734,
+            "demo_foreground_mojo4_tim_name": 0x80013740,
+            "demo_background_st004_tim_name": 0x8001374C,
+            "demo_foreground_mojo3_tim_name": 0x80013758,
+            "demo_background_st003_tim_name": 0x80013764,
+            "demo_foreground_mojo2_tim_name": 0x80013770,
+            "demo_background_st002_tim_name": 0x8001377C,
+            "demo_foreground_mojo1_tim_name": 0x80013788,
+            "demo_background_st001_tim_name": 0x80013794,
+        }
+        self.assertEqual(
+            {entry.symbol: entry.target_address for entry in demo_entries},
+            expected_demo_targets,
+        )
+        for symbol in expected_demo_targets:
+            self.assertEqual(
+                sum(entry.symbol == symbol for entry in demo_entries),
+                4,
+            )
         new_symbols = {
             entry.symbol for entry in entries if entry.source_address >= 0x8008EF28
         }

@@ -1,10 +1,9 @@
 # Relocatable loaded data
 
-`tools/reloc_audit.py` initially found a conservative set of 185 aligned
-literal words in loaded data that point back into the movable MAIN.EXE image.
-The current generated-input topology reports 184; use the live audit rather
-than treating either historical count as an invariant. This is a much cleaner
-problem than the raw-code candidates:
+`tools/reloc_audit.py` finds a conservative set of 185 aligned literal words
+in the current loaded data that point back into the movable MAIN.EXE image.
+Use the live audit rather than treating that count as an invariant. This is a
+much cleaner problem than the raw-code candidates:
 
 - every initial and current candidate source word is in trailing owner
   `72CD0.data.s`;
@@ -70,8 +69,8 @@ output is written.
 
 ## Reviewed slices
 
-The committed manifest covers eight clear, game-owned language tables. The
-first slice was:
+The committed manifest covers eight clear, game-owned language tables plus a
+typed demo-screen asset matrix. The first slice was:
 
 - `STAGE_SOUND_PREFICES` at `0x8008EA58..0x8008EA64`; and
 - `STAGE_ANIMATION_PREFICES` at `0x8008EA68..0x8008EA74`.
@@ -86,10 +85,21 @@ The second slice adds six adjacent, named four-entry tables:
 - `GOV_ARCHIVE_PTRS`.
 
 Their strings spell the English, French, Italian, and Japanese filenames in
-the same order as the tables. Together the two slices cover 32 pointer words
-and 28 exact targets across `207C.data.s`, `2EB0.data.s`, and
-`72CD0.data.s`. The names are supported by the source table names and literal
-string contents. No wider type or top-level target symbol is inferred.
+the same order as the tables.
+
+The next slice covers all 76 remaining literal pointers in `D_8008EA90`.
+`FUN_800519bc.c` declares this as `DemoScreenAssets D_8008EA90[][11]`, where
+each record contains `background`, `foreground`, and `music` fields. The data
+is four language blocks of eleven stage records, and each reviewed target is
+the exact start of the corresponding `stNNN.tim` or `mojoN.tim` string. Stage
+9 has null asset fields. The four `mojo11.tim` fields were already symbolic
+references to the exact enclosing `D_800136B0` label, so the manifest leaves
+them alone rather than manufacturing redundant aliases.
+
+Together the slices cover 108 pointer words and 47 exact targets across
+`207C.data.s`, `2EB0.data.s`, and `72CD0.data.s`. The names are supported by
+the source table/type/field names and literal string contents. No wider
+top-level target ownership is inferred.
 
 Validate the manifest against a generated tree without writing anything:
 
@@ -98,7 +108,7 @@ $ tools/reloc_data.py \
     --manifest config/reloc-data.main.exe.json \
     --input-dir .shake/gen/main.exe/asm/data \
     --check
-reloc-data: validated 32 pointer words and 28 exact targets across 3 files
+reloc-data: validated 108 pointer words and 47 exact targets across 3 files
 ```
 
 Or write separate assembly inputs directly:
@@ -118,7 +128,7 @@ the touched objects, and performs the controlled links described below:
 
 ```console
 $ ./Build check-reloc-data
-reloc-data-lane: verified 32 R_MIPS_32 pointer words, 28 exact targets, and 3 link layouts across 3 files
+reloc-data-lane: verified 108 R_MIPS_32 pointer words, 47 exact targets, and 3 link layouts across 3 files
 check-reloc-data: reviewed pointer tables are retail-exact and shift-relocatable
 ```
 
@@ -126,7 +136,7 @@ The same manifest transformation is composed into `./Build relink`: its
 `207C`, `2EB0`, and `72CD0` objects replace the literal generated inputs, with
 the BSS transform applied after the `72CD0` pointer rewrite. The standalone
 gate remains the stricter per-record and controlled-shift oracle. This removes
-32 blockers from the real relink, but does not make the remaining raw pointers
+108 blockers from the real relink, but does not make the remaining raw pointers
 or code safe.
 
 ## Binutils proof
@@ -134,9 +144,9 @@ or code safe.
 The proof uses GNU MIPS assembler and linker output, not a source-level
 assumption:
 
-- in the current generated tree, unmodified `72CD0.data.s.o` has 403
-  `R_MIPS_32` records and the rewritten object has 435;
-- the 32 additions are individually required to be `R_MIPS_32` at their exact
+- in the current generated tree, unmodified `72CD0.data.s.o` has 408
+  `R_MIPS_32` records and the rewritten object has 516;
+- the 108 additions are individually required to be `R_MIPS_32` at their exact
   reviewed source offsets and against their exact target symbols;
 - each target symbol is section-relative at the expected interior offset in
   `207C.data.s.o` or `2EB0.data.s.o`, never `ABS`;
@@ -155,14 +165,14 @@ $ python3 -m unittest -v \
 ```
 
 Applying the manifest to the current generated `72CD0.data.s` reduces its live
-literal-pointer candidates from 184 to 152. The ordinary generated input is
+literal-pointer candidates from 185 to 77. The ordinary generated input is
 unchanged; the composed normal relink consumes the transformed copy.
 
 ## Scaling without inventing source
 
 Continue by coherent owner, not by blindly replacing every aligned word. The
-next strong candidates are `CD_comstr`/`CD_intstr`, `ThinkDB`, and the repeated
-language/stage records under `D_8008EA90`. For every batch:
+next strong candidates are `CD_comstr`/`CD_intstr` and `ThinkDB`. For every
+batch:
 
 1. confirm the exact target directive and enclosing owner;
 2. name the exact interior object, not an enclosing blob plus a guessed addend;
