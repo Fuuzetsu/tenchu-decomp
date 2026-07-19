@@ -173,6 +173,70 @@
         install -m755 cc1 "$out/bin/cc1-281"
       '';
 
+      # GS_107.OBJ was built by a libgs backend that differs from the released
+      # consumer cc1 in two compiler-output-proven places: its block-move split
+      # accepts symbolic addresses, and its RA-only epilogue uses the stack
+      # adjustment as the $ra load delay rather than the return delay. Together
+      # they reproduce both natural MATRIX assignments exactly. Build this
+      # evidence-backed variant from pinned GCC/decompals sources; select it for
+      # the whole original object in Build.hs, never for an individual function.
+      old-gcc-017 = pkgs.fetchFromGitHub {
+        owner = "decompals";
+        repo = "old-gcc";
+        rev = "b74211c9d959e9724802f3177c8229cd67202c87";
+        sha256 = "043dcgj39hqsl84kr874nl51pm3hgp49ixarnzjqxxzvibascm6d";
+      };
+      cc1-281-gs107 = pkgs.pkgsi686Linux.stdenv.mkDerivation {
+        pname = "cc1-281-gs107";
+        version = "2.8.1";
+        src = pkgs.fetchurl {
+          url = "https://ftp.gnu.org/gnu/gcc/gcc-2.8.1.tar.gz";
+          sha256 = "0k7aq8l8hnyi9yv2nydykvn0wyr6yd1l45qdv5rq6qiyz7yznc1v";
+        };
+        hardeningDisable = [ "all" ];
+
+        patchPhase = ''
+          runHook prePatch
+          sed -i 's/include <varargs.h>/include <stdarg.h>/g' ./*.c
+          patch -u -p1 obstack.h \
+            -i ${old-gcc-017}/patches/obstack-2.8.1.h.patch
+          patch -u -p1 config/mips/mips.h \
+            -i ${old-gcc-017}/patches/mips.patch
+          patch -su -p1 < ${old-gcc-017}/patches/psx.patch
+          patch -su -p1 < ${./nix/gcc-2.8.1-gs107-backend.patch}
+          runHook postPatch
+        '';
+
+        configurePhase = ''
+          runHook preConfigure
+          ./configure \
+            --target=mips-sony-psx \
+            --prefix="$out" \
+            --with-endian-little \
+            --with-gnu-as \
+            --disable-gprof \
+            --disable-gdb \
+            --disable-werror \
+            --host=i386-pc-linux \
+            --build=i386-pc-linux
+          runHook postConfigure
+        '';
+
+        buildPhase = ''
+          runHook preBuild
+          touch insn-config.h
+          make -j"$NIX_BUILD_CORES" cc1 CFLAGS="-std=gnu89"
+          runHook postBuild
+        '';
+
+        installPhase = ''
+          runHook preInstall
+          mkdir -p "$out/bin"
+          install -m755 cc1 "$out/bin/cc1-281-gs107"
+          runHook postInstall
+        '';
+      };
+
       # The reused ADT library object predates the game's default compiler. Its
       # eleven contiguous C members are byte-identical under GCC 2.8.0; 2.8.1's
       # changed reload-address retyping leaves AdtSelect nine bytes off. Keep the
@@ -221,7 +285,7 @@
     {
       legacyPackages = pkgs;
       packages = flake-utils.lib.flattenTree
-        { };
+        { inherit cc1-281-gs107; };
 
       apps = { };
 
@@ -249,6 +313,7 @@
           maspsx-bin
           cc1-280
           cc1-281
+          cc1-281-gs107
           mkpsxiso
           permuter
           # GHC with the Shake build tool's deps baked into its global package

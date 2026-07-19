@@ -5719,7 +5719,22 @@ class BuildConfigurationTests(unittest.TestCase):
         self.assertNotIn("-mno-split-addresses", permute.cc_flags_for("Other"))
         self.assertEqual(permute.cc_executable_for("AdtSelect"), "cc1-280")
         self.assertEqual(permute.cc_executable_for("AdtGetDisp"), "cc1-280")
+        for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
+            self.assertEqual(
+                permute.cc_executable_for(member), "cc1-281-gs107"
+            )
         self.assertEqual(permute.cc_executable_for("Other"), "cc1-281")
+
+        # Compiler attribution is evidence about an original library object,
+        # never a one-function tuning knob. Keep direct member names out of the
+        # executable oracle and require the Python mirror to be object-keyed.
+        executable_block = build.split(
+            "originalObjectCcExecutable src", 1
+        )[1].split("-- | All varying compiler inputs", 1)[0]
+        for members in permute.ORIGINAL_OBJECT_MEMBERS.values():
+            for member in members:
+                self.assertNotIn(f'"{member}"', executable_block)
+                self.assertNotIn(member, permute.ORIGINAL_OBJECT_CC_EXECUTABLES)
 
         # Shake must depend on the executable and flags as one oracle value;
         # otherwise changing only cc1 can silently reuse a stale .s.

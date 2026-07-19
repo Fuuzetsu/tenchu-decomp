@@ -593,6 +593,7 @@ adtObjectMembers =
 
 originalObjectCcExecutable :: FilePath -> FilePath
 originalObjectCcExecutable src
+  | takeBaseName src `elem` gs107ObjectMembers = "cc1-281-gs107"
   | takeBaseName src `elem` adtObjectMembers = "cc1-280"
   | otherwise = ccDefault
 

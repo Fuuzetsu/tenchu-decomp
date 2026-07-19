@@ -1,0 +1,40 @@
+--- a/config/mips/mips.md
++++ b/config/mips/mips.md
+@@ -4133,2 +4133,2 @@
+-  [(set (mem:BLK (match_operand:SI 0 "register_operand" ""))
+-	(mem:BLK (match_operand:SI 1 "register_operand" "")))
++  [(set (mem:BLK (match_operand:SI 0 "address_operand" ""))
++	(mem:BLK (match_operand:SI 1 "address_operand" "")))
+--- a/config/mips/mips.c
++++ b/config/mips/mips.c
+@@ -5653,4 +5653,14 @@
+-      emit_insn (gen_blockage ());
+-      if (TARGET_LONG64)
+-	emit_insn (gen_adddi3 (stack_pointer_rtx, stack_pointer_rtx,
+-			       tsize_rtx));
++      /* With only $ra to restore, the stack adjustment fills its load
++	 delay.  Keep it before the blockage so reorg leaves the return slot
++	 empty.  Larger restore sets already fill the load delay and retain the
++	 usual stack adjustment in the return delay slot.  */
++      if (current_frame_info.mask == RA_MASK && current_frame_info.fmask == 0)
++	{
++	  if (TARGET_LONG64)
++	    emit_insn (gen_adddi3 (stack_pointer_rtx, stack_pointer_rtx,
++				   tsize_rtx));
++	  else
++	    emit_insn (gen_addsi3 (stack_pointer_rtx, stack_pointer_rtx,
++				   tsize_rtx));
++	  emit_insn (gen_blockage ());
++	}
+@@ -5658,2 +5668,9 @@
+-	emit_insn (gen_addsi3 (stack_pointer_rtx, stack_pointer_rtx,
+-			       tsize_rtx));
++	{
++	  emit_insn (gen_blockage ());
++	  if (TARGET_LONG64)
++	    emit_insn (gen_adddi3 (stack_pointer_rtx, stack_pointer_rtx,
++				   tsize_rtx));
++	  else
++	    emit_insn (gen_addsi3 (stack_pointer_rtx, stack_pointer_rtx,
++				   tsize_rtx));
++	}

@@ -2,7 +2,8 @@
 
 > **Status: maspsx is integrated.** The pipeline is `cpp | object-profile cc1
 > -G8 | maspsx --aspsx-version=2.77 -G8 | as -G0 | ld`: GCC 2.8.1 is the
-> default, and the reused ADT object selects GCC 2.8.0. wine has been removed
+> default, the reused ADT object selects GCC 2.8.0, and GS_107.OBJ selects the
+> reconstructed GS_107 libgs backend described below. wine has been removed
 > from the devShell. `./Build check` stays byte-identical. The "Recipe" section
 > below is kept as the rationale/record.
 
@@ -16,7 +17,7 @@ decomp uses (SOTN, Silent Hill, MediEvil, Soul Reaver, Croc, Spyro):
 
 | PSY-Q tool (path A, needs wine/DOS) | This repo (path B, native Linux) |
 |---|---|
-| `CC1PSX.EXE` (compiler)             | `cc1-281` by default; `cc1-280` for the reused ADT object (both nix-pinned) |
+| `CC1PSX.EXE` (compiler)             | `cc1-281` by default; nix-pinned original-object profiles for ADT and GS_107 |
 | `ASPSX.EXE` + `psyq-obj-parser`     | **maspsx** + `mipsel-…-as`  ← missing piece |
 | `PSYLINK`                           | `mipsel-…-ld` + `main.exe.ld` |
 
@@ -101,6 +102,52 @@ huge-frame `lw a3,0(a3)` self-tie. 2.8.1 unconditionally retypes that case to
 `RELOAD_FOR_OPERAND_ADDRESS`, whose shared conflict bit forces a second reload
 register. This supersedes the earlier conclusion that the human indexed loop
 was unreachable.
+
+### GS_107.OBJ: reconstructed libgs backend
+
+The stock libgs object `GS_107.OBJ` selects `cc1-281-gs107`, a GCC 2.8.1 build
+with two minimal, measured MIPS backend changes. Its block-move delay-slot split
+accepts `address_operand` for both BLK addresses instead of requiring
+`register_operand`. Its RA-only epilogue places the stack adjustment before the
+backend blockage, filling the `$ra` load delay and leaving the return slot
+empty. The Nix derivation pins upstream GCC 2.8.1, the
+decompals/old-gcc 0.17 PSX patch set at commit
+`b74211c9d959e9724802f3177c8229cd67202c87`, and the
+[complete local delta](../nix/gcc-2.8.1-gs107-backend.patch).
+
+This is a backend reconstruction from compiler evidence, not a claim that the
+patch is the exact historical Sony source. The released consumer 2.8.1
+compiler keeps each natural 32-byte `MATRIX` assignment as one
+`movstrsi_internal` with a symbolic address. In the delay-slot dump, reorg
+reports one instruction needing a slot and zero filled slots: its own split
+rejects the symbolic BLK address. Changing only those two predicates makes reorg
+split the final store and produces the target's exact 3+3+2 load/store batches.
+It independently closes both symmetric helpers from ordinary human C:
+
+- `GS_107_OBJ_4B8`: `_LC = *m; SetColorMatrix(m);`, with the final store in the
+  `jal SetColorMatrix` delay slot.
+- `GS_107_OBJ_51C`: `*m = _LC;`, with the final store in the `jr ra` delay slot.
+
+The epilogue delta is independently visible before reorg: 4B8's sched2 RTL is
+already `lw ra; addiu sp; return`, but the released backend moves the stack
+adjustment into the return delay slot and its final printer must then insert a
+load-delay `nop`. Across the linked executable, the target's
+`lw ra; addiu sp; jr; nop` signature occurs 98 times in the SDK region (plus
+SDK-style `DrawTMD`), while all 63 instances of the released compiler's
+`lw ra; nop; jr; addiu sp` signature are in game code. This is not a blanket
+empty-return-slot rule: `GsSetFlatLight`, in the same object, saves `s0..s4` and
+correctly retains its stack adjustment in the `jr` delay slot. The reconstructed
+backend therefore changes the order only for RA-only frames.
+
+The source and destination cases matching independently is the guard against a
+one-function coincidence. The stock object is also identical in the PsyQ 4.5
+and 4.6 archives even though those kits place it beside different released cc1
+binaries, so archive adjacency cannot identify the internal compiler that built
+the library. The build therefore applies the variant only through the complete
+`GS_107.OBJ` profile (`GsSetFlatLight`, `GS_107_OBJ_444`,
+`GS_107_OBJ_4B8`, and `GS_107_OBJ_51C`). Tests forbid direct function names in
+the compiler oracle; future C carves inherit the same object attribution
+automatically.
 
 ## Recipe: add maspsx to the pipeline (done — kept as the record)
 
