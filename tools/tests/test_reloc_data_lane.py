@@ -38,6 +38,7 @@ SOURCE_ASM = """\
 dlabel PointerTable
     /* 1000 80030000 FCFF0180 */ .word 0x8001FFFC
     /* 1004 80030004 F8FF0180 */ .word 0x8001FFF8
+    /* 1008 80030008 FAFF0180 */ .word 0x8001FFFA
 enddlabel PointerTable
 """
 
@@ -60,7 +61,7 @@ class ParseTests(unittest.TestCase):
 
 @unittest.skipUnless(HAVE_MIPS_TOOLS, "MIPS binutils are not on PATH")
 class BinutilsProofTests(unittest.TestCase):
-    def test_two_exact_targets_follow_all_three_controlled_links(self) -> None:
+    def test_exact_and_base_addend_targets_follow_all_controlled_links(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             inputs = root / "input"
@@ -92,6 +93,16 @@ class BinutilsProofTests(unittest.TestCase):
                                 "target_owner": "ExactStrings",
                                 "symbol": "exact_string_a",
                             },
+                            {
+                                "source_file": "source.data.s",
+                                "source_address": "0x80030008",
+                                "source_owner": "PointerTable",
+                                "target_file": None,
+                                "target_address": "0x8001fffa",
+                                "target_owner": "ExternalBuffer",
+                                "symbol": "ExternalBuffer",
+                                "target_addend": "0x2",
+                            },
                         ],
                     }
                 )
@@ -99,7 +110,7 @@ class BinutilsProofTests(unittest.TestCase):
 
             result = lane.verify(manifest, inputs, root / "work")
 
-            self.assertEqual(result, lane.ProofResult(2, 2, 2, 3))
+            self.assertEqual(result, lane.ProofResult(3, 3, 2, 3))
 
 
 if __name__ == "__main__":

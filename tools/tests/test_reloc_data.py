@@ -41,6 +41,18 @@ dlabel PointerTable
 enddlabel PointerTable
 """
 
+BYTE_SOURCE_ASM = """\
+.include "macro.inc"
+.section .data, "wa"
+
+dlabel PointerTable
+    /* 1000 80012000 */ .byte 0x04
+    /* 1001 80012001 */ .byte 0x10
+    /* 1002 80012002 */ .byte 0x01
+    /* 1003 80012003 */ .byte 0x80
+enddlabel PointerTable
+"""
+
 
 def manifest_document(**updates: object) -> dict[str, object]:
     entry: dict[str, object] = {
@@ -57,14 +69,20 @@ def manifest_document(**updates: object) -> dict[str, object]:
 
 
 class Fixture:
-    def __init__(self, root: Path, document: dict[str, object] | None = None) -> None:
+    def __init__(
+        self,
+        root: Path,
+        document: dict[str, object] | None = None,
+        *,
+        source: str = SOURCE_ASM,
+    ) -> None:
         self.root = root
         self.inputs = root / "input"
         self.outputs = root / "output"
         self.manifest = root / "manifest.json"
         self.inputs.mkdir()
         (self.inputs / "target.data.s").write_text(TARGET_ASM)
-        (self.inputs / "source.data.s").write_text(SOURCE_ASM)
+        (self.inputs / "source.data.s").write_text(source)
         self.manifest.write_text(json.dumps(document or manifest_document()))
 
     def rewrite(self) -> reloc_data.RewriteResult:
@@ -74,7 +92,7 @@ class Fixture:
 class RewriteTests(unittest.TestCase):
     def test_repository_manifest_contains_only_reviewed_pointer_tables(self) -> None:
         entries = reloc_data.load_manifest(ROOT / "config/reloc-data.main.exe.json")
-        self.assertEqual(len(entries), 185)
+        self.assertEqual(len(entries), 208)
         self.assertEqual(
             {entry.source_owner for entry in entries},
             {
@@ -104,6 +122,8 @@ class RewriteTests(unittest.TestCase):
                 "D_80097CAC",
                 "TENCHU_ID",
                 "CID",
+                "StageConfig",
+                "D_80097E98",
             },
         )
         self.assertEqual(
@@ -128,6 +148,29 @@ class RewriteTests(unittest.TestCase):
                 "D_80015C04",
                 "D_80015CA0",
                 "switchD_8007d9a8__switchdataD_80015ccc",
+                "D_80011C9C",
+                "D_80011CB8",
+                "D_80011CD8",
+                "D_80011CFC",
+                "D_80011D1C",
+                "D_80011D38",
+                "D_80011D54",
+                "D_80011D70",
+                "D_80011D90",
+                "D_80011DB4",
+                "D_80011DD4",
+                "D_80011DE8",
+                "D_80011E08",
+                "D_80011E1C",
+                "D_80011E3C",
+                "D_80011E50",
+                "D_80011E70",
+                "D_80011E7C",
+                "D_80011E9C",
+                "D_80011EB4",
+                "D_80011ED4",
+                "D_80011EF8",
+                "D_800C2EB0",
             },
         )
         demo_sources = {
@@ -150,6 +193,11 @@ class RewriteTests(unittest.TestCase):
             | set(range(0x8008EF28, 0x8008EF78, 4))
             | set(range(0x8008EF88, 0x8008EF98, 4))
         )
+        stage_config_sources = {
+            0x80011F18 + record * 0x1C + field
+            for record in range(11)
+            for field in (4, 8)
+        }
         final_sources = (
             {
                 0x80088A9C,
@@ -165,22 +213,29 @@ class RewriteTests(unittest.TestCase):
                 0x80097400,
                 0x80097D04,
                 0x80097D8C,
+                0x80097E98,
             }
             | set(range(0x80089E40, 0x80089ED0, 8))
             | set(range(0x8008F2C4, 0x8008F364, 4))
             | set(range(0x80097C98, 0x80097CB0, 4))
         )
         self.assertEqual(
-            {entry.source_address for entry in entries}, old_sources | final_sources
+            {entry.source_address for entry in entries},
+            stage_config_sources | old_sources | final_sources,
         )
         self.assertEqual(
             len({(entry.target_file, entry.target_address) for entry in entries}),
-            112,
+            135,
         )
         self.assertEqual(
             {str(entry.source_file) for entry in entries}
-            | {str(entry.target_file) for entry in entries},
+            | {
+                str(entry.target_file)
+                for entry in entries
+                if entry.target_file is not None
+            },
             {
+                "1490.data.s",
                 "E58.data.s",
                 "1160.data.s",
                 "207C.data.s",
@@ -282,6 +337,8 @@ class RewriteTests(unittest.TestCase):
             "D_80097CAC": 1,
             "TENCHU_ID": 1,
             "CID": 1,
+            "StageConfig": 22,
+            "D_80097E98": 1,
         }
         for owner, count in owner_counts.items():
             self.assertEqual(
@@ -291,7 +348,7 @@ class RewriteTests(unittest.TestCase):
         final_entries = [
             entry for entry in entries if entry.source_address in final_sources
         ]
-        self.assertEqual(len(final_entries), 77)
+        self.assertEqual(len(final_entries), 78)
         self.assertEqual(
             sum(entry.symbol == "human_name_rikimaru" for entry in final_entries),
             2,
@@ -333,6 +390,35 @@ class RewriteTests(unittest.TestCase):
             self.assertIn(f".word {SYMBOL}", source)
             self.assertNotIn(".word 0x80011004", source)
             self.assertEqual(target.count(SYMBOL), 3)
+
+    def test_rewrite_coalesces_four_little_endian_bytes_into_symbolic_word(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = Fixture(Path(temporary), source=BYTE_SOURCE_ASM)
+            result = fixture.rewrite()
+
+            self.assertEqual(result, reloc_data.RewriteResult(1, 1, 2))
+            source = (fixture.outputs / "source.data.s").read_text()
+            self.assertIn(f"/* 1000 80012000 */ .word {SYMBOL}", source)
+            self.assertNotIn("80012001", source)
+            self.assertNotIn(".byte", source)
+
+    def test_rewrite_preserves_reviewed_external_base_addend(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            document = manifest_document(
+                target_file=None,
+                target_address="0x80011006",
+                target_owner="ExternalBuffer",
+                symbol="ExternalBuffer",
+                target_addend="0x2",
+            )
+            source = SOURCE_ASM.replace("0x80011004", "0x80011006")
+            fixture = Fixture(root, document, source=source)
+            result = fixture.rewrite()
+
+            self.assertEqual(result, reloc_data.RewriteResult(1, 1, 1))
+            rewritten = (fixture.outputs / "source.data.s").read_text()
+            self.assertIn(".word ExternalBuffer + 0x2", rewritten)
 
     def test_check_mode_validates_without_writing(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

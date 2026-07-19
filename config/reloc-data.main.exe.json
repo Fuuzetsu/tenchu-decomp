@@ -3,6 +3,204 @@
   "description": "Reviewed exact-interior-label slices for MAIN.EXE loaded data",
   "entries": [
     {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f1c",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011c9c",
+      "target_owner": "D_80011C9C",
+      "symbol": "stage_config_akindo_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f20",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011cb8",
+      "target_owner": "D_80011CB8",
+      "symbol": "stage_config_akindo_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f38",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011cd8",
+      "target_owner": "D_80011CD8",
+      "symbol": "stage_config_jouka_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f3c",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011cfc",
+      "target_owner": "D_80011CFC",
+      "symbol": "stage_config_jouka_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f54",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011d1c",
+      "target_owner": "D_80011D1C",
+      "symbol": "stage_config_cave_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f58",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011d38",
+      "target_owner": "D_80011D38",
+      "symbol": "stage_config_cave_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f70",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011d54",
+      "target_owner": "D_80011D54",
+      "symbol": "stage_config_temple_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f74",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011d70",
+      "target_owner": "D_80011D70",
+      "symbol": "stage_config_temple_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f8c",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011d90",
+      "target_owner": "D_80011D90",
+      "symbol": "stage_config_jouka2_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011f90",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011db4",
+      "target_owner": "D_80011DB4",
+      "symbol": "stage_config_jouka2_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011fa8",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011dd4",
+      "target_owner": "D_80011DD4",
+      "symbol": "stage_config_cave2_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011fac",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011de8",
+      "target_owner": "D_80011DE8",
+      "symbol": "stage_config_cave2_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011fc4",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e08",
+      "target_owner": "D_80011E08",
+      "symbol": "stage_config_castle_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011fc8",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e1c",
+      "target_owner": "D_80011E1C",
+      "symbol": "stage_config_castle_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011fe0",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e3c",
+      "target_owner": "D_80011E3C",
+      "symbol": "stage_config_yamijou_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011fe4",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e50",
+      "target_owner": "D_80011E50",
+      "symbol": "stage_config_yamijou_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80011ffc",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e70",
+      "target_owner": "D_80011E70",
+      "symbol": "stage_config_tanren_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80012000",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e7c",
+      "target_owner": "D_80011E7C",
+      "symbol": "stage_config_tanren_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80012018",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011e9c",
+      "target_owner": "D_80011E9C",
+      "symbol": "stage_config_sekisho_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x8001201c",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011eb4",
+      "target_owner": "D_80011EB4",
+      "symbol": "stage_config_sekisho_path"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80012034",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011ed4",
+      "target_owner": "D_80011ED4",
+      "symbol": "stage_config_bukeya_name"
+    },
+    {
+      "source_file": "1490.data.s",
+      "source_address": "0x80012038",
+      "source_owner": "StageConfig",
+      "target_file": "1490.data.s",
+      "target_address": "0x80011ef8",
+      "target_owner": "D_80011EF8",
+      "symbol": "stage_config_bukeya_path"
+    },
+    {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ea58",
       "source_owner": "STAGE_SOUND_PREFICES",
@@ -1666,6 +1864,16 @@
       "target_address": "0x800140f4",
       "target_owner": "D_800140E0",
       "symbol": "stage_card_id_prefix"
+    },
+    {
+      "source_file": "75F64.data.s",
+      "source_address": "0x80097e98",
+      "source_owner": "D_80097E98",
+      "target_file": null,
+      "target_address": "0x800c2eb2",
+      "target_owner": "D_800C2EB0",
+      "symbol": "D_800C2EB0",
+      "target_addend": "0x2"
     }
   ]
 }

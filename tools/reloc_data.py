@@ -8,12 +8,15 @@ reviewed manifest to copies of those generated files.  Every entry:
 * identifies the pointer word by file, address, and enclosing data owner;
 * identifies its target by an exact address and enclosing data owner; and
 * inserts a section-relative symbol at that exact target before replacing the
-  literal with ``.word symbol``.
+  literal with ``.word symbol``.  A reviewed external target may instead name
+  an existing section-owned base plus an explicit addend.
 
 The owner checks are evidence guards, not relocation bases.  In particular,
-an interior target is never rewritten as a guessed top-level symbol plus an
-addend.  GNU ``as`` therefore emits an ``R_MIPS_32`` against the exact label.
-The ordinary generated files are never modified in place.
+an interior target is not rewritten as a guessed top-level symbol plus an
+addend.  The sole supported addend form is explicit in the manifest and is
+checked at all controlled link layouts.  GNU ``as`` therefore emits a real
+``R_MIPS_32`` for both forms.  The ordinary generated files are never modified
+in place.
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ ADDRESS_RE = re.compile(
     r"(?:\s+[0-9A-Fa-f]{8})?\s*\*/"
 )
 WORD_RE = re.compile(r"(?P<prefix>\.word\s+)(?P<operand>[^\s#,]+)")
+BYTE_RE = re.compile(r"(?P<prefix>\.byte\s+)(?P<operand>[^\s#,]+)")
 
 
 class RelocDataError(RuntimeError):
@@ -85,16 +89,27 @@ class PointerEntry:
     source_file: Path
     source_address: int
     source_owner: str
-    target_file: Path
+    target_file: Path | None
     target_address: int
     target_owner: str
     symbol: str
+    target_addend: int
+
+    @property
+    def symbol_address(self) -> int:
+        return self.target_address - self.target_addend
+
+    @property
+    def expression(self) -> str:
+        if self.target_addend == 0:
+            return self.symbol
+        return f"{self.symbol} + {self.target_addend:#x}"
 
     @classmethod
     def from_json(cls, raw: object, index: int) -> "PointerEntry":
         description = f"entries[{index}]"
         require(isinstance(raw, dict), f"{description} must be an object")
-        expected = {
+        required = {
             "source_file",
             "source_address",
             "source_owner",
@@ -104,17 +119,38 @@ class PointerEntry:
             "symbol",
         }
         keys = set(raw)
-        require(keys == expected, f"{description} fields differ: {sorted(keys ^ expected)}")
+        allowed = required | {"target_addend"}
+        require(
+            required <= keys <= allowed,
+            f"{description} fields differ: {sorted((required - keys) | (keys - allowed))}",
+        )
         symbol = string_field(raw, "symbol", description)
         require(bool(SYMBOL_RE.fullmatch(symbol)), f"{description}.symbol is invalid: {symbol!r}")
+        target_file_value = raw["target_file"]
+        target_file = (
+            None
+            if target_file_value is None
+            else relative_source_path(target_file_value, f"{description}.target_file")
+        )
+        target_address = parse_u32(raw["target_address"], f"{description}.target_address")
+        target_addend = parse_u32(raw.get("target_addend", 0), f"{description}.target_addend")
+        require(
+            target_addend <= target_address,
+            f"{description}.target_addend exceeds the target address",
+        )
+        require(
+            target_file is None or target_addend == 0,
+            f"{description}: generated-file targets must use an exact label",
+        )
         return cls(
             source_file=relative_source_path(raw["source_file"], f"{description}.source_file"),
             source_address=parse_u32(raw["source_address"], f"{description}.source_address"),
             source_owner=string_field(raw, "source_owner", description),
-            target_file=relative_source_path(raw["target_file"], f"{description}.target_file"),
-            target_address=parse_u32(raw["target_address"], f"{description}.target_address"),
+            target_file=target_file,
+            target_address=target_address,
             target_owner=string_field(raw, "target_owner", description),
             symbol=symbol,
+            target_addend=target_addend,
         )
 
 
@@ -141,8 +177,8 @@ def load_manifest(path: Path) -> list[PointerEntry]:
     entries = [PointerEntry.from_json(raw, index) for index, raw in enumerate(raw_entries)]
 
     sources: set[tuple[Path, int]] = set()
-    symbols: dict[str, tuple[Path, int]] = {}
-    targets: dict[tuple[Path, int], str] = {}
+    symbols: dict[str, tuple[Path | None, int]] = {}
+    targets: dict[tuple[Path | None, int], tuple[str, int]] = {}
     for entry in entries:
         source = (entry.source_file, entry.source_address)
         require(
@@ -151,13 +187,18 @@ def load_manifest(path: Path) -> list[PointerEntry]:
         )
         sources.add(source)
 
-        target = (entry.target_file, entry.target_address)
-        prior_target = symbols.setdefault(entry.symbol, target)
-        require(prior_target == target, f"{path}: symbol {entry.symbol} names multiple targets")
-        prior_symbol = targets.setdefault(target, entry.symbol)
+        symbol_target = (entry.target_file, entry.symbol_address)
+        prior_target = symbols.setdefault(entry.symbol, symbol_target)
         require(
-            prior_symbol == entry.symbol,
-            f"{path}: target {entry.target_address:#x} has multiple symbols",
+            prior_target == symbol_target,
+            f"{path}: symbol {entry.symbol} names multiple targets",
+        )
+        target = (entry.target_file, entry.target_address)
+        expression = (entry.symbol, entry.target_addend)
+        prior_symbol = targets.setdefault(target, expression)
+        require(
+            prior_symbol == expression,
+            f"{path}: target {entry.target_address:#x} has multiple expressions",
         )
     return entries
 
@@ -201,7 +242,12 @@ def rewrite_file(path: Path, file_key: Path, entries: Sequence[PointerEntry]) ->
     found_targets: set[int] = set()
     output: list[str] = []
     owner: str | None = None
-    for line_number, line in enumerate(lines, 1):
+    index = 0
+    while index < len(lines):
+        line_number = index + 1
+        line = lines[index]
+        pointer: PointerEntry | None = None
+        encoded_lines = 1
         owner, closing = _active_owner(line, owner)
         address_match = ADDRESS_RE.search(line)
         if address_match is not None:
@@ -232,24 +278,87 @@ def rewrite_file(path: Path, file_key: Path, entries: Sequence[PointerEntry]) ->
                     f"expected {pointer.source_owner}",
                 )
                 word = WORD_RE.search(line)
-                require(word is not None, f"{path}:{line_number}: source is not a .word directive")
-                try:
-                    literal = int(word.group("operand"), 0)
-                except ValueError as error:
+                byte = BYTE_RE.search(line)
+                if word is not None:
+                    try:
+                        literal = int(word.group("operand"), 0)
+                    except ValueError as error:
+                        raise RelocDataError(
+                            f"{path}:{line_number}: source operand is not a literal"
+                        ) from error
+                    start, end = word.span("operand")
+                    line = line[:start] + pointer.expression + line[end:]
+                elif byte is not None:
+                    require(
+                        closing is None,
+                        f"{path}:{line_number}: byte-encoded source closes its owner",
+                    )
+                    octets: list[int] = []
+                    for byte_index in range(4):
+                        candidate_index = index + byte_index
+                        require(
+                            candidate_index < len(lines),
+                            f"{path}:{line_number}: truncated four-byte pointer",
+                        )
+                        candidate = lines[candidate_index]
+                        candidate_address_match = ADDRESS_RE.search(candidate)
+                        require(
+                            candidate_address_match is not None,
+                            f"{path}:{candidate_index + 1}: pointer byte has no address",
+                        )
+                        candidate_address = int(
+                            candidate_address_match.group("address"), 16
+                        )
+                        require(
+                            candidate_address == address + byte_index,
+                            f"{path}:{candidate_index + 1}: pointer bytes are not contiguous",
+                        )
+                        candidate_byte = BYTE_RE.search(candidate)
+                        require(
+                            candidate_byte is not None,
+                            f"{path}:{candidate_index + 1}: expected a .byte directive",
+                        )
+                        try:
+                            octet = int(candidate_byte.group("operand"), 0)
+                        except ValueError as error:
+                            raise RelocDataError(
+                                f"{path}:{candidate_index + 1}: source byte is not a literal"
+                            ) from error
+                        require(
+                            0 <= octet <= 0xFF,
+                            f"{path}:{candidate_index + 1}: source byte is out of range",
+                        )
+                        require(
+                            address + byte_index not in target_entries,
+                            f"{path}:{candidate_index + 1}: pointer byte overlaps a target",
+                        )
+                        if byte_index != 0:
+                            require(
+                                address + byte_index not in source_entries,
+                                f"{path}:{candidate_index + 1}: pointer encodings overlap",
+                            )
+                        octets.append(octet)
+                    literal = sum(
+                        octet << (8 * position)
+                        for position, octet in enumerate(octets)
+                    )
+                    start, end = byte.span()
+                    line = line[:start] + f".word {pointer.expression}" + line[end:]
+                    encoded_lines = 4
+                else:
                     raise RelocDataError(
-                        f"{path}:{line_number}: source operand is not a literal"
-                    ) from error
+                        f"{path}:{line_number}: source is neither a .word nor four .byte directives"
+                    )
                 require(
                     literal == pointer.target_address,
                     f"{path}:{line_number}: literal {literal:#x} != target "
                     f"{pointer.target_address:#x}",
                 )
-                start, end = word.span("operand")
-                line = line[:start] + pointer.symbol + line[end:]
                 found_sources.add(address)
         output.append(line)
         if closing is not None:
             owner = None
+        index += encoded_lines if pointer is not None else 1
 
     missing_sources = sorted(set(source_entries) - found_sources)
     missing_targets = sorted(set(target_entries) - found_targets)
@@ -285,7 +394,7 @@ def rewrite(
     entries = load_manifest(manifest)
     files = sorted(
         {entry.source_file for entry in entries}
-        | {entry.target_file for entry in entries}
+        | {entry.target_file for entry in entries if entry.target_file is not None}
     )
     rewritten: dict[Path, str] = {}
     for relative in files:

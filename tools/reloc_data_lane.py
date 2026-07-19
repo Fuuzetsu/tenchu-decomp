@@ -6,7 +6,8 @@ gate applies it to a separate generated tree, assembles every touched input,
 and checks the resulting objects and linked bytes:
 
 * every reviewed pointer has an ``R_MIPS_32`` record at its exact source word;
-* every exact target label is section-relative at its reviewed byte offset;
+* every exact target label, or reviewed external base used with an addend, is
+  section-relative at its reviewed byte offset;
 * a retail-address link reproduces every original pointer value; and
 * links shifted by ``+4`` and ``+0x10004`` retarget every pointer, including a
   carry across the high 16 bits.
@@ -82,6 +83,12 @@ class ProofResult:
     targets: int
     files: int
     shifts: int
+
+
+@dataclass(frozen=True)
+class ExternalTarget:
+    symbol: str
+    address: int
 
 
 def require(condition: bool, message: str) -> None:
@@ -174,6 +181,60 @@ def assemble(
     return objects
 
 
+def external_targets(
+    entries: Sequence[reloc_data.PointerEntry],
+) -> tuple[ExternalTarget, ...]:
+    targets = {
+        (entry.symbol, entry.symbol_address)
+        for entry in entries
+        if entry.target_file is None
+    }
+    return tuple(ExternalTarget(symbol, address) for symbol, address in sorted(targets))
+
+
+def assemble_external_targets(
+    toolchain: Toolchain,
+    targets: Sequence[ExternalTarget],
+    root: Path,
+) -> Path | None:
+    if not targets:
+        return None
+    source = root / "external-targets.s"
+    output = root / "external-targets.o"
+    lines: list[str] = []
+    for index, target in enumerate(targets):
+        lines.extend(
+            [
+                f'.section .reloc_data_external_{index}, "aw", @nobits\n',
+                f".globl {target.symbol}\n",
+                f".type {target.symbol}, @object\n",
+                f"{target.symbol}:\n",
+                ".space 1\n",
+                f".size {target.symbol}, . - {target.symbol}\n",
+            ]
+        )
+    source.write_text("".join(lines))
+    run(
+        [
+            toolchain.assembler,
+            *AS_FLAGS,
+            "-o",
+            str(output),
+            str(source),
+        ]
+    )
+    symbols = parse_symbols(run([toolchain.readelf, "-Ws", str(output)]))
+    for target in targets:
+        require(target.symbol in symbols, f"missing external target {target.symbol}")
+        value, section = symbols[target.symbol]
+        require(value == 0, f"external target {target.symbol} has nonzero object offset")
+        require(
+            section not in {"ABS", "UND"},
+            f"external target {target.symbol} is not section-relative",
+        )
+    return output
+
+
 def verify_objects(
     entries: Sequence[reloc_data.PointerEntry],
     bases: dict[Path, int],
@@ -184,7 +245,8 @@ def verify_objects(
     by_target: dict[Path, list[reloc_data.PointerEntry]] = {}
     for entry in entries:
         by_source.setdefault(entry.source_file, []).append(entry)
-        by_target.setdefault(entry.target_file, []).append(entry)
+        if entry.target_file is not None:
+            by_target.setdefault(entry.target_file, []).append(entry)
 
     for file_key, file_entries in by_source.items():
         relocations = parse_relocations(
@@ -225,6 +287,8 @@ def verify_objects(
 def linker_script(
     objects: dict[Path, Path],
     bases: dict[Path, int],
+    external_object: Path | None,
+    external: Sequence[ExternalTarget],
     shift: int,
 ) -> tuple[str, dict[Path, str]]:
     lines = ["SECTIONS\n", "{\n"]
@@ -237,6 +301,14 @@ def linker_script(
             f"  {section} 0x{address:08x} : SUBALIGN(4) "
             f"{{ {objects[file_key]}(.data) }}\n"
         )
+    if external_object is not None:
+        for index, target in enumerate(external):
+            section = f".reloc_data_external_{index}"
+            address = target.address + shift
+            lines.append(
+                f"  {section} 0x{address:08x} : "
+                f"{{ {external_object}({section}) }}\n"
+            )
     lines.extend(
         [
             "  /DISCARD/ : { *(.reginfo) *(.MIPS.abiflags) *(.gnu.attributes) }\n",
@@ -250,11 +322,15 @@ def verify_link(
     entries: Sequence[reloc_data.PointerEntry],
     bases: dict[Path, int],
     objects: dict[Path, Path],
+    external_object: Path | None,
+    external: Sequence[ExternalTarget],
     toolchain: Toolchain,
     root: Path,
     shift: int,
 ) -> None:
-    script_text, sections = linker_script(objects, bases, shift)
+    script_text, sections = linker_script(
+        objects, bases, external_object, external, shift
+    )
     script = root / f"shift-{shift:x}.ld"
     linked = root / f"shift-{shift:x}.elf"
     script.write_text(script_text)
@@ -270,6 +346,7 @@ def verify_link(
             "--no-check-sections",
             "-nostdlib",
             *(str(objects[file_key]) for file_key in sorted(objects)),
+            *(() if external_object is None else (str(external_object),)),
         ]
     )
 
@@ -321,7 +398,7 @@ def verify(
     entries = reloc_data.load_manifest(manifest)
     files = sorted(
         {entry.source_file for entry in entries}
-        | {entry.target_file for entry in entries}
+        | {entry.target_file for entry in entries if entry.target_file is not None}
     )
     bases: dict[Path, int] = {}
     for file_key in files:
@@ -342,9 +419,20 @@ def verify(
             {file_key: rewritten_dir / file_key for file_key in files},
             object_dir,
         )
+        external = external_targets(entries)
+        external_object = assemble_external_targets(tools, external, root)
         verify_objects(entries, bases, objects, tools)
         for shift in PROBE_SHIFTS:
-            verify_link(entries, bases, objects, tools, root, shift)
+            verify_link(
+                entries,
+                bases,
+                objects,
+                external_object,
+                external,
+                tools,
+                root,
+                shift,
+            )
 
     targets = len({(entry.target_file, entry.target_address) for entry in entries})
     require(result.pointers == len(entries), "transform pointer count changed")
