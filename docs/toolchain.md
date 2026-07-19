@@ -1,9 +1,10 @@
 # Toolchain: maspsx vs ASPSX.EXE, and how to reach byte-matches
 
-> **Status: maspsx is integrated.** The pipeline is `cpp | cc1-281 -G8 | maspsx
-> --aspsx-version=2.77 -G8 | as -G0 | ld`. wine has been removed from the
-> devShell. `./Build check` stays byte-identical. The "Recipe" section below is
-> kept as the rationale/record.
+> **Status: maspsx is integrated.** The pipeline is `cpp | object-profile cc1
+> -G8 | maspsx --aspsx-version=2.77 -G8 | as -G0 | ld`: GCC 2.8.1 is the
+> default, and the reused ADT object selects GCC 2.8.0. wine has been removed
+> from the devShell. `./Build check` stays byte-identical. The "Recipe" section
+> below is kept as the rationale/record.
 
 ## TL;DR — do we need maspsx or ASPSX.EXE / wine?
 
@@ -15,7 +16,7 @@ decomp uses (SOTN, Silent Hill, MediEvil, Soul Reaver, Croc, Spyro):
 
 | PSY-Q tool (path A, needs wine/DOS) | This repo (path B, native Linux) |
 |---|---|
-| `CC1PSX.EXE` (compiler)             | `cc1-281` (decompals GCC 2.8.1 psx `cc1`, nix-pinned) |
+| `CC1PSX.EXE` (compiler)             | `cc1-281` by default; `cc1-280` for the reused ADT object (both nix-pinned) |
 | `ASPSX.EXE` + `psyq-obj-parser`     | **maspsx** + `mipsel-…-as`  ← missing piece |
 | `PSYLINK`                           | `mipsel-…-ld` + `main.exe.ld` |
 
@@ -75,11 +76,37 @@ so don't jump there pre-emptively. Overlays (`slps_019.01`, etc.) may use a
 different version — check each when tackled (SOTN, for instance, uses 2.67 for
 one overlay, 2.77 elsewhere).
 
+## Compiler versions are original-object profiles
+
+GCC 2.8.1 remains the game's default compiler, but the contiguous reused ADT
+library object at `0x8005f7f4..0x800601d4` was built with GCC 2.8.0. The build
+therefore pins both `cc1-281` and `cc1-280` and selects the executable through
+the same per-original-object profile oracle that owns exceptional compiler
+flags. Our one-function C files are an artificial decompilation split; the
+profile enumerates every carved member of the object, not a function chosen to
+improve a local score:
+
+`AdtGetDisp`, `AdtMessageBox`, `AdtQuiet`, `AdtFntOpen`, `AdtFntLoad`,
+`AdtReleaseDisp`, `AdtDmyPadRead`, `AdtVsprintf`, `FUN_8005fe38`,
+`FUN_8005fe88`, and `AdtSelect`.
+
+This attribution is byte- and compiler-proven. Recompiling all eleven with
+2.8.0 preserves every already-exact member and makes the clean 776-byte
+`AdtSelect` exact; substituting those objects into a fresh full link gives zero
+differing bytes in `main.exe`. Canonical 2.8.1 and Sony's SN32 2.8.1 build both
+leave the same nine-byte residual. The responsible source change is in
+`reload.c`: 2.8.0 preserves INPADDR/OUTADDR reloads as
+`RELOAD_FOR_OPADDR_ADDR`, whose separate address-use bookkeeping permits the
+huge-frame `lw a3,0(a3)` self-tie. 2.8.1 unconditionally retypes that case to
+`RELOAD_FOR_OPERAND_ADDRESS`, whose shared conflict bit forces a second reload
+register. This supersedes the earlier conclusion that the human indexed loop
+was unreachable.
+
 ## Recipe: add maspsx to the pipeline (done — kept as the record)
 
-This is how maspsx was integrated (all steps below are done except cc1 pinning,
-which stays on the roadmap). Gating check: `./Build check` stayed byte-identical,
-and `get_held_buttons`/`initialise_font` were verified unchanged under `-G8` +
+This is how maspsx and the compiler profiles were integrated (all steps below
+are done). Gating check: `./Build check` stayed byte-identical, and
+`get_held_buttons`/`initialise_font` were verified unchanged under `-G8` +
 maspsx *before* the flag flip.
 
 1. **Vendor maspsx** into the devShell (it's a single-file, stdlib-only Python
@@ -97,8 +124,9 @@ maspsx *before* the flag flip.
    `(short)(int)` truncation (`lhu 0x10`) where Sony reads the *low* half (`lhu 0x8`).
    Switching to canonical fixed it, kept Think1sleep/initialise_font matching, and only
    needed GetRealPad re-matched (its cleaner pointer-temp form — the old `do/while(0)`
-   was an artifact of the buggy binary). Verdict: use canonical 2.8.1; the real Sony
-   binary is unnecessary (no measured divergence) and 2.7.2 is worse (register alloc).
+   was an artifact of the buggy binary). Verdict: use canonical 2.8.1 by default;
+   the reused ADT object is the measured 2.8.0 exception documented above. The
+   real Sony 2.8.1 binary is unnecessary and 2.7.2 is worse (register alloc).
 3. **Insert maspsx as a filter** (not `--run-assembler`) in the `.s`-producing
    stage of `Build.hs`. Change `cc1 ccFlags` (stdin `.c` → stdout `.s`) to pipe
    `cc1` through `maspsx --aspsx-version=2.77 -G8` (add `--expand-div` for TUs

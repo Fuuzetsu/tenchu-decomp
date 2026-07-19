@@ -25,9 +25,11 @@ of change a fixed-layout partial decomp can absorb; *insertions* that grow the i
 are not (yet — that needs more of the surrounding data symbolised so a uniform shift
 stays self-consistent).
 
-Run inside the nix devShell (needs the cross toolchain, cc1-281 (on PATH), maspsx).
+Run inside the nix devShell (needs the cross toolchain, build-profile cc1s, maspsx).
 """
 import os, re, subprocess, sys, glob
+
+from permute import cc_executable_for
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -41,7 +43,6 @@ AS = CROSS + "as"
 LD = CROSS + "ld"
 NM = CROSS + "nm"
 OBJCOPY = CROSS + "objcopy"
-CC1 = "cc1-281"   # PS1 GCC 2.8.1 cc1, on PATH via the nix devShell
 
 CPP_FLAGS = ("-Iinclude -undef -Wall -lang-c -fno-builtin -gstabs -Dmips "
              "-D__GNUC__=2 -D__OPTIMIZE__ -D__mips__ -D__mips -Dpsx -D__psx__ "
@@ -81,12 +82,14 @@ def nm_symbols(elf):
 
 
 def compile_c(cfile, ofile):
+    name = os.path.splitext(os.path.basename(cfile))[0]
+    cc1 = cc_executable_for(name)
     pp = ofile + ".i"
     s_cc = ofile + ".cc.s"
     s_m = ofile + ".s"
     run([CPP, *CPP_FLAGS, "-I", HDR_DIR, cfile, pp])
     with open(s_cc, "w") as f:
-        run([CC1, *CC_FLAGS], stdin=open(pp), stdout=f)
+        run([cc1, *CC_FLAGS], stdin=open(pp), stdout=f)
     with open(s_cc) as fin, open(s_m, "w") as fout:
         run(["maspsx", *MASPSX_FLAGS], stdin=fin, stdout=fout)
     run([AS, *AS_FLAGS, "-o", ofile, s_m])

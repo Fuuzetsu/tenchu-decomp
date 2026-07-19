@@ -9,8 +9,8 @@ the something was wrong" — and it has cost four separate lanes real time:
   object: cse1 folds the constant into the store and the seed dies before loop.c
   ever sees it. The edit was a literal no-op, and the round's model was built on it
   doing something.
-* Three mis-diagnosed a fast `./Build` as a stale/skipped build. It is not:
-  cc1-281 compiles a TU in ~0.1 s, and Shake keys on CONTENT, so a codegen-neutral
+* Three mis-diagnosed a fast `./Build` as a stale/skipped build. It is not: the
+  build-profile cc1 compiles a TU in ~0.1 s, and Shake keys on CONTENT, so a codegen-neutral
   edit legitimately produces an identical `.o` and skips the relink. **Fast != skipped.
   The reliable tell is the object, not the wall clock**, and this tool is that tell.
 

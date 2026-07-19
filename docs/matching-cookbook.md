@@ -221,12 +221,13 @@ Look up what the authors wrote before drafting anything.
   measured necessity, not macro provenance, decides (StageEndScreen's 4-nest at
   L423 scores 202→227 unwrapped; FUN_800519bc's 5 fences, no macro, cost 87→91..1012).
   **Classify (b) vs (c) by the UNWRAPPED RESIDUAL, not the byte delta**: read the
-  asmdiff of the unwrapped version — if the regressed bytes are ENTIRELY
-  callee-saved register renames (sN↔sM shuffles, identical mnemonics/operand
-  shapes), the fence is a pure global-allocation nudge with nothing better behind
-  it → case (c), KEEP (AdtSelect's two fences unwrap to 37 bytes of pure
-  s1↔s2/s3↔s4 renames). Only when the unwrapped residual shows a genuinely
-  different or more-complete control/expression structure is it case (b). **TOOL
+  asmdiff of the unwrapped version. A residual made entirely of callee-saved
+  register renames proves only that the fence was nudging global allocation; it
+  does **not** prove the fence belongs in the source. AdtSelect is the corrective
+  witness: its two fences once appeared to be a 37-byte, pure s1↔s2/s3↔s4
+  necessity, but an ordinary display loop plus human `if / else if` D-pad chain
+  removed both at the same residual. Keep a bare fence only after searching for
+  the larger human structure that makes its allocation nudge unnecessary. **TOOL
   TICKET (fence-unwrap --classify)**: label each unwrapped residual "N%
   register-rename / M% structural" to mechanize this read — currently a manual
   asmdiff.
@@ -1207,7 +1208,9 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   bookkeeping enough to flip ordering ties; semantic-diff permuter winners
   against the REPRINTED base (the reprint alone skews scores).
 - **Reload structure**: a reload-register diff downstream of a reload-COUNT diff
-  is one root cause — fix the count, ignore the sites (AdtSelect).
+  is one root cause — fix the count, ignore the sites. Before deforming clean C,
+  verify the original-object compiler profile: AdtSelect's count changed only
+  because GCC 2.8.0 and 2.8.1 classify its address reload differently.
   **TOOL TICKET (regalloc --spill-uses)**: print each use BARE vs IN-MEM — the
   discriminator that retired a wrong park verdict. **TOOL TICKET (regalloc
   --names)**: pseudo→C-name (UNIDENTIFIED when unprovable). **`regalloc --local`

@@ -8,15 +8,21 @@
  * edge-detected pad input until confirm (pad & 0x820 -> current entry) or
  * cancel (pad & 0x40 -> last entry); returns the entry's choice_number.
  *
- * STATUS: NON_MATCHING — 9 of 776 bytes differ.  Build the draft with
- * `NON_MATCHING=AdtSelect ./Build` (or tools/matchdiff.py, which sets it
- * automatically); the default build keeps the INCLUDE_ASM stub below.
+ * STATUS: MATCHING — ordinary human-shaped C under the reused ADT object's
+ * pinned GCC 2.8.0 compiler profile.
  *
  * AUTHORITATIVE UPDATE (2026-07-19): the long round-by-round investigation
  * below is retained as history, not as a rulebook. Its "fences are required",
  * "all C levers are closed", and "parked/impossible" conclusions are
  * superseded by fresh source and compiler evidence:
  *
+ * - All eleven contiguous C members of the ADT library object are exact under
+ *   GCC 2.8.0. Linking their 2.8.0 objects produces zero differing bytes in
+ *   main.exe; both canonical and Sony SN32 GCC 2.8.1 leave this function nine
+ *   bytes off. In reload.c, 2.8.0 preserves INPADDR/OUTADDR as
+ *   RELOAD_FOR_OPADDR_ADDR, while 2.8.1 retypes them unconditionally to
+ *   RELOAD_FOR_OPERAND_ADDRESS. That version change alone decides whether the
+ *   huge-frame address and value reload may share a3.
  * - Both synthetic do{}while(0) fences are gone. A normal list-display for
  *   loop plus the human D-pad `if / else if` chain reproduces every target
  *   callee-saved allocation. The earlier 37-byte regression came from spelling
@@ -43,13 +49,10 @@
  *   evidence only, not acceptable source.
  * - The 776-byte body, including the a3 self-tie, is byte-identical in the
  *   shipped ENDING.EXE, MAIN.EXE, MENU.EXE, and TRIAL.EXE. This strongly points
- *   to one reused ADT library object. cc1-2.6.3 and a focused gcc-2.8.1 flag
- *   sweep did not reproduce the target from this source, so there is no current
- *   evidence for a simple compiler-version or per-library-flag explanation.
+ *   to the one reused ADT library object now represented by the build profile.
  *
- * Current honest state: clean human-shaped C, 9 differing bytes, still open.
- * Any absolute "no natural C" or "do not retry" language in the historical
- * log below must not be used as a decision rule.
+ * The clean indexed loop below is exact. Any absolute "no natural C" or "do
+ * not retry" language in the historical 2.8.1 log below is superseded.
  *
  * The 9 differing bytes are ONE reload decision, in the entry-count block:
  *
@@ -408,14 +411,18 @@
  * pointer-to-struct cannot self-tie in this cc1.
  */
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/AdtSelect", AdtSelect);
-
-#else /* NON_MATCHING */
+typedef struct
+{
+    u8 draw[0x5c];
+    u8 disp[0x14];
+    u8 rect[8];
+    u8 backup[0x8000];
+    u8 prim[24];
+} TAdtDisp;
 
 extern s32 (*AdtPadRead)(s32);
-extern void AdtGetDisp(u8 *buf);
-extern void AdtReleaseDisp(u8 *buf);
+extern void AdtGetDisp(TAdtDisp *ad);
+extern void AdtReleaseDisp(TAdtDisp *ad);
 extern void DrawPrim(u8 *prim);
 extern void FntPrint(char *fmt, ...);
 extern s32 FntFlush(s32 id);
@@ -431,7 +438,7 @@ extern char D_80097EAC[]; /* "\n" */
 
 s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
 {
-    u8 buf[0x8090];
+    TAdtDisp ad;
     s32 last;
     u32 trg;
     s32 count;
@@ -454,11 +461,11 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
     }
 
     pages = count / 0x12 + 1;
-    AdtGetDisp(buf);
+    AdtGetDisp(&ad);
 
     for (;;)
     {
-        DrawPrim(buf + 0x8078);
+        DrawPrim(ad.prim);
         trg = pad;
         pad = AdtPadRead(0);
         trg = ~trg & pad;
@@ -507,8 +514,6 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
         else if (count <= selection)
             selection = count - 1;
     }
-    AdtReleaseDisp(buf);
+    AdtReleaseDisp(&ad);
     return menu[selection].choice_number;
 }
-
-#endif /* NON_MATCHING */

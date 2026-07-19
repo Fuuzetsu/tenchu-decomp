@@ -352,7 +352,18 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 
 ## reload
 
-- **WHICH reload entry point handles a spilled pseudo is decided by how the C
+- **GCC 2.8.0 and 2.8.1 differ in the reload-address retype that decides an
+  address/value self-tie.** In `reload.c` around the 2.8.0 line 3846 block,
+  2.8.0 preserves INPADDR/OUTADDR as `RELOAD_FOR_OPADDR_ADDR`; reload1.c tracks
+  that class separately, so the value reload may reuse its dying address
+  register. 2.8.1 changed the block to unconditionally use
+  `RELOAD_FOR_OPERAND_ADDRESS`; its instruction-wide conflict bit bars reuse.
+  The clean `AdtSelect` indexed loop is the witness: all eleven members of its
+  original ADT object are exact under 2.8.0 and a full substituted link is
+  byte-identical, while canonical and Sony SN32 2.8.1 both leave the same
+  a3/t0 nine-byte residual. Compiler executable is therefore part of the
+  original-object profile, not a per-function tuning flag.
+- **Under GCC 2.8.1, WHICH reload entry point handles a spilled pseudo is decided by how the C
   USES it — dereference vs bare use — and that is the whole BARE-vs-IN-MEM
   fork.** A struct/pointer DEREFERENCE of a spilled parameter (`p->field`)
   routes through `find_reloads_address`'s `reg_equiv_address` recursion
@@ -373,7 +384,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   preempted by the categorical `reload_reg_free_p` conflict check, so it is a
   much WEAKER lever there than for ordinary allocno ties — do not reason about
   reload registers as if they were allocnos (AdtSelect).
-- **The self-tie retype gate** (reload.c:3806-3855) fires iff the operand is NOT
+- **GCC 2.8.1's self-tie retype gate** (reload.c:3806-3855) fires iff the operand is NOT
   itself reloaded (`operand_reloadnum < 0`), converting INPADDR/INPUT_ADDRESS
   reloads to `RELOAD_FOR_OPERAND_ADDRESS`, which bars sharing. `branch_zero`'s
   `'d'` constraint reloads the operand, so `if (x == 0)` self-ties; `p->field`
@@ -399,7 +410,8 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 - **Huge-frame TUs (offsets past ±32767)** spill params to arg-home slots once
   the callee-saved file is full; every use rematerialises li/addu/lw through
   reload's spill registers — an a3/t0 rotation there is reload structure, not
-  regalloc (AdtSelect).
+  regalloc. Its exact sharing rules can be compiler-version-specific
+  (`AdtSelect`: 2.8.0 vs 2.8.1).
 
 ## Scheduling (sched.c) and reorg
 

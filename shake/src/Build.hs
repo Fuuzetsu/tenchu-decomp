@@ -121,8 +121,8 @@ asFlags = ["-EL", "-Iinclude", "-march=r3000", "-mtune=r3000", "-no-pad-sections
 cpp :: FilePath
 cpp = cross "cpp"
 
-cc :: FilePath
-cc = "cc1-281"          -- PS1 GCC 2.8.1 cc1, provided on PATH by the nix devShell
+ccDefault :: FilePath
+ccDefault = "cc1-281"
 
 -- | maspsx post-processes cc1's asm so GNU @as@ reproduces PSY-Q ASPSX's bytes
 -- (div traps, load-delay nops, $at/li/move expansion, $gp small-data layout).
@@ -567,9 +567,40 @@ originalObjectCcFlags :: FilePath -> [String]
 originalObjectCcFlags src
   | name `elem` libmcrdObjectMembers = ["-mno-split-addresses"]
   | name `elem` gs107ObjectMembers = ["-mno-split-addresses"]
+  | name `elem` adtObjectMembers = []
   | otherwise = []
   where
     name = takeBaseName src
+
+-- ADT's eleven contiguous C functions are one reused library object. Every
+-- member remains byte-exact under GCC 2.8.0; GCC 2.8.1 changes one reload retype
+-- and leaves AdtSelect nine bytes off. Keep the complete object membership here
+-- so future tooling cannot turn the compiler attribution into function tuning.
+adtObjectMembers :: [String]
+adtObjectMembers =
+  [ "AdtGetDisp",
+    "AdtMessageBox",
+    "AdtQuiet",
+    "AdtFntOpen",
+    "AdtFntLoad",
+    "AdtReleaseDisp",
+    "AdtDmyPadRead",
+    "AdtVsprintf",
+    "FUN_8005fe38",
+    "FUN_8005fe88",
+    "AdtSelect"
+  ]
+
+originalObjectCcExecutable :: FilePath -> FilePath
+originalObjectCcExecutable src
+  | takeBaseName src `elem` adtObjectMembers = "cc1-280"
+  | otherwise = ccDefault
+
+-- | All varying compiler inputs are one original-object profile. Returning the
+-- executable and flags through one oracle makes either change invalidate .s.
+originalObjectCcProfile :: FilePath -> (FilePath, [String])
+originalObjectCcProfile src =
+  (originalObjectCcExecutable src, originalObjectCcFlags src)
 
 cppFlags :: [String]
 cppFlags =
@@ -652,7 +683,9 @@ main = do
             -- "3": one-time bump so every .s rule recorded the GpFlags oracle
             -- dependency. "4": recompile after adding the LIBMCRD-specific
             -- cc flag; command-line contents are not otherwise tracked.
-            shakeVersion = "5"
+            -- "6": compiler executable is now part of the per-object profile;
+            -- the reused ADT object selects pinned GCC 2.8.0.
+            shakeVersion = "6"
           }
   shakeArgs opts rules
 
@@ -660,7 +693,7 @@ rules :: Rules ()
 rules = do
   _ <- addOracle (liftIO . runIdOracle)
   _ <- addOracle (\(GpFlags f) -> pure (maspsxGpExterns f))
-  _ <- addOracle (\(OriginalObjectCcFlags f) -> pure (originalObjectCcFlags f))
+  _ <- addOracle (\(OriginalObjectCcProfile f) -> pure (originalObjectCcProfile f))
   want [mainExe]
   objRules
   mapM_ exeRules targets
@@ -726,9 +759,9 @@ objRules = do
     -- reproduces ASPSX's bytes; it leaves INCLUDE_ASM's .include/.section/.set
     -- directives untouched, so stubs pass through unchanged.
     gpFlags <- askOracle (GpFlags processed)
-    objectCc <- askOracle (OriginalObjectCcFlags processed)
+    (ccExe, objectCc) <- askOracle (OriginalObjectCcProfile processed)
     withTempFile $ \ccOut -> do
-      cmd_ (FileStdin processed) (FileStdout ccOut) cc (ccFlags <> objectCc)
+      cmd_ (FileStdin processed) (FileStdout ccOut) ccExe (ccFlags <> objectCc)
       cmd_ (FileStdin ccOut) (FileStdout out) maspsx
         (maspsxFlags <> gpFlags)
 
@@ -1071,29 +1104,21 @@ instance Binary GpFlags
 
 type instance RuleResult GpFlags = [String]
 
--- | The original-object-derived cc1 flags for each artificial C carve.
--- IDENTICAL bug to GpFlags above, and it sat
--- here unnoticed because the table had exactly one entry (MemCardCallback) that
--- never changed after it was added. The moment a second entry arrived it bit:
--- changing an object's @-mno-split-addresses@ profile did NOT rebuild a
--- member's @.s@, so the flag silently did not apply and the experiment measured
--- a STALE object —
--- reporting "the flag does nothing" for a function the flag demonstrably does
--- change (verified by running cc1 directly both ways). @touch@ does not help
--- either: Shake keys on CONTENT. A compiler-input flag whose effect
--- depends on whether you happened to edit the source in the same breath is worse
--- than no flag at all. Same oracle treatment: the @.s@ now depends on the flag
--- VALUE.
-newtype OriginalObjectCcFlags = OriginalObjectCcFlags FilePath
+-- | The per-original-object compiler executable plus extra flags. As with
+-- GpFlags, the oracle value itself must be a dependency: Shake keys on source
+-- content and does not otherwise notice a changed command executable or flag.
+-- Keeping both inputs in one result also prevents the build and matching tools
+-- from accidentally selecting half of a compiler profile.
+newtype OriginalObjectCcProfile = OriginalObjectCcProfile FilePath
   deriving (Generic, Show, Eq)
 
-instance Hashable OriginalObjectCcFlags
+instance Hashable OriginalObjectCcProfile
 
-instance NFData OriginalObjectCcFlags
+instance NFData OriginalObjectCcProfile
 
-instance Binary OriginalObjectCcFlags
+instance Binary OriginalObjectCcProfile
 
-type instance RuleResult OriginalObjectCcFlags = [String]
+type instance RuleResult OriginalObjectCcProfile = (FilePath, [String])
 
 data GenData = GenData
   { lastRunId :: UUID.UUID,

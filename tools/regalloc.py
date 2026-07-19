@@ -56,7 +56,7 @@ CPP = ("mipsel-unknown-linux-gnu-cpp -Iinclude -undef -Wall -lang-c "
        "-gstabs -Dmips -D__GNUC__=2 -D__OPTIMIZE__ -D__mips__ -D__mips -Dpsx "
        "-D__psx__ -D__psx -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D_LANGUAGE_C "
        "-DLANGUAGE_C -DHACKS -I src/main.exe").split()
-CC = "cc1-281"
+CC_DEFAULT = "cc1-281"
 # `-fno-builtin` is a cc1 flag, NOT cpp. It sat in CPP (doing nothing) here just as it
 # did in permute.py before today's fix -- so `--raw` on a builtin-calling function
 # (abs/memset/...) computed allocation for a DIFFERENT program than the build. SetupTelop
@@ -206,12 +206,14 @@ def preprocess(name):
     return r.stdout
 
 
-def run_greg(pp_text):
-    """cc1 -dg on preprocessed text; returns the .greg dump text."""
+def run_greg(pp_text, name=None):
+    """Build-profile cc1 -dg on preprocessed text; returns the .greg dump."""
+    cc = rtldump.cc_executable_for(name) if name else CC_DEFAULT
+    flags = rtldump.cc_flags_for(name) if name else CC_FLAGS
     with tempfile.TemporaryDirectory() as d:
         src = os.path.join(d, "f.c")
         open(src, "w").write(pp_text)
-        r = subprocess.run([CC] + CC_FLAGS + ["-dg", "f.c", "-o", "f.s"],
+        r = subprocess.run([cc] + flags + ["-dg", "f.c", "-o", "f.s"],
                            cwd=d, capture_output=True, text=True)
         greg = os.path.join(d, "f.c.greg")
         if not os.path.exists(greg):
@@ -1280,7 +1282,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("target")
     ap.add_argument("--raw", action="store_true",
-                    help="target is an already-preprocessed .c (skip cpp)")
+                    help="target is an already-preprocessed .c (skip cpp; use "
+                         "--func to select a non-default object compiler)")
     ap.add_argument("--func", help="only this function (if the TU has several)")
     ap.add_argument("--rtl", action="store_true", help="also print the greg RTL")
     ap.add_argument("--order", action="store_true",
@@ -1343,7 +1346,8 @@ def main():
         usage_dump = open(lreg).read() if lreg is not None else ""
         default_func = args.target
     if args.raw:
-        dump = run_greg(pp)
+        profile_name = args.func or os.path.splitext(os.path.basename(args.target))[0]
+        dump = run_greg(pp, profile_name)
         usage_dump = ""
     funcs = split_functions(dump)
     usage_funcs = split_functions(usage_dump)

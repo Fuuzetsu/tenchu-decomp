@@ -152,13 +152,14 @@
           exec ${python}/bin/python ${m2c-patched}/m2c.py "$@"
         '';
 
-      # The PS1 GCC 2.8.1 compiler (cc1). Pinned by sha256 to decompals/old-gcc
-      # 0.17 `gcc-2.8.1-psx` instead of committing the ~3 MB binary. This exact
-      # build is verified equivalent to the real Sony CC1PSX.EXE (== decomp.me
-      # `psyq4.3`) for our corpus — see docs/toolchain.md. The previously-committed
-      # tools/cc1-281 was a DIFFERENT, non-canonical build with a codegen bug (it
-      # read the high halfword for `(short)(int)` truncation). Static i386 ELF, runs
-      # directly on x86_64 via i386 kernel support; skip fixup so it isn't mangled.
+      # The default PS1 GCC 2.8.1 compiler (cc1). Pinned by sha256 to
+      # decompals/old-gcc 0.17 `gcc-2.8.1-psx` instead of committing the ~3 MB
+      # binary. This exact build is verified equivalent to the real Sony
+      # CC1PSX.EXE (== decomp.me `psyq4.3`) for our corpus — see
+      # docs/toolchain.md. The previously-committed tools/cc1-281 was a
+      # DIFFERENT, non-canonical build with a codegen bug (it read the high
+      # halfword for `(short)(int)` truncation). Static i386 ELF, runs directly
+      # on x86_64 via i386 kernel support; skip fixup so it isn't mangled.
       cc1-281 = pkgs.runCommandLocal "cc1-281"
         {
           src = pkgs.fetchurl {
@@ -170,6 +171,23 @@
         mkdir -p "$out/bin"
         tar xzf "$src" cc1
         install -m755 cc1 "$out/bin/cc1-281"
+      '';
+
+      # The reused ADT library object predates the game's default compiler. Its
+      # eleven contiguous C members are byte-identical under GCC 2.8.0; 2.8.1's
+      # changed reload-address retyping leaves AdtSelect nine bytes off. Keep the
+      # compiler alongside 2.8.1 so the build can select it by original object.
+      cc1-280 = pkgs.runCommandLocal "cc1-280"
+        {
+          src = pkgs.fetchurl {
+            url = "https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.0-psx.tar.gz";
+            sha256 = "1a3c956fe8aea5ebdb251749d95de2c84f023530584d7bd663744b5ec24050b7";
+          };
+          dontFixup = true;
+        } ''
+        mkdir -p "$out/bin"
+        tar xzf "$src" cc1
+        install -m755 cc1 "$out/bin/cc1-280"
       '';
 
       # mkpsxiso + dumpsxiso: dump/rebuild the game's CD image (`./Build iso`).
@@ -229,6 +247,7 @@
             ln -s "${pkgs.gcc}/bin/cpp" "$out"/bin 
           '')
           maspsx-bin
+          cc1-280
           cc1-281
           mkpsxiso
           permuter

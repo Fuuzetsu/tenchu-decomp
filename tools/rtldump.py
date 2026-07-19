@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dump cc1-281's RTL passes for ONE function, standalone and race-free.
+"""Dump the build-profile cc1's RTL passes for ONE function, standalone and race-free.
 
 This is the escalation tool for a same-length register/coloring/scheduling residual
 that no C respelling and no permuter run has closed. Nine such "permuter-immune,
@@ -7,10 +7,11 @@ below-the-C-level" parks fell this session by READING these dumps instead of
 guessing — every one turned out to be reachable source structure. See
 docs/matching-cookbook.md, "Reading cc1's RTL dumps (the escalation method)".
 
-It compiles `src/main.exe/<Name>.c` exactly the way `./Build` does (same cpp defines,
-same cc1-281 flags), but standalone in the scratchpad — no Shake, no `.shake/`
-database, so it never races a concurrent build. It requests the RTL dump passes and
-leaves them next to the `.s` for you to read.
+It compiles `src/main.exe/<Name>.c` exactly the way `./Build` does (same cpp
+defines, same per-original-object cc1 executable and flags), but standalone in
+the scratchpad — no Shake, no `.shake/` database, so it never races a concurrent
+build. It requests the RTL dump passes and leaves them next to the `.s` for you
+to read.
 
     tools/rtldump.py <Name>                 # default passes: greg, lreg, jump, combine
     tools/rtldump.py <Name> --pass all      # -da: every pass (loop, cse, flow, sched, reorg…)
@@ -52,7 +53,6 @@ os.chdir(ROOT)
 
 # Kept byte-identical to shake/src/Build.hs's ccFlags / the cpp defines. If Build.hs
 # changes these, change them here too, or the dumps stop reflecting the real build.
-CC = "cc1-281"
 CC_FLAGS = [
     "-mcpu=3000", "-quiet", "-fno-builtin", "-G8", "-w", "-O2", "-funsigned-char",
     "-fpeephole", "-ffunction-cse", "-fpcc-struct-return", "-fcommon",
@@ -135,6 +135,12 @@ def cc_flags_for(name):
     return CC_FLAGS + permute.CC_FLAGS_BY_OBJECT_MEMBER.get(name, [])
 
 
+def cc_executable_for(name):
+    """Return the build-equivalent cc1 executable for an original object."""
+    import permute
+    return permute.cc_executable_for(name)
+
+
 def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
                 assemble=False, extra_flags=None):
     """Compile one source file and return paths to its asm/RTL artifacts.
@@ -163,7 +169,8 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
     Returns a dict with outdir, preprocessed, asm, dumps, stderr and, when
     requested, processed_asm/object/objdump.
     """
-    which(CC)
+    cc = cc_executable_for(name)
+    which(cc)
     cpp = shutil.which(CPP) or which("cpp")
     src = src or os.path.join("src", "main.exe", name + ".c")
     if not os.path.exists(src):
@@ -205,7 +212,7 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
 
     dflags = sorted({PASS_FLAG[p] for p in want})
     debug = ["-g"] if debug_lines else []
-    r = subprocess.run([CC, *cc_flags_for(name), *debug, *dflags,
+    r = subprocess.run([cc, *cc_flags_for(name), *debug, *dflags,
                         *(extra_flags or []), ic, "-o", sfile],
                        stderr=subprocess.PIPE, text=True, cwd=outdir)
     err = (r.stderr or "").strip()

@@ -5661,7 +5661,7 @@ class BuildConfigurationTests(unittest.TestCase):
         ))
         self.assertEqual(names, set(permute.MASPSX_EXTRA))
 
-    def test_original_object_cc_flags_match_build(self):
+    def test_original_object_cc_profiles_match_build(self):
         path = os.path.join(os.path.dirname(TOOLS), "shake", "src", "Build.hs")
         with open(path) as f:
             build = f.read()
@@ -5669,6 +5669,7 @@ class BuildConfigurationTests(unittest.TestCase):
         groups = {
             "LIBMCRD.OBJ": "libmcrdObjectMembers",
             "GS_107.OBJ": "gs107ObjectMembers",
+            "ADT.OBJ": "adtObjectMembers",
         }
         found_members = {}
         found_flags = {}
@@ -5691,11 +5692,43 @@ class BuildConfigurationTests(unittest.TestCase):
             for member in members
         }
         self.assertEqual(flattened, permute.CC_FLAGS_BY_OBJECT_MEMBER)
+        executable_guards = re.findall(
+            r'takeBaseName src `elem` ([A-Za-z0-9_]+) = "([^"]+)"', build
+        )
+        variable_to_object = {variable: obj for obj, variable in groups.items()}
+        found_executables = {
+            variable_to_object[variable]: executable
+            for variable, executable in executable_guards
+            if variable in variable_to_object
+        }
+        self.assertEqual(
+            found_executables, permute.ORIGINAL_OBJECT_CC_EXECUTABLES
+        )
+        flattened_executables = {
+            member: found_executables.get(obj, permute.CC_DEFAULT)
+            for obj, members in found_members.items()
+            for member in members
+        }
+        self.assertEqual(
+            flattened_executables, permute.CC_EXECUTABLE_BY_OBJECT_MEMBER
+        )
         for member in permute.ORIGINAL_OBJECT_MEMBERS["LIBMCRD.OBJ"]:
             self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
         for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
             self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
         self.assertNotIn("-mno-split-addresses", permute.cc_flags_for("Other"))
+        self.assertEqual(permute.cc_executable_for("AdtSelect"), "cc1-280")
+        self.assertEqual(permute.cc_executable_for("AdtGetDisp"), "cc1-280")
+        self.assertEqual(permute.cc_executable_for("Other"), "cc1-281")
+
+        # Shake must depend on the executable and flags as one oracle value;
+        # otherwise changing only cc1 can silently reuse a stale .s.
+        self.assertIn("OriginalObjectCcProfile f", build)
+        self.assertIn(
+            "(ccExe, objectCc) <- askOracle (OriginalObjectCcProfile processed)",
+            build,
+        )
+        self.assertRegex(build, r"cmd_ .* ccExe \(ccFlags <> objectCc\)")
 
     def test_no_tool_puts_fno_builtin_in_cpp(self):
         """`-fno-builtin` is a cc1 flag; in a CPP list it silently does nothing.
