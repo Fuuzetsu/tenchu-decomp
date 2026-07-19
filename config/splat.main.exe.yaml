@@ -730,6 +730,8 @@ segments:
       - [0x5529C, c, GS_107_OBJ_4B8]
       - [0x55300, c, GS_107_OBJ_51C]
       - { start: 0x5534C, type: data, linker_section_order: .text }
+      - [0x553D4, c, GsSetFogParam]
+      - { start: 0x55420, type: data, linker_section_order: .text }
       - [0x55424, c, GsSetAmbient]
       - { start: 0x5544C, type: data, linker_section_order: .text }
       - [0x55454, c, GsDrawOt]

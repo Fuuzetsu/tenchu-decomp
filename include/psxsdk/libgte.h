@@ -47,6 +47,7 @@ void SetRotMatrix(MATRIX *m);
 void SetColorMatrix(MATRIX *m);
 void SetTransMatrix(MATRIX *m);
 void SetBackColor(long rbk, long gbk, long bbk);
+void SetFarColor(long rfc, long gfc, long bfc);
 void SetGeomScreen(long h);
 long RotTransPers(SVECTOR *v0, long *sxy, long *p, long *flag);
 void RotTrans(SVECTOR *v0, VECTOR *v1, long *flag);
