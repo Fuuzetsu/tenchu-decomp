@@ -111,12 +111,14 @@ $ ./Build run-iso-relink   # full SLPS/MENU/MAIN boot
 ```
 
 The normal lane retains the pinned compiler's ordinary output sections for
-both existing game objects and new helper files. That includes small and large
-initialized/tentative globals, statics, const/float/double data,
+existing `*.c.o` game objects, all six replacement-C `.o` variants, and new
+helper files. That includes small and large initialized/tentative globals,
+statics, const/float/double data,
 `.sdata`/`.sbss`/`.scommon`, `.bss.*`, and GNU `COMMON`; gp-small objects are
 kept within signed GPREL16 reach. “Whatever C” is scoped to those normal
-toolchain sections and available PS1 RAM, not arbitrary custom section
-attributes or unlimited data.
+toolchain sections and available PS1 RAM. A custom allocatable section causes
+an explicit orphan-section link failure instead of being silently discarded;
+arbitrary section attributes and unlimited data are not supported.
 
 The composed linker owns all 555 game inputs, the complete CRT/SDK stream,
 initialized data, `_gp`, BSS, allocator boundaries, and the PS-X header. The
@@ -135,11 +137,12 @@ The current controlled growth artifact also passes the bounded PCSX-Redux
 runtime probe in both modes: direct `-loadexe` and an auto-LBA repack through
 `SLPS_019.01 → MENU.EXE → MAIN.EXE`. The harness reached entry `0x80070260`,
 ELF-derived `main` at `0x800162a4`, moved `PadProc` at `0x8002adac`, and later
-VSyncs without a first-chance exception. This establishes the grown boot/main
-loop, not every gameplay path or arbitrary edit. Growth remains bounded by the
-PS1 RAM map, the fixed cross-executable handoff, allocator/stack space, and
-MIPS relocation ranges. Representative STR and XA playback remain runtime
-validation gates. See
+VSyncs without a first-chance exception. The same repacked image also reached
+relocated `OPEN06.STR` decode and `STAGES.XA` setup/callback checkpoints. This
+establishes representative media paths, not complete playback, physical XA
+audio output, every gameplay path, or every arbitrary edit. Growth remains
+bounded by the PS1 RAM map, the fixed cross-executable handoff,
+allocator/stack space, and MIPS relocation ranges. See
 [relocatable-build.md](relocatable-build.md) and
 [the exact smoke commands](building-an-iso.md#automated-grown-image-smoke).
 

@@ -61,11 +61,14 @@ byte-identical `main.exe`.
   `./Build iso`/`iso-mod` produce a bootable disc for pcsx-redux. The genuine
   size-changing lane is now `./Build relink`: complete SDK/data/BSS ownership,
   dynamic allocator capacity, a zero-finding widened address audit, regenerated
-  PS-X headers, ordinary pinned-C small/common section retention, and a full
-  `+0x10004` GNU-ld growth proof are composed under `./Build check-relink`.
+  PS-X headers, ordinary and replacement-C small/common section retention, and
+  a full `+0x10004` GNU-ld growth proof are composed under
+  `./Build check-relink`.
   The exact grown image passes a bounded PCSX-Redux direct-load smoke and an
   auto-LBA `SLPS_019.01 → MENU.EXE → MAIN.EXE` boot to the moved entry and
-  `PadProc`, with later VSyncs and no first-chance exception. See
+  `PadProc`, with later VSyncs and no first-chance exception. The auto-packed
+  image also reaches relocated `OPEN06.STR` decode and `STAGES.XA`
+  setup/callback checkpoints. See
   [`docs/relocatable-build.md`](docs/relocatable-build.md).
 - **decomp.dev progress reporting wired up:** `./Build report` /
   `tools/objdiff-report.py` emit a valid objdiff v2 report (verified against the
@@ -443,13 +446,17 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 5. **CI**: a GitHub Actions job running `nix develop --command ./Build check`.
 6. **Per-function tooling**: `diff_settings.py` (asm-differ is in the devShell),
    `objdiff.json`, an `m2ctx.py` context generator, a `make <obj>` shim.
-7. **Grown-image disc validation — boot/main loop DONE, media remains.** The
+7. **Grown-image disc validation — boot/main loop and representative media
+   checkpoints DONE.** The
    `+0x10004` image passes direct `-loadexe` and an auto-LBA
    `SLPS -> MENU -> MAIN` smoke at entry `0x80070260`, ELF-derived `main`, moved
    `PadProc`, and post-loop VSyncs without a first-chance exception. The
    harness is `tools/pcsx_smoke.py`; exact reproducible commands are in the ISO
-   doc. Remaining release gates are representative STR movies, XA playback,
-   broader gameplay, and later executable transitions. Static inspection also
+   doc. On the same disc, `OPEN06.STR` ran at relocated LBA 46,593 (`+32`) with
+   active MDEC calls, and `STAGES.XA` ran at relocated LBA 119,130 (`+32`) with
+   CD command/callback activity, without a CPU exception. Neither was run to
+   EOF; physical audio output, broader gameplay, and later executable
+   transitions remain release gates. Static inspection also
    supports auto-packing: RUN consumes the fixed handoff then the loaded PS-X
    header PC, while the AFS/XA/STR paths use filenames and
    `CdSearchFile`/`CdlFILE` positions rather than a fixed MAIN entry or
@@ -543,7 +550,9 @@ CI later.
   growth proof, `run-relink` launches it directly, and
   `iso-relink`/`run-iso-relink` package and boot it through the real disc chain.
   `tools/pcsx_smoke.py` has passed both direct and auto-packed full-chain modes
-  on that growth artifact; STR/XA coverage remains outstanding.
+  on that growth artifact, followed by representative STR decode and XA
+  setup/callback checkpoints. EOF, physical audio output, and broad gameplay
+  remain outstanding.
 
 ## Running in an emulator (`./Build iso`)
 
@@ -552,8 +561,9 @@ packaged in `nix/mkpsxiso.nix`) → a `.bin`/`.cue` for pcsx-redux. Matching bui
 data track byte-identical to the original except `main.exe`; `./Build iso-mod`
 puts the same-size, in-place-patched `main_mod.exe` on the disc. `mkiso.py`
 auto-packs a larger explicitly supplied executable; the controlled growth image
-passes the full launcher/menu/main-loop smoke, while STR/XA and broader gameplay
-remain validation gates. Needs the original disc
+passes the full launcher/menu/main-loop smoke and representative STR/XA
+checkpoints, while EOF, physical audio output, and broader gameplay remain
+validation gates. Needs the original disc
 (`TENCHU_CUE=…` or under `disks/`/`~/tenchu-iso/`). See
 [`docs/building-an-iso.md`](docs/building-an-iso.md).
 

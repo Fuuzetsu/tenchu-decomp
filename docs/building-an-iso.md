@@ -54,8 +54,9 @@ generic “LBAs might be embedded” warning:
 That static model now has a bounded emulator result behind it: the current
 `+0x10004` growth artifact was auto-packed and reached the moved MAIN entry,
 current ELF-derived `main`, moved `PadProc`, and post-loop VSyncs through the
-real `SLPS→MENU→MAIN` chain without a first-chance exception. Representative
-STR and XA playback are still untested.
+real `SLPS→MENU→MAIN` chain without a first-chance exception. A later probe
+also reached relocated `OPEN06.STR` decode and `STAGES.XA` command/callback
+checkpoints described below.
 
 If a modded function outgrows its slot, `./Build mod` aborts and tells you by how many
 bytes — trim it (drop debug logging, simplify) until it fits. See
@@ -147,7 +148,20 @@ temporary memory cards, cleans the temporary ~748 MB repack, and terminates the
 whole emulator process group on timeout. In `--repack` mode it supplies bounded
 START/CIRCLE/CROSS pulses to cross SLPS/MENU, fails on a first-chance CPU
 exception or unexpected pause, and counts VSyncs only after `PadProc` has run.
-It proves the boot/main-loop path, not STR playback, XA playback, or broad
+It proves the boot/main-loop path.
+
+A subsequent representative-media run on the same auto-LBA `+0x10004` disc
+observed both files at their repacked positions:
+
+- `OPEN06.STR` was found at runtime LBA 46,593 rather than retail LBA 46,561
+  (`+32`), completed stream setup, called `StGetNext`/`get_stream`, and made 21
+  combined `DecDCTin`/`DecDCTout` calls by frame 1,381.
+- `STAGES.XA` was found at runtime LBA 119,130 rather than retail LBA 119,098
+  (`+32`), completed XA setup and `CdControl(0x1b)`, and made four `cbCheckCD`
+  callbacks by frame 3,557.
+
+There was no CPU exception. The run stopped at those checkpoints rather than
+EOF, so it does not prove complete playback, physical audio output, or broad
 gameplay.
 
 ## What you get
@@ -169,7 +183,9 @@ gameplay.
   output retains forced placement; a larger output is auto-packed. Packaging is
   implemented, static code inspection supports the relocated file positions,
   and the controlled `+0x10004` image has passed the full launcher/menu/main-loop
-  smoke. STR/XA behavior and broad gameplay remain runtime validation gates.
+  smoke plus representative STR decode and XA setup/callback checkpoints.
+  Complete playback, physical XA audio output, and broad gameplay remain runtime
+  validation gates.
 
 ## How it works
 

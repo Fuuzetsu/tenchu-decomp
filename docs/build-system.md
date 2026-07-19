@@ -138,13 +138,16 @@ its word capacity after the retail headroom is consumed. The finalizer derives
 the PS-X entry/load/size fields from the actual result.
 
 The normal generator also retains sections that an ordinary edit can newly
-introduce into an existing game C object. `.sdata` stays in the loaded gp-near
-extension; `.sbss`/`.scommon` stays in the gp-near BSS prefix; and
+introduce in both ordinary `*.c.o` game inputs and the six
+`TENCHU_RELOCATABLE` replacement `*.o` inputs. `.sdata` stays in the loaded
+gp-near extension; `.sbss`/`.scommon` stays in the gp-near BSS prefix; and
 `.bss.*`/GNU `COMMON` remains owned at BSS end. An integration test runs the
-pinned cc1/maspsx/assembler/linker chain over small and large initialized,
-tentative, static, const, float, and double objects. This is support for normal
-pinned-toolchain C sections, not arbitrary custom section attributes or growth
-beyond the RAM/linker assertions.
+pinned cc1/maspsx/assembler/linker chain over both families with small and large
+initialized, tentative, static, const, float, and double objects. Unknown
+allocatable sections fail under `--orphan-handling=error` instead of being
+silently discarded. This is support for normal pinned-toolchain C sections,
+not arbitrary custom section attributes or growth beyond the RAM/linker
+assertions.
 
 `./Build check-relink` verifies that composition without assuming a fixed
 extension size: it derives the game-text delta from the actual compiler
@@ -168,6 +171,9 @@ and `--repack` mode pass: the latter auto-packs the 620,544-byte EXE and follows
 at `0x800162a4`, and moved `PadProc` at `0x8002adac`. See the exact invocations
 and scope in [`building-an-iso.md`](building-an-iso.md#automated-grown-image-smoke).
 `check-relink` itself remains hermetic and does not launch an emulator.
+The same repacked image later reached relocated `OPEN06.STR` decode and
+`STAGES.XA` setup/callback checkpoints without a CPU exception; neither asset
+was run to EOF and physical audio output remains unverified.
 
 `check-reloc-c-literals` is the focused compiler-input half of that lane. It
 builds six matched sources under the single global `TENCHU_RELOCATABLE`

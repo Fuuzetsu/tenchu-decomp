@@ -93,12 +93,15 @@ BUILD GREEN (byte-identical)
   patch/trampoline scheme. Complete SDK text carries 7,540 relocations, the
   reviewed data manifest carries 208 pointer relocations, movable ABS/raw
   address findings are zero, BSS and allocator capacity are linker-derived,
-  ordinary pinned-C small/common sections are retained near `_gp`, and
+  ordinary and replacement-C small/common sections are retained near `_gp`,
+  unsupported allocatable sections fail loudly, and
   `check-relink` proves a complete `+0x10004` growth with a regenerated PS-X
   header. That exact grown image also passes the bounded PCSX-Redux probe both
   by direct `-loadexe` and through an auto-packed
   `SLPS_019.01 → MENU.EXE → MAIN.EXE` boot to moved `PadProc` and later VSyncs,
-  with no first-chance exception. STR/XA playback remains unproven.
+  with no first-chance exception. The repacked image also reached relocated
+  `OPEN06.STR` decode and `STAGES.XA` setup/callback checkpoints; EOF, physical
+  XA audio output, and broad gameplay remain unproven.
 
 ## What was wrong, and what got fixed
 
@@ -138,9 +141,10 @@ latent bugs. Fixed in this batch of work (see `build-system.md` for detail):
 
 ## Next step
 
-For shiftability, direct and auto-packed full-boot main-loop smoke are complete;
-the next empirical gates are representative STR playback, XA playback, and
-broader gameplay/executable transitions on a grown image. For source
+For shiftability, direct and auto-packed full-boot main-loop smoke plus
+representative STR decode and XA setup/callback smoke are complete. The next
+empirical gates are playback to EOF, physical XA audio output, and broader
+gameplay/executable transitions on a grown image. For source
 matching/provenance work, resume with the preflight and live-target selection
 in [`flywheel-handoff.md`](flywheel-handoff.md); do not select work from this
 README's dated count or an old `NON_MATCHING` comment without checking the

@@ -175,8 +175,9 @@ Size-changing source support includes globals and statics, not just extra
 instructions. The generated retail linker enumerates each existing game
 object's base `.text`, `.rodata`, `.data`, and `.bss`, but cc1's pinned `-G8`
 pipeline can also emit new small/common sections when an edit adds a global.
-The normal-link generator therefore collects the missing sections from all
-ordinary game C objects:
+The normal-link generator therefore collects the missing sections from both
+compiler-produced game-object families: ordinary `*.c.o` inputs and the six
+`TENCHU_RELOCATABLE` replacement `*.o` inputs:
 
 - `.sdata`/`.sdata.*` joins the loaded extension near `_gp`;
 - `.sbss`/`.sbss.*`/`.scommon` joins the gp-near BSS prefix; and
@@ -184,8 +185,9 @@ ordinary game C objects:
 
 Files under `src/main.exe/reloc/` have corresponding ordinary
 `.text.*`/`.rodata.*`/`.data.*`/small-data/BSS patterns. The focused integration
-test uses the actual `cc1-281 → maspsx → GNU as → GNU ld` pipeline and covers
-initialized and tentative definitions above and below the eight-byte `-G8`
+test uses the actual `cc1-281 → maspsx → GNU as → GNU ld` pipeline on both
+object families and covers initialized and tentative definitions above and
+below the eight-byte `-G8`
 threshold, static objects, const arrays, float/double constants, explicit
 `.scommon`, and GNU `COMMON`. It also verifies that every small symbol remains
 within signed GPREL16 reach of `_gp`.
@@ -356,9 +358,20 @@ debugger, software GPU, isolated temporary memory cards, and the OpenBIOS
 fallback unless `--bios` is supplied.
 
 This proves direct execution and the auto-packed
-`SLPS_019.01 → MENU.EXE → MAIN.EXE` handoff through the grown main loop. It is
-not a broad gameplay or media test: representative STR playback and XA audio
-remain release gates.
+`SLPS_019.01 → MENU.EXE → MAIN.EXE` handoff through the grown main loop.
+
+The same auto-LBA disc subsequently passed representative STR and XA
+checkpoints:
+
+| asset | relocated lookup | observed runtime evidence |
+|---|---:|---|
+| `OPEN06.STR` | LBA 46,593 versus retail 46,561 (`+32`) | stream setup, `StGetNext`/`get_stream`, 21 combined `DecDCTin`/`DecDCTout` calls, frame 1,381 |
+| `STAGES.XA` | LBA 119,130 versus retail 119,098 (`+32`) | XA setup, `CdControl(0x1b)`, four `cbCheckCD` callbacks, frame 3,557 |
+
+No CPU exception occurred. This proves that representative filename-driven
+STR decoding and XA command/callback paths follow the relocated disc layout;
+the probe did not run either asset to EOF and did not establish physical audio
+output or broad gameplay.
 
 ## Addresses that intentionally remain fixed
 
@@ -395,9 +408,11 @@ should remain ignored build output, and the default build must not fetch them.
 
 “All game functions are source,” “the static executable relinks after growth,”
 and “a grown disc has broad runtime coverage” are separate milestones. The
-current `+0x10004` image has passed both direct load and the auto-packed full
-launcher/menu/main-loop smoke. That result establishes the boot path for this
-controlled growth fixture, not every possible edit or subsystem. Representative
-STR playback, XA audio, executable transitions beyond this boot path, and
-broader gameplay remain runtime release gates. Disc packaging and reproduction
-steps are documented in [`building-an-iso.md`](building-an-iso.md).
+current `+0x10004` image has passed direct load, the auto-packed full
+launcher/menu/main-loop smoke, representative `OPEN06.STR` decode activity,
+and representative `STAGES.XA` setup/callback activity. Those results do not
+cover every possible edit or subsystem. Running streamed assets to EOF,
+confirming physical XA audio output, executable transitions beyond this path,
+and broader gameplay remain runtime release gates. Disc packaging and
+reproduction steps are documented in
+[`building-an-iso.md`](building-an-iso.md).
