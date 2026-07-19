@@ -217,8 +217,12 @@ map-LOAD objects:                         731
 owned nonempty allocatable PROGBITS:      767
 reviewed .reginfo/.MIPS.abiflags:        1462
 direct J/JAL backed by R_MIPS_26:   6918/6918
+PC-relative branches:                    8148
+  same input section / R_MIPS_PC16: 7090/1058
+gp address uses relocation-backed:  2494/2494
 symbolic R_MIPS_HI16:                    4788
-alloc-data words backed by R_MIPS_32:    1939
+alloc-data four-byte windows:           25699
+  backed by R_MIPS_32:                   1939
 findings:                                   0
 ```
 
@@ -226,15 +230,23 @@ Every allocatable input section must have a normal-link owner. An unknown
 section is rejected even when it is empty or has a debug-looking name; the
 1,462 unowned metadata sections above pass only because their `.reginfo` or
 `.MIPS.abiflags` type, flags, size, alignment, and entry size are structurally
-exact. Expected empty compiler companions have an explicit, zero-size-only
-allowance.
+exact. A selected allocatable section must also have a supported runtime type;
+selection does not bless an unexpected type such as an init array. Expected
+empty compiler companions have an explicit, zero-size-only allowance. The
+stock-SDK constant, CRT `_gp`, and PS-X header allowances are scoped to the
+exact object path, section, offset, and instruction or value rather than a
+reusable basename or constant.
 
 The relocation checks reject future canonical numeric MAIN references: direct
 `J`/`JAL` without `R_MIPS_26`, unrelocated LUI plus canonical low-half address
-formation, and aligned allocatable-data pointers without `R_MIPS_32`. This is a
-strict regression gate, not a proof over arbitrary register arithmetic or
-unaligned opaque packed fields. The reviewed pointer manifest and the shifted
-growth proof cover the current exceptional packed fields.
+formation, cross-section branches without `R_MIPS_PC16`, `$gp` address uses
+without an address relocation, and allocatable-data pointers without
+`R_MIPS_32`. Compiled allocatable data is scanned as a four-byte window at every
+byte offset, so an unaligned compiled pointer is covered. Generated opaque
+assembly remains word-aligned to avoid interpreting arbitrary packed assets as
+pointers; its current packed pointers are covered by the reviewed manifest and
+shifted growth proof. The remaining heuristic limits are the bounded, linear
+LUI scan, arbitrary register arithmetic, and opaque packed assembly.
 
 ## Complete canonical CRT/SDK text
 

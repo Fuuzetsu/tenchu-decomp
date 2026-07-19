@@ -65,9 +65,13 @@ byte-identical `main.exe`.
   input audit are composed under `./Build relink`. Its exact 731 map-loaded
   objects contain 767 owned allocatable PROGBITS sections, 1,462 structurally
   reviewed MIPS metadata sections, 6,918/6,918 relocation-backed direct jumps,
-  4,788 symbolic HI16 records, and 1,939 `R_MIPS_32` data words, with zero
-  findings. `./Build check-relink` reruns that gate and the final-image audit,
-  then performs the full `+0x10004` GNU-ld growth proof.
+  8,148 branches (7,090 same-section plus 1,058 `R_MIPS_PC16`), 2,494/2,494
+  relocation-backed `$gp` address uses, 4,788 symbolic HI16 records, and 25,699
+  alloc-data four-byte windows with 1,939 `R_MIPS_32`, with zero findings.
+  Compiled data is scanned at every byte offset; owned alloc section types are
+  checked and special canonical/header allowances are exact-site scoped.
+  `./Build check-relink` reruns that gate and the final-image audit, then
+  performs the full `+0x10004` GNU-ld growth proof.
   The exact grown image passes a bounded PCSX-Redux direct-load smoke and an
   auto-LBA `SLPS_019.01 → MENU.EXE → MAIN.EXE` boot to the moved entry and
   `PadProc`, with later VSyncs and no first-chance exception. The auto-packed
