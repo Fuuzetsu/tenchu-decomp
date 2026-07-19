@@ -60,10 +60,14 @@ byte-identical `main.exe`.
   in place and rejects anything larger than the retail slot;
   `./Build iso`/`iso-mod` produce a bootable disc for pcsx-redux. The genuine
   size-changing lane is now `./Build relink`: complete SDK/data/BSS ownership,
-  dynamic allocator capacity, a zero-finding widened address audit, regenerated
-  PS-X headers, ordinary and replacement-C small/common section retention, and
-  a full `+0x10004` GNU-ld growth proof are composed under
-  `./Build check-relink`.
+  dynamic allocator capacity, regenerated PS-X headers, ordinary and
+  replacement-C small/common section retention, and a mandatory post-`ld`
+  input audit are composed under `./Build relink`. Its exact 731 map-loaded
+  objects contain 767 owned allocatable PROGBITS sections, 1,462 structurally
+  reviewed MIPS metadata sections, 6,918/6,918 relocation-backed direct jumps,
+  4,788 symbolic HI16 records, and 1,939 `R_MIPS_32` data words, with zero
+  findings. `./Build check-relink` reruns that gate and the final-image audit,
+  then performs the full `+0x10004` GNU-ld growth proof.
   The exact grown image passes a bounded PCSX-Redux direct-load smoke and an
   auto-LBA `SLPS_019.01 → MENU.EXE → MAIN.EXE` boot to the moved entry and
   `PadProc`, with later VSyncs and no first-chance exception. The auto-packed
@@ -546,8 +550,11 @@ CI later.
   See [`docs/modding-and-nonmatching.md`](docs/modding-and-nonmatching.md) and
   `tools/mkmod.py`.
 - **Size-changing edits**: `./Build relink` is the normal GNU-ld artifact;
-  `check-relink` runs the zero-finding address audit and complete `+0x10004`
-  growth proof, `run-relink` launches it directly, and
+  `relink` itself runs the exact input-relocation/ownership gate immediately
+  after `ld`; `check-relink` reruns it plus the zero-finding final-image audit
+  and complete `+0x10004` growth proof. That proof mirrors the recursive
+  user/generated extension-source inventory, including nested helpers.
+  `run-relink` launches it directly, and
   `iso-relink`/`run-iso-relink` package and boot it through the real disc chain.
   `tools/pcsx_smoke.py` has passed both direct and auto-packed full-chain modes
   on that growth artifact, followed by representative STR decode and XA

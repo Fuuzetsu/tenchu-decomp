@@ -149,17 +149,28 @@ silently discarded. This is support for normal pinned-toolchain C sections,
 not arbitrary custom section attributes or growth beyond the RAM/linker
 assertions.
 
+The ELF/map rule runs `tools/reloc_input_audit.py` immediately after `ld`, so
+`./Build relink` itself rejects an unowned allocatable input or a canonical
+numeric MAIN call, address pair, or aligned data pointer before finalization.
+It reads the exact 731-object map `LOAD` inventory rather than a guessed glob;
+the current 767 owned allocatable PROGBITS sections and all 6,918 direct
+`J`/`JAL` instructions pass their relocation checks with zero findings. Exact
+counts, metadata validation, and heuristic limits are in
+[`relocatable-build.md`](relocatable-build.md#mandatory-input-object-relocation-audit).
+
 `./Build check-relink` verifies that composition without assuming a fixed
 extension size: it derives the game-text delta from the actual compiler
 objects, requires every unique section-owned canonical-SDK symbol to follow,
 checks applied C HI/LO records and dynamic extension/BSS/pool boundaries, and
-validates the finalized PS-X EXE header. It then runs
-`tools/reloc_audit.py --fail-on-findings` and the complete growth probe. The
-current audit has zero movable ABS definitions, literal jumps, adjacent HI/LO
-candidates, or literal loaded pointers. The default `0x10004` probe checks
-7,706 section-owned layout symbols, all 208 manifest pointers, a real HI16
-carry, dynamic pool shrinkage, and the regenerated header after a full GNU-ld
-link.
+validates the finalized PS-X EXE header. It then reruns the input-object gate,
+runs `tools/reloc_audit.py --fail-on-findings`, and runs the complete growth
+probe. The final-image audit has zero movable ABS definitions, literal jumps,
+adjacent HI/LO candidates, or literal loaded pointers. The default `0x10004`
+probe checks 7,706 section-owned layout symbols, all 208 manifest pointers, a
+real HI16 carry, dynamic pool shrinkage, and the regenerated header after a
+full GNU-ld link. Its extension inventory now mirrors the recursive union of
+user and generated `reloc/**/*.c` sources, including nested paths and
+same-relative-path overrides.
 
 The emulator is deliberately a separate, opt-in gate because it needs a local
 PCSX-Redux build and the user-supplied disc. `tools/pcsx_smoke.py` reads the

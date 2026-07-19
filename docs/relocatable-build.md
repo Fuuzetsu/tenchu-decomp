@@ -205,6 +205,37 @@ with `--orphan-handling=error`. An unsupported allocatable section such as
 name instead of producing an executable that silently omits those bytes. The
 retail matching lanes retain their generated discard behavior unchanged.
 
+## Mandatory input-object relocation audit
+
+Every `./Build relink` runs `tools/reloc_input_audit.py` immediately after GNU
+`ld`, using the generated linker script, linked ELF, and the exact object order
+from the link map. `./Build check-relink` reruns the same gate before its growth
+proof. The current result is:
+
+```text
+map-LOAD objects:                         731
+owned nonempty allocatable PROGBITS:      767
+reviewed .reginfo/.MIPS.abiflags:        1462
+direct J/JAL backed by R_MIPS_26:   6918/6918
+symbolic R_MIPS_HI16:                    4788
+alloc-data words backed by R_MIPS_32:    1939
+findings:                                   0
+```
+
+Every allocatable input section must have a normal-link owner. An unknown
+section is rejected even when it is empty or has a debug-looking name; the
+1,462 unowned metadata sections above pass only because their `.reginfo` or
+`.MIPS.abiflags` type, flags, size, alignment, and entry size are structurally
+exact. Expected empty compiler companions have an explicit, zero-size-only
+allowance.
+
+The relocation checks reject future canonical numeric MAIN references: direct
+`J`/`JAL` without `R_MIPS_26`, unrelocated LUI plus canonical low-half address
+formation, and aligned allocatable-data pointers without `R_MIPS_32`. This is a
+strict regression gate, not a proof over arbitrary register arithmetic or
+unaligned opaque packed fields. The reviewed pointer manifest and the shifted
+growth proof cover the current exceptional packed fields.
+
 ## Complete canonical CRT/SDK text
 
 The entire CRT/PsyQ text stream at `0x800601d4..0x80086764` is now
@@ -233,7 +264,7 @@ audit also rejects numeric jump operands and unreviewed address-looking high
 halves. This is canonical source, not a trampoline and not a claim that Sony
 wrote those routines in C.
 
-## Loaded data and the zero-finding audit
+## Loaded data and the final-image audit
 
 The reviewed manifest now covers 208 pointer words and 135 targets across ten
 generated data files. It includes the 22 name/path pointers in byte-packed
@@ -295,7 +326,10 @@ byte-identical; a changed normal link gets a changed header.
 immediately after the real `main.c.o` input and runs the complete linker and
 finalizer. The fixture has no assigned address and is neither a patch nor a
 trampoline; it occupies the same ordinary input boundary that added code would
-occupy. The current proof reports:
+occupy. Before linking, the probe mirrors Shake's recursive union of user and
+generated `reloc/**/*.c` sources, including nested helpers and one user override
+per shared relative path; it neither misses generated inputs nor admits stale
+objects. The current proof reports:
 
 ```text
 inserted text:                  +0x10004

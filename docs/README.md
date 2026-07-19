@@ -94,7 +94,10 @@ BUILD GREEN (byte-identical)
   reviewed data manifest carries 208 pointer relocations, movable ABS/raw
   address findings are zero, BSS and allocator capacity are linker-derived,
   ordinary and replacement-C small/common sections are retained near `_gp`,
-  unsupported allocatable sections fail loudly, and
+  unsupported allocatable sections fail loudly, and `relink` itself audits the
+  exact 731 map-loaded inputs for relocation-backed calls, address formation,
+  and data pointers with zero findings. The recursive user/generated extension
+  inventory is mirrored by the growth proof, and
   `check-relink` proves a complete `+0x10004` growth with a regenerated PS-X
   header. That exact grown image also passes the bounded PCSX-Redux probe both
   by direct `-loadexe` and through an auto-packed
@@ -130,8 +133,9 @@ latent bugs. Fixed in this batch of work (see `build-system.md` for detail):
 - **`./Build iso` / `iso-mod`** — rebuild a bootable `.bin`/`.cue` for pcsx-redux.
   See [building-an-iso.md](building-an-iso.md).
 - **`./Build relink` / `check-relink` / `iso-relink`** — allow ordinary linked
-  layout changes, reject movable fixed-address regressions, prove growth across
-  a 64 KiB boundary, and package the result for direct or full-boot testing. See
+  layout changes, reject movable fixed-address regressions immediately after
+  `ld`, prove growth across a 64 KiB boundary, and package the result for direct
+  or full-boot testing. See
   [relocatable-build.md](relocatable-build.md).
 - **`tools/pcsx_smoke.py`** — a bounded headless runtime gate whose direct and
   auto-LBA full-disc modes both pass on the `+0x10004` artifact. It derives

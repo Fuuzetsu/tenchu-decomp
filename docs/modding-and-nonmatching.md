@@ -120,6 +120,16 @@ toolchain sections and available PS1 RAM. A custom allocatable section causes
 an explicit orphan-section link failure instead of being silently discarded;
 arbitrary section attributes and unlimited data are not supported.
 
+`./Build relink` also audits the exact map-loaded input objects immediately
+after `ld`. Numeric casts or canonical assembly that hard-code a movable MAIN
+call, address pair, or aligned data pointer fail unless the corresponding MIPS
+relocation exists; unowned allocatable sections fail even when empty.
+`check-relink` reruns this gate and adds the final-image and growth audits. The
+input scan is intentionally heuristic for arbitrary register arithmetic and
+unaligned opaque packed data, whose current known cases are covered by the
+reviewed manifest and shifted growth proof. See the
+[exact coverage](relocatable-build.md#mandatory-input-object-relocation-audit).
+
 The composed linker owns all 555 game inputs, the complete CRT/SDK stream,
 initialized data, `_gp`, BSS, allocator boundaries, and the PS-X header. The
 reviewed data transform supplies 208 `R_MIPS_32` pointer records. The widened
@@ -131,7 +141,9 @@ after `main.c.o`. That proof checks 7,706 owned symbols, all 208 loaded pointers
 HI16 carry behavior, BSS movement, dynamic allocator shrinkage, and a changed
 PS-X entry/load size. The linker chose PC `0x80070260` and `t_size=0x97000` for
 the grown fixture; no per-function slot, cave, trampoline, or fixed downstream
-address is involved.
+address is involved. Its extension list mirrors the normal link's recursive
+user/generated source union, so nested `src/main.exe/reloc/` helpers participate
+in the same proof.
 
 The current controlled growth artifact also passes the bounded PCSX-Redux
 runtime probe in both modes: direct `-loadexe` and an auto-LBA repack through
