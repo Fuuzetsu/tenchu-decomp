@@ -189,7 +189,7 @@ class RewriteTests(unittest.TestCase):
                 "37A8.data.s",
                 "400C.data.s",
                 "4900.data.s",
-                "72CD0.data.s",
+                "75F64.data.s",
             },
         )
         demo_entries = [

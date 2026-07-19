@@ -41,23 +41,36 @@ DEFAULT_LINKER = Path(".shake/build/relink/layout/main.exe.ld")
 DEFAULT_RAW_DIR = Path(".shake/gen/main.exe/asm/data")
 DEFAULT_NM = "mipsel-unknown-linux-gnu-nm"
 
-# The normal relink currently substitutes three generated assembly objects.
+# The normal relink currently substitutes all nine reviewed pointer-bearing
+# generated assembly objects.
 # These are convenience defaults only: exact ``--object-source`` arguments are
 # authoritative, and defaults which are not named by the selected linker are
 # ignored.  Keeping the mapping object-based prevents an old generated source
 # with the same retail address from being audited after its object was replaced.
 DEFAULT_OBJECT_SOURCES = {
+    ".shake/build/reloc-bss/obj/E58.data.s.o":
+        ".shake/build/reloc-bss/data/E58.data.s",
+    ".shake/build/reloc-bss/obj/1160.data.s.o":
+        ".shake/build/reloc-bss/data/1160.data.s",
     ".shake/build/reloc-bss/obj/207C.data.s.o":
         ".shake/build/reloc-bss/data/207C.data.s",
     ".shake/build/reloc-bss/obj/2EB0.data.s.o":
         ".shake/build/reloc-bss/data/2EB0.data.s",
-    ".shake/build/relink/obj/72CD0.bss.s.o":
-        ".shake/build/relink/layout/72CD0.bss.s",
+    ".shake/build/reloc-bss/obj/33C4.data.s.o":
+        ".shake/build/reloc-bss/data/33C4.data.s",
+    ".shake/build/reloc-bss/obj/37A8.data.s.o":
+        ".shake/build/reloc-bss/data/37A8.data.s",
+    ".shake/build/reloc-bss/obj/400C.data.s.o":
+        ".shake/build/reloc-bss/data/400C.data.s",
+    ".shake/build/reloc-bss/obj/4900.data.s.o":
+        ".shake/build/reloc-bss/data/4900.data.s",
+    ".shake/build/relink/obj/75F64.bss.s.o":
+        ".shake/build/relink/layout/75F64.bss.s",
     # The retail-exact structural lane uses the same transformed data but a
     # separate combined tail.  This lets an explicit alternate ELF/linker audit
     # work without weakening the normal-relink defaults above.
-    ".shake/build/reloc-bss/obj/72CD0.bss.s.o":
-        ".shake/build/reloc-bss/generated/72CD0.bss.s",
+    ".shake/build/reloc-bss/obj/75F64.bss.s.o":
+        ".shake/build/reloc-bss/generated/75F64.bss.s",
 }
 
 LINKER_OBJECT_RE = re.compile(r"(?P<object>[^\s;()]+\.o)\s*\(")

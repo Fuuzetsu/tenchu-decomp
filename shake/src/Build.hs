@@ -68,8 +68,8 @@ relocGameSymbols = relocGameDir </> "symbols.main.exe.txt"
 -- | Matching-only numeric address constructions remain in six exact C
 -- objects.  The normal relink compiles the same sources under one build-wide
 -- define into this isolated directory, where an ELF audit requires symbolic
--- HI16/LO16 relocations.  A separate substitution probe shifts game functions
--- while padding before the still-raw SDK; the retail-exact proof stays intact.
+-- HI16/LO16 relocations. A separate substitution probe shifts game functions
+-- while preserving a bounded retail-exact oracle.
 relocCLiteralDir :: FilePath
 relocCLiteralDir = shakeDir </> "reloc-c-literals"
 
@@ -106,7 +106,7 @@ relocCLiteralReferenceObjects :: [FilePath]
 relocCLiteralReferenceObjects = map relocCLiteralReferenceObject relocCLiteralNames
 
 -- | Bounded second relocation proof.  Splat emits every raw SDK text carve in
--- 0x800601d4..0x800834d0 as canonical assembly, preserving the existing C and
+-- 0x800601d4..0x80086764 as canonical assembly, preserving the existing C and
 -- canonical-object islands between them.  The base link is retail-exact; a
 -- controlled +4 link before Exec audits ordinary J/JAL and HI16/LO16 relocation.
 mainRelocSdkExe, mainRelocSdkElf, mainRelocSdkMap :: FilePath
@@ -150,13 +150,13 @@ relocBssSymbols = relocBssDir </> "symbols.main.exe.txt"
 relocBssUndefined = relocBssDir </> "undefined_symbols_auto.main.exe.txt"
 
 relocBssTailAsm, relocBssTailObject :: FilePath
-relocBssTailAsm = relocBssDir </> "generated" </> "72CD0.bss.s"
+relocBssTailAsm = relocBssDir </> "generated" </> "75F64.bss.s"
 -- Keep this below an extra directory so the ordinary generated-asm wildcard
 -- cannot mistake it for a splat-owned target input.
-relocBssTailObject = relocBssDir </> "obj" </> "72CD0.bss.s.o"
+relocBssTailObject = relocBssDir </> "obj" </> "75F64.bss.s.o"
 
 -- Reviewed pointer-bearing data copies used by the composed normal relink.
--- 72CD0 is transformed here first, then the BSS lane applies its NOBITS split
+-- 75F64 is transformed here first, then the BSS lane applies its NOBITS split
 -- to that copy so both transformations survive in one object.
 relocIntegratedDataDir :: FilePath
 relocIntegratedDataDir = relocBssDir </> "data"
@@ -164,11 +164,11 @@ relocIntegratedDataDir = relocBssDir </> "data"
 relocDataNames :: [String]
 relocDataNames =
   [ "E58", "1160", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
-    "72CD0"
+    "75F64"
   ]
 
 relocDataTargetNames :: [String]
-relocDataTargetNames = filter (/= "72CD0") relocDataNames
+relocDataTargetNames = filter (/= "75F64") relocDataNames
 
 relocDataAsm, relocDataObject :: String -> FilePath
 relocDataAsm name = relocIntegratedDataDir </> name <.> "data.s"
@@ -178,15 +178,15 @@ relocDataAsms, relocDataObjects :: [FilePath]
 relocDataAsms = map relocDataAsm relocDataNames
 relocDataObjects = map relocDataObject relocDataTargetNames
 
-relocData72CD0Asm :: FilePath
-relocData72CD0Asm = relocDataAsm "72CD0"
+relocData75F64Asm :: FilePath
+relocData75F64Asm = relocDataAsm "75F64"
 
 -- | Growth-capable composition.  Unlike the retail-exact BSS oracle above,
 -- this linker chain consumes the natural TENCHU_RELOCATABLE C objects without
 -- restoring their size difference at the game/SDK boundary.  Canonical SDK
 -- text and every later linker-owned boundary are therefore free to follow the
--- changed game layout.  It deliberately remains separate because unresolved
--- raw loaded-data references still prevent a runtime-ready claim.
+-- changed game layout. It remains separate so the ordinary matching artifact
+-- and its exact compiler branches stay untouched.
 mainRelinkLogical, mainRelinkExe, mainRelinkElf, mainRelinkMap :: FilePath
 mainRelinkLogical = buildDir </> "tenchu" </> "main_relink.logical"
 mainRelinkExe = buildDir </> "tenchu" </> "main_relink.exe"
@@ -205,8 +205,8 @@ normalRelinkSymbols = normalRelinkDir </> "layout" </> "symbols.main.exe.txt"
 
 normalRelinkUndefined, normalRelinkTailAsm, normalRelinkTailObject :: FilePath
 normalRelinkUndefined = normalRelinkDir </> "layout" </> "undefined_symbols_auto.main.exe.txt"
-normalRelinkTailAsm = normalRelinkDir </> "layout" </> "72CD0.bss.s"
-normalRelinkTailObject = normalRelinkDir </> "obj" </> "72CD0.bss.s.o"
+normalRelinkTailAsm = normalRelinkDir </> "layout" </> "75F64.bss.s"
+normalRelinkTailObject = normalRelinkDir </> "obj" </> "75F64.bss.s.o"
 
 -- | The modded (non-matching) build: hooked functions patched in place by
 -- tools/mkmod.py, so it stays the same size as main.exe (disc rebuild is faithful).
@@ -1457,7 +1457,7 @@ mainExtraRules = do
       cmd_ as asFlags ["--MD", depFile, "-o", out, source]
       neededAsmDeps depFile
 
-  -- Second normal-link proof: turn the zero-filled end of 72CD0 into a real
+  -- Second normal-link proof: turn the zero-filled end of 75F64 into a real
   -- NOBITS input, move every C .bss input into a following NOLOAD output, and
   -- reserve the fixed virtual-memory pool explicitly. Inputs are generated
   -- from the canonical SDK-prefix lane, which already composes with the
@@ -1467,8 +1467,8 @@ mainExtraRules = do
         genD = tgGenDir t
         tBuildDir = tgBuildDir t
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
-        tailSource = relocData72CD0Asm
-        oldTailObject = tgBuildDir t </> "data" </> "72CD0.data.s.o"
+        tailSource = relocData75F64Asm
+        oldTailObject = tgBuildDir t </> "data" </> "75F64.data.s.o"
         replacementArgs = concatMap
           (\name ->
             [ "--replace-object",
@@ -1566,7 +1566,7 @@ mainExtraRules = do
         genD = tgGenDir t
         tBuildDir = tgBuildDir t
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
-        oldTailObject = tBuildDir </> "data" </> "72CD0.data.s.o"
+        oldTailObject = tBuildDir </> "data" </> "75F64.data.s.o"
         replacementArgs = concatMap
           (\name ->
             [ "--replace-object",
@@ -1577,14 +1577,14 @@ mainExtraRules = do
         tool = "tools" </> "reloc_bss_lane.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need [ normalRelinkSdkLinker, normalRelinkSdkSymbols, undefinedSymbols,
-           relocData72CD0Asm, tool ]
+           relocData75F64Asm, tool ]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory normalRelinkLinker)
     cmd_ "python3" tool $
       [ "generate",
         "--linker-in", normalRelinkSdkLinker,
         "--symbols-in", normalRelinkSdkSymbols,
         "--undefined-in", undefinedSymbols,
-        "--tail-in", relocData72CD0Asm,
+        "--tail-in", relocData75F64Asm,
         "--linker-out", normalRelinkLinker,
         "--symbols-out", normalRelinkSymbols,
         "--undefined-out", normalRelinkUndefined,
@@ -1751,7 +1751,8 @@ phonyRules = do
   -- Structural integration gate for the real no-pad artifact.  The compiler
   -- object delta is measured, every unique canonical-SDK symbol must follow
   -- it, and extension/BSS/header bounds are checked without requiring a fixed
-  -- extension size.  Known ABS loaded-data targets remain reported blockers.
+  -- extension size. The relocation audit separately rejects any regression to
+  -- movable ABS definitions or literal code/data pointers.
   phony "check-relink" $ do
     verifyRelocCLiteralObjects
     verifyNormalRelink
@@ -1765,7 +1766,7 @@ phonyRules = do
         "--expect", "gp=0",
         "--expect", "sp=0x801ffff0"
       ]
-    putInfo "check-relink: no-pad C/SDK/layout/header composition is structurally valid; raw loaded-data blockers remain"
+    putInfo "check-relink: normal C/SDK/data/BSS/header composition is structurally valid"
 
   -- Focused input gate for the first six matching-C address constructions.
   -- It deliberately audits a separate, globally-defined normal-link variant;
@@ -1795,12 +1796,11 @@ phonyRules = do
                       "but it's", ourSha]
     putInfo "check-reloc-game: linker-owned game symbols are retail-exact; symbolic-C inputs verified"
 
-  -- Bounded canonical-assembly proof for the SDK/CRT text stream through the
-  -- input immediately before raw 72CD0.data.s.  The retail-address link must
-  -- still match; a controlled +4 link before Exec audits final linked J/JAL and
-  -- HI/LO words plus ownership of all 1,919 text aliases.  This is not yet a
-  -- runnable grown PS-EXE: 72CD0 still starts with raw SDK instructions, loaded
-  -- data/BSS and _gp remain fixed, and the header is not regenerated.
+  -- Bounded canonical-assembly proof for the complete SDK/CRT text stream
+  -- through UnitVector2. The retail-address link must still match; a controlled
+  -- +4 link before Exec audits final linked J/JAL and HI/LO words plus ownership
+  -- of every emitted text alias. The composed relink owns later data/BSS and
+  -- the PS-X EXE header.
   phony "check-reloc-sdk" $ do
     let tool = "tools" </> "reloc_sdk_lane.py"
         sdkNames =
@@ -1822,7 +1822,8 @@ phonyRules = do
             "SDK_TEXT_58164",
             "SDK_TEXT_67B78",
             "SDK_TEXT_71800",
-            "SDK_TEXT_722E8"
+            "SDK_TEXT_722E8",
+            "SDK_TEXT_72CD0"
           ]
         sdkObjects = map (\name -> tgBuildDir mainTarget </> name <.> "s" <.> "o") sdkNames
         sdkSources = map (\name -> tgGenDir mainTarget </> asmDir </> name <.> "s") sdkNames
@@ -1895,8 +1896,7 @@ phonyRules = do
         manifest = configDir </> "reloc-data.main.exe.json"
         transform = "tools" </> "reloc_data.py"
         tool = "tools" </> "reloc_data_lane.py"
-        inputs = map (dataDir </>)
-          ["207C.data.s", "2EB0.data.s", "72CD0.data.s"]
+        inputs = map (dataDir </>) $ map (<.> "data.s") relocDataNames
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need $ [manifest, transform, tool, "include" </> "macro.inc"] <> inputs
     cmd_ "python3" tool
