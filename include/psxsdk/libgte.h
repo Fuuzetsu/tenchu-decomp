@@ -50,6 +50,7 @@ MATRIX *ScaleMatrix(MATRIX *m, VECTOR *v);
 void SetRotMatrix(MATRIX *m);
 void SetColorMatrix(MATRIX *m);
 void SetTransMatrix(MATRIX *m);
+void SetGeomScreen(long h);
 long RotTransPers(SVECTOR *v0, long *sxy, long *p, long *flag);
 void RotTrans(SVECTOR *v0, VECTOR *v1, long *flag);
 long VectorNormalSS(SVECTOR *v0, SVECTOR *v1);

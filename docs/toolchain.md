@@ -2,8 +2,9 @@
 
 > **Status: maspsx is integrated.** The pipeline is `cpp | object-profile cc1
 > -G8 | maspsx --aspsx-version=2.77 -G8 | as -G0 | ld`: GCC 2.8.1 is the
-> default, the reused ADT object selects GCC 2.8.0, and GS_107.OBJ selects the
-> reconstructed GS_107 libgs backend described below. wine has been removed
+> default, GS_106.OBJ selects GCC 2.7.2, the reused ADT object selects GCC
+> 2.8.0, and GS_107.OBJ selects the reconstructed GS_107 libgs backend described
+> below. wine has been removed
 > from the devShell. `./Build check` stays byte-identical. The "Recipe" section
 > below is kept as the rationale/record.
 
@@ -17,7 +18,7 @@ decomp uses (SOTN, Silent Hill, MediEvil, Soul Reaver, Croc, Spyro):
 
 | PSY-Q tool (path A, needs wine/DOS) | This repo (path B, native Linux) |
 |---|---|
-| `CC1PSX.EXE` (compiler)             | `cc1-281` by default; nix-pinned original-object profiles for ADT and GS_107 |
+| `CC1PSX.EXE` (compiler)             | `cc1-281` by default; nix-pinned original-object profiles for GS_106, ADT, and GS_107 |
 | `ASPSX.EXE` + `psyq-obj-parser`     | **maspsx** + `mipsel-…-as`  ← missing piece |
 | `PSYLINK`                           | `mipsel-…-ld` + `main.exe.ld` |
 
@@ -102,6 +103,24 @@ huge-frame `lw a3,0(a3)` self-tie. 2.8.1 unconditionally retypes that case to
 `RELOAD_FOR_OPERAND_ADDRESS`, whose shared conflict bit forces a second reload
 register. This supersedes the earlier conclusion that the human indexed loop
 was unreachable.
+
+### GS_106.OBJ: stock GCC 2.7.2
+
+`GS_106.OBJ` selects the pinned `cc1-272` profile. This is an original-object
+attribution, despite the object having only one public member: running PsyQ's
+Win32 `PSYLIB.EXE` under nixpkgs `wibo` lists only `GsSetProjection`, and
+extracting that complete object produces the same eight instructions as
+Tenchu. The natural source is simply `SetGeomScreen(h);`. Released GCC 2.8.x
+fills the `jr $ra` delay slot with the stack adjustment, while GCC 2.7.2 plus
+the normal maspsx 2.77 pipeline emits the extracted object's exact
+`lw $ra; addiu $sp; jr $ra; nop` epilogue.
+
+This does not infer a compiler from archive adjacency: both the actual object
+bytes and the compiler's debug output were checked. `GS_106.OBJ` is enumerated
+as a complete object in the profile oracle, and receives no exceptional flags.
+`wibo` is useful for compatible original Win32 archive tools such as PSYLIB and
+ASPSX; the PsyQ 4.5 `CC1PSX.EXE` currently aborts under wibo, so the deterministic
+native reconstructed compilers remain the build path.
 
 ### GS_107.OBJ: reconstructed libgs backend
 

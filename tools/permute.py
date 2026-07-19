@@ -79,6 +79,9 @@ ORIGINAL_OBJECT_MEMBERS = {
         "MemCardCallback", "MemCardSync", "MemCardCreateFile",
         "MemCardFormat",
     ),
+    "GS_106.OBJ": (
+        "GsSetProjection",
+    ),
     "GS_107.OBJ": (
         "GsSetFlatLight", "GS_107_OBJ_444", "GS_107_OBJ_4B8",
         "GS_107_OBJ_51C",
@@ -91,10 +94,12 @@ ORIGINAL_OBJECT_MEMBERS = {
 }
 ORIGINAL_OBJECT_CC_FLAGS = {
     "LIBMCRD.OBJ": ("-mno-split-addresses",),
+    "GS_106.OBJ": (),
     "GS_107.OBJ": ("-mno-split-addresses",),
     "ADT.OBJ": (),
 }
 ORIGINAL_OBJECT_CC_EXECUTABLES = {
+    "GS_106.OBJ": "cc1-272",
     "GS_107.OBJ": "cc1-281-gs107",
     "ADT.OBJ": "cc1-280",
 }

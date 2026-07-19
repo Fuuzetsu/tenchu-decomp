@@ -5614,13 +5614,13 @@ sw $2,24($sp)
 
 
 class BuildConfigurationTests(unittest.TestCase):
-    def test_get_tpage_uses_one_full_width_sdk_prototype(self):
+    def test_get_tpage_uses_one_canonical_sdk_prototype(self):
         root = os.path.dirname(TOOLS)
-        header = os.path.join(root, "include", "psxsdk", "libgs.h")
+        header = os.path.join(root, "include", "psxsdk", "libgpu.h")
         with open(header) as f:
             declarations = f.read()
         self.assertIn(
-            "u16 GetTPage(s32 tp, s32 abr, s32 x, s32 y);",
+            "u_short GetTPage(int tp, int abr, int x, int y);",
             declarations,
         )
 
@@ -5668,6 +5668,7 @@ class BuildConfigurationTests(unittest.TestCase):
         re = __import__("re")
         groups = {
             "LIBMCRD.OBJ": "libmcrdObjectMembers",
+            "GS_106.OBJ": "gs106ObjectMembers",
             "GS_107.OBJ": "gs107ObjectMembers",
             "ADT.OBJ": "adtObjectMembers",
         }
@@ -5719,6 +5720,9 @@ class BuildConfigurationTests(unittest.TestCase):
         self.assertNotIn("-mno-split-addresses", permute.cc_flags_for("Other"))
         self.assertEqual(permute.cc_executable_for("AdtSelect"), "cc1-280")
         self.assertEqual(permute.cc_executable_for("AdtGetDisp"), "cc1-280")
+        self.assertEqual(
+            permute.cc_executable_for("GsSetProjection"), "cc1-272"
+        )
         for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
             self.assertEqual(
                 permute.cc_executable_for(member), "cc1-281-gs107"

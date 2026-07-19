@@ -173,6 +173,23 @@
         install -m755 cc1 "$out/bin/cc1-281"
       '';
 
+      # The one-member stock libgs object GS_106.OBJ is byte-identical between
+      # Tenchu and PsyQ 4.5, including the older RA-only epilogue shape emitted
+      # by GCC 2.7.2. Keep this compiler available as an original-object
+      # profile; Build.hs never selects it by an ad-hoc per-function flag.
+      cc1-272 = pkgs.runCommandLocal "cc1-272"
+        {
+          src = pkgs.fetchurl {
+            url = "https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.7.2-psx.tar.gz";
+            sha256 = "500a459b3485e885a8d302cac23c2a4632f3900e03a09153f6190699fd723571";
+          };
+          dontFixup = true;
+        } ''
+        mkdir -p "$out/bin"
+        tar xzf "$src" cc1
+        install -m755 cc1 "$out/bin/cc1-272"
+      '';
+
       # GS_107.OBJ was built by a libgs backend that differs from the released
       # consumer cc1 in two compiler-output-proven places: its block-move split
       # accepts symbolic addresses, and its RA-only epilogue uses the stack
@@ -285,7 +302,7 @@
     {
       legacyPackages = pkgs;
       packages = flake-utils.lib.flattenTree
-        { inherit cc1-281-gs107; };
+        { inherit cc1-272 cc1-281-gs107; };
 
       apps = { };
 
@@ -311,6 +328,7 @@
             ln -s "${pkgs.gcc}/bin/cpp" "$out"/bin 
           '')
           maspsx-bin
+          cc1-272
           cc1-280
           cc1-281
           cc1-281-gs107

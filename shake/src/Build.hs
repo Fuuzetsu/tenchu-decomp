@@ -563,9 +563,18 @@ gs107ObjectMembers =
     "GS_107_OBJ_51C"
   ]
 
+-- PsyQ's archive table proves GS_106.OBJ has exactly this one public member;
+-- wibo-extracting the real object proves its complete text is byte-identical to
+-- Tenchu. Its natural wrapper source has the same older epilogue under 2.7.2.
+gs106ObjectMembers :: [String]
+gs106ObjectMembers =
+  [ "GsSetProjection"
+  ]
+
 originalObjectCcFlags :: FilePath -> [String]
 originalObjectCcFlags src
   | name `elem` libmcrdObjectMembers = ["-mno-split-addresses"]
+  | name `elem` gs106ObjectMembers = []
   | name `elem` gs107ObjectMembers = ["-mno-split-addresses"]
   | name `elem` adtObjectMembers = []
   | otherwise = []
@@ -593,6 +602,7 @@ adtObjectMembers =
 
 originalObjectCcExecutable :: FilePath -> FilePath
 originalObjectCcExecutable src
+  | takeBaseName src `elem` gs106ObjectMembers = "cc1-272"
   | takeBaseName src `elem` gs107ObjectMembers = "cc1-281-gs107"
   | takeBaseName src `elem` adtObjectMembers = "cc1-280"
   | otherwise = ccDefault
