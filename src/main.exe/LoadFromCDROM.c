@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -69,26 +70,6 @@
  *    LONGER of the two arms.
  */
 extern s32 AdtQuiet(s32 quiet);
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSElement
-{
-    u16 flag;    /* 0x0 */
-    u32 pos;     /* 0x4 */
-    u32 size;    /* 0x8 */
-    u32 psize;   /* 0xC */
-    u8 name[20]; /* 0x10 */
-};
-
-struct TAFSFileHandle
-{
-    s32 flagUse;       /* 0x0 */
-    u32 pos;           /* 0x4 */
-    TAFSElement *info; /* 0x8 */
-};
-
 extern TAFSFileHandle *AfsOpen(TAFS *handle, char *path);
 extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
 extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -82,14 +83,14 @@ extern void cd_init(void);
 extern int strncmp(const char *a, const char *b, u32 n);
 extern void vinit(void *adr, u32 size);
 extern void *vcalloc(u32 size, u8 c);
-extern int AfsOpenVolume(struct TAFS *handle, char *path);
+extern int AfsOpenVolume(TAFS *handle, char *path);
 extern char D_800110F0[]; /* "ACQUREMEMORYDISK" */
 extern char D_80011104[]; /* "TENCHU\DATA" */
 extern PoolBlock *virtual_memory_pool;
 extern void *D_80097EB8;
 extern s32 ReadMode;
 extern s32 TotalIO;
-extern struct TAFS systemAFS;
+extern TAFS systemAFS;
 
 void InitFileSystem(int mode)
 {

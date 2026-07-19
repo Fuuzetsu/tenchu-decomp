@@ -1,11 +1,11 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
+#include "filesystem.h"
 
 /*
  * cd_getsize (0x8005f6d8) — thin CD-file-handle size accessor: given a
  * `FILE *` (the raw CD-image file object shared with cd_close/cd_tell/
- * cd_read/cd_seek — see FILE/CdlFILE in AfsInit.c for the proven layout),
+ * cd_read/cd_seek — see TFileHandle/CdlFILE in filesystem.h for the proven layout),
  * returns the directory-record size cached in finfo.size; a NULL handle
  * reports via puts() and returns -1 instead of crashing.
  *
@@ -19,15 +19,6 @@
  * fallthrough/branch-target roles naively) compiles to the wrong physical
  * layout — verified on cd_close.
  */
-
-typedef struct FILE FILE;
-
-struct FILE
-{
-    CdlFILE finfo;   /* 0x0 */
-    s32 flagUse;     /* 0x18 */
-    s32 pos;         /* 0x1C */
-};
 
 extern int puts(char *s);
 extern char D_80014A78[]; /* "cd_getsize:invalid handle" — lives in this

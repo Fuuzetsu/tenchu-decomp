@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * subAfsFindFile (0x8005f10c, 0xB4 bytes) — linear scan over a TAFS
@@ -35,31 +36,6 @@
  * winning candidate also carried a dead `if (handle->pElement) {}`
  * statement — bisected out as a red herring, not load-bearing.
  */
-typedef struct FILE FILE;
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSElement
-{
-    u16 flag;    /* 0x0 */
-    u32 pos;     /* 0x4 */
-    u32 size;    /* 0x8 */
-    u32 psize;   /* 0xC */
-    u8 name[20]; /* 0x10 */
-};
-
-struct TAFS
-{
-    FILE *fpVol;             /* 0x0 */
-    s32 fModified;           /* 0x4 */
-    u32 posElement;          /* 0x8 */
-    TAFSElement *pElement;   /* 0xC */
-    u32 maxElements;         /* 0x10 */
-    s32 maxElementArea;      /* 0x14 */
-    TAFSFileHandle *pHandle; /* 0x18 */
-};
-
 extern int strncmp(const char *a, const char *b, u32 n);
 
 u32 subAfsFindFile(TAFS *handle, char *name, u32 mask)

@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
+#include "filesystem.h"
 
 /*
  * cd_open (0x8005f278, 0x108 bytes) — formats a CD-ROM path, claims the
@@ -27,15 +27,6 @@
  *
  * STATUS: MATCH (66/66 instructions).
  */
-
-typedef struct FILE FILE;
-
-struct FILE
-{
-    CdlFILE finfo;
-    s32 flagUse;
-    s32 pos;
-};
 
 extern FILE FileHandlePool[10];
 extern char D_80097E80[];

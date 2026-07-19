@@ -1,10 +1,11 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsClose (0x8005efd0) — TAFS file-handle closer: given a
- * `TAFSFileHandle *` (see TAFS/TAFSFileHandle in AfsInit.c for the proven
- * layout), clears flagUse to mark the slot free; a NULL handle reports via
+ * `TAFSFileHandle *` (see filesystem.h for the PSX.SYM-proven layout),
+ * clears flagUse to mark the slot free; a NULL handle reports via
  * AdtMessageBox() and returns -1 instead of crashing. Ghidra mistypes the
  * parameter `TAFSElement *` (it only ever sees the offset-0 store, so it
  * can't tell TAFSFileHandle.flagUse from TAFSElement.flag apart) — offset 0
@@ -15,16 +16,6 @@
  * written FIRST in source even though its body ends up adjacent to the
  * epilogue in the assembly — see cd_getsize.c's header for why).
  */
-
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSFileHandle
-{
-    s32 flagUse;       /* 0x0 */
-    u32 pos;           /* 0x4 */
-    TAFSElement *info; /* 0x8 */
-};
 
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80014998[]; /* "AfsClose: invalid handle" — lives in this

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsFindFile (0x8005eb84, 0x230 bytes) normalizes an AFS path, resolves each
@@ -17,31 +18,6 @@
  * and is one instruction short.  The mask parameter is full-width like the
  * matched subAfsFindFile helper: narrowing it inserts an andi/sign extension.
  */
-typedef struct FILE FILE;
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSElement
-{
-    u16 flag;
-    u32 pos;
-    u32 size;
-    u32 psize;
-    u8 name[20];
-};
-
-struct TAFS
-{
-    FILE *fpVol;
-    s32 fModified;
-    u32 posElement;
-    TAFSElement *pElement;
-    u32 maxElements;
-    s32 maxElementArea;
-    TAFSFileHandle *pHandle;
-};
-
 extern char *strncpy(char *dst, const char *src, u32 n);
 extern char *strcpy(char *dst, const char *src);
 extern int strncmp(const char *a, const char *b, u32 n);

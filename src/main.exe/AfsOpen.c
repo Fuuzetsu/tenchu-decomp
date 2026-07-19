@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsOpen (0x8005ef34, 0x9c bytes) — finds `path` in the AFS volume's file
@@ -59,38 +60,6 @@
  *
  * STATUS: MATCH.
  */
-typedef struct FILE FILE;
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSElement
-{
-    u16 flag;    /* 0x0 */
-    u32 pos;     /* 0x4 */
-    u32 size;    /* 0x8 */
-    u32 psize;   /* 0xC */
-    u8 name[20]; /* 0x10 */
-};
-
-struct TAFS
-{
-    FILE *fpVol;             /* 0x0 */
-    s32 fModified;           /* 0x4 */
-    u32 posElement;          /* 0x8 */
-    TAFSElement *pElement;   /* 0xC */
-    u32 maxElements;         /* 0x10 */
-    s32 maxElementArea;      /* 0x14 */
-    TAFSFileHandle *pHandle; /* 0x18 */
-};
-
-struct TAFSFileHandle
-{
-    s32 flagUse;       /* 0x0 */
-    u32 pos;           /* 0x4 */
-    TAFSElement *info; /* 0x8 */
-};
-
 extern TAFSElement *AfsFindFile(TAFS *handle, char *path, s32 mode);
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80014960[]; /* "AfsOpen: %s not found\n" */

@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
+#include "filesystem.h"
 
 /*
  * cd_seek (0x8005f634) — classic fseek(handle, offset, whence) over the
@@ -32,15 +32,6 @@
  * of the test sequence, unlike an inline `if/else if` (whose `then` body is
  * always inline right after its own test).
  */
-
-typedef struct FILE FILE;
-
-struct FILE
-{
-    CdlFILE finfo;   /* 0x0 */
-    s32 flagUse;     /* 0x18 */
-    s32 pos;         /* 0x1C */
-};
 
 extern int puts(char *s);
 extern char D_80014A48[]; /* "cd_seek:invalid handle" — lives in this TU's

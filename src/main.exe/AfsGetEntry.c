@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsGetEntry (0x8005e950, 0x234 bytes) allocates and reads the AFS volume's
@@ -22,31 +23,6 @@
  *    cursors respectively; the inline helper also preserves the target's
  *    address-taken stack-halfword store.
  */
-
-typedef struct FILE FILE;
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSElement
-{
-    u16 flag;
-    u32 pos;
-    u32 size;
-    u32 psize;
-    u8 name[20];
-};
-
-struct TAFS
-{
-    FILE *fpVol;
-    s32 fModified;
-    u32 posElement;
-    TAFSElement *pElement;
-    u32 maxElements;
-    s32 maxElementArea;
-    TAFSFileHandle *pHandle;
-};
 
 extern void AdtMessageBox(char *fmt, ...);
 extern void *valloc(u32 size);

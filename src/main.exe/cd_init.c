@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
+#include "filesystem.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -23,15 +23,6 @@
  * (`var_v0->unk18 = 0;`, one assignment) and the raw asm agree it's one sw.
  * Walks the pool backwards from index 9 to 0.
  */
-
-typedef struct FILE FILE;
-
-struct FILE
-{
-    CdlFILE finfo;   /* 0x0 */
-    s32 flagUse;     /* 0x18 */
-    s32 pos;         /* 0x1C */
-};
 
 extern FILE FileHandlePool[10]; /* FileHandlePool (Ghidra symbols.tsv) — the CD
                               * file-handle pool shared with cd_open. */

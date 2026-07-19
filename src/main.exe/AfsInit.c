@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsInit (0x8005ee80) — initializes a TAFS archive-filesystem handle:
@@ -9,9 +10,9 @@
  * it reports via AdtMessageBox and returns early, otherwise it zeroes the
  * freshly-allocated block with memset. Called by AfsOpenVolume.
  *
- * TAFS/TAFSElement/TAFSFileHandle/FILE mirror the Ghidra export's types
- * (a Sony afs.h/libapi shape); only TAFS's own field layout matters here, so
- * the others stay opaque.
+ * TAFS/TAFSElement/TAFSFileHandle/TFileHandle use the proper names and full
+ * layouts recorded in PSX.SYM; they are shared by this family through
+ * filesystem.h.
  *
  * Matching notes: statement order matches the Ghidra rendering directly —
  * the 4 field zero-stores, the unconditional `handle->pHandle = valloc(...)`
@@ -20,21 +21,6 @@
  * `sw $ra` and folds the last field-zero store into the call's delay slot;
  * no source reordering needed for that.
  */
-
-typedef struct FILE FILE;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-typedef struct TAFS
-{
-    FILE *fpVol;             /* 0x0 */
-    s32 fModified;           /* 0x4 */
-    u32 posElement;          /* 0x8 */
-    TAFSElement *pElement;   /* 0xC */
-    u32 maxElements;         /* 0x10 */
-    s32 maxElementArea;      /* 0x14 */
-    TAFSFileHandle *pHandle; /* 0x18 */
-} TAFS;
 
 extern void AdtMessageBox(char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);

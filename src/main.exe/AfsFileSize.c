@@ -1,11 +1,12 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsFileSize (0x8005f008) — TAFS file-size accessor: `handle` (TAFS *) is
  * taken but never used ($a0 dead in the asm — confirmed by m2c); the real
  * work is on the second parameter, a `TAFSFileHandle *` in $a1 (see
- * TAFS/TAFSFileHandle in AfsInit.c for the proven layout), returning
+ * filesystem.h for the PSX.SYM-proven layout), returning
  * fh->info->size — the directory-entry size cached behind the handle's
  * TAFSElement. Ghidra mistypes the second parameter `TAFSElement *element`
  * and renders the double-dereference as raw arithmetic
@@ -19,26 +20,6 @@
  * precedent (both if-arms return, so the literal if-body lands at the
  * branch target next to the epilogue, not the fallthrough).
  */
-
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct TAFSElement
-{
-    u16 flag;    /* 0x0 */
-    u32 pos;     /* 0x4 */
-    u32 size;    /* 0x8 */
-    u32 psize;   /* 0xC */
-    u8 name[20]; /* 0x10 */
-};
-
-struct TAFSFileHandle
-{
-    s32 flagUse;       /* 0x0 */
-    u32 pos;           /* 0x4 */
-    TAFSElement *info; /* 0x8 */
-};
 
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_800149B4[]; /* "AfsFileSize: invalid handle" — lives in this

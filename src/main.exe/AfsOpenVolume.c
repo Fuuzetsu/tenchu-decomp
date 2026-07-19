@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /*
  * AfsOpenVolume (0x8005edb4, 0xCC bytes) — opens the AFS archive volume
@@ -23,21 +24,6 @@
  * not Ghidra's fold-into-one-variable rendering. Two callee-saved regs
  * only (handle, path).
  */
-typedef struct FILE FILE;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-typedef struct TAFS
-{
-    FILE *fpVol;             /* 0x0 */
-    s32 fModified;           /* 0x4 */
-    u32 posElement;          /* 0x8 */
-    TAFSElement *pElement;   /* 0xC */
-    u32 maxElements;         /* 0x10 */
-    s32 maxElementArea;      /* 0x14 */
-    TAFSFileHandle *pHandle; /* 0x18 */
-} TAFS;
-
 extern void AfsInit(TAFS *handle);
 extern u32 strlen(const char *s);
 extern char *strcpy(char *dst, const char *src);

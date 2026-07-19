@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
+#include "filesystem.h"
 
 /*
  * cd_read (0x8005f590) — reads up to `length` bytes from a CD file handle
@@ -17,15 +17,6 @@
  * arithmetic shift) locates the absolute sector/byte-offset FUN_8005f380
  * forwards to the raw sector reader.
  */
-
-typedef struct FILE FILE;
-
-struct FILE
-{
-    CdlFILE finfo;   /* 0x0 */
-    s32 flagUse;     /* 0x18 */
-    s32 pos;         /* 0x1C */
-};
 
 extern int puts(char *s);
 extern void FUN_8005f380(void *buffer, int sector, int byteOffset, int byteLength);

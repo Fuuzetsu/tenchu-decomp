@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
+#include "filesystem.h"
 
 /*
  * AfsRead (0x8005f048, 0xC4 bytes) — reads `length` bytes from a TAFS file
@@ -19,45 +19,6 @@
  * cd_read(...); pos += length; return length;`) — matched first try; no
  * need to preserve Ghidra's comma-expression shape.
  */
-
-typedef struct FILE FILE;
-typedef struct TAFS TAFS;
-typedef struct TAFSElement TAFSElement;
-typedef struct TAFSFileHandle TAFSFileHandle;
-
-struct FILE
-{
-    CdlFILE finfo;   /* 0x0 */
-    s32 flagUse;     /* 0x18 */
-    s32 pos;         /* 0x1C */
-};
-
-struct TAFS
-{
-    FILE *fpVol;             /* 0x0 */
-    s32 fModified;           /* 0x4 */
-    u32 posElement;          /* 0x8 */
-    TAFSElement *pElement;   /* 0xC */
-    u32 maxElements;         /* 0x10 */
-    s32 maxElementArea;      /* 0x14 */
-    TAFSFileHandle *pHandle; /* 0x18 */
-};
-
-struct TAFSElement
-{
-    u16 flag;    /* 0x0 */
-    u32 pos;     /* 0x4 */
-    u32 size;    /* 0x8 */
-    u32 psize;   /* 0xC */
-    u8 name[20]; /* 0x10 */
-};
-
-struct TAFSFileHandle
-{
-    s32 flagUse;       /* 0x0 */
-    u32 pos;           /* 0x4 */
-    TAFSElement *info; /* 0x8 */
-};
 
 extern void AdtMessageBox(char *fmt, ...);
 extern int cd_seek(FILE *f, int offset, int whence);
