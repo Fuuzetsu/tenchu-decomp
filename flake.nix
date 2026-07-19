@@ -274,6 +274,32 @@
       # mkpsxiso + dumpsxiso: dump/rebuild the game's CD image (`./Build iso`).
       mkpsxiso = pkgs.callPackage ./nix/mkpsxiso.nix { };
 
+      # Open-source PsyQ library/object readers for the opt-in original-object
+      # audit (`./Build check-psyq-gs107`).  This derivation contains no Sony
+      # files: the user supplies LIBGS.LIB locally and the audit hash-gates the
+      # archive/member before converting it under the ignored .shake tree.
+      psyq2elf-tools = pkgs.stdenv.mkDerivation {
+        pname = "psyq2elf-tools";
+        version = "2020-09-20-cba9b60";
+        src = pkgs.fetchurl {
+          url = "https://gitlab.com/jype/psyq2elf/-/archive/cba9b60d2f349a55e49530a28e01a10cae8771f1/psyq2elf-cba9b60d2f349a55e49530a28e01a10cae8771f1.tar.gz";
+          sha256 = "sha256-6TnZLGUmvHM08Y/B4r1HGs5JISUokgKxU7j/JhZbGms=";
+        };
+
+        installPhase = ''
+          runHook preInstall
+          mkdir -p "$out/bin"
+          install -m755 psyq2elf psyqdump "$out/bin/"
+          runHook postInstall
+        '';
+
+        meta = {
+          description = "Open-source converter and archive dumper for PsyQ objects";
+          homepage = "https://gitlab.com/jype/psyq2elf";
+          license = lib.licenses.mit;
+        };
+      };
+
       # decomp-permuter: randomly perturbs C to find the source that byte-matches
       # (register allocation / scheduling). tools/permute.py drives it.
       permuter =
@@ -302,7 +328,7 @@
     {
       legacyPackages = pkgs;
       packages = flake-utils.lib.flattenTree
-        { inherit cc1-272 cc1-281-gs107; };
+        { inherit cc1-272 cc1-281-gs107 psyq2elf-tools; };
 
       apps = { };
 
@@ -324,6 +350,7 @@
           # tools. PSYLIB/ASPSX work; compilation itself stays on the pinned
           # native cc1 profiles because PsyQ 4.5 CC1PSX currently aborts here.
           pkgs.wibo
+          psyq2elf-tools
           pkgs.spimdisasm
           m2c-bin
           pkgs.splat

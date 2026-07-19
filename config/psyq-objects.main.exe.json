@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "object": "GS_107",
+  "archive": {
+    "member": "GS_107.OBJ",
+    "accepted_sha256": {
+      "PsyQ 4.4": "ecf520319291eda761fd58d2ee95c9ae0429a93bdaa6347c631f6d013c0cef6b",
+      "PsyQ 4.5": "9fb64b4985a4c4de74523a7b136a883fe029562397c8023c1d1662f35e1c6d49",
+      "PsyQ 4.6": "49ef20964686fc1bdae07e3ce53c70e6f23bf64e6a42cc0f148dfc929ece94d1"
+    },
+    "member_size": 1724,
+    "member_sha256": "f593e10973684257db59aab1254b773828fa41262d319881609fc4ed9b76921b"
+  },
+  "elf": {
+    "machine": 8,
+    "text": {
+      "size": "0x570",
+      "alignment": 8,
+      "unlinked_sha256": "cfbaed3ff9234934f8be43db2d592e3a44dbd7872edf6865df2b989b3258f606"
+    },
+    "bss": {
+      "size": "0x40",
+      "alignment": 8
+    },
+    "symbols": {
+      "GsSetFlatLight": { "section": ".text", "value": "0x0", "size": 0, "binding": "GLOBAL" },
+      "GsLIGHTWSMATRIX": { "section": ".bss", "value": "0x0", "size": 32, "binding": "GLOBAL" },
+      "_LC": { "section": ".bss", "value": "0x20", "size": 32, "binding": "GLOBAL" },
+      "SquareRoot0": { "section": "UND", "value": "0x0", "size": 0, "binding": "GLOBAL" },
+      "SetColorMatrix": { "section": "UND", "value": "0x0", "size": 0, "binding": "GLOBAL" }
+    },
+    "local_text_symbols": ["0x444", "0x4b8", "0x51c"],
+    "relocations": [
+      { "offset": "0x30", "type": "R_MIPS_HI16", "target": "GsLIGHTWSMATRIX" },
+      { "offset": "0x34", "type": "R_MIPS_LO16", "target": "GsLIGHTWSMATRIX" },
+      { "offset": "0x78", "type": "R_MIPS_26", "target": ".text+0x51c" },
+      { "offset": "0xb4", "type": "R_MIPS_26", "target": "SquareRoot0" },
+      { "offset": "0xe4", "type": "R_MIPS_26", "target": ".text+0x444" },
+      { "offset": "0xf4", "type": "R_MIPS_26", "target": ".text+0x444" },
+      { "offset": "0x20c", "type": "R_MIPS_26", "target": ".text+0x444" },
+      { "offset": "0x328", "type": "R_MIPS_26", "target": ".text+0x444" },
+      { "offset": "0x444", "type": "R_MIPS_HI16", "target": "GsLIGHTWSMATRIX" },
+      { "offset": "0x448", "type": "R_MIPS_LO16", "target": "GsLIGHTWSMATRIX" },
+      { "offset": "0x48c", "type": "R_MIPS_26", "target": ".text+0x4b8" },
+      { "offset": "0x4c0", "type": "R_MIPS_HI16", "target": "_LC" },
+      { "offset": "0x4c4", "type": "R_MIPS_LO16", "target": "_LC" },
+      { "offset": "0x504", "type": "R_MIPS_26", "target": "SetColorMatrix" },
+      { "offset": "0x51c", "type": "R_MIPS_HI16", "target": "_LC" },
+      { "offset": "0x520", "type": "R_MIPS_LO16", "target": "_LC" }
+    ]
+  },
+  "link": {
+    "target": "disks/tenchu/main.exe",
+    "baseline": ".shake/build/tenchu/main.exe",
+    "generated_linker_script": ".shake/gen/main.exe/linker/main.exe.ld",
+    "symbols_script": "config/symbols.main.exe.txt",
+    "undefined_symbols_script": ".shake/gen/main.exe/meta/undefined_symbols_auto.main.exe.txt",
+    "undefined_functions_script": ".shake/gen/main.exe/meta/undefined_functions_auto.main.exe.txt",
+    "expected_exe_size": 555008,
+    "expected_exe_sha256": "0690a5c14ff3e975ebcb3de26e196a4dbb6afc992677d0de2cbcf86af9993558",
+    "text_file_offset": "0x54de4",
+    "text_vram": "0x800655e4",
+    "linked_text_sha256": "7c14d5b131a1c2d592dd74dc6f96a870fd52972455260f8b7d82c48bbe84fc13",
+    "text_owner": ".shake/build/main.exe/data/54DE4.data.s.o(.data);",
+    "remove_objects": {
+      ".shake/build/main.exe/GS_107_OBJ_4B8.c.o": [".data", ".text", ".rodata", ".bss"],
+      ".shake/build/main.exe/GS_107_OBJ_51C.c.o": [".data", ".text", ".rodata", ".bss"]
+    },
+    "tail_owner": ".shake/build/main.exe/data/5534C.data.s.o(.data);",
+    "tail_source_start": "0x55354",
+    "tail_source_end": "0x553d4",
+    "bss_vram": "0x800c64a0",
+    "object_defined_symbols": ["GsSetFlatLight", "GsLIGHTWSMATRIX", "_LC"]
+  }
+}

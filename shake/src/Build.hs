@@ -1042,6 +1042,29 @@ phonyRules = do
   -- per function). `check-all` verifies every executable on the disc.
   phony "check" $ checkTarget mainTarget
 
+  -- Optional, evidence-preserving lane for the complete stock GS_107.OBJ.
+  -- Nothing proprietary is fetched or tracked: point this one target at a
+  -- local PsyQ LIBGS.LIB.  The tool verifies both archive and member hashes,
+  -- links the converted member as one relocatable object, preserves its BSS in
+  -- a NOLOAD section, then requires the full executable to remain identical.
+  -- The ordinary `check` target does not inspect this variable or run the lane.
+  phony "check-psyq-gs107" $ do
+    archive <- liftIO $ lookupEnv "TENCHU_PSYQ_LIBGS"
+    libgs <- case archive of
+      Just path -> pure path
+      Nothing -> fail $ unlines
+        [ "check-psyq-gs107 needs a user-supplied PsyQ LIBGS.LIB.",
+          "Set TENCHU_PSYQ_LIBGS=/path/to/LIBGS.LIB; the normal ./Build check does not need it."
+        ]
+    let manifest = configDir </> "psyq-objects.main.exe.json"
+        tool = "tools" </> "psyq_object_lane.py"
+        ldFile = tgGenDir mainTarget </> "linker" </> "main.exe.ld"
+        undefinedSymbols = tgGenDir mainTarget </> "meta" </> "undefined_symbols_auto.main.exe.txt"
+        undefinedFunctions = tgGenDir mainTarget </> "meta" </> "undefined_functions_auto.main.exe.txt"
+    need [ mainExe, tgImage mainTarget, libgs, manifest, tool, ldFile,
+           tgSymbols mainTarget, undefinedSymbols, undefinedFunctions ]
+    cmd_ tool ["--archive", libgs, "--manifest", manifest]
+
   phony "check-all" $ mapM_ checkTarget targets
 
   phony "all" $ need (map tgExe targets)
