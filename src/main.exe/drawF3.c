@@ -21,6 +21,14 @@
  * assignment from the flag test also lets reorg sink that move into the branch
  * delay slot, shortening the handler.
  *
+ * COMPILER-PROVENANCE RE-AUDIT (2026-07-19). Replacing the helper with the
+ * ordinary `gte_stflg_reg(flag); code = 0;` source was compiled through Sony
+ * GCC 2.6.3, 2.7.2, 2.8.0, 2.8.1, 2.91.66 and 2.95.2. All six emit the same
+ * 292-byte handler and the same tail at this site: `cfc2; and; bnez; move`,
+ * with the zeroing move in the branch delay slot. None emits the target's
+ * 296-byte `cfc2; addiu s0,zero,0; and; bnez; nop`. The boundary is therefore
+ * stable across the available PsyQ-era backends, not a 2.8.1 codegen quirk.
+ *
  * The local READ_FLAG_AND_CLEAR_CODE helper therefore preserves those adjacent
  * handwritten instructions as one assembly unit.  Everything around it remains
  * the coherent C reconstruction: all COP2 moves, the three GTE commands, the
