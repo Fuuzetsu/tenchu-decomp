@@ -63,9 +63,13 @@ CPP = ("mipsel-unknown-linux-gnu-cpp -Iinclude -undef -Wall -lang-c "
 CC_FLAGS = ("-mcpu=3000 -quiet -fno-builtin -G8 -w -O2 -funsigned-char -fpeephole "
             "-ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -fgnu-linker "
             "-mgas -msoft-float").split()
-# Stock PsyQ objects can use different cc1 defaults from the game TUs. Keep
-# this table in sync with Build.hs's ccExtraFlags so every candidate is scored
-# with the flags that produced the authoritative build object.
+# Stock PsyQ objects can use different cc1 defaults from the game TUs. These
+# names enumerate every C-carved member of the original objects; they are not
+# per-function choices. MemCardCallback is the sole text symbol in its LIBMCRD
+# callback object. Both GS entries are tails of GS_107.OBJ, whose target-only
+# OBJ_444 sibling independently proves the same unsplit `_LC` materialisation.
+# Keep this table in sync with Build.hs's ccExtraFlags so every candidate is
+# scored with the flags that produced the authoritative build object.
 CC_EXTRA_FLAGS = {
     # Stock PsyQ library leaves need not share the game's address-splitting
     # default. Keep in sync with Build.hs's ccExtraFlags -- a permuter search

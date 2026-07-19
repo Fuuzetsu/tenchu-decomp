@@ -517,9 +517,16 @@ ccFlags =
   ]
 
 -- Stock PsyQ library objects were not necessarily built with the game's
--- translation-unit defaults.  LIBMCRD's callback-slot swap keeps `la` as one
--- unsplit address macro; splitting it lets cse fold the low half into the two
--- memory operations and changes the five-instruction leaf into four.
+-- translation-unit defaults. Our one-function C files are an artificial split,
+-- so every exception below is scoped to an ORIGINAL object, not a function:
+--
+-- * LIBMCRD's callback object contains MemCardCallback as its sole text symbol.
+-- * GS_107.OBJ contains both C-carved tails below. Its preceding target-only
+--   GS_107_OBJ_444 independently materialises _LC with the same unsplit `la`,
+--   proving that this is an object-wide input rather than per-function tuning.
+--
+-- Splitting these addresses lets cse fold the low half into memory operations
+-- and removes an instruction present throughout the original object.
 ccExtraFlags :: FilePath -> [String]
 ccExtraFlags src = case takeBaseName src of
   "MemCardCallback" -> ["-mno-split-addresses"]
