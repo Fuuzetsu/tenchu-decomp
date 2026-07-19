@@ -524,7 +524,6 @@ ccExtraFlags :: FilePath -> [String]
 ccExtraFlags src = case takeBaseName src of
   "MemCardCallback" -> ["-mno-split-addresses"]
   "GS_107_OBJ_4B8" -> ["-mno-split-addresses"]
-  "FUN_80058c70" -> ["-fno-strength-reduce"]
   "FUN_80059ff4" -> ["-fno-strength-reduce"]
   "FUN_8005a3cc" -> ["-fno-strength-reduce"]
   "FUN_8005961c" -> ["-fno-strength-reduce"]

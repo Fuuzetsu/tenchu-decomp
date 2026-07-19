@@ -53,6 +53,48 @@ struct TMD_P_TNF4
     u16 v3;
 };
 
+/* Original PsyQ TMD textured, unlit, per-vertex-colour quad record. */
+typedef struct TMD_P_TNG4 TMD_P_TNG4;
+struct TMD_P_TNG4
+{
+    u8 out;
+    u8 in;
+    u8 dummy;
+    u8 cd;
+    u8 tu0;
+    u8 tv0;
+    u16 clut;
+    u8 tu1;
+    u8 tv1;
+    u16 tpage;
+    u8 tu2;
+    u8 tv2;
+    u16 p0;
+    u8 tu3;
+    u8 tv3;
+    u16 p1;
+    u8 r0;
+    u8 g0;
+    u8 b0;
+    u8 p2;
+    u8 r1;
+    u8 g1;
+    u8 b1;
+    u8 p3;
+    u8 r2;
+    u8 g2;
+    u8 b2;
+    u8 p4;
+    u8 r3;
+    u8 g3;
+    u8 b3;
+    u8 p5;
+    u16 v0;
+    u16 v1;
+    u16 v2;
+    u16 v3;
+};
+
 typedef struct some_tmd_map_link_struct some_tmd_map_link_struct;
 struct some_tmd_map_link_struct
 {

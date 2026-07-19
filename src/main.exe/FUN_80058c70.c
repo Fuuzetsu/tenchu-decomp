@@ -13,6 +13,13 @@
  *
  * STATUS: MATCHED in pure C — 0 of 920 bytes differ.
  *
+ * 2026-07-19 correction: this also matches under the common compiler flags.
+ * The former -fno-strength-reduce exception was compensating for a lost data
+ * model: spelling the input as its original TMD_P_TNG4 record gives loop.c one
+ * coherent field cursor. The u_short-offset draft manufactured two induction
+ * pointers, so the old conclusion that strength reduction was disabled in the
+ * original object was wrong.
+ *
  * The last residual was not solved by another scheduler fence. It came from
  * two decompiler-style carrier locals that happened to improve one region but
  * trapped the function in a local minimum. The coherent source shape is:
@@ -132,8 +139,8 @@
  * WHAT UNLOCKED THE 620 PARK (each independently measured; the park's
  * "failed" singles were pair-negatives, cookbook §4):
  *
- * 1. -fno-strength-reduce FOR THIS TU (Build.hs ccExtraFlags + permute.py
- *    CC_EXTRA_FLAGS, LIBMCRD precedent). The provenance is forced two ways:
+ * 1. SUPERSEDED: -fno-strength-reduce appeared necessary only while the input
+ *    record was flattened into a u_short pointer. The old argument was:
  *    r0 lives in $a3 with caller-save spill/reload around the jal
  *    (sw a3,24(sp) in the delay slot / lw a3,24(sp) after), and
  *    CALLER_SAVE_PROFITABLE(refs,calls) = 4*calls < refs needs r0's refs
@@ -194,7 +201,7 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
     u_long uVar7;
     u_long uVar8;
     SVECTOR *r0;
-    u_short *puVar4;
+    TMD_P_TNG4 *primitive;
     u_long *puVar5;
     u_char uVar6;
     SVECTOR *r0_00;
@@ -226,57 +233,57 @@ u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int para
         r2 = (SVECTOR *)(pkt + 0x2c);
         r0_00 = (SVECTOR *)(pkt + 0x32);
         iVar3 = iVar4;
-        puVar4 = param_1 + 5;
+        primitive = (TMD_P_TNG4 *)param_1;
         do {
-            *(short *)(pkt + 0x20) = *(u_short *)(puVar4[0xd] * 8 + param_2);
-            *(short *)((int)pkt + 0x82) = *(u_short *)(puVar4[0xd] * 8 + param_2 + 2);
-            *(short *)(pkt + 0x21) = *(u_short *)(puVar4[0xd] * 8 + param_2 + 4);
-            *(short *)(pkt + 0x26) = *(u_short *)(puVar4[0xe] * 8 + param_2);
-            *(short *)((int)pkt + 0x9a) = *(u_short *)(puVar4[0xe] * 8 + param_2 + 2);
-            *(short *)(pkt + 0x27) = *(u_short *)(puVar4[0xe] * 8 + param_2 + 4);
-            *(short *)(pkt + 0x2c) = *(u_short *)(puVar4[0xf] * 8 + param_2);
-            *(short *)((int)pkt + 0xb2) = *(u_short *)(puVar4[0xf] * 8 + param_2 + 2);
-            *(short *)(pkt + 0x2d) = *(u_short *)(puVar4[0xf] * 8 + param_2 + 4);
-            *(short *)(pkt + 0x32) = *(u_short *)(puVar4[0x10] * 8 + param_2);
-            *(short *)((int)pkt + 0xca) = *(u_short *)(puVar4[0x10] * 8 + param_2 + 2);
-            *(short *)(pkt + 0x33) = *(u_short *)(puVar4[0x10] * 8 + param_2 + 4);
+            *(short *)(pkt + 0x20) = *(u_short *)(primitive->v0 * 8 + param_2);
+            *(short *)((int)pkt + 0x82) = *(u_short *)(primitive->v0 * 8 + param_2 + 2);
+            *(short *)(pkt + 0x21) = *(u_short *)(primitive->v0 * 8 + param_2 + 4);
+            *(short *)(pkt + 0x26) = *(u_short *)(primitive->v1 * 8 + param_2);
+            *(short *)((int)pkt + 0x9a) = *(u_short *)(primitive->v1 * 8 + param_2 + 2);
+            *(short *)(pkt + 0x27) = *(u_short *)(primitive->v1 * 8 + param_2 + 4);
+            *(short *)(pkt + 0x2c) = *(u_short *)(primitive->v2 * 8 + param_2);
+            *(short *)((int)pkt + 0xb2) = *(u_short *)(primitive->v2 * 8 + param_2 + 2);
+            *(short *)(pkt + 0x2d) = *(u_short *)(primitive->v2 * 8 + param_2 + 4);
+            *(short *)(pkt + 0x32) = *(u_short *)(primitive->v3 * 8 + param_2);
+            *(short *)((int)pkt + 0xca) = *(u_short *)(primitive->v3 * 8 + param_2 + 2);
+            *(short *)(pkt + 0x33) = *(u_short *)(primitive->v3 * 8 + param_2 + 4);
             *local_38 = (u_long)r0;
             local_38[1] = (u_long)r1;
             local_38[2] = (u_long)r2;
             local_38[3] = (u_long)r0_00;
             gte_ldv3(r0, r1, r2);
             gte_rtpt();
-            *(short *)(pkt + 0x25) = puVar4[-3];
-            *(short *)(pkt + 0x2b) = puVar4[-1];
+            *(short *)(pkt + 0x25) = *(u16 *)&primitive->tu0;
+            *(short *)(pkt + 0x2b) = *(u16 *)&primitive->tu1;
             uVar8 = (u_long)(pkt + 0x23);
             gte_stsxy3((u_long *)uVar8, pkt + 0x29, pkt + 0x2f);
             gte_nclip();
-            *(short *)(pkt + 0x31) = puVar4[1];
-            *(short *)(pkt + 0x37) = puVar4[3];
+            *(short *)(pkt + 0x31) = *(u16 *)&primitive->tu2;
+            *(short *)(pkt + 0x37) = *(u16 *)&primitive->tu3;
             gte_stopz(pkt + 6);
             if (0 < (int)pkt[6]) {
                 gte_ldv0(r0_00);
                 gte_rtps();
-                pkt[0x22] = *(u_long *)(puVar4 + 5);
+                pkt[0x22] = *(u_long *)&primitive->r0;
                 uVar6 = (u_char)iVar3;
                 *(u_char *)((int)pkt + 0x8b) = uVar6;
-                pkt[0x28] = *(u_long *)(puVar4 + 7);
+                pkt[0x28] = *(u_long *)&primitive->r1;
                 *(u_char *)((int)pkt + 0xa3) = uVar6;
-                pkt[0x2e] = *(u_long *)(puVar4 + 9);
+                pkt[0x2e] = *(u_long *)&primitive->r2;
                 *(u_char *)((int)pkt + 0xbb) = uVar6;
-                pkt[0x34] = *(u_long *)(puVar4 + 0xb);
+                pkt[0x34] = *(u_long *)&primitive->r3;
                 *(u_char *)((int)pkt + 0xd3) = uVar6;
                 gte_stsxy(pkt + 0x35);
                 uVar3 = (u_long)(pkt + 0x24);
                 uVar8 = (u_long)(pkt + 0x2a);
                 uVar7 = (u_long)(pkt + 0x30);
                 gte_stsz4((u_long *)uVar3, (u_long *)uVar8, (u_long *)uVar7, pkt + 0x36);
-                *(short *)((int)pkt + 0x5a) = puVar4[-2];
-                *(short *)((int)pkt + 0x66) = *puVar4;
+                *(short *)((int)pkt + 0x5a) = primitive->clut;
+                *(short *)((int)pkt + 0x66) = primitive->tpage;
                 FUN_80057b80(puVar5, pkt, 0);
             }
             param_4 = param_4 + -1;
-            puVar4 = puVar4 + 0x16;
+            primitive++;
         } while (param_4 != 0);
     }
     return (u_long *)pkt[5];
