@@ -35,15 +35,12 @@ extern MATRIX _LC;
  * store touches none of `jr ra`'s operands and sits directly above it, so plain
  * eligibility is not the blocker.
  *
- * WORKING HYPOTHESIS (untested): `*m = _LC;` is a whole-struct assignment, which
- * cc1 expands as a BLOCK MOVE — and compiler-facts records that
- * `fill_simple_delay_slots` stops at SEQUENCEs. If the 32-byte copy is one RTL
- * insn emitting many assembly instructions, reorg cannot take just its tail. The
- * target filling the slot would then mean the ORIGINAL did not write a struct
- * assignment here — it wrote something that produces separate insns. The
- * load/store batching (3+3, 3+3, 2+2) is characteristic of the block move
- * though, so that cuts the other way; check the RTL before believing either.
- * Fixing this once fixes BOTH functions.
+ * The sibling's compiler dump explains this residual too: GCC 2.8.1 leaves the
+ * global side as a symbolic-address `movstrsi_internal`, while its delay-slot
+ * split requires register addresses. The exact stock GS_107.OBJ was compiled by
+ * the SDK's different compiler and proves that the natural whole-struct copy is
+ * the right source shape. Fix the original-object compiler profile, not this
+ * function with manual copies; doing so fixes BOTH leaves.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GS_107_OBJ_51C", GS_107_OBJ_51C);

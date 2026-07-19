@@ -94,10 +94,11 @@ GUIDANCE = [
     "re-materialises `%hi` per use through `$at`: extra `lui`s and WRONG LENGTH.",
 
     "For a stock PsyQ library leaf, do not assume the game's cc1 address-splitting "
-    "default. If the original SDK object proves one unsplit `la` feeding multiple "
-    "offset-0 accesses, use a narrowly scoped Build.hs `ccExtraFlags` entry such as "
-    "`-mno-split-addresses`, and mirror it in permute.py's `CC_EXTRA_FLAGS`. Confirm "
-    "the provenance and run check-all before accepting a per-TU flag (MemCardCallback).",
+    "default. A compiler option is NEVER a function choice: first map the carve to "
+    "its original .OBJ, then apply the option to every known member of that object "
+    "through Build.hs's object-member table and mirror it in permute.py. If any "
+    "C-carved sibling regresses, reject the flag hypothesis. Confirm the target or "
+    "SDK-object provenance and run check-all before accepting an object-wide flag.",
 
     "If the link fails with `undefined reference to D_XXXXXXXX`, splat only "
     "auto-labels data that still-carved *asm* references — matching the last "

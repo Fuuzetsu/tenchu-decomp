@@ -63,20 +63,34 @@ CPP = ("mipsel-unknown-linux-gnu-cpp -Iinclude -undef -Wall -lang-c "
 CC_FLAGS = ("-mcpu=3000 -quiet -fno-builtin -G8 -w -O2 -funsigned-char -fpeephole "
             "-ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -fgnu-linker "
             "-mgas -msoft-float").split()
-# Stock PsyQ objects can use different cc1 defaults from the game TUs. These
-# names enumerate every C-carved member of the original objects; they are not
-# per-function choices. MemCardCallback is the sole text symbol in its LIBMCRD
-# callback object. Both GS entries are tails of GS_107.OBJ, whose target-only
-# OBJ_444 sibling independently proves the same unsplit `_LC` materialisation.
-# Keep this table in sync with Build.hs's ccExtraFlags so every candidate is
-# scored with the flags that produced the authoritative build object.
+# Stock PsyQ objects can use different cc1 defaults from the game TUs. The
+# decomp's one-function files are artificial, so compiler options belong to an
+# ORIGINAL object and are inherited by every known member. Most members below
+# are target-only today; retaining them is deliberate, because a future C carve
+# must receive the object's flags automatically.
+ORIGINAL_OBJECT_MEMBERS = {
+    "LIBMCRD.OBJ": (
+        "MemCardStart", "MemCardStop", "MemCardExist", "FUN_80080f28",
+        "MemCardAccept", "FUN_80081164", "MemCardOpen", "MemCardClose",
+        "MemCardReadData", "FUN_8008161c", "MemCardWriteData",
+        "FUN_80081810", "MemCardReadFile", "FUN_80081a64",
+        "MemCardWriteFile", "FUN_80081c84", "MemCardGetDirentry",
+        "MemCardCallback", "MemCardSync", "MemCardCreateFile",
+        "MemCardFormat",
+    ),
+    "GS_107.OBJ": (
+        "GsSetFlatLight", "GS_107_OBJ_444", "GS_107_OBJ_4B8",
+        "GS_107_OBJ_51C",
+    ),
+}
+ORIGINAL_OBJECT_CC_FLAGS = {
+    "LIBMCRD.OBJ": ("-mno-split-addresses",),
+    "GS_107.OBJ": ("-mno-split-addresses",),
+}
 CC_EXTRA_FLAGS = {
-    # Stock PsyQ library leaves need not share the game's address-splitting
-    # default. Keep in sync with Build.hs's ccExtraFlags -- a permuter search
-    # under different flags than the build is searching a different program.
-    "MemCardCallback": ["-mno-split-addresses"],
-    "GS_107_OBJ_4B8": ["-mno-split-addresses"],
-    "GS_107_OBJ_51C": ["-mno-split-addresses"],
+    member: list(ORIGINAL_OBJECT_CC_FLAGS[obj])
+    for obj, members in ORIGINAL_OBJECT_MEMBERS.items()
+    for member in members
 }
 AS_FLAGS = ("-EL -Iinclude -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0").split()
 LD = "mipsel-unknown-linux-gnu-ld"

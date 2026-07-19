@@ -30,8 +30,9 @@ extern void SetColorMatrix(MATRIX *m);
  *     scratch v0,v1,a1              scratch v1,a1,a2       <- all shifted up
  *
  * That is the cookbook's named `la` address-materialisation signature — `%hi` in
- * a temp vs the target register. It is a per-TU compiler-input question, NOT a
- * source-shape one: no C spelling fixed it (a `MATRIX *lc = &_LC;` local is a
+ * a temp vs the target register. It is an original-object compiler-input
+ * question, NOT a source-shape one: no C spelling fixed it (a
+ * `MATRIX *lc = &_LC;` local is a
  * measured no-op — cse folds it). The flag is justified by provenance: this is a
  * stock PsyQ library leaf, and the SDK need not share the game's
  * address-splitting default.
@@ -49,11 +50,15 @@ extern void SetColorMatrix(MATRIX *m);
  *     jr ra                         nop            <- load delay
  *     nop                           jr ra
  *
- * The store is independent of the call's operands and sits directly above the
- * `jal`, so reorg should be free to take it — and in the target it does. Why it
- * declines here is the open question; no source lever tried. Start with
- * `tools/cc1says.py GS_107_OBJ_4B8 --pass dbr` (cc1's own delay-slot fill count)
- * rather than theorising.
+ * Compiler dumps close the remaining question. Our GCC 2.8.1 keeps this copy as
+ * one `movstrsi_internal` whose destination is `mem:BLK(symbol_ref "_LC")`.
+ * The MIPS backend's delay-slot `define_split` accepts only register-addressed
+ * block moves, so reorg cannot expose the final store. The stock PsyQ 4.6
+ * GS_107.OBJ is relocation-normalised byte-for-byte identical to the target's
+ * complete 0x570-byte object, including this filled slot, and its CC1PSX is GCC
+ * 2.95.2. That makes the ordinary struct assignment the strongest human-source
+ * reconstruction; do not replace it with hand-unrolled word copies merely to
+ * improve the 2.8.1 score.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GS_107_OBJ_4B8", GS_107_OBJ_4B8);

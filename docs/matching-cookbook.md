@@ -1637,8 +1637,10 @@ symbol's arithmetic against proven layouts first. Split-address consequences
 and declaration levers: §3.12 and compiler-facts. gp-output aggregates whose
 fields splat auto-named as drifted `D_` symbols: bind ONE fresh correct-address
 name and declare the real SVECTOR (GetConflictResult). Stock PsyQ objects may
-differ (LIBMCRD's `-mno-split-addresses` exception — encode narrowly in
-per-TU `ccExtraFlags`, mirror in permute.py, `Build check-all`).
+differ, but flags are never selected per function: map every artificial carve
+back to its original `.OBJ`, apply the option to all known object members, mirror
+that object table in permute.py, reject it if any C-carved sibling regresses, and
+run `Build check-all` (LIBMCRD/GS_107 `-mno-split-addresses`).
 
 ### 3.16 Dividing by a variable
 
@@ -1696,7 +1698,12 @@ guards, no flag.
   never emits it (compiler-facts). triage.py/progress.py cut at 0x80060000; the
   LIBCD/LIBPAD/LIBMCRD forwarding wrappers are permanent 6-of-32-byte
   NON_MATCHING (drafts on `codex/sdk-wave2-epilogue-blocked`); libraries differ
-  per game (LIBGS's dmyGs* matched). Read `jr ra`'s delay slot before spending
+  per game (LIBGS's dmyGs* matched). A direct artifact check makes the boundary
+  concrete: PsyQ 4.6 `GS_107.OBJ` has relocation-normalised `.text` identical to
+  all 0x570 target bytes, while its `CC1PSX.EXE` identifies itself as GCC 2.95.2.
+  GCC 2.8.1 keeps the natural MATRIX assignment as a symbolic-address block move
+  that its own delay-slot splitter cannot split; hand-unrolled copies are a local
+  minimum, not better source. Read `jr ra`'s delay slot before spending
   anything on an SDK cluster. `EVENT_OBJ_80/90/BC` are shared epilogues, not
   functions.
 - **The 3-insn split (`sll 16 / sra k / sra 16-k`) is matchable ordinary C.**

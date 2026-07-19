@@ -12,10 +12,11 @@
  * STATUS: MATCHING — 20 bytes. This is Sony's stock LIBMCRD implementation.
  * Its original object places the private callback scalar at BSS offset 0x74
  * and addresses it through one unsplit `la`. Keeping the slot as an explicit
- * pointer under this translation unit's `-mno-split-addresses` flag reproduces
+ * pointer under LIBMCRD.OBJ's `-mno-split-addresses` compiler profile reproduces
  * that `lui v1` / `addiu v1,v1` pair; the normal game-TU split-address mode
  * folds the low relocation into the load/store instead and is one instruction
- * short.
+ * short. The profile is inherited by the complete original-object member list
+ * in Build.hs, not selected for this function.
  */
 
 typedef void (*MemCardCallbackFn)(u_long, u_long);

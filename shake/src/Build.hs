@@ -518,21 +518,58 @@ ccFlags =
 
 -- Stock PsyQ library objects were not necessarily built with the game's
 -- translation-unit defaults. Our one-function C files are an artificial split,
--- so every exception below is scoped to an ORIGINAL object, not a function:
+-- so flags are selected ONLY after mapping a carve back to its original object.
+-- Never add a function directly to ccExtraFlags.
 --
--- * LIBMCRD's callback object contains MemCardCallback as its sole text symbol.
--- * GS_107.OBJ contains both C-carved tails below. Its preceding target-only
---   GS_107_OBJ_444 independently materialises _LC with the same unsplit `la`,
---   proving that this is an object-wide input rather than per-function tuning.
+-- LIBMCRD.OBJ spans the whole MemCardStart..MemCardFormat range; only
+-- MemCardCallback is C-carved today. GS_107.OBJ contains GsSetFlatLight and the
+-- three offset-named pieces below; only its 0x4B8/0x51C leaves are C-carved.
+-- Listing every known member makes the policy automatic when another piece is
+-- converted, rather than silently turning an object option into function tuning.
 --
--- Splitting these addresses lets cse fold the low half into memory operations
--- and removes an instruction present throughout the original object.
+-- The target itself shows unsplit reusable bases throughout both objects. In
+-- GS_107, the target-only 0x0/0x444 portions and both C leaves all materialise
+-- their object globals through the same `lui`/`addiu` address form.
+libmcrdObjectMembers :: [String]
+libmcrdObjectMembers =
+  [ "MemCardStart",
+    "MemCardStop",
+    "MemCardExist",
+    "FUN_80080f28",
+    "MemCardAccept",
+    "FUN_80081164",
+    "MemCardOpen",
+    "MemCardClose",
+    "MemCardReadData",
+    "FUN_8008161c",
+    "MemCardWriteData",
+    "FUN_80081810",
+    "MemCardReadFile",
+    "FUN_80081a64",
+    "MemCardWriteFile",
+    "FUN_80081c84",
+    "MemCardGetDirentry",
+    "MemCardCallback",
+    "MemCardSync",
+    "MemCardCreateFile",
+    "MemCardFormat"
+  ]
+
+gs107ObjectMembers :: [String]
+gs107ObjectMembers =
+  [ "GsSetFlatLight",
+    "GS_107_OBJ_444",
+    "GS_107_OBJ_4B8",
+    "GS_107_OBJ_51C"
+  ]
+
 ccExtraFlags :: FilePath -> [String]
-ccExtraFlags src = case takeBaseName src of
-  "MemCardCallback" -> ["-mno-split-addresses"]
-  "GS_107_OBJ_4B8" -> ["-mno-split-addresses"]
-  "GS_107_OBJ_51C" -> ["-mno-split-addresses"]
-  _ -> []
+ccExtraFlags src
+  | name `elem` libmcrdObjectMembers = ["-mno-split-addresses"]
+  | name `elem` gs107ObjectMembers = ["-mno-split-addresses"]
+  | otherwise = []
+  where
+    name = takeBaseName src
 
 cppFlags :: [String]
 cppFlags =
@@ -1034,14 +1071,16 @@ instance Binary GpFlags
 
 type instance RuleResult GpFlags = [String]
 
--- | The per-file cc1 extra flags. IDENTICAL bug to GpFlags above, and it sat
+-- | The original-object-derived cc1 flags for each artificial C carve.
+-- IDENTICAL bug to GpFlags above, and it sat
 -- here unnoticed because the table had exactly one entry (MemCardCallback) that
 -- never changed after it was added. The moment a second entry arrived it bit:
--- adding @-mno-split-addresses@ for a function did NOT rebuild its @.s@, so the
--- flag silently did not apply and the experiment measured a STALE object —
+-- changing an object's @-mno-split-addresses@ profile did NOT rebuild a
+-- member's @.s@, so the flag silently did not apply and the experiment measured
+-- a STALE object —
 -- reporting "the flag does nothing" for a function the flag demonstrably does
 -- change (verified by running cc1 directly both ways). @touch@ does not help
--- either: Shake keys on CONTENT. A per-TU compiler-input flag whose effect
+-- either: Shake keys on CONTENT. A compiler-input flag whose effect
 -- depends on whether you happened to edit the source in the same breath is worse
 -- than no flag at all. Same oracle treatment: the @.s@ now depends on the flag
 -- VALUE.

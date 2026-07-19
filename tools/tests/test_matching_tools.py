@@ -5665,17 +5665,36 @@ class BuildConfigurationTests(unittest.TestCase):
         path = os.path.join(os.path.dirname(TOOLS), "shake", "src", "Build.hs")
         with open(path) as f:
             build = f.read()
-        block = build.split("ccExtraFlags src =", 1)[1].split("_ -> []", 1)[0]
-        found = {}
-        pattern = __import__("re").compile(
-            r'^\s*"([A-Za-z0-9_]+)"\s*->\s*\[(.*)\]$', __import__("re").M
-        )
-        for name, values in pattern.findall(block):
-            found[name] = __import__("re").findall(r'"([^"]+)"', values)
-        self.assertEqual(found, permute.CC_EXTRA_FLAGS)
-        self.assertIn(
-            "-mno-split-addresses", permute.cc_flags_for("MemCardCallback")
-        )
+        re = __import__("re")
+        groups = {
+            "LIBMCRD.OBJ": "libmcrdObjectMembers",
+            "GS_107.OBJ": "gs107ObjectMembers",
+        }
+        found_members = {}
+        found_flags = {}
+        for obj, variable in groups.items():
+            members_block = build.split(f"{variable} =\n  [", 1)[1].split(
+                "\n  ]", 1
+            )[0]
+            found_members[obj] = tuple(re.findall(r'"([^"]+)"', members_block))
+            guard = re.search(
+                rf'name `elem` {variable} = \[(.*?)\]', build
+            )
+            self.assertIsNotNone(guard, f"Build.hs has no flag guard for {obj}")
+            found_flags[obj] = tuple(re.findall(r'"([^"]+)"', guard.group(1)))
+
+        self.assertEqual(found_members, permute.ORIGINAL_OBJECT_MEMBERS)
+        self.assertEqual(found_flags, permute.ORIGINAL_OBJECT_CC_FLAGS)
+        flattened = {
+            member: list(found_flags[obj])
+            for obj, members in found_members.items()
+            for member in members
+        }
+        self.assertEqual(flattened, permute.CC_EXTRA_FLAGS)
+        for member in permute.ORIGINAL_OBJECT_MEMBERS["LIBMCRD.OBJ"]:
+            self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
+        for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
+            self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
         self.assertNotIn("-mno-split-addresses", permute.cc_flags_for("Other"))
 
     def test_no_tool_puts_fno_builtin_in_cpp(self):
