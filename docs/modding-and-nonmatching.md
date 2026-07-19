@@ -131,14 +131,17 @@ PS-X entry/load size. The linker chose PC `0x80070260` and `t_size=0x97000` for
 the grown fixture; no per-function slot, cave, trampoline, or fixed downstream
 address is involved.
 
-This is static/link-time proof, not yet a claim that every grown gameplay path
-has run successfully. Growth remains bounded by the PS1 RAM map, the fixed
-cross-executable handoff, allocator/stack space, and MIPS relocation ranges.
-The auto-packed disc path has static support for filename-based
-`CdSearchFile`/`CdlFILE` positions, but the full boot plus representative STR
-and XA playback remain runtime validation gates. See
+The current controlled growth artifact also passes the bounded PCSX-Redux
+runtime probe in both modes: direct `-loadexe` and an auto-LBA repack through
+`SLPS_019.01 → MENU.EXE → MAIN.EXE`. The harness reached entry `0x80070260`,
+ELF-derived `main` at `0x800162a4`, moved `PadProc` at `0x8002adac`, and later
+VSyncs without a first-chance exception. This establishes the grown boot/main
+loop, not every gameplay path or arbitrary edit. Growth remains bounded by the
+PS1 RAM map, the fixed cross-executable handoff, allocator/stack space, and
+MIPS relocation ranges. Representative STR and XA playback remain runtime
+validation gates. See
 [relocatable-build.md](relocatable-build.md) and
-[building-an-iso.md](building-an-iso.md).
+[the exact smoke commands](building-an-iso.md#automated-grown-image-smoke).
 
 ## Running a modified exe
 
@@ -153,4 +156,8 @@ your function (see [building-an-iso.md](building-an-iso.md)):
 
 For a size-changing normal link, use `run-relink` for the fast direct launch and
 `run-iso-relink` for the full launcher/media path. Those commands consume
-`main_relink.exe`, not the fixed-slot mod artifact.
+`main_relink.exe`, not the fixed-slot mod artifact. For a bounded automated
+check, point `tools/pcsx_smoke.py` at that executable and its ELF; add
+`--repack` to exercise the launcher/menu path. A real mod should still exercise
+its changed behavior and relevant STR/XA content rather than treating the boot
+smoke as comprehensive coverage.

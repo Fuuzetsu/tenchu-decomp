@@ -53,7 +53,8 @@ decisions behind the toolchain. It's the reference companion to the terse
   non-matching binaries (behaviour changes, debug): fixed-slot edits versus the
   implemented normal size-changing relink.
 - [building-an-iso.md](building-an-iso.md) — `iso`, `iso-mod`, and `iso-relink`:
-  rebuild a bootable CD image (`.bin`/`.cue`) for pcsx-redux with our executable.
+  rebuild a bootable CD image (`.bin`/`.cue`) for pcsx-redux, plus the bounded
+  direct/full-disc `tools/pcsx_smoke.py` runtime gate.
 - [permuter.md](permuter.md) — `tools/permute.py`: run decomp-permuter to
   byte-match register-allocation-hard functions.
 - [ghidra-bridge.md](ghidra-bridge.md) — pull decompiled C from your Ghidra
@@ -94,8 +95,10 @@ BUILD GREEN (byte-identical)
   address findings are zero, BSS and allocator capacity are linker-derived,
   ordinary pinned-C small/common sections are retained near `_gp`, and
   `check-relink` proves a complete `+0x10004` growth with a regenerated PS-X
-  header. Runtime validation of a grown full-boot disc remains distinct from
-  that static proof.
+  header. That exact grown image also passes the bounded PCSX-Redux probe both
+  by direct `-loadexe` and through an auto-packed
+  `SLPS_019.01 → MENU.EXE → MAIN.EXE` boot to moved `PadProc` and later VSyncs,
+  with no first-chance exception. STR/XA playback remains unproven.
 
 ## What was wrong, and what got fixed
 
@@ -124,15 +127,21 @@ latent bugs. Fixed in this batch of work (see `build-system.md` for detail):
 - **`./Build iso` / `iso-mod`** — rebuild a bootable `.bin`/`.cue` for pcsx-redux.
   See [building-an-iso.md](building-an-iso.md).
 - **`./Build relink` / `check-relink` / `iso-relink`** — allow ordinary linked
-  layout changes, reject movable fixed-address regressions, prove a 64-KiB-
-  crossing growth, and package the result for direct or full-boot testing. See
+  layout changes, reject movable fixed-address regressions, prove growth across
+  a 64 KiB boundary, and package the result for direct or full-boot testing. See
   [relocatable-build.md](relocatable-build.md).
+- **`tools/pcsx_smoke.py`** — a bounded headless runtime gate whose direct and
+  auto-LBA full-disc modes both pass on the `+0x10004` artifact. It derives
+  entry/`main`/`PadProc` from the selected EXE/ELF and rejects first-chance CPU
+  exceptions; exact commands are in
+  [building-an-iso.md](building-an-iso.md#automated-grown-image-smoke).
 
 ## Next step
 
-For shiftability, the next empirical gate is `run-relink` followed by an
-auto-packed `run-iso-relink` full boot with representative STR and XA playback.
-For source matching/provenance work, resume with the preflight and live-target
-selection in [`flywheel-handoff.md`](flywheel-handoff.md); do not select work
-from this README's dated count or an old `NON_MATCHING` comment without checking
-the current source and `tools/triage.py` first.
+For shiftability, direct and auto-packed full-boot main-loop smoke are complete;
+the next empirical gates are representative STR playback, XA playback, and
+broader gameplay/executable transitions on a grown image. For source
+matching/provenance work, resume with the preflight and live-target selection
+in [`flywheel-handoff.md`](flywheel-handoff.md); do not select work from this
+README's dated count or an old `NON_MATCHING` comment without checking the
+current source and `tools/triage.py` first.

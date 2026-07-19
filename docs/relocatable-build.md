@@ -301,10 +301,56 @@ movable fixed-address findings: 0
 ```
 
 This proves that GNU `ld` can choose a larger internal layout, including a
-64-KiB carry, and that the current static address contracts follow it. It is
-not by itself a gameplay test. Growth is still bounded by PS1 RAM, the fixed
-handoff/pool/stack contracts, MIPS relocation ranges, and whatever new source
-the user adds.
+64-KiB carry, and that the current static address contracts follow it. Growth
+is still bounded by PS1 RAM, the fixed handoff/pool/stack contracts, MIPS
+relocation ranges, and whatever new source the user adds.
+
+## Emulator smoke proof
+
+The current `+0x10004` artifact has also passed two bounded, non-interactive
+PCSX-Redux tests. Generate it first with `./Build check-relink-growth`, then run
+the direct-load probe used for the current result:
+
+```console
+$ python3 tools/pcsx_smoke.py \
+    --exe .shake/build/reloc-growth-probe/main_growth.exe \
+    --elf .shake/build/reloc-growth-probe/main_growth.exe.elf \
+    --frames 5 --loop-hits 2 --timeout 30
+TENCHU_SMOKE armed entry=0x80070260 main=0x800162a4 loop=0x8002adac frames=5 loops=2
+TENCHU_SMOKE PASS entry=1 main=1 frames=5 loops=2 cycles=220072300ULL
+```
+
+This completed in about 6.7 seconds in the recorded environment. The probe
+reads the entry from the grown PS-X header and `main`/`PadProc` from the grown
+ELF; it does not copy retail addresses into Lua. Because the growth fixture is
+inserted *after* `main.c.o`, `main` intentionally remains `0x800162a4`, while
+the entry moves to `0x80070260` and downstream `PadProc` moves to
+`0x8002adac`.
+
+The full-disc result used the same grown EXE with the auto-LBA repack path:
+
+```console
+$ nix develop -c python3 tools/pcsx_smoke.py \
+    --exe .shake/build/reloc-growth-probe/main_growth.exe \
+    --elf .shake/build/reloc-growth-probe/main_growth.exe.elf \
+    --repack --frames 5 --loop-hits 2 --timeout 150 --repack-timeout 120
+mkiso: main.exe grew (620544 > 555008) — using auto-LBA layout
+TENCHU_SMOKE armed entry=0x80070260 main=0x800162a4 loop=0x8002adac frames=5 loops=2
+TENCHU_SMOKE PASS entry=1 main=1 frames=5 loops=2 cycles=1528346866ULL
+```
+
+The emulator log executed `\TENCHU\MENU.EXE;1` and then
+`\TENCHU\MAIN.EXE;1`; the observed cached repack/boot took about 49 seconds.
+The Lua probe automatically pulses the launcher/menu controls, rejects any
+first-chance CPU exception or unexpected pause, requires two calls to the moved
+`PadProc`, and then requires five later VSyncs. It uses the interpreter,
+debugger, software GPU, isolated temporary memory cards, and the OpenBIOS
+fallback unless `--bios` is supplied.
+
+This proves direct execution and the auto-packed
+`SLPS_019.01 → MENU.EXE → MAIN.EXE` handoff through the grown main loop. It is
+not a broad gameplay or media test: representative STR playback and XA audio
+remain release gates.
 
 ## Addresses that intentionally remain fixed
 
@@ -340,9 +386,10 @@ should remain ignored build output, and the default build must not fetch them.
 ## Remaining acceptance boundary
 
 “All game functions are source,” “the static executable relinks after growth,”
-and “a grown disc has been played end to end” are separate milestones. The
-first two are now established for the current source/layout. Before describing
-arbitrary growth as runtime-proven, exercise both the direct `run-relink` path
-and the auto-packed `iso-relink` full boot, including representative STR and XA
-playback. The static disc-path audit is documented in
-[`building-an-iso.md`](building-an-iso.md).
+and “a grown disc has broad runtime coverage” are separate milestones. The
+current `+0x10004` image has passed both direct load and the auto-packed full
+launcher/menu/main-loop smoke. That result establishes the boot path for this
+controlled growth fixture, not every possible edit or subsystem. Representative
+STR playback, XA audio, executable transitions beyond this boot path, and
+broader gameplay remain runtime release gates. Disc packaging and reproduction
+steps are documented in [`building-an-iso.md`](building-an-iso.md).

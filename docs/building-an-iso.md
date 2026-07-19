@@ -51,9 +51,11 @@ generic “LBAs might be embedded” warning:
 - MENU/SLPS/ENDING STR paths likewise search by filename and consume returned
   file positions.
 
-That is static evidence, not an emulator result. Before calling a grown disc
-runtime-proven, test the complete `SLPS→MENU→MAIN` handoff, representative STR
-playback, and representative XA playback with `run-iso-relink`.
+That static model now has a bounded emulator result behind it: the current
+`+0x10004` growth artifact was auto-packed and reached the moved MAIN entry,
+current ELF-derived `main`, moved `PadProc`, and post-loop VSyncs through the
+real `SLPS→MENU→MAIN` chain without a first-chance exception. Representative
+STR and XA playback are still untested.
 
 If a modded function outgrows its slot, `./Build mod` aborts and tells you by how many
 bytes — trim it (drop debug logging, simplify) until it fits. See
@@ -74,7 +76,9 @@ The matching and relink lanes each have a fast and a full-boot launch:
   header PC/load/size fields.
 - **`./Build run-iso-relink`** boots `tenchu-relink.cue` through the real
   launcher chain. When `main_relink.exe` outgrows retail, this is the
-  auto-packed image whose full boot and media paths need validation.
+  auto-packed path. The controlled `+0x10004` fixture has passed its launcher,
+  menu, MAIN entry, and main-loop smoke; use it plus representative media tests
+  for a particular mod.
 
 `tenchu.{bin,cue}`, `tenchu-mod.{bin,cue}`, and
 `tenchu-relink.{bin,cue}` are real Shake targets, so the ISO launchers **repack
@@ -97,6 +101,55 @@ supply a real BIOS and opt in:
 `PCSX_REDUX_ARGS='-bios /path/scph.bin -dynarec' ./Build run` (any of `-dynarec`,
 `-bios`, `-interpreter` in `$PCSX_REDUX_ARGS` disables the forced default).
 
+## Automated grown-image smoke
+
+`tools/pcsx_smoke.py` provides the repeatable bounded proof. It discovers the
+original cue through `--cue`, `$TENCHU_CUE`, `disks/`, or `~/tenchu-iso/`, and
+PCSX-Redux through `--pcsx`, `$PCSX_REDUX`, `PATH`, or the usual
+`~/programming/pcsx-redux/pcsx-redux` checkout. First generate the controlled
+growth artifact:
+
+```console
+$ ./Build check-relink-growth
+```
+
+The direct `-loadexe` result was produced with:
+
+```console
+$ python3 tools/pcsx_smoke.py \
+    --exe .shake/build/reloc-growth-probe/main_growth.exe \
+    --elf .shake/build/reloc-growth-probe/main_growth.exe.elf \
+    --frames 5 --loop-hits 2 --timeout 30
+TENCHU_SMOKE armed entry=0x80070260 main=0x800162a4 loop=0x8002adac frames=5 loops=2
+TENCHU_SMOKE PASS entry=1 main=1 frames=5 loops=2 cycles=220072300ULL
+```
+
+The full auto-LBA result was produced with:
+
+```console
+$ nix develop -c python3 tools/pcsx_smoke.py \
+    --exe .shake/build/reloc-growth-probe/main_growth.exe \
+    --elf .shake/build/reloc-growth-probe/main_growth.exe.elf \
+    --repack --frames 5 --loop-hits 2 --timeout 150 --repack-timeout 120
+mkiso: main.exe grew (620544 > 555008) — using auto-LBA layout
+TENCHU_SMOKE armed entry=0x80070260 main=0x800162a4 loop=0x8002adac frames=5 loops=2
+TENCHU_SMOKE PASS entry=1 main=1 frames=5 loops=2 cycles=1528346866ULL
+```
+
+That run logged `execute \TENCHU\MENU.EXE;1` followed by
+`execute \TENCHU\MAIN.EXE;1`. The harness reads the executable entry from the
+grown PS-X header and resolves `main` and `PadProc` from its ELF. Since the
+fixture is inserted after `main.c.o`, `main` intentionally remains
+`0x800162a4`; the entry moved to `0x80070260` and `PadProc` to `0x8002adac`.
+
+The probe forces a debugger-enabled interpreter and software GPU, uses isolated
+temporary memory cards, cleans the temporary ~748 MB repack, and terminates the
+whole emulator process group on timeout. In `--repack` mode it supplies bounded
+START/CIRCLE/CROSS pulses to cross SLPS/MENU, fails on a first-chance CPU
+exception or unexpected pause, and counts VSyncs only after `PadProc` has run.
+It proves the boot/main-loop path, not STR playback, XA playback, or broad
+gameplay.
+
 ## What you get
 
 - **`./Build iso`** points the disc's `TENCHU/MAIN.EXE` at the matching build and
@@ -114,9 +167,9 @@ supply a real BIOS and opt in:
 
 - **`./Build iso-relink`** puts `main_relink.exe` on the disc. A retail-sized
   output retains forced placement; a larger output is auto-packed. Packaging is
-  implemented, and static code inspection supports the relocated file
-  positions, but the grown image's full boot plus STR/XA behavior remains a
-  required runtime validation gate.
+  implemented, static code inspection supports the relocated file positions,
+  and the controlled `+0x10004` image has passed the full launcher/menu/main-loop
+  smoke. STR/XA behavior and broad gameplay remain runtime validation gates.
 
 ## How it works
 

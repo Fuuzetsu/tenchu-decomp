@@ -158,6 +158,17 @@ candidates, or literal loaded pointers. The default `0x10004` probe checks
 carry, dynamic pool shrinkage, and the regenerated header after a full GNU-ld
 link.
 
+The emulator is deliberately a separate, opt-in gate because it needs a local
+PCSX-Redux build and the user-supplied disc. `tools/pcsx_smoke.py` reads the
+selected PS-X header and ELF, then requires execution of the entry, `main`,
+repeated `PadProc`, post-loop VSyncs, and no first-chance CPU exception. With
+`.shake/build/reloc-growth-probe/main_growth.exe{,.elf}`, both its direct mode
+and `--repack` mode pass: the latter auto-packs the 620,544-byte EXE and follows
+`SLPS_019.01 → MENU.EXE → MAIN.EXE` to entry `0x80070260`, ELF-derived `main`
+at `0x800162a4`, and moved `PadProc` at `0x8002adac`. See the exact invocations
+and scope in [`building-an-iso.md`](building-an-iso.md#automated-grown-image-smoke).
+`check-relink` itself remains hermetic and does not launch an emulator.
+
 `check-reloc-c-literals` is the focused compiler-input half of that lane. It
 builds six matched sources under the single global `TENCHU_RELOCATABLE`
 variant, audits their ELF HI16/LO16 records (including linker-derived
