@@ -283,3 +283,9 @@ also needs to:
 
 Therefore “all game functions are source” and “the executable is shiftable” are
 separate milestones. PsyQ C coverage should not be used as a proxy for either.
+
+The first reviewed loaded-data slice now has a standalone implementation in
+[`relocatable-data.md`](relocatable-data.md). It turns eight exact interior
+string references into `R_MIPS_32` relocations and proves retail, `+4`, and
+`+0x10004` links without changing the default build. It is a pattern for
+migrating the remaining pointer-bearing data, not yet a wired build lane.

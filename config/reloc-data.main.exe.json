@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "description": "First exact-interior-label slice for MAIN.EXE loaded data",
+  "entries": [
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea58",
+      "source_owner": "STAGE_SOUND_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x8001357c",
+      "target_owner": "D_80013500",
+      "symbol": "stage_sound_prefix_english"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea5c",
+      "source_owner": "STAGE_SOUND_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x8001355c",
+      "target_owner": "D_80013500",
+      "symbol": "stage_sound_prefix_french"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea60",
+      "source_owner": "STAGE_SOUND_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x8001353c",
+      "target_owner": "D_80013500",
+      "symbol": "stage_sound_prefix_italian"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea64",
+      "source_owner": "STAGE_SOUND_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x80013524",
+      "target_owner": "D_80013500",
+      "symbol": "stage_sound_prefix_default"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea68",
+      "source_owner": "STAGE_ANIMATION_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x80013604",
+      "target_owner": "D_8001359C",
+      "symbol": "stage_animation_prefix_english"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea6c",
+      "source_owner": "STAGE_ANIMATION_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x800135e4",
+      "target_owner": "D_8001359C",
+      "symbol": "stage_animation_prefix_french"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea70",
+      "source_owner": "STAGE_ANIMATION_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x800135c4",
+      "target_owner": "D_8001359C",
+      "symbol": "stage_animation_prefix_italian"
+    },
+    {
+      "source_file": "72CD0.data.s",
+      "source_address": "0x8008ea74",
+      "source_owner": "STAGE_ANIMATION_PREFICES",
+      "target_file": "207C.data.s",
+      "target_address": "0x800135ac",
+      "target_owner": "D_8001359C",
+      "symbol": "stage_animation_prefix_default"
+    }
+  ]
+}

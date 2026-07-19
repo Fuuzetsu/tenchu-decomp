@@ -37,6 +37,9 @@ decisions behind the toolchain. It's the reference companion to the terse
   stock SDK code, the exact `GS_107.OBJ` relocation proof, the implemented
   linker-owned game/SDK-prefix/BSS gates, and the remaining path to a grown
   executable.
+- [relocatable-data.md](relocatable-data.md) — the loaded-data pointer
+  inventory, exact-interior-label policy, and the first manifest-driven
+  `R_MIPS_32` slice with `+4`/`+0x10004` linker proofs.
 - [psx-exe-finalizer.md](psx-exe-finalizer.md) — the standalone, not-yet-wired
   PS-X EXE finalizer/validator for a future normal-link lane: ELF/map symbol
   resolution, sector padding, regenerated PC/load/size fields, and header
