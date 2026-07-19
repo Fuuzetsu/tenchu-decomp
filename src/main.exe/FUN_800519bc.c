@@ -13,16 +13,17 @@
  *     extern short SkipFrame;
  * END PSX.SYM */
 
-/* STATUS: NON_MATCHING — clean pure-C reconstruction at the exact target
- * length (1448 bytes / 362 instructions), currently 3 differing linked bytes
- * across 2 instructions. There are no allocator-only no-op loop fences: the
+/* STATUS: MATCHED — exact 1448-byte / 362-instruction pure C.
+ * There are no allocator-only no-op loop fences: the
  * normal fade update and guarded strip loop recover the target frame naturally.
  * Writing the first PathFileRead before all state initializers is the key natural
  * live-range split: cc1 hoists those independent writes around the call into the
  * target's exact prologue order. Explicit, ordinary base/scale temporaries make
  * both edge-brightness arms byte-exact. Scoped signed 32-bit renderer values
- * recover the target tpage/width allocation and load-delay nop; only the xbase
- * reload's caller-saved scratch register remains.
+ * recover the target tpage/width allocation and load-delay nop. Keeping the
+ * renderer's offset, narrow sprite coordinate, and signed brightness coordinate
+ * as distinct human values gives cc1 the target t0 reload and in-place s0
+ * narrowing without an allocation fence.
  *
  * HISTORICAL NOTES BELOW ARE SUPERSEDED and retained only as an experiment log.
  * KEY FINDING: the `do{sequence=0;}while(0)` fence was NOT load-bearing — it walled
@@ -220,18 +221,7 @@
  * the first read, moving xbase across the call, narrow/volatile locals, and
  * direct human constant spellings were all measured neutral or worse. The one
  * coherent improvement retained is a named right-edge brightness intermediate;
- * it keeps the exact CFG and length and improves 77 -> 76 bytes.
- * ROUND 6: the target's duplicated left/right multiply tails survive jump2 only
- * when the source has distinct colour-store tails. Keeping one tail for the left
- * edge and one shared by the right edge/centre lets jump2 merge exactly the three
- * stores without cross-jumping the arithmetic. This is also ordinary per-arm C,
- * not a case-label fence: the resulting brightness region is byte-exact, global
- * allocation remains unchanged, and the whole-function residual improves 76 ->
- * 71 bytes at the exact target length. */
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/FUN_800519bc", FUN_800519bc);
-#else
-
+ * it keeps the exact CFG and length and improves 77 -> 76 bytes. */
 typedef struct BackGround BackGround;
 
 typedef struct
@@ -436,26 +426,28 @@ void FUN_800519bc(void)
             {
                 s32 renderer_tpage = tpage_base >> 16;
                 s32 renderer_width = (s16)strip_width;
+                s32 renderer_offset;
+                s32 renderer_x;
+                s16 renderer_raw_x;
                 do
                 {
                         sprite.u = counter << 2;
                         sprite.tpage = GetTPage(0, 0,
                             renderer_tpage + (s16)counter, 0x100);
-                        page_x = renderer_width - (s16)counter;
-                        page_x <<= 3;
-                        page_x = xbase - page_x;
-                        sprite.x = page_x;
-                        page_x <<= 16;
-                        page_x >>= 16;
-                        if (page_x < -0xa0)
+                        renderer_offset = renderer_width - (s16)counter;
+                        renderer_offset <<= 3;
+                        renderer_raw_x = xbase - renderer_offset;
+                        sprite.x = renderer_raw_x;
+                        renderer_x = renderer_raw_x;
+                        if (renderer_x < -0xa0)
                         {
                             goto brightness_zero;
                         }
-                        if (page_x >= -0x78)
+                        if (renderer_x >= -0x78)
                         {
                             goto brightness_normal;
                         }
-                        left_brightness = page_x + 0xa0;
+                        left_brightness = renderer_x + 0xa0;
                         scaled_left_brightness = left_brightness;
                         scaled_left_brightness <<= 1;
                         scaled_left_brightness += left_brightness;
@@ -463,7 +455,7 @@ void FUN_800519bc(void)
                         goto brightness_left_store;
 
 brightness_normal:
-                        if (page_x <= 0xa0)
+                        if (renderer_x <= 0xa0)
                         {
                             goto brightness_within;
                         }
@@ -475,11 +467,12 @@ brightness_zero:
                         goto brightness_done;
 
 brightness_within:
-                        if (page_x < 0x79)
+                        if (renderer_x < 0x79)
                         {
                             goto brightness_center;
                         }
-                        scaled_brightness = edge_brightness = 0xa0 - page_x;
+                        scaled_brightness = edge_brightness =
+                            0xa0 - renderer_x;
                         scaled_brightness <<= 1;
                         scaled_brightness += edge_brightness;
                         brightness = scaled_brightness;
@@ -542,8 +535,6 @@ brightness_done:
 
     DisposeBG(background);
 }
-
-#endif
 
 // triage: HARD — 362 insns, 2 loop, 19 callees, ~0.11 to BriefingAndInventorySelectionScreen
 // likely-relevant cookbook sections:
