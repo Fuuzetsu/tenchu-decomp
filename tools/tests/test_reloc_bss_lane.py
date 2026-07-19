@@ -122,7 +122,10 @@ SECTIONS
             old_tail_object="old/72CD0.data.s.o",
             new_tail_object="new/72CD0.reloc.s.o",
             extension_object_glob="build/reloc/*.c.o",
-            ordinary_c_object_glob="build/main.exe/*.c.o",
+            ordinary_c_object_globs=(
+                "build/main.exe/*.c.o",
+                "build/reloc-c-literals/*.o",
+            ),
             aliases=[lane.Symbol("OTable", 0x80098018)],
         )
         self.assertNotIn("_gp = 0x80097698", output)
@@ -146,12 +149,19 @@ SECTIONS
         self.assertIn(".main_exe_extension : AT(__romPos)", output)
         self.assertIn("build/reloc/*.c.o(.text .text.*", output)
         self.assertIn("build/main.exe/*.c.o(.sdata .sdata.*);", output)
+        self.assertIn("build/reloc-c-literals/*.o(.sdata .sdata.*);", output)
         self.assertIn("build/reloc/*.c.o(.sbss .sbss.* .scommon);", output)
         self.assertIn(
             "build/main.exe/*.c.o(.sbss .sbss.* .scommon);", output
         )
+        self.assertIn(
+            "build/reloc-c-literals/*.o(.sbss .sbss.* .scommon);", output
+        )
         self.assertIn("build/reloc/*.c.o(.bss .bss.* COMMON);", output)
         self.assertIn("build/main.exe/*.c.o(.bss .bss.* COMMON);", output)
+        self.assertIn(
+            "build/reloc-c-literals/*.o(.bss .bss.* COMMON);", output
+        )
 
     def test_growth_uses_relative_layout_and_collision_asserts(self) -> None:
         output = lane.rewrite_linker(
@@ -307,10 +317,12 @@ int ordinary_probe(void)
             raise unittest.SkipTest("missing pinned MIPS tools: " + ", ".join(missing))
 
     @classmethod
-    def compile_c(cls, output: Path) -> tuple[str, str]:
+    def compile_c(
+        cls, output: Path, source: str | None = None
+    ) -> tuple[str, str]:
         cc = subprocess.run(
             ["cc1-281", *cls.CC_FLAGS],
-            input=cls.SOURCE,
+            input=cls.SOURCE if source is None else source,
             text=True,
             check=True,
             stdout=subprocess.PIPE,
@@ -354,13 +366,19 @@ int ordinary_probe(void)
             root = Path(temporary)
             ordinary = root / "ordinary"
             ordinary.mkdir()
+            replacement = root / "reloc-c-literals"
+            replacement.mkdir()
             probe = ordinary / "probe.c.o"
             extra = ordinary / "common.s.o"
+            replacement_probe = replacement / "probe.o"
+            replacement_extra = replacement / "common.s.o"
             tail = root / "tail.reloc.s.o"
             elf = root / "probe.elf"
             linker = root / "probe.ld"
 
             cc_assembly, maspsx_assembly = self.compile_c(probe)
+            replacement_source = self.SOURCE.replace("ordinary_", "replacement_")
+            self.compile_c(replacement_probe, replacement_source)
             self.assertRegex(cc_assembly, r"(?m)^\s*\.comm\s+ordinary_small_common,4$")
             self.assertRegex(cc_assembly, r"(?m)^\s*\.comm\s+ordinary_large_common,16$")
             self.assertRegex(cc_assembly, r"(?m)^\s*\.lcomm\s+ordinary_static_small,4$")
@@ -391,6 +409,28 @@ int ordinary_probe(void)
             )
             self.assertFalse({".rdata", ".lit4", ".lit8"} & emitted)
 
+            replacement_sections = subprocess.run(
+                [
+                    "mipsel-unknown-linux-gnu-readelf",
+                    "-SW",
+                    str(replacement_probe),
+                ],
+                text=True,
+                check=True,
+                stdout=subprocess.PIPE,
+            ).stdout
+            replacement_emitted = set(
+                re.findall(
+                    r"^\s*\[\s*\d+\]\s+(\S+)",
+                    replacement_sections,
+                    re.MULTILINE,
+                )
+            )
+            self.assertTrue(
+                {".text", ".data", ".bss", ".sdata", ".rodata", ".sbss"}
+                <= replacement_emitted
+            )
+
             self.assemble(
                 """\
 .section .scommon,"aw",@nobits
@@ -401,6 +441,22 @@ explicit_scommon:
 .comm explicit_gnu_common,16,4
 """,
                 extra,
+            )
+            self.assemble(
+                """\
+.section .scommon,"aw",@nobits
+.globl replacement_explicit_scommon
+.align 2
+replacement_explicit_scommon:
+.space 4
+.comm replacement_explicit_gnu_common,16,4
+.section .bss.replacement,"aw",@nobits
+.globl replacement_bss_suffix
+.align 2
+replacement_bss_suffix:
+.space 4
+""",
+                replacement_extra,
             )
             self.assemble(
                 f"""\
@@ -420,6 +476,7 @@ D_80097BA0:
             )
 
             ordinary_glob = str(ordinary / "*.o")
+            replacement_glob = str(replacement / "*.o")
             old_tail = str(root / "tail.original.s.o")
             base_linker = f"""\
 SECTIONS
@@ -430,9 +487,11 @@ SECTIONS
     {{
         {old_tail}(.data);
         {ordinary_glob}(.text .rodata .data);
+        {replacement_glob}(.text .rodata .data);
         main_exe_RODATA_END = .;
         main_exe_BSS_START = .;
         {ordinary_glob}(.bss);
+        {replacement_glob}(.bss);
         . = ALIGN(., 4);
         main_exe_BSS_END = .;
         main_exe_BSS_SIZE = ABSOLUTE(main_exe_BSS_END - main_exe_BSS_START);
@@ -451,7 +510,7 @@ SECTIONS
                     old_tail_object=old_tail,
                     new_tail_object=str(tail),
                     extension_object_glob=str(root / "reloc" / "*.c.o"),
-                    ordinary_c_object_glob=ordinary_glob,
+                    ordinary_c_object_globs=(ordinary_glob, replacement_glob),
                     aliases=[],
                 )
             )
@@ -467,6 +526,8 @@ SECTIONS
                     "-nostdlib",
                     str(probe),
                     str(extra),
+                    str(replacement_probe),
+                    str(replacement_extra),
                 ],
                 check=True,
             )
@@ -493,6 +554,21 @@ SECTIONS
                 "ordinary_small_double",
                 "explicit_scommon",
                 "explicit_gnu_common",
+                "replacement_probe",
+                "replacement_small_common",
+                "replacement_large_common",
+                "replacement_static_small",
+                "replacement_static_large",
+                "replacement_small_init",
+                "replacement_large_init",
+                "replacement_small_const",
+                "replacement_short_const",
+                "replacement_long_const",
+                "replacement_small_float",
+                "replacement_small_double",
+                "replacement_explicit_scommon",
+                "replacement_explicit_gnu_common",
+                "replacement_bss_suffix",
             }
             self.assertEqual(retained - symbols.keys(), set())
             gp = symbols["_gp"][0]
@@ -505,6 +581,14 @@ SECTIONS
                 "ordinary_small_float",
                 "ordinary_small_double",
                 "explicit_scommon",
+                "replacement_small_common",
+                "replacement_static_small",
+                "replacement_small_init",
+                "replacement_small_const",
+                "replacement_short_const",
+                "replacement_small_float",
+                "replacement_small_double",
+                "replacement_explicit_scommon",
             }:
                 displacement = symbols[name][0] - gp
                 self.assertGreaterEqual(displacement, -0x8000, name)
@@ -513,6 +597,10 @@ SECTIONS
                 "ordinary_large_common",
                 "ordinary_static_large",
                 "explicit_gnu_common",
+                "replacement_large_common",
+                "replacement_static_large",
+                "replacement_explicit_gnu_common",
+                "replacement_bss_suffix",
             }:
                 self.assertIn(symbols[name][1], {"B", "b"}, name)
 

@@ -1596,7 +1596,8 @@ mainExtraRules = do
         "--old-tail-object", oldTailObject,
         "--new-tail-object", normalRelinkTailObject,
         "--extension-object-glob", tBuildDir </> "reloc" </> "*.c.o",
-        "--ordinary-c-object-glob", tBuildDir </> "*.c.o"
+        "--ordinary-c-object-glob", tBuildDir </> "*.c.o",
+        "--ordinary-c-object-glob", relocCLiteralDir </> "*.o"
       ] <> replacementArgs
 
   normalRelinkTailObject %> \out -> do

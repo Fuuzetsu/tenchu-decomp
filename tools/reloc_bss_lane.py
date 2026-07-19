@@ -233,7 +233,7 @@ def make_bss_body(
     bss_input_lines: list[str],
     tail_object: str,
     extension_object_glob: str,
-    ordinary_c_object_glob: str | None,
+    ordinary_c_object_globs: Sequence[str],
     aliases: list[Symbol],
     dynamic_pool: bool = False,
 ) -> str:
@@ -246,12 +246,13 @@ def make_bss_body(
         f"{inner}{tail_object}(.bss);\n",
         f"{inner}{extension_object_glob}(.sbss .sbss.* .scommon);\n",
     ]
-    if ordinary_c_object_glob is not None:
+    if ordinary_c_object_globs:
         # cc1 is run with -G8. maspsx consequently lowers <=8-byte tentative
         # definitions (cc1's .comm/.lcomm) into .sbss, so these inputs must sit
         # next to the original gp-small BSS prefix, not at the far BSS end.
-        lines.append(
-            f"{inner}{ordinary_c_object_glob}(.sbss .sbss.* .scommon);\n"
+        lines.extend(
+            f"{inner}{object_glob}(.sbss .sbss.* .scommon);\n"
+            for object_glob in ordinary_c_object_globs
         )
     lines.extend(bss_input_lines)
     cursor = BSS_PAD_END
@@ -272,13 +273,14 @@ def make_bss_body(
             f"{inner}{extension_object_glob}(.bss .bss.* COMMON);\n",
         ]
     )
-    if ordinary_c_object_glob is not None:
+    if ordinary_c_object_globs:
         # The generated linker already enumerates each ordinary object's base
         # .bss section. Repeating it is harmless (it is empty by this point)
         # and also makes .bss.* plus any residual GNU COMMON fail-safe rather
         # than silently discarding a newly introduced definition.
-        lines.append(
-            f"{inner}{ordinary_c_object_glob}(.bss .bss.* COMMON);\n"
+        lines.extend(
+            f"{inner}{object_glob}(.bss .bss.* COMMON);\n"
+            for object_glob in ordinary_c_object_globs
         )
     lines.extend(
         [
@@ -389,7 +391,7 @@ def rewrite_linker(
     new_tail_object: str,
     extension_object_glob: str,
     aliases: list[Symbol],
-    ordinary_c_object_glob: str | None = None,
+    ordinary_c_object_globs: Sequence[str] = (),
     object_replacements: Sequence[tuple[str, str]] = (),
     dynamic_pool: bool = False,
 ) -> str:
@@ -483,13 +485,14 @@ def rewrite_linker(
             f"{indent}{{\n",
             f"{indent}    __tenchu_extension_start = .;\n",
     ]
-    if ordinary_c_object_glob is not None:
+    if ordinary_c_object_globs:
         # Existing game objects already own fixed text/rodata/data positions,
         # but those generated clauses omit -G8's .sdata output. Collect only
         # the missing small initialized sections here, immediately after the
         # original loaded tail so their signed gp offsets stay short.
-        extension_lines.append(
-            f"{indent}    {ordinary_c_object_glob}(.sdata .sdata.*);\n"
+        extension_lines.extend(
+            f"{indent}    {object_glob}(.sdata .sdata.*);\n"
+            for object_glob in ordinary_c_object_globs
         )
     extension_lines.extend(
         [
@@ -512,7 +515,7 @@ def rewrite_linker(
             bss_input_lines=bss_input_lines,
             tail_object=new_tail_object,
             extension_object_glob=extension_object_glob,
-            ordinary_c_object_glob=ordinary_c_object_glob,
+            ordinary_c_object_globs=ordinary_c_object_globs,
             aliases=aliases,
             dynamic_pool=dynamic_pool,
         )
@@ -534,7 +537,7 @@ def generate(
     old_tail_object: str,
     new_tail_object: str,
     extension_object_glob: str,
-    ordinary_c_object_glob: str | None = None,
+    ordinary_c_object_globs: Sequence[str] = (),
     object_replacements: Sequence[tuple[str, str]] = (),
     dynamic_pool: bool = False,
 ) -> tuple[int, int, int]:
@@ -587,7 +590,7 @@ def generate(
         new_tail_object=new_tail_object,
         extension_object_glob=extension_object_glob,
         aliases=aliases,
-        ordinary_c_object_glob=ordinary_c_object_glob,
+        ordinary_c_object_globs=ordinary_c_object_globs,
         object_replacements=object_replacements,
         dynamic_pool=dynamic_pool,
     )
@@ -793,9 +796,12 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     generate_parser.add_argument("--extension-object-glob", required=True)
     generate_parser.add_argument(
         "--ordinary-c-object-glob",
+        action="append",
+        default=[],
         help=(
-            "normal-relink glob for already enumerated game C objects; retain "
-            "their newly emitted .sdata/.sbss/.scommon/COMMON sections in "
+            "normal-relink glob for already enumerated C objects; repeat for "
+            "each object family whose newly emitted "
+            ".sdata/.sbss/.scommon/COMMON sections belong in "
             "gp-near/owned output hooks (omitted by the retail proof)"
         ),
     )
@@ -855,7 +861,7 @@ def main(argv: list[str] | None = None) -> int:
                 old_tail_object=args.old_tail_object,
                 new_tail_object=args.new_tail_object,
                 extension_object_glob=args.extension_object_glob,
-                ordinary_c_object_glob=args.ordinary_c_object_glob,
+                ordinary_c_object_globs=args.ordinary_c_object_glob,
                 object_replacements=replacements,
                 dynamic_pool=args.dynamic_pool,
             )
