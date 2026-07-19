@@ -29,7 +29,7 @@ extern GsOT *OTablePt;
 extern short SoundEx(VECTOR *locate, short seid);
 extern void SetupTelop(u8 *telop, short line);
 extern s32 FUN_800576e8(u8 *str);
-extern void FUN_800570b8(struct GsOT_TAG *org, s32 x, s32 y, u8 *str);
+extern void FUN_800570b8(GsOT_TAG *org, s32 x, s32 y, u8 *str);
 
 /* Draw one page of the memory-card help text and process its trailing prompt.
  * Pages and lines are both separated by double NULs.  A trailing '.' is an

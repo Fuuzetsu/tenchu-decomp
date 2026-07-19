@@ -4,16 +4,15 @@
 #include <psxsdk/libgte.h>
 #include <types.h>
 
+/* Minimal ABI declarations; provenance and validation: docs/psyq-headers.md. */
 typedef unsigned char PACKET;
 
-typedef struct GsCOORD2PARAM GsCOORD2PARAM;
-
-struct GsCOORD2PARAM
+typedef struct
 {
     VECTOR scale;
     SVECTOR rotate;
     VECTOR trans;
-};
+} GsCOORD2PARAM;
 
 typedef struct _GsCOORDINATE2 GsCOORDINATE2;
 struct _GsCOORDINATE2
@@ -27,58 +26,50 @@ struct _GsCOORDINATE2
     GsCOORDINATE2 *sub;
 };
 
-typedef struct GsVIEW2 GsVIEW2;
-struct GsVIEW2
+typedef struct
 {
     MATRIX view;
     GsCOORDINATE2 *super;
-};
+} GsVIEW2;
 
-typedef struct GsRVIEW2 GsRVIEW2;
-struct GsRVIEW2
+typedef struct
 {
     long vpx, vpy, vpz;
     long vrx, vry, vrz;
     long rz;
     GsCOORDINATE2 *super;
-};
+} GsRVIEW2;
 
-typedef struct GsF_LIGHT GsF_LIGHT;
-struct GsF_LIGHT
+typedef struct
 {
     int vx, vy, vz;
     unsigned char r, g, b;
-};
+} GsF_LIGHT;
 
-typedef struct GsOT_TAG GsOT_TAG;
-struct GsOT_TAG
+typedef struct
 {
     unsigned p : 24;
     unsigned char num : 8;
-};
+} GsOT_TAG;
 
-typedef struct GsOT GsOT;
-struct GsOT
+typedef struct
 {
     unsigned long length;
     GsOT_TAG *org;
     unsigned long offset;
     unsigned long point;
     GsOT_TAG *tag;
-};
+} GsOT;
 
-typedef struct GsDOBJ2 GsDOBJ2;
-
-struct GsDOBJ2
+typedef struct
 {
     u_long attribute;
     GsCOORDINATE2 *coord2;
     u_long *tmd;
     u_long id;
-};
+} GsDOBJ2;
 
-typedef struct GsDOBJ3 GsDOBJ3;
-struct GsDOBJ3
+typedef struct
 {
     u_long attribute;
     GsCOORDINATE2 *coord2;
@@ -86,31 +77,28 @@ struct GsDOBJ3
     u_long *base;
     u_long *sv;
     u_long id;
-};
+} GsDOBJ3;
 
-typedef struct GsDOBJ4 GsDOBJ4;
-struct GsDOBJ4
+typedef struct
 {
     u_long attribute;
     GsCOORDINATE2 *coord2;
     u_long *tmd;
     u_long id;
-};
+} GsDOBJ4;
 
-typedef struct GsDOBJ5 GsDOBJ5;
-struct GsDOBJ5
+typedef struct
 {
     u_long attribute;
     GsCOORDINATE2 *coord2;
     u_long *tmd;
     u_long *packet;
     u_long id;
-};
+} GsDOBJ5;
 
 /* 0x24 bytes — layout proven by BriefingAndInventorySelectionScreen's stack
  * (two sprites at sp+0x18/0x40, GsIMAGE at 0x68, next local at 0x88). */
-typedef struct GsSPRITE GsSPRITE;
-struct GsSPRITE
+typedef struct
 {
     u_long attribute;     /* 0x00 */
     short x, y;           /* 0x04 */
@@ -122,28 +110,25 @@ struct GsSPRITE
     short mx, my;         /* 0x18 */
     short scalex, scaley; /* 0x1C */
     long rotate;          /* 0x20 */
-};
+} GsSPRITE;
 
-typedef struct GsCELL GsCELL;
-struct GsCELL
+typedef struct
 {
     u_char u, v;
     u_short cba;
     u_short flag;
     u_short tpage;
-};
+} GsCELL;
 
-typedef struct GsMAP GsMAP;
-struct GsMAP
+typedef struct
 {
     u_char cellw, cellh;
     u_short ncellw, ncellh;
     GsCELL *base;
     u_short *index;
-};
+} GsMAP;
 
-typedef struct GsBG GsBG;
-struct GsBG
+typedef struct
 {
     u_long attribute;
     short x, y;
@@ -154,46 +139,78 @@ struct GsBG
     short mx, my;
     short scalex, scaley;
     long rotate;
-};
+} GsBG;
 
-typedef struct GsLINE GsLINE;
-struct GsLINE
+typedef struct
 {
     u_long attribute;
     short x0, y0;
     short x1, y1;
     u_char r, g, b;
-};
+} GsLINE;
 
-typedef struct GsGLINE GsGLINE;
-struct GsGLINE
+typedef struct
 {
     u_long attribute;
     short x0, y0;
     short x1, y1;
     u_char r0, g0, b0;
     u_char r1, g1, b1;
-};
+} GsGLINE;
 
-typedef struct GsBOXF GsBOXF;
-struct GsBOXF
+typedef struct
 {
     u_long attribute;
     short x, y;
     u_short w, h;
     u_char r, g, b;
-};
+} GsBOXF;
 
-typedef struct GsFOGPARAM GsFOGPARAM;
-struct GsFOGPARAM
+typedef struct
 {
     short dqa;
     long dqb;
     u_char rfc, gfc, bfc;
-};
+} GsFOGPARAM;
 
-typedef struct TMD_P_TNF3 TMD_P_TNF3;
-struct TMD_P_TNF3
+typedef struct
+{
+    u_char out, in, dummy, cd;
+    u_char r0, g0, b0, code;
+    u_short v0, v1;
+    u_short v2, p;
+} TMD_P_NF3;
+
+typedef struct
+{
+    u_char out, in, dummy, cd;
+    u_char r0, g0, b0, code;
+    u_char r1, g1, b1, p1;
+    u_char r2, g2, b2, p2;
+    u_short v0, v1;
+    u_short v2, p;
+} TMD_P_NG3;
+
+typedef struct
+{
+    u_char out, in, dummy, cd;
+    u_char r0, g0, b0, code;
+    u_short v0, v1;
+    u_short v2, v3;
+} TMD_P_NF4;
+
+typedef struct
+{
+    u_char out, in, dummy, cd;
+    u_char r0, g0, b0, code;
+    u_char r1, g1, b1, p1;
+    u_char r2, g2, b2, p2;
+    u_char r3, g3, b3, p3;
+    u_short v0, v1;
+    u_short v2, v3;
+} TMD_P_NG4;
+
+typedef struct
 {
     u_char out, in, dummy, cd;
     u_char tu0, tv0;
@@ -205,10 +222,9 @@ struct TMD_P_TNF3
     u_char r0, g0, b0, p1;
     u_short v0, v1;
     u_short v2, p2;
-};
+} TMD_P_TNF3;
 
-typedef struct TMD_P_TNG3 TMD_P_TNG3;
-struct TMD_P_TNG3
+typedef struct
 {
     u_char out, in, dummy, cd;
     u_char tu0, tv0;
@@ -222,10 +238,9 @@ struct TMD_P_TNG3
     u_char r2, g2, b2, p3;
     u_short v0, v1;
     u_short v2, p4;
-};
+} TMD_P_TNG3;
 
-typedef struct TMD_P_TNF4 TMD_P_TNF4;
-struct TMD_P_TNF4
+typedef struct
 {
     u_char out, in, dummy, cd;
     u_char tu0, tv0;
@@ -239,10 +254,9 @@ struct TMD_P_TNF4
     u_char r0, g0, b0, p2;
     u_short v0, v1;
     u_short v2, v3;
-};
+} TMD_P_TNF4;
 
-typedef struct TMD_P_TNG4 TMD_P_TNG4;
-struct TMD_P_TNG4
+typedef struct
 {
     u_char out, in, dummy, cd;
     u_char tu0, tv0;
@@ -259,7 +273,7 @@ struct TMD_P_TNG4
     u_char r3, g3, b3, p5;
     u_short v0, v1;
     u_short v2, v3;
-};
+} TMD_P_TNG4;
 
 struct TMD_STRUCT
 {
@@ -272,8 +286,13 @@ struct TMD_STRUCT
     u_long scale;
 };
 
-typedef struct GsIMAGE GsIMAGE;
-struct GsIMAGE
+typedef struct
+{
+    short vx, vy, vz;
+    u_char tu, tv;
+} VERT;
+
+typedef struct
 {
     u_long pmode;
     short px;
@@ -286,7 +305,7 @@ struct GsIMAGE
     u_short cw;
     u_short ch;
     u_long *clut;
-};
+} GsIMAGE;
 
 void GsGetTimInfo(unsigned long *image, GsIMAGE *tim);
 void GsInitGraph(unsigned short x, unsigned short y, unsigned short intmode,
@@ -321,5 +340,26 @@ int GsSetRefView2(GsRVIEW2 *view);
 void GsSetLsMatrix(MATRIX *matrix);
 void GsInitFixBg16(GsBG *background, unsigned long *work);
 PACKET *GsGetWorkBase(void);
+
+PACKET *GsA4divNF3(TMD_P_NF3 *primitive, VERT *vertices, PACKET *packet,
+                   int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divNG3(TMD_P_NG3 *primitive, VERT *vertices, PACKET *packet,
+                   int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divTNF3(TMD_P_TNF3 *primitive, VERT *vertices, PACKET *packet,
+                    int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divTNG3(TMD_P_TNG3 *primitive, VERT *vertices, PACKET *packet,
+                    int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divNF4(TMD_P_NF4 *primitive, VERT *vertices, PACKET *packet,
+                   int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divNG4(TMD_P_NG4 *primitive, VERT *vertices, PACKET *packet,
+                   int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divTNF4(TMD_P_TNF4 *primitive, VERT *vertices, PACKET *packet,
+                    int count, int shift, GsOT *ot, u_long *scratch);
+PACKET *GsA4divTNG4(TMD_P_TNG4 *primitive, VERT *vertices, PACKET *packet,
+                    int count, int shift, GsOT *ot, u_long *scratch);
+
+extern PACKET *GsOUT_PACKET_P;
+extern long HWD0, VWD0;
+extern u_long GsLMODE, GsLIGNR, GsLIOFF, GsTON;
 
 #endif

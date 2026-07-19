@@ -26,8 +26,6 @@
  * This replaces the old claimed 26-byte scheduling floor with coherent source.
  */
 
-extern int HWD0;
-extern int VWD0;
 extern void FUN_80057b80(u_long *outv, u_long *packet, int mode);
 
 u_long *FUN_80059008(u_short *param_1, u_long param_2, u_long *param_3, int param_4,

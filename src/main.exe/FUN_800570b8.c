@@ -53,14 +53,12 @@ typedef struct
     u16 pad2;
 } TelopPolyType;
 
-struct GsOT_TAG;
-
 extern TelopPolyType TelopP;
 extern GsOT *OTablePt;
 extern u8 D_8008EF98[];
-extern void FUN_8005778c(struct GsOT_TAG *org, s32 x, s32 y, u32 ch);
+extern void FUN_8005778c(GsOT_TAG *org, s32 x, s32 y, u32 ch);
 
-void FUN_800570b8(struct GsOT_TAG *org, s32 x, s32 y, u8 *str)
+void FUN_800570b8(GsOT_TAG *org, s32 x, s32 y, u8 *str)
 {
     s32 cursor;
     s32 ypos;

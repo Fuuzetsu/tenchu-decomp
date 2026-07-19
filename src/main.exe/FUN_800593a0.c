@@ -15,12 +15,7 @@
  *    at 0x80013C20.
  */
 
-extern int GsLMODE;
-extern int GsLIGNR;
-extern int GsLIOFF;
-extern int GsTON;
 extern int D_800C6588;
-extern u_long *GsOUT_PACKET_P;
 
 extern u_long *FUN_8005961c(u_short *param_1, u_long param_2, u_long *param_3,
                             u_short param_4, u_long *param_5);

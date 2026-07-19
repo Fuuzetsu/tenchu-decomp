@@ -42,7 +42,7 @@ extern GsOT *OTablePt;
 extern u8 D_800C2C50[];
 
 extern s32 FUN_800576e8(u8 *str);
-extern void FUN_800570b8(struct GsOT_TAG *org, s32 x, s32 y, u8 *str);
+extern void FUN_800570b8(GsOT_TAG *org, s32 x, s32 y, u8 *str);
 
 void DrawTelop(void)
 {

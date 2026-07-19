@@ -78,7 +78,6 @@ typedef struct
 } Buf16;
 
 extern void PCinit(void);
-extern void CdInit(void);
 extern void cd_init(void);
 extern int strncmp(const char *a, const char *b, u32 n);
 extern void vinit(void *adr, u32 size);

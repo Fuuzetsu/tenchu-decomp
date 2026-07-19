@@ -185,8 +185,6 @@
  * and byte-matches the 0x398-byte target extent exactly.
  */
 
-extern int HWD0;
-extern int VWD0;
 extern void FUN_80057b80(u_long *outv, u_long *packet, int mode);
 
 u_long *FUN_80058c70(u_short *param_1, u_long param_2, u_long *param_3, int param_4,

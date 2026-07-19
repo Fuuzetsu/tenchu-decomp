@@ -9,31 +9,28 @@
  * The names, field order, and signedness below follow Sony's Release 4.4-4.6
  * LIBGPU.H headers and are independently present in the demo's PSX.SYM.  Keep
  * SDK-owned records here instead of recreating layout-compatible local types.
+ * See docs/psyq-headers.md for provenance and the 4.5 validation lane.
  */
 
-typedef struct RECT RECT;
-struct RECT
+typedef struct
 {
     short x, y;
     short w, h;
-};
+} RECT;
 
-typedef struct RECT32 RECT32;
-struct RECT32
+typedef struct
 {
     int x, y;
     int w, h;
-};
+} RECT32;
 
-typedef struct DR_ENV DR_ENV;
-struct DR_ENV
+typedef struct
 {
     u_long tag;
     u_long code[15];
-};
+} DR_ENV;
 
-typedef struct DRAWENV DRAWENV;
-struct DRAWENV
+typedef struct
 {
     RECT clip;
     short ofs[2];
@@ -44,44 +41,39 @@ struct DRAWENV
     u_char isbg;
     u_char r0, g0, b0;
     DR_ENV dr_env;
-};
+} DRAWENV;
 
-typedef struct DISPENV DISPENV;
-struct DISPENV
+typedef struct
 {
     RECT disp;
     RECT screen;
     u_char isinter;
     u_char isrgb24;
     u_char pad0, pad1;
-};
+} DISPENV;
 
-typedef struct P_TAG P_TAG;
-struct P_TAG
+typedef struct
 {
     unsigned addr : 24;
     unsigned len : 8;
     u_char r0, g0, b0, code;
-};
+} P_TAG;
 
-typedef struct P_CODE P_CODE;
-struct P_CODE
+typedef struct
 {
     u_char r0, g0, b0, code;
-};
+} P_CODE;
 
-typedef struct POLY_F3 POLY_F3;
-struct POLY_F3
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
     short x1, y1;
     short x2, y2;
-};
+} POLY_F3;
 
-typedef struct POLY_F4 POLY_F4;
-struct POLY_F4
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -89,10 +81,9 @@ struct POLY_F4
     short x1, y1;
     short x2, y2;
     short x3, y3;
-};
+} POLY_F4;
 
-typedef struct POLY_FT3 POLY_FT3;
-struct POLY_FT3
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -105,10 +96,9 @@ struct POLY_FT3
     short x2, y2;
     u_char u2, v2;
     u_short pad1;
-};
+} POLY_FT3;
 
-typedef struct POLY_FT4 POLY_FT4;
-struct POLY_FT4
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -124,10 +114,9 @@ struct POLY_FT4
     short x3, y3;
     u_char u3, v3;
     u_short pad2;
-};
+} POLY_FT4;
 
-typedef struct POLY_G3 POLY_G3;
-struct POLY_G3
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -136,10 +125,9 @@ struct POLY_G3
     short x1, y1;
     u_char r2, g2, b2, pad2;
     short x2, y2;
-};
+} POLY_G3;
 
-typedef struct POLY_G4 POLY_G4;
-struct POLY_G4
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -150,10 +138,9 @@ struct POLY_G4
     short x2, y2;
     u_char r3, g3, b3, pad3;
     short x3, y3;
-};
+} POLY_G4;
 
-typedef struct POLY_GT3 POLY_GT3;
-struct POLY_GT3
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -168,10 +155,9 @@ struct POLY_GT3
     short x2, y2;
     u_char u2, v2;
     u_short pad2;
-};
+} POLY_GT3;
 
-typedef struct POLY_GT4 POLY_GT4;
-struct POLY_GT4
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -190,29 +176,26 @@ struct POLY_GT4
     short x3, y3;
     u_char u3, v3;
     u_short pad3;
-};
+} POLY_GT4;
 
-typedef struct LINE_F2 LINE_F2;
-struct LINE_F2
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
     short x1, y1;
-};
+} LINE_F2;
 
-typedef struct LINE_G2 LINE_G2;
-struct LINE_G2
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
     u_char r1, g1, b1, p1;
     short x1, y1;
-};
+} LINE_G2;
 
-typedef struct LINE_F3 LINE_F3;
-struct LINE_F3
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -220,10 +203,9 @@ struct LINE_F3
     short x1, y1;
     short x2, y2;
     u_long pad;
-};
+} LINE_F3;
 
-typedef struct LINE_G3 LINE_G3;
-struct LINE_G3
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -233,10 +215,9 @@ struct LINE_G3
     u_char r2, g2, b2, p2;
     short x2, y2;
     u_long pad;
-};
+} LINE_G3;
 
-typedef struct LINE_F4 LINE_F4;
-struct LINE_F4
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -245,10 +226,9 @@ struct LINE_F4
     short x2, y2;
     short x3, y3;
     u_long pad;
-};
+} LINE_F4;
 
-typedef struct LINE_G4 LINE_G4;
-struct LINE_G4
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -260,10 +240,9 @@ struct LINE_G4
     u_char r3, g3, b3, p3;
     short x3, y3;
     u_long pad;
-};
+} LINE_G4;
 
-typedef struct SPRT SPRT;
-struct SPRT
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
@@ -271,127 +250,112 @@ struct SPRT
     u_char u0, v0;
     u_short clut;
     short w, h;
-};
+} SPRT;
 
-typedef struct SPRT_16 SPRT_16;
-struct SPRT_16
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
     u_char u0, v0;
     u_short clut;
-};
+} SPRT_16;
 
-typedef struct SPRT_8 SPRT_8;
-struct SPRT_8
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
     u_char u0, v0;
     u_short clut;
-};
+} SPRT_8;
 
-typedef struct TILE TILE;
-struct TILE
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
     short w, h;
-};
+} TILE;
 
-typedef struct TILE_16 TILE_16;
-struct TILE_16
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
-};
+} TILE_16;
 
-typedef struct TILE_8 TILE_8;
-struct TILE_8
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
-};
+} TILE_8;
 
-typedef struct TILE_1 TILE_1;
-struct TILE_1
+typedef struct
 {
     u_long tag;
     u_char r0, g0, b0, code;
     short x0, y0;
-};
+} TILE_1;
 
-typedef struct DR_MODE DR_MODE;
-struct DR_MODE
+typedef struct
 {
     u_long tag;
     u_long code[2];
-};
+} DR_MODE;
 
-typedef struct DR_TWIN DR_TWIN;
-struct DR_TWIN
+typedef struct
 {
     u_long tag;
     u_long code[2];
-};
+} DR_TWIN;
 
-typedef struct DR_AREA DR_AREA;
-struct DR_AREA
+typedef struct
 {
     u_long tag;
     u_long code[2];
-};
+} DR_AREA;
 
-typedef struct DR_OFFSET DR_OFFSET;
-struct DR_OFFSET
+typedef struct
 {
     u_long tag;
     u_long code[2];
-};
+} DR_OFFSET;
 
-typedef struct DR_STP DR_STP;
-struct DR_STP
+typedef struct
 {
     u_long tag;
     u_long code[2];
-};
+} DR_STP;
 
-typedef struct DR_MOVE DR_MOVE;
-struct DR_MOVE
+typedef struct
 {
     u_long tag;
     u_long code[5];
-};
+} DR_MOVE;
 
-typedef struct DR_LOAD DR_LOAD;
-struct DR_LOAD
+typedef struct
 {
     u_long tag;
     u_long code[3];
     u_long p[13];
-};
+} DR_LOAD;
 
-typedef struct DR_TPAGE DR_TPAGE;
-struct DR_TPAGE
+typedef struct
 {
     u_long tag;
     u_long code[1];
-};
+} DR_TPAGE;
 
-typedef struct TIM_IMAGE TIM_IMAGE;
-struct TIM_IMAGE
+typedef struct
 {
     u_long mode;
     RECT *crect;
     u_long *caddr;
     RECT *prect;
     u_long *paddr;
-};
+} TIM_IMAGE;
 
 /* Common LIBGPU macros retain Sony's original comma-expression shape. */
 #define setRECT(r, _x, _y, _w, _h) \
@@ -425,6 +389,7 @@ int ResetGraph(int mode);
 void SetDispMask(int mask);
 
 void AddPrim(void *ot, void *p);
+void DrawOTag(u_long *p);
 int ClearImage(RECT *rect, u_char r, u_char g, u_char b);
 int ClearImage2(RECT *rect, u_char r, u_char g, u_char b);
 void DrawPrim(void *p);

@@ -138,9 +138,9 @@
 
 extern s32 GameClock;
 extern s16 SkipFrame;
-extern struct GsOT OTable[];
+extern GsOT OTable[];
 extern s16 DrawingPage;
-extern struct GsOT *OTablePt;
+extern GsOT *OTablePt;
 extern GsFOGPARAM Fog;
 extern u8 D_80098040[];
 extern u32 D_800976B8;

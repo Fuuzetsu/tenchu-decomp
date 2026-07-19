@@ -54,7 +54,7 @@ extern void UpdateCoordinate(ModelType *dim);
 extern GsFOGPARAM Fog;
 extern GsRVIEW2 ViewInfo;
 extern GsOT OTable[2];
-extern struct GsOT_TAG ZSortTable[2][2048];
+extern GsOT_TAG ZSortTable[2][2048];
 extern s32 DrawTMDmode;
 extern s32 DepthPoint;
 extern s32 SlightPoint;

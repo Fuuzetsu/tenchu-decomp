@@ -3,44 +3,41 @@
 
 #include <types.h>
 
-/* PsyQ 4.5/4.6 LIBCD.H ABI declarations used by Tenchu. */
+/* Minimal PsyQ 4.5 ABI declarations; see docs/psyq-headers.md. */
 
 typedef void (*CdlCB)(u_char, u_char *);
 
-typedef struct CdlLOC CdlLOC;
-struct CdlLOC
+typedef struct
 {
     u_char minute;
     u_char second;
     u_char sector;
     u_char track;
-};
+} CdlLOC;
 
-typedef struct CdlFILTER CdlFILTER;
-struct CdlFILTER
+typedef struct
 {
     u_char file;
     u_char chan;
     u_short pad;
-};
+} CdlFILTER;
 
-typedef struct CdlATV CdlATV;
-struct CdlATV
+typedef struct
 {
     u_char val0;
     u_char val1;
     u_char val2;
     u_char val3;
-};
+} CdlATV;
 
-typedef struct CdlFILE CdlFILE;
-struct CdlFILE
+typedef struct
 {
     CdlLOC pos;
     u_long size;
     char name[16];
-};
+} CdlFILE;
 
+int CdInit(void);
 void CdFlush(void);
 CdlFILE *CdSearchFile(CdlFILE *file, char *name);
 CdlLOC *CdIntToPos(int sector, CdlLOC *position);

@@ -13,12 +13,7 @@
  *    $v0/$v1 coloring for those two switch arms.
  */
 
-extern u_long GsLMODE;
-extern u_long GsLIGNR;
-extern u_long GsLIOFF;
-extern u_long GsTON;
 extern u_long D_800C6588;
-extern u_long *GsOUT_PACKET_P;
 
 extern u_long *FUN_80058c70(u_short *primitive, u_long vertices,
                             u_long *packet, u_short count, u_long arg2,
