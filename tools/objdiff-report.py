@@ -371,22 +371,39 @@ def main():
         with open(args.out, "w") as fh:
             fh.write(text)
 
+    # Per-binary breakdown, then the total: categories map 1:1 onto
+    # binaries except main.exe, whose game/sdk split stays visible.
+    labels = {
+        "game": "main.exe (game)",
+        "sdk": "main.exe (sdk)",
+    }
+    labels.update({cid: target for cid, _, target, _ in extra_targets})
+    partials = {}
+    for unit in report["units"]:
+        if 0.0 < unit["functions"][0]["fuzzy_match_percent"] < 100.0:
+            for cid in unit["metadata"]["progress_categories"]:
+                partials[cid] = partials.get(cid, 0) + 1
+
+    def line(label, m, partial):
+        total_code = int(m.get("total_code", 0))
+        complete_code = int(m.get("complete_code", 0))
+        pct = 100.0 * complete_code / total_code if total_code else 0.0
+        fuzzy = 100.0 * int(m.get("matched_code", 0)) / total_code \
+            if total_code else 0.0
+        extra = f", fuzzy {fuzzy:.2f}% (+{partial} partial)" if partial else ""
+        funcs = (f"{m.get('matched_functions', 0)}/"
+                 f"{m.get('total_functions', 0)}")
+        code = f"{complete_code}/{total_code}B"
+        return f"  {label:<18} {funcs:>9} funcs  {code:>17} = {pct:6.2f}%{extra}"
+
+    for category in report["categories"]:
+        cid = category["id"]
+        print(line(labels.get(cid, cid), category["measures"],
+                   partials.get(cid, 0)), file=sys.stderr)
     tm = report["measures"]
-    tc = int(tm.get("total_code", 0))
-    mc = int(tm.get("matched_code", 0))          # fuzzy-weighted
-    cc = int(tm.get("complete_code", 0))          # byte-exact
-    fpct = 100.0 * mc / tc if tc else 0.0
-    cpct = 100.0 * cc / tc if tc else 0.0
-    scope = "game+sdk" if args.include_sdk else "game"
-    if extra_targets:
-        scope += "+" + "+".join(t for _, _, t, _ in extra_targets)
-    npart = sum(1 for u in report["units"]
-                if 0.0 < u["functions"][0]["fuzzy_match_percent"] < 100.0)
-    print(f"report ({scope}): {len(report['units'])} units, "
-          f"complete {tm.get('matched_functions', 0)}/{tm.get('total_functions', 0)} funcs "
-          f"({cc}/{tc}B = {cpct:.2f}%), fuzzy {fpct:.2f}% "
-          f"(+{npart} partial) -> {'stdout' if args.stdout else args.out}",
-          file=sys.stderr)
+    print(line("total", tm, sum(partials.values())), file=sys.stderr)
+    print(f"report: {len(report['units'])} units -> "
+          f"{'stdout' if args.stdout else args.out}", file=sys.stderr)
 
 
 if __name__ == "__main__":

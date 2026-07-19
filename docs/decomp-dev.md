@@ -69,9 +69,15 @@ and default (0) fields may be omitted. Each unit carries `functions[]`
   - One objdiff **unit per function** (per-function treemap). Units are tagged
     into the `game` / `sdk` progress categories using the same `SDK_START`
     boundary as `progress.py`.
-  - Default output is **game code only** (top-level % = game-code progress, the
-    project's north-star metric). `--include-sdk` also emits the differently-
-    compiled PsyQ SDK block (top-level then = whole image, currently ~19.7%).
+  - The scaffolded sibling executables each get **their own category** —
+    `menu` (MENU.EXE), `ending` (ENDING.EXE), `trial` (TRIAL.EXE) — built
+    from the committed `config/functions.<name>.tsv` inventories, with units
+    named `<exe>/<function>`, so decomp.dev shows per-binary progress the
+    moment functions start matching. The console summary of `./Build report`
+    prints the same per-binary breakdown followed by the total.
+  - Default output is **game code only** for main.exe (top-level % = whole
+    multi-exe progress once the sibling categories are included).
+    `--include-sdk` also emits the differently-compiled PsyQ SDK block.
   - **Partial progress.** A byte-exact function is 100% (`complete`); an
     `INCLUDE_ASM` stub is 0%. Functions with a `#else` NON_MATCHING draft (close
     but not byte-exact) get a real per-function `fuzzy_match_percent` from
