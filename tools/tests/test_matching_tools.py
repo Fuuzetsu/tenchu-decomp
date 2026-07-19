@@ -5661,7 +5661,7 @@ class BuildConfigurationTests(unittest.TestCase):
         ))
         self.assertEqual(names, set(permute.MASPSX_EXTRA))
 
-    def test_cc_extra_flags_match_build(self):
+    def test_original_object_cc_flags_match_build(self):
         path = os.path.join(os.path.dirname(TOOLS), "shake", "src", "Build.hs")
         with open(path) as f:
             build = f.read()
@@ -5690,7 +5690,7 @@ class BuildConfigurationTests(unittest.TestCase):
             for obj, members in found_members.items()
             for member in members
         }
-        self.assertEqual(flattened, permute.CC_EXTRA_FLAGS)
+        self.assertEqual(flattened, permute.CC_FLAGS_BY_OBJECT_MEMBER)
         for member in permute.ORIGINAL_OBJECT_MEMBERS["LIBMCRD.OBJ"]:
             self.assertIn("-mno-split-addresses", permute.cc_flags_for(member))
         for member in permute.ORIGINAL_OBJECT_MEMBERS["GS_107.OBJ"]:
@@ -5741,7 +5741,8 @@ class BuildConfigurationTests(unittest.TestCase):
         the callee-saved register assignment differed outright, and permute's rescore
         printed 291357/1004/1492 for a base.c whose draft is 1488 bytes at 70.
 
-        GP_EXTERNS and ccExtraFlags each had a mirror test; the FLAG LISTS did not,
+        GP_EXTERNS and originalObjectCcFlags each had a mirror test; the FLAG
+        LISTS did not,
         which is exactly why this one drifted and the others didn't.
         """
         import re

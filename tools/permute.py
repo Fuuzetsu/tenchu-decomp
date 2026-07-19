@@ -87,7 +87,7 @@ ORIGINAL_OBJECT_CC_FLAGS = {
     "LIBMCRD.OBJ": ("-mno-split-addresses",),
     "GS_107.OBJ": ("-mno-split-addresses",),
 }
-CC_EXTRA_FLAGS = {
+CC_FLAGS_BY_OBJECT_MEMBER = {
     member: list(ORIGINAL_OBJECT_CC_FLAGS[obj])
     for obj, members in ORIGINAL_OBJECT_MEMBERS.items()
     for member in members
@@ -118,8 +118,8 @@ PERMUTER_PARSER_DECLS = {
 
 
 def cc_flags_for(name):
-    """Build-equivalent cc1 flags for one translation unit."""
-    return CC_FLAGS + CC_EXTRA_FLAGS.get(name, [])
+    """Build-equivalent flags inherited from this carve's original object."""
+    return CC_FLAGS + CC_FLAGS_BY_OBJECT_MEMBER.get(name, [])
 
 
 def add_permuter_parser_declarations(source):

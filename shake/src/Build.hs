@@ -519,7 +519,7 @@ ccFlags =
 -- Stock PsyQ library objects were not necessarily built with the game's
 -- translation-unit defaults. Our one-function C files are an artificial split,
 -- so flags are selected ONLY after mapping a carve back to its original object.
--- Never add a function directly to ccExtraFlags.
+-- Never add a function directly to a compiler-option table.
 --
 -- LIBMCRD.OBJ spans the whole MemCardStart..MemCardFormat range; only
 -- MemCardCallback is C-carved today. GS_107.OBJ contains GsSetFlatLight and the
@@ -563,8 +563,8 @@ gs107ObjectMembers =
     "GS_107_OBJ_51C"
   ]
 
-ccExtraFlags :: FilePath -> [String]
-ccExtraFlags src
+originalObjectCcFlags :: FilePath -> [String]
+originalObjectCcFlags src
   | name `elem` libmcrdObjectMembers = ["-mno-split-addresses"]
   | name `elem` gs107ObjectMembers = ["-mno-split-addresses"]
   | otherwise = []
@@ -660,7 +660,7 @@ rules :: Rules ()
 rules = do
   _ <- addOracle (liftIO . runIdOracle)
   _ <- addOracle (\(GpFlags f) -> pure (maspsxGpExterns f))
-  _ <- addOracle (\(CcFlags f) -> pure (ccExtraFlags f))
+  _ <- addOracle (\(OriginalObjectCcFlags f) -> pure (originalObjectCcFlags f))
   want [mainExe]
   objRules
   mapM_ exeRules targets
@@ -726,9 +726,9 @@ objRules = do
     -- reproduces ASPSX's bytes; it leaves INCLUDE_ASM's .include/.section/.set
     -- directives untouched, so stubs pass through unchanged.
     gpFlags <- askOracle (GpFlags processed)
-    ccExtra <- askOracle (CcFlags processed)
+    objectCc <- askOracle (OriginalObjectCcFlags processed)
     withTempFile $ \ccOut -> do
-      cmd_ (FileStdin processed) (FileStdout ccOut) cc (ccFlags <> ccExtra)
+      cmd_ (FileStdin processed) (FileStdout ccOut) cc (ccFlags <> objectCc)
       cmd_ (FileStdin ccOut) (FileStdout out) maspsx
         (maspsxFlags <> gpFlags)
 
@@ -1084,16 +1084,16 @@ type instance RuleResult GpFlags = [String]
 -- depends on whether you happened to edit the source in the same breath is worse
 -- than no flag at all. Same oracle treatment: the @.s@ now depends on the flag
 -- VALUE.
-newtype CcFlags = CcFlags FilePath
+newtype OriginalObjectCcFlags = OriginalObjectCcFlags FilePath
   deriving (Generic, Show, Eq)
 
-instance Hashable CcFlags
+instance Hashable OriginalObjectCcFlags
 
-instance NFData CcFlags
+instance NFData OriginalObjectCcFlags
 
-instance Binary CcFlags
+instance Binary OriginalObjectCcFlags
 
-type instance RuleResult CcFlags = [String]
+type instance RuleResult OriginalObjectCcFlags = [String]
 
 data GenData = GenData
   { lastRunId :: UUID.UUID,

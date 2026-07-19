@@ -1699,13 +1699,17 @@ guards, no flag.
   LIBCD/LIBPAD/LIBMCRD forwarding wrappers are permanent 6-of-32-byte
   NON_MATCHING (drafts on `codex/sdk-wave2-epilogue-blocked`); libraries differ
   per game (LIBGS's dmyGs* matched). A direct artifact check makes the boundary
-  concrete: PsyQ 4.6 `GS_107.OBJ` has relocation-normalised `.text` identical to
-  all 0x570 target bytes, while its `CC1PSX.EXE` identifies itself as GCC 2.95.2.
-  GCC 2.8.1 keeps the natural MATRIX assignment as a symbolic-address block move
-  that its own delay-slot splitter cannot split; hand-unrolled copies are a local
-  minimum, not better source. Read `jr ra`'s delay slot before spending
-  anything on an SDK cluster. `EVENT_OBJ_80/90/BC` are shared epilogues, not
-  functions.
+  concrete: `GS_107.OBJ` has relocation-normalised `.text` identical to all
+  0x570 target bytes, and the same object ships in PsyQ 4.5 and 4.6 beside
+  different cc1 versions. Archive adjacency is therefore NOT compiler
+  provenance. Direct probes split the signature: Sony 2.8.1 preserves the
+  target's 3+3+2 MATRIX-copy batching but leaves the final delay slots empty;
+  Sony 2.95.2 fills the slots but emits sequential load/store pairs. Our 2.8.1
+  dump shows the symbolic-address block move its delay splitter cannot split;
+  explicit word copies fill the slot only by rotating the base/scratch registers
+  and changing the epilogue, a measured local minimum. Read `jr ra`'s delay slot
+  before spending anything on an SDK cluster. `EVENT_OBJ_80/90/BC` are shared
+  epilogues, not functions.
 - **The 3-insn split (`sll 16 / sra k / sra 16-k`) is matchable ordinary C.**
   The former park-on-sight rule was a local-minimum error: all three game
   examples (`GetPad`, `GetPadXY`, `FUN_8001b174`) are now exact. Their human

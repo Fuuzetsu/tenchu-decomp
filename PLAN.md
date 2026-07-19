@@ -267,9 +267,9 @@ large and unique — a statement about resemblance, not value). Reading the top 
 states every omission (SDK, handwritten-asm, over-size). The SDK functions matched on
 that detour (`GsSetLsMatrix`, `_card_clear`, `GsMulCoord0/2/3`, `PAD_init`, `InitPAD`)
 are byte-identical and green so they stay, and it did pay for itself twice — the
-`-mno-split-addresses` per-TU lever and the `ccExtraFlags` oracle bug (a Build.hs defect
-that silently made per-TU flag experiments measure stale objects). But it is not where
-effort goes.
+`-mno-split-addresses` original-object profile and the `OriginalObjectCcFlags`
+oracle bug (a Build.hs defect that silently made compiler-profile experiments
+measure stale objects). But it is not where effort goes.
 
 **`TransMatrix` and `GsInitCoordinate2`** are parked SDK drafts; leave them. The
 "libgte is handwritten asm" idea is a hypothesis with one data point and is moot now

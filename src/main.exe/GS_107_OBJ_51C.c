@@ -16,8 +16,8 @@ extern MATRIX _LC;
 /*
  * STATUS: NON_MATCHING — ONE INSTRUCTION over (20 vs 19). Every other
  * instruction, register and operand is exact, and it needs
- * `-mno-split-addresses` (Build.hs ccExtraFlags) to get there — same provenance
- * as its sibling GS_107_OBJ_4B8.
+ * `-mno-split-addresses` (Build.hs original-object profile) to get there — same
+ * provenance as its sibling GS_107_OBJ_4B8.
  *
  * THE RESIDUAL IS SHARED WITH GS_107_OBJ_4B8, and it is the same instruction in
  * both: reorg will not put the struct-copy's LAST STORE into the branch's delay
@@ -37,10 +37,12 @@ extern MATRIX _LC;
  *
  * The sibling's compiler dump explains this residual too: GCC 2.8.1 leaves the
  * global side as a symbolic-address `movstrsi_internal`, while its delay-slot
- * split requires register addresses. The exact stock GS_107.OBJ was compiled by
- * the SDK's different compiler and proves that the natural whole-struct copy is
- * the right source shape. Fix the original-object compiler profile, not this
- * function with manual copies; doing so fixes BOTH leaves.
+ * split requires register addresses. The exact stock GS_107.OBJ alone does not
+ * identify its compiler: PsyQ 4.5 and 4.6 ship the same object beside different
+ * cc1 versions, and neither compiler reproduces every feature of this helper
+ * from the natural assignment. Explicit grouped word copies fill the slot but
+ * rotate the global base and all three scratch registers. Keep the human
+ * whole-struct copy while the original toolchain/source distinction is open.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/GS_107_OBJ_51C", GS_107_OBJ_51C);

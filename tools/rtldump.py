@@ -130,9 +130,9 @@ def _load_maspsx_config():
 
 
 def cc_flags_for(name):
-    """Return the build-equivalent cc1 flags for one translation unit."""
+    """Return flags inherited from this carve's original object."""
     import permute
-    return CC_FLAGS + permute.CC_EXTRA_FLAGS.get(name, [])
+    return CC_FLAGS + permute.CC_FLAGS_BY_OBJECT_MEMBER.get(name, [])
 
 
 def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
