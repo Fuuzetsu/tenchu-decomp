@@ -18,6 +18,7 @@ from tools import psxexe
 
 LOAD = 0x80011000
 ENTRY = 0x80011234
+PAYLOAD_CONTAINING_ENTRY = b"A" * (ENTRY - LOAD + 4)
 
 
 def make_exe(
@@ -161,29 +162,39 @@ class FinalizeTests(unittest.TestCase):
 
     def test_finalization_is_idempotent_after_sector_padding(self) -> None:
         first, _, first_padding = psxexe.finalize_image(
-            make_exe(b"payload"), entry=ENTRY, load_address=LOAD
+            make_exe(PAYLOAD_CONTAINING_ENTRY), entry=ENTRY, load_address=LOAD
         )
         second, _, second_padding = psxexe.finalize_image(
             first, entry=ENTRY, load_address=LOAD
         )
-        self.assertEqual(first_padding, psxexe.SECTOR_SIZE - len(b"payload"))
+        self.assertEqual(
+            first_padding, psxexe.SECTOR_SIZE - len(PAYLOAD_CONTAINING_ENTRY)
+        )
         self.assertEqual(second_padding, 0)
         self.assertEqual(second, first)
 
     def test_conflicting_expected_layout_is_rejected(self) -> None:
         with self.assertRaisesRegex(psxexe.PsxExeError, "conflicts with finalized"):
             psxexe.finalize_image(
-                make_exe(b"payload"),
+                make_exe(PAYLOAD_CONTAINING_ENTRY),
                 entry=ENTRY,
                 load_address=LOAD,
                 expected={"pc": ENTRY + 4},
+            )
+
+    def test_entry_cannot_land_only_in_new_padding(self) -> None:
+        with self.assertRaisesRegex(psxexe.PsxExeError, "outside the unpadded payload"):
+            psxexe.finalize_image(
+                make_exe(b"payload"),
+                entry=LOAD + 0x100,
+                load_address=LOAD,
             )
 
 
 class ValidateTests(unittest.TestCase):
     def valid_image(self) -> bytes:
         image, _, _ = psxexe.finalize_image(
-            make_exe(b"payload"), entry=ENTRY, load_address=LOAD
+            make_exe(PAYLOAD_CONTAINING_ENTRY), entry=ENTRY, load_address=LOAD
         )
         return image
 
@@ -191,6 +202,12 @@ class ValidateTests(unittest.TestCase):
         image = self.valid_image()
         with self.assertRaisesRegex(psxexe.PsxExeError, r"file size.*0x800 \+ t_size"):
             psxexe.validate_image(image + b"x")
+
+    def test_validator_rejects_missing_magic(self) -> None:
+        image = bytearray(self.valid_image())
+        image[:8] = b"NOT EXE!"
+        with self.assertRaisesRegex(psxexe.PsxExeError, "missing 'PS-X EXE' magic"):
+            psxexe.validate_image(image)
 
     def test_validator_rejects_non_sector_size_even_when_file_matches(self) -> None:
         image = bytearray(make_exe(b"A" * 0x804, pc=ENTRY, declared_size=0x804))
@@ -241,6 +258,33 @@ class MetadataTests(unittest.TestCase):
             )
             self.assertEqual(psxexe.read_map_symbol(path, "__entry"), ENTRY)
             self.assertEqual(psxexe.read_map_symbol(path, "__load_start"), LOAD)
+
+    def test_map_accepts_gnu_provide_spelling(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "fixture.map"
+            path.write_text(
+                "0x80011234 PROVIDE (__entry = .)\n"
+                "0x80011000 PROVIDE_HIDDEN (__load_start = .)\n"
+            )
+            self.assertEqual(psxexe.read_map_symbol(path, "__entry"), ENTRY)
+            self.assertEqual(psxexe.read_map_symbol(path, "__load_start"), LOAD)
+
+    def test_resolve_layout_derives_elf_entry_and_load_segment(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "fixture.elf"
+            path.write_bytes(make_elf32())
+            args = argparse.Namespace(
+                elf=path,
+                map=None,
+                entry=None,
+                entry_symbol=None,
+                load_address=None,
+                load_symbol=None,
+            )
+            self.assertEqual(
+                psxexe.resolve_layout(args, require_complete=True),
+                psxexe.ResolvedLayout(ENTRY, LOAD),
+            )
 
     def test_sign_extended_map_address_is_normalized(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -317,6 +361,28 @@ class CliTests(unittest.TestCase):
                     ]
                 )
             self.assertEqual(status, 2)
+
+    def test_validate_rejects_conflicting_explicit_and_expected_entry(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "game.exe"
+            image, _, _ = psxexe.finalize_image(
+                make_exe(PAYLOAD_CONTAINING_ENTRY), entry=ENTRY, load_address=LOAD
+            )
+            path.write_bytes(image)
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr):
+                status = psxexe.main(
+                    [
+                        "validate",
+                        str(path),
+                        "--entry",
+                        hex(ENTRY + 4),
+                        "--expect",
+                        f"pc={ENTRY:#x}",
+                    ]
+                )
+            self.assertEqual(status, 2)
+            self.assertIn("conflicts with resolved entry", stderr.getvalue())
 
 
 if __name__ == "__main__":

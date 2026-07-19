@@ -212,6 +212,13 @@ def finalize_image(
     load_address = normalize_address(load_address, "load address")
 
     payload = data[HEADER_SIZE:]
+    unpadded_size = len(payload)
+    _validate_range(load_address, unpadded_size, f"{source}: unpadded text")
+    require(
+        load_address <= entry < load_address + unpadded_size,
+        f"{source}: entry {entry:#x} is outside the unpadded payload "
+        f"{load_address:#x}..{load_address + unpadded_size:#x}",
+    )
     padding = (-len(payload)) % SECTOR_SIZE
     if padding:
         payload += bytes(padding)
@@ -423,6 +430,9 @@ def read_map_symbol(path: Path, name: str) -> int:
     patterns = (
         re.compile(rf"^\s*({number})\s+{escaped}(?:\s|$|=)"),
         re.compile(rf"^\s*{escaped}\s*=\s*({number})(?:\s|$)"),
+        re.compile(
+            rf"^\s*({number})\s+PROVIDE(?:_HIDDEN)?\s*\(\s*{escaped}\s*="
+        ),
     )
     values: set[int] = set()
     for line in source.splitlines():
@@ -616,9 +626,21 @@ def run(args: argparse.Namespace) -> int:
 
     if args.command == "validate":
         if layout.entry is not None:
-            expectations.setdefault("pc", layout.entry)
+            if "pc" in expectations:
+                require(
+                    expectations["pc"] == layout.entry,
+                    f"--expect pc={expectations['pc']:#x} conflicts with resolved "
+                    f"entry {layout.entry:#x}",
+                )
+            expectations["pc"] = layout.entry
         if layout.load_address is not None:
-            expectations.setdefault("t_addr", layout.load_address)
+            if "t_addr" in expectations:
+                require(
+                    expectations["t_addr"] == layout.load_address,
+                    f"--expect t_addr={expectations['t_addr']:#x} conflicts with "
+                    f"resolved load address {layout.load_address:#x}",
+                )
+            expectations["t_addr"] = layout.load_address
         header = validate_image(data, source=str(args.input), expected=expectations)
         if not args.quiet:
             print("valid", _summary(args.input, header))
