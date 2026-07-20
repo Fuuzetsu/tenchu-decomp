@@ -57,22 +57,22 @@
  * identical instruction content. Think4Func (last table, no following
  * table to prefetch for) needed no such temp.
  */
-extern some_char_state_function *Think1Func[];
-extern some_char_state_function *Think2Func[];
-extern some_char_state_function *Think3Func[];
-extern some_char_state_function *Think4Func[];
+extern think_func_ *Think1Func[];
+extern think_func_ *Think2Func[];
+extern think_func_ *Think3Func[];
+extern think_func_ *Think4Func[];
 
 void SetupThinkFunction(Humanoid *human, s16 type)
 {
     s32 check;
-    some_char_state_function **table2;
-    some_char_state_function **table3;
+    think_func_ **table2;
+    think_func_ **table3;
 
     human->think[0] = Think1Func[type & 0xF];
     table2 = Think2Func;
-    human->think[1] = *(some_char_state_function **)((u8 *)table2 + ((((s32)type << 16) >> 18) & 0x3C));
+    human->think[1] = *(think_func_ **)((u8 *)table2 + ((((s32)type << 16) >> 18) & 0x3C));
     table3 = Think3Func;
-    human->think[2] = *(some_char_state_function **)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));
+    human->think[2] = *(think_func_ **)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));
     human->think[3] = Think4Func[(u32)((s32)type << 16) >> 28];
     check = ((s32)type << 16) >> 16;
     if (check == 0 || check == 0x1111 || check == 0x2222) {

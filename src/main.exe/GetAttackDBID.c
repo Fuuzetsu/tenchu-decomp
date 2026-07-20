@@ -51,7 +51,7 @@ typedef struct
 } BattleDBEntry;
 
 extern BattleDBEntry BattleDB[];
-extern s16 GetMotionID(something_about_current_animation *motion, s16 mid);
+extern s16 GetMotionID(MotionManager *motion, s16 mid);
 
 s16 GetAttackDBID(Humanoid *human, s16 mid)
 {
