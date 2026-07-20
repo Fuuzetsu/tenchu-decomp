@@ -61,6 +61,12 @@ extern int PadSetAct(int port, u8 *data, int len);
 extern int PadSetActAlign(int port, u8 *data);
 extern u8 D_800976F0[6];
 
+/* Same 14-byte retail record as game_types.h's official TPadPort, but with
+ * SIGNED x/y: ComPad writes negative analog values (`pad->y = -0x2D`), which
+ * on a signed field emit the target's `addiu -0x2D` — an unsigned field would
+ * fold the constant to 0xffd3 and emit `ori` instead (different opcode). The
+ * canonical TPadPort keeps x/y unsigned so GetPadXY's reads stay `lhu`; this
+ * signedness split is why the two views coexist. */
 typedef struct
 {
     u16 held;

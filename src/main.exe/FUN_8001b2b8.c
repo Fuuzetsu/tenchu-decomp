@@ -27,8 +27,8 @@
  * — two extra `lui`s and the wrong length.
  *
  * The pad byte is reached as an offset cast off the proven PadPort extern
- * (offset 7 is the high half of controller_input.unk_2[2], so it has no named
- * field), which keeps the absolute %hi/%lo pair identical to a bare D_800BE6D7
+ * (offset 7 is TPadPort.fAnalog, accessed here as a raw byte cast rather than
+ * the field), which keeps the absolute %hi/%lo pair identical to a bare D_800BE6D7
  * while avoiding a symbol nothing else would reference.
  */
 

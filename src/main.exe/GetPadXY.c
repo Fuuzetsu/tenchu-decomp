@@ -44,10 +44,10 @@
 void GetPadXY(short no, short *x, short *y)
 {
     s32 port;
-    controller_input *pad;
+    TPadPort *pad;
 
     port = no << 4;
     pad = &PadPort[port >> 4][port & 3];
-    *x = (short)pad->unk_2[0];
-    *y = (short)pad->unk_2[1];
+    *x = (short)pad->x;
+    *y = (short)pad->y;
 }

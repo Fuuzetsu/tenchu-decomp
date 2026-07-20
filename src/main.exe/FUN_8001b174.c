@@ -24,7 +24,7 @@
 u8 FUN_8001b174(short arg0)
 {
     s32 port = arg0 << 4;
-    controller_input *pad = &PadPort[port >> 4][port & 3];
+    TPadPort *pad = &PadPort[port >> 4][port & 3];
 
-    return ((u8 *)pad)[6];
+    return pad->active;
 }
