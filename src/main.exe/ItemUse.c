@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -27,7 +28,7 @@
 
 /*
  * ItemUse (0x8002dc0c, 0x10c bytes) — think-handler: while idle
- * (something_about_current_animation->frames_since_animation_start == 0,
+ * (something_about_current_animation->count == 0,
  * i.e. motion just started) and status == USING_ITEM, auto-uses one of the
  * three "use while idling" items in priority order: kusuri (index 3, when
  * health is under a third of max), then shuriken-ish (index 1, only when
@@ -36,11 +37,11 @@
  *
  * `Me_THINK_C->item[N]` (Ghidra's flat array) is the SAME memory as
  * game_types.h's `inventory.player_item_counts` union — item.h's Humanoid
- * has the plain array view (`u8 item[0x1A]`), character_state's own proven
+ * has the plain array view (`u8 item[0x1A]`), Humanoid's own proven
  * layout instead nests it under the named union; `pic_by_index[N]` reaches
  * the identical byte.
  *
- * `(s16)Me_THINK_C->current_health`/`(s16)Me_THINK_C->max_health` — both
+ * `(s16)Me_THINK_C->life`/`(s16)Me_THINK_C->lifemax` — both
  * fields are proven `u16` in the shared header, but THIS file's compare
  * reads current_health with a signed `lh` and max_health's div-by-3 uses
  * the SIGNED magic-multiply constant (0x55555556 + a `sra 31` sign
@@ -65,34 +66,34 @@
  * first statement" trick; here the assignment genuinely precedes the
  * test in source, per Ghidra's own literal order).
  */
-extern void ReqItemDefault(character_state *user, s32 ItemID);
-extern s16 SetNowMotion(character_state *human, s16 mid, s16 move);
+extern void ReqItemDefault(Humanoid *user, s32 ItemID);
+extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern s16 Degree;
 
 static s16 ItemUse(void)
 {
-    character_state *me;
+    Humanoid *me;
     s16 id;
     s32 d;
 
-    if (Me_THINK_C->something_about_current_animation->frames_since_animation_start != 0)
+    if (Me_THINK_C->motion->count != 0)
     {
         return 5;
     }
-    if ((s16)Me_THINK_C->character_status != 5)
+    if ((s16)Me_THINK_C->status != 5)
     {
         return 5;
     }
 
-    if (Me_THINK_C->inventory.player_item_counts.pic_by_index[3] != 0 &&
-        (s16)Me_THINK_C->current_health < (s16)Me_THINK_C->max_health / 3)
+    if (Me_THINK_C->item[3] != 0 &&
+        (s16)Me_THINK_C->life < (s16)Me_THINK_C->lifemax / 3)
     {
         ReqItemDefault(Me_THINK_C, 3);
         return;
     }
 
     me = Me_THINK_C;
-    if (me->inventory.player_item_counts.pic_by_index[1] != 0)
+    if (me->item[1] != 0)
     {
         d = Degree;
         if (d < 0)
@@ -106,7 +107,7 @@ static s16 ItemUse(void)
         }
     }
 
-    if (me->inventory.player_item_counts.pic_by_index[4] == 0)
+    if (me->item[4] == 0)
     {
         goto end;
     }

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -64,7 +65,7 @@ s16 Think4chase(void)
         return 0;
     }
 
-    if (Me_THINK_C->some_other_x_position == 0 && Me_THINK_C->some_other_z_position == 0)
+    if (Me_THINK_C->chase[0] == 0 && Me_THINK_C->chase[1] == 0)
     {
         if (0x5B <= Me_THINK_C->actcnt)
         {
@@ -76,11 +77,11 @@ s16 Think4chase(void)
             result = 0x1000;
             if (Me_THINK_C->actcnt < 0x1E)
             {
-                if (Degree > Me_THINK_C->character_rotation_speed)
+                if (Degree > Me_THINK_C->turn)
                 {
                     result = 0x3000;
                 }
-                else if (Degree < -Me_THINK_C->character_rotation_speed)
+                else if (Degree < -Me_THINK_C->turn)
                 {
                     result = -0x7000;
                 }
@@ -92,13 +93,13 @@ s16 Think4chase(void)
         s32 dx, dz;
 
         Me_THINK_C->actscnt = Me_THINK_C->actscnt + 1;
-        dx = Me_THINK_C->some_other_x_position - Me_THINK_C->some_kind_of_current_position->vx;
-        dz = Me_THINK_C->some_other_z_position - Me_THINK_C->some_kind_of_current_position->vz;
+        dx = Me_THINK_C->chase[0] - Me_THINK_C->locate->vx;
+        dz = Me_THINK_C->chase[1] - Me_THINK_C->locate->vz;
         result = turn_towards_player_(dx, dz);
         if (SquareRoot0(dx * dx + dz * dz) < 1000 || Me_THINK_C->actscnt == 0)
         {
-            Me_THINK_C->some_other_z_position = 0;
-            Me_THINK_C->some_other_x_position = 0;
+            Me_THINK_C->chase[1] = 0;
+            Me_THINK_C->chase[0] = 0;
             Me_THINK_C->actcnt = 0;
         }
     }

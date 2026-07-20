@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -40,10 +41,10 @@
  *
  * Same "think" TU as Think1ninja.c/ThinkBasicHuman1.c/Think3chase.c/
  * Think3escape.c/Think3firstattack.c (Me_THINK_C, Distance, Degree, the
- * per-TU `(s16)Me_THINK_C->character_status` load-width cast).
+ * per-TU `(s16)Me_THINK_C->status` load-width cast).
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `(s16)Me_THINK_C->character_status == 7 || == 9` follows Think1ninja.c's
+ *  - `(s16)Me_THINK_C->status == 7 || == 9` follows Think1ninja.c's
  *    established per-TU cast (the shared field is u16; this TU's asm reads
  *    it with `lh`).
  *  - `deg = Degree; if (deg < 0) deg = -deg;` re-reads its own destination
@@ -74,13 +75,13 @@
  *    branches and leaves it alone in the other 2 (the `== 0x1e` Sound
  *    branch and the implicit `>= 0x5a` else) — write it exactly as Ghidra's
  *    ladder shows, no `else` needed for the last arm.
- *  - `Sound` is called with `Me_THINK_C` (`character_state *`), NOT
+ *  - `Sound` is called with `Me_THINK_C` (`Humanoid *`), NOT
  *    item.h's `Humanoid *` — this TU's own view of the object (same
  *    per-TU-prototype convention as every other Sound call site).
  */
 extern s32 Distance;
 extern s16 Degree;
-extern void Sound(character_state *cs, int seid);
+extern void Sound(Humanoid *cs, int seid);
 
 short AttackAnimal(void)
 {
@@ -88,7 +89,7 @@ short AttackAnimal(void)
     s32 ret;
     u8 am;
 
-    if ((s16)Me_THINK_C->character_status == 7 || (s16)Me_THINK_C->character_status == 9)
+    if ((s16)Me_THINK_C->status == 7 || (s16)Me_THINK_C->status == 9)
     {
         Me_THINK_C->actmode = 0;
         return 0;

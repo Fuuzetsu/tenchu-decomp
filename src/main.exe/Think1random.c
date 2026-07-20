@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -55,8 +56,8 @@ s16 Think1random(void)
     result = 0;
     if (actcnt == 1)
     {
-        Me_THINK_C->some_other_x_position = Me_THINK_C->some_x_position + rand() % 10000 - 5000;
-        Me_THINK_C->some_other_z_position = Me_THINK_C->some_z_position + rand() % 10000 - 5000;
+        Me_THINK_C->chase[0] = Me_THINK_C->point[0] + rand() % 10000 - 5000;
+        Me_THINK_C->chase[1] = Me_THINK_C->point[1] + rand() % 10000 - 5000;
     }
     else
     {
@@ -64,9 +65,9 @@ s16 Think1random(void)
         s32 adx, adz;
         VECTOR *locate;
 
-        locate = Me_THINK_C->some_kind_of_current_position;
-        vx = Me_THINK_C->some_other_x_position - locate->vx;
-        vz = Me_THINK_C->some_other_z_position - locate->vz;
+        locate = Me_THINK_C->locate;
+        vx = Me_THINK_C->chase[0] - locate->vx;
+        vz = Me_THINK_C->chase[1] - locate->vz;
         adx = (vx >= 0) ? vx : -vx;
         if (adx < 1000)
         {

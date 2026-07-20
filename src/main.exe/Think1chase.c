@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -38,10 +39,10 @@
  * turn_towards_player_; when it returns 0 (facing the target already),
  * resets actcnt to 0 and forces the result to 0x80 instead.
  *
- * GetNearestHumanoid is respelled `character_state *` here (not `Humanoid
+ * GetNearestHumanoid is respelled `Humanoid *` here (not `Humanoid
  * *`) to match this TU's `Me_THINK_C`/`Me_THINK_C->some_kind_of_current_-
  * position` — same per-TU extern-parameter respelling as AttackAnimal.c's
- * `Sound(character_state *cs, int seid)` (item.h's own `Humanoid` describes
+ * `Sound(Humanoid *cs, int seid)` (item.h's own `Humanoid` describes
  * the identical layout for the item TU's callers).
  *
  * The null check reads OPPOSITE of Ghidra's literal `if (enemy == 0)
@@ -60,7 +61,7 @@
  * (same "Ghidra's short-typed call-result variable can be int in source"
  * rule as ThinkBasicHuman1's pad).
  */
-extern character_state *GetNearestHumanoid(character_state *human, s16 distance);
+extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
 
 s16 Think1chase(void)
 {
@@ -72,24 +73,24 @@ s16 Think1chase(void)
     result = 0;
     if (actcnt == 1)
     {
-        character_state *enemy;
+        Humanoid *enemy;
 
         enemy = GetNearestHumanoid(Me_THINK_C, 5000);
         if (enemy != 0)
         {
-            Me_THINK_C->some_other_x_position = enemy->some_kind_of_current_position->vx;
-            Me_THINK_C->some_other_z_position = enemy->some_kind_of_current_position->vz;
+            Me_THINK_C->chase[0] = enemy->locate->vx;
+            Me_THINK_C->chase[1] = enemy->locate->vz;
         }
         else
         {
-            Me_THINK_C->some_other_x_position = Me_THINK_C->some_x_position + rand() % 10000 - 5000;
-            Me_THINK_C->some_other_z_position = Me_THINK_C->some_z_position + rand() % 10000 - 5000;
+            Me_THINK_C->chase[0] = Me_THINK_C->point[0] + rand() % 10000 - 5000;
+            Me_THINK_C->chase[1] = Me_THINK_C->point[1] + rand() % 10000 - 5000;
         }
     }
     else
     {
-        result = turn_towards_player_(Me_THINK_C->some_other_x_position - Me_THINK_C->some_kind_of_current_position->vx,
-                                       Me_THINK_C->some_other_z_position - Me_THINK_C->some_kind_of_current_position->vz);
+        result = turn_towards_player_(Me_THINK_C->chase[0] - Me_THINK_C->locate->vx,
+                                       Me_THINK_C->chase[1] - Me_THINK_C->locate->vz);
         if ((s16)result == 0)
         {
             result |= 0x80;

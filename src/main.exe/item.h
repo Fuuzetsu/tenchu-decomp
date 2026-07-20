@@ -178,7 +178,7 @@ typedef struct
     u16 stream[4];               /* 0x8 */
 } PADtype;                       /* 0x10 */
 
-typedef struct
+typedef struct Humanoid
 {
     s16 type;                    /* 0x00 */
     s16 status;                  /* 0x02 */
