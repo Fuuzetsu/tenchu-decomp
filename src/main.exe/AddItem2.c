@@ -80,7 +80,7 @@
  *    source order is sin-block then cos-block, each self-contained).
  */
 
-typedef struct { debug_menu_choice e[25]; } MENU_ITEM_TBL;    /* 0xC8 */
+typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;    /* 0xC8 */
 
 typedef struct
 {
@@ -98,7 +98,7 @@ extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
 extern char D_800124C0[];                   /* "select item" */
 extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const */
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
 extern void *GlobalAreaMap;
 
@@ -112,7 +112,7 @@ void AddItem2(void)
     u8 mi[0xC8];
 
     *(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;
-    n = AdtSelect(D_800124C0, (debug_menu_choice *)mi, 0);
+    n = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
     memset(mi, 0, sizeof(PARAM_ITEM_STAY));
     ((PARAM_ITEM_STAY *)mi)->type = n;
 

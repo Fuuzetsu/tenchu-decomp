@@ -37,13 +37,13 @@ extern char D_80013654[];
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strlen(char *s);
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s16 CVAsequence(s16 sid);
 
 void debug_menu_file_animation_test(void)
 {
     char text[0x100];
-    debug_menu_choice menu[64];
+    TAdtSelect menu[64];
     CVAEvent *event;
     char *buffer;
     s32 count;
@@ -55,17 +55,17 @@ void debug_menu_file_animation_test(void)
     while (event->kind != -1) {
         if (event->kind == 0) {
             sprintf(buffer, D_80097CD0, event->mode);
-            menu[count].choice_name = buffer;
-            menu[count].choice_number = event->mode;
+            menu[count].name = buffer;
+            menu[count].value = event->mode;
             count++;
             buffer += strlen(buffer) + 1;
         }
         event++;
     }
-    menu[count].choice_name = D_80097CD4;
-    menu[count].choice_number = -1;
+    menu[count].name = D_80097CD4;
+    menu[count].value = -1;
     count++;
-    menu[count].choice_name = NULL;
+    menu[count].name = NULL;
 
     selection = AdtSelect(D_80013654, menu, 0);
     if (selection != -1) {

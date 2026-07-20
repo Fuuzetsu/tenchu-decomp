@@ -107,7 +107,7 @@ extern char D_80013FB4[];
 extern char D_80097D48[];
 extern char D_80097D50[];
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
 extern s32 leSetEnemy(s32 type, s16 think, s32 x, s32 y, s32 z, s32 r);
@@ -118,7 +118,7 @@ extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
 void AddEnemy(void)
 {
     u8 names[70][20];
-    debug_menu_choice ItemName[70];
+    TAdtSelect ItemName[70];
     s16 i;
     Humanoid *human;
     s32 type;
@@ -154,17 +154,17 @@ void AddEnemy(void)
                 }
                 sprintf((char *)names[x], D_80097D48,
                         HumanData[i].name, WeaponModel[y].name);
-                ItemName[x].choice_name = (char *)names[x];
-                ItemName[x].choice_number = HumanData[i].type;
+                ItemName[x].name = (char *)names[x];
+                ItemName[x].value = HumanData[i].type;
                 x++;
             }
             i++;
         }
     }
 
-    ItemName[x].choice_name = D_80097D50;
-    ItemName[x++].choice_number = -1;
-    ItemName[x].choice_name = 0;
+    ItemName[x].name = D_80097D50;
+    ItemName[x++].value = -1;
+    ItemName[x].name = 0;
     type = (s16)AdtSelect(D_80013FA8, ItemName, 0);
     if (type == -1)
         return;
@@ -183,14 +183,14 @@ void AddEnemy(void)
                     break;
                 if ((s16)r + 0x31 == ThinkDB[i].name[0])
                 {
-                    ItemName[x].choice_name = (char *)ThinkDB[i].name;
-                    ItemName[x].choice_number = ThinkDB[i].value;
+                    ItemName[x].name = (char *)ThinkDB[i].name;
+                    ItemName[x].value = ThinkDB[i].value;
                     x++;
                 }
                 i++;
             }
         }
-        ItemName[x].choice_name = 0;
+        ItemName[x].name = 0;
         think = think | AdtSelect(D_80013FB4, ItemName, 0);
     } while (think != 0x1111 && think != 0x2222 && ++r < 4);
 

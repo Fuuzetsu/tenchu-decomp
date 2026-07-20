@@ -77,12 +77,12 @@
  *    TUs' — plain absolute externs.
  */
 
-typedef struct { debug_menu_choice e[11]; } MENU_MAIN_TBL;     /* 0x58 */
-typedef struct { debug_menu_choice e[25]; } MENU_ITEM_TBL;     /* 0xC8 */
-typedef struct { debug_menu_choice e[5];  } MENU_LAYOUT_TBL;   /* 0x28 */
-typedef struct { debug_menu_choice e[4];  } MENU_COUNT_TBL;    /* 0x20 */
-typedef struct { debug_menu_choice e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
-typedef struct { debug_menu_choice e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
+typedef struct { TAdtSelect e[11]; } MENU_MAIN_TBL;     /* 0x58 */
+typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;     /* 0xC8 */
+typedef struct { TAdtSelect e[5];  } MENU_LAYOUT_TBL;   /* 0x28 */
+typedef struct { TAdtSelect e[4];  } MENU_COUNT_TBL;    /* 0x20 */
+typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
+typedef struct { TAdtSelect e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
 
 
 typedef struct
@@ -118,7 +118,7 @@ extern char D_80012558[];                   /* "clear ok?" */
 extern char D_800125F0[];                   /* "select option" */
 extern char D_80097C40[];                   /* effect-menu title buffer */
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s32 GetPad(s32 n);
 extern void InitializeInfoView(void);
 extern void LayoutEnemyOption(void);
@@ -154,9 +154,9 @@ static inline void ItemAddMenu(void)
     u8 mi[0xC8];
 
     *(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;
-    n = AdtSelect(D_800124C0, (debug_menu_choice *)mi, 0);
+    n = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
     *(MENU_COUNT_TBL *)mi = D_800124CC;
-    CamState.Owner->item[n] += AdtSelect(D_800124EC, (debug_menu_choice *)mi, 0);
+    CamState.Owner->item[n] += AdtSelect(D_800124EC, (TAdtSelect *)mi, 0);
 }
 
 static inline void ItemLayoutMenu(void)
@@ -166,14 +166,14 @@ static inline void ItemLayoutMenu(void)
 
     *(MENU_LAYOUT_TBL *)mi = DEBUG_MENU_ITEM_LAYOUT_OPTIONS;
     *(MENU_CONFIRM_TBL *)(mi + 0x28) = D_8001252C;
-    n = AdtSelect(D_80012544, (debug_menu_choice *)mi, 0);
+    n = AdtSelect(D_80012544, (TAdtSelect *)mi, 0);
     switch (n)
     {
     case 0:
         AddItem2();
         break;
     case 1:
-        if (AdtSelect(D_80012558, (debug_menu_choice *)(mi + 0x28), 1) == 1)
+        if (AdtSelect(D_80012558, (TAdtSelect *)(mi + 0x28), 1) == 1)
         {
             ClearItemLayout();
         }
@@ -190,7 +190,7 @@ static inline void EffectSpawnMenu(void)
             CamState.Owner->model->locate.coord.t[1],
             CamState.Owner->model->locate.coord.t[2],
             CamState.Owner->model->rotate.vy,
-            AdtSelect(D_80097C40, (debug_menu_choice *)&me, 0), 0);
+            AdtSelect(D_80097C40, (TAdtSelect *)&me, 0), 0);
 }
 
 void DoInfoViewProc(void)

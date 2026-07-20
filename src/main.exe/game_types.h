@@ -29,11 +29,15 @@ typedef struct
     u16 unk_2[6];
 } controller_input;
 
-typedef struct
+/* AdtSelect's menu row — the demo's own debug symbols name this TAdtSelect
+ * (the PSX.SYM stack-variable records in FileOption/DoInfoViewProc/etc. call
+ * these arrays `struct TAdtSelect [N]`). */
+typedef struct TAdtSelect TAdtSelect;
+struct TAdtSelect
 {
-    char *choice_name;
-    u32 choice_number;
-} debug_menu_choice;
+    char *name;    /* 0x0 */
+    u32 value;     /* 0x4 */
+};
 
 // Ghidra's own independently-built Humanoid struct (reference/ghidra_types.h)
 // has this exact 8-byte struct (`long level; long height;`) right after its
@@ -252,7 +256,7 @@ enum item_kind2
 
     ITEM_KIND_2_EXTEND = 0xffff,
 };
-// s32 AdtSelect(char *screen_header, debug_menu_choice *choices, char *param_3);
+// s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);
 
 // The persistent game state blob at 0x80010000 (below the exe image; survives
 // across screens). Offsets proven by BriefingAndInventorySelectionScreen.

@@ -77,7 +77,7 @@ typedef struct
 
 typedef struct
 {
-    debug_menu_choice entry[3];
+    TAdtSelect entry[3];
 } SaveSISelectBlock;
 
 extern u8 *ImagePath;
@@ -108,7 +108,7 @@ extern s32 MemCardWriteFile(s32 chan, char *name, void *data, s32 offset,
                             s32 size);
 extern s32 MemCardFormat(s32 chan);
 extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
-extern s32 AdtSelect(char *title, debug_menu_choice *choices, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *choices, s32 mode);
 extern void AdtMessageBox(char *fmt, ...);
 
 void SaveSI(s32 target, u8 *name, void *mem, s32 size)
@@ -264,7 +264,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                     src = (u8 *)D_80014134;
                 } while (0);
                 dst = (u8 *)select.entry;
-                end = AdtSelect((char *)src, (debug_menu_choice *)dst, 1);
+                end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
             }
             else
             {
@@ -273,7 +273,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                     src = (u8 *)D_80014134;
                 } while (0);
                 dst = (u8 *)select.entry;
-                end = AdtSelect((char *)src, (debug_menu_choice *)dst, 1);
+                end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
             }
             if (end == 0)
             {

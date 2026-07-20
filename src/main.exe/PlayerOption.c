@@ -105,7 +105,7 @@ typedef struct
     s32 pr;     /* 0x18 */
 } StageConfigEntry;                             /* 0x1C */
 
-typedef struct { debug_menu_choice e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
+typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
 
 typedef struct
 {
@@ -141,7 +141,7 @@ extern void *GlobalAreaMap;
 extern MENU_PLAYER_TBL DEBUG_MENU_PLAYER_CHOICE_OPTIONS;
 extern char D_80014784[];                    /* "player option" */
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void debug_menu_player_jump(void);
 extern void leLayoutEnemy(s32 n);
 extern void StartStageSequence(void);

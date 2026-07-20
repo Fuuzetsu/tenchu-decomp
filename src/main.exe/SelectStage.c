@@ -53,12 +53,12 @@
 
 typedef struct
 {
-    debug_menu_choice e[5];
+    TAdtSelect e[5];
 } MenuLanguageTable;
 
 typedef struct
 {
-    debug_menu_choice e[3];
+    TAdtSelect e[3];
 } MenuPlayerTable;
 
 typedef struct
@@ -82,14 +82,14 @@ extern char D_8001420C[];
 extern char D_8001421C[];
 extern char D_8001422C[];
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
 
 void SelectStage(PersistentState *ps)
 {
     MenuLanguageTable language;
     MenuPlayerTable player;
-    debug_menu_choice stage[14];
+    TAdtSelect stage[14];
     char name[11][100];
     s32 i;
     s32 uid;
@@ -103,13 +103,13 @@ void SelectStage(PersistentState *ps)
         }
         uid = StageConfig[i].uid;
         sprintf(name[i], D_80097DC0, uid, StageConfig[i].name);
-        stage[uid].choice_name = name[i];
-        stage[uid].choice_number = i;
+        stage[uid].name = name[i];
+        stage[uid].value = i;
         i++;
     }
-    stage[i].choice_name = D_80097DC8;
-    stage[i].choice_number = 11;
-    stage[i + 1].choice_name = NULL;
+    stage[i].name = D_80097DC8;
+    stage[i].value = 11;
+    stage[i + 1].name = NULL;
 
     do {
         ps->language = AdtSelect(D_8001420C, language.e, 0);

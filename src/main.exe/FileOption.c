@@ -70,15 +70,15 @@
  * the retail instruction schedule and ordinary relocations.
  */
 
-typedef struct { debug_menu_choice e[20]; } MENU_FILE_TBL;      /* 0xA0 */
-typedef struct { debug_menu_choice e[5];  } MENU_SAVELOAD_TBL;  /* 0x28 */
-typedef struct { debug_menu_choice e[18]; } MENU_FLAYOUT_TBL;   /* 0x90 */
+typedef struct { TAdtSelect e[20]; } MENU_FILE_TBL;      /* 0xA0 */
+typedef struct { TAdtSelect e[5];  } MENU_SAVELOAD_TBL;  /* 0x28 */
+typedef struct { TAdtSelect e[18]; } MENU_FLAYOUT_TBL;   /* 0x90 */
 typedef struct { s32 e[11]; } MUSIC_TBL;                        /* 0x2C */
-typedef struct { debug_menu_choice e[5];  } MENU_STOCK_TBL;     /* 0x28 */
+typedef struct { TAdtSelect e[5];  } MENU_STOCK_TBL;     /* 0x28 */
 typedef union {
     u8 bytes[7000];
     struct {
-        debug_menu_choice targets[162];
+        TAdtSelect targets[162];
         char msg[161][5];
     } music;
 } FILE_WORK;
@@ -109,7 +109,7 @@ extern char D_8001423C[];   /* "select music" */
 extern char D_800145A8[];   /* "layout no" */
 extern char D_80097D70[];   /* "%d" */
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(u8 *buf, s32 size);
 extern void PackItemLayout(u8 *buf, s32 size);
 extern void SaveSI(s32 sel, s32 no, u8 *buf, s32 size);
@@ -132,7 +132,7 @@ void FileOption(void)
     s32 no;
     s32 k;
     s32 i;
-    debug_menu_choice *targets;
+    TAdtSelect *targets;
     char (*messages)[5];
     MENU_FILE_TBL m1;
     MENU_SAVELOAD_TBL m2;
@@ -142,26 +142,26 @@ void FileOption(void)
     m1 = DEBUG_MENU_FILE_CHOICES;
     m2 = DEBUG_MENU_SAVE_LOAD_CHOICES;
     m3 = DEBUG_MENU_FILE_LAYOUT_CHOCIES;
-    n = AdtSelect(D_80014518, (debug_menu_choice *)&m1, 0);
+    n = AdtSelect(D_80014518, (TAdtSelect *)&m1, 0);
     if (n == -1)
         return;
     switch (n)
     {
     case 1:
-        sel = AdtSelect(D_80014524, (debug_menu_choice *)&m2, 3);
+        sel = AdtSelect(D_80014524, (TAdtSelect *)&m2, 3);
         if (sel == -1)
             return;
-        no = AdtSelect(D_80014530, (debug_menu_choice *)&m3, 0x10);
+        no = AdtSelect(D_80014530, (TAdtSelect *)&m3, 0x10);
         if (no == -1)
             return;
         FUN_8003cd04(sel & 0xFF, no);
         leLayoutEnemy(0);
         break;
     case 0:
-        sel = AdtSelect(D_8001453C, (debug_menu_choice *)&m2, 3);
+        sel = AdtSelect(D_8001453C, (TAdtSelect *)&m2, 3);
         if (sel != -1)
         {
-            no = AdtSelect(D_80014548, (debug_menu_choice *)&m3, 0x10);
+            no = AdtSelect(D_80014548, (TAdtSelect *)&m3, 0x10);
             if (no != -1)
             {
                 lePackEnemyLayout(work.bytes, 5000);
@@ -199,12 +199,12 @@ void FileOption(void)
         for (; i < 0xA1; i++)
         {
             sprintf(messages[i], D_80097D70, i);
-            targets[i].choice_name = messages[i];
-            targets[i].choice_number = i;
+            targets[i].name = messages[i];
+            targets[i].value = i;
         }
-        ((debug_menu_choice *)((u8 *)targets + (i << 3)))->choice_name = 0;
+        ((TAdtSelect *)((u8 *)targets + (i << 3)))->name = 0;
         PlayMusicFormID(AdtSelect(
-            D_8001423C, (debug_menu_choice *)work.bytes, 0));
+            D_8001423C, (TAdtSelect *)work.bytes, 0));
         break;
     case 0xA:
         EngageLevel = 3;
@@ -220,7 +220,7 @@ void FileOption(void)
         break;
     case 0xD:
         *(MENU_STOCK_TBL *)work.bytes = DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES;
-        k = AdtSelect(D_800145A8, (debug_menu_choice *)work.bytes, 0);
+        k = AdtSelect(D_800145A8, (TAdtSelect *)work.bytes, 0);
         if (k < 0)
             break;
         STAGE_LAYOUT_NUMBER[0] = k;

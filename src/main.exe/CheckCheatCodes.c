@@ -47,8 +47,8 @@
  *    an offset-0 alias vs the enclosing struct's nonzero-offset member is a
  *    real source lever over the -msplit-addresses hi-register choice.
  */
-typedef struct { debug_menu_choice e[25]; } MENU_ITEM_TBL;  /* 0xC8 */
-typedef struct { debug_menu_choice e[4]; } MENU_COUNT_TBL;  /* 0x20 */
+typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;  /* 0xC8 */
+typedef struct { TAdtSelect e[4]; } MENU_COUNT_TBL;  /* 0x20 */
 
 typedef struct
 {
@@ -65,7 +65,7 @@ extern u16 D_8008E4C4[];  /* cheat sequence 2 */
 extern TCameraStatus CamState;
 extern u32 SystemFlag;
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s32 memcmp(void *a, void *b, s32 n);
 
 void CheckCheatCodes(s16 *rec, int n)
@@ -76,10 +76,10 @@ void CheckCheatCodes(s16 *rec, int n)
     if (memcmp(rec, D_8008E4F0, n << 1) == 0) {
         SoundEx(0, 10);
         *(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;
-        sel = AdtSelect(D_800124C0, (debug_menu_choice *)mi, 0);
+        sel = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
         *(MENU_COUNT_TBL *)mi = D_800124CC;
         CamState.Owner->item[sel] +=
-            AdtSelect(D_800124EC, (debug_menu_choice *)mi, 0);
+            AdtSelect(D_800124EC, (TAdtSelect *)mi, 0);
         SoundEx(0, 0x4c);
     } else {
         if (memcmp(rec, D_8008E4C4, n << 1) != 0) {

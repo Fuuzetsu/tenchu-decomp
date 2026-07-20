@@ -7,7 +7,7 @@
  * waits for pad release, saves the display state into a 0x8090-byte frame
  * buffer, then draws the choice list (18 per page) and moves the cursor on
  * edge-detected pad input until confirm (pad & 0x820 -> current entry) or
- * cancel (pad & 0x40 -> last entry); returns the entry's choice_number.
+ * cancel (pad & 0x40 -> last entry); returns the entry's value.
  *
  * STATUS: MATCHING — ordinary human-shaped C under the reused ADT object's
  * pinned GCC 2.8.0 compiler profile.
@@ -30,7 +30,7 @@
  *   mutually exclusive directions as nested negated tests, not from removing
  *   a compiler fence.
  * - The entry count is the ordinary empty indexed loop
- *   `for (count = 0; menu[count].choice_name != 0; count++) {}`. cc1's loop
+ *   `for (count = 0; menu[count].name != 0; count++) {}`. cc1's loop
  *   strength reduction creates the pointer cursor naturally. This clean source
  *   has the same nine-byte residual as the scaffolded draft.
  * - The demo's same-named body independently emits the TARGET self-tie at its
@@ -91,16 +91,16 @@
  *    round-robin, not find_reg), so no fence tuning can close the 9.
  *
  * 3. The single-use `name` temp was removed (byte-NEUTRAL, 9->9): the site-1
- *    deref is now the `if (menu->choice_name != 0)` count guard directly.  The
+ *    deref is now the `if (menu->name != 0)` count guard directly.  The
  *    RTL is identical because combine always folded the temp — reg 93 below is
- *    the loaded choice_name value of that guard, whether or not a C `name`
+ *    the loaded name value of that guard, whether or not a C `name`
  *    named it (measured: candidate with the temp is byte-for-byte the same).
  *    PSX.SYM's prototype declares no such local, so this is the human spelling.
  *
  * ---- WHY (verified line-by-line against the nix-pinned gcc-2.8.1 sources,
  *          and against the .greg RTL dump — see ROUND 3 correction below) ----
  *
- * For `name = menu->choice_name` the insn is `(set (reg 93) (mem (reg 81)))`
+ * For `name = menu->name` the insn is `(set (reg 93) (mem (reg 81)))`
  * with reg 81 = menu spilled (reg_equiv_address = sp+32972; 32972 > 32767 so
  * the address must be materialised).  The .greg dump confirms the operand is a
  * DOUBLE MEM — insn 48 carries
@@ -234,7 +234,7 @@
  *   reload1.c 4618 RELOAD_FOR_OPERAND_ADDRESS returns 0 for any reg in
  *                  reload_reg_used_in_op_addr — A marks it, so B is barred.
  *
- * Why `if (title == 0)` self-ties and `name = menu->choice_name` cannot:
+ * Why `if (title == 0)` self-ties and `name = menu->name` cannot:
  * branch_zero's 'd' constraint RELOADS the operand, so operand_reloadnum >= 0
  * and THE RETYPE NEVER FIRES; A stays INPUT_ADDRESS and B is the operand's own
  * RELOAD_FOR_INPUT, which scans input_addr/inpaddr_addr only for `i > opnum`
@@ -308,7 +308,7 @@
  *    precise instead of prose.  Two DIFFERENT reload functions handle a
  *    reg_equiv_address pseudo, chosen by whether it is DEREFERENCED (used as
  *    a MEM's address) or used BARE (used as a value):
- *      - `menu->choice_name` makes reg81 the address inside `(mem (reg 81))`
+ *      - `menu->name` makes reg81 the address inside `(mem (reg 81))`
  *        — a MEM operand — so `find_reloads` (reload.c:2554) hands it to
  *        `find_reloads_address`, whose REG case (reload.c:4296,
  *        `reg_equiv_address[regno] != 0`) RECURSES: push a reload for the
@@ -380,7 +380,7 @@
  *    find_reloads_address fork above, and it is fully determined by whether
  *    the C-level use is a dereference (always IN-MEM, always two reloads,
  *    always barred) or a plain value use (always BARE, always one reload,
- *    always self-tie-eligible).  `menu->choice_name` is irreducibly a
+ *    always self-tie-eligible).  `menu->name` is irreducibly a
  *    dereference — no C spelling changes which reload function handles it —
  *    so site 1 can never reach the BARE path while site 2 and title's check
  *    already sit on it.  `tools/regalloc.py` still has no `--spill-uses`
@@ -406,7 +406,7 @@
  * line-by-line against the real pinned gcc-2.8.1 source this round and are
  * ALL accurate — this is not a re-assertion, it is an independent
  * reproduction with exact line numbers.  A future round should only re-open
- * this if it can show the target's site 1 is NOT `menu->choice_name` at all
+ * this if it can show the target's site 1 is NOT `menu->name` at all
  * (e.g. a different field order, or the counting loop computing `name`
  * as a byproduct) — anything that keeps it a dereference of a spilled
  * pointer-to-struct cannot self-tie in this cc1.
@@ -423,7 +423,7 @@ extern char D_80097EA4[]; /* "->" */
 extern char D_80097EA8[]; /* "  " */
 extern char D_80097EAC[]; /* "\n" */
 
-s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
+s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
 {
     TAdtDisp ad;
     s32 last;
@@ -443,7 +443,7 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
     if (title == 0)
         title = D_80014AFC;
 
-    for (count = 0; menu[count].choice_name != 0; count++)
+    for (count = 0; menu[count].name != 0; count++)
     {
     }
 
@@ -473,7 +473,7 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
             else
                 fmt = D_80097EA8;
             FntPrint(fmt);
-            FntPrint(menu[i].choice_name);
+            FntPrint(menu[i].name);
             FntPrint(D_80097EAC);
         }
         FntFlush(-1);
@@ -502,5 +502,5 @@ s32 AdtSelect(char *title, debug_menu_choice *menu, s32 selection)
             selection = count - 1;
     }
     AdtReleaseDisp(&ad);
-    return menu[selection].choice_number;
+    return menu[selection].value;
 }

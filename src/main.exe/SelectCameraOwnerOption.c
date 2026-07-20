@@ -99,13 +99,13 @@ extern GsRVIEW2 ViewInfo;
 extern char D_80097D70[];   /* "%d" */
 extern char D_80014018[];   /* "select camera owner" */
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void sprintf(char *s, char *fmt, ...);
 
 void SelectCameraOwnerOption(void)
 {
     int i;
-    debug_menu_choice targets[36];
+    TAdtSelect targets[36];
     char msg[35][10];
 
     if (Humans < 0x23)
@@ -113,10 +113,10 @@ void SelectCameraOwnerOption(void)
         for (i = 0; i < Humans; i++)
         {
             sprintf(msg[i], D_80097D70, i);
-            targets[i].choice_name = msg[i];
-            targets[i].choice_number = (u32)HumanGroup[i];
+            targets[i].name = msg[i];
+            targets[i].value = (u32)HumanGroup[i];
         }
-        targets[i].choice_name = (char *)0;
+        targets[i].name = (char *)0;
         CamState.Owner = (Humanoid *)AdtSelect(D_80014018, targets, 0);
         ViewInfo.vrx = CamState.Owner->model->locate.coord.t[0];
         ViewInfo.vry = CamState.Owner->model->locate.coord.t[1];

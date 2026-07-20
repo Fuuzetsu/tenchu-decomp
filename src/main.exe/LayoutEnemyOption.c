@@ -65,9 +65,9 @@
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
 
-typedef struct { debug_menu_choice e[11]; } MENU_LAYOUT_TBL;   /* 0x58 */
-typedef struct { debug_menu_choice e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
-typedef struct { debug_menu_choice e[7];  } MENU_PATH_TBL;     /* 0x38 */
+typedef struct { TAdtSelect e[11]; } MENU_LAYOUT_TBL;   /* 0x58 */
+typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
+typedef struct { TAdtSelect e[7];  } MENU_PATH_TBL;     /* 0x38 */
 
 typedef struct
 {
@@ -93,7 +93,7 @@ extern char D_800140D4[];                   /* "clear ok?" */
 extern char D_80014004[];                   /* "path layout option" */
 extern char D_800140E0[];                   /* "layout %d enemies" */
 
-extern s32 AdtSelect(char *title, debug_menu_choice *menu, s32 mode);
+extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
 extern void leRemoveEnemy(void);
 extern void leLayoutEnemy(s32 mode);
