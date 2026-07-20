@@ -2522,10 +2522,22 @@ symbolArgs exe = do
   need [lua, dataTypes, funcs]
   [luaAbs, dataTypesAbs, funcsAbs] <-
     liftIO $ mapM IO.makeAbsolute [lua, dataTypes, funcs]
+  -- When the GDB server is on, build the matching source-line script for this
+  -- layout so VSCode's launch.json can source a fresh one — no separate
+  -- `./Build debug-gdb` step. mod shares main.exe's addresses.
+  gdbEnv <- liftIO $ lookupEnv "TENCHU_GDB"
+  gdbInfo <- if gdbEnv == Nothing
+    then pure ""
+    else do
+      let debugGdb = if base == mainRelinkExe then mainRelinkDebugGdb else mainDebugGdb
+      need [debugGdb]
+      debugGdbAbs <- liftIO $ IO.makeAbsolute debugGdb
+      pure $ "\n  source lines (VSCode sources this): " <> debugGdbAbs
   putInfo $
     "Typed Debugger imports (Debug -> Typed Debugger -> Import):\n"
       <> "  data types: " <> dataTypesAbs <> "\n"
       <> "  functions:  " <> funcsAbs
+      <> gdbInfo
   pure ["-dofile", luaAbs]
 
 -- | Where a @run*@ target records the resolved emulator argv. The @./Build@

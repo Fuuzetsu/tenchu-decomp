@@ -24,7 +24,8 @@ and instruction stepping — instead of PCSX-Redux's built-in debugger UI.
 
    `TENCHU_GDB=<port>` picks another port. The server coexists with the
    `-dofile` symbol loader and the deferred-launch wrapper, so the build lock
-   is released while you debug.
+   is released while you debug. Setting `TENCHU_GDB` also builds this layout's
+   source-line script (see below) as part of the run.
 
 2. In VSCode, pick the matching **Attach: PCSX-Redux (…)** configuration
    (exact / relink / mod — they differ only in which ELF supplies symbols) and
@@ -38,18 +39,19 @@ disassembly gets from `<artifact>.symbols.lua`.
 
 ## C source lines
 
-Source-level breakpoints and stepping work. Enable them with one extra build:
+Source-level breakpoints and stepping work, with no extra step: launching
+with `TENCHU_GDB=1` builds the matching source-line script for that layout
+automatically (exact/mod → `main.exe.debug.gdb`, relink →
+`main_relink.exe.debug.gdb`), and prints its path. Then attach with the
+matching `launch.json` config — it already `source`s that script — and a
+breakpoint in a matched C file (e.g. `ProcItemKusuri`) binds to
+`file src/main.exe/ProcItemKusuri.c, line N` and stepping shows C. INCLUDE_ASM
+stubs stay instruction-level (no C source exists for them).
 
-```console
-$ ./Build debug-gdb            # exact / mod layout (retail addresses)
-$ ./Build debug-gdb-relink     # relink layout
-```
-
-Then attach with the matching `launch.json` config — it already `source`s the
-generated script, so a breakpoint in a matched C file (e.g. `ProcItemKusuri`)
-binds to `file src/main.exe/ProcItemKusuri.c, line N` and stepping shows C.
-INCLUDE_ASM stubs stay instruction-level (no C source exists for them). Rerun
-`debug-gdb` after editing a function so its line info matches.
+The first `TENCHU_GDB=1` run compiles the ~600 debug objects (tens of
+seconds); later runs are incremental. `./Build debug-gdb` /
+`debug-gdb-relink` build the script on their own if you want it without
+launching.
 
 ### Why it is built this way
 
