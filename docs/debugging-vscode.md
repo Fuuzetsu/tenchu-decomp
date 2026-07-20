@@ -92,6 +92,36 @@ function occupies in the launched layout (read from that layout's ELF). One
 debug-object set serves the exact, mod, and relink images; only the resolved
 addresses differ, which is why there is a per-layout script.
 
+## Editing variable values — not currently supported (2026-07-20)
+
+Reading (locals, registers, memory), breakpoints, and stepping work.
+*Changing* a value does not, for two separate reasons:
+
+- **"cannot assign to variable expression"** — gdb-side. Under `-O2` many
+  locals are coalesced or live only transiently, so gdb has a value but no
+  writable location and refuses before sending anything. Not fixable without
+  lower optimization (which would break byte-matching).
+- **The connection drops** when the target *can* be written — a PCSX-Redux
+  gdb-stub bug. Its `P` (write-register) handler in `src/core/gdb-server.cc`
+  assumes a two-hex-digit register number and `close()`s the socket
+  otherwise; gdb sends register numbers minimally, so any local in registers
+  0–15 ($v0, $a0–$a3, $t0–$t9, …) produces a one-digit `P` packet → `E00` +
+  socket close → gdb reports "program exited, code 0" while the game keeps
+  running (reattach works). Confirmed live: writing `$a1` (reg 5) drops it,
+  `$s0` (reg 16) does not.
+
+  A minimal stub fix (parse the register number up to `=`, reply `E00`
+  without closing) was tried and stopped the disconnect, **but resuming then
+  stopped working** — so the write path needs more than the packet parse, and
+  it is parked. That patch also could not be link-tested locally: the
+  pcsx-redux tree here has an `fmt` header/lib skew (`fmt::v12::report_error`
+  undefined at link) unrelated to the change. Worth an upstream PR + deeper
+  look when revisited.
+
+Net: treat the debugger as read/step-only for now. Memory writes (the `M`
+packet) are unaffected, so poking RAM directly via the memory view still
+works.
+
 ## Notes
 
 - Use one attach at a time; the server serves a single client.
