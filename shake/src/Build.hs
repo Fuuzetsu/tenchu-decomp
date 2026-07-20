@@ -63,6 +63,24 @@ processedDir = shakeDir </> "processed"
 mainExe :: FilePath
 mainExe = buildDir </> "tenchu" </> "main.exe"
 
+-- | Opt-in source-level debugging for VSCode/gdb. Each matched C file is
+-- recompiled with @-gstabs@ (byte-identical @.text@) and filtered to the
+-- line-only stabs modern gdb can read (tools/stabs_lines.py). GNU ld collapses
+-- N_FUN records when merging hundreds of @.stab@ sections, so instead of one
+-- merged debug ELF we emit a gdb script that @add-symbol-file@s each per-object
+-- debug object at its address in the launched layout (tools/gen_debug_gdb.py).
+-- The debug objects are byte-identical in @.text@; only the resolved addresses
+-- differ per layout, so one object set serves exact/mod/relink. Deliberately
+-- outside buildDir so its @*.c.o@ rule cannot collide with the generic
+-- @buildDir//*.c.o@ object rule. See docs/debugging-vscode.md.
+debugObjDir :: FilePath
+debugObjDir = shakeDir </> "main.exe-dbg"
+
+-- | Per-layout gdb source-line scripts, sourced by .vscode/launch.json.
+mainDebugGdb, mainRelinkDebugGdb :: FilePath
+mainDebugGdb = mainExe <.> "debug.gdb"
+mainRelinkDebugGdb = mainRelinkExe <.> "debug.gdb"
+
 -- | Opt-in proof link where the 555 game inputs own their public symbols.
 -- It is retail-sized and byte-exact; SDK/header/BSS relocation is later work.
 mainRelocGameExe, mainRelocGameElf, mainRelocGameMap :: FilePath
@@ -1208,6 +1226,31 @@ objRules = do
       cmd_ as asFlags ["--MD", depFile, "-o", out, assembly]
       neededAsmDeps depFile
 
+  -- Debug-ELF C objects: the same per-file pipeline as the retail object
+  -- (same cpp output, gp-extern list, and original-object cc profile), but
+  -- cc1 gets -gstabs and the maspsx output is filtered to line-only stabs.
+  -- -gstabs does not change code, so these are byte-identical in .text.
+  debugObjDir <//> "*.c.o" %> \out -> do
+    let cRel = dropExtension (makeRelative debugObjDir out)   -- e.g. ProcItemKusuri.c
+        processed = processedDir </> "main.exe" </> cRel      -- cpp output (.c)
+        src = srcDir </> "main.exe" </> cRel
+        filterTool = "tools" </> "stabs_lines.py"
+    need [processed, filterTool]
+    gpFlags <- askOracle (GpFlags src)
+    (ccExe, objectCc) <- askOracle (OriginalObjectCcProfile src)
+    liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+    trackAllow ["include/*.inc"]
+    withTempFile $ \ccOut ->
+      withTempFile $ \masOut ->
+        withTempFile $ \filtered -> do
+          cmd_ (FileStdin processed) (FileStdout ccOut) ccExe
+            (ccFlags <> objectCc <> ["-gstabs"])
+          cmd_ (FileStdin ccOut) (FileStdout masOut) maspsx (maspsxFlags <> gpFlags)
+          cmd_ (FileStdin masOut) (FileStdout filtered) "python3" [filterTool]
+          withTempFile $ \depFile -> do
+            cmd_ (FileStdin filtered) as asFlags ["--MD", depFile, "-o", out]
+            neededAsmDeps depFile
+
   -- Real-edit regression fixture objects: the committed grown PadProc and its
   -- new translation unit, compiled by the identical pipeline into the
   -- isolated realedit lane.
@@ -1420,6 +1463,40 @@ exeRules t = do
 -- | Things that only make sense for the executable we are actually decompiling.
 mainExtraRules :: Rules ()
 mainExtraRules = do
+  -- Source-line gdb scripts: add-symbol-file each -gstabs debug object at its
+  -- address in the given layout's ELF. All matched debug objects are needed;
+  -- gen_debug_gdb.py resolves the per-layout addresses from that ELF.
+  let debugGdbRule out elf = do
+        let t = mainTarget
+            gen = tgGen t
+            genD = tgGenDir t
+            tool = "tools" </> "gen_debug_gdb.py"
+        _generatedFiles <- getGeneratedFiles gen
+        cFiles <- liftIO $ do
+          hasSrc <- IO.doesDirectoryExist (tgSrcDir t)
+          userFiles <- if hasSrc
+            then Set.fromList <$> getDirectoryFilesIO (tgSrcDir t) ["//*.c"]
+            else pure Set.empty
+          genFiles <- Set.fromList <$> getDirectoryFilesIO (genD </> "src") ["//*.c"]
+          pure $ Set.toList (userFiles <> genFiles)
+        let debugCObjs = map (\f -> debugObjDir </> f <.> "o") cFiles
+        need ([elf, tool, "tools" </> "stabs_lines.py"] <> debugCObjs)
+        liftIO $ IO.createDirectoryIfMissing True (takeDirectory out)
+        cmd_ "python3" tool
+          [ "--elf", elf,
+            "--debug-obj-dir", debugObjDir,
+            "--out", out
+          ]
+
+  mainDebugGdb %> \out -> debugGdbRule out (mainExe <.> "elf")
+  mainRelinkDebugGdb %> \out -> debugGdbRule out mainRelinkElf
+
+  -- `debug-gdb` builds the exact-layout source-line script (retail addresses,
+  -- shared by run/run-mod/run-iso*); `debug-gdb-relink` the relink layout.
+  phony "debug-gdb" $ need [mainDebugGdb]
+  phony "debug-gdb-relink" $ need [mainRelinkDebugGdb]
+
+
   -- First normal-link shiftability gate. Splat already places all inputs
   -- sequentially, but config/symbols.main.exe.txt overwrites the game objects'
   -- symbols with retail absolute addresses. Generate alternate scripts which

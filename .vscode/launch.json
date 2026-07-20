@@ -13,10 +13,20 @@
             "stopAtConnect": true,
             "externalConsole": false,
             "setupCommands": [
-                { "text": "set architecture mips:3000" },
-                { "text": "set sysroot none" }
+                {
+                    "text": "set architecture mips:3000"
+                },
+                {
+                    "text": "set sysroot none"
+                },
+                {
+                    "text": "source ${workspaceFolder}/.shake/build/tenchu/main.exe.debug.gdb",
+                    "description": "load per-function C source line info (main.exe.debug.gdb); run ./Build debug-gdb[-relink] first"
+                }
             ],
-            "logging": { "engineLogging": false }
+            "logging": {
+                "engineLogging": false
+            }
         },
         {
             "name": "Attach: PCSX-Redux (main_relink.exe / relink)",
@@ -30,10 +40,20 @@
             "stopAtConnect": true,
             "externalConsole": false,
             "setupCommands": [
-                { "text": "set architecture mips:3000" },
-                { "text": "set sysroot none" }
+                {
+                    "text": "set architecture mips:3000"
+                },
+                {
+                    "text": "set sysroot none"
+                },
+                {
+                    "text": "source ${workspaceFolder}/.shake/build/tenchu/main_relink.exe.debug.gdb",
+                    "description": "load per-function C source line info (main_relink.exe.debug.gdb); run ./Build debug-gdb[-relink] first"
+                }
             ],
-            "logging": { "engineLogging": false }
+            "logging": {
+                "engineLogging": false
+            }
         },
         {
             "name": "Attach: PCSX-Redux (main_mod.exe / same-slot mod)",
@@ -47,10 +67,20 @@
             "stopAtConnect": true,
             "externalConsole": false,
             "setupCommands": [
-                { "text": "set architecture mips:3000" },
-                { "text": "set sysroot none" }
+                {
+                    "text": "set architecture mips:3000"
+                },
+                {
+                    "text": "set sysroot none"
+                },
+                {
+                    "text": "source ${workspaceFolder}/.shake/build/tenchu/main.exe.debug.gdb",
+                    "description": "load per-function C source line info (main.exe.debug.gdb); run ./Build debug-gdb[-relink] first"
+                }
             ],
-            "logging": { "engineLogging": false }
+            "logging": {
+                "engineLogging": false
+            }
         }
     ]
 }

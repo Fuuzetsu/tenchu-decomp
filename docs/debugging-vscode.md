@@ -38,34 +38,42 @@ disassembly gets from `<artifact>.symbols.lua`.
 
 ## C source lines
 
-Source-level stepping is achievable, and the mechanism is proven. Two facts
-made it awkward, both now resolved:
+Source-level breakpoints and stepping work. Enable them with one extra build:
 
-- This project builds with the original 1997 `gcc 2.8.1`, which emits STABS
-  (or DWARF 1). Modern gdb (17.1, and 12.1 — the bug is old) **crashes**
-  reading gcc 2.8.1's builtin type stabs: an internal-error in
-  `create_range_type` on its self-referential integer ranges
-  (`unsigned int:t4=r4;0;-1;`) and `size;0` floats. A bit-older gdb does not
-  help — tested.
-- But source-level stepping only needs the *line* records, not those type
-  descriptors. `tools/stabs_lines.py` filters `-gstabs` output down to the
-  `N_SO`/`N_FUN`/`N_SLINE` (file/function/line) records and drops every
-  crash-inducing type/variable stab. Modern gdb then reads it cleanly —
-  verified: `info line PadProc` → "Line 103 of PadProc.c", and `list` shows
-  the real C. Types are covered separately by the Typed Debugger import
-  (`tools/redux_typed_debugger.py`).
+```console
+$ ./Build debug-gdb            # exact / mod layout (retail addresses)
+$ ./Build debug-gdb-relink     # relink layout
+```
 
-Adding `-gstabs` was also verified not to change `.text` (byte-identical), so
-a **debug ELF** — the matched C objects recompiled `-gstabs`, filtered
-through `stabs_lines.py`, and linked with the normal script — has line info
-plus addresses that match the running image exactly. INCLUDE_ASM stubs carry
-no line info (instruction-level, as expected). Point `launch.json`'s
-`program` at that debug ELF and VSCode shows C source.
+Then attach with the matching `launch.json` config — it already `source`s the
+generated script, so a breakpoint in a matched C file (e.g. `ProcItemKusuri`)
+binds to `file src/main.exe/ProcItemKusuri.c, line N` and stepping shows C.
+INCLUDE_ASM stubs stay instruction-level (no C source exists for them). Rerun
+`debug-gdb` after editing a function so its line info matches.
 
-Remaining: wiring the debug-ELF build as a `./Build` target (it must reuse
-each file's exact `maspsxGpExterns` / original-object compile flags, so it
-belongs in the build rules, not a standalone script). Until it lands, symbol
-+ disassembly debugging is the default `launch.json` target.
+### Why it is built this way
+
+This project builds with the original 1997 `gcc 2.8.1`, which emits STABS
+(or DWARF 1). Modern gdb (17.1, and 12.1 — the bug is old) **crashes**
+reading gcc 2.8.1's builtin *type* stabs: an internal-error in
+`create_range_type` on its self-referential integer ranges
+(`unsigned int:t4=r4;0;-1;`) and `size;0` floats. A bit-older gdb does not
+help — tested. Source stepping only needs the *line* records, though, so
+`tools/stabs_lines.py` filters `-gstabs` output down to the
+`N_SO`/`N_FUN`/`N_SLINE` (file/function/line) records and drops every
+crash-inducing type descriptor. Types come from the Typed Debugger import
+(`tools/redux_typed_debugger.py`) instead.
+
+`-gstabs` was verified not to change `.text`, so each matched C file
+recompiles to a byte-identical `-gstabs` debug object under `.shake/main.exe-dbg/`.
+A single *merged* debug ELF does **not** work: GNU ld collapses the `N_FUN`
+records when it merges hundreds of `.stab` sections (two objects link fine;
+~600 leave only a handful of functions with line info). So instead
+`tools/gen_debug_gdb.py` emits a gdb script that `add-symbol-file`s each
+per-object debug object — which is self-consistent — at the address its
+function occupies in the launched layout (read from that layout's ELF). One
+debug-object set serves the exact, mod, and relink images; only the resolved
+addresses differ, which is why there is a per-layout script.
 
 ## Notes
 
