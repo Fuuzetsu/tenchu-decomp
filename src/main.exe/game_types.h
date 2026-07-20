@@ -35,13 +35,6 @@ typedef struct
     u32 choice_number;
 } debug_menu_choice;
 
-typedef struct some_tmd_map_link_struct some_tmd_map_link_struct;
-struct some_tmd_map_link_struct
-{
-    GsCOORDINATE2 gscoord2;
-    GsDOBJ2 gsdobj;
-};
-
 // Ghidra's own independently-built Humanoid struct (reference/ghidra_types.h)
 // has this exact 8-byte struct (`long level; long height;`) right after its
 // PADtype pad, at the same 0x20 offset character_state's `buttons` field ends
@@ -226,32 +219,6 @@ enum stage_rank
     RANK_NINJA = 0x02,
     RANK_MASTER_NINJA = 0x03,
     RANK_GRAND_MASTER = 0x04,
-};
-
-typedef struct some_character_button_values some_character_button_values;
-struct some_character_button_values
-{
-    u16 currently_pressed;   // enum button_mask, stored as 2 bytes
-    u16 pressed_last_frame;
-    u16 newly_pressed;
-    s16 frames_since_new_input;
-    u16 buttons_pressed_in_s16_succession[4];
-};
-
-typedef struct xyz xyz;
-struct xyz
-{
-    s32 x;
-    s32 y;
-    s32 z;
-};
-
-typedef struct xyz_s xyz_s;
-struct xyz_s
-{
-    s16 x;
-    s16 y;
-    s16 z;
 };
 
 typedef enum item_kind2 item_kind2;
