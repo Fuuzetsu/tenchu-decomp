@@ -8,7 +8,7 @@ import qualified Data.Aeson as A
 import Data.Binary (Binary)
 import Data.Functor ((<&>))
 import Data.Hashable (Hashable)
-import Data.List (isPrefixOf, sort)
+import Data.List (intercalate, isPrefixOf, sort)
 import qualified Data.Set as Set
 import qualified Data.UUID as UUID
 import Data.UUID.V4 (nextRandom)
@@ -2034,6 +2034,23 @@ mainExtraRules = do
     need [elf, tool]
     cmd_ "python3" tool ["--elf", elf, "-o", out]
 
+  -- PCSX-Redux Typed Debugger import files. Function addresses come from the
+  -- launched ELF (layout-correct); data types are recovered struct layouts
+  -- and are layout-independent. The widget imports them via its own file
+  -- dialogs (no Lua/CLI hook), so the build keeps them fresh next to the
+  -- artifact and the run launcher prints their paths.
+  buildDir </> "tenchu" </> "*.redux_funcs.txt" %> \out -> do
+    let elf = dropExtension (dropExtension out) <.> "elf"
+        tool = "tools" </> "redux_typed_debugger.py"
+    need [elf, tool, "reference" </> "psxsym-protos.h",
+          "reference" </> "psxsym-types.h"]
+    cmd_ "python3" tool ["--elf", elf, "--funcs-out", out]
+
+  buildDir </> "tenchu" </> "*.redux_data_types.txt" %> \out -> do
+    let tool = "tools" </> "redux_typed_debugger.py"
+    need [tool, "reference" </> "psxsym-types.h"]
+    cmd_ "python3" tool ["--types-out", out]
+
 phonyRules :: Rules ()
 phonyRules = do
   let runRelinkGrowthProbe = do
@@ -2415,16 +2432,35 @@ launchIso extra cue symbolsFor = do
 -- PCSX.insertSymbol()s every name from the artifact's own ELF, so call
 -- stacks and disassembly are named in every layout (exact, mod, relink).
 -- main_mod.exe is patched in place, so it shares main.exe's ELF symbols.
+-- The Typed Debugger's import files are generated alongside and their paths
+-- printed: the widget imports them through its own file dialogs (it exposes
+-- no Lua/CLI hook), so the build keeps them fresh and the user imports once
+-- per session.
 symbolArgs :: FilePath -> Action [String]
 symbolArgs exe = do
   let base = if exe == mainModExe then mainExe else exe
       lua = base <.> "symbols.lua"
-  need [lua]
-  luaAbs <- liftIO $ IO.makeAbsolute lua
+      dataTypes = base <.> "redux_data_types.txt"
+      funcs = base <.> "redux_funcs.txt"
+  need [lua, dataTypes, funcs]
+  [luaAbs, dataTypesAbs, funcsAbs] <-
+    liftIO $ mapM IO.makeAbsolute [lua, dataTypes, funcs]
+  putInfo $
+    "Typed Debugger imports (Debug -> Typed Debugger -> Import):\n"
+      <> "  data types: " <> dataTypesAbs <> "\n"
+      <> "  functions:  " <> funcsAbs
   pure ["-dofile", luaAbs]
 
--- | Run pcsx-redux with the given base args plus any @$PCSX_REDUX_ARGS@. It falls
--- back to OpenBIOS when no BIOS is configured, so no BIOS is required.
+-- | Where a @run*@ target records the resolved emulator argv. The @./Build@
+-- wrapper execs it after Shake exits, so the emulator does not run inside the
+-- Shake session and the global build lock is released for the whole play
+-- session (only the build steps up to the launch hold it).
+pendingLaunchFile :: FilePath
+pendingLaunchFile = shakeDir </> "pending-launch"
+
+-- | Record a pcsx-redux launch with the given base args plus any
+-- @$PCSX_REDUX_ARGS@. It falls back to OpenBIOS when no BIOS is configured, so
+-- no BIOS is required.
 --
 -- We force @-interpreter@ by default: pcsx-redux's x64 dynarec crashes
 -- (\"Unrecoverable error while running recompiler\") with OpenBIOS — a regression
@@ -2432,13 +2468,19 @@ symbolArgs exe = do
 -- memory-system rework since). Since we default to OpenBIOS, the dynarec is
 -- unusable here. The user opts back into the dynarec (with a real BIOS) by putting
 -- @-dynarec@/@-bios@/@-interpreter@ in @$PCSX_REDUX_ARGS@.
+--
+-- The argv is written NUL-delimited (disc paths contain spaces) and the
+-- launch is deferred to the wrapper rather than run via @cmd_@ here.
 runPcsx :: [String] -> Action ()
 runPcsx baseArgs = do
   pcsx <- liftIO findPcsx
   extra <- liftIO $ maybe [] words <$> lookupEnv "PCSX_REDUX_ARGS"
   let userChoseCpu = any (`elem` ["-interpreter", "-dynarec", "-bios"]) extra
       cpu = ["-interpreter" | not userChoseCpu]
-  cmd_ pcsx (baseArgs <> cpu <> extra)
+      argv = pcsx : (baseArgs <> cpu <> extra)
+  liftIO $ IO.createDirectoryIfMissing True shakeDir
+  liftIO $ writeFile pendingLaunchFile (intercalate "\0" argv)
+  putInfo "launch deferred to the ./Build wrapper (build lock released first)"
 
 -- | The pcsx-redux binary: @$PCSX_REDUX@, else on @$PATH@, else the usual checkout.
 findPcsx :: IO FilePath

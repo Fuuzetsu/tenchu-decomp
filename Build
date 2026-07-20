@@ -24,4 +24,16 @@ if [ ! -x "$bin" ] || [ "$src" -nt "$bin" ] || [ "$(readlink -f "$0")" -nt "$bin
       "$src"
 fi
 
-exec "$bin" "$@"
+# A `run*` target does not launch the emulator itself: it builds the artifact
+# (holding Shake's global build lock briefly) and records the resolved argv in
+# pending-launch. Running the emulator here — after Shake has exited and freed
+# the lock — means a long play session no longer blocks other ./Build calls.
+# NUL-delimited so disc paths with spaces survive.
+pending="$root/.shake/pending-launch"
+rm -f "$pending"
+"$bin" "$@"
+if [ -f "$pending" ]; then
+  mapfile -d '' -t launch_argv < "$pending"
+  rm -f "$pending"
+  exec "${launch_argv[@]}"
+fi

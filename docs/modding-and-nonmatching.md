@@ -211,6 +211,35 @@ config/functions.menu.exe.tsv` produces a loader you can `-dofile` manually
 when debugging MENU.EXE (loading two executables' symbol sets at once is
 deliberately not automatic: they share the same RAM addresses).
 
+That same address→name map can also be pushed to an **already-running**
+instance over its web server (enable it with `-webserver`, default port
+8080): `POST /api/v1/assembly/symbols?function=upload` with a body of
+`ADDRESS NAME` lines (hex address, space-separated), or `?function=reset` to
+clear. It writes the same `m_symbols` map as the Lua loader, so it is an
+alternative for live updates without relaunching; the `-dofile` path is what
+the launchers use because it needs no server or port.
+
+## Typed Debugger: data types and typed function arguments
+
+The Typed Debugger (Debug → Typed Debugger) shows memory through recovered
+struct layouts and typed function arguments. It has its own import format,
+separate from the symbol map above, and — unlike the symbol map — **no Lua or
+web-server hook**, so it is imported through its two file dialogs (once per
+session). The build keeps the two files fresh next to each artifact and the
+`run*` launcher prints their paths:
+
+- `<artifact>.redux_data_types.txt` — recovered struct layouts from
+  `reference/psxsym-types.h`, with exact per-field sizes (consecutive offset
+  deltas). Layout-independent.
+- `<artifact>.redux_funcs.txt` — recovered prototypes from
+  `reference/psxsym-protos.h`, addressed from the launched ELF, so the
+  addresses match the running layout.
+
+`tools/redux_typed_debugger.py` generates them; it normalises types to the
+widget's resolver rules (bare struct names so nesting resolves, `Base *`
+pointers, single-token primitives). In the widget, click **Import data
+types** then **Import functions** and pick those two files.
+
 ## Running a modified exe
 
 Both mod launchers use the same-size `main_mod.exe`, so both are byte-faithful except
