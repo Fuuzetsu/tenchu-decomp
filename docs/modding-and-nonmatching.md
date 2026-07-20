@@ -196,6 +196,21 @@ allocator/stack space, and MIPS relocation ranges. See
 [relocatable-build.md](relocatable-build.md) and
 [the exact smoke commands](building-an-iso.md#automated-grown-image-smoke).
 
+## Debugger symbols in PCSX-Redux
+
+Every `./Build run*` launcher passes a generated `-dofile` that
+`PCSX.insertSymbol()`s the launched artifact's complete symbol table, so the
+debugger's disassembly, breakpoints, and call stacks are named out of the
+box. The names come from the artifact's own ELF
+(`<artifact>.symbols.lua` beside it, built by `tools/pcsx_symbols.py`), so
+the exact, in-place-mod, and relink layouts each get their own correct
+addresses — including moved symbols in grown relink images. `main_mod.exe`
+is patched in place and shares `main.exe`'s symbols. For the scaffolded
+sibling executables, `tools/pcsx_symbols.py --tsv
+config/functions.menu.exe.tsv` produces a loader you can `-dofile` manually
+when debugging MENU.EXE (loading two executables' symbol sets at once is
+deliberately not automatic: they share the same RAM addresses).
+
 ## Running a modified exe
 
 Both mod launchers use the same-size `main_mod.exe`, so both are byte-faithful except

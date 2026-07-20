@@ -2025,6 +2025,15 @@ mainExtraRules = do
     cmd_ tool ["--exe", mainRelinkExe,
                "--out", buildDir </> "tenchu" </> "tenchu-relink"]
 
+  -- Debugger symbol loaders for the run* launchers: <artifact>.symbols.lua
+  -- is generated from <artifact>.elf, so names always match the launched
+  -- layout.
+  buildDir </> "tenchu" </> "*.symbols.lua" %> \out -> do
+    let elf = dropExtension (dropExtension out) <.> "elf"
+        tool = "tools" </> "pcsx_symbols.py"
+    need [elf, tool]
+    cmd_ "python3" tool ["--elf", elf, "-o", out]
+
 phonyRules :: Rules ()
 phonyRules = do
   let runRelinkGrowthProbe = do
@@ -2098,18 +2107,18 @@ phonyRules = do
   -- chain runs.
   phony "run-iso" $ do
     need [tenchuCue]
-    launchIso [] tenchuCue
+    launchIso [] tenchuCue mainExe
 
   -- main_mod.exe is patched in place (same size as main.exe), so the mod disc keeps
   -- the dumped file layout and is byte-faithful except our function. See
   -- docs/modding-and-nonmatching.md.
   phony "run-iso-mod" $ do
     need [tenchuModCue]
-    launchIso [] tenchuModCue
+    launchIso [] tenchuModCue mainModExe
 
   phony "run-iso-relink" $ do
     need [tenchuRelinkCue]
-    launchIso [] tenchuRelinkCue
+    launchIso [] tenchuRelinkCue mainRelinkExe
 
   -- Verify a target reproduces its original image byte for byte. The reference sha
   -- is pinned so a swapped/corrupt base image is caught, rather than merely proving
@@ -2390,13 +2399,29 @@ launchLoadExe :: [String] -> FilePath -> Action ()
 launchLoadExe extra exe = do
   disc <- liftIO $ findDisc >>= IO.makeAbsolute
   exeAbs <- liftIO $ IO.makeAbsolute exe
-  runPcsx (["-run", "-iso", disc, "-loadexe", exeAbs] <> extra)
+  symbols <- symbolArgs exe
+  runPcsx (["-run", "-iso", disc, "-loadexe", exeAbs] <> symbols <> extra)
 
--- | Launch a repacked disc image (the faithful full boot). @extra@ as 'launchLoadExe'.
-launchIso :: [String] -> FilePath -> Action ()
-launchIso extra cue = do
+-- | Launch a repacked disc image (the faithful full boot). @extra@ as
+-- 'launchLoadExe'; @symbolsFor@ names the executable whose debugger symbols
+-- the disc's MAIN.EXE slot carries.
+launchIso :: [String] -> FilePath -> FilePath -> Action ()
+launchIso extra cue symbolsFor = do
   cueAbs <- liftIO $ IO.makeAbsolute cue
-  runPcsx (["-run", "-iso", cueAbs] <> extra)
+  symbols <- symbolArgs symbolsFor
+  runPcsx (["-run", "-iso", cueAbs] <> symbols <> extra)
+
+-- | Debugger symbols for a launched executable: a generated Lua loader that
+-- PCSX.insertSymbol()s every name from the artifact's own ELF, so call
+-- stacks and disassembly are named in every layout (exact, mod, relink).
+-- main_mod.exe is patched in place, so it shares main.exe's ELF symbols.
+symbolArgs :: FilePath -> Action [String]
+symbolArgs exe = do
+  let base = if exe == mainModExe then mainExe else exe
+      lua = base <.> "symbols.lua"
+  need [lua]
+  luaAbs <- liftIO $ IO.makeAbsolute lua
+  pure ["-dofile", luaAbs]
 
 -- | Run pcsx-redux with the given base args plus any @$PCSX_REDUX_ARGS@. It falls
 -- back to OpenBIOS when no BIOS is configured, so no BIOS is required.
