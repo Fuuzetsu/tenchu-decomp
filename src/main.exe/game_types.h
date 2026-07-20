@@ -216,62 +216,6 @@ enum stage_rank
     RANK_GRAND_MASTER = 0x04,
 };
 
-// typedef enum chosen_stage chosen_stage;
-// enum chosen_stage
-// {
-//     PUNISH_THE_EVIL_MERCHANT = 0x01,
-//     DELIVER_THE_SECRET_MESSAGE = 0x02,
-//     RESCUE_THE_CAPTIVE_NINJA = 0x03,
-//     INFILTRATE_THE_MANJI_CULT = 0x04,
-//     DESTROY_THE_FOREIGN_PIRATES = 0x05,
-//     CURE_THE_PRINCESS = 0x06,
-//     RECLAIM_THE_CASTLE = 0x07,
-//     FREE_THE_PRINCESS = 0x08,
-//     TRAINING = 0x09,
-//     CROSS_THE_CHECKPOs32 = 0x0a,
-//     EXECUTE_THE_CORRUPT_MINISTER = 0x0b,
-//     NOT_CHOSEN = 0xffff,
-// };
-
-typedef enum chosen_stage_ix chosen_stage_ix;
-enum chosen_stage_ix
-{
-    PUNISH_THE_EVIL_MERCHANT = 0x00,
-    DELIVER_THE_SECRET_MESSAGE = 0x01,
-    RESCUE_THE_CAPTIVE_NINJA = 0x02,
-    INFILTRATE_THE_MANJI_CULT = 0x03,
-    DESTROY_THE_FOREIGN_PIRATES = 0x04,
-    CURE_THE_PRINCESS = 0x05,
-    RECLAIM_THE_CASTLE = 0x06,
-    FREE_THE_PRINCESS = 0x07,
-    TRAINING = 0x08,
-    CROSS_THE_CHECKPOs32 = 0x09,
-    EXECUTE_THE_CORRUPT_MINISTER = 0x0a,
-};
-
-typedef enum button_mask button_mask;
-enum button_mask
-{
-    NOTHING = 0x00,
-    L2 = 0x01,
-    R2 = 0x02,
-    L1 = 0x04,
-    R1 = 0x08,
-    TRIANGLE = 0x10,
-    CIRCLE = 0x20,
-    CROSS = 0x40,
-    SQUARE = 0x80,
-    SELECT = 0x100,
-    L3 = 0x200,
-    R3 = 0x400,
-    START = 0x800,
-    UP = 0x1000,
-    RIGHT = 0x2000,
-    DOWN = 0x4000,
-    LEFT = 0x8000,
-    DUMMY_MASK = 0xffff,
-};
-
 typedef struct some_character_button_values some_character_button_values;
 struct some_character_button_values
 {
