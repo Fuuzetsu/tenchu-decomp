@@ -361,10 +361,12 @@ R_MIPS_LO16   2393
 R_MIPS_PC16   1057
 ```
 
-`./Build check-reloc-sdk` removes all 2,010 fixed script aliases in that range.
-At retail placement, 1,892 names come from their real sections and 118 obsolete
+`./Build check-reloc-sdk` removes all 2,011 fixed script aliases in that range
+(2,010 plus `SsUtKeyOffV`, adopted from the demo harvest on 2026-07-20 with
+its own canonical glabel).
+At retail placement, 1,893 names come from their real sections and 118 obsolete
 internal aliases are absent consistently. The retail link remains
-byte-identical; the `+4` link moves all 1,892 names and machine-checks linked
+byte-identical; the `+4` link moves all 1,893 names and machine-checks linked
 early, middle, and final `J`/`JAL` and HI16/LO16 examples. The source/object
 audit also rejects numeric jump operands and unreviewed address-looking high
 halves. This is canonical source, not a trampoline and not a claim that Sony

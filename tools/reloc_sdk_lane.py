@@ -26,8 +26,11 @@ except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
 
 SDK_TEXT_START = 0x800601D4
 SDK_TEXT_END = 0x80086764
-EXPECTED_SDK_SYMBOLS = 2010
-EXPECTED_SDK_SECTION_SYMBOLS = 1892
+# 2026-07-20: 2010 -> 2011 and 1892 -> 1893 when the demo name harvest
+# adopted SsUtKeyOffV (0x80070b3c); it carries a glabel in the canonical
+# SDK assembly, so the new alias is section-owned like the rest.
+EXPECTED_SDK_SYMBOLS = 2011
+EXPECTED_SDK_SECTION_SYMBOLS = 1893
 EXPECTED_OMITTED_INTERNAL_ALIASES = 118
 FIRST_SDK_INPUT = "/LIBAPI_4F9D4.s.o(.text);"
 
