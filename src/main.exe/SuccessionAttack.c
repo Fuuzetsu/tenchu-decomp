@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -42,17 +43,16 @@
  * a follow-up.
  *
  * Guard: only continues if the character's current animation frame
- * (Me_THINK_C->something_about_current_animation->frames_since_animation_
- * start, the same field Think1sleep.c proves) equals BattleDB[idx].contfrm
- * — `idx` is Me_THINK_C's field @0x8C (already proven
- * `index_s32o_animation_collection` by another matched function; Ghidra's
- * own name for it here is "warid" — plausible, but not adopted without
- * `tools/callmatch.py --verify`).
+ * (Me_THINK_C->motion->count, the MotionManager frame counter — the same
+ * field Think1sleep.c proves, and AttackContinuousCheck's `dtM->count`)
+ * equals BattleDB[warid].contfrm — `warid` is Me_THINK_C's field @0x8C, the
+ * official Humanoid name (item.h) for what was the guessed
+ * `index_s32o_animation_collection`.
  *
- * `BattleType` is declared locally (not a shared header) straight from
- * `reference/psxsym-types.h`'s proven 8-short layout — `contfrm` @0x8, the
- * offset the asm's `lh v0,8(v0)` confirms after the `sll v0,v0,4` (0x10
- * stride) index scale.
+ * `BattleType` comes from item.h (the official 8-short layout, confirmed
+ * identical to `reference/psxsym-types.h`) — `contfrm` @0x8, the offset the
+ * asm's `lh v0,8(v0)` confirms after the `sll v0,v0,4` (0x10 stride) index
+ * scale.
  *
  * The `iVar1 % iVar2` (`rand() % (EngageLevel+1)`) division-guard trap
  * sequence (`break 7`/`break 6`) needs maspsx `--expand-div` for this file
@@ -115,23 +115,11 @@
  *    the early-return block and cascading 100 bytes. `goto ret` preserves the
  *    target's distinct immediate-zero return and shared signed-s16 epilogue.
  */
-extern character_state *Me_THINK_C;
+extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 Degree;
 extern s16 EngageLevel;
 extern int rand(void);
-
-typedef struct
-{
-    s16 mid;
-    s16 power;
-    s16 atks;
-    s16 atke;
-    s16 contfrm;
-    s16 revise;
-    s16 ilus;
-    s16 ilue;
-} BattleType;
 
 extern BattleType BattleDB[];
 
@@ -142,8 +130,8 @@ short SuccessionAttack(long dist, short deg)
     s16 uVar3;
 
     uVar3 = 0;
-    if (Me_THINK_C->something_about_current_animation->frames_since_animation_start !=
-        BattleDB[Me_THINK_C->index_s32o_animation_collection].contfrm)
+    if (Me_THINK_C->motion->count !=
+        BattleDB[Me_THINK_C->warid].contfrm)
     {
         return 0;
     }
