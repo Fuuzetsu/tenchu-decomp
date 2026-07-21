@@ -27,18 +27,9 @@
  * TraceLine itself (called from CreateStage). Same shape as
  * DisposeMotionManager (null-check, free a nested pointer field, then free
  * self; `t` stays live across the first vfree in a callee-saved register).
- * TraceLine (Ghidra: { short index; short count; struct TracePoint *point; })
- * isn't shared with any other matched function yet, so it's defined locally
- * here. Only the `point` field (0x4) is
- * touched, so the pointee (TracePoint) stays opaque (void *).
+ * PSX.SYM's shared TraceLine is { short index; short count;
+ * struct TracePoint *point; }; only `point` is touched here.
  */
-typedef struct
-{
-    s16 index;   /* 0x0 */
-    s16 count;   /* 0x2 */
-    void *point; /* 0x4 */
-} TraceLine;
-
 extern void vfree(void *p);
 
 void DestroyTraceLine(TraceLine *t)

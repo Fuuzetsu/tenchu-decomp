@@ -324,6 +324,24 @@ struct SoundEffect
     struct VabHdr *VABhead;           /* 0x04 */
 };                                    /* 0x08 */
 
+/* HUMAN.C/WORLD.C's waypoint path. */
+typedef struct TracePoint TracePoint;
+struct TracePoint
+{
+    s32 x;                            /* 0x00 */
+    s32 z;                            /* 0x04 */
+    s16 range;                        /* 0x08 */
+    s16 pad;                          /* 0x0A */
+};                                    /* 0x0C */
+
+typedef struct TraceLine TraceLine;
+struct TraceLine
+{
+    s16 index;                        /* 0x00 */
+    s16 count;                        /* 0x02 */
+    TracePoint *point;                /* 0x04 */
+};                                    /* 0x08 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

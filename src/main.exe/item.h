@@ -10,28 +10,6 @@
  * ActionHalt/FRAMES_UNTIL_END_OF_ALERT (absolute here, gp in think's TU).
  */
 
-/* HUMAN.C's trace-line (SetupTraceLine/ControlTraceLine/DestroyTraceLine):
- * a small ring of waypoints a Humanoid follows. Same layout as
- * DestroyTraceLine.c's independently (WORLD.C) redefined TraceLine/
- * TracePoint — reference/psxsym-types.h's struct TraceLine/TracePoint agree
- * (x/z long, range/pad short). Shared here since three item-TU-family
- * functions (SetupTraceLine/ControlTraceLine/KillHumanoid family) all touch
- * Humanoid.trace. */
-typedef struct
-{
-    s32 x;       /* 0x0 */
-    s32 z;       /* 0x4 */
-    s16 range;   /* 0x8 */
-    s16 pad;     /* 0xA */
-} TracePoint;    /* 0xC */
-
-typedef struct
-{
-    s16 index;        /* 0x0 */
-    s16 count;        /* 0x2 */
-    TracePoint *point; /* 0x4 */
-} TraceLine;        /* 0x8 */
-
 typedef struct tag_TItem tag_TItem;
 
 struct AreaNodeType;
