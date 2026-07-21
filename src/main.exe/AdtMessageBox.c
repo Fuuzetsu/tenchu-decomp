@@ -69,13 +69,6 @@
  *    function itself — matches Ghidra's `auStack_28` exactly; whatever it
  *    draws is whatever was left on the stack, not this function's concern.
  */
-typedef struct
-{
-    s32 x, y, w, h, isbg, n; /* +0x00-0x14, FntOpen args */
-    s32 tx, ty;              /* +0x18, +0x1c, FntLoad args */
-    s32 quiet;               /* +0x20, AdtQuiet() flag */
-} AdtFntState;
-
 extern AdtFntState D_8008F1B8;
 extern s32 (*AdtPadRead)(s32 port);
 extern s32 AdtDmyPadRead(s32 port);

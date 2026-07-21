@@ -51,6 +51,21 @@ struct TAdtSelect
     u32 value;     /* 0x4 */
 };
 
+/* ADT's saved PSY-Q font settings. */
+typedef struct AdtFntState AdtFntState;
+struct AdtFntState
+{
+    s32 x;                           /* 0x00 */
+    s32 y;                           /* 0x04 */
+    s32 w;                           /* 0x08 */
+    s32 h;                           /* 0x0C */
+    s32 isbg;                        /* 0x10 */
+    s32 n;                           /* 0x14 */
+    s32 tx;                          /* 0x18 */
+    s32 ty;                          /* 0x1C */
+    s32 quiet;                       /* 0x20 */
+};                                   /* 0x24 */
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType

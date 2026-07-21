@@ -12,20 +12,9 @@
  * "leading argument…invisible to m2c" note; Ghidra's full 6-arg call is
  * the real one), then stashes every argument into the font-adapter state
  * D_8008F1B8 (same global as AdtFntLoad.c's tx/ty@0x18/0x1C and
- * AdtQuiet.c's quiet@0x20 — this TU only reaches offsets 0x0-0x14, its own
- * per-TU "declare only the fields you touch" view).
+ * AdtQuiet.c's quiet@0x20).
  */
-typedef struct
-{
-    s32 x;
-    s32 y;
-    s32 w;
-    s32 h;
-    s32 isbg;
-    s32 n;
-} AdtFntOpenState;
-
-extern AdtFntOpenState D_8008F1B8;
+extern AdtFntState D_8008F1B8;
 
 void AdtFntOpen(int x, int y, int w, int h, int isbg, int n)
 {

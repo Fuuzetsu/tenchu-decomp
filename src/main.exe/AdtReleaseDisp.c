@@ -20,12 +20,6 @@
  * `TAdtDisp *`, not a DRAWENV array. `LoadImage(&ad->rect, ad->backup)`
  * reproduces the exact same addresses without the array-indexing fiction.
  */
-typedef struct
-{
-    s32 x, y, w, h, isbg, n;
-    s32 tx, ty;
-} AdtFntState;
-
 extern AdtFntState D_8008F1B8;
 
 void AdtReleaseDisp(TAdtDisp *ad)

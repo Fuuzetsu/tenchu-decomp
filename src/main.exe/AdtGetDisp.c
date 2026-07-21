@@ -19,13 +19,6 @@
  * the sp+0x18 / sp+0x78 layout exactly, so no combined struct is needed here.
  */
 
-typedef struct
-{
-    u8 pad[0x18];
-    s32 tx;
-    s32 ty;
-} AdtFntState;
-
 extern AdtFntState D_8008F1B8;
 
 void AdtGetDisp(TAdtDisp *disp)
