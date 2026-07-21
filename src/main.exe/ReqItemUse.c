@@ -204,7 +204,8 @@
  *    break jump's delay slot).
  *  - The four pool-claim cases are ReqItemKusuri/Makibishi/Happou's matched
  *    idiom verbatim (cur/it split unnecessary here: single `it`); napalm's
- *    `pp` sits at the found: label like shuriken's; reorg duplicates the
+ *    `pp` sits at the found: label like shuriken's nested `param`; reorg
+ *    duplicates the
  *    addiu into the loop-exit branch's delay slot for napalm and steals it
  *    into the null-check beqz's slot for shuriken — same source shape.
  *  - The makibishi rand-loop is `while (1) { if (!(i < 5)) break; i++; ... }`
@@ -350,7 +351,6 @@ int ReqItemUse(PARAM_ITEM_USE *p)
     {
         tag_TItem *it;
         tag_TItem *cur;
-        u8 *pp;
         VECTOR *st;
         Humanoid *us;
         s32 ty;
@@ -358,6 +358,8 @@ int ReqItemUse(PARAM_ITEM_USE *p)
 
         if (p->user == CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0])
         {
+            param_launch *param;
+
             i = 0;
             do
             {
@@ -385,7 +387,7 @@ int ReqItemUse(PARAM_ITEM_USE *p)
             it->proc = 0;
 
         found_shuriken:
-            pp = it->param;
+            param = (param_launch *)it->param;
             if (it == 0)
                 return 0;
             us = p->user;
@@ -402,7 +404,7 @@ int ReqItemUse(PARAM_ITEM_USE *p)
             UpdateCoordinate(it->locate);
             it->coll_size = 0;
             it->model = SyurikenModel;
-            pp[0x30] = 5;
+            param->count = 5;
             it->owner->item[0x19] = 1;
         }
         else

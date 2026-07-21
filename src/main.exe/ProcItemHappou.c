@@ -6,18 +6,18 @@
  * item processor. Every frame: fly it (MoveFly), tick its countdown; at 0 register
  * a 300-unit conflict box. Always redraw (into the shared scratch model
  * HappouModel rather than item->model — the item's own visual is elsewhere)
- * and re-draw its afterimage trail. If armed+primed (two flag bytes at
- * param+0x28/+0xA), detonate (SetBleeds/SoundEx, dispose). Separately, if a
+ * and re-draw its afterimage trail. If the flight `mode` and rolling-overlay
+ * `status` are armed, detonate (SetBleeds/SoundEx, dispose). Separately, if a
  * live character sits in the conflict box, SetImpact+SoundEx+DeleteConflict
  * (no dispose — this is the "someone touched it" hit, independent of the
  * detonation-armed path above).
  *
  * Matching notes (see also ProcItemMakibishi.c for the collision-box
  * conventions, ProcItemManebue.c for the countdown idiom):
- *  - `objp = HappouModel; pp = item->param;` both computed before the entry
- *    mode==0xff test (objp sequential, pp's addiu fills the entry branch's
- *    delay slot) — same double lever as Makibishi's sprt/pp.
- *  - The countdown is `cnt = pp->count - 1;` (real `addiu -1`, sign-extended)
+ *  - `model = HappouModel; param = (param_launch *)item->param;` are both
+ *    computed before the entry mode==0xff test (model sequential, param's
+ *    addiu fills the entry branch's delay slot).
+ *  - The countdown is `t = param->count - 1;` (real `addiu -1`, sign-extended)
  *    tested on the NEW/post-decrement value — Manebue's idiom, NOT
  *    LightningBolt's `+0xff`-on-the-OLD-value idiom (verified against the
  *    raw immediate bytes in both places; per-function, not a fixed rule).
@@ -31,14 +31,16 @@
  *    forcing a variable.
  *  - `n = InsertConflict(...)` is `s32` (the same scheduling-tie fix as
  *    Makibishi/LightningBolt: extend right at the assignment).
- *  - The redundant-looking `f28 != 0 && f28 == 1 && pp[0xA] != 0` is written
+ *  - The redundant-looking `mode != 0 && mode == 1 &&
+ *    param->fly.p.koro.status != 0` is written
  *    exactly that way (three separate tests, matching Ghidra) — the asm
- *    shows two distinct branches on `f28` even though `== 1` implies `!= 0`.
+ *    shows two distinct branches on `mode` even though `== 1` implies `!= 0`.
  *  - The two dispose-shaped tails (detonate-and-dispose; the separate
  *    hit-conflict SetImpact path) are NOT the same code — no cross-jump
  *    merge here, they're independent, sequential ifs.
  */
 #include "item.h"
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -74,9 +76,9 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void MoveFly(tag_TItem *item, u8 *pp);
-extern void DisposeAfterimage(s32 effect);
-extern void DrawAfterimage(s32 effect, s32 flag);
+extern void MoveFly(tag_TItem *item, param_fly *param);
+extern void DisposeAfterimage(AfterimageType *effect);
+extern s16 DrawAfterimage(AfterimageType *effect, s16 flag);
 extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
@@ -94,25 +96,25 @@ extern ModelType *HappouModel;
 
 void ProcItemHappou(tag_TItem *item)
 {
-    ModelType *objp;
-    u8 *pp;
-    u8 cnt;
-    u8 f28;
+    ModelType *model;
+    param_launch *param;
+    u8 t;
+    u8 mode;
     s32 i;
     s32 n;
 
-    objp = HappouModel;
-    pp = item->param;
+    model = HappouModel;
+    param = (param_launch *)item->param;
     if (item->mode == 0xff)
     {
-        DisposeAfterimage(*(s32 *)(pp + 0x2c));
+        DisposeAfterimage(param->effect);
         item->mode = 0;
         return;
     }
-    MoveFly(item, pp);
-    cnt = pp[0x30] - 1;
-    pp[0x30] = cnt;
-    if (cnt == 0)
+    MoveFly(item, &param->fly);
+    t = param->count - 1;
+    param->count = t;
+    if (t == 0)
     {
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
@@ -130,13 +132,13 @@ void ProcItemHappou(tag_TItem *item)
         item->coll_pause = 0;
     }
     UpdateCoordinate(item->locate);
-    objp->locate = item->locate->locate;
-    DrawModel(objp);
-    DrawAfterimage(*(s32 *)(pp + 0x2c), 1);
-    f28 = pp[0x28];
-    if (f28 != 0)
+    model->locate = item->locate->locate;
+    DrawModel(model);
+    DrawAfterimage(param->effect, 1);
+    mode = param->fly.mode;
+    if (mode != 0)
     {
-        if (f28 == 1 && pp[0xa] != 0)
+        if (mode == 1 && param->fly.p.koro.status != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);

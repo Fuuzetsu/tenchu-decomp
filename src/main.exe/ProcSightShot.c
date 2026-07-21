@@ -50,8 +50,8 @@
  * rotation, disposes the sight item, and launches the projectile.
  *
  * Matching notes:
- *  - `launch = item->param` remains a byte pointer so its address is formed
- *    in the entry mode-test delay slot and kept in a0 until the aiming body.
+ *  - `launch = (param_launch *)item->param` is formed in the entry mode-test
+ *    delay slot and kept in a0 until the aiming body.
  *    `ff` is s32 and therefore receives the target's long-lived s4.
  *  - The drop block and common disposal block deliberately precede the
  *    `sight_mode` label.  Source-ordering the normal sight path first gives
@@ -87,14 +87,14 @@ extern void ReqItemLaunch(PARAM_ITEM_USE *param);
 
 void ProcSightShot(tag_TItem *item)
 {
-    u8 *launch;
+    param_launch *launch;
     s32 ff;
     PARAM_ITEM_USE param;
     SVECTOR rot;
     SightRotation view_rot;
     Humanoid *human;
 
-    launch = item->param;
+    launch = (param_launch *)item->param;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -162,14 +162,14 @@ sight_mode:
         u8 count;
         ModelArchiveType *model;
 
-        count = launch[0x30];
+        count = launch->count;
         if (count != 0)
         {
-            launch[0x30] = count - 1;
+            launch->count = count - 1;
         }
         if ((item->owner->pad.data & 0x10) != 0)
         {
-            if (launch[0x30] != 0)
+            if (launch->count != 0)
             {
                 return;
             }
@@ -178,7 +178,7 @@ sight_mode:
             return;
         }
 
-        count = launch[0x30];
+        count = launch->count;
         model = item->owner->model;
         if (count == 0)
         {

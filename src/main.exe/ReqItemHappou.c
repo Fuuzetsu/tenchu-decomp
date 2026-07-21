@@ -67,8 +67,8 @@
  *    variable needed in source).
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemArrow/Launch (the
  *    stub-jump early-exit pattern confirmed in the raw .s).
- *  - `pp = it->param;` before the null check, same lever as every twin;
- *    reused for SetupFly's 1st arg and the two final raw stores.
+ *  - `param = (param_launch *)it->param;` before the null check, same lever
+ *    as every twin; reused for SetupFly and the two final member stores.
  *  - `st = &p->start;` sits in the SAME position as every twin (right after
  *    the direct `p->start.vx` read, before the st->vy/st->vz reads) and,
  *    unlike ReqItemArrow, stays live (no register reuse forcing a
@@ -108,13 +108,13 @@
  *    width across ReqItemDefault/ReqItemArrow/ReqItemLightningBolt).
  *  - The afterimage vector constants (0x1e/-0x1e, vy=vz=0) and struct shape
  *    are identical to ReqItemLaunch's; only the trailing count (8, not 5)
- *    and the two raw pp-offsets differ.
+ *    differs.
  */
 extern void ProcItemHappou(tag_TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 extern void Sound(Humanoid *h, int id);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
-extern void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
+extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern AfterimageType *SetupAfterimage(ModelType *model, s32 n);
 extern int rand(void);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -125,7 +125,7 @@ int ReqItemHappou(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
     tag_TItem *cur;
-    u8 *pp;
+    param_launch *param;
     VECTOR *st;
     VECTOR *en;
     Humanoid *us;
@@ -170,7 +170,7 @@ int ReqItemHappou(PARAM_ITEM_USE *p)
         it->proc = 0;
 
     found:
-        pp = it->param;
+        param = (param_launch *)it->param;
         if (it == 0)
             return 0;
         us = p->user;
@@ -192,17 +192,17 @@ int ReqItemHappou(PARAM_ITEM_USE *p)
         dir.vy = dir.vy + (r % 512 - 0x100);
         en = &p->end;
         SearchItemTarget2(p->user, &dir, st, en);
-        SetupFly(pp, st, en, 0x1000, 0x400, 0x190);
+        SetupFly(&param->fly, st, en, 0x1000, 0x400, 0x190);
         j++;
         ai = SetupAfterimage(it->locate, 10);
-        *(AfterimageType **)(pp + 0x2c) = ai;
+        param->effect = ai;
         ai->vector1.vx = 0x1e;
         ai->vector1.vy = 0;
         ai->vector1.vz = 0;
         ai->vector2.vx = -0x1e;
         ai->vector2.vy = 0;
         ai->vector2.vz = 0;
-        pp[0x30] = 8;
+        param->count = 8;
     }
     Sound(p->user, 0x4c);
     return 1;

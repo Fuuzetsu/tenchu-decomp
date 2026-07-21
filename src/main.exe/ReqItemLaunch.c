@@ -50,10 +50,7 @@
  * ItemImage[it->type]. The tail hands the flight to SetupFly (trajectory
  * from p->start to p->end) and then wires up an afterimage trail via
  * SetupAfterimage, stamping its returned struct's two SVECTOR fields and
- * recording the pointer + a trailing count byte in it->param, all at raw
- * offsets past param_korogari's proven range (0x28/0x2c/0x30) per the
- * cookbook's divergent-width-union rule — Ghidra's ".launch.effect"/
- * ".launch.count" names aren't trustworthy, only the offsets are.
+ * recording the pointer and trailing count in PSX.SYM's `param_launch`.
  *
  * SetupFly's true arity is 6, not Ghidra's 4: Ghidra misses the two
  * STACK-passed trailing args (a common Ghidra limitation past the 4
@@ -68,10 +65,8 @@
  *    loop/dispose block, `it = cur;` assigned once in the early-exit branch
  *    and once before the dispose block's final owner/proc zeroing (`st`
  *    surviving to the SetupFly call raises register pressure here too).
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot) — used here
- *    purely as a raw-offset cast vehicle (no named param_korogari field is
- *    read/written).
+ *  - `param = (param_launch *)it->param;` sits BEFORE the null check, same
+ *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; unlike most of them, `st` is READ AGAIN as
  *    SetupFly's second argument (same "st survives to a late call" shape as
@@ -86,23 +81,22 @@
  *    drop it into the call's delay slot, same "trailing/preceding
  *    independent store steals the call's delay slot" mechanism as
  *    ReqItemNingyo's `rotate.vx = 0` before its first `rand()`. It MUST go
- *    through a fresh `it->param` cast, not `pp` (`*(u8*)((u8*)it->param +
- *    0x28)`, not `(u8*)pp + 0x28`) even though it's the same address — same
- *    "offset-0-relative-to-param routes through it, not pp" lever the other
+ *    through a fresh `it->param` cast, not `param`, even though it's the same
+ *    address — same
+ *    "field relative to item->param routes through it, not param" lever the other
  *    twins use for `hint = 0`. Getting the base pointer wrong here didn't
- *    change the VALUE stored, only which base register carried it ($s2/pp
+ *    change the VALUE stored, only which base register carried it ($s2/param
  *    vs $s1/it), but that's what decided whether this store or the
  *    immediately-following `li $a1, 10` won the delay-slot scheduling tie —
  *    the wrong base left a 9-byte pure-reorder residual (same instructions,
  *    same registers, just this store one slot later) even though the
  *    function was already the right LENGTH.
  *  - `ai = SetupAfterimage(it->model, 10);` is a real temp: the pointer is
- *  - `ai = SetupAfterimage(it->model, 10);` is a real temp: the pointer is
- *    stored to it->param+0x2c AND read six more times for the vector1/
+ *    stored to `param->effect` AND read six more times for the vector1/
  *    vector2 fields — inlining the call would re-invoke it.
  */
 extern void ProcItemLaunch(tag_TItem *item);
-extern void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
+extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern AfterimageType *SetupAfterimage(Sprite3D *model, s32 n);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -115,7 +109,7 @@ int ReqItemLaunch(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
     tag_TItem *cur;
-    param_korogari *pp;
+    param_launch *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -150,7 +144,7 @@ int ReqItemLaunch(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_launch *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -167,16 +161,16 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = SyurikenModel;
-    SetupFly(pp, st, &p->end, 0x400, 0x400, 0x12c);
-    *(u8 *)((u8 *)it->param + 0x28) = 0;
+    SetupFly(&param->fly, st, &p->end, 0x400, 0x400, 0x12c);
+    ((param_launch *)it->param)->fly.mode = 0;
     ai = SetupAfterimage(it->model, 10);
-    *(AfterimageType **)((u8 *)pp + 0x2c) = ai;
+    param->effect = ai;
     ai->vector1.vx = 0x14;
     ai->vector1.vy = 0;
     ai->vector1.vz = 0;
     ai->vector2.vx = -0x14;
     ai->vector2.vy = 0;
     ai->vector2.vz = 0;
-    *(u8 *)((u8 *)pp + 0x30) = 5;
+    param->count = 5;
     return 1;
 }

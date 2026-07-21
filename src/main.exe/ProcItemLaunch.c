@@ -7,10 +7,10 @@
  * register a 300-unit conflict box), spin it (rotate.vy = GameClock * 0x2AA),
  * mirror the coordinate into the shared model and draw + afterimage. If a
  * live character is in the conflict box: SetImpact + SoundEx and dispose.
- * Otherwise, once armed (param+0x28), dispatch on the payload type
- * (param+0xA): 1 = plain dispose; 3 = detonate (SetBleeds/SoundEx 0x31 +
- * reset_alert_duration); 2/4 = drop a pickup (build a PARAM_ITEM_USE at the
- * model's position, dispose, ReqItemDrop).
+ * Otherwise, once `param->fly.mode` is armed, dispatch on the rolling
+ * overlay's `status`: 1 = plain dispose; 3 = detonate (SetBleeds/SoundEx
+ * 0x31 + reset_alert_duration); 2/4 = drop a pickup (build a
+ * PARAM_ITEM_USE at the model's position, dispose, ReqItemDrop).
  *
  * Matching notes (this is ProcItemHappou's skeleton — see that file for the
  * conflict-box and countdown conventions; all deltas verified):
@@ -20,7 +20,8 @@
  *    each reloads item->locate (the in-struct stores invalidate the cached
  *    load). GameClock * 0x2AA is the plain literal multiply (shift/add
  *    chain), truncated by the sh.
- *  - `switch (pp[0xa])` with bodies in source order 3, 2/4, 1; case 1 is the
+ *  - `switch (param->fly.p.koro.status)` with bodies in source order 3,
+ *    2/4, 1; case 1 is the
  *    shared `dispose:` label the impact path reaches by `goto` — its body
  *    (and the case-2/4 copy) are literal duplicates, NOT cross-jumped (they
  *    have different continuations).
@@ -73,10 +74,11 @@
  * END PSX.SYM */
 
 #include "item.h"
+#include "afterimage.h"
 
-extern void MoveFly(tag_TItem *item, u8 *pp);
-extern void DisposeAfterimage(s32 effect);
-extern void DrawAfterimage(s32 effect, s32 flag);
+extern void MoveFly(tag_TItem *item, param_fly *param);
+extern void DisposeAfterimage(AfterimageType *effect);
+extern s16 DrawAfterimage(AfterimageType *effect, s16 flag);
 extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
@@ -89,26 +91,25 @@ extern s32 GameClock;
 void ProcItemLaunch(tag_TItem *item)
 {
     ModelType *model;
-    u8 *pp;
-    u8 cnt;
+    param_launch *param;
+    u8 t;
     s32 cid;
     s32 n;
     PARAM_ITEM_USE *p;
     PARAM_ITEM_USE rparam;
-    PARAM_ITEM_USE param;
 
     model = item->model;
-    pp = item->param;
+    param = (param_launch *)item->param;
     if (item->mode == 0xff)
     {
-        DisposeAfterimage(*(s32 *)(pp + 0x2c));
+        DisposeAfterimage(param->effect);
         item->mode = 0;
         return;
     }
-    MoveFly(item, pp);
-    cnt = pp[0x30] - 1;
-    pp[0x30] = cnt;
-    if (cnt == 0)
+    MoveFly(item, &param->fly);
+    t = param->count - 1;
+    param->count = t;
+    if (t == 0)
     {
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
@@ -131,7 +132,7 @@ void ProcItemLaunch(tag_TItem *item)
     UpdateCoordinate(item->locate);
     model->locate = item->locate->locate;
     DrawModel(model);
-    DrawAfterimage(*(s32 *)(pp + 0x2c), 1);
+    DrawAfterimage(param->effect, 1);
     if ((item->locate->attribute & 0x8000) == 0)
         cid = -1;
     else
@@ -142,9 +143,9 @@ void ProcItemLaunch(tag_TItem *item)
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
         goto dispose;
     }
-    if (pp[0x28] == 0)
+    if (param->fly.mode == 0)
         return;
-    switch (pp[0xa])
+    switch (param->fly.p.koro.status)
     {
     case 3:
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
@@ -154,6 +155,9 @@ void ProcItemLaunch(tag_TItem *item)
 
     case 2:
     case 4:
+    {
+        PARAM_ITEM_USE param;
+
         p = &param;
         memset(p, 0, sizeof(PARAM_ITEM_USE));
         param.type = item->type;
@@ -176,6 +180,7 @@ void ProcItemLaunch(tag_TItem *item)
         }
         ReqItemDrop(&rparam);
         return;
+    }
 
     case 1:
     dispose:
