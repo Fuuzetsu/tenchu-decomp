@@ -17,6 +17,7 @@ typedef struct ExplosionType ExplosionType;
 typedef struct XF4Type XF4Type;
 typedef struct SmokeType SmokeType;
 typedef struct ImpactType ImpactType;
+typedef struct SnowParticleType SnowParticleType;
 
 typedef union ImpactColor ImpactColor;
 union ImpactColor
@@ -47,6 +48,19 @@ struct ImpactType /* size 36 */
     u8 type;                   /* +0x20 */
     u8 count;                  /* +0x21 */
     u8 time;                   /* +0x22 */
+};
+
+/* Retail-only snowfall particle, proven jointly by SetSnow and DrawSnow. */
+struct SnowParticleType /* size 32 */
+{
+    s32 x;                     /* +0x00 */
+    s32 y;                     /* +0x04 */
+    s32 z;                     /* +0x08 */
+    s32 ground;                /* +0x0C */
+    s32 sample_y;              /* +0x10 */
+    s32 size;                  /* +0x14 */
+    s16 velocity[3];           /* +0x18 */
+    u8 sprite;                 /* +0x1E */
 };
 
 struct BloodType /* size 36 */
@@ -182,6 +196,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct SmokeType smoke;
     struct FlyWireType flywire;
     struct ImpactType impact;
+    struct SnowParticleType snow;
     u8 pad[72];
 };
 

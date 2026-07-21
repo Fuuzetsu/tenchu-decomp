@@ -2,22 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-/* SetSnow's writes and this callback's reads prove a snow-particle
- * view of EffectParam.  It shares BloodType's storage, but not its field
- * meanings: the trailing shorts are velocity and the byte at +0x1e is a
- * sprite selector. */
-typedef struct
-{
-    s32 x;          /* +0x00 */
-    s32 y;          /* +0x04 */
-    s32 z;          /* +0x08 */
-    s32 ground;     /* +0x0c */
-    s32 sample_y;   /* +0x10 */
-    s32 size;       /* +0x14 */
-    s16 velocity[3]; /* +0x18 */
-    u8 sprite;       /* +0x1e */
-} SnowParticleType;
-
 extern GsRVIEW2 ViewInfo;
 extern u_long *GlobalAreaMap;
 extern GsOT *OTablePt;
@@ -55,7 +39,7 @@ void DrawSnow(TEffectSlot *effect)
     s16 depth;
     s32 priority;
 
-    particle = (SnowParticleType *)&effect->param;
+    particle = &effect->param.snow;
     view_x = ViewInfo.vrx;
     view_y = ViewInfo.vry;
     view_z = ViewInfo.vrz;
