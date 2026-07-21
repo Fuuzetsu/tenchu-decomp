@@ -44,10 +44,11 @@
  *
  * The second pass follows LoadOrnamentArchive's proven parent-search shape.
  * Giving its parent pointer a separate `super` identity lets it die in a3 at
- * GsInitCoordinate2 while `objp` remains in s0. The unsigned count view and
- * signed `mad->n` field have the same verified 0x64 address but distinct C
- * identities, preserving the target's adjacent lhu/lh loads instead of cc1
- * folding them together. `limit` then keeps j in v1 through the inner loop.
+ * GsInitCoordinate2 while `objp` remains in s0. The `*(u16 *)&mad->n`
+ * memory view and signed `mad->n` field have the same verified 0x64 address
+ * but distinct C identities, preserving the target's adjacent lhu/lh loads
+ * instead of cc1 folding them together. `limit` then keeps j in v1 through
+ * the inner loop.
  */
 extern void *valloc(u32 size);
 extern void SystemOut(char *msg);
@@ -59,22 +60,6 @@ typedef struct
 } WorldType;
 
 extern WorldType World;
-
-typedef struct
-{
-    u8 pad[0x64];
-    u16 n;
-} ModelArchiveCountView;
-
-typedef struct
-{
-    s16 parent;  /* 0x0 */
-    s16 id;      /* 0x2 */
-    s16 x;       /* 0x4 */
-    s16 y;       /* 0x6 */
-    s16 z;       /* 0x8 */
-    s32 offset;  /* 0xC */
-} ParentingType; /* size 0x10 */
 
 ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
 {
@@ -104,7 +89,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     tmdp = (u8 *)prntp;
     if (0 < mad->n) {
         do {
-            dtmd = (int)tmdp + prntp[i].offset;
+            dtmd = (int)tmdp + prntp[i].index;
             dim = (ModelType *)valloc(sizeof(ModelType));
             if (dtmd != 0) {
                 GsMapModelingData((u_long *)(dtmd + 4));
@@ -148,16 +133,16 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->locate.flg = 0;
     mad->id = -1;
     mad->attribute = 0;
-    count = ((ModelArchiveCountView *)mad)->n;
+    count = *(u16 *)&mad->n;
     if (0 < mad->n) {
         do {
             objp = mad->object[i];
             super = (ModelType *)mad;
-            if (prntp[i].parent >= 0 && (j = 0, 0 < (count << 16))) {
-                parent = prntp[i].parent;
+            if (prntp[i].np >= 0 && (j = 0, 0 < (count << 16))) {
+                parent = prntp[i].np;
                 limit = mad->n;
                 do {
-                    if (parent == prntp[j].id) {
+                    if (parent == prntp[j].nc) {
                         super = mad->object[j];
                         goto coordinate_init;
                     }
@@ -166,13 +151,13 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             }
 coordinate_init:
             GsInitCoordinate2(&super->locate, &objp->locate);
-            objp->locate.coord.t[0] = prntp[i].x;
-            objp->locate.coord.t[1] = prntp[i].y;
-            objp->locate.coord.t[2] = prntp[i].z;
+            objp->locate.coord.t[0] = prntp[i].dx;
+            objp->locate.coord.t[1] = prntp[i].dy;
+            objp->locate.coord.t[2] = prntp[i].dz;
             RotMatrixYXZ(&objp->rotate, &objp->locate.coord);
             i = i + 1;
             objp->locate.flg = 0;
-            count = ((ModelArchiveCountView *)mad)->n;
+            count = *(u16 *)&mad->n;
         } while (i < mad->n);
     }
     mad->rotate.pad = (short)mad->object[0]->locate.coord.t[1];

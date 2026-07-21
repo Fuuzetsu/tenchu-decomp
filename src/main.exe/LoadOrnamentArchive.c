@@ -66,16 +66,6 @@ typedef struct
     GsCOORDINATE2 locate; /* 0x00 */
 } WorldType;
 
-typedef struct
-{
-    s16 parent;  /* 0x0 */
-    s16 id;      /* 0x2 */
-    s16 x;       /* 0x4 */
-    s16 y;       /* 0x6 */
-    s16 z;       /* 0x8 */
-    s32 offset;  /* 0xC */
-} ParentingType;  /* size 0x10 */
-
 extern void *valloc(u32 size);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern OrnamentType *LoadOrnament(u32 *adr);
@@ -118,7 +108,7 @@ loop1:
             goto loop1_end;
         do {
             do {
-                offset = prntp[idx].offset;
+                offset = prntp[idx].index;
             } while (0);
         } while (0);
         i++;
@@ -147,11 +137,11 @@ loop2:
         goto loop2_end;
     objp = dim->object[i];
     super = (ModelType *)dim;
-    if (0 <= prntp[i].parent && 0 < count) {
+    if (0 <= prntp[i].np && 0 < count) {
         j = 0;
-        parent = prntp[i].parent;
+        parent = prntp[i].np;
 parent_loop:
-        if (parent == prntp[j].id)
+        if (parent == prntp[j].nc)
             goto parent_found;
         j++;
         if (j < count)
@@ -159,9 +149,9 @@ parent_loop:
     }
 coordinate_init:
     GsInitCoordinate2((GsCOORDINATE2 *)super, &objp->locate);
-    objp->locate.coord.t[0] = prntp[i].x;
-    objp->locate.coord.t[1] = prntp[i].y;
-    objp->locate.coord.t[2] = prntp[i].z;
+    objp->locate.coord.t[0] = prntp[i].dx;
+    objp->locate.coord.t[1] = prntp[i].dy;
+    objp->locate.coord.t[2] = prntp[i].dz;
     UpdateOrnament(objp, 0);
     i = i + 1;
     objp->object.attribute |= 0x400;

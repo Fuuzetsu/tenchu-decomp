@@ -68,6 +68,20 @@ struct MapVector
     struct NodeIndexType *index; /* 0x14 (retail) */
 };                               /* 0x18 */
 
+/* Parent/child transform record embedded ahead of model and ornament data.
+ * LoadModelArchive, LoadOrnamentArchive, and LoadConstruction all consume
+ * the same PSX.SYM-defined table. */
+typedef struct ParentingType ParentingType;
+struct ParentingType
+{
+    s16 np;                      /* 0x00: parent number */
+    s16 nc;                      /* 0x02: child number */
+    s16 dx;                      /* 0x04 */
+    s16 dy;                      /* 0x06 */
+    s16 dz;                      /* 0x08 */
+    u32 index;                   /* 0x0C */
+};                               /* 0x10 */
+
 /* CONFLICT.C's collision slot. PSX.SYM records result[64] and size 0x68 in
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
  * result bytes, and reserves 0x2580 bytes for 80 slots, proving that the old

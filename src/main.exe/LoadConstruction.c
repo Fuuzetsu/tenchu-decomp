@@ -152,17 +152,6 @@ typedef struct
     s32 n;
 } WorldDataType;
 
-typedef struct
-{
-    s16 parent;
-    s16 id;
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 pad;
-    s32 offset;
-} ParentingType;
-
 extern WorldMapCell WorldMap[8][8][8];
 extern u32 *GlobalAreaMap;
 extern u8 *ImagePath;
@@ -456,7 +445,7 @@ short LoadConstruction(u32 *data)
         {
             if (!(i < D_80097A70->n))
                 break;
-            parent = ix[i].parent;
+            parent = ix[i].np;
             D_80097A70->object[i]->locate.coord.t[0] *= 10;
             D_80097A70->object[i]->locate.coord.t[1] *= 10;
             D_80097A70->object[i]->locate.coord.t[2] *= 10;
