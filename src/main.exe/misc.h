@@ -5,10 +5,8 @@
  * Shared types of the original MISC.C translation unit (the misc-object
  * spawner AddMisc.c and its dispatch table ProcMisc*, plus InitMisc/
  * DoMiscProc). Layouts follow the demo's PSX.SYM (reference/psxsym-types.h,
- * union MISC__181fake) and are proven by AddMisc.c/ResetAllMisc.c (matched)
- * plus this batch. AddMisc.c/ResetAllMisc.c predate this header and keep
- * their own local (duplicate) tag_TMisc — left as-is, not worth touching a
- * matched file to converge on this header.
+ * union MISC__181fake) and are proven by the matched AddMisc.c and
+ * ResetAllMisc.c implementations as well as the processors that share them.
  */
 
 typedef struct tag_TMisc tag_TMisc;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -87,33 +88,7 @@
  *    Ghidra renders the condition as (int)ptVar1 < -0x7ff3da88.
  */
 
-typedef struct tag_TMisc tag_TMisc;
-
-typedef struct
-{
-    s32 a; /* 0x0 */
-    s32 b; /* 0x4 */
-    s32 c; /* 0x8 */
-} TMiscInit;
-
-struct tag_TMisc
-{
-    void (*proc)(tag_TMisc *, s32); /* 0x00 */
-    s32 x;                          /* 0x04 */
-    s32 y;                          /* 0x08 */
-    s32 z;                          /* 0x0C */
-    s32 count;                      /* 0x10 */
-    u8 pause;                       /* 0x14 */
-    u8 mode;                        /* 0x15 */
-    union
-    {
-        TMiscInit init;
-    } param;                        /* 0x18 */
-};                                  /* 0x24 */
-
 typedef struct { char *n[7]; } TimNameBlock; /* 0x1C */
-
-extern tag_TMisc misc[200];
 extern char *D_80012788[]; /* the seven water/warp TIM names */
 extern char D_800127A4[];  /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char D_800127BC[];  /* "undefined effect %d" */

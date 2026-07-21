@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -26,16 +27,6 @@
  * proc once into $v0, tests it, and calls through the SAME register
  * (DrawEffect.c's exact shape).
  */
-
-typedef struct tag_TMisc tag_TMisc;
-
-struct tag_TMisc
-{
-    void (*proc)(tag_TMisc *, s32); /* 0x00 */
-    u8 pad[0x20];
-};                                  /* 0x24 */
-
-extern tag_TMisc misc[200];
 
 void ResetAllMisc(void)
 {
