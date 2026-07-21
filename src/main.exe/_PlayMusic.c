@@ -88,7 +88,8 @@
  * rematerializes sp+224/sp+232 instead of retaining two saved-register
  * aliases. That restores the original 264-byte frame and s0-s4 allocation.
  */
-typedef struct
+/* Retail extends PSX.SYM's TMusicTable with an XA end time. */
+typedef struct TMusicTable
 {
     u8 *file;    /* 0x0 */
     u8 channel;  /* 0x4 */
@@ -96,7 +97,6 @@ typedef struct
     u8 sec;      /* 0x6 */
     u8 endmin;   /* 0x7 */
     u8 endsec;   /* 0x8 */
-    u8 pad[3];   /* 0x9 */
 } TMusicTable; /* 0xC */
 
 extern TMusicTable MusicTable[];
