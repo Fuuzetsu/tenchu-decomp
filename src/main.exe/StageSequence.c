@@ -58,7 +58,7 @@
  *    adds a final sll/sra to the no-event result, one instruction absent from
  *    retail, so this is a measured retail/demo declaration divergence.
  *  - `StageTime` is volatile here so its -100 store remains before the camera
- *    state read.  The camera read is `CamState.mode`, not a standalone scalar:
+ *    state read.  The camera read is `CamState.Mode`, not a standalone scalar:
  *    retaining the structure base is what gives retail's separate v0 address
  *    and v1 value registers for the lui/lw pair.
  *  - The mode-6 distance checks are inline `__builtin_abs` expressions.  A
@@ -100,17 +100,6 @@ typedef struct
     u16 value[6];
 } ScoreResult;
 
-typedef struct
-{
-    VECTOR target_vector;
-    Humanoid *owner;
-    s32 mode;
-    s16 direction_rx;
-    s16 direction_ry;
-    s32 old_mode;
-    u8 variation;
-} CameraStatus;
-
 extern Humanoid *StagePlayer;
 extern EventSeqType *D_80097F78[2];
 extern Humanoid *D_80097F80[2];
@@ -119,7 +108,7 @@ extern s32 GameClock;
 extern s32 SystemFlag;
 extern s32 StageID;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern CameraStatus CamState;
+extern TCameraStatus CamState;
 extern s16 ActionHalt;
 extern s16 SkipFrame;
 extern s16 Findenemies;
@@ -194,7 +183,7 @@ active_events:
         StageTime = -100;
         D_80097F78[1] = 0;
         D_80097F78[0] = 0;
-        if (CamState.mode != 14)
+        if (CamState.Mode != CMODE_FALL)
         {
             SetCameraMode(4);
         }

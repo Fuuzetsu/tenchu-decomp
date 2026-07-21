@@ -83,23 +83,12 @@ typedef struct
     s16 value;
 } AddEnemyThinkDB;
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} AddEnemyCameraStatus;
-
 extern AddEnemyHumanData HumanData[63];
 extern AddEnemyWeaponModel WeaponModel[41];
 extern s16 *StageAppearance[];
 extern s32 StageID;
 extern AddEnemyThinkDB ThinkDB[20];
-extern AddEnemyCameraStatus CamState;
+extern TCameraStatus CamState;
 extern s32 CurrentEnemyID;
 
 extern char D_80013FA8[];

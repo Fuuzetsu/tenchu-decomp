@@ -51,12 +51,6 @@ typedef struct
 
 typedef struct
 {
-    u8 pad[0x10];
-    Humanoid *Owner;
-} StageEndCameraStatus;
-
-typedef struct
-{
     GsSPRITE digit;                 /* sp+0x18 */
     u8 pad_024[4];
     StageScoreStats stats;          /* sp+0x40 */
@@ -93,7 +87,7 @@ extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
 extern Sprite3D *ItemImage[];
-extern StageEndCameraStatus CamState;
+extern TCameraStatus CamState;
 extern s32 StageID;
 extern s32 GameClock;
 extern s16 SkipFrame;

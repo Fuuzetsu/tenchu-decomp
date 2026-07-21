@@ -44,13 +44,7 @@ typedef struct
     s16 think;
 } StageCharType;
 
-typedef struct
-{
-    u8 pad0[0x10];
-    Humanoid *Owner;
-} ActivateHumansCameraStatus;
-
-extern ActivateHumansCameraStatus CamState;
+extern TCameraStatus CamState;
 extern Humanoid *StagePlayer;
 extern s32 GameClock;
 extern s16 SkipFrame;

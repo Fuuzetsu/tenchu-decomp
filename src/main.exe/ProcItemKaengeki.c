@@ -69,18 +69,7 @@
  *    start, scale start by 12, add the saved origin, double end, then add
  *    start.  They reproduce both rounds of stack stores in the target.
  */
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} KaengekiCameraStatus;
-
-extern KaengekiCameraStatus CamState;
+extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 
 extern s16 NowReturnNormal(Humanoid *human);

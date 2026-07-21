@@ -55,17 +55,6 @@ typedef struct
     s16 packed;
 } DeadEvent;
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} DeadCameraStatus;
-
 typedef union
 {
     struct
@@ -87,7 +76,7 @@ extern Humanoid *D_8009770C;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
-extern DeadCameraStatus CamState;
+extern TCameraStatus CamState;
 extern DeadEvent *D_80086B0C[];
 extern SVECTOR D_8009771C[];
 
@@ -164,7 +153,7 @@ check_motion_end:
             if (dtM->mid < 0x1109)
                 return;
             ActionHalt = 0;
-            *((u8 *)&CamState.OldMode + 1) = 1;
+            CamState.CriticalHit = 1;
             return;
         }
     }
