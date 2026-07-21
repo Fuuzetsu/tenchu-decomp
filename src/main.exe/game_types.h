@@ -339,6 +339,17 @@ struct SoundEffect
     struct VabHdr *VABhead;           /* 0x04 */
 };                                    /* 0x08 */
 
+/* INFOVIEW.C's active life-bar slot (anonymous in PSX.SYM). */
+typedef struct LifeBarEntry LifeBarEntry;
+struct LifeBarEntry
+{
+    struct Humanoid *target;           /* 0x00 */
+    s32 life;                          /* 0x04 */
+    s32 max;                           /* 0x08 */
+    s32 count;                         /* 0x0C */
+    s32 style;                         /* 0x10 */
+};                                     /* 0x14 */
+
 /* HUMAN.C/WORLD.C's waypoint path. */
 typedef struct TracePoint TracePoint;
 struct TracePoint

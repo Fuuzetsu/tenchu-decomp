@@ -37,16 +37,7 @@
  * loop touches 2+ fields"). Twin: DrawEffect.c (0.16), same TU as
  * PutItemIcon.c/PutItemCursor.c.
  */
-typedef struct
-{
-    u8 pad0[4];
-    s32 life;
-    s32 max;
-    s32 count;
-    s32 style;
-} tag_LifeBarEntry; /* 0x14 */
-
-extern tag_LifeBarEntry LifeBar[5];
+extern LifeBarEntry LifeBar[5];
 extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
 
 s32 PutLifeBarS(void)

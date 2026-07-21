@@ -44,16 +44,7 @@
  * iteration, starting at &LifeBar[4]); only one field is touched so there's
  * no walking-pointer field-order bias to worry about (cookbook Loops).
  */
-typedef struct
-{
-    u8 pad0[4];
-    s32 life;
-    s32 max;
-    s32 count;
-    s32 style;
-} tag_LifeBarEntry; /* 0x14 */
-
-extern tag_LifeBarEntry LifeBar[5];
+extern LifeBarEntry LifeBar[5];
 extern u8 *ImagePath;
 extern char D_80012564[]; /* "chizu.tim" */
 extern GsSPRITE MapImage;

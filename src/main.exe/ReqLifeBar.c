@@ -77,16 +77,7 @@
  *    a real but not fully root-caused cc1 cse/basic-block boundary effect
  *    tied to the branch structure, not merely a stylistic rewrite.
  */
-typedef struct
-{
-    Humanoid *target; /* 0x00 */
-    s32 life;          /* 0x04 */
-    s32 max;           /* 0x08 */
-    s32 count;         /* 0x0C */
-    s32 style;         /* 0x10 */
-} tag_LifeBarEntry;    /* 0x14 */
-
-extern tag_LifeBarEntry LifeBar[5];
+extern LifeBarEntry LifeBar[5];
 
 int ReqLifeBar(Humanoid *h)
 {
