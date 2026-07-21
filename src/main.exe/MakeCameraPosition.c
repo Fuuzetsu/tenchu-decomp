@@ -68,13 +68,6 @@
  * component delta as -va + vb preserves the target's independent-load order.
  */
 
-typedef struct
-{
-    s16 div;     /* +0x0 */
-    s16 spd;     /* +0x2 */
-    SVECTOR bef; /* +0x4 */
-} TMakeDifInfo;
-
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern TMakeDifInfo D_80089F10;

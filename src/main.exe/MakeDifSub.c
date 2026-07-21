@@ -83,13 +83,6 @@
  *          lands in spd (a0); splitting makes the shift itself target spd (a0)
  *          and the add happen in place (the last 2-byte tie).
  */
-typedef struct
-{
-    s16 div;     /* +0x0 */
-    s16 spd;     /* +0x2 */
-    SVECTOR bef; /* +0x4 */
-} TMakeDifInfo;
-
 extern long GetVectorLength(long dx, long dy, long dz);
 
 void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)

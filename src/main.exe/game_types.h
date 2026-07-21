@@ -245,6 +245,15 @@ struct TCdaStatus
     u8 command;                   /* 0x14 */
 };                                /* 0x18 */
 
+/* CAMERA.C's smoothing history. */
+typedef struct TMakeDifInfo TMakeDifInfo;
+struct TMakeDifInfo
+{
+    s16 div;                      /* 0x00 */
+    s16 spd;                      /* 0x02 */
+    SVECTOR bef;                  /* 0x04 */
+};                                /* 0x0C */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

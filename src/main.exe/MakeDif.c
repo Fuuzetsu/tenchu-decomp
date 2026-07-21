@@ -46,13 +46,6 @@
  * and SetCameraMode's stores prove CriticalHit at +0x1D. The demo's
  * Valiation at +0x20 disappeared when the record shrank to 0x20 bytes.
  */
-typedef struct
-{
-    s16 div;    /* +0x0 */
-    s16 spd;    /* +0x2 */
-    SVECTOR bef; /* +0x4 */
-} TMakeDifInfo;
-
 extern TCameraStatus CamState;
 extern TMakeDifInfo D_80089F10;
 extern TMakeDifInfo pnt;
