@@ -279,6 +279,22 @@ struct WeaponType
     SVECTOR ilup1;                 /* 0x10 */
 };                                 /* 0x18 */
 
+/* APPEAR.C's character database row. */
+struct MotionRegistType;
+typedef struct HumanDataType HumanDataType;
+struct HumanDataType
+{
+    s16 type;                       /* 0x00 */
+    s16 wepid;                      /* 0x02 */
+    s16 turn;                       /* 0x04 */
+    s16 life;                       /* 0x06 */
+    s16 width;                      /* 0x08 */
+    s16 height;                     /* 0x0A */
+    struct MotionRegistType *mtbl;  /* 0x0C */
+    u8 *name;                       /* 0x10 */
+    u32 *model;                     /* 0x14 */
+};                                  /* 0x18 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

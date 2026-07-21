@@ -150,19 +150,6 @@
  *    guard-clause functions in this TU family).
  */
 
-typedef struct
-{
-    s16 type;   /* 0x0 */
-    s16 wepid;  /* 0x2 */
-    s16 turn;   /* 0x4 */
-    s16 life;   /* 0x6 */
-    s16 width;  /* 0x8 */
-    s16 height; /* 0xA */
-    MotionRegistType *mtbl; /* 0xC */
-    u8 *name;   /* 0x10 */
-    u32 *model; /* 0x14 */
-} HumanDataType; /* 0x18 */
-
 extern HumanDataType HumanData[63];
 extern u32 *GlobalAreaMap;
 

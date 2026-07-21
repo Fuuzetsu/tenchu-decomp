@@ -37,23 +37,10 @@
  */
 typedef struct
 {
-    s16 type;
-    u16 wepid;
-    s16 turn;
-    s16 life;
-    s16 width;
-    s16 height;
-    void *mtbl;
-    u8 *name;
-    u32 *model;
-} SetupWeaponHumanData;
-
-typedef struct
-{
     GsCOORDINATE2 locate;
 } SetupWeaponOrnament;
 
-extern SetupWeaponHumanData HumanData[63];
+extern HumanDataType HumanData[63];
 extern void GetWeaponData(Humanoid *human, s16 body, s16 wid, s32 wpid, int wep);
 
 void SetupWeapon(Humanoid *human)

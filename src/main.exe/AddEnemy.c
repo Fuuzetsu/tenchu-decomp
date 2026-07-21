@@ -59,19 +59,6 @@
 
 typedef struct
 {
-    s16 type;
-    s16 wepid;
-    s16 turn;
-    s16 life;
-    s16 width;
-    s16 height;
-    MotionRegistType *mtbl;
-    u8 *name;
-    u32 *model;
-} AddEnemyHumanData;
-
-typedef struct
-{
     u8 *name;
     s16 wid;
     u32 *model;
@@ -83,7 +70,7 @@ typedef struct
     s16 value;
 } AddEnemyThinkDB;
 
-extern AddEnemyHumanData HumanData[63];
+extern HumanDataType HumanData[63];
 extern AddEnemyWeaponModel WeaponModel[41];
 extern s16 *StageAppearance[];
 extern s32 StageID;

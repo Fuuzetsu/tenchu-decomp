@@ -152,7 +152,7 @@ typedef struct
 /* GetMotionID's registry row (Ghidra's own independently-built type,
  * cross-checked: the `*8`-scaled index in GetMotionID's asm exactly matches
  * this struct's size). Sentinel-terminated array (mid == -1). */
-typedef struct
+typedef struct MotionRegistType
 {
     s16 mid;                      /* 0x0 */
     s16 id;                       /* 0x2 */

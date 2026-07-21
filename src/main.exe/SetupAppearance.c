@@ -56,25 +56,12 @@
  */
 typedef struct
 {
-    s16 type;
-    s16 wepid;
-    s16 turn;
-    s16 life;
-    s16 width;
-    s16 height;
-    MotionRegistType *mtbl;
-    u8 *name;
-    u32 *model;
-} AppearanceHumanData;
-
-typedef struct
-{
     u8 *name;
     s16 wid;
     u32 *model;
 } AppearanceWeaponModel;
 
-extern AppearanceHumanData HumanData[63];
+extern HumanDataType HumanData[63];
 extern AppearanceWeaponModel WeaponModel[41];
 extern s16 NowStage;
 extern s16 EngageLevel;
@@ -102,7 +89,7 @@ void SetupAppearance(short mode, short stage)
     short j;
     u8 name[100];
     u8 *pt;
-    AppearanceHumanData *human;
+    HumanDataType *human;
     u8 appearance;
 
     NowStage = stage;
@@ -164,7 +151,7 @@ void SetupAppearance(short mode, short stage)
             vfree(PlayerMotion);
             PlayerMotion = 0;
         }
-        human = (AppearanceHumanData *)StageMotion;
+        human = (HumanDataType *)StageMotion;
         if (human != 0)
         {
             vfree(human);
