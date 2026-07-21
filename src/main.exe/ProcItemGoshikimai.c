@@ -12,11 +12,9 @@
  *
  * Matching notes (see also ProcItemKusuri.c/ReqItemGoshikimai.c for the
  * item-TU conventions):
- *  - `pp = (param_korogari *)item->param;` is the VERY FIRST statement
+ *  - `pp = (param_goshikimai *)item->param;` is the VERY FIRST statement
  *    (before even the entry mode==0xff test): the addiu fills the entry
- *    branch's delay slot, same lever as ReqItemGoshikimai's `pp` — and like
- *    that twin, none of param_korogari's NAMED fields are read; pp is purely
- *    a cast vehicle for the raw offset-2/offset-4 accesses below.
+ *    branch's delay slot, same lever as ReqItemGoshikimai's `pp`.
  *  - `if (mode==ff)` (a plain if, separate statement) and the `switch
  *    (item->mode)` right after each get their OWN fresh lbu of item->mode —
  *    two total reloads, matching the switch rule (expand_case always
@@ -32,10 +30,9 @@
  *    the two call sites differ.
  *  - Case 0 mirrors ProcItemKusuri's case 0 exactly (dispose/animate/status/
  *    MoveHumanoid), just different animation id (0xf03) and status (8).
- *  - `item->param`'s three stashed s16 fields are read with the SAME
- *    fresh-vs-cached asymmetry ReqItemGoshikimai writes them with: offset 0
- *    is read through a fresh `item->param` cast (not `pp`), offsets 2 and 4
- *    through `pp` — matching bases exactly mirror the twin's store bases.
+ *  - `param_goshikimai.vec` is read with the SAME fresh-vs-cached asymmetry
+ *    ReqItemGoshikimai writes it with: vec.vx uses a fresh `item->param`
+ *    cast, while vec.vy/vec.vz use `pp`.
  *  - `item->owner->model->object[0xd]` is recomputed in full for EACH of the
  *    three GetAbsolutePosition calls (three separate jal's in the asm, no
  *    cached model/object pointer) — Ghidra's literal repetition is the
@@ -77,14 +74,14 @@ extern void NowReturnNormal(Humanoid *h);
 
 void ProcItemGoshikimai(tag_TItem *item)
 {
-    param_korogari *pp;
+    param_goshikimai *pp;
     Humanoid *own;
     MotionDataType *md;
     MotionManager *mot;
     PARAM_ITEM_USE prm;
     u8 ff;
 
-    pp = (param_korogari *)item->param;
+    pp = (param_goshikimai *)item->param;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -120,9 +117,9 @@ void ProcItemGoshikimai(tag_TItem *item)
         prm.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
         prm.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;
         prm.start.vz = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vz;
-        prm.end.vx = *(s16 *)item->param;
-        prm.end.vy = *(s16 *)((u8 *)pp + 2);
-        prm.end.vz = *(s16 *)((u8 *)pp + 4);
+        prm.end.vx = ((param_goshikimai *)item->param)->vec.vx;
+        prm.end.vy = pp->vec.vy;
+        prm.end.vz = pp->vec.vz;
         NowReturnNormal(item->owner);
         if (item->proc != 0)
         {

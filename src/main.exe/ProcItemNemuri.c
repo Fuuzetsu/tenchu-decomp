@@ -8,12 +8,6 @@ typedef struct
     GsSPRITE sprite;
 } FullSprite3D;
 
-typedef struct
-{
-    SVECTOR vec;
-    u8 count;
-} param_napalm;
-
 extern ConflictObjectType ConflictObject[];
 extern u_long *GlobalAreaMap;
 extern SVECTOR D_80097B04[];

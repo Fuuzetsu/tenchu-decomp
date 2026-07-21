@@ -72,12 +72,6 @@
  *    exact words formerly produced by the duplicated numeric-base scaffold.
  */
 
-typedef struct
-{
-    SVECTOR vec;
-    u8 count;
-} param_shinsoku;
-
 extern u_long *GlobalAreaMap;
 
 typedef struct

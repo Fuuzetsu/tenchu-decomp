@@ -45,21 +45,13 @@
  * ReqItemDokudango there is no GetAreaMapLevel floor check. It gets
  * ProcItemKaengeki as its processor.
  *
- * Unlike those siblings' narrowed param_korogari throw-velocity view, this
- * one packs p->start AND p->end as SIX FULL 32-bit words (not s16s) into
- * it->param at offsets 0/4/8/0x10/0x14/0x18 — tools/access.py confirms all
- * six are `sw`, not `sh`, so it's a distinct/wider union view than
- * param_korogari; per the cookbook's divergent-width-union rule these are
- * reached via raw offset casts off the SAME proven `pp` pointer. Offset 0
- * is the exception: the asm addresses it as 0x20($s0) (a fresh it->param
- * cast), the same lever the other twins use for `hint = 0` at that same
- * offset, rather than through pp.
+ * This packs p->start and p->end into PSX.SYM's `param_kaengeki` as six full
+ * words. start.vx is addressed through a fresh `it->param` cast; the other
+ * fields use the already-computed `pp` pointer.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot) — even
- *    though every param field here is reached through a raw offset cast
- *    instead of pp's own named members.
+ *  - `pp = (param_kaengeki *)it->param;` sits BEFORE the null check, so its
+ *    addiu fills the beqz delay slot.
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; dead afterward (p->start.vy/vz are re-read
  *    directly off p, not through st, in the param tail below).
@@ -78,7 +70,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemKaengeki(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_kaengeki *pp;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -108,7 +100,7 @@ int ReqItemKaengeki(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    pp = (param_kaengeki *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -125,11 +117,11 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = ItemImage[it->type];
-    *(s32 *)it->param = p->start.vx;
-    *(s32 *)((u8 *)pp + 0x4) = p->start.vy;
-    *(s32 *)((u8 *)pp + 0x8) = p->start.vz;
-    *(s32 *)((u8 *)pp + 0x10) = p->end.vx;
-    *(s32 *)((u8 *)pp + 0x14) = p->end.vy;
-    *(s32 *)((u8 *)pp + 0x18) = p->end.vz;
+    ((param_kaengeki *)it->param)->start.vx = p->start.vx;
+    pp->start.vy = p->start.vy;
+    pp->start.vz = p->start.vz;
+    pp->end.vx = p->end.vx;
+    pp->end.vy = p->end.vy;
+    pp->end.vz = p->end.vz;
     return 1;
 }

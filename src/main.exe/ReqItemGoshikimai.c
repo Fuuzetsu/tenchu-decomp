@@ -43,22 +43,18 @@
  * item TU, same pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
  * dispose-on-exhaustion block); like ReqItemJirai/ReqItemSmoke there is no
  * GetAreaMapLevel floor check. It gets ProcItemGoshikimai as its processor.
- * Unlike the twins' vx/vy/vz-into-param_korogari tail, tools/access.py shows
- * this one stores only THREE plain 16-bit values at param OFFSETS 0/2/4 (not
- * param_korogari's vx@4/vy@6/vz@8) — a distinct, narrower union member
- * reached via explicit offset casts off the same proven `it->param`/`pp`
- * pointer — and there is no hint=0/status=0/count=N tail at all.
+ * Unlike the twins' rolling-item tail, this stores p->end into PSX.SYM's
+ * `param_goshikimai.vec`, the three halfwords at offsets 0/2/4. There is no
+ * hint/status/count tail.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot) — even
- *    though pp's own named fields are never read in this function.
+ *  - `pp = (param_goshikimai *)it->param;` sits BEFORE the null check, same
+ *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty are real temps, same as the other twins.
- *  - The offset-0 store re-casts `it->param` fresh (not `pp`) — same idiom
- *    as the twins' `((param_korogari *)it->param)->hint = 0;` (asm: base
- *    reg $s0 + 0x20, not $s2) — while offsets 2 and 4 go through `pp` ($s2).
+ *  - The vec.vx store re-casts `it->param` fresh (not `pp`), so its base is
+ *    $s0+0x20; vec.vy/vec.vz go through `pp` ($s2).
  *  - All three stores are INLINE (no x/y/z temps): each is a single
  *    lhu-then-sh pair, interleaved in the asm (load, store, load, store,
  *    load, [store in the `return 1;` jump's delay slot]) — not the twins'
@@ -74,7 +70,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemGoshikimai(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_goshikimai *pp;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -104,7 +100,7 @@ int ReqItemGoshikimai(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    pp = (param_goshikimai *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -121,8 +117,8 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = ItemImage[it->type];
-    *(u16 *)it->param = p->end.vx;
-    *(u16 *)((u8 *)pp + 2) = p->end.vy;
-    *(u16 *)((u8 *)pp + 4) = p->end.vz;
+    ((param_goshikimai *)it->param)->vec.vx = p->end.vx;
+    pp->vec.vy = p->end.vy;
+    pp->vec.vz = p->end.vz;
     return 1;
 }

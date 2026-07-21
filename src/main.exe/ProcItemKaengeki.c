@@ -71,13 +71,6 @@
  */
 typedef struct
 {
-    VECTOR start;
-    VECTOR end;
-    u8 count;
-} param_kaengeki;
-
-typedef struct
-{
     VECTOR TargetVector;
     Humanoid *Owner;
     s32 Mode;

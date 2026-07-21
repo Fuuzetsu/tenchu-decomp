@@ -323,6 +323,56 @@ typedef struct param_ninken
     s16 count;                   /* 0x10 */
 } param_ninken;                  /* 0x14 */
 
+/* ITEM.C's remaining small parameter records.  These names and layouts are
+ * taken directly from PSX.SYM; keeping them distinct reflects the original
+ * source even where two item kinds happen to have the same representation. */
+typedef struct param_goshikimai
+{
+    SVECTOR vec;                  /* 0x00 */
+} param_goshikimai;               /* 0x08 */
+
+typedef struct param_gosin
+{
+    s16 count;                    /* 0x00 */
+} param_gosin;                    /* 0x02 */
+
+typedef struct param_gun
+{
+    VECTOR vec;                   /* 0x00 */
+} param_gun;                      /* 0x10 */
+
+typedef struct param_henshin
+{
+    s16 count;                    /* 0x00 */
+    u8 lock;                      /* 0x02 */
+} param_henshin;                  /* 0x04 */
+
+typedef struct param_kaengeki
+{
+    VECTOR start;                 /* 0x00 */
+    VECTOR end;                   /* 0x10 */
+    u8 count;                     /* 0x20 */
+} param_kaengeki;                 /* 0x24 */
+
+typedef struct param_lightningbolt
+{
+    VECTOR start;                 /* 0x00 */
+    SVECTOR rot;                  /* 0x10 */
+    u8 count;                     /* 0x18 */
+} param_lightningbolt;            /* 0x1C */
+
+typedef struct param_napalm
+{
+    SVECTOR vec;                  /* 0x00 */
+    u8 count;                     /* 0x08 */
+} param_napalm;                   /* 0x0A */
+
+typedef struct param_shinsoku
+{
+    SVECTOR vec;                  /* 0x00 */
+    u8 count;                     /* 0x08 */
+} param_shinsoku;                 /* 0x0A */
+
 /* ITEM.C's human-search scratch record (PSX.SYM's own struct TFindItemTarget,
  * reference/psxsym-types.h:3769 — field names are the authors' own). The
  * setup/search blocks in ProcItemSmoke/ProcItemDokudango view a shared stack

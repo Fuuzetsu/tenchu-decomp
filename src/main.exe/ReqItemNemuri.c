@@ -44,31 +44,25 @@
  * COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion block); like
  * ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango/ReqItemShinsoku there
  * is no GetAreaMapLevel floor check. It gets ProcItemNemuri as its processor,
- * but differs from the "vanilla" param_korogari twins (Jirai/Smoke/Fire) in
+ * but differs from the rolling-item twins (Jirai/Smoke/Fire) in
  * two ways (both confirmed against the .s, not just Ghidra):
  *  - `it->model` is unconditionally set from a single fixed global pointer
  *    (Ghidra/the export name it `sprSmoke`, confirmed at 0x80097a68 in
  *    .shake/ghidra-export) — no ItemImage[it->type] lookup by item type.
- *  - the end vector is packed into a DIFFERENT param-union view than
- *    param_korogari: tools/access.py shows three plain sh stores at pp+0,
- *    pp+2, pp+4 (Ghidra's "napalm.vec.vx/vy/vz"), not param_korogari's
- *    vx/vy/vz at +4/+6/+8 — same "distinct union member, reach it via an
- *    offset cast off the SAME proven pointer" situation as
- *    ReqItemDokudango/ReqItemShinsoku's extra stores (see
- *    docs/matching-cookbook.md). No hint/status/count writes at all in this
- *    function (matches ReqItemShinsoku, not the param_korogari twins).
+ *  - the end vector is packed into PSX.SYM's `param_napalm.vec` at offsets
+ *    0/2/4. No hint/status/count writes occur here.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `pp = (param_napalm *)it->param;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty are real temps, same shape as the other twins.
  *  - the end-vector stores are NOT batched through temps here (unlike the
- *    param_korogari twins' x/y/z): the asm interleaves each `lhu` with its
- *    `sh` immediately, so they're written inline through the SAME `pp` cast
- *    (`*(s16 *)((u8 *)pp + N) = p->end.v_;`) — no temp means the truncating
- *    lhu, matching the target exactly (identical shape to ReqItemShinsoku).
+ *    rolling-item twins' x/y/z): the asm interleaves each `lhu` with its
+ *    `sh` immediately, so they're written inline through `pp->vec` — no
+ *    temp means the truncating lhu, matching the target exactly (identical
+ *    shape to ReqItemShinsoku).
  *    The FIRST of the three (+0) compiles through $s0 (it) directly while
  *    the other two (+2/+4) compile through pp's own register ($s2) — a cc1
  *    cse/regalloc artifact, not a source-spelling difference:
@@ -89,7 +83,7 @@ extern Sprite3D *sprSmoke;
 int ReqItemNemuri(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_napalm *pp;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -119,7 +113,7 @@ int ReqItemNemuri(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    pp = (param_napalm *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -136,8 +130,8 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = sprSmoke;
-    *(s16 *)((u8 *)pp + 0) = p->end.vx;
-    *(s16 *)((u8 *)pp + 2) = p->end.vy;
-    *(s16 *)((u8 *)pp + 4) = p->end.vz;
+    pp->vec.vx = p->end.vx;
+    pp->vec.vy = p->end.vy;
+    pp->vec.vz = p->end.vz;
     return 1;
 }

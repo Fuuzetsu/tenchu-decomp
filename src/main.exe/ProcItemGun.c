@@ -14,11 +14,11 @@
  * Matching notes (all verified against the original bytes; shares
  * ProcItemKawarimi's dispatch/dispose shape and ProcItemLightningBolt's
  * conflict-box insert block — same store order, `n = InsertConflict` as s32):
- *  - `param = (VECTOR *)item->param;` + `ff = 0xff;` before the entry test:
+ *  - `param = (param_gun *)item->param;` + `ff = 0xff;` before the entry test:
  *    param's addiu fills the entry branch's delay slot, and BOTH stay
  *    caller-saved here (param → $a1: its only use is GetVectorRotation's 2nd
- *    argument, reached with no intervening call; ff → $v1, used by the entry
- *    compare and case 2's `item->mode = ff`).
+ *    argument via `param->vec`, with no intervening call; ff → $v1, used by
+ *    the entry compare and case 2's `item->mode = ff`).
  *  - The switch INDEX register ($s2) is callee-saved and reused inside case 1
  *    as the source of every `= 1` store (common/size.pad/coll_mode): cse's
  *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
@@ -88,12 +88,12 @@ extern SVECTOR D_80097B14[];
 
 void ProcItemGun(tag_TItem *item)
 {
-    VECTOR *param;
+    param_gun *param;
     u8 ff;
     SVECTOR vec;
     VECTOR target;
 
-    param = (VECTOR *)item->param;
+    param = (param_gun *)item->param;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -118,7 +118,7 @@ void ProcItemGun(tag_TItem *item)
         Humanoid *IsHuman;
         s32 n;
 
-        GetVectorRotation((VECTOR *)item->locate->locate.coord.t, param, &ry, &rx);
+        GetVectorRotation((VECTOR *)item->locate->locate.coord.t, &param->vec, &ry, &rx);
         vec.vx = ry;
         vec.vy = rx;
         vec.vz = 0;

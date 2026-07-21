@@ -45,20 +45,14 @@
  * is no GetAreaMapLevel floor check. It gets ProcItemLightningBolt as its
  * processor.
  *
- * Like ReqItemKaengeki, the start vector is packed as three FULL 32-bit words
- * (not s16s) into it->param at offsets 0/4/8 — tools/access.py confirms all
- * three are `sw`, so it's the wider/distinct union view, not param_korogari;
- * offset 0 goes through a fresh it->param cast (same lever as the other
- * twins' `hint = 0` / Kaengeki's offset-0 store), offsets 4/8 go through the
- * proven `pp` pointer. Unlike Kaengeki, there's no end-vector store — instead
+ * PSX.SYM identifies the payload as `param_lightningbolt`: start is stored
+ * as three full words, with start.vx through a fresh `it->param` cast and
+ * start.vy/start.vz through `pp`. There is no end-vector store — instead
  * GetVectorRotation(&p->start, &p->end, &rot.vx, &rot.vz) computes a rotation
  * from start/end into a LOCAL SVECTOR, of which only .vx/.vz are read back
  * (skipping .vy — the two out-arg stack slots are 4 bytes apart, matching
  * SVECTOR's vx@0/vz@4 with vy@2 skipped, not 2 independent u16s); the two
- * fields get copied into pp+0x10/+0x12 (plus a zero at +0x14). Ghidra invents
- * unrelated union member names here (napalm/smoke.koro/ninken.count/
- * lightningbolt.rot) per the cookbook's struct-name warning — only the raw
- * offsets (from access.py) are used.
+ * results become `param_lightningbolt.rot.vx/.vy`, with `.vz` cleared.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemMakibishi: `cur = items
@@ -68,7 +62,7 @@
  *    (SVECTOR local + pp + it + p all live around the tail) again pushes
  *    `cur`/`it` to different hard registers, making the transfer a real
  *    `move` (see the cookbook rule this pair of functions taught).
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `pp = (param_lightningbolt *)it->param;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; dead afterward (p->start.vy/vz are re-read
@@ -79,7 +73,7 @@
  *    compiles to one lw immediately followed by its sw, same as
  *    ReqItemKaengeki's six-word tail.
  *  - `rot.vx`/`rot.vz` ARE read into separate temps (rx, ry) BEFORE any of
- *    the three param+0x10/0x12/0x14 stores (batched loads-before-stores,
+ *    the three rot.vx/rot.vy/rot.vz stores (batched loads-before-stores,
  *    same shape as the other twins' x/y/z end-vector temps) — reading them
  *    inline at each store point interleaves a store between the two loads
  *    and costs 4 bytes plus a different schedule.
@@ -96,7 +90,7 @@ int ReqItemLightningBolt(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
     tag_TItem *cur;
-    param_korogari *pp;
+    param_lightningbolt *pp;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -133,7 +127,7 @@ int ReqItemLightningBolt(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    pp = (param_lightningbolt *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -150,14 +144,14 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = ItemImage[it->type];
-    *(s32 *)it->param = p->start.vx;
-    *(s32 *)((u8 *)pp + 0x4) = p->start.vy;
-    *(s32 *)((u8 *)pp + 0x8) = p->start.vz;
+    ((param_lightningbolt *)it->param)->start.vx = p->start.vx;
+    pp->start.vy = p->start.vy;
+    pp->start.vz = p->start.vz;
     GetVectorRotation(&p->start, &p->end, &rot.vx, &rot.vz);
     rx = rot.vx;
     ry = rot.vz;
-    *(s16 *)((u8 *)pp + 0x14) = 0;
-    *(s16 *)((u8 *)pp + 0x10) = rx;
-    *(s16 *)((u8 *)pp + 0x12) = ry;
+    pp->rot.vz = 0;
+    pp->rot.vx = rx;
+    pp->rot.vy = ry;
     return 1;
 }

@@ -13,12 +13,9 @@
  *
  * Matching notes (see also ProcItemMakibishi.c for the item-TU/collision-box
  * conventions this shares):
- *  - `pp = (VECTOR *)item->param;` before the entry mode==0xff test — the
- *    "launch" position view sits at param OFFSET 0 (proven: SearchItemTarget2/
- *    SetLightning/SetImpact all take `pp` directly). The 15-frame countdown
- *    ("count") is a DISTINCT u8 member at param offset 0x18, reached via an
- *    explicit `(u8 *)pp + 0x18` cast off the SAME pointer — not a separate
- *    named struct.
+ *  - `param = (param_lightningbolt *)item->param;` precedes the entry test,
+ *    putting the pointer calculation in its delay slot. Its `start`, `rot`,
+ *    and `count` members are the original PSX.SYM names.
  *  - The dispatch is a real switch over {0, 1, 2} (plus the entry's separate
  *    0xff guard): expand_case builds a signed range-split tree (`slti v0,
  *    mode,2`) rather than Goshikimai's plain sequential beq/beqz, since
@@ -87,12 +84,12 @@ extern ConflictObjectType ConflictObject[];
 
 void ProcItemLightningBolt(tag_TItem *item)
 {
-    VECTOR *pp;
+    param_lightningbolt *param;
     VECTOR pos;
     u8 cnt;
     s32 n;
 
-    pp = (VECTOR *)item->param;
+    param = (param_lightningbolt *)item->param;
     if (item->mode == 0xff)
     {
         item->mode = 0;
@@ -101,7 +98,7 @@ void ProcItemLightningBolt(tag_TItem *item)
     switch (item->mode)
     {
     case 0:
-        *((u8 *)pp + 0x18) = 0xf;
+        param->count = 0xf;
         item->mode = item->mode + 1;
         if (item->owner == CURRENTLY_SELECTED_CHARACTER_STATE_PTR)
         {
@@ -110,7 +107,8 @@ void ProcItemLightningBolt(tag_TItem *item)
         break;
 
     case 1:
-        SearchItemTarget2(item->owner, (void *)((u8 *)item->param + 0x10), pp, &pos);
+        SearchItemTarget2(item->owner, &((param_lightningbolt *)item->param)->rot,
+                          &param->start, &pos);
         item->locate->locate.coord.t[0] = pos.vx;
         item->locate->locate.coord.t[1] = pos.vy;
         item->locate->locate.coord.t[2] = pos.vz;
@@ -138,14 +136,15 @@ void ProcItemLightningBolt(tag_TItem *item)
         }
         break;
     }
-    SetLightning(pp, (VECTOR *)item->locate->locate.coord.t, 100, 100, 200);
+    SetLightning(&param->start, (VECTOR *)item->locate->locate.coord.t,
+                 100, 100, 200);
     if ((GameClock & 3) == 0)
     {
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 200, 20, 10, 20, 0xFFFF78);
-        SetImpact(pp, 0x4000, 1);
+        SetImpact(&param->start, 0x4000, 1);
     }
-    cnt = *((u8 *)pp + 0x18);
-    *((u8 *)pp + 0x18) = cnt + 0xff;
+    cnt = param->count;
+    param->count = cnt + 0xff;
     if (cnt == 0 && item->proc != 0)
     {
         item->mode = 0xff;

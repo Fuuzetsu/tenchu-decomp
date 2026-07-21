@@ -239,13 +239,6 @@ typedef struct
     u8 Valiation;                /* 0x20 */
 } TCameraStatus;
 
-/* tag_TItem.param viewed as the napalm payload (psxsym param_napalm). */
-typedef struct
-{
-    SVECTOR vec;                 /* 0x0 */
-    u8 count;                    /* 0x8 */
-} param_napalm;
-
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[]; /* == CamState.Owner */

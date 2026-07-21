@@ -46,19 +46,14 @@
  * differs from every other twin in three ways (all confirmed against the
  * .s, not just Ghidra):
  *  - `it->model` is unconditionally zeroed — no ItemImage[it->type] lookup.
- *  - the end vector is packed into a DIFFERENT param-union view than
- *    param_korogari: tools/access.py shows three PLAIN sh stores at pp+0,
- *    pp+2, pp+4 (Ghidra's "napalm.vec.vx/vy/vz"), not param_korogari's
- *    vx/vy/vz at +4/+6/+8 — same "distinct union member, reach it via an
- *    offset cast off the SAME proven pointer" situation as
- *    ReqItemDokudango's two extra stores (see docs/matching-cookbook.md).
- *    No hint/status/count writes at all in this function.
+ *  - the end vector is packed into PSX.SYM's `param_shinsoku.vec`, at
+ *    offsets 0/2/4. No hint/status/count writes occur in this function.
  *  - both the "pool exhausted" early return and the normal path return 0
  *    (confirmed: both epilogue predecessors set $v0 via `addu $v0,$zero,$zero`)
  *    — unlike the other twins, which return 1 on the normal path.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `pp = (param_shinsoku *)it->param;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
@@ -69,8 +64,7 @@
  *    per the cookbook's "narrowing store fed through a temp forces the
  *    full-word load" rule — no temp here means the truncating lhu, matching
  *    the target exactly.
- *  - there is no `((param_korogari *)it->param)->hint = 0;` store in this
- *    function (no hint/status/count touched at all).
+ *  - Only `vec` is initialized here; `count` is left for the processor.
  */
 extern void ProcItemShinsoku(tag_TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -80,7 +74,7 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
 int ReqItemShinsoku(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_shinsoku *pp;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -110,7 +104,7 @@ int ReqItemShinsoku(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    pp = (param_shinsoku *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -127,8 +121,8 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = 0;
-    *(s16 *)((u8 *)pp + 0) = p->end.vx;
-    *(s16 *)((u8 *)pp + 2) = p->end.vy;
-    *(s16 *)((u8 *)pp + 4) = p->end.vz;
+    pp->vec.vx = p->end.vx;
+    pp->vec.vy = p->end.vy;
+    pp->vec.vz = p->end.vz;
     return 0;
 }

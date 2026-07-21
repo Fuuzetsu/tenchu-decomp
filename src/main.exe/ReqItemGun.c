@@ -10,10 +10,8 @@
  *  - instead of `it->model = ItemImage[it->type];`, the tail block-copies
  *    the whole `p->end` VECTOR (4 words, align-4 word block move: 4x lw +
  *    4x sw — see the matching cookbook's "cast type's alignment drives copy
- *    code" rule) onto `it->param` (the union): `*(VECTOR *)it->param =
- *    p->end;`. Ghidra's rendering of this tail as bit-shifted short/char
- *    stores into a `param.gun` union disagrees with both m2c and the raw
- *    .s (plain lw/sw of all 4 words, no shifts) — trust the asm.
+ *    code" rule) onto PSX.SYM's `param_gun.vec`. The raw assembly confirms
+ *    plain lw/sw operations for all four words.
  */
 extern void ProcItemGun(tag_TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -67,5 +65,5 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    *(VECTOR *)it->param = p->end;
+    ((param_gun *)it->param)->vec = p->end;
 }
