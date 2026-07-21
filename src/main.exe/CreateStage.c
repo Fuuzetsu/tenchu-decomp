@@ -64,8 +64,6 @@ typedef struct
     Humanoid *Owner;
 } TCameraStatus;
 
-typedef struct BackGround BackGround;
-
 typedef struct
 {
     char *path[4];

@@ -112,6 +112,21 @@ struct Sprite3D
     GsSPRITE sprite;              /* 0x68 */
 };                                /* 0x8C */
 
+/* 3DCTRL.C's tiled background. PSX.SYM supplies the complete layout and
+ * original `hundle` spelling; retail confirms the same 0x48-byte record. */
+typedef struct BackGround BackGround;
+struct BackGround
+{
+    GsBG hundle;                  /* 0x00 */
+    GsMAP map;                    /* 0x24 */
+    GsCELL *cell;                 /* 0x34 */
+    u32 *work;                    /* 0x38 */
+    u16 *index;                   /* 0x3C */
+    u16 sz;                       /* 0x40 */
+    s16 id;                       /* 0x42 */
+    s16 attribute;                /* 0x44 */
+};                                /* 0x48 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

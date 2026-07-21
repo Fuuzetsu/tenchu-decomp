@@ -29,9 +29,7 @@
  * DrawBG (0x80018818, 0x44 bytes) — sort the background layer into the GsOT
  * if it's enabled (attribute bit 0 clear); returns whether it drew.
  *
- * BackGround (Ghidra, recovered from the type export): only the fields this
- * function touches are named here, the rest is opaque padding (offsets
- * proven by the raw .s: work@0x38, sz@0x40, attribute@0x44).
+ * BackGround uses the complete PSX.SYM layout shared in game_types.h.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - m2c undercounts FUN_80063b94's call args: `bg` itself (a0) is carried
@@ -57,16 +55,6 @@
  *    a caller-saved temp. Try both shapes when a flag-return is off by a
  *    register.)
  */
-typedef struct
-{
-    u8 pad0[0x38];
-    u32 *work;       /* 0x38 */
-    u8 pad1[4];      /* 0x3C (index, unused here) */
-    u16 sz;          /* 0x40 */
-    u8 pad2[2];      /* 0x42 (id, unused here) */
-    short attribute; /* 0x44 */
-} BackGround;
-
 extern GsOT *OTablePt;
 extern void FUN_80063b94(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 

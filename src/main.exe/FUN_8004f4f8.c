@@ -25,16 +25,6 @@
  * StageEndScreen and two other still-asm helpers — all places that load a
  * background image straight off a TIM buffer. No confirmed original name.
  */
-typedef struct
-{
-    u8 pad0[0x26];
-    u16 ncellw;    /* 0x26 */
-    u16 ncellh;    /* 0x28 */
-    u8 pad1[0x12]; /* 0x2a..0x3c */
-    u16 *index;    /* 0x3c */
-    u16 sz;        /* 0x40 */
-} BackGround;
-
 extern BackGround *SetupBG(GsIMAGE *image, s16 w, s16 h);
 extern void LoadTIM(u_long *tim);
 
@@ -49,11 +39,11 @@ BackGround *FUN_8004f4f8(u_long *tim)
     bg->sz = 100;
     LoadTIM(tim);
     i = 0;
-    if (0 < bg->ncellw * bg->ncellh) {
+    if (0 < bg->map.ncellw * bg->map.ncellh) {
         do {
             bg->index[i] = (u16)i;
             i = i + 1;
-        } while (i < bg->ncellw * bg->ncellh);
+        } while (i < bg->map.ncellw * bg->map.ncellh);
     }
     return bg;
 }

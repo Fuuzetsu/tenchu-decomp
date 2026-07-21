@@ -23,8 +23,6 @@
  * though the emitted transition instructions are otherwise identical.
  */
 
-typedef struct BackGround BackGround;
-
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 D_80010048;

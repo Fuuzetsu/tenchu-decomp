@@ -222,8 +222,6 @@
  * direct human constant spellings were all measured neutral or worse. The one
  * coherent improvement retained is a named right-edge brightness intermediate;
  * it keeps the exact CFG and length and improves 77 -> 76 bytes. */
-typedef struct BackGround BackGround;
-
 typedef struct
 {
     u16 xbase;

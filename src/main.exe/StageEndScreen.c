@@ -55,8 +55,6 @@ typedef struct
     Humanoid *Owner;
 } StageEndCameraStatus;
 
-typedef struct BackGround BackGround;
-
 typedef struct
 {
     GsSPRITE digit;                 /* sp+0x18 */

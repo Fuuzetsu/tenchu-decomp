@@ -39,18 +39,6 @@
  * midpoint narrowing. The cell-width capture and source-level u-before-v
  * stores are also load-bearing for the inner-loop allocation and schedule. */
 
-typedef struct BackGround
-{
-    GsBG hundle;
-    GsMAP map;
-    GsCELL *cell;
-    u32 *work;
-    u16 *index;
-    u16 sz;
-    s16 id;
-    s16 attribute;
-} BackGround;
-
 extern char D_8001109C[];
 extern void SystemOut(u8 *message);
 extern void *valloc(u32 size);
