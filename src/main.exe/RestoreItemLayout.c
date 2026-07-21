@@ -64,12 +64,19 @@ extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
 extern s32 abs(s32 x);
 extern void *memset(void *s, int c, u32 n);
 
+/* ITEM.C's saved item-layout record (the original PSX.SYM name/layout). */
+typedef struct TItemLayout
+{
+    s32 type;                    /* 0x00 */
+    VECTOR locate;              /* 0x04 */
+} TItemLayout;                  /* 0x14 */
+
 void RestoreItemLayout(void *buf)
 {
     tag_TItem *it;
+    TItemLayout *slot;
     s32 i;
     s32 j;
-    u8 *p;
     PARAM_ITEM_STAY param;
     s32 level;
     s32 one;
@@ -100,16 +107,16 @@ loop1_end:
     j = 0;
     one = 1;
     sentinel = -0x80000000;
-    p = (u8 *)buf;
+    slot = buf;
 loop2:
     if (!(j < 0x1e))
         return;
-    if (*(s32 *)p != -1) {
+    if (slot->type != -1) {
         PARAM_ITEM_STAY tmp;
 
         memset(&tmp, 0, sizeof(PARAM_ITEM_STAY));
-        tmp.type = *(s32 *)p;
-        tmp.locate = *(VECTOR *)(p + 4);
+        tmp.type = slot->type;
+        tmp.locate = slot->locate;
         param = tmp;
 
         level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, one);
@@ -140,7 +147,7 @@ loop2:
         ReqItemStay(&param);
     skip_stay:;
     }
-    p += 0x14;
+    slot++;
     j++;
     goto loop2;
 
