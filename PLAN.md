@@ -536,11 +536,11 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
    standalone globals `gNannido..gfMemory` (0x80098090+) minus `gZangyaku`,
    which retail dropped from this run. Evidence per byte in
    `reference/data-symbols-applied.tsv`; field carve in `game_types.h`'s
-   `PersistentState`. Remaining here: rename `PersistentState` ->
-   official demo typedef `TLinkInfo` (~29 files + splat symbol +
-   `InitPersistentState` name — wants its own reviewed pass), and the
-   still-unnamed retail additions 0x5F/0x60/0x61 (`InitPersistentState`
-   defaults 0/1/1).
+   `TLinkInfo` (the official demo typedef, adopted for the struct; the
+   0x80010000 instance keeps splat's descriptive symbol name
+   `PersistentState` since the demo names only the type). Remaining here:
+   the still-unnamed retail additions 0x5F/0x60/0x61
+   (`InitPersistentState` defaults 0/1/1).
 
 ## Progress & the SDK endgame
 

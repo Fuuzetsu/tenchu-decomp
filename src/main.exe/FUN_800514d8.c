@@ -37,7 +37,7 @@ typedef struct
     s32 pr;     /* 0x18 */
 } StageConfigEntry; /* 0x1C */
 
-#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern s16 D_8008EA78[];
 extern s16 SkipFrame;

@@ -152,7 +152,7 @@ void mission_score_screen(void)
     register GsSPRITE *medal;
     register GsSPRITE *medalDraw;
     register u8 *unlock;
-    register PersistentState *statePtr;
+    register TLinkInfo *statePtr;
     register s16 i;
     register s16 newPress;
     s16 brightness;
@@ -332,7 +332,7 @@ score_character_sprite_init_loop:
 
                 SCORE_STATE->scores[insertedAt] = stats.clock;
                 SCORE_STATE->characters[insertedAt] =
-                    ((PersistentState *)SCORE_STATE)->chr;
+                    ((TLinkInfo *)SCORE_STATE)->chr;
                 SCORE_STATE->grades[insertedAt] = result.grade;
             }
         }
@@ -1115,8 +1115,8 @@ score_row_loop:
 
     if (result.grade == RANK_GRAND_MASTER)
     {
-        register PersistentState *state =
-            (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+        register TLinkInfo *state =
+            (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
         stageItem = D_8008ED50[state->stage];
         brightness = stageItem;
@@ -1134,7 +1134,7 @@ score_row_loop:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
     do {
-        statePtr = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+        statePtr = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     } while (0);
     if (gfMemory != 0)
     {

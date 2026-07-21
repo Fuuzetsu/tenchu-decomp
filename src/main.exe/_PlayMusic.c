@@ -60,7 +60,7 @@
  * constant synthesis); the target's `addiu` (address-style combine)
  * needs a real named `extern char D_8001349C[];` (config/symbols.main.exe.txt
  * entries added), confirmed empirically. Contrast FUN_800568b8.c's
- * `(PersistentState *)0x80010000` cast, which really is a bare literal
+ * `(TLinkInfo *)0x80010000` cast, which really is a bare literal
  * (that lui has NO addiu at all, reused as a base for several field
  * offsets) — a different, narrower tell than "no %hi(SYMBOL) shown here".
  *

@@ -35,7 +35,7 @@
 
 extern void SsSetMono(void);
 extern void SsSetStereo(void);
-extern void SelectStage(PersistentState *ps);
+extern void SelectStage(TLinkInfo *ps);
 
 typedef struct
 {
@@ -44,9 +44,9 @@ typedef struct
 
 s32 InitPersistentState(void)
 {
-    PersistentState *pg =
-        (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    PersistentState *ps;
+    TLinkInfo *pg =
+        (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    TLinkInfo *ps;
     s32 i;
     u32 magic;
     u8 fill;
@@ -60,7 +60,7 @@ s32 InitPersistentState(void)
         fill = 0xfe;
         i = 0x1f;
         stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
-        ps = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+        ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         *(u32 *)ps = magic;
         ((u8 *)ps)[0x58] = 0;
         ((u8 *)ps)[0x59] = 1;

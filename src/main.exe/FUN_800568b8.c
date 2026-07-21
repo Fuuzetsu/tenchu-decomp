@@ -5,12 +5,12 @@
  * FUN_800568b8 (0x800568b8, 0x58 bytes) — clamps every item's stock in a
  * PersistentState blob down to that item's shop maximum, skipping the ones
  * marked locked (0xFE). Same TU as FUN_800565f0.c/FUN_800566c0.c, and the same
- * proven structs: game_types.h's PersistentState (chr@0x4, stock@0x40C) and
+ * proven structs: game_types.h's TLinkInfo (chr@0x4, stock@0x40C) and
  * BriefingAndInventorySelectionScreen.c's ShopItemDefault (itemIndex@0x4,
  * maxStock@0x8, stride 0xC).
  *
  * Unlike its siblings this one takes the blob as a PARAMETER rather than going
- * through the `(PersistentState *)0x80010000` cast — the target keeps it in $a0
+ * through the `(TLinkInfo *)0x80010000` cast — the target keeps it in $a0
  * and does the `ps + (itemIndex + chr*0x20)` pointer arithmetic off it, so
  * there is no `lui` for the blob at all. It has no `jal` callers (reached
  * through a proc pointer, or a root).
@@ -38,7 +38,7 @@ typedef struct
 
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 
-void FUN_800568b8(PersistentState *ps)
+void FUN_800568b8(TLinkInfo *ps)
 {
     int i;
 

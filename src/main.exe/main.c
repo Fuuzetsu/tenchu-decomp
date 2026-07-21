@@ -47,7 +47,7 @@
  *    optimise it away); only the frame size proves it. The demo's own locals
  *    (`i`/`dat`/`rect`) were removed in retail.
  *  - CHOSEN_STAGE(+5)/CHOSEN_CHARACTER(+4)/PersistentState[0x5F] are read
- *    through ONE `PersistentState *ps = (PersistentState *)0x80010000;`
+ *    through ONE `TLinkInfo *ps = (TLinkInfo *)0x80010000;`
  *    assigned right before CreateStage, so cc1 shares a single transient
  *    `%hi(0x8001)` base (the bare-lui rule) instead of re-materialising it per
  *    global; declaring `ps` at function top instead pins it in a callee-saved
@@ -120,7 +120,7 @@ int main(void)
 {
     short seq;
     u32 pad;
-    PersistentState *ps;
+    TLinkInfo *ps;
     u8 dead[0xF8];
 
     AdtPadRead = GetRealPad;
@@ -143,7 +143,7 @@ int main(void)
     InitSoundEffect();
     DemoPatchInit();
     InitPersistentState();
-    ps = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     D_800976F6 = ps->field_0x5f[0];
     CreateStage(ps->stage, ps->chr);
     FUN_8001b4bc();

@@ -20,7 +20,7 @@
  * The `lui $v1, 0x8001` with NO `addiu` (hoisted into the branch delay slot and
  * reused as the base for both arms' lbu/sb) is the tell that the source holds
  * the blob's address in a LOCAL, via the literal pointer cast this codebase
- * already uses — `(PersistentState *)0x80010000`, see
+ * already uses — `(TLinkInfo *)0x80010000`, see
  * BriefingAndInventorySelectionScreen.c's PSTATE / FUN_800565f0.c. Referencing
  * the byte as a plain `extern u8 D_80010047` instead lets cc1 fold the address
  * into each memory operand, so `as` re-materialises `%hi` per arm through `$at`
@@ -34,8 +34,8 @@
 
 void FUN_8001b2b8(void)
 {
-    PersistentState *ps =
-        (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    TLinkInfo *ps =
+        (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
     if (((u8 *)PadPort)[7] != 0) {
         ps->field_0x3b[0xC] |= 1;

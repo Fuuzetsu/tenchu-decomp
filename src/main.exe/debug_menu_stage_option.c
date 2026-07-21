@@ -47,7 +47,7 @@ typedef struct
     u16 grade;    /* 0xA */
 } ScoreResult;    /* 0xC */
 
-#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern MENU_STAGE_TBL DEBUG_MENU_STAGE_OPTIONS;
 extern char D_80014648[];  /* "stage option" (AdtSelect title) */
@@ -62,7 +62,7 @@ extern u32 SystemFlag; /* gp-relative — defined by this TU */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void StageEndScreen(void);
-extern void SelectStage(PersistentState *ps);
+extern void SelectStage(TLinkInfo *ps);
 extern void FUN_8004f6c0(s32 arg);
 extern void init_score_stats(ScoreStats *out);
 extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);

@@ -3,7 +3,7 @@
 
 /*
  * FUN_800566fc (0x800566fc, 0xa0 bytes) — same PersistentState-at-0x80010000
- * family as FUN_800566c0.c/FUN_800565f0.c (game_types.h's PersistentState;
+ * family as FUN_800566c0.c/FUN_800565f0.c (game_types.h's TLinkInfo;
  * see FUN_800566c0.c for the `#define PSTATE` convention and the proven
  * backup@0x27/stock@0x40C/chr@0x4 offsets). This is FUN_800566c0's mirror
  * image: restores this character's shop stock row FROM the loadout backup
@@ -39,7 +39,7 @@
  *    reported score, which side-tracked this exact residual once).
  */
 
-#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);

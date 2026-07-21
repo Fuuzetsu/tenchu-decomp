@@ -32,7 +32,7 @@ typedef struct
 extern s16 D_8008ED50[];
 extern s32 rand(void);
 
-void FUN_80052ea8(PersistentState *state, EndStageResult *result)
+void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
 {
     s16 kind;
     s16 i;

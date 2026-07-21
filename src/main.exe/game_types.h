@@ -291,7 +291,13 @@ enum item_kind2
 // s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);
 
 // The persistent game state blob at 0x80010000 (below the exe image; survives
-// across screens). Offsets proven by BriefingAndInventorySelectionScreen.
+// across screens). TLinkInfo is the OFFICIAL typedef from the demo PSX.SYM
+// (WORLD.C's cross-exe config struct — it "links" state between the separate
+// executables); retail rearranged and extended the layout (demo: 216 bytes,
+// CharType at +0; retail: 0xE70 memset by InitPersistentState, magic
+// 0x19981110 at +0). The 0x80010000 instance keeps splat's descriptive
+// symbol name PersistentState — the demo names only the type, not the
+// retail instance. Offsets proven by BriefingAndInventorySelectionScreen.
 // Splat also names some fields as standalone globals (CHOSEN_CHARACTER = +4,
 // CHOSEN_STAGE = +5, STAGE_LAYOUT_NUMBER = +6, CHOSEN_LANGUAGE = +0x5E,
 // SHOP_STOCK_STATE_BY_CHAR = +0x40C); the original source mixed direct global
@@ -331,4 +337,4 @@ typedef struct
     u8 stock[0x100];        /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
                              *       0xFE = locked, 0xFF = infinite;
                              *       [chr*0x20+0x13] = stage bonus item flag */
-} PersistentState;
+} TLinkInfo;

@@ -77,7 +77,7 @@
  * base first, `(&p->arr[0])[i]` puts the index first, the extern-symbol form
  * puts the (hoisted) %hi base first.
  */
-#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 typedef struct
 {
@@ -143,7 +143,7 @@ extern void FUN_800519bc(void);
  * NOTE: keep the helpers inside the guard -- in the stub state cc1 emits
  * unreferenced static inlines as standalone code (+32 insns).
  */
-static inline u_long *LoadHelpArchive(PersistentState *q)
+static inline u_long *LoadHelpArchive(TLinkInfo *q)
 {
     char *paths[4];
 
@@ -171,8 +171,8 @@ void BriefingAndInventorySelectionScreen(void)
     u_long *harc;
     GsSPRITE *p;
     int help;
-    PersistentState *q;
-    PersistentState *ps;
+    TLinkInfo *q;
+    TLinkInfo *ps;
     GsSPRITE *dsp;
     u_long *buf;
     int cursor;
@@ -204,7 +204,7 @@ void BriefingAndInventorySelectionScreen(void)
     for (j = 0; j < 0x14; j++) {
         PSTATE->counts[j] = 0;
     }
-    q = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     uid = StageConfig[q->stage].uid;
     q->counts[0] = 0xFF;
     if (uid == 0) {
@@ -239,8 +239,8 @@ void BriefingAndInventorySelectionScreen(void)
     harc = LoadHelpArchive(q);
 
     {
-        PersistentState *cq =
-            (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+        TLinkInfo *cq =
+            (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         for (ci = 0; ci < 0x13; ci++) {
             int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
             u8 c = cq->stock[n];
@@ -251,7 +251,7 @@ void BriefingAndInventorySelectionScreen(void)
         }
     }
 
-    ps = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     do {
         rand();
         np = pad.u;
@@ -281,8 +281,8 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             }
             {
-                PersistentState *cq =
-                    (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+                TLinkInfo *cq =
+                    (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
                 for (ci = 0; ci < 0x13; ci++) {
                     int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
                     u8 c = cq->stock[n];

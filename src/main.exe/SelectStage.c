@@ -31,7 +31,7 @@
  * prompts repeat until a real stage is chosen.
  *
  * Matching notes:
- *  - Retail takes `PersistentState *ps`, despite the demo symbol's stale
+ *  - Retail takes `TLinkInfo *ps`, despite the demo symbol's stale
  *    `void SelectStage(void)` prototype. Both retail callers pass the state
  *    pointer in a0, and this body stores its three results at +0x5e/+4/+5.
  *  - The local declarations reproduce the full 0x500-byte working window:
@@ -85,7 +85,7 @@ extern char D_8001422C[];
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
 
-void SelectStage(PersistentState *ps)
+void SelectStage(TLinkInfo *ps)
 {
     MenuLanguageTable language;
     MenuPlayerTable player;

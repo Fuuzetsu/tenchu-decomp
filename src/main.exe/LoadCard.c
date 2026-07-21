@@ -95,7 +95,7 @@ s16 LoadCard(s32 target, u8 *name)
 // {
 //   undefined *pt;
 //   undefined4 *puVar1;
-//   PersistentState *pPVar2;
+//   TLinkInfo *pPVar2;
 //   undefined4 uVar3;
 //   undefined4 uVar4;
 //   undefined4 uVar5;
@@ -123,7 +123,7 @@ s16 LoadCard(s32 target, u8 *name)
 //       *(undefined4 *)&pPVar2->field_0x8 = uVar4;
 //       *(undefined4 *)&pPVar2->field_0xc = uVar5;
 //       puVar1 = puVar1 + 4;
-//       pPVar2 = (PersistentState *)&pPVar2->field_0x10;
+//       pPVar2 = (TLinkInfo *)&pPVar2->field_0x10;
 //     } while (puVar1 != local_1e20 + 0x39c);
 //   }
 //   else {

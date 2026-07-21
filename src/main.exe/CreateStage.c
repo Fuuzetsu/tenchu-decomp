@@ -203,12 +203,12 @@ void CreateStage(int StageNo, int CharType)
 
     for (i = 0; i < 20; i++)
         human->item[i] =
-            ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[i];
+            ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[i];
 
     create_ninken_character_(CharType, StageNo);
-    if (((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)
+    if (((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)
     {
-        ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % 3;
+        ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % 3;
         SystemFlag |= 8;
     }
     else

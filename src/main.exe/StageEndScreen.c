@@ -82,7 +82,7 @@ typedef struct
     BackGround *background;         /* sp+0xbc */
 } StageEndScreenStack;
 
-#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 CHOSEN_STAGE;
@@ -127,7 +127,7 @@ extern void DrawBG(BackGround *background);
 extern void FUN_800515b0(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
 extern void EndDrawing(s32 mode);
 extern void DisposeBG(BackGround *background);
-extern void FUN_80052ea8(PersistentState *state, StageScoreResult *result);
+extern void FUN_80052ea8(TLinkInfo *state, StageScoreResult *result);
 extern void FUN_800514d8(void);
 extern void FUN_8004f6c0(s32 state);
 

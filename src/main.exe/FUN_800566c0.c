@@ -7,7 +7,7 @@
  * BriefingAndInventorySelectionScreen uses inline
  * (`PSTATE->backup[i] = PSTATE->stock[i + CHOSEN_CHARACTER * 0x20];`),
  * here standalone in its own function. Proven struct: game_types.h
- * PersistentState (backup@0x27, stock@0x40C, chr/CHOSEN_CHARACTER@0x4).
+ * TLinkInfo (backup@0x27, stock@0x40C, chr/CHOSEN_CHARACTER@0x4).
  *
  * All three field accesses go through the SAME `PSTATE` pointer expression
  * (the raw 0x80010000 cast, not the standalone CHOSEN_CHARACTER extern) so
@@ -18,7 +18,7 @@
  * leaving the standard bottom-test do-while shape (jump.c
  * duplicate_loop_exit_test).
  */
-#define PSTATE ((PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void FUN_800566c0(void)
 {

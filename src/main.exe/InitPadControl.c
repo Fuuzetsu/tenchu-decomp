@@ -30,7 +30,7 @@
  *
  * The one-time `D_80010047` (PersistentState._71_1_) read is a plain
  * absolute scalar load (lui+lbu, no reuse across branches) — unlike
- * FUN_8001b2b8.c's two-arm reuse, no `(PersistentState *)0x80010000` cast
+ * FUN_8001b2b8.c's two-arm reuse, no `(TLinkInfo *)0x80010000` cast
  * is needed here.
  */
 extern void MemCardInit(int unit);

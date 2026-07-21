@@ -89,7 +89,7 @@ void start_demo_(void)
     u_long *fade_archive;
     Sprite3D *fade_sprite;
     u8 *persistent;
-    PersistentState *language_state;
+    TLinkInfo *language_state;
     char *resource_root;
     u16 pad;
     u16 previous_pad;
@@ -138,7 +138,7 @@ void start_demo_(void)
     suffix = 'r';
     fade_sprite->sprite.attribute |= 0x60000000;
 
-    language_state = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    language_state = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     if (CHOSEN_CHARACTER != 0)
     {
         suffix = 'a';
