@@ -66,6 +66,23 @@ struct OrnamentArchiveType
     u32 *data;                    /* 0x64 */
 };                                /* 0x68 */
 
+typedef struct tag_ObjectSlotType ObjectSlotType;
+struct tag_ObjectSlotType
+{
+    ObjectSlotType *next;         /* 0x00 */
+    OrnamentType *model;          /* 0x04 */
+    s16 ModelSize;                /* 0x08 */
+    s16 ShiftY;                   /* 0x0A */
+};                                /* 0x0C */
+
+typedef struct ObjectSlotManager ObjectSlotManager;
+struct ObjectSlotManager
+{
+    ObjectSlotType *slot;         /* 0x00 */
+    s32 n;                        /* 0x04 */
+    s32 max;                      /* 0x08 */
+};                                /* 0x0C */
+
 typedef struct ModelType ModelType;
 struct ModelType
 {

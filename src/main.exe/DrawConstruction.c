@@ -64,22 +64,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-typedef struct tag_ObjectSlotType ObjectSlotType;
-struct tag_ObjectSlotType
-{
-    ObjectSlotType *next;
-    OrnamentType *model;
-    s16 ModelSize;
-    s16 ShiftY;
-};
-
-typedef struct
-{
-    ObjectSlotType *slot;
-    s32 n;
-    s32 max;
-} ObjectSlotManager;
-
 typedef struct
 {
     ObjectSlotType *top;
