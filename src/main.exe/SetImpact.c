@@ -55,14 +55,10 @@
  *    ahead of the still-latency-bound `mult`/`mfhi` chain regardless, so
  *    getting the register (t1/t2/t3) assignment right needed this order,
  *    not just declaring them anywhere before the loop.
- *  - Field-fill order/register habits match FUN_8003944c's "spawn a
- *    blood-family effect exactly as told" shape: the offset-zero-relative-
- *    to-ef `hint` store goes through a fresh recast (fp isn't computed
- *    yet), `fp = &ef->param.blood;` is cached right after for every field
- *    from `px` on, and only the `pos->vz` capture is delayed to the very
- *    end (stored as `py` last) — every other field, including the two
- *    0x808080 literals, stores immediately in offset order (pz, vy, vz,
- *    scale, rotate, time, vx, unk22, bright, mode).
+ *  - The offset-zero `px` store goes through the slot directly (the impact
+ *    pointer isn't computed yet), and only the `pos->vz` capture is delayed
+ *    to the very end. Every other impact field, including the two 0x808080
+ *    colour words, stores immediately in offset order.
  */
 extern void DrawImpact(TEffectSlot *ef);
 
@@ -77,7 +73,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    BloodType *fp;
+    ImpactType *param;
     long py;
 
     r = rand();
@@ -112,19 +108,19 @@ void SetImpact(VECTOR *pos, short size, short type)
     ef = &dmy;
 found:
     ef->proc = (void (*)())DrawImpact;
-    ef->param.blood.hint = (struct AreaNodeType *)pos->vx;
-    fp = &ef->param.blood;
-    fp->px = pos->vy;
+    ef->param.impact.px = pos->vx;
+    param = &ef->param.impact;
+    param->py = pos->vy;
     py = pos->vz;
-    fp->pz = 0;
-    fp->vy = 0;
-    fp->vz = spd;
-    fp->scale = scale;
-    fp->rotate = rotate;
-    fp->time = size;
-    fp->vx = 0;
-    fp->unk22 = 0xf;
-    fp->bright = 0;
-    fp->mode = type;
-    fp->py = py;
+    param->super = 0;
+    param->rotate = 0;
+    param->rotate_speed = spd;
+    param->start_color.word = scale;
+    param->end_color.word = rotate;
+    param->start_size = size;
+    param->end_size = 0;
+    param->time = 0xf;
+    param->count = 0;
+    param->type = type;
+    param->pz = py;
 }
