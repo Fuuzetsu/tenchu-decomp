@@ -44,13 +44,6 @@
  * STATUS: MATCHED — exact 1416 bytes / 354 instructions.
  */
 
-typedef struct
-{
-    Humanoid *human;
-    s16 loop;
-    s16 motid;
-} ActChaseHumanAnim;
-
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern s16 dtPAD;
@@ -61,7 +54,7 @@ extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern s16 dtCMD;
 extern s16 SelectedItem;
-extern ActChaseHumanAnim CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);

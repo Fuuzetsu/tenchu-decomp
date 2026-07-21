@@ -71,13 +71,6 @@
 
 typedef struct
 {
-    Humanoid *human;
-    s16 loop;
-    s16 motid;
-} HumanAnimType;
-
-typedef struct
-{
     VECTOR TargetVector;
     Humanoid *Owner;
     s32 Mode;

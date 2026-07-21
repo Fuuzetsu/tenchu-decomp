@@ -55,13 +55,6 @@
 
 typedef struct
 {
-    Humanoid *human;
-    s16 loop;
-    s16 motid;
-} CVASequenceHumanAnim;
-
-typedef struct
-{
     s16 kind;
     s16 mode;
     s16 x;
@@ -86,7 +79,7 @@ typedef struct
 
 extern CVASequenceEvent *CVAdata;
 extern CVASequenceEvent *CVAnow;
-extern CVASequenceHumanAnim CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 extern Humanoid *StagePlayer;
 extern Humanoid *HumanGroup[32];
 extern s16 Humans;
@@ -125,7 +118,7 @@ s16 CVAsequence(s16 sid)
     s32 wanted;
     s32 end_kind;
     s32 type_class;
-    CVASequenceHumanAnim *anim_base;
+    HumanAnimType *anim_base;
 
     CVAnow = CVAdata;
     if (CVAdata->kind == -1)

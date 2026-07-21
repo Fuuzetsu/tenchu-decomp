@@ -2,13 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-typedef struct
-{
-    Humanoid *human;
-    s16 loop;
-    s16 motid;
-} HumanAnimType;
-
 typedef enum
 {
     ITEM_KAGINAWA = 0,

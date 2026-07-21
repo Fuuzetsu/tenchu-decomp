@@ -127,6 +127,15 @@ struct BackGround
     s16 attribute;                /* 0x44 */
 };                                /* 0x48 */
 
+/* CHRANIM.C's queued character-motion slot. */
+typedef struct HumanAnimType HumanAnimType;
+struct HumanAnimType
+{
+    struct Humanoid *human;       /* 0x00 */
+    s16 loop;                     /* 0x04 */
+    s16 motid;                    /* 0x06 */
+};                                /* 0x08 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

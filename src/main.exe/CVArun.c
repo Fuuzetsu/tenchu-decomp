@@ -76,13 +76,6 @@ extern int StageID;
 extern u8 CHOSEN_CHARACTER;
 extern GsOT *OTablePt;
 
-typedef struct
-{
-    Humanoid *human; /* 0x0 */
-    s16 loop;        /* 0x4 */
-    s16 motid;       /* 0x6 */
-} HumanAnimType;
-
 extern HumanAnimType CVAhuman[5];
 
 typedef struct

@@ -38,13 +38,6 @@
  *    store, retaining both target motID stores and their branch layout.
  */
 
-typedef struct
-{
-    Humanoid *human;
-    s16 loop;
-    s16 motid;
-} ActActionHumanAnim;
-
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern SVECTOR *dtV;
@@ -53,7 +46,7 @@ extern s16 MotionUpdateMode;
 extern s16 motID;
 extern s16 motMODE;
 extern Humanoid *StagePlayer;
-extern ActActionHumanAnim CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 
 extern void DisposeAfterimage(void *afi);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);

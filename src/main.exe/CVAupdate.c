@@ -77,13 +77,6 @@ typedef struct
     s16 param;
 } CVAEvent;
 
-typedef struct
-{
-    Humanoid *human;
-    s16 loop;
-    s16 motid;
-} HumanAnimType;
-
 extern CVAEvent *CVAnow;
 extern u8 *CVAdata;
 extern HumanAnimType CVAhuman[5];
