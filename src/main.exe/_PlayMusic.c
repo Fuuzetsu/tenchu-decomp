@@ -70,7 +70,7 @@
  * array (decaying to `CdlLOC *`) to `CdPosToInt`/`CdIntToPos`/`CdaPlayXA` —
  * PSX.SYM's local TYPE (not count) is the "wrong in ~2 of 5" case here.
  *
- * `D_8001005A` is FUN_8004f68c.c's already-proven persisted volume byte
+ * `gSoundLevel` is FUN_8004f68c.c's already-proven persisted volume byte
  * (passed to `FUN_8004fbf4` twice, identically, exactly as that file
  * does).
  *
@@ -100,7 +100,7 @@ typedef struct
 } TMusicTable; /* 0xC */
 
 extern TMusicTable MusicTable[];
-extern u8 D_8001005A;
+extern u8 gSoundLevel;
 extern char D_8001349C[];  /* "bad music no" */
 extern char D_800134AC[];  /* "\TENCHU\XA\%s;1" */
 extern char D_800134BC[];  /* "playmusic fail %s  chan %d  id %d" */
@@ -151,7 +151,7 @@ void _PlayMusic(int MusicNo, int mode)
         music = &MusicTable[MusicNo];
         sprintf((char *)fname, D_800134AC, music->file);
         SsSetMVol(0x7F, 0x7F);
-        FUN_8004fbf4(D_8001005A, D_8001005A);
+        FUN_8004fbf4(gSoundLevel, gSoundLevel);
 
         min = music->min;
         sec = music->sec;

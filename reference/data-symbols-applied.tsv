@@ -247,3 +247,8 @@
 
 # Difficulty byte (2026-07-21).
 80010058	gNannido	semantic	demo-PSX.SYM-global-gNannido(80098090)-and-WORLD.C-TLinkInfo.Nannido(+0x5);retail-FileOption-writes-it-0/1/2-paired-with-EngageLevel-3/2/1-matching-SetupAppearance-EngageLevel=3-pt[0x58];neighbour-run-matches-TLinkInfo-order(0x5A-CD-volume=SoundLevel,0x5B-PlaySE-scale=SELevel,0x5D-PadShock-gate=Anakon)	EXT	unsigned char
+80010059	gSound	semantic	InitSoundEffect-and-InitPersistentState-branch-on-it-to-SsSetStereo/SsSetMono;demo-standalone-global-gSound(80098092)-and-TLinkInfo.Stereo(+0x7);default-1	EXT	unsigned char
+8001005a	gSoundLevel	semantic	written-to-both-CD-audio-channels(FUN_8004f68c,_PlayMusic->FUN_8004fbf4);demo-gSoundLevel(80098093)/TLinkInfo.SoundLevel(+0x8);default-0x7F	EXT	unsigned char
+8001005b	gSELevel	semantic	scales-SPU-voice-volume-in-PlaySE-and-PlayVoice;demo-gSELevel(80098094)/TLinkInfo.SELevel(+0x9);default-0x7F	EXT	unsigned char
+8001005c	gfMemory	semantic	gates-post-mission-memory-card-save-UI(StageEndScreen,mission_score_screen->FUN_800514d8->FUN_8005a7a4->SaveCard);demo-gfMemory(80098095)/TLinkInfo.fMemory(+0xC);default-0	EXT	unsigned char
+8001005d	Anakon	semantic	gates-PadShock-rumble-and-PadProc-analog-handling;demo-TLinkInfo.Anakon(+0xE,no-standalone-global);default-1	EXT	unsigned char

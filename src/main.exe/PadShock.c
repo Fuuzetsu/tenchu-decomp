@@ -29,21 +29,21 @@
 
 /*
  * PadShock (0x8001b404) sets (or clears) the rumble-motor bytes at offsets
- * 8/9 of PadPort[port>>4][port&3]. D_8001005D gates the pair: nonzero writes
+ * 8/9 of PadPort[port>>4][port&3]. Anakon gates the pair: nonzero writes
  * p1 and p2, zero clears both. The large-motor input is an int but the port
  * field is a raw byte, so negative values are first moved into the 0..255
  * representation by adding 0x100. GCC folds that normalization after byte
  * truncation; its otherwise-hidden source paths are exposed by the exact
  * inlined PadProc register allocation.
  */
-extern u8 D_8001005D;
+extern u8 Anakon;
 
 static inline void PadShockApply(s32 port, s32 p1, s32 p2)
 {
     TPadPort *p = &PadPort[port >> 4][port & 3];
     TPadPort *q = p;
 
-    if (D_8001005D != 0) {
+    if (Anakon != 0) {
         if (p2 < 0) {
             p->act1 = p1;
             p->act2 = p2 + 0x100;

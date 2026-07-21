@@ -80,7 +80,7 @@ extern char *RANKS_ARCHIVE_PTRS[];
 extern char *TRN_SPRITE_PTRS[];
 extern char D_80013AA8[];
 extern char D_80013AC0[];
-extern u8 D_8001005C;
+extern u8 gfMemory;
 
 extern u8 D_8001044C[5];
 extern u8 D_80010451[5];
@@ -1136,7 +1136,7 @@ score_row_loop:
     do {
         statePtr = (PersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS;
     } while (0);
-    if (D_8001005C != 0)
+    if (gfMemory != 0)
     {
         LoadTIMAndFree(PathFileRead(D_80013AA8, D_80013AC0));
         FUN_800514d8();

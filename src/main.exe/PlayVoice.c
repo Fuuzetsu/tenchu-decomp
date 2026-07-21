@@ -48,7 +48,7 @@ typedef struct
 } TVoiceTableList;
 
 extern u8 CHOSEN_LANGUAGE;
-extern u8 D_8001005B;
+extern u8 gSELevel;
 
 /* Per-language event-XA filename pointers (Ghidra: PTR_s__TENCHU_XA_EVENT_[EFIJ]_XA...). */
 extern u8 *D_80097CA0;
@@ -97,7 +97,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * D_80012CBC table (always using the event-table filename D_80097CA0).
  * Each table is a linear array of {id,channel,min,sec,endmin,endsec}
  * records terminated by id==0xff. On a total miss: AdtMessageBox + CdaStop.
- * On a hit: clamp the persisted volume byte (D_8001005B) to 0x7f, reset the
+ * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
  * CD-XA mix volume, re-apply the persisted volume, build `start`/`end`
  * CdlLOCs from the record's min/sec (the CdPosToInt/CdIntToPos "*2+0x96"
  * read-ahead idiom, exactly _PlayMusic.c's own start/end construction), and
@@ -306,7 +306,7 @@ found:
         }
     }
 
-    volume = D_8001005B;
+    volume = gSELevel;
     if (volume > 0x7e)
         volume = 0x7f;
     SsSetMVol(0x7f, 0x7f);
@@ -467,7 +467,7 @@ found:
 // ? SsSetMVol(?, ?);                                  /* extern */
 // ? memset(u8 *, ?, ?, s32);                          /* extern */
 // extern u8 CHOSEN_LANGUAGE;
-// extern u8 D_8001005B;
+// extern u8 gSELevel;
 // extern u8 D_80012CBC;
 // extern ? D_800134E0;
 // extern ? D_800134F0;
@@ -594,7 +594,7 @@ found:
 //         goto block_22;
 //     }
 // block_22:
-//     var_s0 = D_8001005B;
+//     var_s0 = gSELevel;
 //     if ((s32) var_s0 >= 0x7F) {
 //         var_s0 = 0x7F;
 //     }

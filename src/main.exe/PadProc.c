@@ -47,7 +47,7 @@
  */
 
 extern void ComPad(int port, u8 *rxbuf);
-extern u8 D_8001005D;
+extern u8 Anakon;
 extern u8 ComBuf[2][34];
 
 typedef struct
@@ -65,7 +65,7 @@ static inline void PadProcShock(s32 port, s32 value1, s32 value2)
     TPadPort *p = &PadPort[port >> 4][port & 3];
     TPadPort *q = p;
 
-    if (D_8001005D != 0)
+    if (Anakon != 0)
     {
         if (value2 < 0)
         {

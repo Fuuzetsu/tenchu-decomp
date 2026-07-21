@@ -311,10 +311,21 @@ typedef struct
     u8 field_0x49[0xF];     /* 0x049 */
     u8 nannido;             /* 0x058 gNannido: game_difficulty (demo
                              *       TLinkInfo.Nannido) */
-    u8 field_0x59[5];       /* 0x059 demo TLinkInfo field run suggests
-                             *       0x5A SoundLevel (CD volume,
-                             *       FUN_8004f68c), 0x5B SELevel (PlaySE
-                             *       scale), 0x5D Anakon (PadShock gate) */
+    u8 sound;               /* 0x059 gSound: 1 = stereo, 0 = mono
+                             *       (InitSoundEffect/InitPersistentState
+                             *       -> SsSetStereo/SsSetMono; demo
+                             *       TLinkInfo.Stereo, standalone gSound) */
+    u8 sound_level;         /* 0x05A gSoundLevel: music/CD volume 0..0x7F
+                             *       (FUN_8004f68c, _PlayMusic) */
+    u8 se_level;            /* 0x05B gSELevel: SE volume 0..0x7F
+                             *       (PlaySE, PlayVoice) */
+    u8 f_memory;            /* 0x05C gfMemory: post-mission memory-card
+                             *       save flow enabled (StageEndScreen /
+                             *       mission_score_screen -> FUN_800514d8
+                             *       save UI) */
+    u8 anakon;              /* 0x05D Anakon: analog pad / rumble enabled
+                             *       (PadShock gate, PadProc; demo
+                             *       TLinkInfo.Anakon; default 1) */
     u8 language;            /* 0x05E CHOSEN_LANGUAGE */
     u8 field_0x5f[0x3AD];   /* 0x05F */
     u8 stock[0x100];        /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];

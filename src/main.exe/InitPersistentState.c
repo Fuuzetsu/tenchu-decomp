@@ -16,7 +16,7 @@
  * those; the audio/config bytes at 0x58..0x61 (inside the opaque
  * field_0x49[0x15]/field_0x5f spans) use raw offset casts, matching the
  * per-byte `sb` stores. The 0x59 field is InitSoundEffect's mono/stereo byte
- * (D_80010059); the mono/stereo dispatch takes InitSoundEffect's inverted
+ * (gSound); the mono/stereo dispatch takes InitSoundEffect's inverted
  * `!= 0 ? Stereo : Mono` polarity (beqz into the physically-later Mono block).
  *
  * STATUS: MATCHING — pure C, all 368 bytes / 92 instructions exact.

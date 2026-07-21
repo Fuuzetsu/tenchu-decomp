@@ -30,7 +30,7 @@
  * PlaySE (0x80018b64) — trigger a positional sound effect on a rotating
  * voice slot. `dv` packs the pan direction in its high byte (dv>>8) and a
  * base volume in the low 7 bits; the persisted master-volume byte
- * D_8001005B (PersistentState._91_1_, offset 0x5B) scales it. The pan
+ * gSELevel (PersistentState._91_1_, offset 0x5B) scales it. The pan
  * direction is turned into a signed offset `d`: right (v>0) → -mag, left
  * (v<0) → +mag, where mag = (|dir| & 0x3ff) >> 4. `voice` (gp-extern s16)
  * cycles 0..23. SsUtKeyOnV keys the note; if it returns success (bit 15
@@ -62,7 +62,7 @@ typedef struct
     void *VABhead;
 } SoundEffect;
 
-extern u8 D_8001005B;
+extern u8 gSELevel;
 extern s16 voice;
 extern u16 SsUtKeyOnV(s16, s16, s32, s32, s32, s32, u32, u32);
 extern void SsUtAutoPan(s16, s32, s16, s32);
@@ -76,7 +76,7 @@ short PlaySE(SoundEffect *se, short pt, long dv)
     if (se != NULL) {
         d = dv >> 8;
         v = (s16)(dv >> 8);
-        voll = (u32)((dv & 0x7f) * D_8001005B) >> 7;
+        voll = (u32)((dv & 0x7f) * gSELevel) >> 7;
         if (v > 0) {
             d = -(s32)((u32)((dv >> 8) & 0x3ff) >> 4);
         } else if (v < 0) {
@@ -144,7 +144,7 @@ short PlaySE(SoundEffect *se, short pt, long dv)
 //
 // ? SsUtAutoPan(s16, ?, s16, ?);                      /* extern */
 // s32 SsUtKeyOnV(s16, s16, s32, s32, s32, s32, u32, u32); /* extern */
-// extern u8 D_8001005B;
+// extern u8 gSELevel;
 // extern s16 voice;
 //
 // s16 PlaySE(s16 *arg0, s32 arg1, s32 arg2) {
@@ -158,7 +158,7 @@ short PlaySE(SoundEffect *se, short pt, long dv)
 //         temp_a2 = arg2 >> 8;
 //         var_s0 = temp_a2;
 //         var_v0 = (s16) temp_a2;
-//         temp_v1 = (u32) ((arg2 & 0x7F) * D_8001005B) >> 7;
+//         temp_v1 = (u32) ((arg2 & 0x7F) * gSELevel) >> 7;
 //         if (var_v0 > 0) {
 //             var_s0 = -(s32) ((u32) (temp_a2 & 0x3FF) >> 4);
 //         } else if (var_v0 < 0) {

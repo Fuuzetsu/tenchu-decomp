@@ -48,7 +48,7 @@ extern s16 CardStateFlag;
 extern s16 D_80097D2E;
 extern s16 D_80097D30;
 extern s16 D_80097D32;
-extern u8 D_8001005C;
+extern u8 gfMemory;
 
 extern s32 FUN_8005adbc(s16 mode);
 extern s16 FUN_8005aba4(u16 *state, s16 *page);
@@ -143,7 +143,7 @@ save_2b_after_assign:
         incremented = value + 1;
         goto update_count;
     case 0x2c:
-        if (D_8001005C == 0)
+        if (gfMemory == 0)
         {
             D_80097D30 = 9;
             break;
