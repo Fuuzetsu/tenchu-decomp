@@ -48,22 +48,14 @@
  * still chooses the retail `lhu`, keeps the masked use unsigned, and inserts
  * the later signed-short extension for the -1 sentinel test.
  */
-typedef struct
-{
-    u8 pad0[0x8];
-    s16 attrib;
-    u8 pad1[0x2];
-    u8 vector;
-} AreaMapVectorResult;
-
 extern Humanoid *Me_MOTION_C;
 extern VECTOR *dtL;
 extern unsigned long *GlobalAreaMap;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 RefrectVector[16];
-extern AreaMapVectorResult map;
-extern long GetAreaMapVector(unsigned long *area, AreaMapVectorResult *mvp,
+extern MapVector map;
+extern long GetAreaMapVector(unsigned long *area, MapVector *mvp,
                              VECTOR *pos, long wide, int mode);
 
 MapVector *StickonCheck(void)
@@ -74,7 +66,7 @@ MapVector *StickonCheck(void)
     {
         return 0;
     }
-    if ((Me_MOTION_C->attrib & 0xC000) != 0)
+    if ((Me_MOTION_C->map.attrib & 0xC000) != 0)
     {
         return 0;
     }
@@ -96,7 +88,7 @@ MapVector *StickonCheck(void)
             motID = 0xc00;
             motMODE = 1;
         }
-        return (MapVector *)&map;
+        return &map;
     }
     return 0;
 }

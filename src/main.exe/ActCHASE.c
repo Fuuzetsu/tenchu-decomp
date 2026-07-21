@@ -86,7 +86,7 @@ void ActCHASE(void)
             short sound;
 
             sound = 0x12;
-            if (Me_MOTION_C->attrib & 8)
+            if (Me_MOTION_C->map.attrib & 8)
             {
                 sound = 0x14;
             }

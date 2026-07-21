@@ -78,18 +78,6 @@
 
 typedef struct
 {
-    s32 level;
-    s32 height;
-    s16 attrib;
-    s16 degree;
-    u8 vector;
-    u8 direct;
-    u8 angleL;
-    u8 angleH;
-} StickonMapVector;
-
-typedef struct
-{
     Humanoid *human;
     s16 loop;
     s16 motid;
@@ -135,7 +123,7 @@ extern TCameraStatus CamState;
 extern s16 SelectedItem;
 extern s32 D_80097EF0;
 
-extern StickonMapVector *StickonCheck(void);
+extern MapVector *StickonCheck(void);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SetCameraMode(s32 mode);
@@ -147,7 +135,7 @@ extern int ReqItemDokudango(PARAM_ITEM_USE *item);
 
 void ActSTICKON(void)
 {
-    StickonMapVector *map;
+    MapVector *map;
     ModelArchiveType *model;
     short y;
     short rv;

@@ -114,8 +114,8 @@ fall:
     dtM->mask = 0x7fff;
     human = Me_MOTION_C;
     locate = dtL;
-    locate->vx += (human->width * RefrectMove[human->pad0b[5]][0]) >> 2;
-    locate->vz += (human->width * RefrectMove[human->pad0b[5]][1]) >> 2;
+    locate->vx += (human->width * RefrectMove[human->map.angleH][0]) >> 2;
+    locate->vz += (human->width * RefrectMove[human->map.angleH][1]) >> 2;
     motMODE = 0;
     motID = 0x803;
     if (MotionUpdateMode != 0)

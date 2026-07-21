@@ -44,14 +44,8 @@
  * table (dx/dz pairs, scaled by `wide`), and packs the result into *mvp:
  * level, a height delta, the found area's attrib/area-ptr/index-ptr, and 3
  * bitmasks over the 4 directions (`vector` = blocked, `angleL`/`angleH` =
- * level went up/down). Returns mvp->level. `mvp` is NOT a bare MapVector
- * (game_types.h's shared typedef is only the 8-byte level/height pair used
- * elsewhere) — this function writes a bigger 0x18-byte record (StickonCheck.c's
- * header notes the true record is 0x20 bytes; this function only touches the
- * first 0x18), matching the canonical MapVector layout (psxsym-types.h)
- * through 0xF plus two pointer fields (area/index) tacked on at 0x10/0x14
- * that PSX.SYM's MapVector struct doesn't list — a per-file extended local
- * view, same convention as AreaMapVectorResult in StickonCheck.c.
+ * level went up/down). Returns mvp->level. Retail's MapVector preserves the
+ * PSX.SYM-proven first 0x10 bytes and appends area/index at 0x10/0x14.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `i`/`v` are `short` (PSX.SYM) — a short loop counter suppresses loop.c's
@@ -87,30 +81,13 @@
  *    normal height calculation deliberately re-reads `mvp->level`.
  */
 
-struct AreaNodeType;
-struct NodeIndexType;
-
-typedef struct
-{
-    long level;    /* 0x0 */
-    long height;   /* 0x4 */
-    u16 attrib;    /* 0x8 */
-    s16 degree;    /* 0xA — untouched here */
-    u8 vector;     /* 0xC */
-    u8 direct;     /* 0xD — untouched here */
-    u8 angleL;     /* 0xE */
-    u8 angleH;     /* 0xF */
-    struct AreaNodeType *area;    /* 0x10 */
-    struct NodeIndexType *index;  /* 0x14 */
-} MapVectorEx;
-
 extern u16 FieldAttrib;
 extern struct AreaNodeType *FieldArea;
 extern struct NodeIndexType *FieldIndex;
 extern s16 direction[][2];
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
 
-long GetAreaMapVector(unsigned long *area, MapVectorEx *mvp, VECTOR *pos, long wide, int mode)
+long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
 {
     long x, y, z;
     long level2;
@@ -184,7 +161,7 @@ long GetAreaMapVector(unsigned long *area, MapVectorEx *mvp, VECTOR *pos, long w
     {
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
         if (level2 == 0x80000000 ||
-            ((level2 - y < -500) && !(mode2 & 4) && !((mvp->attrib | FieldAttrib) & 0xC000)))
+            ((level2 - y < -500) && !(mode2 & 4) && !(((u16)mvp->attrib | FieldAttrib) & 0xC000)))
         {
             mvp->vector |= v;
         }

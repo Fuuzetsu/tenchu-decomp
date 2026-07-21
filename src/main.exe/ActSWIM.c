@@ -109,7 +109,7 @@ void ActSWIM(void)
 
             speed = -0x3c;
             human = Me_MOTION_C;
-            if (human->pad0b[5] != 0)
+            if (human->map.angleH != 0)
                 goto common_action;
             MoveHumanoid(human, speed, 0);
             goto common_action;
@@ -151,7 +151,7 @@ void ActSWIM(void)
         {
             if (*(u16 *)&dtPAD & 0x4000)
             {
-                if (Me_MOTION_C->pad0b[5] != 0 || SwimCheck() == 0)
+                if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
                 {
                     SVECTOR *velocity;
                     VECTOR *locate;

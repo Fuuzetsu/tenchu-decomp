@@ -639,7 +639,7 @@ update_hint:
         {
     periodic_check:
             if (GameClock == (GameClock / 90) * 90 &&
-                (((u16)Me_THINK_C->attrib & 0x100) ||
+                (((u16)Me_THINK_C->map.attrib & 0x100) ||
                  ((pad & 0x1000) && D_80097F10 < 0x899 &&
                   D_80097F10 != (s32)0x80000000) ||
                  ((pad & 0x4000) && D_80097F14 < 0x899 &&

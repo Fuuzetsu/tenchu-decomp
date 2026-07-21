@@ -78,18 +78,6 @@ typedef struct
     u8 count;
 } param_shinsoku;
 
-typedef struct
-{
-    s32 level;
-    s32 height;
-    s16 attrib;
-    s16 degree;
-    u8 vector;
-    u8 direct;
-    u8 angleL;
-    u8 angleH;
-} ShinsokuMapVector;
-
 extern u_long *GlobalAreaMap;
 
 typedef struct
@@ -108,7 +96,7 @@ extern TCameraStatus CamState;
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void Sound(Humanoid *human, s32 sound);
 extern void FUN_80033bc0(VECTOR *pos, s32 spread, s32 divisor, s32 count);
-extern s32 GetAreaMapVector(u_long *area, ShinsokuMapVector *map,
+extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
 extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b,
                          s32 color, s32 f, s32 rot, s32 h, s32 i, s32 j);
@@ -240,13 +228,13 @@ void ProcItemShinsoku(tag_TItem *item)
         ((VECTOR *)launch_buf)->vz = apos->vz;
         ((VECTOR *)launch_buf)->vy -= 2000;
         GetAreaMapVector(GlobalAreaMap,
-                         (ShinsokuMapVector *)(launch_buf + 0x10),
+                         (MapVector *)(launch_buf + 0x10),
                          (VECTOR *)launch_buf, 500, 0);
-        if (((ShinsokuMapVector *)(launch_buf + 0x10))->level >= apos->vy - 500)
+        if (((MapVector *)(launch_buf + 0x10))->level >= apos->vy - 500)
         {
-            if (((ShinsokuMapVector *)(launch_buf + 0x10))->level < apos->vy)
+            if (((MapVector *)(launch_buf + 0x10))->level < apos->vy)
             {
-                apos->vy = ((ShinsokuMapVector *)(launch_buf + 0x10))->level;
+                apos->vy = ((MapVector *)(launch_buf + 0x10))->level;
             }
             valid = 1;
         }

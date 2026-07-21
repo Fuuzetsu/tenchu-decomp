@@ -49,18 +49,24 @@ struct TAdtSelect
     u32 value;     /* 0x4 */
 };
 
-// Ghidra's own independently-built Humanoid struct (reference/ghidra_types.h)
-// has this exact 8-byte struct (`long level; long height;`) right after its
-// PADtype pad, at the same 0x20 offset character_state's `buttons` field ends
-// at. Think1ninja.c BYTE-PROVES `level` (a whole-word `lw` at offset 0x20,
-// compared against a GetAreaMapLevel return value); `height` is un-exercised
-// so far but kept as Ghidra's own proven-elsewhere layout, not invented.
+/* Area-map query result. PSX.SYM supplies the original first 16 bytes and
+ * field names. Retail appends the last two cached pointers: GetAreaMapVector
+ * writes them at +0x10/+0x14, and the corresponding eight-byte growth is
+ * visible where Humanoid.locate moves from demo +0x30 to retail +0x38. */
 typedef struct MapVector MapVector;
 struct MapVector
 {
-    s32 level;
-    s32 height;
-};
+    s32 level;                   /* 0x00 */
+    s32 height;                  /* 0x04 */
+    s16 attrib;                  /* 0x08 */
+    s16 degree;                  /* 0x0A */
+    u8 vector;                   /* 0x0C */
+    u8 direct;                   /* 0x0D */
+    u8 angleL;                   /* 0x0E */
+    u8 angleH;                   /* 0x0F */
+    struct AreaNodeType *area;   /* 0x10 (retail) */
+    struct NodeIndexType *index; /* 0x14 (retail) */
+};                               /* 0x18 */
 
 /* CONFLICT.C's collision slot. PSX.SYM records result[64] and size 0x68 in
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50

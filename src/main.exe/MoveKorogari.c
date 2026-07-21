@@ -36,9 +36,7 @@
  * state changes.
  *
  * Matching notes:
- *  - GetAreaMapVector writes a 0x18-byte record here; the shared MapVector
- *    exposes only its first two words, so this TU uses the original stack
- *    record's complete offsets.
+ *  - GetAreaMapVector writes retail's complete 0x18-byte MapVector here.
  *  - D_80097AD0 is declared as an array even though only element zero is
  *    copied.  That preserves the target's two-register absolute address.
  *  - The final bounce deliberately spells the sum as A + (B + 25).  GCC
@@ -46,32 +44,18 @@
  *    target addiu on the abs()/2 accumulator before expanding rand() % 25.
  */
 
-typedef struct
-{
-    s32 level;
-    s32 height;
-    u16 attrib;
-    s16 degree;
-    u8 vector;
-    u8 direct;
-    u8 angleL;
-    u8 angleH;
-    struct AreaNodeType *area;
-    struct NodeIndexType *index;
-} KorogariMapVector;
-
 extern u32 *GlobalAreaMap;
 extern s16 RefrectMove[16][2];
 extern SVECTOR D_80097AD0[];
 
 extern s32 CGetLevel(struct AreaNodeType **hint, s32 x, s32 y, s32 z, u32 flag);
-extern s32 GetAreaMapVector(u32 *area, KorogariMapVector *map, VECTOR *position,
+extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
                             s32 width, s32 mode);
 extern void SetSplash(VECTOR *position, s16 sx, s16 sy, s32 speed);
 
 void MoveKorogari(tag_TItem *item, param_korogari *param)
 {
-    KorogariMapVector mv;
+    MapVector mv;
     SVECTOR vec;
     s32 level;
 

@@ -104,10 +104,10 @@ void DrawShadow(Humanoid *human)
 
     if (human->map.level < position->vy || human->map.level == (s32)0x80000000)
     {
-        human->attrib |= 8;
+        human->map.attrib |= 8;
     }
     position->vy = human->map.level;
-    attribute = human->attrib;
+    attribute = human->map.attrib;
 
     if (attribute & 8)
     {

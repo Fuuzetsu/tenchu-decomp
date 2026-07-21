@@ -22,7 +22,7 @@
  * attribute bit 0x200 is set and the character is jumping/landing
  * (character_status 9 or 7), then remaps bit 3 to bit 5 (0x8 -> 0x20).
  *
- * `Me_THINK_C->attrib` (game_types.h, new field @0x28 — see its header
+ * `Me_THINK_C->map.attrib` (game_types.h, field @0x28 — see its header
  * comment there) is proven by the raw `lhu` here; `(s16)Me_THINK_C->
  * character_status` follows Think1ninja.c's established per-TU load-width
  * cast (proven u16 field; this TU's asm reads it `lh`).
@@ -44,7 +44,7 @@ s16 ThinkBasicHuman1(void)
     if ((pad & 0x100) && (SystemFlag & 1)) {
         pad = 0;
     }
-    if ((Me_THINK_C->attrib & 0x200) &&
+    if ((Me_THINK_C->map.attrib & 0x200) &&
         ((s16)Me_THINK_C->status == 9 || (s16)Me_THINK_C->status == 7)) {
         pad &= 0xfff;
     }

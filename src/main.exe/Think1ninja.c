@@ -27,14 +27,11 @@
  * far enough away (> 0x17D4); otherwise returns the random roll. ALL
  * BYTE-PROVEN except the residual below.
  *
- * `Me_THINK_C->map` (game_types.h, new field, MapVector — replaces 8 of the
- * unnamed placeholder bytes right after `buttons`): the asm reads ALL 4
+ * `Me_THINK_C->map` (game_types.h's PSX.SYM-derived MapVector): the asm reads ALL 4
  * bytes at once (`lw`, not four `lbu`s) and compares directly against a
  * GetAreaMapLevel return value — this is Ghidra's own independently-built
- * Humanoid struct's `MapVector map { long level; long height; }` at the
- * exact same offset (right after Humanoid's own PADtype pad). Only `level`
- * is byte-proven here; `height` is un-exercised but kept (not invented —
- * Ghidra's own fuller struct already has it at this offset).
+ * Humanoid struct's MapVector at the exact same offset (right after
+ * Humanoid's own PADtype pad).
  *
  * `*(s32 *)Me_THINK_C->motion == 0x200` reads
  * BOTH `animation_state_perhaps`(mid, offset 0) and

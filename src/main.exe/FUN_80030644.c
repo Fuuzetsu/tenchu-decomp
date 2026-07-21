@@ -29,17 +29,8 @@
  * itself IS in the demo per CAMERA.C:898, so this helper is either a
  * retail-only addition or was inlined/differently-named in the demo build).
  *
- * The out-parameter GetAreaMapVector fills is NOT the 16-byte `MapVector`
- * from reference/psxsym-types.h (game_types.h's own shared `MapVector`
- * deliberately stays 8 bytes, level+height only, per its header comment) —
- * GetAreaMapVector.c's own Ghidra decompilation writes through it as two
- * back-to-back VECTORs (`pos[1].vx`/`pos[1].vy`, offsets 0x10/0x14, hold
- * FieldArea/FieldIndex pointers no caller reads), and StickonCheck.c's
- * comment independently names it "a much larger 0x20-byte record". This
- * function's own stack layout (the two `GetAreaMapVector` out-buffers sit
- * 0x18 bytes apart, sp+0x18 and sp+0x30) only needs a LOCAL, offsets-only
- * struct sized to reproduce that spacing — same convention as StickonCheck's
- * own local `AreaMapVectorResult` truncated view.
+ * The two MapVector out-buffers sit 0x18 bytes apart at sp+0x18/sp+0x30,
+ * independently confirming the retail type's complete size.
  *
  * Matching notes:
  *  - `xAdj` and `zAdj` are same-width unsigned captures of the signed table
@@ -54,22 +45,14 @@
  *  - In the fallback arm, copying `half` to `amount` before loading v1.vector
  *    gives the target's final independent move/load schedule.
  */
-typedef struct
-{
-    s32 level; /* +0x00 */
-    u8 pad4[8];
-    u8 vector; /* +0x0c */
-    u8 pad13[0xb];
-} MapVectorResult; /* 0x18 — offsets-only view; true record is bigger, see above */
-
 extern void *GlobalAreaMap;
 extern s16 RefrectMove[16][2];
-extern s32 GetAreaMapVector(void *area, void *mvp, void *pos, s32 wide, s32 mode);
+extern s32 GetAreaMapVector(void *area, MapVector *mvp, void *pos, s32 wide, s32 mode);
 
 void FUN_80030644(VECTOR *pos, s32 amount)
 {
-    MapVectorResult v1;
-    MapVectorResult v2;
+    MapVector v1;
+    MapVector v2;
     s32 half;
     u32 vec;
     u16 xAdj;

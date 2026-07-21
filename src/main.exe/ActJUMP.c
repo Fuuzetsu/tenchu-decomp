@@ -44,21 +44,13 @@
 
 typedef struct
 {
-    u8 pad0[0xc];
-    u8 vector;
-    u8 padd[3];
-} ActJumpMapVector;
-
-typedef struct
-{
     Humanoid *human;
     u8 pad4[4];
 } ActJumpHumanAnim;
 
 typedef struct
 {
-    ActJumpMapVector map;
-    u8 pad28[8];
+    MapVector map;
     SVECTOR speed;
 } ActJumpScratch;
 
@@ -78,7 +70,7 @@ extern u16 RefrectVector[16];
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void GetAreaMapVector(void *map, ActJumpMapVector *result, long locate,
+extern void GetAreaMapVector(void *map, MapVector *result, long locate,
                              long width, long mode);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);

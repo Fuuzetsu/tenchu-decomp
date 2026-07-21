@@ -38,14 +38,14 @@ void death_camera_something_(Humanoid *human)
     s32 depth;
 
     chase = &human->chase[0];
-    if (human->motion->loop >= 0 || (human->attrib & 0xc) != 0 ||
+    if (human->motion->loop >= 0 || (human->map.attrib & 0xc) != 0 ||
         human->chase[0] < 0)
     {
         *chase = 0;
         return;
     }
 
-    if ((human->attrib & 0x100) != 0)
+    if ((human->map.attrib & 0x100) != 0)
     {
         if ((GameClock & 0xf) == 0)
         {

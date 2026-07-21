@@ -195,7 +195,7 @@ rope_done:;
             }
         }
 
-        if ((*(u16 *)&Me_MOTION_C->attrib & 4) &&
+        if ((*(u16 *)&Me_MOTION_C->map.attrib & 4) &&
             ((s8)((u16)motID >> 8) != 4))
         {
             ModelArchiveType *model;
@@ -253,7 +253,7 @@ rope_done:;
         human = Me_MOTION_C;
         motID = 0x402;
         mmp->mask = -2;
-        attrib = *(u16 *)&human->attrib;
+        attrib = *(u16 *)&human->map.attrib;
         motMODE = 1;
         if (attrib & 4)
         {
@@ -354,7 +354,7 @@ rope_done:;
 
 motion_active:
             dtM->count >>= 1;
-            if (Me_MOTION_C->pad0b[2] != 15)
+            if (Me_MOTION_C->map.vector != 15)
             {
                 dtV->vz = 0;
                 dtV->vx = 0;

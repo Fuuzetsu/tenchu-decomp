@@ -47,7 +47,7 @@
  * THREE struct-field reads in this TU are UNSIGNED (`lhu`) against fields
  * item.h already proves SIGNED (`s16`) in other TUs — the same per-TU
  * load-width divergence as lifemax/attrib elsewhere: `human->attribute`
- * (@0x4), `human->attrib` (@0x28), and `human->motion->mid` (MotionManager
+ * (@0x4), `human->map.attrib` (@0x28), and `human->motion->mid` (MotionManager
  * @0x0). A value-level `(u16)` cast does NOT change the load width — only
  * re-typing the memory operand itself does. But the TWO spellings that do
  * that are NOT interchangeable, and picking the wrong one costs 11 bytes:
@@ -149,7 +149,7 @@ void HumanActionControl(Humanoid *human)
         }
         else
         {
-            if ((*(u16 *)&Me_MOTION_C->attrib & 4) != 0)
+            if ((*(u16 *)&Me_MOTION_C->map.attrib & 4) != 0)
             {
                 SwimCheck();
             }

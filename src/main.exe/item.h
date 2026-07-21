@@ -191,24 +191,8 @@ typedef struct Humanoid
     s16 width;                   /* 0x0C */
     s16 height;                  /* 0x0E */
     PADtype pad;                 /* 0x10 (DoInfoViewProc reads .data/.trig) */
-    MapVector map;               /* 0x20 (game_types.h's MapVector, same
-                                    character_state.map; GetNearestHumanoid
-                                    confirms .height @0x24 via a plain
-                                    `lw`/`== 0` test -- that access itself
-                                    matches byte-for-byte, though the
-                                    function as a whole is NON_MATCHING on
-                                    an unrelated scheduling residual) */
-    s16 attrib;                  /* 0x28 (StickonCheck: `& 0xc000`, read via
-                                    `lh`; game_types.h's character_state
-                                    twin at this same offset series proves
-                                    the field u16 via a DIFFERENT TU's
-                                    `lhu` — same per-TU load-width
-                                    disagreement already established for
-                                    lifemax) */
-    u8 pad0b[0xE];               /* 0x2A (Ghidra: MapVector's degree/vector/
-                                    direct/angleL/angleH, then 8 more
-                                    unnamed bytes before `locate`; untouched
-                                    by any matched function yet) */
+    MapVector map;               /* 0x20 (retail adds area/index to the
+                                    PSX.SYM-proven 0x10-byte demo record) */
     VECTOR *locate;              /* 0x38 */
     SVECTOR *rotate;             /* 0x3C (facing angles; MoveHumanoid reads .vy) */
     SVECTOR vector;              /* 0x40 (velocity; MoveHumanoid writes .vx/.vz) */

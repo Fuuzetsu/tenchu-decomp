@@ -34,20 +34,6 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-typedef struct
-{
-    s32 level;
-    s32 height;
-    u16 attrib;
-    s16 degree;
-    u8 vector;
-    u8 direct;
-    u8 angleL;
-    u8 angleH;
-    struct AreaNodeType *area;
-    struct NodeIndexType *index;
-} NinkenMapVector;
-
 typedef union
 {
     struct
@@ -62,7 +48,7 @@ typedef union
     {
         VECTOR pos;
         VECTOR query;
-        NinkenMapVector map;
+        MapVector map;
     } spawn;
     SVECTOR effect_vec;
 } ProcItemNinkenScratch;
@@ -76,7 +62,7 @@ extern s16 NowReturnNormal(Humanoid *human);
 extern void MoveKorogari(tag_TItem *item, param_korogari *param);
 extern Humanoid *GetHumanoid(s16 type);
 extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
-extern s32 GetAreaMapVector(u_long *area, NinkenMapVector *map,
+extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 EquipWeapon(Humanoid *human, s16 mode);
@@ -213,7 +199,7 @@ void ProcItemNinken(tag_TItem *item)
         Humanoid *slave;
         VECTOR *position;
         VECTOR *query;
-        NinkenMapVector *map;
+        MapVector *map;
 
         create = 0;
         if (is_character_state_present_on_stage_(NINKEN_CHARACTER_PTR) == 0 ||

@@ -52,20 +52,6 @@
  * collision pointer and rotating its a1/a2 allocation.
  */
 
-typedef struct
-{
-    s32 level;
-    s32 height;
-    u16 attrib;
-    s16 degree;
-    u8 vector;
-    u8 direct;
-    u8 angleL;
-    u8 angleH;
-    struct AreaNodeType *area;
-    struct NodeIndexType *index;
-} HumanMapVector;
-
 extern struct AreaNodeType *FieldArea;
 extern struct NodeIndexType *FieldIndex;
 extern ConflictObjectType ConflictObject[];
@@ -75,7 +61,7 @@ extern s16 RefrectMove[16][2];
 extern s16 RefrectVector[16];
 extern SVECTOR ConflictDistance;
 
-extern s32 GetAreaMapVector(u32 *area, HumanMapVector *map, VECTOR *position,
+extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
                            s32 width, s16 mode);
 extern s16 GetConflictResult(ModelType *model, s16 index);
 extern s16 GetDirection(s32 x, s32 z, s16 rotate);
@@ -84,7 +70,7 @@ extern s16 Sound(Humanoid *human, s16 id);
 
 short DefaultActionHumanoid(Humanoid *human)
 {
-    HumanMapVector *map;
+    MapVector *map;
     SVECTOR *vector;
     VECTOR *locate;
     VECTOR *slocate;
@@ -97,7 +83,7 @@ short DefaultActionHumanoid(Humanoid *human)
     long direction;
 
     i = 1;
-    map = (HumanMapVector *)&human->map;
+    map = &human->map;
     locate = human->locate;
     vector = &human->vector;
     object = *human->model->object;
@@ -118,7 +104,7 @@ short DefaultActionHumanoid(Humanoid *human)
     {
         VECTOR position;
         VECTOR *wide;
-        HumanMapVector *call_map;
+        MapVector *call_map;
 
         if (human->status == 7)
         {
@@ -255,7 +241,7 @@ ground_motion:
         if (zz == (s32)0x80000000)
         {
             {
-                HumanMapVector mv;
+                MapVector mv;
                 VECTOR position;
                 s32 dx;
                 s32 dz;

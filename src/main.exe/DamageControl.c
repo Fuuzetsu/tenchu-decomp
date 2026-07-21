@@ -430,7 +430,7 @@ LAB_8001da70:
       if (TVar8 == 6) {
         dmg = 0x2d;
       }
-      if ((Me_MOTION_C->attrib & 4U) == 0) {
+      if ((Me_MOTION_C->map.attrib & 4U) == 0) {
         (Me_MOTION_C->map).height = 1;
       }
       break;
