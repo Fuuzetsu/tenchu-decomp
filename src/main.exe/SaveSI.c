@@ -51,11 +51,6 @@ typedef struct
 
 typedef struct
 {
-    u8 bytes[0x80];
-} SaveSIIcon;
-
-typedef struct
-{
     u8 bytes[0x10];
 } SaveSIUnalignedChunk;
 
@@ -63,17 +58,6 @@ typedef struct
 {
     u32 words[4];
 } SaveSIAlignedChunk;
-
-typedef struct
-{
-    u8 magic[4];
-    u8 title[0x40];
-    u8 reserved[0x1c];
-    SaveSIPalette palette;
-    SaveSIIcon icon1;
-    SaveSIIcon icon2;
-    SaveSIIcon icon3;
-} SaveSIHeader;
 
 typedef struct
 {
@@ -121,7 +105,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     s32 cmd;
     s32 result;
     s32 chan;
-    SaveSIHeader *header;
+    TCardHeader *header;
     void *data;
 
     if (target == 0)
@@ -140,8 +124,8 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
 
     msg = 0;
     chan = 0;
-    header = (SaveSIHeader *)block;
-    data = block + sizeof(SaveSIHeader);
+    header = (TCardHeader *)block;
+    data = block + sizeof(TCardHeader);
     if ((u32)size >= 0x1e01)
     {
         AdtMessageBox(D_80014114);
@@ -158,17 +142,17 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         s32 *cmdp;
         s32 *resultp;
 
-        header->magic[0] = 0x53;
-        header->magic[1] = 0x43;
-        header->magic[2] = 0x13;
-        header->magic[3] = 1;
-        sprintf(header->title, D_80014128, StageID + 1, name);
+        header->Magic[0] = 0x53;
+        header->Magic[1] = 0x43;
+        header->Type = 0x13;
+        header->BlockEntry = 1;
+        sprintf(header->Title, D_80014128, StageID + 1, name);
 
         icon1 = GetArcData(0x16);
         icon2 = GetArcData(0x17);
         icon3 = GetArcData(0x18);
-        header->palette = *(SaveSIPalette *)(icon1 + 0x14);
-        dst = (u8 *)&header->icon1;
+        *(SaveSIPalette *)header->Clut = *(SaveSIPalette *)(icon1 + 0x14);
+        dst = header->Icon[0];
         src = icon1 + 0x40;
         alignment = (u32)src & 3;
         if (alignment)
@@ -191,7 +175,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             } while (src != icon1 + 0xc0);
         }
 
-        dst = (u8 *)&header->icon2;
+        dst = header->Icon[1];
         src = icon2 + 0x40;
         alignment = (u32)src & 3;
         if (alignment)
@@ -214,7 +198,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             } while (src != icon2 + 0xc0);
         }
 
-        dst = (u8 *)&header->icon3;
+        dst = header->Icon[2];
         src = icon3 + 0x40;
         end = (s32)icon3 + 0xc0;
         alignment = (u32)src & 3;

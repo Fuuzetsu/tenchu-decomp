@@ -76,6 +76,19 @@ struct AdtFntState
     s32 quiet;                       /* 0x20 */
 };                                   /* 0x24 */
 
+/* MEMCARD.C/INFOVIEW.C's PlayStation memory-card block header. */
+typedef struct TCardHeader TCardHeader;
+struct TCardHeader
+{
+    u8 Magic[2];                  /* 0x000 */
+    u8 Type;                      /* 0x002 */
+    u8 BlockEntry;                /* 0x003 */
+    u8 Title[64];                 /* 0x004 */
+    u8 reserve[28];               /* 0x044 */
+    u8 Clut[32];                  /* 0x060 */
+    u8 Icon[3][128];              /* 0x080 */
+};                                /* 0x200 */
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType
