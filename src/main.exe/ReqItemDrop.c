@@ -52,13 +52,13 @@
  * processor and the toss velocity packed into param (param_korogari view).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check: its addiu
- *    fills the beqz delay slot, and the longer live range demotes pp's
- *    allocation priority so p keeps $s1 (after the check, pp stole $s1 and the
+ *  - `param = (param_drop *)it->param;` sits BEFORE the null check: its addiu
+ *    fills the beqz delay slot, and the longer live range demotes param's
+ *    allocation priority so p keeps $s1 (after the check, param stole $s1 and the
  *    return-0 block folded away — 2 instructions short, which shifted every
  *    object after this one by 8 bytes).
  *  - us/ty and x/y/z are real temps: the original batches the loads before the
- *    stores (`lw`×3 + `sh`×3) — writing `pp->vx = p->end.vx` directly lets the
+ *    stores (`lw`×3 + `sh`×3) — writing `param->koro.vx = p->end.vx` directly lets the
  *    canonical cc1 emit a truncating `lhu` of the low half instead.
  *  - `st = &p->start;` is materialized between the t[0] and t[1] stores (the
  *    vy/vz reads go through it; vx reads p directly).
@@ -77,7 +77,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemDrop(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_drop *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -110,7 +110,7 @@ int ReqItemDrop(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_drop *)it->param;
     if (it == 0)
         return 0;
     if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz, 0) < p->start.vy)
@@ -132,10 +132,10 @@ found:
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
-    pp->vx = x;
-    pp->vy = y;
-    pp->vz = z;
+    param->koro.vx = x;
+    param->koro.vy = y;
+    param->koro.vz = z;
     ((param_korogari *)it->param)->hint = 0;
-    pp->status = 0;
+    param->koro.status = 0;
     return 1;
 }

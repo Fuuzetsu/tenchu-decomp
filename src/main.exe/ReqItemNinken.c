@@ -46,27 +46,22 @@
  * item TU, same pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
  * dispose-on-exhaustion block); like its siblings there is no
  * GetAreaMapLevel floor check. It gets ProcItemNinken as its processor, packs
- * the throw velocity into param (param_korogari view, same union member the
- * other twins use) but — unlike them — only reads end.vx/end.vz from the
- * caller: end.vy is never loaded, and pp->vy instead gets the hardcoded
+ * the throw velocity into the embedded param_ninken.koro record but — unlike
+ * them — only reads end.vx/end.vz from the caller: end.vy is never loaded,
+ * and koro.vy instead gets the hardcoded
  * constant -0xfa (a fixed vertical/launch parameter for the tracker dog).
- * Two extra stores follow past pp->status, both raw offset casts off pp
- * itself (tools/access.py confirms the widths): offset 0xC a full WORD zero
- * (the same "extra zero" ReqItemDokudango has, just without an accompanying
- * halfword there) and offset 0x10 a halfword = 0xf — a different slot from
- * Dokudango's offset 0x14/=10 (Ghidra's "ninken.count"/"napalm"/"smoke.koro"
- * names for these last few stores aren't trustworthy per the cookbook, only
- * the raw offsets proven from the asm are used here).
+ * PSX.SYM identifies the following word and halfword as the slave and count
+ * fields of param_ninken, respectively.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `param = (param_ninken *)it->param;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty and x/z are real temps, same shape as the other twins (no `y`
  *    temp here: end.vy is never read).
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not pp)
- *    for this one store, same as the other twins.
+ *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
+ *    param) for this one store, same as the other twins.
  */
 extern void ProcItemNinken(tag_TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
@@ -79,7 +74,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemNinken(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_ninken *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -111,7 +106,7 @@ int ReqItemNinken(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_ninken *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -130,13 +125,13 @@ found:
     it->model = ItemImage[it->type];
     x = p->end.vx;
     z = p->end.vz;
-    pp->vx = x;
-    pp->vy = -0xfa;
-    pp->vz = z;
+    param->koro.vx = x;
+    param->koro.vy = -0xfa;
+    param->koro.vz = z;
     ((param_korogari *)it->param)->hint = 0;
-    pp->status = 0;
-    *(s32 *)((u8 *)pp + 0xC) = 0;
-    *(s16 *)((u8 *)pp + 0x10) = 0xf;
+    param->koro.status = 0;
+    param->slave = 0;
+    param->count = 0xf;
     SetNowMotion(it->owner, 0xf02, 1);
     return 1;
 }

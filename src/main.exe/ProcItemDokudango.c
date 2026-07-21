@@ -101,8 +101,8 @@ void ProcItemDokudango(tag_TItem *item)
     }
 
     if (item->mode < 2 &&
-        (MoveKorogari(item, (param_korogari *)param),
-         param->status == 1))
+        (MoveKorogari(item, &param->koro),
+         param->koro.status == 1))
     {
         if (item->proc == 0)
         {
@@ -362,12 +362,12 @@ set_target:
                 y = y % 100;
                 z = rand();
                 z = z % 200;
-                param->vx = x - 100;
-                param->vy = y - 200;
+                param->koro.vx = x - 100;
+                param->koro.vy = y - 200;
                 param->count = 30;
-                param->hint = 0;
-                param->status = 0;
-                param->vz = z - 100;
+                param->koro.hint = 0;
+                param->koro.status = 0;
+                param->koro.vz = z - 100;
                 item->mode = 0;
                 return;
             }

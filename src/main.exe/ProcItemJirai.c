@@ -25,17 +25,6 @@ typedef struct
     u8 pad[0x10];
 } ConflictObjectType;
 
-typedef struct
-{
-    void *hint;
-    s16 vx;
-    s16 vy;
-    s16 vz;
-    u8 status;
-    u8 pad;
-    u8 count;
-} param_smoke;
-
 typedef union
 {
     struct

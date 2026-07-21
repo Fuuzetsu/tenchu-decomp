@@ -47,21 +47,17 @@
  * round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion
  * block); like ReqItemJirai/ReqItemDokudango there is no GetAreaMapLevel
  * floor check. It gets ProcItemSmoke as its processor, packs the throw
- * velocity into param (param_korogari view, same union member the other
- * twins use), then stamps one extra field past pp->status: offset 0xC, a
- * single BYTE store of 10 — tools/access.py confirms this is a plain `sb`
- * (not the `sw` ReqItemDokudango has at the same offset), so unlike
- * Dokudango's raw offset cast this lines up directly with param_korogari's
- * own `count` field (u8 @ 0xC); `pp->count = 10;` reaches it unchanged.
+ * velocity into the embedded param_smoke.koro record, then initializes the
+ * derived type's byte-sized count field to 10.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `param = (param_smoke *)it->param;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty and x/y/z are real temps, same shape as the other twins.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not pp)
- *    for this one store, same as the other twins.
+ *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
+ *    param) for this one store, same as the other twins.
  */
 extern void ProcItemSmoke(tag_TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -73,7 +69,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemSmoke(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_smoke *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -106,7 +102,7 @@ int ReqItemSmoke(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_smoke *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -126,11 +122,11 @@ found:
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
-    pp->vx = x;
-    pp->vy = y;
-    pp->vz = z;
+    param->koro.vx = x;
+    param->koro.vy = y;
+    param->koro.vz = z;
     ((param_korogari *)it->param)->hint = 0;
-    pp->status = 0;
-    pp->count = 10;
+    param->koro.status = 0;
+    param->count = 10;
     return 1;
 }

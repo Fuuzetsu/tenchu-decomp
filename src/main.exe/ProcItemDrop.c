@@ -54,9 +54,9 @@
  *
  * Matching notes (see docs/matching-cookbook.md; item-TU conventions as in
  * ProcItemKusuri/ProcItemManebue — no $gp here, ActionHalt is absolute):
- *  - `sprt`/`pp` are assigned before the 0xff entry test (ReqItemDrop's
+ *  - `sprt`/`param` are assigned before the 0xff entry test (ReqItemDrop's
  *    double lever: the addiu fills the bne delay slot and the long live
- *    ranges demote both, so item/pp land in $s3/$s4 after the shorter-lived
+ *    ranges demote both, so item/param land in $s3/$s4 after the shorter-lived
  *    case locals take $s0-$s2).
  *  - `sprt->locate = item->locate->locate` is the 0x50-byte GsCOORDINATE2
  *    struct assignment -> the 16-bytes-per-iteration word copy loop.
@@ -73,7 +73,7 @@
  *  - Mode 2's tosses are two-statement temps: `x = rand(); x = x % 200;`.
  *    The in-place `mult $s1` + `subu $s1,$s1` prove raw value and remainder
  *    are the same variable; the -100/-200 offsets belong to the stores
- *    (`pp->vx = x - 100`), which is why they sit after the third rand.
+ *    (`param->koro.vx = x - 100`), which is why they sit after the third rand.
  *    The 0x51EB851F magic is shared by %200/%100 via cse in $s2.
  *  - `cnt`/`ic` are u8 temps (Manebue's timer idiom): increment-then-store
  *    with the compare on the masked register (andi 0xFF), no reload; ic's
@@ -105,7 +105,7 @@ extern ConflictObjectType ConflictObject[];
 void ProcItemDrop(tag_TItem *item)
 {
     Sprite3D *sprt;
-    param_korogari *pp;
+    param_drop *param;
     void (*ppu)(tag_TItem *);
     Humanoid *human;
     MotionDataType *md;
@@ -119,7 +119,7 @@ void ProcItemDrop(tag_TItem *item)
     u8 ic;
 
     sprt = item->model;
-    pp = (param_korogari *)item->param;
+    param = (param_drop *)item->param;
     if (item->mode == 0xff)
     {
         item->mode = 0;
@@ -130,8 +130,8 @@ void ProcItemDrop(tag_TItem *item)
     switch (item->mode)
     {
     case 0:
-        MoveKorogari(item, pp);
-        switch (pp->status)
+        MoveKorogari(item, &param->koro);
+        switch (param->koro.status)
         {
         case 1:
             ppu = item->proc;
@@ -193,7 +193,7 @@ void ProcItemDrop(tag_TItem *item)
         }
         item->owner = human;
         item->mode = item->mode + 1;
-        pp->count = 0;
+        param->count = 0;
         return;
 
     case 2:
@@ -205,15 +205,15 @@ void ProcItemDrop(tag_TItem *item)
             y = y % 100;
             z = rand();
             z = z % 200;
-            pp->vx = x - 100;
-            pp->vy = y - 200;
-            pp->hint = 0;
-            pp->status = 0;
-            pp->vz = z - 100;
+            param->koro.vx = x - 100;
+            param->koro.vy = y - 200;
+            param->koro.hint = 0;
+            param->koro.status = 0;
+            param->koro.vz = z - 100;
             item->mode = 0;
         }
-        cnt = pp->count + 1;
-        pp->count = cnt;
+        cnt = param->count + 1;
+        param->count = cnt;
         if (cnt == 10)
         {
             SoundEx(item->owner->locate, 0xd);

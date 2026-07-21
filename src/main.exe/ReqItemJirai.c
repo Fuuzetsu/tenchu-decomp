@@ -50,16 +50,16 @@
  * ReqItemDrop uses).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `param = (param_smoke *)it->param;` sits BEFORE the null check, same
  *    lever as ReqItemDrop (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as ReqItemDrop (vy/vz reads go through it; vx reads p directly).
  *  - us/ty are real temps, same as ReqItemDrop: the asm loads both p->user
  *    and p->type back-to-back before any of the owner/proc/mode/type stores.
  *  - x/y/z (end vector) ARE real temps: the asm batches three loads before
- *    three sh stores, matching ReqItemDrop's pp->vx/vy/vz shape exactly.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not pp)
- *    for this one store, same as ReqItemDrop.
+ *    three sh stores, matching ReqItemDrop's koro.vx/vy/vz shape exactly.
+ *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
+ *    param) for this one store, same as ReqItemDrop.
  */
 extern void ProcItemJirai(tag_TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -71,7 +71,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemJirai(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_smoke *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -104,7 +104,7 @@ int ReqItemJirai(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_smoke *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -124,10 +124,10 @@ found:
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
-    pp->vx = x;
-    pp->vy = y;
-    pp->vz = z;
+    param->koro.vx = x;
+    param->koro.vy = y;
+    param->koro.vz = z;
     ((param_korogari *)it->param)->hint = 0;
-    pp->status = 0;
+    param->koro.status = 0;
     return 1;
 }

@@ -62,12 +62,12 @@
 
 void ProcItemKawarimi(tag_TItem *item)
 {
-    param_korogari *param;
+    param_drop *param;
     u8 ff;
     s32 i;
     u8 buf[0x20];
 
-    param = (param_korogari *)item->param;
+    param = (param_drop *)item->param;
     ff = 0xff;
     if (item->mode == ff)
     {

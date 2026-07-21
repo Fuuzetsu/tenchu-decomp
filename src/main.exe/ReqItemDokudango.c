@@ -47,28 +47,20 @@
  * pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
  * dispose-on-exhaustion block); like ReqItemJirai there is no
  * GetAreaMapLevel floor check. It gets ProcItemDokudango as its processor,
- * packs the throw velocity into param (param_korogari view, same union
- * member ReqItemDrop/ReqItemJirai use), then stamps two extra fields past
- * param_korogari's proven range (offset 0x14 a halfword = 10, offset 0xC a
- * full WORD zero — wider than param_korogari's u8 count at that same offset,
- * so a distinct/overlapping view) before calling SetNowMotion on the user.
+ * packs the throw velocity into the embedded param_dokudango.koro record,
+ * clears eater, initializes count, then calls SetNowMotion on the user.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `param = (param_dokudango *)it->param;` sits BEFORE the null check, same
  *    lever as ReqItemDrop/ReqItemJirai (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as ReqItemDrop/ReqItemJirai.
  *  - us/ty and x/y/z are real temps, same shape as ReqItemDrop/ReqItemJirai.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not pp)
- *    for this one store, same as ReqItemDrop/ReqItemJirai.
- *  - The two extra stores past pp->status are raw offset casts off pp
- *    itself (not a fresh it->param cast) — the asm addresses them off pp's
- *    own register, and the word store must stay a full `s32`/`sw` (writing
- *    through a would-be `pp->count` u8 field would wrongly emit `sb`).
- *    Ghidra invents distinct union member paths for these two stores
- *    (`napalm`/`lightningbolt`/`gun`/`smoke.koro` sub-structs) but per the
- *    cookbook's struct-name warning those names aren't trustworthy — only
- *    the raw offsets (proven from the asm) are used here.
+ *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
+ *    param) for this one store, same as ReqItemDrop/ReqItemJirai.
+ *  - PSX.SYM supplies the koro/eater/org_think/count nesting and names. The
+ *    retail executable accesses count as a halfword, widened from the demo's
+ *    byte, so the retail declaration retains that one version difference.
  */
 extern void ProcItemDokudango(tag_TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
@@ -81,7 +73,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemDokudango(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_dokudango *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -114,7 +106,7 @@ int ReqItemDokudango(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_dokudango *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -134,13 +126,13 @@ found:
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
-    pp->vx = x;
-    pp->vy = y;
-    pp->vz = z;
+    param->koro.vx = x;
+    param->koro.vy = y;
+    param->koro.vz = z;
     ((param_korogari *)it->param)->hint = 0;
-    pp->status = 0;
-    *(s16 *)((u8 *)pp + 0x14) = 10;
-    *(s32 *)((u8 *)pp + 0xC) = 0;
+    param->koro.status = 0;
+    param->count = 10;
+    param->eater = 0;
     SetNowMotion(it->owner, 0xf02, 1);
     return 1;
 }

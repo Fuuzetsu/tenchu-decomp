@@ -102,21 +102,21 @@ extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
 void ProcItemSmoke(tag_TItem *item)
 {
     Sprite3D *model;
-    param_korogari *param;
+    param_smoke *param;
     u8 ff;
     int cnt;
     u8 buf[0x28];
 
     model = item->model;
-    param = (param_korogari *)item->param;
+    param = (param_smoke *)item->param;
     ff = 0xff;
     if (item->mode == ff)
     {
         item->mode = 0;
         return;
     }
-    MoveKorogari(item, param);
-    if (param->status == 1)
+    MoveKorogari(item, &param->koro);
+    if (param->koro.status == 1)
     {
         if (item->proc == 0)
             return;

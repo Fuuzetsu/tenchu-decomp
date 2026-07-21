@@ -15,18 +15,6 @@ typedef struct
 
 typedef struct
 {
-    void *hint;
-    s16 vx;
-    s16 vy;
-    s16 vz;
-    u8 status;
-    u8 pad;
-    u8 count;
-    u8 hp;
-} param_ningyo;
-
-typedef struct
-{
     VECTOR TargetVector;
     Humanoid *Owner;
     s32 Mode;
@@ -181,8 +169,8 @@ void ProcItemNingyo(tag_TItem *item)
         return;
     }
 
-    MoveKorogari(item, (param_korogari *)param);
-    if (param->status == 1)
+    MoveKorogari(item, &param->koro);
+    if (param->koro.status == 1)
     {
         goto dispose;
     }
@@ -429,11 +417,11 @@ draw_mode0:
                         vz += 15;
                     }
                     hp = param->hp;
-                    param->vx = shifted_vx;
-                    param->vy = -100;
-                    param->vz = vz >> 4;
-                    param->hint = 0;
-                    param->status = 0;
+                    param->koro.vx = shifted_vx;
+                    param->koro.vy = -100;
+                    param->koro.vz = vz >> 4;
+                    param->koro.hint = 0;
+                    param->koro.status = 0;
                     param->hp = hp - 1;
                     SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
                 }
@@ -467,11 +455,11 @@ draw_mode0:
                 {
                     vz += 7;
                 }
-                param->vx = xbase + xrem - 10;
-                param->vy = vy;
-                param->hint = 0;
-                param->status = 0;
-                param->vz = (vz >> 3) + random_z % 20 - 10;
+                param->koro.vx = xbase + xrem - 10;
+                param->koro.vy = vy;
+                param->koro.hint = 0;
+                param->koro.status = 0;
+                param->koro.vz = (vz >> 3) + random_z % 20 - 10;
             }
         }
 

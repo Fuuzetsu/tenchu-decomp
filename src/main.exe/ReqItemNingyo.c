@@ -47,13 +47,9 @@
  * ReqItemMakibishi/ReqItemLightningBolt (same item TU, same pool round-robin
  * on COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion block); like
  * ReqItemJirai/ReqItemDokudango there is no GetAreaMapLevel floor check. It
- * gets ProcItemNingyo as its processor, packs the end vector into param
- * (param_korogari view, same as ReqItemDrop/ReqItemJirai/ReqItemDokudango),
- * stamps a count=0x5a (matches param_korogari's own `count` field, unlike
- * Dokudango's wider raw-offset store there) plus one more byte at the
- * offset right past param_korogari's proven range (0xD = 0x63, a raw offset
- * cast per the cookbook's divergent-width-union rule), randomizes the
- * model's rotation (rotate.vx=0, rotate.vy = rand()%0x1000, rotate.vz =
+ * gets ProcItemNingyo as its processor, packs the end vector into the
+ * embedded param_ningyo.koro record, initializes count and hp, randomizes
+ * the model's rotation (rotate.vx=0, rotate.vy = rand()%0x1000, rotate.vz =
  * rand()%0x44), then calls SetNowMotion on the user.
  *
  * Matching notes (see docs/matching-cookbook.md):
@@ -61,14 +57,14 @@
  *    separate loop-cursor pseudo here — it stays in one register ($s0) for
  *    the whole function (lower register pressure at the loop/found-label
  *    join than those two, despite this function's bigger body overall).
- *  - `pp = (param_korogari *)it->param;` sits BEFORE the null check, same
+ *  - `param = (param_ningyo *)it->param;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
- *  - us/ty and x/y/z (end vector, into pp->vx/vy/vz) are real temps, same
+ *  - us/ty and x/y/z (end vector, into param->koro.vx/vy/vz) are real temps, same
  *    shape as ReqItemDrop/ReqItemJirai/ReqItemDokudango.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not pp)
- *    for this one store, same as the other twins.
+ *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
+ *    param) for this one store, same as the other twins.
  *  - `rotate.vx = 0;` is scheduled into the FIRST `rand()` call's delay slot
  *    (it's independent of the call and textually precedes it — ordinary
  *    scheduler delay-slot filling, no special source shape needed).
@@ -87,10 +83,8 @@
  *    $a3 itself is never touched again and happens to still hold that value
  *    at the call) — not a real argument. Same m2c-over-counts-args situation
  *    as ReqItemMakibishi's SoundEx call; only 3 args reproduce the bytes.
- *  - `pp->count = 0x5a;` uses param_korogari's own proven `count` field
- *    (offset 0xC) directly — unlike Dokudango's same-offset store, this one
- *    doesn't need a raw-offset cast since the width (u8) and offset match
- *    the established view exactly.
+ *  - PSX.SYM's param_ningyo names the trailing bytes count and hp; using
+ *    those fields preserves the original `sb` stores at offsets 0xC/0xD.
  */
 extern void ProcItemNingyo(tag_TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
@@ -103,7 +97,7 @@ extern Sprite3D *ItemImage[];
 int ReqItemNingyo(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
-    param_korogari *pp;
+    param_ningyo *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -136,7 +130,7 @@ int ReqItemNingyo(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = (param_korogari *)it->param;
+    param = (param_ningyo *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -156,16 +150,16 @@ found:
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
-    pp->vx = x;
-    pp->vy = y;
-    pp->vz = z;
+    param->koro.vx = x;
+    param->koro.vy = y;
+    param->koro.vz = z;
     ((param_korogari *)it->param)->hint = 0;
-    pp->status = 0;
-    pp->count = 0x5a;
+    param->koro.status = 0;
+    param->count = 0x5a;
     it->locate->rotate.vx = 0;
     it->locate->rotate.vy = rand() % 0x1000;
     it->locate->rotate.vz = rand() % 0x44;
-    *(u8 *)((u8 *)pp + 0xd) = 0x63;
+    param->hp = 0x63;
     SetNowMotion(it->owner, 0xf02, 1);
     return 1;
 }

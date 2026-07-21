@@ -141,7 +141,7 @@ extern void reset_alert_duration(void);
 void ProcItemFire(tag_TItem *item)
 {
     Sprite3D *sprt;
-    param_korogari *param;
+    param_smoke *param;
     u8 ff;
     s32 count;
     s32 mode;
@@ -150,7 +150,7 @@ void ProcItemFire(tag_TItem *item)
     ProcItemFireScratch scratch;
 
     sprt = item->model;
-    param = (param_korogari *)item->param;
+    param = (param_smoke *)item->param;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -158,8 +158,8 @@ void ProcItemFire(tag_TItem *item)
         return;
     }
 
-    MoveKorogari(item, param);
-    if (param->status == 1)
+    MoveKorogari(item, &param->koro);
+    if (param->koro.status == 1)
     {
         if (item->proc != 0)
         {

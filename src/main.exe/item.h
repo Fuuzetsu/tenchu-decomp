@@ -34,6 +34,8 @@ typedef struct
 
 typedef struct tag_TItem tag_TItem;
 
+struct AreaNodeType;
+
 /* game_types.h's `some_char_state_function` (a plain `s32(*)(void)`),
  * respelled locally so this header stays independent of game_types.h. The
  * Think1Func[]/Think2Func[]/Think3Func[]/Think4Func[] tables (SetupThinkFunction.c,
@@ -299,17 +301,43 @@ typedef struct
     VECTOR locate;               /* 0x04 */
 } PARAM_ITEM_STAY;               /* 0x14 */
 
-/* The dropped/rolling item's view of tag_TItem.param (Ghidra: param_korogari). */
-typedef struct
+/* ITEM.C's original rolling-item base.  Derived item parameters embed this
+ * 12-byte record as their first member (param_drop, param_smoke,
+ * param_ningyo, param_ninken, param_dokudango). */
+typedef struct param_korogari
 {
-    void *hint;                  /* 0x0 (AreaNodeType *) */
+    struct AreaNodeType *hint;   /* 0x0 */
     s16 vx;                      /* 0x4 */
     s16 vy;                      /* 0x6 */
     s16 vz;                      /* 0x8 */
     u8 status;                   /* 0xA */
-    u8 pad;                      /* 0xB */
-    u8 count;                    /* 0xC (settle/pickup frame counter — ProcItemDrop) */
-} param_korogari;
+} param_korogari;                /* 0xC */
+
+typedef struct param_drop
+{
+    param_korogari koro;         /* 0x00 */
+    u8 count;                    /* 0x0C */
+} param_drop;                    /* 0x10 */
+
+typedef struct param_smoke
+{
+    param_korogari koro;         /* 0x00 */
+    u8 count;                    /* 0x0C */
+} param_smoke;                   /* 0x10 */
+
+typedef struct param_ningyo
+{
+    param_korogari koro;         /* 0x00 */
+    u8 count;                    /* 0x0C */
+    u8 hp;                       /* 0x0D */
+} param_ningyo;                  /* 0x10 */
+
+typedef struct param_ninken
+{
+    param_korogari koro;         /* 0x00 */
+    Humanoid *slave;             /* 0x0C */
+    s16 count;                   /* 0x10 */
+} param_ninken;                  /* 0x14 */
 
 /* ITEM.C's human-search scratch record (PSX.SYM's own struct TFindItemTarget,
  * reference/psxsym-types.h:3769 — field names are the authors' own). The
@@ -324,22 +352,14 @@ typedef struct
     s32 find_dist;               /* 0x1C (max/best distance) */
 } TFindItemTarget;               /* 0x20 */
 
-/* ProcItemDokudango's union view.  The shared param_korogari declaration in
- * this repository includes the +0xC counter used by drop/smoke processors,
- * whereas ITEM.C's original base type stops at +0xB; spell the common prefix
- * out here so dokudango's eater remains at its PSX.SYM-proven +0xC offset. */
-typedef struct
+/* ProcItemDokudango's retail union view.  This uses the original embedded
+ * rolling-item base; retail widens count to a halfword versus the demo's byte. */
+typedef struct param_dokudango
 {
-    void *hint;                  /* 0x00 (param_korogari prefix) */
-    s16 vx;                      /* 0x04 */
-    s16 vy;                      /* 0x06 */
-    s16 vz;                      /* 0x08 */
-    u8 status;                   /* 0x0A */
-    u8 pad;                      /* 0x0B */
+    param_korogari koro;         /* 0x00 */
     Humanoid *eater;             /* 0x0C */
-    think_func_ *org_think;      /* 0x10 */
+    void *org_think;             /* 0x10 */
     u16 count;                   /* 0x14 (retail accesses it with lhu/sh) */
-    u8 pad2[2];                  /* 0x16 */
 } param_dokudango;               /* 0x18 */
 
 struct tag_TItem

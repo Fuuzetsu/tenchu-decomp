@@ -36,19 +36,6 @@
 
 typedef struct
 {
-    void *hint;
-    s16 vx;
-    s16 vy;
-    s16 vz;
-    u8 status;
-    u8 pad;
-    Humanoid *slave;
-    u16 count;
-    u16 pad2;
-} param_ninken;
-
-typedef struct
-{
     s32 level;
     s32 height;
     u16 attrib;
@@ -134,8 +121,8 @@ void ProcItemNinken(tag_TItem *item)
     {
         u8 status;
 
-        MoveKorogari(item, (param_korogari *)param);
-        status = param->status;
+        MoveKorogari(item, &param->koro);
+        status = param->koro.status;
         if (status == one)
         {
             void (*dispose_proc)(tag_TItem *);
