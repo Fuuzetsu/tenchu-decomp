@@ -98,20 +98,35 @@
  */
 
 
-typedef struct
+typedef struct WorldDataType
 {
-    s16 type;
-    s16 ObjectID;
+    s16 mode;
+    s16 nid;
     union
     {
-        char name[12];
+        struct
+        {
+            u8 name[12];
+            s32 x;
+            s32 y;
+            s32 z;
+            s32 r;
+        } common;
+        s32 pathxz[7];
+        u8 data[28];
+        struct
+        {
+            s32 type;
+            s32 x;
+            s32 y;
+            s32 z;
+            s32 a;
+            s32 b;
+            s32 c;
+        } effect;
+        /* Retail replaces common.name with the loaded object at runtime. */
         OrnamentType *model;
-        s32 misc[3];
-    } data;
-    s32 x;
-    s32 y;
-    s32 z;
-    s32 n;
+    } real;
 } WorldDataType;
 
 extern WorldType WorldMap[8][8][8];
@@ -187,7 +202,7 @@ short LoadConstruction(u32 *data)
     {
         do
         {
-            if (((WorldDataType *)data)[i].type == 2)
+            if (((WorldDataType *)data)[i].mode == 2)
                 nModel++;
             i++;
         } while (i < n);
@@ -279,10 +294,10 @@ short LoadConstruction(u32 *data)
         {
             if (!(i < n))
                 break;
-            switch (wlddt[i].type)
+            switch (wlddt[i].mode)
             {
     case 0:
-        sprintf((char *)name, D_80097A80, wlddt[i].data.name);
+        sprintf((char *)name, D_80097A80, wlddt[i].real.common.name);
         DisposeAreaMap(GlobalAreaMap);
         GlobalAreaMap = LoadAreaMap(
             (u32 *)PathFileRead((char *)ImagePath, (char *)name));
@@ -294,28 +309,28 @@ short LoadConstruction(u32 *data)
         break;
 
     case 5:
-        sprintf((char *)name, D_80097A88, wlddt[i].data.name);
+        sprintf((char *)name, D_80097A88, wlddt[i].real.common.name);
         LoadTIMAndFree((u_long *)PathFileRead(D_800120F0, (char *)name));
         break;
 
     case 2:
-        if (wlddt[i].data.name[0] != 0)
+        if (wlddt[i].real.common.name[0] != 0)
         {
             model = D_80097A74->object[ObjectID];
             ObjectID++;
-            wlddt[i].data.model = model;
+            wlddt[i].real.model = model;
         }
         else
             model = CreateCloneOrnament(
-                wlddt[wlddt[i].ObjectID].data.model);
+                wlddt[wlddt[i].nid].real.model);
 
-        model->locate.coord.t[0] = wlddt[i].x;
-        model->locate.coord.t[1] = wlddt[i].y;
-        model->locate.coord.t[2] = wlddt[i].z;
-        UpdateOrnament(model, wlddt[i].n);
+        model->locate.coord.t[0] = wlddt[i].real.common.x;
+        model->locate.coord.t[1] = wlddt[i].real.common.y;
+        model->locate.coord.t[2] = wlddt[i].real.common.z;
+        UpdateOrnament(model, wlddt[i].real.common.r);
 
         {
-            long a = wlddt[i].x;
+            long a = wlddt[i].real.common.x;
             long q;
 
             if (a >= 0)
@@ -325,7 +340,7 @@ short LoadConstruction(u32 *data)
             x = q & 7;
         }
         {
-            long a = wlddt[i].y;
+            long a = wlddt[i].real.common.y;
             long q;
 
             if (a >= 0)
@@ -335,7 +350,7 @@ short LoadConstruction(u32 *data)
             y = q & 7;
         }
         {
-            long a = wlddt[i].z;
+            long a = wlddt[i].real.common.z;
             long q;
 
             if (a >= 0)
@@ -362,22 +377,24 @@ short LoadConstruction(u32 *data)
         break;
 
     case 3:
-        BreedLife(wlddt[i].ObjectID, wlddt[i].x, wlddt[i].y,
-                  wlddt[i].z, wlddt[i].n);
+        BreedLife(wlddt[i].nid, wlddt[i].real.common.x,
+                  wlddt[i].real.common.y, wlddt[i].real.common.z,
+                  wlddt[i].real.common.r);
         break;
 
     case 11:
-        AddMisc(wlddt[i].data.misc[0], wlddt[i].data.misc[1],
-                wlddt[i].data.misc[2], wlddt[i].x, wlddt[i].y,
-                wlddt[i].z, wlddt[i].n);
+        AddMisc(wlddt[i].real.effect.type, wlddt[i].real.effect.x,
+                wlddt[i].real.effect.y, wlddt[i].real.effect.z,
+                wlddt[i].real.effect.a, wlddt[i].real.effect.b,
+                wlddt[i].real.effect.c);
         break;
 
     case 4:
         memset(&tmp, 0, sizeof(tmp));
-        tmp.type = wlddt[i].ObjectID;
-        tmp.locate.vx = wlddt[i].x;
-        tmp.locate.vy = wlddt[i].y;
-        tmp.locate.vz = wlddt[i].z;
+        tmp.type = wlddt[i].nid;
+        tmp.locate.vx = wlddt[i].real.common.x;
+        tmp.locate.vy = wlddt[i].real.common.y;
+        tmp.locate.vz = wlddt[i].real.common.z;
         param = tmp;
         ReqItemStay(&param);
         break;
