@@ -69,22 +69,11 @@
  *    the slot) matches InsertConflict.c's/DeleteConflict.c's already-proven
  *    layout; redefined locally here per this repo's per-file convention.
  */
-typedef struct
-{
-    ModelType *model; /* 0x00 */
-    VECTOR position;  /* 0x04 */
-    SVECTOR offset;    /* 0x14 */
-    SVECTOR size;      /* 0x1C */
-    void *common;      /* 0x24 */
-    u8 result[64];     /* 0x28 */
-    u8 pad[0x10];      /* 0x68 */
-} ConflictObjectType;  /* 0x78 */
-
 extern VECTOR *dtL;
 extern MotionManager *dtM;
 extern s16 motID;
 extern Humanoid *StagePlayer;
-extern ConflictObjectType ConflictObject[64];
+extern ConflictObjectType ConflictObject[80];
 extern SVECTOR *dtV;
 extern u16 dtPAD;
 extern s16 motMODE;

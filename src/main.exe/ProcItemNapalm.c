@@ -46,17 +46,6 @@ typedef struct
     u8 count;                    /* 0x08 */
 } param_napalm;
 
-typedef struct
-{
-    ModelType *model;            /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[64];               /* 0x28 */
-    u8 pad[0x10];                /* 0x68 */
-} ConflictObjectType;            /* 0x78 */
-
 extern FullSprite3D *sprNapalm2;
 extern u_long *GlobalAreaMap;
 extern ConflictObjectType ConflictObject[];

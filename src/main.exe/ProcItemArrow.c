@@ -81,17 +81,6 @@
  */
 typedef struct
 {
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ArrowConflictObject;
-
-typedef struct
-{
     u8 fly[0x2c];
     u8 count;
 } param_arrow;
@@ -104,7 +93,7 @@ typedef struct
     u16 pad1;
 } ArrowRotation;
 
-extern ArrowConflictObject ConflictObject[];
+extern ConflictObjectType ConflictObject[];
 extern s32 GameClock;
 
 extern void MoveFly(tag_TItem *item, u8 *param);

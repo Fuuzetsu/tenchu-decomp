@@ -57,18 +57,6 @@
  *    do-while (duplicate_loop_exit_test). i advances only on the miss branch.
  */
 
-/* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes; see ProcItemDrop.c). */
-typedef struct
-{
-    ModelType *model;            /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[64];               /* 0x28 */
-    u8 pad[0x10];                /* 0x68 */
-} ConflictObjectType;            /* 0x78 */
-
 /* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
 extern ConflictObjectType ConflictObject[];
 extern s16 ConflictObjects;

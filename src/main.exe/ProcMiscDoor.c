@@ -48,17 +48,6 @@
  *    bgez/nop/negu sequence and the required DoorData register allocation.
  */
 
-typedef struct
-{
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ConflictObjectType;
-
 struct ModelType
 {
     GsCOORDINATE2 locate;

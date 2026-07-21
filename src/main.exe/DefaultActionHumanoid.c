@@ -66,20 +66,9 @@ typedef struct
     struct NodeIndexType *index;
 } HumanMapVector;
 
-typedef struct
-{
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} HumanConflictObject;
-
 extern struct AreaNodeType *FieldArea;
 extern struct NodeIndexType *FieldIndex;
-extern HumanConflictObject ConflictObject[];
+extern ConflictObjectType ConflictObject[];
 extern u32 *GlobalAreaMap;
 extern Humanoid *StagePlayer;
 extern s16 RefrectMove[16][2];
@@ -406,7 +395,7 @@ apply_reflection:
                 s32 object_y;
                 s32 size_y;
                 s32 object_id;
-                HumanConflictObject *conflict;
+                ConflictObjectType *conflict;
 
                 human->attribute |= 0x8000;
                 xx = locate->vx;

@@ -79,17 +79,6 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-typedef struct
-{
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ConflictObjectType;
-
 /* The retail stack frame overlays the mutually-exclusive mode temporaries.
  * Keep that layout explicit: all four views begin at sp+0x18 and the largest
  * one ends immediately before the saved-register area at sp+0x78. */

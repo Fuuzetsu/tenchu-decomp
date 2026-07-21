@@ -4,17 +4,6 @@
 
 typedef struct
 {
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ConflictObjectType;
-
-typedef struct
-{
     Humanoid *human;
     s16 loop;
     s16 motid;
@@ -73,7 +62,7 @@ extern s16 FriendHits;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
 extern u8 gNannido;
-extern ConflictObjectType ConflictObject[64];
+extern ConflictObjectType ConflictObject[80];
 extern BattleType BattleDB[78];
 extern HumanAnimType CVAhuman[5];
 extern SVECTOR ConflictDistance;
@@ -895,4 +884,3 @@ LAB_8001ec30:
  }
   return;
 }
-

@@ -39,17 +39,6 @@
 
 typedef struct
 {
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} SwimConflictObject;
-
-typedef struct
-{
     Humanoid *human;
     u8 pad4[4];
 } SwimHumanAnim;
@@ -62,7 +51,7 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
-extern SwimConflictObject ConflictObject[64];
+extern ConflictObjectType ConflictObject[80];
 extern SwimHumanAnim CVAhuman[5];
 
 extern void SetSplash(VECTOR *pos, short sx, short sy, short count);

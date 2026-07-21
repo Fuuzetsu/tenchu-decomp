@@ -49,19 +49,6 @@
  * cookbook Loops), a guarded `for (i = 0; i < 0x50; i++)`.
  */
 
-/* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes; see
- * InsertConflict.c/DeleteConflict.c — identical per-TU local declaration). */
-typedef struct
-{
-    ModelType *model;            /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[64];               /* 0x28 */
-    u8 pad[0x10];                /* 0x68 */
-} ConflictObjectType;            /* 0x78 */
-
 extern ConflictObjectType ConflictObject[];
 extern s16 ConflictObjects;
 extern VECTOR UnitVector2;

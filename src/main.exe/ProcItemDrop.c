@@ -83,18 +83,6 @@
  *    `item->proc(item)` (Kusuri's rule) so the pointer stays in $v0.
  */
 
-/* Conflict slot (Ghidra: ConflictObjectType, 0x78 bytes). */
-typedef struct
-{
-    ModelType *model;            /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[64];               /* 0x28 */
-    u8 pad[0x10];                /* 0x68 */
-} ConflictObjectType;            /* 0x78 */
-
 extern void MoveKorogari(tag_TItem *item, param_korogari *pp);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s16 InsertConflict(ModelType *m);

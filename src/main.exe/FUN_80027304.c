@@ -29,17 +29,6 @@
  * Me_MOTION_C was already in NowReturnNormal's list (same original TU);
  * dtL added here via `tools/gpsyms.py FUN_80027304 --write`.
  */
-typedef struct
-{
-    ModelType *model;            /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[64];                /* 0x28 */
-    u8 pad[0x10];                 /* 0x68 */
-} ConflictObjectType;             /* 0x78 */
-
 extern ConflictObjectType ConflictObject[];
 extern VECTOR *dtL;
 extern Humanoid *Me_MOTION_C;

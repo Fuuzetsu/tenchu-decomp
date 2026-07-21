@@ -14,17 +14,6 @@ typedef struct
     u8 count;
 } param_napalm;
 
-typedef struct
-{
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ConflictObjectType;
-
 extern ConflictObjectType ConflictObject[];
 extern u_long *GlobalAreaMap;
 extern SVECTOR D_80097B04[];

@@ -62,6 +62,21 @@ struct MapVector
     s32 height;
 };
 
+/* CONFLICT.C's collision slot. PSX.SYM records result[64] and size 0x68 in
+ * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
+ * result bytes, and reserves 0x2580 bytes for 80 slots, proving that the old
+ * result array grew to 80 rather than gaining sixteen bytes of padding. */
+typedef struct ConflictObjectType ConflictObjectType;
+struct ConflictObjectType
+{
+    struct ModelType *model;     /* 0x00 */
+    VECTOR position;             /* 0x04 */
+    SVECTOR offset;              /* 0x14 */
+    SVECTOR size;                /* 0x1C */
+    void *common;                /* 0x24 */
+    u8 result[80];               /* 0x28 */
+};                               /* 0x78 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

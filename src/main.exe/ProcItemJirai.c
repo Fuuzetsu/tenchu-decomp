@@ -14,17 +14,6 @@ typedef struct AreaNodeType
     s16 division;
 } AreaNodeType;
 
-typedef struct
-{
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ConflictObjectType;
-
 typedef union
 {
     struct

@@ -47,17 +47,6 @@
  * instead of the commuted `addu v1,s6,v1` emitted by ordinary subscripting.
  */
 
-typedef struct
-{
-    ModelType *model;            /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[64];               /* 0x28 */
-    u8 pad[0x10];                /* 0x68 */
-} ConflictObjectType;            /* 0x78 */
-
 extern GsRVIEW2 ViewInfo;
 extern ConflictObjectType ConflictObject[];
 extern s16 InsertConflict(ModelType *m);

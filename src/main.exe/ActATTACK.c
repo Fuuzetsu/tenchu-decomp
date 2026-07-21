@@ -87,17 +87,6 @@
 
 typedef struct
 {
-    ModelType *model;
-    VECTOR position;
-    SVECTOR offset;
-    SVECTOR size;
-    void *common;
-    u8 result[64];
-    u8 pad[0x10];
-} ConflictObjectType; /* 0x78 in the retail build */
-
-typedef struct
-{
     SVECTOR confp;
     SVECTOR ilup0;
     SVECTOR ilup1;
