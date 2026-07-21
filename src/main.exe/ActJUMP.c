@@ -44,12 +44,6 @@
 
 typedef struct
 {
-    Humanoid *human;
-    u8 pad4[4];
-} ActJumpHumanAnim;
-
-typedef struct
-{
     MapVector map;
     SVECTOR speed;
 } ActJumpScratch;
@@ -65,7 +59,7 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 MotionUpdateMode;
 extern void *GlobalAreaMap;
-extern ActJumpHumanAnim CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 extern u16 RefrectVector[16];
 
 extern short UpdateMotion(MotionManager *mmp, short mid);

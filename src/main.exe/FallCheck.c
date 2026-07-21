@@ -50,12 +50,6 @@
  *    cached `human`) preserves the target's CSE copy in the scan prologue.
  */
 
-typedef struct
-{
-    Humanoid *human;
-    u8 pad4[4];
-} tag_CVAHumanEntry;
-
 extern Humanoid *Me_MOTION_C;
 extern MotionManager *dtM;
 extern VECTOR *dtL;
@@ -63,7 +57,7 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 MotionUpdateMode;
 extern s16 RefrectMove[16][2];
-extern tag_CVAHumanEntry CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void AttackCancelControl(short mode);

@@ -140,7 +140,7 @@
  *    falls out of `>> 1` on the signed field; a `(u16)` cast compiles a
  *    wrong `srl`.
  *  - The CVAhuman scan is IDENTICAL to MotionAndMove.c's proven shape
- *    (`tag_CVAHumanEntry`, `short i`, provably-true `i=0` entry test folded
+ *    (`HumanAnimType`, `short i`, provably-true `i=0` entry test folded
  *    away leaving a bottom-tested do/while-equivalent `for`) — reused
  *    verbatim here, except the "found" case must `goto` past the
  *    `SetNowMotion` call (shared with the "not found" fallthrough) rather
@@ -150,18 +150,12 @@
  *    gp-extern list (only Me_MOTION_C/motID/dtL/dtR/MotionUpdateMode/
  *    motMODE are gp-relative here, confirmed by `tools/gpsyms.py`).
  */
-typedef struct
-{
-    Humanoid *human;
-    u8 pad4[4];
-} tag_CVAHumanEntry; /* 0x8 */
-
 extern s16 motID;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern u32 *GlobalAreaMap;
 extern s16 MotionUpdateMode;
-extern tag_CVAHumanEntry CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 extern Humanoid *StagePlayer;
 extern Humanoid *Me_MOTION_C;
 extern s16 motMODE;

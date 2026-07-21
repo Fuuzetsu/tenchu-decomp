@@ -37,12 +37,6 @@
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
-typedef struct
-{
-    Humanoid *human;
-    u8 pad4[4];
-} SwimHumanAnim;
-
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern MotionManager *dtM;
@@ -52,7 +46,7 @@ extern s16 motMODE;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
 extern ConflictObjectType ConflictObject[80];
-extern SwimHumanAnim CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 
 extern void SetSplash(VECTOR *pos, short sx, short sy, short count);
 extern void AttackCancelControl(short mode);

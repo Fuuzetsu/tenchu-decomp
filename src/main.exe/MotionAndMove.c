@@ -38,13 +38,7 @@
  *    for the terminator store) — per-TU divergent type, same precedent
  *    as lifemax's u16-vs-s16 split (cookbook Expressions).
  */
-typedef struct
-{
-    Humanoid *human;
-    u8 pad4[4];
-} tag_CVAHumanEntry; /* 0x8 */
-
-extern tag_CVAHumanEntry CVAhuman[5];
+extern HumanAnimType CVAhuman[5];
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 MotionUpdateMode;
