@@ -39,12 +39,6 @@
  *    `((attrib & 3) << 5) | 0xE1000200` — a DR_TPAGE-style mode word (0xE1
  *    = draw-mode GPU command, with the low tpage bits ORed in).
  */
-typedef struct
-{
-    DR_TPAGE tpage;
-    POLY_F4 ply;
-} POLY_XF4;
-
 void SetPolyXF4(POLY_XF4 *ply, short attrib)
 {
     *((u_char *)&ply->ply.tag + 3) = 5;

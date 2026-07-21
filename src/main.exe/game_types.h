@@ -1,6 +1,8 @@
 // Game data types for Tenchu main.exe — the canonical, build-verified type
 // model (structs/enums/typedefs). Included by main.exe.h AFTER the PSY-Q
 // SDK header and the base-int typedefs, so it may use GsIMAGE/VECTOR/u16/etc.
+
+#include <psxsdk/libgpu.h>
 //
 // This file is the round-trip unit with Ghidra: `tools/sync_to_ghidra.py`
 // pushes it into the Ghidra program; `tools/ghidra/ExportSymbolsTypes.java`
@@ -341,6 +343,14 @@ struct TraceLine
     s16 count;                        /* 0x02 */
     TracePoint *point;                /* 0x04 */
 };                                    /* 0x08 */
+
+/* EFFECT.C's draw-mode-plus-flat-quad primitive. */
+typedef struct POLY_XF4 POLY_XF4;
+struct POLY_XF4
+{
+    DR_TPAGE tpage;                    /* 0x00 */
+    POLY_F4 ply;                       /* 0x08 */
+};                                     /* 0x20 */
 
 typedef enum weapon_kind weapon_kind;
 

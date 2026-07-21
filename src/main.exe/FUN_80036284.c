@@ -16,12 +16,6 @@
  * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
  * END PSX.SYM */
 
-typedef struct
-{
-    DR_TPAGE tpage;
-    POLY_F4 ply;
-} POLY_XF4;
-
 extern long GameClock;
 extern GsOT *OTablePt;
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);

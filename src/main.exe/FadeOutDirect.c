@@ -100,12 +100,6 @@
  *    `ply->ply.code = '*';`. Its source is therefore NOT evidence for how
  *    to spell the accesses here, where `ply` is a local aggregate.
  */
-typedef struct
-{
-    DR_TPAGE tpage;
-    POLY_F4 ply;
-} POLY_XF4;
-
 extern int VSync(int mode);
 
 void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)

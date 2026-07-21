@@ -96,12 +96,6 @@
  * test delay slot and leaves the table `lui` to fill the model-pointer load
  * delay, removing the extra instruction and reproducing all 532 bytes.
  */
-typedef struct
-{
-    DR_TPAGE tpage;
-    POLY_F4 ply;
-} POLY_XF4;
-
 extern u8 PutMapMode;
 extern GsSPRITE MapImage;
 extern GsOT *OTablePt;
