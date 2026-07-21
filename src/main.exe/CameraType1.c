@@ -65,14 +65,6 @@
 
 #include "item.h"
 
-typedef struct
-{
-    SVECTOR r1;
-    SVECTOR r2;
-    SVECTOR p1;
-    SVECTOR p2;
-} CameraVectors;
-
 typedef union
 {
     VECTOR init;

@@ -331,6 +331,16 @@ struct TCameraStatus
     u8 CriticalHit;               /* 0x1D */
 };                                /* 0x20 */
 
+/* Retail's four-vector camera preset (CAMERA_R1/R2/P1/P2). */
+typedef struct CameraVectors CameraVectors;
+struct CameraVectors
+{
+    SVECTOR r1;                    /* 0x00 */
+    SVECTOR r2;                    /* 0x08 */
+    SVECTOR p1;                    /* 0x10 */
+    SVECTOR p2;                    /* 0x18 */
+};                                 /* 0x20 */
+
 /* CDPLAYER.C's playback state. Retail keeps the demo's original members but
  * rearranges the tail, adds the left/right volume bytes, and appends the
  * pending drive command. */

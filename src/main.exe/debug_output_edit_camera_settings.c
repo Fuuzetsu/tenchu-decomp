@@ -24,21 +24,13 @@
  *    pointer lives in `$s3` across the four FntPrint calls.
  */
 
-typedef struct
-{
-    SVECTOR r1;
-    SVECTOR r2;
-    SVECTOR p1;
-    SVECTOR p2;
-} CameraDefaultVectors;
-
 extern u16 BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT;
 extern u16 BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT;
 extern s16 DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX;
 extern u8 *CAMERA_PTR_ARRAY_START;
 extern SVECTOR *CAMERA_POINTERS[4];
 extern char *CAMERA_PROPERTIES[4];
-extern CameraDefaultVectors D_80011BC0;
+extern CameraVectors D_80011BC0;
 extern char D_80011A50[];
 
 void debug_output_edit_camera_settings(s16 pad)
@@ -94,7 +86,7 @@ void debug_output_edit_camera_settings(s16 pad)
 
     if ((BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 3) == 3)
     {
-        *(CameraDefaultVectors *)CAMERA_PTR_ARRAY_START = D_80011BC0;
+        *(CameraVectors *)CAMERA_PTR_ARRAY_START = D_80011BC0;
     }
 
     i = 0;
