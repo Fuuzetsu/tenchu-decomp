@@ -80,7 +80,7 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
  * ItemImage[]-indexing twins this is a single global, not per-type. */
 extern Sprite3D *sprSmoke;
 
-int ReqItemNemuri(PARAM_ITEM_USE *p)
+int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
     tag_TItem *it;
     param_napalm *pp;

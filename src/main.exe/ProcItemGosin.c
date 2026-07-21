@@ -102,16 +102,16 @@ void ProcItemGosin(tag_TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(buf, 0, sizeof(PARAM_ITEM_USE));
-            ((PARAM_ITEM_USE *)buf)->type = itemID;
-            ((PARAM_ITEM_USE *)buf)->user = human;
-            ((PARAM_ITEM_USE *)buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_USE *)buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_USE *)buf)->start.vz = pos->vz;
-            ((PARAM_ITEM_USE *)buf)->end.vx = rand() % 200 - 100;
-            ((PARAM_ITEM_USE *)buf)->end.vy = rand() % 100 - 200;
-            ((PARAM_ITEM_USE *)buf)->end.vz = rand() % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_USE *)buf);
+            memset(buf, 0, sizeof(PARAM_ITEM_LAUNCH));
+            ((PARAM_ITEM_LAUNCH *)buf)->type = itemID;
+            ((PARAM_ITEM_LAUNCH *)buf)->user = human;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vx = pos->vx;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vy = pos->vy;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vz = pos->vz;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vx = rand() % 200 - 100;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vy = rand() % 100 - 200;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vz = rand() % 200 - 100;
+            ReqItemDrop((PARAM_ITEM_LAUNCH *)buf);
             if (item->proc == 0)
                 return;
             item->mode = ff;

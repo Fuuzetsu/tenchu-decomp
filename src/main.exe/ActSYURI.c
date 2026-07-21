@@ -71,7 +71,7 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
-extern void ReqItemUse(PARAM_ITEM_USE *p);
+extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void ReqItemDefault(Humanoid *user, s32 id);
 extern void SetCameraMode(s32 mode);
 extern void Sound(Humanoid *h, int id);
@@ -79,7 +79,7 @@ extern void Sound(Humanoid *h, int id);
 void ActSYURI(void)
 {
     VECTOR *p;
-    PARAM_ITEM_USE item;
+    PARAM_ITEM_LAUNCH item;
 
     switch (dtM->mid)
     {

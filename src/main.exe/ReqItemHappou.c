@@ -121,7 +121,7 @@ extern int rand(void);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
-int ReqItemHappou(PARAM_ITEM_USE *p)
+int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
     tag_TItem *it;
     tag_TItem *cur;

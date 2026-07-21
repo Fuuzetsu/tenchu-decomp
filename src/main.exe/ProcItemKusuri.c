@@ -83,12 +83,12 @@ void ProcItemKusuri(tag_TItem *item)
     u8 ff;
     s32 i;
     /* One shared 40-byte scratch buffer (Ghidra's local_40): the drop path views
-     * it as a PARAM_ITEM_USE; mode 2 views buf as the SetBleed position VECTOR,
+     * it as a PARAM_ITEM_LAUNCH; mode 2 views buf as the SetBleed position VECTOR,
      * buf+0x10 as its build area / the velocity SVECTOR, and buf+0x18 as the
      * velocity build area. The casts (not typed locals) are what reproduce the
      * original's stack layout and copy alignments (VECTOR copies are word moves,
      * SVECTOR copies are lwl/lwr). The repeated casts are load-bearing too: a
-     * pointer temp (PARAM_ITEM_USE *prm = ...; / VECTOR *w = ...;) does NOT
+     * pointer temp (PARAM_ITEM_LAUNCH *prm = ...; / VECTOR *w = ...;) does NOT
      * fold away — it allocates a register and shifts the frame (verified). */
     u8 buf[0x28];
 
@@ -147,16 +147,16 @@ void ProcItemKusuri(tag_TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             own = item->owner;
             ty = item->type;
-            memset(buf, 0, sizeof(PARAM_ITEM_USE));
-            ((PARAM_ITEM_USE *)buf)->type = ty;
-            ((PARAM_ITEM_USE *)buf)->user = own;
-            ((PARAM_ITEM_USE *)buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_USE *)buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_USE *)buf)->start.vz = pos->vz;
-            ((PARAM_ITEM_USE *)buf)->end.vx = rand() % 200 - 100;
-            ((PARAM_ITEM_USE *)buf)->end.vy = rand() % 100 - 200;
-            ((PARAM_ITEM_USE *)buf)->end.vz = rand() % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_USE *)buf);
+            memset(buf, 0, sizeof(PARAM_ITEM_LAUNCH));
+            ((PARAM_ITEM_LAUNCH *)buf)->type = ty;
+            ((PARAM_ITEM_LAUNCH *)buf)->user = own;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vx = pos->vx;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vy = pos->vy;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vz = pos->vz;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vx = rand() % 200 - 100;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vy = rand() % 100 - 200;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vz = rand() % 200 - 100;
+            ReqItemDrop((PARAM_ITEM_LAUNCH *)buf);
             ppu = item->proc;
             if (ppu == 0)
                 return;

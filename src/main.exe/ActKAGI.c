@@ -85,7 +85,7 @@ extern s32 FUN_8004a368(s32 mode, Humanoid *human);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s32 SetFlyWire(VECTOR *start, VECTOR *end);
 extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, s32 length);
-extern void ReqItemUse(PARAM_ITEM_USE *item);
+extern void ReqItemUse(PARAM_ITEM_LAUNCH *item);
 extern void SetCameraMode(s32 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void Sound(Humanoid *human, s32 id);
@@ -94,7 +94,7 @@ void ActKAGI(void)
 {
     VECTOR v;
     long dist;
-    PARAM_ITEM_USE item;
+    PARAM_ITEM_LAUNCH item;
     short ry;
     short i;
 
@@ -398,7 +398,7 @@ make_wire:
 //   int local_40;
 //   int local_3c;
 //   int local_38;
-//   PARAM_ITEM_USE local_30;
+//   PARAM_ITEM_LAUNCH local_30;
 //
 //   sVar7 = dtM->mid;
 //   if (sVar7 == 0x401) {

@@ -178,7 +178,7 @@
  * produces the retail register coloring and instruction order.
  *
  * Facts proven while matching (all byte-verified):
- *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_USE layout {s32 type;
+ *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_LAUNCH layout {s32 type;
  *    Humanoid *user; VECTOR start; VECTOR end;} (psxsym size 40 agrees).
  *  - TWO function-scope 0x28 workspaces: `param`@sp+16, `work`@sp+56.
  *    Sibling case scopes do NOT share stack slots under this cc1 (first
@@ -257,33 +257,33 @@ extern void ProcSightShot(tag_TItem *item);
 extern void ProcKaginawa(tag_TItem *item);
 extern void ProcItemTeleport(tag_TItem *item);
 extern void ProcItemNapalm(tag_TItem *item);
-extern int ReqItemMakibishi(PARAM_ITEM_USE *p);
-extern int ReqItemLaunch(PARAM_ITEM_USE *p);
-extern int ReqItemSmoke(PARAM_ITEM_USE *p);
-extern int ReqItemDokudango(PARAM_ITEM_USE *p);
-extern int ReqItemNemuri(PARAM_ITEM_USE *p);
-extern int ReqItemNingyo(PARAM_ITEM_USE *p);
-extern int ReqItemGoshikimai(PARAM_ITEM_USE *p);
-extern int ReqItemKaengeki(PARAM_ITEM_USE *p);
-extern int ReqItemNinken(PARAM_ITEM_USE *p);
-extern int ReqItemHappou(PARAM_ITEM_USE *p);
-extern int ReqItemFire(PARAM_ITEM_USE *p);
-extern int ReqItemLightningBolt(PARAM_ITEM_USE *p);
-extern int ReqItemJirai(PARAM_ITEM_USE *p);
-extern int ReqItemShinsoku(PARAM_ITEM_USE *p);
-extern int ReqItemKusuri(PARAM_ITEM_USE *p);
-extern int ReqItemGosin(PARAM_ITEM_USE *p);
-extern void ReqItemGun(PARAM_ITEM_USE *p);
-extern int ReqItemArrow(PARAM_ITEM_USE *p);
-extern int ReqItemHenshin(PARAM_ITEM_USE *p);
-extern int ReqItemKawarimi(PARAM_ITEM_USE *p);
-extern int ReqItemManebue(PARAM_ITEM_USE *p);
+extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemNemuri(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemNingyo(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemNinken(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemHappou(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemFire(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemJirai(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemKusuri(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemGosin(PARAM_ITEM_LAUNCH *p);
+extern void ReqItemGun(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemArrow(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemHenshin(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemManebue(PARAM_ITEM_LAUNCH *p);
 
-int ReqItemUse(PARAM_ITEM_USE *p)
+int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 {
     u8 c;
-    PARAM_ITEM_USE param;  /* @sp+16: per-case launch params / vector scratch */
-    PARAM_ITEM_USE work;   /* @sp+56: makibishi/jirai staging + throw vector */
+    PARAM_ITEM_LAUNCH param;  /* @sp+16: per-case launch params / vector scratch */
+    PARAM_ITEM_LAUNCH work;   /* @sp+56: makibishi/jirai staging + throw vector */
     s32 sz;
     s32 y;
     s32 z;
@@ -304,7 +304,7 @@ int ReqItemUse(PARAM_ITEM_USE *p)
         s32 rz;
         s32 i;
 
-        memset(&work, 0, sizeof(PARAM_ITEM_USE));
+        memset(&work, 0, sizeof(PARAM_ITEM_LAUNCH));
         work.type = p->type;
         work.user = p->user;
         work.start = p->start;
@@ -710,7 +710,7 @@ int ReqItemUse(PARAM_ITEM_USE *p)
         s32 vy;
         s32 vz;
 
-        memset(&work, 0, sizeof(PARAM_ITEM_USE));
+        memset(&work, 0, sizeof(PARAM_ITEM_LAUNCH));
         work.type = p->type;
         work.user = p->user;
         work.start = p->start;

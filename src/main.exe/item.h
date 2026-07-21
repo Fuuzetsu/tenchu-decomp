@@ -276,18 +276,18 @@ typedef struct Humanoid
                                     DoInfoViewProc's cursor wraps at index 0x19) */
 } Humanoid;
 
-typedef struct
+typedef struct PARAM_ITEM_LAUNCH
 {
     s32 type;                    /* 0x00 */
     Humanoid *user;              /* 0x04 */
     VECTOR start;                /* 0x08 */
     VECTOR end;                  /* 0x18 */
-} PARAM_ITEM_USE;                /* 0x28 */
+} PARAM_ITEM_LAUNCH;             /* 0x28 */
 
 /* A stationary/placed item's spawn params (AddItem2's ReqItemStay;
  * Ghidra models .type as `enum TItemType`, but every proven sibling (
- * tag_TItem.type, PARAM_ITEM_USE.type) uses plain s32 instead — same here). */
-typedef struct
+ * tag_TItem.type, PARAM_ITEM_LAUNCH.type) uses plain s32 instead — same here). */
+typedef struct PARAM_ITEM_STAY
 {
     s32 type;                    /* 0x00 */
     VECTOR locate;               /* 0x04 */
@@ -465,7 +465,7 @@ extern void MoveHumanoid(Humanoid *h, short a, short b);
 extern void UpdateCoordinate(ModelType *m);
 extern void DrawSprite(Sprite3D *s);
 extern VECTOR *GetAbsolutePosition(ModelType *m, int x, int y, int z);
-extern int ReqItemDrop(PARAM_ITEM_USE *p);
+extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemStay(PARAM_ITEM_STAY *p);
 extern void SetBleed(VECTOR *pos, SVECTOR *vel, int a, int col);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vel, short n, short time);

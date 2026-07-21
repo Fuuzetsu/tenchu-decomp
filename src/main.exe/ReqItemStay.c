@@ -30,7 +30,7 @@
 /*
  * ReqItemStay (0x8004a2ec) — spawn a stationary/placed item (e.g. from
  * AddItem2/LoadConstruction/RestoreItemLayout: level-authored item
- * placements, not a runtime drop). Builds a PARAM_ITEM_USE on the stack from
+ * placements, not a runtime drop). Builds a PARAM_ITEM_LAUNCH on the stack from
  * the PARAM_ITEM_STAY input (type + locate only; no end/toss vector) and
  * forwards to ReqItemDrop, which does the actual pool allocation. Confirms
  * item.h's existing `PARAM_ITEM_STAY *p` prototype (Ghidra's seed builds
@@ -59,7 +59,7 @@ extern void *GlobalAreaMap;
 
 int ReqItemStay(PARAM_ITEM_STAY *p)
 {
-    PARAM_ITEM_USE u;
+    PARAM_ITEM_LAUNCH u;
 
     u.type = p->type;
     u.user = (Humanoid *)1;

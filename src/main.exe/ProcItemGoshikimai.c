@@ -5,7 +5,7 @@
  * ProcItemGoshikimai (0x8004333c) — the goshikimai (five-colored rice charm)
  * item processor. mode 0: freeze the owner (dispose weapon, throw animation
  * 0xF03, status 8), nudge into place, advance to mode 1; mode 1: once the
- * throw animation reaches frame 0xF, build a PARAM_ITEM_USE from the owner's
+ * throw animation reaches frame 0xF, build a PARAM_ITEM_LAUNCH from the owner's
  * held-object bone (object[0xd]) and the item's stashed end-velocity, restore
  * the owner's normal stance (NowReturnNormal), dispose the item, then spawn
  * the follow-up dropped/thrown item with ReqItemDrop.
@@ -78,7 +78,7 @@ void ProcItemGoshikimai(tag_TItem *item)
     Humanoid *own;
     MotionDataType *md;
     MotionManager *mot;
-    PARAM_ITEM_USE prm;
+    PARAM_ITEM_LAUNCH prm;
     u8 ff;
 
     pp = (param_goshikimai *)item->param;
@@ -149,7 +149,7 @@ void ProcItemGoshikimai(tag_TItem *item)
 //   VECTOR *pVVar2;
 //   MotionManager *pMVar3;
 //   Humanoid *human;
-//   PARAM_ITEM_USE local_38;
+//   PARAM_ITEM_LAUNCH local_38;
 //
 //   if (item->mode != 0xff) {
 //     if (item->mode == '\0') {

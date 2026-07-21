@@ -53,7 +53,7 @@ extern s16 SelectedItem;
 extern s16 motID;
 extern s16 motMODE;
 
-extern void ReqItemUse(PARAM_ITEM_USE *item);
+extern void ReqItemUse(PARAM_ITEM_LAUNCH *item);
 extern void SetCameraMode(s32 mode);
 
 void ActITEM(void)
@@ -61,7 +61,7 @@ void ActITEM(void)
     VECTOR *p;
     s16 mode;
     s16 flag;
-    PARAM_ITEM_USE item;
+    PARAM_ITEM_LAUNCH item;
 
     flag = 0;
     switch ((s16)(dtM->mid - 0xF00))

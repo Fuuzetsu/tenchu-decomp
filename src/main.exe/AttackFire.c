@@ -65,12 +65,12 @@ extern SVECTOR *dtR;
 extern Humanoid *Me_MOTION_C;
 extern void Sound(Humanoid *h, int id);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
-extern void ReqItemUse(PARAM_ITEM_USE *p);
+extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void AttackFire(s16 sfrm, s16 efrm)
 {
     VECTOR *start_pos;
-    PARAM_ITEM_USE p;
+    PARAM_ITEM_LAUNCH p;
     SVECTOR move;
     s16 count;
 

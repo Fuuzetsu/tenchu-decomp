@@ -47,7 +47,7 @@
  * Matching notes:
  *  - The stack is two adjacent source objects: `pos_storage` at sp+0x28 and
  *    `launch_buf` at sp+0x38.  The latter is deliberately re-viewed as the
- *    mode-1 PARAM_ITEM_USE, mode-2 query/map, and periodic-effect VECTOR.  This
+ *    mode-1 PARAM_ITEM_LAUNCH, mode-2 query/map, and periodic-effect VECTOR.  This
  *    gives stackplan's exact 0x38-byte working window and 0x78 frame.
  *  - `launchp = 0` after memset is a zero-byte CSE eviction.  Without that dead
  *    reassignment, cse2 keeps `&launch_buf` in an extra callee-saved register
@@ -92,7 +92,7 @@ void ProcItemShinsoku(tag_TItem *item)
     param_shinsoku *param;
     u8 ff;
     VECTOR pos_storage;
-    u8 launch_buf[sizeof(PARAM_ITEM_USE)];
+    u8 launch_buf[sizeof(PARAM_ITEM_LAUNCH)];
 
     param = (param_shinsoku *)item->param;
     ff = 0xff;
@@ -123,26 +123,26 @@ void ProcItemShinsoku(tag_TItem *item)
             s32 rand_x;
             s32 rand_y;
             s32 rand_z;
-            PARAM_ITEM_USE *launchp;
+            PARAM_ITEM_LAUNCH *launchp;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            launchp = (PARAM_ITEM_USE *)launch_buf;
-            memset(launchp, 0, sizeof(PARAM_ITEM_USE));
+            launchp = (PARAM_ITEM_LAUNCH *)launch_buf;
+            memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
             launchp = 0;
-            ((PARAM_ITEM_USE *)launch_buf)->type = itemID;
-            ((PARAM_ITEM_USE *)launch_buf)->user = human;
-            ((PARAM_ITEM_USE *)launch_buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_USE *)launch_buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_USE *)launch_buf)->start.vz = pos->vz;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->type = itemID;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->user = human;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->start.vx = pos->vx;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->start.vy = pos->vy;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->start.vz = pos->vz;
             rand_x = rand();
-            ((PARAM_ITEM_USE *)launch_buf)->end.vx = rand_x % 200 - 100;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->end.vx = rand_x % 200 - 100;
             rand_y = rand();
-            ((PARAM_ITEM_USE *)launch_buf)->end.vy = rand_y % 100 - 200;
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->end.vy = rand_y % 100 - 200;
             rand_z = rand();
-            ((PARAM_ITEM_USE *)launch_buf)->end.vz = rand_z % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_USE *)launch_buf);
+            ((PARAM_ITEM_LAUNCH *)launch_buf)->end.vz = rand_z % 200 - 100;
+            ReqItemDrop((PARAM_ITEM_LAUNCH *)launch_buf);
             if (item->proc == 0)
             {
                 return;
@@ -312,7 +312,7 @@ void ProcItemShinsoku(tag_TItem *item)
 //   Humanoid *pHVar10;
 //   TItemType TVar11;
 //   int local_4c;
-//   PARAM_ITEM_USE local_40;
+//   PARAM_ITEM_LAUNCH local_40;
 //
 //   if (item->mode == 0xff) {
 //     item->mode = '\0';

@@ -13,7 +13,7 @@ typedef union
     struct
     {
         SVECTOR sv;
-        PARAM_ITEM_USE launch;
+        PARAM_ITEM_LAUNCH launch;
     } drop;
     ProcItemNingyoVectors vectors;
 } ProcItemNingyoScratch;
@@ -181,28 +181,28 @@ void ProcItemNingyo(tag_TItem *item)
                 s32 type;
                 ModelType *loaded_model;
                 ModelType *model;
-                PARAM_ITEM_USE *launchp;
+                PARAM_ITEM_LAUNCH *launchp;
 
                 owner = item->owner;
                 type = item->type;
                 loaded_model = item->locate;
                 model = loaded_model;
-                launchp = (PARAM_ITEM_USE *)&scratch.vectors.v.vz;
-                memset(launchp, 0, sizeof(PARAM_ITEM_USE));
+                launchp = (PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz;
+                memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
                 launchp = 0;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->type = type;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->user = owner;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vx =
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->type = type;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->user = owner;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vx =
                     ((VECTOR *)model->locate.coord.t)->vx;
                 model = (ModelType *)model->locate.coord.t;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vy =
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vy =
                     ((VECTOR *)model)->vy;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->start.vz =
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vz =
                     ((VECTOR *)model)->vz;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vx = rand() % 200 - 100;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vy = rand() % 100 - 200;
-                ((PARAM_ITEM_USE *)&scratch.vectors.v.vz)->end.vz = rand() % 200 - 100;
-                ReqItemDrop((PARAM_ITEM_USE *)&scratch.vectors.v.vz);
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vx = rand() % 200 - 100;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vy = rand() % 100 - 200;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vz = rand() % 200 - 100;
+                ReqItemDrop((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz);
             }
         }
         else
@@ -720,7 +720,7 @@ draw_mode0:
 //         local_2c = iVar7 % 100 + -200;
 //         iVar7 = rand();
 //         local_28 = iVar7 % 200 + -100;
-//         ReqItemDrop((PARAM_ITEM_USE *)(local_50 + 8));
+//         ReqItemDrop((PARAM_ITEM_LAUNCH *)(local_50 + 8));
 //         goto LAB_800423d8;
 //       }
 //       (item->param).ningyo.hp = '\x03';

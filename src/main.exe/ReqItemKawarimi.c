@@ -56,7 +56,7 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Model pointer per item type. */
 extern Sprite3D *ItemImage[];
 
-int ReqItemKawarimi(PARAM_ITEM_USE *p)
+int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
 {
     tag_TItem *it;
     VECTOR *st;

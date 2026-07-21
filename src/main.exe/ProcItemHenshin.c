@@ -60,7 +60,7 @@
  *    and mode 2 finishes its mode/count stores before loading owner/type.
  *    The old disguise pointer is copied once before its null/proc checks so
  *    volatility does not introduce redundant global reloads.
- *  - `buf` is the exact sp+0x10..0x37 scratch overlay: a PARAM_ITEM_USE on
+ *  - `buf` is the exact sp+0x10..0x37 scratch overlay: a PARAM_ITEM_LAUNCH on
  *    the interrupted-motion path and an unaligned SVECTOR aggregate copy on
  *    both smoke paths.
  *  - Case 0 deliberately does not assign D_80097AEC.  It jumps directly to
@@ -91,7 +91,7 @@ void ProcItemHenshin(tag_TItem *item)
     Humanoid *human;
     ModelArchiveType *mad;
     u8 ff;
-    u8 buf[sizeof(PARAM_ITEM_USE)];
+    u8 buf[sizeof(PARAM_ITEM_LAUNCH)];
 
     human = item->owner;
     mad = human->model;
@@ -152,16 +152,16 @@ void ProcItemHenshin(tag_TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             drop_owner = item->owner;
             itemID = item->type;
-            memset(buf, 0, sizeof(PARAM_ITEM_USE));
-            ((PARAM_ITEM_USE *)buf)->type = itemID;
-            ((PARAM_ITEM_USE *)buf)->user = drop_owner;
-            ((PARAM_ITEM_USE *)buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_USE *)buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_USE *)buf)->start.vz = pos->vz;
-            ((PARAM_ITEM_USE *)buf)->end.vx = rand() % 200 - 100;
-            ((PARAM_ITEM_USE *)buf)->end.vy = rand() % 100 - 200;
-            ((PARAM_ITEM_USE *)buf)->end.vz = rand() % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_USE *)buf);
+            memset(buf, 0, sizeof(PARAM_ITEM_LAUNCH));
+            ((PARAM_ITEM_LAUNCH *)buf)->type = itemID;
+            ((PARAM_ITEM_LAUNCH *)buf)->user = drop_owner;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vx = pos->vx;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vy = pos->vy;
+            ((PARAM_ITEM_LAUNCH *)buf)->start.vz = pos->vz;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vx = rand() % 200 - 100;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vy = rand() % 100 - 200;
+            ((PARAM_ITEM_LAUNCH *)buf)->end.vz = rand() % 200 - 100;
+            ReqItemDrop((PARAM_ITEM_LAUNCH *)buf);
             if (item->proc == 0)
             {
                 return;
@@ -305,7 +305,7 @@ void ProcItemHenshin(tag_TItem *item)
 //   int iVar12;
 //   ModelArchiveType *pMVar13;
 //   TItemType TVar14;
-//   PARAM_ITEM_USE local_40;
+//   PARAM_ITEM_LAUNCH local_40;
 //
 //   pHVar9 = item->owner;
 //   pMVar13 = pHVar9->model;

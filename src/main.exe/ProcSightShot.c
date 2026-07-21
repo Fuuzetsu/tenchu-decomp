@@ -83,13 +83,13 @@ extern void SetCameraMode(s32 mode);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from,
                               VECTOR *target);
-extern void ReqItemLaunch(PARAM_ITEM_USE *param);
+extern void ReqItemLaunch(PARAM_ITEM_LAUNCH *param);
 
 void ProcSightShot(tag_TItem *item)
 {
     param_launch *launch;
     s32 ff;
-    PARAM_ITEM_USE param;
+    PARAM_ITEM_LAUNCH param;
     SVECTOR rot;
     SightRotation view_rot;
     Humanoid *human;
@@ -130,7 +130,7 @@ void ProcSightShot(tag_TItem *item)
         pos = GetAbsolutePosition(item->locate, 0, 0, 0);
         drop_owner = item->owner;
         itemID = item->type;
-        memset(&param, 0, sizeof(PARAM_ITEM_USE));
+        memset(&param, 0, sizeof(PARAM_ITEM_LAUNCH));
         param.type = itemID;
         param.user = drop_owner;
         param.start.vx = pos->vx;

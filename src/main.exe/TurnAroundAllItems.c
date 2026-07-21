@@ -37,7 +37,7 @@
  *  - The two top-tested `while (1)` loops preserve the target's explicit
  *    counter tests and unconditional backedges.
  *  - `human` and `itemID` are distinct block-local captures.  Together with
- *    the stack PARAM_ITEM_USE object, they reproduce the original saved-
+ *    the stack PARAM_ITEM_LAUNCH object, they reproduce the original saved-
  *    register allocation and the call setup for ReqItemDrop.
  *  - Keep each rand call inline in its modulo expression so its result stays
  *    in $v0 and the three magic-division sequences retain their target shape.
@@ -46,7 +46,7 @@ void TurnAroundAllItems(Humanoid *user)
 {
     s32 i;
     s32 j;
-    PARAM_ITEM_USE p;
+    PARAM_ITEM_LAUNCH p;
 
     i = 0;
     while (1)
@@ -97,7 +97,7 @@ void TurnAroundAllItems(Humanoid *user)
 //   int iVar2;
 //   int iVar3;
 //   TItemType TVar4;
-//   PARAM_ITEM_USE local_48;
+//   PARAM_ITEM_LAUNCH local_48;
 //
 //   for (TVar4 = ITEM_KAGINAWA; iVar3 = 0, (int)TVar4 < 0x19; TVar4 = TVar4 + ITEM_SHURIKEN) {
 //     for (; iVar3 < (int)(uint)param_1->item[TVar4]; iVar3 = iVar3 + 1) {

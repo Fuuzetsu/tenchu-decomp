@@ -238,7 +238,7 @@ set_target:
 
             if (ownerlen < 500)
             {
-                PARAM_ITEM_USE drop;
+                PARAM_ITEM_LAUNCH drop;
                 drop.type = item->type;
                     drop.user = item->owner;
                     drop.start.vx = item->locate->locate.coord.t[0];
@@ -522,7 +522,7 @@ poison_active:
 //   int local_68;
 //   VECTOR local_64;
 //   int local_54;
-//   PARAM_ITEM_USE local_50;
+//   PARAM_ITEM_LAUNCH local_50;
 //
 //   sprt = (Sprite3D *)item->model;
 //   if (item->mode == 0xff) {

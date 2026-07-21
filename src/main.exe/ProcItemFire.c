@@ -95,7 +95,7 @@ typedef union
         u8 pad0[12];
         PARAM_ITEM_STAY rparam;
         u8 pad1[4];
-        PARAM_ITEM_USE launch;
+        PARAM_ITEM_LAUNCH launch;
     } drop;
     struct
     {
@@ -208,7 +208,7 @@ void ProcItemFire(tag_TItem *item)
             if (rand() % 10 < 2)
             {
                 PARAM_ITEM_STAY *saved;
-                PARAM_ITEM_USE *launch;
+                PARAM_ITEM_LAUNCH *launch;
 
                 memset(&scratch.drop.rparam, 0, sizeof(PARAM_ITEM_STAY));
                 scratch.drop.rparam.type = item->type;
@@ -431,7 +431,7 @@ void ProcItemFire(tag_TItem *item)
 //   long local_58;
 //   long local_54;
 //   SVECTOR local_50;
-//   PARAM_ITEM_USE local_48;
+//   PARAM_ITEM_LAUNCH local_48;
 //
 //   sprt = (Sprite3D *)item->model;
 //   if (item->mode == 0xff) {

@@ -41,11 +41,11 @@
  *
  * PSX.SYM identifies `dtM` as the shared MotionManager used by its siblings.
  *
- * Matching notes: the frame was 40 bytes (exactly sizeof(PARAM_ITEM_USE))
- * short until adding an UNUSED local `PARAM_ITEM_USE p;` - never read or
+ * Matching notes: the frame was 40 bytes (exactly sizeof(PARAM_ITEM_LAUNCH))
+ * short until adding an UNUSED local `PARAM_ITEM_LAUNCH p;` - never read or
  * written, just declared. cc1 reserves stack space for every declared
  * automatic aggregate regardless of use, so a dead local of the sibling
- * functions' own PARAM_ITEM_USE size reproduces the target's frame exactly;
+ * functions' own PARAM_ITEM_LAUNCH size reproduces the target's frame exactly;
  * plausible as leftover from refactoring this callback (which used to build
  * the item params inline like AttackFire.c/handle_char_state_attacking_
  * SEVEN_.c do) into a thin bow_shoot_logic(kind, pos) wrapper.
@@ -57,7 +57,7 @@ extern void Sound(Humanoid *h, int id);
 
 void AttackGunControl(s16 length, s16 frm)
 {
-    PARAM_ITEM_USE p;
+    PARAM_ITEM_LAUNCH p;
 
     if (dtM->count == frm) {
         bow_shoot_logic(0x14, GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, length, -100));

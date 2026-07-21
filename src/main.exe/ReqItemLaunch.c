@@ -105,7 +105,7 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
  * twins' ItemImage[it->type]). */
 extern Sprite3D *SyurikenModel;
 
-int ReqItemLaunch(PARAM_ITEM_USE *p)
+int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
     tag_TItem *it;
     tag_TItem *cur;

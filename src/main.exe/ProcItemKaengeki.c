@@ -75,12 +75,12 @@ extern GsRVIEW2 ViewInfo;
 extern s16 NowReturnNormal(Humanoid *human);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *vec, s32 rx, s32 ry, s32 rz);
-extern void ReqItemUse(PARAM_ITEM_USE *p);
+extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ProcItemKaengeki(tag_TItem *item)
 {
     param_kaengeki *param;
-    PARAM_ITEM_USE rp;
+    PARAM_ITEM_LAUNCH rp;
     void (*ppu)(tag_TItem *);
     s32 rx;
     s32 ry;
@@ -146,7 +146,7 @@ void ProcItemKaengeki(tag_TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(&rp, 0, sizeof(PARAM_ITEM_USE));
+            memset(&rp, 0, sizeof(PARAM_ITEM_LAUNCH));
             rp.type = itemID;
             rp.user = human;
             rp.start.vx = pos->vx;
@@ -279,7 +279,7 @@ dispose:
 //   int iVar10;
 //   Humanoid *pHVar11;
 //   TItemType TVar12;
-//   PARAM_ITEM_USE local_48;
+//   PARAM_ITEM_LAUNCH local_48;
 //   int local_20;
 //   int local_1c;
 //

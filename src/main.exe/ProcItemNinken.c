@@ -42,7 +42,7 @@ typedef union
         u8 pad0[4];
         PARAM_ITEM_STAY rparam;
         u8 pad1[4];
-        PARAM_ITEM_USE launch;
+        PARAM_ITEM_LAUNCH launch;
     } drop;
     struct
     {
@@ -132,7 +132,7 @@ void ProcItemNinken(tag_TItem *item)
         if (status == 4)
         {
             PARAM_ITEM_STAY *saved;
-            PARAM_ITEM_USE *launch;
+            PARAM_ITEM_LAUNCH *launch;
 
             memset(&scratch.drop.rparam, 0, sizeof(PARAM_ITEM_STAY));
             scratch.drop.rparam.type = item->type;
@@ -427,7 +427,7 @@ active:
 //   TItemType local_58;
 //   long local_54;
 //   VECTOR local_50;
-//   PARAM_ITEM_USE local_40;
+//   PARAM_ITEM_LAUNCH local_40;
 //
 //   if (item->mode == 0xff) {
 //     pHVar10 = (item->param).ninken.slave;

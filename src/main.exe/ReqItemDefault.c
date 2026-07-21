@@ -35,7 +35,7 @@
 /*
  * ReqItemDefault (0x800475f4) — spawn an item thrown/placed in front of a
  * Humanoid (called from the ActXXX/DamageControl/ItemUse family). Builds a
- * PARAM_ITEM_USE: start = user's model position (y raised by 0x4B0), end =
+ * PARAM_ITEM_LAUNCH: start = user's model position (y raised by 0x4B0), end =
  * start + a rotated toss vector (the fixed D_80012258 vector rotated by
  * either the current view direction, when the camera is looking through
  * this user in CMODE_DIRECTION, or the user's own model rotation otherwise).
@@ -71,11 +71,11 @@ extern GsRVIEW2 ViewInfo;
 extern VECTOR D_80012258[];
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *v, s32 rx, s32 ry, s32 rz);
-extern void ReqItemUse(PARAM_ITEM_USE *p);
+extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ReqItemDefault(Humanoid *user, s32 ItemID)
 {
-    PARAM_ITEM_USE u;
+    PARAM_ITEM_LAUNCH u;
     VECTOR rot;
     u8 buf[0x10];
     ModelArchiveType *pm;

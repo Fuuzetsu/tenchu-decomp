@@ -106,10 +106,10 @@ extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SetCameraMode(s32 mode);
 extern s16 Sound(Humanoid *human, s16 id);
-extern int ReqItemMakibishi(PARAM_ITEM_USE *item);
-extern int ReqItemFire(PARAM_ITEM_USE *item);
-extern int ReqItemSmoke(PARAM_ITEM_USE *item);
-extern int ReqItemDokudango(PARAM_ITEM_USE *item);
+extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *item);
+extern int ReqItemFire(PARAM_ITEM_LAUNCH *item);
+extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *item);
+extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *item);
 
 void ActSTICKON(void)
 {
@@ -119,7 +119,7 @@ void ActSTICKON(void)
     short rv;
     short pd;
     SVECTOR vect;
-    PARAM_ITEM_USE item;
+    PARAM_ITEM_LAUNCH item;
     short i;
     short drop_index;
 

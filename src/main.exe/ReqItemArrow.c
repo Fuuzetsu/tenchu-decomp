@@ -107,7 +107,7 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
  * SyurikenModel. */
 extern Sprite3D *ArrowModel;
 
-int ReqItemArrow(PARAM_ITEM_USE *p)
+int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
     tag_TItem *it;
     tag_TItem *cur;

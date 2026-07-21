@@ -12,7 +12,7 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
-extern int ReqItemUse(PARAM_ITEM_USE *p);
+extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void DrawFrame(TEffectSlot *ef);
 extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
                          int time, long col);
@@ -31,7 +31,7 @@ void FUN_80037e0c(Humanoid *human, int mode)
 {
     union
     {
-        PARAM_ITEM_USE launch;
+        PARAM_ITEM_LAUNCH launch;
         struct
         {
             VECTOR pos;

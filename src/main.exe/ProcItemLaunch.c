@@ -10,7 +10,7 @@
  * Otherwise, once `param->fly.mode` is armed, dispatch on the rolling
  * overlay's `status`: 1 = plain dispose; 3 = detonate (SetBleeds/SoundEx
  * 0x31 + reset_alert_duration); 2/4 = drop a pickup (build a
- * PARAM_ITEM_USE at the model's position, dispose, ReqItemDrop).
+ * PARAM_ITEM_LAUNCH at the model's position, dispose, ReqItemDrop).
  *
  * Matching notes (this is ProcItemHappou's skeleton — see that file for the
  * conflict-box and countdown conventions; all deltas verified):
@@ -95,8 +95,8 @@ void ProcItemLaunch(tag_TItem *item)
     u8 t;
     s32 cid;
     s32 n;
-    PARAM_ITEM_USE *p;
-    PARAM_ITEM_USE rparam;
+    PARAM_ITEM_LAUNCH *p;
+    PARAM_ITEM_LAUNCH rparam;
 
     model = item->model;
     param = (param_launch *)item->param;
@@ -156,10 +156,10 @@ void ProcItemLaunch(tag_TItem *item)
     case 2:
     case 4:
     {
-        PARAM_ITEM_USE param;
+        PARAM_ITEM_LAUNCH param;
 
         p = &param;
-        memset(p, 0, sizeof(PARAM_ITEM_USE));
+        memset(p, 0, sizeof(PARAM_ITEM_LAUNCH));
         param.type = item->type;
         param.user = item->owner;
         param.start.vx = model->locate.coord.t[0];

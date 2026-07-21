@@ -149,7 +149,7 @@ void ActATTACK(void)
   BattleType *battle;
   ModelType *hand[2];
   SVECTOR local_68 [5];
-  PARAM_ITEM_USE local_40;
+  PARAM_ITEM_LAUNCH local_40;
   SVECTOR local_18;
 
   {
@@ -247,7 +247,7 @@ LAB_80021edc:
     }
     case 0xf5: {
       int last_frame;
-      PARAM_ITEM_USE *request;
+      PARAM_ITEM_LAUNCH *request;
       short first_frame;
 
       first_frame = 0x24;

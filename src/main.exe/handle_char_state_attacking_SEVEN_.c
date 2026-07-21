@@ -38,7 +38,7 @@ extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 void handle_char_state_attacking_SEVEN_(s16 frame)
 {
     VECTOR *start_pos;
-    PARAM_ITEM_USE p;
+    PARAM_ITEM_LAUNCH p;
     SVECTOR move;
 
     if (dtM->count == frame)

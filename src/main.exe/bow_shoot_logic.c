@@ -4,7 +4,7 @@
 
 /*
  * bow_shoot_logic (0x80027554, 0x134 bytes) — spawns a bow projectile
- * (`kind` is the PARAM_ITEM_USE.type — 0x15 for the arrow, this TU's own raw
+ * (`kind` is the PARAM_ITEM_LAUNCH.type — 0x15 for the arrow, this TU's own raw
  * constant per item.h's "every proven sibling uses plain s32" convention,
  * not the item_kind2 enum's YUMI=0x15 which is a different enumeration for
  * inventory slots) travelling from `*start` towards the target, landing at
@@ -47,7 +47,7 @@ extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 
 void bow_shoot_logic(s16 kind, VECTOR *start)
 {
-    PARAM_ITEM_USE p;
+    PARAM_ITEM_LAUNCH p;
     SVECTOR move;
     s16 dist;
     s32 rot;
