@@ -77,15 +77,6 @@ extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void Sound(Humanoid *human, s32 sound);
 extern s16 NowReturnNormal(Humanoid *human);
 
-typedef struct
-{
-    u16 rotate_pad;
-    u16 pad;
-    u_long *tmd;
-    s16 x;
-    s16 y;
-} HenshinModelState;
-
 void ProcItemHenshin(tag_TItem *item)
 {
     Humanoid *human;

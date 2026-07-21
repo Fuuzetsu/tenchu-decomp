@@ -93,6 +93,18 @@ typedef struct ModelArchiveType
     ModelType **object;          /* 0x68 */
 } ModelArchiveType;
 
+/* Retail's saved model-part state used by the henshin disguise. The Z value
+ * is deliberately stored in the first halfword of the following record. */
+typedef struct HenshinModelState HenshinModelState;
+struct HenshinModelState
+{
+    u16 rotate_pad;               /* 0x00 */
+    u16 pad;                      /* 0x02 */
+    u_long *tmd;                  /* 0x04 */
+    s16 x;                        /* 0x08 */
+    s16 y;                        /* 0x0A */
+};                                /* 0x0C */
+
 /* A single keyframe (Ghidra's own independently-built MotionElementType,
  * reference/ghidra_types.h:4861, cross-checked against psxsym-types.h:2649 —
  * both size 8, x/y/z/time all shorts; exercised by LoadMotion/HoldMotion/

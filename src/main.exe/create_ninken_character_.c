@@ -20,15 +20,6 @@
  *  - CURRENTLY_SELECTED_CHARACTER_STATE_PTR is an unknown-size array in this
  *    TU so split-address formation matches the target.
  */
-typedef struct
-{
-    u16 rotate_pad;
-    u16 pad;
-    u_long *tmd;
-    s16 x;
-    s16 y;
-} HenshinModelState;
-
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern HenshinModelState D_800C0630[];
