@@ -53,12 +53,12 @@ void FUN_800514d8(void)
     s32 result;
     u8 *best;
 
-    if (PSTATE->stage != D_8008EA78[0])
+    if (PSTATE->StageNo != D_8008EA78[0])
     {
-        best = (u8 *)PSTATE + PSTATE->chr;
-        if (best[0x60] < StageConfig[PSTATE->stage].uid)
+        best = (u8 *)PSTATE + PSTATE->CharType;
+        if (best[0x60] < StageConfig[PSTATE->StageNo].uid)
         {
-            best[0x60] = StageConfig[PSTATE->stage].uid;
+            best[0x60] = StageConfig[PSTATE->StageNo].uid;
         }
     }
     do

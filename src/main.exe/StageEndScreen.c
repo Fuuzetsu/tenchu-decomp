@@ -599,10 +599,10 @@ number_1:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
 
-    best_stage = (u8 *)PSTATE + PSTATE->chr;
-    if (best_stage[0x60] < StageConfig[PSTATE->stage].uid)
+    best_stage = (u8 *)PSTATE + PSTATE->CharType;
+    if (best_stage[0x60] < StageConfig[PSTATE->StageNo].uid)
     {
-        best_stage[0x60] = StageConfig[PSTATE->stage].uid;
+        best_stage[0x60] = StageConfig[PSTATE->StageNo].uid;
     }
 
     item_index = 1;
@@ -610,19 +610,19 @@ number_1:
     {
         if (CamState.Owner->item[item_index] == 0xff)
         {
-            PSTATE->stock[item_index + (PSTATE->chr << 5)] = 0xff;
+            PSTATE->stock[item_index + (PSTATE->CharType << 5)] = 0xff;
         }
         else if (CamState.Owner->item[item_index] != 0)
         {
-            if (PSTATE->stock[item_index + (PSTATE->chr << 5)] == 0xfe)
+            if (PSTATE->stock[item_index + (PSTATE->CharType << 5)] == 0xfe)
             {
-                PSTATE->stock[item_index + (PSTATE->chr << 5)] += 2;
+                PSTATE->stock[item_index + (PSTATE->CharType << 5)] += 2;
             }
-            PSTATE->stock[item_index + (PSTATE->chr << 5)] +=
+            PSTATE->stock[item_index + (PSTATE->CharType << 5)] +=
                 CamState.Owner->item[item_index];
-            if (PSTATE->stock[item_index + (PSTATE->chr << 5)] >= 100)
+            if (PSTATE->stock[item_index + (PSTATE->CharType << 5)] >= 100)
             {
-                PSTATE->stock[item_index + (PSTATE->chr << 5)] = 99;
+                PSTATE->stock[item_index + (PSTATE->CharType << 5)] = 99;
             }
         }
         PSTATE->counts[item_index] = 0;
@@ -651,7 +651,7 @@ number_1:
     {
     case 0:
         PSTATE->flags48 &= 0xfe;
-        if (PSTATE->stage == 7)
+        if (PSTATE->StageNo == 7)
         {
             FUN_8004f6c0(0x12);
         }
@@ -662,11 +662,11 @@ number_1:
 
             layout_base = TENCHU_PERSISTENT_STATE_ADDRESS + 0x64;
             next_stage = (u8 *)D_8008EA78;
-            PSTATE->stage = next_stage[StageEndNextStageOffset(
-                StageConfig[PSTATE->stage].uid)];
-            layout_character_offset = (u32)PSTATE->chr * 0x1d4;
+            PSTATE->StageNo = next_stage[StageEndNextStageOffset(
+                StageConfig[PSTATE->StageNo].uid)];
+            layout_character_offset = (u32)PSTATE->CharType * 0x1d4;
             layout_stage_offset =
-                (u32)PSTATE->stage * 0x24 + layout_base;
+                (u32)PSTATE->StageNo * 0x24 + layout_base;
             layout_record = (StageScoreStats *)(layout_character_offset +
                 layout_stage_offset);
             layout_index = 0;

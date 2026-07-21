@@ -68,7 +68,7 @@
  *   = xbase_init;`, field left `u16`): identical regression to 1464, same root
  *   cause (the local still carries -160 as a signed SImode constant that CSE
  *   coalesces with sprite.x's).
- * - Replacing every `PSTATE->stage`/`PSTATE->language` in this function with the
+ * - Replacing every `PSTATE->StageNo`/`PSTATE->language` in this function with the
  *   named externs `CHOSEN_STAGE`/`CHOSEN_LANGUAGE` (used elsewhere in this file
  *   for CHOSEN_CHARACTER/STAGE_LAYOUT_NUMBER, and pervasively in StageEndScreen/
  *   mission_score_screen): regresses 87->1488. cc1 cannot fold two INDEPENDENT
@@ -76,7 +76,7 @@
  *   lui+lbu instead of sharing one base register. CAUTION for future readers:
  *   the target .s file's own `%hi(CHOSEN_STAGE)` labels are NOT evidence of the
  *   source spelling — they are splat's disassembler matching the final computed
- *   address against the symbol table, and our baseline's `PSTATE->stage` access
+ *   address against the symbol table, and our baseline's `PSTATE->StageNo` access
  *   already produces BYTE-IDENTICAL bytes for that instruction (confirmed: it
  *   was never part of any diffed cluster). Do not re-attempt this lever without
  *   new evidence.
@@ -86,7 +86,7 @@
  *   non-neutral lever for that hunk (load order changed) — just backwards from
  *   what's needed here. The reverse pairing (index loads merged some other way)
  *   was not tried; a future round could probe adjacent orderings of this hunk
- *   specifically (target: PSTATE->language/PSTATE->stage lbus BEFORE the
+ *   specifically (target: PSTATE->language/PSTATE->StageNo lbus BEFORE the
  *   `stack.scroll` reload, i.e. index computed before the reload it's added to).
  * rtlguide's "register goals" section (re-run fresh) shows the a2<->v0 and
  * v0<->v1 swaps are genuine HARD-CONFLICTs (cannot be reached by priority/weight
@@ -323,7 +323,7 @@ void FUN_800519bc(void)
     s16 i;
 
     file = PathFileRead((u8 *)D_800137A0,
-                        D_8008EA90[PSTATE->language][PSTATE->stage].background);
+                        D_8008EA90[PSTATE->language][PSTATE->StageNo].background);
     sequence = 0;
     fade = 0xfe;
     scroll = -0xa000;
@@ -334,7 +334,7 @@ void FUN_800519bc(void)
     vfree(file);
 
     file = PathFileRead((u8 *)D_800137A0,
-                        D_8008EA90[PSTATE->language][PSTATE->stage].foreground);
+                        D_8008EA90[PSTATE->language][PSTATE->StageNo].foreground);
     TimToDemoSprite(file, &image, &sprite);
     sprite.x = -0xa0;
     sprite.y = -0x78;
@@ -393,9 +393,9 @@ void FUN_800519bc(void)
             {
                 s16 music;
 
-                music = D_8008EA90[PSTATE->language][PSTATE->stage].music;
-                if (PSTATE->chr == 1 && PSTATE->language == 3 &&
-                    (u32)(PSTATE->stage - 6) < 2)
+                music = D_8008EA90[PSTATE->language][PSTATE->StageNo].music;
+                if (PSTATE->CharType == 1 && PSTATE->language == 3 &&
+                    (u32)(PSTATE->StageNo - 6) < 2)
                 {
                     music++;
                 }
@@ -413,7 +413,7 @@ void FUN_800519bc(void)
             break;
 
         case 2:
-            if (D_8008ECA0[PSTATE->language][PSTATE->stage] < counter++)
+            if (D_8008ECA0[PSTATE->language][PSTATE->StageNo] < counter++)
             {
                 sequence = 3;
             }
@@ -506,7 +506,7 @@ brightness_done:
             }
             scroll_value = scroll;
             adjusted = scroll_value +
-                D_8008ECF8[PSTATE->language][PSTATE->stage];
+                D_8008ECF8[PSTATE->language][PSTATE->StageNo];
             scroll = adjusted;
             if (adjusted < 0)
             {

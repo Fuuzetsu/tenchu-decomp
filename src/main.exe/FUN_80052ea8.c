@@ -52,19 +52,19 @@ void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
             i = rand() % 18 + 1;
             if (i < 9)
             {
-                if (state->stock[i + state->chr * 0x20] == 0xfe)
+                if (state->stock[i + state->CharType * 0x20] == 0xfe)
                 {
-                    state->stock[i + state->chr * 0x20] =
-                        state->stock[i + state->chr * 0x20] + 2;
+                    state->stock[i + state->CharType * 0x20] =
+                        state->stock[i + state->CharType * 0x20] + 2;
                 }
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 1;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
-            else if (state->stock[i + state->chr * 0x20] != 0xfe)
+            else if (state->stock[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 1;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
         }
@@ -74,21 +74,21 @@ void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
         i = 1;
         do
         {
-            if (state->stock[i + state->chr * 0x20] == 0xfe)
+            if (state->stock[i + state->CharType * 0x20] == 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 2;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 2;
             }
-            state->stock[i + state->chr * 0x20] =
-                state->stock[i + state->chr * 0x20] + 1;
+            state->stock[i + state->CharType * 0x20] =
+                state->stock[i + state->CharType * 0x20] + 1;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->stock[i + state->chr * 0x20] != 0xfe)
+            if (state->stock[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 1;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 1;
             }
             i++;
         }
@@ -98,21 +98,21 @@ void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
         i = 1;
         do
         {
-            if (state->stock[i + state->chr * 0x20] == 0xfe)
+            if (state->stock[i + state->CharType * 0x20] == 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 2;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 2;
             }
-            state->stock[i + state->chr * 0x20] =
-                state->stock[i + state->chr * 0x20] + 1;
+            state->stock[i + state->CharType * 0x20] =
+                state->stock[i + state->CharType * 0x20] + 1;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->stock[i + state->chr * 0x20] != 0xfe)
+            if (state->stock[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 1;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 1;
             }
             i++;
         }
@@ -123,19 +123,19 @@ void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
             i = rand() % 18 + 1;
             if (i < 9)
             {
-                if (state->stock[i + state->chr * 0x20] == 0xfe)
+                if (state->stock[i + state->CharType * 0x20] == 0xfe)
                 {
-                    state->stock[i + state->chr * 0x20] =
-                        state->stock[i + state->chr * 0x20] + 2;
+                    state->stock[i + state->CharType * 0x20] =
+                        state->stock[i + state->CharType * 0x20] + 2;
                 }
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 1;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
-            else if (state->stock[i + state->chr * 0x20] != 0xfe)
+            else if (state->stock[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 1;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
         } while (remaining != 0);
@@ -145,34 +145,34 @@ void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
         i = 1;
         do
         {
-            if (state->stock[i + state->chr * 0x20] == 0xfe)
+            if (state->stock[i + state->CharType * 0x20] == 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 2;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 2;
             }
-            state->stock[i + state->chr * 0x20] =
-                state->stock[i + state->chr * 0x20] + 2;
+            state->stock[i + state->CharType * 0x20] =
+                state->stock[i + state->CharType * 0x20] + 2;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->stock[i + state->chr * 0x20] != 0xfe)
+            if (state->stock[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->chr * 0x20] =
-                    state->stock[i + state->chr * 0x20] + 2;
+                state->stock[i + state->CharType * 0x20] =
+                    state->stock[i + state->CharType * 0x20] + 2;
             }
             i++;
         }
 
-        i = D_8008ED50[state->stage];
-        if (state->stock[i + state->chr * 0x20] == 0xfe)
+        i = D_8008ED50[state->StageNo];
+        if (state->stock[i + state->CharType * 0x20] == 0xfe)
         {
-            state->stock[i + state->chr * 0x20] =
-                state->stock[i + state->chr * 0x20] + 3;
+            state->stock[i + state->CharType * 0x20] =
+                state->stock[i + state->CharType * 0x20] + 3;
         }
     }
 
-    row = (u8 *)state + state->chr * 0x20;
+    row = (u8 *)state + state->CharType * 0x20;
     if (row[0x41f] != 0xfe)
     {
         row[0x41f] = 1;

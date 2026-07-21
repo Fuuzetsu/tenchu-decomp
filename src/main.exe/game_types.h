@@ -293,20 +293,28 @@ enum item_kind2
 // The persistent game state blob at 0x80010000 (below the exe image; survives
 // across screens). TLinkInfo is the OFFICIAL typedef from the demo PSX.SYM
 // (WORLD.C's cross-exe config struct — it "links" state between the separate
-// executables); retail rearranged and extended the layout (demo: 216 bytes,
-// CharType at +0; retail: 0xE70 memset by InitPersistentState, magic
-// 0x19981110 at +0). The 0x80010000 instance keeps splat's descriptive
-// symbol name PersistentState — the demo names only the type, not the
-// retail instance. Offsets proven by BriefingAndInventorySelectionScreen.
+// executables); the full demo definition is reference/psxsym-types.h (216
+// bytes, CharType short at +0, options at +0x5..+0xE). Retail rearranged and
+// extended the layout (0xE70 memset by InitPersistentState, magic 0x19981110
+// at +0, options run moved to +0x58, language/shop stock added), so the demo
+// definition CANNOT be adopted verbatim — byte-identity pins the retail
+// offsets below. Field naming: TitleCase = official demo field name carried
+// over (correspondence proven by retail consumers); lowercase = repo-named,
+// no demo counterpart proven (candidates: counts ~ selItem?, backup ~
+// saveItem? — demo arrays are [30], retail [0x14], unverified).
+// The 0x80010000 instance keeps splat's descriptive symbol name
+// PersistentState — the demo names only the type, not the retail instance.
+// Offsets proven by BriefingAndInventorySelectionScreen.
 // Splat also names some fields as standalone globals (CHOSEN_CHARACTER = +4,
 // CHOSEN_STAGE = +5, STAGE_LAYOUT_NUMBER = +6, CHOSEN_LANGUAGE = +0x5E,
 // SHOP_STOCK_STATE_BY_CHAR = +0x40C); the original source mixed direct global
 // accesses with pointer-based ones, so both views coexist on purpose.
 typedef struct
 {
-    u8 field_0x0[4];        /* 0x000 */
-    u8 chr;                 /* 0x004 CHOSEN_CHARACTER (stock matrix row) */
-    u8 stage;               /* 0x005 CHOSEN_STAGE */
+    u8 field_0x0[4];        /* 0x000 magic 0x19981110 (InitPersistentState) */
+    u8 CharType;            /* 0x004 CHOSEN_CHARACTER (stock matrix row;
+                             *       demo +0x0, short) */
+    u8 StageNo;             /* 0x005 CHOSEN_STAGE (demo +0x2) */
     u8 layout;              /* 0x006 STAGE_LAYOUT_NUMBER */
     u8 counts[0x14];        /* 0x007 selected count per item 0..0x13;
                              *       [0x12]/[0x13] double as flags */
@@ -315,24 +323,21 @@ typedef struct
     u8 field_0x3b[0xD];     /* 0x03B */
     u8 flags48;             /* 0x048 bit0: item screen already initialised */
     u8 field_0x49[0xF];     /* 0x049 */
-    u8 nannido;             /* 0x058 gNannido: game_difficulty (demo
-                             *       TLinkInfo.Nannido) */
-    u8 sound;               /* 0x059 gSound: 1 = stereo, 0 = mono
+    u8 Nannido;             /* 0x058 gNannido: game_difficulty (demo +0x5) */
+    u8 Stereo;              /* 0x059 gSound: 1 = stereo, 0 = mono
                              *       (InitSoundEffect/InitPersistentState
-                             *       -> SsSetStereo/SsSetMono; demo
-                             *       TLinkInfo.Stereo, standalone gSound) */
-    u8 sound_level;         /* 0x05A gSoundLevel: music/CD volume 0..0x7F
-                             *       (FUN_8004f68c, _PlayMusic) */
-    u8 se_level;            /* 0x05B gSELevel: SE volume 0..0x7F
-                             *       (PlaySE, PlayVoice) */
-    u8 f_memory;            /* 0x05C gfMemory: post-mission memory-card
+                             *       -> SsSetStereo/SsSetMono; demo +0x7) */
+    u8 SoundLevel;          /* 0x05A gSoundLevel: music/CD volume 0..0x7F
+                             *       (FUN_8004f68c, _PlayMusic; demo +0x8) */
+    u8 SELevel;             /* 0x05B gSELevel: SE volume 0..0x7F
+                             *       (PlaySE, PlayVoice; demo +0x9) */
+    u8 fMemory;             /* 0x05C gfMemory: post-mission memory-card
                              *       save flow enabled (StageEndScreen /
                              *       mission_score_screen -> FUN_800514d8
-                             *       save UI) */
-    u8 anakon;              /* 0x05D Anakon: analog pad / rumble enabled
-                             *       (PadShock gate, PadProc; demo
-                             *       TLinkInfo.Anakon; default 1) */
-    u8 language;            /* 0x05E CHOSEN_LANGUAGE */
+                             *       save UI; demo +0xC) */
+    u8 Anakon;              /* 0x05D analog pad / rumble enabled (PadShock
+                             *       gate, PadProc; demo +0xE; default 1) */
+    u8 language;            /* 0x05E CHOSEN_LANGUAGE (retail-only) */
     u8 field_0x5f[0x3AD];   /* 0x05F */
     u8 stock[0x100];        /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
                              *       0xFE = locked, 0xFF = infinite;

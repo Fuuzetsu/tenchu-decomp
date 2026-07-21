@@ -145,7 +145,7 @@ int main(void)
     InitPersistentState();
     ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     D_800976F6 = ps->field_0x5f[0];
-    CreateStage(ps->stage, ps->chr);
+    CreateStage(ps->StageNo, ps->CharType);
     FUN_8001b4bc();
     do
     {

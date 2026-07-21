@@ -52,7 +52,7 @@ s32 InitPersistentState(void)
     u8 fill;
     u8 *stockp;
 
-    if ((pg->chr & 0xfe) != 0 || 10 < pg->stage) {
+    if ((pg->CharType & 0xfe) != 0 || 10 < pg->StageNo) {
         memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
                TENCHU_PERSISTENT_STATE_SIZE);
         magic = 0x19981110;

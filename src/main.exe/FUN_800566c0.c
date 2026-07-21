@@ -25,6 +25,6 @@ void FUN_800566c0(void)
     int i;
 
     for (i = 0; i < 0x14; i++) {
-        PSTATE->backup[i] = PSTATE->stock[i + PSTATE->chr * 0x20];
+        PSTATE->backup[i] = PSTATE->stock[i + PSTATE->CharType * 0x20];
     }
 }

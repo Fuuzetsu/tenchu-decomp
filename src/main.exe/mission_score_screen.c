@@ -332,7 +332,7 @@ score_character_sprite_init_loop:
 
                 SCORE_STATE->scores[insertedAt] = stats.clock;
                 SCORE_STATE->characters[insertedAt] =
-                    ((TLinkInfo *)SCORE_STATE)->chr;
+                    ((TLinkInfo *)SCORE_STATE)->CharType;
                 SCORE_STATE->grades[insertedAt] = result.grade;
             }
         }
@@ -1118,13 +1118,13 @@ score_row_loop:
         register TLinkInfo *state =
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
-        stageItem = D_8008ED50[state->stage];
+        stageItem = D_8008ED50[state->StageNo];
         brightness = stageItem;
-        if (state->stock[brightness + (state->chr << 5)] == 0xFE)
+        if (state->stock[brightness + (state->CharType << 5)] == 0xFE)
         {
-            state->stock[brightness + (state->chr << 5)] += 3;
+            state->stock[brightness + (state->CharType << 5)] += 3;
         }
-        stageItem = D_8008ED50[state->stage];
+        stageItem = D_8008ED50[state->StageNo];
         if (state->backup[stageItem] == 0xFE)
         {
             state->backup[stageItem] += 3;

@@ -7,7 +7,7 @@
  * see FUN_800566c0.c for the `#define PSTATE` convention and the proven
  * backup@0x27/stock@0x40C/chr@0x4 offsets). This is FUN_800566c0's mirror
  * image: restores this character's shop stock row FROM the loadout backup
- * (`PSTATE->stock[i + PSTATE->chr*0x20] = PSTATE->backup[i];`), then fades
+ * (`PSTATE->stock[i + PSTATE->CharType*0x20] = PSTATE->backup[i];`), then fades
  * out, tears down (FUN_80038ce0), resets the stage layout number to 0xFF
  * and clears PersistentState's bit-0 "item screen already initialised" flag
  * (flags48 &= ~1), and calls FUN_8004f6c0(0x10) (a cleanup/teardown helper
@@ -55,7 +55,7 @@ void FUN_800566fc(void)
         s16 idx;
 
         idx = (s16)i;
-        PSTATE->stock[idx + PSTATE->chr * 0x20] = PSTATE->backup[idx];
+        PSTATE->stock[idx + PSTATE->CharType * 0x20] = PSTATE->backup[idx];
         i = i + 1;
     } while ((s16)i < 0x14);
     FadeOutDirect(0x20, 2, 8, 8, 8);

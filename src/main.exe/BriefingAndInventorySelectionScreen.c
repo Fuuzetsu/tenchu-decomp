@@ -54,7 +54,7 @@
  * derivations): u0 hosted in grid x (multi-def `int c = (u8)var` keeps the
  * andi alive); shown-loop's (s16)j ext through grid y; digit-loop division
  * via int d/quo with the loop-carried copy at the bottom; index sums
- * spelled `[idx + (ps->chr << 5)]` (shift skips EXPAND_SUM's mult-first
+ * spelled `[idx + (ps->CharType << 5)]` (shift skips EXPAND_SUM's mult-first
  * special case, 7 sites); the grid loop as a real `for` (VTOP => reorg
  * duplicates j++ into the skip branch's delay slot); do{}while(0) around
  * the cursor-move block; `dsp->u = dsp->u + ...` / `int c = (u8)dsp->u;`
@@ -205,7 +205,7 @@ void BriefingAndInventorySelectionScreen(void)
         PSTATE->counts[j] = 0;
     }
     q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    uid = StageConfig[q->stage].uid;
+    uid = StageConfig[q->StageNo].uid;
     q->counts[0] = 0xFF;
     if (uid == 0) {
         q->counts[1] = 5;
@@ -267,7 +267,7 @@ void BriefingAndInventorySelectionScreen(void)
             break;
         case 1:
             for (j = 1; j < 9; j++) {
-                int n = j + ps->chr * 0x20;
+                int n = j + ps->CharType * 0x20;
                 if ((&ps->stock[0])[n] == 0xFE) {
                     (&ps->stock[0])[n] = 1;
                 } else {
@@ -275,7 +275,7 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             }
             for (j = 9; j < 0x14; j++) {
-                int n = j + ps->chr * 0x20;
+                int n = j + ps->CharType * 0x20;
                 if ((&ps->stock[0])[n] != 0xFE) {
                     (&ps->stock[0])[n] = (&ps->stock[0])[n] + 1;
                 }
@@ -295,16 +295,16 @@ void BriefingAndInventorySelectionScreen(void)
             break;
         case 3:
             for (j = 9; j < 0x14; j++) {
-                int n = j + ps->chr * 0x20;
+                int n = j + ps->CharType * 0x20;
                 if ((&ps->stock[0])[n] == 0xFE) {
                     (&ps->stock[0])[n] = 1;
                 }
             }
             break;
         case 0x1F:
-            if (ps->chr != 0) {
+            if (ps->CharType != 0) {
                 u8 already = ps->counts[0x13];
-                if (already != 0 || (&ps->stock[0x13])[ps->chr * 0x20] == 1) {
+                if (already != 0 || (&ps->stock[0x13])[ps->CharType * 0x20] == 1) {
                     do {
                         do {
                             if ((s16)nsel < 6) {
@@ -313,7 +313,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     taken++;
                                 }
                                 ps->counts[0x13] = 0xFF;
-                                (&ps->stock[0x13])[ps->chr * 0x20] = 0;
+                                (&ps->stock[0x13])[ps->CharType * 0x20] = 0;
                                 SoundEx((VECTOR *)0x0, 8);
                             }
                         } while (0);
@@ -339,7 +339,7 @@ void BriefingAndInventorySelectionScreen(void)
         DrawBG(bg);
         for (j = 0; j < 0x13; j++) {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
-            u8 c = (&ps->stock[0])[n + (ps->chr << 5)];
+            u8 c = (&ps->stock[0])[n + (ps->CharType << 5)];
             if (c != 0xFE) {
                 x = SHOP_ITEM_DEFAULTS[j].x;
                 y = SHOP_ITEM_DEFAULTS[j].y;
@@ -404,8 +404,8 @@ void BriefingAndInventorySelectionScreen(void)
                 {
                     s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                     scale = 0x200;
-                    if ((&ps->stock[0])[idx + (ps->chr << 5)] != 0) {
-                        if ((&ps->stock[0])[idx + (ps->chr << 5)] != 0xFE) {
+                    if ((&ps->stock[0])[idx + (ps->CharType << 5)] != 0) {
+                        if ((&ps->stock[0])[idx + (ps->CharType << 5)] != 0xFE) {
                             if ((s16)taken < cap) {
                                 u8 cnt = (&ps->counts[0])[idx];
                                 if (cnt == 0) {
@@ -415,7 +415,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     if (idx != 0x13 || D_8001001A == 0) {
                                         (&ps->counts[0])[idx] = cnt + 1;
                                         taken++;
-                                        (&ps->stock[0])[idx + (ps->chr << 5)]--;
+                                        (&ps->stock[0])[idx + (ps->CharType << 5)]--;
                                     }
                                     SoundEx((VECTOR *)0x0, 0xD);
                                 } else {
@@ -440,11 +440,11 @@ void BriefingAndInventorySelectionScreen(void)
                     if (c != 0) {
                         if (c == 0xFF) {
                             (&ps->counts[0])[idx] = 0;
-                            (&ps->stock[0])[idx + (ps->chr << 5)] = 1;
+                            (&ps->stock[0])[idx + (ps->CharType << 5)] = 1;
                             nsel--;
                         } else {
                             (&ps->counts[0])[idx] = c - 1;
-                            (&ps->stock[0])[idx + (ps->chr << 5)]++;
+                            (&ps->stock[0])[idx + (ps->CharType << 5)]++;
                             if ((&ps->counts[0])[idx] == 0) {
                                 nsel--;
                             }
@@ -460,7 +460,7 @@ void BriefingAndInventorySelectionScreen(void)
             scale += 0xC0;
         }
         if (help == -1) {
-            if ((&ps->stock[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->chr << 5)] != 0xFE) {
+            if ((&ps->stock[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != 0xFE) {
                 help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
             }
         }
@@ -571,7 +571,7 @@ quit:
         PSTATE->counts[0x12] = 0xFF;
     }
     for (j = 0; j < 9; j++) {
-        int n = j + PSTATE->chr * 0x20;
+        int n = j + PSTATE->CharType * 0x20;
         if (PSTATE->stock[n] == 0) {
             PSTATE->stock[n] = 0xFE;
         }

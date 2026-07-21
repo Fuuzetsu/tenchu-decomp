@@ -11,7 +11,7 @@
  * PersistentState._88_1_ (decimal offset 88 = 0x58 from the 0x80010000
  * persistent-state blob). Identified as the difficulty byte: demo PSX.SYM
  * global gNannido / TLinkInfo.Nannido (see game_types.h game_difficulty);
- * TLinkInfo.nannido is the struct view of the same byte.
+ * TLinkInfo.Nannido is the struct view of the same byte.
  */
 
 extern u8 gNannido;

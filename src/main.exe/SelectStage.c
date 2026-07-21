@@ -113,9 +113,9 @@ void SelectStage(TLinkInfo *ps)
 
     do {
         ps->language = AdtSelect(D_8001420C, language.e, 0);
-        ps->chr = AdtSelect(D_8001421C, player.e, 0);
-        ps->stage = AdtSelect(D_8001422C, stage, 0);
-    } while (ps->stage > 10);
+        ps->CharType = AdtSelect(D_8001421C, player.e, 0);
+        ps->StageNo = AdtSelect(D_8001422C, stage, 0);
+    } while (ps->StageNo > 10);
 }
 
 // triage: MEDIUM — 105 insns, 2 loop, frame 0x528, 2 callees, ~0.12 to AddItem2

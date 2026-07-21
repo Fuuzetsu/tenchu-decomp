@@ -43,7 +43,7 @@ void FUN_800568b8(TLinkInfo *ps)
     int i;
 
     for (i = 0; i < 0x13; i++) {
-        int n = SHOP_ITEM_DEFAULTS[i].itemIndex + ps->chr * 0x20;
+        int n = SHOP_ITEM_DEFAULTS[i].itemIndex + ps->CharType * 0x20;
         int mx = SHOP_ITEM_DEFAULTS[i].maxStock;
 
         if (ps->stock[n] != 0xFE && mx < ps->stock[n]) {
