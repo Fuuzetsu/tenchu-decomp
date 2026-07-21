@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -28,7 +29,7 @@
 
 /*
  * LoadOrnament (0x80018644, 0x90 bytes) - near-twin of
- * CreateCloneOrnament.c (same OrnamentType/WorldType locals, same
+ * CreateCloneOrnament.c (same OrnamentType/WorldType setup, same
  * GsInitCoordinate2/RotMatrixYXZ initialization tail): allocate and
  * initialize an OrnamentType, hook it into World's hierarchy, build an
  * identity matrix at the origin - and, when `adr` is non-null, wire the
@@ -37,12 +38,6 @@
  * CreateCloneOrnament's plain tmd-pointer copy from an existing clone
  * source.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-    GsDOBJ2 object;       /* 0x50 */
-} OrnamentType;
-
 typedef struct
 {
     GsCOORDINATE2 locate; /* 0x00 */

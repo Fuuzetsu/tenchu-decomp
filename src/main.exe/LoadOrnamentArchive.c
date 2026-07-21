@@ -44,23 +44,6 @@
  * parent copy preserve the two target instruction-order pairs.
  */
 
-struct OrnamentType
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-    GsDOBJ2 object;       /* 0x50 */
-};
-
-typedef struct
-{
-    GsCOORDINATE2 locate;    /* 0x00 */
-    SVECTOR rotate;          /* 0x50 */
-    s16 id;                  /* 0x58 */
-    s16 attribute;           /* 0x5A */
-    s16 n;                   /* 0x5C */
-    OrnamentType **object;   /* 0x60 */
-    u32 *data;                /* 0x64 */
-} OrnamentArchiveType;        /* size 0x68 */
-
 typedef struct
 {
     GsCOORDINATE2 locate; /* 0x00 */
@@ -75,7 +58,7 @@ extern WorldType World;
 
 OrnamentArchiveType *LoadOrnamentArchive(u32 *adr, ModelType *prnt)
 {
-    OrnamentArchiveType *dim;
+    OrnamentArchiveType *mad;
     ParentingType *prntp;
     u8 *tmdp;
     short i;
@@ -89,14 +72,14 @@ OrnamentArchiveType *LoadOrnamentArchive(u32 *adr, ModelType *prnt)
     if (adr == 0) {
         SystemOut(D_800120AC);
     }
-    dim = (OrnamentArchiveType *)valloc(sizeof(OrnamentArchiveType));
-    dim->data = adr;
+    mad = (OrnamentArchiveType *)valloc(sizeof(OrnamentArchiveType));
+    mad->data = adr;
     adr++;
-    dim->n = *(u16 *)adr;
+    mad->n = *(u16 *)adr;
     adr++;
     i = 0;
     tagMask = 0xA0000000;
-    dim->object = (OrnamentType **)valloc(dim->n * 4);
+    mad->object = (OrnamentType **)valloc(mad->n * 4);
     prntp = (ParentingType *)adr;
     tmdp = (u8 *)adr;
 
@@ -104,7 +87,7 @@ loop1:
     {
         int idx = i;
         s32 offset;
-        if (!(idx < dim->n))
+        if (!(idx < mad->n))
             goto loop1_end;
         do {
             do {
@@ -113,7 +96,7 @@ loop1:
         } while (0);
         i++;
         objp = LoadOrnament((u32 *)(tmdp + offset));
-        dim->object[idx] = (OrnamentType *)((u32)objp | tagMask);
+        mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);
     }
     goto loop1;
 loop1_end:
@@ -121,22 +104,22 @@ loop1_end:
     if (prnt == 0) {
         prnt = (ModelType *)&World;
     }
-    GsInitCoordinate2((GsCOORDINATE2 *)prnt, (GsCOORDINATE2 *)dim);
-    dim->locate.coord.t[0] = 0;
-    dim->locate.coord.t[1] = 0;
-    dim->locate.coord.t[2] = 0;
-    dim->rotate.vx = 0;
-    dim->rotate.vy = 0;
-    dim->rotate.vz = 0;
-    UpdateCoordinate((ModelType *)dim);
+    GsInitCoordinate2((GsCOORDINATE2 *)prnt, (GsCOORDINATE2 *)mad);
+    mad->locate.coord.t[0] = 0;
+    mad->locate.coord.t[1] = 0;
+    mad->locate.coord.t[2] = 0;
+    mad->rotate.vx = 0;
+    mad->rotate.vy = 0;
+    mad->rotate.vz = 0;
+    UpdateCoordinate((ModelType *)mad);
     i = 0;
-    dim->id = -1;
-    dim->attribute = 0;
+    mad->id = -1;
+    mad->attribute = 0;
 loop2:
-    if (!(i < (count = dim->n)))
+    if (!(i < (count = mad->n)))
         goto loop2_end;
-    objp = dim->object[i];
-    super = (ModelType *)dim;
+    objp = mad->object[i];
+    super = (ModelType *)mad;
     if (0 <= prntp[i].np && 0 < count) {
         j = 0;
         parent = prntp[i].np;
@@ -158,12 +141,12 @@ coordinate_init:
     goto loop2;
 
 parent_found:
-    super = (ModelType *)dim->object[j];
+    super = (ModelType *)mad->object[j];
     goto coordinate_init;
 loop2_end:
 
-    dim->rotate.pad = (short)dim->object[0]->locate.coord.t[1];
-    return dim;
+    mad->rotate.pad = (short)mad->object[0]->locate.coord.t[1];
+    return mad;
 }
 
 // triage: MEDIUM — 142 insns, 1 loop, 6 callees, ~0.07 to SetupMotionRegist

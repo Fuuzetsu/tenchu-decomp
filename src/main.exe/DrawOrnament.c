@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -33,11 +34,7 @@
  * for the world variant GsGetLw), then draws its GsDOBJ2 via DrawTMD into the
  * global ordering table OTablePt, and always reports success (1).
  *
- * OrnamentType (Ghidra: `{ GsCOORDINATE2 locate; GsDOBJ2 object; }`) isn't
- * shared via item.h yet; declared locally with just the two accessed fields,
- * same convention as UpdateOrnament.c (locate@0, object right after it@0x50
- * — GsCOORDINATE2 is proven 0x50 bytes: flg(4)+coord(0x20)+workm(0x20)+
- * param/super/sub(4 each) = 0x50).
+ * OrnamentType is the shared PSX.SYM record: locate@0, object@0x50.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - m2c undercounts GsGetLs's call: `objp` (a0) is carried in live from the
@@ -48,12 +45,6 @@
  *    --write; Build.hs maspsxGpExterns + permute.py GP_EXTERNS both list
  *    DrawOrnament now).
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-    GsDOBJ2 object;       /* 0x50 */
-} OrnamentType;
-
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern GsOT *OTablePt;
 

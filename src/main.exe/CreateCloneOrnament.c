@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -28,23 +29,15 @@
 
 /*
  * CreateCloneOrnament (0x8001873c, 0x80 bytes) — allocate and initialize an
- * OrnamentType (GsCOORDINATE2 locate@0 + GsDOBJ2 object@0x50, same local
- * convention as DrawOrnament.c/UpdateOrnament.c; sizeof == 0x60, the exact
- * valloc size). Hooks the new coordinate into World's hierarchy (self-
- * referencing coord2), builds an identity matrix at the origin via
+ * OrnamentType (GsCOORDINATE2 locate@0 + GsDOBJ2 object@0x50; sizeof ==
+ * 0x60, the exact valloc size). Hooks the new coordinate into World's
+ * hierarchy (self-referencing coord2), builds an identity matrix at the origin via
  * RotMatrixYXZ(&UnitVector, ...), and — when cloning an existing ornament
  * (`objp` non-null) — copies its tmd pointer so the clone shares the same
  * 3D model data. `World` (0x80097fa0, config/symbols.main.exe.txt) is only
  * ever addressed here through its `.locate` field (Ghidra's own rendering
- * across every GsInitCoordinate2 call site); declared minimally, like
- * OrnamentType.
+ * across every GsInitCoordinate2 call site); declared minimally here.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-    GsDOBJ2 object;       /* 0x50 */
-} OrnamentType;
-
 typedef struct
 {
     GsCOORDINATE2 locate; /* 0x00 */

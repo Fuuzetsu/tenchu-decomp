@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,27 +35,21 @@
  * matrix and clear the GsCOORDINATE2 dirty flag.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `local = UnitVector;` is the align-2 SVECTOR struct-copy idiom
+ *  - `rotv = UnitVector;` is the align-2 SVECTOR struct-copy idiom
  *    (lwl/lwr + swl/swr pairs, see InsertConflict's `.offset`/`.size`);
- *    the following `local.vy = ry;` is a plain `sh` overwriting the copied
+ *    the following `rotv.vy = ry;` is a plain `sh` overwriting the copied
  *    half, executed AFTER the copy (matches asm order).
- *  - OrnamentType (Ghidra: `{ GsCOORDINATE2 locate; GsDOBJ2 object; }`) isn't
- *    shared via item.h yet; declared locally here with just the accessed
- *    `locate` field to keep this function's edits self-contained.
+ *  - OrnamentType is the complete shared PSX.SYM record; this function only
+ *    touches its leading `locate` member.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate;        /* 0x00 */
-} OrnamentType;
-
 extern SVECTOR UnitVector;
 
 void UpdateOrnament(OrnamentType *objp, short ry)
 {
-    SVECTOR local;
+    SVECTOR rotv;
 
-    local = UnitVector;
-    local.vy = ry;
-    RotMatrixYXZ(&local, &objp->locate.coord);
+    rotv = UnitVector;
+    rotv.vy = ry;
+    RotMatrixYXZ(&rotv, &objp->locate.coord);
     objp->locate.flg = 0;
 }

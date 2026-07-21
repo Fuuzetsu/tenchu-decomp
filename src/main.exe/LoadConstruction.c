@@ -98,23 +98,6 @@
  */
 
 
-struct OrnamentType
-{
-    GsCOORDINATE2 locate;
-    GsDOBJ2 object;
-};
-
-typedef struct
-{
-    GsCOORDINATE2 locate;
-    SVECTOR rotate;
-    s16 id;
-    s16 attribute;
-    s16 n;
-    OrnamentType **object;
-    u32 *data;
-} OrnamentArchiveType;
-
 typedef struct tag_ObjectSlotType ObjectSlotType;
 struct tag_ObjectSlotType
 {

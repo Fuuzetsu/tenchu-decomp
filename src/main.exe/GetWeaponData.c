@@ -99,12 +99,6 @@ typedef struct
     u32 *model; /* 0x8 */
 } WeaponModelType; /* 0xC */
 
-struct OrnamentType
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-    GsDOBJ2 object;       /* 0x50 */
-};
-
 extern WeaponType WeaponDB[28];
 extern WeaponModelType WeaponModel[41];
 extern char D_800117EC[]; /* "%s%s.TMD" */

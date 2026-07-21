@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -26,7 +27,7 @@
 
 extern void vfree(void *p);
 
-void DisposeOrnament(void *objp)
+void DisposeOrnament(OrnamentType *objp)
 {
     if (objp != 0)
     {

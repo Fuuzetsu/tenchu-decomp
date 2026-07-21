@@ -44,11 +44,27 @@ struct AfterimageType;
  * carried over here for Humanoid.think[4]'s element type. */
 typedef s32 (*think_func_)(void);
 
-/* Opaque — only ever handled by pointer (moved around Humanoid's weapon[4],
- * never dereferenced by an item-TU function). Fully defined locally, per
- * this repo's convention, in DrawOrnament.c/CreateCloneOrnament.c/
- * UpdateOrnament.c (each its own TU; no conflict with this forward decl). */
+/* WORLD.C/3DCTRL.C's original ornament records. PSX.SYM supplies both
+ * complete layouts; sharing them avoids the former full, truncated, and
+ * padding-only views spread across the ornament users. */
 typedef struct OrnamentType OrnamentType;
+struct OrnamentType
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    GsDOBJ2 object;               /* 0x50 */
+};                                /* 0x60 */
+
+typedef struct OrnamentArchiveType OrnamentArchiveType;
+struct OrnamentArchiveType
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    SVECTOR rotate;               /* 0x50 */
+    s16 id;                       /* 0x58 */
+    s16 attribute;                /* 0x5A */
+    s16 n;                        /* 0x5C */
+    OrnamentType **object;        /* 0x60 */
+    u32 *data;                    /* 0x64 */
+};                                /* 0x68 */
 
 typedef struct ModelType ModelType;
 struct ModelType

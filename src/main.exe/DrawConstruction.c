@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -63,13 +64,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-typedef struct OrnamentType OrnamentType;
-struct OrnamentType
-{
-    GsCOORDINATE2 locate;
-    GsDOBJ2 object;
-};
-
 typedef struct tag_ObjectSlotType ObjectSlotType;
 struct tag_ObjectSlotType
 {
@@ -105,7 +99,6 @@ extern char D_80097A98[];
 extern char D_80097AA0[];
 
 extern s32 IsVisible(s32 x, s32 y, s32 z, s32 range);
-extern void AdtMessageBox(char *message);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern s16 GetPad(s16 no);
 
