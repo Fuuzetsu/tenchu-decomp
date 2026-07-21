@@ -241,20 +241,6 @@ typedef struct
     u16 pad;
 } DemoScreenAssets;
 
-typedef struct
-{
-    s32 StartPos;
-    s32 CurPos;
-    s32 EndPos;
-    s16 mode;
-    s16 CheckCount;
-    u8 status;
-    u8 voll;
-    u8 volr;
-    u8 flag;
-    u8 command;
-} TCdaStatus;
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;

@@ -53,20 +53,6 @@
 
 #include "item.h"
 
-typedef struct
-{
-    s32 StartPos;
-    s32 CurPos;
-    s32 EndPos;
-    s16 mode;
-    s16 CheckCount;
-    u8 status;
-    u8 voll;
-    u8 volr;
-    u8 flag;
-    u8 field9_0x14;
-} CVASequenceCdaStatus;
-
 extern CVAType *CVAdata;
 extern CVAType *CVAnow;
 extern HumanAnimType CVAhuman[5];
@@ -75,7 +61,7 @@ extern Humanoid *HumanGroup[32];
 extern s16 Humans;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
-extern CVASequenceCdaStatus CdaStatus;
+extern TCdaStatus CdaStatus;
 extern u8 D_800C2C50[];
 extern s16 VoiceMode;
 extern Humanoid *CameraTarget;

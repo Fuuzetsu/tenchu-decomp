@@ -185,6 +185,24 @@ struct TCameraStatus
     u8 CriticalHit;               /* 0x1D */
 };                                /* 0x20 */
 
+/* CDPLAYER.C's playback state. Retail keeps the demo's original members but
+ * rearranges the tail, adds the left/right volume bytes, and appends the
+ * pending drive command. */
+typedef struct TCdaStatus TCdaStatus;
+struct TCdaStatus
+{
+    s32 StartPos;                 /* 0x00 */
+    s32 CurPos;                   /* 0x04 */
+    s32 EndPos;                   /* 0x08 */
+    s16 mode;                     /* 0x0C */
+    s16 CheckCount;               /* 0x0E */
+    u8 status;                    /* 0x10 */
+    u8 voll;                      /* 0x11 */
+    u8 volr;                      /* 0x12 */
+    u8 flag;                      /* 0x13 */
+    u8 command;                   /* 0x14 */
+};                                /* 0x18 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

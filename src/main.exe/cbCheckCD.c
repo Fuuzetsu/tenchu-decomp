@@ -51,20 +51,6 @@
  * changing either access or the 56-byte frame.
  */
 
-typedef struct
-{
-    s32 StartPos;   /* 0x00 */
-    s32 CurPos;     /* 0x04 */
-    s32 EndPos;     /* 0x08 */
-    s16 mode;       /* 0x0C */
-    s16 CheckCount; /* 0x0E */
-    u8 status;      /* 0x10 */
-    u8 voll;        /* 0x11 */
-    u8 volr;        /* 0x12 */
-    u8 flag;        /* 0x13 */
-    u8 field9_0x14; /* 0x14 */
-} TCdaStatus;
-
 extern TCdaStatus CdaStatus;
 
 typedef union
@@ -93,13 +79,13 @@ void cbCheckCD(void)
     s32 ret;
     s32 com;
 
-    if (cs->field9_0x14 == 0x1B) {
+    if (cs->command == 0x1B) {
         CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
         if ((cs->flag & 1) &&
             CdControl(0x1B, (u8 *)&scratch.first.loc, NULL) == 0) {
             return;
         }
-        cs->field9_0x14 = 0;
+        cs->command = 0;
         SsSetSerialAttr(0, 0, 1);
         SsSetSerialVol(0, cs->voll, cs->volr);
         return;
@@ -114,7 +100,7 @@ void cbCheckCD(void)
     com = CdLastCom();
     switch (ret) {
     case 5:
-        cs->field9_0x14 = 0x1B;
+        cs->command = 0x1B;
         goto shared_tail;
     case 2:
         if (com == 9) {
@@ -127,7 +113,7 @@ void cbCheckCD(void)
                 if (cs->mode != 1) {
                     goto mode_error;
                 }
-                cs->field9_0x14 = 0x1B;
+                cs->command = 0x1B;
             shared_tail:
                 cs->CheckCount = 0;
                 cs->status = 0;

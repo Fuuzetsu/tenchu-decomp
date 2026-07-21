@@ -18,20 +18,6 @@
  * CdaStop.c/FUN_8004fbf4.c/FUN_8004fc08.c. Returns the masked bit rather than a
  * normalised 0/1, so no extra andi follows the lbu.
  */
-typedef struct
-{
-    s32 StartPos;   /* 0x00 */
-    s32 CurPos;     /* 0x04 */
-    s32 EndPos;     /* 0x08 */
-    s16 mode;       /* 0x0C */
-    s16 CheckCount; /* 0x0E */
-    u8 status;      /* 0x10 */
-    u8 voll;        /* 0x11 */
-    u8 volr;        /* 0x12 */
-    u8 flag;        /* 0x13 */
-    u8 field9_0x14; /* 0x14 */
-} TCdaStatus;
-
 extern TCdaStatus CdaStatus;
 
 s32 CdaReady(void)
