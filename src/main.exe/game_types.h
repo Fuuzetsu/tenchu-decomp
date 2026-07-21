@@ -49,6 +49,19 @@ struct TAdtSelect
     u32 value;     /* 0x4 */
 };
 
+/* CONFLICT.C's area-map row index. */
+typedef struct NodeIndexType NodeIndexType;
+struct NodeIndexType
+{
+    s16 y;                       /* 0x00 */
+    s16 n;                       /* 0x02 */
+    s32 index;                   /* 0x04 */
+    s16 x1;                      /* 0x08 */
+    s16 z1;                      /* 0x0A */
+    s16 x2;                      /* 0x0C */
+    s16 z2;                      /* 0x0E */
+};                               /* 0x10 */
+
 /* Area-map query result. PSX.SYM supplies the original first 16 bytes and
  * field names. Retail appends the last two cached pointers: GetAreaMapVector
  * writes them at +0x10/+0x14, and the corresponding eight-byte growth is

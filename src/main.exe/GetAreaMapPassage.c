@@ -51,8 +51,8 @@
  *  - `ymax` delays the y[1] stack store until after the three cached-bound
  *    loads, matching the join schedule. The final x/y/z subtraction order
  *    makes the return-path `&cv` materialization match independently.
- *  - AreaNodeType and NodeIndexType retain the per-TU layouts already proved
- *    by GetAreaMapLevel.c; FieldIndex[-1].y is the target's -0x10 halfword
+ *  - AreaNodeType and NodeIndexType use the recovered map layouts;
+ *    FieldIndex[-1].y is the target's -0x10 halfword
  *    load. GetAreaMapLevel's fifth argument is the stack-passed u16 zero.
  */
 
@@ -67,17 +67,6 @@ typedef struct AreaNodeType
     u16 attribute; /* 0xC */
     s16 division;  /* 0xE */
 } AreaNodeType;
-
-typedef struct NodeIndexType
-{
-    s16 y;      /* 0x0 */
-    s16 n;      /* 0x2 */
-    long index; /* 0x4 */
-    s16 x1;     /* 0x8 */
-    s16 z1;     /* 0xA */
-    s16 x2;     /* 0xC */
-    s16 z2;     /* 0xE */
-} NodeIndexType;
 
 extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;
