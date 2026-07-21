@@ -57,17 +57,17 @@
  * around sprintf at sp+0x7e0/sp+0x7e4—no source-level spill model is needed.
  */
 
-typedef struct
+typedef struct ThinkDBtype
 {
     u8 *name;
     s16 value;
-} AddEnemyThinkDB;
+} ThinkDBtype;
 
 extern HumanDataType HumanData[63];
 extern WeaponModelType WeaponModel[41];
 extern s16 *StageAppearance[];
 extern s32 StageID;
-extern AddEnemyThinkDB ThinkDB[20];
+extern ThinkDBtype ThinkDB[20];
 extern TCameraStatus CamState;
 extern s32 CurrentEnemyID;
 
