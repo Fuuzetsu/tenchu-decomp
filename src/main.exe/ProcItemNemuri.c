@@ -2,12 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-typedef struct
-{
-    Sprite3D model;
-    GsSPRITE sprite;
-} FullSprite3D;
-
 extern ConflictObjectType ConflictObject[];
 extern u_long *GlobalAreaMap;
 extern SVECTOR D_80097B04[];
@@ -90,14 +84,14 @@ extern s16 Think1sleep(void);
  */
 void ProcItemNemuri(tag_TItem *item)
 {
-    FullSprite3D *sprt;
+    Sprite3D *sprt;
     param_napalm *param;
     void (*proc)(tag_TItem *);
     u8 ff;
     u8 count;
     s32 rotate_count;
 
-    sprt = (FullSprite3D *)item->model;
+    sprt = (Sprite3D *)item->model;
     param = (param_napalm *)item->param;
     ff = 0xff;
     if (item->mode == ff)
@@ -207,7 +201,7 @@ void ProcItemNemuri(tag_TItem *item)
         sprt->sprite.g = bright;
         sprt->sprite.b = bright;
         rotate_count = param->count;
-        sprt->model.scale = bright * 2 + 0x4000;
+        sprt->scale = bright * 2 + 0x4000;
         sprt->sprite.rotate = rotate_count * 0x2d000;
         SetBleeds((VECTOR *)item->locate->locate.coord.t,
                   bleed_range, 10, bleed_n, 10, env);
@@ -338,8 +332,8 @@ void ProcItemNemuri(tag_TItem *item)
     }
 
     UpdateCoordinate(item->locate);
-    sprt->model.locate = item->locate->locate;
-    DrawSprite((Sprite3D *)sprt);
+    sprt->locate = item->locate->locate;
+    DrawSprite(sprt);
 }
 
 // triage: HARD — 422 insns, mul/div, 1 loop, indirect-call, 18 callees, ~0.26 to ProcItemDrop

@@ -11,19 +11,13 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-typedef struct
-{
-    u8 pad[0x68];
-    GsSPRITE sprite;
-} MenuSprite;
-
 extern u8 *D_80097D24;
-extern MenuSprite *D_80097D28;
+extern Sprite3D *D_80097D28;
 extern s16 CardStateFlag;
 extern s32 D_80097D38;
 extern s32 D_80097D3C;
 extern u8 *D_80097D40;
-extern MenuSprite *D_800C2D58[];
+extern Sprite3D *D_800C2D58[];
 extern GsOT *OTablePt;
 
 extern short SoundEx(VECTOR *locate, short seid);

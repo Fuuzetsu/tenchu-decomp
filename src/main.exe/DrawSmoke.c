@@ -51,10 +51,9 @@
  *    array of pointers) — despite PSX.SYM's single-pointer prototype, the
  *    target indexes it (`sll idx,2; addu base,idx`) before the one `lw`
  *    that yields `spr`.
- *  - `Sprite3D` isn't in effect.h; declared locally in full (140 bytes),
- *    same TU-local-shadow convention as DrawHinoko.c (identical layout,
- *    copied verbatim — GsCOORDINATE2.coord.t[0..2] land at +0x18/+0x1c/
- *    +0x20 off the Sprite3D pointer, `sprite.rotate` at +0x88).
+ *  - `Sprite3D` uses the complete shared PSX.SYM layout (140 bytes):
+ *    GsCOORDINATE2.coord.t[0..2] land at +0x18/+0x1c/+0x20 and
+ *    `sprite.rotate` at +0x88.
  *  - `param->vec.vx = (param->vec.vx * 80) / 100;` and the `vz` twin are
  *    plain constant-divisor arithmetic — cc1's own magic-multiply
  *    expansion (`0x51EB851F`, the standard divide-by-100 constant)
@@ -111,17 +110,6 @@
  *    = param->mode + 0xff; if (oldmode == 0) { ef->proc = 0; }` — verified
  *    a real `+0xff` (0x00FF, positive) here, unlike DrawBleed's `time-1`.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* +0x00 */
-    SVECTOR rotate;       /* +0x50 */
-    s16 id;               /* +0x58 */
-    s16 attribute;        /* +0x5a */
-    SVECTOR clip;         /* +0x5c */
-    long scale;           /* +0x64 */
-    GsSPRITE sprite;      /* +0x68 */
-} Sprite3D;
-
 extern Sprite3D *sprSmoke[];
 extern void UpdateCoordinate(Sprite3D *m);
 extern void DrawSprite(Sprite3D *s);

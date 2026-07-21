@@ -53,19 +53,6 @@
  * locals: param, spr, and alfa.
  */
 
-/* Sprite3D isn't in effect.h; item.h has one but truncates it at `scale`.
- * This full TU-local layout follows DrawEffect.c's original convention. */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* +0x00 */
-    SVECTOR rotate;       /* +0x50 */
-    s16 id;               /* +0x58 */
-    s16 attribute;        /* +0x5a */
-    SVECTOR clip;         /* +0x5c */
-    long scale;           /* +0x64 */
-    GsSPRITE sprite;      /* +0x68 */
-} Sprite3D;
-
 extern Sprite3D *sprBomb[3];
 extern void UpdateCoordinate(Sprite3D *m);
 extern void DrawSprite(Sprite3D *s);

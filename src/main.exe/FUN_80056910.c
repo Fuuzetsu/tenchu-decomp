@@ -11,9 +11,8 @@
  * END PSX.SYM */
 
 /*
- * FUN_80056910 (0x80056910, 0x12c bytes) — tiles ONE shared GsSPRITE
- * (libgs.h's proven struct, embedded at +0x68 of a larger unidentified
- * object) over a fixed on-screen rectangle. It sets orientation bits from
+ * FUN_80056910 (0x80056910, 0x12c bytes) — tiles a Sprite3D's embedded
+ * GsSPRITE over a fixed on-screen rectangle. It sets orientation bits from
  * the signed low half of `dir`, writes r=g=b=abs(dir), then walks x=-160..160
  * by sp.w and y=-120..sp.h+120 by sp.h, sorting the sprite at priority 1.
  * The only caller is still-asm FUN_80055d64.
@@ -43,15 +42,9 @@
  *    and the untruncated height comparisons reproduce the remaining blocks.
  */
 
-typedef struct
-{
-    u8 pad0[0x68];
-    GsSPRITE sp; /* +0x68 */
-} SpriteGridType;
-
 extern GsOT *OTablePt;
 
-void FUN_80056910(SpriteGridType *g, u16 dir)
+void FUN_80056910(Sprite3D *g, u16 dir)
 {
     GsSPRITE *sp;
     u32 flags;
@@ -65,10 +58,10 @@ void FUN_80056910(SpriteGridType *g, u16 dir)
     signedDir = (s16)dir;
     width = 0xa0;
     height = 0x78;
-    flags = g->sp.attribute & 0x8fffffff;
-    g->sp.attribute = flags;
-    g->sp.attribute = flags | (0 < signedDir ? 0x60000000 : 0x50000000);
-    sp = &g->sp;
+    flags = g->sprite.attribute & 0x8fffffff;
+    g->sprite.attribute = flags;
+    g->sprite.attribute = flags | (0 < signedDir ? 0x60000000 : 0x50000000);
+    sp = &g->sprite;
     shade = __builtin_abs((s32)signedDir);
         sp->b = (u8)shade;
         sp->g = (u8)shade;

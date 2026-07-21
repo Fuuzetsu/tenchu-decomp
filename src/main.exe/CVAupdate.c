@@ -84,12 +84,6 @@ typedef struct
     s16 motid;
 } HumanAnimType;
 
-typedef struct
-{
-    u8 pad[0x5A];
-    u16 attribute;
-} PositionalEntry;
-
 extern CVAEvent *CVAnow;
 extern u8 *CVAdata;
 extern HumanAnimType CVAhuman[5];
@@ -105,7 +99,7 @@ extern u8 D_800C2C50[];
 extern u8 D_8008FFB9[];
 extern u8 CHOSEN_CHARACTER;
 extern s32 StageID;
-extern PositionalEntry *TENCHU_POSITIONAL_DATA_AREA_[6];
+extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern Humanoid *GetHumanoid(s16 type);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
@@ -367,13 +361,13 @@ s16 CVAupdate(void)
                     {
                         do
                         {
-                            TENCHU_POSITIONAL_DATA_AREA_[i]->attribute |= 1;
+                            *(u16 *)&TENCHU_POSITIONAL_DATA_AREA_[i]->attribute |= 1;
                             i++;
                         } while (i < 6);
                     }
                     else
                     {
-                        TENCHU_POSITIONAL_DATA_AREA_[ch - '1']->attribute &= 0xFFFE;
+                        *(u16 *)&TENCHU_POSITIONAL_DATA_AREA_[ch - '1']->attribute &= 0xFFFE;
                     }
                 }
                 D_800C2C50[0] = 0;

@@ -47,10 +47,8 @@
  * (DrawTMDmode is never actually assigned here), reproduced literally
  * because it's the same source template as DrawModel/DrawClip.
  *
- * Sprite3D isn't item.h's truncated 0x68-byte view here either (this
- * function touches the trailing `sprite.x`/`.scalex`/`.scaley` fields) —
- * declared locally in full, same TU-local-shadow convention as
- * SetupSprite.c/DrawHinoko.c.
+ * Sprite3D's complete PSX.SYM layout is shared in game_types.h, including
+ * the trailing `sprite` member used here.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - THREE distinct `long` locals carry the OTZ/return story, NOT one `sz`
@@ -113,17 +111,6 @@
  *    the 0x20 arm sits adjacent to the shared tail, same swap-non-invariance
  *    DrawModel needed.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* +0x00 */
-    SVECTOR rotate;       /* +0x50 */
-    s16 id;               /* +0x58 */
-    s16 attribute;        /* +0x5a */
-    SVECTOR clip;         /* +0x5c */
-    long scale;           /* +0x64 */
-    GsSPRITE sprite;      /* +0x68 */
-} Sprite3D;
-
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;

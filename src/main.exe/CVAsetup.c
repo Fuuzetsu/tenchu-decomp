@@ -49,12 +49,9 @@
  * Attract/Retail-ish variant per CHOSEN_CHARACTER), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, x0..x3 = -0xA0/0xA0/-0xA0/0xA0 —
  * item.h's proven POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
- * "tanka.tpd" and populates 6 TENCHU_POSITIONAL_DATA_AREA_ slots (each a
- * Sprite3D immediately followed by an EMBEDDED GsSPRITE — SetupSprite
- * vallocs 0x8C == sizeof(Sprite3D)+sizeof(GsSPRITE) exactly, confirmed
- * against CVArun.c's `+0x68`-as-GsSPRITE finding, and its `attribute`@0x5A
- * bit0/flag use there): each slot's own Sprite3D.attribute gets bit 0 set
- * (visible-but-hidden-until-faded), and the embedded GsSPRITE's x/y are
+ * "tanka.tpd" and populates 6 TENCHU_POSITIONAL_DATA_AREA_ Sprite3D slots.
+ * Each slot's `attribute` gets bit 0 set (visible-but-hidden-until-faded),
+ * and the embedded GsSPRITE's x/y are
  * laid out in a fan (`(2-i)*20+10`, `(i%3)*8-4`) — then the LAST slot's
  * embedded sprite is nudged (x -= 8, y = 0x28) before the tpd is freed.
  *
@@ -79,13 +76,7 @@ extern int StageID;
 
 extern POLY_F4 TelopbgP;
 
-typedef struct
-{
-    Sprite3D sprite; /* 0x00-0x67 */
-    GsSPRITE gsp;    /* 0x68-0x8B (embedded — CVArun.c GsSortSprite's it) */
-} PositionalEntry;
-
-extern PositionalEntry *TENCHU_POSITIONAL_DATA_AREA_[6];
+extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern void vfree(void *p);
 extern u32 *FileRead(char *path);
@@ -101,7 +92,7 @@ void CVAsetup(void)
     s16 i;
     u32 *adr;
     Sprite3D *sprite;
-    PositionalEntry *reload;
+    Sprite3D *reload;
     int letter;
     u8 name[50];
     GsIMAGE image;
@@ -134,17 +125,17 @@ void CVAsetup(void)
         {
             GetTIMpackInfo(adr, &image, i);
             sprite = SetupSprite(0, &image);
-            TENCHU_POSITIONAL_DATA_AREA_[i] = (PositionalEntry *)sprite;
+            TENCHU_POSITIONAL_DATA_AREA_[i] = sprite;
             sprite->attribute = sprite->attribute | 1;
-            TENCHU_POSITIONAL_DATA_AREA_[i]->gsp.x = (2 - i) * 0x14 + 10;
-            TENCHU_POSITIONAL_DATA_AREA_[i]->gsp.y = (i % 3) * 8 - 4;
+            TENCHU_POSITIONAL_DATA_AREA_[i]->sprite.x = (2 - i) * 0x14 + 10;
+            TENCHU_POSITIONAL_DATA_AREA_[i]->sprite.y = (i % 3) * 8 - 4;
             reload = TENCHU_POSITIONAL_DATA_AREA_[i];
-            reload->gsp.b = 0;
-            reload->gsp.g = 0;
-            reload->gsp.r = 0;
+            reload->sprite.b = 0;
+            reload->sprite.g = 0;
+            reload->sprite.r = 0;
         }
-        TENCHU_POSITIONAL_DATA_AREA_[5]->gsp.x = TENCHU_POSITIONAL_DATA_AREA_[5]->gsp.x - 8;
-        TENCHU_POSITIONAL_DATA_AREA_[5]->gsp.y = 0x28;
+        TENCHU_POSITIONAL_DATA_AREA_[5]->sprite.x = TENCHU_POSITIONAL_DATA_AREA_[5]->sprite.x - 8;
+        TENCHU_POSITIONAL_DATA_AREA_[5]->sprite.y = 0x28;
         LoadTIMpackAndFree(adr);
     }
 }

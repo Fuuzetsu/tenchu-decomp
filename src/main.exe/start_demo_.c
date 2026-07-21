@@ -24,11 +24,6 @@
  */
 
 typedef struct BackGround BackGround;
-typedef struct
-{
-    u8 pad[0x68];
-    GsSPRITE sprite;
-} Sprite3D;
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;

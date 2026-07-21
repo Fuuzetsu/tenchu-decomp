@@ -71,17 +71,11 @@ typedef struct
     Humanoid *Owner;
 } TCameraStatus;
 
-typedef struct
-{
-    Sprite3D model;
-    GsSPRITE sprite;
-} ItemIconType;
-
 extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
 extern TCameraStatus CamState;
 extern GsOT *OTablePt;
-extern ItemIconType *ItemImage[];
+extern Sprite3D *ItemImage[];
 extern s16 SelectedItem;
 extern s16 ItemCursor;
 
@@ -152,7 +146,7 @@ void PutItemList(void)
                 ItemID = i * sizeof(ItemImage[0]);
                 ItemID = *(s32 *)((u8 *)ItemImage + ItemID);
                 SelectedItem = i;
-                spr = (GsSPRITE *)(ItemID + 0x68);
+                spr = &((Sprite3D *)ItemID)->sprite;
                 spr->x = x;
                 spr->y = 0x5C;
                 spr->scalex = 0x1000;
@@ -166,7 +160,7 @@ void PutItemList(void)
 
                 ItemID = i * sizeof(ItemImage[0]);
                 ItemID = *(s32 *)((u8 *)ItemImage + ItemID);
-                spr = (GsSPRITE *)(ItemID + 0x68);
+                spr = &((Sprite3D *)ItemID)->sprite;
                 spr->x = x;
                 spr->y = 0x5C;
                 spr->scalex = 0xAAA;

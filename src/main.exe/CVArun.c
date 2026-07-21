@@ -37,13 +37,10 @@
  * `FUN_80029368`), then two CVA-specific passes:
  *  1. stage 10 (a specific cutscene stage) + CHOSEN_CHARACTER==0 only:
  *     6-entry TENCHU_POSITIONAL_DATA_AREA_ sprite-fade-and-sort pass — each
- *     slot holds a Sprite3D-extended pointer (SetupSprite vallocs 0x8C, not
- *     sizeof(Sprite3D)==0x68 — CVAsetup.c's own SetupSprite call proves the
- *     extra 0x24 bytes) with a "hidden" flag@0x5A (Sprite3D's own
- *     `attribute`, bit 0 tested) and a 3-byte fade counter@0x7C-0x7E (only
- *     the low 3 bytes of a wider field elsewhere) that increments by 8
- *     while its OWN sign bit is clear, then GsSortSprite's the GsSPRITE
- *     embedded at that same pointer + 0x68.
+ *     each slot is a Sprite3D with a "hidden" `attribute` bit and a
+ *     three-channel fade in its embedded GsSPRITE. The shared brightness
+ *     increments by 8 while `sprite.r`'s sign bit is clear, then the sprite
+ *     is sorted.
  *  2. CVAhuman[5] (proven HumanAnimType: human/loop/motid) reconciliation:
  *     for each live human whose queued motion has already looped enough
  *     (`CVAhuman[i].loop <= human->motion->loop`), either motid==-1 (stop:
@@ -74,27 +71,7 @@
  *    store as `+8` inline would reload/recompute three times.
  */
 
-/*
- * A Sprite3D allocated by SetupSprite with 0x24 extra trailing bytes
- * (SetupSprite vallocs 0x8C, not sizeof(Sprite3D)==0x68) — an embedded
- * GsSPRITE at +0x68 (GsSortSprite'd directly off this pointer, CVAsetup.c
- * proves `*piVar2 + 0x6c`/`+0x6e` are plain offsets off the SAME pointer,
- * no extra indirection) plus this fade/flag pair. Only the fields this
- * function touches are named; the struct is never itself array-strided
- * (TENCHU_POSITIONAL_DATA_AREA_ is an array of these POINTERS, not of the
- * struct), so truncating it here is safe.
- */
-typedef struct
-{
-    u8 pad0[0x5A];
-    u16 flag;    /* 0x5A, bit 0 tested (Sprite3D's own `attribute`) */
-    u8 pad1[0x7C - 0x5C];
-    s8 fadeA;    /* 0x7C, sign-tested */
-    u8 fadeB;    /* 0x7D */
-    u8 fadeC;    /* 0x7E */
-} PositionalEntry;
-
-extern PositionalEntry *TENCHU_POSITIONAL_DATA_AREA_[6];
+extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 extern int StageID;
 extern u8 CHOSEN_CHARACTER;
 extern GsOT *OTablePt;
@@ -138,7 +115,7 @@ extern short CVAupdate(void);
 short CVArun(void)
 {
     s16 i;
-    PositionalEntry *e;
+    Sprite3D *e;
     u8 c;
     MotionManager *mmp;
     Humanoid *human;
@@ -161,16 +138,16 @@ short CVArun(void)
         for (i = 0; i < 6; i++)
         {
             e = TENCHU_POSITIONAL_DATA_AREA_[i];
-            if ((e->flag & 1) == 0)
+            if ((e->attribute & 1) == 0)
             {
-                if (e->fadeA >= 0)
+                if ((s8)e->sprite.r >= 0)
                 {
-                    c = e->fadeC + 8;
-                    e->fadeC = c;
-                    e->fadeB = c;
-                    e->fadeA = c;
+                    c = e->sprite.b + 8;
+                    e->sprite.b = c;
+                    e->sprite.g = c;
+                    e->sprite.r = c;
                 }
-                GsSortSprite((GsSPRITE *)((u8 *)TENCHU_POSITIONAL_DATA_AREA_[i] + 0x68), OTablePt, 0);
+                GsSortSprite(&TENCHU_POSITIONAL_DATA_AREA_[i]->sprite, OTablePt, 0);
             }
         }
     }

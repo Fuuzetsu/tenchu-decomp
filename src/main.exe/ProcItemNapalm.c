@@ -34,13 +34,7 @@
  *    and permute.py carry the mirrored per-function settings.
  */
 
-typedef struct
-{
-    Sprite3D model;              /* 0x00..0x67 */
-    GsSPRITE sprite;             /* 0x68 */
-} FullSprite3D;
-
-extern FullSprite3D *sprNapalm2;
+extern Sprite3D *sprNapalm2;
 extern u_long *GlobalAreaMap;
 extern ConflictObjectType ConflictObject[];
 
@@ -91,7 +85,7 @@ extern void SetFrame(VECTOR *pos, short size, short time,
 
 void ProcItemNapalm(tag_TItem *item)
 {
-    FullSprite3D *sprt;
+    Sprite3D *sprt;
     param_napalm *param;
     void (*proc)(tag_TItem *);
     u8 ff;
@@ -99,7 +93,7 @@ void ProcItemNapalm(tag_TItem *item)
     s32 ex;
     s32 cid;
 
-    sprt = (FullSprite3D *)item->model;
+    sprt = (Sprite3D *)item->model;
     param = (param_napalm *)item->param;
     ff = 0xff;
     if (item->mode == ff)
@@ -132,13 +126,13 @@ void ProcItemNapalm(tag_TItem *item)
         sprt->sprite.g = sprt->sprite.r;
         sprt->sprite.b = sprt->sprite.r;
         sprt->sprite.rotate = (rand() % 360) << 12;
-        sprt->model.scale = (ex << 12) / 50 + 0x1000;
+        sprt->scale = (ex << 12) / 50 + 0x1000;
 
         sprNapalm2->sprite.r = (ff - sprt->sprite.r) / 3;
         sprNapalm2->sprite.g = sprNapalm2->sprite.r;
         sprNapalm2->sprite.b = sprNapalm2->sprite.r;
         sprNapalm2->sprite.rotate = sprt->sprite.rotate;
-        sprNapalm2->model.scale = sprt->model.scale;
+        sprNapalm2->scale = sprt->scale;
 
         if (param->count == 10)
         {
@@ -247,10 +241,10 @@ void ProcItemNapalm(tag_TItem *item)
     }
 
     UpdateCoordinate(item->locate);
-    sprNapalm2->model.locate = item->locate->locate;
-    DrawSprite((Sprite3D *)sprNapalm2);
-    sprt->model.locate = item->locate->locate;
-    DrawSprite((Sprite3D *)sprt);
+    sprNapalm2->locate = item->locate->locate;
+    DrawSprite(sprNapalm2);
+    sprt->locate = item->locate->locate;
+    DrawSprite(sprt);
 }
 
 // triage: HARD — 418 insns, mul/div, 2 loop, indirect-call, 11 callees, ~0.25 to ProcItemMakibishi

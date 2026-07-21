@@ -84,29 +84,6 @@ enum TMiscMessage
     MM_RESUME = 3
 };
 
-/* Opaque here: InitMisc only moves ModelType pointers between LoadModel and
- * the DoorData/PitfallData tables, never dereferences a field (contrast
- * ProcMiscDoor/ProcMiscPitfall, which do and therefore need a full local
- * layout rather than this forward declaration). */
-/* Sprite3D extended with the embedded 2D GsSPRITE (item.h's Sprite3D is
- * truncated at 0x68, right where this `sprite` field starts — same
- * "local wrapper reuses item.h's Sprite3D instead of redefining it" idea as
- * PutItemIcon.c's ItemIconType, but this TU doesn't include item.h at all,
- * so the full struct is declared directly instead of composing). */
-#ifndef ITEM_H
-typedef struct Sprite3D Sprite3D;
-struct Sprite3D
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-    SVECTOR rotate;       /* 0x50 */
-    s16 id;               /* 0x58 */
-    s16 attribute;        /* 0x5A */
-    SVECTOR clip;         /* 0x5C */
-    s32 scale;            /* 0x64 */
-    GsSPRITE sprite;      /* 0x68 */
-};                        /* 0x8C */
-#endif
-
 typedef struct
 {
     ModelType *Model[2]; /* 0x0 */

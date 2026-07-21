@@ -18,21 +18,10 @@ typedef struct
     u8 sprite;       /* +0x1e */
 } SnowParticleType;
 
-typedef struct
-{
-    GsCOORDINATE2 locate; /* +0x00 */
-    SVECTOR rotate;       /* +0x50 */
-    s16 id;               /* +0x58 */
-    s16 attribute;        /* +0x5a */
-    SVECTOR clip;         /* +0x5c */
-    s32 scale;            /* +0x64 */
-    GsSPRITE sprite;      /* +0x68 */
-} EffectSprite3D;
-
 extern GsRVIEW2 ViewInfo;
 extern u_long *GlobalAreaMap;
 extern GsOT *OTablePt;
-extern EffectSprite3D *D_80097F2C[];
+extern Sprite3D *D_80097F2C[];
 extern s32 abs(s32 value);
 extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
 extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *screen);
@@ -46,7 +35,7 @@ extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *screen);
 void DrawSnow(TEffectSlot *effect)
 {
     SnowParticleType *particle;
-    EffectSprite3D *model;
+    Sprite3D *model;
     GsSPRITE *sprite;
     SVECTOR screen;
     s32 view_z;
@@ -130,8 +119,8 @@ void DrawSnow(TEffectSlot *effect)
     particle->x = x;
     particle->y = y;
     particle->z = z;
-    tbl_offset = particle->sprite * (s32)sizeof(EffectSprite3D *);
-    model = *(EffectSprite3D **)(tbl_offset + (s32)D_80097F2C);
+    tbl_offset = particle->sprite * (s32)sizeof(Sprite3D *);
+    model = *(Sprite3D **)(tbl_offset + (s32)D_80097F2C);
     sprite = &model->sprite;
     size = particle->size;
     GetScreenPosition(x, y, z, &screen);

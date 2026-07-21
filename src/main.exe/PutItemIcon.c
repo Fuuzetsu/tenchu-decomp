@@ -36,18 +36,10 @@
  * (x/y/scalex/scaley + GsSortSprite), but here the GsSPRITE lives embedded
  * in a per-item slot (ItemImage[ItemID], the same model-pointer array the
  * Req/Proc item family indexes by it->type for `it->model`) rather than in
- * a standalone global: Ghidra's raw type extends item.h's Sprite3D (0x68
- * bytes, ends right where this GsSPRITE starts) with an embedded `sprite`
- * field at +0x68 — local wrapper struct reuses item.h's Sprite3D instead of
- * redefining it.
+ * a standalone global: PSX.SYM's complete Sprite3D names the embedded
+ * `sprite` field at +0x68.
  */
-typedef struct
-{
-    Sprite3D model;
-    GsSPRITE sprite;
-} ItemIconType;
-
-extern ItemIconType *ItemImage[];
+extern Sprite3D *ItemImage[];
 extern GsOT *OTablePt;
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)

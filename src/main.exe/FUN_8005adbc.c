@@ -28,17 +28,6 @@
  *    final SetupSprite result to a0 before the two field stores.
  */
 
-typedef struct
-{
-    GsCOORDINATE2 locate;
-    SVECTOR rotate;
-    s16 id;
-    s16 attribute;
-    SVECTOR clip;
-    s32 scale;
-    GsSPRITE sprite;
-} Sprite3D;
-
 extern u_long *D_80097D20;
 extern u8 *D_80097D24;
 extern Sprite3D *D_80097D28;

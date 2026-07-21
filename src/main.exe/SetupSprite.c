@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -45,35 +46,13 @@
  * caller-saved copies), and `(u8)image->py` for `.v` is a genuinely separate
  * byte load from the earlier signed `lh` of the same field.
  *
- * Sprite3D isn't in item.h's shared header form here: item.h's own Sprite3D
- * is deliberately TRUNCATED at `scale` (0x68 bytes, safe for the item TU,
- * which never touches the trailing GsSPRITE) — this file needs the FULL
- * 0x8c-byte layout (the embedded `sprite` field, GsSPRITE per
- * include/psxsdk/libgs.h), so it's declared locally in full, same
- * TU-local-shadow convention as DrawHinoko.c/DrawExplosion.c/DrawSmoke.c
- * (a same-named type in a different scope is fine — each .c is its own
- * translation unit).
+ * Sprite3D's complete 0x8C-byte PSX.SYM layout is shared in game_types.h;
+ * `sprite` is its trailing GsSPRITE member at +0x68.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* +0x00 */
-    SVECTOR rotate;       /* +0x50 */
-    s16 id;               /* +0x58 */
-    s16 attribute;        /* +0x5a */
-    SVECTOR clip;         /* +0x5c */
-    long scale;           /* +0x64 */
-    GsSPRITE sprite;      /* +0x68 */
-} Sprite3D;
-
 extern void *valloc(u32 size);
 extern void *memset(void *s, s32 c, u32 n);
 
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
-extern WorldType World;
+extern ModelType World;
 
 Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
 {

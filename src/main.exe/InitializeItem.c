@@ -44,28 +44,20 @@
  * target-lock, item-count, and Goshikimai cursor sprites.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - sprNapalm/sprNapalm2 need the FULL Sprite3D (item.h's is truncated at
- *    0x68, right where the embedded GsSPRITE `.sprite` field this function
- *    writes begins) — same "local wrapper composes item.h's Sprite3D
- *    instead of redefining it" idiom as PutItemIcon.c's ItemIconType.
+ *  - sprNapalm/sprNapalm2 use the complete shared Sprite3D, including the
+ *    embedded GsSPRITE `.sprite` field this function writes.
  *  - The `for (i=0;i<1;i++)` TargetSprite loop is Ghidra's own literal
  *    rendering (a `bgtz`-tested single-iteration loop) — transcribed as-is.
  *  - `D_80097AC8 = 1;` is this TU's own gp-relative small (already listed
  *    for DoItemProc.c; added here too) — DoItemProc's lazy-init guard.
  */
 
-typedef struct
-{
-    Sprite3D model; /* item.h's truncated 0x68-byte view */
-    GsSPRITE sprite; /* the embedded 2D sprite, +0x68 */
-} FullSprite3D;
-
 extern ModelType *SyurikenModel;
 extern ModelType *ArrowModel;
 extern ModelType *NingyoModel;
 extern ModelType *HappouModel;
-extern FullSprite3D *sprNapalm;
-extern FullSprite3D *sprNapalm2;
+extern Sprite3D *sprNapalm;
+extern Sprite3D *sprNapalm2;
 extern GsSPRITE TargetSprite[1];
 extern GsSPRITE SpriteGoshikimai;
 /* gp-relative small (this TU defines it; DoItemProc.c already lists it). */
@@ -115,10 +107,10 @@ void InitializeItem(void)
     }
 
     image = GetImage(7);
-    sprNapalm = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
+    sprNapalm = SetupSprite((Sprite3D *)0, image);
     sprNapalm->sprite.attribute = 0x50000000;
     image = GetImage(6);
-    sprNapalm2 = (FullSprite3D *)SetupSprite((Sprite3D *)0, image);
+    sprNapalm2 = SetupSprite((Sprite3D *)0, image);
     sprNapalm2->sprite.attribute = 0x60000000;
     image = GetImage(0xD);
     InitSprite(image, &SpriteGoshikimai);

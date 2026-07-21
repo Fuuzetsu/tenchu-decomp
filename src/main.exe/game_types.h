@@ -97,6 +97,21 @@ struct ConflictObjectType
     u8 result[80];               /* 0x28 */
 };                               /* 0x78 */
 
+/* 3DCTRL.C's textured sprite model. The demo PSX.SYM supplies the complete
+ * layout and original member names; the retail users confirm the same 0x8C
+ * size and offsets. */
+typedef struct Sprite3D Sprite3D;
+struct Sprite3D
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    SVECTOR rotate;               /* 0x50 */
+    s16 id;                       /* 0x58 */
+    s16 attribute;                /* 0x5A */
+    SVECTOR clip;                 /* 0x5C */
+    s32 scale;                    /* 0x64 */
+    GsSPRITE sprite;              /* 0x68 */
+};                                /* 0x8C */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

@@ -55,12 +55,6 @@ typedef struct
     Humanoid *Owner;
 } StageEndCameraStatus;
 
-typedef struct
-{
-    u8 pad[0x68];
-    GsSPRITE sprite;
-} StageRankIcon;
-
 typedef struct BackGround BackGround;
 
 typedef struct
@@ -100,7 +94,7 @@ extern StageEndConfigEntry StageConfig[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
-extern StageRankIcon *ItemImage[];
+extern Sprite3D *ItemImage[];
 extern StageEndCameraStatus CamState;
 extern s32 StageID;
 extern s32 GameClock;

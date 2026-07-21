@@ -115,16 +115,6 @@ typedef struct
     ModelType **object;          /* 0x68 */
 } ModelArchiveType;
 
-typedef struct
-{
-    GsCOORDINATE2 locate;        /* 0x00 */
-    SVECTOR rotate;              /* 0x50 */
-    s16 id;                      /* 0x58 */
-    s16 attribute;               /* 0x5A */
-    SVECTOR clip;                /* 0x5C */
-    s32 scale;                   /* 0x64 */
-} Sprite3D;
-
 /* A single keyframe (Ghidra's own independently-built MotionElementType,
  * reference/ghidra_types.h:4861, cross-checked against psxsym-types.h:2649 —
  * both size 8, x/y/z/time all shorts; exercised by LoadMotion/HoldMotion/
@@ -532,7 +522,3 @@ extern char D_800121CC[];
 extern tag_TItem items[];
 
 #endif
-
-/* TENCHU_POSITIONAL_DATA_AREA_ is `struct { Sprite3D sprite; GsSPRITE gsp; } *[6]`.
- * Proof: SetupSprite's valloc(0x8C) == sizeof(Sprite3D) + sizeof(GsSPRITE) exactly,
- * and CVAsetup's fade bytes are the embedded GsSPRITE's .r/.g/.b. */
