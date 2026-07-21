@@ -76,6 +76,27 @@ struct AdtFntState
     s32 quiet;                       /* 0x20 */
 };                                   /* 0x24 */
 
+/* PSY-Q executable header, recovered verbatim in the demo's PSX.SYM. */
+typedef struct EXEC EXEC;
+struct EXEC
+{
+    u32 pc0;                       /* 0x00 */
+    u32 gp0;                       /* 0x04 */
+    u32 t_addr;                    /* 0x08 */
+    u32 t_size;                    /* 0x0C */
+    u32 d_addr;                    /* 0x10 */
+    u32 d_size;                    /* 0x14 */
+    u32 b_addr;                    /* 0x18 */
+    u32 b_size;                    /* 0x1C */
+    u32 s_addr;                    /* 0x20 */
+    u32 s_size;                    /* 0x24 */
+    u32 sp;                        /* 0x28 */
+    u32 fp;                        /* 0x2C */
+    u32 gp;                        /* 0x30 */
+    u32 ret;                       /* 0x34 */
+    u32 base;                      /* 0x38 */
+};                                 /* 0x3C */
+
 /* MEMCARD.C/INFOVIEW.C's PlayStation memory-card block header. */
 typedef struct TCardHeader TCardHeader;
 struct TCardHeader

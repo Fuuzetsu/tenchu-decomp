@@ -9,26 +9,19 @@
  * The two INCLUDE_ASM pieces were one function: the interior prototype marker
  * sits at the printf call in the retry loop, and its branches cross the split.
  */
-typedef struct
-{
-    u8 pad[0x20];
-    u32 stack;
-    u32 size;
-} ExecRecord;
-
 extern char D_8001484C[];
 extern char D_80014860[];
 extern void FUN_8005e948(void);
 extern void VSyncCallback(void (*func)(void));
 extern int printf(char *fmt, ...);
-extern ExecRecord *CdReadExec(u8 *name);
+extern EXEC *CdReadExec(u8 *name);
 extern int CdReadSync(s32 mode, u8 *result);
 extern void StopCallback(void);
-extern void Exec(ExecRecord *exec, s32 argc, char **argv);
+extern void Exec(EXEC *exec, s32 argc, char **argv);
 
 void run_exec_file(u8 *name, u32 stack, u32 size)
 {
-    ExecRecord *exec;
+    EXEC *exec;
 
     VSyncCallback(FUN_8005e948);
     do {
@@ -40,8 +33,8 @@ void run_exec_file(u8 *name, u32 stack, u32 size)
 
     VSyncCallback(NULL);
     printf(D_80014860);
-    exec->stack = stack;
-    exec->size = size;
+    exec->s_addr = stack;
+    exec->s_size = size;
     StopCallback();
     Exec(exec, 0, NULL);
 }
