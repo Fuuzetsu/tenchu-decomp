@@ -20,14 +20,6 @@
  * cookbook's "not every 2-piece report is a real jump table" rule, this
  * is written as ONE plain C function, no _jtbl array.
  */
-typedef struct
-{
-    s16 count;    /* 0x0 */
-    s16 loaded;   /* 0x2 (0 until the offset->pointer conversion has run) */
-    s32 entry[1]; /* 0x4 (relative offset before conversion, absolute
-                     pointer after - same 4 bytes hold both) */
-} ArcFile;
-
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_800128C0[]; /* "bad archive index %d" */
 

@@ -89,6 +89,15 @@ struct TCardHeader
     u8 Icon[3][128];              /* 0x080 */
 };                                /* 0x200 */
 
+/* IMAGES.C's offset-table archive header. */
+typedef struct ArcFile ArcFile;
+struct ArcFile
+{
+    s16 count;                    /* 0x00 */
+    s16 loaded;                   /* 0x02 */
+    s32 entry[1];                 /* 0x04: offset before fixup, pointer after */
+};                                /* 0x08 */
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType

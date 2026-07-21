@@ -52,14 +52,6 @@
  *    through a same-valued local first.
  */
 
-typedef struct
-{
-    s16 count;    /* 0x0 */
-    s16 loaded;   /* 0x2 (0 until the offset->pointer conversion has run) */
-    s32 entry[1]; /* 0x4 (relative offset before conversion, absolute
-                     pointer after — same 4 bytes hold both) */
-} ArcFile;
-
 extern ArcFile *MODEL_ARCHIVE_PTR;
 extern u_long *FileRead(char *path);
 extern void AdtMessageBox(char *fmt, ...);
