@@ -35,6 +35,7 @@ typedef struct
 typedef struct tag_TItem tag_TItem;
 
 struct AreaNodeType;
+struct AfterimageType;
 
 /* game_types.h's `some_char_state_function` (a plain `s32(*)(void)`),
  * respelled locally so this header stays independent of game_types.h. The
@@ -296,6 +297,46 @@ typedef struct param_korogari
     s16 vz;                      /* 0x8 */
     u8 status;                   /* 0xA */
 } param_korogari;                /* 0xC */
+
+/* ITEM.C's flying-item trajectory. The union allows a projectile to switch
+ * from its three-point flight curve to the rolling-item state in place. */
+struct tag_fly
+{
+    s32 sx;                       /* 0x00 */
+    s32 sy;                       /* 0x04 */
+    s32 sz;                       /* 0x08 */
+    s32 vx;                       /* 0x0C */
+    s32 vy;                       /* 0x10 */
+    s32 vz;                       /* 0x14 */
+    s32 rx;                       /* 0x18 */
+    s32 ry;                       /* 0x1C */
+    s32 rz;                       /* 0x20 */
+    u8 count;                     /* 0x24 */
+    u8 count2;                    /* 0x25 */
+};                                /* 0x28 */
+
+typedef struct param_fly
+{
+    union
+    {
+        struct tag_fly fly;
+        param_korogari koro;
+    } p;                          /* 0x00 */
+    u8 mode;                      /* 0x28 */
+} param_fly;                      /* 0x2C */
+
+typedef struct param_arrow
+{
+    param_fly fly;                /* 0x00 */
+    u8 count;                     /* 0x2C */
+} param_arrow;                    /* 0x30 */
+
+typedef struct param_launch
+{
+    param_fly fly;                /* 0x00 */
+    struct AfterimageType *effect; /* 0x2C */
+    u8 count;                     /* 0x30 */
+} param_launch;                   /* 0x34 */
 
 typedef struct param_drop
 {

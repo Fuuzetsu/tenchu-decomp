@@ -81,12 +81,6 @@
  */
 typedef struct
 {
-    u8 fly[0x2c];
-    u8 count;
-} param_arrow;
-
-typedef struct
-{
     u16 rx;
     u16 pad0;
     u16 ry;
@@ -96,7 +90,7 @@ typedef struct
 extern ConflictObjectType ConflictObject[];
 extern s32 GameClock;
 
-extern void MoveFly(tag_TItem *item, u8 *param);
+extern void MoveFly(tag_TItem *item, param_fly *param);
 extern void DrawModel(ModelType *model);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
@@ -140,7 +134,7 @@ void ProcItemArrow(tag_TItem *item)
         v1.vx = item->locate->locate.coord.t[0];
         v1.vy = item->locate->locate.coord.t[1];
         v1.vz = item->locate->locate.coord.t[2];
-        MoveFly(item, (u8 *)param);
+        MoveFly(item, &param->fly);
         count = param->count - 1;
         param->count = count;
         one = 1;
@@ -238,12 +232,12 @@ void ProcItemArrow(tag_TItem *item)
             s16 kind_one;
             u8 kind;
 
-            if (param->fly[0x28] == 0)
+            if (param->fly.mode == 0)
             {
                 goto aim;
             }
             kind_one = 1;
-            kind = param->fly[0x0a];
+            kind = param->fly.p.koro.status;
             if (kind == 0)
             {
                 goto aim;

@@ -78,15 +78,14 @@
  *    against the raw .s, not inferred): `cur = items + COUNTER...;` used
  *    throughout the loop/dispose block, `it = cur;` assigned exactly twice
  *    (the early-exit branch and right before the dispose block falls into
- *    `found:`) — the heavier tail (p/st/pp all needing registers across
+ *    `found:`) — the heavier tail (p/st/param all needing registers across
  *    SetupFly) raises pressure the same way ReqItemLaunch's does.
- *  - `pp = it->param;` (plain `u8 *`, no param_korogari cast — no named
- *    field of that view is read/written here) sits BEFORE the null check,
- *    same delay-slot lever as every twin; reused unchanged for both
- *    SetupFly's 1st arg and the final `pp[0x2c] = 5;` store (unlike
+ *  - `param = (param_arrow *)it->param;` sits BEFORE the null check, same
+ *    delay-slot lever as every twin; reused unchanged for both
+ *    SetupFly's 1st arg and the final `param->count = 5;` store (unlike
  *    ReqItemLaunch's analogous store, which needed a FRESH it->param cast
- *    for its own scheduling tie — here the cached pp reproduces the target
- *    directly).
+ *    for its own scheduling tie — here the cached param reproduces the
+ *    target directly).
  *  - `us`/`ty` temps for owner/type, same shape as the other twins (loaded
  *    back-to-back, stored owner/proc/mode/type in that order).
  *  - GetVectorRotation's out-params are read back with `lhu` (unsigned
@@ -99,7 +98,7 @@
 extern void ProcItemArrow(tag_TItem *item);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *out1, u16 *out2);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
-extern void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
+extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -112,7 +111,7 @@ int ReqItemArrow(PARAM_ITEM_USE *p)
 {
     tag_TItem *it;
     tag_TItem *cur;
-    u8 *pp;
+    param_arrow *param;
     VECTOR *st;
     Humanoid *us;
     s32 ty;
@@ -160,7 +159,7 @@ int ReqItemArrow(PARAM_ITEM_USE *p)
     it->proc = 0;
 
 found:
-    pp = it->param;
+    param = (param_arrow *)it->param;
     if (it == 0)
         return 0;
     us = p->user;
@@ -177,7 +176,7 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = ArrowModel;
-    SetupFly(pp, st, &target, 0, 0x800, 0x12c);
-    pp[0x2c] = 5;
+    SetupFly(&param->fly, st, &target, 0, 0x800, 0x12c);
+    param->count = 5;
     return 1;
 }

@@ -54,19 +54,9 @@
  *    one (`nv`) by w9/w8 and the `x`/`z` multiplies. gcc 2.8.1 never splits a
  *    live range, so one value in two registers = two source variables.
  *
- * Fly-phase view of tag_TItem.param (a quadratic Bezier: 3 control points
- * P0/P1/P2, each 3 longs).  Byte fields at 0x24/0x25 and the 0x28 mode
- * selector share the union with param_korogari (the reset transition writes
- * korogari's hint/vx/vy/vz/status fields at 0/4/6/8/0xA). */
-typedef struct
-{
-    s32 p[9];   /* 0x00: P0(x,y,z) P1(x,y,z) P2(x,y,z) */
-    u8 t;       /* 0x24: step counter */
-    u8 div;     /* 0x25: divisor */
-    u8 pad26;   /* 0x26 */
-    u8 pad27;   /* 0x27 */
-    u8 mode;    /* 0x28: 0 fly, 1 korogari */
-} param_fly;
+ * PSX.SYM names the three curve points `s`, `v`, and `r` in `tag_fly`.
+ * `param_fly.p` overlays that record with param_korogari for the landing
+ * transition. */
 
 extern void MoveKorogari(tag_TItem *item, param_korogari *param);
 
@@ -85,9 +75,9 @@ static void MoveFly(tag_TItem *item, param_fly *param)
     return;
 
 fly:
-    t = param->t;
+    t = param->p.fly.count;
     k = 0x1000;
-    q = k - (t << 12) / param->div;
+    q = k - (t << 12) / param->p.fly.count2;
     q2 = q * q;
     d2 = q * 2;
     if (q2 < 0)
@@ -96,15 +86,15 @@ fly:
     nv = q2;
     w9 = k - d2 + nv;
     w8 = d2 + nv * -2;
-    x = w9 * param->p[0] + w8 * param->p[6] + nv * param->p[3];
+    x = w9 * param->p.fly.sx + w8 * param->p.fly.rx + nv * param->p.fly.vx;
     if (x < 0)
         x += 0xfff;
     xs = x >> 12;
-    y = w9 * param->p[1] + w8 * param->p[7] + q2 * param->p[4];
+    y = w9 * param->p.fly.sy + w8 * param->p.fly.ry + q2 * param->p.fly.vy;
     if (y < 0)
         y += 0xfff;
     ys = y >> 12;
-    z = w9 * param->p[2] + w8 * param->p[8] + nv * param->p[5];
+    z = w9 * param->p.fly.sz + w8 * param->p.fly.rz + nv * param->p.fly.vz;
     if (z < 0)
         z += 0xfff;
     zs = z >> 12;
@@ -114,7 +104,7 @@ fly:
         ax = model->locate.coord.t[0];
         ay = model->locate.coord.t[1];
         az = model->locate.coord.t[2];
-        pk = (param_korogari *)param;
+        pk = &param->p.koro;
         pk->hint = 0;
         pk->status = 0;
         param->mode = 1;
@@ -124,7 +114,7 @@ fly:
     }
     else
     {
-        param->t = param->t - 1;
+        param->p.fly.count = param->p.fly.count - 1;
     }
     item->locate->locate.coord.t[0] = xs;
     item->locate->locate.coord.t[1] = ys;
@@ -132,6 +122,5 @@ fly:
     return;
 
 korogari:
-    MoveKorogari(item, (param_korogari *)param);
+    MoveKorogari(item, &param->p.koro);
 }
-

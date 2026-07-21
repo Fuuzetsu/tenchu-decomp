@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -65,10 +66,8 @@
  *    `void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5,
  *    s32 a6)` — Ghidra drops `yh`/`time`, the two STACK-passed args past the
  *    four register ones (cookbook: Ghidra undercounts stack args). Kept the
- *    first parameter `long *pfly` here (matching Ghidra's own indexing
- *    style) rather than inventing `struct param_fly *` — nothing in this
- *    function needs the union's other members, and the three callers' own
- *    externs already keep it `void *` (respell per-TU; don't fight it).
+ *    first parameter is PSX.SYM's `struct param_fly *`; the curve workspace
+ *    itself is the nested `struct tag_fly`.
  *  - `pfly->mode` (byte @0x28) is set to 0 as the FIRST statement, before
  *    start/end are even copied in — matches Ghidra's own rendering exactly.
  *  - The "speed" byte (@0x24, `dist / time`, a genuine variable division —
@@ -104,7 +103,7 @@ static inline long SubFlyJitter(long mid, long half, long range)
     return mid - half;
 }
 
-void SetupFly(long *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
+void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
 {
     long len;
     long v3;
@@ -116,36 +115,36 @@ void SetupFly(long *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
     long x_product;
     long y_pair;
     long y_range;
-    long *fly;
+    struct tag_fly *fly;
 
     if (pfly != 0)
     {
-        fly = pfly;
+        fly = &pfly->p.fly;
     }
     else
     {
-        fly = pfly;
+        fly = &pfly->p.fly;
     }
-    *((u8 *)fly + 0x28) = 0;
-    fly[0] = start->vx;
-    fly[1] = start->vy;
-    fly[2] = start->vz;
-    fly[3] = end->vx;
-    fly[4] = end->vy;
-    fly[5] = end->vz;
+    pfly->mode = 0;
+    fly->sx = start->vx;
+    fly->sy = start->vy;
+    fly->sz = start->vz;
+    fly->vx = end->vx;
+    fly->vy = end->vy;
+    fly->vz = end->vz;
     len = GetVectorDistance(start, end);
     if (0 < time)
     {
-        *((u8 *)fly + 0x24) = len / time;
-        if ((*((u8 *)fly + 0x24) & 0xff) != 0)
+        fly->count = len / time;
+        if ((fly->count & 0xff) != 0)
         {
             goto skip_default;
         }
     }
-    *((u8 *)fly + 0x24) = 1;
+    fly->count = 1;
 skip_default:
     x_product = len * (yw / 2);
-    *((u8 *)fly + 0x25) = *((u8 *)fly + 0x24);
+    fly->count2 = fly->count;
     if (x_product < 0)
     {
         x_product = x_product + 0xfff;
@@ -157,7 +156,7 @@ skip_default:
         len = len + 0xfff;
     }
     yh = len >> 12;
-    midx = (fly[0] + fly[3]) / 2;
+    midx = (fly->sx + fly->vx) / 2;
             v8 = yw << 1;
     if (0 < v8)
     {
@@ -167,15 +166,15 @@ skip_default:
     {
         len = midx - yw;
     }
-    y_pair = fly[1] + fly[4];
+    y_pair = fly->sy + fly->vy;
     midy = y_pair / 2;
     v3 = yh / 2;
     y_range = yh - v3;
-    fly[6] = len;
+    fly->rx = len;
     len = SubFlyJitter(midy, v3, y_range);
-    midz = (fly[2] + fly[5]) / 2;
+    midz = (fly->sz + fly->vz) / 2;
     v8 = yw << 1;
-    fly[7] = len;
+    fly->ry = len;
     if (0 < v8)
     {
         current_z = midz + (rand() % v8 - yw);
@@ -184,6 +183,6 @@ skip_default:
     {
         current_z = midz - yw;
     }
-    fly[8] = current_z;
-    *((u8 *)fly + 0x24) = *((u8 *)fly + 0x24) - 1;
+    fly->rz = current_z;
+    fly->count = fly->count - 1;
 }
