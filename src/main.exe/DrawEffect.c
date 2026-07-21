@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -14,8 +15,7 @@
 
 /*
  * DrawEffect (0x80039bbc, 0x58 bytes) — walks the EffectSlot[] pool (200
- * entries, tag_EffectSlot from FUN_80039c14.c's sibling reset function, same
- * TU) and runs every live slot's `proc` callback, passing the slot itself.
+ * entries) and runs every live slot's `proc` callback, passing the slot itself.
  * Same pool/stride as FUN_80039c14.c (0x4C-byte tag_EffectSlot, 0xC8
  * entries) — a real `for` loop whose i<0xC8 entry test provably folds away,
  * leaving the bottom-test-only do-while shape and a strength-reduced
@@ -26,17 +26,9 @@
  * proc once into $v0, tests it, and calls through the SAME register.
  */
 
-typedef struct
-{
-    void (*proc)(void *);
-    u8 pad[0x48];
-} tag_EffectSlot; /* 0x4C */
-
-extern tag_EffectSlot EffectSlot[0xC8];
-
 void DrawEffect(void)
 {
-    tag_EffectSlot *p;
+    TEffectSlot *p;
     s32 i;
 
     for (i = 0; i < 0xC8; i++)

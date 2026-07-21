@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -12,11 +13,9 @@
 
 /*
  * FUN_80039c14 (0x80039c14, 0x40 bytes) — resets every slot of the
- * EffectSlot[] pool (200 entries, tag_EffectSlot from the Ghidra type
- * export) whose `proc` isn't the sentinel handler UpdateTexScroll, clearing it
- * to NULL. `proc` is the only field this function ever touches; the rest of
- * tag_EffectSlot (a `_180fake_1` union in the Ghidra export) is kept as
- * padding — EffectSlot's neighbor symbol (ModelSlot @ 0x8008dbe0) sits
+ * EffectSlot[] pool (200 entries) whose `proc` isn't the sentinel handler
+ * UpdateTexScroll, clearing it to NULL. EffectSlot's neighbor symbol
+ * (ModelSlot @ 0x8008dbe0) sits
  * exactly 200*0x4C bytes after EffectSlot, confirming the 0x4C stride/200
  * count used here.
  *
@@ -28,14 +27,6 @@
  */
 
 extern void UpdateTexScroll(void);
-
-typedef struct
-{
-    void (*proc)(void);
-    u8 pad[0x48];
-} tag_EffectSlot; /* 0x4C */
-
-extern tag_EffectSlot EffectSlot[0xC8];
 
 void FUN_80039c14(void)
 {
