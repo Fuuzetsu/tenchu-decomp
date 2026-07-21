@@ -70,32 +70,45 @@ typedef struct TexScroll
     RECT image;  /* +0x14 */
 } TexScroll;
 
+/* Typed view from the first field this routine updates. It keeps the
+ * compiler's retail +4 base without hiding the recovered member names. */
+typedef struct
+{
+    s16 vx;      /* +0x00 (TexScroll +0x04) */
+    s16 vy;      /* +0x02 */
+    s16 time;    /* +0x04 */
+    s16 count;   /* +0x06 */
+    s16 x;       /* +0x08 */
+    s16 y;       /* +0x0A */
+    s16 sx;      /* +0x0C */
+    s16 sy;      /* +0x0E */
+    RECT image;  /* +0x10 */
+} TexScrollTail;
+
 extern GsOT *OTablePt;
 
 void UpdateTexScroll(TexScroll *tscr)
 {
-    s16 *scroll;
+    TexScrollTail *scroll;
     DR_MOVE *prim;
     s32 x, y;
 
-    /* Keep the compiler's live view based at vx; indices name the remaining
-     * consecutive PSX.SYM halfwords (vy,time,count,x,y,sx,sy,image). */
-    scroll = &tscr->vx;
-    tscr->vx = (u16)((u32)(tscr->vx + scroll[2]) %
-                     (u32)(scroll[10] << 4));
-    scroll[1] = (u16)((u32)(scroll[1] + scroll[3]) %
-                      (u32)(scroll[11] << 4));
+    scroll = (TexScrollTail *)&tscr->vx;
+    tscr->vx = (u16)((u32)(tscr->vx + scroll->time) %
+                     (u32)(scroll->image.w << 4));
+    scroll->vy = (u16)((u32)(scroll->vy + scroll->count) %
+                       (u32)(scroll->image.h << 4));
 
     x = tscr->vx;
     if (x < 0) x = x + 0xf;
-    scroll[8] = (u16)scroll[6] + (x >> 4);
+    scroll->image.x = (u16)scroll->sx + (x >> 4);
 
-    y = scroll[1];
+    y = scroll->vy;
     if (y < 0) y = y + 0xf;
-    scroll[9] = (u16)scroll[7] + (y >> 4);
+    scroll->image.y = (u16)scroll->sy + (y >> 4);
 
     prim = (DR_MOVE *)GsGetWorkBase();
     GsSetWorkBase(prim + 1);
-    SetDrawMove(prim, &tscr->image, scroll[4], scroll[5]);
+    SetDrawMove(prim, &tscr->image, scroll->x, scroll->y);
     AddPrim((u8 *)OTablePt->org, (u8 *)prim);
 }
