@@ -107,7 +107,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         TEffectSlot *slot;
         TEffectSlot *ef;
         int count;
-        BloodType *param;
+        ImpactType *impact;
         long final_py;
         long scale;
         long rotate;
@@ -145,21 +145,21 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         ef = &dmy;
     impact_found:
         ef->proc = (void (*)())DrawImpact;
-        ef->param.blood.hint = (struct AreaNodeType *)rotated[1].vx;
-        param = &ef->param.blood;
-        param->px = rotated[1].vy;
+        ef->param.impact.px = rotated[1].vx;
+        impact = &ef->param.impact;
+        impact->py = rotated[1].vy;
         final_py = rotated[1].vz;
-        param->vz = 0x50;
-        param->time = 0x2000;
-        param->vx = 0x2000;
-        param->unk22 = 3;
-        param->pz = (long)coord;
-        param->vy = 0;
-        param->scale = scale;
-        param->rotate = rotate;
-        param->bright = 0;
-        param->mode = 2;
-        param->py = final_py;
+        impact->rotate_speed = 0x50;
+        impact->start_size = 0x2000;
+        impact->end_size = 0x2000;
+        impact->time = 3;
+        impact->super = coord;
+        impact->rotate = 0;
+        impact->start_color.word = scale;
+        impact->end_color.word = rotate;
+        impact->count = 0;
+        impact->type = 2;
+        impact->pz = final_py;
     }
 }
 
