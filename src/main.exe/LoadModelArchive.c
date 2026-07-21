@@ -54,12 +54,7 @@ extern void *valloc(u32 size);
 extern void SystemOut(char *msg);
 extern char D_80011064[]; /* "NO MODEL ARCHIVE DATA" */
 
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
-extern WorldType World;
+extern ModelType World;
 
 ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
 {

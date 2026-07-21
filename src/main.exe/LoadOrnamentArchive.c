@@ -44,17 +44,12 @@
  * parent copy preserve the two target instruction-order pairs.
  */
 
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
 extern void *valloc(u32 size);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern OrnamentType *LoadOrnament(u32 *adr);
 extern void SystemOut(char *msg);
 extern char D_800120AC[]; /* "NO MODEL ARCHIVE DATA" */
-extern WorldType World;
+extern ModelType World;
 
 OrnamentArchiveType *LoadOrnamentArchive(u32 *adr, ModelType *prnt)
 {
@@ -102,7 +97,7 @@ loop1:
 loop1_end:
 
     if (prnt == 0) {
-        prnt = (ModelType *)&World;
+        prnt = &World;
     }
     GsInitCoordinate2((GsCOORDINATE2 *)prnt, (GsCOORDINATE2 *)mad);
     mad->locate.coord.t[0] = 0;

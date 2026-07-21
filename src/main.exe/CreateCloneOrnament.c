@@ -34,18 +34,12 @@
  * hierarchy (self-referencing coord2), builds an identity matrix at the origin via
  * RotMatrixYXZ(&UnitVector, ...), and — when cloning an existing ornament
  * (`objp` non-null) — copies its tmd pointer so the clone shares the same
- * 3D model data. `World` (0x80097fa0, config/symbols.main.exe.txt) is only
- * ever addressed here through its `.locate` field (Ghidra's own rendering
- * across every GsInitCoordinate2 call site); declared minimally here.
+ * 3D model data. PSX.SYM declares `World` as a ModelType; this function
+ * addresses its leading `.locate` field.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
 extern void *valloc(u32 size);
 extern SVECTOR UnitVector;
-extern WorldType World;
+extern ModelType World;
 
 OrnamentType *CreateCloneOrnament(OrnamentType *objp)
 {

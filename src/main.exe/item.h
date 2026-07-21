@@ -83,6 +83,12 @@ struct ObjectSlotManager
     s32 max;                      /* 0x08 */
 };                                /* 0x0C */
 
+typedef struct WorldType WorldType;
+struct WorldType
+{
+    ObjectSlotType *top;          /* 0x00 */
+};                                /* 0x04 */
+
 typedef struct ModelType ModelType;
 struct ModelType
 {

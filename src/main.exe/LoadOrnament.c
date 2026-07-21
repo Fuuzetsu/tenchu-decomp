@@ -29,7 +29,7 @@
 
 /*
  * LoadOrnament (0x80018644, 0x90 bytes) - near-twin of
- * CreateCloneOrnament.c (same OrnamentType/WorldType setup, same
+ * CreateCloneOrnament.c (same OrnamentType/World setup, same
  * GsInitCoordinate2/RotMatrixYXZ initialization tail): allocate and
  * initialize an OrnamentType, hook it into World's hierarchy, build an
  * identity matrix at the origin - and, when `adr` is non-null, wire the
@@ -38,14 +38,9 @@
  * CreateCloneOrnament's plain tmd-pointer copy from an existing clone
  * source.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
 extern void *valloc(u32 size);
 extern SVECTOR UnitVector;
-extern WorldType World;
+extern ModelType World;
 
 OrnamentType *LoadOrnament(u_long *adr)
 {

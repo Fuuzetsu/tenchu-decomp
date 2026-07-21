@@ -100,11 +100,6 @@
 
 typedef struct
 {
-    ObjectSlotType *top;
-} WorldMapCell;
-
-typedef struct
-{
     s16 type;
     s16 ObjectID;
     union
@@ -119,7 +114,7 @@ typedef struct
     s32 n;
 } WorldDataType;
 
-extern WorldMapCell WorldMap[8][8][8];
+extern WorldType WorldMap[8][8][8];
 extern u32 *GlobalAreaMap;
 extern u8 *ImagePath;
 extern ObjectSlotManager ModelSlot;

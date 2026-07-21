@@ -64,11 +64,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-typedef struct
-{
-    ObjectSlotType *top;
-} WorldType;
-
 extern s16 SkipFrame;
 extern GsRVIEW2 ViewInfo;
 extern WorldType WorldMap[8][8][8];

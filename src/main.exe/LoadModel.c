@@ -41,12 +41,7 @@
  */
 extern void *valloc(u32 size);
 
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
-extern WorldType World;
+extern ModelType World;
 
 ModelType *LoadModel(u_long *adr)
 {

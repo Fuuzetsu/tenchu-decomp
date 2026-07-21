@@ -78,12 +78,7 @@ extern void *valloc(u32 size);
 extern void SystemOut(char *msg);
 extern char D_8001107C[]; /* "NO SOURCE MODEL ARCHIVE DATA" */
 
-typedef struct
-{
-    GsCOORDINATE2 locate; /* 0x00 */
-} WorldType;
-
-extern WorldType World;
+extern ModelType World;
 
 ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
 {
