@@ -28,30 +28,13 @@
 
 typedef struct
 {
-    u8 bosses;
-    u8 enemies;
-    u8 hidden_finds;
-    u8 murders;
-    u8 criticals;
-    u8 friendly_hits;
-    u8 pad[2];
-    s32 clock;
-} StageScoreStats;
-
-typedef struct
-{
-    u16 value[6];
-} StageScoreResult;
-
-typedef struct
-{
     GsSPRITE digit;                 /* sp+0x18 */
     u8 pad_024[4];
-    StageScoreStats stats;          /* sp+0x40 */
+    ScoreStats stats;               /* sp+0x40 */
     u8 pad_04c[4];
-    StageScoreResult current;       /* sp+0x50 */
+    ScoreResult current;            /* sp+0x50 */
     u8 pad_05c[4];
-    StageScoreResult best;          /* sp+0x60 */
+    ScoreResult best;               /* sp+0x60 */
     u8 pad_06c[4];
     GsSPRITE rank;                  /* sp+0x70 */
     u8 pad_07c[4];
@@ -91,8 +74,8 @@ extern void SetupAppearance(s32 character, s32 mode);
 extern void PadShockAR(s32 port, s32 time, s32 left, s32 right);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);
-extern StageScoreStats *init_score_stats(StageScoreStats *stats);
-extern StageScoreResult *calculate_score(StageScoreStats *stats, s16 stage);
+extern ScoreStats *init_score_stats(ScoreStats *stats);
+extern ScoreResult *calculate_score(ScoreStats *stats, s16 stage);
 extern void mission_score_screen(s32 stage);
 extern u_long *FileRead(char *path);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
@@ -107,7 +90,7 @@ extern void DrawBG(BackGround *background);
 extern void FUN_800515b0(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
 extern void EndDrawing(s32 mode);
 extern void DisposeBG(BackGround *background);
-extern void FUN_80052ea8(TLinkInfo *state, StageScoreResult *result);
+extern void FUN_80052ea8(TLinkInfo *state, ScoreResult *result);
 extern void FUN_800514d8(void);
 extern void FUN_8004f6c0(s32 state);
 
@@ -237,9 +220,9 @@ label_:                                                                    \
 void StageEndScreen(void)
 {
     StageEndScreenStack stack;
-    StageScoreResult *score;
-    StageScoreStats *record;
-    StageScoreStats *layout_record;
+    ScoreResult *score;
+    ScoreStats *record;
+    ScoreStats *layout_record;
     GsSPRITE *icon;
     u_long *tim;
     u_long *rank_archive;
@@ -286,10 +269,10 @@ void StageEndScreen(void)
     init_score_stats(&stack.stats);
     score = calculate_score(&stack.stats, CHOSEN_STAGE);
     stack.current = *score;
-    *(StageScoreStats *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x4c) = stack.stats;
+    *(ScoreStats *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x4c) = stack.stats;
 
     {
-        StageScoreStats *base_record;
+        ScoreStats *base_record;
         u32 character_offset;
         u32 stage_offset;
         u8 *state;
@@ -298,14 +281,14 @@ void StageEndScreen(void)
         character_offset = (u32)state[4] * 0x1d4;
         stage_offset = (u32)state[5] * 0x24 +
                        TENCHU_PERSISTENT_STATE_ADDRESS + 0x64;
-        base_record = (StageScoreStats *)(character_offset + stage_offset);
-        record = (StageScoreStats *)((u8 *)base_record +
+        base_record = (ScoreStats *)(character_offset + stage_offset);
+        record = (ScoreStats *)((u8 *)base_record +
             (u32)state[6] * 0xc);
         score = calculate_score(record, state[5]);
     }
     stack.best = *score;
-    if ((s16)stack.current.value[4] > (s16)stack.best.value[4] ||
-        ((s16)stack.current.value[4] == (s16)stack.best.value[4] &&
+    if ((s16)stack.current.score > (s16)stack.best.score ||
+        ((s16)stack.current.score == (s16)stack.best.score &&
         stack.stats.clock < record->clock))
     {
         *record = stack.stats;
@@ -373,7 +356,7 @@ void StageEndScreen(void)
             rank_archive =
                 FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
             tim = get_tim_from_archive(rank_archive,
-                (s16)stack.current.value[5]);
+                (s16)stack.current.grade);
             best_x = 0x7f;
             StageEndInitSprite(tim, &stack.image, &stack.rank);
             stack.rank.x = -0xa0;
@@ -436,8 +419,8 @@ void StageEndScreen(void)
                     {
                         sprite = &stack.digit;
                     } while (0);
-                    enemy_count = stack.stats.enemies;
-                    i = stack.stats.bosses;
+                    enemy_count = stack.stats.stageEnemies;
+                    i = stack.stats.stageBosses;
                     dispatch = second_x;
                     sprite->x = dispatch;
                     sprite->y = top_y;
@@ -483,58 +466,58 @@ number_1:
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.value[0], s16, 1, number_2,
+                    DRAW_SCORE_NUMBER(stack.current.criticalScore, s16, 1, number_2,
                         x, top_y);
                 }
-                DRAW_SCORE_NUMBER(stack.best.value[0], s16, 1, number_3,
+                DRAW_SCORE_NUMBER(stack.best.criticalScore, s16, 1, number_3,
                     best_x, top_y);
 
                 DRAW_SCORE_NUMBER(stack.stats.murders, s32, 0, number_4,
                     10, -0x1a);
-                DRAW_SCORE_NUMBER(stack.stats.enemies, s32, 0, number_5,
+                DRAW_SCORE_NUMBER(stack.stats.stageEnemies, s32, 0, number_5,
                     0x28, -0x1a);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.value[1], s16, 0, number_6,
+                    DRAW_SCORE_NUMBER(stack.current.murderScore, s16, 0, number_6,
                         x, -0x1a);
                 }
-                DRAW_SCORE_NUMBER(stack.best.value[1], s16, 0, number_7,
+                DRAW_SCORE_NUMBER(stack.best.murderScore, s16, 0, number_7,
                     best_x, -0x1a);
 
-                DRAW_SCORE_NUMBER(stack.stats.hidden_finds, s32, 0, number_8,
+                DRAW_SCORE_NUMBER(stack.stats.findEnemies, s32, 0, number_8,
                     0x1c, 1);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.value[3], s16, 0, number_9,
+                    DRAW_SCORE_NUMBER(stack.current.spottedScore, s16, 0, number_9,
                         x, 1);
                 }
-                DRAW_SCORE_NUMBER(stack.best.value[3], s16, 0, number_10,
+                DRAW_SCORE_NUMBER(stack.best.spottedScore, s16, 0, number_10,
                     best_x, 1);
 
-                DRAW_SCORE_NUMBER(stack.stats.friendly_hits, s32, 0, number_11,
+                DRAW_SCORE_NUMBER(stack.stats.friendHits, s32, 0, number_11,
                     0x1c, 0x1a);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.value[2], s16, 0, number_12,
+                    DRAW_SCORE_NUMBER(stack.current.friendPenalty, s16, 0, number_12,
                         x, 0x1a);
                 }
-                DRAW_SCORE_NUMBER(stack.best.value[2], s16, 0, number_13,
+                DRAW_SCORE_NUMBER(stack.best.friendPenalty, s16, 0, number_13,
                     best_x, 0x1a);
 
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.value[4], s16, 0, number_14,
+                    DRAW_SCORE_NUMBER(stack.current.score, s16, 0, number_14,
                         x, 0x38);
                 }
-                DRAW_LAST_SCORE_NUMBER(stack.best.value[4], number_15);
+                DRAW_LAST_SCORE_NUMBER(stack.best.score, number_15);
 
                 do
                 {
@@ -550,7 +533,7 @@ number_1:
                     (pulse >> 12) + 0x7f;
                 GsSortSprite(&stack.rank, OTablePt, 1);
 
-                if ((s16)stack.current.value[5] == 4)
+                if ((s16)stack.current.grade == 4)
                 {
                     icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
                     icon->x = -0x78;
@@ -647,16 +630,16 @@ number_1:
             layout_character_offset = (u32)PSTATE->CharType * 0x1d4;
             layout_stage_offset =
                 (u32)PSTATE->StageNo * 0x24 + layout_base;
-            layout_record = (StageScoreStats *)(layout_character_offset +
+            layout_record = (ScoreStats *)(layout_character_offset +
                 layout_stage_offset);
             layout_index = 0;
 layout_loop:
-            if (layout_record->bosses + layout_record->enemies == 0)
+            if (layout_record->stageBosses + layout_record->stageEnemies == 0)
                 goto layout_done;
             layout_index++;
             if (layout_index < 3)
             {
-                layout_record = (StageScoreStats *)((u8 *)layout_record + 0xc);
+                layout_record = (ScoreStats *)((u8 *)layout_record + 0xc);
                 goto layout_loop;
             }
 layout_done:

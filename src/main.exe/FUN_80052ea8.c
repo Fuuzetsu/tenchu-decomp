@@ -23,23 +23,17 @@
  *    replacing the required sll/sra sign extension with andi/sltiu.
  */
 
-typedef struct
-{
-    u8 pad[10];
-    u16 reward_kind;
-} EndStageResult;
-
 extern s16 D_8008ED50[];
 extern s32 rand(void);
 
-void FUN_80052ea8(TLinkInfo *state, EndStageResult *result)
+void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
 {
     s16 kind;
     s16 i;
     s16 remaining;
     u8 *row;
 
-    kind = 4 - result->reward_kind;
+    kind = 4 - (u16)result->grade;
     if (kind >= 3)
     {
         remaining = 5;
