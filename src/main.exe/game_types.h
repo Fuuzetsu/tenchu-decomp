@@ -270,6 +270,15 @@ struct EventSeqType
     s16 z[2];                     /* 0x10 */
 };                                /* 0x14 */
 
+/* APPEAR.C's weapon placement vectors. */
+typedef struct WeaponType WeaponType;
+struct WeaponType
+{
+    SVECTOR confp;                 /* 0x00 */
+    SVECTOR ilup0;                 /* 0x08 */
+    SVECTOR ilup1;                 /* 0x10 */
+};                                 /* 0x18 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

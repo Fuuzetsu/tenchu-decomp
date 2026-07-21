@@ -87,13 +87,6 @@
 
 typedef struct
 {
-    SVECTOR confp; /* 0x0 */
-    SVECTOR ilup0; /* 0x8 */
-    SVECTOR ilup1; /* 0x10 */
-} WeaponType;      /* 0x18 */
-
-typedef struct
-{
     u8 *name;   /* 0x0 */
     s16 wid;    /* 0x4 */
     u32 *model; /* 0x8 */

@@ -86,13 +86,6 @@
  *    loop notes and load order without emitting control-flow instructions.
  */
 
-typedef struct
-{
-    SVECTOR confp;
-    SVECTOR ilup0;
-    SVECTOR ilup1;
-} WeaponType; /* 0x18 */
-
 extern MotionManager *dtM;
 extern SVECTOR *dtR;
 extern VECTOR *dtL;
