@@ -22,9 +22,7 @@
  * struct — "TelopP" per its Ghidra symbol) whenever either half of that
  * pair is nonzero, i.e. whenever a telop is already active/queued.
  *
- * `TelopP` (splat's auto name; Ghidra calls it TelopP, not yet a bound
- * build symbol so left as the auto name here) only has these two u8 fields
- * proven — declared as a minimal stand-in reaching just offset 0x14.
+ * `TelopP` is the complete POLY_FT4 declared by the demo's PSX.SYM.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - `bVar1`/`idx` must be `s32`, not `u8` (Ghidra/m2c's own typing): a `u8`
@@ -51,15 +49,7 @@
  *    per-branch duplication here.
  */
 
-typedef struct
-{
-    u8 pad0[0xC];
-    u8 u0;  /* 0xC */
-    u8 pad1[0x7];
-    u8 u1;  /* 0x14 */
-} TelopType;
-
-extern TelopType TelopP;
+extern POLY_FT4 TelopP;
 extern u8 D_8008EF98[];
 
 s32 FUN_800576e8(u8 *param_1)

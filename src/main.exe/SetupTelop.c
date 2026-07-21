@@ -356,31 +356,7 @@
  *     previously-live local (here the U-coordinate `u`) over an arbitrary one --
  *     any previously-live local supplies the pressure, so pick the human one.
  */
-typedef struct
-{
-    u8 pad[3];
-    u8 len;
-} TelopTag;
-
-typedef struct
-{
-    TelopTag tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    u8 u0, v0;
-    u16 clut;
-    s16 x1, y1;
-    u8 u1, v1;
-    u16 tpage;
-    s16 x2, y2;
-    u8 u2, v2;
-    u16 pad1;
-    s16 x3, y3;
-    u8 u3, v3;
-    u16 pad2;
-} TelopPoly;
-
-extern TelopPoly TelopP;
+extern POLY_FT4 TelopP;
 extern u16 D_8008F078[];
 
 extern s16 *Krom2RawAdd(u32 code);
@@ -507,7 +483,7 @@ void SetupTelop(u8 *telop, short line)
         final_v = 0xf0 - line_y;
         final_v2 = (u8)rect.h + final_v;
         u = (u16)rect.x - 0x301;
-        TelopP.tag.len = 9;
+        setlen(&TelopP, 9);
         TelopP.code = 0x2c;
         TelopP.u2 = 0;
         TelopP.u0 = 0;
