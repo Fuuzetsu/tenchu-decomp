@@ -98,6 +98,16 @@ struct ArcFile
     s32 entry[1];                 /* 0x04: offset before fixup, pointer after */
 };                                /* 0x08 */
 
+/* Retail's inventory-shop presentation and stock-limit record. */
+typedef struct ShopItemDefault ShopItemDefault;
+struct ShopItemDefault
+{
+    s16 x;                        /* 0x00: grid position */
+    s16 y;                        /* 0x02 */
+    s32 itemIndex;                /* 0x04 */
+    u8 maxStock;                  /* 0x08 */
+};                                /* 0x0C */
+
 /* Retail's end-of-stage counters and calculated score components. */
 typedef struct ScoreStats ScoreStats;
 struct ScoreStats

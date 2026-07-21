@@ -6,8 +6,7 @@
  * PersistentState blob down to that item's shop maximum, skipping the ones
  * marked locked (0xFE). Same TU as FUN_800565f0.c/FUN_800566c0.c, and the same
  * proven structs: game_types.h's TLinkInfo (chr@0x4, stock@0x40C) and
- * BriefingAndInventorySelectionScreen.c's ShopItemDefault (itemIndex@0x4,
- * maxStock@0x8, stride 0xC).
+ * ShopItemDefault (itemIndex@0x4, maxStock@0x8, stride 0xC).
  *
  * Unlike its siblings this one takes the blob as a PARAMETER rather than going
  * through the `(TLinkInfo *)0x80010000` cast — the target keeps it in $a0
@@ -26,15 +25,6 @@
  *    instead swaps $v1/$a1 between the address and `mx` — a 5-byte register tie
  *    that autorules/regalloc could not name and only the permuter cracked.
  */
-
-typedef struct
-{
-    s16 x;         /* 0x0 grid position */
-    s16 y;         /* 0x2 */
-    s32 itemIndex; /* 0x4 */
-    u8 maxStock;   /* 0x8 */
-    u8 pad[3];     /* 0x9 */
-} ShopItemDefault; /* 0xC */
 
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 

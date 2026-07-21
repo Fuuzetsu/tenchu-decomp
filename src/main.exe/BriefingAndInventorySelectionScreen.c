@@ -79,15 +79,6 @@
  */
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-typedef struct
-{
-    s16 x;        /* 0x0 grid position */
-    s16 y;        /* 0x2 */
-    s32 itemIndex; /* 0x4 */
-    u8 maxStock;  /* 0x8 */
-    u8 pad[3];    /* 0x9 */
-} ShopItemDefault;
-
 typedef struct { char *p[4]; } HelpPathBlock;  /* 0x10 */
 
 extern u8 CHOSEN_CHARACTER;
