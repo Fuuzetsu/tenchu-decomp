@@ -33,7 +33,7 @@
  *    the target loads stack+16 with `lhu`. A separate signed `t = (short)time`
  *    keeps the raw value for the byte store while reproducing the target's
  *    signed guarded remainder and two-instruction sign extension.
- *  - `m = smoke->mode - 1` must remain its own statement, as in SetSmoke.
+ *  - `m = smoke->time - 1` must remain its own statement, as in SetSmoke.
  *    Inlining it lets fold reassociate the subtraction into `sum + 1`, moving
  *    the addiu to the wrong side of the final expression.
  *  - The pool scan uses the SetSmoke/SetExplosion round-robin do-while shape,
@@ -90,12 +90,12 @@ found:
     smoke->vec.vx = vx;
     smoke->vec.vy = vy;
     smoke->vec.vz = vz;
-    smoke->mode = time;
+    smoke->time = time;
     r = rand();
     t = (short)time;
-    smoke->unk22 = 0;
-    m = smoke->mode - 1;
-    smoke->bright = m - (t / 2 + r % t);
+    smoke->sprite = 0;
+    m = smoke->time - 1;
+    smoke->evtime = m - (t / 2 + r % t);
     ef->proc = (void (*)())DrawSmoke;
 }
 

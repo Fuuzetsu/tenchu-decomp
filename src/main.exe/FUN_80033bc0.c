@@ -32,7 +32,7 @@
  *    would also copy the pad word). The quotient values are separate shorts so
  *    all three guarded divisions precede the position copy as in the target.
  *  - `r` stays unsigned for the target allocation, but the `% 15` operand is
- *    explicitly cast signed. Naming `m = smoke->mode - 8` prevents fold from
+ *    explicitly cast signed. Naming `m = smoke->time - 8` prevents fold from
  *    migrating the constant onto the remainder.
  *  - The identical negative-spread stores under `if (pos)` are a zero-code
  *    allocation fence. They add one weighted RTL reference to `pos`, raising
@@ -144,12 +144,12 @@ found:
 
     smoke->scale = rand() % 0x2000 + 0x1000;
     smoke->rotate = 0;
-    smoke->mode = 15;
+    smoke->time = 15;
     r = rand();
     i = i + 1;
-    m = smoke->mode - 8;
-    smoke->unk22 = 1;
-    smoke->bright = m - ((s32)r % 15);
+    m = smoke->time - 8;
+    smoke->sprite = 1;
+    smoke->evtime = m - ((s32)r % 15);
     ef->proc = (void (*)())DrawSmoke;
     goto loop;
 }

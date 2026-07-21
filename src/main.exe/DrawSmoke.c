@@ -33,7 +33,7 @@
  * MATCH.
  *
  * DrawSmoke (0x800334c4, EFFECT.C:794) — the smoke-puff effect's per-frame
- * draw: picks its sprite from `sprSmoke[param->unk22]`, and while
+ * draw: picks its sprite from `sprSmoke[param->sprite]`, and while
  * `mode==bright` (a one-shot "just spawned or freshly stepped" gate) damps
  * the velocity by 0.8x every time `vec.vy` drifts below -20 and bumps
  * `scale`/re-rolls `bright` from `mode` and a `rand()%5` jitter; then, if
@@ -45,8 +45,8 @@
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `param = &ef->param.smoke;` (SmokeType* at ef+4) — effect.h's proven
- *    layout (`vec`@0, `pos`@8, `rotate`@0x18, `scale`@0x1c, `mode`@0x20,
- *    `bright`@0x21, `unk22`@0x22), no new struct.
+ *    layout (`vec`@0, `pos`@8, `rotate`@0x18, `scale`@0x1c, `time`@0x20,
+ *    `evtime`@0x21, retail `sprite`@0x22), no new struct.
  *  - `sprSmoke` is genuinely `Sprite3D *sprSmoke[]` (unknown size, an
  *    array of pointers) — despite PSX.SYM's single-pointer prototype, the
  *    target indexes it (`sll idx,2; addu base,idx`) before the one `lw`
@@ -67,14 +67,14 @@
  *    own store, i.e. loaded early, stored late (Ghidra's own `sVar1`
  *    capture confirms the split): `vx_new = ...; vz_old = param->vec.vz;
  *    param->vec.vy = param->vec.vy / 2; param->vec.vz = (vz_old*80)/100;`
- *  - `param->bright = (param->mode - 1) - (rand() % 5);` reassociates under
+ *  - `param->evtime = (param->time - 1) - (rand() % 5);` reassociates under
  *    fold into `mode - (remainder + 1)` (the WRONG shape — target keeps
  *    `mode-1` as its own subtraction) no matter how it's parenthesized;
  *    already documented for the sibling SetSmoke.c: "fold reassociates
  *    `(x-1)-(a+b)` into `x-(a+b+1)`, so an own-statement temp (`m =
- *    smoke->mode - 1;`) is needed to keep the literal `addiu -1` on x's
- *    side." Matching SetSmoke's exact idiom: `r = rand(); m = param->mode -
- *    1; param->bright = m - r % 5;` — THREE statements in that order (the
+ *    smoke->time - 1;`) is needed to keep the literal `addiu -1` on x's
+ *    side." Matching SetSmoke's exact idiom: `r = rand(); m = param->time -
+ *    1; param->evtime = m - r % 5;` — THREE statements in that order (the
  *    bare `rand()` call first, `mode-1` second so it loads/subtracts
  *    AFTER the call returns instead of needing to survive across it, the
  *    final combine third) is load-bearing; folding the `% 5` into the
@@ -93,7 +93,7 @@
  *    ...rotate; ...; sprite.rotate = lVar4;` capture confirms the split;
  *    without it the r/g/b stores drift one instruction early, filling a
  *    load-delay slot the target leaves as a bare `nop`.
- *  - `if (param->mode < 26) { alfa = param->mode * 5; }` re-reads `mode`
+ *  - `if (param->time < 26) { alfa = param->time * 5; }` re-reads `time`
  *    TWICE (compare, then the multiply) rather than caching it — a plain
  *    `if` with the field used in both the condition and body naturally
  *    does this; `alfa` defaults to 0x80 (materialized once, at the very
@@ -102,12 +102,12 @@
  *    memory right after storing them (matching DrawHinoko's own "final
  *    sprite-field stores re-read pos.* fresh" note) — direct field reads,
  *    not reused locals.
- *  - The disposal decrement needs its own captured `oldmode` local, read
+ *  - The disposal decrement needs its own captured `oldtime` local, read
  *    ONCE and used for BOTH the `+0xff` store and the `==0` test — the
  *    target's single `lbu` feeds both `addiu v1,v0,0xff` (new value,
  *    stored unconditionally) and `andi v0,v0,0xff` (the old value,
- *    re-tested) from the SAME load: `u8 oldmode = param->mode; param->mode
- *    = param->mode + 0xff; if (oldmode == 0) { ef->proc = 0; }` — verified
+ *    re-tested) from the SAME load: `u8 oldtime = param->time; param->time
+ *    = param->time + 0xff; if (oldtime == 0) { ef->proc = 0; }` — verified
  *    a real `+0xff` (0x00FF, positive) here, unlike DrawBleed's `time-1`.
  */
 extern Sprite3D *sprSmoke[];
@@ -120,17 +120,17 @@ void DrawSmoke(TEffectSlot *ef)
     Sprite3D *spr;
     Sprite3D **sprp;
     u8 alfa;
-    u8 oldmode;
+    u8 oldtime;
     s32 vz_old;
     s32 r;
     s32 m;
     s32 rotate;
 
-    sprp = &sprSmoke[param->unk22];
+    sprp = &sprSmoke[param->sprite];
     spr = *sprp;
     alfa = 0x80;
 
-    if (param->mode == param->bright)
+    if (param->time == param->evtime)
     {
         if (param->vec.vy < -20)
         {
@@ -141,13 +141,13 @@ void DrawSmoke(TEffectSlot *ef)
         }
         param->scale = param->scale + 0x400;
         r = rand();
-        m = param->mode - 1;
-        param->bright = m - r % 5;
+        m = param->time - 1;
+        param->evtime = m - r % 5;
     }
 
-    if (param->mode < 26)
+    if (param->time < 26)
     {
-        alfa = param->mode * 5;
+        alfa = param->time * 5;
     }
 
     param->pos.vx += param->vec.vx;
@@ -165,9 +165,9 @@ void DrawSmoke(TEffectSlot *ef)
     UpdateCoordinate(spr);
     DrawSprite(spr);
 
-    oldmode = param->mode;
-    param->mode = param->mode + 0xff;
-    if (oldmode == 0)
+    oldtime = param->time;
+    param->time = param->time + 0xff;
+    if (oldtime == 0)
     {
         ef->proc = 0;
     }

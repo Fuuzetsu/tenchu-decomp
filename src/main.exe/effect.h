@@ -91,18 +91,16 @@ struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
     u8 mode;      /* +0x21 */
 };
 
-struct SmokeType /* size >= 0x23; same vec@0x0/pos@0x8/rotate@0x18/scale@0x1c
-                    * layout as ExplosionType (proven by tools/access.py
-                    * SetSmoke --order), plus mode@0x20/bright@0x21/unk22@0x22
-                    * (confirmed against SetSmokeS.c's identical field usage) */
+struct SmokeType /* size 0x24; PSX.SYM supplies every demo member/name, and
+                    * retail appends the sprite selector at +0x22 */
 {
     SVECTOR vec;  /* +0x0 */
     VECTOR pos;   /* +0x8 */
     long rotate;  /* +0x18 */
     long scale;   /* +0x1c */
-    u8 mode;      /* +0x20 */
-    u8 bright;    /* +0x21 */
-    u8 unk22;     /* +0x22 */
+    u8 time;      /* +0x20 */
+    u8 evtime;    /* +0x21 */
+    u8 sprite;    /* +0x22 (retail) */
 };
 
 typedef struct FlyWireType FlyWireType;

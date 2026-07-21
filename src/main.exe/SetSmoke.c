@@ -70,16 +70,16 @@
  *  - `i` must be `short` (PSX.SYM: `reg $s4 short i`) for the double-shift
  *    HImode compare idiom.
  *  - SmokeType reuses ExplosionType's vec@0x0/pos@0x8/rotate@0x18/scale@0x1c
- *    layout plus mode@0x20/bright@0x21/unk22@0x22.
+ *    PSX.SYM layout plus retail's sprite selector at +0x22.
  *  - `scale = rand() % 0x2000 + 0x1000;` stored FIRST, before `rotate`.
  *  - Each `vec.v{x,y,z}` jitter is `vect->v{x,y,z} + (rand() % 100 - 50)`
  *    (fold-reassociation rule: `A + (B - C)` reassociates into the compiled
  *    `(A - C) + B` order).
- *  - `m = smoke->mode - 1;` MUST be its own statement: inlined as
- *    `(smoke->mode - 1) - (time/2 + r%time)`, fold reassociates the literal
+ *  - `m = smoke->time - 1;` MUST be its own statement: inlined as
+ *    `(smoke->time - 1) - (time/2 + r%time)`, fold reassociates the literal
  *    onto the sum (`mode - (sum + 1)`, an `addiu +1` AFTER the addu); the
  *    temp hides the -1 from fold so the target's `addiu v0,v0,-1` on the
- *    reloaded mode survives. The `smoke->mode` reference itself reloads via
+ *    reloaded time survives. The `smoke->time` reference itself reloads via
  *    a fresh lbu (do NOT cache mode's computed value).
  *  - `rand() % time` is the only variable-divisor division (needs
  *    `--expand-div`: Build.hs/permute.py `SetSmoke` entries).
@@ -142,12 +142,12 @@ found:
         smoke->vec.vx = vect->vx + (rand() % 100 - 50);
         smoke->vec.vy = vect->vy + (rand() % 100 - 50);
         smoke->vec.vz = vect->vz + (rand() % 100 - 50);
-        smoke->mode = time + rand() % 0xa0;
+        smoke->time = time + rand() % 0xa0;
         r = rand();
         i = i + 1;
-        smoke->unk22 = 0;
-        m = smoke->mode - 1;
-        smoke->bright = m - (time / 2 + r % time);
+        smoke->sprite = 0;
+        m = smoke->time - 1;
+        smoke->evtime = m - (time / 2 + r % time);
         ef->proc = (void (*)())DrawSmoke;
     } while (1);
 }
