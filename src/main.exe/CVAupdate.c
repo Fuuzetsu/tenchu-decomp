@@ -67,18 +67,8 @@
  */
 
 
-typedef struct
-{
-    s16 kind;
-    s16 mode;
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 param;
-} CVAEvent;
-
-extern CVAEvent *CVAnow;
-extern u8 *CVAdata;
+extern CVAType *CVAnow;
+extern CVAType *CVAdata;
 extern HumanAnimType CVAhuman[5];
 extern GsRVIEW2 ViewInfo;
 extern SVECTOR UnitVector;
@@ -113,8 +103,8 @@ s16 CVAupdate(void)
     HumanAnimType *slot;
     HumanAnimType *anim_base;
     ModelArchiveType *model;
-    CVAEvent *event;
-    CVAEvent *cursor;
+    CVAType *event;
+    CVAType *cursor;
     VECTOR vect;
     long level;
     long delta;
@@ -127,21 +117,21 @@ s16 CVAupdate(void)
     u8 ch;
 
     cursor = CVAnow;
-    if (cursor->kind != 1)
+    if (cursor->mode != 1)
     {
         invalid = -1;
         anim_base = CVAhuman;
         do
         {
-            switch (cursor->kind)
+            switch (cursor->mode)
             {
             case 0:
-                if (CVAnow->param == invalid)
+                if (CVAnow->p == invalid)
                     CdaStop();
                 break;
 
             case 2:
-                human = GetHumanoid(CVAnow->mode);
+                human = GetHumanoid(CVAnow->id);
                 if (human == 0)
                     return 0;
                 i = 0;
@@ -181,7 +171,7 @@ s16 CVAupdate(void)
                     human->life = human->lifemax;
                 }
 
-                if (CVAnow->param != invalid)
+                if (CVAnow->p != invalid)
                 {
                     position = CVAnow->x * 1000;
                     human->point[0] = position;
@@ -195,7 +185,7 @@ s16 CVAupdate(void)
                     human->locate->vy = level;
                     if (i < human->locate->vy || human->locate->vy == (long)0x80000000)
                         human->locate->vy = i;
-                    human->rotate->vy = CVAnow->param;
+                    human->rotate->vy = CVAnow->p;
                     UpdateCoordinate((ModelType *)human->model);
                     delta = __builtin_abs(human->locate->vy - StagePlayer->locate->vy);
                     if (delta > 20000)
@@ -204,7 +194,7 @@ s16 CVAupdate(void)
                 break;
 
             case 3:
-                human = GetHumanoid(CVAnow->mode);
+                human = GetHumanoid(CVAnow->id);
                 if (human == 0)
                     return 0;
 
@@ -292,7 +282,7 @@ s16 CVAupdate(void)
                 break;
 
             case 5:
-                if (CVAnow->mode == 0)
+                if (CVAnow->id == 0)
                 {
                     ViewInfo.vrx = CVAnow->x * 100;
                     ViewInfo.vry = CVAnow->y * 100;
@@ -300,7 +290,7 @@ s16 CVAupdate(void)
                 }
                 else
                 {
-                    human = GetHumanoid(CVAnow->param);
+                    human = GetHumanoid(CVAnow->p);
                     if (human == 0)
                         return 0;
                     ViewInfo.vrx = human->locate->vx;
@@ -312,10 +302,10 @@ s16 CVAupdate(void)
                 break;
 
             case 6:
-                CameraPanMode = (u16)CVAnow->mode;
+                CameraPanMode = (u16)CVAnow->id;
                 pan_value = 20;
-                if (CVAnow->param != 0)
-                    pan_value = CVAnow->param;
+                if (CVAnow->p != 0)
+                    pan_value = CVAnow->p;
                 D_80097CC8 = pan_value;
                 break;
 
@@ -324,23 +314,23 @@ s16 CVAupdate(void)
                 vect.vx = event->x * 10;
                 vect.vy = event->y * 10;
                 vect.vz = event->z * 10;
-                switch (event->mode)
+                switch (event->id)
                 {
                 case 1:
-                    SetBlood(&vect, event->param, 30);
+                    SetBlood(&vect, event->p, 30);
                     break;
                 case 3:
                     FUN_80038fdc((u8)event->x, (u8)event->y,
-                                 (u8)event->z, event->param);
+                                 (u8)event->z, event->p);
                     break;
                 }
                 break;
 
             case 8:
-                if (CVAnow->mode != invalid)
+                if (CVAnow->id != invalid)
                 {
                     SetupTelop((u8 *)strcpy((char *)D_800C2C50,
-                                            (char *)CVAdata + CVAnow->mode), 0);
+                                            (char *)CVAdata + CVAnow->id), 0);
                     D_80097CCC = 1;
                     if (StageID != 10 || CHOSEN_CHARACTER != 0)
                         break;
@@ -369,8 +359,8 @@ s16 CVAupdate(void)
 
             CVAnow++;
             cursor = CVAnow;
-        } while (cursor->kind != 1);
+        } while (cursor->mode != 1);
     }
 
-    return CVAnow->mode != 0;
+    return CVAnow->id != 0;
 }

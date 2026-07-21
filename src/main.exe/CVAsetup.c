@@ -68,7 +68,7 @@
  *    vararg materialisation.
  */
 
-extern u32 *CVAdata;
+extern CVAType *CVAdata;
 extern char *STAGE_ANIMATION_PREFICES[];
 extern char D_80013624[]; /* "%sSTAGE%d%c.CAD" */
 extern char D_80013634[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd" */
@@ -107,7 +107,7 @@ void CVAsetup(void)
         letter = 0x52;
     }
     sprintf(name, D_80013624, STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
-    CVAdata = FileRead(name);
+    CVAdata = (CVAType *)FileRead(name);
 
     SetPolyF4(&TelopbgP);
     TelopbgP.b0 = 1;

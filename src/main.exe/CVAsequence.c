@@ -46,22 +46,12 @@
  * that makes cc1 keep the cursor in v0 while loading StagePlayer into v1.
  *
  * Other load-bearing shapes: the event scan is a hand-rolled goto loop;
- * separate s32 `wanted`/`end_kind` values create the preheader extension and
+ * separate s32 `wanted`/`end_mode` values create the preheader extension and
  * loop-carried -1; and the motion arm's `(motion = 0, test)` comma expression
  * selects the retail allocation and schedule.
  */
 
 #include "item.h"
-
-typedef struct
-{
-    s16 kind;
-    s16 mode;
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 param;
-} CVASequenceEvent;
 
 typedef struct
 {
@@ -77,8 +67,8 @@ typedef struct
     u8 field9_0x14;
 } CVASequenceCdaStatus;
 
-extern CVASequenceEvent *CVAdata;
-extern CVASequenceEvent *CVAnow;
+extern CVAType *CVAdata;
+extern CVAType *CVAnow;
 extern HumanAnimType CVAhuman[5];
 extern Humanoid *StagePlayer;
 extern Humanoid *HumanGroup[32];
@@ -108,40 +98,40 @@ extern void CdaStop(void);
 
 s16 CVAsequence(s16 sid)
 {
-    CVASequenceEvent *event;
-    CVASequenceEvent *cursor;
+    CVAType *event;
+    CVAType *cursor;
     Humanoid **slot;
     Humanoid *human;
     s16 sound;
     s16 i;
     s16 motion;
     s32 wanted;
-    s32 end_kind;
+    s32 end_mode;
     s32 type_class;
     HumanAnimType *anim_base;
 
     CVAnow = CVAdata;
-    if (CVAdata->kind == -1)
+    if (CVAdata->mode == -1)
         goto return_zero;
 
     wanted = (s16)sid;
-    end_kind = -1;
+    end_mode = -1;
 scan_event:
     event = CVAnow;
-    if (event->kind == 0 && event->mode == wanted)
+    if (event->mode == 0 && event->id == wanted)
         goto event_found;
     CVAnow = event + 1;
-    if (event[1].kind != end_kind)
+    if (event[1].mode != end_mode)
         goto scan_event;
 
 event_found:
 
-    if (CVAnow->kind == -1)
+    if (CVAnow->mode == -1)
         goto return_zero;
 
     memset(CVAhuman, 0, sizeof(CVAhuman));
     cursor = CVAnow;
-    sound = cursor->param;
+    sound = cursor->p;
     i = 0;
     CameraTarget = StagePlayer;
     cursor++;

@@ -127,6 +127,18 @@ struct BackGround
     s16 attribute;                /* 0x44 */
 };                                /* 0x48 */
 
+/* CHRANIM.C's character-animation event record. */
+typedef struct CVAType CVAType;
+struct CVAType
+{
+    s16 mode;                     /* 0x00 */
+    s16 id;                       /* 0x02 */
+    s16 x;                        /* 0x04 */
+    s16 y;                        /* 0x06 */
+    s16 z;                        /* 0x08 */
+    s16 p;                        /* 0x0A */
+};                                /* 0x0C */
+
 /* CHRANIM.C's queued character-motion slot. */
 typedef struct HumanAnimType HumanAnimType;
 struct HumanAnimType

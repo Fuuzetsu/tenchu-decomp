@@ -38,13 +38,13 @@
  * 0..3 = orbit CameraTarget (the active camera-owner Humanoid, set by
  * CVAsequence to StagePlayer) at a computed angle via GetMoveSpeed, offset
  * by CameraTarget->locate; 5 = re-target a NEW humanoid (GetHumanoid(event's
- * `.param`@0xA), bailing with no GsSetRefView2 call if not found) and adopt
+ * `.p`@0xA), bailing with no GsSetRefView2 call if not found) and adopt
  * it as the new CameraTarget. item.h's Humanoid (rotate@0x3C, locate@0x38,
  * height@0xE) accounts for every field read here.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `event->mode` is read ONCE and reused across the whole dispatch (no
- *    reload) — a plain repeated `event->mode` dereference CSEs to one load
+ *  - `event->id` is read ONCE and reused across the whole dispatch (no
+ *    reload) — a plain repeated `event->id` dereference CSEs to one load
  *    within the function's single extended basic block, no named local
  *    needed (matches PSX.SYM listing no such local).
  *  - **Dispatch body order differs from test order**: the tests fire
@@ -67,7 +67,7 @@
  *    call ARGUMENT itself**, not a preceding `ordr = cond ? a : b;`
  *    statement (even though the value is used nowhere else): assigning it
  *    to a named local first — whether via if/else, a temp read of
- *    `event->param`, or a ternary — makes cc1 read `event->param` a
+ *    `event->p`, or a ternary — makes cc1 read `event->p` a
  *    SECOND time (an extra unsigned `lhu`, since a bare argument pass
  *    doesn't need sign extension) instead of reusing the first (signed)
  *    read from the zero-test, costing 3 extra instructions and shuffling
@@ -77,17 +77,7 @@
 
 extern GsRVIEW2 ViewInfo;
 
-typedef struct
-{
-    s16 unk0; /* 0x0 */
-    s16 mode; /* 0x2 */
-    s16 x;    /* 0x4 */
-    s16 y;    /* 0x6 */
-    s16 z;    /* 0x8 */
-    s16 param; /* 0xA (orbit ordr override, or the mode-5 humanoid id) */
-} EventListEntry;
-
-extern EventListEntry *CVAnow;
+extern CVAType *CVAnow;
 extern Humanoid *CameraTarget;
 
 extern Humanoid *GetHumanoid(s16 type);
@@ -95,32 +85,32 @@ extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);
 
 void AVCameraSetup(void)
 {
-    EventListEntry *event;
+    CVAType *event;
     Humanoid *human;
     SVECTOR vect;
     s32 ry;
 
     event = CVAnow;
-    if (event->mode == 4)
+    if (event->id == 4)
     {
         goto case4;
     }
-    if (event->mode < 5)
+    if (event->id < 5)
     {
         goto case_orbit;
     }
-    if (event->mode == 5)
+    if (event->id == 5)
     {
         goto case5;
     }
     goto tail;
 
 case_orbit:
-    if (event->mode >= 0)
+    if (event->id >= 0)
     {
-        ry = (u16)CameraTarget->rotate->vy + (event->mode << 10);
+        ry = (u16)CameraTarget->rotate->vy + (event->id << 10);
         vect.pad = (s16)ry;
-        GetMoveSpeed(&vect, (s16)ry, (event->param != 0) ? event->param : 3000, 0);
+        GetMoveSpeed(&vect, (s16)ry, (event->p != 0) ? event->p : 3000, 0);
         ViewInfo.vpx = CameraTarget->locate->vx + vect.vx;
         ViewInfo.vpy = (CameraTarget->locate->vy - CameraTarget->height) + 300;
         ViewInfo.vpz = CameraTarget->locate->vz + vect.vz;
@@ -134,7 +124,7 @@ case4:
     goto tail;
 
 case5:
-    human = GetHumanoid(event->param);
+    human = GetHumanoid(event->p);
     if (human == 0)
     {
         return;

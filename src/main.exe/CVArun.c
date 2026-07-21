@@ -47,7 +47,7 @@
  *     clear motion->loop and the human's x/z velocity) or (status != DEAD)
  *     start the queued motid via SetNowMotion and clear the slot.
  * Finally advances the CVA frame counter (D_80097CC0) and, once it reaches
- * the current event's own duration (CVAnow->mode,
+ * the current event's own duration (CVAnow->id,
  * the same field AVCameraSetup dispatches on — the event record doubles as
  * a duration when read this way), advances to the next 12-byte event
  * record and calls CVAupdate for the new one; returns 1 while still
@@ -78,17 +78,7 @@ extern GsOT *OTablePt;
 
 extern HumanAnimType CVAhuman[5];
 
-typedef struct
-{
-    s16 unk0; /* 0x0 */
-    s16 mode; /* 0x2 */
-    s16 x;    /* 0x4 */
-    s16 y;    /* 0x6 */
-    s16 z;    /* 0x8 */
-    s16 param; /* 0xA */
-} EventListEntry;
-
-extern EventListEntry *CVAnow;
+extern CVAType *CVAnow;
 extern s16 D_80097CC0;
 
 extern void ComputeAllConflict(void);
@@ -170,9 +160,9 @@ short CVArun(void)
     }
 
     D_80097CC0++;
-    if (D_80097CC0 >= CVAnow->mode)
+    if (D_80097CC0 >= CVAnow->id)
     {
-        CVAnow = (EventListEntry *)((u8 *)CVAnow + 0xC);
+        CVAnow++;
         return CVAupdate();
     }
     return 1;
