@@ -16,6 +16,38 @@ typedef struct FrameType FrameType;
 typedef struct ExplosionType ExplosionType;
 typedef struct XF4Type XF4Type;
 typedef struct SmokeType SmokeType;
+typedef struct ImpactType ImpactType;
+
+typedef union ImpactColor ImpactColor;
+union ImpactColor
+{
+    s32 word;
+    struct
+    {
+        u8 b;
+        u8 g;
+        u8 r;
+        u8 pad;
+    } channel;
+};
+
+/* Retail's expanded version of PSX.SYM's ImpactType. */
+struct ImpactType /* size 36 */
+{
+    s32 px;                    /* +0x00 */
+    s32 py;                    /* +0x04 */
+    s32 pz;                    /* +0x08 */
+    GsCOORDINATE2 *super;      /* +0x0C */
+    ImpactColor start_color;   /* +0x10 */
+    ImpactColor end_color;     /* +0x14 */
+    s16 start_size;            /* +0x18 */
+    s16 end_size;              /* +0x1A */
+    s16 rotate;                /* +0x1C */
+    s16 rotate_speed;          /* +0x1E */
+    u8 type;                   /* +0x20 */
+    u8 count;                  /* +0x21 */
+    u8 time;                   /* +0x22 */
+};
 
 struct BloodType /* size 36 */
 {
@@ -149,6 +181,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct XF4Type xf4;
     struct SmokeType smoke;
     struct FlyWireType flywire;
+    struct ImpactType impact;
     u8 pad[72];
 };
 

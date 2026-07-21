@@ -226,42 +226,13 @@
  */
 #include "effect.h"
 
-typedef union
-{
-    s32 word;
-    struct
-    {
-        u8 b;
-        u8 g;
-        u8 r;
-        u8 pad;
-    } channel;
-} ImpactColor;
-
-typedef struct
-{
-    s32 px;
-    s32 py;
-    s32 pz;
-    GsCOORDINATE2 *super;
-    ImpactColor start_color;
-    ImpactColor end_color;
-    s16 start_size;
-    s16 end_size;
-    s16 rotate;
-    s16 rotate_speed;
-    u8 type;
-    u8 count;
-    u8 time;
-} RetailImpactType;
-
 extern GsSPRITE D_800BEAA8[];
 extern GsOT *OTablePt;
 extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
 void DrawImpact(TEffectSlot *ef)
 {
-    RetailImpactType *param;
+    ImpactType *param;
     GsSPRITE *spr;
     SVECTOR scr;
     s32 ratio;
@@ -276,7 +247,7 @@ void DrawImpact(TEffectSlot *ef)
     s32 priority;
     s32 work;
 
-    param = (RetailImpactType *)&ef->param;
+    param = &ef->param.impact;
     ratio = (param->count << 12) / param->time;
     spr = &D_800BEAA8[param->type];
     spr->rotate = param->rotate << 12;
