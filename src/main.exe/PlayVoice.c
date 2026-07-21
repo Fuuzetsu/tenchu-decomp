@@ -34,12 +34,12 @@
 
 typedef struct
 {
-    u8 id;      /* 0x0 */
+    u8 no;      /* 0x0 */
     u8 channel; /* 0x1 */
-    u8 min;     /* 0x2 */
-    u8 sec;     /* 0x3 */
-    u8 endmin;  /* 0x4 */
-    u8 endsec;  /* 0x5 */
+    u8 smin;    /* 0x2 */
+    u8 ssec;    /* 0x3 */
+    u8 emin;    /* 0x4 */
+    u8 esec;    /* 0x5 */
 } TVoiceTable;  /* 0x6 */
 
 typedef struct
@@ -95,8 +95,8 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * 100 <= id < 200: the INTRO table (id -= 100). id >= 200: the TORA table
  * (id -= 200). If none of those has the id, falls back to the shared
  * D_80012CBC table (always using the event-table filename D_80097CA0).
- * Each table is a linear array of {id,channel,min,sec,endmin,endsec}
- * records terminated by id==0xff. On a total miss: AdtMessageBox + CdaStop.
+ * Each table is a linear array of {no,channel,smin,ssec,emin,esec}
+ * records terminated by no==0xff. On a total miss: AdtMessageBox + CdaStop.
  * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
  * CD-XA mix volume, re-apply the persisted volume, build `start`/`end`
  * CdlLOCs from the record's min/sec (the CdPosToInt/CdIntToPos "*2+0x96"
@@ -111,7 +111,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  *    Ghidra's own `uVar3 = *pbVar5;` re-read-after-advance shape), while
  *    the INTRO/TORA loop peeks the NEXT record's id through a SEPARATE
  *    pointer before actually advancing the cursor (`entry = voice; if
- *    (match) goto found; entry = voice + 1; voice++; } while (entry->id
+ *    (match) goto found; entry = voice + 1; voice++; } while (entry->no
  *    != 0xff);` — Ghidra literally renders this as two assignments,
  *    `pbVar6 = pbVar5 + 6; pbVar5 = pbVar5 + 6;`, that a naive reading
  *    would collapse into one).
@@ -204,7 +204,7 @@ void PlayVoice(int id)
             id -= 100;
         }
         loc = 0;
-        if (voice->id != 0xff)
+        if (voice->no != 0xff)
         {
             do
             {
@@ -217,13 +217,13 @@ void PlayVoice(int id)
                 {
                     voice = next;
                 }
-                voice_id = cursor->id;
+                voice_id = cursor->no;
                 loc = voice;
                 if (id == voice_id)
                     goto found;
                 next = cursor + 1;
                 voice = next;
-            } while (next->id != 0xff);
+            } while (next->no != 0xff);
             loc = 0;
         }
         goto found;
@@ -246,7 +246,7 @@ void PlayVoice(int id)
         voice = *voice_entry;
         FileName = *filename_entry;
         loc = 0;
-        if (voice->id != 0xff)
+        if (voice->no != 0xff)
         {
             end_marker = 0xff;
             cursor = voice;
@@ -268,11 +268,11 @@ void PlayVoice(int id)
                         cursor = next;
                     }
                 }
-                voice_id = cursor->id;
+                voice_id = cursor->no;
                 if (id == voice_id)
                     goto found;
                 cursor++;
-                voice_id = cursor->id;
+                voice_id = cursor->no;
                 loc = 0;
             } while (voice_id != end_marker);
         }
@@ -281,19 +281,19 @@ found:
     if (loc == 0)
     {
         fallback = D_80012CBC;
-        if (fallback->id != 0xff)
+        if (fallback->no != 0xff)
         {
             fallback_end = 0xff;
             cursor = fallback;
             do
             {
-                voice_id = cursor->id;
+                voice_id = cursor->no;
                 if (id == voice_id)
                 {
                     goto fallback_hit;
                 }
                 cursor++;
-            } while (cursor->id != fallback_end);
+            } while (cursor->no != fallback_end);
         }
         loc = 0;
     found2:
@@ -316,8 +316,8 @@ found:
         u8 min;
         u8 sec;
 
-        min = loc->min;
-        sec = loc->sec;
+        min = loc->smin;
+        sec = loc->ssec;
         BuildVoiceLocation(start, min, sec);
     }
 
@@ -325,8 +325,8 @@ found:
         u8 min;
         u8 sec;
 
-        min = loc->endmin;
-        sec = loc->endsec;
+        min = loc->emin;
+        sec = loc->esec;
         BuildVoiceLocation(end, min, sec);
     }
 
