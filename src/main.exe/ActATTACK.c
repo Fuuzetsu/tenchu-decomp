@@ -3,6 +3,7 @@
 #define DeleteConflict DeleteConflict_prototype
 #include "item.h"
 #undef DeleteConflict
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -98,19 +99,6 @@ typedef struct
     s16 loop;
     s16 motid;
 } HumanAnimType; /* 0x8 */
-
-typedef struct
-{
-    ModelType *model;
-    SVECTOR vector1;
-    SVECTOR vector2;
-    s16 maxn;
-    s16 n;
-    s32 *p1;
-    s32 *p2;
-    s32 sz;
-    u8 poly[0x34];
-} AfterimageType; /* 0x58 */
 
 typedef struct
 {

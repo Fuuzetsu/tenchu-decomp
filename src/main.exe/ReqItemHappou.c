@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -109,13 +110,6 @@
  *    are identical to ReqItemLaunch's; only the trailing count (8, not 5)
  *    and the two raw pp-offsets differ.
  */
-typedef struct
-{
-    u8 pad0[4];
-    SVECTOR vector1; /* 0x4 */
-    SVECTOR vector2; /* 0xC */
-} AfterimageType;
-
 extern void ProcItemHappou(tag_TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 extern void Sound(Humanoid *h, int id);

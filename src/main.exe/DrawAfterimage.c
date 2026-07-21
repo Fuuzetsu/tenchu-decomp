@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 #include "item.h"
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -51,10 +52,8 @@
  * (shared, single) `afi->sz`-derived OTZ clamp. Returns the new `n`.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `AfterimageType` is SetupAfterimage.c's own full, DEFINING-TU layout
- *    (model/vector1/vector2/maxn/n/p1/p2/sz/poly) — reused verbatim except
- *    `poly` is given its real `POLY_GT4` type here (SetupAfterimage never
- *    touches individual poly fields, so it left it `u8[0x34]`).
+ *  - `AfterimageType` is the shared PSX.SYM layout
+ *    (model/vector1/vector2/maxn/n/p1/p2/sz/poly).
  *  - `POLY_GT4` is the canonical PsyQ LIBGPU record (52 bytes, independently
  *    confirmed by PSX.SYM). `p1`/`p2` entries are `long`s that PACK a screen
  *    (x,y) pair (x
@@ -117,19 +116,6 @@
  *    register for the shift's destination; split, the load's destination
  *    register matches the target's directly (a 2-byte pure register tie).
  */
-typedef struct
-{
-    ModelType *model;    /* 0x00 */
-    SVECTOR vector1;     /* 0x04 */
-    SVECTOR vector2;     /* 0x0C */
-    s16 maxn;            /* 0x14 */
-    s16 n;               /* 0x16 */
-    long *p1;            /* 0x18 */
-    long *p2;            /* 0x1C */
-    s32 sz;              /* 0x20 */
-    POLY_GT4 poly;        /* 0x24 */
-} AfterimageType;
-
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 

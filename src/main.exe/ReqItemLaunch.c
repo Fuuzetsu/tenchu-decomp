@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -100,13 +101,6 @@
  *    stored to it->param+0x2c AND read six more times for the vector1/
  *    vector2 fields — inlining the call would re-invoke it.
  */
-typedef struct
-{
-    u8 pad0[4];
-    SVECTOR vector1; /* 0x4 */
-    SVECTOR vector2; /* 0xC */
-} AfterimageType;
-
 extern void ProcItemLaunch(tag_TItem *item);
 extern void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern AfterimageType *SetupAfterimage(Sprite3D *model, s32 n);
