@@ -71,14 +71,6 @@
  *  - StageEvent/StagePlayer and the score counters are gp-relative in this
  *    translation unit; maspsxflags.py records that per-function list.
  */
-typedef struct
-{
-    s16 stage;
-    u16 chrid;
-    SVECTOR position;
-    s16 think;
-} StageCharType;
-
 extern StageCharType StageChar[18];
 extern Humanoid *HumanGroup[32];
 extern Humanoid *StagePlayer;

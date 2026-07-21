@@ -36,14 +36,6 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-typedef struct
-{
-    s16 stage;
-    s16 chrid;
-    SVECTOR position;
-    s16 think;
-} StageCharType;
-
 extern TCameraStatus CamState;
 extern Humanoid *StagePlayer;
 extern s32 GameClock;

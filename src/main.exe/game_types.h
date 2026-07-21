@@ -295,6 +295,16 @@ struct HumanDataType
     u32 *model;                     /* 0x14 */
 };                                  /* 0x18 */
 
+/* STAGE.C's per-stage character placement. */
+typedef struct StageCharType StageCharType;
+struct StageCharType
+{
+    s16 stage;                       /* 0x00 */
+    s16 chrid;                       /* 0x02 */
+    SVECTOR position;                /* 0x04 */
+    s16 think;                       /* 0x0C */
+};                                   /* 0x0E */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind
