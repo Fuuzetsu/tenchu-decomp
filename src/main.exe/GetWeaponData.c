@@ -85,13 +85,6 @@
  * reads it directly instead of reloading through human->weapon[w].
  */
 
-typedef struct
-{
-    u8 *name;   /* 0x0 */
-    s16 wid;    /* 0x4 */
-    u32 *model; /* 0x8 */
-} WeaponModelType; /* 0xC */
-
 extern WeaponType WeaponDB[28];
 extern WeaponModelType WeaponModel[41];
 extern char D_800117EC[]; /* "%s%s.TMD" */

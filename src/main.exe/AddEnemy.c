@@ -60,18 +60,11 @@
 typedef struct
 {
     u8 *name;
-    s16 wid;
-    u32 *model;
-} AddEnemyWeaponModel;
-
-typedef struct
-{
-    u8 *name;
     s16 value;
 } AddEnemyThinkDB;
 
 extern HumanDataType HumanData[63];
-extern AddEnemyWeaponModel WeaponModel[41];
+extern WeaponModelType WeaponModel[41];
 extern s16 *StageAppearance[];
 extern s32 StageID;
 extern AddEnemyThinkDB ThinkDB[20];

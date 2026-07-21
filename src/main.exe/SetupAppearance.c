@@ -54,15 +54,8 @@
  *    that semantically equivalent reuse, the complete 256-instruction
  *    function differs only by a six-byte $a0/$v1 swap.
  */
-typedef struct
-{
-    u8 *name;
-    s16 wid;
-    u32 *model;
-} AppearanceWeaponModel;
-
 extern HumanDataType HumanData[63];
-extern AppearanceWeaponModel WeaponModel[41];
+extern WeaponModelType WeaponModel[41];
 extern s16 NowStage;
 extern s16 EngageLevel;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
