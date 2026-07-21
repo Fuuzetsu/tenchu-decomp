@@ -81,20 +81,6 @@
  *    reload and its load-delay `nop` instead of CSE-reusing the earlier
  *    Humanoid pointer.
  */
-typedef struct
-{
-    u8 id;     /* 0x0 */
-    u8 event;  /* 0x1 */
-    u8 next1;  /* 0x2 */
-    u8 next2;  /* 0x3 */
-    u8 target; /* 0x4 */
-    u8 mode;   /* 0x5 */
-    s16 status; /* 0x6 */
-    s16 x[2];  /* 0x8 */
-    s16 y[2];  /* 0xC */
-    s16 z[2];  /* 0x10 */
-} EventSeqType; /* 0x14 */
-
 extern EventSeqType *D_80097F78[];
 extern Humanoid *D_80097F80[];
 extern EventSeqType *StageEvent;

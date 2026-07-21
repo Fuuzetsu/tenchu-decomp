@@ -69,20 +69,6 @@
  *    them through a shared base.
  */
 
-typedef struct EventSeqType
-{
-    u8 id;
-    u8 event;
-    u8 next1;
-    u8 next2;
-    u8 target;
-    u8 mode;
-    u16 status;
-    s16 x[2];
-    s16 y[2];
-    s16 z[2];
-} EventSeqType;
-
 typedef struct
 {
     u8 bosses;
@@ -254,7 +240,7 @@ active_events:
             break;
 
         case 2:
-            if (((u16)tgt->attribute & ev->status) == ev->status)
+            if (((u16)tgt->attribute & (u16)ev->status) == (u16)ev->status)
             {
                 flag = 1;
             }

@@ -254,6 +254,22 @@ struct TMakeDifInfo
     SVECTOR bef;                  /* 0x04 */
 };                                /* 0x0C */
 
+/* EVENT.C's stage-event descriptor. */
+typedef struct EventSeqType EventSeqType;
+struct EventSeqType
+{
+    u8 id;                        /* 0x00 */
+    u8 event;                     /* 0x01 */
+    u8 next1;                     /* 0x02 */
+    u8 next2;                     /* 0x03 */
+    u8 target;                    /* 0x04 */
+    u8 mode;                      /* 0x05 */
+    s16 status;                   /* 0x06 */
+    s16 x[2];                     /* 0x08 */
+    s16 y[2];                     /* 0x0C */
+    s16 z[2];                     /* 0x10 */
+};                                /* 0x14 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

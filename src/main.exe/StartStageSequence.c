@@ -79,8 +79,6 @@ typedef struct
     s16 think;
 } StageCharType;
 
-typedef struct EventSeqType EventSeqType;
-
 extern StageCharType StageChar[18];
 extern Humanoid *HumanGroup[32];
 extern Humanoid *StagePlayer;
