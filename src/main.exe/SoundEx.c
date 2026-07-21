@@ -96,13 +96,6 @@ extern Humanoid *StagePlayer;
 
 extern TCameraStatus CamState;
 
-typedef struct
-{
-    s16 VABid;
-    s16 program;
-    void *VABhead;
-} SoundEffect;
-
 extern SoundEffect *StageSE;
 
 extern short PlaySE(SoundEffect *se, short pt, long dv);

@@ -55,13 +55,6 @@
  * reproduced by the ternary spelling below — a plain `if (v<0) v=-v;` collapses
  * it (cc1 threads the dominated test). New cookbook rule candidate.
  */
-typedef struct
-{
-    s16 VABid;
-    s16 program;
-    void *VABhead;
-} SoundEffect;
-
 extern u8 gSELevel;
 extern s16 voice;
 extern u16 SsUtKeyOnV(s16, s16, s32, s32, s32, s32, u32, u32);

@@ -35,13 +35,6 @@ extern void SsUtAllKeyOff(s32 flag);
 extern void SsVabClose(s16 vabId);
 extern void vfree(void *p);
 
-typedef struct
-{
-    s16 VABid;
-    s16 program;
-    void *VABhead;
-} SoundEffect;
-
 void DisposeSE(SoundEffect *se)
 {
     if (se != 0)

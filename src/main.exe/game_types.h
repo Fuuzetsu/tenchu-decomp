@@ -314,6 +314,16 @@ struct StageCharType
     s16 think;                       /* 0x0C */
 };                                   /* 0x0E */
 
+/* AUDIO.C's loaded VAB handle. */
+struct VabHdr;
+typedef struct SoundEffect SoundEffect;
+struct SoundEffect
+{
+    s16 VABid;                        /* 0x00 */
+    s16 program;                      /* 0x02 */
+    struct VabHdr *VABhead;           /* 0x04 */
+};                                    /* 0x08 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

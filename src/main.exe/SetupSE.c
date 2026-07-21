@@ -39,13 +39,6 @@
  *    clobbers the caller-saved copy, so cc1 re-reads it from memory —
  *    just write `se->VABid` again rather than caching it in a local.
  */
-typedef struct
-{
-    s16 VABid;
-    s16 program;
-    void *VABhead;
-} SoundEffect;
-
 extern short SsVabOpenHead(u8 *vab, short mode);
 extern void SsVabTransBody(u8 *body, short vabId);
 extern void SsVabTransCompleted(int flag);
