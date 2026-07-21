@@ -32,11 +32,6 @@ typedef enum
     ITEM_UNK19 = 25
 } TItemType;
 
-enum
-{
-    CMODE_NORMAL = 0
-};
-
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern MotionManager *dtM;

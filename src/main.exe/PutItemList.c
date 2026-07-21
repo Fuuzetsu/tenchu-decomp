@@ -65,12 +65,6 @@
  * branch-local ItemImage address producers; shared `x -= 20` fills the merged
  * call's delay slot.
  */
-typedef struct
-{
-    u8 pad[0x10];
-    Humanoid *Owner;
-} TCameraStatus;
-
 extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
 extern TCameraStatus CamState;

@@ -76,27 +76,12 @@
  *    breaks it and the sign-extension reads s2.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 enum
 {
     ITEM_MAKIBISHI = 2,
     ITEM_FIRE = 4,
     ITEM_SMOKE = 5,
-    ITEM_DOKUDANGO = 7,
-    CMODE_STICK_L = 6,
-    CMODE_STICK_R = 7,
-    CMODE_PEEP_L = 9,
-    CMODE_PEEP_R = 10
+    ITEM_DOKUDANGO = 7
 };
 
 extern MotionManager *dtM;

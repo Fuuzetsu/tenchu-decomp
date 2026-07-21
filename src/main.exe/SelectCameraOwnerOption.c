@@ -81,17 +81,6 @@
  *    `D_80097D70 = 0x80097D70;` in config/symbols.main.exe.txt per the
  *    cookbook's drifted-symbol recipe rather than fight the wrong auto-name.
  */
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern s16 Humans;
 extern Humanoid *HumanGroup[];

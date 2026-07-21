@@ -85,17 +85,6 @@ typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
 typedef struct { TAdtSelect e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
 
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern u32 SystemFlag;
 extern s32 GameClock;

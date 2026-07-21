@@ -85,17 +85,6 @@
  *    slti/xori/bnez; an inline `if (... > 0x7ff)` compiles slti/beqz (short).
  */
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 (lw @80031980) */
-    s32 Mode;                    /* 0x14 (sw @800319c8) */
-    s16 DirectionRX;             /* 0x18 (sh @80031894) */
-    s16 DirectionRY;             /* 0x1A (sh @8003195c) */
-    u8 OldMode;                  /* 0x1C (sb/lbu @80031738) */
-    u8 CriticalHit;              /* 0x1D (sb @800319c0) */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 /* Critical-hit camera placements: 4 poses x 4 SVECTORs each. */

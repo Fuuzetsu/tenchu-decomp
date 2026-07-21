@@ -29,12 +29,6 @@
  * CamState's own base is an unrelated address (its own lui, not folded
  * into PSTATE's).
  */
-typedef struct
-{
-    VECTOR TargetVector; /* 0x00 */
-    Humanoid *Owner;      /* 0x10 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 

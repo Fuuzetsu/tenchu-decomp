@@ -4,17 +4,6 @@
 
 typedef struct
 {
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
-typedef struct
-{
     VECTOR v;
     VECTOR pos;
 } ProcItemNingyoVectors;

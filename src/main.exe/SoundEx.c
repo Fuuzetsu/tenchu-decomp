@@ -89,26 +89,12 @@
  *  - The ratan2 result reuses `raw` (dead since the abs): its pseudo is
  *    $v0-homed everywhere, so the call-result move deletes as a no-op and
  *    `subu a2,v0,v1` reads $v0 directly.
- *  - `CamState` field types/offsets copied verbatim from DoInfoViewProc.c's
- *    proven (fully-matched) local typedef: Mode is a plain `s32` (not the
- *    `enum` type) at 0x14, DirectionRY a signed `s16` at 0x1A.
+ *  - The shared retail TCameraStatus supplies Mode at +0x14 and signed
+ *    DirectionRY at +0x1A.
  */
 extern Humanoid *StagePlayer;
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;              /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;              /* 0x18 */
-    s16 DirectionRY;              /* 0x1A */
-    s32 OldMode;                  /* 0x1C */
-    u8 Valiation;                 /* 0x20 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
-
-enum { CMODE_DIRECTION = 1 };
 
 typedef struct
 {

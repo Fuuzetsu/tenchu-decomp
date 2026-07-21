@@ -69,17 +69,6 @@ typedef struct { TAdtSelect e[11]; } MENU_LAYOUT_TBL;   /* 0x58 */
 typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
 typedef struct { TAdtSelect e[7];  } MENU_PATH_TBL;     /* 0x38 */
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern s16 Humans;
 /* gp-relative — defined by this (debug-menu) TU; Build.hs maspsxGpExterns */

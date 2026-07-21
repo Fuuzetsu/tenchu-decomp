@@ -43,8 +43,7 @@ enum
     ITEM_MAKIBISHI = 2,
     ITEM_FIRE = 4,
     ITEM_SMOKE = 5,
-    ITEM_JIRAI = 6,
-    CMODE_NORMAL = 0
+    ITEM_JIRAI = 6
 };
 
 extern MotionManager *dtM;

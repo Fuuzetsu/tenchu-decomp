@@ -33,13 +33,6 @@
  *     extern int Projection;
  * END PSX.SYM */
 
-typedef struct
-{
-    VECTOR TargetVector; /* 0x00 */
-    Humanoid *Owner;     /* 0x10 */
-    s32 Mode;            /* 0x14 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern u32 SystemFlag;
@@ -65,7 +58,7 @@ void Camera(void)
         return;
     }
 
-    switch (CamState.Mode) {
+    switch ((s32)CamState.Mode) {
     case 1:
         CameraDirection(CamState.Owner, &vDif);
         break;

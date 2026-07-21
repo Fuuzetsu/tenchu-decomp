@@ -93,24 +93,6 @@ typedef struct
     SVECTOR ilup1;
 } WeaponType; /* 0x18 */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
-enum
-{
-    CMODE_NORMAL = 0,
-    CMODE_CRITICAL_HIT = 4,
-    CMODE_FALL = 14,
-};
-
 extern MotionManager *dtM;
 extern SVECTOR *dtR;
 extern VECTOR *dtL;
@@ -675,7 +657,7 @@ LAB_80022780:
     if (dtM->count == 1) {
       ActionHalt = 1;
       SetCameraMode(CMODE_CRITICAL_HIT);
-      (*((u8 *)&CamState.OldMode + 1)) = 1;
+      CamState.CriticalHit = 1;
       return;
     }
     if ((dtM->loop == 0) && (dtL->vy == (Me_MOTION_C->target->locate).coord.t[1])) {
@@ -706,7 +688,7 @@ LAB_80022780:
     dtM->loop = 0;
     PlayMotion(dtM,1);
     motMODE = 0xffff;
-    (*((u8 *)&CamState.OldMode + 1)) = 1;
+    CamState.CriticalHit = 1;
     return;
   }
   }
@@ -774,7 +756,7 @@ LAB_8002315c:
     bVar2 = Me_MOTION_C == StagePlayer;
     ((*Me_MOTION_C->model->object)->rotate).vy = dtM->motion->rotate[0]->y;
     if ((bVar2) && (SetCameraMode(CMODE_NORMAL), saved_mid == 0x712)) {
-      (*((u8 *)&CamState.OldMode + 1)) = 1;
+      CamState.CriticalHit = 1;
     }
     (Me_MOTION_C->pad).time = 0;
     return;

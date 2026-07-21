@@ -148,6 +148,43 @@ struct HumanAnimType
     s16 motid;                    /* 0x06 */
 };                                /* 0x08 */
 
+/* CAMERA.C's camera modes. */
+typedef enum TCameraMode TCameraMode;
+enum TCameraMode
+{
+    CMODE_NORMAL = 0,
+    CMODE_DIRECTION = 1,
+    CMODE_SYSPARAM = 2,
+    CMODE_SIGHT = 3,
+    CMODE_CRITICAL_HIT = 4,
+    CMODE_FIGHT = 5,
+    CMODE_STICK_L = 6,
+    CMODE_STICK_R = 7,
+    CMODE_SWIM = 8,
+    CMODE_PEEP_L = 9,
+    CMODE_PEEP_R = 10,
+    CMODE_CROUCH = 11,
+    CMODE_RUN = 12,
+    CMODE_LOCK = 13,
+    CMODE_FALL = 14
+};
+
+/* CAMERA.C's global camera state. Retail rearranges the demo PSX.SYM
+ * record: DirectionRX/DirectionRY move ahead of OldMode, and OldMode becomes
+ * a byte beside the new CriticalHit flag. The resulting retail record is
+ * 0x20 bytes; the demo's Valiation member at +0x20 is not part of it. */
+typedef struct TCameraStatus TCameraStatus;
+struct TCameraStatus
+{
+    VECTOR TargetVector;          /* 0x00 */
+    struct Humanoid *Owner;       /* 0x10 */
+    TCameraMode Mode;             /* 0x14 */
+    s16 DirectionRX;              /* 0x18 */
+    s16 DirectionRY;              /* 0x1A */
+    u8 OldMode;                   /* 0x1C */
+    u8 CriticalHit;               /* 0x1D */
+};                                /* 0x20 */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind

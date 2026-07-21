@@ -29,34 +29,23 @@
 
 /*
  * MakeDif (0x80032088, 0xfc bytes) — computes vdif = target - vinfo for a
- * GsRVIEW2 camera view, gated by CamState's "just snapped" one-shot flag
- * (byte 1 of the OldMode enum, per Ghidra's own `._1_1_`): a straight
+ * GsRVIEW2 camera view, gated by CamState.CriticalHit's "just snapped"
+ * one-shot flag: a straight
  * 6-field s32 subtraction the first frame after a mode change (and clears
  * the flag), otherwise a smoothed delta via two MakeDifSub calls — one over
  * the rotation-only half (vrx..vrz) using a TMakeDifInfo scratch block that
- * sits right after CamState in memory (D_80089F10 = CamState + 0x20; Ghidra
- * mis-renders this as `&CamState.Valiation`, a field cast past
- * TCameraStatus's own recorded 0x24-byte size — it's really a separate
+ * sits right after the retail CamState in memory (D_80089F10 = CamState +
+ * 0x20). Ghidra's demo-shaped type mis-renders this as
+ * `&CamState.Valiation`, but it is really a separate
  * static, its address just materializes as its own `lui`/`addiu`, never
  * derived from CamState's already-loaded base register), one over the full
  * 6-field view using the already-named `pnt` global.
  *
- * TCameraStatus's field order for OldMode's position is Ghidra's own
- * independently-built struct (reference/ghidra_types.h), NOT psxsym-types.h
- * (which puts DirectionRX/RY AFTER OldMode instead of before it) — the raw
- * `.s`'s `lbu $v1, 0x1D($a0)` off CamState's base settles it: byte 0x1D is
- * OldMode's high byte only if DirectionRX(0x18)/DirectionRY(0x1A) precede
- * OldMode(0x1C), matching Ghidra, not psxsym.
+ * Retail rearranged the demo's TCameraStatus: raw halfword accesses prove
+ * DirectionRX/DirectionRY at +0x18/+0x1A, while this function's byte access
+ * and SetCameraMode's stores prove CriticalHit at +0x1D. The demo's
+ * Valiation at +0x20 disappeared when the record shrank to 0x20 bytes.
  */
-/* Truncated to the one byte MakeDif actually touches (byte 1 of the
- * 4-byte OldMode enum at +0x1C) — this repo's per-TU local-view
- * convention (FUN_800565f0.c's TCameraStatus precedent). */
-typedef struct
-{
-    u8 pad[0x1D];
-    u8 oldModeByte1; /* +0x1D: TCameraMode OldMode's high byte */
-} TCameraStatus;
-
 typedef struct
 {
     s16 div;    /* +0x0 */
@@ -71,14 +60,14 @@ extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *
 
 void MakeDif(GsRVIEW2 *vinfo, GsRVIEW2 *target, GsRVIEW2 *vdif)
 {
-    if (CamState.oldModeByte1 == 1) {
+    if (CamState.CriticalHit == 1) {
         vdif->vpx = target->vpx - vinfo->vpx;
         vdif->vpy = target->vpy - vinfo->vpy;
         vdif->vpz = target->vpz - vinfo->vpz;
         vdif->vrx = target->vrx - vinfo->vrx;
         vdif->vry = target->vry - vinfo->vry;
         vdif->vrz = target->vrz - vinfo->vrz;
-        CamState.oldModeByte1 = 0;
+        CamState.CriticalHit = 0;
     } else {
         MakeDifSub((VECTOR *)&vinfo->vrx, (VECTOR *)&target->vrx, (VECTOR *)&vdif->vrx,
                    &D_80089F10);

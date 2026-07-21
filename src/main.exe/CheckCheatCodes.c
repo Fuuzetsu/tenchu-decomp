@@ -50,12 +50,6 @@
 typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;  /* 0xC8 */
 typedef struct { TAdtSelect e[4]; } MENU_COUNT_TBL;  /* 0x20 */
 
-typedef struct
-{
-    VECTOR TargetVector; /* 0x00 */
-    Humanoid *Owner;      /* 0x10 */
-} TCameraStatus;
-
 extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
 extern MENU_COUNT_TBL D_800124CC;
 extern char D_800124C0[]; /* "select item" */

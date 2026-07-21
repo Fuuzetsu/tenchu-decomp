@@ -70,17 +70,6 @@
 
 typedef struct
 {
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    u8 OldMode;                  /* 0x1C */
-    u8 CriticalHit;              /* 0x1D */
-} TCameraStatus;
-
-typedef struct
-{
     s16 div;     /* +0x0 */
     s16 spd;     /* +0x2 */
     SVECTOR bef; /* +0x4 */

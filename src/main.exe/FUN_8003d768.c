@@ -34,17 +34,6 @@
  *    divide-by-zero guards.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 

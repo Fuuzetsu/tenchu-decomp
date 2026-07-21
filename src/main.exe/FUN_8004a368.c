@@ -61,12 +61,6 @@
  *    this class needs the alias/struct-member lever, not permutation.
  */
 
-typedef struct
-{
-    VECTOR TargetVector; /* 0x00 */
-    Humanoid *Owner;      /* 0x10 */
-} TCameraStatus;
-
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 extern TCameraStatus CamState;
 extern void AdtMessageBox(char *fmt, ...);

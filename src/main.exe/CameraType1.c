@@ -67,17 +67,6 @@
 
 typedef struct
 {
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    u8 OldMode;
-    u8 CriticalHit;
-} TCameraStatus;
-
-typedef struct
-{
     SVECTOR r1;
     SVECTOR r2;
     SVECTOR p1;
@@ -99,19 +88,6 @@ typedef union
         CameraVectors camera;
     } stick_l;
 } CameraScratch;
-
-enum
-{
-    CMODE_NORMAL = 0,
-    CMODE_CRITICAL_HIT = 4,
-    CMODE_STICK_L = 6,
-    CMODE_STICK_R = 7,
-    CMODE_SWIM = 8,
-    CMODE_PEEP_L = 9,
-    CMODE_PEEP_R = 10,
-    CMODE_CROUCH = 11,
-    CMODE_RUN = 12
-};
 
 extern TCameraStatus CamState;
 extern unsigned long *GlobalAreaMap;

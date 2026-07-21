@@ -76,17 +76,6 @@
  */
 #include <psxsdk/libgs.h>
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);

@@ -66,21 +66,6 @@
  *    same extern; respelled per-TU here too.
  */
 
-/* Camera status (Ghidra: TCameraStatus, at CamState) — redefined locally
- * like every other TU that touches it (PauseProc/PlayerOption/
- * LayoutEnemyOption/AddItem2/DoInfoViewProc); only Owner/Mode used
- * here. */
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 (TCameraMode) */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern VECTOR D_80012258[];

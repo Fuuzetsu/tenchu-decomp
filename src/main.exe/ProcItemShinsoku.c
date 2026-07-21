@@ -74,17 +74,6 @@
 
 extern u_long *GlobalAreaMap;
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);

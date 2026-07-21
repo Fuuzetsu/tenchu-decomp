@@ -53,17 +53,6 @@
  *    keeps the two motion-id producer islands distinct without emitted code.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
@@ -409,7 +398,7 @@ void ActSTATE(void)
         }
         if (motID == 0x806)
         {
-            *((u8 *)&CamState.OldMode + 1) = 1;
+            CamState.CriticalHit = 1;
         }
         if (Me_MOTION_C == StagePlayer)
         {

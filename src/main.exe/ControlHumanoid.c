@@ -98,17 +98,6 @@
  * each + 13 single-insn uses), so none is combine-folded.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 extern u32 SystemFlag;
 extern s16 SkipFrame;
 extern Humanoid *StagePlayer;

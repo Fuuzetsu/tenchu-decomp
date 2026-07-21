@@ -26,12 +26,6 @@
  *     stack sp+24     struct VECTOR pos
  * END PSX.SYM */
 
-typedef struct
-{
-    VECTOR TargetVector; /* 0x00 */
-    Humanoid *Owner;     /* 0x10 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 
 extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);

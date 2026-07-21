@@ -59,17 +59,6 @@
  *    the target's site-specific `lh`/`lhu` loads.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern u16 dtPAD;
@@ -241,7 +230,7 @@ move_if_stationary:
         if (dtM->count == (dtM->motion->time >> 1))
         {
             Sound(Me_MOTION_C, 0x13);
-            *((u8 *)&CamState.OldMode + 1) = 1;
+            CamState.CriticalHit = 1;
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {

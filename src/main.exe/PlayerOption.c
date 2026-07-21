@@ -107,17 +107,6 @@ typedef struct
 
 typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 typedef struct NodeIndexType
 {
     s16 y;      /* 0x0 */
@@ -159,7 +148,7 @@ void PlayerOption(void)
         CamState.Owner->model->locate.coord.t[0] = StageConfig[StageID].px;
         CamState.Owner->model->locate.coord.t[1] = StageConfig[StageID].py - 10000;
         CamState.Owner->model->locate.coord.t[2] = StageConfig[StageID].pz;
-        *((u8 *)&CamState.OldMode + 1) = 1;
+        CamState.CriticalHit = 1;
         *(void **)((u8 *)CamState.Owner + 0x34) = GlobalAreaMap;
         FieldIndex = (NodeIndexType *)GlobalAreaMap;
         *(AreaNodeType **)((u8 *)CamState.Owner + 0x30) =

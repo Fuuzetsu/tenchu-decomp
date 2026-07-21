@@ -69,17 +69,6 @@
  *    producing a0/a1 and allowing the attribute load to fill its delay.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;
-    Humanoid *Owner;
-    s32 Mode;
-    s16 DirectionRX;
-    s16 DirectionRY;
-    s32 OldMode;
-    u8 Valiation;
-} TCameraStatus;
-
 extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;

@@ -74,17 +74,6 @@
  *    do not cache `model` in a local.
  */
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    u8 OldMode;                  /* 0x1C */
-    u8 CriticalHit;              /* 0x1D */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern unsigned long *GlobalAreaMap;

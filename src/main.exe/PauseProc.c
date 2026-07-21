@@ -84,18 +84,6 @@
  *     extern short Findenemies;
  * END PSX.SYM */
 
-/* Camera status (Ghidra: TCameraStatus, at CamState). Only Owner is used. */
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 (TCameraMode) */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C (TCameraMode) */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern s16 GetPad(s16 no);
 extern s32 GetRealPad(s32 port);
 extern short FUN_8001b174(s32 arg);

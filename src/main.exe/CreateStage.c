@@ -60,12 +60,6 @@ typedef struct
 
 typedef struct
 {
-    VECTOR TargetVector;
-    Humanoid *Owner;
-} TCameraStatus;
-
-typedef struct
-{
     char *path[4];
 } TitlePathBlock;
 

@@ -82,17 +82,6 @@
 
 typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;    /* 0xC8 */
 
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern TCameraStatus CamState;
 extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
 extern char D_800124C0[];                   /* "select item" */

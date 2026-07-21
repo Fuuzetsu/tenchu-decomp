@@ -60,19 +60,6 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-/* Camera status (Ghidra: TCameraStatus, at CamState) — proven layout, see
- * PauseProc.c (same fields/offsets, restated here per-TU). */
-typedef struct
-{
-    VECTOR TargetVector;         /* 0x00 */
-    Humanoid *Owner;             /* 0x10 */
-    s32 Mode;                    /* 0x14 (TCameraMode) */
-    s16 DirectionRX;             /* 0x18 */
-    s16 DirectionRY;             /* 0x1A */
-    s32 OldMode;                 /* 0x1C (TCameraMode) */
-    u8 Valiation;                /* 0x20 */
-} TCameraStatus;
-
 extern void SnapCameraTargetVector(void);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern void SetBleeds(VECTOR *pos, s32 a, s32 b, s32 c, s32 d, s32 col);
