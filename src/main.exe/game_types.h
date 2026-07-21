@@ -41,6 +41,16 @@ struct TPadPort
     u8 pad;             /* 0xD */
 };
 
+/* PADCMD.C's rumble attack/release envelope (anonymous in PSX.SYM). */
+typedef struct PadArrangeType PadArrangeType;
+struct PadArrangeType
+{
+    s32 pow;                           /* 0x00 */
+    s32 time;                          /* 0x04 */
+    s32 attack;                        /* 0x08 */
+    s32 release;                       /* 0x0C */
+};                                     /* 0x10 */
+
 /* AdtSelect's menu row — the demo's own debug symbols name this TAdtSelect
  * (the PSX.SYM stack-variable records in FileOption/DoInfoViewProc/etc. call
  * these arrays `struct TAdtSelect [N]`). */

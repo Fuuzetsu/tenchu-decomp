@@ -50,15 +50,7 @@ extern void ComPad(int port, u8 *rxbuf);
 extern u8 Anakon;
 extern u8 ComBuf[2][34];
 
-typedef struct
-{
-    s32 pow;
-    s32 time;
-    s32 attack;
-    s32 release;
-} PadArrangeStruct;
-
-extern PadArrangeStruct PadArrange;
+extern PadArrangeType PadArrange;
 
 static inline void PadProcShock(s32 port, s32 value1, s32 value2)
 {
