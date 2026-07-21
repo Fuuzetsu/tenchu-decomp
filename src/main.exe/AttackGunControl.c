@@ -39,9 +39,7 @@
  * prototype and PARAM_ITEM_LAUNCH local, plus the retail gun request kind and
  * weapon-object-0xd role. It is not a positional-only PSX.SYM transplant.
  *
- * `dtM` kept as the same minimal 2-field stand-in as its siblings (only the
- * offset-2 `count` field is proven; Ghidra's own field name is an unverified
- * guess - see the cookbook's "zero other usages -> it's a guess" rule).
+ * PSX.SYM identifies `dtM` as the shared MotionManager used by its siblings.
  *
  * Matching notes: the frame was 40 bytes (exactly sizeof(PARAM_ITEM_USE))
  * short until adding an UNUSED local `PARAM_ITEM_USE p;` - never read or
@@ -52,13 +50,7 @@
  * the item params inline like AttackFire.c/handle_char_state_attacking_
  * SEVEN_.c do) into a thin bow_shoot_logic(kind, pos) wrapper.
  */
-typedef struct
-{
-    u8 pad0[2];
-    s16 count; /* Ghidra's guessed name, unverified */
-} dtM_type;
-
-extern dtM_type *dtM;
+extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void Sound(Humanoid *h, int id);

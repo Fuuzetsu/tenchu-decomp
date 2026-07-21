@@ -82,7 +82,7 @@ struct ModelType
                                     reference/ghidra_types.h:5021) */
 };
 
-typedef struct
+typedef struct ModelArchiveType
 {
     GsCOORDINATE2 locate;        /* 0x00 */
     SVECTOR rotate;              /* 0x50 */
@@ -152,7 +152,7 @@ typedef struct
     SVECTOR ds1;                  /* 0x10 */
 } SplineControlType;                /* 0x18 */
 
-typedef struct
+typedef struct MotionManager
 {
     s16 mid;                     /* 0x0 */
     s16 count;                   /* 0x2 */

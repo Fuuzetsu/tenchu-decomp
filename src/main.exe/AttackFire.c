@@ -44,9 +44,8 @@
  * `callmatch --verify` also selected this function as the strictly better fit
  * after exposing the old one-frame lightning callback's fingerprint collision.
  *
- * `dtM`/`dtR` proven fields carried over unchanged from that twin (only
- * dtM->count @ offset 2 and dtR's offset-2 s16 are proven; see its header
- * for why they're minimal stand-ins, Ghidra's guessed names unverified).
+ * PSX.SYM identifies the shared globals as MotionManager *dtM and
+ * SVECTOR *dtR.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Unlike the SEVEN twin (which re-reads `start_pos->vx`/`->vz` through
@@ -61,20 +60,8 @@
  *    source used — don't assume the sibling's exact phrasing transfers.
  */
 
-typedef struct
-{
-    u8 pad0[2];
-    s16 count; /* Ghidra's guessed name, unverified */
-} dtM_type;
-
-typedef struct
-{
-    u8 pad0[2];
-    s16 unk2; /* Ghidra guessed "vy" (SVECTOR), unverified */
-} dtR_type;
-
-extern dtM_type *dtM;
-extern dtR_type *dtR;
+extern MotionManager *dtM;
+extern SVECTOR *dtR;
 extern Humanoid *Me_MOTION_C;
 extern void Sound(Humanoid *h, int id);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
@@ -100,7 +87,7 @@ void AttackFire(s16 sfrm, s16 efrm)
         p.start.vx = start_pos->vx;
         p.start.vy = start_pos->vy;
         p.start.vz = start_pos->vz;
-        GetMoveSpeed(&move, dtR->unk2, 100, 0);
+        GetMoveSpeed(&move, dtR->vy, 100, 0);
         p.end.vx = p.start.vx + move.vx;
         p.end.vy = p.start.vy;
         p.end.vz = p.start.vz + move.vz;

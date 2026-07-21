@@ -30,7 +30,7 @@
  * clean s16 for the `< 1000` compare, load dtR, do the compare) came out as
  * a pure reorder of identical instructions — the store landed after the
  * compare instead of before it — with every other lever (separate `dist`
- * local, hoisting the `dtR->unk2` read, operand order) leaving it
+ * local, hoisting the `dtR->vy` read, operand order) leaving it
  * unchanged. Found by one short decomp-permuter run; it's the caller-side
  * extern-return-type-is-an-extension-position-lever rule (see
  * Think1trace/BIS's GetRealPad in the cookbook) — declaring the callee
@@ -41,14 +41,7 @@
 extern Humanoid *Me_MOTION_C;
 extern s16 EngageLevel;
 
-typedef struct
-{
-    u8 pad0[2];
-    s16 unk2; /* Ghidra's guessed "vy" (SVECTOR), unverified — see
-                 handle_char_state_attacking_SEVEN_.c's dtR_type */
-} dtR_type;
-
-extern dtR_type *dtR;
+extern SVECTOR *dtR;
 extern u32 GetTargetDistance(Humanoid *h, s16 *unused);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 
@@ -67,7 +60,7 @@ void bow_shoot_logic(s16 kind, VECTOR *start)
     p.start.vz = start->vz;
     dist = GetTargetDistance(Me_MOTION_C, 0);
     move.pad = dist;
-    rot = dtR->unk2;
+    rot = dtR->vy;
     speed = dist;
     if (dist < 1000)
     {
