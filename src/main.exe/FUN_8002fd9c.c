@@ -20,22 +20,9 @@
  *    returns produce a different final basic-block layout.
  */
 
-typedef struct
-{
-    u16 y;
-    s16 dy;
-    u16 x1;
-    u16 z1;
-    u16 x2;
-    u16 z2;
-    s16 attribute;
-    s16 division;
-} CameraAreaNode;
-
-
 s32 FUN_8002fd9c(Humanoid *human)
 {
-    CameraAreaNode *node;
+    AreaNodeType *node;
     s16 x;
     s16 z;
     s16 xspan;
@@ -48,7 +35,7 @@ s32 FUN_8002fd9c(Humanoid *human)
     s32 delta;
     s32 angle;
 
-    if (*(CameraAreaNode **)((u8 *)human + 0x30) == 0)
+    if (human->map.area == 0)
         return 0;
 
     xshift = -rsin(human->rotate->vy) / 16;
@@ -56,12 +43,12 @@ s32 FUN_8002fd9c(Humanoid *human)
 
     x = human->locate->vx / 10;
     z = human->locate->vz / 10;
-    node = *(CameraAreaNode **)((u8 *)human + 0x30);
-    yy = node->y;
-    x = x - node->x1;
-    xspan = node->x2 - node->x1 + 1;
-    z = z - node->z1;
-    zspan = node->z2 - node->z1 + 1;
+    node = human->map.area;
+    yy = (u16)node->y;
+    x = x - (u16)node->x1;
+    xspan = (u16)node->x2 - (u16)node->x1 + 1;
+    z = z - (u16)node->z1;
+    zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
     if ((node->attribute & 0xc000) == 0x4000)
         goto first_x_slope;
@@ -81,12 +68,12 @@ first_done:
 
     x = (human->locate->vx + xshift) / 10;
     z = (human->locate->vz + zshift) / 10;
-    node = *(CameraAreaNode **)((u8 *)human + 0x30);
-    yy = node->y;
-    x = x - node->x1;
-    xspan = node->x2 - node->x1 + 1;
-    z = z - node->z1;
-    zspan = node->z2 - node->z1 + 1;
+    node = human->map.area;
+    yy = (u16)node->y;
+    x = x - (u16)node->x1;
+    xspan = (u16)node->x2 - (u16)node->x1 + 1;
+    z = z - (u16)node->z1;
+    zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
     if ((node->attribute & 0xc000) == 0x4000)
         goto second_x_slope;
