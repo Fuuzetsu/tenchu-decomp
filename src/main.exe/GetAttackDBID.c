@@ -40,17 +40,11 @@
  * provable i==0 (a literal offset-0 access, no index register), and again at
  * the loop bottom with the updated i (see the cookbook's bottom-test
  * do-while shape). `i` is s16: cc1 folds its sign-extend-then-scale-by-
- * sizeof(BattleDBEntry)==0x10 into one `sll 16/sra 12` pair instead of a
+ * sizeof(BattleType)==0x10 into one `sll 16/sra 12` pair instead of a
  * separate extend + `sll 4`.
  */
 
-typedef struct
-{
-    s16 mid;
-    u8 unk2[0xE];
-} BattleDBEntry;
-
-extern BattleDBEntry BattleDB[];
+extern BattleType BattleDB[];
 extern s16 GetMotionID(MotionManager *motion, s16 mid);
 
 s16 GetAttackDBID(Humanoid *human, s16 mid)
