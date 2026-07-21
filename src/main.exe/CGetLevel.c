@@ -32,11 +32,10 @@
 
 /*
  * Matching notes (all verified against the original bytes):
- *  - `AreaNodeType` is CONFLICT.C's proven layout (GetAreaMapLevel.c, same
- *    original `y/dy/x1/z1/x2/z2/attribute/division` struct — declared
- *    locally here per the project's TU-local-type-decl convention, not
- *    shared via a header, since this is a DIFFERENT original TU (EFFECT.C)
- *    that just happens to touch the same struct shape).
+ *  - `AreaNodeType` is CONFLICT.C's recovered
+ *    `y/dy/x1/z1/x2/z2/attribute/division` layout. This EFFECT.C user keeps
+ *    its own extern prototype spellings below where retail codegen requires
+ *    them.
  *  - `GlobalAreaMap` is typed `unsigned long *` here (matching THIS TU's
  *    own PSX.SYM global declaration), not `NodeIndexType *` the way
  *    GetAreaMapLevel.c's OWN parameter is typed — cookbook: "Original TUs
@@ -89,18 +88,6 @@
  *    per-arm `level`/`lv` split) so it lands in one persistent register
  *    (`$a0`) the whole way to that one `return`.
  */
-typedef struct
-{
-    s16 y;         /* 0x0 */
-    s16 dy;        /* 0x2 */
-    s16 x1;        /* 0x4 */
-    s16 z1;        /* 0x6 */
-    s16 x2;        /* 0x8 */
-    s16 z2;        /* 0xA */
-    u16 attribute; /* 0xC */
-    s16 division;  /* 0xE */
-} AreaNodeType;
-
 extern unsigned long *GlobalAreaMap;
 extern AreaNodeType *FieldArea;
 

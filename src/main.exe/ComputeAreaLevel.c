@@ -39,9 +39,9 @@
  *  - Real runtime divisions (variable divisor) — this file needs
  *    maspsx --expand-div (Build.hs maspsxGpExterns).
  *  - x1/z1/x2/z2/division read `lhu` (Ghidra's own (uint)(ushort) casts
- *    confirm this file's fields are unsigned here), y/dy/attribute stay
- *    plain `short` — a different per-TU width than GetAreaMapLevel.c's
- *    copy of the same nominal struct is expected (per-file local copy).
+ *    confirm this TU's unsigned uses), while y/dy/attribute stay plain
+ *    `short`; explicit casts preserve those reads on the shared original
+ *    AreaNodeType.
  *  - **`x & (1 << n)` for a non-constant `n` ALWAYS canonicalizes to
  *    `(x >> n) & 1` under this cc1** (verified standalone: any direct
  *    `division & (1<<shift)` compiles to srav+andi, never sllv+and,
@@ -75,18 +75,6 @@
  *    than a loop.
  */
 
-typedef struct
-{
-    s16 y;         /* 0x0 */
-    s16 dy;        /* 0x2 */
-    u16 x1;        /* 0x4 */
-    u16 z1;        /* 0x6 */
-    u16 x2;        /* 0x8 */
-    u16 z2;        /* 0xA */
-    s16 attribute; /* 0xC */
-    u16 division;  /* 0xE */
-} AreaNodeType;
-
 long ComputeAreaLevel(AreaNodeType *node, long x, long z)
 {
     short dz, zspan;
@@ -94,13 +82,13 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
     short yy;
     int mask;
 
-    dz = z - node->z1;
-    zspan = node->z2 - node->z1 + 1;
-    dx = x - node->x1;
-    xspan = node->x2 - node->x1 + 1;
+    dz = z - (u16)node->z1;
+    zspan = (u16)node->z2 - (u16)node->z1 + 1;
+    dx = x - (u16)node->x1;
+    xspan = (u16)node->x2 - (u16)node->x1 + 1;
 
     mask = 1 << (((dz << 2) / zspan) * 4 + ((dx << 2) / xspan));
-    if ((node->division & mask) == 0)
+    if (((u16)node->division & mask) == 0)
         goto ret_min;
 
     yy = node->y;

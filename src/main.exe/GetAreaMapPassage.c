@@ -56,18 +56,6 @@
  *    load. GetAreaMapLevel's fifth argument is the stack-passed u16 zero.
  */
 
-typedef struct AreaNodeType
-{
-    s16 y;         /* 0x0 */
-    s16 dy;        /* 0x2 */
-    s16 x1;        /* 0x4 */
-    s16 z1;        /* 0x6 */
-    s16 x2;        /* 0x8 */
-    s16 z2;        /* 0xA */
-    u16 attribute; /* 0xC */
-    s16 division;  /* 0xE */
-} AreaNodeType;
-
 extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;
 extern VECTOR cv;

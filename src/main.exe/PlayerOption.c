@@ -107,8 +107,6 @@ typedef struct
 
 typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
 
-typedef struct AreaNodeType AreaNodeType;   /* opaque here — only the pointer is used */
-
 extern TCameraStatus CamState;
 extern s32 StageID;
 extern StageConfigEntry StageConfig[];

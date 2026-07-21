@@ -49,6 +49,20 @@ struct TAdtSelect
     u32 value;     /* 0x4 */
 };
 
+/* CONFLICT.C's area-map cell. */
+typedef struct AreaNodeType AreaNodeType;
+struct AreaNodeType
+{
+    s16 y;                       /* 0x00 */
+    s16 dy;                      /* 0x02 */
+    s16 x1;                      /* 0x04 */
+    s16 z1;                      /* 0x06 */
+    s16 x2;                      /* 0x08 */
+    s16 z2;                      /* 0x0A */
+    s16 attribute;               /* 0x0C */
+    s16 division;                /* 0x0E */
+};                               /* 0x10 */
+
 /* CONFLICT.C's area-map row index. */
 typedef struct NodeIndexType NodeIndexType;
 struct NodeIndexType

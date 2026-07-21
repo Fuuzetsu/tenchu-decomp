@@ -17,8 +17,6 @@
  * ReqItemKusuri's it->locate cookbook rule).
  */
 
-typedef struct AreaNodeType AreaNodeType; /* opaque here — only the pointer is used */
-
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 extern void *GlobalAreaMap;

@@ -82,18 +82,6 @@
  *    maspsx `--expand-div` in both Build.hs and permute.py.
  */
 
-typedef struct AreaNodeType
-{
-    s16 y;
-    s16 dy;
-    s16 x1;
-    s16 z1;
-    s16 x2;
-    s16 z2;
-    u16 attribute;
-    s16 division;
-} AreaNodeType;
-
 typedef struct DrawBloodScratch
 {
     SVECTOR scr;

@@ -95,8 +95,6 @@
  *    a NEW .rodata this linker script has no slot for — see AfsInit.c).
  */
 
-typedef struct AreaNodeType AreaNodeType; /* opaque here — only the pointer is used */
-
 extern void *GlobalAreaMap;
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;

@@ -29,8 +29,7 @@
  * self; `t` stays live across the first vfree in a callee-saved register).
  * TraceLine (Ghidra: { short index; short count; struct TracePoint *point; })
  * isn't shared with any other matched function yet, so it's defined locally
- * here (same precedent as NodeIndexType/AreaNodeType being redefined
- * per-file rather than centralized) — only the `point` field (0x4) is
+ * here. Only the `point` field (0x4) is
  * touched, so the pointee (TracePoint) stays opaque (void *).
  */
 typedef struct

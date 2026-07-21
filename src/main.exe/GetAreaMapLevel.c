@@ -85,18 +85,6 @@
  *    (true `/` by a variable -> ASPSX's guarded div with break 7/break 6).
  */
 
-typedef struct AreaNodeType
-{
-    s16 y;         /* 0x0 */
-    s16 dy;        /* 0x2 */
-    s16 x1;        /* 0x4 */
-    s16 z1;        /* 0x6 */
-    s16 x2;        /* 0x8 */
-    s16 z2;        /* 0xA */
-    u16 attribute; /* 0xC */
-    s16 division;  /* 0xE */
-} AreaNodeType;
-
 typedef struct AreaDivisionType
 {
     AreaNodeType *node; /* 0x0 */

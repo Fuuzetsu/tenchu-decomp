@@ -2,18 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-typedef struct AreaNodeType
-{
-    s16 y;
-    s16 dy;
-    s16 x1;
-    s16 z1;
-    s16 x2;
-    s16 z2;
-    u16 attribute;
-    s16 division;
-} AreaNodeType;
-
 typedef union
 {
     struct
@@ -140,7 +128,7 @@ void ProcItemJirai(tag_TItem *item)
                             item->locate->locate.coord.t[1],
                             item->locate->locate.coord.t[2], 1);
         if (item->locate->locate.coord.t[1] == (long)0x80000000 ||
-            (FieldArea->attribute & 4) != 0)
+            ((u16)FieldArea->attribute & 4) != 0)
         {
             u8 count;
 

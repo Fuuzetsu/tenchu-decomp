@@ -16,8 +16,6 @@
  * symbol needed — splat auto-names it).
  */
 
-typedef struct AreaNodeType AreaNodeType; /* opaque here — only the pointer is used */
-
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 extern void *GlobalAreaMap;
