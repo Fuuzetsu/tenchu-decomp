@@ -48,6 +48,6 @@ void GetPadXY(short no, short *x, short *y)
 
     port = no << 4;
     pad = &PadPort[port >> 4][port & 3];
-    *x = (short)pad->x;
-    *y = (short)pad->y;
+    *x = (u16)pad->x;
+    *y = (u16)pad->y;
 }

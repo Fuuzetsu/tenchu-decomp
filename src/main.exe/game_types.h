@@ -30,8 +30,8 @@ typedef struct TPadPort TPadPort;
 struct TPadPort
 {
     u16 button;         /* 0x0 (held buttons) */
-    u16 x;              /* 0x2 */
-    u16 y;              /* 0x4 */
+    s16 x;              /* 0x2 */
+    s16 y;              /* 0x4 */
     u8 active;          /* 0x6 (retail-inserted) */
     u8 fAnalog;         /* 0x7 */
     u8 act1;            /* 0x8 */
