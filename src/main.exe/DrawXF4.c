@@ -25,13 +25,13 @@
 
 /*
  * DrawXF4 (0x80038db4) — identical shape to DrawXG4 just above it
- * (same 0x80038dxx TU): draws two GPU primitives out of one buffer, +8 then
- * +0, via the BIOS-linked DrawPrim(u8 *prim) (declared per-TU, as
- * AdtSelect.c already does). arg0 cached across both calls needs no
+ * (same 0x80038dxx TU): draws the buffer's `ply` then its `tpage` via the
+ * BIOS-linked DrawPrim (declared per-TU, as AdtSelect.c already does).
+ * `ply` is cached across both calls and needs no
  * separate temp (cookbook's cached-pointer rule).
  */
-void DrawXF4(u8 *arg0)
+void DrawXF4(POLY_XF4 *ply)
 {
-    DrawPrim(arg0 + 8);
-    DrawPrim(arg0);
+    DrawPrim(&ply->ply);
+    DrawPrim(&ply->tpage);
 }
