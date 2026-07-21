@@ -17,7 +17,7 @@
  * the 0x80010000 persistent-state blob, inside game_types.h's opaque
  * field_0x49[0x15] catch-all span; kept as a fresh extern byte, same
  * "don't carve the shared struct for one still-unidentified field" pattern
- * as reset_alert_duration's D_80010058 / FUN_8004f68c's D_8001005A).
+ * as reset_alert_duration's gNannido / FUN_8004f68c's D_8001005A).
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - Ghidra renders the dispatch `if (byte == 0) Mono(); else Stereo();`,

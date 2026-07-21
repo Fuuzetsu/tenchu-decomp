@@ -16,7 +16,7 @@ extern u16 Attrib;
 extern s16 Degree;
 extern s32 Distance;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern u8 D_80010058;
+extern u8 gNannido;
 extern s16 Humans;
 extern s32 StageID;
 extern u16 StageEnemies;
@@ -69,22 +69,22 @@ s16 think_setting_small_rotation_small_steps_(void)
             s32 nextState;
 
             alertTime = 300;
-            if (D_80010058 == 2)
+            if (gNannido == DIFFICULTY_HARD)
             {
                 alertTime = 600;
             }
             FRAMES_UNTIL_END_OF_ALERT = alertTime;
             Sound((Humanoid *)Me_THINK_C, 0xE);
 
-            switch (D_80010058)
+            switch (gNannido)
             {
-            case 0:
+            case DIFFICULTY_EASY:
                 Me_THINK_C->actcnt = 1;
                 break;
-            case 1:
+            case DIFFICULTY_NORMAL:
                 Me_THINK_C->actcnt = rand() & 1;
                 break;
-            case 2:
+            case DIFFICULTY_HARD:
                 Me_THINK_C->actcnt = 0;
                 break;
             }
@@ -234,7 +234,7 @@ s16 think_setting_small_rotation_small_steps_(void)
             think_func_ *think4;
 
             alertTime = 300;
-            if (D_80010058 == 2)
+            if (gNannido == DIFFICULTY_HARD)
             {
                 alertTime = 600;
             }

@@ -41,7 +41,7 @@ extern s32 GameClock;
 extern s16 SR;
 extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern u8 D_80010058;
+extern u8 gNannido;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
@@ -127,7 +127,7 @@ s16 Think1target(void)
                     Me_THINK_C->chase[0] = 0;
                     Sound(Me_THINK_C, 13);
                     alert_time = 300;
-                    if (D_80010058 == 2)
+                    if (gNannido == DIFFICULTY_HARD)
                     {
                         alert_time = 600;
                     }

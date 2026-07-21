@@ -235,6 +235,28 @@ enum stage_rank
     RANK_GRAND_MASTER = 0x04,
 };
 
+/* Difficulty: the persistent-state byte at 0x80010058 (symbol gNannido).
+ * Official name from the demo PSX.SYM: WORLD.C's cross-exe config struct
+ * (typedef TLinkInfo) carries `unsigned char Nannido` at +0x5 and the demo
+ * exe keeps a standalone `unsigned char gNannido` (0x80098090); "nannido"
+ * is Japanese for difficulty. Retail moved it into the 0x80010000 blob;
+ * the neighbouring bytes keep TLinkInfo's field run (0x5A SoundLevel ->
+ * CD volume in FUN_8004f68c, 0x5B SELevel -> PlaySE scale, 0x5D Anakon ->
+ * PadShock gate). The demo has NO enum for the values -- the original does
+ * arithmetic on the raw byte (`EngageLevel = 3 - pt[0x58]` in
+ * SetupAppearance, `rand() % 4 - 2 >= gNannido` in StateTransition) -- so
+ * these member names are ours. 0=easy proven by FileOption pairing
+ * gNannido=0 with EngageLevel=3 (heaviest attack veto, no NPC auto-guard)
+ * and gNannido=2 with EngageLevel=1 (no veto, densest attack cadence,
+ * 600-frame alerts). */
+typedef enum game_difficulty game_difficulty;
+enum game_difficulty
+{
+    DIFFICULTY_EASY = 0x00,
+    DIFFICULTY_NORMAL = 0x01,
+    DIFFICULTY_HARD = 0x02,
+};
+
 typedef enum item_kind2 item_kind2;
 enum item_kind2
 {
@@ -286,7 +308,13 @@ typedef struct
     u8 backup[0x14];        /* 0x027 loadout backup (restore on abort) */
     u8 field_0x3b[0xD];     /* 0x03B */
     u8 flags48;             /* 0x048 bit0: item screen already initialised */
-    u8 field_0x49[0x15];    /* 0x049 */
+    u8 field_0x49[0xF];     /* 0x049 */
+    u8 nannido;             /* 0x058 gNannido: game_difficulty (demo
+                             *       TLinkInfo.Nannido) */
+    u8 field_0x59[5];       /* 0x059 demo TLinkInfo field run suggests
+                             *       0x5A SoundLevel (CD volume,
+                             *       FUN_8004f68c), 0x5B SELevel (PlaySE
+                             *       scale), 0x5D Anakon (PadShock gate) */
     u8 language;            /* 0x05E CHOSEN_LANGUAGE */
     u8 field_0x5f[0x3AD];   /* 0x05F */
     u8 stock[0x100];        /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];

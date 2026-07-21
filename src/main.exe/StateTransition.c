@@ -93,7 +93,7 @@ extern s32 D_80097F10;
 extern s32 D_80097F14;
 extern u16 D_80097F18[2];
 extern s32 D_80097F1C;
-extern u8 D_80010058;
+extern u8 gNannido;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree);
@@ -449,7 +449,7 @@ void StateTransition(Humanoid *human)
 
         random_attack:
             random = rand();
-            if (random % 4 - 2 >= (s32)D_80010058)
+            if (random % 4 - 2 >= (s32)gNannido)
             {
                 pad = 0;
             }
@@ -601,7 +601,7 @@ update_hint:
             }
             if (abs_degree < 500 &&
                 ((think_func_)Me_THINK_C->think[0] == (think_func_)Think1ninja ||
-                 ((Me_THINK_C->type & 0xf0) == 0x20 && D_80010058 != 0)))
+                 ((Me_THINK_C->type & 0xf0) == 0x20 && gNannido != DIFFICULTY_EASY)))
             {
                 s32 level;
                 s32 next_level;

@@ -2,7 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 
-extern u8 D_80010058;
+extern u8 gNannido;
 extern u16 D_800979DE;
 extern s16 Humans;
 extern Humanoid *HumanGroup[];
@@ -45,7 +45,7 @@ void register_character_death(Humanoid *dead)
     s32 chase_z;
 
     scale = 1;
-    if ((dead->attribute & 0x10) == 0 && D_80010058 != 0)
+    if ((dead->attribute & 0x10) == 0 && gNannido != DIFFICULTY_EASY)
     {
         next = D_800979DE + 1;
         D_800979DE = next;
@@ -82,7 +82,7 @@ void register_character_death(Humanoid *dead)
                                       &passage, scale) == 0)
                 {
                     alert_time = 300;
-                    if (D_80010058 == 2)
+                    if (gNannido == DIFFICULTY_HARD)
                     {
                         alert_time = 600;
                     }

@@ -10,7 +10,7 @@
  * 0x80010000 persistent-state blob), inside game_types.h's opaque
  * field_0x5f[0x3AD] catch-all span — kept as a fresh extern byte rather than
  * carving the shared struct for one still-unidentified field, same pattern
- * as reset_alert_duration's D_80010058 (PersistentState._88_1_).
+ * as reset_alert_duration's gNannido (PersistentState._88_1_).
  */
 
 extern void SsSetMVol(int voll, int volr);

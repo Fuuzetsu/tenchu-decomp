@@ -528,6 +528,15 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
 5. **CI**: add a GitHub Actions job running
    `nix develop --command ./Build check`, followed by the relocatable gates when
    their runtime is acceptable.
+6. **Adopt the remaining persistent-blob option bytes.** `gNannido`
+   (0x80010058, difficulty; demo `TLinkInfo.Nannido`) is adopted with a
+   `game_difficulty` enum. The demo TLinkInfo field run implies retail
+   0x5A = `SoundLevel` (CD volume, `FUN_8004f68c`/`_PlayMusic`), 0x5B =
+   `SELevel` (`PlaySE` scale), 0x5D = `Anakon` (`PadShock` rumble gate),
+   0x59/0x5C = `Stereo`/`fMemory` or `ZangyakuOff` (order shifted vs demo —
+   verify against the options screen before adopting). Evidence in
+   `reference/data-symbols-applied.tsv` and `game_types.h`'s
+   `PersistentState`.
 
 ## Progress & the SDK endgame
 

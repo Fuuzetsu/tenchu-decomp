@@ -107,7 +107,7 @@ void SetupAppearance(short mode, short stage)
 
     NowStage = stage;
     pt = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    EngageLevel = 3 - pt[0x58];
+    EngageLevel = 3 - pt[0x58]; /* 3 - gNannido (difficulty) */
     appearance = pt[0x1a];
     if (appearance != 0)
     {

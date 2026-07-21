@@ -244,3 +244,6 @@
 # Independently corroborated data names (2026-07-15).
 8008f188	StageAppearance	semantic+datamatch	VOTES1;PSX=8008df1c;DEMO=8008e274;WITNESSES=SetupCharacterParameter;TYPE=short*[10];AddEnemy-and-SetupCharacterParameter-index-the-per-stage-table	EXT	short *[10]
 80097e94	AdtMessageBoxCount	retail-ghidra+semantic	same-binary-Ghidra-label=s_adtMessageBoxCount;AdtMessageBox-alone-increments-and-displays-it	?	s32 (retail use)
+
+# Difficulty byte (2026-07-21).
+80010058	gNannido	semantic	demo-PSX.SYM-global-gNannido(80098090)-and-WORLD.C-TLinkInfo.Nannido(+0x5);retail-FileOption-writes-it-0/1/2-paired-with-EngageLevel-3/2/1-matching-SetupAppearance-EngageLevel=3-pt[0x58];neighbour-run-matches-TLinkInfo-order(0x5A-CD-volume=SoundLevel,0x5B-PlaySE-scale=SELevel,0x5D-PadShock-gate=Anakon)	EXT	unsigned char

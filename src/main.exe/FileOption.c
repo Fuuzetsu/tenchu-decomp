@@ -61,7 +61,7 @@
  * erase the reload, rather than pinning the schedule with loop notes.
  *
  * gp smalls of this TU: SystemFlag (Build.hs maspsxGpExterns + permute.py).
- * EngageLevel/StageID/D_80010058 are other TUs' smalls -> absolute macros.
+ * EngageLevel/StageID/gNannido are other TUs' smalls -> absolute macros.
  * The FILE_WORK union expresses the retail stack reuse directly.  Its indexed
  * targets/messages view is the human shape recorded in PSX.SYM (with larger
  * retail bounds); loop.c derives the target's three walking pointers from it.
@@ -87,7 +87,7 @@ typedef union {
 extern u32 SystemFlag;
 /* other TUs' smalls — plain absolute externs */
 extern s16 EngageLevel;
-extern u8 D_80010058;
+extern u8 gNannido;
 extern s32 StageID;
 
 extern MENU_FILE_TBL DEBUG_MENU_FILE_CHOICES;
@@ -208,15 +208,15 @@ void FileOption(void)
         break;
     case 0xA:
         EngageLevel = 3;
-        D_80010058 = 0;
+        gNannido = DIFFICULTY_EASY;
         break;
     case 0xB:
         EngageLevel = 2;
-        D_80010058 = 1;
+        gNannido = DIFFICULTY_NORMAL;
         break;
     case 0xC:
         EngageLevel = 1;
-        D_80010058 = 2;
+        gNannido = DIFFICULTY_HARD;
         break;
     case 0xD:
         *(MENU_STOCK_TBL *)work.bytes = DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES;

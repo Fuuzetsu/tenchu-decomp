@@ -72,7 +72,7 @@ extern s16 Murders;
 extern s16 FriendHits;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
-extern u8 D_80010058;
+extern u8 gNannido;
 extern ConflictObjectType ConflictObject[64];
 extern BattleType BattleDB[78];
 extern HumanAnimType CVAhuman[5];
@@ -558,7 +558,7 @@ LAB_8001da70:
       if ((((Me_MOTION_C->status != 7) &&
            ((Me_MOTION_C->attribute & 0x40U) != 0)) &&
           ((Me_MOTION_C->map).height == 0)) &&
-         (D_80010058 != '\0')) {
+         (gNannido != DIFFICULTY_EASY)) {
         if (rand() % (EngageLevel + 1) == 0) {
           if ((Me_MOTION_C->type == 0x87) || (Me_MOTION_C->type == 0x8a)) {
             if ((rand() & 1) != 0) {
@@ -684,7 +684,7 @@ LAB_8001e6b0:
       goto LAB_8001e6d8;
     }
 LAB_8001e6c4:
-    dmg = dmg - ((u8)D_80010058 - 2);
+    dmg = dmg - ((u8)gNannido - 2);
 LAB_8001e6d8:
     if (enemy->type == 0xa9) {
       dmg = (short)dmg * 6;
