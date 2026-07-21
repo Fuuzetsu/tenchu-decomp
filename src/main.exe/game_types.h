@@ -452,6 +452,18 @@ struct LifeBarEntry
     s32 style;                         /* 0x10 */
 };                                     /* 0x14 */
 
+/* Retail's redesigned INFOVIEW.C life-bar style. */
+typedef struct TLifeBarStyle TLifeBarStyle;
+struct TLifeBarStyle
+{
+    u16 base;                           /* 0x00 */
+    s16 scale;                          /* 0x02 */
+    s16 dx;                             /* 0x04 */
+    s16 dy;                             /* 0x06 */
+    GsSPRITE frame;                     /* 0x08 */
+    GsSPRITE fill;                      /* 0x2C */
+};                                      /* 0x50 */
+
 /* HUMAN.C/WORLD.C's waypoint path. */
 typedef struct TracePoint TracePoint;
 struct TracePoint

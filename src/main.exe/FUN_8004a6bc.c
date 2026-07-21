@@ -59,18 +59,7 @@ typedef struct
     s32 rotate; /* +0x0, forwarded into both sprites' `rotate` verbatim */
     u8 imgA;    /* +0x4 */
     u8 imgB;    /* +0x5 */
-    u8 pad[2];  /* +0x6 */
 } LifeBarSpriteEntry;
-
-typedef struct
-{
-    u16 base;
-    s16 scale;
-    s16 dx;
-    s16 dy;
-    GsSPRITE frame;
-    GsSPRITE fill;
-} TLifeBarStyle;
 
 extern TLifeBarStyle LifeBarStyle[2];
 extern LifeBarSpriteEntry D_8008E4B4[];

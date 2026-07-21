@@ -92,16 +92,6 @@
  *    the final two-byte operand residual. The goto is safe: each entry
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
-typedef struct
-{
-    u16 base;       /* +0x00 */
-    s16 scale;      /* +0x02 */
-    s16 dx;         /* +0x04 */
-    s16 dy;         /* +0x06 */
-    GsSPRITE frame; /* +0x08 */
-    GsSPRITE fill;  /* +0x2C */
-} TLifeBarStyle; /* 0x50 */
-
 extern TLifeBarStyle LifeBarStyle[2];
 extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
