@@ -23,25 +23,11 @@
  * StartDrawing's delay slot once `result` has been allocated to $s0. This is
  * the exact target sequence without a carrier, fence, or no-op scaffold.
  */
-typedef struct
-{
-    u8 uid;     /* 0x0 — only field this function needs; full 0x1C-byte
-                 * layout (name/path/px/py/pz/pr) proven by PlayerOption.c,
-                 * repeated here so StageConfig[] indexes with the right
-                 * stride. */
-    char *name; /* 0x4 */
-    char *path; /* 0x8 */
-    s32 px;     /* 0xC */
-    s32 py;     /* 0x10 */
-    s32 pz;     /* 0x14 */
-    s32 pr;     /* 0x18 */
-} StageConfigEntry; /* 0x1C */
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern s16 D_8008EA78[];
 extern s16 SkipFrame;
-extern StageConfigEntry StageConfig[];
+extern TStageConfig StageConfig[];
 extern void StartDrawing(void);
 extern void EndDrawing(s32 mode);
 extern s32 GetRealPad(s32 port);

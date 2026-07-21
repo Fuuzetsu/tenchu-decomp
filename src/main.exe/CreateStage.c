@@ -48,18 +48,6 @@
 
 typedef struct
 {
-    u8 uid;
-    u8 pad[3];
-    char *name;
-    char *path;
-    s32 px;
-    s32 py;
-    s32 pz;
-    s32 pr;
-} StageConfigEntry;
-
-typedef struct
-{
     char *path[4];
 } TitlePathBlock;
 
@@ -78,7 +66,7 @@ extern s16 SkipFrame;
 extern volatile s32 SystemFlag;
 extern GsRVIEW2 ViewInfo;
 extern s32 DepthPoint;
-extern StageConfigEntry StageConfig[];
+extern TStageConfig StageConfig[];
 extern TitlePathBlock TITLE_SPRITES_PTRS;
 extern u8 CHOSEN_LANGUAGE;
 extern volatile u8 STAGE_LAYOUT_NUMBER;
@@ -118,8 +106,8 @@ void CreateStage(int StageNo, int CharType)
     Humanoid *target;
     POLY_FT4 poly;
     CreateStageTitleScratch scratch;
-    StageConfigEntry *base;
-    StageConfigEntry *stage;
+    TStageConfig *base;
+    TStageConfig *stage;
     short mode;
     short stageNo;
     u_long *data;

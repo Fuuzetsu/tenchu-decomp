@@ -47,12 +47,9 @@
  * default).
  *
  * Matching notes (verified; see docs/matching-cookbook.md):
- *  - TStageConfig (Ghidra's current type export, richer than
- *    BriefingAndInventorySelectionScreen.c's StageConfigEntry, which only
- *    reveals uid+pad) has px/py/pz/pr at 0xC/0x10/0x14/0x18 after
- *    uid+pad+name+path — verified against the raw StageConfig[] bytes
- *    (uid/name/path/coords all sane). Respelled locally per the "original
- *    TUs disagree" rule rather than editing that TU's header.
+ *  - PSX.SYM's shared TStageConfig has px/py/pz/pr at
+ *    0xC/0x10/0x14/0x18 after uid+name+path; the raw StageConfig[] bytes
+ *    confirm all of those fields in retail.
  *  - Humanoid+0x30/+0x34 (Ghidra: field10_0x30/field14_0x34, inside item.h's
  *    still-opaque Humanoid.pad0) mirror FieldArea/FieldIndex per-character.
  *    Accessed here through raw offset casts rather than extending the
@@ -94,22 +91,11 @@
  *    semantically identical but flips that scheduling tie.
  */
 
-typedef struct
-{
-    u8 uid;     /* 0x0 */
-    char *name; /* 0x4 */
-    char *path; /* 0x8 */
-    s32 px;     /* 0xC */
-    s32 py;     /* 0x10 */
-    s32 pz;     /* 0x14 */
-    s32 pr;     /* 0x18 */
-} StageConfigEntry;                             /* 0x1C */
-
 typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
 
 extern TCameraStatus CamState;
 extern s32 StageID;
-extern StageConfigEntry StageConfig[];
+extern TStageConfig StageConfig[];
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 extern void *GlobalAreaMap;

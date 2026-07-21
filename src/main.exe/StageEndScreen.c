@@ -45,12 +45,6 @@ typedef struct
 
 typedef struct
 {
-    u8 uid;
-    u8 pad[0x1b];
-} StageEndConfigEntry;
-
-typedef struct
-{
     GsSPRITE digit;                 /* sp+0x18 */
     u8 pad_024[4];
     StageScoreStats stats;          /* sp+0x40 */
@@ -82,7 +76,7 @@ extern u8 ITEM_LOADOUT_BACKUP[];
 extern u8 SHOP_STOCK_STATE_BY_CHAR[];
 extern s16 D_8008EA78[];
 extern s16 D_8008ED50[];
-extern StageEndConfigEntry StageConfig[];
+extern TStageConfig StageConfig[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
@@ -319,7 +313,7 @@ void StageEndScreen(void)
     }
 
     {
-        StageEndConfigEntry *config;
+        TStageConfig *config;
 
         config = &StageConfig[StageID];
         if (config->uid == 0)

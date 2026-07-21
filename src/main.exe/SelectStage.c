@@ -61,21 +61,9 @@ typedef struct
     TAdtSelect e[3];
 } MenuPlayerTable;
 
-typedef struct
-{
-    u8 uid;
-    u8 pad[3];
-    char *name;
-    char *path;
-    s32 px;
-    s32 py;
-    s32 pz;
-    s32 pr;
-} StageConfigEntry;
-
 extern MenuLanguageTable DEBUG_MENU_LANGUAGE_CHOICES;
 extern MenuPlayerTable D_800141F4;
-extern StageConfigEntry StageConfig[];
+extern TStageConfig StageConfig[];
 extern char D_80097DC0[];
 extern char D_80097DC8[];
 extern char D_8001420C[];

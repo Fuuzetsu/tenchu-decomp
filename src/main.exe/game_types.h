@@ -316,6 +316,19 @@ struct StageCharType
     s16 think;                       /* 0x0C */
 };                                   /* 0x0E */
 
+/* STAGE.C's stage metadata and starting transform. */
+typedef struct TStageConfig TStageConfig;
+struct TStageConfig
+{
+    u8 uid;                           /* 0x00 */
+    u8 *name;                         /* 0x04 */
+    u8 *path;                         /* 0x08 */
+    s32 px;                           /* 0x0C */
+    s32 py;                           /* 0x10 */
+    s32 pz;                           /* 0x14 */
+    s32 pr;                           /* 0x18 */
+};                                    /* 0x1C */
+
 /* AUDIO.C's loaded VAB handle. */
 struct VabHdr;
 typedef struct SoundEffect SoundEffect;
