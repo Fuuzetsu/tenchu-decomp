@@ -60,19 +60,6 @@
  *    shift/add, and let cc1 pick this multiply sequence itself.
  */
 
-typedef struct
-{
-    s16 type;
-    s16 ThinkType;
-    s16 nPath;
-    s32 x;
-    s32 y;
-    s32 z;
-    s16 r;
-    s16 pad;
-    VECTOR path[7];
-} TEnemyLayout; /* 0x88 */
-
 extern TCameraStatus CamState;
 extern TEnemyLayout enemy[0x1E];
 extern SVECTOR D_80097ABC[];

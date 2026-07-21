@@ -42,19 +42,6 @@
 
 #include "item.h"
 
-typedef struct
-{
-    s16 type;
-    s16 ThinkType;
-    s16 nPath;
-    s32 x;
-    s32 y;
-    s32 z;
-    s16 r;
-    s16 pad;
-    VECTOR path[7];
-} TEnemyLayout;
-
 extern Humanoid *HumanGroup[32];
 extern s16 Humans;
 extern s32 SystemFlag;

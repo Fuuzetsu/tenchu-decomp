@@ -76,6 +76,21 @@ struct NodeIndexType
     s16 z2;                      /* 0x0E */
 };                               /* 0x10 */
 
+/* LAYOUTENEMY.C's editable enemy placement. */
+typedef struct TEnemyLayout TEnemyLayout;
+struct TEnemyLayout
+{
+    s16 type;                    /* 0x00 */
+    s16 ThinkType;               /* 0x02 */
+    s16 nPath;                   /* 0x04 */
+    s32 x;                       /* 0x08 */
+    s32 y;                       /* 0x0C */
+    s32 z;                       /* 0x10 */
+    s16 r;                       /* 0x14 */
+    s16 pad;                     /* 0x16 */
+    VECTOR path[7];              /* 0x18 */
+};                               /* 0x88 */
+
 /* Area-map query result. PSX.SYM supplies the original first 16 bytes and
  * field names. Retail appends the last two cached pointers: GetAreaMapVector
  * writes them at +0x10/+0x14, and the corresponding eight-byte growth is
