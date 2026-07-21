@@ -23,30 +23,6 @@
 
 typedef struct { TAdtSelect e[11]; } MENU_STAGE_TBL;   /* 0x58 */
 
-/* init_score_stats' scratch/output (byte fields + a capped-GameClock word). */
-typedef struct
-{
-    u8 stageBosses;   /* 0x0 */
-    u8 stageEnemies;  /* 0x1 */
-    u8 findEnemies;   /* 0x2 */
-    u8 murders;       /* 0x3 */
-    u8 criticals;     /* 0x4 */
-    u8 friendHits;    /* 0x5 */
-    u8 pad[2];        /* 0x6 */
-    s32 clock;        /* 0x8 */
-} ScoreStats;          /* 0xC */
-
-/* calculate_score's static result (all u16/s16 -> align 2, not 4). */
-typedef struct
-{
-    u16 field0;   /* 0x0 */
-    u16 field2;   /* 0x2 */
-    u16 field4;   /* 0x4 */
-    u16 field6;   /* 0x6 */
-    s16 score;    /* 0x8 */
-    u16 grade;    /* 0xA */
-} ScoreResult;    /* 0xC */
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern MENU_STAGE_TBL DEBUG_MENU_STAGE_OPTIONS;
@@ -93,7 +69,7 @@ void debug_menu_stage_option(void)
         AdtMessageBox(D_80014658, STAGE_LAYOUT_NUMBER + 1,
                       (SystemFlag & 8) ? D_800146D0 : EMPTY_STRING,
                       stats.criticals, stats.murders, stats.findEnemies,
-                      stats.friendHits, sr.score);
+                      stats.friendHits, (s16)sr.score);
         return;
     case 3:
         CHOSEN_LANGUAGE = 0;

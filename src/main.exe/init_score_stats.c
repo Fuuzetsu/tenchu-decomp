@@ -16,18 +16,6 @@
  * gp: StageBosses/StageEnemies/Findenemies/Murders/Criticals/FriendHits
  * added via `tools/gpsyms.py init_score_stats --write`.
  */
-typedef struct
-{
-    u8 bosses;
-    u8 enemies;
-    u8 hidden_finds;
-    u8 murders;
-    u8 criticals;
-    u8 friendly_hits;
-    u8 pad[2];
-    s32 clock;
-} ScoreStats;
-
 extern u8 StageBosses;
 extern u8 StageEnemies;
 extern u8 Findenemies;
@@ -40,12 +28,12 @@ ScoreStats *init_score_stats(ScoreStats *stats)
 {
     s32 clock;
 
-    stats->bosses = StageBosses;
-    stats->enemies = StageEnemies;
-    stats->hidden_finds = Findenemies;
+    stats->stageBosses = StageBosses;
+    stats->stageEnemies = StageEnemies;
+    stats->findEnemies = Findenemies;
     stats->murders = Murders;
     stats->criticals = Criticals;
-    stats->friendly_hits = FriendHits;
+    stats->friendHits = FriendHits;
     clock = GameClock;
     if (clock > 0x1A5C2)
     {

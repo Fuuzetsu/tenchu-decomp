@@ -25,28 +25,6 @@
 
 typedef struct
 {
-    u8 stageBosses;
-    u8 stageEnemies;
-    u8 findEnemies;
-    u8 murders;
-    u8 criticals;
-    u8 friendHits;
-    u8 pad[2];
-    s32 clock;
-} ScoreStats;
-
-typedef struct
-{
-    u16 field0;
-    u16 field2;
-    u16 field4;
-    u16 field6;
-    u16 score;
-    s16 grade;
-} ScoreResult;
-
-typedef struct
-{
     u8 pad_000[0x44C];
     u8 characters[5];
     u8 grades[5];
@@ -513,7 +491,7 @@ score_character_sprite_init_loop:
                 u32 value;
                 s32 drawY;
 
-                value = result.field0;
+                value = result.criticalScore;
                 drawY = -0x47;
                 sprite->x = resultX;
                 sprite->y = drawY;
@@ -721,7 +699,7 @@ score_character_sprite_init_loop:
                 s16 signedValue;
                 s32 drawY;
 
-                (value = (result.field2), signedValue = (s16)value);
+                (value = (result.murderScore), signedValue = (s16)value);
                 drawY = -0x35;
                 drawnSprite->x = resultX;
                 drawnSprite->y = drawY;
@@ -851,7 +829,7 @@ score_character_sprite_init_loop:
                 s16 signedValue;
                 s32 drawY;
 
-                (value = (result.field6), signedValue = (s16)value);
+                (value = (result.spottedScore), signedValue = (s16)value);
                 ((drawY) = (-0x24));
                 drawnSprite->x = resultX;
                 ((drawnSprite)->y = (-0x24));

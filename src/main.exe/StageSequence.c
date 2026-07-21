@@ -69,23 +69,6 @@
  *    them through a shared base.
  */
 
-typedef struct
-{
-    u8 bosses;
-    u8 enemies;
-    u8 hidden_finds;
-    u8 murders;
-    u8 criticals;
-    u8 friendly_hits;
-    u8 pad[2];
-    s32 clock;
-} ScoreStats;
-
-typedef struct
-{
-    u16 value[6];
-} ScoreResult;
-
 extern Humanoid *StagePlayer;
 extern EventSeqType *D_80097F78[2];
 extern Humanoid *D_80097F80[2];
@@ -319,7 +302,7 @@ active_events:
 
                     score = calculate_score(init_score_stats(&score_stats),
                                             (s16)StageID);
-                    sid = 5 - score->value[5];
+                    sid = 5 - (u16)score->grade;
                 }
                 if (CVAsequence((s16)sid) != 0)
                 {

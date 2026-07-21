@@ -98,6 +98,30 @@ struct ArcFile
     s32 entry[1];                 /* 0x04: offset before fixup, pointer after */
 };                                /* 0x08 */
 
+/* Retail's end-of-stage counters and calculated score components. */
+typedef struct ScoreStats ScoreStats;
+struct ScoreStats
+{
+    u8 stageBosses;               /* 0x00 */
+    u8 stageEnemies;              /* 0x01 */
+    u8 findEnemies;               /* 0x02 */
+    u8 murders;                   /* 0x03 */
+    u8 criticals;                 /* 0x04 */
+    u8 friendHits;                /* 0x05 */
+    s32 clock;                    /* 0x08 */
+};                                /* 0x0C */
+
+typedef struct ScoreResult ScoreResult;
+struct ScoreResult
+{
+    u16 criticalScore;            /* 0x00 */
+    u16 murderScore;              /* 0x02 */
+    u16 friendPenalty;            /* 0x04 */
+    u16 spottedScore;             /* 0x06 */
+    u16 score;                    /* 0x08 */
+    s16 grade;                    /* 0x0A */
+};                                /* 0x0C */
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType

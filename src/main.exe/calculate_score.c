@@ -18,28 +18,6 @@
  *    halfword, while the direct first-component read preserves the original
  *    shared high-address register.
  */
-typedef struct
-{
-    u8 bosses;
-    u8 enemies;
-    u8 hidden_finds;
-    u8 murders;
-    u8 criticals;
-    u8 friendly_hits;
-    u8 pad[2];
-    s32 clock;
-} ScoreStats;
-
-typedef struct
-{
-    u16 critical_score;
-    u16 murder_score;
-    u16 friendly_penalty;
-    s16 spotted_score;
-    u16 total;
-    u16 rank;
-} ScoreResult;
-
 extern ScoreResult STAGE_SCORE_COMPONENTS;
 extern void *memset(void *s, s32 c, u32 n);
 
@@ -53,11 +31,11 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
     u8 hidden;
 
     store_result = &STAGE_SCORE_COMPONENTS;
-    store_result->critical_score = stats->criticals * 20;
-    store_result->murder_score = stats->murders * 5;
-    store_result->friendly_penalty = stats->friendly_hits * -30;
+    store_result->criticalScore = stats->criticals * 20;
+    store_result->murderScore = stats->murders * 5;
+    store_result->friendPenalty = stats->friendHits * -30;
 
-    hidden = stats->hidden_finds;
+    hidden = stats->findEnemies;
     spotted = 400;
     
     if (hidden != 0)
@@ -75,32 +53,32 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
     penalty = spotted - penalty;
     if (spotted != 0)
     {
-        store_result->spotted_score = penalty;
+        store_result->spottedScore = penalty;
     }
     else
     {
-        store_result->spotted_score = penalty;
+        store_result->spottedScore = penalty;
     }
     result = &STAGE_SCORE_COMPONENTS;
-    if (result->spotted_score < 0)
+    if ((s16)result->spottedScore < 0)
     {
-        result->spotted_score = 0;
+        result->spottedScore = 0;
     }
 
-    result->total = STAGE_SCORE_COMPONENTS.critical_score + result->murder_score +
-                    result->friendly_penalty + (u16)result->spotted_score;
-    score = (s16)result->total;
+    result->score = STAGE_SCORE_COMPONENTS.criticalScore + result->murderScore +
+                    result->friendPenalty + (u16)result->spottedScore;
+    score = (s16)result->score;
     if (score < 0)
     {
         score = 0;
     }
-    result->rank = score / 100;
-    if ((s16)result->rank > 4)
+    result->grade = score / 100;
+    if ((s16)result->grade > 4)
     {
-        result->rank = 4;
+        result->grade = 4;
     }
 
-    if (stats->bosses + stats->enemies == 0)
+    if (stats->stageBosses + stats->stageEnemies == 0)
     {
         memset(result, 0, sizeof(*result));
     }
