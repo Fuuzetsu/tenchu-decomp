@@ -53,10 +53,8 @@
  * via plain `ply + 1` pointer arithmetic) — same local `POLY_XF4`/`POLY_F4`/
  * `DR_TPAGE` layout shared in game_types.h.
  *
- * Ghidra renders `(CamState.Owner)->model->locate.coord.t[0/2]` for the
- * mode-2 draw call's first two args. The raw asm reaches that same aliased
- * cell through `CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]` (the
- * already-proven alias at 0x80089F00). `->model` is item.h's
+ * The mode-2 draw call's first two args come from
+ * `CamState.Owner->model->locate.coord.t[0/2]`. `->model` is item.h's
  * `ModelArchiveType *model` @0x58, and
  * `.locate.coord.t[0]/.t[2]` are the MATRIX translation X/Z (offsets
  * 0x18/0x20 from `model`, matching the raw `lw 0x18(v1)`/`lw 0x20(v1)`).
@@ -83,20 +81,9 @@
  * repeated-constant registers to the wrong class (a0/v1 swapped),
  * cascading through ~15 register-only diffs; interleaved order matches
  * the target exactly with no register diffs at all.
- *
- * The alias must be declared as an unknown-size pointer array and read via
- * `[0]`, as in create_ninken_character_. A scalar-pointer declaration leaves
- * `lw ...,CURRENTLY_SELECTED_CHARACTER_STATE_PTR` as one assembler pseudo-op,
- * so reorg instead puts `D_8008E50C`'s `%hi` producer in the case-2 test
- * branch delay slot; maspsx later expands the pointer load in the case body
- * and the resulting load-use hazard needs an extra `nop`. The array form makes
- * cc1 split the alias address itself. Reorg then hoists its `lui` into the
- * test delay slot and leaves the table `lui` to fill the model-pointer load
- * delay, removing the extra instruction and reproducing all 532 bytes.
  */
 extern s32 D_80097F6C;
 extern s32 D_80097F70;
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern s32 D_8008E50C[][4];
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
@@ -160,8 +147,8 @@ void PutMap(void)
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
-        FUN_8003d768(CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model->locate.coord.t[0],
-                     CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model->locate.coord.t[2],
+        FUN_8003d768(CamState.Owner->model->locate.coord.t[0],
+                     CamState.Owner->model->locate.coord.t[2],
                      D_8008E50C[StageID]);
         break;
     }

@@ -26,10 +26,7 @@
  *    shape is cc1's own doing, invisible from source order.
  *  - No default: falling out of all three cases (or matching none) reaches
  *    the shared "always redraw" tail directly, exactly like ProcItemMakibishi.
- *  - `item->owner == CURRENTLY_SELECTED_CHARACTER_STATE_PTR` is a DIFFERENT
- *    symbol name than CamState.Owner despite being the identical address
- *    (0x80089f00 = CamState + 0x10): this item TU names it independently,
- *    like ActionHalt/FRAMES_UNTIL_END_OF_ALERT naming per-TU.
+ *  - The local-player test uses the recovered shared `CamState.Owner` field.
  *  - The countdown test uses the OLD (pre-decrement) count, and the
  *    decrement is written `count + 0xff` (not `count - 1`): the literal
  *    0x00FF (not sign-extended -1) is the actual encoded immediate —
@@ -76,7 +73,6 @@
 
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 
 void ProcItemLightningBolt(TItem *item)
 {
@@ -96,7 +92,7 @@ void ProcItemLightningBolt(TItem *item)
     case 0:
         param->count = 0xf;
         item->mode = item->mode + 1;
-        if (item->owner == CURRENTLY_SELECTED_CHARACTER_STATE_PTR)
+        if (item->owner == CamState.Owner)
         {
             SoundEx((VECTOR *)0, 0x39);
         }
@@ -241,7 +237,7 @@ void ProcItemLightningBolt(TItem *item)
 // ? SetImpact(void *, ?, ?);                          /* extern */
 // ? SetLightning(void *, void *, ?, ?, s32);          /* extern */
 // ? SoundEx(?, ?, ?);                                 /* extern */
-// extern s32 CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+// extern TCameraStatus CamState;
 // extern ? D_800121CC;
 // extern ? ConflictObject;
 // extern s32 GameClock;
@@ -264,7 +260,7 @@ void ProcItemLightningBolt(TItem *item)
 //     case 0x0:
 //         temp_s1->unk18 = 0xFU;
 //         arg0->unk54 = (u8) (arg0->unk54 + 1);
-//         if (arg0->unk0 == CURRENTLY_SELECTED_CHARACTER_STATE_PTR) {
+//         if (arg0->unk0 == CamState.Owner) {
 //             SoundEx(0, 0x39, 0x64);
 // block_14:
 //         }

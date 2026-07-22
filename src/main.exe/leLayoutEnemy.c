@@ -43,8 +43,6 @@
 
 #include "item.h"
 
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
-
 extern void FUN_80039c14(void);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void *valloc(u32 size);
@@ -120,7 +118,7 @@ void leLayoutEnemy(int mode)
             {
                 human->model->rotate.vy = en->r;
             } while (0);
-            owner_model = CURRENTLY_SELECTED_CHARACTER_STATE_PTR->model;
+            owner_model = CamState.Owner->model;
             human->attribute |= 0x80;
             human->target = (ModelType *)owner_model;
             human->model->object[0]->attribute &= 0xBFFF;

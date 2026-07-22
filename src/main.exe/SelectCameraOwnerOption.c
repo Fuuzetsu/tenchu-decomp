@@ -56,10 +56,8 @@
  *    TAdtSelect[36] rather than PSX.SYM's [31].  `msg[35][10]` occupies 350
  *    bytes and its stack object rounds to 0x160, yielding the observed frame
  *    (0x2A8 = args/pad + targets 0x120 + msg 0x160 + 5 saved regs + pad).
- *  - `CamState.Owner = (Humanoid *)AdtSelect(...)` writes the SAME address a
- *    different TU's small `CURRENTLY_SELECTED_CHARACTER_STATE_PTR` aliases
- *    (cookbook: cross-TU field aliasing) — write it as CamState.Owner, the
- *    proven shared struct, not a separate symbol.
+ *  - `CamState.Owner = (Humanoid *)AdtSelect(...)` writes the recovered
+ *    shared camera field, not a separate object at its interior address.
  *  - The three `CamState.Owner->model->locate.coord.t[i]` reads are kept as
  *    three independent, uncached expressions (no `model` temp): the asm
  *    reloads Owner->model fresh via v0 (Owner) for EACH of the three t[i]

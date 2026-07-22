@@ -36,16 +36,9 @@
  *    `jal SoundEx` tail (leaving the delay slot a nop), so each branch
  *    materialises its own `a0 = 0`; the shared-call form instead hoists a
  *    single `a0 = 0` into the merged jal's delay slot (17-byte diff).
- *  - **The item pointer MUST be reached as `CamState.Owner` (a nonzero +0x10
- *    struct-member load), NOT the offset-0 alias symbol
- *    CURRENTLY_SELECTED_CHARACTER_STATE_PTR (@0x80089f00 == &CamState.Owner).**
- *    They resolve to the same address, but the alias compiles the pointer
- *    load offset-0 (`lui a2,%hi; lw a2,%lo(a2)` — hi folded into the dest
- *    register), while the +0x10 member load splits the base into a separate
- *    register (`lui v1,%hi(CamState); lw a2,0x10+%lo(v1)`), which is the
- *    target's exact 2-byte-different reload choice. NEW RULE candidate:
- *    an offset-0 alias vs the enclosing struct's nonzero-offset member is a
- *    real source lever over the -msplit-addresses hi-register choice.
+ *  - The item pointer is reached through the recovered `CamState.Owner`
+ *    field.  Its nonzero member access gives the target's separate base and
+ *    destination registers without inventing a second object at +0x10.
  */
 typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;  /* 0xC8 */
 typedef struct { TAdtSelect e[4]; } MENU_COUNT_TBL;  /* 0x20 */

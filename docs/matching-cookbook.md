@@ -1651,9 +1651,9 @@ encodes the original TU's smalls (toolchain.md has the full story;
 missing entry silently relocates whole regions, 388 symbols once). The
 load-bearing fix is the matched function's OWN gp list; symbol pinning and
 sibling-stub entries are defensive no-ops (established by independent
-removal). Cross-TU aliasing reaches struct FIELD addresses
-(`CURRENTLY_SELECTED_CHARACTER_STATE_PTR` = `CamState.Owner`) — check a mystery
-symbol's arithmetic against proven layouts first. Split-address consequences
+removal). Auto-labeled data symbols can land on struct FIELD addresses
+(`0x80089f00` is `CamState.Owner`) — check a mystery symbol's arithmetic
+against proven layouts first. Split-address consequences
 and declaration levers: §3.12 and compiler-facts. gp-output aggregates whose
 fields splat auto-named as drifted `D_` symbols: bind ONE fresh correct-address
 name and declare the real SVECTOR (GetConflictResult). Stock PsyQ objects may

@@ -17,10 +17,9 @@
  *    index locals. Reusing one set across both phases joins their pseudos,
  *    rotates the caller-saved registers, and fills three target load-delay
  *    nops; distinct source identities reproduce the exact allocation.
- *  - CURRENTLY_SELECTED_CHARACTER_STATE_PTR is an unknown-size array in this
- *    TU so split-address formation matches the target.
+ *  - The selected character model is read through the recovered shared
+ *    `CamState.Owner` field.
  */
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern HenshinModelSnapshot D_800C0630;
 extern HenshinModelSnapshot D_800C06F0;
@@ -35,7 +34,7 @@ void create_ninken_character_(s16 type, s32 stage)
         HenshinModelSnapshot *saved;
         s32 i;
 
-        model = CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model;
+        model = CamState.Owner->model;
         i = 0;
         saved = &D_800C0630;
         saved->waist = model->rotate.pad;
@@ -151,7 +150,7 @@ void create_ninken_character_(s16 type, s32 stage)
 //
 // void *BreedLife(u8, ?, ?, ?, s32);                  /* extern */
 // ? KillHumanoid(void *);                             /* extern */
-// extern void *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+// extern TCameraStatus CamState;
 // extern ? D_8008E3EC;
 // extern s32 D_800C0630;
 // extern s32 D_800C06F0;
@@ -171,7 +170,7 @@ void create_ninken_character_(s16 type, s32 stage)
 //
 //     temp_v0 = BreedLife(0xA9U, 0xF3E58, 0xF3E58, 0xF3E58, 0);
 //     temp_v0->unk4 = (u16) (temp_v0->unk4 | 0x80);
-//     temp_a1 = CURRENTLY_SELECTED_CHARACTER_STATE_PTR->unk58;
+//     temp_a1 = CamState.Owner->unk58;
 //     var_a2 = 0;
 //     NINKEN_CHARACTER_PTR = temp_v0;
 //     D_800C0630 = (s32) temp_a1->unk56;

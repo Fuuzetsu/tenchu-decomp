@@ -6,7 +6,6 @@ register, while the target retains a separate base register because the source
 accessed a nonzero field of an enclosing global struct. This command turns the
 otherwise manual symbol-file scan into a bounded query::
 
-    tools/symnear.py SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_
     tools/symnear.py CHOSEN_CHARACTER CHOSEN_LANGUAGE
     tools/symnear.py 0x80089f04 --before 0x40 --after 0x10
 

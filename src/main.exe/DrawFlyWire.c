@@ -149,7 +149,7 @@ void DrawFlyWire(TEffectSlot *ef)
 // ? SetWire(void *, void *, s32 *, s16);              /* extern */
 // ? Sound(s32, ?);                                    /* extern */
 // ? memset(s32 *, ?, ?);                              /* extern */
-// extern s32 CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+// extern TCameraStatus CamState;
 //
 // void DrawFlyWire(s32 *arg0) {
 //     s32 sp18;
@@ -176,7 +176,7 @@ void DrawFlyWire(TEffectSlot *ef)
 //             temp_s0->unk40 = 0;
 //             temp_s0->unk44 = (u8) (temp_s0->unk44 + 1);
 //             SetBleeds(arg0 + 0x14, 0, 0x32, 0xA, 0x1E, 0xFFFF00);
-//             Sound(CURRENTLY_SELECTED_CHARACTER_STATE_PTR, 0x31);
+//             Sound(CamState.Owner, 0x31);
 //             return;
 //         }
 //         SetWire(temp_s0, arg0 + 0x14, arg0 + 0x24, temp_v0);

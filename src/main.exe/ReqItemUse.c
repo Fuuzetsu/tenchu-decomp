@@ -193,15 +193,10 @@
  *  - The camera-check template is ReqItemDefault.c's idiom verbatim; the
  *    `st = (VECTOR *)&param;` pointer temp before the guard puts &param in
  *    a callee-saved reg across GetVectorRotation (guard delay slot addiu).
- *  - The p->user == CamState.Owner guard in case 1 reads the OFFSET-0 ALIAS
- *    CURRENTLY_SELECTED_CHARACTER_STATE_PTR and must be spelled as an
- *    UNKNOWN-SIZE ARRAY extern (`extern Humanoid *SYM[]; ... SYM[0]`) so the
- *    load is the two-insn split-address form whose halves sched1 can
- *    interleave with the p->user load ([lui][lw user][lw %lo]); a plain
- *    small extern is ONE macro load insn and cannot interleave. Same
- *    respell for SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[0] = 3
- *    (teleport's CamState.Mode store, lui+sw split, sw stolen into the
- *    break jump's delay slot).
+ *  - The owner guard and teleport transition use the recovered
+ *    `CamState.Owner` and `CamState.Mode` fields.  `CMODE_SIGHT` names the
+ *    latter's retail value 3, and the ordinary member accesses reproduce the
+ *    target's split-address schedule without separate alias objects.
  *  - The four pool-claim cases are ReqItemKusuri/Makibishi/Happou's matched
  *    idiom verbatim (cur/it split unnecessary here: single `it`); napalm's
  *    `pp` sits at the found: label like shuriken's nested `param`; reorg
@@ -229,8 +224,6 @@
 
 #include "item.h"
 
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[]; /* == CamState.Owner */
-extern s32 SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[]; /* == CamState.Mode */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
@@ -343,7 +336,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ty;
         s32 i;
 
-        if (p->user == CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0])
+        if (p->user == CamState.Owner)
         {
             param_launch *param;
 
@@ -881,7 +874,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         UpdateCoordinate(it->locate);
         it->collision.size = 0;
         it->model = 0;
-        SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[0] = 3;
+        CamState.Mode = CMODE_SIGHT;
         break;
     }
     case 3: /* KUSURI */

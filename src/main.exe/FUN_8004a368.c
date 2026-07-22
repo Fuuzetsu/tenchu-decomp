@@ -8,10 +8,8 @@
  * index DoInfoViewProc's cursor wraps at, i.e. this repurposes the array's
  * spare slot as a plain flag, not a real item count): mode 0 clears it,
  * mode 1 reports whether it's == 1, anything else complains via
- * AdtMessageBox. A NULL humanoid arg defaults to the currently-controlled
- * character (CURRENTLY_SELECTED_CHARACTER_STATE_PTR — same absolute
- * address as CamState.Owner; ProcItemLightningBolt's header documents the
- * two independently-named aliases of 0x80089f00).
+ * AdtMessageBox. A NULL humanoid arg defaults to `CamState.Owner`, the
+ * currently controlled character.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - Ghidra's `field_0xcd`/m2c's `unkCD` is item.h's proven `item[0x1A]`
@@ -40,28 +38,10 @@
  *    reassigning the parameter — it ends up hard-allocated to $v0 (dead by
  *    the time `ret0:` reuses $v0 for the return value), whereas case1
  *    keeps reassigning `arg1` itself (stays in $a1, its parameter home).
- *    Both read identically in C; only the register outcome differs.
- *  - **case1's reload of the currently-selected character MUST be spelled
- *    `CamState.Owner` (the nonzero +0x10 struct-member load), NOT the
- *    offset-0 alias `CURRENTLY_SELECTED_CHARACTER_STATE_PTR`, even though
- *    they are literally the same address (0x80089f00).** Under
- *    -msplit-addresses, the offset-0 alias folds `%hi` into the
- *    destination register (`lui a1,%hi; lw a1,%lo(a1)` — what case0's
- *    `p` reload correctly wants, and what this residual WRONGLY produced
- *    when case1 also used the alias), while the +0x10 struct-member load
- *    splits the base into a separate scratch register (`lui v0,%hi
- *    (CamState); lw a1,0x10+%lo(v0)`), which is the target's actual
- *    2-byte-different reload. Same lever as CheckCheatCodes's
- *    `CamState.Owner` requirement; confirms the rule generalizes to a
- *    SECOND function reaching the SAME 0x80089f00 cell two different ways
- *    in the SAME source file (case0 via the alias, case1 via the
- *    struct-member) — the earlier NON_MATCHING note calling this
- *    "permuter-immune with no source lever" was wrong; a 42k-iteration
- *    permuter run also plateaued flat at the baseline score, confirming
- *    this class needs the alias/struct-member lever, not permutation.
+ *    Both fallbacks still use the shared `CamState.Owner` field; the distinct
+ *    local identities are enough to produce the target's register forms.
  */
 
-extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80012224[]; /* "not support yet %d" */
 
@@ -77,7 +57,7 @@ case0:
     {
         Humanoid *p = arg1;
         if (p == 0)
-            p = CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
+            p = CamState.Owner;
         p->item[0x19] = 0;
     }
     goto ret0;
