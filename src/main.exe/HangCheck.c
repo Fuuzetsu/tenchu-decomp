@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -153,8 +154,6 @@
 extern s16 motID;
 extern Humanoid *Me_MOTION_C;
 extern s16 motMODE;
-
-extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
 
 short HangCheck(void)
 {

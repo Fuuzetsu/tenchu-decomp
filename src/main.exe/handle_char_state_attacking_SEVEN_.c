@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /*
@@ -30,7 +31,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 
 void handle_char_state_attacking_SEVEN_(s16 frame)
 {

@@ -92,7 +92,6 @@ extern u16 D_80097F18[2];
 extern s32 D_80097F1C;
 
 extern s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree);
-extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern void reset_alert_duration();
 extern s16 Think2confirm(void);
 extern s16 think_setting_small_rotation_small_steps_(void);

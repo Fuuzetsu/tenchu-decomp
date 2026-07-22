@@ -50,7 +50,6 @@
 
 extern s16 D_80097CC8;
 
-extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);
 extern void Camera(void);
 
 void AVCameraControl(void)

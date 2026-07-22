@@ -77,8 +77,6 @@
 
 
 
-extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);
-
 void AVCameraSetup(void)
 {
     CVAType *event;

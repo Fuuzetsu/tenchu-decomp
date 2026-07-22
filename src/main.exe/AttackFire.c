@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -61,7 +62,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void AttackFire(s16 sfrm, s16 efrm)

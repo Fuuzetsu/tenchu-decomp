@@ -55,7 +55,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
-extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
 
 /* Jump-state motion, collision response, air steering, and landing control. */
 void ActJUMP(void)

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -68,8 +69,6 @@
  * away.  This shape and the s16 call prototype must be changed together.
  */
 extern s16 Think1random(void);
-extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
-
 s16 Think1ninja(void)
 {
     u8 actscnt;

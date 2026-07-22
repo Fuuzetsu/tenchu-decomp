@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -84,7 +85,6 @@ extern s16 dtPAD;
 extern s32 D_80097EF0;
 
 extern MapVector *StickonCheck(void);
-extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *item);
 extern int ReqItemFire(PARAM_ITEM_LAUNCH *item);
 extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *item);

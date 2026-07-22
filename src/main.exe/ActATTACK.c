@@ -101,7 +101,6 @@ extern void handle_char_state_attacking_SEVEN_(s16 frame);
 extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
-extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
