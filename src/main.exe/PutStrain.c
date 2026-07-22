@@ -59,9 +59,9 @@ extern s16 SoundEx(VECTOR *locate, s16 seid);
  * strain-proportional factor, then GsSortSprite'd.
  *
  * Matching notes:
- *  - `GameClock == (GameClock / 30) * 30` is EndDrawing.c's proven div-by-30
- *    modulo-test spelling (the magic-multiply reproduces from the literal
- *    div/mul, not `% 30 == 0`).
+ *  - `GameClock == (GameClock / speed) * speed` is EndDrawing.c's proven
+ *    div-by-30 modulo-test spelling (the magic-multiply reproduces from the
+ *    div/mul, not `% speed == 0`).
  *  - The digit loop is PutNumber.c's own do-while shape (goto-free real
  *    do-while; `r` is the quotient, reused as the next iteration's dividend
  *    exactly like PutNumber's `q`).
@@ -73,7 +73,7 @@ extern s16 SoundEx(VECTOR *locate, s16 seid);
  *  - The phase-advance uses `delta` ADJUSTED (+0x1f when negative, an
  *    arithmetic-shift-rounds-toward-negative-infinity correction before the
  *    `>>5`), but the scale factor uses the RAW (unadjusted) `delta` — two
- *    separate reads of the same "20000-ratio" expression, not one shared
+ *    separate reads of the same `powrange - ratio` expression, not one shared
  *    temp.
  *  - CRITICAL: `NumberImage.u` is NOT read/restored globally — Ghidra's
  *    `uVar1 = NumberImage.u;` at the very top (before the StrainRatio
