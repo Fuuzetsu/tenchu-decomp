@@ -129,7 +129,7 @@ void ActATTACK(void)
   AfterimageType *ilu;
   int iVar15;
   ModelType **object;
-  ModelType *pMVar17;
+  ModelType *target;
   short sVar18;
   BattleType *battle;
   ModelType *hand[2];
@@ -165,16 +165,16 @@ void ActATTACK(void)
   human = Me_MOTION_C;
   sVar7 = human->warid;
   battle = &BattleDB[sVar7];
-  pMVar17 = human->target;
+  target = human->target;
   }
-  if (((pMVar17 != (ModelType *)0x0) && (dtM->count < battle->revise)) && (-1 < dtM->count))
+  if (((target != (ModelType *)0x0) && (dtM->count < battle->revise)) && (-1 < dtM->count))
   {
     Humanoid *human;
     short turn;
     short direction;
 
-    direction = GetDirection((pMVar17->locate).coord.t[0] - dtL->vx,
-                             (pMVar17->locate).coord.t[2] - dtL->vz,dtR->vy);
+    direction = GetDirection((target->locate).coord.t[0] - dtL->vx,
+                             (target->locate).coord.t[2] - dtL->vz,dtR->vy);
     human = Me_MOTION_C;
     turn = human->turn;
     if ((int)direction > (int)turn) {
@@ -631,6 +631,7 @@ LAB_80022780:
   case 0x19: {
     int conflict_id;
     Humanoid *human;
+    ModelType *waist;
     short saved_mid;
     u32 shifted_mid;
     short motion_flag;
@@ -645,7 +646,7 @@ LAB_80022780:
     if ((dtM->loop == 0) && (dtL->vy == (Me_MOTION_C->target->locate).coord.t[1])) {
       return;
     }
-    pMVar17 = *Me_MOTION_C->model->object;
+    waist = *Me_MOTION_C->model->object;
     ActionHalt = 0;
     conflict_id = (int)(*Me_MOTION_C->model->object)->id;
     if (-1 < conflict_id) {
@@ -653,8 +654,8 @@ LAB_80022780:
       dtL->vz = ConflictObject[conflict_id].position.vz;
     }
     (void)*(Humanoid * volatile *)&Me_MOTION_C;
-    (pMVar17->locate).coord.t[2] = 0;
-    (pMVar17->locate).coord.t[0] = 0;
+    (waist->locate).coord.t[2] = 0;
+    (waist->locate).coord.t[0] = 0;
     ReturnNormal();
     saved_mid = motID;
     motion_flag = motMODE;
