@@ -46,18 +46,18 @@
  * item. Same item-TU pool round-robin on ic and the same
  * dispose-on-exhaustion block as ReqItemJirai/ReqItemShinsoku; unlike those
  * twins, kusuri is a plain "use" item with no rolling/placement physics: it
- * never touches it->param at all (no param_korogari view, no end-vector
+ * never touches item->param at all (no param_korogari view, no end-vector
  * store, no hint/status/count) — confirmed by tools/access.py, whose last
- * body access is the ItemImage[it->type] model load, immediately followed
+ * body access is the ItemImage[item->type] model load, immediately followed
  * by the epilogue register reloads. It gets ProcItemKusuri as its processor
  * and returns 1 on the normal path (like Jirai; Shinsoku is the outlier that
  * returns 0 on both paths).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as Jirai/Shinsoku.
- *  - us/ty are real temps, same shape as the other twins.
- *  - `it->locate` is NOT cached into a pointer temp: it is reloaded fresh at
+ *  - aowner/atype are real temps, same shape as the other twins.
+ *  - `item->locate` is NOT cached into a pointer temp: it is reloaded fresh at
  *    every one of its 5 textual uses (t[0]/t[1]/t[2]/super/UpdateCoordinate
  *    argument) — access.py shows 5 separate `lw $s0,0x10` reloads. The very
  *    first of those reloads is scheduled by cc1 BEFORE the proc/mode/type
@@ -66,7 +66,7 @@
  *    owner/proc/mode/type/coord order and let the scheduler do this, exactly
  *    like Jirai.
  *  - no `pp`/param_korogari view at all — this function has nothing to do
- *    with it->param.
+ *    with item->param.
  */
 extern void ProcItemKusuri(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
@@ -74,10 +74,10 @@ extern void ProcItemKusuri(TItem *item);
 
 int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    TItem *item;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 i;
 
     i = 0;
@@ -86,39 +86,39 @@ int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    if (it == 0)
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemKusuri;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemKusuri;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
     return 1;
 }
