@@ -609,9 +609,9 @@ draw_done:
 //   (ef->param).blood.pz = (ef->param).blood.pz + (int)(ef->param).blood.vz;
 //   (&sprBlood)[uVar5].rotate = (ef->param).blood.rotate;
 //   _29_00->attribute = 0;
-//   (&sprBlood)[uVar5].r = (ef->param).blood.mode;
-//   (&sprBlood)[uVar5].g = (ef->param).blood.mode;
-//   (&sprBlood)[uVar5].b = (ef->param).blood.mode;
+//   (&sprBlood)[uVar5].r = (u8)(ef->param).blood.brightness;
+//   (&sprBlood)[uVar5].g = (u8)(ef->param).blood.brightness;
+//   (&sprBlood)[uVar5].b = (u8)(ef->param).blood.brightness;
 //   iVar7 = (ef->param).blood.scale;
 //   GetScreenPosition((ef->param).blood.px,(ef->param).blood.py,(ef->param).blood.pz,&local_48);
 //   iVar6 = (int)local_48.vz;

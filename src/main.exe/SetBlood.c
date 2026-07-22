@@ -102,7 +102,7 @@ void SetBlood(VECTOR *pos, short n, short time)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    BloodType *fp;
+    BloodType *blood;
     struct AreaNodeType *hint;
     short i;
     int half;
@@ -144,32 +144,32 @@ outer:
         } while (count < 200);
         ef = &dmy;
     found:
-        fp = &ef->param.blood;
+        blood = &ef->param.blood;
         do
         {
-            fp->sprite = rand() % 2;
-            fp->scale = rand() % 4096 + 0x2000;
-            fp->rotate = (rand() % 360) * 0x1000;
-            fp->px = pos->vx;
-            fp->py = pos->vy;
-            fp->pz = pos->vz;
-            fp->vx = rand() % 120 - 60;
-            fp->vy = rand() % 60 - 120;
-            fp->vz = rand() % 120 - 60;
+            blood->sprite = rand() % 2;
+            blood->scale = rand() % 4096 + 0x2000;
+            blood->rotate = (rand() % 360) * 0x1000;
+            blood->px = pos->vx;
+            blood->py = pos->vy;
+            blood->pz = pos->vz;
+            blood->vx = rand() % 120 - 60;
+            blood->vy = rand() % 60 - 120;
+            blood->vz = rand() % 120 - 60;
             half = time / 2;
             half2 = time - half;
             if (0 < half2)
             {
-                fp->time = rand() % half2 + half;
+                blood->time = rand() % half2 + half;
             }
             else
             {
-                fp->time = half;
+                blood->time = half;
             }
             i = i + 1;
-            fp->brightness = 0x80;
-            fp->hint = hint;
-            fp->mode = 0;
+            blood->brightness = 0x80;
+            blood->hint = hint;
+            blood->mode = 0;
             ef->proc = (void (*)())DrawBlood;
         } while (0);
     }

@@ -264,13 +264,13 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 //     (ptVar7->param).blood.vz = 0x50;
 //     (ptVar7->param).blood.time = 0x2000;
 //     (ptVar7->param).blood.vx = 0x2000;
-//     *(undefined1 *)((int)&ptVar7->param + 0x22) = 3;
+//     (ptVar7->param).impact.time = 3;
 //     (ptVar7->param).blood.pz = (long)param_1;
 //     (ptVar7->param).blood.vy = 0;
-//     (ptVar7->param).blood.scale = 0x808080;
-//     (ptVar7->param).blood.rotate = 0x808080;
-//     (ptVar7->param).blood.bright = '\0';
-//     (ptVar7->param).blood.mode = '\x02';
+//     (ptVar7->param).impact.start_color.word = 0x808080;
+//     (ptVar7->param).impact.end_color.word = 0x808080;
+//     (ptVar7->param).impact.count = 0;
+//     (ptVar7->param).impact.type = 2;
 //     *(int *)((int)&ptVar7->param + 8) = (int)sVar3;
 //   }
 //   return;

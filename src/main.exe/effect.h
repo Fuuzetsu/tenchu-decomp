@@ -2,10 +2,10 @@
 #define EFFECT_H
 
 /* EFFECT.C's effect-slot pool. PSX.SYM supplies the original effect records
- * and union members; retail expands the impact record and adds snow,
- * flat-quad, and packed texture-scroll state. FlyWireType keeps the union at
- * its proven 72-byte size, making tag_EffectSlot's indexed pool stride 76
- * bytes. */
+ * and union members; retail redesigns and extends the impact record and adds
+ * snow, flat-quad, and packed texture-scroll state. FlyWireType keeps the
+ * union at its proven 72-byte size, making tag_EffectSlot's indexed pool
+ * stride 76 bytes. */
 
 struct AreaNodeType; /* opaque here: only ever stored, never dereferenced */
 
@@ -40,7 +40,7 @@ enum
     MaxFrames = 4
 };
 
-/* Retail's expanded version of PSX.SYM's ImpactType. */
+/* Retail's redesigned and extended version of PSX.SYM's ImpactType. */
 struct ImpactType /* size 36 */
 {
     s32 px;                    /* +0x00 */
