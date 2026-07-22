@@ -38,7 +38,6 @@
  * END PSX.SYM */
 
 extern Humanoid *Me_THINK_C;
-extern Humanoid *StagePlayer;
 extern s16 SR;
 extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;

@@ -78,7 +78,6 @@
  *  - StageEvent/StagePlayer and the score counters are gp-relative in this
  *    translation unit; maspsxflags.py records that per-function list.
  */
-extern StageCharType StageChar[18];
 extern EventSeqType *D_80097F7C;
 extern s32 StageTime;
 extern s32 AttackActionCount;

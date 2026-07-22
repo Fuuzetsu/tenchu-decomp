@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "game_globals.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -44,7 +45,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern Humanoid *StagePlayer;
 extern s32 Distance;
 extern s16 Degree;
 extern s16 EngageLevel;

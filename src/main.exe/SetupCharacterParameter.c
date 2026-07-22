@@ -75,7 +75,6 @@
  */
 
 extern s16 NowStage;
-extern s16 *StageAppearance[];
 
 Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
 {

@@ -64,7 +64,6 @@ typedef struct ThinkDBtype
     s16 value;
 } ThinkDBtype;
 
-extern s16 *StageAppearance[];
 extern ThinkDBtype ThinkDB[20];
 extern s32 CurrentEnemyID;
 

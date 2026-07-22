@@ -77,7 +77,6 @@
  *    from cross-jumping the call itself with the other alert arms.
  */
 
-extern Humanoid *StagePlayer;
 extern Humanoid *Me_THINK_C;
 extern PADtype *Pad;
 extern s32 StrainRatio;
