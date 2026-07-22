@@ -17,16 +17,17 @@
  * ClearItemLayout (0x8004a500) — debug menu "clear item layout" action
  * (DoInfoViewProc's ItemLayoutMenu, case 1, after the "clear ok?" confirm
  * comes back true). Force-disposes every live slot in the item pool: for
- * each of the 30 slots with proc != 0, run its proc with
- * mode=ITEM_MODE_DISPOSE, delete
- * the conflict, complain if mode didn't clear, then clear owner/proc — the
+ * each of the 30 slots with proc != 0, run its proc with mode set to
+ * ITEM_MODE_DISPOSE, delete the conflict, complain if mode didn't clear,
+ * then clear owner/proc — the
  * identical dispose sequence as ReqItemDrop/ProcItemManebue/GetFreeItemSlot.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - A hand-rolled `label: ...; goto label;` loop, NOT a `for`/`while`: the
  *    target keeps ONE cursor register (`it`) with plain field offsets and
- *    never hoists the loop-invariant D_800121CC address or the 0xff
- *    constant out of the loop. A real for/while(1) here gets recognized by
+ *    never hoists the loop-invariant D_800121CC address or the
+ *    ITEM_MODE_DISPOSE constant (emitted as `li 0xff`) out of the loop. A
+ *    real for/while(1) here gets recognized by
  *    loop.c, which both strength-reduces `it->proc`'s repeated offset into a
  *    SECOND derived pointer (a giv alongside `it` itself) and hoists the
  *    invariants to a preheader — neither happens in the target, so no loop

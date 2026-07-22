@@ -13,9 +13,9 @@
  *
  * Matching notes (each verified against the original bytes; see also
  * ProcItemManebue.c for the item-TU conventions):
- *  - `ff` holds 0xFF in a callee-saved reg ($s4) across calls: used by the
- *    entry test and the drop path's `item->mode = ff`; mode 2's dispose writes
- *    a literal 0xff instead ($s4 is &buf by then).
+ *  - `ff` holds ITEM_MODE_DISPOSE in a callee-saved reg ($s4) across calls:
+ *    used by the entry test and the drop path's `item->mode = ff`; mode 2's
+ *    dispose rematerializes its 0xff value instead ($s4 is &buf by then).
  *  - The dispatch is a real `switch`: it reloads item->mode (fresh index load)
  *    and compares it SIGNED (slti) — an if-ladder CSEs the load and compares
  *    unsigned. Case bodies sit in source order (0, 1, 2).

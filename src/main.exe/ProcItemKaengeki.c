@@ -56,9 +56,10 @@
  *    expand_case emit the target's fresh second `lbu`; a direct switch after
  *    the entry guard incorrectly reuses the first load.
  *  - `ff` is an s32 caller-saved local in a1.  It remains live from the entry
- *    compare to mode 2's no-call dispose path, while mode 1 rematerializes a
- *    literal 0xff after its calls.  That difference keeps the two dispose
- *    prefixes separate while cross-jump merges them at the indirect call.
+ *    compare to mode 2's no-call dispose path, while mode 1 rematerializes
+ *    ITEM_MODE_DISPOSE as a fresh 0xff value after its calls. That difference
+ *    keeps the two dispose prefixes separate while cross-jump merges them at
+ *    the indirect call.
  *  - The completed request assigns user before type.  This prevents the
  *    type's `li 22` from filling the steering guard's delay slot and yields
  *    the target load/li/store ordering at the request head.

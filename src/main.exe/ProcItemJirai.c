@@ -105,7 +105,7 @@ void ProcItemJirai(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = ITEM_MODE_DISPOSE;
+    ff = 0xff;
     if (item->mode == ff)
     {
         item->mode = 0;

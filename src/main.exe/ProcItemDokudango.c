@@ -65,9 +65,9 @@ extern void Sound(Humanoid *human, s32 id);
 
 /*
  * Matching notes (2,468 bytes / 617 instructions):
- *  - The entry comparison and fast disposal use literal 0xff, allowing CSE to
- *    retain that value in $s1 across MoveKorogari.  The two later cleanup
- *    copies rematerialize their own literals in $v1.
+ *  - The entry comparison and fast disposal use ITEM_MODE_DISPOSE, allowing
+ *    CSE to retain its 0xff value in $s1 across MoveKorogari. The two later
+ *    cleanup copies rematerialize their own 0xff values in $v1.
  *  - Each cleanup tests and calls item->proc directly.  Combined with the
  *    literal stores, this keeps the indirect target in $v0 and lets jump2
  *    merge the fast cleanup into the final physical copy after its mode store.

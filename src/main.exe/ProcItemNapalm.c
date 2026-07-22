@@ -93,7 +93,7 @@ void ProcItemNapalm(TItem *item)
 
     sprt = (Sprite3D *)item->model;
     param = &item->param.napalm;
-    ff = ITEM_MODE_DISPOSE;
+    ff = 0xff;
     if (item->mode == ff)
     {
         item->mode = 0;

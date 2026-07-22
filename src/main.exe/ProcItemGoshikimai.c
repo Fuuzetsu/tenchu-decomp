@@ -38,8 +38,7 @@
  *    cached model/object pointer) — Ghidra's literal repetition is the
  *    source's real shape, not a decompiler artifact.
  *  - The dispose tail reuses `ff` (the same ITEM_MODE_DISPOSE local tested
- *    at entry) for
- *    `item->mode = ff`, like every other ProcItem*.
+ *    at entry) for `item->mode = ff`, like every other ProcItem*.
  */
 #include "item.h"
 

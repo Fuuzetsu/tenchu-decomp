@@ -6,7 +6,8 @@
  * processor. mode 0: reset the frame counter; mode 1: each frame spray 20
  * random SetBleed particles (color 0x64C8DC) around the owner, and after 0x1F
  * frames advance to mode 2; mode 2: dispose of the item (call its proc with
- * mode=0xFF, remove its collision, complain if the proc didn't clear mode).
+ * mode=ITEM_MODE_DISPOSE, remove its collision, complain if the proc didn't
+ * clear mode).
  *
  * Matching notes (all verified against the original bytes; this is
  * ProcItemKusuri's mode-2 bleed loop verbatim — see that file for the loop
@@ -14,8 +15,10 @@
  * &buf[0x10] and the %1000 magic divisor; the %10 magic stays inline; the
  * jitter is written `t[n] + (rand() % 1000 - K)` for fold's reassociation):
  *  - `param = &item->param.drop;` is declared before the entry
- *    0xFF test — reorg hoists the addiu into that branch's delay slot.
- *  - `ff` (u8, 0xFF) is caller-saved ($a1) here, unlike Kusuri's $s4: its
+ *    ITEM_MODE_DISPOSE test — reorg hoists the addiu into that branch's
+ *    delay slot.
+ *  - `ff` (u8, ITEM_MODE_DISPOSE) is caller-saved ($a1) here, unlike
+ *    Kusuri's $s4: its
  *    only uses are the entry compare and case 2's `item->mode = ff`, and no
  *    call intervenes on that path.
  *  - The dispatch is a real `switch` (fresh lbu + signed slti tree), bodies

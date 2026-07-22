@@ -13,9 +13,9 @@
  * Matching notes (all verified against the original bytes; this is
  * ProcItemKusuri's shape — see that file for the buf[0x28]-with-casts and
  * drop-path conventions, ProcItemKawarimi/ProcItemGun for the dispose tail):
- *  - `ff` (u8 0xFF) is callee-saved ($s4): entry compare + the cross-jumped
- *    dispose tail's `item->mode = ff` (both copies of the duplicated tail
- *    must spell `ff` or they don't merge).
+ *  - `ff` (u8 ITEM_MODE_DISPOSE) is callee-saved ($s4): entry compare + the
+ *    cross-jumped dispose tail's `item->mode = ff` (both copies of the
+ *    duplicated tail must spell `ff` or they don't merge).
  *  - Real `switch` (fresh lbu + slti tree), bodies in source order 0,1,2;
  *    cases 0 and 1 end in a literal duplicated `item->mode = item->mode + 1;
  *    return;` cross-jumped into case 1's copy.

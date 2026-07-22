@@ -55,10 +55,10 @@
  *
  * Matching notes (see docs/matching-cookbook.md; item-TU conventions as in
  * ProcItemKusuri/ProcItemManebue — no $gp here, ActionHalt is absolute):
- *  - `sprt`/`param` are assigned before the 0xff entry test (ReqItemDrop's
- *    double lever: the addiu fills the bne delay slot and the long live
- *    ranges demote both, so item/param land in $s3/$s4 after the shorter-lived
- *    case locals take $s0-$s2).
+ *  - `sprt`/`param` are assigned before the ITEM_MODE_DISPOSE entry test
+ *    (ReqItemDrop's double lever): the addiu fills the bne delay slot and the
+ *    long live ranges demote both, so item/param land in $s3/$s4 after the
+ *    shorter-lived case locals take $s0-$s2).
  *  - `sprt->locate = item->locate->locate` is the 0x50-byte GsCOORDINATE2
  *    struct assignment -> the 16-bytes-per-iteration word copy loop.
  *  - Both dispatches are real `switch`es (fresh index reload + signed slti).

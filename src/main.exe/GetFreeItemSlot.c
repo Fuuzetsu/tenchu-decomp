@@ -17,9 +17,8 @@
  * otherwise the counter advances and retries up to 0x1d times, and if the
  * whole pool stays busy the slot the counter last landed on is force-disposed
  * (identical dispose sequence to ReqItemDrop/ProcItemManebue: run its proc
- * with mode=ITEM_MODE_DISPOSE, delete the conflict, complain if mode didn't
- * clear, then
- * clear owner/proc) and returned anyway.
+ * with mode set to ITEM_MODE_DISPOSE, delete the conflict, complain if mode
+ * didn't clear, then clear owner/proc) and returned anyway.
  *
  * No caller for this function exists anywhere in the retail image (checked:
  * no `jal` and no raw address reference anywhere in main.exe, and none of
