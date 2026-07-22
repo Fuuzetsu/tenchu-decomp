@@ -26,7 +26,7 @@
 
 /*
  * GetVectorLength (0x80039944, 0x120 bytes) — magnitude of (dx,dy,dz),
- * clamping-then-scaling by 256 before the sqrt when any component would
+ * conditionally scaling down by 256 before the sqrt when any component would
  * overflow SquareRoot0's fixed-point input (component magnitude > 0x1000).
  *
  * Matching notes:
@@ -46,11 +46,12 @@
  *    short-circuit jumps straight to each body and is 8 bytes short (one
  *    fewer callee-saved register, no shared flag). The named `big` flag
  *    surviving across all three `abs()` calls is what puts it in $s3.
- *  - Each `if (v < 0) v = v + 0xff;` clamp is a default-then-override temp,
- *    not an in-place reassignment: `t = v; if (v < 0) t = v + 0xff; v = t
- *    >> 8;`. The target's delay-slot-filled `bgez` puts the *default* copy
- *    (`move v0,sN`) in the branch's delay slot (runs unconditionally) and
- *    only the fallthrough (v<0) path overwrites it — reassigning `v`
+ *  - Each `if (v < 0) v = v + div - 1;` signed-division adjustment is a
+ *    default-then-override temp, not an in-place reassignment: `t = v;
+ *    if (v < 0) t = v + div - 1; v = t >> 8;`. The target's delay-slot-filled
+ *    `bgez` puts the *default* copy (`move v0,sN`) in the branch's delay slot
+ *    (runs unconditionally), while only the fallthrough (v<0) path overwrites
+ *    it — reassigning `v`
  *    in place instead produces a shorter, wrong-shaped `addiu` with no
  *    delay-slot move.
  */

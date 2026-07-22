@@ -72,7 +72,7 @@
  *    creates the target's sixth saved register and exact s0-s5 allocation
  *    without any register-asm steering.
  *  - The three bleed jitter axes need distinct rand and base locals.  Each
- *    `base = blood->p? - 0x50` sits after rand in the C but schedules between
+ *    `base = blood->p? - R` sits after rand in the C but schedules between
  *    the multiply and its magic-divide tail, matching the target.  Reusing one
  *    rand/base local instead adds moves or delays the position load.
  *  - Write the final x integration before y even though the scheduled target
