@@ -14,7 +14,6 @@ extern Humanoid *D_8009770C;
 extern u16 D_80086B6C[8];
 
 extern int ReqLifeBar(Humanoid *h);
-extern void DeleteConflict(ModelType *model);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern void reset_alert_duration(void);
 extern void AttackCancelControl(s16 mode);

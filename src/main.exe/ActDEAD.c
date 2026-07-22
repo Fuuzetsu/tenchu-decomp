@@ -77,7 +77,6 @@ extern SVECTOR D_8009771C[];
 extern s32 rand(void);
 extern void *memset(void *dst, s32 value, u32 size);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
-extern void DeleteConflict(ModelType *model);
 extern void TurnAroundAllItems(Humanoid *human);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern int ReqLifeBar(Humanoid *h);

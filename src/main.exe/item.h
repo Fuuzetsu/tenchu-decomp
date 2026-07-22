@@ -365,7 +365,6 @@ extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemStay(PARAM_ITEM_STAY *p);
 extern void ReqItemDefault(Humanoid *user, TItemType item);
 extern TItemType GetItemType(s32 conflict_id);
-extern void DeleteConflict(ModelType *m);
 extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 extern void *memset(void *s, int c, u32 n);

@@ -22,7 +22,6 @@ extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern short DrawModel(ModelType *objp);
 

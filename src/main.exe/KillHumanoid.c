@@ -49,7 +49,6 @@
  *    test / `Humans - 1` capture — the same per-read-purpose disagreement
  *    as CreateHumanoid/InsertConflict.
  */
-extern void DeleteConflict(ModelType *m);
 extern void DisposeModelArchive(ModelArchiveType *mad);
 extern void DisposeMotionManager(MotionManager *mm);
 extern void dispose_weapon_data_of_char_(Humanoid *h, int a);

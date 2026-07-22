@@ -82,7 +82,6 @@ extern void PadProc(void);
 extern short StageSequence(void);
 extern void StageEndScreen(void);
 extern void start_demo_(void);
-extern void ComputeAllConflict(void);
 extern void Camera(void);
 extern short ControlAllHumanoid(void);
 extern void ActivateHumans(void);

@@ -35,7 +35,6 @@
  */
 
 
-extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

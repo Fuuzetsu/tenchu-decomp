@@ -5,7 +5,6 @@
 
 extern SVECTOR D_80097B04[];
 
-extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 Think1sleep(void);

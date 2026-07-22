@@ -1,9 +1,9 @@
 #include "common.h"
-#include "main.exe.h"
-#include "appear.h"
 #define DeleteConflict DeleteConflict_prototype
-#include "item.h"
+#include "main.exe.h"
 #undef DeleteConflict
+#include "appear.h"
+#include "item.h"
 #include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -76,8 +76,9 @@
  *    The hand-selection value remains live in $a1 and is a harmless second
  *    argument on the first cleanup calls.  The typed case-2 call preserves a
  *    distinct HImode call result, stopping jump2 from folding two physical
- *    cleanup calls into one.  The item.h prototype is renamed while including
- *    the header so it does not erase this original call-site shape.
+ *    cleanup calls into one.  The conflict.h prototype is renamed while
+ *    including the aggregate header so it does not erase this original
+ *    call-site shape.
  *  - Both the retail and trial executables contain the otherwise dead
  *    Me_MOTION_C read immediately before the root-model coordinate clears.
  *    The volatile-qualified read records that real access explicitly.
@@ -93,6 +94,7 @@ extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
+extern void DeleteConflict();
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s16 GetMotionID(MotionManager *mmp, s16 mid);
@@ -102,13 +104,11 @@ extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
-extern s16 InsertConflict(ModelType *model);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
-extern void DeleteConflict();
 
 void ActATTACK(void)
 
