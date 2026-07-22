@@ -51,35 +51,36 @@
  * plays a sound (SoundEx) at the drop origin before returning.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - The pool search uses a SEPARATE `cur` pointer from `it`: `cur = items +
- *    ic;` in the loop/dispose block, then `it = cur;`
- *    assigned exactly twice — once inside the early-exit `if (cur->proc==0)`
+ *  - The inlined allocator uses a SEPARATE `slot` pointer from PSX.SYM's
+ *    outer `item`: `slot = items + ic;` in the loop/dispose block, then
+ *    `item = slot;` assigned exactly twice — once inside the early-exit
+ *    `if (slot->proc==0)`
  *    (paired with the `goto found;`), once right before the dispose block's
- *    final `it->owner=0; it->proc=0;`. Unlike the other twins (where the SAME
- *    `it` serves the whole function), this function's longer tail (`st`
+ *    final `item->owner=0; item->proc=0;`. Unlike the other twins (where the
+ *    SAME `item` serves the whole function), this function's longer tail (`pos`
  *    surviving to the final SoundEx call) raises register pressure enough
- *    that global-alloc gives `cur`/`it` DIFFERENT hard registers ($s0/$s1),
+ *    that global-alloc gives `slot`/`item` DIFFERENT hard registers ($s0/$s1),
  *    making the assignment a real `move` instruction (confirmed: dropping
- *    the two-variable split and reusing one `it` throughout compiles 2
+ *    the two-variable split and reusing one `item` throughout compiles 2
  *    instructions / 8 bytes SHORT — both `move` sites vanish as dead
  *    self-copies). The other twins almost certainly have this SAME two-
  *    pointer source shape; it's just invisible there because lower register
  *    pressure lets global-alloc color both pseudos into the SAME hard reg
  *    (self-copy, 0 bytes) — see the cookbook rule this taught.
- *  - `param = &it->param.drop;` sits BEFORE the null check, same
+ *  - `param = &item->param.drop;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins; unlike them, `st` is READ AGAIN at the very end as
- *    SoundEx's location argument (`SoundEx(st, 0x22)`) — Ghidra mis-renders
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
+ *    as the other twins; unlike them, `pos` is READ AGAIN at the very end as
+ *    SoundEx's location argument (`SoundEx(pos, 0x22)`) — Ghidra mis-renders
  *    this call's first argument as `&(p->start).vy` (a bogus offset), but
  *    the raw asm shows a plain unmodified copy of the SAME register that
- *    holds `st` into $a0, several instructions before the call (the
+ *    holds `pos` into $a0, several instructions before the call (the
  *    scheduler hoists the independent register copy early to fill the gap
- *    while it->model/end-vector loads execute) — it is just
- *    `SoundEx(st, 0x22);` written as the last statement before `return 1;`.
- *  - us/ty and x/y/z (end vector) are real temps, same shape as
+ *    while item->model/end-vector loads execute) — it is just
+ *    `SoundEx(pos, 0x22);` written as the last statement before `return 1;`.
+ *  - aowner/atype and x/y/z (end vector) are real temps, same shape as
  *    ReqItemJirai/ReqItemDokudango.
- *  - `it->param.drop.koro.hint = 0;` uses the direct union path (not
+ *  - `item->param.drop.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemMakibishi(TItem *item);
@@ -88,12 +89,12 @@ extern void ProcItemMakibishi(TItem *item);
 
 int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    TItem *cur;
+    TItem *item;
+    TItem *slot;
     param_drop *param;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 x;
     s32 y;
     s32 z;
@@ -105,53 +106,53 @@ int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        cur = items + ic;
-        if (cur->proc == 0)
+        slot = items + ic;
+        if (slot->proc == 0)
         {
-            it = cur;
+            item = slot;
             goto found;
         }
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    cur->mode = ITEM_MODE_DISPOSE;
-    cur->proc(cur);
-    DeleteConflict(cur->locate);
-    if (cur->mode != 0)
+    slot->mode = ITEM_MODE_DISPOSE;
+    slot->proc(slot);
+    DeleteConflict(slot->locate);
+    if (slot->mode != 0)
     {
-        AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        AdtMessageBox(D_800121CC, slot->type, (u32)slot->mode);
     }
-    it = cur;
-    it->owner = 0;
-    it->proc = 0;
+    item = slot;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    param = &it->param.drop;
-    if (it == 0)
+    param = &item->param.drop;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemMakibishi;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemMakibishi;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    it->param.drop.koro.hint = 0;
+    item->param.drop.koro.hint = 0;
     param->koro.status = KORO_NORMAL;
-    SoundEx(st, 0x22);
+    SoundEx(pos, 0x22);
     return 1;
 }
