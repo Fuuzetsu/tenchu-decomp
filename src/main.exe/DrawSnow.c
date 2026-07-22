@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-extern Sprite3D *D_80097F2C[];
 extern s32 abs(s32 value);
 
 /*
@@ -27,7 +26,6 @@ void DrawSnow(TEffectSlot *effect)
     u32 delta_y;
     u32 delta;
     u32 offset;
-    s32 tbl_offset;
     s32 state;
     s32 size;
     s16 scale;
@@ -98,8 +96,7 @@ void DrawSnow(TEffectSlot *effect)
     particle->x = x;
     particle->y = y;
     particle->z = z;
-    tbl_offset = particle->sprite * (s32)sizeof(Sprite3D *);
-    model = *(Sprite3D **)(tbl_offset + (s32)D_80097F2C);
+    model = SpriteSnow[particle->sprite];
     sprite = &model->sprite;
     size = particle->size;
     GetScreenPosition(x, y, z, &screen);

@@ -89,9 +89,6 @@ typedef struct DrawBloodScratch
     VECTOR temp;
 } DrawBloodScratch;
 
-extern GsSPRITE sprBlood[];
-extern GsSPRITE sprBloodStay[];
-
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
 extern void *memset(void *dst, int value, u32 size);
 

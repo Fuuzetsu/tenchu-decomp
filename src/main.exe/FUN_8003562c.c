@@ -30,8 +30,6 @@ typedef union FUN_8003562cScratch
     } bleed;
 } FUN_8003562cScratch;
 
-extern GsSPRITE sprBlood[4];
-extern GsSPRITE sprBloodStay[4];
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void DrawBleed(TEffectSlot *ef);
 

@@ -67,15 +67,10 @@ typedef struct
 
 /* "\n"; +4 is an independent effect-pool cursor, and the image table starts at +8. */
 extern char D_80097A38[];
-extern u8 D_80097A48[5];
+/* Retail extends EFFECT.C's original three-entry static image-ID table. */
+extern u8 Effect_img[5];
 extern s32 D_80011C90[3];
 extern s32 pat[MaxFrames];
-
-extern GsSPRITE sprBlood[4];
-extern GsSPRITE sprBloodStay[4];
-/* Retail stores five GsSPRITEs under the demo's original sprImpact name. */
-extern GsSPRITE sprImpact[5];
-extern Sprite3D *D_80097F2C[1];
 
 extern ModelType *LOCAL_COORDINATES_;
 extern s16 D_80097F30;
@@ -133,7 +128,7 @@ void InitEffect(void)
     {
         if (!(i < 5))
             break;
-        image = GetImage(D_80097A48[i]);
+        image = GetImage(Effect_img[i]);
         InitSprite(image, &sprImpact[i]);
         sprImpact[i].attribute = 0x50000000;
         i++;
@@ -197,7 +192,7 @@ void InitEffect(void)
         {
             image = GetImage(0x37);
             sprite = SetupSprite((Sprite3D *)0, image);
-            D_80097F2C[i] = sprite;
+            SpriteSnow[i] = sprite;
             sprite->sprite.attribute = 0x50000000;
             i++;
         } while (i < 1);

@@ -226,9 +226,6 @@
  */
 #include "effect.h"
 
-/* Demo used Sprite3D *sprImpact[3]; retail embeds five GsSPRITEs instead. */
-extern GsSPRITE sprImpact[5];
-
 void DrawImpact(TEffectSlot *ef)
 {
     ImpactType *param;
