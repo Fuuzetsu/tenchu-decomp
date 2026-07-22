@@ -23,21 +23,21 @@
  * No caller for this function exists anywhere in the retail image (checked:
  * no `jal` and no raw address reference anywhere in main.exe, and none of
  * Ghidra's decompilation of every other function references it either) —
- * dead code kept for byte-identical reproduction, most likely an unused
- * standalone allocator superseded by ReqItemDrop's inlined copy of the same
- * logic.
+ * dead code kept for byte-identical reproduction. The matching copies in the
+ * request functions are consistent with this source helper having been
+ * compiler-inlined there while also retaining this out-of-line copy.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Same do-while shape as ReqItemDrop (`i = 0;` first, since there's no
  *    parameter to cache ahead of it here), but the early exit is
- *    `if (it->proc == 0) return it;` rather than `goto found;`: with no
+ *    `if (item->proc == 0) return item;` rather than `goto found;`: with no
  *    drop-specific code after the loop, cc1 emits the return-value move in
  *    the branch's own delay slot instead of falling into shared code.
  */
 
 TItem *GetFreeItemSlot(void)
 {
-    TItem *it;
+    TItem *item;
     s32 i;
 
     i = 0;
@@ -46,20 +46,20 @@ TItem *GetFreeItemSlot(void)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
-            return it;
+        item = items + ic;
+        if (item->proc == 0)
+            return item;
         i++;
     } while (i < 0x1d);
 
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
-    return it;
+    item->owner = 0;
+    item->proc = 0;
+    return item;
 }
