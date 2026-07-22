@@ -36,7 +36,7 @@ typedef struct
 {
     u16 oldPad;
     u16 pad;
-    void *background;
+    BackGround *background;
 } MissionScoreTail;
 
 typedef struct
@@ -79,9 +79,10 @@ extern void LoadTIM(u_long *tim);
 extern void _PlayMusic(s32 music, s32 mode);
 extern s32 GetRealPad(s32 port);
 extern void StartDrawing(void);
-extern void DrawBG(void *background);
+extern BackGround *FUN_8004f4f8(u_long *tim);
+extern short DrawBG(BackGround *background);
 extern void EndDrawing(s32 arg);
-extern void DisposeBG(void *background);
+extern void DisposeBG(BackGround *background);
 extern void FUN_800515b0(GsSPRITE *number, s32 value, s16 x, s32 y,
                          s32 mode);
 extern void FadeOutDirect(s16 time, s16 attribute, u8 r, u8 g, u8 b);
