@@ -40,15 +40,14 @@
  *
  * Matching notes (all verified against the bytes; see
  * docs/matching-cookbook.md):
- *  - `mi` is one u8[0xC8] buffer reused three ways, the same buffer+casts
- *    idiom as ProcItemKusuri: first the menu-template copy destination
- *    for the fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS (a
- *    word-block copy: the 16-bytes-per-iteration loop + an 8-byte tail,
- *    the cookbook's align-4 struct-copy rule — this is what Ghidra
- *    mis-renders as a field-by-field "copy loop" assigning unrelated
- *    PARAM_ITEM_STAY fields from adt_menu_entry_t label/index pairs), then
- *    a PARAM_ITEM_STAY (first 0x14 bytes, after memset), then an SVECTOR at
- *    mi+0x18 (align-2 copy from D_80097B88, so lwl/lwr + swl/swr).
+ *  - PSX.SYM places ItemName and param at the same sp+24 stack slot, with
+ *    vec after param's 24-byte compiler stack slot at sp+48. The local union
+ *    exposes those exact original names and types while preserving that
+ *    overlap; stack_slot_tail represents the four bytes between the 20-byte
+ *    PARAM_ITEM_STAY and the next compiler slot.
+ *    ItemName's fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS remains
+ *    the target's 16-bytes-per-iteration word-block copy with an 8-byte tail,
+ *    while vec's align-2 copy remains lwl/lwr + swl/swr.
  *  - `extern SVECTOR D_80097B88[];` (unknown-size array), NOT a plain
  *    SVECTOR: an 8-byte extern is -G8-small, so cc1 materializes its
  *    address as ONE `la` insn (assuming gp addressability; GAS -G0 expands
@@ -74,9 +73,9 @@
  *  - rsin/rcos results need DISTINCT locals (sx, cx), not one reused temp
  *    like Ghidra's iVar7: the target has the sin-phase value in $a1 and the
  *    cos-phase value in $a3 (different regs), proving two variables.
- *  - gx/gz are real locals: computed once, interleaved into the following
+ *  - x/z are real locals: computed once, interleaved into the following
  *    call's argument setup, and reused unmodified for the locate.vx/vz
- *    stores (Ghidra renders gz's subtraction after the rcos call; the
+ *    stores (Ghidra renders z's subtraction after the rcos call; the
  *    source order is sin-block then cos-block, each self-contained).
  */
 
@@ -89,36 +88,46 @@ void AddItem2(void)
 {
     s32 n;
     s32 sx, cx;
-    s32 gx, gy, gz;
+    s32 x, y, z;
     s32 h;
     ModelArchiveType *pm;
-    u8 mi[0xC8];
+    union
+    {
+        TAdtSelect ItemName[25];
+        struct
+        {
+            PARAM_ITEM_STAY param;
+            u8 stack_slot_tail[4];
+            SVECTOR vec;
+        } spawn;
+    } work;
 
-    __builtin_memcpy(mi, DEBUG_MENU_ITEM_CHOICE_OPTIONS, sizeof(mi));
-    n = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
-    memset(mi, 0, sizeof(PARAM_ITEM_STAY));
-    ((PARAM_ITEM_STAY *)mi)->type = n;
+    __builtin_memcpy(work.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+                     sizeof(work.ItemName));
+    n = AdtSelect(D_800124C0, work.ItemName, 0);
+    memset(&work.spawn.param, 0, sizeof(work.spawn.param));
+    work.spawn.param.type = n;
 
     sx = rsin(CamState.Owner->model->rotate.vy) * 1000;
     pm = CamState.Owner->model;
     if (sx < 0)
         sx += 0xfff;
     h = pm->locate.coord.t[1];
-    gy = h;
-    gx = pm->locate.coord.t[0] - (sx >> 0xc);
+    y = h;
+    x = pm->locate.coord.t[0] - (sx >> 0xc);
     cx = rcos(pm->rotate.vy) * 1000;
     pm = CamState.Owner->model;
     if (cx < 0)
         cx += 0xfff;
-    gz = pm->locate.coord.t[2] - (cx >> 0xc);
-    h = GetAreaMapLevel(GlobalAreaMap, gx, gy, gz, 1);
+    z = pm->locate.coord.t[2] - (cx >> 0xc);
+    h = GetAreaMapLevel(GlobalAreaMap, x, y, z, 1);
     if (h != -0x80000000)
     {
-        ((PARAM_ITEM_STAY *)mi)->locate.vx = gx;
-        ((PARAM_ITEM_STAY *)mi)->locate.vy = h;
-        ((PARAM_ITEM_STAY *)mi)->locate.vz = gz;
-        ReqItemStay((PARAM_ITEM_STAY *)mi);
-        *(SVECTOR *)(mi + 0x18) = D_80097B88[0];
-        SetSmoke(&((PARAM_ITEM_STAY *)mi)->locate, (SVECTOR *)(mi + 0x18), 3, 10);
+        work.spawn.param.locate.vx = x;
+        work.spawn.param.locate.vy = h;
+        work.spawn.param.locate.vz = z;
+        ReqItemStay(&work.spawn.param);
+        work.spawn.vec = D_80097B88[0];
+        SetSmoke(&work.spawn.param.locate, &work.spawn.vec, 3, 10);
     }
 }
