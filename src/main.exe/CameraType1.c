@@ -113,11 +113,11 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     switch ((s16)(CamState.Owner->status - 3)) {
     case 9:
     {
-        long levfl;
-        long levfr;
-        long levbl;
-        long levbr;
-        s32 walls;
+        s32 levfl;
+        s32 levfr;
+        s32 levbl;
+        s32 levbr;
+        s32 levmap;
 
         scratch.probe.vecl = D_80097A28[0];
         scratch.probe.vecr = D_80097A30[0];
@@ -142,24 +142,24 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
                                 mad->locate.coord.t[1],
                                 mad->locate.coord.t[2] - scratch.probe.vecr.vz, 1);
 
-        walls = levfl == (long)0x80000000 ? FL : 0;
-        if (levfr == (long)0x80000000)
-            walls |= FR;
-        if (levbl == (long)0x80000000)
-            walls |= BL;
-        if (levbr == (long)0x80000000)
-            walls |= BR;
+        levmap = levfl == (s32)0x80000000 ? FL : 0;
+        if (levfr == (s32)0x80000000)
+            levmap |= FR;
+        if (levbl == (s32)0x80000000)
+            levmap |= BL;
+        if (levbr == (s32)0x80000000)
+            levmap |= BR;
 
-        if ((walls & (FL | FR | BL | BR)) == BL) {
+        if ((levmap & (FL | FR | BL | BR)) == BL) {
             CamState.Mode = CMODE_PEEP_R;
             goto choose_camera;
-        } else if ((walls & (FL | FR | BL | BR)) == BR) {
+        } else if ((levmap & (FL | FR | BL | BR)) == BR) {
             CamState.Mode = CMODE_PEEP_L;
             goto choose_camera;
-        } else if ((walls & (FL | FR)) == FL) {
+        } else if ((levmap & (FL | FR)) == FL) {
             CamState.Mode = CMODE_STICK_R;
             goto choose_camera;
-        } else if ((walls & (FL | FR)) == FR) {
+        } else if ((levmap & (FL | FR)) == FR) {
             CamState.Mode = CMODE_STICK_L;
             goto choose_camera;
         } else {
