@@ -86,7 +86,6 @@
  */
 
 extern long D_80097EC0; /* last queried y10 */
-extern u16 FieldAttrib;  /* attribute of the found node (FieldAttrib) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 

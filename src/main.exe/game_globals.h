@@ -8,6 +8,7 @@ extern long GameClock;
 extern short SkipFrame;
 extern int StageID;
 extern unsigned long *GlobalAreaMap;
+extern short FieldAttrib;
 extern unsigned char gNannido;
 extern unsigned char gSound;
 extern unsigned char gSoundLevel;

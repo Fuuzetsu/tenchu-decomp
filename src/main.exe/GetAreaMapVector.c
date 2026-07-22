@@ -79,9 +79,11 @@
  *    spelling the MIN test as an XOR equality lets combine recover retail's
  *    direct comparison while preserving the register-valued return. The
  *    normal height calculation deliberately re-reads `mvp->level`.
+ *  - FieldAttrib is the recovered signed-short global. The 0xC000 mask test
+ *    deliberately reads its raw `u16` bit pattern, preserving retail's lhu
+ *    without changing the object's declared type.
  */
 
-extern u16 FieldAttrib;
 extern s16 direction[][2];
 
 long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
@@ -158,7 +160,8 @@ long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos, long wid
     {
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
         if (level2 == 0x80000000 ||
-            ((level2 - y < -500) && !(mode2 & 4) && !(((u16)mvp->attrib | FieldAttrib) & 0xC000)))
+            ((level2 - y < -500) && !(mode2 & 4) &&
+             !(((u16)mvp->attrib | *(u16 *)&FieldAttrib) & 0xC000)))
         {
             mvp->vector |= v;
         }
