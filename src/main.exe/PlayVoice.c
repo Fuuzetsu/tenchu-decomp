@@ -100,6 +100,9 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * CdlLOCs from the record's min/sec (the lead-in-compensated "*2+OFFSET"
  * conversion, exactly _PlayMusic.c's own start/end construction), and
  * CdaPlayXA; a zero return gets its own AdtMessageBox.
+ * The selected retail table row is named `match`: PSX.SYM's original `loc`
+ * local was instead a CdlLOC pointer, so that name does not belong to this
+ * TVoiceTable view.
  *
  * Matching notes:
  *  - Retail's four localized filename pointers are distinct globals, not one
@@ -173,7 +176,7 @@ void PlayVoice(int id)
     u8 *FileName;
     TVoiceTable *voice;
     s32 volume;
-    TVoiceTable *loc;
+    TVoiceTable *match;
     TVoiceTable *cursor;
     TVoiceTable *next;
     u8 voice_id;
@@ -208,7 +211,7 @@ void PlayVoice(int id)
             FileName = D_80097C98;
             id -= 100;
         }
-        loc = 0;
+        match = 0;
         if (voice->no != 0xff)
         {
             do
@@ -223,17 +226,17 @@ void PlayVoice(int id)
                     voice = next;
                 }
                 voice_id = cursor->no;
-                loc = voice;
+                match = voice;
                 if (id == voice_id)
                     goto found;
                 next = cursor + 1;
                 voice = next;
             } while (next->no != 0xff);
-            loc = 0;
+            match = 0;
         }
         goto found;
     fallback_hit:
-        loc = cursor;
+        match = cursor;
         goto found2;
     }
     else
@@ -250,14 +253,14 @@ void PlayVoice(int id)
         } while (0);
         voice = *voice_entry;
         FileName = *filename_entry;
-        loc = 0;
+        match = 0;
         if (voice->no != 0xff)
         {
             end_marker = 0xff;
             cursor = voice;
             do
             {
-                next = loc = cursor;
+                next = match = cursor;
                 if (id != 0)
                 {
                     cursor = next;
@@ -278,12 +281,12 @@ void PlayVoice(int id)
                     goto found;
                 cursor++;
                 voice_id = cursor->no;
-                loc = 0;
+                match = 0;
             } while (voice_id != end_marker);
         }
     }
 found:
-    if (loc == 0)
+    if (match == 0)
     {
         fallback = D_80012CBC;
         if (fallback->no != 0xff)
@@ -300,10 +303,10 @@ found:
                 cursor++;
             } while (cursor->no != fallback_end);
         }
-        loc = 0;
+        match = 0;
     found2:
         FileName = VoiceXaName;
-        if (loc == 0)
+        if (match == 0)
         {
             AdtMessageBox(D_800134F0, id);
             CdaStop();
@@ -321,8 +324,8 @@ found:
         u8 min;
         u8 sec;
 
-        min = loc->smin;
-        sec = loc->ssec;
+        min = match->smin;
+        sec = match->ssec;
         BuildVoiceLocation(&start, min, sec);
     }
 
@@ -330,14 +333,14 @@ found:
         u8 min;
         u8 sec;
 
-        min = loc->emin;
-        sec = loc->esec;
+        min = match->emin;
+        sec = match->esec;
         BuildVoiceLocation(&end, min, sec);
     }
 
-    if (CdaPlayXA(FileName, &start, &end, loc->channel, CDA_ONCE) == 0)
+    if (CdaPlayXA(FileName, &start, &end, match->channel, CDA_ONCE) == 0)
     {
-        AdtMessageBox(D_80013500, FileName, loc->channel, id);
+        AdtMessageBox(D_80013500, FileName, match->channel, id);
     }
 }
 
