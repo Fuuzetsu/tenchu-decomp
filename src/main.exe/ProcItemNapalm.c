@@ -148,10 +148,10 @@ void ProcItemNapalm(tag_TItem *item)
             ConflictObject[n].size.vx = 500;
             ConflictObject[n].common = (void *)1;
             ConflictObject[n].size.pad = 1;
-            item->coll_size = 500;
-            item->coll_ofsY = 0;
-            item->coll_mode = 1;
-            item->coll_pause = 0;
+            item->collision.size = 500;
+            item->collision.ofsY = 0;
+            item->collision.mode = 1;
+            item->collision.pause = 0;
         }
 
         count = param->count + 1;

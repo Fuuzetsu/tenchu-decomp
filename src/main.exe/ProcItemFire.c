@@ -270,10 +270,10 @@ void ProcItemFire(tag_TItem *item)
                 ConflictObject[n].size.vx = size;
                 ConflictObject[n].common = (void *)one;
                 ConflictObject[n].size.pad = collision_mode;
-                item->coll_size = size;
-                item->coll_ofsY = 0;
-                item->coll_mode = collision_mode;
-                item->coll_pause = 0;
+                item->collision.size = size;
+                item->collision.ofsY = 0;
+                item->collision.mode = collision_mode;
+                item->collision.pause = 0;
             }
 
             if ((item->locate->attribute & 0x8000) == 0)
@@ -330,10 +330,10 @@ void ProcItemFire(tag_TItem *item)
         ConflictObject[n].size.vx = 1500;
         ConflictObject[n].common = (void *)(s32)mode;
         ConflictObject[n].size.pad = mode;
-        item->coll_size = 1500;
-        item->coll_ofsY = 0;
-        item->coll_mode = mode;
-        item->coll_pause = 0;
+        item->collision.size = 1500;
+        item->collision.ofsY = 0;
+        item->collision.mode = mode;
+        item->collision.pause = 0;
         item->mode = item->mode + 1;
         param->count = 3;
         reset_alert_duration();

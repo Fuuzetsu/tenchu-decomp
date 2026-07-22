@@ -391,7 +391,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             it->locate->locate.coord.t[2] = st->vz;
             it->locate->locate.super = 0;
             UpdateCoordinate(it->locate);
-            it->coll_size = 0;
+            it->collision.size = 0;
             it->model = SyurikenModel;
             param->count = 5;
             it->owner->item[0x19] = 1;
@@ -794,7 +794,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         it->locate->locate.coord.t[2] = st->vz;
         it->locate->locate.super = 0;
         UpdateCoordinate(it->locate);
-        it->coll_size = 0;
+        it->collision.size = 0;
         it->model = 0;
         it->owner->item[0x19] = 1;
         SetCameraMode(3);
@@ -881,7 +881,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         it->locate->locate.coord.t[2] = st->vz;
         it->locate->locate.super = 0;
         UpdateCoordinate(it->locate);
-        it->coll_size = 0;
+        it->collision.size = 0;
         it->model = 0;
         SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[0] = 3;
         break;
@@ -1004,7 +1004,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         it->locate->locate.coord.t[2] = st->vz;
         it->locate->locate.super = 0;
         UpdateCoordinate(it->locate);
-        it->coll_size = 0;
+        it->collision.size = 0;
         it->model = (ModelType *)sprNapalm;
         it->param.napalm.vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;

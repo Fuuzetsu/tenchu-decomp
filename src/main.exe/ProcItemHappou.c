@@ -126,10 +126,10 @@ void ProcItemHappou(tag_TItem *item)
         ConflictObject[n].size.vx = 300;
         ConflictObject[n].common = (void *)1;
         ConflictObject[n].size.pad = 1;
-        item->coll_size = 300;
-        item->coll_ofsY = 0;
-        item->coll_mode = 1;
-        item->coll_pause = 0;
+        item->collision.size = 300;
+        item->collision.ofsY = 0;
+        item->collision.mode = 1;
+        item->collision.pause = 0;
     }
     UpdateCoordinate(item->locate);
     model->locate = item->locate->locate;

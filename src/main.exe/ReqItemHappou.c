@@ -182,7 +182,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         it->locate->locate.coord.t[2] = st->vz;
         it->locate->locate.super = 0;
         UpdateCoordinate(it->locate);
-        it->coll_size = 0;
+        it->collision.size = 0;
         it->locate->rotate = p->user->model->rotate;
         dir = p->user->model->rotate;
         r = rand();

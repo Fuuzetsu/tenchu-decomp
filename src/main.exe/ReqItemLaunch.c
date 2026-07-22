@@ -72,8 +72,8 @@
  *    SetupFly's second argument (same "st survives to a late call" shape as
  *    ReqItemMakibishi's SoundEx(st, ...)).
  *  - us/ty are real temps, same shape as the other twins.
- *  - `it->coll_size = 0; it->model = SyurikenModel;` immediately precede
- *    SetupFly, same position as the other twins' coll_size/model pair
+ *  - `it->collision.size = 0; it->model = SyurikenModel;` immediately precede
+ *    SetupFly, same position as the other twins' collision.size/model pair
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
  *  - The `it->param.launch.fly.mode = 0` byte store is written BEFORE the
@@ -158,7 +158,7 @@ found:
     it->locate->locate.coord.t[2] = st->vz;
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
-    it->coll_size = 0;
+    it->collision.size = 0;
     it->model = SyurikenModel;
     SetupFly(&param->fly, st, &p->end, 0x400, 0x400, 0x12c);
     it->param.launch.fly.mode = 0;

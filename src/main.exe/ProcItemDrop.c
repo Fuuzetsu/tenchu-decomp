@@ -65,9 +65,9 @@
  *    into the inner (status) tree's `case 1` compare: one pseudo, live
  *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
  *    slot. Plain nested switches produce all of it — no source trick.
- *  - `m = 8` (int) feeding BOTH `size.pad` (sh) and `coll_mode` (sw) is
+ *  - `m = 8` (int) feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
  *    load-bearing: written as literals, pad's 8 becomes an HImode pseudo and
- *    coll_mode's a second SImode one (two `li`s, function one insn too
+ *    collision.mode's a second SImode one (two `li`s, function one insn too
  *    long). cse can only reuse a WIDER-mode constant reg that already
  *    exists, so the shared int variable is the original's shape.
  *  - Mode 2's tosses are two-statement temps: `x = rand(); x = x % 200;`.
@@ -148,10 +148,10 @@ void ProcItemDrop(tag_TItem *item)
             ConflictObject[n].size.vx = 0xb4;
             ConflictObject[n].common = (void *)0x1;
             ConflictObject[n].size.pad = m;
-            item->coll_size = 0xb4;
-            item->coll_ofsY = 0;
-            item->coll_mode = m;
-            item->coll_pause = 0;
+            item->collision.size = 0xb4;
+            item->collision.ofsY = 0;
+            item->collision.mode = m;
+            item->collision.pause = 0;
             item->mode = item->mode + 1;
             return;
         }

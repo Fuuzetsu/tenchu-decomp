@@ -159,10 +159,10 @@ void ProcItemJirai(tag_TItem *item)
         ConflictObject[n].size.vx = size;
         ConflictObject[n].common = (void *)1;
         ConflictObject[n].size.pad = collision_mode;
-        item->coll_size = size;
-        item->coll_ofsY = 0;
-        item->coll_mode = collision_mode;
-        item->coll_pause = 0;
+        item->collision.size = size;
+        item->collision.ofsY = 0;
+        item->collision.mode = collision_mode;
+        item->collision.pause = 0;
         item->mode = item->mode + 1;
         break;
     }
@@ -199,10 +199,10 @@ void ProcItemJirai(tag_TItem *item)
             ConflictObject[n].size.vx = size;
             ConflictObject[n].common = (void *)one;
             ConflictObject[n].size.pad = one;
-            item->coll_size = size;
-            item->coll_ofsY = 0;
-            item->coll_mode = one;
-            item->coll_pause = 0;
+            item->collision.size = size;
+            item->collision.ofsY = 0;
+            item->collision.mode = one;
+            item->collision.pause = 0;
             item->mode = item->mode + one;
         }
         break;

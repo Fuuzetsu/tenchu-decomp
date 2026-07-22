@@ -283,10 +283,10 @@ draw_mode0:
         conflict->size.vy = size;
         conflict->size.vx = size;
         conflict->size.pad = collision_mode;
-        item->coll_mode = collision_mode;
-        item->coll_size = size;
-        item->coll_ofsY = offset_y;
-        item->coll_pause = 0;
+        item->collision.mode = collision_mode;
+        item->collision.size = size;
+        item->collision.ofsY = offset_y;
+        item->collision.pause = 0;
         param->count = 3;
         item->mode = item->mode + 1;
         return;

@@ -92,7 +92,7 @@
  *    halfword), so `rot.rx`/`rot.ry` are `u16`, not ReqItemLightningBolt's
  *    TU's `short *` — same "respell the callee's prototype per-TU" situation
  *    as ReqItemDefault's GetVectorRotation call.
- *  - `it->coll_size = 0; it->model = ArrowModel;` immediately precede
+ *  - `it->collision.size = 0; it->model = ArrowModel;` immediately precede
  *    SetupFly, same position/interleaving as ReqItemLaunch.
  */
 extern void ProcItemArrow(tag_TItem *item);
@@ -174,7 +174,7 @@ found:
     it->locate->locate.coord.t[2] = st->vz;
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
-    it->coll_size = 0;
+    it->collision.size = 0;
     it->model = ArrowModel;
     SetupFly(&param->fly, st, &target, 0, 0x800, 0x12c);
     param->count = 5;

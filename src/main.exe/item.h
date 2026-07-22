@@ -469,10 +469,13 @@ struct tag_TItem
     TItemType type;              /* 0x08 */
     void (*proc)(tag_TItem *);   /* 0x0C */
     ModelType *locate;           /* 0x10 */
-    s32 coll_mode;               /* 0x14 */
-    s32 coll_pause;              /* 0x18 */
-    s16 coll_size;               /* 0x1C */
-    s16 coll_ofsY;               /* 0x1E */
+    struct
+    {
+        s32 mode;                /* 0x00 */
+        s32 pause;               /* 0x04 */
+        s16 size;                /* 0x08 */
+        s16 ofsY;                /* 0x0A */
+    } collision;                 /* 0x14, size 0x0C */
     union
     {
         param_launch launch;

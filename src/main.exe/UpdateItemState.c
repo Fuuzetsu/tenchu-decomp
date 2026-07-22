@@ -82,13 +82,13 @@ loop:
             }
             if (hit)
             {
-                if (item->coll_pause != 0)
+                if (item->collision.pause != 0)
                 {
-                    sz = item->coll_size;
+                    sz = item->collision.size;
                     if (sz != 0)
                     {
-                        ofsY = item->coll_ofsY;
-                        md = item->coll_mode;
+                        ofsY = item->collision.ofsY;
+                        md = item->collision.mode;
                         DeleteConflict(item->locate);
                         idx = InsertConflict(item->locate);
                         object = (ConflictObjectType *)
@@ -101,16 +101,16 @@ loop:
                         object->size.vx = sz;
                         object->common = (void *)1;
                         object->size.pad = md;
-                        item->coll_size = sz;
-                        item->coll_ofsY = ofsY;
-                        item->coll_mode = md;
-                        item->coll_pause = 0;
+                        item->collision.size = sz;
+                        item->collision.ofsY = ofsY;
+                        item->collision.mode = md;
+                        item->collision.pause = 0;
                     }
                 }
             }
-            else if (item->coll_pause == 0 && item->locate->locate.super == 0)
+            else if (item->collision.pause == 0 && item->locate->locate.super == 0)
             {
-                item->coll_pause = 1;
+                item->collision.pause = 1;
                 DeleteConflict(item->locate);
             }
         }

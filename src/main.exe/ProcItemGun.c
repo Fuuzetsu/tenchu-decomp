@@ -20,7 +20,7 @@
  *    argument via `param->vec`, with no intervening call; ff → $v1, used by
  *    the entry compare and case 2's `item->mode = ff`).
  *  - The switch INDEX register ($s2) is callee-saved and reused inside case 1
- *    as the source of every `= 1` store (common/size.pad/coll_mode): cse's
+ *    as the source of every `= 1` store (common/size.pad/collision.mode): cse's
  *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
  *    and the constant-register equivalence survives the calls. Plain literal
  *    `1`s in the source produce it — do NOT hand-substitute a variable.
@@ -136,10 +136,10 @@ void ProcItemGun(tag_TItem *item)
         ConflictObject[n].size.vx = 100;
         ConflictObject[n].common = (void *)1;
         ConflictObject[n].size.pad = 1;
-        item->coll_size = 100;
-        item->coll_ofsY = 0;
-        item->coll_mode = 1;
-        item->coll_pause = 0;
+        item->collision.size = 100;
+        item->collision.ofsY = 0;
+        item->collision.mode = 1;
+        item->collision.pause = 0;
         dir = D_80097B14[0];
         RotateVectorS(&dir, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
         if (IsHuman != 0)

@@ -127,7 +127,7 @@ found:
     it->locate->locate.coord.t[2] = st->vz;
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
-    it->coll_size = 0;
+    it->collision.size = 0;
     it->model = (ModelType *)ItemImage[it->type];
     x = p->end.vx;
     y = p->end.vy;

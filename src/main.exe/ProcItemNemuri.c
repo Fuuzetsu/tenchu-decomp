@@ -138,10 +138,10 @@ void ProcItemNemuri(tag_TItem *item)
                 ConflictObject[n].size.vx = 1000;
                 ConflictObject[n].common = (void *)1;
                 ConflictObject[n].size.pad = eight;
-                item->coll_size = 1000;
-                item->coll_ofsY = 0;
-                item->coll_mode = eight;
-                item->coll_pause = 0;
+                item->collision.size = 1000;
+                item->collision.ofsY = 0;
+                item->collision.mode = eight;
+                item->collision.pause = 0;
                 return;
             }
         }

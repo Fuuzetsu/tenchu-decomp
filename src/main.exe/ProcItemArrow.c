@@ -154,10 +154,10 @@ void ProcItemArrow(tag_TItem *item)
             ConflictObject[n].size.vx = size;
             ConflictObject[n].common = (void *)one;
             ConflictObject[n].size.pad = one;
-            item->coll_size = size;
-            item->coll_ofsY = 0;
-            item->coll_mode = one;
-            item->coll_pause = 0;
+            item->collision.size = size;
+            item->collision.ofsY = 0;
+            item->collision.mode = one;
+            item->collision.pause = 0;
         }
 
         if ((item->locate->attribute & 0x8000) == 0)

@@ -22,7 +22,7 @@
  *  - `one = 1;` is a real shared variable, not a literal: the status==1
  *    compare needs `1` in a register anyway (MIPS beq has no immediate
  *    form), and the SAME register then feeds `item->mode + one`, `.common =
- *    (void *)one`, `.size.pad = one`, and `item->coll_mode = one` — five
+ *    (void *)one`, `.size.pad = one`, and `item->collision.mode = one` — five
  *    uses, unmistakably `addu` (register) not `addiu` (immediate) at the
  *    mode-increment, so it must survive as a live variable across the
  *    DeleteConflict/InsertConflict calls (callee-saved, like `ff`/`m`).
@@ -117,10 +117,10 @@ void ProcItemMakibishi(tag_TItem *item)
             ConflictObject[n].size.vx = 100;
             ConflictObject[n].common = (void *)one;
             ConflictObject[n].size.pad = one;
-            item->coll_size = 100;
-            item->coll_ofsY = 0;
-            item->coll_mode = one;
-            item->coll_pause = 0;
+            item->collision.size = 100;
+            item->collision.ofsY = 0;
+            item->collision.mode = one;
+            item->collision.pause = 0;
             break;
 
         case 1:
