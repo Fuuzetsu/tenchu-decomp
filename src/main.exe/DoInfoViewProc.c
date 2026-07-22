@@ -120,13 +120,17 @@ extern void PutMap(void);
 static inline void ItemAddMenu(void)
 {
     s32 n;
-    u8 mi[0xC8];
+    union
+    {
+        TAdtSelect ItemName[25];
+        TAdtSelect Num[4];
+    } menu;
 
-    __builtin_memcpy(mi, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+    __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                      sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
-    n = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
-    __builtin_memcpy(mi, D_800124CC, sizeof(D_800124CC));
-    CamState.Owner->item[n] += AdtSelect(D_800124EC, (TAdtSelect *)mi, 0);
+    n = AdtSelect(D_800124C0, menu.ItemName, 0);
+    __builtin_memcpy(menu.Num, D_800124CC, sizeof(D_800124CC));
+    CamState.Owner->item[n] += AdtSelect(D_800124EC, menu.Num, 0);
 }
 
 static inline void ItemLayoutMenu(void)

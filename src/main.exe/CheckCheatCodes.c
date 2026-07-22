@@ -52,16 +52,20 @@ extern s32 memcmp(void *a, void *b, s32 n);
 void CheckCheatCodes(s16 *rec, int n)
 {
     s32 sel;
-    u8 mi[0xC8];
+    union
+    {
+        TAdtSelect ItemName[25];
+        TAdtSelect Num[4];
+    } menu;
 
     if (memcmp(rec, D_8008E4F0, n << 1) == 0) {
         SoundEx(0, 10);
-        __builtin_memcpy(mi, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+        __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
-        sel = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
-        __builtin_memcpy(mi, D_800124CC, sizeof(D_800124CC));
+        sel = AdtSelect(D_800124C0, menu.ItemName, 0);
+        __builtin_memcpy(menu.Num, D_800124CC, sizeof(D_800124CC));
         CamState.Owner->item[sel] +=
-            AdtSelect(D_800124EC, (TAdtSelect *)mi, 0);
+            AdtSelect(D_800124EC, menu.Num, 0);
         SoundEx(0, 0x4c);
     } else {
         if (memcmp(rec, D_8008E4C4, n << 1) != 0) {
