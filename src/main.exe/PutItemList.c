@@ -65,8 +65,6 @@
  * branch-local ItemImage address producers; shared `x = x - ItemGap` fills
  * the merged call's delay slot.
  */
-extern GsSPRITE CursorImage;
-extern s16 ItemCursor;
 
 
 static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)

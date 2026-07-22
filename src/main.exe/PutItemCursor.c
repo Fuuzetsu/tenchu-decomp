@@ -51,7 +51,6 @@
  *    found no %gp_rel operand here, so this file is NOT added to the gp
  *    lists).
  */
-extern GsSPRITE CursorImage;
 
 void PutItemCursor(short x, short y, short size, s32 rotdif)
 {

@@ -45,7 +45,6 @@
  */
 extern LifeBarEntry LifeBar[5];
 extern char D_80012564[]; /* "chizu.tim" */
-extern GsSPRITE MapImage;
 
 void ResetInfoview(int stage)
 {

@@ -82,7 +82,6 @@
  *    them, unlike the 0x80097Dxx string-table drift where nothing else
  *    referenced the bad name).
  */
-extern GsSPRITE CursorImage;
 extern GsSPRITE ItemSprite3Ds[4];
 extern u8 fInitialize;
 

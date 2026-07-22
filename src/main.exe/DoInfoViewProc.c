@@ -91,8 +91,6 @@ extern TSystemFlag SystemFlag;
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;                       /* fInitialize */
-extern s16 ItemCursor;
-extern u8 PutMapMode;                       /* PutMap latch */
 
 extern MENU_MAIN_TBL DEBUG_MENU_MAIN_SCREEN_OPTIONS;
 extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;

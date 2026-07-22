@@ -94,8 +94,6 @@
  * test delay slot and leaves the table `lui` to fill the model-pointer load
  * delay, removing the extra instruction and reproducing all 532 bytes.
  */
-extern u8 PutMapMode;
-extern GsSPRITE MapImage;
 extern s32 D_80097F6C;
 extern s32 D_80097F70;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];

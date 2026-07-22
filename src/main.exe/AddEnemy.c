@@ -65,7 +65,6 @@ typedef struct ThinkDBtype
 } ThinkDBtype;
 
 extern ThinkDBtype ThinkDB[20];
-extern s32 CurrentEnemyID;
 
 extern char D_80013FA8[];
 extern char D_80013FB4[];
