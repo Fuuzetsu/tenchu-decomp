@@ -78,9 +78,6 @@ extern void *valloc(u32 size);
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80011160[]; /* "%$LOAD(CD)\n%d[%s]" */
 extern char D_80011174[]; /* "LOAD(CD) ERROR\n%d[%s]" */
-extern s32 TotalIO;
-extern s32 ReadMode;
-extern u_long *MemoryLoadAddress;
 extern TAFS systemAFS;
 
 u_long *LoadFromCDROM(u8 *filename)

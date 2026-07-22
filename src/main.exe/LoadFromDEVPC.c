@@ -67,9 +67,6 @@ extern void *valloc(u32 size);
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80011110[]; /* "%$LOAD(PC)\n%d[%s]" */
 extern char D_80011124[]; /* "LOAD(PC) ERROR\n%d[%s]" */
-extern s32 TotalIO;
-extern s32 ReadMode;
-extern u_long *MemoryLoadAddress;
 
 u_long *LoadFromDEVPC(u8 *filename)
 {

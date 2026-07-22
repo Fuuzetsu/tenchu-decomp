@@ -44,7 +44,6 @@
  * no walking-pointer field-order bias to worry about (cookbook Loops).
  */
 extern LifeBarEntry LifeBar[5];
-extern u8 *ImagePath;
 extern char D_80012564[]; /* "chizu.tim" */
 extern GsSPRITE MapImage;
 

@@ -64,7 +64,6 @@ typedef struct
     TAdtSelect entry[3];
 } SaveSISelectBlock;
 
-extern u8 *ImagePath;
 extern char D_80097D90[];
 extern char D_80097D98[];
 extern char *CID;

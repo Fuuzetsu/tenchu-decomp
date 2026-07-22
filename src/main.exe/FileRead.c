@@ -81,9 +81,6 @@ extern u_long *LoadFromMEMORY(u8 *filename);
 extern u_long *LoadFromDEVPC(u8 *filename);
 extern u_long *LoadFromCDROM(u8 *filename);
 extern void FUN_80018f00(void);
-extern s32 AccessPower;
-extern s32 ReadMode;
-extern s32 TotalIO;
 
 u_long *FileRead(u8 *filename)
 {

@@ -46,6 +46,11 @@ extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;
 extern char FONT_FILE_NAME;
 extern char IMAGES_PREFIX_STR;
+extern unsigned long *MemoryLoadAddress;
+extern unsigned char *ImagePath;
+extern int AccessPower;
+extern int ReadMode;
+extern int TotalIO;
 
 extern void SetCameraMode(TCameraMode mode);
 extern short NowReturnNormal(struct Humanoid *human);

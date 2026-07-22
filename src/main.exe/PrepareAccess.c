@@ -46,7 +46,6 @@
  */
 extern void VSyncCallback(void (*f)(void));
 extern void cbAccess(void);
-extern s32 AccessPower;
 
 void PrepareAccess(void)
 {
