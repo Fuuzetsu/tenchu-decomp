@@ -64,24 +64,15 @@
  *
  * SystemFlag is gp-relative in this TU (Build.hs maspsxGpExterns + permute.py).
  * EngageLevel/StageID/gNannido are other TUs' smalls -> absolute macros.
- * The FILE_WORK union expresses the retail stack reuse directly.  Its indexed
- * targets/messages view is the human shape recorded in PSX.SYM (with larger
- * retail bounds); loop.c derives the target's three walking pointers from it.
+ * The FileOptionWork union expresses the retail stack reuse directly. Its
+ * indexed targets/messages view is the human shape recorded in PSX.SYM (with
+ * larger retail bounds); loop.c derives the target's three walking pointers.
  * That source shape also lets case 9 name D_80097D70 directly: cc1 keeps its
  * `%hi` half loop-invariant while forming `%lo` at each call, producing both
  * the retail instruction schedule and ordinary relocations.
  */
 
-typedef struct { s32 e[11]; } MUSIC_TBL;                        /* 0x2C */
-typedef union {
-    u8 bytes[7000];
-    struct {
-        TAdtSelect targets[162];
-        u8 msg[161][5];
-    } music;
-} FILE_WORK;
-
-extern MUSIC_TBL D_80014554;            /* music id by stage */
+extern s32 D_80014554[11]; /* music id by stage */
 /* declared as an unknown-size array ON PURPOSE: not-small -> split-address
  * (lui+lo_sum through an allocated reg), where BIS's scalar `extern u8`
  * spelling would be sdata-flagged and become a $at macro store */
@@ -113,6 +104,39 @@ extern void load_layout(s32 no);
 
 void FileOption(void)
 {
+    enum FileOptionChoice
+    {
+        SAVE = 0,
+        LOAD = 1,
+        STOCK_IMAGES = 2,
+        DEBUG_PRINT = 3,
+        PLAY_MUSIC = 4,
+        STOP_MUSIC = 5,
+        EVENT_UPDATE = 6,
+        ANIM_UPDATE = 7,
+        /* Retail inserts animation test, shifting the remaining demo cases. */
+        TEST_ANIMATION = 8,
+        TEST_MUSIC = 9,
+        EASY_GAME = 0xA,
+        NORMAL_GAME = 0xB,
+        HARD_GAME = 0xC,
+        STOCK_LAYOUT = 0xD
+    };
+    enum
+    {
+        ENESIZE = 5000,
+        ITEMSIZE = 2000
+    };
+    typedef union FileOptionWork
+    {
+        u8 bytes[ENESIZE + ITEMSIZE];
+        s32 music_by_stage[11];
+        struct
+        {
+            TAdtSelect targets[162];
+            u8 msg[161][5];
+        } music;
+    } FileOptionWork;
     s16 n;
     s32 TargetIO;
     u8 *fname;
@@ -123,7 +147,7 @@ void FileOption(void)
     TAdtSelect ItemName[20];
     TAdtSelect SelectIO[5];
     TAdtSelect SelectSlot[18];
-    FILE_WORK work;
+    FileOptionWork Buf;
 
     __builtin_memcpy(ItemName, DEBUG_MENU_FILE_CHOICES, sizeof(ItemName));
     __builtin_memcpy(SelectIO, DEBUG_MENU_SAVE_LOAD_CHOICES, sizeof(SelectIO));
@@ -133,7 +157,7 @@ void FileOption(void)
         return;
     switch (n)
     {
-    case 1:
+    case LOAD:
         TargetIO = AdtSelect(D_80014524, SelectIO, 3);
         if (TargetIO == -1)
             return;
@@ -143,45 +167,46 @@ void FileOption(void)
         FUN_8003cd04(TargetIO & 0xFF, fname);
         leLayoutEnemy(0);
         break;
-    case 0:
+    case SAVE:
         TargetIO = AdtSelect(D_8001453C, SelectIO, 3);
         if (TargetIO != -1)
         {
             fname = (u8 *)AdtSelect(D_80014548, SelectSlot, 0x10);
             if (fname != (u8 *)-1)
             {
-                lePackEnemyLayout(work.bytes, 5000);
-                PackItemLayout(work.bytes + 5000, 2000);
-                SaveSI(TargetIO, fname, work.bytes, 7000);
+                lePackEnemyLayout(Buf.bytes, ENESIZE);
+                PackItemLayout(Buf.bytes + ENESIZE, ITEMSIZE);
+                SaveSI(TargetIO, fname, Buf.bytes, ENESIZE + ITEMSIZE);
             }
         }
         break;
-    case 2:
+    case STOCK_IMAGES:
         InitializeImage();
         break;
-    case 3:
+    case DEBUG_PRINT:
         SystemFlag ^= SYSFLAG_DEBUGPRINT;
         break;
-    case 4:
-        *(MUSIC_TBL *)work.bytes = D_80014554;
-        _PlayMusic(((s32 *)work.bytes)[StageID], 1);
+    case PLAY_MUSIC:
+        __builtin_memcpy(Buf.music_by_stage, D_80014554,
+                         sizeof(Buf.music_by_stage));
+        _PlayMusic(Buf.music_by_stage[StageID], 1);
         break;
-    case 5:
+    case STOP_MUSIC:
         CdaStop();
         break;
-    case 6:
+    case EVENT_UPDATE:
         SetupStageSequence();
         break;
-    case 7:
+    case ANIM_UPDATE:
         CVAsetup();
         break;
-    case 8:
+    case TEST_ANIMATION:
         debug_menu_file_animation_test();
         break;
-    case 9:
+    case TEST_MUSIC:
         i = 0;
-        targets = work.music.targets;
-        messages = work.music.msg;
+        targets = Buf.music.targets;
+        messages = Buf.music.msg;
         for (; i < 0xA1; i++)
         {
             sprintf((char *)messages[i], D_80097D70, i);
@@ -190,24 +215,24 @@ void FileOption(void)
         }
         ((TAdtSelect *)((u8 *)targets + (i << 3)))->name = 0;
         PlayMusicFormID(AdtSelect(
-            D_8001423C, (TAdtSelect *)work.bytes, 0));
+            D_8001423C, (TAdtSelect *)Buf.bytes, 0));
         break;
-    case 0xA:
+    case EASY_GAME:
         EngageLevel = 3;
         gNannido = DIFFICULTY_EASY;
         break;
-    case 0xB:
+    case NORMAL_GAME:
         EngageLevel = 2;
         gNannido = DIFFICULTY_NORMAL;
         break;
-    case 0xC:
+    case HARD_GAME:
         EngageLevel = 1;
         gNannido = DIFFICULTY_HARD;
         break;
-    case 0xD:
-        __builtin_memcpy(work.bytes, DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES,
+    case STOCK_LAYOUT:
+        __builtin_memcpy(Buf.bytes, DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES,
                          sizeof(DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES));
-        k = AdtSelect(D_800145A8, (TAdtSelect *)work.bytes, 0);
+        k = AdtSelect(D_800145A8, (TAdtSelect *)Buf.bytes, 0);
         if (k < 0)
             break;
         STAGE_LAYOUT_NUMBER[0] = k;
