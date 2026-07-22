@@ -126,9 +126,9 @@ void ActATTACK(void)
   MotionDataType *pMVar11;
   VECTOR *pVVar12;
   int iVar13;
-  AfterimageType *pAVar14;
+  AfterimageType *ilu;
   int iVar15;
-  ModelType **ppMVar16;
+  ModelType **object;
   ModelType *pMVar17;
   short sVar18;
   BattleType *battle;
@@ -752,20 +752,20 @@ LAB_8002315c:
     if (battle->atks < 1) {
       return;
     }
-    ppMVar16 = Me_MOTION_C->model->object;
+    object = Me_MOTION_C->model->object;
     hand_kind = Me_MOTION_C->wpatk;
     switch (hand_kind) {
     case 3:
-      hand[0] = ppMVar16[2];
-      hand[1] = ppMVar16[1];
+      hand[0] = object[2];
+      hand[1] = object[1];
       break;
     case 2:
-      hand[0] = ppMVar16[8];
-      hand[1] = ppMVar16[0xb];
+      hand[0] = object[8];
+      hand[1] = object[0xb];
       break;
     default:
-      hand[0] = ppMVar16[0xd];
-      hand[1] = ppMVar16[0xe];
+      hand[0] = object[0xd];
+      hand[1] = object[0xe];
       break;
     }
     if (dtM->count == battle->atks) {
@@ -839,19 +839,19 @@ LAB_8002315c:
     if (dtM->count == battle->ilus) {
       iVar13 = (int)Me_MOTION_C->wepid[0];
       if (-1 < iVar13) {
-        pAVar14 = SetupAfterimage(hand[0],10);
-        pAVar14->vector1 = WeaponDB[iVar13].ilup0;
-        pAVar14->vector2 = WeaponDB[iVar13].ilup1;
-        Me_MOTION_C->illusion[0] = (void *)pAVar14;
+        ilu = SetupAfterimage(hand[0],10);
+        ilu->vector1 = WeaponDB[iVar13].ilup0;
+        ilu->vector2 = WeaponDB[iVar13].ilup1;
+        Me_MOTION_C->illusion[0] = (void *)ilu;
       }
       iVar13 = (int)Me_MOTION_C->wepid[1];
       if (iVar13 < 0) {
         return;
       }
-      pAVar14 = SetupAfterimage(hand[1],10);
-      pAVar14->vector1 = WeaponDB[iVar13].ilup0;
-      pAVar14->vector2 = WeaponDB[iVar13].ilup1;
-      Me_MOTION_C->illusion[1] = (void *)pAVar14;
+      ilu = SetupAfterimage(hand[1],10);
+      ilu->vector1 = WeaponDB[iVar13].ilup0;
+      ilu->vector2 = WeaponDB[iVar13].ilup1;
+      Me_MOTION_C->illusion[1] = (void *)ilu;
       return;
     }
     if (dtM->count != battle->ilue) {
