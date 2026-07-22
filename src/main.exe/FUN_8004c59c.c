@@ -16,7 +16,8 @@
  * function (message-style: called with `(m, msg)`, no direct `jal` callers
  * found — reached through tag_TMisc.proc). Shares tag_TMisc's position and
  * mode fields with the neighbouring FUN_8004c350; its retail-only parameter
- * overlay is a GameClock-based schedule. MM_CREATE resets it, the other
+ * overlay is a GameClock-based schedule. MM_CREATE reshapes the AddMisc
+ * initialization payload into that schedule and clears mode, the other
  * lifecycle messages are ignored, and MM_DO fires while `mode==0` once
  * `GameClock>=sched.next`, then reschedules.
  *
@@ -25,18 +26,19 @@
  * reschedule) and `sndIdx` (u8, added to 0x44 as the SoundEx sound id).
  *
  * Matching notes:
- *  - The MM_CREATE reset is NOT a simple field clear — it's a whole-struct
+ *  - The MM_CREATE initialization is NOT a simple field clear — it's a whole-struct
  *    assignment `*sched = tmp;` through a freshly-built local `Schedule
  *    tmp`, which is why cc1 emits 3 WORD lw/sw pairs through the stack
  *    (emit_block_move on a 3-word-aligned struct) instead of narrow
  *    per-field stores. `tmp`'s own fields are read from DIFFERENT offsets
- *    than where they end up: `tmp.max` is read from `param.init.c` (sched's own
- *    `sndIdx` position, reinterpreted as u16) and `tmp.sndIdx` from
- *    `param.init.a` (sched's own `next`, truncated to its low byte) — the reset
- *    intentionally recycles the old `next`/`sndIdx` bytes into the new
- *    `sndIdx`/`max` slots. The copy-through reads use `lhu` regardless of
- *    `min`'s true s16-ness (cookbook: "a pure narrowing struct-field copy
- *    uses lhu/lbu even for signed fields") — only the `u16 *` cast does that.
+ *    than where they end up: the AddMisc payload's `a` becomes `sndIdx`, `b`
+ *    becomes `min`, and `c` becomes `max`, while `GameClock` becomes `next`.
+ *    In the overlaid Schedule view, `param.init.c` occupies `sndIdx`'s offset
+ *    and `param.init.a` occupies `next`'s offset; the whole-struct assignment
+ *    then packs the reshaped values into their runtime slots. The `min` and
+ *    `max` copies both use `lhu` despite their true s16 types (cookbook: "a
+ *    pure narrowing struct-field copy uses lhu/lbu even for signed fields")
+ *    — only the `u16 *` casts produce those loads.
  *  - The three early-return guards (msg<MM_DO, mode!=0,
  *    GameClock<sched.next)
  *    are flat guard clauses (IsVisible's shape), not one nested `&&`-chain.
