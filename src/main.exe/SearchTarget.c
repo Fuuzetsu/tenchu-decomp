@@ -42,7 +42,7 @@
 
 /*
  * STATUS: MATCHING — exact 1128-byte / 282-instruction pure-C match.
- * The stack plan is frame 0x50, delta VECTOR at sp+0x10, position VECTOR at
+ * The stack plan is frame 0x50, `vect` VECTOR at sp+0x10, position VECTOR at
  * sp+0x20, and passage SVECTOR at sp+0x30.
  *
  * The passage failure's SImode -2 is narrowed through `passage_pad`, crosses
@@ -51,9 +51,10 @@
  * `j`/`li -2` island survives while the close-distance return folds directly
  * into its conditional branch.
  *
- * The three deltas must be one stack VECTOR; `mode` must remain s16 for the
- * target's repeated promotion/copy chains; and the vertical adjustment needs
- * distinct `initial_delta_y`, updated `delta_y`, and `base_y` identities.
+ * The three components of `vect` must be one stack VECTOR; `mode` must remain
+ * s16 for the target's repeated promotion/copy chains; and the vertical
+ * adjustment needs distinct `initial_delta_y`, updated `delta_y`, and
+ * `base_y` identities.
  */
 
 typedef struct
@@ -68,8 +69,8 @@ extern SearchSight searchsight[];
 
 short SearchTarget(Humanoid *human, long *distance, short *degree)
 {
-    VECTOR delta;
     VECTOR vect;
+    VECTOR position;
     SVECTOR svect;
     s32 raw_degree;
     s32 roty;
@@ -89,21 +90,21 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
     s16 result_degree;
     s16 n;
 
-    vect = *human->locate;
+    position = *human->locate;
     n = 1;
     if (human->target == 0)
     {
         return 0;
     }
 
-    delta.vx = human->target->locate.coord.t[0] - vect.vx;
-    delta.vy = human->target->locate.coord.t[1] - vect.vy;
-    delta.vz = human->target->locate.coord.t[2] - vect.vz;
-    *distance = SquareRoot0(delta.vx * delta.vx + delta.vy * delta.vy +
-                            delta.vz * delta.vz);
+    vect.vx = human->target->locate.coord.t[0] - position.vx;
+    vect.vy = human->target->locate.coord.t[1] - position.vy;
+    vect.vz = human->target->locate.coord.t[2] - position.vz;
+    *distance = SquareRoot0(vect.vx * vect.vx + vect.vy * vect.vy +
+                            vect.vz * vect.vz);
 
     roty = (u16)human->rotate->vy;
-    raw_degree = ratan2(-delta.vx, -delta.vz) - roty;
+    raw_degree = ratan2(-vect.vx, -vect.vz) - roty;
     signed_degree = raw_degree;
     result_degree = raw_degree;
     if (signed_degree < 0x801)
@@ -128,11 +129,11 @@ degree_done:
     mode = (u16)(StagePlayer->status - 0xb) < 2;
     if (StagePlayer->status == 10)
     {
-        if (delta.vy >= 0)
+        if (vect.vy >= 0)
         {
             goto passage_failure;
         }
-        if (delta.vy < -3000)
+        if (vect.vy < -3000)
         {
             if (*distance < 4000)
             {
@@ -141,7 +142,7 @@ degree_done:
         }
     }
 
-    if (__builtin_abs(delta.vy) >= 3000)
+    if (__builtin_abs(vect.vy) >= 3000)
     {
         if (FRAMES_UNTIL_END_OF_ALERT == 0)
         {
@@ -175,15 +176,15 @@ degree_done:
         {
             limit = 300;
         }
-        y = vect.vy;
+        y = position.vy;
         own_height = human->height;
-        initial_delta_y = delta.vy;
+        initial_delta_y = vect.vy;
         y += 300;
         y -= own_height;
         delta_y = initial_delta_y - 300;
-        vect.vy = y;
+        position.vy = y;
         base_y = delta_y + human->height;
-        delta.vy = base_y;
+        vect.vy = base_y;
         player_height = StagePlayer->height;
         full_height = (s16)player_height;
         if (StagePlayer->status == 0xb)
@@ -195,22 +196,22 @@ degree_done:
         {
             adjusted_y = base_y - full_height;
         }
-        delta.vy = adjusted_y;
+        vect.vy = adjusted_y;
 
-        while (limit < __builtin_abs(delta.vx) ||
-               limit < __builtin_abs(delta.vy) ||
-               limit < __builtin_abs(delta.vz))
+        while (limit < __builtin_abs(vect.vx) ||
+               limit < __builtin_abs(vect.vy) ||
+               limit < __builtin_abs(vect.vz))
         {
             n <<= 1;
-            delta.vx >>= 1;
-            delta.vy >>= 1;
-            delta.vz >>= 1;
+            vect.vx >>= 1;
+            vect.vy >>= 1;
+            vect.vz >>= 1;
         }
 
-        svect.vx = delta.vx;
-        svect.vy = delta.vy;
-        svect.vz = delta.vz;
-        if (GetAreaMapPassage(GlobalAreaMap, &vect, &svect, n) != 0)
+        svect.vx = vect.vx;
+        svect.vy = vect.vy;
+        svect.vz = vect.vz;
+        if (GetAreaMapPassage(GlobalAreaMap, &position, &svect, n) != 0)
         {
 passage_failure:
             {
