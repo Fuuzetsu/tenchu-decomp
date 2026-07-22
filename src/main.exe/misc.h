@@ -22,13 +22,13 @@ typedef struct
  * member, union MISC__181fake in reference/psxsym-types.h) — a single byte
  * at the union's base offset, reused after CREATE clamps/narrows the raw
  * TMiscInit.a read down to a valid sprite-table index. */
-typedef struct
+typedef struct TSprite
 {
     u8 type; /* 0x0 */
 } TSprite;
 
 /* The MISC_DOOR variant of the parameter union (PSX.SYM's TDoor). */
-typedef struct
+typedef struct TDoor
 {
     ModelType *locate; /* 0x0 */
     s16 r;             /* 0x4 */
@@ -39,7 +39,7 @@ typedef struct
 
 /* The MISC_SNOWFALL variant of the param union (MISC__181fake's `snowfall`
  * member, reference/psxsym-types.h). */
-typedef struct
+typedef struct TSnowfall
 {
     s32 w;          /* 0x0 */
     s32 h;          /* 0x4 */
@@ -47,7 +47,7 @@ typedef struct
 } TSnowfall;
 
 /* The MISC_PITFALL variant of the parameter union. */
-typedef struct
+typedef struct TPitfall
 {
     ModelType *locate; /* 0x0 */
     s16 r;             /* 0x4 */
