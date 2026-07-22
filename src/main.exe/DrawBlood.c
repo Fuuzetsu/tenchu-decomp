@@ -90,7 +90,7 @@ typedef struct DrawBloodScratch
 } DrawBloodScratch;
 
 extern GsSPRITE sprBlood[];
-extern GsSPRITE sprBlood2[];
+extern GsSPRITE sprBloodStay[];
 
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
 extern void *memset(void *dst, int value, u32 size);
@@ -109,7 +109,7 @@ void DrawBlood(TEffectSlot *ef)
     blood = &ef->param.blood;
     index = blood->unk22;
     spr = &sprBlood[index];
-    sprt = &sprBlood2[index];
+    sprt = &sprBloodStay[index];
 
     state = blood->unk23;
     switch (state)

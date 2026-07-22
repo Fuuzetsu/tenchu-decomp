@@ -72,7 +72,7 @@ extern s32 D_80011C90[3];
 extern s32 pat[MaxFrames];
 
 extern GsSPRITE sprBlood[4];
-extern GsSPRITE sprBlood2[4];
+extern GsSPRITE sprBloodStay[4];
 extern GsSPRITE D_800BEAA8[5];
 extern Sprite3D *D_80097F2C[1];
 
@@ -107,8 +107,8 @@ void InitEffect(void)
         InitSprite(image, &sprBlood[i]);
         sprBlood[i].attribute = 0x50000000;
         image = GetImage(bloodp->image[i * 2 + 1]);
-        InitSprite(image, &sprBlood2[i]);
-        sprBlood2[i].attribute = 0x60000000;
+        InitSprite(image, &sprBloodStay[i]);
+        sprBloodStay[i].attribute = 0x60000000;
     }
 
     image = GetImage(0xE);

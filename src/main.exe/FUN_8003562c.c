@@ -31,7 +31,7 @@ typedef union FUN_8003562cScratch
 } FUN_8003562cScratch;
 
 extern GsSPRITE sprBlood[4];
-extern GsSPRITE sprBlood2[4];
+extern GsSPRITE sprBloodStay[4];
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void DrawBleed(TEffectSlot *ef);
 
@@ -42,9 +42,10 @@ extern void DrawBleed(TEffectSlot *ef);
  *
  * The explicit scratch union is the original sp+0x18..sp+0x3f workspace:
  * the projection SVECTOR, bleed VECTOR, and temporary VECTOR/SVECTOR all
- * overlap, keeping the target's 0x60-byte frame.  sprBlood2 is an alias for
- * the second four-sprite bank; naming it separately is load-bearing because
- * the target materializes both bank bases independently.  `node_y` and
+ * overlap, keeping the target's 0x60-byte frame. sprBloodStay is the original
+ * name of the second blood-sprite bank; retail expands both demo singletons
+ * to four sprites. Naming it separately is load-bearing because the target
+ * materializes both bank bases independently. `node_y` and
  * `level` must remain separate around ComputeAreaLevel so the flat and sloped
  * paths cross-jump through the target multiply tail.  Likewise, the named
  * bleed_x/y/z values prevent reassociation of `(position - 60) + rand()%120`,
@@ -63,7 +64,7 @@ void FUN_8003562c(TEffectSlot *ef)
     param = &ef->param.blood;
     index = param->unk22;
     spr = &sprBlood[index];
-    spr2 = &sprBlood2[index];
+    spr2 = &sprBloodStay[index];
     state = param->unk23;
 
     if (state == 2)
