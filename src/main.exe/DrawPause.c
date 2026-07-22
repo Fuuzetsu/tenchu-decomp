@@ -80,7 +80,6 @@
  *    the struct field (skipping a scratch var) affected this; only routing
  *    the ADDEND itself through a named variable did.
  */
-extern TSystemFlag SystemFlag;
 
 extern GsIMAGE *GetImage(s32 id);
 

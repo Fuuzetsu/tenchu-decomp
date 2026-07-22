@@ -99,7 +99,6 @@
  * each + 13 single-insn uses), so none is combine-folded.
  */
 
-extern TSystemFlag SystemFlag;
 extern s16 VISIBLE_ENEMIES_;
 extern s16 D_800BE768[];
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];

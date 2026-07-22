@@ -58,7 +58,6 @@ typedef struct
     TitlePathBlock title;
 } CreateStageTitleScratch;
 
-extern volatile TSystemFlag SystemFlag;
 extern s32 DepthPoint;
 extern TitlePathBlock TITLE_SPRITES_PTRS;
 extern u8 CHOSEN_LANGUAGE;
@@ -174,11 +173,11 @@ void CreateStage(int StageNo, int CharType)
     if (((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)
     {
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % 3;
-        SystemFlag |= 8;
+        *(volatile TSystemFlag *)&SystemFlag |= 8;
     }
     else
     {
-        SystemFlag &= ~8;
+        *(volatile TSystemFlag *)&SystemFlag &= ~8;
     }
     load_layout(STAGE_LAYOUT_NUMBER);
     leLayoutEnemy(1);

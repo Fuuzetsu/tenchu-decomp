@@ -14,6 +14,7 @@ extern unsigned char gSound;
 extern unsigned char gSoundLevel;
 extern unsigned char gSELevel;
 extern unsigned char gfMemory;
+extern TSystemFlag SystemFlag;
 /* Retail's mid=-1 sentinel is entry 104; the demo table had 78 entries. */
 extern BattleType BattleDB[105];
 extern struct Humanoid *StagePlayer;

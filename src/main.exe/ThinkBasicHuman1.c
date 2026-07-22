@@ -33,7 +33,6 @@
  * the "Ghidra's short-typed call-result variable can be int in source" rule.
  */
 extern s32 FUN_8001b2f4(s16 pad);
-extern TSystemFlag SystemFlag;
 
 s16 ThinkBasicHuman1(void)
 {

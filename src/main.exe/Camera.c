@@ -33,7 +33,6 @@
  *     extern int Projection;
  * END PSX.SYM */
 
-extern TSystemFlag SystemFlag;
 extern s32 Projection;
 
 extern char D_80011BA4[]; /* "OWNER: (%d, %d, %d) R:%d" */

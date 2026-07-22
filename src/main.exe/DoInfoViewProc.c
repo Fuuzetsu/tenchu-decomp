@@ -85,7 +85,6 @@ typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
 typedef struct { TAdtSelect e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
 
 
-extern TSystemFlag SystemFlag;
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;                       /* fInitialize */

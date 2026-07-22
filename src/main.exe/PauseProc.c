@@ -94,7 +94,6 @@ extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 
-extern TSystemFlag SystemFlag;
 
 void PauseProc(void)
 {

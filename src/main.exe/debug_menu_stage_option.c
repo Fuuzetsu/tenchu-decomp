@@ -35,7 +35,6 @@ extern char EMPTY_STRING[];
 extern u8 CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 CHOSEN_LANGUAGE;
-extern TSystemFlag SystemFlag; /* gp-relative — defined by this TU */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void StageEndScreen(void);

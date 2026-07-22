@@ -85,7 +85,6 @@ typedef union {
 } FILE_WORK;
 
 /* gp-relative — defined by this (file-option) TU; Build.hs maspsxGpExterns */
-extern TSystemFlag SystemFlag;
 /* other TUs' smalls — plain absolute externs */
 
 extern MENU_FILE_TBL DEBUG_MENU_FILE_CHOICES;

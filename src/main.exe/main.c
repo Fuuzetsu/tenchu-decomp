@@ -62,7 +62,6 @@
  *    and `SkipFrame == 1` tests.
  */
 
-extern TSystemFlag SystemFlag;
 extern u16 D_800976F6;
 extern char D_80011004[];
 
