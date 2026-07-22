@@ -120,7 +120,7 @@ event_found:
             {
                 dispose_weapon_data_of_char_(human, 3);
                 NowReturnNormal(*slot);
-                *(s16 *)&(*slot)->pad = 0;
+                (*slot)->pad.data = 0;
             }
             i++;
         } while (i < Humans);
