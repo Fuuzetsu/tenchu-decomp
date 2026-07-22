@@ -45,7 +45,6 @@
  *    materialization).
  */
 
-extern TCdaStatus CdaStatus;
 extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
 

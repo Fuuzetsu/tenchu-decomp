@@ -30,7 +30,6 @@
  * moves rather than fresh `li`s — ordinary cc1 reuse of whichever register
  * already holds 0, not something to hand-engineer.
  */
-extern TCdaStatus CdaStatus;
 extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
 extern void VSyncCallback(void *func);

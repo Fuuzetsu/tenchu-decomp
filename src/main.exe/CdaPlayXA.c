@@ -79,7 +79,6 @@
  * read but then copy-propagates the later use back to `mode`, producing a
  * second load. Qualifying the parameter object yields the target's one load.
  */
-extern TCdaStatus CdaStatus;
 extern void CdaStop(void);
 extern void cd_control(u8 cmd, u8 *param, u8 *result);
 extern void VSync(s32 mode);

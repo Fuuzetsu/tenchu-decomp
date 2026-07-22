@@ -51,8 +51,6 @@
  * changing either access or the 56-byte frame.
  */
 
-extern TCdaStatus CdaStatus;
-
 typedef union
 {
     struct

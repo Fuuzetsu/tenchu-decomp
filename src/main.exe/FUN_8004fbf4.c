@@ -11,8 +11,6 @@
  * END PSX.SYM */
 
 /* CD-audio status (Ghidra: TCdaStatus). Only voll/volr are touched here. */
-extern TCdaStatus CdaStatus;
-
 void FUN_8004fbf4(u8 voll, u8 volr)
 {
     CdaStatus.voll = voll;

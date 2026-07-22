@@ -30,7 +30,6 @@
  * triggered by an inadvertent CSE merge rather than immediate-width).
  */
 
-extern TCdaStatus CdaStatus;
 extern s32 CdaReady(void);
 
 int CdaGetCurrentLength(void)

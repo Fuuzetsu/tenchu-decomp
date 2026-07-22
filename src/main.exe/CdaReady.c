@@ -18,8 +18,6 @@
  * CdaStop.c/FUN_8004fbf4.c/FUN_8004fc08.c. Returns the masked bit rather than a
  * normalised 0/1, so no extra andi follows the lbu.
  */
-extern TCdaStatus CdaStatus;
-
 s32 CdaReady(void)
 {
     return CdaStatus.status & 0x20;

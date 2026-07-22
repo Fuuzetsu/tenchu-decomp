@@ -61,7 +61,6 @@
 
 extern s32 (*AdtPadRead)(s32 port);
 extern s32 GetRealPad(s32 port);
-extern TCdaStatus CdaStatus;
 extern TSystemFlag SystemFlag;
 extern short Humans;
 extern short SkipFrame;
