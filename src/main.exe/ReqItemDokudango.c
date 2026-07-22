@@ -68,7 +68,6 @@ extern short SetNowMotion(Humanoid *human, s32 mid, s32 move);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Model pointer per item type. */
-extern Sprite3D *ItemImage[];
 
 int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
 {

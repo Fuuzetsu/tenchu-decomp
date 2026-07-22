@@ -65,7 +65,6 @@ extern TStageConfig StageConfig[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
-extern Sprite3D *ItemImage[];
 extern s16 SkipFrame;
 
 extern void PadShockAR(s32 port, s32 time, s32 left, s32 right);

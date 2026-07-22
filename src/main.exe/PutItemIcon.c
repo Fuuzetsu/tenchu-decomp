@@ -39,7 +39,6 @@
  * a standalone global: PSX.SYM's complete Sprite3D names the embedded
  * `sprite` field at +0x68.
  */
-extern Sprite3D *ItemImage[];
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
 {

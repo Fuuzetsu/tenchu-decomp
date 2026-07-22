@@ -63,7 +63,6 @@ extern u8 gfMemory;
 extern u8 D_8001044C[5];
 extern u8 D_80010451[5];
 extern s32 D_80010458[5];
-extern Sprite3D *ItemImage[];
 extern s16 D_8008ED50[];
 
 extern s16 SkipFrame;

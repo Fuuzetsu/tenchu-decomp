@@ -64,7 +64,6 @@ extern void ProcItemSmoke(TItem *item);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Model pointer per item type. */
-extern Sprite3D *ItemImage[];
 
 int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
 {

@@ -83,7 +83,6 @@
  *    referenced the bad name).
  */
 extern GsSPRITE CursorImage;
-extern s32 ItemImage[];
 extern GsSPRITE ItemSprite3Ds[4];
 extern u8 fInitialize;
 
@@ -113,7 +112,7 @@ void InitializeInfoView(void)
     InitSprite(pGVar1, &NumberImage);
     iVar4 = 0;
     scale1 = 0x3000;
-    piVar3 = ItemImage;
+    piVar3 = (s32 *)ItemImage;
 loop1:
     pGVar1 = GetImage(iVar4 + 0x14);
     pSVar2 = (Sprite3D *)(*piVar3 = (s32)SetupSprite((Sprite3D *)0, pGVar1));
@@ -126,7 +125,7 @@ loop1:
     {
         scale2 = 0x3000;
         attr2 = 0x1C;
-        base2 = ItemImage;
+        base2 = (s32 *)ItemImage;
         piVar3 = base2 + iVar4;
     loop2:
         pGVar1 = GetImage(0xF);

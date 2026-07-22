@@ -66,7 +66,6 @@
  * the merged call's delay slot.
  */
 extern GsSPRITE CursorImage;
-extern Sprite3D *ItemImage[];
 extern s16 ItemCursor;
 
 
