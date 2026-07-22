@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "score.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -85,8 +86,6 @@ extern char D_80097C8C[];
 extern void UpdateEvent(s16 n, s16 id);
 extern void PlayMusicFormID(s32 id);
 extern s16 CVAsequence(s16 sid);
-extern ScoreStats *init_score_stats(ScoreStats *stats);
-extern ScoreResult *calculate_score(ScoreStats *stats, s16 stage);
 
 s32 StageSequence(void)
 {

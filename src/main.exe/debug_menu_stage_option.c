@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "score.h"
 
 /*
  * debug_menu_stage_option (0x8005c9fc, 448 bytes) — debug menu case 5
@@ -40,8 +41,6 @@ extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void StageEndScreen(void);
 extern void SelectStage(TLinkInfo *ps);
 extern void FUN_8004f6c0(s32 arg);
-extern void init_score_stats(ScoreStats *out);
-extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
 extern void AdtMessageBox(char *fmt, ...);
 extern void CVAsetup(void);
 

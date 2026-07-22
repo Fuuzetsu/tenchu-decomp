@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "score.h"
 #include "misc.h"
 
 /*
@@ -64,8 +65,6 @@ extern u8 D_80010451[5];
 extern s32 D_80010458[5];
 extern s16 D_8008ED50[];
 
-extern void init_score_stats(ScoreStats *stats);
-extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern BackGround *FUN_8004f4f8(u_long *tim);

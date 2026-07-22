@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "score.h"
 
 /*
  * calculate_score (0x8004e794, 0x160 bytes) builds the six halfword

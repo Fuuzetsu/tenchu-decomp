@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "score.h"
 
 /*
  * init_score_stats (0x8004e964) — placeholder name (not from Ghidra/Ghidra
