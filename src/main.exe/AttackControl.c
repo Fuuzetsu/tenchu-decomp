@@ -126,7 +126,7 @@ enemy_type_ok:
                     enemy->target = target;
 
                     if (dtL->vy == enemy->locate->vy &&
-                        (*(u32 *)((u8 *)Me_MOTION_C + 0x2c) & 0xffff00ff) == 0)
+                        (*(u32 *)&Me_MOTION_C->map.vector & 0xffff00ff) == 0)
                     {
                         s16 myid;
                         s16 emid;
