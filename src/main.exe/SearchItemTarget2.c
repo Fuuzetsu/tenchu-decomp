@@ -106,7 +106,6 @@
 extern VECTOR D_800121F0;
 
 extern void FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, int flag);
-extern VECTOR *GetAbsolutePosition(ModelType *m, int x, int y, int z);
 extern long abs(long x);
 
 Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR *target)

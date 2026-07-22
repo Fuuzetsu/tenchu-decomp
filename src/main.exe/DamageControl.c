@@ -15,7 +15,6 @@ extern void reset_alert_duration(void);
 extern void AttackCancelControl(s16 mode);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
-extern VECTOR *GetAbsolutePosition(ModelType *model, s32 x, s32 y, s32 z);
 extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
                          short start_size, short end_size,
                          long start_color, long end_color,

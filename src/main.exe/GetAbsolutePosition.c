@@ -37,7 +37,7 @@
  */
 extern VECTOR D_80097F90;
 
-VECTOR *GetAbsolutePosition(ModelType *model, int x, int y, int z)
+VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z)
 {
     MATRIX m;
     SVECTOR v;
