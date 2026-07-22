@@ -33,9 +33,9 @@
  *    store run for case 1). A plain `extern SVECTOR D_…;` is -G8-small and
  *    collapses to a fused one-register `la` — one instruction long (the
  *    cookbook's AddItem2 smoke-vector rule, same D_80097Bxx table).
- *  - Case 1's block declares `SVECTOR dir;` then `s32 rx; s32 ry;` — slot
- *    order dir@sp+0x30, rx@0x38, ry@0x3C after the function-scope vec@0x18 +
- *    target@0x20 (scope-entry allocation order).
+ *  - Case 1's inner block shadows the function-scope `vec` with PSX.SYM's
+ *    second `SVECTOR vec` at sp+0x30. The preceding rx/ry output slots land
+ *    at sp+0x38/sp+0x3C after the function-scope vec@0x18 + target@0x20.
  *  - `vec.vx = rx;` etc. narrow the s32 out-params: combine folds each
  *    load+truncate to a single lhu.
  *  - Cases 0 and 1 end in duplicated `item->mode = item->mode + 1; return;`
@@ -112,7 +112,6 @@ void ProcItemGun(TItem *item)
 
     case 1:
     {
-        SVECTOR dir;
         s32 rx;
         s32 ry;
         Humanoid *IsHuman;
@@ -140,19 +139,23 @@ void ProcItemGun(TItem *item)
         item->collision.ofsY = 0;
         item->collision.mode = 1;
         item->collision.pause = 0;
-        dir = D_80097B14[0];
-        RotateVectorS(&dir, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
-        if (IsHuman != 0)
         {
-            SetImpact(&target, 0x6000, 0);
-            SetBleedsDir(&target, &dir, 100, 15, 10, 0xFF0000);
-            SoundEx(&target, 0x34);
-        }
-        else
-        {
-            SetImpact(&target, 0x4000, 0);
-            SetBleedsDir(&target, &dir, 100, 15, 10, 0xFFFF00);
-            SoundEx(&target, 0x35);
+            SVECTOR vec;
+
+            vec = D_80097B14[0];
+            RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
+            if (IsHuman != 0)
+            {
+                SetImpact(&target, 0x6000, 0);
+                SetBleedsDir(&target, &vec, 100, 15, 10, 0xFF0000);
+                SoundEx(&target, 0x34);
+            }
+            else
+            {
+                SetImpact(&target, 0x4000, 0);
+                SetBleedsDir(&target, &vec, 100, 15, 10, 0xFFFF00);
+                SoundEx(&target, 0x35);
+            }
         }
     }
         item->mode = item->mode + 1;
