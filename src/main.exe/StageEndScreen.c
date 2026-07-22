@@ -68,7 +68,6 @@ extern void FUN_80038ce0(void);
 extern ScoreStats *init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s16 stage);
 extern void mission_score_screen(s32 stage);
-extern void LoadTIM(unsigned long *adr);
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);

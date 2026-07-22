@@ -8,7 +8,6 @@
  * cookbook's cached-pointer rule, same shape as DrawXG4). Mirrors
  * LoadTIMpackAndFree right below it (LoadTIMpack instead of LoadTIM).
  */
-extern void LoadTIM(unsigned long *adr);
 extern void vfree(void *p);
 
 void LoadTIMAndFree(u_long *tim)

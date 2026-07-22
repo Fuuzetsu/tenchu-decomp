@@ -96,7 +96,6 @@ extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 extern int rand(void);
 extern void vfree(void *p);
 extern BackGround *FUN_8004f4f8(u_long *tim);
-extern void LoadTIM(unsigned long *adr);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);
 extern void FUN_8004f6c0(int arg);

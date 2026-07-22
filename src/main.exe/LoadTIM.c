@@ -33,14 +33,14 @@
  * SystemOut is annotated noreturn by Ghidra but the compiled code falls
  * straight through after the call (no early return) - same shape as
  * InsertConflict.c/LoadAreaMap.c's identical SystemOut-then-continue idiom.
- * All matched callers (BriefingAndInventorySelectionScreen.c,
- * FUN_8004f598.c, LoadTIMAndFree.c) already pin the prototype as
- * `void LoadTIM(unsigned long *adr)` - the DrawSync(0) return value is discarded
- * (no move/sign-extend after the call in the asm), matching void.
+ * The recovered API returns `short`. Retail has no explicit return after
+ * DrawSync(0), leaving that call's residual value in $v0; every known caller
+ * ignores it. This is ordinary old-C fallthrough, not evidence for replacing
+ * the original return type with `void`.
  */
 extern char D_800110B8[]; /* "NO IMAGE DATA" */
 
-void LoadTIM(unsigned long *adr)
+short LoadTIM(unsigned long *adr)
 {
     RECT r;
     GsIMAGE im;

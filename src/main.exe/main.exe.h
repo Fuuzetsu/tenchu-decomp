@@ -102,6 +102,7 @@ extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
 extern u_long *GetArcData(int index);
 extern u_long *get_tim_from_archive(u_long *archive, int idx);
 extern short GetTIMInfo(u_long *adr, GsIMAGE *image);
+extern short LoadTIM(u_long *adr);
 extern void LoadTIMAndFree(u_long *tim);
 extern void load_font_image_into_global(GsIMAGE *image);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);

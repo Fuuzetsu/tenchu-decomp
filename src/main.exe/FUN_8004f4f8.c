@@ -26,7 +26,6 @@
  * background image straight off a TIM buffer. No confirmed original name.
  */
 extern BackGround *SetupBG(GsIMAGE *image, s16 w, s16 h);
-extern void LoadTIM(unsigned long *adr);
 
 BackGround *FUN_8004f4f8(u_long *tim)
 {

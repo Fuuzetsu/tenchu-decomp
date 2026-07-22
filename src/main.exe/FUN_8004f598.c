@@ -13,7 +13,6 @@
  * get_tim_from_archive. They are already in a0/a1, so the raw assembly needs
  * no argument-setup instructions before the call.
  */
-extern void LoadTIM(unsigned long *adr);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void FUN_8004f598(u_long *archive, int idx)
