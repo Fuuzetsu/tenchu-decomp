@@ -44,7 +44,6 @@
  *    target addiu on the abs()/2 accumulator before expanding rand() % 25.
  */
 
-extern s16 RefrectMove[16][2];
 extern SVECTOR D_80097AD0[];
 
 extern s32 CGetLevel(struct AreaNodeType **hint, s32 x, s32 y, s32 z, u32 flag);

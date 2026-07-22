@@ -54,7 +54,6 @@
 
 extern struct AreaNodeType *FieldArea;
 extern struct NodeIndexType *FieldIndex;
-extern s16 RefrectMove[16][2];
 extern s16 RefrectVector[16];
 
 extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
