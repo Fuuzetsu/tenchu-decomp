@@ -20,7 +20,7 @@ typedef struct XF4Type XF4Type;
 typedef struct SmokeType SmokeType;
 typedef struct ImpactType ImpactType;
 typedef struct SnowParticleType SnowParticleType;
-typedef struct TexScrollParam TexScrollParam;
+typedef struct TexScroll TexScroll;
 
 typedef union ImpactColor ImpactColor;
 union ImpactColor
@@ -74,7 +74,7 @@ struct SnowParticleType /* size 32 */
 /* Retail embeds a shortened form of PSX.SYM's TexScroll in an EffectSlot.
  * The px/py accumulators and vx/vy deltas keep their recovered identities;
  * only the demo's time/count pair is absent. */
-struct TexScrollParam /* size 24 */
+struct TexScroll /* size 24 */
 {
     s16 px;      /* +0x00 */
     s16 py;      /* +0x02 */
@@ -232,7 +232,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct FrameType frame;
     struct XF4Type xf4;
     struct SnowParticleType snow;
-    struct TexScrollParam texscroll;
+    struct TexScroll texscroll;
 };
 
 typedef struct tag_EffectSlot /* size 76 */

@@ -74,7 +74,7 @@ void FUN_80032720(GsIMAGE *im, short y, short z)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    TexScrollParam *tscr;
+    TexScroll *tscr;
     s16 scrollX;
     short scrollY;
     short px;

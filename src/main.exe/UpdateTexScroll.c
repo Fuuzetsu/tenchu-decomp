@@ -64,14 +64,13 @@ extern GsOT *OTablePt;
 
 void UpdateTexScroll(TEffectSlot *ef)
 {
-    TexScrollParam *tscr;
+    TexScroll *tscr;
     DR_MOVE *prim;
     s32 x, y;
 
     tscr = &ef->param.texscroll;
-    ef->param.texscroll.px =
-        (u16)((u32)(ef->param.texscroll.px + tscr->vx) %
-              (u32)(tscr->image.w << 4));
+    tscr->px = (u16)((u32)(tscr->px + tscr->vx) %
+                     (u32)(tscr->image.w << 4));
     tscr->py = (u16)((u32)(tscr->py + tscr->vy) %
                      (u32)(tscr->image.h << 4));
 
@@ -85,6 +84,6 @@ void UpdateTexScroll(TEffectSlot *ef)
 
     prim = (DR_MOVE *)GsGetWorkBase();
     GsSetWorkBase(prim + 1);
-    SetDrawMove(prim, &ef->param.texscroll.image, tscr->x, tscr->y);
+    SetDrawMove(prim, &tscr->image, tscr->x, tscr->y);
     AddPrim((u8 *)OTablePt->org, (u8 *)prim);
 }
