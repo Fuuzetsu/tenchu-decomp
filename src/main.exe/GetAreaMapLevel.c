@@ -42,11 +42,11 @@
 /*
  * GetAreaMapLevel (0x80019a10) — node-map floor-height query (this is the
  * map/collision TU, not the item TU). Coordinates are divided by 10 into
- * map units; the NodeIndexType table (FieldIndex caches the last hit, `map`
+ * map units; the NodeIndexType table (FieldIndex caches the last hit, `area`
  * is the table base) is walked down/up to the row matching y10, then each
  * row entry's rect is tested and ComputeAreaLevel gives the height. The
  * result is cached in FieldArea/FieldIndex/FieldAttrib (attribute) and
- * D_80097EC0 (last y10). Returns level*10 (or the delta to y with flag&2),
+ * D_80097EC0 (last y10). Returns level*10 (or the delta to y with mode&2),
  * 0x80000000 when nothing is below.
  *
  * Matching notes (docs/matching-cookbook.md; all verified against the bytes):
@@ -57,28 +57,28 @@
  *  - x and z are the PARAMETERS reused (`x = x / 10;`) — that is what puts
  *    them in callee-saved homes with the `move s5,a1`/`move s6,a3` prologue
  *    copies; y10 is a separate local (y itself is reloaded from its arg home
- *    slot 0x50 at the end). flag is a u16 parameter: promoted to a word by
+ *    slot 0x50 at the end). mode is a u16 parameter: promoted to a word by
  *    the caller, narrowed via `sh` into a local frame slot (0x10) and lhu'd
  *    back on each spilled use.
- *  - The 5th-arg tests split: (flag & 1)/(flag & 0x10) read the still-live
- *    word register; (flag & 8)/(& 4)/(& 2) read the spilled u16 slot.
+ *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
+ *    word register; (mode & 8)/(& 4)/(& 2) read the spilled u16 slot.
  *  - p is a `long *` cursor at &idx->index; the row fields are reached as
  *    ((short *)p)[-1..5] (the -2($s2) access proves the cast-based shape) and
  *    the row rect tests re-read the same expressions in the division block
  *    so cse reuses the bounds registers.
  *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
- *    sign-extend of the short quotient merged with the *2/*8 array scaling.
+ *    sign-extend of the short quotient merged with the *2 and *8 array scaling.
  *  - `node = (AreaNodeType *)((j << 4) + (long)list);` — integer + integer
  *    keeps the operand order (addu s0,v0,a2); `list + j` emits addu s0,a2,v0.
  *  - The tail return-0x80000000 body carries the ret_min label INSIDE the
- *    (y10 < -1000 && !(flag & 4)) body, and the level==MIN / attribute&2
+ *    (y10 < -1000 && !(mode & 4)) body, and the level==MIN / attribute&2
  *    checks `goto ret_min`: written this way there is exactly ONE
  *    return-MIN body, entered by fallthrough, so it survives inline as
  *    [j epilogue; lui-delay] and the two gotos become branches whose delay
  *    slots reorg fills by stealing that lui (writing separate `return
  *    0x80000000;` statements lets cross-jump merge/invert them differently).
- *  - The (flag & 4) test's bnez lands at E60 past the E54 lhu because reorg's
- *    redundant_insn check sees t1 already holds the flag slot on that path
+ *  - The (mode & 4) test's bnez lands at E60 past the E54 lhu because reorg's
+ *    redundant_insn check sees t1 already holds the mode slot on that path
  *    and steals the following andi into the delay slot instead.
  *  - The do{}while(0) wrapper (found by tools/permute.py) is load-bearing:
  *    see the comment at its site. maspsx needs --expand-div for this file

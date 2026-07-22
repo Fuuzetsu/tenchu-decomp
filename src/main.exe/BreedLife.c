@@ -155,7 +155,7 @@ extern HumanDataType HumanData[63];
 
 extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            long e);
+                            long mode);
 extern void UpdateCoordinate(ModelType *dim);
 extern short SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SystemOut(char *msg);
