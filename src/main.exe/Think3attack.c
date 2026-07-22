@@ -4,6 +4,7 @@
 #include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
