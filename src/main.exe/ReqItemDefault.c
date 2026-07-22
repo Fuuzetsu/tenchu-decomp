@@ -59,10 +59,8 @@
  *    "not -G8-small" tell — declared as an unknown-size array per the
  *    cookbook's respelling rule.
  *  - The GetVectorRotation out-params are read back with `lw` (full word),
- *    so `rx`/`ry` must be `s32` locals (matching Ghidra's `int`), even though
- *    ReqItemLightningBolt's TU declares the same callee's out-params as
- *    `short *` — original TUs disagree with each other's prototype for the
- *    same extern; respelled per-TU here too.
+ *    so `rx`/`ry` must be `s32` locals, matching both Ghidra's `int` and the
+ *    recovered original API.
  */
 
 extern VECTOR D_80012258[];
