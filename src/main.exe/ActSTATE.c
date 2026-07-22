@@ -66,12 +66,12 @@ extern s16 motMODE;
 extern HumanAnimType CVAhuman[5];
 extern TCameraStatus CamState;
 
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void SetCameraMode(s32 mode);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern short Sound(Humanoid *human, s16 seid);
-extern int ReqLifeBar(Humanoid *human);
+extern int ReqLifeBar(Humanoid *h);
 
 void ActSTATE(void)
 {

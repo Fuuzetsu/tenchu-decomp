@@ -111,7 +111,7 @@ extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void SetCameraMode(s32 mode);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern s16 InsertConflict(ModelType *model);

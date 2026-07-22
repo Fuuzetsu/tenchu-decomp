@@ -61,7 +61,7 @@
 
 #include "item.h"
 
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, int seid);
 extern short NowReturnNormal(Humanoid *human);
 extern void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col);

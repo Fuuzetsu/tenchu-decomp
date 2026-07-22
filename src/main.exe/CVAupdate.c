@@ -83,7 +83,7 @@ extern s32 StageID;
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern Humanoid *GetHumanoid(s16 type);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern int ReqLifeBar(Humanoid *h);
 extern void CdaStop(void);

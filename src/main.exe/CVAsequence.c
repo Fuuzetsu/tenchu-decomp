@@ -77,7 +77,7 @@ extern void PlayMusicFormID(s32 id);
 extern s32 CdaGetCurrentLength(void);
 extern s16 CVArun(void);
 extern void SetCameraMode(s32 mode);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void CdaStop(void);
 
 s16 CVAsequence(s16 sid)

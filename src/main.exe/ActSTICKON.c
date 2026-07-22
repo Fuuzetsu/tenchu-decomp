@@ -95,7 +95,7 @@ extern s32 D_80097EF0;
 
 extern MapVector *StickonCheck(void);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void SetCameraMode(s32 mode);
 extern short Sound(Humanoid *human, s16 seid);
 extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *item);

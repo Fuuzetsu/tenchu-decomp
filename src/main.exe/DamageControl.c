@@ -30,7 +30,7 @@ extern void DeleteConflict(ModelType *model);
 extern void SetImpact(VECTOR *pos, s16 scale, s16 type);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern void reset_alert_duration(void);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 mode);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void AttackCancelControl(s16 mode);
 extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect, s16 n);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);

@@ -45,7 +45,7 @@ extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern u8 gNannido;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s16 seid);
 extern int rand(void);
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);

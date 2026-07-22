@@ -19,14 +19,13 @@
  * latched, marks its type dead (-1) and relays out the enemy set
  * (leLayoutEnemy(0)); otherwise does nothing.
  *
- * LayoutEnemyOption.c (matched) declares/calls this as plain
- * `extern void leRemoveEnemy(void); leRemoveEnemy();` — a void call
- * discarding whatever leLayoutEnemy leaves in $v0. That's this TU's own
- * (real) prototype though: leLayoutEnemy's call result is tail-returned, so
- * no extra move is needed after the jal, and the not-found path explicitly
- * zeroes $v0 (a real `return 0;`, not leftover) — matches the "original TUs
+ * LayoutEnemyOption.c (matched) declares this as returning int, but ignores
+ * the result. This TU's local declaration of leLayoutEnemy is deliberately
+ * `s32`, despite that function's retail definition and Demo prototype being
+ * void: the found path tail-returns whatever its call leaves in $v0, while
+ * the not-found path explicitly returns zero. This matches the "original TUs
  * disagree with the defining TU's prototype" convention (docs/matching-
- * cookbook.md); the caller's void declaration just discards it.
+ * cookbook.md).
  *
  * m2c over-counts leLayoutEnemy's call as 2-arg (0, -1): $a1 still holds the
  * -1 used for the preceding `type = -1` store and was never reassigned

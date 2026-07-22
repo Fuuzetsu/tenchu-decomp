@@ -75,7 +75,7 @@
 
 extern TCameraStatus CamState;
 
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s32 seid);
 extern void FUN_80033bc0(VECTOR *pos, s32 spread, s32 divisor, s32 count);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
@@ -84,7 +84,7 @@ extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b,
                          s32 color, s32 f, s32 rot, s32 h, s32 i, s32 j);
 extern void SetCameraMode(s32 mode);
 extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
-extern s16 NowReturnNormal(Humanoid *human);
+extern short NowReturnNormal(Humanoid *human);
 
 void ProcItemShinsoku(TItem *item)
 {

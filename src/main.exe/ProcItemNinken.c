@@ -58,13 +58,13 @@ extern s32 GameClock;
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern SVECTOR D_80097AF4[];
 
-extern s16 NowReturnNormal(Humanoid *human);
+extern short NowReturnNormal(Humanoid *human);
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern Humanoid *GetHumanoid(s16 type);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void FUN_800270f8(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, s16 think);
 extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);

@@ -36,7 +36,7 @@ extern SVECTOR *dtR;
 extern s16 SelectedItem;
 
 extern short Sound(Humanoid *human, s16 seid);
-extern s16 HangCheck(void);
+extern short HangCheck(void);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern void JumpControl(void);
 extern short SoundEx(VECTOR *locate, s16 seid);

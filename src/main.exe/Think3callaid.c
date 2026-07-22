@@ -135,7 +135,7 @@ extern think_func_ *Think4Func[];
 extern int rand(void);
 extern s16 Think3escape(void);
 extern void KillHumanoid(Humanoid *human);
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 short Think3callaid(void)
 {

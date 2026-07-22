@@ -31,7 +31,7 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern s16 GetDirection(s32 x_diff, s32 z_diff, s16 rotation);
 extern int rand(void);
 extern short Sound(Humanoid *human, s16 seid);
-extern s16 SetNowMotion(Humanoid *human, s16 motion, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 /*
  * `nextState` intentionally carries each condition and its eventual result.

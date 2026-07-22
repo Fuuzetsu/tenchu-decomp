@@ -56,9 +56,9 @@ extern s16 dtCMD;
 extern s16 SelectedItem;
 extern HumanAnimType CVAhuman[5];
 
-extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
+extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
-extern s16 HangCheck(void);
+extern short HangCheck(void);
 extern void JumpControl(void);
 extern void AttackControl(void);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
