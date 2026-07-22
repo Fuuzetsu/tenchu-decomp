@@ -129,7 +129,7 @@ found:
     param->koro.vy = -0xfa;
     param->koro.vz = z;
     it->param.ninken.koro.hint = 0;
-    param->koro.status = 0;
+    param->koro.status = KORO_NORMAL;
     param->slave = 0;
     param->count = 0xf;
     SetNowMotion(it->owner, 0xf02, 1);

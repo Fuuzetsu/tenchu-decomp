@@ -133,6 +133,17 @@ typedef struct PARAM_ITEM_STAY
     VECTOR locate;               /* 0x04 */
 } PARAM_ITEM_STAY;               /* 0x14 */
 
+/* Rolling-item states from ITEM.C's anonymous enum. Retail adds state 5,
+ * whose name is not present in the demo symbols. */
+enum
+{
+    KORO_NORMAL = 0,
+    KORO_WATER = 1,
+    KORO_GRAND = 2,
+    KORO_WALL = 3,
+    KORO_STAY = 4
+};
+
 /* ITEM.C's original rolling-item base.  Derived item parameters embed this
  * 12-byte record as their first member (param_drop, param_smoke,
  * param_ningyo, param_ninken, param_dokudango). */

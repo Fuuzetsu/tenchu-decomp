@@ -145,7 +145,7 @@ void ProcItemNingyo(TItem *item)
     }
 
     MoveKorogari(item, &param->koro);
-    if (param->koro.status == 1)
+    if (param->koro.status == KORO_WATER)
     {
         goto dispose;
     }
@@ -396,7 +396,7 @@ draw_mode0:
                     param->koro.vy = -100;
                     param->koro.vz = vz >> 4;
                     param->koro.hint = 0;
-                    param->koro.status = 0;
+                    param->koro.status = KORO_NORMAL;
                     param->hp = hp - 1;
                     SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
                 }
@@ -433,7 +433,7 @@ draw_mode0:
                 param->koro.vx = xbase + xrem - 10;
                 param->koro.vy = vy;
                 param->koro.hint = 0;
-                param->koro.status = 0;
+                param->koro.status = KORO_NORMAL;
                 param->koro.vz = (vz >> 3) + random_z % 20 - 10;
             }
         }

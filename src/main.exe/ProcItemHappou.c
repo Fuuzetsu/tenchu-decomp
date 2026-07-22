@@ -32,7 +32,7 @@
  *  - `n = InsertConflict(...)` is `s32` (the same scheduling-tie fix as
  *    Makibishi/LightningBolt: extend right at the assignment).
  *  - The redundant-looking `mode != 0 && mode == 1 &&
- *    param->fly.p.koro.status != 0` is written
+ *    param->fly.p.koro.status != KORO_NORMAL` is written
  *    exactly that way (three separate tests, matching Ghidra) — the asm
  *    shows two distinct branches on `mode` even though `== 1` implies `!= 0`.
  *  - The two dispose-shaped tails (detonate-and-dispose; the separate
@@ -135,7 +135,7 @@ void ProcItemHappou(TItem *item)
     mode = param->fly.mode;
     if (mode != 0)
     {
-        if (mode == 1 && param->fly.p.koro.status != 0)
+        if (mode == 1 && param->fly.p.koro.status != KORO_NORMAL)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);

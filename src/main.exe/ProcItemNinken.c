@@ -127,7 +127,7 @@ void ProcItemNinken(TItem *item)
             item->proc = 0;
             return;
         }
-        if (status == 4)
+        if (status == KORO_STAY)
         {
             PARAM_ITEM_STAY *saved;
             PARAM_ITEM_LAUNCH *launch;

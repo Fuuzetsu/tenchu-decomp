@@ -115,7 +115,7 @@ void ProcItemSmoke(TItem *item)
         return;
     }
     MoveKorogari(item, &param->koro);
-    if (param->koro.status == 1)
+    if (param->koro.status == KORO_WATER)
     {
         if (item->proc == 0)
             return;

@@ -58,7 +58,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
     SVECTOR vec;
     s32 level;
 
-    if (param->status == 4)
+    if (param->status == KORO_STAY)
     {
         return;
     }
@@ -109,7 +109,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
             param->vx = RefrectMove[mv.vector][0] * (abs(param->vx) / 4);
             param->vy /= 2;
             param->vz = RefrectMove[mv.vector][1] * (abs(param->vz) / 4);
-            param->status = 3;
+            param->status = KORO_WALL;
             return;
         }
 
@@ -122,7 +122,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                 vec = D_80097AD0[0];
                 SetSplash((VECTOR *)item->locate->locate.coord.t,
                           0x2000, 0x2000, 4);
-                param->status = 1;
+                param->status = KORO_WATER;
             }
             param->vy = -param->vy / 8;
             return;
@@ -139,22 +139,22 @@ void MoveKorogari(TItem *item, param_korogari *param)
             item->locate->locate.coord.t[1] = mv.level;
             if (param->vy < 46)
             {
-                param->status = 4;
+                param->status = KORO_STAY;
                 return;
             }
 
             param->vx += RefrectMove[mv.vector][0] * (rand() % 25 + 25);
             param->vz += RefrectMove[mv.vector][1] * (rand() % 25 + 25);
-            param->status = 2;
+            param->status = KORO_GRAND;
             param->vy = -abs(param->vy) / 2;
             return;
         }
 bounce:
         param->vy = abs(param->vy) / 2 + (rand() % 25 + 25);
-        param->status = 3;
+        param->status = KORO_WALL;
         return;
     }
-    param->status = 0;
+    param->status = KORO_NORMAL;
     param->vy += 15;
 }
 

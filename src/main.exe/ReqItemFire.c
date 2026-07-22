@@ -126,7 +126,7 @@ found:
     param->koro.vy = y;
     param->koro.vz = z;
     it->param.smoke.koro.hint = 0;
-    param->koro.status = 0;
+    param->koro.status = KORO_NORMAL;
     param->count = 150;
     return 1;
 }

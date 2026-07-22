@@ -130,7 +130,7 @@ found:
     param->koro.vy = y;
     param->koro.vz = z;
     it->param.dokudango.koro.hint = 0;
-    param->koro.status = 0;
+    param->koro.status = KORO_NORMAL;
     param->count = 10;
     param->eater = 0;
     SetNowMotion(it->owner, 0xf02, 1);

@@ -8,8 +8,9 @@
  * mirror the coordinate into the shared model and draw + afterimage. If a
  * live character is in the conflict box: SetImpact + SoundEx and dispose.
  * Otherwise, once `param->fly.mode` is armed, dispatch on the rolling
- * overlay's `status`: 1 = plain dispose; 3 = detonate (SetBleeds/SoundEx
- * 0x31 + reset_alert_duration); 2/4 = drop a pickup (build a
+ * overlay's `status`: KORO_WATER = plain dispose; KORO_WALL = detonate
+ * (SetBleeds/SoundEx 0x31 + reset_alert_duration); KORO_GRAND/KORO_STAY =
+ * drop a pickup (build a
  * PARAM_ITEM_LAUNCH at the model's position, dispose, ReqItemDrop).
  *
  * Matching notes (this is ProcItemHappou's skeleton — see that file for the
@@ -20,17 +21,19 @@
  *    each reloads item->locate (the in-struct stores invalidate the cached
  *    load). GameClock * 0x2AA is the plain literal multiply (shift/add
  *    chain), truncated by the sh.
- *  - `switch (param->fly.p.koro.status)` with bodies in source order 3,
- *    2/4, 1; case 1 is the
+ *  - `switch (param->fly.p.koro.status)` has bodies in source order
+ *    KORO_WALL, KORO_GRAND/KORO_STAY, KORO_WATER; KORO_WATER is the
  *    shared `dispose:` label the impact path reaches by `goto` — its body
- *    (and the case-2/4 copy) are literal duplicates, NOT cross-jumped (they
+ *    (and the KORO_GRAND/KORO_STAY copy) are literal duplicates, NOT
+ *    cross-jumped (they
  *    have different continuations).
  *  - The drop path builds `param` through a pointer (`p = &param;
  *    memset(p, ...)`) but stores fields DIRECT (`param.type = ...`, sp-folded),
  *    then copies with `rparam = *p;` — the *p spelling is what lets the
  *    0x28-byte block copy's source cursor coalesce with p ($s0) across the
- *    case-2/4 join label (a `rparam = param` spelling re-materializes the
- *    address). ReqItemDrop takes &rparam (the copy, not the original).
+ *    KORO_GRAND/KORO_STAY join label (a `rparam = param` spelling
+ *    re-materializes the address). ReqItemDrop takes &rparam (the copy, not
+ *    the original).
  *  - `rparam` is declared before `param` (slot order 0x18/0x40, matching
  *    PSX.SYM's rparam@24/param@72 declaration order).
  */
@@ -144,14 +147,14 @@ void ProcItemLaunch(TItem *item)
         return;
     switch (param->fly.p.koro.status)
     {
-    case 3:
+    case KORO_WALL:
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
         reset_alert_duration();
         return;
 
-    case 2:
-    case 4:
+    case KORO_GRAND:
+    case KORO_STAY:
     {
         PARAM_ITEM_LAUNCH param;
 
@@ -179,7 +182,7 @@ void ProcItemLaunch(TItem *item)
         return;
     }
 
-    case 1:
+    case KORO_WATER:
     dispose:
         if (item->proc != 0)
         {

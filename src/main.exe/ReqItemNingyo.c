@@ -154,7 +154,7 @@ found:
     param->koro.vy = y;
     param->koro.vz = z;
     it->param.ningyo.koro.hint = 0;
-    param->koro.status = 0;
+    param->koro.status = KORO_NORMAL;
     param->count = 0x5a;
     it->locate->rotate.vx = 0;
     it->locate->rotate.vy = rand() % 0x1000;

@@ -101,7 +101,7 @@ void ProcItemDokudango(TItem *item)
 
     if (item->mode < 2 &&
         (MoveKorogari(item, &param->koro),
-         param->koro.status == 1))
+         param->koro.status == KORO_WATER))
     {
         if (item->proc == 0)
         {
@@ -365,7 +365,7 @@ set_target:
                 param->koro.vy = y - 200;
                 param->count = 30;
                 param->koro.hint = 0;
-                param->koro.status = 0;
+                param->koro.status = KORO_NORMAL;
                 param->koro.vz = z - 100;
                 item->mode = 0;
                 return;

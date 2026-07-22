@@ -46,8 +46,9 @@
  * ProcItemDrop (0x8003e454) — the tossed/dropped item processor installed by
  * ReqItemDrop. Every frame it copies the item coordinate into the sprite and
  * draws it; mode 0: bounce/roll physics (MoveKorogari) until the param status
- * says it came to rest (2/4: register a 0xB4 conflict box and become
- * pick-up-able) or fell out of the world (1: dispose); mode 1: wait for a
+ * says it came to rest (KORO_GRAND/KORO_STAY: register a 0xB4 conflict box
+ * and become pick-up-able) or fell out of the world (KORO_WATER: dispose);
+ * mode 1: wait for a
  * character to touch the conflict box, freeze it into the pick-up animation
  * (0x810) and remember it as owner; mode 2: when the animation ends, count
  * the item back into the owner's pouch (item[type]) and dispose.
@@ -62,7 +63,7 @@
  *    struct assignment -> the 16-bytes-per-iteration word copy loop.
  *  - Both dispatches are real `switch`es (fresh index reload + signed slti).
  *    The constant 1 of the outer case tree is CSE'd along the taken path
- *    into the inner (status) tree's `case 1` compare: one pseudo, live
+ *    into the inner (status) tree's `case KORO_WATER` compare: one pseudo, live
  *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
  *    slot. Plain nested switches produce all of it — no source trick.
  *  - `m = 8` (int) feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
@@ -79,7 +80,7 @@
  *  - `cnt`/`ic` are u8 temps (Manebue's timer idiom): increment-then-store
  *    with the compare on the masked register (andi 0xFF), no reload; ic's
  *    `+ 1` lands in the beq delay slot.
- *  - The dispose tail is written out twice (status-1 + mode-2); cross-jump
+ *  - The dispose tail is written out twice (KORO_WATER + mode-2); cross-jump
  *    merges from the jalr on. Null-check via `ppu` but call through
  *    `item->proc(item)` (Kusuri's rule) so the pointer stays in $v0.
  */
@@ -121,7 +122,7 @@ void ProcItemDrop(TItem *item)
         MoveKorogari(item, &param->koro);
         switch (param->koro.status)
         {
-        case 1:
+        case KORO_WATER:
             ppu = item->proc;
             if (ppu == 0)
                 return;
@@ -135,8 +136,8 @@ void ProcItemDrop(TItem *item)
             item->owner = 0;
             item->proc = 0;
             return;
-        case 2:
-        case 4:
+        case KORO_GRAND:
+        case KORO_STAY:
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
             m = 8;
@@ -196,7 +197,7 @@ void ProcItemDrop(TItem *item)
             param->koro.vx = x - 100;
             param->koro.vy = y - 200;
             param->koro.hint = 0;
-            param->koro.status = 0;
+            param->koro.status = KORO_NORMAL;
             param->koro.vz = z - 100;
             item->mode = 0;
         }

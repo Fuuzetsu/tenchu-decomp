@@ -237,7 +237,7 @@ void ProcItemArrow(TItem *item)
             }
             kind_one = 1;
             kind = param->fly.p.koro.status;
-            if (kind == 0)
+            if (kind == KORO_NORMAL)
             {
                 goto aim;
             }

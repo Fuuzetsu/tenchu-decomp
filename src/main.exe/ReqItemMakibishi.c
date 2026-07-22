@@ -155,7 +155,7 @@ found:
     param->koro.vy = y;
     param->koro.vz = z;
     it->param.drop.koro.hint = 0;
-    param->koro.status = 0;
+    param->koro.status = KORO_NORMAL;
     SoundEx(st, 0x22);
     return 1;
 }
