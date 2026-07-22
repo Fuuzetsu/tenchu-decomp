@@ -79,8 +79,8 @@
  *    in the raw .s, not a cached pointer) — an SVECTOR (align-2) copy
  *    compiles to `lwl/lwr`+`swl/swr` word pairs per the cookbook's
  *    alignment-drives-copy-code rule.
- *  - The random jitter is a plain signed `r % 512`: `dir.vy = dir.vy +
- *    (r % 512 - 0x100);` reassociates via fold-const.c into the target's
+ *  - The random jitter is a plain signed `r % (R * 2)`: `dir.vy = dir.vy +
+ *    (r % (R * 2) - R);` reassociates via fold-const.c into the target's
  *    `dir.vy - 0x100 + r%512` layout (same "A - C + B" lever as the
  *    cookbook's `rand() % 1000 - 500` example) and the sign-correcting
  *    bias/shift dance for a negative dividend is entirely automatic from
@@ -120,6 +120,10 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
+    enum
+    {
+        R = 256
+    };
     TItem *it;
     TItem *cur;
     param_launch *param;
@@ -186,7 +190,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         it->locate->rotate = p->user->model->rotate;
         dir = p->user->model->rotate;
         r = rand();
-        dir.vy = dir.vy + (r % 512 - 0x100);
+        dir.vy = dir.vy + (r % (R * 2) - R);
         en = &p->end;
         SearchItemTarget2(p->user, &dir, st, en);
         SetupFly(&param->fly, st, en, 0x1000, 0x400, 0x190);
