@@ -52,12 +52,11 @@
  *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
  *    preserves their adjacent halfword layout and their mode-cache/stage-cache
  *    roles despite other globals inserted ahead of them since the demo.
- *  - `human` gives the two HumanData name stores one shared array base.
- *  - Reusing `human` for the much later StageMotion null-check/free is
- *    load-bearing: it changes global.c's pseudo coloring so the early
- *    appearance flag/HumanData base land in the target's $v1/$a0. Without
- *    that semantically equivalent reuse, the complete 256-instruction
- *    function differs only by a six-byte $a0/$v1 swap.
+ *  - `resource` gives the two HumanData name stores one shared array base and
+ *    is later reused for the StageMotion null-check/free. Keeping one pointer
+ *    pseudo is load-bearing: it makes global.c color the early appearance
+ *    flag/HumanData base as the target's $v1/$a0. The neutral pointer type is
+ *    intentional because those two uses point at unrelated object types.
  */
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern s16 smode;
@@ -79,7 +78,7 @@ void SetupAppearance(short mode, short stage)
     short j;
     u8 name[100];
     u8 *pt;
-    HumanDataType *human;
+    void *resource;
     u8 appearance;
 
     NowStage = stage;
@@ -88,9 +87,10 @@ void SetupAppearance(short mode, short stage)
     appearance = pt[0x1a];
     if (appearance != 0)
     {
-        human = HumanData;
-        human[0].name = D_80011710;
-        human[1].name = appearance != 0xff ? D_800979A8 : D_800979B0;
+        resource = HumanData;
+        ((HumanDataType *)resource)[0].name = D_80011710;
+        ((HumanDataType *)resource)[1].name =
+            appearance != 0xff ? D_800979A8 : D_800979B0;
         *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
         PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR = -1;
     }
@@ -141,10 +141,10 @@ void SetupAppearance(short mode, short stage)
             vfree(PlayerMotion);
             PlayerMotion = 0;
         }
-        human = (HumanDataType *)StageMotion;
-        if (human != 0)
+        resource = StageMotion;
+        if (resource != 0)
         {
-            vfree(human);
+            vfree(resource);
             StageMotion = 0;
         }
     }
