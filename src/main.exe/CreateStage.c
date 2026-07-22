@@ -86,13 +86,13 @@ extern void SetupStageSequence(void);
 void CreateStage(int StageNo, int CharType)
 {
     Humanoid *target;
-    POLY_FT4 poly;
+    POLY_FT4 ply_ten;
     CreateStageTitleScratch scratch;
     TStageConfig *base;
     TStageConfig *stage;
     short mode;
     short stageNo;
-    u_long *data;
+    u_long *dat;
     GsIMAGE *image;
     BackGround *bg;
     Humanoid *human;
@@ -130,15 +130,15 @@ void CreateStage(int StageNo, int CharType)
 
     __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
                      sizeof(scratch.title));
-    data = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
+    dat = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
     image = GetImage(0x2D);
-    SetupImageToPolyFT4(image, &poly, 0x34, 0x43);
-    bg = FUN_8004f4f8(data);
-    vfree(data);
+    SetupImageToPolyFT4(image, &ply_ten, 0x34, 0x43);
+    bg = FUN_8004f4f8(dat);
+    vfree(dat);
 
     FUN_80038ce0();
     StartDrawing();
-    GsSortPoly(&poly, OTablePt, 0);
+    GsSortPoly(&ply_ten, OTablePt, 0);
     DrawBG(bg);
     SkipFrame = 2;
     EndDrawing(0);
