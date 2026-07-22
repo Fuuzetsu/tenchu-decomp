@@ -258,16 +258,16 @@ void StageEndScreen(void)
         ScoreStats *base_record;
         u32 character_offset;
         u32 stage_offset;
-        u8 *state;
+        TLinkInfo *state;
 
-        state = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-        character_offset = (u32)state[4] * 0x1d4;
-        stage_offset = (u32)state[5] * 0x24 +
+        state = PSTATE;
+        character_offset = (u32)state->CharType * 0x1d4;
+        stage_offset = (u32)state->StageNo * 0x24 +
                        TENCHU_PERSISTENT_STATE_ADDRESS + 0x64;
         base_record = (ScoreStats *)(character_offset + stage_offset);
         record = (ScoreStats *)((u8 *)base_record +
-            (u32)state[6] * 0xc);
-        score = calculate_score(record, state[5]);
+            (u32)state->layout * 0xc);
+        score = calculate_score(record, state->StageNo);
     }
     stack.best = *score;
     if (stack.current.score > stack.best.score ||
@@ -637,12 +637,7 @@ layout_done:
         }
         break;
     case 1:
-        {
-            u8 *state;
-
-            state = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-            state[0x48] |= 1;
-        }
+        PSTATE->flags48 |= 1;
         break;
     case 2:
         STAGE_LAYOUT_NUMBER = 0xff;
