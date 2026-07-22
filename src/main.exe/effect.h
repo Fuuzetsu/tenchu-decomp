@@ -251,6 +251,7 @@ extern POLY_F4 plyBleed;
 extern Sprite3D *sprSmoke[2];
 extern Sprite3D *sprBomb[3];
 extern ModelType *ModelHook;
+extern ModelType *ShadowMdl;
 extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 

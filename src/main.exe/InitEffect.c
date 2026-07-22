@@ -81,7 +81,6 @@ extern GsSPRITE sprBlood2[4];
 extern GsSPRITE D_800BEAA8[5];
 extern Sprite3D *D_80097F2C[1];
 
-extern ModelType *D_80097F34;
 extern ModelType *LOCAL_COORDINATES_;
 extern s16 D_80097F30;
 extern s16 D_80097F32;
@@ -189,7 +188,7 @@ void InitEffect(void)
         }
     }
 
-    D_80097F34 = LoadModel(GetArcData(0x19));
+    ShadowMdl = LoadModel(GetArcData(0x19));
     LOCAL_COORDINATES_ = LoadModel(GetArcData(0x1F));
     AfterIMG = GetImage(0xA);
     ModelHook = LoadModel(GetArcData(0x1A));

@@ -74,12 +74,10 @@
  *    separate `effect` result is load-bearing even though it always equals
  *    `slot` on success: the transfer at the found edge produces the target's
  *    loop-exit move and restores the idx/count/slot register assignment.
- *  - D_80097F34 is viewed as ModelType: locate@0, rotate@0x50, and
+ *  - ShadowMdl is viewed as ModelType: locate@0, rotate@0x50, and
  *    object@0x64 account for every use.  The chained scale assignment emits
  *    the target's reverse z/y/x stack-store order.
  */
-
-extern ModelType *D_80097F34;
 
 extern void FUN_80037e0c(Humanoid *human, s32 mode);
 extern void DrawSplash(TEffectSlot *ef);
@@ -196,35 +194,35 @@ void DrawShadow(Humanoid *human)
         u8 angle;
         s32 depth;
 
-        D_80097F34->locate.coord.t[0] = position->vx;
-        D_80097F34->locate.coord.t[1] = position->vy;
-        D_80097F34->locate.coord.t[2] = position->vz;
+        ShadowMdl->locate.coord.t[0] = position->vx;
+        ShadowMdl->locate.coord.t[1] = position->vy;
+        ShadowMdl->locate.coord.t[2] = position->vz;
 
         scale.vx = scale.vy = scale.vz = height * 4 - (human->map.height >> 1);
         angle = human->map.angleH;
         if (angle != 0)
         {
-            D_80097F34->rotate.vx = 0x100;
-            D_80097F34->rotate.vy = RefrectVector[human->map.angleH];
-            D_80097F34->rotate.vz = 0;
+            ShadowMdl->rotate.vx = 0x100;
+            ShadowMdl->rotate.vy = RefrectVector[human->map.angleH];
+            ShadowMdl->rotate.vz = 0;
         }
         else
         {
-            D_80097F34->rotate.vx = 0;
-            D_80097F34->rotate.vy = 0;
-            D_80097F34->rotate.vz = 0;
+            ShadowMdl->rotate.vx = 0;
+            ShadowMdl->rotate.vy = 0;
+            ShadowMdl->rotate.vz = 0;
         }
 
-        RotMatrixYXZ(&D_80097F34->rotate, &D_80097F34->locate.coord);
-        ScaleMatrix(&D_80097F34->locate.coord, &scale);
-        D_80097F34->locate.flg = 0;
-        GsGetLs(&D_80097F34->locate, &matrix);
+        RotMatrixYXZ(&ShadowMdl->rotate, &ShadowMdl->locate.coord);
+        ScaleMatrix(&ShadowMdl->locate.coord, &scale);
+        ShadowMdl->locate.flg = 0;
+        GsGetLs(&ShadowMdl->locate, &matrix);
         GsSetLsMatrix(&matrix);
         depth = RotTransPers(&UnitVector, (s32 *)&screen, &p, &flag);
         screen.vz = depth;
         if ((depth << 16) >> 18 < 0x4e2)
         {
-            GsSortObject4(&D_80097F34->object, OTablePt, 2,
+            GsSortObject4(&ShadowMdl->object, OTablePt, 2,
                           (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
         }
     }
