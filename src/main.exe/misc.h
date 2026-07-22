@@ -72,6 +72,7 @@ struct tag_TMisc
         TMiscInit init;
         TDoor door;
         TPitfall pitfall;
+        TSnowfall snowfall;
         TSprite sprite;
     } param;                        /* 0x18 */
 };                                  /* 0x24 */

@@ -55,7 +55,7 @@
  *    inline instead) nor if/else with the arms swapped (moves CREATE to
  *    the function's end) reproduces this; only the explicit 3-way goto
  *    ladder does.
- *  - `param = (TSnowfall *)&m->param;` is computed ONCE, unconditionally,
+ *  - `param = &m->param.snowfall;` is computed ONCE, unconditionally,
  *    at function entry (PSX.SYM's own register-resident `param` local) —
  *    used only by the CREATE branch's final `param->h = h;` store, but its
  *    address must be live from entry to reproduce the target's frame.
@@ -63,7 +63,8 @@
  *    read in the compiled binary — cc1 provably eliminates a plain unused
  *    local's load, so the field must be dereferenced through a
  *    `volatile`-qualified pointer to survive (both reads use `(volatile
- *    TSnowfall *)&m->param`, matching the two plain `lw`s at 0x18/0x1C).
+ *    TSnowfall *)&m->param.snowfall`, matching the two plain `lw`s at
+ *    0x18/0x1C).
  *  - The residual register tie (`param` landing in $v1 instead of the
  *    target's $a2) needed an extra, empirically-found lever: guarding the
  *    whole CREATE body in `if (h || GameClock) {body} else {body}` (two
@@ -96,7 +97,7 @@ extern void *memset(void *s, int c, u32 n);
 
 void ProcMiscSnowfall(tag_TMisc *m, enum TMiscMessage msg)
 {
-    TSnowfall *param = (TSnowfall *)&m->param;
+    TSnowfall *param = &m->param.snowfall;
 
     if (msg == MM_CREATE)
     {
@@ -115,15 +116,15 @@ do_create:
 
         if (h || GameClock)
         {
-            w = ((volatile TSnowfall *)&m->param)->w;
-            h = ((volatile TSnowfall *)&m->param)->h;
+            w = ((volatile TSnowfall *)&m->param.snowfall)->w;
+            h = ((volatile TSnowfall *)&m->param.snowfall)->h;
             m->mode = 0;
             param->h = h;
         }
         else
         {
-            w = ((volatile TSnowfall *)&m->param)->w;
-            h = ((volatile TSnowfall *)&m->param)->h;
+            w = ((volatile TSnowfall *)&m->param.snowfall)->w;
+            h = ((volatile TSnowfall *)&m->param.snowfall)->h;
             m->mode = 0;
             param->h = h;
         }
