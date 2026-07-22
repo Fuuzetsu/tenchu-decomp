@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "infoview.h"
 #include "item.h"
 #include "misc.h"
 #include "padcmd.h"
@@ -77,24 +78,10 @@
  *    TUs' — plain absolute externs.
  */
 
-typedef struct { TAdtSelect e[11]; } MENU_MAIN_TBL;     /* 0x58 */
-typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;     /* 0xC8 */
-typedef struct { TAdtSelect e[5];  } MENU_LAYOUT_TBL;   /* 0x28 */
-typedef struct { TAdtSelect e[4];  } MENU_COUNT_TBL;    /* 0x20 */
-typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
-typedef struct { TAdtSelect e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
-
-
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;                       /* fInitialize */
 
-extern MENU_MAIN_TBL DEBUG_MENU_MAIN_SCREEN_OPTIONS;
-extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
-extern MENU_LAYOUT_TBL DEBUG_MENU_ITEM_LAYOUT_OPTIONS;
-extern MENU_EFFECT_TBL DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS;
-extern MENU_COUNT_TBL D_800124CC;
-extern MENU_CONFIRM_TBL D_8001252C;
 extern char D_800124C0[];                   /* "select item" */
 extern char D_800124EC[];                   /* "number of" */
 extern char D_80012544[];                   /* "item layout option" */
@@ -135,27 +122,29 @@ static inline void ItemAddMenu(void)
     s32 n;
     u8 mi[0xC8];
 
-    *(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;
+    __builtin_memcpy(mi, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+                     sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
     n = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
-    *(MENU_COUNT_TBL *)mi = D_800124CC;
+    __builtin_memcpy(mi, D_800124CC, sizeof(D_800124CC));
     CamState.Owner->item[n] += AdtSelect(D_800124EC, (TAdtSelect *)mi, 0);
 }
 
 static inline void ItemLayoutMenu(void)
 {
     s32 n;
-    u8 mi[0x40];
+    TAdtSelect Option[5];
+    TAdtSelect OkCancel[3];
 
-    *(MENU_LAYOUT_TBL *)mi = DEBUG_MENU_ITEM_LAYOUT_OPTIONS;
-    *(MENU_CONFIRM_TBL *)(mi + 0x28) = D_8001252C;
-    n = AdtSelect(D_80012544, (TAdtSelect *)mi, 0);
+    __builtin_memcpy(Option, DEBUG_MENU_ITEM_LAYOUT_OPTIONS, sizeof(Option));
+    __builtin_memcpy(OkCancel, D_8001252C, sizeof(OkCancel));
+    n = AdtSelect(D_80012544, Option, 0);
     switch (n)
     {
     case 0:
         AddItem2();
         break;
     case 1:
-        if (AdtSelect(D_80012558, (TAdtSelect *)(mi + 0x28), 1) == 1)
+        if (AdtSelect(D_80012558, OkCancel, 1) == 1)
         {
             ClearItemLayout();
         }
@@ -165,14 +154,15 @@ static inline void ItemLayoutMenu(void)
 
 static inline void EffectSpawnMenu(void)
 {
-    MENU_EFFECT_TBL me;
+    TAdtSelect Option[31];
 
-    me = DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS;
+    __builtin_memcpy(Option, DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS,
+                     sizeof(Option));
     AddMisc(MISC_DOOR, CamState.Owner->model->locate.coord.t[0],
             CamState.Owner->model->locate.coord.t[1],
             CamState.Owner->model->locate.coord.t[2],
             CamState.Owner->model->rotate.vy,
-            AdtSelect(D_80097C40, (TAdtSelect *)&me, 0), 0);
+            AdtSelect(D_80097C40, Option, 0), 0);
 }
 
 void DoInfoViewProc(void)
@@ -192,7 +182,7 @@ void DoInfoViewProc(void)
     s32 sel;
     s32 i;
     s32 cur;
-    MENU_MAIN_TBL mm;
+    TAdtSelect Option[11];
 
     pad = CamState.Owner->pad.data;
     trig = CamState.Owner->pad.trig;
@@ -202,9 +192,10 @@ void DoInfoViewProc(void)
     }
     if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == TESTPAD)
     {
-        mm = DEBUG_MENU_MAIN_SCREEN_OPTIONS;
+        __builtin_memcpy(Option, DEBUG_MENU_MAIN_SCREEN_OPTIONS,
+                         sizeof(Option));
         VISIBLE_ENEMIES_ = 0;
-        sel = AdtSelect(D_800125F0, &mm, 0);
+        sel = AdtSelect(D_800125F0, Option, 0);
         switch (sel)
         {
         case ENEMY:

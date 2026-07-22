@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "infoview.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -47,11 +48,11 @@
  *    DoInfoViewProc's inline helpers: the frame (0x10 args + 0x58 + 0x18 +
  *    0x38 + ra/pad = 0xC0) has no temp-slot overlap, and each buffer address
  *    rematerializes per use because the block-move loop labels break the cse
- *    windows. The ok/cancel copy (m2) really happens at ENTRY, before the
+ *    windows. The OkCancel copy really happens at ENTRY, before the
  *    first AdtSelect, though it's only read in case 4.
- *  - Wrapper-struct assignments give the copy shapes for free: 0x58 and 0x38
- *    are the 16-bytes-per-iteration loop + 8-byte tail, 0x18 is the unrolled
- *    3+3 lw/sw batch.
+ *  - Fixed-size built-in copies give the template-copy shapes: 0x58 and 0x38
+ *    are the 16-bytes-per-iteration loop + 8-byte tail, while the recovered
+ *    three-entry TAdtSelect array is the unrolled 3+3 lw/sw batch.
  *  - Outer dispatch: separate `(n & 0xffff) != 0xffff` guard (andi + ori
  *    0xFFFF + beq) then `switch ((s16)n)` — 8 contiguous cases = casesi
  *    tablejump (sltiu 8 bounds + lw/jr); bodies laid out in source order
@@ -65,14 +66,6 @@
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
 
-typedef struct { TAdtSelect e[11]; } MENU_LAYOUT_TBL;   /* 0x58 */
-typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
-typedef struct { TAdtSelect e[7];  } MENU_PATH_TBL;     /* 0x38 */
-
-
-extern MENU_LAYOUT_TBL DEBUG_MENU_ENEMY_LAYOUT_OPTIONS;
-extern MENU_PATH_TBL DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS;
-extern MENU_CONFIRM_TBL D_800140A8;         /* ok / cancel */
 extern char D_800140C0[];                   /* "enemy layout option" */
 extern char D_800140D4[];                   /* "clear ok?" */
 extern char D_80014004[];                   /* "path layout option" */
@@ -100,13 +93,13 @@ void LayoutEnemyOption(void)
     };
     s32 n;
     s32 k;
-    MENU_LAYOUT_TBL m1;
-    MENU_CONFIRM_TBL m2;
-    MENU_PATH_TBL m3;
+    TAdtSelect ItemName[11];
+    TAdtSelect OkCancel[3];
 
-    m1 = DEBUG_MENU_ENEMY_LAYOUT_OPTIONS;
-    m2 = D_800140A8;
-    n = AdtSelect(D_800140C0, m1.e, 0);
+    __builtin_memcpy(ItemName, DEBUG_MENU_ENEMY_LAYOUT_OPTIONS,
+                     sizeof(ItemName));
+    __builtin_memcpy(OkCancel, D_800140A8, sizeof(OkCancel));
+    n = AdtSelect(D_800140C0, ItemName, 0);
     if ((n & 0xFFFF) != 0xFFFF)
     {
         switch ((s16)n)
@@ -124,30 +117,36 @@ void LayoutEnemyOption(void)
             leLayoutEnemy(1);
             break;
         case CLEAR:
-            if (AdtSelect(D_800140D4, m2.e, 1) == 1)
+            if (AdtSelect(D_800140D4, OkCancel, 1) == 1)
             {
                 leClearLayout();
             }
             break;
         case SET_PATH:
-            m3 = DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS;
-            k = (s16)AdtSelect(D_80014004, m3.e, 0);
-            if (k != -1)
             {
-                switch (k)
+                TAdtSelect ItemName[7];
+
+                __builtin_memcpy(ItemName,
+                                 DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS,
+                                 sizeof(ItemName));
+                k = (s16)AdtSelect(D_80014004, ItemName, 0);
+                if (k != -1)
                 {
-                case 1:
-                    leAddPath(CurrentEnemyID,
-                              CamState.Owner->model->locate.coord.t[0],
-                              CamState.Owner->model->locate.coord.t[1],
-                              CamState.Owner->model->locate.coord.t[2]);
-                    break;
-                case 2:
-                    leResetPath(CurrentEnemyID);
-                    break;
-                case 0:
-                    CurrentEnemyID = leFindEnemy();
-                    break;
+                    switch (k)
+                    {
+                    case 1:
+                        leAddPath(CurrentEnemyID,
+                                  CamState.Owner->model->locate.coord.t[0],
+                                  CamState.Owner->model->locate.coord.t[1],
+                                  CamState.Owner->model->locate.coord.t[2]);
+                        break;
+                    case 2:
+                        leResetPath(CurrentEnemyID);
+                        break;
+                    case 0:
+                        CurrentEnemyID = leFindEnemy();
+                        break;
+                    }
                 }
             }
             break;

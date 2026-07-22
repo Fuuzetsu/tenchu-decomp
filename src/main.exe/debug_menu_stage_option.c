@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "score.h"
+#include "infoview.h"
 
 /*
  * debug_menu_stage_option (0x8005c9fc, 448 bytes) — debug menu case 5
@@ -22,11 +23,8 @@
  * tables in the same .rodata pool (0x800147xx).
  */
 
-typedef struct { TAdtSelect e[11]; } MENU_STAGE_TBL;   /* 0x58 */
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-extern MENU_STAGE_TBL DEBUG_MENU_STAGE_OPTIONS;
 extern char D_80014648[];  /* "stage option" (AdtSelect title) */
 extern char D_80014658[];  /* score message format string */
 extern char D_800146D0[];  /* "(by rnd.)" */
@@ -45,13 +43,13 @@ extern void CVAsetup(void);
 
 void debug_menu_stage_option(void)
 {
-    MENU_STAGE_TBL menu;
+    TAdtSelect menu[11];
     s32 sel;
     ScoreStats stats;
     ScoreResult sr;
 
-    menu = DEBUG_MENU_STAGE_OPTIONS;
-    sel = AdtSelect(D_80014648, &menu, 0);
+    __builtin_memcpy(menu, DEBUG_MENU_STAGE_OPTIONS, sizeof(menu));
+    sel = AdtSelect(D_80014648, menu, 0);
     switch (sel)
     {
     case 0:

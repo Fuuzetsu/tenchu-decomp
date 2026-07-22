@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "infoview.h"
 #include "memcard.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -60,14 +61,8 @@ typedef struct
     u32 words[4];
 } SaveSIAlignedChunk;
 
-typedef struct
-{
-    TAdtSelect entry[3];
-} SaveSISelectBlock;
-
 extern char D_80097D90[];
 extern char D_80097D98[];
-extern SaveSISelectBlock D_800140A8;
 extern char D_80014104[];
 extern char D_80014114[];
 extern char D_80014128[];
@@ -99,7 +94,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     char *msg;
     u8 fn[200];
     u8 block[BLOCKSIZE];
-    SaveSISelectBlock select;
+    TAdtSelect sel[3];
     s32 cmd;
     s32 result;
     s32 chan;
@@ -238,14 +233,14 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         }
         if (result == 4)
         {
-            select = D_800140A8;
+            __builtin_memcpy(sel, D_800140A8, sizeof(sel));
             if (msg != 0)
             {
                 do
                 {
                     src = (u8 *)D_80014134;
                 } while (0);
-                dst = (u8 *)select.entry;
+                dst = (u8 *)sel;
                 end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
             }
             else
@@ -254,7 +249,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                 {
                     src = (u8 *)D_80014134;
                 } while (0);
-                dst = (u8 *)select.entry;
+                dst = (u8 *)sel;
                 end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
             }
             if (end == 0)

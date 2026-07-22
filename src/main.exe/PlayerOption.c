@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "infoview.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -34,8 +35,7 @@
 /*
  * PlayerOption (0x8005ce70) — debug menu case 4 (DoInfoViewProc.c): the
  * player-character submenu. Copies the fixed player-option menu table into a
- * frame-local buffer (same wrapper-struct-assignment idiom as
- * DoInfoViewProc's debug-menu helpers — see docs/matching-cookbook.md),
+ * frame-local array (the original TAdtSelect shape recovered from PSX.SYM),
  * shows it with AdtSelect, then dispatches on the chosen index:
  *   0 reset position — warp Owner to StageConfig[]'s start coords and reset
  *                       the cached area-map node/index (also mirrored onto
@@ -91,10 +91,6 @@
  *    semantically identical but flips that scheduling tie.
  */
 
-typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
-
-
-extern MENU_PLAYER_TBL DEBUG_MENU_PLAYER_CHOICE_OPTIONS;
 extern char D_80014784[];                    /* "player option" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
@@ -104,10 +100,10 @@ extern void StartStageSequence(void);
 void PlayerOption(void)
 {
     s32 n;
-    MENU_PLAYER_TBL mm;
+    TAdtSelect option[7];
 
-    mm = DEBUG_MENU_PLAYER_CHOICE_OPTIONS;
-    n = AdtSelect(D_80014784, &mm, 0);
+    __builtin_memcpy(option, DEBUG_MENU_PLAYER_CHOICE_OPTIONS, sizeof(option));
+    n = AdtSelect(D_80014784, option, 0);
     switch (n)
     {
     case 0:

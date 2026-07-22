@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "infoview.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -45,7 +46,7 @@
  *
  * STATUS: MATCHED — pure C, all 1108 bytes / 277 instructions exact, with
  * the target's 13 conditional branches, 13 jumps, 21 calls, and 2 returns.
- * Everything derived and verified: menu-table struct copies, (s16) dispatch
+ * Everything derived and verified: local menu-template copies, (s16) dispatch
  * with case 1 laid out before case 0, the shared 7000-byte work area, split-
  * address (lui+lo_sum) symbol accesses [-msplit-addresses is ON in this cc1:
  * TARGET_DEFAULT includes MASK_SPLIT_ADDR — non-small extern symbols split,
@@ -71,11 +72,7 @@
  * the retail instruction schedule and ordinary relocations.
  */
 
-typedef struct { TAdtSelect e[20]; } MENU_FILE_TBL;      /* 0xA0 */
-typedef struct { TAdtSelect e[5];  } MENU_SAVELOAD_TBL;  /* 0x28 */
-typedef struct { TAdtSelect e[18]; } MENU_FLAYOUT_TBL;   /* 0x90 */
 typedef struct { s32 e[11]; } MUSIC_TBL;                        /* 0x2C */
-typedef struct { TAdtSelect e[5];  } MENU_STOCK_TBL;     /* 0x28 */
 typedef union {
     u8 bytes[7000];
     struct {
@@ -84,10 +81,6 @@ typedef union {
     } music;
 } FILE_WORK;
 
-extern MENU_FILE_TBL DEBUG_MENU_FILE_CHOICES;
-extern MENU_SAVELOAD_TBL DEBUG_MENU_SAVE_LOAD_CHOICES;
-extern MENU_FLAYOUT_TBL DEBUG_MENU_FILE_LAYOUT_CHOCIES;
-extern MENU_STOCK_TBL DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES;
 extern MUSIC_TBL D_80014554;            /* music id by stage */
 /* declared as an unknown-size array ON PURPOSE: not-small -> split-address
  * (lui+lo_sum through an allocated reg), where BIS's scalar `extern u8`
@@ -127,34 +120,34 @@ void FileOption(void)
     s32 i;
     TAdtSelect *targets;
     char (*messages)[5];
-    MENU_FILE_TBL m1;
-    MENU_SAVELOAD_TBL m2;
-    MENU_FLAYOUT_TBL m3;
+    TAdtSelect ItemName[20];
+    TAdtSelect SelectIO[5];
+    TAdtSelect SelectSlot[18];
     FILE_WORK work;
 
-    m1 = DEBUG_MENU_FILE_CHOICES;
-    m2 = DEBUG_MENU_SAVE_LOAD_CHOICES;
-    m3 = DEBUG_MENU_FILE_LAYOUT_CHOCIES;
-    n = AdtSelect(D_80014518, (TAdtSelect *)&m1, 0);
+    __builtin_memcpy(ItemName, DEBUG_MENU_FILE_CHOICES, sizeof(ItemName));
+    __builtin_memcpy(SelectIO, DEBUG_MENU_SAVE_LOAD_CHOICES, sizeof(SelectIO));
+    __builtin_memcpy(SelectSlot, DEBUG_MENU_FILE_LAYOUT_CHOCIES, sizeof(SelectSlot));
+    n = AdtSelect(D_80014518, ItemName, 0);
     if (n == -1)
         return;
     switch (n)
     {
     case 1:
-        TargetIO = AdtSelect(D_80014524, (TAdtSelect *)&m2, 3);
+        TargetIO = AdtSelect(D_80014524, SelectIO, 3);
         if (TargetIO == -1)
             return;
-        fname = (u8 *)AdtSelect(D_80014530, (TAdtSelect *)&m3, 0x10);
+        fname = (u8 *)AdtSelect(D_80014530, SelectSlot, 0x10);
         if (fname == (u8 *)-1)
             return;
         FUN_8003cd04(TargetIO & 0xFF, fname);
         leLayoutEnemy(0);
         break;
     case 0:
-        TargetIO = AdtSelect(D_8001453C, (TAdtSelect *)&m2, 3);
+        TargetIO = AdtSelect(D_8001453C, SelectIO, 3);
         if (TargetIO != -1)
         {
-            fname = (u8 *)AdtSelect(D_80014548, (TAdtSelect *)&m3, 0x10);
+            fname = (u8 *)AdtSelect(D_80014548, SelectSlot, 0x10);
             if (fname != (u8 *)-1)
             {
                 lePackEnemyLayout(work.bytes, 5000);
@@ -212,7 +205,8 @@ void FileOption(void)
         gNannido = DIFFICULTY_HARD;
         break;
     case 0xD:
-        *(MENU_STOCK_TBL *)work.bytes = DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES;
+        __builtin_memcpy(work.bytes, DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES,
+                         sizeof(DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES));
         k = AdtSelect(D_800145A8, (TAdtSelect *)work.bytes, 0);
         if (k < 0)
             break;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "infoview.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -23,8 +24,8 @@
  *
  * The two menu tables + the `CamState.Owner->item[]` `+=` idiom are verbatim
  * from DoInfoViewProc.c's ItemAddMenu (same TU family):
- * `*(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;` copies the 0xC8
- * table as one struct assignment (emit_block_move 16-byte loop + 8-byte
+ * the fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS copies the 0xC8
+ * table as one block move (emit_block_move 16-byte loop + 8-byte
  * tail), and the second AdtSelect's result is added to item[sel] where sel is
  * the first AdtSelect's result (captured into the callee-saved reg in the
  * second call's delay slot).
@@ -40,11 +41,6 @@
  *    field.  Its nonzero member access gives the target's separate base and
  *    destination registers without inventing a second object at +0x10.
  */
-typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;  /* 0xC8 */
-typedef struct { TAdtSelect e[4]; } MENU_COUNT_TBL;  /* 0x20 */
-
-extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
-extern MENU_COUNT_TBL D_800124CC;
 extern char D_800124C0[]; /* "select item" */
 extern char D_800124EC[]; /* "number of" */
 extern u16 D_8008E4F0[];  /* cheat sequence 1 */
@@ -60,9 +56,10 @@ void CheckCheatCodes(s16 *rec, int n)
 
     if (memcmp(rec, D_8008E4F0, n << 1) == 0) {
         SoundEx(0, 10);
-        *(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;
+        __builtin_memcpy(mi, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+                         sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
         sel = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
-        *(MENU_COUNT_TBL *)mi = D_800124CC;
+        __builtin_memcpy(mi, D_800124CC, sizeof(D_800124CC));
         CamState.Owner->item[sel] +=
             AdtSelect(D_800124EC, (TAdtSelect *)mi, 0);
         SoundEx(0, 0x4c);

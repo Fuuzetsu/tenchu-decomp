@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "infoview.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -31,9 +32,8 @@
 /*
  * AddItem2 (0x8004afdc) — debug menu's "give item" action, called
  * from DoInfoViewProc's ItemLayoutMenu case 0 (see DoInfoViewProc.c, same
- * original TU: CamState/TCameraStatus and the MENU_ITEM_TBL/AdtSelect idiom
- * are duplicated here as this TU's own file-scope declarations, same as
- * there). Prompts for an item kind via AdtSelect, then places a
+ * original TU, which uses the same menu-template/AdtSelect idiom). Prompts
+ * for an item kind via AdtSelect, then places a
  * PARAM_ITEM_STAY on the ground a fixed distance in front of Owner
  * (rsin/rcos of model->rotate.vy projects the offset, GetAreaMapLevel snaps
  * it to the floor height) and kicks off a smoke puff at the spot.
@@ -41,9 +41,9 @@
  * Matching notes (all verified against the bytes; see
  * docs/matching-cookbook.md):
  *  - `mi` is one u8[0xC8] buffer reused three ways, the same buffer+casts
- *    idiom as ProcItemKusuri: first the whole-struct-assignment destination
- *    for `*(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS` (a
- *    word-block copy: the 16-bytes-per-iteration loop + a 8-byte tail,
+ *    idiom as ProcItemKusuri: first the menu-template copy destination
+ *    for the fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS (a
+ *    word-block copy: the 16-bytes-per-iteration loop + an 8-byte tail,
  *    the cookbook's align-4 struct-copy rule — this is what Ghidra
  *    mis-renders as a field-by-field "copy loop" assigning unrelated
  *    PARAM_ITEM_STAY fields from adt_menu_entry_t label/index pairs), then
@@ -80,9 +80,6 @@
  *    source order is sin-block then cos-block, each self-contained).
  */
 
-typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;    /* 0xC8 */
-
-extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
 extern char D_800124C0[];                   /* "select item" */
 extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const */
 
@@ -97,7 +94,7 @@ void AddItem2(void)
     ModelArchiveType *pm;
     u8 mi[0xC8];
 
-    *(MENU_ITEM_TBL *)mi = DEBUG_MENU_ITEM_CHOICE_OPTIONS;
+    __builtin_memcpy(mi, DEBUG_MENU_ITEM_CHOICE_OPTIONS, sizeof(mi));
     n = AdtSelect(D_800124C0, (TAdtSelect *)mi, 0);
     memset(mi, 0, sizeof(PARAM_ITEM_STAY));
     ((PARAM_ITEM_STAY *)mi)->type = n;
