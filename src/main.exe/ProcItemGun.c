@@ -25,12 +25,13 @@
  *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
  *    and the constant-register equivalence survives the calls. Plain literal
  *    `1`s in the source produce it — do NOT hand-substitute a variable.
- *  - `vec = D_80097B0C[0];` / `dir = D_80097B14[0];` — the two 8-byte SVECTOR
- *    globals MUST be declared as unknown-size arrays: that makes them
- *    non-small (-G8), so their address builds as split HIGH/LO_SUM through
- *    TWO registers (`lui $v0,%hi / addiu $t3,$v0,%lo`) whose lui reorg/sched
- *    can hoist (into the dispatch delay slot for case 0, into the collision
- *    store run for case 1). A plain `extern SVECTOR D_…;` is -G8-small and
+ *  - The outer `vec = D_80097B0C[0];` / inner `vec = D_80097B14[0];` — the
+ *    two 8-byte SVECTOR globals MUST be declared as unknown-size arrays: that
+ *    makes them non-small (-G8), so their address builds as split HIGH/LO_SUM
+ *    through TWO registers (`lui $v0,%hi / addiu $t3,$v0,%lo`) whose lui
+ *    reorg/sched can hoist (into the dispatch delay slot for case 0, into the
+ *    collision store run for case 1). A plain `extern SVECTOR D_…;` is
+ *    -G8-small and
  *    collapses to a fused one-register `la` — one instruction long (the
  *    cookbook's AddItem2 smoke-vector rule, same D_80097Bxx table).
  *  - Case 1's inner block shadows the function-scope `vec` with PSX.SYM's
