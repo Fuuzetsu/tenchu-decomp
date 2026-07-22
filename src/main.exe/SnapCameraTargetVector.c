@@ -55,7 +55,7 @@
  *    target's `lwl/lwr`+`swl/swr` copy immediately before the
  *    `VectorNormalSS(&sv, &sv2)` call.
  *  - Retail evolves CAMERA.C's original `VSHIFT` from 8 to 5. The
- *    round-toward-negative-infinity `>> VSHIFT` needs THREE
+ *    signed truncate-toward-zero `>> VSHIFT` sequence needs THREE
  *    SEPARATE `s32` temps (t1/t2/t3), one per axis — not one reused temp.
  *    gcc 2.8.1 never splits a pseudo's live range, so a single shared temp
  *    pins the whole computation to one register and serializes it; the
