@@ -51,12 +51,12 @@
  * derived type's byte-sized count field to 150.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &it->param.smoke;` sits BEFORE the null check, same
+ *  - `param = &item->param.smoke;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
- *  - us/ty and x/y/z are real temps, same shape as the other twins.
- *  - `it->param.smoke.koro.hint = 0;` uses the direct union path (not
+ *  - aowner/atype and x/y/z are real temps, same shape as the other twins.
+ *  - `item->param.smoke.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemFire(TItem *item);
@@ -65,11 +65,11 @@ extern void ProcItemFire(TItem *item);
 
 int ReqItemFire(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
+    TItem *item;
     param_smoke *param;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 x;
     s32 y;
     s32 z;
@@ -81,48 +81,48 @@ int ReqItemFire(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    param = &it->param.smoke;
-    if (it == 0)
+    param = &item->param.smoke;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemFire;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemFire;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    it->param.smoke.koro.hint = 0;
+    item->param.smoke.koro.hint = 0;
     param->koro.status = KORO_NORMAL;
     param->count = 150;
     return 1;
