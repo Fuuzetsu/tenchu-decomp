@@ -28,6 +28,7 @@ extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern SVECTOR *dtV;
+extern short dtCMD;
 extern short MotionUpdateMode;
 extern short SelectedItem;
 extern TCdaStatus CdaStatus;

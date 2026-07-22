@@ -89,7 +89,6 @@ typedef struct
 
 extern Humanoid *Me_MOTION_C;
 extern u16 dtPAD;
-extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;
 extern void (*ActionFunc[18])(void);
