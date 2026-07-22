@@ -288,7 +288,7 @@ score_character_sprite_init_loop:
         }
     }
 
-    _PlayMusic(12, 1);
+    _PlayMusic(12, CDA_REPEAT);
     resultX = 0x66;
     for (;;)
     {

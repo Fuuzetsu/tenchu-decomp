@@ -100,7 +100,7 @@ int main(void)
     ResetCallback();
     InitPadControl();
     InitFileSystem(2);
-    CdaStatus.flag = 1;
+    CdaStatus.flag = CDA_FLAG_ACTIVE;
     SystemFlag = 0;
     InitGraphicsSystem();
     InitAccessInfo();

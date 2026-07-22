@@ -95,7 +95,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
 
     saved_mode = mode;
 
-    if ((CdaStatus.flag & 1) == 0) {
+    if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0) {
         return 0;
     }
     CdaStop();

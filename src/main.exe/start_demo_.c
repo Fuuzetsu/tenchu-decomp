@@ -195,7 +195,7 @@ void start_demo_(void)
 
     DrawSync(0);
     VSync(0);
-    _PlayMusic(0xb, 0);
+    _PlayMusic(0xb, CDA_ONCE);
 
     while (1)
     {

@@ -528,10 +528,21 @@ struct TCameraPos
     SVECTOR p2;                   /* 0x18 */
 };                                 /* 0x20 */
 
-/* CDPLAYER.C's playback state. Retail keeps the demo's original members but
- * rearranges the tail, adds the left/right volume bytes, and appends the
- * pending drive command. */
+/* CDPLAYER.C's playback state and its original anonymous-enum constants.
+ * Retail keeps the demo's original members but rearranges the tail, adds the
+ * left/right volume bytes, and appends the pending drive command. */
 typedef struct TCdaStatus TCdaStatus;
+enum
+{
+    CDA_ONCE = 0,
+    CDA_REPEAT = 1
+};
+
+enum
+{
+    CDA_FLAG_ACTIVE = 1
+};
+
 struct TCdaStatus
 {
     s32 StartPos;                 /* 0x00 */

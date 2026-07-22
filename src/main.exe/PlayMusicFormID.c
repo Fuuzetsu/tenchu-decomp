@@ -96,5 +96,5 @@ void PlayMusicFormID(s32 id)
             MusicNo = i;
         }
     }
-    _PlayMusic(MusicNo, 1);
+    _PlayMusic(MusicNo, CDA_REPEAT);
 }

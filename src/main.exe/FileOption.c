@@ -189,7 +189,7 @@ void FileOption(void)
     case PLAY_MUSIC:
         __builtin_memcpy(Buf.music_by_stage, D_80014554,
                          sizeof(Buf.music_by_stage));
-        _PlayMusic(Buf.music_by_stage[StageID], 1);
+        _PlayMusic(Buf.music_by_stage[StageID], CDA_REPEAT);
         break;
     case STOP_MUSIC:
         CdaStop();

@@ -34,7 +34,7 @@ extern s32 CdaReady(void);
 
 int CdaGetCurrentLength(void)
 {
-    if ((CdaStatus.flag & 1) == 0) {
+    if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0) {
         return 1;
     }
     if (CdaReady() == 0) {

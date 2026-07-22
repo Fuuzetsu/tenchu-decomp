@@ -335,7 +335,7 @@ found:
         BuildVoiceLocation(&end, min, sec);
     }
 
-    if (CdaPlayXA(FileName, &start, &end, loc->channel, 0) == 0)
+    if (CdaPlayXA(FileName, &start, &end, loc->channel, CDA_ONCE) == 0)
     {
         AdtMessageBox(D_80013500, FileName, loc->channel, id);
     }

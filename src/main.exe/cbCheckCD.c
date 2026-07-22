@@ -80,7 +80,7 @@ void cbCheckCD(void)
 
     if (cs->command == 0x1B) {
         CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
-        if ((cs->flag & 1) &&
+        if ((cs->flag & CDA_FLAG_ACTIVE) &&
             CdControl(0x1B, (u8 *)&scratch.first.loc, NULL) == 0) {
             return;
         }
@@ -109,7 +109,7 @@ void cbCheckCD(void)
             cs->CurPos = CdPosToInt(&scratch.second.loc);
             if ((cs->status & 0x20) &&
                 (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300)) {
-                if (cs->mode != 1) {
+                if (cs->mode != CDA_REPEAT) {
                     goto mode_error;
                 }
                 cs->command = 0x1B;

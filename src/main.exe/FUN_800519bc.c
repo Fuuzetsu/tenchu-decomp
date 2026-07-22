@@ -363,7 +363,7 @@ void FUN_800519bc(void)
                 {
                     music++;
                 }
-                _PlayMusic(music, 0);
+                _PlayMusic(music, CDA_ONCE);
                 sequence = 1;
             }
             break;
