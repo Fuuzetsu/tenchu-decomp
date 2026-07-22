@@ -77,7 +77,6 @@
  *    DrawModel and DrawSprite needed.
  */
 
-extern s32 DrawTMDmode;
 
 long DrawClip(ModelType *objp, long *xy)
 {

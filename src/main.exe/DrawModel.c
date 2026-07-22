@@ -126,7 +126,6 @@
  */
 
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
-extern s32 DrawTMDmode;
 
 short DrawModel(ModelType *objp)
 {

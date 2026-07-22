@@ -103,7 +103,6 @@ extern TSystemFlag SystemFlag;
 extern s16 VISIBLE_ENEMIES_;
 extern s16 D_800BE768[];
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
-extern s16 DrawTMDmode;
 extern char D_80011668[];
 extern char D_80011684[];
 extern char D_80011694[];
@@ -199,7 +198,7 @@ draw_done:
         return;
     }
 
-    D_800BE768[VISIBLE_ENEMIES_] = DrawTMDmode;
+    D_800BE768[VISIBLE_ENEMIES_] = *(u16 *)&DrawTMDmode;
     VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
     VISIBLE_ENEMIES_++;
     if (ActionHalt != 0 || human->life <= 0)

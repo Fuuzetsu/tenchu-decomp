@@ -49,7 +49,6 @@
  */
 
 extern GsOT_TAG ZSortTable[2][2048];
-extern s32 DrawTMDmode;
 extern s32 DepthPoint;
 extern s32 SlightPoint;
 

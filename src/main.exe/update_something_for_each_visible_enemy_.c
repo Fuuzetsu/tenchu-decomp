@@ -35,7 +35,6 @@
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 extern s16 D_800BE768[];
-extern s32 DrawTMDmode;
 extern short DrawModelArchive(ModelArchiveType *mad, long gap);
 extern short DrawOrnament(OrnamentType *objp);
 

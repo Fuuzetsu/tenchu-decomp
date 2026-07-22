@@ -13,7 +13,6 @@
  * also preserve the target's register lifetimes and signed `lh` load.
  */
 
-extern s32 DrawTMDmode;
 extern ModelType *LOCAL_COORDINATES_;
 
 extern void FUN_80037e0c(Humanoid *human, s32 mode);

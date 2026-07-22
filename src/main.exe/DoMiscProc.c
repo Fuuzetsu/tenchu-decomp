@@ -62,7 +62,6 @@
  *    is taken — ordinary scheduling, no special spelling.
  */
 
-extern s32 DrawTMDmode;
 extern char D_800127D0[];
 
 /* Misc visibility distance from MISC.C's anonymous enum. */
