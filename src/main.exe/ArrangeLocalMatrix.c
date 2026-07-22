@@ -59,6 +59,10 @@
 
 void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
 {
+    enum
+    {
+        n = 3
+    };
     MATRIX m;
     s32 i;
     s32 j;
@@ -73,7 +77,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
     {
         s32 t;
 
-        if (!(i < 3))
+        if (!(i < n))
         {
             break;
         }
@@ -84,7 +88,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
         }
         det = det * t / 0x1000;
 
-        for (k = 0; k < 3; k++)
+        for (k = 0; k < n; k++)
         {
             m.m[i][k] = m.m[i][k] * 0x1000 / t;
         }
@@ -93,7 +97,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
         j = 0;
         while (1)
         {
-            if (!(j < 3))
+            if (!(j < n))
             {
                 break;
             }
@@ -102,7 +106,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
                 s32 u;
 
                 u = m.m[j][i];
-                for (k = 0; k < 3; k++)
+                for (k = 0; k < n; k++)
                 {
                     if (k != i)
                     {
