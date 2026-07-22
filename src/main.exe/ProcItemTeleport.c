@@ -12,7 +12,8 @@
  * proc/DeleteConflict/owner-clear tail shared by every ProcItem*).
  *
  * Matching notes (see also ProcItemKusuri.c for the item-TU conventions):
- *  - `ff = 0xff` (a callee-saved reg, $s3) is tested at entry AND reused
+ *  - `ff = ITEM_MODE_DISPOSE` (0xff; a callee-saved reg, $s3) is tested at
+ *    entry AND reused
  *    verbatim for the dispose store `item->mode = ff` — this function never
  *    repurposes that register for a scratch buffer (unlike Kusuri's mode 2),
  *    so the SAME register feeds both the compare and the later store.
@@ -73,7 +74,7 @@ void ProcItemTeleport(TItem *item)
     void (*ppu)(TItem *);
     u8 ff;
 
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;

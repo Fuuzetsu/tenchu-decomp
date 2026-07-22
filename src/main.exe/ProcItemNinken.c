@@ -79,7 +79,7 @@ void ProcItemNinken(TItem *item)
     ProcItemNinkenScratch scratch;
 
     param = &item->param.ninken;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         Humanoid *slave;

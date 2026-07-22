@@ -83,7 +83,7 @@ void ProcItemDokudango(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.dokudango;
-    if (item->mode == 0xff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         param_dokudango *restore;
 
@@ -107,7 +107,7 @@ void ProcItemDokudango(TItem *item)
         {
             return;
         }
-        item->mode = 0xff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
@@ -248,7 +248,7 @@ set_target:
                     drop.end.vz = 0;
                 if (item->proc != 0)
                 {
-                    item->mode = 0xff;
+                    item->mode = ITEM_MODE_DISPOSE;
                     item->proc(item);
                     DeleteConflict(item->locate);
                     if (item->mode != 0)
@@ -424,7 +424,7 @@ dispose_case3:
                 {
                     return;
                 }
-                item->mode = 0xff;
+                item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
                 if (item->mode != 0)

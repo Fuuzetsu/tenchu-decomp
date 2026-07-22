@@ -17,7 +17,8 @@
  * ClearItemLayout (0x8004a500) — debug menu "clear item layout" action
  * (DoInfoViewProc's ItemLayoutMenu, case 1, after the "clear ok?" confirm
  * comes back true). Force-disposes every live slot in the item pool: for
- * each of the 30 slots with proc != 0, run its proc with mode=0xff, delete
+ * each of the 30 slots with proc != 0, run its proc with
+ * mode=ITEM_MODE_DISPOSE, delete
  * the conflict, complain if mode didn't clear, then clear owner/proc — the
  * identical dispose sequence as ReqItemDrop/ProcItemManebue/GetFreeItemSlot.
  *
@@ -44,7 +45,7 @@ loop:
         goto end;
     if (it->proc != 0)
     {
-        it->mode = 0xff;
+        it->mode = ITEM_MODE_DISPOSE;
         it->proc(it);
         DeleteConflict(it->locate);
         if (it->mode != 0)

@@ -62,7 +62,8 @@
  *    forces expand_case to emit a fresh mode `lbu`; otherwise the entry
  *    guard's load is reused and the function is one instruction short.
  *  - `ff` is an s32 caller-saved value in a1.  It survives only the no-call
- *    mode-2 path; call-crossing mode-0 disposal prefixes rematerialize 0xff
+ *    mode-2 path; call-crossing mode-0 disposal prefixes rematerialize
+ *    ITEM_MODE_DISPOSE (0xff)
  *    before all copies merge at the common indirect-call tail.
  *  - The payload guard is explicit control flow so both zero tests target
  *    the later aiming block.  `kind_one` is deliberately s16: autorules
@@ -113,7 +114,7 @@ void ProcItemArrow(TItem *item)
 
     objp = item->model;
     param = &item->param.arrow;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     mode_index = item->mode;
     if (mode_index == ff)
     {
@@ -181,7 +182,7 @@ void ProcItemArrow(TItem *item)
                     {
                         return;
                     }
-                    item->mode = 0xff;
+                    item->mode = ITEM_MODE_DISPOSE;
                     item->proc(item);
                     DeleteConflict(item->locate);
                     if (item->mode != 0)
@@ -248,7 +249,7 @@ void ProcItemArrow(TItem *item)
                 {
                     return;
                 }
-                item->mode = 0xff;
+                item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
                 if (item->mode != 0)

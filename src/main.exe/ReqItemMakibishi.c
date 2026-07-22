@@ -119,7 +119,7 @@ int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p)
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    cur->mode = 0xff;
+    cur->mode = ITEM_MODE_DISPOSE;
     cur->proc(cur);
     DeleteConflict(cur->locate);
     if (cur->mode != 0)

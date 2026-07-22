@@ -105,7 +105,7 @@ void ProcItemJirai(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -298,7 +298,7 @@ void ProcItemJirai(TItem *item)
             return;
         }
         call_item = item;
-        item->mode = 0xff;
+        item->mode = ITEM_MODE_DISPOSE;
 dispose:
         proc(call_item);
         DeleteConflict(item->locate);

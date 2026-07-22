@@ -68,7 +68,7 @@ void ProcItemKawarimi(TItem *item)
     u8 buf[0x20];
 
     param = &item->param.drop;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;

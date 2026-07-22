@@ -13,8 +13,8 @@
  * Matching notes (see also ProcItemKusuri.c/ReqItemGoshikimai.c for the
  * item-TU conventions):
  *  - `pp = &item->param.goshikimai;` is the VERY FIRST statement
- *    (before even the entry mode==0xff test): the addiu fills the entry
- *    branch's delay slot, same lever as ReqItemGoshikimai's `pp`.
+ *    (before even the entry mode==ITEM_MODE_DISPOSE test): the addiu fills
+ *    the entry branch's delay slot, same lever as ReqItemGoshikimai's `pp`.
  *  - `if (mode==ff)` (a plain if, separate statement) and the `switch
  *    (item->mode)` right after each get their OWN fresh lbu of item->mode —
  *    two total reloads, matching the switch rule (expand_case always
@@ -37,7 +37,8 @@
  *    three GetAbsolutePosition calls (three separate jal's in the asm, no
  *    cached model/object pointer) — Ghidra's literal repetition is the
  *    source's real shape, not a decompiler artifact.
- *  - The dispose tail reuses `ff` (the same 0xff local tested at entry) for
+ *  - The dispose tail reuses `ff` (the same ITEM_MODE_DISPOSE local tested
+ *    at entry) for
  *    `item->mode = ff`, like every other ProcItem*.
  */
 #include "item.h"
@@ -82,7 +83,7 @@ void ProcItemGoshikimai(TItem *item)
     u8 ff;
 
     pp = &item->param.goshikimai;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;

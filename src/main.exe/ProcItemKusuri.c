@@ -93,7 +93,7 @@ void ProcItemKusuri(TItem *item)
     u8 buf[0x28];
 
     sprt = (Sprite3D *)item->model;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -213,7 +213,7 @@ void ProcItemKusuri(TItem *item)
         ppu = item->proc;
         if (ppu == 0)
             return;
-        item->mode = 0xff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

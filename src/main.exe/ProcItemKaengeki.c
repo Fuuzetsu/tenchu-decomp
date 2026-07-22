@@ -88,7 +88,7 @@ void ProcItemKaengeki(TItem *item)
     u8 mode_index;
 
     param = &item->param.kaengeki;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     mode_index = item->mode;
     if (mode_index == ff)
     {
@@ -161,7 +161,7 @@ void ProcItemKaengeki(TItem *item)
             {
                 return;
             }
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

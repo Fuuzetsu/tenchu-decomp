@@ -108,7 +108,7 @@ void ProcItemSmoke(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -150,7 +150,7 @@ void ProcItemSmoke(TItem *item)
         {
             if (item->proc == 0)
                 return;
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

@@ -17,7 +17,8 @@
  * otherwise the counter advances and retries up to 0x1d times, and if the
  * whole pool stays busy the slot the counter last landed on is force-disposed
  * (identical dispose sequence to ReqItemDrop/ProcItemManebue: run its proc
- * with mode=0xff, delete the conflict, complain if mode didn't clear, then
+ * with mode=ITEM_MODE_DISPOSE, delete the conflict, complain if mode didn't
+ * clear, then
  * clear owner/proc) and returned anyway.
  *
  * No caller for this function exists anywhere in the retail image (checked:
@@ -53,7 +54,7 @@ TItem *GetFreeItemSlot(void)
         i++;
     } while (i < 0x1d);
 
-    it->mode = 0xff;
+    it->mode = ITEM_MODE_DISPOSE;
     it->proc(it);
     DeleteConflict(it->locate);
     if (it->mode != 0)

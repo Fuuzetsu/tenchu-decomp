@@ -15,15 +15,17 @@
  * Matching notes (see also ProcItemMakibishi.c for the collision-box
  * conventions, ProcItemManebue.c for the countdown idiom):
  *  - `model = HappouModel; param = &item->param.launch;` are both
- *    computed before the entry mode==0xff test (model sequential, param's
+ *    computed before the entry mode==ITEM_MODE_DISPOSE test (model
+ *    sequential, param's
  *    addiu fills the entry branch's delay slot).
  *  - The countdown is `t = param->count - 1;` (real `addiu -1`, sign-extended)
  *    tested on the NEW/post-decrement value — Manebue's idiom, NOT
  *    LightningBolt's `+0xff`-on-the-OLD-value idiom (verified against the
  *    raw immediate bytes in both places; per-function, not a fixed rule).
- *  - No entry `ff` local this time: the 0xff materialized for the entry
- *    test is a transient register, reused for unrelated things immediately
- *    after — nothing carries it to the later `item->mode = 0xff` dispose
+ *  - No entry `ff` local this time: ITEM_MODE_DISPOSE is materialized for
+ *    the entry test in a transient register, reused for unrelated things
+ *    immediately after — nothing carries it to the later
+ *    `item->mode = ITEM_MODE_DISPOSE` dispose
  *    (a fresh literal there), so a plain literal at entry matches too.
  *  - The 300/1 collision-box constants are plain literals (no shared
  *    variable): unlike Makibishi's `item->mode += one`, nothing here adds
@@ -102,7 +104,7 @@ void ProcItemHappou(TItem *item)
 
     model = HappouModel;
     param = &item->param.launch;
-    if (item->mode == 0xff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         DisposeAfterimage(param->effect);
         item->mode = 0;
@@ -141,7 +143,7 @@ void ProcItemHappou(TItem *item)
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
             if (item->proc != 0)
             {
-                item->mode = 0xff;
+                item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
                 if (item->mode != 0)

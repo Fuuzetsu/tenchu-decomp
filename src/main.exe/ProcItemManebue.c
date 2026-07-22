@@ -37,7 +37,8 @@
  *    allocate $s1.
  *  - The `zero` variable and the goto ladder reproduce the original dispatch:
  *    cc1 CSEs a plain `mode == 0` chain into one load, but the original reloads
- *    `mode` after the 0xff test and keeps the case bodies out of line.
+ *    `mode` after the ITEM_MODE_DISPOSE test and keeps the case bodies out
+ *    of line.
  *  - FRAMES_UNTIL_END_OF_ALERT is a plain small extern here, and this file is
  *    deliberately NOT in Build.hs's maspsxGpExterns list: the original item TU
  *    did not define it (think's TU does), so ASPSX addressed it absolutely
@@ -53,7 +54,7 @@ void ProcItemManebue(TItem *item)
 
     param = &item->param.drop;
     zero = 0;
-    if (item->mode == 0xff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -78,7 +79,7 @@ mode1:
         item->owner->active_item = 0;
         if (item->proc != 0)
         {
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

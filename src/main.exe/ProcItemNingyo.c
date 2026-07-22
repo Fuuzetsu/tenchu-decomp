@@ -103,7 +103,7 @@ void ProcItemNingyo(TItem *item)
     ProcItemNingyoScratch scratch;
 
     param = &item->param.ningyo;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         if (param->hp != 99)
@@ -355,7 +355,7 @@ draw_mode0:
                     SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
                     if (item->proc != 0)
                     {
-                        item->mode = 0xff;
+                        item->mode = ITEM_MODE_DISPOSE;
                         item->proc(item);
                         DeleteConflict(item->locate);
                         if (item->mode != 0)

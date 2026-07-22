@@ -84,7 +84,7 @@ void ProcItemHenshin(TItem *item)
 
     human = item->owner;
     mad = human->model;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
 
     if (item->mode == ff)
     {

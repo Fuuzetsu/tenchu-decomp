@@ -89,7 +89,7 @@ void ProcItemLightningBolt(TItem *item)
     s32 n;
 
     param = &item->param.lightningbolt;
-    if (item->mode == 0xff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -146,7 +146,7 @@ void ProcItemLightningBolt(TItem *item)
     param->count = cnt + 0xff;
     if (cnt == 0 && item->proc != 0)
     {
-        item->mode = 0xff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

@@ -95,7 +95,7 @@ void ProcSightShot(TItem *item)
     Humanoid *human;
 
     launch = &item->param.launch;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->owner->item[0x19] = 0;

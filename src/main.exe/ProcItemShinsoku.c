@@ -94,7 +94,7 @@ void ProcItemShinsoku(TItem *item)
     u8 launch_buf[sizeof(PARAM_ITEM_LAUNCH)];
 
     param = &item->param.shinsoku;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -272,7 +272,7 @@ void ProcItemShinsoku(TItem *item)
         {
             return;
         }
-        item->mode = 0xff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

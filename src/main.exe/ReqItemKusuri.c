@@ -96,7 +96,7 @@ int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = 0xff;
+    it->mode = ITEM_MODE_DISPOSE;
     it->proc(it);
     DeleteConflict(it->locate);
     if (it->mode != 0)

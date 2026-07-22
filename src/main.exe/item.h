@@ -144,6 +144,12 @@ enum
     KORO_STAY = 4
 };
 
+/* Item-processor teardown sentinel from ITEM.C's anonymous enum. */
+enum
+{
+    ITEM_MODE_DISPOSE = 0xff
+};
+
 /* ITEM.C's original rolling-item base.  Derived item parameters embed this
  * 12-byte record as their first member (param_drop, param_smoke,
  * param_ningyo, param_ninken, param_dokudango). */

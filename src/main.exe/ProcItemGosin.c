@@ -73,7 +73,7 @@ void ProcItemGosin(TItem *item)
     u8 ff;
     u8 buf[0x28];
 
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->owner->active_item = 0;

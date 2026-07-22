@@ -89,7 +89,7 @@ loop1:
     if (!(i < 0x1e))
         goto loop1_end;
     if (it->proc != 0) {
-        it->mode = 0xff;
+        it->mode = ITEM_MODE_DISPOSE;
         it->proc(it);
         DeleteConflict(it->locate);
         if (it->mode != 0) {

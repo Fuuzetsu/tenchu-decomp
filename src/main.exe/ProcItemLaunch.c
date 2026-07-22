@@ -100,7 +100,7 @@ void ProcItemLaunch(TItem *item)
 
     model = item->model;
     param = &item->param.launch;
-    if (item->mode == 0xff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         DisposeAfterimage(param->effect);
         item->mode = 0;
@@ -168,7 +168,7 @@ void ProcItemLaunch(TItem *item)
         rparam = *p;
         if (item->proc != 0)
         {
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -186,7 +186,7 @@ void ProcItemLaunch(TItem *item)
     dispose:
         if (item->proc != 0)
         {
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

@@ -53,7 +53,8 @@
  *
  * Matching notes (see ProcItemTeleport.c / ProcItemKusuri.c for the item-TU
  * conventions this shares):
- *  - `ff = 0xff` is a callee-saved var ($s1) tested at entry and reused as
+ *  - `ff = ITEM_MODE_DISPOSE` (0xff) is a callee-saved var ($s1), tested at
+ *    entry and reused as
  *    `item->mode = ff` in the first two dispose blocks; in the big third
  *    block $s1 has been repurposed for the ViewInfo/CamState addresses, so
  *    the same `ff` variable is rematerialised as a fresh `li 0xff` there.
@@ -98,7 +99,7 @@ void ProcKaginawa(TItem *item)
     s32 tx, ty, tz;
     u8 ff;
 
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;

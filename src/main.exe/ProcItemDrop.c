@@ -109,7 +109,7 @@ void ProcItemDrop(TItem *item)
 
     sprt = (Sprite3D *)item->model;
     param = &item->param.drop;
-    if (item->mode == 0xff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -126,7 +126,7 @@ void ProcItemDrop(TItem *item)
             ppu = item->proc;
             if (ppu == 0)
                 return;
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -214,7 +214,7 @@ void ProcItemDrop(TItem *item)
             ppu = item->proc;
             if (ppu == 0)
                 return;
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

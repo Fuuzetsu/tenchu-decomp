@@ -13,7 +13,8 @@
  * Matching notes (see also ProcItemDrop.c for the item-TU/ConflictObject
  * conventions this shares):
  *  - `model = (Sprite3D *)item->model; param = &item->param.drop;` both sit
- *    before the entry mode==0xff test (ProcItemDrop's double lever): model's
+ *    before the entry mode==ITEM_MODE_DISPOSE test (ProcItemDrop's double
+ *    lever): model's
  *    load is sequential, param's addiu fills the entry branch's delay slot.
  *  - The mode dispatch is a real switch (fresh reload distinct from the
  *    entry ff-check's load, matching the switch rule); with no case for
@@ -93,7 +94,7 @@ void ProcItemMakibishi(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.drop;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -154,7 +155,7 @@ void ProcItemMakibishi(TItem *item)
             ppu = item->proc;
             if (ppu == 0)
                 return;
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

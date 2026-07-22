@@ -138,7 +138,7 @@ void ProcItemFire(TItem *item)
 
     sprt = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -217,7 +217,7 @@ void ProcItemFire(TItem *item)
 
                 if (item->proc != 0)
                 {
-                    item->mode = 0xff;
+                    item->mode = ITEM_MODE_DISPOSE;
                     item->proc(item);
                     DeleteConflict(item->locate);
                     if (item->mode != 0)
@@ -341,7 +341,7 @@ void ProcItemFire(TItem *item)
     case 2:
         if ((u8)count == 0 && item->proc != 0)
         {
-            item->mode = 0xff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
