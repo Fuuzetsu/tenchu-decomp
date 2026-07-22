@@ -48,9 +48,9 @@
  * down the previous disguise before installing a new one.
  *
  * Matching notes:
- *  - The retail snapshot begins with a four-byte archive-rotation header,
- *    followed by ordinary 12-byte model-part records. Indexing the nested
- *    `part` array by the loop's own counter gives loop.c one unbiased
+ *  - The retail snapshot begins with the saved `waist` value, followed by
+ *    ordinary 12-byte model-part records. Indexing the nested `p` array by
+ *    the loop's own counter gives loop.c one unbiased
  *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
  *  - D_80097AEC and D_80097AF0 use volatile views only to preserve the
  *    original observable load/store sequence.  In particular, the restore
@@ -95,18 +95,18 @@ void ProcItemHenshin(TItem *item)
 
             i = 0;
             saved = &D_800C0630;
-            mad->rotate.pad = (s16)saved->rotate_pad;
+            mad->rotate.pad = (s16)saved->waist;
             if (mad->n > 0)
             {
                 do
                 {
-                    mad->object[i]->object.tmd = saved->part[i].tmd;
+                    mad->object[i]->object.tmd = saved->p[i].tmd;
                     mad->object[i]->locate.coord.t[0] =
-                        saved->part[i].position.vx;
+                        saved->p[i].x;
                     mad->object[i]->locate.coord.t[1] =
-                        saved->part[i].position.vy;
+                        saved->p[i].y;
                     mad->object[i]->locate.coord.t[2] =
-                        saved->part[i].position.vz;
+                        saved->p[i].z;
                     i++;
                 } while (i < mad->n);
             }
@@ -212,18 +212,18 @@ void ProcItemHenshin(TItem *item)
 
         i = 0;
         saved = &D_800C06F0;
-        mad->rotate.pad = (s16)saved->rotate_pad;
+        mad->rotate.pad = (s16)saved->waist;
         if (mad->n > 0)
         {
             do
             {
-                mad->object[i]->object.tmd = saved->part[i].tmd;
+                mad->object[i]->object.tmd = saved->p[i].tmd;
                 mad->object[i]->locate.coord.t[0] =
-                    saved->part[i].position.vx;
+                    saved->p[i].x;
                 mad->object[i]->locate.coord.t[1] =
-                    saved->part[i].position.vy;
+                    saved->p[i].y;
                 mad->object[i]->locate.coord.t[2] =
-                    saved->part[i].position.vz;
+                    saved->p[i].z;
                 i++;
             } while (i < mad->n);
         }

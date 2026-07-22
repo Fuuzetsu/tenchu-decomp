@@ -11,8 +11,8 @@
  * disguise logic consumed by ProcItemHenshin.
  *
  * Matching notes:
- *  - Each output buffer has a four-byte archive-rotation header followed by
- *    ordinary 12-byte model-part snapshots (`tmd` plus `SVECTOR position`).
+ *  - Each output buffer has the saved `waist` value followed by ordinary
+ *    12-byte model-part snapshots (`tmd`, `x`, `y`, and `z`).
  *  - The two model-copy phases need separate block-scoped model, saved, and
  *    index locals. Reusing one set across both phases joins their pseudos,
  *    rotates the caller-saved registers, and fills three target load-delay
@@ -41,17 +41,17 @@ void create_ninken_character_(s16 type, s32 stage)
         model = CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model;
         i = 0;
         saved = &D_800C0630;
-        saved->rotate_pad = model->rotate.pad;
+        saved->waist = model->rotate.pad;
         if (model->n > 0)
         {
             do
             {
-                saved->part[i].tmd = model->object[i]->object.tmd;
-                saved->part[i].position.vx =
+                saved->p[i].tmd = model->object[i]->object.tmd;
+                saved->p[i].x =
                     model->object[i]->locate.coord.t[0];
-                saved->part[i].position.vy =
+                saved->p[i].y =
                     model->object[i]->locate.coord.t[1];
-                saved->part[i].position.vz =
+                saved->p[i].z =
                     model->object[i]->locate.coord.t[2];
                 i++;
             } while (i < model->n);
@@ -71,17 +71,17 @@ void create_ninken_character_(s16 type, s32 stage)
         model = human->model;
         i = 0;
         saved = &D_800C06F0;
-        saved->rotate_pad = model->rotate.pad;
+        saved->waist = model->rotate.pad;
         if (model->n > 0)
         {
             do
             {
-                saved->part[i].tmd = model->object[i]->object.tmd;
-                saved->part[i].position.vx =
+                saved->p[i].tmd = model->object[i]->object.tmd;
+                saved->p[i].x =
                     model->object[i]->locate.coord.t[0];
-                saved->part[i].position.vy =
+                saved->p[i].y =
                     model->object[i]->locate.coord.t[1];
-                saved->part[i].position.vz =
+                saved->p[i].z =
                     model->object[i]->locate.coord.t[2];
                 i++;
             } while (i < model->n);

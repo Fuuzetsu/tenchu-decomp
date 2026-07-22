@@ -22,21 +22,23 @@ struct AfterimageType;
  * carried over here for Humanoid.think[4]'s element type. */
 typedef s32 (*think_func_)(void);
 
-/* Retail's saved model state used by the henshin disguise. One archive
- * rotation value heads an ordinary array of model-part snapshots. */
+/* The henshin disguise's saved model state. PSX.SYM recovers the original
+ * field names and its fifteen-part capacity; retail keeps the same layout. */
 typedef struct HenshinModelPart HenshinModelPart;
 struct HenshinModelPart
 {
     u_long *tmd;                  /* 0x00 */
-    SVECTOR position;             /* 0x04 */
+    s16 x;                        /* 0x04 */
+    s16 y;                        /* 0x06 */
+    s16 z;                        /* 0x08 */
 };                                /* 0x0C */
 
 typedef struct HenshinModelSnapshot HenshinModelSnapshot;
 struct HenshinModelSnapshot
 {
-    s32 rotate_pad;               /* 0x00 */
-    HenshinModelPart part[1];     /* 0x04: variable-length tail */
-};                                /* minimum size 0x10 */
+    s32 waist;                    /* 0x00 */
+    HenshinModelPart p[15];       /* 0x04 */
+};                                /* 0xB8 */
 
 typedef struct Humanoid
 {
