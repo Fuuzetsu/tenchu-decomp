@@ -73,7 +73,7 @@
  *    short dm` local exactly.
  */
 
-static void GetCenterAndSize(u32 *tmd, SVECTOR *center, int *size)
+static void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size)
 {
     SVECTOR *vert;
     int nVert;

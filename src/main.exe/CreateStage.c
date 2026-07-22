@@ -89,7 +89,7 @@ extern short DrawBG(BackGround *bg);
 extern void EndDrawing(s32 mode);
 extern void DisposeBG(BackGround *bg);
 extern void SetupAppearance(s16 character, s16 stage);
-extern short LoadConstruction(u32 *data);
+extern short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void ResetInfoview(s32 stage);
@@ -166,7 +166,7 @@ void CreateStage(int StageNo, int CharType)
     DisposeBG(bg);
 
     SetupAppearance(mode, stageNo);
-    LoadConstruction((u32 *)PathFileRead((char *)ImagePath, D_800120A0));
+    LoadConstruction((u_long *)PathFileRead((char *)ImagePath, D_800120A0));
     initialise_font();
     InitializeImage();
     ResetInfoview(StageNo);

@@ -163,14 +163,14 @@ extern OrnamentArchiveType *LoadOrnamentArchive(u_long *data, ModelType *parent)
 extern u32 *LoadAreaMap(u32 *data);
 extern u32 *handle_balmer_acm_(u32 *data);
 extern void UpdateOrnament(OrnamentType *model, s16 ry);
-extern void GetCenterAndSize(u32 *tmd, SVECTOR *center, int *size);
+extern void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size);
 extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
 extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void AddMisc(s32 type, s32 x, s32 y, s32 z,
                     s32 a, s32 b, s32 c);
 extern void jt_init4(void);
 
-short LoadConstruction(u32 *data)
+short LoadConstruction(u_long *data)
 {
     int ObjectID;
     u_long *MapModel;
