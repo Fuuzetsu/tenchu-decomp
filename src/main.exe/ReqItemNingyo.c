@@ -61,8 +61,10 @@
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
- *  - aowner/atype and x/y/z (end vector, into param->koro.vx/vy/vz) are
- *    real temps, same shape as ReqItemDrop/ReqItemJirai/ReqItemDokudango.
+ *  - aowner/atype and x/y/z (end vector, into the nested
+ *    `param_korogari *param`) are real temps, same shape as
+ *    ReqItemDrop/ReqItemJirai/ReqItemDokudango. The block-scoped shadow is
+ *    the second `param` recorded by PSX.SYM.
  *  - `item->param.ningyo.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  *  - `rotate.vx = 0;` is scheduled into the FIRST `rand()` call's delay slot
@@ -143,14 +145,19 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    y = p->end.vy;
-    z = p->end.vz;
-    param->koro.vx = x;
-    param->koro.vy = y;
-    param->koro.vz = z;
-    item->param.ningyo.koro.hint = 0;
-    param->koro.status = KORO_NORMAL;
+    {
+        param_korogari *param;
+
+        param = &item->param.ningyo.koro;
+        x = p->end.vx;
+        y = p->end.vy;
+        z = p->end.vz;
+        param->vx = x;
+        param->vy = y;
+        param->vz = z;
+        item->param.ningyo.koro.hint = 0;
+        param->status = KORO_NORMAL;
+    }
     param->count = 0x5a;
     item->locate->rotate.vx = 0;
     item->locate->rotate.vy = rand() % 0x1000;
