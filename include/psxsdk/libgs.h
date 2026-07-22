@@ -391,5 +391,7 @@ extern MATRIX GsIDMATRIX;
 extern MATRIX GsIDMATRIX2;
 extern long HWD0, VWD0;
 extern u_long GsLMODE, GsLIGNR, GsLIOFF, GsTON;
+extern long GsADIVZ;
+extern short GsADIVW, GsADIVH;
 
 #endif

@@ -58,10 +58,6 @@ extern unsigned char *dmyGsTMDfastTG4LFG();
 extern unsigned char *dmyGsTMDfastTG4NL();
 extern unsigned char *GsTMDfastTNG4();
 
-extern s32 D_8008F7C8;
-extern s16 D_8008F7CC;
-extern s16 D_8008F7CE;
-
 void jt_init4(void)
 {
     GsFCALL4.f3[0][0] = dmyGsTMDfastF3L;
@@ -136,9 +132,9 @@ void jt_init4(void)
     GsFCALL4.ntg4[0] = GsTMDfastTNG4;
     GsFCALL4.ntg4[1] = GsA4divTNG4;
 
-    D_8008F7C8 = 0x25A;
-    D_8008F7CC = 0x200;
-    D_8008F7CE = 0x200;
+    GsADIVZ = 0x25A;
+    GsADIVW = 0x200;
+    GsADIVH = 0x200;
 }
 
 // triage: MEDIUM — 156 insns, 0 callees, ~0.07 to initialise_font

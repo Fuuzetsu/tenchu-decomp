@@ -280,3 +280,8 @@
 # Active stage events (2026-07-22).
 80097f78	Event	semantic	PSX=800981a0;DEMO=800984f8;WITNESSES=UpdateEvent,StageSequence,StartStageSequence;two-cached-event-pointers	STAT	struct EventSeqType *[2]
 80097f80	eTarget	semantic	PSX=800981a8;DEMO=80098500;WITNESSES=UpdateEvent,StageSequence;parallel-two-entry-target-cache	STAT	struct Humanoid *[2]
+
+# LIBGS subdivision configuration (2026-07-22).
+8008f7c8	GsADIVZ	semantic+datamatch	VOTES1;PSX=8008e91c;DEMO=8008ec74;WITNESSES=jt_init4;SDK-_GsFCALL-initializer-writes-the-subdivision-depth-setting	EXT	long
+8008f7cc	GsADIVW	semantic+datamatch	VOTES1;PSX=8008e920;DEMO=8008ec78;WITNESSES=jt_init4;adjacent-halfword-width-setting-written-to-0x200	EXT	short
+8008f7ce	GsADIVH	semantic+datamatch	VOTES1;PSX=8008e922;DEMO=8008ec7a;WITNESSES=jt_init4;adjacent-halfword-height-setting-written-to-0x200	EXT	short
