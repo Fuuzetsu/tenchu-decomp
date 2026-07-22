@@ -51,6 +51,12 @@ extern GsRVIEW2 ViewInfo;
 extern s16 InsertConflict(ModelType *m);
 extern s32 abs(s32 x);
 
+/* Per-axis item activation distance from ITEM.C's anonymous enum. */
+enum
+{
+    LEN = 15000
+};
+
 static void UpdateItemState(void)
 {
     ConflictObjectType *object;
@@ -74,10 +80,10 @@ loop:
         if (item->proc != 0)
         {
             hit = 0;
-            if (abs(ViewInfo.vpx - item->locate->locate.coord.t[0]) < 15000 &&
-                abs(view->vpy - item->locate->locate.coord.t[1]) < 15000)
+            if (abs(ViewInfo.vpx - item->locate->locate.coord.t[0]) < LEN &&
+                abs(view->vpy - item->locate->locate.coord.t[1]) < LEN)
             {
-                hit = abs(view->vpz - item->locate->locate.coord.t[2]) < 15000;
+                hit = abs(view->vpz - item->locate->locate.coord.t[2]) < LEN;
             }
             if (hit)
             {
