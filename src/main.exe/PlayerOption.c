@@ -68,7 +68,7 @@
  *    the other two — that's Ghidra naming the same cached value two ways,
  *    not two different source expressions).
  *  - `FieldIndex = (NodeIndexType *)GlobalAreaMap;` sits AFTER the OldMode
- *    and Humanoid+0x34 writes, not before them (Ghidra's statement order put
+ *    and `Owner->map.index` writes, not before them (Ghidra's statement order put
  *    it first, textually adjacent to the comment describing it — a
  *    decompiler artifact, not the source's real position). Moving this one
  *    assignment two statements later fixed a whole-block register swap
@@ -80,8 +80,9 @@
  *    in the same block. Found via decomp-permuter (a mid-search low-score
  *    candidate under output-30-1/ showed the exact reorder before the
  *    search converged to 0 on its own).
- *  - The final store folds the FieldArea assignment into the store
- *    expression (`*(...) = FieldArea = (AreaNodeType *)FieldIndex->index;`)
+ *  - The final store folds the FieldArea assignment into the store expression
+ *    (`CamState.Owner->map.area = FieldArea =
+ *    (AreaNodeType *)FieldIndex->index;`)
  *    rather than two statements: with two statements cc1 scheduled the
  *    independent Owner-reload (for the store's LHS) and the FieldArea load
  *    in the opposite order from the original. The chained form is

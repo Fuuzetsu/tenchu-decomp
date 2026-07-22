@@ -27,6 +27,9 @@
  * single saved-register constant, after the decimal /10 magic and per-sign
  * ten constants.  A function-wide coordinate initializes too early and
  * produces a different schedule.
+ *
+ * The score-table character and stage strides remain explicit because a
+ * direct three-dimensional subscript changes retail's register allocation.
  */
 
 typedef struct
@@ -258,11 +261,9 @@ void StageEndScreen(void)
             sizeof(state->stage_stats[0]);
         stage_offset = (u32)state->StageNo *
             sizeof(state->stage_stats[0][0]) +
-            TENCHU_PERSISTENT_STATE_ADDRESS +
-            (u32)&((TLinkInfo *)0)->stage_stats;
+            (u32)&PSTATE->stage_stats;
         base_record = (ScoreStats *)(character_offset + stage_offset);
-        record = (ScoreStats *)((u8 *)base_record +
-            (u32)state->layout * sizeof(state->stage_stats[0][0][0]));
+        record = base_record + state->layout;
         score = calculate_score(record, state->StageNo);
     }
     stack.best = *score;
@@ -603,8 +604,7 @@ number_1:
             u8 *next_stage;
             u32 layout_base;
 
-            layout_base = TENCHU_PERSISTENT_STATE_ADDRESS +
-                (u32)&((TLinkInfo *)0)->stage_stats;
+            layout_base = (u32)&PSTATE->stage_stats;
             next_stage = (u8 *)D_8008EA78;
             PSTATE->StageNo = next_stage[StageEndNextStageOffset(
                 StageConfig[PSTATE->StageNo].uid)];
