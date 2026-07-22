@@ -76,14 +76,6 @@
  *    breaks it and the sign-extension reads s2.
  */
 
-enum
-{
-    ITEM_MAKIBISHI = 2,
-    ITEM_FIRE = 4,
-    ITEM_SMOKE = 5,
-    ITEM_DOKUDANGO = 7
-};
-
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern SVECTOR *dtR;

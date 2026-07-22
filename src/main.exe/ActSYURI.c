@@ -45,7 +45,7 @@
  *    bodies in source order). The E01 case's `count == 1` compare constant
  *    is reorg-stolen into the dispatch beq's delay slot — automatic.
  *  - The `1` in the E00 case is ONE cse-unified pseudo (callee-saved $s0):
- *    the `count == 1` compare constant, `item.type = ITEM_KIND_2_SHURIKEN`
+ *    the `count == 1` compare constant, `item.type = ITEM_SHURIKEN`
  *    (=1) word store, and all three `motMODE = 1` halfword stores fold
  *    onto it via cse's taken-edge path following. No named variable needed
  *    (PSX.SYM lists only `p` and `item` — consistent).
@@ -72,7 +72,6 @@ extern s16 motMODE;
 
 extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
 extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
-extern void ReqItemDefault(Humanoid *user, s32 id);
 extern void SetCameraMode(s32 mode);
 extern void Sound(Humanoid *h, int id);
 
@@ -99,7 +98,7 @@ void ActSYURI(void)
         }
         if (dtM->count == 1)
         {
-            item.type = ITEM_KIND_2_SHURIKEN;
+            item.type = ITEM_SHURIKEN;
             item.user = Me_MOTION_C;
             p = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, 0, 0);
             item.start.vx = p->vx;
@@ -137,7 +136,7 @@ void ActSYURI(void)
     case 0xE01:
         if (dtM->count == 1 && Me_MOTION_C != StagePlayer)
         {
-            ReqItemDefault(Me_MOTION_C, 1);
+            ReqItemDefault(Me_MOTION_C, ITEM_SHURIKEN);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -159,4 +158,3 @@ void ActSYURI(void)
         break;
     }
 }
-

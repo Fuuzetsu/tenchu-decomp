@@ -205,7 +205,7 @@ void ProcItemKaengeki(tag_TItem *item)
         }
 
         rp.user = item->owner;
-        rp.type = 22;
+        rp.type = ITEM_NAPALM;
         rp.end.vx = param->end.vx;
         rp.end.vy = param->end.vy;
         rp.end.vz = param->end.vz;

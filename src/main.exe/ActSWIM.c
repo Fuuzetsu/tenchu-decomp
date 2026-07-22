@@ -58,7 +58,6 @@ extern s16 Sound(Humanoid *human, s16 id);
 extern s16 SoundEx(VECTOR *locate, s16 id);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern void SetCameraMode(s32 mode);
-extern void ReqItemDefault(Humanoid *human, s32 item);
 
 void ActSWIM(void)
 {

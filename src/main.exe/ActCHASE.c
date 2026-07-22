@@ -63,7 +63,6 @@ extern void JumpControl(void);
 extern void AttackControl(void);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void Sound(Humanoid *human, s16 id);
-extern void ReqItemDefault(Humanoid *human, s32 kind);
 
 void ActCHASE(void)
 {

@@ -79,7 +79,6 @@ extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
 extern s16 Sound(Humanoid *human, s16 id);
 extern void AttackControl(void);
-extern void ReqItemDefault(Humanoid *human, s32 kind);
 extern void SetCameraMode(s32 mode);
 extern void StickonCheck(void);
 

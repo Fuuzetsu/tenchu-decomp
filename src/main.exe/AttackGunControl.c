@@ -31,7 +31,7 @@
  * AttackFire.c, the real near-twins - not leRestoreEnemyLayout, which was
  * just an assembly-shape false positive): fires only when the currently-armed
  * motion trigger (dtM->count) matches the caller's frame id, then spawns a
- * projectile via bow_shoot_logic (kind 0x14 - not the 0x15 arrow case) from
+ * projectile via bow_shoot_logic (ITEM_GUN, not the ITEM_ARROW case) from
  * the wielded weapon's tip (Me_MOTION_C->model->object[0xd], same item-TU
  * Humanoid/ModelArchiveType as the siblings) and plays a sound.
  *
@@ -60,7 +60,7 @@ void AttackGunControl(s16 length, s16 frm)
     PARAM_ITEM_LAUNCH p;
 
     if (dtM->count == frm) {
-        bow_shoot_logic(0x14, GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, length, -100));
+        bow_shoot_logic(ITEM_GUN, GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, length, -100));
         Sound(Me_MOTION_C, 2);
     }
 }

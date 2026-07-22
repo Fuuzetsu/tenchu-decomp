@@ -38,14 +38,6 @@
  * used to steal into the target's bare delay-slot nop.
  */
 
-enum
-{
-    ITEM_MAKIBISHI = 2,
-    ITEM_FIRE = 4,
-    ITEM_SMOKE = 5,
-    ITEM_JIRAI = 6
-};
-
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;

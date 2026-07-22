@@ -40,7 +40,6 @@ extern s16 HangCheck(void);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern void JumpControl(void);
 extern s16 SoundEx(VECTOR *locate, s16 id);
-extern void ReqItemDefault(Humanoid *human, s32 item);
 
 void ActMOVE(void)
 {

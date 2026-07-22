@@ -49,7 +49,7 @@
  * cast as DoInfoViewProc's `(s16)CamState.Owner->lifemax`.
  *
  * The ReqItemDefault/SetNowMotion tail calls' return values are NOT
- * returned: after `ReqItemDefault(Me_THINK_C, 3);` the asm jumps straight
+ * returned: after `ReqItemDefault(Me_THINK_C, ITEM_KUSURI);` the asm jumps straight
  * to the shared epilogue with NO move into $v0 (a bare `return;`, valid
  * -w-suppressed old-style C for a value-returning function); the final
  * `SetNowMotion(Me_THINK_C, id, 1);` is the LAST statement with no
@@ -66,7 +66,6 @@
  * first statement" trick; here the assignment genuinely precedes the
  * test in source, per Ghidra's own literal order).
  */
-extern void ReqItemDefault(Humanoid *user, s32 ItemID);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern s16 Degree;
 
@@ -88,7 +87,7 @@ static s16 ItemUse(void)
     if (Me_THINK_C->item[3] != 0 &&
         (s16)Me_THINK_C->life < (s16)Me_THINK_C->lifemax / 3)
     {
-        ReqItemDefault(Me_THINK_C, 3);
+        ReqItemDefault(Me_THINK_C, ITEM_KUSURI);
         return;
     }
 

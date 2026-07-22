@@ -4,10 +4,8 @@
 
 /*
  * bow_shoot_logic (0x80027554, 0x134 bytes) — spawns a bow projectile
- * (`kind` is the PARAM_ITEM_LAUNCH.type — 0x15 for the arrow, this TU's own raw
- * constant per item.h's "every proven sibling uses plain s32" convention,
- * not the item_kind2 enum's YUMI=0x15 which is a different enumeration for
- * inventory slots) travelling from `*start` towards the target, landing at
+ * (`kind` is the PARAM_ITEM_LAUNCH.type — ITEM_ARROW for the arrow)
+ * travelling from `*start` towards the target, landing at
  * the target's actual world-Y (Me_MOTION_C->target->locate.coord.t[1], same
  * field proven by handle_char_state_attacking_SEVEN_.c) with a small chance
  * (1 in EngageLevel+1) of landing 1000 units short specifically for arrows.
@@ -70,7 +68,7 @@ void bow_shoot_logic(s16 kind, VECTOR *start)
     p.end.vx = p.start.vx + move.vx;
     p.end.vy = Me_MOTION_C->target->locate.coord.t[1];
     p.end.vz = p.start.vz + move.vz;
-    if (kind == 0x15)
+    if (kind == ITEM_ARROW)
     {
         if (rand() % (EngageLevel + 1) != 0)
         {

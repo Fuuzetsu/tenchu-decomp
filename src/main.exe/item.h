@@ -284,17 +284,17 @@ typedef struct Humanoid
                                     some_afterimage_1/2_0xa4/0xa8; untouched
                                     by any matched function yet) */
     u16 sound;                   /* 0xAC (default sound id, OR'd into Sound()'s seid) */
-    s16 active_item;             /* 0xAE (item_kind2 the character is using) */
+    s16 active_item;             /* 0xAE (TItemType the character is using) */
     s32 field76_0xb0;            /* 0xB0 (packed movement hint/count word;
                                     StateTransition and the character_state
                                     twin both read/write it as a whole word) */
-    u8 item[0x1A];               /* 0xB4 (carry count per item_kind2 — ProcItemDrop;
+    u8 item[0x1A];               /* 0xB4 (carry count per TItemType — ProcItemDrop;
                                     DoInfoViewProc's cursor wraps at index 0x19) */
 } Humanoid;
 
 typedef struct PARAM_ITEM_LAUNCH
 {
-    s32 type;                    /* 0x00 */
+    TItemType type;              /* 0x00 */
     Humanoid *user;              /* 0x04 */
     VECTOR start;                /* 0x08 */
     VECTOR end;                  /* 0x18 */
@@ -303,12 +303,10 @@ typedef struct PARAM_ITEM_LAUNCH
 /* PSX.SYM records both names for this request structure. */
 typedef PARAM_ITEM_LAUNCH PARAM_ITEM_USE;
 
-/* A stationary/placed item's spawn params (AddItem2's ReqItemStay;
- * Ghidra models .type as `enum TItemType`, but every proven sibling (
- * tag_TItem.type, PARAM_ITEM_LAUNCH.type) uses plain s32 instead — same here). */
+/* A stationary/placed item's spawn params (AddItem2's ReqItemStay). */
 typedef struct PARAM_ITEM_STAY
 {
-    s32 type;                    /* 0x00 */
+    TItemType type;              /* 0x00 */
     VECTOR locate;               /* 0x04 */
 } PARAM_ITEM_STAY;               /* 0x14 */
 
@@ -492,7 +490,7 @@ struct tag_TItem
     Humanoid *owner;             /* 0x00 */
     ModelType *model;            /* 0x04 (official type; sprite-backed retail
                                     items use the shared transform prefix) */
-    s32 type;                    /* 0x08 */
+    TItemType type;              /* 0x08 */
     void (*proc)(tag_TItem *);   /* 0x0C */
     ModelType *locate;           /* 0x10 */
     s32 coll_mode;               /* 0x14 */
@@ -511,6 +509,8 @@ extern void DrawSprite(Sprite3D *s);
 extern VECTOR *GetAbsolutePosition(ModelType *m, int x, int y, int z);
 extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemStay(PARAM_ITEM_STAY *p);
+extern void ReqItemDefault(Humanoid *user, TItemType item);
+extern TItemType GetItemType(s32 conflict_id);
 extern void SetBleed(VECTOR *pos, SVECTOR *vel, int a, int col);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vel, short n, short time);
 extern s16 SoundEx(VECTOR *loc, short id);

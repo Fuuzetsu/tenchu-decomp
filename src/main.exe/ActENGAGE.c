@@ -57,7 +57,6 @@ extern s16 Sound(Humanoid *human, s16 id);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void JumpControl(void);
 extern void AttackControl(void);
-extern void ReqItemDefault(Humanoid *user, s32 item_id);
 
 void ActENGAGE(void)
 {

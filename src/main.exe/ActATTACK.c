@@ -229,7 +229,7 @@ LAB_80021edc:
 
       if (dtM->count == 0x14) {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd],0,100,-100);
-        bow_shoot_logic(0x14,pos);
+        bow_shoot_logic(ITEM_GUN,pos);
         Sound(Me_MOTION_C,2);
       }
       break;
@@ -239,7 +239,7 @@ LAB_80021edc:
 
       if (dtM->count == 0x16) {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd],0,700,-100);
-        bow_shoot_logic(0x14,pos);
+        bow_shoot_logic(ITEM_GUN,pos);
         Sound(Me_MOTION_C,2);
       }
       break;
@@ -260,7 +260,7 @@ LAB_80021edc:
         if (sVar8 == first_frame) {
           Sound(Me_MOTION_C,0x28);
         }
-        local_40.type = ITEM_KIND_2_KAEN;
+        local_40.type = ITEM_NAPALM;
         local_40.user = Me_MOTION_C;
         pVVar12 = GetAbsolutePosition(Me_MOTION_C->model->object[2],0,-100,-300);
         local_40.start.vx = pVVar12->vx;

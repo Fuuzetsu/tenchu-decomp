@@ -31,7 +31,7 @@
  * `items[]` (item.h's proven tag_TItem; 30 slots, the same bound
  * ClearItemLayout.c uses) for the slot whose `locate->id` (ModelType.id)
  * matches ConflictID, returning that slot's `type`. Falls back to
- * ITEM_KIND_2_KAGINAWA if none of the 30 slots match before the count runs
+ * ITEM_KAGINAWA if none of the 30 slots match before the count runs
  * out. `i` counts iterations in $a1, `p` walks `items` in $v1; i's increment
  * is the first body statement (falls into the mismatch branch's delay slot)
  * and p's advance is the last (the back-branch's delay slot).
@@ -50,7 +50,7 @@
  *    refined rule added to the cookbook's Dispatch section.
  */
 
-s32 GetItemType(s32 ConflictID)
+TItemType GetItemType(s32 ConflictID)
 {
     tag_TItem *p;
     s32 i;
@@ -66,7 +66,7 @@ loop:
         {
             goto loop;
         }
-        return ITEM_KIND_2_KAGINAWA;
+        return ITEM_KAGINAWA;
     }
     return p->type;
 }

@@ -108,7 +108,7 @@ void ActKAGI(void)
 
         if (dtM->count == 1)
         {
-            item.type = ITEM_KIND_2_KAGINAWA;
+            item.type = ITEM_KAGINAWA;
             item.user = Me_MOTION_C;
             item.start.vx = dtL->vx;
             item.start.vy = dtL->vy - Me_MOTION_C->height + 300;

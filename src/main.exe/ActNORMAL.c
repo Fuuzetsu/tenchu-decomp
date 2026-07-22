@@ -41,7 +41,6 @@ extern int rand(void);
 extern s16 Sound(Humanoid *human, s16 id);
 extern void JumpControl(void);
 extern s16 SoundEx(VECTOR *locate, s16 id);
-extern void ReqItemDefault(Humanoid *human, s32 item);
 
 void ActNORMAL(void)
 {

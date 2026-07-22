@@ -25,7 +25,6 @@ extern s16 motMODE;
 extern s16 SelectedItem;
 
 extern s16 SoundEx(VECTOR *locate, s16 id);
-extern void ReqItemDefault(Humanoid *human, s32 item);
 
 void ItemControl(void)
 {

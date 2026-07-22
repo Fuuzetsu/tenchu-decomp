@@ -44,7 +44,7 @@ void handle_char_state_attacking_SEVEN_(s16 frame)
     if (dtM->count == frame)
     {
         Sound(Me_MOTION_C, 5);
-        p.type = ITEM_KIND_2_LIGHTNING_BOLT;
+        p.type = ITEM_LIGHTNINGBOLT;
         p.user = Me_MOTION_C;
         start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, -0x2BC);
         p.start.vx = start_pos->vx;

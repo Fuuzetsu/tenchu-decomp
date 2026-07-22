@@ -141,7 +141,7 @@ void AttackBowControl(s16 n)
     if (dtM->count == *(s16 *)(p2 + 2))
     {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);
-        bow_shoot_logic(0x15, pos);
+        bow_shoot_logic(ITEM_ARROW, pos);
         Sound(Me_MOTION_C, 3);
     }
 }

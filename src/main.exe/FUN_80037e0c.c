@@ -51,7 +51,7 @@ void FUN_80037e0c(Humanoid *human, int mode)
         s32 vx;
         s32 vz;
 
-        work.launch.type = 0x16;
+        work.launch.type = ITEM_NAPALM;
         work.launch.user = human;
         x = human->model->locate.coord.t[0];
         work.launch.start.vx = x;

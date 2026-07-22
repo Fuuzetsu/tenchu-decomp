@@ -2,36 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-typedef enum
-{
-    ITEM_KAGINAWA = 0,
-    ITEM_SHURIKEN = 1,
-    ITEM_MAKIBISHI = 2,
-    ITEM_KUSURI = 3,
-    ITEM_FIRE = 4,
-    ITEM_SMOKE = 5,
-    ITEM_JIRAI = 6,
-    ITEM_DOKUDANGO = 7,
-    ITEM_GOSHIKIMAI = 8,
-    ITEM_NEMURI = 9,
-    ITEM_KAWARIMI = 10,
-    ITEM_HENSHIN = 11,
-    ITEM_GOSIN = 12,
-    ITEM_SHINSOKU = 13,
-    ITEM_NINGYO = 14,
-    ITEM_HAPPOU = 15,
-    ITEM_NINKEN = 16,
-    ITEM_KAENGEKI = 17,
-    ITEM_MANEBUE = 18,
-    ITEM_UNK13 = 19,
-    ITEM_GUN = 20,
-    ITEM_ARROW = 21,
-    ITEM_NAPALM = 22,
-    ITEM_LIGHTNINGBOLT = 23,
-    ITEM_TELEPORT = 24,
-    ITEM_UNK19 = 25
-} TItemType;
-
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *StagePlayer;
 extern MotionManager *dtM;
@@ -74,9 +44,7 @@ extern void FUN_8003944c(long *pos, long pz, short time, short vx,
                          long scale, long rotate, s16 vy, u16 vz,
                          u16 unk22, u16 mode);
 extern s16 GetConflictResult(ModelType *model, s16 index);
-extern TItemType GetItemType(s16 id);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
-extern void ReqItemDefault(Humanoid *user, s32 item);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -465,7 +433,7 @@ LAB_8001da70:
       {
       TItemType item_type;
 
-      item_type = GetItemType((int)id);
+      item_type = GetItemType((s16)id);
       if ((item_type < ITEM_GUN) ||
           ((ITEM_ARROW < item_type && (item_type != ITEM_LIGHTNINGBOLT)))) {
         if ((Me_MOTION_C->type & 0xf0U) == 0x90) {

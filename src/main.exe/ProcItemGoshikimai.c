@@ -112,7 +112,7 @@ void ProcItemGoshikimai(tag_TItem *item)
         }
         if (mot->count != 0xf)
             return;
-        prm.type = ITEM_KIND_2_GOSIKIMAI;
+        prm.type = ITEM_GOSHIKIMAI;
         prm.user = item->owner;
         prm.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
         prm.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;

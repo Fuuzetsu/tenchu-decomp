@@ -81,7 +81,7 @@ void AttackFire(s16 sfrm, s16 efrm)
         {
             Sound(Me_MOTION_C, 0x28);
         }
-        p.type = ITEM_KIND_2_KAEN;
+        p.type = ITEM_NAPALM;
         p.user = Me_MOTION_C;
         start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, -100, -300);
         p.start.vx = start_pos->vx;

@@ -696,36 +696,38 @@ enum game_difficulty
     DIFFICULTY_HARD = 0x02,
 };
 
-typedef enum item_kind2 item_kind2;
-enum item_kind2
+/* ITEM.C's item-kind enum, using the original PSX.SYM name and labels with
+ * the retail ordering.  Retail swaps goshikimai/nemuri; its inserted ARMOUR
+ * shifts TELEPORT to 24, replacing the demo's SYSFLAG at that value. */
+typedef enum TItemType TItemType;
+enum TItemType
 {
-    ITEM_KIND_2_KAGINAWA = 0x00,
-    ITEM_KIND_2_SHURIKEN = 0x01,
-    ITEM_KIND_2_MAKIBISI = 0x02,
-    ITEM_KIND_2_KUSURI = 0x03,
-    ITEM_KIND_2_FIRE = 0x04,
-    ITEM_KIND_2_SMOKE = 0x05,
-    ITEM_KIND_2_JIRAI = 0x06,
-    ITEM_KIND_2_DOKUDANGO = 0x07,
-    ITEM_KIND_2_GOSIKIMAI = 0x08,
-    ITEM_KIND_2_NEMURIGUSURI = 0x09,
-    ITEM_KIND_2_KAWARIMI = 0x0a,
-    ITEM_KIND_2_HENSIN = 0x0b,
-    ITEM_KIND_2_GOSHINFUDA = 0x0c,
-    ITEM_KIND_2_SHINSOKU = 0x0d,
-    ITEM_KIND_2_RIKIMARUKOCHAN = 0x0e,
-    ITEM_KIND_2_HAPPOU = 0x0f,
-    ITEM_KIND_2_NINKEN = 0x10,
-    ITEM_KIND_2_KAENGEKI = 0x11,
-    ITEM_KIND_2_MANEBUE = 0x12,
-    ITEM_KIND_2_ARMOUR = 0x13,
-    ITEM_KIND_2_GUN = 0x14,
-    ITEM_KIND_2_YUMI = 0x15,
-    ITEM_KIND_2_KAEN = 0x16,
-    ITEM_KIND_2_LIGHTNING_BOLT = 0x17,
-    ITEM_KIND_2_THE_WORLD = 0x18,
-
-    ITEM_KIND_2_EXTEND = 0xffff,
+    ITEM_KAGINAWA = 0x00,
+    ITEM_SHURIKEN = 0x01,
+    ITEM_MAKIBISHI = 0x02,
+    ITEM_KUSURI = 0x03,
+    ITEM_FIRE = 0x04,
+    ITEM_SMOKE = 0x05,
+    ITEM_JIRAI = 0x06,
+    ITEM_DOKUDANGO = 0x07,
+    ITEM_GOSHIKIMAI = 0x08,
+    ITEM_NEMURI = 0x09,
+    ITEM_KAWARIMI = 0x0a,
+    ITEM_HENSHIN = 0x0b,
+    ITEM_GOSIN = 0x0c,
+    ITEM_SHINSOKU = 0x0d,
+    ITEM_NINGYO = 0x0e,
+    ITEM_HAPPOU = 0x0f,
+    ITEM_NINKEN = 0x10,
+    ITEM_KAENGEKI = 0x11,
+    ITEM_MANEBUE = 0x12,
+    ITEM_ARMOUR = 0x13,
+    ITEM_GUN = 0x14,
+    ITEM_ARROW = 0x15,
+    ITEM_NAPALM = 0x16,
+    ITEM_LIGHTNINGBOLT = 0x17,
+    ITEM_TELEPORT = 0x18,
+    ITEM_N = 0x19,
 };
 // s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);
 
