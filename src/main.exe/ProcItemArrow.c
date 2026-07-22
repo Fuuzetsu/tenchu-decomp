@@ -76,7 +76,7 @@
  *  - The target model-object cursor is a `ModelType **`: loop-free pointer
  *    adjustment after the guarded random remainder reproduces the single
  *    object-array load and the checked variable-division sequence.
- *  - `objp->locate = item->locate->locate` intentionally remains a whole
+ *  - `model->locate = item->locate->locate` intentionally remains a whole
  *    GsCOORDINATE2 assignment.  GCC emits the target five-iteration,
  *    16-byte block-copy loop before DrawModel.
  */
@@ -87,7 +87,7 @@ extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
 
 void ProcItemArrow(TItem *item)
 {
-    ModelType *objp;
+    ModelType *model;
     param_arrow *param;
     void (*ppu)(TItem *);
     s32 ff;
@@ -97,7 +97,7 @@ void ProcItemArrow(TItem *item)
     int rx;
     int ry;
 
-    objp = item->model;
+    model = item->model;
     param = &item->param.arrow;
     ff = ITEM_MODE_DISPOSE;
     mode_index = item->mode;
@@ -319,8 +319,8 @@ aim:
     }
     }
 
-    objp->locate = item->locate->locate;
-    DrawModel(objp);
+    model->locate = item->locate->locate;
+    DrawModel(model);
 }
 
 // Historical Ghidra decompilation reference:
