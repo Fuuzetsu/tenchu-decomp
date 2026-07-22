@@ -15,7 +15,7 @@
  *    variables in caller-saved registers; factoring them would change the
  *    control flow.
  *  - The final per-character flag first forms a raw row base and then uses
- *    row[0x41f].  Writing it as state->stock[chr*0x20 + 0x13] makes cc1 add
+ *    row[0x41f].  Writing it as state->gItem[chr*0x20 + 0x13] makes cc1 add
  *    0x13 to the index in a separate instruction instead of folding 0x41f
  *    into the lbu/sb memory operands.
  *  - `kind` and `remaining` are signed 16-bit values.  An unsigned-width
@@ -46,19 +46,19 @@ void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
             i = rand() % 18 + 1;
             if (i < 9)
             {
-                if (state->stock[i + state->CharType * 0x20] == 0xfe)
+                if (state->gItem[i + state->CharType * 0x20] == 0xfe)
                 {
-                    state->stock[i + state->CharType * 0x20] =
-                        state->stock[i + state->CharType * 0x20] + 2;
+                    state->gItem[i + state->CharType * 0x20] =
+                        state->gItem[i + state->CharType * 0x20] + 2;
                 }
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 1;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
-            else if (state->stock[i + state->CharType * 0x20] != 0xfe)
+            else if (state->gItem[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 1;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
         }
@@ -68,21 +68,21 @@ void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
         i = 1;
         do
         {
-            if (state->stock[i + state->CharType * 0x20] == 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] == 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 2;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 2;
             }
-            state->stock[i + state->CharType * 0x20] =
-                state->stock[i + state->CharType * 0x20] + 1;
+            state->gItem[i + state->CharType * 0x20] =
+                state->gItem[i + state->CharType * 0x20] + 1;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->stock[i + state->CharType * 0x20] != 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 1;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 1;
             }
             i++;
         }
@@ -92,21 +92,21 @@ void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
         i = 1;
         do
         {
-            if (state->stock[i + state->CharType * 0x20] == 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] == 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 2;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 2;
             }
-            state->stock[i + state->CharType * 0x20] =
-                state->stock[i + state->CharType * 0x20] + 1;
+            state->gItem[i + state->CharType * 0x20] =
+                state->gItem[i + state->CharType * 0x20] + 1;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->stock[i + state->CharType * 0x20] != 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 1;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 1;
             }
             i++;
         }
@@ -117,19 +117,19 @@ void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
             i = rand() % 18 + 1;
             if (i < 9)
             {
-                if (state->stock[i + state->CharType * 0x20] == 0xfe)
+                if (state->gItem[i + state->CharType * 0x20] == 0xfe)
                 {
-                    state->stock[i + state->CharType * 0x20] =
-                        state->stock[i + state->CharType * 0x20] + 2;
+                    state->gItem[i + state->CharType * 0x20] =
+                        state->gItem[i + state->CharType * 0x20] + 2;
                 }
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 1;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
-            else if (state->stock[i + state->CharType * 0x20] != 0xfe)
+            else if (state->gItem[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 1;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
         } while (remaining != 0);
@@ -139,30 +139,30 @@ void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
         i = 1;
         do
         {
-            if (state->stock[i + state->CharType * 0x20] == 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] == 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 2;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 2;
             }
-            state->stock[i + state->CharType * 0x20] =
-                state->stock[i + state->CharType * 0x20] + 2;
+            state->gItem[i + state->CharType * 0x20] =
+                state->gItem[i + state->CharType * 0x20] + 2;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->stock[i + state->CharType * 0x20] != 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] != 0xfe)
             {
-                state->stock[i + state->CharType * 0x20] =
-                    state->stock[i + state->CharType * 0x20] + 2;
+                state->gItem[i + state->CharType * 0x20] =
+                    state->gItem[i + state->CharType * 0x20] + 2;
             }
             i++;
         }
 
         i = D_8008ED50[state->StageNo];
-        if (state->stock[i + state->CharType * 0x20] == 0xfe)
+        if (state->gItem[i + state->CharType * 0x20] == 0xfe)
         {
-            state->stock[i + state->CharType * 0x20] =
-                state->stock[i + state->CharType * 0x20] + 3;
+            state->gItem[i + state->CharType * 0x20] =
+                state->gItem[i + state->CharType * 0x20] + 3;
         }
     }
 

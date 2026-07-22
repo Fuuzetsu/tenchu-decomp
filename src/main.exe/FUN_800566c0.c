@@ -5,9 +5,9 @@
  * FUN_800566c0 (0x800566c0, 0x3c bytes) — backs up this run's per-character
  * shop stock row into the loadout backup: same statement
  * BriefingAndInventorySelectionScreen uses inline
- * (`PSTATE->saveItem[i] = PSTATE->stock[i + CHOSEN_CHARACTER * 0x20];`),
+ * (`PSTATE->saveItem[i] = PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20];`),
  * here standalone in its own function. Proven struct: game_types.h
- * TLinkInfo (saveItem@0x27, stock@0x40C, chr/CHOSEN_CHARACTER@0x4).
+ * TLinkInfo (saveItem@0x27, gItem@0x40C, chr/CHOSEN_CHARACTER@0x4).
  *
  * All three field accesses go through the SAME `PSTATE` pointer expression
  * (the raw 0x80010000 cast, not the standalone CHOSEN_CHARACTER extern) so
@@ -25,6 +25,6 @@ void FUN_800566c0(void)
     int i;
 
     for (i = 0; i < 0x14; i++) {
-        PSTATE->saveItem[i] = PSTATE->stock[i + PSTATE->CharType * 0x20];
+        PSTATE->saveItem[i] = PSTATE->gItem[i + PSTATE->CharType * 0x20];
     }
 }

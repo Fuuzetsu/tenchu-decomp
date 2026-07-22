@@ -24,7 +24,7 @@
  *      (s16)pad ext for check_for_known_button_combination was emitted before
  *      the np xor/and chain via a0; with the full-word return it lands after,
  *      reusing the dying pad copy in v0 (permuter r4).
- *   2. Entry-clamp compare re-read `mx < cq->stock[n]` (for `mx < c`):
+ *   2. Entry-clamp compare re-read `mx < cq->gItem[n]` (for `mx < c`):
  *      byte-neutral (cse folds it back to c's reg) but the changed
  *      preference set makes global alloc tie the store address into n's
  *      dying v1 (addu v1,t0,v1). The textually-identical case-1 copy keeps
@@ -170,7 +170,7 @@ void BriefingAndInventorySelectionScreen(void)
     help = -1;
 
     for (i = 0; i < 0x14; i++) {
-        PSTATE->saveItem[i] = PSTATE->stock[i + CHOSEN_CHARACTER * 0x20];
+        PSTATE->saveItem[i] = PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20];
     }
     for (j = 0; j < 0x14; j++) {
         PSTATE->selItem[j] = 0;
@@ -182,7 +182,7 @@ void BriefingAndInventorySelectionScreen(void)
         q->selItem[1] = 5;
         return;
     }
-    if ((q->flags48 & 1) == 0) {
+    if ((q->GameRetry & 1) == 0) {
         FUN_800519bc();
     }
     bounce = 0;
@@ -214,10 +214,10 @@ void BriefingAndInventorySelectionScreen(void)
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         for (ci = 0; ci < 0x13; ci++) {
             int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
-            u8 c = cq->stock[n];
+            u8 c = cq->gItem[n];
             s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
-            if (c != 0xFE && mx < cq->stock[n]) {
-                cq->stock[n] = mx;
+            if (c != 0xFE && mx < cq->gItem[n]) {
+                cq->gItem[n] = mx;
             }
         }
     }
@@ -239,16 +239,16 @@ void BriefingAndInventorySelectionScreen(void)
         case 1:
             for (j = 1; j < 9; j++) {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->stock[0])[n] == 0xFE) {
-                    (&ps->stock[0])[n] = 1;
+                if ((&ps->gItem[0])[n] == 0xFE) {
+                    (&ps->gItem[0])[n] = 1;
                 } else {
-                    (&ps->stock[0])[n] = (&ps->stock[0])[n] + 1;
+                    (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
                 }
             }
             for (j = 9; j < 0x14; j++) {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->stock[0])[n] != 0xFE) {
-                    (&ps->stock[0])[n] = (&ps->stock[0])[n] + 1;
+                if ((&ps->gItem[0])[n] != 0xFE) {
+                    (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
                 }
             }
             {
@@ -256,10 +256,10 @@ void BriefingAndInventorySelectionScreen(void)
                     (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
                 for (ci = 0; ci < 0x13; ci++) {
                     int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
-                    u8 c = cq->stock[n];
+                    u8 c = cq->gItem[n];
                     s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
                     if (c != 0xFE && mx < c) {
-                        cq->stock[n] = mx;
+                        cq->gItem[n] = mx;
                     }
                 }
             }
@@ -267,15 +267,15 @@ void BriefingAndInventorySelectionScreen(void)
         case 3:
             for (j = 9; j < 0x14; j++) {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->stock[0])[n] == 0xFE) {
-                    (&ps->stock[0])[n] = 1;
+                if ((&ps->gItem[0])[n] == 0xFE) {
+                    (&ps->gItem[0])[n] = 1;
                 }
             }
             break;
         case 0x1F:
             if (ps->CharType != 0) {
                 u8 already = ps->selItem[0x13];
-                if (already != 0 || (&ps->stock[0x13])[ps->CharType * 0x20] == 1) {
+                if (already != 0 || (&ps->gItem[0x13])[ps->CharType * 0x20] == 1) {
                     do {
                         do {
                             if ((s16)nsel < 6) {
@@ -284,7 +284,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     taken++;
                                 }
                                 ps->selItem[0x13] = 0xFF;
-                                (&ps->stock[0x13])[ps->CharType * 0x20] = 0;
+                                (&ps->gItem[0x13])[ps->CharType * 0x20] = 0;
                                 SoundEx((VECTOR *)0x0, 8);
                             }
                         } while (0);
@@ -294,7 +294,7 @@ void BriefingAndInventorySelectionScreen(void)
             break;
         case 7:
             for (j7 = 0; j7 < 0x14; j7++) {
-                (&ps->stock[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] =
+                (&ps->gItem[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] =
                     (&ps->saveItem[0])[j7];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
@@ -311,7 +311,7 @@ void BriefingAndInventorySelectionScreen(void)
         DrawBG(bg);
         for (j = 0; j < 0x13; j++) {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
-            u8 c = (&ps->stock[0])[n + (ps->CharType << 5)];
+            u8 c = (&ps->gItem[0])[n + (ps->CharType << 5)];
             if (c != 0xFE) {
                 x = SHOP_ITEM_DEFAULTS[j].x;
                 y = SHOP_ITEM_DEFAULTS[j].y;
@@ -376,8 +376,8 @@ void BriefingAndInventorySelectionScreen(void)
                 {
                     s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                     scale = 0x200;
-                    if ((&ps->stock[0])[idx + (ps->CharType << 5)] != 0) {
-                        if ((&ps->stock[0])[idx + (ps->CharType << 5)] != 0xFE) {
+                    if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0) {
+                        if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0xFE) {
                             if ((s16)taken < cap) {
                                 u8 cnt = (&ps->selItem[0])[idx];
                                 if (cnt == 0) {
@@ -387,7 +387,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     if (idx != 0x13 || D_8001001A == 0) {
                                         (&ps->selItem[0])[idx] = cnt + 1;
                                         taken++;
-                                        (&ps->stock[0])[idx + (ps->CharType << 5)]--;
+                                        (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
                                     }
                                     SoundEx((VECTOR *)0x0, 0xD);
                                 } else {
@@ -412,11 +412,11 @@ void BriefingAndInventorySelectionScreen(void)
                     if (c != 0) {
                         if (c == 0xFF) {
                             (&ps->selItem[0])[idx] = 0;
-                            (&ps->stock[0])[idx + (ps->CharType << 5)] = 1;
+                            (&ps->gItem[0])[idx + (ps->CharType << 5)] = 1;
                             nsel--;
                         } else {
                             (&ps->selItem[0])[idx] = c - 1;
-                            (&ps->stock[0])[idx + (ps->CharType << 5)]++;
+                            (&ps->gItem[0])[idx + (ps->CharType << 5)]++;
                             if ((&ps->selItem[0])[idx] == 0) {
                                 nsel--;
                             }
@@ -432,7 +432,7 @@ void BriefingAndInventorySelectionScreen(void)
             scale += 0xC0;
         }
         if (help == -1) {
-            if ((&ps->stock[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != 0xFE) {
+            if ((&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != 0xFE) {
                 help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
             }
         }
@@ -544,8 +544,8 @@ quit:
     }
     for (j = 0; j < 9; j++) {
         int n = j + PSTATE->CharType * 0x20;
-        if (PSTATE->stock[n] == 0) {
-            PSTATE->stock[n] = 0xFE;
+        if (PSTATE->gItem[n] == 0) {
+            PSTATE->gItem[n] = 0xFE;
         }
     }
     vfree(harc);

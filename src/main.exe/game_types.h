@@ -957,7 +957,8 @@ typedef struct TLinkInfo
     u8 saveItem[0x20];      /* 0x027 loadout backup (restore on abort);
                              *       retail expansion of demo saveItem[30] */
     u8 analog_pad_present;  /* 0x047 bit0: analog pad detected */
-    u8 flags48;             /* 0x048 bit0: item screen already initialised */
+    u8 GameRetry;           /* 0x048 bit0: retry/continue current stage;
+                             *       original demo member name (+0x0D) */
     ScoreStats score_stats; /* 0x04C current mission counters */
     u8 Nannido;             /* 0x058 gNannido: game_difficulty (demo +0x5) */
     u8 Stereo;              /* 0x059 gSound: 1 = stereo, 0 = mono
@@ -978,8 +979,9 @@ typedef struct TLinkInfo
     u8 StageNoMAX[2];       /* 0x060 highest stage uid per character;
                              *       official demo member name (demo +0x3) */
     ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
-    u8 stock[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
+    u8 gItem[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
                              *       two 0x20-byte character rows;
+                             *       retail expansion of demo gItem[30];
                              *       0xFE = locked, 0xFF = infinite;
                              *       [chr*0x20+0x13] = stage bonus item flag */
     u8 t_char[5];           /* 0x44C high-score character (demo name) */

@@ -5,12 +5,12 @@
  * FUN_800566fc (0x800566fc, 0xa0 bytes) — same PersistentState-at-0x80010000
  * family as FUN_800566c0.c/FUN_800565f0.c (game_types.h's TLinkInfo;
  * see FUN_800566c0.c for the `#define PSTATE` convention and the proven
- * saveItem@0x27/stock@0x40C/chr@0x4 offsets). This is FUN_800566c0's mirror
+ * saveItem@0x27/gItem@0x40C/chr@0x4 offsets). This is FUN_800566c0's mirror
  * image: restores this character's shop stock row FROM the loadout backup
- * (`PSTATE->stock[i + PSTATE->CharType*0x20] = PSTATE->saveItem[i];`), then fades
+ * (`PSTATE->gItem[i + PSTATE->CharType*0x20] = PSTATE->saveItem[i];`), then fades
  * out, tears down (FUN_80038ce0), resets the stage layout number to 0xFF
- * and clears PersistentState's bit-0 "item screen already initialised" flag
- * (flags48 &= ~1), and calls FUN_8004f6c0(0x10) (a cleanup/teardown helper
+ * and clears PersistentState's retry/continue flag (GameRetry &= ~1), then
+ * calls FUN_8004f6c0(0x10) (a cleanup/teardown helper
  * — see its own file).
  *
  * Matching notes:
@@ -27,7 +27,7 @@
  *    reproduce both narrows.
  *  - **Statement order inside the loop is load-bearing and reversed from
  *    Ghidra's own rendering**: the STORE must come BEFORE `i = i + 1;`
- *    (`idx = (s16)i; PSTATE->stock[...] = PSTATE->saveItem[idx]; i = i +
+ *    (`idx = (s16)i; PSTATE->gItem[...] = PSTATE->saveItem[idx]; i = i +
  *    1;`), even though Ghidra shows the increment first. Writing the
  *    increment first (Ghidra's literal order) compiles to an
  *    instruction-for-instruction-identical function with every register
@@ -55,12 +55,12 @@ void FUN_800566fc(void)
         s16 idx;
 
         idx = (s16)i;
-        PSTATE->stock[idx + PSTATE->CharType * 0x20] = PSTATE->saveItem[idx];
+        PSTATE->gItem[idx + PSTATE->CharType * 0x20] = PSTATE->saveItem[idx];
         i = i + 1;
     } while ((s16)i < 0x14);
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
     PSTATE->layout = 0xff;
-    PSTATE->flags48 = PSTATE->flags48 & 0xfe;
+    PSTATE->GameRetry = PSTATE->GameRetry & 0xfe;
     FUN_8004f6c0(0x10);
 }

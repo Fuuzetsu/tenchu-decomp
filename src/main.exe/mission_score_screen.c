@@ -1071,9 +1071,9 @@ score_row_loop:
 
         stageItem = D_8008ED50[state->StageNo];
         brightness = stageItem;
-        if (state->stock[brightness + (state->CharType << 5)] == 0xFE)
+        if (state->gItem[brightness + (state->CharType << 5)] == 0xFE)
         {
-            state->stock[brightness + (state->CharType << 5)] += 3;
+            state->gItem[brightness + (state->CharType << 5)] += 3;
         }
         stageItem = D_8008ED50[state->StageNo];
         if (state->saveItem[stageItem] == 0xFE)

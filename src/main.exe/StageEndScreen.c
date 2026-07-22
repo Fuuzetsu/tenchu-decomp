@@ -554,19 +554,19 @@ number_1:
     {
         if (CamState.Owner->item[item_index] == 0xff)
         {
-            PSTATE->stock[item_index + (PSTATE->CharType << 5)] = 0xff;
+            PSTATE->gItem[item_index + (PSTATE->CharType << 5)] = 0xff;
         }
         else if (CamState.Owner->item[item_index] != 0)
         {
-            if (PSTATE->stock[item_index + (PSTATE->CharType << 5)] == 0xfe)
+            if (PSTATE->gItem[item_index + (PSTATE->CharType << 5)] == 0xfe)
             {
-                PSTATE->stock[item_index + (PSTATE->CharType << 5)] += 2;
+                PSTATE->gItem[item_index + (PSTATE->CharType << 5)] += 2;
             }
-            PSTATE->stock[item_index + (PSTATE->CharType << 5)] +=
+            PSTATE->gItem[item_index + (PSTATE->CharType << 5)] +=
                 CamState.Owner->item[item_index];
-            if (PSTATE->stock[item_index + (PSTATE->CharType << 5)] >= 100)
+            if (PSTATE->gItem[item_index + (PSTATE->CharType << 5)] >= 100)
             {
-                PSTATE->stock[item_index + (PSTATE->CharType << 5)] = 99;
+                PSTATE->gItem[item_index + (PSTATE->CharType << 5)] = 99;
             }
         }
         PSTATE->selItem[item_index] = 0;
@@ -576,7 +576,7 @@ number_1:
     i = 0;
     do
     {
-        PSTATE->saveItem[i] = PSTATE->stock[i + (CHOSEN_CHARACTER << 5)];
+        PSTATE->saveItem[i] = PSTATE->gItem[i + (CHOSEN_CHARACTER << 5)];
         i++;
     } while (i < 0x14);
 
@@ -594,7 +594,7 @@ number_1:
     switch (dispatch)
     {
     case 0:
-        PSTATE->flags48 &= 0xfe;
+        PSTATE->GameRetry &= 0xfe;
         if (PSTATE->StageNo == 7)
         {
             FUN_8004f6c0(0x12);
@@ -637,7 +637,7 @@ layout_done:
         }
         break;
     case 1:
-        PSTATE->flags48 |= 1;
+        PSTATE->GameRetry |= 1;
         break;
     case 2:
         STAGE_LAYOUT_NUMBER = 0xff;
