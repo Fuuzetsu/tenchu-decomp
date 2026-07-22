@@ -39,7 +39,6 @@ extern s32 Distance;
 extern s16 Degree;
 extern s32 AttackActionCount; /* next GameClock tick an attack action may fire */
 extern u16 SetCommand(PADtype *pad, s32 code);
-extern s32 (*AttackFunc[])(void);
 
 s16 Think3chase(void)
 {

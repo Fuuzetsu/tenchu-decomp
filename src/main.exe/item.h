@@ -23,6 +23,7 @@ extern ThinkFunc Think1Func[10];
 extern ThinkFunc Think2Func[5];
 extern ThinkFunc Think3Func[10];
 extern ThinkFunc Think4Func[6];
+extern ThinkFunc AttackFunc[4];
 
 /* The henshin disguise's saved model state. PSX.SYM recovers the original
  * field names and its fifteen-part capacity; retail keeps the same layout. */

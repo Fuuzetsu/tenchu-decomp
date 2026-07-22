@@ -55,7 +55,6 @@ extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 Degree;
 extern u16 Attrib;
-extern s32 (*AttackFunc[])(void);
 
 extern s16 SuccessionAttack(s32 distance, s16 degree);
 extern s16 Think3attack(void);

@@ -36,7 +36,6 @@ extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 Degree;
 extern u16 Attrib;
-extern s32 (*AttackFunc[])(void);
 
 extern s32 rand(void);
 extern short ChasetoTarget(long length);
