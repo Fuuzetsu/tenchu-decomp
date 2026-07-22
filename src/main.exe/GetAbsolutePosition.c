@@ -32,10 +32,10 @@
  * GetAbsolutePosition (0x800182a8) — world-space position of a local offset
  * (x, y, z) on a model. Pulls the model's local->world matrix (GsGetLw), makes
  * it the current local screen matrix (GsSetLsMatrix), then RotTrans's the local
- * offset into a shared static VECTOR (D_80097F90) whose address is returned.
+ * offset into the original static VECTOR `vector`, whose address is returned.
  * &model->locate is model itself (locate is GsCOORDINATE2 at offset 0).
  */
-extern VECTOR D_80097F90;
+extern VECTOR vector;
 
 VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z)
 {
@@ -47,6 +47,6 @@ VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z)
     offset.vx = x;
     offset.vy = y;
     offset.vz = z;
-    RotTrans(&offset, &D_80097F90, (long *)0);
-    return &D_80097F90;
+    RotTrans(&offset, &vector, (long *)0);
+    return &vector;
 }
