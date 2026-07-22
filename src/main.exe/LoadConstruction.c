@@ -150,7 +150,7 @@ extern char D_80097A80[];
 extern char D_80097A88[];
 extern char D_80097A90[];
 
-extern void SystemOut(char *message);
+extern void SystemOut(unsigned char *string);
 extern u32 vsize(void *data);
 extern void DisposeAreaMap(unsigned long *area);
 extern void ResetAllMisc(void);

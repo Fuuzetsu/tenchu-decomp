@@ -40,7 +40,7 @@
  * stores are also load-bearing for the inner-loop allocation and schedule. */
 
 extern char D_8001109C[];
-extern void SystemOut(u8 *message);
+extern void SystemOut(unsigned char *string);
 extern void *valloc(u32 size);
 
 BackGround *SetupBG(GsIMAGE *image, short w, short h)

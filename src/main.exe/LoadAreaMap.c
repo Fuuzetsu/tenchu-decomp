@@ -99,7 +99,7 @@ extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 
 extern char D_800111E8[]; /* "NO AREA DATA" */
-extern void SystemOut(char *);
+extern void SystemOut(unsigned char *string);
 
 u_long *LoadAreaMap(u_long *adr)
 {

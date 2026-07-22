@@ -42,7 +42,7 @@
 extern short SsVabOpenHead(u8 *vab, short mode);
 extern void SsVabTransBody(u8 *body, short vabId);
 extern void SsVabTransCompleted(int flag);
-extern void SystemOut(u8 *msg);
+extern void SystemOut(unsigned char *string);
 extern void *valloc(u32 size);
 extern void *vmemoryGC(void *p);
 extern void *vrealloc(void *p, s32 size);

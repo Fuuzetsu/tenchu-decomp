@@ -95,7 +95,7 @@
  *    reloads the FULL `lw` (needs all 32 bits for `>> 3 & 1`), independent
  *    of any earlier access — different machine modes/uses don't CSE.
  */
-extern void SystemOut(char *msg);
+extern void SystemOut(unsigned char *string);
 extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
 
 short LoadTIMpack(u_long *adr)

@@ -30,7 +30,7 @@
  * the function entry.
  */
 
-void SystemOut(u8 *string)
+void SystemOut(unsigned char *string)
 {
     for (;;)
     {

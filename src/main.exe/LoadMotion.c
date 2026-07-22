@@ -48,7 +48,7 @@
  * second nested if.
  */
 extern MotionPackType *MotionPack;
-extern void SystemOut(char *);
+extern void SystemOut(unsigned char *string);
 extern char D_80011230[]; /* "NO MOTION DATA" */
 
 MotionPackType *LoadMotion(unsigned long *data)

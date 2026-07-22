@@ -100,7 +100,7 @@
  */
 
 extern int sprintf(char *buf, char *fmt, ...);
-extern void SystemOut(u8 *string);
+extern void SystemOut(unsigned char *string);
 
 extern char D_80011024[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" — pooled
                               right before vfree.c's D_8001104C ("DOUBLE MEMORY

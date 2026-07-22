@@ -75,7 +75,7 @@
  *    signed value still loads `lhu`).
  */
 extern void *valloc(u32 size);
-extern void SystemOut(char *msg);
+extern void SystemOut(unsigned char *string);
 extern char D_8001107C[]; /* "NO SOURCE MODEL ARCHIVE DATA" */
 
 extern ModelType World;

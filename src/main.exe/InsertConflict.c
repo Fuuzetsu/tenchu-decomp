@@ -67,7 +67,7 @@ extern VECTOR UnitVector2;
 extern SVECTOR UnitVector;
 
 extern char D_800111F8[];        /* "CONFLICT REGIST FAILURE" */
-extern void SystemOut(char *);
+extern void SystemOut(unsigned char *string);
 
 short InsertConflict(ModelType *model)
 {
