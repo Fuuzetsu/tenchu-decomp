@@ -1432,7 +1432,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   (InitGraphicsSystem — named extern and pointer temp both fail).
 - **`lui`+`addiu(base)` + scaled index + load at `0(base+index)` is a REAL named
   array** — resolve the address, declare the table with real element
-  width/count (DamageControl's `D_80086B6C[deg]`).
+  width/count (DamageControl's `damagemotion[deg]`).
 - **The addu-order family** (pick per SITE from the target's operand order):
   ARRAY_REF is base-first; pointer index is index-first; `(&p->arr[0])[i]`
   works only through a POINTER (no effect on top-level externs — leSetEnemy);
