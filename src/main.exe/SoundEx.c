@@ -94,7 +94,6 @@
  */
 
 
-extern SoundEffect *StageSE;
 
 extern short PlaySE(SoundEffect *se, short pt, long dv);
 

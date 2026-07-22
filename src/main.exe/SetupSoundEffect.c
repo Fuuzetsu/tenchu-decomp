@@ -58,7 +58,6 @@ extern void DisposeSE(SoundEffect *se);
 extern SoundEffect *SetupSE(u8 *vab);
 extern void sprintf(char *s, char *fmt, ...);
 
-extern SoundEffect *StageSE;
 extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[];
 extern char D_8001359C[]; /* "%sSTAGE%d%c.VAB" */

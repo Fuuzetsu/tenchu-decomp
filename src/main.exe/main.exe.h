@@ -24,6 +24,8 @@ extern GsOT *OTablePt;
 extern WeaponType WeaponDB[28];
 extern WeaponModelType WeaponModel[41];
 extern MotionRegistType MOTcommon[41];
+extern SoundEffect *StageSE;
+extern short VoiceMode;
 /* CONFLICT.C's retail-expanded pool and query outputs. */
 extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;

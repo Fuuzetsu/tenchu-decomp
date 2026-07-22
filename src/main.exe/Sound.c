@@ -69,7 +69,6 @@
  *  - SoundEx returns s16 here (item.h) — the result is Sound's return, so the
  *    `return -1` guards branch straight to the epilogue past its sign-extend.
  */
-extern s16 VoiceMode;
 
 short Sound(Humanoid *human, short seid)
 {

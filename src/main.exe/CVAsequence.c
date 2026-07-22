@@ -58,7 +58,6 @@ extern CVAType *CVAnow;
 extern s16 Humans;
 extern s16 ActionHalt;
 extern u8 D_800C2C50[];
-extern s16 VoiceMode;
 extern Humanoid *CameraTarget;
 extern s16 D_80097CC0;
 extern s16 D_80097CCC;
