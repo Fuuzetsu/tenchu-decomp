@@ -259,19 +259,19 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 //     ptVar7 = &dmy;
 // LAB_80036208:
 //     ptVar7->proc = (undefined **)DrawImpact;
-//     *(int *)&ptVar7->param = (int)sVar1;
-//     *(int *)((int)&ptVar7->param + 4) = (int)sVar2;
-//     (ptVar7->param).blood.vz = 0x50;
-//     (ptVar7->param).blood.time = 0x2000;
-//     (ptVar7->param).blood.vx = 0x2000;
+//     (ptVar7->param).impact.px = (int)sVar1;
+//     (ptVar7->param).impact.py = (int)sVar2;
+//     (ptVar7->param).impact.rotate_speed = 0x50;
+//     (ptVar7->param).impact.start_size = 0x2000;
+//     (ptVar7->param).impact.end_size = 0x2000;
 //     (ptVar7->param).impact.time = 3;
-//     (ptVar7->param).blood.pz = (long)param_1;
-//     (ptVar7->param).blood.vy = 0;
+//     (ptVar7->param).impact.super = param_1;
+//     (ptVar7->param).impact.rotate = 0;
 //     (ptVar7->param).impact.start_color.word = 0x808080;
 //     (ptVar7->param).impact.end_color.word = 0x808080;
 //     (ptVar7->param).impact.count = 0;
 //     (ptVar7->param).impact.type = 2;
-//     *(int *)((int)&ptVar7->param + 8) = (int)sVar3;
+//     (ptVar7->param).impact.pz = (int)sVar3;
 //   }
 //   return;
 // }
