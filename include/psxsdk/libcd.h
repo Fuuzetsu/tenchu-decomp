@@ -34,7 +34,7 @@ typedef struct
 {
     CdlLOC pos;
     u_long size;
-    char name[16];
+    u_char name[16];
 } CdlFILE;
 
 int CdInit(void);
