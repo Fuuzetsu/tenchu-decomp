@@ -12,9 +12,9 @@
  * documents for its own literal `0x800DC000` store: Ghidra's "MemoryPool"
  * label is cosmetic, not proof of a real extern-symbol reference). Copies a
  * magic value, then copies a NUL-terminated name starting 6 bytes into
- * `arg0` (likely a CD directory entry, past its BCD position field) into
- * the record's name buffer, then stores two caller params (likely
- * load/exec addresses) past the name. Called by LoadExecEx.
+ * `file` (past its six-byte prefix) into the record's name buffer, then
+ * stores LoadExecEx's `stack` and `size` arguments in the handoff record's
+ * executable stack fields.
  *
  * Matching notes:
  *  - The base address MUST be a literal integer cast held in a named local
@@ -30,8 +30,8 @@
  *    and reuse ONE register for the whole function — this only works for a
  *    compile-time-KNOWN literal base, not a relocatable symbol (whose low
  *    bits are unknown until link).
- *  - The mutating string cursor must REUSE the `arg0` parameter register
- *    directly (`arg0 = arg0 + 6; ... *arg0; arg0++;`), not a fresh named
+ *  - The mutating string cursor must REUSE the `file` parameter register
+ *    directly (`file = file + 6; ... *file; file++;`), not a fresh named
  *    local — a fresh local swapped the cursor/index register ROLES
  *    (cursor ended up in the register the original gives to the index, and
  *    vice versa), a 16-byte residual on its own.
@@ -48,11 +48,11 @@ typedef struct
 {
     u32 magic;   /* 0x00 = 0xDEF0C0DE */
     char name[0x50]; /* 0x04 */
-    u32 param2;  /* 0x54 */
-    u32 param3;  /* 0x58 */
+    u32 s_addr;  /* 0x54 */
+    u32 s_size;  /* 0x58 */
 } BootExecRecord;
 
-void FUN_8005e8f0(char *arg0, u32 arg1, u32 arg2)
+void FUN_8005e8f0(char *file, u32 stack, u32 size)
 {
     int i;
     u32 magic;
@@ -62,17 +62,17 @@ void FUN_8005e8f0(char *arg0, u32 arg1, u32 arg2)
     do {
     } while (0);
     rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
-    arg0 = arg0 + 6;
+    file = file + 6;
     rec->magic = magic;
     i = 0;
-    if (*arg0 != 0) {
+    if (*file != 0) {
         do {
-            rec->name[i] = *arg0;
-            arg0++;
+            rec->name[i] = *file;
+            file++;
             i++;
-        } while (*arg0 != 0);
+        } while (*file != 0);
     }
     rec->name[i] = 0;
-    rec->param2 = arg1;
-    rec->param3 = arg2;
+    rec->s_addr = stack;
+    rec->s_size = size;
 }
