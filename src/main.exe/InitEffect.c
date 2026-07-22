@@ -81,9 +81,7 @@ extern s32 pat[MaxFrames];
 
 extern GsSPRITE sprBlood[4];
 extern GsSPRITE sprBlood2[4];
-extern GsSPRITE sprSplash;
 extern GsSPRITE D_800BEAA8[5];
-extern POLY_F4 plyBleed;
 extern Sprite3D *D_80097F2C[1];
 
 extern ModelType *D_80097F34;

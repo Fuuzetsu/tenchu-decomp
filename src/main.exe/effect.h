@@ -245,6 +245,8 @@ extern TEffectSlot EffectSlot[200];
 extern int CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy; /* pool-full fallback write target, discarded */
 extern GsSPRITE sprFrame[MaxFrames];
+extern GsSPRITE sprSplash;
+extern POLY_F4 plyBleed;
 /* Retail stores two smoke sprites before the next global. */
 extern Sprite3D *sprSmoke[2];
 extern Sprite3D *sprBomb[3];

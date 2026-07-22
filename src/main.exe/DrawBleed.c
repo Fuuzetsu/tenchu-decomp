@@ -210,7 +210,6 @@
  * dropping the ViewInfo `(short)` casts (-> 512); volatile scratchpad
  * stores (536 / 524 / 524, non-monotonic, no form found that lands 532).
  */
-extern POLY_F4 plyBleed;
 extern MATRIX GsWSMATRIX;
 
 void DrawBleed(TEffectSlot *ef)
