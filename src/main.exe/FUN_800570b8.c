@@ -34,7 +34,6 @@
  * the upper-kana test.
  */
 
-extern POLY_FT4 TelopP;
 extern u8 D_8008EF98[];
 extern void FUN_8005778c(GsOT_TAG *org, s32 x, s32 y, u32 ch);
 

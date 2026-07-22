@@ -49,7 +49,6 @@
  *    per-branch duplication here.
  */
 
-extern POLY_FT4 TelopP;
 extern u8 D_8008EF98[];
 
 s32 FUN_800576e8(u8 *param_1)

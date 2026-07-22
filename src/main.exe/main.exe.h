@@ -39,6 +39,8 @@ extern MotionRegistType MOTcommon[41];
 extern Sprite3D *ItemImage[26];
 extern SoundEffect *StageSE;
 extern short VoiceMode;
+extern POLY_FT4 TelopP;
+extern POLY_F4 TelopbgP;
 /* CONFLICT.C's retail-expanded pool and query outputs. */
 extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;

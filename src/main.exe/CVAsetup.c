@@ -72,7 +72,6 @@ extern char *STAGE_ANIMATION_PREFICES[];
 extern char D_80013624[]; /* "%sSTAGE%d%c.CAD" */
 extern char D_80013634[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd" */
 
-extern POLY_F4 TelopbgP;
 
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 

@@ -355,7 +355,6 @@
  *     previously-live local (here the U-coordinate `u`) over an arbitrary one --
  *     any previously-live local supplies the pressure, so pick the human one.
  */
-extern POLY_FT4 TelopP;
 extern u16 D_8008F078[];
 
 extern s16 *Krom2RawAdd(u32 code);
