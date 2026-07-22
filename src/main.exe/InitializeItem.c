@@ -55,7 +55,6 @@ extern GsSPRITE SpriteGoshikimai;
 /* gp-relative small (this TU defines it; DoItemProc.c already lists it). */
 extern u8 D_80097AC8;
 
-extern u_long *GetArcData(s32 index);
 extern ModelType *LoadModel(u_long *adr);
 extern GsIMAGE *GetImage(s32 index);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);

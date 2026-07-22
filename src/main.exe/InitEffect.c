@@ -92,7 +92,6 @@ extern s16 D_80097F32;
 
 extern GsIMAGE *GetImage(s32 index);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern u_long *GetArcData(s32 index);
 extern ModelType *LoadModel(u_long *adr);
 extern void FUN_80039c14(void);
 

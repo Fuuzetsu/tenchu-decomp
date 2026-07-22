@@ -56,7 +56,6 @@ extern char D_80013BE4[];
 extern void *memset(void *dst, s32 value, u32 size);
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
-extern u8 *GetArcData(s32 id);
 extern s32 MemCardCreateFile(s32 chan, char *name, s32 blocks);
 extern s32 MemCardWriteFile(s32 chan, char *name, void *data, s32 offset,
                             s32 size);
@@ -90,10 +89,10 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     sprintf(header->Title, D_80013BE4);
     memset(header->reserve, 0, sizeof(header->reserve));
 
-    icon1 = GetArcData(0x16);
-    icon2 = GetArcData(0x17);
+    icon1 = (u8 *)GetArcData(0x16);
+    icon2 = (u8 *)GetArcData(0x17);
     chan = 0;
-    icon3 = GetArcData(0x18);
+    icon3 = (u8 *)GetArcData(0x18);
     data = block + sizeof(TCardHeader);
     *(SaveCardPalette *)header->Clut = *(SaveCardPalette *)(icon1 + 0x14);
     *(SaveCardIcon *)header->Icon[0] = *(SaveCardIcon *)(icon1 + 0x40);

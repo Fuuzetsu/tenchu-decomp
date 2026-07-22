@@ -80,7 +80,6 @@ extern char D_80014190[];
 
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
-extern u8 *GetArcData(s32 id);
 extern s32 PCcreat(char *name, s32 mode);
 extern s32 PCwrite(s32 fd, void *data, s32 size);
 extern s32 PCclose(s32 fd);
@@ -147,9 +146,9 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         header->BlockEntry = 1;
         sprintf(header->Title, D_80014128, StageID + 1, name);
 
-        icon1 = GetArcData(0x16);
-        icon2 = GetArcData(0x17);
-        icon3 = GetArcData(0x18);
+        icon1 = (u8 *)GetArcData(0x16);
+        icon2 = (u8 *)GetArcData(0x17);
+        icon3 = (u8 *)GetArcData(0x18);
         *(SaveSIPalette *)header->Clut = *(SaveSIPalette *)(icon1 + 0x14);
         dst = header->Icon[0];
         src = icon1 + 0x40;

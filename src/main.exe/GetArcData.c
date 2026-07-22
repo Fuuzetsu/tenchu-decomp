@@ -57,7 +57,7 @@ extern void AdtMessageBox(char *fmt, ...);
 extern char D_800128D8[]; /* "K:\WORK\CDIMAGE\IMAGE\models.arc" */
 extern char D_800128C0[]; /* "bad archive index %d" */
 
-void *GetArcData(s32 index)
+u_long *GetArcData(int index)
 {
     s32 i;
     ArcFile *arc;
@@ -88,5 +88,5 @@ void *GetArcData(s32 index)
         AdtMessageBox(D_800128C0, index);
         return 0;
     }
-    return (void *) arc->entry[index];
+    return (u_long *) arc->entry[index];
 }
