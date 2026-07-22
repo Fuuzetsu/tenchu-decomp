@@ -26,7 +26,10 @@
  *  - The pickup conversion intentionally mixes pointer and direct spellings:
  *    `launch->user` and ReqItemDrop retain the launch pointer in $s0, while
  *    direct aggregate fields preserve the target stack-relative loads/stores.
- *    The saved-position pointer supplies the sequential source loads.
+ *    The saved-position pointer supplies the sequential source loads. The
+ *    aggregate's `param` member retains PSX.SYM's exact name for the
+ *    semantically corresponding demo PARAM_ITEM_LAUNCH object; retail moved
+ *    that request to sp+0x50 as part of its revised scratch overlay.
  *  - Named full-width `size`/`collision_mode` values share 500 and 8 across
  *    halfword and word stores.  Separate literals materialize 8 twice.
  *  - This TU needs maspsx `--expand-div` for the dynamic model-count remainder
@@ -102,7 +105,7 @@ typedef union
         u8 pad0[12];
         PARAM_ITEM_STAY rparam;
         u8 pad1[4];
-        PARAM_ITEM_LAUNCH launch;
+        PARAM_ITEM_LAUNCH param;
     } drop;
     struct
     {
@@ -234,19 +237,19 @@ void ProcItemFire(TItem *item)
                 }
 
                 saved = &scratch.drop.saved;
-                launch = &scratch.drop.launch;
-                scratch.drop.launch.type = saved->type;
+                launch = &scratch.drop.param;
+                scratch.drop.param.type = saved->type;
                 launch->user = (Humanoid *)1;
-                scratch.drop.launch.start.vx = saved->locate.vx;
-                scratch.drop.launch.start.vy = saved->locate.vy;
-                scratch.drop.launch.start.vz = saved->locate.vz;
-                scratch.drop.launch.end.vx = 0;
-                scratch.drop.launch.end.vy = 0;
-                scratch.drop.launch.end.vz = 0;
-                scratch.drop.launch.start.vy = GetAreaMapLevel(
-                    GlobalAreaMap, scratch.drop.launch.start.vx,
-                    scratch.drop.launch.start.vy,
-                    scratch.drop.launch.start.vz, 0);
+                scratch.drop.param.start.vx = saved->locate.vx;
+                scratch.drop.param.start.vy = saved->locate.vy;
+                scratch.drop.param.start.vz = saved->locate.vz;
+                scratch.drop.param.end.vx = 0;
+                scratch.drop.param.end.vy = 0;
+                scratch.drop.param.end.vz = 0;
+                scratch.drop.param.start.vy = GetAreaMapLevel(
+                    GlobalAreaMap, scratch.drop.param.start.vx,
+                    scratch.drop.param.start.vy,
+                    scratch.drop.param.start.vz, 0);
                 ReqItemDrop(launch);
                 SetSmokeS(&saved->locate, 0, -100, 0, 10);
                 return;
