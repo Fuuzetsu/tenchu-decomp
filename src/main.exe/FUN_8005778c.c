@@ -13,7 +13,7 @@
  * FONT_IMAGE_ GsIMAGE descriptor onto the stack (one struct assignment —
  * see load_font_image_into_global.c for the identical 7-word unroll), slides
  * its px/py by the cell's (col,row) within the sheet (3 px wide, 0x10 px
- * tall cells), computes an extra x-nudge `sVar3` for a handful of special
+ * tall cells), computes an extra y-nudge `sVar3` for a handful of special
  * codes (0xc7/0xe7 get -4/-2/3, everything else in [0xc0,0xdf) or
  * [0xe0,0xff) gets 0), then calls SetupImageToPolyGT4/AddPrim exactly like
  * FUN_80038c0c's neighbours.
