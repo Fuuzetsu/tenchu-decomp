@@ -10,7 +10,6 @@ extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s32 seid);
-extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
 extern s16 Think1sleep(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

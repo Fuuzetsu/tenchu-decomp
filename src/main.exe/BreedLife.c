@@ -153,8 +153,6 @@
 
 
 extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            long mode);
 extern void UpdateCoordinate(ModelType *dim);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern int sprintf(char *buf, char *fmt, ...);

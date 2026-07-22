@@ -43,8 +43,6 @@ extern s16 D_80097F44;
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 
-extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
-
 /*
  * MATCHED — 1,608 bytes / 402 instructions, 0x68-byte frame, exact CFG.
  *

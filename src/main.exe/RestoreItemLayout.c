@@ -59,8 +59,6 @@
  */
 extern short D_8008E404[4];
 
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            long mode);
 extern s32 abs(s32 x);
 extern void *memset(void *s, int c, u32 n);
 

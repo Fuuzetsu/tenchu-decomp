@@ -67,8 +67,6 @@ extern void FUN_800270f8(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, s16 think);
 extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
 extern void TurnAroundAllItems(Humanoid *human);
-extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
-
 void ProcItemNinken(TItem *item)
 {
     param_ninken *param;

@@ -83,7 +83,6 @@
 
 extern u16 FieldAttrib;
 extern s16 direction[][2];
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
 
 long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
 {

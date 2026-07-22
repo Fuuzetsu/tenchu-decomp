@@ -60,8 +60,6 @@ extern char D_80097A08[];
 extern char D_80097A0C[];
 
 extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            int mode);
 void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 {
     enum { FL = 1, FR = 2 };

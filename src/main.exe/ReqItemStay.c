@@ -54,9 +54,6 @@
  *    load's store (scheduler reorders the two independent stores), matching
  *    the target's `sw v0,0x1c` / `sw v1,0x18` order for free.
  */
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            long mode);
-
 int ReqItemStay(PARAM_ITEM_STAY *p)
 {
     PARAM_ITEM_LAUNCH u;

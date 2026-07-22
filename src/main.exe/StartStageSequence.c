@@ -89,7 +89,6 @@ extern u16 Murders;
 extern u16 Findenemies;
 extern u16 Criticals;
 
-extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
 extern void UpdateCoordinate(ModelType *model);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void UpdateEvent(s16 n, s16 id);

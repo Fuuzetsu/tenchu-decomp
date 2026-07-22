@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "conflict.h"
 #include "game_globals.h"
 #include "item.h"
 
@@ -74,8 +75,6 @@ extern s32 D_80097F10;
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
-extern s32 GetAreaMapLevel(unsigned long *area, s32 x, s32 y, s32 z,
-                           u16 mode);
 
 s16 turn_towards_player_(s32 x_diff, s32 z_diff)
 {

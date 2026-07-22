@@ -117,7 +117,6 @@ extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
-extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
 extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time);
 extern void reset_alert_duration(void);
 

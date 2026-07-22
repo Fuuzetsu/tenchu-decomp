@@ -57,9 +57,6 @@
 
 extern VECTOR cv;
 
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            u16 mode);
-
 VECTOR *GetAreaMapPassage(unsigned long *area, VECTOR *pos, SVECTOR *vect, short n)
 {
     long x[2], z[2], y[2];

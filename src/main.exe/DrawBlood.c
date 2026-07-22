@@ -92,8 +92,6 @@ typedef struct DrawBloodScratch
 extern GsSPRITE sprBlood[];
 extern GsSPRITE sprBlood2[];
 
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            short mode);
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
 extern short SoundEx(VECTOR *locate, int seid);
 extern void *memset(void *dst, int value, u32 size);

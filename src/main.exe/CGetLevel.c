@@ -90,9 +90,6 @@
  */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
-                            short mode);
-
 long CGetLevel(AreaNodeType **hint, long x, long y, long z, unsigned long flag)
 {
     long x10;

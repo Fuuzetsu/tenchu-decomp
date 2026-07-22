@@ -57,11 +57,11 @@
  *  - x and z are the PARAMETERS reused (`x = x / 10;`) — that is what puts
  *    them in callee-saved homes with the `move s5,a1`/`move s6,a3` prologue
  *    copies; y10 is a separate local (y itself is reloaded from its arg home
- *    slot 0x50 at the end). mode is a u16 parameter: promoted to a word by
- *    the caller, narrowed via `sh` into a local frame slot (0x10) and lhu'd
- *    back on each spilled use.
+ *    slot 0x50 at the end). PSX.SYM records both the promoted `int mode`
+ *    parameter and the original `short mode` local, the characteristic K&R
+ *    boundary shape represented here by `mode` and `mode16`.
  *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
- *    word register; (mode & 8)/(& 4)/(& 2) read the spilled u16 slot.
+ *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
  *  - p is a `long *` cursor at &idx->index; the row fields are reached as
  *    ((short *)p)[-1..5] (the -2($s2) access proves the cast-based shape) and
  *    the row rect tests re-read the same expressions in the division block
@@ -90,7 +90,7 @@ extern u16 FieldAttrib;  /* attribute of the found node (FieldAttrib) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
-long GetAreaMapLevel(unsigned long *area, long x, long y, long z, u16 mode)
+long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode)
 {
     long j;
     long *p;
@@ -100,6 +100,7 @@ long GetAreaMapLevel(unsigned long *area, long x, long y, long z, u16 mode)
     long level;
     long n;
     long y10;
+    short mode16 = mode;
     long f8;
     long lv;
     long ret;
@@ -151,7 +152,7 @@ long GetAreaMapLevel(unsigned long *area, long x, long y, long z, u16 mode)
             if (idx->index != 0)
             {
                 p = &idx->index;
-                f8 = mode & 8;
+                f8 = mode16 & 8;
             loop:
                 if (level != 0x80000000)
                     goto calc;
@@ -219,14 +220,14 @@ long GetAreaMapLevel(unsigned long *area, long x, long y, long z, u16 mode)
             goto ret_min;
         level = level * 10;
         y10 = level - y;
-        if (y10 < -1000 && (mode & 4) == 0)
+        if (y10 < -1000 && (mode16 & 4) == 0)
         {
         ret_min:
             return 0x80000000;
         }
         ret = level;
     } while (0);
-    if (mode & 2)
+    if (mode16 & 2)
         ret = y10;
     return ret;
 }

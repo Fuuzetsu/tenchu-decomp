@@ -82,7 +82,6 @@ extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern short HangCheck(void);
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
 extern short Sound(Humanoid *human, int seid);
 extern void MoveHumanoid(Humanoid *h, short a, short b);
 
