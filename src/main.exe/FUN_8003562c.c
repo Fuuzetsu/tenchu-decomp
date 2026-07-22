@@ -62,10 +62,10 @@ void FUN_8003562c(TEffectSlot *ef)
     int state;
 
     param = &ef->param.blood;
-    index = param->unk22;
+    index = param->sprite;
     spr = &sprBlood[index];
     spr2 = &sprBloodStay[index];
-    state = param->unk23;
+    state = param->mode;
 
     if (state == 2)
     {
@@ -96,11 +96,11 @@ void FUN_8003562c(TEffectSlot *ef)
         s32 value;
         s32 priority;
 
-        fade = *(u16 *)&param->mode - 5;
-        *(u16 *)&param->mode = fade;
+        fade = param->brightness - 5;
+        param->brightness = fade;
         if ((s16)fade <= 0)
         {
-            *(u16 *)&param->mode = 0;
+            param->brightness = 0;
             ef->proc = 0;
         }
 
@@ -111,7 +111,7 @@ void FUN_8003562c(TEffectSlot *ef)
         size = param->scale;
         param->py = y;
         rotate = param->rotate;
-        fade = *(u16 *)&param->mode;
+        fade = param->brightness;
         fade_shift = (u32)fade << 16;
         brightness = (s16)fade;
         GetScreenPosition(x, y, z, &scratch.screen);
@@ -186,7 +186,7 @@ state_two:
         if ((s16)count <= 0)
         {
             param->time = 0x80;
-            param->unk23++;
+            param->mode++;
         }
         goto move_and_draw;
     }
@@ -200,7 +200,7 @@ state_one:
         param->time = count - 1;
         if ((s16)count <= 0)
         {
-            param->unk23++;
+            param->mode++;
             param->time = rand() % 90;
         }
         goto move_and_draw;
@@ -293,10 +293,10 @@ normal_state:
         param->vy = rand() % 8 + 8;
         param->rotate = 0;
         r = rand();
-        param->unk22 += 2;
+        param->sprite += 2;
         param->scale = r % 0x2ab + 0x555;
     bounce_done:
-        param->unk23 = 1;
+        param->mode = 1;
         param->time = rand() % 10;
         SoundEx((VECTOR *)&param->px, 0x37);
         goto spawn_bleed;
@@ -383,9 +383,9 @@ move_and_draw:
         param->pz += param->vz;
         spr->rotate = param->rotate;
         spr->attribute = 0;
-        spr->r = param->mode;
-        spr->g = param->mode;
-        spr->b = param->mode;
+        spr->r = param->brightness;
+        spr->g = param->brightness;
+        spr->b = param->brightness;
         size = param->scale;
         GetScreenPosition(param->px, param->py, param->pz, &scratch.screen);
         otz = scratch.screen.vz;

@@ -107,11 +107,11 @@ void DrawBlood(TEffectSlot *ef)
     s32 color_signed;
 
     blood = &ef->param.blood;
-    index = blood->unk22;
+    index = blood->sprite;
     spr = &sprBlood[index];
     sprt = &sprBloodStay[index];
 
-    state = blood->unk23;
+    state = blood->mode;
     switch (state)
     {
     case 3: {
@@ -128,12 +128,12 @@ void DrawBlood(TEffectSlot *ef)
         s32 pri;
         s32 half;
 
-        fade = *(u16 *)&blood->mode;
+        fade = blood->brightness;
         fade = fade - 5;
-        *(u16 *)&blood->mode = fade;
+        blood->brightness = fade;
         if (fade <= 0)
         {
-            *(u16 *)&blood->mode = 0;
+            blood->brightness = 0;
             ef->proc = 0;
         }
         spr->attribute = 0x50000000;
@@ -141,7 +141,7 @@ void DrawBlood(TEffectSlot *ef)
         y = blood->py + blood->vy;
         blood->py = y;
         rotate = blood->rotate;
-        color_shifted = (u32)*(u16 *)&blood->mode << 16;
+        color_shifted = (u32)blood->brightness << 16;
         color_signed = color_shifted >> 16;
         GetScreenPosition(blood->px, y, blood->pz, &scratch.scr);
         otz = scratch.scr.vz;
@@ -212,7 +212,7 @@ void DrawBlood(TEffectSlot *ef)
         if ((s16)oldtime <= 0)
         {
             blood->time = 0x80;
-            blood->unk23 = blood->unk23 + 1;
+            blood->mode = blood->mode + 1;
         }
         goto draw;
     }
@@ -228,7 +228,7 @@ void DrawBlood(TEffectSlot *ef)
         blood->time = oldtime - 1;
         if ((s16)oldtime <= 0)
         {
-            blood->unk23 = blood->unk23 + 1;
+            blood->mode = blood->mode + 1;
             time_rnd = rand();
             blood->time = time_rnd % 90;
         }
@@ -301,10 +301,10 @@ void DrawBlood(TEffectSlot *ef)
                 blood->vy = vy_rnd % 8 + 8;
                 blood->rotate = 0;
                 scale_rnd = rand();
-                blood->unk22 = blood->unk22 + 2;
+                blood->sprite = blood->sprite + 2;
                 blood->scale = scale_rnd % 0x2ab + 0x555;
             }
-            blood->unk23 = 1;
+            blood->mode = 1;
             time_rnd = rand();
             blood->time = time_rnd % 10;
             SoundEx((VECTOR *)&blood->px, 0x37);
@@ -357,9 +357,9 @@ draw:
     blood->pz = blood->pz + blood->vz;
     spr->rotate = blood->rotate;
     spr->attribute = 0;
-    spr->r = blood->mode;
-    spr->g = blood->mode;
-    spr->b = blood->mode;
+    spr->r = blood->brightness;
+    spr->g = blood->brightness;
+    spr->b = blood->brightness;
     scale = blood->scale;
     GetScreenPosition(blood->px, blood->py, blood->pz, &scratch.scr);
     otz = scratch.scr.vz;

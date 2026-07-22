@@ -80,7 +80,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         ef = &dmy;
     found:
         param = &ef->param.blood;
-        param->unk22 = rand() % 2;
+        param->sprite = rand() % 2;
         param->scale = 0x2000;
         param->rotate = (rand() % 360) * 0x1000;
         param->px = world.vx;
@@ -93,8 +93,8 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         param->vz = (short)rotated[0].vz;
         param->time = rand() % 15 + 10;
         param->hint = 0;
-        *(u16 *)&param->mode = 0x80;
-        param->unk23 = 0;
+        param->brightness = 0x80;
+        param->mode = 0;
         clock = GameClock & 3;
         ef->proc = (void (*)())FUN_8003562c;
     }

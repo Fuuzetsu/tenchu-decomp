@@ -83,15 +83,12 @@
  *    "occupied" branch's delay slot unconditionally increments `count`
  *    regardless of outcome, so `count = count + 1;` sits BEFORE the
  *    `if (slot->proc == 0)` test — SetExplosion's order, not SetImpact's.
- *  - Field store order follows Ghidra's own rendering exactly: unk22,
- *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a combined
- *    mode+bright halfword store, hint, unk23, and `proc` last (it lands in
+ *  - Field store order follows Ghidra's own rendering exactly: sprite,
+ *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a
+ *    brightness halfword store, hint, mode, and `proc` last (it lands in
  *    the closing loop-jump's delay slot).
- *  - `mode`/`bright` are both compile-time constants here (0x80 and 0), so
- *    the two adjacent bytes compile as ONE `sh` — write it via the same
- *    cast Ghidra shows (`*(u16 *)&fp->mode = 0x80;`), not two `sb`s (that
- *    only happens elsewhere in this family when one of the two fields is a
- *    runtime value — see SetImpact/SetHinoko).
+ *  - Retail replaced the demo's adjacent `mode`/`bright` bytes with the
+ *    halfword `brightness` at +0x20, so the 0x80 initialization is one `sh`.
  *  - `time`'s jitter needs a genuine variable division (`rand() % half2`),
  *    guarded by ASPSX's break 7/break 6 — needs `--expand-div`
  *    (Build.hs/permute.py).
@@ -150,7 +147,7 @@ outer:
         fp = &ef->param.blood;
         do
         {
-            fp->unk22 = rand() % 2;
+            fp->sprite = rand() % 2;
             fp->scale = rand() % 4096 + 0x2000;
             fp->rotate = (rand() % 360) * 0x1000;
             fp->px = pos->vx;
@@ -170,9 +167,9 @@ outer:
                 fp->time = half;
             }
             i = i + 1;
-            *(u16 *)&fp->mode = 0x80;
+            fp->brightness = 0x80;
             fp->hint = hint;
-            fp->unk23 = 0;
+            fp->mode = 0;
             ef->proc = (void (*)())DrawBlood;
         } while (0);
     }

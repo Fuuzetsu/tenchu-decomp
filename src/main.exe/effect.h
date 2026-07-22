@@ -94,23 +94,16 @@ struct BloodType /* size 36 */
     long py;                   /* +0x8 */
     long pz;                   /* +0xc */
     long scale;                /* +0x10 */
-    long rotate;                /* +0x14 */
+    long rotate;               /* +0x14 */
     short time;                 /* +0x18 */
     short vx;                   /* +0x1a */
     short vy;                   /* +0x1c */
     short vz;                   /* +0x1e */
-    u8 mode;                    /* +0x20 */
-    u8 bright;                  /* +0x21 */
-    u8 unk22;                   /* +0x22 — proven by SetBlood/DrawBlood (real
-                                  * field, not just alignment padding: it's
-                                  * explicitly read and written there, distinct
-                                  * from the struct's implicit round-up to
-                                  * the union's 4-byte alignment). */
-    u8 unk23;                   /* +0x23 -- proven by SetBlood: a genuine
-                                  * `sb $zero, 0x23(...)` store, not just the
-                                  * struct's own round-up to 36 bytes (which
-                                  * would otherwise land silently on this same
-                                  * byte). */
+    /* Retail redesigns the demo's two-byte mode/bright tail: the renderers
+     * consume a halfword fade plus separate sprite and phase bytes. */
+    u16 brightness;             /* +0x20 — retail halfword fade/brightness */
+    u8 sprite;                  /* +0x22 — sprBlood/sprBloodStay selection */
+    u8 mode;                    /* +0x23 — retail draw phase */
 };
 
 struct BleedType /* size 32 */
