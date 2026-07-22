@@ -32,8 +32,9 @@
  * D_8008E4B4 is a small local per-style source table (not referenced by any
  * other matched function): a `long` forwarded into both sprites' `rotate`
  * field, plus one image-id byte per sprite (fed straight to GetImage).
- * Indexed by the SAME loop counter used for the `i < 2` test (`D_8008E4B4
- * [i]`), not walked with its own incrementing pointer: touching 2+ fields
+ * Indexed by the SAME loop counter used for the `i < nLifeBarStyle` test
+ * (`D_8008E4B4[i]`), not walked with its own incrementing pointer: touching
+ * 2+ fields
  * (word0 and both id bytes) per iteration through a raw walking pointer
  * makes cc1's strength reduction split off a SECOND parallel induction
  * register for the byte offsets (verified — every walking-pointer spelling
