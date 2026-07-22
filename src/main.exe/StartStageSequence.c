@@ -81,7 +81,6 @@
 extern EventSeqType *D_80097F7C;
 extern s32 StageTime;
 extern s32 AttackActionCount;
-extern s16 ActionHalt;
 extern u16 StageCitizens;
 extern u16 StageEnemies;
 extern u16 StageBosses;

@@ -96,7 +96,6 @@ extern SVECTOR *dtV;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 ActionHalt;
 extern Humanoid *Me_MOTION_C;
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);

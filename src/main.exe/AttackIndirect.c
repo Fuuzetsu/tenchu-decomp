@@ -58,7 +58,6 @@
 extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 Degree;
-extern s16 EngageLevel;
 extern s16 SR;
 
 extern s16 turn_towards_player_(s32 x, s32 z);

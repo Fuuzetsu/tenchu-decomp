@@ -42,7 +42,6 @@ extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 ActionHalt;
 
 extern void AttackCancelControl(short mode);
 extern void PadShockAR(short port, short power, short time, short mode);

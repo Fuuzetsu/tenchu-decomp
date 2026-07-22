@@ -57,7 +57,6 @@
  *    function differs only by a six-byte $a0/$v1 swap.
  */
 extern s16 NowStage;
-extern s16 EngageLevel;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern s16 AMD_LOADED_FOR_CHARACTER_KIND;
 extern s16 D_800979A6;

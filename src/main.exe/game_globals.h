@@ -10,6 +10,7 @@ extern unsigned long *GlobalAreaMap;
 extern BattleType BattleDB[78];
 extern struct Humanoid *StagePlayer;
 extern short Humans;
+extern short EngageLevel;
 extern short *StageAppearance[10];
 extern StageCharType StageChar[18];
 

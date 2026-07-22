@@ -10,8 +10,6 @@ extern SVECTOR *dtR;
 extern SVECTOR *dtV;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 ActionHalt;
-extern s16 EngageLevel;
 extern s16 Criticals;
 extern s16 Murders;
 extern s16 FriendHits;

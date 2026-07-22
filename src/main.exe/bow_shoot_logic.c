@@ -37,7 +37,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern s16 EngageLevel;
 
 extern SVECTOR *dtR;
 extern u32 GetTargetDistance(Humanoid *h, s16 *unused);
