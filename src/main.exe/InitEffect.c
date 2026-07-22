@@ -135,8 +135,7 @@ void InitEffect(void)
     }
 
     poly = &plyBleed;
-    ((u8 *)&poly->tag)[3] = 5;
-    poly->code = 0x28;
+    setPolyF4(poly);
 
     {
         Sprite3D *sprite;
