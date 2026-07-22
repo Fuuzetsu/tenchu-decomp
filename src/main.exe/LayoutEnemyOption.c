@@ -84,7 +84,7 @@ extern char D_800140E0[];                   /* "layout %d enemies" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
-extern void leRemoveEnemy(void);
+extern int leRemoveEnemy(void);
 extern void leLayoutEnemy(s32 mode);
 extern void leClearLayout(void);
 extern s32 leFindEnemy(void);

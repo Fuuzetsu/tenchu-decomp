@@ -46,7 +46,7 @@
  * restructuring needed).
  */
 extern s32 ActiveMotion(MotionManager *mmp);
-extern void SweepMotion(MotionManager *mmp);
+extern short SweepMotion(MotionManager *mmp);
 
 short PlayMotion(MotionManager *mmp, short mode)
 {

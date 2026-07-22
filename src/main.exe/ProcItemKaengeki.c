@@ -75,7 +75,7 @@ extern GsRVIEW2 ViewInfo;
 extern s16 NowReturnNormal(Humanoid *human);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *vec, s32 rx, s32 ry, s32 rz);
-extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ProcItemKaengeki(TItem *item)
 {

@@ -28,7 +28,7 @@
  */
 
 extern TEnemyLayout enemy[0x1E];
-extern void leLayoutEnemy(s32 num);
+extern void leLayoutEnemy(s32 mode);
 
 void leClearLayout(void)
 {

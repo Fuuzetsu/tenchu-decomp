@@ -25,7 +25,7 @@ extern u16 D_80086B6C[8];
 
 extern void SetCameraMode(s32 mode);
 extern short Sound(Humanoid *human, s16 seid);
-extern void ReqLifeBar(Humanoid *human);
+extern int ReqLifeBar(Humanoid *h);
 extern void DeleteConflict(ModelType *model);
 extern void SetImpact(VECTOR *pos, s16 scale, s16 type);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);

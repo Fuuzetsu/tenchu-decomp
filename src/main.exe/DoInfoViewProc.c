@@ -121,7 +121,7 @@ extern void debug_menu_stage_option(void);
 extern void PauseProc(void);
 extern void PutItemList(void);
 extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
-extern void PutLifeBarS(void);
+extern int PutLifeBarS(void);
 extern void PutStrain(s32 x, s32 y);
 extern void PutMap(void);
 

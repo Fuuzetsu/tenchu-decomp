@@ -41,7 +41,7 @@
 
 extern TEnemyLayout enemy[0x1E];
 extern s32 leFindEnemy(void);
-extern s32 leLayoutEnemy(s32 n);
+extern s32 leLayoutEnemy(s32 mode);
 
 s32 leRemoveEnemy(void)
 {

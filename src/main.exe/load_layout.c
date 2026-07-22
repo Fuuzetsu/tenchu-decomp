@@ -27,7 +27,7 @@ extern void vfree(void *buf);
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80012154[]; /* "load layout error" */
 extern LayoutNameTable D_80012168;
-extern void leLayoutEnemy(s32 num);
+extern void leLayoutEnemy(s32 mode);
 
 void load_layout(s32 index)
 {

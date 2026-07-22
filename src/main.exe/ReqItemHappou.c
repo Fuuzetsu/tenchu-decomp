@@ -109,7 +109,7 @@
  *    differs.
  */
 extern void ProcItemHappou(TItem *item);
-extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
+extern short SetNowMotion(Humanoid *human, s32 mid, s32 move);
 extern short Sound(Humanoid *human, int seid);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);

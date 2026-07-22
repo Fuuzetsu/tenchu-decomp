@@ -99,8 +99,8 @@ extern s16 motMODE;
 extern void (*ActionFunc[18])(void);
 extern short GetCommand(PADtype *pad);
 extern s16 FallCheck(void);
-extern void HangCheck(void);
-extern void SwimCheck(void);
+extern short HangCheck(void);
+extern short SwimCheck(void);
 extern void DamageControl(void);
 extern short MotionAndMove(void);
 

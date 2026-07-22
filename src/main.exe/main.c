@@ -88,7 +88,7 @@ extern void start_demo_(void);
 extern void ComputeAllConflict(void);
 extern void StartDrawing(void);
 extern void Camera(void);
-extern void ControlAllHumanoid(void);
+extern short ControlAllHumanoid(void);
 extern void ActivateHumans(void);
 extern void DrawConstruction(void);
 extern void DrawEffect(void);

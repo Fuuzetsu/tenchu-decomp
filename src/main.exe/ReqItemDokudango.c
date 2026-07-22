@@ -63,7 +63,7 @@
  *    byte, so the retail declaration retains that one version difference.
  */
 extern void ProcItemDokudango(TItem *item);
-extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
+extern short SetNowMotion(Humanoid *human, s32 mid, s32 move);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;

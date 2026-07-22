@@ -82,7 +82,7 @@ extern void SetCameraMode(s32 mode);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
-extern void ReqItemLaunch(PARAM_ITEM_LAUNCH *param);
+extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
 
 void ProcSightShot(TItem *item)
 {

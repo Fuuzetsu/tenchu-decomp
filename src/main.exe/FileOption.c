@@ -124,7 +124,7 @@ extern void debug_menu_file_animation_test(void);
 extern void sprintf(char *s, char *fmt, ...);
 extern void PlayMusicFormID(s32 id);
 extern void load_layout(s32 no);
-extern void leLayoutEnemy(s32 n);
+extern void leLayoutEnemy(s32 mode);
 
 void FileOption(void)
 {

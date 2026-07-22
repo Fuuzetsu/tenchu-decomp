@@ -85,7 +85,7 @@ extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 extern Humanoid *GetHumanoid(s16 type);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
-extern s32 ReqLifeBar(Humanoid *human);
+extern int ReqLifeBar(Humanoid *h);
 extern void CdaStop(void);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
