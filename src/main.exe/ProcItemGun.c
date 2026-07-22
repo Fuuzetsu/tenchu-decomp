@@ -80,7 +80,6 @@ extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *ry, s32 *rx);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern s16 InsertConflict(ModelType *m);
-extern void SetImpact(VECTOR *pos, s32 a, s32 b);
 extern void SetBleeds(VECTOR *pos, s32 a, s32 b, s32 c, s32 d, s32 col);
 extern void SetBleedsDir(VECTOR *pos, SVECTOR *dir, s32 a, s32 b, s32 c, s32 col);
 extern void RotateVectorS(SVECTOR *v, s32 rx, s32 ry, s32 rz);

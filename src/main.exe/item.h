@@ -357,6 +357,7 @@ extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemStay(PARAM_ITEM_STAY *p);
 extern void ReqItemDefault(Humanoid *user, TItemType item);
 extern TItemType GetItemType(s32 conflict_id);
+extern void SetImpact(VECTOR *pos, short size, short type);
 extern void SetBleed(VECTOR *pos, SVECTOR *vel, int a, int col);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vel, short n, short time);
 extern short SoundEx(VECTOR *locate, short seid);
