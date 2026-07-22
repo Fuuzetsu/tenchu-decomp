@@ -12,6 +12,7 @@ extern struct Humanoid *HumanGroup[32];
 extern HumanDataType HumanData[63];
 extern HumanAnimType CVAhuman[5];
 extern SVECTOR UnitVector;
+extern VECTOR UnitVector2;
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern ModelType World;

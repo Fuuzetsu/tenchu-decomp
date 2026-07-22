@@ -48,7 +48,6 @@
  * cookbook Loops), a guarded `for (i = 0; i < 0x50; i++)`.
  */
 
-extern VECTOR UnitVector2;
 extern void *memset(void *s, int c, u32 n);
 
 void InitConflict(void)

@@ -63,7 +63,6 @@
 
 /* Identity constants copied into a fresh slot. UnitVector2 is Ghidra's
  * UnitVector2 (the VECTOR position); UnitVector is the SVECTOR offset/size. */
-extern VECTOR UnitVector2;
 
 extern char D_800111F8[];        /* "CONFLICT REGIST FAILURE" */
 
