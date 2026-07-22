@@ -26,15 +26,6 @@
 
 typedef struct
 {
-    u8 pad_000[0x44C];
-    u8 characters[5];
-    u8 grades[5];
-    u8 pad_456[2];
-    s32 scores[5];
-} MissionScorePersistent;
-
-typedef struct
-{
     u16 oldPad;
     u16 pad;
     BackGround *background;
@@ -60,9 +51,6 @@ extern char *TRN_SPRITE_PTRS[];
 extern char D_80013AA8[];
 extern char D_80013AC0[];
 
-extern u8 D_8001044C[5];
-extern u8 D_80010451[5];
-extern s32 D_80010458[5];
 extern s16 D_8008ED50[];
 
 extern void vfree(void *ptr);
@@ -97,7 +85,7 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
  * (base first); inlining the constant makes it `(plus reg_index CONST)`, and
  * expand's EXPAND_SUM/form_sum sorts the constant term LAST, emitting
  * `addu t,index,base` -- the target's operand order. */
-#define SCORE_STATE ((MissionScorePersistent *)TENCHU_PERSISTENT_STATE_ADDRESS)
+#define SCORE_STATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 #define result storage.result
 #define rankSprites storage.rankSprites
 #define characterSprites storage.characterSprites
@@ -247,11 +235,11 @@ score_character_sprite_init_loop:
     {
         for (i = 0; i < 5; i++)
         {
-            if (SCORE_STATE->scores[i] == 0)
+            if (SCORE_STATE->t_time[i] == 0)
             {
-                SCORE_STATE->scores[i] = 0x1A5C2;
-                SCORE_STATE->characters[i] = 0;
-                SCORE_STATE->grades[i] = 0;
+                SCORE_STATE->t_time[i] = 0x1A5C2;
+                SCORE_STATE->t_char[i] = 0;
+                SCORE_STATE->t_dani[i] = 0;
             }
         }
     }
@@ -260,13 +248,13 @@ score_character_sprite_init_loop:
     {
         for (i = 0; i < 5; i++)
         {
-            if (SCORE_STATE->grades[i] < result.grade)
+            if (SCORE_STATE->t_dani[i] < result.grade)
             {
                 insertedRank = i;
                 break;
             }
-            if (result.grade == SCORE_STATE->grades[i] &&
-                stats.clock < SCORE_STATE->scores[i])
+            if (result.grade == SCORE_STATE->t_dani[i] &&
+                stats.clock < SCORE_STATE->t_time[i])
             {
                 insertedRank = i;
                 break;
@@ -284,10 +272,9 @@ score_character_sprite_init_loop:
             {
                 do
                 {
-                    SCORE_STATE->scores[i] = SCORE_STATE->scores[i - 1];
-                    SCORE_STATE->characters[i] =
-                        SCORE_STATE->characters[i - 1];
-                    SCORE_STATE->grades[i] = SCORE_STATE->grades[i - 1];
+                    SCORE_STATE->t_time[i] = SCORE_STATE->t_time[i - 1];
+                    SCORE_STATE->t_char[i] = SCORE_STATE->t_char[i - 1];
+                    SCORE_STATE->t_dani[i] = SCORE_STATE->t_dani[i - 1];
                     i--;
                 } while (insertedRank < (s16)i);
             }
@@ -295,10 +282,9 @@ score_character_sprite_init_loop:
             {
                 register s32 insertedAt = insertedRank;
 
-                SCORE_STATE->scores[insertedAt] = stats.clock;
-                SCORE_STATE->characters[insertedAt] =
-                    ((TLinkInfo *)SCORE_STATE)->CharType;
-                SCORE_STATE->grades[insertedAt] = result.grade;
+                SCORE_STATE->t_time[insertedAt] = stats.clock;
+                SCORE_STATE->t_char[insertedAt] = SCORE_STATE->CharType;
+                SCORE_STATE->t_dani[insertedAt] = result.grade;
             }
         }
     }
@@ -1022,7 +1008,7 @@ score_row_loop:
                         (rowSprite)->u = signBaseU;
                     }
                 } while (0);
-                FUN_800515b0(&number, SCORE_STATE->scores[i],
+                FUN_800515b0(&number, SCORE_STATE->t_time[i],
                              0x79, i * 0x16 + 0x18, 1);
                 {
                     /* Dead local retained by the row-rendering template. */
@@ -1031,11 +1017,11 @@ score_row_loop:
 
                 {
                     GsSPRITE *characterSpriteBase = characterSprites;
-                    MissionScorePersistent *rowState =
-                        (MissionScorePersistent *)TENCHU_PERSISTENT_STATE_ADDRESS;
+                    TLinkInfo *rowState =
+                        (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
                     sprite = &characterSpriteBase[
-                        rowState->characters[i]];
+                        rowState->t_char[i]];
                 }
                 sprite->x = -0x79;
                 sprite->y = i * 0x16 + 0x16;
@@ -1059,7 +1045,7 @@ score_row_loop:
 
                 {
                     register GsSPRITE *rankSprite =
-                        &rankSpriteBase[SCORE_STATE->grades[i]];
+                        &rankSpriteBase[SCORE_STATE->t_dani[i]];
                     rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;
                     rankSprite->scalex = rankSprite->scaley = 0xB33;
                     rankSprite->x = -0x2F;

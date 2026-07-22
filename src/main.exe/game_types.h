@@ -972,7 +972,14 @@ typedef struct TLinkInfo
                              *       gate, PadProc; demo +0xE; default 1) */
     u8 language;            /* 0x05E CHOSEN_LANGUAGE (retail-only) */
     u8 field_0x5f[0x3AD];   /* 0x05F */
-    u8 stock[0x100];        /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
+    u8 stock[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
+                             *       two 0x20-byte character rows;
                              *       0xFE = locked, 0xFF = infinite;
                              *       [chr*0x20+0x13] = stage bonus item flag */
+    u8 t_char[5];           /* 0x44C high-score character (demo name) */
+    u8 t_dani[5];           /* 0x451 high-score rank (demo name) */
+    u8 pad_0x456[2];        /* 0x456 */
+    long t_time[5];         /* 0x458 completion time; retail replacement for
+                             *       the demo's t_fun/t_byou byte arrays */
+    u32 item_flags;         /* 0x46C unlocked stage-reward items */
 } TLinkInfo;
