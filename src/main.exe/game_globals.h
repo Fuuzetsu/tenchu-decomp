@@ -13,7 +13,8 @@ extern unsigned char gSound;
 extern unsigned char gSoundLevel;
 extern unsigned char gSELevel;
 extern unsigned char gfMemory;
-extern BattleType BattleDB[78];
+/* Retail's mid=-1 sentinel is entry 104; the demo table had 78 entries. */
+extern BattleType BattleDB[105];
 extern struct Humanoid *StagePlayer;
 extern short Humans;
 extern short ActionHalt;
@@ -23,6 +24,7 @@ extern short SR;
 extern PADtype *Pad;
 /* Retail stores 12 pointers; the demo PSX.SYM table had 10. */
 extern short *StageAppearance[12];
-extern StageCharType StageChar[18];
+/* Retail's stage=-1 sentinel is entry 23; the demo table had 18 entries. */
+extern StageCharType StageChar[24];
 
 #endif

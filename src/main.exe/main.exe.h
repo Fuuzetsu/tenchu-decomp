@@ -13,7 +13,8 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 extern struct Humanoid *Me_THINK_C;
 /* Retail permits 40 actors and reserves 0xA0 bytes before the next global. */
 extern struct Humanoid *HumanGroup[40];
-extern HumanDataType HumanData[63];
+/* Retail's type=-1 sentinel is entry 77; the demo table had 63 entries. */
+extern HumanDataType HumanData[78];
 extern HumanAnimType CVAhuman[5];
 extern SVECTOR UnitVector;
 extern VECTOR UnitVector2;
@@ -44,8 +45,10 @@ extern GsOT *OTablePt;
 extern GsOT OTable[2];
 extern GsFOGPARAM Fog;
 extern short DrawingPage;
-extern WeaponType WeaponDB[28];
-extern WeaponModelType WeaponModel[41];
+/* Retail's terminal weapon record is entry 30; the demo table had 28. */
+extern WeaponType WeaponDB[31];
+/* Retail's wid=-1 sentinel is entry 47; the demo table had 41 entries. */
+extern WeaponModelType WeaponModel[48];
 extern MotionRegistType MOTcommon[41];
 extern MotionPackType *MotionPack;
 extern MotionPackType *CommonMotion;
