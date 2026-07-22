@@ -77,7 +77,7 @@ extern char D_80011104[]; /* "TENCHU\DATA" */
 
 void InitFileSystem(int mode)
 {
-    PoolBlock *saved_pool;
+    VMhead *saved_pool;
 
     ReadMode = mode;
     mode = mode & 3;

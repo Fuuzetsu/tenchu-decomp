@@ -30,7 +30,7 @@
  * vfree (0x80016d7c) — same TU as vinit.c/vgetfreesize.c/vsize.c/vcalloc.c
  * (virtual_memory_pool/valloc/vfree/vgetmaxsize/vgetfreesize/vcalloc all
  * cluster together): releases a block returned by valloc/vcalloc back to
- * the pool's singly-linked free list (see vinit.c for PoolBlock), then
+ * the pool's singly-linked free list (see vinit.c for VMhead), then
  * coalesces it with its physically-adjacent neighbours in the list: the
  * block already pointed to by its own `next` (forward), and whichever
  * block's `next` points AT this one (backward, found by a linear walk
@@ -58,7 +58,7 @@
  *    ties the addu's DEST to A's dying register (dest = op0). The previous
  *    draft's `B + 2 + A` spelling mirrored the operand order and moved the
  *    tail sum from $v1 to $v0.
- *  - The header address `(PoolBlock *)pt - 1` is computed unconditionally
+ *  - The header address `(VMhead *)pt - 1` is computed unconditionally
  *    in the null-guard branch's delay slot but only used once the guard
  *    passes — ordinary "independent computation floats into the guard's
  *    delay slot", not a source-level rule.
@@ -91,10 +91,10 @@ extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" — still referenced by
 
 void vfree(void *pt)
 {
-    PoolBlock *header;
-    PoolBlock *next;
-    PoolBlock *prev;
-    PoolBlock *n2;
+    VMhead *header;
+    VMhead *next;
+    VMhead *prev;
+    VMhead *n2;
     u32 mask;
     u32 sz;
     s32 s;
@@ -102,7 +102,7 @@ void vfree(void *pt)
     if (pt == 0)
         return;
 
-    header = (PoolBlock *)pt - 1;
+    header = (VMhead *)pt - 1;
     mask = 0x80000000;
     if ((header->size & mask) == 0)
         SystemOut(D_8001104C);

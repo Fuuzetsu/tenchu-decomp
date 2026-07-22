@@ -23,7 +23,7 @@
 
 unsigned long vgetfreesize(void)
 {
-    PoolBlock *p;
+    VMhead *p;
     s32 sum;
 
     sum = 0;

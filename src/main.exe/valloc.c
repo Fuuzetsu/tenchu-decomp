@@ -78,7 +78,7 @@
  *    two `vh` scopes at sp+24/sp+32 and cc1's in-encounter-order slot
  *    assignment.
  *  - The loop reads its tests through `vmpt` (lw 0($s1)) but takes a copy
- *    `vhp = (PoolBlock *)vmpt;` at loop top ($a0, scheduled into the first
+ *    `vhp = (VMhead *)vmpt;` at loop top ($a0, scheduled into the first
  *    branch's delay slot): the split arm's loads/stores and the advance
  *    (`vmpt = vhp->next`) go through the copy.
  *  - `maxsize <<= 2;` is a real source statement between the two tail loops
@@ -94,7 +94,7 @@
  *    tools/reloc_c_literals.py gates the transform and relocation counts.
  *  - The request rounding is `if (size & 3) size += 4;` (NOT `(size+3)&~3`)
  *    — read off the raw immediate; keep the odd shape.
- *  - Both whole-struct stores (`*virtual_memory_pool = vh;`, `*(PoolBlock *)
+ *  - Both whole-struct stores (`*virtual_memory_pool = vh;`, `*(VMhead *)
  *    vmpt = vh;`) are aggregate assignments: two field stores to the stack
  *    slot, then the $t1/$t2 reload+store block copy (vinit.c's idiom).
  */
@@ -107,8 +107,8 @@ extern char D_80011024[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" — pool
 
 void *valloc(u32 size)
 {
-    PoolBlock vh;   /* split tmp, sp+0x18 */
-    PoolBlock *vhp; /* search-loop copy of the cursor */
+    VMhead vh;   /* split tmp, sp+0x18 */
+    VMhead *vhp; /* search-loop copy of the cursor */
     u32 *vmpt;      /* cursor AND result — returned after SystemOut, hence $s1 */
     u32 off;
     u32 mask;
@@ -116,7 +116,7 @@ void *valloc(u32 size)
 
     if (virtual_memory_pool == 0)
     {
-        PoolBlock vh; /* nested shadow, sp+0x20 */
+        VMhead vh; /* nested shadow, sp+0x20 */
 
         virtual_memory_pool = VMEM_DEFAULT_POOL;
         vh.size = VMEM_DEFAULT_CAPACITY;
@@ -136,7 +136,7 @@ void *valloc(u32 size)
         tag = size | mask;
         do
         {
-            vhp = (PoolBlock *)vmpt;
+            vhp = (VMhead *)vmpt;
             if (!(vmpt[0] & mask) && size <= vmpt[0])
             {
                 if (vmpt[0] - size < 0x13)
@@ -161,8 +161,8 @@ void *valloc(u32 size)
                     vh.next = vhp->next;
                     vmpt = (u32 *)((u8 *)vmpt + off);
                     vhp->size = tag;
-                    vhp->next = (PoolBlock *)vmpt;
-                    *(PoolBlock *)vmpt = vh;
+                    vhp->next = (VMhead *)vmpt;
+                    *(VMhead *)vmpt = vh;
                     vmpt = (u32 *)(vhp + 1);
                 }
                 break;
@@ -178,8 +178,8 @@ void *valloc(u32 size)
         u8 str[1024]; /* sp+0x28 */
         u32 maxsize;
         u32 freesize;
-        PoolBlock *p;
-        PoolBlock *q;
+        VMhead *p;
+        VMhead *q;
 
         maxsize = 0;
         for (p = virtual_memory_pool; p != 0; p = p->next)

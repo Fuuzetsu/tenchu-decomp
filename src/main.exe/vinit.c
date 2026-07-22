@@ -71,7 +71,7 @@
 
 void vinit(void *adr, u32 size)
 {
-    PoolBlock h;
+    VMhead h;
 
     virtual_memory_pool = adr;
     if (adr == 0)

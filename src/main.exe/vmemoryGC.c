@@ -44,10 +44,10 @@ extern void *memcpy(void *dst, void *src, u32 n);
 
 static inline void FreePoolBlockInline(void *pt, u32 cmask)
 {
-    PoolBlock *header;
-    PoolBlock *next;
-    PoolBlock *prev;
-    PoolBlock *n2;
+    VMhead *header;
+    VMhead *next;
+    VMhead *prev;
+    VMhead *n2;
     u32 mask;
     u32 sz;
     s32 s;
@@ -57,7 +57,7 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
 
     do
     {
-        header = (PoolBlock *)pt - 1;
+        header = (VMhead *)pt - 1;
     } while (0);
     mask = 0x80000000;
     if ((header->size & mask) == 0)
@@ -168,14 +168,14 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
  */
 void *vmemoryGC(void *pt)
 {
-    PoolBlock *header;
+    VMhead *header;
     u32 cmask;
     u32 mask;
     u32 size;
     u32 *vmpt;
 
     cmask = 0x7fffffff;
-    header = (PoolBlock *)pt - 1;
+    header = (VMhead *)pt - 1;
     size = (header->size & cmask) << 2;
     vmpt = valloc(size);
     if (vmpt != 0)
@@ -193,10 +193,10 @@ void *vmemoryGC(void *pt)
     }
 
     {
-        PoolBlock *prev;
-        PoolBlock *n2;
+        VMhead *prev;
+        VMhead *n2;
         void *newpt;
-        PoolBlock vh;
+        VMhead vh;
         s32 sz2;
 
         prev = virtual_memory_pool;
@@ -224,7 +224,7 @@ void *vmemoryGC(void *pt)
                     vh.next = header->next;
                     vmpt = (u32 *)((u8 *)prev + ((header->size << 2) + 8));
                     prev->size = header->size;
-                    prev->next = (PoolBlock *)vmpt;
+                    prev->next = (VMhead *)vmpt;
                     memcpy(newpt, pt, size);
                     pt = newpt;
                     prev = vh.next;
@@ -233,7 +233,7 @@ void *vmemoryGC(void *pt)
                         vh.size = vh.size + (prev->size + 2);
                         vh.next = prev->next;
                     }
-                    *(PoolBlock *)vmpt = vh;
+                    *(VMhead *)vmpt = vh;
                 }
             }
         }
