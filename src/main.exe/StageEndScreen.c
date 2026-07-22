@@ -239,13 +239,13 @@ void StageEndScreen(void)
         item_index++;
     }
     {
-        u8 *state;
+        TLinkInfo *state;
 
-        state = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-        *(s32 *)(state + 0x46c) |= 1 << (item_index - 1);
-        if (state[5] == 7 && state[0x5e] == 0)
+        state = PSTATE;
+        state->item_flags |= 1 << (item_index - 1);
+        if (state->StageNo == 7 && state->language == 0)
         {
-            *(s32 *)(state + 0x46c) |= 0x400;
+            state->item_flags |= 0x400;
         }
     }
 
@@ -303,11 +303,11 @@ void StageEndScreen(void)
                 } while (0);
             } while (0);
         } while (0);
-        if (((u8 *)best_x)[5] == 7)
+        if (((TLinkInfo *)best_x)->StageNo == 7)
         {
-            if (((u8 *)best_x)[0x5e] == 0)
+            if (((TLinkInfo *)best_x)->language == 0)
             {
-                *(s32 *)((u8 *)best_x + 0x46c) |= 0x400;
+                ((TLinkInfo *)best_x)->item_flags |= 0x400;
             }
         }
         else
