@@ -63,7 +63,6 @@
 
 extern void SnapCameraTargetVector(void);
 extern GsOT *OTablePt;
-extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;
 
 void ProcItemTeleport(TItem *item)
@@ -80,7 +79,7 @@ void ProcItemTeleport(TItem *item)
     if ((item->owner->pad.data & 0x10) != 0)
     {
         SetCameraMode(CMODE_SIGHT);
-        GsSortSprite(&TargetSprite, OTablePt, 0);
+        GsSortSprite(TargetSprite, OTablePt, 0);
         return;
     }
     SnapCameraTargetVector();

@@ -369,5 +369,7 @@ extern s16 ActionHalt;
 extern char D_800121CC[];
 /* The global item pool. */
 extern TItem items[30];
+/* ITEM.C's single shared lock-on/trajectory marker. */
+extern GsSPRITE TargetSprite[1];
 
 #endif

@@ -76,7 +76,6 @@ typedef struct
 } SightRotation;
 
 extern GsRVIEW2 ViewInfo;
-extern GsSPRITE TargetSprite;
 extern GsOT *OTablePt;
 
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
@@ -173,7 +172,7 @@ sight_mode:
                 return;
             }
             SetCameraMode(CMODE_SIGHT);
-            GsSortSprite(&TargetSprite, OTablePt, 0);
+            GsSortSprite(TargetSprite, OTablePt, 0);
             return;
         }
 

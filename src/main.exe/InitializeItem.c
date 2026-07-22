@@ -57,7 +57,6 @@ extern ModelType *NingyoModel;
 extern ModelType *HappouModel;
 extern Sprite3D *sprNapalm;
 extern Sprite3D *sprNapalm2;
-extern GsSPRITE TargetSprite[1];
 extern GsSPRITE SpriteGoshikimai;
 /* gp-relative small (this TU defines it; DoItemProc.c already lists it). */
 extern u8 D_80097AC8;
