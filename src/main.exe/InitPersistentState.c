@@ -19,18 +19,18 @@
  * InitPersistentState (0x80016134) — if the persistent-state blob at
  * 0x80010000 is uninitialised or corrupt (CHOSEN_CHARACTER has any bit but
  * bit0 set, or CHOSEN_STAGE is out of range >10), wipe it (memset 0xE70) and
- * seed it with defaults: magic 0x19981110 at offset 0, audio/config bytes at
- * 0x58..0x61, the per-character shop-stock row 0 (0xFE-filled then patched),
- * a copy of that row into char 1's slot, the default item counts, then pick
- * mono/stereo and re-enter the stage-select menu. Returns 0 when it
+ * seed it with defaults: magic 0x19981110 at offset 0, audio/config bytes,
+ * StageNoMAX[2], the per-character shop-stock row 0 (0xFE-filled then
+ * patched), a copy of that row into char 1's slot, the default item counts,
+ * then pick mono/stereo and re-enter the stage-select menu. Returns 0 when it
  * (re)initialised, 1 when the existing state was already valid.
  *
- * Most fields named in game_types.h use member access elsewhere. This
- * initializer keeps raw byte offsets for its tightly ordered stores even
- * though 0x58..0x5E are now identified TLinkInfo options; 0x5F..0x61 remain
- * unknown adjacent flags. The 0x59 field is InitSoundEffect's mono/stereo
- * byte (gSound); the mono/stereo dispatch takes InitSoundEffect's inverted
- * `!= 0 ? Stereo : Mono` polarity (beqz into the physically-later Mono block).
+ * StageNoMAX is the original demo TLinkInfo member name: both builds keep one
+ * highest-stage byte per character, though retail moves the pair from +3 to
+ * +0x60. control_scheme at +0x5F is retail-only and selects one of the four
+ * pad-remapping table rows. The mono/stereo dispatch takes InitSoundEffect's
+ * inverted `!= 0 ? Stereo : Mono` polarity (beqz into the physically-later
+ * Mono block).
  *
  * STATUS: MATCHING — pure C, all 368 bytes / 92 instructions exact.
  *
@@ -49,11 +49,6 @@
 extern void SsSetMono(void);
 extern void SsSetStereo(void);
 extern void SelectStage(TLinkInfo *ps);
-
-typedef struct
-{
-    u32 w[8];
-} StockRow;
 
 s32 InitPersistentState(void)
 {
@@ -75,14 +70,14 @@ s32 InitPersistentState(void)
         stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
         ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         *(u32 *)ps = magic;
-        ((u8 *)ps)[0x58] = 0;
-        ((u8 *)ps)[0x59] = 1;
-        ((u8 *)ps)[0x5a] = 0x7f;
-        ((u8 *)ps)[0x5b] = 0x7f;
-        ((u8 *)ps)[0x5c] = 0;
-        ((u8 *)ps)[0x5d] = 1;
-        ((u8 *)ps)[0x61] = 1;
-        ((u8 *)ps)[0x60] = 1;
+        ps->Nannido = 0;
+        ps->Stereo = 1;
+        ps->SoundLevel = 0x7f;
+        ps->SELevel = 0x7f;
+        ps->fMemory = 0;
+        ps->Anakon = 1;
+        ps->StageNoMAX[1] = 1;
+        ps->StageNoMAX[0] = 1;
         do {
             stockp[0x40c] = fill;
             i--;
@@ -96,19 +91,19 @@ s32 InitPersistentState(void)
         ps->stock[5] = 1;
         ps->stock[7] = 3;
         ps->stock[8] = 5;
-        *(StockRow *)&ps->stock[0x20] = *(StockRow *)&ps->stock[0];
+        __builtin_memcpy(&ps->stock[0x20], &ps->stock[0], 0x20);
         ps->counts[1] = 10;
         ps->counts[0] = 0xff;
         ps->counts[2] = 5;
         ps->counts[3] = 2;
         ps->layout = 0xff;
-        if (((u8 *)ps)[0x59] != 0) {
+        if (ps->Stereo != 0) {
             SsSetStereo();
         } else {
             SsSetMono();
         }
         SelectStage(ps);
-        ((u8 *)ps)[0x5f] = 0;
+        ps->control_scheme = 0;
         return 0;
     }
     return 1;

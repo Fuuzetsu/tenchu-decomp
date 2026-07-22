@@ -32,14 +32,13 @@ void FUN_800514d8(void)
 {
     s32 lastpad;
     s32 result;
-    u8 *best;
-
     if (PSTATE->StageNo != D_8008EA78[0])
     {
-        best = (u8 *)PSTATE + PSTATE->CharType;
-        if (best[0x60] < StageConfig[PSTATE->StageNo].uid)
+        if (PSTATE->StageNoMAX[PSTATE->CharType] <
+            StageConfig[PSTATE->StageNo].uid)
         {
-            best[0x60] = StageConfig[PSTATE->StageNo].uid;
+            PSTATE->StageNoMAX[PSTATE->CharType] =
+                StageConfig[PSTATE->StageNo].uid;
         }
     }
     do

@@ -975,7 +975,10 @@ typedef struct TLinkInfo
     u8 Anakon;              /* 0x05D analog pad / rumble enabled (PadShock
                              *       gate, PadProc; demo +0xE; default 1) */
     u8 language;            /* 0x05E CHOSEN_LANGUAGE (retail-only) */
-    u8 field_0x5f[0x3AD];   /* 0x05F */
+    u8 control_scheme;      /* 0x05F saved pad-remapping row (retail-only) */
+    u8 StageNoMAX[2];       /* 0x060 highest stage uid per character;
+                             *       official demo member name (demo +0x3) */
+    u8 field_0x62[0x3AA];   /* 0x062 */
     u8 stock[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
                              *       two 0x20-byte character rows;
                              *       0xFE = locked, 0xFF = infinite;

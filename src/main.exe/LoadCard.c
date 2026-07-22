@@ -31,11 +31,6 @@
  *     extern unsigned char *TENCHU_ID;
  * END PSX.SYM */
 
-typedef struct
-{
-    u8 bytes[TENCHU_PERSISTENT_STATE_SIZE];
-} LoadCardPersistentBlob;
-
 extern char CardPathFormat[];
 
 extern void *valloc(u32 size);
@@ -49,9 +44,8 @@ extern int sprintf(char *buf, char *fmt, ...);
 /*
  * The two apparent Ghidra buffers are one 8 KiB card block: the card header
  * occupies its first 0x200 bytes and the persistent payload begins at
- * `block + sizeof(TCardHeader)`. Assigning that payload as one 0xe70-byte
- * struct reproduces
- * the compiler's aligned/unaligned copy-loop pair.
+ * `block + sizeof(TCardHeader)`. The fixed-size built-in payload copy
+ * reproduces the compiler's aligned/unaligned loop pair.
  */
 s16 LoadCard(s32 target, u8 *name)
 {
@@ -74,8 +68,9 @@ s16 LoadCard(s32 target, u8 *name)
     }
     else
     {
-        *(LoadCardPersistentBlob *)TENCHU_PERSISTENT_STATE_ADDRESS =
-            *(LoadCardPersistentBlob *)(block + sizeof(TCardHeader));
+        __builtin_memcpy((void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                         block + sizeof(TCardHeader),
+                         TENCHU_PERSISTENT_STATE_SIZE);
     }
     vfree(temp);
     return result;

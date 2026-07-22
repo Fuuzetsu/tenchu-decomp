@@ -203,7 +203,6 @@ void StageEndScreen(void)
     GsSPRITE *icon;
     u_long *tim;
     u_long *rank_archive;
-    u8 *best_stage;
     s16 selection;
     s32 dispatch;
     s32 pulse;
@@ -539,10 +538,11 @@ number_1:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
 
-    best_stage = (u8 *)PSTATE + PSTATE->CharType;
-    if (best_stage[0x60] < StageConfig[PSTATE->StageNo].uid)
+    if (PSTATE->StageNoMAX[PSTATE->CharType] <
+        StageConfig[PSTATE->StageNo].uid)
     {
-        best_stage[0x60] = StageConfig[PSTATE->StageNo].uid;
+        PSTATE->StageNoMAX[PSTATE->CharType] =
+            StageConfig[PSTATE->StageNo].uid;
     }
 
     item_index = 1;

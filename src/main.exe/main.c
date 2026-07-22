@@ -49,7 +49,7 @@
  *    gap = unused aggregate" pattern. Neither Ghidra nor m2c shows it (both
  *    optimise it away); only the frame size proves it. The demo's own locals
  *    (`i`/`dat`/`rect`) were removed in retail.
- *  - CHOSEN_STAGE(+5)/CHOSEN_CHARACTER(+4)/PersistentState[0x5F] are read
+ *  - CHOSEN_STAGE(+5)/CHOSEN_CHARACTER(+4)/control_scheme(+0x5F) are read
  *    through ONE `TLinkInfo *ps = (TLinkInfo *)0x80010000;`
  *    assigned right before CreateStage, so cc1 shares a single transient
  *    `%hi(0x8001)` base (the bare-lui rule) instead of re-materialising it per
@@ -117,7 +117,7 @@ int main(void)
     DemoPatchInit();
     InitPersistentState();
     ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    D_800976F6 = ps->field_0x5f[0];
+    D_800976F6 = ps->control_scheme;
     CreateStage(ps->StageNo, ps->CharType);
     FUN_8001b4bc();
     do

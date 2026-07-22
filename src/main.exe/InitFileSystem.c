@@ -54,11 +54,11 @@
  *  - The dispatch is a real if/else-if ladder (SIGNED `slti` for the `< 2`
  *    test, over the reused `mode` register) matching Ghidra's polarity
  *    directly: `mode==1` / else `mode<2` (nested `mode==0`) / else `mode==2`.
- *  - The 16-byte magic write is ONE aligned-1 (byte array) aggregate copy,
+ *  - The 16-byte magic write is ONE aligned-1 byte-array copy,
  *    not Ghidra's 16 separate byte assignments (its usual block-move
  *    decompilation artifact — same class as the DRAWENV copies in
- *    cbAccess.c/FUN_80018f00.c): `*(Buf16 *)0x807f0000 = *(Buf16
- *    *)D_800110F0;` reproduces the raw .s's lwl/lwr+swl/swr chunking.
+ *    cbAccess.c/FUN_80018f00.c). A fixed-size built-in copy reproduces the
+ *    raw .s's lwl/lwr+swl/swr chunking.
  *  - `virtual_memory_pool`'s save/restore around the vinit+vcalloc pair
  *    sits INSIDE the `if (ReadMode & 9)` guard in the asm (the load is
  *    scheduled right after the guard's own delay slot, i.e. only reached
@@ -67,18 +67,13 @@
  *    since the save/restore is a no-op when the guard is false, but this
  *    placement is what the asm's instruction order actually shows).
  */
-typedef struct
-{
-    u8 b[16];
-} Buf16;
-
 extern void PCinit(void);
 extern void cd_init(void);
 extern int strncmp(const char *a, const char *b, u32 n);
 extern void vinit(void *adr, u32 size);
 extern void *vcalloc(u32 size, u8 c);
 extern int AfsOpenVolume(TAFS *handle, char *path);
-extern char D_800110F0[]; /* "ACQUREMEMORYDISK" */
+extern u8 D_800110F0[16]; /* "ACQUREMEMORYDISK" */
 extern char D_80011104[]; /* "TENCHU\DATA" */
 extern void *D_80097EB8;
 
@@ -96,10 +91,11 @@ void InitFileSystem(int mode)
     case 1:
         PCinit();
         if (strncmp((char *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
-                    D_800110F0, TENCHU_PC_MEMORY_HANDSHAKE_SIZE) != 0) {
+                    (char *)D_800110F0,
+                    TENCHU_PC_MEMORY_HANDSHAKE_SIZE) != 0) {
             vinit(0, 0);
-            *(Buf16 *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS =
-                *(Buf16 *)D_800110F0;
+            __builtin_memcpy((void *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
+                             D_800110F0, sizeof(D_800110F0));
             ReadMode = ReadMode | 9;
         }
         if (ReadMode & 9) {
