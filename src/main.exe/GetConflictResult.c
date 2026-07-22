@@ -77,15 +77,15 @@
  *    result==0 skip-branch taken, filling both skip delay slots from the
  *    continue-point (`addiu v0,a2,1` twice); a do-while has no VTOP, the EQ
  *    heuristic predicts not-taken, and the fills come from the fallthrough.
- *  - The pad cap is `found > ConflictObject[iVar3].offset.pad` (found FIRST):
- *    expand evaluates op0 first, putting the (short)found sll before the
- *    lh of offset.pad (spelling it `pad < found` loads first — not a sched
+ *  - The pad cap is `i > ConflictObject[iVar3].offset.pad` (`i` FIRST):
+ *    expand evaluates op0 first, putting the short `i` sll before the
+ *    lh of offset.pad (spelling it `pad < i` loads first — not a sched
  *    tie).
  *  - `model->id` is loaded TWICE, un-CSE'd (the DeleteConflict lhu-vs-lh
  *    split): `int iVar3 = model->id;` (lh — the `== -1` guard and the scan
- *    base id*0x78) and `short sVar1 = model->id;` (lhu, narrowing — the
+ *    base id*0x78) and `short idx = model->id;` (lhu, narrowing — the
  *    post-loop result/position base). Different machine modes don't CSE.
- *  - `if (index < 0)` is `sll a1,16; bgez` (short sign test); `found = 0;`
+ *  - `if (index < 0)` is `sll a1,16; bgez` (short sign test); `i = 0;`
  *    sits before it so reorg fills the bgez delay slot, and `index = 0`
  *    cse-copies the zero (`move a2,a3`).
  *  - All mid-function failure paths `goto ret_m1;`, a label INSIDE the
@@ -100,13 +100,13 @@
 
 short GetConflictResult(ModelType *model, short index)
 {
-    short sVar1;
+    short idx;
     int iVar3;
-    short found;
+    short i;
     int k;
 
     iVar3 = model->id;
-    sVar1 = model->id;
+    idx = model->id;
     if (iVar3 != -1)
     {
         if ((model->attribute & 0x4000) == 0)
@@ -114,7 +114,7 @@ short GetConflictResult(ModelType *model, short index)
         ret_m1:
             return -1;
         }
-        found = 0;
+        i = 0;
         if (index < 0)
         {
             index = 0;
@@ -126,8 +126,8 @@ short GetConflictResult(ModelType *model, short index)
             {
                 if (ConflictObject[iVar3].result[index] != 0)
                 {
-                    found++;
-                    if (found > ConflictObject[iVar3].offset.pad)
+                    i++;
+                    if (i > ConflictObject[iVar3].offset.pad)
                     {
                         goto ret_m1;
                     }
@@ -141,13 +141,13 @@ short GetConflictResult(ModelType *model, short index)
         k = index;
         if (k < ConflictObjects)
         {
-            if (ConflictObject[sVar1].result[k] != 0)
+            if (ConflictObject[idx].result[k] != 0)
             {
-                ConflictObject[sVar1].result[k] |= 0x40;
+                ConflictObject[idx].result[k] |= 0x40;
                 ConflictModel = ConflictObject[k].model;
-                ConflictDistance.vx = (short)ConflictObject[k].position.vx - (short)ConflictObject[sVar1].position.vx;
-                ConflictDistance.vy = (short)ConflictObject[k].position.vy - (short)ConflictObject[sVar1].position.vy;
-                ConflictDistance.vz = (short)ConflictObject[k].position.vz - (short)ConflictObject[sVar1].position.vz;
+                ConflictDistance.vx = (short)ConflictObject[k].position.vx - (short)ConflictObject[idx].position.vx;
+                ConflictDistance.vy = (short)ConflictObject[k].position.vy - (short)ConflictObject[idx].position.vy;
+                ConflictDistance.vz = (short)ConflictObject[k].position.vz - (short)ConflictObject[idx].position.vz;
                 return index;
             }
         }
