@@ -32,11 +32,9 @@
  *    ordinary 2-instruction short-index form (cookbook toolchain
  *    gotchas: distinct from the blocked 3-instruction sign-extend-split
  *    class, which needs a THIRD sra).
- *  - MotionUpdateMode/motID/motMODE are proven u16 in other TUs
- *    (NowReturnNormal.c reads motID with `lhu`), but THIS TU's own
- *    accesses are all signed (`lh` reads, `addiu -1` not `ori 0xffff`
- *    for the terminator store) — per-TU divergent type, same precedent
- *    as other localized signed/unsigned field views (cookbook Expressions).
+ *  - motID and motMODE use their recovered signed `short` declarations here.
+ *    NowReturnNormal's two retail `lhu` reads are localized raw-value views;
+ *    they do not change the underlying objects' types.
  */
 extern Humanoid *Me_MOTION_C;
 
