@@ -49,7 +49,7 @@ short SwimCheck(void)
     short status;
     short i;
     short j;
-    VECTOR splash;
+    VECTOR vect;
     VECTOR *locate;
     int object_id;
     int r;
@@ -94,17 +94,17 @@ short SwimCheck(void)
             }
         }
 
-        splash.vy = Me_MOTION_C->map.level;
+        vect.vy = Me_MOTION_C->map.level;
         i = 0;
         do
         {
             r = rand();
             width = Me_MOTION_C->width;
-            splash.vx = dtL->vx + (r % width) * 2 - width;
+            vect.vx = dtL->vx + (r % width) * 2 - width;
             r = rand();
             width = Me_MOTION_C->width;
-            splash.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&splash, (rand() & 7) << 12,
+            vect.vz = dtL->vz + (r % width) * 2 - width;
+            SetSplash(&vect, (rand() & 7) << 12,
                       (rand() & 7) << 12, 6);
             i++;
         } while (i < 20);

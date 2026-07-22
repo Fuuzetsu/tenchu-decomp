@@ -67,8 +67,8 @@ extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 void AttackFire(s16 sfrm, s16 efrm)
 {
     VECTOR *start_pos;
-    PARAM_ITEM_LAUNCH p;
-    SVECTOR move;
+    PARAM_ITEM_LAUNCH item;
+    SVECTOR vect;
     s16 count;
 
     count = dtM->count;
@@ -78,16 +78,16 @@ void AttackFire(s16 sfrm, s16 efrm)
         {
             Sound(Me_MOTION_C, 0x28);
         }
-        p.type = ITEM_NAPALM;
-        p.user = Me_MOTION_C;
+        item.type = ITEM_NAPALM;
+        item.user = Me_MOTION_C;
         start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, -100, -300);
-        p.start.vx = start_pos->vx;
-        p.start.vy = start_pos->vy;
-        p.start.vz = start_pos->vz;
-        GetMoveSpeed(&move, dtR->vy, 100, 0);
-        p.end.vx = p.start.vx + move.vx;
-        p.end.vy = p.start.vy;
-        p.end.vz = p.start.vz + move.vz;
-        ReqItemUse(&p);
+        item.start.vx = start_pos->vx;
+        item.start.vy = start_pos->vy;
+        item.start.vz = start_pos->vz;
+        GetMoveSpeed(&vect, dtR->vy, 100, 0);
+        item.end.vx = item.start.vx + vect.vx;
+        item.end.vy = item.start.vy;
+        item.end.vz = item.start.vz + vect.vz;
+        ReqItemUse(&item);
     }
 }

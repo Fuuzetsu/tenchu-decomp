@@ -56,17 +56,18 @@
  */
 int ReqItemStay(PARAM_ITEM_STAY *p)
 {
-    PARAM_ITEM_LAUNCH u;
+    PARAM_ITEM_LAUNCH param;
 
-    u.type = p->type;
-    u.user = (Humanoid *)1;
-    u.start.vx = p->locate.vx;
-    u.start.vy = p->locate.vy;
-    u.start.vz = p->locate.vz;
-    u.end.vx = 0;
-    u.end.vy = 0;
-    u.end.vz = 0;
-    u.start.vy = GetAreaMapLevel(GlobalAreaMap, u.start.vx, u.start.vy, u.start.vz, 0);
-    ReqItemDrop(&u);
+    param.type = p->type;
+    param.user = (Humanoid *)1;
+    param.start.vx = p->locate.vx;
+    param.start.vy = p->locate.vy;
+    param.start.vz = p->locate.vz;
+    param.end.vx = 0;
+    param.end.vy = 0;
+    param.end.vz = 0;
+    param.start.vy = GetAreaMapLevel(GlobalAreaMap, param.start.vx,
+        param.start.vy, param.start.vz, 0);
+    ReqItemDrop(&param);
     return 1;
 }

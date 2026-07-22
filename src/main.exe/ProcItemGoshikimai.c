@@ -12,9 +12,9 @@
  *
  * Matching notes (see also ProcItemKusuri.c/ReqItemGoshikimai.c for the
  * item-TU conventions):
- *  - `pp = &item->param.goshikimai;` is the VERY FIRST statement
+ *  - `param = &item->param.goshikimai;` is the VERY FIRST statement
  *    (before even the entry mode==ITEM_MODE_DISPOSE test): the addiu fills
- *    the entry branch's delay slot, same lever as ReqItemGoshikimai's `pp`.
+ *    the entry branch's delay slot, as in ReqItemGoshikimai.
  *  - `if (mode==ff)` (a plain if, separate statement) and the `switch
  *    (item->mode)` right after each get their OWN fresh lbu of item->mode —
  *    two total reloads, matching the switch rule (expand_case always
@@ -32,7 +32,7 @@
  *    MoveHumanoid), just different animation id (0xf03) and status (8).
  *  - `param_goshikimai.vec` is read with the SAME fresh-vs-cached asymmetry
  *    ReqItemGoshikimai writes it with: vec.vx uses
- *    `item->param.goshikimai` directly, while vec.vy/vec.vz use `pp`.
+ *    `item->param.goshikimai` directly, while vec.vy/vec.vz use `param`.
  *  - `item->owner->model->object[0xd]` is recomputed in full for EACH of the
  *    three GetAbsolutePosition calls (three separate jal's in the asm, no
  *    cached model/object pointer) — Ghidra's literal repetition is the
@@ -73,14 +73,14 @@
 
 void ProcItemGoshikimai(TItem *item)
 {
-    param_goshikimai *pp;
-    Humanoid *own;
+    param_goshikimai *param;
+    Humanoid *human;
     MotionDataType *md;
     MotionManager *mot;
-    PARAM_ITEM_LAUNCH prm;
+    PARAM_ITEM_LAUNCH p;
     u8 ff;
 
-    pp = &item->param.goshikimai;
+    param = &item->param.goshikimai;
     ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
@@ -90,14 +90,14 @@ void ProcItemGoshikimai(TItem *item)
     switch (item->mode)
     {
     case 0:
-        own = item->owner;
-        if (ActionHalt == 0 && 0 < own->life)
+        human = item->owner;
+        if (ActionHalt == 0 && 0 < human->life)
         {
-            dispose_weapon_data_of_char_(own, 3);
-            UpdateMotion(own->motion, 0xf03);
-            own->status = 8;
-            md = own->motion->motion;
-            MoveHumanoid(own, md->orderspd, md->sidespd);
+            dispose_weapon_data_of_char_(human, 3);
+            UpdateMotion(human->motion, 0xf03);
+            human->status = 8;
+            md = human->motion->motion;
+            MoveHumanoid(human, md->orderspd, md->sidespd);
         }
         item->mode = item->mode + 1;
         return;
@@ -111,14 +111,14 @@ void ProcItemGoshikimai(TItem *item)
         }
         if (mot->count != 0xf)
             return;
-        prm.type = ITEM_GOSHIKIMAI;
-        prm.user = item->owner;
-        prm.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
-        prm.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;
-        prm.start.vz = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vz;
-        prm.end.vx = item->param.goshikimai.vec.vx;
-        prm.end.vy = pp->vec.vy;
-        prm.end.vz = pp->vec.vz;
+        p.type = ITEM_GOSHIKIMAI;
+        p.user = item->owner;
+        p.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
+        p.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;
+        p.start.vz = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vz;
+        p.end.vx = item->param.goshikimai.vec.vx;
+        p.end.vy = param->vec.vy;
+        p.end.vz = param->vec.vz;
         NowReturnNormal(item->owner);
         if (item->proc != 0)
         {
@@ -132,7 +132,7 @@ void ProcItemGoshikimai(TItem *item)
             item->owner = 0;
             item->proc = 0;
         }
-        ReqItemDrop(&prm);
+        ReqItemDrop(&p);
         return;
     }
 }

@@ -44,7 +44,7 @@
  * x/y/z) at the found enemy's position.
  *
  * Matching notes:
- *  - `local_48 = D_80097ABC[0];` (the whole-SVECTOR copy) is computed BEFORE
+ *  - `pow = D_80097ABC[0];` (the whole-SVECTOR copy) is computed BEFORE
  *    the `memset` call in source, not after — same pooled rodata constant
  *    as leAddPath.c, same lwl/lwr+swl/swr block-copy shape.
  *  - The zeroed/filled VECTOR is a SEPARATE staging local from the one
@@ -72,7 +72,7 @@ int leFindEnemy(void)
     int r;
     int rr;
     int dx, dy, dz;
-    SVECTOR local_48;
+    SVECTOR pow;
     VECTOR pos;
     VECTOR local_40;
 
@@ -104,13 +104,13 @@ int leFindEnemy(void)
 
     if (find != -1)
     {
-        local_48 = D_80097ABC[0];
+        pow = D_80097ABC[0];
         memset((void *)&local_40, 0, 0x10);
         local_40.vx = enemy[find].x;
         local_40.vy = enemy[find].y;
         local_40.vz = enemy[find].z;
         pos = local_40;
-        SetExplosion(&pos, &local_48);
+        SetExplosion(&pos, &pow);
     }
 
     return find;

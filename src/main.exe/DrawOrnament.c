@@ -39,7 +39,7 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - m2c undercounts GsGetLs's call: `objp` (a0) is carried in live from the
  *    caller and never reassigned before the jal, so m2c's basic-block-local
- *    view misses it — Ghidra's 2-arg rendering (&objp->locate, &m) is the
+ *    view misses it — Ghidra's 2-arg rendering (&objp->locate, &mat) is the
  *    real call (same undercount pattern as DrawBG's FUN_80063b94).
  *  - OTablePt is %gp_rel in this TU, same as DrawBG (tools/gpsyms.py
  *    --write; Build.hs maspsxGpExterns + permute.py GP_EXTERNS both list
@@ -49,10 +49,10 @@ extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 
 short DrawOrnament(OrnamentType *objp)
 {
-    MATRIX m;
+    MATRIX mat;
 
-    GsGetLs(&objp->locate, &m);
-    GsSetLsMatrix(&m);
+    GsGetLs(&objp->locate, &mat);
+    GsSetLsMatrix(&mat);
     DrawTMD(&objp->object, OTablePt, 0);
     return 1;
 }

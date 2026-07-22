@@ -59,8 +59,8 @@ void DrawSplash(TEffectSlot *ef)
 {
     SplashType *param;
     GsSPRITE *spr;
-    SVECTOR screen;
-    SVECTOR *screenp;
+    SVECTOR scr;
+    SVECTOR *scrp;
     long x;
     long y;
     long z;
@@ -80,19 +80,19 @@ void DrawSplash(TEffectSlot *ef)
     *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (s16)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
-    screenp = &screen;
-    screenp->vz = (s16)RotTransPers(
-        (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)screenp,
+    scrp = &scr;
+    scrp->vz = (s16)RotTransPers(
+        (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)scrp,
         (void *)TENCHU_SCRATCHPAD(0x28),
         (void *)TENCHU_SCRATCHPAD(0x2c));
     {
         s32 z;
 
-        z = screen.vz;
+        z = scr.vz;
         if (z > 0x24)
         {
-            spr->x = screen.vx;
-            spr->y = screen.vy;
+            spr->x = scr.vx;
+            spr->y = scr.vy;
             spr->scalex = (param->sx * 300) / z + 1;
             spr->scaley = (param->sy * 300) / z + 1;
 
@@ -132,7 +132,7 @@ void DrawSplash(TEffectSlot *ef)
             {
                 s32 t;
 
-                t = (s32)((u16)screen.vz << 16) >> 18;
+                t = (s32)((u16)scr.vz << 16) >> 18;
                 if (t < 0)
                 {
                     goto zero;

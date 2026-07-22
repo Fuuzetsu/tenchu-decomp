@@ -42,24 +42,24 @@ extern char D_800110B8[]; /* "NO IMAGE DATA" */
 
 short LoadTIM(unsigned long *adr)
 {
-    RECT r;
-    GsIMAGE im;
+    RECT rect;
+    GsIMAGE tim;
 
     if (adr == 0) {
         SystemOut(D_800110B8);
     }
-    GsGetTimInfo(adr + 1, &im);
-    r.x = im.px;
-    r.y = im.py;
-    r.w = im.pw;
-    r.h = im.ph;
-    LoadImage(&r, im.pixel);
-    if ((im.pmode >> 3) & 1) {
-        r.x = im.cx;
-        r.y = im.cy;
-        r.w = im.cw;
-        r.h = im.ch;
-        LoadImage(&r, im.clut);
+    GsGetTimInfo(adr + 1, &tim);
+    rect.x = tim.px;
+    rect.y = tim.py;
+    rect.w = tim.pw;
+    rect.h = tim.ph;
+    LoadImage(&rect, tim.pixel);
+    if ((tim.pmode >> 3) & 1) {
+        rect.x = tim.cx;
+        rect.y = tim.cy;
+        rect.w = tim.cw;
+        rect.h = tim.ch;
+        LoadImage(&rect, tim.clut);
     }
     DrawSync(0);
 }

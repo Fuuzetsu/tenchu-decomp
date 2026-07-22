@@ -39,14 +39,14 @@ extern VECTOR D_80097F90;
 
 VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z)
 {
-    MATRIX m;
-    SVECTOR v;
+    MATRIX mat;
+    SVECTOR offset;
 
-    GsGetLw(&model->locate, &m);
-    GsSetLsMatrix(&m);
-    v.vx = x;
-    v.vy = y;
-    v.vz = z;
-    RotTrans(&v, &D_80097F90, (long *)0);
+    GsGetLw(&model->locate, &mat);
+    GsSetLsMatrix(&mat);
+    offset.vx = x;
+    offset.vy = y;
+    offset.vz = z;
+    RotTrans(&offset, &D_80097F90, (long *)0);
     return &D_80097F90;
 }

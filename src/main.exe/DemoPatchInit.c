@@ -36,12 +36,12 @@ extern u_long DemoBackupArea[];
 
 void DemoPatchInit(void)
 {
-    RECT r;
+    RECT rc;
 
-    r.x = 0x3f0;
-    r.y = 0x1ff;
-    r.w = 0x10;
-    r.h = 1;
-    StoreImage2(&r, DemoBackupArea);
+    rc.x = 0x3f0;
+    rc.y = 0x1ff;
+    rc.w = 0x10;
+    rc.h = 1;
+    StoreImage2(&rc, DemoBackupArea);
     DrawSync(0);
 }

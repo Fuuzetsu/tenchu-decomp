@@ -34,7 +34,7 @@
  * `tim.clut` into a local and wrapping the second call in a one-shot loop;
  * both were scaffolding, and both were the cause of the 12 bytes rather than
  * a partial cure. Removing them fixes the register naming outright ($a2/$a3
- * for cw/ch, `&r` materialised early) because sched1 can then hoist the
+ * for cw/ch, `&rect` materialised early) because sched1 can then hoist the
  * `addiu $a0,$sp,0x10` above the four stores, which makes $a0 conflict with
  * the geometry temps and pushes them off $a0/$a1.
  *
@@ -53,7 +53,7 @@
  *   label past it: +1 insn, `i + 1` duplicated, exactly as retail does.
  *   Predicted NOT taken, reorg instead raids the FALLTHROUGH, which it DOES
  *   own, and MOVES `addiu $a0,$sp,0x10` out of the block into the slot: one
- *   instruction short, with a hole where the `&r` materialisation was.
+ *   instruction short, with a hole where the `&rect` materialisation was.
  *   (The four `lhu`s are ineligible for a delay slot — MIPS loads carry
  *   hazard=delay — and every `sh` references a register the skipped loads put
  *   in reorg's `set`, so that `addiu` is the only thing the fallthrough
@@ -99,7 +99,7 @@ extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
 
 short LoadTIMpack(unsigned long *adr)
 {
-    RECT r;
+    RECT rect;
     GsIMAGE tim;
     u_long *puVar2;
     u16 uVar1;
@@ -118,17 +118,17 @@ short LoadTIMpack(unsigned long *adr)
     if (0 < n) {
         do {
             GsGetTimInfo((u_long *)((int)puVar2 + adr[0] + 4), &tim);
-            r.x = tim.px;
-            r.y = tim.py;
-            r.w = tim.pw;
-            r.h = tim.ph;
-            LoadImage(&r, tim.pixel);
+            rect.x = tim.px;
+            rect.y = tim.py;
+            rect.w = tim.pw;
+            rect.h = tim.ph;
+            LoadImage(&rect, tim.pixel);
             if ((tim.pmode >> 3 & 1) != 0) {
-                r.x = tim.cx;
-                r.y = tim.cy;
-                r.w = tim.cw;
-                r.h = tim.ch;
-                LoadImage(&r, tim.clut);
+                rect.x = tim.cx;
+                rect.y = tim.cy;
+                rect.w = tim.cw;
+                rect.h = tim.ch;
+                LoadImage(&rect, tim.clut);
                 do {
                 } while (0);
             }

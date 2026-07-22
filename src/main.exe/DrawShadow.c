@@ -60,7 +60,7 @@
  *
  * Matching notes:
  *  - The retail 0x60-byte frame is the natural packing of the original
- *    VECTOR scale, MATRIX, SVECTOR screen result, and two long RotTransPers
+ *    VECTOR scl, MATRIX mat, SVECTOR scr result, and two long RotTransPers
  *    outputs.  No synthetic padding or scratch overlay is needed.
  *  - `height` comes from the archive's own `model->rotate.pad`, not from
  *    `object[0]`.  Keeping both archive reads on `human->model` lets CSE
@@ -75,7 +75,7 @@
  *    `slot` on success: the transfer at the found edge produces the target's
  *    loop-exit move and restores the idx/count/slot register assignment.
  *  - ShadowMdl is viewed as ModelType: locate@0, rotate@0x50, and
- *    object@0x64 account for every use.  The chained scale assignment emits
+ *    object@0x64 account for every use.  The chained scl assignment emits
  *    the target's reverse z/y/x stack-store order.
  */
 
@@ -83,9 +83,9 @@ extern void FUN_80037e0c(Humanoid *human, s32 mode);
 extern void DrawSplash(TEffectSlot *ef);
 void DrawShadow(Humanoid *human)
 {
-    VECTOR scale;
-    MATRIX matrix;
-    SVECTOR screen;
+    VECTOR scl;
+    MATRIX mat;
+    SVECTOR scr;
     s32 p;
     s32 flag;
     VECTOR *position;
@@ -198,7 +198,7 @@ void DrawShadow(Humanoid *human)
         ShadowMdl->locate.coord.t[1] = position->vy;
         ShadowMdl->locate.coord.t[2] = position->vz;
 
-        scale.vx = scale.vy = scale.vz = height * 4 - (human->map.height >> 1);
+        scl.vx = scl.vy = scl.vz = height * 4 - (human->map.height >> 1);
         angle = human->map.angleH;
         if (angle != 0)
         {
@@ -214,12 +214,12 @@ void DrawShadow(Humanoid *human)
         }
 
         RotMatrixYXZ(&ShadowMdl->rotate, &ShadowMdl->locate.coord);
-        ScaleMatrix(&ShadowMdl->locate.coord, &scale);
+        ScaleMatrix(&ShadowMdl->locate.coord, &scl);
         ShadowMdl->locate.flg = 0;
-        GsGetLs(&ShadowMdl->locate, &matrix);
-        GsSetLsMatrix(&matrix);
-        depth = RotTransPers(&UnitVector, (s32 *)&screen, &p, &flag);
-        screen.vz = depth;
+        GsGetLs(&ShadowMdl->locate, &mat);
+        GsSetLsMatrix(&mat);
+        depth = RotTransPers(&UnitVector, (s32 *)&scr, &p, &flag);
+        scr.vz = depth;
         if ((depth << 16) >> 18 < 0x4e2)
         {
             GsSortObject4(&ShadowMdl->object, OTablePt, 2,
