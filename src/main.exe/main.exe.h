@@ -29,7 +29,7 @@ extern short DrawingPage;
 extern WeaponType WeaponDB[28];
 extern WeaponModelType WeaponModel[41];
 extern MotionRegistType MOTcommon[41];
-/* Retail adds one debug-menu icon slot to PSX.SYM's 25-entry table. */
+/* Retail initializes slots 0..25; the next global confirms 26-pointer storage. */
 extern Sprite3D *ItemImage[26];
 extern SoundEffect *StageSE;
 extern short VoiceMode;

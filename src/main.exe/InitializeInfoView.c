@@ -32,8 +32,8 @@
 /*
  * InitializeInfoView (0x8004a790, 0x160 bytes) — one-time HUD/inventory init,
  * called from DoInfoViewProc the first frame (guarded by fInitialize) and
- * from main(). Sets up the cursor/digit sprites, a 26-slot pool of debug
- * item-icon sprites (ItemImage, images 0x14.. then padded with image 0xF),
+ * from main(). Sets up the cursor/digit sprites, the shared 26-slot item-image
+ * table (ItemImage, images 0x14.. then padded with image 0xF),
  * and the 4-entry ItemSprite3Ds array, then resets enemy layout/info-view
  * state and marks fInitialize.
  *
