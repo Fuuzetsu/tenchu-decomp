@@ -17,6 +17,7 @@ extern short RefrectMove[16][2];
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern ModelType World;
+extern WorldType WorldMap[8][8][8];
 extern TEnemyLayout enemy[30];
 extern short MotionUpdateMode;
 extern short SelectedItem;

@@ -131,7 +131,6 @@ typedef struct WorldDataType
     } real;
 } WorldDataType;
 
-extern WorldType WorldMap[8][8][8];
 extern ObjectSlotManager ModelSlot;
 extern OrnamentArchiveType *D_80097A70;
 extern OrnamentArchiveType *D_80097A74;
