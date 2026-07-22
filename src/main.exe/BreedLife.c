@@ -232,7 +232,7 @@ scan_next:
 
     if (type == 0x87)
     {
-        human->item[3] = 1;
+        human->item[ITEM_KUSURI] = 1;
     }
     if (type < 0x8B)
         goto low_type;

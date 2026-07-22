@@ -30,10 +30,10 @@
  * ItemUse (0x8002dc0c, 0x10c bytes) — think-handler: while idle
  * (something_about_current_animation->count == 0,
  * i.e. motion just started) and status == USING_ITEM, auto-uses one of the
- * three "use while idling" items in priority order: kusuri (index 3, when
- * health is under a third of max), then shuriken-ish (index 1, only when
- * roughly facing the target, |Degree| < 100) or fire (index 4, only when
- * |Degree| < 300) triggering SetNowMotion.
+ * three "use while idling" items in priority order: kusuri (when health is
+ * under a third of max), then shuriken (only when roughly facing the target,
+ * |Degree| < 100), or fire (only when |Degree| < 300), triggering
+ * SetNowMotion.
  *
  * `Me_THINK_C->item[N]` (Ghidra's flat array) is the SAME memory as
  * game_types.h's `inventory.player_item_counts` union — item.h's Humanoid
@@ -78,7 +78,7 @@ static s16 ItemUse(void)
         return 5;
     }
 
-    if (Me_THINK_C->item[3] != 0 &&
+    if (Me_THINK_C->item[ITEM_KUSURI] != 0 &&
         Me_THINK_C->life < Me_THINK_C->lifemax / 3)
     {
         ReqItemDefault(Me_THINK_C, ITEM_KUSURI);
@@ -86,7 +86,7 @@ static s16 ItemUse(void)
     }
 
     me = Me_THINK_C;
-    if (me->item[1] != 0)
+    if (me->item[ITEM_SHURIKEN] != 0)
     {
         d = Degree;
         if (d < 0)
@@ -100,7 +100,7 @@ static s16 ItemUse(void)
         }
     }
 
-    if (me->item[4] == 0)
+    if (me->item[ITEM_FIRE] == 0)
     {
         goto end;
     }
