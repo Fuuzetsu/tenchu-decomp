@@ -400,7 +400,7 @@ GP_EXTERNS = {
     "ControlHumanoid": ["VISIBLE_ENEMIES_"],
     "SuccessionAttack": ["Me_THINK_C", "Distance", "Degree", "EngageLevel"],
     "Think3callaid": ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"],
-    "InitFileSystem": ["ReadMode", "TotalIO", "D_80097EB8"],
+    "InitFileSystem": ["ReadMode", "TotalIO", "MDfat"],
     "cbAccess": ["AccessPower"],
     "FUN_80056e30": ["TENCHU_ID"],
     "FUN_80038fdc": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],

@@ -3439,6 +3439,7 @@ EMPTY_STRING = 0x80097d64;
 SystemFlag = 0x80097e74;
 AdtPadRead = 0x80097e90;
 OTablePt = 0x80097eb0;
+MDfat = 0x80097eb8;
 ConflictDistance = 0x80097ec8;
 ConflictModel = 0x80097ed0;
 FieldArea = 0x80097ed4;

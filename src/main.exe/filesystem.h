@@ -9,6 +9,7 @@ typedef TFileHandle FILE;
 typedef struct TAFSElement TAFSElement;
 typedef struct TAFSFileHandle TAFSFileHandle;
 typedef struct TAFS TAFS;
+typedef struct MemoryDiskType MemoryDiskType;
 
 /* FILEIO's original seek-origin type from PSX.SYM. */
 typedef enum TSeekMode TSeekMode;
@@ -59,8 +60,16 @@ struct TAFS
     TAFSFileHandle *pHandle;
 };
 
+struct MemoryDiskType
+{
+    unsigned char name[24];
+    unsigned long size;
+    unsigned long *data;
+};
+
 /* FILEIO.C-private originally; extern because that source is split here. */
 extern TAFS systemAFS;
+extern MemoryDiskType *MDfat;
 /* FILEIO.C's ten-slot CD handle pool, named by the demo symbol data. */
 extern FILE FileHandlePool[10];
 

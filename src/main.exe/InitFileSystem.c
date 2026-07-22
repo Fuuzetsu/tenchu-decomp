@@ -39,10 +39,9 @@
  * already there), sets ReadMode's PC-link bits, then — if EITHER the
  * PC-link bit (1) or the just-set "acquire" bit (8) is set — reinitializes
  * the virtual-memory pool at a fixed 0x80200000/0x5f0000 region and
- * pre-allocates an 0x8000-byte scratch block, before writing a bookkeeping
- * pointer into D_80097EB8 (an unnamed neighbour of OTablePt, NOT OTablePt
- * itself — real OTablePt is 0x80097eb0 (StartDrawing.c), 8 bytes earlier;
- * PSX.SYM's demo-build global list is imprecise here). Case 2 (CD-ROM)
+ * pre-allocates an 0x8000-byte scratch block, before pointing the original
+ * `MemoryDiskType *MDfat` at the low-memory payload. MDfat is the neighbour
+ * of OTablePt at 0x80097eb8, not OTablePt itself. Case 2 (CD-ROM)
  * inits the CD and opens the "TENCHU\DATA" AFS volume into the global
  * `systemAFS` handle.
  *
@@ -75,7 +74,6 @@ extern void *vcalloc(u32 size, u8 c);
 extern int AfsOpenVolume(TAFS *handle, char *path);
 extern u8 D_800110F0[16]; /* "ACQUREMEMORYDISK" */
 extern char D_80011104[]; /* "TENCHU\DATA" */
-extern void *D_80097EB8;
 
 void InitFileSystem(int mode)
 {
@@ -105,7 +103,7 @@ void InitFileSystem(int mode)
             vcalloc(0x8000, 0);
             virtual_memory_pool = saved_pool;
         }
-        D_80097EB8 = (void *)TENCHU_PC_MEMORY_PAYLOAD_ADDRESS;
+        MDfat = (MemoryDiskType *)TENCHU_PC_MEMORY_PAYLOAD_ADDRESS;
         break;
     case 2:
         CdInit();
