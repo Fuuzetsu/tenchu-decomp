@@ -100,8 +100,6 @@ extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Fixed model for launched items (not indexed by type, unlike the other
- * twins' ItemImage[it->type]). */
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
