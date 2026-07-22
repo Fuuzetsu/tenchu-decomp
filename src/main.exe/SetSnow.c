@@ -33,7 +33,7 @@ extern void *GlobalAreaMap;
 extern void DrawSnow(TEffectSlot *ef);
 extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
 
-void SetSnow(long *arg0, u16 *arg1, s32 arg2, u8 arg3)
+void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
 {
     int idx;
     int count;
@@ -41,7 +41,7 @@ void SetSnow(long *arg0, u16 *arg1, s32 arg2, u8 arg3)
     TEffectSlot *slot;
     TEffectSlot *ef;
     SnowParticleType *particle;
-    u16 vy;
+    u16 vz;
 
     idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
     count = 0;
@@ -73,17 +73,17 @@ loop:
     }
     goto loop;
 found:
-    ef->param.snow.x = arg0[0];
+    ef->param.snow.x = pos->vx;
     particle = &ef->param.snow;
-    particle->y = arg0[1];
-    particle->z = arg0[2];
-    particle->velocity[0] = arg1[0];
-    particle->velocity[1] = arg1[1];
-    vy = arg1[2];
-    particle->sprite = arg3;
-    particle->size = arg2;
+    particle->y = pos->vy;
+    particle->z = pos->vz;
+    particle->velocity[0] = velocity->vx;
+    particle->velocity[1] = velocity->vy;
+    vz = velocity->vz;
+    particle->sprite = sprite;
+    particle->size = size;
     particle->sample_y = particle->y - 8000;
-    particle->velocity[2] = vy;
+    particle->velocity[2] = vz;
     particle->ground = GetAreaMapLevel(GlobalAreaMap, ef->param.snow.x,
         particle->sample_y, particle->z, 8);
     ef->proc = (void (*)())DrawSnow;

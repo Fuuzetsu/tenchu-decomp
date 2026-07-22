@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "misc.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -92,7 +93,6 @@
 
 extern long GameClock;
 extern GsRVIEW2 ViewInfo;
-extern void SetSnow(long *arg0, u16 *arg1, s32 arg2, u8 arg3);
 extern void *memset(void *s, int c, u32 n);
 
 void ProcMiscSnowfall(tag_TMisc *m, enum TMiscMessage msg)
@@ -150,6 +150,6 @@ do_resume:
         posRaw.vy = ViewInfo.vry + (rand() % 3000 - 6000);
         posRaw.vz = ViewInfo.vrz + (rand() % 6000 - 3000);
         pos = posRaw;
-        SetSnow((long *)&pos, (u16 *)&vel, 0x1000, 0);
+        SetSnow(&pos, &vel, 0x1000, 0);
     }
 }
