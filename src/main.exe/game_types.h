@@ -72,6 +72,14 @@ struct TAdtSelect
     u32 value;     /* 0x4 */
 };
 
+/* ADT's original quiet-state names, recovered from the demo's PSX.SYM. */
+typedef enum AdtQuietMode AdtQuietMode;
+enum AdtQuietMode
+{
+    ADT_NORMAL = 0,
+    ADT_QUIET = 1
+};
+
 /* ADT's saved PSY-Q font settings. */
 typedef struct AdtFntState AdtFntState;
 struct AdtFntState
@@ -84,7 +92,7 @@ struct AdtFntState
     s32 n;                           /* 0x14 */
     s32 tx;                          /* 0x18 */
     s32 ty;                          /* 0x1C */
-    s32 quiet;                       /* 0x20 */
+    AdtQuietMode quiet;              /* 0x20 */
 };                                   /* 0x24 */
 
 /* PSY-Q executable header, recovered verbatim in the demo's PSX.SYM. */

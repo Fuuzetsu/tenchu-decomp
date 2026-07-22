@@ -39,7 +39,8 @@
  *    stack reload of fmt at the merge point instead of reusing the
  *    register each arm already has it in (cc1 still cross-jump-merges the
  *    resulting identical tails at the RTL level, so this costs nothing).
- *  - The two guard clauses (`AdtFnt.quiet == 1` and the button-held check)
+ *  - The two guard clauses (`AdtFnt.quiet == ADT_QUIET` and the button-held
+ *    check)
  *    are plain early `return;`s with no `else` — Ghidra's own rendering of
  *    the second one (`if (A==0 || B==0) { <long body> }`, no else) is the
  *    De-Morgan-inverted form of the natural guard clause; the SECOND
@@ -90,7 +91,7 @@ void AdtMessageBox(char *fmt, ...)
     mode = 0;
     if (AdtPadRead == AdtDmyPadRead)
         fmt = D_80014AAC;
-    if (D_8008F1B8.quiet == 1)
+    if (D_8008F1B8.quiet == ADT_QUIET)
         return;
     if (*fmt == '%')
     {

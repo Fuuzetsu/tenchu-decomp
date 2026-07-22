@@ -16,5 +16,6 @@ struct TAdtDisp
 
 void AdtGetDisp(TAdtDisp *disp);
 void AdtReleaseDisp(TAdtDisp *disp);
+AdtQuietMode AdtQuiet(AdtQuietMode quiet);
 
 #endif

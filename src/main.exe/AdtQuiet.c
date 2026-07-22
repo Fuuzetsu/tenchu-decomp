@@ -1,11 +1,12 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
 extern AdtFntState D_8008F1B8;
 
-s32 AdtQuiet(s32 quiet)
+AdtQuietMode AdtQuiet(AdtQuietMode quiet)
 {
-    s32 old = D_8008F1B8.quiet;
+    AdtQuietMode old = D_8008F1B8.quiet;
     D_8008F1B8.quiet = quiet;
     return old;
 }

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "filesystem.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -31,13 +32,13 @@
 
 /*
  * LoadFromCDROM (0x80019650, 0x118 bytes) — loads a file from the AFS
- * volume on disc: bumps TotalIO, mutes the CD-audio pump (AdtQuiet),
- * opens `filename` via AfsOpen on the global `systemAFS` handle; a NULL
- * result restores the audio state and reports via AdtMessageBox. On
+ * volume on disc: bumps TotalIO, temporarily enables normal ADT messages,
+ * and opens `filename` via AfsOpen on the global `systemAFS` handle; a NULL
+ * result restores the prior quiet mode and reports via AdtMessageBox. On
  * success, optionally logs (ReadMode & 4), gets the file's size via
  * AfsFileSize, takes MemoryLoadAddress as a pre-supplied buffer if set
  * (consuming it) or valloc()s a fresh one, reads it via AfsRead, closes
- * the handle, restores the audio state, and returns the buffer. Same
+ * the handle, restores the prior quiet mode, and returns the buffer. Same
  * proven TAFS/TAFSFileHandle layout as
  * AfsRead.c/AfsFileSize.c/AfsClose.c/AfsOpen.c.
  *
@@ -69,7 +70,6 @@
  *    the short-body exception flips back once the "success" side is the
  *    LONGER of the two arms.
  */
-extern s32 AdtQuiet(s32 quiet);
 extern TAFSFileHandle *AfsOpen(TAFS *handle, char *path);
 extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
 extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);
@@ -85,13 +85,13 @@ extern TAFS systemAFS;
 
 u_long *LoadFromCDROM(u8 *filename)
 {
-    s32 quiet;
+    AdtQuietMode quiet;
     TAFSFileHandle *fd;
     s32 size;
     u_long *buff;
 
     TotalIO = TotalIO + 1;
-    quiet = AdtQuiet(0);
+    quiet = AdtQuiet(ADT_NORMAL);
     fd = AfsOpen(&systemAFS, (char *)filename);
     if (fd != 0) {
         if (ReadMode & 4) {
