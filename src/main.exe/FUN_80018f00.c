@@ -88,7 +88,6 @@
  * on this class; `tools/matchdiff.py` was the only trustworthy signal.
  */
 extern void VSyncCallback(void (*f)(void));
-extern POLY_GT4 AccessImage;
 
 void FUN_80018f00(void)
 {

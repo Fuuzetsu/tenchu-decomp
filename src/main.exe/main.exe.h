@@ -57,6 +57,7 @@ extern unsigned char *ImagePath;
 extern int AccessPower;
 extern int ReadMode;
 extern int TotalIO;
+extern POLY_GT4 AccessImage;
 
 extern void SetCameraMode(TCameraMode mode);
 extern short NowReturnNormal(struct Humanoid *human);

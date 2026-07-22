@@ -75,7 +75,6 @@
  * scheduling tie. A one-shot loop and declaration-order changes did not
  * affect the address merge; guided autorules likewise found no improvement.
  */
-extern POLY_GT4 AccessImage;
 
 void cbAccess(void)
 {

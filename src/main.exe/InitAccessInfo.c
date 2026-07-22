@@ -31,7 +31,6 @@
 
 extern GsIMAGE *GetImage(s32 id);
 extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, s32 x, s32 y);
-extern POLY_GT4 AccessImage;
 
 void InitAccessInfo(void)
 {
