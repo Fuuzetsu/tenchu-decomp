@@ -41,7 +41,7 @@
  *  - The mode dispatch is the two-independent-goto shape: `if (mode==0) goto
  *    fly; if (mode==1) goto korogari; return;` — both bodies are forward-jump
  *    targets, the do-nothing default falls through.
- *  - `k = 0x1000;` as a named local shares the constant across `q = k - …`
+ *  - A named runtime copy of `one` shares the constant across `q = k - …`
  *    and `w9 = k - d2 + …` (one `li` reused as a subtract base), matching the
  *    target's a3; two inline `0x1000` literals compile a fold-reassociated
  *    `q2 + 0x1000` and diverge.
@@ -62,6 +62,10 @@ extern void MoveKorogari(TItem *item, param_korogari *param);
 
 static void MoveFly(TItem *item, param_fly *param)
 {
+    enum
+    {
+        one = 4096
+    };
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;
     s32 xs, ys, zs;
     s32 t, ax, ay, az;
@@ -76,7 +80,7 @@ static void MoveFly(TItem *item, param_fly *param)
 
 fly:
     t = param->p.fly.count;
-    k = 0x1000;
+    k = one;
     q = k - (t << 12) / param->p.fly.count2;
     q2 = q * q;
     d2 = q * 2;
