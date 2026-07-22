@@ -60,7 +60,7 @@ extern HenshinModelSnapshot D_800C06F0;
 extern struct
 {
     u8 type[2];
-} HensinT[];
+} HensinT[9];
 
 typedef struct Humanoid
 {
