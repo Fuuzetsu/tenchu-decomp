@@ -46,16 +46,16 @@
  * ProcItemKaengeki as its processor.
  *
  * This packs p->start and p->end into PSX.SYM's `param_kaengeki` as six full
- * words. start.vx is addressed through `it->param.kaengeki` directly; the
- * other fields use the already-computed `pp` pointer.
+ * words. start.vx is addressed through `item->param.kaengeki` directly; the
+ * other fields use the already-computed `param` pointer.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = &it->param.kaengeki;` sits BEFORE the null check, so its
+ *  - `param = &item->param.kaengeki;` sits BEFORE the null check, so its
  *    addiu fills the beqz delay slot.
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; dead afterward (p->start.vy/vz are re-read
- *    directly off p, not through st, in the param tail below).
- *  - us/ty are real temps, same shape as the other twins.
+ *    directly off p, not through pos, in the param tail below).
+ *  - aowner/atype are real temps, same shape as the other twins.
  *  - The six start/end fields are INLINE (no x/y/z temps): each compiles to
  *    one lw immediately followed by its sw with no batching, unlike the
  *    s16-narrowing twins which batch three loads before three stores.
@@ -66,11 +66,11 @@ extern void ProcItemKaengeki(TItem *item);
 
 int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    param_kaengeki *pp;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    TItem *item;
+    param_kaengeki *param;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 i;
 
     i = 0;
@@ -79,46 +79,46 @@ int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    pp = &it->param.kaengeki;
-    if (it == 0)
+    param = &item->param.kaengeki;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemKaengeki;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
-    it->param.kaengeki.start.vx = p->start.vx;
-    pp->start.vy = p->start.vy;
-    pp->start.vz = p->start.vz;
-    pp->end.vx = p->end.vx;
-    pp->end.vy = p->end.vy;
-    pp->end.vz = p->end.vz;
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemKaengeki;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
+    item->param.kaengeki.start.vx = p->start.vx;
+    param->start.vy = p->start.vy;
+    param->start.vz = p->start.vz;
+    param->end.vx = p->end.vx;
+    param->end.vy = p->end.vy;
+    param->end.vz = p->end.vz;
     return 1;
 }
