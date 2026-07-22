@@ -54,7 +54,8 @@
  *  - `sv = sv2;` (plain SVECTOR struct assignment, align 2) reproduces the
  *    target's `lwl/lwr`+`swl/swr` copy immediately before the
  *    `VectorNormalSS(&sv, &sv2)` call.
- *  - The round-toward-negative-infinity `>>5` (divide by 32) needs THREE
+ *  - Retail evolves CAMERA.C's original `VSHIFT` from 8 to 5. The
+ *    round-toward-negative-infinity `>> VSHIFT` needs THREE
  *    SEPARATE `s32` temps (t1/t2/t3), one per axis — not one reused temp.
  *    gcc 2.8.1 never splits a pseudo's live range, so a single shared temp
  *    pins the whole computation to one register and serializes it; the
@@ -78,6 +79,10 @@
 
 void SnapCameraTargetVector(void)
 {
+    enum
+    {
+        VSHIFT = 5
+    };
     VECTOR v;
     SVECTOR sv, sv2;
     VECTOR *target;
@@ -98,16 +103,16 @@ void SnapCameraTargetVector(void)
 
     t1 = sv2.vx;
     if (t1 < 0)
-        t1 += 0x1f;
-    sv2.vx = (s16)(t1 >> 5);
+        t1 += (1 << VSHIFT) - 1;
+    sv2.vx = (s16)(t1 >> VSHIFT);
     t2 = sv2.vy;
     if (t2 < 0)
-        t2 += 0x1f;
-    sv2.vy = (s16)(t2 >> 5);
+        t2 += (1 << VSHIFT) - 1;
+    sv2.vy = (s16)(t2 >> VSHIFT);
     t3 = sv2.vz;
     if (t3 < 0)
-        t3 += 0x1f;
-    sv2.vz = (s16)(t3 >> 5);
+        t3 += (1 << VSHIFT) - 1;
+    sv2.vz = (s16)(t3 >> VSHIFT);
 
     target = GetAreaMapPassage(GlobalAreaMap, &v, &sv2, -1);
     if (target != 0)
