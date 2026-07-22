@@ -12,6 +12,7 @@ extern struct Humanoid *StagePlayer;
 extern short Humans;
 extern short ActionHalt;
 extern short EngageLevel;
+/* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;
 extern short *StageAppearance[10];
