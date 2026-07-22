@@ -45,7 +45,7 @@
  * mode-set 0xe, VSync(3) to let it settle), resets the status/check-count
  * bookkeeping, sets the play filter (file=1, chan=channel) via cd_control
  * 0xd, and installs the vsync-driven pump callback (cbCheckCD). Returns 1
- * on success, 0 if already playing or the file wasn't found. Same proven
+ * on success, 0 if CD audio is disabled or the file wasn't found. Same proven
  * TCdaStatus struct as CdaStop.c/CdaReady.c/CdaGetCurrentLength.c.
  *
  * Matching notes:
