@@ -70,7 +70,6 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern short NowReturnNormal(Humanoid *human);
 
 void ProcItemGoshikimai(TItem *item)
 {

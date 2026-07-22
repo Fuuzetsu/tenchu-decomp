@@ -24,6 +24,7 @@ extern char FONT_FILE_NAME;
 extern char IMAGES_PREFIX_STR;
 
 extern void SetCameraMode(TCameraMode mode);
+extern short NowReturnNormal(struct Humanoid *human);
 
 extern u_long *FileRead(u8 *filename);
 extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);

@@ -57,7 +57,6 @@ typedef union
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern SVECTOR D_80097AF4[];
 
-extern short NowReturnNormal(Humanoid *human);
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern Humanoid *GetHumanoid(s16 type);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
