@@ -44,8 +44,8 @@
 extern char D_800124C0[]; /* "select item" */
 extern char D_800124EC[]; /* "number of" */
 extern u16 D_8008E4F0[];  /* cheat sequence 1 */
-/* The retail command grew from the demo's original short [15] to 22 entries. */
-extern s16 ForbiddenCommand[22];
+/* The retail command grew from the demo's original short [15] to 21 entries. */
+extern s16 ForbiddenCommand[21];
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s32 memcmp(void *a, void *b, s32 n);
