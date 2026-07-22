@@ -3383,6 +3383,7 @@ ImagePath = 0x800976d4;
 GlobalAreaMap = 0x800976e4;
 D_800976E8 = 0x800976e8;
 ConflictObjects = 0x800976ec;
+align = 0x800976f0;
 MotionPack = 0x800976f8;
 PlayerMotion = 0x80097700;
 Humans = 0x80097724;

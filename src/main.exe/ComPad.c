@@ -59,7 +59,7 @@ extern int PadInfoMode(int port, int mode, int unused);
 extern int PadGetState(int port);
 extern int PadSetAct(int port, u8 *data, int len);
 extern int PadSetActAlign(int port, u8 *data);
-extern u8 D_800976F0[6];
+extern u8 align[6];
 
 void ComPad(int port, u8 *rxbuf)
 {
@@ -156,7 +156,7 @@ void ComPad(int port, u8 *rxbuf)
         {
             if (initlevel != 6)
                 return;
-            PadSetActAlign(port, D_800976F0);
+            PadSetActAlign(port, align);
         }
         pad->Send = 1;
     }
