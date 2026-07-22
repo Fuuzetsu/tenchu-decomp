@@ -174,10 +174,6 @@ void ProcItemNingyo(TItem *item)
             }
             else
             {
-                enum
-                {
-                    R = 100
-                };
                 Humanoid *owner;
                 s32 type;
                 ModelType *loaded_model;
@@ -200,12 +196,9 @@ void ProcItemNingyo(TItem *item)
                     ((VECTOR *)model)->vy;
                 ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vz =
                     ((VECTOR *)model)->vz;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vx =
-                    rand() % (R * 2) - R;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vy =
-                    rand() % R - R * 2;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vz =
-                    rand() % (R * 2) - R;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vx = rand() % 200 - 100;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vy = rand() % 100 - 200;
+                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vz = rand() % 200 - 100;
                 ReqItemDrop((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz);
             }
         }
@@ -298,10 +291,6 @@ draw_mode0:
 
     case 2:
     {
-        enum
-        {
-            R = 100
-        };
         s32 count;
 
         if ((item->locate->attribute & 0x8000) == 0)
@@ -381,6 +370,10 @@ draw_mode0:
                 }
                 else
                 {
+                    enum
+                    {
+                        R = 100
+                    };
                     s32 vz;
                     s32 vx;
                     s32 shifted_vx;
@@ -414,6 +407,10 @@ draw_mode0:
             }
             else if (collision_mode != 8)
             {
+                enum
+                {
+                    R = 100
+                };
                 s32 random_x;
                 s32 random_z;
                 s32 vx;
