@@ -57,7 +57,7 @@
  *    + COUNTER_FOR_ITEM_ARRAY_;` in the loop/dispose block, `it = cur;`
  *    assigned once in the early-exit branch and once before the dispose
  *    block's final owner/proc zeroing — this function's register pressure
- *    (SVECTOR local + pp + it + p all live around the tail) again pushes
+ *    (stack rotation outputs + pp + it + p all live around the tail) pushes
  *    `cur`/`it` to different hard registers, making the transfer a real
  *    `move` (see the cookbook rule this pair of functions taught).
  *  - `pp = &it->param.lightningbolt;` sits BEFORE the null check, same
