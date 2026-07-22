@@ -95,7 +95,8 @@ extern GsOT *OTablePt;
 extern AreaNodeType *FieldArea;
 extern long GameClock;
 
-extern long GetAreaMapLevel(unsigned long *map, long x, long y, long z, short flag);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            short mode);
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
 extern void GetScreenPosition(long x, long y, long z, SVECTOR *scr);
 extern void SoundEx(VECTOR *pos, int sound);

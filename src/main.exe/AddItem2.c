@@ -57,8 +57,8 @@
  *    original's `lui v0,%hi / addiu t3,v0,%lo` (local-alloc gives the
  *    short-lived hi temp the first free reg, $v0).
  *  - GetAreaMapLevel's real prototype (see ReqItemDrop.c) takes 5 args
- *    (map,x,y,z,flag); Ghidra's rendering of this call site drops 2 of them
- *    (y and flag) even though the registers show all 5 (a0=map,
+ *    (area,x,y,z,mode); Ghidra's rendering of this call site drops 2 of them
+ *    (y and mode) even though the registers show all 5 (a0=area,
  *    a1=gx, a2=gy, a3=gz, stack=1).
  *  - GetAreaMapLevel's result h is NOT stored into locate.vy until inside
  *    the `if` body, alongside vx/vz; and gy (the t[1] load) is HOSTED in h

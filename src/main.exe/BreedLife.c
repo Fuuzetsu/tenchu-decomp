@@ -140,10 +140,10 @@
  *    GlobalAreaMap;` position — read early, consumed only much later at the
  *    `GetAreaMapLevel` call.
  *  - `GetAreaMapLevel`'s real prototype (AddItem2.c) takes 5 args
- *    (map,x,y,z,mode); Ghidra's rendering here drops the trailing `z,1`
+ *    (area,x,y,z,mode); Ghidra's rendering here drops the trailing `z,1`
  *    (the m2c/Ghidra call-arg-undercount family) — the raw `.s` sets up
  *    a3=z and a stack mode=1 that are never otherwise touched, so the real
- *    call is `GetAreaMapLevel(map, x, y, z, 1)`.
+ *    call is `GetAreaMapLevel(area, x, y, z, 1)`.
  *  - The two type-range special cases are a plain `if (type<0x8b) {...}
  *    else if (type<0xa8 && 0xa5<type) {...}` — the raw `.s` tests `type<0x8b`
  *    FIRST and branches to the nested block on true, matching this polarity
