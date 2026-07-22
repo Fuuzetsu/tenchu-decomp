@@ -35,11 +35,8 @@
  * |Degree| < 100), or fire (only when |Degree| < 300), triggering
  * SetNowMotion.
  *
- * `Me_THINK_C->item[N]` (Ghidra's flat array) is the SAME memory as
- * game_types.h's `inventory.player_item_counts` union — item.h's Humanoid
- * has the plain array view (`u8 item[0x1A]`), Humanoid's own proven
- * layout instead nests it under the named union; `pic_by_index[N]` reaches
- * the identical byte.
+ * `Humanoid.item` is the per-item-kind count array, so the recovered
+ * TItemType labels name these slots directly without changing its layout.
  *
  * The signed life fields make the one-third threshold use the signed
  * magic-multiply sequence (0x55555556 plus the `sra 31` correction).
