@@ -43,35 +43,36 @@
  * GetAreaMapLevel (0x80019a10) — node-map floor-height query (this is the
  * map/collision TU, not the item TU). Coordinates are divided by 10 into
  * map units; the NodeIndexType table (FieldIndex caches the last hit, `area`
- * is the table base) is walked down/up to the row matching y10, then each
+ * is the table base) is walked down/up to the row matching `y2` (y/10),
+ * then each
  * row entry's rect is tested and ComputeAreaLevel gives the height. The
  * result is cached in FieldArea/FieldIndex/FieldAttrib (attribute) and
- * D_80097EC0 (last y10). Returns level*10 (or the delta to y with mode&2),
- * 0x80000000 when nothing is below.
+ * D_80097EC0 (last `y2`). Returns the height*10 (or its delta to y with
+ * mode&2), 0x80000000 when nothing is below.
  *
  * Matching notes (docs/matching-cookbook.md; all verified against the bytes):
  *  - Every loop is a hand-rolled goto loop, NOT while/do-while: real loops
  *    here get jump.c-rotated (do-while) or loop.c-strength-reduced (extra
- *    combined address bases like s8=idx+2 / s0=node+6 appear). Goto loops
+ *    combined address bases like s8=index+2 / s0=node+6 appear). Goto loops
  *    keep the original's top-test + conditional back-jump and one cursor.
  *  - x and z are the PARAMETERS reused (`x = x / 10;`) — that is what puts
  *    them in callee-saved homes with the `move s5,a1`/`move s6,a3` prologue
- *    copies; y10 is a separate local (y itself is reloaded from its arg home
+ *    copies; `y2` is a separate local (y itself is reloaded from its arg home
  *    slot 0x50 at the end). PSX.SYM records both the promoted `int mode`
  *    parameter and the original `short mode` local, the characteristic K&R
  *    boundary shape represented here by `mode` and `mode16`.
  *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
  *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
- *  - p is a `long *` cursor at &idx->index; the row fields are reached as
+ *  - p is a `long *` cursor at &index->index; the row fields are reached as
  *    ((short *)p)[-1..5] (the -2($s2) access proves the cast-based shape) and
  *    the row rect tests re-read the same expressions in the division block
  *    so cse reuses the bounds registers.
  *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
  *    sign-extend of the short quotient merged with the *2 and *8 array scaling.
- *  - `node = (AreaNodeType *)((j << 4) + (long)list);` — integer + integer
- *    keeps the operand order (addu s0,v0,a2); `list + j` emits addu s0,a2,v0.
+ *  - `node = (AreaNodeType *)((n << 4) + (long)list);` — integer + integer
+ *    keeps the operand order (addu s0,v0,a2); `list + n` emits addu s0,a2,v0.
  *  - The tail return-0x80000000 body carries the ret_min label INSIDE the
- *    (y10 < -1000 && !(mode & 4)) body, and the level==MIN / attribute&2
+ *    (`y2` < -1000 && !(mode & 4)) body, and the `yy`==MIN / attribute&2
  *    checks `goto ret_min`: written this way there is exactly ONE
  *    return-MIN body, entered by fallthrough, so it survives inline as
  *    [j epilogue; lui-delay] and the two gotos become branches whose delay
@@ -85,148 +86,148 @@
  *    (true `/` by a variable -> ASPSX's guarded div with break 7/break 6).
  */
 
-extern long D_80097EC0; /* last queried y10 */
+extern long D_80097EC0; /* last queried y/10 (`y2`) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
 long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode)
 {
-    long j;
+    long n;
     long *p;
-    NodeIndexType *idx;
+    NodeIndexType *index;
     AreaNodeType *node;
     AreaNodeType *list;
-    long level;
-    long n;
-    long y10;
+    long yy;
+    long nn;
+    long y2;
     short mode16 = mode;
     long f8;
-    long lv;
+    long sy;
     long ret;
     short qx;
     short qz;
 
-    idx = FieldIndex;
+    index = FieldIndex;
     x = x / 10;
     FieldAttrib = 0x81;
     z = z / 10;
-    y10 = y / 10;
-    level = 0x80000000;
+    y2 = y / 10;
+    yy = 0x80000000;
     /* The do{}while(0) wrapper is load-bearing: its loop notes double flow.c's
      * loop_depth ref-weighting for everything inside, which is what pushes the
-     * allocation priorities into the original's order (p above idx, n above
-     * y10 -> $s2/$s3/$s7/$fp exactly as in the target); the degenerate loop
+     * allocation priorities into the original's order (p above index, nn above
+     * y2 -> $s2/$s3/$s7/$fp exactly as in the target); the degenerate loop
      * itself generates no code. */
     do
     {
         if (mode & 1)
-            y10 -= 0x96;
+            y2 -= 0x96;
 
-        if (y10 == D_80097EC0 && (mode & 0x10)
+        if (y2 == D_80097EC0 && (mode & 0x10)
             && FieldArea->x1 <= x && x <= FieldArea->x2
             && FieldArea->z1 <= z && z <= FieldArea->z2)
         {
-            level = ComputeAreaLevel(FieldArea, x, z);
+            yy = ComputeAreaLevel(FieldArea, x, z);
         }
-        D_80097EC0 = y10;
+        D_80097EC0 = y2;
 
-        if (idx == (NodeIndexType *)area)
+        if (index == (NodeIndexType *)area)
             goto walked;
     down:
-        if (!(y10 < idx->y))
+        if (!(y2 < index->y))
             goto walked;
-        idx--;
-        if (idx != (NodeIndexType *)area)
+        index--;
+        if (index != (NodeIndexType *)area)
             goto down;
     walked:
-        if (idx->index != 0)
+        if (index->index != 0)
         {
         up:
-            if (idx->y < y10)
+            if (index->y < y2)
             {
-                idx++;
-                if (idx->index != 0)
+                index++;
+                if (index->index != 0)
                     goto up;
             }
-            if (idx->index != 0)
+            if (index->index != 0)
             {
-                p = &idx->index;
+                p = &index->index;
                 f8 = mode16 & 8;
             loop:
-                if (level != 0x80000000)
+                if (yy != 0x80000000)
                     goto calc;
                 if (((short *)p)[2] <= x && x <= ((short *)p)[4]
                     && ((short *)p)[3] <= z && z <= ((short *)p)[5])
                 {
-                    n = ((short *)p)[-1];
+                    nn = ((short *)p)[-1];
                     list = (AreaNodeType *)*p;
-                    j = 0;
-                    if (n < 0)
+                    n = 0;
+                    if (nn < 0)
                     {
                         qx = (x - ((short *)p)[2]) * 4 / (((short *)p)[4] - ((short *)p)[2]);
                         qz = (z - ((short *)p)[3]) * 4 / (((short *)p)[5] - ((short *)p)[3]);
-                        j = ((IndexArrayType *)list)->array[qz][qx];
-                        if (j == -1)
+                        n = ((IndexArrayType *)list)->array[qz][qx];
+                        if (n == -1)
                             goto next;
                         list = (AreaNodeType *)((IndexArrayType *)list)->index;
-                        n = -n;
+                        nn = -nn;
                     }
-                    if (j < n)
+                    if (n < nn)
                     {
-                        node = (AreaNodeType *)((j << 4) + (long)list);
+                        node = (AreaNodeType *)((n << 4) + (long)list);
                     inner:
                         if (z < node->z1)
                             goto next;
                         if (node->x1 <= x && x <= node->x2 && z <= node->z2)
                         {
-                            FieldIndex = idx;
+                            FieldIndex = index;
                             FieldArea = node;
                             if (f8)
                             {
                                 if (node->division == -1)
-                                    level = node->y;
+                                    yy = node->y;
                                 else
-                                    level = ComputeAreaLevel(node, x, z);
+                                    yy = ComputeAreaLevel(node, x, z);
                                 FieldAttrib = FieldArea->attribute;
                                 goto next;
                             }
-                            lv = ComputeAreaLevel(node, x, z);
-                            if ((level == 0x80000000 || lv < level) && y10 <= lv)
+                            sy = ComputeAreaLevel(node, x, z);
+                            if ((yy == 0x80000000 || sy < yy) && y2 <= sy)
                             {
                                 FieldAttrib = FieldArea->attribute;
-                                level = lv;
+                                yy = sy;
                                 if (FieldAttrib & 0x2000)
                                     goto next;
                             }
                         }
-                        j++;
+                        n++;
                         node++;
-                        if (j < n)
+                        if (n < nn)
                             goto inner;
                     }
                 }
             next:
                 p += 4;
-                idx++;
+                index++;
                 if (*p != 0)
                     goto loop;
             }
         }
-        if (level == 0x80000000)
+        if (yy == 0x80000000)
             goto ret_min;
     calc:
         if (FieldAttrib & 2)
             goto ret_min;
-        level = level * 10;
-        y10 = level - y;
-        if (y10 < -1000 && (mode16 & 4) == 0)
+        yy = yy * 10;
+        y2 = yy - y;
+        if (y2 < -1000 && (mode16 & 4) == 0)
         {
         ret_min:
             return 0x80000000;
         }
-        ret = level;
+        ret = yy;
     } while (0);
     if (mode16 & 2)
-        ret = y10;
+        ret = y2;
     return ret;
 }
