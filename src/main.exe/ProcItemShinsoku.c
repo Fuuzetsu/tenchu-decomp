@@ -45,7 +45,7 @@
  * a periodic effect, and restores the normal motion/camera before disposal.
  *
  * Matching notes:
- *  - The stack is two adjacent source objects: `pos_storage` at sp+0x28 and
+ *  - The stack is two adjacent source objects: `pos` at sp+0x28 and
  *    `scratch` at sp+0x38. PSX.SYM records the latter as mode-1
  *    PARAM_ITEM_LAUNCH `p`, then mode-2 VECTOR `pos` followed by MapVector
  *    `map`; retail's larger MapVector makes both views exactly 0x28 bytes.
@@ -54,8 +54,8 @@
  *    reassignment, cse2 keeps `&scratch` in an extra callee-saved register
  *    through all three rand calls, adding an s5 save/restore and growing the
  *    frame.  Eviction makes both call sites re-materialize sp+0x38 like target.
- *  - The movement position is built through direct `pos_storage` writes, then
- *    `apos = &pos_storage` is assigned only for the query/level span.  The final
+ *  - The movement position is built through direct `pos` writes, then
+ *    `apos = &pos` is assigned only for the query/level span.  The final
  *    model-coordinate copies must return to direct stack reads; using `apos`
  *    there emits s0-relative loads instead.
  *  - The validity flag is assigned at the END of both comparison arms.  reorg
@@ -96,7 +96,7 @@ void ProcItemShinsoku(TItem *item)
 {
     param_shinsoku *param;
     u8 ff;
-    VECTOR pos_storage;
+    VECTOR pos;
     ProcItemShinsokuScratch scratch;
 
     param = &item->param.shinsoku;
@@ -204,13 +204,13 @@ void ProcItemShinsoku(TItem *item)
             return;
         }
 
-        pos_storage.vx = item->owner->model->locate.coord.t[0];
-        pos_storage.vy = item->owner->model->locate.coord.t[1];
-        pos_storage.vz = item->owner->model->locate.coord.t[2];
-        pos_storage.vx += param->vec.vx;
-        pos_storage.vy += param->vec.vy;
-        pos_storage.vz += param->vec.vz;
-        apos = &pos_storage;
+        pos.vx = item->owner->model->locate.coord.t[0];
+        pos.vy = item->owner->model->locate.coord.t[1];
+        pos.vz = item->owner->model->locate.coord.t[2];
+        pos.vx += param->vec.vx;
+        pos.vy += param->vec.vy;
+        pos.vz += param->vec.vz;
+        apos = &pos;
         scratch.query.pos.vx = apos->vx;
         scratch.query.pos.vy = apos->vy;
         scratch.query.pos.vz = apos->vz;
@@ -232,9 +232,9 @@ void ProcItemShinsoku(TItem *item)
         }
         if (valid != 0)
         {
-            item->owner->model->locate.coord.t[0] = pos_storage.vx;
-            item->owner->model->locate.coord.t[1] = pos_storage.vy;
-            item->owner->model->locate.coord.t[2] = pos_storage.vz;
+            item->owner->model->locate.coord.t[0] = pos.vx;
+            item->owner->model->locate.coord.t[1] = pos.vy;
+            item->owner->model->locate.coord.t[2] = pos.vz;
         }
 
         if ((param->count & 3) == 0)
