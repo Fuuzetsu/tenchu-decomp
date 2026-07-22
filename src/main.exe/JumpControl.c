@@ -39,15 +39,9 @@
  * direction held, zeroes `*dtV`'s x/z instead.
  *
  * Matching notes:
- *  - `GetMotionID` is declared here returning `u16` (its real prototype,
- *    GetMotionID.c, is `s16`) — this TU treats the raw result as an
- *    unsigned 16-bit pattern and tests its would-be sign bit manually via
- *    `(GetMotionID(...) << 16) < 0` (u16 promotes to `int`, so the shift
- *    moves bit 15 into bit 31 for a plain `sll`+`bltz`, no `sra` needed
- *    since the shifted value itself is never used afterward) — a per-TU
- *    divergent extern return type, same class as GetRealPad's caller in
- *    bow_shoot_logic (cookbook: "A caller-side extern's RETURN TYPE is an
- *    extension-position lever").
+ *  - GetMotionID's recovered signed-short result makes each availability
+ *    check a direct comparison with zero. GCC still emits the retail
+ *    sign-bit test when the result is consumed only by the branch.
  *  - The `motID == 0x607` vs else split is a plain `if/else`: the small
  *    0x607 body is the fallthrough (physically first), the big else body
  *    is the branch target — standard cc1 if/else layout, no polarity
@@ -75,21 +69,20 @@ extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern void FUN_80033bc0(VECTOR *pos, int a, int b, int c);
-extern u16 GetMotionID(MotionManager *mmp, s16 mid);
 
 void JumpControl(void)
 {
     int id;
 
     FUN_80033bc0(dtL, 0x96, 0xC, 8);
-    if ((GetMotionID(dtM, 0x900) << 16) < 0)
+    if (GetMotionID(dtM, 0x900) < 0)
         return;
 
     if (motID == 0x607)
     {
         if (dtM->count < 0xB)
         {
-            if (!((GetMotionID(dtM, 0x906) << 16) < 0))
+            if (GetMotionID(dtM, 0x906) >= 0)
             {
                 motID = 0x906;
                 motMODE = 0;
@@ -115,7 +108,7 @@ void JumpControl(void)
         dtV->vy = 0;
         if (dtPAD & 0x1000)
         {
-            if (!((GetMotionID(dtM, 0x902) << 16) < 0))
+            if (GetMotionID(dtM, 0x902) >= 0)
             {
                 motID = 0x902;
                 motMODE = 0;
@@ -124,7 +117,7 @@ void JumpControl(void)
         }
         else if (dtPAD & 0x4000)
         {
-            if (!((GetMotionID(dtM, 0x903) << 16) < 0))
+            if (GetMotionID(dtM, 0x903) >= 0)
             {
                 motID = 0x903;
                 motMODE = 0;
@@ -133,7 +126,7 @@ void JumpControl(void)
         }
         else if (dtPAD & 0x2000)
         {
-            if (!((GetMotionID(dtM, 0x904) << 16) < 0))
+            if (GetMotionID(dtM, 0x904) >= 0)
             {
                 motID = 0x904;
                 motMODE = 0;
@@ -142,7 +135,7 @@ void JumpControl(void)
         }
         else if (dtPAD & 0x8000)
         {
-            if (!((GetMotionID(dtM, 0x905) << 16) < 0))
+            if (GetMotionID(dtM, 0x905) >= 0)
             {
                 motID = 0x905;
                 motMODE = 0;

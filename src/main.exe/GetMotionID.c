@@ -35,7 +35,7 @@
  * the loop index at the end.
  */
 
-s16 GetMotionID(MotionManager *mmp, s16 mid)
+short GetMotionID(MotionManager *mmp, short mid)
 {
     MotionRegistType *reg;
     s16 i;

@@ -97,7 +97,6 @@ extern Humanoid *Me_MOTION_C;
 extern void DeleteConflict();
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
-extern s16 GetMotionID(MotionManager *mmp, s16 mid);
 extern void handle_char_state_attacking_SEVEN_(s16 frame);
 extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);

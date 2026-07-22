@@ -50,7 +50,7 @@ extern void AttackControl(void);
 void ActENGAGE(void)
 {
     short one;
-    unsigned short mask;
+    short mask;
     int random;
 
     switch ((short)(dtM->mid - 0x500))
@@ -93,7 +93,7 @@ engage_case_post:
         if (ActionHalt == -1 && dtM->count == 0)
         {
             mask = GetMotionID(dtM, 0x503);
-            if ((int)((u32)mask << 16) < 0)
+            if (mask < 0)
             {
                 motID = 0x80f;
                 motMODE = 1;

@@ -45,8 +45,6 @@
  * separate extend + `sll 4`.
  */
 
-extern s16 GetMotionID(MotionManager *motion, s16 mid);
-
 s16 GetAttackDBID(Humanoid *human, s16 mid)
 {
     s16 target;
