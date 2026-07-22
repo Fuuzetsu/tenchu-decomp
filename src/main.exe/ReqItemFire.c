@@ -56,6 +56,7 @@
  *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - aowner/atype and x/y/z are real temps, same shape as the other twins.
+ *    The block-scoped `param_korogari *param` is PSX.SYM's second `param`.
  *  - `item->param.smoke.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
@@ -116,14 +117,19 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    y = p->end.vy;
-    z = p->end.vz;
-    param->koro.vx = x;
-    param->koro.vy = y;
-    param->koro.vz = z;
-    item->param.smoke.koro.hint = 0;
-    param->koro.status = KORO_NORMAL;
+    {
+        param_korogari *param;
+
+        param = &item->param.smoke.koro;
+        x = p->end.vx;
+        y = p->end.vy;
+        z = p->end.vz;
+        param->vx = x;
+        param->vy = y;
+        param->vz = z;
+        item->param.smoke.koro.hint = 0;
+        param->status = KORO_NORMAL;
+    }
     param->count = 150;
     return 1;
 }

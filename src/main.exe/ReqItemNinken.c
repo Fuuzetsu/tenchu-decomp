@@ -59,7 +59,8 @@
  *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - aowner/atype and x/z are real temps, same shape as the other twins (no `y`
- *    temp here: end.vy is never read).
+ *    temp here: end.vy is never read). The block-scoped
+ *    `param_korogari *param` is PSX.SYM's second `param`.
  *  - `item->param.ninken.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
@@ -119,13 +120,18 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    z = p->end.vz;
-    param->koro.vx = x;
-    param->koro.vy = -0xfa;
-    param->koro.vz = z;
-    item->param.ninken.koro.hint = 0;
-    param->koro.status = KORO_NORMAL;
+    {
+        param_korogari *param;
+
+        param = &item->param.ninken.koro;
+        x = p->end.vx;
+        z = p->end.vz;
+        param->vx = x;
+        param->vy = -0xfa;
+        param->vz = z;
+        item->param.ninken.koro.hint = 0;
+        param->status = KORO_NORMAL;
+    }
     param->slave = 0;
     param->count = 0xf;
     SetNowMotion(item->owner, 0xf02, 1);
