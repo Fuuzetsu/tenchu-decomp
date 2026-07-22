@@ -45,7 +45,6 @@
  * defers the function's s16 conversion to the shared return tail.
  */
 extern Humanoid *Me_THINK_C;
-extern s16 Degree;
 extern u16 Attrib;
 extern s16 atkd2[4];
 extern int turn_towards_player_(int x_diff, int z_diff);

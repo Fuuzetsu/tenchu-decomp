@@ -62,7 +62,6 @@
  * first statement" trick; here the assignment genuinely precedes the
  * test in source, per Ghidra's own literal order).
  */
-extern s16 Degree;
 
 static s16 ItemUse(void)
 {

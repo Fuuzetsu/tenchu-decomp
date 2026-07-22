@@ -75,7 +75,6 @@
  *  - `Sound` takes the shared `Humanoid *` and original signed-short sound
  *    id declaration from humanoid.h.
  */
-extern s16 Degree;
 
 short AttackAnimal(void)
 {

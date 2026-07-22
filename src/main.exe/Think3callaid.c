@@ -118,7 +118,6 @@
  *    a scheduler fence after fixing the producer identities it was masking.
  */
 extern Humanoid *Me_THINK_C;
-extern s16 Degree;
 extern u16 Attrib;
 extern s16 AIDHumanType[];
 extern int rand(void);

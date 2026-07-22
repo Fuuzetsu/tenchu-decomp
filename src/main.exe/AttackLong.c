@@ -51,7 +51,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern s16 Degree;
 extern u16 Attrib;
 extern s32 AttackActionCount;
 

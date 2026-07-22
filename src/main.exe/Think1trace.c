@@ -2,6 +2,7 @@
 #include <psxsdk/libgs.h>
 #include "game_types.h"
 #include "humanoid.h"
+#include "game_globals.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -76,7 +77,6 @@
 
 extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
-extern s16 Degree;
 
 s16 Think1trace(void)
 {

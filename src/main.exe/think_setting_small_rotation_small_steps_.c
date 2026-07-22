@@ -16,7 +16,6 @@
  */
 extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
-extern s16 Degree;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 AIDHumanType[][2];
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);

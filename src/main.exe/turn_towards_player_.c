@@ -23,10 +23,10 @@
  * button-like turn/walk bits (0x1000 "close enough to stop turning",
  * 0x2000/0x8000 "turn right/left") truncated to s16 on return.
  *
- * Deliberately does NOT include main.exe.h: this file needs `Attrib` and
- * `Degree` read as u16 (`lhu`), conflicting with main.exe.h's `s16 Attrib`
- * (used by Think1sleep.c/Think2confirm.c) — same per-file respelling as
- * Think2contact.c.
+ * Deliberately does NOT include main.exe.h: this file needs `Attrib` read as
+ * u16 (`lhu`), conflicting with main.exe.h's `s16 Attrib` (used by
+ * Think1sleep.c/Think2confirm.c). Degree has its recovered signed object type;
+ * the raw-angle path below takes a localized unsigned memory view.
  *
  * Matching notes (all byte-proven):
  *  - `dir` is u16: raw GetDirection()/Degree bits, given an explicit `(s16)`
@@ -71,7 +71,6 @@
  */
 extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
-extern u16 Degree;
 extern s32 D_80097F10;
 
 s16 turn_towards_player_(s32 x_diff, s32 z_diff)
@@ -89,7 +88,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     }
     else
     {
-        dir = Degree;
+        dir = *(u16 *)&Degree;
     }
     turn = Me_THINK_C->turn;
     if (turn < (s16)dir)

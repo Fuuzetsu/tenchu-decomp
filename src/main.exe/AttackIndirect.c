@@ -57,7 +57,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern s16 Degree;
 
 extern s16 turn_towards_player_(s32 x, s32 z);
 extern s16 ItemUse(void);

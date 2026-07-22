@@ -45,7 +45,6 @@
  * as fallthrough bodies with explicit jumps to the shared return conversion.
  */
 extern s16 Attrib;
-extern s16 Degree;
 extern s16 Think4abandon(void);
 
 s16 Think4contact(void)
