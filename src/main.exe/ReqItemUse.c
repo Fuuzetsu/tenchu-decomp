@@ -281,6 +281,11 @@ extern int ReqItemManebue(PARAM_ITEM_LAUNCH *p);
 
 int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 {
+    enum
+    {
+        D = 100,
+        D2 = 50
+    };
     u8 c;
     PARAM_ITEM_LAUNCH param;  /* @sp+16: per-case launch params / vector scratch */
     PARAM_ITEM_LAUNCH work;   /* @sp+56: makibishi/jirai staging + throw vector */
@@ -329,9 +334,9 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             if (!(i < 5))
                 break;
             i++;
-            param.end.vx = ((VECTOR *)&work)->vx + rand() % 100 - 50;
-            param.end.vy = ((VECTOR *)&work)->vy - rand() % 50 - 50;
-            param.end.vz = ((VECTOR *)&work)->vz + rand() % 100 - 50;
+            param.end.vx = ((VECTOR *)&work)->vx + rand() % D - D2;
+            param.end.vy = ((VECTOR *)&work)->vy - rand() % D2 - D2;
+            param.end.vz = ((VECTOR *)&work)->vz + rand() % D - D2;
             ReqItemMakibishi(&param);
         }
         break;
