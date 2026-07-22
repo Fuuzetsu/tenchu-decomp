@@ -34,6 +34,12 @@ union ImpactColor
     } channel;
 };
 
+/* EFFECT.C's original animated-frame sprite count. */
+enum
+{
+    MaxFrames = 4
+};
+
 /* Retail's expanded version of PSX.SYM's ImpactType. */
 struct ImpactType /* size 36 */
 {
@@ -238,6 +244,7 @@ typedef struct tag_EffectSlot /* size 76 */
 extern TEffectSlot EffectSlot[200];
 extern int CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy; /* pool-full fallback write target, discarded */
+extern GsSPRITE sprFrame[MaxFrames];
 extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 

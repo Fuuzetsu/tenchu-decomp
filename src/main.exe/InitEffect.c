@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
+#include "effect.h"
 #include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -82,7 +83,6 @@ extern s32 pat[4];
 extern GsSPRITE sprBlood[4];
 extern GsSPRITE sprBlood2[4];
 extern GsSPRITE sprSplash;
-extern GsSPRITE sprFrame[4];
 extern GsSPRITE D_800BEAA8[5];
 extern POLY_F4 plyBleed;
 extern Sprite3D *sprSmoke[2];
@@ -137,7 +137,7 @@ void InitEffect(void)
     i = 0;
     while (1)
     {
-        if (!(i < 4))
+        if (!(i < MaxFrames))
             break;
         image = GetImage(pat[i]);
         InitSprite(image, &sprFrame[i]);

@@ -115,7 +115,6 @@
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
  *    MASPSX_EXTRA), same as FUN_8003a148/DrawSpriteXYZ.
  */
-extern GsSPRITE sprFrame[4];
 extern GsOT *OTablePt;
 extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
 
@@ -134,7 +133,7 @@ void DrawFrame(TEffectSlot *ef)
     GsCOORDINATE2 *hint;
     s32 size;
 
-    idx = param->count % 4;
+    idx = param->count % MaxFrames;
     spr = &sprFrame[idx];
 
     if (param->mode == 0)

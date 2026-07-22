@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -31,7 +32,6 @@
  */
 
 extern s32 GameClock;
-extern GsSPRITE sprFrame[4];
 extern u8 D_80097C50[];
 
 extern void DrawSpriteXYZ(GsSPRITE *spr, s32 x, s32 y, s32 z, s32 size);
@@ -49,7 +49,7 @@ void FUN_8004c350(TMisc *m, TMiscMessage msg)
     GsSPRITE *frame;
 
     direction[0] = *(SVECTOR *)D_80097C50;
-    frame = &sprFrame[GameClock % 4];
+    frame = &sprFrame[GameClock % MaxFrames];
 
     if (msg == MM_CREATE)
         goto do_create;
