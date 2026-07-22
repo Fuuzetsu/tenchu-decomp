@@ -40,7 +40,6 @@
 
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
-extern s16 SelectedItem;
 extern s16 motID;
 extern s16 motMODE;
 

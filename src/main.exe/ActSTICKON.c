@@ -87,7 +87,6 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 dtPAD;
 extern s16 RefrectVector[16];
-extern s16 SelectedItem;
 extern s32 D_80097EF0;
 
 extern MapVector *StickonCheck(void);

@@ -34,8 +34,6 @@ extern s16 motID;
 extern s16 motMODE;
 extern SVECTOR *dtR;
 extern s16 dtCMD;
-extern s16 SelectedItem;
-
 extern int rand(void);
 extern short Sound(Humanoid *human, s16 seid);
 extern void JumpControl(void);

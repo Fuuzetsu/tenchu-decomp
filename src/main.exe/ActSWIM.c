@@ -50,8 +50,6 @@ extern VECTOR *dtL;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 SelectedItem;
-
 extern short SwimCheck(void);
 extern short Sound(Humanoid *human, s16 seid);
 extern short SoundEx(VECTOR *locate, s16 seid);

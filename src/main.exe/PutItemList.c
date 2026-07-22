@@ -69,7 +69,6 @@ extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
 extern GsOT *OTablePt;
 extern Sprite3D *ItemImage[];
-extern s16 SelectedItem;
 extern s16 ItemCursor;
 
 

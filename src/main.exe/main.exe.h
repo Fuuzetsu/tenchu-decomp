@@ -17,6 +17,7 @@ extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern short MotionUpdateMode;
+extern short SelectedItem;
 /* CONFLICT.C's retail-expanded pool and query outputs. */
 extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;

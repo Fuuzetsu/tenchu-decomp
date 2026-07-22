@@ -22,8 +22,6 @@
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 SelectedItem;
-
 extern short SoundEx(VECTOR *locate, s16 seid);
 
 void ItemControl(void)
