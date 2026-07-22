@@ -17,16 +17,16 @@
  * ReqItemKusuri's it->locate cookbook rule).
  */
 
-extern u_long *LoadAreaMap(u_long *adr);
+extern AreaMapType *LoadAreaMap(AreaMapType *adr);
 
-u_long *handle_balmer_acm_(u_long *adr)
+AreaMapType *handle_balmer_acm_(AreaMapType *adr)
 {
     NodeIndexType *cur;
-    u_long *newmap;
+    AreaMapType *newmap;
 
     cur = (NodeIndexType *)GlobalAreaMap;
     newmap = LoadAreaMap(adr);
-    GlobalAreaMap = (u_long *)cur;
+    GlobalAreaMap = (AreaMapType *)cur;
     FieldIndex = cur;
     D_800976E8 = newmap;
     FieldArea = (AreaNodeType *)cur->index;

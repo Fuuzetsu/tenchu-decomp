@@ -57,7 +57,7 @@
 
 extern VECTOR cv;
 
-VECTOR *GetAreaMapPassage(unsigned long *area, VECTOR *pos, SVECTOR *vect, short n)
+VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n)
 {
     long x[2], z[2], y[2];
     long xmin, xmax, ymin, ymax;

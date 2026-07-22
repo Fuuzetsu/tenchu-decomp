@@ -19,14 +19,14 @@
 void character_balma_around_main_routine_(void)
 {
     NodeIndexType *saved;
-    u_long *cur;
+    AreaMapType *cur;
     AreaNodeType *area;
 
     saved = (NodeIndexType *)D_800976E8;
     cur = GlobalAreaMap;
     area = (AreaNodeType *)saved->index;
 
-    GlobalAreaMap = (u_long *)saved;
+    GlobalAreaMap = (AreaMapType *)saved;
     D_800976E8 = cur;
     FieldIndex = saved;
     FieldArea = area;

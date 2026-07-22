@@ -93,7 +93,7 @@ extern s16 ConflictObjects;
 extern SVECTOR ConflictDistance;
 extern ModelType *ConflictModel;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern u_long *D_800976E8;
+extern AreaMapType *D_800976E8;
 extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;
 extern char FONT_FILE_NAME;

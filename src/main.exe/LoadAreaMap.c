@@ -98,7 +98,7 @@
 
 extern char D_800111E8[]; /* "NO AREA DATA" */
 
-u_long *LoadAreaMap(u_long *adr)
+AreaMapType *LoadAreaMap(AreaMapType *adr)
 {
     NodeIndexType *map;
     s16 j;

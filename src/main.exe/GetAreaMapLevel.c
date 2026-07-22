@@ -90,7 +90,7 @@ extern long D_80097EC0; /* last queried y/10 (`y2`) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
-long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode)
+long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
 {
     long n;
     long *p;

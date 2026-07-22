@@ -7,7 +7,7 @@ struct Humanoid;
 extern long GameClock;
 extern short SkipFrame;
 extern int StageID;
-extern unsigned long *GlobalAreaMap;
+extern AreaMapType *GlobalAreaMap;
 extern short FieldAttrib;
 extern unsigned char gNannido;
 extern unsigned char gSound;

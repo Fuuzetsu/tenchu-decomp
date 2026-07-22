@@ -35,7 +35,7 @@
  *  - `AreaNodeType` is CONFLICT.C's recovered
  *    `y/dy/x1/z1/x2/z2/attribute/division` layout; GetAreaMapLevel uses the
  *    shared original declaration in conflict.h.
- *  - `GlobalAreaMap` is typed `unsigned long *` here (matching THIS TU's
+ *  - `GlobalAreaMap` uses PSX.SYM's `AreaMapType *` alias here (matching THIS TU's
  *    own PSX.SYM global declaration) and agrees with GetAreaMapLevel's area
  *    parameter. The `(short)flag` call expression deliberately narrows and
  *    sign-extends `flag` before passing it through the shared `int mode` ABI,

@@ -172,6 +172,9 @@ struct ScoreResult
     s16 grade;                    /* 0x0A */
 };                                /* 0x0C */
 
+/* CONFLICT.C's raw area-map word type, recovered from PSX.SYM. */
+typedef unsigned long AreaMapType;
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType

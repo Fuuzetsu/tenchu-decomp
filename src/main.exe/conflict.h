@@ -2,11 +2,11 @@
 #define CONFLICT_H
 
 /* CONFLICT.C's shared floor query, using the original promoted mode ABI. */
-extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+extern long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
                             int mode);
-extern long GetAreaMapVector(unsigned long *area, MapVector *mvp,
+extern long GetAreaMapVector(AreaMapType *area, MapVector *mvp,
                              VECTOR *pos, long wide, int mode);
-extern VECTOR *GetAreaMapPassage(unsigned long *area, VECTOR *pos,
+extern VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos,
                                  SVECTOR *vect, short n);
 extern short InsertConflict(ModelType *model);
 extern void DeleteConflict(ModelType *model);

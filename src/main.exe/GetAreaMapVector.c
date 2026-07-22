@@ -86,7 +86,7 @@
 
 extern s16 direction[][2];
 
-long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
+long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
 {
     long x, y, z;
     long level2;
