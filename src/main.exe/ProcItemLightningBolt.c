@@ -32,7 +32,7 @@
  *    0x00FF (not sign-extended -1) is the actual encoded immediate —
  *    verified against the raw instruction bytes, not just Ghidra's
  *    rendering, which normally simplifies genuine `-1`s.
- *  - `item->locate->locate.coord.t[N] = pos.N` (SearchItemTarget2's output)
+ *  - `item->locate->locate.coord.t[N] = target.N` (SearchItemTarget2's output)
  *    goes through a fresh item->locate reload per component, matching the
  *    established no-cache idiom (ProcItemTeleport/Kusuri).
  *  - `n = InsertConflict(...)` must be `s32`, not `s16`: a same-statement
@@ -77,7 +77,7 @@ extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
 void ProcItemLightningBolt(TItem *item)
 {
     param_lightningbolt *param;
-    VECTOR pos;
+    VECTOR target;
     u8 cnt;
     s32 n;
 
@@ -100,10 +100,10 @@ void ProcItemLightningBolt(TItem *item)
 
     case 1:
         SearchItemTarget2(item->owner, &item->param.lightningbolt.rot,
-                          &param->start, &pos);
-        item->locate->locate.coord.t[0] = pos.vx;
-        item->locate->locate.coord.t[1] = pos.vy;
-        item->locate->locate.coord.t[2] = pos.vz;
+                          &param->start, &target);
+        item->locate->locate.coord.t[0] = target.vx;
+        item->locate->locate.coord.t[1] = target.vy;
+        item->locate->locate.coord.t[2] = target.vz;
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
         ConflictObject[n].offset.vx = 0;
