@@ -16,11 +16,10 @@
  * InitSoundEffect (0x80018c80) — SPU/SoundSystem bring-up: init the SPU
  * library, switch it to VSync tick mode, start the sequencer, reset the
  * master volume to max on both channels, then pick mono/stereo output from
- * the persisted gSound byte (PersistentState._89_1_ — offset 0x59 from
- * the 0x80010000 persistent-state blob, inside game_types.h's opaque
- * field_0x49[0x15] catch-all span; kept as a fresh extern byte, same
- * "don't carve the shared struct for one still-unidentified field" pattern
- * as reset_alert_duration's gNannido / FUN_8004f68c's gSoundLevel).
+ * the persisted gSound byte. It is the standalone-symbol view of
+ * TLinkInfo.Stereo at offset 0x59 in the 0x80010000 persistent-state blob;
+ * the original source used both direct globals and pointer-based access to
+ * that shared state.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - Ghidra renders the dispatch `if (byte == 0) Mono(); else Stereo();`,

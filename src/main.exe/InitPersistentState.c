@@ -25,11 +25,11 @@
  * mono/stereo and re-enter the stage-select menu. Returns 0 when it
  * (re)initialised, 1 when the existing state was already valid.
  *
- * Fields the game_types.h struct names (chr/stage/layout/counts/stock) use
- * those; the audio/config bytes at 0x58..0x61 (inside the opaque
- * field_0x49[0x15]/field_0x5f spans) use raw offset casts, matching the
- * per-byte `sb` stores. The 0x59 field is InitSoundEffect's mono/stereo byte
- * (gSound); the mono/stereo dispatch takes InitSoundEffect's inverted
+ * Most fields named in game_types.h use member access elsewhere. This
+ * initializer keeps raw byte offsets for its tightly ordered stores even
+ * though 0x58..0x5E are now identified TLinkInfo options; 0x5F..0x61 remain
+ * unknown adjacent flags. The 0x59 field is InitSoundEffect's mono/stereo
+ * byte (gSound); the mono/stereo dispatch takes InitSoundEffect's inverted
  * `!= 0 ? Stereo : Mono` polarity (beqz into the physically-later Mono block).
  *
  * STATUS: MATCHING — pure C, all 368 bytes / 92 instructions exact.
