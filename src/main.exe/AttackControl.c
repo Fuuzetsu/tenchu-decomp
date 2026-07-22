@@ -64,7 +64,6 @@ extern s16 motMODE;
 extern u16 Criticals;
 
 extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
-extern long GetTargetDistance(Humanoid *human, s16 *deg);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 

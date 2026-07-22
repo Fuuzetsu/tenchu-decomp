@@ -23,22 +23,21 @@
  * (Build.hs maspsxGpExterns' `extra`, mirrored in tools/permute.py
  * MASPSX_EXTRA), same as GetAreaMapLevel.
  *
- * GetTargetDistance's return type must be declared `u32` (not `s16`) in
- * THIS caller: a 5-instruction block (store dist to move.pad, re-derive a
+ * GetTargetDistance's recovered return type must remain the full-width
+ * `long` (not `s16`): a 5-instruction block (store dist to move.pad, re-derive a
  * clean s16 for the `< 1000` compare, load dtR, do the compare) came out as
  * a pure reorder of identical instructions — the store landed after the
  * compare instead of before it — with every other lever (separate `dist`
  * local, hoisting the `dtR->vy` read, operand order) leaving it
- * unchanged. Found by one short decomp-permuter run; it's the caller-side
- * extern-return-type-is-an-extension-position-lever rule (see
- * Think1trace/BIS's GetRealPad in the cookbook) — declaring the callee
- * `u32` here defers the derived-s16 extension past the store, matching the
- * target exactly, whereas `s16` forces it immediately after the call.
+ * unchanged. Found by one short decomp-permuter run; it's the
+ * return-type-is-an-extension-position lever (see Think1trace/BIS's
+ * GetRealPad in the cookbook): the full-width return defers the derived-s16
+ * extension past the store, whereas a narrowed return forces it immediately
+ * after the call.
  */
 
 extern Humanoid *Me_MOTION_C;
 
-extern u32 GetTargetDistance(Humanoid *h, s16 *unused);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 
 void bow_shoot_logic(s16 kind, VECTOR *start)

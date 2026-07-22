@@ -93,6 +93,7 @@ extern void SetCameraMode(TCameraMode mode);
 extern short NowReturnNormal(struct Humanoid *human);
 extern short GetMotionID(MotionManager *mmp, short mid);
 extern short ActiveMotion(MotionManager *mmp);
+extern long GetTargetDistance(struct Humanoid *human, short *deg);
 extern int leFindEnemy(void);
 extern void leLayoutEnemy(int mode);
 extern int leRemoveEnemy(void);
