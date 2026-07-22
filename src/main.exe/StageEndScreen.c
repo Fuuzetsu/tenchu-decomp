@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -70,7 +71,6 @@ extern s32 GameClock;
 extern s16 SkipFrame;
 extern GsOT *OTablePt;
 
-extern void SetupAppearance(s32 character, s32 mode);
 extern void PadShockAR(s32 port, s32 time, s32 left, s32 right);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);

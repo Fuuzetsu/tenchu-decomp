@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -60,11 +61,9 @@ extern SVECTOR D_80097AF4[];
 extern s16 NowReturnNormal(Humanoid *human);
 extern void MoveKorogari(tag_TItem *item, param_korogari *param);
 extern Humanoid *GetHumanoid(s16 type);
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
-extern s16 EquipWeapon(Humanoid *human, s16 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void FUN_800270f8(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, s16 think);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #define DeleteConflict DeleteConflict_prototype
 #include "item.h"
 #undef DeleteConflict
@@ -101,7 +102,6 @@ extern WeaponType WeaponDB[];
 extern HumanAnimType CVAhuman[];
 extern TCameraStatus CamState;
 
-extern s16 GetAttackDBID(Humanoid *human, s16 mid);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s16 GetMotionID(MotionManager *mmp, s16 mid);
 extern void handle_char_state_attacking_SEVEN_(s16 frame);

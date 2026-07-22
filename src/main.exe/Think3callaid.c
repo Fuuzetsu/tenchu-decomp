@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -133,9 +134,7 @@ extern think_func_ *Think3Func[];
 extern think_func_ *Think4Func[];
 extern int rand(void);
 extern s16 Think3escape(void);
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void KillHumanoid(Humanoid *human);
-extern void EquipWeapon(Humanoid *human, s16 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 
 short Think3callaid(void)

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 #include "afterimage.h"
 
@@ -67,7 +68,6 @@ extern TCameraStatus CamState;
 
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SetCameraMode(s32 mode);
-extern void EquipWeapon(Humanoid *human, s16 mode);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern s16 Sound(Humanoid *human, s16 id);

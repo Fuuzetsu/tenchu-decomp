@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "stage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -88,7 +89,6 @@ extern u16 Murders;
 extern u16 Findenemies;
 extern u16 Criticals;
 
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
 extern void UpdateCoordinate(ModelType *model);
 extern void SetupThinkFunction(Humanoid *human, s16 type);

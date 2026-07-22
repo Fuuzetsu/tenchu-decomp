@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -163,7 +164,6 @@ extern u_long *handle_balmer_acm_(u_long *data);
 extern void UpdateOrnament(OrnamentType *model, s16 ry);
 extern void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size);
 extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void AddMisc(s32 type, s32 x, s32 y, s32 z,
                     s32 a, s32 b, s32 c);
 extern void jt_init4(void);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -51,7 +52,6 @@
 extern void DeleteConflict(ModelType *m);
 extern void DisposeModelArchive(ModelArchiveType *mad);
 extern void DisposeMotionManager(MotionManager *mm);
-extern void DisposeWeapon(Humanoid *human);
 extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 extern void vfree(void *p);
 

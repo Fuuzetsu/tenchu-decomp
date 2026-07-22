@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include <psxsdk/libgpu.h>
 #include "item.h"
 
@@ -87,12 +88,10 @@ extern void StartDrawing(void);
 extern short DrawBG(BackGround *bg);
 extern void EndDrawing(s32 mode);
 extern void DisposeBG(BackGround *bg);
-extern void SetupAppearance(s16 character, s16 stage);
 extern short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void ResetInfoview(s32 stage);
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void create_ninken_character_(s16 type, s32 stage);
 extern void load_layout(s32 layout);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -36,7 +37,6 @@
  * following rotated HumanData scan.
  */
 extern HumanDataType HumanData[63];
-extern void GetWeaponData(Humanoid *human, s16 body, s16 wid, s32 wpid, int wep);
 
 void SetupWeapon(Humanoid *human)
 {
@@ -129,19 +129,11 @@ void SetupWeapon(Humanoid *human)
         break;
     case 0x32:
     case 0x35:
-    {
-        s32 initial_wpid;
-
-        initial_wpid = 0;
-        if (*(s16 *)&human->weapon_kind != 0x35)
-        {
-            initial_wpid = -1;
-        }
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, initial_wpid, 0);
+        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind,
+                      *(s16 *)&human->weapon_kind == 0x35 ? 0 : -1, 0);
         GetWeaponData(human, 1, human->weapon_kind + 2, -1, 1);
         GetWeaponData(human, 0xe, human->weapon_kind + 1, -1, 2);
         break;
-    }
     default:
         return;
     }

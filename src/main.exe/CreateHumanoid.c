@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -103,8 +104,6 @@
 extern Humanoid *vcalloc(u32 size, u8 c);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
 extern void SetupThinkFunction(Humanoid *human, short type);
-extern void SetupCharacterParameter(short type, Humanoid *human);
-extern void SetupWeapon(Humanoid *human);
 extern s16 InsertConflict(ModelType *m);
 extern s32 GetAreaMapVector(void *area, void *mvp, void *pos, s32 wide, s32 mode);
 extern void SystemOut(char *msg);

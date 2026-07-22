@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /*
@@ -25,7 +26,6 @@ extern HenshinModelSnapshot D_800C0630;
 extern HenshinModelSnapshot D_800C06F0;
 extern u8 D_8008E3EC[][2];
 
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void KillHumanoid(Humanoid *human);
 
 void create_ninken_character_(s16 type, s32 stage)

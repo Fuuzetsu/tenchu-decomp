@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -155,7 +156,6 @@ extern HumanDataType HumanData[63];
 extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
 extern void UpdateCoordinate(ModelType *dim);
-extern void EquipWeapon(Humanoid *human, s16 mode);
 extern short SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SystemOut(char *msg);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -165,7 +165,7 @@ extern char D_800117C8[]; /* "ILLIGAL CHARACTER TYPE" */
 extern char D_800117E0[]; /* "%s%s.MAD" */
 extern char D_80011734[]; /* "K:\\WORK\\CDIMAGE\\HUMAN\\" */
 
-Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r)
+Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
 {
     /* PSX.SYM and the retail multiply both show a full-width counter. */
     u32 idx;

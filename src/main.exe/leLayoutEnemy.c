@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -49,7 +50,6 @@ extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 extern s32 GameClock;
 
 extern void FUN_80039c14(void);
-extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
 extern void KillHumanoid(Humanoid *human);
 extern void SetBleeds(VECTOR *pos, s16 grange, s16 srange, s16 n,
                       s32 time, s32 col);

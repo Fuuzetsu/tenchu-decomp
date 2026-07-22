@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -35,7 +36,6 @@ extern s32 GameClock;
 extern s16 SkipFrame;
 extern GsOT *OTablePt;
 
-extern void SetupAppearance(s16 mode, s16 stage);
 extern void PadShockAR(s32 port, s32 duration, s32 strength, s32 delay);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
 extern void FUN_80038ce0(void);

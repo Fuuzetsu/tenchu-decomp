@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "appear.h"
 #include "item.h"
 
 extern Humanoid *Me_MOTION_C;
@@ -24,7 +25,6 @@ extern u16 D_80086B6C[8];
 
 extern void SetCameraMode(s32 mode);
 extern s16 Sound(Humanoid *human, s16 id);
-extern s16 GetAttackDBID(Humanoid *human, s16 mid);
 extern void ReqLifeBar(Humanoid *human);
 extern void DeleteConflict(ModelType *model);
 extern void SetImpact(VECTOR *pos, s16 scale, s16 type);
