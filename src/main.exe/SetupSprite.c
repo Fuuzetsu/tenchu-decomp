@@ -47,7 +47,9 @@
  * byte load from the earlier signed `lh` of the same field.
  *
  * Sprite3D's complete 0x8C-byte PSX.SYM layout is shared in game_types.h;
- * `sprite` is its trailing GsSPRITE member at +0x68.
+ * `sprite` is its trailing GsSPRITE member at +0x68. PSX.SYM's `dim` view
+ * initializes the ModelType-compatible prefix through +0x63; `sprt` handles
+ * the Sprite3D-only scale and sprite tail.
  */
 extern void *valloc(u32 size);
 extern void *memset(void *s, s32 c, u32 n);
@@ -55,54 +57,57 @@ extern void *memset(void *s, s32 c, u32 n);
 
 Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
 {
-    Sprite3D *base;
+    Sprite3D *sprt;
     s32 tp;
     s32 sh;
 
-    base = (Sprite3D *)valloc(sizeof(Sprite3D));
+    sprt = (Sprite3D *)valloc(sizeof(Sprite3D));
     if (orgsprt != 0)
     {
-        *base = *orgsprt;
+        *sprt = *orgsprt;
     }
     else
     {
-        GsInitCoordinate2(&World.locate, (GsCOORDINATE2 *)base);
-        base->locate.coord.t[0] = 0;
-        base->locate.coord.t[1] = 0;
-        base->locate.coord.t[2] = 0;
-        base->rotate.vx = 0;
-        base->rotate.vy = 0;
-        base->rotate.vz = 0;
-        base->clip.vx = 0;
-        base->clip.vy = 0;
-        base->clip.vz = 0;
-        RotMatrixYXZ(&base->rotate, &base->locate.coord);
-        base->locate.flg = 0;
-        base->id = -1;
-        base->attribute = 0;
-        base->scale = 0x1000;
-        memset(&base->sprite, 0, sizeof(GsSPRITE));
-        base->sprite.attribute = 0;
-        base->sprite.b = 0x80;
-        base->sprite.g = 0x80;
-        base->sprite.r = 0x80;
-        base->sprite.scaley = 0x1000;
-        base->sprite.scalex = 0x1000;
+        ModelType *dim;
+
+        dim = (ModelType *)sprt;
+        GsInitCoordinate2(&World.locate, &dim->locate);
+        dim->locate.coord.t[0] = 0;
+        dim->locate.coord.t[1] = 0;
+        dim->locate.coord.t[2] = 0;
+        dim->rotate.vx = 0;
+        dim->rotate.vy = 0;
+        dim->rotate.vz = 0;
+        dim->clip.vx = 0;
+        dim->clip.vy = 0;
+        dim->clip.vz = 0;
+        RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
+        dim->locate.flg = 0;
+        dim->id = -1;
+        dim->attribute = 0;
+        sprt->scale = 0x1000;
+        memset(&sprt->sprite, 0, sizeof(GsSPRITE));
+        sprt->sprite.attribute = 0;
+        sprt->sprite.b = 0x80;
+        sprt->sprite.g = 0x80;
+        sprt->sprite.r = 0x80;
+        sprt->sprite.scaley = 0x1000;
+        sprt->sprite.scalex = 0x1000;
         if (image != 0)
         {
             tp = *(u16 *)&image->pmode & 3;
-            base->sprite.attribute = base->sprite.attribute | (tp << 0x18);
+            sprt->sprite.attribute = sprt->sprite.attribute | (tp << 0x18);
             sh = 2 - tp;
-            base->sprite.w = image->pw << sh;
-            base->sprite.h = image->ph;
-            base->sprite.tpage = GetTPage(tp, 0, image->px, image->py);
-            base->sprite.u = (u8)((image->px << sh) & ((1 << (8 - tp)) - 1));
-            base->sprite.v = (u8)image->py;
-            base->sprite.cx = image->cx;
-            base->sprite.cy = image->cy;
-            base->sprite.mx = base->sprite.w >> 1;
-            base->sprite.my = base->sprite.h >> 1;
+            sprt->sprite.w = image->pw << sh;
+            sprt->sprite.h = image->ph;
+            sprt->sprite.tpage = GetTPage(tp, 0, image->px, image->py);
+            sprt->sprite.u = (u8)((image->px << sh) & ((1 << (8 - tp)) - 1));
+            sprt->sprite.v = (u8)image->py;
+            sprt->sprite.cx = image->cx;
+            sprt->sprite.cy = image->cy;
+            sprt->sprite.mx = sprt->sprite.w >> 1;
+            sprt->sprite.my = sprt->sprite.h >> 1;
         }
     }
-    return base;
+    return sprt;
 }
