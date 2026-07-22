@@ -28,9 +28,9 @@
  * null-check-then-free shape as DisposeAfterimage/DisposeMotionManager, one
  * more field. Ghidra renders the first free as `vfree(&bg->cell->u)` (a
  * union-address artifact of its GsBG/GsMAP struct nesting), but the raw .s
- * is a plain `lw $a0, 0x34($s0)` — a field LOAD, not an address computation
- * — so trust m2c's flat `vfree(arg0->unk34)` reading instead. The complete
- * BackGround layout is shared in game_types.h.
+ * is a plain `lw $a0, 0x34($s0)` — a load of the named `cell` pointer, not
+ * an address computation. The complete BackGround layout is shared in
+ * game_types.h.
  */
 extern void vfree(void *p);
 
