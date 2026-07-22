@@ -35,11 +35,6 @@
  * working copy used by both the target's loop-delay-slot store and the
  * following rotated HumanData scan.
  */
-typedef struct
-{
-    GsCOORDINATE2 locate;
-} SetupWeaponOrnament;
-
 extern HumanDataType HumanData[63];
 extern void GetWeaponData(Humanoid *human, s16 body, s16 wid, s32 wpid, int wep);
 
@@ -113,12 +108,12 @@ void SetupWeapon(Humanoid *human)
     case 0x1c:
         GetWeaponData(human, 0, human->weapon_kind + 1, -1, 1);
         GetWeaponData(human, 0, human->weapon_kind + 2, -1, 0);
-        ((SetupWeaponOrnament *)human->weapon[0])->locate.coord.t[0] = human->width / 3;
-        ((SetupWeaponOrnament *)human->weapon[0])->locate.coord.t[1] = 0;
-        ((SetupWeaponOrnament *)human->weapon[0])->locate.coord.t[2] = 0;
-        ((SetupWeaponOrnament *)human->weapon[1])->locate.coord.t[0] = human->width / 3;
-        ((SetupWeaponOrnament *)human->weapon[1])->locate.coord.t[1] = 0;
-        ((SetupWeaponOrnament *)human->weapon[1])->locate.coord.t[2] = 0;
+        human->weapon[0]->locate.coord.t[0] = human->width / 3;
+        human->weapon[0]->locate.coord.t[1] = 0;
+        human->weapon[0]->locate.coord.t[2] = 0;
+        human->weapon[1]->locate.coord.t[0] = human->width / 3;
+        human->weapon[1]->locate.coord.t[1] = 0;
+        human->weapon[1]->locate.coord.t[2] = 0;
     case 0xc:
     case 0x13:
         GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 2);
