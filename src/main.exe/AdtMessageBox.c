@@ -50,8 +50,8 @@
  *  - D_8008F1B8 (same font-adapter global as AdtFntLoad.c/AdtFntOpen.c/
  *    AdtQuiet.c) is reached at every field this TU touches: x/y/w/h/
  *    isbg/n@0x0-0x14 (FntOpen), tx/ty@0x18/0x1c (FntLoad), and quiet@0x20
- *    (the early guard) — this file's own "declare only what you touch"
- *    view therefore covers all nine fields.
+ *    (the early guard), accounting for all nine fields of the shared
+ *    AdtFntState.
  *  - The DRAWENV/DISPENV/RECT/backup-buffer/primitive locals must be ONE
  *    combined struct local (TAdtDisp, see AdtReleaseDisp.c, extended here
  *    with a trailing POLY_F4 field this TU also touches), NOT

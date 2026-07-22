@@ -5,11 +5,10 @@
 /*
  * AdtReleaseDisp (0x8005fca4, 0x90 bytes) — counterpart of AdtGetDisp:
  * reloads the font adapter's PSYQ FntLoad/FntOpen state from D_8008F1B8
- * (same global as AdtFntLoad.c/AdtFntOpen.c/AdtQuiet.c — this TU reaches
- * ALL EIGHT fields x/y/w/h/isbg/n@0x0-0x14 and tx/ty@0x18/0x1c, so it
- * declares the full 8-field view), restores the saved screen region from
- * the backup buffer via LoadImage, then reinstalls the draw/display
- * environments via PutDrawEnv/PutDispEnv.
+ * (the shared AdtFntState also used by AdtFntLoad.c/AdtFntOpen.c/AdtQuiet.c;
+ * this routine reaches x/y/w/h/isbg/n@0x0-0x14 and tx/ty@0x18/0x1c),
+ * restores the saved screen region from the backup buffer via LoadImage,
+ * then reinstalls the draw/display environments via PutDrawEnv/PutDispEnv.
  *
  * Ghidra's decompilation types the parameter `DRAWENV *param_1` and reaches
  * the backup region through `param_1[1].tpage`/`param_1[1].dr_env.tag` —
