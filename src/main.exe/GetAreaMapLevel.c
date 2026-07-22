@@ -85,12 +85,6 @@
  *    (true `/` by a variable -> ASPSX's guarded div with break 7/break 6).
  */
 
-typedef struct AreaDivisionType
-{
-    AreaNodeType *node; /* 0x0 */
-    s16 index[4][4];    /* 0x4 */
-} AreaDivisionType;
-
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 extern long D_80097EC0; /* last queried y10 */
@@ -173,10 +167,10 @@ long GetAreaMapLevel(NodeIndexType *area, long x, long y, long z, u16 mode)
                     {
                         qx = (x - ((short *)p)[2]) * 4 / (((short *)p)[4] - ((short *)p)[2]);
                         qz = (z - ((short *)p)[3]) * 4 / (((short *)p)[5] - ((short *)p)[3]);
-                        j = ((AreaDivisionType *)list)->index[qz][qx];
+                        j = ((IndexArrayType *)list)->array[qz][qx];
                         if (j == -1)
                             goto next;
-                        list = ((AreaDivisionType *)list)->node;
+                        list = (AreaNodeType *)((IndexArrayType *)list)->index;
                         n = -n;
                     }
                     if (j < n)

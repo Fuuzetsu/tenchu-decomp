@@ -32,7 +32,7 @@
  * as the live map: relocates every NodeIndexType record's `index` field (an
  * on-disk offset -> absolute pointer) in place, bumps each record's `y` by 2,
  * and — for a subdivided ("division") entry, `n < 0` — also relocates the
- * AreaDivisionType's own leading `area` pointer one level down. Same TU as
+ * IndexArrayType's own leading `index` one level down. Same TU as
  * GetAreaMapLevel.c/character_balma_around_main_routine_.c (shares
  * NodeIndexType/AreaNodeType and the GlobalAreaMap/FieldIndex/FieldArea
  * globals — all %gp_rel here too). Callers: FUN_8001ab64 and LoadConstruction
@@ -121,7 +121,8 @@ u_long *LoadAreaMap(u_long *adr)
             map[j].y = map[j].y + 2;
             if (map[j].n < 0)
             {
-                *(long *)map[j].index = *(long *)map[j].index + (long)adr;
+                ((IndexArrayType *)map[j].index)->index =
+                    ((IndexArrayType *)map[j].index)->index + (long)adr;
             }
             j++;
         } while (map[j].index != 0);

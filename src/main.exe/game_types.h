@@ -192,6 +192,15 @@ struct NodeIndexType
     s16 z2;                      /* 0x0E */
 };                               /* 0x10 */
 
+/* CONFLICT.C's lookup table for a subdivided area-node list. The leading
+ * word is an offset on disk and an AreaNodeType pointer after relocation. */
+typedef struct IndexArrayType IndexArrayType;
+struct IndexArrayType
+{
+    long index;                  /* 0x00 */
+    s16 array[4][4];             /* 0x04 */
+};                               /* 0x24 */
+
 /* LAYOUTENEMY.C's editable enemy placement. */
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
