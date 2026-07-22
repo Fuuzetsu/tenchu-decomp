@@ -46,27 +46,28 @@
  * processor.
  *
  * PSX.SYM identifies the payload as `param_lightningbolt`: start is stored
- * as three full words, with start.vx through `it->param.lightningbolt`
- * directly and start.vy/start.vz through `pp`. There is no end-vector store — instead
+ * as three full words, with start.vx through `item->param.lightningbolt`
+ * directly and start.vy/start.vz through `param`. There is no end-vector store — instead
  * GetVectorRotation(&p->start, &p->end, &rx, &ry) computes two full-word
  * rotation outputs; their low halves become `param_lightningbolt.rot.vx/.vy`,
  * with `.vz` cleared.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - Same `cur`/`it` two-pseudo pool search as ReqItemMakibishi: `cur = items
- *    + ic;` in the loop/dispose block, `it = cur;`
+ *  - The inlined allocator keeps `slot` separate from PSX.SYM's outer
+ *    `item`, as in ReqItemMakibishi: `slot = items + ic;` in the
+ *    loop/dispose block, with `item = slot;`
  *    assigned once in the early-exit branch and once before the dispose
  *    block's final owner/proc zeroing — this function's register pressure
- *    (stack rotation outputs + pp + it + p all live around the tail) pushes
- *    `cur`/`it` to different hard registers, making the transfer a real
+ *    (stack rotation outputs + param + item + p all live around the tail)
+ *    pushes `slot`/`item` to different hard registers, making the transfer a real
  *    `move` (see the cookbook rule this pair of functions taught).
- *  - `pp = &it->param.lightningbolt;` sits BEFORE the null check, same
+ *  - `param = &item->param.lightningbolt;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; dead afterward (p->start.vy/vz are re-read
- *    directly off p, not through st, in the param tail below, same as
+ *    directly off p, not through pos, in the param tail below, same as
  *    ReqItemKaengeki).
- *  - us/ty are real temps, same shape as the other twins.
+ *  - aowner/atype are real temps, same shape as the other twins.
  *  - The three start-vector param stores are INLINE (no x/y/z temps): each
  *    compiles to one lw immediately followed by its sw, same as
  *    ReqItemKaengeki's six-word tail.
@@ -79,12 +80,12 @@ extern void ProcItemLightningBolt(TItem *item);
 
 int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    TItem *cur;
-    param_lightningbolt *pp;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    TItem *item;
+    TItem *slot;
+    param_lightningbolt *param;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     int rx;
     int ry;
     s32 i;
@@ -95,51 +96,51 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        cur = items + ic;
-        if (cur->proc == 0)
+        slot = items + ic;
+        if (slot->proc == 0)
         {
-            it = cur;
+            item = slot;
             goto found;
         }
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    cur->mode = ITEM_MODE_DISPOSE;
-    cur->proc(cur);
-    DeleteConflict(cur->locate);
-    if (cur->mode != 0)
+    slot->mode = ITEM_MODE_DISPOSE;
+    slot->proc(slot);
+    DeleteConflict(slot->locate);
+    if (slot->mode != 0)
     {
-        AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        AdtMessageBox(D_800121CC, slot->type, (u32)slot->mode);
     }
-    it = cur;
-    it->owner = 0;
-    it->proc = 0;
+    item = slot;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    pp = &it->param.lightningbolt;
-    if (it == 0)
+    param = &item->param.lightningbolt;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemLightningBolt;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
-    it->param.lightningbolt.start.vx = p->start.vx;
-    pp->start.vy = p->start.vy;
-    pp->start.vz = p->start.vz;
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemLightningBolt;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
+    item->param.lightningbolt.start.vx = p->start.vx;
+    param->start.vy = p->start.vy;
+    param->start.vz = p->start.vz;
     GetVectorRotation(&p->start, &p->end, &rx, &ry);
-    pp->rot.vz = 0;
-    pp->rot.vx = rx;
-    pp->rot.vy = ry;
+    param->rot.vz = 0;
+    param->rot.vx = rx;
+    param->rot.vy = ry;
     return 1;
 }
