@@ -38,8 +38,7 @@
  * frame-local array (the original TAdtSelect shape recovered from PSX.SYM),
  * shows it with AdtSelect, then dispatches on the chosen index:
  *   0 reset position — warp Owner to StageConfig[]'s start coords and reset
- *                       the cached area-map node/index (also mirrored onto
- *                       two still-unnamed Humanoid fields at +0x30/+0x34)
+ *                       the cached area-map node/index
  *   1 jump position  — debug_menu_player_jump()
  *   2 restart event  — leLayoutEnemy(1) + StartStageSequence()
  *   3 raise dead     — full-heal + clear ActionHalt + status
@@ -50,11 +49,9 @@
  *  - PSX.SYM's shared TStageConfig has px/py/pz/pr at
  *    0xC/0x10/0x14/0x18 after uid+name+path; the raw StageConfig[] bytes
  *    confirm all of those fields in retail.
- *  - Humanoid+0x30/+0x34 (Ghidra: field10_0x30/field14_0x34, inside item.h's
- *    still-opaque Humanoid.pad0) mirror FieldArea/FieldIndex per-character.
- *    Accessed here through raw offset casts rather than extending the
- *    shared item.h: this is the only function touching them so far and
- *    their real field names/types aren't proven.
+ *  - Humanoid+0x30/+0x34 are the retail additions `map.area` and
+ *    `map.index`. GetAreaMapVector proves both members and the corresponding
+ *    eight-byte growth from PSX.SYM's original MapVector.
  *  - The menu-title string ("player option") and the table itself sit in a
  *    shared debug-menu data blob far from this function's own code (like
  *    DoInfoViewProc's D_800125F0 etc.) — referenced by address, not
@@ -111,10 +108,10 @@ void PlayerOption(void)
         CamState.Owner->model->locate.coord.t[1] = StageConfig[StageID].py - 10000;
         CamState.Owner->model->locate.coord.t[2] = StageConfig[StageID].pz;
         CamState.CriticalHit = 1;
-        *(void **)((u8 *)CamState.Owner + 0x34) = GlobalAreaMap;
+        CamState.Owner->map.index = (NodeIndexType *)GlobalAreaMap;
         FieldIndex = (NodeIndexType *)GlobalAreaMap;
-        *(AreaNodeType **)((u8 *)CamState.Owner + 0x30) =
-            FieldArea = (AreaNodeType *)FieldIndex->index;
+        CamState.Owner->map.area = FieldArea =
+            (AreaNodeType *)FieldIndex->index;
         break;
     case 1:
         debug_menu_player_jump();
