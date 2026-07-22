@@ -21,7 +21,7 @@
  * free block (top bit clear), in BYTES (word count << 2).
  */
 
-u32 vgetmaxsize(void)
+unsigned long vgetmaxsize(void)
 {
     PoolBlock *p;
     u32 max;

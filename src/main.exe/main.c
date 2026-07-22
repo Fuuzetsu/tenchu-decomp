@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "adt.h"
 #include "item.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -91,9 +92,6 @@ extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);
 extern void update_something_for_each_visible_enemy_(void);
 extern s16 GetPad(s16 no);
-extern void *vgetfreesize(void);
-extern void *vgetmaxsize(void);
-
 int main(void)
 {
     short seq;

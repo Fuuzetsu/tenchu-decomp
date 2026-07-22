@@ -21,7 +21,7 @@
  * list, returning the total in BYTES (word count << 2).
  */
 
-u32 vgetfreesize(void)
+unsigned long vgetfreesize(void)
 {
     PoolBlock *p;
     s32 sum;
