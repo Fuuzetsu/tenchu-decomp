@@ -85,6 +85,9 @@ extern void load_layout(s32 layout);
 extern void CVAsetup(void);
 extern void SetupStageSequence(void);
 
+/* Only these two retail read-modify-writes need the original volatile access
+ * behavior to retain their instruction schedule; SystemFlag itself is the
+ * ordinary shared object used throughout the game. */
 void CreateStage(int StageNo, int CharType)
 {
     Humanoid *target;
@@ -173,11 +176,11 @@ void CreateStage(int StageNo, int CharType)
     if (((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)
     {
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % 3;
-        *(volatile TSystemFlag *)&SystemFlag |= 8;
+        *(volatile TSystemFlag *)&SystemFlag |= SYSFLAG_RANDOM_LAYOUT;
     }
     else
     {
-        *(volatile TSystemFlag *)&SystemFlag &= ~8;
+        *(volatile TSystemFlag *)&SystemFlag &= ~SYSFLAG_RANDOM_LAYOUT;
     }
     load_layout(STAGE_LAYOUT_NUMBER);
     leLayoutEnemy(1);

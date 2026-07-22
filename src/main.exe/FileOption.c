@@ -51,7 +51,7 @@
  * TARGET_DEFAULT includes MASK_SPLIT_ADDR — non-small extern symbols split,
  * small (≤ -G8) ones stay one-line macros], the case-9 terminator's base-first
  * addu via a byte-cast shift index, the cross-jumped leLayoutEnemy(0) tail,
- * and gp-relative SystemFlag (this TU defines it).
+ * and this TU's gp-relative SystemFlag accesses.
  *
  * The final scheduler tie closes by passing the byte that was just stored:
  * `load_layout(STAGE_LAYOUT_NUMBER[0])`.  cc1 store-forwards that read to the
@@ -61,7 +61,7 @@
  * searches missed: express a same-width store-to-load dependency and let CSE
  * erase the reload, rather than pinning the schedule with loop notes.
  *
- * gp smalls of this TU: SystemFlag (Build.hs maspsxGpExterns + permute.py).
+ * SystemFlag is gp-relative in this TU (Build.hs maspsxGpExterns + permute.py).
  * EngageLevel/StageID/gNannido are other TUs' smalls -> absolute macros.
  * The FILE_WORK union expresses the retail stack reuse directly.  Its indexed
  * targets/messages view is the human shape recorded in PSX.SYM (with larger
@@ -83,9 +83,6 @@ typedef union {
         char msg[161][5];
     } music;
 } FILE_WORK;
-
-/* gp-relative — defined by this (file-option) TU; Build.hs maspsxGpExterns */
-/* other TUs' smalls — plain absolute externs */
 
 extern MENU_FILE_TBL DEBUG_MENU_FILE_CHOICES;
 extern MENU_SAVELOAD_TBL DEBUG_MENU_SAVE_LOAD_CHOICES;
@@ -220,7 +217,7 @@ void FileOption(void)
         if (k < 0)
             break;
         STAGE_LAYOUT_NUMBER[0] = k;
-        SystemFlag &= ~8;
+        SystemFlag &= ~SYSFLAG_RANDOM_LAYOUT;
         load_layout(STAGE_LAYOUT_NUMBER[0]);
         leLayoutEnemy(0);
         break;
