@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -87,20 +88,20 @@ void InitializeItem(void)
     {
         if (!(i < 1))
             break;
-        image = GetImage(0x34);
+        image = GetImage(IMG_SIGHT);
         InitSprite(image, sprite);
         sprite->attribute = attr;
         sprite++;
         i++;
     }
 
-    image = GetImage(7);
+    image = GetImage(IMG_BOMB0);
     sprNapalm = SetupSprite((Sprite3D *)0, image);
     sprNapalm->sprite.attribute = 0x50000000;
-    image = GetImage(6);
+    image = GetImage(IMG_SMOKE);
     sprNapalm2 = SetupSprite((Sprite3D *)0, image);
     sprNapalm2->sprite.attribute = 0x60000000;
-    image = GetImage(0xD);
+    image = GetImage(IMG_GOSHIKIMAI);
     InitSprite(image, &SpriteGoshikimai);
 
     Item_fInitial = 1;

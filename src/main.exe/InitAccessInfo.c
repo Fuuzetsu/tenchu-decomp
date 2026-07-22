@@ -16,7 +16,7 @@
 
 /*
  * InitAccessInfo (0x800194f4, 0x38 bytes) — one-shot setup for the file-access
- * indicator, called only from main(): fetch archive image 0x2c, bind it to a
+ * indicator, called only from main(): fetch IMG_LOADING, bind it to a
  * GT4 at screen coordinates (214, 217), and zero its colour-cycle counter.
  *
  * AccessImage (0x800bc0c0) is the POLY_GT4 named and typed by PSX.SYM; the
@@ -34,6 +34,6 @@ extern GsIMAGE *GetImage(s32 id);
 
 void InitAccessInfo(void)
 {
-    SetupImageToPolyGT4(GetImage(0x2c), &AccessImage, 0xd6, 0xd9);
+    SetupImageToPolyGT4(GetImage(IMG_LOADING), &AccessImage, 0xd6, 0xd9);
     AccessPower = 0;
 }

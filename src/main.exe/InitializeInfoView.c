@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -101,10 +102,10 @@ void InitializeInfoView(void)
     s32 attr3;
     s32 attr2;
 
-    image = GetImage(0x32);
+    image = GetImage(IMG_CURSOR);
     InitSprite(image, &CursorImage);
     CursorImage.attribute = 0x50000000;
-    image = GetImage(0x33);
+    image = GetImage(IMG_FONT_NUMBER);
     InitSprite(image, &NumberImage);
     i = 0;
     scale1 = 0x3000;
@@ -138,7 +139,7 @@ loop1:
     sprite = ItemSprite3Ds;
     do
     {
-        image = GetImage(i + 0x2E);
+        image = GetImage(i + IMG_KEHAI_GREEN);
         InitSprite(image, sprite);
         sprite->attribute = attr3;
         i = i + 1;

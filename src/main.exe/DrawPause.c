@@ -104,7 +104,7 @@ void DrawPause(int frame)
         n_draw.ofs[0] = o_disp.disp.x;
         n_draw.ofs[1] = o_disp.disp.y;
         PutDrawEnv(&n_draw);
-        image = GetImage(0x3D);
+        image = GetImage(IMG_TENCHU);
         SetupImageToPolyGT4(image, &ply, (s16)(0xA0 - image->pw * 2), (s16)(0x78 - (image->ph >> 1)));
         do
         {
