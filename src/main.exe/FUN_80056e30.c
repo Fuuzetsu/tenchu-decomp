@@ -42,7 +42,7 @@
  * the same way.
  */
 
-extern char *TENCHU_ID;  /* -> the volume-id prefix string */
+extern unsigned char *TENCHU_ID;  /* -> the volume-id prefix string */
 extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);

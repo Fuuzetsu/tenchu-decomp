@@ -56,7 +56,7 @@ extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern s32 MemCardDeleteFile(s32 chan, char *path);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
+extern long MemCardSync(long mode, long *cmd, long *result);
 
 short DeleteCard(unsigned char *name)
 {

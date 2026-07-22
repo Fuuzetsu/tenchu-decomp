@@ -36,7 +36,7 @@ typedef struct
     u8 bytes[TENCHU_PERSISTENT_STATE_SIZE];
 } LoadCardPersistentBlob;
 
-extern char *TENCHU_ID;
+extern unsigned char *TENCHU_ID;
 extern char CardPathFormat[];
 
 extern void *valloc(u32 size);

@@ -52,7 +52,7 @@ int FileWrite(unsigned char *filename, void *data, long size)
 
     if ((data == 0) | (size < 1))
         return 0;
-    fd = PCcreat(filename, 0);
+    fd = PCcreat((char *)filename, 0);
     if (fd == -1)
         return 0;
     PCwrite(fd, data, size);
