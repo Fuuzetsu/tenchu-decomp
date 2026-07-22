@@ -57,7 +57,6 @@
 
 extern TEnemyLayout enemy[0x1E];
 extern SVECTOR D_80097ABC[];
-extern void SetExplosion(VECTOR *pos, SVECTOR *rot);
 extern void *memset(void *s, s32 c, u32 n);
 
 void leAddPath(s32 id, s32 x, s32 y, s32 z)

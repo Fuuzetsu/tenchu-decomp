@@ -64,7 +64,6 @@
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, int seid);
 extern short NowReturnNormal(Humanoid *human);
-extern void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col);
 extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b, s32 col, s32 f, s32 rot, s32 h, s32 i, s32 j);
 extern VECTOR D_80012248;
 

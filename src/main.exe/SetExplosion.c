@@ -65,7 +65,6 @@
  *    `.s` shows all six: pos, 200, 0x96, 0x14, 0x1e, 0xFFFF00.
  */
 extern void DrawExplosion(TEffectSlot *ef);
-extern void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col);
 
 void SetExplosion(VECTOR *pos, SVECTOR *vect)
 {

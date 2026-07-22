@@ -24,10 +24,6 @@ extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
-extern void SetExplosion(VECTOR *pos, SVECTOR *vec);
-extern void SetHinoko(VECTOR *pos, SVECTOR *vec, s32 n);
-extern void SetFrame(VECTOR *pos, short size, short time,
-                     GsCOORDINATE2 *super);
 extern void reset_alert_duration(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

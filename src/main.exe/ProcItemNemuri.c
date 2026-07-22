@@ -10,8 +10,6 @@ extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s32 seid);
-extern void SetBleeds(VECTOR *pos, s32 grange, short srange, s32 n,
-                      int time, long col);
 extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
 extern s16 Think1sleep(void);
 

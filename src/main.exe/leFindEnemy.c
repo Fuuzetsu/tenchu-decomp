@@ -64,7 +64,6 @@ extern TCameraStatus CamState;
 extern TEnemyLayout enemy[0x1E];
 extern SVECTOR D_80097ABC[];
 
-extern void SetExplosion(VECTOR *pos, SVECTOR *rot);
 extern void *memset(void *s, s32 c, u32 n);
 
 int leFindEnemy(void)

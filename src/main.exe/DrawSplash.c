@@ -56,8 +56,6 @@ extern GsSPRITE sprSplash;
 extern GsOT *OTablePt;
 extern SVECTOR D_80097A50[];
 
-extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
-                         int time, long col);
 extern void *memset(void *dst, int value, u32 size);
 
 void DrawSplash(TEffectSlot *ef)

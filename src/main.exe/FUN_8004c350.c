@@ -35,8 +35,6 @@ extern s32 GameClock;
 extern u8 D_80097C50[];
 
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
-extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
-                         int time, long col);
 extern short SoundEx(VECTOR *locate, s32 seid);
 extern void *memset(void *dst, s32 c, u32 n);
 

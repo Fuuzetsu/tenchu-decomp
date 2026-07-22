@@ -31,6 +31,17 @@ extern void load_font_image_into_global(GsIMAGE *image);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time);
 extern void SetImpact(VECTOR *pos, short size, short type);
 extern void SetSplash(VECTOR *pos, short sx, short sy, int speed);
+extern void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col);
+extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
+                      int time, long col);
+extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
+                         int time, long col);
+extern void SetFrame(VECTOR *pos, short size, short time,
+                     GsCOORDINATE2 *super);
+extern void SetExplosion(VECTOR *pos, SVECTOR *vect);
+extern void SetHinoko(VECTOR *pos, SVECTOR *power, int n);
+extern int SetFlyWire(VECTOR *start, VECTOR *end);
+extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);
 extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz);
 extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);

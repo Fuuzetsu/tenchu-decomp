@@ -81,8 +81,6 @@ extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
 extern s32 leSetEnemy(s32 type, s16 think, s32 x, s32 y, s32 z, s32 r);
-extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
-                      int time, long col);
 
 void AddEnemy(void)
 {

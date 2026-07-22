@@ -56,8 +56,6 @@
  */
 
 extern SVECTOR D_80097C48[];
-extern void SetExplosion(VECTOR *pos, SVECTOR *vel);
-extern void SetHinoko(VECTOR *pos, SVECTOR *vel, s32 n);
 extern short SoundEx(VECTOR *locate, s32 seid);
 
 void ProcMiscFire(TMisc *m, TMiscMessage msg)

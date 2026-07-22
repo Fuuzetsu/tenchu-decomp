@@ -14,8 +14,6 @@
 
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void DrawFrame(TEffectSlot *ef);
-extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
-                         int time, long col);
 
 extern u8 D_80097A58[];
 

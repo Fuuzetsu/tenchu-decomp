@@ -51,8 +51,6 @@ extern s32 GameClock;
 
 extern void FUN_80039c14(void);
 extern void KillHumanoid(Humanoid *human);
-extern void SetBleeds(VECTOR *pos, s16 grange, s16 srange, s16 n,
-                      s32 time, s32 col);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point);
 extern void *valloc(u32 size);

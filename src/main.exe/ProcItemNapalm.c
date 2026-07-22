@@ -40,8 +40,6 @@ extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
-extern void SetFrame(VECTOR *pos, short size, short time,
-                     GsCOORDINATE2 *super);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
