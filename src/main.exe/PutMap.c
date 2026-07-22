@@ -52,8 +52,7 @@
  * `ply` is this call's POLY_XF4, borrowed from the GPU's rolling work
  * buffer (GsGetWorkBase/GsSetWorkBase, bumped by exactly `sizeof(POLY_XF4)`
  * via plain `ply + 1` pointer arithmetic) — same local `POLY_XF4`/`POLY_F4`/
- * `DR_TPAGE` layout SetPolyXF4.c defined (not in a shared header yet per
- * its own comment; redefined locally here, its second caller).
+ * `DR_TPAGE` layout shared in game_types.h.
  *
  * Ghidra renders `(CamState.Owner)->model->locate.coord.t[0/2]` for the
  * mode-2 draw call's first two args. The raw asm reaches that same aliased

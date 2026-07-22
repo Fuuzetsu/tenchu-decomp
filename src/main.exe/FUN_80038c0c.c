@@ -3,27 +3,18 @@
 #include <psxsdk/libgpu.h>
 
 /*
- * FUN_80038c0c (0x80038c0c, 0xd4 bytes) — builds two GPU primitives (likely a
- * semi-transparent POLY_F4 + its DR_TPAGE mode-setting header, per the
- * PsyQ-macro hints in the original decompilation) in the current GsGetWorkBase
- * slot, advances the work base by 0xC0, fills in the three caller-supplied
- * RGB-ish bytes at +0xC/+0xD/+0xE, then adds both primitives (+8 first, then
- * +0) to the order table via AddPrim(ot, prim) — same call as AddXF4.c/
- * AddXG4.c/DrawXG4.c/DrawXF4.c just below/above it in this TU. No
- * proven struct name exists for the primitive layout (same "no proven view"
- * shape as SetPolyXG4.c's sibling), so plain offset casts off the
- * GsGetWorkBase pointer, matching Ghidra/m2c literally.
+ * FUN_80038c0c (0x80038c0c, 0xd4 bytes) — builds a semi-transparent POLY_F4
+ * and its DR_TPAGE command in a recovered POLY_XF4 at the current work base,
+ * advances the work base by 0xC0, colors the quad with the caller's RGB, then
+ * adds the quad and draw mode to the order table.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - m2c's grouped s16 stores (unk12/unk16/unk10/.../unk1E) are the real
- *    shape; Ghidra's byte-pair rendering (0x88/0xff etc.) is just its
- *    decompiler not recognizing the paired bytes as one `sh`.
  *  - The `-0xA0` constant materialized before the first AddPrim call is a
  *    dead/live-across-call scratch (m2c's 3rd "argument" to the first
  *    AddPrim is that leftover register, not a real argument — cookbook's
  *    m2c-overcounts-args rule): AddPrim takes exactly 2 arguments here too.
- *  - **The `p+0x10 = -0xA0` store's SOURCE POSITION is before the `p+4`
- *    word store, not after it (out of increasing-offset order, and out of
+ *  - **The `ply->ply.x0 = -0xA0` store's SOURCE POSITION is before the tpage
+ *    command store, not after it (out of increasing-offset order, and out of
  *    the order Ghidra/m2c both render it in).** Every other field is in
  *    strict offset order; only this one constant's statement needs to move
  *    one slot earlier for its `li` to schedule where the target has it
@@ -33,27 +24,27 @@
  *    "bisect a multi-diff score-0 candidate" rule).
  */
 
-void FUN_80038c0c(u8 *arg0, s8 arg1, s8 arg2, s8 arg3)
+void FUN_80038c0c(u8 *ot, s8 r, s8 g, s8 b)
 {
-    u8 *p;
+    POLY_XF4 *ply;
 
-    p = (u8 *)GsGetWorkBase();
-    GsSetWorkBase(p + 0xC0);
-    p[0xB] = 5;
-    p[0xF] = 0x2A;
-    p[3] = 1;
-    *(s16 *)(p + 0x10) = -0xA0;
-    *(u32 *)(p + 4) = 0xE1000240;
-    *(s16 *)(p + 0x12) = -0x78;
-    *(s16 *)(p + 0x16) = -0x78;
-    *(s16 *)(p + 0x14) = 0xA0;
-    *(s16 *)(p + 0x18) = -0xA0;
-    *(s16 *)(p + 0x1A) = 0x78;
-    *(s16 *)(p + 0x1C) = 0xA0;
-    *(s16 *)(p + 0x1E) = 0x78;
-    p[0xC] = arg1;
-    p[0xD] = arg2;
-    p[0xE] = arg3;
-    AddPrim(arg0, p + 8);
-    AddPrim(arg0, p);
+    ply = (POLY_XF4 *)GsGetWorkBase();
+    GsSetWorkBase((u8 *)ply + 0xC0);
+    setlen(&ply->ply, 5);
+    setcode(&ply->ply, 0x2A);
+    setlen(&ply->tpage, 1);
+    ply->ply.x0 = -0xA0;
+    ply->tpage.code[0] = 0xE1000240;
+    ply->ply.y0 = -0x78;
+    ply->ply.y1 = -0x78;
+    ply->ply.x1 = 0xA0;
+    ply->ply.x2 = -0xA0;
+    ply->ply.y2 = 0x78;
+    ply->ply.x3 = 0xA0;
+    ply->ply.y3 = 0x78;
+    ply->ply.r0 = r;
+    ply->ply.g0 = g;
+    ply->ply.b0 = b;
+    AddPrim(ot, &ply->ply);
+    AddPrim(ot, &ply->tpage);
 }

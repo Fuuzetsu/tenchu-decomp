@@ -37,8 +37,7 @@
  * "narrow lhu view of pmode" and "byte-narrowed py" idioms), placing four
  * (x,y)/(u,v) vertices offset by the scaled pw/ph instead of one x/y/scale
  * triple. POLY_FT4 (u0/v0/clut/x1/y1/u1/v1/tpage/x2/y2/u2/v2/pad1/x3/y3/u3/
- * v3/pad2) is the real PsyQ SDK layout (reference/ghidra_types.h), declared
- * locally per the SetPolyXF4.c precedent (no shared header owns it yet).
+ * v3/pad2) is the real PsyQ SDK layout from libgpu.h.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `image->px`/`image->py`/`image->pw`/`image->ph` are read into NAMED
