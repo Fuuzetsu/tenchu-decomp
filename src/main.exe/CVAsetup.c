@@ -27,7 +27,6 @@
  *     extern struct CVAType *CVAdata;
  *     extern int StageID;
  *     extern struct POLY_F4 TelopbgP;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 /*

@@ -25,7 +25,6 @@
  * Globals it touches, as the original declared them:
  *     extern short ConflictObjects;
  *     extern struct ConflictObjectType ConflictObject[64];
- *     extern struct tag_TItem items[30];
  *     extern struct VECTOR UnitVector2;
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */

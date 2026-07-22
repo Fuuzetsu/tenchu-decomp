@@ -10,7 +10,6 @@
  * Globals it touches, as the original declared them:
  *     extern int AccessPower;
  *     extern struct POLY_GT4 AccessImage;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 /*

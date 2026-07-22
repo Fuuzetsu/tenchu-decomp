@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct tag_TItem items[30];
- * END PSX.SYM */
-
 /*
  * Save or restore the memory-card menu's VRAM window and allocate/free its
  * help text and sprites.  The load path also sanitises the help text, skipping

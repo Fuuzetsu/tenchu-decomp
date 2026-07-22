@@ -40,6 +40,11 @@
  *     extern long GameClock;
  *     extern long StageTime;
  *     extern short ActionHalt;
+ *     extern long AttackActionCount;
+ *     extern short FriendHits;
+ *     extern short Murders;
+ *     extern short Findenemies;
+ *     extern short Criticals;
  * END PSX.SYM */
 
 #include "item.h"

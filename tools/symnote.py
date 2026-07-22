@@ -149,14 +149,17 @@ def globals_of(name):
             real_boundaries.append(int(m.group(2), 16))
     real_boundaries.sort()
     exe = open("disks/tenchu/main.exe", "rb").read()
-    refs, _ = D.data_refs(exe[0x800:], 0x80011000, addr, size, D.RETAIL_GP, *D.RETAIL_TEXT)
+    refs, _ = D.data_refs(
+        exe[0x800:], 0x80011000, addr, size, D.RETAIL_GP,
+        *D.RETAIL_TEXT, direct_only=True,
+    )
     hits = []
     for _, y in refs:
         owner = typed_owner(y, decl, real_boundaries)
         if owner is None or owner in hits:
             continue
         hits.append(owner)
-    return [f"extern {decl[a][0]};" for a in hits[:12]]
+    return [f"extern {decl[a][0]};" for a in hits]
 
 
 def render(name, protos, tu, locals_, cand) -> str | None:

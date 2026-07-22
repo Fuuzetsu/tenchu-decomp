@@ -30,7 +30,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct tag_TMisc misc[200];
- *     extern struct tag_TItem items[30];
  *     extern struct MISC__183fake DoorData[11];
  *     extern struct MISC__185fake SpriteData[2];
  *     extern struct MISC__184fake PitfallData[2];

@@ -12,7 +12,6 @@
  * Globals it touches, as the original declared them:
  *     extern struct POLY_F4 TelopbgP;
  *     extern struct GsOT *OTablePt;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 /*

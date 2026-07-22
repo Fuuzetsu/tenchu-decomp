@@ -1,6 +1,15 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char gSoundLevel;
+ * END PSX.SYM */
+
 /*
  * FUN_8004f68c (0x8004f68c, 0x34 bytes) — thin forwarder: resets the CD-audio
  * volume to max on both channels (SsSetMVol(0x7F,0x7F)), then re-applies the

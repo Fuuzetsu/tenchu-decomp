@@ -33,6 +33,7 @@
  *     extern short SR;
  *     extern struct Humanoid *StagePlayer;
  *     extern short Attrib;
+ *     extern unsigned char gNannido;
  * END PSX.SYM */
 
 extern Humanoid *Me_THINK_C;

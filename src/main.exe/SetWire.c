@@ -59,7 +59,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsRVIEW2 ViewInfo;
- *     extern struct tag_TItem items[30];
  *     extern struct GsOT *OTablePt;
  *     extern struct ModelType *ModelHook;
  * END PSX.SYM */

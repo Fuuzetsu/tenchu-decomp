@@ -23,7 +23,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern unsigned char ComBuf[2][34];
- *     extern struct tag_TItem items[30];
  *     extern struct PADCMD__141fake PadArrange;
  *     extern struct TPadPort PadPort[2][4];
  * END PSX.SYM */

@@ -29,6 +29,9 @@
  *     reg   $s2       struct TMusicTable * music
  *     reg   $s0       unsigned char min
  *     reg   $s1       unsigned char sec
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char gSoundLevel;
  * END PSX.SYM */
 
 /*

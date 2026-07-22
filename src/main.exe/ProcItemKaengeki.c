@@ -33,7 +33,6 @@
  *     extern short ActionHalt;
  *     extern struct TCameraStatus CamState;
  *     extern struct GsRVIEW2 ViewInfo;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 #include "item.h"

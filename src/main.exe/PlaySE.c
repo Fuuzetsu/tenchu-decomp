@@ -24,6 +24,9 @@
  *     param $a2       long dv
  *     reg   $s0       short d
  *     reg   $v1       short v
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char gSELevel;
  * END PSX.SYM */
 
 /*

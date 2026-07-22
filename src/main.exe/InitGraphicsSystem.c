@@ -16,7 +16,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  *     extern struct GsOT OTable[2];
  *     extern struct GsOT_TAG ZSortTable[2][2048];
- *     extern struct tag_TMisc misc[200];
  * END PSX.SYM */
 
 /*

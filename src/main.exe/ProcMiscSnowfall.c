@@ -32,7 +32,6 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern struct GsRVIEW2 ViewInfo;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 /*

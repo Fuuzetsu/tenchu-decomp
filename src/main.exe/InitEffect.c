@@ -31,7 +31,6 @@
  *     extern struct GsSPRITE sprSplash;
  *     extern struct GsSPRITE sprFrame[4];
  *     extern struct POLY_F4 plyBleed;
- *     extern struct tag_TItem items[30];
  *     extern struct Sprite3D *sprSmoke;
  *     extern struct Sprite3D *sprBomb[3];
  *     extern struct ModelType *ModelHook;

@@ -31,6 +31,9 @@
  *     reg   $s2       struct CdlLOC * loc
  *     reg   $s0       unsigned char min
  *     reg   $s1       unsigned char sec
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char gSELevel;
  * END PSX.SYM */
 
 typedef struct TVoiceTable

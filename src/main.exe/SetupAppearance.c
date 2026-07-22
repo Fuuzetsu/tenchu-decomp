@@ -30,6 +30,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern short NowStage;
+ *     extern unsigned char gNannido;
  *     extern short EngageLevel;
  *     extern struct HumanDataType HumanData[63];
  *     extern struct WeaponModelType WeaponModel[41];

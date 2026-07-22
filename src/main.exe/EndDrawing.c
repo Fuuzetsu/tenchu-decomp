@@ -29,7 +29,6 @@
  *     extern struct GsOT OTable[2];
  *     extern struct GsOT *OTablePt;
  *     extern struct GsFOGPARAM Fog;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 /*

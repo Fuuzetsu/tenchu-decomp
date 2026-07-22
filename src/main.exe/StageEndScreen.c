@@ -15,6 +15,7 @@
  *     extern struct Sprite3D *ItemImage[25];
  *     extern short SkipFrame;
  *     extern struct TCameraStatus CamState;
+ *     extern unsigned char gfMemory;
  * END PSX.SYM */
 
 /*

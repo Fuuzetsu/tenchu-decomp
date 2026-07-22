@@ -69,8 +69,14 @@ def norm(w: int) -> int:
 
 
 def data_refs(text: bytes, base: int, addr: int, size: int, gp: int,
-              tlo: int, thi: int):
-    """(refs, tokens) -- refs is [(instr_index, data_address)], tokens aligns builds."""
+              tlo: int, thi: int, *, direct_only: bool = False):
+    """(refs, tokens) -- refs is [(instr_index, data_address)], tokens aligns builds.
+
+    ``direct_only`` stops following a register after an address-materializing
+    instruction.  This is sufficient for symbol ownership (the materialized
+    base is itself a reference) and avoids interpreting later ``0(reg)``
+    accesses as ``high(global) + 0`` after a ``lui``/``addiu`` pair.
+    """
     off = addr - base
     hi: dict[int, int] = {}
     out: list[tuple[int, int]] = []
@@ -100,7 +106,7 @@ def data_refs(text: bytes, base: int, addr: int, size: int, gp: int,
             rd = (w >> 11) & 31
             hi.pop(rd, None)
         elif op in (9, 0x0C, 0x0D, 0x0E, 8, 0x0A, 0x0B) or op in LOADS_STORES and op < 0x28:
-            if rt != rs:
+            if direct_only or rt != rs:
                 hi.pop(rt, None)
         elif op == 3:                                  # jal clobbers caller-saved
             for r in list(hi):

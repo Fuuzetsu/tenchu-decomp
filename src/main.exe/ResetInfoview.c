@@ -24,7 +24,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct INFOVIEW__198fake LifeBar[4];
- *     extern struct tag_TItem items[30];
  *     extern unsigned char *ImagePath;
  * END PSX.SYM */
 

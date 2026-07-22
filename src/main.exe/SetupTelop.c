@@ -30,7 +30,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct POLY_FT4 TelopP;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 /* STATUS: MATCHED — exact 1076 bytes / 269 instructions.

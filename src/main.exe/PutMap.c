@@ -28,7 +28,6 @@
  *     extern unsigned char PutMapMode;
  *     extern struct GsSPRITE MapImage;
  *     extern struct GsOT *OTablePt;
- *     extern struct tag_TItem items[30];
  *     extern int StageID;
  * END PSX.SYM */
 

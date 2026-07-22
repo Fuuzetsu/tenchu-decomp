@@ -319,6 +319,21 @@ class FunctionInventoryTests(unittest.TestCase):
         self.assertEqual(stats["nonunanimous"], 1)
         self.assertEqual(stats["reverse_conflicts"], 1)
 
+    def test_data_refs_direct_only_stops_after_materialized_address(self):
+        words = [
+            (15 << 26) | (6 << 16) | 0x800C,              # lui a2, 0x800c
+            (9 << 26) | (6 << 21) | (6 << 16) | 0x64C0,  # addiu a2, a2, 0x64c0
+            (0x2B << 26) | (6 << 21) | (2 << 16),        # sw v0, 0(a2)
+        ]
+        text = b"".join(word.to_bytes(4, "little") for word in words)
+
+        refs, _ = datamatch.data_refs(
+            text, 0x80011000, 0x80011000, len(text), 0x80097698,
+            0x80016134, 0x80086763, direct_only=True,
+        )
+
+        self.assertEqual(refs, [(1, 0x800C64C0)])
+
     def test_symnote_typed_owner_uses_object_extent_not_nearest_name(self):
         typed = {
             0x8008F188: ("short *StageAppearance[10]", 0x28),

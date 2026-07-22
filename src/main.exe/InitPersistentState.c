@@ -2,6 +2,19 @@
 #include "main.exe.h"
 #include "item.h"
 
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char gNannido;
+ *     extern unsigned char gSound;
+ *     extern unsigned char gSoundLevel;
+ *     extern unsigned char gSELevel;
+ *     extern unsigned char gfMemory;
+ * END PSX.SYM */
+
 /*
  * InitPersistentState (0x80016134) — if the persistent-state blob at
  * 0x80010000 is uninitialised or corrupt (CHOSEN_CHARACTER has any bit but

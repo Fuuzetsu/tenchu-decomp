@@ -34,6 +34,7 @@
  *     extern enum TSystemFlag SystemFlag;
  *     extern int StageID;
  *     extern short EngageLevel;
+ *     extern unsigned char gNannido;
  * END PSX.SYM */
 
 /*

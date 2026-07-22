@@ -7,6 +7,9 @@
  *
  * void InitSoundEffect(void);
  *     AUDIO.C:28, 7 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
+ *
+ * Globals it touches, as the original declared them:
+ *     extern unsigned char gSound;
  * END PSX.SYM */
 
 /*

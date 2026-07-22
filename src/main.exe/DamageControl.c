@@ -86,6 +86,13 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short ActionHalt;
  *     extern struct MotionManager *dtM;
+ *     extern struct SVECTOR ConflictDistance;
+ *     extern struct SVECTOR *dtR;
+ *     extern short FriendHits;
+ *     extern unsigned long *GlobalAreaMap;
+ *     extern unsigned char gNannido;
+ *     extern short EngageLevel;
+ *     extern struct SVECTOR *dtV;
  * END PSX.SYM */
 
 /*

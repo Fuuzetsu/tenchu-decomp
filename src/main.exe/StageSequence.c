@@ -40,6 +40,7 @@
  *     extern short Criticals;
  *     extern short StageEnemies;
  *     extern short FriendHits;
+ *     extern short StageCitizens;
  * END PSX.SYM */
 
 /*

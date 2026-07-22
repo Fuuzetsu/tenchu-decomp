@@ -8,7 +8,6 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsOT *OTablePt;
- *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
 extern u8 *D_80097D24;

@@ -38,8 +38,10 @@
  *     extern short SR;
  *     extern unsigned long *GlobalAreaMap;
  *     extern short FieldAttrib;
+ *     extern unsigned char gNannido;
  *     extern short EngageLevel;
  *     extern short Findenemies;
+ *     extern long GameClock;
  * END PSX.SYM */
 
 /*

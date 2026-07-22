@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct tag_TItem items[30];
- * END PSX.SYM */
-
 /*
  * cd_init (0x8005f710) — clears the `flagUse` slot-free flag for all 10
  * entries of the CD file-handle pool (`FileHandlePool`, Ghidra symbols.tsv

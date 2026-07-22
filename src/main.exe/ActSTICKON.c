@@ -41,6 +41,7 @@
  *     extern struct SVECTOR *dtV;
  *     extern short SelectedItem;
  *     extern struct VECTOR *dtL;
+ *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
 /*
