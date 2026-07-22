@@ -417,7 +417,7 @@ GP_EXTERNS = {
     "ActHANG": ["dtV", "dtM", "dtPAD", "dtL", "motID", "motMODE", "Me_MOTION_C"],
     "ReqItemGun": ["ic"],
     "SetSmokeS": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
-    "SetupAppearance": ["NowStage", "PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR", "D_800979A6", "AMD_LOADED_FOR_CHARACTER_KIND"],
+    "SetupAppearance": ["NowStage", "PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR", "sstage", "smode"],
     "StateTransition": ["StrainRatio", "Me_THINK_C", "Pad", "Attrib", "D_80097F1C", "ActionHalt", "FRAMES_UNTIL_END_OF_ALERT", "SR", "Distance", "D_80097F10", "D_80097F18", "D_80097F14", "EngageLevel", "Degree"],
     "ActATTACK": ["dtM", "Me_MOTION_C", "motID", "motMODE", "dtR", "dtL", "dtPAD", "MotionUpdateMode", "dtV"],
     "AttackIndirect": ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "SR"],

@@ -49,6 +49,9 @@
  *    keeps the PersistentState base in one register for the +0x58/+0x1a
  *    reads; the later literal +0x1a clear must rematerialize the address
  *    after `pt` is repurposed.
+ *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
+ *    preserves their adjacent halfword layout and their mode-cache/stage-cache
+ *    roles despite other globals inserted ahead of them since the demo.
  *  - `human` gives the two HumanData name stores one shared array base.
  *  - Reusing `human` for the much later StageMotion null-check/free is
  *    load-bearing: it changes global.c's pseudo coloring so the early
@@ -57,8 +60,8 @@
  *    function differs only by a six-byte $a0/$v1 swap.
  */
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
-extern s16 AMD_LOADED_FOR_CHARACTER_KIND;
-extern s16 D_800979A6;
+extern s16 smode;
+extern s16 sstage;
 extern u8 D_80011710[];
 extern u8 D_800979A8[];
 extern u8 D_800979B0[];
@@ -151,7 +154,7 @@ void SetupAppearance(short mode, short stage)
         {
             vfree(StageMotion);
         }
-        D_800979A6 = stage;
+        sstage = stage;
         sprintf((char *)name, D_8001171C, D_80011734, (int)stage);
         StageMotion = LoadMotion(FileRead(name));
         if (stage != 0)
@@ -163,7 +166,7 @@ void SetupAppearance(short mode, short stage)
             }
             if (PlayerMotion != 0)
             {
-                if (mode != AMD_LOADED_FOR_CHARACTER_KIND)
+                if (mode != smode)
                 {
                     vfree(PlayerMotion);
                     PlayerMotion = 0;
@@ -173,7 +176,7 @@ void SetupAppearance(short mode, short stage)
                     return;
                 }
             }
-            AMD_LOADED_FOR_CHARACTER_KIND = mode;
+            smode = mode;
             if (mode == 0)
             {
                 pt = (u8 *)D_80011774;
