@@ -38,7 +38,7 @@
  * state and marks fInitialize.
  *
  * STATUS: MATCHING — 352 bytes. The loop-1 SetupSprite result must be
- * assigned through `*piVar3` in one expression: that assignment chain keeps
+ * assigned through `*slot` in one expression: that assignment chain keeps
  * the result live long enough for the following slot reload to take `$v1`,
  * leaving `$v0` for the 0x1C attribute constant.
  *
@@ -61,14 +61,11 @@
  *    already matches (its one constant, 0x50000000, is likewise just a
  *    plain pre-loop variable read, and the array is walked with a typed
  *    `GsSPRITE *` pointer with no strength-reduction concern).
- *  - `ItemImage` (26 Sprite3D* pointer slots) is walked as a plain `s32 *`
- *    (Ghidra's own cast: `*piVar3 = (int)pSVar2;`), not a typed
- *    `Sprite3D **` — matches the raw `(int)` store and the later
- *    `*(short *)(*piVar3 + 0x5A)` reload-through-the-slot (NOT through the
- *    just-stored `pSVar2` register): the target re-reads the slot from
- *    memory for the attribute store instead of reusing the SetupSprite
- *    result still live in a register, so the source must do the same
- *    (index the array again rather than keep a `sprite->attribute` access).
+ *  - `ItemImage` is walked through its real `Sprite3D **` element type.
+ *    `item` retains SetupSprite's result for the scale store, while
+ *    `(*slot)->attribute` deliberately re-reads the pointer from the array;
+ *    that is the target's slot reload without erasing the pointer type or
+ *    spelling the recovered +0x5A field as a raw offset.
  *  - `fInitialize` is this TU's gp small; maspsxGpExterns is PER FILE (each
  *    split function is its own assembly unit), so this file needs its OWN
  *    Build.hs entry — DoInfoViewProc.c's entry only covers DoInfoViewProc.c.
@@ -93,60 +90,60 @@ extern void FUN_8004a6bc(void);
 
 void InitializeInfoView(void)
 {
-    GsIMAGE *pGVar1;
-    Sprite3D *pSVar2;
-    s32 *piVar3;
-    s32 *base2;
+    GsIMAGE *image;
+    Sprite3D *item;
+    Sprite3D **slot;
+    Sprite3D **base2;
     GsSPRITE *sprite;
-    int iVar4;
+    int i;
     s32 scale1;
     s32 scale2;
     s32 attr3;
     s32 attr2;
 
-    pGVar1 = GetImage(0x32);
-    InitSprite(pGVar1, &CursorImage);
+    image = GetImage(0x32);
+    InitSprite(image, &CursorImage);
     CursorImage.attribute = 0x50000000;
-    pGVar1 = GetImage(0x33);
-    InitSprite(pGVar1, &NumberImage);
-    iVar4 = 0;
+    image = GetImage(0x33);
+    InitSprite(image, &NumberImage);
+    i = 0;
     scale1 = 0x3000;
-    piVar3 = (s32 *)ItemImage;
+    slot = ItemImage;
 loop1:
-    pGVar1 = GetImage(iVar4 + 0x14);
-    pSVar2 = (Sprite3D *)(*piVar3 = (s32)SetupSprite((Sprite3D *)0, pGVar1));
-    pSVar2->scale = scale1;
-    *(s16 *)(*piVar3 + 0x5A) = 0x1C;
-    piVar3 = piVar3 + 1;
-    if (++iVar4 < 0x14)
+    image = GetImage(i + 0x14);
+    item = (*slot = SetupSprite(0, image));
+    item->scale = scale1;
+    (*slot)->attribute = 0x1C;
+    slot = slot + 1;
+    if (++i < 0x14)
         goto loop1;
-    if (iVar4 < 0x1A)
+    if (i < 0x1A)
     {
         scale2 = 0x3000;
         attr2 = 0x1C;
-        base2 = (s32 *)ItemImage;
-        piVar3 = base2 + iVar4;
+        base2 = ItemImage;
+        slot = base2 + i;
     loop2:
-        pGVar1 = GetImage(0xF);
-        pSVar2 = SetupSprite((Sprite3D *)0, pGVar1);
-        *piVar3 = (s32)pSVar2;
-        pSVar2->scale = scale2;
-        *(s16 *)(*piVar3 + 0x5A) = attr2;
-        piVar3 = piVar3 + 1;
-        if (++iVar4 < 0x1A)
+        image = GetImage(0xF);
+        item = SetupSprite(0, image);
+        *slot = item;
+        item->scale = scale2;
+        (*slot)->attribute = attr2;
+        slot = slot + 1;
+        if (++i < 0x1A)
             goto loop2;
     }
-    iVar4 = 0;
+    i = 0;
     attr3 = 0x50000000;
     sprite = ItemSprite3Ds;
     do
     {
-        pGVar1 = GetImage(iVar4 + 0x2E);
-        InitSprite(pGVar1, sprite);
+        image = GetImage(i + 0x2E);
+        InitSprite(image, sprite);
         sprite->attribute = attr3;
-        iVar4 = iVar4 + 1;
+        i = i + 1;
         sprite = sprite + 1;
-    } while (iVar4 < 4);
+    } while (i < 4);
     leResetEnemyLayout();
     ResetInfoview(-1);
     FUN_8004a6bc();
