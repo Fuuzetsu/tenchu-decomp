@@ -27,7 +27,6 @@
  * ahead of the loop counter's `li` in the asm.
  */
 
-extern void leLayoutEnemy(s32 mode);
 
 void leClearLayout(void)
 {

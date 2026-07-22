@@ -67,7 +67,7 @@ extern void vfree(void *ptr);
  *  - Direct `point[i]` indexing gives the target's single induction value;
  *    a walking TracePoint pointer introduces a second one.
  */
-void leLayoutEnemy(s32 mode)
+void leLayoutEnemy(int mode)
 {
     s32 i;
     Humanoid *target;

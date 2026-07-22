@@ -80,10 +80,7 @@ extern char D_800140E0[];                   /* "layout %d enemies" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
-extern int leRemoveEnemy(void);
-extern void leLayoutEnemy(s32 mode);
 extern void leClearLayout(void);
-extern s32 leFindEnemy(void);
 extern void leAddPath(s32 n, s32 x, s32 y, s32 z);
 extern void leResetPath(s32 n);
 extern void SelectCameraOwnerOption(void);   /* AdtMessageBox comes from item.h */

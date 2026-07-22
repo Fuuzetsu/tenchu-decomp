@@ -87,6 +87,9 @@ extern POLY_GT4 AccessImage;
 
 extern void SetCameraMode(TCameraMode mode);
 extern short NowReturnNormal(struct Humanoid *human);
+extern int leFindEnemy(void);
+extern void leLayoutEnemy(int mode);
+extern int leRemoveEnemy(void);
 
 extern u_long *FileRead(u8 *filename);
 extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);

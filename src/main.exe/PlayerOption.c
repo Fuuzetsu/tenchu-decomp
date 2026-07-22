@@ -99,7 +99,6 @@ extern char D_80014784[];                    /* "player option" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void debug_menu_player_jump(void);
-extern void leLayoutEnemy(s32 mode);
 extern void StartStageSequence(void);
 
 void PlayerOption(void)

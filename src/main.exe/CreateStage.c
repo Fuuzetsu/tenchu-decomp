@@ -84,7 +84,6 @@ extern void ResetInfoview(s32 stage);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void create_ninken_character_(s16 type, s32 stage);
 extern void load_layout(s32 layout);
-extern void leLayoutEnemy(s32 mode);
 extern void CVAsetup(void);
 extern void SetupStageSequence(void);
 

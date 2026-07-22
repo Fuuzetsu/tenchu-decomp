@@ -19,13 +19,11 @@
  * latched, marks its type dead (-1) and relays out the enemy set
  * (leLayoutEnemy(0)); otherwise does nothing.
  *
- * LayoutEnemyOption.c (matched) declares this as returning int, but ignores
- * the result. This TU's local declaration of leLayoutEnemy is deliberately
- * `s32`, despite that function's retail definition and Demo prototype being
- * void: the found path tail-returns whatever its call leaves in $v0, while
- * the not-found path explicitly returns zero. This matches the "original TUs
- * disagree with the defining TU's prototype" convention (docs/matching-
- * cookbook.md).
+ * The not-found path explicitly returns zero. The found path calls the
+ * original void leLayoutEnemy API and then falls off the end, leaving that
+ * call's value in $v0 as the retail binary does. Both functions belonged to
+ * the same original WORLD.C translation unit, so a conflicting declaration
+ * would not have been possible there.
  *
  * m2c over-counts leLayoutEnemy's call as 2-arg (0, -1): $a1 still holds the
  * -1 used for the preceding `type = -1` store and was never reassigned
@@ -38,18 +36,15 @@
  * spelling is right here too.
  */
 
-extern s32 leFindEnemy(void);
-extern s32 leLayoutEnemy(s32 mode);
-
-s32 leRemoveEnemy(void)
+int leRemoveEnemy(void)
 {
-    s32 idx;
+    int idx;
 
     idx = leFindEnemy();
-    if (idx != -1)
+    if (idx == -1)
     {
-        enemy[idx].type = -1;
-        return leLayoutEnemy(0);
+        return 0;
     }
-    return 0;
+    enemy[idx].type = -1;
+    leLayoutEnemy(0);
 }
