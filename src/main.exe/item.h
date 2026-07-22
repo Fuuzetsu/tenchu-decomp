@@ -6,8 +6,8 @@
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
  * is proven by a byte-matched function (see docs/matching-cookbook.md).
  * gp note: this TU defines COUNTER_FOR_ITEM_ARRAY_ (gp-relative; listed in
- * Build.hs maspsxGpExterns for the files that touch it) but only *references*
- * ActionHalt/FRAMES_UNTIL_END_OF_ALERT (absolute here, gp in think's TU).
+ * Build.hs maspsxGpExterns for the files that touch it). ITEM.C's references
+ * to ActionHalt/FRAMES_UNTIL_END_OF_ALERT are absolute (gp in think's TU).
  */
 
 typedef struct tag_TItem TItem;
@@ -363,8 +363,6 @@ extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 extern void *memset(void *s, int c, u32 n);
 
-/* Absolute in this TU (defined by think's TU, gp there — see the gp note). */
-extern s16 ActionHalt;
 /* "item dispose fail   id %d  mode %d" */
 extern char D_800121CC[];
 /* The global item pool. */
