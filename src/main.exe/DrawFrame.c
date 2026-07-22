@@ -116,7 +116,7 @@
  *    MASPSX_EXTRA), same as FUN_8003a148/DrawSpriteXYZ.
  */
 extern GsOT *OTablePt;
-extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
+extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
 void DrawFrame(TEffectSlot *ef)
 {
@@ -187,7 +187,7 @@ draw:
     }
     else
     {
-        GetScreenPosition(px, py, pz, (s32 *)&scr);
+        GetScreenPosition(px, py, pz, &scr);
     }
 
     otz = scr.vz;

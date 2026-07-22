@@ -34,16 +34,15 @@
  * sort-draw a sprite there" epilogue: calls GetScreenPosition (camera-relative
  * transform + RotTransPers) to get a screen (x,y) and OTZ depth, bails if
  * the point is behind/too close (`otz <= 0x24`), else derives a uniform
- * scale from `size*300/otz`, writes the sprite's x/y/scalex/scaley, and
+ * scale from `scale*300/otz`, writes the sprite's x/y/scalex/scaley, and
  * GsSortSprite's it into the OT at a depth-derived priority (clamped to
  * [0, 0x4e1]) — the identical tail DrawBlood.c's own Ghidra decompilation
- * shows twice (once inline, once via `goto LAB_8003318c`), so this is
- * almost certainly the extracted-common-tail helper for that whole Draw*
- * family. Called once from the still-unmatched FUN_8004c350. No candidate
- * name in reference/psxsym-candidates.tsv; not in the demo's PSX.SYM.
+ * shows twice (once inline, once via `goto LAB_8003318c`), matching this
+ * original EFFECT.C helper's role across the Draw* family. Its identified
+ * retail caller is the still-unmatched FUN_8004c350.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - This TU divides by a runtime value (`size*300/otz`) — needed
+ *  - This TU divides by a runtime value (`scale*300/otz`) — needed
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
  *    MASPSX_EXTRA) for ASPSX's guarded bnez/break-7/break-6 expansion;
  *    without it the whole division-safety preamble is simply missing
@@ -71,9 +70,9 @@
  *    plain `int pri` parameter alone does not imply truncation.
  */
 extern GsOT *OTablePt;
-extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
+extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
-void DrawSpriteXYZ(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size)
+void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
 {
     SVECTOR scr;
     s16 sc;
@@ -81,15 +80,15 @@ void DrawSpriteXYZ(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size)
     s32 t;
     s32 pri;
 
-    GetScreenPosition(x, y, z, (s32 *)&scr);
+    GetScreenPosition(x, y, z, &scr);
     otz = scr.vz;
     if (otz > 0x24)
     {
-        sc = (s16)((size * 300) / otz) + 1;
-        sp->scaley = sc;
-        sp->scalex = sc;
-        sp->x = scr.vx;
-        sp->y = scr.vy;
+        sc = (s16)((scale * 300) / otz) + 1;
+        sprt->scaley = sc;
+        sprt->scalex = sc;
+        sprt->x = scr.vx;
+        sprt->y = scr.vy;
         t = (s32)((u32)(u16)scr.vz << 16) >> 0x12;
         if (t < 0)
         {
@@ -104,6 +103,6 @@ void DrawSpriteXYZ(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size)
     zero:
         pri = 0;
     done:
-        GsSortSprite(sp, OTablePt, (u16)pri);
+        GsSortSprite(sprt, OTablePt, (u16)pri);
     }
 }

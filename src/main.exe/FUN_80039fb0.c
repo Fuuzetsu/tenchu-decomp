@@ -51,7 +51,7 @@
  *    and read twice fixes it (16 bytes: 2 spurious `lhu`+`nop` pairs).
  */
 extern GsOT *OTablePt;
-extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
+extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
 void FUN_80039fb0(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 size, long rotate, s32 color)
 {
@@ -63,7 +63,7 @@ void FUN_80039fb0(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 size, l
     s32 t;
     s32 pri;
 
-    GetScreenPosition(x, y, z, (s32 *)&out);
+    GetScreenPosition(x, y, z, &out);
     otz = out.vz;
     if (otz > 0x24)
     {

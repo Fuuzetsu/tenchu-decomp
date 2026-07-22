@@ -32,17 +32,17 @@
  * PrepareGetScreenPositionS.c's MATRIX uses, Ghidra names it "Scratchpad"), then calls
  * RotTransPers (a GTE perspective-transform library wrapper, 0x80078704 >
  * 0x80060000, precompiled — only this call site's argument setup is
- * source-shaped) with that SVECTOR, the caller's own output pointer arg3
+ * source-shaped) with that SVECTOR, the caller's own output pointer `scr`
  * (passed through unmodified — RotTransPers presumably writes screen xy
  * into it internally), and two more scratchpad slots
  * (Scratchpad+0/Scratchpad+0x10). RotTransPers's returned OTZ (depth) gets
- * written to arg3's second word (`arg3[1]`, i.e. +4 bytes).
+ * written to `scr->vz` at +4 bytes.
  *
  * ViewInfo.vpx/vpy/vpz are canonical GsRVIEW2 `long` fields (s32 on PsyQ,
  * matching Ghidra's independently-built GsRVIEW2 — see ReqItemDefault.c).
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `arg0 - (short)ViewInfo.vpx` is a NARROWING use (the result stores
+ *  - `x - (short)ViewInfo.vpx` is a NARROWING use (the result stores
  *    into a scratchpad s16 field) of a s32 global's LOW HALF — cc1 emits
  *    `lhu` for it (the same "sign bits are provably dead" rule as
  *    DeleteConflict's ConflictObjects, just with an extra explicit
@@ -58,14 +58,14 @@
 
 extern GsRVIEW2 ViewInfo;
 
-void GetScreenPositionS(s32 arg0, s32 arg1, s32 arg2, s32 *arg3)
+void GetScreenPositionS(s32 x, s32 y, s32 z, SVECTOR *scr)
 {
     SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(0x80);
 
-    sv->vx = arg0 - (short)ViewInfo.vpx;
-    sv->vy = arg1 - (short)ViewInfo.vpy;
-    sv->vz = arg2 - (short)ViewInfo.vpz;
-    *(short *)(arg3 + 1) = RotTransPers(
-        sv, arg3, (void *)TENCHU_SCRATCHPAD_ADDRESS,
+    sv->vx = x - (short)ViewInfo.vpx;
+    sv->vy = y - (short)ViewInfo.vpy;
+    sv->vz = z - (short)ViewInfo.vpz;
+    scr->vz = RotTransPers(
+        sv, (s32 *)scr, (void *)TENCHU_SCRATCHPAD_ADDRESS,
         (void *)TENCHU_SCRATCHPAD(0x10));
 }

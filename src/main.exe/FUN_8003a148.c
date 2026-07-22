@@ -52,7 +52,7 @@
  *    (cc1 doesn't refetch a value it can already see live).
  */
 extern GsOT *OTablePt;
-extern void GetScreenPosition(s32 x, s32 y, s32 z, s32 *out);
+extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
 void FUN_8003a148(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *coord, short d)
 {
@@ -76,7 +76,7 @@ void FUN_8003a148(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *co
     }
     else
     {
-        GetScreenPosition(x, y, z, (s32 *)&scr);
+        GetScreenPosition(x, y, z, &scr);
     }
     otz = scr.vz;
     if (otz > 0x24)
