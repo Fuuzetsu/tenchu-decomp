@@ -94,12 +94,13 @@
  *  - Each of the six /16000 divisions is `long a, q; if (a >= 0) q = a/16000;
  *    else q = a/16000 - 1; x = q & 7;` — a in a0, quotient in the v0/v1
  *    temps, single andi def into the callee-saved home.
- *  - Both WorldMap slot addresses split into offset-then-+base statements
+ *  - Both WorldMap cell addresses split into offset-then-+base statements
  *    (`nModel = (z<<2)+((x<<8)+(y<<5)); nModel += (int)WorldMap;`), which
  *    puts the partial sum in the carrier register and orders the final-pass
  *    slot allocno above the strength-reduction giv so the whole retail
  *    register cascade (slot=s2, giv=s3, y=s4, x=s5, magic=s6, i=s7, hi=fp,
- *    msize spilled) falls out at natural priorities, fence-free.
+ *    msize spilled) falls out at natural priorities, fence-free. The final
+ *    accesses nevertheless use the recovered WorldType.top field.
  */
 
 
@@ -367,10 +368,10 @@ short LoadConstruction(u_long *data)
         if (slotman->n >= slotman->max)
             AdtMessageBox(D_800120C4);
         slotman->slot[slotman->n].model = model;
-        slotman->slot[slotman->n].next = *(ObjectSlotType **)nModel;
+        slotman->slot[slotman->n].next = ((WorldType *)nModel)->top;
         slotman->slot[slotman->n].ModelSize = msize;
         slotman->slot[slotman->n].ShiftY = shifty;
-        *(ObjectSlotType **)nModel = &slotman->slot[slotman->n];
+        ((WorldType *)nModel)->top = &slotman->slot[slotman->n];
         slotman->n++;
         break;
 
@@ -462,7 +463,7 @@ short LoadConstruction(u_long *data)
             mma->object[i]->object.attribute |= 0x400;
             UpdateOrnament(mma->object[i], 0);
             slot = (ObjectSlotType **)((z << 2) + ((x << 8) + (y << 5)));
-            slot = (ObjectSlotType **)((int)slot + (int)WorldMap);
+            slot = &((WorldType *)((int)slot + (int)WorldMap))->top;
             slotman = &ModelSlot;
             model = mma->object[i];
             if (slotman->n >= slotman->max)
