@@ -63,12 +63,29 @@
 
 #include "item.h"
 
+/* The particle loop reuses one 0x20-byte slot. PSX.SYM names its output
+ * views `pos` and `vec`; the inner union records how the temporary VECTOR is
+ * overwritten by the output velocity and its SVECTOR build area. */
+typedef struct
+{
+    VECTOR pos;
+    union
+    {
+        VECTOR position;
+        struct
+        {
+            SVECTOR vec;
+            SVECTOR velocity;
+        } vectors;
+    } work;
+} ProcItemKawarimiScratch;
+
 void ProcItemKawarimi(TItem *item)
 {
     param_drop *param;
     u8 ff;
     s32 i;
-    u8 buf[0x20];
+    ProcItemKawarimiScratch scratch;
 
     param = &item->param.drop;
     ff = ITEM_MODE_DISPOSE;
@@ -90,15 +107,22 @@ void ProcItemKawarimi(TItem *item)
         {
             if (!(i < 0x14))
                 break;
-            memset(buf + 0x10, 0, sizeof(VECTOR));
-            ((s32 *)(buf + 0x10))[0] = item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
-            ((s32 *)(buf + 0x10))[1] = item->owner->model->locate.coord.t[1] + (rand() % 1000 - 0x4b0);
-            ((s32 *)(buf + 0x10))[2] = item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
-            *(VECTOR *)buf = *(VECTOR *)(buf + 0x10);
-            memset(buf + 0x18, 0, sizeof(SVECTOR));
-            ((SVECTOR *)(buf + 0x18))->vy = rand() % 10 - 30;
-            *(SVECTOR *)(buf + 0x10) = *(SVECTOR *)(buf + 0x18);
-            SetBleed((VECTOR *)buf, (SVECTOR *)(buf + 0x10), rand() % 0x10 + 0xf, 0x64C8DC);
+            memset(&scratch.work.position, 0, sizeof(VECTOR));
+            scratch.work.position.vx =
+                item->owner->model->locate.coord.t[0] +
+                (rand() % 1000 - 500);
+            scratch.work.position.vy =
+                item->owner->model->locate.coord.t[1] +
+                (rand() % 1000 - 0x4b0);
+            scratch.work.position.vz =
+                item->owner->model->locate.coord.t[2] +
+                (rand() % 1000 - 500);
+            scratch.pos = scratch.work.position;
+            memset(&scratch.work.vectors.velocity, 0, sizeof(SVECTOR));
+            scratch.work.vectors.velocity.vy = rand() % 10 - 30;
+            scratch.work.vectors.vec = scratch.work.vectors.velocity;
+            SetBleed(&scratch.pos, &scratch.work.vectors.vec,
+                     rand() % 0x10 + 0xf, 0x64C8DC);
             i++;
         }
         {
