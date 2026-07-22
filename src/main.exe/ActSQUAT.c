@@ -77,7 +77,6 @@ extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
 extern short Sound(Humanoid *human, s16 seid);
 extern void AttackControl(void);
-extern void SetCameraMode(TCameraMode mode);
 extern MapVector *StickonCheck(void);
 
 void ActSQUAT(void)

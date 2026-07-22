@@ -47,7 +47,6 @@ extern s16 MotionUpdateMode;
 extern HumanAnimType CVAhuman[5];
 
 extern void AttackCancelControl(short mode);
-extern void SetCameraMode(TCameraMode mode);
 extern void PadShockAR(short port, short power, short time, short mode);
 extern void FUN_800270f8(Humanoid *human, short hide);
 extern short GetMotionID(MotionManager *mmp, short mid);

@@ -67,7 +67,6 @@ extern HumanAnimType CVAhuman[5];
 extern TCameraStatus CamState;
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void SetCameraMode(TCameraMode mode);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern short Sound(Humanoid *human, s16 seid);

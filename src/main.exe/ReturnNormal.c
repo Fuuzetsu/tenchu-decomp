@@ -26,7 +26,6 @@
 extern Humanoid *Me_MOTION_C;
 extern u16 motID;
 extern u16 motMODE;
-extern void SetCameraMode(TCameraMode mode);
 
 void ReturnNormal(void)
 {

@@ -79,7 +79,6 @@ extern GsRVIEW2 ViewInfo;
 extern GsSPRITE TargetSprite;
 extern GsOT *OTablePt;
 
-extern void SetCameraMode(TCameraMode mode);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);

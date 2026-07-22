@@ -50,7 +50,6 @@ extern HumanAnimType CVAhuman[5];
 
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void SetCameraMode(TCameraMode mode);
 extern short Sound(Humanoid *human, s16 seid);
 
 void ActACTION(void)

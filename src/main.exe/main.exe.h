@@ -22,6 +22,8 @@ extern u_long *D_800976E8;
 extern char FONT_FILE_NAME;
 extern char IMAGES_PREFIX_STR;
 
+extern void SetCameraMode(TCameraMode mode);
+
 extern u_long *FileRead(u8 *filename);
 extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
 extern void *GetTIMInfo(u_long *tim, GsIMAGE *im);

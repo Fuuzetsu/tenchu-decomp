@@ -23,7 +23,6 @@ extern BattleType BattleDB[78];
 extern HumanAnimType CVAhuman[5];
 extern u16 D_80086B6C[8];
 
-extern void SetCameraMode(TCameraMode mode);
 extern short Sound(Humanoid *human, s16 seid);
 extern int ReqLifeBar(Humanoid *h);
 extern void DeleteConflict(ModelType *model);

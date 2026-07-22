@@ -62,7 +62,6 @@
  * END PSX.SYM */
 
 extern void SnapCameraTargetVector(void);
-extern void SetCameraMode(TCameraMode mode);
 extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;

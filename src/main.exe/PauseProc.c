@@ -95,7 +95,6 @@ extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 extern short Sound(Humanoid *human, int seid);
-extern void SetCameraMode(TCameraMode mode);
 
 extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;

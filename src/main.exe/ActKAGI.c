@@ -83,7 +83,6 @@ extern TCameraStatus CamState;
 extern s32 FUN_8004a368(s32 mode, Humanoid *human);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
-extern void SetCameraMode(TCameraMode mode);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s32 seid);
 

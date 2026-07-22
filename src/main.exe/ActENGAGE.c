@@ -51,7 +51,6 @@ extern s32 GameClock;
 extern s16 SelectedItem;
 extern Humanoid *Me_MOTION_C;
 
-extern void SetCameraMode(TCameraMode mode);
 extern short Sound(Humanoid *human, s16 seid);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void JumpControl(void);

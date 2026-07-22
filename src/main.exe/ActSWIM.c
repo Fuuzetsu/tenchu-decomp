@@ -56,7 +56,6 @@ extern short SwimCheck(void);
 extern short Sound(Humanoid *human, s16 seid);
 extern short SoundEx(VECTOR *locate, s16 seid);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
-extern void SetCameraMode(TCameraMode mode);
 
 void ActSWIM(void)
 {
