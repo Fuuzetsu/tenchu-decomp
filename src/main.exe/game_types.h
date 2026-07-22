@@ -208,7 +208,7 @@ struct IndexArrayType
     s16 array[4][4];             /* 0x04 */
 };                               /* 0x24 */
 
-/* LAYOUTENEMY.C's editable enemy placement. */
+/* WORLD.C's editable enemy placement. */
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
 {
