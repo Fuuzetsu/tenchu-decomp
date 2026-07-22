@@ -32,8 +32,8 @@
  * as the target's `lui v0,%hi` / `addiu t3,v0,%lo` register handoff.
  *
  * ProcMiscFire (0x8004d570, 0x164 bytes) — MISC_FIRE's ProcMisc* handler:
- * MM_CREATE arms a 10-tick fuse; every later message decrements it (once
- * per call, gated on `mode == 0`) and, when it reaches 0, detonates: an
+ * MM_CREATE arms a 10-tick fuse; each MM_DO tick decrements it (gated on
+ * `mode == 0`) and, when it reaches 0, detonates: an
  * explosion + a burning-embers burst + a smoke puff at m's position, then
  * rearms the fuse to a random 0..149 tick count and plays the bang sound.
  *

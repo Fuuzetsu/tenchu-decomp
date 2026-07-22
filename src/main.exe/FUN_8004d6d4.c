@@ -16,12 +16,12 @@
  * function (message-style `(m, msg)`, no direct `jal` callers found —
  * reached through tag_TMisc.proc). Same 3-way dispatch shape as the
  * neighbouring FUN_8004c59c (same TU): MM_CREATE resets `m->mode`; other
- * lifecycle messages are ignored; MM_DO fires while `mode==0`, then
- * unconditionally spawns effects at a jittered position (X and Z each use
- * the ranges initially supplied as `m->param.init.b/c`; Y is untouched)
- * and, on even `GameClock` frames, calls SetSmoke (a small upward puff) and
- * SetSplash (a ground splash) at that position. Unlike FUN_8004c59c, this
- * handler has no reschedule/"next" field and fires on every active tick.
+ * lifecycle messages are ignored; MM_DO computes a jittered position while
+ * `mode==0` (X and Z each use the ranges initially supplied as
+ * `m->param.init.b/c`; Y is untouched), then on even `GameClock` frames
+ * emits a small upward smoke puff and a ground splash there. Unlike
+ * FUN_8004c59c, this handler has no reschedule/"next" field and repeats the
+ * position calculation on every active tick.
  *
  * Matching notes:
  *  - Dispatch shape identical to FUN_8004c59c: `if (msg==MM_CREATE) goto

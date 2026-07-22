@@ -49,10 +49,10 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - Dispatch is the "short do-nothing case falls through, both real
  *    bodies are jump targets" 3-way: `if (msg==CREATE) goto do_create; if
- *    (MM_DO<=msg) goto do_resume; return;` — msg 1/2 (do-nothing) is the
- *    inline fallthrough, CREATE and RESUME are BOTH forward-jump targets,
- *    placed in that order (CREATE immediately after the dispatch, RESUME
- *    after CREATE) — matching neither a plain if/else-if (puts CREATE
+ *    (MM_DO<=msg) goto do_tick; return;` — messages 1-3 (do-nothing) are the
+ *    inline fallthrough, while CREATE and DO are both forward-jump targets,
+ *    placed in that order (CREATE immediately after the dispatch, DO after
+ *    CREATE) — matching neither a plain if/else-if (puts CREATE
  *    inline instead) nor if/else with the arms swapped (moves CREATE to
  *    the function's end) reproduces this; only the explicit 3-way goto
  *    ladder does.
@@ -105,7 +105,7 @@ void ProcMiscSnowfall(tag_TMisc *m, TMiscMessage msg)
     }
     if (MM_DO <= msg)
     {
-        goto do_resume;
+        goto do_tick;
     }
     return;
 
@@ -131,7 +131,7 @@ do_create:
     }
     return;
 
-do_resume:
+do_tick:
     if ((GameClock & 3) == 0)
     {
         SVECTOR vel;
