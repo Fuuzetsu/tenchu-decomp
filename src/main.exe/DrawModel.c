@@ -130,7 +130,7 @@ extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 short DrawModel(ModelType *objp)
 {
     MATRIX mat;
-    u16 attr;
+    short atr;
     long lv;
     s32 otz;
     s32 iv;
@@ -138,17 +138,17 @@ short DrawModel(ModelType *objp)
 
     GsGetLs(&objp->locate, &mat);
     GsSetLsMatrix(&mat);
-    attr = objp->attribute;
+    atr = objp->attribute;
     otz = -1;
-    if ((attr & 1) != 0)
+    if ((atr & 1) != 0)
         goto ret;
-    if ((attr & 2) == 0)
+    if ((atr & 2) == 0)
     {
         lv = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0);
         otz = lv >> 2;
-        if ((attr & 4) == 0 || otz != 0)
+        if ((atr & 4) == 0 || otz != 0)
         {
-            if ((attr & 8) != 0)
+            if ((atr & 8) != 0)
             {
                 iv = rxy[0];
                 if (iv < 0)
@@ -170,7 +170,7 @@ short DrawModel(ModelType *objp)
                 goto reject;
             }
         reject_check:
-            if ((attr & 0x10) != 0 && 0x4e2 < otz)
+            if ((atr & 0x10) != 0 && 0x4e2 < otz)
             {
                 otz = -1;
                 goto ret;

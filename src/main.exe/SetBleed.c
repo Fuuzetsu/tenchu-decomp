@@ -45,12 +45,13 @@
  *  - `ef->param.bleed.pos = *pos;` / `.vec = *vec;` are plain whole-struct
  *    assignments: VECTOR (align 4) block-moves as 4 lw+4 sw, SVECTOR (align 2)
  *    as lwl/lwr+swl/swr pairs — no manual field-by-field copy needed.
- *  - `fp = &ef->param.bleed;` must be computed BEFORE `r = col >> 16;` (both
+ *  - `param = &ef->param.bleed;` must be computed BEFORE `r = col >> 16;` (both
  *    textually and hence in the RTL) even though r's value is stored later:
  *    with r first, cc1 duplicates r's independent `sra` onto both merge-entry
- *    paths and leaves fp's address undupped, backwards from the target (which
- *    duplicates the necessarily-path-dependent fp address and computes r's
- *    path-invariant value exactly once). Reordering the two flips it back.
+ *    paths and leaves param's address undupped, backwards from the target
+ *    (which duplicates the necessarily-path-dependent param address and
+ *    computes r's path-invariant value exactly once). Reordering the two flips
+ *    it back.
  *  - `ef->proc = ...;` last, after time/b/mode, lets its store fall into the
  *    final jr's delay slot like the original.
  */
@@ -63,7 +64,7 @@ void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    BleedType *fp;
+    BleedType *param;
     u8 r;
 
     base = EffectSlot;
@@ -96,14 +97,14 @@ loop:
     }
     goto loop;
 found:
-    fp = &ef->param.bleed;
+    param = &ef->param.bleed;
     r = col >> 16;
     ef->param.bleed.pos = *pos;
     ef->param.bleed.vec = *vec;
-    fp->r = r;
-    fp->g = col >> 8;
-    fp->time = time;
-    fp->b = col;
-    fp->mode = 0;
+    param->r = r;
+    param->g = col >> 8;
+    param->time = time;
+    param->b = col;
+    param->mode = 0;
     ef->proc = (void (*)())DrawBleed;
 }

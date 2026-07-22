@@ -115,7 +115,7 @@
 short DrawSprite(Sprite3D *sprt)
 {
     MATRIX mat;
-    u16 attr;
+    short atr;
     long *xy;
     long sz;
     long result;
@@ -126,19 +126,19 @@ short DrawSprite(Sprite3D *sprt)
 
     GsGetLs(&sprt->locate, &mat);
     GsSetLsMatrix(&mat);
-    attr = sprt->attribute;
+    atr = sprt->attribute;
     xy = (long *)&sprt->sprite.x;
-    if ((attr & 1) != 0)
+    if ((atr & 1) != 0)
         goto reject;
-    if ((attr & 2) == 0)
+    if ((atr & 2) == 0)
     {
         sz = RotTransPers(&sprt->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((attr & 4) != 0 && sz == 0)
+        if ((atr & 4) != 0 && sz == 0)
         {
             result = -1;
             goto ret;
         }
-        if ((attr & 8) != 0)
+        if ((atr & 8) != 0)
         {
             iv = rxy[0];
             if (iv < 0)
@@ -162,7 +162,7 @@ short DrawSprite(Sprite3D *sprt)
             goto ret;
         }
     reject_check:
-        if ((attr & 0x10) != 0 && 0x4e2 < sz)
+        if ((atr & 0x10) != 0 && 0x4e2 < sz)
         {
             result = -1;
             goto ret;

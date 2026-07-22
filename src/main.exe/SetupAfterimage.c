@@ -54,7 +54,7 @@
  * source statement order is still n-then-maxn. `p1`/`p2` go through one
  * reused temp across both valloc calls (same cached-pointer-temp
  * convention as LoadTIMpackAndFree/GetVectorRotation's out-param). Each
- * `pAVar4->vector{1,2} = UnitVector;` is an independent align-2 SVECTOR
+ * `afi->vector{1,2} = UnitVector;` is an independent align-2 SVECTOR
  * struct copy (own `lui/addiu` reload of UnitVector's address — the two
  * copies do NOT share a cached base register, matching the "TU sibling"
  * caveat that a repeated global reference isn't automatically cached).
@@ -64,24 +64,24 @@ extern void *valloc(u32 size);
 AfterimageType *SetupAfterimage(ModelType *model, short len)
 {
     GsIMAGE *image;
-    AfterimageType *pAVar4;
-    long *plVar5;
+    AfterimageType *afi;
+    long *points;
     s32 size;
 
     image = AfterIMG;
-    pAVar4 = (AfterimageType *)valloc(0x58);
+    afi = (AfterimageType *)valloc(0x58);
     size = len * 4;
-    pAVar4->model = model;
-    pAVar4->vector1 = UnitVector;
-    pAVar4->vector2 = UnitVector;
-    pAVar4->n = 0;
-    pAVar4->maxn = len;
-    plVar5 = (long *)valloc(size);
-    pAVar4->p1 = plVar5;
-    plVar5 = (long *)valloc(size);
-    pAVar4->p2 = plVar5;
-    pAVar4->sz = 0;
-    SetupImageToPolyGT4(image, &pAVar4->poly, 0, 0);
-    SetSemiTrans(&pAVar4->poly, 1);
-    return pAVar4;
+    afi->model = model;
+    afi->vector1 = UnitVector;
+    afi->vector2 = UnitVector;
+    afi->n = 0;
+    afi->maxn = len;
+    points = (long *)valloc(size);
+    afi->p1 = points;
+    points = (long *)valloc(size);
+    afi->p2 = points;
+    afi->sz = 0;
+    SetupImageToPolyGT4(image, &afi->poly, 0, 0);
+    SetSemiTrans(&afi->poly, 1);
+    return afi;
 }

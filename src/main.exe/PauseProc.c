@@ -16,8 +16,8 @@
  *    s16[]: the 0xffff terminator store materializes as the HImode-canonical
  *    `li -1` (addiu) only for a signed element; a u16 element gives
  *    `ori 0xffff` (one byte off).
- *  - trg is computed fresh ($s1, feeds only the combo-call argument) and then
- *    copied into opad (`opad = trg;`, $s2) which the rest of the body reads:
+ *  - trig is computed fresh ($s1, feeds only the combo-call argument) and then
+ *    copied into opad (`opad = trig;`, $s2) which the rest of the body reads:
  *    two registers holding one value = an explicit source copy (cc1 never
  *    splits live ranges).
  *  - `cur == (START | SELECT)` and the call argument share one sign-extension
@@ -101,7 +101,7 @@ void PauseProc(void)
     s16 pad;
     s16 cur;
     s16 opad;
-    s16 trg;
+    s16 trig;
     int com;
     s16 i;
     s16 cnt;
@@ -127,11 +127,11 @@ void PauseProc(void)
         opad = cur;
         PadProc();
         cur = GetPad(0);
-        trg = cur & (cur ^ opad);
-        opad = trg;
+        trig = cur & (cur ^ opad);
+        opad = trig;
         if (cur == (START | SELECT))
             FUN_800566fc();
-        com = check_for_known_button_combination(cur, trg);
+        com = check_for_known_button_combination(cur, trig);
         if (CamState.Owner->status == 7 && 0x713 < CamState.Owner->motion->mid)
             com = 0;
         if (com == 0x10)

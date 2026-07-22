@@ -83,7 +83,7 @@
 extern s16 D_80097F30;
 extern s16 D_80097F32;
 
-void SetupTexScroll(GsIMAGE *im, short vx, short vy)
+void SetupTexScroll(GsIMAGE *img, short vx, short vy)
 {
     int idx;
     TEffectSlot *base;
@@ -142,14 +142,14 @@ found:
     tscr->sx = scrollX;
     tscr->sy = scrollY;
 
-    px = im->px;
+    px = img->px;
     tscr->x = px;
     tscr->image.x = px;
-    py = im->py;
+    py = img->py;
     tscr->y = py;
     tscr->image.y = py;
-    tscr->image.w = im->pw;
-    tscr->image.h = im->ph;
+    tscr->image.w = img->pw;
+    tscr->image.h = img->ph;
     sx = scrollX;
     scrollYShifted = (u32)(u16)scrollY << 16;
 
@@ -162,8 +162,8 @@ found:
             if ((mask >> (j * 2 + i)) & 1)
             {
                 signedScrollY = (s32)scrollYShifted >> 16;
-                MoveImage(&tscr->image, sx + im->pw * i,
-                          signedScrollY + im->ph * j);
+                MoveImage(&tscr->image, sx + img->pw * i,
+                          signedScrollY + img->ph * j);
             }
         }
         j++;

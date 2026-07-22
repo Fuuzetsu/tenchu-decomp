@@ -59,7 +59,7 @@
  *    still does NOT hoist the %15 magic-multiply constant (it stays inside the
  *    loop, recomputed per iteration, matching the target).
  *  - `time`'s rand() must be a SEPARATE `r = rand();` statement BEFORE `i++`
- *    and `mode = 0` (not inlined into `fp->time = rand()%15+15`): the target
+ *    and `mode = 0` (not inlined into `param->time = rand()%15+15`): the target
  *    calls rand for time first, then does i++/mode=0, then the %15 arithmetic.
  *    Inlining floats the `mode = 0` store early (into the vec.vz division) —
  *    extracting the call to its own statement fixes 37 bytes of scheduling.
@@ -84,7 +84,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    ExplosionType *fp;
+    ExplosionType *param;
     short i;
     int r;
 
@@ -122,19 +122,19 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         } while (count < 200);
         ef = &dmy;
     found:
-        fp = &ef->param.hinoko;
-        fp->scale = rand() % 4096 + 0x1000;
-        fp->rotate = (rand() % 360) * 0x1000;
-        fp->pos.vx = pos->vx;
-        fp->pos.vy = pos->vy;
-        fp->pos.vz = pos->vz;
-        fp->vec.vx = rand() % power->vx - power->vx / 2;
-        fp->vec.vy = -(rand() % power->vy + power->vy / 2);
-        fp->vec.vz = rand() % power->vz - power->vz / 2;
+        param = &ef->param.hinoko;
+        param->scale = rand() % 4096 + 0x1000;
+        param->rotate = (rand() % 360) * 0x1000;
+        param->pos.vx = pos->vx;
+        param->pos.vy = pos->vy;
+        param->pos.vz = pos->vz;
+        param->vec.vx = rand() % power->vx - power->vx / 2;
+        param->vec.vy = -(rand() % power->vy + power->vy / 2);
+        param->vec.vz = rand() % power->vz - power->vz / 2;
         r = rand();
         i = i + 1;
-        fp->mode = 0;
-        fp->time = r % 15 + 15;
+        param->mode = 0;
+        param->time = r % 15 + 15;
         ef->proc = (void (*)())DrawHinoko;
     }
 }

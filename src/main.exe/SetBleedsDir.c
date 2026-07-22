@@ -164,7 +164,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             TEffectSlot *slot;
             int count;
             TEffectSlot *ef;
-            BleedType *fp;
+            BleedType *param;
             u8 r;
 
             idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
@@ -198,15 +198,15 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             goto loop;
         found:
             n = n - 1;
-            fp = &ef->param.bleed;
+            param = &ef->param.bleed;
             r = col >> 16;
             ef->param.bleed.pos = *pos;
             ef->param.bleed.vec = v;
-            fp->r = r;
-            fp->g = col >> 8;
-            fp->time = time;
-            fp->b = col;
-            fp->mode = 0;
+            param->r = r;
+            param->g = col >> 8;
+            param->time = time;
+            param->b = col;
+            param->mode = 0;
             ef->proc = (void (*)())DrawBleed;
         }
     } while (1);

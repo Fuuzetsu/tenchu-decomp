@@ -101,7 +101,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
 {
     MATRIX mat;
     SVECTOR pos;
-    u16 attr;
+    short atr;
     long sz;
     long result;
     s32 iv;
@@ -115,18 +115,18 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
         goto loop;
     GsGetLs(&mad->locate, &mat);
     GsSetLsMatrix(&mat);
-    attr = mad->attribute;
-    if ((attr & 1) != 0)
+    atr = mad->attribute;
+    if ((atr & 1) != 0)
         goto reject;
-    if ((attr & 2) == 0)
+    if ((atr & 2) == 0)
     {
         sz = RotTransPers(&mad->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((attr & 4) != 0 && sz == 0)
+        if ((atr & 4) != 0 && sz == 0)
         {
             result = -1;
             goto tail;
         }
-        if ((attr & 8) != 0)
+        if ((atr & 8) != 0)
         {
             iv = rxy[0];
             if (iv < 0)
@@ -150,7 +150,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
             goto tail;
         }
     reject_check:
-        if ((attr & 0x10) != 0 && 0x4e2 < sz)
+        if ((atr & 0x10) != 0 && 0x4e2 < sz)
         {
             result = -1;
             goto tail;
