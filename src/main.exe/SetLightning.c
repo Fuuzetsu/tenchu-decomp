@@ -31,15 +31,10 @@
  * inserting a constant `1` and re-widening its own narrow params.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The item TU's own extern (ProcItemLightningBolt.c) declares this as
- *    `SetLightning(VECTOR *pos, VECTOR *target, s32 a, s32 b, s32 c)` — a
- *    DIFFERENT view than the defining TU's real signature below. Original
- *    TUs disagree with the defining TU's prototype; this file uses the
- *    real one, not the caller's.
- *  - Ghidra mistyped the 5th (stack-passed) param as `int b` (rendering the
- *    call as `(int)(short)b`) — it's really `short b`. All THREE trailing
- *    params (r/g register-passed, b stack-passed) get the IDENTICAL
- *    sll-16/sra-16 re-sign-extend, because cc1 mechanically re-widens ANY
+ *  - The shared retail API retains the original `r`/`g`/`b` names. The demo
+ *    still had an `int b`, but retail's three trailing params (r/g
+ *    register-passed, b stack-passed) get the IDENTICAL sll-16/sra-16
+ *    re-sign-extend, because cc1 mechanically re-widens ANY
  *    narrow parameter on its first use regardless of class — a genuine
  *    `int` stack parameter that's merely narrowed for the callee instead
  *    folds straight to one `lh` (combine sees "load then keep low 16 bits"

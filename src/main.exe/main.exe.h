@@ -117,6 +117,8 @@ extern void SetFrame(VECTOR *pos, short size, short time,
 extern void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry);
 extern void SetExplosion(VECTOR *pos, SVECTOR *vect);
 extern void SetHinoko(VECTOR *pos, SVECTOR *power, int n);
+extern void SetLightning(VECTOR *start, VECTOR *end,
+                         short r, short g, short b);
 extern int SetFlyWire(VECTOR *start, VECTOR *end);
 extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);
 extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);

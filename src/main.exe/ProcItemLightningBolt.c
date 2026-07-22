@@ -76,7 +76,6 @@
 
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
-extern void SetLightning(VECTOR *pos, VECTOR *target, s32 a, s32 b, s32 c);
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 
 void ProcItemLightningBolt(TItem *item)
