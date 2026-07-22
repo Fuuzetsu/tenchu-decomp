@@ -103,6 +103,7 @@ static inline void GetWireScreenPosition(long x, long y, long z,
 
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 {
+    enum { one = 4096 };
     VECTOR StockCenter;
     long lcount;
     int i;
@@ -128,7 +129,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         dy = start->vy - end->vy;
         dz = start->vz - end->vz;
         big = 0;
-        if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+        if (abs(dx) > one || abs(dy) > one || abs(dz) > one)
         {
             big = 1;
         }
@@ -154,27 +155,27 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         center->vz = (end->vz + start->vz) / 2;
     }
 
-    ecount = lcount * len / 0x1000;
+    ecount = lcount * len / one;
     i = 0;
     while (1)
     {
         long t, Q, R;
-        long one, A, B;
+        long one_value, A, B;
 
         if (i >= ecount)
         {
             break;
         }
 
-        one = 0x1000;
-        t = one - i * 0x1000 / lcount;
+        one_value = one;
+        t = one_value - i * one / lcount;
         Q = t * 2;
-        R = t * t / 0x1000;
-        A = one - Q + R;
+        R = t * t / one;
+        A = one_value - Q + R;
         B = Q - R * 2;
-        x = (A * end->vx + B * center->vx + R * start->vx) / 0x1000;
-        y = (A * end->vy + B * center->vy + R * start->vy) / 0x1000;
-        z = (A * end->vz + B * center->vz + R * start->vz) / 0x1000;
+        x = (A * end->vx + B * center->vx + R * start->vx) / one;
+        y = (A * end->vy + B * center->vy + R * start->vy) / one;
+        z = (A * end->vz + B * center->vz + R * start->vz) / one;
 
         GetWireScreenPosition(x, y, z, &scr);
 
