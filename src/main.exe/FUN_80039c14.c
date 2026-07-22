@@ -26,8 +26,6 @@
  * is_character_state_present_on_stage_'s HumanGroup[i]).
  */
 
-extern void UpdateTexScroll(void);
-
 void FUN_80039c14(void)
 {
     s32 i;

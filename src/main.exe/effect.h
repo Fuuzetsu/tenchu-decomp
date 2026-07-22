@@ -2,9 +2,10 @@
 #define EFFECT_H
 
 /* EFFECT.C's effect-slot pool. PSX.SYM supplies the original effect records
- * and union members; retail expands the impact record and adds snow and
- * flat-quad effects. FlyWireType keeps the union at its proven 72-byte size,
- * making tag_EffectSlot's indexed pool stride 76 bytes. */
+ * and union members; retail expands the impact record and adds snow,
+ * flat-quad, and packed texture-scroll state. FlyWireType keeps the union at
+ * its proven 72-byte size, making tag_EffectSlot's indexed pool stride 76
+ * bytes. */
 
 struct AreaNodeType; /* opaque here: only ever stored, never dereferenced */
 
@@ -19,6 +20,7 @@ typedef struct XF4Type XF4Type;
 typedef struct SmokeType SmokeType;
 typedef struct ImpactType ImpactType;
 typedef struct SnowParticleType SnowParticleType;
+typedef struct TexScrollParam TexScrollParam;
 
 typedef union ImpactColor ImpactColor;
 union ImpactColor
@@ -61,6 +63,22 @@ struct SnowParticleType /* size 32 */
     s32 size;                  /* +0x14 */
     s16 velocity[3];           /* +0x18 */
     u8 sprite;                 /* +0x1E */
+};
+
+/* Retail packs the live tail of PSX.SYM's TexScroll into an EffectSlot:
+ * EffectSlot.proc occupies the old px/py prefix, and this record begins at
+ * the union with the original vx member. */
+struct TexScrollParam /* size 24 */
+{
+    s16 vx;      /* +0x00 (demo TexScroll +0x04) */
+    s16 vy;      /* +0x02 */
+    s16 time;    /* +0x04 */
+    s16 count;   /* +0x06 */
+    s16 x;       /* +0x08 */
+    s16 y;       /* +0x0A */
+    s16 sx;      /* +0x0C */
+    s16 sy;      /* +0x0E */
+    RECT image;  /* +0x10 */
 };
 
 struct BloodType /* size 36 */
@@ -208,6 +226,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct FrameType frame;
     struct XF4Type xf4;
     struct SnowParticleType snow;
+    struct TexScrollParam texscroll;
 };
 
 typedef struct tag_EffectSlot /* size 76 */
@@ -219,6 +238,7 @@ typedef struct tag_EffectSlot /* size 76 */
 extern TEffectSlot EffectSlot[200];
 extern int CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy; /* pool-full fallback write target, discarded */
+extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 
 #endif

@@ -26,25 +26,12 @@
  * before-slot, cursor-update store living inside `if (slot->proc==0)
  * {...break;}` for the right branch polarity).
  *
- * The found slot's `param` union is written through FIVE different
- * overlapping views (proven by `tools/access.py --order`, not Ghidra's own
- * struct-name guesses):
- *  - smoke.vec.vy/vx (offsets 2/0) zeroed;
- *  - splash.sx/sy (offsets 0xc/0xe) get the pool's own scroll cursor
- *    (`D_80097F30`/`D_80097F32`, a shared animated texture-scroll offset
- *    also advanced at the very end);
- *  - offsets 8/0xa get `im->px`/`im->py` (the GsIMAGE's own texture-page
- *    position) through a RAW OFFSET CAST — this does NOT line up with any
- *    proven named field at that width (BleedType.pos.vz is a 4-byte field
- *    there, not two shorts): a genuinely divergent union member, per the
- *    cookbook's "reach it via an explicit offset cast off the SAME proven
- *    pointer, don't invent a new named struct" rule;
- *  - bleed.vec.vx/vy/vz/pad (offsets 0x10/0x12/0x14/0x16) get the SAME
- *    im->px/im->py plus im->pw/im->ph (the tile's pixel size) — this is
- *    the actual source RECT the 2x2 grid's MoveImage calls read from;
- *  - smoke.vec.vz/pad (offsets 4/6) get this call's own `y`/`z` params,
- *    written only at the very end (right before `ef->proc` is set),
- *    matching the target's own late spill-reload from their stack homes.
+ * The found slot's `texscroll` payload is retail's packed form of the
+ * PSX.SYM TexScroll record. Its vx/vy start at the union boundary because
+ * EffectSlot.proc occupies the old px/py prefix. The image RECT receives
+ * the TIM's source rectangle; sx/sy hold the shared animated scroll cursor;
+ * x/y retain the texture-page destination; and time/count receive this
+ * call's y/z parameters only at the end, immediately before `proc` is set.
  *
  * Matching notes:
  *  - The 2x2 grid loop uses `short` counters (`j`,`i`), not `int` — a
@@ -77,7 +64,6 @@
  * These source identities and the exact SDK prototype match all 560 bytes.
  */
 
-extern void UpdateTexScroll(void);
 extern s16 D_80097F30;
 extern s16 D_80097F32;
 
@@ -88,7 +74,7 @@ void FUN_80032720(GsIMAGE *im, short y, short z)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    union EffectParam *pp;
+    TexScrollParam *tscr;
     s16 scrollX;
     short scrollY;
     short px;
@@ -132,23 +118,23 @@ found:
     int sx;
     short mask;
 
-    pp = &ef->param;
-    pp->smoke.vec.vy = 0;
-    ef->param.smoke.vec.vx = 0;
+    tscr = &ef->param.texscroll;
+    tscr->vy = 0;
+    ef->param.texscroll.vx = 0;
 
     scrollX = D_80097F30;
     scrollY = D_80097F32;
-    pp->splash.sx = scrollX;
-    pp->splash.sy = scrollY;
+    tscr->sx = scrollX;
+    tscr->sy = scrollY;
 
     px = im->px;
-    *(short *)((u8 *)pp + 8) = px;
-    pp->bleed.vec.vx = px;
+    tscr->x = px;
+    tscr->image.x = px;
     py = im->py;
-    *(short *)((u8 *)pp + 0xA) = py;
-    pp->bleed.vec.vy = py;
-    pp->bleed.vec.vz = im->pw;
-    pp->bleed.vec.pad = im->ph;
+    tscr->y = py;
+    tscr->image.y = py;
+    tscr->image.w = im->pw;
+    tscr->image.h = im->ph;
     sx = scrollX;
     scrollYShifted = (u32)(u16)scrollY << 16;
 
@@ -161,7 +147,7 @@ found:
             if ((mask >> (j * 2 + i)) & 1)
             {
                 signedScrollY = (s32)scrollYShifted >> 16;
-                MoveImage((RECT *)&pp->bleed.vec, sx + im->pw * i,
+                MoveImage(&tscr->image, sx + im->pw * i,
                           signedScrollY + im->ph * j);
             }
         }
@@ -174,8 +160,8 @@ found:
     }
 
     D_80097F32 = D_80097F32 + 0x40;
-    pp->smoke.vec.vz = y;
-    pp->smoke.vec.pad = z;
+    tscr->time = y;
+    tscr->count = z;
     ef->proc = (void (*)())UpdateTexScroll;
     if (0x200 < D_80097F32)
     {

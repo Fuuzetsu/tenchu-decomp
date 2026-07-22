@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -32,14 +33,18 @@
  * base, then re-issues a DR_MOVE primitive positioned there.
  *
  * Matching notes:
+ *  - The demo accepted a standalone TexScroll pointer. Retail installs this
+ *    routine as an EffectSlot callback instead: the slot's `proc` word takes
+ *    the old px/py bytes, while `param.texscroll` begins with the recovered
+ *    vx member. FUN_80032720 is the matching typed producer.
  *  - `tscr->x`/`tscr->image.w` are DIFFERENT fields at DIFFERENT offsets
  *    (0xC vs 0x18) even though both read as the divisor's/SetDrawMove's
  *    "width" — Ghidra's `param_1 + 0x18` (div) and `param_1 + 0xc`
  *    (SetDrawMove's w arg) are genuinely separate struct members, not the
  *    same field twice; `image` is a real embedded RECT{x,y,w,h} whose w/h
- *    (0x18/0x1A) are set by some OTHER function (not this one — this one
- *    only ever writes image.x/image.y) to the scroll region's extent, reused
- *    here as the wrap divisor.
+ *    (0x18/0x1A in the composite slot) are set by FUN_80032720 to the scroll
+ *    region's extent and reused here as the wrap divisor; this routine only
+ *    changes image.x/image.y.
  *  - The `(uint)(...) % divisor` cast is load-bearing: the divisor and sum
  *    are both promoted `short`s, which would pick signed `div` by default;
  *    only the explicit unsigned cast (Ghidra shows it) gets the real
@@ -55,60 +60,31 @@
  *    remainder in a register — matches every reload-heavy sibling in this
  *    TU (DrawHinoko.c).
  */
-typedef struct TexScroll
-{
-    s16 px;      /* +0x00 */
-    s16 py;      /* +0x02 */
-    s16 vx;      /* +0x04 */
-    s16 vy;      /* +0x06 */
-    s16 time;    /* +0x08 */
-    s16 count;   /* +0x0A */
-    s16 x;       /* +0x0C */
-    s16 y;       /* +0x0E */
-    s16 sx;      /* +0x10 */
-    s16 sy;      /* +0x12 */
-    RECT image;  /* +0x14 */
-} TexScroll;
-
-/* Typed view from the first field this routine updates. It keeps the
- * compiler's retail +4 base without hiding the recovered member names. */
-typedef struct
-{
-    s16 vx;      /* +0x00 (TexScroll +0x04) */
-    s16 vy;      /* +0x02 */
-    s16 time;    /* +0x04 */
-    s16 count;   /* +0x06 */
-    s16 x;       /* +0x08 */
-    s16 y;       /* +0x0A */
-    s16 sx;      /* +0x0C */
-    s16 sy;      /* +0x0E */
-    RECT image;  /* +0x10 */
-} TexScrollTail;
-
 extern GsOT *OTablePt;
 
-void UpdateTexScroll(TexScroll *tscr)
+void UpdateTexScroll(TEffectSlot *ef)
 {
-    TexScrollTail *scroll;
+    TexScrollParam *tscr;
     DR_MOVE *prim;
     s32 x, y;
 
-    scroll = (TexScrollTail *)&tscr->vx;
-    tscr->vx = (u16)((u32)(tscr->vx + scroll->time) %
-                     (u32)(scroll->image.w << 4));
-    scroll->vy = (u16)((u32)(scroll->vy + scroll->count) %
-                       (u32)(scroll->image.h << 4));
+    tscr = &ef->param.texscroll;
+    ef->param.texscroll.vx =
+        (u16)((u32)(ef->param.texscroll.vx + tscr->time) %
+              (u32)(tscr->image.w << 4));
+    tscr->vy = (u16)((u32)(tscr->vy + tscr->count) %
+                     (u32)(tscr->image.h << 4));
 
     x = tscr->vx;
     if (x < 0) x = x + 0xf;
-    scroll->image.x = (u16)scroll->sx + (x >> 4);
+    tscr->image.x = (u16)tscr->sx + (x >> 4);
 
-    y = scroll->vy;
+    y = tscr->vy;
     if (y < 0) y = y + 0xf;
-    scroll->image.y = (u16)scroll->sy + (y >> 4);
+    tscr->image.y = (u16)tscr->sy + (y >> 4);
 
     prim = (DR_MOVE *)GsGetWorkBase();
     GsSetWorkBase(prim + 1);
-    SetDrawMove(prim, &tscr->image, scroll->x, scroll->y);
+    SetDrawMove(prim, &ef->param.texscroll.image, tscr->x, tscr->y);
     AddPrim((u8 *)OTablePt->org, (u8 *)prim);
 }
