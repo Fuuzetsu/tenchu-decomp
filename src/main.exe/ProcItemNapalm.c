@@ -80,7 +80,7 @@ void ProcItemNapalm(TItem *item)
     {
         MaxCount = 20
     };
-    Sprite3D *sprt;
+    Sprite3D *model;
     param_napalm *param;
     void (*proc)(TItem *);
     u8 ff;
@@ -88,7 +88,7 @@ void ProcItemNapalm(TItem *item)
     s32 ex;
     s32 cid;
 
-    sprt = (Sprite3D *)item->model;
+    model = (Sprite3D *)item->model;
     param = &item->param.napalm;
     ff = 0xff;
     if (item->mode == ff)
@@ -117,17 +117,17 @@ void ProcItemNapalm(TItem *item)
         t = rand() % 25;
         t = t - 26;
         t = t - param->count * 230 / MaxCount;
-        sprt->sprite.r = t;
-        sprt->sprite.g = sprt->sprite.r;
-        sprt->sprite.b = sprt->sprite.r;
-        sprt->sprite.rotate = (rand() % 360) << 12;
-        sprt->scale = (ex << 12) / 50 + 0x1000;
+        model->sprite.r = t;
+        model->sprite.g = model->sprite.r;
+        model->sprite.b = model->sprite.r;
+        model->sprite.rotate = (rand() % 360) << 12;
+        model->scale = (ex << 12) / 50 + 0x1000;
 
-        sprNapalm2->sprite.r = (ff - sprt->sprite.r) / 3;
+        sprNapalm2->sprite.r = (ff - model->sprite.r) / 3;
         sprNapalm2->sprite.g = sprNapalm2->sprite.r;
         sprNapalm2->sprite.b = sprNapalm2->sprite.r;
-        sprNapalm2->sprite.rotate = sprt->sprite.rotate;
-        sprNapalm2->scale = sprt->scale;
+        sprNapalm2->sprite.rotate = model->sprite.rotate;
+        sprNapalm2->scale = model->scale;
 
         if (param->count == 10)
         {
@@ -238,8 +238,8 @@ void ProcItemNapalm(TItem *item)
     UpdateCoordinate(item->locate);
     sprNapalm2->locate = item->locate->locate;
     DrawSprite(sprNapalm2);
-    sprt->locate = item->locate->locate;
-    DrawSprite(sprt);
+    model->locate = item->locate->locate;
+    DrawSprite(model);
 }
 
 // triage: HARD — 418 insns, mul/div, 2 loop, indirect-call, 11 callees, ~0.25 to ProcItemMakibishi

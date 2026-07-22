@@ -131,7 +131,7 @@ void ProcItemFire(TItem *item)
     {
         nr = 25
     };
-    Sprite3D *sprt;
+    Sprite3D *model;
     param_smoke *param;
     u8 ff;
     s32 count;
@@ -140,7 +140,7 @@ void ProcItemFire(TItem *item)
     s32 cid;
     ProcItemFireScratch scratch;
 
-    sprt = (Sprite3D *)item->model;
+    model = (Sprite3D *)item->model;
     param = &item->param.smoke;
     ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
@@ -168,8 +168,8 @@ void ProcItemFire(TItem *item)
     }
 
     UpdateCoordinate(item->locate);
-    sprt->locate = item->locate->locate;
-    DrawSprite(sprt);
+    model->locate = item->locate->locate;
+    DrawSprite(model);
 
     {
         VECTOR *position;
@@ -214,9 +214,9 @@ void ProcItemFire(TItem *item)
 
                 memset(&scratch.drop.rparam, 0, sizeof(PARAM_ITEM_STAY));
                 scratch.drop.rparam.type = item->type;
-                scratch.drop.rparam.locate.vx = sprt->locate.coord.t[0];
-                scratch.drop.rparam.locate.vy = sprt->locate.coord.t[1];
-                scratch.drop.rparam.locate.vz = sprt->locate.coord.t[2];
+                scratch.drop.rparam.locate.vx = model->locate.coord.t[0];
+                scratch.drop.rparam.locate.vy = model->locate.coord.t[1];
+                scratch.drop.rparam.locate.vz = model->locate.coord.t[2];
                 scratch.drop.saved = scratch.drop.rparam;
 
                 if (item->proc != 0)

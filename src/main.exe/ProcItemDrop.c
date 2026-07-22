@@ -55,11 +55,11 @@
  *
  * Matching notes (see docs/matching-cookbook.md; item-TU conventions as in
  * ProcItemKusuri/ProcItemManebue — no $gp here, ActionHalt is absolute):
- *  - `sprt`/`param` are assigned before the ITEM_MODE_DISPOSE entry test
+ *  - `model`/`param` are assigned before the ITEM_MODE_DISPOSE entry test
  *    (ReqItemDrop's double lever): the addiu fills the bne delay slot and the
  *    long live ranges demote both, so item/param land in $s3/$s4 after the
  *    shorter-lived case locals take $s0-$s2).
- *  - `sprt->locate = item->locate->locate` is the 0x50-byte GsCOORDINATE2
+ *  - `model->locate = item->locate->locate` is the 0x50-byte GsCOORDINATE2
  *    struct assignment -> the 16-bytes-per-iteration word copy loop.
  *  - Both dispatches are real `switch`es (fresh index reload + signed slti).
  *    The constant 1 of the outer case tree is CSE'd along the taken path
@@ -91,7 +91,7 @@ extern s32 is_character_state_present_on_stage_(Humanoid *h);
 
 void ProcItemDrop(TItem *item)
 {
-    Sprite3D *sprt;
+    Sprite3D *model;
     param_drop *param;
     void (*ppu)(TItem *);
     Humanoid *human;
@@ -105,15 +105,15 @@ void ProcItemDrop(TItem *item)
     u8 cnt;
     u8 ic;
 
-    sprt = (Sprite3D *)item->model;
+    model = (Sprite3D *)item->model;
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
     }
-    sprt->locate = item->locate->locate;
-    DrawSprite(sprt);
+    model->locate = item->locate->locate;
+    DrawSprite(model);
     switch (item->mode)
     {
     case 0:

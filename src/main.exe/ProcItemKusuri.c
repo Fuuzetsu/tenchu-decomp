@@ -78,7 +78,7 @@
 
 void ProcItemKusuri(TItem *item)
 {
-    Sprite3D *sprt;
+    Sprite3D *model;
     void (*ppu)(TItem *);
     u8 ff;
     s32 i;
@@ -92,7 +92,7 @@ void ProcItemKusuri(TItem *item)
      * fold away — it allocates a register and shifts the frame (verified). */
     u8 buf[0x28];
 
-    sprt = (Sprite3D *)item->model;
+    model = (Sprite3D *)item->model;
     ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
@@ -185,9 +185,9 @@ void ProcItemKusuri(TItem *item)
         }
     }
         UpdateCoordinate(item->locate);
-        sprt->locate = item->locate->locate;
-        sprt->scale = 0x2000;
-        DrawSprite(sprt);
+        model->locate = item->locate->locate;
+        model->scale = 0x2000;
+        DrawSprite(model);
         return;
 
     case 2:

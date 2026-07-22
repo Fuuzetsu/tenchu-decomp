@@ -79,14 +79,14 @@ void ProcItemNemuri(TItem *item)
     {
         MaxCount = 100
     };
-    Sprite3D *sprt;
+    Sprite3D *model;
     param_napalm *param;
     void (*proc)(TItem *);
     u8 ff;
     u8 count;
     s32 rotate_count;
 
-    sprt = (Sprite3D *)item->model;
+    model = (Sprite3D *)item->model;
     param = &item->param.napalm;
     ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
@@ -192,12 +192,12 @@ void ProcItemNemuri(TItem *item)
         item->locate->locate.coord.t[1] += param->vec.vy;
         item->locate->locate.coord.t[2] += param->vec.vz;
         bright = (wave >> 6) + 0x80;
-        sprt->sprite.r = bright;
-        sprt->sprite.g = bright;
-        sprt->sprite.b = bright;
+        model->sprite.r = bright;
+        model->sprite.g = bright;
+        model->sprite.b = bright;
         rotate_count = param->count;
-        sprt->scale = bright * 2 + 0x4000;
-        sprt->sprite.rotate = rotate_count * 0x2d000;
+        model->scale = bright * 2 + 0x4000;
+        model->sprite.rotate = rotate_count * 0x2d000;
         SetBleeds((VECTOR *)item->locate->locate.coord.t,
                   bleed_range, 10, bleed_n, 10, env);
 
@@ -327,8 +327,8 @@ void ProcItemNemuri(TItem *item)
     }
 
     UpdateCoordinate(item->locate);
-    sprt->locate = item->locate->locate;
-    DrawSprite(sprt);
+    model->locate = item->locate->locate;
+    DrawSprite(model);
 }
 
 // triage: HARD — 422 insns, mul/div, 1 loop, indirect-call, 18 callees, ~0.26 to ProcItemDrop
