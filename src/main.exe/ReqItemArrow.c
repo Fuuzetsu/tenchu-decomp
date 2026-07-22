@@ -41,9 +41,9 @@
  * ReqItemArrow (0x800480c4) — spawn a homing/auto-aim arrow. Twin of
  * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemLaunch (same item TU, same
  * pool round-robin on ic and the same
- * dispose-on-exhaustion block); like ReqItemLaunch, `it->model` is a FIXED
+ * dispose-on-exhaustion block); like ReqItemLaunch, `item->model` is a FIXED
  * global (ArrowModel, gp-relative in this TU like ReqItemLaunch's
- * SyurikenModel) rather than ItemImage[it->type], and the tail hands off to
+ * SyurikenModel) rather than ItemImage[item->type], and the tail hands off to
  * SetupFly. Unlike every other twin, there's a pre-pool-search step: it
  * computes the aim direction from p->start/p->end (GetVectorRotation), packs
  * it into an SVECTOR, and feeds that to SearchItemTarget2 to find an actual
@@ -52,33 +52,33 @@
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - `&p->start`/`&p->end` are passed INLINE to GetVectorRotation/
- *    SearchItemTarget2 (no shared `st` temp for these two calls) — `st` only
- *    exists as the twins' usual tail-only temp (`st = &p->start;` right
+ *    SearchItemTarget2 (no shared `pos` temp for these two calls) — `pos` only
+ *    exists as the twins' usual tail-only temp (`pos = &p->start;` right
  *    before the coord.t[1]/[2] reads, same statement position as every
  *    twin). Caching `&p->start` in a named variable spanning BOTH the early
  *    calls and the tail forced it into a different callee-saved register
- *    than the pool cursor/`it`, swapping $s0/$s1 vs the twins' assignment —
+ *    than the pool cursor/`item`, swapping $s0/$s1 vs the twins' assignment —
  *    inlining the two early address-of expressions (still CSE'd by the
  *    compiler within that straight-line prefix) reproduced the twins' exact
  *    allocation.
  *  - GetVectorRotation's recovered `int *` signature gives `rx` and `ry`
  *    adjacent four-byte stack slots. GCC narrows their later assignments to
  *    the SVECTOR fields to low-halfword loads, matching the retail code.
- *  - Same `cur`/`it` two-pseudo pool search as ReqItemLaunch (confirmed
- *    against the raw .s, not inferred): `cur = items + COUNTER...;` used
- *    throughout the loop/dispose block, `it = cur;` assigned exactly twice
+ *  - The inlined allocator keeps a separate `slot` pseudo from the outer
+ *    PSX.SYM `item`: `slot = items + COUNTER...;` is used throughout the
+ *    loop/dispose block, and `item = slot;` is assigned exactly twice
  *    (the early-exit branch and right before the dispose block falls into
- *    `found:`) — the heavier tail (p/st/param all needing registers across
+ *    `found:`) — the heavier tail (p/pos/param all needing registers across
  *    SetupFly) raises pressure the same way ReqItemLaunch's does.
- *  - `param = &it->param.arrow;` sits BEFORE the null check, same
+ *  - `param = &item->param.arrow;` sits BEFORE the null check, same
  *    delay-slot lever as every twin; reused unchanged for both
  *    SetupFly's 1st arg and the final `param->count = 5;` store (unlike
  *    ReqItemLaunch's analogous store, which needed a FRESH direct
- *    `it->param.launch` access for its own scheduling tie — here the cached
+ *    `item->param.launch` access for its own scheduling tie — here the cached
  *    param reproduces the target directly).
- *  - `us`/`ty` temps for owner/type, same shape as the other twins (loaded
+ *  - `aowner`/`atype` temps for owner/type, same shape as the other twins (loaded
  *    back-to-back, stored owner/proc/mode/type in that order).
- *  - `it->collision.size = 0; it->model = ArrowModel;` immediately precede
+ *  - `item->collision.size = 0; item->model = ArrowModel;` immediately precede
  *    SetupFly, same position/interleaving as ReqItemLaunch.
  */
 extern void ProcItemArrow(TItem *item);
@@ -90,12 +90,12 @@ extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a
 
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    TItem *cur;
+    TItem *item;
+    TItem *slot;
     param_arrow *param;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     SVECTOR dir;
     VECTOR target;
     int rx;
@@ -113,46 +113,46 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        cur = items + ic;
-        if (cur->proc == 0)
+        slot = items + ic;
+        if (slot->proc == 0)
         {
-            it = cur;
+            item = slot;
             goto found;
         }
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    cur->mode = ITEM_MODE_DISPOSE;
-    cur->proc(cur);
-    DeleteConflict(cur->locate);
-    if (cur->mode != 0)
+    slot->mode = ITEM_MODE_DISPOSE;
+    slot->proc(slot);
+    DeleteConflict(slot->locate);
+    if (slot->mode != 0)
     {
-        AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        AdtMessageBox(D_800121CC, slot->type, (u32)slot->mode);
     }
-    it = cur;
-    it->owner = 0;
-    it->proc = 0;
+    item = slot;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    param = &it->param.arrow;
-    if (it == 0)
+    param = &item->param.arrow;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemArrow;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = ArrowModel;
-    SetupFly(&param->fly, st, &target, 0, 0x800, 0x12c);
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemArrow;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = ArrowModel;
+    SetupFly(&param->fly, pos, &target, 0, 0x800, 0x12c);
     param->count = 5;
     return 1;
 }
