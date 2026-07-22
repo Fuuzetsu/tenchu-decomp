@@ -45,7 +45,7 @@
    note). */
 extern u8 MusicIDTable[];
 extern void PlayVoice(s32 id);
-extern void _PlayMusic(s32 id, s32 one);
+extern void _PlayMusic(s32 id, s32 mode);
 
 void PlayMusicFormID(s32 id)
 {
