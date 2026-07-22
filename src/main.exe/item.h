@@ -368,6 +368,6 @@ extern s16 ActionHalt;
 /* "item dispose fail   id %d  mode %d" */
 extern char D_800121CC[];
 /* The global item pool. */
-extern TItem items[];
+extern TItem items[30];
 
 #endif
