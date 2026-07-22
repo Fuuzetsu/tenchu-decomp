@@ -46,7 +46,7 @@ extern void MemCardStop(void);
 extern void MemCardEnd(void);
 extern void StopCallback(void);
 extern void FUN_8005e8f0(u8 *file, u32 stack, u32 size);
-extern void run_exec_file(u8 *name, u32 topaddr, s32 argc);
+extern void run_exec_file(u8 *name, u32 stack, u32 size);
 extern char D_800111D4[]; /* "\\TENCHU\\RUN.EXE;1" */
 
 void LoadExecEx(u8 *file, u32 stack, u32 size)

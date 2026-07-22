@@ -52,7 +52,7 @@ typedef struct
     u32 s_size;  /* 0x58 */
 } BootExecRecord;
 
-void FUN_8005e8f0(char *file, u32 stack, u32 size)
+void FUN_8005e8f0(u8 *file, u32 stack, u32 size)
 {
     int i;
     u32 magic;
