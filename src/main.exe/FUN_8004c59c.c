@@ -17,22 +17,22 @@
  * found — reached through tag_TMisc.proc). Shares tag_TMisc's position and
  * mode fields with the neighbouring FUN_8004c350; its retail-only parameter
  * overlay is a GameClock-based schedule. MM_CREATE reshapes the AddMisc
- * initialization payload into that schedule and clears mode, the other
- * lifecycle messages are ignored, and MM_DO fires while `mode==0` once
+ * initialization payload into that schedule and clears mode. The other
+ * lifecycle messages are ignored. MM_DO fires while `mode==0` once
  * `GameClock>=sched.next`, then reschedules.
  *
- * `sched` (overlaid on `m->param`) is a 3-word (0xC byte) sub-struct: `next` (s32,
- * GameClock deadline), `min`/`max` (s16, the delay range for the next
+ * `sched` (overlaid on `m->param`) is a 3-word (0xC byte) sub-struct: `next`
+ * (s32, GameClock deadline), `min`/`max` (s16, the delay range for the next
  * reschedule) and `sndIdx` (u8, added to 0x44 as the SoundEx sound id).
  *
  * Matching notes:
- *  - The MM_CREATE initialization is NOT a simple field clear — it's a whole-struct
- *    assignment `*sched = tmp;` through a freshly-built local `Schedule
- *    tmp`, which is why cc1 emits 3 WORD lw/sw pairs through the stack
- *    (emit_block_move on a 3-word-aligned struct) instead of narrow
- *    per-field stores. `tmp`'s own fields are read from DIFFERENT offsets
- *    than where they end up: the AddMisc payload's `a` becomes `sndIdx`, `b`
- *    becomes `min`, and `c` becomes `max`, while `GameClock` becomes `next`.
+ *  - The MM_CREATE initialization is NOT a simple field clear — it's a
+ *    whole-struct assignment `*sched = tmp;` through a freshly-built local
+ *    `Schedule tmp`, which is why cc1 emits 3 WORD lw/sw pairs through the
+ *    stack (emit_block_move on a 3-word-aligned struct) instead of narrow
+ *    per-field stores. The AddMisc payload's `a` becomes `sndIdx`, `b`
+ *    becomes `min`, and `c` becomes `max`, while `GameClock` becomes `next`;
+ *    some of those values consequently move to different union offsets.
  *    In the overlaid Schedule view, `param.init.c` occupies `sndIdx`'s offset
  *    and `param.init.a` occupies `next`'s offset; the whole-struct assignment
  *    then packs the reshaped values into their runtime slots. The `min` and
