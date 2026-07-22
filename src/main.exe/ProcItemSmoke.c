@@ -15,15 +15,16 @@
  *    local makes the QI variable and the SI decrement temp separate pseudos
  *    that fail to coalesce here (an extra `move`); `int` + explicit re-narrow
  *    keeps ONE pseudo and still emits the `andi 0xff`s.
- *  - The SetSmoke block's scratch stores are spelled `((VECTOR *)(buf +
- *    0x18))->vx = ...` (COMPONENT refs): an in-struct store invalidates cse's
+ *  - The SetSmoke block's `scratch.smoke.build_pos` component stores are
+ *    COMPONENT refs: an in-struct store invalidates cse's
  *    cached `item->locate` load (MEM_IN_STRUCT alias heuristic), reproducing
- *    the per-line reloads; the `((s32 *)(buf + 0x18))[n]` spelling is a
+ *    the per-line reloads; a raw `((s32 *)&build_pos)[n]` spelling is a
  *    non-struct fixed-address store that cse ignores — locate stays cached
  *    (wrong). Inverse lever in the search setup: `pos = (VECTOR *)
  *    item->locate->locate.coord.t;` reads all three t[] through one pointer
  *    so nothing reloads there.
- *  - Search setup order is `q = buf; pos = ...; q->i = 0; find = buf;` —
+ *  - Search setup order is `q = &scratch.find; pos = ...; q->i = 0;
+ *    find = &scratch.find;` —
  *    q's use must precede find's init or the two same-valued pointers
  *    collapse into one register (cse folds find's addiu into `move find,q`
  *    only, keeping both, when something touches q in between).
@@ -90,6 +91,17 @@
 
 #include "item.h"
 
+typedef union
+{
+    TFindItemTarget find;
+    struct
+    {
+        SVECTOR vec;
+        VECTOR pos;
+        VECTOR build_pos;
+    } smoke;
+} ProcItemSmokeScratch;
+
 extern SVECTOR D_80097AD8[];
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
@@ -100,7 +112,7 @@ void ProcItemSmoke(TItem *item)
     param_smoke *param;
     u8 ff;
     int cnt;
-    u8 buf[0x28];
+    ProcItemSmokeScratch scratch;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
@@ -159,13 +171,13 @@ void ProcItemSmoke(TItem *item)
         }
         if ((cnt & 1) == 0)
         {
-            *(SVECTOR *)buf = D_80097AD8[0];
-            memset(buf + 0x18, 0, sizeof(VECTOR));
-            ((VECTOR *)(buf + 0x18))->vx = item->locate->locate.coord.t[0];
-            ((VECTOR *)(buf + 0x18))->vy = item->locate->locate.coord.t[1];
-            ((VECTOR *)(buf + 0x18))->vz = item->locate->locate.coord.t[2];
-            *(VECTOR *)(buf + 8) = *(VECTOR *)(buf + 0x18);
-            SetSmoke((VECTOR *)(buf + 8), (SVECTOR *)buf, 1, 3);
+            scratch.smoke.vec = D_80097AD8[0];
+            memset(&scratch.smoke.build_pos, 0, sizeof(VECTOR));
+            scratch.smoke.build_pos.vx = item->locate->locate.coord.t[0];
+            scratch.smoke.build_pos.vy = item->locate->locate.coord.t[1];
+            scratch.smoke.build_pos.vz = item->locate->locate.coord.t[2];
+            scratch.smoke.pos = scratch.smoke.build_pos;
+            SetSmoke(&scratch.smoke.pos, &scratch.smoke.vec, 1, 3);
         }
         if ((GameClock & 0xf) != 0)
             return;
@@ -180,10 +192,10 @@ void ProcItemSmoke(TItem *item)
             int dist;
             MotionDataType *md;
 
-            q = (TFindItemTarget *)buf;
+            q = &scratch.find;
             pos = (VECTOR *)item->locate->locate.coord.t;
             q->i = 0;
-            find = (TFindItemTarget *)buf;
+            find = &scratch.find;
             find->pos.vx = pos->vx;
             find->pos.vy = pos->vy;
             find->pos.vz = pos->vz;
@@ -211,7 +223,7 @@ void ProcItemSmoke(TItem *item)
             check:
                 if (found == 0)
                     return;
-                human = ((TFindItemTarget *)buf)->find;
+                human = scratch.find.find;
                 if (human != item->owner && human->life != -1 && human->motion->mid != 0x100b)
                 {
                     i = 0x10;
@@ -223,7 +235,7 @@ void ProcItemSmoke(TItem *item)
                         md = human->motion->motion;
                         MoveHumanoid(human, md->orderspd, md->sidespd);
                     }
-                    Sound(((TFindItemTarget *)buf)->find, 6);
+                    Sound(scratch.find.find, 6);
                 }
                 continue;
             hit:
