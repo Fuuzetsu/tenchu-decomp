@@ -26,10 +26,11 @@
  * END PSX.SYM */
 
 /*
- * PutLifeBarS (0x8004ad54, 0x90 bytes) — draws up to 5 life bars from the
- * LifeBar[5] pool (stride 0x14), each entry counting down its own display
- * timer. Bottom-test-only do-while: i=0,i<5 provably true at entry folds
- * away the top test (cookbook Loops). Indexed as LifeBar[i].f rather than
+ * PutLifeBarS (0x8004ad54, 0x90 bytes) — draws up to five life bars from the
+ * LifeBar[nLifeBar] pool (five entries, stride 0x14), each entry counting
+ * down its own display timer. Bottom-test-only do-while: i=0,i<nLifeBar
+ * provably true at entry folds away the top test (cookbook Loops). Indexed
+ * as LifeBar[i].f rather than
  * a walking pointer — a p++ walk biases the base to whichever field is
  * touched LAST in the body (here the count field), giving negative
  * displacements for the others; array indexing keeps the natural
@@ -37,7 +38,6 @@
  * loop touches 2+ fields"). Twin: DrawEffect.c (0.16), same TU as
  * PutItemIcon.c/PutItemCursor.c.
  */
-extern LifeBarEntry LifeBar[5];
 extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
 
 s32 PutLifeBarS(void)
@@ -56,6 +56,6 @@ s32 PutLifeBarS(void)
         }
         x = x + 0x3C;
         i = i + 1;
-    } while (i < 5);
+    } while (i < nLifeBar);
     return 0;
 }

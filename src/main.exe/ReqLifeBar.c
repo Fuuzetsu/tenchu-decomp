@@ -30,8 +30,8 @@
 
 /*
  * ReqLifeBar (0x8004a5cc, 0xf0 bytes) — registers a Humanoid to get an
- * on-screen life bar: scans the 5-entry LifeBar[] pool for either an
- * already-assigned slot (`target == h`, breaks immediately) or, failing
+ * on-screen life bar: scans the five-entry LifeBar[nLifeBar] pool for either
+ * an already-assigned slot (`target == h`, breaks immediately) or, failing
  * that, the first free slot (`count < 1`); if neither is found the pool is
  * full and the function returns 0 without allocating.
  *
@@ -73,15 +73,13 @@
  *    a real but not fully root-caused cc1 cse/basic-block boundary effect
  *    tied to the branch structure, not merely a stylistic rewrite.
  */
-extern LifeBarEntry LifeBar[5];
-
 int ReqLifeBar(Humanoid *h)
 {
     int i;
     int g;
 
     g = -1;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < nLifeBar; i++) {
         if (LifeBar[i].count < 1) {
             if (g == -1) {
                 g = i;

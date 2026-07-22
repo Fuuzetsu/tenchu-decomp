@@ -661,6 +661,9 @@ struct LifeBarEntry
     s32 style;                         /* 0x10 */
 };                                     /* 0x14 */
 
+/* Retail adds one slot to the demo's original nLifeBar = 4 pool. */
+enum { nLifeBar = 5 };
+
 /* Retail's redesigned INFOVIEW.C life-bar style. */
 enum { nLifeBarStyle = 2 };
 

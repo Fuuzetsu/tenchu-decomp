@@ -28,13 +28,14 @@
  * END PSX.SYM */
 
 /*
- * ResetInfoview (0x8004bfa4, 0x80 bytes) — resets the 5-entry LifeBar[]
- * pool (same struct/stride as PutLifeBarS.c) and, for a valid stage, reloads
+ * ResetInfoview (0x8004bfa4, 0x80 bytes) — resets the five-entry
+ * LifeBar[nLifeBar] pool (same struct/stride as PutLifeBarS.c) and, for a
+ * valid stage, reloads
  * the minimap sprite MapImage from "chizu.tim" via PathFileRead/GetTIMInfo/
  * LoadTIMAndFree/InitSprite (the same call chain InitSprite.c's own header
  * documents). PSX.SYM (an earlier build) recorded `LifeBar[4]`; the loop
- * here plainly zeroes 5 entries (i=4..0) like ReqLifeBar/PutLifeBarS's
- * already-matched `LifeBar[5]` — the retail array grew by one, so LifeBar[5]
+ * here plainly zeroes five entries like ReqLifeBar/PutLifeBarS's
+ * already-matched pool — the retail array grew by one, so `nLifeBar = 5`
  * is what reproduces the bytes (cookbook: "the layouts are from an earlier
  * build ... if the retail .s disagrees, the asm wins").
  *
@@ -43,7 +44,6 @@
  * iteration, starting at &LifeBar[4]); only one field is touched so there's
  * no walking-pointer field-order bias to worry about (cookbook Loops).
  */
-extern LifeBarEntry LifeBar[5];
 extern char D_80012564[]; /* "chizu.tim" */
 
 void ResetInfoview(int stage)
@@ -52,7 +52,7 @@ void ResetInfoview(int stage)
     u_long *adr;
     GsIMAGE image;
 
-    for (i = 4; i >= 0; i--) {
+    for (i = nLifeBar - 1; i >= 0; i--) {
         LifeBar[i].count = 0;
     }
     if (stage >= 0) {
