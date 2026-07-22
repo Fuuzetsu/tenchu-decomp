@@ -57,6 +57,8 @@
  *    cast off the ModelType* field (`(s32)door->Model[0]`), while other
  *    already-matched files access the same field as a ModelType* — no
  *    conflict, this is a different TU's own read of the field's raw bits.
+ *    Retail's address delta from PitfallData to SpriteData is 3 records, and
+ *    the loop likewise handles 3 variants; the demo declaration had only 2.
  *  - Both `Model[0]`/`Model[1]` are read UNCONDITIONALLY before either `if`
  *    (`iDoor2` cached because the first `if`'s GetArcData/LoadModel calls
  *    would clobber a caller-saved copy of it; `iDoor1` is consumed

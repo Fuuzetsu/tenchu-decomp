@@ -119,7 +119,8 @@ typedef struct
 
 extern TMisc misc[MaxMisc];
 extern DoorDataType DoorData[11];
-extern PitfallDataType PitfallData[2];
+/* Retail adds a third pitfall variant after the demo's recovered [2]. */
+extern PitfallDataType PitfallData[3];
 extern SpriteDataType SpriteData[2];
 
 /* This TU defines it (gp-relative; listed in Build.hs maspsxGpExterns for
