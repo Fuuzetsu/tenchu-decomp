@@ -34,7 +34,7 @@
  * 6-field s32 subtraction the first frame after a mode change (and clears
  * the flag), otherwise a smoothed delta via two MakeDifSub calls — one over
  * the rotation-only half (vrx..vrz) using a TMakeDifInfo scratch block that
- * sits right after the retail CamState in memory (D_80089F10 = CamState +
+ * sits right after the retail CamState in memory (`ref` = CamState +
  * 0x20). Ghidra's demo-shaped type mis-renders this as
  * `&CamState.Valiation`, but it is really a separate
  * static, its address just materializes as its own `lui`/`addiu`, never
@@ -46,7 +46,7 @@
  * and SetCameraMode's stores prove CriticalHit at +0x1D. The demo's
  * Valiation at +0x20 disappeared when the record shrank to 0x20 bytes.
  */
-extern TMakeDifInfo D_80089F10;
+extern TMakeDifInfo ref;
 extern TMakeDifInfo pnt;
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);
 
@@ -62,7 +62,7 @@ void MakeDif(GsRVIEW2 *vinfo, GsRVIEW2 *target, GsRVIEW2 *vdif)
         CamState.CriticalHit = 0;
     } else {
         MakeDifSub((VECTOR *)&vinfo->vrx, (VECTOR *)&target->vrx, (VECTOR *)&vdif->vrx,
-                   &D_80089F10);
+                   &ref);
         MakeDifSub((VECTOR *)vinfo, (VECTOR *)target, (VECTOR *)vdif, &pnt);
     }
 }

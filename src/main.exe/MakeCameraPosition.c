@@ -66,9 +66,11 @@
  * FUN_80039ddc call. The late tp alias supplies the target's s0=&target base
  * without extending its lifetime over the earlier calls. Spelling each
  * component delta as -va + vb preserves the target's independent-load order.
+ * Retail removed the demo's fourth `SVECTOR *ref` input; its fourth argument
+ * is the surviving fifth `GsRVIEW2 *vDif` output, as shown by all six stores.
  */
 
-extern TMakeDifInfo D_80089F10;
+extern TMakeDifInfo ref;
 extern TMakeDifInfo pnt;
 extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
@@ -83,7 +85,7 @@ static inline void TransformCameraPoint(SVECTOR *point, VECTOR *result,
     RotTrans(point, result, flag);
 }
 
-s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW2 *ref)
+s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW2 *vDif)
 {
     GsRVIEW2 target;
     GsRVIEW2 *tp;
@@ -132,18 +134,19 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
 
     if (cs->CriticalHit == 1)
     {
-        ref->vpx = tp->vpx - ViewInfo.vpx;
-        ref->vpy = tp->vpy - ViewInfo.vpy;
-        ref->vpz = tp->vpz - ViewInfo.vpz;
-        ref->vrx = tp->vrx - ViewInfo.vrx;
-        ref->vry = tp->vry - ViewInfo.vry;
-        ref->vrz = tp->vrz - ViewInfo.vrz;
+        vDif->vpx = tp->vpx - ViewInfo.vpx;
+        vDif->vpy = tp->vpy - ViewInfo.vpy;
+        vDif->vpz = tp->vpz - ViewInfo.vpz;
+        vDif->vrx = tp->vrx - ViewInfo.vrx;
+        vDif->vry = tp->vry - ViewInfo.vry;
+        vDif->vrz = tp->vrz - ViewInfo.vrz;
         cs->CriticalHit = 0;
     }
     else
     {
-        MakeDifSub((VECTOR *)&ViewInfo.vrx, (VECTOR *)&tp->vrx, (VECTOR *)&ref->vrx, &D_80089F10);
-        MakeDifSub((VECTOR *)&ViewInfo, (VECTOR *)tp, (VECTOR *)ref, &pnt);
+        MakeDifSub((VECTOR *)&ViewInfo.vrx, (VECTOR *)&tp->vrx,
+                   (VECTOR *)&vDif->vrx, &ref);
+        MakeDifSub((VECTOR *)&ViewInfo, (VECTOR *)tp, (VECTOR *)vDif, &pnt);
     }
 
     return fwRot;
@@ -228,7 +231,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
 // ? SetRotMatrix(?);                                  /* extern */
 // ? SetTransMatrix(?);                                /* extern */
 // extern ? CamState;
-// extern ? D_80089F10;
+// extern ? ref;
 // extern ? ViewInfo;
 // extern ? pnt;
 //
@@ -286,7 +289,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
 //         arg3->unk14 = (s32) (sp10.unk14 - ViewInfo.unk14);
 //         CamState.unk1D = 0U;
 //     } else {
-//         MakeDifSub(&ViewInfo + 0xC, &sp1C, arg3 + 0xC, &D_80089F10);
+//         MakeDifSub(&ViewInfo + 0xC, &sp1C, arg3 + 0xC, &ref);
 //         MakeDifSub(&ViewInfo, &sp10, arg3, &pnt);
 //     }
 //     return temp_v0;
