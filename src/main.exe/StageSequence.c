@@ -32,6 +32,7 @@
  * Globals it touches, as the original declared them:
  *     extern struct Humanoid *StagePlayer;
  *     extern long StageTime;
+ *     extern struct TCameraStatus CamState;
  *     extern short ActionHalt;
  *     extern enum TSystemFlag SystemFlag;
  *     extern short SkipFrame;

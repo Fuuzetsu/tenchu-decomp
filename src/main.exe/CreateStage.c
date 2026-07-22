@@ -43,6 +43,7 @@
  *     extern unsigned char *ImagePath;
  *     extern struct GsOT *OTablePt;
  *     extern short SkipFrame;
+ *     extern struct TCameraStatus CamState;
  *     extern enum TSystemFlag SystemFlag;
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */

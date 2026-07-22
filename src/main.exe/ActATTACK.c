@@ -60,6 +60,7 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern struct SVECTOR *dtV;
  *     extern short ActionHalt;
+ *     extern struct TCameraStatus CamState;
  *     extern struct Humanoid *StagePlayer;
  *     extern struct WeaponType WeaponDB[28];
  * END PSX.SYM */

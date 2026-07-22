@@ -32,6 +32,7 @@
  *     extern short SkipFrame;
  *     extern struct Humanoid *StagePlayer;
  *     extern short ActionHalt;
+ *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
 /*

@@ -37,10 +37,10 @@
  *     reg   $v1       int c
  *
  * Globals it touches, as the original declared them:
+ *     extern struct TCameraStatus CamState;
  *     extern unsigned char fInitialize;
  *     extern enum TSystemFlag SystemFlag;
  *     extern short ItemCursor;
- *     extern struct TCameraStatus CamState;
  *     extern long GameClock;
  *     extern unsigned char PutMapMode;
  * END PSX.SYM */

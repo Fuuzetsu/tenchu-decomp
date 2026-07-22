@@ -27,6 +27,7 @@
  * Globals it touches, as the original declared them:
  *     extern short Humans;
  *     extern struct Humanoid *HumanGroup[32];
+ *     extern struct TCameraStatus CamState;
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 

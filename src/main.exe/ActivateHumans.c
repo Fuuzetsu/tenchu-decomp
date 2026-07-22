@@ -26,6 +26,7 @@
  *     reg   $s0       struct Humanoid * human
  *
  * Globals it touches, as the original declared them:
+ *     extern struct TCameraStatus CamState;
  *     extern struct Humanoid *StagePlayer;
  *     extern long GameClock;
  *     extern short SkipFrame;

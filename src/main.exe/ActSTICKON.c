@@ -40,6 +40,7 @@
  *     extern struct HumanAnimType CVAhuman[5];
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtV;
+ *     extern struct TCameraStatus CamState;
  *     extern short SelectedItem;
  *     extern struct VECTOR *dtL;
  *     extern struct Humanoid *StagePlayer;

@@ -30,6 +30,7 @@
  *     extern short motID;
  *     extern short motMODE;
  *     extern struct SVECTOR *dtV;
+ *     extern struct TCameraStatus CamState;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct VECTOR *dtL;
  *     extern short dtCMD;

@@ -9,6 +9,7 @@
  *
  *
  * Globals it touches, as the original declared them:
+ *     extern struct TCameraStatus CamState;
  *     extern enum TSystemFlag SystemFlag;
  * END PSX.SYM */
 

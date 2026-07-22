@@ -26,6 +26,7 @@
  *     stack sp+128    struct TAdtSelect [7] ItemName
  *
  * Globals it touches, as the original declared them:
+ *     extern struct TCameraStatus CamState;
  *     extern int CurrentEnemyID;
  *     extern short Humans;
  * END PSX.SYM */

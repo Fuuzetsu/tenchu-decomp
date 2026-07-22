@@ -67,6 +67,7 @@
  *     reg   $s0       struct tag_TItem * item
  *
  * Globals it touches, as the original declared them:
+ *     extern struct TCameraStatus CamState;
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern long GameClock;
  * END PSX.SYM */

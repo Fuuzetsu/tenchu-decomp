@@ -33,6 +33,7 @@
  *     extern short dtPAD;
  *     extern struct SVECTOR *dtR;
  *     extern struct VECTOR *dtL;
+ *     extern struct TCameraStatus CamState;
  *     extern short MotionUpdateMode;
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
