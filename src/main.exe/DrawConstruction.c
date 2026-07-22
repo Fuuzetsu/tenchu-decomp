@@ -177,9 +177,9 @@ scan_z:
     } while (0);
     if (visible)
     {
-        cur = *(ObjectSlotType **)(((cell_z & 7) << 2) +
-                                   world_y_offset + world_x_offset +
-                                   (u32)world_base);
+        cur = ((WorldType *)(((cell_z & 7) << 2) +
+                             world_y_offset + world_x_offset +
+                             (u32)world_base))->top;
 scan_cur:
         if (cur == 0)
             goto next_z;
