@@ -1,11 +1,10 @@
 #ifndef EFFECT_H
 #define EFFECT_H
 
-/* EFFECT.C's effect-slot pool. Struct/field names and offsets are the
- * authors' own (reference/psxsym-types.h); only the members our matched
- * functions actually touch are given real names, the rest is padding so
- * sizeof(union EffectParam) stays the proven 72 bytes (tag_EffectSlot's
- * pool stride, 76 bytes, must stay exact — EffectSlot is indexed). */
+/* EFFECT.C's effect-slot pool. PSX.SYM supplies the original effect records
+ * and union members; retail extends that union with its later impact, snow,
+ * and flat-quad effects. FlyWireType keeps the union at its proven 72-byte
+ * size, making tag_EffectSlot's indexed pool stride 76 bytes. */
 
 struct AreaNodeType; /* opaque here: only ever stored, never dereferenced */
 
@@ -14,6 +13,8 @@ typedef struct BleedType BleedType;
 typedef struct SplashType SplashType;
 typedef struct FrameType FrameType;
 typedef struct ExplosionType ExplosionType;
+typedef struct ExplosionType HinokoType;
+typedef struct GoreType GoreType;
 typedef struct XF4Type XF4Type;
 typedef struct SmokeType SmokeType;
 typedef struct ImpactType ImpactType;
@@ -28,7 +29,6 @@ union ImpactColor
         u8 b;
         u8 g;
         u8 r;
-        u8 pad;
     } channel;
 };
 
@@ -137,6 +137,15 @@ struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
     u8 mode;      /* +0x21 */
 };
 
+struct GoreType /* size 32 */
+{
+    VECTOR pos;   /* +0x00 */
+    SVECTOR vec;  /* +0x10 */
+    long col;     /* +0x18 */
+    u8 time;      /* +0x1C */
+    u8 mode;      /* +0x1D */
+};
+
 struct SmokeType /* size 0x24; PSX.SYM supplies every demo member/name, and
                     * retail appends the sprite selector at +0x22 */
 {
@@ -151,8 +160,8 @@ struct SmokeType /* size 0x24; PSX.SYM supplies every demo member/name, and
 
 typedef struct FlyWireType FlyWireType;
 
-struct FlyWireType /* size 0x45, proven by DrawFlyWire/SetFlyWire's
-                      * tools/access.py offsets */
+struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
+                      * proven by DrawFlyWire/SetFlyWire */
 {
     VECTOR start;   /* +0x00 */
     VECTOR end;     /* +0x10 */
@@ -192,12 +201,13 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct SplashType splash;
     struct FrameType frame;
     struct ExplosionType explosion;
+    struct ExplosionType hinoko;
+    struct GoreType gore;
     struct XF4Type xf4;
     struct SmokeType smoke;
     struct FlyWireType flywire;
     struct ImpactType impact;
     struct SnowParticleType snow;
-    u8 pad[72];
 };
 
 typedef struct tag_EffectSlot /* size 76 */
