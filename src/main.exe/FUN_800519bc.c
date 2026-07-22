@@ -266,7 +266,7 @@ extern void _PlayMusic(s32 music, s32 mode);
 extern s32 CdaGetCurrentLength(void);
 extern short DrawBG(BackGround *bg);
 extern void FUN_80038c0c(u8 *ot, s32 r, s32 g, s32 b);
-extern void EndDrawing(s16 sync);
+extern void EndDrawing(short sync);
 extern void DisposeBG(BackGround *bg);
 
 static inline void TimToDemoSprite(u_long *file, GsIMAGE *image,

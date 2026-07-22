@@ -54,7 +54,7 @@ extern void FUN_80056910(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);
 extern void FUN_8004f6c0(s32 mode);
-extern void EndDrawing(s16 mode);
+extern void EndDrawing(short sync);
 
 static inline void StartDemoInitSprite(u_long *tim, GsIMAGE *image,
                                        GsSPRITE *sprite)

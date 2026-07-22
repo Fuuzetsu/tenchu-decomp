@@ -34,7 +34,7 @@ extern char D_800146EC[];
 extern char D_800146F8[];
 extern char D_80014704[];
 
-extern void EndDrawing(s32 sync);
+extern void EndDrawing(short sync);
 extern void StartDrawing(void);
 extern s32 GetRealPad(s32 port);
 extern s32 GetAreaMapLevel(u32 *area, s32 x, s32 y, s32 z, s32 mode);

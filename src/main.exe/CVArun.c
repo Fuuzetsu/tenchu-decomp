@@ -91,7 +91,7 @@ extern void DoItemProc(void);
 extern void DoMiscProc(void);
 extern void DrawTelop(void);
 extern void update_something_for_each_visible_enemy_(void);
-extern void EndDrawing(s16 sync);
+extern void EndDrawing(short sync);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short CVAupdate(void);
 

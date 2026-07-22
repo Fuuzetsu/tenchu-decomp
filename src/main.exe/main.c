@@ -99,7 +99,7 @@ extern void update_something_for_each_visible_enemy_(void);
 extern s16 GetPad(s16 no);
 extern void *vgetfreesize(void);
 extern void *vgetmaxsize(void);
-extern void EndDrawing(s32 mode);
+extern void EndDrawing(short sync);
 
 int main(void)
 {

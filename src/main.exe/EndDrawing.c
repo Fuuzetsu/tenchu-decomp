@@ -147,7 +147,7 @@ extern s32 time;
 
 extern s32 VSync(s32 mode);
 
-void EndDrawing(s16 sync)
+void EndDrawing(short sync)
 {
     s16 sk;
     u32 t;

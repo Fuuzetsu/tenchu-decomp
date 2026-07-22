@@ -107,7 +107,7 @@ extern void FUN_8004f6c0(int arg);
 extern short SoundEx(VECTOR *locate, int seid);
 extern void StartDrawing(void);
 extern short DrawBG(BackGround *bg);
-extern void EndDrawing(int arg);
+extern void EndDrawing(short sync);
 extern void PutNumber(int x, int y, int n);
 extern void PutItemIcon(int id, int x, int y, int scale);
 extern void PutItemCursor(int x, int y, int size, int rotdif);

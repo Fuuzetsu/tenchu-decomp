@@ -85,7 +85,7 @@ extern void vfree(void *ptr);
 extern void FUN_80038ce0(void);
 extern void StartDrawing(void);
 extern short DrawBG(BackGround *bg);
-extern void EndDrawing(s32 mode);
+extern void EndDrawing(short sync);
 extern void DisposeBG(BackGround *bg);
 extern short LoadConstruction(u_long *data);
 extern void initialise_font(void);

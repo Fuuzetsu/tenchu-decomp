@@ -81,7 +81,7 @@ extern s32 GetRealPad(s32 port);
 extern void StartDrawing(void);
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern short DrawBG(BackGround *bg);
-extern void EndDrawing(s32 arg);
+extern void EndDrawing(short sync);
 extern void DisposeBG(BackGround *background);
 extern void FUN_800515b0(GsSPRITE *number, s32 value, s16 x, s32 y,
                          s32 mode);

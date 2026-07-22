@@ -29,7 +29,7 @@ extern s16 D_8008EA78[];
 extern s16 SkipFrame;
 extern TStageConfig StageConfig[];
 extern void StartDrawing(void);
-extern void EndDrawing(s32 mode);
+extern void EndDrawing(short sync);
 extern s32 GetRealPad(s32 port);
 extern s16 FUN_8005a7a4(s32 input);
 

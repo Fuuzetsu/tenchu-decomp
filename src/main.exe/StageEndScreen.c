@@ -88,7 +88,7 @@ extern s32 GetRealPad(s32 port);
 extern void StartDrawing(void);
 extern short DrawBG(BackGround *bg);
 extern void FUN_800515b0(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
-extern void EndDrawing(s32 mode);
+extern void EndDrawing(short sync);
 extern void DisposeBG(BackGround *background);
 extern void FUN_80052ea8(TLinkInfo *state, ScoreResult *result);
 extern void FUN_800514d8(void);
