@@ -65,8 +65,6 @@
 
 extern s32 GameClock;
 extern s32 rand(void);
-extern void SetSmoke(VECTOR *pos, SVECTOR *vect, s16 n, s16 time);
-extern void SetSplash(VECTOR *pos, s16 sx, s16 sy, s32 speed);
 
 void FUN_8004d6d4(TMisc *m, TMiscMessage msg)
 {

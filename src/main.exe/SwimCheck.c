@@ -46,7 +46,6 @@ extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
 extern HumanAnimType CVAhuman[5];
 
-extern void SetSplash(VECTOR *pos, short sx, short sy, short count);
 extern void AttackCancelControl(short mode);
 extern void SetCameraMode(TCameraMode mode);
 extern void PadShockAR(short port, short power, short time, short mode);

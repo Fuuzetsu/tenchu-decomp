@@ -86,7 +86,6 @@ extern void DeleteConflict(ModelType *model);
 extern void TurnAroundAllItems(Humanoid *human);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern short Sound(Humanoid *human, s16 seid);
-extern void SetSplash(VECTOR *position, s16 sx, s16 sy, s16 count);
 extern int ReqLifeBar(Humanoid *h);
 extern void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position,
                         SVECTOR *vector);

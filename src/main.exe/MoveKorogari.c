@@ -50,7 +50,6 @@ extern SVECTOR D_80097AD0[];
 extern s32 CGetLevel(struct AreaNodeType **hint, s32 x, s32 y, s32 z, u32 flag);
 extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
                             s32 width, s32 mode);
-extern void SetSplash(VECTOR *position, s16 sx, s16 sy, s32 speed);
 
 void MoveKorogari(TItem *item, param_korogari *param)
 {
