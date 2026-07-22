@@ -63,7 +63,7 @@
 
 extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
-extern void DrawTargetS(s32 x, s32 y, s32 z, s32 arg3);
+extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 
 void DrawTarget(s32 x, s32 y, s32 z, s32 color)
 {
