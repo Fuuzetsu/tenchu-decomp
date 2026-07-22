@@ -100,8 +100,8 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * records terminated by no==0xff. On a total miss: AdtMessageBox + CdaStop.
  * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
  * CD-XA mix volume, re-apply the persisted volume, build `start`/`end`
- * CdlLOCs from the record's min/sec (the CdPosToInt/CdIntToPos "*2+OFFSET"
- * read-ahead idiom, exactly _PlayMusic.c's own start/end construction), and
+ * CdlLOCs from the record's min/sec (the lead-in-compensated "*2+OFFSET"
+ * conversion, exactly _PlayMusic.c's own start/end construction), and
  * CdaPlayXA; a zero return gets its own AdtMessageBox.
  *
  * Matching notes:
