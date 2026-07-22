@@ -29,7 +29,6 @@
  * the unplaced demo `DrawXF4`, EFFECT.C:1785).
  */
 extern void FUN_80036284(TEffectSlot *ef);
-extern long GameClock;
 
 void FUN_80038fdc(u8 arg0, u8 arg1, u8 arg2, long arg3)
 {

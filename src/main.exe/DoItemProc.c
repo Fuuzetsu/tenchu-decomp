@@ -40,7 +40,6 @@
  */
 
 extern u8 D_80097AC8; /* set to 1 by InitializeItem's tail; gp-rel small (item TU) */
-extern s32 GameClock;
 extern void InitializeItem(void);
 extern void UpdateItemState(void);
 

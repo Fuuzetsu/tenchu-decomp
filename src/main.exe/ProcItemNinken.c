@@ -54,7 +54,6 @@ typedef union
     SVECTOR effect_vec;
 } ProcItemNinkenScratch;
 
-extern s32 GameClock;
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern SVECTOR D_80097AF4[];
 

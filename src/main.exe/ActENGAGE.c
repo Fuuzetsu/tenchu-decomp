@@ -47,7 +47,6 @@ extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
-extern s32 GameClock;
 extern s16 SelectedItem;
 extern Humanoid *Me_MOTION_C;
 

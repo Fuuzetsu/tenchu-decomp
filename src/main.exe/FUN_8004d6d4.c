@@ -63,7 +63,6 @@
  *    C.
  */
 
-extern s32 GameClock;
 extern s32 rand(void);
 
 void FUN_8004d6d4(TMisc *m, TMiscMessage msg)

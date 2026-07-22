@@ -66,7 +66,6 @@ extern s32 D_80010458[5];
 extern Sprite3D *ItemImage[];
 extern s16 D_8008ED50[];
 
-extern s32 GameClock;
 extern s16 SkipFrame;
 extern GsOT *OTablePt;
 

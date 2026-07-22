@@ -79,7 +79,6 @@
  *    the target's reverse z/y/x stack-store order.
  */
 
-extern long GameClock;
 extern short RefrectVector[16];
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;

@@ -53,7 +53,6 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern s32 GameClock;
 extern s16 Humans;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);

@@ -47,7 +47,6 @@ extern s16 Humans;
 extern TSystemFlag SystemFlag;
 extern TEnemyLayout enemy[30];
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
-extern s32 GameClock;
 
 extern void FUN_80039c14(void);
 extern void KillHumanoid(Humanoid *human);

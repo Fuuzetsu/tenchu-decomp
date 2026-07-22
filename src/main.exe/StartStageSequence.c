@@ -81,7 +81,6 @@
 extern StageCharType StageChar[18];
 extern EventSeqType *D_80097F7C;
 extern s32 StageID;
-extern s32 GameClock;
 extern s32 StageTime;
 extern s32 AttackActionCount;
 extern s16 Humans;

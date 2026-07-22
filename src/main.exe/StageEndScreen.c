@@ -68,7 +68,6 @@ extern char *RANK_ARCHIVE_PTRS[];
 extern Sprite3D *ItemImage[];
 extern TCameraStatus CamState;
 extern s32 StageID;
-extern s32 GameClock;
 extern s16 SkipFrame;
 extern GsOT *OTablePt;
 

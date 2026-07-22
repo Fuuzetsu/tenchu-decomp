@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "game_globals.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -89,7 +90,6 @@ extern u_long *GlobalAreaMap;
 extern s16 FieldAttrib;
 extern s16 EngageLevel;
 extern s16 Findenemies;
-extern s32 GameClock;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s32 D_80097F10;
 extern s32 D_80097F14;

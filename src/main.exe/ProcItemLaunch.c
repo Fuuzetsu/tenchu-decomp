@@ -85,7 +85,6 @@ extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
 extern void reset_alert_duration(void);
-extern s32 GameClock;
 
 void ProcItemLaunch(TItem *item)
 {

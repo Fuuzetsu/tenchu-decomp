@@ -62,7 +62,6 @@
  *    is taken — ordinary scheduling, no special spelling.
  */
 
-extern s32 GameClock;
 extern s32 DrawTMDmode;
 extern GsRVIEW2 ViewInfo;
 extern char D_800127D0[];

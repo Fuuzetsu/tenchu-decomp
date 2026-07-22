@@ -73,7 +73,6 @@
 extern EventSeqType *D_80097F78[2];
 extern Humanoid *D_80097F80[2];
 extern volatile s32 StageTime;
-extern s32 GameClock;
 extern TSystemFlag SystemFlag;
 extern s32 StageID;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;

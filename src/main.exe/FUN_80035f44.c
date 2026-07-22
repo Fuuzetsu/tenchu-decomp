@@ -15,7 +15,6 @@
  * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
  * END PSX.SYM */
 
-extern s32 GameClock;
 extern void FUN_8003562c(TEffectSlot *ef);
 extern void DrawImpact(TEffectSlot *ef);
 

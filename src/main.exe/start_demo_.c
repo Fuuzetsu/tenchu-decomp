@@ -32,7 +32,6 @@ extern char D_80013B24[];
 extern char D_800137A0[];
 extern char *GOV_RESOURCE_PREFIX_PTRS[];
 extern char *GOV_ARCHIVE_PTRS[];
-extern s32 GameClock;
 extern s16 SkipFrame;
 extern GsOT *OTablePt;
 

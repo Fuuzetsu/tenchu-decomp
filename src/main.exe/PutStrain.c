@@ -31,7 +31,6 @@
  * END PSX.SYM */
 
 extern s32 StrainRatio;
-extern s32 GameClock;
 extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
 extern GsSPRITE ItemSprite3Ds[4];

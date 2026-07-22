@@ -1,5 +1,6 @@
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "game_globals.h"
 #include "ram_layout.h"
 
 extern void PadProc(void);

@@ -13,7 +13,6 @@
  * also preserve the target's register lifetimes and signed `lh` load.
  */
 
-extern long GameClock;
 extern short RefrectVector[16];
 extern SVECTOR UnitVector;
 extern GsOT *OTablePt;

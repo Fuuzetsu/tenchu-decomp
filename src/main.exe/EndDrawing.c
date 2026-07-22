@@ -135,7 +135,6 @@
  * 0x800976b8, directly between SkipFrame and `time`).
  */
 
-extern s32 GameClock;
 extern s16 SkipFrame;
 extern GsOT OTable[];
 extern s16 DrawingPage;

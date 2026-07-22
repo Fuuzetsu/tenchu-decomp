@@ -37,7 +37,6 @@
  * END PSX.SYM */
 
 extern TCameraStatus CamState;
-extern s32 GameClock;
 extern s16 SkipFrame;
 extern s32 D_800976B8;
 extern s16 D_80097F40;

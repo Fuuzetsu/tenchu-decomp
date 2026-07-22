@@ -88,7 +88,6 @@ typedef struct
     u16 pad1;
 } ArrowRotation;
 
-extern s32 GameClock;
 
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);

@@ -22,7 +22,6 @@ extern u8 Findenemies;
 extern u8 Murders;
 extern u8 Criticals;
 extern u8 FriendHits;
-extern s32 GameClock;
 
 ScoreStats *init_score_stats(ScoreStats *stats)
 {

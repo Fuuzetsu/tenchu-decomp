@@ -31,7 +31,6 @@
  *  - The chained RGB assignment emits the target's b/g/r store order.
  */
 
-extern s32 GameClock;
 extern u8 D_80097C50[];
 
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);

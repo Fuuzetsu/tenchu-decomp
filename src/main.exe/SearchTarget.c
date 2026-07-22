@@ -62,7 +62,6 @@ typedef struct
     s32 far_distance;
 } SearchSight;
 
-extern s32 GameClock;
 extern SearchSight searchsight[];
 
 extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,

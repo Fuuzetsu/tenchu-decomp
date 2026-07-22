@@ -95,7 +95,6 @@
 extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
-extern s32 GameClock;
 
 
 void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)

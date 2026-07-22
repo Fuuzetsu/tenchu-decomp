@@ -90,7 +90,6 @@
 
 #include "item.h"
 
-extern s32 GameClock;
 extern s16 Humans;
 extern SVECTOR D_80097AD8[];
 

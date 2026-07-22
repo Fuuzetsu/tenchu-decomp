@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "game_globals.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -37,7 +38,6 @@ extern Humanoid *Me_THINK_C;
 extern s16 SR;
 extern s32 Distance;
 extern s16 EngageLevel;
-extern s32 GameClock;
 extern s16 Degree;
 extern s32 AttackActionCount; /* next GameClock tick an attack action may fire */
 extern u16 SetCommand(PADtype *pad, s32 code);

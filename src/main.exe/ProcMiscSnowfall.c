@@ -90,7 +90,6 @@
  *    target's stack slot assignment (call args at the lower addresses).
  */
 
-extern long GameClock;
 extern GsRVIEW2 ViewInfo;
 extern void *memset(void *s, int c, u32 n);
 

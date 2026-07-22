@@ -89,7 +89,6 @@ typedef struct { TAdtSelect e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
 
 extern TCameraStatus CamState;
 extern TSystemFlag SystemFlag;
-extern s32 GameClock;
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;                       /* fInitialize */
