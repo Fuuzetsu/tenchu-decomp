@@ -43,7 +43,7 @@
  * MATCH.
  *
  * DrawFrame (0x80035094, EFFECT.C:1044) — the frame/flash effect's per-frame
- * draw: picks the animation slot `sprFrame[param->count % 4]`, runs a
+ * draw: picks the animation slot `sprFrame[param->count % MaxFrames]`, runs a
  * mode-driven countdown state machine (mode 0: white flash fading via
  * `count`, resetting to mode 1 at 0; mode 1: fade using the LOW BYTE of
  * `count` as the RGB level, self-disposing at 0), then projects `param`'s
@@ -55,7 +55,7 @@
  *  - `param = &ef->param.frame;` (FrameType* at ef+4) — `count` (s16 @
  *    0x12) doubles as BOTH the countdown AND (its raw low BYTE, mode 1) the
  *    fade level — `effect.h`'s proven FrameType layout, no new struct.
- *  - `idx = param->count % 4;` is plain C `%` by the constant 4 — cc1's
+ *  - `idx = param->count % MaxFrames;` is plain C `%` by the constant 4 — cc1's
  *    own round-toward-zero remainder expansion (bgez-guarded `+3`, `sra 2`,
  *    `sll 2`, `subu`) is automatic, no manual shift/mask needed.
  *  - The mode dispatch is a plain `if (mode==0) {...} else if (mode==1)

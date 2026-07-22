@@ -78,7 +78,7 @@ typedef struct
 extern EffectImageIds D_80097A38;
 extern u8 D_80097A48[5];
 extern BombImageIds D_80011C90;
-extern s32 pat[4];
+extern s32 pat[MaxFrames];
 
 extern GsSPRITE sprBlood[4];
 extern GsSPRITE sprBlood2[4];
