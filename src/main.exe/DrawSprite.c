@@ -37,7 +37,7 @@
  * DrawSprite (0x80017be8, 0x1bc bytes) — same TU as DrawClip.c/DrawModel.c
  * (3DCTRL.C): the Sprite3D twin of DrawModel's visibility gauntlet (builds
  * the local screen matrix, then runs the IDENTICAL attribute&1/2/4/8/0x10
- * clip test against `sprt->clip`, then a UnitVector RotTransPers against
+ * clip test against `objp->clip`, then a UnitVector RotTransPers against
  * `xy = &sprt->sprite.x`), but instead of calling DrawTMD on success it
  * computes a distance-scaled sprite size (`(sprt->scale>>2)*300 / sz`) and
  * calls GsSortSprite. `xy` is always the fixed non-null address
