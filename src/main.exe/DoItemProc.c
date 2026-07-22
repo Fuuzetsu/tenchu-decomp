@@ -17,9 +17,8 @@
 /*
  * DoItemProc (0x8004a12c, 0xac bytes) — the item pool's per-frame driver
  * (main's game loop / CVArun): lazily runs InitializeItem() once (guarded
- * by `D_80097AC8`, set to 1 at InitializeItem's tail per its own Ghidra
- * decompile — PSX.SYM's globals list is from an earlier build and doesn't
- * mention this flag, nor does the retail `.s` touch StageID at all), then
+ * by ITEM.C's original `fInitial`, qualified here as `Item_fInitial` because
+ * the split decomp also exposes MISC.C's same-named static), then
  * every 10th GameClock tick runs UpdateItemState(), then dispatches every
  * live slot's own `proc` callback.
  *
@@ -39,7 +38,6 @@
  *    signature.
  */
 
-extern u8 D_80097AC8; /* set to 1 by InitializeItem's tail; gp-rel small (item TU) */
 extern void InitializeItem(void);
 extern void UpdateItemState(void);
 
@@ -48,7 +46,7 @@ void DoItemProc(void)
     TItem *it;
     s32 i;
 
-    if (D_80097AC8 == 0)
+    if (Item_fInitial == 0)
     {
         InitializeItem();
     }

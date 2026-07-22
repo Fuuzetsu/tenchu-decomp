@@ -123,9 +123,9 @@ extern DoorDataType DoorData[11];
 extern PitfallDataType PitfallData[3];
 extern SpriteDataType SpriteData[2];
 
-/* This TU defines it (gp-relative; listed in Build.hs maspsxGpExterns for
- * InitMisc.c/DoMiscProc.c). Set by InitMisc's tail, checked by DoMiscProc. */
-extern u8 EFFECT_SPAWNERS_INITIALISED;
+/* MISC.C's original file-static fInitial, qualified because ITEM.C has a
+ * distinct same-named static. Set by InitMisc and checked by DoMiscProc. */
+extern u8 Misc_fInitial;
 
 void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c);
 extern void AdtMessageBox(char *fmt, ...);

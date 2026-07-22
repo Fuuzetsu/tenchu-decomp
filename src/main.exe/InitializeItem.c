@@ -47,13 +47,11 @@
  *    embedded GsSPRITE `.sprite` field this function writes.
  *  - The `for (i=0;i<1;i++)` TargetSprite loop is Ghidra's own literal
  *    rendering (a `bgtz`-tested single-iteration loop) — transcribed as-is.
- *  - `D_80097AC8 = 1;` is this TU's own gp-relative small (already listed
- *    for DoItemProc.c; added here too) — DoItemProc's lazy-init guard.
+ *  - `Item_fInitial = 1;` is ITEM.C's original file-static `fInitial`
+ *    (qualified for the split decomp) and DoItemProc's lazy-init guard.
  */
 
 extern GsSPRITE SpriteGoshikimai;
-/* gp-relative small (this TU defines it; DoItemProc.c already lists it). */
-extern u8 D_80097AC8;
 
 extern ModelType *LoadModel(u_long *adr);
 extern GsIMAGE *GetImage(s32 index);
@@ -105,7 +103,7 @@ void InitializeItem(void)
     image = GetImage(0xD);
     InitSprite(image, &SpriteGoshikimai);
 
-    D_80097AC8 = 1;
+    Item_fInitial = 1;
 }
 
 // triage: EASY — 81 insns, 1 loop, 5 callees, ~0.04 to PrepareGetScreenPositionS

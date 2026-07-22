@@ -16,7 +16,10 @@ typedef struct tag_TItem TItem;
 struct AreaNodeType;
 struct AfterimageType;
 
-/* ITEM.C's original file-static round-robin item-pool cursor. */
+/* ITEM.C's original file-static initialization flag and item-pool cursor.
+ * fInitial is qualified because this split decomp also exposes MISC.C's
+ * distinct static with the same original name. */
+extern u8 Item_fInitial;
 extern s32 ic;
 
 /* THINK_4.C's original short-returning dispatch tables. PSX.SYM supplies

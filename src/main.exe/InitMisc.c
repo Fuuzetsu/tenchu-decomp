@@ -67,8 +67,8 @@
  *    survive a call" shape as ProcMiscDoor's twins.
  *  - SpriteData's own `.spr` field is likewise read (cast to int) as the
  *    GetImage index BEFORE being overwritten with the real Sprite3D*.
- *  - The final `EFFECT_SPAWNERS_INITIALISED = 1;` is this TU's own
- *    gp-relative small (Build.hs maspsxGpExterns); DoMiscProc reads it.
+ *  - The final `Misc_fInitial = 1;` is MISC.C's original file-static
+ *    `fInitial`, qualified for the split decomp; DoMiscProc reads it.
  */
 
 extern ModelType *LoadModel(u_long *adr);
@@ -155,7 +155,7 @@ void InitMisc(void)
         }
     }
 
-    EFFECT_SPAWNERS_INITIALISED = 1;
+    Misc_fInitial = 1;
 }
 
 // triage: MEDIUM — 90 insns, 4 loop, 4 callees, ~0.07 to ResetAllMisc

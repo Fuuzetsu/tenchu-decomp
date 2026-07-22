@@ -79,7 +79,7 @@ void DoMiscProc(void)
     GsRVIEW2 *view;
     void (*proc)(TMisc *, TMiscMessage);
 
-    if (EFFECT_SPAWNERS_INITIALISED == 0)
+    if (Misc_fInitial == 0)
     {
         AdtMessageBox(D_800127D0);
     }
