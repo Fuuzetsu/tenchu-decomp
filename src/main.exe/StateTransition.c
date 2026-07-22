@@ -89,7 +89,6 @@ extern s32 D_80097F10;
 extern s32 D_80097F14;
 extern u16 D_80097F18[2];
 extern s32 D_80097F1C;
-extern u8 gNannido;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree);

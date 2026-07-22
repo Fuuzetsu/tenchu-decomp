@@ -35,7 +35,6 @@ extern void SsStart(void);
 extern void SsSetMVol(int voll, int volr);
 extern void SsSetMono(void);
 extern void SsSetStereo(void);
-extern u8 gSound;
 
 void InitSoundEffect(void)
 {

@@ -58,7 +58,6 @@
  * reproduced by the ternary spelling below — a plain `if (v<0) v=-v;` collapses
  * it (cc1 threads the dominated test). New cookbook rule candidate.
  */
-extern u8 gSELevel;
 extern s16 voice;
 extern u16 SsUtKeyOnV(s16, s16, s32, s32, s32, s32, u32, u32);
 extern void SsUtAutoPan(s16, s32, s16, s32);

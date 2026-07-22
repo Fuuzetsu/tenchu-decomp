@@ -54,7 +54,6 @@ extern u8 CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 CHOSEN_LANGUAGE;
 extern u8 D_80010048;
-extern u8 gfMemory;
 extern s32 D_8001046C;
 extern u8 SELECTED_ITEM_COUNTS[];
 extern u8 ITEM_LOADOUT_BACKUP[];

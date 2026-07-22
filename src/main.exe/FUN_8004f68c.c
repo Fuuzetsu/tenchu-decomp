@@ -24,7 +24,6 @@
 
 extern void SsSetMVol(int voll, int volr);
 extern void FUN_8004fbf4(u8 voll, u8 volr);
-extern u8 gSoundLevel;
 
 void FUN_8004f68c(void)
 {

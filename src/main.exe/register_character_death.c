@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-extern u8 gNannido;
 extern u16 D_800979DE;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 

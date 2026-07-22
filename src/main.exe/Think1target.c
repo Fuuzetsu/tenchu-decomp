@@ -40,7 +40,6 @@
 extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern u8 gNannido;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern short SetNowMotion(Humanoid *human, short mid, short move);

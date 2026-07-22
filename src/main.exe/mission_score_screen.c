@@ -58,7 +58,6 @@ extern char *RANKS_ARCHIVE_PTRS[];
 extern char *TRN_SPRITE_PTRS[];
 extern char D_80013AA8[];
 extern char D_80013AC0[];
-extern u8 gfMemory;
 
 extern u8 D_8001044C[5];
 extern u8 D_80010451[5];

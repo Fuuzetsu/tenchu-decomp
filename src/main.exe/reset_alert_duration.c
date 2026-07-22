@@ -14,7 +14,6 @@
  * TLinkInfo.Nannido is the struct view of the same byte.
  */
 
-extern u8 gNannido;
 
 void reset_alert_duration(void)
 {

@@ -52,7 +52,6 @@ typedef struct
 } TVoiceTableList;
 
 extern u8 CHOSEN_LANGUAGE;
-extern u8 gSELevel;
 
 /* Per-language event-XA filename pointers (Ghidra: PTR_s__TENCHU_XA_EVENT_[EFIJ]_XA...). */
 extern u8 *D_80097CA0;

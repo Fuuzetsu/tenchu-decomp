@@ -104,7 +104,6 @@ typedef struct TMusicTable
 } TMusicTable; /* 0xC */
 
 extern TMusicTable MusicTable[];
-extern u8 gSoundLevel;
 extern char D_8001349C[];  /* "bad music no" */
 extern char D_800134AC[];  /* "\TENCHU\XA\%s;1" */
 extern char D_800134BC[];  /* "playmusic fail %s  chan %d  id %d" */
