@@ -65,7 +65,8 @@ void debug_menu_stage_option(void)
         init_score_stats(&stats);
         sr = *calculate_score(&stats, CHOSEN_STAGE);
         AdtMessageBox(D_80014658, STAGE_LAYOUT_NUMBER + 1,
-                      (SystemFlag & SYSFLAG_RANDOM_LAYOUT) ? D_800146D0 : EMPTY_STRING,
+                      (SystemFlag & SYSFLAG_RANDOM_LAYOUT)
+                          ? D_800146D0 : EMPTY_STRING,
                       stats.criticals, stats.murders, stats.findEnemies,
                       stats.friendHits, sr.score);
         return;

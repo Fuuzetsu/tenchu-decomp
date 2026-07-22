@@ -85,9 +85,9 @@ extern void load_layout(s32 layout);
 extern void CVAsetup(void);
 extern void SetupStageSequence(void);
 
-/* Only these two retail read-modify-writes need the original volatile access
- * behavior to retain their instruction schedule; SystemFlag itself is the
- * ordinary shared object used throughout the game. */
+/* Only these two read-modify-writes need a localized volatile view to retain
+ * the retail instruction schedule; SystemFlag itself is the ordinary shared
+ * object used throughout the game. */
 void CreateStage(int StageNo, int CharType)
 {
     Humanoid *target;
