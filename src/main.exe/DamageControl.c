@@ -7,7 +7,8 @@
 extern Humanoid *Me_MOTION_C;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
-extern u16 D_80086B6C[8];
+/* MOTION.C's original direction-to-damage-animation table. */
+extern s16 damagemotion[8];
 
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
@@ -177,8 +178,8 @@ void DamageControl(void)
   int id;
   short dmg;
   SVECTOR local_40;
-  VECTOR local_38;
-  SVECTOR local_28;
+  VECTOR p;
+  SVECTOR pv;
 
   id = (u16)(Me_MOTION_C->vector).pad;
   dmg = 0;
@@ -211,12 +212,12 @@ void DamageControl(void)
           Me_MOTION_C->life = 0;
         }
       }
-      local_38.vx = dtL->vx;
+      p.vx = dtL->vx;
       iVar11 = (u32)(u16)Me_MOTION_C->height << 0x10;
-      local_38.vy = dtL->vy -
+      p.vy = dtL->vy -
                     (((iVar11 >> 0x10) + (int)((u32)iVar11 >> 0x1f)) >> 1);
-      local_38.vz = dtL->vz;
-      SetImpact(&local_38,0x6000,2);
+      p.vz = dtL->vz;
+      SetImpact(&p,0x6000,2);
       if (StagePlayer == enemy) {
         PadShockAR(0,0xff,10,10);
       }
@@ -335,15 +336,15 @@ LAB_8001da70:
     {
       int iVar11;
 
-      local_38.vx = dtL->vx;
+      p.vx = dtL->vx;
       motID = 0x1000;
       iVar11 = (u32)(u16)Me_MOTION_C->height << 0x10;
-      local_38.vy = dtL->vy -
+      p.vy = dtL->vy -
                     (((iVar11 >> 0x10) + (int)((u32)iVar11 >> 0x1f)) >> 1);
-      local_38.vz = dtL->vz;
+      p.vz = dtL->vz;
     }
       motMODE = 1;
-      SetBlood(&local_38,5,0x5a);
+      SetBlood(&p,5,0x5a);
       break;
     case 0x13:
       goto switchD_8001db0c_caseD_13;
@@ -467,9 +468,9 @@ LAB_8001da70:
       local_40.vy >>= 1;
       local_40.vz >>= 1;
     }
-    local_38 = *dtL;
-    local_38.vy = local_38.vy + -1000;
-    if (GetAreaMapPassage(GlobalAreaMap,&local_38,&local_40,TVar8) != (VECTOR *)0x0) {
+    p = *dtL;
+    p.vy = p.vy + -1000;
+    if (GetAreaMapPassage(GlobalAreaMap,&p,&local_40,TVar8) != (VECTOR *)0x0) {
       return;
     }
   }
@@ -546,10 +547,10 @@ LAB_8001e1e8:
       {
         TVar8 = 0;
         do {
-          local_28.vx = rand() % 100 - 0x32;
-          local_28.vy = rand() % 100 - 0x32;
-          local_28.vz = rand() % 100 - 0x32;
-          SetBleed(blood_pos,&local_28,rand() % 0x14 + 0x14,0xffff00);
+          pv.vx = rand() % 100 - 0x32;
+          pv.vy = rand() % 100 - 0x32;
+          pv.vz = rand() % 100 - 0x32;
+          SetBleed(blood_pos,&pv,rand() % 0x14 + 0x14,0xffff00);
           TVar8 = TVar8 + 1;
         } while (TVar8 < 10);
       }
@@ -695,7 +696,7 @@ LAB_8001e944:
           deg = deg + 4;
         }
         dtM->mid = -1;
-        motID = D_80086B6C[deg];
+        motID = damagemotion[deg];
       }
 LAB_8001e994:
       if (enemy == StagePlayer) {
@@ -725,7 +726,7 @@ LAB_8001e994:
         deg = deg + 4;
       }
       dtM->mid = -1;
-      motID = D_80086B6C[deg];
+      motID = damagemotion[deg];
       motMODE = 0;
 LAB_8001eaa8:
       reset_alert_duration();
@@ -743,14 +744,14 @@ LAB_8001eaa8:
   {
     int iVar11;
 
-    local_38.vx = dtL->vx;
+    p.vx = dtL->vx;
     iVar11 = (u32)(u16)Me_MOTION_C->height << 0x10;
-    local_38.vy = dtL->vy -
+    p.vy = dtL->vy -
                   (((iVar11 >> 0x10) + (int)((u32)iVar11 >> 0x1f)) >> 1);
-    local_38.vz = dtL->vz;
+    p.vz = dtL->vz;
   }
-    SetBlood(&local_38,5,0x78);
-    SetImpact(&local_38,0x6000,2);
+    SetBlood(&p,5,0x78);
+    SetImpact(&p,0x6000,2);
     {
       Humanoid *who;
 

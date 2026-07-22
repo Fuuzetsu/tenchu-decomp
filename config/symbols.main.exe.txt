@@ -3331,6 +3331,7 @@ FUN_80086674 = 0x80086674;
 setRC2wait = 0x800866a4;
 chkRC2wait = 0x800866c4;
 ActionFunc = 0x80086b24;
+damagemotion = 0x80086b6c;
 HumanData = 0x80088a8c;
 BattleDB = 0x800891dc;
 WeaponModel = 0x8008986c;
