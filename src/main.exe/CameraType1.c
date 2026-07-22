@@ -105,6 +105,7 @@ extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
 
 void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 {
+    enum { FL = 1, FR = 2, BL = 4, BR = 8 };
     ModelArchiveType *mad;
     VECTOR pos;
     CameraScratch scratch;
@@ -142,33 +143,33 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
                                 mad->locate.coord.t[0] + scratch.probe.vecr.vx,
                                 mad->locate.coord.t[1],
                                 mad->locate.coord.t[2] + scratch.probe.vecr.vz, 1);
-        levbl = GetAreaMapLevel(GlobalAreaMap,
+        levbr = GetAreaMapLevel(GlobalAreaMap,
                                 mad->locate.coord.t[0] - scratch.probe.vecl.vx,
                                 mad->locate.coord.t[1],
                                 mad->locate.coord.t[2] - scratch.probe.vecl.vz, 1);
-        levbr = GetAreaMapLevel(GlobalAreaMap,
+        levbl = GetAreaMapLevel(GlobalAreaMap,
                                 mad->locate.coord.t[0] - scratch.probe.vecr.vx,
                                 mad->locate.coord.t[1],
                                 mad->locate.coord.t[2] - scratch.probe.vecr.vz, 1);
 
-        walls = levfl == (long)0x80000000;
+        walls = levfl == (long)0x80000000 ? FL : 0;
         if (levfr == (long)0x80000000)
-            walls |= 2;
-        if (levbr == (long)0x80000000)
-            walls |= 4;
+            walls |= FR;
         if (levbl == (long)0x80000000)
-            walls |= 8;
+            walls |= BL;
+        if (levbr == (long)0x80000000)
+            walls |= BR;
 
-        if ((walls & 0xF) == 4) {
+        if ((walls & (FL | FR | BL | BR)) == BL) {
             CamState.Mode = CMODE_PEEP_R;
             goto choose_camera;
-        } else if ((walls & 0xF) == 8) {
+        } else if ((walls & (FL | FR | BL | BR)) == BR) {
             CamState.Mode = CMODE_PEEP_L;
             goto choose_camera;
-        } else if ((walls & 3) == 1) {
+        } else if ((walls & (FL | FR)) == FL) {
             CamState.Mode = CMODE_STICK_R;
             goto choose_camera;
-        } else if ((walls & 3) == 2) {
+        } else if ((walls & (FL | FR)) == FR) {
             CamState.Mode = CMODE_STICK_L;
             goto choose_camera;
         } else {

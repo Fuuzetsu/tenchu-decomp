@@ -64,6 +64,7 @@ extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
 void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 {
+    enum { FL = 1, FR = 2 };
     VECTOR vsL;
     VECTOR vsR;
     int lvR;
@@ -96,29 +97,29 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
                         target->vpy + vsL.vy,
                         target->vpz + vsL.vz, 0) <= target->vpy)
     {
-        rmap = 1;
+        rmap = FL;
         FntPrint(D_80097A04);
     }
     if (lvR <= target->vpy)
     {
-        rmap |= 2;
+        rmap |= FR;
         FntPrint(D_80097A08);
     }
 
-    rmap &= 3;
+    rmap &= FL | FR;
     if (rmap != 0)
     {
         av.vx = 0;
         av.vy = 0;
         av.vz = 0;
-        if (rmap == 1)
+        if (rmap == FL)
         {
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = 1000;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
             ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS, &av);
         }
-        if (rmap == 2)
+        if (rmap == FR)
         {
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = -1000;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
