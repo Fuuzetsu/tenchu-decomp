@@ -18,7 +18,6 @@ typedef union
 } ProcItemJiraiScratch;
 
 extern AreaNodeType *FieldArea;
-extern ConflictObjectType ConflictObject[];
 extern SVECTOR D_80097AE4[];
 
 extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);

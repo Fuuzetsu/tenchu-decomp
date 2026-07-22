@@ -33,8 +33,6 @@
  * END PSX.SYM */
 
 /* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType ConflictObject[];
-extern s16 ConflictObjects;
 
 extern ModelType World;
 

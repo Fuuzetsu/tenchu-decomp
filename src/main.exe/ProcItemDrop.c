@@ -89,7 +89,6 @@ extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s16 InsertConflict(ModelType *m);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
 /* The conflict pool (Ghidra: ConflictObject). */
-extern ConflictObjectType ConflictObject[];
 
 void ProcItemDrop(tag_TItem *item)
 {

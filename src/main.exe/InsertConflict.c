@@ -62,10 +62,6 @@
  *    access.py --order proves every position word is a full `sw`.
  */
 
-/* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType ConflictObject[];
-extern s16 ConflictObjects;
-
 /* Identity constants copied into a fresh slot. UnitVector2 is Ghidra's
  * UnitVector2 (the VECTOR position); UnitVector is the SVECTOR offset/size. */
 extern VECTOR UnitVector2;

@@ -20,8 +20,6 @@ typedef union
 
 extern s16 Humans;
 extern TCameraStatus CamState;
-extern ConflictObjectType ConflictObject[];
-extern SVECTOR ConflictDistance;
 extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
 extern ModelType *NingyoModel;

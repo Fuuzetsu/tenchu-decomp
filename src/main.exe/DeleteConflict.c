@@ -57,10 +57,6 @@
  *    do-while (duplicate_loop_exit_test). i advances only on the miss branch.
  */
 
-/* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType ConflictObject[];
-extern s16 ConflictObjects;
-
 void DeleteConflict(ModelType *model)
 {
     short i;

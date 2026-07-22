@@ -98,15 +98,6 @@
  *    delta).
  */
 
-/* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
-extern ConflictObjectType ConflictObject[];
-extern s16 ConflictObjects;
-
-/* Output globals (Ghidra names, bound to correct addresses in config/symbols
- * because the splat-auto-named D_80097EC8/ECC/ED0 glabels are drifted 8B low). */
-extern SVECTOR ConflictDistance; /* 0x80097EC8 (vx/vy/vz) */
-extern ModelType *ConflictModel; /* 0x80097ED0 */
-
 short GetConflictResult(ModelType *model, short index)
 {
     short sVar1;

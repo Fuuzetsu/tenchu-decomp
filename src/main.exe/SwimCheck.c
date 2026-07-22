@@ -44,7 +44,6 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
-extern ConflictObjectType ConflictObject[80];
 extern HumanAnimType CVAhuman[5];
 
 extern void SetSplash(VECTOR *pos, short sx, short sy, short count);

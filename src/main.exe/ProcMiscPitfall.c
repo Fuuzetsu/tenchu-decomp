@@ -53,7 +53,6 @@
 #include "misc.h"
 
 extern char D_80012710[];
-extern ConflictObjectType ConflictObject[];
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
 extern short DrawModel(ModelType *model);

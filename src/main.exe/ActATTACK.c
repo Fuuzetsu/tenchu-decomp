@@ -98,7 +98,6 @@ extern s16 ActionHalt;
 extern Humanoid *Me_MOTION_C;
 extern BattleType BattleDB[78];
 extern WeaponType WeaponDB[];
-extern ConflictObjectType ConflictObject[];
 extern HumanAnimType CVAhuman[];
 extern TCameraStatus CamState;
 

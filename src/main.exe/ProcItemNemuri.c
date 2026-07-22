@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-extern ConflictObjectType ConflictObject[];
 extern SVECTOR D_80097B04[];
 
 extern s16 InsertConflict(ModelType *model);

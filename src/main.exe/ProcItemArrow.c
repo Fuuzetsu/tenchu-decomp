@@ -87,7 +87,6 @@ typedef struct
     u16 pad1;
 } ArrowRotation;
 
-extern ConflictObjectType ConflictObject[];
 extern s32 GameClock;
 
 extern void MoveFly(tag_TItem *item, param_fly *param);

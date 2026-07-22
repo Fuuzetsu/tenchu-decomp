@@ -113,7 +113,6 @@ extern s16 Humans;
 extern ModelType World;
 extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 
-extern ConflictObjectType ConflictObject[];
 
 Humanoid *CreateHumanoid(short type, u_long *mad)
 {

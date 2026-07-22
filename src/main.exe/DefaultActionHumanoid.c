@@ -54,10 +54,8 @@
 
 extern struct AreaNodeType *FieldArea;
 extern struct NodeIndexType *FieldIndex;
-extern ConflictObjectType ConflictObject[];
 extern s16 RefrectMove[16][2];
 extern s16 RefrectVector[16];
-extern SVECTOR ConflictDistance;
 
 extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
                            s32 width, s16 mode);

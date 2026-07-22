@@ -48,7 +48,6 @@
  */
 
 extern GsRVIEW2 ViewInfo;
-extern ConflictObjectType ConflictObject[];
 extern s16 InsertConflict(ModelType *m);
 extern s32 abs(s32 x);
 

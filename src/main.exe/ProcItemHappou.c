@@ -81,7 +81,6 @@ extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
-extern ConflictObjectType ConflictObject[];
 /* Ghidra/m2c call this D_80097F54; bound here under a fresh name via
  * config/symbols.main.exe.txt because the data.s-internal `glabel
  * D_80097F54` (and its neighbor SyurikenModel, also referenced by

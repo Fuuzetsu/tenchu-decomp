@@ -18,10 +18,8 @@ extern s16 FriendHits;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
 extern u8 gNannido;
-extern ConflictObjectType ConflictObject[80];
 extern BattleType BattleDB[78];
 extern HumanAnimType CVAhuman[5];
-extern SVECTOR ConflictDistance;
 extern u16 D_80086B6C[8];
 
 extern void SetCameraMode(s32 mode);

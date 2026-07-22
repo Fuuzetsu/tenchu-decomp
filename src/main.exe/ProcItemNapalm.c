@@ -35,7 +35,6 @@
  */
 
 extern Sprite3D *sprNapalm2;
-extern ConflictObjectType ConflictObject[];
 
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);

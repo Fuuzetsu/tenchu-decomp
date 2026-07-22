@@ -48,7 +48,6 @@
  * all 161 retail instructions without carrier locals or allocation fences.
  */
 
-extern ConflictObjectType ConflictObject[];
 extern BattleType BattleDB[];
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;

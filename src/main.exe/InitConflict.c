@@ -36,9 +36,8 @@
  * pool at boot: zero every ConflictObject[i]'s model/common, seed
  * .position/.offset/.size from the shared UnitVector2 (VECTOR)/UnitVector
  * (SVECTOR) identity constants exactly like InsertConflict.c/
- * DeleteConflict.c, memset each slot's `.result` (0x50 bytes — deliberately
- * overflows the declared 64-byte field into the trailing 0x10 pad, same as
- * InsertConflict.c), then clear ConflictModel/ConflictDistance/
+ * DeleteConflict.c, clear each slot's retail-expanded 80-byte `.result`,
+ * then clear ConflictModel/ConflictDistance/
  * ConflictObjects. `.offset`/`.size = UnitVector;` are plain SVECTOR struct
  * assignments (align-2 lwl/lwr+swl/swr); Ghidra's SUB42/uVar4 byte-shuffle
  * rendering is that same idiom (cookbook "Stack objects": cast-type
@@ -49,12 +48,8 @@
  * cookbook Loops), a guarded `for (i = 0; i < 0x50; i++)`.
  */
 
-extern ConflictObjectType ConflictObject[];
-extern s16 ConflictObjects;
 extern VECTOR UnitVector2;
 extern SVECTOR UnitVector;
-extern SVECTOR ConflictDistance; /* 0x80097EC8 (vx/vy/vz) */
-extern ModelType *ConflictModel; /* 0x80097ED0 */
 extern void *memset(void *s, int c, u32 n);
 
 void InitConflict(void)

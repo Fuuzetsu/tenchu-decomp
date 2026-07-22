@@ -72,7 +72,6 @@
 extern VECTOR *dtL;
 extern MotionManager *dtM;
 extern s16 motID;
-extern ConflictObjectType ConflictObject[80];
 extern SVECTOR *dtV;
 extern u16 dtPAD;
 extern s16 motMODE;

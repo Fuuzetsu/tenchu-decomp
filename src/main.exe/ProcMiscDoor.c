@@ -49,7 +49,6 @@
  */
 
 extern char D_800126F8[];
-extern ConflictObjectType ConflictObject[];
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
 extern void DrawModel(ModelType *model);

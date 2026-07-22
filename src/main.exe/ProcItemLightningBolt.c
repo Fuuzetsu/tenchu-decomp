@@ -80,7 +80,6 @@ extern void SetLightning(VECTOR *pos, VECTOR *target, s32 a, s32 b, s32 c);
 extern void SetImpact(VECTOR *pos, s32 a, s32 b);
 extern s32 GameClock;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
-extern ConflictObjectType ConflictObject[];
 
 void ProcItemLightningBolt(tag_TItem *item)
 {
