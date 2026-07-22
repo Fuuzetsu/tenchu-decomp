@@ -32,7 +32,7 @@
  *     reg   $s1       unsigned char sec
  * END PSX.SYM */
 
-typedef struct
+typedef struct TVoiceTable
 {
     u8 no;      /* 0x0 */
     u8 channel; /* 0x1 */
