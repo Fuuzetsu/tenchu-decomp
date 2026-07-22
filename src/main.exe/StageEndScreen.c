@@ -53,12 +53,6 @@ typedef struct
 extern u8 CHOSEN_CHARACTER;
 extern u8 CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern u8 CHOSEN_LANGUAGE;
-extern u8 D_80010048;
-extern s32 D_8001046C;
-extern u8 SELECTED_ITEM_COUNTS[];
-extern u8 ITEM_LOADOUT_BACKUP[];
-extern u8 SHOP_STOCK_STATE_BY_CHAR[];
 extern s16 D_8008EA78[];
 extern s16 D_8008ED50[];
 extern char NUMBER_TIM_PATH[];
@@ -242,10 +236,10 @@ void StageEndScreen(void)
         TLinkInfo *state;
 
         state = PSTATE;
-        state->item_flags |= 1 << (item_index - 1);
+        state->mission_flags |= 1 << (item_index - 1);
         if (state->StageNo == 7 && state->language == 0)
         {
-            state->item_flags |= 0x400;
+            state->mission_flags |= 0x400;
         }
     }
 
@@ -307,7 +301,7 @@ void StageEndScreen(void)
         {
             if (((TLinkInfo *)best_x)->language == 0)
             {
-                ((TLinkInfo *)best_x)->item_flags |= 0x400;
+                ((TLinkInfo *)best_x)->mission_flags |= 0x400;
             }
         }
         else

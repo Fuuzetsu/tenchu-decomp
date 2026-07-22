@@ -981,5 +981,6 @@ typedef struct TLinkInfo
     u8 pad_0x456[2];        /* 0x456 */
     long t_time[5];         /* 0x458 completion time; retail replacement for
                              *       the demo's t_fun/t_byou byte arrays */
-    u32 item_flags;         /* 0x46C unlocked stage-reward items */
+    u32 mission_flags;      /* 0x46C mission completion/unlock bitset
+                             *       (retail-inferred meaning) */
 } TLinkInfo;
