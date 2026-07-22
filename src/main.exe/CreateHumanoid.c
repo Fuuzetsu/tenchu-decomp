@@ -105,7 +105,8 @@ extern Humanoid *vcalloc(u32 size, u8 c);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
 extern void SetupThinkFunction(Humanoid *human, short type);
 extern s16 InsertConflict(ModelType *m);
-extern s32 GetAreaMapVector(void *area, void *mvp, void *pos, s32 wide, s32 mode);
+extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
+                             long wide, int mode);
 extern void SystemOut(char *msg);
 
 extern s16 Humans;

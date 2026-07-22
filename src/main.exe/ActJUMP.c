@@ -62,8 +62,8 @@ extern u16 RefrectVector[16];
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void GetAreaMapVector(void *map, MapVector *result, long locate,
-                             long width, long mode);
+extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
+                             long wide, int mode);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
@@ -85,7 +85,7 @@ void ActJUMP(void)
 
     if ((Me_MOTION_C->pad.trig & 0x40) != 0 && motID != 0x901)
     {
-        GetAreaMapVector(GlobalAreaMap, &scratch.map, (long)dtL,
+        GetAreaMapVector(GlobalAreaMap, &scratch.map, dtL,
                          Me_MOTION_C->width + 300, 0);
         if (scratch.map.vector == 0)
         {

@@ -46,7 +46,8 @@
  *    gives the target's final independent move/load schedule.
  */
 extern s16 RefrectMove[16][2];
-extern s32 GetAreaMapVector(void *area, MapVector *mvp, void *pos, s32 wide, s32 mode);
+extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
+                             long wide, int mode);
 
 void FUN_80030644(VECTOR *pos, s32 amount)
 {
