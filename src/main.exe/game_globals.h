@@ -18,8 +18,6 @@ extern struct Humanoid *StagePlayer;
 extern short Humans;
 extern short ActionHalt;
 extern short EngageLevel;
-/* APPEAR.C-private originally; extern because that source is split here. */
-extern short NowStage;
 /* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;

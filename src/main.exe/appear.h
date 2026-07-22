@@ -5,6 +5,9 @@
  * reconstructed as several translation units. */
 struct Humanoid;
 
+/* APPEAR.C-private originally; extern because that source is split here. */
+extern short NowStage;
+
 extern void SetupAppearance(short mode, short stage);
 extern struct Humanoid *SetupCharacterParameter(short type,
                                                 struct Humanoid *human);
