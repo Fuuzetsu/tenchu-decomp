@@ -47,7 +47,7 @@ extern u8 MusicIDTable[];
 extern void PlayVoice(s32 id);
 extern void _PlayMusic(s32 id, s32 one);
 
-void PlayMusicFormID(s32 param_1)
+void PlayMusicFormID(s32 id)
 {
     s32 MusicNo;
     u8 *p;
@@ -57,13 +57,13 @@ void PlayMusicFormID(s32 param_1)
     s16 i;
     s16 j;
 
-    if (param_1 < 100)
+    if (id < 100)
     {
-        PlayVoice(param_1);
+        PlayVoice(id);
         return;
     }
     table_base = MusicIDTable;
-    MusicNo = param_1 - 100;
+    MusicNo = id - 100;
     i = 0;
     do
     {

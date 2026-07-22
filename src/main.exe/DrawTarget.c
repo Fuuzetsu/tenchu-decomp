@@ -32,11 +32,11 @@
  * GetScreenPositionS.c/PrepareGetScreenPositionS.c for the scratchpad MATRIX/SVECTOR idiom),
  * but instead of writing OTZ into a caller-supplied output pointer, it reads
  * RotTransPers's packed screen (x,y) back off its own stack scratch and
- * calls DrawTargetS(x, y, otz - 5, arg3) — a line-draw/sort helper
+ * calls DrawTargetS(x, y, otz - 5, color) — a line-draw/sort helper
  * (DrawTargetS's only other caller, FUN_8003d768, is also unmatched).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `arg0 - (short)ViewInfo.vpx` etc. — same NARROWING lhu-of-a-s32-global
+ *  - `x - (short)ViewInfo.vpx` etc. — same NARROWING lhu-of-a-s32-global
  *    rule as the twin.
  *  - RotTransPers's `sxy` out-param is the packed `vx/vy` prefix of one
  *    address-taken `SVECTOR scr`; its return value is stored into `scr.vz`.
@@ -52,7 +52,7 @@
  * STATUS: MATCHING — exact 204-byte / 51-instruction pure C with the target
  * 0x28 frame. A short-lived `SVECTOR *p = &scr` supplies the RotTransPers
  * SXY argument and the post-call `p->vz` writeback. Because that alias
- * crosses the call, it is cached in `$s0`; `arg3` consequently takes `$s1`.
+ * crosses the call, it is cached in `$s0`; `color` consequently takes `$s1`.
  * The DrawTargetS arguments deliberately use direct `scr.vx/vy/vz` member
  * spellings, so the values reload as `lh` from `$sp` after the pointer dies.
  * Using `scr` directly for every access drops the saved pointer and shrinks
@@ -65,7 +65,7 @@ extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 arg3);
 
-void DrawTarget(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void DrawTarget(s32 x, s32 y, s32 z, s32 color)
 {
     SVECTOR scr;
     SVECTOR *p;
@@ -73,14 +73,14 @@ void DrawTarget(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
     *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
     *(s32 *)TENCHU_SCRATCHPAD(0x1c) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(0x20) = arg0 - (short)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(0x22) = arg1 - (short)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(0x24) = arg2 - (short)ViewInfo.vpz;
+    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (short)ViewInfo.vpx;
+    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (short)ViewInfo.vpy;
+    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (short)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
     p = &scr;
     p->vz = RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)p,
                          (void *)TENCHU_SCRATCHPAD(0x28),
                          (void *)TENCHU_SCRATCHPAD(0x2c));
-    DrawTargetS(scr.vx, scr.vy, scr.vz - 5, arg3);
+    DrawTargetS(scr.vx, scr.vy, scr.vz - 5, color);
 }
