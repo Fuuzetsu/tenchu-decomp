@@ -48,11 +48,11 @@ typedef struct TVoiceTable
 
 extern u8 CHOSEN_LANGUAGE;
 
-/* Per-language event-XA filename pointers (Ghidra: PTR_s__TENCHU_XA_EVENT_[EFIJ]_XA...). */
-extern u8 *D_80097CA0;
-extern u8 *D_80097CA4;
-extern u8 *D_80097CA8;
-extern u8 *D_80097CAC;
+/* Retail retains VoiceXaName and adds one filename pointer per localization. */
+extern u8 *VoiceXaName;
+extern u8 *VoiceXaNameF;
+extern u8 *VoiceXaNameI;
+extern u8 *VoiceXaNameJ;
 /* Per-language voice tables. */
 extern TVoiceTable *D_800134E0[4];
 
@@ -89,10 +89,10 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
 /*
  * PlayVoice (0x8004eee4) — look up voice-clip `id` in one of several
  * TVoiceTable arrays and CdaPlayXA it. id < 100: current-language event
- * table (D_800134E0..EC / D_80097CA0..AC, indexed by CHOSEN_LANGUAGE).
+ * table (D_800134E0..EC / VoiceXaName, indexed by CHOSEN_LANGUAGE).
  * 100 <= id < 200: the INTRO table (id -= 100). id >= 200: the TORA table
  * (id -= 200). If none of those has the id, falls back to the shared
- * D_80012CBC table (always using the event-table filename D_80097CA0).
+ * D_80012CBC table (always using the first event-table filename).
  * Each table is a linear array of {no,channel,smin,ssec,emin,esec}
  * records terminated by no==0xff. On a total miss: AdtMessageBox + CdaStop.
  * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
@@ -102,6 +102,13 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * CdaPlayXA; a zero return gets its own AdtMessageBox.
  *
  * Matching notes:
+ *  - Retail's four localized filename pointers are distinct globals, not one
+ *    global array: the target loads all four independently through $gp before
+ *    constructing the local `filenames` array. Declaring a global
+ *    `VoiceXaName[4]` instead makes cc1 materialize one base and load at
+ *    offsets 0/4/8/12, growing this function from 756 to 772 bytes. The first
+ *    pointer retains PSX.SYM's original VoiceXaName name; F/I/J are the added
+ *    retail localizations visible in the pointed-to filenames.
  *  - The two search loops are DIFFERENT shapes (confirmed against the raw
  *    target .s and cross-checked with Ghidra's own two independent
  *    reconstructions): the CHOSEN_LANGUAGE-indexed loop re-caches the id
@@ -174,10 +181,10 @@ void PlayVoice(int id)
     TVoiceTable *fallback;
     int fallback_end;
     u8 *filenames[4] = {
-        D_80097CA0,
-        D_80097CA4,
-        D_80097CA8,
-        D_80097CAC,
+        VoiceXaName,
+        VoiceXaNameF,
+        VoiceXaNameI,
+        VoiceXaNameJ,
     };
     TVoiceTable *tables[4];
     CdlLOC start;
@@ -295,7 +302,7 @@ found:
         }
         loc = 0;
     found2:
-        FileName = D_80097CA0;
+        FileName = VoiceXaName;
         if (loc == 0)
         {
             AdtMessageBox(D_800134F0, id);
@@ -474,10 +481,10 @@ found:
 // extern u8 D_8008E930;
 // extern s32 D_80097C98;
 // extern s32 D_80097C9C;
-// extern u8 *D_80097CA0;
-// extern s32 D_80097CA4;
-// extern s32 D_80097CA8;
-// extern s32 D_80097CAC;
+// extern u8 *VoiceXaName;
+// extern u8 *VoiceXaNameF;
+// extern u8 *VoiceXaNameI;
+// extern u8 *VoiceXaNameJ;
 //
 // void PlayVoice(s32 arg0) {
 //     u8 *sp18;
@@ -509,10 +516,10 @@ found:
 //     u8 var_v0_2;
 //
 //     var_s3 = arg0;
-//     sp28 = D_80097CA0;
-//     sp2C = D_80097CA4;
-//     sp30 = D_80097CA8;
-//     sp34 = D_80097CAC;
+//     sp28 = VoiceXaName;
+//     sp2C = VoiceXaNameF;
+//     sp30 = VoiceXaNameI;
+//     sp34 = VoiceXaNameJ;
 //     sp18 = sp28;
 //     sp1C = sp2C;
 //     sp20 = sp30;
@@ -521,7 +528,7 @@ found:
 //     sp2C = D_800134E0.unk4;
 //     sp30 = D_800134E0.unk8;
 //     sp34 = D_800134E0.unkC;
-//     memset(&sp38, 0, 4, D_80097CA8);
+//     memset(&sp38, 0, 4, VoiceXaNameI);
 //     memset(&sp40, 0, 4);
 //     if (var_s3 >= 0x64) {
 //         if (var_s3 >= 0xC8) {
@@ -583,7 +590,7 @@ found:
 // block_19:
 //             var_s2 = NULL;
 //         }
-//         var_s4 = (s32) D_80097CA0;
+//         var_s4 = (s32) VoiceXaName;
 //         if (var_s2 == NULL) {
 //             AdtMessageBox(&D_800134F0, var_s3);
 //             CdaStop();

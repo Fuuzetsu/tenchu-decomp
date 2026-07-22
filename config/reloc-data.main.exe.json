@@ -1814,7 +1814,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097ca0",
-      "source_owner": "D_80097CA0",
+      "source_owner": "VoiceXaName",
       "target_file": "207C.data.s",
       "target_address": "0x80012ca4",
       "target_owner": "D_80012C68",
@@ -1823,7 +1823,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097ca4",
-      "source_owner": "D_80097CA4",
+      "source_owner": "VoiceXaNameF",
       "target_file": "207C.data.s",
       "target_address": "0x80012e9c",
       "target_owner": "D_80012CBC",
@@ -1832,7 +1832,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097ca8",
-      "source_owner": "D_80097CA8",
+      "source_owner": "VoiceXaNameI",
       "target_file": "207C.data.s",
       "target_address": "0x80013094",
       "target_owner": "D_80012EB4",
@@ -1841,7 +1841,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097cac",
-      "source_owner": "D_80097CAC",
+      "source_owner": "VoiceXaNameJ",
       "target_file": "207C.data.s",
       "target_address": "0x8001328c",
       "target_owner": "D_800130AC",
