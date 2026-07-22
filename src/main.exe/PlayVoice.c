@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -85,7 +86,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
     loc->minute = min;
     loc->second = sec;
     pos = CdPosToInt(loc);
-    CdIntToPos(pos * 2 + 0x96, loc);
+    CdIntToPos(pos * 2 + OFFSET, loc);
 }
 
 /*
@@ -99,7 +100,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * records terminated by no==0xff. On a total miss: AdtMessageBox + CdaStop.
  * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
  * CD-XA mix volume, re-apply the persisted volume, build `start`/`end`
- * CdlLOCs from the record's min/sec (the CdPosToInt/CdIntToPos "*2+0x96"
+ * CdlLOCs from the record's min/sec (the CdPosToInt/CdIntToPos "*2+OFFSET"
  * read-ahead idiom, exactly _PlayMusic.c's own start/end construction), and
  * CdaPlayXA; a zero return gets its own AdtMessageBox.
  *

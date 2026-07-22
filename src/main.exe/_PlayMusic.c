@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -119,7 +120,7 @@ static inline void InitMusicLocation(CdlLOC *location, u8 minute, u8 second)
     memset(location, 0, sizeof(CdlLOC));
     location->minute = minute;
     location->second = second;
-    CdIntToPos(CdPosToInt(location) * 2 + 0x96, location);
+    CdIntToPos(CdPosToInt(location) * 2 + OFFSET, location);
 }
 
 void _PlayMusic(int MusicNo, int mode)
