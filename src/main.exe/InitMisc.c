@@ -38,15 +38,16 @@
 
 /*
  * InitMisc (0x8004c1e8, 0x168 bytes) — one-time setup of the misc-object
- * pool: clears all 200 misc[] slots (bottom-test walking-pointer loop,
- * `misc + 199` down to `misc`), then loads the door/pitfall pair-of-models
- * tables and the two ambient sprites (rain/snow "steam"), and finally sets
- * the init latch DoMiscProc waits on.
+ * pool: clears all MaxMisc slots (bottom-test walking-pointer loop,
+ * `misc + (MaxMisc - 1)` down to `misc`), then loads the door/pitfall
+ * pair-of-models tables and the two ambient sprites (rain/snow "steam"),
+ * and finally sets the init latch DoMiscProc waits on.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `misc + 199` (a nonzero-offset pointer into a big absolute extern
+ *  - `misc + (MaxMisc - 1)` (a nonzero-offset pointer into a big absolute
+ *    extern
  *    array) forces materialization of misc's OWN base address (lui+addiu)
- *    plus a THIRD addiu for the +199*sizeof(TMisc) offset — the
+ *    plus a THIRD addiu for the +(MaxMisc-1)*sizeof(TMisc) offset — the
  *    "offset-0 folds, a nonzero offset materializes" rule; ordinary pointer
  *    arithmetic reproduces it with no special spelling.
  *  - DoorData/PitfallData's `Model[2]` fields double as int archive-index
@@ -79,9 +80,9 @@ void InitMisc(void)
     TMisc *tm;
     s32 i;
 
-    i = 199;
+    i = MaxMisc - 1;
     tm = misc;
-    tm = tm + 199;
+    tm = tm + (MaxMisc - 1);
     do
     {
         tm->proc = 0;

@@ -177,7 +177,7 @@ loop:
         do
         {
             p++;
-            if ((s32)p < (s32)(base + 200))
+            if ((s32)p < (s32)(base + MaxMisc))
                 goto loop;
         } while (0);
     } while (0);

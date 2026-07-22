@@ -21,6 +21,12 @@ enum MiscType
     MISC_SPRITE = 4
 };
 
+/* Misc-object pool bound from MISC.C's anonymous enum. */
+enum
+{
+    MaxMisc = 200
+};
+
 typedef struct tag_TMisc TMisc;
 
 /* The MISC_SPRITE variant of the param union (MISC__181fake's `sprite`
@@ -111,7 +117,7 @@ typedef struct
     s32 scale;     /* 0x4 */
 } SpriteDataType;           /* 0x8, MISC__185fake */
 
-extern TMisc misc[200];
+extern TMisc misc[MaxMisc];
 extern DoorDataType DoorData[11];
 extern PitfallDataType PitfallData[2];
 extern SpriteDataType SpriteData[2];

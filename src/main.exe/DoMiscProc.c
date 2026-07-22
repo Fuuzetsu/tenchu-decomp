@@ -35,7 +35,7 @@
  * DoMiscProc (0x8004d350, 0x1C4 bytes) — the misc pool's per-frame driver
  * (main's game loop): bails with an error box if InitMisc hasn't run yet;
  * otherwise, every 10th GameClock tick, culls every live slot against a
- * 15000-unit cube around the camera (ViewInfo.vrx/vry/vrz) — dispatching
+ * LEN-unit cube around the camera (ViewInfo.vrx/vry/vrz) — dispatching
  * MM_RESUME(3)+unpause when back in range, MM_PAUSE(2)+pause when it drops
  * out — then unconditionally runs every still-unpaused slot's "draw" tick
  * MM_DO(4) after setting the renderer's TMD mode.
@@ -66,6 +66,12 @@ extern s32 DrawTMDmode;
 extern GsRVIEW2 ViewInfo;
 extern char D_800127D0[];
 
+/* Misc visibility distance from MISC.C's anonymous enum. */
+enum
+{
+    LEN = 15000
+};
+
 void DoMiscProc(void)
 {
     s32 i;
@@ -95,21 +101,21 @@ cull_loop:
                     d -= coord;
                     if (d < 0)
                         d = -d;
-                    if (d < 15000)
+                    if (d < LEN)
                     {
                         d = view->vry;
                         coord = p->y;
                         d -= coord;
                         if (d < 0)
                             d = -d;
-                        if (d < 15000)
+                        if (d < LEN)
                         {
                             d = view->vrz;
                             coord = p->z;
                             d -= coord;
                             if (d < 0)
                                 d = -d;
-                            if (d < 15000)
+                            if (d < LEN)
                             {
                                 if (p->pause != 0)
                                 {
@@ -128,13 +134,13 @@ cull_loop:
                 }
             next:
                 i++;
-                d = i < 200;
+                d = i < MaxMisc;
                 p++;
                 if (d)
                     goto cull_loop;
         }
         DrawTMDmode = 0x20;
-        for (i = 0; i < 200; i++)
+        for (i = 0; i < MaxMisc; i++)
         {
             if (misc[i].proc != 0 && misc[i].pause == 0)
             {
