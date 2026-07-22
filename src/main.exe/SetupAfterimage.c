@@ -42,10 +42,9 @@
  * DisposeAfterimage.c frees these same two fields), and a POLY_GT4 sprite
  * initialized via SetupImageToPolyGT4/SetSemiTrans. The shared layout is
  * PSX.SYM's original `AfterimageType`, also independently confirmed by
- * Ghidra (reference/ghidra_types.h:4885). `len` is `short` (Ghidra's
- * signature), not `s32` like the callers' prototypes: `size = len * 4`
- * compiles to the sign-extend+scale-by-4 shift pair from the short parameter
- * directly.
+ * Ghidra (reference/ghidra_types.h:4885). `len` is `short`, as recorded by
+ * PSX.SYM and the shared API: `size = len * 4` compiles to the
+ * sign-extend+scale-by-4 shift pair from the short parameter directly.
  *
  * Matching notes (docs/matching-cookbook.md): store order follows Ghidra's
  * literal rendering exactly, including `n` (offset 0x16) stored textually

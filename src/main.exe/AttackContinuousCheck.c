@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -56,7 +57,6 @@
 
 extern Humanoid *Me_MOTION_C;
 extern MotionManager *dtM;
-extern void DisposeAfterimage(void *afi);
 
 s16 AttackContinuousCheck(BattleType *battle)
 {
@@ -108,4 +108,3 @@ skip_mode2:
     dtM->mask = 0x7FFF;
     return 1;
 }
-

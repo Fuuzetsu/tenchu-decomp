@@ -116,7 +116,6 @@ extern void SetCameraMode(s32 mode);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern s16 InsertConflict(ModelType *model);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
-extern void DisposeAfterimage(AfterimageType *afi);
 extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);

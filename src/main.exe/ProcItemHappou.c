@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "afterimage.h"
 
 /*
  * ProcItemHappou (0x8004488c) — the happou (fire cracker / bouncing bomb)
@@ -77,8 +78,6 @@
  * END PSX.SYM */
 
 extern void MoveFly(tag_TItem *item, param_fly *param);
-extern void DisposeAfterimage(AfterimageType *effect);
-extern s16 DrawAfterimage(AfterimageType *effect, s16 flag);
 extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);

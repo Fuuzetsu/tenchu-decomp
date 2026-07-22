@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "afterimage.h"
 
 /*
  * update_something_for_each_visible_enemy_ (0x80029368, 0x104 bytes) — per
@@ -37,7 +38,6 @@ extern s16 D_800BE768[];
 extern s32 DrawTMDmode;
 extern void DrawModelArchive(ModelArchiveType *model, s32 n);
 extern void DrawOrnament(void *ornament);
-extern void DrawAfterimage(void *afterimage, s32 flag);
 
 void update_something_for_each_visible_enemy_(void)
 {

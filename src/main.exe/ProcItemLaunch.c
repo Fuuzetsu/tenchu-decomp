@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "afterimage.h"
 
 /*
  * ProcItemLaunch (0x80047048) — the launched/thrown item processor (grenade
@@ -77,8 +78,6 @@
 #include "afterimage.h"
 
 extern void MoveFly(tag_TItem *item, param_fly *param);
-extern void DisposeAfterimage(AfterimageType *effect);
-extern s16 DrawAfterimage(AfterimageType *effect, s16 flag);
 extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);

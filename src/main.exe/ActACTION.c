@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "afterimage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -48,7 +49,6 @@ extern s16 motMODE;
 extern Humanoid *StagePlayer;
 extern HumanAnimType CVAhuman[5];
 
-extern void DisposeAfterimage(void *afi);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SetCameraMode(s32 mode);
