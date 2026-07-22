@@ -84,6 +84,8 @@ extern s32 abs(s32 x);
 
 int IsVisible(s32 x, s32 y, s32 z, s32 s)
 {
+    enum { SXW = 160, SYW = 120 };
+    enum { NEAR = 150 };
     s32 *view;
     s32 *scratch;
     s32 dx, dy, dz;
@@ -115,7 +117,7 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
 
     scratch = (s32 *)TENCHU_SCRATCHPAD_ADDRESS;
     iVar1 = scratch[2] + s;
-    if (iVar1 < 0x97)
+    if (iVar1 <= NEAR)
         return 0;
     if (17000 < scratch[2] - s)
         return 0;
@@ -125,11 +127,11 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     q2 = (scratch[1] * 300) / iVar1;
     fail = 0;
     iVar2 = abs(q0);
-    if (iVar4 + 0xA0 < iVar2)
+    if (iVar4 + SXW < iVar2)
         goto failed;
 
     iVar1 = abs(q2);
-    if (iVar4 + 0x78 < iVar1)
+    if (iVar4 + SYW < iVar1)
         goto failed;
     goto done;
 
