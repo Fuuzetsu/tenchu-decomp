@@ -33,7 +33,6 @@
  * matching the memcpy length exactly (free at compile time).
  */
 
-extern TEnemyLayout enemy[0x1E];
 extern void *memcpy(void *s1, void *s2, u32 n);
 
 void leRestoreEnemyLayout(void *buf)

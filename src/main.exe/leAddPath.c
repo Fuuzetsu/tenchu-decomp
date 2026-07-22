@@ -55,7 +55,6 @@
  *    SVECTOR copy's lui/addiu address materialization.
  */
 
-extern TEnemyLayout enemy[0x1E];
 extern SVECTOR D_80097ABC[];
 extern void *memset(void *s, s32 c, u32 n);
 

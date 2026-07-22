@@ -38,7 +38,6 @@
  * spelling is right here too.
  */
 
-extern TEnemyLayout enemy[0x1E];
 extern s32 leFindEnemy(void);
 extern s32 leLayoutEnemy(s32 mode);
 

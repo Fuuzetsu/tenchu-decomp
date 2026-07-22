@@ -30,7 +30,6 @@
  *    register swap (same instructions, reordered) with no other effect.
  */
 
-extern TEnemyLayout enemy[0x1E];
 
 void leResetEnemyLayout(void)
 {

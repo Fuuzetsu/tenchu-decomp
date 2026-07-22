@@ -35,7 +35,6 @@
  * touched here.
  */
 
-extern TEnemyLayout enemy[];
 
 void leResetPath(s32 id)
 {

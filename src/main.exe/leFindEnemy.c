@@ -60,7 +60,6 @@
  *    shift/add, and let cc1 pick this multiply sequence itself.
  */
 
-extern TEnemyLayout enemy[0x1E];
 extern SVECTOR D_80097ABC[];
 
 extern void *memset(void *s, s32 c, u32 n);

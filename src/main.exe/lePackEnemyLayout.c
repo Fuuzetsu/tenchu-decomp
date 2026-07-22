@@ -43,7 +43,6 @@
  *    m2c's 1-2 arg version.
  */
 
-extern TEnemyLayout enemy[0x1E];
 extern void AdtMessageBox(char *fmt, ...);
 extern void *memcpy(void *s1, void *s2, u32 n);
 extern char D_80012174[]; /* "enemy storing size too small %d/%d" */

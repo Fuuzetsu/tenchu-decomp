@@ -45,7 +45,6 @@
 
 extern s16 Humans;
 extern TSystemFlag SystemFlag;
-extern TEnemyLayout enemy[30];
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 
 extern void FUN_80039c14(void);
