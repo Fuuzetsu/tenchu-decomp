@@ -24,9 +24,8 @@
  * (character_status 9 or 7), then remaps bit 3 to bit 5 (0x8 -> 0x20).
  *
  * `Me_THINK_C->map.attrib` (game_types.h, field @0x28 — see its header
- * comment there) is proven by the raw `lhu` here; `(s16)Me_THINK_C->
- * character_status` follows Think1ninja.c's established per-TU load-width
- * cast (proven u16 field; this TU's asm reads it `lh`).
+ * comment there) is proven by the raw `lhu` here; status is the shared
+ * signed Humanoid field.
  *
  * FUN_8001b2f4's return must be a WIDE type (s32, not s16) in this caller: no
  * sll/sra re-extension follows its call (unlike GetPad's result, which DOES
@@ -45,7 +44,7 @@ s16 ThinkBasicHuman1(void)
         pad = 0;
     }
     if ((Me_THINK_C->map.attrib & 0x200) &&
-        ((s16)Me_THINK_C->status == 9 || (s16)Me_THINK_C->status == 7)) {
+        (Me_THINK_C->status == 9 || Me_THINK_C->status == 7)) {
         pad &= 0xfff;
     }
     if (pad & 8) {

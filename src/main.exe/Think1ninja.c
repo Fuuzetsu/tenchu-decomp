@@ -40,11 +40,6 @@
  * mid=0x200,count=0) — matches Ghidra's own split-field rendering
  * (`iVar5._0_2_`/`iVar5._2_2_`) of the exact same instruction.
  *
- * `(s16)Me_THINK_C->status` (cast at the use site): the proven
- * shared field is u16, but THIS TU's asm reads it with `lh` (signed) — the
- * same per-TU load-width disagreement already established for `lifemax`
- * (item.h) — keep the header's u16, cast here.
- *
  * `Think1random` takes ZERO arguments (not `Think1random(Me_THINK_C)` as
  * m2c's naive per-register liveness rendering suggests): $a0 still holds
  * Me_THINK_C at the call site (unclobbered since function entry), which
@@ -81,7 +76,7 @@ s16 Think1ninja(void)
     s16 result;
 
     result = 0;
-    if ((s16)Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == 9)
     {
         return 0;
     }

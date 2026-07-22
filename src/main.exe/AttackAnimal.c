@@ -41,12 +41,9 @@
  *
  * Same "think" TU as Think1ninja.c/ThinkBasicHuman1.c/Think3chase.c/
  * Think3escape.c/Think3firstattack.c (Me_THINK_C, Distance, Degree, the
- * per-TU `(s16)Me_THINK_C->status` load-width cast).
+ * shared signed Humanoid status field).
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `(s16)Me_THINK_C->status == 7 || == 9` follows Think1ninja.c's
- *    established per-TU cast (the shared field is u16; this TU's asm reads
- *    it with `lh`).
  *  - `deg = Degree; if (deg < 0) deg = -deg;` re-reads its own destination
  *    for the negate (`negu $rX,$rX`, same source/dest register) — the
  *    "conditional negate must re-read its own destination" rule
@@ -87,7 +84,7 @@ short AttackAnimal(void)
     s32 ret;
     u8 am;
 
-    if ((s16)Me_THINK_C->status == 7 || (s16)Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == 7 || Me_THINK_C->status == 9)
     {
         Me_THINK_C->actmode = 0;
         return 0;
