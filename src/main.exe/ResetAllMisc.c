@@ -30,7 +30,7 @@
 
 void ResetAllMisc(void)
 {
-    tag_TMisc *p;
+    TMisc *p;
     s32 i;
 
     for (i = 0; i < 0xC8; i++)

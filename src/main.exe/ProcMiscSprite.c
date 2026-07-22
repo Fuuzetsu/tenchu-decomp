@@ -63,7 +63,7 @@ extern void DrawSprite(Sprite3D *s);
  * the wrong address, cookbook: TU-shared string pooling). */
 extern char D_80012728[];
 
-void ProcMiscSprite(tag_TMisc *m, TMiscMessage msg)
+void ProcMiscSprite(TMisc *m, TMiscMessage msg)
 {
     s32 type;
     Sprite3D *s;

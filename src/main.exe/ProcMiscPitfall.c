@@ -59,7 +59,7 @@ extern short DrawModel(ModelType *model);
 extern short InsertConflict(ModelType *model);
 extern short GetConflictResult(ModelType *model, short index);
 
-void ProcMiscPitfall(tag_TMisc *m, TMiscMessage msg)
+void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 {
     TPitfall *param;
     short w;

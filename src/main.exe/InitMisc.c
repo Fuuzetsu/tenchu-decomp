@@ -76,7 +76,7 @@ extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void InitMisc(void)
 {
-    tag_TMisc *tm;
+    TMisc *tm;
     s32 i;
 
     i = 199;

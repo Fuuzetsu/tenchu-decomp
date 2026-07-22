@@ -93,21 +93,21 @@ extern char *D_80012788[]; /* the seven water/warp TIM names */
 extern char D_800127A4[];  /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char D_800127BC[];  /* "undefined effect %d" */
 
-extern void ProcMiscFire(tag_TMisc *m, TMiscMessage msg);
-extern void FUN_8004d6d4(tag_TMisc *m, TMiscMessage msg);
-extern void ProcMiscDoor(tag_TMisc *m, TMiscMessage msg);
-extern void ProcMiscPitfall(tag_TMisc *m, TMiscMessage msg);
-extern void ProcMiscSnowfall(tag_TMisc *m, TMiscMessage msg);
-extern void ProcMiscSprite(tag_TMisc *m, TMiscMessage msg);
-extern void FUN_8004c350(tag_TMisc *m, TMiscMessage msg);
-extern void FUN_8004c59c(tag_TMisc *m, TMiscMessage msg);
+extern void ProcMiscFire(TMisc *m, TMiscMessage msg);
+extern void FUN_8004d6d4(TMisc *m, TMiscMessage msg);
+extern void ProcMiscDoor(TMisc *m, TMiscMessage msg);
+extern void ProcMiscPitfall(TMisc *m, TMiscMessage msg);
+extern void ProcMiscSnowfall(TMisc *m, TMiscMessage msg);
+extern void ProcMiscSprite(TMisc *m, TMiscMessage msg);
+extern void FUN_8004c350(TMisc *m, TMiscMessage msg);
+extern void FUN_8004c59c(TMisc *m, TMiscMessage msg);
 extern void FUN_80032720(GsIMAGE *im, short y, short z);
 extern void AdtMessageBox(char *fmt, ...);
 
 void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
 {
-    tag_TMisc *base = misc;
-    tag_TMisc *p;
+    TMisc *base = misc;
+    TMisc *p;
     char *tbl[7];
     GsIMAGE tm;
     TimNameBlock *tp = (TimNameBlock *)tbl;

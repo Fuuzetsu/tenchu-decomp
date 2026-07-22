@@ -71,9 +71,9 @@ void DoMiscProc(void)
     s32 i;
     s32 d;
     s32 coord;
-    tag_TMisc *p;
+    TMisc *p;
     GsRVIEW2 *view;
-    void (*proc)(tag_TMisc *, TMiscMessage);
+    void (*proc)(TMisc *, TMiscMessage);
 
     if (EFFECT_SPAWNERS_INITIALISED == 0)
     {

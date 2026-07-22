@@ -21,7 +21,7 @@ enum MiscType
     MISC_SPRITE = 4
 };
 
-typedef struct tag_TMisc tag_TMisc;
+typedef struct tag_TMisc TMisc;
 
 typedef struct
 {
@@ -78,7 +78,7 @@ enum TMiscMessage
 
 struct tag_TMisc
 {
-    void (*proc)(tag_TMisc *, TMiscMessage); /* 0x00 */
+    void (*proc)(TMisc *, TMiscMessage); /* 0x00 */
     s32 x;                          /* 0x04 */
     s32 y;                          /* 0x08 */
     s32 z;                          /* 0x0C */
@@ -113,7 +113,7 @@ typedef struct
     s32 scale;     /* 0x4 */
 } SpriteDataType;           /* 0x8, MISC__185fake */
 
-extern tag_TMisc misc[200];
+extern TMisc misc[200];
 extern DoorDataType DoorData[11];
 extern PitfallDataType PitfallData[2];
 extern SpriteDataType SpriteData[2];

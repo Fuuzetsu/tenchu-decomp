@@ -61,7 +61,7 @@ extern void SetHinoko(VECTOR *pos, SVECTOR *vel, s32 n);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vel, s32 n, s32 time);
 extern s16 SoundEx(VECTOR *loc, s32 id);
 
-void ProcMiscFire(tag_TMisc *m, TMiscMessage msg)
+void ProcMiscFire(TMisc *m, TMiscMessage msg)
 {
     SVECTOR vec;
     VECTOR pos;

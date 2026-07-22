@@ -40,7 +40,7 @@ extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
 extern s16 SoundEx(VECTOR *loc, s32 id);
 extern void *memset(void *dst, s32 c, u32 n);
 
-void FUN_8004c350(tag_TMisc *m, TMiscMessage msg)
+void FUN_8004c350(TMisc *m, TMiscMessage msg)
 {
     SVECTOR direction[2];
     VECTOR bleed_pos;

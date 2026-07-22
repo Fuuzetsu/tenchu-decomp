@@ -92,7 +92,7 @@ extern s16 SoundEx(VECTOR *loc, s32 id);
 extern s32 rand(void);
 extern void *memset(void *dst, s32 c, u32 n);
 
-void FUN_8004c59c(tag_TMisc *m, TMiscMessage msg)
+void FUN_8004c59c(TMisc *m, TMiscMessage msg)
 {
     Schedule *sched;
     Schedule tmp;
