@@ -56,7 +56,6 @@
  * reproduces the target's good-path-fallthrough/bad-path-branch-target
  * layout exactly.
  */
-extern u_long *FileRead(char *path);
 extern void AdtMessageBox(char *fmt, ...);
 extern u_long *get_tim_from_archive(u_long *pt, int i);
 extern void LoadTIM(u_long *tim);

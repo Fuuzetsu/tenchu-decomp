@@ -147,8 +147,8 @@ void CreateStage(int StageNo, int CharType)
     DoBriefingAndInventorySelection();
 
     scratch.title = TITLE_SPRITES_PTRS;
-    data = PathFileRead((char *)ImagePath,
-                        scratch.title.path[CHOSEN_LANGUAGE]);
+    data = PathFileRead(ImagePath,
+                        (u8 *)scratch.title.path[CHOSEN_LANGUAGE]);
     image = GetImage(0x2D);
     SetupImageToPolyFT4(image, &poly, 0x34, 0x43);
     bg = FUN_8004f4f8(data);
@@ -166,7 +166,7 @@ void CreateStage(int StageNo, int CharType)
     DisposeBG(bg);
 
     SetupAppearance(mode, stageNo);
-    LoadConstruction((u_long *)PathFileRead((char *)ImagePath, D_800120A0));
+    LoadConstruction(PathFileRead(ImagePath, (u8 *)D_800120A0));
     initialise_font();
     InitializeImage();
     ResetInfoview(StageNo);

@@ -97,7 +97,6 @@ extern u16 SkipFrame;
 extern GsOT *OTablePt;
 
 extern int rand(void);
-extern u_long *FileRead(char *path);
 extern void vfree(void *p);
 extern void *FUN_8004f4f8(u_long *tim);
 extern void InitSprite(GsIMAGE *im, GsSPRITE *sp);

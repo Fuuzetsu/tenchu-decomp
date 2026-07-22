@@ -35,7 +35,6 @@
  * default to the single entry" mechanism (Think1trace) already covers this
  * shape without restructuring.
  */
-extern u_long *FileRead(char *path);
 extern void AdtMessageBox(char *fmt, ...);
 extern u_long *get_tim_from_archive(u_long *pt, int i);
 extern void LoadTIM(u_long *tim);

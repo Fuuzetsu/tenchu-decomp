@@ -53,7 +53,6 @@
  * convention.
  */
 extern void vfree(void *p);
-extern u_long *FileRead(char *path);
 extern void StartStageSequence(void);
 extern void sprintf(char *s, char *fmt, ...);
 

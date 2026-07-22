@@ -85,7 +85,7 @@ extern s32 AccessPower;
 extern s32 ReadMode;
 extern s32 TotalIO;
 
-u_long *FileRead(char *filename)
+u_long *FileRead(u8 *filename)
 {
     u_long *ret;
 
@@ -103,13 +103,13 @@ u_long *FileRead(char *filename)
     }
     switch (ReadMode & 3) {
     case 0:
-        ret = LoadFromDEVPC((u8 *)filename);
+        ret = LoadFromDEVPC(filename);
         break;
     case 1:
-        ret = LoadFromMEMORY((u8 *)filename);
+        ret = LoadFromMEMORY(filename);
         break;
     case 2:
-        ret = LoadFromCDROM((u8 *)filename);
+        ret = LoadFromCDROM(filename);
         break;
     default:
         ret = 0;

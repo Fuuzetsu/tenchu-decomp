@@ -13,7 +13,8 @@ extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern char FONT_FILE_NAME;
 extern char IMAGES_PREFIX_STR;
 
-extern void *PathFileRead(char *resource_prefix, char *resource_name);
+extern u_long *FileRead(u8 *filename);
+extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
 extern void *GetTIMInfo(u_long *tim, GsIMAGE *im);
 extern void LoadTIMAndFree(u_long *tim);
 extern void load_font_image_into_global(GsIMAGE *image);

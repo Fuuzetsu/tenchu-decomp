@@ -30,7 +30,6 @@
  */
 extern char D_8001118C[];
 extern char D_800111B0[];
-extern u_long *FileRead(char *path);
 extern void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y);
 
 void FUN_800190f4(void)

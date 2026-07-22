@@ -81,7 +81,6 @@ extern char *CID;   /* "BISLPS_00000" */
 extern char D_800141A4[];  /* "file read error" */
 extern char D_80014168[];  /* "card error %d" */
 
-extern u_long *FileRead(char *path);
 extern void *valloc(u32 size);
 extern void vfree(void *p);
 extern s32 MemCardAccept(s32 chan);

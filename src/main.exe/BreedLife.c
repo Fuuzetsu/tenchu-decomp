@@ -160,7 +160,6 @@ extern void EquipWeapon(Humanoid *human, s16 mode);
 extern short SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SystemOut(char *msg);
 extern int sprintf(char *buf, char *fmt, ...);
-extern u_long *FileRead(char *path);
 extern int strcmp(char *a, char *b);
 
 extern char D_800117C8[]; /* "ILLIGAL CHARACTER TYPE" */
@@ -211,7 +210,7 @@ type_found:
     if (model == 0)
     {
         sprintf((char *)name, D_800117E0, D_80011734, pp->name);
-        model = FileRead((char *)name);
+        model = FileRead(name);
         pp->model = model;
         sVar1 = HumanData[0].type;
         if (sVar1 != -1)

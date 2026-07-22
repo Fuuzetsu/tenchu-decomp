@@ -157,7 +157,7 @@ extern void ResetAllMisc(void);
 extern void ClearItemLayout(void);
 extern void DisposeOrnament(OrnamentType *model);
 extern void vfree(void *ptr);
-extern void LoadTIMpackAndFree(u32 *data);
+extern void LoadTIMpackAndFree(u_long *data);
 extern void *valloc(u32 size);
 extern OrnamentArchiveType *LoadOrnamentArchive(u_long *data, ModelType *parent);
 extern u32 *LoadAreaMap(u32 *data);
@@ -243,12 +243,13 @@ short LoadConstruction(u_long *data)
         }
     }
 
-    LoadTIMpackAndFree((u32 *)PathFileRead((char *)ImagePath, D_80097A78));
-    LoadTIMpackAndFree((u32 *)PathFileRead(D_800120F0, D_80012108));
+    LoadTIMpackAndFree(PathFileRead(ImagePath, (u8 *)D_80097A78));
+    LoadTIMpackAndFree(PathFileRead((u8 *)D_800120F0,
+                                    (u8 *)D_80012108));
 
     MapModel = (u_long *)valloc(0x6B800);
     D_80097A74 = LoadOrnamentArchive(
-        (u_long *)PathFileRead((char *)ImagePath, D_80012114), &World);
+        PathFileRead(ImagePath, (u8 *)D_80012114), &World);
 
     nModel += 500;
     {
@@ -310,7 +311,7 @@ short LoadConstruction(u_long *data)
 
     case 5:
         sprintf((char *)name, D_80097A88, wlddt[i].real.common.name);
-        LoadTIMAndFree((u_long *)PathFileRead(D_800120F0, (char *)name));
+        LoadTIMAndFree(PathFileRead((u8 *)D_800120F0, name));
         break;
 
     case 2:
@@ -415,8 +416,7 @@ short LoadConstruction(u_long *data)
         sprintf((char *)name, D_80097A90);
         vfree(MapModel);
         i = 0;
-        MapModel =
-            (u_long *)PathFileRead((char *)ImagePath, (char *)name);
+        MapModel = PathFileRead(ImagePath, name);
         ix = (ParentingType *)(MapModel + 2);
         D_80097A70 = LoadOrnamentArchive(MapModel, &World);
 

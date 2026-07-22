@@ -77,7 +77,6 @@ extern void FUN_80038ce0(void);
 extern ScoreStats *init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s16 stage);
 extern void mission_score_screen(s32 stage);
-extern u_long *FileRead(char *path);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void LoadTIM(u_long *tim);
 extern BackGround *FUN_8004f4f8(u_long *tim);

@@ -90,7 +90,6 @@ extern WeaponModelType WeaponModel[41];
 extern char D_800117EC[]; /* "%s%s.TMD" */
 extern char D_800117F8[]; /* "K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\" */
 
-extern u_long *FileRead(u8 *filename);
 extern int sprintf(char *buf, char *fmt, ...);
 extern OrnamentType *LoadOrnament(u_long *adr);
 

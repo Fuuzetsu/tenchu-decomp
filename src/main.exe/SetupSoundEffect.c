@@ -55,7 +55,6 @@
  *    variadic sprintf argument (default char->int promotion), not `char`.
  */
 extern void DisposeSE(void *se);
-extern u_long *FileRead(char *path);
 extern void *SetupSE(u8 *vab);
 extern void sprintf(char *s, char *fmt, ...);
 

@@ -40,7 +40,6 @@ extern void PadShockAR(s32 port, s32 duration, s32 strength, s32 delay);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
 extern void FUN_80038ce0(void);
 extern s32 VSync(s32 mode);
-extern u_long *FileRead(char *path);
 extern Sprite3D *SetupSprite(Sprite3D *original, GsIMAGE *image);
 extern int sprintf(char *buffer, char *format, ...);
 extern u_long *get_tim_from_archive(u_long *archive, int index);

@@ -72,7 +72,6 @@ extern GsOT *OTablePt;
 
 extern void init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
-extern u_long *FileRead(char *path);
 extern void vfree(void *ptr);
 extern u_long *get_tim_from_archive(u_long *archive, s32 index);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);

@@ -34,12 +34,11 @@
 extern char D_800976DC[]; /* "%s%s" */
 
 extern int sprintf(char *buf, char *fmt, ...);
-extern void *FileRead(char *filename);
 
-void *PathFileRead(char *path, char *name)
+u_long *PathFileRead(u8 *path, u8 *name)
 {
-    char filename[256];
+    u8 filename[256];
 
-    sprintf(filename, D_800976DC, path, name);
+    sprintf((char *)filename, D_800976DC, path, name);
     return FileRead(filename);
 }

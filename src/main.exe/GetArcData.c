@@ -53,7 +53,6 @@
  */
 
 extern ArcFile *MODEL_ARCHIVE_PTR;
-extern u_long *FileRead(char *path);
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_800128D8[]; /* "K:\WORK\CDIMAGE\IMAGE\models.arc" */
 extern char D_800128C0[]; /* "bad archive index %d" */
