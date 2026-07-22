@@ -68,9 +68,9 @@ extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;
 
-void ProcItemTeleport(tag_TItem *item)
+void ProcItemTeleport(TItem *item)
 {
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     u8 ff;
 
     ff = 0xff;

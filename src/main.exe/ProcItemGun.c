@@ -85,7 +85,7 @@ extern void RotateVectorS(SVECTOR *v, s32 rx, s32 ry, s32 rz);
 extern SVECTOR D_80097B0C[];
 extern SVECTOR D_80097B14[];
 
-void ProcItemGun(tag_TItem *item)
+void ProcItemGun(TItem *item)
 {
     param_gun *param;
     u8 ff;

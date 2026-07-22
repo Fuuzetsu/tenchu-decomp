@@ -62,7 +62,7 @@
  *    retail executable accesses count as a halfword, widened from the demo's
  *    byte, so the retail declaration retains that one version difference.
  */
-extern void ProcItemDokudango(tag_TItem *item);
+extern void ProcItemDokudango(TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -72,7 +72,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_dokudango *param;
     VECTOR *st;
     Humanoid *us;

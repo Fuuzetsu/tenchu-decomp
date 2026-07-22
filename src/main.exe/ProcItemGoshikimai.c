@@ -72,7 +72,7 @@
 
 extern void NowReturnNormal(Humanoid *h);
 
-void ProcItemGoshikimai(tag_TItem *item)
+void ProcItemGoshikimai(TItem *item)
 {
     param_goshikimai *pp;
     Humanoid *own;

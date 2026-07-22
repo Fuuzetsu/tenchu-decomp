@@ -13,14 +13,14 @@
  *    code" rule) onto PSX.SYM's `param_gun.vec`. The raw assembly confirms
  *    plain lw/sw operations for all four words.
  */
-extern void ProcItemGun(tag_TItem *item);
+extern void ProcItemGun(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 void ReqItemGun(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     VECTOR *st;
     Humanoid *us;
     s32 ty;

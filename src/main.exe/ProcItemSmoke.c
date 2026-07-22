@@ -94,11 +94,11 @@ extern s32 GameClock;
 extern s16 Humans;
 extern SVECTOR D_80097AD8[];
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *pp);
+extern void MoveKorogari(TItem *item, param_korogari *pp);
 extern void Sound(Humanoid *h, int id);
 extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
 
-void ProcItemSmoke(tag_TItem *item)
+void ProcItemSmoke(TItem *item)
 {
     Sprite3D *model;
     param_smoke *param;

@@ -59,7 +59,7 @@
  *  - `it->param.smoke.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
-extern void ProcItemSmoke(tag_TItem *item);
+extern void ProcItemSmoke(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -68,7 +68,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_smoke *param;
     VECTOR *st;
     Humanoid *us;

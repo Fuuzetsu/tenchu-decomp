@@ -49,7 +49,7 @@
  *    else branch falls straight into the loop body with the `slti`/`bnez`
  *    test at the BOTTOM, not a hand-rolled goto loop (contrast
  *    ClearItemLayout, which never hoists and keeps a top test).
- *  - **Index `items[i]`, don't walk a `tag_TItem *it` pointer with `it++`**:
+ *  - **Index `items[i]`, don't walk a `TItem *it` pointer with `it++`**:
  *    a user-declared walking pointer whose field is read 3× per iteration
  *    (`it->locate` here) gets loop.c's giv treatment and a SEPARATE
  *    loop-carried address register is strength-reduced for it (a real,

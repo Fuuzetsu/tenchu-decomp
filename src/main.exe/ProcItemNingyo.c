@@ -24,7 +24,7 @@ extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
 extern ModelType *NingyoModel;
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 GetVectorDistance(VECTOR *v1, VECTOR *v2);
@@ -95,7 +95,7 @@ extern void DrawModel(ModelType *model);
  * loops keep item in the narrow priority window between param and the later
  * bounce temporary and allow the indirect call's target delay slots.  They
  * emit no branch or loop instructions. */
-void ProcItemNingyo(tag_TItem *item)
+void ProcItemNingyo(TItem *item)
 {
     param_ningyo *param;
     s32 cid;

@@ -253,10 +253,10 @@ extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *v, s32 rx, s32 ry, s32 rz);
 extern void SetCameraMode(int mode);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
-extern void ProcSightShot(tag_TItem *item);
-extern void ProcKaginawa(tag_TItem *item);
-extern void ProcItemTeleport(tag_TItem *item);
-extern void ProcItemNapalm(tag_TItem *item);
+extern void ProcSightShot(TItem *item);
+extern void ProcKaginawa(TItem *item);
+extern void ProcItemTeleport(TItem *item);
+extern void ProcItemNapalm(TItem *item);
 extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *p);
@@ -338,8 +338,8 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case 1: /* SHURIKEN */
     {
-        tag_TItem *it;
-        tag_TItem *cur;
+        TItem *it;
+        TItem *cur;
         VECTOR *st;
         Humanoid *us;
         s32 ty;
@@ -743,8 +743,8 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case 0: /* KAGINAWA */
     {
-        tag_TItem *it;
-        tag_TItem *cur;
+        TItem *it;
+        TItem *cur;
         VECTOR *st;
         Humanoid *us;
         s32 ty;
@@ -758,7 +758,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
                 COUNTER_FOR_ITEM_ARRAY_ = 0;
             z = COUNTER_FOR_ITEM_ARRAY_ * sizeof(*items);
-            cur = (tag_TItem *)(z + sz);
+            cur = (TItem *)(z + sz);
             if (cur->proc == 0)
             {
                 it = cur;
@@ -785,7 +785,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         us = p->user;
         ty = p->type;
         it->owner = us;
-        it->proc = (void (*)(tag_TItem *))y;
+        it->proc = (void (*)(TItem *))y;
         it->mode = 0;
         it->type = ty;
         it->locate->locate.coord.t[0] = p->start.vx;
@@ -833,8 +833,8 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case 0x18: /* TELEPORT */
     {
-        tag_TItem *it;
-        tag_TItem *cur;
+        TItem *it;
+        TItem *cur;
         VECTOR *st;
         Humanoid *us;
         s32 ty;
@@ -952,8 +952,8 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         break;
     case 0x16: /* NAPALM */
     {
-        tag_TItem *it;
-        tag_TItem *cur;
+        TItem *it;
+        TItem *cur;
         param_napalm *pp;
         VECTOR *st;
         Humanoid *us;

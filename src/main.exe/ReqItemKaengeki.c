@@ -60,7 +60,7 @@
  *    one lw immediately followed by its sw with no batching, unlike the
  *    s16-narrowing twins which batch three loads before three stores.
  */
-extern void ProcItemKaengeki(tag_TItem *item);
+extern void ProcItemKaengeki(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -69,7 +69,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_kaengeki *pp;
     VECTOR *st;
     Humanoid *us;

@@ -55,7 +55,7 @@ static void UpdateItemState(void)
 {
     ConflictObjectType *object;
     ConflictObjectType *conflicts;
-    tag_TItem *item;
+    TItem *item;
     GsRVIEW2 *view;
     s32 i;
     s32 hit;

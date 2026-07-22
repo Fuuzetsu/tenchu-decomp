@@ -45,7 +45,7 @@
  */
 extern char D_800121CC[];
 
-void ProcItemManebue(tag_TItem *item)
+void ProcItemManebue(TItem *item)
 {
     param_drop *param;
     u8 cVar1;

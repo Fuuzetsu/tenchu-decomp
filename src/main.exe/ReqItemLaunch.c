@@ -95,7 +95,7 @@
  *    stored to `param->effect` AND read six more times for the vector1/
  *    vector2 fields — inlining the call would re-invoke it.
  */
-extern void ProcItemLaunch(tag_TItem *item);
+extern void ProcItemLaunch(TItem *item);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -106,8 +106,8 @@ extern ModelType *SyurikenModel;
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
-    tag_TItem *cur;
+    TItem *it;
+    TItem *cur;
     param_launch *param;
     VECTOR *st;
     Humanoid *us;

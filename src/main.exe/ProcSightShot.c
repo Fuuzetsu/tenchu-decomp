@@ -85,7 +85,7 @@ extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from,
                               VECTOR *target);
 extern void ReqItemLaunch(PARAM_ITEM_LAUNCH *param);
 
-void ProcSightShot(tag_TItem *item)
+void ProcSightShot(TItem *item)
 {
     param_launch *launch;
     s32 ff;

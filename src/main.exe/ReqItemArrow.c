@@ -95,7 +95,7 @@
  *  - `it->collision.size = 0; it->model = ArrowModel;` immediately precede
  *    SetupFly, same position/interleaving as ReqItemLaunch.
  */
-extern void ProcItemArrow(tag_TItem *item);
+extern void ProcItemArrow(TItem *item);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *out1, u16 *out2);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
@@ -109,8 +109,8 @@ extern ModelType *ArrowModel;
 
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
-    tag_TItem *cur;
+    TItem *it;
+    TItem *cur;
     param_arrow *param;
     VECTOR *st;
     Humanoid *us;

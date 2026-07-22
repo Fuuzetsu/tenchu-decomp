@@ -89,7 +89,7 @@ typedef struct
 
 extern s32 GameClock;
 
-extern void MoveFly(tag_TItem *item, param_fly *param);
+extern void MoveFly(TItem *item, param_fly *param);
 extern void DrawModel(ModelType *model);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
@@ -100,11 +100,11 @@ extern void SetBleeds(VECTOR *pos, s16 grange, s16 srange, s16 n,
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix);
 
-void ProcItemArrow(tag_TItem *item)
+void ProcItemArrow(TItem *item)
 {
     ModelType *objp;
     param_arrow *param;
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     s32 ff;
     u8 mode_index;
     VECTOR v1;

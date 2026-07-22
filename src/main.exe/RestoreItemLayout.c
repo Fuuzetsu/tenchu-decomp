@@ -72,7 +72,7 @@ typedef struct TItemLayout
 
 void RestoreItemLayout(void *buf)
 {
-    tag_TItem *it;
+    TItem *it;
     TItemLayout *slot;
     s32 i;
     s32 j;

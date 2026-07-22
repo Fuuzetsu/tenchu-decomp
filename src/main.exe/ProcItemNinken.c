@@ -59,7 +59,7 @@ extern Humanoid *NINKEN_CHARACTER_PTR;
 extern SVECTOR D_80097AF4[];
 
 extern s16 NowReturnNormal(Humanoid *human);
-extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern void MoveKorogari(TItem *item, param_korogari *param);
 extern Humanoid *GetHumanoid(s16 type);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
@@ -71,7 +71,7 @@ extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
 extern void TurnAroundAllItems(Humanoid *human);
 extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);
 
-void ProcItemNinken(tag_TItem *item)
+void ProcItemNinken(TItem *item)
 {
     param_ninken *param;
     u8 ff;
@@ -109,7 +109,7 @@ void ProcItemNinken(tag_TItem *item)
         status = param->koro.status;
         if (status == one)
         {
-            void (*dispose_proc)(tag_TItem *);
+            void (*dispose_proc)(TItem *);
 
             dispose_proc = item->proc;
             if (dispose_proc == 0)
@@ -318,7 +318,7 @@ expire:
         SoundEx((VECTOR *)param->slave->model->locate.coord.t, 0x23);
         TurnAroundAllItems(param->slave);
         {
-            void (*dispose_proc)(tag_TItem *);
+            void (*dispose_proc)(TItem *);
 
             dispose_proc = item->proc;
             if (dispose_proc == 0)

@@ -81,11 +81,11 @@ extern void SetFrame(VECTOR *pos, short size, short time,
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-void ProcItemNapalm(tag_TItem *item)
+void ProcItemNapalm(TItem *item)
 {
     Sprite3D *sprt;
     param_napalm *param;
-    void (*proc)(tag_TItem *);
+    void (*proc)(TItem *);
     u8 ff;
     u8 count;
     s32 ex;

@@ -81,7 +81,7 @@ extern void SetImpact(VECTOR *pos, s32 a, s32 b);
 extern s32 GameClock;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 
-void ProcItemLightningBolt(tag_TItem *item)
+void ProcItemLightningBolt(TItem *item)
 {
     param_lightningbolt *param;
     VECTOR pos;

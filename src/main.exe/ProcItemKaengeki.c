@@ -77,11 +77,11 @@ extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
-void ProcItemKaengeki(tag_TItem *item)
+void ProcItemKaengeki(TItem *item)
 {
     param_kaengeki *param;
     PARAM_ITEM_LAUNCH rp;
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     s32 rx;
     s32 ry;
     s32 ff;

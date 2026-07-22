@@ -72,7 +72,7 @@
  *    1 on success like Jirai/Smoke/Fire — confirmed by the success path's
  *    `li $v0,1` materialized before the tail jump.
  */
-extern void ProcItemNemuri(tag_TItem *item);
+extern void ProcItemNemuri(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -82,7 +82,7 @@ extern Sprite3D *sprSmoke;
 
 int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_napalm *pp;
     VECTOR *st;
     Humanoid *us;

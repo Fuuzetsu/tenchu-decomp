@@ -108,7 +108,7 @@
  *    are identical to ReqItemLaunch's; only the trailing count (8, not 5)
  *    differs.
  */
-extern void ProcItemHappou(tag_TItem *item);
+extern void ProcItemHappou(TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 extern void Sound(Humanoid *h, int id);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
@@ -120,8 +120,8 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
-    tag_TItem *cur;
+    TItem *it;
+    TItem *cur;
     param_launch *param;
     VECTOR *st;
     VECTOR *en;

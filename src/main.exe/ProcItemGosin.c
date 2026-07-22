@@ -68,7 +68,7 @@ extern void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time
 extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b, s32 col, s32 f, s32 rot, s32 h, s32 i, s32 j);
 extern VECTOR D_80012248;
 
-void ProcItemGosin(tag_TItem *item)
+void ProcItemGosin(TItem *item)
 {
     u8 ff;
     u8 buf[0x28];

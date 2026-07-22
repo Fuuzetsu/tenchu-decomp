@@ -49,7 +49,7 @@
  * full derivation (access.py trace, the it->locate reload-not-cached
  * behaviour, the return-1 convention).
  */
-extern void ProcItemGosin(tag_TItem *item);
+extern void ProcItemGosin(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -58,7 +58,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemGosin(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     VECTOR *st;
     Humanoid *us;
     s32 ty;

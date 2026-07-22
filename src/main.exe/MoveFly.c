@@ -58,9 +58,9 @@
  * `param_fly.p` overlays that record with param_korogari for the landing
  * transition. */
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern void MoveKorogari(TItem *item, param_korogari *param);
 
-static void MoveFly(tag_TItem *item, param_fly *param)
+static void MoveFly(TItem *item, param_fly *param)
 {
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;
     s32 xs, ys, zs;

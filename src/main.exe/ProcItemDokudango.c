@@ -56,7 +56,7 @@
 extern s32 GameClock;
 extern s16 Humans;
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 NowReturnNormal(Humanoid *human);
@@ -76,7 +76,7 @@ extern void Sound(Humanoid *human, s32 id);
  *    their semantic exits so late cross-jumping can choose the target copies.
  */
 
-void ProcItemDokudango(tag_TItem *item)
+void ProcItemDokudango(TItem *item)
 {
     Sprite3D *model;
     param_dokudango *param;

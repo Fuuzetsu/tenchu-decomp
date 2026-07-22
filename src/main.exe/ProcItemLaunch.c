@@ -76,7 +76,7 @@
 #include "item.h"
 #include "afterimage.h"
 
-extern void MoveFly(tag_TItem *item, param_fly *param);
+extern void MoveFly(TItem *item, param_fly *param);
 extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
@@ -85,7 +85,7 @@ extern void SetImpact(VECTOR *pos, s32 a, s32 b);
 extern void reset_alert_duration(void);
 extern s32 GameClock;
 
-void ProcItemLaunch(tag_TItem *item)
+void ProcItemLaunch(TItem *item)
 {
     ModelType *model;
     param_launch *param;

@@ -66,7 +66,7 @@
  *    now resolves against this object (R_MIPS_26), and both share item.h.
  */
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
-extern void ProcItemDrop(tag_TItem *item);
+extern void ProcItemDrop(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -75,7 +75,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_drop *param;
     VECTOR *st;
     Humanoid *us;

@@ -52,7 +52,7 @@ extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
                             s32 width, s32 mode);
 extern void SetSplash(VECTOR *position, s16 sx, s16 sy, s32 speed);
 
-void MoveKorogari(tag_TItem *item, param_korogari *param)
+void MoveKorogari(TItem *item, param_korogari *param)
 {
     MapVector mv;
     SVECTOR vec;

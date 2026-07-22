@@ -113,7 +113,7 @@ typedef union
 extern SVECTOR D_80097AE4[];
 extern SVECTOR D_80097AFC[];
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *param);
+extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
@@ -125,7 +125,7 @@ extern void SetFrame(VECTOR *pos, short size, short time,
                      GsCOORDINATE2 *super);
 extern void reset_alert_duration(void);
 
-void ProcItemFire(tag_TItem *item)
+void ProcItemFire(TItem *item)
 {
     Sprite3D *sprt;
     param_smoke *param;

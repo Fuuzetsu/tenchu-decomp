@@ -87,9 +87,9 @@ extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern VECTOR D_80012238;
 
-void ProcKaginawa(tag_TItem *item)
+void ProcKaginawa(TItem *item)
 {
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     Humanoid *own;
     VECTOR v;
     VECTOR w;

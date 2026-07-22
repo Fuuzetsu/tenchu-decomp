@@ -34,7 +34,7 @@
 
 void ClearItemLayout(void)
 {
-    tag_TItem *it;
+    TItem *it;
     s32 i;
 
     i = 0;

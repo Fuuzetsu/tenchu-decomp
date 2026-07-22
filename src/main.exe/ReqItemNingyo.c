@@ -86,7 +86,7 @@
  *  - PSX.SYM's param_ningyo names the trailing bytes count and hp; using
  *    those fields preserves the original `sb` stores at offsets 0xC/0xD.
  */
-extern void ProcItemNingyo(tag_TItem *item);
+extern void ProcItemNingyo(TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -96,7 +96,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_ningyo *param;
     VECTOR *st;
     Humanoid *us;

@@ -10,7 +10,7 @@
  * ActionHalt/FRAMES_UNTIL_END_OF_ALERT (absolute here, gp in think's TU).
  */
 
-typedef struct tag_TItem tag_TItem;
+typedef struct tag_TItem TItem;
 
 struct AreaNodeType;
 struct AfterimageType;
@@ -290,7 +290,7 @@ struct tag_TItem
     ModelType *model;            /* 0x04 (official type; sprite-backed retail
                                     items use the shared transform prefix) */
     TItemType type;              /* 0x08 */
-    void (*proc)(tag_TItem *);   /* 0x0C */
+    void (*proc)(TItem *);       /* 0x0C */
     ModelType *locate;           /* 0x10 */
     struct
     {
@@ -344,6 +344,6 @@ extern s16 ActionHalt;
 /* "item dispose fail   id %d  mode %d" */
 extern char D_800121CC[];
 /* The global item pool. */
-extern tag_TItem items[];
+extern TItem items[];
 
 #endif

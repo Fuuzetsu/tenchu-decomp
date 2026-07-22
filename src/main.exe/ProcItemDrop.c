@@ -84,17 +84,17 @@
  *    `item->proc(item)` (Kusuri's rule) so the pointer stays in $v0.
  */
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *pp);
+extern void MoveKorogari(TItem *item, param_korogari *pp);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s16 InsertConflict(ModelType *m);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
 /* The conflict pool (Ghidra: ConflictObject). */
 
-void ProcItemDrop(tag_TItem *item)
+void ProcItemDrop(TItem *item)
 {
     Sprite3D *sprt;
     param_drop *param;
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     Humanoid *human;
     MotionDataType *md;
     s32 i;

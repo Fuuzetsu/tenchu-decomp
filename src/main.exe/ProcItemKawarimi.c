@@ -60,7 +60,7 @@
 
 #include "item.h"
 
-void ProcItemKawarimi(tag_TItem *item)
+void ProcItemKawarimi(TItem *item)
 {
     param_drop *param;
     u8 ff;

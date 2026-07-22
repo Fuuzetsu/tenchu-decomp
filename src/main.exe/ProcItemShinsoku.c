@@ -86,7 +86,7 @@ extern void SetCameraMode(s32 mode);
 extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern s16 NowReturnNormal(Humanoid *human);
 
-void ProcItemShinsoku(tag_TItem *item)
+void ProcItemShinsoku(TItem *item)
 {
     param_shinsoku *param;
     u8 ff;

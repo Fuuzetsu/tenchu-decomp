@@ -36,9 +36,9 @@
  */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
-tag_TItem *GetFreeItemSlot(void)
+TItem *GetFreeItemSlot(void)
 {
-    tag_TItem *it;
+    TItem *it;
     s32 i;
 
     i = 0;

@@ -63,7 +63,7 @@
  *  - `it->param.ninken.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
-extern void ProcItemNinken(tag_TItem *item);
+extern void ProcItemNinken(TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -73,7 +73,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_ninken *param;
     VECTOR *st;
     Humanoid *us;

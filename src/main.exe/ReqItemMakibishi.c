@@ -82,7 +82,7 @@
  *  - `it->param.drop.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
-extern void ProcItemMakibishi(tag_TItem *item);
+extern void ProcItemMakibishi(TItem *item);
 extern s16 SoundEx(VECTOR *loc, short id);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -92,8 +92,8 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
-    tag_TItem *cur;
+    TItem *it;
+    TItem *cur;
     param_drop *param;
     VECTOR *st;
     Humanoid *us;

@@ -68,7 +68,7 @@
  *  - no `pp`/param_korogari view at all — this function has nothing to do
  *    with it->param.
  */
-extern void ProcItemKusuri(tag_TItem *item);
+extern void ProcItemKusuri(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -77,7 +77,7 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     VECTOR *st;
     Humanoid *us;
     s32 ty;

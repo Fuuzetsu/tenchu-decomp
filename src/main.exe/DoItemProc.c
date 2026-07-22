@@ -35,7 +35,7 @@
  *    while(1)+break), not the bound, decides it.
  *  - `it->proc(it)` is a plain indirect call through the struct's own
  *    `proc` field (no null-check/cast dance) — the field's own type
- *    (`void (*proc)(tag_TItem *)` in item.h) already supplies the call
+ *    (`void (*proc)(TItem *)` in item.h) already supplies the call
  *    signature.
  */
 
@@ -46,7 +46,7 @@ extern void UpdateItemState(void);
 
 void DoItemProc(void)
 {
-    tag_TItem *it;
+    TItem *it;
     s32 i;
 
     if (D_80097AC8 == 0)

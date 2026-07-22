@@ -76,7 +76,7 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void MoveFly(tag_TItem *item, param_fly *param);
+extern void MoveFly(TItem *item, param_fly *param);
 extern void DrawModel(ModelType *m);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
@@ -91,7 +91,7 @@ extern s32 is_character_state_present_on_stage_(Humanoid *h);
  * how this was diagnosed and is the same mechanism used to route around it. */
 extern ModelType *HappouModel;
 
-void ProcItemHappou(tag_TItem *item)
+void ProcItemHappou(TItem *item)
 {
     ModelType *model;
     param_launch *param;

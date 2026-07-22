@@ -72,16 +72,16 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void MoveKorogari(tag_TItem *item, param_korogari *pp);
+extern void MoveKorogari(TItem *item, param_korogari *pp);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s16 InsertConflict(ModelType *m);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
 
-void ProcItemMakibishi(tag_TItem *item)
+void ProcItemMakibishi(TItem *item)
 {
     Sprite3D *model;
     param_drop *param;
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     u8 ff;
     u8 st;
     s32 one;

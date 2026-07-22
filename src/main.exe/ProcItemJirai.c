@@ -94,12 +94,12 @@ extern void reset_alert_duration(void);
  *    remainder guard; Build.hs and permute.py carry the mirrored flag.
  */
 
-void ProcItemJirai(tag_TItem *item)
+void ProcItemJirai(TItem *item)
 {
     Sprite3D *model;
     param_smoke *param;
-    void (*proc)(tag_TItem *);
-    tag_TItem *call_item;
+    void (*proc)(TItem *);
+    TItem *call_item;
     u8 ff;
     ProcItemJiraiScratch scratch;
 

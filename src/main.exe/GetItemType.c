@@ -28,7 +28,7 @@
 
 /*
  * GetItemType (0x8004a3e8, 0x44 bytes) — linear-search the global item pool
- * `items[]` (item.h's proven tag_TItem; 30 slots, the same bound
+ * `items[]` (item.h's proven TItem; 30 slots, the same bound
  * ClearItemLayout.c uses) for the slot whose `locate->id` (ModelType.id)
  * matches ConflictID, returning that slot's `type`. Falls back to
  * ITEM_KAGINAWA if none of the 30 slots match before the count runs
@@ -52,7 +52,7 @@
 
 TItemType GetItemType(s32 ConflictID)
 {
-    tag_TItem *p;
+    TItem *p;
     s32 i;
 
     i = 0;

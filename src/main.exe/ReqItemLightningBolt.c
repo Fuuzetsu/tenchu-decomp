@@ -78,7 +78,7 @@
  *    inline at each store point interleaves a store between the two loads
  *    and costs 4 bytes plus a different schedule.
  */
-extern void ProcItemLightningBolt(tag_TItem *item);
+extern void ProcItemLightningBolt(TItem *item);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, short *out1, short *out2);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
@@ -88,8 +88,8 @@ extern Sprite3D *ItemImage[];
 
 int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
-    tag_TItem *cur;
+    TItem *it;
+    TItem *cur;
     param_lightningbolt *pp;
     VECTOR *st;
     Humanoid *us;

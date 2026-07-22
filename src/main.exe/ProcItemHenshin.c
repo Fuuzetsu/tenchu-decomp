@@ -65,7 +65,7 @@
  *    the shared mode increment; only the completed mode-1 path installs the
  *    current item after disposing any prior disguise.
  */
-extern tag_TItem *volatile D_80097AEC;
+extern TItem *volatile D_80097AEC;
 extern volatile u16 D_80097AF0;
 extern SVECTOR D_80097AF4[];
 extern HenshinModelSnapshot D_800C0630;
@@ -75,7 +75,7 @@ extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void Sound(Humanoid *human, s32 sound);
 extern s16 NowReturnNormal(Humanoid *human);
 
-void ProcItemHenshin(tag_TItem *item)
+void ProcItemHenshin(TItem *item)
 {
     Humanoid *human;
     ModelArchiveType *mad;
@@ -115,7 +115,7 @@ void ProcItemHenshin(tag_TItem *item)
                 NowReturnNormal(item->owner);
             }
             D_80097AEC = 0;
-            ((volatile tag_TItem *)item)->owner->active_item = 0;
+            ((volatile TItem *)item)->owner->active_item = 0;
         }
         item->mode = 0;
         return;
@@ -181,7 +181,7 @@ void ProcItemHenshin(tag_TItem *item)
         *(SVECTOR *)buf = D_80097AF4[0];
         SetSmoke((VECTOR *)mad->locate.coord.t, (SVECTOR *)buf, 10, 6);
         {
-            tag_TItem *old;
+            TItem *old;
 
             old = D_80097AEC;
             if (old != 0 && old->proc != 0)
@@ -206,7 +206,7 @@ void ProcItemHenshin(tag_TItem *item)
     {
         s32 i;
         HenshinModelSnapshot *saved;
-        volatile tag_TItem *vitem;
+        volatile TItem *vitem;
         Humanoid *mode_owner;
         u16 itemID;
 

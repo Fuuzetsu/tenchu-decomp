@@ -80,11 +80,11 @@ extern s16 Think1sleep(void);
  *  - The cleanup paths cache `proc` for the null check but call through
  *    `item->proc`; jump2 cross-jumps them into the target shared tail.
  */
-void ProcItemNemuri(tag_TItem *item)
+void ProcItemNemuri(TItem *item)
 {
     Sprite3D *sprt;
     param_napalm *param;
-    void (*proc)(tag_TItem *);
+    void (*proc)(TItem *);
     u8 ff;
     u8 count;
     s32 rotate_count;

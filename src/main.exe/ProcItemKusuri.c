@@ -76,10 +76,10 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-void ProcItemKusuri(tag_TItem *item)
+void ProcItemKusuri(TItem *item)
 {
     Sprite3D *sprt;
-    void (*ppu)(tag_TItem *);
+    void (*ppu)(TItem *);
     u8 ff;
     s32 i;
     /* One shared 40-byte scratch buffer (Ghidra's local_40): the drop path views

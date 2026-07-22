@@ -66,14 +66,14 @@
  *    the target exactly.
  *  - Only `vec` is initialized here; `count` is left for the processor.
  */
-extern void ProcItemShinsoku(tag_TItem *item);
+extern void ProcItemShinsoku(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
 {
-    tag_TItem *it;
+    TItem *it;
     param_shinsoku *pp;
     VECTOR *st;
     Humanoid *us;
