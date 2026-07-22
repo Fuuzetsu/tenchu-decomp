@@ -23,7 +23,8 @@ extern short NowStage;
 /* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;
-extern short *StageAppearance[10];
+/* Retail stores 12 pointers; the demo PSX.SYM table had 10. */
+extern short *StageAppearance[12];
 extern StageCharType StageChar[18];
 
 #endif
