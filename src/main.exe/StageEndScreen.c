@@ -320,11 +320,11 @@ void StageEndScreen(void)
                 digit.w = 12;
             }
 
-            tim = FileRead(RS_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
+            tim = FileRead(RS_ARCHIVE_PTRS[((TLinkInfo *)best_x)->language]);
             ui.background = FUN_8004f4f8(tim);
             vfree(tim);
             rank_archive =
-                FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
+                FileRead(RANK_ARCHIVE_PTRS[((TLinkInfo *)best_x)->language]);
             tim = get_tim_from_archive(rank_archive,
                 current.grade);
             best_x = 0x7f;
