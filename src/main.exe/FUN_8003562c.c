@@ -37,7 +37,6 @@ extern AreaNodeType *FieldArea;
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
-extern void GetScreenPosition(long x, long y, long z, SVECTOR *screen);
 extern short SoundEx(VECTOR *locate, int seid);
 extern void DrawBleed(TEffectSlot *ef);
 

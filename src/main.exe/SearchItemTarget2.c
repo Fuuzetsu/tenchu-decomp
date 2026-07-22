@@ -106,9 +106,7 @@
 extern short Humans;
 extern VECTOR D_800121F0;
 
-extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern void FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, int flag);
-extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
 extern VECTOR *GetAbsolutePosition(ModelType *m, int x, int y, int z);
 extern long abs(long x);
 

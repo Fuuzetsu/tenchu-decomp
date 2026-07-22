@@ -31,3 +31,7 @@ extern void load_font_image_into_global(GsIMAGE *image);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time);
 extern void SetImpact(VECTOR *pos, short size, short type);
 extern void SetSplash(VECTOR *pos, short sx, short sy, int speed);
+extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
+extern void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz);
+extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
+extern void GetScreenPosition(long x, long y, long z, SVECTOR *scr);

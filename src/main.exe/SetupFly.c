@@ -92,7 +92,6 @@
  *    distance), so both are written as the literal expression `hx * 2`
  *    rather than a shared named temp.
  */
-extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
 
 static inline long SubFlyJitter(long mid, long half, long range)
 {

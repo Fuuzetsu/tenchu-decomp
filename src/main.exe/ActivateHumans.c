@@ -49,7 +49,6 @@ extern s32 StageID;
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 
-extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
 
 /*

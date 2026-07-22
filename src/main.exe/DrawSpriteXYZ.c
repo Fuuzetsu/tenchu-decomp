@@ -70,7 +70,6 @@
  *    plain `int pri` parameter alone does not imply truncation.
  */
 extern GsOT *OTablePt;
-extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
 void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
 {

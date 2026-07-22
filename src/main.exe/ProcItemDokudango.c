@@ -57,7 +57,6 @@ extern s32 GameClock;
 extern s16 Humans;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern short NowReturnNormal(Humanoid *human);
 extern s16 Think1target(void);

@@ -31,14 +31,13 @@
  *    through TWO registers (`lui $v0,%hi / addiu $t3,$v0,%lo`) whose lui
  *    reorg/sched can hoist (into the dispatch delay slot for case 0, into the
  *    collision store run for case 1). A plain `extern SVECTOR D_…;` is
- *    -G8-small and
- *    collapses to a fused one-register `la` — one instruction long (the
- *    cookbook's AddItem2 smoke-vector rule, same D_80097Bxx table).
+ *    -G8-small and collapses to a fused one-register `la` — one instruction
+ *    long (the cookbook's AddItem2 smoke-vector rule, same D_80097Bxx table).
  *  - Case 1's inner block shadows the function-scope `vec` with PSX.SYM's
  *    second `SVECTOR vec` at sp+0x30. The preceding rx/ry output slots land
  *    at sp+0x38/sp+0x3C after the function-scope vec@0x18 + target@0x20.
- *  - `vec.vx = rx;` etc. narrow the s32 out-params: combine folds each
- *    load+truncate to a single lhu.
+ *  - The outer `vec.vx = rx;` etc. narrow the s32 out-params: combine folds
+ *    each load+truncate to a single lhu.
  *  - Cases 0 and 1 end in duplicated `item->mode = item->mode + 1; return;`
  *    tails, cross-jumped into case 1's copy (Kawarimi's layout lever).
  */
@@ -83,7 +82,6 @@ extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
 extern s16 InsertConflict(ModelType *m);
 extern void SetBleeds(VECTOR *pos, s32 a, s32 b, s32 c, s32 d, s32 col);
 extern void SetBleedsDir(VECTOR *pos, SVECTOR *dir, s32 a, s32 b, s32 c, s32 col);
-extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern SVECTOR D_80097B0C[];
 extern SVECTOR D_80097B14[];
 

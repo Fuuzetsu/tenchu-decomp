@@ -97,7 +97,6 @@ extern CameraVectors D_80011B44;
 extern CameraVectors D_80011B64;
 extern CameraVectors D_80011B84;
 
-extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
 extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,

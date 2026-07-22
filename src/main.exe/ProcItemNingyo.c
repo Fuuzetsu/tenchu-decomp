@@ -27,7 +27,6 @@ extern ModelType *NingyoModel;
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
-extern s32 GetVectorDistance(VECTOR *v1, VECTOR *v2);
 extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
                       int time, long col);
 extern short DrawModel(ModelType *objp);

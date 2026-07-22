@@ -98,7 +98,6 @@ extern long GameClock;
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             short mode);
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
-extern void GetScreenPosition(long x, long y, long z, SVECTOR *scr);
 extern short SoundEx(VECTOR *locate, int seid);
 extern void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long color);
 extern void *memset(void *dst, int value, u32 size);

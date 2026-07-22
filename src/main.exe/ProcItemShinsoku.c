@@ -83,7 +83,6 @@ extern s32 GetAreaMapVector(u_long *area, MapVector *map,
 extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b,
                          s32 color, s32 f, s32 rot, s32 h, s32 i, s32 j);
 extern void SetCameraMode(TCameraMode mode);
-extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern short NowReturnNormal(Humanoid *human);
 
 void ProcItemShinsoku(TItem *item)

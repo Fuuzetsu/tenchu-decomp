@@ -60,7 +60,7 @@
 extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 
-void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr)
+void GetScreenPosition(long x, long y, long z, SVECTOR *scr)
 {
     MATRIX *m = (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS;
     SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(0x20);

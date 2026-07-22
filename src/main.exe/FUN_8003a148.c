@@ -52,7 +52,6 @@
  *    (cc1 doesn't refetch a value it can already see live).
  */
 extern GsOT *OTablePt;
-extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *scr);
 
 void FUN_8003a148(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *coord, short d)
 {

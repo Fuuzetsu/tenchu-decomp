@@ -78,9 +78,7 @@
 #include <psxsdk/libgs.h>
 
 extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
-extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
-extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern void SetCameraMode(TCameraMode mode);
 extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;

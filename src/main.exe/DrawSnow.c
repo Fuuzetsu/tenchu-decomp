@@ -7,7 +7,6 @@ extern GsOT *OTablePt;
 extern Sprite3D *D_80097F2C[];
 extern s32 abs(s32 value);
 extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);
-extern void GetScreenPosition(s32 x, s32 y, s32 z, SVECTOR *screen);
 
 /*
  * Naming: retail added this pair after the demo build. SetSnow is called only
