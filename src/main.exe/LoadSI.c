@@ -93,7 +93,7 @@ void *LoadSI(int target, u8 *name)
     void *ret;
     char *msg;
     u8 fn[200];
-    u8 block[0x2000];
+    u8 block[BLOCKSIZE];
     s32 cmd;
     s32 result;
 
@@ -107,7 +107,7 @@ void *LoadSI(int target, u8 *name)
     {
         msg = 0;
     } while (0);
-    ret = valloc(0x2000);
+    ret = valloc(BLOCKSIZE);
     MemCardAccept((s32)msg);
     MemCardSync((s32)msg, &cmd, &result);
     if (result != 0 && result != 3)
@@ -118,7 +118,7 @@ void *LoadSI(int target, u8 *name)
         goto done;
     }
     sprintf(fn, D_80097D98, CID, StageID, name);
-    MemCardReadFile(0, fn, block, 0, 0x2000);
+    MemCardReadFile(0, fn, block, 0, BLOCKSIZE);
     MemCardSync(0, &cmd, &result);
     if (result != 0)
     {
@@ -127,7 +127,8 @@ void *LoadSI(int target, u8 *name)
         ret = 0;
         goto done;
     }
-    memcpy(ret, block + 0x200, 0x1E00);
+    memcpy(ret, block + sizeof(TCardHeader),
+           BLOCKSIZE - sizeof(TCardHeader));
 done:
     if (msg != 0)
     {
