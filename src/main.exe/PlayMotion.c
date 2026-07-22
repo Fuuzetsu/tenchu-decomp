@@ -45,7 +45,6 @@
  * two-goto rendering matches the raw asm's shared tail directly, no
  * restructuring needed).
  */
-extern s32 ActiveMotion(MotionManager *mmp);
 extern short SweepMotion(MotionManager *mmp);
 
 short PlayMotion(MotionManager *mmp, short mode)

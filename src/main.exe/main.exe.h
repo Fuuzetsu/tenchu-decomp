@@ -90,6 +90,7 @@ extern POLY_GT4 AccessImage;
 extern void SetCameraMode(TCameraMode mode);
 extern short NowReturnNormal(struct Humanoid *human);
 extern short GetMotionID(MotionManager *mmp, short mid);
+extern short ActiveMotion(MotionManager *mmp);
 extern int leFindEnemy(void);
 extern void leLayoutEnemy(int mode);
 extern int leRemoveEnemy(void);
