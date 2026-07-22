@@ -25,10 +25,9 @@
  * into each memory operand, so `as` re-materialises `%hi` per arm through `$at`
  * — two extra `lui`s and the wrong length.
  *
- * The pad byte is reached as an offset cast off the proven PadPort extern
- * (offset 7 is TPadPort.fAnalog, accessed here as a raw byte cast rather than
- * the field), which keeps the absolute %hi/%lo pair identical to a bare D_800BE6D7
- * while avoiding a symbol nothing else would reference.
+ * The pad byte is the recovered TPadPort.fAnalog field. Naming the complete
+ * PadPort[0][0] access still produces the target's absolute %hi/%lo pair,
+ * while making the source-level relationship explicit.
  */
 
 void FUN_8001b2b8(void)
@@ -36,7 +35,7 @@ void FUN_8001b2b8(void)
     TLinkInfo *ps =
         (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
-    if (((u8 *)PadPort)[7] != 0) {
+    if (PadPort[0][0].fAnalog != 0) {
         ps->analog_pad_present |= 1;
     } else {
         ps->analog_pad_present &= 0xfe;
