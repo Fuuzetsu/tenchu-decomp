@@ -112,7 +112,7 @@
  */
 extern Sprite3D *sprSmoke[];
 extern void UpdateCoordinate(Sprite3D *m);
-extern void DrawSprite(Sprite3D *s);
+extern short DrawSprite(Sprite3D *sprt);
 
 void DrawSmoke(TEffectSlot *ef)
 {

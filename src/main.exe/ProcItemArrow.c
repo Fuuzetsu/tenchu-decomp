@@ -91,7 +91,7 @@ typedef struct
 extern s32 GameClock;
 
 extern void MoveFly(TItem *item, param_fly *param);
-extern void DrawModel(ModelType *model);
+extern short DrawModel(ModelType *objp);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);

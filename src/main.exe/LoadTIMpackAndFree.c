@@ -17,7 +17,7 @@
  * parameter read twice needs no separate temp — cookbook's cached-pointer
  * rule).
  */
-extern void LoadTIMpack(u_long *tim);
+extern short LoadTIMpack(u_long *adr);
 extern void vfree(void *p);
 
 void LoadTIMpackAndFree(u_long *tim)

@@ -55,7 +55,7 @@
 
 extern Sprite3D *sprBomb[3];
 extern void UpdateCoordinate(Sprite3D *m);
-extern void DrawSprite(Sprite3D *s);
+extern short DrawSprite(Sprite3D *sprt);
 
 /* Originally static in EFFECT.C; global here because SetHinoko is split into
  * a separate translation unit and stores this function's address. */

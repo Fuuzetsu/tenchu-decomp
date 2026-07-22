@@ -16,7 +16,7 @@
  */
 extern u_long *get_tim_from_archive(void);
 extern void LoadTIM(u_long *tim);
-extern void SetupSprite(Sprite3D *spr, GsIMAGE *image);
+extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void FUN_8004f598(void)
 {

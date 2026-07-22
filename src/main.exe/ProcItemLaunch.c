@@ -80,7 +80,7 @@
 #include "afterimage.h"
 
 extern void MoveFly(TItem *item, param_fly *param);
-extern void DrawModel(ModelType *m);
+extern short DrawModel(ModelType *objp);
 extern s16 InsertConflict(ModelType *m);
 extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);

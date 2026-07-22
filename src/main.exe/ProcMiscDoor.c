@@ -51,7 +51,7 @@
 extern char D_800126F8[];
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
-extern void DrawModel(ModelType *model);
+extern short DrawModel(ModelType *objp);
 extern void UpdateCoordinate(ModelType *model);
 extern void DeleteConflict(ModelType *model);
 extern s16 SoundEx(VECTOR *loc, s16 id);

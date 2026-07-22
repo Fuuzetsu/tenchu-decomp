@@ -56,7 +56,7 @@
  */
 
 extern void UpdateCoordinate(Sprite3D *dim);
-extern void DrawSprite(Sprite3D *s);
+extern short DrawSprite(Sprite3D *sprt);
 /* Shared MISC.C rodata pool (same block as AddMisc.c's D_800127A4/D_800127BC
  * strings, carved via AddMisc's .rodata segment) — "unknown sprite type",
  * NOT a fresh literal in this file's own rodata (which would place it at
