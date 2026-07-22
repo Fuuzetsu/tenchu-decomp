@@ -102,7 +102,6 @@ extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model for launched items (not indexed by type, unlike the other
  * twins' ItemImage[it->type]). */
-extern ModelType *SyurikenModel;
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {

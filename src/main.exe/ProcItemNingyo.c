@@ -20,7 +20,6 @@ typedef union
 
 extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
-extern ModelType *NingyoModel;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s16 InsertConflict(ModelType *model);

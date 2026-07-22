@@ -367,6 +367,13 @@ extern void *memset(void *s, int c, u32 n);
 extern char D_800121CC[];
 /* The global item pool. */
 extern TItem items[30];
+/* ITEM.C's shared model and sprite resources. */
+extern ModelType *SyurikenModel;
+extern ModelType *ArrowModel;
+extern ModelType *NingyoModel;
+extern ModelType *HappouModel;
+extern Sprite3D *sprNapalm;
+extern Sprite3D *sprNapalm2;
 /* ITEM.C's single shared lock-on/trajectory marker. */
 extern GsSPRITE TargetSprite[1];
 

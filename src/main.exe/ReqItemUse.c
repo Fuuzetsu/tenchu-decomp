@@ -232,8 +232,6 @@
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[]; /* == CamState.Owner */
 extern s32 SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[]; /* == CamState.Mode */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
-extern ModelType *SyurikenModel;    /* shuriken/launch model (gp) */
-extern Sprite3D *sprNapalm;     /* napalm model (gp) */
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
 extern VECTOR D_80012258[];

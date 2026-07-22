@@ -34,7 +34,6 @@
  *    and permute.py carry the mirrored per-function settings.
  */
 
-extern Sprite3D *sprNapalm2;
 
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);

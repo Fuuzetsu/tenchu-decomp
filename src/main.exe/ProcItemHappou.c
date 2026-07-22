@@ -91,7 +91,6 @@ extern s32 is_character_state_present_on_stage_(Humanoid *h);
  * via config/symbols.main.exe.txt (LOCAL_COORDINATES_/NINKEN_CHARACTER_PTR,
  * right next to the drifted ones) resolve correctly regardless, which is
  * how this was diagnosed and is the same mechanism used to route around it. */
-extern ModelType *HappouModel;
 
 void ProcItemHappou(TItem *item)
 {

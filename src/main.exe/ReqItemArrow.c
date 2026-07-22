@@ -106,7 +106,6 @@ extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model for arrows (not indexed by type, unlike the pool-drop twins'
  * ItemImage[it->type]); gp-relative in this TU like ReqItemLaunch's
  * SyurikenModel. */
-extern ModelType *ArrowModel;
 
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
