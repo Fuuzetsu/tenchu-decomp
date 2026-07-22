@@ -38,7 +38,7 @@
  * rearms the fuse to a random 0..149 tick count and plays the bang sound.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `msg > MM_RESUME` is the same unsigned-enum dispatch as ProcMiscSprite
+ *  - `msg >= MM_DO` is the same unsigned-enum dispatch as ProcMiscSprite
  *    (`enum TMiscMessage msg`, not plain `s32`, is what gets cc1 to emit
  *    `sltiu` instead of `slti`).
  *  - `--m->count` (or equivalently `m->count = m->count - 1;`) stores
@@ -61,14 +61,14 @@ extern void SetHinoko(VECTOR *pos, SVECTOR *vel, s32 n);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vel, s32 n, s32 time);
 extern s16 SoundEx(VECTOR *loc, s32 id);
 
-void ProcMiscFire(tag_TMisc *m, enum TMiscMessage msg)
+void ProcMiscFire(tag_TMisc *m, TMiscMessage msg)
 {
     SVECTOR vec;
     VECTOR pos;
 
     if (msg == MM_CREATE)
         goto do_create;
-    if (MM_RESUME < msg)
+    if (MM_DO <= msg)
         goto do_check;
     return;
 

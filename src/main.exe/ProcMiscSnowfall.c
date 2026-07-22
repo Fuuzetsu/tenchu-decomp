@@ -41,7 +41,7 @@
  * TSnowfall.w and a self-store of TSnowfall.h — the retail body no longer
  * uses the grid dimensions the demo's PSX.SYM locals (w/h/i/pos) suggest a
  * fuller CREATE once set up; only the two reads/one self-store survive).
- * Every 4th tick (`GameClock & 3`) while armed (msg > MM_RESUME), spawns
+ * Every 4th tick (`GameClock & 3`) while armed (msg >= MM_DO), spawns
  * one snowflake: a small downward-biased jitter velocity and a position
  * randomized in a box around the camera, handed to SetSnow (the
  * EffectSlot particle pool).
@@ -49,7 +49,7 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - Dispatch is the "short do-nothing case falls through, both real
  *    bodies are jump targets" 3-way: `if (msg==CREATE) goto do_create; if
- *    (4<=msg) goto do_resume; return;` — msg 1/2 (do-nothing) is the
+ *    (MM_DO<=msg) goto do_resume; return;` — msg 1/2 (do-nothing) is the
  *    inline fallthrough, CREATE and RESUME are BOTH forward-jump targets,
  *    placed in that order (CREATE immediately after the dispatch, RESUME
  *    after CREATE) — matching neither a plain if/else-if (puts CREATE
@@ -95,7 +95,7 @@ extern long GameClock;
 extern GsRVIEW2 ViewInfo;
 extern void *memset(void *s, int c, u32 n);
 
-void ProcMiscSnowfall(tag_TMisc *m, enum TMiscMessage msg)
+void ProcMiscSnowfall(tag_TMisc *m, TMiscMessage msg)
 {
     TSnowfall *param = &m->param.snowfall;
 
@@ -103,7 +103,7 @@ void ProcMiscSnowfall(tag_TMisc *m, enum TMiscMessage msg)
     {
         goto do_create;
     }
-    if (4 <= msg)
+    if (MM_DO <= msg)
     {
         goto do_resume;
     }

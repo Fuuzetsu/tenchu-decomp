@@ -93,14 +93,14 @@ extern char *D_80012788[]; /* the seven water/warp TIM names */
 extern char D_800127A4[];  /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char D_800127BC[];  /* "undefined effect %d" */
 
-extern void ProcMiscFire(tag_TMisc *m, s32 msg);
-extern void FUN_8004d6d4(tag_TMisc *m, s32 msg);
-extern void ProcMiscDoor(tag_TMisc *m, s32 msg);
-extern void ProcMiscPitfall(tag_TMisc *m, s32 msg);
-extern void ProcMiscSnowfall(tag_TMisc *m, s32 msg);
-extern void ProcMiscSprite(tag_TMisc *m, s32 msg);
-extern void FUN_8004c350(tag_TMisc *m, s32 msg);
-extern void FUN_8004c59c(tag_TMisc *m, s32 msg);
+extern void ProcMiscFire(tag_TMisc *m, TMiscMessage msg);
+extern void FUN_8004d6d4(tag_TMisc *m, TMiscMessage msg);
+extern void ProcMiscDoor(tag_TMisc *m, TMiscMessage msg);
+extern void ProcMiscPitfall(tag_TMisc *m, TMiscMessage msg);
+extern void ProcMiscSnowfall(tag_TMisc *m, TMiscMessage msg);
+extern void ProcMiscSprite(tag_TMisc *m, TMiscMessage msg);
+extern void FUN_8004c350(tag_TMisc *m, TMiscMessage msg);
+extern void FUN_8004c59c(tag_TMisc *m, TMiscMessage msg);
 extern void FUN_80032720(GsIMAGE *im, short y, short z);
 extern void AdtMessageBox(char *fmt, ...);
 
@@ -167,7 +167,7 @@ loop:
                 AdtMessageBox(D_800127BC, type);
                 return;
             }
-            p->proc(p, 0);
+            p->proc(p, MM_CREATE);
             p->pause = 1;
         } while (0);
         return;

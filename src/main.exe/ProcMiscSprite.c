@@ -34,11 +34,11 @@
  * table")). MISC_SPRITE's ProcMisc* handler: MM_CREATE clamps the raw
  * TMiscInit.a param down to a valid SpriteData index (0 or 1) and re-stores
  * it as the TSprite.type byte at the SAME union offset (0x18); any message
- * past MM_RESUME (the "draw" tick) recolors the sprite a random grey and
+ * at least MM_DO (the "draw" tick) recolors the sprite a random grey and
  * copies m's position into it.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `msg > MM_RESUME` compiles UNSIGNED (`sltiu`, confirmed against the raw
+ *  - `msg >= MM_DO` compiles UNSIGNED (`sltiu`, confirmed against the raw
  *    .s alongside ProcMiscFire's identical dispatch prologue) — declaring
  *    `msg` as the actual `enum TMiscMessage` parameter (all-non-negative
  *    enumerators) is what gets cc1 to pick the unsigned compare; a plain
@@ -63,7 +63,7 @@ extern void DrawSprite(Sprite3D *s);
  * the wrong address, cookbook: TU-shared string pooling). */
 extern char D_80012728[];
 
-void ProcMiscSprite(tag_TMisc *m, enum TMiscMessage msg)
+void ProcMiscSprite(tag_TMisc *m, TMiscMessage msg)
 {
     s32 type;
     Sprite3D *s;
@@ -71,7 +71,7 @@ void ProcMiscSprite(tag_TMisc *m, enum TMiscMessage msg)
 
     if (msg == MM_CREATE)
         goto do_create;
-    if (MM_RESUME < msg)
+    if (MM_DO <= msg)
         goto do_draw;
     return;
 

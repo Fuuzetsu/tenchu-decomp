@@ -58,7 +58,7 @@ extern s16 SoundEx(VECTOR *loc, s16 id);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 
-void ProcMiscDoor(tag_TMisc *m, enum TMiscMessage msg)
+void ProcMiscDoor(tag_TMisc *m, TMiscMessage msg)
 {
     TDoor *param;
 

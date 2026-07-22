@@ -65,9 +65,20 @@ typedef struct TPitfall
     u8 type;           /* 0x6 */
 } TPitfall;
 
+/* Misc-object lifecycle messages named by the demo's PSX.SYM. */
+typedef enum TMiscMessage TMiscMessage;
+enum TMiscMessage
+{
+    MM_CREATE = 0,
+    MM_DESTROY = 1,
+    MM_PAUSE = 2,
+    MM_RESUME = 3,
+    MM_DO = 4
+};
+
 struct tag_TMisc
 {
-    void (*proc)(tag_TMisc *, s32); /* 0x00 */
+    void (*proc)(tag_TMisc *, TMiscMessage); /* 0x00 */
     s32 x;                          /* 0x04 */
     s32 y;                          /* 0x08 */
     s32 z;                          /* 0x0C */
@@ -83,14 +94,6 @@ struct tag_TMisc
         TSprite sprite;
     } param;                        /* 0x18 */
 };                                  /* 0x24 */
-
-enum TMiscMessage
-{
-    MM_CREATE = 0,
-    MM_DESTROY = 1,
-    MM_PAUSE = 2,
-    MM_RESUME = 3
-};
 
 typedef struct
 {

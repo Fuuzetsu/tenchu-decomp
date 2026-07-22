@@ -38,7 +38,7 @@
  * 15000-unit cube around the camera (ViewInfo.vrx/vry/vrz) — dispatching
  * MM_RESUME(3)+unpause when back in range, MM_PAUSE(2)+pause when it drops
  * out — then unconditionally runs every still-unpaused slot's "draw" tick
- * (message 4) after setting the renderer's TMD mode.
+ * MM_DO(4) after setting the renderer's TMD mode.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `GameClock == (GameClock / 10) * 10` reproduces the div-by-10
@@ -73,7 +73,7 @@ void DoMiscProc(void)
     s32 coord;
     tag_TMisc *p;
     GsRVIEW2 *view;
-    void (*proc)(tag_TMisc *, s32);
+    void (*proc)(tag_TMisc *, TMiscMessage);
 
     if (EFFECT_SPAWNERS_INITIALISED == 0)
     {
@@ -113,7 +113,7 @@ cull_loop:
                             {
                                 if (p->pause != 0)
                                 {
-                                    proc(p, 3);
+                                    proc(p, MM_RESUME);
                                     p->pause = 0;
                                 }
                                 goto next;
@@ -122,7 +122,7 @@ cull_loop:
                     }
                     if (p->pause == 0)
                     {
-                        p->proc(p, 2);
+                        p->proc(p, MM_PAUSE);
                         p->pause = 1;
                     }
                 }
@@ -138,7 +138,7 @@ cull_loop:
         {
             if (misc[i].proc != 0 && misc[i].pause == 0)
             {
-                misc[i].proc(&misc[i], 4);
+                misc[i].proc(&misc[i], MM_DO);
             }
         }
     }

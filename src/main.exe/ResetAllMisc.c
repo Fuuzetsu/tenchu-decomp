@@ -16,7 +16,7 @@
 /*
  * ResetAllMisc (0x8004d514, 0x5c bytes) — walks the misc[] pool (200 entries,
  * tag_TMisc from AddMisc.c's sibling spawner, same TU/proven struct) and force
- * -disposes every live slot: runs `proc(p, 1)` (MM_DESTROY-style message),
+ * -disposes every live slot: runs `proc(p, MM_DESTROY)`,
  * then clears proc to NULL. Same pool/stride (0x24-byte tag_TMisc, 0xC8
  * entries) and the same "for whose entry test provably folds away" shape as
  * DrawEffect.c/FUN_80039c14.c (cookbook Loops/leResetEnemyLayout): a bottom
@@ -38,7 +38,7 @@ void ResetAllMisc(void)
         p = &misc[i];
         if (p->proc != 0)
         {
-            p->proc(p, 1);
+            p->proc(p, MM_DESTROY);
             p->proc = 0;
         }
     }
