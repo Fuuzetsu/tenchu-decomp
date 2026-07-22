@@ -35,11 +35,11 @@ extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern s16 SelectedItem;
 
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern s16 HangCheck(void);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern void JumpControl(void);
-extern s16 SoundEx(VECTOR *locate, s16 id);
+extern short SoundEx(VECTOR *locate, s16 seid);
 
 void ActMOVE(void)
 {

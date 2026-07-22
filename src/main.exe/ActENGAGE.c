@@ -52,7 +52,7 @@ extern s16 SelectedItem;
 extern Humanoid *Me_MOTION_C;
 
 extern void SetCameraMode(s32 mode);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void JumpControl(void);
 extern void AttackControl(void);

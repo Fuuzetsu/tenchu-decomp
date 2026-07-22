@@ -62,7 +62,7 @@ extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
 extern s16 GetConflictResult(ModelType *model, s16 index);
 extern s16 GetDirection(s32 x, s32 z, s16 rotate);
 extern s16 SetNowMotion(Humanoid *human, s16 motion, s16 move);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 
 short DefaultActionHumanoid(Humanoid *human)
 {

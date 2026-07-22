@@ -359,7 +359,7 @@ extern void ReqItemDefault(Humanoid *user, TItemType item);
 extern TItemType GetItemType(s32 conflict_id);
 extern void SetBleed(VECTOR *pos, SVECTOR *vel, int a, int col);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vel, short n, short time);
-extern s16 SoundEx(VECTOR *loc, short id);
+extern short SoundEx(VECTOR *locate, short seid);
 extern void DeleteConflict(ModelType *m);
 extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);

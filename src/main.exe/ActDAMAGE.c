@@ -58,7 +58,7 @@ extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;
 
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);

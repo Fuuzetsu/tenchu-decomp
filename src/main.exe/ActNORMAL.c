@@ -37,9 +37,9 @@ extern s16 dtCMD;
 extern s16 SelectedItem;
 
 extern int rand(void);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern void JumpControl(void);
-extern s16 SoundEx(VECTOR *locate, s16 id);
+extern short SoundEx(VECTOR *locate, s16 seid);
 
 void ActNORMAL(void)
 {

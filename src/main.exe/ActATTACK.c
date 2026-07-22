@@ -120,7 +120,7 @@ extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern void DeleteConflict();
 
 void ActATTACK(void)

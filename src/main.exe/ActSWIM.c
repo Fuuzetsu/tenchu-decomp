@@ -53,8 +53,8 @@ extern s16 motMODE;
 extern s16 SelectedItem;
 
 extern s16 SwimCheck(void);
-extern s16 Sound(Humanoid *human, s16 id);
-extern s16 SoundEx(VECTOR *locate, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
+extern short SoundEx(VECTOR *locate, s16 seid);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern void SetCameraMode(s32 mode);
 

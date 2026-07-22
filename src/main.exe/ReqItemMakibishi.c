@@ -83,7 +83,7 @@
  *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemMakibishi(TItem *item);
-extern s16 SoundEx(VECTOR *loc, short id);
+extern short SoundEx(VECTOR *locate, short seid);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;

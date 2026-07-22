@@ -104,7 +104,7 @@ extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern s32 D_8008E50C[][4];
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
-extern s16 SoundEx(VECTOR *loc, short id);
+extern short SoundEx(VECTOR *locate, short seid);
 extern void FUN_8003d768(s32 x, s32 z, s32 *area);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 

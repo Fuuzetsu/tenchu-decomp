@@ -10,7 +10,7 @@ extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,
                                  s16 scale);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 mode);
 
 /*

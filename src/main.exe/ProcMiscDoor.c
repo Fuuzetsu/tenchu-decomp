@@ -54,7 +54,7 @@ extern void DisposeModel(ModelType *model);
 extern short DrawModel(ModelType *objp);
 extern void UpdateCoordinate(ModelType *model);
 extern void DeleteConflict(ModelType *model);
-extern s16 SoundEx(VECTOR *loc, s16 id);
+extern short SoundEx(VECTOR *locate, s16 seid);
 extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 

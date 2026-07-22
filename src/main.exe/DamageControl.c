@@ -24,7 +24,7 @@ extern HumanAnimType CVAhuman[5];
 extern u16 D_80086B6C[8];
 
 extern void SetCameraMode(s32 mode);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern void ReqLifeBar(Humanoid *human);
 extern void DeleteConflict(ModelType *model);
 extern void SetImpact(VECTOR *pos, s16 scale, s16 type);

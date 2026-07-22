@@ -42,7 +42,7 @@
  * GetNearestHumanoid is respelled `Humanoid *` here (not `Humanoid
  * *`) to match this TU's `Me_THINK_C`/`Me_THINK_C->some_kind_of_current_-
  * position` — same per-TU extern-parameter respelling as AttackAnimal.c's
- * `Sound(Humanoid *cs, int seid)` (item.h's own `Humanoid` describes
+ * `Sound(Humanoid *human, int seid)` (item.h's own `Humanoid` describes
  * the identical layout for the item TU's callers).
  *
  * The null check reads OPPOSITE of Ghidra's literal `if (enemy == 0)

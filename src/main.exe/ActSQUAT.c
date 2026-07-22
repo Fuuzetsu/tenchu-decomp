@@ -75,7 +75,7 @@ extern s32 D_80097F1C;
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
-extern s16 Sound(Humanoid *human, s16 id);
+extern short Sound(Humanoid *human, s16 seid);
 extern void AttackControl(void);
 extern void SetCameraMode(s32 mode);
 extern void StickonCheck(void);

@@ -88,7 +88,7 @@ typedef struct
 } Schedule;
 
 extern s32 GameClock;
-extern s16 SoundEx(VECTOR *loc, s32 id);
+extern short SoundEx(VECTOR *locate, s32 seid);
 extern s32 rand(void);
 extern void *memset(void *dst, s32 c, u32 n);
 

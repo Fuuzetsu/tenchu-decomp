@@ -24,7 +24,7 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 SelectedItem;
 
-extern s16 SoundEx(VECTOR *locate, s16 id);
+extern short SoundEx(VECTOR *locate, s16 seid);
 
 void ItemControl(void)
 {
