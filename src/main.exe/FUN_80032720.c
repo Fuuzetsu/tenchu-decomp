@@ -26,12 +26,12 @@
  * before-slot, cursor-update store living inside `if (slot->proc==0)
  * {...break;}` for the right branch polarity).
  *
- * The found slot's `texscroll` payload is retail's packed form of the
- * PSX.SYM TexScroll record. Its vx/vy start at the union boundary because
- * EffectSlot.proc occupies the old px/py prefix. The image RECT receives
- * the TIM's source rectangle; sx/sy hold the shared animated scroll cursor;
- * x/y retain the texture-page destination; and time/count receive this
- * call's y/z parameters only at the end, immediately before `proc` is set.
+ * The found slot's `texscroll` payload is retail's shortened form of the
+ * PSX.SYM TexScroll record: it keeps px/py, vx/vy, x/y, sx/sy, and image,
+ * while omitting the demo's time/count pair. The image RECT receives the
+ * TIM's source rectangle; sx/sy hold the shared animated scroll cursor;
+ * x/y retain the texture-page destination; and vx/vy receive this call's
+ * y/z parameters only at the end, immediately before `proc` is set.
  *
  * Matching notes:
  *  - The 2x2 grid loop uses `short` counters (`j`,`i`), not `int` — a
@@ -119,8 +119,8 @@ found:
     short mask;
 
     tscr = &ef->param.texscroll;
-    tscr->vy = 0;
-    ef->param.texscroll.vx = 0;
+    tscr->py = 0;
+    ef->param.texscroll.px = 0;
 
     scrollX = D_80097F30;
     scrollY = D_80097F32;
@@ -160,8 +160,8 @@ found:
     }
 
     D_80097F32 = D_80097F32 + 0x40;
-    tscr->time = y;
-    tscr->count = z;
+    tscr->vx = y;
+    tscr->vy = z;
     ef->proc = (void (*)())UpdateTexScroll;
     if (0x200 < D_80097F32)
     {

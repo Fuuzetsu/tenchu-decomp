@@ -27,16 +27,16 @@
 
 /*
  * UpdateTexScroll (0x80032610, 0x110 bytes) — advances a scrolling texture
- * region's (vx,vy) accumulators by their per-frame deltas, wraps each modulo
- * its region's own width/height (<<4 for the 4-bit fixed-point scroll
- * unit), derives the wrapped whole-texel (x,y) offset added to a fixed
- * base, then re-issues a DR_MOVE primitive positioned there.
+ * region's (px,py) accumulators by its (vx,vy) per-frame deltas, wraps each
+ * modulo its region's own width/height (<<4 for the 4-bit fixed-point scroll
+ * unit), derives the wrapped whole-texel (x,y) offset added to a fixed base,
+ * then re-issues a DR_MOVE primitive positioned there.
  *
  * Matching notes:
  *  - The demo accepted a standalone TexScroll pointer. Retail installs this
- *    routine as an EffectSlot callback instead: the slot's `proc` word takes
- *    the old px/py bytes, while `param.texscroll` begins with the recovered
- *    vx member. FUN_80032720 is the matching typed producer.
+ *    routine as an EffectSlot callback instead and embeds a shortened record
+ *    without the demo's time/count fields. FUN_80032720 is the matching typed
+ *    producer.
  *  - `tscr->x`/`tscr->image.w` are DIFFERENT fields at DIFFERENT offsets
  *    (0xC vs 0x18) even though both read as the divisor's/SetDrawMove's
  *    "width" — Ghidra's `param_1 + 0x18` (div) and `param_1 + 0xc`
@@ -52,10 +52,10 @@
  *    guard is automatic codegen for any variable divisor, not written by
  *    hand). Needs `--expand-div` in this file's Build.hs entry (ASPSX's
  *    `break 7`/`break 6` guard shape, cookbook's Loops section).
- *  - `x = tscr->vx; if (x < 0) x += 0xf; ... x >> 4` is plain `x / 16`: the
+ *  - `x = tscr->px; if (x < 0) x += 0xf; ... x >> 4` is plain `x / 16`: the
  *    round-toward-zero correction for signed division by a power of two is
  *    automatic codegen, not a hand-written idiom.
- *  - The final `image.x`/`image.y` stores read `tscr->vx`/`tscr->vy` back FRESH
+ *  - The final `image.x`/`image.y` stores read `tscr->px`/`tscr->py` back FRESH
  *    from memory (a new load) rather than reusing the just-computed
  *    remainder in a register — matches every reload-heavy sibling in this
  *    TU (DrawHinoko.c).
@@ -69,17 +69,17 @@ void UpdateTexScroll(TEffectSlot *ef)
     s32 x, y;
 
     tscr = &ef->param.texscroll;
-    ef->param.texscroll.vx =
-        (u16)((u32)(ef->param.texscroll.vx + tscr->time) %
+    ef->param.texscroll.px =
+        (u16)((u32)(ef->param.texscroll.px + tscr->vx) %
               (u32)(tscr->image.w << 4));
-    tscr->vy = (u16)((u32)(tscr->vy + tscr->count) %
+    tscr->py = (u16)((u32)(tscr->py + tscr->vy) %
                      (u32)(tscr->image.h << 4));
 
-    x = tscr->vx;
+    x = tscr->px;
     if (x < 0) x = x + 0xf;
     tscr->image.x = (u16)tscr->sx + (x >> 4);
 
-    y = tscr->vy;
+    y = tscr->py;
     if (y < 0) y = y + 0xf;
     tscr->image.y = (u16)tscr->sy + (y >> 4);
 

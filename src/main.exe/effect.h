@@ -65,15 +65,15 @@ struct SnowParticleType /* size 32 */
     u8 sprite;                 /* +0x1E */
 };
 
-/* Retail packs the live tail of PSX.SYM's TexScroll into an EffectSlot:
- * EffectSlot.proc occupies the old px/py prefix, and this record begins at
- * the union with the original vx member. */
+/* Retail embeds a shortened form of PSX.SYM's TexScroll in an EffectSlot.
+ * The px/py accumulators and vx/vy deltas keep their recovered identities;
+ * only the demo's time/count pair is absent. */
 struct TexScrollParam /* size 24 */
 {
-    s16 vx;      /* +0x00 (demo TexScroll +0x04) */
-    s16 vy;      /* +0x02 */
-    s16 time;    /* +0x04 */
-    s16 count;   /* +0x06 */
+    s16 px;      /* +0x00 */
+    s16 py;      /* +0x02 */
+    s16 vx;      /* +0x04 */
+    s16 vy;      /* +0x06 */
     s16 x;       /* +0x08 */
     s16 y;       /* +0x0A */
     s16 sx;      /* +0x0C */
