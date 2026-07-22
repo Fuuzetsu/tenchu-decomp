@@ -412,7 +412,6 @@
  * pointer-to-struct cannot self-tie in this cc1.
  */
 
-extern s32 (*AdtPadRead)(s32);
 extern s32 VSync(s32 mode);
 
 extern char D_80014AFC[]; /* "select item" */

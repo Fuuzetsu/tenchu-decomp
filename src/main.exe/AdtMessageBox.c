@@ -71,8 +71,6 @@
  *    draws is whatever was left on the stack, not this function's concern.
  */
 extern AdtFntState D_8008F1B8;
-extern s32 (*AdtPadRead)(s32 port);
-extern s32 AdtDmyPadRead(s32 port);
 extern s32 AdtMessageBoxCount; /* AdtMessageBox call counter */
 extern char D_80014AAC[]; /* "*** AdtInit not called ***" */
 extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */

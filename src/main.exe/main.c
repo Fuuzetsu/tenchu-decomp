@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
 
@@ -59,7 +60,6 @@
  *    and `SkipFrame == 1` tests.
  */
 
-extern s32 (*AdtPadRead)(s32 port);
 extern TSystemFlag SystemFlag;
 extern u16 D_800976F6;
 extern char D_80011004[];
