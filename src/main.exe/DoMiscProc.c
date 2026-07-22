@@ -34,10 +34,11 @@
  *
  * DoMiscProc (0x8004d350, 0x1C4 bytes) — the misc pool's per-frame driver
  * (main's game loop): bails with an error box if InitMisc hasn't run yet;
- * otherwise, every 10th GameClock tick, culls every live slot against a
- * LEN-unit cube around the camera (ViewInfo.vrx/vry/vrz) — dispatching
- * MM_RESUME(3)+unpause when back in range, MM_PAUSE(2)+pause when it drops
- * out — then unconditionally runs every still-unpaused slot's "draw" tick
+ * otherwise, every 10th GameClock tick, tests whether each live slot is
+ * within LEN (15000) units on every camera axis (ViewInfo.vrx/vry/vrz),
+ * dispatching MM_RESUME(3)+unpause when back in range and
+ * MM_PAUSE(2)+pause when it drops out — then unconditionally runs every
+ * still-unpaused slot's "draw" tick
  * MM_DO(4) after setting the renderer's TMD mode.
  *
  * Matching notes (docs/matching-cookbook.md):
