@@ -25,16 +25,13 @@
  * END PSX.SYM */
 
 /*
- * AddXG4 (0x80038d40) — adds two GPU primitives out of one buffer to an order
- * table: the primitive at +8 first, then the one at +0 (same shape as
- * DrawXG4/DrawXF4's DrawPrim wrappers just above in this TU, but
- * through AddPrim(ot, prim) instead of a direct DrawPrim(prim)). Both `ot`
- * and `ply` are cached in callee-saved regs across the two calls (plain
- * parameters read twice need no separate temps — cookbook's cached-pointer
- * rule).
+ * AddXG4 (0x80038d40) — adds the Gouraud quad and its draw-mode command to an
+ * ordering table. Both `ot` and `ply` are cached in callee-saved regs across
+ * the two calls (plain parameters read twice need no separate temps —
+ * cookbook's cached-pointer rule).
  */
-void AddXG4(u8 *ot, u8 *ply)
+void AddXG4(void *ot, POLY_XG4 *ply)
 {
-    AddPrim(ot, ply + 8);
-    AddPrim(ot, ply);
+    AddPrim(ot, &ply->ply);
+    AddPrim(ot, &ply->tpage);
 }

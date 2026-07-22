@@ -655,6 +655,14 @@ struct POLY_XF4
     POLY_F4 ply;                       /* 0x08 */
 };                                     /* 0x20 */
 
+/* EFFECT.C's draw-mode-plus-Gouraud-quad primitive. */
+typedef struct POLY_XG4 POLY_XG4;
+struct POLY_XG4
+{
+    DR_TPAGE tpage;                    /* 0x00 */
+    POLY_G4 ply;                       /* 0x08 */
+};                                     /* 0x2C */
+
 typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind
