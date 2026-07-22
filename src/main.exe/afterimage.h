@@ -20,6 +20,8 @@ typedef struct AfterimageType
     POLY_GT4 poly;                /* 0x24 */
 } AfterimageType;                 /* 0x58 */
 
+extern GsIMAGE *AfterIMG;
+
 AfterimageType *SetupAfterimage(ModelType *model, short len);
 void DisposeAfterimage(AfterimageType *afi);
 short DrawAfterimage(AfterimageType *afi, short disp);

@@ -255,3 +255,6 @@
 
 # Henshin character table (2026-07-22).
 8008e3ec	HensinT	semantic+binary-table	PSX=8008dd94;DEMO=8008e0ec;TYPE=struct{unsigned-char-type[2]}[9];retail-first-9-rows-match-7-of-9-demo-rows-and-adds-3-rows;create_ninken_character_-and-FUN_8004a598-index-stage-row-and-character-column	STAT	struct ITEM__210fake [9] (demo; retail has 12 rows)
+
+# Afterimage texture (2026-07-22).
+80097f3c	AfterIMG	semantic+datamatch	VOTES1;PSX=80098160;DEMO=800984b8;WITNESSES=InitEffect;InitEffect-assigns-GetImage(10)-and-SetupAfterimage-consumes-the-same-pointer	STAT	struct GsIMAGE *

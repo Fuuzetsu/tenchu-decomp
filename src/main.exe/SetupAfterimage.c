@@ -60,7 +60,6 @@
  * caveat that a repeated global reference isn't automatically cached).
  */
 extern void *valloc(u32 size);
-extern GsIMAGE *D_80097F3C;
 
 AfterimageType *SetupAfterimage(ModelType *model, short len)
 {
@@ -69,7 +68,7 @@ AfterimageType *SetupAfterimage(ModelType *model, short len)
     long *plVar5;
     s32 size;
 
-    image = D_80097F3C;
+    image = AfterIMG;
     pAVar4 = (AfterimageType *)valloc(0x58);
     size = len * 4;
     pAVar4->model = model;

@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 #include "effect.h"
+#include "afterimage.h"
 #include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -82,7 +83,6 @@ extern Sprite3D *D_80097F2C[1];
 
 extern ModelType *D_80097F34;
 extern ModelType *LOCAL_COORDINATES_;
-extern GsIMAGE *D_80097F3C;
 extern s16 D_80097F30;
 extern s16 D_80097F32;
 
@@ -191,7 +191,7 @@ void InitEffect(void)
 
     D_80097F34 = LoadModel(GetArcData(0x19));
     LOCAL_COORDINATES_ = LoadModel(GetArcData(0x1F));
-    D_80097F3C = GetImage(0xA);
+    AfterIMG = GetImage(0xA);
     ModelHook = LoadModel(GetArcData(0x1A));
 
     {
