@@ -55,12 +55,12 @@ struct HenshinModelSnapshot
 extern HenshinModelSnapshot Item_save;
 extern HenshinModelSnapshot D_800C06F0;
 
-/* Per-stage disguise character types. The original ITEM.C kept this
- * anonymous two-byte record in its static HensinT table. */
+/* Per-stage disguise character types. The original demo ITEM.C table had
+ * nine anonymous two-byte rows; retail appends three more stage rows. */
 extern struct
 {
     u8 type[2];
-} HensinT[9];
+} HensinT[12];
 
 typedef struct Humanoid
 {
