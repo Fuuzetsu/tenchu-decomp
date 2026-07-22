@@ -33,7 +33,6 @@
  * emitted function.
  */
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 
 s16 Think3escape(void)
 {
@@ -76,7 +75,7 @@ s16 Think3escape(void)
     {
         result |= 0x1000;
     }
-    if (Attrib & 0x400)
+    if (ATTRIB_BITS & 0x400)
     {
         Humanoid *human;
         s32 degree2;

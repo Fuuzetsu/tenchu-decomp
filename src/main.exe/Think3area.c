@@ -53,7 +53,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 
 extern s16 SuccessionAttack(s32 distance, s16 degree);
 extern s16 Think3attack(void);
@@ -100,7 +99,7 @@ s16 Think3area(void)
         goto return_pad;
     }
 
-    if ((Attrib & 0x4000) != 0)
+    if ((ATTRIB_BITS & 0x4000) != 0)
     {
         Me_THINK_C->actflg = 1;
     }
@@ -147,7 +146,7 @@ s16 Think3area(void)
     }
 
     pad = turn_towards_player_(xx, zz);
-    if ((Attrib & 0x400) != 0)
+    if ((ATTRIB_BITS & 0x400) != 0)
     {
         Me_THINK_C->actflg = 1;
     }

@@ -31,6 +31,9 @@ extern short StageCitizens;
 extern short StageBosses;
 extern long Distance;
 extern short Degree;
+extern short Attrib;
+/* Raw flag-bit view for THINK.C sites whose retail loads are unsigned. */
+#define ATTRIB_BITS (*(unsigned short *)&Attrib)
 /* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;

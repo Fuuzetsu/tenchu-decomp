@@ -44,7 +44,6 @@
  * them in $a0/$a1 for turn_towards_player_, and leaves each absolute value
  * in a separate $v0 temporary.
  */
-extern s16 Attrib;
 
 s16 Think1random(void)
 {

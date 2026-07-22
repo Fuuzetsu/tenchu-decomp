@@ -34,7 +34,6 @@
  *     extern long Distance;
  * END PSX.SYM */
 
-extern short Attrib;
 extern int rand(void);
 
 short ChasetoTarget(long length)

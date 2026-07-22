@@ -54,7 +54,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 extern s32 AttackActionCount;
 
 extern s16 AttackAnimal(void);
@@ -202,7 +201,7 @@ status7_return:
                 pad = 0x1040;
             }
         }
-        if ((Attrib & 0x4000) == 0)
+        if ((ATTRIB_BITS & 0x4000) == 0)
         {
             goto return_pad;
         }
@@ -263,7 +262,7 @@ activate_and_return:
         goto return_pad;
     }
 
-    if ((Attrib & 0x400) != 0)
+    if ((ATTRIB_BITS & 0x400) != 0)
     {
         Me_THINK_C->actmode = 0;
     }

@@ -82,7 +82,6 @@
 
 extern Humanoid *Me_THINK_C;
 extern s32 StrainRatio;
-extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s32 D_80097F10;
 extern s32 D_80097F14;
@@ -111,7 +110,7 @@ void StateTransition(Humanoid *human)
     Me_THINK_C = human;
     Pad = &human->pad;
     Attrib = human->attribute;
-    atr0 = Attrib & 0xffec;
+    atr0 = ATTRIB_BITS & 0xffec;
 
     if (human == StagePlayer)
     {
@@ -161,7 +160,7 @@ void StateTransition(Humanoid *human)
         return;
     }
 
-    if ((Attrib & 4) == 0)
+    if ((ATTRIB_BITS & 4) == 0)
     {
         if (human == StagePlayer && FRAMES_UNTIL_END_OF_ALERT != 0)
         {
@@ -203,7 +202,7 @@ void StateTransition(Humanoid *human)
 
             kind = Me_THINK_C->type & 0xf0;
             if (kind != 0x80 && kind != 0xa0 &&
-                (active_item != 0x12 || (Attrib & 3) != 2))
+                (active_item != 0x12 || (ATTRIB_BITS & 3) != 2))
             {
                 if (FRAMES_UNTIL_END_OF_ALERT != 0)
                 {
@@ -218,7 +217,7 @@ void StateTransition(Humanoid *human)
             {
                 SR = -1;
             }
-            else if ((Attrib & 3) == 0)
+            else if ((ATTRIB_BITS & 3) == 0)
             {
                 SR = 2;
             }
@@ -247,7 +246,7 @@ void StateTransition(Humanoid *human)
     }
     D_80097F18[1] = FieldAttrib;
 
-    switch (Attrib & 3)
+    switch (ATTRIB_BITS & 3)
     {
     case 0:
         if (distance < StrainRatio)
@@ -309,13 +308,13 @@ void StateTransition(Humanoid *human)
         goto after_state;
 
     case 1:
-        if (FRAMES_UNTIL_END_OF_ALERT != 0 || (Attrib & 0x10) != 0)
+        if (FRAMES_UNTIL_END_OF_ALERT != 0 || (ATTRIB_BITS & 0x10) != 0)
         {
             if (StrainRatio > 0)
             {
                 StrainRatio = -0x8000;
             }
-            if (Attrib & 0x10)
+            if (ATTRIB_BITS & 0x10)
             {
                 pad = think_setting_small_rotation_small_steps_();
             }
@@ -333,10 +332,10 @@ void StateTransition(Humanoid *human)
             pad = Me_THINK_C->think[1]();
         }
 
-        if (SR == 1 || ((Attrib & 0x4000) != 0 && SR > 0))
+        if (SR == 1 || ((ATTRIB_BITS & 0x4000) != 0 && SR > 0))
         {
             Attrib = atr0 | 2;
-            if ((Attrib & 0x40) == 0)
+            if ((ATTRIB_BITS & 0x40) == 0)
             {
                 SetNowMotion(Me_THINK_C, 0x80e, 1);
             }
@@ -371,7 +370,7 @@ void StateTransition(Humanoid *human)
 
     case 2:
     {
-        if (Attrib & 0x40)
+        if (ATTRIB_BITS & 0x40)
         {
             if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
             {
@@ -390,13 +389,13 @@ void StateTransition(Humanoid *human)
             StrainRatio = -1;
         }
 
-        if (Attrib & 0x10)
+        if (ATTRIB_BITS & 0x10)
         {
             pad = Me_THINK_C->think[2]();
         }
         else
         {
-            if ((Attrib & 0x40) == 0)
+            if ((ATTRIB_BITS & 0x40) == 0)
             {
                 SetNowMotion(Me_THINK_C, 0x80e, 1);
             }
@@ -488,19 +487,19 @@ void StateTransition(Humanoid *human)
             StrainRatio = -0x8000;
         }
         pad = Me_THINK_C->think[3]();
-        if ((Attrib & 0x400) && Me_THINK_C->field76_0xb0 == 0)
+        if ((ATTRIB_BITS & 0x400) && Me_THINK_C->field76_0xb0 == 0)
         {
             Me_THINK_C->field76_0xb0 =
                 Degree > 0 ? 0x20000008 : 0x80000008;
         }
-        if ((Attrib & 3) == 2)
+        if ((ATTRIB_BITS & 3) == 2)
         {
             Humanoid *me;
 
             Sound(Me_THINK_C, 0xd);
             reset_alert_duration();
             me = Me_THINK_C;
-            if (me->type < 0x80 && (Attrib & 0x10) == 0)
+            if (me->type < 0x80 && (ATTRIB_BITS & 0x10) == 0)
             {
                 if (me->target == (ModelType *)StagePlayer->model)
                 {
@@ -552,7 +551,7 @@ update_hint:
             if (abs_degree >= 500)
             {
                 pad = 0x4000;
-                if ((Attrib & 3) == 0)
+                if ((ATTRIB_BITS & 3) == 0)
                 {
                     pad = 0x1000;
                 }
@@ -642,7 +641,7 @@ tail:
     {
         StrainRatio = ssr;
     }
-    Me_THINK_C->attribute = Attrib;
+    Me_THINK_C->attribute = ATTRIB_BITS;
 
     update_pressed_buttons(Pad, pad);
 }

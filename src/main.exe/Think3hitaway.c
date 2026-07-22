@@ -33,7 +33,6 @@
  * END PSX.SYM */
 
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 
 extern s32 rand(void);
 extern short ChasetoTarget(long length);
@@ -122,7 +121,7 @@ s16 Think3hitaway(void)
                 result |= 0x40;
             }
         }
-        if (4000 < Distance || (Attrib & 0x400))
+        if (4000 < Distance || (ATTRIB_BITS & 0x400))
         {
             Me_THINK_C->actflg = 1;
         }

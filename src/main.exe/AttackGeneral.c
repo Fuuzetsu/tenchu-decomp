@@ -57,7 +57,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 extern s32 AttackActionCount;
 
 extern s16 ChasetoTarget(s32 distance);
@@ -140,7 +139,7 @@ status7_return:
         s32 chase_degree;
 
         pad = ChasetoTarget(3000);
-        if (pad == 0 || (Attrib & 0x4000) != 0)
+        if (pad == 0 || (ATTRIB_BITS & 0x4000) != 0)
         {
             Me_THINK_C->actmode = 1;
         }
@@ -202,7 +201,7 @@ status7_return:
         return 0;
     }
 
-    if ((Attrib & 0x400) != 0)
+    if ((ATTRIB_BITS & 0x400) != 0)
     {
         Me_THINK_C->actmode = 0;
     }

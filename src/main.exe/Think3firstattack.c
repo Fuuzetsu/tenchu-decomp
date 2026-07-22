@@ -45,7 +45,6 @@
  * defers the function's s16 conversion to the shared return tail.
  */
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 extern s16 atkd2[4];
 extern int turn_towards_player_(int x_diff, int z_diff);
 
@@ -62,7 +61,7 @@ s16 Think3firstattack(void)
     }
     if ((Me_THINK_C->type & 0xF0) == 0x90)
     {
-        Attrib |= 0x10;
+        ATTRIB_BITS |= 0x10;
     }
     wclass = Me_THINK_C->wpatk >> 4;
     if (wclass == 3)
@@ -91,7 +90,7 @@ s16 Think3firstattack(void)
     if (Distance < atkd2[wclass])
     {
         result |= 0x80;
-        Attrib |= 0x10;
+        ATTRIB_BITS |= 0x10;
     }
     return result;
 }

@@ -11,11 +11,10 @@
  * steps.  It either chooses a turn command, advances the circling timer, or
  * spawns a second humanoid when the target remains far away.
  *
- * This translation unit reads Attrib unsigned, unlike main.exe.h's signed
- * declaration, so the small set of globals used here is declared locally.
+ * This translation unit reads the recovered signed `Attrib` object's raw flag
+ * bits through the shared unsigned `ATTRIB_BITS` view.
  */
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 AIDHumanType[][2];
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
@@ -50,7 +49,7 @@ s16 think_setting_small_rotation_small_steps_(void)
 
         result = turn_towards_player_(x_diff, z_diff);
         distance = SquareRoot0(x_diff * x_diff + z_diff * z_diff);
-        if (distance < 2000 || (Attrib & 0x400))
+        if (distance < 2000 || (ATTRIB_BITS & 0x400))
         {
             s32 alertTime;
             s32 nextState;
@@ -186,7 +185,7 @@ s16 think_setting_small_rotation_small_steps_(void)
             result = turnBits | 0x1000;
         }
 
-        if (Attrib & 0x400)
+        if (ATTRIB_BITS & 0x400)
         {
             s32 degree;
             s32 absoluteDegree;

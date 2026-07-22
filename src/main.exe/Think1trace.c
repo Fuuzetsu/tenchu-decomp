@@ -45,10 +45,9 @@
  * actcnt == 1 tracking mode, whose branch here just clears actscnt each call
  * and (when Attrib bit 3 is set) forwards to ControlTraceLine.
  *
- * Like Think2contact.c, this file's own compile reads
- * Attrib as u16 (`lhu`) and does not include main.exe.h (whose `extern s16
- * Attrib;` would conflict) — the handful of externs used here are
- * re-declared locally instead.
+ * Like Think2contact.c, this retail site reads the recovered signed `Attrib`
+ * object's raw flag bits with `lhu`, represented by the shared
+ * `ATTRIB_BITS` view.
  *
  * `old_actscnt` must be a real local: the asm stores actscnt+1 back
  * UNCONDITIONALLY (in the branch's delay slot) before testing whether the
@@ -76,7 +75,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 
 s16 Think1trace(void)
 {
@@ -135,7 +133,7 @@ s16 Think1trace(void)
     else
     {
         Me_THINK_C->actcnt += 1;
-        if (Attrib & 8)
+        if (ATTRIB_BITS & 8)
         {
             result = ControlTraceLine(Me_THINK_C);
         }

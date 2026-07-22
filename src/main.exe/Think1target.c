@@ -39,7 +39,6 @@
  * END PSX.SYM */
 
 extern Humanoid *Me_THINK_C;
-extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 
 extern int rand(void);
@@ -117,7 +116,7 @@ s16 Think1target(void)
                     s32 alert_time;
 
                     Me_THINK_C->target = (ModelType *)StagePlayer->model;
-                    Attrib = (Attrib & 0xfffc) | 2;
+                    Attrib = (ATTRIB_BITS & 0xfffc) | 2;
                     SetNowMotion(Me_THINK_C, 0x80e, 1);
                     Me_THINK_C->chase[1] = 0;
                     Me_THINK_C->chase[0] = 0;
