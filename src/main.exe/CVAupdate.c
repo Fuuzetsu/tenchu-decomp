@@ -67,10 +67,6 @@
  */
 
 
-extern CVAType *CVAnow;
-extern CVAType *CVAdata;
-extern Humanoid *CameraTarget;
-extern s16 CameraPanMode;
 extern s16 D_80097CC8;
 extern s16 D_80097CCC;
 extern u8 D_800C2C50[];

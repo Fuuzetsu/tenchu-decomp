@@ -40,6 +40,10 @@ extern MotionRegistType MOTcommon[41];
 extern Sprite3D *ItemImage[26];
 extern SoundEffect *StageSE;
 extern short VoiceMode;
+extern CVAType *CVAdata;
+extern CVAType *CVAnow;
+extern struct Humanoid *CameraTarget;
+extern short CameraPanMode;
 extern POLY_FT4 TelopP;
 extern POLY_F4 TelopbgP;
 /* CONFLICT.C's retail-expanded pool and query outputs. */

@@ -47,9 +47,7 @@
  * coalesces the input/result into the wrong register.
  */
 
-extern s16 CameraPanMode;
 extern s16 D_80097CC8;
-extern Humanoid *CameraTarget;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);

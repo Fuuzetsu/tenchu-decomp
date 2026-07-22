@@ -20,7 +20,6 @@
  *    and the second piece branches back into the first. One C body spans it.
  */
 
-extern CVAType *CVAdata;
 extern char D_80097CD0[];
 extern char D_80097CD4[];
 extern char D_80013654[];

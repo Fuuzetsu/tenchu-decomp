@@ -75,8 +75,6 @@
  */
 
 
-extern CVAType *CVAnow;
-extern Humanoid *CameraTarget;
 
 extern Humanoid *GetHumanoid(s16 type);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);

@@ -75,7 +75,6 @@ extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 extern u8 CHOSEN_CHARACTER;
 
 
-extern CVAType *CVAnow;
 extern s16 D_80097CC0;
 
 extern void ComputeAllConflict(void);
