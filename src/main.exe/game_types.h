@@ -517,14 +517,16 @@ enum TSystemFlag
     SYSFLAG_RANDOM_LAYOUT = 8
 };
 
-/* Retail's four-vector camera preset (CAMERA_R1/R2/P1/P2). */
-typedef struct CameraVectors CameraVectors;
-struct CameraVectors
+/* The demo's TCameraPos contained one pos/ref pair. Retail replaces it with
+ * reference and position endpoint pairs, reflected by the live
+ * CAMERA_R1/R2/P1/P2 objects. */
+typedef struct TCameraPos TCameraPos;
+struct TCameraPos
 {
-    SVECTOR r1;                    /* 0x00 */
-    SVECTOR r2;                    /* 0x08 */
-    SVECTOR p1;                    /* 0x10 */
-    SVECTOR p2;                    /* 0x18 */
+    SVECTOR r1;                   /* 0x00 */
+    SVECTOR r2;                   /* 0x08 */
+    SVECTOR p1;                   /* 0x10 */
+    SVECTOR p2;                   /* 0x18 */
 };                                 /* 0x20 */
 
 /* CDPLAYER.C's playback state. Retail keeps the demo's original members but

@@ -26,9 +26,6 @@
  *  - CAMERA_PTR_ARRAY_START is a plain `u8 *` (byte-stride pointer): the
  *    three offsets are raw +8/+0x10/+0x18 additions, not a scaled index.
  */
-extern CameraVectors CAMERA_R1;
-extern CameraVectors D_80011BC0;
-
 extern u8 *CAMERA_PTR_ARRAY_START;
 extern void *CAMERA_POINTERS[4];
 

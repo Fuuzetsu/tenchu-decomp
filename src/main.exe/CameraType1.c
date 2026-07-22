@@ -73,28 +73,26 @@ typedef union
         SVECTOR vecl;
         SVECTOR vecr;
     } probe;
-    CameraVectors camera;
+    TCameraPos camera;
     struct
     {
         u8 probe_space[0x10];
-        CameraVectors camera;
+        TCameraPos camera;
     } stick_l;
 } CameraScratch;
 
 extern SVECTOR D_80097A28[];
 extern SVECTOR D_80097A30[];
-extern CameraVectors CAMERA_R1;
-extern CameraVectors D_80089F50[];
-extern CameraVectors D_80011A64;
-extern CameraVectors D_80011A84;
-extern CameraVectors D_80011AA4;
-extern CameraVectors D_80011AC4;
-extern CameraVectors D_80011AE4;
-extern CameraVectors D_80011B04;
-extern CameraVectors D_80011B24;
-extern CameraVectors D_80011B44;
-extern CameraVectors D_80011B64;
-extern CameraVectors D_80011B84;
+extern TCameraPos D_80011A64;
+extern TCameraPos D_80011A84;
+extern TCameraPos D_80011AA4;
+extern TCameraPos D_80011AC4;
+extern TCameraPos D_80011AE4;
+extern TCameraPos D_80011B04;
+extern TCameraPos D_80011B24;
+extern TCameraPos D_80011B44;
+extern TCameraPos D_80011B64;
+extern TCameraPos D_80011B84;
 
 extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
                               SVECTOR *campos, GsRVIEW2 *vDif);
@@ -105,7 +103,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     ModelArchiveType *mad;
     VECTOR pos;
     CameraScratch scratch;
-    CameraVectors alternate;
+    TCameraPos alternate;
     TCameraStatus *cs;
 
     mad = pl->model;
@@ -217,7 +215,7 @@ choose_camera:
     switch (CamState.Mode) {
     case CMODE_CRITICAL_HIT:
         MakeCameraPosition(&pos, &pl->model->rotate,
-                           (SVECTOR *)&D_80089F50[CamState.OldMode], vDif);
+                           &CamPosCriticalHit[CamState.OldMode].r1, vDif);
         return;
     case CMODE_STICK_L:
         scratch.stick_l.camera = D_80011A64;
@@ -276,7 +274,7 @@ choose_camera:
         return;
     default:
         MakeCameraPosition(&pos, &pl->model->rotate,
-                           (SVECTOR *)&CAMERA_R1, vDif);
+                           &CAMERA_R1.r1, vDif);
         return;
     }
 }

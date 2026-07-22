@@ -72,20 +72,19 @@
  *    this, cse2 (which unlike cse1 does not stop at LOOP_END notes) folds
  *    the ddc args onto the RotTrans arg pseudos, which then need two extra
  *    callee-saved registers ($s0/$s2 + moves).
- *  - `p = (SVECTOR *)(cs->OldMode * 0x20 + (s32)tbl);` — INTEGER addition in
- *    source order emits `addu p,index,base` (any pointer-arithmetic spelling
- *    normalizes to base+index at the tree level and emits the operands
- *    swapped). Inline (no offset temp) so the lbu/sll/addu chain fuses into
- *    p's register; the entry rand() result is a SEPARATE variable n
- *    (caller-saved $v1) — Ghidra's iVar4 double-role is an SSA artifact.
+ *  - `camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);` uses
+ *    INTEGER addition in source order to emit `addu camera,index,base` (the
+ *    natural `&tbl[index]` spelling normalizes to base+index and emits the
+ *    operands swapped). Inline (no offset temp) so the lbu/sll/addu chain
+ *    fuses into camera's register; the entry rand() result is a SEPARATE
+ *    variable n (caller-saved $v1) — Ghidra's iVar4 double-role is an SSA
+ *    artifact.
  *  - FUN_8002fd9c takes the Humanoid* (its own asm derefs $a0 at
  *    0x30/0x38/0x3C); passing cs->Owner ties the Owner temp to $a0.
  *  - hitf (a named flag for the ddc result compare) keeps the scc form
  *    slti/xori/bnez; an inline `if (... > 0x7ff)` compiles slti/beqz (short).
  */
 
-/* Critical-hit camera placements: 4 poses x 4 SVECTORs each. */
-extern SVECTOR D_80089F50[][4];
 /* Scratchpad work objects (0x1F800040 rotation SVECTOR, 0x1F800080 MATRIX
  * whose .t translation column sits at 0x1F800094). The STORES go through
  * these small extern symbols (assembler $at one-op macro + MEM_IN_STRUCT
@@ -108,11 +107,11 @@ void SetCameraMode(TCameraMode mode)
     s32 rx;
     s32 ry;
     TCameraStatus *cs;
-    SVECTOR (*tbl)[4];
+    TCameraPos *tbl;
     long *fp;
     VECTOR *pos;
     SVECTOR *rot;
-    SVECTOR *p;
+    TCameraPos *camera;
     VECTOR *pv;
     s32 n;
     s32 i;
@@ -124,13 +123,13 @@ void SetCameraMode(TCameraMode mode)
         CamState.OldMode = n % (MaxCriticalValiation + 1);
         i = 0;
         cs = &CamState;
-        tbl = D_80089F50;
+        tbl = CamPosCriticalHit;
         fp = &flag;
     loop:
         if (!(i < MaxCriticalValiation + 1)) goto giveup;
         cs->OldMode = cs->OldMode + 1;
         if (cs->OldMode > MaxCriticalValiation) cs->OldMode = 0;
-        p = (SVECTOR *)(cs->OldMode * 0x20 + (s32)tbl);
+        camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);
         pos = cs->Owner->locate;
         rot = cs->Owner->rotate;
         do {
@@ -146,10 +145,10 @@ void SetCameraMode(TCameraMode mode)
         SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
         SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
         do {
-            RotTrans(p, &va, fp);
-            RotTrans(p + 1, &vb, fp);
-            RotTrans(p + 2, pv = &vc, fp);
-            RotTrans(p + 3, pv = &vd, fp);
+            RotTrans(&camera->r1, &va, fp);
+            RotTrans(&camera->r2, &vb, fp);
+            RotTrans(&camera->p1, pv = &vc, fp);
+            RotTrans(&camera->p2, pv = &vd, fp);
         } while (0);
         pv = 0;
         hitf = FUN_80039ddc(&vc, &vd, 0, 0) > 0x7ff;
