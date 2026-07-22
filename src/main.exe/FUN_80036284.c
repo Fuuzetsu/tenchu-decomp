@@ -22,6 +22,9 @@ extern void AddXF4(void *ot, POLY_XF4 *ply);
 /*
  * STATUS: MATCH (exact).
  *
+ * The positional SetGore candidate is rejected: this function renders the
+ * retail-only full-screen FadeType, not a gore particle.
+ *
  * The three interpolated channels are ordinary byte-sized temporaries. Their
  * natural QImode pseudos give the target's caller-register conflicts; the old
  * mixed u32/u16/u32 draft created a false a0/a2 coloring problem.
@@ -37,7 +40,7 @@ extern void AddXF4(void *ot, POLY_XF4 *ply);
 
 void FUN_80036284(TEffectSlot *ef)
 {
-    XF4Type *param;
+    FadeType *fade;
     POLY_XF4 local;
     POLY_XF4 *ply;
     long elapsed;
@@ -47,7 +50,7 @@ void FUN_80036284(TEffectSlot *ef)
     u8 b;
     u8 mode;
 
-    param = &ef->param.xf4;
+    fade = &ef->param.fade;
     SetPolyXF4(&local, 1);
     local.ply.x0 = -0xA0;
     local.ply.y0 = -0x78;
@@ -58,43 +61,43 @@ void FUN_80036284(TEffectSlot *ef)
     local.ply.x3 = 0xA0;
     local.ply.y3 = 0x78;
 
-    mode = param->unk10;
-    elapsed = GameClock - param->py;
-    duration = param->pz - param->py;
+    mode = fade->mode;
+    elapsed = GameClock - fade->start_time;
+    duration = fade->end_time - fade->start_time;
     switch (mode)
     {
     case 0:
-        r = (elapsed * param->unk0) / duration;
-        g = (elapsed * param->unk1) / duration;
-        b = (elapsed * param->unk2) / duration;
+        r = (elapsed * fade->r) / duration;
+        g = (elapsed * fade->g) / duration;
+        b = (elapsed * fade->b) / duration;
         local.ply.r0 = r;
         local.ply.g0 = g;
         local.ply.b0 = b;
-        if ((u32)GameClock >= (u32)param->pz)
+        if ((u32)GameClock >= (u32)fade->end_time)
         {
-            param->unk10 = param->unk10 + 1;
-            param->pz = param->pz + 3;
+            fade->mode = fade->mode + 1;
+            fade->end_time = fade->end_time + 3;
         }
         break;
     case 1:
-        local.ply.r0 = param->unk0;
-        local.ply.g0 = param->unk1;
-        local.ply.b0 = param->unk2;
-        if ((u32)GameClock >= (u32)param->pz)
+        local.ply.r0 = fade->r;
+        local.ply.g0 = fade->g;
+        local.ply.b0 = fade->b;
+        if ((u32)GameClock >= (u32)fade->end_time)
         {
-            param->unk10 = param->unk10 + 1;
-            param->pz = param->pz + 0x28;
+            fade->mode = fade->mode + 1;
+            fade->end_time = fade->end_time + 0x28;
         }
         break;
     case 2:
-        if ((u32)GameClock >= (u32)param->pz)
+        if ((u32)GameClock >= (u32)fade->end_time)
         {
             ef->proc = 0;
             return;
         }
-        r = ((duration - elapsed) * param->unk0) / duration;
-        g = ((duration - elapsed) * param->unk1) / duration;
-        b = ((duration - elapsed) * param->unk2) / duration;
+        r = ((duration - elapsed) * fade->r) / duration;
+        g = ((duration - elapsed) * fade->g) / duration;
+        b = ((duration - elapsed) * fade->b) / duration;
         local.ply.r0 = r;
         local.ply.g0 = g;
         local.ply.b0 = b;
@@ -104,7 +107,7 @@ void FUN_80036284(TEffectSlot *ef)
     ply = (POLY_XF4 *)GsGetWorkBase();
     GsSetWorkBase(ply + 1);
     *ply = local;
-    AddXF4(OTablePt->org + param->px, ply);
+    AddXF4(OTablePt->org + fade->priority, ply);
 }
 
 // triage: MEDIUM — 182 insns, mul/div, 4 callees, ~0.07 to FUN_80038c0c

@@ -3,7 +3,7 @@
 
 /* EFFECT.C's effect-slot pool. PSX.SYM supplies the original effect records
  * and union members; retail redesigns and extends the impact record and adds
- * snow, flat-quad, and packed texture-scroll state. FlyWireType keeps the
+ * snow, screen-fade, and packed texture-scroll state. FlyWireType keeps the
  * union at its proven 72-byte size, making tag_EffectSlot's indexed pool
  * stride 76 bytes. */
 
@@ -16,7 +16,7 @@ typedef struct FrameType FrameType;
 typedef struct ExplosionType ExplosionType;
 typedef struct ExplosionType HinokoType;
 typedef struct GoreType GoreType;
-typedef struct XF4Type XF4Type;
+typedef struct FadeType FadeType;
 typedef struct SmokeType SmokeType;
 typedef struct ImpactType ImpactType;
 typedef struct SnowParticleType SnowParticleType;
@@ -189,26 +189,20 @@ struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
     u8 mode;        /* +0x44 */
 };
 
-/* Offsets proven by FUN_80038fdc (tools/access.py): +0/+1/+2 one-byte
- * fields, +0x4/+0x8/+0xc a long triple sharing BloodType's px/py/pz layout,
- * +0x10 one more byte. Distinct from BloodType at +0x0 (BloodType.hint is a
- * 4-byte pointer; here it's three separate 1-byte stores) — the "divergent
- * union member" case in docs/matching-cookbook.md. Tentatively named XF4:
- * FUN_80038fdc's `proc` callback (FUN_80036284) calls AddXF4/SetPolyXF4,
- * and reference/psxsym-unplaced.tsv has an un-located demo `DrawXF4`
- * (EFFECT.C:1785) — this family always pairs SetX/DrawX (SetBlood/
- * DrawBlood, SetSplash/DrawSplash, ...), so FUN_80038fdc/FUN_80036284 are
- * good SetXF4/DrawXF4 candidates. Not corroborated by callmatch.py yet —
- * do not treat the name as confirmed. */
-struct XF4Type /* size >= 0x11 */
+/* Retail-only full-screen fade state, proven jointly by FUN_80038fdc and its
+ * renderer FUN_80036284. The renderer interpolates r/g/b between start_time
+ * and end_time, advances mode through fade-in/hold/fade-out, and submits a
+ * screen-sized POLY_XF4 at `OTablePt->org + priority`. This is effect state,
+ * not PSX.SYM's standalone POLY_XF4 drawing helper. */
+struct FadeType /* size 20 */
 {
-    u8 unk0;   /* +0x0 */
-    u8 unk1;   /* +0x1 */
-    u8 unk2;   /* +0x2 */
-    long px;   /* +0x4 */
-    long py;   /* +0x8 */
-    long pz;   /* +0xc */
-    u8 unk10;  /* +0x10 */
+    u8 r;             /* +0x00 */
+    u8 g;             /* +0x01 */
+    u8 b;             /* +0x02 */
+    long priority;    /* +0x04 */
+    long start_time;  /* +0x08 */
+    long end_time;    /* +0x0C */
+    u8 mode;          /* +0x10 */
 };
 
 union EffectParam /* size 72 (union EFFECT__180fake) */
@@ -223,7 +217,7 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct SplashType splash;
     struct ImpactType impact;
     struct FrameType frame;
-    struct XF4Type xf4;
+    struct FadeType fade;
     struct SnowParticleType snow;
     struct TexScroll texscroll;
 };

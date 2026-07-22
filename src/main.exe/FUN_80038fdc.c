@@ -21,16 +21,15 @@
  * Called only by (still-asm) CVAupdate, which also drives SetBlood/
  * SetNowMotion/SoundEx/SetupTelop for the same cutscene-ish sequence.
  *
- * The struct written (effect.h's new XF4Type) is a DIFFERENT union member
- * than BloodType at offset 0 (three separate 1-byte stores, not BloodType's
- * 4-byte `hint` pointer) even though it shares BloodType's px/py/pz layout
- * at +4/+8/+0xc — see effect.h's XF4Type comment for the naming evidence
- * (FUN_80036284, this slot's `proc`, calls AddXF4/SetPolyXF4; pairs with
- * the unplaced demo `DrawXF4`, EFFECT.C:1785).
+ * The FadeType written here is a DIFFERENT union member than BloodType at
+ * offset 0: three separate color-byte stores, not BloodType's pointer. Its
+ * renderer uses +4 as an ordering-table priority and +8/+0xc as the fade's
+ * clock interval, so those fields must not inherit BloodType's position
+ * names.
  */
 extern void FUN_80036284(TEffectSlot *ef);
 
-void FUN_80038fdc(u8 arg0, u8 arg1, u8 arg2, long arg3)
+void FUN_80038fdc(u8 r, u8 g, u8 b, long priority)
 {
     long tmp;
     int idx;
@@ -38,7 +37,7 @@ void FUN_80038fdc(u8 arg0, u8 arg1, u8 arg2, long arg3)
     TEffectSlot *slot;
     int count;
     TEffectSlot *ef;
-    XF4Type *fp;
+    FadeType *fade;
 
     idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
     count = 0;
@@ -70,14 +69,14 @@ loop:
     }
     goto loop;
 found:
-    ef->param.xf4.unk0 = arg0;
-    fp = &ef->param.xf4;
-    fp->unk1 = arg1;
-    fp->unk2 = arg2;
-    fp->unk10 = 0;
+    ef->param.fade.r = r;
+    fade = &ef->param.fade;
+    fade->g = g;
+    fade->b = b;
+    fade->mode = 0;
     tmp = GameClock;
-    fp->px = arg3;
-    fp->py = tmp;
-    fp->pz = tmp + 5;
+    fade->priority = priority;
+    fade->start_time = tmp;
+    fade->end_time = tmp + 5;
     ef->proc = (void (*)())FUN_80036284;
 }
