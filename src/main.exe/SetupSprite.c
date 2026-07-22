@@ -35,7 +35,7 @@
  * constructor. Unlike CreateCloneModel/CreateCloneOrnament (which always
  * build a fresh zeroed instance and optionally copy just the `tmd` model
  * pointer), a non-null `orgsprt` here clones EVERY field verbatim via a
- * plain aggregate assignment (`*base = *orgsprt;` — the whole 0x8c-byte
+ * plain aggregate assignment (`*sprt = *orgsprt;` — the whole 0x8c-byte
  * struct, compiled as an inline word-at-a-time block copy, not a memcpy
  * call); only a NULL `orgsprt` takes the zero-init path (World-rooted
  * GsCOORDINATE2, zeroed translation + RotMatrixYXZ, default grey/full-scale
