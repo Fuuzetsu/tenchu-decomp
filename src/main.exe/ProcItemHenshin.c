@@ -48,12 +48,10 @@
  * down the previous disguise before installing a new one.
  *
  * Matching notes:
- *  - The retail snapshots are overlapping 12-byte records.  Their tmd/x/y
- *    fields are at +4/+8/+10 and z is the halfword at +12 (the first
- *    halfword of the next record).  Indexing `saved[i]` by the loop's own
- *    counter gives loop.c one UNBIASED induction pointer.  A hand-walked
- *    pointer is biased to record+12 and produces -8/-4/-2/0 offsets instead
- *    of the target's natural +4/+8/+10/+12 offsets.
+ *  - The retail snapshot begins with a four-byte archive-rotation header,
+ *    followed by ordinary 12-byte model-part records. Indexing the nested
+ *    `part` array by the loop's own counter gives loop.c one unbiased
+ *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
  *  - D_80097AEC and D_80097AF0 use volatile views only to preserve the
  *    original observable load/store sequence.  In particular, the restore
  *    path stores the current-disguise pointer before reloading item->owner,
@@ -70,8 +68,8 @@
 extern tag_TItem *volatile D_80097AEC;
 extern volatile u16 D_80097AF0;
 extern SVECTOR D_80097AF4[];
-extern u16 D_800C0630[];
-extern u16 D_800C06F0[];
+extern HenshinModelSnapshot D_800C0630;
+extern HenshinModelSnapshot D_800C06F0;
 
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void Sound(Humanoid *human, s32 sound);
@@ -93,20 +91,22 @@ void ProcItemHenshin(tag_TItem *item)
         if (item == D_80097AEC)
         {
             s32 i;
-            HenshinModelState *saved;
+            HenshinModelSnapshot *saved;
 
             i = 0;
-            mad->rotate.pad = D_800C0630[0];
-            saved = (HenshinModelState *)D_800C0630;
+            saved = &D_800C0630;
+            mad->rotate.pad = (s16)saved->rotate_pad;
             if (mad->n > 0)
             {
                 do
                 {
-                    mad->object[i]->object.tmd = saved[i].tmd;
-                    mad->object[i]->locate.coord.t[0] = saved[i].x;
-                    mad->object[i]->locate.coord.t[1] = saved[i].y;
+                    mad->object[i]->object.tmd = saved->part[i].tmd;
+                    mad->object[i]->locate.coord.t[0] =
+                        saved->part[i].position.vx;
+                    mad->object[i]->locate.coord.t[1] =
+                        saved->part[i].position.vy;
                     mad->object[i]->locate.coord.t[2] =
-                        *(s16 *)(saved + i + 1);
+                        saved->part[i].position.vz;
                     i++;
                 } while (i < mad->n);
             }
@@ -205,23 +205,25 @@ void ProcItemHenshin(tag_TItem *item)
     case 2:
     {
         s32 i;
-        HenshinModelState *saved;
+        HenshinModelSnapshot *saved;
         volatile tag_TItem *vitem;
         Humanoid *mode_owner;
         u16 itemID;
 
         i = 0;
-        mad->rotate.pad = D_800C06F0[0];
-        saved = (HenshinModelState *)D_800C06F0;
+        saved = &D_800C06F0;
+        mad->rotate.pad = (s16)saved->rotate_pad;
         if (mad->n > 0)
         {
             do
             {
-                mad->object[i]->object.tmd = saved[i].tmd;
-                mad->object[i]->locate.coord.t[0] = saved[i].x;
-                mad->object[i]->locate.coord.t[1] = saved[i].y;
+                mad->object[i]->object.tmd = saved->part[i].tmd;
+                mad->object[i]->locate.coord.t[0] =
+                    saved->part[i].position.vx;
+                mad->object[i]->locate.coord.t[1] =
+                    saved->part[i].position.vy;
                 mad->object[i]->locate.coord.t[2] =
-                    *(s16 *)(saved + i + 1);
+                    saved->part[i].position.vz;
                 i++;
             } while (i < mad->n);
         }

@@ -10,9 +10,8 @@
  * disguise logic consumed by ProcItemHenshin.
  *
  * Matching notes:
- *  - The two output buffers use ProcItemHenshin's overlapping 12-byte record
- *    layout: z is stored in the first halfword of the next record, while the
- *    initial word preserves the archive rotation padding.
+ *  - Each output buffer has a four-byte archive-rotation header followed by
+ *    ordinary 12-byte model-part snapshots (`tmd` plus `SVECTOR position`).
  *  - The two model-copy phases need separate block-scoped model, saved, and
  *    index locals. Reusing one set across both phases joins their pseudos,
  *    rotates the caller-saved registers, and fills three target load-delay
@@ -22,8 +21,8 @@
  */
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern Humanoid *NINKEN_CHARACTER_PTR;
-extern HenshinModelState D_800C0630[];
-extern HenshinModelState D_800C06F0[];
+extern HenshinModelSnapshot D_800C0630;
+extern HenshinModelSnapshot D_800C06F0;
 extern u8 D_8008E3EC[][2];
 
 extern Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r);
@@ -36,21 +35,23 @@ void create_ninken_character_(s16 type, s32 stage)
 
     {
         ModelArchiveType *model;
-        HenshinModelState *saved;
+        HenshinModelSnapshot *saved;
         s32 i;
 
         model = CURRENTLY_SELECTED_CHARACTER_STATE_PTR[0]->model;
         i = 0;
-        *(s32 *)D_800C0630 = model->rotate.pad;
-        saved = D_800C0630;
+        saved = &D_800C0630;
+        saved->rotate_pad = model->rotate.pad;
         if (model->n > 0)
         {
             do
             {
-                saved[i].tmd = model->object[i]->object.tmd;
-                saved[i].x = model->object[i]->locate.coord.t[0];
-                saved[i].y = model->object[i]->locate.coord.t[1];
-                *(s16 *)(saved + i + 1) =
+                saved->part[i].tmd = model->object[i]->object.tmd;
+                saved->part[i].position.vx =
+                    model->object[i]->locate.coord.t[0];
+                saved->part[i].position.vy =
+                    model->object[i]->locate.coord.t[1];
+                saved->part[i].position.vz =
                     model->object[i]->locate.coord.t[2];
                 i++;
             } while (i < model->n);
@@ -60,7 +61,7 @@ void create_ninken_character_(s16 type, s32 stage)
     {
         Humanoid *human;
         ModelArchiveType *model;
-        HenshinModelState *saved;
+        HenshinModelSnapshot *saved;
         s32 i;
         s32 flag;
 
@@ -69,16 +70,18 @@ void create_ninken_character_(s16 type, s32 stage)
                           999000, 999000, 999000, 0);
         model = human->model;
         i = 0;
-        *(s32 *)D_800C06F0 = model->rotate.pad;
-        saved = D_800C06F0;
+        saved = &D_800C06F0;
+        saved->rotate_pad = model->rotate.pad;
         if (model->n > 0)
         {
             do
             {
-                saved[i].tmd = model->object[i]->object.tmd;
-                saved[i].x = model->object[i]->locate.coord.t[0];
-                saved[i].y = model->object[i]->locate.coord.t[1];
-                *(s16 *)(saved + i + 1) =
+                saved->part[i].tmd = model->object[i]->object.tmd;
+                saved->part[i].position.vx =
+                    model->object[i]->locate.coord.t[0];
+                saved->part[i].position.vy =
+                    model->object[i]->locate.coord.t[1];
+                saved->part[i].position.vz =
                     model->object[i]->locate.coord.t[2];
                 i++;
             } while (i < model->n);
