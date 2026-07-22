@@ -25,6 +25,10 @@
  * Ghidra types them `undefined1`/`uchar` and only their low byte is ever
  * stored (`sb`) — trusting the raw access width over Ghidra's guess
  * (cookbook: "Ghidra can mistype a stack-passed parameter's width").
+ * Its three callers deliberately retain local declarations that reproduce
+ * their original default promotions; a shared ANSI prototype changes their
+ * argument normalization (notably Shinsoku's -30 rotate speed). Do not
+ * centralize those declarations without rematching both caller and callee.
  *
  * The two `lw $v1,N($sp)` in the tail are `start_color`/`end_color`
  * rematerialized from their REG_EQUIV incoming slots: register pressure

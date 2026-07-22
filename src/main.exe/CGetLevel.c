@@ -33,17 +33,13 @@
 /*
  * Matching notes (all verified against the original bytes):
  *  - `AreaNodeType` is CONFLICT.C's recovered
- *    `y/dy/x1/z1/x2/z2/attribute/division` layout. This EFFECT.C user keeps
- *    its own extern prototype spellings below where retail codegen requires
- *    them.
+ *    `y/dy/x1/z1/x2/z2/attribute/division` layout; GetAreaMapLevel uses the
+ *    shared original declaration in conflict.h.
  *  - `GlobalAreaMap` is typed `unsigned long *` here (matching THIS TU's
- *    own PSX.SYM global declaration), not `NodeIndexType *` the way
- *    GetAreaMapLevel.c's OWN parameter is typed — cookbook: "Original TUs
- *    routinely disagree with the defining TU's prototype — respell
- *    per-TU, don't fix the shared header." `GetAreaMapLevel`'s 5th
- *    parameter is declared `short` here (matching the raw asm's
- *    sign-extending `sll/sra` narrowing of the stack-passed `flag`), even
- *    though its own TU types it `u16` — same per-TU respelling.
+ *    own PSX.SYM global declaration) and agrees with GetAreaMapLevel's area
+ *    parameter. The `(short)flag` call expression deliberately narrows and
+ *    sign-extends `flag` before passing it through the shared `int mode` ABI,
+ *    matching the raw asm's `sll/sra` pair.
  *  - `x10`/`z10` get named locals (each used twice in the guard); `y/10`
  *    is written INLINE at both uses instead of through a matching named
  *    local — cc1 CSEs the repeated inline division into the target's

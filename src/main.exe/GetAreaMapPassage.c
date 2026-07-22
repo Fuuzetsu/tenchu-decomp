@@ -52,7 +52,7 @@
  *    makes the return-path `&cv` materialization match independently.
  *  - AreaNodeType and NodeIndexType use the recovered map layouts;
  *    FieldIndex[-1].y is the target's -0x10 halfword
- *    load. GetAreaMapLevel's fifth argument is the stack-passed u16 zero.
+ *    load. GetAreaMapLevel's fifth argument is the promoted `int` mode zero.
  */
 
 extern VECTOR cv;
