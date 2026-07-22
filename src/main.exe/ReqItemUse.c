@@ -376,7 +376,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             it->proc = 0;
 
         found_shuriken:
-            param = (param_launch *)it->param;
+            param = &it->param.launch;
             if (it == 0)
                 return 0;
             us = p->user;
@@ -987,7 +987,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         it->proc = 0;
 
     found_napalm:
-        pp = (param_napalm *)it->param;
+        pp = &it->param.napalm;
         if (it == 0)
             return 0;
         if ((GameClock & 1) == 0)
@@ -1006,7 +1006,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         UpdateCoordinate(it->locate);
         it->coll_size = 0;
         it->model = (ModelType *)sprNapalm;
-        ((param_napalm *)it->param)->vec.vx = p->end.vx - p->start.vx;
+        it->param.napalm.vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;
         pp->vec.vz = p->end.vz - p->start.vz;
         break;

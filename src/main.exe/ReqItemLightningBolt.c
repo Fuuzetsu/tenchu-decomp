@@ -46,8 +46,8 @@
  * processor.
  *
  * PSX.SYM identifies the payload as `param_lightningbolt`: start is stored
- * as three full words, with start.vx through a fresh `it->param` cast and
- * start.vy/start.vz through `pp`. There is no end-vector store — instead
+ * as three full words, with start.vx through `it->param.lightningbolt`
+ * directly and start.vy/start.vz through `pp`. There is no end-vector store — instead
  * GetVectorRotation(&p->start, &p->end, &rot.vx, &rot.vz) computes a rotation
  * from start/end into a LOCAL SVECTOR, of which only .vx/.vz are read back
  * (skipping .vy — the two out-arg stack slots are 4 bytes apart, matching
@@ -62,7 +62,7 @@
  *    (SVECTOR local + pp + it + p all live around the tail) again pushes
  *    `cur`/`it` to different hard registers, making the transfer a real
  *    `move` (see the cookbook rule this pair of functions taught).
- *  - `pp = (param_lightningbolt *)it->param;` sits BEFORE the null check, same
+ *  - `pp = &it->param.lightningbolt;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; dead afterward (p->start.vy/vz are re-read
@@ -127,7 +127,7 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    pp = (param_lightningbolt *)it->param;
+    pp = &it->param.lightningbolt;
     if (it == 0)
         return 0;
     us = p->user;
@@ -144,7 +144,7 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = (ModelType *)ItemImage[it->type];
-    ((param_lightningbolt *)it->param)->start.vx = p->start.vx;
+    it->param.lightningbolt.start.vx = p->start.vx;
     pp->start.vy = p->start.vy;
     pp->start.vz = p->start.vz;
     GetVectorRotation(&p->start, &p->end, &rot.vx, &rot.vz);

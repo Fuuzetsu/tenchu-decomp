@@ -48,13 +48,13 @@
  * hint/status/count tail.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_goshikimai *)it->param;` sits BEFORE the null check, same
+ *  - `pp = &it->param.goshikimai;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty are real temps, same as the other twins.
- *  - The vec.vx store re-casts `it->param` fresh (not `pp`), so its base is
- *    $s0+0x20; vec.vy/vec.vz go through `pp` ($s2).
+ *  - The vec.vx store uses `it->param.goshikimai` directly (not `pp`), so
+ *    its base is $s0+0x20; vec.vy/vec.vz go through `pp` ($s2).
  *  - All three stores are INLINE (no x/y/z temps): each is a single
  *    lhu-then-sh pair, interleaved in the asm (load, store, load, store,
  *    load, [store in the `return 1;` jump's delay slot]) — not the twins'
@@ -100,7 +100,7 @@ int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    pp = (param_goshikimai *)it->param;
+    pp = &it->param.goshikimai;
     if (it == 0)
         return 0;
     us = p->user;
@@ -117,7 +117,7 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = (ModelType *)ItemImage[it->type];
-    ((param_goshikimai *)it->param)->vec.vx = p->end.vx;
+    it->param.goshikimai.vec.vx = p->end.vx;
     pp->vec.vy = p->end.vy;
     pp->vec.vz = p->end.vz;
     return 1;

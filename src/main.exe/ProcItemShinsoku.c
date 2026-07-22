@@ -94,7 +94,7 @@ void ProcItemShinsoku(tag_TItem *item)
     VECTOR pos_storage;
     u8 launch_buf[sizeof(PARAM_ITEM_LAUNCH)];
 
-    param = (param_shinsoku *)item->param;
+    param = &item->param.shinsoku;
     ff = 0xff;
     if (item->mode == ff)
     {

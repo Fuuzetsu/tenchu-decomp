@@ -13,7 +13,7 @@
  * conventions: while(1)+break keeps the top test while loop.c hoists &buf,
  * &buf[0x10] and the %1000 magic divisor; the %10 magic stays inline; the
  * jitter is written `t[n] + (rand() % 1000 - K)` for fold's reassociation):
- *  - `param = (param_korogari *)item->param;` is declared before the entry
+ *  - `param = &item->param.drop;` is declared before the entry
  *    0xFF test — reorg hoists the addiu into that branch's delay slot.
  *  - `ff` (u8, 0xFF) is caller-saved ($a1) here, unlike Kusuri's $s4: its
  *    only uses are the entry compare and case 2's `item->mode = ff`, and no
@@ -67,7 +67,7 @@ void ProcItemKawarimi(tag_TItem *item)
     s32 i;
     u8 buf[0x20];
 
-    param = (param_drop *)item->param;
+    param = &item->param.drop;
     ff = 0xff;
     if (item->mode == ff)
     {

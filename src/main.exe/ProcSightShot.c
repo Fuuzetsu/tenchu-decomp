@@ -50,7 +50,7 @@
  * rotation, disposes the sight item, and launches the projectile.
  *
  * Matching notes:
- *  - `launch = (param_launch *)item->param` is formed in the entry mode-test
+ *  - `launch = &item->param.launch` is formed in the entry mode-test
  *    delay slot and kept in a0 until the aiming body.
  *    `ff` is s32 and therefore receives the target's long-lived s4.
  *  - The drop block and common disposal block deliberately precede the
@@ -94,7 +94,7 @@ void ProcSightShot(tag_TItem *item)
     SightRotation view_rot;
     Humanoid *human;
 
-    launch = (param_launch *)item->param;
+    launch = &item->param.launch;
     ff = 0xff;
     if (item->mode == ff)
     {

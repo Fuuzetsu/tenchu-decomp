@@ -51,13 +51,13 @@
  * derived type's byte-sized count field to 10.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = (param_smoke *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.smoke;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty and x/y/z are real temps, same shape as the other twins.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
- *    param) for this one store, same as the other twins.
+ *  - `it->param.smoke.koro.hint = 0;` uses the direct union path (not
+ *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemSmoke(tag_TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -102,7 +102,7 @@ int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_smoke *)it->param;
+    param = &it->param.smoke;
     if (it == 0)
         return 0;
     us = p->user;
@@ -125,7 +125,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.smoke.koro.hint = 0;
     param->koro.status = 0;
     param->count = 10;
     return 1;

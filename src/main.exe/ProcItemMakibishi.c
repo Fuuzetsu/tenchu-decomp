@@ -12,7 +12,7 @@
  *
  * Matching notes (see also ProcItemDrop.c for the item-TU/ConflictObject
  * conventions this shares):
- *  - `sprt = item->model; pp = (param_korogari *)item->param;` both sit
+ *  - `sprt = item->model; pp = &item->param.drop.koro;` both sit
  *    before the entry mode==0xff test (ProcItemDrop's double lever): sprt's
  *    load is sequential, pp's addiu fills the entry branch's delay slot.
  *  - The mode dispatch is a real switch (fresh reload distinct from the
@@ -90,7 +90,7 @@ void ProcItemMakibishi(tag_TItem *item)
     s32 n;
 
     sprt = (Sprite3D *)item->model;
-    pp = (param_korogari *)item->param;
+    pp = &item->param.drop.koro;
     ff = 0xff;
     if (item->mode == ff)
     {

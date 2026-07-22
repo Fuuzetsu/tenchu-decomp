@@ -51,13 +51,13 @@
  * clears eater, initializes count, then calls SetNowMotion on the user.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = (param_dokudango *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.dokudango;` sits BEFORE the null check, same
  *    lever as ReqItemDrop/ReqItemJirai (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as ReqItemDrop/ReqItemJirai.
  *  - us/ty and x/y/z are real temps, same shape as ReqItemDrop/ReqItemJirai.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
- *    param) for this one store, same as ReqItemDrop/ReqItemJirai.
+ *  - `it->param.dokudango.koro.hint = 0;` uses the direct union path (not
+ *    `param`) for this one store, same as ReqItemDrop/ReqItemJirai.
  *  - PSX.SYM supplies the koro/eater/org_think/count nesting and names. The
  *    retail executable accesses count as a halfword, widened from the demo's
  *    byte, so the retail declaration retains that one version difference.
@@ -106,7 +106,7 @@ int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_dokudango *)it->param;
+    param = &it->param.dokudango;
     if (it == 0)
         return 0;
     us = p->user;
@@ -129,7 +129,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.dokudango.koro.hint = 0;
     param->koro.status = 0;
     param->count = 10;
     param->eater = 0;

@@ -65,5 +65,5 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    ((param_gun *)it->param)->vec = p->end;
+    it->param.gun.vec = p->end;
 }

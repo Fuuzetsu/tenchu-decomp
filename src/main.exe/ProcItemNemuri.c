@@ -92,7 +92,7 @@ void ProcItemNemuri(tag_TItem *item)
     s32 rotate_count;
 
     sprt = (Sprite3D *)item->model;
-    param = (param_napalm *)item->param;
+    param = &item->param.napalm;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -182,7 +182,7 @@ void ProcItemNemuri(tag_TItem *item)
             env = 0x6e0000;
                         env |= 0x6e6e;
             item->locate->locate.coord.t[0] +=
-                ((param_napalm *)item->param)->vec.vx;
+                item->param.napalm.vec.vx;
             bleed_range = 300;
         }
         else
@@ -190,7 +190,7 @@ void ProcItemNemuri(tag_TItem *item)
             env = 0x6e0000;
                         env |= 0x6e6e;
             item->locate->locate.coord.t[0] +=
-                ((param_napalm *)item->param)->vec.vx;
+                item->param.napalm.vec.vx;
             bleed_range = 300;
         }
         bleed_n = 2;

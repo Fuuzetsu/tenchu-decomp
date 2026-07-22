@@ -57,14 +57,14 @@
  *    separate loop-cursor pseudo here — it stays in one register ($s0) for
  *    the whole function (lower register pressure at the loop/found-label
  *    join than those two, despite this function's bigger body overall).
- *  - `param = (param_ningyo *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.ningyo;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty and x/y/z (end vector, into param->koro.vx/vy/vz) are real temps, same
  *    shape as ReqItemDrop/ReqItemJirai/ReqItemDokudango.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
- *    param) for this one store, same as the other twins.
+ *  - `it->param.ningyo.koro.hint = 0;` uses the direct union path (not
+ *    `param`) for this one store, same as the other twins.
  *  - `rotate.vx = 0;` is scheduled into the FIRST `rand()` call's delay slot
  *    (it's independent of the call and textually precedes it — ordinary
  *    scheduler delay-slot filling, no special source shape needed).
@@ -130,7 +130,7 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_ningyo *)it->param;
+    param = &it->param.ningyo;
     if (it == 0)
         return 0;
     us = p->user;
@@ -153,7 +153,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.ningyo.koro.hint = 0;
     param->koro.status = 0;
     param->count = 0x5a;
     it->locate->rotate.vx = 0;

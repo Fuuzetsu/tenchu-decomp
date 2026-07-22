@@ -107,7 +107,7 @@ void ProcItemDrop(tag_TItem *item)
     u8 ic;
 
     sprt = (Sprite3D *)item->model;
-    param = (param_drop *)item->param;
+    param = &item->param.drop;
     if (item->mode == 0xff)
     {
         item->mode = 0;

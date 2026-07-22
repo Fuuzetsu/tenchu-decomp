@@ -53,7 +53,7 @@
  *    0/2/4. No hint/status/count writes occur here.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_napalm *)it->param;` sits BEFORE the null check, same
+ *  - `pp = &it->param.napalm;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
@@ -113,7 +113,7 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    pp = (param_napalm *)it->param;
+    pp = &it->param.napalm;
     if (it == 0)
         return 0;
     us = p->user;

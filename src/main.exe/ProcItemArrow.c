@@ -113,7 +113,7 @@ void ProcItemArrow(tag_TItem *item)
     ArrowRotation rot;
 
     objp = item->model;
-    param = (param_arrow *)item->param;
+    param = &item->param.arrow;
     ff = 0xff;
     mode_index = item->mode;
     if (mode_index == ff)

@@ -13,7 +13,7 @@
  *
  * Matching notes (see also ProcItemMakibishi.c for the item-TU/collision-box
  * conventions this shares):
- *  - `param = (param_lightningbolt *)item->param;` precedes the entry test,
+ *  - `param = &item->param.lightningbolt;` precedes the entry test,
  *    putting the pointer calculation in its delay slot. Its `start`, `rot`,
  *    and `count` members are the original PSX.SYM names.
  *  - The dispatch is a real switch over {0, 1, 2} (plus the entry's separate
@@ -89,7 +89,7 @@ void ProcItemLightningBolt(tag_TItem *item)
     u8 cnt;
     s32 n;
 
-    param = (param_lightningbolt *)item->param;
+    param = &item->param.lightningbolt;
     if (item->mode == 0xff)
     {
         item->mode = 0;
@@ -107,7 +107,7 @@ void ProcItemLightningBolt(tag_TItem *item)
         break;
 
     case 1:
-        SearchItemTarget2(item->owner, &((param_lightningbolt *)item->param)->rot,
+        SearchItemTarget2(item->owner, &item->param.lightningbolt.rot,
                           &param->start, &pos);
         item->locate->locate.coord.t[0] = pos.vx;
         item->locate->locate.coord.t[1] = pos.vy;

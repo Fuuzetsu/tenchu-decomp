@@ -67,7 +67,7 @@
  *    variable needed in source).
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemArrow/Launch (the
  *    stub-jump early-exit pattern confirmed in the raw .s).
- *  - `param = (param_launch *)it->param;` before the null check, same lever
+ *  - `param = &it->param.launch;` before the null check, same lever
  *    as every twin; reused for SetupFly and the two final member stores.
  *  - `st = &p->start;` sits in the SAME position as every twin (right after
  *    the direct `p->start.vx` read, before the st->vy/st->vz reads) and,
@@ -167,7 +167,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         it->proc = 0;
 
     found:
-        param = (param_launch *)it->param;
+        param = &it->param.launch;
         if (it == 0)
             return 0;
         us = p->user;

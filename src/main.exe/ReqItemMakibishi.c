@@ -66,7 +66,7 @@
  *    pointer source shape; it's just invisible there because lower register
  *    pressure lets global-alloc color both pseudos into the SAME hard reg
  *    (self-copy, 0 bytes) — see the cookbook rule this taught.
- *  - `param = (param_drop *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.drop;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; unlike them, `st` is READ AGAIN at the very end as
@@ -79,8 +79,8 @@
  *    `SoundEx(st, 0x22);` written as the last statement before `return 1;`.
  *  - us/ty and x/y/z (end vector) are real temps, same shape as
  *    ReqItemJirai/ReqItemDokudango.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
- *    param) for this one store, same as the other twins.
+ *  - `it->param.drop.koro.hint = 0;` uses the direct union path (not
+ *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemMakibishi(tag_TItem *item);
 extern s16 SoundEx(VECTOR *loc, short id);
@@ -131,7 +131,7 @@ int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_drop *)it->param;
+    param = &it->param.drop;
     if (it == 0)
         return 0;
     us = p->user;
@@ -154,7 +154,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.drop.koro.hint = 0;
     param->koro.status = 0;
     SoundEx(st, 0x22);
     return 1;

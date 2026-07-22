@@ -14,7 +14,7 @@
  * Matching notes (all verified against the original bytes; shares
  * ProcItemKawarimi's dispatch/dispose shape and ProcItemLightningBolt's
  * conflict-box insert block — same store order, `n = InsertConflict` as s32):
- *  - `param = (param_gun *)item->param;` + `ff = 0xff;` before the entry test:
+ *  - `param = &item->param.gun;` + `ff = 0xff;` before the entry test:
  *    param's addiu fills the entry branch's delay slot, and BOTH stay
  *    caller-saved here (param → $a1: its only use is GetVectorRotation's 2nd
  *    argument via `param->vec`, with no intervening call; ff → $v1, used by
@@ -93,7 +93,7 @@ void ProcItemGun(tag_TItem *item)
     SVECTOR vec;
     VECTOR target;
 
-    param = (param_gun *)item->param;
+    param = &item->param.gun;
     ff = 0xff;
     if (item->mode == ff)
     {

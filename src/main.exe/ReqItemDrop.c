@@ -52,7 +52,7 @@
  * processor and the toss velocity packed into param (param_korogari view).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = (param_drop *)it->param;` sits BEFORE the null check: its addiu
+ *  - `param = &it->param.drop;` sits BEFORE the null check: its addiu
  *    fills the beqz delay slot, and the longer live range demotes param's
  *    allocation priority so p keeps $s1 (after the check, param stole $s1 and the
  *    return-0 block folded away — 2 instructions short, which shifted every
@@ -110,7 +110,7 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_drop *)it->param;
+    param = &it->param.drop;
     if (it == 0)
         return 0;
     if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz, 0) < p->start.vy)
@@ -135,7 +135,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.drop.koro.hint = 0;
     param->koro.status = 0;
     return 1;
 }

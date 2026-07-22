@@ -80,11 +80,11 @@
  *    (the early-exit branch and right before the dispose block falls into
  *    `found:`) — the heavier tail (p/st/param all needing registers across
  *    SetupFly) raises pressure the same way ReqItemLaunch's does.
- *  - `param = (param_arrow *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.arrow;` sits BEFORE the null check, same
  *    delay-slot lever as every twin; reused unchanged for both
  *    SetupFly's 1st arg and the final `param->count = 5;` store (unlike
- *    ReqItemLaunch's analogous store, which needed a FRESH it->param cast
- *    for its own scheduling tie — here the cached param reproduces the
+ *    ReqItemLaunch's analogous store, which needed a FRESH direct
+ *    `it->param.launch` access for its own scheduling tie — here the cached param reproduces the
  *    target directly).
  *  - `us`/`ty` temps for owner/type, same shape as the other twins (loaded
  *    back-to-back, stored owner/proc/mode/type in that order).
@@ -159,7 +159,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_arrow *)it->param;
+    param = &it->param.arrow;
     if (it == 0)
         return 0;
     us = p->user;

@@ -83,7 +83,7 @@ void ProcItemDokudango(tag_TItem *item)
     param_dokudango *param;
 
     model = (Sprite3D *)item->model;
-    param = (param_dokudango *)item->param;
+    param = &item->param.dokudango;
     if (item->mode == 0xff)
     {
         param_dokudango *restore;
@@ -271,7 +271,7 @@ set_target:
             {
                 param_dokudango *restore;
 
-                restore = (param_dokudango *)item->param;
+                restore = &item->param.dokudango;
                 if (is_character_state_present_on_stage_(restore->eater) != 0 &&
                     restore->org_think != 0)
                 {
@@ -377,7 +377,7 @@ set_target:
                 param_dokudango *restore;
 
                 human = eater;
-                restore = (param_dokudango *)item->param;
+                restore = &item->param.dokudango;
                 if (is_character_state_present_on_stage_(restore->eater) != 0 &&
                     restore->org_think != 0)
                 {

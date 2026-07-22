@@ -87,7 +87,7 @@ void ProcItemKaengeki(tag_TItem *item)
     s32 ff;
     u8 mode_index;
 
-    param = (param_kaengeki *)item->param;
+    param = &item->param.kaengeki;
     ff = 0xff;
     mode_index = item->mode;
     if (mode_index == ff)

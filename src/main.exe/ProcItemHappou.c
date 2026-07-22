@@ -14,7 +14,7 @@
  *
  * Matching notes (see also ProcItemMakibishi.c for the collision-box
  * conventions, ProcItemManebue.c for the countdown idiom):
- *  - `model = HappouModel; param = (param_launch *)item->param;` are both
+ *  - `model = HappouModel; param = &item->param.launch;` are both
  *    computed before the entry mode==0xff test (model sequential, param's
  *    addiu fills the entry branch's delay slot).
  *  - The countdown is `t = param->count - 1;` (real `addiu -1`, sign-extended)
@@ -104,7 +104,7 @@ void ProcItemHappou(tag_TItem *item)
     s32 n;
 
     model = HappouModel;
-    param = (param_launch *)item->param;
+    param = &item->param.launch;
     if (item->mode == 0xff)
     {
         DisposeAfterimage(param->effect);

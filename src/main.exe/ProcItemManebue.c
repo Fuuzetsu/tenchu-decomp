@@ -32,7 +32,7 @@
  * (call its proc, drop the conflict, clear owner/proc).
  *
  * Matching notes (all verified against the original bytes):
- *  - `param = (param_drop *)item->param` mirrors the original PSX.SYM local
+ *  - `param = &item->param.drop` mirrors the original PSX.SYM local
  *    (it lives in $s1 across the calls); indexing off `item` directly doesn't
  *    allocate $s1.
  *  - The `zero` variable and the goto ladder reproduce the original dispatch:
@@ -51,7 +51,7 @@ void ProcItemManebue(tag_TItem *item)
     u8 cVar1;
     s32 zero;
 
-    param = (param_drop *)item->param;
+    param = &item->param.drop;
     zero = 0;
     if (item->mode == 0xff)
     {

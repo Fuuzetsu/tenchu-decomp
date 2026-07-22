@@ -80,7 +80,7 @@ void ProcItemNinken(tag_TItem *item)
     s32 one;
     ProcItemNinkenScratch scratch;
 
-    param = (param_ninken *)item->param;
+    param = &item->param.ninken;
     ff = 0xff;
     if (item->mode == ff)
     {

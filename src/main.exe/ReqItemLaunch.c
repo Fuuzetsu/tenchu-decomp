@@ -65,7 +65,7 @@
  *    loop/dispose block, `it = cur;` assigned once in the early-exit branch
  *    and once before the dispose block's final owner/proc zeroing (`st`
  *    surviving to the SetupFly call raises register pressure here too).
- *  - `param = (param_launch *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.launch;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; unlike most of them, `st` is READ AGAIN as
@@ -76,13 +76,13 @@
  *    SetupFly, same position as the other twins' coll_size/model pair
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
- *  - The `it->param + 0x28 = 0` byte store is written BEFORE the
+ *  - The `it->param.launch.fly.mode = 0` byte store is written BEFORE the
  *    SetupAfterimage call (textually) — its independence lets the scheduler
  *    drop it into the call's delay slot, same "trailing/preceding
  *    independent store steals the call's delay slot" mechanism as
  *    ReqItemNingyo's `rotate.vx = 0` before its first `rand()`. It MUST go
- *    through a fresh `it->param` cast, not `param`, even though it's the same
- *    address — same
+ *    through a fresh direct `it->param.launch` access, not `param`, even
+ *    though it's the same address — same
  *    "field relative to item->param routes through it, not param" lever the other
  *    twins use for `hint = 0`. Getting the base pointer wrong here didn't
  *    change the VALUE stored, only which base register carried it ($s2/param
@@ -143,7 +143,7 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_launch *)it->param;
+    param = &it->param.launch;
     if (it == 0)
         return 0;
     us = p->user;
@@ -161,7 +161,7 @@ found:
     it->coll_size = 0;
     it->model = SyurikenModel;
     SetupFly(&param->fly, st, &p->end, 0x400, 0x400, 0x12c);
-    ((param_launch *)it->param)->fly.mode = 0;
+    it->param.launch.fly.mode = 0;
     ai = SetupAfterimage(it->model, 10);
     param->effect = ai;
     ai->vector1.vx = 0x14;

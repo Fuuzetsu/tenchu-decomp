@@ -132,7 +132,7 @@ void ProcItemGosin(tag_TItem *item)
         NowReturnNormal(item->owner);
         SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, 0xB48C1E);
         item->owner->active_item = item->type;
-        *(u16 *)&((param_gosin *)item->param)->count = 0x1c2;
+        *(u16 *)&item->param.gosin.count = 0x1c2;
         item->mode = item->mode + 1;
         return;
     }
@@ -141,8 +141,8 @@ void ProcItemGosin(tag_TItem *item)
     {
         s16 c;
 
-        c = *(u16 *)&((param_gosin *)item->param)->count - 1;
-        *(u16 *)&((param_gosin *)item->param)->count = c;
+        c = *(u16 *)&item->param.gosin.count - 1;
+        *(u16 *)&item->param.gosin.count = c;
         if (c == 0)
         {
             if (item->proc == 0)

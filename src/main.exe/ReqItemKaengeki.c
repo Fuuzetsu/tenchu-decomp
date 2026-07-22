@@ -46,11 +46,11 @@
  * ProcItemKaengeki as its processor.
  *
  * This packs p->start and p->end into PSX.SYM's `param_kaengeki` as six full
- * words. start.vx is addressed through a fresh `it->param` cast; the other
- * fields use the already-computed `pp` pointer.
+ * words. start.vx is addressed through `it->param.kaengeki` directly; the
+ * other fields use the already-computed `pp` pointer.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_kaengeki *)it->param;` sits BEFORE the null check, so its
+ *  - `pp = &it->param.kaengeki;` sits BEFORE the null check, so its
  *    addiu fills the beqz delay slot.
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins; dead afterward (p->start.vy/vz are re-read
@@ -100,7 +100,7 @@ int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    pp = (param_kaengeki *)it->param;
+    pp = &it->param.kaengeki;
     if (it == 0)
         return 0;
     us = p->user;
@@ -117,7 +117,7 @@ found:
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
     it->model = (ModelType *)ItemImage[it->type];
-    ((param_kaengeki *)it->param)->start.vx = p->start.vx;
+    it->param.kaengeki.start.vx = p->start.vx;
     pp->start.vy = p->start.vy;
     pp->start.vz = p->start.vz;
     pp->end.vx = p->end.vx;

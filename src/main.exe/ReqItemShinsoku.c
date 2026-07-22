@@ -53,7 +53,7 @@
  *    — unlike the other twins, which return 1 on the normal path.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = (param_shinsoku *)it->param;` sits BEFORE the null check, same
+ *  - `pp = &it->param.shinsoku;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
@@ -104,7 +104,7 @@ int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    pp = (param_shinsoku *)it->param;
+    pp = &it->param.shinsoku;
     if (it == 0)
         return 0;
     us = p->user;

@@ -105,7 +105,7 @@ void ProcItemNingyo(tag_TItem *item)
     s32 ff;
     ProcItemNingyoScratch scratch;
 
-    param = (param_ningyo *)item->param;
+    param = &item->param.ningyo;
     ff = 0xff;
     if (item->mode == ff)
     {

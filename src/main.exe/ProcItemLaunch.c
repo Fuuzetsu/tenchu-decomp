@@ -99,7 +99,7 @@ void ProcItemLaunch(tag_TItem *item)
     PARAM_ITEM_LAUNCH rparam;
 
     model = item->model;
-    param = (param_launch *)item->param;
+    param = &item->param.launch;
     if (item->mode == 0xff)
     {
         DisposeAfterimage(param->effect);

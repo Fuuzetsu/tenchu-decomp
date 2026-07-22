@@ -94,7 +94,7 @@ void ProcItemNapalm(tag_TItem *item)
     s32 cid;
 
     sprt = (Sprite3D *)item->model;
-    param = (param_napalm *)item->param;
+    param = &item->param.napalm;
     ff = 0xff;
     if (item->mode == ff)
     {

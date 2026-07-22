@@ -12,7 +12,7 @@
  *
  * Matching notes (see also ProcItemKusuri.c/ReqItemGoshikimai.c for the
  * item-TU conventions):
- *  - `pp = (param_goshikimai *)item->param;` is the VERY FIRST statement
+ *  - `pp = &item->param.goshikimai;` is the VERY FIRST statement
  *    (before even the entry mode==0xff test): the addiu fills the entry
  *    branch's delay slot, same lever as ReqItemGoshikimai's `pp`.
  *  - `if (mode==ff)` (a plain if, separate statement) and the `switch
@@ -81,7 +81,7 @@ void ProcItemGoshikimai(tag_TItem *item)
     PARAM_ITEM_LAUNCH prm;
     u8 ff;
 
-    pp = (param_goshikimai *)item->param;
+    pp = &item->param.goshikimai;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -117,7 +117,7 @@ void ProcItemGoshikimai(tag_TItem *item)
         prm.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
         prm.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;
         prm.start.vz = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vz;
-        prm.end.vx = ((param_goshikimai *)item->param)->vec.vx;
+        prm.end.vx = item->param.goshikimai.vec.vx;
         prm.end.vy = pp->vec.vy;
         prm.end.vz = pp->vec.vz;
         NowReturnNormal(item->owner);

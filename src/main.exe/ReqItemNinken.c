@@ -54,14 +54,14 @@
  * fields of param_ninken, respectively.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = (param_ninken *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.ninken;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
  *  - us/ty and x/z are real temps, same shape as the other twins (no `y`
  *    temp here: end.vy is never read).
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
- *    param) for this one store, same as the other twins.
+ *  - `it->param.ninken.koro.hint = 0;` uses the direct union path (not
+ *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemNinken(tag_TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
@@ -106,7 +106,7 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_ninken *)it->param;
+    param = &it->param.ninken;
     if (it == 0)
         return 0;
     us = p->user;
@@ -128,7 +128,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = -0xfa;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.ninken.koro.hint = 0;
     param->koro.status = 0;
     param->slave = 0;
     param->count = 0xf;

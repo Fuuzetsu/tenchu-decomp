@@ -50,7 +50,7 @@
  * ReqItemDrop uses).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = (param_smoke *)it->param;` sits BEFORE the null check, same
+ *  - `param = &it->param.smoke;` sits BEFORE the null check, same
  *    lever as ReqItemDrop (addiu fills the beqz delay slot).
  *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as ReqItemDrop (vy/vz reads go through it; vx reads p directly).
@@ -58,8 +58,8 @@
  *    and p->type back-to-back before any of the owner/proc/mode/type stores.
  *  - x/y/z (end vector) ARE real temps: the asm batches three loads before
  *    three sh stores, matching ReqItemDrop's koro.vx/vy/vz shape exactly.
- *  - `((param_korogari *)it->param)->hint = 0;` re-casts it->param (not
- *    param) for this one store, same as ReqItemDrop.
+ *  - `it->param.smoke.koro.hint = 0;` uses the direct union path (not
+ *    `param`) for this one store, same as ReqItemDrop.
  */
 extern void ProcItemJirai(tag_TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
@@ -104,7 +104,7 @@ int ReqItemJirai(PARAM_ITEM_LAUNCH *p)
     it->proc = 0;
 
 found:
-    param = (param_smoke *)it->param;
+    param = &it->param.smoke;
     if (it == 0)
         return 0;
     us = p->user;
@@ -127,7 +127,7 @@ found:
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    ((param_korogari *)it->param)->hint = 0;
+    it->param.smoke.koro.hint = 0;
     param->koro.status = 0;
     return 1;
 }
