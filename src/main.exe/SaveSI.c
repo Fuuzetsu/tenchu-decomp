@@ -89,7 +89,6 @@ extern void AdtMessageBox(char *fmt, ...);
 
 void SaveSI(s32 target, u8 *name, void *mem, s32 size)
 {
-    enum { BLOCKSIZE = 8192 };
     s32 fd;
     char *msg;
     u8 fn[200];
