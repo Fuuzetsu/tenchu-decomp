@@ -80,16 +80,16 @@ extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern void vfree(void *p);
 extern int sprintf(char *buf, char *fmt, ...);
-extern short GetTIMpackInfo(u32 *adr, GsIMAGE *image, int idx);
+extern short GetTIMpackInfo(u_long *adr, GsIMAGE *image, int idx);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern void LoadTIMpackAndFree(u32 *adr);
+extern void LoadTIMpackAndFree(u_long *adr);
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void CVAsetup(void)
 {
     s16 i;
-    u32 *adr;
+    u_long *adr;
     Sprite3D *sprite;
     Sprite3D *reload;
     int letter;
@@ -105,7 +105,8 @@ void CVAsetup(void)
     {
         letter = 0x52;
     }
-    sprintf(name, D_80013624, STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
+    sprintf((char *)name, D_80013624,
+            STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
     CVAdata = (CVAType *)FileRead(name);
 
     SetPolyF4(&TelopbgP);
@@ -119,7 +120,7 @@ void CVAsetup(void)
 
     if (StageID == 10 && PSTATE->CharType == 0)
     {
-        adr = FileRead(D_80013634);
+        adr = FileRead((u8 *)D_80013634);
         for (i = 0; i < 6; i++)
         {
             GetTIMpackInfo(adr, &image, i);

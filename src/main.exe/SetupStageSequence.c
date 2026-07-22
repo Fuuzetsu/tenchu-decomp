@@ -65,13 +65,13 @@ extern char D_80012818[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\" */
 
 void SetupStageSequence(void)
 {
-    char buf[56];
+    u8 name[56];
 
     StagePlayer = HumanGroup[0];
     if (StageEvent != 0) {
         vfree(StageEvent);
     }
-    sprintf(buf, D_80012808, D_80012818, StageID + 1);
-    StageEvent = FileRead(buf);
+    sprintf((char *)name, D_80012808, D_80012818, StageID + 1);
+    StageEvent = FileRead(name);
     StartStageSequence();
 }

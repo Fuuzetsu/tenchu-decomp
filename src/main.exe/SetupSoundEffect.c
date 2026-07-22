@@ -65,7 +65,7 @@ extern char D_8001359C[]; /* "%sSTAGE%d%c.VAB" */
 
 void SetupSoundEffect(short mode, short stage)
 {
-    char buf[104];
+    u8 name[104];
 
     if (StageSE != 0)
     {
@@ -74,8 +74,9 @@ void SetupSoundEffect(short mode, short stage)
     StageSE = 0;
     if (stage >= 0)
     {
-        sprintf(buf, D_8001359C, STAGE_SOUND_PREFICES[CHOSEN_LANGUAGE], stage,
+        sprintf((char *)name, D_8001359C,
+                STAGE_SOUND_PREFICES[CHOSEN_LANGUAGE], stage,
                 mode == 0 ? 0x52 : 0x41);
-        StageSE = SetupSE((u8 *)FileRead(buf));
+        StageSE = SetupSE((u8 *)FileRead(name));
     }
 }

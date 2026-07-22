@@ -42,7 +42,7 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_8001113C[];
 
-void *LoadFromMEMORY(u8 *filename)
+u_long *LoadFromMEMORY(u8 *filename)
 {
     AdtMessageBox(D_8001113C);
     return 0;
