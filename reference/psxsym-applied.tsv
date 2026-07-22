@@ -18,6 +18,7 @@
 8002fa54	think_setting_go_towards_player	Think2contact	symmatch+semantic	adjacent to Think2confirm; matching contact-facing behavior
 8003250c	FUN_8003250c	DrawTargetS	symmatch	HIGH/EFFECT.C
 80032610	FUN_80032610	UpdateTexScroll	callmatch	4 shared callees
+80032720	FUN_80032720	SetupTexScroll	producer-consumer+semantic	same TexScroll initialization and 2x2 MoveImage loop; retail allocates an EffectSlot and deletes time/count
 800339d0	FUN_800339d0	SetSmokeS	symmatch	MED/EFFECT.C
 80033f10	FUN_80033f10	DrawImpact	paired-setter+semantic	demo/retail SetImpact install this callback; retail consumes its impact parameters
 80038d10	FUN_80038d10	DrawXG4	xbuild+adjacency	identical wrapper; position in AddXG4/SetPolyXG4 family

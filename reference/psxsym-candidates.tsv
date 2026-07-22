@@ -6,7 +6,6 @@
 #addr	current	candidate	source	confidence	tu	retail_size	demo_size
 800188d8	LoadTIMpackAndFree	ViewAdjustBG	symmatch	LOW	3DCTRL.C	44	60
 8002b990	turn_towards_player_	GotoPosition	symmatch	LOW	THINK.C	480	188
-80032720	FUN_80032720	SetPadState	symmatch	LOW	EFFECT.C	560	392
 80035f44	FUN_80035f44	DrawGore	symmatch	LOW	EFFECT.C	832	640
 80036284	FUN_80036284	SetGore	symmatch	LOW	EFFECT.C	728	160
 8003d768	FUN_8003d768	RequestItem	symmatch	LOW	ITEM.C	672	204

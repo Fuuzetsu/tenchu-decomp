@@ -846,7 +846,7 @@ judgment:
   `MoveImage` as returning `int`; spelling it `void` emits the same call but
   leaves v0 available to a preceding multiply result. The correct prototype
   made that result use retail's t0 and closed the final 2 bytes of
-  `FUN_80032720`. Audit the full prototype even when no C expression consumes
+  `SetupTexScroll`. Audit the full prototype even when no C expression consumes
   the result.
 - **A conditional value used ONLY as a call argument is an inline ternary** in
   the argument position — a preceding if/else blocks sched1 from interleaving
@@ -942,7 +942,7 @@ bytes.
 - **The three-phase rule**: params → declared locals → reload spills (pseudo
   order). A declared local can never sit above a reload spill; target layouts
   with spilled params at the lowest slots are all-reload, unreachable by any
-  volatile/declared local (FUN_80032720's header). A pre-loop `sll r,x,16` with
+  volatile/declared local (SetupTexScroll's header). A pre-loop `sll r,x,16` with
   `sw` of the shifted value + in-loop `lw`/`sra` is ONE sign-extension split by
   a spill — and the live shifted value is itself what forces the spill.
   Rotating t0–t3 reloads at use sites = plain spilled locals in DECLARATION

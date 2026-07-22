@@ -35,14 +35,14 @@
  * Matching notes:
  *  - The demo accepted a standalone TexScroll pointer. Retail installs this
  *    routine as an EffectSlot callback instead and embeds a shortened record
- *    without the demo's time/count fields. FUN_80032720 is the matching typed
+ *    without the demo's time/count fields. SetupTexScroll is the matching typed
  *    producer.
  *  - `tscr->x`/`tscr->image.w` are DIFFERENT fields at DIFFERENT offsets
  *    (0xC vs 0x18) even though both read as the divisor's/SetDrawMove's
  *    "width" — Ghidra's `param_1 + 0x18` (div) and `param_1 + 0xc`
  *    (SetDrawMove's w arg) are genuinely separate struct members, not the
  *    same field twice; `image` is a real embedded RECT{x,y,w,h} whose w/h
- *    (0x18/0x1A in the composite slot) are set by FUN_80032720 to the scroll
+ *    (0x18/0x1A in the composite slot) are set by SetupTexScroll to the scroll
  *    region's extent and reused here as the wrap divisor; this routine only
  *    changes image.x/image.y.
  *  - The `(uint)(...) % divisor` cast is load-bearing: the divisor and sum

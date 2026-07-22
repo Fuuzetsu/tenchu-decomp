@@ -258,7 +258,7 @@ GP_EXTERNS = {
     "Think4abandon": ["Me_THINK_C", "Attrib", "SR", "FRAMES_UNTIL_END_OF_ALERT"],
     "WeaponHitWeapon": ["Me_MOTION_C", "dtM"],
     "DrawModelArchive": ["SkipFrame", "OTablePt"],
-    "FUN_80032720": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_", "D_80097F30", "D_80097F32"],
+    "SetupTexScroll": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_", "D_80097F30", "D_80097F32"],
     "PlaySE": ["voice"],
     "SetBleedsDir": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "FUN_80037e0c": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],

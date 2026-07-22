@@ -387,7 +387,7 @@ segments:
       - [0x21984, c, InitEffect]
       - [0x21D0C, c, DrawTargetS]
       - [0x21E10, c, UpdateTexScroll]
-      - [0x21F20, c, FUN_80032720]
+      - [0x21F20, c, SetupTexScroll]
       - [0x22150, c, DrawBlood]
       - [0x229C0, c, SetBlood]
       - [0x22CC4, c, DrawSmoke]

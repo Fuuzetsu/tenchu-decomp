@@ -105,7 +105,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 - **Frame slots are assigned in THREE phases**: `assign_parms` (addressable
   params) → `expand_decl` (declared locals) → reload's `alter_reg` (spilled
   pseudos, in pseudo-number order). A declared local can never sit above a reload
-  spill (`FUN_80032720`'s exact source confirms y/z at the first two reload
+  spill (`SetupTexScroll`'s exact source confirms vx/vy at the first two reload
   slots and its shifted-scroll pseudo at the third).
 - **`assign_stack_local` assigns slots in declaration order**, ascending from the
   outgoing-arg boundary, each BLKmode local rounded up to 8 bytes — slot order is

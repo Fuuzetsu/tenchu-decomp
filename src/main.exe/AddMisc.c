@@ -41,7 +41,7 @@
  * a free slot (proc == 0), fills in position + the three init params, then
  * dispatches on `type` to install the processor and kick it once with
  * MM_CREATE (0). type 5 doesn't allocate anything: it loads one of seven
- * water/warp TIMs (name picked by x) and uploads it via FUN_80032720.
+ * water/warp TIMs (name picked by x) and uploads it via SetupTexScroll.
  *
  * First jump-table switch in a scan loop; the table links from this TU's
  * .rodata at the original 0x800127E8 (splat carve [0x1FE8, .rodata, AddMisc],
@@ -101,7 +101,7 @@ extern void ProcMiscSnowfall(TMisc *m, TMiscMessage msg);
 extern void ProcMiscSprite(TMisc *m, TMiscMessage msg);
 extern void FUN_8004c350(TMisc *m, TMiscMessage msg);
 extern void FUN_8004c59c(TMisc *m, TMiscMessage msg);
-extern void FUN_80032720(GsIMAGE *im, short y, short z);
+extern void SetupTexScroll(GsIMAGE *im, short vx, short vy);
 extern void AdtMessageBox(char *fmt, ...);
 
 void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
@@ -155,7 +155,7 @@ loop:
                 adr = PathFileRead(D_800127A4, tp->n[x]);
                 GetTIMInfo(adr, ptm);
                 LoadTIMAndFree(adr);
-                FUN_80032720(ptm, y, z);
+                SetupTexScroll(ptm, y, z);
                 return;
             case 6:
                 p->proc = FUN_8004c350;
