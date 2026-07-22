@@ -62,8 +62,8 @@
  *
  * Keeping each arm's own ItemID/spr scope and GsSortSprite call is also
  * intentional: jump2 merges the final calls while retaining the target's
- * branch-local ItemImage address producers; shared `x -= 20` fills the merged
- * call's delay slot.
+ * branch-local ItemImage address producers; shared `x = x - ItemGap` fills
+ * the merged call's delay slot.
  */
 extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
