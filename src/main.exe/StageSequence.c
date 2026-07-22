@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "score.h"
+#include "stage.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -71,8 +72,6 @@
  *    them through a shared base.
  */
 
-extern EventSeqType *D_80097F78[2];
-extern Humanoid *D_80097F80[2];
 extern volatile s32 StageTime;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern u8 STAGE_LAYOUT_NUMBER;
@@ -107,11 +106,11 @@ s32 StageSequence(void)
         {
             return 0;
         }
-        if (D_80097F78[0] != 0)
+        if (Event[0] != 0)
         {
             goto active_events;
         }
-        if (D_80097F78[1] != 0)
+        if (Event[1] != 0)
         {
             goto active_events;
         }
@@ -135,8 +134,8 @@ active_events:
             return -1;
         }
         StageTime = -100;
-        D_80097F78[1] = 0;
-        D_80097F78[0] = 0;
+        Event[1] = 0;
+        Event[0] = 0;
         if (CamState.Mode != CMODE_FALL)
         {
             SetCameraMode(CMODE_CRITICAL_HIT);
@@ -153,13 +152,13 @@ active_events:
         FntPrint(D_80012840, Findenemies, Murders, Criticals,
                  StageEnemies, StageBosses);
         FntPrint(D_80097C7C, FriendHits, StageCitizens);
-        if (D_80097F78[0] != 0)
+        if (Event[0] != 0)
         {
-            FntPrint(D_80097C84, D_80097F78[0]->id);
+            FntPrint(D_80097C84, Event[0]->id);
         }
-        if (D_80097F78[1] != 0)
+        if (Event[1] != 0)
         {
-            FntPrint(D_80097C84, D_80097F78[1]->id);
+            FntPrint(D_80097C84, Event[1]->id);
         }
         FntPrint(D_80097C8C);
     }
@@ -167,7 +166,7 @@ active_events:
     StageTime++;
     for (i = 0; i < 2; i++)
     {
-        ev = D_80097F78[i];
+        ev = Event[i];
         if (ev == 0)
         {
             continue;
@@ -177,7 +176,7 @@ active_events:
             continue;
         }
 
-        tgt = D_80097F80[i];
+        tgt = eTarget[i];
         switch (ev->mode)
         {
         case 0:
@@ -294,7 +293,7 @@ active_events:
                     goto run_event;
                 }
             }
-            D_80097F78[i] = 0;
+            Event[i] = 0;
             continue;
 
 run_event:

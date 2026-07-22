@@ -37,12 +37,13 @@
  * UpdateEvent (0x8004e624, 0x170 bytes) — searches `StageEvent[]` (a
  * proven `EventSeqType[]`, item.h/reference/psxsym-types.h, stride 0x14)
  * for the entry matching `id`, resolving sequence slot `n`'s cached found
- * entry (`D_80097F78[n]`) and its target `Humanoid *` (`D_80097F80[n]`) —
+ * entry (`Event[n]`) and its target `Humanoid *` (`eTarget[n]`) —
  * both plain arrays (word-sized elements: pointer/pointer), indexed by the
  * short parameter `n` via the ordinary 2-instruction sign-extend+scale
- * (`sll 16`/`sra 14` = `*4`), ABSOLUTE in this TU (STAGE.C defines them —
- * SetupStageSequence.c, same TU, already lists them gp-relative for ITS
- * OWN references; per-TU gp-vs-absolute, not a symbol property).
+ * (`sll 16`/`sra 14` = `*4`), ABSOLUTE in this reconstructed TU.
+ * StartStageSequence.c and StageSequence.c need gp-relative views for their
+ * own references; gp-vs-absolute is a per-object codegen choice, not a
+ * property of the shared symbol.
  *
  * `StageEvent[i].id/.event/.next1/.next2` (the first 4 packed `u8` fields)
  * are read and compared to -1 as ONE `s32` — a `0xFFFFFFFF` terminator
@@ -55,13 +56,13 @@
  * goto clear;`) bypasses the `id`/`life` check entirely when true — but
  * the `id`/`life` check itself is NOT a single nested
  * `if (range) { if (life>0) return; }` (that shape falls through to the
- * shared `D_80097F78[n]=0;` clear whenever `range` is false, clearing state
+ * shared `Event[n]=0;` clear whenever `range` is false, clearing state
  * the target actually PRESERVES): the raw asm's range test branches
  * STRAIGHT to the epilogue on failure, bypassing the clear entirely. It's
  * TWO independent early returns: `if (!range) return; if (life>0)
  * return;` — a real behavioral difference from the nested-if reading, not
  * just a scheduling artifact (verified: the nested-if draft clears
- * `D_80097F78[n]` on out-of-range `id`, the target does not).
+ * `Event[n]` on out-of-range `id`, the target does not).
  * `h->motion->loop` is item.h's `MotionManager.loop` @0x4 (a different
  * struct than Ghidra's raw `*(int*)+0x5c` pointer-then-offset-4 rendering
  * suggests by name).
@@ -83,10 +84,6 @@
  *    reload and its load-delay `nop` instead of CSE-reusing the earlier
  *    Humanoid pointer.
  */
-extern EventSeqType *D_80097F78[];
-extern Humanoid *D_80097F80[];
-
-
 void UpdateEvent(short n, short id)
 {
     EventSeqType *ev;
@@ -94,7 +91,7 @@ void UpdateEvent(short n, short id)
     short i;
 
     offset = (s16)n * 4;
-    *(EventSeqType **)(offset + (s32)D_80097F78) = 0;
+    *(EventSeqType **)(offset + (s32)Event) = 0;
     if (id == 0xFF)
         return;
     i = 0;
@@ -106,30 +103,30 @@ void UpdateEvent(short n, short id)
         ev = (EventSeqType *)(i * 20 + (s32)StageEvent);
         if (ev->id == id)
         {
-            D_80097F78[n] = ev;
+            Event[n] = ev;
             if (ev->target == 0xFF)
             {
-                D_80097F80[n] = StagePlayer;
+                eTarget[n] = StagePlayer;
             }
             else
             {
-                D_80097F80[n] = GetHumanoid(ev->target);
+                eTarget[n] = GetHumanoid(ev->target);
             }
-            if (D_80097F80[n] != 0)
+            if (eTarget[n] != 0)
             {
-                if (!(D_80097F80[n]->status == 0x11 && D_80097F80[n]->motion->loop == -1))
+                if (!(eTarget[n]->status == 0x11 && eTarget[n]->motion->loop == -1))
                 {
                     if (!((u16)(id - 2) < 2))
                     {
                         return;
                     }
-                    if ((*(Humanoid *volatile *)&D_80097F80[n])->life > 0)
+                    if ((*(Humanoid *volatile *)&eTarget[n])->life > 0)
                     {
                         return;
                     }
                 }
             }
-            D_80097F78[n] = 0;
+            Event[n] = 0;
             return;
         }
         i = i + 1;
