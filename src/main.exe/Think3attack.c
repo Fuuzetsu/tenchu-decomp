@@ -63,7 +63,7 @@ s16 Think3attack(void)
     s16 idx;
 
     pad = 0;
-    idx = (s16)Me_THINK_C->weapon_kind >> 4;
+    idx = Me_THINK_C->wpatk >> 4;
 
     if (Me_THINK_C->status == 7)
     {

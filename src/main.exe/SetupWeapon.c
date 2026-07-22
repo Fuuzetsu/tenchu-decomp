@@ -57,27 +57,27 @@ void SetupWeapon(Humanoid *human)
         i++;
     }
     weapon_kind = HumanData[i].wepid;
-    human->weapon_kind = weapon_kind;
+    human->wpatk = weapon_kind;
 
     switch (weapon_kind)
     {
     case 1:
     case 2:
-        GetWeaponData(human, 0, *(s16 *)&human->weapon_kind, 1, -1);
+        GetWeaponData(human, 0, human->wpatk, 1, -1);
     case 3:
-        GetWeaponData(human, 0, *(s16 *)&human->weapon_kind, 0, -1);
+        GetWeaponData(human, 0, human->wpatk, 0, -1);
         break;
     case 5:
     case 7:
-        GetWeaponData(human, 0, human->weapon_kind + 1, -1, 0);
+        GetWeaponData(human, 0, human->wpatk + 1, -1, 0);
     case 4:
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 2);
-        GetWeaponData(human, 0xe, *(s16 *)&human->weapon_kind, 1, 3);
+        GetWeaponData(human, 0xd, human->wpatk, 0, 2);
+        GetWeaponData(human, 0xe, human->wpatk, 1, 3);
         break;
     case 10:
     case 0x20:
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 0);
-        GetWeaponData(human, 0xe, human->weapon_kind + 1, 1, 1);
+        GetWeaponData(human, 0xd, human->wpatk, 0, 0);
+        GetWeaponData(human, 0xe, human->wpatk + 1, 1, 1);
         break;
     case 0x12:
         GetWeaponData(human, 0xe, 1, 1, -1);
@@ -92,7 +92,7 @@ void SetupWeapon(Humanoid *human)
     case 0x27:
     case 0x28:
     case 0x29:
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 0);
+        GetWeaponData(human, 0xd, human->wpatk, 0, 0);
         break;
     case 0x14:
         GetWeaponData(human, 0xd, 0x14, 0, 2);
@@ -106,8 +106,8 @@ void SetupWeapon(Humanoid *human)
     case 0x16:
     case 0x19:
     case 0x1c:
-        GetWeaponData(human, 0, human->weapon_kind + 1, -1, 1);
-        GetWeaponData(human, 0, human->weapon_kind + 2, -1, 0);
+        GetWeaponData(human, 0, human->wpatk + 1, -1, 1);
+        GetWeaponData(human, 0, human->wpatk + 2, -1, 0);
         human->weapon[0]->locate.coord.t[0] = human->width / 3;
         human->weapon[0]->locate.coord.t[1] = 0;
         human->weapon[0]->locate.coord.t[2] = 0;
@@ -116,7 +116,7 @@ void SetupWeapon(Humanoid *human)
         human->weapon[1]->locate.coord.t[2] = 0;
     case 0xc:
     case 0x13:
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, 0, 2);
+        GetWeaponData(human, 0xd, human->wpatk, 0, 2);
         break;
     case 0x1f:
         GetWeaponData(human, 0xd, 0x1f, 0, 2);
@@ -125,14 +125,14 @@ void SetupWeapon(Humanoid *human)
         break;
     case 0x30:
     case 0x31:
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind, -1, 0);
+        GetWeaponData(human, 0xd, human->wpatk, -1, 0);
         break;
     case 0x32:
     case 0x35:
-        GetWeaponData(human, 0xd, *(s16 *)&human->weapon_kind,
-                      *(s16 *)&human->weapon_kind == 0x35 ? 0 : -1, 0);
-        GetWeaponData(human, 1, human->weapon_kind + 2, -1, 1);
-        GetWeaponData(human, 0xe, human->weapon_kind + 1, -1, 2);
+        GetWeaponData(human, 0xd, human->wpatk,
+                      human->wpatk == 0x35 ? 0 : -1, 0);
+        GetWeaponData(human, 1, human->wpatk + 2, -1, 1);
+        GetWeaponData(human, 0xe, human->wpatk + 1, -1, 2);
         break;
     default:
         return;

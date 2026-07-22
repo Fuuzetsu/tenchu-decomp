@@ -30,7 +30,7 @@
 /*
  * AttackContinuousCheck (0x8001f180, 0x1A4 bytes) — gate a continuous-attack
  * follow-up by the current motion frame against BattleDB's per-move window
- * [contfrm-3, contfrm+3], then run the exact same weapon_kind-dispatched
+ * [contfrm-3, contfrm+3], then run the exact same wpatk-dispatched
  * conflict-volume cleanup + afterimage drop as AttackCancelControl (same
  * switch shape, same field offsets) before returning 1.
  *
@@ -47,8 +47,8 @@
  *    Ghidra's own decompilation (which DOES prove it dead and renders a
  *    bare `return 1;`) hides.
  *  - `Me_MOTION_C->pad.time = 0;` must be written BEFORE `wk = (s16)
- *    Me_MOTION_C->weapon_kind;`, not after (Ghidra's own literal order).
- *    An intervening STORE between the weapon_kind load and its first use
+ *    Me_MOTION_C->wpatk;`, not after (Ghidra's own literal order).
+ *    An intervening STORE between the wpatk load and its first use
  *    (the switch dispatch) blocks combine from fusing the `lhu` + sign-
  *    extend pair into a single `lh` — reordering the two statements (the
  *    store first) keeps the load adjacent to its use and recovers the
@@ -71,7 +71,7 @@ s16 AttackContinuousCheck(BattleType *battle)
         return 0;
     }
     Me_MOTION_C->pad.time = 0;
-    wk = (s16)Me_MOTION_C->weapon_kind;
+    wk = Me_MOTION_C->wpatk;
     switch (wk)
     {
     case 2:

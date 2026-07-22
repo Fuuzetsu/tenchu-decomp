@@ -309,7 +309,7 @@ LAB_80021edc:
   case 1: {
     OrnamentType **weapon;
 
-    sVar8 = Me_MOTION_C->weapon_kind;
+    sVar8 = Me_MOTION_C->wpatk;
     if (sVar8 == 0x2a) {
       weapon = Me_MOTION_C->weapon;
       if (dtM->count == 0x34) {
@@ -351,10 +351,10 @@ LAB_80021edc:
     break;
   }
   case 4:
-    if ((s16)Me_MOTION_C->weapon_kind == 0x29) {
+    if (Me_MOTION_C->wpatk == 0x29) {
       handle_char_state_attacking_SEVEN_(0xd);
     }
-    else if ((s16)Me_MOTION_C->weapon_kind == 0x35) {
+    else if (Me_MOTION_C->wpatk == 0x35) {
       AttackBowControl(1);
     }
     if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
@@ -374,14 +374,14 @@ LAB_80021edc:
     }
     break;
   case 5:
-    if ((s16)Me_MOTION_C->weapon_kind == 0x29) {
+    if (Me_MOTION_C->wpatk == 0x29) {
       handle_char_state_attacking_SEVEN_(0xd);
     }
     break;
   case 6: {
     OrnamentType **weapon;
 
-    if ((s16)Me_MOTION_C->weapon_kind == 0x2a) {
+    if (Me_MOTION_C->wpatk == 0x2a) {
       weapon = Me_MOTION_C->weapon;
       if (dtM->count == 0x34) {
         if (weapon[3] != (OrnamentType *)0x0) {
@@ -426,7 +426,7 @@ LAB_80021edc:
   case 9: {
     OrnamentType **weapon;
 
-    if ((s16)Me_MOTION_C->weapon_kind == 0x2a) {
+    if (Me_MOTION_C->wpatk == 0x2a) {
       weapon = Me_MOTION_C->weapon;
       if (dtM->count == 0x2b) {
         if (weapon[3] != (OrnamentType *)0x0) {
@@ -532,7 +532,7 @@ LAB_80022780:
       short cleanup_guard;
       short kind;
 
-      kind = Me_MOTION_C->weapon_kind;
+      kind = Me_MOTION_C->wpatk;
       switch (kind) {
       case 2:
         DeleteConflict(Me_MOTION_C->model->object[8]);
@@ -577,7 +577,7 @@ LAB_80022780:
       dtM->loop = 0;
     }
     if ((dtM->count == 0) && (dtM->loop != 0)) {
-      kind = Me_MOTION_C->weapon_kind;
+      kind = Me_MOTION_C->wpatk;
       switch (kind) {
       case 2:
         DeleteConflict(Me_MOTION_C->model->object[8]);
@@ -698,7 +698,7 @@ switchD_80021f18_caseD_2:
     short i;
 
     saved_mid = motID;
-    kind = Me_MOTION_C->weapon_kind;
+    kind = Me_MOTION_C->wpatk;
     switch (kind) {
     case 2:
       DeleteConflict(Me_MOTION_C->model->object[8]);
@@ -760,7 +760,7 @@ LAB_8002315c:
       return;
     }
     ppMVar16 = Me_MOTION_C->model->object;
-    hand_kind = (s16)Me_MOTION_C->weapon_kind;
+    hand_kind = Me_MOTION_C->wpatk;
     switch (hand_kind) {
     case 3:
       hand[0] = ppMVar16[2];
@@ -814,7 +814,7 @@ LAB_8002315c:
     else if (dtM->count == battle->atke) {
       short kind;
 
-      kind = Me_MOTION_C->weapon_kind;
+      kind = Me_MOTION_C->wpatk;
       switch (kind) {
       case 2:
         DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);

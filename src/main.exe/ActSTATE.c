@@ -88,7 +88,7 @@ void ActSTATE(void)
             short cleanup_guard;
             short kind;
 
-            kind = (short)Me_MOTION_C->weapon_kind;
+            kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
             case 2:
@@ -203,7 +203,7 @@ void ActSTATE(void)
             short cleanup_guard;
             short kind;
 
-            kind = (short)Me_MOTION_C->weapon_kind;
+            kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
             case 2:

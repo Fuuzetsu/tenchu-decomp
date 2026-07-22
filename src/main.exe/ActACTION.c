@@ -123,7 +123,7 @@ void ActACTION(void)
             Humanoid *human;
             OrnamentType **weapon;
 
-            kind = (s16)Me_MOTION_C->weapon_kind;
+            kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
             case 2:
@@ -164,7 +164,7 @@ void ActACTION(void)
                 motion->mask = 0x7fff;
             } while (0);
             weapon = human->weapon;
-            if ((s16)human->weapon_kind == 0x2a && weapon[3] != 0)
+            if (human->wpatk == 0x2a && weapon[3] != 0)
             {
                 weapon[2] = human->weapon[0];
                 human->weapon[0] = weapon[3];

@@ -66,7 +66,7 @@ s16 Think3firstattack(void)
     {
         Attrib |= 0x10;
     }
-    wclass = (s16)Me_THINK_C->weapon_kind >> 4;
+    wclass = Me_THINK_C->wpatk >> 4;
     if (wclass == 3)
     {
         s32 masked;

@@ -438,7 +438,7 @@ void StateTransition(Humanoid *human)
             {
                 goto random_attack;
             }
-            if (((s16)me->weapon_kind >> 4) == 3)
+            if ((me->wpatk >> 4) == 3)
             {
                 goto random_attack;
             }

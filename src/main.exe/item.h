@@ -86,22 +86,11 @@ typedef struct Humanoid
     u8 actflg;                   /* 0x89 */
     u8 actcnt;                   /* 0x8A */
     u8 actscnt;                  /* 0x8B */
-    s16 warid;                   /* 0x8C (Ghidra's own independently-built
-                                    Humanoid; actmode..warid untouched by any
-                                    matched function yet, but the byte count
-                                    to weapon_kind@0x8E is exact) */
-    u16 weapon_kind;             /* 0x8E (EquipWeapon dispatches a weapon-
-                                    swap by this field's value, read via
-                                    lhu. Ghidra's own Humanoid names it
-                                    `wpatk` (typed short there), but
-                                    game_types.h's independently-proven
-                                    character_state twin at this same
-                                    cross-checked offset series (0x94/0xA4/
-                                    0xAC/0xAE all agree with this struct)
-                                    already types the field `u16
-                                    weapon_kind` (enum weapon_kind, stored
-                                    as 2 bytes) — kept unsigned per that
-                                    proven sibling and the raw lhu width) */
+    s16 warid;                   /* 0x8C */
+    s16 wpatk;                   /* 0x8E (PSX.SYM's original weapon-attack
+                                    pattern field; retail keeps the signed
+                                    short and shifts later fields by eight
+                                    bytes with the expanded MapVector) */
     s16 wepid[2];                /* 0x90 (GetWeaponData: `human->wepid[wpid]
                                     = i;`, an `sh` store — proves this field;
                                     Ghidra's own independently-built Humanoid

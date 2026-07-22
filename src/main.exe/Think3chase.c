@@ -81,7 +81,7 @@ s16 Think3chase(void)
             goto return_result;
         }
     }
-    result = AttackFunc[(s16)Me_THINK_C->weapon_kind >> 4]();
+    result = AttackFunc[Me_THINK_C->wpatk >> 4]();
 return_result:
     return result;
 }

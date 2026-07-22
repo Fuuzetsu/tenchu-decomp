@@ -57,7 +57,7 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  * hint) or ChasetoTarget(5000) otherwise; roll a 1-in-30 chance (Distance <
  * 2000) to add a "hit" flag (0x40); arm actflg once far enough away
  * (Distance > 4000) or once Attrib bit 0x400 is set. Else (already
- * acting): dispatch through AttackFunc[weapon_kind>>4]() — same
+ * acting): dispatch through AttackFunc[wpatk>>4]() — same
  * zero-argument indirect-call idiom as Think3chase.c.
  *
  * Matching notes:
@@ -97,7 +97,7 @@ s16 Think3hitaway(void)
     }
     else if (Me_THINK_C->actflg != 0)
     {
-        result = AttackFunc[(s16)Me_THINK_C->weapon_kind >> 4]();
+        result = AttackFunc[Me_THINK_C->wpatk >> 4]();
     }
     else
     {

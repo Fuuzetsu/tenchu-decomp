@@ -80,7 +80,7 @@ s16 Think3area(void)
         SR = 0;
     }
 
-    if ((s16)Me_THINK_C->weapon_kind >> 4 == 3)
+    if (Me_THINK_C->wpatk >> 4 == 3)
     {
         return Think3attack();
     }
@@ -91,7 +91,7 @@ s16 Think3area(void)
 
     if (Me_THINK_C->actflg != 0)
     {
-        pad = AttackFunc[(s16)Me_THINK_C->weapon_kind >> 4]();
+        pad = AttackFunc[Me_THINK_C->wpatk >> 4]();
         if (Distance < 4000)
         {
             Me_THINK_C->actcnt++;

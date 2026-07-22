@@ -29,7 +29,7 @@
  * EquipWeapon (0x8002a9e0) — toggle a character's "weapon drawn" attribute
  * bit (0x40) and, on the transition, rotate the equipped-weapon slots
  * (item.h's proven `weapon[4]`) according to the weapon's kind (this
- * function proves a NEW field, `weapon_kind` @0x8E — see item.h).
+ * function proves the recovered `wpatk` field at retail offset 0x8E).
  * dispose_weapon_data_of_char_ (FUN_800270c8) is always called first with a
  * literal mode of 3.
  *
@@ -43,14 +43,14 @@
  *    mode,L` branches AWAY (to the clear-bit body) when mode==0 while
  *    falling through to the set-bit body — so the THEN clause must be the
  *    mode!=0 (set) case for the fallthrough to land there.
- *  - `idx = human->weapon_kind - 4;` is a real source statement (not just
+ *  - `idx = human->wpatk - 4;` is a real source statement (not just
  *    cc1's own expand_case bias): the target sign-extends `idx` with an
  *    explicit `sll+sra` pair between the subtraction and the `sltiu` range
  *    check, which only happens for an actual `short` LOCAL being promoted
- *    for the switch (a switch directly over `human->weapon_kind` gets no
+ *    for the switch (a switch directly over `human->wpatk` gets no
  *    such promotion, 2 bytes short). Ghidra's printed case labels (0,1,3,
  *    0x1b / 8,0xf,0x10,0x12,0x15,0x18) are `idx`'s values, i.e. already
- *    `-4`; the raw source likely names weapon_kind values 4/5/7/0x1F and
+ *    `-4`; the raw source likely names weapon-pattern values 4/5/7/0x1F and
  *    0xC/0x13/0x14/0x16/0x19/0x1C, but `idx`'s own literals are what
  *    reproduce the bytes.
  *  - Case-body load/store order follows the raw .s, not Ghidra's SSA
@@ -98,7 +98,7 @@ void EquipWeapon(Humanoid *human, short mode)
         }
         human->attribute = human->attribute & 0xFFBF;
     }
-    idx = human->weapon_kind - 4;
+    idx = human->wpatk - 4;
     switch (idx)
     {
     case 0:

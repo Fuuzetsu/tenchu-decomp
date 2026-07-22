@@ -30,10 +30,10 @@
 /*
  * AttackCancelControl (0x8002736c, 0x17c bytes) — on cancelling an attack
  * (mode bit 0), delete the conflict volume(s) of whichever weapon
- * ornament(s) the current `weapon_kind` implies are active, then (mode bit
+ * ornament(s) the current `wpatk` implies are active, then (mode bit
  * 1) drop any live afterimages; always clamps `dtM->mask` to 0x7fff.
  *
- * `weapon_kind` (item.h: u16 @0x8E) is read `lh` (SIGNED) here — the
+ * `wpatk` (item.h: s16 @0x8E) is read `lh` here — the
  * per-TU-divergent load-width precedent already established for
  * lifemax/attrib; cast at this divergent use.
  *
@@ -68,7 +68,7 @@ void AttackCancelControl(s16 mode)
 
     if ((mode & 1) != 0)
     {
-        wk = (s16)Me_MOTION_C->weapon_kind;
+        wk = Me_MOTION_C->wpatk;
         switch (wk)
         {
         case 2:

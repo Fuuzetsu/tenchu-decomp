@@ -251,7 +251,7 @@ void ActDAMAGE(void)
             OrnamentType **weapon;
             short weapon_kind;
 
-            weapon_kind = (s16)Me_MOTION_C->weapon_kind;
+            weapon_kind = Me_MOTION_C->wpatk;
             if (weapon_kind != 0x2a)
             {
                 done = true;
