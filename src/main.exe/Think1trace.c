@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -54,9 +55,8 @@
  * values. The later `Me_THINK_C->actscnt < 0x1E` check is a fresh reload of
  * the (already-incremented) field, not old_actscnt again.
  *
- * `result` stays s32 throughout (the -0x8000/0x2000 constants and
- * ControlTraceLine's return are never individually truncated); only the
- * final `return` truncates once to s16, shared by every path.
+ * `result` carries the handler's signed-short pad command on every path; the
+ * final return performs the one shared normalization.
  *
  * The `self`/`turn`/`degree`/`abs_degree` block reproduces the target's
  * load-scheduling exactly (`lw self; lh degree` — Degree's independent load
@@ -77,11 +77,10 @@
 extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
 extern s16 Degree;
-extern s32 ControlTraceLine(Humanoid *me);
 
 s16 Think1trace(void)
 {
-    s32 result;
+    s16 result;
 
     result = 0;
     if (Me_THINK_C->actcnt == 0)
