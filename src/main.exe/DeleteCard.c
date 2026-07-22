@@ -51,7 +51,6 @@
  * correct addresses instead of re-using the (now unreliable) auto name.
  */
 
-extern unsigned char *TENCHU_ID;  /* -> the volume-id prefix string */
 extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);

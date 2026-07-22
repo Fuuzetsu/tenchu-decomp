@@ -50,7 +50,6 @@ typedef struct
     u8 bytes[0x80];
 } SaveCardIcon;
 
-extern unsigned char *TENCHU_ID;
 extern char CardPathFormat[];
 extern char D_80013BE4[];
 
