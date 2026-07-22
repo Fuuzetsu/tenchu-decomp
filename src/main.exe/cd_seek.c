@@ -5,8 +5,8 @@
 /*
  * cd_seek (0x8005f634) — classic fseek(handle, offset, whence) over the
  * proven `FILE *` (shared with cd_close/cd_getsize/cd_tell/cd_init/cd_open/
- * cd_read): whence 0=SEEK_SET (absolute), 1=SEEK_CUR (relative to f->pos),
- * 2=SEEK_END (relative to f->finfo.size); clamps the new position into
+ * cd_read): CDSEEK_SET is absolute, CDSEEK_CUR is relative to f->pos, and
+ * CDSEEK_END is relative to f->finfo.size; clamps the new position into
  * [0, f->finfo.size] before storing it back to f->pos. A NULL handle
  * reports via puts() and returns -1 (see cd_getsize's header for the
  * guard-clause polarity note).
@@ -38,7 +38,7 @@ extern char D_80014A48[]; /* "cd_seek:invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same
                             * pattern as AfsInit's D_80014944. */
 
-int cd_seek(FILE *f, int offset, int whence)
+int cd_seek(FILE *f, int offset, TSeekMode whence)
 {
     s32 ret;
     u32 size;
@@ -47,11 +47,11 @@ int cd_seek(FILE *f, int offset, int whence)
         puts(D_80014A48);
         return -1;
     }
-    if (whence == 1)
+    if (whence == CDSEEK_CUR)
         goto do_cur;
-    if (whence == 0)
+    if (whence == CDSEEK_SET)
         goto do_set;
-    if (whence == 2)
+    if (whence == CDSEEK_END)
         goto do_end;
     goto merge;
 do_set:

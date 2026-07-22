@@ -21,7 +21,6 @@
  */
 
 extern void AdtMessageBox(char *fmt, ...);
-extern int cd_seek(FILE *f, int offset, int whence);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char D_800149D0[]; /* "AfsRead: invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same
@@ -36,7 +35,7 @@ u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length)
         AdtMessageBox(D_800149D0);
         return 0;
     }
-    cd_seek(volume->fpVol, fd->info->pos + fd->pos, 0);
+    cd_seek(volume->fpVol, fd->info->pos + fd->pos, CDSEEK_SET);
     size = fd->info->size;
     pos = fd->pos;
     if (size < length + pos) {

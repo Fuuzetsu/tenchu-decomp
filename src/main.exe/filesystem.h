@@ -10,6 +10,15 @@ typedef struct TAFSElement TAFSElement;
 typedef struct TAFSFileHandle TAFSFileHandle;
 typedef struct TAFS TAFS;
 
+/* FILEIO's original seek-origin type from PSX.SYM. */
+typedef enum TSeekMode TSeekMode;
+enum TSeekMode
+{
+    CDSEEK_SET = 0,
+    CDSEEK_CUR = 1,
+    CDSEEK_END = 2
+};
+
 enum
 {
     AfsFlag_File = 1,
@@ -49,5 +58,7 @@ struct TAFS
     int maxElementArea;
     TAFSFileHandle *pHandle;
 };
+
+int cd_seek(FILE *f, int offset, TSeekMode whence);
 
 #endif

@@ -28,7 +28,6 @@
  *    identical, just re-scheduled and re-coloured. The permuter found this.
  */
 
-extern int cd_seek(FILE *f, int offset, int whence);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern int strcmp(const char *a, const char *b);
 extern char D_800148C4[]; /* "AFS_VOL_200" — lives in this TU's unsplit data
@@ -40,7 +39,7 @@ int AfsGetHeader(TAFS *handle)
     u8 buf[0x28];
     u32 pos;
 
-    cd_seek(handle->fpVol, 0, 0);
+    cd_seek(handle->fpVol, 0, CDSEEK_SET);
     cd_read(handle->fpVol, buf, 0x28);
     if (strcmp((char *)buf, D_800148C4) != 0) {
         return 1;

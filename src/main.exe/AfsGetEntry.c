@@ -27,7 +27,6 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern void *valloc(u32 size);
 extern void vfree(void *p);
-extern int cd_seek(FILE *f, int offset, int whence);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char *strncpy(char *dst, const char *src, u32 n);
 extern char D_800148D4[];
@@ -74,7 +73,7 @@ bad_index:
     return 1;
 
 entry_ready:
-    cd_seek(handle->fpVol, handle->posElement, 0);
+    cd_seek(handle->fpVol, handle->posElement, CDSEEK_SET);
     i = 0;
     cd_read(handle->fpVol, buffer,
             handle->maxElements * sizeof(TAFSElement));
