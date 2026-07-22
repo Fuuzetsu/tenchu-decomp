@@ -69,7 +69,6 @@ extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 SelectedItem;
-extern u32 *GlobalAreaMap;
 extern Humanoid *StagePlayer;
 extern TCameraStatus CamState;
 extern s32 D_80097F1C;

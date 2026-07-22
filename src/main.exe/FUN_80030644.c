@@ -45,7 +45,6 @@
  *  - In the fallback arm, copying `half` to `amount` before loading v1.vector
  *    gives the target's final independent move/load schedule.
  */
-extern void *GlobalAreaMap;
 extern s16 RefrectMove[16][2];
 extern s32 GetAreaMapVector(void *area, MapVector *mvp, void *pos, s32 wide, s32 mode);
 

@@ -7,7 +7,6 @@ extern u16 D_800979DE;
 extern s16 Humans;
 extern Humanoid *HumanGroup[];
 extern Humanoid *StagePlayer;
-extern u32 *GlobalAreaMap;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);

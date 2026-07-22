@@ -64,7 +64,6 @@ typedef struct
 
 extern s32 GameClock;
 extern Humanoid *StagePlayer;
-extern u32 *GlobalAreaMap;
 extern SearchSight searchsight[];
 
 extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,

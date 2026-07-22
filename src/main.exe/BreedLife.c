@@ -151,7 +151,6 @@
  */
 
 extern HumanDataType HumanData[63];
-extern u32 *GlobalAreaMap;
 
 extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);

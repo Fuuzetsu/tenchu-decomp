@@ -82,7 +82,6 @@ typedef union
 } CameraScratch;
 
 extern TCameraStatus CamState;
-extern unsigned long *GlobalAreaMap;
 extern SVECTOR D_80097A28[];
 extern SVECTOR D_80097A30[];
 extern CameraVectors CAMERA_R1;

@@ -34,7 +34,6 @@
  * early temp).
  */
 extern void vfree(void *p);
-extern void *GlobalAreaMap;
 
 void DisposeAreaMap(void *area)
 {

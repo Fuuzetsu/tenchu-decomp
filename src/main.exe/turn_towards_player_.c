@@ -70,7 +70,7 @@ extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
 extern u16 Degree;
 extern s32 D_80097F10;
-extern void *GlobalAreaMap;
+extern u_long *GlobalAreaMap;
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);

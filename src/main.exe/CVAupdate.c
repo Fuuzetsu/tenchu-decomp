@@ -73,7 +73,6 @@ extern HumanAnimType CVAhuman[5];
 extern GsRVIEW2 ViewInfo;
 extern SVECTOR UnitVector;
 extern Humanoid *StagePlayer;
-extern u32 *GlobalAreaMap;
 extern Humanoid *CameraTarget;
 extern s16 CameraPanMode;
 extern s16 D_80097CC8;

@@ -130,14 +130,12 @@ typedef struct WorldDataType
 } WorldDataType;
 
 extern WorldType WorldMap[8][8][8];
-extern u32 *GlobalAreaMap;
 extern u8 *ImagePath;
 extern ObjectSlotManager ModelSlot;
 extern s32 StageID;
 extern ModelType World;
 extern OrnamentArchiveType *D_80097A70;
 extern OrnamentArchiveType *D_80097A74;
-extern u32 *D_800976E8;
 
 extern char D_800120C4[];
 extern char D_800120D8[];
@@ -160,8 +158,8 @@ extern void vfree(void *ptr);
 extern void LoadTIMpackAndFree(u_long *data);
 extern void *valloc(u32 size);
 extern OrnamentArchiveType *LoadOrnamentArchive(u_long *data, ModelType *parent);
-extern u32 *LoadAreaMap(u32 *data);
-extern u32 *handle_balmer_acm_(u32 *data);
+extern u_long *LoadAreaMap(u_long *data);
+extern u_long *handle_balmer_acm_(u_long *data);
 extern void UpdateOrnament(OrnamentType *model, s16 ry);
 extern void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size);
 extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
@@ -300,12 +298,11 @@ short LoadConstruction(u_long *data)
     case 0:
         sprintf((char *)name, D_80097A80, wlddt[i].real.common.name);
         DisposeAreaMap(GlobalAreaMap);
-        GlobalAreaMap = LoadAreaMap(
-            (u32 *)PathFileRead((char *)ImagePath, (char *)name));
+        GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
         if (StageID == 4)
         {
             D_800976E8 = handle_balmer_acm_(
-                (u32 *)PathFileRead((char *)ImagePath, D_80012120));
+                PathFileRead(ImagePath, (u8 *)D_80012120));
         }
         break;
 

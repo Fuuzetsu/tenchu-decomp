@@ -29,7 +29,6 @@
  */
 
 extern Humanoid *StagePlayer;
-extern u32 *GlobalAreaMap;
 extern GsRVIEW2 ViewInfo;
 extern char D_800146DC[];
 extern char D_800146EC[];

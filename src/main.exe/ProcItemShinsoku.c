@@ -72,7 +72,6 @@
  *    exact words formerly produced by the duplicated numeric-base scaffold.
  */
 
-extern u_long *GlobalAreaMap;
 
 extern TCameraStatus CamState;
 

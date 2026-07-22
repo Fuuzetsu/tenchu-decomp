@@ -98,7 +98,6 @@ extern s32 StageID;
 extern TStageConfig StageConfig[];
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
-extern void *GlobalAreaMap;
 
 extern MENU_PLAYER_TBL DEBUG_MENU_PLAYER_CHOICE_OPTIONS;
 extern char D_80014784[];                    /* "player option" */

@@ -76,7 +76,6 @@
 
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
-extern unsigned long *GlobalAreaMap;
 
 extern VECTOR *GetAreaMapPassage(unsigned long *area, VECTOR *pos, SVECTOR *vect, short n);
 

@@ -19,19 +19,18 @@
 
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
-extern void *GlobalAreaMap;
-extern NodeIndexType *D_800976E8;
-extern NodeIndexType *LoadAreaMap(NodeIndexType *adr);
+extern u_long *LoadAreaMap(u_long *adr);
 
-void handle_balmer_acm_(NodeIndexType *adr)
+u_long *handle_balmer_acm_(u_long *adr)
 {
     NodeIndexType *cur;
-    NodeIndexType *newmap;
+    u_long *newmap;
 
-    cur = GlobalAreaMap;
+    cur = (NodeIndexType *)GlobalAreaMap;
     newmap = LoadAreaMap(adr);
-    GlobalAreaMap = cur;
+    GlobalAreaMap = (u_long *)cur;
     FieldIndex = cur;
     D_800976E8 = newmap;
     FieldArea = (AreaNodeType *)cur->index;
+    return newmap;
 }

@@ -3,7 +3,6 @@
 #include "item.h"
 
 extern ConflictObjectType ConflictObject[];
-extern u_long *GlobalAreaMap;
 extern SVECTOR D_80097B04[];
 
 extern s16 InsertConflict(ModelType *model);

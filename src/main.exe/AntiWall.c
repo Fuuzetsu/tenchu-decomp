@@ -53,7 +53,6 @@
  *    truncation sequence and retain its intermediate numerator registers.
  */
 
-extern unsigned long *GlobalAreaMap;
 extern SVECTOR D_800979F4;
 extern SVECTOR D_800979FC;
 extern char D_80097A04[];

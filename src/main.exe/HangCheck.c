@@ -153,7 +153,6 @@
 extern s16 motID;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
-extern u32 *GlobalAreaMap;
 extern s16 MotionUpdateMode;
 extern HumanAnimType CVAhuman[5];
 extern Humanoid *StagePlayer;

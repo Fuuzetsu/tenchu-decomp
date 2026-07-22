@@ -58,7 +58,6 @@ extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 MotionUpdateMode;
-extern void *GlobalAreaMap;
 extern HumanAnimType CVAhuman[5];
 extern u16 RefrectVector[16];
 

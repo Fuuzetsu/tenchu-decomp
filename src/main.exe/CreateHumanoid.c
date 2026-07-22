@@ -111,7 +111,6 @@ extern void SystemOut(char *msg);
 
 extern s16 Humans;
 extern ModelType World;
-extern void *GlobalAreaMap;
 extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 
 extern ConflictObjectType ConflictObject[];

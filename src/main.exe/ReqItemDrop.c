@@ -67,7 +67,6 @@
  */
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
 extern void ProcItemDrop(tag_TItem *item);
-extern void *GlobalAreaMap;
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;

@@ -76,7 +76,6 @@ extern Humanoid *HumanGroup[32];
 extern Humanoid *StagePlayer;
 extern EventSeqType *StageEvent;
 extern EventSeqType *D_80097F7C;
-extern u_long *GlobalAreaMap;
 extern s32 StageID;
 extern s32 GameClock;
 extern s32 StageTime;

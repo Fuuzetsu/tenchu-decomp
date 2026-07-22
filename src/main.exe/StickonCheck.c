@@ -50,7 +50,6 @@
  */
 extern Humanoid *Me_MOTION_C;
 extern VECTOR *dtL;
-extern unsigned long *GlobalAreaMap;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 RefrectVector[16];

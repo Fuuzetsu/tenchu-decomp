@@ -43,7 +43,6 @@
  * offs, and k into the target s0-s4 homes while leaving scheduling intact.
  */
 
-extern void *GlobalAreaMap;
 
 /* The [4] bound is LOAD-BEARING CODEGEN, not a claim about the table's length:
  * the search loop below walks 4 entries x 2 shorts = 8 shorts past this symbol.

@@ -111,7 +111,6 @@ typedef union
 } ProcItemFireScratch;
 
 extern ConflictObjectType ConflictObject[];
-extern u_long *GlobalAreaMap;
 extern SVECTOR D_80097AE4[];
 extern SVECTOR D_80097AFC[];
 

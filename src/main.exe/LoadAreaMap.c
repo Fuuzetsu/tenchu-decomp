@@ -95,25 +95,24 @@
  *    a NEW .rodata this linker script has no slot for — see AfsInit.c).
  */
 
-extern void *GlobalAreaMap;
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
 
 extern char D_800111E8[]; /* "NO AREA DATA" */
 extern void SystemOut(char *);
 
-NodeIndexType *LoadAreaMap(NodeIndexType *adr)
+u_long *LoadAreaMap(u_long *adr)
 {
     NodeIndexType *map;
     s16 j;
     long idx0;
 
-    map = adr;
+    map = (NodeIndexType *)adr;
     if (adr == 0)
         SystemOut(D_800111E8);
 
     j = 0;
-    idx0 = adr->index;
+    idx0 = ((NodeIndexType *)adr)->index;
     if (idx0 != 0)
     {
         do
@@ -126,11 +125,11 @@ NodeIndexType *LoadAreaMap(NodeIndexType *adr)
             }
             j++;
         } while (map[j].index != 0);
-        idx0 = adr->index;
+        idx0 = ((NodeIndexType *)adr)->index;
     }
     GlobalAreaMap = adr;
-    FieldIndex = adr;
-    idx0 = adr->index;
+    FieldIndex = (NodeIndexType *)adr;
+    idx0 = ((NodeIndexType *)adr)->index;
     FieldArea = (AreaNodeType *)idx0;
     return adr;
 }

@@ -89,7 +89,6 @@ extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const 
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
-extern void *GlobalAreaMap;
 
 void AddItem2(void)
 {

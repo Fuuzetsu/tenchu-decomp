@@ -83,7 +83,7 @@ extern s16 ActionHalt;
 extern s32 Distance;
 extern s16 Degree;
 extern s16 SR;
-extern u32 *GlobalAreaMap;
+extern u_long *GlobalAreaMap;
 extern s16 FieldAttrib;
 extern s16 EngageLevel;
 extern s16 Findenemies;

@@ -55,7 +55,6 @@
  *    the target's `sw v0,0x1c` / `sw v1,0x18` order for free.
  */
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
-extern void *GlobalAreaMap;
 
 int ReqItemStay(PARAM_ITEM_STAY *p)
 {

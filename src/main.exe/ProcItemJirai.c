@@ -17,7 +17,6 @@ typedef union
     } frame;
 } ProcItemJiraiScratch;
 
-extern u_long *GlobalAreaMap;
 extern AreaNodeType *FieldArea;
 extern ConflictObjectType ConflictObject[];
 extern SVECTOR D_80097AE4[];

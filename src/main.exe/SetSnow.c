@@ -29,7 +29,6 @@
  * spawned snow through a different, simpler path — ProcMiscSnowfall.c
  * itself IS in the demo per its own header, so only this helper is new).
  */
-extern void *GlobalAreaMap;
 extern void DrawSnow(TEffectSlot *ef);
 extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
 

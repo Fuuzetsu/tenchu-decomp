@@ -10,6 +10,8 @@ extern struct Humanoid *Me_THINK_C;
 extern s16 SR;
 extern s16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern u_long *GlobalAreaMap;
+extern u_long *D_800976E8;
 extern char FONT_FILE_NAME;
 extern char IMAGES_PREFIX_STR;
 

@@ -18,21 +18,18 @@
 
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;
-extern void *GlobalAreaMap;
-extern NodeIndexType *D_800976E8;
-
 void character_balma_around_main_routine_(void)
 {
     NodeIndexType *saved;
-    void *cur;
+    u_long *cur;
     AreaNodeType *area;
 
-    saved = D_800976E8;
+    saved = (NodeIndexType *)D_800976E8;
     cur = GlobalAreaMap;
     area = (AreaNodeType *)saved->index;
 
-    GlobalAreaMap = saved;
-    D_800976E8 = (NodeIndexType *)cur;
+    GlobalAreaMap = (u_long *)saved;
+    D_800976E8 = cur;
     FieldIndex = saved;
     FieldArea = area;
 }

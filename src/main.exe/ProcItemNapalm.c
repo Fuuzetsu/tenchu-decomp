@@ -35,7 +35,6 @@
  */
 
 extern Sprite3D *sprNapalm2;
-extern u_long *GlobalAreaMap;
 extern ConflictObjectType ConflictObject[];
 
 extern s16 InsertConflict(ModelType *model);

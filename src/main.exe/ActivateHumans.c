@@ -48,7 +48,6 @@ extern StageCharType StageChar[18];
 extern s16 Humans;
 extern Humanoid *HumanGroup[32];
 extern s32 StageID;
-extern u_long *GlobalAreaMap;
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 

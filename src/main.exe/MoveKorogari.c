@@ -44,7 +44,6 @@
  *    target addiu on the abs()/2 accumulator before expanding rand() % 25.
  */
 
-extern u32 *GlobalAreaMap;
 extern s16 RefrectMove[16][2];
 extern SVECTOR D_80097AD0[];
 
