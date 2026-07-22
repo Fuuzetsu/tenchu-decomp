@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "stage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -62,6 +63,6 @@ void SetupStageSequence(void)
         vfree(StageEvent);
     }
     sprintf((char *)name, D_80012808, D_80012818, StageID + 1);
-    StageEvent = FileRead(name);
+    StageEvent = (EventSeqType *)FileRead(name);
     StartStageSequence();
 }
