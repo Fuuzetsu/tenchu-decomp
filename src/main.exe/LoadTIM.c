@@ -35,7 +35,7 @@
  * InsertConflict.c/LoadAreaMap.c's identical SystemOut-then-continue idiom.
  * All matched callers (BriefingAndInventorySelectionScreen.c,
  * FUN_8004f598.c, LoadTIMAndFree.c) already pin the prototype as
- * `void LoadTIM(u_long *tim)` - the DrawSync(0) return value is discarded
+ * `void LoadTIM(unsigned long *adr)` - the DrawSync(0) return value is discarded
  * (no move/sign-extend after the call in the asm), matching void.
  */
 extern void SystemOut(unsigned char *string);
