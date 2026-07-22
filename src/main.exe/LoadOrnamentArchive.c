@@ -46,12 +46,12 @@
 
 extern void *valloc(u32 size);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
-extern OrnamentType *LoadOrnament(u32 *adr);
+extern OrnamentType *LoadOrnament(u_long *adr);
 extern void SystemOut(char *msg);
 extern char D_800120AC[]; /* "NO MODEL ARCHIVE DATA" */
 extern ModelType World;
 
-OrnamentArchiveType *LoadOrnamentArchive(u32 *adr, ModelType *prnt)
+OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
 {
     OrnamentArchiveType *mad;
     ParentingType *prntp;
@@ -90,7 +90,7 @@ loop1:
             } while (0);
         } while (0);
         i++;
-        objp = LoadOrnament((u32 *)(tmdp + offset));
+        objp = LoadOrnament((u_long *)(tmdp + offset));
         mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);
     }
     goto loop1;

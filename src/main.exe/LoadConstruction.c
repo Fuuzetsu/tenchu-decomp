@@ -159,7 +159,7 @@ extern void DisposeOrnament(OrnamentType *model);
 extern void vfree(void *ptr);
 extern void LoadTIMpackAndFree(u32 *data);
 extern void *valloc(u32 size);
-extern OrnamentArchiveType *LoadOrnamentArchive(u32 *data, ModelType *parent);
+extern OrnamentArchiveType *LoadOrnamentArchive(u_long *data, ModelType *parent);
 extern u32 *LoadAreaMap(u32 *data);
 extern u32 *handle_balmer_acm_(u32 *data);
 extern void UpdateOrnament(OrnamentType *model, s16 ry);
@@ -173,7 +173,7 @@ extern void jt_init4(void);
 short LoadConstruction(u32 *data)
 {
     int ObjectID;
-    u32 *MapModel;
+    u_long *MapModel;
     WorldDataType *wlddt;
     OrnamentType *model;
     long x;
@@ -246,9 +246,9 @@ short LoadConstruction(u32 *data)
     LoadTIMpackAndFree((u32 *)PathFileRead((char *)ImagePath, D_80097A78));
     LoadTIMpackAndFree((u32 *)PathFileRead(D_800120F0, D_80012108));
 
-    MapModel = (u32 *)valloc(0x6B800);
+    MapModel = (u_long *)valloc(0x6B800);
     D_80097A74 = LoadOrnamentArchive(
-        (u32 *)PathFileRead((char *)ImagePath, D_80012114), &World);
+        (u_long *)PathFileRead((char *)ImagePath, D_80012114), &World);
 
     nModel += 500;
     {
@@ -416,7 +416,7 @@ short LoadConstruction(u32 *data)
         vfree(MapModel);
         i = 0;
         MapModel =
-            (u32 *)PathFileRead((char *)ImagePath, (char *)name);
+            (u_long *)PathFileRead((char *)ImagePath, (char *)name);
         ix = (ParentingType *)(MapModel + 2);
         D_80097A70 = LoadOrnamentArchive(MapModel, &World);
 

@@ -271,7 +271,7 @@ struct OrnamentArchiveType
     s16 attribute;                /* 0x5A */
     s16 n;                        /* 0x5C */
     OrnamentType **object;        /* 0x60 */
-    u32 *data;                    /* 0x64 */
+    u_long *data;                 /* 0x64 */
 };                                /* 0x68 */
 
 typedef struct tag_ObjectSlotType ObjectSlotType;
@@ -468,7 +468,7 @@ struct WeaponModelType
 {
     u8 *name;                       /* 0x00 */
     s16 wid;                        /* 0x04 */
-    u32 *model;                     /* 0x08 */
+    u_long *model;                  /* 0x08 */
 };                                  /* 0x0C */
 
 /* APPEAR.C's character database row. */
