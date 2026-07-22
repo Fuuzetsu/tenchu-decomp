@@ -57,7 +57,6 @@
  * layout exactly.
  */
 extern void AdtMessageBox(char *fmt, ...);
-extern u_long *get_tim_from_archive(u_long *pt, int i);
 extern void LoadTIM(unsigned long *adr);
 extern void vfree(void *p);
 extern char D_8001287C[]; /* "K:\\WORK\\CDIMAGE\\IMAGE\\images.arc" */

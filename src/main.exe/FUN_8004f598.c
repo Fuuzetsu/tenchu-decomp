@@ -9,21 +9,19 @@
  * (allocate a fresh sprite) instead of stashing it into a global like
  * load_font_image_into_global does. `adr` survives GetTIMInfo's call in a
  * callee-saved register and feeds LoadTIM directly (matches m2c/Ghidra).
- * get_tim_from_archive is called with NO arguments in this TU — the raw
- * `.s` has no a0/a1 setup before the `jal`, unlike
- * BriefingAndInventorySelectionScreen.c's 2-arg prototype for the same
- * extern (per-TU prototype disagreement, see docs/matching-cookbook.md).
+ * This wrapper forwards its own archive/index arguments to
+ * get_tim_from_archive. They are already in a0/a1, so the raw assembly needs
+ * no argument-setup instructions before the call.
  */
-extern u_long *get_tim_from_archive(void);
 extern void LoadTIM(unsigned long *adr);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
-void FUN_8004f598(void)
+void FUN_8004f598(u_long *archive, int idx)
 {
     GsIMAGE img;
     u_long *adr;
 
-    adr = get_tim_from_archive();
+    adr = get_tim_from_archive(archive, idx);
     GetTIMInfo(adr, &img);
     LoadTIM(adr);
     SetupSprite(0, &img);

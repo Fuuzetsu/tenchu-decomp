@@ -106,7 +106,6 @@ extern void PutItemIcon(int id, int x, int y, int scale);
 extern void PutItemCursor(int x, int y, int size, int rotdif);
 extern void DisposeBG(BackGround *bg);
 extern int check_for_known_button_combination(s16 pad, s16 newpress);
-extern u_long *get_tim_from_archive(u_long *archive, int idx);
 extern s32 GetRealPad(s32 which);
 extern void FUN_800519bc(void);
 

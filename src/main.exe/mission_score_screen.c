@@ -67,7 +67,6 @@ extern s16 D_8008ED50[];
 extern void init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
 extern void vfree(void *ptr);
-extern u_long *get_tim_from_archive(u_long *archive, s32 index);
 extern void LoadTIM(unsigned long *adr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern s32 GetRealPad(s32 port);
