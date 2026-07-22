@@ -41,10 +41,11 @@
  * images, and draw primitive used by the game's visual effects.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - Copying `D_80097A38.blood` through the named `blood_src` pointer makes
- *    cc1 materialize the enclosing object's full address before the two-word
- *    stack copy.  A direct member assignment folds the loads into the `%hi`
- *    base and does not match the target's `lui; addiu; lwl/lwr` sequence.
+ *  - Copying the table at `D_80097A38 + 8` through the named `blood_src`
+ *    pointer makes cc1 materialize the enclosing symbol's full address before
+ *    the two-word stack copy.  A direct member assignment folds the loads into
+ *    the `%hi` base and does not match the target's `lui; addiu; lwl/lwr`
+ *    sequence.
  *  - The blood image IDs must stay a flat byte array.  Indexing it with
  *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
  *    formed addresses; caching a row of a two-dimensional array does not.
@@ -65,16 +66,10 @@ typedef struct
 
 typedef struct
 {
-    u8 pad[8];
-    BloodImageIds blood;
-} EffectImageIds;
-
-typedef struct
-{
     s32 image[3];
 } BombImageIds;
 
-extern EffectImageIds D_80097A38;
+extern char D_80097A38[]; /* "\n"; the blood-image table starts at +8 */
 extern u8 D_80097A48[5];
 extern BombImageIds D_80011C90;
 extern s32 pat[MaxFrames];
@@ -107,7 +102,7 @@ void InitEffect(void)
     GsIMAGE *image;
     s16 i;
 
-    blood_src = &D_80097A38.blood;
+    blood_src = (BloodImageIds *)&D_80097A38[8];
     blood_images = *blood_src;
     i = 0;
     bloodp = &blood_images;
