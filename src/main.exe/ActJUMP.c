@@ -43,12 +43,6 @@
  *     extern short dtPAD;
  * END PSX.SYM */
 
-typedef struct
-{
-    MapVector map;
-    SVECTOR speed;
-} ActJumpScratch;
-
 extern Humanoid *Me_MOTION_C;
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
@@ -58,7 +52,8 @@ void ActJUMP(void)
 {
     short old_mid;
     u16 pad;
-    ActJumpScratch scratch;
+    MapVector map;
+    SVECTOR spd;
     short reflected;
     short i;
     long level;
@@ -68,9 +63,9 @@ void ActJUMP(void)
 
     if ((Me_MOTION_C->pad.trig & 0x40) != 0 && motID != 0x901)
     {
-        GetAreaMapVector(GlobalAreaMap, &scratch.map, dtL,
+        GetAreaMapVector(GlobalAreaMap, &map, dtL,
                          Me_MOTION_C->width + 300, 0);
-        if (scratch.map.vector == 0)
+        if (map.vector == 0)
         {
             return;
         }
@@ -78,7 +73,7 @@ void ActJUMP(void)
         {
             return;
         }
-        reflected = RefrectVector[scratch.map.vector];
+        reflected = RefrectVector[map.vector];
         dtL->vy -= 500;
         if (reflected == -1)
         {
@@ -193,28 +188,28 @@ void ActJUMP(void)
             pad = (u16)dtPAD;
             if ((pad & 0x1000) != 0)
             {
-                GetMoveSpeed(&scratch.speed, dtR->vy, 10, 0);
+                GetMoveSpeed(&spd, dtR->vy, 10, 0);
             }
             else if ((pad & 0x4000) != 0)
             {
-                GetMoveSpeed(&scratch.speed, dtR->vy, -10, 0);
+                GetMoveSpeed(&spd, dtR->vy, -10, 0);
             }
             else if ((pad & 0x2000) != 0)
             {
-                GetMoveSpeed(&scratch.speed, dtR->vy, 0, -10);
+                GetMoveSpeed(&spd, dtR->vy, 0, -10);
             }
             else
             {
-                GetMoveSpeed(&scratch.speed, dtR->vy, 0, 10);
+                GetMoveSpeed(&spd, dtR->vy, 0, 10);
             }
-            scratch.speed.vx = scratch.speed.vx + dtV->vx;
-            scratch.speed.vz = scratch.speed.vz + dtV->vz;
-            if (__builtin_abs(scratch.speed.vx) < 101)
+            spd.vx = spd.vx + dtV->vx;
+            spd.vz = spd.vz + dtV->vz;
+            if (__builtin_abs(spd.vx) < 101)
             {
-                if (__builtin_abs(scratch.speed.vz) < 101)
+                if (__builtin_abs(spd.vz) < 101)
                 {
-                    dtV->vx = scratch.speed.vx;
-                    dtV->vz = scratch.speed.vz;
+                    dtV->vx = spd.vx;
+                    dtV->vz = spd.vz;
                 }
             }
         }
