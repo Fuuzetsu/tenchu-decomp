@@ -57,7 +57,7 @@
  */
 
 
-void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
+void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
 {
     enum
     {
@@ -125,8 +125,8 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix)
 
     if ((u32)(det - 0x800) < 0x801)
     {
-        MulMatrix(&m, matrix);
-        *matrix = m;
+        MulMatrix(&m, t);
+        *t = m;
     }
 }
 

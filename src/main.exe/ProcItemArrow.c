@@ -99,7 +99,7 @@ extern void SetImpact(VECTOR *pos, s32 power, s32 mode);
 extern void SetBleeds(VECTOR *pos, s16 grange, s16 srange, s16 n,
                       s32 time, s32 color);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
-extern void ArrangeLocalMatrix(ModelType *model, MATRIX *matrix);
+extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
 
 void ProcItemArrow(TItem *item)
 {
