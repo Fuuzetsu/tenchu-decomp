@@ -41,5 +41,5 @@
 0xa8	some_afterimage_2_0xa8	illusion[1]
 0xac	character_kind_sound_mask	sound
 0xae	active_item	active_item=
-0xb0	field76_0xb0	field76_0xb0=
+0xb0	field76_0xb0	pad_hold
 0xb4	inventory	item[]
