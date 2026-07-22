@@ -185,12 +185,12 @@ void PlayVoice(int id)
         D_80097CAC,
     };
     TVoiceTableList tables;
-    CdlLOC start[2];
-    CdlLOC end[2];
+    CdlLOC start;
+    CdlLOC end;
 
     tables = D_800134E0;
-    memset(&start[0].minute, 0, 4);
-    memset(&end[0].minute, 0, 4);
+    memset(&start.minute, 0, 4);
+    memset(&end.minute, 0, 4);
 
     if (id >= 100)
     {
@@ -321,7 +321,7 @@ found:
 
         min = loc->smin;
         sec = loc->ssec;
-        BuildVoiceLocation(start, min, sec);
+        BuildVoiceLocation(&start, min, sec);
     }
 
     {
@@ -330,10 +330,10 @@ found:
 
         min = loc->emin;
         sec = loc->esec;
-        BuildVoiceLocation(end, min, sec);
+        BuildVoiceLocation(&end, min, sec);
     }
 
-    if (CdaPlayXA(FileName, start, end, loc->channel, 0) == 0)
+    if (CdaPlayXA(FileName, &start, &end, loc->channel, 0) == 0)
     {
         AdtMessageBox(D_80013500, FileName, loc->channel, id);
     }

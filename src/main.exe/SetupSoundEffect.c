@@ -64,7 +64,7 @@ extern char D_8001359C[]; /* "%sSTAGE%d%c.VAB" */
 
 void SetupSoundEffect(short mode, short stage)
 {
-    u8 name[104];
+    u8 name[100];
 
     if (StageSE != 0)
     {

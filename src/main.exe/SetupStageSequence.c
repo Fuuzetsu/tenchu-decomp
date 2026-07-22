@@ -55,7 +55,7 @@ extern char D_80012818[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\" */
 
 void SetupStageSequence(void)
 {
-    u8 name[56];
+    u8 name[50];
 
     StagePlayer = HumanGroup[0];
     if (StageEvent != 0) {

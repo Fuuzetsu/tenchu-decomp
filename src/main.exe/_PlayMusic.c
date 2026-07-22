@@ -68,11 +68,9 @@
  * (that lui has NO addiu at all, reused as a base for several field
  * offsets) — a different, narrower tell than "no %hi(SYMBOL) shown here".
  *
- * `MusicTable[MusicNo]`'s two `CdlLOC` locals (`start`/`end`) are declared
- * `CdlLOC[2]` (matching Ghidra's own `local_28[2]`/`local_20[2]` rendering
- * over PSX.SYM's singular `struct CdlLOC start`) and passed as the bare
- * array (decaying to `CdlLOC *`) to `CdPosToInt`/`CdIntToPos`/`CdaPlayXA` —
- * PSX.SYM's local TYPE (not count) is the "wrong in ~2 of 5" case here.
+ * `MusicTable[MusicNo]`'s two `CdlLOC` locals use PSX.SYM's original
+ * singular `start`/`end` declarations. Ghidra rendered each as a two-element
+ * array only because the following stack object begins one `CdlLOC` later.
  *
  * `gSoundLevel` is FUN_8004f68c.c's already-proven persisted volume byte
  * (passed to `FUN_8004fbf4` twice, identically, exactly as that file
@@ -128,8 +126,8 @@ static inline void InitMusicLocation(CdlLOC *location, u8 minute, u8 second)
 void _PlayMusic(int MusicNo, int mode)
 {
     u8 fname[200];
-    CdlLOC start[2];
-    CdlLOC end[2];
+    CdlLOC start;
+    CdlLOC end;
     TMusicTable *music;
     u8 min;
     u8 sec;
@@ -158,13 +156,13 @@ void _PlayMusic(int MusicNo, int mode)
 
         min = music->min;
         sec = music->sec;
-        InitMusicLocation(start, min, sec);
+        InitMusicLocation(&start, min, sec);
 
         min = music->endmin;
         sec = music->endsec;
-        InitMusicLocation(end, min, sec);
+        InitMusicLocation(&end, min, sec);
 
-        n = CdaPlayXA(fname, start, end, music->channel, (int)(short)mode);
+        n = CdaPlayXA(fname, &start, &end, music->channel, (int)(short)mode);
         if (n == 0)
         {
             AdtMessageBox(D_800134BC, fname, music->channel, MusicNo);
