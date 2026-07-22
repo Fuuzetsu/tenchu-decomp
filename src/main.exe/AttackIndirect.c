@@ -60,7 +60,6 @@ extern s32 Distance;
 extern s16 Degree;
 
 extern s16 turn_towards_player_(s32 x, s32 z);
-extern s16 SetCommand(PADtype *pad, s16 command);
 extern s16 ItemUse(void);
 
 short AttackIndirect(void)

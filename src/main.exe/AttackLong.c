@@ -56,7 +56,6 @@ extern u16 Attrib;
 extern s32 AttackActionCount;
 
 extern s16 ChasetoTarget(s32 distance);
-extern s16 SetCommand(PADtype *pad, s16 command);
 extern s16 ItemUse(void);
 
 short AttackLong(void)
