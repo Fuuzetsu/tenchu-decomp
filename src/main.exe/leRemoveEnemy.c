@@ -21,7 +21,7 @@
  *
  * The not-found path explicitly returns zero. The found path calls the
  * original void leLayoutEnemy API and then falls off the end, leaving that
- * call's value in $v0 as the retail binary does. Both functions belonged to
+ * call's residual $v0 untouched as the retail binary does. Both belonged to
  * the same original WORLD.C translation unit, so a conflicting declaration
  * would not have been possible there.
  *
