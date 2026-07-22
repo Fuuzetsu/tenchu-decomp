@@ -46,11 +46,12 @@
  *
  * Matching notes:
  *  - The stack is two adjacent source objects: `pos_storage` at sp+0x28 and
- *    `launch_buf` at sp+0x38.  The latter is deliberately re-viewed as the
- *    mode-1 PARAM_ITEM_LAUNCH, mode-2 query/map, and periodic-effect VECTOR.  This
- *    gives stackplan's exact 0x38-byte working window and 0x78 frame.
+ *    `scratch` at sp+0x38. PSX.SYM records the latter as mode-1
+ *    PARAM_ITEM_LAUNCH `p`, then mode-2 VECTOR `pos` followed by MapVector
+ *    `map`; retail's larger MapVector makes both views exactly 0x28 bytes.
+ *    This gives stackplan's exact 0x38-byte working window and 0x78 frame.
  *  - `launchp = 0` after memset is a zero-byte CSE eviction.  Without that dead
- *    reassignment, cse2 keeps `&launch_buf` in an extra callee-saved register
+ *    reassignment, cse2 keeps `&scratch` in an extra callee-saved register
  *    through all three rand calls, adding an s5 save/restore and growing the
  *    frame.  Eviction makes both call sites re-materialize sp+0x38 like target.
  *  - The movement position is built through direct `pos_storage` writes, then
@@ -81,12 +82,22 @@ extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
                          s32 start_color, s32 end_color,
                          s32 rotate, s32 rotate_speed, s32 time, s32 type);
 
+typedef union
+{
+    PARAM_ITEM_LAUNCH p;
+    struct
+    {
+        VECTOR pos;
+        MapVector map;
+    } query;
+} ProcItemShinsokuScratch;
+
 void ProcItemShinsoku(TItem *item)
 {
     param_shinsoku *param;
     u8 ff;
     VECTOR pos_storage;
-    u8 launch_buf[sizeof(PARAM_ITEM_LAUNCH)];
+    ProcItemShinsokuScratch scratch;
 
     param = &item->param.shinsoku;
     ff = ITEM_MODE_DISPOSE;
@@ -122,21 +133,21 @@ void ProcItemShinsoku(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            launchp = (PARAM_ITEM_LAUNCH *)launch_buf;
+            launchp = &scratch.p;
             memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
             launchp = 0;
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->type = itemID;
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->user = human;
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->start.vz = pos->vz;
+            scratch.p.type = itemID;
+            scratch.p.user = human;
+            scratch.p.start.vx = pos->vx;
+            scratch.p.start.vy = pos->vy;
+            scratch.p.start.vz = pos->vz;
             rand_x = rand();
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->end.vx = rand_x % 200 - 100;
+            scratch.p.end.vx = rand_x % 200 - 100;
             rand_y = rand();
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->end.vy = rand_y % 100 - 200;
+            scratch.p.end.vy = rand_y % 100 - 200;
             rand_z = rand();
-            ((PARAM_ITEM_LAUNCH *)launch_buf)->end.vz = rand_z % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_LAUNCH *)launch_buf);
+            scratch.p.end.vz = rand_z % 200 - 100;
+            ReqItemDrop(&scratch.p);
             if (item->proc == 0)
             {
                 return;
@@ -200,18 +211,18 @@ void ProcItemShinsoku(TItem *item)
         pos_storage.vy += param->vec.vy;
         pos_storage.vz += param->vec.vz;
         apos = &pos_storage;
-        ((VECTOR *)launch_buf)->vx = apos->vx;
-        ((VECTOR *)launch_buf)->vy = apos->vy;
-        ((VECTOR *)launch_buf)->vz = apos->vz;
-        ((VECTOR *)launch_buf)->vy -= 2000;
+        scratch.query.pos.vx = apos->vx;
+        scratch.query.pos.vy = apos->vy;
+        scratch.query.pos.vz = apos->vz;
+        scratch.query.pos.vy -= 2000;
         GetAreaMapVector(GlobalAreaMap,
-                         (MapVector *)(launch_buf + 0x10),
-                         (VECTOR *)launch_buf, 500, 0);
-        if (((MapVector *)(launch_buf + 0x10))->level >= apos->vy - 500)
+                         &scratch.query.map,
+                         &scratch.query.pos, 500, 0);
+        if (scratch.query.map.level >= apos->vy - 500)
         {
-            if (((MapVector *)(launch_buf + 0x10))->level < apos->vy)
+            if (scratch.query.map.level < apos->vy)
             {
-                apos->vy = ((MapVector *)(launch_buf + 0x10))->level;
+                apos->vy = scratch.query.map.level;
             }
             valid = 1;
         }
@@ -228,10 +239,10 @@ void ProcItemShinsoku(TItem *item)
 
         if ((param->count & 3) == 0)
         {
-            *(VECTOR *)launch_buf =
+            scratch.query.pos =
                 *(VECTOR *)item->owner->model->locate.coord.t;
-            ((VECTOR *)launch_buf)->vy -= 300;
-            FUN_8003944c((VECTOR *)launch_buf, 0, 0x2000, 0x5000,
+            scratch.query.pos.vy -= 300;
+            FUN_8003944c(&scratch.query.pos, 0, 0x2000, 0x5000,
                          0x808080, 0, 0, -30, 0x10, 3);
         }
         if (CamState.Owner == item->owner)
