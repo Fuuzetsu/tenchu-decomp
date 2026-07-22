@@ -7,7 +7,7 @@
  * AreaNode and a point 0x100 units ahead along its facing direction.  Each
  * point is projected onto the node's flat/X-slope/Z-slope plane, the height
  * difference becomes ratan2(dy, 0x100), and the result is clamped to
- * +/-0x155.  A missing area, invalid height, or a drop below -699 returns 0.
+ * +/-ROTMAX.  A missing area, invalid height, or a drop below -699 returns 0.
  *
  * Matching notes:
  *  - x/z and their spans are s16 working values.  Keeping them wide and only
@@ -18,10 +18,17 @@
  *    tail and keeps the target's a3 -> v0 handoff.
  *  - The final clamp assigns one shared `angle` and returns once; three direct
  *    returns produce a different final basic-block layout.
+ *  - `DIV` and `ROTMAX` are CAMERA.C's original names. Their exact values and
+ *    roles survive in this retail-only helper even though it has no demo body.
  */
 
 s32 FUN_8002fd9c(Humanoid *human)
 {
+    enum
+    {
+        DIV = 16,
+        ROTMAX = 341
+    };
     AreaNodeType *node;
     s16 x;
     s16 z;
@@ -38,8 +45,8 @@ s32 FUN_8002fd9c(Humanoid *human)
     if (human->map.area == 0)
         return 0;
 
-    xshift = -rsin(human->rotate->vy) / 16;
-    zshift = -rcos(human->rotate->vy) / 16;
+    xshift = -rsin(human->rotate->vy) / DIV;
+    zshift = -rcos(human->rotate->vy) / DIV;
 
     x = human->locate->vx / 10;
     z = human->locate->vz / 10;
@@ -96,9 +103,9 @@ second_done:
         return 0;
 
     angle = ratan2(delta, 0x100);
-    if (angle > 0x155)
-        angle = 0x155;
-    else if (angle < -0x155)
-        angle = -0x155;
+    if (angle > ROTMAX)
+        angle = ROTMAX;
+    else if (angle < -ROTMAX)
+        angle = -ROTMAX;
     return angle;
 }
