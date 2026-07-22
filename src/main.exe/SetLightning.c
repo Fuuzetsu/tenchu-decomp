@@ -45,7 +45,8 @@
  *    param's OWN type is narrow (mechanical widen-on-use), not `int`
  *    truncated-for-the-call (which would compile shorter, as `lh`).
  */
-extern void SetLightningI(VECTOR *start, VECTOR *end, s32 one, short r, short g, short b);
+extern void SetLightningI(VECTOR *start, VECTOR *end, int gen,
+                          short r, short g, short b);
 
 void SetLightning(VECTOR *start, VECTOR *end, short r, short g, short b)
 {
