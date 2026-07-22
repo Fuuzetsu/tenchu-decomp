@@ -50,7 +50,6 @@ extern s16 ActionHalt;
 extern s32 GameClock;
 extern s16 SelectedItem;
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 
 extern void SetCameraMode(s32 mode);
 extern s16 Sound(Humanoid *human, s16 id);

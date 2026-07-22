@@ -72,9 +72,6 @@
  *    translation unit; maspsxflags.py records that per-function list.
  */
 extern StageCharType StageChar[18];
-extern Humanoid *HumanGroup[32];
-extern Humanoid *StagePlayer;
-extern EventSeqType *StageEvent;
 extern EventSeqType *D_80097F7C;
 extern s32 StageID;
 extern s32 GameClock;

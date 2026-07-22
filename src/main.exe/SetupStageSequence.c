@@ -44,21 +44,11 @@
  * C body (same non-jump-table "__override__prt" split as FileOption's
  * debug_menu_file_option__override__prt_ piece — no _jtbl array needed).
  *
- * StagePlayer/StageEvent/HumanGroup kept as bare `void *`/`void *[]` here —
- * nothing dereferences a field, only assigns/frees the whole pointer
- * (freeing `StageEvent` itself is identical to Ghidra's `&StageEvent->id`:
- * EventSeqType's `id` sits at offset 0, reference/ghidra_types.h).
- * ReturnNormal.c independently proves StagePlayer's real type is
- * `Humanoid *`; kept untyped here per the "declare only what's touched"
- * convention.
  */
 extern void vfree(void *p);
 extern void StartStageSequence(void);
 extern void sprintf(char *s, char *fmt, ...);
 
-extern void *StagePlayer;
-extern void *StageEvent;
-extern void *HumanGroup[];
 extern s32 StageID;
 extern char D_80012808[]; /* "%sSTAGE%d.ESD" */
 extern char D_80012818[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\" */

@@ -92,7 +92,6 @@
 
 extern s32 GameClock;
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 extern SVECTOR D_80097AD8[];
 
 extern void MoveKorogari(tag_TItem *item, param_korogari *pp);

@@ -56,8 +56,6 @@
 extern CVAType *CVAdata;
 extern CVAType *CVAnow;
 extern HumanAnimType CVAhuman[5];
-extern Humanoid *StagePlayer;
-extern Humanoid *HumanGroup[32];
 extern s16 Humans;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;

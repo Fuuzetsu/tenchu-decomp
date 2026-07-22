@@ -24,7 +24,6 @@
  * camera to normal mode (CMODE_NORMAL == 0, same literal PauseProc.c uses).
  */
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern u16 motID;
 extern u16 motMODE;
 extern void SetCameraMode(int mode);

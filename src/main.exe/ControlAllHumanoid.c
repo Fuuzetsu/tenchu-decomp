@@ -45,7 +45,6 @@
  * epilogue.
  */
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 extern s16 VISIBLE_ENEMIES_;
 extern void character_balma_around_main_routine_(void);
 extern void ControlHumanoid(Humanoid *human);

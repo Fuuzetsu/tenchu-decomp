@@ -66,7 +66,6 @@
 
 extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern s16 motID;
 extern s16 motMODE;
 

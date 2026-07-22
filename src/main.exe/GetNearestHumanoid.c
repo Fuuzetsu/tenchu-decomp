@@ -61,7 +61,6 @@
  */
 
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 
 Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
 {

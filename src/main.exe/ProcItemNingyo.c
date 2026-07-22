@@ -20,7 +20,6 @@ typedef union
 
 extern s16 Humans;
 extern TCameraStatus CamState;
-extern Humanoid *HumanGroup[];
 extern ConflictObjectType ConflictObject[];
 extern SVECTOR ConflictDistance;
 extern SVECTOR D_80097AE4[];

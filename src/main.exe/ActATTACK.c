@@ -96,7 +96,6 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern BattleType BattleDB[78];
 extern WeaponType WeaponDB[];
 extern ConflictObjectType ConflictObject[];

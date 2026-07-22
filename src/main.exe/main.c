@@ -64,7 +64,6 @@ extern s32 GetRealPad(s32 port);
 extern TCdaStatus CdaStatus;
 extern u32 SystemFlag;
 extern short Humans;
-extern Humanoid *HumanGroup[32];
 extern short SkipFrame;
 extern u16 D_800976F6;
 extern char D_80011004[];

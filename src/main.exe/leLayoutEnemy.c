@@ -42,7 +42,6 @@
 
 #include "item.h"
 
-extern Humanoid *HumanGroup[32];
 extern s16 Humans;
 extern s32 SystemFlag;
 extern TEnemyLayout enemy[30];

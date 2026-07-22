@@ -83,7 +83,6 @@
  */
 extern TCameraStatus CamState;
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 extern GsRVIEW2 ViewInfo;
 extern char D_80097D70[];   /* "%d" */
 extern char D_80014018[];   /* "select camera owner" */

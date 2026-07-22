@@ -58,7 +58,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern MotionManager *dtM;

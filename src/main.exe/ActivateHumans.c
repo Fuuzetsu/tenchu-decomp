@@ -37,7 +37,6 @@
  * END PSX.SYM */
 
 extern TCameraStatus CamState;
-extern Humanoid *StagePlayer;
 extern s32 GameClock;
 extern s16 SkipFrame;
 extern s32 D_800976B8;
@@ -46,7 +45,6 @@ extern s16 D_80097F42;
 extern s16 D_80097F44;
 extern StageCharType StageChar[18];
 extern s16 Humans;
-extern Humanoid *HumanGroup[32];
 extern s32 StageID;
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];

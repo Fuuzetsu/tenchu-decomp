@@ -55,7 +55,6 @@
 
 extern s32 GameClock;
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 
 extern void MoveKorogari(tag_TItem *item, param_korogari *param);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);

@@ -3,7 +3,6 @@
 #include "item.h"
 
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;

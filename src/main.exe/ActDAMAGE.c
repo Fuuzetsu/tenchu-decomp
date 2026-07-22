@@ -55,7 +55,6 @@ extern MotionManager *dtM;
 extern SVECTOR *dtV;
 extern VECTOR *dtL;
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern s16 motID;
 extern s16 motMODE;
 

@@ -104,7 +104,6 @@
  *    uses seen elsewhere) both check out against this function's own asm.
  */
 extern short Humans;
-extern Humanoid *HumanGroup[];
 extern VECTOR D_800121F0;
 
 extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);

@@ -56,7 +56,6 @@ extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 extern void vfree(void *p);
 
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 
 void KillHumanoid(Humanoid *human)
 {

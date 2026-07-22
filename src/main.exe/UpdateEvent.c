@@ -83,8 +83,6 @@
  */
 extern EventSeqType *D_80097F78[];
 extern Humanoid *D_80097F80[];
-extern EventSeqType *StageEvent;
-extern Humanoid *StagePlayer;
 
 extern Humanoid *GetHumanoid(short type);
 

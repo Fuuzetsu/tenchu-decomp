@@ -92,7 +92,6 @@
  *  - The shared retail TCameraStatus supplies Mode at +0x14 and signed
  *    DirectionRY at +0x1A.
  */
-extern Humanoid *StagePlayer;
 
 extern TCameraStatus CamState;
 

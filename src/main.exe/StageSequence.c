@@ -69,7 +69,6 @@
  *    them through a shared base.
  */
 
-extern Humanoid *StagePlayer;
 extern EventSeqType *D_80097F78[2];
 extern Humanoid *D_80097F80[2];
 extern volatile s32 StageTime;

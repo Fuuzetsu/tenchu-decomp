@@ -51,7 +51,6 @@ extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 SelectedItem;
-extern Humanoid *StagePlayer;
 
 extern s16 SwimCheck(void);
 extern s16 Sound(Humanoid *human, s16 id);

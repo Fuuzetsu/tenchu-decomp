@@ -524,7 +524,7 @@ struct TMakeDifInfo
     SVECTOR bef;                  /* 0x04 */
 };                                /* 0x0C */
 
-/* EVENT.C's stage-event descriptor. */
+/* STAGE.C's stage-event descriptor. */
 typedef struct EventSeqType EventSeqType;
 struct EventSeqType
 {

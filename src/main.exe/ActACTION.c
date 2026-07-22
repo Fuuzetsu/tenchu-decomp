@@ -46,7 +46,6 @@ extern s16 dtPAD;
 extern s16 MotionUpdateMode;
 extern s16 motID;
 extern s16 motMODE;
-extern Humanoid *StagePlayer;
 extern HumanAnimType CVAhuman[5];
 
 extern s16 PlayMotion(MotionManager *motion, s16 mode);

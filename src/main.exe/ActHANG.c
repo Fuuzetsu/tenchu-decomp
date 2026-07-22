@@ -83,7 +83,6 @@ extern VECTOR *dtL;
 extern s16 motID;
 extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 
 extern short HangCheck(void);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);

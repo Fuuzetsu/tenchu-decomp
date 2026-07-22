@@ -100,7 +100,6 @@
 
 extern u32 SystemFlag;
 extern s16 SkipFrame;
-extern Humanoid *StagePlayer;
 extern s16 ActionHalt;
 extern TCameraStatus CamState;
 extern s16 VISIBLE_ENEMIES_;

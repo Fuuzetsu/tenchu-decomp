@@ -51,7 +51,6 @@
 extern ConflictObjectType ConflictObject[];
 extern BattleType BattleDB[];
 extern MotionManager *dtM;
-extern Humanoid *StagePlayer;
 extern Humanoid *Me_MOTION_C;
 
 extern short GetConflictResult(ModelType *model, short index);

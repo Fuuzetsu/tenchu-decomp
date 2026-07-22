@@ -74,7 +74,6 @@ extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern SVECTOR *dtV;
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *StagePlayer;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 MotionUpdateMode;

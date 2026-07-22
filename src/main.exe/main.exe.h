@@ -7,6 +7,9 @@ extern TPadPort PadPort[][4];
 
 extern int turn_towards_player_(int x_diff, int z_diff);
 extern struct Humanoid *Me_THINK_C;
+extern struct Humanoid *HumanGroup[32];
+extern struct Humanoid *StagePlayer;
+extern EventSeqType *StageEvent;
 extern s16 SR;
 extern s16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;

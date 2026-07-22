@@ -114,7 +114,6 @@ extern ModelType World;
 extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 
 extern ConflictObjectType ConflictObject[];
-extern Humanoid *HumanGroup[];
 
 Humanoid *CreateHumanoid(short type, u_long *mad)
 {

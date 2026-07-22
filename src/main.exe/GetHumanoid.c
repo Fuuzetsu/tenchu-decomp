@@ -54,7 +54,6 @@
  *    the real per-iteration test rotates to the bottom.
  */
 extern s16 Humans;
-extern Humanoid *HumanGroup[];
 
 Humanoid *GetHumanoid(short type)
 {
