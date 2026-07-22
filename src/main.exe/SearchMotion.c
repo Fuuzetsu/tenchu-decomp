@@ -41,9 +41,6 @@
  * (one C variable, reassigned), matching PSX.SYM's single-`mpd`/single-`i`
  * local list.
  */
-extern MotionPackType *CommonMotion;
-extern MotionPackType *PlayerMotion;
-extern MotionPackType *StageMotion;
 
 MotionDataType *SearchMotion(short id)
 {

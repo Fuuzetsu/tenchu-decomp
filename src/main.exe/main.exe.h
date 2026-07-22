@@ -36,6 +36,10 @@ extern short DrawingPage;
 extern WeaponType WeaponDB[28];
 extern WeaponModelType WeaponModel[41];
 extern MotionRegistType MOTcommon[41];
+extern MotionPackType *MotionPack;
+extern MotionPackType *CommonMotion;
+extern MotionPackType *PlayerMotion;
+extern MotionPackType *StageMotion;
 /* Retail initializes slots 0..25; the next global confirms 26-pointer storage. */
 extern Sprite3D *ItemImage[26];
 extern SoundEffect *StageSE;

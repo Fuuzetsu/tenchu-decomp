@@ -47,7 +47,6 @@
  * bound check of `for (j = 0; j < mmp->n; j++)` (cookbook Loops), not a
  * second nested if.
  */
-extern MotionPackType *MotionPack;
 extern char D_80011230[]; /* "NO MOTION DATA" */
 
 MotionPackType *LoadMotion(unsigned long *data)
