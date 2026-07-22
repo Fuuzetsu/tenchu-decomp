@@ -98,7 +98,7 @@
  * each + 13 single-insn uses), so none is combine-folded.
  */
 
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;
 extern s16 ActionHalt;
 extern TCameraStatus CamState;
@@ -149,7 +149,7 @@ void ControlHumanoid(Humanoid *human)
         }
     }
     HumanActionControl(human);
-    if ((SystemFlag & 2) != 0)
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)
     {
         if (SkipFrame != 0)
         {

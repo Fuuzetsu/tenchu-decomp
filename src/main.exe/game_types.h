@@ -505,6 +505,16 @@ struct TCameraStatus
     u8 CriticalHit;               /* 0x1D */
 };                                /* 0x20 */
 
+/* System flags named by the demo's PSX.SYM. Retail also uses additional
+ * unnamed bits 0x08 and 0x10. */
+typedef enum TSystemFlag TSystemFlag;
+enum TSystemFlag
+{
+    SYSFLAG_DEBUGPRINT = 1,
+    SYSFLAG_DEBUGMODE = 2,
+    SYSFLAG_PAUSE = 4
+};
+
 /* Retail's four-vector camera preset (CAMERA_R1/R2/P1/P2). */
 typedef struct CameraVectors CameraVectors;
 struct CameraVectors

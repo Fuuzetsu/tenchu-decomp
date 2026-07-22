@@ -4,7 +4,7 @@
 /*
  * PauseProc (0x8004b4c0) — the in-game pause loop. Entered every frame;
  * Start (or a dead player, FUN_8001b174 == 0) raises the pause flag
- * (SystemFlag bit 4), then this spins: polling the pad, feeding new presses
+ * (`SYSFLAG_PAUSE`), then this spins: polling the pad, feeding new presses
  * to the combo matcher (0x10 = revive cheat, 0x1000 = debug enable) and the
  * cheat-code recorder, Select opening the debug menu when debug is enabled,
  * Start unpausing, and DrawPause/VSync ticking the frame counter.
@@ -96,7 +96,7 @@ extern void SsSetMVol(int voll, int volr);
 extern void Sound(Humanoid *h, int id);
 extern void SetCameraMode(int mode);
 
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;
 extern u16 Findenemies;
 extern TCameraStatus CamState;
@@ -116,13 +116,13 @@ void PauseProc(void)
     pad = GetPad(0);
     i = 0;
     cnt = 0;
-    if (((pad & 0x800) && !(SystemFlag & 4)) || FUN_8001b174(0) == 0)
+    if (((pad & 0x800) && !(SystemFlag & SYSFLAG_PAUSE)) || FUN_8001b174(0) == 0)
     {
-        SystemFlag = (SystemFlag | 4) & ~0x10;
+        SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~0x10;
         SoundEx((VECTOR *)0, 9);
         VSync(0x14);
     }
-    if (!(SystemFlag & 4))
+    if (!(SystemFlag & SYSFLAG_PAUSE))
         return;
     cur = pad;
     SkipFrame = 2;
@@ -150,7 +150,7 @@ void PauseProc(void)
                 Sound(CamState.Owner, 0x4c);
                 SetCameraMode(0);
                 Findenemies = Findenemies + 1;
-                SystemFlag = SystemFlag & ~4;
+                SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
                 CamState.Owner->pad.data = 0x80;
                 break;
             }
@@ -158,7 +158,7 @@ void PauseProc(void)
         }
         if (com == 0x1000)
         {
-            SystemFlag = SystemFlag | 2;
+            SystemFlag = SystemFlag | SYSFLAG_DEBUGMODE;
             SoundEx((VECTOR *)0, 10);
             break;
         }
@@ -171,10 +171,10 @@ void PauseProc(void)
                 VSync(2);
             }
             SoundEx((VECTOR *)0, 10);
-            SystemFlag = SystemFlag & ~4;
+            SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
             break;
         }
-        if ((opad & 0x100) && (SystemFlag & 2))
+        if ((opad & 0x100) && (SystemFlag & SYSFLAG_DEBUGMODE))
         {
             SystemFlag = SystemFlag | 0x10;
             break;
@@ -190,7 +190,9 @@ void PauseProc(void)
                 CheckCheatCodes(buf, j + 1);
             }
         }
-        if ((SystemFlag & 0x12) != 0x12 || (pad & 0x800))
+        if ((SystemFlag & (SYSFLAG_DEBUGMODE | 0x10)) !=
+                (SYSFLAG_DEBUGMODE | 0x10) ||
+            (pad & 0x800))
             DrawPause(cnt);
         VSync(2);
         cnt = cnt + 1;

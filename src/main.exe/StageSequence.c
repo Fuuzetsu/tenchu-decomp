@@ -73,7 +73,7 @@ extern EventSeqType *D_80097F78[2];
 extern Humanoid *D_80097F80[2];
 extern volatile s32 StageTime;
 extern s32 GameClock;
-extern s32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern s32 StageID;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern TCameraStatus CamState;
@@ -160,7 +160,7 @@ active_events:
         return 0;
     }
 
-    if ((SystemFlag & 2) != 0 && SkipFrame == 0)
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0 && SkipFrame == 0)
     {
         FntPrint(D_80012830, StageID + 1, STAGE_LAYOUT_NUMBER,
                  GameClock / 30, FRAMES_UNTIL_END_OF_ALERT);

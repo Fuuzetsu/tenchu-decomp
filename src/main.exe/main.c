@@ -62,7 +62,7 @@
 extern s32 (*AdtPadRead)(s32 port);
 extern s32 GetRealPad(s32 port);
 extern TCdaStatus CdaStatus;
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern short Humans;
 extern short SkipFrame;
 extern u16 D_800976F6;
@@ -136,7 +136,7 @@ int main(void)
     {
         PadProc();
         seq = StageSequence();
-        if ((SystemFlag & 1) == 0)
+        if ((SystemFlag & SYSFLAG_DEBUGPRINT) == 0)
         {
             if (seq == 1)
             {
@@ -163,7 +163,7 @@ int main(void)
         {
             FntPrint(D_80011004, vgetfreesize(), vgetmaxsize());
         }
-        if (SkipFrame != 1 && (SystemFlag & 1) != 0)
+        if (SkipFrame != 1 && (SystemFlag & SYSFLAG_DEBUGPRINT) != 0)
         {
             FntFlush(-1);
         }

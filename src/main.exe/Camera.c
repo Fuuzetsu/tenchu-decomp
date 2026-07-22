@@ -35,7 +35,7 @@
 
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;
 extern s32 Projection;
 
@@ -94,7 +94,8 @@ void Camera(void)
     ViewInfo.vpz = ViewInfo.vpz + vDif.vpz;
     GsSetRefView2(&ViewInfo);
 
-    if ((SystemFlag & 1) != 0 && SkipFrame != 1 && (pad_dat & 0x100) != 0) {
+    if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != 1 &&
+        (pad_dat & 0x100) != 0) {
         ModelType *model;
 
         if (pad_dat & 1) {

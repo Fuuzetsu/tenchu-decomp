@@ -79,7 +79,7 @@
  *    the struct field (skipping a scratch var) affected this; only routing
  *    the ADDEND itself through a named variable did.
  */
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 
 extern GsIMAGE *GetImage(s32 id);
 extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, s32 w, s32 h);
@@ -96,7 +96,7 @@ void DrawPause(int frame)
     s32 bias;
     u8 far_col;
 
-    if ((SystemFlag & 1) == 0)
+    if ((SystemFlag & SYSFLAG_DEBUGPRINT) == 0)
     {
         GetDrawEnv(&o_draw);
         GetDispEnv(&o_disp);

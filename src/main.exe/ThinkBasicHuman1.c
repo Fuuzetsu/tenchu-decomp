@@ -17,8 +17,8 @@
  * ThinkBasicHuman1 (0x8002f820, 0xa4 bytes) — think-handler (same "think" TU
  * as Think1sleep.c/Think1trace.c/ThinkBasicHuman2.c): reads port-0 held
  * buttons through FUN_8001b2f4 (a pad-processing helper, not yet named/
- * matched), clears them all if bit 0x100 is held while SystemFlag's bit 0 is
- * set (a cheat/debug toggle), masks to the low 12 bits while the area
+ * matched), clears them all if bit 0x100 is held while `SYSFLAG_DEBUGPRINT`
+ * is set (a cheat/debug toggle), masks to the low 12 bits while the area
  * attribute bit 0x200 is set and the character is jumping/landing
  * (character_status 9 or 7), then remaps bit 3 to bit 5 (0x8 -> 0x20).
  *
@@ -34,14 +34,14 @@
  */
 extern s16 GetPad(s16 port);
 extern s32 FUN_8001b2f4(s16 pad);
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 
 s16 ThinkBasicHuman1(void)
 {
     s32 pad;
 
     pad = FUN_8001b2f4(GetPad(0));
-    if ((pad & 0x100) && (SystemFlag & 1)) {
+    if ((pad & 0x100) && (SystemFlag & SYSFLAG_DEBUGPRINT)) {
         pad = 0;
     }
     if ((Me_THINK_C->map.attrib & 0x200) &&

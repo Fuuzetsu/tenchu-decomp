@@ -44,8 +44,9 @@
 
 /*
  * DoInfoViewProc (0x8004ba5c) — per-frame in-game HUD/info processor: debug
- * menu dispatch (once the cheat sets SystemFlag&2, holding exactly L2+R2 opens
- * "select option"), item-cursor cycling on pad trig bits, PauseProc gate,
+ * menu dispatch (once the cheat sets `SYSFLAG_DEBUGMODE`, holding exactly
+ * L2+R2 opens "select option"), item-cursor cycling on pad trig bits,
+ * PauseProc gate,
  * item list / life bars / strain draw, and Select-held minimap.
  *
  * Matching notes (all verified against the original bytes; see
@@ -86,7 +87,7 @@ typedef struct { TAdtSelect e[31]; } MENU_EFFECT_TBL;   /* 0xF8 */
 
 
 extern TCameraStatus CamState;
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern s32 GameClock;
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
@@ -197,7 +198,7 @@ void DoInfoViewProc(void)
     {
         InitializeInfoView();
     }
-    if ((SystemFlag & 2) && (u16)GetPad(0) == 3)
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == 3)
     {
         mm = DEBUG_MENU_MAIN_SCREEN_OPTIONS;
         VISIBLE_ENEMIES_ = 0;
@@ -268,7 +269,8 @@ nosel:
     PutLifeBar(-0x94, 0x69, CamState.Owner->life, (s16)CamState.Owner->lifemax, 0);
     PutLifeBarS();
     PutStrain(-0x86, 0x5C);
-    if ((GetPad(0) & 0x100) && (SystemFlag & 5) == 0)
+    if ((GetPad(0) & 0x100) &&
+        (SystemFlag & (SYSFLAG_DEBUGPRINT | SYSFLAG_PAUSE)) == 0)
     {
         PutMap();
     }

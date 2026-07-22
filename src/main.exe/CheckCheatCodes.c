@@ -17,7 +17,7 @@
  * first (D_8008E4F0), it plays a chime and opens the SAME debug item-cheat
  * menus DoInfoViewProc's ItemAddMenu uses (pick an item, then a count) and
  * adds the chosen count to the current character's carried-item stock. If it
- * equals the second (D_8008E4C4), it sets SystemFlag bit 1. Either match
+ * equals the second (D_8008E4C4), it sets `SYSFLAG_DEBUGMODE`. Either match
  * plays SoundEx(0, seid) at the end (seid = 0x4c for the item cheat, 10 for
  * the flag cheat); the item cheat ALSO plays SoundEx(0,10) up front.
  *
@@ -57,7 +57,7 @@ extern char D_800124EC[]; /* "number of" */
 extern u16 D_8008E4F0[];  /* cheat sequence 1 */
 extern u16 D_8008E4C4[];  /* cheat sequence 2 */
 extern TCameraStatus CamState;
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s32 memcmp(void *a, void *b, s32 n);
@@ -79,7 +79,7 @@ void CheckCheatCodes(s16 *rec, int n)
         if (memcmp(rec, D_8008E4C4, n << 1) != 0) {
             return;
         }
-        SystemFlag |= 2;
+        SystemFlag |= SYSFLAG_DEBUGMODE;
         SoundEx(0, 10);
     }
 }

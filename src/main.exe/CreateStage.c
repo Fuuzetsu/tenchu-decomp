@@ -63,7 +63,7 @@ extern s32 StageID;
 extern u8 *ImagePath;
 extern GsOT *OTablePt;
 extern s16 SkipFrame;
-extern volatile s32 SystemFlag;
+extern volatile TSystemFlag SystemFlag;
 extern GsRVIEW2 ViewInfo;
 extern s32 DepthPoint;
 extern TStageConfig StageConfig[];

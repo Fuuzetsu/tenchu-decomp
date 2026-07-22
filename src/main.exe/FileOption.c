@@ -84,7 +84,7 @@ typedef union {
 } FILE_WORK;
 
 /* gp-relative — defined by this (file-option) TU; Build.hs maspsxGpExterns */
-extern u32 SystemFlag;
+extern TSystemFlag SystemFlag;
 /* other TUs' smalls — plain absolute externs */
 extern s16 EngageLevel;
 extern u8 gNannido;
@@ -174,7 +174,7 @@ void FileOption(void)
         InitializeImage();
         break;
     case 3:
-        SystemFlag ^= 1;
+        SystemFlag ^= SYSFLAG_DEBUGPRINT;
         break;
     case 4:
         *(MUSIC_TBL *)work.bytes = D_80014554;

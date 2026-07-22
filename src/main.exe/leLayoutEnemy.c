@@ -44,7 +44,7 @@
 #include "item.h"
 
 extern s16 Humans;
-extern s32 SystemFlag;
+extern TSystemFlag SystemFlag;
 extern TEnemyLayout enemy[30];
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 extern s32 GameClock;
@@ -90,7 +90,7 @@ void leLayoutEnemy(s32 mode)
             break;
         }
         target = group[1];
-        if ((SystemFlag & 2) != 0)
+        if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)
         {
             memset(&pos, 0, sizeof(pos));
             pos.vx = target->model->locate.coord.t[0];
@@ -156,7 +156,7 @@ void leLayoutEnemy(s32 mode)
                     human->attribute |= 8;
                 }
             }
-            if ((SystemFlag & 2) != 0)
+            if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)
             {
                 memset(&pos, 0, sizeof(pos));
                 pos.vx = human->model->locate.coord.t[0];
