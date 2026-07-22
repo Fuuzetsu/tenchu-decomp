@@ -24,7 +24,6 @@
  * variable needed for this. HumanGroup[i] strength-reduces to a walking
  * pointer (+4 each iteration) automatically; write the indexed form.
  */
-extern s16 Humans;
 
 s32 is_character_state_present_on_stage_(Humanoid *cs)
 {

@@ -69,7 +69,6 @@ typedef struct { TAdtSelect e[11]; } MENU_LAYOUT_TBL;   /* 0x58 */
 typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
 typedef struct { TAdtSelect e[7];  } MENU_PATH_TBL;     /* 0x38 */
 
-extern s16 Humans;
 
 extern MENU_LAYOUT_TBL DEBUG_MENU_ENEMY_LAYOUT_OPTIONS;
 extern MENU_PATH_TBL DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS;

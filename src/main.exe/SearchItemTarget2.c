@@ -103,7 +103,6 @@
  *    it's a plain signed comparison `0 < life`, unlike the narrowing `lhu`
  *    uses seen elsewhere) both check out against this function's own asm.
  */
-extern short Humans;
 extern VECTOR D_800121F0;
 
 extern void FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, int flag);

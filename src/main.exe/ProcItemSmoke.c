@@ -90,7 +90,6 @@
 
 #include "item.h"
 
-extern s16 Humans;
 extern SVECTOR D_80097AD8[];
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);

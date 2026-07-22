@@ -43,7 +43,6 @@
 
 #include "item.h"
 
-extern s16 Humans;
 extern TSystemFlag SystemFlag;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 

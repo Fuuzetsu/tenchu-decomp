@@ -44,7 +44,6 @@
  * body gives the value an $a0 home and needs an extra `move v0,a0` in the
  * epilogue.
  */
-extern s16 Humans;
 extern s16 VISIBLE_ENEMIES_;
 extern void character_balma_around_main_routine_(void);
 extern void ControlHumanoid(Humanoid *human);

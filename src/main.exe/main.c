@@ -62,7 +62,6 @@
 extern s32 (*AdtPadRead)(s32 port);
 extern s32 GetRealPad(s32 port);
 extern TSystemFlag SystemFlag;
-extern short Humans;
 extern short SkipFrame;
 extern u16 D_800976F6;
 extern char D_80011004[];

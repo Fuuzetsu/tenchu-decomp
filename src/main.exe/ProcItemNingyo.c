@@ -18,7 +18,6 @@ typedef union
     ProcItemNingyoVectors vectors;
 } ProcItemNingyoScratch;
 
-extern s16 Humans;
 extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
 extern ModelType *NingyoModel;

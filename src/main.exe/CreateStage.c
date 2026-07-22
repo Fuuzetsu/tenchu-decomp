@@ -57,7 +57,6 @@ typedef struct
     TitlePathBlock title;
 } CreateStageTitleScratch;
 
-extern s16 Humans;
 extern s16 SkipFrame;
 extern volatile TSystemFlag SystemFlag;
 extern s32 DepthPoint;

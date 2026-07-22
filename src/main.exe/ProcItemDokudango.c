@@ -53,7 +53,6 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern s16 Humans;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);

@@ -108,7 +108,6 @@ extern s16 InsertConflict(ModelType *m);
 extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
                              long wide, int mode);
 
-extern s16 Humans;
 extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 
 

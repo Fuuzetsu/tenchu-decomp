@@ -19,7 +19,6 @@ extern s16 Degree;
 extern s32 Distance;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern u8 gNannido;
-extern s16 Humans;
 extern u16 StageEnemies;
 extern s16 AIDHumanType[][2];
 extern think_func_ *Think1Func[];

@@ -60,7 +60,6 @@
  * abs input/output in v0.
  */
 
-extern s16 Humans;
 
 Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
 {

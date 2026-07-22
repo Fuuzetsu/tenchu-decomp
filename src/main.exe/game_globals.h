@@ -9,6 +9,7 @@ extern int StageID;
 extern unsigned long *GlobalAreaMap;
 extern BattleType BattleDB[78];
 extern struct Humanoid *StagePlayer;
+extern short Humans;
 extern short *StageAppearance[10];
 extern StageCharType StageChar[18];
 

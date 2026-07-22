@@ -53,7 +53,6 @@
  *    Humans` initial test is hoisted to the top (`Humans <= 0` -> return 0),
  *    the real per-iteration test rotates to the bottom.
  */
-extern s16 Humans;
 
 Humanoid *GetHumanoid(short type)
 {
