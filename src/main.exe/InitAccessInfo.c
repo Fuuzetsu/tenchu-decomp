@@ -14,9 +14,9 @@
  * END PSX.SYM */
 
 /*
- * InitAccessInfo (0x800194f4, 0x38 bytes) — one-shot setup for the "access"
- * (grapple/climb) HUD meter, called only from main(): fetch archive image 0x2c,
- * bind it to the meter's 214x217 GT4 quad, and zero the meter's charge.
+ * InitAccessInfo (0x800194f4, 0x38 bytes) — one-shot setup for the file-access
+ * indicator, called only from main(): fetch archive image 0x2c, bind it to a
+ * GT4 at screen coordinates (214, 217), and zero its colour-cycle counter.
  *
  * AccessImage (0x800bc0c0) is the POLY_GT4 named and typed by PSX.SYM; the
  * same layout is independently exercised field-by-field by cbAccess.c and
