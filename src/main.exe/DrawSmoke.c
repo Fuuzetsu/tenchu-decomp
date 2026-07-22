@@ -47,10 +47,10 @@
  *  - `param = &ef->param.smoke;` (SmokeType* at ef+4) — effect.h's proven
  *    layout (`vec`@0, `pos`@8, `rotate`@0x18, `scale`@0x1c, `time`@0x20,
  *    `evtime`@0x21, retail `sprite`@0x22), no new struct.
- *  - `sprSmoke` is genuinely `Sprite3D *sprSmoke[]` (unknown size, an
- *    array of pointers) — despite PSX.SYM's single-pointer prototype, the
- *    target indexes it (`sll idx,2; addu base,idx`) before the one `lw`
- *    that yields `spr`.
+ *  - `sprSmoke` is genuinely `Sprite3D *sprSmoke[2]`: retail indexes it
+ *    (`sll idx,2; addu base,idx`) before the one `lw` that yields `spr`,
+ *    and the next global proves its two-pointer extent. PSX.SYM's singular
+ *    declaration describes the earlier demo layout.
  *  - `Sprite3D` uses the complete shared PSX.SYM layout (140 bytes):
  *    GsCOORDINATE2.coord.t[0..2] land at +0x18/+0x1c/+0x20 and
  *    `sprite.rotate` at +0x88.
