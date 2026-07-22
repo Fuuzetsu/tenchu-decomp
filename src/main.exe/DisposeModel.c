@@ -27,7 +27,7 @@
 
 extern void vfree(void *p);
 
-void DisposeModel(void *objp)
+void DisposeModel(ModelType *objp)
 {
     if (objp != 0)
     {
