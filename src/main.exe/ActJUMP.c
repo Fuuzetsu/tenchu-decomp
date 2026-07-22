@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -54,7 +55,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
-extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
 
 /* Jump-state motion, collision response, air steering, and landing control. */

@@ -353,7 +353,6 @@ struct tag_TItem
 
 extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 extern s16 UpdateMotion(MotionManager *m, short id);
-extern void MoveHumanoid(Humanoid *h, short a, short b);
 extern short DrawSprite(Sprite3D *sprt);
 extern VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);
 extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);

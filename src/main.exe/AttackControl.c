@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -64,7 +65,6 @@ extern s16 motMODE;
 
 extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
-extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 
 void AttackControl(void)
 {
