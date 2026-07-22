@@ -54,11 +54,11 @@
  *  - The 'A'/'R' selector is a full 4-byte `int` (`sw`, not `sb`) — it's a
  *    variadic sprintf argument (default char->int promotion), not `char`.
  */
-extern void DisposeSE(void *se);
-extern void *SetupSE(u8 *vab);
+extern void DisposeSE(SoundEffect *se);
+extern SoundEffect *SetupSE(u8 *vab);
 extern void sprintf(char *s, char *fmt, ...);
 
-extern void *StageSE;
+extern SoundEffect *StageSE;
 extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[];
 extern char D_8001359C[]; /* "%sSTAGE%d%c.VAB" */

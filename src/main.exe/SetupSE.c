@@ -49,7 +49,7 @@ extern void *vrealloc(void *p, s32 size);
 
 extern char D_800110DC[]; /* "SOUND SETUP FAILURE" */
 
-void *SetupSE(u8 *vab)
+SoundEffect *SetupSE(u8 *vab)
 {
     SoundEffect *se;
     s32 size;
