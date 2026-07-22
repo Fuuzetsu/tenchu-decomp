@@ -47,28 +47,28 @@
  * is no GetAreaMapLevel floor check. It gets ProcItemNemuri as its processor,
  * but differs from the rolling-item twins (Jirai/Smoke/Fire) in
  * two ways (both confirmed against the .s, not just Ghidra):
- *  - `it->model` is unconditionally set from the first shared smoke sprite
+ *  - `item->model` is unconditionally set from the first shared smoke sprite
  *    (Ghidra/the export names the table `sprSmoke`, confirmed at 0x80097a68 in
- *    .shake/ghidra-export) — no ItemImage[it->type] lookup by item type.
+ *    .shake/ghidra-export) — no ItemImage[item->type] lookup by item type.
  *  - the end vector is packed into PSX.SYM's `param_napalm.vec` at offsets
  *    0/2/4. No hint/status/count writes occur here.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pp = &it->param.napalm;` sits BEFORE the null check, same
+ *  - `param = &item->param.napalm;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as the other twins.
- *  - us/ty are real temps, same shape as the other twins.
+ *  - aowner/atype are real temps, same shape as the other twins.
  *  - the end-vector stores are NOT batched through temps here (unlike the
  *    rolling-item twins' x/y/z): the asm interleaves each `lhu` with its
- *    `sh` immediately, so they're written inline through `pp->vec` — no
+ *    `sh` immediately, so they're written inline through `param->vec` — no
  *    temp means the truncating lhu, matching the target exactly (identical
  *    shape to ReqItemShinsoku).
- *    The FIRST of the three (+0) compiles through $s0 (it) directly while
- *    the other two (+2/+4) compile through pp's own register ($s2) — a cc1
+ *    The FIRST of the three (+0) compiles through $s0 (item) directly while
+ *    the other two (+2/+4) compile through param's own register ($s2) — a cc1
  *    cse/regalloc artifact, not a source-spelling difference:
  *    ReqItemShinsoku's already-matched source uses the SAME uniform
- *    `pp`-based spelling for all three and produces this exact split.
+ *    `param`-based spelling for all three and produces this exact split.
  *  - unlike ReqItemShinsoku (unconditional return 0), this function returns
  *    1 on success like Jirai/Smoke/Fire — confirmed by the success path's
  *    `li $v0,1` materialized before the tail jump.
@@ -78,11 +78,11 @@ extern void ProcItemNemuri(TItem *item);
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    param_napalm *pp;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    TItem *item;
+    param_napalm *param;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 i;
 
     i = 0;
@@ -91,43 +91,43 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    pp = &it->param.napalm;
-    if (it == 0)
+    param = &item->param.napalm;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemNemuri;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->model = (ModelType *)sprSmoke[0];
-    it->collision.size = 0;
-    pp->vec.vx = p->end.vx;
-    pp->vec.vy = p->end.vy;
-    pp->vec.vz = p->end.vz;
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemNemuri;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->model = (ModelType *)sprSmoke[0];
+    item->collision.size = 0;
+    param->vec.vx = p->end.vx;
+    param->vec.vy = p->end.vy;
+    param->vec.vz = p->end.vz;
     return 1;
 }
