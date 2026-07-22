@@ -60,7 +60,8 @@ typedef union
     } first;
     struct
     {
-        u8 pad[5];
+        /* Prefix of the same result buffer before the shifted second loc. */
+        u8 result_prefix[5];
         CdlLOC loc;
     } second;
 } CdaCheckScratch;
