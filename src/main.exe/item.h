@@ -263,7 +263,8 @@ typedef struct param_goshikimai
 
 typedef struct param_gosin
 {
-    s16 count;                    /* 0x00 */
+    /* Retail uses unsigned halfword loads; the demo declared this signed. */
+    u16 count;                    /* 0x00 */
 } param_gosin;                    /* 0x02 */
 
 typedef struct param_gun

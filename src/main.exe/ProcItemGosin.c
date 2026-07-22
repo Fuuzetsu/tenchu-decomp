@@ -23,9 +23,9 @@
  *    literal `2` to FUN_8003944c after rand(): cse's record_jump_equiv on the
  *    `beq idx,2` taken edge substitutes the index register for the literal
  *    (the ProcItemGun rule).
- *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail reads that signed
- *    field through an explicit u16 memory view (`lhu`), then narrows through
- *    an s16 local (`sll/bnez` zero-test, not andi).
+ *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail changed the demo's
+ *    signed field to `u16` (`lhu`), then narrows through an s16 local
+ *    (`sll/bnez` zero-test, not andi).
  *  - `scratch.v = D_80012248;` is a whole-VECTOR struct assignment (the
  *    16-byte batched-loads/stores block move), not four scalar assignments.
  *  - `human`/`itemID` (PSX.SYM's own names) are the drop path's load-batch
@@ -138,7 +138,7 @@ void ProcItemGosin(TItem *item)
         NowReturnNormal(item->owner);
         SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, 0xB48C1E);
         item->owner->itmctl = item->type;
-        *(u16 *)&item->param.gosin.count = 0x1c2;
+        item->param.gosin.count = 0x1c2;
         item->mode = item->mode + 1;
         return;
     }
@@ -147,8 +147,8 @@ void ProcItemGosin(TItem *item)
     {
         s16 c;
 
-        c = *(u16 *)&item->param.gosin.count - 1;
-        *(u16 *)&item->param.gosin.count = c;
+        c = item->param.gosin.count - 1;
+        item->param.gosin.count = c;
         if (c == 0)
         {
             if (item->proc == 0)
