@@ -489,7 +489,7 @@ brightness_done:
         intensity = fade & 0xff;
         if (fade != 0)
         {
-            FUN_80038c0c(*(u8 **)((u8 *)OTablePt + 4),
+            FUN_80038c0c((u8 *)OTablePt->org,
                           intensity, intensity, intensity);
         }
         SkipFrame = 2;
