@@ -61,7 +61,7 @@
 extern void *valloc(u32 size);
 extern SVECTOR UnitVector;
 extern GsIMAGE *D_80097F3C;
-extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, s32 w, s32 h);
+extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, s32 x, s32 y);
 
 AfterimageType *SetupAfterimage(ModelType *model, short len)
 {

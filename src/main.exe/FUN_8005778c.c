@@ -51,7 +51,7 @@
  *    call slot fixes the adjacent a3/a2 sign-extension schedule.
  */
 extern GsIMAGE FONT_IMAGE_;
-extern void SetupImageToPolyGT4(GsIMAGE *image, void *quad, short w, s32 h);
+extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, s32 y);
 
 void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
 {
