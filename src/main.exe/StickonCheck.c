@@ -52,8 +52,6 @@ extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;
 extern MapVector map;
-extern long GetAreaMapVector(unsigned long *area, MapVector *mvp,
-                             VECTOR *pos, long wide, int mode);
 
 MapVector *StickonCheck(void)
 {

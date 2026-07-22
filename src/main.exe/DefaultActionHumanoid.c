@@ -50,12 +50,12 @@
  * sched1 loop-note fences between the target's pointer, id, and size loads.
  * The identical yy arms add a zero-code CFG fence without loop-weighting the
  * collision pointer and rotating its a1/a2 allocation.
+ * Retail narrows the recovered `long i` at both map-query calls; explicit
+ * casts retain that local's original type and the shared API's original
+ * promoted `int mode` without hiding either behind a false prototype.
  */
 
 
-extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,
-                           s32 width, s16 mode);
-extern s16 GetConflictResult(ModelType *model, s16 index);
 extern s16 GetDirection(s32 x, s32 z, s16 rotate);
 
 short DefaultActionHumanoid(Humanoid *human)
@@ -137,12 +137,14 @@ short DefaultActionHumanoid(Humanoid *human)
 use_conflict_position:
         position = ConflictObject[(*human->model->object)->id].position;
         position.vy = locate->vy;
-        GetAreaMapVector(GlobalAreaMap, map, &position, human->width, i);
+        GetAreaMapVector(GlobalAreaMap, map, &position, human->width,
+                         (short)i);
         goto map_probe_done;
 use_locate_position:
         wide = locate;
 probe_map:
-        GetAreaMapVector(GlobalAreaMap, call_map, wide, human->width, i);
+        GetAreaMapVector(GlobalAreaMap, call_map, wide, human->width,
+                         (short)i);
 map_probe_done:
         ;
     }

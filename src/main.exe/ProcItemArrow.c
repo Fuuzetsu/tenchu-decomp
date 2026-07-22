@@ -82,7 +82,6 @@
  */
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
-extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
 

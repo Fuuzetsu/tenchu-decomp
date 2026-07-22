@@ -59,8 +59,6 @@ extern SVECTOR D_80097AF4[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern Humanoid *GetHumanoid(s16 type);
-extern s32 GetAreaMapVector(u_long *area, MapVector *map,
-                            VECTOR *position, s32 width, s32 mode);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern void FUN_800270f8(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, s16 think);

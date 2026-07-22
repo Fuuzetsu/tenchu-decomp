@@ -19,7 +19,6 @@ typedef union
 
 extern SVECTOR D_80097AE4[];
 
-extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern void reset_alert_duration(void);
 

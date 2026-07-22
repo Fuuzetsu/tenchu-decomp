@@ -76,7 +76,6 @@
  * END PSX.SYM */
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
-extern s16 GetConflictResult(ModelType *m, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *h);
 
 void ProcItemMakibishi(TItem *item)

@@ -54,8 +54,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
-extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
-                             long wide, int mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
 

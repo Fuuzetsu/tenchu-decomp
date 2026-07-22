@@ -75,7 +75,6 @@
  */
 
 
-extern VECTOR *GetAreaMapPassage(unsigned long *area, VECTOR *pos, SVECTOR *vect, short n);
 
 void SnapCameraTargetVector(void)
 {

@@ -50,7 +50,6 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern short GetConflictResult(ModelType *model, short index);
 
 void WeaponHitWeapon(ModelType *hand)
 {

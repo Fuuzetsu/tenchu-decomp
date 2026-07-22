@@ -64,8 +64,6 @@ typedef struct
 
 extern SearchSight searchsight[];
 
-extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,
-                                 s16 n);
 
 s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree)
 {

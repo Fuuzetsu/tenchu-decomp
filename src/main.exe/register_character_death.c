@@ -6,8 +6,6 @@ extern u16 D_800979DE;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
-extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,
-                                 s16 scale);
 
 /*
  * register_character_death (0x8002bcb8) periodically chooses another live

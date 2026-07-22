@@ -114,7 +114,6 @@ extern SVECTOR D_80097AE4[];
 extern SVECTOR D_80097AFC[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time);
 extern void reset_alert_duration(void);

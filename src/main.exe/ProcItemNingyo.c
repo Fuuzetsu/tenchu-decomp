@@ -22,7 +22,6 @@ extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s16 GetConflictResult(ModelType *model, s32 n);
 extern short DrawModel(ModelType *objp);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
