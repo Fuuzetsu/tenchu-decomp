@@ -135,4 +135,5 @@ extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);
 extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz);
 extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
+extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
 extern void GetScreenPosition(long x, long y, long z, SVECTOR *scr);

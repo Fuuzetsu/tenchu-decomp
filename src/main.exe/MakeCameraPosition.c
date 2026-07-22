@@ -74,7 +74,6 @@ extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 
 extern short FUN_8002fd9c(Humanoid *h);
-extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
 extern void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target);
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);
 

@@ -95,7 +95,6 @@ extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 
 extern short FUN_8002fd9c(Humanoid *h);
-extern int FUN_80039ddc(VECTOR *a, VECTOR *b, int c, int d);
 
 
 void SetCameraMode(TCameraMode mode)

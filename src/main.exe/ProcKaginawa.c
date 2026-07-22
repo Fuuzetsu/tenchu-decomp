@@ -77,7 +77,6 @@
  */
 #include <psxsdk/libgs.h>
 
-extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
 extern VECTOR D_80012238;
 
 void ProcKaginawa(TItem *item)

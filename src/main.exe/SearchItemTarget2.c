@@ -78,7 +78,7 @@
  *    test is reached both from fall-in and from an unconditional back-jump
  *    (no duplicated entry test), the loop-rule-2 shape (leFindEnemy).
  *  - FUN_80039ddc's own Ghidra decompilation shows only 3 params, but this
- *    call site sets up 4 argument registers (a0-a3) — the trailing `int`
+ *    call site sets up 4 argument registers (a0-a3) — the trailing `u32`
  *    flag is simply unread by that callee's body, an instance of the
  *    Ghidra-under-counts-trailing-args class (cookbook: "m2c and Ghidra
  *    disagree on a call's ARG COUNT").
@@ -105,7 +105,6 @@
  */
 extern VECTOR D_800121F0;
 
-extern void FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, int flag);
 extern long abs(long x);
 
 Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR *target)
