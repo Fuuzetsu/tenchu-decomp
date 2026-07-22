@@ -74,8 +74,6 @@
  *    transcription would reload it twice.
  */
 
-extern s16 NowStage;
-
 Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
 {
     int idx;
