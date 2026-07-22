@@ -50,7 +50,7 @@
  * official Humanoid name (item.h) for what was the guessed
  * `index_s32o_animation_collection`.
  *
- * `BattleType` comes from item.h (the official 8-short layout, confirmed
+ * `BattleType` comes from game_types.h (the official 8-short layout, confirmed
  * identical to `reference/psxsym-types.h`) — `contfrm` @0x8, the offset the
  * asm's `lh v0,8(v0)` confirms after the `sll v0,v0,4` (0x10 stride) index
  * scale.
