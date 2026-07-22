@@ -61,7 +61,7 @@ typedef struct
     u8 imgB;    /* +0x5 */
 } LifeBarSpriteEntry;
 
-extern TLifeBarStyle LifeBarStyle[2];
+extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern LifeBarSpriteEntry D_8008E4B4[];
 extern GsIMAGE *GetImage(s32 id);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
@@ -73,7 +73,7 @@ void FUN_8004a6bc(void)
     s32 tmp;
     int i;
 
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < nLifeBarStyle; i++)
     {
         slot = &LifeBarStyle[i].frame;
         InitSprite(GetImage(D_8008E4B4[i].imgA), slot);

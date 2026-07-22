@@ -646,6 +646,8 @@ struct LifeBarEntry
 };                                     /* 0x14 */
 
 /* Retail's redesigned INFOVIEW.C life-bar style. */
+enum { nLifeBarStyle = 2 };
+
 typedef struct TLifeBarStyle TLifeBarStyle;
 struct TLifeBarStyle
 {

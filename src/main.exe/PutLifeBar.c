@@ -92,7 +92,7 @@
  *    the final two-byte operand residual. The goto is safe: each entry
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
-extern TLifeBarStyle LifeBarStyle[2];
+extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
 extern s32 GameClock;
