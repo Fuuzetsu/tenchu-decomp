@@ -7,7 +7,7 @@
  * pool round-robin shape as ReqItemManebue/ReqItemKawarimi/etc, but:
  *  - returns void (no `return 1;`/`return 0;` — Ghidra's decompile shows a
  *    void-returning function; the epilogue never touches $v0)
- *  - instead of `it->model = ItemImage[it->type];`, the tail block-copies
+ *  - instead of `item->model = ItemImage[item->type];`, the tail block-copies
  *    the whole `p->end` VECTOR (4 words, align-4 word block move: 4x lw +
  *    4x sw — see the matching cookbook's "cast type's alignment drives copy
  *    code" rule) onto PSX.SYM's `param_gun.vec`. The raw assembly confirms
@@ -19,10 +19,10 @@ extern void ProcItemGun(TItem *item);
 
 void ReqItemGun(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    TItem *item;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 i;
 
     i = 0;
@@ -31,38 +31,38 @@ void ReqItemGun(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    if (it == 0)
+    if (item == 0)
         return;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemGun;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->param.gun.vec = p->end;
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemGun;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->param.gun.vec = p->end;
 }
