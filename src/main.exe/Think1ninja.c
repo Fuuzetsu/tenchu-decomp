@@ -69,6 +69,7 @@
  * away.  This shape and the s16 call prototype must be changed together.
  */
 extern s16 Think1random(void);
+
 s16 Think1ninja(void)
 {
     u8 actscnt;

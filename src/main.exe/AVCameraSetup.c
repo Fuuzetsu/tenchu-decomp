@@ -75,8 +75,6 @@
  *    into the call's 3rd argument position fixed it in one edit.
  */
 
-
-
 void AVCameraSetup(void)
 {
     CVAType *event;
