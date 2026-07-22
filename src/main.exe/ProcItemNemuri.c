@@ -258,7 +258,7 @@ void ProcItemNemuri(TItem *item)
                     {
                         EquipWeapon(human, 0);
                         SetNowMotion(human, 0x80f, 1);
-                        human->think[0] = (think_func_)Think1sleep;
+                        human->think[0] = Think1sleep;
                         human->attribute &= 0xfffc;
                     }
                     SetNowMotion(human, 0x100, 1);

@@ -15,12 +15,14 @@ typedef struct tag_TItem TItem;
 struct AreaNodeType;
 struct AfterimageType;
 
-/* game_types.h's `some_char_state_function` (a plain `s32(*)(void)`),
- * respelled locally so this header stays independent of game_types.h. The
- * Think1Func[]/Think2Func[]/Think3Func[]/Think4Func[] tables (SetupThinkFunction.c,
- * matched) are proven arrays of POINTERS TO this function-pointer type —
- * carried over here for Humanoid.think[4]'s element type. */
-typedef s32 (*think_func_)(void);
+/* THINK_4.C's original short-returning dispatch tables. PSX.SYM supplies
+ * both their element type and exact bounds; Humanoid stores one selected
+ * function from each table. */
+typedef s16 (*ThinkFunc)(void);
+extern ThinkFunc Think1Func[10];
+extern ThinkFunc Think2Func[5];
+extern ThinkFunc Think3Func[10];
+extern ThinkFunc Think4Func[6];
 
 /* The henshin disguise's saved model state. PSX.SYM recovers the original
  * field names and its fifteen-part capacity; retail keeps the same layout. */
@@ -66,16 +68,9 @@ typedef struct Humanoid
     VECTOR slocate;              /* 0x48 (ControlHumanoid snapshots *locate) */
     ModelArchiveType *model;     /* 0x58 */
     MotionManager *motion;       /* 0x5C */
-    think_func_ *think[4];       /* 0x60 (per-think-level dispatch function
-                                    pointers, game_types.h's character_state
-                                    twin: think_setting0..3 @0x60/0x64/0x68/
-                                    0x6C, same `some_char_state_function *`
-                                    type — Think3callaid.c proves this offset
-                                    series with four whole-word stores of
-                                    Think1Func[4]/Think2Func[4]/Think3Func[4]/
-                                    Think4Func[4]). Matches Ghidra's own
-                                    independently-built Humanoid's
-                                    `pointer *think[4]` here too. */
+    ThinkFunc think[4];          /* 0x60 (PSX.SYM: short (*think[4])(); retail
+                                    shifts the demo's +0x58 by the eight-byte
+                                    MapVector expansion) */
     TraceLine *trace;            /* 0x70 (SetupTraceLine/ControlTraceLine;
                                     Ghidra's own independently-built Humanoid
                                     also names this exact offset `trace`) */

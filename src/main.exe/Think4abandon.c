@@ -121,7 +121,7 @@ s16 Think4abandon(void)
         }
         else
         {
-            if (((Humanoid *)Me_THINK_C)->think[3] == (think_func_)Think4abandon)
+            if (((Humanoid *)Me_THINK_C)->think[3] == Think4abandon)
             {
                 result = (s16)(turn_towards_player_(0, 0) & ~0x5FFF);
                 if (result != 0)

@@ -31,19 +31,17 @@
  * END PSX.SYM */
 
 /*
- * SetupThinkFunction (0x8002f73c, 0xb8 bytes) — installs the four
- * think_settingN behaviour-function-pointer slots of a Humanoid
- * (game_types.h; think_setting0..3 proven @0x60-0x6C) from four lookup
- * tables keyed off nibbles of `type`, then sets or clears bit 4 of
- * some_character_marker_thing depending on whether `type` is one of three
- * "default" sentinels (0, 0x1111, 0x2222).
+ * SetupThinkFunction (0x8002f73c, 0xb8 bytes) — installs Humanoid's four
+ * PSX.SYM-recovered think callbacks from lookup tables keyed off nibbles of
+ * `type`, then sets or clears attribute bit 4 depending on whether `type` is
+ * one of three "default" sentinels (0, 0x1111, 0x2222).
  *
  * Think1Func/Think4Func are plain arrays — their index is explicitly scaled
  * (`sll ,2`) before being added to the base. Think2Func/Think3Func are
  * indexed through raw BYTE-offset pointer arithmetic instead: the shift
  * amount (18/22) already produces a word-aligned byte offset with no
  * separate scale instruction, matching Ghidra's own
- * `*(T **)((int)Think2Func + (shifted >> 18 & 0x3C))` rendering exactly.
+ * `*(T *)((int)Think2Func + (shifted >> 18 & 0x3C))` rendering exactly.
  * The final sentinel check re-derives an int from `type<<16` instead of
  * reusing the s16 parameter — matching Ghidra's separate `iVar2`.
  *
@@ -57,22 +55,17 @@
  * identical instruction content. Think4Func (last table, no following
  * table to prefetch for) needed no such temp.
  */
-extern think_func_ *Think1Func[];
-extern think_func_ *Think2Func[];
-extern think_func_ *Think3Func[];
-extern think_func_ *Think4Func[];
-
 void SetupThinkFunction(Humanoid *human, s16 type)
 {
     s32 check;
-    think_func_ **table2;
-    think_func_ **table3;
+    ThinkFunc *table2;
+    ThinkFunc *table3;
 
     human->think[0] = Think1Func[type & 0xF];
     table2 = Think2Func;
-    human->think[1] = *(think_func_ **)((u8 *)table2 + ((((s32)type << 16) >> 18) & 0x3C));
+    human->think[1] = *(ThinkFunc *)((u8 *)table2 + ((((s32)type << 16) >> 18) & 0x3C));
     table3 = Think3Func;
-    human->think[2] = *(think_func_ **)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));
+    human->think[2] = *(ThinkFunc *)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));
     human->think[3] = Think4Func[(u32)((s32)type << 16) >> 28];
     check = ((s32)type << 16) >> 16;
     if (check == 0 || check == 0x1111 || check == 0x2222) {

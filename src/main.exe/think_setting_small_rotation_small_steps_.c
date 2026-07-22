@@ -21,11 +21,6 @@ extern s32 Distance;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern u16 StageEnemies;
 extern s16 AIDHumanType[][2];
-extern think_func_ *Think1Func[];
-extern think_func_ *Think2Func[];
-extern think_func_ *Think3Func[];
-extern think_func_ *Think4Func[];
-
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern s16 GetDirection(s32 x_diff, s32 z_diff, s16 rotation);
 extern int rand(void);
@@ -227,7 +222,7 @@ s16 think_setting_small_rotation_small_steps_(void)
             VECTOR *position;
             s16 newRotation;
             Humanoid *human;
-            think_func_ *think4;
+            ThinkFunc think4;
 
             alertTime = 300;
             if (gNannido == DIFFICULTY_HARD)

@@ -280,7 +280,7 @@ set_target:
             {
                 param->org_think = target->think[0];
                 param->eater->target = item->locate;
-                param->eater->think[0] = (think_func_ *)Think1target;
+                param->eater->think[0] = Think1target;
             }
             else
             {

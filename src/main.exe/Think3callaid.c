@@ -65,15 +65,12 @@
  * the cookbook's gp/cross-TU-struct notes).
  *
  * `human_00->think[0..3] = Think1Func[4]/Think2Func[4]/Think3Func[4]/
- * Think4Func[4]` — item.h's Humanoid.think[4] (new field, this function's
- * own proof) at 0x60, matching game_types.h's Humanoid twin
- * (think_setting0..3) and Ghidra's own independently-built Humanoid
- * (`pointer *think[4]` at the identical offset).
+ * Think4Func[4]` — PSX.SYM's original `short (*think[4])()` field, shifted
+ * from demo +0x58 to retail +0x60 by the expanded MapVector.
  *
- * The possession assignment intentionally updates the attribute through
- * Humanoid's unsigned twin (`some_character_marker_thing`), which
- * emits the target `lhu` against item.h's signed `s16 attribute` at the same
- * offset (the same cross-TU divergence as ControlAllHumanoid/HumanActionControl).
+ * The possession assignment intentionally updates Humanoid.attribute in the
+ * same expression that installs Me_THINK_C, preserving the target load/store
+ * schedule.
  *
  * `AIDHumanType[StageID * 2 + iVar4 % 2]` is a signed `s16` table (`lh`,
  * unlike the item-TU's usual unsigned tables) — passed to BreedLife's
@@ -127,10 +124,6 @@ extern u16 Attrib;
 extern u16 StageEnemies;
 extern u16 StageCitizens;
 extern s16 AIDHumanType[];
-extern think_func_ *Think1Func[];
-extern think_func_ *Think2Func[];
-extern think_func_ *Think3Func[];
-extern think_func_ *Think4Func[];
 extern int rand(void);
 extern s16 Think3escape(void);
 extern void KillHumanoid(Humanoid *human);
@@ -155,7 +148,7 @@ short Think3callaid(void)
         s16 *aid = AIDHumanType;
         s16 *type_ptr;
         s16 type;
-        think_func_ *ppuVar2;
+        ThinkFunc ppuVar2;
 
         SR = -1;
         iVar4 = rand();

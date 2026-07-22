@@ -102,7 +102,7 @@ extern s16 Think3firstattack(void);
 extern s16 turn_towards_player_(s32 x, s32 z);
 extern s16 SetCommand(PADtype *pad, s16 command);
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
-extern s32 Think1ninja(void);
+extern s16 Think1ninja(void);
 extern s32 rand(void);
 
 void StateTransition(Humanoid *human)
@@ -178,7 +178,7 @@ void StateTransition(Humanoid *human)
                 FRAMES_UNTIL_END_OF_ALERT = 0;
             }
         }
-        pad = ((think_func_)Me_THINK_C->think[0])();
+        pad = Me_THINK_C->think[0]();
         update_pressed_buttons(Pad, pad);
         return;
     }
@@ -261,7 +261,7 @@ void StateTransition(Humanoid *human)
         {
             StrainRatio = distance;
         }
-        pad = ((think_func_)Me_THINK_C->think[0])();
+        pad = Me_THINK_C->think[0]();
         if (Me_THINK_C->type >= 7)
         {
             if (SR == 1)
@@ -337,7 +337,7 @@ void StateTransition(Humanoid *human)
             {
                 StrainRatio = -distance;
             }
-            pad = ((think_func_)Me_THINK_C->think[1])();
+            pad = Me_THINK_C->think[1]();
         }
 
         if (SR == 1 || ((Attrib & 0x4000) != 0 && SR > 0))
@@ -399,7 +399,7 @@ void StateTransition(Humanoid *human)
 
         if (Attrib & 0x10)
         {
-            pad = ((think_func_)Me_THINK_C->think[2])();
+            pad = Me_THINK_C->think[2]();
         }
         else
         {
@@ -494,7 +494,7 @@ void StateTransition(Humanoid *human)
         {
             StrainRatio = -0x8000;
         }
-        pad = ((think_func_)Me_THINK_C->think[3])();
+        pad = Me_THINK_C->think[3]();
         if ((Attrib & 0x400) && Me_THINK_C->field76_0xb0 == 0)
         {
             Me_THINK_C->field76_0xb0 =
@@ -594,7 +594,7 @@ update_hint:
                 abs_degree = -abs_degree;
             }
             if (abs_degree < 500 &&
-                ((think_func_)Me_THINK_C->think[0] == (think_func_)Think1ninja ||
+                (Me_THINK_C->think[0] == Think1ninja ||
                  ((Me_THINK_C->type & 0xf0) == 0x20 && gNannido != DIFFICULTY_EASY)))
             {
                 s32 level;
