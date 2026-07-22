@@ -36,7 +36,7 @@
 
 /*
  * CdaPlayXA (0x8004f99c, 0x164 bytes) — starts CD-XA audio playback of
- * `fname`, if CD-audio playback isn't already active: stops it (CdaStop,
+ * `fname` when CD audio is enabled: stops any current playback (CdaStop,
  * idempotent), searches for the file (CdSearchFile), and on a hit computes
  * StartPos/EndPos in CD sectors (StartPos = file's own position + 0x96
  * sectors of read-ahead; EndPos defaults to StartPos + the file's own

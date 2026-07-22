@@ -14,8 +14,8 @@
  * END PSX.SYM */
 
 /*
- * CdaStop (0x8004fb00, 0x80 bytes) — stops CD-audio playback if it's
- * currently active (CdaStatus.flag bit0): re-silences the SPU stream
+ * CdaStop (0x8004fb00, 0x80 bytes) — when CD audio is enabled
+ * (CdaStatus.flag bit0), stops any playback: re-silences the SPU stream
  * (SsSetSerialAttr/SsSetSerialVol), disarms the vsync-driven CD-audio pump
  * (VSyncCallback(NULL)), stops the drive (cd_control(9,0,0), already
  * matched — a retry wrapper over CdControlB; 9 = CdlPause), flushes it
