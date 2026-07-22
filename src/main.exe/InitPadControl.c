@@ -19,8 +19,7 @@
  * scratch and the PadPort[2][4] state table, PadInitDirect over the two
  * 34-byte ComBuf rows, PadStartCom, then — only when the persistent-state
  * `analog_pad_present` bit (byte 0x47; see FUN_8001b2b8.c) is set — burn 15
- * VSyncs and force
- * PadSetMainMode(0,1,0) (digital mode) once.
+ * VSyncs and force PadSetMainMode(0,1,0) (digital mode) once.
  *
  * The raw `.s` disproves Ghidra's own `ComBuf[0x11]` second PadInitDirect
  * argument (an out-of-bounds outer-dimension index into `[2][34]`): the

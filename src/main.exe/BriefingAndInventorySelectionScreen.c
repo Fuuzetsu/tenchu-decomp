@@ -151,7 +151,7 @@ void BriefingAndInventorySelectionScreen(void)
     int nsel;
     s16 np;
     int i;        /* entry backup loop */
-    s16 j;        /* counts loop, case1/3 loops, grid, shown, cursor dx, epilogue */
+    s16 j;        /* selection/count loop, case1/3 loops, grid, shown, cursor dx, epilogue */
     s32 x;        /* grid x, cursor dy */
     s32 y;        /* grid y */
     s16 j7;       /* case 7 loop */

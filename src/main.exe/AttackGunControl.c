@@ -43,8 +43,7 @@
  *
  * Matching notes: the frame was 40 bytes (exactly sizeof(PARAM_ITEM_LAUNCH))
  * short until adding the original UNUSED local `PARAM_ITEM_LAUNCH item;` -
- * never read or
- * written, just declared. cc1 reserves stack space for every declared
+ * never read or written, just declared. cc1 reserves stack space for every declared
  * automatic aggregate regardless of use, so a dead local of the sibling
  * functions' own PARAM_ITEM_LAUNCH size reproduces the target's frame exactly;
  * plausible as leftover from refactoring this callback (which used to build
