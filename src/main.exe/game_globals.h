@@ -28,6 +28,7 @@ extern short StageEnemies;
 extern short StageCitizens;
 /* Retail adds this halfword counter beside the PSX.SYM-recorded set. */
 extern short StageBosses;
+extern long Distance;
 /* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -65,7 +66,7 @@ typedef struct
 extern SearchSight searchsight[];
 
 
-s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree)
+short SearchTarget(Humanoid *human, long *distance, short *degree)
 {
     VECTOR delta;
     VECTOR vect;

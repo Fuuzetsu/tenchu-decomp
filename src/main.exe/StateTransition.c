@@ -83,7 +83,6 @@
 extern Humanoid *Me_THINK_C;
 extern s32 StrainRatio;
 extern u16 Attrib;
-extern s32 Distance;
 extern s16 Degree;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s32 D_80097F10;
@@ -91,7 +90,6 @@ extern s32 D_80097F14;
 extern u16 D_80097F18[2];
 extern s32 D_80097F1C;
 
-extern s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree);
 extern void reset_alert_duration();
 extern s16 Think2confirm(void);
 extern s16 think_setting_small_rotation_small_steps_(void);
