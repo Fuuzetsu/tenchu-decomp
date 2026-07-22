@@ -110,7 +110,6 @@
  *    = param->time + 0xff; if (oldtime == 0) { ef->proc = 0; }` — verified
  *    a real `+0xff` (0x00FF, positive) here, unlike DrawBleed's `time-1`.
  */
-extern Sprite3D *sprSmoke[];
 extern void UpdateCoordinate(Sprite3D *m);
 extern short DrawSprite(Sprite3D *sprt);
 

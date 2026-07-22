@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -46,8 +47,8 @@
  * is no GetAreaMapLevel floor check. It gets ProcItemNemuri as its processor,
  * but differs from the rolling-item twins (Jirai/Smoke/Fire) in
  * two ways (both confirmed against the .s, not just Ghidra):
- *  - `it->model` is unconditionally set from a single fixed global pointer
- *    (Ghidra/the export name it `sprSmoke`, confirmed at 0x80097a68 in
+ *  - `it->model` is unconditionally set from the first shared smoke sprite
+ *    (Ghidra/the export names the table `sprSmoke`, confirmed at 0x80097a68 in
  *    .shake/ghidra-export) — no ItemImage[it->type] lookup by item type.
  *  - the end vector is packed into PSX.SYM's `param_napalm.vec` at offsets
  *    0/2/4. No hint/status/count writes occur here.
@@ -76,10 +77,6 @@ extern void ProcItemNemuri(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Fixed model sprite (Ghidra/export name: sprSmoke); unlike the
- * ItemImage[]-indexing twins this is a single global, not per-type. */
-extern Sprite3D *sprSmoke;
-
 int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *it;
@@ -128,8 +125,8 @@ found:
     it->locate->locate.coord.t[2] = st->vz;
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
+    it->model = (ModelType *)sprSmoke[0];
     it->collision.size = 0;
-    it->model = (ModelType *)sprSmoke;
     pp->vec.vx = p->end.vx;
     pp->vec.vy = p->end.vy;
     pp->vec.vz = p->end.vz;
