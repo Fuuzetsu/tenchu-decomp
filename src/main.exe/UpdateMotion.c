@@ -111,7 +111,6 @@
  *    a0).
  */
 
-extern MotionRegistType MOTcommon[41];
 extern void SetupSpline(MotionManager *mmp);
 
 s16 UpdateMotion(MotionManager *mmp, s16 mid)

@@ -64,7 +64,6 @@ extern s16 D_800979A6;
 extern MotionPackType *CommonMotion;
 extern MotionPackType *PlayerMotion;
 extern MotionPackType *StageMotion;
-extern MotionRegistType MOTcommon[];
 extern u8 D_80011710[];
 extern u8 D_800979A8[];
 extern u8 D_800979B0[];
