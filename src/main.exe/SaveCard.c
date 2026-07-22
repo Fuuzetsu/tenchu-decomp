@@ -40,16 +40,6 @@
  *     extern unsigned char *TENCHU_ID;
  * END PSX.SYM */
 
-typedef struct
-{
-    u8 bytes[0x20];
-} SaveCardPalette;
-
-typedef struct
-{
-    u8 bytes[0x80];
-} SaveCardIcon;
-
 extern char CardPathFormat[];
 extern char D_80013BE4[];
 
@@ -63,8 +53,8 @@ extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
 /*
  * The 0x200-byte card header and payload are two views into a single 8 KiB
- * block.  Struct assignment deliberately preserves the original compiler's
- * aligned/unaligned icon-copy loop pairs.
+ * block. Fixed-size built-in copies use TCardHeader's recovered Clut/Icon
+ * bounds while preserving the original compiler's aligned/unaligned loops.
  */
 s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 {
@@ -73,31 +63,31 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     s32 cmd;
     s32 result;
     s32 chan;
-    TCardHeader *header;
+    TCardHeader *hd;
     void *data;
     u8 *icon1;
     u8 *icon2;
     u8 *icon3;
 
-    header = (TCardHeader *)block;
+    hd = (TCardHeader *)block;
 
-    header->Magic[0] = 0x53;
-    header->Magic[1] = 0x43;
-    header->Type = 0x13;
-    header->BlockEntry = 1;
-    memset(header->Title, 0, sizeof(header->Title));
-    sprintf(header->Title, D_80013BE4);
-    memset(header->reserve, 0, sizeof(header->reserve));
+    hd->Magic[0] = 0x53;
+    hd->Magic[1] = 0x43;
+    hd->Type = 0x13;
+    hd->BlockEntry = 1;
+    memset(hd->Title, 0, sizeof(hd->Title));
+    sprintf(hd->Title, D_80013BE4);
+    memset(hd->reserve, 0, sizeof(hd->reserve));
 
     icon1 = (u8 *)GetArcData(0x16);
     icon2 = (u8 *)GetArcData(0x17);
     chan = 0;
     icon3 = (u8 *)GetArcData(0x18);
     data = block + sizeof(TCardHeader);
-    *(SaveCardPalette *)header->Clut = *(SaveCardPalette *)(icon1 + 0x14);
-    *(SaveCardIcon *)header->Icon[0] = *(SaveCardIcon *)(icon1 + 0x40);
-    *(SaveCardIcon *)header->Icon[1] = *(SaveCardIcon *)(icon2 + 0x40);
-    *(SaveCardIcon *)header->Icon[2] = *(SaveCardIcon *)(icon3 + 0x40);
+    __builtin_memcpy(hd->Clut, icon1 + 0x14, sizeof(hd->Clut));
+    __builtin_memcpy(hd->Icon[0], icon1 + 0x40, sizeof(hd->Icon[0]));
+    __builtin_memcpy(hd->Icon[1], icon2 + 0x40, sizeof(hd->Icon[1]));
+    __builtin_memcpy(hd->Icon[2], icon3 + 0x40, sizeof(hd->Icon[2]));
 
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardCreateFile(chan, fn, 1);

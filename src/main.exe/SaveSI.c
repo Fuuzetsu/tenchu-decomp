@@ -48,11 +48,6 @@
 
 typedef struct
 {
-    u8 bytes[0x20];
-} SaveSIPalette;
-
-typedef struct
-{
     u8 bytes[0x10];
 } SaveSIUnalignedChunk;
 
@@ -60,6 +55,11 @@ typedef struct
 {
     u32 words[4];
 } SaveSIAlignedChunk;
+
+/* The icon loops keep distinct potentially-unaligned and aligned chunk
+ * types so cc1 selects the retail load/store forms and register allocation.
+ * A single fixed-size built-in copy changes that allocation in this larger
+ * function; Clut's short copy does not need the distinction. */
 
 extern char D_80097D90[];
 extern char D_80097D98[];
@@ -98,7 +98,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     s32 cmd;
     s32 result;
     s32 chan;
-    TCardHeader *header;
+    TCardHeader *hd;
     void *data;
 
     if (target == 0)
@@ -117,7 +117,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
 
     msg = 0;
     chan = 0;
-    header = (TCardHeader *)block;
+    hd = (TCardHeader *)block;
     data = block + sizeof(TCardHeader);
     if ((u32)size > BLOCKSIZE - sizeof(TCardHeader))
     {
@@ -135,17 +135,17 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         s32 *cmdp;
         s32 *resultp;
 
-        header->Magic[0] = 0x53;
-        header->Magic[1] = 0x43;
-        header->Type = 0x13;
-        header->BlockEntry = 1;
-        sprintf(header->Title, D_80014128, StageID + 1, name);
+        hd->Magic[0] = 0x53;
+        hd->Magic[1] = 0x43;
+        hd->Type = 0x13;
+        hd->BlockEntry = 1;
+        sprintf(hd->Title, D_80014128, StageID + 1, name);
 
         icon1 = (u8 *)GetArcData(0x16);
         icon2 = (u8 *)GetArcData(0x17);
         icon3 = (u8 *)GetArcData(0x18);
-        *(SaveSIPalette *)header->Clut = *(SaveSIPalette *)(icon1 + 0x14);
-        dst = header->Icon[0];
+        __builtin_memcpy(hd->Clut, icon1 + 0x14, sizeof(hd->Clut));
+        dst = hd->Icon[0];
         src = icon1 + 0x40;
         alignment = (u32)src & 3;
         if (alignment)
@@ -168,7 +168,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             } while (src != icon1 + 0xc0);
         }
 
-        dst = header->Icon[1];
+        dst = hd->Icon[1];
         src = icon2 + 0x40;
         alignment = (u32)src & 3;
         if (alignment)
@@ -191,7 +191,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             } while (src != icon2 + 0xc0);
         }
 
-        dst = header->Icon[2];
+        dst = hd->Icon[2];
         src = icon3 + 0x40;
         end = (s32)icon3 + 0xc0;
         alignment = (u32)src & 3;
