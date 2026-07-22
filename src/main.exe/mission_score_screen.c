@@ -73,14 +73,11 @@ extern void init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
 extern void vfree(void *ptr);
 extern u_long *get_tim_from_archive(u_long *archive, s32 index);
-extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void LoadTIM(unsigned long *adr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern s32 GetRealPad(s32 port);
-extern void StartDrawing(void);
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern short DrawBG(BackGround *bg);
-extern void EndDrawing(short sync);
 extern void DisposeBG(BackGround *background);
 extern void FUN_800515b0(GsSPRITE *number, s32 value, s16 x, s32 y,
                          s32 mode);

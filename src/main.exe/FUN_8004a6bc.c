@@ -65,7 +65,6 @@ typedef struct
 extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern LifeBarSpriteEntry D_8008E4B4[];
 extern GsIMAGE *GetImage(s32 id);
-extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 
 void FUN_8004a6bc(void)
 {

@@ -81,7 +81,6 @@ extern CVAType *CVAnow;
 extern s16 D_80097CC0;
 
 extern void ComputeAllConflict(void);
-extern void StartDrawing(void);
 extern void AVCameraControl(void);
 extern short ControlAllHumanoid(void);
 extern void DrawConstruction(void);
@@ -90,7 +89,6 @@ extern void DoItemProc(void);
 extern void DoMiscProc(void);
 extern void DrawTelop(void);
 extern void update_something_for_each_visible_enemy_(void);
-extern void EndDrawing(short sync);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short CVAupdate(void);
 

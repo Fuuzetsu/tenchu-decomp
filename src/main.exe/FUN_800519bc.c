@@ -256,17 +256,14 @@ extern s16 SkipFrame;
 
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void vfree(void *ptr);
-extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void FUN_80038ce0(void);
 extern s32 GetRealPad(s32 port);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_8004f6c0(s32 arg0);
-extern void StartDrawing(void);
 extern void _PlayMusic(s32 music, s32 mode);
 extern s32 CdaGetCurrentLength(void);
 extern short DrawBG(BackGround *bg);
 extern void FUN_80038c0c(u8 *ot, s32 r, s32 g, s32 b);
-extern void EndDrawing(short sync);
 extern void DisposeBG(BackGround *bg);
 
 static inline void TimToDemoSprite(u_long *file, GsIMAGE *image,

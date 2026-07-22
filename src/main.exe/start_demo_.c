@@ -43,17 +43,14 @@ extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern int sprintf(char *buffer, char *format, ...);
 extern u_long *get_tim_from_archive(u_long *archive, int index);
 extern BackGround *FUN_8004f4f8(u_long *tim);
-extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void LoadTIM(unsigned long *adr);
 extern void _PlayMusic(s32 music, s32 mode);
-extern void StartDrawing(void);
 extern short DrawBG(BackGround *bg);
 extern s32 GetRealPad(s32 port);
 extern void FUN_80056910(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);
 extern void FUN_8004f6c0(s32 mode);
-extern void EndDrawing(short sync);
 
 static inline void StartDemoInitSprite(u_long *tim, GsIMAGE *image,
                                        GsSPRITE *sprite)

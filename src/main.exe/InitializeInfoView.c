@@ -89,7 +89,6 @@ extern GsSPRITE ItemSprite3Ds[4];
 extern u8 fInitialize;
 
 extern GsIMAGE *GetImage(s32 id);
-extern void InitSprite(GsIMAGE *im, GsSPRITE *sp);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void leResetEnemyLayout(void);
 extern void ResetInfoview(s32 stage);

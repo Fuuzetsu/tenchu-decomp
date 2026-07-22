@@ -86,7 +86,6 @@ extern short StageSequence(void);
 extern void StageEndScreen(void);
 extern void start_demo_(void);
 extern void ComputeAllConflict(void);
-extern void StartDrawing(void);
 extern void Camera(void);
 extern short ControlAllHumanoid(void);
 extern void ActivateHumans(void);
@@ -99,7 +98,6 @@ extern void update_something_for_each_visible_enemy_(void);
 extern s16 GetPad(s16 no);
 extern void *vgetfreesize(void);
 extern void *vgetmaxsize(void);
-extern void EndDrawing(short sync);
 
 int main(void)
 {
