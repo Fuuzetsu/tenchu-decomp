@@ -55,9 +55,9 @@
  *  - The drop block and common disposal block deliberately precede the
  *    `sight_mode` label.  Source-ordering the normal sight path first gives
  *    equivalent behavior but reverses the target's physical basic blocks.
- *  - `param`, `rot`, and `view_rot` reproduce the exact sp+0x10..0x47 local
- *    window.  The rotation outputs are an eight-byte aggregate whose useful
- *    halfwords sit at sp+0x40 and sp+0x44.
+ *  - `param`, `rot`, `rx`, and `ry` reproduce the exact sp+0x10..0x47 local
+ *    window recovered by PSX.SYM. The rotation helper writes the two full-word
+ *    scalar outputs at sp+0x40 and sp+0x44.
  *  - Keep the user's model as a `ModelArchiveType *` and take
  *    `&model->rotate` only in SearchItemTarget2.  Precomputing an `SVECTOR *`
  *    creates a separate RTL pseudo: the owner/model chain moves to v1/v0 and
@@ -67,16 +67,6 @@
  *    changes branch placement and whether SetCameraMode(CMODE_LOCK) precedes
  *    launch.
  */
-typedef struct
-{
-    u16 rx;
-    u16 pad0;
-    u16 ry;
-    u16 pad1;
-} SightRotation;
-
-
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
@@ -87,7 +77,8 @@ void ProcSightShot(TItem *item)
     s32 ff;
     PARAM_ITEM_LAUNCH param;
     SVECTOR rot;
-    SightRotation view_rot;
+    int rx;
+    int ry;
     Humanoid *human;
 
     launch = &item->param.launch;
@@ -187,10 +178,10 @@ sight_mode:
             param.start.vz = item->locate->locate.coord.t[2];
             view = &ViewInfo;
             GetVectorRotation((VECTOR *)view, (VECTOR *)&view->vrx,
-                              &view_rot.rx, &view_rot.ry);
+                              &rx, &ry);
             rot.vz = 0;
-            rot.vx = view_rot.rx;
-            rot.vy = view_rot.ry;
+            rot.vx = rx;
+            rot.vy = ry;
             SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
             if (item->proc != 0)
             {

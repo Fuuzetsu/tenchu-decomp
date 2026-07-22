@@ -76,7 +76,6 @@
 
 #include "item.h"
 
-extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern SVECTOR D_80097B0C[];

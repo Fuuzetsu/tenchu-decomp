@@ -66,7 +66,6 @@
  */
 
 extern VECTOR D_80012258[];
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ReqItemDefault(Humanoid *user, TItemType ItemID)

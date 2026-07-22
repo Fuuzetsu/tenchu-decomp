@@ -108,6 +108,7 @@ extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
                          int time, long col);
 extern void SetFrame(VECTOR *pos, short size, short time,
                      GsCOORDINATE2 *super);
+extern void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry);
 extern void SetExplosion(VECTOR *pos, SVECTOR *vect);
 extern void SetHinoko(VECTOR *pos, SVECTOR *power, int n);
 extern int SetFlyWire(VECTOR *start, VECTOR *end);

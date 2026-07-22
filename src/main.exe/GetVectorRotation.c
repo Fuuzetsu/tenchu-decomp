@@ -31,17 +31,14 @@
  * `end`. Yaw is `ratan2` of the negated horizontal deltas; pitch is `ratan2` of
  * the vertical delta over the horizontal distance (`SquareRoot0` of dx²+dz²).
  *
- * The out-params are written as full words here. Callers (ReqItemArrow.c,
- * ReqItemLightningBolt.c) declare their own externs taking `u16 *`/`short *`
- * and read only the low half back with `lhu` — a per-TU narrowing, not this
- * function's own signature.
+ * The out-params are written as full words, as the recovered signature says.
  *
  * Statement order is load-order significant: dx (vx), then dz (vz), then dy
  * (vy) — the deltas are computed in that order even though dy is consumed last.
  */
 
 
-void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry)
+void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry)
 {
     s32 dz;
     s32 dx;

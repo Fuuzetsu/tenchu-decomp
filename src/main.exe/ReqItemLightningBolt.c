@@ -48,11 +48,9 @@
  * PSX.SYM identifies the payload as `param_lightningbolt`: start is stored
  * as three full words, with start.vx through `it->param.lightningbolt`
  * directly and start.vy/start.vz through `pp`. There is no end-vector store — instead
- * GetVectorRotation(&p->start, &p->end, &rot.vx, &rot.vz) computes a rotation
- * from start/end into a LOCAL SVECTOR, of which only .vx/.vz are read back
- * (skipping .vy — the two out-arg stack slots are 4 bytes apart, matching
- * SVECTOR's vx@0/vz@4 with vy@2 skipped, not 2 independent u16s); the two
- * results become `param_lightningbolt.rot.vx/.vy`, with `.vz` cleared.
+ * GetVectorRotation(&p->start, &p->end, &rx, &ry) computes two full-word
+ * rotation outputs; their low halves become `param_lightningbolt.rot.vx/.vy`,
+ * with `.vz` cleared.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemMakibishi: `cur = items
@@ -72,14 +70,10 @@
  *  - The three start-vector param stores are INLINE (no x/y/z temps): each
  *    compiles to one lw immediately followed by its sw, same as
  *    ReqItemKaengeki's six-word tail.
- *  - `rot.vx`/`rot.vz` ARE read into separate temps (rx, ry) BEFORE any of
- *    the three rot.vx/rot.vy/rot.vz stores (batched loads-before-stores,
- *    same shape as the other twins' x/y/z end-vector temps) — reading them
- *    inline at each store point interleaves a store between the two loads
- *    and costs 4 bytes plus a different schedule.
+ *  - `rx`/`ry` are read before any of the three result stores (batched
+ *    loads-before-stores, the same shape as the other twins' x/y/z temps).
  */
 extern void ProcItemLightningBolt(TItem *item);
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, short *out1, short *out2);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
@@ -93,9 +87,8 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
     VECTOR *st;
     Humanoid *us;
     s32 ty;
-    SVECTOR rot;
-    s16 rx;
-    s16 ry;
+    int rx;
+    int ry;
     s32 i;
 
     i = 0;
@@ -146,9 +139,7 @@ found:
     it->param.lightningbolt.start.vx = p->start.vx;
     pp->start.vy = p->start.vy;
     pp->start.vz = p->start.vz;
-    GetVectorRotation(&p->start, &p->end, &rot.vx, &rot.vz);
-    rx = rot.vx;
-    ry = rot.vz;
+    GetVectorRotation(&p->start, &p->end, &rx, &ry);
     pp->rot.vz = 0;
     pp->rot.vx = rx;
     pp->rot.vy = ry;

@@ -244,7 +244,6 @@ extern VECTOR D_800122B8[];
 extern VECTOR D_800122C8[];
 extern VECTOR D_800122D8[];
 
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void ProcSightShot(TItem *item);

@@ -61,19 +61,9 @@
  *    inlining the two early address-of expressions (still CSE'd by the
  *    compiler within that straight-line prefix) reproduced the twins' exact
  *    allocation.
- *  - **Ghidra's two `short local_20[2]`/`short local_1c[2]` out-params for
- *    GetVectorRotation must be ONE combined struct/array, not two separate
- *    same-shaped locals** — declaring them as independent stack objects
- *    (whether scalar `u16`, `u16[2]`, or a padded struct) triggers EXTRA
- *    padding between them that doesn't belong (each attempt either packed
- *    them 2 bytes too tight or, once either was sized/aligned to 4 bytes,
- *    overshot by a further 4 bytes — never landing on the target's exact
- *    4-byte spacing). Declaring one `struct { u16 rx,pad0,ry,pad1; } rot;`
- *    and using `&rot.rx`/`&rot.ry` matched immediately: the pair is a single
- *    8-byte aggregate the original stack-shared for BOTH out-params, only
- *    the low half of each 4-byte slot actually read back (`lhu`, matching
- *    Ghidra's `(int *)` casts on the call — the callee likely writes a full
- *    word, the caller only needs the low 16 bits).
+ *  - GetVectorRotation's recovered `int *` signature gives `rx` and `ry`
+ *    adjacent four-byte stack slots. GCC narrows their later assignments to
+ *    the SVECTOR fields to low-halfword loads, matching the retail code.
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemLaunch (confirmed
  *    against the raw .s, not inferred): `cur = items + COUNTER...;` used
  *    throughout the loop/dispose block, `it = cur;` assigned exactly twice
@@ -88,15 +78,10 @@
  *    param reproduces the target directly).
  *  - `us`/`ty` temps for owner/type, same shape as the other twins (loaded
  *    back-to-back, stored owner/proc/mode/type in that order).
- *  - GetVectorRotation's out-params are read back with `lhu` (unsigned
- *    halfword), so `rot.rx`/`rot.ry` are `u16`, not ReqItemLightningBolt's
- *    TU's `short *` — same "respell the callee's prototype per-TU" situation
- *    as ReqItemDefault's GetVectorRotation call.
  *  - `it->collision.size = 0; it->model = ArrowModel;` immediately precede
  *    SetupFly, same position/interleaving as ReqItemLaunch.
  */
 extern void ProcItemArrow(TItem *item);
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *out1, u16 *out2);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
@@ -114,19 +99,14 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     s32 ty;
     SVECTOR dir;
     VECTOR target;
-    struct
-    {
-        u16 rx;
-        u16 pad0;
-        u16 ry;
-        u16 pad1;
-    } rot;
+    int rx;
+    int ry;
     s32 i;
 
-    GetVectorRotation(&p->start, &p->end, &rot.rx, &rot.ry);
+    GetVectorRotation(&p->start, &p->end, &rx, &ry);
     dir.vz = 0;
-    dir.vx = rot.rx;
-    dir.vy = rot.ry;
+    dir.vx = rx;
+    dir.vy = ry;
     SearchItemTarget2(p->user, &dir, &p->start, &target);
     i = 0;
     do

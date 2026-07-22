@@ -70,7 +70,6 @@
  *    start.  They reproduce both rounds of stack stores in the target.
  */
 
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ProcItemKaengeki(TItem *item)

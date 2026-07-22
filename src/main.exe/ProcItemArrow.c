@@ -55,9 +55,9 @@
  * blink the attached arrow before disposal.
  *
  * Matching notes:
- *  - `v1`, `v2`, and `rot` form the exact sp+0x18..0x3f local window.  The
- *    two GetVectorRotation outputs are one 8-byte aggregate with useful
- *    halfwords four bytes apart, matching ReqItemArrow's proven layout.
+ *  - `v1`, `v2`, `rx`, and `ry` use the stack slots recovered by PSX.SYM.
+ *    GetVectorRotation writes the two full-word outputs at sp+0x88/sp+0x8c;
+ *    their later stores to SVECTOR members naturally use only the low halves.
  *  - The dead `mode_index = 0` assignment is a zero-code CSE eviction.  It
  *    forces expand_case to emit a fresh mode `lbu`; otherwise the entry
  *    guard's load is reused and the function is one instruction short.
@@ -80,20 +80,10 @@
  *    GsCOORDINATE2 assignment.  GCC emits the target five-iteration,
  *    16-byte block-copy loop before DrawModel.
  */
-typedef struct
-{
-    u16 rx;
-    u16 pad0;
-    u16 ry;
-    u16 pad1;
-} ArrowRotation;
-
-
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
 
 void ProcItemArrow(TItem *item)
@@ -105,7 +95,8 @@ void ProcItemArrow(TItem *item)
     u8 mode_index;
     VECTOR v1;
     VECTOR v2;
-    ArrowRotation rot;
+    int rx;
+    int ry;
 
     objp = item->model;
     param = &item->param.arrow;
@@ -269,9 +260,9 @@ aim:
         v2.vx = item->locate->locate.coord.t[0];
         v2.vy = item->locate->locate.coord.t[1];
         v2.vz = item->locate->locate.coord.t[2];
-        GetVectorRotation(&v1, &v2, &rot.rx, &rot.ry);
-        item->locate->rotate.vx = rot.rx;
-        item->locate->rotate.vy = rot.ry;
+        GetVectorRotation(&v1, &v2, &rx, &ry);
+        item->locate->rotate.vx = rx;
+        item->locate->rotate.vy = ry;
         {
             s32 clock;
 
