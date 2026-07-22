@@ -82,6 +82,10 @@ extern s16 Think1sleep(void);
  */
 void ProcItemNemuri(TItem *item)
 {
+    enum
+    {
+        MaxCount = 100
+    };
     Sprite3D *sprt;
     param_napalm *param;
     void (*proc)(TItem *);
@@ -206,7 +210,7 @@ void ProcItemNemuri(TItem *item)
 
         count = param->count + 1;
         param->count = count;
-        if (count > 100)
+        if (count > MaxCount)
         {
             item->mode = item->mode + 1;
         }
