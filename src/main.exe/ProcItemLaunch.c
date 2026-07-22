@@ -1,6 +1,5 @@
 #include "common.h"
 #include "main.exe.h"
-#include "afterimage.h"
 
 /*
  * ProcItemLaunch (0x80047048) — the launched/thrown item processor (grenade

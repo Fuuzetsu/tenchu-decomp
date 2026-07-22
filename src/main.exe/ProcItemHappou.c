@@ -1,6 +1,5 @@
 #include "common.h"
 #include "main.exe.h"
-#include "afterimage.h"
 
 /*
  * ProcItemHappou (0x8004488c) — the happou (fire cracker / bouncing bomb)
