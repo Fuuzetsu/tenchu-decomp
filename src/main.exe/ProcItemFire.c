@@ -13,8 +13,8 @@
  *    explicit ProcItemFireScratch union.  Its views reproduce the retail
  *    sp+0x18..sp+0x77 overlay and the exact 0x98-byte frame; ordinary block
  *    locals made cc1 reserve an extra 24 bytes.
- *  - The three rand()%50 expressions use separate single-definition return
- *    temps plus `base_* = coordinate - 25`.  Reusing one rand temp leaves
+ *  - The three `rand() % (nr * 2)` expressions use separate single-definition
+ *    return temps plus `base_* = coordinate - nr`.  Reusing one rand temp leaves
  *    copies from $v0; inlining the calls lets combine reassociate `-25` with
  *    the remainder and removes each target coordinate-load hazard nop.
  *  - `count` is full-width, with explicit `(u8)` tests.  That keeps the
@@ -127,6 +127,10 @@ extern void reset_alert_duration(void);
 
 void ProcItemFire(TItem *item)
 {
+    enum
+    {
+        nr = 25
+    };
     Sprite3D *sprt;
     param_smoke *param;
     u8 ff;
@@ -180,14 +184,14 @@ void ProcItemFire(TItem *item)
         vec = (SVECTOR *)&scratch.particle.random_pos;
         memset(&scratch.particle.random_pos, 0, sizeof(VECTOR));
         random_x = rand();
-        base_x = item->locate->locate.coord.t[0] - 25;
-        scratch.particle.random_pos.vx = base_x + random_x % 50;
+        base_x = item->locate->locate.coord.t[0] - nr;
+        scratch.particle.random_pos.vx = base_x + random_x % (nr * 2);
         random_y = rand();
-        base_y = item->locate->locate.coord.t[1] - 25;
-        scratch.particle.random_pos.vy = base_y + random_y % 50;
+        base_y = item->locate->locate.coord.t[1] - nr;
+        scratch.particle.random_pos.vy = base_y + random_y % (nr * 2);
         random_z = rand();
-        base_z = item->locate->locate.coord.t[2] - 25;
-        scratch.particle.random_pos.vz = base_z + random_z % 50;
+        base_z = item->locate->locate.coord.t[2] - nr;
+        scratch.particle.random_pos.vz = base_z + random_z % (nr * 2);
         scratch.particle.pos = scratch.particle.random_pos;
         *vec = D_80097AFC[0];
         position = &scratch.particle.pos;
