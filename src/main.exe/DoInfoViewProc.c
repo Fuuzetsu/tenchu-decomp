@@ -185,6 +185,16 @@ static inline void EffectSpawnMenu(void)
 
 void DoInfoViewProc(void)
 {
+    enum { TESTPAD = 3 };
+    enum
+    {
+        ENEMY = 0,
+        ITEM = 1,
+        CHARGE = 2,
+        FILE = 3,
+        PLAYER = 4,
+        STAGE = 5
+    };
     u16 pad;
     u16 trig;
     s32 sel;
@@ -198,29 +208,29 @@ void DoInfoViewProc(void)
     {
         InitializeInfoView();
     }
-    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == 3)
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == TESTPAD)
     {
         mm = DEBUG_MENU_MAIN_SCREEN_OPTIONS;
         VISIBLE_ENEMIES_ = 0;
         sel = AdtSelect(D_800125F0, &mm, 0);
         switch (sel)
         {
-        case 0:
+        case ENEMY:
             LayoutEnemyOption();
             break;
-        case 2:
+        case CHARGE:
             ItemAddMenu();
             break;
-        case 1:
+        case ITEM:
             ItemLayoutMenu();
             break;
-        case 3:
+        case FILE:
             FileOption();
             break;
-        case 4:
+        case PLAYER:
             PlayerOption();
             break;
-        case 5:
+        case STAGE:
             debug_menu_stage_option();
             break;
         case 0x63:
