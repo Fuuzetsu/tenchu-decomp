@@ -11,7 +11,7 @@
  * 0x40 frames, dispose at 0.
  *
  * Matching notes (all verified against the original bytes; this is
- * ProcItemKusuri's shape — see that file for the buf[0x28]-with-casts and
+ * ProcItemKusuri's shape — see that file for the shared stack scratch and
  * drop-path conventions, ProcItemKawarimi/ProcItemGun for the dispose tail):
  *  - `ff` (u8 ITEM_MODE_DISPOSE) is callee-saved ($s4): entry compare + the
  *    cross-jumped dispose tail's `item->mode = ff` (both copies of the
@@ -26,7 +26,7 @@
  *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail reads that signed
  *    field through an explicit u16 memory view (`lhu`), then narrows through
  *    an s16 local (`sll/bnez` zero-test, not andi).
- *  - `*(VECTOR *)buf = D_80012248;` is a whole-VECTOR struct assignment (the
+ *  - `scratch.v = D_80012248;` is a whole-VECTOR struct assignment (the
  *    16-byte batched-loads/stores block move), not four scalar assignments.
  *  - `human`/`itemID` (PSX.SYM's own names) are the drop path's load-batch
  *    temps; `owner->itmctl = item->type` is the plain narrowing store
@@ -61,6 +61,12 @@
 
 #include "item.h"
 
+typedef union
+{
+    PARAM_ITEM_LAUNCH p;
+    VECTOR v;
+} ProcItemGosinScratch;
+
 /* Retail's caller promotes these scalar arguments before the call. */
 extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
                          s32 start_size, s32 end_size,
@@ -71,7 +77,7 @@ extern VECTOR D_80012248;
 void ProcItemGosin(TItem *item)
 {
     u8 ff;
-    u8 buf[0x28];
+    ProcItemGosinScratch scratch;
 
     ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
@@ -102,16 +108,16 @@ void ProcItemGosin(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(buf, 0, sizeof(PARAM_ITEM_LAUNCH));
-            ((PARAM_ITEM_LAUNCH *)buf)->type = itemID;
-            ((PARAM_ITEM_LAUNCH *)buf)->user = human;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vz = pos->vz;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vx = rand() % 200 - 100;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vy = rand() % 100 - 200;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vz = rand() % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_LAUNCH *)buf);
+            memset(&scratch.p, 0, sizeof(PARAM_ITEM_LAUNCH));
+            scratch.p.type = itemID;
+            scratch.p.user = human;
+            scratch.p.start.vx = pos->vx;
+            scratch.p.start.vy = pos->vy;
+            scratch.p.start.vz = pos->vz;
+            scratch.p.end.vx = rand() % 200 - 100;
+            scratch.p.end.vy = rand() % 100 - 200;
+            scratch.p.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&scratch.p);
             if (item->proc == 0)
                 return;
             item->mode = ff;
@@ -160,8 +166,8 @@ void ProcItemGosin(TItem *item)
         }
         if ((c & 0x3f) != 0)
             return;
-        *(VECTOR *)buf = D_80012248;
-        FUN_8003944c((VECTOR *)buf, &item->owner->model->locate,
+        scratch.v = D_80012248;
+        FUN_8003944c(&scratch.v, &item->owner->model->locate,
                      0x1000, 0x6000, 0x808080, 0,
                      (s16)(rand() % 0x168), 2, 0x78, 4);
         return;
