@@ -46,6 +46,8 @@ extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
 extern GsSPRITE MapImage;
 extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
+extern void PutItemIcon(int ItemID, short x, short y, short scale);
+extern void PutItemCursor(short x, short y, short size, int rotdif);
 extern GsOT *OTablePt;
 extern GsOT OTable[2];
 extern GsFOGPARAM Fog;

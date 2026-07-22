@@ -34,10 +34,10 @@
  * cursor sprite, bump its rotation by `rotdif`, and sort it into the GsOT.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The caller's own extern (BriefingAndInventorySelectionScreen.c)
- *    declares all 4 params `int`; Ghidra guesses `short x,y,size,rotdif`
- *    for the defining TU here — but Ghidra's own rendering of the rotate
- *    update (`CONCAT22(in_register_0000001e,rotdif)`) is the decompiler's
+ *  - The shared retail API retains the demo's recovered `x`, `y`, `size`,
+ *    and `rotdif` names. Ghidra guesses all four as `short`, but its own
+ *    rendering of the rotate update
+ *    (`CONCAT22(in_register_0000001e,rotdif)`) is the decompiler's
  *    tell that its "short rotdif" guess is wrong: CONCAT22 reassembles a
  *    register Ghidra typed too narrow back to its real 32-bit width. The
  *    raw asm confirms: `rotdif` (a3) feeds `addu` against the full 32-bit

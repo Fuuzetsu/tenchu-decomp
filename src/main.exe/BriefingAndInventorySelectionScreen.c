@@ -101,8 +101,6 @@ extern void FUN_80038ce0(void);
 extern void FUN_8004f6c0(int arg);
 extern short DrawBG(BackGround *bg);
 extern void PutNumber(int x, int y, int n);
-extern void PutItemIcon(int id, int x, int y, int scale);
-extern void PutItemCursor(int x, int y, int size, int rotdif);
 extern void DisposeBG(BackGround *bg);
 extern int check_for_known_button_combination(s16 pad, s16 newpress);
 extern void FUN_800519bc(void);
