@@ -63,7 +63,11 @@
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, int seid);
-extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b, s32 col, s32 f, s32 rot, s32 h, s32 i, s32 j);
+/* Retail's caller promotes these scalar arguments before the call. */
+extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
+                         s32 start_size, s32 end_size,
+                         s32 start_color, s32 end_color,
+                         s32 rotate, s32 rotate_speed, s32 time, s32 type);
 extern VECTOR D_80012248;
 
 void ProcItemGosin(TItem *item)
@@ -159,7 +163,9 @@ void ProcItemGosin(TItem *item)
         if ((c & 0x3f) != 0)
             return;
         *(VECTOR *)buf = D_80012248;
-        FUN_8003944c((VECTOR *)buf, item->owner->model, 0x1000, 0x6000, 0x808080, 0, (s16)(rand() % 0x168), 2, 0x78, 4);
+        FUN_8003944c((VECTOR *)buf, &item->owner->model->locate,
+                     0x1000, 0x6000, 0x808080, 0,
+                     (s16)(rand() % 0x168), 2, 0x78, 4);
         return;
     }
     }

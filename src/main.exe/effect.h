@@ -101,9 +101,9 @@ struct BloodType /* size 36 */
     short vz;                   /* +0x1e */
     u8 mode;                    /* +0x20 */
     u8 bright;                  /* +0x21 */
-    u8 unk22;                   /* +0x22 — proven by FUN_8003944c (a real
+    u8 unk22;                   /* +0x22 — proven by SetBlood/DrawBlood (real
                                   * field, not just alignment padding: it's
-                                  * an explicit `sb` store there, distinct
+                                  * explicitly read and written there, distinct
                                   * from the struct's implicit round-up to
                                   * the union's 4-byte alignment). */
     u8 unk23;                   /* +0x23 -- proven by SetBlood: a genuine

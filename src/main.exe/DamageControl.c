@@ -24,9 +24,10 @@ extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect, s16 n);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 extern VECTOR *GetAbsolutePosition(ModelType *model, s32 x, s32 y, s32 z);
-extern void FUN_8003944c(long *pos, long pz, short time, short vx,
-                         long scale, long rotate, s16 vy, u16 vz,
-                         u16 unk22, u16 mode);
+extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
+                         short start_size, short end_size,
+                         long start_color, long end_color,
+                         s16 rotate, u16 rotate_speed, u16 time, u16 type);
 extern s16 GetConflictResult(ModelType *model, s16 index);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 

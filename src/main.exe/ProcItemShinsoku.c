@@ -79,8 +79,11 @@ extern short Sound(Humanoid *human, s32 seid);
 extern void FUN_80033bc0(VECTOR *pos, s32 spread, s32 divisor, s32 count);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
-extern void FUN_8003944c(VECTOR *pos, ModelArchiveType *model, s32 a, s32 b,
-                         s32 color, s32 f, s32 rot, s32 h, s32 i, s32 j);
+/* Retail's caller promotes these scalar arguments before the call. */
+extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
+                         s32 start_size, s32 end_size,
+                         s32 start_color, s32 end_color,
+                         s32 rotate, s32 rotate_speed, s32 time, s32 type);
 
 void ProcItemShinsoku(TItem *item)
 {
