@@ -36,6 +36,10 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
+/* Retail reuses the spawn query slot for the case-1 smoke vector. The inner
+ * union makes that lifetime overlap explicit and restores PSX.SYM's `vec`
+ * name without casting a VECTOR. The case-2 `vec` is a separate block local
+ * in the original source and shares the outer frame slot here. */
 typedef union
 {
     struct
@@ -49,10 +53,14 @@ typedef union
     struct
     {
         VECTOR pos;
-        VECTOR query;
+        union
+        {
+            VECTOR query;
+            SVECTOR vec;
+        } work;
         MapVector map;
     } spawn;
-    SVECTOR effect_vec;
+    SVECTOR vec;
 } ProcItemNinkenScratch;
 
 extern Humanoid *NINKEN_CHARACTER_PTR;
@@ -206,15 +214,15 @@ void ProcItemNinken(TItem *item)
         }
 
         position = &scratch.spawn.pos;
-        query = &scratch.spawn.query;
+        query = &scratch.spawn.work.query;
         map = &scratch.spawn.map;
         scratch.spawn.pos.vx = item->locate->locate.coord.t[0];
         scratch.spawn.pos.vy = item->locate->locate.coord.t[1];
         scratch.spawn.pos.vz = item->locate->locate.coord.t[2];
-        scratch.spawn.query.vx = position->vx;
-        scratch.spawn.query.vy = position->vy;
-        scratch.spawn.query.vz = position->vz;
-        scratch.spawn.query.vy -= 2000;
+        scratch.spawn.work.query.vx = position->vx;
+        scratch.spawn.work.query.vy = position->vy;
+        scratch.spawn.work.query.vz = position->vz;
+        scratch.spawn.work.query.vy -= 2000;
         GetAreaMapVector(GlobalAreaMap, map, query, 500, 0);
 
         if (scratch.spawn.map.level >= position->vy - 500)
@@ -237,8 +245,8 @@ void ProcItemNinken(TItem *item)
             return;
         }
 
-        *(SVECTOR *)&scratch.spawn.query = D_80097AF4[0];
-        SetSmoke(&scratch.spawn.pos, (SVECTOR *)&scratch.spawn.query, 10, 6);
+        scratch.spawn.work.vec = D_80097AF4[0];
+        SetSmoke(&scratch.spawn.pos, &scratch.spawn.work.vec, 10, 6);
         SoundEx(&scratch.spawn.pos, 0x23);
         param->slave = NINKEN_CHARACTER_PTR;
         NINKEN_CHARACTER_PTR->status = 0;
@@ -305,9 +313,9 @@ void ProcItemNinken(TItem *item)
         }
 
 expire:
-        scratch.effect_vec = D_80097AF4[0];
+        scratch.vec = D_80097AF4[0];
         SetSmoke((VECTOR *)param->slave->model->locate.coord.t,
-                 &scratch.effect_vec, 10, 6);
+                 &scratch.vec, 10, 6);
         SoundEx((VECTOR *)param->slave->model->locate.coord.t, 0x23);
         TurnAroundAllItems(param->slave);
         {
