@@ -36,7 +36,6 @@
  * working copy used by both the target's loop-delay-slot store and the
  * following rotated HumanData scan.
  */
-extern HumanDataType HumanData[63];
 
 void SetupWeapon(Humanoid *human)
 {

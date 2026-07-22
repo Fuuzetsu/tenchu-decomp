@@ -44,7 +44,6 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
 extern s16 MotionUpdateMode;
-extern HumanAnimType CVAhuman[5];
 
 extern void AttackCancelControl(short mode);
 extern void PadShockAR(short port, short power, short time, short mode);

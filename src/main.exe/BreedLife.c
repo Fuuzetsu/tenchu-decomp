@@ -151,7 +151,6 @@
  *    guard-clause functions in this TU family).
  */
 
-extern HumanDataType HumanData[63];
 
 extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,

@@ -101,7 +101,6 @@ extern s16 ActionHalt;
 extern Humanoid *Me_MOTION_C;
 extern BattleType BattleDB[78];
 extern WeaponType WeaponDB[];
-extern HumanAnimType CVAhuman[];
 extern TCameraStatus CamState;
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);

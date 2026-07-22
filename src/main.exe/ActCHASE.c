@@ -54,7 +54,6 @@ extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern s16 dtCMD;
 extern s16 SelectedItem;
-extern HumanAnimType CVAhuman[5];
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);

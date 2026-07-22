@@ -74,7 +74,6 @@
  *    transcription would reload it twice.
  */
 
-extern HumanDataType HumanData[63];
 extern s16 NowStage;
 extern s16 *StageAppearance[];
 

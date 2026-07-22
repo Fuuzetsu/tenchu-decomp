@@ -69,7 +69,6 @@
 
 extern CVAType *CVAnow;
 extern CVAType *CVAdata;
-extern HumanAnimType CVAhuman[5];
 extern GsRVIEW2 ViewInfo;
 extern SVECTOR UnitVector;
 extern Humanoid *CameraTarget;

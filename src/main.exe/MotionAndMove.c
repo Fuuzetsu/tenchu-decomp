@@ -38,7 +38,6 @@
  *    for the terminator store) — per-TU divergent type, same precedent
  *    as lifemax's u16-vs-s16 split (cookbook Expressions).
  */
-extern HumanAnimType CVAhuman[5];
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 MotionUpdateMode;

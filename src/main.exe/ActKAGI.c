@@ -77,7 +77,6 @@ extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 MotionUpdateMode;
-extern HumanAnimType CVAhuman[5];
 extern TCameraStatus CamState;
 
 extern s32 FUN_8004a368(s32 mode, Humanoid *human);

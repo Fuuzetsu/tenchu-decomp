@@ -64,7 +64,6 @@ typedef struct ThinkDBtype
     s16 value;
 } ThinkDBtype;
 
-extern HumanDataType HumanData[63];
 extern WeaponModelType WeaponModel[41];
 extern s16 *StageAppearance[];
 extern ThinkDBtype ThinkDB[20];

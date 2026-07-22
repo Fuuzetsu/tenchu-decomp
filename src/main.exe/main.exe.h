@@ -10,6 +10,8 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 extern struct Humanoid *Me_THINK_C;
 extern struct Humanoid *HumanGroup[32];
 extern struct Humanoid *StagePlayer;
+extern HumanDataType HumanData[63];
+extern HumanAnimType CVAhuman[5];
 /* CONFLICT.C's retail-expanded pool and query outputs. */
 extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;

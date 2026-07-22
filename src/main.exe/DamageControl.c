@@ -20,7 +20,6 @@ extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
 extern u8 gNannido;
 extern BattleType BattleDB[78];
-extern HumanAnimType CVAhuman[5];
 extern u16 D_80086B6C[8];
 
 extern short Sound(Humanoid *human, s16 seid);
