@@ -39,6 +39,12 @@
 
 #include "item.h"
 
+typedef union
+{
+    PARAM_ITEM_LAUNCH p;
+    SVECTOR sv;
+} ProcItemHenshinScratch;
+
 /*
  * MATCH.
  *
@@ -58,9 +64,9 @@
  *    and mode 2 finishes its mode/count stores before loading owner/type.
  *    The old disguise pointer is copied once before its null/proc checks so
  *    volatility does not introduce redundant global reloads.
- *  - `buf` is the exact sp+0x10..0x37 scratch overlay: a PARAM_ITEM_LAUNCH on
- *    the interrupted-motion path and an unaligned SVECTOR aggregate copy on
- *    both smoke paths.
+ *  - `scratch` is the exact sp+0x10..0x37 lifetime overlay: PSX.SYM records
+ *    PARAM_ITEM_LAUNCH `p` on the interrupted-motion path and SVECTOR `sv` on
+ *    the smoke paths.
  *  - Case 0 deliberately does not assign D_80097AEC.  It jumps directly to
  *    the shared mode increment; only the completed mode-1 path installs the
  *    current item after disposing any prior disguise.
@@ -75,7 +81,7 @@ void ProcItemHenshin(TItem *item)
     Humanoid *human;
     ModelArchiveType *mad;
     u8 ff;
-    u8 buf[sizeof(PARAM_ITEM_LAUNCH)];
+    ProcItemHenshinScratch scratch;
 
     human = item->owner;
     mad = human->model;
@@ -138,16 +144,16 @@ void ProcItemHenshin(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             drop_owner = item->owner;
             itemID = item->type;
-            memset(buf, 0, sizeof(PARAM_ITEM_LAUNCH));
-            ((PARAM_ITEM_LAUNCH *)buf)->type = itemID;
-            ((PARAM_ITEM_LAUNCH *)buf)->user = drop_owner;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vz = pos->vz;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vx = rand() % 200 - 100;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vy = rand() % 100 - 200;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vz = rand() % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_LAUNCH *)buf);
+            memset(&scratch.p, 0, sizeof(PARAM_ITEM_LAUNCH));
+            scratch.p.type = itemID;
+            scratch.p.user = drop_owner;
+            scratch.p.start.vx = pos->vx;
+            scratch.p.start.vy = pos->vy;
+            scratch.p.start.vz = pos->vz;
+            scratch.p.end.vx = rand() % 200 - 100;
+            scratch.p.end.vy = rand() % 100 - 200;
+            scratch.p.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&scratch.p);
             if (item->proc == 0)
             {
                 return;
@@ -173,8 +179,8 @@ void ProcItemHenshin(TItem *item)
         }
 
         NowReturnNormal(human);
-        *(SVECTOR *)buf = D_80097AF4[0];
-        SetSmoke((VECTOR *)mad->locate.coord.t, (SVECTOR *)buf, 10, 6);
+        scratch.sv = D_80097AF4[0];
+        SetSmoke((VECTOR *)mad->locate.coord.t, &scratch.sv, 10, 6);
         {
             TItem *old;
 
@@ -253,8 +259,8 @@ void ProcItemHenshin(TItem *item)
                 return;
             }
         }
-        *(SVECTOR *)buf = D_80097AF4[0];
-        SetSmoke((VECTOR *)mad->locate.coord.t, (SVECTOR *)buf, 10, 6);
+        scratch.sv = D_80097AF4[0];
+        SetSmoke((VECTOR *)mad->locate.coord.t, &scratch.sv, 10, 6);
         if (item->proc == 0)
         {
             return;
