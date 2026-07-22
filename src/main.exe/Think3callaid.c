@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "game_globals.h"
 #include "appear.h"
 #include "item.h"
 
@@ -121,7 +122,6 @@
 extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 SR;
-extern s32 StageID;
 extern s16 Degree;
 extern PADtype *Pad;
 extern u16 Attrib;

@@ -79,7 +79,6 @@ extern s16 D_80097CCC;
 extern u8 D_800C2C50[];
 extern u8 D_8008FFB9[];
 extern u8 CHOSEN_CHARACTER;
-extern s32 StageID;
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern Humanoid *GetHumanoid(s16 type);

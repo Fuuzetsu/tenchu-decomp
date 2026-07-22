@@ -89,7 +89,6 @@ extern TSystemFlag SystemFlag;
 /* other TUs' smalls — plain absolute externs */
 extern s16 EngageLevel;
 extern u8 gNannido;
-extern s32 StageID;
 
 extern MENU_FILE_TBL DEBUG_MENU_FILE_CHOICES;
 extern MENU_SAVELOAD_TBL DEBUG_MENU_SAVE_LOAD_CHOICES;

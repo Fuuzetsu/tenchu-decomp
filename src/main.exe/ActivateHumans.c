@@ -44,7 +44,6 @@ extern s16 D_80097F42;
 extern s16 D_80097F44;
 extern StageCharType StageChar[18];
 extern s16 Humans;
-extern s32 StageID;
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 

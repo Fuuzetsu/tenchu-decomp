@@ -74,7 +74,6 @@
  *    fix needed for these two.
  */
 extern u8 *ImagePath;
-extern s32 StageID;
 extern char D_80097D90[];  /* "%s%s" */
 extern char D_80097D98[];  /* "%s\%d\%s" */
 extern char *CID;   /* "BISLPS_00000" */

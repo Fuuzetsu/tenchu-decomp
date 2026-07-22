@@ -94,7 +94,6 @@
 typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
 
 extern TCameraStatus CamState;
-extern s32 StageID;
 extern TStageConfig StageConfig[];
 extern NodeIndexType *FieldIndex;
 extern AreaNodeType *FieldArea;

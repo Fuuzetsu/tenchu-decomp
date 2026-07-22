@@ -58,7 +58,6 @@ typedef struct
 } CreateStageTitleScratch;
 
 extern s16 Humans;
-extern s32 StageID;
 extern u8 *ImagePath;
 extern GsOT *OTablePt;
 extern s16 SkipFrame;

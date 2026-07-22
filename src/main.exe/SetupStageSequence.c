@@ -50,7 +50,6 @@ extern void vfree(void *p);
 extern void StartStageSequence(void);
 extern void sprintf(char *s, char *fmt, ...);
 
-extern s32 StageID;
 extern char D_80012808[]; /* "%sSTAGE%d.ESD" */
 extern char D_80012818[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\" */
 

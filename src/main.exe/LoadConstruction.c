@@ -134,7 +134,6 @@ typedef struct WorldDataType
 extern WorldType WorldMap[8][8][8];
 extern u8 *ImagePath;
 extern ObjectSlotManager ModelSlot;
-extern s32 StageID;
 extern ModelType World;
 extern OrnamentArchiveType *D_80097A70;
 extern OrnamentArchiveType *D_80097A74;

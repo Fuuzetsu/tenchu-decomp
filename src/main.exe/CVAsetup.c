@@ -71,7 +71,6 @@ extern CVAType *CVAdata;
 extern char *STAGE_ANIMATION_PREFICES[];
 extern char D_80013624[]; /* "%sSTAGE%d%c.CAD" */
 extern char D_80013634[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd" */
-extern int StageID;
 
 extern POLY_F4 TelopbgP;
 

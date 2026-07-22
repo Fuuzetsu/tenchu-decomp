@@ -65,7 +65,6 @@ typedef struct
 } SaveSISelectBlock;
 
 extern u8 *ImagePath;
-extern s32 StageID;
 extern char D_80097D90[];
 extern char D_80097D98[];
 extern char *CID;
