@@ -275,7 +275,7 @@ GP_EXTERNS = {
     "dispose_weapon_data_of_char_": ["Me_MOTION_C", "dtM"],
     "AdtMessageBox": ["AdtPadRead", "AdtMessageBoxCount"],
     "PutItemList": ["SelectedItem", "ItemCursor"],
-    "PutMap": ["PutMapMode", "D_80097F6C", "D_80097F70"],
+    "PutMap": ["PutMapMode", "x", "y"],
     "UpdateEvent": ["StageEvent", "StagePlayer"],
     "CreateHumanoid": ["Humans"],
     "KillHumanoid": ["Humans"],

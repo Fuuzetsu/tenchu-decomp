@@ -39,11 +39,11 @@
  * MapImage sprite, animated through a 3-state sequence in `PutMapMode`
  * (gp-relative, this TU's own): 0 = just opened (init the wipe position/
  * sound), 1 = wipe animating closed (draws a highlighted-outline "seam"
- * frame each tick, then slides `D_80097F6C` toward 0 by 0x28/tick), 2 =
+ * frame each tick, then slides `x` toward 0 by 0x28/tick), 2 =
  * fully closed (draws the player's on-map marker via `FUN_8003d768`).
  *
  * `rgb` (PSX.SYM's declared local) is a brightness ramp derived from the
- * wipe position: `(0xA0 - D_80097F6C) / 4` — plain integer division by the
+ * wipe position: `(0xA0 - x) / 4` — plain integer division by the
  * constant 4 (not a hand-written bias+shift): cc1 emits the
  * `if (t<0) t+=3; t>>=2;` guard automatically for INT division by a
  * power-of-2 constant (same lever as PutLifeBar's `mx/4`).
@@ -59,7 +59,7 @@
  * `.locate.coord.t[0]/.t[2]` are the MATRIX translation X/Z (offsets
  * 0x18/0x20 from `model`, matching the raw `lw 0x18(v1)`/`lw 0x20(v1)`).
  * The 3rd arg is `&D_8008E50C[StageID]` (a still-unnamed per-stage table,
- * stride 0x10). NOTE: D_8008E50C/D_80097F6C/D_80097F70 were only
+ * stride 0x10). NOTE: D_8008E50C/x/y were only
  * auto-labeled by splat while PutMap's OWN asm carve referenced them; once
  * this file compiles as plain C, nothing else references them, so they
  * needed explicit `config/symbols.main.exe.txt` entries (same lever as
@@ -82,8 +82,8 @@
  * cascading through ~15 register-only diffs; interleaved order matches
  * the target exactly with no register diffs at all.
  */
-extern s32 D_80097F6C;
-extern s32 D_80097F70;
+extern s32 x;
+extern s32 y;
 extern s32 D_8008E50C[][4];
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
@@ -107,13 +107,13 @@ void PutMap(void)
     ply->ply.y2 = 0x78;
     ply->ply.x3 = 0xA0;
     ply->ply.y3 = 0x78;
-    rgb = (0xA0 - D_80097F6C) / 4;
+    rgb = (0xA0 - x) / 4;
 
     switch (PutMapMode)
     {
     case 0:
-        D_80097F6C = 0xA0;
-        D_80097F70 = 0;
+        x = 0xA0;
+        y = 0;
         PutMapMode = 1;
         ply->ply.r0 = 0;
         ply->ply.g0 = 0;
@@ -126,8 +126,8 @@ void PutMap(void)
         MapImage.b = 0x3C;
         MapImage.scalex = size;
         MapImage.scaley = size;
-        MapImage.x = D_80097F6C;
-        MapImage.y = D_80097F70;
+        MapImage.x = x;
+        MapImage.y = y;
         GsSortSprite(&MapImage, OTablePt, 2);
         MapImage.r = 0x80;
         MapImage.g = 0x80;
@@ -135,15 +135,15 @@ void PutMap(void)
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
-        D_80097F6C = D_80097F6C - 0x28;
-        if (D_80097F6C <= 0)
+        x = x - 0x28;
+        if (x <= 0)
         {
             PutMapMode = PutMapMode + 1;
         }
         break;
     case 2:
-        D_80097F6C = 0;
-        D_80097F70 = 0;
+        x = 0;
+        y = 0;
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
@@ -155,8 +155,8 @@ void PutMap(void)
 
     MapImage.scalex = size;
     MapImage.scaley = size;
-    MapImage.x = D_80097F6C;
-    MapImage.y = D_80097F70;
+    MapImage.x = x;
+    MapImage.y = y;
     GsSortSprite(&MapImage, OTablePt, 1);
     AddXF4((void *)((u8 *)OTablePt->org + 8), ply);
 }
