@@ -234,9 +234,10 @@ typedef struct
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char D_800137A0[];
-extern DemoScreenAssets D_8008EA90[][11];
-extern s16 D_8008ECA0[][11];
-extern s16 D_8008ECF8[][11];
+/* The adjacent retail symbols prove four complete 11-stage language rows. */
+extern DemoScreenAssets D_8008EA90[4][11];
+extern s16 D_8008ECA0[4][11];
+extern s16 D_8008ECF8[4][11];
 
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void vfree(void *ptr);
