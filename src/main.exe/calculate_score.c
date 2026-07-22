@@ -6,8 +6,9 @@
  * end-of-stage score components and returns their static result record.
  *
  * Matching notes:
- *  - Keep the unsigned component view, with signed casts at the two clamps;
- *    the total deliberately adds the friendly-fire penalty modulo 16 bits.
+ *  - Friendly-fire, spotted, and total scores are signed values. The
+ *    explicit unsigned view of the spotted component in the sum preserves
+ *    the retail halfword load and its modulo-16-bit accumulation.
  *  - The empty one-shot loop between the 400-point default and its override
  *    is a zero-code allocation boundary that puts the hidden count in $a2
  *    and the default score in $a3.
@@ -60,20 +61,20 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
         store_result->spottedScore = penalty;
     }
     result = &STAGE_SCORE_COMPONENTS;
-    if ((s16)result->spottedScore < 0)
+    if (result->spottedScore < 0)
     {
         result->spottedScore = 0;
     }
 
     result->score = STAGE_SCORE_COMPONENTS.criticalScore + result->murderScore +
                     result->friendPenalty + (u16)result->spottedScore;
-    score = (s16)result->score;
+    score = result->score;
     if (score < 0)
     {
         score = 0;
     }
     result->grade = score / 100;
-    if ((s16)result->grade > 4)
+    if (result->grade > 4)
     {
         result->grade = 4;
     }

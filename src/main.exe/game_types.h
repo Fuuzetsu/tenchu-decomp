@@ -129,7 +129,8 @@ struct ShopItemDefault
     u8 maxStock;                  /* 0x08 */
 };                                /* 0x0C */
 
-/* Retail's end-of-stage counters and calculated score components. */
+/* Retail's end-of-stage counters and calculated score components. Penalties
+ * and totals are signed because they are negative before their clamps. */
 typedef struct ScoreStats ScoreStats;
 struct ScoreStats
 {
@@ -147,9 +148,9 @@ struct ScoreResult
 {
     u16 criticalScore;            /* 0x00 */
     u16 murderScore;              /* 0x02 */
-    u16 friendPenalty;            /* 0x04 */
-    u16 spottedScore;             /* 0x06 */
-    u16 score;                    /* 0x08 */
+    s16 friendPenalty;            /* 0x04 */
+    s16 spottedScore;             /* 0x06 */
+    s16 score;                    /* 0x08 */
     s16 grade;                    /* 0x0A */
 };                                /* 0x0C */
 

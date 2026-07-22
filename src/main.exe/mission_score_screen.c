@@ -829,7 +829,7 @@ score_character_sprite_init_loop:
                 s16 signedValue;
                 s32 drawY;
 
-                (value = (result.spottedScore), signedValue = (s16)value);
+                (value = ((u16)result.spottedScore), signedValue = (s16)value);
                 ((drawY) = (-0x24));
                 drawnSprite->x = resultX;
                 ((drawnSprite)->y = (-0x24));
@@ -895,7 +895,7 @@ score_character_sprite_init_loop:
                 s16 signedValue;
                 s32 drawY;
 
-                (value = (result.score), signedValue = (s16)value);
+                (value = ((u16)result.score), signedValue = (s16)value);
                 ((drawY) = (-0x12));
                 drawnSprite->x = resultX;
                 ((drawnSprite)->y = (-0x12));

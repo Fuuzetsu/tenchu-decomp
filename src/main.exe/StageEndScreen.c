@@ -287,8 +287,8 @@ void StageEndScreen(void)
         score = calculate_score(record, state[5]);
     }
     stack.best = *score;
-    if ((s16)stack.current.score > (s16)stack.best.score ||
-        ((s16)stack.current.score == (s16)stack.best.score &&
+    if (stack.current.score > stack.best.score ||
+        (stack.current.score == stack.best.score &&
         stack.stats.clock < record->clock))
     {
         *record = stack.stats;
@@ -356,7 +356,7 @@ void StageEndScreen(void)
             rank_archive =
                 FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
             tim = get_tim_from_archive(rank_archive,
-                (s16)stack.current.grade);
+                stack.current.grade);
             best_x = 0x7f;
             StageEndInitSprite(tim, &stack.image, &stack.rank);
             stack.rank.x = -0xa0;
@@ -492,11 +492,11 @@ number_1:
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.spottedScore, s16, 0, number_9,
-                        x, 1);
+                    DRAW_SCORE_NUMBER((u16)stack.current.spottedScore,
+                        s16, 0, number_9, x, 1);
                 }
-                DRAW_SCORE_NUMBER(stack.best.spottedScore, s16, 0, number_10,
-                    best_x, 1);
+                DRAW_SCORE_NUMBER((u16)stack.best.spottedScore,
+                    s16, 0, number_10, best_x, 1);
 
                 DRAW_SCORE_NUMBER(stack.stats.friendHits, s32, 0, number_11,
                     0x1c, 0x1a);
@@ -504,20 +504,20 @@ number_1:
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.friendPenalty, s16, 0, number_12,
-                        x, 0x1a);
+                    DRAW_SCORE_NUMBER((u16)stack.current.friendPenalty,
+                        s16, 0, number_12, x, 0x1a);
                 }
-                DRAW_SCORE_NUMBER(stack.best.friendPenalty, s16, 0, number_13,
-                    best_x, 0x1a);
+                DRAW_SCORE_NUMBER((u16)stack.best.friendPenalty,
+                    s16, 0, number_13, best_x, 0x1a);
 
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.score, s16, 0, number_14,
-                        x, 0x38);
+                    DRAW_SCORE_NUMBER((u16)stack.current.score,
+                        s16, 0, number_14, x, 0x38);
                 }
-                DRAW_LAST_SCORE_NUMBER(stack.best.score, number_15);
+                DRAW_LAST_SCORE_NUMBER((u16)stack.best.score, number_15);
 
                 do
                 {
@@ -533,7 +533,7 @@ number_1:
                     (pulse >> 12) + 0x7f;
                 GsSortSprite(&stack.rank, OTablePt, 1);
 
-                if ((s16)stack.current.grade == 4)
+                if (stack.current.grade == 4)
                 {
                     icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
                     icon->x = -0x78;

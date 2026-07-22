@@ -69,7 +69,7 @@ void debug_menu_stage_option(void)
         AdtMessageBox(D_80014658, STAGE_LAYOUT_NUMBER + 1,
                       (SystemFlag & 8) ? D_800146D0 : EMPTY_STRING,
                       stats.criticals, stats.murders, stats.findEnemies,
-                      stats.friendHits, (s16)sr.score);
+                      stats.friendHits, sr.score);
         return;
     case 3:
         CHOSEN_LANGUAGE = 0;
