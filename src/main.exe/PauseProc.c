@@ -20,8 +20,9 @@
  *    copied into opad (`opad = trg;`, $s2) which the rest of the body reads:
  *    two registers holding one value = an explicit source copy (cc1 never
  *    splits live ranges).
- *  - `cur == 0x900` and the call argument share one sign-extension of cur,
- *    CSE'd into callee-saved $s0 because it lives across FUN_800566fc().
+ *  - `cur == (START | SELECT)` and the call argument share one sign-extension
+ *    of cur, CSE'd into callee-saved $s0 because it lives across
+ *    FUN_800566fc().
  *  - com is int, not short: the combo matcher's short return is extended
  *    once at the assignment (sll/sra straight into $a1, before the
  *    status==7/mid>0x713 override) and both == compares then run on the word.
@@ -48,7 +49,7 @@
  *    and the sh through Owner->life kills cse's memory equivalence, which is
  *    exactly the original's reload pattern.
  *  - The unpause wait is the cookbook's top-test shape:
- *    while(1) { if (!(GetRealPad(0) & 0x800)) break; VSync(2); }.
+ *    while(1) { if (!(GetRealPad(0) & START)) break; VSync(2); }.
  */
 #include "item.h"
 
@@ -103,6 +104,7 @@ extern TCameraStatus CamState;
 
 void PauseProc(void)
 {
+    enum { START = 2048, SELECT = 256 };
     s16 pad;
     s16 cur;
     s16 opad;
@@ -116,7 +118,7 @@ void PauseProc(void)
     pad = GetPad(0);
     i = 0;
     cnt = 0;
-    if (((pad & 0x800) && !(SystemFlag & SYSFLAG_PAUSE)) || FUN_8001b174(0) == 0)
+    if (((pad & START) && !(SystemFlag & SYSFLAG_PAUSE)) || FUN_8001b174(0) == 0)
     {
         SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~0x10;
         SoundEx((VECTOR *)0, 9);
@@ -134,7 +136,7 @@ void PauseProc(void)
         cur = GetPad(0);
         trg = cur & (cur ^ opad);
         opad = trg;
-        if (cur == 0x900)
+        if (cur == (START | SELECT))
             FUN_800566fc();
         com = check_for_known_button_combination(cur, trg);
         if (CamState.Owner->status == 7 && 0x713 < CamState.Owner->motion->mid)
@@ -162,11 +164,11 @@ void PauseProc(void)
             SoundEx((VECTOR *)0, 10);
             break;
         }
-        if (opad & 0x800)
+        if (opad & START)
         {
             while (1)
             {
-                if (!(GetRealPad(0) & 0x800))
+                if (!(GetRealPad(0) & START))
                     break;
                 VSync(2);
             }
@@ -174,7 +176,7 @@ void PauseProc(void)
             SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
             break;
         }
-        if ((opad & 0x100) && (SystemFlag & SYSFLAG_DEBUGMODE))
+        if ((opad & SELECT) && (SystemFlag & SYSFLAG_DEBUGMODE))
         {
             SystemFlag = SystemFlag | 0x10;
             break;
@@ -192,7 +194,7 @@ void PauseProc(void)
         }
         if ((SystemFlag & (SYSFLAG_DEBUGMODE | 0x10)) !=
                 (SYSFLAG_DEBUGMODE | 0x10) ||
-            (pad & 0x800))
+            (pad & START))
             DrawPause(cnt);
         VSync(2);
         cnt = cnt + 1;
