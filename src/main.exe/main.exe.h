@@ -45,7 +45,7 @@ extern GsOT *OTablePt;
 extern GsOT OTable[2];
 extern GsFOGPARAM Fog;
 extern short DrawingPage;
-/* Retail's terminal weapon record is entry 30; the demo table had 28. */
+/* Retail's ilup1.pad=-1 sentinel is entry 30; the demo table had 28. */
 extern WeaponType WeaponDB[31];
 /* Retail's wid=-1 sentinel is entry 47; the demo table had 41 entries. */
 extern WeaponModelType WeaponModel[48];
