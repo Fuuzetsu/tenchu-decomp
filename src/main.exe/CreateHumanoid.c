@@ -107,7 +107,6 @@ extern void SetupThinkFunction(Humanoid *human, short type);
 extern s16 InsertConflict(ModelType *m);
 extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
                              long wide, int mode);
-extern void SystemOut(unsigned char *string);
 
 extern s16 Humans;
 extern ModelType World;

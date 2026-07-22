@@ -158,7 +158,6 @@ extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             long mode);
 extern void UpdateCoordinate(ModelType *dim);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void SystemOut(unsigned char *string);
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strcmp(char *a, char *b);
 

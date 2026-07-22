@@ -53,7 +53,6 @@
  *    constant division (automatic from plain `/100`).
  */
 extern void *valloc(u32 size);
-extern void SystemOut(unsigned char *string);
 extern char D_800116B8[]; /* "NO TRACE POINT" */
 
 TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)

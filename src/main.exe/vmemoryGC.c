@@ -39,7 +39,6 @@
  * END PSX.SYM */
 
 extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" */
-extern void SystemOut(unsigned char *string);
 extern void *valloc(u32 size);
 extern void *memcpy(void *dst, void *src, u32 n);
 

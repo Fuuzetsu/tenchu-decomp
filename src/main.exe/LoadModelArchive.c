@@ -51,7 +51,6 @@
  * the inner loop.
  */
 extern void *valloc(u32 size);
-extern void SystemOut(unsigned char *string);
 extern char D_80011064[]; /* "NO MODEL ARCHIVE DATA" */
 
 extern ModelType World;

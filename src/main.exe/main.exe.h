@@ -30,6 +30,7 @@ extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
 extern void *GetTIMInfo(u_long *tim, GsIMAGE *im);
 extern void LoadTIMAndFree(u_long *tim);
 extern void load_font_image_into_global(GsIMAGE *image);
+extern void SystemOut(unsigned char *string);
 
 extern void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time);
 extern void SetImpact(VECTOR *pos, short size, short type);

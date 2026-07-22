@@ -88,7 +88,6 @@
 extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" — still referenced by
                               the unmatched vmemoryGC asm; reuse it rather
                               than opening a fresh .rodata (see LoadAreaMap.c) */
-extern void SystemOut(unsigned char *string);
 
 void vfree(void *pt)
 {

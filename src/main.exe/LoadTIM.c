@@ -38,7 +38,6 @@
  * `void LoadTIM(unsigned long *adr)` - the DrawSync(0) return value is discarded
  * (no move/sign-extend after the call in the asm), matching void.
  */
-extern void SystemOut(unsigned char *string);
 extern char D_800110B8[]; /* "NO IMAGE DATA" */
 
 void LoadTIM(unsigned long *adr)
