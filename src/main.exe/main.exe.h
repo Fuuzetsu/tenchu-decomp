@@ -22,9 +22,10 @@ extern TEnemyLayout enemy[30];
 extern short MotionUpdateMode;
 extern short SelectedItem;
 extern TCdaStatus CdaStatus;
+/* INFOVIEW.C's shared UI and layout-editor state. */
 extern short ItemCursor;
 extern unsigned char PutMapMode;
-extern int CurrentEnemyID;
+extern int CurrentEnemyID; /* enemy[] index latched by leFindEnemy */
 extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
 extern GsSPRITE MapImage;
