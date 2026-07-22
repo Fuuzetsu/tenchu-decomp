@@ -60,6 +60,8 @@ struct TAFS
 };
 
 extern TAFS systemAFS;
+/* FILEIO.C's ten-slot CD handle pool, named by the demo symbol data. */
+extern FILE FileHandlePool[10];
 
 int cd_seek(FILE *f, int offset, TSeekMode whence);
 

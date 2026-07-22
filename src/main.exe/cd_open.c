@@ -28,7 +28,6 @@
  * STATUS: MATCH (66/66 instructions).
  */
 
-extern FILE FileHandlePool[10];
 extern char D_80097E80[];
 extern char D_80097E88[];
 extern char D_80014A08[];

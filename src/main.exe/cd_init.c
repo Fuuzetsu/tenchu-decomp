@@ -15,9 +15,6 @@
  * Walks the pool backwards from index 9 to 0.
  */
 
-extern FILE FileHandlePool[10]; /* FileHandlePool (Ghidra symbols.tsv) — the CD
-                              * file-handle pool shared with cd_open. */
-
 void cd_init(void)
 {
     int i;
