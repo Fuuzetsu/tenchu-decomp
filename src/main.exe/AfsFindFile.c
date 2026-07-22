@@ -74,7 +74,7 @@ TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
         cursorPath += cursor;
         if (*cursorPath == '\\') {
             *cursorPath = 0;
-            entryIndex = subAfsFindFileInline(handle, buffer, 2);
+            entryIndex = subAfsFindFileInline(handle, buffer, AfsFlag_Folder);
             if (entryIndex < 0) {
                 goto not_found;
             }

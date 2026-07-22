@@ -10,6 +10,12 @@ typedef struct TAFSElement TAFSElement;
 typedef struct TAFSFileHandle TAFSFileHandle;
 typedef struct TAFS TAFS;
 
+enum
+{
+    AfsFlag_File = 1,
+    AfsFlag_Folder = 2
+};
+
 struct TFileHandle
 {
     CdlFILE finfo;

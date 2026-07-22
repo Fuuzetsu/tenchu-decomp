@@ -71,7 +71,7 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
     TAFSFileHandle *cur;
     u32 count;
 
-    entry = AfsFindFile(handle, path, 1);
+    entry = AfsFindFile(handle, path, AfsFlag_File);
     count = 0;
     if (entry == 0) {
         AdtMessageBox(D_80014960, path);
