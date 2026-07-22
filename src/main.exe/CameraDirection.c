@@ -43,7 +43,7 @@ extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 
 extern void GetPadXY(s16 no, s16 *x, s16 *y);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern void FUN_80030644(VECTOR *pos, s32 amount);
 
@@ -60,11 +60,11 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
 
     mad = pl->model;
     GetPadXY(0, &x, &y);
-    if (CamState.OldMode == 3) {
+    if (CamState.OldMode == CMODE_SIGHT) {
         x = x / 2;
         y = y / 2;
     } else if ((CamState.Owner->pad.data & 4) == 0) {
-        SetCameraMode(0);
+        SetCameraMode(CMODE_NORMAL);
     }
 
     CamState.DirectionRX = CamState.DirectionRX - y;

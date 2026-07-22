@@ -101,7 +101,7 @@ extern short FUN_8002fd9c(Humanoid *h);
 extern int FUN_80039ddc(VECTOR *a, VECTOR *b, int c, int d);
 
 
-void SetCameraMode(s32 mode)
+void SetCameraMode(TCameraMode mode)
 {
     enum { MaxCriticalValiation = 3 };
     VECTOR va;
@@ -123,7 +123,7 @@ void SetCameraMode(s32 mode)
     s32 hitf;
 
     switch (mode) {
-    case 4:
+    case CMODE_CRITICAL_HIT:
         n = rand();
         CamState.OldMode = n % (MaxCriticalValiation + 1);
         i = 0;
@@ -166,12 +166,12 @@ void SetCameraMode(s32 mode)
     case 15:
         CamState.DirectionRX = 0;
         CamState.DirectionRY = 0;
-        CamState.Mode = 1;
+        CamState.Mode = CMODE_DIRECTION;
         CamState.OldMode = mode;
         break;
-    case 1:
-    case 3:
-        if (CamState.Mode != 1 && CamState.Mode != 13) {
+    case CMODE_DIRECTION:
+    case CMODE_SIGHT:
+        if (CamState.Mode != CMODE_DIRECTION && CamState.Mode != CMODE_LOCK) {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rx = rx - CamState.Owner->model->rotate.vx;
             ry = ry - CamState.Owner->model->rotate.vy;
@@ -180,12 +180,12 @@ void SetCameraMode(s32 mode)
             CamState.DirectionRX = 0;
             CamState.DirectionRY = ry;
         }
-        CamState.Mode = 1;
+        CamState.Mode = CMODE_DIRECTION;
         CamState.OldMode = mode;
         break;
-    case 0:
+    case CMODE_NORMAL:
         if (CamState.Owner->pad.data & 4) {
-            SetCameraMode(1);
+            SetCameraMode(CMODE_DIRECTION);
             return;
         }
         CamState.Mode = mode;

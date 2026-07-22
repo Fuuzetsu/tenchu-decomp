@@ -85,7 +85,7 @@ extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s32 SetFlyWire(VECTOR *start, VECTOR *end);
 extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, s32 length);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s32 seid);
 
@@ -137,7 +137,7 @@ void ActKAGI(void)
             }
             if (Me_MOTION_C == StagePlayer)
             {
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
             }
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
@@ -162,7 +162,7 @@ rope_done:;
             FUN_8004a368(0, Me_MOTION_C);
             if (Me_MOTION_C == StagePlayer)
             {
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
             }
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {

@@ -71,7 +71,7 @@ extern s16 motMODE;
 
 extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern short Sound(Humanoid *human, int seid);
 
 void ActSYURI(void)
@@ -118,7 +118,7 @@ void ActSYURI(void)
             FUN_8004a368(0, 0);
             if (Me_MOTION_C == StagePlayer)
             {
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
             }
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
@@ -141,7 +141,7 @@ void ActSYURI(void)
         {
             if (Me_MOTION_C == StagePlayer)
             {
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
             }
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {

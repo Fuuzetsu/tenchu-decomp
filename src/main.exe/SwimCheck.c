@@ -48,7 +48,7 @@ extern HumanAnimType CVAhuman[5];
 
 extern void SetSplash(VECTOR *pos, short sx, short sy, short count);
 extern void AttackCancelControl(short mode);
-extern void SetCameraMode(short mode);
+extern void SetCameraMode(TCameraMode mode);
 extern void PadShockAR(short port, short power, short time, short mode);
 extern void FUN_800270f8(Humanoid *human, short hide);
 extern short GetMotionID(MotionManager *mmp, short mid);
@@ -125,7 +125,7 @@ short SwimCheck(void)
         AttackCancelControl(3);
         if (Me_MOTION_C == StagePlayer)
         {
-            SetCameraMode(8);
+            SetCameraMode(CMODE_SWIM);
             PadShockAR(0, 0xff, 10, 0);
         }
         ActionHalt = 0;

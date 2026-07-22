@@ -26,12 +26,12 @@
 extern Humanoid *Me_MOTION_C;
 extern u16 motID;
 extern u16 motMODE;
-extern void SetCameraMode(int mode);
+extern void SetCameraMode(TCameraMode mode);
 
 void ReturnNormal(void)
 {
     if (Me_MOTION_C == StagePlayer) {
-        SetCameraMode(0);
+        SetCameraMode(CMODE_NORMAL);
     }
     if ((Me_MOTION_C->attribute & 0x40) != 0) {
         motID = 0x501;

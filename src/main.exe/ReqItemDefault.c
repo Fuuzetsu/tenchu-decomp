@@ -90,7 +90,7 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     rot = D_80012258[0];
     memset(buf, 0, 0x10);
     pm = u.user->model;
-    if (CamState.Owner->model == pm && CamState.Mode == 1)
+    if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)
     {
         GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
         rz = 0;

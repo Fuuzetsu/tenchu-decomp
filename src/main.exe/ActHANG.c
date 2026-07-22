@@ -87,7 +87,7 @@ extern Humanoid *Me_MOTION_C;
 extern short HangCheck(void);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
 extern short Sound(Humanoid *human, int seid);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern void MoveHumanoid(Humanoid *h, short a, short b);
 
 void ActHANG(void)
@@ -147,7 +147,7 @@ void ActHANG(void)
         {
             if (Me_MOTION_C == StagePlayer)
             {
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
             }
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {

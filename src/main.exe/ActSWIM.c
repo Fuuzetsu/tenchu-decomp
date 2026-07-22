@@ -56,7 +56,7 @@ extern short SwimCheck(void);
 extern short Sound(Humanoid *human, s16 seid);
 extern short SoundEx(VECTOR *locate, s16 seid);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 
 void ActSWIM(void)
 {
@@ -222,7 +222,7 @@ set_swim_idle:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             if (Me_MOTION_C == StagePlayer)
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;

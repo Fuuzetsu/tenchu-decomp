@@ -81,7 +81,7 @@ extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
 extern s32 FUN_80039ddc(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
-extern void SetCameraMode(int mode);
+extern void SetCameraMode(TCameraMode mode);
 extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;
@@ -108,7 +108,7 @@ void ProcKaginawa(TItem *item)
     own = item->owner;
     if (own->item[0x19] == 0)
     {
-        SetCameraMode(1);
+        SetCameraMode(CMODE_DIRECTION);
         ppu = item->proc;
         if (ppu == 0)
             return;
@@ -171,7 +171,7 @@ void ProcKaginawa(TItem *item)
         {
             CamState.TargetVector = *(VECTOR *)CamState.Owner->model->locate.coord.t;
         }
-        SetCameraMode(0xD);
+        SetCameraMode(CMODE_LOCK);
         item->owner->item[0x19] = 0;
         ppu = item->proc;
         if (ppu == 0)

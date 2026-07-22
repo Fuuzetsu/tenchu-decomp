@@ -67,7 +67,7 @@ extern HumanAnimType CVAhuman[5];
 extern TCameraStatus CamState;
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern short Sound(Humanoid *human, s16 seid);
@@ -127,7 +127,7 @@ void ActSTATE(void)
         if (Me_MOTION_C->type < 7) { if (Me_MOTION_C->type > 3) {
             if (Me_MOTION_C == StagePlayer)
             {
-                SetCameraMode(0);
+            SetCameraMode(CMODE_NORMAL);
             }
             {
                 s32 special_motion_id;
@@ -286,7 +286,7 @@ void ActSTATE(void)
             {
                 if (human == StagePlayer)
                 {
-                    SetCameraMode(0);
+            SetCameraMode(CMODE_NORMAL);
                 }
                 if ((Me_MOTION_C->attribute & 0x40) != 0)
                 {
@@ -350,7 +350,7 @@ void ActSTATE(void)
         if (dtM->count == 1 && Me_MOTION_C == StagePlayer)
         {
             PadShockAR(0, 0xff, 10, 0);
-            SetCameraMode(0);
+            SetCameraMode(CMODE_NORMAL);
         }
         if (dtM->count < 5 && (dtPAD & 0x20) != 0 &&
             (Me_MOTION_C->pad.trig & 0x40) != 0)
@@ -466,7 +466,7 @@ void ActSTATE(void)
         }
         if (Me_MOTION_C == StagePlayer)
         {
-            SetCameraMode(0);
+            SetCameraMode(CMODE_NORMAL);
         }
         if ((Me_MOTION_C->attribute & 0x40) != 0)
         {

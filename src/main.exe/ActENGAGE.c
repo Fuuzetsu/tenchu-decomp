@@ -51,7 +51,7 @@ extern s32 GameClock;
 extern s16 SelectedItem;
 extern Humanoid *Me_MOTION_C;
 
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern short Sound(Humanoid *human, s16 seid);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void JumpControl(void);
@@ -181,7 +181,7 @@ engage_case_post:
                 break;
             case 0:
                 if (Me_MOTION_C == StagePlayer)
-                    SetCameraMode(0);
+                    SetCameraMode(CMODE_NORMAL);
                 if (Me_MOTION_C->attribute & 0x40)
                 {
                     motID = 0x501;

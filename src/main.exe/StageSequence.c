@@ -95,7 +95,7 @@ extern char D_80097C84[];
 extern char D_80097C8C[];
 
 extern void UpdateEvent(s16 n, s16 id);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern void PlayMusicFormID(s32 id);
 extern s16 CVAsequence(s16 sid);
 extern ScoreStats *init_score_stats(ScoreStats *stats);
@@ -154,7 +154,7 @@ active_events:
         D_80097F78[0] = 0;
         if (CamState.Mode != CMODE_FALL)
         {
-            SetCameraMode(4);
+            SetCameraMode(CMODE_CRITICAL_HIT);
         }
         ActionHalt = -1;
         StagePlayer->status = 0x11;

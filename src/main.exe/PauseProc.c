@@ -95,7 +95,7 @@ extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 extern short Sound(Humanoid *human, int seid);
-extern void SetCameraMode(int mode);
+extern void SetCameraMode(TCameraMode mode);
 
 extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;
@@ -150,7 +150,7 @@ void PauseProc(void)
                 CamState.Owner->status = 0;
                 ActionHalt = 0;
                 Sound(CamState.Owner, 0x4c);
-                SetCameraMode(0);
+                SetCameraMode(CMODE_NORMAL);
                 Findenemies = Findenemies + 1;
                 SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
                 CamState.Owner->pad.data = 0x80;

@@ -210,7 +210,7 @@ void ProcItemKaengeki(TItem *item)
         rp.end.vy = param->end.vy;
         rp.end.vz = param->end.vz;
         model = item->owner->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx,
                               &rx, &ry);

@@ -76,7 +76,7 @@ extern void PadProc(void);
 extern void PlayMusicFormID(s32 id);
 extern s32 CdaGetCurrentLength(void);
 extern s16 CVArun(void);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void CdaStop(void);
 
@@ -173,7 +173,7 @@ run_sequence:
     if (ActionHalt != -1)
         ActionHalt = 0;
     MotionUpdateMode = 0;
-    SetCameraMode(0);
+    SetCameraMode(CMODE_NORMAL);
 
     i = 0;
     anim_base = CVAhuman;

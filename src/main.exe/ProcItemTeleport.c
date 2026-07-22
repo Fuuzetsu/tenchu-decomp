@@ -64,7 +64,7 @@
 extern void SnapCameraTargetVector(void);
 extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern void SetBleeds(VECTOR *pos, s32 a, s32 b, s32 c, s32 d, s32 col);
-extern void SetCameraMode(int mode);
+extern void SetCameraMode(TCameraMode mode);
 extern GsOT *OTablePt;
 extern GsSPRITE TargetSprite;
 extern TCameraStatus CamState;
@@ -82,7 +82,7 @@ void ProcItemTeleport(TItem *item)
     }
     if ((item->owner->pad.data & 0x10) != 0)
     {
-        SetCameraMode(3);
+        SetCameraMode(CMODE_SIGHT);
         GsSortSprite(&TargetSprite, OTablePt, 0);
         return;
     }
@@ -94,7 +94,7 @@ void ProcItemTeleport(TItem *item)
         CamState.Owner->model->locate.coord.t[2] = CamState.TargetVector.vz;
         SetBleeds(&CamState.TargetVector, 1000, 20, 50, 60, 0xffffff);
     }
-    SetCameraMode(0);
+    SetCameraMode(CMODE_NORMAL);
     ppu = item->proc;
     if (ppu == 0)
         return;

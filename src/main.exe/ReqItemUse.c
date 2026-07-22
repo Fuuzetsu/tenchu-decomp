@@ -251,7 +251,7 @@ extern VECTOR D_800122D8[];
 
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *v, s32 rx, s32 ry, s32 rz);
-extern void SetCameraMode(int mode);
+extern void SetCameraMode(TCameraMode mode);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void ProcSightShot(TItem *item);
@@ -317,7 +317,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         param = work;
         *(VECTOR *)&work = D_80012268[0];
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -426,7 +426,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_80012278[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -455,7 +455,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_80012288[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -484,7 +484,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_80012298[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -513,7 +513,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122A8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -542,7 +542,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_80012258[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -580,7 +580,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122A8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -609,7 +609,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122A8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -638,7 +638,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122A8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -672,7 +672,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             *(VECTOR *)&param = D_800122B8[0];
             st = (VECTOR *)&param;
             model = p->user->model;
-            if (CamState.Owner->model == model && CamState.Mode == 1)
+            if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
             {
                 GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
                 rz = 0;
@@ -723,7 +723,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         param = work;
         *(VECTOR *)&work = D_800122C8[0];
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -803,7 +803,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         it->collision.size = 0;
         it->model = 0;
         it->owner->item[0x19] = 1;
-        SetCameraMode(3);
+        SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
         CamState.DirectionRY = 0;
         break;
@@ -819,7 +819,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122D8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -903,7 +903,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122A8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;
@@ -932,7 +932,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = D_800122A8[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == 1)
+        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rz = 0;

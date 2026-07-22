@@ -64,7 +64,8 @@
  *    gains a nop.  The aggregate pointer lets GCC coalesce the chain into a1
  *    and interleave the independent sight-count load exactly.
  *  - The three disposal sequences are intentionally separate.  Sharing them
- *    changes branch placement and whether SetCameraMode(13) precedes launch.
+ *    changes branch placement and whether SetCameraMode(CMODE_LOCK) precedes
+ *    launch.
  */
 typedef struct
 {
@@ -78,7 +79,7 @@ extern GsRVIEW2 ViewInfo;
 extern GsSPRITE TargetSprite;
 extern GsOT *OTablePt;
 
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
@@ -112,7 +113,7 @@ void ProcSightShot(TItem *item)
         {
             human->item[item->type] = item_count + 1;
         }
-        SetCameraMode(1);
+        SetCameraMode(CMODE_DIRECTION);
         goto dispose;
     }
 
@@ -172,7 +173,7 @@ sight_mode:
             {
                 return;
             }
-            SetCameraMode(3);
+            SetCameraMode(CMODE_SIGHT);
             GsSortSprite(&TargetSprite, OTablePt, 0);
             return;
         }
@@ -208,7 +209,7 @@ sight_mode:
                 item->owner = 0;
                 item->proc = 0;
             }
-            SetCameraMode(13);
+            SetCameraMode(CMODE_LOCK);
         }
         else
         {

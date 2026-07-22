@@ -77,7 +77,7 @@ extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
 extern short Sound(Humanoid *human, s16 seid);
 extern void AttackControl(void);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 extern MapVector *StickonCheck(void);
 
 void ActSQUAT(void)
@@ -377,7 +377,7 @@ item_default:
     {
         if (Me_MOTION_C == StagePlayer)
         {
-            SetCameraMode(0);
+            SetCameraMode(CMODE_NORMAL);
         }
         if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
         {

@@ -45,7 +45,7 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
-extern void SetCameraMode(s32 mode);
+extern void SetCameraMode(TCameraMode mode);
 
 void ActITEM(void)
 {

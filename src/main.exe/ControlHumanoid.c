@@ -219,7 +219,7 @@ draw_done:
             return;
         }
         head = human->model->object[2];
-        if (CamState.Mode != 1 && CamState.Mode != 3)
+        if (CamState.Mode != CMODE_DIRECTION && CamState.Mode != CMODE_SIGHT)
         {
             MotionElementType *rotation;
 
