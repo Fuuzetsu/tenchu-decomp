@@ -48,14 +48,6 @@
  *    bgez/nop/negu sequence and the required DoorData register allocation.
  */
 
-struct ModelType
-{
-    GsCOORDINATE2 locate;
-    SVECTOR rotate;
-    s16 id;
-    s16 attribute;
-};
-
 extern char D_800126F8[];
 extern ConflictObjectType ConflictObject[];
 extern ModelType *LoadModel(u_long *adr);

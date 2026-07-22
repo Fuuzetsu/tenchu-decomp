@@ -10,9 +10,6 @@
  */
 
 typedef struct tag_TMisc tag_TMisc;
-#ifndef ITEM_H
-typedef struct ModelType ModelType;
-#endif
 
 typedef struct
 {

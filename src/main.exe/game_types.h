@@ -229,6 +229,74 @@ struct ParentingType
     u32 index;                   /* 0x0C */
 };                               /* 0x10 */
 
+/* WORLD.C/3DCTRL.C's shared model and ornament records. PSX.SYM supplies
+ * each complete layout; these are used by items, characters, construction,
+ * collision, effects, and the world object-slot manager. */
+typedef struct ModelType ModelType;
+struct ModelType
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    SVECTOR rotate;               /* 0x50 */
+    s16 id;                       /* 0x58 */
+    s16 attribute;                /* 0x5A */
+    SVECTOR clip;                 /* 0x5C */
+    GsDOBJ2 object;               /* 0x64 */
+};                                /* 0x74 */
+
+typedef struct ModelArchiveType ModelArchiveType;
+struct ModelArchiveType
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    SVECTOR rotate;               /* 0x50 */
+    s16 id;                       /* 0x58 */
+    s16 attribute;                /* 0x5A */
+    SVECTOR clip;                 /* 0x5C */
+    s16 n;                        /* 0x64 */
+    ModelType **object;           /* 0x68 */
+};                                /* 0x6C */
+
+typedef struct OrnamentType OrnamentType;
+struct OrnamentType
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    GsDOBJ2 object;               /* 0x50 */
+};                                /* 0x60 */
+
+typedef struct OrnamentArchiveType OrnamentArchiveType;
+struct OrnamentArchiveType
+{
+    GsCOORDINATE2 locate;         /* 0x00 */
+    SVECTOR rotate;               /* 0x50 */
+    s16 id;                       /* 0x58 */
+    s16 attribute;                /* 0x5A */
+    s16 n;                        /* 0x5C */
+    OrnamentType **object;        /* 0x60 */
+    u32 *data;                    /* 0x64 */
+};                                /* 0x68 */
+
+typedef struct tag_ObjectSlotType ObjectSlotType;
+struct tag_ObjectSlotType
+{
+    ObjectSlotType *next;         /* 0x00 */
+    OrnamentType *model;          /* 0x04 */
+    s16 ModelSize;                /* 0x08 */
+    s16 ShiftY;                   /* 0x0A */
+};                                /* 0x0C */
+
+typedef struct ObjectSlotManager ObjectSlotManager;
+struct ObjectSlotManager
+{
+    ObjectSlotType *slot;         /* 0x00 */
+    s32 n;                        /* 0x04 */
+    s32 max;                      /* 0x08 */
+};                                /* 0x0C */
+
+typedef struct WorldType WorldType;
+struct WorldType
+{
+    ObjectSlotType *top;          /* 0x00 */
+};                                /* 0x04 */
+
 /* CONFLICT.C's collision slot. PSX.SYM records result[64] and size 0x68 in
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
  * result bytes, and reserves 0x2580 bytes for 80 slots, proving that the old
