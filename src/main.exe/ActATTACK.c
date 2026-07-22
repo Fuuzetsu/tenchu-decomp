@@ -89,6 +89,10 @@
  *    they give local allocation the target's $v1/$a1 assignment.
  *  - The Napalm request and its velocity scratch retain PSX.SYM's original
  *    block-local names, `item` and `vect`.
+ *  - PSX.SYM records scoped PARAM_ITEM_LAUNCH locals named `item` at the
+ *    earlier sp+0x18 slot, accounting for its 0x28-byte extent. Retail only
+ *    uses the leading SVECTOR as fall-motion velocity, so an explicit union
+ *    gives that inferred view a descriptive name without inventing an array.
  *  - One-shot do loops around the MotionUpdateMode scans preserve the target's
  *    loop notes and load order without emitting control-flow instructions.
  */
@@ -129,7 +133,11 @@ void ActATTACK(void)
   short sVar18;
   BattleType *battle;
   ModelType *hand[2];
-  SVECTOR local_68 [5];
+  union
+  {
+    PARAM_ITEM_LAUNCH item;
+    SVECTOR fall_velocity;
+  } scratch;
   PARAM_ITEM_LAUNCH item;
   SVECTOR vect;
 
@@ -477,24 +485,24 @@ LAB_80022780:
     }
     if (((int)(short)dtPAD & 0xf000U) != 0) {
       if ((dtPAD & 0x1000) != 0) {
-        GetMoveSpeed(local_68,dtR->vy,10,0);
+        GetMoveSpeed(&scratch.fall_velocity,dtR->vy,10,0);
       }
       else if ((dtPAD & 0x4000) != 0) {
-        GetMoveSpeed(local_68,dtR->vy,-10,0);
+        GetMoveSpeed(&scratch.fall_velocity,dtR->vy,-10,0);
       }
       else if ((dtPAD & 0x2000) != 0) {
-        GetMoveSpeed(local_68,dtR->vy,0,-10);
+        GetMoveSpeed(&scratch.fall_velocity,dtR->vy,0,-10);
       }
       else {
-        GetMoveSpeed(local_68,dtR->vy,0,10);
+        GetMoveSpeed(&scratch.fall_velocity,dtR->vy,0,10);
       }
       pSVar5 = dtV;
-      local_68[0].vx = local_68[0].vx + dtV->vx;
-      local_68[0].vz = local_68[0].vz + dtV->vz;
-      if ((((local_68[0].vx >= 0) ? local_68[0].vx : -local_68[0].vx) < 0x65) &&
-          (((local_68[0].vz >= 0) ? local_68[0].vz : -local_68[0].vz) < 0x65)) {
-        dtV->vx = local_68[0].vx;
-        pSVar5->vz = local_68[0].vz;
+      scratch.fall_velocity.vx = scratch.fall_velocity.vx + dtV->vx;
+      scratch.fall_velocity.vz = scratch.fall_velocity.vz + dtV->vz;
+      if ((((scratch.fall_velocity.vx >= 0) ? scratch.fall_velocity.vx : -scratch.fall_velocity.vx) < 0x65) &&
+          (((scratch.fall_velocity.vz >= 0) ? scratch.fall_velocity.vz : -scratch.fall_velocity.vz) < 0x65)) {
+        dtV->vx = scratch.fall_velocity.vx;
+        pSVar5->vz = scratch.fall_velocity.vz;
       }
     }
     if ((Me_MOTION_C->attribute & 0x800U) != 0) {
