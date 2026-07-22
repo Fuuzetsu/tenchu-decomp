@@ -14,10 +14,10 @@
  *    AddPrim is that leftover register, not a real argument — cookbook's
  *    m2c-overcounts-args rule): AddPrim takes exactly 2 arguments here too.
  *  - **The `ply->ply.x0 = -0xA0` store's SOURCE POSITION is before the tpage
- *    command store, not after it (out of increasing-offset order, and out of
- *    the order Ghidra/m2c both render it in).** Every other field is in
- *    strict offset order; only this one constant's statement needs to move
- *    one slot earlier for its `li` to schedule where the target has it
+ *    command store, not after it (out of the order Ghidra/m2c both render it
+ *    in).** The remaining proven statement order, including `y1` before
+ *    `x1`, is retained; this one constant's statement needs to move one slot
+ *    earlier for its `li` to schedule where the target has it
  *    (found by tools/permute.py, ~1500 iterations, score 0 — a permuter
  *    candidate also inserted a dead `if (!p) {}` alongside the reorder;
  *    that part was verified NOT load-bearing and dropped per the cookbook's
