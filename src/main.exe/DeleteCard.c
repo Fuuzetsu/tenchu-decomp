@@ -51,21 +51,21 @@
  * correct addresses instead of re-using the (now unreliable) auto name.
  */
 
-extern char *TENCHU_ID;  /* -> the volume-id prefix string */
+extern unsigned char *TENCHU_ID;  /* -> the volume-id prefix string */
 extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern s32 MemCardDeleteFile(s32 chan, char *path);
 extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
-s16 DeleteCard(char *name)
+short DeleteCard(unsigned char *name)
 {
-    char path[200];
-    s32 cmd;
-    s32 result;
+    unsigned char fn[200];
+    long cmd;
+    long result;
 
-    sprintf(path, CardPathFormat, TENCHU_ID, name);
-    result = MemCardDeleteFile(0, path);
+    sprintf((char *)fn, CardPathFormat, TENCHU_ID, name);
+    result = MemCardDeleteFile(0, (char *)fn);
     MemCardSync(0, &cmd, &result);
     return result;
 }

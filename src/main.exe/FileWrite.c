@@ -46,9 +46,9 @@ extern int PCcreat(char *name, int mode);
 extern int PCwrite(int fd, void *buf, int size);
 extern int PCclose(int fd);
 
-int FileWrite(char *filename, void *data, s32 size)
+int FileWrite(unsigned char *filename, void *data, long size)
 {
-    s32 fd;
+    long fd;
 
     if ((data == 0) | (size < 1))
         return 0;
