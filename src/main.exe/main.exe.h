@@ -21,6 +21,8 @@ extern short SelectedItem;
 extern TCdaStatus CdaStatus;
 extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
+extern WeaponType WeaponDB[28];
+extern WeaponModelType WeaponModel[41];
 /* CONFLICT.C's retail-expanded pool and query outputs. */
 extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;

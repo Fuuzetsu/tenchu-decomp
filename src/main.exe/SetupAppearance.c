@@ -56,7 +56,6 @@
  *    that semantically equivalent reuse, the complete 256-instruction
  *    function differs only by a six-byte $a0/$v1 swap.
  */
-extern WeaponModelType WeaponModel[41];
 extern s16 NowStage;
 extern s16 EngageLevel;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;

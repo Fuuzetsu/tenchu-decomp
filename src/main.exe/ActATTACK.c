@@ -98,7 +98,6 @@ extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
 extern Humanoid *Me_MOTION_C;
-extern WeaponType WeaponDB[];
 
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s16 GetMotionID(MotionManager *mmp, s16 mid);

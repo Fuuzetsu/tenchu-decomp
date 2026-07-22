@@ -86,8 +86,6 @@
  * reads it directly instead of reloading through human->weapon[w].
  */
 
-extern WeaponType WeaponDB[28];
-extern WeaponModelType WeaponModel[41];
 extern char D_800117EC[]; /* "%s%s.TMD" */
 extern char D_800117F8[]; /* "K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\" */
 
