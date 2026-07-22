@@ -50,6 +50,11 @@ struct HenshinModelSnapshot
     HenshinModelPart p[15];       /* 0x04 */
 };                                /* 0xB8 */
 
+/* ITEM.C's original disguise snapshot. Retail adds a second snapshot for
+ * the ninken character; no original name for that addition is known. */
+extern HenshinModelSnapshot Item_save;
+extern HenshinModelSnapshot D_800C06F0;
+
 /* Per-stage disguise character types. The original ITEM.C kept this
  * anonymous two-byte record in its static HensinT table. */
 extern struct

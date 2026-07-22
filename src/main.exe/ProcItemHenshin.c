@@ -68,8 +68,6 @@
 extern TItem *volatile D_80097AEC;
 extern volatile u16 D_80097AF0;
 extern SVECTOR D_80097AF4[];
-extern HenshinModelSnapshot D_800C0630;
-extern HenshinModelSnapshot D_800C06F0;
 
 
 void ProcItemHenshin(TItem *item)
@@ -91,7 +89,7 @@ void ProcItemHenshin(TItem *item)
             HenshinModelSnapshot *saved;
 
             i = 0;
-            saved = &D_800C0630;
+            saved = &Item_save;
             mad->rotate.pad = (s16)saved->waist;
             if (mad->n > 0)
             {

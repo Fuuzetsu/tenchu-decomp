@@ -21,8 +21,6 @@
  *    `CamState.Owner` field.
  */
 extern Humanoid *NINKEN_CHARACTER_PTR;
-extern HenshinModelSnapshot D_800C0630;
-extern HenshinModelSnapshot D_800C06F0;
 
 void create_ninken_character_(s16 type, s32 stage)
 {
@@ -36,7 +34,7 @@ void create_ninken_character_(s16 type, s32 stage)
 
         model = CamState.Owner->model;
         i = 0;
-        saved = &D_800C0630;
+        saved = &Item_save;
         saved->waist = model->rotate.pad;
         if (model->n > 0)
         {

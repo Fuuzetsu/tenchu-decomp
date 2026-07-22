@@ -3503,6 +3503,7 @@ D_80097B88 = 0x80097B88;
 PutMapMode = 0x80097BB1;
 D_80097C40 = 0x80097C40;
 TargetSprite = 0x800C0600;
+Item_save = 0x800C0630;
 HappouModel = 0x80097F54;
 PadArrange = 0x800be740;
 CdaStatus = 0x8008ea40;
