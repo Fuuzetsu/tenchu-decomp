@@ -41,7 +41,6 @@ extern ModelType *ConflictModel;
 extern s16 SR;
 extern s16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern u_long *GlobalAreaMap;
 extern u_long *D_800976E8;
 extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;

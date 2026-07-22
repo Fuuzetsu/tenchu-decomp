@@ -6,6 +6,7 @@ struct Humanoid;
 
 extern long GameClock;
 extern int StageID;
+extern unsigned long *GlobalAreaMap;
 extern BattleType BattleDB[78];
 extern struct Humanoid *StagePlayer;
 extern short *StageAppearance[10];
