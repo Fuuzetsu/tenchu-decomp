@@ -12,7 +12,7 @@
  * (a raw "spawn exactly as told" setter, no randomization) and handing it
  * to DrawSnow — a DIFFERENT draw callback from DrawBlood/DrawImpact,
  * still unmatched itself. Called once, from ProcMiscSnowfall.c
- * (`SetSnow(&local_30, &local_40, 0x1000, 0);`) — a falling-snowflake
+ * (`SetSnow(&pos, &vel, 0x1000, 0);`) — a falling-snowflake
  * spawner, not blood.
  *
  * SetSnow and DrawSnow jointly prove the shared SnowParticleType fields:
@@ -41,7 +41,7 @@ void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
     TEffectSlot *slot;
     TEffectSlot *ef;
     SnowParticleType *particle;
-    u16 vz;
+    s16 vz;
 
     idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
     count = 0;
