@@ -73,7 +73,8 @@ extern s32 pat[MaxFrames];
 
 extern GsSPRITE sprBlood[4];
 extern GsSPRITE sprBloodStay[4];
-extern GsSPRITE D_800BEAA8[5];
+/* Retail stores five GsSPRITEs under the demo's original sprImpact name. */
+extern GsSPRITE sprImpact[5];
 extern Sprite3D *D_80097F2C[1];
 
 extern ModelType *LOCAL_COORDINATES_;
@@ -133,8 +134,8 @@ void InitEffect(void)
         if (!(i < 5))
             break;
         image = GetImage(D_80097A48[i]);
-        InitSprite(image, &D_800BEAA8[i]);
-        D_800BEAA8[i].attribute = 0x50000000;
+        InitSprite(image, &sprImpact[i]);
+        sprImpact[i].attribute = 0x50000000;
         i++;
     }
 

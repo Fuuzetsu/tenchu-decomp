@@ -3733,6 +3733,7 @@ dmy = 0x800be908;
 sprBlood = 0x800be958;
 sprBloodStay = 0x800be9e8;
 sprSplash = 0x800bea78;
+sprImpact = 0x800beaa8;
 sprBomb = 0x800beb68;
 SpriteGoshikimai = 0x800bfb80;
 ItemSprite3Ds = 0x800c0808;

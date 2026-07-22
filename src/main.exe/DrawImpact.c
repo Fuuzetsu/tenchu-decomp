@@ -226,7 +226,8 @@
  */
 #include "effect.h"
 
-extern GsSPRITE D_800BEAA8[];
+/* Demo used Sprite3D *sprImpact[3]; retail embeds five GsSPRITEs instead. */
+extern GsSPRITE sprImpact[5];
 
 void DrawImpact(TEffectSlot *ef)
 {
@@ -247,7 +248,7 @@ void DrawImpact(TEffectSlot *ef)
 
     param = &ef->param.impact;
     ratio = (param->count << 12) / param->time;
-    spr = &D_800BEAA8[param->type];
+    spr = &sprImpact[param->type];
     spr->rotate = param->rotate << 12;
     inverse = 0x1000 - ratio;
 
