@@ -21,7 +21,6 @@ extern s32 Distance;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 AIDHumanType[][2];
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
-extern s16 GetDirection(s32 x_diff, s32 z_diff, s16 rotation);
 extern int rand(void);
 
 /*

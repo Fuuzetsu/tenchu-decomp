@@ -3,6 +3,7 @@
 #include "main.exe.h"
 #undef DeleteConflict
 #include "appear.h"
+#include "humanoid.h"
 #include "item.h"
 #include "afterimage.h"
 
@@ -96,7 +97,6 @@ extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 extern void DeleteConflict();
 
-extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern void handle_char_state_attacking_SEVEN_(s16 frame);
 extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);

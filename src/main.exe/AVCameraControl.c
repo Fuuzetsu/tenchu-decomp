@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -49,7 +50,6 @@
 
 extern s16 D_80097CC8;
 
-extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 ordr, s16 side);
 extern void Camera(void);
 

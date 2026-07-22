@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -54,9 +55,6 @@
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
  */
-
-
-extern s16 GetDirection(s32 x, s32 z, s16 rotate);
 
 short DefaultActionHumanoid(Humanoid *human)
 {
@@ -433,7 +431,7 @@ apply_reflection:
 
                     zz = GetDirection(ConflictObject[i].position.vx - locate->vx,
                                       ConflictObject[i].position.vz - locate->vz,
-                                      human->locate->vy);
+                                      (s16)human->locate->vy);
                     do
                     {
                         do

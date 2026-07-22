@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -29,6 +30,10 @@
  * wrapped into [-0x800, 0x7FF] (a 0x1000/4096 = one full turn representation,
  * same units as SVECTOR rotation components). Same "Humanoid control" TU as
  * is_character_state_present_on_stage_.c; called by turn_towards_player_.
+ *
+ * Retail widened the demo's `short roty` parameter to s32. Giving the retail
+ * definition a short parameter adds an absent sign-extension pair in the
+ * callee; callers that narrow a computed angle do so explicitly at the call.
  *
  * `diff` (the raw ratan2()-roty subtraction) stays WIDE (s32) and feeds the
  * two wrap corrections (0x1000-diff / diff+0x1000) directly; a SEPARATE

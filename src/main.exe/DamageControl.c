@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "appear.h"
+#include "humanoid.h"
 #include "item.h"
 
 extern Humanoid *Me_MOTION_C;
@@ -13,7 +14,6 @@ extern u16 D_80086B6C[8];
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
 extern void AttackCancelControl(s16 mode);
-extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
                          short start_size, short end_size,

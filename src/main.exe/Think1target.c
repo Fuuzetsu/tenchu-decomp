@@ -42,7 +42,6 @@ extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 
-extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern int rand(void);
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 

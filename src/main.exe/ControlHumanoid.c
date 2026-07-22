@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
 
@@ -116,7 +117,6 @@ extern void death_camera_something_(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
 extern s32 DrawClip(ModelType *model, s32 *xy);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
-extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 
 void ControlHumanoid(Humanoid *human)
 {
@@ -290,7 +290,7 @@ draw_done:
         direction = GetDirection(
             human->target->locate.coord.t[0] - human->locate->vx,
             human->target->locate.coord.t[2] - human->locate->vz,
-            rotation_pair);
+            (s16)rotation_pair);
         magnitude = direction >= 0 ? direction : -direction;
         if (magnitude >= 0x708)
         {

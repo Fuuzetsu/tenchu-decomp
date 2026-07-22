@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -74,7 +75,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern s32 FUN_8004a368(s32 mode, Humanoid *human);
-extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ActKAGI(void)
