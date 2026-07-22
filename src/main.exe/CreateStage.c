@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include "appear.h"
 #include <psxsdk/libgpu.h>
 #include "item.h"
@@ -71,7 +72,6 @@ extern void KillHumanoid(Humanoid *human);
 extern void SetupSoundEffect(s16 character, s16 stage);
 extern void DoBriefingAndInventorySelection(void);
 extern GsIMAGE *GetImage(s32 id);
-extern void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *poly, s16 x, s16 y);
 extern BackGround *FUN_8004f4f8(u_long *data);
 extern void vfree(void *ptr);
 extern void FUN_80038ce0(void);

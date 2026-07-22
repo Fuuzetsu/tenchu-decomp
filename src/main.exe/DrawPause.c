@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -82,7 +83,6 @@
 extern TSystemFlag SystemFlag;
 
 extern GsIMAGE *GetImage(s32 id);
-extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, s32 x, s32 y);
 
 void DrawPause(int frame)
 {

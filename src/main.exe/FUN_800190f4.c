@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -30,7 +31,6 @@
  */
 extern char D_8001118C[];
 extern char D_800111B0[];
-extern void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y);
 
 void FUN_800190f4(void)
 {
