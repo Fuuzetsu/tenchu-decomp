@@ -59,6 +59,7 @@ struct TAFS
     TAFSFileHandle *pHandle;
 };
 
+/* FILEIO.C-private originally; extern because that source is split here. */
 extern TAFS systemAFS;
 /* FILEIO.C's ten-slot CD handle pool, named by the demo symbol data. */
 extern FILE FileHandlePool[10];
