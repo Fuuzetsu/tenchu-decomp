@@ -48,7 +48,7 @@ extern void AdtMessageBox(char *fmt, ...);
 extern void *memcpy(void *s1, void *s2, u32 n);
 extern char D_80012174[]; /* "enemy storing size too small %d/%d" */
 
-void lePackEnemyLayout(void *buf, u32 size)
+void lePackEnemyLayout(void *buf, long size)
 {
     if (size < sizeof(enemy))
     {
