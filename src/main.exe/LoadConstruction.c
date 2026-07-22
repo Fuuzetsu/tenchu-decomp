@@ -3,6 +3,7 @@
 #include "appear.h"
 #include "item.h"
 #include "misc.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -146,7 +147,6 @@ extern char D_80097A80[];
 extern char D_80097A88[];
 extern char D_80097A90[];
 
-extern u32 vsize(void *data);
 extern void DisposeAreaMap(unsigned long *area);
 extern void ResetAllMisc(void);
 extern void ClearItemLayout(void);

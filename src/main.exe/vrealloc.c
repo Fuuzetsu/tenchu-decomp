@@ -90,7 +90,6 @@
 
 extern void *valloc(u32 size);
 extern void vfree(void *pt);
-extern u32 vsize(void *pt);
 extern void *memcpy(void *dst, void *src, u32 n);
 
 void *vrealloc(void *pt, u32 size)

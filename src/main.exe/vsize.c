@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -30,7 +31,7 @@
  * the payload and returns the allocation's size in BYTES.
  */
 
-u32 vsize(void *pt)
+unsigned long vsize(void *pt)
 {
     return *(s32 *)((u8 *)pt - 8) << 2;
 }

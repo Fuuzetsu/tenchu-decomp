@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -31,7 +32,6 @@ extern char D_80013D0C[];
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);
-extern s32 vsize(void *p);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern s32 FUN_8005b17c(s32 page, s32 pad);
 

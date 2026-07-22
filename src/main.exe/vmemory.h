@@ -12,6 +12,7 @@ typedef struct PoolBlock
 extern PoolBlock *virtual_memory_pool;
 extern unsigned long vgetmaxsize(void);
 extern unsigned long vgetfreesize(void);
+extern unsigned long vsize(void *pt);
 
 /* Compiler output proves the original used integer constants: these spellings
  * produce retail's LUI/ORI pairs in both allocator functions.  The normal-link
