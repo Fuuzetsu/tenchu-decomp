@@ -52,15 +52,15 @@
  * processor and the toss velocity packed into param (param_korogari view).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &it->param.drop;` sits BEFORE the null check: its addiu
+ *  - `param = &item->param.drop;` sits BEFORE the null check: its addiu
  *    fills the beqz delay slot, and the longer live range demotes param's
  *    allocation priority so p keeps $s1 (after the check, param stole $s1 and the
  *    return-0 block folded away — 2 instructions short, which shifted every
  *    object after this one by 8 bytes).
- *  - us/ty and x/y/z are real temps: the original batches the loads before the
+ *  - aowner/atype and x/y/z are real temps: the original batches the loads before the
  *    stores (`lw`×3 + `sh`×3) — writing `param->koro.vx = p->end.vx` directly lets the
  *    canonical cc1 emit a truncating `lhu` of the low half instead.
- *  - `st = &p->start;` is materialized between the t[0] and t[1] stores (the
+ *  - `pos = &p->start;` is materialized between the t[0] and t[1] stores (the
  *    vy/vz reads go through it; vx reads p directly).
  *  - First compiled-to-compiled reference: ProcItemKusuri's `jal ReqItemDrop`
  *    now resolves against this object (R_MIPS_26), and both share item.h.
@@ -71,11 +71,11 @@ extern void ProcItemDrop(TItem *item);
 
 int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
+    TItem *item;
     param_drop *param;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 x;
     s32 y;
     s32 z;
@@ -87,50 +87,50 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    param = &it->param.drop;
-    if (it == 0)
+    param = &item->param.drop;
+    if (item == 0)
         return 0;
     if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz, 0) < p->start.vy)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemDrop;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemDrop;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
     x = p->end.vx;
     y = p->end.vy;
     z = p->end.vz;
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;
-    it->param.drop.koro.hint = 0;
+    item->param.drop.koro.hint = 0;
     param->koro.status = KORO_NORMAL;
     return 1;
 }
