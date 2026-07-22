@@ -138,7 +138,6 @@
 extern s16 SkipFrame;
 extern GsOT OTable[];
 extern s16 DrawingPage;
-extern GsOT *OTablePt;
 extern GsFOGPARAM Fog;
 extern u8 D_80098040[];
 extern u32 D_800976B8;

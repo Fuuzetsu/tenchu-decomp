@@ -67,7 +67,6 @@
  *    that ties out correctly (a bare 2-byte residual otherwise: `bnez a2` in
  *    target vs `bnez s0` in the `q`-tested draft).
  */
-extern GsOT *OTablePt;
 
 
 void PutNumber(int x, int y, int cols, int n)

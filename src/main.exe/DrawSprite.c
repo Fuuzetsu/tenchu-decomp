@@ -111,7 +111,6 @@
  *    the 0x20 arm sits adjacent to the shared tail, same swap-non-invariance
  *    DrawModel needed.
  */
-extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 
 short DrawSprite(Sprite3D *sprt)

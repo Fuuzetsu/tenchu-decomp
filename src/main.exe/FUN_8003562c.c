@@ -32,7 +32,6 @@ typedef union FUN_8003562cScratch
 
 extern GsSPRITE sprBlood[4];
 extern GsSPRITE sprBlood2[4];
-extern GsOT *OTablePt;
 extern AreaNodeType *FieldArea;
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,

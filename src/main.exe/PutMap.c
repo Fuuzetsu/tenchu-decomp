@@ -96,7 +96,6 @@
  */
 extern u8 PutMapMode;
 extern GsSPRITE MapImage;
-extern GsOT *OTablePt;
 extern s32 D_80097F6C;
 extern s32 D_80097F70;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];

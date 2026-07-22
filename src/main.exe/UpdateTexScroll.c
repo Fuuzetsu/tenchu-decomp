@@ -60,7 +60,6 @@
  *    remainder in a register — matches every reload-heavy sibling in this
  *    TU (DrawHinoko.c).
  */
-extern GsOT *OTablePt;
 
 void UpdateTexScroll(TEffectSlot *ef)
 {

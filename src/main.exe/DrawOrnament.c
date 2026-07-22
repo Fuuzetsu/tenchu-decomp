@@ -46,7 +46,6 @@
  *    DrawOrnament now).
  */
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
-extern GsOT *OTablePt;
 
 short DrawOrnament(OrnamentType *objp)
 {

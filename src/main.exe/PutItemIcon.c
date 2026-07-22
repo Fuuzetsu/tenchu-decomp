@@ -40,7 +40,6 @@
  * `sprite` field at +0x68.
  */
 extern Sprite3D *ItemImage[];
-extern GsOT *OTablePt;
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
 {

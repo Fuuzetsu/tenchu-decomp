@@ -72,7 +72,6 @@
  */
 
 extern MATRIX GsWSMATRIX;
-extern GsOT *OTablePt;
 extern ModelType *ModelHook;
 
 extern long abs(long value);

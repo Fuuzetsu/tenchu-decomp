@@ -69,7 +69,6 @@
  *    a2,a2,0xffff` mask in the `jal`'s own delay slot — the prototype's
  *    plain `int pri` parameter alone does not imply truncation.
  */
-extern GsOT *OTablePt;
 
 void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
 {

@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-extern GsOT *OTablePt;
 extern Sprite3D *D_80097F2C[];
 extern s32 abs(s32 value);
 extern s32 GetAreaMapLevel(u_long *area, s32 x, s32 y, s32 z, s32 mode);

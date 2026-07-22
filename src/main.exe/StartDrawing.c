@@ -55,7 +55,6 @@
 
 extern short DrawingPage;
 extern GsOT OTable[];
-extern GsOT *OTablePt;
 extern u8 D_80098040[];
 
 

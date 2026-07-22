@@ -55,7 +55,6 @@
  *    a caller-saved temp. Try both shapes when a flag-return is off by a
  *    register.)
  */
-extern GsOT *OTablePt;
 extern void FUN_80063b94(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 
 short DrawBG(BackGround *bg)

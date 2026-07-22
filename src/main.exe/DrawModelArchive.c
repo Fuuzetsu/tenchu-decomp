@@ -97,7 +97,6 @@
 
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern short SkipFrame;
-extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 
 short DrawModelArchive(ModelArchiveType *mad, long gap)

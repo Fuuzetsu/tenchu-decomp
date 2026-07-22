@@ -227,7 +227,6 @@
 #include "effect.h"
 
 extern GsSPRITE D_800BEAA8[];
-extern GsOT *OTablePt;
 
 void DrawImpact(TEffectSlot *ef)
 {

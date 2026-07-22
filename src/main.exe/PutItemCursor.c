@@ -52,7 +52,6 @@
  *    lists).
  */
 extern GsSPRITE CursorImage;
-extern GsOT *OTablePt;
 
 void PutItemCursor(short x, short y, short size, s32 rotdif)
 {

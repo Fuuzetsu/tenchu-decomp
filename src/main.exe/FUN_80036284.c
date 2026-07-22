@@ -16,7 +16,6 @@
  * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
  * END PSX.SYM */
 
-extern GsOT *OTablePt;
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 

@@ -37,7 +37,6 @@
  *    load right before the call).
  */
 extern POLY_F4 TelopbgP;
-extern GsOT *OTablePt;
 extern u8 D_800C2C50[];
 
 extern s32 FUN_800576e8(u8 *str);

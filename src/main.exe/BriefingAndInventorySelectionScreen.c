@@ -94,7 +94,6 @@ extern char NUMBER_TIM_PATH[];
 extern char *ITEM_HELP_TIM_PATHS[];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 extern u16 SkipFrame;
-extern GsOT *OTablePt;
 
 extern int rand(void);
 extern void vfree(void *p);

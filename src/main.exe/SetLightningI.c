@@ -67,7 +67,6 @@
  */
 
 extern MATRIX GsWSMATRIX;
-extern GsOT *OTablePt;
 
 extern long abs(long value);
 extern int rand(void);

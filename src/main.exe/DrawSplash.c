@@ -52,7 +52,6 @@
 
 extern MATRIX GsWSMATRIX;
 extern GsSPRITE sprSplash;
-extern GsOT *OTablePt;
 extern SVECTOR D_80097A50[];
 
 extern void *memset(void *dst, int value, u32 size);

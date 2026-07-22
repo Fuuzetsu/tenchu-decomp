@@ -17,7 +17,6 @@ extern s32 D_80097D38;
 extern s32 D_80097D3C;
 extern u8 *D_80097D40;
 extern Sprite3D *D_800C2D58[];
-extern GsOT *OTablePt;
 
 extern short SoundEx(VECTOR *locate, short seid);
 extern void SetupTelop(u8 *telop, short line);

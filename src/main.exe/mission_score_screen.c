@@ -67,7 +67,6 @@ extern Sprite3D *ItemImage[];
 extern s16 D_8008ED50[];
 
 extern s16 SkipFrame;
-extern GsOT *OTablePt;
 
 extern void init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);

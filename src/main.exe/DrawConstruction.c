@@ -66,7 +66,6 @@
 
 extern s16 SkipFrame;
 extern WorldType WorldMap[8][8][8];
-extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 extern MATRIX GsWSMATRIX;
 extern char D_800120C4[];

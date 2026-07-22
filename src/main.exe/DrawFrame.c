@@ -115,7 +115,6 @@
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
  *    MASPSX_EXTRA), same as FUN_8003a148/DrawSpriteXYZ.
  */
-extern GsOT *OTablePt;
 
 void DrawFrame(TEffectSlot *ef)
 {

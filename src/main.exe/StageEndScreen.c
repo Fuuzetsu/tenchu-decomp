@@ -67,7 +67,6 @@ extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
 extern Sprite3D *ItemImage[];
 extern s16 SkipFrame;
-extern GsOT *OTablePt;
 
 extern void PadShockAR(s32 port, s32 time, s32 left, s32 right);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);

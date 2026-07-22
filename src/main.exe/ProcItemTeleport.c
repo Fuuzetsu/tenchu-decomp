@@ -62,7 +62,6 @@
  * END PSX.SYM */
 
 extern void SnapCameraTargetVector(void);
-extern GsOT *OTablePt;
 
 void ProcItemTeleport(TItem *item)
 {

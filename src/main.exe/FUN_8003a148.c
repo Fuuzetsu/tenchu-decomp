@@ -51,7 +51,6 @@
  *    own `scr.vz` re-read for `t`. Reusing `otz` here is 4 bytes short
  *    (cc1 doesn't refetch a value it can already see live).
  */
-extern GsOT *OTablePt;
 
 void FUN_8003a148(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *coord, short d)
 {

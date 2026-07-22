@@ -91,7 +91,6 @@ typedef struct DrawBloodScratch
 
 extern GsSPRITE sprBlood[];
 extern GsSPRITE sprBlood2[];
-extern GsOT *OTablePt;
 extern AreaNodeType *FieldArea;
 
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,

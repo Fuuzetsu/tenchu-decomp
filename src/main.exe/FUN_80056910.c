@@ -42,7 +42,6 @@
  *    and the untruncated height comparisons reproduce the remaining blocks.
  */
 
-extern GsOT *OTablePt;
 
 void FUN_80056910(Sprite3D *g, u16 dir)
 {

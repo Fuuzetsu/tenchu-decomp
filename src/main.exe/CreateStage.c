@@ -59,7 +59,6 @@ typedef struct
 
 extern s16 Humans;
 extern u8 *ImagePath;
-extern GsOT *OTablePt;
 extern s16 SkipFrame;
 extern volatile TSystemFlag SystemFlag;
 extern s32 DepthPoint;

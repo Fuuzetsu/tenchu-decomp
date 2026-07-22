@@ -58,7 +58,6 @@
  *    already narrow otz in place. This preserves the target's plain `move
  *    a2,s3` at the second call instead of inserting a redundant mask.
  */
-extern GsOT *OTablePt;
 extern void GsSortLine(GsLINE *p, GsOT *ot, long pri);
 
 void DrawTargetS(long x, long y, long z, long color)

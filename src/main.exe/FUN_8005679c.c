@@ -36,7 +36,6 @@
  * runtime branch.
  */
 
-extern GsOT *OTablePt;
 
 void FUN_8005679c(GsSPRITE *sp, u32 dist, s16 x, s16 y)
 {
