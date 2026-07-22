@@ -18,7 +18,7 @@
  * first (D_8008E4F0), it plays a chime and opens the SAME debug item-cheat
  * menus DoInfoViewProc's ItemAddMenu uses (pick an item, then a count) and
  * adds the chosen count to the current character's carried-item stock. If it
- * equals the second (D_8008E4C4), it sets `SYSFLAG_DEBUGMODE`. Either match
+ * equals the second (`ForbiddenCommand`), it sets `SYSFLAG_DEBUGMODE`. Either match
  * plays SoundEx(0, seid) at the end (seid = 0x4c for the item cheat, 10 for
  * the flag cheat); the item cheat ALSO plays SoundEx(0,10) up front.
  *
@@ -44,7 +44,8 @@
 extern char D_800124C0[]; /* "select item" */
 extern char D_800124EC[]; /* "number of" */
 extern u16 D_8008E4F0[];  /* cheat sequence 1 */
-extern u16 D_8008E4C4[];  /* cheat sequence 2 */
+/* The retail command grew from the demo's original short [15] to 22 entries. */
+extern s16 ForbiddenCommand[22];
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s32 memcmp(void *a, void *b, s32 n);
@@ -68,7 +69,7 @@ void CheckCheatCodes(s16 *rec, int n)
             AdtSelect(D_800124EC, menu.Num, 0);
         SoundEx(0, 0x4c);
     } else {
-        if (memcmp(rec, D_8008E4C4, n << 1) != 0) {
+        if (memcmp(rec, ForbiddenCommand, n << 1) != 0) {
             return;
         }
         SystemFlag |= SYSFLAG_DEBUGMODE;

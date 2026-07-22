@@ -1097,6 +1097,7 @@ PutItemList = 0x8004ade4;
 AddItem2 = 0x8004afdc;
 DrawPause = 0x8004b18c;
 CheckCheatCodes = 0x8004b354;
+ForbiddenCommand = 0x8008e4c4;
 PauseProc = 0x8004b4c0;
 PutMap = 0x8004b848;
 DoInfoViewProc = 0x8004ba5c;
