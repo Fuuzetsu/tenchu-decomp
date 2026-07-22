@@ -19,6 +19,7 @@ extern ModelType World;
 extern short MotionUpdateMode;
 extern short SelectedItem;
 extern TCdaStatus CdaStatus;
+extern GsSPRITE NumberImage;
 /* CONFLICT.C's retail-expanded pool and query outputs. */
 extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;

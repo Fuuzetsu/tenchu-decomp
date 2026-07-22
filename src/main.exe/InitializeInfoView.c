@@ -83,7 +83,6 @@
  *    referenced the bad name).
  */
 extern GsSPRITE CursorImage;
-extern GsSPRITE NumberImage;
 extern s32 ItemImage[];
 extern GsSPRITE ItemSprite3Ds[4];
 extern u8 fInitialize;

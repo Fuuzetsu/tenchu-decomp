@@ -65,7 +65,6 @@
  * branch-local ItemImage address producers; shared `x = x - ItemGap` fills
  * the merged call's delay slot.
  */
-extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
 extern GsOT *OTablePt;
 extern Sprite3D *ItemImage[];

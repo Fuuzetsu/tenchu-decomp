@@ -31,7 +31,6 @@
  * END PSX.SYM */
 
 extern s32 StrainRatio;
-extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
 extern GsSPRITE ItemSprite3Ds[4];
 extern GsSPRITE D_800C082C;

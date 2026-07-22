@@ -93,7 +93,6 @@
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
 extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
-extern GsSPRITE NumberImage;
 extern GsOT *OTablePt;
 
 
