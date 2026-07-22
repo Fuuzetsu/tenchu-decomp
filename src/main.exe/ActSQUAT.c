@@ -214,7 +214,7 @@ move_if_stationary:
         if (dtM->count == (dtM->motion->time >> 1))
         {
             Sound(Me_MOTION_C, 0x13);
-            CamState.CriticalHit = 1;
+            CamState.snap_pending = 1;
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {

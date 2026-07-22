@@ -132,7 +132,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
     AntiWall(&ViewInfo, &target);
     tp = &target;
 
-    if (cs->CriticalHit == 1)
+    if (cs->snap_pending == 1)
     {
         vDif->vpx = tp->vpx - ViewInfo.vpx;
         vDif->vpy = tp->vpy - ViewInfo.vpy;
@@ -140,7 +140,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
         vDif->vrx = tp->vrx - ViewInfo.vrx;
         vDif->vry = tp->vry - ViewInfo.vry;
         vDif->vrz = tp->vrz - ViewInfo.vrz;
-        cs->CriticalHit = 0;
+        cs->snap_pending = 0;
     }
     else
     {

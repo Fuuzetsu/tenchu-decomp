@@ -115,7 +115,7 @@ void PlayerOption(void)
         CamState.Owner->model->locate.coord.t[0] = StageConfig[StageID].px;
         CamState.Owner->model->locate.coord.t[1] = StageConfig[StageID].py - 10000;
         CamState.Owner->model->locate.coord.t[2] = StageConfig[StageID].pz;
-        CamState.CriticalHit = 1;
+        CamState.snap_pending = 1;
         CamState.Owner->map.index = (NodeIndexType *)GlobalAreaMap;
         FieldIndex = (NodeIndexType *)GlobalAreaMap;
         CamState.Owner->map.area = FieldArea =

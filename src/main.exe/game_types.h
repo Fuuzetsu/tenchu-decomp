@@ -490,8 +490,8 @@ enum TCameraMode
 
 /* CAMERA.C's global camera state. Retail rearranges the demo PSX.SYM
  * record: DirectionRX/DirectionRY move ahead of OldMode, and OldMode becomes
- * a byte beside the new CriticalHit flag. The resulting retail record is
- * 0x20 bytes; the demo's Valiation member at +0x20 is not part of it. */
+ * a byte beside a new one-shot camera-snap flag. The resulting retail record
+ * is 0x20 bytes; the demo's Valiation member at +0x20 is not part of it. */
 typedef struct TCameraStatus TCameraStatus;
 struct TCameraStatus
 {
@@ -501,7 +501,7 @@ struct TCameraStatus
     s16 DirectionRX;              /* 0x18 */
     s16 DirectionRY;              /* 0x1A */
     u8 OldMode;                   /* 0x1C */
-    u8 CriticalHit;               /* 0x1D */
+    u8 snap_pending;              /* 0x1D (retail-inferred role) */
 };                                /* 0x20 */
 
 /* System flags named by the demo's PSX.SYM.  The random-layout name is

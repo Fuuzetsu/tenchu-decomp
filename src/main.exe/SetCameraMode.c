@@ -37,8 +37,8 @@
  * NOTE the retail TCameraStatus layout differs from the demo PSX.SYM one:
  * DirectionRX/RY sit at 0x18/0x1A (demo: 0x1C/0x1E) and 0x1C/0x1D are two
  * BYTE fields (OldMode as a byte reused as the critical-camera index + a
- * critical-hit flag), proven by the raw sh 0x18/sh 0x1A/sb 0x1C/sb 0x1D in
- * this function's own asm.
+ * one-shot camera-snap flag), proven by the raw
+ * sh 0x18/sh 0x1A/sb 0x1C/sb 0x1D in this function's own asm.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Case 4's search loop is a hand-rolled goto loop (loop:/goto loop): no
@@ -187,7 +187,7 @@ void SetCameraMode(TCameraMode mode)
         break;
     hit:
         cs->Mode = mode;
-        cs->CriticalHit = 1;
+        cs->snap_pending = 1;
         break;
     default:
         CamState.Mode = mode;

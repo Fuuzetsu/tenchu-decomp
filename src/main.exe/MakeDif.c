@@ -29,8 +29,7 @@
 
 /*
  * MakeDif (0x80032088, 0xfc bytes) — computes vdif = target - vinfo for a
- * GsRVIEW2 camera view, gated by CamState.CriticalHit's "just snapped"
- * one-shot flag: a straight
+ * GsRVIEW2 camera view, gated by CamState.snap_pending: a straight
  * 6-field s32 subtraction the first frame after a mode change (and clears
  * the flag), otherwise a smoothed delta via two MakeDifSub calls — one over
  * the rotation-only half (vrx..vrz) using a TMakeDifInfo scratch block that
@@ -43,7 +42,7 @@
  *
  * Retail rearranged the demo's TCameraStatus: raw halfword accesses prove
  * DirectionRX/DirectionRY at +0x18/+0x1A, while this function's byte access
- * and SetCameraMode's stores prove CriticalHit at +0x1D. The demo's
+ * and SetCameraMode's stores prove the snap flag at +0x1D. The demo's
  * Valiation at +0x20 disappeared when the record shrank to 0x20 bytes.
  */
 extern TMakeDifInfo ref;
@@ -52,14 +51,14 @@ extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *
 
 void MakeDif(GsRVIEW2 *vinfo, GsRVIEW2 *target, GsRVIEW2 *vdif)
 {
-    if (CamState.CriticalHit == 1) {
+    if (CamState.snap_pending == 1) {
         vdif->vpx = target->vpx - vinfo->vpx;
         vdif->vpy = target->vpy - vinfo->vpy;
         vdif->vpz = target->vpz - vinfo->vpz;
         vdif->vrx = target->vrx - vinfo->vrx;
         vdif->vry = target->vry - vinfo->vry;
         vdif->vrz = target->vrz - vinfo->vrz;
-        CamState.CriticalHit = 0;
+        CamState.snap_pending = 0;
     } else {
         MakeDifSub((VECTOR *)&vinfo->vrx, (VECTOR *)&target->vrx, (VECTOR *)&vdif->vrx,
                    &ref);

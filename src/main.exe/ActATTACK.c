@@ -641,7 +641,7 @@ LAB_80022780:
     if (dtM->count == 1) {
       ActionHalt = 1;
       SetCameraMode(CMODE_CRITICAL_HIT);
-      CamState.CriticalHit = 1;
+      CamState.snap_pending = 1;
       return;
     }
     if ((dtM->loop == 0) && (dtL->vy == (Me_MOTION_C->target->locate).coord.t[1])) {
@@ -672,7 +672,7 @@ LAB_80022780:
     dtM->loop = 0;
     PlayMotion(dtM,1);
     motMODE = 0xffff;
-    CamState.CriticalHit = 1;
+    CamState.snap_pending = 1;
     return;
   }
   }
@@ -740,7 +740,7 @@ LAB_8002315c:
     bVar2 = Me_MOTION_C == StagePlayer;
     ((*Me_MOTION_C->model->object)->rotate).vy = dtM->motion->rotate[0]->y;
     if ((bVar2) && (SetCameraMode(CMODE_NORMAL), saved_mid == 0x712)) {
-      CamState.CriticalHit = 1;
+      CamState.snap_pending = 1;
     }
     (Me_MOTION_C->pad).time = 0;
     return;

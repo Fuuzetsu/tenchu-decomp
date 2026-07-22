@@ -139,7 +139,7 @@ check_motion_end:
             if (dtM->mid < 0x1109)
                 return;
             ActionHalt = 0;
-            CamState.CriticalHit = 1;
+            CamState.snap_pending = 1;
             return;
         }
     }

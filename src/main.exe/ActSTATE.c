@@ -383,7 +383,7 @@ void ActSTATE(void)
         }
         if (motID == 0x806)
         {
-            CamState.CriticalHit = 1;
+            CamState.snap_pending = 1;
         }
         if (Me_MOTION_C == StagePlayer)
         {
