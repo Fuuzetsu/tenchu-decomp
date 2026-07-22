@@ -45,9 +45,9 @@
  * ReqItemKawarimi (0x80040f1c) — spawn a "kawarimi" (substitution technique)
  * item. Exact mutual clone of ReqItemKusuri (same item TU, same pool
  * round-robin, same no-param-union shape) differing in exactly one real
- * instruction: the `it->proc = ProcItemKawarimi` assignment. See
+ * instruction: the `item->proc = ProcItemKawarimi` assignment. See
  * ReqItemKusuri.c's header for the full derivation (access.py trace, the
- * it->locate reload-not-cached behaviour, the return-1 convention).
+ * item->locate reload-not-cached behaviour, the return-1 convention).
  */
 extern void ProcItemKawarimi(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
@@ -55,10 +55,10 @@ extern void ProcItemKawarimi(TItem *item);
 
 int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    TItem *item;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     s32 i;
 
     i = 0;
@@ -67,39 +67,39 @@ int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        it = items + ic;
-        if (it->proc == 0)
+        item = items + ic;
+        if (item->proc == 0)
             goto found;
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    it->mode = ITEM_MODE_DISPOSE;
-    it->proc(it);
-    DeleteConflict(it->locate);
-    if (it->mode != 0)
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
     }
-    it->owner = 0;
-    it->proc = 0;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    if (it == 0)
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemKawarimi;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = (ModelType *)ItemImage[it->type];
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemKawarimi;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = (ModelType *)ItemImage[item->type];
     return 1;
 }
