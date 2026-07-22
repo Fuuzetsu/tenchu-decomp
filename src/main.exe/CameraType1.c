@@ -68,15 +68,11 @@
 typedef union
 {
     VECTOR init;
+    TCameraPos camera;
     struct
     {
         SVECTOR vecl;
         SVECTOR vecr;
-    } probe;
-    TCameraPos camera;
-    struct
-    {
-        u8 probe_space[0x10];
         TCameraPos camera;
     } stick_l;
 } CameraScratch;
@@ -123,28 +119,28 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         long levbr;
         s32 walls;
 
-        scratch.probe.vecl = D_80097A28[0];
-        scratch.probe.vecr = D_80097A30[0];
-        RotateVectorS(&scratch.probe.vecl,
+        scratch.stick_l.vecl = D_80097A28[0];
+        scratch.stick_l.vecr = D_80097A30[0];
+        RotateVectorS(&scratch.stick_l.vecl,
                       mad->rotate.vx, mad->rotate.vy, 0);
-        RotateVectorS(&scratch.probe.vecr,
+        RotateVectorS(&scratch.stick_l.vecr,
                       mad->rotate.vx, mad->rotate.vy, 0);
         levfl = GetAreaMapLevel(GlobalAreaMap,
-                                mad->locate.coord.t[0] + scratch.probe.vecl.vx,
+                                mad->locate.coord.t[0] + scratch.stick_l.vecl.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] + scratch.probe.vecl.vz, 1);
+                                mad->locate.coord.t[2] + scratch.stick_l.vecl.vz, 1);
         levfr = GetAreaMapLevel(GlobalAreaMap,
-                                mad->locate.coord.t[0] + scratch.probe.vecr.vx,
+                                mad->locate.coord.t[0] + scratch.stick_l.vecr.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] + scratch.probe.vecr.vz, 1);
+                                mad->locate.coord.t[2] + scratch.stick_l.vecr.vz, 1);
         levbr = GetAreaMapLevel(GlobalAreaMap,
-                                mad->locate.coord.t[0] - scratch.probe.vecl.vx,
+                                mad->locate.coord.t[0] - scratch.stick_l.vecl.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] - scratch.probe.vecl.vz, 1);
+                                mad->locate.coord.t[2] - scratch.stick_l.vecl.vz, 1);
         levbl = GetAreaMapLevel(GlobalAreaMap,
-                                mad->locate.coord.t[0] - scratch.probe.vecr.vx,
+                                mad->locate.coord.t[0] - scratch.stick_l.vecr.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] - scratch.probe.vecr.vz, 1);
+                                mad->locate.coord.t[2] - scratch.stick_l.vecr.vz, 1);
 
         walls = levfl == (long)0x80000000 ? FL : 0;
         if (levfr == (long)0x80000000)
