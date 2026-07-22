@@ -32,7 +32,7 @@
 /*
  * vrealloc (0x80016738, 0x204 bytes) — same TU/family as valloc.c/vfree.c
  * (virtual_memory_pool's free-list allocator): realloc over the same
- * VMhead free list. `pt == 0` is a plain `valloc(size)` (malloc
+ * `struct VMhead` free list. `pt == 0` is a plain `valloc(size)` (malloc
  * semantics). Otherwise the request is rounded to words exactly like
  * valloc's own rounding, then:
  *   - if the block's CURRENT raw size (header->size, WITH the in-use flag
@@ -94,9 +94,9 @@ extern void *memcpy(void *dst, void *src, u32 n);
 
 void *vrealloc(void *pt, u32 size)
 {
-    VMhead *vhp;
-    VMhead *svhp;
-    VMhead vh;
+    struct VMhead *vhp;
+    struct VMhead *svhp;
+    struct VMhead vh;
     void *newp;
     u32 size2;
     u32 mask;
@@ -108,7 +108,7 @@ void *vrealloc(void *pt, u32 size)
         return newp;
     }
 
-    vhp = (VMhead *)pt - 1;
+    vhp = (struct VMhead *)pt - 1;
     if ((size & 3) != 0)
         size = size + 4;
     size = size >> 2;
@@ -121,12 +121,12 @@ void *vrealloc(void *pt, u32 size)
         size2 = (u32)vhp->size - size;
         if (size2 >= 0x13)
         {
-            VMhead *nb;
+            struct VMhead *nb;
 
             vh.size = size2 - 2;
             vh.next = vhp->next;
             vhp->size = size | 0x80000000;
-            nb = (VMhead *)((u8 *)vhp + (size << 2) + 8);
+            nb = (struct VMhead *)((u8 *)vhp + (size << 2) + 8);
             vhp->next = nb;
             if (svhp != 0 && (~svhp->size & 0x80000000) != 0)
             {
@@ -153,12 +153,12 @@ void *vrealloc(void *pt, u32 size)
                 }
                 else
                 {
-                    VMhead *nb;
+                    struct VMhead *nb;
 
                     vh.size = size2;
                     vh.next = svhp->next;
                     vhp->size = size | mask;
-                    nb = (VMhead *)((u8 *)vhp + (size << 2) + 8);
+                    nb = (struct VMhead *)((u8 *)vhp + (size << 2) + 8);
                     vhp->next = nb;
                     *nb = vh;
                 }

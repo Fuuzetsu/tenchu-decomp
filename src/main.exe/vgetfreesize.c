@@ -23,11 +23,11 @@
 
 unsigned long vgetfreesize(void)
 {
-    VMhead *p;
+    struct VMhead *p;
     s32 sum;
 
     sum = 0;
-    for (p = virtual_memory_pool; p != 0; p = p->next)
+    for (p = (struct VMhead *)virtual_memory_pool; p != 0; p = p->next)
     {
         if (!(p->size & 0x80000000))
             sum += p->size;

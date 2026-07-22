@@ -56,7 +56,8 @@
  *  - The two header fields (size, next) are one aggregate local: cc1 stores
  *    each field to its OWN stack slot (an 8-byte frame — matches the
  *    `addiu $sp,$sp,-8` prologue), then block-copies both words into
- *    `*virtual_memory_pool` via reload+store — the classic whole-struct
+ *    `*(struct VMhead *)virtual_memory_pool` via reload+store — the classic
+ *    whole-struct
  *    assignment shape, not two direct field stores through the pointer
  *    (which would skip the stack roundtrip entirely). The destination
  *    pointer is read directly (no separate `p` local caching it): it changes
@@ -71,7 +72,7 @@
 
 void vinit(void *adr, u32 size)
 {
-    VMhead h;
+    struct VMhead h;
 
     virtual_memory_pool = adr;
     if (adr == 0)
@@ -82,5 +83,5 @@ void vinit(void *adr, u32 size)
     else
         h.size = VMEM_DEFAULT_CAPACITY;
     h.next = 0;
-    *virtual_memory_pool = h;
+    *(struct VMhead *)virtual_memory_pool = h;
 }

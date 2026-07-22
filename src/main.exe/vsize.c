@@ -33,5 +33,5 @@
 
 unsigned long vsize(void *pt)
 {
-    return *(s32 *)((u8 *)pt - 8) << 2;
+    return (((struct VMhead *)pt) - 1)->size << 2;
 }

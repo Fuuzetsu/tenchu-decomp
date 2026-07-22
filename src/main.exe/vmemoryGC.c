@@ -44,10 +44,10 @@ extern void *memcpy(void *dst, void *src, u32 n);
 
 static inline void FreePoolBlockInline(void *pt, u32 cmask)
 {
-    VMhead *header;
-    VMhead *next;
-    VMhead *prev;
-    VMhead *n2;
+    struct VMhead *header;
+    struct VMhead *next;
+    struct VMhead *prev;
+    struct VMhead *n2;
     u32 mask;
     u32 sz;
     s32 s;
@@ -57,7 +57,7 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
 
     do
     {
-        header = (VMhead *)pt - 1;
+        header = (struct VMhead *)pt - 1;
     } while (0);
     mask = 0x80000000;
     if ((header->size & mask) == 0)
@@ -77,7 +77,7 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
         }
     }
 
-    prev = virtual_memory_pool;
+    prev = (struct VMhead *)virtual_memory_pool;
     if (prev != 0)
     {
     search:
@@ -168,14 +168,14 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
  */
 void *vmemoryGC(void *pt)
 {
-    VMhead *header;
+    struct VMhead *header;
     u32 cmask;
     u32 mask;
     u32 size;
     u32 *vmpt;
 
     cmask = 0x7fffffff;
-    header = (VMhead *)pt - 1;
+    header = (struct VMhead *)pt - 1;
     size = (header->size & cmask) << 2;
     vmpt = valloc(size);
     if (vmpt != 0)
@@ -193,13 +193,13 @@ void *vmemoryGC(void *pt)
     }
 
     {
-        VMhead *prev;
-        VMhead *n2;
+        struct VMhead *prev;
+        struct VMhead *n2;
         void *newpt;
-        VMhead vh;
+        struct VMhead vh;
         s32 sz2;
 
-        prev = virtual_memory_pool;
+        prev = (struct VMhead *)virtual_memory_pool;
         if (prev != 0)
         {
         search3:
@@ -224,7 +224,7 @@ void *vmemoryGC(void *pt)
                     vh.next = header->next;
                     vmpt = (u32 *)((u8 *)prev + ((header->size << 2) + 8));
                     prev->size = header->size;
-                    prev->next = (VMhead *)vmpt;
+                    prev->next = (struct VMhead *)vmpt;
                     memcpy(newpt, pt, size);
                     pt = newpt;
                     prev = vh.next;
@@ -233,7 +233,7 @@ void *vmemoryGC(void *pt)
                         vh.size = vh.size + (prev->size + 2);
                         vh.next = prev->next;
                     }
-                    *(VMhead *)vmpt = vh;
+                    *(struct VMhead *)vmpt = vh;
                 }
             }
         }
