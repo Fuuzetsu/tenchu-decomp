@@ -932,9 +932,10 @@ enum TItemType
 // executables); the full demo definition is reference/psxsym-types.h (216
 // bytes, CharType short at +0, options at +0x5..+0xE). Retail rearranged and
 // extended the layout (0xE70 memset by InitPersistentState, magic 0x19981110
-// at +0, options run moved to +0x58, language/shop stock added), so the demo
-// definition CANNOT be adopted verbatim — byte-identity pins the retail
-// offsets below. Original demo member names are called out per field;
+// at +0, options run moved to +0x58, language added, and gItem moved/expanded
+// to two character rows), so the demo definition CANNOT be adopted verbatim
+// — byte-identity pins the retail offsets below. Original demo member names
+// are called out per field;
 // lowercase otherwise denotes a retail/repo name. Retail expands the demo's
 // `selItem[30]` and `saveItem[30]` arrays to 32 entries while retaining their
 // original roles.

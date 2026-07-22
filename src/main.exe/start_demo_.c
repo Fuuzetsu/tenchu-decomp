@@ -26,7 +26,6 @@
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern u8 D_80010048;
 extern char D_80013AFC[];
 extern char D_80013B24[];
 extern char D_800137A0[];
@@ -325,7 +324,7 @@ void start_demo_(void)
             shade += 4;
             if (shade >= 0x80)
             {
-                D_80010048 |= 1;
+                GameRetry |= 1;
                 vfree(fade_archive);
                 vfree(gov_archive);
                 vfree(fade_sprite);
@@ -339,7 +338,7 @@ void start_demo_(void)
             shade += 4;
             if (shade >= 0x80)
             {
-                D_80010048 &= 0xfe;
+                GameRetry &= 0xfe;
                 vfree(fade_archive);
                 vfree(gov_archive);
                 vfree(fade_sprite);

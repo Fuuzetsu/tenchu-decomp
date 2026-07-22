@@ -83,8 +83,6 @@ extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 D_80010019;
 extern u8 D_8001001A;
-extern u8 D_80010048;
-extern u8 SHOP_STOCK_STATE_BY_CHAR[];
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 extern char *ITEM_SEL_SPRITE_PTRS[];
 extern char NUMBER_TIM_PATH[];
@@ -300,7 +298,7 @@ void BriefingAndInventorySelectionScreen(void)
             FadeOutDirect(0x20, 2, 8, 8, 8);
             FUN_80038ce0();
             STAGE_LAYOUT_NUMBER = 0xFF;
-            D_80010048 = D_80010048 & 0xFE;
+            GameRetry = GameRetry & 0xFE;
             FUN_8004f6c0(0x10);
             break;
         }

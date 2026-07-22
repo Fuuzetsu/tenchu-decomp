@@ -14,6 +14,8 @@ extern unsigned char gSound;
 extern unsigned char gSoundLevel;
 extern unsigned char gSELevel;
 extern unsigned char gfMemory;
+/* Direct global view of TLinkInfo.GameRetry at persistent-state offset 0x48. */
+extern unsigned char GameRetry;
 extern TSystemFlag SystemFlag;
 /* Retail's mid=-1 sentinel is entry 104; the demo table had 78 entries. */
 extern BattleType BattleDB[105];

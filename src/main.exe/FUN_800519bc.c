@@ -245,7 +245,6 @@ typedef struct
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern u8 D_80010048;
 extern char D_800137A0[];
 extern DemoScreenAssets D_8008EA90[][11];
 extern s16 D_8008ECA0[][11];
@@ -352,7 +351,7 @@ void FUN_800519bc(void)
             FadeOutDirect(0x20, 2, 8, 8, 8);
             FUN_80038ce0();
             STAGE_LAYOUT_NUMBER = 0xff;
-            D_80010048 &= 0xfe;
+            GameRetry &= 0xfe;
             FUN_8004f6c0(0x10);
         }
 
