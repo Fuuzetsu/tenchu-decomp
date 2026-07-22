@@ -99,6 +99,8 @@ extern s16 SoundEx(VECTOR *locate, s16 seid);
  */
 void PutStrain(s32 x, s32 y)
 {
+    enum { speed = 30 };
+    enum { range = 255, powrange = 20000 };
     s32 ratio;
     GsSPRITE *spr;
     s32 delta;
@@ -115,7 +117,7 @@ void PutStrain(s32 x, s32 y)
         {
             spr = &D_800C0850;
         }
-        else if (ratio < -20000)
+        else if (ratio < -powrange)
         {
             spr = &D_800C0874;
             ratio = 0;
@@ -124,7 +126,7 @@ void PutStrain(s32 x, s32 y)
         {
             spr = &D_800C082C;
             ratio = 0;
-            if (GameClock == (GameClock / 30) * 30)
+            if (GameClock == (GameClock / speed) * speed)
             {
                 SoundEx(0, 0xe);
             }
@@ -136,7 +138,7 @@ void PutStrain(s32 x, s32 y)
             s32 newpow;
             s32 r;
 
-            if (ratio > 20000)
+            if (ratio > powrange)
                 return;
             spr = ItemSprite3Ds;
             NumberImage.w = 4;
@@ -144,7 +146,7 @@ void PutStrain(s32 x, s32 y)
             img->x = (s16)(x + 0x22);
             base = img->u;
             img->y = (s16)(y + 8);
-            newpow = (20000 - ratio) / 200;
+            newpow = (powrange - ratio) / 200;
         strainloop:
             r = newpow / 10;
             img->u = base + (newpow - r * 10) * 4;
@@ -159,7 +161,7 @@ void PutStrain(s32 x, s32 y)
             } while (0);
         }
 
-        delta = 20000 - ratio;
+        delta = powrange - ratio;
         s = delta;
         if (delta < 0)
             s = delta + 0x1f;
@@ -171,11 +173,11 @@ void PutStrain(s32 x, s32 y)
         iVar4 = rsin(phase) * 0x60;
         if (iVar4 < 0)
             iVar4 = iVar4 + 0xfff;
-        shade = (iVar4 >> 0xc) + 0x7f;
+        shade = (iVar4 >> 0xc) + range / 2;
         spr->b = shade;
         spr->g = shade;
         spr->r = shade;
-        scale = (s16)((delta << 0xb) / 20000) + 0x800;
+        scale = (s16)((delta << 0xb) / powrange) + 0x800;
         spr->scalex = scale;
         spr->scaley = scale;
         GsSortSprite(spr, OTablePt, 0);
