@@ -46,7 +46,7 @@
  *     (`CVAhuman[i].loop <= human->motion->loop`), either motid==-1 (stop:
  *     clear motion->loop and the human's x/z velocity) or (status != DEAD)
  *     start the queued motid via SetNowMotion and clear the slot.
- * Finally advances the CVA frame counter (D_80097CC0) and, once it reaches
+ * Finally advances the CVA frame counter (CVAtime) and, once it reaches
  * the current event's own duration (CVAnow->id,
  * the same field AVCameraSetup dispatches on — the event record doubles as
  * a duration when read this way), advances to the next 12-byte event
@@ -74,8 +74,6 @@
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 extern u8 CHOSEN_CHARACTER;
 
-
-extern s16 D_80097CC0;
 
 extern void AVCameraControl(void);
 extern void DrawConstruction(void);
@@ -150,8 +148,8 @@ short CVArun(void)
         }
     }
 
-    D_80097CC0++;
-    if (D_80097CC0 >= CVAnow->id)
+    CVAtime++;
+    if (CVAtime >= CVAnow->id)
     {
         CVAnow++;
         return CVAupdate();

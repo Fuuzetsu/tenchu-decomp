@@ -258,3 +258,7 @@
 
 # Afterimage texture (2026-07-22).
 80097f3c	AfterIMG	semantic+datamatch	VOTES1;PSX=80098160;DEMO=800984b8;WITNESSES=InitEffect;InitEffect-assigns-GetImage(10)-and-SetupAfterimage-consumes-the-same-pointer	STAT	struct GsIMAGE *
+
+# Cutscene animation timing (2026-07-22).
+80097cc0	CVAtime	semantic+datamatch	VOTES1;PSX=80098074;DEMO=800983cc;WITNESSES=CVArun;CVAsequence-resets-it-and-CVArun-advances-it-against-CVAnow-duration	STAT	short
+80097cc8	CameraSpeed	semantic+datamatch	VOTES1;PSX=8009807c;DEMO=800983d4;WITNESSES=AVCameraControl;CVAupdate-writes-the-pan-event-speed-and-AVCameraControl-consumes-it-in-every-moving-pan-mode	STAT	short

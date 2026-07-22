@@ -54,7 +54,6 @@
 #include "item.h"
 
 extern u8 D_800C2C50[];
-extern s16 D_80097CC0;
 extern s16 D_80097CCC;
 
 extern void *memset(void *s, int c, u32 n);
@@ -151,7 +150,7 @@ run_sequence:
         }
     }
 
-    D_80097CC0 = 0;
+    CVAtime = 0;
     VoiceMode = 1;
     do
     {

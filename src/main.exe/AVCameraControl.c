@@ -43,12 +43,10 @@
  * The 2/3 and 6/7 arms contain source-level GetMoveSpeed calls whose common
  * call sequence is merged by cross-jump. The short `ry` needs two ordinary
  * wide copies in the 2/3 arm: `move_base` preserves its signed extension,
- * while `speed` preserves D_80097CC8's signed load. Both optimize away as
+ * while `speed` preserves CameraSpeed's signed load. Both optimize away as
  * storage, but without them cc1 uses modulo-short `lhu` arithmetic and
  * coalesces the input/result into the wrong register.
  */
-
-extern s16 D_80097CC8;
 
 extern void Camera(void);
 
@@ -79,29 +77,29 @@ void AVCameraControl(void)
         move_base = ry;
         if (CameraPanMode == 2)
         {
-            speed = D_80097CC8;
+            speed = CameraSpeed;
             ry = move_base + speed;
         }
         else
         {
-            speed = D_80097CC8;
+            speed = CameraSpeed;
             ry = move_base - speed;
         }
         GetMoveSpeed(&vect, ry, len, 0);
         goto apply_move;
     case 4:
     case 5:
-        ViewInfo.vpy += (CameraPanMode == 4) ? -D_80097CC8 : D_80097CC8;
+        ViewInfo.vpy += (CameraPanMode == 4) ? -CameraSpeed : CameraSpeed;
         break;
     case 6:
     case 7:
         if (CameraPanMode == 6)
         {
-            len -= D_80097CC8;
+            len -= CameraSpeed;
         }
         else
         {
-            len += D_80097CC8;
+            len += CameraSpeed;
         }
         GetMoveSpeed(&vect, ry, len, 0);
 

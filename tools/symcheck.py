@@ -15,7 +15,8 @@ immediate off by a small fixed delta at every use.
 
 The same failure appears when a sibling stub file in the same TU family lacks its
 `--gp-extern` entry: maspsx synthesises a stray local placeholder and the linker
-silently prefers it (the CVA family's D_80097CC0/CC4/CC8/CCA/CCC, each +4/+0xC off).
+silently prefers it (first exposed by the CVA family's once-auto-named
+0x80097CC0..0x80097CCC cluster, whose symbols shifted by +4/+0xC).
 
 Both are caught by one rule: **a symbol named D_<HEX> must resolve to 0x<HEX>.**
 

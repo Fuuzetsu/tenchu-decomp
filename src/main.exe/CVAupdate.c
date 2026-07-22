@@ -68,7 +68,6 @@
  */
 
 
-extern s16 D_80097CC8;
 extern s16 D_80097CCC;
 extern u8 D_800C2C50[];
 extern u8 D_8008FFB9[];
@@ -294,7 +293,7 @@ s16 CVAupdate(void)
                 pan_value = 20;
                 if (CVAnow->p != 0)
                     pan_value = CVAnow->p;
-                D_80097CC8 = pan_value;
+                CameraSpeed = pan_value;
                 break;
 
             case 7:
