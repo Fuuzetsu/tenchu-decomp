@@ -104,6 +104,7 @@ extern void *memset(void *dst, int value, u32 size);
 
 void DrawBlood(TEffectSlot *ef)
 {
+    enum { R = 80 };
     BloodType *blood;
     GsSPRITE *spr;
     GsSPRITE *sprt;
@@ -329,14 +330,14 @@ void DrawBlood(TEffectSlot *ef)
         {
             memset(&scratch.temp, 0, sizeof(VECTOR));
             bleed_x = rand();
-            base_x = blood->px - 0x50;
-            scratch.temp.vx = base_x + bleed_x % 0xa0;
+            base_x = blood->px - R;
+            scratch.temp.vx = base_x + bleed_x % (R * 2);
             bleed_y = rand();
-            base_y = blood->py - 0x50;
-            scratch.temp.vy = base_y + bleed_y % 0xa0;
+            base_y = blood->py - R;
+            scratch.temp.vy = base_y + bleed_y % (R * 2);
             bleed_z = rand();
-            base_z = blood->pz - 0x50;
-            scratch.temp.vz = base_z + bleed_z % 0xa0;
+            base_z = blood->pz - R;
+            scratch.temp.vz = base_z + bleed_z % (R * 2);
             scratch.pos = scratch.temp;
             memset(&scratch.temp, 0, sizeof(SVECTOR));
             ((SVECTOR *)&scratch.temp)->vx = blood->vx / 2;
