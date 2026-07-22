@@ -15,7 +15,7 @@
  * ProcItemManebue.c for the item-TU conventions):
  *  - `ff` holds ITEM_MODE_DISPOSE in a callee-saved reg ($s4) across calls:
  *    used by the entry test and the drop path's `item->mode = ff`; mode 2's
- *    dispose rematerializes its 0xff value instead ($s4 is &buf by then).
+ *    dispose rematerializes its 0xff value instead ($s4 is &scratch by then).
  *  - The dispatch is a real `switch`: it reloads item->mode (fresh index load)
  *    and compares it SIGNED (slti) — an if-ladder CSEs the load and compares
  *    unsigned. Case bodies sit in source order (0, 1, 2).
@@ -25,15 +25,17 @@
  *    duplicated at the entry (jump.c duplicate_loop_exit_test) and then
  *    constant-folded away; the while(1)+break form keeps the original's
  *    top-test + unconditional back-jump while still letting loop.c hoist the
- *    invariants (&buf, &buf[0x10], the two magic divisors).
+ *    invariants (&scratch, &scratch.bleed.build, the two magic divisors).
  *  - mode 2's jitter is written `t[n] + (rand() % 1000 - 500)`: fold's
  *    associate step canonicalizes it to the original's (t[n]-500) + rem shape,
  *    whereas writing `t[n] - 500 + rand() % 1000` gets reassociated the wrong
  *    way (constant pulled onto the remainder).
- *  - The position stores go through the same base as the VECTOR copy
- *    (((s32 *)(buf + 0x10))[n]) so the scheduler sees the store/copy
- *    dependence; a separate `buf + 0x18` base lets it interleave the copy
- *    into the divide latency.
+ *  - PSX.SYM places the interrupted-drop `p` and mode-2 `pos` at sp+16,
+ *    and `vec` at sp+32. The local union exposes those exact names and types.
+ *    `pos_build` at sp+32 and `vec_build` at sp+40 name the compiler aggregate
+ *    temporaries visible in the target's copy sequences. `pos_build` overlaps
+ *    the velocity pair safely because its lifetime ends before either vector
+ *    is written.
  *  - The dispose tail is written out twice (drop path + mode 2); GCC's
  *    cross-jump merges the common suffix from the jalr on. The null check
  *    reads `ppu = item->proc` but the call is `item->proc(item)` (cse reuses
@@ -82,15 +84,23 @@ void ProcItemKusuri(TItem *item)
     void (*ppu)(TItem *);
     u8 ff;
     s32 i;
-    /* One shared 40-byte scratch buffer (Ghidra's local_40): the drop path views
-     * it as a PARAM_ITEM_LAUNCH; mode 2 views buf as the SetBleed position VECTOR,
-     * buf+0x10 as its build area / the velocity SVECTOR, and buf+0x18 as the
-     * velocity build area. The casts (not typed locals) are what reproduce the
-     * original's stack layout and copy alignments (VECTOR copies are word moves,
-     * SVECTOR copies are lwl/lwr). The repeated casts are load-bearing too: a
-     * pointer temp (PARAM_ITEM_LAUNCH *prm = ...; / VECTOR *w = ...;) does NOT
-     * fold away — it allocates a register and shifts the frame (verified). */
-    u8 buf[0x28];
+    union
+    {
+        PARAM_ITEM_LAUNCH p;
+        struct
+        {
+            VECTOR pos;
+            union
+            {
+                VECTOR pos_build;
+                struct
+                {
+                    SVECTOR vec;
+                    SVECTOR vec_build;
+                } velocity;
+            } build;
+        } bleed;
+    } scratch;
 
     model = (Sprite3D *)item->model;
     ff = ITEM_MODE_DISPOSE;
@@ -103,18 +113,18 @@ void ProcItemKusuri(TItem *item)
     {
     case 0:
     {
-        Humanoid *own;
+        Humanoid *human;
 
-        own = item->owner;
-        if (ActionHalt == 0 && 0 < own->life)
+        human = item->owner;
+        if (ActionHalt == 0 && 0 < human->life)
         {
             MotionDataType *md;
 
-            dispose_weapon_data_of_char_(own, 3);
-            UpdateMotion(own->motion, 0xf01);
-            own->status = 0xf;
-            md = own->motion->motion;
-            MoveHumanoid(own, md->orderspd, md->sidespd);
+            dispose_weapon_data_of_char_(human, 3);
+            UpdateMotion(human->motion, 0xf01);
+            human->status = 0xf;
+            md = human->motion->motion;
+            MoveHumanoid(human, md->orderspd, md->sidespd);
         }
     }
         {
@@ -141,22 +151,22 @@ void ProcItemKusuri(TItem *item)
         {
             /* animation interrupted: toss the item back out */
             VECTOR *pos;
-            Humanoid *own;
-            s32 ty;
+            Humanoid *human;
+            s32 itemID;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            own = item->owner;
-            ty = item->type;
-            memset(buf, 0, sizeof(PARAM_ITEM_LAUNCH));
-            ((PARAM_ITEM_LAUNCH *)buf)->type = ty;
-            ((PARAM_ITEM_LAUNCH *)buf)->user = own;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vx = pos->vx;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vy = pos->vy;
-            ((PARAM_ITEM_LAUNCH *)buf)->start.vz = pos->vz;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vx = rand() % 200 - 100;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vy = rand() % 100 - 200;
-            ((PARAM_ITEM_LAUNCH *)buf)->end.vz = rand() % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_LAUNCH *)buf);
+            human = item->owner;
+            itemID = item->type;
+            memset(&scratch.p, 0, sizeof(scratch.p));
+            scratch.p.type = itemID;
+            scratch.p.user = human;
+            scratch.p.start.vx = pos->vx;
+            scratch.p.start.vy = pos->vy;
+            scratch.p.start.vz = pos->vz;
+            scratch.p.end.vx = rand() % 200 - 100;
+            scratch.p.end.vy = rand() % 100 - 200;
+            scratch.p.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&scratch.p);
             ppu = item->proc;
             if (ppu == 0)
                 return;
@@ -198,15 +208,22 @@ void ProcItemKusuri(TItem *item)
         {
             if (!(i < 0x14))
                 break;
-            memset(buf + 0x10, 0, sizeof(VECTOR));
-            ((s32 *)(buf + 0x10))[0] = item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
-            ((s32 *)(buf + 0x10))[1] = item->owner->model->locate.coord.t[1] + (rand() % 1000 - 0x4b0);
-            ((s32 *)(buf + 0x10))[2] = item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
-            *(VECTOR *)buf = *(VECTOR *)(buf + 0x10);
-            memset(buf + 0x18, 0, sizeof(SVECTOR));
-            ((SVECTOR *)(buf + 0x18))->vy = rand() % 10 - 30;
-            *(SVECTOR *)(buf + 0x10) = *(SVECTOR *)(buf + 0x18);
-            SetBleed((VECTOR *)buf, (SVECTOR *)(buf + 0x10), rand() % 0x10 + 0xf, 0xffff7e);
+            memset(&scratch.bleed.build.pos_build, 0,
+                   sizeof(scratch.bleed.build.pos_build));
+            scratch.bleed.build.pos_build.vx =
+                item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
+            scratch.bleed.build.pos_build.vy =
+                item->owner->model->locate.coord.t[1] + (rand() % 1000 - 0x4b0);
+            scratch.bleed.build.pos_build.vz =
+                item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
+            scratch.bleed.pos = scratch.bleed.build.pos_build;
+            memset(&scratch.bleed.build.velocity.vec_build, 0,
+                   sizeof(scratch.bleed.build.velocity.vec_build));
+            scratch.bleed.build.velocity.vec_build.vy = rand() % 10 - 30;
+            scratch.bleed.build.velocity.vec =
+                scratch.bleed.build.velocity.vec_build;
+            SetBleed(&scratch.bleed.pos, &scratch.bleed.build.velocity.vec,
+                     rand() % 0x10 + 0xf, 0xffff7e);
             i++;
         }
         SoundEx(item->owner->locate, 0x24);
