@@ -79,7 +79,7 @@ extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern void vfree(void *p);
 extern int sprintf(char *buf, char *fmt, ...);
-extern short GetTIMpackInfo(u_long *adr, GsIMAGE *image, int idx);
+extern short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void LoadTIMpackAndFree(u_long *adr);
 

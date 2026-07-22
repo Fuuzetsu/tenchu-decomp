@@ -42,7 +42,7 @@
  * test — Ghidra renders that literally as `iVar2 * 0x10000 >> 0x10`
  * instead of inferring a `short` type.
  */
-short GetTIMpackInfo(u_long *adr, GsIMAGE *image, int idx)
+short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
 {
     short i;
     u_long *puVar3;

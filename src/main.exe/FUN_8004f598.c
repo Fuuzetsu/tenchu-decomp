@@ -15,7 +15,7 @@
  * extern (per-TU prototype disagreement, see docs/matching-cookbook.md).
  */
 extern u_long *get_tim_from_archive(void);
-extern void LoadTIM(u_long *adr);
+extern void LoadTIM(unsigned long *adr);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void FUN_8004f598(void)

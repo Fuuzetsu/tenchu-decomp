@@ -98,7 +98,7 @@
 extern void SystemOut(unsigned char *string);
 extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
 
-short LoadTIMpack(u_long *adr)
+short LoadTIMpack(unsigned long *adr)
 {
     RECT r;
     GsIMAGE tim;

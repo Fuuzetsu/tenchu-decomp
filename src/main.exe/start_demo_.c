@@ -45,7 +45,7 @@ extern int sprintf(char *buffer, char *format, ...);
 extern u_long *get_tim_from_archive(u_long *archive, int index);
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
-extern void LoadTIM(u_long *adr);
+extern void LoadTIM(unsigned long *adr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern void StartDrawing(void);
 extern short DrawBG(BackGround *bg);

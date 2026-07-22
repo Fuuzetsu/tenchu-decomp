@@ -41,7 +41,7 @@
 extern void SystemOut(unsigned char *string);
 extern char D_800110B8[]; /* "NO IMAGE DATA" */
 
-void LoadTIM(u_long *adr)
+void LoadTIM(unsigned long *adr)
 {
     RECT r;
     GsIMAGE im;
