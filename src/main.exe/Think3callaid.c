@@ -121,8 +121,6 @@ extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 Degree;
 extern u16 Attrib;
-extern u16 StageEnemies;
-extern u16 StageCitizens;
 extern s16 AIDHumanType[];
 extern int rand(void);
 extern s16 Think3escape(void);

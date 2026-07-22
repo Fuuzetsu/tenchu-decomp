@@ -19,6 +19,14 @@ extern struct Humanoid *StagePlayer;
 extern short Humans;
 extern short ActionHalt;
 extern short EngageLevel;
+extern short Criticals;
+extern short Findenemies;
+extern short Murders;
+extern short FriendHits;
+extern short StageEnemies;
+extern short StageCitizens;
+/* Retail adds this halfword counter beside the PSX.SYM-recorded set. */
+extern short StageBosses;
 /* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;

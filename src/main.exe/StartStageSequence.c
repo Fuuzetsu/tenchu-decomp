@@ -81,13 +81,6 @@
 extern EventSeqType *D_80097F7C;
 extern s32 StageTime;
 extern s32 AttackActionCount;
-extern u16 StageCitizens;
-extern u16 StageEnemies;
-extern u16 StageBosses;
-extern u16 FriendHits;
-extern u16 Murders;
-extern u16 Findenemies;
-extern u16 Criticals;
 
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void UpdateEvent(s16 n, s16 id);

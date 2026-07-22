@@ -95,7 +95,6 @@ extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 
 extern TSystemFlag SystemFlag;
-extern u16 Findenemies;
 
 void PauseProc(void)
 {
