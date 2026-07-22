@@ -430,7 +430,7 @@ make_wire:
 //     if (sVar7 != 0x402) {
 //       return;
 //     }
-//     SetCameraMode(CMODE_FALL|CMODE_DIRECTION);
+//     SetCameraMode(15);
 //     local_40 = CamState.TargetVector.vx - dtL->vx;
 //     local_3c = CamState.TargetVector.vy - dtL->vy;
 //     local_38 = CamState.TargetVector.vz - dtL->vz;

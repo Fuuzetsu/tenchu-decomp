@@ -80,7 +80,7 @@ void ActACTION(void)
             (*(u16 *)&Me_MOTION_C->attribute & 1))
         {
             if (Me_MOTION_C == StagePlayer)
-            SetCameraMode(CMODE_NORMAL);
+                SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;
@@ -99,7 +99,7 @@ void ActACTION(void)
         else if (dtM->count == 0 && dtM->loop != 0)
         {
             if (Me_MOTION_C == StagePlayer)
-            SetCameraMode(CMODE_NORMAL);
+                SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
             {
                 motID = 0x501;

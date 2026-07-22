@@ -58,10 +58,10 @@ void Camera(void)
     }
 
     switch ((s32)CamState.Mode) {
-    case 1:
+    case CMODE_DIRECTION:
         CameraDirection(CamState.Owner, &vDif);
         break;
-    case 0xD:
+    case CMODE_LOCK:
         vDif.vpx = 0;
         vDif.vpy = 0;
         vDif.vpz = 0;
@@ -69,7 +69,7 @@ void Camera(void)
         vDif.vry = 0;
         vDif.vrz = 0;
         break;
-    case 0xE:
+    case CMODE_FALL:
         vDif.vpx = 0;
         vDif.vpy = 0;
         vDif.vpz = 0;

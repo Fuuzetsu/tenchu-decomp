@@ -127,7 +127,7 @@ void ActSTATE(void)
         if (Me_MOTION_C->type < 7) { if (Me_MOTION_C->type > 3) {
             if (Me_MOTION_C == StagePlayer)
             {
-            SetCameraMode(CMODE_NORMAL);
+                SetCameraMode(CMODE_NORMAL);
             }
             {
                 s32 special_motion_id;
@@ -286,7 +286,7 @@ void ActSTATE(void)
             {
                 if (human == StagePlayer)
                 {
-            SetCameraMode(CMODE_NORMAL);
+                    SetCameraMode(CMODE_NORMAL);
                 }
                 if ((Me_MOTION_C->attribute & 0x40) != 0)
                 {
