@@ -25,14 +25,10 @@
 
 /* GetTIMInfo (0x80018ac8) — skips the leading u_long (TIM ID word) and hands
  * the rest of the buffer to the real PSY-Q GsGetTimInfo(); always "succeeds"
- * (returns 1). main.exe.h already declares this TU's prototype as
- * `void *GetTIMInfo(u_long *adr, GsIMAGE *image)` (both matched callers, AddMisc
- * and BriefingAndInventorySelectionScreen, discard the return value) — Ghidra
- * types the return `short`/literal 1, so return an explicit `(void *)1` to
- * stay compatible with the header's declared type. */
+ * (returns 1). */
 
-void *GetTIMInfo(u_long *adr, GsIMAGE *image)
+s16 GetTIMInfo(u_long *adr, GsIMAGE *image)
 {
     GsGetTimInfo(adr + 1, image);
-    return (void *)1;
+    return 1;
 }

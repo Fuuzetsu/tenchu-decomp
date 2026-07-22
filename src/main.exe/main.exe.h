@@ -90,7 +90,7 @@ extern short NowReturnNormal(struct Humanoid *human);
 
 extern u_long *FileRead(u8 *filename);
 extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
-extern void *GetTIMInfo(u_long *tim, GsIMAGE *im);
+extern short GetTIMInfo(u_long *adr, GsIMAGE *image);
 extern void LoadTIMAndFree(u_long *tim);
 extern void load_font_image_into_global(GsIMAGE *image);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
