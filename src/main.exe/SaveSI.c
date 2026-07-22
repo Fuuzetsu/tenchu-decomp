@@ -97,10 +97,11 @@ extern void AdtMessageBox(char *fmt, ...);
 
 void SaveSI(s32 target, u8 *name, void *mem, s32 size)
 {
+    enum { BLOCKSIZE = 8192 };
     s32 fd;
     char *msg;
     u8 fn[200];
-    u8 block[0x2000];
+    u8 block[BLOCKSIZE];
     SaveSISelectBlock select;
     s32 cmd;
     s32 result;
@@ -126,7 +127,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     chan = 0;
     header = (TCardHeader *)block;
     data = block + sizeof(TCardHeader);
-    if ((u32)size >= 0x1e01)
+    if ((u32)size > BLOCKSIZE - sizeof(TCardHeader))
     {
         AdtMessageBox(D_80014114);
         goto done;
@@ -299,7 +300,7 @@ create_file:
             goto done;
         }
         memcpy(data, mem, size);
-        MemCardWriteFile(chan, fn, block, 0, 0x2000);
+        MemCardWriteFile(chan, fn, block, 0, BLOCKSIZE);
         MemCardSync(0, &cmd, &result);
         if (result != 0)
         {
