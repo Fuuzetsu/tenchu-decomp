@@ -4,23 +4,19 @@
 
 /*
  * AfsOpen (0x8005ef34, 0x9c bytes) — finds `path` in the AFS volume's file
- * table (AfsFindFile) and, on a hit, claims the first free slot in
- * `handle`'s fixed 5-entry TAFSFileHandle pool (linear scan, `flagUse==0`),
- * filling it in (info/pos/flagUse) and returning it. Reports via
- * AdtMessageBox and returns NULL both when the file isn't found and when
- * all 5 handle slots are in use. Same proven TAFS/TAFSElement layout as
- * AfsRead.c/AfsInit.c/AfsClose.c/AfsFileSize.c. Real return type is
- * `TAFSFileHandle *` (established by LoadFromCDROM.c's callers), not
- * Ghidra's `TAFSElement *`.
+ * table (AfsFindFile) and, on a hit, looks for a free TAFSFileHandle
+ * (`flagUse==0`), fills it in (info/pos/flagUse), and returns it. Reports via
+ * AdtMessageBox and returns NULL when the file isn't found or the scan is
+ * exhausted. Same proven TAFS/TAFSElement layout as AfsRead.c/AfsInit.c/
+ * AfsClose.c/AfsFileSize.c. Real return type is `TAFSFileHandle *`
+ * (established by LoadFromCDROM.c's callers), not Ghidra's `TAFSElement *`.
  *
  * Matching notes:
- *  - The pool-slot cursor advances by 0x18 (24) bytes per slot, NOT the
- *    proven 0xC-byte TAFSFileHandle size AfsRead/AfsClose/AfsFileSize use —
- *    those only ever DEREFERENCE a single handle pointer, never INDEX the
- *    pool, so their truncated view is safe for them but wrong as an array
- *    stride here (cookbook: "a truncated per-TU struct breaks when the
- *    element is array-indexed"). Advance via an explicit byte-cast
- *    (`(u8 *)cur + 0x18`) rather than widening the shared struct.
+ *  - AfsInit allocates and clears 0x3C bytes, exactly five of PSX.SYM's
+ *    0xC-byte TAFSFileHandles. Retail AfsOpen nevertheless advances by TWO
+ *    handles while counting five iterations: it probes entries 0, 2, 4,
+ *    then addresses beyond that allocation. `cur += 2` preserves this
+ *    apparent retail skip/bounds bug without inventing a 0x18-byte struct.
  *  - The scan is a bottom-tested `do/while` with the counter incremented as
  *    the loop body's FIRST statement (matches Ghidra's literal order here;
  *    the asm's `addiu $v1,$v1,1` sits in the found-check branch's delay
@@ -85,7 +81,7 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
                 cur->flagUse = 1;
                 return cur;
             }
-            cur = (TAFSFileHandle *)((u8 *)cur + 0x18);
+            cur += 2;
         } while (count < 5);
         AdtMessageBox(D_80014978, path);
     }
