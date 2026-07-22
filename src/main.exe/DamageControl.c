@@ -306,30 +306,29 @@ LAB_8001da70:
     }
     GetConflictResult((ModelType *)Me_MOTION_C->model,TVar8);
     TVar8 = GetItemType((int)TVar8);
-    switch((short)(TVar8 - ITEM_SHURIKEN)) {
-    case 1:
+    switch (TVar8) {
+    case ITEM_MAKIBISHI:
       dmg = 3;
       motID = 0x100a;
       motMODE = 1;
       break;
-    case 0:
+    case ITEM_SHURIKEN:
       if ((short)dmg == 0) {
         dmg = 0x14;
       }
       if ((Me_MOTION_C->type == 0x87) || (Me_MOTION_C->type == 0x8a)) {
-        Me_MOTION_C->item[1] = Me_MOTION_C->item[1] + '\x01';
-      }
+        Me_MOTION_C->item[ITEM_SHURIKEN] = Me_MOTION_C->item[ITEM_SHURIKEN] + '\x01';
+    }
       /* fall through: the shared zero-damage test preserves an existing 20 */
-    case 0xe:
-  switchD_8001db0c_caseD_e:
+    case ITEM_HAPPOU:
       if ((short)dmg == 0) {
         dmg = 0x1e;
       }
-  switchD_8001db0c_caseD_13:
+  set_damage_20:
       if ((short)dmg == 0) {
         dmg = 0x14;
       }
-  switchD_8001db0c_caseD_14:
+  set_damage_10:
       if ((short)dmg == 0) {
         dmg = 10;
       }
@@ -346,11 +345,11 @@ LAB_8001da70:
       motMODE = 1;
       SetBlood(&p,5,0x5a);
       break;
-    case 0x13:
-      goto switchD_8001db0c_caseD_13;
-    case 0x14:
-      goto switchD_8001db0c_caseD_14;
-    case 0x15:
+    case ITEM_GUN:
+      goto set_damage_20;
+    case ITEM_ARROW:
+      goto set_damage_10;
+    case ITEM_NAPALM:
       dmg = 0x19;
       if ((rand() & 1) == 0) {
         motID = 0x1003;
@@ -360,11 +359,11 @@ LAB_8001da70:
       }
       motMODE = 1;
       break;
-    case 3:
-    case 5:
-    case 0x16:
+    case ITEM_FIRE:
+    case ITEM_JIRAI:
+    case ITEM_LIGHTNINGBOLT:
       dmg = 0x1e;
-      if (TVar8 == 6) {
+      if (TVar8 == ITEM_JIRAI) {
         dmg = 0x2d;
       }
       if ((Me_MOTION_C->map.attrib & 4U) == 0) {
@@ -615,10 +614,10 @@ LAB_8001e6d8:
     if (enemy->type == 0xa9) {
       dmg = (short)dmg * 6;
     }
-    if (Me_MOTION_C->itmctl == 0xc) {
+    if (Me_MOTION_C->itmctl == ITEM_GOSIN) {
       dmg = (int)(short)dmg / 3;
     }
-    if (enemy->itmctl == 0xc) {
+    if (enemy->itmctl == ITEM_GOSIN) {
       dmg = (u32)(dmg << 0x10) >> 0xf;
     }
   {
@@ -784,7 +783,7 @@ LAB_8001eaa8:
   }
   }
 LAB_8001ec30:
-  if ((Me_MOTION_C->life == 0) && (Me_MOTION_C->item[10] != '\0')) {
+  if ((Me_MOTION_C->life == 0) && (Me_MOTION_C->item[ITEM_KAWARIMI] != '\0')) {
     ReqItemDefault(Me_MOTION_C,ITEM_KAWARIMI);
     Me_MOTION_C->life = Me_MOTION_C->lifemax;
     if (1 < (u32)(u16)motID - 0x1005) {
