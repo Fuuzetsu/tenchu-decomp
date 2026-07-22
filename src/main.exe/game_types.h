@@ -459,7 +459,8 @@ struct HumanAnimType
     s16 motid;                    /* 0x06 */
 };                                /* 0x08 */
 
-/* CAMERA.C's camera modes. */
+/* Camera-mode names recovered from the demo's CAMERA.C. This list is not
+ * exhaustive for retail: current code also supplies unnamed modes 15-17. */
 typedef enum TCameraMode TCameraMode;
 enum TCameraMode
 {
