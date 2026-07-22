@@ -44,8 +44,8 @@
  *    it as the addu's first source register, matching the target's
  *    `addu $a0,$v1(shift),$a0(addr)` (cookbook's fold/EXPAND_SUM section).
  *  - OTable/D_80098040 are ABSOLUTE (`lui`/`addiu` to %hi/%lo) in this TU,
- *    not %gp_rel — declared as unknown-size arrays (cookbook's "unknown
- *    size is non-small" trick) to force that; DrawingPage/OTablePt/
+ *    not %gp_rel — OTable's known 0x28-byte size and D_80098040's incomplete
+ *    array type are both non-small; DrawingPage/OTablePt/
  *    GameClock ARE %gp_rel here (tools/gpsyms.py --write; Build.hs
  *    maspsxGpExterns + permute.py GP_EXTERNS both list StartDrawing now).
  *  - GsSetWorkBase/GsClearOt live above 0x80060000 (precompiled PsyQ SDK —
