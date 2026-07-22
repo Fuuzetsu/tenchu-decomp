@@ -33,6 +33,7 @@ extern int CurrentEnemyID; /* enemy[] index latched by leFindEnemy */
 extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
 extern GsSPRITE MapImage;
+extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern GsOT *OTablePt;
 extern GsOT OTable[2];
 extern GsFOGPARAM Fog;

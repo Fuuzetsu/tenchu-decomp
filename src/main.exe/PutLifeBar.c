@@ -92,7 +92,6 @@
  *    the final two-byte operand residual. The goto is safe: each entry
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
-extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 
 
 void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)

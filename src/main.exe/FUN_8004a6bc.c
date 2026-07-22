@@ -62,7 +62,6 @@ typedef struct
     u8 imgB;    /* +0x5 */
 } LifeBarSpriteEntry;
 
-extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern LifeBarSpriteEntry D_8008E4B4[];
 extern GsIMAGE *GetImage(s32 id);
 
