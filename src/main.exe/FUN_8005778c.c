@@ -43,8 +43,8 @@
  *    perform the final narrowing. The source order and full-width shift
  *    reproduce the target's independent column arithmetic before its
  *    `bgez`, followed by `sra`/`sll` for the row.
- *  - The local `short h` truncates `param_3 + sVar3` after the addition.
- *    This TU intentionally promotes it through `h_arg` and declares the
+ *  - The local `short y` truncates `param_3 + sVar3` after the addition.
+ *    This TU intentionally promotes it through `y_arg` and declares the
  *    fourth extern slot `s32`; the callee's PSX.SYM definition calls that
  *    slot `short`, but old C TUs may carry a different caller declaration.
  *    The explicit short keeps the passed value identical while the wider
@@ -110,10 +110,10 @@ void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
         }
     }
     {
-        short h = param_3 + sVar3;
-        s32 w_arg = param_2;
-        s32 h_arg = h;
-        SetupImageToPolyGT4(&local_38, ply, w_arg, h_arg);
+        short y = param_3 + sVar3;
+        s32 x_arg = param_2;
+        s32 y_arg = y;
+        SetupImageToPolyGT4(&local_38, ply, x_arg, y_arg);
     }
     AddPrim(param_1, ply);
 }
