@@ -94,6 +94,17 @@ extern void SelectCameraOwnerOption(void);   /* AdtMessageBox comes from item.h 
 
 void LayoutEnemyOption(void)
 {
+    enum
+    {
+        ADD = 0,
+        REMOVE = 1,
+        RESET = 2,
+        GO = 3,
+        CLEAR = 4,
+        SET_PATH = 5,
+        REPORT = 6,
+        CAMERA = 7
+    };
     s32 n;
     s32 k;
     MENU_LAYOUT_TBL m1;
@@ -107,25 +118,25 @@ void LayoutEnemyOption(void)
     {
         switch ((s16)n)
         {
-        case 0:
+        case ADD:
             AddEnemy();
             break;
-        case 1:
+        case REMOVE:
             leRemoveEnemy();
             break;
-        case 2:
+        case RESET:
             leLayoutEnemy(0);
             break;
-        case 3:
+        case GO:
             leLayoutEnemy(1);
             break;
-        case 4:
+        case CLEAR:
             if (AdtSelect(D_800140D4, m2.e, 1) == 1)
             {
                 leClearLayout();
             }
             break;
-        case 5:
+        case SET_PATH:
             m3 = DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS;
             k = (s16)AdtSelect(D_80014004, m3.e, 0);
             if (k != -1)
@@ -147,10 +158,10 @@ void LayoutEnemyOption(void)
                 }
             }
             break;
-        case 6:
+        case REPORT:
             AdtMessageBox(D_800140E0, Humans);
             break;
-        case 7:
+        case CAMERA:
             SelectCameraOwnerOption();
             break;
         }
