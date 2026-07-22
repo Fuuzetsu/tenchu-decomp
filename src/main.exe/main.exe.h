@@ -22,6 +22,7 @@ extern HumanAnimType CVAhuman[5];
 extern SVECTOR UnitVector;
 extern VECTOR UnitVector2;
 extern short RefrectMove[16][2];
+extern short RefrectVector[16];
 extern TCameraStatus CamState;
 extern GsRVIEW2 ViewInfo;
 extern ModelType World;

@@ -51,7 +51,6 @@
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 RefrectVector[16];
 extern MapVector map;
 extern long GetAreaMapVector(unsigned long *area, MapVector *mvp,
                              VECTOR *pos, long wide, int mode);

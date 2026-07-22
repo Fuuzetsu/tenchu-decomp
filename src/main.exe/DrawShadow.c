@@ -79,7 +79,6 @@
  *    the target's reverse z/y/x stack-store order.
  */
 
-extern short RefrectVector[16];
 extern ModelType *D_80097F34;
 
 extern VECTOR *GetAbsolutePosition(ModelType *model, s32 x, s32 y, s32 z);

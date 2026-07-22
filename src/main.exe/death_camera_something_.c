@@ -13,7 +13,6 @@
  * also preserve the target's register lifetimes and signed `lh` load.
  */
 
-extern short RefrectVector[16];
 extern s32 DrawTMDmode;
 extern ModelType *LOCAL_COORDINATES_;
 
