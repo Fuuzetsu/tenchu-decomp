@@ -34,7 +34,6 @@ typedef struct TDoor
     s16 r;             /* 0x4 */
     s16 dr;            /* 0x6 */
     u8 type;           /* 0x8 */
-    u8 pad[3];         /* 0x9 */
 } TDoor;               /* 0xC */
 
 /* The MISC_SNOWFALL variant of the param union (MISC__181fake's `snowfall`
@@ -52,7 +51,6 @@ typedef struct TPitfall
     ModelType *locate; /* 0x0 */
     s16 r;             /* 0x4 */
     u8 type;           /* 0x6 */
-    u8 pad;            /* 0x7 */
 } TPitfall;
 
 struct tag_TMisc
