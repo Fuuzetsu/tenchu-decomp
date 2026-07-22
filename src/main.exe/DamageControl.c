@@ -96,14 +96,15 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    (`if (rand() % (EngageLevel+1) == 0) { type checks; if (rand()&1)
  *    motID=0x602; } else { motID=0x602; }`); cc1's cross-jump + eager delay
  *    fill reproduce the shared `sh motID` tail with per-predecessor `li 0x602`
- *    delay slots automatically.  Same for case 0x15: a plain
+ *    delay slots automatically.  Same for ITEM_NAPALM: a plain
  *    `if ((rand()&1)==0) motID=0x1003; else motID=0x1001;` (no next_mot temp,
- *    no fence) and case 1 storing motID/motMODE directly; the shared store is
- *    cross-jumped, giving `j DC08 / li v0,0x100A` for case 1.
+ *    no fence) and ITEM_MAKIBISHI storing motID/motMODE directly; the shared
+ *    store is cross-jumped, giving `j DC08 / li v0,0x100A` for that case.
  *  - `-(x/3) - 1` must be spelled `x / -3 - 1`: cc1 folds -x-1 into nor, but a
  *    NEGATIVE divisor makes expmed emit the reversed magic-division subtract
  *    (subu sign,hi) with a plain addiu -1 — the retail shape at both sites.
- *  - `dmg <<= 1` under enemy->itmctl==0xc is `(u32)(dmg << 0x10) >> 0xf`
+ *  - `dmg <<= 1` under enemy->itmctl==ITEM_GOSIN is
+ *    `(u32)(dmg << 0x10) >> 0xf`
  *    (sll 16 / srl 15).  The old `(dmg<<16); dmg>>=0xf` truncated to zero via
  *    the short lvalue (real behavior bug, compiled to `move s1,zero`).
  *  - The armour block computes deg BEFORE the knockback: `deg=(short)dmg>>3;
@@ -318,7 +319,7 @@ LAB_8001da70:
       }
       if ((Me_MOTION_C->type == 0x87) || (Me_MOTION_C->type == 0x8a)) {
         Me_MOTION_C->item[ITEM_SHURIKEN] = Me_MOTION_C->item[ITEM_SHURIKEN] + '\x01';
-    }
+      }
       /* fall through: the shared zero-damage test preserves an existing 20 */
     case ITEM_HAPPOU:
       if ((short)dmg == 0) {
