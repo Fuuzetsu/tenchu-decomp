@@ -40,7 +40,6 @@ extern void PadStartCom(void);
 extern void PadSetMainMode(int port, int mode, int lock);
 extern int VSync(int mode);
 extern void *memset(void *s, int c, u32 n);
-extern u8 ComBuf[2][34];
 extern u8 D_80010047;
 
 void InitPadControl(void)

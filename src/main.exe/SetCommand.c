@@ -128,7 +128,6 @@
  * surviving candidate, isolated and confirmed by hand — see
  * tools/permute.py SetCommand).
  */
-extern u16 *Command[];
 
 short SetCommand(PADtype *pad, short cmd)
 {

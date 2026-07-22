@@ -47,9 +47,7 @@
 
 extern void ComPad(int port, u8 *rxbuf);
 extern u8 Anakon;
-extern u8 ComBuf[2][34];
 
-extern PadArrangeType PadArrange;
 
 static inline void PadProcShock(s32 port, s32 value1, s32 value2)
 {

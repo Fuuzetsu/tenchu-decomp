@@ -5,6 +5,9 @@
 
 extern void PadProc(void);
 extern TPadPort PadPort[2][4];
+extern unsigned short *Command[12];
+extern unsigned char ComBuf[2][34];
+extern PadArrangeType PadArrange;
 
 extern int turn_towards_player_(int x_diff, int z_diff);
 extern struct Humanoid *Me_THINK_C;

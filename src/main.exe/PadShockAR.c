@@ -31,7 +31,6 @@
 /* Ghidra: struct PadArrange { pow, time, attack, release; } — a pad rumble
  * (shock) envelope: power level + attack/release ramp times, time is a
  * running counter reset here. */
-extern PadArrangeType PadArrange;
 
 void PadShockAR(int port, int pow, int attack, int release)
 {

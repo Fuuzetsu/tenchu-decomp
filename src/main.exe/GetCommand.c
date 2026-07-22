@@ -60,7 +60,6 @@
  *    at the return, not from a cached pointer.
  */
 
-extern u16 *Command[];
 
 short GetCommand(PADtype *pad)
 {
