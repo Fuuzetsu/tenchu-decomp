@@ -87,6 +87,8 @@
  *    the case-0 `li 3` into the switch branch delay slot, as in the target.
  *  - The reversed `direction > turn` comparisons only change fold/ref order;
  *    they give local allocation the target's $v1/$a1 assignment.
+ *  - The Napalm request and its velocity scratch retain PSX.SYM's original
+ *    block-local names, `item` and `vect`.
  *  - One-shot do loops around the MotionUpdateMode scans preserve the target's
  *    loop notes and load order without emitting control-flow instructions.
  */
@@ -128,8 +130,8 @@ void ActATTACK(void)
   BattleType *battle;
   ModelType *hand[2];
   SVECTOR local_68 [5];
-  PARAM_ITEM_LAUNCH local_40;
-  SVECTOR local_18;
+  PARAM_ITEM_LAUNCH item;
+  SVECTOR vect;
 
   {
     Humanoid *human;
@@ -231,7 +233,7 @@ LAB_80021edc:
 
       first_frame = 0x24;
       sVar8 = dtM->count;
-      request = &local_40;
+      request = &item;
       if (first_frame <= sVar8) {
         last_frame = 0x41;
         if (last_frame < sVar8) {
@@ -240,16 +242,16 @@ LAB_80021edc:
         if (sVar8 == first_frame) {
           Sound(Me_MOTION_C,0x28);
         }
-        local_40.type = ITEM_NAPALM;
-        local_40.user = Me_MOTION_C;
+        item.type = ITEM_NAPALM;
+        item.user = Me_MOTION_C;
         pVVar12 = GetAbsolutePosition(Me_MOTION_C->model->object[2],0,-100,-300);
-        local_40.start.vx = pVVar12->vx;
-        local_40.start.vy = pVVar12->vy;
-        local_40.start.vz = pVVar12->vz;
-        GetMoveSpeed(&local_18,dtR->vy,100,0);
-        local_40.end.vx = local_40.start.vx + local_18.vx;
-        local_40.end.vy = local_40.start.vy;
-        local_40.end.vz = local_40.start.vz + local_18.vz;
+        item.start.vx = pVVar12->vx;
+        item.start.vy = pVVar12->vy;
+        item.start.vz = pVVar12->vz;
+        GetMoveSpeed(&vect,dtR->vy,100,0);
+        item.end.vx = item.start.vx + vect.vx;
+        item.end.vy = item.start.vy;
+        item.end.vz = item.start.vz + vect.vz;
         ReqItemUse(request);
       }
       break;
