@@ -173,6 +173,8 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
 
 // Ghidra decompilation (reference — turn this into matching C,
 // then drop the INCLUDE_ASM above):
+// This raw rendering used the obsolete demo-shaped TMakeDifInfo view; the
+// active source above reflects retail's inserted `ac` field.
 //
 //
 // void MakeDifSub(VECTOR *src,VECTOR *target,VECTOR *dest,TMakeDifInfo *info)
