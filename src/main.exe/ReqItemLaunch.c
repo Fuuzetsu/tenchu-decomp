@@ -97,13 +97,12 @@
  */
 extern void ProcItemLaunch(tag_TItem *item);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
-extern AfterimageType *SetupAfterimage(Sprite3D *model, s32 n);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 /* Fixed model for launched items (not indexed by type, unlike the other
  * twins' ItemImage[it->type]). */
-extern Sprite3D *SyurikenModel;
+extern ModelType *SyurikenModel;
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {

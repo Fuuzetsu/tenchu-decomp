@@ -92,7 +92,7 @@ void ProcItemKusuri(tag_TItem *item)
      * fold away — it allocates a register and shifts the frame (verified). */
     u8 buf[0x28];
 
-    sprt = item->model;
+    sprt = (Sprite3D *)item->model;
     ff = 0xff;
     if (item->mode == ff)
     {

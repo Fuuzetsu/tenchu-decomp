@@ -82,7 +82,7 @@ void ProcItemDokudango(tag_TItem *item)
     Sprite3D *model;
     param_dokudango *param;
 
-    model = item->model;
+    model = (Sprite3D *)item->model;
     param = (param_dokudango *)item->param;
     if (item->mode == 0xff)
     {

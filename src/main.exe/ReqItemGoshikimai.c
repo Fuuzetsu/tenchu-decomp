@@ -116,7 +116,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = ItemImage[it->type];
+    it->model = (ModelType *)ItemImage[it->type];
     ((param_goshikimai *)it->param)->vec.vx = p->end.vx;
     pp->vec.vy = p->end.vy;
     pp->vec.vz = p->end.vz;

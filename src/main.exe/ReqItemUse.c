@@ -235,7 +235,7 @@ extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[]; /* == CamState.Owner 
 extern s32 SOME_FIRST_PERSONISH_VIEW_RELATED_CAMERA_STATUS_[]; /* == CamState.Mode */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;
 extern long GameClock;
-extern Sprite3D *SyurikenModel;     /* shuriken/launch model (gp) */
+extern ModelType *SyurikenModel;    /* shuriken/launch model (gp) */
 extern Sprite3D *sprNapalm;     /* napalm model (gp) */
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
@@ -1005,7 +1005,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         it->locate->locate.super = 0;
         UpdateCoordinate(it->locate);
         it->coll_size = 0;
-        it->model = sprNapalm;
+        it->model = (ModelType *)sprNapalm;
         ((param_napalm *)it->param)->vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;
         pp->vec.vz = p->end.vz - p->start.vz;

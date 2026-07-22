@@ -129,7 +129,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = sprSmoke;
+    it->model = (ModelType *)sprSmoke;
     pp->vec.vx = p->end.vx;
     pp->vec.vy = p->end.vy;
     pp->vec.vz = p->end.vz;

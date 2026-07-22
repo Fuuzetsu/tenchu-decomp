@@ -105,7 +105,7 @@ void ProcItemJirai(tag_TItem *item)
     u8 ff;
     ProcItemJiraiScratch scratch;
 
-    model = item->model;
+    model = (Sprite3D *)item->model;
     param = (param_smoke *)item->param;
     ff = 0xff;
     if (item->mode == ff)

@@ -187,7 +187,7 @@ void ProcItemNinken(tag_TItem *item)
             }
             UpdateCoordinate(item->locate);
             item->model->locate = item->locate->locate;
-            DrawSprite(item->model);
+            DrawSprite((Sprite3D *)item->model);
             return;
         }
     }

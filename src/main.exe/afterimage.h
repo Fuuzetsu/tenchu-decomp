@@ -20,4 +20,6 @@ typedef struct AfterimageType
     POLY_GT4 poly;                /* 0x24 */
 } AfterimageType;                 /* 0x58 */
 
+AfterimageType *SetupAfterimage(ModelType *model, short len);
+
 #endif

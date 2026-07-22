@@ -89,7 +89,7 @@ void ProcItemMakibishi(tag_TItem *item)
     s32 i;
     s32 n;
 
-    sprt = item->model;
+    sprt = (Sprite3D *)item->model;
     pp = (param_korogari *)item->param;
     ff = 0xff;
     if (item->mode == ff)

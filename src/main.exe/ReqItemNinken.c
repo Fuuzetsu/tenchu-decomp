@@ -122,7 +122,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = ItemImage[it->type];
+    it->model = (ModelType *)ItemImage[it->type];
     x = p->end.vx;
     z = p->end.vz;
     param->koro.vx = x;

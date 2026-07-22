@@ -463,7 +463,8 @@ typedef struct param_dokudango
 struct tag_TItem
 {
     Humanoid *owner;             /* 0x00 */
-    Sprite3D *model;             /* 0x04 */
+    ModelType *model;            /* 0x04 (official type; sprite-backed retail
+                                    items use the shared transform prefix) */
     s32 type;                    /* 0x08 */
     void (*proc)(tag_TItem *);   /* 0x0C */
     ModelType *locate;           /* 0x10 */

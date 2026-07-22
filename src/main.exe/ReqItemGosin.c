@@ -103,6 +103,6 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = ItemImage[it->type];
+    it->model = (ModelType *)ItemImage[it->type];
     return 1;
 }

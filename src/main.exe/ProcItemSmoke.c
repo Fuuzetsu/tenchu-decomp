@@ -107,7 +107,7 @@ void ProcItemSmoke(tag_TItem *item)
     int cnt;
     u8 buf[0x28];
 
-    model = item->model;
+    model = (Sprite3D *)item->model;
     param = (param_smoke *)item->param;
     ff = 0xff;
     if (item->mode == ff)

@@ -51,8 +51,8 @@
  * scratch OUTPUT storage for SearchItemTarget2 on every iteration). Unlike
  * ReqItemArrow/Launch, `it->model` is never touched at all (this item has no
  * visible sprite, only the afterimage trail), and SetupAfterimage's first
- * arg is `it->locate` (ModelType*) — NOT `it->model` like ReqItemLaunch's
- * call to the same function (respelled per-TU, see below).
+ * arg is `it->locate` — not the optional visual `it->model` used by
+ * ReqItemLaunch's call to the same function.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - The outer loop is the cookbook's `while (1) { if (!(cond)) break; ...}`
@@ -101,11 +101,9 @@
  *    position — only that it's independent of the call's own effects.
  *  - No `it->model` store at all (unlike ReqItemArrow/Launch) — this item
  *    has no sprite.
- *  - `SetupAfterimage(it->locate, 10)` — first arg is `ModelType *`
- *    (it->locate), not `Sprite3D *` (it->model) like ReqItemLaunch's call to
- *    the same function; each TU respells the callee's prototype to match
- *    its own call site (same situation as GetVectorRotation's out-param
- *    width across ReqItemDefault/ReqItemArrow/ReqItemLightningBolt).
+ *  - `SetupAfterimage(it->locate, 10)` uses the item's coordinate model,
+ *    whereas ReqItemLaunch passes its visual model. Both are `ModelType *`,
+ *    matching SetupAfterimage's PSX.SYM signature.
  *  - The afterimage vector constants (0x1e/-0x1e, vy=vz=0) and struct shape
  *    are identical to ReqItemLaunch's; only the trailing count (8, not 5)
  *    differs.
@@ -115,7 +113,6 @@ extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 extern void Sound(Humanoid *h, int id);
 extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
-extern AfterimageType *SetupAfterimage(ModelType *model, s32 n);
 extern int rand(void);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */

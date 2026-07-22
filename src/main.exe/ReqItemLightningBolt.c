@@ -143,7 +143,7 @@ found:
     it->locate->locate.super = 0;
     UpdateCoordinate(it->locate);
     it->coll_size = 0;
-    it->model = ItemImage[it->type];
+    it->model = (ModelType *)ItemImage[it->type];
     ((param_lightningbolt *)it->param)->start.vx = p->start.vx;
     pp->start.vy = p->start.vy;
     pp->start.vz = p->start.vz;

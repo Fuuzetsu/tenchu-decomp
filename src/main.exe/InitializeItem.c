@@ -37,10 +37,9 @@
  * InitializeItem (0x8003d3e4, 0x144 bytes) — one-time setup of the item
  * pool: loads four fixed models (the "launch"/"arrow"-family fixed visuals
  * ReqItemLaunch's SyurikenModel, ReqItemArrow's ArrowModel, NingyoModel, and
- * ProcItemHappou's HappouModel — same globals, different TU-local
- * extern spelling: those files see them as `Sprite3D *`, this one as the
- * `ModelType *` LoadModel actually returns; no header shared between them,
- * so no conflict), blanks all 30 item[] slots, then sets up the on-screen
+ * ProcItemHappou's HappouModel — all four retain PSX.SYM's `ModelType *`
+ * declarations and the type LoadModel actually returns), blanks all 30
+ * item[] slots, then sets up the on-screen
  * target-lock, item-count, and Goshikimai cursor sprites.
  *
  * Matching notes (docs/matching-cookbook.md):
