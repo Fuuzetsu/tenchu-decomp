@@ -124,12 +124,10 @@
  *     `time = VSync(-1); ResetGraph(1);` — then flip buffers and submit the
  *     sort table (`GsSwapDispBuff`/`GsSortClear`/`GsDrawOt`).
  *
- * D_800976B8 and `time` are TU-local statics with no PSX.SYM record (not
- * exported) — declared here as plain `u32`/`s32` rather than inventing an
- * unverified `PACKET *` (Ghidra's guess): neither is ever dereferenced in
- * this function, only stored/loaded as scalars, so a pointer type would be
- * unverified per the cookbook's "existing Ghidra POINTER type may be a
- * guess" rule. Both are %gp_rel here, same as GameClock/SkipFrame/
+ * `time` is PSX.SYM's exact 3DCTRL.C static `int`; D_800976B8 remains an
+ * unnamed retail neighbour. Both are scalar-only here, so D_800976B8 stays
+ * a plain `u32` rather than inheriting Ghidra's unverified `PACKET *` guess.
+ * Both are %gp_rel here, same as GameClock/SkipFrame/
  * DrawingPage/OTablePt (config/symbols.main.exe.txt already pins `time` at
  * 0x800976bc from a prior session; D_800976B8 gets a splat auto-name at
  * 0x800976b8, directly between SkipFrame and `time`).
