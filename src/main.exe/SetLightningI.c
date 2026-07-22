@@ -102,6 +102,8 @@ static inline void GetLightningScreenPosition(long x, long y, long z,
 
 void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short b)
 {
+    enum { SplitLen = 200 };
+    enum { Range = 80 };
     SVECTOR scr;
     SVECTOR oldscr;
     GsLINE line;
@@ -160,7 +162,7 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
             }
         }
 
-        lcount = distance / 200;
+        lcount = distance / SplitLen;
         i = 1;
         if (lcount > 0)
         {
@@ -174,9 +176,9 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
                 x = ((end->vx - start->vx) * i) / lcount + start->vx;
                 y = ((end->vy - start->vy) * i) / lcount + start->vy;
                 z = ((end->vz - start->vz) * i) / lcount + start->vz;
-                x += -0x50 + rand() % 0xa0;
-                y += -0x50 + rand() % 0xa0;
-                z += -0x50 + rand() % 0xa0;
+                x += -Range + rand() % (Range * 2);
+                y += -Range + rand() % (Range * 2);
+                z += -Range + rand() % (Range * 2);
 
                 if ((rand() & 2) == 0)
                 {
