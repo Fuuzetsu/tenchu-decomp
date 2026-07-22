@@ -151,7 +151,7 @@ void FileOption(void)
 
     __builtin_memcpy(ItemName, DEBUG_MENU_FILE_CHOICES, sizeof(ItemName));
     __builtin_memcpy(SelectIO, DEBUG_MENU_SAVE_LOAD_CHOICES, sizeof(SelectIO));
-    __builtin_memcpy(SelectSlot, DEBUG_MENU_FILE_LAYOUT_CHOCIES, sizeof(SelectSlot));
+    __builtin_memcpy(SelectSlot, DEBUG_MENU_FILE_LAYOUT_CHOICES, sizeof(SelectSlot));
     n = AdtSelect(D_80014518, ItemName, 0);
     if (n == -1)
         return;
