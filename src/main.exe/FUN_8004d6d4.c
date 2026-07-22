@@ -14,7 +14,7 @@
 /*
  * FUN_8004d6d4 (0x8004d6d4, 0x1A0 bytes) — periodic smoke/splash-puff think
  * function (message-style `(m, msg)`, no direct `jal` callers found —
- * reached through tag_TMisc.proc). Same 3-way dispatch shape as the
+ * reached through TMisc.proc). Same 3-way dispatch shape as the
  * neighbouring FUN_8004c59c (same TU): MM_CREATE resets `m->mode`; other
  * lifecycle messages are ignored; MM_DO computes a jittered position while
  * `mode==0` (X and Z each use the ranges initially supplied as

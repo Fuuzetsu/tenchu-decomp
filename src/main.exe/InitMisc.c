@@ -46,7 +46,7 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - `misc + 199` (a nonzero-offset pointer into a big absolute extern
  *    array) forces materialization of misc's OWN base address (lui+addiu)
- *    plus a THIRD addiu for the +199*sizeof(tag_TMisc) offset — the
+ *    plus a THIRD addiu for the +199*sizeof(TMisc) offset — the
  *    "offset-0 folds, a nonzero offset materializes" rule; ordinary pointer
  *    arithmetic reproduces it with no special spelling.
  *  - DoorData/PitfallData's `Model[2]` fields double as int archive-index
