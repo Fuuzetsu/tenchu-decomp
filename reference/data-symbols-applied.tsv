@@ -242,7 +242,18 @@
 800c7868	_svm_vab_count	datamatch-reloc	VOTES2;PSX=801eb1b8;DEMO=801eb510;WITNESSES=SsVabClose,_SsVmInit	?	?
 
 # Independently corroborated data names (2026-07-15).
-8008f188	StageAppearance	semantic+datamatch	VOTES1;PSX=8008df1c;DEMO=8008e274;WITNESSES=SetupCharacterParameter;TYPE=short*[10];AddEnemy-and-SetupCharacterParameter-index-the-per-stage-table	EXT	short *[10]
+8008f098	stage1appearance	semantic+table-alignment	PSX=8008de68;DEMO=8008e1c0;StageAppearance-slot-1-and-sentinel-list-content-align	STAT	short [16]
+8008f0b8	stage2appearance	semantic+table-alignment	PSX=8008de88;DEMO=8008e1e0;StageAppearance-slot-2-and-sentinel-list-content-align	STAT	short [12]
+8008f0d0	stage3appearance	semantic+table-alignment	PSX=8008dea0;DEMO=8008e1f8;StageAppearance-slot-3-and-sentinel-list-content-align	STAT	short [12]
+8008f0e8	stage4appearance	semantic+table-alignment	PSX=8008deb8;DEMO=8008e210;StageAppearance-slot-4-and-sentinel-list-content-align	STAT	short [8]
+8008f0f8	stage5appearance	semantic+table-alignment	PSX=8008dec8;DEMO=8008e220;StageAppearance-slot-5-and-sentinel-list-content-align	STAT	short [9]
+8008f10c	stage6appearance	semantic+table-alignment	PSX=8008ded8;DEMO=8008e230;StageAppearance-slot-6-and-sentinel-list-content-align	STAT	short [8]
+8008f11c	stage7appearance	semantic+table-alignment	PSX=8008dee8;DEMO=8008e240;StageAppearance-slot-7-and-sentinel-list-content-align	STAT	short [7]
+8008f12c	stage8appearance	semantic+table-alignment	PSX=8008def4;DEMO=8008e24c;StageAppearance-slot-8-and-sentinel-list-content-align	STAT	short [12]
+8008f144	stage9appearance	semantic+table-alignment	PSX=8008df0c;DEMO=8008e264;StageAppearance-slot-9-and-sentinel-list-content-align	STAT	short [10]
+8008f158	stage10appearance	semantic+binary-table	retail-only-StageAppearance-slot-10;descriptive-name-inferred-from-the-PSX.SYM-stage-list-sequence	STAT	short [9]
+8008f16c	stage11appearance	semantic+binary-table	retail-only-StageAppearance-slot-11;descriptive-name-inferred-from-the-PSX.SYM-stage-list-sequence	STAT	short [14]
+8008f188	StageAppearance	semantic+datamatch	VOTES1;PSX=8008df1c;DEMO=8008e274;WITNESSES=SetupCharacterParameter,AddEnemy;demo-TYPE=short*[10];retail-has-NULL-slot-0-and-eleven-sentinel-list-pointers	EXT	short *[12]
 80097e94	AdtMessageBoxCount	retail-ghidra+semantic	same-binary-Ghidra-label=s_adtMessageBoxCount;AdtMessageBox-alone-increments-and-displays-it	?	s32 (retail use)
 
 # Difficulty byte (2026-07-21).

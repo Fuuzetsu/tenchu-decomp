@@ -39,7 +39,9 @@ extern short Attrib;
 /* SearchTarget result/state code (-2..2), not a distance. */
 extern short SR;
 extern PADtype *Pad;
-/* Retail stores 12 pointers; the demo PSX.SYM table had 10. */
+/* Retail stores 12 pointers. Slot 0 is NULL; stage1appearance through
+ * stage9appearance retain PSX.SYM's names, while stages 10 and 11 are retail
+ * additions named by the established sequence. */
 extern short *StageAppearance[12];
 /* Retail's stage=-1 sentinel is entry 23; the demo table had 18 entries. */
 extern StageCharType StageChar[24];
