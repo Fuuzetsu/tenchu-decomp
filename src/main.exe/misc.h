@@ -9,6 +9,18 @@
  * ResetAllMisc.c implementations as well as the processors that share them.
  */
 
+/* Misc-object kinds named by the demo's PSX.SYM. Retail's AddMisc switch
+ * also has three unnamed extension cases, 5-7. */
+typedef enum MiscType MiscType;
+enum MiscType
+{
+    MISC_FIRE = 0,
+    MISC_DOOR = 1,
+    MISC_PITFALL = 2,
+    MISC_SNOWFALL = 3,
+    MISC_SPRITE = 4
+};
+
 typedef struct tag_TMisc tag_TMisc;
 
 typedef struct
@@ -107,6 +119,7 @@ extern SpriteDataType SpriteData[2];
  * InitMisc.c/DoMiscProc.c). Set by InitMisc's tail, checked by DoMiscProc. */
 extern u8 EFFECT_SPAWNERS_INITIALISED;
 
+void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c);
 extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 

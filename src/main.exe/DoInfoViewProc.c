@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -117,7 +118,6 @@ extern void ClearItemLayout(void);
 extern void FileOption(void);
 extern void PlayerOption(void);
 extern void debug_menu_stage_option(void);
-extern void AddMisc(s32 kind, s32 x, s32 y, s32 z, s32 ry, s32 n, s32 mode);
 extern void PauseProc(void);
 extern void PutItemList(void);
 extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
@@ -176,7 +176,7 @@ static inline void EffectSpawnMenu(void)
     MENU_EFFECT_TBL me;
 
     me = DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS;
-    AddMisc(1, CamState.Owner->model->locate.coord.t[0],
+    AddMisc(MISC_DOOR, CamState.Owner->model->locate.coord.t[0],
             CamState.Owner->model->locate.coord.t[1],
             CamState.Owner->model->locate.coord.t[2],
             CamState.Owner->model->rotate.vy,

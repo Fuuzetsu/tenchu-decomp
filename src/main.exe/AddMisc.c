@@ -104,7 +104,7 @@ extern void FUN_8004c59c(tag_TMisc *m, s32 msg);
 extern void FUN_80032720(GsIMAGE *im, short y, short z);
 extern void AdtMessageBox(char *fmt, ...);
 
-void AddMisc(s32 type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
+void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
 {
     tag_TMisc *base = misc;
     tag_TMisc *p;
@@ -132,22 +132,22 @@ loop:
             p->param.init.c = vc;
             switch (type)
             {
-            case 0:
+            case MISC_FIRE:
                 if (va == 0)
                     p->proc = ProcMiscFire;
                 else
                     p->proc = FUN_8004d6d4;
                 break;
-            case 1:
+            case MISC_DOOR:
                 p->proc = ProcMiscDoor;
                 break;
-            case 2:
+            case MISC_PITFALL:
                 p->proc = ProcMiscPitfall;
                 break;
-            case 3:
+            case MISC_SNOWFALL:
                 p->proc = ProcMiscSnowfall;
                 break;
-            case 4:
+            case MISC_SPRITE:
                 p->proc = ProcMiscSprite;
                 break;
             case 5:
