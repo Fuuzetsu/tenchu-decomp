@@ -41,7 +41,6 @@
  */
 extern void *valloc(u32 size);
 
-extern ModelType World;
 
 ModelType *LoadModel(u_long *adr)
 {

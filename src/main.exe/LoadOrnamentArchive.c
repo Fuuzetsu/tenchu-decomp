@@ -48,7 +48,6 @@ extern void *valloc(u32 size);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern OrnamentType *LoadOrnament(u_long *adr);
 extern char D_800120AC[]; /* "NO MODEL ARCHIVE DATA" */
-extern ModelType World;
 
 OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
 {

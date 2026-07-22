@@ -53,7 +53,6 @@
 extern void *valloc(u32 size);
 extern char D_80011064[]; /* "NO MODEL ARCHIVE DATA" */
 
-extern ModelType World;
 
 ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
 {

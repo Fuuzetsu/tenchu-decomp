@@ -38,7 +38,6 @@
  * addresses its leading `.locate` field.
  */
 extern void *valloc(u32 size);
-extern ModelType World;
 
 OrnamentType *CreateCloneOrnament(OrnamentType *objp)
 {

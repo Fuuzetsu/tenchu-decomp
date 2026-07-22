@@ -52,7 +52,6 @@
 extern void *valloc(u32 size);
 extern void *memset(void *s, s32 c, u32 n);
 
-extern ModelType World;
 
 Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
 {

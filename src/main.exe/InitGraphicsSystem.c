@@ -47,7 +47,6 @@
  *    `base + 0x2000` with no extra scaling; plain 2D indexing reproduces the
  *    asm's `addiu $v0,$v0,0x2000` with no source-level arithmetic needed.
  */
-extern ModelType World;
 extern void UpdateCoordinate(ModelType *dim);
 
 extern GsFOGPARAM Fog;

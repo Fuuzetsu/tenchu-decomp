@@ -39,7 +39,6 @@
  * source.
  */
 extern void *valloc(u32 size);
-extern ModelType World;
 
 OrnamentType *LoadOrnament(u_long *adr)
 {

@@ -77,7 +77,6 @@
 extern void *valloc(u32 size);
 extern char D_8001107C[]; /* "NO SOURCE MODEL ARCHIVE DATA" */
 
-extern ModelType World;
 
 ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
 {

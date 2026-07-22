@@ -42,7 +42,6 @@
  */
 extern void *valloc(u32 size);
 
-extern ModelType World;
 
 ModelType *CreateCloneModel(ModelType *objp)
 {

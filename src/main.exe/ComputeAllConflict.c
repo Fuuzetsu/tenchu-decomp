@@ -34,7 +34,6 @@
 
 /* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
 
-extern ModelType World;
 
 extern void *memset(void *s, int c, u32 n);
 
