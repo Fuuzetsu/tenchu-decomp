@@ -13,6 +13,9 @@
  *    explicit ProcItemFireScratch union.  Its views reproduce the retail
  *    sp+0x18..sp+0x77 overlay and the exact 0x98-byte frame; ordinary block
  *    locals made cc1 reserve an extra 24 bytes.
+ *  - Within the particle view, the randomized VECTOR is dead before the
+ *    original `vec` SVECTOR is written into the same slot. The typed inner
+ *    union records that reuse directly instead of casting the VECTOR.
  *  - The three `rand() % (nr * 2)` expressions use separate single-definition
  *    return temps plus `base_* = coordinate - nr`.  Reusing one rand temp leaves
  *    copies from $v0; inlining the calls lets combine reassociate `-25` with
@@ -87,7 +90,11 @@ typedef union
     struct
     {
         VECTOR pos;
-        VECTOR random_pos;
+        union
+        {
+            VECTOR random_pos;
+            SVECTOR vec;
+        } work;
     } particle;
     struct
     {
@@ -174,18 +181,18 @@ void ProcItemFire(TItem *item)
         s32 base_y;
         s32 base_z;
 
-        vec = (SVECTOR *)&scratch.particle.random_pos;
-        memset(&scratch.particle.random_pos, 0, sizeof(VECTOR));
+        vec = &scratch.particle.work.vec;
+        memset(&scratch.particle.work.random_pos, 0, sizeof(VECTOR));
         random_x = rand();
         base_x = item->locate->locate.coord.t[0] - nr;
-        scratch.particle.random_pos.vx = base_x + random_x % (nr * 2);
+        scratch.particle.work.random_pos.vx = base_x + random_x % (nr * 2);
         random_y = rand();
         base_y = item->locate->locate.coord.t[1] - nr;
-        scratch.particle.random_pos.vy = base_y + random_y % (nr * 2);
+        scratch.particle.work.random_pos.vy = base_y + random_y % (nr * 2);
         random_z = rand();
         base_z = item->locate->locate.coord.t[2] - nr;
-        scratch.particle.random_pos.vz = base_z + random_z % (nr * 2);
-        scratch.particle.pos = scratch.particle.random_pos;
+        scratch.particle.work.random_pos.vz = base_z + random_z % (nr * 2);
+        scratch.particle.pos = scratch.particle.work.random_pos;
         *vec = D_80097AFC[0];
         position = &scratch.particle.pos;
         SetBleed(position, vec, rand() % 20, 0xffff00);
