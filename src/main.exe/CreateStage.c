@@ -75,7 +75,7 @@ extern short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void ResetInfoview(s32 stage);
-extern void SetupThinkFunction(Humanoid *human, s16 type);
+extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void create_ninken_character_(s16 type, s32 stage);
 extern void load_layout(s32 layout);
 extern void CVAsetup(void);

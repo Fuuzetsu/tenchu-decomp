@@ -61,7 +61,7 @@
 typedef struct ThinkDBtype
 {
     u8 *name;
-    s16 value;
+    TThinkType value;
 } ThinkDBtype;
 
 extern ThinkDBtype ThinkDB[20];
@@ -74,7 +74,7 @@ extern u8 D_80097D50[];
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
-extern s32 leSetEnemy(s32 type, s16 think, s32 x, s32 y, s32 z, s32 r);
+extern s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s32 r);
 
 void AddEnemy(void)
 {
@@ -87,7 +87,7 @@ void AddEnemy(void)
     s32 y;
     s32 z;
     s16 r;
-    s16 think;
+    TThinkType think;
 
     x = 0;
     i = 0;

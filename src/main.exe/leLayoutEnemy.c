@@ -45,7 +45,7 @@
 #include "item.h"
 
 extern void FUN_80039c14(void);
-extern void SetupThinkFunction(Humanoid *human, s16 type);
+extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void *valloc(u32 size);
 extern void vfree(void *ptr);
 

@@ -104,7 +104,7 @@
  */
 extern Humanoid *vcalloc(u32 size, u8 c);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
-extern void SetupThinkFunction(Humanoid *human, short type);
+extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 
 extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 

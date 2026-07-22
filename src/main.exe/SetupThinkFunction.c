@@ -55,7 +55,7 @@
  * identical instruction content. Think4Func (last table, no following
  * table to prefetch for) needed no such temp.
  */
-void SetupThinkFunction(Humanoid *human, s16 type)
+void SetupThinkFunction(Humanoid *human, TThinkType type)
 {
     s32 check;
     ThinkFunc *table2;

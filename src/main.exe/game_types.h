@@ -214,12 +214,15 @@ struct IndexArrayType
     s16 array[4][4];             /* 0x04 */
 };                               /* 0x24 */
 
+/* WORLD.C's packed four-stage think-function selector. */
+typedef short TThinkType;
+
 /* WORLD.C's editable enemy placement. */
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
 {
     s16 type;                    /* 0x00 */
-    s16 ThinkType;               /* 0x02 */
+    TThinkType ThinkType;        /* 0x02 */
     s16 nPath;                   /* 0x04 */
     s32 x;                       /* 0x08 */
     s32 y;                       /* 0x0C */
@@ -630,7 +633,7 @@ struct StageCharType
     s16 stage;                       /* 0x00 */
     s16 chrid;                       /* 0x02 */
     SVECTOR position;                /* 0x04 */
-    s16 think;                       /* 0x0C */
+    TThinkType think;                /* 0x0C */
 };                                   /* 0x0E */
 
 /* STAGE.C's stage metadata and starting transform. */

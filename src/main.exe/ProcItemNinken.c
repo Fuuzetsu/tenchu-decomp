@@ -69,7 +69,7 @@ extern SVECTOR D_80097AF4[];
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern void FUN_800270f8(Humanoid *human, s16 hide);
-extern void SetupThinkFunction(Humanoid *human, s16 think);
+extern void SetupThinkFunction(Humanoid *human, TThinkType think);
 extern void TurnAroundAllItems(Humanoid *human);
 
 void ProcItemNinken(TItem *item)

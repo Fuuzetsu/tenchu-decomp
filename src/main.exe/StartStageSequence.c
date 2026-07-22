@@ -80,7 +80,7 @@
 extern s32 StageTime;
 extern s32 AttackActionCount;
 
-extern void SetupThinkFunction(Humanoid *human, s16 type);
+extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void UpdateEvent(s16 n, s16 id);
 
 void StartStageSequence(void)
