@@ -47,7 +47,7 @@
  * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter selecting the
  * Attract/Retail-ish variant per CHOSEN_CHARACTER), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, x0..x3 = -0xA0/0xA0/-0xA0/0xA0 —
- * item.h's proven POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
+ * the canonical PsyQ SDK POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
  * "tanka.tpd" and populates 6 TENCHU_POSITIONAL_DATA_AREA_ Sprite3D slots.
  * Each slot's `attribute` gets bit 0 set (visible-but-hidden-until-faded),
  * and the embedded GsSPRITE's x/y are
