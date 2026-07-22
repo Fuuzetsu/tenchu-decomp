@@ -16,7 +16,7 @@
  * END PSX.SYM */
 
 /*
- * Draws the current map target and each live type-8 item owned by the camera
+ * Draws the current map target and each live goshikimai owned by the camera
  * owner after rotating and scaling their X/Z coordinates through `area`.
  *
  * Matching notes:
@@ -77,7 +77,7 @@ void FUN_8003d768(s32 x, s32 z, s32 *area)
             break;
         }
 
-        if (items[i].proc != 0 && items[i].type == 8 && items[i].owner == CamState.Owner)
+        if (items[i].proc != 0 && items[i].type == ITEM_GOSHIKIMAI && items[i].owner == CamState.Owner)
         {
             draw_x = (items[i].locate->locate.coord.t[0] / divisor) * cosine +
                      (items[i].locate->locate.coord.t[2] / divisor) * sine;

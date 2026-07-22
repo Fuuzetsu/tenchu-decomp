@@ -286,7 +286,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 
     switch (p->type)
     {
-    case 2: /* MAKIBISHI */
+    case ITEM_MAKIBISHI:
     {
         ModelArchiveType *model;
         s32 rx;
@@ -326,7 +326,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         }
         break;
     }
-    case 1: /* SHURIKEN */
+    case ITEM_SHURIKEN:
     {
         TItem *it;
         TItem *cur;
@@ -399,7 +399,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         }
         break;
     }
-    case 5: /* SMOKE */
+    case ITEM_SMOKE:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -428,7 +428,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemSmoke(p);
         break;
     }
-    case 7: /* DOKUDANGO */
+    case ITEM_DOKUDANGO:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -457,7 +457,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemDokudango(p);
         break;
     }
-    case 9: /* NEMURI */
+    case ITEM_NEMURI:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -486,7 +486,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemNemuri(p);
         break;
     }
-    case 0xe: /* NINGYO */
+    case ITEM_NINGYO:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -515,7 +515,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemNingyo(p);
         break;
     }
-    case 8: /* GOSHIKIMAI */
+    case ITEM_GOSHIKIMAI:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -544,7 +544,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemGoshikimai(p);
         break;
     }
-    case 0x11: /* KAENGEKI */
+    case ITEM_KAENGEKI:
     {
         *(VECTOR *)&param = D_80012278[0];
         p->end.vx = ((VECTOR *)&param)->vx;
@@ -553,7 +553,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemKaengeki(p);
         break;
     }
-    case 0x10: /* NINKEN */
+    case ITEM_NINKEN:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -582,7 +582,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemNinken(p);
         break;
     }
-    case 0xf: /* HAPPOU */
+    case ITEM_HAPPOU:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -611,7 +611,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemHappou(p);
         break;
     }
-    case 4: /* FIRE */
+    case ITEM_FIRE:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -640,7 +640,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemFire(p);
         break;
     }
-    case 0x17: /* LIGHTNINGBOLT */
+    case ITEM_LIGHTNINGBOLT:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -690,7 +690,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemLightningBolt(p);
         break;
     }
-    case 6: /* JIRAI */
+    case ITEM_JIRAI:
     {
         ModelArchiveType *model;
         s32 rx;
@@ -731,7 +731,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemJirai(&param);
         break;
     }
-    case 0: /* KAGINAWA */
+    case ITEM_KAGINAWA:
     {
         TItem *it;
         TItem *cur;
@@ -792,7 +792,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         CamState.DirectionRY = 0;
         break;
     }
-    case 0xd: /* SHINSOKU */
+    case ITEM_SHINSOKU:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -821,7 +821,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemShinsoku(p);
         break;
     }
-    case 0x18: /* TELEPORT */
+    case ITEM_TELEPORT:
     {
         TItem *it;
         TItem *cur;
@@ -876,7 +876,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         CamState.Mode = CMODE_SIGHT;
         break;
     }
-    case 3: /* KUSURI */
+    case ITEM_KUSURI:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -905,7 +905,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemKusuri(p);
         break;
     }
-    case 0xc: /* GOSIN */
+    case ITEM_GOSIN:
     {
         VECTOR *st;
         ModelArchiveType *model;
@@ -934,13 +934,13 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         ReqItemGosin(p);
         break;
     }
-    case 0x14: /* GUN */
+    case ITEM_GUN:
         ReqItemGun(p);
         break;
-    case 0x15: /* ARROW */
+    case ITEM_ARROW:
         ReqItemArrow(p);
         break;
-    case 0x16: /* NAPALM */
+    case ITEM_NAPALM:
     {
         TItem *it;
         TItem *cur;
@@ -1001,15 +1001,15 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         pp->vec.vz = p->end.vz - p->start.vz;
         break;
     }
-    case 0xb: /* HENSHIN */
+    case ITEM_HENSHIN:
         ReqItemHenshin(p);
         break;
-    case 0xa: /* KAWARIMI */
+    case ITEM_KAWARIMI:
         ReqItemKawarimi(p);
         break;
-    case 0x12: /* MANEBUE */
+    case ITEM_MANEBUE:
         ReqItemManebue(p);
-    case 0x13:
+    case ITEM_ARMOUR:
     default:
         break;
     }
