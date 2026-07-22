@@ -36,11 +36,11 @@
  * STATUS: MATCHING — pure C, all 664 bytes / 166 instructions exact.  The
  * 0x30 frame and s0-s5+ra save set are exact as well.
  *
- * A jump2-erased identical-arm alias separates the long-lived output base
- * (`fly`) from the incoming `pfly` formal.  Unlike the old all-in-one inline
- * helper, the direct vector copies leave `start` and `end` in a1/a2 until the
- * distance call; retail's late argument moves can therefore fill the end-copy
- * load delay slots.  The alias itself takes the target's s2 throughout.
+ * A separate `fly` alias keeps the nested trajectory record's role distinct
+ * from its enclosing parameter. Unlike the old all-in-one inline helper, the
+ * direct vector copies leave `start` and `end` in a1/a2 until the distance
+ * call; retail's late argument moves can therefore fill the end-copy load
+ * delay slots. The alias itself takes the target's s2 throughout.
  *
  * The scaled-X product has its own caller-saved identity, while `len` is
  * reused for the scaled-Y product and then for both the X and Y branch
@@ -117,14 +117,7 @@ void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 t
     long y_range;
     struct tag_fly *fly;
 
-    if (pfly != 0)
-    {
-        fly = &pfly->p.fly;
-    }
-    else
-    {
-        fly = &pfly->p.fly;
-    }
+    fly = &pfly->p.fly;
     pfly->mode = 0;
     fly->sx = start->vx;
     fly->sy = start->vy;
