@@ -64,7 +64,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-extern s16 SkipFrame;
 extern s32 DrawTMDmode;
 extern MATRIX GsWSMATRIX;
 extern char D_800120C4[];

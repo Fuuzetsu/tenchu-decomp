@@ -99,7 +99,6 @@
  */
 
 extern TSystemFlag SystemFlag;
-extern s16 SkipFrame;
 extern s16 VISIBLE_ENEMIES_;
 extern s16 D_800BE768[];
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];

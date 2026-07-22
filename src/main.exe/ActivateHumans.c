@@ -36,7 +36,6 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-extern s16 SkipFrame;
 extern s32 D_800976B8;
 extern s16 D_80097F40;
 extern s16 D_80097F42;

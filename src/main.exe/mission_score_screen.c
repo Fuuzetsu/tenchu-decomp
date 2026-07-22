@@ -64,8 +64,6 @@ extern u8 D_80010451[5];
 extern s32 D_80010458[5];
 extern s16 D_8008ED50[];
 
-extern s16 SkipFrame;
-
 extern void init_score_stats(ScoreStats *stats);
 extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
 extern void vfree(void *ptr);

@@ -135,7 +135,6 @@
  * 0x800976b8, directly between SkipFrame and `time`).
  */
 
-extern s16 SkipFrame;
 extern u8 D_80098040[];
 extern u32 D_800976B8;
 extern s32 time;

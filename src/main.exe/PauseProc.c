@@ -97,7 +97,6 @@ extern void SsSetMVol(int voll, int volr);
 extern short Sound(Humanoid *human, int seid);
 
 extern TSystemFlag SystemFlag;
-extern s16 SkipFrame;
 extern u16 Findenemies;
 
 void PauseProc(void)
