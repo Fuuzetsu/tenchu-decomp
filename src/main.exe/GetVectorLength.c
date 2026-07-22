@@ -58,28 +58,30 @@ extern long abs(long x);
 
 long GetVectorLength(long dx, long dy, long dz)
 {
+    enum { patch = 4096 };
+    enum { div = 256 };
     long len;
     int big;
     long v;
 
     big = 0;
-    if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+    if (abs(dx) > patch || abs(dy) > patch || abs(dz) > patch)
     {
         big = 1;
     }
     if (big)
     {
         v = dx;
-        if (dx < 0) v = dx + 0xff;
+        if (dx < 0) v = dx + div - 1;
         dx = v >> 8;
         v = dy;
-        if (dy < 0) v = dy + 0xff;
+        if (dy < 0) v = dy + div - 1;
         dy = v >> 8;
         v = dz;
-        if (dz < 0) v = dz + 0xff;
+        if (dz < 0) v = dz + div - 1;
         dz = v >> 8;
         len = SquareRoot0(dx * dx + dy * dy + dz * dz);
-        len = len << 8;
+        len = len * div;
     }
     else
     {
