@@ -85,7 +85,7 @@ void ActivateHumans(void)
     s32 i;
     Humanoid *target;
     Humanoid *human;
-    VECTOR camera;
+    VECTOR vc;
     VECTOR query;
     VECTOR work;
     s32 active;
@@ -100,7 +100,7 @@ void ActivateHumans(void)
     ModelType *model;
 
     target = CamState.Owner;
-    camera = *target->locate;
+    vc = *target->locate;
     activate_distance = 26000;
     if (StagePlayer->motion->mid != 0xf05)
     {
@@ -149,7 +149,7 @@ void ActivateHumans(void)
             } while (0);
         } while (0);
 
-    distance = GetVectorDistance(human->locate, &camera);
+    distance = GetVectorDistance(human->locate, &vc);
     if (distance >= 17001)
     {
         goto set_inactive;
@@ -275,7 +275,7 @@ active_done:
         work.vy = human->locate->vy - 1500;
         work.vz = human->point[1];
         query = work;
-        if (GetVectorDistance(&query, &camera) > 17000)
+        if (GetVectorDistance(&query, &vc) > 17000)
         {
             level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
                                     query.vz, 1);
