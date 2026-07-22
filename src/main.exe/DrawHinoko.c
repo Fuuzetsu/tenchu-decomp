@@ -53,7 +53,6 @@
  * locals: param, spr, and alfa.
  */
 
-extern Sprite3D *sprBomb[3];
 extern void UpdateCoordinate(Sprite3D *m);
 extern short DrawSprite(Sprite3D *sprt);
 

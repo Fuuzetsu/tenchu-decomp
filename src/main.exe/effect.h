@@ -245,6 +245,8 @@ extern TEffectSlot EffectSlot[200];
 extern int CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy; /* pool-full fallback write target, discarded */
 extern GsSPRITE sprFrame[MaxFrames];
+extern Sprite3D *sprBomb[3];
+extern ModelType *ModelHook;
 extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 

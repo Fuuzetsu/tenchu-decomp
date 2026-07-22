@@ -86,7 +86,6 @@
  *    `.vx` addition before `.vy` — the reverse order swaps which of
  *    a0/a1 each ends up in.
  */
-extern Sprite3D *sprBomb[3];
 extern void UpdateCoordinate(Sprite3D *m);
 extern short DrawSprite(Sprite3D *sprt);
 

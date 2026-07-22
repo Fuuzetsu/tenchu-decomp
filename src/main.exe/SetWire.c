@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include "item.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -72,7 +72,6 @@
  */
 
 extern MATRIX GsWSMATRIX;
-extern ModelType *ModelHook;
 
 extern long abs(long value);
 extern void GsSortLine(GsLINE *line, GsOT *ot, u16 priority);

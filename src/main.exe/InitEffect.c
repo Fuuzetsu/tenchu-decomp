@@ -85,10 +85,8 @@ extern GsSPRITE sprSplash;
 extern GsSPRITE D_800BEAA8[5];
 extern POLY_F4 plyBleed;
 extern Sprite3D *sprSmoke[2];
-extern Sprite3D *sprBomb[3];
 extern Sprite3D *D_80097F2C[1];
 
-extern ModelType *ModelHook;
 extern ModelType *D_80097F34;
 extern ModelType *LOCAL_COORDINATES_;
 extern GsIMAGE *D_80097F3C;
