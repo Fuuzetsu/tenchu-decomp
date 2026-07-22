@@ -88,7 +88,6 @@
  *    per-arm `level`/`lv` split) so it lands in one persistent register
  *    (`$a0`) the whole way to that one `return`.
  */
-extern AreaNodeType *FieldArea;
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,

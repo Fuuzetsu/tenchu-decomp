@@ -16,8 +16,6 @@
  * symbol needed — splat auto-names it).
  */
 
-extern NodeIndexType *FieldIndex;
-extern AreaNodeType *FieldArea;
 void character_balma_around_main_routine_(void)
 {
     NodeIndexType *saved;

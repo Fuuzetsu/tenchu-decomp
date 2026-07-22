@@ -98,7 +98,6 @@
  */
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             int mode);
-extern struct AreaNodeType *FieldArea;
 extern void DrawBlood(TEffectSlot *ef);
 
 void SetBlood(VECTOR *pos, short n, short time)

@@ -82,8 +82,6 @@
  */
 
 extern u16 FieldAttrib;
-extern struct AreaNodeType *FieldArea;
-extern struct NodeIndexType *FieldIndex;
 extern s16 direction[][2];
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
 

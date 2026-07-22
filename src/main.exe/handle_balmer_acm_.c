@@ -17,8 +17,6 @@
  * ReqItemKusuri's it->locate cookbook rule).
  */
 
-extern NodeIndexType *FieldIndex;
-extern AreaNodeType *FieldArea;
 extern u_long *LoadAreaMap(u_long *adr);
 
 u_long *handle_balmer_acm_(u_long *adr)

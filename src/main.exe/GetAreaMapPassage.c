@@ -55,8 +55,6 @@
  *    load. GetAreaMapLevel's fifth argument is the stack-passed u16 zero.
  */
 
-extern AreaNodeType *FieldArea;
-extern NodeIndexType *FieldIndex;
 extern VECTOR cv;
 
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,

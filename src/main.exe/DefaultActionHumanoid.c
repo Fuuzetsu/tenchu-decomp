@@ -52,8 +52,6 @@
  * collision pointer and rotating its a1/a2 allocation.
  */
 
-extern struct AreaNodeType *FieldArea;
-extern struct NodeIndexType *FieldIndex;
 extern s16 RefrectVector[16];
 
 extern s32 GetAreaMapVector(u32 *area, MapVector *map, VECTOR *position,

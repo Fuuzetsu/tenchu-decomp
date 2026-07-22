@@ -85,8 +85,6 @@
  *    (true `/` by a variable -> ASPSX's guarded div with break 7/break 6).
  */
 
-extern NodeIndexType *FieldIndex;
-extern AreaNodeType *FieldArea;
 extern long D_80097EC0; /* last queried y10 */
 extern u16 FieldAttrib;  /* attribute of the found node (FieldAttrib) */
 

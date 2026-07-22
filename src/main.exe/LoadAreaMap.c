@@ -95,8 +95,6 @@
  *    a NEW .rodata this linker script has no slot for — see AfsInit.c).
  */
 
-extern NodeIndexType *FieldIndex;
-extern AreaNodeType *FieldArea;
 
 extern char D_800111E8[]; /* "NO AREA DATA" */
 
