@@ -484,7 +484,7 @@ struct HumanDataType
     s16 height;                     /* 0x0A */
     struct MotionRegistType *mtbl;  /* 0x0C */
     u8 *name;                       /* 0x10 */
-    u32 *model;                     /* 0x14 */
+    u_long *model;                  /* 0x14 */
 };                                  /* 0x18 */
 
 /* STAGE.C's per-stage character placement. */

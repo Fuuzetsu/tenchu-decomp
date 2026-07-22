@@ -101,7 +101,7 @@
  *    the `lui/addiu` and scores 52.
  */
 extern Humanoid *vcalloc(u32 size, u8 c);
-extern ModelArchiveType *LoadModelArchive(u32 *adr, ModelType *prnt);
+extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
 extern void SetupThinkFunction(Humanoid *human, short type);
 extern void SetupCharacterParameter(short type, Humanoid *human);
 extern void SetupWeapon(Humanoid *human);
@@ -117,7 +117,7 @@ extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 extern ConflictObjectType ConflictObject[];
 extern Humanoid *HumanGroup[];
 
-Humanoid *CreateHumanoid(short type, u32 *mad)
+Humanoid *CreateHumanoid(short type, u_long *mad)
 {
     Humanoid *human;
     s16 idx;

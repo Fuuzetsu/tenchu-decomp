@@ -153,14 +153,14 @@
 extern HumanDataType HumanData[63];
 extern u32 *GlobalAreaMap;
 
-extern Humanoid *CreateHumanoid(s16 type, u32 *mad);
+extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
 extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
 extern void UpdateCoordinate(ModelType *dim);
 extern void EquipWeapon(Humanoid *human, s16 mode);
 extern short SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern void SystemOut(char *msg);
 extern int sprintf(char *buf, char *fmt, ...);
-extern u32 *FileRead(char *path);
+extern u_long *FileRead(char *path);
 extern int strcmp(char *a, char *b);
 
 extern char D_800117C8[]; /* "ILLIGAL CHARACTER TYPE" */
@@ -174,7 +174,7 @@ Humanoid *BreedLife(s16 type, s32 x, s32 y, s32 z, s32 r)
     s32 sVar1;
     HumanDataType *pHVar5;
     HumanDataType *base;
-    u32 *model;
+    u_long *model;
     HumanDataType *pp;
     HumanDataType *tbl;
     HumanDataType *q;
