@@ -33,10 +33,10 @@
  *    store run for case 1). A plain `extern SVECTOR D_…;` is -G8-small and
  *    collapses to a fused one-register `la` — one instruction long (the
  *    cookbook's AddItem2 smoke-vector rule, same D_80097Bxx table).
- *  - Case 1's block declares `SVECTOR dir;` then `s32 ry; s32 rx;` — slot
- *    order dir@sp+0x30, ry@0x38, rx@0x3C after the function-scope vec@0x18 +
+ *  - Case 1's block declares `SVECTOR dir;` then `s32 rx; s32 ry;` — slot
+ *    order dir@sp+0x30, rx@0x38, ry@0x3C after the function-scope vec@0x18 +
  *    target@0x20 (scope-entry allocation order).
- *  - `vec.vx = ry;` etc. narrow the s32 out-params: combine folds each
+ *  - `vec.vx = rx;` etc. narrow the s32 out-params: combine folds each
  *    load+truncate to a single lhu.
  *  - Cases 0 and 1 end in duplicated `item->mode = item->mode + 1; return;`
  *    tails, cross-jumped into case 1's copy (Kawarimi's layout lever).
@@ -76,13 +76,13 @@
 
 #include "item.h"
 
-extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *ry, s32 *rx);
+extern void GetVectorRotation(VECTOR *start, VECTOR *end, s32 *rx, s32 *ry);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern s16 InsertConflict(ModelType *m);
 extern void SetBleeds(VECTOR *pos, s32 a, s32 b, s32 c, s32 d, s32 col);
 extern void SetBleedsDir(VECTOR *pos, SVECTOR *dir, s32 a, s32 b, s32 c, s32 col);
-extern void RotateVectorS(SVECTOR *v, s32 rx, s32 ry, s32 rz);
+extern void RotateVectorS(SVECTOR *vec, s32 rx, s32 ry, s32 rz);
 extern SVECTOR D_80097B0C[];
 extern SVECTOR D_80097B14[];
 
@@ -113,14 +113,14 @@ void ProcItemGun(TItem *item)
     case 1:
     {
         SVECTOR dir;
-        s32 ry;
         s32 rx;
+        s32 ry;
         Humanoid *IsHuman;
         s32 n;
 
-        GetVectorRotation((VECTOR *)item->locate->locate.coord.t, &param->vec, &ry, &rx);
-        vec.vx = ry;
-        vec.vy = rx;
+        GetVectorRotation((VECTOR *)item->locate->locate.coord.t, &param->vec, &rx, &ry);
+        vec.vx = rx;
+        vec.vy = ry;
         vec.vz = 0;
         IsHuman = SearchItemTarget2(item->owner, &vec, (VECTOR *)item->locate->locate.coord.t, &target);
         item->locate->locate.coord.t[0] = target.vx;
