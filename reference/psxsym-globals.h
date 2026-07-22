@@ -22,6 +22,7 @@ extern struct ThinkDBtype ThinkDB[20];  /* 0x80089e40, size 0xa0 */
 extern short (*AttackFunc[4])();  /* 0x80089ee0, size 0x10, static in THINK_4.C */
 extern struct TCameraStatus CamState;  /* 0x80089ef0, size 0x24 */
 extern struct ObjectSlotManager ModelSlot;  /* 0x8008dbe0, size 0xc, static in WORLD.C */
+extern struct ITEM__210fake HensinT[9];  /* 0x8008e3ec, size 0x12, static in ITEM.C */
 extern short *StageAppearance[10];  /* 0x8008f188, size 0x28 */
 extern struct INFOVIEW__196fake LifeBarStyle[2];  /* 0x8008e414, size 0x80, static in INFOVIEW.C */
 extern struct MISC__183fake DoorData[11];  /* 0x8008e624, size 0x84 */
@@ -79,6 +80,11 @@ extern struct CVAType *CVAdata;  /* 0x80097cb8, size 0x4, static in CHRANIM.C */
 extern struct CVAType *CVAnow;  /* 0x80097cbc, size 0x4, static in CHRANIM.C */
 extern struct Humanoid *CameraTarget;  /* 0x80097cc4, size 0x4, static in CHRANIM.C */
 extern short CameraPanMode;  /* 0x80097cca, size 0x0, static in CHRANIM.C */
+extern unsigned char gNannido;  /* 0x80010058, size 0x0 */
+extern unsigned char gSound;  /* 0x80010059, size 0x0 */
+extern unsigned char gSoundLevel;  /* 0x8001005a, size 0x0 */
+extern unsigned char gSELevel;  /* 0x8001005b, size 0x0 */
+extern unsigned char gfMemory;  /* 0x8001005c, size 0x0 */
 extern unsigned char *TENCHU_ID;  /* 0x80097d04, size 0x4, static in MEMCARD.C */
 extern short dtCMD;  /* 0x80097ef8, size 0x0, static in MOTION.C */
 extern short dtPAD;  /* 0x80097efa, size 0x0, static in MOTION.C */

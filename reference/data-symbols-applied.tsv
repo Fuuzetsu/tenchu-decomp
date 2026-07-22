@@ -252,3 +252,6 @@
 8001005b	gSELevel	semantic	scales-SPU-voice-volume-in-PlaySE-and-PlayVoice;demo-gSELevel(80098094)/TLinkInfo.SELevel(+0x9);default-0x7F	EXT	unsigned char
 8001005c	gfMemory	semantic	gates-post-mission-memory-card-save-UI(StageEndScreen,mission_score_screen->FUN_800514d8->FUN_8005a7a4->SaveCard);demo-gfMemory(80098095)/TLinkInfo.fMemory(+0xC);default-0	EXT	unsigned char
 8001005d	Anakon	semantic	gates-PadShock-rumble-and-PadProc-analog-handling;demo-TLinkInfo.Anakon(+0xE,no-standalone-global);default-1	EXT	unsigned char
+
+# Henshin character table (2026-07-22).
+8008e3ec	HensinT	semantic+binary-table	PSX=8008dd94;DEMO=8008e0ec;TYPE=struct{unsigned-char-type[2]}[9];retail-first-9-rows-match-7-of-9-demo-rows-and-adds-3-rows;create_ninken_character_-and-FUN_8004a598-index-stage-row-and-character-column	STAT	struct ITEM__210fake [9] (demo; retail has 12 rows)

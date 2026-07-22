@@ -3351,6 +3351,7 @@ EffectSlot = 0x8008a080;
 ModelSlot = 0x8008dbe0;
 USED_MODEL_SLOTS = 0x8008dbe4;
 MAX_MODEL_SLOTS_ = 0x8008dbe8;
+HensinT = 0x8008e3ec;
 DoorData = 0x8008e624;
 PitfallData = 0x8008e6a8;
 STAGE_SOUND_PREFICES = 0x8008ea58;

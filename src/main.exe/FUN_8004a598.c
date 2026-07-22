@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /*
  * FUN_8004a598 (0x8004a598, 0x34 bytes) — 2-column byte-table lookup:
@@ -25,12 +26,10 @@
  *    target's flag-then-base-then-row order exactly.
  */
 
-extern u8 D_8008E3EC[][2];
-
 u8 FUN_8004a598(short param_1, short param_2)
 {
     int flag;
 
     flag = (param_1 == 1);
-    return D_8008E3EC[param_2][flag];
+    return HensinT[param_2].type[flag];
 }

@@ -24,7 +24,6 @@ extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR[];
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern HenshinModelSnapshot D_800C0630;
 extern HenshinModelSnapshot D_800C06F0;
-extern u8 D_8008E3EC[][2];
 
 extern void KillHumanoid(Humanoid *human);
 
@@ -66,7 +65,7 @@ void create_ninken_character_(s16 type, s32 stage)
         s32 flag;
 
         flag = (type == 1);
-        human = BreedLife(D_8008E3EC[(s16)stage][flag],
+        human = BreedLife(HensinT[(s16)stage].type[flag],
                           999000, 999000, 999000, 0);
         model = human->model;
         i = 0;

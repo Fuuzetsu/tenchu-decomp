@@ -40,6 +40,13 @@ struct HenshinModelSnapshot
     HenshinModelPart p[15];       /* 0x04 */
 };                                /* 0xB8 */
 
+/* Per-stage disguise character types. The original ITEM.C kept this
+ * anonymous two-byte record in its static HensinT table. */
+extern struct
+{
+    u8 type[2];
+} HensinT[];
+
 typedef struct Humanoid
 {
     s16 type;                    /* 0x00 */
