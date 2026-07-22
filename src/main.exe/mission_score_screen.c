@@ -27,7 +27,6 @@
 typedef struct
 {
     u16 oldPad;
-    u16 pad;
     BackGround *background;
 } MissionScoreTail;
 

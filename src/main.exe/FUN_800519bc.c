@@ -224,21 +224,9 @@
  * it keeps the exact CFG and length and improves 77 -> 76 bytes. */
 typedef struct
 {
-    u16 xbase;
-    u8 pad_02[6];
-    s32 scroll;
-    u16 old_pad;
-    u8 pad_0e[2];
-    BackGround *background;
-    s32 tpage_base;
-} DemoScreenStack;
-
-typedef struct
-{
     char *background;
     char *foreground;
     u16 music;
-    u16 pad;
 } DemoScreenAssets;
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
