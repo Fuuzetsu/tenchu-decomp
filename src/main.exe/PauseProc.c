@@ -94,7 +94,7 @@ extern void CheckCheatCodes(s16 *rec, int n);
 extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
-extern void Sound(Humanoid *h, int id);
+extern short Sound(Humanoid *human, int seid);
 extern void SetCameraMode(int mode);
 
 extern TSystemFlag SystemFlag;

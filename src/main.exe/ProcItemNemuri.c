@@ -9,7 +9,7 @@ extern s16 InsertConflict(ModelType *model);
 extern s16 GetConflictResult(ModelType *model, s32 n);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
-extern void Sound(Humanoid *human, s32 id);
+extern short Sound(Humanoid *human, s32 seid);
 extern void SetBleeds(VECTOR *pos, s32 grange, short srange, s32 n,
                       int time, long col);
 extern long GetAreaMapLevel(u_long *area, long x, long y, long z, int mode);

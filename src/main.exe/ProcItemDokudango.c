@@ -61,7 +61,7 @@ extern s32 GetVectorDistance(VECTOR *a, VECTOR *b);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 NowReturnNormal(Humanoid *human);
 extern s16 Think1target(void);
-extern void Sound(Humanoid *human, s32 id);
+extern short Sound(Humanoid *human, s32 seid);
 
 /*
  * Matching notes (2,468 bytes / 617 instructions):

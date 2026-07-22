@@ -72,7 +72,7 @@ extern HenshinModelSnapshot D_800C0630;
 extern HenshinModelSnapshot D_800C06F0;
 
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
-extern void Sound(Humanoid *human, s32 sound);
+extern short Sound(Humanoid *human, s32 seid);
 extern s16 NowReturnNormal(Humanoid *human);
 
 void ProcItemHenshin(TItem *item)

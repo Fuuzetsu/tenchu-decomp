@@ -68,7 +68,7 @@ extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
                             long mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
-extern void Sound(Humanoid *human, short id);
+extern short Sound(Humanoid *human, short seid);
 extern void PadShockAR(short port, short power, short time, short mode);
 
 /* Jump-state motion, collision response, air steering, and landing control. */

@@ -79,7 +79,7 @@ extern Humanoid *Me_MOTION_C;
 
 extern void FUN_80033bc0(VECTOR *pos, int a, int b, int c);
 extern u16 GetMotionID(MotionManager *mmp, s16 mid);
-extern void Sound(Humanoid *h, int id);
+extern short Sound(Humanoid *human, int seid);
 
 void JumpControl(void)
 {

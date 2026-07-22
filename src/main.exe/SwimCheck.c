@@ -53,7 +53,7 @@ extern void PadShockAR(short port, short power, short time, short mode);
 extern void FUN_800270f8(Humanoid *human, short hide);
 extern short GetMotionID(MotionManager *mmp, short mid);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void Sound(Humanoid *human, short id);
+extern short Sound(Humanoid *human, short seid);
 extern void ReqLifeBar(Humanoid *human);
 extern void reset_alert_duration(void);
 

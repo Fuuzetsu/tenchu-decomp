@@ -161,7 +161,7 @@ extern s16 motMODE;
 extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
 extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z, int mode);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern void Sound(Humanoid *h, int id);
+extern short Sound(Humanoid *human, int seid);
 extern void PadShockAR(int port, int pow, int attack, int release);
 
 short HangCheck(void)

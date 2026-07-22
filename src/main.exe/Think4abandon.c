@@ -80,7 +80,7 @@ extern u16 Attrib;
 extern s16 SR;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
-extern void Sound(Humanoid *cs, int seid);
+extern short Sound(Humanoid *human, int seid);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern int rand(void);
 
@@ -169,4 +169,3 @@ s16 Think4abandon(void)
         }
     }
 }
-

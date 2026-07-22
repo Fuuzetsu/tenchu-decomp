@@ -72,7 +72,7 @@ extern s16 motMODE;
 extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
 extern void ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void SetCameraMode(s32 mode);
-extern void Sound(Humanoid *h, int id);
+extern short Sound(Humanoid *human, int seid);
 
 void ActSYURI(void)
 {

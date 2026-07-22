@@ -110,7 +110,7 @@
  */
 extern void ProcItemHappou(TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
-extern void Sound(Humanoid *h, int id);
+extern short Sound(Humanoid *human, int seid);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);

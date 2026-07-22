@@ -102,7 +102,7 @@ extern s16 SearchTarget(Humanoid *human, s32 *distance, s16 *degree);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern s32 GetAreaMapLevel(u32 *area, s32 x, s32 y, s32 z, u16 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
-extern void Sound(Humanoid *human, s32 id);
+extern short Sound(Humanoid *human, s32 seid);
 extern void reset_alert_duration();
 extern s16 Think2confirm(void);
 extern s16 think_setting_small_rotation_small_steps_(void);

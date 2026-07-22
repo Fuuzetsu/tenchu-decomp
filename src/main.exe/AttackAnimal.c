@@ -81,7 +81,7 @@
  */
 extern s32 Distance;
 extern s16 Degree;
-extern void Sound(Humanoid *cs, int seid);
+extern short Sound(Humanoid *human, int seid);
 
 short AttackAnimal(void)
 {

@@ -87,7 +87,7 @@ extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, s32 length);
 extern void ReqItemUse(PARAM_ITEM_LAUNCH *item);
 extern void SetCameraMode(s32 mode);
 extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
-extern void Sound(Humanoid *human, s32 id);
+extern short Sound(Humanoid *human, s32 seid);
 
 void ActKAGI(void)
 {

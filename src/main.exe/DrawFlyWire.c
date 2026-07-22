@@ -30,7 +30,7 @@ extern TCameraStatus CamState;
 
 extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);
 extern void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col);
-extern void Sound(Humanoid *owner, s32 sfx);
+extern short Sound(Humanoid *human, s32 seid);
 extern void *memset(void *s, int c, u32 n);
 
 void DrawFlyWire(TEffectSlot *ef)

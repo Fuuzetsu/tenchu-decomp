@@ -32,7 +32,7 @@
 extern MotionManager *dtM;
 extern SVECTOR *dtR;
 extern Humanoid *Me_MOTION_C;
-extern void Sound(Humanoid *h, int id);
+extern short Sound(Humanoid *human, int seid);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 
 void handle_char_state_attacking_SEVEN_(s16 frame)
