@@ -76,12 +76,12 @@
  *  - `reject_check` is reached from THREE edges (attribute&8==0 skip, the
  *    box check passing cleanly, and the box check's own "iv<0xb5"
  *    loop-back). The target lays the box-check body out FIRST — `if
- *    ((attr & 8) != 0) { <box check> } reject_check: ...` — so its OWN
+ *    ((atr & 8) != 0) { <box check> } reject_check: ...` — so its OWN
  *    attribute&8==0 case is the negated guard's forward branch straight
  *    into reject_check's test, and the box check's clean pass-through is
  *    a plain fallthrough into the SAME test, both feeding one physical
  *    `andi s0,0x10` + `slti`. Writing it the other way around (Ghidra's
- *    literal `if (attr&8==0) { reject_check: ... } <box check>`, i.e.
+ *    literal `if (atr&8==0) { reject_check: ... } <box check>`, i.e.
  *    reject_check FIRST) makes cc1 place the box check's `goto
  *    reject_check;` as a BACKWARD jump reusing the SAME physical test —
  *    which is length-correct on its own, but see the next point.

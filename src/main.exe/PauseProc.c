@@ -10,7 +10,7 @@
  * Start unpausing, and DrawPause/VSync ticking the frame counter.
  *
  * Matching notes (all verified against the original bytes):
- *  - All pad state is s16 (pad/cur/opad/trg): the plain `opad != 0` test
+ *  - All pad state is s16 (pad/cur/opad/trig): the plain `opad != 0` test
  *    compiles to sll+beqz (sign-extension with the sra dropped for a zero
  *    test) — u16 vars would emit andi 0xffff. Likewise buf must be SIGNED
  *    s16[]: the 0xffff terminator store materializes as the HImode-canonical

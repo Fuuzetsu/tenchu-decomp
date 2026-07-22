@@ -74,10 +74,10 @@
  *      * DIRECT-to-ret rejects — a plain `if (cond) { result = -1; goto ret; }`
  *        whose test is a conditional branch: reorg branches straight to the
  *        `ret:` tail and drops `li $v0,-1` into the branch's OWN delay slot.
- *        The attr&4&&sz==0, iv>=0xf1, and reject_check(attr&0x10&&sz>0x4e2)
- *        rejects are these. The attr&4&&sz==0 one MUST be a standalone
- *        `if ((attr&4)!=0 && sz==0)` (NOT the `else` of the enclosing
- *        `if ((attr&4)==0 || sz!=0)` guard) — as an `else` body it is
+ *        The atr&4&&sz==0, iv>=0xf1, and reject_check(atr&0x10&&sz>0x4e2)
+ *        rejects are these. The atr&4&&sz==0 one MUST be a standalone
+ *        `if ((atr&4)!=0 && sz==0)` (NOT the `else` of the enclosing
+ *        `if ((atr&4)==0 || sz!=0)` guard) — as an `else` body it is
  *        textually identical to the shared reject block below and cc1's
  *        cross-jump MERGES it in, costing the direct-branch form (and with
  *        it the target's extra `andi $v0,s0,0x8` recompute that the
