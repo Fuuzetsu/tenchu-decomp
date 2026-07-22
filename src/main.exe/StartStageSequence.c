@@ -62,9 +62,9 @@
  *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
  *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
  *  - The chrid translation is written as two explicit gotos so the -1 arm
- *    stays inline and the -2 arm is laid out later. The volatile unsigned
- *    `stg_think` keeps the compiler's derived think-field base live; the
- *    volatile row view prevents CSE with the preceding signed chrid load.
+ *    stays inline and the -2 arm is laid out later. The named `stg_think`
+ *    pointer keeps the compiler's derived think-field base live; the volatile
+ *    row view prevents CSE with the preceding signed chrid load.
  *  - `y` deliberately carries each x/z product to both destination stores;
  *    repeating the multiplication expression makes GCC recompute it.  The
  *    StagePlayer model is likewise fetched before the attribute/life stores
