@@ -42,7 +42,7 @@ struct HenshinModelSnapshot
  * reference/ghidra_types.h:4861, cross-checked against psxsym-types.h:2649 —
  * both size 8, x/y/z/time all shorts; exercised by LoadMotion/HoldMotion/
  * GetSpline/ActiveMotion's mmp->motion->locate->x-style keyframe reads). */
-typedef struct
+typedef struct MotionElementType
 {
     s16 x;                       /* 0x0 */
     s16 y;                       /* 0x2 */
@@ -50,7 +50,7 @@ typedef struct
     s16 time;                    /* 0x6 */
 } MotionElementType;               /* 0x8 */
 
-typedef struct
+typedef struct MotionDataType
 {
     u8 n;                        /* 0x0 */
     u8 sweep;                    /* 0x1 */
@@ -89,7 +89,7 @@ typedef struct MotionRegistType
  * bytes each` comment). key0/key1 bracket the current frame's keyframes;
  * dd0/ds1 are the precomputed per-frame deltas (GetSpline/
  * UpdateSplineControl). */
-typedef struct
+typedef struct SplineControlType
 {
     MotionElementType *key0;      /* 0x0 */
     MotionElementType *key1;      /* 0x4 */
@@ -117,14 +117,14 @@ typedef struct MotionManager
  * MotionDataType pointer (Ghidra's own independently-built MotionPackType,
  * reference/ghidra_types.h:5206, cross-checked against psxsym-types.h:2669 —
  * both size 8). SearchMotion walks the fixed-up table by id. */
-typedef struct
+typedef struct MotionPackType
 {
     s32 n;                        /* 0x0 */
     MotionDataType *motion[1];    /* 0x4 */
 } MotionPackType;                  /* 0x8 */
 
 /* Per-controller state embedded in Humanoid (Ghidra: PADtype). */
-typedef struct
+typedef struct PADtype
 {
     u16 data;                    /* 0x0 (held buttons) */
     u16 sdata;                   /* 0x2 */
@@ -371,7 +371,7 @@ typedef struct param_shinsoku
  * reference/psxsym-types.h:3769 — field names are the authors' own). The
  * setup/search blocks in ProcItemSmoke/ProcItemDokudango view a shared stack
  * buffer through this. */
-typedef struct
+typedef struct TFindItemTarget
 {
     Humanoid *find;              /* 0x00 (the found target) */
     s32 dist;                    /* 0x04 */
@@ -450,7 +450,7 @@ extern void *memset(void *s, int c, u32 n);
  * PSX.SYM (reference/psxsym-types.h:45) agree exactly: 8 shorts, size 0x10.
  * `contfrm` is the center frame of the window AttackContinuousCheck tests
  * dtM->count against ([contfrm-3, contfrm+3]). */
-typedef struct
+typedef struct BattleType
 {
     s16 mid;                     /* 0x0 */
     s16 power;                   /* 0x2 */
