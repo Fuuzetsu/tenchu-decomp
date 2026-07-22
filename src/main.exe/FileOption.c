@@ -77,7 +77,7 @@ typedef union {
     u8 bytes[7000];
     struct {
         TAdtSelect targets[162];
-        char msg[161][5];
+        u8 msg[161][5];
     } music;
 } FILE_WORK;
 
@@ -119,7 +119,7 @@ void FileOption(void)
     s32 k;
     s32 i;
     TAdtSelect *targets;
-    char (*messages)[5];
+    u8 (*messages)[5];
     TAdtSelect ItemName[20];
     TAdtSelect SelectIO[5];
     TAdtSelect SelectSlot[18];
@@ -184,7 +184,7 @@ void FileOption(void)
         messages = work.music.msg;
         for (; i < 0xA1; i++)
         {
-            sprintf(messages[i], D_80097D70, i);
+            sprintf((char *)messages[i], D_80097D70, i);
             targets[i].name = messages[i];
             targets[i].value = i;
         }

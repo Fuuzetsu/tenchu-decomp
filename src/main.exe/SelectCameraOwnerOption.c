@@ -89,17 +89,17 @@ void SelectCameraOwnerOption(void)
 {
     int i;
     TAdtSelect targets[36];
-    char msg[35][10];
+    u8 msg[35][10];
 
     if (Humans < 0x23)
     {
         for (i = 0; i < Humans; i++)
         {
-            sprintf(msg[i], D_80097D70, i);
+            sprintf((char *)msg[i], D_80097D70, i);
             targets[i].name = msg[i];
-            targets[i].value = (u32)HumanGroup[i];
+            targets[i].value = (u_long)HumanGroup[i];
         }
-        targets[i].name = (char *)0;
+        targets[i].name = NULL;
         CamState.Owner = (Humanoid *)AdtSelect(D_80014018, targets, 0);
         ViewInfo.vrx = CamState.Owner->model->locate.coord.t[0];
         ViewInfo.vry = CamState.Owner->model->locate.coord.t[1];

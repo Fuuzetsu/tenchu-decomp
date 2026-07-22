@@ -69,7 +69,7 @@ extern ThinkDBtype ThinkDB[20];
 extern char D_80013FA8[];
 extern char D_80013FB4[];
 extern char D_80097D48[];
-extern char D_80097D50[];
+extern u8 D_80097D50[];
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -115,7 +115,7 @@ void AddEnemy(void)
                 }
                 sprintf((char *)names[x], D_80097D48,
                         HumanData[i].name, WeaponModel[y].name);
-                ItemName[x].name = (char *)names[x];
+                ItemName[x].name = names[x];
                 ItemName[x].value = HumanData[i].type;
                 x++;
             }
@@ -144,7 +144,7 @@ void AddEnemy(void)
                     break;
                 if ((s16)r + 0x31 == ThinkDB[i].name[0])
                 {
-                    ItemName[x].name = (char *)ThinkDB[i].name;
+                    ItemName[x].name = ThinkDB[i].name;
                     ItemName[x].value = ThinkDB[i].value;
                     x++;
                 }

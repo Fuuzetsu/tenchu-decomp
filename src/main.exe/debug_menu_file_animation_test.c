@@ -21,7 +21,7 @@
  */
 
 extern char D_80097CD0[];
-extern char D_80097CD4[];
+extern u8 D_80097CD4[];
 extern char D_80013654[];
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -31,10 +31,10 @@ extern s16 CVAsequence(s16 sid);
 
 void debug_menu_file_animation_test(void)
 {
-    char text[0x100];
+    u8 text[0x100];
     TAdtSelect menu[64];
     CVAType *event;
-    char *buffer;
+    u8 *buffer;
     s32 count;
     s32 selection;
 
@@ -43,11 +43,11 @@ void debug_menu_file_animation_test(void)
     count = 0;
     while (event->mode != -1) {
         if (event->mode == 0) {
-            sprintf(buffer, D_80097CD0, event->id);
+            sprintf((char *)buffer, D_80097CD0, event->id);
             menu[count].name = buffer;
             menu[count].value = event->id;
             count++;
-            buffer += strlen(buffer) + 1;
+            buffer += strlen((char *)buffer) + 1;
         }
         event++;
     }

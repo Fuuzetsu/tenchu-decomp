@@ -53,7 +53,7 @@
  */
 
 extern char D_80097DC0[];
-extern char D_80097DC8[];
+extern u8 D_80097DC8[];
 extern char D_8001420C[];
 extern char D_8001421C[];
 extern char D_8001422C[];
@@ -66,7 +66,7 @@ void SelectStage(TLinkInfo *ps)
     TAdtSelect language[5];
     TAdtSelect player[3];
     TAdtSelect StageSelect[14];
-    char name[11][100];
+    u8 name[11][100];
     s32 i;
     s32 uid;
 
@@ -78,7 +78,7 @@ void SelectStage(TLinkInfo *ps)
             break;
         }
         uid = StageConfig[i].uid;
-        sprintf(name[i], D_80097DC0, uid, StageConfig[i].name);
+        sprintf((char *)name[i], D_80097DC0, uid, StageConfig[i].name);
         StageSelect[uid].name = name[i];
         StageSelect[uid].value = i;
         i++;

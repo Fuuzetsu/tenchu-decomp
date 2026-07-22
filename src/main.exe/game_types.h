@@ -62,14 +62,14 @@ struct PADtype
     u16 stream[4];                     /* 0x08 */
 };                                     /* 0x10 */
 
-/* AdtSelect's menu row — the demo's own debug symbols name this TAdtSelect
- * (the PSX.SYM stack-variable records in FileOption/DoInfoViewProc/etc. call
- * these arrays `struct TAdtSelect [N]`). */
+/* AdtSelect's menu row — the demo's own debug symbols supply this name and
+ * the unsigned label-pointer type (the stack-variable records in
+ * FileOption/DoInfoViewProc/etc. call these `struct TAdtSelect [N]`). */
 typedef struct TAdtSelect TAdtSelect;
 struct TAdtSelect
 {
-    char *name;    /* 0x0 */
-    u32 value;     /* 0x4 */
+    u8 *name;       /* 0x0 */
+    u_long value;   /* 0x4 */
 };
 
 /* ADT's original quiet-state names, recovered from the demo's PSX.SYM. */
