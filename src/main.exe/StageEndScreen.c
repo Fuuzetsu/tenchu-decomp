@@ -72,7 +72,6 @@ extern void LoadTIM(unsigned long *adr);
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);
-extern s32 GetRealPad(s32 port);
 extern short DrawBG(BackGround *bg);
 extern void FUN_800515b0(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
 extern void DisposeBG(BackGround *background);

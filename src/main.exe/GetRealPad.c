@@ -34,7 +34,7 @@
  * doesn't byte-match. (With the old non-canonical cc1 this also needed a
  * `do/while(0)` wrapper; the canonical gcc-2.8.1-psx doesn't.)
  */
-s32 GetRealPad(s32 port)
+long GetRealPad(int port)
 {
     u16 *button;
     PadProc();

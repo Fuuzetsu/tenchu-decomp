@@ -33,7 +33,6 @@ extern char D_800146EC[];
 extern char D_800146F8[];
 extern char D_80014704[];
 
-extern s32 GetRealPad(s32 port);
 void debug_menu_player_jump(void)
 {
     VECTOR pos;

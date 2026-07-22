@@ -69,7 +69,6 @@ extern ScoreResult *calculate_score(ScoreStats *stats, s32 stage);
 extern void vfree(void *ptr);
 extern void LoadTIM(unsigned long *adr);
 extern void _PlayMusic(s32 music, s32 mode);
-extern s32 GetRealPad(s32 port);
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);

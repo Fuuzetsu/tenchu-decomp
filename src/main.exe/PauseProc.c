@@ -86,7 +86,6 @@
  * END PSX.SYM */
 
 extern s16 GetPad(s16 no);
-extern s32 GetRealPad(s32 port);
 extern short FUN_8001b174(s32 arg);
 extern void FUN_800566fc(void);
 extern short check_for_known_button_combination(short pad, short trg);

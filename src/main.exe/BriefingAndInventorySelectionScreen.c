@@ -18,8 +18,8 @@
  * 241 -> 94 -> 28 -> 0). The 28 residual register-tie diffs fell to six
  * levers, all in this file (permuter rounds 4-6 found 1/3/5, hand-derived
  * 4/6 from the gcc 2.8.1 local-alloc.c/global.c tie+preference conditions):
- *   1. `extern s32 GetRealPad(...)` -- the CALLER-side return type must be
- *      the official `long` (s32; u32 and `volatile unsigned int` score the
+ *   1. GetRealPad's shared return type must be the recovered `long` (s32;
+ *      u32 and `volatile unsigned int` score the
  *      same -- the width matters, not the sign). With a u16 return the
  *      (s16)pad ext for check_for_known_button_combination was emitted before
  *      the np xor/and chain via a0; with the full-word return it lands after,
@@ -106,7 +106,6 @@ extern void PutItemIcon(int id, int x, int y, int scale);
 extern void PutItemCursor(int x, int y, int size, int rotdif);
 extern void DisposeBG(BackGround *bg);
 extern int check_for_known_button_combination(s16 pad, s16 newpress);
-extern s32 GetRealPad(s32 which);
 extern void FUN_800519bc(void);
 
 /*

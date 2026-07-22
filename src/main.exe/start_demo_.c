@@ -42,7 +42,6 @@ extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void LoadTIM(unsigned long *adr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern short DrawBG(BackGround *bg);
-extern s32 GetRealPad(s32 port);
 extern void FUN_80056910(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);

@@ -254,7 +254,6 @@ extern s16 D_8008ECF8[][11];
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void vfree(void *ptr);
 extern void FUN_80038ce0(void);
-extern s32 GetRealPad(s32 port);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_8004f6c0(s32 arg0);
 extern void _PlayMusic(s32 music, s32 mode);
