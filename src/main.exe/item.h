@@ -245,6 +245,9 @@ typedef struct param_drop
     u8 count;                    /* 0x0C */
 } param_drop;                    /* 0x10 */
 
+/* Kusuri used the shared drop parameters under its original source name. */
+typedef struct param_drop param_kusuri;
+
 typedef struct param_smoke
 {
     param_korogari koro;         /* 0x00 */
@@ -366,7 +369,7 @@ struct tag_TItem
         param_goshikimai goshikimai;
         param_ninken ninken;
         param_dokudango dokudango;
-        param_drop kusuri;
+        param_kusuri kusuri;
         param_kaengeki kaengeki;
         param_henshin henshin;
         param_lightningbolt lightningbolt;
