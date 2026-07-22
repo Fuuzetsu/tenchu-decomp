@@ -111,10 +111,10 @@ extern char D_800145A8[];   /* "layout no" */
 extern char D_80097D70[];   /* "%d" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern void lePackEnemyLayout(u8 *buf, s32 size);
-extern void PackItemLayout(u8 *buf, s32 size);
-extern void SaveSI(s32 sel, s32 no, u8 *buf, s32 size);
-extern void FUN_8003cd04(s32 sel, s32 no);
+extern void lePackEnemyLayout(void *buf, long size);
+extern void PackItemLayout(void *buf, long size);
+extern void SaveSI(int target, u8 *name, void *mem, long size);
+extern void FUN_8003cd04(int target, u8 *name);
 extern void InitializeImage(void);
 extern void _PlayMusic(s32 id, s32 mode);
 extern void CdaStop(void);
@@ -129,8 +129,8 @@ extern void leLayoutEnemy(s32 n);
 void FileOption(void)
 {
     s16 n;
-    s32 sel;
-    s32 no;
+    s32 TargetIO;
+    u8 *fname;
     s32 k;
     s32 i;
     TAdtSelect *targets;
@@ -149,25 +149,25 @@ void FileOption(void)
     switch (n)
     {
     case 1:
-        sel = AdtSelect(D_80014524, (TAdtSelect *)&m2, 3);
-        if (sel == -1)
+        TargetIO = AdtSelect(D_80014524, (TAdtSelect *)&m2, 3);
+        if (TargetIO == -1)
             return;
-        no = AdtSelect(D_80014530, (TAdtSelect *)&m3, 0x10);
-        if (no == -1)
+        fname = (u8 *)AdtSelect(D_80014530, (TAdtSelect *)&m3, 0x10);
+        if (fname == (u8 *)-1)
             return;
-        FUN_8003cd04(sel & 0xFF, no);
+        FUN_8003cd04(TargetIO & 0xFF, fname);
         leLayoutEnemy(0);
         break;
     case 0:
-        sel = AdtSelect(D_8001453C, (TAdtSelect *)&m2, 3);
-        if (sel != -1)
+        TargetIO = AdtSelect(D_8001453C, (TAdtSelect *)&m2, 3);
+        if (TargetIO != -1)
         {
-            no = AdtSelect(D_80014548, (TAdtSelect *)&m3, 0x10);
-            if (no != -1)
+            fname = (u8 *)AdtSelect(D_80014548, (TAdtSelect *)&m3, 0x10);
+            if (fname != (u8 *)-1)
             {
                 lePackEnemyLayout(work.bytes, 5000);
                 PackItemLayout(work.bytes + 5000, 2000);
-                SaveSI(sel, no, work.bytes, 7000);
+                SaveSI(TargetIO, fname, work.bytes, 7000);
             }
         }
         break;
