@@ -50,10 +50,10 @@
  * Matching notes:
  *  - PSX.SYM's own locals list two SVECTOR pointers, `a` and `b`. Their
  *    narrow inner scope is significant: `a = &nv` and `b = &info->bef` give
- *    cse1 the two bases for the adjacent dot/length reads without keeping
+ *    cse1 the two bases for the adjacent theta/length reads without keeping
  *    either pointer live through the rest of the function. Later destination
  *    writes and the final `bef` copy therefore use fresh direct field loads.
- *  - `dx` is referenced by name twice more after being computed (the dot
+ *  - `dx` is referenced by name twice more after being computed (theta's
  *    product's first term, lenA's first arg) and stays in its own register
  *    for both; `dy`/`dz` are never referenced again by name after being
  *    stored into `nv` — every later use goes through `nv.vy`/`nv.vz`
@@ -84,7 +84,7 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
     s32 dx, dy, dz;
     s32 len;
     SVECTOR nv;
-    s32 dot;
+    s32 theta;
     s32 ip;
     s32 lenA, lenB;
     s32 slab;
@@ -115,20 +115,20 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
         SVECTOR *a = &nv;
         SVECTOR *b = &info->bef;
 
-        dot = (s16)dx * info->bef.vx + a->vy * b->vy + a->vz * b->vz;
+        theta = (s16)dx * info->bef.vx + a->vy * b->vy + a->vz * b->vz;
         lenA = GetVectorLength((s16)dx, a->vy, a->vz);
         lenB = GetVectorLength(info->bef.vx, b->vy, b->vz);
     }
     slab = lenA * lenB;
 
-    if (0x7FFFE < dot)
+    if (0x7FFFE < theta)
     {
-        t = dot;
-        if (dot < 0)
+        t = theta;
+        if (theta < 0)
         {
-            t = dot + 0xFFF;
+            t = theta + 0xFFF;
         }
-        dot = t >> 0xC;
+        theta = t >> 0xC;
         t = slab;
         if (slab < 0)
         {
@@ -143,7 +143,7 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
     }
     else
     {
-        sla = (dot << 0xC) / slab;
+        sla = (theta << 0xC) / slab;
     }
 
     mspd = info->spd * (sla + 0x1000);
