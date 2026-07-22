@@ -69,7 +69,6 @@ typedef struct { TAdtSelect e[11]; } MENU_LAYOUT_TBL;   /* 0x58 */
 typedef struct { TAdtSelect e[3];  } MENU_CONFIRM_TBL;  /* 0x18 */
 typedef struct { TAdtSelect e[7];  } MENU_PATH_TBL;     /* 0x38 */
 
-extern TCameraStatus CamState;
 extern s16 Humans;
 /* gp-relative — defined by this (debug-menu) TU; Build.hs maspsxGpExterns */
 extern s32 CurrentEnemyID;                      /* latched enemy (leFindEnemy) */

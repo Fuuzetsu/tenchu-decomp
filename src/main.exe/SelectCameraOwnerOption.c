@@ -81,9 +81,7 @@
  *    `D_80097D70 = 0x80097D70;` in config/symbols.main.exe.txt per the
  *    cookbook's drifted-symbol recipe rather than fight the wrong auto-name.
  */
-extern TCameraStatus CamState;
 extern s16 Humans;
-extern GsRVIEW2 ViewInfo;
 extern char D_80097D70[];   /* "%d" */
 extern char D_80014018[];   /* "select camera owner" */
 

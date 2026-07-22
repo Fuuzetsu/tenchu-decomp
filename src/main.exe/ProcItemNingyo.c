@@ -19,7 +19,6 @@ typedef union
 } ProcItemNingyoScratch;
 
 extern s16 Humans;
-extern TCameraStatus CamState;
 extern SVECTOR D_80097AE4[];
 extern u8 D_80097AE0;
 extern ModelType *NingyoModel;

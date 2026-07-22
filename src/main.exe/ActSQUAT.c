@@ -69,7 +69,6 @@ extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 SelectedItem;
-extern TCameraStatus CamState;
 extern s32 D_80097F1C;
 
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);

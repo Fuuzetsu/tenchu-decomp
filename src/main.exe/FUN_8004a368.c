@@ -62,7 +62,6 @@
  */
 
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
-extern TCameraStatus CamState;
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80012224[]; /* "not support yet %d" */
 

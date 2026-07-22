@@ -32,8 +32,6 @@
  *     extern int Projection;
  * END PSX.SYM */
 
-extern TCameraStatus CamState;
-extern GsRVIEW2 ViewInfo;
 extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;
 extern s32 Projection;

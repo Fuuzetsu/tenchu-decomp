@@ -63,7 +63,6 @@ extern SVECTOR *dtR;
 extern VECTOR *dtL;
 extern s16 MotionUpdateMode;
 extern s16 motMODE;
-extern TCameraStatus CamState;
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);

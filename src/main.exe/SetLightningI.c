@@ -66,7 +66,6 @@
  * fence, pointer carriers, and the purported 15-byte allocation floor.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern GsOT *OTablePt;
 

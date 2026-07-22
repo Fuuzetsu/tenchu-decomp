@@ -88,7 +88,6 @@ extern s16 motMODE;
 extern s16 MotionUpdateMode;
 extern s16 dtPAD;
 extern s16 RefrectVector[16];
-extern TCameraStatus CamState;
 extern s16 SelectedItem;
 extern s32 D_80097EF0;
 

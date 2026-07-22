@@ -66,7 +66,6 @@ extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
 extern Sprite3D *ItemImage[];
-extern TCameraStatus CamState;
 extern s16 SkipFrame;
 extern GsOT *OTablePt;
 

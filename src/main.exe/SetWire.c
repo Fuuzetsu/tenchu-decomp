@@ -71,7 +71,6 @@
  * removes the former loop-store scramble and the claimed 80-byte floor.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern GsOT *OTablePt;
 extern ModelType *ModelHook;

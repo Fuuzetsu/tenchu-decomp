@@ -61,7 +61,6 @@
  * value live in a register instead of round-tripping through the stack.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 

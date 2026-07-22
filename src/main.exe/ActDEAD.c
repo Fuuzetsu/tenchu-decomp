@@ -75,7 +75,6 @@ extern Humanoid *D_8009770C;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;
-extern TCameraStatus CamState;
 extern DeadEvent *D_80086B0C[];
 extern SVECTOR D_8009771C[];
 

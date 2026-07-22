@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-extern GsRVIEW2 ViewInfo;
 extern GsOT *OTablePt;
 extern Sprite3D *D_80097F2C[];
 extern s32 abs(s32 value);

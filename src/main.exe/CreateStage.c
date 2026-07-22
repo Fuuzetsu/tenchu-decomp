@@ -62,13 +62,11 @@ extern u8 *ImagePath;
 extern GsOT *OTablePt;
 extern s16 SkipFrame;
 extern volatile TSystemFlag SystemFlag;
-extern GsRVIEW2 ViewInfo;
 extern s32 DepthPoint;
 extern TStageConfig StageConfig[];
 extern TitlePathBlock TITLE_SPRITES_PTRS;
 extern u8 CHOSEN_LANGUAGE;
 extern volatile u8 STAGE_LAYOUT_NUMBER;
-extern TCameraStatus CamState;
 extern char D_8001204C[];
 extern char D_800120A0[];
 

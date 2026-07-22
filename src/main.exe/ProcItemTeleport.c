@@ -63,7 +63,6 @@
 
 extern void SnapCameraTargetVector(void);
 extern GsOT *OTablePt;
-extern TCameraStatus CamState;
 
 void ProcItemTeleport(TItem *item)
 {

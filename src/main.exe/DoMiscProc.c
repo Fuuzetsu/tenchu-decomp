@@ -63,7 +63,6 @@
  */
 
 extern s32 DrawTMDmode;
-extern GsRVIEW2 ViewInfo;
 extern char D_800127D0[];
 
 /* Misc visibility distance from MISC.C's anonymous enum. */

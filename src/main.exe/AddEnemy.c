@@ -67,7 +67,6 @@ typedef struct ThinkDBtype
 extern WeaponModelType WeaponModel[41];
 extern s16 *StageAppearance[];
 extern ThinkDBtype ThinkDB[20];
-extern TCameraStatus CamState;
 extern s32 CurrentEnemyID;
 
 extern char D_80013FA8[];

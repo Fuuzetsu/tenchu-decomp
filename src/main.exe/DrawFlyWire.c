@@ -26,7 +26,6 @@
  *     stack sp+24     struct VECTOR pos
  * END PSX.SYM */
 
-extern TCameraStatus CamState;
 
 extern short Sound(Humanoid *human, s32 seid);
 extern void *memset(void *s, int c, u32 n);

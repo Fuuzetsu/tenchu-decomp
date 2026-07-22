@@ -56,7 +56,6 @@ extern char D_800124C0[]; /* "select item" */
 extern char D_800124EC[]; /* "number of" */
 extern u16 D_8008E4F0[];  /* cheat sequence 1 */
 extern u16 D_8008E4C4[];  /* cheat sequence 2 */
-extern TCameraStatus CamState;
 extern TSystemFlag SystemFlag;
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);

@@ -93,7 +93,6 @@
  *    DirectionRY at +0x1A.
  */
 
-extern TCameraStatus CamState;
 
 extern SoundEffect *StageSE;
 

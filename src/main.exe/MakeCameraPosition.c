@@ -68,8 +68,6 @@
  * component delta as -va + vb preserves the target's independent-load order.
  */
 
-extern TCameraStatus CamState;
-extern GsRVIEW2 ViewInfo;
 extern TMakeDifInfo D_80089F10;
 extern TMakeDifInfo pnt;
 extern SVECTOR scratch_rot_1f800040;

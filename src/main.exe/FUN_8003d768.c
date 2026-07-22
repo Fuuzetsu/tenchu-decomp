@@ -34,7 +34,6 @@
  *    divide-by-zero guards.
  */
 
-extern TCameraStatus CamState;
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 
 void FUN_8003d768(s32 x, s32 z, s32 *area)

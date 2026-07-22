@@ -82,7 +82,6 @@
 
 typedef struct { TAdtSelect e[25]; } MENU_ITEM_TBL;    /* 0xC8 */
 
-extern TCameraStatus CamState;
 extern MENU_ITEM_TBL DEBUG_MENU_ITEM_CHOICE_OPTIONS;
 extern char D_800124C0[];                   /* "select item" */
 extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const */

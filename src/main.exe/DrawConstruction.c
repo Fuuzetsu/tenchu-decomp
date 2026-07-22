@@ -65,7 +65,6 @@
  * END PSX.SYM */
 
 extern s16 SkipFrame;
-extern GsRVIEW2 ViewInfo;
 extern WorldType WorldMap[8][8][8];
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;

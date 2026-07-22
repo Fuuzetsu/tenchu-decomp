@@ -47,7 +47,6 @@
  * instead of the commuted `addu v1,s6,v1` emitted by ordinary subscripting.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern s16 InsertConflict(ModelType *m);
 extern s32 abs(s32 x);
 

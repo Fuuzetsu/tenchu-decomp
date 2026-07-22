@@ -74,7 +74,6 @@
  *    into the call's 3rd argument position fixed it in one edit.
  */
 
-extern GsRVIEW2 ViewInfo;
 
 extern CVAType *CVAnow;
 extern Humanoid *CameraTarget;

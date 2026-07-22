@@ -99,7 +99,6 @@ extern short Sound(Humanoid *human, int seid);
 extern TSystemFlag SystemFlag;
 extern s16 SkipFrame;
 extern u16 Findenemies;
-extern TCameraStatus CamState;
 
 void PauseProc(void)
 {

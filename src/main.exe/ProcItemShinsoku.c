@@ -73,7 +73,6 @@
  */
 
 
-extern TCameraStatus CamState;
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern short Sound(Humanoid *human, s32 seid);

@@ -84,8 +84,6 @@
  *    slti/xori/bnez; an inline `if (... > 0x7ff)` compiles slti/beqz (short).
  */
 
-extern TCameraStatus CamState;
-extern GsRVIEW2 ViewInfo;
 /* Critical-hit camera placements: 4 poses x 4 SVECTORs each. */
 extern SVECTOR D_80089F50[][4];
 /* Scratchpad work objects (0x1F800040 rotation SVECTOR, 0x1F800080 MATRIX

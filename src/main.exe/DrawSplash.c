@@ -50,7 +50,6 @@
  *   it as a distinct int local from the outer long coordinate.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern GsSPRITE sprSplash;
 extern GsOT *OTablePt;

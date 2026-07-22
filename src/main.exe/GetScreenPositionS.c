@@ -56,7 +56,6 @@
  *    symbol's `%lo()` (always `addiu`).
  */
 
-extern GsRVIEW2 ViewInfo;
 
 void GetScreenPositionS(s32 x, s32 y, s32 z, SVECTOR *scr)
 {

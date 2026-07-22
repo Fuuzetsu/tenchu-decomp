@@ -57,7 +57,6 @@
  *    GetScreenPositionS.c precedent).
  */
 
-extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 
 void GetScreenPosition(long x, long y, long z, SVECTOR *scr)

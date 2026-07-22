@@ -74,8 +74,6 @@
  *    do not cache `model` in a local.
  */
 
-extern TCameraStatus CamState;
-extern GsRVIEW2 ViewInfo;
 
 extern VECTOR *GetAreaMapPassage(unsigned long *area, VECTOR *pos, SVECTOR *vect, short n);
 

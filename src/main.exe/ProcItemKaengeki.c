@@ -69,8 +69,6 @@
  *    start, scale start by 12, add the saved origin, double end, then add
  *    start.  They reproduce both rounds of stack stores in the target.
  */
-extern TCameraStatus CamState;
-extern GsRVIEW2 ViewInfo;
 
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);

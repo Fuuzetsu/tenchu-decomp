@@ -75,7 +75,6 @@ typedef struct
     u16 pad1;
 } SightRotation;
 
-extern GsRVIEW2 ViewInfo;
 extern GsOT *OTablePt;
 
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);

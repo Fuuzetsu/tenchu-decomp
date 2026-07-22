@@ -47,7 +47,6 @@
  * coalesces the input/result into the wrong register.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern s16 CameraPanMode;
 extern s16 D_80097CC8;
 extern Humanoid *CameraTarget;

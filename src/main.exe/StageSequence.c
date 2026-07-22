@@ -75,7 +75,6 @@ extern Humanoid *D_80097F80[2];
 extern volatile s32 StageTime;
 extern TSystemFlag SystemFlag;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
-extern TCameraStatus CamState;
 extern s16 ActionHalt;
 extern s16 SkipFrame;
 extern s16 Findenemies;

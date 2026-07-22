@@ -29,7 +29,6 @@
  * CamState's own base is an unrelated address (its own lui, not folded
  * into PSTATE's).
  */
-extern TCameraStatus CamState;
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void FUN_800565f0(void)

@@ -81,7 +81,6 @@ typedef union
     } stick_l;
 } CameraScratch;
 
-extern TCameraStatus CamState;
 extern SVECTOR D_80097A28[];
 extern SVECTOR D_80097A30[];
 extern CameraVectors CAMERA_R1;

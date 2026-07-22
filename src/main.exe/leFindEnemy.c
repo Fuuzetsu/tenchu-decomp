@@ -60,7 +60,6 @@
  *    shift/add, and let cc1 pick this multiply sequence itself.
  */
 
-extern TCameraStatus CamState;
 extern TEnemyLayout enemy[0x1E];
 extern SVECTOR D_80097ABC[];
 

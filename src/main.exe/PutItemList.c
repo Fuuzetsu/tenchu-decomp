@@ -67,7 +67,6 @@
  */
 extern GsSPRITE NumberImage;
 extern GsSPRITE CursorImage;
-extern TCameraStatus CamState;
 extern GsOT *OTablePt;
 extern Sprite3D *ItemImage[];
 extern s16 SelectedItem;

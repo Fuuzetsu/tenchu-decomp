@@ -28,7 +28,6 @@
  *    proxy score; authoritative full-link rescoring proved it byte-exact.
  */
 
-extern GsRVIEW2 ViewInfo;
 extern char D_800146DC[];
 extern char D_800146EC[];
 extern char D_800146F8[];

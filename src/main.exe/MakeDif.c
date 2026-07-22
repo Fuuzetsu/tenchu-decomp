@@ -46,7 +46,6 @@
  * and SetCameraMode's stores prove CriticalHit at +0x1D. The demo's
  * Valiation at +0x20 disappeared when the record shrank to 0x20 bytes.
  */
-extern TCameraStatus CamState;
 extern TMakeDifInfo D_80089F10;
 extern TMakeDifInfo pnt;
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);

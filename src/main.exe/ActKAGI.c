@@ -77,7 +77,6 @@ extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 MotionUpdateMode;
-extern TCameraStatus CamState;
 
 extern s32 FUN_8004a368(s32 mode, Humanoid *human);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
