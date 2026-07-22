@@ -176,22 +176,22 @@ void ProcItemNingyo(TItem *item)
                 type = item->type;
                 loaded_model = item->locate;
                 model = loaded_model;
-                launchp = (PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz;
+                launchp = &scratch.drop.launch;
                 memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
                 launchp = 0;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->type = type;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->user = owner;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vx =
+                scratch.drop.launch.type = type;
+                scratch.drop.launch.user = owner;
+                scratch.drop.launch.start.vx =
                     ((VECTOR *)model->locate.coord.t)->vx;
                 model = (ModelType *)model->locate.coord.t;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vy =
+                scratch.drop.launch.start.vy =
                     ((VECTOR *)model)->vy;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->start.vz =
+                scratch.drop.launch.start.vz =
                     ((VECTOR *)model)->vz;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vx = rand() % 200 - 100;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vy = rand() % 100 - 200;
-                ((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz)->end.vz = rand() % 200 - 100;
-                ReqItemDrop((PARAM_ITEM_LAUNCH *)&scratch.vectors.v.vz);
+                scratch.drop.launch.end.vx = rand() % 200 - 100;
+                scratch.drop.launch.end.vy = rand() % 100 - 200;
+                scratch.drop.launch.end.vz = rand() % 200 - 100;
+                ReqItemDrop(&scratch.drop.launch);
             }
         }
         else
