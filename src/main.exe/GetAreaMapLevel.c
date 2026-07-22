@@ -92,7 +92,7 @@ extern u16 FieldAttrib;  /* attribute of the found node (FieldAttrib) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
-long GetAreaMapLevel(NodeIndexType *area, long x, long y, long z, u16 mode)
+long GetAreaMapLevel(unsigned long *area, long x, long y, long z, u16 mode)
 {
     long j;
     long *p;
@@ -132,13 +132,13 @@ long GetAreaMapLevel(NodeIndexType *area, long x, long y, long z, u16 mode)
         }
         D_80097EC0 = y10;
 
-        if (idx == area)
+        if (idx == (NodeIndexType *)area)
             goto walked;
     down:
         if (!(y10 < idx->y))
             goto walked;
         idx--;
-        if (idx != area)
+        if (idx != (NodeIndexType *)area)
             goto down;
     walked:
         if (idx->index != 0)

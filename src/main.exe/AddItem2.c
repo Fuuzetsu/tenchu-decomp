@@ -88,7 +88,8 @@ extern char D_800124C0[];                   /* "select item" */
 extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            long e);
 
 void AddItem2(void)
 {

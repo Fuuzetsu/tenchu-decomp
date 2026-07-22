@@ -30,7 +30,8 @@
  * itself IS in the demo per its own header, so only this helper is new).
  */
 extern void DrawSnow(TEffectSlot *ef);
-extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            int mode);
 
 void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
 {

@@ -74,7 +74,8 @@
  */
 extern s16 Think1random(void);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
-extern s32 GetAreaMapLevel(void *map, s32 x, s32 y, s32 z, u16 flag);
+extern s32 GetAreaMapLevel(unsigned long *area, s32 x, s32 y, s32 z,
+                           u16 flag);
 
 s16 Think1ninja(void)
 {

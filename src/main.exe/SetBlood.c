@@ -96,7 +96,8 @@
  *    guarded by ASPSX's break 7/break 6 — needs `--expand-div`
  *    (Build.hs/permute.py).
  */
-extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            int mode);
 extern struct AreaNodeType *FieldArea;
 extern void DrawBlood(TEffectSlot *ef);
 

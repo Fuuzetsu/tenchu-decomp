@@ -87,7 +87,8 @@ extern s16 SetNowMotion(Humanoid *human, s16 mid, s16 move);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern s32 ReqLifeBar(Humanoid *human);
 extern void CdaStop(void);
-extern long GetAreaMapLevel(void *area, long x, long y, long z, int mode);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            int mode);
 extern void AVCameraSetup(void);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 extern void FUN_80038fdc(u8 arg0, u8 arg1, u8 arg2, long arg3);

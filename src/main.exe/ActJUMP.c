@@ -64,7 +64,8 @@ extern short UpdateMotion(MotionManager *mmp, short mid);
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
                              long wide, int mode);
-extern long GetAreaMapLevel(void *map, long x, long y, long z, long mode);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            long mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
 extern void Sound(Humanoid *human, short id);

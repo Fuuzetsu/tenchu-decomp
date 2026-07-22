@@ -65,7 +65,8 @@
  *  - First compiled-to-compiled reference: ProcItemKusuri's `jal ReqItemDrop`
  *    now resolves against this object (R_MIPS_26), and both share item.h.
  */
-extern long GetAreaMapLevel(void *map, long x, long y, long z, long e);
+extern long GetAreaMapLevel(unsigned long *area, long x, long y, long z,
+                            long e);
 extern void ProcItemDrop(TItem *item);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */

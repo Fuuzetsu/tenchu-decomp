@@ -35,10 +35,10 @@
  */
 extern void vfree(void *p);
 
-void DisposeAreaMap(void *area)
+void DisposeAreaMap(unsigned long *area)
 {
     if (area == 0) {
-        void *tmp = GlobalAreaMap;
+        unsigned long *tmp = GlobalAreaMap;
         if (tmp != 0) {
             area = tmp;
             GlobalAreaMap = 0;

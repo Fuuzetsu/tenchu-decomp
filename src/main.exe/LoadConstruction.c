@@ -152,7 +152,7 @@ extern char D_80097A90[];
 
 extern void SystemOut(char *message);
 extern u32 vsize(void *data);
-extern void DisposeAreaMap(void *area);
+extern void DisposeAreaMap(unsigned long *area);
 extern void ResetAllMisc(void);
 extern void ClearItemLayout(void);
 extern void DisposeOrnament(OrnamentType *model);
