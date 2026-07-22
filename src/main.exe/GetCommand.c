@@ -35,7 +35,7 @@
  *
  * GetCommand (0x8001af14) — checks pad->stream[] (the recent-input ring,
  * newest first) against every entry in the global Command table (same
- * NULL-terminated `u16 *` table as SetCommand.c: entry[0] = command id,
+ * NULL-terminated `COMMAND *` table as SetCommand.c: entry[0] = command id,
  * entry[1..] = a 0xFFFF-terminated button-sequence pattern). The first
  * entry whose pattern is a prefix of pad->stream[] wins: pad->stream[] is
  * shifted down by one (dropping the oldest, stream[0] cleared for the next
@@ -64,7 +64,7 @@
 
 short GetCommand(PADtype *pad)
 {
-    u16 *cmd;
+    COMMAND *cmd;
     short i;
     short j;
 

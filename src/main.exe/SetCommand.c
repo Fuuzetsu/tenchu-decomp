@@ -34,7 +34,7 @@
 
 /*
  * SetCommand (0x8001b038, 0x10c bytes) — looks up `cmd` in the global
- * command table Command (a NULL-terminated array of `u16 *` entries:
+ * command table Command (a NULL-terminated array of `COMMAND *` entries:
  * entry[0] = command id, entry[1..] = a 0xFFFF-terminated argument list),
  * copies the entry's remaining arguments into pad->stream[], sets
  * pad->time = 1, and returns the entry's first argument (sign-extended).
@@ -133,8 +133,8 @@
 short SetCommand(PADtype *pad, short cmd)
 {
     s16 i;
-    u16 *entry;
-    u16 *args;
+    COMMAND *entry;
+    COMMAND *args;
     s16 n;
     s16 j;
     s32 one;

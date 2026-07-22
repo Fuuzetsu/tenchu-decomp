@@ -50,6 +50,9 @@ struct PadArrangeType
     s32 release;                       /* 0x0C */
 };                                     /* 0x10 */
 
+/* PADCMD.C's command-table word type, recovered from PSX.SYM. */
+typedef unsigned short COMMAND;
+
 /* Command state embedded in each Humanoid. */
 typedef struct PADtype PADtype;
 struct PADtype
