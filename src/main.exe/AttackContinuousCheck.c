@@ -46,13 +46,11 @@
  *    by dataflow), so the dead andi+beqz survives in the binary exactly as
  *    Ghidra's own decompilation (which DOES prove it dead and renders a
  *    bare `return 1;`) hides.
- *  - `Me_MOTION_C->pad.time = 0;` must be written BEFORE `wk = (s16)
- *    Me_MOTION_C->wpatk;`, not after (Ghidra's own literal order).
- *    An intervening STORE between the wpatk load and its first use
- *    (the switch dispatch) blocks combine from fusing the `lhu` + sign-
- *    extend pair into a single `lh` — reordering the two statements (the
- *    store first) keeps the load adjacent to its use and recovers the
- *    1-instruction `lh` (12 bytes / 3 insns saved).
+ *  - `Me_MOTION_C->pad.time = 0;` must be written BEFORE `wk =
+ *    Me_MOTION_C->wpatk;`, not after (Ghidra's own literal order). Keeping
+ *    the signed field load adjacent to the switch dispatch lets combine
+ *    select the target's single `lh`; an intervening store changes the
+ *    generated instruction sequence.
  */
 
 extern Humanoid *Me_MOTION_C;

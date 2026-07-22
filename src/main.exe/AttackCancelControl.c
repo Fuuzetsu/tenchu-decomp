@@ -33,9 +33,7 @@
  * ornament(s) the current `wpatk` implies are active, then (mode bit
  * 1) drop any live afterimages; always clamps `dtM->mask` to 0x7fff.
  *
- * `wpatk` (item.h: s16 @0x8E) is read `lh` here — the
- * per-TU-divergent load-width precedent already established for
- * lifemax/attrib; cast at this divergent use.
+ * `wpatk` (item.h: s16 @0x8E) is read with the expected signed `lh`.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - **This IS a genuine `switch (wk) { case 2: ...; case 3: ...; case 0:
