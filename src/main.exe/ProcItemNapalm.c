@@ -83,6 +83,10 @@ extern void SetFrame(VECTOR *pos, short size, short time,
 
 void ProcItemNapalm(TItem *item)
 {
+    enum
+    {
+        MaxCount = 20
+    };
     Sprite3D *sprt;
     param_napalm *param;
     void (*proc)(TItem *);
@@ -119,7 +123,7 @@ void ProcItemNapalm(TItem *item)
 
         t = rand() % 25;
         t = t - 26;
-        t = t - param->count * 230 / 20;
+        t = t - param->count * 230 / MaxCount;
         sprt->sprite.r = t;
         sprt->sprite.g = sprt->sprite.r;
         sprt->sprite.b = sprt->sprite.r;
@@ -154,7 +158,7 @@ void ProcItemNapalm(TItem *item)
 
         count = param->count + 1;
         param->count = count;
-        if (count > 20)
+        if (count > MaxCount)
         {
             item->mode = item->mode + 1;
         }
