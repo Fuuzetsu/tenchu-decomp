@@ -62,10 +62,9 @@
  *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
  *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
  *  - The chrid translation is written as two explicit gotos so the -1 arm
- *    stays inline and the -2 arm is laid out later.  `stg_think` is a
- *    short-lived volatile view of the same StageChar row: it prevents CSE of
- *    the signed comparison load with the unsigned `tp` load, while its named
- *    pointer makes GCC reuse the derived `&stg->think` induction base (s1).
+ *    stays inline and the -2 arm is laid out later. The volatile unsigned
+ *    `stg_think` keeps the compiler's derived think-field base live; the
+ *    volatile row view prevents CSE with the preceding signed chrid load.
  *  - `y` deliberately carries each x/z product to both destination stores;
  *    repeating the multiplication expression makes GCC recompute it.  The
  *    StagePlayer model is likewise fetched before the attribute/life stores
@@ -99,12 +98,14 @@ void StartStageSequence(void)
     {
         if (stg->stage == StageID + 1)
         {
+            enum { StageCharThinkOffset = 0x0c };
             s16 chrid;
             volatile u16 *stg_think;
 
             chrid = (s16)stg->chrid;
             stg_think = (volatile u16 *)&stg->think;
-            tp = stg_think[-5];
+            tp = ((volatile StageCharType *)((u8 *)stg_think -
+                                             StageCharThinkOffset))->chrid;
             if (chrid == -2)
             {
                 goto chrid_minus_two;
