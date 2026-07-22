@@ -106,11 +106,12 @@ loop:
 
 void PutItemList(void)
 {
+    enum { ItemX = 140, ItemY = 100, ItemGap = 20 };
     s32 i;
     s32 x;
 
     SelectedItem = -1;
-    x = 0x8C;
+    x = ItemX;
     i = 0;
     while (1)
     {
@@ -127,7 +128,7 @@ void PutItemList(void)
             n = s;
             if (s != 0xFF)
             {
-                PutNumberInline(x + 0x16, 0x64, n, 0);
+                PutNumberInline(x + 0x16, ItemY, n, 0);
             }
 
             if (ItemCursor == i)
@@ -135,14 +136,14 @@ void PutItemList(void)
                 s32 ItemID;
                 GsSPRITE *spr;
 
-                PutItemCursorInline(x, 0x5C, 0x1000, -0x6000);
+                PutItemCursorInline(x, ItemY - 8, 0x1000, -0x6000);
 
                 ItemID = i * sizeof(ItemImage[0]);
                 ItemID = *(s32 *)((u8 *)ItemImage + ItemID);
                 SelectedItem = i;
                 spr = &((Sprite3D *)ItemID)->sprite;
                 spr->x = x;
-                spr->y = 0x5C;
+                spr->y = ItemY - 8;
                 spr->scalex = 0x1000;
                 spr->scaley = 0x1000;
                 GsSortSprite(spr, OTablePt, 0);
@@ -156,12 +157,12 @@ void PutItemList(void)
                 ItemID = *(s32 *)((u8 *)ItemImage + ItemID);
                 spr = &((Sprite3D *)ItemID)->sprite;
                 spr->x = x;
-                spr->y = 0x5C;
+                spr->y = ItemY - 8;
                 spr->scalex = 0xAAA;
                 spr->scaley = 0xAAA;
                 GsSortSprite(spr, OTablePt, 0);
             }
-            x = x - 0x14;
+            x = x - ItemGap;
         }
         i = i + 1;
     }
