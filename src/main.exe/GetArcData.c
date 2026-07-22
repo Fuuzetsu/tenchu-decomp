@@ -24,8 +24,8 @@
 
 /*
  * GetArcData (0x8004f37c, 0xd0 bytes) — lazily loads "models.arc" via
- * FileRead into the gp-relative global MODEL_ARCHIVE_PTR (defined in this
- * TU, hence gp-addressed — see the cookbook's gp section), one-time-converts
+ * FileRead into the gp-relative static ArcData (defined in this TU, hence
+ * gp-addressed — see the cookbook's gp section), one-time-converts
  * its table of `count` relative offsets (each stored where it will end up
  * holding an absolute pointer — same slot reused for both, like
  * ProcItemDrop's shared-constant idiom but here for a whole table) into
@@ -52,7 +52,8 @@
  *    through a same-valued local first.
  */
 
-extern ArcFile *MODEL_ARCHIVE_PTR;
+/* PSX.SYM names IMAGES.C's original archive pointer ArcData. */
+extern ArcFile *ArcData;
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_800128D8[]; /* "K:\WORK\CDIMAGE\IMAGE\models.arc" */
 extern char D_800128C0[]; /* "bad archive index %d" */
@@ -64,11 +65,11 @@ u_long *GetArcData(int index)
     s32 t;
     s32 zero = 0;
 
-    if (MODEL_ARCHIVE_PTR == 0)
+    if (ArcData == 0)
     {
-        MODEL_ARCHIVE_PTR = (ArcFile *) FileRead(D_800128D8);
+        ArcData = (ArcFile *) FileRead(D_800128D8);
     }
-    arc = MODEL_ARCHIVE_PTR;
+    arc = ArcData;
     if (arc->loaded == 0)
     {
         i = 0;
