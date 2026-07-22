@@ -142,6 +142,14 @@ typedef struct PARAM_ITEM_STAY
     VECTOR locate;               /* 0x04 */
 } PARAM_ITEM_STAY;               /* 0x14 */
 
+/* ITEM.C's saved item-layout record.  PackItemLayout and RestoreItemLayout
+ * respectively produce and consume this original PSX.SYM layout. */
+typedef struct TItemLayout
+{
+    s32 type;                    /* 0x00 */
+    VECTOR locate;               /* 0x04 */
+} TItemLayout;                   /* 0x14 */
+
 /* Rolling-item states from ITEM.C's anonymous enum. Retail adds state 5,
  * whose name is not present in the demo symbols. */
 enum

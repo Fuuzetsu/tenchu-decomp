@@ -56,9 +56,9 @@
  *    longer-by-4-insns structural miss) — but the compiler's OWN internal
  *    iv from strength-reducing `items[i]` does not get this treatment for
  *    the identical 3× reuse. Same effect must hold for `buf`: this function
- *    needed BOTH `items[i]` (not `it++`) AND `p = (u8*)buf + i*0x14`
- *    recomputed fresh each iteration (not `buf = buf + 0x14;` reassigning
- *    the parameter) to avoid a spurious persistent second cursor.
+ *    needed BOTH `items[i]` (not `it++`) AND `slot = &((TItemLayout *)buf)[i]`
+ *    recomputed fresh each iteration (not advancing `buf` by one record) to
+ *    avoid a spurious persistent second cursor.
  *  - **The empty/non-empty polarity is the OPPOSITE of Ghidra's literal
  *    `if (proc == 0) {-1} else {4 stores}`.** The target's `beqz` skips
  *    straight to the tiny `-1` store sitting right before the loop
@@ -67,13 +67,12 @@
  *    `if (proc != 0) {4 stores} else {-1}` (cookbook's "opposite polarity"
  *    rule for a plain if/else, not the null-guard-with-two-returns
  *    exception, since both arms merge into the same loop increment).
- *  - **A THIRD store into the same base needs its own second pointer,
- *    but only for the LAST TWO of three same-base offsets.** `p` (buf+i*20)
- *    is used directly for offsets 0 and 4; `q = p + 4;` declared right
- *    after the offset-4 store is then used for offsets 4/8 relative to
- *    itself (i.e. buf+8/buf+0xc) — writing all four stores directly off
- *    `p` (no `q`) compiles 2 bytes long (an extra `addiu` fills where the
- *    target reuses `q`'s one materialization twice).
+ *  - **A THIRD store into the same record needs its own position pointer,
+ *    but only for the LAST TWO position components.** `slot` (buf+i*20) is
+ *    used directly for type and locate.vx; `locate = &slot->locate` declared
+ *    right after the vx store is then used for vy/vz. Writing all four fields
+ *    directly through `slot` compiles 2 bytes long (an extra `addiu` fills
+ *    where the target reuses `locate`'s one materialization twice).
  *  - The empty-slot sentinel is a raw `-1` (Ghidra's `~ITEM_KAGINAWA` is
  *    just how it renders the constant `~0` given `ITEM_KAGINAWA == 0`; the
  *    asm materializes it once, outside the loop, with `addiu $a3,$zero,-1`
@@ -93,8 +92,8 @@ extern char D_80012200[]; /* "item storing size too small %d/%d" */
 void PackItemLayout(void *buf, s32 size)
 {
     s32 i;
-    u8 *p;
-    u8 *q;
+    TItemLayout *slot;
+    VECTOR *locate;
 
     if ((u32)size < 600)
     {
@@ -105,18 +104,18 @@ void PackItemLayout(void *buf, s32 size)
         i = 0;
         do
         {
-            p = (u8 *)buf + i * 0x14;
+            slot = &((TItemLayout *)buf)[i];
             if (items[i].proc != 0)
             {
-                *(s32 *)p = items[i].type;
-                *(s32 *)(p + 4) = items[i].locate->locate.coord.t[0];
-                q = p + 4;
-                *(s32 *)(q + 4) = items[i].locate->locate.coord.t[1];
-                *(s32 *)(q + 8) = items[i].locate->locate.coord.t[2];
+                slot->type = items[i].type;
+                slot->locate.vx = items[i].locate->locate.coord.t[0];
+                locate = &slot->locate;
+                locate->vy = items[i].locate->locate.coord.t[1];
+                locate->vz = items[i].locate->locate.coord.t[2];
             }
             else
             {
-                *(s32 *)p = -1;
+                slot->type = -1;
             }
             i++;
         } while (i < 0x1e);

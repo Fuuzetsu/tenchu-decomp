@@ -62,13 +62,6 @@ extern short D_8008E404[4];
 extern s32 abs(s32 x);
 extern void *memset(void *s, int c, u32 n);
 
-/* ITEM.C's saved item-layout record (the original PSX.SYM name/layout). */
-typedef struct TItemLayout
-{
-    s32 type;                    /* 0x00 */
-    VECTOR locate;              /* 0x04 */
-} TItemLayout;                  /* 0x14 */
-
 void RestoreItemLayout(void *buf)
 {
     TItem *it;
