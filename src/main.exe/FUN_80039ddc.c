@@ -19,10 +19,9 @@
  *
  * Confirmed 4-parameter signature (Ghidra's own decompilation only shows 3):
  * SearchItemTarget2.c and SetCameraMode.c already document the trailing
- * `u32 flag` argument (passed straight through to CGetLevel's own trailing
- * flag parameter) that Ghidra's decompiler never reads in the body — the
- * raw .s spills a3 to its own stack home (sp+0x64) and reloads it every
- * loop iteration purely to hand to CGetLevel: the "Ghidra under-counts
+ * `u32 flag` argument, which Ghidra omits from its rendered signature and
+ * body.  The raw .s spills a3 to its own stack home (sp+0x64) and reloads it
+ * every loop iteration purely to hand to CGetLevel: the "Ghidra under-counts
  * trailing args" class (cookbook, Expressions).
  *
  * Matching notes:

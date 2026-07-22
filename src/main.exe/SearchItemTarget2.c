@@ -79,9 +79,9 @@
  *    (no duplicated entry test), the loop-rule-2 shape (leFindEnemy).
  *  - FUN_80039ddc's own Ghidra decompilation shows only 3 params, but this
  *    call site sets up 4 argument registers (a0-a3) — the trailing `u32`
- *    flag is simply unread by that callee's body, an instance of the
- *    Ghidra-under-counts-trailing-args class (cookbook: "m2c and Ghidra
- *    disagree on a call's ARG COUNT").
+ *    flag is forwarded unchanged to CGetLevel and not otherwise interpreted,
+ *    an instance of the Ghidra-under-counts-trailing-args class (cookbook:
+ *    "m2c and Ghidra disagree on a call's ARG COUNT").
  *  - The winning shape for the innermost guard needed a NAMED temp for the
  *    compared field PLUS a comma expression to keep it short-circuited:
  *    `if (cond && (z = lv.vz, z < dist)) { dist = z; *target = tv; ret =
