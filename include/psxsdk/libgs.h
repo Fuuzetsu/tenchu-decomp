@@ -7,6 +7,32 @@
 /* Minimal ABI declarations; provenance and validation: docs/psyq-headers.md. */
 typedef unsigned char PACKET;
 
+/* LIBGS's primitive renderer dispatch table. */
+typedef struct _GsFCALL _GsFCALL;
+struct _GsFCALL
+{
+    unsigned char *(*f3[2][3])();
+    unsigned char *(*nf3[2])();
+    unsigned char *(*g3[2][3])();
+    unsigned char *(*ng3[2])();
+    unsigned char *(*tf3[2][3])();
+    unsigned char *(*ntf3[2])();
+    unsigned char *(*tg3[2][3])();
+    unsigned char *(*ntg3[2])();
+    unsigned char *(*f4[2][3])();
+    unsigned char *(*nf4[2])();
+    unsigned char *(*g4[2][3])();
+    unsigned char *(*ng4[2])();
+    unsigned char *(*tf4[2][3])();
+    unsigned char *(*ntf4[2])();
+    unsigned char *(*tg4[2][3])();
+    unsigned char *(*ntg4[2])();
+    unsigned char *(*f3g[3])();
+    unsigned char *(*g3g[3])();
+    unsigned char *(*f4g[3])();
+    unsigned char *(*g4g[3])();
+};
+
 typedef struct
 {
     VECTOR scale;

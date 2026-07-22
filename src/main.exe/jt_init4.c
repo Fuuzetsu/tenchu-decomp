@@ -10,9 +10,8 @@
  * END PSX.SYM */
 
 /*
- * Initializes the 64-entry fast TMD primitive dispatch table. Each block of
- * eight handlers is laid out as L, LFG, NL, L, LFG, NL, N, divide for the
- * F3/G3/TF3/TG3/F4/G4/TF4/TG4 primitive families.
+ * Initializes the fast TMD primitive dispatch table. Each family contains
+ * two rows of L/LFG/NL handlers followed by the N/divide pair.
  *
  * Matching notes:
  *  - The assignments must remain in logical index order. Ghidra rendered the
@@ -24,42 +23,40 @@
  *    as proven by the retail `sw`/`sh` access widths.
  */
 
-typedef void (*GsTMDHandler)(void);
+extern _GsFCALL GsFCALL4;
 
-extern GsTMDHandler GsFCALL4[64];
-
-extern void dmyGsTMDfastF3L(void);
-extern void dmyGsTMDfastF3LFG(void);
-extern void dmyGsTMDfastF3NL(void);
-extern void GsTMDfastNF3(void);
-extern void dmyGsTMDfastG3L(void);
-extern void dmyGsTMDfastG3LFG(void);
-extern void dmyGsTMDfastG3NL(void);
-extern void GsTMDfastNG3(void);
-extern void GsTMDfastTF3L(void);
-extern void GsTMDfastTF3LFG(void);
-extern void dmyGsTMDfastTF3NL(void);
-extern void GsTMDfastTNF3(void);
-extern void dmyGsTMDfastTG3L(void);
-extern void dmyGsTMDfastTG3LFG(void);
-extern void dmyGsTMDfastTG3NL(void);
-extern void GsTMDfastTNG3(void);
-extern void dmyGsTMDfastF4L(void);
-extern void dmyGsTMDfastF4LFG(void);
-extern void dmyGsTMDfastF4NL(void);
-extern void GsTMDfastNF4(void);
-extern void dmyGsTMDfastG4L(void);
-extern void dmyGsTMDfastG4LFG(void);
-extern void dmyGsTMDfastG4NL(void);
-extern void GsTMDfastNG4(void);
-extern void dmyGsTMDfastTF4L(void);
-extern void dmyGsTMDfastTF4LFG(void);
-extern void dmyGsTMDfastTF4NL(void);
-extern void GsTMDfastTNF4(void);
-extern void dmyGsTMDfastTG4L(void);
-extern void dmyGsTMDfastTG4LFG(void);
-extern void dmyGsTMDfastTG4NL(void);
-extern void GsTMDfastTNG4(void);
+extern unsigned char *dmyGsTMDfastF3L();
+extern unsigned char *dmyGsTMDfastF3LFG();
+extern unsigned char *dmyGsTMDfastF3NL();
+extern unsigned char *GsTMDfastNF3();
+extern unsigned char *dmyGsTMDfastG3L();
+extern unsigned char *dmyGsTMDfastG3LFG();
+extern unsigned char *dmyGsTMDfastG3NL();
+extern unsigned char *GsTMDfastNG3();
+extern unsigned char *GsTMDfastTF3L();
+extern unsigned char *GsTMDfastTF3LFG();
+extern unsigned char *dmyGsTMDfastTF3NL();
+extern unsigned char *GsTMDfastTNF3();
+extern unsigned char *dmyGsTMDfastTG3L();
+extern unsigned char *dmyGsTMDfastTG3LFG();
+extern unsigned char *dmyGsTMDfastTG3NL();
+extern unsigned char *GsTMDfastTNG3();
+extern unsigned char *dmyGsTMDfastF4L();
+extern unsigned char *dmyGsTMDfastF4LFG();
+extern unsigned char *dmyGsTMDfastF4NL();
+extern unsigned char *GsTMDfastNF4();
+extern unsigned char *dmyGsTMDfastG4L();
+extern unsigned char *dmyGsTMDfastG4LFG();
+extern unsigned char *dmyGsTMDfastG4NL();
+extern unsigned char *GsTMDfastNG4();
+extern unsigned char *dmyGsTMDfastTF4L();
+extern unsigned char *dmyGsTMDfastTF4LFG();
+extern unsigned char *dmyGsTMDfastTF4NL();
+extern unsigned char *GsTMDfastTNF4();
+extern unsigned char *dmyGsTMDfastTG4L();
+extern unsigned char *dmyGsTMDfastTG4LFG();
+extern unsigned char *dmyGsTMDfastTG4NL();
+extern unsigned char *GsTMDfastTNG4();
 
 extern s32 D_8008F7C8;
 extern s16 D_8008F7CC;
@@ -67,77 +64,77 @@ extern s16 D_8008F7CE;
 
 void jt_init4(void)
 {
-    GsFCALL4[0] = dmyGsTMDfastF3L;
-    GsFCALL4[1] = dmyGsTMDfastF3LFG;
-    GsFCALL4[2] = dmyGsTMDfastF3NL;
-    GsFCALL4[3] = dmyGsTMDfastF3L;
-    GsFCALL4[4] = dmyGsTMDfastF3LFG;
-    GsFCALL4[5] = dmyGsTMDfastF3NL;
-    GsFCALL4[6] = GsTMDfastNF3;
-    GsFCALL4[7] = GsA4divNF3;
+    GsFCALL4.f3[0][0] = dmyGsTMDfastF3L;
+    GsFCALL4.f3[0][1] = dmyGsTMDfastF3LFG;
+    GsFCALL4.f3[0][2] = dmyGsTMDfastF3NL;
+    GsFCALL4.f3[1][0] = dmyGsTMDfastF3L;
+    GsFCALL4.f3[1][1] = dmyGsTMDfastF3LFG;
+    GsFCALL4.f3[1][2] = dmyGsTMDfastF3NL;
+    GsFCALL4.nf3[0] = GsTMDfastNF3;
+    GsFCALL4.nf3[1] = GsA4divNF3;
 
-    GsFCALL4[8] = dmyGsTMDfastG3L;
-    GsFCALL4[9] = dmyGsTMDfastG3LFG;
-    GsFCALL4[10] = dmyGsTMDfastG3NL;
-    GsFCALL4[11] = dmyGsTMDfastG3L;
-    GsFCALL4[12] = dmyGsTMDfastG3LFG;
-    GsFCALL4[13] = dmyGsTMDfastG3NL;
-    GsFCALL4[14] = GsTMDfastNG3;
-    GsFCALL4[15] = GsA4divNG3;
+    GsFCALL4.g3[0][0] = dmyGsTMDfastG3L;
+    GsFCALL4.g3[0][1] = dmyGsTMDfastG3LFG;
+    GsFCALL4.g3[0][2] = dmyGsTMDfastG3NL;
+    GsFCALL4.g3[1][0] = dmyGsTMDfastG3L;
+    GsFCALL4.g3[1][1] = dmyGsTMDfastG3LFG;
+    GsFCALL4.g3[1][2] = dmyGsTMDfastG3NL;
+    GsFCALL4.ng3[0] = GsTMDfastNG3;
+    GsFCALL4.ng3[1] = GsA4divNG3;
 
-    GsFCALL4[16] = GsTMDfastTF3L;
-    GsFCALL4[17] = GsTMDfastTF3LFG;
-    GsFCALL4[18] = dmyGsTMDfastTF3NL;
-    GsFCALL4[19] = GsTMDfastTF3L;
-    GsFCALL4[20] = GsTMDfastTF3LFG;
-    GsFCALL4[21] = dmyGsTMDfastTF3NL;
-    GsFCALL4[22] = GsTMDfastTNF3;
-    GsFCALL4[23] = GsA4divTNF3;
+    GsFCALL4.tf3[0][0] = GsTMDfastTF3L;
+    GsFCALL4.tf3[0][1] = GsTMDfastTF3LFG;
+    GsFCALL4.tf3[0][2] = dmyGsTMDfastTF3NL;
+    GsFCALL4.tf3[1][0] = GsTMDfastTF3L;
+    GsFCALL4.tf3[1][1] = GsTMDfastTF3LFG;
+    GsFCALL4.tf3[1][2] = dmyGsTMDfastTF3NL;
+    GsFCALL4.ntf3[0] = GsTMDfastTNF3;
+    GsFCALL4.ntf3[1] = GsA4divTNF3;
 
-    GsFCALL4[24] = dmyGsTMDfastTG3L;
-    GsFCALL4[25] = dmyGsTMDfastTG3LFG;
-    GsFCALL4[26] = dmyGsTMDfastTG3NL;
-    GsFCALL4[27] = dmyGsTMDfastTG3L;
-    GsFCALL4[28] = dmyGsTMDfastTG3LFG;
-    GsFCALL4[29] = dmyGsTMDfastTG3NL;
-    GsFCALL4[30] = GsTMDfastTNG3;
-    GsFCALL4[31] = GsA4divTNG3;
+    GsFCALL4.tg3[0][0] = dmyGsTMDfastTG3L;
+    GsFCALL4.tg3[0][1] = dmyGsTMDfastTG3LFG;
+    GsFCALL4.tg3[0][2] = dmyGsTMDfastTG3NL;
+    GsFCALL4.tg3[1][0] = dmyGsTMDfastTG3L;
+    GsFCALL4.tg3[1][1] = dmyGsTMDfastTG3LFG;
+    GsFCALL4.tg3[1][2] = dmyGsTMDfastTG3NL;
+    GsFCALL4.ntg3[0] = GsTMDfastTNG3;
+    GsFCALL4.ntg3[1] = GsA4divTNG3;
 
-    GsFCALL4[32] = dmyGsTMDfastF4L;
-    GsFCALL4[33] = dmyGsTMDfastF4LFG;
-    GsFCALL4[34] = dmyGsTMDfastF4NL;
-    GsFCALL4[35] = dmyGsTMDfastF4L;
-    GsFCALL4[36] = dmyGsTMDfastF4LFG;
-    GsFCALL4[37] = dmyGsTMDfastF4NL;
-    GsFCALL4[38] = GsTMDfastNF4;
-    GsFCALL4[39] = GsA4divNF4;
+    GsFCALL4.f4[0][0] = dmyGsTMDfastF4L;
+    GsFCALL4.f4[0][1] = dmyGsTMDfastF4LFG;
+    GsFCALL4.f4[0][2] = dmyGsTMDfastF4NL;
+    GsFCALL4.f4[1][0] = dmyGsTMDfastF4L;
+    GsFCALL4.f4[1][1] = dmyGsTMDfastF4LFG;
+    GsFCALL4.f4[1][2] = dmyGsTMDfastF4NL;
+    GsFCALL4.nf4[0] = GsTMDfastNF4;
+    GsFCALL4.nf4[1] = GsA4divNF4;
 
-    GsFCALL4[40] = dmyGsTMDfastG4L;
-    GsFCALL4[41] = dmyGsTMDfastG4LFG;
-    GsFCALL4[42] = dmyGsTMDfastG4NL;
-    GsFCALL4[43] = dmyGsTMDfastG4L;
-    GsFCALL4[44] = dmyGsTMDfastG4LFG;
-    GsFCALL4[45] = dmyGsTMDfastG4NL;
-    GsFCALL4[46] = GsTMDfastNG4;
-    GsFCALL4[47] = GsA4divNG4;
+    GsFCALL4.g4[0][0] = dmyGsTMDfastG4L;
+    GsFCALL4.g4[0][1] = dmyGsTMDfastG4LFG;
+    GsFCALL4.g4[0][2] = dmyGsTMDfastG4NL;
+    GsFCALL4.g4[1][0] = dmyGsTMDfastG4L;
+    GsFCALL4.g4[1][1] = dmyGsTMDfastG4LFG;
+    GsFCALL4.g4[1][2] = dmyGsTMDfastG4NL;
+    GsFCALL4.ng4[0] = GsTMDfastNG4;
+    GsFCALL4.ng4[1] = GsA4divNG4;
 
-    GsFCALL4[48] = dmyGsTMDfastTF4L;
-    GsFCALL4[49] = dmyGsTMDfastTF4LFG;
-    GsFCALL4[50] = dmyGsTMDfastTF4NL;
-    GsFCALL4[51] = dmyGsTMDfastTF4L;
-    GsFCALL4[52] = dmyGsTMDfastTF4LFG;
-    GsFCALL4[53] = dmyGsTMDfastTF4NL;
-    GsFCALL4[54] = GsTMDfastTNF4;
-    GsFCALL4[55] = GsA4divTNF4;
+    GsFCALL4.tf4[0][0] = dmyGsTMDfastTF4L;
+    GsFCALL4.tf4[0][1] = dmyGsTMDfastTF4LFG;
+    GsFCALL4.tf4[0][2] = dmyGsTMDfastTF4NL;
+    GsFCALL4.tf4[1][0] = dmyGsTMDfastTF4L;
+    GsFCALL4.tf4[1][1] = dmyGsTMDfastTF4LFG;
+    GsFCALL4.tf4[1][2] = dmyGsTMDfastTF4NL;
+    GsFCALL4.ntf4[0] = GsTMDfastTNF4;
+    GsFCALL4.ntf4[1] = GsA4divTNF4;
 
-    GsFCALL4[56] = dmyGsTMDfastTG4L;
-    GsFCALL4[57] = dmyGsTMDfastTG4LFG;
-    GsFCALL4[58] = dmyGsTMDfastTG4NL;
-    GsFCALL4[59] = dmyGsTMDfastTG4L;
-    GsFCALL4[60] = dmyGsTMDfastTG4LFG;
-    GsFCALL4[61] = dmyGsTMDfastTG4NL;
-    GsFCALL4[62] = GsTMDfastTNG4;
-    GsFCALL4[63] = GsA4divTNG4;
+    GsFCALL4.tg4[0][0] = dmyGsTMDfastTG4L;
+    GsFCALL4.tg4[0][1] = dmyGsTMDfastTG4LFG;
+    GsFCALL4.tg4[0][2] = dmyGsTMDfastTG4NL;
+    GsFCALL4.tg4[1][0] = dmyGsTMDfastTG4L;
+    GsFCALL4.tg4[1][1] = dmyGsTMDfastTG4LFG;
+    GsFCALL4.tg4[1][2] = dmyGsTMDfastTG4NL;
+    GsFCALL4.ntg4[0] = GsTMDfastTNG4;
+    GsFCALL4.ntg4[1] = GsA4divTNG4;
 
     D_8008F7C8 = 0x25A;
     D_8008F7CC = 0x200;
