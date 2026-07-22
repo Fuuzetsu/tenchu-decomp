@@ -13,12 +13,10 @@ extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
 extern u16 D_80086B6C[8];
 
-extern short Sound(Humanoid *human, s16 seid);
 extern int ReqLifeBar(Humanoid *h);
 extern void DeleteConflict(ModelType *model);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern void reset_alert_duration(void);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void AttackCancelControl(s16 mode);
 extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect, s16 n);
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);

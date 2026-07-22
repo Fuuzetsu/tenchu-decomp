@@ -56,7 +56,6 @@
  */
 
 extern SVECTOR D_80097C48[];
-extern short SoundEx(VECTOR *locate, s32 seid);
 
 void ProcMiscFire(TMisc *m, TMiscMessage msg)
 {

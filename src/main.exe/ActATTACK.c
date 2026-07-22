@@ -101,7 +101,6 @@ extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern s16 InsertConflict(ModelType *model);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
@@ -109,7 +108,6 @@ extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
-extern short Sound(Humanoid *human, s16 seid);
 extern void DeleteConflict();
 
 void ActATTACK(void)

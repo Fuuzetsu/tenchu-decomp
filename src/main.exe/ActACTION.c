@@ -45,8 +45,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern short Sound(Humanoid *human, s16 seid);
 
 void ActACTION(void)
 {

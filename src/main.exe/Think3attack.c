@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
 
@@ -51,7 +52,6 @@ extern s16 atkd[4];
 
 extern s16 SuccessionAttack(s32 dist, s16 degree);
 extern s16 SetCommand(PADtype *pad, s16 command);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern s16 ItemUse(void);
 
 s16 Think3attack(void)

@@ -82,7 +82,6 @@ extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern short HangCheck(void);
-extern short Sound(Humanoid *human, int seid);
 extern void MoveHumanoid(Humanoid *h, short a, short b);
 
 void ActHANG(void)

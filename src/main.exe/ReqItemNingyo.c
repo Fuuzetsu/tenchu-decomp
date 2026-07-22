@@ -87,7 +87,6 @@
  *    those fields preserves the original `sb` stores at offsets 0xC/0xD.
  */
 extern void ProcItemNingyo(TItem *item);
-extern short SetNowMotion(Humanoid *human, s32 mid, s32 move);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 extern s32 COUNTER_FOR_ITEM_ARRAY_;

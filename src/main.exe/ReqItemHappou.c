@@ -109,8 +109,6 @@
  *    differs.
  */
 extern void ProcItemHappou(TItem *item);
-extern short SetNowMotion(Humanoid *human, s32 mid, s32 move);
-extern short Sound(Humanoid *human, int seid);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);

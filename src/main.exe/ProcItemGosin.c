@@ -61,8 +61,6 @@
 
 #include "item.h"
 
-extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern short Sound(Humanoid *human, int seid);
 /* Retail's caller promotes these scalar arguments before the call. */
 extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
                          s32 start_size, s32 end_size,

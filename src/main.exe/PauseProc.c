@@ -94,7 +94,6 @@ extern void CheckCheatCodes(s16 *rec, int n);
 extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
-extern short Sound(Humanoid *human, int seid);
 
 extern TSystemFlag SystemFlag;
 extern u16 Findenemies;

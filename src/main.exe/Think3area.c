@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
 
@@ -60,7 +61,6 @@ extern s16 SuccessionAttack(s32 distance, s16 degree);
 extern s16 Think3attack(void);
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern s16 SetCommand(PADtype *pad, s16 command);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 s16 Think3area(void)
 {

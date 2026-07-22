@@ -55,12 +55,10 @@ extern s16 motMODE;
 extern u16 RefrectVector[16];
 
 extern short UpdateMotion(MotionManager *mmp, short mid);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
                              long wide, int mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
-extern short Sound(Humanoid *human, short seid);
 extern void PadShockAR(short port, short power, short time, short mode);
 
 /* Jump-state motion, collision response, air steering, and landing control. */

@@ -30,11 +30,9 @@ extern Humanoid *Me_MOTION_C;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
-extern short Sound(Humanoid *human, s16 seid);
 extern short HangCheck(void);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 extern void JumpControl(void);
-extern short SoundEx(VECTOR *locate, s16 seid);
 
 void ActMOVE(void)
 {

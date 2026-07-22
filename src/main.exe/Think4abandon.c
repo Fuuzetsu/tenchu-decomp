@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
 
@@ -80,8 +81,6 @@ extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
-extern short Sound(Humanoid *human, int seid);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern int rand(void);
 
 s16 Think4abandon(void)

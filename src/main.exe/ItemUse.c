@@ -66,7 +66,6 @@
  * first statement" trick; here the assignment genuinely precedes the
  * test in source, per Ghidra's own literal order).
  */
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern s16 Degree;
 
 static s16 ItemUse(void)

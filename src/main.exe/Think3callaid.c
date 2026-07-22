@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "game_globals.h"
 #include "appear.h"
 #include "item.h"
@@ -133,7 +134,6 @@ extern think_func_ *Think4Func[];
 extern int rand(void);
 extern s16 Think3escape(void);
 extern void KillHumanoid(Humanoid *human);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 short Think3callaid(void)
 {

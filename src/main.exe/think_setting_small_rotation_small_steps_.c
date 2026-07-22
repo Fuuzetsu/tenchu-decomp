@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "game_globals.h"
 #include "appear.h"
 #include "item.h"
@@ -28,8 +29,6 @@ extern think_func_ *Think4Func[];
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern s16 GetDirection(s32 x_diff, s32 z_diff, s16 rotation);
 extern int rand(void);
-extern short Sound(Humanoid *human, s16 seid);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 /*
  * `nextState` intentionally carries each condition and its eventual result.

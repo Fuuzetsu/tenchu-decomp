@@ -59,10 +59,8 @@ extern s16 motID;
 extern s16 dtPAD;
 extern s16 motMODE;
 
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
-extern short Sound(Humanoid *human, s16 seid);
 extern int ReqLifeBar(Humanoid *h);
 
 void ActSTATE(void)

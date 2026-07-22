@@ -27,7 +27,6 @@
  * END PSX.SYM */
 
 
-extern short Sound(Humanoid *human, s32 seid);
 extern void *memset(void *s, int c, u32 n);
 
 void DrawFlyWire(TEffectSlot *ef)

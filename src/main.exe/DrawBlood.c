@@ -93,7 +93,6 @@ extern GsSPRITE sprBlood[];
 extern GsSPRITE sprBlood2[];
 
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
-extern short SoundEx(VECTOR *locate, int seid);
 extern void *memset(void *dst, int value, u32 size);
 
 void DrawBlood(TEffectSlot *ef)

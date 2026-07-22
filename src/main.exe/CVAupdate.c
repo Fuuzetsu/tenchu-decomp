@@ -75,7 +75,6 @@ extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
 extern Humanoid *GetHumanoid(s16 type);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern int ReqLifeBar(Humanoid *h);
 extern void CdaStop(void);

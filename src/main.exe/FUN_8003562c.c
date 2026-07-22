@@ -33,7 +33,6 @@ typedef union FUN_8003562cScratch
 extern GsSPRITE sprBlood[4];
 extern GsSPRITE sprBlood2[4];
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
-extern short SoundEx(VECTOR *locate, int seid);
 extern void DrawBleed(TEffectSlot *ef);
 
 /*

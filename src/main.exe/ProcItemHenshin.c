@@ -71,8 +71,6 @@ extern SVECTOR D_80097AF4[];
 extern HenshinModelSnapshot D_800C0630;
 extern HenshinModelSnapshot D_800C06F0;
 
-extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern short Sound(Humanoid *human, s32 seid);
 
 void ProcItemHenshin(TItem *item)
 {

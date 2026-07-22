@@ -8,8 +8,6 @@ extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 GetDirection(s32 dx, s32 dz, s16 roty);
 extern VECTOR *GetAreaMapPassage(u32 *area, VECTOR *pos, SVECTOR *vect,
                                  s16 scale);
-extern short Sound(Humanoid *human, s16 seid);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 
 /*
  * register_character_death (0x8002bcb8) periodically chooses another live

@@ -47,8 +47,6 @@ extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
 extern short SwimCheck(void);
-extern short Sound(Humanoid *human, s16 seid);
-extern short SoundEx(VECTOR *locate, s16 seid);
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
 
 void ActSWIM(void)

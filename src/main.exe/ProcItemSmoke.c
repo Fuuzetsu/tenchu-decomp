@@ -93,7 +93,6 @@
 extern SVECTOR D_80097AD8[];
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
-extern short Sound(Humanoid *human, int seid);
 
 void ProcItemSmoke(TItem *item)
 {

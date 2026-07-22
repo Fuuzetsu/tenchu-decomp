@@ -52,7 +52,6 @@
  */
 extern Humanoid *Me_MOTION_C;
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
-extern short Sound(Humanoid *human, int seid);
 
 void AttackGunControl(s16 length, s16 frm)
 {

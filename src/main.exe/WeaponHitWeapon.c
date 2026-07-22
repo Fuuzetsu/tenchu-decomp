@@ -51,7 +51,6 @@
 extern Humanoid *Me_MOTION_C;
 
 extern short GetConflictResult(ModelType *model, short index);
-extern short Sound(Humanoid *human, int seid);
 extern void PadShockAR(s32 a, s32 b, s32 c, s32 d);
 
 void WeaponHitWeapon(ModelType *hand)

@@ -101,7 +101,6 @@
 
 extern s16 D_80097714[]; /* byte-addressed; {min,max} pairs, stride 4 */
 extern Humanoid *Me_MOTION_C;
-extern short Sound(Humanoid *human, int seid);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern short DrawOrnament(OrnamentType *objp);

@@ -66,7 +66,6 @@ extern s16 motMODE;
 extern s32 D_80097F1C;
 
 extern void MoveHumanoid(Humanoid *human, s16 order, s16 side);
-extern short Sound(Humanoid *human, s16 seid);
 extern void AttackControl(void);
 extern MapVector *StickonCheck(void);
 

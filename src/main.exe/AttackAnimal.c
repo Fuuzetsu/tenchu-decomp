@@ -75,13 +75,11 @@
  *    branches and leaves it alone in the other 2 (the `== 0x1e` Sound
  *    branch and the implicit `>= 0x5a` else) — write it exactly as Ghidra's
  *    ladder shows, no `else` needed for the last arm.
- *  - `Sound` is called with `Me_THINK_C` (`Humanoid *`), NOT
- *    item.h's `Humanoid *` — this TU's own view of the object (same
- *    per-TU-prototype convention as every other Sound call site).
+ *  - `Sound` takes the shared `Humanoid *` and original signed-short sound
+ *    id declaration from humanoid.h.
  */
 extern s32 Distance;
 extern s16 Degree;
-extern short Sound(Humanoid *human, int seid);
 
 short AttackAnimal(void)
 {

@@ -80,7 +80,6 @@ extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void DeleteConflict(ModelType *model);
 extern void TurnAroundAllItems(Humanoid *human);
 extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
-extern short Sound(Humanoid *human, s16 seid);
 extern int ReqLifeBar(Humanoid *h);
 extern void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position,
                         SVECTOR *vector);

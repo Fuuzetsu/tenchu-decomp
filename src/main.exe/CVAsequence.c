@@ -66,7 +66,6 @@ extern void PadProc(void);
 extern void PlayMusicFormID(s32 id);
 extern s32 CdaGetCurrentLength(void);
 extern s16 CVArun(void);
-extern short SetNowMotion(Humanoid *human, short mid, short move);
 extern void CdaStop(void);
 
 s16 CVAsequence(s16 sid)

@@ -32,9 +32,7 @@ extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
 extern int rand(void);
-extern short Sound(Humanoid *human, s16 seid);
 extern void JumpControl(void);
-extern short SoundEx(VECTOR *locate, s16 seid);
 
 void ActNORMAL(void)
 {

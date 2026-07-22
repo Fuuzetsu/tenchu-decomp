@@ -100,7 +100,6 @@ extern void LoadTIM(unsigned long *adr);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);
 extern void FUN_8004f6c0(int arg);
-extern short SoundEx(VECTOR *locate, int seid);
 extern short DrawBG(BackGround *bg);
 extern void PutNumber(int x, int y, int n);
 extern void PutItemIcon(int id, int x, int y, int scale);

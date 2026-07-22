@@ -39,11 +39,8 @@
  * turn_towards_player_; when it returns 0 (facing the target already),
  * resets actcnt to 0 and forces the result to 0x80 instead.
  *
- * GetNearestHumanoid is respelled `Humanoid *` here (not `Humanoid
- * *`) to match this TU's `Me_THINK_C`/`Me_THINK_C->some_kind_of_current_-
- * position` — same per-TU extern-parameter respelling as AttackAnimal.c's
- * `Sound(Humanoid *human, int seid)` (item.h's own `Humanoid` describes
- * the identical layout for the item TU's callers).
+ * GetNearestHumanoid uses the shared `Humanoid *` view, matching this TU's
+ * `Me_THINK_C` and the character APIs in humanoid.h.
  *
  * The null check reads OPPOSITE of Ghidra's literal `if (enemy == 0)
  * {random} else {real}` rendering: the asm's `beqz` branches to the

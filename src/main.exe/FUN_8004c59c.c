@@ -87,7 +87,6 @@ typedef struct
     u8 sndIdx; /* 0x08 (m->param+0x08) */
 } Schedule;
 
-extern short SoundEx(VECTOR *locate, s32 seid);
 extern s32 rand(void);
 extern void *memset(void *dst, s32 c, u32 n);
 

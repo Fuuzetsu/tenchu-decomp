@@ -74,8 +74,6 @@
 
 
 
-extern short SetNowMotion(Humanoid *human, short mid, short move);
-extern short Sound(Humanoid *human, s32 seid);
 extern void FUN_80033bc0(VECTOR *pos, s32 spread, s32 divisor, s32 count);
 extern s32 GetAreaMapVector(u_long *area, MapVector *map,
                             VECTOR *position, s32 width, s32 mode);
