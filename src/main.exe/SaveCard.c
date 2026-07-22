@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "memcard.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -70,7 +71,7 @@ extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 {
     u8 fn[200];
-    u8 block[0x2000];
+    u8 block[BLOCKSIZE];
     s32 cmd;
     s32 result;
     s32 chan;
@@ -105,7 +106,7 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     if ((result == 0 || result == 6) && write_data != 0)
     {
         memcpy(data, mem, size);
-        result = MemCardWriteFile(chan, fn, block, 0, 0x2000);
+        result = MemCardWriteFile(chan, fn, block, 0, BLOCKSIZE);
         MemCardSync(0, &cmd, &result);
     }
     return result;

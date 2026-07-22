@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "memcard.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -49,22 +50,23 @@ extern int sprintf(char *buf, char *fmt, ...);
 /*
  * The two apparent Ghidra buffers are one 8 KiB card block: the card header
  * occupies its first 0x200 bytes and the persistent payload begins at
- * block+0x200.  Assigning that payload as one 0xe70-byte struct reproduces
+ * `block + sizeof(TCardHeader)`. Assigning that payload as one 0xe70-byte
+ * struct reproduces
  * the compiler's aligned/unaligned copy-loop pair.
  */
 s16 LoadCard(s32 target, u8 *name)
 {
     void *temp;
     u8 fn[200];
-    u8 block[0x2000];
+    u8 block[BLOCKSIZE];
     s32 cmd;
     s32 result;
 
-    temp = valloc(0x2000);
+    temp = valloc(BLOCKSIZE);
     result = MemCardAccept(0);
     MemCardSync(0, &cmd, &result);
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
-    result = MemCardReadFile(0, fn, block, 0, 0x2000);
+    result = MemCardReadFile(0, fn, block, 0, BLOCKSIZE);
     MemCardSync(0, &cmd, &result);
     if (result != 0)
     {
@@ -74,7 +76,7 @@ s16 LoadCard(s32 target, u8 *name)
     else
     {
         *(LoadCardPersistentBlob *)TENCHU_PERSISTENT_STATE_ADDRESS =
-            *(LoadCardPersistentBlob *)(block + 0x200);
+            *(LoadCardPersistentBlob *)(block + sizeof(TCardHeader));
     }
     vfree(temp);
     return result;
