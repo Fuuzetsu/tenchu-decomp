@@ -232,15 +232,16 @@ set_target:
 
             if (ownerlen < 500)
             {
-                PARAM_ITEM_LAUNCH drop;
-                drop.type = item->type;
-                    drop.user = item->owner;
-                    drop.start.vx = item->locate->locate.coord.t[0];
-                    drop.start.vy = item->locate->locate.coord.t[1];
-                    drop.start.vz = item->locate->locate.coord.t[2];
-                    drop.end.vx = 0;
-                    drop.end.vy = 0;
-                    drop.end.vz = 0;
+                PARAM_ITEM_LAUNCH param;
+
+                param.type = item->type;
+                param.user = item->owner;
+                param.start.vx = item->locate->locate.coord.t[0];
+                param.start.vy = item->locate->locate.coord.t[1];
+                param.start.vz = item->locate->locate.coord.t[2];
+                param.end.vx = 0;
+                param.end.vy = 0;
+                param.end.vz = 0;
                 if (item->proc != 0)
                 {
                     item->mode = ITEM_MODE_DISPOSE;
@@ -254,7 +255,7 @@ set_target:
                     item->owner = 0;
                     item->proc = 0;
                 }
-                ReqItemDrop(&drop);
+                ReqItemDrop(&param);
                 return;
             }
 
