@@ -40,7 +40,7 @@
 /*
  * ReqItemLightningBolt (0x80046358) — spawn a "lightning bolt" item. Twin of
  * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemKaengeki/ReqItemMakibishi
- * (same item TU, same pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the
+ * (same item TU, same pool round-robin on ic and the
  * same dispose-on-exhaustion block); like ReqItemJirai/ReqItemKaengeki there
  * is no GetAreaMapLevel floor check. It gets ProcItemLightningBolt as its
  * processor.
@@ -54,7 +54,7 @@
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemMakibishi: `cur = items
- *    + COUNTER_FOR_ITEM_ARRAY_;` in the loop/dispose block, `it = cur;`
+ *    + ic;` in the loop/dispose block, `it = cur;`
  *    assigned once in the early-exit branch and once before the dispose
  *    block's final owner/proc zeroing — this function's register pressure
  *    (stack rotation outputs + pp + it + p all live around the tail) pushes
@@ -74,10 +74,8 @@
  *    loads-before-stores, the same shape as the other twins' x/y/z temps).
  */
 extern void ProcItemLightningBolt(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Model pointer per item type. */
 
 int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
 {
@@ -94,10 +92,10 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        cur = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        cur = items + ic;
         if (cur->proc == 0)
         {
             it = cur;

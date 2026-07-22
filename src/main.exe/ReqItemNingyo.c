@@ -45,7 +45,7 @@
  * ReqItemNingyo (0x800429f0) — spawn a "ningyo" (doll/puppet decoy?) item.
  * Twin of ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemKaengeki/
  * ReqItemMakibishi/ReqItemLightningBolt (same item TU, same pool round-robin
- * on COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion block); like
+ * on ic and the same dispose-on-exhaustion block); like
  * ReqItemJirai/ReqItemDokudango there is no GetAreaMapLevel floor check. It
  * gets ProcItemNingyo as its processor, packs the end vector into the
  * embedded param_ningyo.koro record, initializes count and hp, randomizes
@@ -87,10 +87,8 @@
  *    those fields preserves the original `sb` stores at offsets 0xC/0xD.
  */
 extern void ProcItemNingyo(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Model pointer per item type. */
 
 int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
 {
@@ -107,10 +105,10 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             goto found;
         i++;

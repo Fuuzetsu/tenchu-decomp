@@ -5,15 +5,19 @@
  * Shared types + externs of the original item translation unit (ProcItem*,
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
  * is proven by a byte-matched function (see docs/matching-cookbook.md).
- * gp note: this TU defines COUNTER_FOR_ITEM_ARRAY_ (gp-relative; listed in
- * Build.hs maspsxGpExterns for the files that touch it). ITEM.C's references
- * to ActionHalt/FRAMES_UNTIL_END_OF_ALERT are absolute (gp in think's TU).
+ * gp note: the original ITEM.C translation unit defines ic (gp-relative;
+ * listed in Build.hs maspsxGpExterns for the files that touch it). Its
+ * references to ActionHalt/FRAMES_UNTIL_END_OF_ALERT are absolute (gp in
+ * think's TU).
  */
 
 typedef struct tag_TItem TItem;
 
 struct AreaNodeType;
 struct AfterimageType;
+
+/* ITEM.C's original file-static round-robin item-pool cursor. */
+extern s32 ic;
 
 /* THINK_4.C's original short-returning dispatch tables. PSX.SYM supplies
  * both their element type and exact bounds; Humanoid stores one selected

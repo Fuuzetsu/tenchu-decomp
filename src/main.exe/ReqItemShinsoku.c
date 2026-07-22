@@ -40,7 +40,7 @@
  * ReqItemShinsoku (0x8003fde0) — spawn a "shinsoku" (instant-movement /
  * fire?) item. Twin of ReqItemDrop/ReqItemJirai/ReqItemSmoke/ReqItemFire/
  * ReqItemDokudango (same item TU, same pool round-robin on
- * COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion block); like
+ * ic and the same dispose-on-exhaustion block); like
  * ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango there is no
  * GetAreaMapLevel floor check. It gets ProcItemShinsoku as its processor, but
  * differs from every other twin in three ways (all confirmed against the
@@ -67,9 +67,8 @@
  *  - Only `vec` is initialized here; `count` is left for the processor.
  */
 extern void ProcItemShinsoku(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
 {
@@ -83,10 +82,10 @@ int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             goto found;
         i++;

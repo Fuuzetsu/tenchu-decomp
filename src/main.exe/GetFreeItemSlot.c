@@ -12,7 +12,7 @@
 
 /*
  * GetFreeItemSlot (0x8004a42c) — allocate a free slot from items[] via the same
- * round-robin counter as ReqItemDrop (COUNTER_FOR_ITEM_ARRAY_): if the slot
+ * round-robin counter as ReqItemDrop (ic): if the slot
  * the counter lands on is free (proc == 0) it's returned immediately;
  * otherwise the counter advances and retries up to 0x1d times, and if the
  * whole pool stays busy the slot the counter last landed on is force-disposed
@@ -34,7 +34,6 @@
  *    drop-specific code after the loop, cc1 emits the return-value move in
  *    the branch's own delay slot instead of falling into shared code.
  */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 TItem *GetFreeItemSlot(void)
 {
@@ -44,10 +43,10 @@ TItem *GetFreeItemSlot(void)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             return it;
         i++;

@@ -42,7 +42,7 @@
  * ReqItemNemuri (0x80045f40) — spawn a thrown sleep-gas ("nemuri") item. Twin
  * of ReqItemDrop/ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango/
  * ReqItemShinsoku (same item TU, same pool round-robin on
- * COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion block); like
+ * ic and the same dispose-on-exhaustion block); like
  * ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango/ReqItemShinsoku there
  * is no GetAreaMapLevel floor check. It gets ProcItemNemuri as its processor,
  * but differs from the rolling-item twins (Jirai/Smoke/Fire) in
@@ -74,9 +74,8 @@
  *    `li $v0,1` materialized before the tail jump.
  */
 extern void ProcItemNemuri(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *it;
@@ -89,10 +88,10 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             goto found;
         i++;

@@ -40,7 +40,7 @@
 /*
  * ReqItemArrow (0x800480c4) — spawn a homing/auto-aim arrow. Twin of
  * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemLaunch (same item TU, same
- * pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
+ * pool round-robin on ic and the same
  * dispose-on-exhaustion block); like ReqItemLaunch, `it->model` is a FIXED
  * global (ArrowModel, gp-relative in this TU like ReqItemLaunch's
  * SyurikenModel) rather than ItemImage[it->type], and the tail hands off to
@@ -85,9 +85,8 @@ extern void ProcItemArrow(TItem *item);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
@@ -111,10 +110,10 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        cur = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        cur = items + ic;
         if (cur->proc == 0)
         {
             it = cur;

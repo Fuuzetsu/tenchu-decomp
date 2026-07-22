@@ -45,7 +45,7 @@
 /*
  * ReqItemDrop (0x8003e8ac) — spawn a dropped/tossed item (called e.g. by
  * ProcItemKusuri when the drink is interrupted). Round-robins through the
- * items[] pool (COUNTER_FOR_ITEM_ARRAY_, this TU's own gp-relative counter);
+ * items[] pool (ITEM.C's gp-relative `ic` counter);
  * if all 0x1d slots are busy it force-disposes the current one (the same
  * dispose block as the ProcItem* functions). The drop lands only if the area
  * map has floor at the start position; the item then gets ProcItemDrop as its
@@ -66,10 +66,8 @@
  *    now resolves against this object (R_MIPS_26), and both share item.h.
  */
 extern void ProcItemDrop(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Model pointer per item type. */
 
 int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
 {
@@ -86,10 +84,10 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             goto found;
         i++;

@@ -42,7 +42,7 @@
  * ReqItemLaunch (0x80047738) — spawn a "launch" (catapulted/thrown-and-flying)
  * item. Twin of ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemKaengeki/
  * ReqItemMakibishi/ReqItemLightningBolt/ReqItemNingyo (same item TU, same
- * pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
+ * pool round-robin on ic and the same
  * dispose-on-exhaustion block); like ReqItemJirai/ReqItemDokudango there is
  * no GetAreaMapLevel floor check. It gets ProcItemLaunch as its processor.
  *
@@ -61,7 +61,7 @@
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - Same `cur`/`it` two-pseudo pool search as ReqItemMakibishi/
- *    ReqItemLightningBolt: `cur = items + COUNTER_FOR_ITEM_ARRAY_;` in the
+ *    ReqItemLightningBolt: `cur = items + ic;` in the
  *    loop/dispose block, `it = cur;` assigned once in the early-exit branch
  *    and once before the dispose block's final owner/proc zeroing (`st`
  *    surviving to the SetupFly call raises register pressure here too).
@@ -97,9 +97,8 @@
  */
 extern void ProcItemLaunch(TItem *item);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
@@ -115,10 +114,10 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        cur = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        cur = items + ic;
         if (cur->proc == 0)
         {
             it = cur;

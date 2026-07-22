@@ -43,7 +43,7 @@
 /*
  * ReqItemNinken (0x800446d0) — spawn a ninken (tracker dog) item. Twin of
  * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemSmoke/ReqItemFire (same
- * item TU, same pool round-robin on COUNTER_FOR_ITEM_ARRAY_ and the same
+ * item TU, same pool round-robin on ic and the same
  * dispose-on-exhaustion block); like its siblings there is no
  * GetAreaMapLevel floor check. It gets ProcItemNinken as its processor, packs
  * the throw velocity into the embedded param_ninken.koro record but — unlike
@@ -64,10 +64,8 @@
  *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemNinken(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Model pointer per item type. */
 
 int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
 {
@@ -83,10 +81,10 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             goto found;
         i++;

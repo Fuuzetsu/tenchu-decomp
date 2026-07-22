@@ -236,7 +236,7 @@ def family(name):
     if re.match(r"^(ReqItem|ProcItem)", name):
         return ("item TU", "item.h",
                 "takes PARAM_ITEM_USE *p (type@0, user@4, start@8, end@0x18) and "
-                "gp-addresses COUNTER_FOR_ITEM_ARRAY_")
+                "gp-addresses ic")
     return (None, None, None)
 
 

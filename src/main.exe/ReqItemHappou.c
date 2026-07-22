@@ -43,7 +43,7 @@
  * ReqItemHappou (0x80044b18) — fire an 8-shot "happou" volley (8 homing
  * projectiles fanned out by a random jitter on the aim direction). Twin of
  * ReqItemArrow/ReqItemLaunch (same item TU, same pool round-robin on
- * COUNTER_FOR_ITEM_ARRAY_, same dispose-on-exhaustion block, same
+ * ic, same dispose-on-exhaustion block, same
  * cur/it two-pseudo pool search, same SetupFly+SetupAfterimage tail as
  * ReqItemLaunch); unlike every other twin the OUTER shape is a
  * while(1)+break loop firing the whole allocate-and-launch sequence 8 times
@@ -60,7 +60,7 @@
  *    constant `for`/`while` would be) because loop.c only rotates a
  *    `NOTE_INSN_LOOP_BEG` immediately followed by a simplejump — the
  *    condjump-first shape here keeps the top test AND still gets invariant
- *    hoisting: `items + COUNTER_FOR_ITEM_ARRAY_`'s `&items[0]` half is
+ *    hoisting: `items + ic`'s `&items[0]` half is
  *    hoisted all the way past BOTH loop levels (computed once, before the
  *    outer loop, from the same unmodified `cur = items + COUNTER...;`
  *    expression the single-shot twins use — no separate cached-base
@@ -113,9 +113,8 @@ extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern int rand(void);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
@@ -145,10 +144,10 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         i = 0;
         do
         {
-            COUNTER_FOR_ITEM_ARRAY_++;
-            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-                COUNTER_FOR_ITEM_ARRAY_ = 0;
-            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            ic++;
+            if (0x1d < ic)
+                ic = 0;
+            cur = items + ic;
             if (cur->proc == 0)
             {
                 it = cur;

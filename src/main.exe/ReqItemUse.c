@@ -224,7 +224,6 @@
 
 #include "item.h"
 
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
 extern VECTOR D_80012258[];
@@ -343,10 +342,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             i = 0;
             do
             {
-                COUNTER_FOR_ITEM_ARRAY_++;
-                if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-                    COUNTER_FOR_ITEM_ARRAY_ = 0;
-                cur = items + COUNTER_FOR_ITEM_ARRAY_;
+                ic++;
+                if (0x1d < ic)
+                    ic = 0;
+                cur = items + ic;
                 if (cur->proc == 0)
                 {
                     it = cur;
@@ -745,10 +744,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         sz = (s32)items;
         do
         {
-            COUNTER_FOR_ITEM_ARRAY_++;
-            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-                COUNTER_FOR_ITEM_ARRAY_ = 0;
-            z = COUNTER_FOR_ITEM_ARRAY_ * sizeof(*items);
+            ic++;
+            if (0x1d < ic)
+                ic = 0;
+            z = ic * sizeof(*items);
             cur = (TItem *)(z + sz);
             if (cur->proc == 0)
             {
@@ -834,10 +833,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         i = 0;
         do
         {
-            COUNTER_FOR_ITEM_ARRAY_++;
-            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-                COUNTER_FOR_ITEM_ARRAY_ = 0;
-            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            ic++;
+            if (0x1d < ic)
+                ic = 0;
+            cur = items + ic;
             if (cur->proc == 0)
             {
                 it = cur;
@@ -954,10 +953,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         i = 0;
         do
         {
-            COUNTER_FOR_ITEM_ARRAY_++;
-            if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-                COUNTER_FOR_ITEM_ARRAY_ = 0;
-            cur = items + COUNTER_FOR_ITEM_ARRAY_;
+            ic++;
+            if (0x1d < ic)
+                ic = 0;
+            cur = items + ic;
             if (cur->proc == 0)
             {
                 it = cur;

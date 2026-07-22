@@ -43,7 +43,7 @@
 /*
  * ReqItemJirai (0x80048958) — spawn a placed landmine/trap item ("jirai").
  * Twin of ReqItemDrop (same item TU, same pool round-robin on
- * COUNTER_FOR_ITEM_ARRAY_ and the same dispose-on-exhaustion block); unlike
+ * ic and the same dispose-on-exhaustion block); unlike
  * ReqItemDrop there is no GetAreaMapLevel floor check — a jirai is placed
  * unconditionally. It gets ProcItemJirai as its processor and the trigger
  * velocity packed into param (param_korogari view, same union member
@@ -62,10 +62,8 @@
  *    `param`) for this one store, same as ReqItemDrop.
  */
 extern void ProcItemJirai(TItem *item);
-/* This TU defines the counter (gp-relative): listed in Build.hs
+/* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
-extern s32 COUNTER_FOR_ITEM_ARRAY_;
-/* Model pointer per item type. */
 
 int ReqItemJirai(PARAM_ITEM_LAUNCH *p)
 {
@@ -82,10 +80,10 @@ int ReqItemJirai(PARAM_ITEM_LAUNCH *p)
     i = 0;
     do
     {
-        COUNTER_FOR_ITEM_ARRAY_++;
-        if (0x1d < COUNTER_FOR_ITEM_ARRAY_)
-            COUNTER_FOR_ITEM_ARRAY_ = 0;
-        it = items + COUNTER_FOR_ITEM_ARRAY_;
+        ic++;
+        if (0x1d < ic)
+            ic = 0;
+        it = items + ic;
         if (it->proc == 0)
             goto found;
         i++;
