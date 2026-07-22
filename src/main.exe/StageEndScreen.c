@@ -63,7 +63,6 @@ extern s16 D_8008ED50[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
-extern void PadShockAR(s32 port, s32 time, s32 left, s32 right);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);
 extern ScoreStats *init_score_stats(ScoreStats *stats);

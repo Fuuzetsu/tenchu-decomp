@@ -6,6 +6,7 @@
 #include "ram_layout.h"
 
 extern void PadProc(void);
+extern void PadShockAR(int port, int pow, int attack, int release);
 extern TPadPort PadPort[2][4];
 extern unsigned short *Command[12];
 extern unsigned char ComBuf[2][34];

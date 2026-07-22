@@ -56,7 +56,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
-extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 extern void TurnAroundAllItems(Humanoid *human);

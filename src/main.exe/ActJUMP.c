@@ -59,7 +59,6 @@ extern long GetAreaMapVector(unsigned long *area, MapVector *mvp, VECTOR *pos,
                              long wide, int mode);
 extern void MoveHumanoid(Humanoid *human, short front, short side);
 extern void GetMoveSpeed(SVECTOR *speed, long ry, long front, long side);
-extern void PadShockAR(short port, short power, short time, short mode);
 
 /* Jump-state motion, collision response, air steering, and landing control. */
 void ActJUMP(void)

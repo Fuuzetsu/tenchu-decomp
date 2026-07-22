@@ -60,7 +60,6 @@ extern s16 D_80097CCC;
 extern void *memset(void *s, int c, u32 n);
 extern void dispose_weapon_data_of_char_(Humanoid *human, s32 mode);
 extern s16 CVAupdate(void);
-extern void PadShockAR(s32 port, s32 low, s32 high, s32 time);
 extern void PadShock(s32 port, s32 power, s32 time);
 extern void PadProc(void);
 extern void PlayMusicFormID(s32 id);

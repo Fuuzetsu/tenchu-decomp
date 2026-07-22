@@ -33,7 +33,6 @@ extern char D_800137A0[];
 extern char *GOV_RESOURCE_PREFIX_PTRS[];
 extern char *GOV_ARCHIVE_PTRS[];
 
-extern void PadShockAR(s32 port, s32 duration, s32 strength, s32 delay);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
 extern void FUN_80038ce0(void);
 extern s32 VSync(s32 mode);

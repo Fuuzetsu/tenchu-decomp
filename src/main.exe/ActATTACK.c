@@ -103,7 +103,6 @@ extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void GetMoveSpeed(SVECTOR *vect, s16 ry, s16 order, s16 side);
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
-extern void PadShockAR(s32 port, s32 power, s32 attack, s32 release);
 extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);

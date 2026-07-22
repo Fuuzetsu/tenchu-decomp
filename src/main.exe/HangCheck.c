@@ -155,7 +155,6 @@ extern Humanoid *Me_MOTION_C;
 extern s16 motMODE;
 
 extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
-extern void PadShockAR(int port, int pow, int attack, int release);
 
 short HangCheck(void)
 {

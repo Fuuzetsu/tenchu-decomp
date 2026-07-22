@@ -42,7 +42,6 @@ extern s16 motID;
 extern s16 motMODE;
 
 extern void AttackCancelControl(short mode);
-extern void PadShockAR(short port, short power, short time, short mode);
 extern void FUN_800270f8(Humanoid *human, short hide);
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
