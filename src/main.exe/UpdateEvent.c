@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 #include "stage.h"
 
@@ -85,7 +86,6 @@
 extern EventSeqType *D_80097F78[];
 extern Humanoid *D_80097F80[];
 
-extern Humanoid *GetHumanoid(short type);
 
 void UpdateEvent(short n, short id)
 {

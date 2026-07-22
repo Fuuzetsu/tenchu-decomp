@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -74,7 +75,6 @@ extern u8 D_8008FFB9[];
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
-extern Humanoid *GetHumanoid(s16 type);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern int ReqLifeBar(Humanoid *h);
 extern void CdaStop(void);
