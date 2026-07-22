@@ -351,7 +351,7 @@ extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 extern s16 UpdateMotion(MotionManager *m, short id);
 extern void MoveHumanoid(Humanoid *h, short a, short b);
 extern void UpdateCoordinate(ModelType *m);
-extern void DrawSprite(Sprite3D *s);
+extern short DrawSprite(Sprite3D *sprt);
 extern VECTOR *GetAbsolutePosition(ModelType *m, int x, int y, int z);
 extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemStay(PARAM_ITEM_STAY *p);

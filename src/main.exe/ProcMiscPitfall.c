@@ -55,7 +55,7 @@
 extern char D_80012710[];
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
-extern short DrawModel(ModelType *model);
+extern short DrawModel(ModelType *objp);
 extern short InsertConflict(ModelType *model);
 extern short GetConflictResult(ModelType *model, short index);
 
