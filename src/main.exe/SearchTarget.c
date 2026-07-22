@@ -37,6 +37,7 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern struct Humanoid *StagePlayer;
+ *     extern long EmergencyNotice;
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
@@ -144,7 +145,7 @@ degree_done:
 
     if (__builtin_abs(vect.vy) >= 3000)
     {
-        if (FRAMES_UNTIL_END_OF_ALERT == 0)
+        if (EmergencyNotice == 0)
         {
             return -2;
         }
@@ -308,7 +309,7 @@ passage_failure:
 //     iVar6 = -iVar3;
 //   }
 //   if (2999 < iVar6) {
-//     if (DAT_800979c0 == 0) {
+//     if (EmergencyNotice == 0) {
 //       return -2;
 //     }
 //     if (*distance < 4000) {

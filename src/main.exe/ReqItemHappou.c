@@ -116,7 +116,7 @@ extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern int rand(void);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
- * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
+ * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */
 
 int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {

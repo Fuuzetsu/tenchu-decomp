@@ -36,10 +36,11 @@
  *     extern struct Humanoid *StagePlayer;
  *     extern short Attrib;
  *     extern unsigned char gNannido;
+ *     extern long EmergencyNotice;
  * END PSX.SYM */
 
 extern Humanoid *Me_THINK_C;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 
 extern int rand(void);
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
@@ -126,7 +127,7 @@ s16 Think1target(void)
                     {
                         alert_time = 600;
                     }
-                    FRAMES_UNTIL_END_OF_ALERT = alert_time;
+                    EmergencyNotice = alert_time;
                 }
             }
         }

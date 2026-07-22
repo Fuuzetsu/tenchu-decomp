@@ -4,7 +4,7 @@
 #include "item.h"
 
 extern u16 D_800979DE;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 
 /*
  * register_character_death (0x8002bcb8) periodically chooses another live
@@ -76,7 +76,7 @@ void register_character_death(Humanoid *dead)
                     {
                         alert_time = 600;
                     }
-                    FRAMES_UNTIL_END_OF_ALERT = alert_time;
+                    EmergencyNotice = alert_time;
                     Sound(human, 0xc);
                     SetNowMotion(human, 0x80e, 1);
                     dead->attribute |= 0x10;

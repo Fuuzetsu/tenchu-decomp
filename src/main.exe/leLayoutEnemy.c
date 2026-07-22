@@ -39,6 +39,7 @@
  *     extern enum TSystemFlag SystemFlag;
  *     extern struct TEnemyLayout enemy[30];
  *     extern struct TCameraStatus CamState;
+ *     extern long EmergencyNotice;
  *     extern long GameClock;
  * END PSX.SYM */
 
@@ -159,6 +160,6 @@ void leLayoutEnemy(int mode)
         }
         i++;
     }
-    FRAMES_UNTIL_END_OF_ALERT = 0;
+    EmergencyNotice = 0;
     GameClock = 0;
 }

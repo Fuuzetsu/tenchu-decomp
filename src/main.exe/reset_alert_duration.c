@@ -5,7 +5,7 @@
  * reset_alert_duration (0x8002f7f4, 0x24 bytes) — (re)starts the
  * alert-state countdown: 300 frames normally, 600 on DIFFICULTY_HARD.
  * Part of the original "think" TU (same as Think1sleep.c): it gp-addresses
- * FRAMES_UNTIL_END_OF_ALERT, already declared extern in main.exe.h.
+ * EmergencyNotice, already declared extern in main.exe.h.
  *
  * gNannido is read via absolute (non-gp) addressing — Ghidra calls it
  * PersistentState._88_1_ (decimal offset 88 = 0x58 from the 0x80010000
@@ -24,5 +24,5 @@ void reset_alert_duration(void)
     {
         duration = 600;
     }
-    FRAMES_UNTIL_END_OF_ALERT = duration;
+    EmergencyNotice = duration;
 }

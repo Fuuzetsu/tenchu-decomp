@@ -62,7 +62,7 @@
  */
 extern void ProcItemGoshikimai(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
- * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
+ * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */
 
 int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
 {

@@ -289,7 +289,7 @@ Tenchu addresses some small globals (≤ 8 bytes, within ±32 KB of
 accesses target only the smalls that TU itself *defines*; externs are always
 absolute.** The gp-target addresses per region form disjoint contiguous blocks —
 each TU's own `.sdata` — e.g. the think TU's block *starts at*
-`FRAMES_UNTIL_END_OF_ALERT` (0x800979c0), which `Think1sleep` reaches via `$gp`,
+`EmergencyNotice` (0x800979c0), which `Think1sleep` reaches via `$gp`,
 while the item TU (`ProcItemManebue`, `ProcItemKusuri`) addresses that very same
 symbol absolutely and gp-addresses its *own* block (0x80097ac8…) instead. So
 ASPSX ignores `.extern SYM,SIZE` for gp decisions — exactly like stock maspsx.
@@ -306,14 +306,14 @@ are never defined by maspsx, so `R_MIPS_GPREL16` resolves at link to `SYM − _g
 
 Per-file flag lists live in `Build.hs` (`maspsxGpExterns`) and mirror in
 `tools/permute.py` (`GP_EXTERNS`): each file lists the smalls its *original* TU
-defined — `Think1sleep` → `Me_THINK_C`/`SR`/`Attrib`/`FRAMES_UNTIL_END_OF_ALERT`;
+defined — `Think1sleep` → `Me_THINK_C`/`SR`/`Attrib`/`EmergencyNotice`;
 item-TU functions list none. When a new function needs `$gp` for a symbol, that's
 the signal its original TU defined it — add it to the list (and it'll seed the
 TU-ownership map for the eventual data segments).
 
 History: the first version of this patch gp-addressed **every** small extern
 (no flag). That matched `Think1sleep` but was wrong for cross-TU references —
-`ProcItemManebue`'s absolute `FRAMES` store (`lui $at`, scheduled late by the
+`ProcItemManebue`'s absolute `EmergencyNotice` store (`lui $at`, scheduled late by the
 assembler expansion) was unreachable with the blanket patch, since forcing
 absolute required declaring the symbol as an unsized array, which makes cc1
 materialize the address in a real register (`lui $v0`, scheduled early) instead

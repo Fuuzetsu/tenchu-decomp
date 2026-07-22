@@ -15,7 +15,7 @@
  * bits through the shared unsigned `ATTRIB_BITS` view.
  */
 extern Humanoid *Me_THINK_C;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 extern s16 AIDHumanType[][2];
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern int rand(void);
@@ -59,7 +59,7 @@ s16 think_setting_small_rotation_small_steps_(void)
             {
                 alertTime = 600;
             }
-            FRAMES_UNTIL_END_OF_ALERT = alertTime;
+            EmergencyNotice = alertTime;
             Sound((Humanoid *)Me_THINK_C, 0xE);
 
             switch (gNannido)
@@ -224,7 +224,7 @@ s16 think_setting_small_rotation_small_steps_(void)
             {
                 alertTime = 600;
             }
-            FRAMES_UNTIL_END_OF_ALERT = alertTime;
+            EmergencyNotice = alertTime;
             Me_THINK_C->actscnt = 0;
             Me_THINK_C->actcnt = 1;
 

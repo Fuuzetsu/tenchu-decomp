@@ -38,6 +38,7 @@
  *     extern short SkipFrame;
  *     extern long GameClock;
  *     extern int StageID;
+ *     extern long EmergencyNotice;
  *     extern short Findenemies;
  *     extern short Murders;
  *     extern short Criticals;
@@ -74,7 +75,7 @@
  */
 
 extern volatile s32 StageTime;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char D_80012830[];
 extern char D_80012840[];
@@ -149,7 +150,7 @@ active_events:
     if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0 && SkipFrame == 0)
     {
         FntPrint(D_80012830, StageID + 1, STAGE_LAYOUT_NUMBER,
-                 GameClock / 30, FRAMES_UNTIL_END_OF_ALERT);
+                 GameClock / 30, EmergencyNotice);
         FntPrint(D_80012840, Findenemies, Murders, Criticals,
                  StageEnemies, StageBosses);
         FntPrint(D_80097C7C, FriendHits, StageCitizens);

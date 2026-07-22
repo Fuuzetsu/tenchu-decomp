@@ -37,6 +37,7 @@
  *     extern struct PADtype *Pad;
  *     extern short Attrib;
  *     extern short ActionHalt;
+ *     extern long EmergencyNotice;
  *     extern long Distance;
  *     extern short Degree;
  *     extern short SR;
@@ -82,7 +83,7 @@
 
 extern Humanoid *Me_THINK_C;
 extern s32 StrainRatio;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 extern s32 D_80097F10;
 extern s32 D_80097F14;
 extern u16 D_80097F18[2];
@@ -162,12 +163,12 @@ void StateTransition(Humanoid *human)
 
     if ((ATTRIB_BITS & 4) == 0)
     {
-        if (human == StagePlayer && FRAMES_UNTIL_END_OF_ALERT != 0)
+        if (human == StagePlayer && EmergencyNotice != 0)
         {
-            FRAMES_UNTIL_END_OF_ALERT--;
-            if (FRAMES_UNTIL_END_OF_ALERT < 0)
+            EmergencyNotice--;
+            if (EmergencyNotice < 0)
             {
-                FRAMES_UNTIL_END_OF_ALERT = 0;
+                EmergencyNotice = 0;
             }
         }
         pad = Me_THINK_C->think[0]();
@@ -204,16 +205,16 @@ void StateTransition(Humanoid *human)
             if (kind != 0x80 && kind != 0xa0 &&
                 (active_item != 0x12 || (ATTRIB_BITS & 3) != 2))
             {
-                if (FRAMES_UNTIL_END_OF_ALERT != 0)
+                if (EmergencyNotice != 0)
                 {
-                    FRAMES_UNTIL_END_OF_ALERT = 0;
+                    EmergencyNotice = 0;
                 }
                 SR = -2;
             }
         }
-        else if (FRAMES_UNTIL_END_OF_ALERT != 0)
+        else if (EmergencyNotice != 0)
         {
-            if (FRAMES_UNTIL_END_OF_ALERT == 1)
+            if (EmergencyNotice == 1)
             {
                 SR = -1;
             }
@@ -295,7 +296,7 @@ void StateTransition(Humanoid *human)
             }
             else if (SR == 2)
             {
-                if (FRAMES_UNTIL_END_OF_ALERT != 0)
+                if (EmergencyNotice != 0)
                 {
                     SetNowMotion(Me_THINK_C, 0x80e, 1);
                     Me_THINK_C->chase[1] = 0;
@@ -308,7 +309,7 @@ void StateTransition(Humanoid *human)
         goto after_state;
 
     case 1:
-        if (FRAMES_UNTIL_END_OF_ALERT != 0 || (ATTRIB_BITS & 0x10) != 0)
+        if (EmergencyNotice != 0 || (ATTRIB_BITS & 0x10) != 0)
         {
             if (StrainRatio > 0)
             {
@@ -357,7 +358,7 @@ void StateTransition(Humanoid *human)
                 }
             }
         }
-        else if (FRAMES_UNTIL_END_OF_ALERT < 2 &&
+        else if (EmergencyNotice < 2 &&
                  (u16)(SR + 2) < 2)
         {
             if ((Me_THINK_C->type & 0xf0) != 0x80)

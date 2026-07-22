@@ -7,7 +7,7 @@
  * is proven by a byte-matched function (see docs/matching-cookbook.md).
  * gp note: the original ITEM.C translation unit defines ic (gp-relative;
  * listed in Build.hs maspsxGpExterns for the files that touch it). Its
- * references to ActionHalt/FRAMES_UNTIL_END_OF_ALERT are absolute (gp in
+ * references to ActionHalt/EmergencyNotice are absolute (gp in
  * think's TU).
  */
 

@@ -85,7 +85,7 @@
  */
 extern void ProcItemMakibishi(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
- * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
+ * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */
 
 int ReqItemMakibishi(PARAM_ITEM_DROP *p)
 {

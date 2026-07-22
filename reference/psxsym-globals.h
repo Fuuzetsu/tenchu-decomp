@@ -51,6 +51,7 @@ extern short Humans;  /* 0x80097724, size 0x0 */
 extern short NowStage;  /* 0x800979a0, size 0x0, static in APPEAR.C */
 extern short ActionHalt;  /* 0x800979b8, size 0x0 */
 extern long AttackActionCount;  /* 0x800979bc, size 0x0 */
+extern long EmergencyNotice;  /* 0x800979c0, size 0x0 */
 extern long StrainRatio;  /* 0x800979c4, size 0x0 */
 extern short EngageLevel;  /* 0x800979c8, size 0x0 */
 extern long Distance;  /* 0x800979d0, size 0x0, static in THINK_4.C */

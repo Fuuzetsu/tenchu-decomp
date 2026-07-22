@@ -92,7 +92,7 @@ extern ConflictObjectType ConflictObject[80];
 extern s16 ConflictObjects;
 extern SVECTOR ConflictDistance;
 extern ModelType *ConflictModel;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 extern AreaMapType *D_800976E8;
 extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;

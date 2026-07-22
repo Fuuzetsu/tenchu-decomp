@@ -418,7 +418,7 @@ maspsxFlags = ["--aspsx-version=2.77", "-G8"]
 -- | Per-file @--gp-extern SYM@ flags (our nix/maspsx-gp-extern.patch). ASPSX
 -- $gp-addresses only symbols *defined* in the file being assembled; externs are
 -- always absolute (@lui $at@). Verified in the original binary: the think TU
--- gp-addresses FRAMES_UNTIL_END_OF_ALERT (its own .sdata starts right at it,
+-- gp-addresses EmergencyNotice (its own .sdata starts right at it,
 -- 0x800979c0) while the item TU addresses the very same symbol absolutely.
 -- Our decomp declares everything @extern@ (symbols come from the fixed-address
 -- link), so per file we list the small globals its ORIGINAL translation unit
@@ -496,7 +496,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "FUN_8003d768" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
-    syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
+    syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "EmergencyNotice"]
     syms "DrawSprite" = ["OTablePt"]
     syms "SetImpact" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "GetAreaMapVector" = ["FieldAttrib", "FieldArea", "FieldIndex"]
@@ -513,7 +513,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "PutStrain" = ["D_80097F68"]
     syms "Think3hitaway" = ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"]
     syms "AttackContinuousCheck" = ["dtM", "Me_MOTION_C"]
-    syms "Think4abandon" = ["Me_THINK_C", "Attrib", "SR", "FRAMES_UNTIL_END_OF_ALERT"]
+    syms "Think4abandon" = ["Me_THINK_C", "Attrib", "SR", "EmergencyNotice"]
     syms "WeaponHitWeapon" = ["Me_MOTION_C", "dtM"]
     syms "dispose_weapon_data_of_char_" = ["Me_MOTION_C", "dtM"]
     syms "SoundEx" = ["StageSE"]
@@ -684,7 +684,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReqItemGun" = ["ic"]
     syms "SetSmokeS" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "SetupAppearance" = ["NowStage", "PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR", "sstage", "smode"]
-    syms "StateTransition" = ["StrainRatio", "Me_THINK_C", "Pad", "Attrib", "D_80097F1C", "ActionHalt", "FRAMES_UNTIL_END_OF_ALERT", "SR", "Distance", "D_80097F10", "D_80097F18", "D_80097F14", "EngageLevel", "Degree"]
+    syms "StateTransition" = ["StrainRatio", "Me_THINK_C", "Pad", "Attrib", "D_80097F1C", "ActionHalt", "EmergencyNotice", "SR", "Distance", "D_80097F10", "D_80097F18", "D_80097F14", "EngageLevel", "Degree"]
     syms "ActATTACK" = ["dtM", "Me_MOTION_C", "motID", "motMODE", "dtR", "dtL", "dtPAD", "MotionUpdateMode", "dtV"]
     syms "AttackIndirect" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "SR"]
     syms "AttackLong" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "Attrib", "AttackActionCount"]
@@ -706,18 +706,18 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "LoadConstruction" = ["mma", "ObjectArc", "StageID"]
     syms "CreateStage" = ["StageID"]
     syms "SetWire" = ["ModelHook"]
-    syms "think_setting_small_rotation_small_steps_" = ["Me_THINK_C", "Attrib", "FRAMES_UNTIL_END_OF_ALERT", "Degree", "Distance"]
+    syms "think_setting_small_rotation_small_steps_" = ["Me_THINK_C", "Attrib", "EmergencyNotice", "Degree", "Distance"]
     syms "ActCHASE" = ["Me_MOTION_C", "dtM", "dtPAD", "MotionUpdateMode", "motID", "motMODE", "dtL", "dtR", "dtCMD"]
     syms "ActENGAGE" = ["dtM", "dtV", "dtPAD", "motID", "Me_MOTION_C", "motMODE", "dtL", "dtCMD", "dtR"]
     syms "DrawShadow" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_", "ShadowMdl"]
-    syms "register_character_death" = ["D_800979DE", "FRAMES_UNTIL_END_OF_ALERT"]
+    syms "register_character_death" = ["D_800979DE", "EmergencyNotice"]
     syms "Think3attack" = ["Me_THINK_C", "SR", "Distance", "Degree", "EngageLevel"]
     syms "SetFlyWire" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "SetGore" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "InitEffect" = ["ShadowMdl", "LOCAL_COORDINATES_", "AfterIMG", "ModelHook", "D_80097F30", "D_80097F32"]
     syms "FUN_80033bc0" = ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"]
     syms "AttackControl" = ["Me_MOTION_C", "dtL", "dtR", "motID", "motMODE", "dtPAD", "dtM"]
-    syms "Think1target" = ["Me_THINK_C", "SR", "Attrib", "FRAMES_UNTIL_END_OF_ALERT"]
+    syms "Think1target" = ["Me_THINK_C", "SR", "Attrib", "EmergencyNotice"]
     syms "FUN_8005adbc" = ["D_80097D20", "D_80097D24", "D_80097D28"]
     syms "ActDEAD" = ["Me_MOTION_C", "dtM", "dtV", "motID", "dtL", "motMODE", "D_8009770C"]
     syms "ActSTICKON" = ["dtM", "Me_MOTION_C", "dtR", "dtCMD", "motID", "motMODE", "MotionUpdateMode", "dtPAD", "dtV", "D_80097EF0", "dtL"]
@@ -734,7 +734,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "FallCheck" = ["motID", "Me_MOTION_C", "dtM", "dtL", "motMODE", "MotionUpdateMode"]
     syms "ItemControl" = ["Me_MOTION_C", "motID", "motMODE"]
     syms "character_balma_around_main_routine_" = ["D_800976E8", "GlobalAreaMap", "FieldIndex", "FieldArea"]
-    syms "reset_alert_duration" = ["FRAMES_UNTIL_END_OF_ALERT"]
+    syms "reset_alert_duration" = ["EmergencyNotice"]
     syms "Think3area" = ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"]
     syms "create_ninken_character_" = ["NINKEN_CHARACTER_PTR"]
     syms "death_camera_something_" = ["LOCAL_COORDINATES_"]

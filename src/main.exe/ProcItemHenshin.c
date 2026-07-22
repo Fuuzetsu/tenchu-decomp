@@ -35,6 +35,9 @@
  *     stack sp+136    struct SVECTOR sv
  *     stack sp+144    struct SVECTOR sv
  *     reg   $s3       struct tag_TItem * item
+ *
+ * Globals it touches, as the original declared them:
+ *     extern long EmergencyNotice;
  * END PSX.SYM */
 
 #include "item.h"
@@ -233,7 +236,7 @@ void ProcItemHenshin(TItem *item)
         D_80097AF0 = 600;
         mode_owner = vitem->owner;
         itemID = *(volatile u16 *)&vitem->type;
-        FRAMES_UNTIL_END_OF_ALERT = -600;
+        EmergencyNotice = -600;
         mode_owner->itmctl = itemID;
         return;
     }
@@ -399,7 +402,7 @@ void ProcItemHenshin(TItem *item)
 //         }
 //         item->mode = item->mode + '\x01';
 //         DAT_80097af0 = 600;
-//         DAT_800979c0 = 0xfffffda8;
+//         EmergencyNotice = 0xfffffda8;
 //         item->owner->itmctl = (short)item->type;
 //         return;
 //       }

@@ -104,7 +104,7 @@
       # Patched (nix/maspsx-gp-extern.patch) to add an opt-in `--gp-extern SYM`
       # flag: ASPSX gp-addresses only symbols *defined* in the file it assembles
       # (verified against the original binary — think's TU gp-addresses
-      # FRAMES_UNTIL_END_OF_ALERT while the item TU addresses the same symbol
+      # EmergencyNotice while the item TU addresses the same symbol
       # absolutely), but this decomp declares everything `extern` (fixed-address
       # link). Per file, Build.hs lists the smalls the ORIGINAL translation unit
       # defined (maspsxGpExterns) so exactly those go via $gp — e.g. Think1sleep.

@@ -23,6 +23,9 @@
  *     param $s0       struct tag_TItem * item
  *     reg   $a0       struct param_drop * param
  *     reg   $s0       struct tag_TItem * item
+ *
+ * Globals it touches, as the original declared them:
+ *     extern long EmergencyNotice;
  * END PSX.SYM */
 
 /*
@@ -39,7 +42,7 @@
  *    cc1 CSEs a plain `mode == 0` chain into one load, but the original reloads
  *    `mode` after the ITEM_MODE_DISPOSE test and keeps the case bodies out
  *    of line.
- *  - FRAMES_UNTIL_END_OF_ALERT is a plain small extern here, and this file is
+ *  - EmergencyNotice is a plain small extern here, and this file is
  *    deliberately NOT in Build.hs's maspsxGpExterns list: the original item TU
  *    did not define it (think's TU does), so ASPSX addressed it absolutely
  *    (lui $at) — unlike Think1sleep, where the same symbol is gp-relative.
@@ -65,7 +68,7 @@ void ProcItemManebue(TItem *item)
         goto mode1;
     return;
 mode0:
-    FRAMES_UNTIL_END_OF_ALERT = 0;
+    EmergencyNotice = 0;
     item->owner->itmctl = item->type;
     SoundEx((VECTOR *)0x0, 0x43);
     param->count = 0x1e;

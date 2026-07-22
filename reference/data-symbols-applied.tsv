@@ -118,6 +118,7 @@
 80097704	StageMotion	ghidra-export	same binary, address-keyed	EXT	struct MotionPackType *
 80097710	MotionUpdateMode	ghidra-export	same binary, address-keyed	EXT	short
 800979bc	AttackActionCount	datamatch	VOTES4	EXT	long
+800979c0	EmergencyNotice	semantic+layout	demo-PSX.SYM EmergencyNotice(80097d1c)-follows-ActionHalt/AttackActionCount; retail-same-adjacency-and-alert-countdown-semantics	EXT	long
 800979c4	StrainRatio	ghidra-export	same binary, address-keyed	EXT	long
 800979d8	Pad	ghidra-export	same binary, address-keyed	STAT	struct PADtype *
 80097a68	sprSmoke	ghidra-export	same binary, address-keyed	EXT	struct Sprite3D *

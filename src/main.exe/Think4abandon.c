@@ -28,6 +28,7 @@
  * Globals it touches, as the original declared them:
  *     extern short Attrib;
  *     extern short SR;
+ *     extern long EmergencyNotice;
  * END PSX.SYM */
 
 /*
@@ -37,7 +38,7 @@
  * plays an idle bark while an ECHIGOYA-family enemy (character_kind &
  * 0xF0 == 0x80) is alert (SR in {1,2}, motion looped back to frame 0, 1-in-
  * 60 roll), or — for everyone else — turns to face Degree while alert
- * (FRAMES_UNTIL_END_OF_ALERT != 0) or runs a short SR state machine that
+ * (EmergencyNotice != 0) or runs a short SR state machine that
  * settles into a stand/give-up motion once the alert timer expires.
  *
  * Matching notes (docs/matching-cookbook.md):
@@ -46,7 +47,7 @@
  *    back to a signed int subtraction and gives `slti` instead — same
  *    length, wrong instruction.
  *  - Both `if (kind==0x80) {...} return turn_towards_player_(...)&~0x5FFF;`
- *    and the sibling `if (FRAMES!=0) {...} return turn_towards_player_(...)
+ *    and the sibling `if (EmergencyNotice!=0) {...} return turn_towards_player_(...)
  *    &~0x5FFF;` need their OWN independent `return` statement (not a shared
  *    `goto` to one trailing label). Two adjacent, textually-identical
  *    `return` statements let jump2's cross-jump merge them into ONE
@@ -56,10 +57,10 @@
  *    end), which is a real 8-byte layout regression — the shared-tail
  *    lever only fires on independently-written identical returns, not on
  *    an explicit `goto` to one.
- *  - The outer `if (FRAMES_UNTIL_END_OF_ALERT == 0) {BIG} else {SMALL}`
- *    needed inverting to `if (FRAMES_UNTIL_END_OF_ALERT != 0) {SMALL} else
+ *  - The outer `if (EmergencyNotice == 0) {BIG} else {SMALL}`
+ *    needed inverting to `if (EmergencyNotice != 0) {SMALL} else
  *    {BIG}` — the "if (cond) A; else B; makes A the fall-through and
- *    negates cond" rule: target's own branch tests `FRAMES==0` directly and
+ *    negates cond" rule: target's own branch tests `EmergencyNotice==0` directly and
  *    branches AWAY to the complex (BIG) body while the trivial (SMALL) body
  *    falls through, so the source has the arms the opposite way from
  *    Ghidra's literal polarity.
@@ -78,7 +79,7 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern s32 FRAMES_UNTIL_END_OF_ALERT;
+extern long EmergencyNotice;
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern int rand(void);
 
@@ -110,7 +111,7 @@ s16 Think4abandon(void)
     }
     else
     {
-        if (FRAMES_UNTIL_END_OF_ALERT != 0)
+        if (EmergencyNotice != 0)
         {
             if (SR == 1)
             {

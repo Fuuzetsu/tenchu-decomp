@@ -11,6 +11,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern short SR;
+ *     extern long EmergencyNotice;
  *     extern short Attrib;
  * END PSX.SYM */
 
@@ -29,7 +30,7 @@ s16 Think1sleep(void)
     {
         uVar1 = 0x1001;
     }
-    if ((FRAMES_UNTIL_END_OF_ALERT != 0) || ((Attrib & 0x8000) != 0))
+    if ((EmergencyNotice != 0) || ((Attrib & 0x8000) != 0))
     {
         uVar1 = turn_towards_player_(0, 0);
         uVar1 = uVar1 & 0xA000;
