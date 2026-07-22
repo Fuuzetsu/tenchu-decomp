@@ -56,7 +56,8 @@
  *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as ReqItemDrop/ReqItemJirai.
  *  - aowner/atype and x/y/z are real temps, same shape as
- *    ReqItemDrop/ReqItemJirai.
+ *    ReqItemDrop/ReqItemJirai. The block-scoped `param_korogari *param`
+ *    shadow is the second `param` recorded by PSX.SYM.
  *  - `item->param.dokudango.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as ReqItemDrop/ReqItemJirai.
  *  - PSX.SYM supplies the koro/eater/org_think/count nesting and names. The
@@ -120,14 +121,19 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    y = p->end.vy;
-    z = p->end.vz;
-    param->koro.vx = x;
-    param->koro.vy = y;
-    param->koro.vz = z;
-    item->param.dokudango.koro.hint = 0;
-    param->koro.status = KORO_NORMAL;
+    {
+        param_korogari *param;
+
+        param = &item->param.dokudango.koro;
+        x = p->end.vx;
+        y = p->end.vy;
+        z = p->end.vz;
+        param->vx = x;
+        param->vy = y;
+        param->vz = z;
+        item->param.dokudango.koro.hint = 0;
+        param->status = KORO_NORMAL;
+    }
     param->count = 10;
     param->eater = 0;
     SetNowMotion(item->owner, 0xf02, 1);
