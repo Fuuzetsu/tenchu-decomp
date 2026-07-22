@@ -3,8 +3,8 @@
 
 /*
  * ProcItemMakibishi (0x8003f304) — the makibishi (caltrop) item processor.
- * mode 0: roll it (MoveKorogari) — KORO_WATER disposes (fell out of the
- * world), KORO_STAY registers a 100-unit conflict box and advances to mode 1;
+ * mode 0: roll it (MoveKorogari) — KORO_WATER disposes after entering water,
+ * while KORO_STAY registers a 100-unit conflict box and advances to mode 1;
  * mode 1: once a live character is found in the conflict box, spray a
  * SetBleeds burst + step-on sound and dispose. Every mode (and the
  * mode==neither-0-nor-1 default) falls through to a shared tail that redraws
@@ -21,8 +21,8 @@
  *    "neither 0 nor 1", falling out of the switch reaches the shared draw
  *    tail directly — the SAME tail case 0/case 1 reach via `break`.
  *  - `one = 1;` is a real shared variable, not a literal: the
- *    status==KORO_WATER compare
- *    compare needs `1` in a register anyway (MIPS beq has no immediate
+ *    status==KORO_WATER compare needs `1` in a register anyway (MIPS beq has
+ *    no immediate
  *    form), and the SAME register then feeds `item->mode + one`, `.common =
  *    (void *)one`, `.size.pad = one`, and `item->collision.mode = one` — five
  *    uses, unmistakably `addu` (register) not `addiu` (immediate) at the
@@ -30,11 +30,10 @@
  *    DeleteConflict/InsertConflict calls (callee-saved, like `ff`/`m`).
  *  - The dispose after status==KORO_WATER and the dispose after mode 1's
  *    conflict-hit are the SAME code written out TWICE (cross-jump merges
- *    from the jalr on): KORO_WATER's reuses `ff` (still live, untouched
- *    since entry); mode
- *    1's materializes a fresh literal 0xff (a new register) since nothing
- *    carries `ff` that far — same asymmetry as ProcItemKusuri's mode-2 vs
- *    mode-1 dispose.
+ *    from the jalr on): the KORO_WATER path reuses `ff` (still live,
+ *    untouched since entry); the mode-1 path materializes a fresh
+ *    ITEM_MODE_DISPOSE value since nothing carries `ff` that far — same
+ *    asymmetry as ProcItemKusuri's mode-2 vs mode-1 dispose.
  *  - Collision box field-store order (offset.vx/vz/vy, then size.vz/vy/vx,
  *    then common, then size.pad) exactly mirrors ProcItemDrop's
  *    KORO_GRAND/KORO_STAY case, just different numbers (100 not 0xb4,

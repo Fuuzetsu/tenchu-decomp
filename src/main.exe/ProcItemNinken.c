@@ -75,7 +75,7 @@ void ProcItemNinken(TItem *item)
 {
     param_ninken *param;
     u8 ff;
-    s32 one;
+    s32 water;
     ProcItemNinkenScratch scratch;
 
     param = &item->param.ninken;
@@ -98,7 +98,7 @@ void ProcItemNinken(TItem *item)
         return;
     }
 
-    one = 1;
+    water = KORO_WATER;
     switch (item->mode)
     {
     case 0:
@@ -107,7 +107,7 @@ void ProcItemNinken(TItem *item)
 
         MoveKorogari(item, &param->koro);
         status = param->koro.status;
-        if (status == one)
+        if (status == water)
         {
             void (*dispose_proc)(TItem *);
 

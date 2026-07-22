@@ -66,7 +66,7 @@
  *    ITEM_MODE_DISPOSE (0xff)
  *    before all copies merge at the common indirect-call tail.
  *  - The payload guard is explicit control flow so both zero tests target
- *    the later aiming block.  `kind_one` is deliberately s16: autorules
+ *    the later aiming block.  `water` is deliberately s16: autorules
  *    found that narrowing this comparison-only constant colors the payload
  *    byte into v1 and `1` into v0, while still allowing the `li` to fill the
  *    payload-zero branch's delay slot.  s32 swaps those two registers.
@@ -229,20 +229,20 @@ void ProcItemArrow(TItem *item)
         }
 
         {
-            s16 kind_one;
+            s16 water;
             u8 kind;
 
             if (param->fly.mode == 0)
             {
                 goto aim;
             }
-            kind_one = 1;
+            water = KORO_WATER;
             kind = param->fly.p.koro.status;
             if (kind == KORO_NORMAL)
             {
                 goto aim;
             }
-            if (kind == kind_one)
+            if (kind == water)
             {
                 ppu = item->proc;
                 if (ppu == 0)

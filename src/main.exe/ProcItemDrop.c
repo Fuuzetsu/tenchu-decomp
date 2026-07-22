@@ -46,8 +46,8 @@
  * ProcItemDrop (0x8003e454) — the tossed/dropped item processor installed by
  * ReqItemDrop. Every frame it copies the item coordinate into the sprite and
  * draws it; mode 0: bounce/roll physics (MoveKorogari) until the param status
- * says it came to rest (KORO_GRAND/KORO_STAY: register a 0xB4 conflict box
- * and become pick-up-able) or fell out of the world (KORO_WATER: dispose);
+ * reports ground contact/settling (KORO_GRAND/KORO_STAY: register a 0xB4
+ * conflict box and become pick-up-able) or water (KORO_WATER: dispose);
  * mode 1: wait for a
  * character to touch the conflict box, freeze it into the pick-up animation
  * (0x810) and remember it as owner; mode 2: when the animation ends, count

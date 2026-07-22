@@ -106,7 +106,7 @@ fly:
         az = model->locate.coord.t[2];
         pk = &param->p.koro;
         pk->hint = 0;
-        pk->status = 0;
+        pk->status = KORO_NORMAL;
         param->mode = 1;
         pk->vx = xs - ax;
         pk->vy = ys - ay;
