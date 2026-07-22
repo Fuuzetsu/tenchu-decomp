@@ -73,13 +73,15 @@ extern GsOT *OTablePt;
 
 void PutNumber(int x, int y, int cols, int n)
 {
+    enum { NW = 4 };
+    enum { GAP = 6 };
     int base;
     GsSPRITE *img;
     int q;
 
     base = NumberImage.u;
     img = &NumberImage;
-    img->w = 4;
+    img->w = NW;
     do
     {
         img->x = (s16)x;
@@ -87,9 +89,9 @@ void PutNumber(int x, int y, int cols, int n)
     } while (0);
 loop:
     q = cols / 10;
-    img->u = base + (cols - q * 10) * 4;
+    img->u = base + (cols - q * 10) * NW;
     GsSortSprite(img, OTablePt, 0);
-    img->x = img->x - 6;
+    img->x = img->x - GAP;
     cols = q;
     if (cols != 0)
         goto loop;
