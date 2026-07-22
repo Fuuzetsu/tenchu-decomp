@@ -22,9 +22,9 @@
  * clobbering a motion already mid-update on another humanoid: when
  * MotionUpdateMode is set, scan the 5-entry CVAhuman[] table and bail early
  * (return 0, no call) if Me_MOTION_C is already one of the tracked
- * entries. CVAhuman[5] stride 8 (0x800c2cc8..0x800c2cf0 = 0x28 = 5*8);
- * only the leading `human` pointer field is ever read here, so the
- * trailing 4 bytes are undetermined padding.
+ * entries. CVAhuman[5] stride 8 (0x800c2cc8..0x800c2cf0 = 0x28 = 5*8).
+ * This routine only needs the leading `human` pointer; the trailing
+ * `loop` and `motid` halfwords are real fields used by CVArun.
  *
  * Matching notes:
  *  - `i` is `short`: indexing CVAhuman[i] (8-byte stride) compiles the

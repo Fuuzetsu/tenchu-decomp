@@ -63,11 +63,11 @@
  * Matching notes (all verified against the original bytes):
  *  - SetupFly's true arity is 6, not Ghidra's 4: the already-matched callers
  *    (ReqItemArrow, ReqItemHappou, ReqItemLaunch) all declare and call it
- *    `void SetupFly(void *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5,
- *    s32 a6)` — Ghidra drops `yh`/`time`, the two STACK-passed args past the
- *    four register ones (cookbook: Ghidra undercounts stack args). Kept the
- *    first parameter is PSX.SYM's `struct param_fly *`; the curve workspace
- *    itself is the nested `struct tag_fly`.
+ *    with `param_fly *` plus five further arguments. Ghidra drops `yh`/`time`,
+ *    the two STACK-passed arguments after the four register arguments
+ *    (cookbook: Ghidra undercounts stack args). The first parameter retains
+ *    PSX.SYM's `struct param_fly *`; the curve workspace itself is the nested
+ *    `struct tag_fly`.
  *  - `pfly->mode` (byte @0x28) is set to 0 as the FIRST statement, before
  *    start/end are even copied in — matches Ghidra's own rendering exactly.
  *  - The "speed" byte (@0x24, `dist / time`, a genuine variable division —
@@ -149,7 +149,7 @@ skip_default:
     }
     yh = len >> 12;
     midx = (fly->sx + fly->vx) / 2;
-            v8 = yw << 1;
+    v8 = yw << 1;
     if (0 < v8)
     {
         len = midx + (rand() % v8 - yw);

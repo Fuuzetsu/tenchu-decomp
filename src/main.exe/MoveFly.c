@@ -35,7 +35,7 @@
  * MoveFly (0x8003dfd4) — advances a thrown/flying item one frame along a
  * quadratic Bezier arc, or hands off to MoveKorogari once it has landed.
  * Needs maspsx --expand-div (Build.hs + permute.py): it divides `t<<12` by
- * the runtime byte `param->div` (ASPSX break 7 / break 6 guards).
+ * the runtime byte `param->p.fly.count2` (ASPSX break 7 / break 6 guards).
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - The mode dispatch is the two-independent-goto shape: `if (mode==0) goto

@@ -34,14 +34,14 @@
  *
  * DrawSmoke (0x800334c4, EFFECT.C:794) — the smoke-puff effect's per-frame
  * draw: picks its sprite from `sprSmoke[param->sprite]`, and while
- * `mode==bright` (a one-shot "just spawned or freshly stepped" gate) damps
+ * `time==evtime` (a one-shot "just spawned or freshly stepped" gate) damps
  * the velocity by 0.8x every time `vec.vy` drifts below -20 and bumps
- * `scale`/re-rolls `bright` from `mode` and a `rand()%5` jitter; then, if
- * `mode<26`, sets `alfa = mode*5` (else the 0x80 default), integrates
+ * `scale`/re-rolls `evtime` from `time` and a `rand()%5` jitter; then, if
+ * `time<26`, sets `alfa = time*5` (else the 0x80 default), integrates
  * `pos += vec`, writes the sprite's position/scale/color/rotate, draws it,
- * and finally decrements `mode` (`+0xff`, i.e. a real `-1` wrap for the u8
+ * and finally decrements `time` (`+0xff`, i.e. a real `-1` wrap for the u8
  * field — see the encoding note below), disposing the slot when the OLD
- * mode was 0.
+ * time was 0.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `param = &ef->param.smoke;` (SmokeType* at ef+4) — effect.h's proven
@@ -68,14 +68,14 @@
  *    capture confirms the split): `vx_new = ...; vz_old = param->vec.vz;
  *    param->vec.vy = param->vec.vy / 2; param->vec.vz = (vz_old*80)/100;`
  *  - `param->evtime = (param->time - 1) - (rand() % 5);` reassociates under
- *    fold into `mode - (remainder + 1)` (the WRONG shape — target keeps
- *    `mode-1` as its own subtraction) no matter how it's parenthesized;
+ *    fold into `time - (remainder + 1)` (the WRONG shape — target keeps
+ *    `time-1` as its own subtraction) no matter how it's parenthesized;
  *    already documented for the sibling SetSmoke.c: "fold reassociates
  *    `(x-1)-(a+b)` into `x-(a+b+1)`, so an own-statement temp (`m =
  *    smoke->time - 1;`) is needed to keep the literal `addiu -1` on x's
  *    side." Matching SetSmoke's exact idiom: `r = rand(); m = param->time -
  *    1; param->evtime = m - r % 5;` — THREE statements in that order (the
- *    bare `rand()` call first, `mode-1` second so it loads/subtracts
+ *    bare `rand()` call first, `time-1` second so it loads/subtracts
  *    AFTER the call returns instead of needing to survive across it, the
  *    final combine third) is load-bearing; folding the `% 5` into the
  *    `rand()` statement (`r = rand() % 5;`) reintroduces 4 stray bytes.
@@ -97,7 +97,7 @@
  *    TWICE (compare, then the multiply) rather than caching it — a plain
  *    `if` with the field used in both the condition and body naturally
  *    does this; `alfa` defaults to 0x80 (materialized once, at the very
- *    top, in the `mode==bright` guard's own delay slot).
+ *    top, in the `time==evtime` guard's own delay slot).
  *  - `spr->locate.coord.t[0..2]` re-read `param->pos.vx/vy/vz` FRESH from
  *    memory right after storing them (matching DrawHinoko's own "final
  *    sprite-field stores re-read pos.* fresh" note) — direct field reads,
