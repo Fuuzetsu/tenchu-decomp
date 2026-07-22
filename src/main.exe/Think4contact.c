@@ -44,7 +44,6 @@
  * target's zero-valued delay-slot move and keeps the two nonzero outcomes
  * as fallthrough bodies with explicit jumps to the shared return conversion.
  */
-extern s16 SR;
 extern s16 Attrib;
 extern s16 Degree;
 extern s16 Think4abandon(void);

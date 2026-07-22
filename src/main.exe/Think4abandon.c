@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "game_globals.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -77,7 +78,6 @@
 
 extern Humanoid *Me_THINK_C;
 extern u16 Attrib;
-extern s16 SR;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern short Sound(Humanoid *human, int seid);

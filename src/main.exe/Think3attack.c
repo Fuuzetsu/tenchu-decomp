@@ -47,7 +47,6 @@
 extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 Degree;
-extern s16 SR;
 extern s16 atkd[4];
 
 extern s16 SuccessionAttack(s32 dist, s16 degree);

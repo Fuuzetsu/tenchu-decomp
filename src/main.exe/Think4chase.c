@@ -50,7 +50,6 @@
  * field load first; this spelling preserves the target's Degree-first load
  * order.
  */
-extern s16 SR;
 extern s16 Attrib;
 extern s16 Degree;
 extern s16 Think4abandon(void);

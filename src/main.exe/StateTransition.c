@@ -82,7 +82,6 @@ extern s32 StrainRatio;
 extern u16 Attrib;
 extern s32 Distance;
 extern s16 Degree;
-extern s16 SR;
 extern s16 FieldAttrib;
 extern s16 Findenemies;
 extern s32 FRAMES_UNTIL_END_OF_ALERT;

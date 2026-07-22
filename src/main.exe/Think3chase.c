@@ -35,7 +35,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern s16 SR;
 extern s32 Distance;
 extern s16 Degree;
 extern s32 AttackActionCount; /* next GameClock tick an attack action may fire */
