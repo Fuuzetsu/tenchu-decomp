@@ -37,11 +37,11 @@
  * player-character submenu. Copies the fixed player-option menu table into a
  * frame-local array (the original TAdtSelect shape recovered from PSX.SYM),
  * shows it with AdtSelect, then dispatches on the chosen index:
- *   0 reset position — warp Owner to StageConfig[]'s start coords and reset
- *                       the cached area-map node/index
- *   1 jump position  — debug_menu_player_jump()
- *   2 restart event  — leLayoutEnemy(1) + StartStageSequence()
- *   3 raise dead     — full-heal + clear ActionHalt + status
+ *   RESET            — warp Owner to StageConfig[]'s start coords and reset
+ *                      the cached area-map node/index
+ *   JUMP_POSITION    — debug_menu_player_jump()
+ *   RESTART_EVENT    — leLayoutEnemy(1) + StartStageSequence()
+ *   RESURRECT        — full-heal + clear ActionHalt + status
  * (table indices 4 "" and 5 "cancel" are inert: no case matches them, no
  * default).
  *
@@ -97,6 +97,13 @@ extern void StartStageSequence(void);
 
 void PlayerOption(void)
 {
+    enum
+    {
+        RESET = 0,
+        JUMP_POSITION = 1,
+        RESTART_EVENT = 2,
+        RESURRECT = 3
+    };
     s32 n;
     TAdtSelect option[7];
 
@@ -104,7 +111,7 @@ void PlayerOption(void)
     n = AdtSelect(D_80014784, option, 0);
     switch (n)
     {
-    case 0:
+    case RESET:
         CamState.Owner->model->locate.coord.t[0] = StageConfig[StageID].px;
         CamState.Owner->model->locate.coord.t[1] = StageConfig[StageID].py - 10000;
         CamState.Owner->model->locate.coord.t[2] = StageConfig[StageID].pz;
@@ -114,15 +121,15 @@ void PlayerOption(void)
         CamState.Owner->map.area = FieldArea =
             (AreaNodeType *)FieldIndex->index;
         break;
-    case 1:
+    case JUMP_POSITION:
         debug_menu_player_jump();
         break;
-    case 3:
+    case RESURRECT:
         CamState.Owner->life = CamState.Owner->lifemax;
         ActionHalt = 0;
         CamState.Owner->status = 0;
         break;
-    case 2:
+    case RESTART_EVENT:
         leLayoutEnemy(1);
         StartStageSequence();
         break;
