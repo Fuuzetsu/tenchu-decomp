@@ -52,15 +52,8 @@
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/drawF3", drawF3);
 #else
 
-typedef struct
-{
-    u8     mode[4]; /* +0x0 */
-    u_long rgb;     /* +0x4 (r,g,b,code) */
-    u16    v0;      /* +0x8 vertex index 0 */
-    u16    v1;      /* +0xA vertex index 1 */
-    u16    v2;      /* +0xC vertex index 2 */
-    u16    norm;    /* +0xE */
-} F3Prim;
+/* The input record is PsyQ's TMD_P_NF3, also recorded under that exact name
+ * in PSX.SYM; its four color bytes form the packed GTE RGB/code word. */
 
 /* $s0 is the only callee-saved register the handler clobbers.  A file-scope
  * global register variable reserves it WITHOUT a prologue save/restore — the
@@ -84,7 +77,7 @@ void drawF3(void)
     register u_long *ot_in   __asm__("$8");
     register int     ot_base __asm__("$10");
     register int     vbase   __asm__("$12");
-    register F3Prim *prim    __asm__("$13");
+    register TMD_P_NF3 *prim __asm__("$13");
     register int     ot_max  __asm__("$25");
 
     register SVECTOR *r0 __asm__("$4");
@@ -146,7 +139,8 @@ loop:
                     ot_slot = (u_long *)((int)ot_slot * 4);
                     if (half < 0)
                     {
-                        gte_ldrgb_mem(prim->rgb);
+                        /* The GTE consumes r0/g0/b0/code as one packed word. */
+                        gte_ldrgb_mem(*(u_long *)&prim->r0);
                         ot_slot = (u_long *)((int)ot_slot + ot_base);
                         mac0 = *ot_slot;
                         gte_dpcs_raw();
