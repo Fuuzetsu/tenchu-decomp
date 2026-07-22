@@ -123,7 +123,6 @@ extern Humanoid *Me_THINK_C;
 extern s32 Distance;
 extern s16 SR;
 extern s16 Degree;
-extern PADtype *Pad;
 extern u16 Attrib;
 extern u16 StageEnemies;
 extern u16 StageCitizens;

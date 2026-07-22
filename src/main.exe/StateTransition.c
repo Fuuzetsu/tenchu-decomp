@@ -78,7 +78,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern PADtype *Pad;
 extern s32 StrainRatio;
 extern u16 Attrib;
 extern s32 Distance;

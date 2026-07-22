@@ -12,6 +12,7 @@ extern struct Humanoid *StagePlayer;
 extern short Humans;
 extern short ActionHalt;
 extern short EngageLevel;
+extern PADtype *Pad;
 extern short *StageAppearance[10];
 extern StageCharType StageChar[18];
 
