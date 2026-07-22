@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -71,21 +72,15 @@
  * removes the former loop-store scramble and the claimed 80-byte floor.
  */
 
-typedef struct
-{
-    GsCOORDINATE2 locate;
-    SVECTOR rotate;
-} WireModel;
-
 extern GsRVIEW2 ViewInfo;
 extern MATRIX GsWSMATRIX;
 extern GsOT *OTablePt;
-extern WireModel *ModelHook;
+extern ModelType *ModelHook;
 
 extern long abs(long value);
 extern void GsSortLine(GsLINE *line, GsOT *ot, u16 priority);
-extern void UpdateCoordinate(WireModel *model);
-extern void DrawModel(WireModel *model);
+extern void UpdateCoordinate(ModelType *model);
+extern void DrawModel(ModelType *model);
 
 static inline void GetWireScreenPosition(long x, long y, long z,
                                          SVECTOR *screen)
