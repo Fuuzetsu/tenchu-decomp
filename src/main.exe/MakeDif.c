@@ -30,8 +30,9 @@
 /*
  * MakeDif (0x80032088, 0xfc bytes) — computes vdif = target - vinfo for a
  * GsRVIEW2 camera view, gated by CamState.snap_pending: a straight
- * 6-field s32 subtraction the first frame after a mode change (and clears
- * the flag), otherwise a smoothed delta via two MakeDifSub calls — one over
+ * 6-field s32 subtraction on the next camera update after a requested snap
+ * or discontinuity (and clears the flag), otherwise a smoothed delta via two
+ * MakeDifSub calls — one over
  * the rotation-only half (vrx..vrz) using a TMakeDifInfo scratch block that
  * sits right after the retail CamState in memory (`ref` = CamState +
  * 0x20). Ghidra's demo-shaped type mis-renders this as
