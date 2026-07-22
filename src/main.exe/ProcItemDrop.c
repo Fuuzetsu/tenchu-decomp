@@ -67,8 +67,9 @@
  *    slot. Plain nested switches produce all of it — no source trick.
  *  - `m = 8` (int) feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
  *    load-bearing: written as literals, pad's 8 becomes an HImode pseudo and
- *    collision.mode's a second SImode one (two `li`s, function one insn too
- *    long). cse can only reuse a WIDER-mode constant reg that already
+ *    a separate collision.mode literal becomes a second SImode pseudo (two
+ *    `li`s, function one insn too long). cse can only reuse a WIDER-mode
+ *    constant reg that already
  *    exists, so the shared int variable is the original's shape.
  *  - Mode 2's tosses are two-statement temps: `x = rand(); x = x % 200;`.
  *    The in-place `mult $s1` + `subu $s1,$s1` prove raw value and remainder

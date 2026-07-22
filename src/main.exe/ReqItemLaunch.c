@@ -73,7 +73,7 @@
  *    ReqItemMakibishi's SoundEx(st, ...)).
  *  - us/ty are real temps, same shape as the other twins.
  *  - `it->collision.size = 0; it->model = SyurikenModel;` immediately precede
- *    SetupFly, same position as the other twins' collision.size/model pair
+ *    SetupFly, same position as the other twins' collision-size/model stores
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
  *  - The `it->param.launch.fly.mode = 0` byte store is written BEFORE the

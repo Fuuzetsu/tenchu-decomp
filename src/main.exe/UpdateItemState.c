@@ -61,7 +61,7 @@ static void UpdateItemState(void)
     s32 i;
     s32 hit;
     s32 sz, ofsY;
-    s32 md;
+    s32 mode;
     s16 idx;
 
     i = 0;
@@ -88,7 +88,7 @@ loop:
                     if (sz != 0)
                     {
                         ofsY = item->collision.ofsY;
-                        md = item->collision.mode;
+                        mode = item->collision.mode;
                         DeleteConflict(item->locate);
                         idx = InsertConflict(item->locate);
                         object = (ConflictObjectType *)
@@ -100,10 +100,10 @@ loop:
                         object->size.vy = sz;
                         object->size.vx = sz;
                         object->common = (void *)1;
-                        object->size.pad = md;
+                        object->size.pad = mode;
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;
-                        item->collision.mode = md;
+                        item->collision.mode = mode;
                         item->collision.pause = 0;
                     }
                 }
