@@ -51,8 +51,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern MotionManager *dtM;
-extern VECTOR *dtL;
 extern s16 motID;
 extern s16 motMODE;
 

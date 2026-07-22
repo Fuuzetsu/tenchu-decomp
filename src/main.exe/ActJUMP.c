@@ -49,10 +49,6 @@ typedef struct
 } ActJumpScratch;
 
 extern Humanoid *Me_MOTION_C;
-extern MotionManager *dtM;
-extern VECTOR *dtL;
-extern SVECTOR *dtV;
-extern SVECTOR *dtR;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;

@@ -69,10 +69,7 @@
  *    the slot) matches InsertConflict.c's/DeleteConflict.c's already-proven
  *    layout; redefined locally here per this repo's per-file convention.
  */
-extern VECTOR *dtL;
-extern MotionManager *dtM;
 extern s16 motID;
-extern SVECTOR *dtV;
 extern u16 dtPAD;
 extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;

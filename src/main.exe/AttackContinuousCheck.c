@@ -54,7 +54,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern MotionManager *dtM;
 
 s16 AttackContinuousCheck(BattleType *battle)
 {

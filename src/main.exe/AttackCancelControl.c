@@ -57,7 +57,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern MotionManager *dtM;
 
 void AttackCancelControl(s16 mode)
 {

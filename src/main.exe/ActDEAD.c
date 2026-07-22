@@ -67,9 +67,6 @@ typedef union
     u8 bytes[0x28];
 } ActDeadScratch;
 
-extern MotionManager *dtM;
-extern SVECTOR *dtV;
-extern VECTOR *dtL;
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *D_8009770C;
 extern s16 motID;

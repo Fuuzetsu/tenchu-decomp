@@ -38,7 +38,6 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern SVECTOR *dtR;
 extern u32 GetTargetDistance(Humanoid *h, s16 *unused);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);
 

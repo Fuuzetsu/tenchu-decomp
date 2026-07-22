@@ -77,11 +77,7 @@
  *    breaks it and the sign-extension reads s2.
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
-extern SVECTOR *dtR;
-extern SVECTOR *dtV;
-extern VECTOR *dtL;
 extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;

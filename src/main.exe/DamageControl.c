@@ -4,10 +4,6 @@
 #include "item.h"
 
 extern Humanoid *Me_MOTION_C;
-extern MotionManager *dtM;
-extern VECTOR *dtL;
-extern SVECTOR *dtR;
-extern SVECTOR *dtV;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 Criticals;

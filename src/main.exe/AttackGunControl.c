@@ -50,7 +50,6 @@
  * the item params inline like AttackFire.c/handle_char_state_attacking_
  * SEVEN_.c do) into a thin bow_shoot_logic(kind, pos) wrapper.
  */
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern short Sound(Humanoid *human, int seid);

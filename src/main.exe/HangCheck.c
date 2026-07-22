@@ -151,8 +151,6 @@
  *    motMODE are gp-relative here, confirmed by `tools/gpsyms.py`).
  */
 extern s16 motID;
-extern VECTOR *dtL;
-extern SVECTOR *dtR;
 extern Humanoid *Me_MOTION_C;
 extern s16 motMODE;
 

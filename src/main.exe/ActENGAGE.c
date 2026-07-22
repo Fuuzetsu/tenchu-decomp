@@ -38,10 +38,6 @@
  *    component value the target's $v1/$v0 allocation.
  */
 
-extern MotionManager *dtM;
-extern SVECTOR *dtV;
-extern SVECTOR *dtR;
-extern VECTOR *dtL;
 extern s16 dtPAD;
 extern s16 dtCMD;
 extern s16 motID;

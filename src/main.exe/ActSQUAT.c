@@ -59,12 +59,8 @@
  *    the target's site-specific `lh`/`lhu` loads.
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern u16 dtPAD;
-extern VECTOR *dtL;
-extern SVECTOR *dtR;
-extern SVECTOR *dtV;
 extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;

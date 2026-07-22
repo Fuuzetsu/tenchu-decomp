@@ -89,10 +89,6 @@
  *    loop notes and load order without emitting control-flow instructions.
  */
 
-extern MotionManager *dtM;
-extern SVECTOR *dtR;
-extern VECTOR *dtL;
-extern SVECTOR *dtV;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;

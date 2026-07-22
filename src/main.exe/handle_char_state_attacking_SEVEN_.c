@@ -29,8 +29,6 @@
  * are automatic cc1 constant-folding, not hand-derived.
  */
 
-extern MotionManager *dtM;
-extern SVECTOR *dtR;
 extern Humanoid *Me_MOTION_C;
 extern short Sound(Humanoid *human, int seid);
 extern void GetMoveSpeed(SVECTOR *out, s32 roty, s32 b, s32 width);

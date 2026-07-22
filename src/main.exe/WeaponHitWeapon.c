@@ -48,7 +48,6 @@
  * all 161 retail instructions without carrier locals or allocation fences.
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 
 extern short GetConflictResult(ModelType *model, short index);

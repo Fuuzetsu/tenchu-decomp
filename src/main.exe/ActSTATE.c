@@ -54,13 +54,9 @@
  *    keeps the two motion-id producer islands distinct without emitted code.
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
-extern SVECTOR *dtV;
 extern s16 dtPAD;
-extern SVECTOR *dtR;
-extern VECTOR *dtL;
 extern s16 motMODE;
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);

@@ -42,11 +42,7 @@
  * STATUS: MATCHED — exact 1500 bytes / 375 instructions.
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
-extern SVECTOR *dtR;
-extern SVECTOR *dtV;
-extern VECTOR *dtL;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;

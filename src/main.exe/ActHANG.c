@@ -76,10 +76,7 @@
  *    StagePlayer/GlobalAreaMap stay absolute.
  */
 
-extern SVECTOR *dtV;
-extern MotionManager *dtM;
 extern u16 dtPAD;
-extern VECTOR *dtL;
 extern s16 motID;
 extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;

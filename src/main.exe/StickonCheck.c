@@ -49,7 +49,6 @@
  * the later signed-short extension for the -1 sentinel test.
  */
 extern Humanoid *Me_MOTION_C;
-extern VECTOR *dtL;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 RefrectVector[16];

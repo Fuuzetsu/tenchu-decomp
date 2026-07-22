@@ -92,7 +92,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern MotionManager *dtM;
 extern short Sound(Humanoid *human, int seid);
 
 void AttackPQD(s16 sfrm, s16 efrm)

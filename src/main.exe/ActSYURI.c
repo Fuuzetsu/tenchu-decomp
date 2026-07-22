@@ -64,7 +64,6 @@
  *    motMODE. StagePlayer stays absolute (defined elsewhere).
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;

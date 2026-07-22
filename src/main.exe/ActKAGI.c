@@ -69,10 +69,6 @@
  *    producing a0/a1 and allowing the attribute load to fill its delay.
  */
 
-extern MotionManager *dtM;
-extern VECTOR *dtL;
-extern SVECTOR *dtR;
-extern SVECTOR *dtV;
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
 extern s16 motMODE;

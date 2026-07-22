@@ -29,7 +29,6 @@
  * Me_MOTION_C was already in NowReturnNormal's list (same original TU);
  * dtL added here via `tools/gpsyms.py FUN_80027304 --write`.
  */
-extern VECTOR *dtL;
 extern Humanoid *Me_MOTION_C;
 
 void FUN_80027304(void)

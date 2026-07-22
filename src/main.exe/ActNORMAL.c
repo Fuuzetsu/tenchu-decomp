@@ -27,12 +27,10 @@
  * STATUS: MATCHING
  */
 
-extern MotionManager *dtM;
 extern Humanoid *Me_MOTION_C;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
-extern SVECTOR *dtR;
 extern s16 dtCMD;
 extern int rand(void);
 extern short Sound(Humanoid *human, s16 seid);
