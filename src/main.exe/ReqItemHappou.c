@@ -44,51 +44,53 @@
  * projectiles fanned out by a random jitter on the aim direction). Twin of
  * ReqItemArrow/ReqItemLaunch (same item TU, same pool round-robin on
  * ic, same dispose-on-exhaustion block, same
- * cur/it two-pseudo pool search, same SetupFly+SetupAfterimage tail as
+ * slot/item two-pseudo pool search, same SetupFly+SetupAfterimage tail as
  * ReqItemLaunch); unlike every other twin the OUTER shape is a
  * while(1)+break loop firing the whole allocate-and-launch sequence 8 times
  * (SetNowMotion once up front, Sound once after all 8, `p->end` reused as
  * scratch OUTPUT storage for SearchItemTarget2 on every iteration). Unlike
- * ReqItemArrow/Launch, `it->model` is never touched at all (this item has no
+ * ReqItemArrow/Launch, `item->model` is never touched at all (this item has no
  * visible sprite, only the afterimage trail), and SetupAfterimage's first
- * arg is `it->locate` — not the optional visual `it->model` used by
+ * arg is `item->locate` — not the optional visual `item->model` used by
  * ReqItemLaunch's call to the same function.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - The outer loop is the cookbook's `while (1) { if (!(cond)) break; ...}`
- *    shape: `j < 8` is a real TOP test (not folded away like a provable-
+ *    shape: `i < 8` is a real TOP test (not folded away like a provable-
  *    constant `for`/`while` would be) because loop.c only rotates a
  *    `NOTE_INSN_LOOP_BEG` immediately followed by a simplejump — the
  *    condjump-first shape here keeps the top test AND still gets invariant
  *    hoisting: `items + ic`'s `&items[0]` half is
  *    hoisted all the way past BOTH loop levels (computed once, before the
- *    outer loop, from the same unmodified `cur = items + COUNTER...;`
+ *    outer loop, from the same unmodified `slot = items + COUNTER...;`
  *    expression the single-shot twins use — no separate cached-base
  *    variable needed in source).
- *  - Same `cur`/`it` two-pseudo pool search as ReqItemArrow/Launch (the
- *    stub-jump early-exit pattern confirmed in the raw .s).
- *  - `param = &it->param.launch;` before the null check, same lever
+ *  - The inlined allocator keeps `slot` separate from PSX.SYM's outer
+ *    `item`, with the stub-jump early-exit pattern confirmed in the raw .s.
+ *    Its block-scoped `i` shadows the exact outer volley counter `i`, just
+ *    as the two PSX.SYM local records do.
+ *  - `param = &item->param.launch;` before the null check, same lever
  *    as every twin; reused for SetupFly and the two final member stores.
- *  - `st = &p->start;` sits in the SAME position as every twin (right after
- *    the direct `p->start.vx` read, before the st->vy/st->vz reads) and,
+ *  - `pos = &p->start;` sits in the SAME position as every twin (right after
+ *    the direct `p->start.vx` read, before the pos->vy/pos->vz reads) and,
  *    unlike ReqItemArrow, stays live (no register reuse forcing a
  *    recompute) all the way to SetupFly's 2nd arg — reused 4 times total.
- *  - `it->locate->rotate = p->user->model->rotate;` and the local `dir =
+ *  - `item->locate->rotate = p->user->model->rotate;` and the local `rot =
  *    p->user->model->rotate;` are TWO INDEPENDENT struct copies, each
  *    re-reading `p->user->model` fresh (confirmed: two separate `lw` pairs
  *    in the raw .s, not a cached pointer) — an SVECTOR (align-2) copy
  *    compiles to `lwl/lwr`+`swl/swr` word pairs per the cookbook's
  *    alignment-drives-copy-code rule.
- *  - The random jitter is a plain signed `r % (R * 2)`: `dir.vy = dir.vy +
+ *  - The random jitter is a plain signed `r % (R * 2)`: `rot.vy = rot.vy +
  *    (r % (R * 2) - R);` reassociates via fold-const.c into the target's
- *    `dir.vy - 0x100 + r%512` layout (same "A - C + B" lever as the
+ *    `rot.vy - 0x100 + r%512` layout (same "A - C + B" lever as the
  *    cookbook's `rand() % 1000 - 500` example) and the sign-correcting
  *    bias/shift dance for a negative dividend is entirely automatic from
  *    the natural `%` (no hand-rolled staging needed).
  *  - `en = &p->end;` computed once, reused for both SearchItemTarget2's 4th
  *    arg and SetupFly's 3rd arg (same "computed once, read multiple times"
- *    shape as `st`).
- *  - **`j++;` (the outer counter) belongs AFTER `SetupFly`, not textually
+ *    shape as `pos`).
+ *  - **`i++;` (the outer counter) belongs AFTER `SetupFly`, not textually
  *    before `SearchItemTarget2` where Ghidra renders it** (found via the
  *    permuter after manual placement stalled at CURRENT(46) — a pure
  *    register-allocation tie, not a structural difference). Ghidra/the raw
@@ -99,9 +101,9 @@
  *    BACKWARD across the SearchItemTarget2 call into that delay slot. Don't
  *    trust a delay-slot instruction's apparent position as its source
  *    position — only that it's independent of the call's own effects.
- *  - No `it->model` store at all (unlike ReqItemArrow/Launch) — this item
+ *  - No `item->model` store at all (unlike ReqItemArrow/Launch) — this item
  *    has no sprite.
- *  - `SetupAfterimage(it->locate, 10)` uses the item's coordinate model,
+ *  - `SetupAfterimage(item->locate, 10)` uses the item's coordinate model,
  *    whereas ReqItemLaunch passes its visual model. Both are `ModelType *`,
  *    matching SetupAfterimage's PSX.SYM signature.
  *  - The afterimage vector constants (0x1e/-0x1e, vy=vz=0) and struct shape
@@ -122,78 +124,81 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
     {
         R = 256
     };
-    TItem *it;
-    TItem *cur;
+    TItem *item;
+    TItem *slot;
     param_launch *param;
-    VECTOR *st;
+    VECTOR *pos;
     VECTOR *en;
-    Humanoid *us;
-    s32 ty;
+    Humanoid *aowner;
+    s32 atype;
     AfterimageType *ai;
-    SVECTOR dir;
+    SVECTOR rot;
     s32 r;
     s32 i;
-    s32 j;
 
     SetNowMotion(p->user, 0xf02, 1);
-    j = 0;
+    i = 0;
     while (1)
     {
-        if (!(j < 8))
+        if (!(i < 8))
             break;
-        i = 0;
-        do
         {
-            ic++;
-            if (0x1d < ic)
-                ic = 0;
-            cur = items + ic;
-            if (cur->proc == 0)
-            {
-                it = cur;
-                goto found;
-            }
-            i++;
-        } while (i < 0x1d);
+            s32 i;
 
-        /* pool exhausted: force-dispose the slot the counter landed on */
-        cur->mode = ITEM_MODE_DISPOSE;
-        cur->proc(cur);
-        DeleteConflict(cur->locate);
-        if (cur->mode != 0)
-        {
-            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+            i = 0;
+            do
+            {
+                ic++;
+                if (0x1d < ic)
+                    ic = 0;
+                slot = items + ic;
+                if (slot->proc == 0)
+                {
+                    item = slot;
+                    goto found;
+                }
+                i++;
+            } while (i < 0x1d);
+
+            /* pool exhausted: force-dispose the slot the counter landed on */
+            slot->mode = ITEM_MODE_DISPOSE;
+            slot->proc(slot);
+            DeleteConflict(slot->locate);
+            if (slot->mode != 0)
+            {
+                AdtMessageBox(D_800121CC, slot->type, (u32)slot->mode);
+            }
+            item = slot;
+            item->owner = 0;
+            item->proc = 0;
         }
-        it = cur;
-        it->owner = 0;
-        it->proc = 0;
 
     found:
-        param = &it->param.launch;
-        if (it == 0)
+        param = &item->param.launch;
+        if (item == 0)
             return 0;
-        us = p->user;
-        ty = p->type;
-        it->owner = us;
-        it->proc = ProcItemHappou;
-        it->mode = 0;
-        it->type = ty;
-        it->locate->locate.coord.t[0] = p->start.vx;
-        st = &p->start;
-        it->locate->locate.coord.t[1] = st->vy;
-        it->locate->locate.coord.t[2] = st->vz;
-        it->locate->locate.super = 0;
-        UpdateCoordinate(it->locate);
-        it->collision.size = 0;
-        it->locate->rotate = p->user->model->rotate;
-        dir = p->user->model->rotate;
+        aowner = p->user;
+        atype = p->type;
+        item->owner = aowner;
+        item->proc = ProcItemHappou;
+        item->mode = 0;
+        item->type = atype;
+        item->locate->locate.coord.t[0] = p->start.vx;
+        pos = &p->start;
+        item->locate->locate.coord.t[1] = pos->vy;
+        item->locate->locate.coord.t[2] = pos->vz;
+        item->locate->locate.super = 0;
+        UpdateCoordinate(item->locate);
+        item->collision.size = 0;
+        item->locate->rotate = p->user->model->rotate;
+        rot = p->user->model->rotate;
         r = rand();
-        dir.vy = dir.vy + (r % (R * 2) - R);
+        rot.vy = rot.vy + (r % (R * 2) - R);
         en = &p->end;
-        SearchItemTarget2(p->user, &dir, st, en);
-        SetupFly(&param->fly, st, en, 0x1000, 0x400, 0x190);
-        j++;
-        ai = SetupAfterimage(it->locate, 10);
+        SearchItemTarget2(p->user, &rot, pos, en);
+        SetupFly(&param->fly, pos, en, 0x1000, 0x400, 0x190);
+        i++;
+        ai = SetupAfterimage(item->locate, 10);
         param->effect = ai;
         ai->vector1.vx = 0x1e;
         ai->vector1.vy = 0;
