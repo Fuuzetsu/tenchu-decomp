@@ -111,7 +111,8 @@
 extern void ProcItemHappou(TItem *item);
 extern void SetNowMotion(Humanoid *h, s32 mot, s32 loop);
 extern void Sound(Humanoid *h, int id);
-extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
+extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
+                                   VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern int rand(void);
 /* This TU defines the counter (gp-relative): listed in Build.hs

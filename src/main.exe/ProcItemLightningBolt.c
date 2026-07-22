@@ -74,7 +74,8 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-extern void SearchItemTarget2(Humanoid *owner, void *rot, VECTOR *launch, VECTOR *out);
+extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
+                                   VECTOR *start, VECTOR *target);
 extern s16 InsertConflict(ModelType *m);
 extern void SetLightning(VECTOR *pos, VECTOR *target, s32 a, s32 b, s32 c);
 extern void SetImpact(VECTOR *pos, s32 a, s32 b);

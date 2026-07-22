@@ -252,7 +252,8 @@ extern VECTOR D_800122D8[];
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, s32 *rx, s32 *ry);
 extern void RotateVector(VECTOR *v, s32 rx, s32 ry, s32 rz);
 extern void SetCameraMode(int mode);
-extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
+extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
+                                   VECTOR *start, VECTOR *target);
 extern void ProcSightShot(TItem *item);
 extern void ProcKaginawa(TItem *item);
 extern void ProcItemTeleport(TItem *item);

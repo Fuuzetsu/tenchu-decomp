@@ -80,8 +80,8 @@ extern GsOT *OTablePt;
 
 extern void SetCameraMode(s32 mode);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *rx, u16 *ry);
-extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from,
-                              VECTOR *target);
+extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
+                                   VECTOR *start, VECTOR *target);
 extern void ReqItemLaunch(PARAM_ITEM_LAUNCH *param);
 
 void ProcSightShot(TItem *item)

@@ -97,7 +97,8 @@
  */
 extern void ProcItemArrow(TItem *item);
 extern void GetVectorRotation(VECTOR *from, VECTOR *to, u16 *out1, u16 *out2);
-extern void SearchItemTarget2(Humanoid *user, SVECTOR *dir, VECTOR *from, VECTOR *target);
+extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
+                                   VECTOR *start, VECTOR *target);
 extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 /* This TU defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
