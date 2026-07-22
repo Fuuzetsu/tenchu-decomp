@@ -83,7 +83,7 @@ extern Humanoid *Me_MOTION_C;
 extern s32 D_80097EF0;
 
 extern MapVector *StickonCheck(void);
-extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *item);
+extern int ReqItemMakibishi(PARAM_ITEM_DROP *item);
 extern int ReqItemFire(PARAM_ITEM_LAUNCH *item);
 extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *item);
 extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *item);
@@ -555,7 +555,7 @@ case12_no_pad:
                 item.end.vy = rand();
                 item.end.vy = (item.end.vy / 30) * 30 - item.end.vy;
                 item.end.vz = (rcos(y) * (-30 - rand() % 200)) >> 12;
-                ReqItemMakibishi(&item);
+                ReqItemMakibishi((PARAM_ITEM_DROP *)&item);
             }
         }
         else

@@ -87,7 +87,7 @@ extern void ProcItemMakibishi(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 
-int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p)
+int ReqItemMakibishi(PARAM_ITEM_DROP *p)
 {
     TItem *item;
     TItem *slot;
@@ -145,9 +145,9 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    y = p->end.vy;
-    z = p->end.vz;
+    x = p->vec.vx;
+    y = p->vec.vy;
+    z = p->vec.vz;
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;

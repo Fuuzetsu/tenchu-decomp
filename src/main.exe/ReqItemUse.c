@@ -186,8 +186,9 @@
  *    the original declared shared function-scope workspaces; the per-case
  *    address-taken rx/ry pairs DO ladder (96..204), giving frame 224.
  *    The kusuri-family "VECTOR v" lives at param's HEAD (*(VECTOR *)&param);
- *    makibishi/jirai stage a PARAM_ITEM_LAUNCH in `work` (memset + 3 field
- *    copies + `param = work`), then reuse work's head as the throw vector.
+ *    makibishi/jirai stage a layout-compatible PARAM_ITEM_DROP in `work`
+ *    (memset + 3 field copies + `param = work`), then reuse work's head as
+ *    the throw vector.
  *  - Retail case map from the jump table (demo enum differs: 8/9 swapped,
  *    0x16=NAPALM, 0x17=LIGHTNINGBOLT, 0x18=TELEPORT).
  *  - The camera-check template is ReqItemDefault.c's idiom verbatim; the
@@ -242,7 +243,7 @@ extern void ProcSightShot(TItem *item);
 extern void ProcKaginawa(TItem *item);
 extern void ProcItemTeleport(TItem *item);
 extern void ProcItemNapalm(TItem *item);
-extern int ReqItemMakibishi(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemMakibishi(PARAM_ITEM_DROP *p);
 extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *p);
@@ -254,7 +255,7 @@ extern int ReqItemNinken(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemHappou(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemFire(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemJirai(PARAM_ITEM_LAUNCH *p);
+extern int ReqItemJirai(PARAM_ITEM_DROP *p);
 extern int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemKusuri(PARAM_ITEM_LAUNCH *p);
 extern int ReqItemGosin(PARAM_ITEM_LAUNCH *p);
@@ -322,7 +323,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             param.end.vx = ((VECTOR *)&work)->vx + rand() % D - D2;
             param.end.vy = ((VECTOR *)&work)->vy - rand() % D2 - D2;
             param.end.vz = ((VECTOR *)&work)->vz + rand() % D - D2;
-            ReqItemMakibishi(&param);
+            ReqItemMakibishi((PARAM_ITEM_DROP *)&param);
         }
         break;
     }
@@ -728,7 +729,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         param.end.vz = vz;
         param.start.vy = param.start.vy + vy;
         param.start.vz = param.start.vz + vz;
-        ReqItemJirai(&param);
+        ReqItemJirai((PARAM_ITEM_DROP *)&param);
         break;
     }
     case ITEM_KAGINAWA:

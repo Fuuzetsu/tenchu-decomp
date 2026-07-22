@@ -65,7 +65,7 @@ extern void ProcItemJirai(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/FRAMES (absolute here). */
 
-int ReqItemJirai(PARAM_ITEM_LAUNCH *p)
+int ReqItemJirai(PARAM_ITEM_DROP *p)
 {
     TItem *item;
     param_smoke *param;
@@ -118,9 +118,9 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    y = p->end.vy;
-    z = p->end.vz;
+    x = p->vec.vx;
+    y = p->vec.vy;
+    z = p->vec.vz;
     param->koro.vx = x;
     param->koro.vy = y;
     param->koro.vz = z;

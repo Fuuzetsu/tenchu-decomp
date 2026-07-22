@@ -143,6 +143,18 @@ typedef struct PARAM_ITEM_LAUNCH
 /* PSX.SYM records both names for this request structure. */
 typedef struct PARAM_ITEM_LAUNCH PARAM_ITEM_USE;
 
+/* The thrown/placed-item request used by Makibishi and Jirai.  Retail adds
+ * the owner pointer at +0x04 to the demo's PSX.SYM layout, leaving its
+ * start/velocity roles intact and making it the same size as the launch
+ * request. */
+typedef struct PARAM_ITEM_DROP
+{
+    TItemType type;              /* 0x00 */
+    Humanoid *user;              /* 0x04 (retail) */
+    VECTOR start;                /* 0x08 */
+    VECTOR vec;                  /* 0x18 */
+} PARAM_ITEM_DROP;               /* 0x28 (demo: 0x24, without user) */
+
 /* A stationary/placed item's spawn params (AddItem2's ReqItemStay). */
 typedef struct PARAM_ITEM_STAY
 {
