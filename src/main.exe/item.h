@@ -301,7 +301,7 @@ typedef struct PARAM_ITEM_LAUNCH
 } PARAM_ITEM_LAUNCH;             /* 0x28 */
 
 /* PSX.SYM records both names for this request structure. */
-typedef PARAM_ITEM_LAUNCH PARAM_ITEM_USE;
+typedef struct PARAM_ITEM_LAUNCH PARAM_ITEM_USE;
 
 /* A stationary/placed item's spawn params (AddItem2's ReqItemStay). */
 typedef struct PARAM_ITEM_STAY
@@ -461,30 +461,6 @@ typedef struct param_dokudango
     u16 count;                   /* 0x14 (retail accesses it with lhu/sh) */
 } param_dokudango;               /* 0x18 */
 
-/* tag_TItem's original parameter union.  PSX.SYM supplies every named demo
- * member; raw keeps the complete 0x34-byte retail storage available for any
- * later-only view that has not yet been identified. */
-typedef union ItemParam
-{
-    param_launch launch;
-    param_smoke smoke;
-    param_drop drop;
-    param_gun gun;
-    param_arrow arrow;
-    param_napalm napalm;
-    param_ningyo ningyo;
-    param_goshikimai goshikimai;
-    param_ninken ninken;
-    param_dokudango dokudango;
-    param_drop kusuri;
-    param_kaengeki kaengeki;
-    param_henshin henshin;
-    param_lightningbolt lightningbolt;
-    param_gosin gosin;
-    param_shinsoku shinsoku;
-    u8 raw[0x34];
-} ItemParam;                      /* 0x34 */
-
 struct tag_TItem
 {
     Humanoid *owner;             /* 0x00 */
@@ -497,7 +473,25 @@ struct tag_TItem
     s32 coll_pause;              /* 0x18 */
     s16 coll_size;               /* 0x1C */
     s16 coll_ofsY;               /* 0x1E */
-    ItemParam param;             /* 0x20 */
+    union
+    {
+        param_launch launch;
+        param_smoke smoke;
+        param_drop drop;
+        param_gun gun;
+        param_arrow arrow;
+        param_napalm napalm;
+        param_ningyo ningyo;
+        param_goshikimai goshikimai;
+        param_ninken ninken;
+        param_dokudango dokudango;
+        param_drop kusuri;
+        param_kaengeki kaengeki;
+        param_henshin henshin;
+        param_lightningbolt lightningbolt;
+        param_gosin gosin;
+        param_shinsoku shinsoku;
+    } param;                     /* 0x20, size 0x34 */
     u8 mode;                     /* 0x54 */
 };                               /* sizeof = 0x58 (items[] stride) */
 

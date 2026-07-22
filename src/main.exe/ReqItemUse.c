@@ -178,7 +178,7 @@
  * produces the retail register coloring and instruction order.
  *
  * Facts proven while matching (all byte-verified):
- *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_LAUNCH layout {s32 type;
+ *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_LAUNCH layout {TItemType type;
  *    Humanoid *user; VECTOR start; VECTOR end;} (psxsym size 40 agrees).
  *  - TWO function-scope 0x28 workspaces: `param`@sp+16, `work`@sp+56.
  *    Sibling case scopes do NOT share stack slots under this cc1 (first

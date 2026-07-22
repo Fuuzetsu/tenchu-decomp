@@ -12,9 +12,9 @@
  *
  * Matching notes (see also ProcItemDrop.c for the item-TU/ConflictObject
  * conventions this shares):
- *  - `sprt = item->model; pp = &item->param.drop.koro;` both sit
- *    before the entry mode==0xff test (ProcItemDrop's double lever): sprt's
- *    load is sequential, pp's addiu fills the entry branch's delay slot.
+ *  - `model = (Sprite3D *)item->model; param = &item->param.drop;` both sit
+ *    before the entry mode==0xff test (ProcItemDrop's double lever): model's
+ *    load is sequential, param's addiu fills the entry branch's delay slot.
  *  - The mode dispatch is a real switch (fresh reload distinct from the
  *    entry ff-check's load, matching the switch rule); with no case for
  *    "neither 0 nor 1", falling out of the switch reaches the shared draw
@@ -80,8 +80,8 @@ extern ConflictObjectType ConflictObject[];
 
 void ProcItemMakibishi(tag_TItem *item)
 {
-    Sprite3D *sprt;
-    param_korogari *pp;
+    Sprite3D *model;
+    param_drop *param;
     void (*ppu)(tag_TItem *);
     u8 ff;
     u8 st;
@@ -89,8 +89,8 @@ void ProcItemMakibishi(tag_TItem *item)
     s32 i;
     s32 n;
 
-    sprt = (Sprite3D *)item->model;
-    pp = &item->param.drop.koro;
+    model = (Sprite3D *)item->model;
+    param = &item->param.drop;
     ff = 0xff;
     if (item->mode == ff)
     {
@@ -100,9 +100,9 @@ void ProcItemMakibishi(tag_TItem *item)
     switch (item->mode)
     {
     case 0:
-        MoveKorogari(item, pp);
+        MoveKorogari(item, &param->koro);
         one = 1;
-        st = pp->status;
+        st = param->koro.status;
         switch (st)
         {
         case 4:
@@ -166,8 +166,8 @@ void ProcItemMakibishi(tag_TItem *item)
         break;
     }
     UpdateCoordinate(item->locate);
-    sprt->locate = item->locate->locate;
-    DrawSprite(sprt);
+    model->locate = item->locate->locate;
+    DrawSprite(model);
 }
 
 // Ghidra decompilation (reference — turn this into matching C,

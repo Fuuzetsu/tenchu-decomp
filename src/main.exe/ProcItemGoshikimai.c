@@ -31,8 +31,8 @@
  *  - Case 0 mirrors ProcItemKusuri's case 0 exactly (dispose/animate/status/
  *    MoveHumanoid), just different animation id (0xf03) and status (8).
  *  - `param_goshikimai.vec` is read with the SAME fresh-vs-cached asymmetry
- *    ReqItemGoshikimai writes it with: vec.vx uses a fresh `item->param`
- *    cast, while vec.vy/vec.vz use `pp`.
+ *    ReqItemGoshikimai writes it with: vec.vx uses
+ *    `item->param.goshikimai` directly, while vec.vy/vec.vz use `pp`.
  *  - `item->owner->model->object[0xd]` is recomputed in full for EACH of the
  *    three GetAbsolutePosition calls (three separate jal's in the asm, no
  *    cached model/object pointer) — Ghidra's literal repetition is the

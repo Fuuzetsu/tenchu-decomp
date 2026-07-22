@@ -84,8 +84,8 @@
  *    delay-slot lever as every twin; reused unchanged for both
  *    SetupFly's 1st arg and the final `param->count = 5;` store (unlike
  *    ReqItemLaunch's analogous store, which needed a FRESH direct
- *    `it->param.launch` access for its own scheduling tie — here the cached param reproduces the
- *    target directly).
+ *    `it->param.launch` access for its own scheduling tie — here the cached
+ *    param reproduces the target directly).
  *  - `us`/`ty` temps for owner/type, same shape as the other twins (loaded
  *    back-to-back, stored owner/proc/mode/type in that order).
  *  - GetVectorRotation's out-params are read back with `lhu` (unsigned
