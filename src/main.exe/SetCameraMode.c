@@ -104,6 +104,7 @@ extern int FUN_80039ddc(VECTOR *a, VECTOR *b, int c, int d);
 
 void SetCameraMode(s32 mode)
 {
+    enum { MaxCriticalValiation = 3 };
     VECTOR va;
     VECTOR vb;
     VECTOR vc;
@@ -125,15 +126,15 @@ void SetCameraMode(s32 mode)
     switch (mode) {
     case 4:
         n = rand();
-        CamState.OldMode = n % 4;
+        CamState.OldMode = n % (MaxCriticalValiation + 1);
         i = 0;
         cs = &CamState;
         tbl = D_80089F50;
         fp = &flag;
     loop:
-        if (!(i < 4)) goto giveup;
+        if (!(i < MaxCriticalValiation + 1)) goto giveup;
         cs->OldMode = cs->OldMode + 1;
-        if (cs->OldMode > 3) cs->OldMode = 0;
+        if (cs->OldMode > MaxCriticalValiation) cs->OldMode = 0;
         p = (SVECTOR *)(cs->OldMode * 0x20 + (s32)tbl);
         pos = cs->Owner->locate;
         rot = cs->Owner->rotate;
