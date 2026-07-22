@@ -41,25 +41,18 @@
  * MakeDifSub (0x800300b4, 0x2dc bytes) — CAMERA.C's smoothed-delta helper:
  * given a src/target pair of VECTORs, writes the eased step toward target
  * into *dest and updates the TMakeDifInfo scratch block (*info) it was
- * handed (info->bef holds last frame's speed in .vx and last frame's raw
- * delta in .vy/.vz/.pad — a one-field-shifted reuse of the SVECTOR shape).
+ * handed (`spd` holds last frame's speed and `bef` its raw delta).
  * Divides by runtime values throughout (the eased speed's fixed-point
  * division and the final per-axis dest = delta*speed/len), so this TU needs
  * `--expand-div` (Build.hs maspsxGpExterns' extra list + permute.py's
  * MASPSX_EXTRA) for ASPSX's guarded bnez/break-7/break-6 expansion.
  *
  * Matching notes:
- *  - PSX.SYM's own locals list two SVECTOR* pointers, `a`/`b` — but those
- *    are cse1's OWN base-address materialization for two nearby field reads
- *    (`&nv` reused for the .vy/.vz reads that sit right next to each other,
- *    `&info->bef.vy` reused for .vz/.pad likewise), not a named source
- *    pointer: a plain `nv.vy`/`nv.vz` / `info->bef.vz`/`info->bef.pad` field
- *    access reproduces it. Writing an explicit `SVECTOR *a = &nv;` pins `a`
- *    live for the WHOLE function (an extra callee-saved register + frame
- *    slot the target doesn't have) since every later use goes through it;
- *    the real source only takes nv's address implicitly, for that one
- *    adjacent pair, and every later access (dest->vx/vy/vz, the final
- *    info->bef.vy/vz/pad copy) is its own fresh direct $sp-relative load.
+ *  - PSX.SYM's own locals list two SVECTOR pointers, `a` and `b`. Their
+ *    narrow inner scope is significant: `a = &nv` and `b = &info->bef` give
+ *    cse1 the two bases for the adjacent dot/length reads without keeping
+ *    either pointer live through the rest of the function. Later destination
+ *    writes and the final `bef` copy therefore use fresh direct field loads.
  *  - `dx` is referenced by name twice more after being computed (the dot
  *    product's first term, lenA's first arg) and stays in its own register
  *    for both; `dy`/`dz` are never referenced again by name after being
@@ -70,15 +63,16 @@
  *    t>>0xc;`), not an in-place `if (v<0) v+=0xfff; v>>=0xc;` — same idiom,
  *    same reason (the branch's delay slot gets the unconditional default).
  *  - The eased-speed reduction is THREE statements, not one expression:
- *    `mspd = bef.vx*(sla+0x1000); if (mspd<0) mspd+=0x1fff; spd = mspd>>0xd;
- *    spd = spd + info->spd;`. Two levers here, both length/register-critical:
+ *    `mspd = info->spd*(sla+0x1000); if (mspd<0) mspd+=0x1fff;
+ *    spd = mspd>>0xd; spd = spd + info->ac;`. Two levers here, both
+ *    length/register-critical:
  *      (a) the product needs its OWN temp `mspd` distinct from `spd` — the
- *          in-place `spd = bef.vx*…; if (spd<0) spd+=0x1fff; spd = (spd>>0xd)
- *          + spd_field;` fused the pre-shift accumulator and the final speed
+ *          in-place `spd = info->spd*…; if (spd<0) spd+=0x1fff; spd = (spd>>0xd)
+ *          + ac;` fused the pre-shift accumulator and the final speed
  *          into one pseudo (a0), which coloured the whole chain a0 and drifted
  *          6 bytes; a fresh `mspd` lets the accumulator take v1.
- *      (b) the final `spd = mspd>>0xd` and `spd = spd + info->spd` must be
- *          SEPARATE statements — the fused `spd = (mspd>>0xd) + info->spd;`
+ *      (b) the final `spd = mspd>>0xd` and `spd = spd + info->ac` must be
+ *          SEPARATE statements — the fused `spd = (mspd>>0xd) + info->ac;`
  *          keeps the shift result in mspd's register (v1) and only the add
  *          lands in spd (a0); splitting makes the shift itself target spd (a0)
  *          and the add happen in place (the last 2-byte tie).
@@ -119,11 +113,11 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
 
     {
         SVECTOR *a = &nv;
-        SVECTOR *b = (SVECTOR *)&info->bef.vy;
+        SVECTOR *b = &info->bef;
 
-        dot = (s16)dx * info->bef.vy + a->vy * b->vy + a->vz * b->vz;
+        dot = (s16)dx * info->bef.vx + a->vy * b->vy + a->vz * b->vz;
         lenA = GetVectorLength((s16)dx, a->vy, a->vz);
-        lenB = GetVectorLength(info->bef.vy, b->vy, b->vz);
+        lenB = GetVectorLength(info->bef.vx, b->vy, b->vz);
     }
     slab = lenA * lenB;
 
@@ -152,25 +146,25 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
         sla = (dot << 0xC) / slab;
     }
 
-    mspd = info->bef.vx * (sla + 0x1000);
+    mspd = info->spd * (sla + 0x1000);
     if (mspd < 0)
     {
         mspd += 0x1FFF;
     }
     spd = mspd >> 0xD;
-    spd = spd + info->spd;
+    spd = spd + info->ac;
     if (ip < spd)
     {
         spd = ip;
     }
 
-    info->bef.vx = (s16)spd;
+    info->spd = (s16)spd;
     dest->vx = (nv.vx * spd) / len;
     dest->vy = (nv.vy * spd) / len;
     dest->vz = (nv.vz * spd) / len;
-    info->bef.vy = nv.vx;
-    info->bef.vz = nv.vy;
-    info->bef.pad = nv.vz;
+    info->bef.vx = nv.vx;
+    info->bef.vy = nv.vy;
+    info->bef.vz = nv.vz;
 }
 
 // triage: MEDIUM — 183 insns, mul/div, 1 callees, ~0.08 to GetVectorRotation

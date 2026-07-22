@@ -546,14 +546,16 @@ struct TCdaStatus
     u8 command;                   /* 0x14 */
 };                                /* 0x18 */
 
-/* CAMERA.C's smoothing history. */
+/* CAMERA.C's smoothing history. Retail inserted a per-frame acceleration
+ * ahead of the demo's `spd`/`bef` fields, shifting them by two bytes. */
 typedef struct TMakeDifInfo TMakeDifInfo;
 struct TMakeDifInfo
 {
     s16 div;                      /* 0x00 */
-    s16 spd;                      /* 0x02 */
-    SVECTOR bef;                  /* 0x04 */
-};                                /* 0x0C */
+    s16 ac;                       /* 0x02 (retail; demo's local AC = 14) */
+    s16 spd;                      /* 0x04 */
+    SVECTOR bef;                  /* 0x06 */
+};                                /* 0x0E */
 
 /* STAGE.C's stage-event descriptor. */
 typedef struct EventSeqType EventSeqType;
