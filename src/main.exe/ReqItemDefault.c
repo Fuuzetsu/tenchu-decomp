@@ -48,7 +48,7 @@
  *    INDEPENDENT dereferences (no cached pointer temp): each re-does the
  *    `->model` load, matching three separate `lw ...,0x58(v1)` in the asm
  *    with no intervening call to justify caching.
- *  - `pm = u.user->model;` (used for the if-condition and reused unreloaded
+ *  - `pm = param.user->model;` (used for the if-condition and reused unreloaded
  *    in the else branch) reads through the just-STORED struct field, not the
  *    raw `user` parameter — the asm reloads it from the local's stack slot
  *    (sp+0x14) right before the branch, which only lines up with reading the
@@ -68,22 +68,22 @@ extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ReqItemDefault(Humanoid *user, TItemType ItemID)
 {
-    PARAM_ITEM_LAUNCH u;
-    VECTOR rot;
-    u8 buf[0x10];
+    PARAM_ITEM_LAUNCH param;
+    VECTOR v;
+    VECTOR v0;
     ModelArchiveType *pm;
     s32 rx;
     s32 ry;
     s32 rz;
 
-    u.type = ItemID;
-    u.user = user;
-    u.start.vx = user->model->locate.coord.t[0];
-    u.start.vy = user->model->locate.coord.t[1] - 0x4B0;
-    u.start.vz = user->model->locate.coord.t[2];
-    rot = D_80012258[0];
-    memset(buf, 0, 0x10);
-    pm = u.user->model;
+    param.type = ItemID;
+    param.user = user;
+    param.start.vx = user->model->locate.coord.t[0];
+    param.start.vy = user->model->locate.coord.t[1] - 0x4B0;
+    param.start.vz = user->model->locate.coord.t[2];
+    v = D_80012258[0];
+    memset(&v0, 0, sizeof(v0));
+    pm = param.user->model;
     if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)
     {
         GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
@@ -95,9 +95,9 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
         rz = pm->rotate.vz;
         ry = pm->rotate.vy;
     }
-    RotateVector(&rot, rx, ry, rz);
-    u.end.vx = u.start.vx + rot.vx;
-    u.end.vy = u.start.vy + rot.vy;
-    u.end.vz = u.start.vz + rot.vz;
-    ReqItemUse(&u);
+    RotateVector(&v, rx, ry, rz);
+    param.end.vx = param.start.vx + v.vx;
+    param.end.vy = param.start.vy + v.vy;
+    param.end.vz = param.start.vz + v.vz;
+    ReqItemUse(&param);
 }
