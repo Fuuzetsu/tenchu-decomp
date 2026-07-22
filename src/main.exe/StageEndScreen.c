@@ -245,7 +245,7 @@ void StageEndScreen(void)
     init_score_stats(&stack.stats);
     score = calculate_score(&stack.stats, CHOSEN_STAGE);
     stack.current = *score;
-    *(ScoreStats *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x4c) = stack.stats;
+    PSTATE->score_stats = stack.stats;
 
     {
         ScoreStats *base_record;
@@ -254,12 +254,15 @@ void StageEndScreen(void)
         TLinkInfo *state;
 
         state = PSTATE;
-        character_offset = (u32)state->CharType * 0x1d4;
-        stage_offset = (u32)state->StageNo * 0x24 +
-                       TENCHU_PERSISTENT_STATE_ADDRESS + 0x64;
+        character_offset = (u32)state->CharType *
+            sizeof(state->stage_stats[0]);
+        stage_offset = (u32)state->StageNo *
+            sizeof(state->stage_stats[0][0]) +
+            TENCHU_PERSISTENT_STATE_ADDRESS +
+            (u32)&((TLinkInfo *)0)->stage_stats;
         base_record = (ScoreStats *)(character_offset + stage_offset);
         record = (ScoreStats *)((u8 *)base_record +
-            (u32)state->layout * 0xc);
+            (u32)state->layout * sizeof(state->stage_stats[0][0][0]));
         score = calculate_score(record, state->StageNo);
     }
     stack.best = *score;
@@ -600,13 +603,16 @@ number_1:
             u8 *next_stage;
             u32 layout_base;
 
-            layout_base = TENCHU_PERSISTENT_STATE_ADDRESS + 0x64;
+            layout_base = TENCHU_PERSISTENT_STATE_ADDRESS +
+                (u32)&((TLinkInfo *)0)->stage_stats;
             next_stage = (u8 *)D_8008EA78;
             PSTATE->StageNo = next_stage[StageEndNextStageOffset(
                 StageConfig[PSTATE->StageNo].uid)];
-            layout_character_offset = (u32)PSTATE->CharType * 0x1d4;
+            layout_character_offset = (u32)PSTATE->CharType *
+                sizeof(PSTATE->stage_stats[0]);
             layout_stage_offset =
-                (u32)PSTATE->StageNo * 0x24 + layout_base;
+                (u32)PSTATE->StageNo *
+                sizeof(PSTATE->stage_stats[0][0]) + layout_base;
             layout_record = (ScoreStats *)(layout_character_offset +
                 layout_stage_offset);
             layout_index = 0;
@@ -616,7 +622,7 @@ layout_loop:
             layout_index++;
             if (layout_index < 3)
             {
-                layout_record = (ScoreStats *)((u8 *)layout_record + 0xc);
+                layout_record++;
                 goto layout_loop;
             }
 layout_done:

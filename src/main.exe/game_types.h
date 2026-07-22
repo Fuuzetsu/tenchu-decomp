@@ -38,7 +38,6 @@ struct TPadPort
     u8 act2;            /* 0x9 */
     u8 actbuf[2];       /* 0xA */
     u8 Send;            /* 0xC */
-    u8 pad;             /* 0xD */
 };
 
 /* PADCMD.C's rumble attack/release envelope (anonymous in PSX.SYM). */
@@ -959,7 +958,8 @@ typedef struct TLinkInfo
     u8 backup[0x14];        /* 0x027 loadout backup (restore on abort) */
     u8 field_0x3b[0xD];     /* 0x03B */
     u8 flags48;             /* 0x048 bit0: item screen already initialised */
-    u8 field_0x49[0xF];     /* 0x049 */
+    u8 field_0x49[3];       /* 0x049 */
+    ScoreStats score_stats; /* 0x04C current mission counters */
     u8 Nannido;             /* 0x058 gNannido: game_difficulty (demo +0x5) */
     u8 Stereo;              /* 0x059 gSound: 1 = stereo, 0 = mono
                              *       (InitSoundEffect/InitPersistentState
@@ -978,14 +978,14 @@ typedef struct TLinkInfo
     u8 control_scheme;      /* 0x05F saved pad-remapping row (retail-only) */
     u8 StageNoMAX[2];       /* 0x060 highest stage uid per character;
                              *       official demo member name (demo +0x3) */
-    u8 field_0x62[0x3AA];   /* 0x062 */
+    u8 field_0x62[2];       /* 0x062 */
+    ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
     u8 stock[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
                              *       two 0x20-byte character rows;
                              *       0xFE = locked, 0xFF = infinite;
                              *       [chr*0x20+0x13] = stage bonus item flag */
     u8 t_char[5];           /* 0x44C high-score character (demo name) */
     u8 t_dani[5];           /* 0x451 high-score rank (demo name) */
-    u8 pad_0x456[2];        /* 0x456 */
     long t_time[5];         /* 0x458 completion time; retail replacement for
                              *       the demo's t_fun/t_byou byte arrays */
     u32 mission_flags;      /* 0x46C mission completion/unlock bitset
