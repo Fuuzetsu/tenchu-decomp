@@ -125,9 +125,9 @@ typedef struct Humanoid
     s16 sound;                   /* 0xAC (PSX.SYM's original default sound id) */
     s16 itmctl;                  /* 0xAE (PSX.SYM's item-control field;
                                     retail shifts it eight bytes from +0xA6) */
-    s32 field76_0xb0;            /* 0xB0 (packed movement hint/count word;
-                                    StateTransition and the character_state
-                                    twin both read/write it as a whole word) */
+    s32 pad_hold;                /* 0xB0 (packed AI pad command/duration;
+                                    high half carries D-pad bits and the low
+                                    byte counts remaining frames) */
     u8 item[0x1A];               /* 0xB4 (carry count per TItemType — ProcItemDrop;
                                     DoInfoViewProc's cursor wraps at index 0x19) */
 } Humanoid;

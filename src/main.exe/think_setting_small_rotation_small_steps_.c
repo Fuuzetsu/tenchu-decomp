@@ -192,13 +192,13 @@ s16 think_setting_small_rotation_small_steps_(void)
 
             degree = Degree;
             absoluteDegree = __builtin_abs(degree);
-            if (absoluteDegree > 1000 && Me_THINK_C->field76_0xb0 == 0)
+            if (absoluteDegree > 1000 && Me_THINK_C->pad_hold == 0)
             {
                 s32 quotient;
 
                 self = Me_THINK_C;
                 quotient = 1000 / self->turn;
-                self->field76_0xb0 = quotient |
+                self->pad_hold = quotient |
                     (degree > 0 ? 0x80000000 : 0x20000000);
             }
         }

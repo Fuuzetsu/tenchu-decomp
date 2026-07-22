@@ -16,7 +16,7 @@
  * Think2contact (0x8002fa54, 0x68 bytes) — a think-handler
  * (installed into a think_settingN slot elsewhere; despite the name it's a
  * per-frame handler like Think1sleep/Think2confirm, not an installer): if
- * currently in the "0x400" attrib state and the field76_0xb0 hint is unset,
+ * currently in the "0x400" attrib state and the AI pad hold is unset,
  * arm it (0x80000008, or 0x20000008 if Degree > 0), then just forward to
  * turn_towards_player_(0, 0). Same TU as Think1sleep.c/Think2confirm.c.  The
  * recovered Attrib object is a signed `short`; this retail site reads its raw
@@ -28,7 +28,7 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 
 s16 Think2contact(void)
 {
-    if ((ATTRIB_BITS & 0x400) && (Me_THINK_C->field76_0xb0 == 0))
+    if ((ATTRIB_BITS & 0x400) && (Me_THINK_C->pad_hold == 0))
     {
         s32 hint;
 
@@ -37,7 +37,7 @@ s16 Think2contact(void)
         {
             hint = 0x20000008;
         }
-        Me_THINK_C->field76_0xb0 = hint;
+        Me_THINK_C->pad_hold = hint;
     }
     return turn_towards_player_(0, 0);
 }

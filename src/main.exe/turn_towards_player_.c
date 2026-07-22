@@ -117,7 +117,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
             {
                 return result;
             }
-            if (Me_THINK_C->field76_0xb0 == 0)
+            if (Me_THINK_C->pad_hold == 0)
             {
                 SVECTOR local;
                 s32 d1, d2;
@@ -145,7 +145,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
                     d2 = 0x80000000;
                 apply:
                     d2 |= 0x1e;
-                    Me_THINK_C->field76_0xb0 = d2;
+                    Me_THINK_C->pad_hold = d2;
                 }
                 else
                 {

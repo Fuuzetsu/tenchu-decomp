@@ -457,12 +457,12 @@ void StateTransition(Humanoid *human)
             me->chase[1] = target_z;
         }
 
-        if (Me_THINK_C->field76_0xb0 == 0)
+        if (Me_THINK_C->pad_hold == 0)
         {
             if ((pad & 0x4000) &&
                 ((D_80097F18[1] & 0x204) || D_80097F14 > 5000))
             {
-                Me_THINK_C->field76_0xb0 = 0x1000001e;
+                Me_THINK_C->pad_hold = 0x1000001e;
             }
             if ((pad & 0x1000) &&
                 ((D_80097F18[0] & 0x204) || D_80097F10 > 5000))
@@ -487,9 +487,9 @@ void StateTransition(Humanoid *human)
             StrainRatio = -0x8000;
         }
         pad = Me_THINK_C->think[3]();
-        if ((ATTRIB_BITS & 0x400) && Me_THINK_C->field76_0xb0 == 0)
+        if ((ATTRIB_BITS & 0x400) && Me_THINK_C->pad_hold == 0)
         {
-            Me_THINK_C->field76_0xb0 =
+            Me_THINK_C->pad_hold =
                 Degree > 0 ? 0x20000008 : 0x80000008;
         }
         if ((ATTRIB_BITS & 3) == 2)
@@ -511,26 +511,26 @@ void StateTransition(Humanoid *human)
     }
 
 after_state:
-    if (Me_THINK_C->field76_0xb0 != 0)
+    if (Me_THINK_C->pad_hold != 0)
     {
 update_hint:
-        pad = Me_THINK_C->field76_0xb0 >> 16;
+        pad = Me_THINK_C->pad_hold >> 16;
         {
             s32 count;
 
-            count = *(u8 *)&Me_THINK_C->field76_0xb0 - 1;
+            count = *(u8 *)&Me_THINK_C->pad_hold - 1;
             if (count != 0)
             {
-                Me_THINK_C->field76_0xb0 = (pad << 16) | count;
+                Me_THINK_C->pad_hold = (pad << 16) | count;
             }
             else if (pad & 0xa000)
             {
-                Me_THINK_C->field76_0xb0 =
+                Me_THINK_C->pad_hold =
                     ((rand() % 3 + 1) * 0x1e) | 0x10000000;
             }
             else
             {
-                Me_THINK_C->field76_0xb0 = 0;
+                Me_THINK_C->pad_hold = 0;
             }
         }
     }
@@ -564,7 +564,7 @@ update_hint:
                     {
                         hint = 0x2000000f;
                     }
-                    me->field76_0xb0 = hint;
+                    me->pad_hold = hint;
                 }
             }
         }

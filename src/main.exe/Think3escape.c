@@ -94,7 +94,7 @@ s16 Think3escape(void)
         {
             abs_degree2 = -abs_degree2;
         }
-        if (abs_degree2 > 1000 && Me_THINK_C->field76_0xb0 == 0)
+        if (abs_degree2 > 1000 && Me_THINK_C->pad_hold == 0)
         {
             s32 quotient;
 
@@ -107,7 +107,7 @@ s16 Think3escape(void)
                 human = Me_THINK_C;
             }
             quotient = 1000 / human->turn;
-            human->field76_0xb0 = quotient |
+            human->pad_hold = quotient |
                 (degree2 > 0 ? 0x20000000 : 0x80000000);
         }
     }
