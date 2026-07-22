@@ -153,7 +153,6 @@
 extern s16 motID;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
-extern s16 MotionUpdateMode;
 extern Humanoid *Me_MOTION_C;
 extern s16 motMODE;
 

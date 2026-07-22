@@ -40,7 +40,6 @@
  */
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;
-extern s16 MotionUpdateMode;
 extern s16 motMODE;
 extern short SetNowMotion(Humanoid *human, short mid, short move);
 

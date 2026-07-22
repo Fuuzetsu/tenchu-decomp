@@ -8,7 +8,6 @@ extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern SVECTOR *dtV;
-extern s16 MotionUpdateMode;
 extern s16 motID;
 extern s16 motMODE;
 extern s16 ActionHalt;

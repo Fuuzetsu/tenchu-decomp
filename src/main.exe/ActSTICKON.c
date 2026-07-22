@@ -85,7 +85,6 @@ extern VECTOR *dtL;
 extern s16 dtCMD;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 MotionUpdateMode;
 extern s16 dtPAD;
 extern s16 RefrectVector[16];
 extern s16 SelectedItem;

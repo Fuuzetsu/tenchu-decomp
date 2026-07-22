@@ -55,7 +55,6 @@ extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 MotionUpdateMode;
 extern s16 RefrectMove[16][2];
 
 extern short SetNowMotion(Humanoid *human, short mid, short move);

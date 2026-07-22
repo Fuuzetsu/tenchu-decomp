@@ -56,7 +56,6 @@ extern SVECTOR *dtR;
 extern s16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
-extern s16 MotionUpdateMode;
 extern u16 RefrectVector[16];
 
 extern short UpdateMotion(MotionManager *mmp, short mid);

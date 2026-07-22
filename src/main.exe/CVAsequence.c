@@ -57,7 +57,6 @@ extern CVAType *CVAdata;
 extern CVAType *CVAnow;
 extern s16 Humans;
 extern s16 ActionHalt;
-extern s16 MotionUpdateMode;
 extern TCdaStatus CdaStatus;
 extern u8 D_800C2C50[];
 extern s16 VoiceMode;
