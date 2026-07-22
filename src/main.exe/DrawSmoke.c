@@ -33,9 +33,9 @@
  * MATCH.
  *
  * DrawSmoke (0x800334c4, EFFECT.C:794) — the smoke-puff effect's per-frame
- * draw: picks its sprite from `sprSmoke[param->sprite]`, and while
- * `time==evtime` (a one-shot "just spawned or freshly stepped" gate) damps
- * the velocity by 0.8x every time `vec.vy` drifts below -20 and bumps
+ * draw: picks its sprite from `sprSmoke[param->sprite]`; when the lifetime
+ * countdown reaches its scheduled event time (`time==evtime`), it damps the
+ * velocity by 0.8x every time `vec.vy` drifts below -20 and bumps
  * `scale`/re-rolls `evtime` from `time` and a `rand()%5` jitter; then, if
  * `time<26`, sets `alfa = time*5` (else the 0x80 default), integrates
  * `pos += vec`, writes the sprite's position/scale/color/rotate, draws it,
