@@ -82,6 +82,8 @@
  *    reload assigns slots 0x15C..0x170 in pseudo-number order and emits the
  *    rotating t0-t3 reloads, the lhu msize narrow reload, and the delay-slot
  *    spill stores. data reloads from its arg-home slot 0x1A0.
+ *  - `MapModelSize` is WORLD.C's original allocation constant. Retail lowers
+ *    it from the demo's 0x70800 bytes to 0x6B800 at the same allocation site.
  *  - name/center/param/tmp/size are five separate stack locals: gcc 2.8.1
  *    rounds each BLKmode slot up to 8 bytes, which yields retail's pads
  *    (param@0x128+24, tmp@0x140+24, size@0x158) with no explicit padding.
@@ -164,6 +166,10 @@ extern void jt_init4(void);
 
 short LoadConstruction(u_long *data)
 {
+    enum
+    {
+        MapModelSize = 0x6B800
+    };
     int ObjectID;
     u_long *MapModel;
     WorldDataType *wlddt;
@@ -239,7 +245,7 @@ short LoadConstruction(u_long *data)
     LoadTIMpackAndFree(PathFileRead((u8 *)D_800120F0,
                                     (u8 *)D_80012108));
 
-    MapModel = (u_long *)valloc(0x6B800);
+    MapModel = (u_long *)valloc(MapModelSize);
     ObjectArc = LoadOrnamentArchive(
         PathFileRead(ImagePath, (u8 *)D_80012114), &World);
 
