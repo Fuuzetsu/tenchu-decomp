@@ -3,8 +3,8 @@
 
 /*
  * ProcItemLightningBolt (0x800460d0) — the lightning bolt item processor.
- * mode 0: arm a 15-frame countdown, play the ready sound if the local
- * player owns it; mode 1: retarget (SearchItemTarget2), snap the item's
+ * mode 0: arm a 15-frame countdown, play the ready sound if the current
+ * camera owner owns it; mode 1: retarget (SearchItemTarget2), snap the item's
  * locate to the result and register a 100-unit conflict box, advance to
  * mode 2; mode 2: every third GameClock tick, drop back to mode 1 to
  * retarget again. Every mode (and the fallthrough default) then always
@@ -26,7 +26,7 @@
  *    shape is cc1's own doing, invisible from source order.
  *  - No default: falling out of all three cases (or matching none) reaches
  *    the shared "always redraw" tail directly, exactly like ProcItemMakibishi.
- *  - The local-player test uses the recovered shared `CamState.Owner` field.
+ *  - The camera-owner test uses the recovered shared `CamState.Owner` field.
  *  - The countdown test uses the OLD (pre-decrement) count, and the
  *    decrement is written `count + 0xff` (not `count - 1`): the literal
  *    0x00FF (not sign-extended -1) is the actual encoded immediate —

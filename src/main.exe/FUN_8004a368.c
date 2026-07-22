@@ -8,8 +8,8 @@
  * index DoInfoViewProc's cursor wraps at, i.e. this repurposes the array's
  * spare slot as a plain flag, not a real item count): mode 0 clears it,
  * mode 1 reports whether it's == 1, anything else complains via
- * AdtMessageBox. A NULL humanoid arg defaults to `CamState.Owner`, the
- * currently controlled character.
+ * AdtMessageBox. A NULL humanoid arg defaults to the current camera owner,
+ * `CamState.Owner`.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - Ghidra's `field_0xcd`/m2c's `unkCD` is item.h's proven `item[0x1A]`
