@@ -32,25 +32,6 @@
  * direct three-dimensional subscript changes retail's register allocation.
  */
 
-typedef struct
-{
-    GsSPRITE digit;                 /* sp+0x18 */
-    u8 pad_024[4];
-    ScoreStats stats;               /* sp+0x40 */
-    u8 pad_04c[4];
-    ScoreResult current;            /* sp+0x50 */
-    u8 pad_05c[4];
-    ScoreResult best;               /* sp+0x60 */
-    u8 pad_06c[4];
-    GsSPRITE rank;                  /* sp+0x70 */
-    u8 pad_07c[4];
-    GsIMAGE image;                  /* sp+0x98 */
-    u8 pad_0b4[4];
-    u16 old_pad;                    /* sp+0xb8 */
-    u8 pad_0a2[2];
-    BackGround *background;         /* sp+0xbc */
-} StageEndScreenStack;
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
@@ -97,7 +78,7 @@ static inline s32 StageEndNextStageOffset(s32 index)
         s16 signed_value;                                                  \
         GsSPRITE *sprite;                                                  \
                                                                            \
-        sprite = &stack.digit;                                             \
+        sprite = &digit;                                                   \
         value = (value_);                                                  \
         signed_value = (type_)value;                                       \
         sprite->x = (x_);                                                  \
@@ -160,7 +141,7 @@ label_:                                                                    \
         u8 base_u;                                                         \
         GsSPRITE *sprite;                                                  \
                                                                            \
-        sprite = &stack.digit;                                             \
+        sprite = &digit;                                                   \
         value = (value_);                                                  \
         signed_value = (s16)value;                                         \
         sprite->x = best_x;                                                \
@@ -199,7 +180,16 @@ label_:                                                                    \
 
 void StageEndScreen(void)
 {
-    StageEndScreenStack stack;
+    GsSPRITE digit;
+    ScoreStats stats;
+    ScoreResult current, best;
+    GsSPRITE rank;
+    GsIMAGE image;
+    struct
+    {
+        u16 old_pad;
+        BackGround *background;
+    } ui;
     ScoreResult *score;
     ScoreStats *record;
     ScoreStats *layout_record;
@@ -223,7 +213,7 @@ void StageEndScreen(void)
     s32 negative;
 
     selection = 0;
-    stack.old_pad = 0;
+    ui.old_pad = 0;
     SetupAppearance(0, -1);
     PadShockAR(0, 0, 0, 0);
     FadeOutDirect(0x20, 2, 8, 8, 8);
@@ -245,10 +235,10 @@ void StageEndScreen(void)
         }
     }
 
-    init_score_stats(&stack.stats);
-    score = calculate_score(&stack.stats, CHOSEN_STAGE);
-    stack.current = *score;
-    PSTATE->score_stats = stack.stats;
+    init_score_stats(&stats);
+    score = calculate_score(&stats, CHOSEN_STAGE);
+    current = *score;
+    PSTATE->score_stats = stats;
 
     {
         ScoreStats *base_record;
@@ -266,13 +256,13 @@ void StageEndScreen(void)
         record = base_record + state->layout;
         score = calculate_score(record, state->StageNo);
     }
-    stack.best = *score;
-    if (stack.current.score > stack.best.score ||
-        (stack.current.score == stack.best.score &&
-        stack.stats.clock < record->clock))
+    best = *score;
+    if (current.score > best.score ||
+        (current.score == best.score &&
+        stats.clock < record->clock))
     {
-        *record = stack.stats;
-        stack.best = stack.current;
+        *record = stats;
+        best = current;
     }
 
     {
@@ -313,8 +303,8 @@ void StageEndScreen(void)
             {
                 GsSPRITE *sprite;
 
-                sprite = &stack.digit;
-                StageEndInitSprite(tim, &stack.image, sprite);
+                sprite = &digit;
+                StageEndInitSprite(tim, &image, sprite);
                 sprite->attribute |= 0x50000000;
                 sprite->x = -0x8c;
                 sprite->y = -0x28;
@@ -323,32 +313,32 @@ void StageEndScreen(void)
                 sprite->b = 0x80;
                 sprite->mx = sprite->w >> 1;
                 sprite->my = sprite->h >> 1;
-                stack.digit.mx = 0;
-                stack.digit.my = 0;
+                digit.mx = 0;
+                digit.my = 0;
                 LoadTIMAndFree(tim);
                 top_y = -0x35;
-                stack.digit.w = 12;
+                digit.w = 12;
             }
 
             tim = FileRead(RS_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
-            stack.background = FUN_8004f4f8(tim);
+            ui.background = FUN_8004f4f8(tim);
             vfree(tim);
             rank_archive =
                 FileRead(RANK_ARCHIVE_PTRS[((u8 *)best_x)[0x5e]]);
             tim = get_tim_from_archive(rank_archive,
-                stack.current.grade);
+                current.grade);
             best_x = 0x7f;
-            StageEndInitSprite(tim, &stack.image, &stack.rank);
-            stack.rank.x = -0xa0;
-            stack.rank.y = -0x78;
-            stack.rank.r = 0x80;
-            stack.rank.g = 0x80;
-            stack.rank.b = 0x80;
-            stack.rank.attribute |= 0x50000000;
-            stack.rank.mx = stack.rank.w >> 1;
-            stack.rank.my = stack.rank.h >> 1;
-            stack.rank.mx = 0;
-            stack.rank.my = 0;
+            StageEndInitSprite(tim, &image, &rank);
+            rank.x = -0xa0;
+            rank.y = -0x78;
+            rank.r = 0x80;
+            rank.g = 0x80;
+            rank.b = 0x80;
+            rank.attribute |= 0x50000000;
+            rank.mx = rank.w >> 1;
+            rank.my = rank.h >> 1;
+            rank.mx = 0;
+            rank.my = 0;
             LoadTIM(tim);
 
             _PlayMusic(12, 1);
@@ -356,8 +346,8 @@ void StageEndScreen(void)
             while (1)
             {
                 pad = GetRealPad(0);
-                pressed = pad & (pad ^ stack.old_pad);
-                stack.old_pad = pad;
+                pressed = pad & (pad ^ ui.old_pad);
+                ui.old_pad = pad;
                 if ((pressed & 0x20) != 0)
                 {
                     selection = 0;
@@ -383,9 +373,9 @@ void StageEndScreen(void)
                 }
 
                 StartDrawing();
-                DrawBG(stack.background);
-                FUN_800515b0(&stack.digit, stack.stats.clock, 0x61, -0x5d, 0);
-                DRAW_SCORE_NUMBER(stack.stats.criticals, s32, 1, number_0,
+                DrawBG(ui.background);
+                FUN_800515b0(&digit, stats.clock, 0x61, -0x5d, 0);
+                DRAW_SCORE_NUMBER(stats.criticals, s32, 1, number_0,
                     10, top_y);
                 {
                     s32 dividend;
@@ -397,10 +387,10 @@ void StageEndScreen(void)
 
                     do
                     {
-                        sprite = &stack.digit;
+                        sprite = &digit;
                     } while (0);
-                    enemy_count = stack.stats.stageEnemies;
-                    i = stack.stats.stageBosses;
+                    enemy_count = stats.stageEnemies;
+                    i = stats.stageBosses;
                     dispatch = second_x;
                     sprite->x = dispatch;
                     sprite->y = top_y;
@@ -446,74 +436,74 @@ number_1:
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.criticalScore, s16, 1, number_2,
+                    DRAW_SCORE_NUMBER(current.criticalScore, s16, 1, number_2,
                         x, top_y);
                 }
-                DRAW_SCORE_NUMBER(stack.best.criticalScore, s16, 1, number_3,
+                DRAW_SCORE_NUMBER(best.criticalScore, s16, 1, number_3,
                     best_x, top_y);
 
-                DRAW_SCORE_NUMBER(stack.stats.murders, s32, 0, number_4,
+                DRAW_SCORE_NUMBER(stats.murders, s32, 0, number_4,
                     10, -0x1a);
-                DRAW_SCORE_NUMBER(stack.stats.stageEnemies, s32, 0, number_5,
+                DRAW_SCORE_NUMBER(stats.stageEnemies, s32, 0, number_5,
                     0x28, -0x1a);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(stack.current.murderScore, s16, 0, number_6,
+                    DRAW_SCORE_NUMBER(current.murderScore, s16, 0, number_6,
                         x, -0x1a);
                 }
-                DRAW_SCORE_NUMBER(stack.best.murderScore, s16, 0, number_7,
+                DRAW_SCORE_NUMBER(best.murderScore, s16, 0, number_7,
                     best_x, -0x1a);
 
-                DRAW_SCORE_NUMBER(stack.stats.findEnemies, s32, 0, number_8,
+                DRAW_SCORE_NUMBER(stats.findEnemies, s32, 0, number_8,
                     0x1c, 1);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER((u16)stack.current.spottedScore,
+                    DRAW_SCORE_NUMBER((u16)current.spottedScore,
                         s16, 0, number_9, x, 1);
                 }
-                DRAW_SCORE_NUMBER((u16)stack.best.spottedScore,
+                DRAW_SCORE_NUMBER((u16)best.spottedScore,
                     s16, 0, number_10, best_x, 1);
 
-                DRAW_SCORE_NUMBER(stack.stats.friendHits, s32, 0, number_11,
+                DRAW_SCORE_NUMBER(stats.friendHits, s32, 0, number_11,
                     0x1c, 0x1a);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER((u16)stack.current.friendPenalty,
+                    DRAW_SCORE_NUMBER((u16)current.friendPenalty,
                         s16, 0, number_12, x, 0x1a);
                 }
-                DRAW_SCORE_NUMBER((u16)stack.best.friendPenalty,
+                DRAW_SCORE_NUMBER((u16)best.friendPenalty,
                     s16, 0, number_13, best_x, 0x1a);
 
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER((u16)stack.current.score,
+                    DRAW_SCORE_NUMBER((u16)current.score,
                         s16, 0, number_14, x, 0x38);
                 }
-                DRAW_LAST_SCORE_NUMBER((u16)stack.best.score, number_15);
+                DRAW_LAST_SCORE_NUMBER((u16)best.score, number_15);
 
                 do
                 {
-                    stack.rank.x = -0x19;
-                    stack.rank.y = 0x4e;
+                    rank.x = -0x19;
+                    rank.y = 0x4e;
                     pulse = rsin((GameClock << 12) / 90) * 0x7f;
                 } while (0);
                 if (pulse < 0)
                 {
                     pulse += 0xfff;
                 }
-                stack.rank.r = stack.rank.g = stack.rank.b =
+                rank.r = rank.g = rank.b =
                     (pulse >> 12) + 0x7f;
-                GsSortSprite(&stack.rank, OTablePt, 1);
+                GsSortSprite(&rank, OTablePt, 1);
 
-                if (stack.current.grade == 4)
+                if (current.grade == 4)
                 {
                     icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
                     icon->x = -0x78;
@@ -533,12 +523,12 @@ number_1:
                 EndDrawing(0);
             }
 
-            DisposeBG(stack.background);
+            DisposeBG(ui.background);
             vfree(rank_archive);
         }
     }
 
-    FUN_80052ea8(PSTATE, &stack.current);
+    FUN_80052ea8(PSTATE, &current);
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
 
