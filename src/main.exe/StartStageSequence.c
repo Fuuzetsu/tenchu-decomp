@@ -89,7 +89,6 @@ extern u16 Murders;
 extern u16 Findenemies;
 extern u16 Criticals;
 
-extern void UpdateCoordinate(ModelType *model);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void UpdateEvent(s16 n, s16 id);
 

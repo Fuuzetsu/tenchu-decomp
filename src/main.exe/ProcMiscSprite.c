@@ -55,7 +55,6 @@
  *    expressions).
  */
 
-extern void UpdateCoordinate(Sprite3D *dim);
 extern short DrawSprite(Sprite3D *sprt);
 /* Shared MISC.C rodata pool (same block as AddMisc.c's D_800127A4/D_800127BC
  * strings, carved via AddMisc's .rodata segment) — "unknown sprite type",
@@ -95,6 +94,6 @@ do_draw:
     s->locate.coord.t[0] = m->x;
     s->locate.coord.t[1] = m->y;
     s->locate.coord.t[2] = m->z;
-    UpdateCoordinate(s);
+    UpdateCoordinate((ModelType *)s);
     DrawSprite(s);
 }

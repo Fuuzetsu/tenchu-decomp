@@ -110,7 +110,6 @@
  *    = param->time + 0xff; if (oldtime == 0) { ef->proc = 0; }` — verified
  *    a real `+0xff` (0x00FF, positive) here, unlike DrawBleed's `time-1`.
  */
-extern void UpdateCoordinate(Sprite3D *m);
 extern short DrawSprite(Sprite3D *sprt);
 
 void DrawSmoke(TEffectSlot *ef)
@@ -161,7 +160,7 @@ void DrawSmoke(TEffectSlot *ef)
     spr->sprite.g = alfa;
     spr->sprite.b = alfa;
     spr->sprite.rotate = rotate;
-    UpdateCoordinate(spr);
+    UpdateCoordinate((ModelType *)spr);
     DrawSprite(spr);
 
     oldtime = param->time;

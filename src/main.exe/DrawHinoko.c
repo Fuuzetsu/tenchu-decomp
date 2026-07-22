@@ -53,7 +53,6 @@
  * locals: param, spr, and alfa.
  */
 
-extern void UpdateCoordinate(Sprite3D *m);
 extern short DrawSprite(Sprite3D *sprt);
 
 /* Originally static in EFFECT.C; global here because SetHinoko is split into
@@ -100,6 +99,6 @@ void DrawHinoko(TEffectSlot *ef)
     spr->sprite.r = alfa;
     spr->sprite.g = alfa;
     spr->sprite.b = alfa;
-    UpdateCoordinate(spr);
+    UpdateCoordinate((ModelType *)spr);
     DrawSprite(spr);
 }

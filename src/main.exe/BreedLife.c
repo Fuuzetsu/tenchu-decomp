@@ -153,7 +153,6 @@
 
 
 extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
-extern void UpdateCoordinate(ModelType *dim);
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strcmp(char *a, char *b);
 

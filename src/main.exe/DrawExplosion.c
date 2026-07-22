@@ -86,7 +86,6 @@
  *    `.vx` addition before `.vy` — the reverse order swaps which of
  *    a0/a1 each ends up in.
  */
-extern void UpdateCoordinate(Sprite3D *m);
 extern short DrawSprite(Sprite3D *sprt);
 
 void DrawExplosion(TEffectSlot *ef)
@@ -148,6 +147,6 @@ void DrawExplosion(TEffectSlot *ef)
     spr->sprite.g = alfa;
     spr->sprite.b = alfa;
     spr->sprite.rotate = rotate;
-    UpdateCoordinate(spr);
+    UpdateCoordinate((ModelType *)spr);
     DrawSprite(spr);
 }
