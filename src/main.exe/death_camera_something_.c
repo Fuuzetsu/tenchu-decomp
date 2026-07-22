@@ -14,7 +14,6 @@
  */
 
 extern short RefrectVector[16];
-extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 extern ModelType *LOCAL_COORDINATES_;

@@ -70,7 +70,6 @@
 extern CVAType *CVAnow;
 extern CVAType *CVAdata;
 extern GsRVIEW2 ViewInfo;
-extern SVECTOR UnitVector;
 extern Humanoid *CameraTarget;
 extern s16 CameraPanMode;
 extern s16 D_80097CC8;

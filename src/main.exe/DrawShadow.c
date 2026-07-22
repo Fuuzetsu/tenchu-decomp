@@ -80,7 +80,6 @@
  */
 
 extern short RefrectVector[16];
-extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern ModelType *D_80097F34;
 

@@ -116,7 +116,6 @@
  *    register for the shift's destination; split, the load's destination
  *    register matches the target's directly (a 2-byte pure register tie).
  */
-extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 
 short DrawAfterimage(AfterimageType *afi, short disp)

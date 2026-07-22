@@ -49,7 +49,6 @@
  */
 
 extern VECTOR UnitVector2;
-extern SVECTOR UnitVector;
 extern void *memset(void *s, int c, u32 n);
 
 void InitConflict(void)

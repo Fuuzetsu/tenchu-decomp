@@ -42,7 +42,6 @@
  *  - OrnamentType is the complete shared PSX.SYM record; this function only
  *    touches its leading `locate` member.
  */
-extern SVECTOR UnitVector;
 
 void UpdateOrnament(OrnamentType *objp, short ry)
 {

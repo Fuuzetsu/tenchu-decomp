@@ -126,7 +126,6 @@
  */
 
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
-extern SVECTOR UnitVector;
 extern GsOT *OTablePt;
 extern s32 DrawTMDmode;
 

@@ -59,7 +59,6 @@
  * caveat that a repeated global reference isn't automatically cached).
  */
 extern void *valloc(u32 size);
-extern SVECTOR UnitVector;
 extern GsIMAGE *D_80097F3C;
 extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, s32 x, s32 y);
 

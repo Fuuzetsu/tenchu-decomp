@@ -39,7 +39,6 @@
  * source.
  */
 extern void *valloc(u32 size);
-extern SVECTOR UnitVector;
 extern ModelType World;
 
 OrnamentType *LoadOrnament(u_long *adr)
