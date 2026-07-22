@@ -39,7 +39,7 @@
  *    pattern as lePackEnemyLayout's memcpy/AdtMessageBox).
  *  - `bg->attribute & 1` is a narrowing (mask-only) use, so cc1 emits `lhu`
  *    even though the field is Ghidra-typed signed `short` (same rule as the
- *    item TU's lifemax/it narrowing loads).
+ *    other narrowing field loads).
  *  - OTablePt is %gp_rel in this TU (tools/gpsyms.py --write; Build.hs
  *    maspsxGpExterns + permute.py GP_EXTERNS both list DrawBG now).
  *  - Register tie: a single `ret=0; if(cond){...; ret=1;} return ret;`

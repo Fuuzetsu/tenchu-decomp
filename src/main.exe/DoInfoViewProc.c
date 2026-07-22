@@ -71,9 +71,6 @@
  *    into the conditional backjump's delay slot, retargets the branch past
  *    it, and compensates (+1) on the fallthrough exit. Loading into `i`
  *    first and copying to `cur` puts the lh in i's register (move a0,v1).
- *  - `(s16)CamState.Owner->lifemax` forces the signed lh the original has —
- *    this TU's view disagrees with the item TU's u16 (ProcItemKusuri lhu's
- *    the same field).
  *  - gp smalls of this TU: fInitialize (fInitialize),
  *    ItemCursor, PutMapMode (Build.hs maspsxGpExterns +
  *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/D_80097C40 are other
@@ -272,7 +269,7 @@ nosel:
         PauseProc();
     }
     PutItemList();
-    PutLifeBar(-0x94, 0x69, CamState.Owner->life, (s16)CamState.Owner->lifemax, 0);
+    PutLifeBar(-0x94, 0x69, CamState.Owner->life, CamState.Owner->lifemax, 0);
     PutLifeBarS();
     PutStrain(-0x86, 0x5C);
     if ((GetPad(0) & 0x100) &&

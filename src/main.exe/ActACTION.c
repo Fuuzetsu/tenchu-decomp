@@ -69,7 +69,7 @@ void ActACTION(void)
 
     case 4:
     case 5:
-        if (Me_MOTION_C->life != (s16)Me_MOTION_C->lifemax ||
+        if (Me_MOTION_C->life != Me_MOTION_C->lifemax ||
             (*(u16 *)&Me_MOTION_C->attribute & 1))
         {
             if (Me_MOTION_C == StagePlayer)

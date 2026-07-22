@@ -57,7 +57,7 @@ typedef struct Humanoid
     s16 attribute;               /* 0x04 */
     s16 turn;                    /* 0x06 */
     s16 life;                    /* 0x08 */
-    u16 lifemax;                 /* 0x0A (lhu in ProcItemKusuri; DoInfoViewProc lh's it via a (s16) cast) */
+    s16 lifemax;                 /* 0x0A (PSX.SYM's original signed maximum-life field) */
     s16 width;                   /* 0x0C */
     s16 height;                  /* 0x0E */
     PADtype pad;                 /* 0x10 (DoInfoViewProc reads .data/.trig) */
@@ -110,7 +110,7 @@ typedef struct Humanoid
     void *illusion[2];           /* 0xA4 (PSX.SYM's original type; these
                                     opaque effect pointers are passed to the
                                     afterimage draw/dispose API) */
-    u16 sound;                   /* 0xAC (default sound id, OR'd into Sound()'s seid) */
+    s16 sound;                   /* 0xAC (PSX.SYM's original default sound id) */
     s16 itmctl;                  /* 0xAE (PSX.SYM's item-control field;
                                     retail shifts it eight bytes from +0xA6) */
     s32 field76_0xb0;            /* 0xB0 (packed movement hint/count word;

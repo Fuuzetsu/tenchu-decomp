@@ -47,10 +47,6 @@
  * loop). One variable, one role — Ghidra's extra iVar4 is a decompiler
  * SSA-phi artifact of the "carry candidate through the loop bottom" idiom.
  *
- * `(s16)h->lifemax` casts a u16 field to force the signed `lh` this TU's
- * reads use (item.h documents this per-TU disagreement: ProcItemKusuri
- * reads it `lhu`, DoInfoViewProc/this file `lh` via the cast).
- *
  * Two structural levers beyond a literal Ghidra transcription:
  *  - `if (g == -1) goto ret_zero; ... return 1; ret_zero: return 0;` —
  *    the null-guard-with-two-returns exception (cookbook Dispatch): Ghidra's
@@ -101,7 +97,7 @@ int ReqLifeBar(Humanoid *h)
     LifeBar[g].target = h;
     LifeBar[g].style = 1;
     LifeBar[g].life = h->life;
-    LifeBar[g].max = (s16)h->lifemax;
+    LifeBar[g].max = h->lifemax;
     if (h->life == 0) {
         LifeBar[g].count = 100;
     } else {

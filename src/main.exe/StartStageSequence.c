@@ -226,7 +226,7 @@ chrid_ready:
         u16 kind;
 
         human = HumanGroup[i];
-        if ((s16)human->lifemax < 0)
+        if (human->lifemax < 0)
         {
             goto next_human;
         }

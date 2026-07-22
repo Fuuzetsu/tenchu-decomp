@@ -36,7 +36,7 @@
  *    (NowReturnNormal.c reads motID with `lhu`), but THIS TU's own
  *    accesses are all signed (`lh` reads, `addiu -1` not `ori 0xffff`
  *    for the terminator store) — per-TU divergent type, same precedent
- *    as lifemax's u16-vs-s16 split (cookbook Expressions).
+ *    as other localized signed/unsigned field views (cookbook Expressions).
  */
 extern Humanoid *Me_MOTION_C;
 extern s16 motID;

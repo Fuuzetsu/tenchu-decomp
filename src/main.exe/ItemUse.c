@@ -41,12 +41,8 @@
  * layout instead nests it under the named union; `pic_by_index[N]` reaches
  * the identical byte.
  *
- * `(s16)Me_THINK_C->life`/`(s16)Me_THINK_C->lifemax` — both
- * fields are proven `u16` in the shared header, but THIS file's compare
- * reads current_health with a signed `lh` and max_health's div-by-3 uses
- * the SIGNED magic-multiply constant (0x55555556 + a `sra 31` sign
- * correction, not the unsigned form) — same per-TU divergent-signedness
- * cast as DoInfoViewProc's `(s16)CamState.Owner->lifemax`.
+ * The signed life fields make the one-third threshold use the signed
+ * magic-multiply sequence (0x55555556 plus the `sra 31` correction).
  *
  * The ReqItemDefault/SetNowMotion tail calls' return values are NOT
  * returned: after `ReqItemDefault(Me_THINK_C, ITEM_KUSURI);` the asm jumps straight
@@ -78,13 +74,13 @@ static s16 ItemUse(void)
     {
         return 5;
     }
-    if ((s16)Me_THINK_C->status != 5)
+    if (Me_THINK_C->status != 5)
     {
         return 5;
     }
 
     if (Me_THINK_C->item[3] != 0 &&
-        (s16)Me_THINK_C->life < (s16)Me_THINK_C->lifemax / 3)
+        Me_THINK_C->life < Me_THINK_C->lifemax / 3)
     {
         ReqItemDefault(Me_THINK_C, ITEM_KUSURI);
         return;

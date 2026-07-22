@@ -202,7 +202,7 @@ void ActDAMAGE(void)
             return;
         }
         dtM->loop--;
-        if (Me_MOTION_C->life - (s16)Me_MOTION_C->lifemax >= dtM->loop)
+        if (Me_MOTION_C->life - Me_MOTION_C->lifemax >= dtM->loop)
         {
             motID = 0x100c;
             motMODE = 1;
