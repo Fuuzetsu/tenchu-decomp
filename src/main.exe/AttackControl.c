@@ -63,7 +63,6 @@ extern u16 dtPAD;
 extern s16 motID;
 extern s16 motMODE;
 
-extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 
 void AttackControl(void)

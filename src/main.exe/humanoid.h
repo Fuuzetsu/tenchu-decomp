@@ -9,6 +9,7 @@ extern short SoundEx(VECTOR *locate, short seid);
 extern short SetNowMotion(struct Humanoid *human, short mid, short move);
 extern short ControlTraceLine(struct Humanoid *human);
 extern struct Humanoid *GetHumanoid(short type);
+extern struct Humanoid *GetNearestHumanoid(struct Humanoid *human, short distance);
 extern void MoveHumanoid(struct Humanoid *human, short ordr, short side);
 extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
 /* Retail widened the demo's short roty parameter; the callee uses it directly. */

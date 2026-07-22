@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -58,8 +59,6 @@
  * (same "Ghidra's short-typed call-result variable can be int in source"
  * rule as ThinkBasicHuman1's pad).
  */
-extern Humanoid *GetNearestHumanoid(Humanoid *human, s16 distance);
-
 s16 Think1chase(void)
 {
     u8 actcnt;
