@@ -35,6 +35,7 @@ extern void *memset(void *s, int c, u32 n);
 
 void DrawFlyWire(TEffectSlot *ef)
 {
+    enum { m = 5 };
     FlyWireType *param;
     VECTOR pos;
 
@@ -63,14 +64,14 @@ void DrawFlyWire(TEffectSlot *ef)
 
         memset(&tmp, 0, sizeof(VECTOR));
         count = param->count;
-        tmp.vx = ((param->center.vx * (5 - count)) + (param->NCenter.vx * count)) / 5;
+        tmp.vx = ((param->center.vx * (m - count)) + (param->NCenter.vx * count)) / m;
         count = param->count;
-        tmp.vy = ((param->center.vy * (5 - count)) + (param->NCenter.vy * count)) / 5;
+        tmp.vy = ((param->center.vy * (m - count)) + (param->NCenter.vy * count)) / m;
         count = param->count;
-        tmp.vz = ((param->center.vz * (5 - count)) + (param->NCenter.vz * count)) / 5;
+        tmp.vz = ((param->center.vz * (m - count)) + (param->NCenter.vz * count)) / m;
         pos = tmp;
         SetWire(&param->start, &param->end, &pos, 0x1000);
-        if (param->count > 4) {
+        if (param->count >= m) {
             ef->proc = 0;
         }
         param->count = param->count + 1;
