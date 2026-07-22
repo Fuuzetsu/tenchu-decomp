@@ -111,10 +111,9 @@ typedef struct Humanoid
                                     view of this same offset; AttackPQD
                                     swaps weapon[0] with weapon[2]/[3] to
                                     draw/holster) */
-    void *illusion[2];           /* 0xA4 (Ghidra: `pointer illusion[2]` —
-                                    opaque, matches character_state's
-                                    some_afterimage_1/2_0xa4/0xa8; untouched
-                                    by any matched function yet) */
+    void *illusion[2];           /* 0xA4 (PSX.SYM's original type; these
+                                    opaque effect pointers are passed to the
+                                    afterimage draw/dispose API) */
     u16 sound;                   /* 0xAC (default sound id, OR'd into Sound()'s seid) */
     s16 itmctl;                  /* 0xAE (PSX.SYM's item-control field;
                                     retail shifts it eight bytes from +0xA6) */
