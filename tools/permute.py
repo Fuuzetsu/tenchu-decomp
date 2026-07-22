@@ -437,7 +437,7 @@ GP_EXTERNS = {
     "StageSequence": ["StagePlayer", "Event", "StageTime", "Findenemies", "Murders", "Criticals", "StageEnemies", "StageBosses", "FriendHits", "StageCitizens"],
     "AddEnemy": ["CurrentEnemyID"],
     "FUN_8005b17c": ["D_80097D38", "D_80097D24", "D_80097D3C", "D_80097D40", "D_80097D28", "CardStateFlag"],
-    "LoadConstruction": ["D_80097A70", "D_80097A74", "StageID"],
+    "LoadConstruction": ["mma", "ObjectArc", "StageID"],
     "CreateStage": ["StageID"],
     "SetWire": ["ModelHook"],
     "think_setting_small_rotation_small_steps_": ["Me_THINK_C", "Attrib", "FRAMES_UNTIL_END_OF_ALERT", "Degree", "Distance"],

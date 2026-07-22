@@ -133,8 +133,8 @@ typedef struct WorldDataType
 } WorldDataType;
 
 extern ObjectSlotManager ModelSlot;
-extern OrnamentArchiveType *D_80097A70;
-extern OrnamentArchiveType *D_80097A74;
+extern OrnamentArchiveType *mma;
+extern OrnamentArchiveType *ObjectArc;
 
 extern char D_800120C4[];
 extern char D_800120D8[];
@@ -209,7 +209,7 @@ short LoadConstruction(u_long *data)
         OrnamentArchiveType *mad;
         int i;
 
-        mad = D_80097A70;
+        mad = mma;
         if (mad != 0)
         {
             for (i = 0; i < mad->n; i++)
@@ -224,7 +224,7 @@ short LoadConstruction(u_long *data)
         OrnamentArchiveType *mad;
         int i;
 
-        mad = D_80097A74;
+        mad = ObjectArc;
         if (mad != 0)
         {
             for (i = 0; i < mad->n; i++)
@@ -240,7 +240,7 @@ short LoadConstruction(u_long *data)
                                     (u8 *)D_80012108));
 
     MapModel = (u_long *)valloc(0x6B800);
-    D_80097A74 = LoadOrnamentArchive(
+    ObjectArc = LoadOrnamentArchive(
         PathFileRead(ImagePath, (u8 *)D_80012114), &World);
 
     nModel += 500;
@@ -308,7 +308,7 @@ short LoadConstruction(u_long *data)
     case 2:
         if (wlddt[i].real.common.name[0] != 0)
         {
-            model = D_80097A74->object[ObjectID];
+            model = ObjectArc->object[ObjectID];
             ObjectID++;
             wlddt[i].real.model = model;
         }
@@ -409,19 +409,19 @@ short LoadConstruction(u_long *data)
         i = 0;
         MapModel = PathFileRead(ImagePath, name);
         ix = (ParentingType *)(MapModel + 2);
-        D_80097A70 = LoadOrnamentArchive(MapModel, &World);
+        mma = LoadOrnamentArchive(MapModel, &World);
 
         while (1)
         {
-            if (!(i < D_80097A70->n))
+            if (!(i < mma->n))
                 break;
             parent = ix[i].np;
-            D_80097A70->object[i]->locate.coord.t[0] *= 10;
-            D_80097A70->object[i]->locate.coord.t[1] *= 10;
-            D_80097A70->object[i]->locate.coord.t[2] *= 10;
+            mma->object[i]->locate.coord.t[0] *= 10;
+            mma->object[i]->locate.coord.t[1] *= 10;
+            mma->object[i]->locate.coord.t[2] *= 10;
 
             {
-                long a = D_80097A70->object[i]->locate.coord.t[0];
+                long a = mma->object[i]->locate.coord.t[0];
                 long q;
 
                 msize =
@@ -433,7 +433,7 @@ short LoadConstruction(u_long *data)
                 x = q & 7;
             }
             {
-                long a = D_80097A70->object[i]->locate.coord.t[1];
+                long a = mma->object[i]->locate.coord.t[1];
                 long q;
 
                 if (a >= 0)
@@ -443,7 +443,7 @@ short LoadConstruction(u_long *data)
                 y = q & 7;
             }
             {
-                long a = D_80097A70->object[i]->locate.coord.t[2];
+                long a = mma->object[i]->locate.coord.t[2];
                 long q;
 
                 if (a >= 0)
@@ -453,12 +453,12 @@ short LoadConstruction(u_long *data)
                 z = q & 7;
             }
 
-            D_80097A70->object[i]->object.attribute |= 0x400;
-            UpdateOrnament(D_80097A70->object[i], 0);
+            mma->object[i]->object.attribute |= 0x400;
+            UpdateOrnament(mma->object[i], 0);
             slot = (ObjectSlotType **)((z << 2) + ((x << 8) + (y << 5)));
             slot = (ObjectSlotType **)((int)slot + (int)WorldMap);
             slotman = &ModelSlot;
-            model = D_80097A70->object[i];
+            model = mma->object[i];
             if (slotman->n >= slotman->max)
                 AdtMessageBox(D_800120C4);
             slotman->slot[slotman->n].model = model;
