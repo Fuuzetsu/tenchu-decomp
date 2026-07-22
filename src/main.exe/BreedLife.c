@@ -151,8 +151,6 @@
  *    guard-clause functions in this TU family).
  */
 
-
-extern Humanoid *CreateHumanoid(s16 type, u_long *mad);
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strcmp(char *a, char *b);
 

@@ -25,8 +25,6 @@ extern Humanoid *NINKEN_CHARACTER_PTR;
 extern HenshinModelSnapshot D_800C0630;
 extern HenshinModelSnapshot D_800C06F0;
 
-extern void KillHumanoid(Humanoid *human);
-
 void create_ninken_character_(s16 type, s32 stage)
 {
     NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000, 999000, 0);

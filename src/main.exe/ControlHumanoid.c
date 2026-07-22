@@ -109,7 +109,6 @@ extern char D_80011684[];
 extern char D_80011694[];
 extern char D_800116A4[];
 
-extern s16 DefaultActionHumanoid(Humanoid *human);
 extern void StateTransition(Humanoid *human);
 extern void DrawShadow(Humanoid *human);
 extern void register_character_death(Humanoid *human);

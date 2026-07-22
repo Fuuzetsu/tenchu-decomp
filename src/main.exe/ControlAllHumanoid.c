@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -46,7 +47,6 @@
  */
 extern s16 VISIBLE_ENEMIES_;
 extern void character_balma_around_main_routine_(void);
-extern void ControlHumanoid(Humanoid *human);
 
 short ControlAllHumanoid(void)
 {

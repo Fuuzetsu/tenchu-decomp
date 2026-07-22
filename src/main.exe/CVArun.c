@@ -78,7 +78,6 @@ extern u8 CHOSEN_CHARACTER;
 extern s16 D_80097CC0;
 
 extern void AVCameraControl(void);
-extern short ControlAllHumanoid(void);
 extern void DrawConstruction(void);
 extern void DrawEffect(void);
 extern void DoItemProc(void);

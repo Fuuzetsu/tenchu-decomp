@@ -47,7 +47,6 @@ extern TSystemFlag SystemFlag;
 extern Humanoid *CURRENTLY_SELECTED_CHARACTER_STATE_PTR;
 
 extern void FUN_80039c14(void);
-extern void KillHumanoid(Humanoid *human);
 extern void SetupThinkFunction(Humanoid *human, s16 type);
 extern void *valloc(u32 size);
 extern void vfree(void *ptr);

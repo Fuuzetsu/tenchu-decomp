@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "appear.h"
+#include "humanoid.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -107,8 +108,7 @@ extern void SetupThinkFunction(Humanoid *human, short type);
 
 extern char D_80011658[]; /* "HUMAN OVERFLOW" */
 
-
-Humanoid *CreateHumanoid(short type, u_long *mad)
+Humanoid *CreateHumanoid(short type, unsigned long *mad)
 {
     Humanoid *human;
     s16 idx;

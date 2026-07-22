@@ -123,7 +123,6 @@ extern u16 Attrib;
 extern s16 AIDHumanType[];
 extern int rand(void);
 extern s16 Think3escape(void);
-extern void KillHumanoid(Humanoid *human);
 
 short Think3callaid(void)
 {

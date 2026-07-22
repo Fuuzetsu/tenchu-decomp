@@ -8,6 +8,11 @@ struct TracePoint;
 /* Shared SEMNG.C, MOTION.C, and HUMAN.C interfaces. */
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);
+extern struct Humanoid *CreateHumanoid(short type, unsigned long *mad);
+extern void KillHumanoid(struct Humanoid *human);
+extern short ControlAllHumanoid(void);
+extern void ControlHumanoid(struct Humanoid *human);
+extern short DefaultActionHumanoid(struct Humanoid *human);
 extern short SetNowMotion(struct Humanoid *human, short mid, short move);
 extern short ControlTraceLine(struct Humanoid *human);
 extern struct Humanoid *GetHumanoid(short type);

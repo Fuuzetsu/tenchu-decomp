@@ -68,7 +68,6 @@ extern char D_800120A0[];
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void DestroyTraceLine(TraceLine *trace);
-extern void KillHumanoid(Humanoid *human);
 extern void SetupSoundEffect(s16 character, s16 stage);
 extern void DoBriefingAndInventorySelection(void);
 extern GsIMAGE *GetImage(s32 id);
