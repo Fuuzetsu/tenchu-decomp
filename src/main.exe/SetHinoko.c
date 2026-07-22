@@ -122,7 +122,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         } while (count < 200);
         ef = &dmy;
     found:
-        fp = &ef->param.explosion;
+        fp = &ef->param.hinoko;
         fp->scale = rand() % 4096 + 0x1000;
         fp->rotate = (rand() % 360) * 0x1000;
         fp->pos.vx = pos->vx;

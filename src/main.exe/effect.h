@@ -2,9 +2,9 @@
 #define EFFECT_H
 
 /* EFFECT.C's effect-slot pool. PSX.SYM supplies the original effect records
- * and union members; retail extends that union with its later impact, snow,
- * and flat-quad effects. FlyWireType keeps the union at its proven 72-byte
- * size, making tag_EffectSlot's indexed pool stride 76 bytes. */
+ * and union members; retail expands the impact record and adds snow and
+ * flat-quad effects. FlyWireType keeps the union at its proven 72-byte size,
+ * making tag_EffectSlot's indexed pool stride 76 bytes. */
 
 struct AreaNodeType; /* opaque here: only ever stored, never dereferenced */
 
@@ -198,15 +198,15 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
 {
     struct BloodType blood;
     struct BleedType bleed;
-    struct SplashType splash;
-    struct FrameType frame;
+    struct SmokeType smoke;
     struct ExplosionType explosion;
     struct ExplosionType hinoko;
     struct GoreType gore;
-    struct XF4Type xf4;
-    struct SmokeType smoke;
     struct FlyWireType flywire;
+    struct SplashType splash;
     struct ImpactType impact;
+    struct FrameType frame;
+    struct XF4Type xf4;
     struct SnowParticleType snow;
 };
 
