@@ -6,5 +6,6 @@ enum { BLOCKSIZE = 8192 };
 
 /* MEMCARD.C-private originally; extern because that source is split here. */
 extern unsigned char *TENCHU_ID;
+extern unsigned char *CID;
 
 #endif

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "memcard.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -63,7 +64,7 @@
  *    buffer plus a cast.
  *  - Stack locals declared in ADDRESS order (fn@0x18, block@0xE0, cmd@0x20E0,
  *    result@0x20E4) to reproduce the 0x20F8 frame exactly.
- *  - `CID` is this TU's gp small (a `char *` POINTER variable itself,
+ *  - `CID` is this TU's gp small (an `unsigned char *` POINTER variable,
  *    not an array — the asm `lw a2,%gp_rel(CID)($gp)` loads its
  *    VALUE); Build.hs maspsxGpExterns / tools/gpsyms.py confirm it's the
  *    only %gp_rel symbol in this function.
@@ -75,7 +76,6 @@
  */
 extern char D_80097D90[];  /* "%s%s" */
 extern char D_80097D98[];  /* "%s\%d\%s" */
-extern char *CID;   /* "BISLPS_00000" */
 extern char D_800141A4[];  /* "file read error" */
 extern char D_80014168[];  /* "card error %d" */
 

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "memcard.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -66,7 +67,6 @@ typedef struct
 
 extern char D_80097D90[];
 extern char D_80097D98[];
-extern char *CID;
 extern SaveSISelectBlock D_800140A8;
 extern char D_80014104[];
 extern char D_80014114[];
