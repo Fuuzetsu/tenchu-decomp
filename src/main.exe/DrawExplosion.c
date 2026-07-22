@@ -92,6 +92,7 @@ extern void DrawSprite(Sprite3D *s);
 
 void DrawExplosion(TEffectSlot *ef)
 {
+    enum { fo = 5 };
     ExplosionType *param;
     Sprite3D *spr;
     u8 alfa;
@@ -117,7 +118,7 @@ void DrawExplosion(TEffectSlot *ef)
     case 1:
         if (param->time == 0)
         {
-            param->time = 5;
+            param->time = fo;
             param->mode = param->mode + 1;
         }
         param->scale = param->scale + 0x2000;
@@ -125,7 +126,7 @@ void DrawExplosion(TEffectSlot *ef)
         spr = sprBomb[1];
         break;
     case 2:
-        alfa = (u8)((param->time << 7) / 5);
+        alfa = (u8)((param->time << 7) / fo);
         param->scale = param->scale - 0x333;
         param->rotate = param->rotate + 0x5a000;
         if (param->time == 0)

@@ -61,6 +61,7 @@ extern void DrawSprite(Sprite3D *s);
  * a separate translation unit and stores this function's address. */
 void DrawHinoko(TEffectSlot *ef)
 {
+    enum { fo = 30 };
     ExplosionType *param;
     Sprite3D *spr;
     u8 alfa;
@@ -74,11 +75,11 @@ void DrawHinoko(TEffectSlot *ef)
         if (param->time == 0)
         {
             param->mode = 1;
-            param->time = 0x1e;
+            param->time = fo;
         }
         break;
     case 1:
-        alfa = (u8)((param->time * 0x80) / 30);
+        alfa = (u8)((param->time * 0x80) / fo);
         if (param->time == 0)
         {
             ef->proc = 0;
