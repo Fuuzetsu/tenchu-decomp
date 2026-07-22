@@ -51,6 +51,17 @@ struct PadArrangeType
     s32 release;                       /* 0x0C */
 };                                     /* 0x10 */
 
+/* Command state embedded in each Humanoid. */
+typedef struct PADtype PADtype;
+struct PADtype
+{
+    u16 data;                          /* 0x00 */
+    u16 sdata;                         /* 0x02 */
+    u16 trig;                          /* 0x04 */
+    s16 time;                          /* 0x06 */
+    u16 stream[4];                     /* 0x08 */
+};                                     /* 0x10 */
+
 /* AdtSelect's menu row — the demo's own debug symbols name this TAdtSelect
  * (the PSX.SYM stack-variable records in FileOption/DoInfoViewProc/etc. call
  * these arrays `struct TAdtSelect [N]`). */
@@ -297,6 +308,82 @@ struct WorldType
     ObjectSlotType *top;          /* 0x00 */
 };                                /* 0x04 */
 
+/* MOTION.C's keyframe, motion, registry, spline, and playback records. */
+typedef struct MotionElementType MotionElementType;
+struct MotionElementType
+{
+    s16 x;                        /* 0x00 */
+    s16 y;                        /* 0x02 */
+    s16 z;                        /* 0x04 */
+    s16 time;                     /* 0x06 */
+};                                /* 0x08 */
+
+typedef struct MotionDataType MotionDataType;
+struct MotionDataType
+{
+    u8 n;                         /* 0x00 */
+    u8 sweep;                     /* 0x01 */
+    u8 orderspd;                  /* 0x02 */
+    u8 sidespd;                   /* 0x03 */
+    s16 time;                     /* 0x04 */
+    s16 id;                       /* 0x06 */
+    MotionElementType *locate;    /* 0x08 */
+    MotionElementType *rotate[1]; /* 0x0C */
+};                                /* 0x10 */
+
+typedef struct MotionRegistType MotionRegistType;
+struct MotionRegistType
+{
+    s16 mid;                      /* 0x00 */
+    s16 id;                       /* 0x02 */
+    MotionDataType *motion;       /* 0x04 */
+};                                /* 0x08 */
+
+typedef struct SplineControlType SplineControlType;
+struct SplineControlType
+{
+    MotionElementType *key0;      /* 0x00 */
+    MotionElementType *key1;      /* 0x04 */
+    SVECTOR dd0;                  /* 0x08 */
+    SVECTOR ds1;                  /* 0x10 */
+};                                /* 0x18 */
+
+typedef struct MotionManager MotionManager;
+struct MotionManager
+{
+    s16 mid;                      /* 0x00 */
+    s16 count;                    /* 0x02 */
+    s16 loop;                     /* 0x04 */
+    s16 n;                        /* 0x06 */
+    s16 mask;                     /* 0x08 */
+    s16 mode;                     /* 0x0A */
+    ModelArchiveType *model;      /* 0x0C */
+    MotionDataType *motion;       /* 0x10 */
+    MotionRegistType *motreg;     /* 0x14 */
+    SplineControlType *control;   /* 0x18 */
+};                                /* 0x1C */
+
+typedef struct MotionPackType MotionPackType;
+struct MotionPackType
+{
+    s32 n;                        /* 0x00 */
+    MotionDataType *motion[1];    /* 0x04 */
+};                                /* 0x08 */
+
+/* MOTION.C's continuous-attack window table. */
+typedef struct BattleType BattleType;
+struct BattleType
+{
+    s16 mid;                      /* 0x00 */
+    s16 power;                    /* 0x02 */
+    s16 atks;                     /* 0x04 */
+    s16 atke;                     /* 0x06 */
+    s16 contfrm;                  /* 0x08 */
+    s16 revise;                   /* 0x0A */
+    s16 ilus;                     /* 0x0C */
+    s16 ilue;                     /* 0x0E */
+};                                /* 0x10 */
+
 /* CONFLICT.C's collision slot. PSX.SYM records result[64] and size 0x68 in
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
  * result bytes, and reserves 0x2580 bytes for 80 slots, proving that the old
@@ -472,7 +559,6 @@ struct WeaponModelType
 };                                  /* 0x0C */
 
 /* APPEAR.C's character database row. */
-struct MotionRegistType;
 typedef struct HumanDataType HumanDataType;
 struct HumanDataType
 {

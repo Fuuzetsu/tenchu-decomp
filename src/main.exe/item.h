@@ -38,101 +38,6 @@ struct HenshinModelSnapshot
     HenshinModelPart part[1];     /* 0x04: variable-length tail */
 };                                /* minimum size 0x10 */
 
-/* A single keyframe (Ghidra's own independently-built MotionElementType,
- * reference/ghidra_types.h:4861, cross-checked against psxsym-types.h:2649 —
- * both size 8, x/y/z/time all shorts; exercised by LoadMotion/HoldMotion/
- * GetSpline/ActiveMotion's mmp->motion->locate->x-style keyframe reads). */
-typedef struct MotionElementType
-{
-    s16 x;                       /* 0x0 */
-    s16 y;                       /* 0x2 */
-    s16 z;                       /* 0x4 */
-    s16 time;                    /* 0x6 */
-} MotionElementType;               /* 0x8 */
-
-typedef struct MotionDataType
-{
-    u8 n;                        /* 0x0 */
-    u8 sweep;                    /* 0x1 */
-    u8 orderspd;                 /* 0x2 */
-    u8 sidespd;                  /* 0x3 */
-    s16 time;                    /* 0x4 (PlayMotion.c: mmp->count compared
-                                    against mmp->motion->time; matches
-                                    Ghidra's own independently-built
-                                    MotionDataType exactly — reference/
-                                    ghidra_types.h:4994, which also has
-                                    id/locate/rotate[1] after it) */
-    s16 id;                       /* 0x6 (SearchMotion's `pMVar2->id == id` compare) */
-    MotionElementType *locate;    /* 0x8 (LoadMotion's on-disk-offset ->
-                                    absolute-pointer fixup; HoldMotion/
-                                    ActiveMotion read ->x/->y/->z through it) */
-    MotionElementType *rotate[1]; /* 0xC (per-bone keyframe list, indexed 0..n-1
-                                    past the declared [1] — LoadMotion fixes up
-                                    n entries, HoldMotion/ActiveMotion/SweepMotion
-                                    read rotate[bone]->x/y/z) */
-} MotionDataType;                  /* 0x10 */
-
-/* GetMotionID's registry row (Ghidra's own independently-built type,
- * cross-checked: the `*8`-scaled index in GetMotionID's asm exactly matches
- * this struct's size). Sentinel-terminated array (mid == -1). */
-typedef struct MotionRegistType
-{
-    s16 mid;                      /* 0x0 */
-    s16 id;                       /* 0x2 */
-    MotionDataType *motion;       /* 0x4 */
-} MotionRegistType;                /* 0x8 */
-
-/* Spline interpolation state, one per animated bone (Ghidra's own
- * independently-built SplineControlType, reference/ghidra_types.h:5030,
- * cross-checked against psxsym-types.h:3604 — both size 0x18, matching
- * SetupMotionManager.c's own `(n + 1) * sizeof(SplineControlType), 0x18
- * bytes each` comment). key0/key1 bracket the current frame's keyframes;
- * dd0/ds1 are the precomputed per-frame deltas (GetSpline/
- * UpdateSplineControl). */
-typedef struct SplineControlType
-{
-    MotionElementType *key0;      /* 0x0 */
-    MotionElementType *key1;      /* 0x4 */
-    SVECTOR dd0;                  /* 0x8 */
-    SVECTOR ds1;                  /* 0x10 */
-} SplineControlType;                /* 0x18 */
-
-typedef struct MotionManager
-{
-    s16 mid;                     /* 0x0 */
-    s16 count;                   /* 0x2 */
-    s16 loop;                    /* 0x4 */
-    s16 n;                       /* 0x6 */
-    s16 mask;                    /* 0x8 */
-    s16 mode;                    /* 0xA */
-    ModelArchiveType *model;     /* 0xC (HoldMotion/ActiveMotion: mmp->model->object) */
-    MotionDataType *motion;      /* 0x10 */
-    MotionRegistType *motreg;    /* 0x14 (GetMotionID's table) */
-    SplineControlType *control;  /* 0x18 (freed by DisposeMotionManager;
-                                    ActiveMotion indexes mmp->control + bone) */
-} MotionManager;
-
-/* On-disk motion pack: `n` pack-relative entries, each initially a byte
- * OFFSET from the pack base that LoadMotion fixes up in place into a real
- * MotionDataType pointer (Ghidra's own independently-built MotionPackType,
- * reference/ghidra_types.h:5206, cross-checked against psxsym-types.h:2669 —
- * both size 8). SearchMotion walks the fixed-up table by id. */
-typedef struct MotionPackType
-{
-    s32 n;                        /* 0x0 */
-    MotionDataType *motion[1];    /* 0x4 */
-} MotionPackType;                  /* 0x8 */
-
-/* Per-controller state embedded in Humanoid (Ghidra: PADtype). */
-typedef struct PADtype
-{
-    u16 data;                    /* 0x0 (held buttons) */
-    u16 sdata;                   /* 0x2 */
-    u16 trig;                    /* 0x4 (newly pressed this frame) */
-    s16 time;                    /* 0x6 */
-    u16 stream[4];               /* 0x8 */
-} PADtype;                       /* 0x10 */
-
 typedef struct Humanoid
 {
     s16 type;                    /* 0x00 */
@@ -444,23 +349,6 @@ extern void DeleteConflict(ModelType *m);
 extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 extern void *memset(void *s, int c, u32 n);
-
-/* MOTION.C's continuous-attack window table (BattleDB[78]). Ghidra's own
- * independently-built BattleType (reference/ghidra_types.h:5486) and
- * PSX.SYM (reference/psxsym-types.h:45) agree exactly: 8 shorts, size 0x10.
- * `contfrm` is the center frame of the window AttackContinuousCheck tests
- * dtM->count against ([contfrm-3, contfrm+3]). */
-typedef struct BattleType
-{
-    s16 mid;                     /* 0x0 */
-    s16 power;                   /* 0x2 */
-    s16 atks;                    /* 0x4 */
-    s16 atke;                    /* 0x6 */
-    s16 contfrm;                 /* 0x8 */
-    s16 revise;                  /* 0xA */
-    s16 ilus;                    /* 0xC */
-    s16 ilue;                    /* 0xE */
-} BattleType;                    /* 0x10 */
 
 /* Absolute in this TU (defined by think's TU, gp there — see the gp note). */
 extern s16 ActionHalt;
