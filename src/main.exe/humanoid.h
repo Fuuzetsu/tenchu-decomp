@@ -2,6 +2,8 @@
 #define TENCHU_HUMANOID_H
 
 struct Humanoid;
+struct TraceLine;
+struct TracePoint;
 
 /* Shared SEMNG.C, MOTION.C, and HUMAN.C interfaces. */
 extern short Sound(struct Humanoid *human, short seid);
@@ -11,6 +13,8 @@ extern short ControlTraceLine(struct Humanoid *human);
 extern struct Humanoid *GetHumanoid(short type);
 extern struct Humanoid *GetNearestHumanoid(struct Humanoid *human, short distance);
 extern short SearchTarget(struct Humanoid *human, long *distance, short *degree);
+extern struct TraceLine *SetupTraceLine(struct Humanoid *human,
+                                        struct TracePoint *point);
 extern void MoveHumanoid(struct Humanoid *human, short ordr, short side);
 extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
 /* Retail widened the demo's short roty parameter; the callee uses it directly. */
