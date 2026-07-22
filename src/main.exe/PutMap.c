@@ -111,6 +111,7 @@ extern void AddXF4(void *ot, POLY_XF4 *ply);
 
 void PutMap(void)
 {
+    enum { size = 4096 };
     POLY_XF4 *ply;
     s32 rgb;
 
@@ -142,8 +143,8 @@ void PutMap(void)
         MapImage.r = 0x3C;
         MapImage.g = 0x3C;
         MapImage.b = 0x3C;
-        MapImage.scalex = 0x1000;
-        MapImage.scaley = 0x1000;
+        MapImage.scalex = size;
+        MapImage.scaley = size;
         MapImage.x = D_80097F6C;
         MapImage.y = D_80097F70;
         GsSortSprite(&MapImage, OTablePt, 2);
@@ -171,8 +172,8 @@ void PutMap(void)
         break;
     }
 
-    MapImage.scalex = 0x1000;
-    MapImage.scaley = 0x1000;
+    MapImage.scalex = size;
+    MapImage.scaley = size;
     MapImage.x = D_80097F6C;
     MapImage.y = D_80097F70;
     GsSortSprite(&MapImage, OTablePt, 1);
