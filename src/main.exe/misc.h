@@ -23,17 +23,10 @@ enum MiscType
 
 typedef struct tag_TMisc TMisc;
 
-typedef struct
-{
-    s32 a; /* 0x0 */
-    s32 b; /* 0x4 */
-    s32 c; /* 0x8 */
-} TMiscInit;
-
 /* The MISC_SPRITE variant of the param union (MISC__181fake's `sprite`
  * member, union MISC__181fake in reference/psxsym-types.h) — a single byte
  * at the union's base offset, reused after CREATE clamps/narrows the raw
- * TMiscInit.a read down to a valid sprite-table index. */
+ * `init.a` read down to a valid sprite-table index. */
 typedef struct TSprite
 {
     u8 type; /* 0x0 */
@@ -87,7 +80,12 @@ struct tag_TMisc
     u8 mode;                        /* 0x15 */
     union
     {
-        TMiscInit init;
+        struct
+        {
+            s32 a;                  /* 0x0 */
+            s32 b;                  /* 0x4 */
+            s32 c;                  /* 0x8 */
+        } init;
         TDoor door;
         TPitfall pitfall;
         TSnowfall snowfall;

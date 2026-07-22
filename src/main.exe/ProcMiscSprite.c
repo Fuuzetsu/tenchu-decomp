@@ -32,7 +32,7 @@
  * call, is NOT a jump table: piece 1 falls straight through into it, no
  * branch targets it (cookbook: "__override__prt isn't always a jump
  * table")). MISC_SPRITE's ProcMisc* handler: MM_CREATE clamps the raw
- * TMiscInit.a param down to a valid SpriteData index (0 or 1) and re-stores
+ * `param.init.a` down to a valid SpriteData index (0 or 1) and re-stores
  * it as the TSprite.type byte at the SAME union offset (0x18); any message
  * at least MM_DO (the "draw" tick) recolors the sprite a random grey and
  * copies m's position into it.
