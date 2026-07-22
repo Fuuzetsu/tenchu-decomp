@@ -80,7 +80,7 @@ short DefaultActionHumanoid(Humanoid *human)
     object = *human->model->object;
     human->rotate->vy &= 0xfff;
     human->attribute = (u8)human->attribute;
-    slocate = (VECTOR *)((u8 *)human + 0x48);
+    slocate = &human->slocate;
 
     if (map->vector == 0)
     {

@@ -73,10 +73,10 @@ void death_camera_something_(Humanoid *human)
     scale.vx = scale.vy = scale.vz =
         (scaled >> 10) - (human->map.height >> 1);
 
-    if (*((u8 *)human + 0x2f) != 0)
+    if (human->map.angleH != 0)
     {
         LOCAL_COORDINATES_->rotate.vx = 0x100;
-        LOCAL_COORDINATES_->rotate.vy = RefrectVector[*((u8 *)human + 0x2f)];
+        LOCAL_COORDINATES_->rotate.vy = RefrectVector[human->map.angleH];
         LOCAL_COORDINATES_->rotate.vz = 0;
     }
     else

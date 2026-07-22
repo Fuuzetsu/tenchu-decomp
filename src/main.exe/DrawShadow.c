@@ -203,11 +203,11 @@ void DrawShadow(Humanoid *human)
         D_80097F34->locate.coord.t[2] = position->vz;
 
         scale.vx = scale.vy = scale.vz = height * 4 - (human->map.height >> 1);
-        angle = *((u8 *)human + 0x2f);
+        angle = human->map.angleH;
         if (angle != 0)
         {
             D_80097F34->rotate.vx = 0x100;
-            D_80097F34->rotate.vy = RefrectVector[*((u8 *)human + 0x2f)];
+            D_80097F34->rotate.vy = RefrectVector[human->map.angleH];
             D_80097F34->rotate.vz = 0;
         }
         else
