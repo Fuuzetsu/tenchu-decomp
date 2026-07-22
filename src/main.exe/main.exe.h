@@ -23,6 +23,7 @@ extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];
 extern TEnemyLayout enemy[30];
+extern TStageConfig StageConfig[];
 extern short MotionUpdateMode;
 extern short SelectedItem;
 extern TCdaStatus CdaStatus;

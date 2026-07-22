@@ -61,7 +61,6 @@ extern u8 ITEM_LOADOUT_BACKUP[];
 extern u8 SHOP_STOCK_STATE_BY_CHAR[];
 extern s16 D_8008EA78[];
 extern s16 D_8008ED50[];
-extern TStageConfig StageConfig[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];

@@ -60,7 +60,6 @@ typedef struct
 extern s16 SkipFrame;
 extern volatile TSystemFlag SystemFlag;
 extern s32 DepthPoint;
-extern TStageConfig StageConfig[];
 extern TitlePathBlock TITLE_SPRITES_PTRS;
 extern u8 CHOSEN_LANGUAGE;
 extern volatile u8 STAGE_LAYOUT_NUMBER;

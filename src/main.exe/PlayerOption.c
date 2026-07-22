@@ -93,7 +93,6 @@
 
 typedef struct { TAdtSelect e[7]; } MENU_PLAYER_TBL;   /* 0x38 */
 
-extern TStageConfig StageConfig[];
 
 extern MENU_PLAYER_TBL DEBUG_MENU_PLAYER_CHOICE_OPTIONS;
 extern char D_80014784[];                    /* "player option" */

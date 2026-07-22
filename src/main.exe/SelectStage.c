@@ -63,7 +63,6 @@ typedef struct
 
 extern MenuLanguageTable DEBUG_MENU_LANGUAGE_CHOICES;
 extern MenuPlayerTable D_800141F4;
-extern TStageConfig StageConfig[];
 extern char D_80097DC0[];
 extern char D_80097DC8[];
 extern char D_8001420C[];

@@ -88,7 +88,6 @@ extern u8 D_8001001A;
 extern u8 D_80010048;
 extern u8 SHOP_STOCK_STATE_BY_CHAR[];
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
-extern TStageConfig StageConfig[];
 extern char *ITEM_SEL_SPRITE_PTRS[];
 extern char NUMBER_TIM_PATH[];
 extern char *ITEM_HELP_TIM_PATHS[];
