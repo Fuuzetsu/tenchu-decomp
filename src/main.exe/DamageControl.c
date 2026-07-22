@@ -5,8 +5,6 @@
 #include "item.h"
 
 extern Humanoid *Me_MOTION_C;
-extern s16 motID;
-extern s16 motMODE;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern Humanoid *D_8009770C;
 extern u16 D_80086B6C[8];

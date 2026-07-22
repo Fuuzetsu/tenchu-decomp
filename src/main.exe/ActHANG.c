@@ -60,9 +60,9 @@
  *    predecessor just its own `li` in the branch delay slot).
  *  - `motMODE = 1;` written literally per arm (never hoisted/shared);
  *    cc1's cross-jump does all the merging (same rule as ActSYURI.c).
- *  - dtPAD (u16) is `lhu`-loaded for the case-0 mask tests but the original
- *    spells case 2/3's test on a SIGNED view — `((s16)dtPAD & 0xA000)` gives
- *    the target's `lh`; attribute@0x4 likewise diverges per-site: `*(u16 *)&`
+ *  - dtPAD has its recovered signed object type. MOTION_PAD_BITS supplies
+ *    the case-0 `lhu` mask tests, while case 2/3's plain signed view gives the
+ *    target's `lh`; attribute@0x4 likewise diverges per-site: `*(u16 *)&`
  *    for case 4's `& 0x40` (lhu) vs the plain s16 field for the tail's
  *    `& 0x8000` (lh).
  *  - Case 4's double `dtM->count` read reuses ONE dtM load across the
@@ -77,9 +77,6 @@
  *    StagePlayer/GlobalAreaMap stay absolute.
  */
 
-extern u16 dtPAD;
-extern s16 motID;
-extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern short HangCheck(void);
@@ -92,7 +89,7 @@ void ActHANG(void)
     switch ((short)(dtM->mid - 0xA00))
     {
     case 0:
-        if (dtPAD & 0x4000)
+        if (MOTION_PAD_BITS & 0x4000)
         {
             y = dtL->vy;
             do
@@ -103,17 +100,17 @@ void ActHANG(void)
             motID = 0x803;
             motMODE = 0;
         }
-        else if (dtPAD & 0x2000)
+        else if (MOTION_PAD_BITS & 0x2000)
         {
             motID = 0xA02;
             motMODE = 1;
         }
-        else if (dtPAD & 0x8000)
+        else if (MOTION_PAD_BITS & 0x8000)
         {
             motID = 0xA03;
             motMODE = 1;
         }
-        else if ((dtPAD & 0x1000) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != 0x80000000)
+        else if ((MOTION_PAD_BITS & 0x1000) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != 0x80000000)
         {
             motID = 0xA04;
             motMODE = 1;
@@ -121,7 +118,7 @@ void ActHANG(void)
         break;
     case 2:
     case 3:
-        if (((s16)dtPAD & 0xA000) == 0)
+        if ((dtPAD & 0xA000) == 0)
         {
             motID = 0xA00;
             motMODE = 1;

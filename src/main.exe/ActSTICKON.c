@@ -79,9 +79,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern s16 motID;
-extern s16 motMODE;
-extern s16 dtPAD;
 extern s32 D_80097EF0;
 
 extern MapVector *StickonCheck(void);

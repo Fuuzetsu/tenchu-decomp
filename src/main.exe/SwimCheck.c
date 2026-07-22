@@ -38,8 +38,6 @@
  * END PSX.SYM */
 
 extern Humanoid *Me_MOTION_C;
-extern s16 motID;
-extern s16 motMODE;
 
 extern void AttackCancelControl(short mode);
 extern void FUN_800270f8(Humanoid *human, short hide);

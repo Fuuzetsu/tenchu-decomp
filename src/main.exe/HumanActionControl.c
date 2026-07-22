@@ -88,9 +88,6 @@ typedef struct
 } MotionManagerU;
 
 extern Humanoid *Me_MOTION_C;
-extern u16 dtPAD;
-extern s16 motID;
-extern s16 motMODE;
 extern void (*ActionFunc[18])(void);
 extern s16 FallCheck(void);
 extern short HangCheck(void);
@@ -149,9 +146,9 @@ void HumanActionControl(Humanoid *human)
             }
         }
     }
-    if ((dtPAD & 4) != 0)
+    if ((MOTION_PAD_BITS & 4) != 0)
     {
-        dtPAD = dtPAD & 0xFFF;
+        dtPAD = MOTION_PAD_BITS & 0xFFF;
     }
     ActionFunc[Me_MOTION_C->status]();
     if (motMODE != -1)

@@ -59,9 +59,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern u16 dtPAD;
-extern s16 motID;
-extern s16 motMODE;
 
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 
@@ -171,7 +168,7 @@ enemy_type_ok:
         }
     }
 
-    if (dtPAD & 0x4000)
+    if (MOTION_PAD_BITS & 0x4000)
     {
         if (GetMotionID(dtM, 0x711) < 0)
         {
@@ -202,15 +199,15 @@ enemy_type_ok:
         }
         goto update_target;
     }
-    else if (dtPAD & 0x1000)
+    else if (MOTION_PAD_BITS & 0x1000)
     {
         motID = 0x700;
     }
-    else if (dtPAD & 0x2000)
+    else if (MOTION_PAD_BITS & 0x2000)
     {
         motID = 0x706;
     }
-    else if (dtPAD & 0x8000)
+    else if (MOTION_PAD_BITS & 0x8000)
     {
         motID = 0x709;
     }

@@ -91,9 +91,6 @@
  *    loop notes and load order without emitting control-flow instructions.
  */
 
-extern s16 dtPAD;
-extern s16 motID;
-extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 extern void DeleteConflict();
 

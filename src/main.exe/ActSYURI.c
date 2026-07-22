@@ -65,8 +65,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern s16 motID;
-extern s16 motMODE;
 
 extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);

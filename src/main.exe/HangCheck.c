@@ -151,9 +151,7 @@
  *    gp-extern list (only Me_MOTION_C/motID/dtL/dtR/MotionUpdateMode/
  *    motMODE are gp-relative here, confirmed by `tools/gpsyms.py`).
  */
-extern s16 motID;
 extern Humanoid *Me_MOTION_C;
-extern s16 motMODE;
 
 short HangCheck(void)
 {

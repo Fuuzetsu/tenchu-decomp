@@ -6,6 +6,12 @@ struct TraceLine;
 struct TracePoint;
 
 /* Shared SEMNG.C, MOTION.C, and HUMAN.C interfaces. */
+extern short dtPAD;
+extern short motID;
+extern short motMODE;
+/* Raw button-bit view for the MOTION.C sites whose retail loads are unsigned. */
+#define MOTION_PAD_BITS (*(unsigned short *)&dtPAD)
+
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);
 extern struct Humanoid *CreateHumanoid(short type, unsigned long *mad);

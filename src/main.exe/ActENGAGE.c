@@ -38,9 +38,6 @@
  *    component value the target's $v1/$v0 allocation.
  */
 
-extern s16 dtPAD;
-extern s16 motID;
-extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);

@@ -63,9 +63,6 @@
  *    the slot) matches InsertConflict.c's/DeleteConflict.c's already-proven
  *    layout; redefined locally here per this repo's per-file convention.
  */
-extern s16 motID;
-extern u16 dtPAD;
-extern s16 motMODE;
 extern Humanoid *Me_MOTION_C;
 
 extern void FUN_80033bc0(VECTOR *pos, int a, int b, int c);
@@ -106,7 +103,7 @@ void JumpControl(void)
         motID = 0x900;
         motMODE = 0;
         dtV->vy = 0;
-        if (dtPAD & 0x1000)
+        if (MOTION_PAD_BITS & 0x1000)
         {
             if (GetMotionID(dtM, 0x902) >= 0)
             {
@@ -115,7 +112,7 @@ void JumpControl(void)
             }
             MoveHumanoid(Me_MOTION_C, 100, 0);
         }
-        else if (dtPAD & 0x4000)
+        else if (MOTION_PAD_BITS & 0x4000)
         {
             if (GetMotionID(dtM, 0x903) >= 0)
             {
@@ -124,7 +121,7 @@ void JumpControl(void)
             }
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
-        else if (dtPAD & 0x2000)
+        else if (MOTION_PAD_BITS & 0x2000)
         {
             if (GetMotionID(dtM, 0x904) >= 0)
             {
@@ -133,7 +130,7 @@ void JumpControl(void)
             }
             MoveHumanoid(Me_MOTION_C, 0, -100);
         }
-        else if (dtPAD & 0x8000)
+        else if (MOTION_PAD_BITS & 0x8000)
         {
             if (GetMotionID(dtM, 0x905) >= 0)
             {

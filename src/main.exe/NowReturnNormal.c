@@ -36,15 +36,13 @@
  * (see SetNowMotion.c's header for the mid<<16/dual-sra + De Morgan guard
  * mechanics) — reload Me_MOTION_C/motID/motMODE AFTER the call since it
  * may have written them (the compiler can't assume otherwise across a call).
- * motID/motMODE are u16 (lhu on first read), but each is copied into a
- * `short` local before use (matching SetNowMotion's `short mid`/`short move`
- * parameter types) — that's what makes the later signed sra/sll+beqz
- * idioms (not andi) reappear here despite the globals being unsigned.
+ * motID/motMODE have their recovered signed object types, but this retail
+ * caller reads their raw halfwords with `lhu` before copying each into a
+ * `short` local (matching SetNowMotion's `short mid`/`short move` parameters).
+ * That makes the later signed sra/sll+beqz idioms (not andi) reappear.
  */
 extern void ReturnNormal(void);
 extern Humanoid *Me_MOTION_C;
-extern u16 motID;
-extern u16 motMODE;
 
 short NowReturnNormal(Humanoid *human)
 {
@@ -56,8 +54,8 @@ short NowReturnNormal(Humanoid *human)
     Me_MOTION_C = human;
     ReturnNormal();
     h = Me_MOTION_C;
-    mid = motID;
-    move = motMODE;
+    mid = *(u16 *)&motID;
+    move = *(u16 *)&motMODE;
     if (h->status == 0x11 && h->motion->loop == -1) {
         return 0;
     }

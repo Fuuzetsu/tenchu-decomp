@@ -56,14 +56,11 @@
  *    4. That multi-predecessor label preserves the target's physical order:
  *    continuation, case 9, then the default case.
  *  - Case 9 uses `time >> 1`, not `/ 2`; the latter adds the signed division
- *    correction sequence. The signed/unsigned dtPAD views likewise preserve
- *    the target's site-specific `lh`/`lhu` loads.
+ *    correction sequence. The signed dtPAD object and MOTION_PAD_BITS view
+ *    likewise preserve the target's site-specific `lh`/`lhu` loads.
  */
 
 extern Humanoid *Me_MOTION_C;
-extern u16 dtPAD;
-extern s16 motID;
-extern s16 motMODE;
 extern s32 D_80097F1C;
 
 extern void AttackControl(void);
@@ -81,25 +78,25 @@ void ActSQUAT(void)
         {
             dtM->loop = -1;
         }
-        if (dtPAD & 0x1000)
+        if (MOTION_PAD_BITS & 0x1000)
         {
             motID = 0xB01;
             motMODE = 1;
             goto common_action;
         }
-        if (dtPAD & 0x4000)
+        if (MOTION_PAD_BITS & 0x4000)
         {
             motID = 0xB02;
             motMODE = 1;
             goto common_action;
         }
-        if (dtPAD & 0x2000)
+        if (MOTION_PAD_BITS & 0x2000)
         {
             motID = 0xB03;
             motMODE = 1;
             goto common_action;
         }
-        if (dtPAD & 0x8000)
+        if (MOTION_PAD_BITS & 0x8000)
         {
             motID = 0xB04;
             motMODE = 1;
@@ -118,7 +115,7 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((dtPAD & 0x1000) == 0)
+        if ((MOTION_PAD_BITS & 0x1000) == 0)
         {
             motID = 0xB00;
             motMODE = 1;
@@ -136,13 +133,13 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((dtPAD & 0x4000) == 0)
+        if ((MOTION_PAD_BITS & 0x4000) == 0)
         {
             motID = 0xB00;
             motMODE = 1;
             goto common_action;
         }
-        if (dtPAD & 0xA000)
+        if (MOTION_PAD_BITS & 0xA000)
         {
             int current;
             int result;
@@ -150,7 +147,7 @@ void ActSQUAT(void)
 
             rotation = dtR;
             current = rotation->vy;
-            if (dtPAD & 0x2000)
+            if (MOTION_PAD_BITS & 0x2000)
             {
                 result = current + turn;
             }
@@ -170,13 +167,13 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((dtPAD & 0x2000) == 0)
+        if ((MOTION_PAD_BITS & 0x2000) == 0)
         {
             motID = 0xB00;
             motMODE = 1;
             goto common_action;
         }
-        if (dtPAD & 0x4000)
+        if (MOTION_PAD_BITS & 0x4000)
         {
             dtR->vy += turn;
             dtV->vz = 0;
@@ -190,13 +187,13 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if (((s16)dtPAD & 0x8000U) == 0)
+        if ((dtPAD & 0x8000U) == 0)
         {
             motID = 0xB00;
             motMODE = 1;
             goto common_action;
         }
-        if (dtPAD & 0x4000)
+        if (MOTION_PAD_BITS & 0x4000)
         {
             dtR->vy -= turn;
             dtV->vz = 0;
@@ -362,7 +359,7 @@ item_default:
         return;
     }
 
-    if ((dtPAD & 0x20) == 0)
+    if ((MOTION_PAD_BITS & 0x20) == 0)
     {
         if (Me_MOTION_C == StagePlayer)
         {
