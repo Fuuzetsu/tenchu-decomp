@@ -46,11 +46,6 @@ typedef struct TVoiceTable
     u8 esec;    /* 0x5 */
 } TVoiceTable;  /* 0x6 */
 
-typedef struct
-{
-    TVoiceTable *entry[4];
-} TVoiceTableList;
-
 extern u8 CHOSEN_LANGUAGE;
 
 /* Per-language event-XA filename pointers (Ghidra: PTR_s__TENCHU_XA_EVENT_[EFIJ]_XA...). */
@@ -59,7 +54,7 @@ extern u8 *D_80097CA4;
 extern u8 *D_80097CA8;
 extern u8 *D_80097CAC;
 /* Per-language voice tables. */
-extern TVoiceTableList D_800134E0;
+extern TVoiceTable *D_800134E0[4];
 
 /* INTRO/TORA voice tables + their filenames (id ranges [100,200)/[200,300)). */
 extern TVoiceTable D_8008E82C[];
@@ -184,11 +179,11 @@ void PlayVoice(int id)
         D_80097CA8,
         D_80097CAC,
     };
-    TVoiceTableList tables;
+    TVoiceTable *tables[4];
     CdlLOC start;
     CdlLOC end;
 
-    tables = D_800134E0;
+    __builtin_memcpy(tables, D_800134E0, sizeof(tables));
     memset(&start.minute, 0, 4);
     memset(&end.minute, 0, 4);
 
@@ -242,7 +237,7 @@ void PlayVoice(int id)
 
         filename_entry = filenames + CHOSEN_LANGUAGE;
         language = filename_entry - filenames;
-        voice_entry = tables.entry + language;
+        voice_entry = tables + language;
         do
         {
         } while (0);
