@@ -56,7 +56,6 @@
  */
 
 extern Humanoid *Me_THINK_C;
-extern BattleType BattleDB[78];
 extern s32 Distance;
 extern s16 Degree;
 extern s16 EngageLevel;
