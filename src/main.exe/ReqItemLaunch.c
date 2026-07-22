@@ -46,8 +46,8 @@
  * dispose-on-exhaustion block); like ReqItemJirai/ReqItemDokudango there is
  * no GetAreaMapLevel floor check. It gets ProcItemLaunch as its processor.
  *
- * Unlike every other twin, `it->model` is a FIXED global (SyurikenModel), not
- * ItemImage[it->type]. The tail hands the flight to SetupFly (trajectory
+ * Unlike every other twin, `item->model` is a FIXED global (SyurikenModel), not
+ * ItemImage[item->type]. The tail hands the flight to SetupFly (trajectory
  * from p->start to p->end) and then wires up an afterimage trail via
  * SetupAfterimage, stamping its returned struct's two SVECTOR fields and
  * recording the pointer and trailing count in PSX.SYM's `param_launch`.
@@ -60,38 +60,38 @@
  * .s when they disagree; here m2c (which showed 6 params) was right.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - Same `cur`/`it` two-pseudo pool search as ReqItemMakibishi/
- *    ReqItemLightningBolt: `cur = items + ic;` in the
- *    loop/dispose block, `it = cur;` assigned once in the early-exit branch
- *    and once before the dispose block's final owner/proc zeroing (`st`
+ *  - The inlined allocator keeps `slot` separate from PSX.SYM's outer
+ *    `item`, as in ReqItemMakibishi/ReqItemLightningBolt:
+ *    `slot = items + ic;` in the loop/dispose block, with `item = slot;`
+ *    once in the early-exit branch and once before owner/proc zeroing (`pos`
  *    surviving to the SetupFly call raises register pressure here too).
- *  - `param = &it->param.launch;` sits BEFORE the null check, same
+ *  - `param = &item->param.launch;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `st = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins; unlike most of them, `st` is READ AGAIN as
- *    SetupFly's second argument (same "st survives to a late call" shape as
- *    ReqItemMakibishi's SoundEx(st, ...)).
- *  - us/ty are real temps, same shape as the other twins.
- *  - `it->collision.size = 0; it->model = SyurikenModel;` immediately precede
+ *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
+ *    as the other twins; unlike most of them, `pos` is READ AGAIN as
+ *    SetupFly's second argument (same "pos survives to a late call" shape as
+ *    ReqItemMakibishi's SoundEx(pos, ...)).
+ *  - aowner/atype are real temps, same shape as the other twins.
+ *  - `item->collision.size = 0; item->model = SyurikenModel;` immediately precede
  *    SetupFly, same position as the other twins' collision-size/model stores
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
- *  - The `it->param.launch.fly.mode = 0` byte store is written BEFORE the
+ *  - The `item->param.launch.fly.mode = 0` byte store is written BEFORE the
  *    SetupAfterimage call (textually) — its independence lets the scheduler
  *    drop it into the call's delay slot, same "trailing/preceding
  *    independent store steals the call's delay slot" mechanism as
  *    ReqItemNingyo's `rotate.vx = 0` before its first `rand()`. It MUST go
- *    through a fresh direct `it->param.launch` access, not `param`, even
+ *    through a fresh direct `item->param.launch` access, not `param`, even
  *    though it's the same address — same
- *    "field relative to item->param routes through it, not param" lever the other
+ *    "field relative to item->param routes through item, not param" lever the other
  *    twins use for `hint = 0`. Getting the base pointer wrong here didn't
  *    change the VALUE stored, only which base register carried it ($s2/param
- *    vs $s1/it), but that's what decided whether this store or the
+ *    vs $s1/item), but that's what decided whether this store or the
  *    immediately-following `li $a1, 10` won the delay-slot scheduling tie —
  *    the wrong base left a 9-byte pure-reorder residual (same instructions,
  *    same registers, just this store one slot later) even though the
  *    function was already the right LENGTH.
- *  - `ai = SetupAfterimage(it->model, 10);` is a real temp: the pointer is
+ *  - `ai = SetupAfterimage(item->model, 10);` is a real temp: the pointer is
  *    stored to `param->effect` AND read six more times for the vector1/
  *    vector2 fields — inlining the call would re-invoke it.
  */
@@ -102,12 +102,12 @@ extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *it;
-    TItem *cur;
+    TItem *item;
+    TItem *slot;
     param_launch *param;
-    VECTOR *st;
-    Humanoid *us;
-    s32 ty;
+    VECTOR *pos;
+    Humanoid *aowner;
+    s32 atype;
     AfterimageType *ai;
     s32 i;
 
@@ -117,48 +117,48 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
         ic++;
         if (0x1d < ic)
             ic = 0;
-        cur = items + ic;
-        if (cur->proc == 0)
+        slot = items + ic;
+        if (slot->proc == 0)
         {
-            it = cur;
+            item = slot;
             goto found;
         }
         i++;
     } while (i < 0x1d);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
-    cur->mode = ITEM_MODE_DISPOSE;
-    cur->proc(cur);
-    DeleteConflict(cur->locate);
-    if (cur->mode != 0)
+    slot->mode = ITEM_MODE_DISPOSE;
+    slot->proc(slot);
+    DeleteConflict(slot->locate);
+    if (slot->mode != 0)
     {
-        AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+        AdtMessageBox(D_800121CC, slot->type, (u32)slot->mode);
     }
-    it = cur;
-    it->owner = 0;
-    it->proc = 0;
+    item = slot;
+    item->owner = 0;
+    item->proc = 0;
 
 found:
-    param = &it->param.launch;
-    if (it == 0)
+    param = &item->param.launch;
+    if (item == 0)
         return 0;
-    us = p->user;
-    ty = p->type;
-    it->owner = us;
-    it->proc = ProcItemLaunch;
-    it->mode = 0;
-    it->type = ty;
-    it->locate->locate.coord.t[0] = p->start.vx;
-    st = &p->start;
-    it->locate->locate.coord.t[1] = st->vy;
-    it->locate->locate.coord.t[2] = st->vz;
-    it->locate->locate.super = 0;
-    UpdateCoordinate(it->locate);
-    it->collision.size = 0;
-    it->model = SyurikenModel;
-    SetupFly(&param->fly, st, &p->end, 0x400, 0x400, 0x12c);
-    it->param.launch.fly.mode = 0;
-    ai = SetupAfterimage(it->model, 10);
+    aowner = p->user;
+    atype = p->type;
+    item->owner = aowner;
+    item->proc = ProcItemLaunch;
+    item->mode = 0;
+    item->type = atype;
+    item->locate->locate.coord.t[0] = p->start.vx;
+    pos = &p->start;
+    item->locate->locate.coord.t[1] = pos->vy;
+    item->locate->locate.coord.t[2] = pos->vz;
+    item->locate->locate.super = 0;
+    UpdateCoordinate(item->locate);
+    item->collision.size = 0;
+    item->model = SyurikenModel;
+    SetupFly(&param->fly, pos, &p->end, 0x400, 0x400, 0x12c);
+    item->param.launch.fly.mode = 0;
+    ai = SetupAfterimage(item->model, 10);
     param->effect = ai;
     ai->vector1.vx = 0x14;
     ai->vector1.vy = 0;
