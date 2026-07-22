@@ -90,9 +90,9 @@
  *        that guard) and compiles to `j ret; li v0,-1`, exactly like the
  *        target's shared block whose two predecessors' branch delay slots are
  *        busy (so they cannot inline the `li` and must route through it).
- *  - `objp`/`dim`-style PSX.SYM register-note this TU's template shares with
- *    DrawModel/DrawClip's OWN PSX.SYM entries don't apply to any additional
- *    local here — `sprt` fills that role for the whole function.
+ *  - PSX.SYM's `objp` is the ModelType view of Sprite3D's shared prefix.
+ *    It carries the coordinate, attribute, and clip accesses; `sprt` remains
+ *    the correctly typed view for the Sprite3D-only scale and sprite tail.
  *  - OTablePt is %gp_rel here (tools/gpsyms.py --write; Build.hs
  *    maspsxGpExterns + permute.py GP_EXTERNS both list DrawSprite now) —
  *    unlike DrawModel/DrawClip in the SAME TU, where it's absolute; per-file
@@ -115,6 +115,7 @@
 short DrawSprite(Sprite3D *sprt)
 {
     MATRIX mat;
+    ModelType *objp;
     short atr;
     long *xy;
     long sz;
@@ -124,15 +125,16 @@ short DrawSprite(Sprite3D *sprt)
     short sVar2;
     short rxy[2];
 
-    GsGetLs(&sprt->locate, &mat);
+    objp = (ModelType *)sprt;
+    GsGetLs(&objp->locate, &mat);
     GsSetLsMatrix(&mat);
-    atr = sprt->attribute;
+    atr = objp->attribute;
     xy = (long *)&sprt->sprite.x;
     if ((atr & 1) != 0)
         goto reject;
     if ((atr & 2) == 0)
     {
-        sz = RotTransPers(&sprt->clip, (s32 *)rxy, 0, 0) >> 2;
+        sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
         if ((atr & 4) != 0 && sz == 0)
         {
             result = -1;
