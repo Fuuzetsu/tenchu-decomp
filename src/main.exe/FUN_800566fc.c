@@ -5,7 +5,7 @@
  * FUN_800566fc (0x800566fc, 0xa0 bytes) — same PersistentState-at-0x80010000
  * family as FUN_800566c0.c/FUN_800565f0.c (game_types.h's TLinkInfo;
  * see FUN_800566c0.c for the `#define PSTATE` convention and the proven
- * saveItem@0x27/gItem@0x40C/chr@0x4 offsets). This is FUN_800566c0's mirror
+ * saveItem@0x27/gItem@0x40C/CharType@0x4 offsets). This is FUN_800566c0's mirror
  * image: restores this character's shop stock row FROM the loadout backup
  * (`PSTATE->gItem[i + PSTATE->CharType*0x20] = PSTATE->saveItem[i];`), then fades
  * out, tears down (FUN_80038ce0), resets the stage layout number to 0xFF

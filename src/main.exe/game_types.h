@@ -996,11 +996,11 @@ typedef struct TLinkInfo
     u8 StageNoMAX[2];       /* 0x060 highest stage uid per character;
                              *       official demo member name (demo +0x3) */
     ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
-    u8 gItem[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
+    u8 gItem[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[CharType*0x20+item];
                              *       two 0x20-byte character rows;
                              *       retail expansion of demo gItem[30];
                              *       0xFE = locked, 0xFF = infinite;
-                             *       [chr*0x20+0x13] = stage bonus item flag */
+                             *       [CharType*0x20+0x13] = stage bonus item flag */
     u8 t_char[5];           /* 0x44C high-score character (demo name) */
     u8 t_dani[5];           /* 0x451 high-score rank (demo name) */
     long t_time[5];         /* 0x458 completion time; retail replacement for
