@@ -209,7 +209,7 @@ void StateTransition(Humanoid *human)
     {
         s16 active_item;
 
-        active_item = StagePlayer->active_item;
+        active_item = StagePlayer->itmctl;
         if (active_item == 0xb || active_item == 0x12)
         {
             u16 kind;

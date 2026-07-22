@@ -116,7 +116,8 @@ typedef struct Humanoid
                                     some_afterimage_1/2_0xa4/0xa8; untouched
                                     by any matched function yet) */
     u16 sound;                   /* 0xAC (default sound id, OR'd into Sound()'s seid) */
-    s16 active_item;             /* 0xAE (TItemType the character is using) */
+    s16 itmctl;                  /* 0xAE (PSX.SYM's item-control field;
+                                    retail shifts it eight bytes from +0xA6) */
     s32 field76_0xb0;            /* 0xB0 (packed movement hint/count word;
                                     StateTransition and the character_state
                                     twin both read/write it as a whole word) */

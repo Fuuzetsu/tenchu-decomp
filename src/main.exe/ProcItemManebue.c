@@ -66,7 +66,7 @@ void ProcItemManebue(TItem *item)
     return;
 mode0:
     FRAMES_UNTIL_END_OF_ALERT = 0;
-    item->owner->active_item = item->type;
+    item->owner->itmctl = item->type;
     SoundEx((VECTOR *)0x0, 0x43);
     param->count = 0x1e;
     item->mode = item->mode + 1;
@@ -76,7 +76,7 @@ mode1:
     param->count = cVar1;
     if (cVar1 == 0)
     {
-        item->owner->active_item = 0;
+        item->owner->itmctl = 0;
         if (item->proc != 0)
         {
             item->mode = ITEM_MODE_DISPOSE;

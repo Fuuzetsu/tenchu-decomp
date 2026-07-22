@@ -116,7 +116,7 @@ s16 Think1target(void)
             if (abs_dy < 3001)
             {
                 direction = (deg >= 0) ? deg : -deg;
-                if (direction < 900 && StagePlayer->active_item != 11)
+                if (direction < 900 && StagePlayer->itmctl != 11)
                 {
                     s32 alert_time;
 

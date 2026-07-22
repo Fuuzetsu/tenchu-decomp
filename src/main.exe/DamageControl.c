@@ -118,7 +118,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *  - `-(x/3) - 1` must be spelled `x / -3 - 1`: cc1 folds -x-1 into nor, but a
  *    NEGATIVE divisor makes expmed emit the reversed magic-division subtract
  *    (subu sign,hi) with a plain addiu -1 — the retail shape at both sites.
- *  - `dmg <<= 1` under enemy->active_item==0xc is `(u32)(dmg << 0x10) >> 0xf`
+ *  - `dmg <<= 1` under enemy->itmctl==0xc is `(u32)(dmg << 0x10) >> 0xf`
  *    (sll 16 / srl 15).  The old `(dmg<<16); dmg>>=0xf` truncated to zero via
  *    the short lvalue (real behavior bug, compiled to `move s1,zero`).
  *  - The armour block computes deg BEFORE the knockback: `deg=(short)dmg>>3;
@@ -630,10 +630,10 @@ LAB_8001e6d8:
     if (enemy->type == 0xa9) {
       dmg = (short)dmg * 6;
     }
-    if (Me_MOTION_C->active_item == 0xc) {
+    if (Me_MOTION_C->itmctl == 0xc) {
       dmg = (int)(short)dmg / 3;
     }
-    if (enemy->active_item == 0xc) {
+    if (enemy->itmctl == 0xc) {
       dmg = (u32)(dmg << 0x10) >> 0xf;
     }
   {

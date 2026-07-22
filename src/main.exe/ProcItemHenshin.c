@@ -115,7 +115,7 @@ void ProcItemHenshin(TItem *item)
                 NowReturnNormal(item->owner);
             }
             D_80097AEC = 0;
-            ((volatile TItem *)item)->owner->active_item = 0;
+            ((volatile TItem *)item)->owner->itmctl = 0;
         }
         item->mode = 0;
         return;
@@ -233,7 +233,7 @@ void ProcItemHenshin(TItem *item)
         mode_owner = vitem->owner;
         itemID = *(volatile u16 *)&vitem->type;
         FRAMES_UNTIL_END_OF_ALERT = -600;
-        mode_owner->active_item = itemID;
+        mode_owner->itmctl = itemID;
         return;
     }
 
@@ -244,7 +244,7 @@ void ProcItemHenshin(TItem *item)
         count = D_80097AF0 - 1;
         D_80097AF0 = count;
         if ((s32)(count << 16) > 0 &&
-            item->owner->active_item == item->type &&
+            item->owner->itmctl == item->type &&
             item->owner->status != 0x10 &&
             item->owner->status != 0x11)
         {
