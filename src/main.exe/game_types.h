@@ -940,7 +940,7 @@ enum TItemType
 // CHOSEN_STAGE = +5, STAGE_LAYOUT_NUMBER = +6, CHOSEN_LANGUAGE = +0x5E,
 // SHOP_STOCK_STATE_BY_CHAR = +0x40C); the original source mixed direct global
 // accesses with pointer-based ones, so both views coexist on purpose.
-typedef struct
+typedef struct TLinkInfo
 {
     u8 field_0x0[4];        /* 0x000 magic 0x19981110 (InitPersistentState) */
     u8 CharType;            /* 0x004 CHOSEN_CHARACTER (stock matrix row;
