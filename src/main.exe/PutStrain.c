@@ -31,10 +31,6 @@
  * END PSX.SYM */
 
 extern s32 StrainRatio;
-extern GsSPRITE ItemSprite3Ds[4];
-extern GsSPRITE D_800C082C;
-extern GsSPRITE D_800C0850;
-extern GsSPRITE D_800C0874;
 extern u16 D_80097F68;
 
 
@@ -42,13 +38,14 @@ extern u16 D_80097F68;
  * PutStrain (0x8004a8f0) — draws the "strain" HUD icon at (x,y): a
  * flashing/pulsing warning glyph whose sprite and pulse phase depend on
  * StrainRatio. 0x7fffffff (a sentinel) draws nothing at all. Otherwise:
- * ratio==0 -> D_800C0850 (neutral icon, no pulse-drift clamp); ratio <
- * -20000 -> D_800C0874 (icon, clamps ratio to 0 for the pulse calc);
- * -20000<=ratio<0 -> D_800C082C (icon; also plays SoundEx(0,0xe) every 30
- * ticks — a warning beep — and clamps ratio to 0); 0<ratio<=20000 draws a
+ * ratio==0 -> KehaiRedImage (no pulse-drift clamp); ratio <
+ * -20000 -> the retail-only KehaiCriticalImage (clamps ratio to 0 for the
+ * pulse calc); -20000<=ratio<0 -> KehaiYellowImage (also plays
+ * SoundEx(0,0xe) every 30 ticks — a warning beep — and clamps ratio to 0);
+ * 0<ratio<=20000 draws a
  * PutNumber-style right-to-left digit strip of `(20000-ratio)/200` using
- * NumberImage (the numeric strain percentage) THEN falls through to using
- * ItemSprite3Ds as the icon; ratio>20000 returns without drawing anything.
+ * NumberImage (the numeric strain percentage) THEN uses KehaiGreenImage;
+ * ratio>20000 returns without drawing anything.
  * The chosen icon sprite is then positioned at (x,y), tinted a shade of
  * gray that oscillates via rsin() driven by a persistent phase counter
  * (D_80097F68, advanced by the (adjusted) strain delta), and scaled by a
@@ -111,16 +108,16 @@ void PutStrain(s32 x, s32 y)
     {
         if (ratio == 0)
         {
-            spr = &D_800C0850;
+            spr = &KehaiRedImage;
         }
         else if (ratio < -powrange)
         {
-            spr = &D_800C0874;
+            spr = &KehaiCriticalImage;
             ratio = 0;
         }
         else if (ratio < 0)
         {
-            spr = &D_800C082C;
+            spr = &KehaiYellowImage;
             ratio = 0;
             if (GameClock == (GameClock / speed) * speed)
             {
@@ -136,7 +133,7 @@ void PutStrain(s32 x, s32 y)
 
             if (ratio > powrange)
                 return;
-            spr = ItemSprite3Ds;
+            spr = &KehaiGreenImage;
             NumberImage.w = 4;
             img = &NumberImage;
             img->x = (s16)(x + 0x22);
@@ -228,7 +225,7 @@ void PutStrain(s32 x, s32 y)
 //       if (20000 < StrainRatio) {
 //         return;
 //       }
-//       _29 = (GsSPRITE *)&ItemSprite3Ds;
+//       _29 = &KehaiGreenImage;
 //       NumberImage.w = 4;
 //       NumberImage.x = in_a0 + 0x22;
 //       NumberImage.y = in_a1 + 8;
@@ -276,11 +273,11 @@ void PutStrain(s32 x, s32 y)
 // ? SoundEx(s32, ?, s32);                             /* extern */
 // s32 rsin(s32);                                      /* extern */
 // extern u16 D_80097F68;
-// extern ? D_800C082C;
-// extern ? D_800C0850;
-// extern ? D_800C0874;
+// extern ? KehaiYellowImage;
+// extern ? KehaiRedImage;
+// extern ? KehaiCriticalImage;
 // extern s32 GameClock;
-// extern ? ItemSprite3Ds;
+// extern ? KehaiImage;
 // extern ? NumberImage;
 // extern s32 OTablePt;
 // extern s32 StrainRatio;
@@ -300,16 +297,16 @@ void PutStrain(s32 x, s32 y)
 //     var_s2 = StrainRatio;
 //     if (var_s2 != 0x7FFFFFFF) {
 //         if (var_s2 == 0) {
-//             var_s4 = &D_800C0850;
+//             var_s4 = &KehaiRedImage;
 //             goto block_12;
 //         }
 //         if (var_s2 < -0x4E20) {
-//             var_s4 = &D_800C0874;
+//             var_s4 = &KehaiCriticalImage;
 //             var_s2 = 0;
 //             goto block_12;
 //         }
 //         if (var_s2 < 0) {
-//             var_s4 = &D_800C082C;
+//             var_s4 = &KehaiYellowImage;
 //             var_s2 = 0;
 //             if (GameClock == ((GameClock / 30) * 0x1E)) {
 //                 SoundEx(0, 0xE, MULT_HI(GameClock, 0x88888889));
@@ -317,7 +314,7 @@ void PutStrain(s32 x, s32 y)
 //             goto block_13;
 //         }
 //         if (var_s2 < 0x4E21) {
-//             var_s4 = &ItemSprite3Ds;
+//             var_s4 = &KehaiGreenImage;
 //             NumberImage.unk8 = 4;
 //             NumberImage.unk4 = (u16) (arg0 + 0x22);
 //             temp_s3 = NumberImage.unkE;

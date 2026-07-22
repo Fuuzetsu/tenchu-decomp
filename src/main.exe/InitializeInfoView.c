@@ -35,8 +35,8 @@
  * called from DoInfoViewProc the first frame (guarded by fInitialize) and
  * from main(). Sets up the cursor/digit sprites, the shared 26-slot item-image
  * table (ItemImage, images 0x14.. then padded with image 0xF),
- * and the 4-entry ItemSprite3Ds array, then resets enemy layout/info-view
- * state and marks fInitialize.
+ * and the retail-expanded 4-entry KehaiImage array, then resets enemy
+ * layout/info-view state and marks fInitialize.
  *
  * STATUS: MATCHING — 352 bytes. The loop-1 SetupSprite result must be
  * assigned through `*slot` in one expression: that assignment chain keeps
@@ -58,7 +58,7 @@
  *    Loop 2 hoists BOTH its scale and attribute the same way (two more
  *    named locals, `scale2`/`attr2`, assigned right before loop 2's own
  *    goto-loop body, in registers distinct from loop 1's).
- *  - Loop 3 (ItemSprite3Ds) stays a genuine `do{}while`: Ghidra's rendering
+ *  - Loop 3 (KehaiImage) stays a genuine `do{}while`: Ghidra's rendering
  *    already matches (its one constant, 0x50000000, is likewise just a
  *    plain pre-loop variable read, and the array is walked with a typed
  *    `GsSPRITE *` pointer with no strength-reduction concern).
@@ -80,7 +80,6 @@
  *    them, unlike the 0x80097Dxx string-table drift where nothing else
  *    referenced the bad name).
  */
-extern GsSPRITE ItemSprite3Ds[4];
 extern u8 fInitialize;
 
 extern GsIMAGE *GetImage(s32 id);
@@ -136,7 +135,7 @@ loop1:
     }
     i = 0;
     attr3 = 0x50000000;
-    sprite = ItemSprite3Ds;
+    sprite = KehaiImage;
     do
     {
         image = GetImage(i + IMG_KEHAI_GREEN);

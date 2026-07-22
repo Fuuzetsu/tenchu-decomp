@@ -138,7 +138,7 @@
 800beb78	plyBleed	datamatch	VOTES2	STAT	struct POLY_F4
 800bfb80	SpriteGoshikimai	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE
 800c07d8	NumberImage	datamatch	VOTES2	STAT	struct GsSPRITE
-800c0808	ItemSprite3Ds	ghidra-export	same binary, address-keyed	?	?
+800c0808	KehaiImage	semantic+datamatch	PSX=8009a0b0;DEMO=8009a408;WITNESSES=InitializeInfoView,PutStrain;retail-groups-the-demo-KehaiGreenImage/KehaiYellowImage/KehaiRedImage-with-one-new-contiguous-state	STAT	struct GsSPRITE [4]
 800c0898	MapImage	ghidra-export	same binary, address-keyed	STAT	struct GsSPRITE
 800c2d08	TelopP	ghidra-export	same binary, address-keyed	STAT	struct POLY_FT4
 800c2d70	FileHandlePool	ghidra-export	same binary, address-keyed	?	?
