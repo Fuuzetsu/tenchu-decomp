@@ -32,7 +32,7 @@
  * DemoBackupArea via the PSYQ libgpu StoreImage2, then DrawSync(0) waits for
  * the transfer to finish.
  */
-extern u_long DemoBackupArea[];
+extern u8 DemoBackupArea[64];
 
 void DemoPatchInit(void)
 {
@@ -42,6 +42,6 @@ void DemoPatchInit(void)
     rc.y = 0x1ff;
     rc.w = 0x10;
     rc.h = 1;
-    StoreImage2(&rc, DemoBackupArea);
+    StoreImage2(&rc, (u_long *)DemoBackupArea);
     DrawSync(0);
 }
