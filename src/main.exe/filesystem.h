@@ -59,6 +59,8 @@ struct TAFS
     TAFSFileHandle *pHandle;
 };
 
+extern TAFS systemAFS;
+
 int cd_seek(FILE *f, int offset, TSeekMode whence);
 
 #endif

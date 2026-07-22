@@ -81,7 +81,6 @@ extern int AfsOpenVolume(TAFS *handle, char *path);
 extern char D_800110F0[]; /* "ACQUREMEMORYDISK" */
 extern char D_80011104[]; /* "TENCHU\DATA" */
 extern void *D_80097EB8;
-extern TAFS systemAFS;
 
 void InitFileSystem(int mode)
 {
