@@ -17,7 +17,7 @@
  * no PadProc() call and no ordering trick needed — plain 2D-array indexing
  * reproduces the row-then-column evaluation order directly.
  */
-void *FUN_8001b4e0(s32 arg0)
+TPadPort *FUN_8001b4e0(s32 arg0)
 {
     return &PadPort[arg0 >> 4][arg0 & 3];
 }

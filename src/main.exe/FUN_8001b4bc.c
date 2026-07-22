@@ -7,9 +7,9 @@
  * FUN_8001b4e0(0); a plain sb, not the sign-extension shift-split GetPad/
  * FUN_8001b174 need, since the index here is the literal 0, not a variable).
  */
-extern void *FUN_8001b4e0(s32 arg0);
+extern TPadPort *FUN_8001b4e0(s32 arg0);
 
 void FUN_8001b4bc(void)
 {
-    *((u8 *)FUN_8001b4e0(0) + 0xC) = 0;
+    FUN_8001b4e0(0)->Send = 0;
 }
