@@ -21,8 +21,18 @@ extern short (*Think4Func[6])();  /* 0x80089dfc, size 0x18, static in THINK_4.C 
 extern struct ThinkDBtype ThinkDB[20];  /* 0x80089e40, size 0xa0 */
 extern short (*AttackFunc[4])();  /* 0x80089ee0, size 0x10, static in THINK_4.C */
 extern struct TCameraStatus CamState;  /* 0x80089ef0, size 0x24 */
+extern struct TCameraPos CamPosCriticalHit[3];  /* 0x80089f50, size 0x30, static in CAMERA.C */
 extern struct ObjectSlotManager ModelSlot;  /* 0x8008dbe0, size 0xc, static in WORLD.C */
 extern struct ITEM__210fake HensinT[9];  /* 0x8008e3ec, size 0x12, static in ITEM.C */
+extern short stage1appearance[15];  /* 0x8008f098, size 0x1e, static in INFOVIEW.C */
+extern short stage2appearance[11];  /* 0x8008f0b8, size 0x16, static in INFOVIEW.C */
+extern short stage3appearance[11];  /* 0x8008f0d0, size 0x16, static in INFOVIEW.C */
+extern short stage4appearance[7];  /* 0x8008f0e8, size 0xe, static in INFOVIEW.C */
+extern short stage5appearance[8];  /* 0x8008f0f8, size 0x10, static in INFOVIEW.C */
+extern short stage6appearance[7];  /* 0x8008f10c, size 0xe, static in INFOVIEW.C */
+extern short stage7appearance[6];  /* 0x8008f11c, size 0xc, static in INFOVIEW.C */
+extern short stage8appearance[11];  /* 0x8008f12c, size 0x16, static in INFOVIEW.C */
+extern short stage9appearance[7];  /* 0x8008f144, size 0xe, static in INFOVIEW.C */
 extern short *StageAppearance[10];  /* 0x8008f188, size 0x28 */
 extern struct INFOVIEW__196fake LifeBarStyle[2];  /* 0x8008e414, size 0x80, static in INFOVIEW.C */
 extern struct MISC__183fake DoorData[11];  /* 0x8008e624, size 0x84 */
@@ -75,11 +85,14 @@ extern short Murders;  /* 0x80097c70, size 0x0 */
 extern short FriendHits;  /* 0x80097c72, size 0x0 */
 extern short StageEnemies;  /* 0x80097c76, size 0x0 */
 extern short StageCitizens;  /* 0x80097c78, size 0x0 */
+extern unsigned char *VoiceXaName;  /* 0x80097ca0, size 0x4 */
 extern struct SoundEffect *StageSE;  /* 0x80097cb0, size 0x4 */
 extern short VoiceMode;  /* 0x80097cb4, size 0x0 */
 extern struct CVAType *CVAdata;  /* 0x80097cb8, size 0x4, static in CHRANIM.C */
 extern struct CVAType *CVAnow;  /* 0x80097cbc, size 0x4, static in CHRANIM.C */
+extern short CVAtime;  /* 0x80097cc0, size 0x0, static in CHRANIM.C */
 extern struct Humanoid *CameraTarget;  /* 0x80097cc4, size 0x4, static in CHRANIM.C */
+extern short CameraSpeed;  /* 0x80097cc8, size 0x0, static in CHRANIM.C */
 extern short CameraPanMode;  /* 0x80097cca, size 0x0, static in CHRANIM.C */
 extern unsigned char gNannido;  /* 0x80010058, size 0x0 */
 extern unsigned char gSound;  /* 0x80010059, size 0x0 */
@@ -87,6 +100,7 @@ extern unsigned char gSoundLevel;  /* 0x8001005a, size 0x0 */
 extern unsigned char gSELevel;  /* 0x8001005b, size 0x0 */
 extern unsigned char gfMemory;  /* 0x8001005c, size 0x0 */
 extern unsigned char *TENCHU_ID;  /* 0x80097d04, size 0x4, static in MEMCARD.C */
+extern struct MemoryDiskType *MDfat;  /* 0x80097eb8, size 0x4, static in FILEIO.C */
 extern short dtCMD;  /* 0x80097ef8, size 0x0, static in MOTION.C */
 extern short dtPAD;  /* 0x80097efa, size 0x0, static in MOTION.C */
 extern struct VECTOR *dtL;  /* 0x80097efc, size 0x4, static in MOTION.C */
@@ -96,13 +110,18 @@ extern struct MotionManager *dtM;  /* 0x80097f08, size 0x4, static in MOTION.C *
 extern short motID;  /* 0x80097f0c, size 0x0, static in MOTION.C */
 extern short motMODE;  /* 0x80097f0e, size 0x0, static in MOTION.C */
 extern struct ModelType *ModelHook;  /* 0x80097f28, size 0x4, static in EFFECT.C */
+extern struct ModelType *ShadowMdl;  /* 0x80097f34, size 0x4, static in EFFECT.C */
+extern struct GsIMAGE *AfterIMG;  /* 0x80097f3c, size 0x4, static in EFFECT.C */
 extern struct ModelType *SyurikenModel;  /* 0x80097f48, size 0x4, static in ITEM.C */
 extern struct ModelType *ArrowModel;  /* 0x80097f4c, size 0x4, static in ITEM.C */
 extern struct ModelType *NingyoModel;  /* 0x80097f50, size 0x4, static in ITEM.C */
 extern struct ModelType *HappouModel;  /* 0x80097f54, size 0x4, static in ITEM.C */
 extern struct Sprite3D *sprNapalm;  /* 0x80097f5c, size 0x4, static in ITEM.C */
 extern struct Sprite3D *sprNapalm2;  /* 0x80097f60, size 0x4, static in ITEM.C */
+extern struct EventSeqType *Event[2];  /* 0x80097f78, size 0x8, static in STAGE.C */
+extern struct Humanoid *eTarget[2];  /* 0x80097f80, size 0x8, static in STAGE.C */
 extern enum TSystemFlag SystemFlag;  /* 0x80097e74, size 0x4 */
+extern struct Sprite3D *SpriteSnow;  /* 0x80097f2c, size 0x4 */
 extern short FieldAttrib;  /* 0x80097ec4, size 0x0 */
 extern struct SVECTOR ConflictDistance;  /* 0x80097ec8, size 0x8 */
 extern int StageID;  /* 0x80097ac4, size 0x0 */
@@ -115,7 +134,9 @@ extern struct TAFS systemAFS;  /* 0x800bc0a0, size 0x1c, static in FILEIO.C */
 extern struct POLY_GT4 AccessImage;  /* 0x800bc0c0, size 0x34, static in FILEIO.C */
 extern unsigned char ComBuf[2][34];  /* 0x800be688, size 0x44, static in PADCMD.C */
 extern struct GsSPRITE sprBlood;  /* 0x800be958, size 0x24, static in EFFECT.C */
+extern struct GsSPRITE sprBloodStay;  /* 0x800be9e8, size 0x24, static in EFFECT.C */
 extern struct GsSPRITE sprSplash;  /* 0x800bea78, size 0x24, static in EFFECT.C */
+extern struct Sprite3D *sprImpact[3];  /* 0x800beaa8, size 0xc, static in EFFECT.C */
 extern struct GsSPRITE sprFrame[4];  /* 0x80089ff0, size 0x90, static in EFFECT.C */
 extern struct Sprite3D *sprBomb[3];  /* 0x800beb68, size 0xc, static in EFFECT.C */
 extern struct POLY_F4 plyBleed;  /* 0x800beb78, size 0x18, static in EFFECT.C */

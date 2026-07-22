@@ -45,6 +45,7 @@
  *     extern short Murders;
  *     extern short Findenemies;
  *     extern short Criticals;
+ *     extern struct EventSeqType *Event[2];
  * END PSX.SYM */
 
 #include "item.h"

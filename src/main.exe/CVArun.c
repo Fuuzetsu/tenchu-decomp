@@ -27,6 +27,7 @@
  *     extern int StageID;
  *     extern struct GsOT *OTablePt;
  *     extern struct HumanAnimType CVAhuman[5];
+ *     extern short CVAtime;
  *     extern struct CVAType *CVAnow;
  * END PSX.SYM */
 

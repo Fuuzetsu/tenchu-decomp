@@ -37,6 +37,7 @@
  *     extern short ActionHalt;
  *     extern short MotionUpdateMode;
  *     extern struct TCdaStatus CdaStatus;
+ *     extern short CVAtime;
  *     extern short VoiceMode;
  * END PSX.SYM */
 

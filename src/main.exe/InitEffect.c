@@ -29,11 +29,16 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsSPRITE sprBlood;
+ *     extern struct GsSPRITE sprBloodStay;
  *     extern struct GsSPRITE sprSplash;
  *     extern struct GsSPRITE sprFrame[4];
+ *     extern struct Sprite3D *sprImpact[3];
  *     extern struct POLY_F4 plyBleed;
  *     extern struct Sprite3D *sprSmoke;
  *     extern struct Sprite3D *sprBomb[3];
+ *     extern struct ModelType *ShadowMdl;
+ *     extern struct GsIMAGE *AfterIMG;
+ *     extern struct Sprite3D *SpriteSnow;
  *     extern struct ModelType *ModelHook;
  * END PSX.SYM */
 

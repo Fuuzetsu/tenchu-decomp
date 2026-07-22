@@ -50,6 +50,7 @@
  * Globals it touches, as the original declared them:
  *     extern struct TCameraStatus CamState;
  *     extern unsigned long *GlobalAreaMap;
+ *     extern struct TCameraPos CamPosCriticalHit[3];
  * END PSX.SYM */
 
 /*

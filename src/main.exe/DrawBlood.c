@@ -41,6 +41,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct GsSPRITE sprBlood;
+ *     extern struct GsSPRITE sprBloodStay;
  *     extern struct GsOT *OTablePt;
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct AreaNodeType *FieldArea;

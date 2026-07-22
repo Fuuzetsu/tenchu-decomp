@@ -33,6 +33,7 @@
  *     reg   $s1       unsigned char sec
  *
  * Globals it touches, as the original declared them:
+ *     extern unsigned char *VoiceXaName;
  *     extern unsigned char gSELevel;
  * END PSX.SYM */
 

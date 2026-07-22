@@ -31,6 +31,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct Humanoid *StagePlayer;
+ *     extern struct EventSeqType *Event[2];
  *     extern long StageTime;
  *     extern struct TCameraStatus CamState;
  *     extern short ActionHalt;
@@ -45,6 +46,7 @@
  *     extern short StageEnemies;
  *     extern short FriendHits;
  *     extern short StageCitizens;
+ *     extern struct Humanoid *eTarget[2];
  * END PSX.SYM */
 
 /*

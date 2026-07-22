@@ -27,7 +27,9 @@
  *     reg   $a3       short i
  *
  * Globals it touches, as the original declared them:
+ *     extern struct EventSeqType *Event[2];
  *     extern struct EventSeqType *StageEvent;
+ *     extern struct Humanoid *eTarget[2];
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 

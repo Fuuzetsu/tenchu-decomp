@@ -32,6 +32,7 @@
  *     reg   $v1       short ph
  *
  * Globals it touches, as the original declared them:
+ *     extern struct GsIMAGE *AfterIMG;
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */
 

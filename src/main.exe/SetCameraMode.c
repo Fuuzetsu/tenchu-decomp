@@ -24,6 +24,7 @@
  *
  * Globals it touches, as the original declared them:
  *     extern struct TCameraStatus CamState;
+ *     extern struct TCameraPos CamPosCriticalHit[3];
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 

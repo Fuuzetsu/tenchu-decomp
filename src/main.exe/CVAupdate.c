@@ -34,6 +34,7 @@
  *     extern unsigned long *GlobalAreaMap;
  *     extern struct Humanoid *CameraTarget;
  *     extern short CameraPanMode;
+ *     extern short CameraSpeed;
  *     extern struct CVAType *CVAdata;
  *     extern int StageID;
  * END PSX.SYM */

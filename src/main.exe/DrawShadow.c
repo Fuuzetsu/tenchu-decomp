@@ -46,6 +46,7 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern struct tag_EffectSlot EffectSlot[200];
+ *     extern struct ModelType *ShadowMdl;
  *     extern short RefrectVector[16];
  *     extern struct SVECTOR UnitVector;
  *     extern struct GsOT *OTablePt;
