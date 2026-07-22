@@ -45,12 +45,13 @@
  *    real loop doesn't risk loop.c hoisting its address either — the
  *    hoisting hazard that forced SetFrame/SetSplash/SetBleed's goto shape
  *    doesn't apply once `ef = &dmy;` moves outside the loop body.
- *  - rand()'s result (`spd`), and the two field constants `scale`/`rotate`
+ *  - rand()'s result (`spd`), and the two packed colour constants
+ *    `start_color`/`end_color`
  *    (0x808080 each), are all named locals assigned BEFORE the loop and
  *    held live across the whole search (no calls run inside it) — not
  *    literals at their point of use. All three floated only after the
  *    magic-multiply div-by-90 sequence for `spd` was written FIRST in
- *    source (immediately after `r = rand();`), then `scale`/`rotate`;
+ *    source (immediately after `r = rand();`), then the two colours;
  *    the compiler's scheduler places their independent lui/ori pairs
  *    ahead of the still-latency-bound `mult`/`mfhi` chain regardless, so
  *    getting the register (t1/t2/t3) assignment right needed this order,
@@ -66,8 +67,8 @@ void SetImpact(VECTOR *pos, short size, short type)
 {
     int r;
     short spd;
-    long scale;
-    long rotate;
+    long start_color;
+    long end_color;
     int idx;
     TEffectSlot *base;
     TEffectSlot *slot;
@@ -78,8 +79,8 @@ void SetImpact(VECTOR *pos, short size, short type)
 
     r = rand();
     spd = r % 90 + 90;
-    scale = 0x808080;
-    rotate = 0x808080;
+    start_color = 0x808080;
+    end_color = 0x808080;
     count = 0;
     base = EffectSlot;
     idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
@@ -115,8 +116,8 @@ found:
     param->super = 0;
     param->rotate = 0;
     param->rotate_speed = spd;
-    param->start_color.word = scale;
-    param->end_color.word = rotate;
+    param->start_color.word = start_color;
+    param->end_color.word = end_color;
     param->start_size = size;
     param->end_size = 0;
     param->time = 0xf;

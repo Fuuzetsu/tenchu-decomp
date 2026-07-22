@@ -109,11 +109,11 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         int count;
         ImpactType *impact;
         long final_py;
-        long scale;
-        long rotate;
+        long start_color;
+        long end_color;
 
-        scale = 0x808080;
-        rotate = 0x808080;
+        start_color = 0x808080;
+        end_color = 0x808080;
         rotated[1].vx = position->vx;
         rotated[1].vy = position->vy;
         count = 0;
@@ -155,8 +155,8 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         impact->time = 3;
         impact->super = coord;
         impact->rotate = 0;
-        impact->start_color.word = scale;
-        impact->end_color.word = rotate;
+        impact->start_color.word = start_color;
+        impact->end_color.word = end_color;
         impact->count = 0;
         impact->type = 2;
         impact->pz = final_py;
