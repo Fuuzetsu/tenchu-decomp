@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "misc.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -12,20 +13,19 @@
 
 /*
  * FUN_8004d6d4 (0x8004d6d4, 0x1A0 bytes) — periodic smoke/splash-puff think
- * function (message-style `(this, msg)`, no direct `jal` callers found —
- * reached through a function-pointer table). Same 3-way dispatch shape as
- * the neighbouring FUN_8004c59c (same TU): msg==0 resets a "played" byte
- * flag at `this+0x15`; msg<4 is otherwise ignored; msg>=4 fires once
- * `played==0`, then unconditionally spawns effects at a jittered position
- * (X and Z each jittered independently by a per-object range at
- * `this+0x1C`/`this+0x20`; Y is untouched) and, on even `GameClock` frames,
- * calls SetSmoke (a small upward puff) and SetSplash (a ground splash) at
- * that position — note this branch has NO reschedule/"next" field the way
- * FUN_8004c59c does; it fires on every qualifying call.
+ * function (message-style `(m, msg)`, no direct `jal` callers found —
+ * reached through tag_TMisc.proc). Same 3-way dispatch shape as the
+ * neighbouring FUN_8004c59c (same TU): MM_CREATE resets `m->mode`; other
+ * lifecycle messages are ignored; MM_DO fires while `mode==0`, then
+ * unconditionally spawns effects at a jittered position (X and Z each use
+ * the ranges initially supplied as `m->param.init.b/c`; Y is untouched)
+ * and, on even `GameClock` frames, calls SetSmoke (a small upward puff) and
+ * SetSplash (a ground splash) at that position. Unlike FUN_8004c59c, this
+ * handler has no reschedule/"next" field and fires on every active tick.
  *
  * Matching notes:
- *  - Dispatch shape identical to FUN_8004c59c: `if (arg1==0) goto reset;
- *    if (3<arg1) goto normal; return; reset: ...; normal: ...` — the
+ *  - Dispatch shape identical to FUN_8004c59c: `if (msg==MM_CREATE) goto
+ *    reset; if (MM_DO<=msg) goto normal; return; reset: ...; normal: ...` — the
  *    explicit `goto`s (not `if/else`) are load-bearing: cc1 canonicalises
  *    a `return`-ending guard body as the FALLTHROUGH regardless of
  *    if/else/goto spelling for a 2-way split, so the "short returning
@@ -33,7 +33,7 @@
  *    shape needs the "two independent if (cond) goto L;" cookbook recipe
  *    (test the ORIGINAL condition to `reset`, test the ORIGINAL
  *    complementary-range condition to `normal`, bare `return;` as the
- *    fallthrough short case) — an `if (arg1<4) return;` inline-return
+ *    fallthrough short case) — an `if (msg<MM_DO) return;` inline-return
  *    spelling for the second test does NOT reproduce it (verified on
  *    FUN_8004c59c: only `if (3 < arg1) goto normal;` placed reset between
  *    the two guard tests and normal's continuation, matching the target).
@@ -68,33 +68,33 @@ extern s32 rand(void);
 extern void SetSmoke(VECTOR *pos, SVECTOR *vect, s16 n, s16 time);
 extern void SetSplash(VECTOR *pos, s16 sx, s16 sy, s32 speed);
 
-void FUN_8004d6d4(u8 *arg0, u32 arg1)
+void FUN_8004d6d4(tag_TMisc *m, TMiscMessage msg)
 {
     VECTOR pos;
     SVECTOR dir;
     s32 x, z;
 
-    if (arg1 == 0) goto reset;
-    if (3 < arg1) goto normal;
+    if (msg == MM_CREATE) goto reset;
+    if (MM_DO <= msg) goto normal;
     return;
 
 reset:
-    *(arg0 + 0x15) = 0;
+    m->mode = 0;
     return;
 
 normal:
-    if (*(arg0 + 0x15) != 0) return;
+    if (m->mode != 0) return;
 
-    x = *(s32 *)(arg0 + 4);
-    pos.vx = (1 <= (*(s32 *)(arg0 + 0x1C) << 1))
-                 ? x + (rand() % (*(s32 *)(arg0 + 0x1C) << 1) - *(s32 *)(arg0 + 0x1C))
-                 : x - *(s32 *)(arg0 + 0x1C);
+    x = m->x;
+    pos.vx = (1 <= (m->param.init.b << 1))
+                 ? x + (rand() % (m->param.init.b << 1) - m->param.init.b)
+                 : x - m->param.init.b;
 
-    pos.vy = *(s32 *)(arg0 + 8);
-    z = *(s32 *)(arg0 + 0xC);
-    pos.vz = (1 <= (*(s32 *)(arg0 + 0x20) << 1))
-                 ? z + (rand() % (*(s32 *)(arg0 + 0x20) << 1) - *(s32 *)(arg0 + 0x20))
-                 : z - *(s32 *)(arg0 + 0x20);
+    pos.vy = m->y;
+    z = m->z;
+    pos.vz = (1 <= (m->param.init.c << 1))
+                 ? z + (rand() % (m->param.init.c << 1) - m->param.init.c)
+                 : z - m->param.init.c;
 
     if ((GameClock & 1) == 0) {
         dir.vx = 0;
