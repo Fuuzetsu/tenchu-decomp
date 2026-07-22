@@ -100,7 +100,8 @@ extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void FUN_80038ce0(void);
 extern void FUN_8004f6c0(int arg);
 extern short DrawBG(BackGround *bg);
-extern void PutNumber(int x, int y, int n);
+/* Retail's only caller omits PutNumber's dead fourth parameter. */
+extern void PutNumber();
 extern void DisposeBG(BackGround *bg);
 extern int check_for_known_button_combination(s16 pad, s16 newpress);
 extern void FUN_800519bc(void);
