@@ -183,8 +183,8 @@
 0x80037e6c	984	DrawSplash	main	-
 0x80038244	556	DrawFrame	main	-
 0x80038470	876	SetBleedsDir	main	-
-0x800387dc	2328	FUN_8003562c	main	-
-0x800390f4	832	FUN_80035f44	main	-
+0x800387dc	2328	DrawGore	main	-
+0x800390f4	832	SetGore	main	-
 0x80039434	580	DrawFlyWire	main	-
 0x80039678	984	SetFlyWire	main	-
 0x80039a50	1488	SetWire	main	-

@@ -6,21 +6,34 @@
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
+ * void SetGore(struct VECTOR *pos, struct SVECTOR *vec, int time, long col);
+ *     EFFECT.C:1161, 12 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  *
- * Globals it touches, as the original declared them:
- *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern long GameClock;
- *
- * PSX.SYM suggests this may be `DrawGore` (LOW confidence, EFFECT.C) — NOT
- * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
+ * Original parameters and locals (the demo COUNT and TYPES are high-value
+ * codegen evidence, not a retail spec: an earlier-build helper/API change
+ * can replace either). Retail access widths and callee ABI win. A repeated
+ * name is a nested-block scope, not a duplicate.
+ * A ZERO-locals record is unverified, not a claim that the function has none:
+ * vfree lists zero locals yet its byte-matched source needs seven.
+ * The frame size and saved-reg mask above are the DEMO's: retail often needs
+ * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
+ * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+ * and a hint at how many values stay live, never as a spec. The asm wins.
+ * Locals:
+ *     param $a0       struct VECTOR * pos
+ *     param $a1       struct SVECTOR * vec
+ *     param $a2       int time
+ *     param $a3       long col
  * END PSX.SYM */
 
-extern void FUN_8003562c(TEffectSlot *ef);
 extern void DrawImpact(TEffectSlot *ef);
 
 /*
- * MATCH. Converts a model-space position and direction into a blood/gore
- * effect, then emits a larger impact particle every fourth frame.
+ * MATCH. This is the retail form of EFFECT.C's SetGore. It converts a
+ * model-space position and direction into a blood/gore effect, then emits a
+ * larger impact particle every fourth frame. Its ABI and allocation logic
+ * are a retail redesign; the source identity is established by adjacency and
+ * by installing DrawGore as the effect callback.
  *
  * The two EffectSlot searches intentionally use distinct scoped locals.  The
  * first cursor coalesces with the BloodType pointer in $s0; keeping one cursor
@@ -31,7 +44,7 @@ extern void DrawImpact(TEffectSlot *ef);
  * and lose the target's 0x88-byte frame.  Finally, naming `final_py` immediately
  * after the px store preserves the target's early load and late py store.
  */
-void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
+void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 {
     VECTOR world;
     MATRIX mat;
@@ -96,7 +109,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         param->brightness = 0x80;
         param->mode = 0;
         clock = GameClock & 3;
-        ef->proc = (void (*)())FUN_8003562c;
+        ef->proc = (void (*)())DrawGore;
     }
 
     if (clock == 0)
@@ -172,7 +185,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 // then drop the INCLUDE_ASM above):
 //
 //
-// void FUN_80035f44(GsCOORDINATE2 *param_1,SVECTOR *param_2,undefined4 *param_3)
+// void SetGore(GsCOORDINATE2 *param_1,SVECTOR *param_2,undefined4 *param_3)
 //
 // {
 //   short sVar1;
@@ -232,7 +245,7 @@ void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 //   *(undefined2 *)((int)&ptVar7->param + 0x20) = 0x80;
 //   *(undefined1 *)((int)&ptVar7->param + 0x23) = 0;
 //   uVar5 = GameClock & 3;
-//   ptVar7->proc = (undefined **)FUN_8003562c;
+//   ptVar7->proc = (undefined **)DrawGore;
 //   if (uVar5 == 0) {
 //     sVar1 = param_2->vx;
 //     sVar2 = param_2->vy;

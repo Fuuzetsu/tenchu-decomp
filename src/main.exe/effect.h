@@ -246,6 +246,8 @@ extern Sprite3D *sprBomb[3];
 extern Sprite3D *SpriteSnow[1];
 extern ModelType *ModelHook;
 extern ModelType *ShadowMdl;
+extern void DrawGore(TEffectSlot *ef);
+extern void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector);
 extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 

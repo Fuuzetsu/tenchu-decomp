@@ -67,7 +67,7 @@ tightly coupled family) per isolated worktree:
    `INCLUDE_ASM`; the worker's first action is an authoritative `matchdiff`/build
    preflight. If the function is already exact pure C, recycle the slot immediately
    instead of creating a duplicate checkpoint. This avoided repeated work on
-   `ProcItemFire` and `FUN_8003562c`, both of which old target notes still described
+   `ProcItemFire` and `DrawGore`, both of which old target notes still described
    as unmatched after master already contained exact implementations.
 2. Spawn ONE `general-purpose` agent, `model: "sonnet"`, `isolation:
    "worktree"`, `run_in_background: true`, with a prompt naming the 5 functions,

@@ -6,16 +6,33 @@
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
+ * static void DrawGore(struct tag_EffectSlot *ef);
+ *     EFFECT.C:1131, 28 src lines, frame 56 bytes, saved-reg mask 0x80030000 (DEMO build -- see below)
  *
- * Globals it touches, as the original declared them:
- *     extern struct GsSPRITE sprBlood;
- *     extern struct GsOT *OTablePt;
- *     extern unsigned long *GlobalAreaMap;
- *     extern struct AreaNodeType *FieldArea;
- *     extern struct tag_EffectSlot EffectSlot[200];
+ * Original parameters and locals (the demo COUNT and TYPES are high-value
+ * codegen evidence, not a retail spec: an earlier-build helper/API change
+ * can replace either). Retail access widths and callee ABI win. A repeated
+ * name is a nested-block scope, not a duplicate.
+ * A ZERO-locals record is unverified, not a claim that the function has none:
+ * vfree lists zero locals yet its byte-matched source needs seven.
+ * The frame size and saved-reg mask above are the DEMO's: retail often needs
+ * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
+ * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+ * and a hint at how many values stay live, never as a spec. The asm wins.
+ * Locals:
+ *     param $s0       struct tag_EffectSlot * ef
+ *     reg   $s1       struct GoreType * param
+ *     stack sp+16     struct VECTOR pos
+ *     stack sp+32     struct SVECTOR vec
+ *     reg   $t1       struct VECTOR * pos
+ *     reg   $t0       int time
+ *     reg   $a3       long col
+ *     reg   $v1       struct BleedType * param
+ *     reg   $a2       struct tag_EffectSlot * slot
+ *     reg   $a2       int i
  * END PSX.SYM */
 
-typedef union FUN_8003562cScratch
+typedef union DrawGoreScratch
 {
     SVECTOR screen;
     struct
@@ -28,15 +45,16 @@ typedef union FUN_8003562cScratch
             SVECTOR velocity;
         } temporary;
     } bleed;
-} FUN_8003562cScratch;
+} DrawGoreScratch;
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void DrawBleed(TEffectSlot *ef);
 
 /*
- * MATCH. This is the gore/blood renderer installed by FUN_80035f44.  It is
- * closely related to DrawBlood, but always emits a small DrawBleed particle
- * and uses a 60-unit position jitter.
+ * MATCH. This is the retail form of EFFECT.C's DrawGore, installed by
+ * SetGore. It is closely related to DrawBlood, but always emits a small
+ * DrawBleed particle and uses a 60-unit position jitter. Retail radically
+ * redesigns the demo's GoreType state into the BloodType view used here.
  *
  * The explicit scratch union is the original sp+0x18..sp+0x3f workspace:
  * the projection SVECTOR, bleed VECTOR, and temporary VECTOR/SVECTOR all
@@ -50,12 +68,12 @@ extern void DrawBleed(TEffectSlot *ef);
  * and the full-width `green` local preserves the target's li 0x7f10 before a
  * byte store.
  */
-void FUN_8003562c(TEffectSlot *ef)
+void DrawGore(TEffectSlot *ef)
 {
     BloodType *param;
     GsSPRITE *spr;
     GsSPRITE *spr2;
-    FUN_8003562cScratch scratch;
+    DrawGoreScratch scratch;
     u32 index;
     int state;
 
@@ -424,7 +442,7 @@ move_and_draw:
 // then drop the INCLUDE_ASM above):
 //
 //
-// void FUN_8003562c(undefined4 *param_1)
+// void DrawGore(undefined4 *param_1)
 //
 // {
 //   byte bVar1;

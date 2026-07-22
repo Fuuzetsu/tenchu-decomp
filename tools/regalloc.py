@@ -695,7 +695,7 @@ def report(name, a, show_rtl, body, compare=None, between=None,
 # diverges we ABORT the derived view and print only the raw table -- exactly the
 # self-validate-or-refuse contract `--order` follows. Validated with zero
 # divergence across ~100 functions (SetupTelop, SetLightningI, DrawImpact,
-# PlayVoice, ControlHumanoid, FUN_8003562c/237 homes, ...).
+# PlayVoice, ControlHumanoid, DrawGore/237 homes, ...).
 
 FIRST_PSEUDO = 76               # MIPS mips.h:1371
 # GR_REGS integer allocation. find_free_reg's always-excluded set within 0..31 =

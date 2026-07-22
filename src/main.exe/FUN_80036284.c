@@ -11,9 +11,6 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern struct GsOT *OTablePt;
- *
- * PSX.SYM suggests this may be `SetGore` (LOW confidence, EFFECT.C) — NOT
- * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
  * END PSX.SYM */
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
@@ -22,8 +19,10 @@ extern void AddXF4(void *ot, POLY_XF4 *ply);
 /*
  * STATUS: MATCH (exact).
  *
- * The positional SetGore candidate is rejected: this function renders the
- * retail-only full-screen FadeType, not a gore particle.
+ * The old positional SetGore suggestion for this address is rejected: this
+ * function renders the retail-only full-screen FadeType, not a gore particle.
+ * SetGore is instead the nearby allocator at 0x80035f44, which installs
+ * DrawGore as its effect callback.
  *
  * The three interpolated channels are ordinary byte-sized temporaries. Their
  * natural QImode pseudos give the target's caller-register conflicts; the old

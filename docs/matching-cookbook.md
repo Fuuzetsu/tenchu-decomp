@@ -885,7 +885,7 @@ bytes.
   first callee-saved spill, and every `sp+offset` access; the reported window is
   the scratch-union extent, `--emit-overlay` writes a padded C scaffold
   (LoadConstruction's 0x1a0 frame), and it prints `vector-array hint`s
-  (FUN_80035f44). Replace neutral names with proven aggregates before treating
+  (SetGore). Replace neutral names with proven aggregates before treating
   it as source.
 - **Overlapping locals are one `u8 buf[N]` + casts** — cc1 2.8 never shares
   sibling-scope slots (`(PARAM_ITEM_USE *)buf` views; LoadCard/SaveCard's single
@@ -916,7 +916,7 @@ bytes.
   struct (ReqItemDokudango; `access.py` prints the widths).
   Conversely three scalar deltas can be one real VECTOR local (SearchTarget,
   register_character_death), and two xyz triplets 0x10 apart one `VECTOR[2]`
-  (FUN_80035f44).
+  (SetGore).
 - **Mixed pointer/direct access to one aggregate is a real shape**: keep
   `p = &local` for the base-relative store and the call, spell other fields
   direct (ProcItemFire's launch; DrawTarget's scr/OTZ overlay — the pointer

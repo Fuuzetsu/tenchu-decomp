@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -77,9 +78,6 @@ extern void *memset(void *dst, s32 value, u32 size);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void TurnAroundAllItems(Humanoid *human);
 extern int ReqLifeBar(Humanoid *h);
-extern void FUN_80035f44(GsCOORDINATE2 *coord, SVECTOR *position,
-                        SVECTOR *vector);
-
 void ActDEAD(void)
 {
     ModelArchiveType *model;
@@ -278,7 +276,7 @@ blood_effect:
             scratch.dead.position.vy = -410;
             scratch.dead.position.vz = 0;
         }
-        FUN_80035f44(&Me_MOTION_C->model->object[blood]->locate,
+        SetGore(&Me_MOTION_C->model->object[blood]->locate,
                      &scratch.dead.position, &scratch.dead.vector);
     }
 }

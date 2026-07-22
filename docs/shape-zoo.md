@@ -65,7 +65,7 @@ worked example — read that function's `.c` header for the full story.
   load, one address pseudo (AttackControl). Inverse of deferred-global-capture.
 - **Adjacent global banks need distinct canonical symbols**: if the candidate
   derives bank 2 as `bank1 + C`, pin a second symbol and unify all consumers on
-  it (FUN_8003562c's `sprBloodStay`; DrawBlood integration).
+  it (DrawGore's `sprBloodStay`; DrawBlood integration).
 - **Assignment-expression publication**: `(Current = (State *)spawned)->attribute
   |= FLAG;` encodes a pointer publication inside the consuming lvalue
   (Think3callaid).
