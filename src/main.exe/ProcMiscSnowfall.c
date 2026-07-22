@@ -36,7 +36,7 @@
 
 /*
  * ProcMiscSnowfall (0x8004ced0, 0x26C bytes) — MISC_SNOWFALL's ProcMisc*
- * handler: MM_CREATE zeroes `mode` (sandwiched between a dead read of
+ * handler: MM_CREATE zeroes `mode` (sandwiched between a retained read of
  * TSnowfall.w and a self-store of TSnowfall.h — the retail body no longer
  * uses the grid dimensions the demo's PSX.SYM locals (w/h/i/pos) suggest a
  * fuller CREATE once set up; only the two reads/one self-store survive).
@@ -55,31 +55,15 @@
  *    inline instead) nor if/else with the arms swapped (moves CREATE to
  *    the function's end) reproduces this; only the explicit 3-way goto
  *    ladder does.
- *  - `param = &m->param.snowfall;` is computed ONCE, unconditionally,
- *    at function entry (PSX.SYM's own register-resident `param` local) —
- *    used only by the CREATE branch's final `param->h = h;` store, but its
- *    address must be live from entry to reproduce the target's frame.
- *  - The CREATE branch's `w = ...->w;` (offset 0x18) is a genuinely DEAD
- *    read in the compiled binary — cc1 provably eliminates a plain unused
- *    local's load, so the field must be dereferenced through a
- *    `volatile`-qualified pointer to survive (both reads use `(volatile
- *    TSnowfall *)&m->param.snowfall`, matching the two plain `lw`s at
- *    0x18/0x1C).
- *  - The residual register tie (`param` landing in $v1 instead of the
- *    target's $a2) needed an extra, empirically-found lever: guarding the
- *    whole CREATE body in `if (h || GameClock) {body} else {body}` (two
- *    IDENTICAL copies — semantically a no-op since GameClock is genuinely
- *    unknowable at compile time, so cc1 can't fold the branch away and
- *    keeps both bodies' references alive going into register allocation,
- *    which is what shifts `param` onto $a2). `h` in the condition is read
- *    before its first real assignment; every well-defined substitute tried
- *    (a fresh local, `param->h`, `m->pause`, `GameClock` alone, `h = 0;`
- *    first) failed to reproduce the exact register, only reading the SAME
- *    later-assigned local worked — found by `tools/permute.py` and
- *    bisected down to this minimal shape; root mechanism (pseudo-numbering
- *    order feeding a register-allocator tie-break) not fully characterized
- *    beyond "an unresolvable branch on the reused pseudo works, nothing
- *    else tried does."
+ *  - `param = &m->param.snowfall;` is computed once, unconditionally, at
+ *    function entry (PSX.SYM's own register-resident `param` local). The
+ *    volatile view retains retail's otherwise dead `w` read while keeping
+ *    the source well-defined; `param` itself remains typed normally for the
+ *    final self-store.
+ *  - Binding `h` to retail's $v1 resolves the old compiler's tie between the
+ *    dead volatile-read result, `h`, and `param`. This replaces the former
+ *    undefined read plus duplicated branches with the CREATE operation the
+ *    binary actually performs.
  *  - `ViewInfo.vrx - 3000 + rand() % 6000` (Ghidra's literal `A - C + B`)
  *    needed the fold-reassociation rewrite `ViewInfo.vrx + (rand() % 6000
  *    - 3000)` (cookbook Expressions) to get the target's schedule (the
@@ -94,6 +78,7 @@ extern void *memset(void *s, int c, u32 n);
 
 void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
 {
+    register s32 h asm("$3");
     TSnowfall *param = &m->param.snowfall;
 
     if (msg == MM_CREATE)
@@ -109,22 +94,11 @@ void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
 do_create:
     {
         s32 w;
-        s32 h;
 
-        if (h || GameClock)
-        {
-            w = ((volatile TSnowfall *)&m->param.snowfall)->w;
-            h = ((volatile TSnowfall *)&m->param.snowfall)->h;
-            m->mode = 0;
-            param->h = h;
-        }
-        else
-        {
-            w = ((volatile TSnowfall *)&m->param.snowfall)->w;
-            h = ((volatile TSnowfall *)&m->param.snowfall)->h;
-            m->mode = 0;
-            param->h = h;
-        }
+        w = ((volatile TSnowfall *)&m->param.snowfall)->w;
+        h = ((volatile TSnowfall *)&m->param.snowfall)->h;
+        m->mode = 0;
+        param->h = h;
     }
     return;
 
