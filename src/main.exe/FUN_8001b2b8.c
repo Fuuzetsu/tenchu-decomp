@@ -14,8 +14,7 @@
  * FUN_8001b2b8 (0x8001b2b8, 0x3c bytes) — called only from LoadExecEx: mirrors
  * byte 7 of PadPort[0][0] into bit0 of the persistent-state byte at 0x80010047.
  * Ghidra calls that byte PersistentState._71_1_ (it prints the offset in
- * DECIMAL: 71 = 0x47), which lands on field_0x3b[0xC] — the byte just before
- * flags48, still unidentified.
+ * DECIMAL: 71 = 0x47), which is TLinkInfo.analog_pad_present.
  *
  * The `lui $v1, 0x8001` with NO `addiu` (hoisted into the branch delay slot and
  * reused as the base for both arms' lbu/sb) is the tell that the source holds
@@ -38,8 +37,8 @@ void FUN_8001b2b8(void)
         (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
     if (((u8 *)PadPort)[7] != 0) {
-        ps->field_0x3b[0xC] |= 1;
+        ps->analog_pad_present |= 1;
     } else {
-        ps->field_0x3b[0xC] &= 0xfe;
+        ps->analog_pad_present &= 0xfe;
     }
 }

@@ -18,8 +18,8 @@
  * libraries: MemCardInit/MemCardStart, zero the shared ComBuf[2][34] comm
  * scratch and the PadPort[2][4] state table, PadInitDirect over the two
  * 34-byte ComBuf rows, PadStartCom, then — only when the persistent-state
- * "analog present" bit (PersistentState._71_1_, byte 0x47; see
- * FUN_8001b2b8.c's `ps->field_0x3b[0xC]`) is set — burn 15 VSyncs and force
+ * `analog_pad_present` bit (byte 0x47; see FUN_8001b2b8.c) is set — burn 15
+ * VSyncs and force
  * PadSetMainMode(0,1,0) (digital mode) once.
  *
  * The raw `.s` disproves Ghidra's own `ComBuf[0x11]` second PadInitDirect
@@ -28,10 +28,9 @@
  * $a0 for the first argument — plain `ComBuf[1]` (offset 0x22 = 34, the row
  * size), not a flattened byte index.
  *
- * The one-time `D_80010047` (PersistentState._71_1_) read is a plain
- * absolute scalar load (lui+lbu, no reuse across branches) — unlike
- * FUN_8001b2b8.c's two-arm reuse, no `(TLinkInfo *)0x80010000` cast
- * is needed here.
+ * The one-time member read is a plain absolute scalar load (lui+lbu, no
+ * reuse across branches), while FUN_8001b2b8.c retains a local TLinkInfo
+ * pointer for its two-arm update.
  */
 extern void MemCardInit(int unit);
 extern void MemCardStart(void);
@@ -40,7 +39,6 @@ extern void PadStartCom(void);
 extern void PadSetMainMode(int port, int mode, int lock);
 extern int VSync(int mode);
 extern void *memset(void *s, int c, u32 n);
-extern u8 D_80010047;
 
 void InitPadControl(void)
 {
@@ -52,7 +50,8 @@ void InitPadControl(void)
     memset(PadPort, 0, 0x70);
     PadInitDirect(ComBuf[0], ComBuf[1]);
     PadStartCom();
-    if ((D_80010047 & 1) != 0) {
+    if ((((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->analog_pad_present &
+         1) != 0) {
         i = 0xf;
         do {
             VSync(0);

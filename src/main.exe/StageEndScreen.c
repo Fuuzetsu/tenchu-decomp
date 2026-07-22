@@ -569,14 +569,14 @@ number_1:
                 PSTATE->stock[item_index + (PSTATE->CharType << 5)] = 99;
             }
         }
-        PSTATE->counts[item_index] = 0;
+        PSTATE->selItem[item_index] = 0;
         item_index++;
     } while (item_index < 0x14);
 
     i = 0;
     do
     {
-        PSTATE->backup[i] = PSTATE->stock[i + (CHOSEN_CHARACTER << 5)];
+        PSTATE->saveItem[i] = PSTATE->stock[i + (CHOSEN_CHARACTER << 5)];
         i++;
     } while (i < 0x14);
 

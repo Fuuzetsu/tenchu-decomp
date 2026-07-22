@@ -69,7 +69,7 @@ s32 InitPersistentState(void)
         i = 0x1f;
         stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
         ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-        *(u32 *)ps = magic;
+        ps->magic = magic;
         ps->Nannido = 0;
         ps->Stereo = 1;
         ps->SoundLevel = 0x7f;
@@ -92,10 +92,10 @@ s32 InitPersistentState(void)
         ps->stock[7] = 3;
         ps->stock[8] = 5;
         __builtin_memcpy(&ps->stock[0x20], &ps->stock[0], 0x20);
-        ps->counts[1] = 10;
-        ps->counts[0] = 0xff;
-        ps->counts[2] = 5;
-        ps->counts[3] = 2;
+        ps->selItem[1] = 10;
+        ps->selItem[0] = 0xff;
+        ps->selItem[2] = 5;
+        ps->selItem[3] = 2;
         ps->layout = 0xff;
         if (ps->Stereo != 0) {
             SsSetStereo();

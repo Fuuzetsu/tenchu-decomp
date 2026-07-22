@@ -170,16 +170,16 @@ void BriefingAndInventorySelectionScreen(void)
     help = -1;
 
     for (i = 0; i < 0x14; i++) {
-        PSTATE->backup[i] = PSTATE->stock[i + CHOSEN_CHARACTER * 0x20];
+        PSTATE->saveItem[i] = PSTATE->stock[i + CHOSEN_CHARACTER * 0x20];
     }
     for (j = 0; j < 0x14; j++) {
-        PSTATE->counts[j] = 0;
+        PSTATE->selItem[j] = 0;
     }
     q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     uid = StageConfig[q->StageNo].uid;
-    q->counts[0] = 0xFF;
+    q->selItem[0] = 0xFF;
     if (uid == 0) {
-        q->counts[1] = 5;
+        q->selItem[1] = 5;
         return;
     }
     if ((q->flags48 & 1) == 0) {
@@ -274,7 +274,7 @@ void BriefingAndInventorySelectionScreen(void)
             break;
         case 0x1F:
             if (ps->CharType != 0) {
-                u8 already = ps->counts[0x13];
+                u8 already = ps->selItem[0x13];
                 if (already != 0 || (&ps->stock[0x13])[ps->CharType * 0x20] == 1) {
                     do {
                         do {
@@ -283,7 +283,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     nsel++;
                                     taken++;
                                 }
-                                ps->counts[0x13] = 0xFF;
+                                ps->selItem[0x13] = 0xFF;
                                 (&ps->stock[0x13])[ps->CharType * 0x20] = 0;
                                 SoundEx((VECTOR *)0x0, 8);
                             }
@@ -294,7 +294,8 @@ void BriefingAndInventorySelectionScreen(void)
             break;
         case 7:
             for (j7 = 0; j7 < 0x14; j7++) {
-                (&ps->stock[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] = (&ps->backup[0])[j7];
+                (&ps->stock[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] =
+                    (&ps->saveItem[0])[j7];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
             FUN_80038ce0();
@@ -378,13 +379,13 @@ void BriefingAndInventorySelectionScreen(void)
                     if ((&ps->stock[0])[idx + (ps->CharType << 5)] != 0) {
                         if ((&ps->stock[0])[idx + (ps->CharType << 5)] != 0xFE) {
                             if ((s16)taken < cap) {
-                                u8 cnt = (&ps->counts[0])[idx];
+                                u8 cnt = (&ps->selItem[0])[idx];
                                 if (cnt == 0) {
                                     nsel++;
                                 }
                                 if ((s16)nsel < 6) {
                                     if (idx != 0x13 || D_8001001A == 0) {
-                                        (&ps->counts[0])[idx] = cnt + 1;
+                                        (&ps->selItem[0])[idx] = cnt + 1;
                                         taken++;
                                         (&ps->stock[0])[idx + (ps->CharType << 5)]--;
                                     }
@@ -406,17 +407,17 @@ void BriefingAndInventorySelectionScreen(void)
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                 bounce = 2;
                 {
-                    u8 c = (&ps->counts[0])[idx];
+                    u8 c = (&ps->selItem[0])[idx];
                     scale = 0x1400;
                     if (c != 0) {
                         if (c == 0xFF) {
-                            (&ps->counts[0])[idx] = 0;
+                            (&ps->selItem[0])[idx] = 0;
                             (&ps->stock[0])[idx + (ps->CharType << 5)] = 1;
                             nsel--;
                         } else {
-                            (&ps->counts[0])[idx] = c - 1;
+                            (&ps->selItem[0])[idx] = c - 1;
                             (&ps->stock[0])[idx + (ps->CharType << 5)]++;
-                            if ((&ps->counts[0])[idx] == 0) {
+                            if ((&ps->selItem[0])[idx] == 0) {
                                 nsel--;
                             }
                         }
@@ -482,7 +483,7 @@ void BriefingAndInventorySelectionScreen(void)
         for (j = shown; j < 0x14; j++) {
             u8 c;
             y = (s16)j;
-            c = (&ps->counts[0])[y];
+            c = (&ps->selItem[0])[y];
             if (c != 0) {
                 if (c != 0xFF) {
                     PutNumber(0xA6 - shown * 0x19, 0x62, c);
@@ -538,8 +539,8 @@ void BriefingAndInventorySelectionScreen(void)
 quit:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     FUN_80038ce0();
-    if (PSTATE->counts[0x12] != 0) {
-        PSTATE->counts[0x12] = 0xFF;
+    if (PSTATE->selItem[0x12] != 0) {
+        PSTATE->selItem[0x12] = 0xFF;
     }
     for (j = 0; j < 9; j++) {
         int n = j + PSTATE->CharType * 0x20;

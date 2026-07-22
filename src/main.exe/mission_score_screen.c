@@ -1076,9 +1076,9 @@ score_row_loop:
             state->stock[brightness + (state->CharType << 5)] += 3;
         }
         stageItem = D_8008ED50[state->StageNo];
-        if (state->backup[stageItem] == 0xFE)
+        if (state->saveItem[stageItem] == 0xFE)
         {
-            state->backup[stageItem] += 3;
+            state->saveItem[stageItem] += 3;
         }
     }
 

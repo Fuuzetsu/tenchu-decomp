@@ -165,7 +165,7 @@ void CreateStage(int StageNo, int CharType)
 
     for (i = 0; i < 20; i++)
         human->item[i] =
-            ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->counts[i];
+            ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i];
 
     create_ninken_character_(CharType, StageNo);
     if (((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)

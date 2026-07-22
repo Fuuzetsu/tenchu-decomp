@@ -17,7 +17,7 @@
  * counts. TCameraStatus/CamState.Owner (a Humanoid*) is the same proven
  * view DoInfoViewProc.c declares (truncated here to the one field used);
  * item.h's Humanoid.item[0x1A] sits at 0xB4. The source (config/symbols
- * 0x80010007) is TLinkInfo.counts — but indexing SELECTED_ITEM_COUNTS
+ * 0x80010007) is TLinkInfo.selItem — but indexing SELECTED_ITEM_COUNTS
  * BY NAME as a plain extern array compiles to an `la` (lui+addiu forming
  * its full address first, index added with a zero final displacement): the
  * target instead adds the index to just the %hi part and folds the low
@@ -36,6 +36,6 @@ void FUN_800565f0(void)
     s16 i;
 
     for (i = 0; i < 0x14; i++) {
-        CamState.Owner->item[i] = PSTATE->counts[i];
+        CamState.Owner->item[i] = PSTATE->selItem[i];
     }
 }

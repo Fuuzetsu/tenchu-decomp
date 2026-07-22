@@ -934,10 +934,10 @@ enum TItemType
 // extended the layout (0xE70 memset by InitPersistentState, magic 0x19981110
 // at +0, options run moved to +0x58, language/shop stock added), so the demo
 // definition CANNOT be adopted verbatim — byte-identity pins the retail
-// offsets below. Field naming: TitleCase = official demo field name carried
-// over (correspondence proven by retail consumers); lowercase = repo-named,
-// no demo counterpart proven (candidates: counts ~ selItem?, backup ~
-// saveItem? — demo arrays are [30], retail [0x14], unverified).
+// offsets below. Original demo member names are called out per field;
+// lowercase otherwise denotes a retail/repo name. Retail expands the demo's
+// `selItem[30]` and `saveItem[30]` arrays to 32 entries while retaining their
+// original roles.
 // The 0x80010000 instance keeps splat's descriptive symbol name
 // PersistentState — the demo names only the type, not the retail instance.
 // Offsets proven by BriefingAndInventorySelectionScreen.
@@ -947,18 +947,17 @@ enum TItemType
 // accesses with pointer-based ones, so both views coexist on purpose.
 typedef struct TLinkInfo
 {
-    u8 field_0x0[4];        /* 0x000 magic 0x19981110 (InitPersistentState) */
+    u32 magic;              /* 0x000 0x19981110 (InitPersistentState) */
     u8 CharType;            /* 0x004 CHOSEN_CHARACTER (stock matrix row;
                              *       demo +0x0, short) */
     u8 StageNo;             /* 0x005 CHOSEN_STAGE (demo +0x2) */
     u8 layout;              /* 0x006 STAGE_LAYOUT_NUMBER */
-    u8 counts[0x14];        /* 0x007 selected count per item 0..0x13;
-                             *       [0x12]/[0x13] double as flags */
-    u8 field_0x1b[0xC];     /* 0x01B */
-    u8 backup[0x14];        /* 0x027 loadout backup (restore on abort) */
-    u8 field_0x3b[0xD];     /* 0x03B */
+    u8 selItem[0x20];       /* 0x007 selected count per item;
+                             *       retail expansion of demo selItem[30] */
+    u8 saveItem[0x20];      /* 0x027 loadout backup (restore on abort);
+                             *       retail expansion of demo saveItem[30] */
+    u8 analog_pad_present;  /* 0x047 bit0: analog pad detected */
     u8 flags48;             /* 0x048 bit0: item screen already initialised */
-    u8 field_0x49[3];       /* 0x049 */
     ScoreStats score_stats; /* 0x04C current mission counters */
     u8 Nannido;             /* 0x058 gNannido: game_difficulty (demo +0x5) */
     u8 Stereo;              /* 0x059 gSound: 1 = stereo, 0 = mono
@@ -978,7 +977,6 @@ typedef struct TLinkInfo
     u8 control_scheme;      /* 0x05F saved pad-remapping row (retail-only) */
     u8 StageNoMAX[2];       /* 0x060 highest stage uid per character;
                              *       official demo member name (demo +0x3) */
-    u8 field_0x62[2];       /* 0x062 */
     ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
     u8 stock[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[chr*0x20+item];
                              *       two 0x20-byte character rows;

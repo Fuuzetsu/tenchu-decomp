@@ -347,7 +347,7 @@ void FUN_800519bc(void)
             for (i = 0; i < 0x14; i++)
             {
                 PSTATE->stock[i + CHOSEN_CHARACTER * 0x20] =
-                    PSTATE->backup[i];
+                    PSTATE->saveItem[i];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
             FUN_80038ce0();
