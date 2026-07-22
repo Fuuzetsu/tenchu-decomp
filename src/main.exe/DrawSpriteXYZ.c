@@ -39,7 +39,7 @@
  * [0, 0x4e1]) — the identical tail DrawBlood.c's own Ghidra decompilation
  * shows twice (once inline, once via `goto LAB_8003318c`), matching this
  * original EFFECT.C helper's role across the Draw* family. Its identified
- * retail caller is the still-unmatched FUN_8004c350.
+ * retail caller is the matched-but-still-unnamed FUN_8004c350.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - This TU divides by a runtime value (`scale*300/otz`) — needed

@@ -35,9 +35,9 @@
  * (all-zero) translation and the global world-space rotation matrix
  * GsWSMATRIX, then calls RotTransPers (GTE perspective-transform library
  * wrapper, 0x80078704 > 0x80060000, precompiled) with that SVECTOR, the
- * caller's own output pointer arg3 (passed through unmodified), and two more
+ * caller's own output pointer `scr` (passed through unmodified), and two more
  * scratchpad slots (+0x28/+0x2c). RotTransPers's returned OTZ (depth) is
- * written to arg3's second word (`arg3[1]`, i.e. +4 bytes) — identical tail
+ * written to `scr->vz` at +4 bytes — identical tail
  * to the twin.
  *
  * ViewInfo.vpx/vpy/vpz: canonical GsRVIEW2 `long` fields (s32 on PsyQ,
@@ -49,7 +49,7 @@
  * argument lists by reading those live regs as args.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `arg0 - (short)ViewInfo.vpx` is a NARROWING use (the result stores into
+ *  - `x - (short)ViewInfo.vpx` is a NARROWING use (the result stores into
  *    a scratchpad s16 field) of a s32 global's LOW HALF — cc1 emits `lhu`
  *    for it, same rule as the twin.
  *  - Raw scratchpad addresses are plain integer-literal pointer casts,
