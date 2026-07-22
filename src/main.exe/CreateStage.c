@@ -49,17 +49,12 @@
 
 typedef struct
 {
-    char *path[4];
-} TitlePathBlock;
-
-typedef struct
-{
     u8 unused[32];
-    TitlePathBlock title;
+    u8 *title[4];
 } CreateStageTitleScratch;
 
 extern s32 DepthPoint;
-extern TitlePathBlock TITLE_SPRITES_PTRS;
+extern u8 *TITLE_SPRITES_PTRS[4];
 extern u8 CHOSEN_LANGUAGE;
 extern volatile u8 STAGE_LAYOUT_NUMBER;
 extern char D_8001204C[];
@@ -133,9 +128,9 @@ void CreateStage(int StageNo, int CharType)
     SetupSoundEffect(mode, stageNo);
     DoBriefingAndInventorySelection();
 
-    scratch.title = TITLE_SPRITES_PTRS;
-    data = PathFileRead(ImagePath,
-                        (u8 *)scratch.title.path[CHOSEN_LANGUAGE]);
+    __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
+                     sizeof(scratch.title));
+    data = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
     image = GetImage(0x2D);
     SetupImageToPolyFT4(image, &poly, 0x34, 0x43);
     bg = FUN_8004f4f8(data);

@@ -79,18 +79,18 @@
  *    range) to the end of the function. The nested double wrapper at the
  *    loop bottom weights base's bound ref so base outranks va for a0.
  *  - Case 5's name table is copied from an anonymous-initializer-style data
- *    blob kept as an extern (TimNameBlock cast, like BIS's HelpPathBlock):
- *    the original's u8*[7]={"Water1.tim",...} would emit the strings + table
- *    into THIS object and can't reproduce the interleaved original .data.
- *    tp->n[x] (struct-member spelling) gives the base+index addu; plain
- *    tp[x] on a char** emits index+base.
+ *    blob kept as an extern: the original's u8*[7]={"Water1.tim",...} would
+ *    emit the strings + table into THIS object and cannot reproduce the
+ *    interleaved original .data. The aggregate view remains only because
+ *    tp->n[x] gives the target's base+index addu; plain array indexing emits
+ *    index+base.
  *  - The loop bound compares SIGNED ((s32) casts): the target uses slt, and
  *    Ghidra renders the condition as (int)ptVar1 < -0x7ff3da88.
  */
 
-typedef struct { char *n[7]; } TimNameBlock; /* 0x1C */
-extern char *D_80012788[]; /* the seven water/warp TIM names */
-extern char D_800127A4[];  /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
+typedef struct { u8 *n[7]; } TimNameBlock; /* codegen-only array view */
+extern u8 *D_80012788[7]; /* the seven water/warp TIM names */
+extern u8 D_800127A4[];   /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char D_800127BC[];  /* "undefined effect %d" */
 
 extern void ProcMiscFire(TMisc *m, TMiscMessage msg);
@@ -108,7 +108,7 @@ void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
 {
     TMisc *base = misc;
     TMisc *p;
-    char *tbl[7];
+    u8 *tbl[7];
     GsIMAGE tm;
     TimNameBlock *tp = (TimNameBlock *)tbl;
     GsIMAGE *ptm = &tm;
@@ -151,7 +151,7 @@ loop:
                 p->proc = ProcMiscSprite;
                 break;
             case 5:
-                *(TimNameBlock *)tbl = *(TimNameBlock *)D_80012788;
+                __builtin_memcpy(tbl, D_80012788, sizeof(tbl));
                 adr = PathFileRead(D_800127A4, tp->n[x]);
                 GetTIMInfo(adr, ptm);
                 LoadTIMAndFree(adr);

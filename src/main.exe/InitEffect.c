@@ -65,15 +65,10 @@ typedef struct
     u8 image[8];
 } BloodImageIds;
 
-typedef struct
-{
-    s32 image[3];
-} BombImageIds;
-
 /* "\n"; +4 is an independent effect-pool cursor, and the image table starts at +8. */
 extern char D_80097A38[];
 extern u8 D_80097A48[5];
-extern BombImageIds D_80011C90;
+extern s32 D_80011C90[3];
 extern s32 pat[MaxFrames];
 
 extern GsSPRITE sprBlood[4];
@@ -97,7 +92,7 @@ void InitEffect(void)
     BloodImageIds *blood_src;
     s32 smoke_images[2];
     s32 smoke_id;
-    BombImageIds bomb_images;
+    s32 img[3];
     POLY_F4 *poly;
     GsIMAGE *image;
     s16 i;
@@ -179,8 +174,8 @@ void InitEffect(void)
         {
             if (!(i < 3))
                 break;
-            bomb_images = D_80011C90;
-            image = GetImage(bomb_images.image[i]);
+            __builtin_memcpy(img, D_80011C90, sizeof(img));
+            image = GetImage(img[i]);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprBomb[i] = sprite;
             sprite->sprite.attribute = 0x50000000;

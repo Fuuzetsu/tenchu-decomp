@@ -15,26 +15,21 @@
  * re-lays-out the enemy table via leLayoutEnemy(1) at the end, even on a
  * failed load.
  */
-typedef struct
-{
-    u8 *name[3];
-} LayoutNameTable; /* 0xC */
-
 extern void *LoadSI(int target, u8 *name);
 extern void leRestoreEnemyLayout(void *buf);
 extern void RestoreItemLayout(void *buf);
 extern void vfree(void *buf);
 extern void AdtMessageBox(char *fmt, ...);
 extern char D_80012154[]; /* "load layout error" */
-extern LayoutNameTable D_80012168;
+extern u8 *D_80012168[3];
 
 void load_layout(s32 index)
 {
     void *buf;
-    LayoutNameTable names;
+    u8 *names[3];
 
-    names = D_80012168;
-    buf = LoadSI(0, names.name[index]);
+    __builtin_memcpy(names, D_80012168, sizeof(names));
+    buf = LoadSI(0, names[index]);
     if (buf == 0) {
         AdtMessageBox(D_80012154);
     } else {

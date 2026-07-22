@@ -79,8 +79,6 @@
  */
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-typedef struct { char *p[4]; } HelpPathBlock;  /* 0x10 */
-
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 D_80010019;
@@ -90,7 +88,7 @@ extern u8 SHOP_STOCK_STATE_BY_CHAR[];
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 extern char *ITEM_SEL_SPRITE_PTRS[];
 extern char NUMBER_TIM_PATH[];
-extern char *ITEM_HELP_TIM_PATHS[];
+extern u8 *ITEM_HELP_TIM_PATHS[4];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
 extern int rand(void);
@@ -118,9 +116,9 @@ extern void FUN_800519bc(void);
  */
 static inline u_long *LoadHelpArchive(TLinkInfo *q)
 {
-    char *paths[4];
+    u8 *paths[4];
 
-    *(HelpPathBlock *)paths = *(HelpPathBlock *)ITEM_HELP_TIM_PATHS;
+    __builtin_memcpy(paths, ITEM_HELP_TIM_PATHS, sizeof(paths));
     return FileRead(paths[q->language]);
 }
 
