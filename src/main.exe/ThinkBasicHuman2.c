@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -18,8 +19,6 @@
  * caller's own s16 return — see the cookbook's short-result-extension
  * rule).
  */
-extern s16 GetPad(s16 port);
-
 s16 ThinkBasicHuman2(void)
 {
     return GetPad(1);

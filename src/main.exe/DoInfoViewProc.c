@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "misc.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -106,7 +107,6 @@ extern char D_800125F0[];                   /* "select option" */
 extern char D_80097C40[];                   /* effect-menu title buffer */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern s16 GetPad(s16 no);
 extern void InitializeInfoView(void);
 extern void LayoutEnemyOption(void);
 extern void AddItem2(void);

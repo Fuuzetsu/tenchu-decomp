@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -32,7 +33,6 @@
  * get the short-result pair right before being passed in as the argument) —
  * the "Ghidra's short-typed call-result variable can be int in source" rule.
  */
-extern s16 GetPad(s16 port);
 extern s32 FUN_8001b2f4(s16 pad);
 extern TSystemFlag SystemFlag;
 

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "padcmd.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -38,7 +39,6 @@ extern s32 Projection;
 extern char D_80011BA4[]; /* "OWNER: (%d, %d, %d) R:%d" */
 extern char D_80097A38[]; /* "\n" */
 
-extern s16 GetPad(s16 no);
 extern void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif);
 extern void CameraType1(Humanoid *pl, GsRVIEW2 *vDif);
 extern void debug_output_edit_camera_settings(s16 param);

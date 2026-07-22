@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "adt.h"
 #include "item.h"
+#include "padcmd.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
@@ -91,7 +92,6 @@ extern void DoItemProc(void);
 extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);
 extern void update_something_for_each_visible_enemy_(void);
-extern s16 GetPad(s16 no);
 int main(void)
 {
     short seq;

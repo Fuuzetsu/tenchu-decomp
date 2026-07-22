@@ -38,9 +38,8 @@
  * END PSX.SYM */
 
 #include "item.h"
+#include "padcmd.h"
 
-
-extern void GetPadXY(s16 no, s16 *x, s16 *y);
 extern void FUN_80030644(VECTOR *pos, s32 amount);
 
 void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)

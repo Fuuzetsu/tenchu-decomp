@@ -52,6 +52,7 @@
  *    while(1) { if (!(GetRealPad(0) & START)) break; VSync(2); }.
  */
 #include "item.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -85,7 +86,6 @@
  *     extern short Findenemies;
  * END PSX.SYM */
 
-extern s16 GetPad(s16 no);
 extern short FUN_8001b174(s32 arg);
 extern void FUN_800566fc(void);
 extern short check_for_known_button_combination(short pad, short trg);
