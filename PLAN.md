@@ -211,16 +211,31 @@ family humanised — the fast cluster fully struct-typed (`TMD_FAST_WORK`,
 rewritten on `ADIV_VERT`/`ADIV_FRAME`/`ADIV_WORK`, and the entry
 renderers annotated (their index spelling is byte-required — see the
 struct-store scheduling rule added to cookbook 3.13).
-`ActATTACK` humanised (labels/locals). The recovered demo name
-`Packet` (D_80098040) is adopted (single datamatch vote, usage-confirmed
-in StartDrawing/EndDrawing). All 158 string globals referenced from
-code are named BY CONTENT (msg_*/fmt_*/str_*/path_*, literal quoted at
-each extern) — content-derived names, not semantic guesses; revert by
-address if the owner prefers D_ placeholders. Remaining queue: the
-~364 non-string `D_` data tables (need per-file role analysis or demo
-evidence), `FUN_`-callee references (blocked on function-name
-evidence), and the residual-temp long tail (CameraType1, ReqItemUse,
-FUN_8005778c, ...).
+MILESTONE (2026-08-27): shipped code now contains ZERO Ghidra-style
+locals, ZERO param_N parameters, and ZERO D_ data placeholders. Every
+data global referenced from matched C is named — by recovered demo
+name where one exists (Packet), by content for strings/vector
+constants (msg_*/fmt_*/str_*/path_*/vec_*/svec_*, literal quoted at
+each extern), by uniform scheme for the 108 dmyGs stub pairs
+(str_dmy*/warn_dmy*), and by role read from the code for state/tables
+(McardState cluster, ThinkBudget cluster, CamPos*, ADIV/TMD_FAST
+workspaces, ...). All of it byte-identical, ~35 commits.
+
+Remaining humanising lanes, in value order:
+1. The ~70 FUN_-named functions (psxsym-unnamed.tsv): renames need
+   evidence the demo cannot give; descriptive guesses are against the
+   official-names directive. A future cross-exe/behavioral research
+   pass could recover some.
+2. Named-constant overlays for motID/status hex codes (the project
+   already keeps such overlays where no official enum exists —
+   evidence source: the Act*/Think* dispatch tables).
+3. Tree-wide formatting normalization to the humanised Allman style
+   (clang-format ColumnLimit 0 is token-preserving/byte-safe;
+   applied so far only to files touched by this pass). OWNER CALL —
+   say the word and it is one mechanical commit.
+4. The renderer-family offset casts and screen byte_arith that remain
+   are byte-required and documented in place; guarded drafts keep
+   their reference dumps.
 
 ## Current resume point (2026-07-20)
 
