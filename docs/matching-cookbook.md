@@ -1586,18 +1586,27 @@ LUID, barriers). The levers:
   **TOOL TICKET (cmp-swap guard extension)**: its site selection misses
   regalloc-owned guard hunks.
 
-- **A workspace address parameter's TYPE decides how freely its stores
-  schedule.** Stores through a POINTER-typed parameter (any pointee — struct
-  member or `p[i]` alike) carry a known REG base for cc1's alias pass, so the
-  scheduler hoists them across unrelated loads; the same stores through an
-  INTEGER-typed parameter (`int work`, each site `*(u_long *)(work + 0xNN)`)
-  are opaque-base MEMs pinned near volatile-adjacent loads. FUN_800593a0's
-  eight context stores match ONLY with the int parameter (+4 bytes and an
-  a0→v0 re-allocation otherwise, tested both pointer spellings); its LEAF
-  renderers take the same workspace as a pointer fifth argument and are
-  indifferent. When retail keeps parameter stores in source order around a
-  volatile read, suspect the original passed a raw scratch ADDRESS, not a
-  typed pointer.
+- **A workspace store's STRUCTNESS decides whether it pins parameter/volatile
+  loads.** gcc 2.8 `true_dependence` declares a struct-flagged varying-address
+  access (`MEM_IN_STRUCT_P`, reg-based) and a scalar fixed-address access
+  (a stack parameter slot, a global) NON-aliasing — so spelling workspace
+  stores as struct members (`work->farz = ...`) frees the scheduler to move
+  them across the parameter loads they retail-interleave with, while
+  index/cast spellings (`work[N] = ...`, `*(u_long *)(work + 0xNN) = ...`)
+  keep the conservative dependence and the retail order. Three measured
+  cases: FUN_800593a0's eight context stores match only with an INT-typed
+  workspace parameter and per-site casts (+4 bytes, a0→v0 re-allocation as
+  pointer of ANY flavor — `p[i]` keeps a scalar MEM but the alias base still
+  frees it there since the loads it pins against are its OWN volatile-read
+  copies); FUN_80059008/FUN_80058c70's header fills match only index-spelled
+  through the `u_long *` scratch (struct members un-pin the volatile
+  shift/ot parameter reads, the a0/a1 entry copies leave, the prologue
+  reschedules). Loop-body accesses interleaved with other VARYING accesses
+  (record loads via a cursor) are indifferent — the fast-cluster leaves
+  (FUN_8005961c et al.) converted fully to struct members byte-identically.
+  When retail keeps parameter stores in source order around volatile or
+  stack-parameter reads, spell the workspace as a raw scratch pointer/int
+  with offsets, and keep the struct as documentation.
 
 ### 3.14 loop.c economy
 

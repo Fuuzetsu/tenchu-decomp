@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfast.h"
 
 /*
  * Decode the linked TMD primitive stream and hand each supported triangle
@@ -15,78 +16,78 @@
 
 extern u_long D_800C6588;
 
-extern u_long *FUN_80058c70(u_short *primitive, u_long vertices,
-                            u_long *packet, u_short count, u_long arg2,
-                            u_long arg1, u_long arg3);
-extern u_long *FUN_80059008(u_short *primitive, u_long vertices,
-                            u_long *packet, u_short count, u_long arg2,
-                            u_long arg1, u_long arg3);
-extern u_long *GsTMDfastTNF3(u_short *primitive, u_long vertices,
-                             u_long *packet, u_short count, u_long arg2,
-                             u_long arg1, u_long arg3);
-extern u_long *GsTMDfastTNG3(u_short *primitive, u_long vertices,
-                             u_long *packet, u_short count, u_long arg2,
-                             u_long arg1, u_long arg3);
+extern u_long *FUN_80058c70(u_short *primitive, u_long vertop,
+                            u_long *packet, u_short count, u_long shift,
+                            u_long ot, u_long work);
+extern u_long *FUN_80059008(u_short *primitive, u_long vertop,
+                            u_long *packet, u_short count, u_long shift,
+                            u_long ot, u_long work);
+extern u_long *GsTMDfastTNF3(u_short *primitive, u_long vertop,
+                             u_long *packet, u_short count, u_long shift,
+                             u_long ot, u_long work);
+extern u_long *GsTMDfastTNG3(u_short *primitive, u_long vertop,
+                             u_long *packet, u_short count, u_long shift,
+                             u_long ot, u_long work);
 
-void FUN_80058a54(GsDOBJ2 *param_1, u_long param_2, u_long param_3,
-                  u_long param_4)
+void FUN_80058a54(GsDOBJ2 *obj, u_long ot, u_long shift,
+                  u_long work)
 {
-    int iVar1;
-    struct TMD_STRUCT *puVar3;
-    u_short *puVar4;
-    int iVar5;
-    u_long uVar6;
+    int step;
+    struct TMD_STRUCT *tmd;
+    u_short *prim;
+    int n;
+    u_long vertop;
 
-    puVar3 = (struct TMD_STRUCT *)param_1->tmd;
-    GsLMODE = param_1->attribute >> 3 & 3;
-    puVar4 = (u_short *)puVar3->primtop;
-    iVar5 = puVar3->primn;
-    GsLIGNR = param_1->attribute >> 5 & 1;
-    uVar6 = (u_long)puVar3->vertop;
-    GsLIOFF = param_1->attribute >> 6 & 1;
-    D_800C6588 = param_1->attribute >> 9 & 7;
-    GsTON = param_1->attribute >> 0x1e & 1;
+    tmd = (struct TMD_STRUCT *)obj->tmd;
+    GsLMODE = obj->attribute >> 3 & 3;
+    prim = (u_short *)tmd->primtop;
+    n = tmd->primn;
+    GsLIGNR = obj->attribute >> 5 & 1;
+    vertop = (u_long)tmd->vertop;
+    GsLIOFF = obj->attribute >> 6 & 1;
+    D_800C6588 = obj->attribute >> 9 & 7;
+    GsTON = obj->attribute >> 0x1e & 1;
 
-    while (iVar5 != 0) {
-        switch (*(u_char *)((int)puVar4 + 3) & 0xfd) {
+    while (n != 0) {
+        switch (*(u_char *)((int)prim + 3) & 0xfd) {
         case 0x3d:
-            GsOUT_PACKET_P = FUN_80058c70(puVar4, uVar6, GsOUT_PACKET_P,
-                                           *puVar4, param_3, param_2,
-                                           param_4);
-            iVar5 -= *puVar4;
-            iVar1 = *puVar4 * 0xb;
-            iVar1 <<= 2;
+            GsOUT_PACKET_P = FUN_80058c70(prim, vertop, GsOUT_PACKET_P,
+                                           *prim, shift, ot,
+                                           work);
+            n -= *prim;
+            step = *prim * 0xb;
+            step <<= 2;
             break;
         case 0x2d:
-            GsOUT_PACKET_P = FUN_80059008(puVar4, uVar6, GsOUT_PACKET_P,
-                                           *puVar4, param_3, param_2,
-                                           param_4);
-            iVar5 -= *puVar4;
-            iVar1 = *puVar4 << 5;
+            GsOUT_PACKET_P = FUN_80059008(prim, vertop, GsOUT_PACKET_P,
+                                           *prim, shift, ot,
+                                           work);
+            n -= *prim;
+            step = *prim << 5;
             break;
         case 0x25:
-            GsOUT_PACKET_P = GsTMDfastTNF3(puVar4, uVar6, GsOUT_PACKET_P,
-                                            *puVar4, param_3, param_2,
-                                            param_4);
-            iVar5 -= *puVar4;
+            GsOUT_PACKET_P = GsTMDfastTNF3(prim, vertop, GsOUT_PACKET_P,
+                                            *prim, shift, ot,
+                                            work);
+            n -= *prim;
             do {
-                iVar1 = *puVar4 * 7;
+                step = *prim * 7;
             } while (0);
-            iVar1 <<= 2;
+            step <<= 2;
             break;
         case 0x35:
-            GsOUT_PACKET_P = GsTMDfastTNG3(puVar4, uVar6, GsOUT_PACKET_P,
-                                            *puVar4, param_3, param_2,
-                                            param_4);
-            iVar5 -= *puVar4;
+            GsOUT_PACKET_P = GsTMDfastTNG3(prim, vertop, GsOUT_PACKET_P,
+                                            *prim, shift, ot,
+                                            work);
+            n -= *prim;
             do {
-                iVar1 = *puVar4 * 9;
+                step = *prim * 9;
             } while (0);
-            iVar1 <<= 2;
+            step <<= 2;
             break;
         default:
             return;
         }
-        puVar4 = (u_short *)((int)puVar4 + iVar1);
+        prim = (u_short *)((int)prim + step);
     }
 }
