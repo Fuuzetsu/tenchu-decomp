@@ -284,13 +284,13 @@ void StateTransition(Humanoid *human)
                     switch (alert_me->type < 0x80)
                     {
                     case 0:
-                        goto after_state;
+                        break;
                     default:
                         if (alert_me->target == (ModelType *)StagePlayer->model)
                         {
                             Findenemies++;
                         }
-                        goto after_state;
+                        break;
                     }
                 }
             }
@@ -306,7 +306,7 @@ void StateTransition(Humanoid *human)
                 Sound(Me_THINK_C, 0xc);
             }
         }
-        goto after_state;
+        break;
 
     case 1:
         if (EmergencyNotice != 0 || (ATTRIB_BITS & 0x10) != 0)
@@ -367,7 +367,7 @@ void StateTransition(Humanoid *human)
             }
             Attrib = atr0;
         }
-        goto after_state;
+        break;
 
     case 2:
     {
@@ -477,7 +477,7 @@ void StateTransition(Humanoid *human)
                 motid = (rand() & 1) ? 3 : 4;
                 pad = SetCommand(&Me_THINK_C->pad, motid);
             }
-            goto after_state;
+            break;
         }
         goto update_hint;
     }
@@ -508,10 +508,8 @@ void StateTransition(Humanoid *human)
                 }
             }
         }
-        goto after_state;
+        break;
     }
-
-after_state:
     if (Me_THINK_C->pad_hold != 0)
     {
     update_hint:

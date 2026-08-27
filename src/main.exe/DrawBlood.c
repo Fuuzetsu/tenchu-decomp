@@ -215,7 +215,7 @@ void DrawBlood(TEffectSlot *ef)
             blood->time = 0x80;
             blood->mode = blood->mode + 1;
         }
-        goto draw;
+        break;
     }
 
     case 1:
@@ -234,7 +234,7 @@ void DrawBlood(TEffectSlot *ef)
             time_rnd = rand();
             blood->time = time_rnd % 90;
         }
-        goto draw;
+        break;
     }
 
     default:
@@ -343,11 +343,9 @@ void DrawBlood(TEffectSlot *ef)
             bleed_time = rand();
             SetBleed(&scratch.pos, &scratch.scr, bleed_time % 10 + 10, 0x7f1017);
         }
-        goto draw;
+        break;
     }
     }
-
-draw:
 {
     s16 sc;
     s32 scale;

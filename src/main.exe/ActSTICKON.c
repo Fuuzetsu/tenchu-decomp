@@ -207,13 +207,13 @@ void ActSTICKON(void)
                 motMODE = -1;
             case0_motion_done:
                 dtM->count = -5;
-                goto common_end;
+                break;
             }
         }
 
         if (dtM->loop != -1)
         {
-            goto common_end;
+            break;
         }
 
         {
@@ -252,7 +252,7 @@ void ActSTICKON(void)
                     model->object[0]->rotate.vx = -0x69;
                     UpdateCoordinate(model->object[0]);
                 }
-                goto common_end;
+                break;
             }
         }
 
@@ -318,7 +318,7 @@ void ActSTICKON(void)
                 SoundEx(Me_MOTION_C->locate, 0xC);
             }
         }
-        goto common_end;
+        break;
 
     case 1:
     case 2:
@@ -366,13 +366,13 @@ void ActSTICKON(void)
                 motMODE = -1;
             case12_motion_done:
                 dtM->count = -5;
-                goto common_end;
+                break;
             }
         }
 
         if (dtM->count < 0)
         {
-            goto common_end;
+            break;
         }
 
         pad_bits = (u32)(u16)dtPAD << 16;
@@ -394,7 +394,7 @@ void ActSTICKON(void)
         }
         if (rv == ((pd + 2) & 3))
         {
-            goto common_end;
+            break;
         }
         drop_index = 0xC02;
         if (rv == ((pd + 1) & 3))
@@ -449,13 +449,13 @@ void ActSTICKON(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        goto common_end;
+        break;
 
     case12_no_pad:
         motID = MOT_STICKON;
         motMODE = 1;
         dtM->mask = 0x7FFF;
-        goto common_end;
+        break;
     }
 
     case 3:
@@ -545,8 +545,6 @@ void ActSTICKON(void)
     default:
         break;
     }
-
-common_end:
     if ((dtPAD & 0x20) == 0)
     {
         dtM->mask = 0x7FFF;

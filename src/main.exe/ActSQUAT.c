@@ -83,25 +83,25 @@ void ActSQUAT(void)
         {
             motID = 0xB01;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (MOTION_PAD_BITS & 0x4000)
         {
             motID = 0xB02;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (MOTION_PAD_BITS & 0x2000)
         {
             motID = 0xB03;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (MOTION_PAD_BITS & 0x8000)
         {
             motID = 0xB04;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (Me_MOTION_C->pad.trig & 0x40)
         {
@@ -109,7 +109,7 @@ void ActSQUAT(void)
             motMODE = 1;
             dtR->vy += 0x800;
         }
-        goto common_action;
+        break;
 
     case 1:
         if (dtM->count == 1)
@@ -127,7 +127,7 @@ void ActSQUAT(void)
             motMODE = 1;
             dtR->vy += 0x800;
         }
-        goto common_action;
+        break;
 
     case 2:
         if (dtM->count == 1)
@@ -138,7 +138,7 @@ void ActSQUAT(void)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (MOTION_PAD_BITS & 0xA000)
         {
@@ -159,7 +159,7 @@ void ActSQUAT(void)
             rotation->vy = result;
             dtV->vz = 0;
             dtV->vx = 0;
-            goto common_action;
+            break;
         }
         goto move_if_stationary;
 
@@ -172,14 +172,14 @@ void ActSQUAT(void)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (MOTION_PAD_BITS & 0x4000)
         {
             dtR->vy += turn;
             dtV->vz = 0;
             dtV->vx = 0;
-            goto common_action;
+            break;
         }
         goto move_if_stationary;
 
@@ -192,14 +192,14 @@ void ActSQUAT(void)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (MOTION_PAD_BITS & 0x4000)
         {
             dtR->vy -= turn;
             dtV->vz = 0;
             dtV->vx = 0;
-            goto common_action;
+            break;
         }
     move_if_stationary:
         if (dtV->vx == 0 && dtV->vz == 0)
@@ -208,7 +208,7 @@ void ActSQUAT(void)
                          Me_MOTION_C->motion->motion->orderspd,
                          Me_MOTION_C->motion->motion->sidespd);
         }
-        goto common_action;
+        break;
 
     case 9:
         if (dtM->count == (dtM->motion->time >> 1))
@@ -221,7 +221,7 @@ void ActSQUAT(void)
             motID = MOT_SQUAT;
             motMODE = 1;
         }
-        goto common_action;
+        break;
 
     default:
         if (dtM->count == 1)
@@ -252,8 +252,6 @@ void ActSQUAT(void)
         }
         return;
     }
-
-common_action:
     if (motID == 0xB09)
     {
         return;

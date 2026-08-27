@@ -107,7 +107,7 @@ void ActDAMAGE(void)
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 0x3c);
-        goto check_done;
+        break;
     }
 
     case 1:
@@ -152,7 +152,7 @@ void ActDAMAGE(void)
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 0x3c);
-        goto check_done;
+        break;
     }
 
     case 2:
@@ -168,11 +168,11 @@ void ActDAMAGE(void)
         {
             motID = 0x1009;
             motMODE = 1;
-            goto check_done;
+            break;
         }
         dtV->vx = dtV->vx - (dtV->vx >> 2);
         dtV->vz = dtV->vz - (dtV->vz >> 2);
-        goto check_done;
+        break;
 
     case 4:
         if (Me_MOTION_C->life == 0)
@@ -205,14 +205,14 @@ void ActDAMAGE(void)
             motID = 0x100c;
             motMODE = 1;
         }
-        goto check_done;
+        break;
 
     case 5:
     case 6:
     case 7:
         if (dtM->count == 0 && dtM->loop != 0)
             done = true;
-        goto check_done;
+        break;
 
     default:
     {
@@ -248,7 +248,7 @@ void ActDAMAGE(void)
             if (weapon_kind != 0x2a)
             {
                 done = true;
-                goto check_done;
+                break;
             }
             done = true;
             weapon = Me_MOTION_C->weapon;
@@ -260,11 +260,9 @@ void ActDAMAGE(void)
                 Sound(Me_MOTION_C, 1);
             }
         }
-        goto check_done;
+        break;
     }
     }
-
-check_done:
     if (done)
     {
         register Humanoid *human;

@@ -71,13 +71,13 @@ void ActNORMAL(void)
         {
             motID = 1;
             motMODE = 0;
-            goto common_action;
+            break;
         }
         if (dtPAD & 0x8000)
         {
             motID = 2;
             motMODE = 0;
-            goto common_action;
+            break;
         }
         if (dtM->count == 0 && rand() % 100 == 0)
         {
@@ -91,7 +91,7 @@ void ActNORMAL(void)
                 random_motion = 0x104;
             motID = random_motion;
         }
-        goto common_action;
+        break;
 
     case 1:
         if (dtM->count == 1)
@@ -123,10 +123,8 @@ void ActNORMAL(void)
         break;
 
     default:
-        goto common_action;
+        break;
     }
-
-common_action:
     if (Me_MOTION_C->attribute & ATTR_ALERT)
     {
         motID = 0x501;

@@ -543,7 +543,7 @@ dispatch:
                     dtL->vz = ConflictObject[conflict_id].position.vz;
                 }
             }
-            goto attack_common;
+            break;
         }
         break;
     }
@@ -775,7 +775,6 @@ dispatch:
         return;
     }
     }
-attack_common:
     if (dtM->loop < 0)
     {
         dtM->loop++;

@@ -48,7 +48,7 @@ void ActMOVE(void)
         {
             motID = 0;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if (Me_MOTION_C->attribute & 0x400)
         {
@@ -64,7 +64,7 @@ void ActMOVE(void)
                 dtL->vy = y;
                 Me_MOTION_C->map.height = height;
             }
-            goto common_action;
+            break;
         }
         if (dtPAD & 0xa000)
         {
@@ -83,7 +83,7 @@ void ActMOVE(void)
             motion = Me_MOTION_C->motion->motion;
             MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
         }
-        goto common_action;
+        break;
 
     case 0x201:
         if (dtM->count == 1)
@@ -111,7 +111,7 @@ void ActMOVE(void)
             motion = Me_MOTION_C->motion->motion;
             MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
         }
-        goto common_action;
+        break;
 
     case 0x202:
     case 0x203:
@@ -126,13 +126,11 @@ void ActMOVE(void)
             motID = 0;
             motMODE = 1;
         }
-        goto common_action;
+        break;
 
     default:
-        goto common_action;
+        break;
     }
-
-common_action:
 {
     u16 trig;
 

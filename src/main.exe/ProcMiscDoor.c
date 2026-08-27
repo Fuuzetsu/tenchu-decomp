@@ -183,8 +183,6 @@ do_control:
     }
     break;
     }
-
-draw_models:
 {
     s32 r;
 

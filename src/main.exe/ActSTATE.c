@@ -132,7 +132,7 @@ void ActSTATE(void)
                     }
                     motID = special_motion_id;
                 }
-                goto special_positive_motion;
+                break;
             }
         }
         if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
@@ -473,7 +473,6 @@ void ActSTATE(void)
     case 1:
         return;
     }
-special_positive_motion:
     motMODE = 1;
     return;
 positive_motion:
