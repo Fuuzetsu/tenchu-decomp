@@ -332,28 +332,15 @@ void mission_score_screen(void)
                 drawnSprite->x = 0x16;
                 (value = (stats.criticals), signedValue = (s32)value);
                 drawnSprite->y = drawY;
-                if (1)
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_0;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
+                    value = -signedValue;
+                    negative = 1;
                 }
                 else
                 {
                     negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_0;
-                    value = -signedValue;
-                    negative = 1;
                 }
-            score_number_0:
                 do
                 {
                     dividend = (s16)value;
@@ -422,13 +409,11 @@ void mission_score_screen(void)
                 {
                     value = -signedValue;
                     negative = 1;
-                    goto score_number_1;
                 }
                 else
                 {
                     negative = 0;
                 }
-            score_number_1:
                 do
                 {
                     dividend = (s16)value;
@@ -470,28 +455,15 @@ void mission_score_screen(void)
                 drawY = -0x47;
                 sprite->x = resultX;
                 sprite->y = drawY;
-                if (1)
+                if ((s16)value < 0)
                 {
-                    if ((s16)value < 0)
-                    {
-                        value = -(s16)value;
-                        negative = 1;
-                        goto score_number_2;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
+                    value = -(s16)value;
+                    negative = 1;
                 }
                 else
                 {
                     negative = 0;
-                    if ((s16)value >= 0)
-                        goto score_number_2;
-                    value = -(s16)value;
-                    negative = 1;
                 }
-            score_number_2:
                 do
                 {
                     dividend = (s16)value;
@@ -536,28 +508,12 @@ void mission_score_screen(void)
                 drawY = -0x35;
                 (drawnSprite)->x = (0x16);
                 drawnSprite->y = -0x35;
-                if (0)
+                negative = 0;
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_3;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                }
-                else
-                {
-                    negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_3;
                     value = -signedValue;
                     negative = 1;
                 }
-            score_number_3:
                 do
                 {
                     dividend = (s16)value;
@@ -614,28 +570,12 @@ void mission_score_screen(void)
                 drawY = -0x35;
                 (drawnSprite)->x = (0x2F);
                 drawnSprite->y = -0x35;
-                if (0)
+                negative = 0;
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_4;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                }
-                else
-                {
-                    negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_4;
                     value = -signedValue;
                     negative = 1;
                 }
-            score_number_4:
                 do
                 {
                     dividend = (s16)value;
@@ -678,28 +618,12 @@ void mission_score_screen(void)
                 drawY = -0x35;
                 drawnSprite->x = resultX;
                 drawnSprite->y = drawY;
-                if (0)
+                negative = 0;
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_5;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                }
-                else
-                {
-                    negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_5;
                     value = -signedValue;
                     negative = 1;
                 }
-            score_number_5:
                 do
                 {
                     dividend = (s16)value;
@@ -744,28 +668,12 @@ void mission_score_screen(void)
                 ((drawY) = (-0x24));
                 (drawnSprite)->x = (0x23);
                 ((drawnSprite)->y = (-0x24));
-                if (0)
+                negative = 0;
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_6;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                }
-                else
-                {
-                    negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_6;
                     value = -signedValue;
                     negative = 1;
                 }
-            score_number_6:
                 do
                 {
                     dividend = (s16)value;
@@ -808,28 +716,12 @@ void mission_score_screen(void)
                 ((drawY) = (-0x24));
                 drawnSprite->x = resultX;
                 ((drawnSprite)->y = (-0x24));
-                if (0)
+                negative = 0;
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_7;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                }
-                else
-                {
-                    negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_7;
                     value = -signedValue;
                     negative = 1;
                 }
-            score_number_7:
                 do
                 {
                     dividend = (s16)value;
@@ -874,28 +766,12 @@ void mission_score_screen(void)
                 ((drawY) = (-0x12));
                 drawnSprite->x = resultX;
                 ((drawnSprite)->y = (-0x12));
-                if (0)
+                negative = 0;
+                if (signedValue < 0)
                 {
-                    if (signedValue < 0)
-                    {
-                        value = -signedValue;
-                        negative = 1;
-                        goto score_number_8;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                }
-                else
-                {
-                    negative = 0;
-                    if (signedValue >= 0)
-                        goto score_number_8;
                     value = -signedValue;
                     negative = 1;
                 }
-            score_number_8:
                 do
                 {
                     dividend = (s16)value;
