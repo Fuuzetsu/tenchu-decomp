@@ -1,15 +1,29 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfast.h"
 
 /*
  * Decode the linked TMD primitive stream and hand each supported packet type
  * to its specialized renderer.
+ *
+ * Fills the shared TMD_FAST_WORK context first (tmdfast.h): the OT and
+ * bucket shift, the far-Z reject (0x4a98) and depth-cue start (15000), and
+ * the 320x240 screen clip box; the per-store comments name the fields.
  *
  * Matching notes (636 bytes / 159 instructions):
  *  - The real linked-TMD field layout is load-bearing for the prologue's load
  *    schedule.
  *  - The volatile attribute read preserves the retail reload across the two
  *    packet-parameter stores.
+ *  - The workspace parameter must stay a plain INT (an opaque scratch
+ *    address, each store cast at the site).  Typing it as any pointer
+ *    (TMD_FAST_WORK * or u_long *) gives cc1's alias pass a known REG base
+ *    for those MEMs: the scheduler then hoists the eight context stores
+ *    above the volatile-adjacent attribute loads and the whole prologue
+ *    reschedules/re-allocates (+4 bytes, attr lands in v0 instead of the
+ *    dying a0).  Measured both ways; the leaves are unaffected because
+ *    their workspace pointer arrives as a fifth argument they only read
+ *    through.
  *  - Direct per-case cursor updates retain the two distinct x7 switch tails.
  *  - The 29-entry switch table is routed through this object's .rodata carve
  *    at 0x80013C20.
@@ -17,75 +31,75 @@
 
 extern int D_800C6588;
 
-extern u_long *FUN_8005961c(u_short *param_1, u_long param_2, u_long *param_3,
-                            u_short param_4, u_long *param_5);
-extern u_long *FUN_80059b08(u_short *param_1, u_long param_2, u_long *param_3,
-                            u_short param_4, u_long *param_5);
-extern u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3,
-                            u_short param_4, u_long *param_5);
-extern u_long *FUN_8005a3cc(u_short *param_1, u_long param_2, u_long *param_3,
-                            u_short param_4, u_long *param_5);
+extern u_long *FUN_8005961c(u_short *primitive, u_long vertop, u_long *packet,
+                            u_short count, u_long *work);
+extern u_long *FUN_80059b08(u_short *primitive, u_long vertop, u_long *packet,
+                            u_short count, u_long *work);
+extern u_long *FUN_80059ff4(u_short *primitive, u_long vertop, u_long *packet,
+                            u_short count, u_long *work);
+extern u_long *FUN_8005a3cc(u_short *primitive, u_long vertop, u_long *packet,
+                            u_short count, u_long *work);
 
-void FUN_800593a0(GsDOBJ2 *param_1, u_long param_2, u_long param_3, int param_4)
+void FUN_800593a0(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
 {
-    u_long uVar1;
-    struct TMD_STRUCT *puVar3;
-    u_short *puVar4;
-    int iVar5;
-    u_long uVar6;
+    u_long attr;
+    struct TMD_STRUCT *tmd;
+    u_short *prim;
+    int n;
+    u_long vertop;
 
-    puVar3 = (struct TMD_STRUCT *)param_1->tmd;
-    GsLMODE = param_1->attribute >> 3 & 3;
-    puVar4 = (u_short *)puVar3->primtop;
-    iVar5 = puVar3->primn;
-    GsLIGNR = param_1->attribute >> 5 & 1;
-    uVar6 = (u_long)puVar3->vertop;
-    GsLIOFF = param_1->attribute >> 6 & 1;
-    uVar1 = *(volatile u_long *)&param_1->attribute;
-    D_800C6588 = param_1->attribute >> 9 & 7;
-    *(u_long *)(param_4 + 0x88) = param_3;
-    *(u_long *)(param_4 + 0x90) = param_2;
-    GsTON = uVar1 >> 0x1e & 1;
-    *(u_long *)(param_4 + 0x94) = -0xa0;
-    *(u_long *)(param_4 + 0x98) = 0xa0;
-    *(u_long *)(param_4 + 0x9c) = -0x78;
-    *(u_long *)(param_4 + 0xa0) = 0x78;
-    *(u_long *)(param_4 + 0x84) = 0x4a98;
-    *(u_long *)(param_4 + 0x8c) = 15000;
-    while (iVar5 != 0) {
-        switch (*(u_char *)((int)puVar4 + 3) & 0xfd) {
+    tmd = (struct TMD_STRUCT *)obj->tmd;
+    GsLMODE = obj->attribute >> 3 & 3;
+    prim = (u_short *)tmd->primtop;
+    n = tmd->primn;
+    GsLIGNR = obj->attribute >> 5 & 1;
+    vertop = (u_long)tmd->vertop;
+    GsLIOFF = obj->attribute >> 6 & 1;
+    attr = *(volatile u_long *)&obj->attribute;
+    D_800C6588 = obj->attribute >> 9 & 7;
+    *(u_long *)(work + 0x88) = shift;
+    *(u_long *)(work + 0x90) = ot;
+    GsTON = attr >> 0x1e & 1;
+    *(u_long *)(work + 0x94) = -0xa0; /* clipx0 */
+    *(u_long *)(work + 0x98) = 0xa0; /* clipx1 */
+    *(u_long *)(work + 0x9c) = -0x78; /* clipy0 */
+    *(u_long *)(work + 0xa0) = 0x78; /* clipy1 */
+    *(u_long *)(work + 0x84) = 0x4a98; /* farz */
+    *(u_long *)(work + 0x8c) = 15000; /* fogz */
+    while (n != 0) {
+        switch (*(u_char *)((int)prim + 3) & 0xfd) {
         case 0x3d:
-            GsOUT_PACKET_P = FUN_8005961c(puVar4, uVar6, GsOUT_PACKET_P, *puVar4, param_4);
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + *puVar4 * 0x2c);
+            GsOUT_PACKET_P = FUN_8005961c(prim, vertop, GsOUT_PACKET_P, *prim, work);
+            n -= *prim;
+            prim = (u_short *)((int)prim + *prim * 0x2c);
             continue;
         case 0x2d:
-            GsOUT_PACKET_P = FUN_80059b08(puVar4, uVar6, GsOUT_PACKET_P, *puVar4, param_4);
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + (*puVar4 << 5));
+            GsOUT_PACKET_P = FUN_80059b08(prim, vertop, GsOUT_PACKET_P, *prim, work);
+            n -= *prim;
+            prim = (u_short *)((int)prim + (*prim << 5));
             continue;
         case 0x25:
-            GsOUT_PACKET_P = FUN_80059ff4(puVar4, uVar6, GsOUT_PACKET_P, *puVar4, param_4);
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + *puVar4 * 0x1c);
+            GsOUT_PACKET_P = FUN_80059ff4(prim, vertop, GsOUT_PACKET_P, *prim, work);
+            n -= *prim;
+            prim = (u_short *)((int)prim + *prim * 0x1c);
             continue;
         case 0x35:
-            GsOUT_PACKET_P = FUN_8005a3cc(puVar4, uVar6, GsOUT_PACKET_P, *puVar4, param_4);
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + *puVar4 * 0x24);
+            GsOUT_PACKET_P = FUN_8005a3cc(prim, vertop, GsOUT_PACKET_P, *prim, work);
+            n -= *prim;
+            prim = (u_short *)((int)prim + *prim * 0x24);
             continue;
         case 0x39:
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + *puVar4 * 0x1c);
+            n -= *prim;
+            prim = (u_short *)((int)prim + *prim * 0x1c);
             continue;
         case 0x31:
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + *puVar4 * 0x18);
+            n -= *prim;
+            prim = (u_short *)((int)prim + *prim * 0x18);
             continue;
         case 0x21:
         case 0x29:
-            iVar5 -= *puVar4;
-            puVar4 = (u_short *)((int)puVar4 + (*puVar4 << 4));
+            n -= *prim;
+            prim = (u_short *)((int)prim + (*prim << 4));
             continue;
         default:
             return;

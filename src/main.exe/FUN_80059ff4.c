@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libgpu.h>
+#include "tmdfast.h"
 #include "gte.h"
 
 /*
@@ -89,11 +89,11 @@
  *    the whole prologue rotates). Dead but harmless when param_4 == 0.
  */
 
-u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int param_4, u_long *param_5)
+u_long *FUN_80059ff4(u_short *primitive, u_long vertop, u_long *packet, int count, TMD_FAST_WORK *wp)
 {
-    u8 *work;
-    u8 *prim;
-    u8 *codeAddr;
+    TMD_FAST_WORK *work;
+    POLY_GT3 *prim;
+    u_char *codeAddr;
     s32 codeVal;
     u_long *sz0Ptr;
     u_long *sz1Ptr;
@@ -104,94 +104,94 @@ u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int para
     s32 b, c, lo, hi, otz;
     s32 z1, z2;
 
-    work = (u8 *)param_5;
-    prim = work + 0x34;
-    if (param_4 != 0) {
-        codeAddr = work + 0x38;
+    work = wp;
+    prim = &work->gt3;
+    if (count != 0) {
+        codeAddr = &work->gt3.r0;
         codeVal = 0x34;
-        sz0Ptr = (u_long *)(work + 0x5C);
-        sz1Ptr = (u_long *)(work + 0x60);
-        record = (TMD_P_TNF3 *)param_1;
+        sz0Ptr = (u_long *)&work->sz[0];
+        sz1Ptr = (u_long *)&work->sz[1];
+        record = (TMD_P_TNF3 *)primitive;
         do {
             idx0 = record->v0;
             idx1 = record->v1;
             idx2 = record->v2;
-            gte_ldv3((SVECTOR *)(idx0 * 8 + param_2), (SVECTOR *)(idx1 * 8 + param_2),
-                     (SVECTOR *)(idx2 * 8 + param_2));
+            gte_ldv3((SVECTOR *)(idx0 * 8 + vertop), (SVECTOR *)(idx1 * 8 + vertop),
+                     (SVECTOR *)(idx2 * 8 + vertop));
             gte_rtpt();
 
-            *(s32 *)(prim + 0xC) = *(s32 *)&record->tu0;
-            *(s32 *)(prim + 0x18) = *(s32 *)&record->tu1;
-            *(s32 *)(prim + 0x24) = *(s32 *)&record->tu2;
-            *(s32 *)(prim + 4) = *(s32 *)&record->r0;
+            *(s32 *)&prim->u0 = *(s32 *)&record->tu0;
+            *(s32 *)&prim->u1 = *(s32 *)&record->tu1;
+            *(s32 *)&prim->u2 = *(s32 *)&record->tu2;
+            *(s32 *)&prim->r0 = *(s32 *)&record->r0;
             codeAddr[3] = codeVal;
-            gte_stflg((u_long *)(work + 0x74));
-            if (*(s32 *)(work + 0x74) < 0) goto next;
+            gte_stflg((u_long *)&work->flag);
+            if (work->flag < 0) goto next;
 
             gte_nclip();
-            *(s32 *)(prim + 0x10) = *(s32 *)&record->r0;
-            *(s32 *)(prim + 0x1C) = *(s32 *)&record->r0;
-            gte_stopz((u_long *)(work + 0x80));
-            if (*(s32 *)(work + 0x80) <= 0) goto next;
+            *(s32 *)&prim->r1 = *(s32 *)&record->r0;
+            *(s32 *)&prim->r2 = *(s32 *)&record->r0;
+            gte_stopz((u_long *)&work->opz);
+            if (work->opz <= 0) goto next;
 
             gte_stsxy3_gt3(prim);
 
-            lo = *(s16 *)(prim + 8);
-            b = *(s16 *)(prim + 0x14);
+            lo = prim->x0;
+            b = prim->x1;
             if (b < lo) {
                 hi = lo;
                 lo = b;
             } else {
                 hi = b;
             }
-            c = *(s16 *)(prim + 0x20);
+            c = prim->x2;
             if (c < lo) {
                 lo = c;
             } else if (hi < c) {
                 hi = c;
             }
-            if (hi < *(s32 *)(work + 0x94)) goto next;
-            if (*(s32 *)(work + 0x98) < lo) goto next;
+            if (hi < work->clipx0) goto next;
+            if (work->clipx1 < lo) goto next;
 
-            lo = *(s16 *)(prim + 0xA);
-            b = *(s16 *)(prim + 0x16);
+            lo = prim->y0;
+            b = prim->y1;
             if (b < lo) {
                 hi = lo;
                 lo = b;
             } else {
                 hi = b;
             }
-            c = *(s16 *)(prim + 0x22);
+            c = prim->y2;
             if (c < lo) {
                 lo = c;
             } else if (hi < c) {
                 hi = c;
             }
-            if (hi < *(s32 *)(work + 0x9C)) goto next;
-            if (*(s32 *)(work + 0xA0) < lo) goto next;
+            if (hi < work->clipy0) goto next;
+            if (work->clipy1 < lo) goto next;
 
-            gte_stsz3(sz0Ptr, sz1Ptr, (u_long *)(work + 0x64));
-            lo = *(s32 *)(work + 0x5C);
-            b = *(s32 *)(work + 0x60);
+            gte_stsz3(sz0Ptr, sz1Ptr, (u_long *)&work->sz[2]);
+            lo = work->sz[0];
+            b = work->sz[1];
             if (b < lo) {
                 otz = lo;
                 lo = b;
             } else {
                 otz = b;
             }
-            c = *(s32 *)(work + 0x64);
+            c = work->sz[2];
             if (c < lo) {
                 lo = c;
             } else if (otz < c) {
                 otz = c;
             }
-            *(s32 *)(work + 0x78) = otz / 4;
-            if (*(s32 *)(work + 0x84) < lo) goto next;
+            work->otz = otz / 4;
+            if (work->farz < lo) goto next;
 
-            z1 = *(s32 *)(work + 0x8C);
+            z1 = work->fogz;
             if (z1 < otz) {
-                rgbPtr = (u_long *)(prim + 4);
-                z2 = *(s32 *)(work + 0x5C);
+                rgbPtr = (u_long *)&prim->r0;
+                z2 = work->sz[0];
                 gte_ldrgb(rgbPtr);
                 gte_lddp(z2 - z1);
                 gte_dpcs();
@@ -200,10 +200,10 @@ u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int para
                     gte_strgb(rgbPtr);
                 }
 
-                rgbPtr = (u_long *)(prim + 0x10);
-                z1 = *(s32 *)(work + 0x60);
+                rgbPtr = (u_long *)&prim->r1;
+                z1 = work->sz[1];
                 gte_ldrgb(rgbPtr);
-                z2 = *(s32 *)(work + 0x8C);
+                z2 = work->fogz;
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
@@ -211,10 +211,10 @@ u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int para
                     gte_strgb(rgbPtr);
                 }
 
-                rgbPtr = (u_long *)(prim + 0x1C);
-                z1 = *(s32 *)(work + 0x64);
+                rgbPtr = (u_long *)&prim->r2;
+                z1 = work->sz[2];
                 gte_ldrgb(rgbPtr);
-                z2 = *(s32 *)(work + 0x8C);
+                z2 = work->fogz;
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
@@ -223,18 +223,17 @@ u_long *FUN_80059ff4(u_short *param_1, u_long param_2, u_long *param_3, int para
                 }
             }
 
-            otSlot = *(u_long **)(*(u_long *)(work + 0x90) + 4) +
-                     (*(s32 *)(work + 0x78) >> *(s32 *)(work + 0x88));
-            *(u_long *)prim = *otSlot;
-            prim[3] = 9;
-            *(POLY_GT3 *)param_3 = *(POLY_GT3 *)prim;
-            *otSlot = (u_long)param_3 & 0xFFFFFF;
-            param_3 += 10;
+            otSlot = (u_long *)work->ot->org + (work->otz >> work->shift);
+            prim->tag = *otSlot;
+            ((u_char *)prim)[3] = 9;
+            *(POLY_GT3 *)packet = *prim;
+            *otSlot = (u_long)packet & 0xFFFFFF;
+            packet += 10;
 
         next:
-            param_4--;
+            count--;
             record++;
-        } while (param_4 != 0);
+        } while (count != 0);
     }
-    return param_3;
+    return packet;
 }

@@ -1586,6 +1586,19 @@ LUID, barriers). The levers:
   **TOOL TICKET (cmp-swap guard extension)**: its site selection misses
   regalloc-owned guard hunks.
 
+- **A workspace address parameter's TYPE decides how freely its stores
+  schedule.** Stores through a POINTER-typed parameter (any pointee — struct
+  member or `p[i]` alike) carry a known REG base for cc1's alias pass, so the
+  scheduler hoists them across unrelated loads; the same stores through an
+  INTEGER-typed parameter (`int work`, each site `*(u_long *)(work + 0xNN)`)
+  are opaque-base MEMs pinned near volatile-adjacent loads. FUN_800593a0's
+  eight context stores match ONLY with the int parameter (+4 bytes and an
+  a0→v0 re-allocation otherwise, tested both pointer spellings); its LEAF
+  renderers take the same workspace as a pointer fifth argument and are
+  indifferent. When retail keeps parameter stores in source order around a
+  volatile read, suspect the original passed a raw scratch ADDRESS, not a
+  typed pointer.
+
 ### 3.14 loop.c economy
 
 The gate, decay, and printed log are in compiler-facts; `rtldump --loop-log`
