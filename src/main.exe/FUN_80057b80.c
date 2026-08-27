@@ -1,7 +1,18 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfast.h"
 #include "gte.h"
 /*
+ * FUN_80057b80 (0x80057b80, 3796 bytes) — the recursive quad subdivider of
+ * the active-subdivision cluster (entered from FUN_80058c70/FUN_80059008;
+ * layout types in tmdfast.h).  Per call it takes one ADIV_FRAME (four
+ * ADIV_VERT corner pointers), computes the quad's Z range and screen bbox,
+ * rejects when off-screen, and either emits the leaf POLY_GT4 from the
+ * workspace template (small enough on screen, or the depth limit reached)
+ * or computes the five edge/centre midpoints in the frame, transforms them
+ * (RTPT), and recurses into the next frame for the four sub-quads,
+ * emitting a POLY_GT3 fan piece after each recursion.
+ *
  * MATCHED: recursive primitive subdivision renderer using the PsyQ inline-GTE
  * macros.  The two pointer arguments are first copied into ordinary locals,
  * with the second assignment written before the first.  gcc coalesces those
@@ -13,401 +24,421 @@
  * do/while boundary around the leaf vertex copies remains allocation-relevant;
  * it is consistent with nested primitive-copy macro expansion, while removing
  * it changes the function-wide register assignment.
+ *
+ * Spelling notes:
+ *  - The screen-Y extent test reuses adivw (the half-WIDTH) as its bound —
+ *    that is what retail's bytes do (offset 0x34 in both extent tests).
+ *  - The midpoint blocks write the first pos.vx through the frame and the
+ *    rest through the midpoint pointer, per the matched bytes.
+ *  - Each GT3 emission re-derives the packet/OT fields from the workspace
+ *    (never from the leaf `proto` pointer) — distinct spellings, kept.
  */
 
-void FUN_80057b80(int *arg_1, int *arg_2, int param_3)
+void FUN_80057b80(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
 {
-    int *param_1;
-    int *param_2;
-    short sVar1;
-    u16 uVar2;
-    u16 uVar2_a;
-    u16 uVar2_b;
-    u16 uVar2_c;
-    u16 uVar2_d;
-    int iVar3;
+    ADIV_FRAME *fp;
+    ADIV_WORK *work;
+    short s;
+    u16 u;
+    int tail;
     int zA;
     int zB;
     int zC;
     int prim;
-    int pv;
-    int pv2;
-    int dz1;
-    int dz2;
-    int dz3;
-    int dz4;
+    ADIV_VERT *pv;
+    ADIV_VERT *pv2;
     u32 *otp;
-    u32 *puVar4_a;
-    u32 *puVar4_b;
-    u32 *puVar4_c;
-    u32 *puVar4_d;
-    u32 *puVar5_a;
-    u32 *puVar5_b;
-    u32 *puVar5_c;
-    u32 *puVar5_d;
-    int iVar6_a;
-    int iVar6_b;
-    int iVar6_c;
-    int iVar6_d;
-    short *psVar7;
-    int iVar8_a;
-    int iVar8_b;
-    int iVar8_c;
-    int iVar8_d;
-    short *psVar10;
-    long *r2_00;
-    SVECTOR *r2_01;
-    SVECTOR *r2_02;
-    SVECTOR *r1;
-    SVECTOR *r0;
-    SVECTOR *r1_00;
-    int *piVar13;
-    int *local_30;
-    int *proto;
+    ADIV_VERT *a;
+    ADIV_VERT *b;
+    ADIV_VERT *m01;
+    ADIV_VERT *m02;
+    ADIV_VERT *m23;
+    ADIV_VERT *m31;
+    ADIV_VERT *m03;
+    u_long *m23sxy;
+    ADIV_FRAME *nf;
+    ADIV_FRAME *next;
+    POLY_GT4 *proto;
 
-    param_2 = arg_2;
-    param_1 = arg_1;
-    piVar13 = param_1 + 0x22;
-    local_30 = param_1 + 0x22;
-    proto = param_2 + 0x13;
-    if (*(int *)(*param_1 + 0x10) > *(int *)(param_1[1] + 0x10))
+    work = awp;
+    fp = afp;
+    nf = fp + 1;
+    next = fp + 1;
+    proto = &work->packet;
+    if (fp->vp[0]->sz > fp->vp[1]->sz)
     {
-        param_2[6] = *(int *)(*param_1 + 0x10);
-        param_2[7] = *(int *)(param_1[1] + 0x10);
+        work->zmax = fp->vp[0]->sz;
+        work->zmin = fp->vp[1]->sz;
     }
     else
     {
-        param_2[6] = *(int *)(param_1[1] + 0x10);
-        param_2[7] = *(int *)(*param_1 + 0x10);
+        work->zmax = fp->vp[1]->sz;
+        work->zmin = fp->vp[0]->sz;
     }
-    zA = *(int *)(param_1[2] + 0x10);
-    if (zA < param_2[7])
+    zA = fp->vp[2]->sz;
+    if (zA < work->zmin)
     {
-        param_2[7] = zA;
+        work->zmin = zA;
     }
-    else if (param_2[6] < zA)
+    else if (work->zmax < zA)
     {
-        param_2[6] = zA;
+        work->zmax = zA;
     }
-    zB = *(int *)(param_1[3] + 0x10);
-    if (zB < param_2[7])
+    zB = fp->vp[3]->sz;
+    if (zB < work->zmin)
     {
-        param_2[7] = zB;
+        work->zmin = zB;
     }
-    else if (param_2[6] < zB)
+    else if (work->zmax < zB)
     {
-        param_2[6] = zB;
+        work->zmax = zB;
     }
-    zC = param_2[6];
+    zC = work->zmax;
     if (zC < 0)
     {
         zC = zC + 3;
     }
-    param_2[6] = zC >> 2;
-    if (param_2[8] <= zC >> 2)
+    work->zmax = zC >> 2;
+    if (work->adivz <= zC >> 2)
     {
-        if (*(short *)(*param_1 + 0xc) > *(short *)(param_1[1] + 0xc))
+        if (fp->vp[0]->sxy.vx > fp->vp[1]->sxy.vx)
         {
-            *(u16 *)(param_2 + 0xc) = *(u16 *)(*param_1 + 0xc);
-            *(u16 *)(param_2 + 0xb) = *(u16 *)(param_1[1] + 0xc);
+            *(u16 *)&work->maxx = *(u16 *)&fp->vp[0]->sxy.vx;
+            *(u16 *)&work->minx = *(u16 *)&fp->vp[1]->sxy.vx;
         }
         else
         {
-            *(u16 *)(param_2 + 0xc) = *(u16 *)(param_1[1] + 0xc);
-            *(u16 *)(param_2 + 0xb) = *(u16 *)(*param_1 + 0xc);
+            *(u16 *)&work->maxx = *(u16 *)&fp->vp[1]->sxy.vx;
+            *(u16 *)&work->minx = *(u16 *)&fp->vp[0]->sxy.vx;
         }
-        sVar1 = *(short *)(param_1[2] + 0xc);
-        uVar2 = *(u16 *)(param_1[2] + 0xc);
-        if (sVar1 < *(short *)(param_2 + 0xb))
+        s = fp->vp[2]->sxy.vx;
+        u = *(u16 *)&fp->vp[2]->sxy.vx;
+        if (s < work->minx)
         {
-            *(u16 *)(param_2 + 0xb) = uVar2;
+            *(u16 *)&work->minx = u;
         }
-        else if (*(short *)(param_2 + 0xc) < sVar1)
+        else if (work->maxx < s)
         {
-            *(u16 *)(param_2 + 0xc) = uVar2;
+            *(u16 *)&work->maxx = u;
         }
-        sVar1 = *(short *)(param_1[3] + 0xc);
-        uVar2 = *(u16 *)(param_1[3] + 0xc);
-        if (sVar1 < *(short *)(param_2 + 0xb))
+        s = fp->vp[3]->sxy.vx;
+        u = *(u16 *)&fp->vp[3]->sxy.vx;
+        if (s < work->minx)
         {
-            *(u16 *)(param_2 + 0xb) = uVar2;
+            *(u16 *)&work->minx = u;
         }
-        else if (*(short *)(param_2 + 0xc) < sVar1)
+        else if (work->maxx < s)
         {
-            *(u16 *)(param_2 + 0xc) = uVar2;
+            *(u16 *)&work->maxx = u;
         }
-        if ((-(int)*(short *)(param_2 + 0xd) <= (int)*(short *)(param_2 + 0xc)) &&
-            ((int)*(short *)(param_2 + 0xb) <= (int)*(short *)(param_2 + 0xd)))
+        if ((-(int)work->adivw <= (int)work->maxx) &&
+            ((int)work->minx <= (int)work->adivw))
         {
-            if (*(short *)(*param_1 + 0xe) > *(short *)(param_1[1] + 0xe))
+            if (fp->vp[0]->sxy.vy > fp->vp[1]->sxy.vy)
             {
-                *(u16 *)((int)param_2 + 0x32) = *(u16 *)(*param_1 + 0xe);
-                *(u16 *)((int)param_2 + 0x2e) = *(u16 *)(param_1[1] + 0xe);
+                *(u16 *)&work->maxy = *(u16 *)&fp->vp[0]->sxy.vy;
+                *(u16 *)&work->miny = *(u16 *)&fp->vp[1]->sxy.vy;
             }
             else
             {
-                *(u16 *)((int)param_2 + 0x32) = *(u16 *)(param_1[1] + 0xe);
-                *(u16 *)((int)param_2 + 0x2e) = *(u16 *)(*param_1 + 0xe);
+                *(u16 *)&work->maxy = *(u16 *)&fp->vp[1]->sxy.vy;
+                *(u16 *)&work->miny = *(u16 *)&fp->vp[0]->sxy.vy;
             }
-            sVar1 = *(short *)(param_1[2] + 0xe);
-            uVar2 = *(u16 *)(param_1[2] + 0xe);
-            if (sVar1 < *(short *)((int)param_2 + 0x2e))
+            s = fp->vp[2]->sxy.vy;
+            u = *(u16 *)&fp->vp[2]->sxy.vy;
+            if (s < work->miny)
             {
-                *(u16 *)((int)param_2 + 0x2e) = uVar2;
+                *(u16 *)&work->miny = u;
             }
-            else if (*(short *)((int)param_2 + 0x32) < sVar1)
+            else if (work->maxy < s)
             {
-                *(u16 *)((int)param_2 + 0x32) = uVar2;
+                *(u16 *)&work->maxy = u;
             }
-            sVar1 = *(short *)(param_1[3] + 0xe);
-            uVar2 = *(u16 *)(param_1[3] + 0xe);
-            if (sVar1 < *(short *)((int)param_2 + 0x2e))
+            s = fp->vp[3]->sxy.vy;
+            u = *(u16 *)&fp->vp[3]->sxy.vy;
+            if (s < work->miny)
             {
-                *(u16 *)((int)param_2 + 0x2e) = uVar2;
+                *(u16 *)&work->miny = u;
             }
-            else if (*(short *)((int)param_2 + 0x32) < sVar1)
+            else if (work->maxy < s)
             {
-                *(u16 *)((int)param_2 + 0x32) = uVar2;
+                *(u16 *)&work->maxy = u;
             }
-            if ((-(int)*(short *)(param_2 + 0xd) <= (int)*(short *)((int)param_2 + 0x32)) &&
-                ((int)*(short *)((int)param_2 + 0x2e) <= (int)*(short *)(param_2 + 0xd)))
+            if ((-(int)work->adivw <= (int)work->maxy) &&
+                ((int)work->miny <= (int)work->adivw))
             {
-                if ((*param_2 == param_3) ||
-                    ((*(short *)(param_2 + 0xc) - *(short *)(param_2 + 0xb) < 0xff) &&
-                     (*(short *)((int)param_2 + 0x32) - *(short *)((int)param_2 + 0x2e) < 0x7f)))
+                if ((work->limit == depth) ||
+                    ((work->maxx - work->minx < 0xff) &&
+                     (work->maxy - work->miny < 0x7f)))
                 {
                     do { do { do {
-                    prim = param_2[5];
-                    *(u32 *)(prim + 8) = *(u32 *)(*param_1 + 0xc);
-                    *(u32 *)(prim + 0x14) = *(u32 *)(param_1[1] + 0xc);
-                    *(u32 *)(prim + 0x20) = *(u32 *)(param_1[2] + 0xc);
-                    *(u32 *)(prim + 0x2c) = *(u32 *)(param_1[3] + 0xc);
-                    *(u32 *)(prim + 0xc) = *(u32 *)(*param_1 + 0x14);
-                    *(u32 *)(prim + 0x18) = *(u32 *)(param_1[1] + 0x14);
-                    *(u32 *)(prim + 0x24) = *(u32 *)(param_1[2] + 0x14);
-                    *(u32 *)(prim + 0x30) = *(u32 *)(param_1[3] + 0x14);
-                    *(u32 *)(prim + 4) = *(u32 *)(*param_1 + 8);
-                    *(u32 *)(prim + 0x10) = *(u32 *)(param_1[1] + 8);
-                    *(u32 *)(prim + 0x1c) = *(u32 *)(param_1[2] + 8);
-                    *(u32 *)(prim + 0x28) = *(u32 *)(param_1[3] + 8);
+                    prim = (int)work->out;
+                    *(u32 *)(prim + 8) = *(u32 *)&fp->vp[0]->sxy;
+                    *(u32 *)(prim + 0x14) = *(u32 *)&fp->vp[1]->sxy;
+                    *(u32 *)(prim + 0x20) = *(u32 *)&fp->vp[2]->sxy;
+                    *(u32 *)(prim + 0x2c) = *(u32 *)&fp->vp[3]->sxy;
+                    *(u32 *)(prim + 0xc) = *(u32 *)&fp->vp[0]->tu;
+                    *(u32 *)(prim + 0x18) = *(u32 *)&fp->vp[1]->tu;
+                    *(u32 *)(prim + 0x24) = *(u32 *)&fp->vp[2]->tu;
+                    *(u32 *)(prim + 0x30) = *(u32 *)&fp->vp[3]->tu;
+                    *(u32 *)(prim + 4) = *(u32 *)&fp->vp[0]->col;
+                    *(u32 *)(prim + 0x10) = *(u32 *)&fp->vp[1]->col;
+                    *(u32 *)(prim + 0x1c) = *(u32 *)&fp->vp[2]->col;
+                    *(u32 *)(prim + 0x28) = *(u32 *)&fp->vp[3]->col;
                     } while (0); } while (0); } while (0);
-                    *(u16 *)(prim + 0xe) = *(u16 *)((int)proto + 0xe);
-                    *(u16 *)(prim + 0x1a) = *(u16 *)((int)proto + 0x1a);
-                    *(int *)param_2[5] = *proto;
-                    otp = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)otp;
-                    *(u32 *)param_2[5] = *otp & 0xffffff | 0xc000000;
-                    *(u32 *)param_2[0xe] = param_2[5] & 0xffffff;
-                    iVar3 = param_2[5] + 0x34;
+                    *(u16 *)(prim + 0xe) = proto->clut;
+                    *(u16 *)(prim + 0x1a) = proto->tpage;
+                    *(u_long *)work->out = proto->tag;
+                    otp = (u32 *)(work->org + (work->zmax >> work->shift));
+                    work->otp = (u_long *)otp;
+                    *(u32 *)work->out = *otp & 0xffffff | 0xc000000;
+                    *(u32 *)work->otp = (u32)work->out & 0xffffff;
+                    tail = (int)work->out + 0x34;
                 }
                 else
                 {
-                    psVar7 = (short *)*param_1;
-                    psVar10 = (short *)param_1[1];
-                    *(short *)(param_1 + 4) = (short)(((int)*psVar7 + (int)*psVar10) / 2);
-                    r0 = (SVECTOR *)(param_1 + 4);
-                    *(short *)((int)r0 + 2) = (short)(((int)psVar7[1] + (int)psVar10[1]) / 2);
-                    *(short *)((int)r0 + 4) = (short)(((int)psVar7[2] + (int)psVar10[2]) / 2);
-                    *(char *)((int)r0 + 8) = (char)((int)((u32)*(u8 *)(psVar7 + 4) + (u32)*(u8 *)(psVar10 + 4)) >> 1);
-                    *(char *)((int)r0 + 9) = (char)((int)((u32)*(u8 *)((int)psVar7 + 9) + (u32)*(u8 *)((int)psVar10 + 9)) >> 1);
-                    *(char *)((int)r0 + 0xa) = (char)((int)((u32)*(u8 *)(psVar7 + 5) + (u32)*(u8 *)(psVar10 + 5)) >> 1);
-                    *(u8 *)((int)r0 + 0xb) = *(u8 *)((int)psVar7 + 0xb);
-                    *(char *)((int)r0 + 0x14) = (char)((int)((u32)*(u8 *)(psVar7 + 10) + (u32)*(u8 *)(psVar10 + 10)) >> 1);
-                    *(char *)((int)r0 + 0x15) = (char)((int)((u32)*(u8 *)((int)psVar7 + 0x15) + (u32)*(u8 *)((int)psVar10 + 0x15)) >> 1);
-                    psVar7 = (short *)*param_1;
-                    psVar10 = (short *)param_1[2];
-                    *(short *)(param_1 + 10) = (short)(((int)*psVar7 + (int)*psVar10) / 2);
-                    r1_00 = (SVECTOR *)(param_1 + 10);
-                    *(short *)((int)r1_00 + 2) = (short)(((int)psVar7[1] + (int)psVar10[1]) / 2);
-                    *(short *)((int)r1_00 + 4) = (short)(((int)psVar7[2] + (int)psVar10[2]) / 2);
-                    *(char *)((int)r1_00 + 8) = (char)((int)((u32)*(u8 *)(psVar7 + 4) + (u32)*(u8 *)(psVar10 + 4)) >> 1);
-                    *(char *)((int)r1_00 + 9) = (char)((int)((u32)*(u8 *)((int)psVar7 + 9) + (u32)*(u8 *)((int)psVar10 + 9)) >> 1);
-                    *(char *)((int)r1_00 + 0xa) = (char)((int)((u32)*(u8 *)(psVar7 + 5) + (u32)*(u8 *)(psVar10 + 5)) >> 1);
-                    *(u8 *)((int)r1_00 + 0xb) = *(u8 *)((int)psVar7 + 0xb);
-                    *(char *)((int)r1_00 + 0x14) = (char)((int)((u32)*(u8 *)(psVar7 + 10) + (u32)*(u8 *)(psVar10 + 10)) >> 1);
-                    *(char *)((int)r1_00 + 0x15) = (char)((int)((u32)*(u8 *)((int)psVar7 + 0x15) + (u32)*(u8 *)((int)psVar10 + 0x15)) >> 1);
-                    psVar7 = (short *)param_1[2];
-                    psVar10 = (short *)param_1[3];
-                    *(short *)(param_1 + 0x10) = (short)(((int)*psVar7 + (int)*psVar10) / 2);
-                    r2_01 = (SVECTOR *)(param_1 + 0x10);
-                    *(short *)((int)r2_01 + 2) = (short)(((int)psVar7[1] + (int)psVar10[1]) / 2);
-                    *(short *)((int)r2_01 + 4) = (short)(((int)psVar7[2] + (int)psVar10[2]) / 2);
-                    *(char *)((int)r2_01 + 8) = (char)((int)((u32)*(u8 *)(psVar7 + 4) + (u32)*(u8 *)(psVar10 + 4)) >> 1);
-                    *(char *)((int)r2_01 + 9) = (char)((int)((u32)*(u8 *)((int)psVar7 + 9) + (u32)*(u8 *)((int)psVar10 + 9)) >> 1);
-                    *(char *)((int)r2_01 + 0xa) = (char)((int)((u32)*(u8 *)(psVar7 + 5) + (u32)*(u8 *)(psVar10 + 5)) >> 1);
-                    *(u8 *)((int)r2_01 + 0xb) = *(u8 *)((int)psVar7 + 0xb);
-                    *(char *)((int)r2_01 + 0x14) = (char)((int)((u32)*(u8 *)(psVar7 + 10) + (u32)*(u8 *)(psVar10 + 10)) >> 1);
-                    *(char *)((int)r2_01 + 0x15) = (char)((int)((u32)*(u8 *)((int)psVar7 + 0x15) + (u32)*(u8 *)((int)psVar10 + 0x15)) >> 1);
-                    gte_ldv3(r0, r1_00, r2_01);
+                    a = fp->vp[0];
+                    b = fp->vp[1];
+                    fp->mid[0].pos.vx = (short)(((int)a->pos.vx + (int)b->pos.vx) / 2);
+                    m01 = &fp->mid[0];
+                    m01->pos.vy = (short)(((int)a->pos.vy + (int)b->pos.vy) / 2);
+                    m01->pos.vz = (short)(((int)a->pos.vz + (int)b->pos.vz) / 2);
+                    m01->col.r = (char)((int)((u32)a->col.r + (u32)b->col.r) >> 1);
+                    m01->col.g = (char)((int)((u32)a->col.g + (u32)b->col.g) >> 1);
+                    m01->col.b = (char)((int)((u32)a->col.b + (u32)b->col.b) >> 1);
+                    m01->col.cd = a->col.cd;
+                    m01->tu = (char)((int)((u32)a->tu + (u32)b->tu) >> 1);
+                    m01->tv = (char)((int)((u32)a->tv + (u32)b->tv) >> 1);
+                    a = fp->vp[0];
+                    b = fp->vp[2];
+                    fp->mid[1].pos.vx = (short)(((int)a->pos.vx + (int)b->pos.vx) / 2);
+                    m02 = &fp->mid[1];
+                    m02->pos.vy = (short)(((int)a->pos.vy + (int)b->pos.vy) / 2);
+                    m02->pos.vz = (short)(((int)a->pos.vz + (int)b->pos.vz) / 2);
+                    m02->col.r = (char)((int)((u32)a->col.r + (u32)b->col.r) >> 1);
+                    m02->col.g = (char)((int)((u32)a->col.g + (u32)b->col.g) >> 1);
+                    m02->col.b = (char)((int)((u32)a->col.b + (u32)b->col.b) >> 1);
+                    m02->col.cd = a->col.cd;
+                    m02->tu = (char)((int)((u32)a->tu + (u32)b->tu) >> 1);
+                    m02->tv = (char)((int)((u32)a->tv + (u32)b->tv) >> 1);
+                    a = fp->vp[2];
+                    b = fp->vp[3];
+                    fp->mid[2].pos.vx = (short)(((int)a->pos.vx + (int)b->pos.vx) / 2);
+                    m23 = &fp->mid[2];
+                    m23->pos.vy = (short)(((int)a->pos.vy + (int)b->pos.vy) / 2);
+                    m23->pos.vz = (short)(((int)a->pos.vz + (int)b->pos.vz) / 2);
+                    m23->col.r = (char)((int)((u32)a->col.r + (u32)b->col.r) >> 1);
+                    m23->col.g = (char)((int)((u32)a->col.g + (u32)b->col.g) >> 1);
+                    m23->col.b = (char)((int)((u32)a->col.b + (u32)b->col.b) >> 1);
+                    m23->col.cd = a->col.cd;
+                    m23->tu = (char)((int)((u32)a->tu + (u32)b->tu) >> 1);
+                    m23->tv = (char)((int)((u32)a->tv + (u32)b->tv) >> 1);
+                    gte_ldv3((SVECTOR *)m01, (SVECTOR *)m02, (SVECTOR *)m23);
                     gte_rtpt();
-                    psVar7 = (short *)param_1[3];
-                    psVar10 = (short *)param_1[1];
-                    *(short *)(param_1 + 0x16) = (short)(((int)*psVar7 + (int)*psVar10) / 2);
-                    r1 = (SVECTOR *)(param_1 + 0x16);
-                    *(short *)((int)r1 + 2) = (short)(((int)psVar7[1] + (int)psVar10[1]) / 2);
-                    *(short *)((int)r1 + 4) = (short)(((int)psVar7[2] + (int)psVar10[2]) / 2);
-                    *(char *)((int)r1 + 8) = (char)((int)((u32)*(u8 *)(psVar7 + 4) + (u32)*(u8 *)(psVar10 + 4)) >> 1);
-                    *(char *)((int)r1 + 9) = (char)((int)((u32)*(u8 *)((int)psVar7 + 9) + (u32)*(u8 *)((int)psVar10 + 9)) >> 1);
-                    *(char *)((int)r1 + 0xa) = (char)((int)((u32)*(u8 *)(psVar7 + 5) + (u32)*(u8 *)(psVar10 + 5)) >> 1);
-                    *(u8 *)((int)r1 + 0xb) = *(u8 *)((int)psVar7 + 0xb);
-                    *(char *)((int)r1 + 0x14) = (char)((int)((u32)*(u8 *)(psVar7 + 10) + (u32)*(u8 *)(psVar10 + 10)) >> 1);
-                    *(char *)((int)r1 + 0x15) = (char)((int)((u32)*(u8 *)((int)psVar7 + 0x15) + (u32)*(u8 *)((int)psVar10 + 0x15)) >> 1);
-                    psVar7 = (short *)*param_1;
-                    psVar10 = (short *)param_1[3];
-                    *(short *)(param_1 + 0x1c) = (short)(((int)*psVar7 + (int)*psVar10) / 2);
-                    r2_02 = (SVECTOR *)(param_1 + 0x1c);
-                    *(short *)((int)r2_02 + 2) = (short)(((int)psVar7[1] + (int)psVar10[1]) / 2);
-                    *(short *)((int)r2_02 + 4) = (short)(((int)psVar7[2] + (int)psVar10[2]) / 2);
-                    *(char *)((int)r2_02 + 8) = (char)((int)((u32)*(u8 *)(psVar7 + 4) + (u32)*(u8 *)(psVar10 + 4)) >> 1);
-                    *(char *)((int)r2_02 + 9) = (char)((int)((u32)*(u8 *)((int)psVar7 + 9) + (u32)*(u8 *)((int)psVar10 + 9)) >> 1);
-                    *(char *)((int)r2_02 + 0xa) = (char)((int)((u32)*(u8 *)(psVar7 + 5) + (u32)*(u8 *)(psVar10 + 5)) >> 1);
-                    *(u8 *)((int)r2_02 + 0xb) = *(u8 *)((int)psVar7 + 0xb);
-                    *(char *)((int)r2_02 + 0x14) = (char)((int)((u32)*(u8 *)(psVar7 + 10) + (u32)*(u8 *)(psVar10 + 10)) >> 1);
-                    r2_00 = param_1 + 0x13;
-                    *(char *)((int)r2_02 + 0x15) = (char)((int)((u32)*(u8 *)((int)psVar7 + 0x15) + (u32)*(u8 *)((int)psVar10 + 0x15)) >> 1);
-                    gte_stsxy3(param_1 + 7, param_1 + 0xd, r2_00);
-                    gte_stsz3(param_1 + 8, param_1 + 0xe, param_1 + 0x14);
-                    gte_ldv3(r2_01, r1, r2_02);
+                    a = fp->vp[3];
+                    b = fp->vp[1];
+                    fp->mid[3].pos.vx = (short)(((int)a->pos.vx + (int)b->pos.vx) / 2);
+                    m31 = &fp->mid[3];
+                    m31->pos.vy = (short)(((int)a->pos.vy + (int)b->pos.vy) / 2);
+                    m31->pos.vz = (short)(((int)a->pos.vz + (int)b->pos.vz) / 2);
+                    m31->col.r = (char)((int)((u32)a->col.r + (u32)b->col.r) >> 1);
+                    m31->col.g = (char)((int)((u32)a->col.g + (u32)b->col.g) >> 1);
+                    m31->col.b = (char)((int)((u32)a->col.b + (u32)b->col.b) >> 1);
+                    m31->col.cd = a->col.cd;
+                    m31->tu = (char)((int)((u32)a->tu + (u32)b->tu) >> 1);
+                    m31->tv = (char)((int)((u32)a->tv + (u32)b->tv) >> 1);
+                    a = fp->vp[0];
+                    b = fp->vp[3];
+                    fp->mid[4].pos.vx = (short)(((int)a->pos.vx + (int)b->pos.vx) / 2);
+                    m03 = &fp->mid[4];
+                    m03->pos.vy = (short)(((int)a->pos.vy + (int)b->pos.vy) / 2);
+                    m03->pos.vz = (short)(((int)a->pos.vz + (int)b->pos.vz) / 2);
+                    m03->col.r = (char)((int)((u32)a->col.r + (u32)b->col.r) >> 1);
+                    m03->col.g = (char)((int)((u32)a->col.g + (u32)b->col.g) >> 1);
+                    m03->col.b = (char)((int)((u32)a->col.b + (u32)b->col.b) >> 1);
+                    m03->col.cd = a->col.cd;
+                    m03->tu = (char)((int)((u32)a->tu + (u32)b->tu) >> 1);
+                    m23sxy = (u_long *)&fp->mid[2].sxy;
+                    m03->tv = (char)((int)((u32)a->tv + (u32)b->tv) >> 1);
+                    gte_stsxy3((u_long *)&fp->mid[0].sxy, (u_long *)&fp->mid[1].sxy, m23sxy);
+                    gte_stsz3((u_long *)&fp->mid[0].sz, (u_long *)&fp->mid[1].sz, (u_long *)&fp->mid[2].sz);
+                    gte_ldv3((SVECTOR *)m23, (SVECTOR *)m31, (SVECTOR *)m03);
                     gte_rtpt();
-                    pv = *param_1;
-                    piVar13[1] = (int)r0;
-                    piVar13[2] = (int)r1_00;
-                    piVar13[3] = (int)r2_02;
-                    *piVar13 = pv;
-                    gte_stsxy3(r2_00, param_1 + 0x19, param_1 + 0x1f);
-                    gte_stsz3(param_1 + 0x14, param_1 + 0x1a, param_1 + 0x20);
-                    param_3 = param_3 + 1;
-                    FUN_80057b80(local_30, param_2, param_3);
-                    iVar6_a = *param_1;
-                    puVar4_a = (u32 *)param_2[5];
-                    iVar8_a = param_1[1];
-                    puVar4_a[2] = *(u32 *)(iVar6_a + 0xc);
-                    puVar4_a[5] = *(u32 *)(iVar8_a + 0xc);
-                    puVar4_a[8] = *(u32 *)&r0[1].vz;
-                    dz1 = *(int *)(iVar6_a + 0x10);
-                    if (dz1 < 0)
+                    pv = fp->vp[0];
+                    nf->vp[1] = m01;
+                    nf->vp[2] = m02;
+                    nf->vp[3] = m03;
+                    nf->vp[0] = pv;
+                    gte_stsxy3(m23sxy, (u_long *)&fp->mid[3].sxy, (u_long *)&fp->mid[4].sxy);
+                    gte_stsz3((u_long *)&fp->mid[2].sz, (u_long *)&fp->mid[3].sz, (u_long *)&fp->mid[4].sz);
+                    depth = depth + 1;
+                    FUN_80057b80(next, work, depth);
                     {
-                        dz1 = dz1 + 3;
+                        ADIV_VERT *va;
+                        ADIV_VERT *vb;
+                        u32 *pk;
+                        u32 *slot;
+                        int dz;
+                        u16 tp;
+
+                        va = fp->vp[0];
+                        pk = (u32 *)work->out;
+                        vb = fp->vp[1];
+                        pk[2] = *(u32 *)&va->sxy;
+                        pk[5] = *(u32 *)&vb->sxy;
+                        pk[8] = *(u32 *)&m01->sxy;
+                        dz = va->sz;
+                        if (dz < 0)
+                        {
+                            dz = dz + 3;
+                        }
+                        work->zmax = dz >> 2;
+                        pk[3] = (u32)*(u16 *)&va->tu;
+                        pk[6] = (u32)*(u16 *)&vb->tu;
+                        pk[9] = (u32)*(u16 *)&m01->tu;
+                        pk[1] = *(u32 *)&va->col;
+                        pk[4] = *(u32 *)&vb->col;
+                        pk[7] = *(u32 *)&m01->col;
+                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
+                        tp = work->packet.tpage;
+                        *(u8 *)((int)pk + 3) = 9;
+                        *(u8 *)((int)pk + 7) = 0x34;
+                        *(u16 *)((int)pk + 0x1a) = tp;
+                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
+                        work->otp = (u_long *)slot;
+                        *pk = *slot & 0xffffff | 0x9000000;
+                        *(u32 *)work->otp = (u32)pk & 0xffffff;
+                        work->out = work->out + 10;
                     }
-                    param_2[6] = dz1 >> 2;
-                    puVar4_a[3] = (u32)*(u16 *)(iVar6_a + 0x14);
-                    puVar4_a[6] = (u32)*(u16 *)(iVar8_a + 0x14);
-                    puVar4_a[9] = (u32)(u16)r0[2].vz;
-                    puVar4_a[1] = *(u32 *)(iVar6_a + 8);
-                    puVar4_a[4] = *(u32 *)(iVar8_a + 8);
-                    puVar4_a[7] = *(u32 *)(r0 + 1);
-                    *(u16 *)((int)puVar4_a + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2_a = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4_a + 3) = 9;
-                    *(u8 *)((int)puVar4_a + 7) = 0x34;
-                    *(u16 *)((int)puVar4_a + 0x1a) = uVar2_a;
-                    puVar5_a = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5_a;
-                    *puVar4_a = *puVar5_a & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4_a & 0xffffff;
-                    param_2[5] = param_2[5] + 0x28;
-                    *piVar13 = (int)r0;
-                    pv2 = param_1[1];
-                    piVar13[2] = (int)r2_02;
-                    piVar13[1] = pv2;
-                    piVar13[3] = (int)r1;
-                    FUN_80057b80(local_30, param_2, param_3);
-                    iVar6_b = param_1[2];
-                    puVar4_b = (u32 *)param_2[5];
-                    iVar8_b = *param_1;
-                    puVar4_b[2] = *(u32 *)(iVar6_b + 0xc);
-                    puVar4_b[5] = *(u32 *)(iVar8_b + 0xc);
-                    puVar4_b[8] = *(u32 *)&r1_00[1].vz;
-                    dz2 = *(int *)(iVar6_b + 0x10);
-                    if (dz2 < 0)
+                    nf->vp[0] = m01;
+                    pv2 = fp->vp[1];
+                    nf->vp[2] = m03;
+                    nf->vp[1] = pv2;
+                    nf->vp[3] = m31;
+                    FUN_80057b80(next, work, depth);
                     {
-                        dz2 = dz2 + 3;
+                        ADIV_VERT *va;
+                        ADIV_VERT *vb;
+                        u32 *pk;
+                        u32 *slot;
+                        int dz;
+                        u16 tp;
+
+                        va = fp->vp[2];
+                        pk = (u32 *)work->out;
+                        vb = fp->vp[0];
+                        pk[2] = *(u32 *)&va->sxy;
+                        pk[5] = *(u32 *)&vb->sxy;
+                        pk[8] = *(u32 *)&m02->sxy;
+                        dz = va->sz;
+                        if (dz < 0)
+                        {
+                            dz = dz + 3;
+                        }
+                        work->zmax = dz >> 2;
+                        pk[3] = (u32)*(u16 *)&va->tu;
+                        pk[6] = (u32)*(u16 *)&vb->tu;
+                        pk[9] = (u32)*(u16 *)&m02->tu;
+                        pk[1] = *(u32 *)&va->col;
+                        pk[4] = *(u32 *)&vb->col;
+                        pk[7] = *(u32 *)&m02->col;
+                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
+                        tp = work->packet.tpage;
+                        *(u8 *)((int)pk + 3) = 9;
+                        *(u8 *)((int)pk + 7) = 0x34;
+                        *(u16 *)((int)pk + 0x1a) = tp;
+                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
+                        work->otp = (u_long *)slot;
+                        *pk = *slot & 0xffffff | 0x9000000;
+                        *(u32 *)work->otp = (u32)pk & 0xffffff;
+                        work->out = work->out + 10;
                     }
-                    param_2[6] = dz2 >> 2;
-                    puVar4_b[3] = (u32)*(u16 *)(iVar6_b + 0x14);
-                    puVar4_b[6] = (u32)*(u16 *)(iVar8_b + 0x14);
-                    puVar4_b[9] = (u32)(u16)r1_00[2].vz;
-                    puVar4_b[1] = *(u32 *)(iVar6_b + 8);
-                    puVar4_b[4] = *(u32 *)(iVar8_b + 8);
-                    puVar4_b[7] = *(u32 *)(r1_00 + 1);
-                    *(u16 *)((int)puVar4_b + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2_b = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4_b + 3) = 9;
-                    *(u8 *)((int)puVar4_b + 7) = 0x34;
-                    *(u16 *)((int)puVar4_b + 0x1a) = uVar2_b;
-                    puVar5_b = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5_b;
-                    *puVar4_b = *puVar5_b & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4_b & 0xffffff;
-                    param_2[5] = param_2[5] + 0x28;
-                    *piVar13 = (int)r1_00;
-                    piVar13[1] = (int)r2_02;
-                    piVar13[2] = param_1[2];
-                    piVar13[3] = (int)r2_01;
-                    FUN_80057b80(local_30, param_2, param_3);
-                    iVar6_c = param_1[3];
-                    puVar4_c = (u32 *)param_2[5];
-                    iVar8_c = param_1[2];
-                    puVar4_c[2] = *(u32 *)(iVar6_c + 0xc);
-                    puVar4_c[5] = *(u32 *)(iVar8_c + 0xc);
-                    puVar4_c[8] = *(u32 *)&r2_01[1].vz;
-                    dz3 = *(int *)(iVar6_c + 0x10);
-                    if (dz3 < 0)
+                    nf->vp[0] = m02;
+                    nf->vp[1] = m03;
+                    nf->vp[2] = fp->vp[2];
+                    nf->vp[3] = m23;
+                    FUN_80057b80(next, work, depth);
                     {
-                        dz3 = dz3 + 3;
+                        ADIV_VERT *va;
+                        ADIV_VERT *vb;
+                        u32 *pk;
+                        u32 *slot;
+                        int dz;
+                        u16 tp;
+
+                        va = fp->vp[3];
+                        pk = (u32 *)work->out;
+                        vb = fp->vp[2];
+                        pk[2] = *(u32 *)&va->sxy;
+                        pk[5] = *(u32 *)&vb->sxy;
+                        pk[8] = *(u32 *)&m23->sxy;
+                        dz = va->sz;
+                        if (dz < 0)
+                        {
+                            dz = dz + 3;
+                        }
+                        work->zmax = dz >> 2;
+                        pk[3] = (u32)*(u16 *)&va->tu;
+                        pk[6] = (u32)*(u16 *)&vb->tu;
+                        pk[9] = (u32)*(u16 *)&m23->tu;
+                        pk[1] = *(u32 *)&va->col;
+                        pk[4] = *(u32 *)&vb->col;
+                        pk[7] = *(u32 *)&m23->col;
+                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
+                        tp = work->packet.tpage;
+                        *(u8 *)((int)pk + 3) = 9;
+                        *(u8 *)((int)pk + 7) = 0x34;
+                        *(u16 *)((int)pk + 0x1a) = tp;
+                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
+                        work->otp = (u_long *)slot;
+                        *pk = *slot & 0xffffff | 0x9000000;
+                        *(u32 *)work->otp = (u32)pk & 0xffffff;
+                        work->out = work->out + 10;
                     }
-                    param_2[6] = dz3 >> 2;
-                    puVar4_c[3] = (u32)*(u16 *)(iVar6_c + 0x14);
-                    puVar4_c[6] = (u32)*(u16 *)(iVar8_c + 0x14);
-                    puVar4_c[9] = (u32)(u16)r2_01[2].vz;
-                    puVar4_c[1] = *(u32 *)(iVar6_c + 8);
-                    puVar4_c[4] = *(u32 *)(iVar8_c + 8);
-                    puVar4_c[7] = *(u32 *)(r2_01 + 1);
-                    *(u16 *)((int)puVar4_c + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2_c = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4_c + 3) = 9;
-                    *(u8 *)((int)puVar4_c + 7) = 0x34;
-                    *(u16 *)((int)puVar4_c + 0x1a) = uVar2_c;
-                    puVar5_c = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5_c;
-                    *puVar4_c = *puVar5_c & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4_c & 0xffffff;
-                    param_2[5] = param_2[5] + 0x28;
-                    *piVar13 = (int)r2_02;
-                    piVar13[1] = (int)r1;
-                    piVar13[2] = (int)r2_01;
-                    piVar13[3] = param_1[3];
-                    FUN_80057b80(local_30, param_2, param_3);
-                    iVar8_d = param_1[1];
-                    puVar4_d = (u32 *)param_2[5];
-                    iVar6_d = param_1[3];
-                    puVar4_d[2] = *(u32 *)(iVar8_d + 0xc);
-                    puVar4_d[5] = *(u32 *)(iVar6_d + 0xc);
-                    puVar4_d[8] = *(u32 *)&r1[1].vz;
-                    dz4 = *(int *)(iVar8_d + 0x10);
-                    if (dz4 < 0)
+                    nf->vp[0] = m03;
+                    nf->vp[1] = m31;
+                    nf->vp[2] = m23;
+                    nf->vp[3] = fp->vp[3];
+                    FUN_80057b80(next, work, depth);
                     {
-                        dz4 = dz4 + 3;
+                        ADIV_VERT *va;
+                        ADIV_VERT *vb;
+                        u32 *pk;
+                        u32 *slot;
+                        int dz;
+                        u16 tp;
+
+                        vb = fp->vp[1];
+                        pk = (u32 *)work->out;
+                        va = fp->vp[3];
+                        pk[2] = *(u32 *)&vb->sxy;
+                        pk[5] = *(u32 *)&va->sxy;
+                        pk[8] = *(u32 *)&m31->sxy;
+                        dz = vb->sz;
+                        if (dz < 0)
+                        {
+                            dz = dz + 3;
+                        }
+                        work->zmax = dz >> 2;
+                        pk[3] = (u32)*(u16 *)&vb->tu;
+                        pk[6] = (u32)*(u16 *)&va->tu;
+                        pk[9] = (u32)*(u16 *)&m31->tu;
+                        pk[1] = *(u32 *)&vb->col;
+                        pk[4] = *(u32 *)&va->col;
+                        pk[7] = *(u32 *)&m31->col;
+                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
+                        tp = work->packet.tpage;
+                        *(u8 *)((int)pk + 3) = 9;
+                        *(u8 *)((int)pk + 7) = 0x34;
+                        *(u16 *)((int)pk + 0x1a) = tp;
+                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
+                        work->otp = (u_long *)slot;
+                        *pk = *slot & 0xffffff | 0x9000000;
+                        *(u32 *)work->otp = (u32)pk & 0xffffff;
+                        tail = (int)(work->out + 10);
                     }
-                    param_2[6] = dz4 >> 2;
-                    puVar4_d[3] = (u32)*(u16 *)(iVar8_d + 0x14);
-                    puVar4_d[6] = (u32)*(u16 *)(iVar6_d + 0x14);
-                    puVar4_d[9] = (u32)(u16)r1[2].vz;
-                    puVar4_d[1] = *(u32 *)(iVar8_d + 8);
-                    puVar4_d[4] = *(u32 *)(iVar6_d + 8);
-                    puVar4_d[7] = *(u32 *)(r1 + 1);
-                    *(u16 *)((int)puVar4_d + 0xe) = *(u16 *)((int)param_2 + 0x5a);
-                    uVar2_d = *(u16 *)((int)param_2 + 0x66);
-                    *(u8 *)((int)puVar4_d + 3) = 9;
-                    *(u8 *)((int)puVar4_d + 7) = 0x34;
-                    *(u16 *)((int)puVar4_d + 0x1a) = uVar2_d;
-                    puVar5_d = (u32 *)(param_2[4] + (param_2[6] >> param_2[3]) * 4);
-                    param_2[0xe] = (int)puVar5_d;
-                    *puVar4_d = *puVar5_d & 0xffffff | 0x9000000;
-                    *(u32 *)param_2[0xe] = (u32)puVar4_d & 0xffffff;
-                    iVar3 = param_2[5] + 0x28;
                 }
-                param_2[5] = iVar3;
+                work->out = (u_long *)tail;
             }
         }
     }

@@ -204,12 +204,16 @@ Workflow (resumable — a fresh session continues from here):
    human alternative is proven.
 3. Commit each file (or small family) separately; then re-run the scan.
 
-State (2026-08-27): stale dumps stripped from all 23 matched carriers.
-Remaining queue (see the scan): the DecodeTMD renderer family
-(`FUN_80057b80`, `FUN_8005961c`/`59b08`/`59008`/`58c70`/`59ff4`/`5a3cc` —
-offset-cast heavy, needs the primitive-work struct recovered),
-`DamageControl`/`ActATTACK` (goto-label naming), then the long tail of
-`D_`-symbol references and residual generic temps.
+State (2026-08-27): stale dumps stripped from all 23 matched carriers;
+`DamageControl` humanised (labels/locals/format); the whole TMD renderer
+family humanised — the fast cluster fully struct-typed (`TMD_FAST_WORK`,
+`src/main.exe/tmdfast.h`), the subdivision cluster's `FUN_80057b80`
+rewritten on `ADIV_VERT`/`ADIV_FRAME`/`ADIV_WORK`, and the entry
+renderers annotated (their index spelling is byte-required — see the
+struct-store scheduling rule added to cookbook 3.13).
+Remaining queue (see the scan): `ActATTACK` (goto labels), then the
+long tail of `D_`-symbol references (needs naming evidence — the
+symbols lane) and residual generic temps.
 
 ## Current resume point (2026-07-20)
 
