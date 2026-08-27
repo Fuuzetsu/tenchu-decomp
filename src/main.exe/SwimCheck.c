@@ -37,6 +37,14 @@
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
+/*
+ * Water entry test, run when the character stands below map level on a
+ * water-attributed cell: spray a ring of splashes, cancel the attack,
+ * switch the player camera to swim, and start the swim motion — or the
+ * drown death when the model has no swim animation (or life already ran
+ * out). Returns 1 while the character belongs in the water (including
+ * already swimming / drowned), 0 on dry land or while aiming the kaginawa.
+ */
 extern Humanoid *Me_MOTION_C;
 
 extern void AttackCancelControl(short mode);
@@ -63,15 +71,15 @@ short SwimCheck(void)
             return 0;
         }
         status = Me_MOTION_C->status;
-        if (status == 4)
+        if (status == STAT_KAGI)
         {
             return 0;
         }
-        if (status == 3)
+        if (status == STAT_SWIM)
         {
             goto return_one;
         }
-        if (status == 0x11)
+        if (status == STAT_DEAD)
         {
             if (motID == 0x1108)
             {

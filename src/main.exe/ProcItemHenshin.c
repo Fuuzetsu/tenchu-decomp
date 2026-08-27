@@ -40,6 +40,14 @@
  *     extern long EmergencyNotice;
  * END PSX.SYM */
 
+/*
+ * The Henshin (disguise) item processor: snapshots the player's model into
+ * HenshinSnapshot, swaps in the disguise character for HenshinCount (600)
+ * frames with a smoke puff at both ends, ticks the countdown each frame,
+ * and restores the original model when the timer runs out, damage breaks
+ * the disguise, or the item is disposed (HenshinItem marks the active
+ * instance).
+ */
 #include "item.h"
 
 typedef union

@@ -39,6 +39,12 @@
  *     extern long EmergencyNotice;
  * END PSX.SYM */
 
+/*
+ * Guard idle/patrol selector when nothing is targeted: a slow activity
+ * clock (actcnt) alternates look/step commands, re-rolling the patrol
+ * direction after ten beats; with a target (or the alarm up) it hands
+ * control to the pursue turn instead.
+ */
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
 

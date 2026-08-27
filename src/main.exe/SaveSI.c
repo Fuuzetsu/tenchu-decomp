@@ -46,6 +46,13 @@
  *     extern unsigned char *CID;
  * END PSX.SYM */
 
+/*
+ * Write a save: target 0 is the dev-PC path (PCcreat/PCwrite of the raw
+ * blob); otherwise build the card block — header magic, "STAGE %d" title,
+ * the three icon frames copied from the archive — then accept the card,
+ * offering a format when it is unformatted, create the file, and write the
+ * block, reporting each failure through the msg_* strings.
+ */
 typedef struct
 {
     u8 bytes[0x10];

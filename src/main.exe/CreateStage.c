@@ -48,6 +48,13 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
+/*
+ * Build a mission from scratch: resolve the TStageConfig row for the
+ * stage/character pair, run briefing and inventory selection, then load
+ * and wire every subsystem — construction, layouts, enemies (and the
+ * ninken summon), backgrounds, fonts, images, infoview, sound, CVA
+ * cutscenes, and the stage sequence — showing the title card in between.
+ */
 typedef struct
 {
     u8 unused[32];

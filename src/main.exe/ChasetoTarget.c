@@ -34,6 +34,13 @@
  *     extern long Distance;
  * END PSX.SYM */
 
+/*
+ * Think helper: steer toward the target through a persistent random flank
+ * offset (chase[0]/chase[1], re-rolled at `length` radius when cleared or
+ * when the retreat bits are up), returning turn_towards_player_'s command,
+ * or 0 when there is no target, the offset point is nearly reached, the
+ * hold bit is set, or the target is already close.
+ */
 extern int rand(void);
 
 short ChasetoTarget(long length)
