@@ -255,70 +255,59 @@ status7_return:
             degree = -degree;
         }
 
-        if (degree >= 1001)
+        if (degree >= 1001 || Distance < 2000)
         {
-            goto close_range;
-        }
-        if (Distance >= 2000)
-        {
-            goto normal_range;
+            if (Distance < 1000)
+            {
+                switch (rand() % 4)
+                {
+                case 0:
+                    pad = 0x4040;
+                    goto return_pad;
+                case 1:
+                    pad = 0xa0;
+                    goto return_pad;
+                case 2:
+                    pad = SetCommand(&Me_THINK_C->pad, 2);
+                    goto return_pad;
+                case 3:
+                    pad |= 0x80;
+                    goto return_pad;
+                default:
+                    goto return_pad;
+                }
+            }
+            pad |= 0x4000;
+            goto return_pad;
         }
 
-close_range:
-        if (Distance < 1000)
+        if (Distance >= 3001)
         {
-            switch (rand() % 4)
+            pad |= 0x1000;
+            if (Distance < 4001)
             {
-            case 0:
-                pad = 0x4040;
-                goto return_pad;
-            case 1:
-                pad = 0xa0;
-                goto return_pad;
-            case 2:
-                pad = SetCommand(&Me_THINK_C->pad, 2);
-                goto return_pad;
-            case 3:
-                pad |= 0x80;
-                goto return_pad;
-            default:
                 goto return_pad;
             }
-        }
-        pad |= 0x4000;
-        goto return_pad;
+            if ((rand() & 1) != 0)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, 1);
+                goto return_pad;
+            }
 
-normal_range:
-        if (Distance < 3001)
-        {
-            goto near_range;
-        }
-
-        pad |= 0x1000;
-        if (Distance < 4001)
-        {
+            degree = Degree;
+            if (degree < 0)
+            {
+                degree = -degree;
+            }
+            if (degree < 500)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, 0x21);
+                goto return_pad;
+            }
+            ItemUse();
             goto return_pad;
         }
-        if ((rand() & 1) != 0)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, 1);
-            goto return_pad;
-        }
 
-        degree = Degree;
-        if (degree < 0)
-        {
-            degree = -degree;
-        }
-        if (degree < 500)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, 0x21);
-            goto return_pad;
-        }
-        ItemUse();
-        goto return_pad;
-
-near_range:
         if ((rand() & 1) == 0)
         {
             goto return_pad;
