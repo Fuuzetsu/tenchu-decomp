@@ -273,45 +273,25 @@ common_action:
 
     if (dtCMD != 0)
     {
-        if (dtCMD == 0x12)
+        switch (dtCMD)
         {
-            goto command_12;
+        case 0x11:
+            motID = 0xB05;
+            motMODE = 1;
+            break;
+        case 0x12:
+            motID = 0xB06;
+            motMODE = 1;
+            break;
+        case 0x13:
+            motID = 0xB08;
+            motMODE = 1;
+            break;
+        case 0x14:
+            motID = 0xB07;
+            motMODE = 1;
+            break;
         }
-        if (dtCMD < 0x13)
-        {
-            if (dtCMD == 0x11)
-            {
-                goto command_11;
-            }
-            return;
-        }
-        if (dtCMD == 0x13)
-        {
-            goto command_13;
-        }
-        if (dtCMD == 0x14)
-        {
-            goto command_14;
-        }
-        return;
-
-command_12:
-        motID = 0xB06;
-        goto command_flag;
-
-command_13:
-        motID = 0xB08;
-        goto command_flag;
-
-command_11:
-        motID = 0xB05;
-        goto command_flag;
-
-command_14:
-        motID = 0xB07;
-
-command_flag:
-        motMODE = 1;
         return;
     }
 
