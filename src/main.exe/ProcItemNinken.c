@@ -307,7 +307,7 @@ void ProcItemNinken(TItem *item)
         {
             goto expire;
         }
-        if ((slave->attribute & 0x80) == 0)
+        if ((slave->attribute & ATTR_SUSPEND) == 0)
         {
             goto active;
         }
@@ -355,7 +355,7 @@ void ProcItemNinken(TItem *item)
         }
 
         owner_attribute = item->owner->attribute;
-        item->owner->attribute = 0x80;
+        item->owner->attribute = ATTR_SUSPEND;
         target = GetNearestHumanoid(param->slave, 10000);
         item->owner->attribute = owner_attribute;
         if (target != 0)

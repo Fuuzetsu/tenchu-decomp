@@ -301,7 +301,7 @@ void ActivateHumans(void)
             }
         }
 
-        human->attribute = (u16)human->attribute | 0x80;
+        human->attribute = (u16)human->attribute | ATTR_SUSPEND;
         model = *human->model->object;
         model->attribute &= 0xbfff;
 

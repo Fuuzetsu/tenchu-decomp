@@ -336,7 +336,7 @@ void StateTransition(Humanoid *human)
         if (SR == 1 || ((ATTRIB_BITS & 0x4000) != 0 && SR > 0))
         {
             Attrib = atr0 | 2;
-            if ((ATTRIB_BITS & 0x40) == 0)
+            if ((ATTRIB_BITS & ATTR_ALERT) == 0)
             {
                 SetNowMotion(Me_THINK_C, 0x80e, 1);
             }
@@ -371,7 +371,7 @@ void StateTransition(Humanoid *human)
 
     case 2:
     {
-        if (ATTRIB_BITS & 0x40)
+        if (ATTRIB_BITS & ATTR_ALERT)
         {
             if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
             {
@@ -396,7 +396,7 @@ void StateTransition(Humanoid *human)
         }
         else
         {
-            if ((ATTRIB_BITS & 0x40) == 0)
+            if ((ATTRIB_BITS & ATTR_ALERT) == 0)
             {
                 SetNowMotion(Me_THINK_C, 0x80e, 1);
             }

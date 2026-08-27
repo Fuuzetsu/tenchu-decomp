@@ -123,7 +123,7 @@ s16 CVAupdate(void)
                     return 0;
                 i = 0;
 
-                human->attribute &= 0xFF7F;
+                human->attribute &= ~ATTR_SUSPEND;
                 human->motion->mask = 0x7FFF;
                 anim = anim_base;
             scan_case2_empty:

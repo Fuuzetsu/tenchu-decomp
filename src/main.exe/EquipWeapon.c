@@ -88,7 +88,7 @@ void EquipWeapon(Humanoid *human, short mode)
         {
             return;
         }
-        human->attribute = human->attribute | 0x40;
+        human->attribute = human->attribute | ATTR_ALERT;
     }
     else
     {
@@ -96,7 +96,7 @@ void EquipWeapon(Humanoid *human, short mode)
         {
             return;
         }
-        human->attribute = human->attribute & 0xFFBF;
+        human->attribute = human->attribute & ~ATTR_ALERT;
     }
     idx = human->wpatk - 4;
     switch (idx)
