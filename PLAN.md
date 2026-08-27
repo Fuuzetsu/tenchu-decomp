@@ -255,18 +255,31 @@ escapes) and the scanner's extended machine-local pattern closed the
 class out: zero machine locals, temps, or placeholder names remain in
 shipped code, and cookbook 3.1 records the ladder-is-a-switch rule.
 
-Remaining lanes ALL need owner input or new evidence:
-1. Tree-wide formatting normalization to the humanised Allman style
-   (clang-format ColumnLimit 0, token-preserving/byte-safe; applied so
-   far only to touched files). OWNER CALL — one mechanical commit.
-2. The ~70 FUN_-named functions: names need evidence the demo cannot
-   give (cross-exe/behavioral research, or accept descriptive names).
-3. Humanoid.attribute bit names (0x02/0x40/0x42/0x8000 in the damage
-   and scoring paths): the semantics need runtime observation (the
-   pcsx-redux scripting lane) before naming.
-4. The renderer-family offset casts and screen byte_arith that remain
-   are byte-required and documented in place; guarded drafts keep
-   their reference dumps.
+FINAL WAVE (2026-08-27, user-directed "keep going until done"):
+1. DONE — all 74 FUN_ functions carry descriptive names in the
+   invented-name convention (snake_case + trailing underscore; the
+   address in each file header and reference/psxsym-unnamed.tsv keep
+   the placeholder lineage for future official recovery). 163 files
+   updated across src/configs/tools/docs; full-rebuild byte-identical.
+2. DONE — MODEL_ATTR_CONFLICT (ModelType.attribute bit 15) named from
+   bulletproof evidence; the Humanoid.attribute bit map is documented
+   with citations in humanoid.h. Sites keep literal spellings until
+   the bits are runtime-confirmed — the ONE remaining research item:
+   a pcsx-redux probe watching an enemy's attribute word through
+   sneak/spot/grapple/body-carry transitions would finish the naming.
+3. DONE — the whole tree is normalized to the humanised style
+   (pinned in src/main.exe/.clang-format; ColumnLimit 0 keeps re-runs
+   token-preserving; ram_layout.h is machine-parsed and excluded via
+   .clang-format-ignore).
+4. The remaining scanner hits are byte-required spellings documented
+   in place (the ADIV entry renderers' index stores, the subdivider's
+   leaf-emit casts, AttackBowControl's byte-addressed table) and
+   guarded drafts, which keep their reference dumps by design.
+
+The humanising effort is COMPLETE at the evidence floor: shipped code
+contains no machine names, no placeholder symbols, no undocumented
+compiler-shaped structure, one formatting style, and prose on every
+TU — byte-identical throughout, ~65 commits.
 
 ## Current resume point (2026-07-20)
 
