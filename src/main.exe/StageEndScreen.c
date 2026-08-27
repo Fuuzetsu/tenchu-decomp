@@ -68,7 +68,7 @@ static inline s32 StageEndNextStageOffset(s32 index)
     return index * 2;
 }
 
-#define DRAW_SCORE_NUMBER(value_, type_, jump_, label_,      \
+#define DRAW_SCORE_NUMBER(value_, type_, clear_first_,     \
                           x_, y_)                            \
     {                                                        \
         s32 dividend;                                        \
@@ -83,28 +83,24 @@ static inline s32 StageEndNextStageOffset(s32 index)
         signed_value = (type_)value;                         \
         sprite->x = (x_);                                    \
         sprite->y = (y_);                                    \
-        if (jump_)                                           \
+        if (clear_first_)                                    \
         {                                                    \
+            negative = 0;                                    \
             if (signed_value < 0)                            \
             {                                                \
                 value = -signed_value;                       \
                 negative = 1;                                \
-                goto label_;                                 \
             }                                                \
-            else                                             \
-            {                                                \
-                negative = 0;                                \
-            }                                                \
+        }                                                    \
+        else if (signed_value < 0)                           \
+        {                                                    \
+            value = -signed_value;                           \
+            negative = 1;                                    \
         }                                                    \
         else                                                 \
         {                                                    \
             negative = 0;                                    \
-            if (signed_value >= 0)                           \
-                goto label_;                                 \
-            value = -signed_value;                           \
-            negative = 1;                                    \
         }                                                    \
-    label_:                                                  \
         do                                                   \
         {                                                    \
             dividend = (s16)value;                           \
@@ -131,7 +127,7 @@ static inline s32 StageEndNextStageOffset(s32 index)
         }                                                    \
     }
 
-#define DRAW_LAST_SCORE_NUMBER(value_, label_)         \
+#define DRAW_LAST_SCORE_NUMBER(value_)                 \
     {                                                  \
         s32 dividend;                                  \
         s32 remainder;                                 \
@@ -147,11 +143,11 @@ static inline s32 StageEndNextStageOffset(s32 index)
         sprite->x = best_x;                            \
         sprite->y = 0x38;                              \
         negative = 0;                                  \
-        if (signed_value >= 0)                         \
-            goto label_;                               \
-        value = -signed_value;                         \
-        negative = 1;                                  \
-    label_:                                            \
+        if (signed_value < 0)                          \
+        {                                              \
+            value = -signed_value;                     \
+            negative = 1;                              \
+        }                                              \
         do                                             \
         {                                              \
             dividend = (s16)value;                     \
@@ -375,8 +371,7 @@ void StageEndScreen(void)
                 StartDrawing();
                 DrawBG(ui.background);
                 draw_time_(&digit, stats.clock, 0x61, -0x5d, 0);
-                DRAW_SCORE_NUMBER(stats.criticals, s32, 1, number_0,
-                                  10, top_y);
+                DRAW_SCORE_NUMBER(stats.criticals, s32, 0, 10, top_y);
                 {
                     s32 dividend;
                     s32 remainder;
@@ -400,13 +395,11 @@ void StageEndScreen(void)
                     {
                         value = -pulse;
                         negative = 1;
-                        goto number_1;
                     }
                     else
                     {
                         negative = 0;
                     }
-                number_1:
                     do
                     {
                         dividend = (s16)value;
@@ -436,58 +429,45 @@ void StageEndScreen(void)
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(current.criticalScore, s16, 1, number_2,
-                                      x, top_y);
+                    DRAW_SCORE_NUMBER(current.criticalScore, s16, 0, x, top_y);
                 }
-                DRAW_SCORE_NUMBER(best.criticalScore, s16, 1, number_3,
-                                  best_x, top_y);
+                DRAW_SCORE_NUMBER(best.criticalScore, s16, 0, best_x, top_y);
 
-                DRAW_SCORE_NUMBER(stats.murders, s32, 0, number_4,
-                                  10, -0x1a);
-                DRAW_SCORE_NUMBER(stats.stageEnemies, s32, 0, number_5,
-                                  0x28, -0x1a);
+                DRAW_SCORE_NUMBER(stats.murders, s32, 1, 10, -0x1a);
+                DRAW_SCORE_NUMBER(stats.stageEnemies, s32, 1, 0x28, -0x1a);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER(current.murderScore, s16, 0, number_6,
-                                      x, -0x1a);
+                    DRAW_SCORE_NUMBER(current.murderScore, s16, 1, x, -0x1a);
                 }
-                DRAW_SCORE_NUMBER(best.murderScore, s16, 0, number_7,
-                                  best_x, -0x1a);
+                DRAW_SCORE_NUMBER(best.murderScore, s16, 1, best_x, -0x1a);
 
-                DRAW_SCORE_NUMBER(stats.findEnemies, s32, 0, number_8,
-                                  0x1c, 1);
+                DRAW_SCORE_NUMBER(stats.findEnemies, s32, 1, 0x1c, 1);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER((u16)current.spottedScore,
-                                      s16, 0, number_9, x, 1);
+                    DRAW_SCORE_NUMBER((u16)current.spottedScore, s16, 1, x, 1);
                 }
-                DRAW_SCORE_NUMBER((u16)best.spottedScore,
-                                  s16, 0, number_10, best_x, 1);
+                DRAW_SCORE_NUMBER((u16)best.spottedScore, s16, 1, best_x, 1);
 
-                DRAW_SCORE_NUMBER(stats.friendHits, s32, 0, number_11,
-                                  0x1c, 0x1a);
+                DRAW_SCORE_NUMBER(stats.friendHits, s32, 1, 0x1c, 0x1a);
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER((u16)current.friendPenalty,
-                                      s16, 0, number_12, x, 0x1a);
+                    DRAW_SCORE_NUMBER((u16)current.friendPenalty, s16, 1, x, 0x1a);
                 }
-                DRAW_SCORE_NUMBER((u16)best.friendPenalty,
-                                  s16, 0, number_13, best_x, 0x1a);
+                DRAW_SCORE_NUMBER((u16)best.friendPenalty, s16, 1, best_x, 0x1a);
 
                 {
                     s32 x;
 
                     x = 0x52;
-                    DRAW_SCORE_NUMBER((u16)current.score,
-                                      s16, 0, number_14, x, 0x38);
+                    DRAW_SCORE_NUMBER((u16)current.score, s16, 1, x, 0x38);
                 }
-                DRAW_LAST_SCORE_NUMBER((u16)best.score, number_15);
+                DRAW_LAST_SCORE_NUMBER((u16)best.score);
 
                 do
                 {
@@ -607,6 +587,8 @@ void StageEndScreen(void)
             layout_record = (ScoreStats *)(layout_character_offset +
                                            layout_stage_offset);
             layout_index = 0;
+            /* A structured for(;;)+break spelling gets loop-rotated by cc1
+             * (duplicated exit test, +7 insns) — the label loop is source. */
         layout_loop:
             if (layout_record->stageBosses + layout_record->stageEnemies == 0)
                 goto layout_done;
