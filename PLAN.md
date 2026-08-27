@@ -238,6 +238,23 @@ COMPLETED after the milestone (2026-08-27, ~50 commits total):
   clobbers, stale gp-extern lists, and an IsVisible parameter-shadow
   bug. All repaired in 2d957d7c; check gating now runs unpiped.
 
+STRUCTURAL CAMPAIGN (2026-08-27, second wave, ~12 commits): the
+decompiler-shaped control flow is now either restored or byte-proven
+authentic. Restored as the switches they were: ActSTICKON (three
+dispatches), ActSQUAT, DrawGore, plus CameraType1's sixteen
+break-in-disguise gotos, AttackGeneral's range chain, DrawGore's
+level/bounce ladders, GetTargetDistance's angle wrap, and every
+OT-priority clamp in the draw family (ten instances, nine files).
+Byte-proven authentic (restructure changes bytes — reverted, do not
+re-attempt): AttackShort/AttackLong's status-7 result carrier,
+DamageControl's damage-scaling ladder (retail contains the redundant
+re-test), ActNORMAL's ==0-first command ifs, ActENGAGE's join ladder,
+and EVERY do{}while(0) fence (bulk audit, cookbook 3.10). The
+fold-identical spelling sweep (x + -1, reversed compares, hex char
+escapes) and the scanner's extended machine-local pattern closed the
+class out: zero machine locals, temps, or placeholder names remain in
+shipped code, and cookbook 3.1 records the ladder-is-a-switch rule.
+
 Remaining lanes ALL need owner input or new evidence:
 1. Tree-wide formatting normalization to the humanised Allman style
    (clang-format ColumnLimit 0, token-preserving/byte-safe; applied so
