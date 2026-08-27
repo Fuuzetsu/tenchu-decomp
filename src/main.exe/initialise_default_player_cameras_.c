@@ -5,7 +5,7 @@
  * initialise_default_player_cameras_ (0x80031fcc, 0xBC bytes) — reset the
  * player camera's tunable SVECTORs (CAMERA_R1/R2/P1/P2, 4 consecutive
  * 8-byte SVECTORs at 0x80089f30) from a compiled-in defaults table
- * D_80011BC0 (rodata sitting right before the CameraType1/SetCameraMode/
+ * CamPosDefault (rodata sitting right before the CameraType1/SetCameraMode/
  * Camera switch-table data at 0x80011be0+), then (re)point CAMERA_POINTERS'
  * 4 slots at CAMERA_PTR_ARRAY_START's 4 consecutive 8-byte elements.
  * No frame, no calls — pure data moves.
@@ -31,7 +31,7 @@ extern void *CAMERA_POINTERS[4];
 
 void initialise_default_player_cameras_(void)
 {
-    CAMERA_R1 = D_80011BC0;
+    CAMERA_R1 = CamPosDefault;
     CAMERA_POINTERS[0] = CAMERA_PTR_ARRAY_START;
     CAMERA_POINTERS[1] = CAMERA_PTR_ARRAY_START + 8;
     CAMERA_POINTERS[2] = CAMERA_PTR_ARRAY_START + 0x10;

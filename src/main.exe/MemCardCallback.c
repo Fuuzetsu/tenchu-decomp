@@ -6,7 +6,7 @@
  * return the previous one (the standard PSY-Q `old = f(new); ...; f(old);`
  * save/restore pattern used around every card operation: MemCardOpen,
  * MemCardGetDirentry, MemCardCreateFile, MemCardDeleteFile all call it in
- * pairs). `D_800CD7B8` is a ~0x20-byte path buffer (used by MemCardOpen via
+ * pairs). `McardPath` is a ~0x20-byte path buffer (used by MemCardOpen via
  * strcat/open) that sits immediately before the callback slot, hence the pad.
  *
  * STATUS: MATCHING — 20 bytes. This is Sony's stock LIBMCRD implementation.
@@ -21,14 +21,14 @@
 
 typedef void (*MemCardCallbackFn)(u_long, u_long);
 
-extern MemCardCallbackFn D_800CD7D8[];
+extern MemCardCallbackFn McardCallbacks[];
 
 MemCardCallbackFn MemCardCallback(MemCardCallbackFn func)
 {
     MemCardCallbackFn *slot;
     MemCardCallbackFn old;
 
-    slot = D_800CD7D8;
+    slot = McardCallbacks;
     old = *slot;
     *slot = func;
     return old;

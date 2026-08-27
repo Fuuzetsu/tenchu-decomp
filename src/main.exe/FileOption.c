@@ -72,7 +72,7 @@
  * the retail instruction schedule and ordinary relocations.
  */
 
-extern s32 D_80014554[11]; /* music id by stage */
+extern s32 MusicByStage[11]; /* music id by stage */
 /* declared as an unknown-size array ON PURPOSE: not-small -> split-address
  * (lui+lo_sum through an allocated reg), where BIS's scalar `extern u8`
  * spelling would be sdata-flagged and become a $at macro store */
@@ -187,7 +187,7 @@ void FileOption(void)
         SystemFlag ^= SYSFLAG_DEBUGPRINT;
         break;
     case PLAY_MUSIC:
-        __builtin_memcpy(Buf.music_by_stage, D_80014554,
+        __builtin_memcpy(Buf.music_by_stage, MusicByStage,
                          sizeof(Buf.music_by_stage));
         _PlayMusic(Buf.music_by_stage[StageID], CDA_REPEAT);
         break;

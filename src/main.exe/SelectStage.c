@@ -71,7 +71,7 @@ void SelectStage(TLinkInfo *ps)
     s32 uid;
 
     __builtin_memcpy(language, DEBUG_MENU_LANGUAGE_CHOICES, sizeof(language));
-    __builtin_memcpy(player, D_800141F4, sizeof(player));
+    __builtin_memcpy(player, sel_player, sizeof(player));
     i = 0;
     while (1) {
         if (i >= 11) {

@@ -26,7 +26,7 @@
  *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail changed the demo's
  *    signed field to `u16` (`lhu`), then narrows through an s16 local
  *    (`sll/bnez` zero-test, not andi).
- *  - `scratch.v = D_80012248;` is a whole-VECTOR struct assignment (the
+ *  - `scratch.v = vec_y_n1200_z_400;` is a whole-VECTOR struct assignment (the
  *    16-byte batched-loads/stores block move), not four scalar assignments.
  *  - `human`/`itemID` (PSX.SYM's own names) are the drop path's load-batch
  *    temps; `owner->itmctl = item->type` is the plain narrowing store
@@ -72,7 +72,7 @@ extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
                          s32 start_size, s32 end_size,
                          s32 start_color, s32 end_color,
                          s32 rotate, s32 rotate_speed, s32 time, s32 type);
-extern VECTOR D_80012248;
+extern VECTOR vec_y_n1200_z_400; /* {0,-1200,400} */
 
 void ProcItemGosin(TItem *item)
 {
@@ -166,7 +166,7 @@ void ProcItemGosin(TItem *item)
         }
         if ((c & 0x3f) != 0)
             return;
-        scratch.v = D_80012248;
+        scratch.v = vec_y_n1200_z_400;
         FUN_8003944c(&scratch.v, &item->owner->model->locate,
                      0x1000, 0x6000, 0x808080, 0,
                      (s16)(rand() % 0x168), 2, 0x78, 4);

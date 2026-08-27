@@ -37,12 +37,12 @@
  *
  * `result` is address-taken (MemCardSync writes it back), so cc1 reloads it from
  * the stack for the return — hence the `lh` rather than a register truncation.
- * CardVolume is %gp_rel (a small in the gp window); D_80097D08, the format
+ * CardVolume is %gp_rel (a small in the gp window); fmt_concat_3, the format
  * string, is reached absolutely.
  *
  * Bound under fresh names (TENCHU_ID/CardPathFormat) in
  * config/symbols.main.exe.txt instead of the splat-auto CardVolume/
- * D_80097D08: once FUN_80056e30 (the same TU, same "%s%s" idiom) stopped
+ * fmt_concat_3: once FUN_80056e30 (the same TU, same "%s%s" idiom) stopped
  * being raw asm, splat's auto-symbol table lost its only remaining
  * raw-bytes anchor for these two addresses and started deriving them from
  * a drifted accumulation elsewhere (+4 bytes each) — the same "matching a

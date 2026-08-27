@@ -140,7 +140,7 @@ static inline void ItemLayoutMenu(void)
     TAdtSelect OkCancel[3];
 
     __builtin_memcpy(Option, DEBUG_MENU_ITEM_LAYOUT_OPTIONS, sizeof(Option));
-    __builtin_memcpy(OkCancel, D_8001252C, sizeof(OkCancel));
+    __builtin_memcpy(OkCancel, sel_okcancel2, sizeof(OkCancel));
     n = AdtSelect(str_item_layout_option, Option, 0);
     switch (n)
     {

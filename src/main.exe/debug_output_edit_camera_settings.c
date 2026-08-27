@@ -85,7 +85,7 @@ void debug_output_edit_camera_settings(s16 pad)
 
     if ((BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 3) == 3)
     {
-        *(TCameraPos *)CAMERA_PTR_ARRAY_START = D_80011BC0;
+        *(TCameraPos *)CAMERA_PTR_ARRAY_START = CamPosDefault;
     }
 
     i = 0;

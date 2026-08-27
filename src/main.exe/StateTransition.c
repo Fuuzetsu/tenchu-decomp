@@ -87,7 +87,7 @@ extern long EmergencyNotice;
 extern s32 ProbeLevelLow;
 extern s32 ProbeLevelHigh;
 extern u16 ProbeAttrib[2];
-extern s32 D_80097F1C;
+extern s32 PlayerSSR;
 
 extern void reset_alert_duration();
 extern s16 Think2confirm(void);
@@ -115,7 +115,7 @@ void StateTransition(Humanoid *human)
 
     if (human == StagePlayer)
     {
-        D_80097F1C = ssr;
+        PlayerSSR = ssr;
         StrainRatio = 0x7fffffff;
     }
 

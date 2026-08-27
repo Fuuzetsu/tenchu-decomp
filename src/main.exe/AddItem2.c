@@ -48,7 +48,7 @@
  *    ItemName's fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS remains
  *    the target's 16-bytes-per-iteration word-block copy with an 8-byte tail,
  *    while vec's align-2 copy remains lwl/lwr + swl/swr.
- *  - `extern SVECTOR D_80097B88[];` (unknown-size array), NOT a plain
+ *  - `extern SVECTOR svec_y_n600[];` (unknown-size array), NOT a plain
  *    SVECTOR: an 8-byte extern is -G8-small, so cc1 materializes its
  *    address as ONE `la` insn (assuming gp addressability; GAS -G0 expands
  *    it lui+addiu into the SAME register). The unknown-size declaration is
@@ -80,7 +80,7 @@
  */
 
 extern char str_select_item[]; /* select item */                   /* "select item" */
-extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const */
+extern SVECTOR svec_y_n600[];                /* smoke-puff velocity/offset const */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
@@ -127,7 +127,7 @@ void AddItem2(void)
         work.spawn.param.locate.vy = h;
         work.spawn.param.locate.vz = z;
         ReqItemStay(&work.spawn.param);
-        work.spawn.vec = D_80097B88[0];
+        work.spawn.vec = svec_y_n600[0];
         SetSmoke(&work.spawn.param.locate, &work.spawn.vec, 3, 10);
     }
 }

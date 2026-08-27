@@ -10,13 +10,13 @@ extern TAdtSelect DEBUG_MENU_ITEM_CHOICE_OPTIONS[25];
 extern TAdtSelect sel_quantity[4]; /* {"10",10},{"100",100},{"FULL",255} */
 extern TAdtSelect DEBUG_MENU_MAIN_SCREEN_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_ITEM_LAYOUT_OPTIONS[5];
-extern TAdtSelect D_8001252C[3];
+extern TAdtSelect sel_okcancel2[3];
 extern TAdtSelect DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS[31];
 extern TAdtSelect DEBUG_MENU_ENEMY_LAYOUT_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS[7];
 extern TAdtSelect sel_okcancel[3]; /* {"ok",1},{"cancel",0},{0,0} */
 extern TAdtSelect DEBUG_MENU_LANGUAGE_CHOICES[5];
-extern TAdtSelect D_800141F4[3];
+extern TAdtSelect sel_player[3]; /* {"RIKIMARU",0},{"AYAME",1} */
 extern TAdtSelect DEBUG_MENU_FILE_CHOICES[20];
 extern TAdtSelect DEBUG_MENU_SAVE_LOAD_CHOICES[5];
 extern TAdtSelect DEBUG_MENU_FILE_LAYOUT_CHOICES[18];

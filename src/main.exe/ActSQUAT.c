@@ -62,7 +62,7 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern s32 D_80097F1C;
+extern s32 PlayerSSR;
 
 extern void AttackControl(void);
 extern MapVector *StickonCheck(void);
@@ -376,7 +376,7 @@ item_default:
         motMODE = 1;
         return;
     }
-    if (D_80097F1C != 0)
+    if (PlayerSSR != 0)
     {
         StickonCheck();
     }

@@ -28,7 +28,7 @@ extern TCameraStatus CamState;
 /* Retail expands the demo's three-entry table to four camera placements. */
 extern TCameraPos CamPosCriticalHit[4];
 extern TCameraPos CAMERA_R1;
-extern TCameraPos D_80011BC0;
+extern TCameraPos CamPosDefault;
 extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];

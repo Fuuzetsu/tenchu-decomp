@@ -101,12 +101,12 @@
  */
 
 extern s16 VISIBLE_ENEMIES_;
-extern s16 D_800BE768[];
+extern s16 DrawModeSave[];
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 extern char fmt_dbg_pos[]; /* ~c800%02x~c888(%d,%d,%d)  */
 extern char fmt_dbg_word[]; /* ~c880%04x=%02x  */
 extern char fmt_dbg_pair[]; /* ~c080%02x/%d%d  */
-extern char D_800116A4[];
+extern char fmt_dbg_rot[];
 
 extern void StateTransition(Humanoid *human);
 extern void DrawShadow(Humanoid *human);
@@ -158,7 +158,7 @@ void ControlHumanoid(Humanoid *human)
             FntPrint(fmt_dbg_word, (u16)human->attribute, (u8)human->status);
             FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
                      human->motion->loop, human->motion->count);
-            FntPrint(D_800116A4, human->rotate->vy,
+            FntPrint(fmt_dbg_rot, human->rotate->vy,
                      human->model->object[0]->id);
         }
     }
@@ -198,7 +198,7 @@ draw_done:
         return;
     }
 
-    D_800BE768[VISIBLE_ENEMIES_] = *(u16 *)&DrawTMDmode;
+    DrawModeSave[VISIBLE_ENEMIES_] = *(u16 *)&DrawTMDmode;
     VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
     VISIBLE_ENEMIES_++;
     if (ActionHalt != 0 || human->life <= 0)

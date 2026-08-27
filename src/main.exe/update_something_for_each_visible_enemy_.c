@@ -34,7 +34,7 @@
  */
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
-extern s16 D_800BE768[];
+extern s16 DrawModeSave[];
 extern short DrawModelArchive(ModelArchiveType *mad, long gap);
 extern short DrawOrnament(OrnamentType *objp);
 
@@ -46,7 +46,7 @@ void update_something_for_each_visible_enemy_(void)
     for (i = 0; i < VISIBLE_ENEMIES_; i++)
     {
         cs = VISIBLE_CHARACTERS_ON_STAGE_[i];
-        DrawTMDmode = D_800BE768[i];
+        DrawTMDmode = DrawModeSave[i];
         DrawModelArchive(cs->model, -i);
         if (cs->weapon[0] != 0)
         {

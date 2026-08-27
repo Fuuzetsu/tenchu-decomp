@@ -80,7 +80,7 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern s32 D_80097EF0;
+extern s32 StickonItem;
 
 extern MapVector *StickonCheck(void);
 extern int ReqItemMakibishi(PARAM_ITEM_DROP *item);
@@ -315,7 +315,7 @@ case0_motion_done:
 
             selected_item = SelectedItem;
             high_item = selected_item;
-            D_80097EF0 = selected_item;
+            StickonItem = selected_item;
             if (selected_item < 6)
             {
                 if (selected_item < 4 && selected_item != ITEM_MAKIBISHI)
@@ -520,8 +520,8 @@ case12_no_pad:
         angle = (pd ? base_angle_value - 0x400
                     : base_angle_value + 0x400) & 0xF00;
         item.user = Me_MOTION_C;
-        item.type = D_80097EF0;
-        Me_MOTION_C->item[D_80097EF0]--;
+        item.type = StickonItem;
+        Me_MOTION_C->item[StickonItem]--;
         position = GetAbsolutePosition(Me_MOTION_C->model->object[pd + 0xD],
                                        0, 0, 0);
         angle = (s16)angle;

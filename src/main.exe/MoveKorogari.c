@@ -37,14 +37,14 @@
  *
  * Matching notes:
  *  - GetAreaMapVector writes retail's complete 0x18-byte MapVector here.
- *  - D_80097AD0 is declared as an array even though only element zero is
+ *  - svec_y_n20 is declared as an array even though only element zero is
  *    copied.  That preserves the target's two-register absolute address.
  *  - The final bounce deliberately spells the sum as A + (B + 25).  GCC
  *    2.8.1's fold pass reassociates that tree to (A + 25) + B, placing the
  *    target addiu on the abs()/2 accumulator before expanding rand() % 25.
  */
 
-extern SVECTOR D_80097AD0[];
+extern SVECTOR svec_y_n20[]; /* {0,-20,0} */
 
 extern s32 CGetLevel(struct AreaNodeType **hint, s32 x, s32 y, s32 z, u32 flag);
 
@@ -115,7 +115,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
             param->vz = rand() % 20 - 10;
             if (param->vy > 20)
             {
-                vec = D_80097AD0[0];
+                vec = svec_y_n20[0];
                 SetSplash((VECTOR *)item->locate->locate.coord.t,
                           0x2000, 0x2000, 4);
                 param->status = KORO_WATER;

@@ -20,8 +20,8 @@
  * pair a `GsSPRITE[2]` 0x50 bytes apart (0x24-byte GsSPRITE pair + 8 bytes
  * of other per-style fields PutLifeBar.c also touches around this same
  * region: D_8008e414/e416/e418/e41a sit immediately before this function's
- * first sprite D_8008E41C, and PutLifeBar indexes the very same
- * D_8008E41C/D_8008E440 sprites by `style * 0x50`). Only called by
+ * first sprite LifeBarFrame, and PutLifeBar indexes the very same
+ * LifeBarFrame/LifeBarFill sprites by `style * 0x50`). Only called by
  * (still-asm) InitializeInfoView, alongside ResetInfoview/leResetEnemyLayout
  * — i.e. this is InitializeInfoView's life-bar sprite setup, most likely
  * named InitLifeBar or similar (no candidate in reference/psxsym-

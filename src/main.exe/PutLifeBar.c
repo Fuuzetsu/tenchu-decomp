@@ -61,7 +61,7 @@
  *   +0x2C GsSPRITE fill     — the scaled, colored fill sprite
  * (confirmed against the sibling init function's own comment: two
  * GsSPRITE-pairs-per-style table immediately follows these same 4 header
- * shorts, `D_8008E41C`/`D_8008E440` are this file's `frame`/`fill`).
+ * shorts, `LifeBarFrame`/`LifeBarFill` are this file's `frame`/`fill`).
  *
  * The digit loop is a hand-rolled goto (not do/while): the /10 magic
  * constant re-materializes EVERY iteration in the target instead of being
