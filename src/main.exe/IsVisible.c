@@ -89,7 +89,7 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     s32 *view;
     s32 *scratch;
     s32 dx, dy, dz;
-    s32 z;
+    s32 zs;
     s32 aq;
     s32 qs;
     s32 q0, q2;
@@ -116,22 +116,22 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
                    (VECTOR *)TENCHU_SCRATCHPAD_ADDRESS);
 
     scratch = (s32 *)TENCHU_SCRATCHPAD_ADDRESS;
-    z = scratch[2] + s;
-    if (z <= NEAR)
+    zs = scratch[2] + s;
+    if (zs <= NEAR)
         return 0;
     if (17000 < scratch[2] - s)
         return 0;
 
-    q0 = (scratch[0] * 300) / z;
-    qs = (s * 300) / z;
-    q2 = (scratch[1] * 300) / z;
+    q0 = (scratch[0] * 300) / zs;
+    qs = (s * 300) / zs;
+    q2 = (scratch[1] * 300) / zs;
     fail = 0;
     aq = abs(q0);
     if (qs + SXW < aq)
         goto failed;
 
-    z = abs(q2);
-    if (qs + SYW < z)
+    zs = abs(q2);
+    if (qs + SYW < zs)
         goto failed;
     goto done;
 
