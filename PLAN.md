@@ -211,9 +211,16 @@ family humanised — the fast cluster fully struct-typed (`TMD_FAST_WORK`,
 rewritten on `ADIV_VERT`/`ADIV_FRAME`/`ADIV_WORK`, and the entry
 renderers annotated (their index spelling is byte-required — see the
 struct-store scheduling rule added to cookbook 3.13).
-Remaining queue (see the scan): `ActATTACK` (goto labels), then the
-long tail of `D_`-symbol references (needs naming evidence — the
-symbols lane) and residual generic temps.
+`ActATTACK` humanised (labels/locals). The recovered demo name
+`Packet` (D_80098040) is adopted (single datamatch vote, usage-confirmed
+in StartDrawing/EndDrawing). All 158 string globals referenced from
+code are named BY CONTENT (msg_*/fmt_*/str_*/path_*, literal quoted at
+each extern) — content-derived names, not semantic guesses; revert by
+address if the owner prefers D_ placeholders. Remaining queue: the
+~364 non-string `D_` data tables (need per-file role analysis or demo
+evidence), `FUN_`-callee references (blocked on function-name
+evidence), and the residual-temp long tail (CameraType1, ReqItemUse,
+FUN_8005778c, ...).
 
 ## Current resume point (2026-07-20)
 
