@@ -196,7 +196,7 @@ void DamageControl(void)
     {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->type & 0xf0U) == 0xa0)
+    if ((Me_MOTION_C->type & 0xf0U) == PAGE_BEAST)
     {
         enemy = (Humanoid *)ConflictObject[(short)id].common;
         if (enemy != (Humanoid *)1)
@@ -243,7 +243,7 @@ void DamageControl(void)
         {
             motID = MOT_DEAD;
             motMODE = 1;
-            if ((Me_MOTION_C->type != 0xa9) &&
+            if ((Me_MOTION_C->type != NINKEN) &&
                 ((StagePlayer == enemy || (enemy == (Humanoid *)1))))
             {
                 if ((Me_MOTION_C->attribute & 0x42U) == 0)
@@ -342,7 +342,7 @@ resolve_hit:
                 {
                     dmg = 0x14;
                 }
-                if ((Me_MOTION_C->type == 0x87) || (Me_MOTION_C->type == 0x8a))
+                if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
                 {
                     Me_MOTION_C->item[ITEM_SHURIKEN] = Me_MOTION_C->item[ITEM_SHURIKEN] + '\x01';
                 }
@@ -458,7 +458,7 @@ resolve_hit:
                         if ((item_type < ITEM_GUN) ||
                             ((ITEM_ARROW < item_type && (item_type != ITEM_LIGHTNINGBOLT))))
                         {
-                            if ((Me_MOTION_C->type & 0xf0U) == 0x90)
+                            if ((Me_MOTION_C->type & 0xf0U) == PAGE_CIVILIAN)
                             {
                                 FriendHits = FriendHits + 1;
                             }
@@ -500,7 +500,7 @@ resolve_hit:
         else
         {
             enemy = conflict;
-            if (((Me_MOTION_C->type & 0xf0U) == 0x80) && (enemy != StagePlayer))
+            if (((Me_MOTION_C->type & 0xf0U) == PAGE_BOSS) && (enemy != StagePlayer))
             {
                 return;
             }
@@ -541,7 +541,7 @@ resolve_hit:
                     {
                         if (rand() % (EngageLevel + 1) == 0)
                         {
-                            if ((Me_MOTION_C->type == 0x87) || (Me_MOTION_C->type == 0x8a))
+                            if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
                             {
                                 if ((rand() & 1) != 0)
                                 {
@@ -690,7 +690,7 @@ resolve_hit:
         difficulty_bonus:
             dmg = dmg - ((u8)gNannido - 2);
         apply_multipliers:
-            if (enemy->type == 0xa9)
+            if (enemy->type == NINKEN)
             {
                 dmg = (short)dmg * 6;
             }
@@ -797,7 +797,7 @@ resolve_hit:
                 score_kill:
                     if (enemy == StagePlayer)
                     {
-                        if ((Me_MOTION_C->type & 0xf0U) == 0x90)
+                        if ((Me_MOTION_C->type & 0xf0U) == PAGE_CIVILIAN)
                         {
                             FriendHits = FriendHits + 1;
                         }

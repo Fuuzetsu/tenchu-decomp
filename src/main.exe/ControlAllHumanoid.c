@@ -25,7 +25,7 @@
  * whose attribute bit 0x80 is clear — bracketing the call with
  * character_balma_around_main_routine_() (the area-map cursor save/restore
  * helper, HUMAN.C's own name for FUN_8001aba0, called TWICE) when
- * human->type == 0x85 (BALMA).
+ * human->type == BALMA (BALMA).
  *
  * `*(u16 *)&human->attribute` forces the `lhu` this TU's access uses against
  * item.h's proven-signed `s16 attribute` (same per-TU load-width divergence
@@ -63,7 +63,7 @@ short ControlAllHumanoid(void)
         human = HumanGroup[i];
         if ((*(u16 *)&human->attribute & 0x80) == 0)
         {
-            if (human->type == 0x85)
+            if (human->type == BALMA)
             {
                 character_balma_around_main_routine_();
                 ControlHumanoid(human);

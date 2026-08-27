@@ -67,7 +67,7 @@ short AttackShort(void)
     s32 status7_result;
 
     pad = 0;
-    if ((Me_THINK_C->type & 0xf0) == 0xa0)
+    if ((Me_THINK_C->type & 0xf0) == PAGE_BEAST)
     {
         return AttackAnimal();
     }
@@ -403,7 +403,7 @@ return_pad:
 //   MotionManager *pMVar7;
 //
 //   uVar3 = 0;
-//   if ((Me_THINK_C->type & 0xf0U) == 0xa0) {
+//   if ((Me_THINK_C->type & 0xf0U) == PAGE_BEAST) {
 //     sVar2 = AttackAnimal();
 //     return sVar2;
 //   }

@@ -195,7 +195,7 @@ chrid_ready:
     while (i < Humans)
     {
         entry = HumanGroup[i];
-        if (entry != 0 && (((u16)entry->type & 0xf0) == 0x80))
+        if (entry != 0 && (((u16)entry->type & 0xf0) == PAGE_BOSS))
         {
             order[tp++] = entry;
             HumanGroup[i] = 0;
@@ -235,7 +235,7 @@ chrid_ready:
         {
             goto next_human;
         }
-        if (human->type == 0xa9)
+        if (human->type == NINKEN)
         {
             goto next_human;
         }

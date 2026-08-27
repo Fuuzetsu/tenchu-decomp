@@ -889,6 +889,27 @@ enum character_kind
     END_OF_CHARACTER_KIND_MARKER = 0xffff,
 };
 
+/* The character roster is paged by the type's high nibble (type & 0xf0):
+ * palace/story 0x00, common guards 0x10, ninja 0x20, Manji cult 0x30,
+ * pirates 0x40, tengu 0x50, oni 0x60, undead 0x70, named characters and
+ * bosses 0x80, civilians 0x90 (killing these counts FriendHits), beasts and
+ * summons 0xa0. */
+typedef enum character_page character_page;
+enum character_page
+{
+    PAGE_PALACE   = 0x00,
+    PAGE_GUARD    = 0x10,
+    PAGE_NINJA    = 0x20,
+    PAGE_MANJI    = 0x30,
+    PAGE_PIRATE   = 0x40,
+    PAGE_TENGU    = 0x50,
+    PAGE_ONI      = 0x60,
+    PAGE_UNDEAD   = 0x70,
+    PAGE_BOSS     = 0x80,
+    PAGE_CIVILIAN = 0x90,
+    PAGE_BEAST    = 0xa0
+};
+
 /* Humanoid.status is the same 18-way family index as the motion-id high
  * byte: both index the Act* handler table at 0x80086b24, so the names below
  * mirror the demo's own handler names (STAT_SYURI = shuriken aiming,

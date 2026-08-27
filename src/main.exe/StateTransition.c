@@ -472,7 +472,7 @@ void StateTransition(Humanoid *human)
             }
             if (StagePlayer->motion->mid == 0xe01 &&
                 (rand() % (EngageLevel + 1) == 0 ||
-                 (Me_THINK_C->type & 0xf0) == 0x80))
+                 (Me_THINK_C->type & 0xf0) == PAGE_BOSS))
             {
                 motid = (rand() & 1) ? 3 : 4;
                 pad = SetCommand(&Me_THINK_C->pad, motid);
@@ -588,7 +588,7 @@ update_hint:
             }
             if (abs_degree < 500 &&
                 (Me_THINK_C->think[0] == Think1ninja ||
-                 ((Me_THINK_C->type & 0xf0) == 0x20 && gNannido != DIFFICULTY_EASY)))
+                 ((Me_THINK_C->type & 0xf0) == PAGE_NINJA && gNannido != DIFFICULTY_EASY)))
             {
                 s32 level;
                 s32 next_level;

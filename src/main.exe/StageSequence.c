@@ -302,7 +302,7 @@ active_events:
 
 run_event:
             if (StagePlayer->type == 0 && ev->mode == 5 &&
-                tgt->type == 0x8d)
+                tgt->type == HIKONE)
             {
                 ev->next1 = 100;
             }

@@ -155,12 +155,12 @@ void ActivateHumans(void)
     {
         goto set_inactive;
     }
-    if (((u16)human->type & 0xf0) == 0x80)
+    if (((u16)human->type & 0xf0) == PAGE_BOSS)
     {
         goto set_active;
     }
     initial_active = 1;
-    if (human->type == 0xa9 || human->life < 0)
+    if (human->type == NINKEN || human->life < 0)
     {
         active = initial_active;
         goto active_done;
@@ -243,12 +243,12 @@ active_done:
         goto next_human;
     }
 
-    if (((u16)human->attribute & 0x80) != 0 || human->type == 0x84)
+    if (((u16)human->attribute & 0x80) != 0 || human->type == ON)
     {
         goto next_human;
     }
-    if ((human->type == 0x87 && (u32)(StageID - 6) < 2) ||
-        human->type == 0x83)
+    if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2) ||
+        human->type == GOO)
     {
         j = 0;
         while (StageChar[(s16)j].stage != -1)
@@ -264,7 +264,7 @@ active_done:
             } while (0);
             j++;
         }
-        if (human->type == 0x83 && human->life == 0)
+        if (human->type == GOO && human->life == 0)
         {
             human->life = 1;
         }

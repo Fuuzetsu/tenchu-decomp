@@ -443,7 +443,7 @@ poison_active:
                 return;
             }
             human = param->eater;
-            if ((human->type & 0xf0) == 0xa0)
+            if ((human->type & 0xf0) == PAGE_BEAST)
             {
                 if (ActionHalt == 0 && human->life > 0)
                 {

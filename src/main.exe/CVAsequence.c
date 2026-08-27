@@ -271,7 +271,7 @@ run_sequence:
 //           human = *(Humanoid **)((int)&CVAhuman[0].human + (iVar6 >> 0xd));
 //           if ((human != (Humanoid *)0x0) && (human->status != STAT_DEAD)) {
 //             sVar3 = 0x501;
-//             if (((human->attribute & 0x40U) == 0) && (sVar3 = 0, (human->type & 0xf0U) == 0x80)) {
+//             if (((human->attribute & 0x40U) == 0) && (sVar3 = 0, (human->type & 0xf0U) == PAGE_BOSS)) {
 //               sVar3 = 0x80e;
 //             }
 //             SetNowMotion(human,sVar3,1);

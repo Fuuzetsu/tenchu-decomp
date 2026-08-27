@@ -83,7 +83,7 @@ short DefaultActionHumanoid(Humanoid *human)
     {
         i = 0x11;
     }
-    if (human->type != 0x85)
+    if (human->type != BALMA)
     {
         FieldArea = map->area;
         FieldIndex = map->index;
@@ -570,7 +570,7 @@ apply_reflection:
 //   model = *human->model->object;
 //   human->rotate->vy = human->rotate->vy & 0xfff;
 //   human->attribute = (ushort)(byte)human->attribute;
-//   if (human->type != 0x85) {
+//   if (human->type != BALMA) {
 //     FieldArea = *(AreaNodeType **)&human->field10_0x30;
 //     FieldIndex = *(NodeIndexType **)&human->field14_0x34;
 //   }
