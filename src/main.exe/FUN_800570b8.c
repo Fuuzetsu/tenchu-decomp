@@ -23,7 +23,7 @@
  * walks `str`, drawing one glyph per byte via FUN_8005778c (still asm;
  * takes the same org/x/y/char signature) at a cursor that resets to the
  * start-of-line X on '\n' and otherwise advances by each glyph's width out
- * of the per-glyph table D_8008EF98[] (the SAME SJIS-code-to-glyph-index
+ * of the per-glyph table FontWidth[] (the SAME SJIS-code-to-glyph-index
  * remap as FUN_800576e8: 0x92->0x27, -0x20 if >=0x20, an extra -0x40 for
  * the upper half-width-kana block >=0xC0). No confirmed original name.
  *
@@ -34,7 +34,7 @@
  * the upper-kana test.
  */
 
-extern u8 D_8008EF98[];
+extern u8 FontWidth[];
 extern void FUN_8005778c(GsOT_TAG *org, s32 x, s32 y, u32 ch);
 
 void FUN_800570b8(GsOT_TAG *org, s32 x, s32 y, u8 *str)
@@ -78,7 +78,7 @@ void FUN_800570b8(GsOT_TAG *org, s32 x, s32 y, u8 *str)
                 if (ch > 0xbf) {
                     index = index - 0x40;
                 }
-                cursor = cursor + D_8008EF98[index];
+                cursor = cursor + FontWidth[index];
             }
             text++;
         } while (*text != 0);

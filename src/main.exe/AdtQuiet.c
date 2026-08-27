@@ -2,11 +2,11 @@
 #include "main.exe.h"
 #include "adt.h"
 
-extern AdtFntState D_8008F1B8;
+extern AdtFntState AdtFnt;
 
 AdtQuietMode AdtQuiet(AdtQuietMode quiet)
 {
-    AdtQuietMode old = D_8008F1B8.quiet;
-    D_8008F1B8.quiet = quiet;
+    AdtQuietMode old = AdtFnt.quiet;
+    AdtFnt.quiet = quiet;
     return old;
 }

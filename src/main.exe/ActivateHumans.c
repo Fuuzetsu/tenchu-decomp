@@ -37,7 +37,7 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-extern s32 D_800976B8;
+extern s32 PacketUsed;
 extern s16 D_80097F40;
 extern s16 D_80097F42;
 extern s16 D_80097F44;
@@ -113,7 +113,7 @@ void ActivateHumans(void)
         return;
     }
 
-    n = (0xec78 - D_800976B8) / 5000 - 1;
+    n = (0xec78 - PacketUsed) / 5000 - 1;
     D_80097F40 = n;
     if ((s16)n < 2)
     {

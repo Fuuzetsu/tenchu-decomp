@@ -17,13 +17,13 @@
  * placed in reference/psxsym-candidates.tsv / psxsym-unplaced.tsv (no
  * PSX.SYM block — checked both by address and by name).
  *
- * D_80011210 is a 32-byte table: 4 "control-scheme" rows of 8 bytes, each
+ * ButtonAssign is a 32-byte table: 4 "control-scheme" rows of 8 bytes, each
  * row a permutation of the 8 single-bit pad masks (0x01/0x02/.../0x80).
  * D_800976F6 (a %gp_rel short, control-scheme index 0-3) selects the row
  * (`row = D_800976F6 << 3`). For each of the 8 canonical button positions
  * i, the function tests the CALLER's raw pad bits against row 0's mask
- * `D_80011210[i]` and, if set, OR's the SELECTED scheme's mask
- * `D_80011210[row+i]` into the result (remapping physical button i to
+ * `ButtonAssign[i]` and, if set, OR's the SELECTED scheme's mask
+ * `ButtonAssign[row+i]` into the result (remapping physical button i to
  * logical position row+i); if clear, it AND-clears that same logical bit.
  * This is a classic PS1 "control type A/B/C/D" pad remapper. Untried
  * candidate names from the unplaced/candidates lists (SetPadState,
@@ -37,7 +37,7 @@
  *    accumulator's real type — the final `(int)(short)` cast at the
  *    return re-establishes sign, matching the caller's s32-return
  *    prototype.
- *  - The row-clearing branch's mask is read raw as `u8` (`D_80011210[row]`)
+ *  - The row-clearing branch's mask is read raw as `u8` (`ButtonAssign[row]`)
  *    then bitwise-NOT'd in the FULL (int-promoted, zero-extended) width —
  *    this is what compiles to the `nor $zero,v0` / `and` pair, not an
  *    `andi` (0x80011210's bytes never need masking down further).
@@ -56,23 +56,23 @@
  *    `tools/matchdiff.py` (28->15 bytes) — a THIRD permuter round found a
  *    45-scoring "improvement" (making the loop bound test `test < 8`
  *    instead of `i < 8`) that is semantically WRONG (`test` holds
- *    `pad & D_80011210[i]`, not the counter) and was rejected despite the
+ *    `pad & ButtonAssign[i]`, not the counter) and was rejected despite the
  *    better score — permuter/autorules scores are a proxy, not proof;
  *    only `tools/matchdiff.py`'s raw byte diff and a manual read of what
  *    changed are.
  *
- * The dead initializer is the defined `rp = D_80011210`, not the former
- * `&D_80011210[row]` with uninitialized `row`; it preserves the exact pseudo
+ * The dead initializer is the defined `rp = ButtonAssign`, not the former
+ * `&ButtonAssign[row]` with uninitialized `row`; it preserves the exact pseudo
  * creation effect without evaluating an indeterminate array subscript.
  *
  * RTL escalation: `rp` must stay a NAMED pointer rather than writing
- * `D_80011210[row]` inline in EACH arm. With two inline occurrences,
+ * `ButtonAssign[row]` inline in EACH arm. With two inline occurrences,
  * `.loop`'s combine_givs sums their benefits (`giv at 58 combined with giv
  * at 59`, `giv at 45 combined with 59`, `giv at 44 combined with 59` — 4
  * records from the 2 arms) and crosses the strength-reduction threshold,
  * turning `row` itself into an incrementing BYTE POINTER (biv 83
  * eliminated) — a different, 1-instruction-LONGER shape (116 vs 112 bytes)
- * that the target does not have. With exactly one textual `D_80011210[i]`
+ * that the target does not have. With exactly one textual `ButtonAssign[i]`
  * reference (`i`'s own address calc), the same dump shows `giv of insn 34
  * not worth while, 0 vs 22` — below threshold, `i` stays a plain SI
  * counter, matching target. The named-pointer form is therefore not cosmetic:
@@ -89,7 +89,7 @@
  * not final instruction count or loop strength reduction.
  */
 
-extern u8 D_80011210[32];
+extern u8 ButtonAssign[32];
 extern s16 D_800976F6;
 
 s32 FUN_8001b2f4(s16 pad)
@@ -100,21 +100,21 @@ s32 FUN_8001b2f4(s16 pad)
     s32 test;
     u8 *rp;
 
-    rp = D_80011210;
+    rp = ButtonAssign;
     acc = pad;
     row = (s32)D_800976F6 << 3;
     i = 0;
     do
     {
-        test = pad & D_80011210[i];
+        test = pad & ButtonAssign[i];
         if (test != 0)
         {
-            rp = &D_80011210[row];
+            rp = &ButtonAssign[row];
             acc = acc | *rp;
         }
         else
         {
-            rp = &D_80011210[row];
+            rp = &ButtonAssign[row];
             acc = acc & ~*rp;
         }
         i = i + 1;

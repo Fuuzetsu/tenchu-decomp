@@ -302,7 +302,7 @@ short LoadConstruction(u_long *data)
         GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
         if (StageID == 4)
         {
-            D_800976E8 = handle_balmer_acm_(
+            BalmaAreaMap = handle_balmer_acm_(
                 PathFileRead(ImagePath, (u8 *)path_balmer_acm));
         }
         break;

@@ -59,7 +59,7 @@
  *    renders an extra `& 0x1F` because MIPS variable shifts mask their count
  *    in hardware; retaining that decompiler artifact emits a real `andi`
  *    which is absent from the target.
- *  - `D_80097F30`/`D_80097F32` are read ONCE into named locals right
+ *  - `TexScrollX`/`TexScrollY` are read ONCE into named locals right
  *    after the slot is found (not hoisted to the top the way Ghidra's own
  *    SSA rendering shows `sVar2 = DAT_80097f32; sVar3 = DAT_80097f30;` as
  *    the first two statements) — the raw .s doesn't read them until deep
@@ -80,8 +80,8 @@
  * These source identities and the exact SDK prototype match all 560 bytes.
  */
 
-extern s16 D_80097F30;
-extern s16 D_80097F32;
+extern s16 TexScrollX;
+extern s16 TexScrollY;
 
 void SetupTexScroll(GsIMAGE *img, short vx, short vy)
 {
@@ -137,8 +137,8 @@ found:
     tscr = &ef->param.texscroll;
     ef->param.texscroll.px = tscr->py = 0;
 
-    scrollX = D_80097F30;
-    scrollY = D_80097F32;
+    scrollX = TexScrollX;
+    scrollY = TexScrollY;
     tscr->sx = scrollX;
     tscr->sy = scrollY;
 
@@ -174,14 +174,14 @@ found:
         }
     }
 
-    D_80097F32 = D_80097F32 + 0x40;
+    TexScrollY = TexScrollY + 0x40;
     tscr->vx = vx;
     tscr->vy = vy;
     ef->proc = (void (*)())UpdateTexScroll;
-    if (0x200 < D_80097F32)
+    if (0x200 < TexScrollY)
     {
-        D_80097F32 = 0x100;
-        D_80097F30 = D_80097F30 + 0x40;
+        TexScrollY = 0x100;
+        TexScrollX = TexScrollX + 0x40;
     }
 }
 }

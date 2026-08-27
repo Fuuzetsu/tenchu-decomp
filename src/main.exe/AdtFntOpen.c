@@ -11,18 +11,18 @@
  * see untouched incoming registers, see docs/matching-cookbook.md's
  * "leading argument…invisible to m2c" note; Ghidra's full 6-arg call is
  * the real one), then stashes every argument into the font-adapter state
- * D_8008F1B8 (same global as AdtFntLoad.c's tx/ty@0x18/0x1C and
+ * AdtFnt (same global as AdtFntLoad.c's tx/ty@0x18/0x1C and
  * AdtQuiet.c's quiet@0x20).
  */
-extern AdtFntState D_8008F1B8;
+extern AdtFntState AdtFnt;
 
 void AdtFntOpen(int x, int y, int w, int h, int isbg, int n)
 {
     FntOpen(x, y, w, h, isbg, n);
-    D_8008F1B8.x = x;
-    D_8008F1B8.y = y;
-    D_8008F1B8.w = w;
-    D_8008F1B8.h = h;
-    D_8008F1B8.isbg = isbg;
-    D_8008F1B8.n = n;
+    AdtFnt.x = x;
+    AdtFnt.y = y;
+    AdtFnt.w = w;
+    AdtFnt.h = h;
+    AdtFnt.isbg = isbg;
+    AdtFnt.n = n;
 }

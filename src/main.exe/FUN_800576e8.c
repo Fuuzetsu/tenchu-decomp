@@ -17,7 +17,7 @@
  * single stray lead byte 0x92 to 0x27, folding the code into a 0-0x5F glyph
  * index (subtract 0x20, and an additional 0x40 for the upper half-width-kana
  * block >= 0xC0), and summing each character's width out of the per-glyph
- * table `D_8008EF98[]`. Short-circuits to a precomputed width
+ * table `FontWidth[]`. Short-circuits to a precomputed width
  * (`TelopP.u1 - TelopP.u0`, Ghidra's own field names for this
  * struct — "TelopP" per its Ghidra symbol) whenever either half of that
  * pair is nonzero, i.e. whenever a telop is already active/queued.
@@ -32,12 +32,12 @@
  *    it negative in a way that matters) keeps the raw value and the
  *    target's SIGNED `slti`.
  *  - The `idx -= 0x40` correction must be its own statement, not folded into
- *    `(idx - 0x40) + D_8008EF98` — fold-const combines the invariant
- *    `D_8008EF98 - 0x40` into one loop-hoisted register (an extra temp the
+ *    `(idx - 0x40) + FontWidth` — fold-const combines the invariant
+ *    `FontWidth - 0x40` into one loop-hoisted register (an extra temp the
  *    target doesn't have), same mechanism as GetArcData's `t + 4` split.
  *  - **The address must be computed ONCE, after BOTH conditional `idx`
  *    corrections, not per-branch.** Ghidra/m2c render `entry = idx +
- *    D_8008EF98;` separately in the "idx<0x20" fallthrough and again inside
+ *    FontWidth;` separately in the "idx<0x20" fallthrough and again inside
  *    `if (bVar1>=0xC0)` (matching the target's own asm, which does
  *    duplicate the `addu` in both blocks) — but writing it that way (a
  *    third, real cookbook-obvious attempt) leaves a 13-byte pure 4-register
@@ -49,7 +49,7 @@
  *    per-branch duplication here.
  */
 
-extern u8 D_8008EF98[];
+extern u8 FontWidth[];
 
 s32 FUN_800576e8(u8 *str)
 {
@@ -82,7 +82,7 @@ s32 FUN_800576e8(u8 *str)
             {
                 idx -= 0x40;
             }
-            entry = idx + D_8008EF98;
+            entry = idx + FontWidth;
             width += *entry;
         } while (*str != 0);
     }

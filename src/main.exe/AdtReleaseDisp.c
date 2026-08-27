@@ -4,7 +4,7 @@
 
 /*
  * AdtReleaseDisp (0x8005fca4, 0x90 bytes) — counterpart of AdtGetDisp:
- * reloads the font adapter's PSYQ FntLoad/FntOpen state from D_8008F1B8
+ * reloads the font adapter's PSYQ FntLoad/FntOpen state from AdtFnt
  * (the shared AdtFntState also used by AdtFntLoad.c/AdtFntOpen.c/AdtQuiet.c;
  * this routine reaches x/y/w/h/isbg/n@0x0-0x14 and tx/ty@0x18/0x1c),
  * restores the saved screen region from the backup buffer via LoadImage,
@@ -19,13 +19,13 @@
  * `TAdtDisp *`, not a DRAWENV array. `LoadImage(&ad->rect, ad->backup)`
  * reproduces the exact same addresses without the array-indexing fiction.
  */
-extern AdtFntState D_8008F1B8;
+extern AdtFntState AdtFnt;
 
 void AdtReleaseDisp(TAdtDisp *ad)
 {
-    FntLoad(D_8008F1B8.tx, D_8008F1B8.ty);
-    FntOpen(D_8008F1B8.x, D_8008F1B8.y, D_8008F1B8.w, D_8008F1B8.h,
-            D_8008F1B8.isbg, D_8008F1B8.n);
+    FntLoad(AdtFnt.tx, AdtFnt.ty);
+    FntOpen(AdtFnt.x, AdtFnt.y, AdtFnt.w, AdtFnt.h,
+            AdtFnt.isbg, AdtFnt.n);
     LoadImage(&ad->rect, (u_long *)ad->backup);
     DrawSync(0);
     PutDrawEnv(&ad->draw);

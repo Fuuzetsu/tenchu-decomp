@@ -47,7 +47,7 @@
  *    `AdtPadRead(0)` call is only ever made when the first already
  *    tested true, so the natural source is the short-circuit `&&` guard
  *    (`if (A && B) return;`) rather than Ghidra's literal `||`.
- *  - D_8008F1B8 (same font-adapter global as AdtFntLoad.c/AdtFntOpen.c/
+ *  - AdtFnt (same font-adapter global as AdtFntLoad.c/AdtFntOpen.c/
  *    AdtQuiet.c) is reached at every field this TU touches: x/y/w/h/
  *    isbg/n@0x0-0x14 (FntOpen), tx/ty@0x18/0x1c (FntLoad), and quiet@0x20
  *    (the early guard), accounting for all nine fields of the shared
@@ -70,7 +70,7 @@
  *    function itself — matches Ghidra's `auStack_28` exactly; whatever it
  *    draws is whatever was left on the stack, not this function's concern.
  */
-extern AdtFntState D_8008F1B8;
+extern AdtFntState AdtFnt;
 extern s32 AdtMessageBoxCount; /* AdtMessageBox call counter */
 extern char msg_adtinit_not_called[]; /* *** AdtInit not called *** */ /* "*** AdtInit not called ***" */
 extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
@@ -89,7 +89,7 @@ void AdtMessageBox(char *fmt, ...)
     mode = 0;
     if (AdtPadRead == AdtDmyPadRead)
         fmt = msg_adtinit_not_called;
-    if (D_8008F1B8.quiet == ADT_QUIET)
+    if (AdtFnt.quiet == ADT_QUIET)
         return;
     if (*fmt == '%')
     {
@@ -134,9 +134,9 @@ skip:
         DrawPrim(&ad.bg);
         DrawSync(0);
     }
-    FntLoad(D_8008F1B8.tx, D_8008F1B8.ty);
-    FntOpen(D_8008F1B8.x, D_8008F1B8.y, D_8008F1B8.w, D_8008F1B8.h,
-            D_8008F1B8.isbg, D_8008F1B8.n);
+    FntLoad(AdtFnt.tx, AdtFnt.ty);
+    FntOpen(AdtFnt.x, AdtFnt.y, AdtFnt.w, AdtFnt.h,
+            AdtFnt.isbg, AdtFnt.n);
     LoadImage(&ad.rect, ad.backup);
     DrawSync(0);
     PutDrawEnv(&ad.draw);

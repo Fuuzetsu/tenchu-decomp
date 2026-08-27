@@ -16,13 +16,13 @@
  * MATCHED, and the shape is load-bearing — do not "clean it up".
  *
  * The `do {} while (0)` around the body is a LOOP-NOTE FENCE, and it is what puts
- * the `D_800975D8 = 1;` store BEFORE the callee-saved restores. Without it cc1
+ * the `PadInitFlag = 1;` store BEFORE the callee-saved restores. Without it cc1
  * sinks the store below them (the restores are frame loads, the store targets a
  * symbol_ref, so it can prove they do not alias and reorders freely) — that was
  * the whole 26-byte residual. The `new_var` temp for the constant is part of the
  * same shape.
  *
- * `D_800975D8` must stay a plain `extern s32`, NOT `extern s32 D_800975D8[]`.
+ * `PadInitFlag` must stay a plain `extern s32`, NOT `extern s32 PadInitFlag[]`.
  * The plain form lets cc1 fold the address into the memory operand and emit ONE
  * insn, which `as` expands through the assembler temp — `lui at,0x8009 /
  * sw v0,30168(at)`, exactly the target. The array form forces the address into a
@@ -38,13 +38,13 @@
  * final `jal` goes to 0x80083694 instead of PAD_init2 — so it is a near-clone.
  *
  * MEASURED NEGATIVES (do not re-try):
- *   - `extern s32 D_800975D8[];` + `D_800975D8[0] = 1;` alone: 25, and further
+ *   - `extern s32 PadInitFlag[];` + `PadInitFlag[0] = 1;` alone: 25, and further
  *     from the target's instruction shape than the 26 it replaced. Byte count is
  *     the score, not the goal.
  *   - `-mno-split-addresses` (the flag that rescued GS_107_OBJ_4B8): NO CHANGE.
  *     Reverted rather than left in — a per-TU compiler-input flag that does not
  *     earn its place is worse than none, and provenance alone does not justify it.
- *   - `extern volatile s32 D_800975D8;`: a no-op.
+ *   - `extern volatile s32 PadInitFlag;`: a no-op.
  */
 extern void _remove_ChgclrPAD(void);
 extern void EnterCriticalSection(void);
@@ -54,7 +54,7 @@ extern void ChangeClearPAD(long mode);
 extern void FUN_80083538(void);
 extern void PAD_init2(u_long a, u_long b, u_long c, u_long d);
 
-extern s32 D_800975D8;
+extern s32 PadInitFlag;
 
 void PAD_init(u_long a, u_long b, u_long c, u_long d)
 {
@@ -69,6 +69,6 @@ void PAD_init(u_long a, u_long b, u_long c, u_long d)
         FUN_80083538();
         PAD_init2(a, b, c, d);
         new_var = 1;
-        D_800975D8 = new_var;
+        PadInitFlag = new_var;
     } while (0);
 }

@@ -78,8 +78,8 @@ extern s32 D_80011C90[3];
 extern s32 pat[MaxFrames];
 
 extern ModelType *LOCAL_COORDINATES_;
-extern s16 D_80097F30;
-extern s16 D_80097F32;
+extern s16 TexScrollX;
+extern s16 TexScrollY;
 
 extern GsIMAGE *GetImage(s32 index);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
@@ -202,8 +202,8 @@ void InitEffect(void)
         } while (i < 1);
     }
 
-    D_80097F30 = 0x340;
-    D_80097F32 = 0x100;
+    TexScrollX = 0x340;
+    TexScrollY = 0x100;
     FUN_80039c14();
 }
 

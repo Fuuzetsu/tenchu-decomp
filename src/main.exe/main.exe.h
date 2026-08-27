@@ -93,7 +93,7 @@ extern s16 ConflictObjects;
 extern SVECTOR ConflictDistance;
 extern ModelType *ConflictModel;
 extern long EmergencyNotice;
-extern AreaMapType *D_800976E8;
+extern AreaMapType *BalmaAreaMap;
 extern AreaNodeType *FieldArea;
 extern NodeIndexType *FieldIndex;
 extern char FONT_FILE_NAME;

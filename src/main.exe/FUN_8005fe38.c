@@ -4,14 +4,14 @@
 /*
  * FUN_8005fe38 (0x8005fe38, 0x50 bytes) — appends a printf-style formatted
  * message to the shared debug-message ring buffer that FUN_8005fe88 seeds
- * with the "%#" mode prefix and whose write cursor (D_80097E98) it walks
+ * with the "%#" mode prefix and whose write cursor (AdtMsgPtr) it walks
  * forward: the same buffer the "Adt" on-screen debug console
  * (AdtMessageBox/AdtVsprintf/AdtSelect, all in this address range) draws
  * from. Takes a printf-style format string plus up to 4 vararg words
  * (spilled to the stack by a MIPS varargs prologue — taking the address of
  * one incoming register parameter forces cc1 to spill all four), forwards
  * them through AdtVsprintf at the buffer's current write cursor
- * D_80097E98, and advances the cursor by however many bytes were written.
+ * AdtMsgPtr, and advances the cursor by however many bytes were written.
  *
  * SPLIT-BOUNDARY FIX: this function used to be carved as FUN_8005fe34
  * (0x8005fe34, 0x54 bytes), i.e. starting 4 bytes earlier. Those first 4
@@ -37,18 +37,18 @@
  * this function starting there (0x50 bytes, matching exactly what remains
  * once AdtVsprintf's own delay slot is excluded).
  *
- * D_80097E98 is %gp_rel in this TU (tools/gpsyms.py --write); D_800C3EB0
+ * AdtMsgPtr is %gp_rel in this TU (tools/gpsyms.py --write); AdtMsgEnd
  * is materialized with lui/addiu (not gp-relative) even though it is the
- * end of the very same D_800C2EB0[0x1000] buffer FUN_8005fe88 writes into —
+ * end of the very same AdtMsgBuf[0x1000] buffer FUN_8005fe88 writes into —
  * Ghidra assigns it a separate symbol because it sits outside
- * D_800C2EB0's known array bounds.
+ * AdtMsgBuf's known array bounds.
  */
 extern int AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
-extern char *D_80097E98;
-extern char D_800C3EB0[];
+extern char *AdtMsgPtr;
+extern char AdtMsgEnd[];
 
 void FUN_8005fe38(char *arg0, ...)
 {
     s32 *ap = (s32 *)((char *)&arg0 + sizeof(arg0));
-    D_80097E98 += AdtVsprintf(ap, D_80097E98, D_800C3EB0 - D_80097E98, arg0);
+    AdtMsgPtr += AdtVsprintf(ap, AdtMsgPtr, AdtMsgEnd - AdtMsgPtr, arg0);
 }

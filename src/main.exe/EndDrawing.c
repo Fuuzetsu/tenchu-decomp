@@ -38,7 +38,7 @@
  * parameter) — the dispatch below needs its own captured copy of
  * SkipFrame, so treat the demo's "1 local" as an upper-bound artifact of a
  * differently-compiled demo build, not a spec (see the PSX.SYM caveat
- * above; `time`/D_800976B8 confirmed the same TU-local %gp_rel treatment as
+ * above; `time`/PacketUsed confirmed the same TU-local %gp_rel treatment as
  * GameClock/SkipFrame/DrawingPage/OTablePt via the raw `.s`).
  *
  * Body, in order:
@@ -124,12 +124,12 @@
  *     `time = VSync(-1); ResetGraph(1);` — then flip buffers and submit the
  *     sort table (`GsSwapDispBuff`/`GsSortClear`/`GsDrawOt`).
  *
- * `time` is PSX.SYM's exact 3DCTRL.C static `int`; D_800976B8 remains an
- * unnamed retail neighbour. Both are scalar-only here, so D_800976B8 stays
+ * `time` is PSX.SYM's exact 3DCTRL.C static `int`; PacketUsed remains an
+ * unnamed retail neighbour. Both are scalar-only here, so PacketUsed stays
  * a plain `u32` rather than inheriting Ghidra's unverified `PACKET *` guess.
  * Both are %gp_rel here, same as GameClock/SkipFrame/
  * DrawingPage/OTablePt (config/symbols.main.exe.txt already pins `time` at
- * 0x800976bc from a prior session; D_800976B8 gets a splat auto-name at
+ * 0x800976bc from a prior session; PacketUsed gets a splat auto-name at
  * 0x800976b8, directly between SkipFrame and `time`).
  */
 
@@ -137,7 +137,7 @@
  * buffer. The incomplete extern spelling is load-bearing (absolute, not
  * gp-relative — see the notes above). */
 extern u8 Packet[];
-extern u32 D_800976B8;
+extern u32 PacketUsed;
 extern s32 time;
 
 extern s32 VSync(s32 mode);
@@ -153,9 +153,9 @@ void EndDrawing(short sync)
     {
         val = (u32)GsGetWorkBase() - (u32)Packet - (DrawingPage << 16);
         if (val > 0x10000)
-            D_800976B8 = 0x10000;
+            PacketUsed = 0x10000;
         else
-            D_800976B8 = val;
+            PacketUsed = val;
     }
 
     sk = SkipFrame;

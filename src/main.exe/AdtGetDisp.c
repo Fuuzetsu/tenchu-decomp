@@ -7,7 +7,7 @@
  * (re)initialise the Adt display/draw environment. Same TAdtDisp combined
  * struct AdtMessageBox.c/AdtReleaseDisp.c use (param declared DRAWENV* by the
  * callers, but it's really &TAdtDisp.draw at offset 0). Grabs the font-adapter
- * texture coords (D_8008F1B8.tx/ty) into the backup RECT, StoreImage's the
+ * texture coords (AdtFnt.tx/ty) into the backup RECT, StoreImage's the
  * framebuffer into TAdtDisp.backup, resets the draw/disp envs to the standard
  * 320x240 layout, reloads the font, and builds a semi-transparent POLY_F4 quad
  * primitive in TAdtDisp.bg (the 0x8078 offset forces cc1's large-displacement
@@ -19,7 +19,7 @@
  * the sp+0x18 / sp+0x78 layout exactly, so no combined struct is needed here.
  */
 
-extern AdtFntState D_8008F1B8;
+extern AdtFntState AdtFnt;
 
 void AdtGetDisp(TAdtDisp *disp)
 {
@@ -28,8 +28,8 @@ void AdtGetDisp(TAdtDisp *disp)
 
     SetDispMask(1);
     DrawSync(0);
-    disp->rect.x = D_8008F1B8.tx;
-    disp->rect.y = D_8008F1B8.ty;
+    disp->rect.x = AdtFnt.tx;
+    disp->rect.y = AdtFnt.ty;
     disp->rect.w = 0x40;
     disp->rect.h = 0x100;
     StoreImage(&disp->rect, disp->backup);
@@ -40,7 +40,7 @@ void AdtGetDisp(TAdtDisp *disp)
     SetDefDispEnv(&di, 0, 0, 0x140, 0xf0);
     PutDrawEnv(&de);
     PutDispEnv(&di);
-    FntLoad(D_8008F1B8.tx, D_8008F1B8.ty);
+    FntLoad(AdtFnt.tx, AdtFnt.ty);
     FntOpen(0x20, 0x20, 0x100, 0xb0, 0, 0x200);
     setPolyF4(&disp->bg);
     setXY4(&disp->bg, 0x20, 0x20, 0x120, 0x20,
