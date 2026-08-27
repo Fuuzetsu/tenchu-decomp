@@ -141,25 +141,30 @@ short SetCommand(PADtype *pad, short cmd)
     s16 found;
 
     i = 0;
-    while (Command[i] != 0) {
+    while (Command[i] != 0)
+    {
         entry = Command[i];
         found = (entry[0] == cmd);
         one = 1;
-        if (found) {
+        if (found)
+        {
             args = entry + 1;
             n = 0;
-                while (args[n] != 0xFFFF) {
-                    n++;
-                }
-                if (one < n) {
-                    j = 1;
-                    do {
-                        pad->stream[j - 1] = args[j];
-                        j++;
-                    } while (j < n);
-                }
-                pad->time = one;
-                return (s16)args[0];
+            while (args[n] != 0xFFFF)
+            {
+                n++;
+            }
+            if (one < n)
+            {
+                j = 1;
+                do
+                {
+                    pad->stream[j - 1] = args[j];
+                    j++;
+                } while (j < n);
+            }
+            pad->time = one;
+            return (s16)args[0];
         }
         i++;
     }

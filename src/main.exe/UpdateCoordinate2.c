@@ -25,7 +25,6 @@
  *     param $a0       struct ModelType * dim
  * END PSX.SYM */
 
-
 void UpdateCoordinate2(ModelType *dim)
 {
     RotMatrix(&dim->rotate, &dim->locate.coord);

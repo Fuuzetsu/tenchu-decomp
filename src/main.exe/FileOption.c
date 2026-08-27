@@ -79,13 +79,13 @@ extern s32 MusicByStage[11]; /* music id by stage */
 extern u8 STAGE_LAYOUT_NUMBER[];
 
 extern char str_file_option[]; /* file option */   /* "file option" */
-extern char msg_load_ok[]; /* load ok? */   /* "load ok?" */
-extern char msg_load_no[]; /* load no? */   /* "load no?" */
-extern char msg_save_ok[]; /* save ok? */   /* "save ok?" */
-extern char msg_save_no[]; /* save no? */   /* "save no?" */
-extern char str_select_music[]; /* select music */   /* "select music" */
-extern char str_layout_no[]; /* layout no */   /* "layout no" */
-extern char fmt_num_2[]; /* %d */   /* "%d" */
+extern char msg_load_ok[]; /* load ok? */          /* "load ok?" */
+extern char msg_load_no[]; /* load no? */          /* "load no?" */
+extern char msg_save_ok[]; /* save ok? */          /* "save ok?" */
+extern char msg_save_no[]; /* save no? */          /* "save no?" */
+extern char str_select_music[]; /* select music */ /* "select music" */
+extern char str_layout_no[]; /* layout no */       /* "layout no" */
+extern char fmt_num_2[]; /* %d */                  /* "%d" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(void *buf, long size);
@@ -143,7 +143,7 @@ void FileOption(void)
     s32 k;
     s32 i;
     TAdtSelect *targets;
-    u8 (*messages)[5];
+    u8(*messages)[5];
     TAdtSelect ItemName[20];
     TAdtSelect SelectIO[5];
     TAdtSelect SelectSlot[18];

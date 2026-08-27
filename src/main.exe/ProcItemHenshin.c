@@ -86,7 +86,6 @@ extern TItem *volatile HenshinItem;
 extern volatile u16 HenshinCount;
 extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
-
 void ProcItemHenshin(TItem *item)
 {
     Humanoid *human;

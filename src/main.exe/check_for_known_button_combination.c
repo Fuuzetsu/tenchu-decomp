@@ -30,18 +30,22 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
     s32 offset;
     s32 i;
 
-    if (newly_pressed != 0) {
+    if (newly_pressed != 0)
+    {
         i = 11;
-        do {
+        do
+        {
             RECENTLY_PRESSED_BUTTONS[i] = RECENTLY_PRESSED_BUTTONS[i - 1];
             i--;
         } while (i > 0);
         guard_entry = SPECIAL_BUTTON_COMBINATIONS_PTR[0];
         RECENTLY_PRESSED_BUTTONS[0] = buttons;
-        if (guard_entry != NULL) {
+        if (guard_entry != NULL)
+        {
             outer_end = 0xffff;
             combination_index = 0;
-            do {
+            do
+            {
                 entry = SPECIAL_BUTTON_COMBINATIONS_PTR[combination_index];
                 i = 0;
                 pattern_start = entry + 1;
@@ -54,9 +58,11 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
                     inner_end = 0xffff;
                 pattern = pattern_start;
                 history = RECENTLY_PRESSED_BUTTONS;
-                do {
-                    
-                    if ((u16)*pattern != *history) {
+                do
+                {
+
+                    if ((u16)*pattern != *history)
+                    {
                         offset = i << 1;
                         goto compare_end;
                     }
@@ -66,12 +72,14 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
                 } while ((u16)*pattern != inner_end);
                 offset = i * 2;
 
-compare_end:
+            compare_end:
                 offset += (s32)pattern_start;
-                if (*(u16 *)offset == outer_end) {
-matched:
+                if (*(u16 *)offset == outer_end)
+                {
+                matched:
                     i = 11;
-                    do {
+                    do
+                    {
                         RECENTLY_PRESSED_BUTTONS[i] = RECENTLY_PRESSED_BUTTONS[i - 1];
                         i--;
                     } while (i > 0);

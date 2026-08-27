@@ -92,7 +92,10 @@ extern void AddXF4(void *ot, POLY_XF4 *ply);
 
 void PutMap(void)
 {
-    enum { size = 4096 };
+    enum
+    {
+        size = 4096
+    };
     POLY_XF4 *ply;
     s32 rgb;
 
@@ -148,8 +151,8 @@ void PutMap(void)
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
         draw_map_items_(CamState.Owner->model->locate.coord.t[0],
-                     CamState.Owner->model->locate.coord.t[2],
-                     MapPlacement[StageID]);
+                        CamState.Owner->model->locate.coord.t[2],
+                        MapPlacement[StageID]);
         break;
     }
 

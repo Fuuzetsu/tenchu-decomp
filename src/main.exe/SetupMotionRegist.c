@@ -38,7 +38,8 @@ MotionRegistType *SetupMotionRegist(MotionRegistType *mrp)
     short i;
 
     i = 0;
-    while (mrp[i].mid != -1) {
+    while (mrp[i].mid != -1)
+    {
         mrp[i].motion = SearchMotion(mrp[i].id);
         i = i + 1;
     }

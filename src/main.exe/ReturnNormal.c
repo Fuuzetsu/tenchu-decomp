@@ -27,13 +27,17 @@ extern Humanoid *Me_MOTION_C;
 
 void ReturnNormal(void)
 {
-    if (Me_MOTION_C == StagePlayer) {
+    if (Me_MOTION_C == StagePlayer)
+    {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->attribute & 0x40) != 0) {
+    if ((Me_MOTION_C->attribute & 0x40) != 0)
+    {
         motID = 0x501;
         motMODE = 1;
-    } else {
+    }
+    else
+    {
         motID = 0;
         motMODE = 1;
     }

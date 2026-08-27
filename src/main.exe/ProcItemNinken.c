@@ -312,7 +312,7 @@ void ProcItemNinken(TItem *item)
             goto active;
         }
 
-expire:
+    expire:
         scratch.vec = svec_y_n50[0];
         SetSmoke((VECTOR *)param->slave->model->locate.coord.t,
                  &scratch.vec, 10, 6);
@@ -338,53 +338,53 @@ expire:
             return;
         }
 
-active:
+    active:
+    {
+        s32 owner_attribute;
+        Humanoid *target;
+        s16 status;
+
+        if (GameClock % 15 != 0)
         {
-            s32 owner_attribute;
-            Humanoid *target;
-            s16 status;
-
-            if (GameClock % 15 != 0)
-            {
-                return;
-            }
-            status = slave->status;
-            if (status == 0x10 || status == 8 || status == 7)
-            {
-                return;
-            }
-
-            owner_attribute = item->owner->attribute;
-            item->owner->attribute = 0x80;
-            target = GetNearestHumanoid(param->slave, 10000);
-            item->owner->attribute = owner_attribute;
-            if (target != 0)
-            {
-                if ((ModelType *)target->model == param->slave->target)
-                {
-                    return;
-                }
-                SetupThinkFunction(param->slave, 0x5449);
-                param->slave->target = (ModelType *)target->model;
-                param->slave->attribute |= 2;
-                EquipWeapon(param->slave, 1);
-                SetNowMotion(param->slave, 0x80e, 1);
-                return;
-            }
-            else
-            {
-                if (param->slave->target == item->locate)
-                {
-                    return;
-                }
-                EquipWeapon(param->slave, 0);
-                SetNowMotion(param->slave, 0x80f, 1);
-                param->slave->attribute &= 0xfffc;
-                SetupThinkFunction(param->slave, 0);
-                param->slave->target = (ModelType *)item->owner->model;
-                return;
-            }
+            return;
         }
+        status = slave->status;
+        if (status == 0x10 || status == 8 || status == 7)
+        {
+            return;
+        }
+
+        owner_attribute = item->owner->attribute;
+        item->owner->attribute = 0x80;
+        target = GetNearestHumanoid(param->slave, 10000);
+        item->owner->attribute = owner_attribute;
+        if (target != 0)
+        {
+            if ((ModelType *)target->model == param->slave->target)
+            {
+                return;
+            }
+            SetupThinkFunction(param->slave, 0x5449);
+            param->slave->target = (ModelType *)target->model;
+            param->slave->attribute |= 2;
+            EquipWeapon(param->slave, 1);
+            SetNowMotion(param->slave, 0x80e, 1);
+            return;
+        }
+        else
+        {
+            if (param->slave->target == item->locate)
+            {
+                return;
+            }
+            EquipWeapon(param->slave, 0);
+            SetNowMotion(param->slave, 0x80f, 1);
+            param->slave->attribute &= 0xfffc;
+            SetupThinkFunction(param->slave, 0);
+            param->slave->target = (ModelType *)item->owner->model;
+            return;
+        }
+    }
     }
     }
     return;

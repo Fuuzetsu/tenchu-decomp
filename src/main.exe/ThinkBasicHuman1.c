@@ -39,14 +39,17 @@ s16 ThinkBasicHuman1(void)
     s32 pad;
 
     pad = remap_buttons_(GetPad(0));
-    if ((pad & 0x100) && (SystemFlag & SYSFLAG_DEBUGPRINT)) {
+    if ((pad & 0x100) && (SystemFlag & SYSFLAG_DEBUGPRINT))
+    {
         pad = 0;
     }
     if ((Me_THINK_C->map.attrib & 0x200) &&
-        (Me_THINK_C->status == STAT_JUMP || Me_THINK_C->status == STAT_ATTACK)) {
+        (Me_THINK_C->status == STAT_JUMP || Me_THINK_C->status == STAT_ATTACK))
+    {
         pad &= 0xfff;
     }
-    if (pad & 8) {
+    if (pad & 8)
+    {
         pad = (pad & 0xfff7) | 0x20;
     }
     return pad;

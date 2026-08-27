@@ -112,7 +112,7 @@ void AttackBowControl(s16 n)
     PARAM_ITEM_LAUNCH item; /* PSX.SYM's "PARAM_ITEM_LAUNCH item" (unused here —
                             same 48-byte dead-local frame lever as
                             AttackGunControl; item.h's proven 0x28-byte struct) */
-    SVECTOR vect;         /* PSX.SYM's "struct SVECTOR vect" (also unused) */
+    SVECTOR vect;           /* PSX.SYM's "struct SVECTOR vect" (also unused) */
     s32 idx;
     u8 *p;
     s32 idx2;

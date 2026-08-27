@@ -74,11 +74,13 @@ void UpdateTexScroll(TEffectSlot *ef)
                      (u32)(tscr->image.h << 4));
 
     x = tscr->px;
-    if (x < 0) x = x + 0xf;
+    if (x < 0)
+        x = x + 0xf;
     tscr->image.x = (u16)tscr->sx + (x >> 4);
 
     y = tscr->py;
-    if (y < 0) y = y + 0xf;
+    if (y < 0)
+        y = y + 0xf;
     tscr->image.y = (u16)tscr->sy + (y >> 4);
 
     prim = (DR_MOVE *)GsGetWorkBase();

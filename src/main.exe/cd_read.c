@@ -21,8 +21,8 @@
 extern int puts(char *s);
 extern void cd_read_sectors_(void *buffer, int sector, int byteOffset, int byteLength);
 extern char msg_cd_read_invalid_handle[]; /* cd_read:invalid handle */ /* "cd_read:invalid handle" — lives in this TU's
-                            * unsplit data blob (splat auto-symbol), same
-                            * pattern as AfsInit's msg_afsinit_not_enough_memory. */
+                                                                        * unsplit data blob (splat auto-symbol), same
+                                                                        * pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 int cd_read(FILE *f, void *buffer, int length)
 {
@@ -30,18 +30,22 @@ int cd_read(FILE *f, void *buffer, int length)
     s32 sector;
     s32 adj;
 
-    if (f == 0) {
+    if (f == 0)
+    {
         puts(msg_cd_read_invalid_handle);
         return -1;
     }
     pos = f->pos;
-    if (f->finfo.size < pos + length) {
+    if (f->finfo.size < pos + length)
+    {
         length = f->finfo.size - pos;
     }
-    if (length > 0) {
+    if (length > 0)
+    {
         sector = CdPosToInt(&f->finfo.pos);
         adj = pos;
-        if (pos < 0) {
+        if (pos < 0)
+        {
             adj = pos + 0x7FF;
         }
         cd_read_sectors_(buffer, sector + (adj >> 11), pos - ((adj >> 11) << 11), length);

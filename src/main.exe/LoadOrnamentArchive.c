@@ -62,7 +62,8 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     int parent;
     int count;
 
-    if (adr == 0) {
+    if (adr == 0)
+    {
         SystemOut(msg_no_model_archive_data_2);
     }
     mad = (OrnamentArchiveType *)valloc(sizeof(OrnamentArchiveType));
@@ -77,24 +78,27 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     tmdp = (u8 *)adr;
 
 loop1:
+{
+    int idx = i;
+    s32 offset;
+    if (!(idx < mad->n))
+        goto loop1_end;
+    do
     {
-        int idx = i;
-        s32 offset;
-        if (!(idx < mad->n))
-            goto loop1_end;
-        do {
-            do {
-                offset = prntp[idx].index;
-            } while (0);
+        do
+        {
+            offset = prntp[idx].index;
         } while (0);
-        i++;
-        objp = LoadOrnament((u_long *)(tmdp + offset));
-        mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);
-    }
+    } while (0);
+    i++;
+    objp = LoadOrnament((u_long *)(tmdp + offset));
+    mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);
+}
     goto loop1;
 loop1_end:
 
-    if (prnt == 0) {
+    if (prnt == 0)
+    {
         prnt = &World;
     }
     GsInitCoordinate2((GsCOORDINATE2 *)prnt, (GsCOORDINATE2 *)mad);
@@ -113,10 +117,11 @@ loop2:
         goto loop2_end;
     objp = mad->object[i];
     super = (ModelType *)mad;
-    if (0 <= prntp[i].np && 0 < count) {
+    if (0 <= prntp[i].np && 0 < count)
+    {
         j = 0;
         parent = prntp[i].np;
-parent_loop:
+    parent_loop:
         if (parent == prntp[j].nc)
             goto parent_found;
         j++;

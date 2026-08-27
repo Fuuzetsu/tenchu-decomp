@@ -72,14 +72,18 @@
 
 short Sound(Humanoid *human, short seid)
 {
-    if (seid & 0xf0) {
+    if (seid & 0xf0)
+    {
         return SoundEx(human->locate, seid);
     }
-    if (seid > 5) {
-        if (VoiceMode != 0) {
+    if (seid > 5)
+    {
+        if (VoiceMode != 0)
+        {
             return -1;
         }
-        if ((human->attribute & 0x80) != 0) {
+        if ((human->attribute & 0x80) != 0)
+        {
             return -1;
         }
     }

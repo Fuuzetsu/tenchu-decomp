@@ -74,10 +74,10 @@
  *    region resolved correctly (verified against the .map) — no separate
  *    fix needed for these two.
  */
-extern char fmt_concat[]; /* "%s%s" */
-extern char fmt_card_name[]; /* "%s\%d\%s" */
+extern char fmt_concat[];          /* "%s%s" */
+extern char fmt_card_name[];       /* "%s\%d\%s" */
 extern char msg_file_read_error[]; /* "file read error" */
-extern char msg_card_error[]; /* "card error %d" */
+extern char msg_card_error[];      /* "card error %d" */
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);

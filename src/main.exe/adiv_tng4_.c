@@ -189,7 +189,7 @@
 extern void subdivide_quad_(u_long *outv, u_long *packet, int mode);
 
 u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
-                     volatile u_long shift, volatile u_long ot, u_long *wp)
+                   volatile u_long shift, volatile u_long ot, u_long *wp)
 {
     int hwd;
     int vwd;
@@ -215,25 +215,27 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     po = work + 0x38;
     vp = po;
     vwd = VWD0;
-    *(short *)(work + 0xd) = (short)(hwd / 2); /* adivw */
+    *(short *)(work + 0xd) = (short)(hwd / 2);       /* adivw */
     *(short *)((int)work + 0x36) = (short)(vwd / 2); /* adivh */
     t0 = *(u_long *)(ot + 4);
     shiftWord = shift;
-    work[8] = 0x96; /* adivz */
-    work[3] = shiftWord; /* shift */
+    work[8] = 0x96;                      /* adivz */
+    work[3] = shiftWord;                 /* shift */
     *(u_char *)((int)work + 0x4f) = 0xc; /* packet len */
     code = 0x3c;
-    work[5] = (u_long)packet; /* out */
+    work[5] = (u_long)packet;             /* out */
     *(u_char *)((int)work + 0x53) = code; /* packet code */
-    work[4] = t0; /* org */
-    if (count != 0) {
+    work[4] = t0;                         /* org */
+    if (count != 0)
+    {
         v0 = (SVECTOR *)(work + 0x20); /* v[0..3] */
         v1 = (SVECTOR *)(work + 0x26);
         v2 = (SVECTOR *)(work + 0x2c);
         v3 = (SVECTOR *)(work + 0x32);
         cd = code;
         primitive = (TMD_P_TNG4 *)primtop;
-        do {
+        do
+        {
             *(short *)(work + 0x20) = *(u_short *)(primitive->v0 * 8 + vertop);
             *(short *)((int)work + 0x82) = *(u_short *)(primitive->v0 * 8 + vertop + 2);
             *(short *)(work + 0x21) = *(u_short *)(primitive->v0 * 8 + vertop + 4);
@@ -260,7 +262,8 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
             *(short *)(work + 0x31) = *(u16 *)&primitive->tu2;
             *(short *)(work + 0x37) = *(u16 *)&primitive->tu3;
             gte_stopz(work + 6); /* zmax */
-            if (0 < (int)work[6]) {
+            if (0 < (int)work[6])
+            {
                 gte_ldv0(v3);
                 gte_rtps();
                 work[0x22] = *(u_long *)&primitive->r0;
@@ -277,7 +280,7 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
                 t2 = (u_long)(work + 0x2a);
                 t1 = (u_long)(work + 0x30);
                 gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1, work + 0x36);
-                *(short *)((int)work + 0x5a) = primitive->clut; /* packet.clut */
+                *(short *)((int)work + 0x5a) = primitive->clut;  /* packet.clut */
                 *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
                 subdivide_quad_(po, work, 0);
             }

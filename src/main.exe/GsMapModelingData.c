@@ -24,9 +24,9 @@ void GsMapModelingData(unsigned long *model)
             object->vertop = (unsigned long *)((unsigned long)object->vertop +
                                                (unsigned long)model);
             object->nortop = (unsigned long *)((unsigned long)object->nortop +
-                                              (unsigned long)model);
-            object->primtop = (unsigned long *)((unsigned long)object->primtop +
                                                (unsigned long)model);
+            object->primtop = (unsigned long *)((unsigned long)object->primtop +
+                                                (unsigned long)model);
             ++i;
         } while (i < count);
     }

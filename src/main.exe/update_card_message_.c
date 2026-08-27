@@ -83,7 +83,7 @@ s32 update_card_message_(s16 *state, u16 *message)
         }
         goto card_state_shift;
 
-card_status_ge_three:
+    card_status_ge_three:
         switch (card_status)
         {
         default:
@@ -94,17 +94,17 @@ card_status_ge_three:
         }
         goto card_state_shift;
 
-card_status_one:
+    card_status_one:
         next_state = 10;
         goto card_state_shift;
-card_status_two:
+    card_status_two:
         next_state = 0x14;
         goto card_state_shift;
-card_status_four:
+    card_status_four:
         CardStateFlag = 0;
         next_state = 0x1e;
 
-card_state_shift:
+    card_state_shift:
         if (next_state != 0x28 && CardRetryCount++ < 3)
         {
             next_state = 4;
@@ -148,7 +148,7 @@ card_state_shift:
     case 2:
     case 0x21:
     case 0x22:
-increment_state:
+    increment_state:
         next_state++;
         break;
 

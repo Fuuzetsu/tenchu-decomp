@@ -51,23 +51,30 @@ short PlayMotion(MotionManager *mmp, short mode)
 {
     short result;
 
-    if (mmp->loop < 0) {
+    if (mmp->loop < 0)
+    {
         return 0;
     }
-    if (mode != 0) {
-        if (mmp->count < 0) {
+    if (mode != 0)
+    {
+        if (mmp->count < 0)
+        {
             SweepMotion(mmp);
             goto done;
         }
         result = ActiveMotion(mmp);
-        if (result != 0) {
+        if (result != 0)
+        {
             goto done;
         }
         result = mmp->loop;
-    } else {
+    }
+    else
+    {
         result = mmp->count + 1;
         mmp->count = result;
-        if (result <= mmp->motion->time) {
+        if (result <= mmp->motion->time)
+        {
             goto done;
         }
         result = mmp->loop;

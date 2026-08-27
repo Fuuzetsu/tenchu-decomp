@@ -65,7 +65,7 @@ extern int PCread(int fd, void *buf, int size);
 extern int PCclose(int fd);
 extern void *valloc(u32 size);
 extern void AdtMessageBox(char *fmt, ...);
-extern char fmt_load_pc[]; /* "%$LOAD(PC)\n%d[%s]" */
+extern char fmt_load_pc[];       /* "%$LOAD(PC)\n%d[%s]" */
 extern char msg_load_pc_error[]; /* "LOAD(PC) ERROR\n%d[%s]" */
 
 u_long *LoadFromDEVPC(u8 *filename)
@@ -76,16 +76,22 @@ u_long *LoadFromDEVPC(u8 *filename)
 
     TotalIO = TotalIO + 1;
     fd = PCopen((char *)filename, 0, 0);
-    if (fd != -1) {
+    if (fd != -1)
+    {
         size = PClseek(fd, 0, 2);
-        if (size > 0) {
-            if (ReadMode & 4) {
+        if (size > 0)
+        {
+            if (ReadMode & 4)
+            {
                 AdtMessageBox(fmt_load_pc, TotalIO, filename);
             }
             PClseek(fd, 0, 0);
-            if (MemoryLoadAddress == 0) {
+            if (MemoryLoadAddress == 0)
+            {
                 buff = (u_long *)valloc(size);
-            } else {
+            }
+            else
+            {
                 buff = MemoryLoadAddress;
                 MemoryLoadAddress = 0;
             }

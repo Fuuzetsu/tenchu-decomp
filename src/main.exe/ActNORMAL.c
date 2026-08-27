@@ -154,22 +154,22 @@ common_action:
             goto command_4;
         return;
 
-command_1:
+    command_1:
         motID = 0x202;
         motMODE = command;
         return;
 
-command_2:
+    command_2:
         motID = 0x203;
         motMODE = 1;
         return;
 
-command_3:
+    command_3:
         motID = 0x205;
         motMODE = 1;
         return;
 
-command_0:
+    command_0:
     {
         u16 trig;
 
@@ -210,11 +210,11 @@ command_0:
             motMODE = 1;
             return;
 
-item_sound:
+        item_sound:
             SoundEx(Me_MOTION_C->locate, 0xc);
             return;
 
-item_default:
+        item_default:
             ReqItemDefault(Me_MOTION_C,
                            SelectedItem);
             return;
@@ -245,7 +245,7 @@ item_default:
         return;
     }
 
-command_4:
+    command_4:
         motID = 0x204;
         motMODE = 1;
         return;

@@ -32,11 +32,13 @@ void clamp_shop_stock_(TLinkInfo *ps)
 {
     int i;
 
-    for (i = 0; i < 0x13; i++) {
+    for (i = 0; i < 0x13; i++)
+    {
         int n = SHOP_ITEM_DEFAULTS[i].itemIndex + ps->CharType * 0x20;
         int mx = SHOP_ITEM_DEFAULTS[i].maxStock;
 
-        if (ps->gItem[n] != 0xFE && mx < ps->gItem[n]) {
+        if (ps->gItem[n] != 0xFE && mx < ps->gItem[n])
+        {
             ps->gItem[n] = mx;
         }
     }

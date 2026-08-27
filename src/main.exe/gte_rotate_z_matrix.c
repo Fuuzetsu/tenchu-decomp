@@ -12,7 +12,8 @@ void gte_rotate_z_matrix(MATRIX *m, int angle)
     cosine = rcos(angle / 360);
     sine = rsin(angle / 360);
 
-    if (angle != 0) {
+    if (angle != 0)
+    {
         rotation.m[0][0] = cosine;
         rotation.m[0][1] = -sine;
         rotation.m[0][2] = 0;

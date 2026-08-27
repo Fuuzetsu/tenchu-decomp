@@ -78,7 +78,7 @@ void debug_menu_player_jump(void)
 
     if (exit_pad & 0x800)
     {
-move_player:
+    move_player:
         pos.vy = GetAreaMapLevel(GlobalAreaMap,
                                  pos.vx *= 1000,
                                  pos.vy *= 1000,

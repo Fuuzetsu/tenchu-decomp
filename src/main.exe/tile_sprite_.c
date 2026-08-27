@@ -42,7 +42,6 @@
  *    and the untruncated height comparisons reproduce the remaining blocks.
  */
 
-
 void tile_sprite_(Sprite3D *g, u16 dir)
 {
     GsSPRITE *sp;
@@ -62,18 +61,21 @@ void tile_sprite_(Sprite3D *g, u16 dir)
     g->sprite.attribute = flags | (0 < signedDir ? 0x60000000 : 0x50000000);
     sp = &g->sprite;
     shade = __builtin_abs((s32)signedDir);
-        sp->b = (u8)shade;
-        sp->g = (u8)shade;
-        sp->r = (u8)shade;
+    sp->b = (u8)shade;
+    sp->g = (u8)shade;
+    sp->r = (u8)shade;
     initial_h = sp->h;
     sp->y = -height;
-    if (-height <= height + initial_h) {
-        do {
+    if (-height <= height + initial_h)
+    {
+        do
+        {
             sp->x = -width;
-            while (sp->x <= width) {
-                    GsSortSprite(sp, OTablePt, 1);
-                    sp->x = sp->x + sp->w;
-                }
+            while (sp->x <= width)
+            {
+                GsSortSprite(sp, OTablePt, 1);
+                sp->x = sp->x + sp->w;
+            }
             sp->y = sp->y + sp->h;
             h = sp->h;
         } while (sp->y <= height + h);

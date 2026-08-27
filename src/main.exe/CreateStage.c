@@ -66,7 +66,7 @@ extern u8 *TITLE_SPRITES_PTRS[4];
 extern u8 CHOSEN_LANGUAGE;
 extern volatile u8 STAGE_LAYOUT_NUMBER;
 extern char fmt_illigal_stage_id[]; /* illigal stage id %d */
-extern char path_stage_con[]; /* STAGE.CON */
+extern char path_stage_con[];       /* STAGE.CON */
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void DestroyTraceLine(TraceLine *trace);
@@ -192,11 +192,13 @@ void CreateStage(int StageNo, int CharType)
     py = StageConfig[StageNo].py;
     pz = StageConfig[StageNo].pz;
     ViewInfo.vpx = px;
-    do {
-      ViewInfo.vpy = py - 10000;
+    do
+    {
+        ViewInfo.vpy = py - 10000;
     } while (0);
-    do {
-      ViewInfo.vpz = pz;
+    do
+    {
+        ViewInfo.vpz = pz;
     } while (0);
     ViewInfo.vrx = px;
     ViewInfo.vry = py;

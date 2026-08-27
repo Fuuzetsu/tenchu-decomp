@@ -145,7 +145,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
             param->vy = -abs(param->vy) / 2;
             return;
         }
-bounce:
+    bounce:
         param->vy = abs(param->vy) / 2 + (rand() % 25 + 25);
         param->status = KORO_WALL;
         return;

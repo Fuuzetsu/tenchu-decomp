@@ -67,7 +67,7 @@ u_long *GetArcData(int index)
 
     if (ArcData == 0)
     {
-        ArcData = (ArcFile *) FileRead(path_image_models_arc);
+        ArcData = (ArcFile *)FileRead(path_image_models_arc);
     }
     arc = ArcData;
     if (arc->loaded == 0)
@@ -78,7 +78,7 @@ u_long *GetArcData(int index)
             do
             {
                 t = arc->entry[i] + 4;
-                arc->entry[i] = (s32) arc + t;
+                arc->entry[i] = (s32)arc + t;
                 i++;
             } while (i < arc->count);
         }
@@ -89,5 +89,5 @@ u_long *GetArcData(int index)
         AdtMessageBox(fmt_bad_archive_index, index);
         return 0;
     }
-    return (u_long *) arc->entry[index];
+    return (u_long *)arc->entry[index];
 }

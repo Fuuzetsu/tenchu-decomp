@@ -78,44 +78,44 @@ enum TMiscMessage
 struct tag_TMisc
 {
     void (*proc)(TMisc *, TMiscMessage); /* 0x00 */
-    s32 x;                          /* 0x04 */
-    s32 y;                          /* 0x08 */
-    s32 z;                          /* 0x0C */
-    s32 count;                      /* 0x10 */
-    u8 pause;                       /* 0x14 */
-    u8 mode;                        /* 0x15 */
+    s32 x;                               /* 0x04 */
+    s32 y;                               /* 0x08 */
+    s32 z;                               /* 0x0C */
+    s32 count;                           /* 0x10 */
+    u8 pause;                            /* 0x14 */
+    u8 mode;                             /* 0x15 */
     union
     {
         struct
         {
-            s32 a;                  /* 0x0 */
-            s32 b;                  /* 0x4 */
-            s32 c;                  /* 0x8 */
+            s32 a; /* 0x0 */
+            s32 b; /* 0x4 */
+            s32 c; /* 0x8 */
         } init;
         TDoor door;
         TPitfall pitfall;
         TSnowfall snowfall;
         TSprite sprite;
-    } param;                        /* 0x18 */
-};                                  /* 0x24 */
+    } param; /* 0x18 */
+}; /* 0x24 */
 
 typedef struct
 {
     ModelType *Model[2]; /* 0x0 */
     s16 HitSize;         /* 0x8 */
-} DoorDataType;            /* 0xC, MISC__183fake */
+} DoorDataType;          /* 0xC, MISC__183fake */
 
 typedef struct
 {
     ModelType *Model[2]; /* 0x0 */
     s16 HitSize;         /* 0x8 */
-} PitfallDataType;         /* 0xC, MISC__184fake */
+} PitfallDataType;       /* 0xC, MISC__184fake */
 
 typedef struct
 {
     Sprite3D *spr; /* 0x0 */
     s32 scale;     /* 0x4 */
-} SpriteDataType;           /* 0x8, MISC__185fake */
+} SpriteDataType;  /* 0x8, MISC__185fake */
 
 extern TMisc misc[MaxMisc];
 extern DoorDataType DoorData[11];

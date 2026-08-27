@@ -35,7 +35,8 @@ void apply_purchases_(void)
 {
     s16 i;
 
-    for (i = 0; i < 0x14; i++) {
+    for (i = 0; i < 0x14; i++)
+    {
         CamState.Owner->item[i] = PSTATE->selItem[i];
     }
 }

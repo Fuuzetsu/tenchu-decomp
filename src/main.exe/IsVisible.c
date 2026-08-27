@@ -84,8 +84,15 @@ extern s32 abs(s32 x);
 
 int IsVisible(s32 x, s32 y, s32 z, s32 s)
 {
-    enum { SXW = 160, SYW = 120 };
-    enum { NEAR = 150 };
+    enum
+    {
+        SXW = 160,
+        SYW = 120
+    };
+    enum
+    {
+        NEAR = 150
+    };
     s32 *view;
     s32 *scratch;
     s32 dx, dy, dz;

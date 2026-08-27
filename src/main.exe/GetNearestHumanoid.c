@@ -61,7 +61,6 @@
  * abs input/output in v0.
  */
 
-
 Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
 {
     Humanoid *cur;

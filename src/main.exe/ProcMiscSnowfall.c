@@ -92,14 +92,14 @@ void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
     return;
 
 do_create:
-    {
-        s32 w;
+{
+    s32 w;
 
-        w = ((volatile TSnowfall *)&m->param.snowfall)->w;
-        h = ((volatile TSnowfall *)&m->param.snowfall)->h;
-        m->mode = 0;
-        param->h = h;
-    }
+    w = ((volatile TSnowfall *)&m->param.snowfall)->w;
+    h = ((volatile TSnowfall *)&m->param.snowfall)->h;
+    m->mode = 0;
+    param->h = h;
+}
     return;
 
 do_tick:

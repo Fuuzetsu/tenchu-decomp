@@ -66,19 +66,25 @@ void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
     MotionElementType *next;
 
     key = spc->key1;
-    if (key->time < cnt) {
-        do {
+    if (key->time < cnt)
+    {
+        do
+        {
             next = key + 1;
             spc->key1 = next;
             key = next;
         } while (next->time < cnt);
         spc->key0 = next - 1;
-    } else {
+    }
+    else
+    {
         key = spc->key0;
-        if (key->time <= cnt) {
+        if (key->time <= cnt)
+        {
             goto skip;
         }
-        do {
+        do
+        {
             next = key - 1;
             spc->key0 = next;
             key = next;
@@ -88,8 +94,9 @@ void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
     UpdateSplineControl(spc);
 skip:
     SplineFrac = (s16)(((cnt - spc->key0->time) * 0x20) /
-                      (spc->key1->time - spc->key0->time));
-    if ((s32)SplineFracOld != (s32)SplineFrac) {
+                       (spc->key1->time - spc->key0->time));
+    if ((s32)SplineFracOld != (s32)SplineFrac)
+    {
         SplineFracOld = SplineFrac;
         SplineRow = (s32)(SplineTable + SplineFrac * 8);
     }

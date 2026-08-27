@@ -112,13 +112,15 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
 
     work = wp;
     prim = &work->gt3;
-    if (count != 0) {
+    if (count != 0)
+    {
         codeAddr = &work->gt3.r0;
         codeVal = 0x34;
         sz0Ptr = (u_long *)&work->sz[0];
         sz1Ptr = (u_long *)&work->sz[1];
         record = (TMD_P_TNG3 *)primitive;
-        do {
+        do
+        {
             idx0 = record->v0;
             idx1 = record->v1;
             idx2 = record->v2;
@@ -132,77 +134,104 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
             *(s32 *)&prim->r0 = *(s32 *)&record->r0;
             codeAddr[3] = codeVal;
             gte_stflg((u_long *)&work->flag);
-            if (work->flag < 0) goto next;
+            if (work->flag < 0)
+                goto next;
 
             gte_nclip();
             *(s32 *)&prim->r1 = *(s32 *)&record->r1;
             *(s32 *)&prim->r2 = *(s32 *)&record->r2;
             gte_stopz((u_long *)&work->opz);
-            if (work->opz <= 0) goto next;
+            if (work->opz <= 0)
+                goto next;
 
             gte_stsxy3_gt3(prim);
 
             lo = prim->x0;
             b = prim->x1;
-            if (b < lo) {
+            if (b < lo)
+            {
                 hi = lo;
                 lo = b;
-            } else {
+            }
+            else
+            {
                 hi = b;
             }
             c = prim->x2;
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (hi < c) {
+            }
+            else if (hi < c)
+            {
                 hi = c;
             }
-            if (hi < work->clipx0) goto next;
-            if (work->clipx1 < lo) goto next;
+            if (hi < work->clipx0)
+                goto next;
+            if (work->clipx1 < lo)
+                goto next;
 
             lo = prim->y0;
             b = prim->y1;
-            if (b < lo) {
+            if (b < lo)
+            {
                 hi = lo;
                 lo = b;
-            } else {
+            }
+            else
+            {
                 hi = b;
             }
             c = prim->y2;
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (hi < c) {
+            }
+            else if (hi < c)
+            {
                 hi = c;
             }
-            if (hi < work->clipy0) goto next;
-            if (work->clipy1 < lo) goto next;
+            if (hi < work->clipy0)
+                goto next;
+            if (work->clipy1 < lo)
+                goto next;
 
             gte_stsz3(sz0Ptr, sz1Ptr, (u_long *)&work->sz[2]);
             lo = work->sz[0];
             b = work->sz[1];
-            if (b < lo) {
+            if (b < lo)
+            {
                 otz = lo;
                 lo = b;
-            } else {
+            }
+            else
+            {
                 otz = b;
             }
             c = work->sz[2];
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (otz < c) {
+            }
+            else if (otz < c)
+            {
                 otz = c;
             }
             work->otz = otz / 4;
-            if (work->farz < lo) goto next;
+            if (work->farz < lo)
+                goto next;
 
             z1 = work->fogz;
-            if (z1 < otz) {
+            if (z1 < otz)
+            {
                 rgbPtr = (u_long *)&prim->r0;
                 z2 = work->sz[0];
                 gte_ldrgb(rgbPtr);
                 gte_lddp(z2 - z1);
                 gte_dpcs();
                 z2 = z1 < z2;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
 
@@ -213,7 +242,8 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
 
@@ -224,7 +254,8 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
             }

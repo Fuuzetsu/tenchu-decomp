@@ -27,8 +27,8 @@
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
-extern char fmt_arc[]; /* %s%s%c.Arc */
-extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
+extern char fmt_arc[];                    /* %s%s%c.Arc */
+extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 extern char *GOV_RESOURCE_PREFIX_PTRS[];
 extern char *GOV_ARCHIVE_PTRS[];
 
@@ -97,7 +97,8 @@ void start_demo_(void)
 
     i = 0;
     persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    do {
+    do
+    {
         chr_offset = CHOSEN_CHARACTER * 0x20;
         persistent[0x27 + i] = persistent[(i + chr_offset) + 0x40c];
         i++;
@@ -208,8 +209,10 @@ void start_demo_(void)
             shade -= 2;
             if (shade <= 0)
             {
-                do {
-                    do {
+                do
+                {
+                    do
+                    {
                         state = 2;
                     } while (0);
                 } while (0);
@@ -308,13 +311,15 @@ void start_demo_(void)
             GsSortSprite(&gov_prompt, OTablePt, 0x50);
             if ((new_press & 0x20) != 0)
             {
-                do {
+                do
+                {
                     state = 4;
                 } while (0);
             }
             if ((new_press & 0x800) != 0 || GameClock >= 0xa8c)
             {
-                do {
+                do
+                {
                     state = 5;
                 } while (0);
             }

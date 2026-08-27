@@ -57,7 +57,8 @@ void AttackGunControl(s16 length, s16 frm)
 {
     PARAM_ITEM_LAUNCH item;
 
-    if (dtM->count == frm) {
+    if (dtM->count == frm)
+    {
         bow_shoot_logic(ITEM_GUN, GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, length, -100));
         Sound(Me_MOTION_C, 2);
     }

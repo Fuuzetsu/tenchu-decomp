@@ -175,7 +175,7 @@ void ActSWIM(void)
         MoveHumanoid(Me_MOTION_C, speed, 0);
         goto common_action;
 
-set_swim_idle:
+    set_swim_idle:
         motID = MOT_SWIM;
         motMODE = 1;
         goto common_action;
@@ -231,75 +231,75 @@ set_swim_idle:
     }
 
 common_action:
-    {
-        Humanoid *human;
+{
+    Humanoid *human;
 
-        human = Me_MOTION_C;
-        if ((human->pad.trig & 0x10) == 0)
-            return;
-        if (SelectedItem != 0)
-            return;
-        dtM->mask = -2;
-
-        {
-            ModelArchiveType *model;
-            s16 last;
-            s16 i;
-
-            model = human->model;
-            if (0xc < model->n)
-                last = 0xc;
-            else
-                last = model->n - 1;
-            i = 7;
-            while (i <= last)
-            {
-                u16 *attribute;
-                int attr;
-
-                attribute = (u16 *)&model->object[i++]->attribute;
-                attr = *attribute;
-                attr = attr & ~1;
-                *attribute = attr;
-            }
-            *(u16 *)&model->object[0]->attribute &= 0xfffe;
-        }
-
-        switch ((short)(SelectedItem + 1))
-        {
-        case 2:
-            motID = MOT_SYURI;
-            break;
-        case 1:
-            motID = MOT_KAGI;
-            break;
-        case 3:
-            motID = MOT_ITEM;
-            break;
-        case 6:
-            motID = 0xf02;
-            break;
-        case 5:
-            motID = 0xf02;
-            break;
-        case 7:
-            motID = 0xf03;
-            break;
-        case 0:
-        case 11:
-            goto item_sound;
-        default:
-            goto item_default;
-        }
-        motMODE = 1;
+    human = Me_MOTION_C;
+    if ((human->pad.trig & 0x10) == 0)
         return;
+    if (SelectedItem != 0)
+        return;
+    dtM->mask = -2;
+
+    {
+        ModelArchiveType *model;
+        s16 last;
+        s16 i;
+
+        model = human->model;
+        if (0xc < model->n)
+            last = 0xc;
+        else
+            last = model->n - 1;
+        i = 7;
+        while (i <= last)
+        {
+            u16 *attribute;
+            int attr;
+
+            attribute = (u16 *)&model->object[i++]->attribute;
+            attr = *attribute;
+            attr = attr & ~1;
+            *attribute = attr;
+        }
+        *(u16 *)&model->object[0]->attribute &= 0xfffe;
+    }
+
+    switch ((short)(SelectedItem + 1))
+    {
+    case 2:
+        motID = MOT_SYURI;
+        break;
+    case 1:
+        motID = MOT_KAGI;
+        break;
+    case 3:
+        motID = MOT_ITEM;
+        break;
+    case 6:
+        motID = 0xf02;
+        break;
+    case 5:
+        motID = 0xf02;
+        break;
+    case 7:
+        motID = 0xf03;
+        break;
+    case 0:
+    case 11:
+        goto item_sound;
+    default:
+        goto item_default;
+    }
+    motMODE = 1;
+    return;
 
 item_sound:
-        SoundEx(Me_MOTION_C->locate, 0xc);
-        return;
+    SoundEx(Me_MOTION_C->locate, 0xc);
+    return;
 
 item_default:
-        ReqItemDefault(Me_MOTION_C, SelectedItem);
-        return;
-    }
+    ReqItemDefault(Me_MOTION_C, SelectedItem);
+    return;
+}
 }

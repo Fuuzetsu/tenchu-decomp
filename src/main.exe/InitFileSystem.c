@@ -74,7 +74,7 @@ extern void vinit(void *adr, u32 size);
 extern void *vcalloc(u32 size, u8 c);
 extern int AfsOpenVolume(TAFS *handle, char *path);
 extern u8 str_acqurememorydisk[16]; /* "ACQUREMEMORYDISK" */
-extern char path_tenchu_data[]; /* TENCHU\\DATA */
+extern char path_tenchu_data[];     /* TENCHU\\DATA */
 
 void InitFileSystem(int mode)
 {
@@ -83,7 +83,8 @@ void InitFileSystem(int mode)
     ReadMode = mode;
     mode = mode & 3;
     TotalIO = 0;
-    switch (mode) {
+    switch (mode)
+    {
     case 0:
         PCinit();
         break;
@@ -91,13 +92,15 @@ void InitFileSystem(int mode)
         PCinit();
         if (strncmp((char *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
                     (char *)str_acqurememorydisk,
-                    TENCHU_PC_MEMORY_HANDSHAKE_SIZE) != 0) {
+                    TENCHU_PC_MEMORY_HANDSHAKE_SIZE) != 0)
+        {
             vinit(0, 0);
             __builtin_memcpy((void *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
                              str_acqurememorydisk, sizeof(str_acqurememorydisk));
             ReadMode = ReadMode | 9;
         }
-        if (ReadMode & 9) {
+        if (ReadMode & 9)
+        {
             saved_pool = virtual_memory_pool;
             vinit((void *)TENCHU_PC_MEMORY_POOL_ADDRESS,
                   TENCHU_PC_MEMORY_POOL_SIZE);

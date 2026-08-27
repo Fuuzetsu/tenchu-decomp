@@ -34,7 +34,6 @@
  *    and permute.py carry the mirrored per-function settings.
  */
 
-
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

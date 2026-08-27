@@ -95,7 +95,6 @@
  *    a NEW .rodata this linker script has no slot for — see AfsInit.c).
  */
 
-
 extern char msg_no_area_data[]; /* NO AREA DATA */
 
 AreaMapType *LoadAreaMap(AreaMapType *adr)

@@ -95,7 +95,10 @@ extern void *memset(void *dst, int value, u32 size);
 
 void DrawBlood(TEffectSlot *ef)
 {
-    enum { R = 80 };
+    enum
+    {
+        R = 80
+    };
     BloodType *blood;
     GsSPRITE *spr;
     GsSPRITE *sprt;
@@ -112,7 +115,8 @@ void DrawBlood(TEffectSlot *ef)
     state = blood->mode;
     switch (state)
     {
-    case 3: {
+    case 3:
+    {
         s16 fade;
         s32 color_shifted;
         s16 sc;
@@ -200,7 +204,8 @@ void DrawBlood(TEffectSlot *ef)
         return;
     }
 
-    case 2: {
+    case 2:
+    {
         u16 oldtime;
 
         oldtime = blood->time;
@@ -213,7 +218,8 @@ void DrawBlood(TEffectSlot *ef)
         goto draw;
     }
 
-    case 1: {
+    case 1:
+    {
         s32 scale_rnd;
         s32 time_rnd;
         u16 oldtime;
@@ -231,7 +237,8 @@ void DrawBlood(TEffectSlot *ef)
         goto draw;
     }
 
-    default: {
+    default:
+    {
         long x;
         long y;
         long z;
@@ -341,7 +348,7 @@ void DrawBlood(TEffectSlot *ef)
     }
 
 draw:
-    {
+{
     s16 sc;
     s32 scale;
     s32 otz;
@@ -382,7 +389,7 @@ draw:
         pri = 0;
     }
     GsSortSprite(spr, OTablePt, (u16)pri);
-    }
+}
 }
 
 // triage: HARD — 540 insns, mul/div, 8 callees, ~0.08 to ProcItemKusuri

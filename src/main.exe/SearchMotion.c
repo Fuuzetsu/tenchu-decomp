@@ -48,25 +48,34 @@ MotionDataType *SearchMotion(short id)
     short i;
 
     mpd = CommonMotion;
-    if (mpd != 0) {
-        for (i = 0; i < mpd->n; i++) {
-            if (mpd->motion[i]->id == id) {
+    if (mpd != 0)
+    {
+        for (i = 0; i < mpd->n; i++)
+        {
+            if (mpd->motion[i]->id == id)
+            {
                 return mpd->motion[i];
             }
         }
     }
     mpd = PlayerMotion;
-    if (mpd != 0) {
-        for (i = 0; i < mpd->n; i++) {
-            if (mpd->motion[i]->id == id) {
+    if (mpd != 0)
+    {
+        for (i = 0; i < mpd->n; i++)
+        {
+            if (mpd->motion[i]->id == id)
+            {
                 return mpd->motion[i];
             }
         }
     }
     mpd = StageMotion;
-    if (mpd != 0) {
-        for (i = 0; i < mpd->n; i++) {
-            if (mpd->motion[i]->id == id) {
+    if (mpd != 0)
+    {
+        for (i = 0; i < mpd->n; i++)
+        {
+            if (mpd->motion[i]->id == id)
+            {
                 return mpd->motion[i];
             }
         }

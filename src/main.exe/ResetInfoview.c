@@ -52,10 +52,12 @@ void ResetInfoview(int stage)
     u_long *adr;
     GsIMAGE image;
 
-    for (i = nLifeBar - 1; i >= 0; i--) {
+    for (i = nLifeBar - 1; i >= 0; i--)
+    {
         LifeBar[i].count = 0;
     }
-    if (stage >= 0) {
+    if (stage >= 0)
+    {
         adr = PathFileRead(ImagePath, path_chizu_tim);
         GetTIMInfo(adr, &image);
         LoadTIMAndFree(adr);

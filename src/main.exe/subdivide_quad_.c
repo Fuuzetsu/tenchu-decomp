@@ -171,21 +171,28 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     ((work->maxx - work->minx < 0xff) &&
                      (work->maxy - work->miny < 0x7f)))
                 {
-                    do { do { do {
-                    prim = (int)work->out;
-                    *(u32 *)(prim + 8) = *(u32 *)&fp->vp[0]->sxy;
-                    *(u32 *)(prim + 0x14) = *(u32 *)&fp->vp[1]->sxy;
-                    *(u32 *)(prim + 0x20) = *(u32 *)&fp->vp[2]->sxy;
-                    *(u32 *)(prim + 0x2c) = *(u32 *)&fp->vp[3]->sxy;
-                    *(u32 *)(prim + 0xc) = *(u32 *)&fp->vp[0]->tu;
-                    *(u32 *)(prim + 0x18) = *(u32 *)&fp->vp[1]->tu;
-                    *(u32 *)(prim + 0x24) = *(u32 *)&fp->vp[2]->tu;
-                    *(u32 *)(prim + 0x30) = *(u32 *)&fp->vp[3]->tu;
-                    *(u32 *)(prim + 4) = *(u32 *)&fp->vp[0]->col;
-                    *(u32 *)(prim + 0x10) = *(u32 *)&fp->vp[1]->col;
-                    *(u32 *)(prim + 0x1c) = *(u32 *)&fp->vp[2]->col;
-                    *(u32 *)(prim + 0x28) = *(u32 *)&fp->vp[3]->col;
-                    } while (0); } while (0); } while (0);
+                    do
+                    {
+                        do
+                        {
+                            do
+                            {
+                                prim = (int)work->out;
+                                *(u32 *)(prim + 8) = *(u32 *)&fp->vp[0]->sxy;
+                                *(u32 *)(prim + 0x14) = *(u32 *)&fp->vp[1]->sxy;
+                                *(u32 *)(prim + 0x20) = *(u32 *)&fp->vp[2]->sxy;
+                                *(u32 *)(prim + 0x2c) = *(u32 *)&fp->vp[3]->sxy;
+                                *(u32 *)(prim + 0xc) = *(u32 *)&fp->vp[0]->tu;
+                                *(u32 *)(prim + 0x18) = *(u32 *)&fp->vp[1]->tu;
+                                *(u32 *)(prim + 0x24) = *(u32 *)&fp->vp[2]->tu;
+                                *(u32 *)(prim + 0x30) = *(u32 *)&fp->vp[3]->tu;
+                                *(u32 *)(prim + 4) = *(u32 *)&fp->vp[0]->col;
+                                *(u32 *)(prim + 0x10) = *(u32 *)&fp->vp[1]->col;
+                                *(u32 *)(prim + 0x1c) = *(u32 *)&fp->vp[2]->col;
+                                *(u32 *)(prim + 0x28) = *(u32 *)&fp->vp[3]->col;
+                            } while (0);
+                        } while (0);
+                    } while (0);
                     *(u16 *)(prim + 0xe) = proto->clut;
                     *(u16 *)(prim + 0x1a) = proto->tpage;
                     *(u_long *)work->out = proto->tag;
@@ -293,9 +300,9 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                             dz = dz + 3;
                         }
                         work->zmax = dz >> 2;
-                        pk[3] = (u32)*(u16 *)&va->tu;
-                        pk[6] = (u32)*(u16 *)&vb->tu;
-                        pk[9] = (u32)*(u16 *)&m01->tu;
+                        pk[3] = (u32) * (u16 *)&va->tu;
+                        pk[6] = (u32) * (u16 *)&vb->tu;
+                        pk[9] = (u32) * (u16 *)&m01->tu;
                         pk[1] = *(u32 *)&va->col;
                         pk[4] = *(u32 *)&vb->col;
                         pk[7] = *(u32 *)&m01->col;
@@ -336,9 +343,9 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                             dz = dz + 3;
                         }
                         work->zmax = dz >> 2;
-                        pk[3] = (u32)*(u16 *)&va->tu;
-                        pk[6] = (u32)*(u16 *)&vb->tu;
-                        pk[9] = (u32)*(u16 *)&m02->tu;
+                        pk[3] = (u32) * (u16 *)&va->tu;
+                        pk[6] = (u32) * (u16 *)&vb->tu;
+                        pk[9] = (u32) * (u16 *)&m02->tu;
                         pk[1] = *(u32 *)&va->col;
                         pk[4] = *(u32 *)&vb->col;
                         pk[7] = *(u32 *)&m02->col;
@@ -378,9 +385,9 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                             dz = dz + 3;
                         }
                         work->zmax = dz >> 2;
-                        pk[3] = (u32)*(u16 *)&va->tu;
-                        pk[6] = (u32)*(u16 *)&vb->tu;
-                        pk[9] = (u32)*(u16 *)&m23->tu;
+                        pk[3] = (u32) * (u16 *)&va->tu;
+                        pk[6] = (u32) * (u16 *)&vb->tu;
+                        pk[9] = (u32) * (u16 *)&m23->tu;
                         pk[1] = *(u32 *)&va->col;
                         pk[4] = *(u32 *)&vb->col;
                         pk[7] = *(u32 *)&m23->col;
@@ -420,9 +427,9 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                             dz = dz + 3;
                         }
                         work->zmax = dz >> 2;
-                        pk[3] = (u32)*(u16 *)&vb->tu;
-                        pk[6] = (u32)*(u16 *)&va->tu;
-                        pk[9] = (u32)*(u16 *)&m31->tu;
+                        pk[3] = (u32) * (u16 *)&vb->tu;
+                        pk[6] = (u32) * (u16 *)&va->tu;
+                        pk[9] = (u32) * (u16 *)&m31->tu;
                         pk[1] = *(u32 *)&vb->col;
                         pk[4] = *(u32 *)&va->col;
                         pk[7] = *(u32 *)&m31->col;

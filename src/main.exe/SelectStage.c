@@ -52,11 +52,11 @@
  *    piece; this single C body matches the complete 420-byte carve.
  */
 
-extern char fmt_index_name[]; /* %2d  %s */
-extern u8 str_back[]; /* back */
+extern char fmt_index_name[];      /* %2d  %s */
+extern u8 str_back[];              /* back */
 extern char str_language_select[]; /* language select */
-extern char str_player_select[]; /* player select */
-extern char str_stage_select[]; /* stage select */
+extern char str_player_select[];   /* player select */
+extern char str_stage_select[];    /* stage select */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -73,8 +73,10 @@ void SelectStage(TLinkInfo *ps)
     __builtin_memcpy(language, DEBUG_MENU_LANGUAGE_CHOICES, sizeof(language));
     __builtin_memcpy(player, sel_player, sizeof(player));
     i = 0;
-    while (1) {
-        if (i >= 11) {
+    while (1)
+    {
+        if (i >= 11)
+        {
             break;
         }
         uid = StageConfig[i].uid;
@@ -87,7 +89,8 @@ void SelectStage(TLinkInfo *ps)
     StageSelect[i].value = 11;
     StageSelect[i + 1].name = NULL;
 
-    do {
+    do
+    {
         ps->language = AdtSelect(str_language_select, language, 0);
         ps->CharType = AdtSelect(str_player_select, player, 0);
         ps->StageNo = AdtSelect(str_stage_select, StageSelect, 0);

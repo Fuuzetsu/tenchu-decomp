@@ -42,13 +42,15 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
 
     work = wp;
     prim = &work->gt4;
-    if (count != 0) {
+    if (count != 0)
+    {
         flagAddr = (u_long *)&work->flag;
         codeAddr = &work->gt4.r0;
         codeVal = 0x3C;
         sz0Ptr = (u_long *)&work->sz[0];
         record = (TMD_P_TNF4 *)primitive;
-        do {
+        do
+        {
             idx0 = record->v0;
             idx1 = record->v1;
             idx2 = record->v2;
@@ -60,13 +62,15 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
             *(s32 *)&prim->u1 = *(s32 *)&record->tu1;
             *(s32 *)&prim->u2 = *(s32 *)&record->tu2;
             gte_stflg(flagAddr);
-            if (work->flag < 0) goto next;
+            if (work->flag < 0)
+                goto next;
 
             gte_nclip();
             *(s32 *)&prim->r0 = *(s32 *)&record->r0;
             codeAddr[3] = codeVal;
             gte_stopz((u_long *)&work->opz);
-            if (work->opz <= 0) goto next;
+            if (work->opz <= 0)
+                goto next;
 
             gte_stsxy3_gt3(prim);
             gte_ldv0((SVECTOR *)(record->v3 * 8 + vertop));
@@ -77,90 +81,125 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
             *(s32 *)&prim->r2 = *(s32 *)&record->r0;
             *(s32 *)&prim->r3 = *(s32 *)&record->r0;
             gte_stflg(flagAddr);
-            if (work->flag < 0) goto next;
+            if (work->flag < 0)
+                goto next;
 
             gte_stsxy((u_long *)&prim->x3);
 
             lo = prim->x0;
             b = prim->x1;
-            if (b < lo) {
+            if (b < lo)
+            {
                 hi = lo;
                 lo = b;
-            } else {
+            }
+            else
+            {
                 hi = b;
             }
             c = prim->x2;
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (hi < c) {
+            }
+            else if (hi < c)
+            {
                 hi = c;
             }
             c = prim->x3;
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (hi < c) {
+            }
+            else if (hi < c)
+            {
                 hi = c;
             }
-            if (hi < work->clipx0) goto next;
-            if (work->clipx1 < lo) goto next;
+            if (hi < work->clipx0)
+                goto next;
+            if (work->clipx1 < lo)
+                goto next;
 
             lo = prim->y0;
             b = prim->y1;
-            if (b < lo) {
+            if (b < lo)
+            {
                 hi = lo;
                 lo = b;
-            } else {
+            }
+            else
+            {
                 hi = b;
             }
             c = prim->y2;
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (hi < c) {
+            }
+            else if (hi < c)
+            {
                 hi = c;
             }
             c = prim->y3;
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (hi < c) {
+            }
+            else if (hi < c)
+            {
                 hi = c;
             }
-            if (hi < work->clipy0) goto next;
-            if (work->clipy1 < lo) goto next;
+            if (hi < work->clipy0)
+                goto next;
+            if (work->clipy1 < lo)
+                goto next;
 
             gte_stsz4(sz0Ptr, (u_long *)&work->sz[1], (u_long *)&work->sz[2],
                       (u_long *)&work->sz[3]);
             lo = work->sz[0];
             b = work->sz[1];
-            if (b < lo) {
+            if (b < lo)
+            {
                 otz = lo;
                 lo = b;
-            } else {
+            }
+            else
+            {
                 otz = b;
             }
             c = work->sz[2];
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (otz < c) {
+            }
+            else if (otz < c)
+            {
                 otz = c;
             }
             c = work->sz[3];
-            if (c < lo) {
+            if (c < lo)
+            {
                 lo = c;
-            } else if (otz < c) {
+            }
+            else if (otz < c)
+            {
                 otz = c;
             }
-            if (work->farz < lo) goto next;
+            if (work->farz < lo)
+                goto next;
 
             work->otz = otz / 4;
             z1 = work->fogz;
-            if (z1 < otz) {
+            if (z1 < otz)
+            {
                 rgbPtr = (u_long *)&prim->r0;
                 z2 = work->sz[0];
                 gte_ldrgb(rgbPtr);
                 gte_lddp(z2 - z1);
                 gte_dpcs();
                 z2 = z1 < z2;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
 
@@ -171,7 +210,8 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
 
@@ -182,7 +222,8 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
 
@@ -193,7 +234,8 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
                 gte_lddp(z1 - z2);
                 gte_dpcs();
                 z2 = z2 < z1;
-                if (z2 != 0) {
+                if (z2 != 0)
+                {
                     gte_strgb(rgbPtr);
                 }
             }

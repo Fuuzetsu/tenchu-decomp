@@ -255,7 +255,7 @@ void ProcItemArrow(TItem *item)
             return;
         }
 
-aim:
+    aim:
         v2.vx = item->locate->locate.coord.t[0];
         v2.vy = item->locate->locate.coord.t[1];
         v2.vz = item->locate->locate.coord.t[2];

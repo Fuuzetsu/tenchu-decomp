@@ -97,7 +97,7 @@ short AttackIndirect(void)
             }
         } while (0);
 
-choose_attack:
+    choose_attack:
         if (Degree >= 301)
         {
             pad = 0x2000;
@@ -116,9 +116,9 @@ choose_attack:
         }
         pad |= 0x80;
 
-status7_value:
+    status7_value:
         status7_result = pad;
-status7_return:
+    status7_return:
         return status7_result;
     }
     if (Me_THINK_C->status == STAT_JUMP)
@@ -160,7 +160,7 @@ status7_return:
         }
         goto action_ready;
 
-close_not_aimed:
+    close_not_aimed:
         pad = 0x1000;
         goto action_ready;
     }

@@ -168,7 +168,7 @@ s16 think_setting_small_rotation_small_steps_(void)
         s32 turnBits;
 
         direction = GetDirection(x_diff, z_diff,
-            Me_THINK_C->rotate->vy);
+                                 Me_THINK_C->rotate->vy);
         absoluteDirection = direction;
         turnBits = 0x2000;
         if (absoluteDirection > 0)
@@ -199,7 +199,7 @@ s16 think_setting_small_rotation_small_steps_(void)
                 self = Me_THINK_C;
                 quotient = 1000 / self->turn;
                 self->pad_hold = quotient |
-                    (degree > 0 ? 0x80000000 : 0x20000000);
+                                 (degree > 0 ? 0x80000000 : 0x20000000);
             }
         }
 

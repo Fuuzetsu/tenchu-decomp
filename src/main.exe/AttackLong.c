@@ -95,7 +95,7 @@ short AttackLong(void)
             }
         } while (0);
 
-choose_status7:
+    choose_status7:
         if (Degree >= 301)
         {
             pad = 0x2000;
@@ -114,9 +114,9 @@ choose_status7:
         }
         pad |= 0x80;
 
-status7_value:
+    status7_value:
         status7_result = pad;
-status7_return:
+    status7_return:
         return status7_result;
     }
 

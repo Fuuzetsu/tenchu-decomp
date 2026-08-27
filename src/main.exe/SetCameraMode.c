@@ -96,10 +96,12 @@ extern s32 scratch_trans_1f800094[2];
 
 extern short camera_terrain_pitch_(Humanoid *h);
 
-
 void SetCameraMode(TCameraMode mode)
 {
-    enum { MaxCriticalValiation = 3 };
+    enum
+    {
+        MaxCriticalValiation = 3
+    };
     VECTOR va;
     VECTOR vb;
     VECTOR vc;
@@ -118,7 +120,8 @@ void SetCameraMode(TCameraMode mode)
     s32 i;
     s32 hitf;
 
-    switch (mode) {
+    switch (mode)
+    {
     case CMODE_CRITICAL_HIT:
         n = rand();
         CamState.OldMode = n % (MaxCriticalValiation + 1);
@@ -127,13 +130,16 @@ void SetCameraMode(TCameraMode mode)
         tbl = CamPosCriticalHit;
         fp = &flag;
     loop:
-        if (!(i < MaxCriticalValiation + 1)) goto giveup;
+        if (!(i < MaxCriticalValiation + 1))
+            goto giveup;
         cs->OldMode = cs->OldMode + 1;
-        if (cs->OldMode > MaxCriticalValiation) cs->OldMode = 0;
+        if (cs->OldMode > MaxCriticalValiation)
+            cs->OldMode = 0;
         camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);
         pos = cs->Owner->locate;
         rot = cs->Owner->rotate;
-        do {
+        do
+        {
             scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
             scratch_rot_1f800040.vy = rot->vy;
             scratch_rot_1f800040.vz = rot->vz;
@@ -145,7 +151,8 @@ void SetCameraMode(TCameraMode mode)
         scratch_trans_1f800094[2] = pos->vz;
         SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
         SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
-        do {
+        do
+        {
             RotTrans(&camera->r1, &va, fp);
             RotTrans(&camera->r2, &vb, fp);
             RotTrans(&camera->p1, pv = &vc, fp);
@@ -154,7 +161,8 @@ void SetCameraMode(TCameraMode mode)
         pv = 0;
         hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
         i++;
-        if (hitf) goto hit;
+        if (hitf)
+            goto hit;
         goto loop;
     giveup:
         CamState.OldMode = 0;
@@ -167,7 +175,8 @@ void SetCameraMode(TCameraMode mode)
         break;
     case CMODE_DIRECTION:
     case CMODE_SIGHT:
-        if (CamState.Mode != CMODE_DIRECTION && CamState.Mode != CMODE_LOCK) {
+        if (CamState.Mode != CMODE_DIRECTION && CamState.Mode != CMODE_LOCK)
+        {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rx = rx - CamState.Owner->model->rotate.vx;
             ry = ry - CamState.Owner->model->rotate.vy;
@@ -180,7 +189,8 @@ void SetCameraMode(TCameraMode mode)
         CamState.OldMode = mode;
         break;
     case CMODE_NORMAL:
-        if (CamState.Owner->pad.data & 4) {
+        if (CamState.Owner->pad.data & 4)
+        {
             SetCameraMode(CMODE_DIRECTION);
             return;
         }

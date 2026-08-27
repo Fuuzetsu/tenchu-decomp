@@ -94,8 +94,7 @@ loop:
                         mode = item->collision.mode;
                         DeleteConflict(item->locate);
                         idx = InsertConflict(item->locate);
-                        object = (ConflictObjectType *)
-                            ((s32)idx * sizeof(*object) + (u32)conflicts);
+                        object = (ConflictObjectType *)((s32)idx * sizeof(*object) + (u32)conflicts);
                         object->offset.vx = 0;
                         object->offset.vz = 0;
                         object->offset.vy = ofsY;
@@ -121,8 +120,7 @@ loop:
         i++;
         goto loop;
     }
-done:
-    ;
+done:;
 }
 
 // Ghidra decompilation (reference — turn this into matching C,

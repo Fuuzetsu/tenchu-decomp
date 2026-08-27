@@ -131,7 +131,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
             }
         } while (count < 200);
         ef = &dmy;
-found:
+    found:
         smoke = &ef->param.smoke;
         r = rand();
         smoke->scale = r % 0x2000 + 0x1000;

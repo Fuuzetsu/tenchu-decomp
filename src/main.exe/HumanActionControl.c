@@ -84,7 +84,7 @@
  * `*(u16 *)&motion->mid` cast spelling costs 11 bytes. */
 typedef struct
 {
-    u16 mid;                     /* 0x0 */
+    u16 mid; /* 0x0 */
 } MotionManagerU;
 
 extern Humanoid *Me_MOTION_C;

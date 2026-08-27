@@ -102,7 +102,7 @@ void DrawSplash(TEffectSlot *ef)
                 param->count = 0;
                 param->mode = param->mode + 1;
                 {
-                    VECTOR pos = { param->px, param->py, param->pz };
+                    VECTOR pos = {param->px, param->py, param->pz};
                     SVECTOR direction = svec_y_n20_2[0];
 
                     SetBleedsDir(&pos, &direction, 100, 6, 30, 0x9098A0);

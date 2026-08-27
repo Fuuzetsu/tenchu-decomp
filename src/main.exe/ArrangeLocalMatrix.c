@@ -56,7 +56,6 @@
  *    pass to reproduce ASPSX's guarded `div` sequences.
  */
 
-
 void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
 {
     enum

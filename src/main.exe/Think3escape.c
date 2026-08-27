@@ -108,7 +108,7 @@ s16 Think3escape(void)
             }
             quotient = 1000 / human->turn;
             human->pad_hold = quotient |
-                (degree2 > 0 ? 0x20000000 : 0x80000000);
+                              (degree2 > 0 ? 0x20000000 : 0x80000000);
         }
     }
     return result;

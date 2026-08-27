@@ -310,9 +310,9 @@ common_action:
     }
 }
 
-// 
+//
 // void ActCHASE(void)
-// 
+//
 // {
 //   ushort uVar1;
 //   Humanoid *pHVar2;
@@ -323,7 +323,7 @@ common_action:
 //   MotionDataType *pMVar7;
 //   uint uVar8;
 //   long lVar9;
-//   
+//
 //   iVar5 = (uint)(ushort)Me_MOTION_C->turn << 0x10;
 //   uVar8 = (uint)((iVar5 >> 0x10) - (iVar5 >> 0x1f)) >> 1;
 //   switch((int)(((ushort)dtM->mid - MOT_CHASE) * 0x10000) >> 0x10) {

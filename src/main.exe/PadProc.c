@@ -48,7 +48,6 @@
 extern void ComPad(int port, u8 *rxbuf);
 extern u8 Anakon;
 
-
 static inline void PadProcShock(s32 port, s32 value1, s32 value2)
 {
     TPadPort *p = &PadPort[port >> 4][port & 3];

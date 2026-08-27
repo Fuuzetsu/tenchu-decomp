@@ -106,7 +106,8 @@ short LoadTIMpack(unsigned long *adr)
     short n;
     short i;
 
-    if (adr == 0) {
+    if (adr == 0)
+    {
         SystemOut(msg_no_image_pack_data);
     }
     adr = adr + 1;
@@ -115,21 +116,25 @@ short LoadTIMpack(unsigned long *adr)
     i = 0;
     n = (short)hw;
     p = adr;
-    if (n > 0) {
-        do {
+    if (n > 0)
+    {
+        do
+        {
             GsGetTimInfo((u_long *)((int)p + adr[0] + 4), &tim);
             rect.x = tim.px;
             rect.y = tim.py;
             rect.w = tim.pw;
             rect.h = tim.ph;
             LoadImage(&rect, tim.pixel);
-            if ((tim.pmode >> 3 & 1) != 0) {
+            if ((tim.pmode >> 3 & 1) != 0)
+            {
                 rect.x = tim.cx;
                 rect.y = tim.cy;
                 rect.w = tim.cw;
                 rect.h = tim.ch;
                 LoadImage(&rect, tim.clut);
-                do {
+                do
+                {
                 } while (0);
             }
             i = i + 1;

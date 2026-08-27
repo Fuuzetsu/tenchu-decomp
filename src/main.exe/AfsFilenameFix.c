@@ -27,9 +27,11 @@ void AfsFilenameFix(char *path)
 {
     char *p;
 
-    if (*path != 0) {
+    if (*path != 0)
+    {
         p = path;
-        do {
+        do
+        {
             *p = toupper(*p);
             p++;
         } while (*p != 0);

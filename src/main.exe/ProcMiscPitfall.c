@@ -66,29 +66,29 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
     switch (msg)
     {
     case MM_CREATE:
-        {
-            int type;
-            int t;
+    {
+        int type;
+        int t;
 
-            type = m->param.init.b;
-            t = m->param.init.a;
-            if (type >= 3)
-            {
-                AdtMessageBox(fmt_unknown_pitfall_type, type);
-                type = 0;
-            }
-            m->mode = 0;
-            param->r = 0;
-            param->type = type;
-            param->locate = LoadModel(0);
-            param->locate->locate.coord.t[0] = m->x;
-            param->locate->locate.coord.t[1] = m->y;
-            param->locate->locate.coord.t[2] = m->z;
-            param->locate->rotate.vx = 0;
-            param->locate->rotate.vy = t;
-            param->locate->rotate.vz = 0;
-            UpdateCoordinate(param->locate);
+        type = m->param.init.b;
+        t = m->param.init.a;
+        if (type >= 3)
+        {
+            AdtMessageBox(fmt_unknown_pitfall_type, type);
+            type = 0;
         }
+        m->mode = 0;
+        param->r = 0;
+        param->type = type;
+        param->locate = LoadModel(0);
+        param->locate->locate.coord.t[0] = m->x;
+        param->locate->locate.coord.t[1] = m->y;
+        param->locate->locate.coord.t[2] = m->z;
+        param->locate->rotate.vx = 0;
+        param->locate->rotate.vy = t;
+        param->locate->rotate.vz = 0;
+        UpdateCoordinate(param->locate);
+    }
         return;
 
     case MM_DESTROY:
@@ -101,84 +101,84 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         return;
 
     case MM_RESUME:
-        {
-            int r;
+    {
+        int r;
 
-            w = PitfallData[param->type].HitSize;
-            r = InsertConflict(param->locate);
-            ConflictObject[r].offset.vx = 0;
-            ConflictObject[r].offset.vy = 0;
-            ConflictObject[r].offset.vz = 0;
-            ConflictObject[r].common = (void *)2;
-            ConflictObject[r].size.pad = 8;
-            ConflictObject[r].size.vx = w;
-            ConflictObject[r].size.vy = ConflictObject[r].size.vz = (w / 3) * 2;
-        }
+        w = PitfallData[param->type].HitSize;
+        r = InsertConflict(param->locate);
+        ConflictObject[r].offset.vx = 0;
+        ConflictObject[r].offset.vy = 0;
+        ConflictObject[r].offset.vz = 0;
+        ConflictObject[r].common = (void *)2;
+        ConflictObject[r].size.pad = 8;
+        ConflictObject[r].size.vx = w;
+        ConflictObject[r].size.vy = ConflictObject[r].size.vz = (w / 3) * 2;
+    }
         return;
 
     default:
-        {
-            ModelType *model;
-            ConflictObjectType *conflict;
-            int r;
-            int mode;
+    {
+        ModelType *model;
+        ConflictObjectType *conflict;
+        int r;
+        int mode;
 
-            /* The promoted temporary selects signed slti after the lbu. */
-            mode = m->mode;
-            if (mode != 1)
+        /* The promoted temporary selects signed slti after the lbu. */
+        mode = m->mode;
+        if (mode != 1)
+        {
+            if (mode < 2)
             {
-                if (mode < 2)
+                if (mode == 0)
                 {
-                    if (mode == 0)
+                    if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
                     {
-                        if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
+                        /* Preserve the array base across the call. */
+                        conflict = ConflictObject;
+                        r = GetConflictResult(param->locate, -1);
+                        if (conflict[r].common != (void *)2)
                         {
-                            /* Preserve the array base across the call. */
-                            conflict = ConflictObject;
-                            r = GetConflictResult(param->locate, -1);
-                            if (conflict[r].common != (void *)2)
-                            {
-                                m->mode++;
-                                SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
-                            }
+                            m->mode++;
+                            SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
                         }
                     }
                 }
             }
-            else
+        }
+        else
+        {
+            param->r += 0xaa;
+            if (param->r >= 0x400)
             {
-                param->r += 0xaa;
-                if (param->r >= 0x400)
-                {
-                    param->r = 0x400;
-                    m->mode++;
-                }
-            }
-
-            model = PitfallData[param->type].Model[0];
-            w = PitfallData[param->type].HitSize;
-            if (model != (ModelType *)-1)
-            {
-                model->locate.super = (GsCOORDINATE2 *)param->locate;
-                model->locate.coord.t[0] = -w;
-                model->locate.coord.t[1] = 0;
-                model->locate.coord.t[2] = 0;
-                model->rotate.vz = param->r;
-                UpdateCoordinate(model);
-                DrawModel(model);
-            }
-            model = PitfallData[param->type].Model[1];
-            if (model != (ModelType *)-1)
-            {
-                model->locate.super = (GsCOORDINATE2 *)param->locate;
-                model->locate.coord.t[0] = w;
-                model->locate.coord.t[1] = 0;
-                model->locate.coord.t[2] = 0;
-                model->rotate.vz = -param->r;
-                UpdateCoordinate(model);
-                DrawModel(model);
+                param->r = 0x400;
+                m->mode++;
             }
         }
+
+        model = PitfallData[param->type].Model[0];
+        w = PitfallData[param->type].HitSize;
+        if (model != (ModelType *)-1)
+        {
+            model->locate.super = (GsCOORDINATE2 *)param->locate;
+            model->locate.coord.t[0] = -w;
+            model->locate.coord.t[1] = 0;
+            model->locate.coord.t[2] = 0;
+            model->rotate.vz = param->r;
+            UpdateCoordinate(model);
+            DrawModel(model);
+        }
+        model = PitfallData[param->type].Model[1];
+        if (model != (ModelType *)-1)
+        {
+            model->locate.super = (GsCOORDINATE2 *)param->locate;
+            model->locate.coord.t[0] = w;
+            model->locate.coord.t[1] = 0;
+            model->locate.coord.t[2] = 0;
+            model->rotate.vz = -param->r;
+            UpdateCoordinate(model);
+            DrawModel(model);
+        }
+    }
         return;
     }
 }

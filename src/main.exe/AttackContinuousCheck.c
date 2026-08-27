@@ -61,10 +61,12 @@ s16 AttackContinuousCheck(BattleType *battle)
     ModelType *model;
     s16 mode;
 
-    if (dtM->count < battle->contfrm - 3) {
+    if (dtM->count < battle->contfrm - 3)
+    {
         return 0;
     }
-    if (battle->contfrm + 3 < dtM->count) {
+    if (battle->contfrm + 3 < dtM->count)
+    {
         return 0;
     }
     Me_MOTION_C->pad.time = 0;

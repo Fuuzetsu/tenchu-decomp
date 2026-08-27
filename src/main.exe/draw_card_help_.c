@@ -81,16 +81,16 @@ s32 draw_card_help_(s32 page, s32 pad)
     y = 0;
     text = McardPageText;
     if (*text != 0)
+    {
+        scan = text;
+        do
         {
-            scan = text;
-            do
+            while (*scan++ != 0)
             {
-                while (*scan++ != 0)
-                {
-                }
-                y++;
-            } while (*scan != 0);
-        }
+            }
+            y++;
+        } while (*scan != 0);
+    }
     y = (y * -0x10) / 2;
 
     n = 0;
@@ -125,69 +125,69 @@ s32 draw_card_help_(s32 page, s32 pad)
     goto done;
 
 period:
+{
+    GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
+    if (pad != 0x20)
     {
-        GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
-        if (pad != 0x20)
-        {
-            goto done;
-        }
+        goto done;
     }
+}
     goto accept;
 
 question:
+{
+    if (page == 3)
     {
-        if (page == 3)
+        if (CardStateFlag != 0)
         {
-            if (CardStateFlag != 0)
-            {
-                McardButtons[2]->sprite.attribute &= 0xbfffffff;
-                McardButtons[3]->sprite.attribute |= 0x40000000;
-            }
-            else
-            {
-                McardButtons[2]->sprite.attribute |= 0x40000000;
-                McardButtons[3]->sprite.attribute &= 0xbfffffff;
-            }
-            GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
-            GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);
-            GsSortSprite(&McardButtons[4]->sprite, OTablePt, 0);
-
-            switch (pad)
-            {
-            case 0x20:
-                if (CardStateFlag != 0)
-                {
-                    goto accept;
-                }
-                goto cancel;
-
-            case 0x8000:
-                if (CardStateFlag != 1)
-                {
-                    SoundEx(0, 0x30);
-                    CardStateFlag = 1;
-                }
-                break;
-
-            case 0x2000:
-                if (CardStateFlag != 0)
-                {
-                    SoundEx(0, 0x30);
-                    CardStateFlag = 0;
-                }
-                break;
-            }
-            goto done;
+            McardButtons[2]->sprite.attribute &= 0xbfffffff;
+            McardButtons[3]->sprite.attribute |= 0x40000000;
         }
         else
         {
-            GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
-            if (pad != 0x20)
+            McardButtons[2]->sprite.attribute |= 0x40000000;
+            McardButtons[3]->sprite.attribute &= 0xbfffffff;
+        }
+        GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
+        GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);
+        GsSortSprite(&McardButtons[4]->sprite, OTablePt, 0);
+
+        switch (pad)
+        {
+        case 0x20:
+            if (CardStateFlag != 0)
             {
-                goto check_cancel;
+                goto accept;
             }
+            goto cancel;
+
+        case 0x8000:
+            if (CardStateFlag != 1)
+            {
+                SoundEx(0, 0x30);
+                CardStateFlag = 1;
+            }
+            break;
+
+        case 0x2000:
+            if (CardStateFlag != 0)
+            {
+                SoundEx(0, 0x30);
+                CardStateFlag = 0;
+            }
+            break;
+        }
+        goto done;
+    }
+    else
+    {
+        GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
+        if (pad != 0x20)
+        {
+            goto check_cancel;
         }
     }
+}
 
 accept:
     SoundEx(0, 0x30);

@@ -25,10 +25,10 @@ extern u8 *McardHelp;
 extern Sprite3D *McardSprite;
 extern Sprite3D *McardButtons[];
 
-extern char path_demo_start_card_j[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt */
-extern char path_demo_start_mcard_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim */
+extern char path_demo_start_card_j[];       /* K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt */
+extern char path_demo_start_mcard_tim[];    /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim */
 extern char path_demo_start_mbuttonj_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mbuttonj.tim */
-extern char path_demo_start_xtoselj_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\xtoselj.tim */
+extern char path_demo_start_xtoselj_tim[];  /* K:\\WORK\\CDIMAGE\\DEMO\\start\\xtoselj.tim */
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);

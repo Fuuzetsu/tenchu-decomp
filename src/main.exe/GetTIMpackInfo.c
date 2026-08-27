@@ -49,13 +49,16 @@ short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
     u_long *offsets;
 
     adr = adr + 1;
-    if (idx < 0 || (offsets = adr + 1, (int)adr[0] <= idx)) {
+    if (idx < 0 || (offsets = adr + 1, (int)adr[0] <= idx))
+    {
         return 0;
     }
     p = offsets;
     i = 0;
-    if (idx > 0) {
-        do {
+    if (idx > 0)
+    {
+        do
+        {
             i = i + 1;
             p = p + 1;
         } while (i < idx);

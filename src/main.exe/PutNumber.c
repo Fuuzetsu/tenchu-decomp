@@ -68,11 +68,16 @@
  *    target vs `bnez s0` in the `q`-tested draft).
  */
 
-
 void PutNumber(int x, int y, int cols, int n)
 {
-    enum { NW = 4 };
-    enum { GAP = 6 };
+    enum
+    {
+        NW = 4
+    };
+    enum
+    {
+        GAP = 6
+    };
     int base;
     GsSPRITE *img;
     int q;

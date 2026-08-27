@@ -201,7 +201,7 @@ void ActSQUAT(void)
             dtV->vx = 0;
             goto common_action;
         }
-move_if_stationary:
+    move_if_stationary:
         if (dtV->vx == 0 && dtV->vz == 0)
         {
             MoveHumanoid(Me_MOTION_C,
@@ -331,11 +331,11 @@ common_action:
         motMODE = 1;
         return;
 
-item_sound:
+    item_sound:
         SoundEx(Me_MOTION_C->locate, 0xC);
         return;
 
-item_default:
+    item_default:
         ReqItemDefault(Me_MOTION_C, SelectedItem);
         return;
     }

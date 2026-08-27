@@ -15,14 +15,14 @@
 /* ---- COP2 data moves (native mnemonics) ---- */
 
 /* Load 1 vertex into VXY0/VZ0 from an SVECTOR pointer. */
-#define gte_ldv0(r0)                                                           \
+#define gte_ldv0(r0) \
     __asm__ volatile("lwc2\t$0, 0(%0);lwc2\t$1, 4(%0)" : : "r"(r0))
 
 /* Load 3 vertices into VXY0/VZ0, VXY1/VZ1, VXY2/VZ2 from 3 SVECTOR pointers. */
-#define gte_ldv3(r0, r1, r2)                                                   \
-    __asm__ volatile("lwc2\t$0, 0(%0);lwc2\t$1, 4(%0);"                        \
-                     "lwc2\t$2, 0(%1);lwc2\t$3, 4(%1);"                        \
-                     "lwc2\t$4, 0(%2);lwc2\t$5, 4(%2)"                         \
+#define gte_ldv3(r0, r1, r2)                            \
+    __asm__ volatile("lwc2\t$0, 0(%0);lwc2\t$1, 4(%0);" \
+                     "lwc2\t$2, 0(%1);lwc2\t$3, 4(%1);" \
+                     "lwc2\t$4, 0(%2);lwc2\t$5, 4(%2)"  \
                      : : "r"(r0), "r"(r1), "r"(r2))
 
 /* Load the RGB/code word (C2 data reg 6) through a POINTER — verbatim PsyQ
@@ -62,13 +62,13 @@
  * decompile of fast_tnf3_/fast_tng3_ already guessed this exact name
  * from the offset pattern, confirming it against the extracted psyq4.5
  * headers rather than inventing a name. */
-#define gte_stsxy3_gt3(p)                                                     \
+#define gte_stsxy3_gt3(p)                                                       \
     __asm__ volatile("swc2\t$12, 8(%0);swc2\t$13, 0x14(%0);swc2\t$14, 0x20(%0)" \
                      : : "r"(p))
 
 /* Store SXY0/SXY1/SXY2 (C2 data regs 12/13/14) to three separate pointers. */
-#define gte_stsxy3(a, b, c)                                                    \
-    __asm__ volatile("swc2\t$12, 0(%0);swc2\t$13, 0(%1);swc2\t$14, 0(%2)"      \
+#define gte_stsxy3(a, b, c)                                               \
+    __asm__ volatile("swc2\t$12, 0(%0);swc2\t$13, 0(%1);swc2\t$14, 0(%2)" \
                      : : "r"(a), "r"(b), "r"(c))
 
 /* Store SXY2 (C2 data reg 14, the last transformed screen point) to memory. */
@@ -78,14 +78,14 @@
 #define gte_stopz(mem) __asm__ volatile("swc2\t$24, 0(%0)" : : "r"(mem))
 
 /* Store SZ1/SZ2/SZ3 (C2 data regs 17/18/19) to three separate pointers. */
-#define gte_stsz3(r0, r1, r2)                                                  \
-    __asm__ volatile("swc2\t$17, 0(%0);swc2\t$18, 0(%1);swc2\t$19, 0(%2)"      \
+#define gte_stsz3(r0, r1, r2)                                             \
+    __asm__ volatile("swc2\t$17, 0(%0);swc2\t$18, 0(%1);swc2\t$19, 0(%2)" \
                      : : "r"(r0), "r"(r1), "r"(r2))
 
 /* Store SZ0/SZ1/SZ2/SZ3 (C2 data regs 16/17/18/19) to four separate pointers. */
-#define gte_stsz4(a, b, c, d)                                                  \
-    __asm__ volatile("swc2\t$16, 0(%0);swc2\t$17, 0(%1);"                      \
-                     "swc2\t$18, 0(%2);swc2\t$19, 0(%3)"                       \
+#define gte_stsz4(a, b, c, d)                             \
+    __asm__ volatile("swc2\t$16, 0(%0);swc2\t$17, 0(%1);" \
+                     "swc2\t$18, 0(%2);swc2\t$19, 0(%3)"  \
                      : : "r"(a), "r"(b), "r"(c), "r"(d))
 
 /* Read the FLAG control register (C2 control reg 31) and store it through a
@@ -94,12 +94,12 @@
  * the asm. fast_tnf3_'s target (`cfc2 t4,$31; nop; sw t4,0(v0)`) is this
  * macro exactly; a "=r" spelling can never reach $12 there (v1/a0/t0 are all
  * free at that point and the allocator walks upward from $2). */
-#define gte_stflg(r0)                                                          \
-    __asm__ volatile("cfc2\t$12, $31;"                                         \
-                     "nop;"                                                    \
-                     "sw\t$12, 0( %0 )"                                        \
-                     :                                                         \
-                     : "r"(r0)                                                 \
+#define gte_stflg(r0)                   \
+    __asm__ volatile("cfc2\t$12, $31;"  \
+                     "nop;"             \
+                     "sw\t$12, 0( %0 )" \
+                     :                  \
+                     : "r"(r0)          \
                      : "$12", "memory")
 
 /* Reconstruction helper for HANDWRITTEN asm (drawF3): read FLAG straight into
@@ -111,8 +111,8 @@
  * `st` prefix means, and subdivide_quad_'s target proves it with `swc2 $17..$19`).
  * This mfc2 sibling is a reconstruction helper for drawF3's OTZ average and is
  * NOT a standard INLINE_N.H name — hence the distinct `r` suffix. */
-#define gte_stsz3r(r0, r1, r2)                                                 \
-    __asm__ volatile("mfc2\t%0, $17;mfc2\t%1, $18;mfc2\t%2, $19"               \
+#define gte_stsz3r(r0, r1, r2)                                   \
+    __asm__ volatile("mfc2\t%0, $17;mfc2\t%1, $18;mfc2\t%2, $19" \
                      : "=r"(r0), "=r"(r1), "=r"(r2))
 
 /* Read MAC0 (C2 data reg 24) into a CPU register. */
@@ -134,14 +134,14 @@
  *                    scheduled the latency by hand with real work — drawF3
  *                    fills it with a `lui/ori`. Using the nop form there adds
  *                    6 instructions and breaks the carve length. */
-#define gte_rtps()  __asm__ volatile("nop;nop;.word\t0x4A180001") /* RTPS  */
-#define gte_rtpt()  __asm__ volatile("nop;nop;.word\t0x4A280030") /* RTPT  */
+#define gte_rtps() __asm__ volatile("nop;nop;.word\t0x4A180001")  /* RTPS  */
+#define gte_rtpt() __asm__ volatile("nop;nop;.word\t0x4A280030")  /* RTPT  */
 #define gte_nclip() __asm__ volatile("nop;nop;.word\t0x4B400006") /* NCLIP */
-#define gte_dpcs()  __asm__ volatile("nop;nop;.word\t0x4A780010") /* DPCS  */
+#define gte_dpcs() __asm__ volatile("nop;nop;.word\t0x4A780010")  /* DPCS  */
 
-#define gte_rtps_raw()  __asm__ volatile(".word\t0x4A180001") /* RTPS  */
-#define gte_rtpt_raw()  __asm__ volatile(".word\t0x4A280030") /* RTPT  */
+#define gte_rtps_raw() __asm__ volatile(".word\t0x4A180001")  /* RTPS  */
+#define gte_rtpt_raw() __asm__ volatile(".word\t0x4A280030")  /* RTPT  */
 #define gte_nclip_raw() __asm__ volatile(".word\t0x4B400006") /* NCLIP */
-#define gte_dpcs_raw()  __asm__ volatile(".word\t0x4A780010") /* DPCS  */
+#define gte_dpcs_raw() __asm__ volatile(".word\t0x4A780010")  /* DPCS  */
 
 #endif /* GTE_H */

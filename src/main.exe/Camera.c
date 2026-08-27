@@ -48,11 +48,13 @@ void Camera(void)
     s16 pad_dat;
 
     pad_dat = GetPad(0);
-    if ((s32)CamState.Owner & 1) {
+    if ((s32)CamState.Owner & 1)
+    {
         return;
     }
 
-    switch ((s32)CamState.Mode) {
+    switch ((s32)CamState.Mode)
+    {
     case CMODE_DIRECTION:
         CameraDirection(CamState.Owner, &vDif);
         break;
@@ -73,7 +75,8 @@ void Camera(void)
         vDif.vrz = CamState.Owner->model->locate.coord.t[2] - ViewInfo.vrz;
         break;
     default:
-        if (CamState.Owner->pad.data & 4) {
+        if (CamState.Owner->pad.data & 4)
+        {
             SetCameraMode(CMODE_DIRECTION);
             return;
         }
@@ -89,15 +92,20 @@ void Camera(void)
     GsSetRefView2(&ViewInfo);
 
     if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != 1 &&
-        (pad_dat & 0x100) != 0) {
+        (pad_dat & 0x100) != 0)
+    {
         ModelType *model;
 
-        if (pad_dat & 1) {
+        if (pad_dat & 1)
+        {
             Projection = 300;
         }
-        if (pad_dat & 0x8000) {
+        if (pad_dat & 0x8000)
+        {
             Projection = Projection - 1;
-        } else if (pad_dat & 0x2000) {
+        }
+        else if (pad_dat & 0x2000)
+        {
             Projection = Projection + 1;
         }
         model = CamState.Owner->model;

@@ -88,21 +88,21 @@ void AttackControl(void)
                     goto check_low_group;
                 goto enemy_type_ok;
 
-check_high_group:
+            check_high_group:
                 if (group == 0x90)
                     goto reject_enemy;
                 if (group == 0xa0)
                     goto reject_enemy;
                 goto enemy_type_ok;
 
-check_low_group:
+            check_low_group:
                 if ((u16)(type - 7) < 3)
                     goto enemy_type_ok;
 
-reject_enemy:
+            reject_enemy:
                 enemy = NULL;
 
-enemy_type_ok:
+            enemy_type_ok:
 
                 if (enemy != NULL &&
                     (enemy->attribute & 0x43U) == 0 &&
@@ -157,7 +157,7 @@ enemy_type_ok:
                         {
                             enemy->status = (s8)(emid >> 8);
                             MoveHumanoid(enemy, enemy->motion->motion->orderspd,
-                                        enemy->motion->motion->sidespd);
+                                         enemy->motion->motion->sidespd);
                         }
                         DeleteConflict(enemy->model->object[0]);
                         Criticals++;

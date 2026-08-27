@@ -49,10 +49,13 @@ extern void cbAccess(void);
 
 void PrepareAccess(void)
 {
-    if (AccessPower >= 0) {
+    if (AccessPower >= 0)
+    {
         AccessPower = 0;
         VSyncCallback(cbAccess);
-    } else {
+    }
+    else
+    {
         VSyncCallback(0);
     }
 }

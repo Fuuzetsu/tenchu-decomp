@@ -1,0 +1,16 @@
+# NOTE: ram_layout.h is machine-parsed (tools/ram_layout.py) and must not
+# be reformatted — see .clang-format-ignore.
+# The humanised style for matched game C. ColumnLimit 0 keeps existing line
+# breaks, so a re-run is token-preserving and provably byte-neutral — always
+# gate on ./Build check anyway.
+BasedOnStyle: LLVM
+IndentWidth: 4
+BreakBeforeBraces: Allman
+ColumnLimit: 0
+SortIncludes: false
+IndentCaseLabels: false
+PointerAlignment: Right
+SpaceAfterCStyleCast: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None

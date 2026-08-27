@@ -87,18 +87,23 @@ u_long *FileRead(u8 *filename)
     u_long *ret;
 
     CdaStop();
-    if (AccessPower >= 0) {
+    if (AccessPower >= 0)
+    {
         AccessPower = 0;
         VSyncCallback(cbAccess);
-    } else {
+    }
+    else
+    {
         VSyncCallback(0);
     }
-    if (ReadMode == -1) {
+    if (ReadMode == -1)
+    {
         TotalIO = 0;
         ReadMode = 0;
         PCinit();
     }
-    switch (ReadMode & 3) {
+    switch (ReadMode & 3)
+    {
     case 0:
         ret = LoadFromDEVPC(filename);
         break;

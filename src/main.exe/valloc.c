@@ -110,7 +110,7 @@ void *valloc(u32 size)
 {
     struct VMhead vh;   /* split tmp, sp+0x18 */
     struct VMhead *vhp; /* search-loop copy of the cursor */
-    u32 *vmpt;      /* cursor AND result — returned after SystemOut, hence $s1 */
+    u32 *vmpt;          /* cursor AND result — returned after SystemOut, hence $s1 */
     u32 off;
     u32 mask;
     u32 tag;

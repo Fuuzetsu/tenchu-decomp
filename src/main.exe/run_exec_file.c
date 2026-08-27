@@ -24,8 +24,10 @@ void run_exec_file(u8 *name, u32 stack, u32 size)
     EXEC *exec;
 
     VSyncCallback(cb_nop_);
-    do {
-        do {
+    do
+    {
+        do
+        {
             printf(fmt_reading_exec, name);
             exec = CdReadExec(name);
         } while (exec == NULL);

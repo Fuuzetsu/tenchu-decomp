@@ -32,13 +32,13 @@
 extern int DivDepth; /* GsDOBJ2 attribute bits 9..11 */
 
 extern u_long *fast_tng4_(u_short *primitive, u_long vertop, u_long *packet,
-                            u_short count, u_long *work);
+                          u_short count, u_long *work);
 extern u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet,
-                            u_short count, u_long *work);
+                          u_short count, u_long *work);
 extern u_long *fast_tnf3_(u_short *primitive, u_long vertop, u_long *packet,
-                            u_short count, u_long *work);
+                          u_short count, u_long *work);
 extern u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet,
-                            u_short count, u_long *work);
+                          u_short count, u_long *work);
 
 void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
 {
@@ -60,14 +60,16 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     *(u_long *)(work + 0x88) = shift;
     *(u_long *)(work + 0x90) = ot;
     GsTON = attr >> 0x1e & 1;
-    *(u_long *)(work + 0x94) = -0xa0; /* clipx0 */
-    *(u_long *)(work + 0x98) = 0xa0; /* clipx1 */
-    *(u_long *)(work + 0x9c) = -0x78; /* clipy0 */
-    *(u_long *)(work + 0xa0) = 0x78; /* clipy1 */
+    *(u_long *)(work + 0x94) = -0xa0;  /* clipx0 */
+    *(u_long *)(work + 0x98) = 0xa0;   /* clipx1 */
+    *(u_long *)(work + 0x9c) = -0x78;  /* clipy0 */
+    *(u_long *)(work + 0xa0) = 0x78;   /* clipy1 */
     *(u_long *)(work + 0x84) = 0x4a98; /* farz */
-    *(u_long *)(work + 0x8c) = 15000; /* fogz */
-    while (n != 0) {
-        switch (*(u_char *)((int)prim + 3) & 0xfd) {
+    *(u_long *)(work + 0x8c) = 15000;  /* fogz */
+    while (n != 0)
+    {
+        switch (*(u_char *)((int)prim + 3) & 0xfd)
+        {
         case 0x3d:
             GsOUT_PACKET_P = fast_tng4_(prim, vertop, GsOUT_PACKET_P, *prim, work);
             n -= *prim;

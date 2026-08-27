@@ -27,7 +27,6 @@
  * ahead of the loop counter's `li` in the asm.
  */
 
-
 void leClearLayout(void)
 {
     s16 dead;

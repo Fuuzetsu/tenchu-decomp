@@ -155,8 +155,8 @@ extern int sprintf(char *buf, char *fmt, ...);
 extern int strcmp(char *a, char *b);
 
 extern char msg_illigal_character_type[]; /* ILLIGAL CHARACTER TYPE */
-extern char fmt_mad[]; /* %s%s.MAD */
-extern char path_human[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
+extern char fmt_mad[];                    /* %s%s.MAD */
+extern char path_human[];                 /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
 
 Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
 {
@@ -209,7 +209,7 @@ type_found:
         {
             q = pp;
             pHVar5 = HumanData;
-scan_next:
+        scan_next:
             if (strcmp((char *)q->name, (char *)pHVar5->name) == 0)
             {
                 pHVar5->model = model;

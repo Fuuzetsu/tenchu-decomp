@@ -145,82 +145,82 @@ dispose:
     return;
 
 sight_mode:
-    {
-        u8 count;
-        ModelArchiveType *model;
+{
+    u8 count;
+    ModelArchiveType *model;
 
-        count = launch->count;
-        if (count != 0)
+    count = launch->count;
+    if (count != 0)
+    {
+        launch->count = count - 1;
+    }
+    if ((item->owner->pad.data & 0x10) != 0)
+    {
+        if (launch->count != 0)
         {
-            launch->count = count - 1;
-        }
-        if ((item->owner->pad.data & 0x10) != 0)
-        {
-            if (launch->count != 0)
-            {
-                return;
-            }
-            SetCameraMode(CMODE_SIGHT);
-            GsSortSprite(TargetSprite, OTablePt, 0);
             return;
         }
-
-        count = launch->count;
-        model = item->owner->model;
-        if (count == 0)
-        {
-            GsRVIEW2 *view;
-
-            param.type = item->type;
-            param.user = item->owner;
-            param.start.vx = item->locate->locate.coord.t[0];
-            param.start.vy = item->locate->locate.coord.t[1];
-            param.start.vz = item->locate->locate.coord.t[2];
-            view = &ViewInfo;
-            GetVectorRotation((VECTOR *)view, (VECTOR *)&view->vrx,
-                              &rx, &ry);
-            rot.vz = 0;
-            rot.vx = rx;
-            rot.vy = ry;
-            SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
-            if (item->proc != 0)
-            {
-                item->mode = ff;
-                item->proc(item);
-                DeleteConflict(item->locate);
-                if (item->mode != 0)
-                {
-                    AdtMessageBox(msg_item_dispose_fail, item->type,
-                                  (u32)item->mode);
-                }
-                item->owner = 0;
-                item->proc = 0;
-            }
-            SetCameraMode(CMODE_LOCK);
-        }
-        else
-        {
-            param.type = item->type;
-            param.user = item->owner;
-            param.start.vx = item->locate->locate.coord.t[0];
-            param.start.vy = item->locate->locate.coord.t[1];
-            param.start.vz = item->locate->locate.coord.t[2];
-            SearchItemTarget2(param.user, &model->rotate, &param.start,
-                              &param.end);
-            if (item->proc != 0)
-            {
-                item->mode = ff;
-                item->proc(item);
-                DeleteConflict(item->locate);
-                if (item->mode != 0)
-                {
-                    AdtMessageBox(msg_item_dispose_fail, item->type,
-                                  (u32)item->mode);
-                }
-                item->owner = 0;
-                item->proc = 0;
-            }
-        }
-        ReqItemLaunch(&param);
+        SetCameraMode(CMODE_SIGHT);
+        GsSortSprite(TargetSprite, OTablePt, 0);
+        return;
     }
+
+    count = launch->count;
+    model = item->owner->model;
+    if (count == 0)
+    {
+        GsRVIEW2 *view;
+
+        param.type = item->type;
+        param.user = item->owner;
+        param.start.vx = item->locate->locate.coord.t[0];
+        param.start.vy = item->locate->locate.coord.t[1];
+        param.start.vz = item->locate->locate.coord.t[2];
+        view = &ViewInfo;
+        GetVectorRotation((VECTOR *)view, (VECTOR *)&view->vrx,
+                          &rx, &ry);
+        rot.vz = 0;
+        rot.vx = rx;
+        rot.vy = ry;
+        SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
+        if (item->proc != 0)
+        {
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(msg_item_dispose_fail, item->type,
+                              (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+        }
+        SetCameraMode(CMODE_LOCK);
+    }
+    else
+    {
+        param.type = item->type;
+        param.user = item->owner;
+        param.start.vx = item->locate->locate.coord.t[0];
+        param.start.vy = item->locate->locate.coord.t[1];
+        param.start.vz = item->locate->locate.coord.t[2];
+        SearchItemTarget2(param.user, &model->rotate, &param.start,
+                          &param.end);
+        if (item->proc != 0)
+        {
+            item->mode = ff;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(msg_item_dispose_fail, item->type,
+                              (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+        }
+    }
+    ReqItemLaunch(&param);
+}
 }

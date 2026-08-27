@@ -37,7 +37,6 @@
  * (vy) — the deltas are computed in that order even though dy is consumed last.
  */
 
-
 void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry)
 {
     s32 dz;

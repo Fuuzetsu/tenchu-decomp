@@ -86,7 +86,7 @@
  * reads it directly instead of reloading through human->weapon[w].
  */
 
-extern char fmt_tmd[]; /* %s%s.TMD */
+extern char fmt_tmd[];           /* %s%s.TMD */
 extern char path_human_weapon[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\ */
 
 extern int sprintf(char *buf, char *fmt, ...);

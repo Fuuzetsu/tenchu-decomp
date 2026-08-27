@@ -62,13 +62,16 @@ int GetVectorDistance(VECTOR *v1, VECTOR *v2)
     if (big)
     {
         v = dx;
-        if (dx < 0) v = dx + 0xff;
+        if (dx < 0)
+            v = dx + 0xff;
         dx = v >> 8;
         v = dy;
-        if (dy < 0) v = dy + 0xff;
+        if (dy < 0)
+            v = dy + 0xff;
         dy = v >> 8;
         v = dz;
-        if (dz < 0) v = dz + 0xff;
+        if (dz < 0)
+            v = dz + 0xff;
         dz = v >> 8;
         len = SquareRoot0(dx * dx + dy * dy + dz * dz);
         len = len << 8;

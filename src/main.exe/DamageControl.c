@@ -15,9 +15,9 @@ extern void reset_alert_duration(void);
 extern void AttackCancelControl(s16 mode);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                         short start_size, short end_size,
-                         long start_color, long end_color,
-                         s16 rotate, u16 rotate_speed, u16 time, u16 type);
+                           short start_size, short end_size,
+                           long start_color, long end_color,
+                           s16 rotate, u16 rotate_speed, u16 time, u16 type);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

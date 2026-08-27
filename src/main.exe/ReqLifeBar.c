@@ -79,29 +79,39 @@ int ReqLifeBar(Humanoid *h)
     int g;
 
     g = -1;
-    for (i = 0; i < nLifeBar; i++) {
-        if (LifeBar[i].count < 1) {
-            if (g == -1) {
+    for (i = 0; i < nLifeBar; i++)
+    {
+        if (LifeBar[i].count < 1)
+        {
+            if (g == -1)
+            {
                 g = i;
             }
-        } else if (LifeBar[i].target == h) {
+        }
+        else if (LifeBar[i].target == h)
+        {
             g = i;
             break;
         }
     }
-    if (g == -1) {
+    if (g == -1)
+    {
         goto ret_zero;
     }
     LifeBar[g].target = h;
     LifeBar[g].style = 1;
     LifeBar[g].life = h->life;
     LifeBar[g].max = h->lifemax;
-    if (h->life == 0) {
+    if (h->life == 0)
+    {
         LifeBar[g].count = 100;
-    } else {
+    }
+    else
+    {
         LifeBar[g].count = 300;
     }
-    if (LifeBar[g].max < 1) {
+    if (LifeBar[g].max < 1)
+    {
         LifeBar[g].max = 1;
     }
     return 1;

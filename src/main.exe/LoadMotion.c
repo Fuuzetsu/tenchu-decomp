@@ -57,15 +57,19 @@ MotionPackType *LoadMotion(unsigned long *data)
     short j;
 
     mpd = (MotionPackType *)data;
-    if (mpd == 0) {
+    if (mpd == 0)
+    {
         SystemOut(msg_no_motion_data);
     }
-    for (i = 0; i < mpd->n; i++) {
+    for (i = 0; i < mpd->n; i++)
+    {
         mpd->motion[i] = (MotionDataType *)((s32)mpd->motion[i] + (s32)mpd);
         mmp = mpd->motion[i];
-        if (mmp->n != 0) {
+        if (mmp->n != 0)
+        {
             mmp->locate = (MotionElementType *)((s32)mmp->locate + (s32)mmp);
-            for (j = 0; j < mmp->n; j++) {
+            for (j = 0; j < mmp->n; j++)
+            {
                 mmp->rotate[j] = (MotionElementType *)((s32)mmp->rotate[j] + (s32)mmp);
             }
         }

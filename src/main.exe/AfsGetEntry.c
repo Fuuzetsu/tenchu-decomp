@@ -30,8 +30,8 @@ extern void vfree(void *p);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char *strncpy(char *dst, const char *src, u32 n);
 extern char msg_afsgetentry_empty_index[]; /* AfsGetEntry: empty index */
-extern char msg_afsgetenty_no_memory[]; /* AfsGetEnty: memory not enough! */
-extern char msg_afsgetentry_no_memory[]; /* AfsGetEntry: memory not enough! */
+extern char msg_afsgetenty_no_memory[];    /* AfsGetEnty: memory not enough! */
+extern char msg_afsgetentry_no_memory[];   /* AfsGetEntry: memory not enough! */
 extern char msg_illigal_index[];
 
 static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
@@ -49,20 +49,23 @@ int AfsGetEntry(TAFS *handle)
     u32 i;
     u16 marker;
 
-    if (handle->maxElements == 0) {
+    if (handle->maxElements == 0)
+    {
         AdtMessageBox(msg_afsgetentry_empty_index);
         return 0;
     }
 
     elements = valloc(handle->maxElements * sizeof(TAFSElement));
-    if (elements == 0) {
+    if (elements == 0)
+    {
         AdtMessageBox(msg_afsgetenty_no_memory);
         vfree(0);
         return 1;
     }
 
     buffer = valloc(handle->maxElements * sizeof(TAFSElement));
-    if (buffer != 0) {
+    if (buffer != 0)
+    {
         goto entry_ready;
     }
     AdtMessageBox(msg_afsgetentry_no_memory);
@@ -79,14 +82,18 @@ entry_ready:
             handle->maxElements * sizeof(TAFSElement));
 
     raw = buffer;
-    do {
-        do {
-            if (handle->maxElements != 0) {
-                do {
+    do
+    {
+        do
+        {
+            if (handle->maxElements != 0)
+            {
+                do
+                {
                     element = elements;
                 } while (0);
                 packed = raw + 1;
-entry_loop:
+            entry_loop:
                 element->flag = ((u16)packed[1] << 8) | packed[2];
                 element->pos = ((u32)packed[3] << 24) |
                                ((u32)packed[4] << 16) |
@@ -100,14 +107,16 @@ entry_loop:
                 strncpy((char *)element->name, (char *)buffer + 0x10, 0x13);
                 element->name[0x13] = 0;
                 AfsGetShort(&marker, buffer, packed);
-                if (marker != 0x4958) {
+                if (marker != 0x4958)
+                {
                     goto bad_index;
                 }
                 packed += sizeof(TAFSElement);
                 buffer += sizeof(TAFSElement);
                 element->name[0x13] = 0;
                 element++;
-                if (handle->maxElements > ++i) {
+                if (handle->maxElements > ++i)
+                {
                     goto entry_loop;
                 }
             }

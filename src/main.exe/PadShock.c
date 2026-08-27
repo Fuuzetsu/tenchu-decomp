@@ -43,15 +43,21 @@ static inline void PadShockApply(s32 port, s32 p1, s32 p2)
     TPadPort *p = &PadPort[port >> 4][port & 3];
     TPadPort *q = p;
 
-    if (Anakon != 0) {
-        if (p2 < 0) {
+    if (Anakon != 0)
+    {
+        if (p2 < 0)
+        {
             p->act1 = p1;
             p->act2 = p2 + 0x100;
-        } else {
+        }
+        else
+        {
             p->act1 = p1;
             p->act2 = p2;
         }
-    } else {
+    }
+    else
+    {
         q->act1 = 0;
         q->act2 = 0;
     }

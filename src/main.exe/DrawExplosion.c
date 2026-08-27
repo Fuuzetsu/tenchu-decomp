@@ -90,7 +90,10 @@ extern short DrawSprite(Sprite3D *sprt);
 
 void DrawExplosion(TEffectSlot *ef)
 {
-    enum { fo = 5 };
+    enum
+    {
+        fo = 5
+    };
     ExplosionType *param;
     Sprite3D *spr;
     u8 alfa;

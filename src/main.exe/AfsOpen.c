@@ -69,13 +69,18 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
 
     entry = AfsFindFile(handle, path, AfsFlag_File);
     count = 0;
-    if (entry == 0) {
+    if (entry == 0)
+    {
         AdtMessageBox(msg_afsopen_not_found, path);
-    } else {
+    }
+    else
+    {
         cur = handle->pHandle;
-        do {
+        do
+        {
             count = count + 1;
-            if (cur->flagUse == 0) {
+            if (cur->flagUse == 0)
+            {
                 cur->info = entry;
                 cur->pos = 0;
                 cur->flagUse = 1;

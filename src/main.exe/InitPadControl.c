@@ -50,9 +50,11 @@ void InitPadControl(void)
     PadInitDirect(ComBuf[0], ComBuf[1]);
     PadStartCom();
     if ((((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->analog_pad_present &
-         1) != 0) {
+         1) != 0)
+    {
         i = 0xf;
-        do {
+        do
+        {
             VSync(0);
             i = i - 1;
         } while (i > 0);

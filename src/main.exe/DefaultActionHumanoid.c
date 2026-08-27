@@ -132,19 +132,18 @@ short DefaultActionHumanoid(Humanoid *human)
             }
         }
 
-use_conflict_position:
+    use_conflict_position:
         position = ConflictObject[(*human->model->object)->id].position;
         position.vy = locate->vy;
         GetAreaMapVector(GlobalAreaMap, map, &position, human->width,
                          (short)i);
         goto map_probe_done;
-use_locate_position:
+    use_locate_position:
         wide = locate;
-probe_map:
+    probe_map:
         GetAreaMapVector(GlobalAreaMap, call_map, wide, human->width,
                          (short)i);
-map_probe_done:
-        ;
+    map_probe_done:;
     }
 
     if (map->attrib & 2)
@@ -200,7 +199,7 @@ map_probe_done:
             }
             vector->vy = 0;
         }
-ground_motion:
+    ground_motion:
         if ((map->attrib & 0x200) && map->height == 0 && human->status != STAT_DEAD)
         {
             SetNowMotion(human, 0x1100, 1);
@@ -256,8 +255,8 @@ ground_motion:
                 if (mv.level != zz && locate->vy < mv.level)
                 {
                     locate->vy = (vector->vy > 0)
-                        ? locate->vy + vector->vy
-                        : locate->vy + 20;
+                                     ? locate->vy + vector->vy
+                                     : locate->vy + 20;
                 }
                 else
                 {
@@ -282,15 +281,15 @@ ground_motion:
                 {
                     goto reflect_width;
                 }
-reflect_motion:
+            reflect_motion:
                 xx = -vector->vx;
                 zz = -vector->vz;
                 goto apply_reflection;
-reflect_width:
+            reflect_width:
                 i = ((s32)((u16)human->width << 16)) >> 18;
                 xx = RefrectMove[direction][0] * i;
                 zz = RefrectMove[direction][1] * i;
-apply_reflection:
+            apply_reflection:
                 locate->vx += xx;
                 locate->vz += zz;
             }
@@ -378,21 +377,23 @@ apply_reflection:
                 zz = locate->vz;
 
                 locate->vx = xx - ((ConflictDistance.vx >= 0)
-                    ? human->width : -human->width) / 8;
+                                       ? human->width
+                                       : -human->width) /
+                                      8;
 
                 locate->vz -= ((ConflictDistance.vz >= 0)
-                    ? human->width : -human->width) / 8;
+                                   ? human->width
+                                   : -human->width) /
+                              8;
 
                 do
                 {
                     do
                     {
                         conflict = &ConflictObject[i];
-                    }
-                    while (0);
+                    } while (0);
                     object_id = object->id;
-                }
-                while (0);
+                } while (0);
                 size_y = conflict->size.vy;
                 if (object_id != 0)
                 {
@@ -461,41 +462,27 @@ apply_reflection:
                                                                         do
                                                                         {
                                                                             direction_abs = zz >= 0 ? zz : -zz;
-                                                                        }
-                                                                        while (0);
-                                                                    }
-                                                                    while (0);
-                                                                }
-                                                                while (0);
-                                                            }
-                                                            while (0);
-                                                        }
-                                                        while (0);
-                                                    }
-                                                    while (0);
-                                                }
-                                                while (0);
-                                            }
-                                            while (0);
-                                        }
-                                        while (0);
-                                    }
-                                    while (0);
+                                                                        } while (0);
+                                                                    } while (0);
+                                                                } while (0);
+                                                            } while (0);
+                                                        } while (0);
+                                                    } while (0);
+                                                } while (0);
+                                            } while (0);
+                                        } while (0);
+                                    } while (0);
                                     direction = 0x1003;
-                                }
-                                while (0);
+                                } while (0);
                                 if (direction_abs < 0x44c)
                                 {
                                     direction = 0x1000;
                                 }
-                            }
-                            while (0);
+                            } while (0);
                             SetNowMotion(human, direction, 1);
-                        }
-                        while (0);
+                        } while (0);
                         Sound(human, 6);
-                    }
-                    while (0);
+                    } while (0);
                 }
 
                 {

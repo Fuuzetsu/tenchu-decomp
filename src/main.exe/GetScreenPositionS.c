@@ -56,7 +56,6 @@
  *    symbol's `%lo()` (always `addiu`).
  */
 
-
 void GetScreenPositionS(s32 x, s32 y, s32 z, SVECTOR *scr)
 {
     SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(0x80);

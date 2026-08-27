@@ -30,9 +30,12 @@ void load_layout(s32 index)
 
     __builtin_memcpy(names, LayoutNames, sizeof(names));
     buf = LoadSI(0, names[index]);
-    if (buf == 0) {
+    if (buf == 0)
+    {
         AdtMessageBox(msg_load_layout_error);
-    } else {
+    }
+    else
+    {
         leRestoreEnemyLayout(buf);
         RestoreItemLayout((u8 *)buf + 0x1388);
         vfree(buf);

@@ -51,7 +51,8 @@ short SweepMotion(MotionManager *mmp)
     count = -mmp->count++;
     mot = mmp->motion;
 
-    if (mmp->mask & 1) {
+    if (mmp->mask & 1)
+    {
         object = *mmp->model->object;
         object->locate.coord.t[0] +=
             (mot->locate->x - object->locate.coord.t[0]) / count;
@@ -70,8 +71,10 @@ short SweepMotion(MotionManager *mmp)
         UpdateCoordinate(object);
     }
 
-    for (i = 1; i < mmp->n; i++) {
-        if ((mmp->mask >> i) & 1) {
+    for (i = 1; i < mmp->n; i++)
+    {
+        if ((mmp->mask >> i) & 1)
+        {
             object = mmp->model->object[i];
             object->rotate.vx +=
                 (mot->rotate[i]->x - object->rotate.vx) / count;

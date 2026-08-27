@@ -50,9 +50,9 @@ extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
 /* Retail groups the demo's three named Kehai sprites with one new state. */
 extern GsSPRITE KehaiImage[4];
-#define KehaiGreenImage    (KehaiImage[0])
-#define KehaiYellowImage   (KehaiImage[1])
-#define KehaiRedImage      (KehaiImage[2])
+#define KehaiGreenImage (KehaiImage[0])
+#define KehaiYellowImage (KehaiImage[1])
+#define KehaiRedImage (KehaiImage[2])
 /* Descriptive name: this fourth, extreme-state sprite is retail-only. */
 #define KehaiCriticalImage (KehaiImage[3])
 extern GsSPRITE MapImage;

@@ -48,9 +48,12 @@ void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
     cursor = x;
     text = str;
     ypos = y;
-    if (*text != 0) {
-        if (TelopP.u0 == 0) {
-            if (TelopP.u1 == 0) {
+    if (*text != 0)
+    {
+        if (TelopP.u0 == 0)
+        {
+            if (TelopP.u1 == 0)
+            {
                 goto charloop;
             }
         }
@@ -61,21 +64,28 @@ void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
         GsSortPoly(&TelopP, OTablePt, 0);
         goto end;
     charloop:
-        do {
-            if (*text == 10) {
+        do
+        {
+            if (*text == 10)
+            {
                 cursor = x;
                 ypos = ypos + 0x10;
-            } else {
+            }
+            else
+            {
                 draw_glyph_(org, cursor, ypos, *text);
                 ch = *text;
-                if (ch == 0x92) {
+                if (ch == 0x92)
+                {
                     ch = 0x27;
                 }
                 index = ch;
-                if (index > 0x1f) {
+                if (index > 0x1f)
+                {
                     index = index - 0x20;
                 }
-                if (ch > 0xbf) {
+                if (ch > 0xbf)
+                {
                     index = index - 0x40;
                 }
                 cursor = cursor + FontWidth[index];

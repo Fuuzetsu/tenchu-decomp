@@ -43,14 +43,17 @@ short SetNowMotion(Humanoid *human, short mid, short move)
 {
     MotionDataType *md;
 
-    if (human->status == STAT_DEAD && human->motion->loop == -1) {
+    if (human->status == STAT_DEAD && human->motion->loop == -1)
+    {
         return 0;
     }
-    if (UpdateMotion(human->motion, mid) == 0) {
+    if (UpdateMotion(human->motion, mid) == 0)
+    {
         return 0;
     }
     human->status = (s8)(mid >> 8);
-    if (move != 0) {
+    if (move != 0)
+    {
         md = human->motion->motion;
         MoveHumanoid(human, md->orderspd, md->sidespd);
     }

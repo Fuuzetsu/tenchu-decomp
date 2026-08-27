@@ -76,14 +76,16 @@ short ActiveMotion(MotionManager *mmp)
     ModelType *object;
     SVECTOR vect;
 
-    if (mmp->motion->time == 0) {
+    if (mmp->motion->time == 0)
+    {
         count = HoldMotion(mmp);
         return count;
     }
     v = mmp->count;
     mmp->count = v + 1;
     count = v;
-    if (mmp->mask & 1) {
+    if (mmp->mask & 1)
+    {
         object = *mmp->model->object;
         i = v;
         GetSpline(&vect, mmp->control, i);
@@ -93,15 +95,18 @@ short ActiveMotion(MotionManager *mmp)
         GetSpline(&object->rotate, mmp->control + 1, i);
         UpdateCoordinate(object);
     }
-    for (i = 1; i < mmp->n; i++) {
-        if ((mmp->mask >> i) & 1) {
+    for (i = 1; i < mmp->n; i++)
+    {
+        if ((mmp->mask >> i) & 1)
+        {
             object = mmp->model->object[i];
             GetSpline(&object->rotate, mmp->control + (i + 1), count);
             UpdateCoordinate(object);
         }
     }
     count = mmp->count;
-    if (mmp->motion->time < count) {
+    if (mmp->motion->time < count)
+    {
         mmp->count = 0;
         return 0;
     }

@@ -291,7 +291,7 @@ void ProcItemJirai(TItem *item)
         }
         call_item = item;
         item->mode = ITEM_MODE_DISPOSE;
-dispose:
+    dispose:
         proc(call_item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

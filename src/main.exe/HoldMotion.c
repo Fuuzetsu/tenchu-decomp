@@ -50,14 +50,17 @@ short HoldMotion(MotionManager *mmp)
     short i;
 
     mot = mmp->motion;
-    if (mmp->mask & 1) {
+    if (mmp->mask & 1)
+    {
         object = *mmp->model->object;
         object->locate.coord.t[0] = (s32)mot->locate->x;
         object->locate.coord.t[2] = (s32)mot->locate->z;
         object->locate.coord.t[1] = (s32)mmp->model->rotate.pad * (s32)mot->locate->y >> 12;
     }
-    for (i = 0; i < mmp->n; i++) {
-        if ((mmp->mask >> i) & 1) {
+    for (i = 0; i < mmp->n; i++)
+    {
+        if ((mmp->mask >> i) & 1)
+        {
             object = mmp->model->object[i];
             object->rotate.vx = mot->rotate[i]->x;
             object->rotate.vy = mot->rotate[i]->y;

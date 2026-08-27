@@ -111,26 +111,30 @@ void ActSTATE(void)
             }
         }
         dtM->mask = 0x7fff;
-        if (Me_MOTION_C->type < 7) { if (Me_MOTION_C->type > 3) {
-            if (Me_MOTION_C == StagePlayer)
+        if (Me_MOTION_C->type < 7)
+        {
+            if (Me_MOTION_C->type > 3)
             {
-                SetCameraMode(CMODE_NORMAL);
-            }
-            {
-                s32 special_motion_id;
+                if (Me_MOTION_C == StagePlayer)
+                {
+                    SetCameraMode(CMODE_NORMAL);
+                }
+                {
+                    s32 special_motion_id;
 
-                if ((Me_MOTION_C->attribute & 0x40) != 0)
-                {
-                    special_motion_id = 0x501;
+                    if ((Me_MOTION_C->attribute & 0x40) != 0)
+                    {
+                        special_motion_id = 0x501;
+                    }
+                    else
+                    {
+                        goto zero_motion;
+                    }
+                    motID = special_motion_id;
                 }
-                else
-                {
-                    goto zero_motion;
-                }
-                motID = special_motion_id;
+                goto special_positive_motion;
             }
-            goto special_positive_motion;
-        } }
+        }
         if ((Me_MOTION_C->attribute & 0x40) == 0)
         {
             return;
@@ -167,15 +171,15 @@ void ActSTATE(void)
             long chase_z;
 
             human = Me_MOTION_C;
-        if ((human->attribute & 3) == 0)
-        {
-            human->attribute |= 0x12;
-            player = StagePlayer;
-            human->chase[0] = player->locate->vx;
-            chase_z = player->locate->vz;
-            human->actscnt = 1;
-            human->chase[1] = chase_z;
-        }
+            if ((human->attribute & 3) == 0)
+            {
+                human->attribute |= 0x12;
+                player = StagePlayer;
+                human->chase[0] = player->locate->vx;
+                chase_z = player->locate->vz;
+                human->actscnt = 1;
+                human->chase[1] = chase_z;
+            }
         }
         motID = 0x501;
         motMODE = 1;
@@ -305,20 +309,20 @@ void ActSTATE(void)
                 return;
 
             random_fall:
-                {
-                    Humanoid *fall_human;
+            {
+                Humanoid *fall_human;
 
-                    motMODE = 0;
-                    motID = (rand() & 1) ? 0x1007 : 0x1008;
-                    fall_human = Me_MOTION_C;
-                    fall_human->life -= 10;
-                    if (fall_human->life < 0)
-                    {
-                        fall_human->life = 0;
-                    }
-                    Sound(Me_MOTION_C, 8);
-                    ReqLifeBar(Me_MOTION_C);
+                motMODE = 0;
+                motID = (rand() & 1) ? 0x1007 : 0x1008;
+                fall_human = Me_MOTION_C;
+                fall_human->life -= 10;
+                if (fall_human->life < 0)
+                {
+                    fall_human->life = 0;
                 }
+                Sound(Me_MOTION_C, 8);
+                ReqLifeBar(Me_MOTION_C);
+            }
                 return;
             }
         }

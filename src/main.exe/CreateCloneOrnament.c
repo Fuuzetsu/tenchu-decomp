@@ -52,7 +52,8 @@ OrnamentType *CreateCloneOrnament(OrnamentType *objp)
     base->locate.coord.t[2] = 0;
     RotMatrixYXZ(&UnitVector, &base->locate.coord);
     base->locate.flg = 0;
-    if (objp != 0) {
+    if (objp != 0)
+    {
         base->object.tmd = objp->object.tmd;
     }
     return base;

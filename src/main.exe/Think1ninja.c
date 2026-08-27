@@ -94,11 +94,11 @@ s16 Think1ninja(void)
             GetMoveSpeed(&move, Me_THINK_C->rotate->vy,
                          (s16)(Me_THINK_C->width * 5), 0);
             d1 = GetAreaMapLevel(GlobalAreaMap, Me_THINK_C->locate->vx,
-                                  Me_THINK_C->locate->vy - 0xBEA,
-                                  Me_THINK_C->locate->vz, 0x19);
+                                 Me_THINK_C->locate->vy - 0xBEA,
+                                 Me_THINK_C->locate->vz, 0x19);
             d2 = GetAreaMapLevel(GlobalAreaMap, Me_THINK_C->locate->vx + move.vx,
-                                  Me_THINK_C->locate->vy - 0xBEA,
-                                  Me_THINK_C->locate->vz + move.vz, 0x1A);
+                                 Me_THINK_C->locate->vy - 0xBEA,
+                                 Me_THINK_C->locate->vz + move.vz, 0x1A);
             if (d1 == Me_THINK_C->map.level)
             {
                 s32 abs_d2;

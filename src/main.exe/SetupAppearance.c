@@ -61,14 +61,14 @@
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern s16 smode;
 extern s16 sstage;
-extern u8 str_rikimaua[]; /* RIKIMAUA */
-extern u8 str_ayamea[]; /* AYAMEA */
-extern u8 str_ayames[]; /* AYAMES */
-extern char fmt_motion_stage_amd[]; /* %sMOTION\\STAGE%d.AMD */
-extern char path_human[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
-extern char path_human_motion_common_amd[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\COMMON.AMD */
+extern u8 str_rikimaua[];                     /* RIKIMAUA */
+extern u8 str_ayamea[];                       /* AYAMEA */
+extern u8 str_ayames[];                       /* AYAMES */
+extern char fmt_motion_stage_amd[];           /* %sMOTION\\STAGE%d.AMD */
+extern char path_human[];                     /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
+extern char path_human_motion_common_amd[];   /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\COMMON.AMD */
 extern char path_human_motion_rikimaru_amd[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\RIKIMARU.AMD */
-extern char path_human_motion_ayame_amd[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\AYAME.AMD */
+extern char path_human_motion_ayame_amd[];    /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\AYAME.AMD */
 extern int strcmp(const char *a, const char *b);
 extern int sprintf(char *dst, const char *fmt, ...);
 

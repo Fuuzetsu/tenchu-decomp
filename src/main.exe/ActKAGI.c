@@ -137,11 +137,11 @@ void ActKAGI(void)
             }
             goto rope_done;
 
-rope_direction:
+        rope_direction:
             ry = GetDirection(v.vx, v.vz, dtR->vy);
             dtR->vy += ry;
             Sound(Me_MOTION_C, 0x1f);
-rope_done:;
+        rope_done:;
         }
         else if (Me_MOTION_C->pad.trig & 0xe0)
         {
@@ -319,7 +319,7 @@ rope_done:;
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;
 
-motion_active:
+        motion_active:
             dtM->count >>= 1;
             if (Me_MOTION_C->map.vector != 15)
             {
@@ -335,7 +335,7 @@ motion_active:
             return;
         }
 
-make_wire:
+    make_wire:
         while (__builtin_abs(v.vx) > 400 || __builtin_abs(v.vy) > 400 ||
                __builtin_abs(v.vz) > 400)
         {

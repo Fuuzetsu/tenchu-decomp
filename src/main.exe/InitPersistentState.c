@@ -60,11 +60,12 @@ s32 InitPersistentState(void)
     u8 fill;
     u8 *stockp;
 
-    if ((pg->CharType & 0xfe) != 0 || 10 < pg->StageNo) {
+    if ((pg->CharType & 0xfe) != 0 || 10 < pg->StageNo)
+    {
         memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
                TENCHU_PERSISTENT_STATE_SIZE);
         magic = 0x19981110;
-        
+
         fill = 0xfe;
         i = 0x1f;
         stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
@@ -78,7 +79,8 @@ s32 InitPersistentState(void)
         ps->Anakon = 1;
         ps->StageNoMAX[1] = 1;
         ps->StageNoMAX[0] = 1;
-        do {
+        do
+        {
             stockp[0x40c] = fill;
             i--;
             stockp--;
@@ -97,9 +99,12 @@ s32 InitPersistentState(void)
         ps->selItem[2] = 5;
         ps->selItem[3] = 2;
         ps->layout = 0xff;
-        if (ps->Stereo != 0) {
+        if (ps->Stereo != 0)
+        {
             SsSetStereo();
-        } else {
+        }
+        else
+        {
             SsSetMono();
         }
         SelectStage(ps);

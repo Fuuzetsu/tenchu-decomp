@@ -80,14 +80,14 @@
 
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
-extern u8 fInitialize;                       /* fInitialize */
+extern u8 fInitialize; /* fInitialize */
 
-extern char str_select_item[]; /* select item */                   /* "select item" */
+extern char str_select_item[]; /* select item */               /* "select item" */
 extern char str_number_of[]; /* number of */                   /* "number of" */
-extern char str_item_layout_option[]; /* item layout option */                   /* "item layout option" */
-extern char msg_clear_ok[]; /* clear ok? */                   /* "clear ok?" */
-extern char str_select_option[]; /* select option */                   /* "select option" */
-extern char str_opt[]; /* opt */                   /* effect-menu title buffer */
+extern char str_item_layout_option[]; /* item layout option */ /* "item layout option" */
+extern char msg_clear_ok[]; /* clear ok? */                    /* "clear ok?" */
+extern char str_select_option[]; /* select option */           /* "select option" */
+extern char str_opt[]; /* opt */                               /* effect-menu title buffer */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void InitializeInfoView(void);
@@ -171,7 +171,10 @@ static inline void EffectSpawnMenu(void)
 
 void DoInfoViewProc(void)
 {
-    enum { TESTPAD = 3 };
+    enum
+    {
+        TESTPAD = 3
+    };
     enum
     {
         ENEMY = 0,

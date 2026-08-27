@@ -93,8 +93,6 @@
  *    DirectionRY at +0x1A.
  */
 
-
-
 extern short PlaySE(SoundEffect *se, short pt, long dv);
 
 short SoundEx(VECTOR *locate, short seid)
@@ -108,37 +106,48 @@ short SoundEx(VECTOR *locate, short seid)
     s32 raw;
 
     pp = StagePlayer->locate;
-    if (locate == 0 || locate == pp) {
+    if (locate == 0 || locate == pp)
+    {
         return PlaySE(StageSE, seid, (seid == 0x12) ? 0x3f : 0x7f);
     }
 
     dx = locate->vx - pp->vx;
     dz = locate->vz - pp->vz;
     dist = SquareRoot0(dx * dx + dz * dz);
-    if (17999 < dist) {
+    if (17999 < dist)
+    {
         return -1;
     }
     raw = locate->vy - pp->vy;
     dy = (raw >= 0) ? raw : -raw;
-    if (9999 < dy) {
+    if (9999 < dy)
+    {
         return -1;
     }
     maxvol = 0x7f;
-    if (dist < 2000 && dy < 2000) {
+    if (dist < 2000 && dy < 2000)
+    {
         angle = 0;
         dist = 0x7f;
-    } else {
+    }
+    else
+    {
         dist = maxvol - (dist << 7) / 18000;
         dist = (dist * (10000 - dy)) / 10000;
         raw = ratan2(-dx, -dz);
         angle = raw - StagePlayer->rotate->vy;
-        if (CamState.Mode == CMODE_DIRECTION) {
+        if (CamState.Mode == CMODE_DIRECTION)
+        {
             angle -= CamState.DirectionRY;
         }
-        if (0x800 < angle) {
+        if (0x800 < angle)
+        {
             angle = 0x1000 - angle;
-        } else {
-            if (angle < -0x7ff) {
+        }
+        else
+        {
+            if (angle < -0x7ff)
+            {
                 angle += 0x1000;
             }
         }

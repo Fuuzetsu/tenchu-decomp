@@ -95,23 +95,29 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
 
     saved_mode = mode;
 
-    if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0) {
+    if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0)
+    {
         return 0;
     }
     CdaStop();
-    if (CdSearchFile(&cf, (char *)fname) == 0) {
+    if (CdSearchFile(&cf, (char *)fname) == 0)
+    {
         return 0;
     }
     CdaStatus.mode = saved_mode;
     pos = CdPosToInt(&cf.pos);
     CdaStatus.StartPos = pos + 0x96;
-    if (end != 0) {
+    if (end != 0)
+    {
         pos = CdPosToInt(end);
         CdaStatus.EndPos = CdaStatus.StartPos + pos;
-    } else {
+    }
+    else
+    {
         CdaStatus.EndPos = CdaStatus.StartPos + (cf.size >> 0xb);
     }
-    if (start != 0) {
+    if (start != 0)
+    {
         pos = CdPosToInt(start);
         CdaStatus.StartPos = CdaStatus.StartPos + pos;
     }

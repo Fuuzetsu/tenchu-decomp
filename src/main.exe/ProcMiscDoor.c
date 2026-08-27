@@ -69,30 +69,30 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     goto do_control;
 
 do_create:
-    {
-        s32 type;
-        s32 t;
+{
+    s32 type;
+    s32 t;
 
-        type = m->param.init.b;
-        t = m->param.init.a;
-        if (10 < type)
-        {
-            AdtMessageBox(fmt_unknown_door_type, type);
-            type = 0;
-        }
-        m->mode = 0;
-        param->r = 0;
-        param->type = (u8)type;
-        param->locate = LoadModel(0);
-        param->locate->locate.coord.t[0] = m->x;
-        param->locate->locate.coord.t[1] = m->y;
-        param->locate->locate.coord.t[2] = m->z;
-        param->locate->rotate.vx = 0;
-        param->locate->rotate.vy = (s16)t;
-        param->locate->rotate.vz = 0;
-        UpdateCoordinate(param->locate);
-        return;
+    type = m->param.init.b;
+    t = m->param.init.a;
+    if (10 < type)
+    {
+        AdtMessageBox(fmt_unknown_door_type, type);
+        type = 0;
     }
+    m->mode = 0;
+    param->r = 0;
+    param->type = (u8)type;
+    param->locate = LoadModel(0);
+    param->locate->locate.coord.t[0] = m->x;
+    param->locate->locate.coord.t[1] = m->y;
+    param->locate->locate.coord.t[2] = m->z;
+    param->locate->rotate.vx = 0;
+    param->locate->rotate.vy = (s16)t;
+    param->locate->rotate.vz = 0;
+    UpdateCoordinate(param->locate);
+    return;
+}
 
 do_destroy:
     DeleteConflict(param->locate);
@@ -104,122 +104,122 @@ do_pause:
     return;
 
 do_resume:
-    {
-        s32 cid;
-        s32 t;
-        s16 w;
+{
+    s32 cid;
+    s32 t;
+    s16 w;
 
-        cid = InsertConflict(param->locate);
-        ConflictObject[cid].offset.vx = 0;
-        t = DoorData[param->type].HitSize;
-        ConflictObject[cid].offset.vz = 0;
-        ConflictObject[cid].offset.vy = -t / 2;
-        w = DoorData[param->type].HitSize;
-        ConflictObject[cid].common = (void *)2;
-        ConflictObject[cid].size.pad = 8;
-        ConflictObject[cid].size.vy = w;
-        w = (s16)(((w / 3) * 0x10000) >> 15);
-        ConflictObject[cid].size.vx = w;
-        ConflictObject[cid].size.vz = w;
-        param->r = 0;
-        return;
-    }
+    cid = InsertConflict(param->locate);
+    ConflictObject[cid].offset.vx = 0;
+    t = DoorData[param->type].HitSize;
+    ConflictObject[cid].offset.vz = 0;
+    ConflictObject[cid].offset.vy = -t / 2;
+    w = DoorData[param->type].HitSize;
+    ConflictObject[cid].common = (void *)2;
+    ConflictObject[cid].size.pad = 8;
+    ConflictObject[cid].size.vy = w;
+    w = (s16)(((w / 3) * 0x10000) >> 15);
+    ConflictObject[cid].size.vx = w;
+    ConflictObject[cid].size.vz = w;
+    param->r = 0;
+    return;
+}
 
 do_control:
+{
+    s32 w;
+    ModelType *model;
+
+    switch (m->mode)
     {
-        s32 w;
-        ModelType *model;
-
-        switch (m->mode)
+    case 0:
+        if ((param->locate->attribute & 0x8000 /* MODEL_ATTR_CONFLICT */) != 0)
         {
-        case 0:
-            if ((param->locate->attribute & 0x8000 /* MODEL_ATTR_CONFLICT */) != 0)
-            {
-                s32 cid;
+            s32 cid;
 
-                cid = GetConflictResult(param->locate, -1);
-                if (ConflictObject[cid].common != (void *)2)
+            cid = GetConflictResult(param->locate, -1);
+            if (ConflictObject[cid].common != (void *)2)
+            {
+                s32 t;
+                s32 angle;
+                s32 wrap;
+                s32 dir;
+
+                do
                 {
-                    s32 t;
-                    s32 angle;
-                    s32 wrap;
-                    s32 dir;
-
-                    do
-                    {
-                        t = ratan2(
-                                ConflictObject[cid].position.vz - param->locate->locate.coord.t[2],
-                                ConflictObject[cid].position.vx - param->locate->locate.coord.t[0]) +
-                            param->locate->rotate.vy;
-                    } while (0);
-                    wrap = t + 0x2000;
-                    angle = wrap;
-                    if (wrap < 0)
-                        angle = t + 0x2fff;
-                    dir = wrap - ((angle >> 12) << 12) < 0x801;
-                    if (dir != 0)
-                        dir = 0x40;
-                    else
-                        dir = -0x40;
-                    param->dr = dir;
-                    m->mode++;
-                    if (param->r == 0)
-                        SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
-                }
+                    t = ratan2(
+                            ConflictObject[cid].position.vz - param->locate->locate.coord.t[2],
+                            ConflictObject[cid].position.vx - param->locate->locate.coord.t[0]) +
+                        param->locate->rotate.vy;
+                } while (0);
+                wrap = t + 0x2000;
+                angle = wrap;
+                if (wrap < 0)
+                    angle = t + 0x2fff;
+                dir = wrap - ((angle >> 12) << 12) < 0x801;
+                if (dir != 0)
+                    dir = 0x40;
+                else
+                    dir = -0x40;
+                param->dr = dir;
+                m->mode++;
+                if (param->r == 0)
+                    SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
             }
-            break;
-
-        case 1:
-            {
-            s32 r;
-
-            r = param->r;
-            if (r < 0)
-                r = -r;
-            if (r < 0x3c0)
-                param->r += param->dr;
-            else
-                m->mode = 0;
-            }
-            break;
         }
+        break;
+
+    case 1:
+    {
+        s32 r;
+
+        r = param->r;
+        if (r < 0)
+            r = -r;
+        if (r < 0x3c0)
+            param->r += param->dr;
+        else
+            m->mode = 0;
+    }
+    break;
+    }
 
 draw_models:
-        {
-            s32 r;
+{
+    s32 r;
 
-            w = DoorData[param->type].HitSize;
-            r = __builtin_abs(param->r);
-            w = w - (w * r) / 0x2800;
-            model = DoorData[param->type].Model[0];
-        }
-        if (model != (ModelType *)-1)
-        {
-            GsCOORDINATE2 *parent;
+    w = DoorData[param->type].HitSize;
+    r = __builtin_abs(param->r);
+    w = w - (w * r) / 0x2800;
+    model = DoorData[param->type].Model[0];
+}
+    if (model != (ModelType *)-1)
+    {
+        GsCOORDINATE2 *parent;
 
-            parent = &param->locate->locate;
-            model->locate.coord.t[0] = -w;
-            model->locate.coord.t[1] = 0;
-            model->locate.coord.t[2] = 0;
-            model->locate.super = parent;
-            model->rotate.vy = param->r;
-            UpdateCoordinate(model);
-            DrawModel(model);
-        }
-
-        model = DoorData[param->type].Model[1];
-        if (model != (ModelType *)-1)
-        {
-            GsCOORDINATE2 *parent;
-
-            parent = &param->locate->locate;
-            model->locate.coord.t[0] = w;
-            model->locate.coord.t[1] = 0;
-            model->locate.coord.t[2] = 0;
-            model->locate.super = parent;
-            model->rotate.vy = -param->r;
-            UpdateCoordinate(model);
-            DrawModel(model);
-        }
+        parent = &param->locate->locate;
+        model->locate.coord.t[0] = -w;
+        model->locate.coord.t[1] = 0;
+        model->locate.coord.t[2] = 0;
+        model->locate.super = parent;
+        model->rotate.vy = param->r;
+        UpdateCoordinate(model);
+        DrawModel(model);
     }
+
+    model = DoorData[param->type].Model[1];
+    if (model != (ModelType *)-1)
+    {
+        GsCOORDINATE2 *parent;
+
+        parent = &param->locate->locate;
+        model->locate.coord.t[0] = w;
+        model->locate.coord.t[1] = 0;
+        model->locate.coord.t[2] = 0;
+        model->locate.super = parent;
+        model->rotate.vy = -param->r;
+        UpdateCoordinate(model);
+        DrawModel(model);
+    }
+}
 }

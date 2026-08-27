@@ -103,7 +103,6 @@
  *    accesses nevertheless use the recovered WorldType.top field.
  */
 
-
 typedef struct WorldDataType
 {
     s16 mode;
@@ -139,16 +138,16 @@ extern ObjectSlotManager ModelSlot;
 extern OrnamentArchiveType *mma;
 extern OrnamentArchiveType *ObjectArc;
 
-extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
+extern char msg_modelslot_overflow[];   /* ModelSlot Overflow */
 extern char msg_no_construction_data[]; /* NO CONSTRUCTION DATA */
-extern char path_image[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
-extern char path_common_tpd[]; /* COMMON.TPD */
-extern char path_objects_mad[]; /* OBJECTS.MAD */
-extern char path_balmer_acm[]; /* BALMER.ACM */
-extern char path_tim_tpd[]; /* TIM.TPD */
-extern char fmt_acm[]; /* %s.ACM */
-extern char fmt_tim[]; /* %s.TIM */
-extern char path_map_mad[]; /* map.mad */
+extern char path_image[];               /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
+extern char path_common_tpd[];          /* COMMON.TPD */
+extern char path_objects_mad[];         /* OBJECTS.MAD */
+extern char path_balmer_acm[];          /* BALMER.ACM */
+extern char path_tim_tpd[];             /* TIM.TPD */
+extern char fmt_acm[];                  /* %s.ACM */
+extern char fmt_tim[];                  /* %s.TIM */
+extern char path_map_mad[];             /* map.mad */
 
 extern void DisposeAreaMap(AreaMapType *area);
 extern void ResetAllMisc(void);
@@ -296,107 +295,107 @@ short LoadConstruction(u_long *data)
                 break;
             switch (wlddt[i].mode)
             {
-    case 0:
-        sprintf((char *)name, fmt_acm, wlddt[i].real.common.name);
-        DisposeAreaMap(GlobalAreaMap);
-        GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
-        if (StageID == 4)
-        {
-            BalmaAreaMap = handle_balmer_acm_(
-                PathFileRead(ImagePath, (u8 *)path_balmer_acm));
-        }
-        break;
+            case 0:
+                sprintf((char *)name, fmt_acm, wlddt[i].real.common.name);
+                DisposeAreaMap(GlobalAreaMap);
+                GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
+                if (StageID == 4)
+                {
+                    BalmaAreaMap = handle_balmer_acm_(
+                        PathFileRead(ImagePath, (u8 *)path_balmer_acm));
+                }
+                break;
 
-    case 5:
-        sprintf((char *)name, fmt_tim, wlddt[i].real.common.name);
-        LoadTIMAndFree(PathFileRead((u8 *)path_image, name));
-        break;
+            case 5:
+                sprintf((char *)name, fmt_tim, wlddt[i].real.common.name);
+                LoadTIMAndFree(PathFileRead((u8 *)path_image, name));
+                break;
 
-    case 2:
-        if (wlddt[i].real.common.name[0] != 0)
-        {
-            model = ObjectArc->object[ObjectID];
-            ObjectID++;
-            wlddt[i].real.model = model;
-        }
-        else
-            model = CreateCloneOrnament(
-                wlddt[wlddt[i].nid].real.model);
+            case 2:
+                if (wlddt[i].real.common.name[0] != 0)
+                {
+                    model = ObjectArc->object[ObjectID];
+                    ObjectID++;
+                    wlddt[i].real.model = model;
+                }
+                else
+                    model = CreateCloneOrnament(
+                        wlddt[wlddt[i].nid].real.model);
 
-        model->locate.coord.t[0] = wlddt[i].real.common.x;
-        model->locate.coord.t[1] = wlddt[i].real.common.y;
-        model->locate.coord.t[2] = wlddt[i].real.common.z;
-        UpdateOrnament(model, wlddt[i].real.common.r);
+                model->locate.coord.t[0] = wlddt[i].real.common.x;
+                model->locate.coord.t[1] = wlddt[i].real.common.y;
+                model->locate.coord.t[2] = wlddt[i].real.common.z;
+                UpdateOrnament(model, wlddt[i].real.common.r);
 
-        {
-            long a = wlddt[i].real.common.x;
-            long q;
+                {
+                    long a = wlddt[i].real.common.x;
+                    long q;
 
-            if (a >= 0)
-                q = a / 16000;
-            else
-                q = a / 16000 - 1;
-            x = q & 7;
-        }
-        {
-            long a = wlddt[i].real.common.y;
-            long q;
+                    if (a >= 0)
+                        q = a / 16000;
+                    else
+                        q = a / 16000 - 1;
+                    x = q & 7;
+                }
+                {
+                    long a = wlddt[i].real.common.y;
+                    long q;
 
-            if (a >= 0)
-                q = a / 16000;
-            else
-                q = a / 16000 - 1;
-            y = q & 7;
-        }
-        {
-            long a = wlddt[i].real.common.z;
-            long q;
+                    if (a >= 0)
+                        q = a / 16000;
+                    else
+                        q = a / 16000 - 1;
+                    y = q & 7;
+                }
+                {
+                    long a = wlddt[i].real.common.z;
+                    long q;
 
-            if (a >= 0)
-                q = a / 16000;
-            else
-                q = a / 16000 - 1;
-            z = q & 7;
-        }
+                    if (a >= 0)
+                        q = a / 16000;
+                    else
+                        q = a / 16000 - 1;
+                    z = q & 7;
+                }
 
-        GetCenterAndSize(model->object.tmd, &center, &size);
-        nModel = (z << 2) + ((x << 8) + (y << 5));
-        nModel = nModel + (int)WorldMap;
-        slotman = &ModelSlot;
-        shifty = center.vy;
-        msize = size / 2;
-        if (slotman->n >= slotman->max)
-            AdtMessageBox(msg_modelslot_overflow);
-        slotman->slot[slotman->n].model = model;
-        slotman->slot[slotman->n].next = ((WorldType *)nModel)->top;
-        slotman->slot[slotman->n].ModelSize = msize;
-        slotman->slot[slotman->n].ShiftY = shifty;
-        ((WorldType *)nModel)->top = &slotman->slot[slotman->n];
-        slotman->n++;
-        break;
+                GetCenterAndSize(model->object.tmd, &center, &size);
+                nModel = (z << 2) + ((x << 8) + (y << 5));
+                nModel = nModel + (int)WorldMap;
+                slotman = &ModelSlot;
+                shifty = center.vy;
+                msize = size / 2;
+                if (slotman->n >= slotman->max)
+                    AdtMessageBox(msg_modelslot_overflow);
+                slotman->slot[slotman->n].model = model;
+                slotman->slot[slotman->n].next = ((WorldType *)nModel)->top;
+                slotman->slot[slotman->n].ModelSize = msize;
+                slotman->slot[slotman->n].ShiftY = shifty;
+                ((WorldType *)nModel)->top = &slotman->slot[slotman->n];
+                slotman->n++;
+                break;
 
-    case 3:
-        BreedLife(wlddt[i].nid, wlddt[i].real.common.x,
-                  wlddt[i].real.common.y, wlddt[i].real.common.z,
-                  wlddt[i].real.common.r);
-        break;
+            case 3:
+                BreedLife(wlddt[i].nid, wlddt[i].real.common.x,
+                          wlddt[i].real.common.y, wlddt[i].real.common.z,
+                          wlddt[i].real.common.r);
+                break;
 
-    case 11:
-        AddMisc(wlddt[i].real.effect.type, wlddt[i].real.effect.x,
-                wlddt[i].real.effect.y, wlddt[i].real.effect.z,
-                wlddt[i].real.effect.a, wlddt[i].real.effect.b,
-                wlddt[i].real.effect.c);
-        break;
+            case 11:
+                AddMisc(wlddt[i].real.effect.type, wlddt[i].real.effect.x,
+                        wlddt[i].real.effect.y, wlddt[i].real.effect.z,
+                        wlddt[i].real.effect.a, wlddt[i].real.effect.b,
+                        wlddt[i].real.effect.c);
+                break;
 
-    case 4:
-        memset(&tmp, 0, sizeof(tmp));
-        tmp.type = wlddt[i].nid;
-        tmp.locate.vx = wlddt[i].real.common.x;
-        tmp.locate.vy = wlddt[i].real.common.y;
-        tmp.locate.vz = wlddt[i].real.common.z;
-        param = tmp;
-        ReqItemStay(&param);
-        break;
+            case 4:
+                memset(&tmp, 0, sizeof(tmp));
+                tmp.type = wlddt[i].nid;
+                tmp.locate.vx = wlddt[i].real.common.x;
+                tmp.locate.vy = wlddt[i].real.common.y;
+                tmp.locate.vz = wlddt[i].real.common.z;
+                param = tmp;
+                ReqItemStay(&param);
+                break;
             }
             i++;
         }

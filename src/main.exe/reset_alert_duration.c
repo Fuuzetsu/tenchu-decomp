@@ -14,7 +14,6 @@
  * TLinkInfo.Nannido is the struct view of the same byte.
  */
 
-
 void reset_alert_duration(void)
 {
     s32 duration;

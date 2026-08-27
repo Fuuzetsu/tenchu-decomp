@@ -90,52 +90,52 @@ void DoMiscProc(void)
             i = 0;
             view = &ViewInfo;
             p = misc;
-cull_loop:
-                proc = p->proc;
-                if (proc != 0)
+        cull_loop:
+            proc = p->proc;
+            if (proc != 0)
+            {
+                d = view->vrx;
+                coord = p->x;
+                d -= coord;
+                if (d < 0)
+                    d = -d;
+                if (d < LEN)
                 {
-                    d = view->vrx;
-                    coord = p->x;
+                    d = view->vry;
+                    coord = p->y;
                     d -= coord;
                     if (d < 0)
                         d = -d;
                     if (d < LEN)
                     {
-                        d = view->vry;
-                        coord = p->y;
+                        d = view->vrz;
+                        coord = p->z;
                         d -= coord;
                         if (d < 0)
                             d = -d;
                         if (d < LEN)
                         {
-                            d = view->vrz;
-                            coord = p->z;
-                            d -= coord;
-                            if (d < 0)
-                                d = -d;
-                            if (d < LEN)
+                            if (p->pause != 0)
                             {
-                                if (p->pause != 0)
-                                {
-                                    proc(p, MM_RESUME);
-                                    p->pause = 0;
-                                }
-                                goto next;
+                                proc(p, MM_RESUME);
+                                p->pause = 0;
                             }
+                            goto next;
                         }
                     }
-                    if (p->pause == 0)
-                    {
-                        p->proc(p, MM_PAUSE);
-                        p->pause = 1;
-                    }
                 }
-            next:
-                i++;
-                d = i < MaxMisc;
-                p++;
-                if (d)
-                    goto cull_loop;
+                if (p->pause == 0)
+                {
+                    p->proc(p, MM_PAUSE);
+                    p->pause = 1;
+                }
+            }
+        next:
+            i++;
+            d = i < MaxMisc;
+            p++;
+            if (d)
+                goto cull_loop;
         }
         DrawTMDmode = 0x20;
         for (i = 0; i < MaxMisc; i++)

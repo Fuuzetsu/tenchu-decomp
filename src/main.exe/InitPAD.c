@@ -65,7 +65,8 @@ void InitPAD(u_long a, u_long b, u_long c, u_long d)
 
     _remove_ChgclrPAD();
     EnterCriticalSection();
-    do {
+    do
+    {
         _patch_pad();
         ExitCriticalSection();
         ChangeClearPAD(0);

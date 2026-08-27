@@ -59,8 +59,8 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern void vfree(void *p);
 extern char path_image_images_arc[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\images.arc */
-extern char msg_bad_image_file[]; /* bad image file */
-extern char msg_bad_image_index[]; /* bad image index */
+extern char msg_bad_image_file[];    /* bad image file */
+extern char msg_bad_image_index[];   /* bad image index */
 /* Qualified because INFOVIEW.C has its own static fInitialize. */
 extern u8 Images_fInitialize;
 extern GsIMAGE Images[62];
@@ -72,14 +72,17 @@ GsIMAGE *GetImage(int index)
     int i;
     GsIMAGE *image;
 
-    if (Images_fInitialize == 0) {
+    if (Images_fInitialize == 0)
+    {
         pt = FileRead(path_image_images_arc);
-        if ((short)*pt < 0x3e) {
+        if ((short)*pt < 0x3e)
+        {
             AdtMessageBox(msg_bad_image_file);
         }
         i = 0;
         image = Images;
-        do {
+        do
+        {
             adr = get_tim_from_archive(pt, i);
             GetTIMInfo(adr, image);
             LoadTIM(adr);
@@ -89,10 +92,13 @@ GsIMAGE *GetImage(int index)
         vfree(pt);
         Images_fInitialize = 1;
     }
-    if ((unsigned)index >= 0x3e) {
+    if ((unsigned)index >= 0x3e)
+    {
         AdtMessageBox(msg_bad_image_index);
         return Images;
-    } else {
+    }
+    else
+    {
         return Images + index;
     }
 }

@@ -68,9 +68,12 @@ void SetupThinkFunction(Humanoid *human, TThinkType type)
     human->think[2] = *(ThinkFunc *)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));
     human->think[3] = Think4Func[(u32)((s32)type << 16) >> 28];
     check = ((s32)type << 16) >> 16;
-    if (check == 0 || check == 0x1111 || check == 0x2222) {
+    if (check == 0 || check == 0x1111 || check == 0x2222)
+    {
         human->attribute &= 0xFFFB;
-    } else {
+    }
+    else
+    {
         human->attribute |= 4;
     }
 }

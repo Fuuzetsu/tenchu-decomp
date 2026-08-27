@@ -104,7 +104,7 @@ void ActDEAD(void)
     }
     else
     {
-check_motion_end:
+    check_motion_end:
         if (dtM->loop < 0 && dtV->vy == 0)
         {
             MotionManager *motion;
@@ -168,81 +168,81 @@ check_motion_end:
     goto event_dead;
 
 splash_dead:
+{
+    if (rand() % 20 == 0)
+        Sound(Me_MOTION_C, 0x16);
+    scratch.dead.p.vy = Me_MOTION_C->map.level;
+    if ((rand() & 5) == 0)
     {
-        if (rand() % 20 == 0)
-            Sound(Me_MOTION_C, 0x16);
-        scratch.dead.p.vy = Me_MOTION_C->map.level;
-        if ((rand() & 5) == 0)
+        i = 0;
+        do
         {
-            i = 0;
-            do
-            {
-                long width;
-                int r;
+            long width;
+            int r;
 
-                r = rand();
-                width = Me_MOTION_C->width;
-                scratch.dead.p.vx = dtL->vx + (r % width) * 2 - width;
-                r = rand();
-                width = Me_MOTION_C->width;
-                scratch.dead.p.vz = dtL->vz + (r % width) * 2 - width;
-                SetSplash(&scratch.dead.p, (rand() & 7) << 12,
-                          (rand() & 7) << 12, 6);
-                i++;
-            } while (i < 5);
-        }
-        goto blood_effect;
+            r = rand();
+            width = Me_MOTION_C->width;
+            scratch.dead.p.vx = dtL->vx + (r % width) * 2 - width;
+            r = rand();
+            width = Me_MOTION_C->width;
+            scratch.dead.p.vz = dtL->vz + (r % width) * 2 - width;
+            SetSplash(&scratch.dead.p, (rand() & 7) << 12,
+                      (rand() & 7) << 12, 6);
+            i++;
+        } while (i < 5);
     }
+    goto blood_effect;
+}
 
 event_dead:
-    {
-        MotionManager *motion;
-        int count;
-        int stop;
+{
+    MotionManager *motion;
+    int count;
+    int stop;
 
-        motion = dtM;
-        pp = DeadEvents[motion->mid - 0x1109];
-        i = 0;
-        if (pp[i].action == 4)
-            goto event_ready;
-        count = motion->count;
-        stop = 4;
+    motion = dtM;
+    pp = DeadEvents[motion->mid - 0x1109];
+    i = 0;
+    if (pp[i].action == 4)
+        goto event_ready;
+    count = motion->count;
+    stop = 4;
 scan_event:
-        if (pp[i].frame == count)
-            goto event_ready;
-        i++;
-        if (pp[i].action != stop)
-            goto scan_event;
+    if (pp[i].frame == count)
+        goto event_ready;
+    i++;
+    if (pp[i].action != stop)
+        goto scan_event;
 event_ready:
-        if (dtM->count < pp[i].frame)
-            return;
+    if (dtM->count < pp[i].frame)
+        return;
 
-        switch (pp[i].action)
-        {
-        case 0:
-            Sound(StagePlayer, pp[i].argument);
-            break;
-        case 1:
-            Sound(Me_MOTION_C, pp[i].argument);
-            break;
-        case 2:
-            PadShockAR(0, 0xff, pp[i].argument, pp[i].packed);
-            break;
-        case 3:
-        case 4:
-        {
-            u16 packed;
+    switch (pp[i].action)
+    {
+    case 0:
+        Sound(StagePlayer, pp[i].argument);
+        break;
+    case 1:
+        Sound(Me_MOTION_C, pp[i].argument);
+        break;
+    case 2:
+        PadShockAR(0, 0xff, pp[i].argument, pp[i].packed);
+        break;
+    case 3:
+    case 4:
+    {
+        u16 packed;
 
-            ReqLifeBar(Me_MOTION_C);
-            blood = *(u16 *)&pp[i].argument;
-            packed = *(u16 *)&pp[i].packed;
-            bldo = packed >> 8;
-            blds = packed & 0xff;
-            break;
-        }
-        }
-        goto blood_effect;
+        ReqLifeBar(Me_MOTION_C);
+        blood = *(u16 *)&pp[i].argument;
+        packed = *(u16 *)&pp[i].packed;
+        bldo = packed >> 8;
+        blds = packed & 0xff;
+        break;
     }
+    }
+    goto blood_effect;
+}
 
 ordinary_dead:
     if ((*(u16 *)&Me_MOTION_C->type & 0xf0) != 0xa0)
@@ -277,6 +277,6 @@ blood_effect:
             scratch.dead.position.vz = 0;
         }
         SetGore(&Me_MOTION_C->model->object[blood]->locate,
-                     &scratch.dead.position, &scratch.dead.vector);
+                &scratch.dead.position, &scratch.dead.vector);
     }
 }

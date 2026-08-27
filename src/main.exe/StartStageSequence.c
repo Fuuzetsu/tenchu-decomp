@@ -99,14 +99,18 @@ void StartStageSequence(void)
     {
         if (stg->stage == StageID + 1)
         {
-            enum { StageCharThinkOffset = 0x0c };
+            enum
+            {
+                StageCharThinkOffset = 0x0c
+            };
             s16 chrid;
             volatile u16 *stg_think;
 
             chrid = (s16)stg->chrid;
             stg_think = (volatile u16 *)&stg->think;
             tp = ((volatile StageCharType *)((u8 *)stg_think -
-                                             StageCharThinkOffset))->chrid;
+                                             StageCharThinkOffset))
+                     ->chrid;
             if (chrid == -2)
             {
                 goto chrid_minus_two;
@@ -122,14 +126,14 @@ void StartStageSequence(void)
             }
             goto chrid_ready;
 
-chrid_minus_two:
+        chrid_minus_two:
             tp = 5;
             if (StagePlayer->type == 0)
             {
                 tp = 6;
             }
 
-chrid_ready:
+        chrid_ready:
 
             i = 0;
             while (i < Humans)
@@ -250,8 +254,7 @@ chrid_ready:
             goto next_human;
         }
         StageEnemies++;
-next_human:
-        ;
+    next_human:;
     }
 
     if (StageID >= 2)

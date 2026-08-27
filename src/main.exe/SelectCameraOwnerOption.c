@@ -80,8 +80,8 @@
  *    `fmt_num_2 = 0x80097D70;` in config/symbols.main.exe.txt per the
  *    cookbook's drifted-symbol recipe rather than fight the wrong auto-name.
  */
-extern char fmt_num_2[]; /* %d */   /* "%d" */
-extern char str_select_camera_owner[]; /* select camera owner */   /* "select camera owner" */
+extern char fmt_num_2[]; /* %d */                                /* "%d" */
+extern char str_select_camera_owner[]; /* select camera owner */ /* "select camera owner" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void sprintf(char *s, char *fmt, ...);

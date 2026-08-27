@@ -101,7 +101,7 @@ short AttackShort(void)
         status7_result = 0;
         goto status7_return;
 
-status7_continue:
+    status7_continue:
         if (Distance < 2000)
         {
             status_degree = Degree;
@@ -120,7 +120,7 @@ status7_continue:
             goto status7_return;
         }
 
-choose_status7:
+    choose_status7:
         if (Degree >= 301)
         {
             status_raw = 0x2000;
@@ -139,9 +139,9 @@ choose_status7:
         }
         status_raw |= 0x80;
 
-status7_value:
+    status7_value:
         status7_result = status_raw;
-status7_return:
+    status7_return:
         return (s16)status7_result;
     }
 
@@ -206,7 +206,7 @@ status7_return:
             goto return_pad;
         }
 
-activate_and_return:
+    activate_and_return:
         Me_THINK_C->actmode = 1;
         goto return_pad;
     }
@@ -329,7 +329,7 @@ activate_and_return:
             ItemUse();
             goto return_pad;
 
-return_with_1000:
+        return_with_1000:
             pad |= 0x1000;
             goto return_pad;
         }

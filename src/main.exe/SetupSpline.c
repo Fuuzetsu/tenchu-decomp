@@ -67,19 +67,23 @@ void SetupSpline(MotionManager *mmp)
     spc->key0 = mmp->motion->locate;
     t = time;
     spc->dd0.pad = time;
-    if (t != 0) {
+    if (t != 0)
+    {
         spc->key1 = spc->key0 + 1;
         UpdateSplineControl(spc);
     }
-    for (i = 0; i < mmp->n; i++) {
+    for (i = 0; i < mmp->n; i++)
+    {
         s32 control_offset;
 
         control_offset = i * sizeof(SplineControlType) + sizeof(SplineControlType);
         spc = (SplineControlType *)((u8 *)mmp->control + control_offset);
         spc->key0 = mmp->motion->rotate[i];
         spc->dd0.pad = time;
-        do {
-            if (t != 0) {
+        do
+        {
+            if (t != 0)
+            {
                 spc->key1 = spc->key0 + 1;
                 UpdateSplineControl(spc);
             }

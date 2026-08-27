@@ -79,9 +79,9 @@
 extern volatile s32 StageTime;
 extern long EmergencyNotice;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern char fmt_dbg_quad[]; /* %d-%d-%d-%d  */
-extern char fmt_dbg_counts[]; /* %d/%d/%d(%d/%d)  */
-extern char fmt_num_paren[]; /* %d(%d) */
+extern char fmt_dbg_quad[];    /* %d-%d-%d-%d  */
+extern char fmt_dbg_counts[];  /* %d/%d/%d(%d/%d)  */
+extern char fmt_num_paren[];   /* %d(%d) */
 extern char fmt_num_bracket[]; /*  [%d] */
 extern char str_newline_3[];
 
@@ -129,7 +129,7 @@ s32 StageSequence(void)
         }
         return result;
 
-active_events:
+    active_events:
         UpdateEvent(0, 2);
         UpdateEvent(1, 3);
         StagePlayer->status = STAT_ACTION;
@@ -300,7 +300,7 @@ active_events:
             Event[i] = 0;
             continue;
 
-run_event:
+        run_event:
             if (StagePlayer->type == 0 && ev->mode == 5 &&
                 tgt->type == HIKONE)
             {

@@ -67,7 +67,7 @@ int ReqItemStay(PARAM_ITEM_STAY *p)
     param.end.vy = 0;
     param.end.vz = 0;
     param.start.vy = GetAreaMapLevel(GlobalAreaMap, param.start.vx,
-        param.start.vy, param.start.vz, 0);
+                                     param.start.vy, param.start.vz, 0);
     ReqItemDrop(&param);
     return 1;
 }

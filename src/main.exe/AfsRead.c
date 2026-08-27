@@ -23,24 +23,27 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char msg_afsread_invalid_handle[]; /* AfsRead: invalid handle */ /* "AfsRead: invalid handle" — lives in this TU's
-                            * unsplit data blob (splat auto-symbol), same
-                            * pattern as AfsInit's msg_afsinit_not_enough_memory. */
+                                                                         * unsplit data blob (splat auto-symbol), same
+                                                                         * pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length)
 {
     u32 size;
     u32 pos;
 
-    if (fd == 0) {
+    if (fd == 0)
+    {
         AdtMessageBox(msg_afsread_invalid_handle);
         return 0;
     }
     cd_seek(volume->fpVol, fd->info->pos + fd->pos, CDSEEK_SET);
     size = fd->info->size;
     pos = fd->pos;
-    if (size < length + pos) {
+    if (size < length + pos)
+    {
         length = size - pos;
-        if (length == 0) {
+        if (length == 0)
+        {
             return 0;
         }
     }

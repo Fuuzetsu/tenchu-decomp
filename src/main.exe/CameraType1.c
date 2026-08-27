@@ -99,7 +99,13 @@ extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
 
 void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 {
-    enum { FL = 1, FR = 2, BL = 4, BR = 8 };
+    enum
+    {
+        FL = 1,
+        FR = 2,
+        BL = 4,
+        BR = 8
+    };
     ModelArchiveType *mad;
     VECTOR pos;
     CameraScratch scratch;
@@ -114,7 +120,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     pos = scratch.init;
     mad->attribute |= 2;
 
-    switch ((s16)(CamState.Owner->status - STAT_SWIM)) {
+    switch ((s16)(CamState.Owner->status - STAT_SWIM))
+    {
     case 9:
     {
         s32 levfl;
@@ -154,19 +161,28 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         if (levbr == (s32)0x80000000)
             levmap |= BR;
 
-        if ((levmap & (FL | FR | BL | BR)) == BL) {
+        if ((levmap & (FL | FR | BL | BR)) == BL)
+        {
             CamState.Mode = CMODE_PEEP_R;
             break;
-        } else if ((levmap & (FL | FR | BL | BR)) == BR) {
+        }
+        else if ((levmap & (FL | FR | BL | BR)) == BR)
+        {
             CamState.Mode = CMODE_PEEP_L;
             break;
-        } else if ((levmap & (FL | FR)) == FL) {
+        }
+        else if ((levmap & (FL | FR)) == FL)
+        {
             CamState.Mode = CMODE_STICK_R;
             break;
-        } else if ((levmap & (FL | FR)) == FR) {
+        }
+        else if ((levmap & (FL | FR)) == FR)
+        {
             CamState.Mode = CMODE_STICK_L;
             break;
-        } else {
+        }
+        else
+        {
             CamState.Mode = CMODE_NORMAL;
             break;
         }
@@ -198,7 +214,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
         cs = &CamState;
         mid = cs->Owner->motion->mid;
-        if ((u16)(mid - 0x1005) < 5) {
+        if ((u16)(mid - 0x1005) < 5)
+        {
             cs->Mode = 0x10;
             break;
         }
@@ -211,7 +228,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         break;
     }
 
-    switch (CamState.Mode) {
+    switch (CamState.Mode)
+    {
     case CMODE_CRITICAL_HIT:
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &CamPosCriticalHit[CamState.OldMode].r1, vDif);
@@ -259,7 +277,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         alternate = CamPosKnockbackAlt;
 
         if (MakeCameraPosition(&pos, &pl->model->rotate,
-                               &scratch.camera.r1, vDif) < 0x801) {
+                               &scratch.camera.r1, vDif) < 0x801)
+        {
             MakeCameraPosition(&pos, &pl->model->rotate,
                                &alternate.r1, vDif);
         }

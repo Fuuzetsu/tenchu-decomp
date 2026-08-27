@@ -36,11 +36,13 @@ void ResetInventory(void)
 
     ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[0] = 0xff;
     i = 1;
-    do {
+    do
+    {
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i] = 0;
         i++;
     } while (i < 9);
-    while (i < 0x14) {
+    while (i < 0x14)
+    {
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i] = 0xfe;
         i++;
     }

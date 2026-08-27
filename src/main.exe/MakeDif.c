@@ -52,7 +52,8 @@ extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *
 
 void MakeDif(GsRVIEW2 *vinfo, GsRVIEW2 *target, GsRVIEW2 *vdif)
 {
-    if (CamState.snap_pending == 1) {
+    if (CamState.snap_pending == 1)
+    {
         vdif->vpx = target->vpx - vinfo->vpx;
         vdif->vpy = target->vpy - vinfo->vpy;
         vdif->vpz = target->vpz - vinfo->vpz;
@@ -60,7 +61,9 @@ void MakeDif(GsRVIEW2 *vinfo, GsRVIEW2 *target, GsRVIEW2 *vdif)
         vdif->vry = target->vry - vinfo->vry;
         vdif->vrz = target->vrz - vinfo->vrz;
         CamState.snap_pending = 0;
-    } else {
+    }
+    else
+    {
         MakeDifSub((VECTOR *)&vinfo->vrx, (VECTOR *)&target->vrx, (VECTOR *)&vdif->vrx,
                    &ref);
         MakeDifSub((VECTOR *)vinfo, (VECTOR *)target, (VECTOR *)vdif, &pnt);

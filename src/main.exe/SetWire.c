@@ -98,7 +98,10 @@ static inline void GetWireScreenPosition(long x, long y, long z,
 
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 {
-    enum { one = 4096 };
+    enum
+    {
+        one = 4096
+    };
     VECTOR StockCenter;
     long lcount;
     int i;

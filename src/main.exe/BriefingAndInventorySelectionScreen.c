@@ -132,7 +132,11 @@ void BriefingAndInventorySelectionScreen(void)
     GsSPRITE spr;
     GsSPRITE hspr;
     s16 bounce;
-    union { u16 u; s16 s; } pad;
+    union
+    {
+        u16 u;
+        s16 s;
+    } pad;
     u16 cap;
     u16 taken;
     BackGround *bg;
@@ -147,13 +151,13 @@ void BriefingAndInventorySelectionScreen(void)
     int scale;
     int nsel;
     s16 np;
-    int i;        /* entry backup loop */
-    s16 j;        /* selection/count loop, case1/3 loops, grid, shown, cursor dx, epilogue */
-    s32 x;        /* grid x, cursor dy */
-    s32 y;        /* grid y */
-    s16 j7;       /* case 7 loop */
-    int ci;       /* clamp loops */
-    int si;       /* cursor search */
+    int i;  /* entry backup loop */
+    s16 j;  /* selection/count loop, case1/3 loops, grid, shown, cursor dx, epilogue */
+    s32 x;  /* grid x, cursor dy */
+    s32 y;  /* grid y */
+    s16 j7; /* case 7 loop */
+    int ci; /* clamp loops */
+    int si; /* cursor search */
     s16 shown;
     s16 av;
     int t;
@@ -166,20 +170,24 @@ void BriefingAndInventorySelectionScreen(void)
     taken = 0;
     help = -1;
 
-    for (i = 0; i < 0x14; i++) {
+    for (i = 0; i < 0x14; i++)
+    {
         PSTATE->saveItem[i] = PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20];
     }
-    for (j = 0; j < 0x14; j++) {
+    for (j = 0; j < 0x14; j++)
+    {
         PSTATE->selItem[j] = 0;
     }
     q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     uid = StageConfig[q->StageNo].uid;
     q->selItem[0] = 0xFF;
-    if (uid == 0) {
+    if (uid == 0)
+    {
         q->selItem[1] = 5;
         return;
     }
-    if ((q->GameRetry & 1) == 0) {
+    if ((q->GameRetry & 1) == 0)
+    {
         briefing_screen_();
     }
     bounce = 0;
@@ -209,74 +217,95 @@ void BriefingAndInventorySelectionScreen(void)
     {
         TLinkInfo *cq =
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-        for (ci = 0; ci < 0x13; ci++) {
+        for (ci = 0; ci < 0x13; ci++)
+        {
             int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
             u8 c = cq->gItem[n];
             s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
-            if (c != 0xFE && mx < cq->gItem[n]) {
+            if (c != 0xFE && mx < cq->gItem[n])
+            {
                 cq->gItem[n] = mx;
             }
         }
     }
 
     ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    do {
+    do
+    {
         rand();
         np = pad.u;
         pad.u = GetRealPad(0);
         np = pad.u & (pad.u ^ np);
         id = check_for_known_button_combination(pad.s, np);
-        switch ((s16)(id - 1)) {
+        switch ((s16)(id - 1))
+        {
         case 0:
-            if (CARRY_30_ITEMS_CHEAT_APPLIED == 0) {
+            if (CARRY_30_ITEMS_CHEAT_APPLIED == 0)
+            {
                 CARRY_30_ITEMS_CHEAT_APPLIED = 1;
                 cap = 0x1E;
             }
             break;
         case 1:
-            for (j = 1; j < 9; j++) {
+            for (j = 1; j < 9; j++)
+            {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] == 0xFE) {
+                if ((&ps->gItem[0])[n] == 0xFE)
+                {
                     (&ps->gItem[0])[n] = 1;
-                } else {
+                }
+                else
+                {
                     (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
                 }
             }
-            for (j = 9; j < 0x14; j++) {
+            for (j = 9; j < 0x14; j++)
+            {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] != 0xFE) {
+                if ((&ps->gItem[0])[n] != 0xFE)
+                {
                     (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
                 }
             }
             {
                 TLinkInfo *cq =
                     (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-                for (ci = 0; ci < 0x13; ci++) {
+                for (ci = 0; ci < 0x13; ci++)
+                {
                     int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
                     u8 c = cq->gItem[n];
                     s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
-                    if (c != 0xFE && mx < c) {
+                    if (c != 0xFE && mx < c)
+                    {
                         cq->gItem[n] = mx;
                     }
                 }
             }
             break;
         case 3:
-            for (j = 9; j < 0x14; j++) {
+            for (j = 9; j < 0x14; j++)
+            {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] == 0xFE) {
+                if ((&ps->gItem[0])[n] == 0xFE)
+                {
                     (&ps->gItem[0])[n] = 1;
                 }
             }
             break;
         case 0x1F:
-            if (ps->CharType != 0) {
+            if (ps->CharType != 0)
+            {
                 u8 already = ps->selItem[0x13];
-                if (already != 0 || (&ps->gItem[0x13])[ps->CharType * 0x20] == 1) {
-                    do {
-                        do {
-                            if ((s16)nsel < 6) {
-                                if (already == 0) {
+                if (already != 0 || (&ps->gItem[0x13])[ps->CharType * 0x20] == 1)
+                {
+                    do
+                    {
+                        do
+                        {
+                            if ((s16)nsel < 6)
+                            {
+                                if (already == 0)
+                                {
                                     nsel++;
                                     taken++;
                                 }
@@ -290,7 +319,8 @@ void BriefingAndInventorySelectionScreen(void)
             }
             break;
         case 7:
-            for (j7 = 0; j7 < 0x14; j7++) {
+            for (j7 = 0; j7 < 0x14; j7++)
+            {
                 (&ps->gItem[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] =
                     (&ps->saveItem[0])[j7];
             }
@@ -301,18 +331,22 @@ void BriefingAndInventorySelectionScreen(void)
             exec_process_(0x10);
             break;
         }
-        if (np == 0x800) {
+        if (np == 0x800)
+        {
             goto quit;
         }
         StartDrawing();
         DrawBG(bg);
-        for (j = 0; j < 0x13; j++) {
+        for (j = 0; j < 0x13; j++)
+        {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
             u8 c = (&ps->gItem[0])[n + (ps->CharType << 5)];
-            if (c != 0xFE) {
+            if (c != 0xFE)
+            {
                 x = SHOP_ITEM_DEFAULTS[j].x;
                 y = SHOP_ITEM_DEFAULTS[j].y;
-                if (c != 0xFF) {
+                if (c != 0xFF)
+                {
                     PutNumber(x + 0x1A, y + 8, c);
                 }
                 PutItemIcon(n, x, y, 0x1000);
@@ -324,75 +358,96 @@ void BriefingAndInventorySelectionScreen(void)
             int ddx, ddy, hx, hy;
             int k;
 
-            do {
-            shown = 0x10;
-            if ((np & 0x4000) == 0) {
-                shown = 0;
-                if ((np & 0x1000) != 0) {
-                    shown = -0x10;
-                }
-            }
-            j = 0x10;
-            if ((np & 0x2000) == 0) {
-                j = 0;
-                if ((np & 0x8000) != 0) {
-                    j = -0x10;
-                }
-            }
-            hx = j << 0x10;
-            hy = shown << 0x10;
-            k = cursor;
-            ddx = hx >> 0x10;
-            ddy = hy >> 0x10;
-            if (ddx != 0 || ddy != 0) {
-                int best = 0x7FFFFFFF;
-                int bi = cursor;
-                int tx = SHOP_ITEM_DEFAULTS[bi].x + ddx;
-                int ty = SHOP_ITEM_DEFAULTS[bi].y + ddy;
-                for (si = 0; si < 0x13; si++) {
-                    int ex = SHOP_ITEM_DEFAULTS[si].x - tx;
-                    int ey = SHOP_ITEM_DEFAULTS[si].y - ty;
-                    int d = ex * ex + ey * ey;
-                    if (d < best && 0 <= ex * ddx && 0 <= ey * ddy && si != k) {
-                        best = d;
-                        bi = si;
+            do
+            {
+                shown = 0x10;
+                if ((np & 0x4000) == 0)
+                {
+                    shown = 0;
+                    if ((np & 0x1000) != 0)
+                    {
+                        shown = -0x10;
                     }
                 }
-                cursor = bi;
-            }
+                j = 0x10;
+                if ((np & 0x2000) == 0)
+                {
+                    j = 0;
+                    if ((np & 0x8000) != 0)
+                    {
+                        j = -0x10;
+                    }
+                }
+                hx = j << 0x10;
+                hy = shown << 0x10;
+                k = cursor;
+                ddx = hx >> 0x10;
+                ddy = hy >> 0x10;
+                if (ddx != 0 || ddy != 0)
+                {
+                    int best = 0x7FFFFFFF;
+                    int bi = cursor;
+                    int tx = SHOP_ITEM_DEFAULTS[bi].x + ddx;
+                    int ty = SHOP_ITEM_DEFAULTS[bi].y + ddy;
+                    for (si = 0; si < 0x13; si++)
+                    {
+                        int ex = SHOP_ITEM_DEFAULTS[si].x - tx;
+                        int ey = SHOP_ITEM_DEFAULTS[si].y - ty;
+                        int d = ex * ex + ey * ey;
+                        if (d < best && 0 <= ex * ddx && 0 <= ey * ddy && si != k)
+                        {
+                            best = d;
+                            bi = si;
+                        }
+                    }
+                    cursor = bi;
+                }
             } while (0);
         }
-        if ((np & 0xF000) != 0) {
+        if ((np & 0xF000) != 0)
+        {
             SoundEx((VECTOR *)0x0, 0xB);
             help = -1;
         }
-        if (np != 0) {
-            if ((s16)pad.u == 0x20) {
+        if (np != 0)
+        {
+            if ((s16)pad.u == 0x20)
+            {
                 np = 0;
                 bounce = 1;
                 {
                     s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                     scale = 0x200;
-                    if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0) {
-                        if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0xFE) {
-                            if ((s16)taken < cap) {
+                    if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0)
+                    {
+                        if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0xFE)
+                        {
+                            if ((s16)taken < cap)
+                            {
                                 u8 cnt = (&ps->selItem[0])[idx];
-                                if (cnt == 0) {
+                                if (cnt == 0)
+                                {
                                     nsel++;
                                 }
-                                if ((s16)nsel < 6) {
-                                    if (idx != 0x13 || ARMOUR_USED == 0) {
+                                if ((s16)nsel < 6)
+                                {
+                                    if (idx != 0x13 || ARMOUR_USED == 0)
+                                    {
                                         (&ps->selItem[0])[idx] = cnt + 1;
                                         taken++;
                                         (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
                                     }
                                     SoundEx((VECTOR *)0x0, 0xD);
-                                } else {
+                                }
+                                else
+                                {
                                     SoundEx((VECTOR *)0x0, 0xC);
                                     help = 0x14;
                                     nsel--;
                                 }
-                            } else {
+                            }
+                            else
+                            {
                                 SoundEx((VECTOR *)0x0, 0xC);
                                 help = 0x13;
                             }
@@ -400,21 +455,27 @@ void BriefingAndInventorySelectionScreen(void)
                     }
                 }
             }
-            if (np != 0 && (s16)pad.u == 0x40) {
+            if (np != 0 && (s16)pad.u == 0x40)
+            {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                 bounce = 2;
                 {
                     u8 c = (&ps->selItem[0])[idx];
                     scale = 0x1400;
-                    if (c != 0) {
-                        if (c == 0xFF) {
+                    if (c != 0)
+                    {
+                        if (c == 0xFF)
+                        {
                             (&ps->selItem[0])[idx] = 0;
                             (&ps->gItem[0])[idx + (ps->CharType << 5)] = 1;
                             nsel--;
-                        } else {
+                        }
+                        else
+                        {
                             (&ps->selItem[0])[idx] = c - 1;
                             (&ps->gItem[0])[idx + (ps->CharType << 5)]++;
-                            if ((&ps->selItem[0])[idx] == 0) {
+                            if ((&ps->selItem[0])[idx] == 0)
+                            {
                                 nsel--;
                             }
                         }
@@ -425,15 +486,19 @@ void BriefingAndInventorySelectionScreen(void)
                 help = -1;
             }
         }
-        if ((s16)scale < 0x1000) {
+        if ((s16)scale < 0x1000)
+        {
             scale += 0xC0;
         }
-        if (help == -1) {
-            if ((&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != 0xFE) {
+        if (help == -1)
+        {
+            if ((&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != 0xFE)
+            {
                 help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
             }
         }
-        if (help != -1) {
+        if (help != -1)
+        {
             buf = get_tim_from_archive(harc, help);
             TimToSprite(buf, &hspr);
             hspr.x = -0xA0;
@@ -451,38 +516,52 @@ void BriefingAndInventorySelectionScreen(void)
             hspr.y = 0x23;
             GsSortSprite(&hspr, OTablePt, 1);
         }
-        if (bounce == 1) {
-            do {
+        if (bounce == 1)
+        {
+            do
+            {
                 t = scale + 0x10;
                 scale = t;
             } while (0);
-            if (0x1400 < (s16)t) {
+            if (0x1400 < (s16)t)
+            {
                 bounce ^= 1;
             }
-        } else if (bounce == 0) {
-            do {
+        }
+        else if (bounce == 0)
+        {
+            do
+            {
                 t = scale - 0x10;
                 scale = t;
             } while (0);
-            if ((s16)t < 0x1000) {
+            if ((s16)t < 0x1000)
+            {
                 bounce ^= 1;
             }
-        } else if (bounce == 2) {
-            do {
+        }
+        else if (bounce == 2)
+        {
+            do
+            {
                 t = scale - 0x10;
                 scale = t;
             } while (0);
-            if ((s16)t < 0x1000) {
+            if ((s16)t < 0x1000)
+            {
                 bounce = 0;
             }
         }
         shown = 0;
-        for (j = shown; j < 0x14; j++) {
+        for (j = shown; j < 0x14; j++)
+        {
             u8 c;
             y = (s16)j;
             c = (&ps->selItem[0])[y];
-            if (c != 0) {
-                if (c != 0xFF) {
+            if (c != 0)
+            {
+                if (c != 0xFF)
+                {
                     PutNumber(0xA6 - shown * 0x19, 0x62, c);
                 }
                 PutItemIcon(y, (s16)(0x8C - shown * 0x19), 0x5A, 0x1000);
@@ -504,13 +583,17 @@ void BriefingAndInventorySelectionScreen(void)
             dsp->y = -0x32;
             av = t1 - taken;
             tv = (s16)av;
-            if (tv < 0) {
+            if (tv < 0)
+            {
                 av = -tv;
                 neg = 1;
-            } else {
+            }
+            else
+            {
                 neg = 0;
             }
-            do {
+            do
+            {
                 d = av;
                 quo = d / 10;
                 x = dsp->u;
@@ -521,7 +604,8 @@ void BriefingAndInventorySelectionScreen(void)
                 dsp->x -= 0xC;
                 av = quo;
             } while ((s16)av != 0);
-            if (neg) {
+            if (neg)
+            {
                 int c = (u8)dsp->u;
                 m = 10;
                 dsp->u = c + dsp->w * m;
@@ -536,12 +620,15 @@ void BriefingAndInventorySelectionScreen(void)
 quit:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     clear_screen_();
-    if (PSTATE->selItem[0x12] != 0) {
+    if (PSTATE->selItem[0x12] != 0)
+    {
         PSTATE->selItem[0x12] = 0xFF;
     }
-    for (j = 0; j < 9; j++) {
+    for (j = 0; j < 9; j++)
+    {
         int n = j + PSTATE->CharType * 0x20;
-        if (PSTATE->gItem[n] == 0) {
+        if (PSTATE->gItem[n] == 0)
+        {
             PSTATE->gItem[n] = 0xFE;
         }
     }

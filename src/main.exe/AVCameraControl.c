@@ -104,7 +104,7 @@ void AVCameraControl(void)
         }
         GetMoveSpeed(&vect, ry, len, 0);
 
-apply_move:
+    apply_move:
         ViewInfo.vpx = ViewInfo.vrx + vect.vx;
         ViewInfo.vpz = ViewInfo.vrz + vect.vz;
         break;

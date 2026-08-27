@@ -91,24 +91,24 @@ loop:
     } while (searched < 200);
     ef = &dmy;
 found:
-    {
-        int width;
+{
+    int width;
 
-        width = (s16)spread * 2;
-        smoke = &ef->param.smoke;
-        if (width > 0)
-        {
-            smoke->vec.vx = rand() % width - spread;
-        }
-        else if (pos)
-        {
-            smoke->vec.vx = -spread;
-        }
-        else
-        {
-            smoke->vec.vx = -spread;
-        }
+    width = (s16)spread * 2;
+    smoke = &ef->param.smoke;
+    if (width > 0)
+    {
+        smoke->vec.vx = rand() % width - spread;
     }
+    else if (pos)
+    {
+        smoke->vec.vx = -spread;
+    }
+    else
+    {
+        smoke->vec.vx = -spread;
+    }
+}
     smoke->vec.vy = -5;
     {
         int width;

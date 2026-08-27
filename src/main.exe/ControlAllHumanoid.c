@@ -58,23 +58,23 @@ short ControlAllHumanoid(void)
     i = 0;
     result = Humans;
     if (result > 0)
-    do
-    {
-        human = HumanGroup[i];
-        if ((*(u16 *)&human->attribute & 0x80) == 0)
+        do
         {
-            if (human->type == BALMA)
+            human = HumanGroup[i];
+            if ((*(u16 *)&human->attribute & 0x80) == 0)
             {
-                character_balma_around_main_routine_();
-                ControlHumanoid(human);
-                character_balma_around_main_routine_();
+                if (human->type == BALMA)
+                {
+                    character_balma_around_main_routine_();
+                    ControlHumanoid(human);
+                    character_balma_around_main_routine_();
+                }
+                else
+                {
+                    ControlHumanoid(human);
+                }
             }
-            else
-            {
-                ControlHumanoid(human);
-            }
-        }
-        i = i + 1;
-    } while (result = i < Humans);
+            i = i + 1;
+        } while (result = i < Humans);
     return result;
 }

@@ -121,8 +121,9 @@ found:
                 v = dx + 0xff;
             }
             dx = v >> 8;
-            do {
-              v = dy;
+            do
+            {
+                v = dy;
             } while (0);
             if (dy < 0)
             {
@@ -153,7 +154,8 @@ found:
         {
             scaled = dist + 0xf;
         }
-        do {
+        do
+        {
             dist = scaled >> 4;
         } while (0);
 

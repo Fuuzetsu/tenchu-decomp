@@ -47,7 +47,7 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char NUMBER_TIM_PATH[];
 extern char *RANKS_ARCHIVE_PTRS[];
 extern char *TRN_SPRITE_PTRS[];
-extern char path_image_3[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
+extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
 extern s16 StageItem[];
@@ -58,7 +58,7 @@ extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);
 extern void draw_time_(GsSPRITE *number, s32 value, s16 x, s32 y,
-                         s32 mode);
+                       s32 mode);
 extern void FadeOutDirect(s16 time, s16 attribute, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern void score_screen_input_(void);
@@ -88,7 +88,6 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 #define result storage.result
 #define rankSprites storage.rankSprites
 #define characterSprites storage.characterSprites
-
 
 void mission_score_screen(void)
 {
@@ -154,8 +153,8 @@ void mission_score_screen(void)
 
         archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
         attributeMask = 0x50000000;
-score_rank_sprite_init_loop:
-        {
+    score_rank_sprite_init_loop:
+    {
         u32 width;
 
         tim = get_tim_from_archive(archive, i);
@@ -176,11 +175,13 @@ score_rank_sprite_init_loop:
         initSprite->mx = width >> 1;
         initSprite->my = initSprite->h >> 1;
         ((GsSPRITE *)((u8 *)(rankSprites) +
-                      (i) * sizeof(GsSPRITE)))->mx = 0;
+                      (i) * sizeof(GsSPRITE)))
+            ->mx = 0;
         ((GsSPRITE *)((u8 *)(rankSprites) +
-                      (i) * sizeof(GsSPRITE)))->my = 0;
+                      (i) * sizeof(GsSPRITE)))
+            ->my = 0;
         LoadTIM(tim);
-        }
+    }
         i++;
         if (i < 5)
             goto score_rank_sprite_init_loop;
@@ -191,36 +192,38 @@ score_rank_sprite_init_loop:
 
         i = 0;
         characterColour = 128;
-score_character_sprite_init_loop:
-        {
-            u32 width;
-            u32 height;
+    score_character_sprite_init_loop:
+    {
+        u32 width;
+        u32 height;
 
-            tim = get_tim_from_archive(archive, i + 5);
-            initSprite = (GsSPRITE *)((u8 *)&storage +
-                                      i * sizeof(GsSPRITE));
-            initSprite = (GsSPRITE *)((u8 *)initSprite +
-                                      sizeof(ScoreResult) +
-                                      2 * sizeof(u32) +
-                                      5 * sizeof(GsSPRITE));
-            InitScoreSprite(tim, &image, initSprite);
-            /* Retail keeps this dead attribute load (value overwritten
-             * before any use) — a leftover of the rank-loop copy. */
-            attribute = *(u32 volatile *)&initSprite->attribute;
-            width = initSprite->w;
-            height = initSprite->h;
-            initSprite->x = -160;
-            initSprite->y = -120;
-            initSprite->g = initSprite->r = characterColour;
-            initSprite->b = characterColour;
-            initSprite->mx = width >> 1;
-            initSprite->my = height >> 1;
-            ((GsSPRITE *)((u8 *)(characterSprites) +
-                          (i) * sizeof(GsSPRITE)))->mx = 0;
-            ((GsSPRITE *)((u8 *)(characterSprites) +
-                          (i) * sizeof(GsSPRITE)))->my = 0;
-            LoadTIM(tim);
-        }
+        tim = get_tim_from_archive(archive, i + 5);
+        initSprite = (GsSPRITE *)((u8 *)&storage +
+                                  i * sizeof(GsSPRITE));
+        initSprite = (GsSPRITE *)((u8 *)initSprite +
+                                  sizeof(ScoreResult) +
+                                  2 * sizeof(u32) +
+                                  5 * sizeof(GsSPRITE));
+        InitScoreSprite(tim, &image, initSprite);
+        /* Retail keeps this dead attribute load (value overwritten
+         * before any use) — a leftover of the rank-loop copy. */
+        attribute = *(u32 volatile *)&initSprite->attribute;
+        width = initSprite->w;
+        height = initSprite->h;
+        initSprite->x = -160;
+        initSprite->y = -120;
+        initSprite->g = initSprite->r = characterColour;
+        initSprite->b = characterColour;
+        initSprite->mx = width >> 1;
+        initSprite->my = height >> 1;
+        ((GsSPRITE *)((u8 *)(characterSprites) +
+                      (i) * sizeof(GsSPRITE)))
+            ->mx = 0;
+        ((GsSPRITE *)((u8 *)(characterSprites) +
+                      (i) * sizeof(GsSPRITE)))
+            ->my = 0;
+        LoadTIM(tim);
+    }
         i++;
         if (i < 2)
             goto score_character_sprite_init_loop;
@@ -350,7 +353,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_0:
+            score_number_0:
                 do
                 {
                     dividend = (s16)value;
@@ -379,79 +382,79 @@ score_character_sprite_init_loop:
             }
         } while (0);
         {
-        s32 drawX;
-        GsSPRITE *numberSprite;
+            s32 drawX;
+            GsSPRITE *numberSprite;
 
-        numberSprite = &number;
+            numberSprite = &number;
 
-        do
-        {
-            u8 oldU;
-            s32 colonDigit;
-
-            number.x = (0x1F);
-            oldU = (numberSprite)->u;
-            colonDigit = 12;
-            (numberSprite)->u = oldU + (numberSprite)->w * colonDigit;
-            GsSortSprite((numberSprite), OTablePt, 0);
-            (numberSprite)->u = oldU;
-            drawX = 0x2F;
-        } while (0);
-        do
-        {
-            s32 dividend;
-            s32 remainder;
-            s32 quotient;
-            u32 value;
-            s32 signedValue;
-            s32 drawY;
-            GsSPRITE *drawnSprite;
-
-            drawY = -0x47;
-            signedValue = stats.stageEnemies;
-            value = stats.stageBosses;
-            signedValue -= value;
-            numberSprite->x = drawX;
-            numberSprite->y = drawY;
-            drawnSprite = numberSprite;
-            value = (s16)signedValue;
-            if (signedValue < 0)
-            {
-                value = -signedValue;
-                negative = 1;
-                goto score_number_1;
-            }
-            else
-            {
-                negative = 0;
-            }
-            score_number_1:
             do
             {
-                dividend = (s16)value;
-                quotient = dividend / 10;
-                remainder = dividend % 10;
-                baseU = drawnSprite->u;
-                drawnSprite->u =
-                    baseU + (s16)remainder * drawnSprite->w;
-                GsSortSprite(drawnSprite, OTablePt, 0);
-                drawnSprite->x -= 12;
-                value = quotient;
-                quotient <<= 16;
-                drawnSprite->u = baseU;
-            } while (quotient != 0);
-            if (negative != 0)
-            {
-                u32 signBaseU;
-                s32 ten;
+                u8 oldU;
+                s32 colonDigit;
 
-                ten = 10;
-                signBaseU = drawnSprite->u;
-                drawnSprite->u = signBaseU + drawnSprite->w * ten;
-                GsSortSprite(drawnSprite, OTablePt, 0);
-                drawnSprite->u = signBaseU;
-            }
-        } while (0);
+                number.x = (0x1F);
+                oldU = (numberSprite)->u;
+                colonDigit = 12;
+                (numberSprite)->u = oldU + (numberSprite)->w * colonDigit;
+                GsSortSprite((numberSprite), OTablePt, 0);
+                (numberSprite)->u = oldU;
+                drawX = 0x2F;
+            } while (0);
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u32 value;
+                s32 signedValue;
+                s32 drawY;
+                GsSPRITE *drawnSprite;
+
+                drawY = -0x47;
+                signedValue = stats.stageEnemies;
+                value = stats.stageBosses;
+                signedValue -= value;
+                numberSprite->x = drawX;
+                numberSprite->y = drawY;
+                drawnSprite = numberSprite;
+                value = (s16)signedValue;
+                if (signedValue < 0)
+                {
+                    value = -signedValue;
+                    negative = 1;
+                    goto score_number_1;
+                }
+                else
+                {
+                    negative = 0;
+                }
+            score_number_1:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = drawnSprite->u;
+                    drawnSprite->u =
+                        baseU + (s16)remainder * drawnSprite->w;
+                    GsSortSprite(drawnSprite, OTablePt, 0);
+                    drawnSprite->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    drawnSprite->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
+                    u32 signBaseU;
+                    s32 ten;
+
+                    ten = 10;
+                    signBaseU = drawnSprite->u;
+                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    GsSortSprite(drawnSprite, OTablePt, 0);
+                    drawnSprite->u = signBaseU;
+                }
+            } while (0);
         }
         do
         {
@@ -488,7 +491,7 @@ score_character_sprite_init_loop:
                     value = -(s16)value;
                     negative = 1;
                 }
-        score_number_2:
+            score_number_2:
                 do
                 {
                     dividend = (s16)value;
@@ -554,7 +557,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_3:
+            score_number_3:
                 do
                 {
                     dividend = (s16)value;
@@ -632,7 +635,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_4:
+            score_number_4:
                 do
                 {
                     dividend = (s16)value;
@@ -696,7 +699,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_5:
+            score_number_5:
                 do
                 {
                     dividend = (s16)value;
@@ -762,7 +765,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_6:
+            score_number_6:
                 do
                 {
                     dividend = (s16)value;
@@ -826,7 +829,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_7:
+            score_number_7:
                 do
                 {
                     dividend = (s16)value;
@@ -892,7 +895,7 @@ score_character_sprite_init_loop:
                     value = -signedValue;
                     negative = 1;
                 }
-        score_number_8:
+            score_number_8:
                 do
                 {
                     dividend = (s16)value;
@@ -948,110 +951,119 @@ score_character_sprite_init_loop:
 
             i = 0;
             rowSprite = &number;
-            do { do { do { do
-            {
-                rankSpriteBase = rankSprites;
-            } while (0); } while (0); } while (0); } while (0);
-score_row_loop:
+            do
             {
                 do
                 {
-                    s32 dividend;
-                    s32 remainder;
-                    s32 quotient;
-                    u16 value;
-                    s16 signedValue;
-                    s32 widenedValue;
-                    s32 drawY;
-                    register s32 negative;
-
-                    signedValue = (i + 1);
-                    value = signedValue;
-                    drawY = (i * 0x16 + 0x18);
-                    (rowSprite)->x = (-0x8F);
-                    (rowSprite)->y = drawY;
-                    widenedValue = signedValue;
-                    if (widenedValue < 0)
-                    {
-                        value = -widenedValue;
-                        negative = 1;
-                        goto score_row_number;
-                    }
-                    else
-                    {
-                        negative = 0;
-                    }
-                score_row_number:
                     do
                     {
-                        dividend = (s16)value;
-                        quotient = dividend / 10;
-                        remainder = dividend % 10;
-                        baseU = (rowSprite)->u;
-                        (rowSprite)->u = baseU + (s16)remainder * (rowSprite)->w;
-                        GsSortSprite((rowSprite), OTablePt, 0);
-                        (rowSprite)->x -= 12;
-                        value = quotient;
-                        quotient <<= 16;
-                        (rowSprite)->u = baseU;
-                    } while (quotient != 0);
-                    if (negative != 0)
-                    {
+                        do
+                        {
+                            rankSpriteBase = rankSprites;
+                        } while (0);
+                    } while (0);
+                } while (0);
+            } while (0);
+        score_row_loop:
+        {
+            do
+            {
+                s32 dividend;
+                s32 remainder;
+                s32 quotient;
+                u16 value;
+                s16 signedValue;
+                s32 widenedValue;
+                s32 drawY;
+                register s32 negative;
+
+                signedValue = (i + 1);
+                value = signedValue;
+                drawY = (i * 0x16 + 0x18);
+                (rowSprite)->x = (-0x8F);
+                (rowSprite)->y = drawY;
+                widenedValue = signedValue;
+                if (widenedValue < 0)
+                {
+                    value = -widenedValue;
+                    negative = 1;
+                    goto score_row_number;
+                }
+                else
+                {
+                    negative = 0;
+                }
+            score_row_number:
+                do
+                {
+                    dividend = (s16)value;
+                    quotient = dividend / 10;
+                    remainder = dividend % 10;
+                    baseU = (rowSprite)->u;
+                    (rowSprite)->u = baseU + (s16)remainder * (rowSprite)->w;
+                    GsSortSprite((rowSprite), OTablePt, 0);
+                    (rowSprite)->x -= 12;
+                    value = quotient;
+                    quotient <<= 16;
+                    (rowSprite)->u = baseU;
+                } while (quotient != 0);
+                if (negative != 0)
+                {
                     u32 signBaseU;
                     s32 ten;
 
                     ten = 10;
                     signBaseU = (rowSprite)->u;
-                        (rowSprite)->u = signBaseU + (rowSprite)->w * ten;
-                        GsSortSprite((rowSprite), OTablePt, 0);
-                        (rowSprite)->u = signBaseU;
-                    }
-                } while (0);
-                draw_time_(&number, SCORE_STATE->t_time[i],
-                             0x79, i * 0x16 + 0x18, 1);
-                {
-                    /* Dead local retained by the row-rendering template. */
-                    s32 rowScore;
+                    (rowSprite)->u = signBaseU + (rowSprite)->w * ten;
+                    GsSortSprite((rowSprite), OTablePt, 0);
+                    (rowSprite)->u = signBaseU;
                 }
-
-                {
-                    GsSPRITE *characterSpriteBase = characterSprites;
-                    TLinkInfo *rowState =
-                        (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-
-                    sprite = &characterSpriteBase[
-                        rowState->t_char[i]];
-                }
-                sprite->x = -0x79;
-                sprite->y = i * 0x16 + 0x16;
-                if (i == insertedRank)
-                {
-                    rowBrightness = rsin((GameClock << 12) / 90) * 60;
-                    if (rowBrightness < 0)
-                    {
-                        rowBrightness += 0xFFF;
-                    }
-                    rowBrightness = (rowBrightness >> 12) + 100;
-                }
-                else
-                {
-                    rowBrightness = 0x80;
-                }
-                sprite->r = sprite->g = sprite->b = rowBrightness;
-                do {
-                } while (0);
-                GsSortSprite(sprite, OTablePt, 1);
-
-                {
-                    register GsSPRITE *rankSprite =
-                        &rankSpriteBase[SCORE_STATE->t_dani[i]];
-                    rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;
-                    rankSprite->scalex = rankSprite->scaley = 0xB33;
-                    rankSprite->x = -0x2F;
-                    rankSprite->y = i * 0x16 + 0x16;
-                    GsSortSprite(rankSprite, OTablePt, 1);
-                }
+            } while (0);
+            draw_time_(&number, SCORE_STATE->t_time[i],
+                       0x79, i * 0x16 + 0x18, 1);
+            {
+                /* Dead local retained by the row-rendering template. */
+                s32 rowScore;
             }
+
+            {
+                GsSPRITE *characterSpriteBase = characterSprites;
+                TLinkInfo *rowState =
+                    (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
+
+                sprite = &characterSpriteBase[rowState->t_char[i]];
+            }
+            sprite->x = -0x79;
+            sprite->y = i * 0x16 + 0x16;
+            if (i == insertedRank)
+            {
+                rowBrightness = rsin((GameClock << 12) / 90) * 60;
+                if (rowBrightness < 0)
+                {
+                    rowBrightness += 0xFFF;
+                }
+                rowBrightness = (rowBrightness >> 12) + 100;
+            }
+            else
+            {
+                rowBrightness = 0x80;
+            }
+            sprite->r = sprite->g = sprite->b = rowBrightness;
+            do
+            {
+            } while (0);
+            GsSortSprite(sprite, OTablePt, 1);
+
+            {
+                register GsSPRITE *rankSprite =
+                    &rankSpriteBase[SCORE_STATE->t_dani[i]];
+                rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;
+                rankSprite->scalex = rankSprite->scaley = 0xB33;
+                rankSprite->x = -0x2F;
+                rankSprite->y = i * 0x16 + 0x16;
+                GsSortSprite(rankSprite, OTablePt, 1);
+            }
+        }
             i++;
             if (i < 3)
             {
@@ -1083,7 +1095,8 @@ score_row_loop:
 
     FadeOutDirect(0x20, 2, 8, 8, 8);
     clear_screen_();
-    do {
+    do
+    {
         statePtr = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     } while (0);
     if (gfMemory != 0)

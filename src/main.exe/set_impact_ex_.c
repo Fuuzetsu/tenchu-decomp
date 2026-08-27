@@ -51,9 +51,9 @@
 extern void DrawImpact(TEffectSlot *ef);
 
 void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                  short start_size, short end_size,
-                  long start_color, long end_color,
-                  u16 rotate, u16 rotate_speed, u16 time, u16 type)
+                    short start_size, short end_size,
+                    long start_color, long end_color,
+                    u16 rotate, u16 rotate_speed, u16 time, u16 type)
 {
     int idx;
     TEffectSlot *base;

@@ -205,7 +205,7 @@ void ActSTICKON(void)
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
                 motMODE = -1;
-case0_motion_done:
+            case0_motion_done:
                 dtM->count = -5;
                 goto common_end;
             }
@@ -364,7 +364,7 @@ case0_motion_done:
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
                 motMODE = -1;
-case12_motion_done:
+            case12_motion_done:
                 dtM->count = -5;
                 goto common_end;
             }
@@ -451,7 +451,7 @@ case12_motion_done:
         }
         goto common_end;
 
-case12_no_pad:
+    case12_no_pad:
         motID = MOT_STICKON;
         motMODE = 1;
         dtM->mask = 0x7FFF;
@@ -476,7 +476,8 @@ case12_no_pad:
         base_angle = model->object[0]->rotate.vy + dtR->vy;
         base_angle_value = base_angle;
         angle = (pd ? base_angle_value - 0x400
-                    : base_angle_value + 0x400) & 0xF00;
+                    : base_angle_value + 0x400) &
+                0xF00;
         item.user = Me_MOTION_C;
         item.type = StickonItem;
         Me_MOTION_C->item[StickonItem]--;

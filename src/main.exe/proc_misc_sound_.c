@@ -100,8 +100,10 @@ void proc_misc_sound_(TMisc *m, TMiscMessage msg)
 
     sched = (Schedule *)&m->param;
 
-    if (msg == MM_CREATE) goto reset;
-    if (MM_DO <= msg) goto normal;
+    if (msg == MM_CREATE)
+        goto reset;
+    if (MM_DO <= msg)
+        goto normal;
     return;
 
 reset:
@@ -114,8 +116,10 @@ reset:
     return;
 
 normal:
-    if (m->mode != 0) return;
-    if (sched->next > GameClock) return;
+    if (m->mode != 0)
+        return;
+    if (sched->next > GameClock)
+        return;
 
     memset(&snd, 0, sizeof(snd));
     snd.vx = m->x;
@@ -124,9 +128,12 @@ normal:
     pos = snd;
     SoundEx(&pos, sched->sndIdx + 0x44);
 
-    if (sched->max - sched->min > 0) {
+    if (sched->max - sched->min > 0)
+    {
         lo = GameClock + (rand() % (sched->max - sched->min) + sched->min);
-    } else {
+    }
+    else
+    {
         lo = GameClock + sched->min;
     }
     sched->next = lo;

@@ -50,7 +50,6 @@
 
 extern Humanoid *Me_MOTION_C;
 
-
 void WeaponHitWeapon(ModelType *hand)
 {
     SVECTOR pv;

@@ -95,10 +95,10 @@ s32 update_card_screen_(s32 pad)
         if (value == 5)
             goto probe_present;
         goto clear_state;
-probe_missing:
+    probe_missing:
         McardState = 0x3c;
         break;
-probe_present:
+    probe_present:
         McardState = 0x32;
         break;
     case 0x28:
@@ -120,29 +120,29 @@ probe_present:
             goto save_2b_zero;
         assigned = 0x38;
         goto save_2b_assign;
-save_2b_ge2:
+    save_2b_ge2:
         if (value == 4)
             goto save_2b_four;
         if (value == 7)
             goto save_2b_seven;
         assigned = 0x38;
         goto save_2b_assign;
-save_2b_zero:
+    save_2b_zero:
         assigned = 0x36;
         goto save_2b_assign;
-save_2b_success:
+    save_2b_success:
         assigned = 10;
         goto save_2b_assign;
-save_2b_seven:
+    save_2b_seven:
         assigned = 0x46;
         goto save_2b_assign;
-save_2b_four:
+    save_2b_four:
         McardState = 0x1e;
         CardStateFlag = 0;
         goto save_2b_after_assign;
-save_2b_assign:
+    save_2b_assign:
         McardState = assigned;
-save_2b_after_assign:
+    save_2b_after_assign:
         if (McardState == 0x36)
             break;
         next_state = 0x35;
@@ -180,7 +180,7 @@ save_2b_after_assign:
     case 0x2a:
     case 0x35:
     case 0x36:
-increment_state:
+    increment_state:
         McardState++;
         break;
     case 0x37:
@@ -198,38 +198,39 @@ increment_state:
             goto save_37_zero;
         assigned = 0x38;
         goto save_37_assign;
-save_37_ge2:
+    save_37_ge2:
         if (value == 4)
             goto save_37_four;
         if (value == 7)
             goto save_37_seven;
         assigned = 0x38;
         goto save_37_assign;
-save_37_zero:
+    save_37_zero:
         assigned = 0x36;
         goto save_37_assign;
-save_37_success:
+    save_37_success:
         assigned = 10;
         goto save_37_assign;
-save_37_seven:
+    save_37_seven:
         assigned = 0x46;
         goto save_37_assign;
-save_37_four:
+    save_37_four:
         McardState = 0x1e;
         CardStateFlag = 0;
         goto save_37_after_assign;
-save_37_assign:
+    save_37_assign:
         McardState = assigned;
-save_37_after_assign:
+    save_37_after_assign:
         if (McardState == 0x36)
             break;
         next_state = 0x41;
         saved_state = (u16)McardState;
         value = McardRetry;
         incremented = value + 1;
-update_count:
+    update_count:
         cond = value < 3;
-        do {
+        do
+        {
             McardRetry = incremented;
         } while (0);
         if (!cond)
@@ -246,7 +247,8 @@ update_count:
          * would also double saved_state's refs, and its shorter live range
          * (3/11) would then outrank next_state and take a0 the wrong way.
          */
-        do {
+        do
+        {
             McardState = next_state;
         } while (0);
         break;
@@ -261,7 +263,7 @@ update_count:
     case 2:
     case 0xc:
     case 0x3e:
-clear_state:
+    clear_state:
         McardState = 0;
         break;
     default:

@@ -55,13 +55,17 @@
 
 extern SVECTOR WallProbeL;
 extern SVECTOR WallProbeR;
-extern char str_mark_l[]; /* (L) */
-extern char str_mark_r[]; /* (R) */
+extern char str_mark_l[];     /* (L) */
+extern char str_mark_r[];     /* (R) */
 extern char str_mark_alert[]; /* (!) */
 
 void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 {
-    enum { FL = 1, FR = 2 };
+    enum
+    {
+        FL = 1,
+        FR = 2
+    };
     VECTOR vsL;
     VECTOR vsR;
     int lvR;

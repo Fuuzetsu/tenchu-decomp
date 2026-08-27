@@ -83,6 +83,6 @@ found:
     particle->sample_y = particle->y - 8000;
     particle->velocity[2] = vz;
     particle->ground = GetAreaMapLevel(GlobalAreaMap, ef->param.snow.x,
-        particle->sample_y, particle->z, 8);
+                                       particle->sample_y, particle->z, 8);
     ef->proc = (void (*)())DrawSnow;
 }

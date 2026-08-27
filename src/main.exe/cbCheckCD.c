@@ -78,10 +78,12 @@ void cbCheckCD(void)
     s32 ret;
     s32 com;
 
-    if (cs->command == 0x1B) {
+    if (cs->command == 0x1B)
+    {
         CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
         if ((cs->flag & CDA_FLAG_ACTIVE) &&
-            CdControl(0x1B, (u8 *)&scratch.first.loc, NULL) == 0) {
+            CdControl(0x1B, (u8 *)&scratch.first.loc, NULL) == 0)
+        {
             return;
         }
         cs->command = 0;
@@ -90,26 +92,32 @@ void cbCheckCD(void)
         return;
     }
 
-    if (cs->CheckCount++ < 0xA) {
+    if (cs->CheckCount++ < 0xA)
+    {
         return;
     }
     cs->CheckCount = 0;
 
     ret = CdSync(1, scratch.first.result);
     com = CdLastCom();
-    switch (ret) {
+    switch (ret)
+    {
     case 5:
         cs->command = 0x1B;
         goto shared_tail;
     case 2:
-        if (com == 9) {
+        if (com == 9)
+        {
             return;
         }
-        if (com == 0x11) {
+        if (com == 0x11)
+        {
             cs->CurPos = CdPosToInt(&scratch.second.loc);
             if ((cs->status & 0x20) &&
-                (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300)) {
-                if (cs->mode != CDA_REPEAT) {
+                (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300))
+            {
+                if (cs->mode != CDA_REPEAT)
+                {
                     goto mode_error;
                 }
                 cs->command = 0x1B;
@@ -128,7 +136,9 @@ void cbCheckCD(void)
             CdControl(1, NULL, scratch.first.result);
             CdaStatus.status = scratch.first.result[0];
             CdControlF(0x11, NULL);
-        } else {
+        }
+        else
+        {
             CdControlF(0x11, NULL);
         }
         break;

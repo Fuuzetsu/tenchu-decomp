@@ -37,7 +37,8 @@ extern void cd_control(u8 com, u8 *param, u8 *result);
 
 void CdaStop(void)
 {
-    if (CdaStatus.flag & CDA_FLAG_ACTIVE) {
+    if (CdaStatus.flag & CDA_FLAG_ACTIVE)
+    {
         SsSetSerialAttr(0, 0, 1);
         SsSetSerialVol(0, 0, 0);
         VSyncCallback(0);

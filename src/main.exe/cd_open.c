@@ -28,9 +28,9 @@
  * STATUS: MATCH (66/66 instructions).
  */
 
-extern char fmt_cd_path[]; /* \\%s;1 */
-extern char fmt_cd_file[]; /* %s;1 */
-extern char str_open_out_of_handle[]; /* open:out of handle */
+extern char fmt_cd_path[];             /* \\%s;1 */
+extern char fmt_cd_file[];             /* %s;1 */
+extern char str_open_out_of_handle[];  /* open:out of handle */
 extern char msg_open_file_not_found[]; /* open:file not found */
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -45,16 +45,21 @@ FILE *cd_open(char *name)
     s16 index;
     s16 retries;
 
-    if (*name != '\\') {
+    if (*name != '\\')
+    {
         sprintf(path, fmt_cd_path, name);
-    } else {
+    }
+    else
+    {
         sprintf(path, fmt_cd_file, name);
     }
 
     index = 0;
-    do {
+    do
+    {
         candidate = &FileHandlePool[index];
-        if (candidate->flagUse == 0) {
+        if (candidate->flagUse == 0)
+        {
             file = candidate;
             goto have_handle;
         }
@@ -64,12 +69,17 @@ FILE *cd_open(char *name)
 
 have_handle:
     retries = 0;
-    if (file == NULL) {
+    if (file == NULL)
+    {
         puts(str_open_out_of_handle);
-    } else {
-        do {
+    }
+    else
+    {
+        do
+        {
             found = CdSearchFile(&file->finfo, path);
-            if (found != NULL) {
+            if (found != NULL)
+            {
                 file->flagUse = 1;
                 file->pos = 0;
                 return file;

@@ -67,7 +67,6 @@ typedef struct
 
 extern SearchSight searchsight[];
 
-
 short SearchTarget(Humanoid *human, long *distance, short *degree)
 {
     VECTOR vect;
@@ -214,27 +213,27 @@ degree_done:
         svect.vz = vect.vz;
         if (GetAreaMapPassage(GlobalAreaMap, &position, &svect, n) != 0)
         {
-passage_failure:
-            {
-                s32 passage_raw;
-                s16 passage_pad;
-                s32 passage_result;
+        passage_failure:
+        {
+            s32 passage_raw;
+            s16 passage_pad;
+            s32 passage_result;
 
-                passage_raw = -2;
-                passage_pad = passage_raw;
-                do
-                {
-                } while (0);
-                if (mode != 0)
-                {
-                    passage_result = (s32)passage_pad;
-                }
-                else
-                {
-                    passage_result = (s32)passage_pad;
-                }
-                return passage_result;
+            passage_raw = -2;
+            passage_pad = passage_raw;
+            do
+            {
+            } while (0);
+            if (mode != 0)
+            {
+                passage_result = (s32)passage_pad;
             }
+            else
+            {
+                passage_result = (s32)passage_pad;
+            }
+            return passage_result;
+        }
         }
         return (*distance < searchsight[mode].clear_distance) ? 1 : 2;
     }

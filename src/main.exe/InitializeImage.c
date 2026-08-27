@@ -38,7 +38,7 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern void vfree(void *p);
 extern char path_image_images_arc[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\images.arc */
-extern char msg_bad_image_file[]; /* bad image file */
+extern char msg_bad_image_file[];    /* bad image file */
 extern GsIMAGE Images[62];
 
 void InitializeImage(void)
@@ -49,12 +49,14 @@ void InitializeImage(void)
     GsIMAGE *image;
 
     pt = FileRead(path_image_images_arc);
-    if ((short)*pt < 0x3e) {
+    if ((short)*pt < 0x3e)
+    {
         AdtMessageBox(msg_bad_image_file);
     }
     i = 0;
     image = Images;
-    do {
+    do
+    {
         adr = get_tim_from_archive(pt, i);
         GetTIMInfo(adr, image);
         LoadTIM(adr);

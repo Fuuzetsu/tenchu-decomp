@@ -66,7 +66,6 @@
  * the merged call's delay slot.
  */
 
-
 static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
 {
     CursorImage.x = x;
@@ -99,7 +98,12 @@ loop:
 
 void PutItemList(void)
 {
-    enum { ItemX = 140, ItemY = 100, ItemGap = 20 };
+    enum
+    {
+        ItemX = 140,
+        ItemY = 100,
+        ItemGap = 20
+    };
     s32 i;
     s32 x;
 

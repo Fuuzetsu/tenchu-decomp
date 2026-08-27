@@ -51,14 +51,15 @@ extern void StartStageSequence(void);
 extern void sprintf(char *s, char *fmt, ...);
 
 extern char fmt_stage_esd[]; /* %sSTAGE%d.ESD */
-extern char path_anim[]; /* K:\\WORK\\CDIMAGE\\ANIM\\ */
+extern char path_anim[];     /* K:\\WORK\\CDIMAGE\\ANIM\\ */
 
 void SetupStageSequence(void)
 {
     u8 name[50];
 
     StagePlayer = HumanGroup[0];
-    if (StageEvent != 0) {
+    if (StageEvent != 0)
+    {
         vfree(StageEvent);
     }
     sprintf((char *)name, fmt_stage_esd, path_anim, StageID + 1);

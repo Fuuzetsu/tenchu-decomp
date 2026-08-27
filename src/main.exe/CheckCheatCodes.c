@@ -43,8 +43,8 @@
  *    destination registers without inventing a second object at +0x10.
  */
 extern char str_select_item[]; /* select item */
-extern char str_number_of[]; /* number of */
-extern u16 CheatSeq[];  /* cheat sequence 1 */
+extern char str_number_of[];   /* number of */
+extern u16 CheatSeq[];         /* cheat sequence 1 */
 /* The retail command grew from the demo's original short [15] to 21 entries. */
 extern s16 ForbiddenCommand[21];
 
@@ -60,7 +60,8 @@ void CheckCheatCodes(s16 *rec, int n)
         TAdtSelect Num[4];
     } menu;
 
-    if (memcmp(rec, CheatSeq, n << 1) == 0) {
+    if (memcmp(rec, CheatSeq, n << 1) == 0)
+    {
         SoundEx(0, 10);
         __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
@@ -69,8 +70,11 @@ void CheckCheatCodes(s16 *rec, int n)
         CamState.Owner->item[sel] +=
             AdtSelect(str_number_of, menu.Num, 0);
         SoundEx(0, 0x4c);
-    } else {
-        if (memcmp(rec, ForbiddenCommand, n << 1) != 0) {
+    }
+    else
+    {
+        if (memcmp(rec, ForbiddenCommand, n << 1) != 0)
+        {
             return;
         }
         SystemFlag |= SYSFLAG_DEBUGMODE;

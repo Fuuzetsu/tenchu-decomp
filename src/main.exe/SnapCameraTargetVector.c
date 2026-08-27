@@ -75,8 +75,6 @@
  *    do not cache `model` in a local.
  */
 
-
-
 void SnapCameraTargetVector(void)
 {
     enum

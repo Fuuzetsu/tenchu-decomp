@@ -63,12 +63,12 @@ s32 spare_item_slot_(s32 arg0, Humanoid *arg1)
     goto do_default;
 
 case0:
-    {
-        Humanoid *p = arg1;
-        if (p == 0)
-            p = CamState.Owner;
-        p->item[0x19] = 0;
-    }
+{
+    Humanoid *p = arg1;
+    if (p == 0)
+        p = CamState.Owner;
+    p->item[0x19] = 0;
+}
     goto ret0;
 
 case1:

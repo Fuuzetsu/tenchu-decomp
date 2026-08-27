@@ -29,7 +29,7 @@
  *    `.s` still referenced; keep them as `extern char D_XXXXXXXX[];` (never
  *    write fresh string literals here) — see config/symbols.main.exe.txt.
  */
-extern char path_demo_loading_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\loading.tim */
+extern char path_demo_loading_tim[];  /* K:\\WORK\\CDIMAGE\\DEMO\\loading.tim */
 extern char path_demo_load_ten_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\load_ten.tim */
 
 void draw_loading_splash_(void)

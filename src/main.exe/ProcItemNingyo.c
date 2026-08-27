@@ -199,9 +199,11 @@ void ProcItemNingyo(TItem *item)
             goto draw_mode0;
         }
 
-dispose:
-        do {
-            do {
+    dispose:
+        do
+        {
+            do
+            {
                 if (item->proc == 0)
                 {
                     return;
@@ -219,7 +221,7 @@ dispose:
         item->proc = 0;
         return;
 
-draw_mode0:
+    draw_mode0:
         UpdateCoordinate(item->locate);
         item->model->locate = item->locate->locate;
         DrawSprite((Sprite3D *)item->model);
@@ -378,9 +380,9 @@ draw_mode0:
                     scratch.vectors.v = scratch.vectors.pos;
                     vx = -ConflictDistance.vx;
                     if (vx < 0)
-                        {
-                            vx += 15;
-                        }
+                    {
+                        vx += 15;
+                    }
                     shifted_vx = vx >> 4;
                     vz = -ConflictDistance.vz;
                     if (vz < 0)

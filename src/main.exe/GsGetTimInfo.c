@@ -8,7 +8,8 @@ void GsGetTimInfo(unsigned long *image, GsIMAGE *tim)
     unsigned long *pixel;
 
     tim->pmode = *image;
-    if ((tim->pmode >> 3) & 1) {
+    if ((tim->pmode >> 3) & 1)
+    {
         image++;
         pixel = image + (*image >> 2);
         image++;
@@ -28,7 +29,9 @@ void GsGetTimInfo(unsigned long *image, GsIMAGE *tim)
         tim->ph = ((unsigned short *)pixel)[1];
         pixel++;
         tim->pixel = pixel;
-    } else {
+    }
+    else
+    {
         image += 2;
         tim->px = ((short *)image)[0];
         tim->py = ((short *)image)[1];

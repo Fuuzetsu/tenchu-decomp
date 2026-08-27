@@ -87,7 +87,7 @@ void ActENGAGE(void)
             goto engage_case_post;
         motID = 0x713;
         motMODE = 1;
-engage_case_post:
+    engage_case_post:
         if (ActionHalt == -1 && dtM->count == 0)
         {
             motion_id = GetMotionID(dtM, 0x503);
@@ -325,9 +325,9 @@ engage_case_post:
 }
 
 /* Ghidra reference: */
-// 
+//
 // void ActENGAGE(void)
-// 
+//
 // {
 //   short sVar1;
 //   Humanoid *human;
@@ -335,7 +335,7 @@ engage_case_post:
 //   short sVar3;
 //   ushort uVar4;
 //   int iVar5;
-//   
+//
 //   pMVar2 = dtM;
 //   human = Me_MOTION_C;
 //   switch((int)(((ushort)dtM->mid - MOT_ENGAGE) * 0x10000) >> 0x10) {

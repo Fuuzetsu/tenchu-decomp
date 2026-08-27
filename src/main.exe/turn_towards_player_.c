@@ -82,7 +82,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     if (x_diff != 0 || z_diff != 0)
     {
         dir = GetDirection(x_diff, z_diff,
-                            Me_THINK_C->rotate->vy);
+                           Me_THINK_C->rotate->vy);
     }
     else
     {

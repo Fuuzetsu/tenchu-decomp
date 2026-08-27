@@ -66,10 +66,10 @@ typedef struct ThinkDBtype
 
 extern ThinkDBtype ThinkDB[20];
 
-extern char str_select_type[]; /* select type */
+extern char str_select_type[];          /* select type */
 extern char str_custom_think_setting[]; /* custom think setting */
-extern char fmt_pair[]; /* %s %s */
-extern u8 str_cancel_2[]; /* cancel */
+extern char fmt_pair[];                 /* %s %s */
+extern u8 str_cancel_2[];               /* cancel */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);

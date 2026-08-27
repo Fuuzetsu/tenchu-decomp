@@ -140,7 +140,8 @@ short SuccessionAttack(long dist, short deg)
         raw = (int)Degree;
         raw = __builtin_abs(raw);
         t = raw < d;
-        if (t) goto in_range;
+        if (t)
+            goto in_range;
     }
     t = rand();
     lev = EngageLevel + 1;

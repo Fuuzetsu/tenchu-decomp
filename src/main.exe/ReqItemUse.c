@@ -225,17 +225,16 @@
 
 #include "item.h"
 
-
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
-extern VECTOR vec_z_n100[]; /* {0,0,-100} */
-extern VECTOR vec_z_100[]; /* {0,0,100} */
-extern VECTOR vec_z_n60[]; /* {0,0,-60} */
+extern VECTOR vec_z_n100[];        /* {0,0,-100} */
+extern VECTOR vec_z_100[];         /* {0,0,100} */
+extern VECTOR vec_z_n60[];         /* {0,0,-60} */
 extern VECTOR vec_y_n120_z_n240[]; /* {0,-120,-240} */
-extern VECTOR vec_z_n120[]; /* {0,0,-120} */
+extern VECTOR vec_z_n120[];        /* {0,0,-120} */
 extern VECTOR vec_y_n120_z_n120[]; /* {0,-120,-120} */
-extern VECTOR vec_z_n4096[]; /* {0,0,-4096} */
-extern VECTOR vec_z_n1000[]; /* {0,0,-1000} */
-extern VECTOR vec_z_n500[]; /* {0,0,-500} */
+extern VECTOR vec_z_n4096[];       /* {0,0,-4096} */
+extern VECTOR vec_z_n1000[];       /* {0,0,-1000} */
+extern VECTOR vec_z_n500[];        /* {0,0,-500} */
 
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
@@ -273,8 +272,8 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         D2 = 50
     };
     u8 c;
-    PARAM_ITEM_LAUNCH param;  /* @sp+16: per-case launch params / vector scratch */
-    PARAM_ITEM_LAUNCH work;   /* @sp+56: makibishi/jirai staging + throw vector */
+    PARAM_ITEM_LAUNCH param; /* @sp+16: per-case launch params / vector scratch */
+    PARAM_ITEM_LAUNCH work;  /* @sp+56: makibishi/jirai staging + throw vector */
     s32 sz;
     s32 y;
     s32 z;

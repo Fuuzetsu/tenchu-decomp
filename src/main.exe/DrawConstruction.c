@@ -78,7 +78,7 @@ extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 void DrawConstruction(void)
 {
     short j;
-    WorldType (*world_base)[8][8];
+    WorldType(*world_base)[8][8];
     short k;
     short l;
     unsigned long plimit;
@@ -179,8 +179,9 @@ scan_z:
     {
         cur = ((WorldType *)(((cell_z & 7) << 2) +
                              world_y_offset + world_x_offset +
-                             (u32)world_base))->top;
-scan_cur:
+                             (u32)world_base))
+                  ->top;
+    scan_cur:
         if (cur == 0)
             goto next_z;
         if (IsVisible(cur->model->locate.coord.t[0],
@@ -199,7 +200,9 @@ scan_cur:
                     {
                         signed_size = cur->ModelSize;
                         bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
-                                   signed_size) >> 8) - 11;
+                                   signed_size) >>
+                                  8) -
+                                 11;
                         plimit = (u16)cur->ModelSize;
                     } while (0);
                 } while (0);

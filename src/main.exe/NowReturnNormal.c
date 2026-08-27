@@ -56,14 +56,17 @@ short NowReturnNormal(Humanoid *human)
     h = Me_MOTION_C;
     mid = *(u16 *)&motID;
     move = *(u16 *)&motMODE;
-    if (h->status == STAT_DEAD && h->motion->loop == -1) {
+    if (h->status == STAT_DEAD && h->motion->loop == -1)
+    {
         return 0;
     }
-    if (UpdateMotion(h->motion, mid) == 0) {
+    if (UpdateMotion(h->motion, mid) == 0)
+    {
         return 0;
     }
     h->status = (s8)(mid >> 8);
-    if (move != 0) {
+    if (move != 0)
+    {
         md = h->motion->motion;
         MoveHumanoid(h, md->orderspd, md->sidespd);
     }

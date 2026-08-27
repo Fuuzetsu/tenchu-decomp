@@ -36,7 +36,6 @@
  * runtime branch.
  */
 
-
 void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
 {
     u8 u;
@@ -52,13 +51,17 @@ void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
     signed_value = (s16)dist;
     sp->x = x;
     sp->y = y;
-    if (signed_value < 0) {
+    if (signed_value < 0)
+    {
         value = -signed_value;
         neg = true;
-    } else {
+    }
+    else
+    {
         neg = false;
     }
-    do {
+    do
+    {
         quotient = (s16)value / 10;
         u = sp->u;
         sp->u = u + ((s16)value % 10) * sp->w;
@@ -67,8 +70,10 @@ void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
         sp->u = u;
         sp->x = sp->x - 0xc;
     } while ((quotient << 16) != 0);
-    if (neg) {
-        do {
+    if (neg)
+    {
+        do
+        {
             sign_base = u & 0xff;
             width = sp->w;
         } while (0);

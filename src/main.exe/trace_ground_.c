@@ -84,24 +84,31 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     lz = z;
     hint = 0;
     t = step;
-    while (1) {
-        if (!(t < 0x1000)) break;
+    while (1)
+    {
+        if (!(t < 0x1000))
+            break;
         rawx = dx * t;
-        if (rawx < 0) rawx += 0xFFF;
+        if (rawx < 0)
+            rawx += 0xFFF;
         rawy = dy * t;
         tx = x + (rawx >> 0xC);
-        if (rawy < 0) rawy += 0xFFF;
+        if (rawy < 0)
+            rawy += 0xFFF;
         rawz = dz * t;
         ty = y + (rawy >> 0xC);
-        if (rawz < 0) rawz += 0xFFF;
+        if (rawz < 0)
+            rawz += 0xFFF;
         tz = z + (rawz >> 0xC);
-        if (CGetLevel(&hint, tx, ty, tz, flag) < ty) break;
+        if (CGetLevel(&hint, tx, ty, tz, flag) < ty)
+            break;
         lx = tx;
         ly = ty;
         lz = tz;
         t += step;
     }
-    if (out != 0) {
+    if (out != 0)
+    {
         out->vx = lx;
         out->vy = ly;
         out->vz = lz;

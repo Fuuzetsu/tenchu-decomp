@@ -34,10 +34,12 @@ extern s32 CdaReady(void);
 
 int CdaGetCurrentLength(void)
 {
-    if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0) {
+    if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0)
+    {
         return 1;
     }
-    if (CdaReady() == 0) {
+    if (CdaReady() == 0)
+    {
         return -1;
     }
     return CdaStatus.CurPos - CdaStatus.StartPos;

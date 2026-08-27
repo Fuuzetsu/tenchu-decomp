@@ -86,7 +86,7 @@ s16 Think1chase(void)
     else
     {
         result = turn_towards_player_(Me_THINK_C->chase[0] - Me_THINK_C->locate->vx,
-                                       Me_THINK_C->chase[1] - Me_THINK_C->locate->vz);
+                                      Me_THINK_C->chase[1] - Me_THINK_C->locate->vz);
         if ((s16)result == 0)
         {
             result |= 0x80;

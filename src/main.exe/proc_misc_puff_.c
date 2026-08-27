@@ -71,8 +71,10 @@ void proc_misc_puff_(TMisc *m, TMiscMessage msg)
     SVECTOR dir;
     s32 x, z;
 
-    if (msg == MM_CREATE) goto reset;
-    if (MM_DO <= msg) goto normal;
+    if (msg == MM_CREATE)
+        goto reset;
+    if (MM_DO <= msg)
+        goto normal;
     return;
 
 reset:
@@ -80,7 +82,8 @@ reset:
     return;
 
 normal:
-    if (m->mode != 0) return;
+    if (m->mode != 0)
+        return;
 
     x = m->x;
     pos.vx = (1 <= (m->param.init.b << 1))
@@ -93,7 +96,8 @@ normal:
                  ? z + (rand() % (m->param.init.c << 1) - m->param.init.c)
                  : z - m->param.init.c;
 
-    if ((GameClock & 1) == 0) {
+    if ((GameClock & 1) == 0)
+    {
         dir.vx = 0;
         dir.vy = -400;
         dir.vz = 0;

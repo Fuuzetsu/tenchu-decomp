@@ -110,7 +110,8 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
             py += y * bg->map.cellh;
             cell = &bg->cell[y * n + x];
             cell->u = ((basepx << (2 - pmode)) +
-                       x * cellw) & size;
+                       x * cellw) &
+                      size;
             cell->v = py;
             cell->cba = GetClut(image->cx, image->cy);
             cell->flag = 0;

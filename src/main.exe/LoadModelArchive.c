@@ -53,7 +53,6 @@
 extern void *valloc(u32 size);
 extern char msg_no_model_archive_data[]; /* NO MODEL ARCHIVE DATA */
 
-
 ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
 {
     ModelArchiveType *mad;
@@ -69,7 +68,8 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     int dtmd;
     int parent;
 
-    if (adr == 0) {
+    if (adr == 0)
+    {
         SystemOut(msg_no_model_archive_data);
     }
     mad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
@@ -80,11 +80,14 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->object = (ModelType **)valloc(mad->n * sizeof(ModelType *));
     prntp = (ParentingType *)adr;
     tmdp = (u8 *)prntp;
-    if (mad->n > 0) {
-        do {
+    if (mad->n > 0)
+    {
+        do
+        {
             dtmd = (int)tmdp + prntp[i].index;
             dim = (ModelType *)valloc(sizeof(ModelType));
-            if (dtmd != 0) {
+            if (dtmd != 0)
+            {
                 GsMapModelingData((u_long *)(dtmd + 4));
                 GsLinkObject4(dtmd + 0xc, &dim->object, 0);
             }
@@ -108,7 +111,8 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             i = i + 1;
         } while (i < mad->n);
     }
-    if (prnt == 0) {
+    if (prnt == 0)
+    {
         prnt = (ModelType *)&World;
     }
     GsInitCoordinate2(&prnt->locate, (GsCOORDINATE2 *)mad);
@@ -127,22 +131,27 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->id = -1;
     mad->attribute = 0;
     count = *(u16 *)&mad->n;
-    if (mad->n > 0) {
-        do {
+    if (mad->n > 0)
+    {
+        do
+        {
             objp = mad->object[i];
             super = (ModelType *)mad;
-            if (prntp[i].np >= 0 && (j = 0, 0 < (count << 16))) {
+            if (prntp[i].np >= 0 && (j = 0, 0 < (count << 16)))
+            {
                 parent = prntp[i].np;
                 limit = mad->n;
-                do {
-                    if (parent == prntp[j].nc) {
+                do
+                {
+                    if (parent == prntp[j].nc)
+                    {
                         super = mad->object[j];
                         goto coordinate_init;
                     }
                     j = j + 1;
                 } while (j < limit);
             }
-coordinate_init:
+        coordinate_init:
             GsInitCoordinate2(&super->locate, &objp->locate);
             objp->locate.coord.t[0] = prntp[i].dx;
             objp->locate.coord.t[1] = prntp[i].dy;

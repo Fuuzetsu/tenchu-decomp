@@ -99,8 +99,14 @@ static inline void GetLightningScreenPosition(long x, long y, long z,
 
 void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short b)
 {
-    enum { SplitLen = 200 };
-    enum { Range = 80 };
+    enum
+    {
+        SplitLen = 200
+    };
+    enum
+    {
+        Range = 80
+    };
     SVECTOR scr;
     SVECTOR oldscr;
     GsLINE line;

@@ -64,7 +64,7 @@
 /* Identity constants copied into a fresh slot. UnitVector2 is Ghidra's
  * UnitVector2 (the VECTOR position); UnitVector is the SVECTOR offset/size. */
 
-extern char msg_conflict_regist_failure[]; /* CONFLICT REGIST FAILURE */        /* "CONFLICT REGIST FAILURE" */
+extern char msg_conflict_regist_failure[]; /* CONFLICT REGIST FAILURE */ /* "CONFLICT REGIST FAILURE" */
 
 short InsertConflict(ModelType *model)
 {

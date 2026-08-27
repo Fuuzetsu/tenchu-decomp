@@ -68,7 +68,6 @@
  * of these was a draft-invented local that the original did not have.
  */
 
-
 extern s16 CVAflag; /* set by CVA camera/telop commands */
 extern u8 TelopText[];
 extern u8 ctype_tab[]; /* BSD _ctype_+1: &4 = digit */
@@ -309,7 +308,7 @@ s16 CVAupdate(void)
                     break;
                 case 3:
                     set_fade_((u8)event->x, (u8)event->y,
-                                 (u8)event->z, event->p);
+                              (u8)event->z, event->p);
                     break;
                 }
                 break;
@@ -318,7 +317,8 @@ s16 CVAupdate(void)
                 if (CVAnow->id != invalid)
                 {
                     SetupTelop((u8 *)strcpy((char *)TelopText,
-                                            (char *)CVAdata + CVAnow->id), 0);
+                                            (char *)CVAdata + CVAnow->id),
+                               0);
                     CVAflag = 1;
                     if (StageID != 10 || CHOSEN_CHARACTER != 0)
                         break;

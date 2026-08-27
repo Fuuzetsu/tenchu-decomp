@@ -26,12 +26,12 @@ extern void AdtMessageBox(char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
 extern void *valloc(u32 size);
 extern char msg_afsinit_not_enough_memory[]; /* AfsInit: not enough memory! */ /* "AfsInit: not enough memory!" — lives in this
-                            * TU's unsplit data blob (splat auto-symbol), same
-                            * pattern as msg_item_dispose_fail/msg_memory_load_is_disabled elsewhere: a
-                            * fresh string literal here would land in a NEW
-                            * .rodata for this .c.o, which the linker script
-                            * has no section-order slot for (rodata is only
-                            * routed via explicit per-TU yaml carves). */
+                                                                                * TU's unsplit data blob (splat auto-symbol), same
+                                                                                * pattern as msg_item_dispose_fail/msg_memory_load_is_disabled elsewhere: a
+                                                                                * fresh string literal here would land in a NEW
+                                                                                * .rodata for this .c.o, which the linker script
+                                                                                * has no section-order slot for (rodata is only
+                                                                                * routed via explicit per-TU yaml carves). */
 
 void AfsInit(TAFS *handle)
 {

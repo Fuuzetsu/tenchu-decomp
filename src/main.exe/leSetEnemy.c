@@ -77,7 +77,6 @@
  * exactly.
  */
 
-
 s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s16 r)
 {
     s32 idx;

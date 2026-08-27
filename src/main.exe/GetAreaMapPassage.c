@@ -72,7 +72,7 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
         initial = 100;
     }
     count = initial;
-    
+
     for (;;)
     {
         y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz, 0);
@@ -97,7 +97,7 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
         xmax = x[1];
         ymin = y[0];
         y[1] = ymax;
-inner:
+    inner:
         cv.vx = cv.vx + vect->vx;
         cv.vy = cv.vy + vect->vy;
         count--;
@@ -106,8 +106,7 @@ inner:
         {
             return 0;
         }
-        if (xmin <= cv.vx && cv.vx <= xmax && ymin <= cv.vy
-            && cv.vy <= y[1] && z[0] <= cv.vz && cv.vz <= z[1])
+        if (xmin <= cv.vx && cv.vx <= xmax && ymin <= cv.vy && cv.vy <= y[1] && z[0] <= cv.vz && cv.vz <= z[1])
         {
             goto inner;
         }

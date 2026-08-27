@@ -10,7 +10,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-
 /* Draw a minutes/seconds time value and optional separator from a digit sprite. */
 void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
 {

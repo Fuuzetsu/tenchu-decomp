@@ -103,7 +103,7 @@
 extern s16 VISIBLE_ENEMIES_;
 extern s16 DrawModeSave[];
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
-extern char fmt_dbg_pos[]; /* ~c800%02x~c888(%d,%d,%d)  */
+extern char fmt_dbg_pos[];  /* ~c800%02x~c888(%d,%d,%d)  */
 extern char fmt_dbg_word[]; /* ~c880%04x=%02x  */
 extern char fmt_dbg_pair[]; /* ~c080%02x/%d%d  */
 extern char fmt_dbg_rot[];

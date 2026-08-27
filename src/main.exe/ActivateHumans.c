@@ -105,7 +105,16 @@ void ActivateHumans(void)
     activate_distance = 26000;
     if (StagePlayer->motion->mid != 0xf05)
     {
-        do { do { do { activate_distance = 13000; } while (0); } while (0); } while (0);
+        do
+        {
+            do
+            {
+                do
+                {
+                    activate_distance = 13000;
+                } while (0);
+            } while (0);
+        } while (0);
     }
 
     if (GameClock != (GameClock / 30) * 30 || SkipFrame != 0)
@@ -141,8 +150,10 @@ void ActivateHumans(void)
             return;
         }
         human = HumanGroup[(s16)i];
-        do {
-            do {
+        do
+        {
+            do
+            {
                 if (human == target)
                 {
                     goto next_human;
@@ -150,150 +161,154 @@ void ActivateHumans(void)
             } while (0);
         } while (0);
 
-    distance = GetVectorDistance(human->locate, &vc);
-    if (distance >= 17001)
-    {
-        goto set_inactive;
-    }
-    if (((u16)human->type & 0xf0) == PAGE_BOSS)
-    {
-        goto set_active;
-    }
-    initial_active = 1;
-    if (human->type == NINKEN || human->life < 0)
-    {
-        active = initial_active;
-        goto active_done;
-    }
-    if (GameClock == 30 || StageID == 8)
-    {
-        goto set_active;
-    }
-    if (VISIBLE_ENEMIES_ < ThinkBudget)
-    {
-        active = 1;
-        if (ThinkCount < ThinkBudget)
+        distance = GetVectorDistance(human->locate, &vc);
+        if (distance >= 17001)
         {
+            goto set_inactive;
+        }
+        if (((u16)human->type & 0xf0) == PAGE_BOSS)
+        {
+            goto set_active;
+        }
+        initial_active = 1;
+        if (human->type == NINKEN || human->life < 0)
+        {
+            active = initial_active;
             goto active_done;
         }
-        computed_active = distance < activate_distance;
-        goto computed_active_done;
-    }
-    if (distance < activate_distance)
-    {
-        goto near_human;
-    }
-
-set_inactive:
-    active = 0;
-    goto active_done;
-
-near_human:
-    if (((u16)human->attribute & 0x80) == 0 &&
-        ThinkCount < ThinkBudget)
-    {
-        goto set_active;
-    }
-    goto search_visible;
-
-set_active:
-    active = 1;
-    goto active_done;
-
-search_visible:
-    j = 0;
-    while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
-    {
-        if (VISIBLE_ENEMIES_ <= j)
+        if (GameClock == 30 || StageID == 8)
         {
-            break;
+            goto set_active;
         }
-        j++;
-    }
-    computed_active = j != VISIBLE_ENEMIES_;
-
-computed_active_done:
-    active = computed_active;
-active_done:
-    if (human)
-    {
-        final = 0;
-        final = active;
-    }
-    else
-    {
-        final = active;
-    }
-    if (final)
-    {
-        if (((u16)human->attribute & 0x80) == 0)
+        if (VISIBLE_ENEMIES_ < ThinkBudget)
         {
-            ThinkCount++;
-            goto next_human;
+            active = 1;
+            if (ThinkCount < ThinkBudget)
+            {
+                goto active_done;
+            }
+            computed_active = distance < activate_distance;
+            goto computed_active_done;
         }
-        if (StageID != 8 && human->life >= 0 && GameClock != 30 &&
-            (ThinkCount >= ThinkBudget || distance <= 13000))
+        if (distance < activate_distance)
         {
-            goto next_human;
+            goto near_human;
         }
-        human->attribute = (u16)human->attribute & 0xff7f;
-        ThinkCount++;
-        model = *human->model->object;
-        model->attribute |= 0x4000;
-        goto next_human;
-    }
 
-    if (((u16)human->attribute & 0x80) != 0 || human->type == ON)
-    {
-        goto next_human;
-    }
-    if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2) ||
-        human->type == GOO)
-    {
+    set_inactive:
+        active = 0;
+        goto active_done;
+
+    near_human:
+        if (((u16)human->attribute & 0x80) == 0 &&
+            ThinkCount < ThinkBudget)
+        {
+            goto set_active;
+        }
+        goto search_visible;
+
+    set_active:
+        active = 1;
+        goto active_done;
+
+    search_visible:
         j = 0;
-        while (StageChar[(s16)j].stage != -1)
+        while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
         {
-            do {
-                if (StageChar[(s16)j].stage == StageID + 1 &&
-                    StageChar[(s16)j].chrid == human->type)
-                {
-                    human->model->locate.coord.t[0] = StageChar[(s16)j].position.vx * 1000;
-                    human->model->locate.coord.t[1] = StageChar[(s16)j].position.vy * 1000;
-                    human->model->locate.coord.t[2] = StageChar[(s16)j].position.vz * 1000;
-                }
-            } while (0);
+            if (VISIBLE_ENEMIES_ <= j)
+            {
+                break;
+            }
             j++;
         }
-        if (human->type == GOO && human->life == 0)
+        computed_active = j != VISIBLE_ENEMIES_;
+
+    computed_active_done:
+        active = computed_active;
+    active_done:
+        if (human)
         {
-            human->life = 1;
+            final = 0;
+            final = active;
         }
-    }
-    else if (human->status != STAT_DEAD && ((u16)human->attribute & 0x20) == 0)
-    {
-        memset(&work, 0, sizeof(work));
-        work.vx = human->point[0];
-        work.vy = human->locate->vy - 1500;
-        work.vz = human->point[1];
-        query = work;
-        if (GetVectorDistance(&query, &vc) > 17000)
+        else
         {
-            level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
-                                    query.vz, 1);
-            if (level != 0x80000000)
+            final = active;
+        }
+        if (final)
+        {
+            if (((u16)human->attribute & 0x80) == 0)
             {
-                human->model->locate.coord.t[0] = query.vx;
-                human->model->locate.coord.t[1] = level;
-                human->model->locate.coord.t[2] = query.vz;
+                ThinkCount++;
+                goto next_human;
+            }
+            if (StageID != 8 && human->life >= 0 && GameClock != 30 &&
+                (ThinkCount >= ThinkBudget || distance <= 13000))
+            {
+                goto next_human;
+            }
+            human->attribute = (u16)human->attribute & 0xff7f;
+            ThinkCount++;
+            model = *human->model->object;
+            model->attribute |= 0x4000;
+            goto next_human;
+        }
+
+        if (((u16)human->attribute & 0x80) != 0 || human->type == ON)
+        {
+            goto next_human;
+        }
+        if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2) ||
+            human->type == GOO)
+        {
+            j = 0;
+            while (StageChar[(s16)j].stage != -1)
+            {
+                do
+                {
+                    if (StageChar[(s16)j].stage == StageID + 1 &&
+                        StageChar[(s16)j].chrid == human->type)
+                    {
+                        human->model->locate.coord.t[0] = StageChar[(s16)j].position.vx * 1000;
+                        human->model->locate.coord.t[1] = StageChar[(s16)j].position.vy * 1000;
+                        human->model->locate.coord.t[2] = StageChar[(s16)j].position.vz * 1000;
+                    }
+                } while (0);
+                j++;
+            }
+            if (human->type == GOO && human->life == 0)
+            {
+                human->life = 1;
             }
         }
-    }
+        else if (human->status != STAT_DEAD && ((u16)human->attribute & 0x20) == 0)
+        {
+            memset(&work, 0, sizeof(work));
+            work.vx = human->point[0];
+            work.vy = human->locate->vy - 1500;
+            work.vz = human->point[1];
+            query = work;
+            if (GetVectorDistance(&query, &vc) > 17000)
+            {
+                level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
+                                        query.vz, 1);
+                if (level != 0x80000000)
+                {
+                    human->model->locate.coord.t[0] = query.vx;
+                    human->model->locate.coord.t[1] = level;
+                    human->model->locate.coord.t[2] = query.vz;
+                }
+            }
+        }
 
-    human->attribute = (u16)human->attribute | 0x80;
-    model = *human->model->object;
-    model->attribute &= 0xbfff;
+        human->attribute = (u16)human->attribute | 0x80;
+        model = *human->model->object;
+        model->attribute &= 0xbfff;
 
-next_human:
-    do { i++; } while (0);
+    next_human:
+        do
+        {
+            i++;
+        } while (0);
     }
 }

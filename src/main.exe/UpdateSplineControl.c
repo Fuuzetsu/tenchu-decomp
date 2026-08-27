@@ -57,11 +57,13 @@ void UpdateSplineControl(SplineControlType *spc)
     s32 slope2;
 
     key0p = spc->key0;
-    if (spc->key0->time != 0) {
+    if (spc->key0->time != 0)
+    {
         key0p--;
     }
     key1n = spc->key1;
-    if (spc->key1->time < spc->dd0.pad) {
+    if (spc->key1->time < spc->dd0.pad)
+    {
         key1n++;
     }
     dt = (s32)(((u32)(u16)spc->key1->time - (u32)(u16)spc->key0->time) * 0x1000000) >> 16;

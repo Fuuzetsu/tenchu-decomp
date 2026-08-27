@@ -26,9 +26,12 @@ void load_save_slot_(int target, u8 *name)
     void *buf;
 
     buf = LoadSI(target & 0xFF, name);
-    if (buf == 0) {
+    if (buf == 0)
+    {
         AdtMessageBox(msg_load_layout_error);
-    } else {
+    }
+    else
+    {
         leRestoreEnemyLayout(buf);
         RestoreItemLayout((u8 *)buf + 0x1388);
         vfree(buf);

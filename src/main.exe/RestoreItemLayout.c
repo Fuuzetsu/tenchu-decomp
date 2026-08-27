@@ -43,7 +43,6 @@
  * offs, and k into the target s0-s4 homes while leaving scheduling intact.
  */
 
-
 /* The [4] bound is LOAD-BEARING CODEGEN, not a claim about the table's length:
  * the search loop below walks 4 entries x 2 shorts = 8 shorts past this symbol.
  * The target materializes this address as `lui s3,%hi; addiu s3,s3,%lo` -- ONE
@@ -80,11 +79,13 @@ void RestoreItemLayout(void *buf)
 loop1:
     if (!(i < 0x1e))
         goto loop1_end;
-    if (it->proc != 0) {
+    if (it->proc != 0)
+    {
         it->mode = ITEM_MODE_DISPOSE;
         it->proc(it);
         DeleteConflict(it->locate);
-        if (it->mode != 0) {
+        if (it->mode != 0)
+        {
             AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
         }
         it->owner = 0;
@@ -102,7 +103,8 @@ loop1_end:
 loop2:
     if (!(j < 0x1e))
         return;
-    if (slot->type != -1) {
+    if (slot->type != -1)
+    {
         PARAM_ITEM_STAY tmp;
 
         memset(&tmp, 0, sizeof(PARAM_ITEM_STAY));
@@ -111,16 +113,19 @@ loop2:
         param = tmp;
 
         level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, one);
-        if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8) {
+        if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8)
+        {
             s32 k = 0;
             short *offs = DropOffsets;
 
         searchloop:
-            if (k < 4) {
+            if (k < 4)
+            {
                 x = param.locate.vx + offs[0] * 1000;
                 z = param.locate.vz + offs[1] * 1000;
                 level = GetAreaMapLevel(GlobalAreaMap, x, param.locate.vy, z, one);
-                if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8) {
+                if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8)
+                {
                     offs += 2;
                     k++;
                     goto searchloop;
@@ -128,11 +133,13 @@ loop2:
                 goto search_success;
             }
         search_check:
-            if (k == 4) {
+            if (k == 4)
+            {
                 goto skip_stay;
             }
         }
-        do {
+        do
+        {
             param.locate.vy = level;
         } while (0);
         ReqItemStay(&param);
@@ -143,10 +150,12 @@ loop2:
     goto loop2;
 
 search_success:
-    do {
+    do
+    {
         param.locate.vx = x;
     } while (0);
-    do {
+    do
+    {
         param.locate.vz = z;
     } while (0);
     goto search_check;

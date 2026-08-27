@@ -31,7 +31,8 @@ int AdtVsprintf(s32 *args, char *dst, u32 size, char *fmt)
 
     i = 0;
     out = copied;
-    do {
+    do
+    {
         args++;
         *out++ = args[-1];
         i++;

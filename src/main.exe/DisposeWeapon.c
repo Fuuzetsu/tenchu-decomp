@@ -44,7 +44,8 @@ void DisposeWeapon(Humanoid *human)
 
     wp = human->weapon;
     i = 0;
-    do {
+    do
+    {
         DisposeOrnament(wp[i]);
         wp[i] = 0;
         i++;

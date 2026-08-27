@@ -64,7 +64,8 @@ s16 check_card_file_(char *name)
     sprintf(path, CardPathFormat, TENCHU_ID, name);
     result2 = MemCardOpen(0, path, 1);
     MemCardSync(0, &cmd2, &result2);
-    if (result2 == 0) {
+    if (result2 == 0)
+    {
         MemCardClose();
     }
     return result2;

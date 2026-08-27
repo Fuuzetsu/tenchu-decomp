@@ -61,7 +61,6 @@
  *    at the return, not from a cached pointer.
  */
 
-
 short GetCommand(PADtype *pad)
 {
     COMMAND *cmd;

@@ -137,7 +137,8 @@ void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
     raw = sectorBuf;
     data = sectorBuf + 0xC;
 
-    if (length < 1) return;
+    if (length < 1)
+        return;
 
 full_retry:
     param[0] = 0xA0;
@@ -148,34 +149,45 @@ full_retry:
     curSector = sector;
     off = byteOffset;
 
-    while (CdControlB(0xE, param, 0) == 0) {
+    while (CdControlB(0xE, param, 0) == 0)
+    {
         VSync(0);
     }
 
     vsyncArg = 3;
-    do {
+    do
+    {
         VSync(vsyncArg);
         n = CdControlB(6, (u8 *)loc, 0);
         vsyncArg = 0;
     } while (n == 0);
 
-    while (remaining >= 1) {
+    while (remaining >= 1)
+    {
         n = CdReady(0, 0);
-        if (n != 1) goto full_retry;
+        if (n != 1)
+            goto full_retry;
         n = CdGetSector(sectorBuf, 0x203);
-        if (n == 0) goto full_retry;
+        if (n == 0)
+            goto full_retry;
 
         n = CdPosToInt((CdlLOC *)raw);
-        if (n != curSector) {
+        if (n != curSector)
+        {
             CdIntToPos(curSector, loc);
-            while (CdControlB(6, (u8 *)loc, 0) == 0) {
+            while (CdControlB(6, (u8 *)loc, 0) == 0)
+            {
                 VSync(0);
             }
-        } else {
+        }
+        else
+        {
             chunk = off + remaining;
-            if (chunk > 0x800) chunk = 0x800;
+            if (chunk > 0x800)
+                chunk = 0x800;
             chunk = chunk - off;
-            for (i = 0; i < chunk; i++) {
+            for (i = 0; i < chunk; i++)
+            {
                 src = data + off;
                 dst[i] = src[i];
             }
@@ -186,7 +198,8 @@ full_retry:
         }
     }
 
-    while (CdControlB(9, (u8 *)loc, 0) == 0) {
+    while (CdControlB(9, (u8 *)loc, 0) == 0)
+    {
         VSync(0);
     }
 }

@@ -68,17 +68,17 @@ typedef struct
  * A single fixed-size built-in copy changes that allocation in this larger
  * function; Clut's short copy does not need the distinction. */
 
-extern char fmt_concat[]; /* "%s%s" */
-extern char fmt_card_name[]; /* "%s%d_%s" */
-extern char msg_open_error[]; /* "open error %s" */
+extern char fmt_concat[];         /* "%s%s" */
+extern char fmt_card_name[];      /* "%s%d_%s" */
+extern char msg_open_error[];     /* "open error %s" */
 extern char msg_size_too_large[]; /* "file size too large" */
-extern char fmt_save_title[]; /* "STAGE %d %s" */
-extern char msg_format_card[]; /* "format card?" */
-extern char msg_not_formatted[]; /* "card not formated" (sic) */
-extern char msg_card_damaged[]; /* "card damaged" */
-extern char msg_card_error[]; /* "card error %d" */
-extern char msg_create_error[]; /* "file create error %d" */
-extern char msg_write_error[]; /* "file write error %d" */
+extern char fmt_save_title[];     /* "STAGE %d %s" */
+extern char msg_format_card[];    /* "format card?" */
+extern char msg_not_formatted[];  /* "card not formated" (sic) */
+extern char msg_card_damaged[];   /* "card damaged" */
+extern char msg_card_error[];     /* "card error %d" */
+extern char msg_create_error[];   /* "file create error %d" */
+extern char msg_write_error[];    /* "file write error %d" */
 
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -279,7 +279,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         }
         goto done;
 
-create_file:
+    create_file:
         sprintf(fn, fmt_card_name, CID, StageID, name);
         src = (u8 *)chan;
         if (msg != 0)

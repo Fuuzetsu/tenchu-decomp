@@ -94,10 +94,13 @@ extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 
-
 void PauseProc(void)
 {
-    enum { START = 2048, SELECT = 256 };
+    enum
+    {
+        START = 2048,
+        SELECT = 256
+    };
     s16 pad;
     s16 cur;
     s16 opad;

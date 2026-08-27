@@ -29,35 +29,43 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-
 extern void *memset(void *s, int c, u32 n);
 
 void DrawFlyWire(TEffectSlot *ef)
 {
-    enum { m = 5 };
+    enum
+    {
+        m = 5
+    };
     FlyWireType *param;
     VECTOR pos;
 
     param = &ef->param.flywire;
-    switch (param->mode) {
-    case 0: {
+    switch (param->mode)
+    {
+    case 0:
+    {
         s16 time;
         s32 sum;
 
         time = param->time;
         sum = (u16)param->count + 0x1000 / time;
         param->count = sum;
-        if ((s16)sum >= 0x1001) {
+        if ((s16)sum >= 0x1001)
+        {
             param->count = 0;
             param->mode = param->mode + 1;
             SetBleeds(&param->end, 0, 0x32, 0xA, 0x1E, 0xFFFF00);
             Sound(CamState.Owner, 0x31);
-        } else {
+        }
+        else
+        {
             SetWire(&param->start, &param->end, &param->center, (s16)sum);
         }
         return;
     }
-    case 1: {
+    case 1:
+    {
         VECTOR tmp;
         s16 count;
 
@@ -70,7 +78,8 @@ void DrawFlyWire(TEffectSlot *ef)
         tmp.vz = ((param->center.vz * (m - count)) + (param->NCenter.vz * count)) / m;
         pos = tmp;
         SetWire(&param->start, &param->end, &pos, 0x1000);
-        if (param->count >= m) {
+        if (param->count >= m)
+        {
             ef->proc = 0;
         }
         param->count = param->count + 1;

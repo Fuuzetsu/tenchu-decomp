@@ -126,7 +126,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
             }
         } while (count < 200);
         found_slot = &dmy;
-found:
+    found:
         idx = 0;
         frame = &found_slot->param.frame;
         frame->px = position->vx;

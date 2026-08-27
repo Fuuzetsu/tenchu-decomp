@@ -48,14 +48,19 @@ void set_model_hide_(Humanoid *human, s16 hide)
     s16 i;
 
     model = human->model;
-    if (0xc < model->n) {
+    if (0xc < model->n)
+    {
         last = 0xc;
-    } else {
+    }
+    else
+    {
         last = model->n - 1;
     }
-    if (hide != 0) {
+    if (hide != 0)
+    {
         i = 7;
-        while (i <= last) {
+        while (i <= last)
+        {
             u16 *attribute;
             int attr;
 
@@ -68,7 +73,8 @@ void set_model_hide_(Humanoid *human, s16 hide)
         return;
     }
     i = 7;
-    while (i <= last) {
+    while (i <= last)
+    {
         u16 *attribute;
         int attr;
 

@@ -74,14 +74,12 @@
  *    exact words formerly produced by the duplicated numeric-base scaffold.
  */
 
-
-
 extern void spawn_smoke_burst_(VECTOR *pos, s32 spread, s32 divisor, s32 count);
 /* Retail's caller promotes these scalar arguments before the call. */
 extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                         s32 start_size, s32 end_size,
-                         s32 start_color, s32 end_color,
-                         s32 rotate, s32 rotate_speed, s32 time, s32 type);
+                           s32 start_size, s32 end_size,
+                           s32 start_color, s32 end_color,
+                           s32 rotate, s32 rotate_speed, s32 time, s32 type);
 
 typedef union
 {
@@ -244,7 +242,7 @@ void ProcItemShinsoku(TItem *item)
                 *(VECTOR *)item->owner->model->locate.coord.t;
             scratch.query.pos.vy -= 300;
             set_impact_ex_(&scratch.query.pos, 0, 0x2000, 0x5000,
-                         0x808080, 0, 0, -30, 0x10, 3);
+                           0x808080, 0, 0, -30, 0x10, 3);
         }
         if (CamState.Owner == item->owner)
         {

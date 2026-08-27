@@ -69,9 +69,9 @@ typedef union
 
 /* Retail's caller promotes these scalar arguments before the call. */
 extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                         s32 start_size, s32 end_size,
-                         s32 start_color, s32 end_color,
-                         s32 rotate, s32 rotate_speed, s32 time, s32 type);
+                           s32 start_size, s32 end_size,
+                           s32 start_color, s32 end_color,
+                           s32 rotate, s32 rotate_speed, s32 time, s32 type);
 extern VECTOR vec_y_n1200_z_400; /* {0,-1200,400} */
 
 void ProcItemGosin(TItem *item)
@@ -168,8 +168,8 @@ void ProcItemGosin(TItem *item)
             return;
         scratch.v = vec_y_n1200_z_400;
         set_impact_ex_(&scratch.v, &item->owner->model->locate,
-                     0x1000, 0x6000, 0x808080, 0,
-                     (s16)(rand() % 0x168), 2, 0x78, 4);
+                       0x1000, 0x6000, 0x808080, 0,
+                       (s16)(rand() % 0x168), 2, 0x78, 4);
         return;
     }
     }

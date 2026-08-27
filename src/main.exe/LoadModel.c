@@ -41,13 +41,13 @@
  */
 extern void *valloc(u32 size);
 
-
 ModelType *LoadModel(u_long *adr)
 {
     ModelType *base;
 
     base = (ModelType *)valloc(sizeof(ModelType));
-    if (adr != 0) {
+    if (adr != 0)
+    {
         adr = adr + 1;
         GsMapModelingData(adr);
         GsLinkObject4((u_long)(adr + 2), &base->object, 0);

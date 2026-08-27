@@ -143,7 +143,7 @@ s16 Think3attack(void)
         {
             if (__builtin_abs(Degree) < 1200)
             {
-add_attack:
+            add_attack:
                 pad |= 0x80;
                 goto action_ready;
             }

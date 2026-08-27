@@ -89,7 +89,7 @@
  *    semantically identical but flips that scheduling tie.
  */
 
-extern char str_player_option[]; /* player option */                    /* "player option" */
+extern char str_player_option[]; /* player option */ /* "player option" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void debug_menu_player_jump(void);

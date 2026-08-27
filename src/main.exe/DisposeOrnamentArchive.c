@@ -38,8 +38,10 @@ void DisposeOrnamentArchive(OrnamentArchiveType *mad)
 {
     s32 i;
 
-    if (mad != 0) {
-        for (i = 0; i < mad->n; i++) {
+    if (mad != 0)
+    {
+        for (i = 0; i < mad->n; i++)
+        {
             DisposeOrnament(mad->object[i]);
         }
         vfree(mad->object);

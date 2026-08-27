@@ -93,17 +93,17 @@
 /* Retail extends PSX.SYM's TMusicTable with an XA end time. */
 typedef struct TMusicTable
 {
-    u8 *file;    /* 0x0 */
-    u8 channel;  /* 0x4 */
-    u8 min;      /* 0x5 */
-    u8 sec;      /* 0x6 */
-    u8 endmin;   /* 0x7 */
-    u8 endsec;   /* 0x8 */
-} TMusicTable; /* 0xC */
+    u8 *file;   /* 0x0 */
+    u8 channel; /* 0x4 */
+    u8 min;     /* 0x5 */
+    u8 sec;     /* 0x6 */
+    u8 endmin;  /* 0x7 */
+    u8 endsec;  /* 0x8 */
+} TMusicTable;  /* 0xC */
 
 extern TMusicTable MusicTable[];
-extern char msg_bad_music_no[]; /* "bad music no" */
-extern char fmt_xa_path[]; /* "\TENCHU\XA\%s;1" */
+extern char msg_bad_music_no[];           /* "bad music no" */
+extern char fmt_xa_path[];                /* "\TENCHU\XA\%s;1" */
 extern char fmt_playmusic_fail_chan_id[]; /* "playmusic fail %s  chan %d  id %d" */
 
 extern void AdtMessageBox(char *fmt, ...);

@@ -53,7 +53,6 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 Think1target(void);
@@ -200,7 +199,7 @@ void ProcItemDokudango(TItem *item)
                     found = 0;
                     break;
                 }
-check:
+            check:
                 if (found == 0)
                 {
                     break;
@@ -215,7 +214,7 @@ check:
                     ownerlen = find.dist;
                 }
                 continue;
-hit:
+            hit:
                 found = candidate;
                 do
                 {
@@ -224,7 +223,7 @@ hit:
                     search->i = i + 1;
                 } while (0);
                 goto check;
-set_target:
+            set_target:
                 target = find.find;
                 targetlen = find.dist;
                 continue;
@@ -414,25 +413,25 @@ set_target:
             {
                 goto poison_active;
             }
-dispose_case3:
+        dispose_case3:
+        {
+            if (item->proc == 0)
             {
-                if (item->proc == 0)
-                {
-                    return;
-                }
-                item->mode = ITEM_MODE_DISPOSE;
-                item->proc(item);
-                DeleteConflict(item->locate);
-                if (item->mode != 0)
-                {
-                    AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-                }
-                item->owner = 0;
-                item->proc = 0;
                 return;
             }
+            item->mode = ITEM_MODE_DISPOSE;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != 0)
+            {
+                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
+        }
 
-poison_active:
+        poison_active:
             if (eater->status == STAT_DAMAGE || eater->status == STAT_STATE ||
                 eater->status == STAT_ATTACK || eater->status == STAT_ITEM)
             {

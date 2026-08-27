@@ -492,7 +492,7 @@ void SetupTelop(u8 *telop, short line)
         TelopP.v3 = final_v2;
         TelopP.v2 = final_v2;
         TelopP.tpage = GetTPage(2, 0, 0x300,
-                               0x1f0 - (s16)line_y);
+                                0x1f0 - (s16)line_y);
     }
 }
 

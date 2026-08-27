@@ -71,10 +71,10 @@
  *    draws is whatever was left on the stack, not this function's concern.
  */
 extern AdtFntState AdtFnt;
-extern s32 AdtMessageBoxCount; /* AdtMessageBox call counter */
+extern s32 AdtMessageBoxCount;                                         /* AdtMessageBox call counter */
 extern char msg_adtinit_not_called[]; /* *** AdtInit not called *** */ /* "*** AdtInit not called ***" */
-extern char fmt_messagebox_count[]; /* "AdtMessageBox #%d\n\n" */
-extern char msg_press_start[]; /* "\n\nPress start to continue..." */
+extern char fmt_messagebox_count[];                                    /* "AdtMessageBox #%d\n\n" */
+extern char msg_press_start[];                                         /* "\n\nPress start to continue..." */
 
 extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
 extern s32 VSync(s32 mode);

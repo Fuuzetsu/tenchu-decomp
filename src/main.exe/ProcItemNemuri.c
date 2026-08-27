@@ -175,7 +175,7 @@ void ProcItemNemuri(TItem *item)
         if (bleed_n != 0)
         {
             env = 0x6e0000;
-                        env |= 0x6e6e;
+            env |= 0x6e6e;
             item->locate->locate.coord.t[0] +=
                 item->param.napalm.vec.vx;
             bleed_range = 300;
@@ -183,7 +183,7 @@ void ProcItemNemuri(TItem *item)
         else
         {
             env = 0x6e0000;
-                        env |= 0x6e6e;
+            env |= 0x6e6e;
             item->locate->locate.coord.t[0] +=
                 item->param.napalm.vec.vx;
             bleed_range = 300;

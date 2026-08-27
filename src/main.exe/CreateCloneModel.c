@@ -42,7 +42,6 @@
  */
 extern void *valloc(u32 size);
 
-
 ModelType *CreateCloneModel(ModelType *objp)
 {
     ModelType *base;
@@ -64,7 +63,8 @@ ModelType *CreateCloneModel(ModelType *objp)
     base->locate.flg = 0;
     base->id = -1;
     base->attribute = 0;
-    if (objp != 0) {
+    if (objp != 0)
+    {
         base->object.tmd = objp->object.tmd;
     }
     return base;

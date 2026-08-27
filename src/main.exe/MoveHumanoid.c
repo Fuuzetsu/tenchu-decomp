@@ -26,7 +26,6 @@
  *     param $a2       short side
  * END PSX.SYM */
 
-
 /*
  * MoveHumanoid (0x8002952c) — set a character's velocity vector from an
  * order/side speed pair, rotated by the character's facing (rotate->vy).
@@ -61,18 +60,23 @@ void MoveHumanoid(Humanoid *human, short ordr, short side)
     io = ordr;
     o = ordr;
     si = side;
-    if (io != 0 || side != 0) {
+    if (io != 0 || side != 0)
+    {
         s = -rsin((int)human->rotate->vy);
         c = -rcos((int)human->rotate->vy);
-        if ((io & 0xff80) == 0x80) {
+        if ((io & 0xff80) == 0x80)
+        {
             o = ordr - 0x100;
         }
-        if ((side & 0xff80) == 0x80) {
+        if ((side & 0xff80) == 0x80)
+        {
             si = side - 0x100;
         }
         human->vector.vx = (short)(((int)(short)s * (int)o - (int)(short)c * (int)si) >> 0xc);
         human->vector.vz = (short)(((int)(short)c * (int)o + (int)(short)s * (int)si) >> 0xc);
-    } else {
+    }
+    else
+    {
         human->vector.vz = 0;
         human->vector.vx = 0;
     }

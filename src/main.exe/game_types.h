@@ -29,26 +29,26 @@
 typedef struct TPadPort TPadPort;
 struct TPadPort
 {
-    u16 button;         /* 0x0 (held buttons) */
-    s16 x;              /* 0x2 */
-    s16 y;              /* 0x4 */
-    u8 active;          /* 0x6 (retail-inserted) */
-    u8 fAnalog;         /* 0x7 */
-    u8 act1;            /* 0x8 */
-    u8 act2;            /* 0x9 */
-    u8 actbuf[2];       /* 0xA */
-    u8 Send;            /* 0xC */
+    u16 button;   /* 0x0 (held buttons) */
+    s16 x;        /* 0x2 */
+    s16 y;        /* 0x4 */
+    u8 active;    /* 0x6 (retail-inserted) */
+    u8 fAnalog;   /* 0x7 */
+    u8 act1;      /* 0x8 */
+    u8 act2;      /* 0x9 */
+    u8 actbuf[2]; /* 0xA */
+    u8 Send;      /* 0xC */
 };
 
 /* PADCMD.C's rumble attack/release envelope (anonymous in PSX.SYM). */
 typedef struct PadArrangeType PadArrangeType;
 struct PadArrangeType
 {
-    s32 pow;                           /* 0x00 */
-    s32 time;                          /* 0x04 */
-    s32 attack;                        /* 0x08 */
-    s32 release;                       /* 0x0C */
-};                                     /* 0x10 */
+    s32 pow;     /* 0x00 */
+    s32 time;    /* 0x04 */
+    s32 attack;  /* 0x08 */
+    s32 release; /* 0x0C */
+}; /* 0x10 */
 
 /* PADCMD.C's command-table word type, recovered from PSX.SYM. */
 typedef unsigned short COMMAND;
@@ -57,12 +57,12 @@ typedef unsigned short COMMAND;
 typedef struct PADtype PADtype;
 struct PADtype
 {
-    u16 data;                          /* 0x00 */
-    u16 sdata;                         /* 0x02 */
-    u16 trig;                          /* 0x04 */
-    s16 time;                          /* 0x06 */
-    u16 stream[4];                     /* 0x08 */
-};                                     /* 0x10 */
+    u16 data;      /* 0x00 */
+    u16 sdata;     /* 0x02 */
+    u16 trig;      /* 0x04 */
+    s16 time;      /* 0x06 */
+    u16 stream[4]; /* 0x08 */
+}; /* 0x10 */
 
 /* AdtSelect's menu row — the demo's own debug symbols supply this name and
  * the unsigned label-pointer type (the stack-variable records in
@@ -70,8 +70,8 @@ struct PADtype
 typedef struct TAdtSelect TAdtSelect;
 struct TAdtSelect
 {
-    u8 *name;       /* 0x0 */
-    u_long value;   /* 0x4 */
+    u8 *name;     /* 0x0 */
+    u_long value; /* 0x4 */
 };
 
 /* ADT's original quiet-state names, recovered from the demo's PSX.SYM. */
@@ -86,94 +86,94 @@ enum AdtQuietMode
 typedef struct AdtFntState AdtFntState;
 struct AdtFntState
 {
-    s32 x;                           /* 0x00 */
-    s32 y;                           /* 0x04 */
-    s32 w;                           /* 0x08 */
-    s32 h;                           /* 0x0C */
-    s32 isbg;                        /* 0x10 */
-    s32 n;                           /* 0x14 */
-    s32 tx;                          /* 0x18 */
-    s32 ty;                          /* 0x1C */
-    AdtQuietMode quiet;              /* 0x20 */
-};                                   /* 0x24 */
+    s32 x;              /* 0x00 */
+    s32 y;              /* 0x04 */
+    s32 w;              /* 0x08 */
+    s32 h;              /* 0x0C */
+    s32 isbg;           /* 0x10 */
+    s32 n;              /* 0x14 */
+    s32 tx;             /* 0x18 */
+    s32 ty;             /* 0x1C */
+    AdtQuietMode quiet; /* 0x20 */
+}; /* 0x24 */
 
 /* PSY-Q executable header, recovered verbatim in the demo's PSX.SYM. */
 typedef struct EXEC EXEC;
 struct EXEC
 {
-    u32 pc0;                       /* 0x00 */
-    u32 gp0;                       /* 0x04 */
-    u32 t_addr;                    /* 0x08 */
-    u32 t_size;                    /* 0x0C */
-    u32 d_addr;                    /* 0x10 */
-    u32 d_size;                    /* 0x14 */
-    u32 b_addr;                    /* 0x18 */
-    u32 b_size;                    /* 0x1C */
-    u32 s_addr;                    /* 0x20 */
-    u32 s_size;                    /* 0x24 */
-    u32 sp;                        /* 0x28 */
-    u32 fp;                        /* 0x2C */
-    u32 gp;                        /* 0x30 */
-    u32 ret;                       /* 0x34 */
-    u32 base;                      /* 0x38 */
-};                                 /* 0x3C */
+    u32 pc0;    /* 0x00 */
+    u32 gp0;    /* 0x04 */
+    u32 t_addr; /* 0x08 */
+    u32 t_size; /* 0x0C */
+    u32 d_addr; /* 0x10 */
+    u32 d_size; /* 0x14 */
+    u32 b_addr; /* 0x18 */
+    u32 b_size; /* 0x1C */
+    u32 s_addr; /* 0x20 */
+    u32 s_size; /* 0x24 */
+    u32 sp;     /* 0x28 */
+    u32 fp;     /* 0x2C */
+    u32 gp;     /* 0x30 */
+    u32 ret;    /* 0x34 */
+    u32 base;   /* 0x38 */
+}; /* 0x3C */
 
 /* MEMCARD.C/INFOVIEW.C's PlayStation memory-card block header. */
 typedef struct TCardHeader TCardHeader;
 struct TCardHeader
 {
-    u8 Magic[2];                  /* 0x000 */
-    u8 Type;                      /* 0x002 */
-    u8 BlockEntry;                /* 0x003 */
-    u8 Title[64];                 /* 0x004 */
-    u8 reserve[28];               /* 0x044 */
-    u8 Clut[32];                  /* 0x060 */
-    u8 Icon[3][128];              /* 0x080 */
-};                                /* 0x200 */
+    u8 Magic[2];     /* 0x000 */
+    u8 Type;         /* 0x002 */
+    u8 BlockEntry;   /* 0x003 */
+    u8 Title[64];    /* 0x004 */
+    u8 reserve[28];  /* 0x044 */
+    u8 Clut[32];     /* 0x060 */
+    u8 Icon[3][128]; /* 0x080 */
+}; /* 0x200 */
 
 /* IMAGES.C's offset-table archive header. */
 typedef struct ArcFile ArcFile;
 struct ArcFile
 {
-    s16 count;                    /* 0x00 */
-    s16 loaded;                   /* 0x02 */
-    s32 entry[1];                 /* 0x04: offset before fixup, pointer after */
-};                                /* 0x08 */
+    s16 count;    /* 0x00 */
+    s16 loaded;   /* 0x02 */
+    s32 entry[1]; /* 0x04: offset before fixup, pointer after */
+}; /* 0x08 */
 
 /* Retail's inventory-shop presentation and stock-limit record. */
 typedef struct ShopItemDefault ShopItemDefault;
 struct ShopItemDefault
 {
-    s16 x;                        /* 0x00: grid position */
-    s16 y;                        /* 0x02 */
-    s32 itemIndex;                /* 0x04 */
-    u8 maxStock;                  /* 0x08 */
-};                                /* 0x0C */
+    s16 x;         /* 0x00: grid position */
+    s16 y;         /* 0x02 */
+    s32 itemIndex; /* 0x04 */
+    u8 maxStock;   /* 0x08 */
+}; /* 0x0C */
 
 /* Retail's end-of-stage counters and calculated score components. Penalties
  * and totals are signed because they are negative before their clamps. */
 typedef struct ScoreStats ScoreStats;
 struct ScoreStats
 {
-    u8 stageBosses;               /* 0x00 */
-    u8 stageEnemies;              /* 0x01 */
-    u8 findEnemies;               /* 0x02 */
-    u8 murders;                   /* 0x03 */
-    u8 criticals;                 /* 0x04 */
-    u8 friendHits;                /* 0x05 */
-    s32 clock;                    /* 0x08 */
-};                                /* 0x0C */
+    u8 stageBosses;  /* 0x00 */
+    u8 stageEnemies; /* 0x01 */
+    u8 findEnemies;  /* 0x02 */
+    u8 murders;      /* 0x03 */
+    u8 criticals;    /* 0x04 */
+    u8 friendHits;   /* 0x05 */
+    s32 clock;       /* 0x08 */
+}; /* 0x0C */
 
 typedef struct ScoreResult ScoreResult;
 struct ScoreResult
 {
-    u16 criticalScore;            /* 0x00 */
-    u16 murderScore;              /* 0x02 */
-    s16 friendPenalty;            /* 0x04 */
-    s16 spottedScore;             /* 0x06 */
-    s16 score;                    /* 0x08 */
-    s16 grade;                    /* 0x0A */
-};                                /* 0x0C */
+    u16 criticalScore; /* 0x00 */
+    u16 murderScore;   /* 0x02 */
+    s16 friendPenalty; /* 0x04 */
+    s16 spottedScore;  /* 0x06 */
+    s16 score;         /* 0x08 */
+    s16 grade;         /* 0x0A */
+}; /* 0x0C */
 
 /* CONFLICT.C's raw area-map word type, recovered from PSX.SYM. */
 typedef unsigned long AreaMapType;
@@ -182,37 +182,37 @@ typedef unsigned long AreaMapType;
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType
 {
-    s16 y;                       /* 0x00 */
-    s16 dy;                      /* 0x02 */
-    s16 x1;                      /* 0x04 */
-    s16 z1;                      /* 0x06 */
-    s16 x2;                      /* 0x08 */
-    s16 z2;                      /* 0x0A */
-    s16 attribute;               /* 0x0C */
-    s16 division;                /* 0x0E */
-};                               /* 0x10 */
+    s16 y;         /* 0x00 */
+    s16 dy;        /* 0x02 */
+    s16 x1;        /* 0x04 */
+    s16 z1;        /* 0x06 */
+    s16 x2;        /* 0x08 */
+    s16 z2;        /* 0x0A */
+    s16 attribute; /* 0x0C */
+    s16 division;  /* 0x0E */
+}; /* 0x10 */
 
 /* CONFLICT.C's area-map row index. */
 typedef struct NodeIndexType NodeIndexType;
 struct NodeIndexType
 {
-    s16 y;                       /* 0x00 */
-    s16 n;                       /* 0x02 */
-    s32 index;                   /* 0x04 */
-    s16 x1;                      /* 0x08 */
-    s16 z1;                      /* 0x0A */
-    s16 x2;                      /* 0x0C */
-    s16 z2;                      /* 0x0E */
-};                               /* 0x10 */
+    s16 y;     /* 0x00 */
+    s16 n;     /* 0x02 */
+    s32 index; /* 0x04 */
+    s16 x1;    /* 0x08 */
+    s16 z1;    /* 0x0A */
+    s16 x2;    /* 0x0C */
+    s16 z2;    /* 0x0E */
+}; /* 0x10 */
 
 /* CONFLICT.C's lookup table for a subdivided area-node list. The leading
  * word is an offset on disk and an AreaNodeType pointer after relocation. */
 typedef struct IndexArrayType IndexArrayType;
 struct IndexArrayType
 {
-    long index;                  /* 0x00 */
-    s16 array[4][4];             /* 0x04 */
-};                               /* 0x24 */
+    long index;      /* 0x00 */
+    s16 array[4][4]; /* 0x04 */
+}; /* 0x24 */
 
 /* WORLD.C's packed four-stage think-function selector. */
 typedef short TThinkType;
@@ -221,16 +221,16 @@ typedef short TThinkType;
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
 {
-    s16 type;                    /* 0x00 */
-    TThinkType ThinkType;        /* 0x02 */
-    s16 nPath;                   /* 0x04 */
-    s32 x;                       /* 0x08 */
-    s32 y;                       /* 0x0C */
-    s32 z;                       /* 0x10 */
-    s16 r;                       /* 0x14 */
-    s16 pad;                     /* 0x16 */
-    VECTOR path[7];              /* 0x18 */
-};                               /* 0x88 */
+    s16 type;             /* 0x00 */
+    TThinkType ThinkType; /* 0x02 */
+    s16 nPath;            /* 0x04 */
+    s32 x;                /* 0x08 */
+    s32 y;                /* 0x0C */
+    s32 z;                /* 0x10 */
+    s16 r;                /* 0x14 */
+    s16 pad;              /* 0x16 */
+    VECTOR path[7];       /* 0x18 */
+}; /* 0x88 */
 
 /* Area-map query result. PSX.SYM supplies the original first 16 bytes and
  * field names. Retail appends the last two cached pointers: GetAreaMapVector
@@ -249,7 +249,7 @@ struct MapVector
     u8 angleH;                   /* 0x0F */
     struct AreaNodeType *area;   /* 0x10 (retail) */
     struct NodeIndexType *index; /* 0x14 (retail) */
-};                               /* 0x18 */
+}; /* 0x18 */
 
 /* Parent/child transform record embedded ahead of model and ornament data.
  * LoadModelArchive, LoadOrnamentArchive, and LoadConstruction all consume
@@ -257,13 +257,13 @@ struct MapVector
 typedef struct ParentingType ParentingType;
 struct ParentingType
 {
-    s16 np;                      /* 0x00: parent number */
-    s16 nc;                      /* 0x02: child number */
-    s16 dx;                      /* 0x04 */
-    s16 dy;                      /* 0x06 */
-    s16 dz;                      /* 0x08 */
-    u32 index;                   /* 0x0C */
-};                               /* 0x10 */
+    s16 np;    /* 0x00: parent number */
+    s16 nc;    /* 0x02: child number */
+    s16 dx;    /* 0x04 */
+    s16 dy;    /* 0x06 */
+    s16 dz;    /* 0x08 */
+    u32 index; /* 0x0C */
+}; /* 0x10 */
 
 /* WORLD.C/3DCTRL.C's shared model and ornament records. PSX.SYM supplies
  * each complete layout; these are used by items, characters, construction,
@@ -271,77 +271,77 @@ struct ParentingType
 typedef struct ModelType ModelType;
 struct ModelType
 {
-    GsCOORDINATE2 locate;         /* 0x00 */
-    SVECTOR rotate;               /* 0x50 */
-    s16 id;                       /* 0x58 */
-    s16 attribute;                /* 0x5A */
-    SVECTOR clip;                 /* 0x5C */
-    GsDOBJ2 object;               /* 0x64 */
-};                                /* 0x74 */
+    GsCOORDINATE2 locate; /* 0x00 */
+    SVECTOR rotate;       /* 0x50 */
+    s16 id;               /* 0x58 */
+    s16 attribute;        /* 0x5A */
+    SVECTOR clip;         /* 0x5C */
+    GsDOBJ2 object;       /* 0x64 */
+}; /* 0x74 */
 
 typedef struct ModelArchiveType ModelArchiveType;
 struct ModelArchiveType
 {
-    GsCOORDINATE2 locate;         /* 0x00 */
-    SVECTOR rotate;               /* 0x50 */
-    s16 id;                       /* 0x58 */
-    s16 attribute;                /* 0x5A */
-    SVECTOR clip;                 /* 0x5C */
-    s16 n;                        /* 0x64 */
-    ModelType **object;           /* 0x68 */
-};                                /* 0x6C */
+    GsCOORDINATE2 locate; /* 0x00 */
+    SVECTOR rotate;       /* 0x50 */
+    s16 id;               /* 0x58 */
+    s16 attribute;        /* 0x5A */
+    SVECTOR clip;         /* 0x5C */
+    s16 n;                /* 0x64 */
+    ModelType **object;   /* 0x68 */
+}; /* 0x6C */
 
 typedef struct OrnamentType OrnamentType;
 struct OrnamentType
 {
-    GsCOORDINATE2 locate;         /* 0x00 */
-    GsDOBJ2 object;               /* 0x50 */
-};                                /* 0x60 */
+    GsCOORDINATE2 locate; /* 0x00 */
+    GsDOBJ2 object;       /* 0x50 */
+}; /* 0x60 */
 
 typedef struct OrnamentArchiveType OrnamentArchiveType;
 struct OrnamentArchiveType
 {
-    GsCOORDINATE2 locate;         /* 0x00 */
-    SVECTOR rotate;               /* 0x50 */
-    s16 id;                       /* 0x58 */
-    s16 attribute;                /* 0x5A */
-    s16 n;                        /* 0x5C */
-    OrnamentType **object;        /* 0x60 */
-    u_long *data;                 /* 0x64 */
-};                                /* 0x68 */
+    GsCOORDINATE2 locate;  /* 0x00 */
+    SVECTOR rotate;        /* 0x50 */
+    s16 id;                /* 0x58 */
+    s16 attribute;         /* 0x5A */
+    s16 n;                 /* 0x5C */
+    OrnamentType **object; /* 0x60 */
+    u_long *data;          /* 0x64 */
+}; /* 0x68 */
 
 typedef struct tag_ObjectSlotType ObjectSlotType;
 struct tag_ObjectSlotType
 {
-    ObjectSlotType *next;         /* 0x00 */
-    OrnamentType *model;          /* 0x04 */
-    s16 ModelSize;                /* 0x08 */
-    s16 ShiftY;                   /* 0x0A */
-};                                /* 0x0C */
+    ObjectSlotType *next; /* 0x00 */
+    OrnamentType *model;  /* 0x04 */
+    s16 ModelSize;        /* 0x08 */
+    s16 ShiftY;           /* 0x0A */
+}; /* 0x0C */
 
 typedef struct ObjectSlotManager ObjectSlotManager;
 struct ObjectSlotManager
 {
-    ObjectSlotType *slot;         /* 0x00 */
-    s32 n;                        /* 0x04 */
-    s32 max;                      /* 0x08 */
-};                                /* 0x0C */
+    ObjectSlotType *slot; /* 0x00 */
+    s32 n;                /* 0x04 */
+    s32 max;              /* 0x08 */
+}; /* 0x0C */
 
 typedef struct WorldType WorldType;
 struct WorldType
 {
-    ObjectSlotType *top;          /* 0x00 */
-};                                /* 0x04 */
+    ObjectSlotType *top; /* 0x00 */
+}; /* 0x04 */
 
 /* MOTION.C's keyframe, motion, registry, spline, and playback records. */
 typedef struct MotionElementType MotionElementType;
 struct MotionElementType
 {
-    s16 x;                        /* 0x00 */
-    s16 y;                        /* 0x02 */
-    s16 z;                        /* 0x04 */
-    s16 time;                     /* 0x06 */
-};                                /* 0x08 */
+    s16 x;    /* 0x00 */
+    s16 y;    /* 0x02 */
+    s16 z;    /* 0x04 */
+    s16 time; /* 0x06 */
+}; /* 0x08 */
 
 typedef struct MotionDataType MotionDataType;
 struct MotionDataType
@@ -354,60 +354,60 @@ struct MotionDataType
     s16 id;                       /* 0x06 */
     MotionElementType *locate;    /* 0x08 */
     MotionElementType *rotate[1]; /* 0x0C */
-};                                /* 0x10 */
+}; /* 0x10 */
 
 typedef struct MotionRegistType MotionRegistType;
 struct MotionRegistType
 {
-    s16 mid;                      /* 0x00 */
-    s16 id;                       /* 0x02 */
-    MotionDataType *motion;       /* 0x04 */
-};                                /* 0x08 */
+    s16 mid;                /* 0x00 */
+    s16 id;                 /* 0x02 */
+    MotionDataType *motion; /* 0x04 */
+}; /* 0x08 */
 
 typedef struct SplineControlType SplineControlType;
 struct SplineControlType
 {
-    MotionElementType *key0;      /* 0x00 */
-    MotionElementType *key1;      /* 0x04 */
-    SVECTOR dd0;                  /* 0x08 */
-    SVECTOR ds1;                  /* 0x10 */
-};                                /* 0x18 */
+    MotionElementType *key0; /* 0x00 */
+    MotionElementType *key1; /* 0x04 */
+    SVECTOR dd0;             /* 0x08 */
+    SVECTOR ds1;             /* 0x10 */
+}; /* 0x18 */
 
 typedef struct MotionManager MotionManager;
 struct MotionManager
 {
-    s16 mid;                      /* 0x00 */
-    s16 count;                    /* 0x02 */
-    s16 loop;                     /* 0x04 */
-    s16 n;                        /* 0x06 */
-    s16 mask;                     /* 0x08 */
-    s16 mode;                     /* 0x0A */
-    ModelArchiveType *model;      /* 0x0C */
-    MotionDataType *motion;       /* 0x10 */
-    MotionRegistType *motreg;     /* 0x14 */
-    SplineControlType *control;   /* 0x18 */
-};                                /* 0x1C */
+    s16 mid;                    /* 0x00 */
+    s16 count;                  /* 0x02 */
+    s16 loop;                   /* 0x04 */
+    s16 n;                      /* 0x06 */
+    s16 mask;                   /* 0x08 */
+    s16 mode;                   /* 0x0A */
+    ModelArchiveType *model;    /* 0x0C */
+    MotionDataType *motion;     /* 0x10 */
+    MotionRegistType *motreg;   /* 0x14 */
+    SplineControlType *control; /* 0x18 */
+}; /* 0x1C */
 
 typedef struct MotionPackType MotionPackType;
 struct MotionPackType
 {
-    s32 n;                        /* 0x00 */
-    MotionDataType *motion[1];    /* 0x04 */
-};                                /* 0x08 */
+    s32 n;                     /* 0x00 */
+    MotionDataType *motion[1]; /* 0x04 */
+}; /* 0x08 */
 
 /* MOTION.C's continuous-attack window table. */
 typedef struct BattleType BattleType;
 struct BattleType
 {
-    s16 mid;                      /* 0x00 */
-    s16 power;                    /* 0x02 */
-    s16 atks;                     /* 0x04 */
-    s16 atke;                     /* 0x06 */
-    s16 contfrm;                  /* 0x08 */
-    s16 revise;                   /* 0x0A */
-    s16 ilus;                     /* 0x0C */
-    s16 ilue;                     /* 0x0E */
-};                                /* 0x10 */
+    s16 mid;     /* 0x00 */
+    s16 power;   /* 0x02 */
+    s16 atks;    /* 0x04 */
+    s16 atke;    /* 0x06 */
+    s16 contfrm; /* 0x08 */
+    s16 revise;  /* 0x0A */
+    s16 ilus;    /* 0x0C */
+    s16 ilue;    /* 0x0E */
+}; /* 0x10 */
 
 /* CONFLICT.C's collision slot. PSX.SYM records result[64] and size 0x68 in
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
@@ -416,13 +416,13 @@ struct BattleType
 typedef struct ConflictObjectType ConflictObjectType;
 struct ConflictObjectType
 {
-    struct ModelType *model;     /* 0x00 */
-    VECTOR position;             /* 0x04 */
-    SVECTOR offset;              /* 0x14 */
-    SVECTOR size;                /* 0x1C */
-    void *common;                /* 0x24 */
-    u8 result[80];               /* 0x28 */
-};                               /* 0x78 */
+    struct ModelType *model; /* 0x00 */
+    VECTOR position;         /* 0x04 */
+    SVECTOR offset;          /* 0x14 */
+    SVECTOR size;            /* 0x1C */
+    void *common;            /* 0x24 */
+    u8 result[80];           /* 0x28 */
+}; /* 0x78 */
 
 /* 3DCTRL.C's textured sprite model. The demo PSX.SYM supplies the complete
  * layout and original member names; the retail users confirm the same 0x8C
@@ -430,50 +430,50 @@ struct ConflictObjectType
 typedef struct Sprite3D Sprite3D;
 struct Sprite3D
 {
-    GsCOORDINATE2 locate;         /* 0x00 */
-    SVECTOR rotate;               /* 0x50 */
-    s16 id;                       /* 0x58 */
-    s16 attribute;                /* 0x5A */
-    SVECTOR clip;                 /* 0x5C */
-    s32 scale;                    /* 0x64 */
-    GsSPRITE sprite;              /* 0x68 */
-};                                /* 0x8C */
+    GsCOORDINATE2 locate; /* 0x00 */
+    SVECTOR rotate;       /* 0x50 */
+    s16 id;               /* 0x58 */
+    s16 attribute;        /* 0x5A */
+    SVECTOR clip;         /* 0x5C */
+    s32 scale;            /* 0x64 */
+    GsSPRITE sprite;      /* 0x68 */
+}; /* 0x8C */
 
 /* 3DCTRL.C's tiled background. PSX.SYM supplies the complete layout and
  * original `hundle` spelling; retail confirms the same 0x48-byte record. */
 typedef struct BackGround BackGround;
 struct BackGround
 {
-    GsBG hundle;                  /* 0x00 */
-    GsMAP map;                    /* 0x24 */
-    GsCELL *cell;                 /* 0x34 */
-    u32 *work;                    /* 0x38 */
-    u16 *index;                   /* 0x3C */
-    u16 sz;                       /* 0x40 */
-    s16 id;                       /* 0x42 */
-    s16 attribute;                /* 0x44 */
-};                                /* 0x48 */
+    GsBG hundle;   /* 0x00 */
+    GsMAP map;     /* 0x24 */
+    GsCELL *cell;  /* 0x34 */
+    u32 *work;     /* 0x38 */
+    u16 *index;    /* 0x3C */
+    u16 sz;        /* 0x40 */
+    s16 id;        /* 0x42 */
+    s16 attribute; /* 0x44 */
+}; /* 0x48 */
 
 /* CHRANIM.C's character-animation event record. */
 typedef struct CVAType CVAType;
 struct CVAType
 {
-    s16 mode;                     /* 0x00 */
-    s16 id;                       /* 0x02 */
-    s16 x;                        /* 0x04 */
-    s16 y;                        /* 0x06 */
-    s16 z;                        /* 0x08 */
-    s16 p;                        /* 0x0A */
-};                                /* 0x0C */
+    s16 mode; /* 0x00 */
+    s16 id;   /* 0x02 */
+    s16 x;    /* 0x04 */
+    s16 y;    /* 0x06 */
+    s16 z;    /* 0x08 */
+    s16 p;    /* 0x0A */
+}; /* 0x0C */
 
 /* CHRANIM.C's queued character-motion slot. */
 typedef struct HumanAnimType HumanAnimType;
 struct HumanAnimType
 {
-    struct Humanoid *human;       /* 0x00 */
-    s16 loop;                     /* 0x04 */
-    s16 motid;                    /* 0x06 */
-};                                /* 0x08 */
+    struct Humanoid *human; /* 0x00 */
+    s16 loop;               /* 0x04 */
+    s16 motid;              /* 0x06 */
+}; /* 0x08 */
 
 /* Motion-id families (motID / MotionManager.mid): the high byte indexes the
  * Act* handler table at 0x80086b24 (ActNORMAL..ActDEAD, the demo's own
@@ -482,24 +482,24 @@ struct HumanAnimType
  * proven by the dispatch table order. */
 enum motion_family
 {
-    MOT_NORMAL   = 0x000,
-    MOT_ACTION   = 0x100,
-    MOT_MOVE     = 0x200,
-    MOT_SWIM     = 0x300,
-    MOT_KAGI     = 0x400,
-    MOT_ENGAGE   = 0x500,
-    MOT_CHASE    = 0x600,
-    MOT_ATTACK   = 0x700,
-    MOT_STATE    = 0x800,
-    MOT_JUMP     = 0x900,
-    MOT_HANG     = 0xA00,
-    MOT_SQUAT    = 0xB00,
-    MOT_STICKON  = 0xC00,
+    MOT_NORMAL = 0x000,
+    MOT_ACTION = 0x100,
+    MOT_MOVE = 0x200,
+    MOT_SWIM = 0x300,
+    MOT_KAGI = 0x400,
+    MOT_ENGAGE = 0x500,
+    MOT_CHASE = 0x600,
+    MOT_ATTACK = 0x700,
+    MOT_STATE = 0x800,
+    MOT_JUMP = 0x900,
+    MOT_HANG = 0xA00,
+    MOT_SQUAT = 0xB00,
+    MOT_STICKON = 0xC00,
     MOT_CEILHANG = 0xD00,
-    MOT_SYURI    = 0xE00,
-    MOT_ITEM     = 0xF00,
-    MOT_DAMAGE   = 0x1000,
-    MOT_DEAD     = 0x1100
+    MOT_SYURI = 0xE00,
+    MOT_ITEM = 0xF00,
+    MOT_DAMAGE = 0x1000,
+    MOT_DEAD = 0x1100
 };
 
 /* Camera-mode names recovered from the demo's CAMERA.C. This list is not
@@ -531,14 +531,14 @@ enum TCameraMode
 typedef struct TCameraStatus TCameraStatus;
 struct TCameraStatus
 {
-    VECTOR TargetVector;          /* 0x00 */
-    struct Humanoid *Owner;       /* 0x10 */
-    TCameraMode Mode;             /* 0x14 */
-    s16 DirectionRX;              /* 0x18 */
-    s16 DirectionRY;              /* 0x1A */
-    u8 OldMode;                   /* 0x1C */
-    u8 snap_pending;              /* 0x1D (retail-inferred role) */
-};                                /* 0x20 */
+    VECTOR TargetVector;    /* 0x00 */
+    struct Humanoid *Owner; /* 0x10 */
+    TCameraMode Mode;       /* 0x14 */
+    s16 DirectionRX;        /* 0x18 */
+    s16 DirectionRY;        /* 0x1A */
+    u8 OldMode;             /* 0x1C */
+    u8 snap_pending;        /* 0x1D (retail-inferred role) */
+}; /* 0x20 */
 
 /* System flags named by the demo's PSX.SYM.  The random-layout name is
  * retail-inferred from CreateStage and the stage debug menu; bit 0x10 remains
@@ -558,11 +558,11 @@ enum TSystemFlag
 typedef struct TCameraPos TCameraPos;
 struct TCameraPos
 {
-    SVECTOR r1;                   /* 0x00 */
-    SVECTOR r2;                   /* 0x08 */
-    SVECTOR p1;                   /* 0x10 */
-    SVECTOR p2;                   /* 0x18 */
-};                                 /* 0x20 */
+    SVECTOR r1; /* 0x00 */
+    SVECTOR r2; /* 0x08 */
+    SVECTOR p1; /* 0x10 */
+    SVECTOR p2; /* 0x18 */
+}; /* 0x20 */
 
 /* CDPLAYER.C's playback state and its original anonymous-enum constants.
  * Retail keeps the demo's original members but rearranges the tail, adds the
@@ -581,172 +581,178 @@ enum
 
 struct TCdaStatus
 {
-    s32 StartPos;                 /* 0x00 */
-    s32 CurPos;                   /* 0x04 */
-    s32 EndPos;                   /* 0x08 */
-    s16 mode;                     /* 0x0C */
-    s16 CheckCount;               /* 0x0E */
-    u8 status;                    /* 0x10 */
-    u8 voll;                      /* 0x11 */
-    u8 volr;                      /* 0x12 */
-    u8 flag;                      /* 0x13 */
-    u8 command;                   /* 0x14 */
-};                                /* 0x18 */
+    s32 StartPos;   /* 0x00 */
+    s32 CurPos;     /* 0x04 */
+    s32 EndPos;     /* 0x08 */
+    s16 mode;       /* 0x0C */
+    s16 CheckCount; /* 0x0E */
+    u8 status;      /* 0x10 */
+    u8 voll;        /* 0x11 */
+    u8 volr;        /* 0x12 */
+    u8 flag;        /* 0x13 */
+    u8 command;     /* 0x14 */
+}; /* 0x18 */
 
 /* CAMERA.C's smoothing history. Retail inserted a per-frame acceleration
  * ahead of the demo's `spd`/`bef` fields, shifting them by two bytes. */
 typedef struct TMakeDifInfo TMakeDifInfo;
 struct TMakeDifInfo
 {
-    s16 div;                      /* 0x00 */
-    s16 ac;                       /* 0x02 (retail; demo's local AC = 14) */
-    s16 spd;                      /* 0x04 */
-    SVECTOR bef;                  /* 0x06 */
-};                                /* 0x0E */
+    s16 div;     /* 0x00 */
+    s16 ac;      /* 0x02 (retail; demo's local AC = 14) */
+    s16 spd;     /* 0x04 */
+    SVECTOR bef; /* 0x06 */
+}; /* 0x0E */
 
 /* STAGE.C's stage-event descriptor. */
 typedef struct EventSeqType EventSeqType;
 struct EventSeqType
 {
-    u8 id;                        /* 0x00 */
-    u8 event;                     /* 0x01 */
-    u8 next1;                     /* 0x02 */
-    u8 next2;                     /* 0x03 */
-    u8 target;                    /* 0x04 */
-    u8 mode;                      /* 0x05 */
-    s16 status;                   /* 0x06 */
-    s16 x[2];                     /* 0x08 */
-    s16 y[2];                     /* 0x0C */
-    s16 z[2];                     /* 0x10 */
-};                                /* 0x14 */
+    u8 id;      /* 0x00 */
+    u8 event;   /* 0x01 */
+    u8 next1;   /* 0x02 */
+    u8 next2;   /* 0x03 */
+    u8 target;  /* 0x04 */
+    u8 mode;    /* 0x05 */
+    s16 status; /* 0x06 */
+    s16 x[2];   /* 0x08 */
+    s16 y[2];   /* 0x0C */
+    s16 z[2];   /* 0x10 */
+}; /* 0x14 */
 
 /* APPEAR.C's weapon placement vectors. */
 typedef struct WeaponType WeaponType;
 struct WeaponType
 {
-    SVECTOR confp;                 /* 0x00 */
-    SVECTOR ilup0;                 /* 0x08 */
-    SVECTOR ilup1;                 /* 0x10 */
-};                                 /* 0x18 */
+    SVECTOR confp; /* 0x00 */
+    SVECTOR ilup0; /* 0x08 */
+    SVECTOR ilup1; /* 0x10 */
+}; /* 0x18 */
 
 /* APPEAR.C's weapon-model database row. */
 typedef struct WeaponModelType WeaponModelType;
 struct WeaponModelType
 {
-    u8 *name;                       /* 0x00 */
-    s16 wid;                        /* 0x04 */
-    u_long *model;                  /* 0x08 */
-};                                  /* 0x0C */
+    u8 *name;      /* 0x00 */
+    s16 wid;       /* 0x04 */
+    u_long *model; /* 0x08 */
+}; /* 0x0C */
 
 /* APPEAR.C's character database row. */
 typedef struct HumanDataType HumanDataType;
 struct HumanDataType
 {
-    s16 type;                       /* 0x00 */
-    s16 wepid;                      /* 0x02 */
-    s16 turn;                       /* 0x04 */
-    s16 life;                       /* 0x06 */
-    s16 width;                      /* 0x08 */
-    s16 height;                     /* 0x0A */
-    struct MotionRegistType *mtbl;  /* 0x0C */
-    u8 *name;                       /* 0x10 */
-    u_long *model;                  /* 0x14 */
-};                                  /* 0x18 */
+    s16 type;                      /* 0x00 */
+    s16 wepid;                     /* 0x02 */
+    s16 turn;                      /* 0x04 */
+    s16 life;                      /* 0x06 */
+    s16 width;                     /* 0x08 */
+    s16 height;                    /* 0x0A */
+    struct MotionRegistType *mtbl; /* 0x0C */
+    u8 *name;                      /* 0x10 */
+    u_long *model;                 /* 0x14 */
+}; /* 0x18 */
 
 /* STAGE.C's per-stage character placement. */
 typedef struct StageCharType StageCharType;
 struct StageCharType
 {
-    s16 stage;                       /* 0x00 */
-    s16 chrid;                       /* 0x02 */
-    SVECTOR position;                /* 0x04 */
-    TThinkType think;                /* 0x0C */
-};                                   /* 0x0E */
+    s16 stage;        /* 0x00 */
+    s16 chrid;        /* 0x02 */
+    SVECTOR position; /* 0x04 */
+    TThinkType think; /* 0x0C */
+}; /* 0x0E */
 
 /* STAGE.C's stage metadata and starting transform. */
 typedef struct TStageConfig TStageConfig;
 struct TStageConfig
 {
-    u8 uid;                           /* 0x00 */
-    u8 *name;                         /* 0x04 */
-    u8 *path;                         /* 0x08 */
-    s32 px;                           /* 0x0C */
-    s32 py;                           /* 0x10 */
-    s32 pz;                           /* 0x14 */
-    s32 pr;                           /* 0x18 */
-};                                    /* 0x1C */
+    u8 uid;   /* 0x00 */
+    u8 *name; /* 0x04 */
+    u8 *path; /* 0x08 */
+    s32 px;   /* 0x0C */
+    s32 py;   /* 0x10 */
+    s32 pz;   /* 0x14 */
+    s32 pr;   /* 0x18 */
+}; /* 0x1C */
 
 /* AUDIO.C's loaded VAB handle. */
 struct VabHdr;
 typedef struct SoundEffect SoundEffect;
 struct SoundEffect
 {
-    s16 VABid;                        /* 0x00 */
-    s16 program;                      /* 0x02 */
-    struct VabHdr *VABhead;           /* 0x04 */
-};                                    /* 0x08 */
+    s16 VABid;              /* 0x00 */
+    s16 program;            /* 0x02 */
+    struct VabHdr *VABhead; /* 0x04 */
+}; /* 0x08 */
 
 /* INFOVIEW.C's active life-bar slot (anonymous in PSX.SYM). */
 typedef struct LifeBarEntry LifeBarEntry;
 struct LifeBarEntry
 {
-    struct Humanoid *target;           /* 0x00 */
-    s32 life;                          /* 0x04 */
-    s32 max;                           /* 0x08 */
-    s32 count;                         /* 0x0C */
-    s32 style;                         /* 0x10 */
-};                                     /* 0x14 */
+    struct Humanoid *target; /* 0x00 */
+    s32 life;                /* 0x04 */
+    s32 max;                 /* 0x08 */
+    s32 count;               /* 0x0C */
+    s32 style;               /* 0x10 */
+}; /* 0x14 */
 
 /* Retail adds one slot to the demo's original nLifeBar = 4 pool. */
-enum { nLifeBar = 5 };
+enum
+{
+    nLifeBar = 5
+};
 
 /* Retail's redesigned INFOVIEW.C life-bar style. */
-enum { nLifeBarStyle = 2 };
+enum
+{
+    nLifeBarStyle = 2
+};
 
 typedef struct TLifeBarStyle TLifeBarStyle;
 struct TLifeBarStyle
 {
-    u16 base;                           /* 0x00 */
-    s16 scale;                          /* 0x02 */
-    s16 dx;                             /* 0x04 */
-    s16 dy;                             /* 0x06 */
-    GsSPRITE frame;                     /* 0x08 */
-    GsSPRITE fill;                      /* 0x2C */
-};                                      /* 0x50 */
+    u16 base;       /* 0x00 */
+    s16 scale;      /* 0x02 */
+    s16 dx;         /* 0x04 */
+    s16 dy;         /* 0x06 */
+    GsSPRITE frame; /* 0x08 */
+    GsSPRITE fill;  /* 0x2C */
+}; /* 0x50 */
 
 /* HUMAN.C/WORLD.C's waypoint path. */
 typedef struct TracePoint TracePoint;
 struct TracePoint
 {
-    s32 x;                            /* 0x00 */
-    s32 z;                            /* 0x04 */
-    s16 range;                        /* 0x08 */
-    s16 pad;                          /* 0x0A */
-};                                    /* 0x0C */
+    s32 x;     /* 0x00 */
+    s32 z;     /* 0x04 */
+    s16 range; /* 0x08 */
+    s16 pad;   /* 0x0A */
+}; /* 0x0C */
 
 typedef struct TraceLine TraceLine;
 struct TraceLine
 {
-    s16 index;                        /* 0x00 */
-    s16 count;                        /* 0x02 */
-    TracePoint *point;                /* 0x04 */
-};                                    /* 0x08 */
+    s16 index;         /* 0x00 */
+    s16 count;         /* 0x02 */
+    TracePoint *point; /* 0x04 */
+}; /* 0x08 */
 
 /* EFFECT.C's draw-mode-plus-flat-quad primitive. */
 typedef struct POLY_XF4 POLY_XF4;
 struct POLY_XF4
 {
-    DR_TPAGE tpage;                    /* 0x00 */
-    POLY_F4 ply;                       /* 0x08 */
-};                                     /* 0x20 */
+    DR_TPAGE tpage; /* 0x00 */
+    POLY_F4 ply;    /* 0x08 */
+}; /* 0x20 */
 
 /* EFFECT.C's draw-mode-plus-Gouraud-quad primitive. */
 typedef struct POLY_XG4 POLY_XG4;
 struct POLY_XG4
 {
-    DR_TPAGE tpage;                    /* 0x00 */
-    POLY_G4 ply;                       /* 0x08 */
-};                                     /* 0x2C */
+    DR_TPAGE tpage; /* 0x00 */
+    POLY_G4 ply;    /* 0x08 */
+}; /* 0x2C */
 
 typedef enum weapon_kind weapon_kind;
 
@@ -897,17 +903,17 @@ enum character_kind
 typedef enum character_page character_page;
 enum character_page
 {
-    PAGE_PALACE   = 0x00,
-    PAGE_GUARD    = 0x10,
-    PAGE_NINJA    = 0x20,
-    PAGE_MANJI    = 0x30,
-    PAGE_PIRATE   = 0x40,
-    PAGE_TENGU    = 0x50,
-    PAGE_ONI      = 0x60,
-    PAGE_UNDEAD   = 0x70,
-    PAGE_BOSS     = 0x80,
+    PAGE_PALACE = 0x00,
+    PAGE_GUARD = 0x10,
+    PAGE_NINJA = 0x20,
+    PAGE_MANJI = 0x30,
+    PAGE_PIRATE = 0x40,
+    PAGE_TENGU = 0x50,
+    PAGE_ONI = 0x60,
+    PAGE_UNDEAD = 0x70,
+    PAGE_BOSS = 0x80,
     PAGE_CIVILIAN = 0x90,
-    PAGE_BEAST    = 0xa0
+    PAGE_BEAST = 0xa0
 };
 
 /* Humanoid.status is the same 18-way family index as the motion-id high
@@ -919,24 +925,24 @@ enum character_page
 typedef enum character_status character_status;
 enum character_status
 {
-    STAT_NORMAL   = 0x00,
-    STAT_ACTION   = 0x01,
-    STAT_MOVE     = 0x02,
-    STAT_SWIM     = 0x03,
-    STAT_KAGI     = 0x04,
-    STAT_ENGAGE   = 0x05,
-    STAT_CHASE    = 0x06,
-    STAT_ATTACK   = 0x07,
-    STAT_STATE    = 0x08,
-    STAT_JUMP     = 0x09,
-    STAT_HANG     = 0x0a,
-    STAT_SQUAT    = 0x0b,
-    STAT_STICKON  = 0x0c,
+    STAT_NORMAL = 0x00,
+    STAT_ACTION = 0x01,
+    STAT_MOVE = 0x02,
+    STAT_SWIM = 0x03,
+    STAT_KAGI = 0x04,
+    STAT_ENGAGE = 0x05,
+    STAT_CHASE = 0x06,
+    STAT_ATTACK = 0x07,
+    STAT_STATE = 0x08,
+    STAT_JUMP = 0x09,
+    STAT_HANG = 0x0a,
+    STAT_SQUAT = 0x0b,
+    STAT_STICKON = 0x0c,
     STAT_CEILHANG = 0x0d,
-    STAT_SYURI    = 0x0e,
-    STAT_ITEM     = 0x0f,
-    STAT_DAMAGE   = 0x10,
-    STAT_DEAD     = 0x11
+    STAT_SYURI = 0x0e,
+    STAT_ITEM = 0x0f,
+    STAT_DAMAGE = 0x10,
+    STAT_DEAD = 0x11
 };
 
 typedef enum stage_rank stage_rank;
@@ -1028,47 +1034,47 @@ enum TItemType
 // accesses with pointer-based ones, so both views coexist on purpose.
 typedef struct TLinkInfo
 {
-    u32 magic;              /* 0x000 0x19981110 (InitPersistentState) */
-    u8 CharType;            /* 0x004 CHOSEN_CHARACTER (stock matrix row;
-                             *       demo +0x0, short) */
-    u8 StageNo;             /* 0x005 CHOSEN_STAGE (demo +0x2) */
-    u8 layout;              /* 0x006 STAGE_LAYOUT_NUMBER */
-    u8 selItem[0x20];       /* 0x007 selected count per item;
-                             *       retail expansion of demo selItem[30] */
-    u8 saveItem[0x20];      /* 0x027 loadout backup (restore on abort);
-                             *       retail expansion of demo saveItem[30] */
-    u8 analog_pad_present;  /* 0x047 bit0: analog pad detected */
-    u8 GameRetry;           /* 0x048 bit0: retry/continue current stage;
-                             *       original demo member name (+0x0D) */
-    ScoreStats score_stats; /* 0x04C current mission counters */
-    u8 Nannido;             /* 0x058 gNannido: game_difficulty (demo +0x5) */
-    u8 Stereo;              /* 0x059 gSound: 1 = stereo, 0 = mono
-                             *       (InitSoundEffect/InitPersistentState
-                             *       -> SsSetStereo/SsSetMono; demo +0x7) */
-    u8 SoundLevel;          /* 0x05A gSoundLevel: music/CD volume 0..0x7F
-                             *       (apply_cd_volume_, _PlayMusic; demo +0x8) */
-    u8 SELevel;             /* 0x05B gSELevel: SE volume 0..0x7F
-                             *       (PlaySE, PlayVoice; demo +0x9) */
-    u8 fMemory;             /* 0x05C gfMemory: post-mission memory-card
-                             *       save flow enabled (StageEndScreen /
-                             *       mission_score_screen -> score_screen_input_
-                             *       save UI; demo +0xC) */
-    u8 Anakon;              /* 0x05D analog pad / rumble enabled (PadShock
-                             *       gate, PadProc; demo +0xE; default 1) */
-    u8 language;            /* 0x05E CHOSEN_LANGUAGE (retail-only) */
-    u8 control_scheme;      /* 0x05F saved pad-remapping row (retail-only) */
-    u8 StageNoMAX[2];       /* 0x060 highest stage uid per character;
-                             *       official demo member name (demo +0x3) */
+    u32 magic;                        /* 0x000 0x19981110 (InitPersistentState) */
+    u8 CharType;                      /* 0x004 CHOSEN_CHARACTER (stock matrix row;
+                                       *       demo +0x0, short) */
+    u8 StageNo;                       /* 0x005 CHOSEN_STAGE (demo +0x2) */
+    u8 layout;                        /* 0x006 STAGE_LAYOUT_NUMBER */
+    u8 selItem[0x20];                 /* 0x007 selected count per item;
+                                       *       retail expansion of demo selItem[30] */
+    u8 saveItem[0x20];                /* 0x027 loadout backup (restore on abort);
+                                       *       retail expansion of demo saveItem[30] */
+    u8 analog_pad_present;            /* 0x047 bit0: analog pad detected */
+    u8 GameRetry;                     /* 0x048 bit0: retry/continue current stage;
+                                       *       original demo member name (+0x0D) */
+    ScoreStats score_stats;           /* 0x04C current mission counters */
+    u8 Nannido;                       /* 0x058 gNannido: game_difficulty (demo +0x5) */
+    u8 Stereo;                        /* 0x059 gSound: 1 = stereo, 0 = mono
+                                       *       (InitSoundEffect/InitPersistentState
+                                       *       -> SsSetStereo/SsSetMono; demo +0x7) */
+    u8 SoundLevel;                    /* 0x05A gSoundLevel: music/CD volume 0..0x7F
+                                       *       (apply_cd_volume_, _PlayMusic; demo +0x8) */
+    u8 SELevel;                       /* 0x05B gSELevel: SE volume 0..0x7F
+                                       *       (PlaySE, PlayVoice; demo +0x9) */
+    u8 fMemory;                       /* 0x05C gfMemory: post-mission memory-card
+                                       *       save flow enabled (StageEndScreen /
+                                       *       mission_score_screen -> score_screen_input_
+                                       *       save UI; demo +0xC) */
+    u8 Anakon;                        /* 0x05D analog pad / rumble enabled (PadShock
+                                       *       gate, PadProc; demo +0xE; default 1) */
+    u8 language;                      /* 0x05E CHOSEN_LANGUAGE (retail-only) */
+    u8 control_scheme;                /* 0x05F saved pad-remapping row (retail-only) */
+    u8 StageNoMAX[2];                 /* 0x060 highest stage uid per character;
+                                       *       official demo member name (demo +0x3) */
     ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
-    u8 gItem[0x40];         /* 0x40C SHOP_STOCK_STATE_BY_CHAR[CharType*0x20+item];
-                             *       two 0x20-byte character rows;
-                             *       retail expansion of demo gItem[30];
-                             *       0xFE = locked, 0xFF = infinite;
-                             *       [CharType*0x20+0x13] = stage bonus item flag */
-    u8 t_char[5];           /* 0x44C high-score character (demo name) */
-    u8 t_dani[5];           /* 0x451 high-score rank (demo name) */
-    long t_time[5];         /* 0x458 completion time; retail replacement for
-                             *       the demo's t_fun/t_byou byte arrays */
-    u32 mission_flags;      /* 0x46C mission completion/unlock bitset
-                             *       (retail-inferred meaning) */
+    u8 gItem[0x40];                   /* 0x40C SHOP_STOCK_STATE_BY_CHAR[CharType*0x20+item];
+                                       *       two 0x20-byte character rows;
+                                       *       retail expansion of demo gItem[30];
+                                       *       0xFE = locked, 0xFF = infinite;
+                                       *       [CharType*0x20+0x13] = stage bonus item flag */
+    u8 t_char[5];                     /* 0x44C high-score character (demo name) */
+    u8 t_dani[5];                     /* 0x451 high-score rank (demo name) */
+    long t_time[5];                   /* 0x458 completion time; retail replacement for
+                                       *       the demo's t_fun/t_byou byte arrays */
+    u32 mission_flags;                /* 0x46C mission completion/unlock bitset
+                                       *       (retail-inferred meaning) */
 } TLinkInfo;

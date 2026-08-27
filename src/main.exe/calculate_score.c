@@ -39,7 +39,7 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
 
     hidden = stats->findEnemies;
     spotted = 400;
-    
+
     if (hidden != 0)
     {
         spotted = 300;

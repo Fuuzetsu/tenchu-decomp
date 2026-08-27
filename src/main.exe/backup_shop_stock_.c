@@ -24,7 +24,8 @@ void backup_shop_stock_(void)
 {
     int i;
 
-    for (i = 0; i < 0x14; i++) {
+    for (i = 0; i < 0x14; i++)
+    {
         PSTATE->saveItem[i] = PSTATE->gItem[i + PSTATE->CharType * 0x20];
     }
 }

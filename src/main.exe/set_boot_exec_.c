@@ -46,10 +46,10 @@
 
 typedef struct
 {
-    u32 magic;   /* 0x00 = 0xDEF0C0DE */
+    u32 magic;       /* 0x00 = 0xDEF0C0DE */
     char name[0x50]; /* 0x04 */
-    u32 s_addr;  /* 0x54 */
-    u32 s_size;  /* 0x58 */
+    u32 s_addr;      /* 0x54 */
+    u32 s_size;      /* 0x58 */
 } BootExecRecord;
 
 void set_boot_exec_(u8 *file, u32 stack, u32 size)
@@ -59,14 +59,17 @@ void set_boot_exec_(u8 *file, u32 stack, u32 size)
     BootExecRecord *rec;
 
     magic = 0xDEF0C0DE;
-    do {
+    do
+    {
     } while (0);
     rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
     file = file + 6;
     rec->magic = magic;
     i = 0;
-    if (*file != 0) {
-        do {
+    if (*file != 0)
+    {
+        do
+        {
             rec->name[i] = *file;
             file++;
             i++;

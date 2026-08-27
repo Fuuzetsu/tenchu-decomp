@@ -29,9 +29,11 @@ static __inline__ void AfsFilenameFixInline(char *path)
 {
     char *p;
 
-    if (*path != 0) {
+    if (*path != 0)
+    {
         p = path;
-        do {
+        do
+        {
             *p = toupper(*p);
             p++;
         } while (*p != 0);
@@ -43,10 +45,13 @@ static __inline__ u32 subAfsFindFileInline(TAFS *handle, char *name, u32 mask)
     u32 i;
 
     i = 0;
-    if (handle->maxElements != 0) {
-        do {
+    if (handle->maxElements != 0)
+    {
+        do
+        {
             if (strncmp(name, (char *)handle->pElement[i].name, 20) == 0 &&
-                (mask & handle->pElement[i].flag) != 0) {
+                (mask & handle->pElement[i].flag) != 0)
+            {
                 return i;
             }
             i++;
@@ -69,26 +74,32 @@ TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
     AfsFilenameFixInline(buffer);
 
     cursor = 0;
-    while (buffer[cursor] != 0) {
+    while (buffer[cursor] != 0)
+    {
         cursorPath = buffer;
         cursorPath += cursor;
-        if (*cursorPath == '\\') {
+        if (*cursorPath == '\\')
+        {
             *cursorPath = 0;
             entryIndex = subAfsFindFileInline(handle, buffer, AfsFlag_Folder);
-            if (entryIndex < 0) {
+            if (entryIndex < 0)
+            {
                 goto not_found;
             }
             strcpy(component, buffer + cursor + 1);
             sprintf(buffer, AfsPathFormat, entryIndex, component);
             cursor = 0;
-        } else {
+        }
+        else
+        {
             cursor++;
         }
     }
 
     entryIndex = subAfsFindFileInline(handle, buffer, flags);
-    if (entryIndex < 0) {
-not_found:
+    if (entryIndex < 0)
+    {
+    not_found:
         return 0;
     }
     return &handle->pElement[entryIndex];

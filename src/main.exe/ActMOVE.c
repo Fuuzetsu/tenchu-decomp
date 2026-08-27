@@ -133,65 +133,65 @@ void ActMOVE(void)
     }
 
 common_action:
+{
+    u16 trig;
+
+    trig = Me_MOTION_C->pad.trig;
+    if (trig & 0x40)
     {
-        u16 trig;
-
-        trig = Me_MOTION_C->pad.trig;
-        if (trig & 0x40)
-        {
-            JumpControl();
-            return;
-        }
-        if (trig & 0x10)
-        {
-            switch ((short)(SelectedItem + 1))
-            {
-            case 2:
-                motID = MOT_SYURI;
-                break;
-            case 1:
-                motID = MOT_KAGI;
-                break;
-            case 3:
-                motID = MOT_ITEM;
-                break;
-            case 6:
-                motID = 0xf02;
-                break;
-            case 5:
-                motID = 0xf02;
-                break;
-            case 7:
-                motID = 0xf03;
-                break;
-            case 0:
-            case 11:
-                goto item_sound;
-            default:
-                goto item_default;
-            }
-            motMODE = 1;
-            return;
-
-item_sound:
-            SoundEx(Me_MOTION_C->locate, 0xc);
-            return;
-
-item_default:
-            ReqItemDefault(Me_MOTION_C,
-                           SelectedItem);
-            return;
-        }
-        if (dtPAD & 0x20)
-        {
-            motID = MOT_SQUAT;
-            motMODE = 1;
-            return;
-        }
-        if (trig & 0x80)
-        {
-            motID = 0x80e;
-            motMODE = 1;
-        }
+        JumpControl();
+        return;
     }
+    if (trig & 0x10)
+    {
+        switch ((short)(SelectedItem + 1))
+        {
+        case 2:
+            motID = MOT_SYURI;
+            break;
+        case 1:
+            motID = MOT_KAGI;
+            break;
+        case 3:
+            motID = MOT_ITEM;
+            break;
+        case 6:
+            motID = 0xf02;
+            break;
+        case 5:
+            motID = 0xf02;
+            break;
+        case 7:
+            motID = 0xf03;
+            break;
+        case 0:
+        case 11:
+            goto item_sound;
+        default:
+            goto item_default;
+        }
+        motMODE = 1;
+        return;
+
+    item_sound:
+        SoundEx(Me_MOTION_C->locate, 0xc);
+        return;
+
+    item_default:
+        ReqItemDefault(Me_MOTION_C,
+                       SelectedItem);
+        return;
+    }
+    if (dtPAD & 0x20)
+    {
+        motID = MOT_SQUAT;
+        motMODE = 1;
+        return;
+    }
+    if (trig & 0x80)
+    {
+        motID = 0x80e;
+        motMODE = 1;
+    }
+}
 }

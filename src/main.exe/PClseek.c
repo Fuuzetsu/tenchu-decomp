@@ -126,8 +126,8 @@ int PClseek(int fd, int offset, int mode)
                      "addu %0, %1, $zero\n\t"
                      "addiu %0, $zero, -1\n\t"
                      "0:"
-                      : "=r"(r_v0), "=r"(r_v1)
-                      : "r"(r_a1), "r"(r_a2), "r"(r_a3));
+                     : "=r"(r_v0), "=r"(r_v1)
+                     : "r"(r_a1), "r"(r_a2), "r"(r_a3));
 
     return r_v0;
 }

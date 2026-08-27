@@ -59,7 +59,10 @@ extern short DrawSprite(Sprite3D *sprt);
  * a separate translation unit and stores this function's address. */
 void DrawHinoko(TEffectSlot *ef)
 {
-    enum { fo = 30 };
+    enum
+    {
+        fo = 30
+    };
     ExplosionType *param;
     Sprite3D *spr;
     u8 alfa;

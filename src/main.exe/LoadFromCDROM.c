@@ -76,7 +76,7 @@ extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);
 extern int AfsClose(TAFSFileHandle *fd);
 extern void *valloc(u32 size);
 extern void AdtMessageBox(char *fmt, ...);
-extern char fmt_load_cd[]; /* "%$LOAD(CD)\n%d[%s]" */
+extern char fmt_load_cd[];       /* "%$LOAD(CD)\n%d[%s]" */
 extern char msg_load_cd_error[]; /* "LOAD(CD) ERROR\n%d[%s]" */
 
 u_long *LoadFromCDROM(u8 *filename)
@@ -89,14 +89,19 @@ u_long *LoadFromCDROM(u8 *filename)
     TotalIO = TotalIO + 1;
     quiet = AdtQuiet(ADT_NORMAL);
     fd = AfsOpen(&systemAFS, (char *)filename);
-    if (fd != 0) {
-        if (ReadMode & 4) {
+    if (fd != 0)
+    {
+        if (ReadMode & 4)
+        {
             AdtMessageBox(fmt_load_cd, TotalIO, filename);
         }
         size = AfsFileSize(&systemAFS, fd);
-        if (MemoryLoadAddress == 0) {
+        if (MemoryLoadAddress == 0)
+        {
             buff = (u_long *)valloc(size);
-        } else {
+        }
+        else
+        {
             buff = MemoryLoadAddress;
             MemoryLoadAddress = 0;
         }

@@ -77,7 +77,6 @@
 extern void *valloc(u32 size);
 extern char msg_no_source_model_archive[]; /* NO SOURCE MODEL ARCHIVE DATA */
 
-
 ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
 {
     ModelArchiveType *newmad;
@@ -85,7 +84,8 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     ModelType *objp;
     ModelType *dim;
 
-    if (mad == 0) {
+    if (mad == 0)
+    {
         SystemOut(msg_no_source_model_archive);
     }
     newmad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
@@ -106,8 +106,10 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad->id = -1;
     newmad->attribute = 0;
     i = 0;
-    if (newmad->n > 0) {
-        do {
+    if (newmad->n > 0)
+    {
+        do
+        {
             objp = mad->object[i];
             dim = (ModelType *)valloc(sizeof(ModelType));
             dim->object.coord2 = (GsCOORDINATE2 *)dim;
@@ -126,7 +128,8 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
             dim->locate.flg = 0;
             dim->id = -1;
             dim->attribute = 0;
-            if (objp != 0) {
+            if (objp != 0)
+            {
                 dim->object.tmd = objp->object.tmd;
             }
             newmad->object[i] = dim;

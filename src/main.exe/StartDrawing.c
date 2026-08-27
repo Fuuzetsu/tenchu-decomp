@@ -58,7 +58,6 @@
  * gp-relative — see the notes above). */
 extern u8 Packet[];
 
-
 void StartDrawing(void)
 {
     short newPage;

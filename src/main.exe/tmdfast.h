@@ -72,7 +72,7 @@ typedef struct
     long sz;       /* 0x10 projected screen Z */
     u_char tu, tv; /* 0x14 texture coords */
     u_short pad;   /* 0x16 */
-} ADIV_VERT; /* 0x18 bytes */
+} ADIV_VERT;       /* 0x18 bytes */
 
 /*
  * One recursion level of the subdivider: the four corners of the quad under
@@ -85,7 +85,7 @@ typedef struct
 {
     ADIV_VERT *vp[4]; /* 0x00 */
     ADIV_VERT mid[5]; /* 0x10 */
-} ADIV_FRAME; /* 0x88 bytes */
+} ADIV_FRAME;         /* 0x88 bytes */
 
 /*
  * Workspace of the active-subdivision cluster (decode_tmd_adiv_ dispatching
@@ -100,27 +100,27 @@ typedef struct
  */
 typedef struct
 {
-    long limit;      /* 0x00 recursion depth limit (4) */
-    long pad04;      /* 0x04 */
-    long pad08;      /* 0x08 */
-    long shift;      /* 0x0c OT bucket shift */
-    u_long *org;     /* 0x10 ot->org */
-    u_long *out;     /* 0x14 output packet cursor (the return value) */
-    long zmax;       /* 0x18 max SZ, then the OTZ bucket index */
-    long zmin;       /* 0x1c min SZ */
-    long adivz;      /* 0x20 subdivide-when-nearer-than threshold (0x96) */
-    long pad24;      /* 0x24 */
-    long pad28;      /* 0x28 */
-    short minx;      /* 0x2c screen extent of the current quad */
-    short miny;      /* 0x2e */
-    short maxx;      /* 0x30 */
-    short maxy;      /* 0x32 */
-    short adivw;     /* 0x34 HWD0/2 clip half-width */
-    short adivh;     /* 0x36 VWD0/2 clip half-height */
-    u_long *otp;     /* 0x38 cached OT slot */
-    long pad3c[4];   /* 0x3c */
-    POLY_GT4 packet; /* 0x4c leaf-quad packet template (clut/tpage staged) */
-    ADIV_VERT v[4];  /* 0x80 the root quad's vertices */
+    long limit;          /* 0x00 recursion depth limit (4) */
+    long pad04;          /* 0x04 */
+    long pad08;          /* 0x08 */
+    long shift;          /* 0x0c OT bucket shift */
+    u_long *org;         /* 0x10 ot->org */
+    u_long *out;         /* 0x14 output packet cursor (the return value) */
+    long zmax;           /* 0x18 max SZ, then the OTZ bucket index */
+    long zmin;           /* 0x1c min SZ */
+    long adivz;          /* 0x20 subdivide-when-nearer-than threshold (0x96) */
+    long pad24;          /* 0x24 */
+    long pad28;          /* 0x28 */
+    short minx;          /* 0x2c screen extent of the current quad */
+    short miny;          /* 0x2e */
+    short maxx;          /* 0x30 */
+    short maxy;          /* 0x32 */
+    short adivw;         /* 0x34 HWD0/2 clip half-width */
+    short adivh;         /* 0x36 VWD0/2 clip half-height */
+    u_long *otp;         /* 0x38 cached OT slot */
+    long pad3c[4];       /* 0x3c */
+    POLY_GT4 packet;     /* 0x4c leaf-quad packet template (clut/tpage staged) */
+    ADIV_VERT v[4];      /* 0x80 the root quad's vertices */
     ADIV_FRAME frame[1]; /* 0xe0 recursion frames, one per depth level */
 } ADIV_WORK;
 

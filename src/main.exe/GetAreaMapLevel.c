@@ -123,9 +123,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         if (mode & 1)
             y2 -= 0x96;
 
-        if (y2 == AreaMapLastY && (mode & 0x10)
-            && FieldArea->x1 <= x && x <= FieldArea->x2
-            && FieldArea->z1 <= z && z <= FieldArea->z2)
+        if (y2 == AreaMapLastY && (mode & 0x10) && FieldArea->x1 <= x && x <= FieldArea->x2 && FieldArea->z1 <= z && z <= FieldArea->z2)
         {
             yy = ComputeAreaLevel(FieldArea, x, z);
         }
@@ -156,8 +154,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             loop:
                 if (yy != 0x80000000)
                     goto calc;
-                if (((short *)p)[2] <= x && x <= ((short *)p)[4]
-                    && ((short *)p)[3] <= z && z <= ((short *)p)[5])
+                if (((short *)p)[2] <= x && x <= ((short *)p)[4] && ((short *)p)[3] <= z && z <= ((short *)p)[5])
                 {
                     nn = ((short *)p)[-1];
                     list = (AreaNodeType *)*p;

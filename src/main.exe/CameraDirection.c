@@ -62,23 +62,32 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
 
     mad = pl->model;
     GetPadXY(0, &x, &y);
-    if (CamState.OldMode == CMODE_SIGHT) {
+    if (CamState.OldMode == CMODE_SIGHT)
+    {
         x = x / 2;
         y = y / 2;
-    } else if ((CamState.Owner->pad.data & 4) == 0) {
+    }
+    else if ((CamState.Owner->pad.data & 4) == 0)
+    {
         SetCameraMode(CMODE_NORMAL);
     }
 
     CamState.DirectionRX = CamState.DirectionRX - y;
     CamState.DirectionRY = CamState.DirectionRY + x;
-    if (CamState.DirectionRX >= 0x38F) {
+    if (CamState.DirectionRX >= 0x38F)
+    {
         CamState.DirectionRX = 0x38E;
-    } else if (CamState.DirectionRX < -0x38E) {
+    }
+    else if (CamState.DirectionRX < -0x38E)
+    {
         CamState.DirectionRX = -0x38E;
     }
-    if (CamState.DirectionRY >= 0x401) {
+    if (CamState.DirectionRY >= 0x401)
+    {
         CamState.DirectionRY = 0x400;
-    } else if (CamState.DirectionRY < -0x400) {
+    }
+    else if (CamState.DirectionRY < -0x400)
+    {
         CamState.DirectionRY = -0x400;
     }
 
@@ -98,9 +107,12 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     push_from_walls_(&CamLoc, 1000);
     CamLoc.vx -= rx;
     CamLoc.vz -= ry;
-    if (r.vy > 0) {
+    if (r.vy > 0)
+    {
         CamLoc.vy -= r.vy;
-    } else {
+    }
+    else
+    {
         CamLoc.vy += r.vy / 4;
     }
 

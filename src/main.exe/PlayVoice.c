@@ -66,7 +66,7 @@ extern u8 *VoiceFiles2;
 /* Fallback (language/range-independent) voice table. */
 extern TVoiceTable VoiceCommon[]; /* fallback bank searched when no stage table matches */
 
-extern char fmt_bad_voice_no[]; /* bad voice no %d */
+extern char fmt_bad_voice_no[];           /* bad voice no %d */
 extern char fmt_playvoice_fail_chan_id[]; /* playvoice fail %s  chan %d  id %d */
 
 extern void AdtMessageBox(char *fmt, ...);

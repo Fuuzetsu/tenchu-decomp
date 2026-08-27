@@ -70,7 +70,6 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-
 void ProcItemGoshikimai(TItem *item)
 {
     param_goshikimai *param;

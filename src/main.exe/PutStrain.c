@@ -33,7 +33,6 @@
 extern s32 StrainRatio;
 extern u16 StrainPhase;
 
-
 /*
  * PutStrain (0x8004a8f0) — draws the "strain" HUD icon at (x,y): a
  * flashing/pulsing warning glyph whose sprite and pulse phase depend on
@@ -92,8 +91,15 @@ extern u16 StrainPhase;
  */
 void PutStrain(s32 x, s32 y)
 {
-    enum { speed = 30 };
-    enum { range = 255, powrange = 20000 };
+    enum
+    {
+        speed = 30
+    };
+    enum
+    {
+        range = 255,
+        powrange = 20000
+    };
     s32 ratio;
     GsSPRITE *spr;
     s32 delta;

@@ -93,7 +93,6 @@
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
 
-
 void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
 {
     GsSPRITE *img;
@@ -117,7 +116,7 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
     {
         s32 q;
 
-loop:
+    loop:
         q = t / 10;
         img->u = u + (t - q * 10) * 4;
         GsSortSprite(img, OTablePt, 0);

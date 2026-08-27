@@ -45,7 +45,8 @@ short LoadTIM(unsigned long *adr)
     RECT rect;
     GsIMAGE tim;
 
-    if (adr == 0) {
+    if (adr == 0)
+    {
         SystemOut(msg_no_image_data);
     }
     GsGetTimInfo(adr + 1, &tim);
@@ -54,7 +55,8 @@ short LoadTIM(unsigned long *adr)
     rect.w = tim.pw;
     rect.h = tim.ph;
     LoadImage(&rect, tim.pixel);
-    if ((tim.pmode >> 3) & 1) {
+    if ((tim.pmode >> 3) & 1)
+    {
         rect.x = tim.cx;
         rect.y = tim.cy;
         rect.w = tim.cw;

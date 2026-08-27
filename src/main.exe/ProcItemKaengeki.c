@@ -242,7 +242,7 @@ void ProcItemKaengeki(TItem *item)
         ReqItemUse(&request.rp);
         return;
 
-dispose:
+    dispose:
         if (item->proc == 0)
         {
             return;

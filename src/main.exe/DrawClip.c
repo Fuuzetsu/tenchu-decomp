@@ -77,7 +77,6 @@
  *    DrawModel and DrawSprite needed.
  */
 
-
 long DrawClip(ModelType *objp, long *xy)
 {
     u16 attr;

@@ -17,11 +17,11 @@
 extern u_long DivDepth; /* GsDOBJ2 attribute bits 9..11 */
 
 extern u_long *adiv_tng4_(u_short *primitive, u_long vertop,
-                            u_long *packet, u_short count, u_long shift,
-                            u_long ot, u_long work);
+                          u_long *packet, u_short count, u_long shift,
+                          u_long ot, u_long work);
 extern u_long *adiv_tnf4_(u_short *primitive, u_long vertop,
-                            u_long *packet, u_short count, u_long shift,
-                            u_long ot, u_long work);
+                          u_long *packet, u_short count, u_long shift,
+                          u_long ot, u_long work);
 extern u_long *GsTMDfastTNF3(u_short *primitive, u_long vertop,
                              u_long *packet, u_short count, u_long shift,
                              u_long ot, u_long work);
@@ -30,7 +30,7 @@ extern u_long *GsTMDfastTNG3(u_short *primitive, u_long vertop,
                              u_long ot, u_long work);
 
 void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
-                  u_long work)
+                      u_long work)
 {
     int step;
     struct TMD_STRUCT *tmd;
@@ -48,39 +48,43 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
     DivDepth = obj->attribute >> 9 & 7;
     GsTON = obj->attribute >> 0x1e & 1;
 
-    while (n != 0) {
-        switch (*(u_char *)((int)prim + 3) & 0xfd) {
+    while (n != 0)
+    {
+        switch (*(u_char *)((int)prim + 3) & 0xfd)
+        {
         case 0x3d:
             GsOUT_PACKET_P = adiv_tng4_(prim, vertop, GsOUT_PACKET_P,
-                                           *prim, shift, ot,
-                                           work);
+                                        *prim, shift, ot,
+                                        work);
             n -= *prim;
             step = *prim * 0xb;
             step <<= 2;
             break;
         case 0x2d:
             GsOUT_PACKET_P = adiv_tnf4_(prim, vertop, GsOUT_PACKET_P,
-                                           *prim, shift, ot,
-                                           work);
+                                        *prim, shift, ot,
+                                        work);
             n -= *prim;
             step = *prim << 5;
             break;
         case 0x25:
             GsOUT_PACKET_P = GsTMDfastTNF3(prim, vertop, GsOUT_PACKET_P,
-                                            *prim, shift, ot,
-                                            work);
+                                           *prim, shift, ot,
+                                           work);
             n -= *prim;
-            do {
+            do
+            {
                 step = *prim * 7;
             } while (0);
             step <<= 2;
             break;
         case 0x35:
             GsOUT_PACKET_P = GsTMDfastTNG3(prim, vertop, GsOUT_PACKET_P,
-                                            *prim, shift, ot,
-                                            work);
+                                           *prim, shift, ot,
+                                           work);
             n -= *prim;
-            do {
+            do
+            {
                 step = *prim * 9;
             } while (0);
             step <<= 2;

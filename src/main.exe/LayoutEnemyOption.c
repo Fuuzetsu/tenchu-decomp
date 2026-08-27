@@ -67,17 +67,17 @@
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
 
-extern char str_enemy_layout_option[]; /* enemy layout option */                   /* "enemy layout option" */
-extern char msg_clear_ok_2[]; /* clear ok? */                   /* "clear ok?" */
-extern char str_path_layout_option[]; /* path layout option */                   /* "path layout option" */
-extern char fmt_layout_enemies[]; /* layout %d enemies */                   /* "layout %d enemies" */
+extern char str_enemy_layout_option[]; /* enemy layout option */ /* "enemy layout option" */
+extern char msg_clear_ok_2[]; /* clear ok? */                    /* "clear ok?" */
+extern char str_path_layout_option[]; /* path layout option */   /* "path layout option" */
+extern char fmt_layout_enemies[]; /* layout %d enemies */        /* "layout %d enemies" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
 extern void leClearLayout(void);
 extern void leAddPath(s32 n, s32 x, s32 y, s32 z);
 extern void leResetPath(s32 n);
-extern void SelectCameraOwnerOption(void);   /* AdtMessageBox comes from item.h */
+extern void SelectCameraOwnerOption(void); /* AdtMessageBox comes from item.h */
 
 void LayoutEnemyOption(void)
 {
@@ -124,33 +124,33 @@ void LayoutEnemyOption(void)
             }
             break;
         case SET_PATH:
-            {
-                TAdtSelect ItemName[7];
+        {
+            TAdtSelect ItemName[7];
 
-                __builtin_memcpy(ItemName,
-                                 DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS,
-                                 sizeof(ItemName));
-                k = (s16)AdtSelect(str_path_layout_option, ItemName, 0);
-                if (k != -1)
+            __builtin_memcpy(ItemName,
+                             DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS,
+                             sizeof(ItemName));
+            k = (s16)AdtSelect(str_path_layout_option, ItemName, 0);
+            if (k != -1)
+            {
+                switch (k)
                 {
-                    switch (k)
-                    {
-                    case 1:
-                        leAddPath(CurrentEnemyID,
-                                  CamState.Owner->model->locate.coord.t[0],
-                                  CamState.Owner->model->locate.coord.t[1],
-                                  CamState.Owner->model->locate.coord.t[2]);
-                        break;
-                    case 2:
-                        leResetPath(CurrentEnemyID);
-                        break;
-                    case 0:
-                        CurrentEnemyID = leFindEnemy();
-                        break;
-                    }
+                case 1:
+                    leAddPath(CurrentEnemyID,
+                              CamState.Owner->model->locate.coord.t[0],
+                              CamState.Owner->model->locate.coord.t[1],
+                              CamState.Owner->model->locate.coord.t[2]);
+                    break;
+                case 2:
+                    leResetPath(CurrentEnemyID);
+                    break;
+                case 0:
+                    CurrentEnemyID = leFindEnemy();
+                    break;
                 }
             }
-            break;
+        }
+        break;
         case REPORT:
             AdtMessageBox(fmt_layout_enemies, Humans);
             break;

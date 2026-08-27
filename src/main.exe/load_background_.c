@@ -38,8 +38,10 @@ BackGround *load_background_(u_long *tim)
     bg->sz = 100;
     LoadTIM(tim);
     i = 0;
-    if (0 < bg->map.ncellw * bg->map.ncellh) {
-        do {
+    if (0 < bg->map.ncellw * bg->map.ncellh)
+    {
+        do
+        {
             bg->index[i] = (u16)i;
             i = i + 1;
         } while (i < bg->map.ncellw * bg->map.ncellh);

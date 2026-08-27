@@ -31,8 +31,8 @@
 extern int cd_read(FILE *f, void *buffer, int length);
 extern int strcmp(const char *a, const char *b);
 extern char str_afs_vol_200[]; /* AFS_VOL_200 */ /* "AFS_VOL_200" — lives in this TU's unsplit data
-                            * blob (splat auto-symbol), same pattern as
-                            * AfsInit's msg_afsinit_not_enough_memory. */
+                                                  * blob (splat auto-symbol), same pattern as
+                                                  * AfsInit's msg_afsinit_not_enough_memory. */
 
 int AfsGetHeader(TAFS *handle)
 {
@@ -41,11 +41,12 @@ int AfsGetHeader(TAFS *handle)
 
     cd_seek(handle->fpVol, 0, CDSEEK_SET);
     cd_read(handle->fpVol, buf, 0x28);
-    if (strcmp((char *)buf, str_afs_vol_200) != 0) {
+    if (strcmp((char *)buf, str_afs_vol_200) != 0)
+    {
         return 1;
     }
     handle->maxElements = ((u32)buf[0xC] << 24) | ((u32)buf[0xD] << 16) |
-          ((u32)buf[0xE] << 8) | (u32)buf[0xF];
+                          ((u32)buf[0xE] << 8) | (u32)buf[0xF];
     pos = ((u32)buf[0x10] << 24) | ((u32)buf[0x11] << 16) |
           ((u32)buf[0x12] << 8) | (u32)buf[0x13];
     handle->fModified = 0;

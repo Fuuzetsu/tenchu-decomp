@@ -30,7 +30,6 @@
  *    register swap (same instructions, reordered) with no other effect.
  */
 
-
 void leResetEnemyLayout(void)
 {
     s16 dead;

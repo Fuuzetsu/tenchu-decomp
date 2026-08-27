@@ -54,24 +54,26 @@ short ChasetoTarget(long length)
 
     me = Me_THINK_C;
     chase = &me->chase[0];
-    if (me->target == 0) {
+    if (me->target == 0)
+    {
         return 0;
     }
 
     target_x = me->target->locate.coord.t[0];
-    xx = target_x + me->chase[0]
-         - me->locate->vx;
+    xx = target_x + me->chase[0] - me->locate->vx;
     target_z = me->target->locate.coord.t[2];
     zz = target_z + chase[1] - me->locate->vz;
 
     if (((xx >= 0 ? xx : -xx) < 500 &&
          (zz >= 0 ? zz : -zz) < 500) ||
-        (Attrib & 0x400) != 0 || Distance < 1000) {
+        (Attrib & 0x400) != 0 || Distance < 1000)
+    {
         return 0;
     }
 
     if ((Attrib & 0xc000) != 0 ||
-        (me->chase[0] | chase[1]) == 0) {
+        (me->chase[0] | chase[1]) == 0)
+    {
         deg = rand();
         vx = rcos(deg) * length >> 12;
         me->chase[0] = vx;

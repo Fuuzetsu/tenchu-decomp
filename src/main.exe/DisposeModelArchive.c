@@ -36,9 +36,12 @@ void DisposeModelArchive(ModelArchiveType *mad)
 {
     s32 i;
 
-    if (mad != 0) {
-        for (i = 0; i < mad->n; i++) {
-            if (mad->object[i] != 0) {
+    if (mad != 0)
+    {
+        for (i = 0; i < mad->n; i++)
+        {
+            if (mad->object[i] != 0)
+            {
                 vfree(mad->object[i]);
             }
         }

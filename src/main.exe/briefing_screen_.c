@@ -395,73 +395,73 @@ void briefing_screen_(void)
                 s16 renderer_raw_x;
                 do
                 {
-                        sprite.u = counter << 2;
-                        sprite.tpage = GetTPage(0, 0,
-                            renderer_tpage + (s16)counter, 0x100);
-                        renderer_offset = renderer_width - (s16)counter;
-                        renderer_offset <<= 3;
-                        renderer_raw_x = xbase - renderer_offset;
-                        sprite.x = renderer_raw_x;
-                        renderer_x = renderer_raw_x;
-                        if (renderer_x < -0xa0)
-                        {
-                            goto brightness_zero;
-                        }
-                        if (renderer_x >= -0x78)
-                        {
-                            goto brightness_normal;
-                        }
-                        left_brightness = renderer_x + 0xa0;
-                        scaled_left_brightness = left_brightness;
-                        scaled_left_brightness <<= 1;
-                        scaled_left_brightness += left_brightness;
-                        brightness = scaled_left_brightness;
-                        goto brightness_left_store;
+                    sprite.u = counter << 2;
+                    sprite.tpage = GetTPage(0, 0,
+                                            renderer_tpage + (s16)counter, 0x100);
+                    renderer_offset = renderer_width - (s16)counter;
+                    renderer_offset <<= 3;
+                    renderer_raw_x = xbase - renderer_offset;
+                    sprite.x = renderer_raw_x;
+                    renderer_x = renderer_raw_x;
+                    if (renderer_x < -0xa0)
+                    {
+                        goto brightness_zero;
+                    }
+                    if (renderer_x >= -0x78)
+                    {
+                        goto brightness_normal;
+                    }
+                    left_brightness = renderer_x + 0xa0;
+                    scaled_left_brightness = left_brightness;
+                    scaled_left_brightness <<= 1;
+                    scaled_left_brightness += left_brightness;
+                    brightness = scaled_left_brightness;
+                    goto brightness_left_store;
 
-brightness_normal:
-                        if (renderer_x <= 0xa0)
-                        {
-                            goto brightness_within;
-                        }
+                brightness_normal:
+                    if (renderer_x <= 0xa0)
+                    {
+                        goto brightness_within;
+                    }
 
-brightness_zero:
-                        sprite.r = 0;
-                        sprite.g = 0;
-                        sprite.b = 0;
-                        goto brightness_done;
+                brightness_zero:
+                    sprite.r = 0;
+                    sprite.g = 0;
+                    sprite.b = 0;
+                    goto brightness_done;
 
-brightness_within:
-                        if (renderer_x < 0x79)
-                        {
-                            goto brightness_center;
-                        }
-                        scaled_brightness = edge_brightness =
-                            0xa0 - renderer_x;
-                        scaled_brightness <<= 1;
-                        scaled_brightness += edge_brightness;
-                        brightness = scaled_brightness;
-                        goto brightness_right_store;
+                brightness_within:
+                    if (renderer_x < 0x79)
+                    {
+                        goto brightness_center;
+                    }
+                    scaled_brightness = edge_brightness =
+                        0xa0 - renderer_x;
+                    scaled_brightness <<= 1;
+                    scaled_brightness += edge_brightness;
+                    brightness = scaled_brightness;
+                    goto brightness_right_store;
 
-brightness_center:
-                        brightness = 0x80;
-                        goto brightness_right_store;
+                brightness_center:
+                    brightness = 0x80;
+                    goto brightness_right_store;
 
-brightness_left_store:
-                        sprite.r = brightness;
-                        sprite.g = brightness;
-                        sprite.b = brightness;
-                        goto brightness_done;
+                brightness_left_store:
+                    sprite.r = brightness;
+                    sprite.g = brightness;
+                    sprite.b = brightness;
+                    goto brightness_done;
 
-brightness_right_store:
-                        sprite.r = brightness;
-                        sprite.g = brightness;
-                        sprite.b = brightness;
-                        goto brightness_done;
-brightness_done:
-                        sprite.x -= 8;
-                        GsSortSprite(&sprite, OTablePt, 1);
-                        counter -= 4;
-                        sprite.x += 8;
+                brightness_right_store:
+                    sprite.r = brightness;
+                    sprite.g = brightness;
+                    sprite.b = brightness;
+                    goto brightness_done;
+                brightness_done:
+                    sprite.x -= 8;
+                    GsSortSprite(&sprite, OTablePt, 1);
+                    counter -= 4;
+                    sprite.x += 8;
                 } while (counter >= 0);
             }
 
@@ -471,7 +471,7 @@ brightness_done:
             }
             scroll_value = scroll;
             adjusted = scroll_value +
-                StageScrollAdj[PSTATE->language][PSTATE->StageNo];
+                       StageScrollAdj[PSTATE->language][PSTATE->StageNo];
             scroll = adjusted;
             if (adjusted < 0)
             {
@@ -491,7 +491,7 @@ brightness_done:
         if (fade != 0)
         {
             draw_shade_quad_((u8 *)OTablePt->org,
-                          intensity, intensity, intensity);
+                             intensity, intensity, intensity);
         }
         SkipFrame = 2;
         EndDrawing(0);

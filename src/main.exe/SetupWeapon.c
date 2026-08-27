@@ -136,5 +136,4 @@ void SetupWeapon(Humanoid *human)
     default:
         return;
     }
-
 }

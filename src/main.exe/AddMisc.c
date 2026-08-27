@@ -88,10 +88,13 @@
  *    Ghidra renders the condition as (int)ptVar1 < -0x7ff3da88.
  */
 
-typedef struct { u8 *n[7]; } TimNameBlock; /* codegen-only array view */
-extern u8 *MiscTimNames[7]; /* the seven water/warp TIM names */
-extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */   /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
-extern char fmt_undefined_effect[]; /* "undefined effect %d" */
+typedef struct
+{
+    u8 *n[7];
+} TimNameBlock;                                            /* codegen-only array view */
+extern u8 *MiscTimNames[7];                                /* the seven water/warp TIM names */
+extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */ /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
+extern char fmt_undefined_effect[];                        /* "undefined effect %d" */
 
 extern void ProcMiscFire(TMisc *m, TMiscMessage msg);
 extern void proc_misc_puff_(TMisc *m, TMiscMessage msg);

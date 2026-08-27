@@ -50,9 +50,12 @@ MotionManager *SetupMotionManager(ModelArchiveType *mad, MotionRegistType *mot)
     mmp->loop = 0;
     mmp->count = 0;
     mmp->mode = 0;
-    if (mad != 0) {
+    if (mad != 0)
+    {
         mmp->n = mad->n;
-    } else {
+    }
+    else
+    {
         mmp->n = 2;
     }
     mmp->motion = 0;

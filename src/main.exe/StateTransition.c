@@ -232,18 +232,18 @@ void StateTransition(Humanoid *human)
     GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
                  (s16)(Me_THINK_C->width * 2), 0);
     ProbeLevelLow = GetAreaMapLevel(GlobalAreaMap,
-                                 Me_THINK_C->locate->vx + vect.vx,
-                                 Me_THINK_C->locate->vy - 0xbea,
-                                 Me_THINK_C->locate->vz + vect.vz, 0x1a);
+                                    Me_THINK_C->locate->vx + vect.vx,
+                                    Me_THINK_C->locate->vy - 0xbea,
+                                    Me_THINK_C->locate->vz + vect.vz, 0x1a);
     {
         u16 field_attrib;
 
         field_attrib = FieldAttrib;
         ProbeLevelHigh = GetAreaMapLevel(GlobalAreaMap,
-                                     Me_THINK_C->locate->vx - vect.vx,
-                                     Me_THINK_C->locate->vy - 0xbea,
-                                     Me_THINK_C->locate->vz - vect.vz,
-                                     (ProbeAttrib[0] = field_attrib, 0x1a));
+                                         Me_THINK_C->locate->vx - vect.vx,
+                                         Me_THINK_C->locate->vy - 0xbea,
+                                         Me_THINK_C->locate->vz - vect.vz,
+                                         (ProbeAttrib[0] = field_attrib, 0x1a));
     }
     ProbeAttrib[1] = FieldAttrib;
 
@@ -514,7 +514,7 @@ void StateTransition(Humanoid *human)
 after_state:
     if (Me_THINK_C->pad_hold != 0)
     {
-update_hint:
+    update_hint:
         pad = Me_THINK_C->pad_hold >> 16;
         {
             s32 count;
@@ -615,7 +615,7 @@ update_hint:
                 }
                 if (next_level >= 0x17d5)
                 {
-    set_obstacle_pad:
+                set_obstacle_pad:
                     pad = 0x1040;
                 }
                 goto tail;
@@ -624,7 +624,7 @@ update_hint:
         }
         else
         {
-    periodic_check:
+        periodic_check:
             if (GameClock == (GameClock / 90) * 90 &&
                 (((u16)Me_THINK_C->map.attrib & 0x100) ||
                  ((pad & 0x1000) && ProbeLevelLow < 0x899 &&
