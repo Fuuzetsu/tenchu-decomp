@@ -151,9 +151,3 @@ found:
         ef->proc = (void (*)())DrawSmoke;
     } while (1);
 }
-
-// triage: MEDIUM — 197 insns, mul/div, 1 loop, 1 callees, ~0.09 to ReqItemNingyo
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py

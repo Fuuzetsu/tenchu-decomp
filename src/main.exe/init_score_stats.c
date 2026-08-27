@@ -35,35 +35,3 @@ ScoreStats *init_score_stats(ScoreStats *stats)
     stats->clock = clock;
     return stats;
 }
-
-// triage: TRIVIAL — 29 insns, 0 callees
-// likely-relevant cookbook sections:
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
-
-// m2c (mipsel-gcc-c reference — cleaner control flow + register
-// temps straight from the asm; Ghidra above has the real types):
-//
-// extern u8 Criticals;
-// extern u8 Findenemies;
-// extern u8 FriendHits;
-// extern s32 GameClock;
-// extern u8 Murders;
-// extern u8 StageBosses;
-// extern u8 StageEnemies;
-//
-// void *init_score_stats(void *arg0) {
-//     s32 var_v1;
-//
-//     arg0->unk0 = (u8) StageBosses;
-//     arg0->unk1 = (u8) StageEnemies;
-//     arg0->unk2 = (u8) Findenemies;
-//     arg0->unk3 = (u8) Murders;
-//     arg0->unk4 = (u8) Criticals;
-//     arg0->unk5 = (u8) FriendHits;
-//     var_v1 = GameClock;
-//     if (var_v1 > 0x1A5C2) {
-//         var_v1 = 0x1A5C2;
-//     }
-//     arg0->unk8 = var_v1;
-//     return arg0;
-// }

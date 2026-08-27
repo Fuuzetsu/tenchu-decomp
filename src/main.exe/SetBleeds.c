@@ -249,9 +249,3 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
         }
     } while (1);
 }
-
-// triage: MEDIUM — 277 insns, mul/div, 1 loop, 2 callees, ~0.08 to InsertConflict
-// likely-relevant cookbook sections:
-//   - Loops: 1 back-edge(s) — for/while/do vs goto shape
-//   - Expressions: mult/div — magic-multiply constants, fold
-//   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py
