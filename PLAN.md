@@ -262,11 +262,17 @@ FINAL WAVE (2026-08-27, user-directed "keep going until done"):
    the placeholder lineage for future official recovery). 163 files
    updated across src/configs/tools/docs; full-rebuild byte-identical.
 2. DONE — MODEL_ATTR_CONFLICT (ModelType.attribute bit 15) named from
-   bulletproof evidence; the Humanoid.attribute bit map is documented
-   with citations in humanoid.h. Sites keep literal spellings until
-   the bits are runtime-confirmed — the ONE remaining research item:
-   a pcsx-redux probe watching an enemy's attribute word through
-   sneak/spot/grapple/body-carry transitions would finish the naming.
+   bulletproof evidence, and the runtime lane RAN: tools/
+   pcsx_attrbits.py (new; rebuilt the stale pcsx-redux checkout to do
+   it) observed 332 attribute/status transitions in a live retail
+   mission and settled ATTR_ALERT (0x40, raised at the alarm on
+   fighters and civilians, clears with EmergencyNotice — confirming
+   the stealth-kill scoring gate) and ATTR_SUSPEND (0x80, the
+   ActivateHumans think-budget suspension flag). humanoid.h's bit map
+   records the full observed evidence; the remaining player-side
+   transients (0x100/0x400/0x800/0x1000/0x2000/0x4000) are logged but
+   not yet nameable — rerun the observer with scenario-specific
+   steering if they ever matter.
 3. DONE — the whole tree is normalized to the humanised style
    (pinned in src/main.exe/.clang-format; ColumnLimit 0 keeps re-runs
    token-preserving; ram_layout.h is machine-parsed and excluded via
@@ -276,10 +282,11 @@ FINAL WAVE (2026-08-27, user-directed "keep going until done"):
    leaf-emit casts, AttackBowControl's byte-addressed table) and
    guarded drafts, which keep their reference dumps by design.
 
-The humanising effort is COMPLETE at the evidence floor: shipped code
-contains no machine names, no placeholder symbols, no undocumented
-compiler-shaped structure, one formatting style, and prose on every
-TU — byte-identical throughout, ~65 commits.
+The humanising effort is COMPLETE: shipped code contains no machine
+names, no placeholder symbols, no undocumented compiler-shaped
+structure, one formatting style, prose on every TU, and every
+attribute bit either named from runtime observation or logged with
+its observed behavior — byte-identical throughout, ~70 commits.
 
 ## Current resume point (2026-07-20)
 
