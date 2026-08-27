@@ -125,7 +125,7 @@ void ActKAGI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 motID = 0x501;
                 motMODE = 1;
@@ -150,7 +150,7 @@ void ActKAGI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 motID = 0x501;
                 motMODE = 1;
@@ -570,7 +570,7 @@ void ActKAGI(void)
 //     if (Me_MOTION_C == StagePlayer) {
 //       SetCameraMode(CMODE_NORMAL);
 //     }
-//     if ((Me_MOTION_C->attribute & 0x40U) == 0) {
+//     if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0) {
 // LAB_80020c88:
 //       motID = 0;
 //     }
@@ -584,7 +584,7 @@ void ActKAGI(void)
 //     if (Me_MOTION_C == StagePlayer) {
 //       SetCameraMode(CMODE_NORMAL);
 //     }
-//     if ((Me_MOTION_C->attribute & 0x40U) == 0) goto LAB_80020c88;
+//     if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0) goto LAB_80020c88;
 //     motID = 0x501;
 //   }
 //   DAT_80097f0e = 1;

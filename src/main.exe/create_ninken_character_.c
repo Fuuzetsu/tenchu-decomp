@@ -25,7 +25,7 @@ extern Humanoid *NINKEN_CHARACTER_PTR;
 void create_ninken_character_(s16 type, s32 stage)
 {
     NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000, 999000, 0);
-    NINKEN_CHARACTER_PTR->attribute |= 0x80;
+    NINKEN_CHARACTER_PTR->attribute |= ATTR_SUSPEND;
 
     {
         ModelArchiveType *model;

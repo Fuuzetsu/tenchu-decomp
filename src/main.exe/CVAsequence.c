@@ -115,7 +115,7 @@ event_found:
             slot = &HumanGroup[i];
             human = *slot;
             if (human->status != STAT_DEAD &&
-                (human->attribute & 0x80) == 0)
+                (human->attribute & ATTR_SUSPEND) == 0)
             {
                 dispose_weapon_data_of_char_(human, 3);
                 NowReturnNormal(*slot);
@@ -171,7 +171,7 @@ run_sequence:
         if (human != 0 && human->status != STAT_DEAD)
         {
             motion = 0x501;
-            if ((human->attribute & 0x40) == 0 &&
+            if ((human->attribute & ATTR_ALERT) == 0 &&
                 (motion = 0, (human->type & 0xf0) == type_class))
                 motion = 0x80e;
             SetNowMotion(human, motion, 1);
@@ -271,7 +271,7 @@ run_sequence:
 //           human = *(Humanoid **)((int)&CVAhuman[0].human + (iVar6 >> 0xd));
 //           if ((human != (Humanoid *)0x0) && (human->status != STAT_DEAD)) {
 //             sVar3 = 0x501;
-//             if (((human->attribute & 0x40U) == 0) && (sVar3 = 0, (human->type & 0xf0U) == PAGE_BOSS)) {
+//             if (((human->attribute & ATTR_ALERT) == 0) && (sVar3 = 0, (human->type & 0xf0U) == PAGE_BOSS)) {
 //               sVar3 = 0x80e;
 //             }
 //             SetNowMotion(human,sVar3,1);

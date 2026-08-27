@@ -82,7 +82,7 @@ short Sound(Humanoid *human, short seid)
         {
             return -1;
         }
-        if ((human->attribute & 0x80) != 0)
+        if ((human->attribute & ATTR_SUSPEND) != 0)
         {
             return -1;
         }

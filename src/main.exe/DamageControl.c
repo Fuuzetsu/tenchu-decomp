@@ -211,7 +211,7 @@ void DamageControl(void)
 
                 hp = (u16)Me_MOTION_C->life - (u16)BattleDB[deg].power;
                 Me_MOTION_C->life = hp;
-                if ((hp * 0x10000 < 0) || ((Me_MOTION_C->attribute & 0x40U) == 0))
+                if ((hp * 0x10000 < 0) || ((Me_MOTION_C->attribute & ATTR_ALERT) == 0))
                 {
                     Me_MOTION_C->life = 0;
                 }
@@ -246,7 +246,7 @@ void DamageControl(void)
             if ((Me_MOTION_C->type != NINKEN) &&
                 ((StagePlayer == enemy || (enemy == (Humanoid *)1))))
             {
-                if ((Me_MOTION_C->attribute & 0x42U) == 0)
+                if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                 {
                     Criticals = Criticals + 1;
                 }
@@ -255,7 +255,7 @@ void DamageControl(void)
                     Murders = Murders + 1;
                 }
             }
-            if ((Me_MOTION_C->attribute & 0x42U) != 0)
+            if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) != 0)
             {
                 Sound(Me_MOTION_C, 8);
                 reset_alert_duration();
@@ -302,7 +302,7 @@ attack_break:
     {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->attribute & 0x40U) != 0)
+    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
         motID = 0x501;
         motMODE = 1;
@@ -462,7 +462,7 @@ resolve_hit:
                             {
                                 FriendHits = FriendHits + 1;
                             }
-                            else if ((Me_MOTION_C->attribute & 0x42U) == 0)
+                            else if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                             {
                                 Criticals = Criticals + 1;
                             }
@@ -535,7 +535,7 @@ resolve_hit:
                 if (Me_MOTION_C != StagePlayer)
                 {
                     if ((((Me_MOTION_C->status != STAT_ATTACK) &&
-                          ((Me_MOTION_C->attribute & 0x40U) != 0)) &&
+                          ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)) &&
                          ((Me_MOTION_C->map).height == 0)) &&
                         (gNannido != DIFFICULTY_EASY))
                     {
@@ -671,7 +671,7 @@ resolve_hit:
             {
                 goto npc_attack;
             }
-            if ((Me_MOTION_C->attribute & 0x40U) != 0)
+            if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
             {
                 goto difficulty_bonus;
             }
@@ -801,7 +801,7 @@ resolve_hit:
                         {
                             FriendHits = FriendHits + 1;
                         }
-                        else if ((Me_MOTION_C->attribute & 0x42U) == 0)
+                        else if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                         {
                             Criticals = Criticals + 1;
                         }
@@ -810,7 +810,7 @@ resolve_hit:
                             Murders = Murders + 1;
                         }
                     }
-                    if ((Me_MOTION_C->attribute & 0x42U) != 0)
+                    if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) != 0)
                     {
                         Sound(Me_MOTION_C, 8);
                         goto alerted;

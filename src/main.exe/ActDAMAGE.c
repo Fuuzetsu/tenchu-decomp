@@ -270,7 +270,7 @@ check_done:
         register Humanoid *human;
 
         human = Me_MOTION_C;
-        if (*(u16 *)&human->attribute & 0x40)
+        if (*(u16 *)&human->attribute & ATTR_ALERT)
         {
             u16 attribute;
 

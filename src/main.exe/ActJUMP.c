@@ -226,7 +226,7 @@ void ActJUMP(void)
         {
             return;
         }
-        if ((Me_MOTION_C->attribute & 0x40) == 0)
+        if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
         {
             return;
         }
@@ -380,7 +380,7 @@ void ActJUMP(void)
 //       return;
 //     }
 //     sVar6 = 0x70f;
-//     if ((Me_MOTION_C->attribute & 0x40U) == 0) {
+//     if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0) {
 //       return;
 //     }
 //   }

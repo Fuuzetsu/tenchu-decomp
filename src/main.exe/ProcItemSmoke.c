@@ -208,7 +208,7 @@ void ProcItemSmoke(TItem *item)
                     if (i < Humans)
                     {
                         target = HumanGroup[i];
-                        if (0 < target->life && target->motion->mid != MOT_ACTION && (target->attribute & 0x80) == 0)
+                        if (0 < target->life && target->motion->mid != MOT_ACTION && (target->attribute & ATTR_SUSPEND) == 0)
                         {
                             dist = GetVectorDistance(&find->pos, target->locate);
                             if (dist < find->find_dist)

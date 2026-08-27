@@ -121,7 +121,7 @@ void leLayoutEnemy(int mode)
                 human->model->rotate.vy = en->r;
             } while (0);
             owner_model = CamState.Owner->model;
-            human->attribute |= 0x80;
+            human->attribute |= ATTR_SUSPEND;
             human->target = (ModelType *)owner_model;
             human->model->object[0]->attribute &= 0xBFFF;
             if (mode == 1)

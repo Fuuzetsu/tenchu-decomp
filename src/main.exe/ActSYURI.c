@@ -115,7 +115,7 @@ void ActSYURI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 motID = 0x501;
                 motMODE = 1;
@@ -138,7 +138,7 @@ void ActSYURI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 motID = 0x501;
                 motMODE = 1;

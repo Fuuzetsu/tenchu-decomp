@@ -200,7 +200,7 @@ void ActivateHumans(void)
         goto active_done;
 
     near_human:
-        if (((u16)human->attribute & 0x80) == 0 &&
+        if (((u16)human->attribute & ATTR_SUSPEND) == 0 &&
             ThinkCount < ThinkBudget)
         {
             goto set_active;
@@ -237,7 +237,7 @@ void ActivateHumans(void)
         }
         if (final)
         {
-            if (((u16)human->attribute & 0x80) == 0)
+            if (((u16)human->attribute & ATTR_SUSPEND) == 0)
             {
                 ThinkCount++;
                 goto next_human;
@@ -247,14 +247,14 @@ void ActivateHumans(void)
             {
                 goto next_human;
             }
-            human->attribute = (u16)human->attribute & 0xff7f;
+            human->attribute = (u16)human->attribute & 0xff7f; /* clear ATTR_SUSPEND */
             ThinkCount++;
             model = *human->model->object;
             model->attribute |= 0x4000;
             goto next_human;
         }
 
-        if (((u16)human->attribute & 0x80) != 0 || human->type == ON)
+        if (((u16)human->attribute & ATTR_SUSPEND) != 0 || human->type == ON)
         {
             goto next_human;
         }

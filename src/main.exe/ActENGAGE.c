@@ -170,7 +170,7 @@ void ActENGAGE(void)
             case 0:
                 if (Me_MOTION_C == StagePlayer)
                     SetCameraMode(CMODE_NORMAL);
-                if (Me_MOTION_C->attribute & 0x40)
+                if (Me_MOTION_C->attribute & ATTR_ALERT)
                 {
                     motID = 0x501;
                     motMODE = 1;
@@ -208,7 +208,7 @@ void ActENGAGE(void)
         return;
     }
 
-    if ((Me_MOTION_C->attribute & 0x40) == 0)
+    if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
     {
         motID = 0;
         motMODE = 1;
@@ -368,7 +368,7 @@ void ActENGAGE(void)
 //         if (Me_MOTION_C == StagePlayer) {
 //           SetCameraMode(CMODE_NORMAL);
 //         }
-//         if ((Me_MOTION_C->attribute & 0x40U) == 0) {
+//         if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0) {
 //           motID = 0;
 //         }
 //         else {
@@ -451,7 +451,7 @@ void ActENGAGE(void)
 //       DAT_80097f0e = 1;
 //     }
 //   }
-//   if ((Me_MOTION_C->attribute & 0x40U) == 0) {
+//   if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0) {
 //     motID = 0;
 //     sVar3 = motID;
 //   }

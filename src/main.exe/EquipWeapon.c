@@ -84,7 +84,7 @@ void EquipWeapon(Humanoid *human, short mode)
     dispose_weapon_data_of_char_(human, 3);
     if (mode != 0)
     {
-        if ((human->attribute & 0x40) != 0)
+        if ((human->attribute & ATTR_ALERT) != 0)
         {
             return;
         }
@@ -92,7 +92,7 @@ void EquipWeapon(Humanoid *human, short mode)
     }
     else
     {
-        if ((human->attribute & 0x40) == 0)
+        if ((human->attribute & ATTR_ALERT) == 0)
         {
             return;
         }

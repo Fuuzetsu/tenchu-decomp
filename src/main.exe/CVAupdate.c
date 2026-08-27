@@ -176,7 +176,7 @@ s16 CVAupdate(void)
                     UpdateCoordinate((ModelType *)human->model);
                     delta = __builtin_abs(human->locate->vy - StagePlayer->locate->vy);
                     if (delta > 20000)
-                        human->attribute |= 0x80;
+                        human->attribute |= ATTR_SUSPEND;
                 }
                 break;
 

@@ -109,7 +109,7 @@ void ActITEM(void)
     {
         if (Me_MOTION_C == StagePlayer)
             SetCameraMode(CMODE_NORMAL);
-        if (Me_MOTION_C->attribute & 0x40)
+        if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
             motID = 0x501;
             motMODE = 1;

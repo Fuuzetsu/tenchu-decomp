@@ -31,7 +31,7 @@ void ReturnNormal(void)
     {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->attribute & 0x40) != 0)
+    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
         motID = 0x501;
         motMODE = 1;

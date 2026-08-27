@@ -122,7 +122,7 @@ void ActSTATE(void)
                 {
                     s32 special_motion_id;
 
-                    if ((Me_MOTION_C->attribute & 0x40) != 0)
+                    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                     {
                         special_motion_id = 0x501;
                     }
@@ -135,7 +135,7 @@ void ActSTATE(void)
                 goto special_positive_motion;
             }
         }
-        if ((Me_MOTION_C->attribute & 0x40) == 0)
+        if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
         {
             return;
         }
@@ -230,7 +230,7 @@ void ActSTATE(void)
             }
         }
         dtM->mask = 0x7fff;
-        if ((Me_MOTION_C->attribute & 0x40) != 0)
+        if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
         {
             return;
         }
@@ -279,7 +279,7 @@ void ActSTATE(void)
                 {
                     SetCameraMode(CMODE_NORMAL);
                 }
-                if ((Me_MOTION_C->attribute & 0x40) != 0)
+                if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                 {
                     motID = 0x501;
                     motMODE = 1;
@@ -396,7 +396,7 @@ void ActSTATE(void)
         {
             s32 positive_motion_id;
 
-            if ((Me_MOTION_C->attribute & 0x40) != 0)
+            if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
             {
                 positive_motion_id = 0x501;
             }
@@ -459,7 +459,7 @@ void ActSTATE(void)
         {
             SetCameraMode(CMODE_NORMAL);
         }
-        if ((Me_MOTION_C->attribute & 0x40) != 0)
+        if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
         {
             motID = 0x501;
             break;

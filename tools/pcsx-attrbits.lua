@@ -138,7 +138,7 @@ local function pollHumans()
             if pa ~= nil and (pa ~= attr or ps ~= stat) then
                 GP.transitions = GP.transitions + 1
                 print(string.format(
-                    "TENCHU_ATTR t=%d h=%d%s type=%02x stat %02x->%02x attr %04x->%04x EN=%d motID=%04x",
+                    "TENCHU_GAMEPLAY ATTR t=%d h=%d%s type=%02x stat %02x->%02x attr %04x->%04x EN=%d motID=%04x",
                     GP.vsyncs, i, (hp == player) and "*" or "",
                     readU16(hp + 0), ps, stat, pa, attr,
                     readU32(EMERGENCY), readU16(MOTID)))

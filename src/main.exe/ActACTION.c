@@ -56,7 +56,7 @@ void ActACTION(void)
             return;
         if (Me_MOTION_C == StagePlayer)
             SetCameraMode(CMODE_NORMAL);
-        if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+        if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
         {
             motID = 0x501;
             motMODE = 1;
@@ -71,7 +71,7 @@ void ActACTION(void)
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);
-            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 motID = 0x501;
                 motMODE = 1;
@@ -90,7 +90,7 @@ void ActACTION(void)
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);
-            if (*(u16 *)&Me_MOTION_C->attribute & 0x40)
+            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 motID = 0x501;
                 motMODE = 1;
@@ -218,7 +218,7 @@ void ActACTION(void)
             return;
         if (Me_MOTION_C == StagePlayer)
             SetCameraMode(CMODE_NORMAL);
-        if ((*(u16 *)&Me_MOTION_C->attribute & 0x40) == 0)
+        if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT) == 0)
             goto set_normal_motion;
         motID = 0x501;
         motMODE = 1;

@@ -385,7 +385,7 @@ void ProcItemDokudango(TItem *item)
                 item->mode = item->mode + 1;
                 return;
             }
-            if ((eater->attribute & 0x40) != 0 &&
+            if ((eater->attribute & ATTR_ALERT) != 0 &&
                 (eater->type & 0xf0) != 0xa0)
             {
                 NowReturnNormal(eater);

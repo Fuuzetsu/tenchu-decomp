@@ -89,7 +89,7 @@ void ProcItemNinken(TItem *item)
         if (slave != 0)
         {
             NowReturnNormal(slave);
-            param->slave->attribute |= 0x80;
+            param->slave->attribute |= ATTR_SUSPEND;
             param->slave->model->locate.coord.t[0] = 999000;
             param->slave->model->locate.coord.t[1] = 999000;
             param->slave->model->locate.coord.t[2] = 999000;
@@ -210,7 +210,7 @@ void ProcItemNinken(TItem *item)
         {
             NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000,
                                              999000, 0);
-            NINKEN_CHARACTER_PTR->attribute |= 0x80;
+            NINKEN_CHARACTER_PTR->attribute |= ATTR_SUSPEND;
         }
 
         position = &scratch.spawn.pos;
@@ -238,7 +238,7 @@ void ProcItemNinken(TItem *item)
             valid = 0;
         }
         if (valid == 0 ||
-            (NINKEN_CHARACTER_PTR->attribute & 0x80) == 0)
+            (NINKEN_CHARACTER_PTR->attribute & ATTR_SUSPEND) == 0)
         {
             item->mode = item->mode - 1;
             param->count = 15;

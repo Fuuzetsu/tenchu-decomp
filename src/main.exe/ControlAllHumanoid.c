@@ -61,7 +61,7 @@ short ControlAllHumanoid(void)
         do
         {
             human = HumanGroup[i];
-            if ((*(u16 *)&human->attribute & 0x80) == 0)
+            if ((*(u16 *)&human->attribute & ATTR_SUSPEND) == 0)
             {
                 if (human->type == BALMA)
                 {
