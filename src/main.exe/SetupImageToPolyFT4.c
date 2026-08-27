@@ -65,7 +65,7 @@
  *  - The empty `do { } while (0);` right after the `y += ph;` update is a
  *    load-bearing REGALLOC LEVER (found by tools/permute.py, ~4600 iters,
  *    score 0): with no barrier, cc1's scheduler hoists `u1Val = u0Val +
- *    iVar7;` to float BEFORE the `x`/`y` updates (same instructions, wrong
+ *    w;` to float BEFORE the `x`/`y` updates (same instructions, wrong
  *    order); the loop-note barrier pins it after, matching the target.
  */
 
@@ -73,7 +73,7 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
 {
     s32 tp;
     s32 sh;
-    s32 iVar7;
+    s32 w;
     u32 u0Val;
     u16 u1Val;
     u8 v2Val;
@@ -99,13 +99,13 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     ply->y1 = y;
     ply->x2 = x;
     u0Val = (px << sh) & ((1 << (8 - tp)) - 1);
-    iVar7 = pw << sh;
-    x = x + iVar7;
+    w = pw << sh;
+    x = x + w;
     y = y + ph;
     do
     {
     } while (0);
-    u1Val = u0Val + iVar7;
+    u1Val = u0Val + w;
     ply->v0 = pyByte;
     ply->v1 = pyByte;
     v2Val = pyByte + ph;

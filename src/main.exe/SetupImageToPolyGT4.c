@@ -46,7 +46,7 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
 {
     s32 tp;
     s32 sh;
-    s32 iVar7;
+    s32 w;
     u32 u0Val;
     u16 u1Val;
     u8 v2Val;
@@ -81,13 +81,13 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     ply->y1 = y;
     ply->x2 = x;
     u0Val = (px << sh) & ((1 << (8 - tp)) - 1);
-    iVar7 = pw << sh;
-    x = x + iVar7;
+    w = pw << sh;
+    x = x + w;
     y = y + ph;
     do
     {
     } while (0);
-    u1Val = u0Val + iVar7;
+    u1Val = u0Val + w;
     ply->v0 = pyByte;
     ply->v1 = pyByte;
     v2Val = pyByte + ph;

@@ -25,7 +25,7 @@
  * `TelopP` is the complete POLY_FT4 declared by the demo's PSX.SYM.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `bVar1`/`idx` must be `s32`, not `u8` (Ghidra/m2c's own typing): a `u8`
+ *  - `code`/`idx` must be `s32`, not `u8` (Ghidra/m2c's own typing): a `u8`
  *    local re-narrowed after arithmetic (`idx -= 0x20;`) makes cc1 emit a
  *    defensive `andi 0xff` and then an UNSIGNED `sltiu` comparison; plain
  *    `s32` (the `lbu` load already zero-extends, and nothing here can drive
@@ -38,7 +38,7 @@
  *  - **The address must be computed ONCE, after BOTH conditional `idx`
  *    corrections, not per-branch.** Ghidra/m2c render `entry = idx +
  *    FontWidth;` separately in the "idx<0x20" fallthrough and again inside
- *    `if (bVar1>=0xC0)` (matching the target's own asm, which does
+ *    `if (code>=0xC0)` (matching the target's own asm, which does
  *    duplicate the `addu` in both blocks) — but writing it that way (a
  *    third, real cookbook-obvious attempt) leaves a 13-byte pure 4-register
  *    rotation (v0/a2/a3/t0 vs a2/a3/t0/t1) that no amount of statement
@@ -54,7 +54,7 @@ extern u8 FontWidth[];
 s32 FUN_800576e8(u8 *str)
 {
     s32 width;
-    s32 bVar1;
+    s32 code;
     s32 idx;
     u8 *entry;
 
@@ -67,18 +67,18 @@ s32 FUN_800576e8(u8 *str)
     {
         do
         {
-            bVar1 = *str;
+            code = *str;
             str++;
-            if (bVar1 == 0x92)
+            if (code == 0x92)
             {
-                bVar1 = 0x27;
+                code = 0x27;
             }
-            idx = bVar1;
+            idx = code;
             if (idx >= 0x20)
             {
                 idx -= 0x20;
             }
-            if (bVar1 >= 0xC0)
+            if (code >= 0xC0)
             {
                 idx -= 0x40;
             }

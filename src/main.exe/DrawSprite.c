@@ -105,7 +105,7 @@
  *    (li v0,0 / li v0,1, each falling into the same epilogue), not a
  *    shared `ret` variable reassigned twice — DrawModel/DrawBG's "two
  *    literal early returns" lever, even though Ghidra renders it with one
- *    reused `sVar2`.
+ *    reused `scale`.
  *  - The two-arm `if (sz < 300) DrawTMDmode = 0; else = 0x20;` inside
  *    unit_vector is spelled NEGATED (`if (sz >= 300) = 0x20; else = 0;`) so
  *    the 0x20 arm sits adjacent to the shared tail, same swap-non-invariance
@@ -122,7 +122,7 @@ short DrawSprite(Sprite3D *sprt)
     long result;
     long pri;
     s32 iv;
-    short sVar2;
+    short scale;
     short rxy[2];
 
     objp = (ModelType *)sprt;
@@ -199,9 +199,9 @@ ret:
         return 0;
     }
     iv = (sprt->scale >> 2) * 300;
-    sVar2 = (short)(iv / pri);
-    sprt->sprite.scaley = sVar2;
-    sprt->sprite.scalex = sVar2;
+    scale = (short)(iv / pri);
+    sprt->sprite.scaley = scale;
+    sprt->sprite.scalex = scale;
     GsSortSprite(&sprt->sprite, OTablePt, (u16)pri);
     return 1;
 }

@@ -77,12 +77,12 @@
  *    result==0 skip-branch taken, filling both skip delay slots from the
  *    continue-point (`addiu v0,a2,1` twice); a do-while has no VTOP, the EQ
  *    heuristic predicts not-taken, and the fills come from the fallthrough.
- *  - The pad cap is `i > ConflictObject[iVar3].offset.pad` (`i` FIRST):
+ *  - The pad cap is `i > ConflictObject[id].offset.pad` (`i` FIRST):
  *    expand evaluates op0 first, putting the short `i` sll before the
  *    lh of offset.pad (spelling it `pad < i` loads first — not a sched
  *    tie).
  *  - `model->id` is loaded TWICE, un-CSE'd (the DeleteConflict lhu-vs-lh
- *    split): `int iVar3 = model->id;` (lh — the `== -1` guard and the scan
+ *    split): `int id = model->id;` (lh — the `== -1` guard and the scan
  *    base id*0x78) and `short idx = model->id;` (lhu, narrowing — the
  *    post-loop result/position base). Different machine modes don't CSE.
  *  - `if (index < 0)` is `sll a1,16; bgez` (short sign test); `i = 0;`
@@ -101,13 +101,13 @@
 short GetConflictResult(ModelType *model, short index)
 {
     short idx;
-    int iVar3;
+    int id;
     short i;
     int k;
 
-    iVar3 = model->id;
+    id = model->id;
     idx = model->id;
-    if (iVar3 != -1)
+    if (id != -1)
     {
         if ((model->attribute & 0x4000) == 0)
         {
@@ -124,14 +124,14 @@ short GetConflictResult(ModelType *model, short index)
             }
             for (; index < ConflictObjects; index++)
             {
-                if (ConflictObject[iVar3].result[index] != 0)
+                if (ConflictObject[id].result[index] != 0)
                 {
                     i++;
-                    if (i > ConflictObject[iVar3].offset.pad)
+                    if (i > ConflictObject[id].offset.pad)
                     {
                         goto ret_m1;
                     }
-                    if ((ConflictObject[iVar3].result[index] & 0x40) == 0)
+                    if ((ConflictObject[id].result[index] & 0x40) == 0)
                     {
                         break;
                     }

@@ -47,13 +47,13 @@
  * the "int t1 = cap;" idiom from the cookbook's spilled-u16-locals rule, not
  * a narrow-typed temp).
  *
- * The tail bias block (`if (sVar4 < 0x801) { if (-0x800 < sVar4) goto skip; }
- * else { sVar4 = -sVar4; } sVar4 = sVar4 + 0x1000;`) needed TWO changes to
- * match: (1) the shared trailing `sVar4 = sVar4 + 0x1000;` must be split into
- * a per-arm computation — the THEN arm keeps its own `sVar4 = sVar4 + 0x1000;`
- * and the ELSE arm becomes a single combined `sVar4 = 0x1000 - sVar4;`
+ * The tail bias block (`if (deg2 < 0x801) { if (-0x800 < deg2) goto skip; }
+ * else { deg2 = -deg2; } deg2 = deg2 + 0x1000;`) needed TWO changes to
+ * match: (1) the shared trailing `deg2 = deg2 + 0x1000;` must be split into
+ * a per-arm computation — the THEN arm keeps its own `deg2 = deg2 + 0x1000;`
+ * and the ELSE arm becomes a single combined `deg2 = 0x1000 - deg2;`
  * (spelled as a subtraction from the materialized constant, not
- * `sVar4 = -sVar4;` followed by the old shared add — that emits a separate
+ * `deg2 = -deg2;` followed by the old shared add — that emits a separate
  * `negu`+`addiu` where the target has one `li`+`subu`); and (2) the outer
  * if's THEN arm (the nested if+goto) is reached by a TAKEN branch and the
  * ELSE arm (single assignment) is the fallthrough — the opposite of ordinary
@@ -68,24 +68,25 @@
 long GetTargetDistance(Humanoid *human, short *deg)
 {
     s32 dx, dz;
-    s32 lVar2;
+    s32 angle;
     s32 vy;
-    s32 iVar3;
-    s16 sVar4;
+    s32 diff;
+    s16 deg2;
 
     dx = human->target->locate.coord.t[0] - human->locate->vx;
     dz = human->target->locate.coord.t[2] - human->locate->vz;
     vy = (u16)human->rotate->vy;
-    lVar2 = ratan2(-dx, -dz);
-    iVar3 = lVar2 - vy;
-    sVar4 = (s16)iVar3;
-    if (sVar4 < 0x801) goto nested;
-    sVar4 = 0x1000 - sVar4;
-    goto skip;
-nested:
-    if (-0x800 < sVar4) goto skip;
-    sVar4 = sVar4 + 0x1000;
-skip:
-    *deg = sVar4;
+    angle = ratan2(-dx, -dz);
+    diff = angle - vy;
+    deg2 = (s16)diff;
+    if (deg2 >= 0x801)
+    {
+        deg2 = 0x1000 - deg2;
+    }
+    else if (deg2 <= -0x800)
+    {
+        deg2 = deg2 + 0x1000;
+    }
+    *deg = deg2;
     return SquareRoot0(dx * dx + dz * dz);
 }

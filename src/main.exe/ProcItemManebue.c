@@ -52,7 +52,7 @@ extern char msg_item_dispose_fail[];
 void ProcItemManebue(TItem *item)
 {
     param_drop *param;
-    u8 cVar1;
+    u8 count;
     s32 zero;
 
     param = &item->param.drop;
@@ -75,9 +75,9 @@ mode0:
     item->mode = item->mode + 1;
     return;
 mode1:
-    cVar1 = param->count - 1;
-    param->count = cVar1;
-    if (cVar1 == 0)
+    count = param->count - 1;
+    param->count = count;
+    if (count == 0)
     {
         item->owner->itmctl = 0;
         if (item->proc != 0)

@@ -90,7 +90,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     CdlFILE cf;
     CdlFILTER filter;
     u8 param[4];
-    s32 iVar2;
+    s32 pos;
     int saved_mode;
 
     saved_mode = mode;
@@ -103,17 +103,17 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
         return 0;
     }
     CdaStatus.mode = saved_mode;
-    iVar2 = CdPosToInt(&cf.pos);
-    CdaStatus.StartPos = iVar2 + 0x96;
+    pos = CdPosToInt(&cf.pos);
+    CdaStatus.StartPos = pos + 0x96;
     if (end != 0) {
-        iVar2 = CdPosToInt(end);
-        CdaStatus.EndPos = CdaStatus.StartPos + iVar2;
+        pos = CdPosToInt(end);
+        CdaStatus.EndPos = CdaStatus.StartPos + pos;
     } else {
         CdaStatus.EndPos = CdaStatus.StartPos + (cf.size >> 0xb);
     }
     if (start != 0) {
-        iVar2 = CdPosToInt(start);
-        CdaStatus.StartPos = CdaStatus.StartPos + iVar2;
+        pos = CdPosToInt(start);
+        CdaStatus.StartPos = CdaStatus.StartPos + pos;
     }
     param[0] = 0xc9;
     cd_control(0xe, param, 0);

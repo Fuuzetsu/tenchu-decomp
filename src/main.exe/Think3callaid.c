@@ -83,14 +83,14 @@
  *
  * Matching notes (fixes applied, all confirmed via matchdiff/asmdiff):
  *  - The whole function's return value must NOT funnel through one shared
- *    `sVar3` variable returned once at the end (Ghidra's literal rendering):
+ *    `ret` variable returned once at the end (Ghidra's literal rendering):
  *    that made cc1 converge BOTH branches through a single register (here
  *    $a0, needing a final generic sign-extend-and-widen at a shared join),
  *    while the target widens the Think3escape() result INLINE before
- *    jumping to a plain epilogue, and the else-branch's `sVar3` (always a
+ *    jumping to a plain epilogue, and the else-branch's `ret` (always a
  *    small constant) needs no widening at all. Splitting into
  *    `return Think3escape();` (early, inside the if) and a second,
- *    branch-LOCAL `s16 sVar3;` returned at the end of the else block fixed
+ *    branch-LOCAL `s16 ret;` returned at the end of the else block fixed
  *    this (the InsertConflict/DrawBG "two early returns" cookbook rule).
  *  - `s16 *aid = AIDHumanType;` declared and assigned BEFORE `rand()` (not
  *    `AIDHumanType[...]` indexed inline after the call) is required for the
@@ -138,7 +138,7 @@ short Think3callaid(void)
     }
     else
     {
-        s16 sVar3;
+        s16 ret;
         s16 *aid = AIDHumanType;
         s16 *type_ptr;
         s16 type;
@@ -166,13 +166,13 @@ short Think3callaid(void)
         EquipWeapon(human_00, 1);
         SetNowMotion((Humanoid *)Me_THINK_C, 0x501, 1);
         Attrib = Me_THINK_C->attribute | 2;
-        sVar3 = 0;
+        ret = 0;
         if ((Me_THINK_C->type & 0xF0) == 0x90)
         {
             StageEnemies = StageEnemies + 1;
             StageCitizens = StageCitizens - 1;
-            sVar3 = 0;
+            ret = 0;
         }
-        return sVar3;
+        return ret;
     }
 }

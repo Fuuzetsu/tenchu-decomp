@@ -22,7 +22,7 @@ import sys
 SRC = pathlib.Path(__file__).resolve().parent.parent / "src/main.exe"
 
 PATTERNS = [
-    ("ghidra_local", re.compile(r"\b(?:[ipu]+Var\d+|local_[0-9a-f]+|param_\d+|in_[a-z0-9]+|unaff_[a-z0-9]+|uStack_?[0-9a-f]+)\b")),
+    ("ghidra_local", re.compile(r"\b(?:[a-z]{1,3}Var\d+(?:_[a-z0-9]+)?|p[A-Z][A-Za-z]*Var\d+|local_[0-9a-f]+|param_\d+|in_[a-z0-9]+|unaff_[a-z0-9]+|uStack_?[0-9a-f]+)\b")),
     ("generic_temp", re.compile(r"\b(?:temp_[a-z0-9_]+|var_[a-z0-9_]+|phi_[a-z0-9_]+)\b")),
     ("fun_sym", re.compile(r"\bFUN_800[0-9a-fA-F]{5}\b")),
     ("data_sym", re.compile(r"\bD_800[0-9a-fA-F]{5}\b")),
