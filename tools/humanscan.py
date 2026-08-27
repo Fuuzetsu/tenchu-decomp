@@ -56,7 +56,7 @@ def main():
     dump_files = []
     for p in sorted(SRC.glob("*.c")):
         raw = p.read_text(errors="replace")
-        guarded = "INCLUDE_ASM" in raw
+        guarded = re.search(r"^\s*INCLUDE_ASM\(", raw, re.M) is not None
         if not guarded and any(m in raw for m in DUMP_MARKERS):
             dump_files.append(p.name)
         code = strip_comments(raw)

@@ -45,37 +45,3 @@ void DisposeSE(SoundEffect *se)
         vfree(se);
     }
 }
-
-// triage: TRIVIAL — 19 insns, 3 callees, ~0.50 to DisposeBG
-
-// Ghidra decompilation (reference — turn this into matching C,
-// then drop the INCLUDE_ASM above):
-//
-//
-// void DisposeSE(SoundEffect *se)
-//
-// {
-//   if (se != (SoundEffect *)0x0) {
-//     SsUtAllKeyOff(0);
-//     SsVabClose(se->VABid);
-//     vfree((undefined *)se->VABhead);
-//     vfree((undefined *)se);
-//   }
-//   return;
-// }
-
-// m2c (mipsel-gcc-c reference — cleaner control flow + register
-// temps straight from the asm; Ghidra above has the real types):
-//
-// ? SsUtAllKeyOff(?);                                 /* extern */
-// ? SsVabClose(s16);                                  /* extern */
-// ? vfree(void *);                                    /* extern */
-//
-// void DisposeSE(void *arg0) {
-//     if (arg0 != NULL) {
-//         SsUtAllKeyOff(0);
-//         SsVabClose(arg0->unk0);
-//         vfree(arg0->unk4);
-//         vfree(arg0);
-//     }
-// }
