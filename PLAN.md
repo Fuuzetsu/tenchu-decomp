@@ -179,6 +179,38 @@ reported floors; the DecodeTMD twins matched after their one-statement proof;
 FUN_80057b80 matched after a quantified signature proof. Continue to rank by
 value and evidence, but treat every park as a falsifiable claim about one graph.
 
+## Humanising pass — the active loop (2026-08-27)
+
+All game code is matched; the active work is rewriting the matched C into
+what the original developers plausibly wrote — while every function stays
+byte-identical (`./Build check` green gates every commit).
+
+Workflow (resumable — a fresh session continues from here):
+
+1. `python3 tools/humanscan.py` ranks sources by machine-decomp artifacts
+   in CODE (comments stripped): Ghidra-style locals, generic temps,
+   `FUN_`/`D_` symbols, goto labels, raw offset casts. `--dumps` lists
+   matched files still carrying stale Ghidra/m2c/triage reference dumps
+   (matched files drop them — the style of ReqItemFire.c et al.).
+2. Per file, top of the ranking first: restore official recovered names
+   (PSX.SYM blocks in the file, `reference/psxsym-*`), convert offset-cast
+   arithmetic to real struct fields, replace magic numbers with named
+   constants, keep the PSX.SYM fact block + matching-notes prose header.
+   Renames are byte-neutral; struct-field/control-flow changes must be
+   re-verified (`tools/matchdiff.py <Name>` → MATCH, then `./Build check`).
+   The matching notes in each file record which shapes are load-bearing
+   (fences, split locals, statement order) — do not "clean" those away;
+   if a note explains a construct, it stays until a byte-identical
+   human alternative is proven.
+3. Commit each file (or small family) separately; then re-run the scan.
+
+State (2026-08-27): stale dumps stripped from all 23 matched carriers.
+Remaining queue (see the scan): the DecodeTMD renderer family
+(`FUN_80057b80`, `FUN_8005961c`/`59b08`/`59008`/`58c70`/`59ff4`/`5a3cc` —
+offset-cast heavy, needs the primitive-work struct recovered),
+`DamageControl`/`ActATTACK` (goto-label naming), then the long tail of
+`D_`-symbol references and residual generic temps.
+
 ## Current resume point (2026-07-20)
 
 The game-code matching queue is empty. Live output is 537/555 game functions in
