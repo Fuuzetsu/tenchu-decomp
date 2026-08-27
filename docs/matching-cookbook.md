@@ -1255,6 +1255,14 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
 
 ### 3.10 Fences — what each idiom actually buys
 
+**Bulk audit result (2026-08-27): every fence in the tree earns its bytes.**
+An automated pass unwrapped all `do{}while(0)` fences in files whose comments
+never discuss fences (11 files, byte-gated per file): every single unwrap
+changed bytes and was reverted; the remaining fences are individually
+documented levers. There is no dead fence scaffolding left — do not re-run
+bulk fence-removal, and treat any fence you meet as load-bearing until its
+own matchdiff test says otherwise.
+
 Fences are reconstruction scaffolding, not original idiom — **debt**. At exact
 promotion, challenge every one (`fence-unwrap` + `empty-loop-boundary` removal
 candidates are in the DEFAULT autorules set precisely because fence effects are
