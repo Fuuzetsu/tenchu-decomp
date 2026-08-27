@@ -112,35 +112,25 @@ s32 update_card_screen_(s32 pad)
         value = SaveCard(0, (u8 *)McardFile,
                          (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                          TENCHU_PERSISTENT_STATE_SIZE, 1);
-        if (value == 1)
-            goto save_2b_success;
-        if (value >= 2)
-            goto save_2b_ge2;
-        if (value == 0)
-            goto save_2b_zero;
-        assigned = 0x38;
-        goto save_2b_assign;
-    save_2b_ge2:
-        if (value == 4)
-            goto save_2b_four;
-        if (value == 7)
-            goto save_2b_seven;
-        assigned = 0x38;
-        goto save_2b_assign;
-    save_2b_zero:
-        assigned = 0x36;
-        goto save_2b_assign;
-    save_2b_success:
-        assigned = 10;
-        goto save_2b_assign;
-    save_2b_seven:
-        assigned = 0x46;
-        goto save_2b_assign;
-    save_2b_four:
-        McardState = 0x1e;
-        CardStateFlag = 0;
-        goto save_2b_after_assign;
-    save_2b_assign:
+        switch (value)
+        {
+        default:
+            assigned = 0x38;
+            break;
+        case 0:
+            assigned = 0x36;
+            break;
+        case 1:
+            assigned = 10;
+            break;
+        case 7:
+            assigned = 0x46;
+            break;
+        case 4:
+            McardState = 0x1e;
+            CardStateFlag = 0;
+            goto save_2b_after_assign;
+        }
         McardState = assigned;
     save_2b_after_assign:
         if (McardState == 0x36)
@@ -190,35 +180,25 @@ s32 update_card_screen_(s32 pad)
         value = SaveCard(0, (u8 *)McardFile,
                          (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                          TENCHU_PERSISTENT_STATE_SIZE, 1);
-        if (value == 1)
-            goto save_37_success;
-        if (value >= 2)
-            goto save_37_ge2;
-        if (value == 0)
-            goto save_37_zero;
-        assigned = 0x38;
-        goto save_37_assign;
-    save_37_ge2:
-        if (value == 4)
-            goto save_37_four;
-        if (value == 7)
-            goto save_37_seven;
-        assigned = 0x38;
-        goto save_37_assign;
-    save_37_zero:
-        assigned = 0x36;
-        goto save_37_assign;
-    save_37_success:
-        assigned = 10;
-        goto save_37_assign;
-    save_37_seven:
-        assigned = 0x46;
-        goto save_37_assign;
-    save_37_four:
-        McardState = 0x1e;
-        CardStateFlag = 0;
-        goto save_37_after_assign;
-    save_37_assign:
+        switch (value)
+        {
+        default:
+            assigned = 0x38;
+            break;
+        case 0:
+            assigned = 0x36;
+            break;
+        case 1:
+            assigned = 10;
+            break;
+        case 7:
+            assigned = 0x46;
+            break;
+        case 4:
+            McardState = 0x1e;
+            CardStateFlag = 0;
+            goto save_37_after_assign;
+        }
         McardState = assigned;
     save_37_after_assign:
         if (McardState == 0x36)
