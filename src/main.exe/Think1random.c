@@ -61,24 +61,15 @@ s16 Think1random(void)
     else
     {
         s32 vx, vz;
-        s32 adx, adz;
         VECTOR *locate;
 
         locate = Me_THINK_C->locate;
         vx = Me_THINK_C->chase[0] - locate->vx;
         vz = Me_THINK_C->chase[1] - locate->vz;
-        adx = (vx >= 0) ? vx : -vx;
-        if (adx < 1000)
+        if ((((vx >= 0) ? vx : -vx) < 1000 &&
+             ((vz >= 0) ? vz : -vz) < 1000) ||
+            (Attrib & 0x400))
         {
-            adz = (vz >= 0) ? vz : -vz;
-            if (adz < 1000)
-            {
-                goto reset;
-            }
-        }
-        if (Attrib & 0x400)
-        {
-        reset:
             Me_THINK_C->actcnt = 0;
         }
         else

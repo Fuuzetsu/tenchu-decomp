@@ -104,7 +104,9 @@ void cbCheckCD(void)
     {
     case 5:
         cs->command = 0x1B;
-        goto shared_tail;
+        cs->CheckCount = 0;
+        cs->status = 0;
+        return;
     case 2:
         if (com == 9)
         {
@@ -116,17 +118,13 @@ void cbCheckCD(void)
             if ((cs->status & 0x20) &&
                 (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300))
             {
-                if (cs->mode != CDA_REPEAT)
+                if (cs->mode == CDA_REPEAT)
                 {
-                    goto mode_error;
+                    cs->command = 0x1B;
+                    cs->CheckCount = 0;
+                    cs->status = 0;
+                    return;
                 }
-                cs->command = 0x1B;
-            shared_tail:
-                cs->CheckCount = 0;
-                cs->status = 0;
-                return;
-
-            mode_error:
                 SsSetSerialAttr(0, 0, 1);
                 SsSetSerialVol(0, 0, 0);
                 cd_control(9, 0, 0);
