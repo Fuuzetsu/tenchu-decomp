@@ -35,7 +35,7 @@
  * ReqItemDefault (0x800475f4) — spawn an item thrown/placed in front of a
  * Humanoid (called from the ActXXX/DamageControl/ItemUse family). Builds a
  * PARAM_ITEM_LAUNCH: start = user's model position (y raised by 0x4B0), end =
- * start + a rotated toss vector (the fixed D_80012258 vector rotated by
+ * start + a rotated toss vector (the fixed vec_z_n100 vector rotated by
  * either the current view direction, when the camera is looking through
  * this user in CMODE_DIRECTION, or the user's own model rotation otherwise).
  * Forwards to ReqItemUse (the big dispatcher — not in this batch).
@@ -54,7 +54,7 @@
  *    (sp+0x14) right before the branch, which only lines up with reading the
  *    field (the function keeps zero callee-saved registers, so `user` has no
  *    other memory home to reload from across the intervening memset() call).
- *  - `D_80012258` is a plain (non-gp) extern VECTOR constant; its address
+ *  - `vec_z_n100` is a plain (non-gp) extern VECTOR constant; its address
  *    compiles as a split `lui`/`addiu` into TWO different registers, the
  *    "not -G8-small" tell — declared as an unknown-size array per the
  *    cookbook's respelling rule.
@@ -63,7 +63,7 @@
  *    recovered original API.
  */
 
-extern VECTOR D_80012258[];
+extern VECTOR vec_z_n100[]; /* {0,0,-100} */
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ReqItemDefault(Humanoid *user, TItemType ItemID)
@@ -81,7 +81,7 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     param.start.vx = user->model->locate.coord.t[0];
     param.start.vy = user->model->locate.coord.t[1] - 0x4B0;
     param.start.vz = user->model->locate.coord.t[2];
-    v = D_80012258[0];
+    v = vec_z_n100[0];
     memset(&v0, 0, sizeof(v0));
     pm = param.user->model;
     if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)

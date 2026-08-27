@@ -227,15 +227,15 @@
 
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
-extern VECTOR D_80012258[];
-extern VECTOR D_80012268[];
-extern VECTOR D_80012278[];
-extern VECTOR D_80012288[];
-extern VECTOR D_80012298[];
-extern VECTOR D_800122A8[];
-extern VECTOR D_800122B8[];
-extern VECTOR D_800122C8[];
-extern VECTOR D_800122D8[];
+extern VECTOR vec_z_n100[]; /* {0,0,-100} */
+extern VECTOR vec_z_100[]; /* {0,0,100} */
+extern VECTOR vec_z_n60[]; /* {0,0,-60} */
+extern VECTOR vec_y_n120_z_n240[]; /* {0,-120,-240} */
+extern VECTOR vec_z_n120[]; /* {0,0,-120} */
+extern VECTOR vec_y_n120_z_n120[]; /* {0,-120,-120} */
+extern VECTOR vec_z_n4096[]; /* {0,0,-4096} */
+extern VECTOR vec_z_n1000[]; /* {0,0,-1000} */
+extern VECTOR vec_z_n500[]; /* {0,0,-500} */
 
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
@@ -300,7 +300,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         work.user = p->user;
         work.start = p->start;
         param = work;
-        *(VECTOR *)&work = D_80012268[0];
+        *(VECTOR *)&work = vec_z_100[0];
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
@@ -408,7 +408,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_80012278[0];
+        *(VECTOR *)&param = vec_z_n60[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -437,7 +437,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_80012288[0];
+        *(VECTOR *)&param = vec_y_n120_z_n240[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -466,7 +466,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_80012298[0];
+        *(VECTOR *)&param = vec_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -495,7 +495,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122A8[0];
+        *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -524,7 +524,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_80012258[0];
+        *(VECTOR *)&param = vec_z_n100[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -547,7 +547,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_KAENGEKI:
     {
-        *(VECTOR *)&param = D_80012278[0];
+        *(VECTOR *)&param = vec_z_n60[0];
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
         p->end.vz = ((VECTOR *)&param)->vz;
@@ -562,7 +562,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122A8[0];
+        *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -591,7 +591,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122A8[0];
+        *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -620,7 +620,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122A8[0];
+        *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -654,7 +654,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 
         if (p->user == CamState.Owner)
         {
-            *(VECTOR *)&param = D_800122B8[0];
+            *(VECTOR *)&param = vec_z_n4096[0];
             st = (VECTOR *)&param;
             model = p->user->model;
             if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -706,7 +706,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         work.user = p->user;
         work.start = p->start;
         param = work;
-        *(VECTOR *)&work = D_800122C8[0];
+        *(VECTOR *)&work = vec_z_n1000[0];
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
@@ -801,7 +801,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122D8[0];
+        *(VECTOR *)&param = vec_z_n500[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -885,7 +885,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122A8[0];
+        *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
@@ -914,7 +914,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ry;
         s32 rz;
 
-        *(VECTOR *)&param = D_800122A8[0];
+        *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
