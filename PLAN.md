@@ -221,18 +221,32 @@ each extern), by uniform scheme for the 108 dmyGs stub pairs
 (McardState cluster, ThinkBudget cluster, CamPos*, ADIV/TMD_FAST
 workspaces, ...). All of it byte-identical, ~35 commits.
 
-Remaining humanising lanes, in value order:
-1. The ~70 FUN_-named functions (psxsym-unnamed.tsv): renames need
-   evidence the demo cannot give; descriptive guesses are against the
-   official-names directive. A future cross-exe/behavioral research
-   pass could recover some.
-2. Named-constant overlays for motID/status hex codes (the project
-   already keeps such overlays where no official enum exists —
-   evidence source: the Act*/Think* dispatch tables).
-3. Tree-wide formatting normalization to the humanised Allman style
-   (clang-format ColumnLimit 0 is token-preserving/byte-safe;
-   applied so far only to files touched by this pass). OWNER CALL —
-   say the word and it is one mechanical commit.
+COMPLETED after the milestone (2026-08-27, ~50 commits total):
+- The motion/status/type vocabulary: the Act* handler table at
+  0x80086b24 proved motID's high byte AND Humanoid.status index the
+  same 18 official handlers — MOT_*/STAT_* overlays adopted, the old
+  guessed status names retired; Humanoid.type literals use the
+  character_kind roster names plus the new character_page (type&0xf0)
+  overlay (PAGE_CIVILIAN drives FriendHits, NINKEN kills don't score).
+- Every matched TU now opens with honest prose; no headerless files.
+- The rename wave is propagated through every name-matching consumer:
+  Build.hs maspsxGpExterns, permute.py, reloc-data.main.exe.json, the
+  reloc tools and tests. Gates: ./Build check byte-identical,
+  ./Build check-relink exit 0, python suite 644 tests OK.
+- INCIDENT (resolved, lessons in docs/toolchain.md): three commits
+  briefly landed with a pipe-masked failing check — symbol-name
+  clobbers, stale gp-extern lists, and an IsVisible parameter-shadow
+  bug. All repaired in 2d957d7c; check gating now runs unpiped.
+
+Remaining lanes ALL need owner input or new evidence:
+1. Tree-wide formatting normalization to the humanised Allman style
+   (clang-format ColumnLimit 0, token-preserving/byte-safe; applied so
+   far only to touched files). OWNER CALL — one mechanical commit.
+2. The ~70 FUN_-named functions: names need evidence the demo cannot
+   give (cross-exe/behavioral research, or accept descriptive names).
+3. Humanoid.attribute bit names (0x02/0x40/0x42/0x8000 in the damage
+   and scoring paths): the semantics need runtime observation (the
+   pcsx-redux scripting lane) before naming.
 4. The renderer-family offset casts and screen byte_arith that remain
    are byte-required and documented in place; guarded drafts keep
    their reference dumps.
