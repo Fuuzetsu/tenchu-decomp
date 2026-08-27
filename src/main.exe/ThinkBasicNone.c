@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* The no-op think selector: always picks action 0. */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

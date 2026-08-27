@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* Fill the named axis's rotation cells of a MATRIX from precomputed
+ * sine/cosine ('X'/'Y'/'Z' accepted in either case). */
 void Gssub_make_matrix(MATRIX *m, short sine, short cosine, char axis)
 {
     *m = GsIDMATRIX;

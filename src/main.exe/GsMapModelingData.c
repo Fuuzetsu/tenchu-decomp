@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* Relocate a linked-TMD's vertex/normal/primitive offsets into absolute
+ * pointers, once (bit 0 of the header marks it already mapped). */
 void GsMapModelingData(unsigned long *model)
 {
     struct TMD_STRUCT *object;

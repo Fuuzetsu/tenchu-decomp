@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* Parse a TIM in memory into a GsIMAGE descriptor: mode word, then the
+ * optional CLUT block, then the pixel block's VRAM rect (libgs API shape). */
 void GsGetTimInfo(unsigned long *image, GsIMAGE *tim)
 {
     unsigned long *pixel;

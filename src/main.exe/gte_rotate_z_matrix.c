@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
 
+/* Multiply a Z-axis rotation (angle in degrees x360) into the matrix;
+ * angle 0 is a no-op. */
 void gte_rotate_z_matrix(MATRIX *m, int angle)
 {
     MATRIX rotation;

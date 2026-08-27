@@ -2,6 +2,8 @@
 #include "main.exe.h"
 #include "item.h"
 
+/* Rebuild a model's coordinate matrix from its rotate vector and mark the
+ * GsCOORDINATE2 dirty. */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
