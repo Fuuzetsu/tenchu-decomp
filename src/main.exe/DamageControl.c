@@ -6,7 +6,7 @@
 
 extern Humanoid *Me_MOTION_C;
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
-extern Humanoid *D_8009770C;
+extern Humanoid *DeadHumanoid;
 /* MOTION.C's original direction-to-damage-animation table. */
 extern s16 damagemotion[8];
 
@@ -747,7 +747,7 @@ resolve_hit:
                 if (hp * 0x10000 < 1)
                 {
                     Me_MOTION_C->life = 0;
-                    D_8009770C = Me_MOTION_C;
+                    DeadHumanoid = Me_MOTION_C;
                     if (deg == 3)
                     {
                         goto directional_death;

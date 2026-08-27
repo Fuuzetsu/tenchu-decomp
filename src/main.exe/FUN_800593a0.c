@@ -29,7 +29,7 @@
  *    at 0x80013C20.
  */
 
-extern int D_800C6588;
+extern int DivDepth; /* GsDOBJ2 attribute bits 9..11 */
 
 extern u_long *FUN_8005961c(u_short *primitive, u_long vertop, u_long *packet,
                             u_short count, u_long *work);
@@ -56,7 +56,7 @@ void FUN_800593a0(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     vertop = (u_long)tmd->vertop;
     GsLIOFF = obj->attribute >> 6 & 1;
     attr = *(volatile u_long *)&obj->attribute;
-    D_800C6588 = obj->attribute >> 9 & 7;
+    DivDepth = obj->attribute >> 9 & 7;
     *(u_long *)(work + 0x88) = shift;
     *(u_long *)(work + 0x90) = ot;
     GsTON = attr >> 0x1e & 1;

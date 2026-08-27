@@ -18,8 +18,8 @@ typedef union
     ProcItemNingyoVectors vectors;
 } ProcItemNingyoScratch;
 
-extern SVECTOR D_80097AE4[];
-extern u8 D_80097AE0;
+extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
+extern u8 NingyoCount;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern short DrawModel(ModelType *objp);
@@ -130,7 +130,7 @@ void ProcItemNingyo(TItem *item)
                     humans++;
                 } while (i < limit);
             }
-            D_80097AE0 = D_80097AE0 - 1;
+            NingyoCount = NingyoCount - 1;
         }
         item->mode = 0;
         return;
@@ -154,14 +154,14 @@ void ProcItemNingyo(TItem *item)
         {
             param->count = 0;
             item->mode = item->mode + 1;
-            scratch.drop.sv = D_80097AE4[0];
+            scratch.drop.sv = svec_y_n25[0];
             SetSmoke((VECTOR *)item->locate->locate.coord.t,
                      &scratch.drop.sv, 10, 6);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
-            if (D_80097AE0 < 3)
+            if (NingyoCount < 3)
             {
                 param->hp = 3;
-                D_80097AE0 = D_80097AE0 + 1;
+                NingyoCount = NingyoCount + 1;
                 goto draw_mode0;
             }
             else

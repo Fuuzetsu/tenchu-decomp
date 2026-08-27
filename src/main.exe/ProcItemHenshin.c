@@ -61,7 +61,7 @@ typedef union
  *    ordinary 12-byte model-part records. Indexing the nested `p` array by
  *    the loop's own counter gives loop.c one unbiased
  *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
- *  - D_80097AEC and D_80097AF0 use volatile views only to preserve the
+ *  - HenshinItem and HenshinCount use volatile views only to preserve the
  *    original observable load/store sequence.  In particular, the restore
  *    path stores the current-disguise pointer before reloading item->owner,
  *    and mode 2 finishes its mode/count stores before loading owner/type.
@@ -70,13 +70,13 @@ typedef union
  *  - `scratch` is the exact sp+0x10..0x37 lifetime overlay: PSX.SYM records
  *    PARAM_ITEM_LAUNCH `p` on the interrupted-motion path and SVECTOR `sv` on
  *    the smoke paths.
- *  - Case 0 deliberately does not assign D_80097AEC.  It jumps directly to
+ *  - Case 0 deliberately does not assign HenshinItem.  It jumps directly to
  *    the shared mode increment; only the completed mode-1 path installs the
  *    current item after disposing any prior disguise.
  */
-extern TItem *volatile D_80097AEC;
-extern volatile u16 D_80097AF0;
-extern SVECTOR D_80097AF4[];
+extern TItem *volatile HenshinItem;
+extern volatile u16 HenshinCount;
+extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 
 void ProcItemHenshin(TItem *item)
@@ -92,7 +92,7 @@ void ProcItemHenshin(TItem *item)
 
     if (item->mode == ff)
     {
-        if (item == D_80097AEC)
+        if (item == HenshinItem)
         {
             s32 i;
             HenshinModelSnapshot *saved;
@@ -118,7 +118,7 @@ void ProcItemHenshin(TItem *item)
             {
                 NowReturnNormal(item->owner);
             }
-            D_80097AEC = 0;
+            HenshinItem = 0;
             ((volatile TItem *)item)->owner->itmctl = 0;
         }
         item->mode = 0;
@@ -182,12 +182,12 @@ void ProcItemHenshin(TItem *item)
         }
 
         NowReturnNormal(human);
-        scratch.sv = D_80097AF4[0];
+        scratch.sv = svec_y_n50[0];
         SetSmoke((VECTOR *)mad->locate.coord.t, &scratch.sv, 10, 6);
         {
             TItem *old;
 
-            old = D_80097AEC;
+            old = HenshinItem;
             if (old != 0 && old->proc != 0)
             {
                 old->mode = ff;
@@ -201,7 +201,7 @@ void ProcItemHenshin(TItem *item)
                 old->proc = 0;
             }
         }
-        D_80097AEC = item;
+        HenshinItem = item;
         item->mode = item->mode + 1;
         return;
     }
@@ -215,7 +215,7 @@ void ProcItemHenshin(TItem *item)
         u16 itemID;
 
         i = 0;
-        saved = &D_800C06F0;
+        saved = &HenshinSnapshot;
         mad->rotate.pad = (s16)saved->waist;
         if (mad->n > 0)
         {
@@ -233,7 +233,7 @@ void ProcItemHenshin(TItem *item)
         }
         vitem = item;
         vitem->mode = vitem->mode + 1;
-        D_80097AF0 = 600;
+        HenshinCount = 600;
         mode_owner = vitem->owner;
         itemID = *(volatile u16 *)&vitem->type;
         EmergencyNotice = -600;
@@ -245,8 +245,8 @@ void ProcItemHenshin(TItem *item)
     {
         u16 count;
 
-        count = D_80097AF0 - 1;
-        D_80097AF0 = count;
+        count = HenshinCount - 1;
+        HenshinCount = count;
         if ((s32)(count << 16) > 0 &&
             item->owner->itmctl == item->type &&
             item->owner->status != 0x10 &&
@@ -262,7 +262,7 @@ void ProcItemHenshin(TItem *item)
                 return;
             }
         }
-        scratch.sv = D_80097AF4[0];
+        scratch.sv = svec_y_n50[0];
         SetSmoke((VECTOR *)mad->locate.coord.t, &scratch.sv, 10, 6);
         if (item->proc == 0)
         {

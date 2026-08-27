@@ -19,8 +19,8 @@
  *
  * ButtonAssign is a 32-byte table: 4 "control-scheme" rows of 8 bytes, each
  * row a permutation of the 8 single-bit pad masks (0x01/0x02/.../0x80).
- * D_800976F6 (a %gp_rel short, control-scheme index 0-3) selects the row
- * (`row = D_800976F6 << 3`). For each of the 8 canonical button positions
+ * ControlScheme (a %gp_rel short, control-scheme index 0-3) selects the row
+ * (`row = ControlScheme << 3`). For each of the 8 canonical button positions
  * i, the function tests the CALLER's raw pad bits against row 0's mask
  * `ButtonAssign[i]` and, if set, OR's the SELECTED scheme's mask
  * `ButtonAssign[row+i]` into the result (remapping physical button i to
@@ -90,7 +90,7 @@
  */
 
 extern u8 ButtonAssign[32];
-extern s16 D_800976F6;
+extern s16 ControlScheme;
 
 s32 FUN_8001b2f4(s16 pad)
 {
@@ -102,7 +102,7 @@ s32 FUN_8001b2f4(s16 pad)
 
     rp = ButtonAssign;
     acc = pad;
-    row = (s32)D_800976F6 << 3;
+    row = (s32)ControlScheme << 3;
     i = 0;
     do
     {

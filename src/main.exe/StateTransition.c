@@ -84,9 +84,9 @@
 extern Humanoid *Me_THINK_C;
 extern s32 StrainRatio;
 extern long EmergencyNotice;
-extern s32 D_80097F10;
-extern s32 D_80097F14;
-extern u16 D_80097F18[2];
+extern s32 ProbeLevelLow;
+extern s32 ProbeLevelHigh;
+extern u16 ProbeAttrib[2];
 extern s32 D_80097F1C;
 
 extern void reset_alert_duration();
@@ -231,7 +231,7 @@ void StateTransition(Humanoid *human)
 
     GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
                  (s16)(Me_THINK_C->width * 2), 0);
-    D_80097F10 = GetAreaMapLevel(GlobalAreaMap,
+    ProbeLevelLow = GetAreaMapLevel(GlobalAreaMap,
                                  Me_THINK_C->locate->vx + vect.vx,
                                  Me_THINK_C->locate->vy - 0xbea,
                                  Me_THINK_C->locate->vz + vect.vz, 0x1a);
@@ -239,13 +239,13 @@ void StateTransition(Humanoid *human)
         u16 field_attrib;
 
         field_attrib = FieldAttrib;
-        D_80097F14 = GetAreaMapLevel(GlobalAreaMap,
+        ProbeLevelHigh = GetAreaMapLevel(GlobalAreaMap,
                                      Me_THINK_C->locate->vx - vect.vx,
                                      Me_THINK_C->locate->vy - 0xbea,
                                      Me_THINK_C->locate->vz - vect.vz,
-                                     (D_80097F18[0] = field_attrib, 0x1a));
+                                     (ProbeAttrib[0] = field_attrib, 0x1a));
     }
-    D_80097F18[1] = FieldAttrib;
+    ProbeAttrib[1] = FieldAttrib;
 
     switch (ATTRIB_BITS & 3)
     {
@@ -461,12 +461,12 @@ void StateTransition(Humanoid *human)
         if (Me_THINK_C->pad_hold == 0)
         {
             if ((pad & 0x4000) &&
-                ((D_80097F18[1] & 0x204) || D_80097F14 > 5000))
+                ((ProbeAttrib[1] & 0x204) || ProbeLevelHigh > 5000))
             {
                 Me_THINK_C->pad_hold = 0x1000001e;
             }
             if ((pad & 0x1000) &&
-                ((D_80097F18[0] & 0x204) || D_80097F10 > 5000))
+                ((ProbeAttrib[0] & 0x204) || ProbeLevelLow > 5000))
             {
                 pad = turn_towards_player_(0, 0) & 0xa000;
             }
@@ -569,11 +569,11 @@ update_hint:
                 }
             }
         }
-        else if ((D_80097F18[0] & 0x204) && (pad & 0x1000))
+        else if ((ProbeAttrib[0] & 0x204) && (pad & 0x1000))
         {
             pad &= 0xefff;
         }
-        else if ((D_80097F18[1] & 0x204) && (pad & 0x4000))
+        else if ((ProbeAttrib[1] & 0x204) && (pad & 0x4000))
         {
             pad &= 0xbfff;
         }
@@ -627,10 +627,10 @@ update_hint:
     periodic_check:
             if (GameClock == (GameClock / 90) * 90 &&
                 (((u16)Me_THINK_C->map.attrib & 0x100) ||
-                 ((pad & 0x1000) && D_80097F10 < 0x899 &&
-                  D_80097F10 != (s32)0x80000000) ||
-                 ((pad & 0x4000) && D_80097F14 < 0x899 &&
-                  D_80097F14 != (s32)0x80000000)))
+                 ((pad & 0x1000) && ProbeLevelLow < 0x899 &&
+                  ProbeLevelLow != (s32)0x80000000) ||
+                 ((pad & 0x4000) && ProbeLevelHigh < 0x899 &&
+                  ProbeLevelHigh != (s32)0x80000000)))
             {
                 pad |= 0x40;
             }

@@ -53,7 +53,7 @@ struct HenshinModelSnapshot
 /* ITEM.C's original disguise snapshot. Retail adds a second snapshot for
  * the disguise target model; no original name for that addition is known. */
 extern HenshinModelSnapshot Item_save;
-extern HenshinModelSnapshot D_800C06F0;
+extern HenshinModelSnapshot HenshinSnapshot;
 
 /* Per-stage disguise character types. The original demo ITEM.C table had
  * nine anonymous two-byte rows; retail appends three more stage rows. */

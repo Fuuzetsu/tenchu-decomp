@@ -69,7 +69,7 @@
  *    windows (cse follows the fallthrough path only).
  */
 extern Humanoid *Me_THINK_C;
-extern s32 D_80097F10;
+extern s32 ProbeLevelLow;
 
 s16 turn_towards_player_(s32 x_diff, s32 z_diff)
 {
@@ -112,7 +112,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
         {
             s32 cached;
 
-            cached = D_80097F10;
+            cached = ProbeLevelLow;
             if (cached != 0x80000000)
             {
                 return result;

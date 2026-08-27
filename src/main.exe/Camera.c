@@ -36,7 +36,7 @@
 extern s32 Projection;
 
 extern char fmt_owner_r[]; /* OWNER: (%d, %d, %d) R:%d */
-extern char D_80097A38[]; /* "\n" */
+extern char str_newline[]; /* "\n" */
 
 extern void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif);
 extern void CameraType1(Humanoid *pl, GsRVIEW2 *vDif);
@@ -102,7 +102,7 @@ void Camera(void)
         }
         model = CamState.Owner->model;
         FntPrint(fmt_owner_r, model->locate.coord.t[0], model->locate.coord.t[1], model->locate.coord.t[2], model->rotate.vy);
-        FntPrint(D_80097A38);
+        FntPrint(str_newline);
         GsSetProjection(Projection);
         debug_output_edit_camera_settings(pad_dat);
     }

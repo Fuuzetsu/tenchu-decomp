@@ -17,7 +17,7 @@ typedef union
     } frame;
 } ProcItemJiraiScratch;
 
-extern SVECTOR D_80097AE4[];
+extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern void reset_alert_duration(void);
@@ -199,7 +199,7 @@ void ProcItemJirai(TItem *item)
     }
 
     case 2:
-        scratch.explosion.vec = D_80097AE4[0];
+        scratch.explosion.vec = svec_y_n25[0];
         memset(&scratch.explosion.pos_buf, 0, sizeof(VECTOR));
         scratch.explosion.pos_buf.vx = item->locate->locate.coord.t[0];
         scratch.explosion.pos_buf.vy = item->locate->locate.coord.t[1];

@@ -64,7 +64,7 @@ typedef union
 } ProcItemNinkenScratch;
 
 extern Humanoid *NINKEN_CHARACTER_PTR;
-extern SVECTOR D_80097AF4[];
+extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
@@ -245,7 +245,7 @@ void ProcItemNinken(TItem *item)
             return;
         }
 
-        scratch.spawn.work.vec = D_80097AF4[0];
+        scratch.spawn.work.vec = svec_y_n50[0];
         SetSmoke(&scratch.spawn.pos, &scratch.spawn.work.vec, 10, 6);
         SoundEx(&scratch.spawn.pos, 0x23);
         param->slave = NINKEN_CHARACTER_PTR;
@@ -313,7 +313,7 @@ void ProcItemNinken(TItem *item)
         }
 
 expire:
-        scratch.vec = D_80097AF4[0];
+        scratch.vec = svec_y_n50[0];
         SetSmoke((VECTOR *)param->slave->model->locate.coord.t,
                  &scratch.vec, 10, 6);
         SoundEx((VECTOR *)param->slave->model->locate.coord.t, 0x23);

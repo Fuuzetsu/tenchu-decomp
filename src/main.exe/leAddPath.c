@@ -38,7 +38,7 @@
  * (debug menu "path layout > add path").
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `pow = D_80097ABC[0];` (whole SVECTOR struct assignment through an
+ *  - `pow = svec_y_n100[0];` (whole SVECTOR struct assignment through an
  *    unknown-size array, not field-by-field or a plain scalar extern) —
  *    align-2 struct copies compile to lwl/lwr+swl/swr block moves (Stack
  *    objects section), and the 8-byte SVECTOR still wants the two-register
@@ -55,7 +55,7 @@
  *    SVECTOR copy's lui/addiu address materialization.
  */
 
-extern SVECTOR D_80097ABC[];
+extern SVECTOR svec_y_n100[]; /* {0,-100,0} */
 extern void *memset(void *s, s32 c, u32 n);
 
 void leAddPath(s32 id, s32 x, s32 y, s32 z)
@@ -77,7 +77,7 @@ void leAddPath(s32 id, s32 x, s32 y, s32 z)
             pos.vx = x;
             pos.vy = y;
             pos.vz = z;
-            pow = D_80097ABC[0];
+            pow = svec_y_n100[0];
             SetExplosion(&pos, &pow);
         }
     }

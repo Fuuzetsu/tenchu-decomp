@@ -29,11 +29,11 @@
  *
  * GsSPRITE's fields (attribute/mx/my/rotate) are the proven PSY-Q SDK
  * layout already used by InitSprite.c/PutLifeBar.c (include/psxsdk/libgs.h).
- * D_8008E4B4 is a small local per-style source table (not referenced by any
+ * LifeBarParts is a small local per-style source table (not referenced by any
  * other matched function): a `long` forwarded into both sprites' `rotate`
  * field, plus one image-id byte per sprite (fed straight to GetImage).
  * Indexed by the SAME loop counter used for the `i < nLifeBarStyle` test
- * (`D_8008E4B4[i]`), not walked with its own incrementing pointer: touching
+ * (`LifeBarParts[i]`), not walked with its own incrementing pointer: touching
  * 2+ fields
  * (word0 and both id bytes) per iteration through a raw walking pointer
  * makes cc1's strength reduction split off a SECOND parallel induction
@@ -62,7 +62,7 @@ typedef struct
     u8 imgB;    /* +0x5 */
 } LifeBarSpriteEntry;
 
-extern LifeBarSpriteEntry D_8008E4B4[];
+extern LifeBarSpriteEntry LifeBarParts[];
 extern GsIMAGE *GetImage(s32 id);
 
 void FUN_8004a6bc(void)
@@ -75,17 +75,17 @@ void FUN_8004a6bc(void)
     for (i = 0; i < nLifeBarStyle; i++)
     {
         slot = &LifeBarStyle[i].frame;
-        InitSprite(GetImage(D_8008E4B4[i].imgA), slot);
+        InitSprite(GetImage(LifeBarParts[i].imgA), slot);
         slot->mx = 0;
         slot->my = 0;
-        slot->rotate = D_8008E4B4[i].rotate;
+        slot->rotate = LifeBarParts[i].rotate;
         slot->attribute = 0x40000000;
 
         slot = &LifeBarStyle[i].fill;
-        InitSprite(GetImage(D_8008E4B4[i].imgB), slot);
+        InitSprite(GetImage(LifeBarParts[i].imgB), slot);
         slot->mx = 0;
         slot->my = 0;
-        tmp = D_8008E4B4[i].rotate;
+        tmp = LifeBarParts[i].rotate;
         slot->attribute = 0x50000000;
         slot->rotate = tmp;
     }

@@ -69,7 +69,7 @@ typedef union
 } ActDeadScratch;
 
 extern Humanoid *Me_MOTION_C;
-extern Humanoid *D_8009770C;
+extern Humanoid *DeadHumanoid;
 extern DeadEvent *D_80086B0C[];
 extern SVECTOR D_8009771C[];
 
@@ -247,10 +247,10 @@ event_ready:
 ordinary_dead:
     if ((*(u16 *)&Me_MOTION_C->type & 0xf0) != 0xa0)
     {
-        if (dtM->count == 5 && D_8009770C == Me_MOTION_C)
+        if (dtM->count == 5 && DeadHumanoid == Me_MOTION_C)
         {
-            Sound(D_8009770C, 0x38);
-            D_8009770C = 0;
+            Sound(DeadHumanoid, 0x38);
+            DeadHumanoid = 0;
         }
         blood = 1;
         bldo = 100;

@@ -64,7 +64,7 @@ void create_ninken_character_(s16 type, s32 stage)
                           999000, 999000, 999000, 0);
         model = human->model;
         i = 0;
-        saved = &D_800C06F0;
+        saved = &HenshinSnapshot;
         saved->waist = model->rotate.pad;
         if (model->n > 0)
         {
@@ -151,7 +151,7 @@ void create_ninken_character_(s16 type, s32 stage)
 // extern TCameraStatus CamState;
 // extern ? D_8008E3EC;
 // extern s32 D_800C0630;
-// extern s32 D_800C06F0;
+// extern s32 HenshinSnapshot;
 // extern void *NINKEN_CHARACTER_PTR;
 //
 // void create_ninken_character_(s16 arg0, s32 arg1) {
@@ -187,9 +187,9 @@ void create_ninken_character_(s16 type, s32 stage)
 //     temp_v0_2 = BreedLife(*((arg0 == 1) + ((s32) (arg1 << 0x10) >> 0xF) + &D_8008E3EC), 0xF3E58, 0xF3E58, 0xF3E58, 0);
 //     temp_a2 = temp_v0_2->unk58;
 //     var_a3 = 0;
-//     D_800C06F0 = (s32) temp_a2->unk56;
+//     HenshinSnapshot = (s32) temp_a2->unk56;
 //     if (temp_a2->unk64 > 0) {
-//         var_a1 = &D_800C06F0;
+//         var_a1 = &HenshinSnapshot;
 //         do {
 //             temp_v1_2 = var_a3 * 4;
 //             var_a1->unk4 = (s32) (*(temp_v1_2 + temp_a2->unk68))->unk6C;

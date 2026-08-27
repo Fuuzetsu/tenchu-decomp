@@ -120,7 +120,7 @@ typedef union
     } frame;
 } ProcItemFireScratch;
 
-extern SVECTOR D_80097AE4[];
+extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 extern SVECTOR D_80097AFC[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
@@ -307,7 +307,7 @@ void ProcItemFire(TItem *item)
     {
         s32 n;
 
-        scratch.explosion.vec = D_80097AE4[0];
+        scratch.explosion.vec = svec_y_n25[0];
         memset(&scratch.explosion.pos_buf, 0, sizeof(VECTOR));
         scratch.explosion.pos_buf.vx = item->locate->locate.coord.t[0];
         scratch.explosion.pos_buf.vy = item->locate->locate.coord.t[1];

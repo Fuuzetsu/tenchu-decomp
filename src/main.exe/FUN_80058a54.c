@@ -14,7 +14,7 @@
  *    $v0/$v1 coloring for those two switch arms.
  */
 
-extern u_long D_800C6588;
+extern u_long DivDepth; /* GsDOBJ2 attribute bits 9..11 */
 
 extern u_long *FUN_80058c70(u_short *primitive, u_long vertop,
                             u_long *packet, u_short count, u_long shift,
@@ -45,7 +45,7 @@ void FUN_80058a54(GsDOBJ2 *obj, u_long ot, u_long shift,
     GsLIGNR = obj->attribute >> 5 & 1;
     vertop = (u_long)tmd->vertop;
     GsLIOFF = obj->attribute >> 6 & 1;
-    D_800C6588 = obj->attribute >> 9 & 7;
+    DivDepth = obj->attribute >> 9 & 7;
     GsTON = obj->attribute >> 0x1e & 1;
 
     while (n != 0) {

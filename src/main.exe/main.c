@@ -62,7 +62,7 @@
  *    and `SkipFrame == 1` tests.
  */
 
-extern u16 D_800976F6;
+extern u16 ControlScheme;
 extern char D_80011004[];
 
 extern void ResetCallback(void);
@@ -117,7 +117,7 @@ int main(void)
     DemoPatchInit();
     InitPersistentState();
     ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    D_800976F6 = ps->control_scheme;
+    ControlScheme = ps->control_scheme;
     CreateStage(ps->StageNo, ps->CharType);
     FUN_8001b4bc();
     do

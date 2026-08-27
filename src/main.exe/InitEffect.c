@@ -47,7 +47,7 @@
  * images, and draw primitive used by the game's visual effects.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - Copying the table at `D_80097A38 + 8` through the named `blood_src`
+ *  - Copying the table at `str_newline + 8` through the named `blood_src`
  *    pointer makes cc1 materialize the anchored +8 address before the two-word
  *    stack copy.  A direct member assignment folds the loads into
  *    the `%hi` base and does not match the target's `lui; addiu; lwl/lwr`
@@ -71,7 +71,7 @@ typedef struct
 } BloodImageIds;
 
 /* "\n"; +4 is an independent effect-pool cursor, and the image table starts at +8. */
-extern char D_80097A38[];
+extern char str_newline[];
 /* Retail extends EFFECT.C's original three-entry static image-ID table. */
 extern u8 Effect_img[5];
 extern s32 D_80011C90[3];
@@ -98,7 +98,7 @@ void InitEffect(void)
     GsIMAGE *image;
     s16 i;
 
-    blood_src = (BloodImageIds *)&D_80097A38[8];
+    blood_src = (BloodImageIds *)&str_newline[8];
     blood_images = *blood_src;
     i = 0;
     bloodp = &blood_images;

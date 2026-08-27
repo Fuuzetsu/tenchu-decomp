@@ -16,7 +16,7 @@
  * system with the standard ChkCard.c/LoadCard.c/DeleteCard.c boilerplate
  * (MemCardAccept(0) then MemCardSync to block for the result), builds a
  * memory-card path exactly like DeleteCard.c ("%s%s" of the volume-id
- * prefix D_80097D04 and the caller's `name`), opens it via MemCardOpen in
+ * prefix CardVolume and the caller's `name`), opens it via MemCardOpen in
  * mode 1, blocks on MemCardSync again, and — unlike DeleteCard/LoadCard,
  * which go on to read/delete the file — immediately closes it again with
  * no read/write in between if the open failed (`result == 0`). That shape
@@ -28,7 +28,7 @@
  * "Toolchain gotchas") is a call-site prototype marker for the `jal
  * sprintf` inside, not a jump table — one C function produces both pieces.
  *
- * D_80097D04/D_80097D08 and their types are proven by DeleteCard.c (the
+ * CardVolume/D_80097D08 and their types are proven by DeleteCard.c (the
  * same TU, same "%s%s" sprintf idiom); MemCardOpen/MemCardClose have no
  * prototype elsewhere in the game yet, so declared minimally from the raw
  * a0-a3/`jal` call sites (MemCardOpen(chan, path, mode); MemCardClose()
@@ -36,7 +36,7 @@
  *
  * TENCHU_ID/CardPathFormat (0x80097D04/0x80097D08) are bound under
  * fresh names in config/symbols.main.exe.txt, not the splat-auto
- * D_80097D04/D_80097D08: converting this function away from raw asm
+ * CardVolume/D_80097D08: converting this function away from raw asm
  * removed the last raw-bytes anchor for those two addresses, so splat's
  * auto-symbol table started deriving them from a drifted accumulation
  * elsewhere (+4 bytes each) — see DeleteCard.c, the other consumer, fixed
