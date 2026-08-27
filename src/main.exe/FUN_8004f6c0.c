@@ -12,12 +12,12 @@
  * that fall out of range `j` straight into it (see docs/matching-cookbook.md
  * "not every 2-piece report is a real jump table").
  *
- * $a1 (a copy of param_1 taken once at entry) stays live and unreloaded
+ * $a1 (a copy of id taken once at entry) stays live and unreloaded
  * through every test AND into the shared default tail - AdtMessageBox's
- * second argument (param_1) is passed in the SAME register the whole
+ * second argument (id) is passed in the SAME register the whole
  * function long, never recomputed at the call site (the m2c
  * leading-live-argument undercount rule: m2c/Ghidra only show the format
- * string as AdtMessageBox's argument, but the raw .s proves $a1==param_1
+ * string as AdtMessageBox's argument, but the raw .s proves $a1==id
  * is also passed).
  */
 extern void AdtMessageBox(char *fmt, ...);
@@ -29,9 +29,9 @@ extern char path_tenchu_ending_exe_1[]; /* cdrom:\\TENCHU\\ENDING.EXE;1 */
 extern char path_tenchu_trial_exe_1[]; /* cdrom:\\TENCHU\\TRIAL.EXE;1 */
 extern char fmt_bad_process_id[]; /* bad process id %x */
 
-void FUN_8004f6c0(int param_1)
+void FUN_8004f6c0(int id)
 {
-    switch (param_1) {
+    switch (id) {
     case 0x10:
         LoadExecEx((u8 *)path_tenchu_menu_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
@@ -45,7 +45,7 @@ void FUN_8004f6c0(int param_1)
         LoadExecEx((u8 *)path_tenchu_trial_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     default:
-        AdtMessageBox(fmt_bad_process_id, param_1);
+        AdtMessageBox(fmt_bad_process_id, id);
         FUN_8004f6c0(0x10);
         return;
     }

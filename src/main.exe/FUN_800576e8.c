@@ -51,7 +51,7 @@
 
 extern u8 D_8008EF98[];
 
-s32 FUN_800576e8(u8 *param_1)
+s32 FUN_800576e8(u8 *str)
 {
     s32 width;
     s32 bVar1;
@@ -63,12 +63,12 @@ s32 FUN_800576e8(u8 *param_1)
     {
         width = TelopP.u1 - TelopP.u0;
     }
-    else if (*param_1 != 0)
+    else if (*str != 0)
     {
         do
         {
-            bVar1 = *param_1;
-            param_1++;
+            bVar1 = *str;
+            str++;
             if (bVar1 == 0x92)
             {
                 bVar1 = 0x27;
@@ -84,7 +84,7 @@ s32 FUN_800576e8(u8 *param_1)
             }
             entry = idx + D_8008EF98;
             width += *entry;
-        } while (*param_1 != 0);
+        } while (*str != 0);
     }
     return width;
 }
