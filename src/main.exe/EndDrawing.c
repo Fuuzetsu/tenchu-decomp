@@ -46,7 +46,7 @@
  *     asm computes the quotient then re-multiplies and compares, matching
  *     Ghidra's literal rendering, not a modulo idiom), while not already
  *     mid-skip (`SkipFrame == 0`), snapshot how much of the current GPU
- *     packet buffer is left: `GsGetWorkBase() - D_80098040` (the buffer's
+ *     packet buffer is left: `GsGetWorkBase() - Packet` (the buffer's
  *     base, same absolute symbol as StartDrawing.c's page stride constant)
  *     minus the current page's byte offset (`DrawingPage << 16`), clamped
  *     to 0x10000. Two independent `sw`s (one per branch) store the clamped
@@ -133,7 +133,10 @@
  * 0x800976b8, directly between SkipFrame and `time`).
  */
 
-extern u8 D_80098040[];
+/* Demo PSX.SYM: unsigned char Packet[2][65536] — the double GPU packet
+ * buffer. The incomplete extern spelling is load-bearing (absolute, not
+ * gp-relative — see the notes above). */
+extern u8 Packet[];
 extern u32 D_800976B8;
 extern s32 time;
 
@@ -148,7 +151,7 @@ void EndDrawing(short sync)
 
     if ((GameClock == (GameClock / 30) * 30) && (SkipFrame == 0))
     {
-        val = (u32)GsGetWorkBase() - (u32)D_80098040 - (DrawingPage << 16);
+        val = (u32)GsGetWorkBase() - (u32)Packet - (DrawingPage << 16);
         if (val > 0x10000)
             D_800976B8 = 0x10000;
         else

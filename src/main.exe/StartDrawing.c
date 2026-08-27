@@ -24,7 +24,7 @@
  * loop alongside the (unmatched) present/flip step.
  *
  * DrawingPage/OTable/GameClock are Ghidra-recovered names (symbols.tsv);
- * D_80098040 (the GPU work/packet buffer immediately following OTable's two
+ * Packet (the GPU work/packet buffer immediately following OTable's two
  * entries — OTable+2*sizeof(GsOT) == 0x80098018+0x28 == 0x80098040) has no
  * Ghidra name, so it keeps splat's auto name. GsOT uses the canonical
  * five-word PsyQ LIBGS layout shared by every ordering-table caller.
@@ -38,13 +38,13 @@
  *    reloads fresh with `lh` (DeleteConflict's ConflictObjects rule: two
  *    un-CSE'd loads of one signed-short global, one lhu one lh — give the
  *    narrowing use its own temp and let the index re-read the global).
- *  - `(newPage << 16) + (s32)D_80098040`: EXPAND_SUM special-cases a MULT
+ *  - `(newPage << 16) + (s32)Packet`: EXPAND_SUM special-cases a MULT
  *    sub-term (always expands first, any source order) but NOT a shift —
  *    a shift preserves source order, so the shift is spelled first to land
  *    it as the addu's first source register, matching the target's
  *    `addu $a0,$v1(shift),$a0(addr)` (cookbook's fold/EXPAND_SUM section).
- *  - OTable/D_80098040 are ABSOLUTE (`lui`/`addiu` to %hi/%lo) in this TU,
- *    not %gp_rel — OTable's known 0x28-byte size and D_80098040's incomplete
+ *  - OTable/Packet are ABSOLUTE (`lui`/`addiu` to %hi/%lo) in this TU,
+ *    not %gp_rel — OTable's known 0x28-byte size and Packet's incomplete
  *    array type are both non-small; DrawingPage/OTablePt/
  *    GameClock ARE %gp_rel here (tools/gpsyms.py --write; Build.hs
  *    maspsxGpExterns + permute.py GP_EXTERNS both list StartDrawing now).
@@ -53,7 +53,10 @@
  *    setup).
  */
 
-extern u8 D_80098040[];
+/* Demo PSX.SYM: unsigned char Packet[2][65536] — the double GPU packet
+ * buffer. The incomplete extern spelling is load-bearing (absolute, not
+ * gp-relative — see the notes above). */
+extern u8 Packet[];
 
 
 void StartDrawing(void)
@@ -62,7 +65,7 @@ void StartDrawing(void)
 
     newPage = 1 - DrawingPage;
     DrawingPage = newPage;
-    GsSetWorkBase((void *)((newPage << 16) + (s32)D_80098040));
+    GsSetWorkBase((void *)((newPage << 16) + (s32)Packet));
 
     OTablePt = &OTable[DrawingPage];
     GsClearOt(0, 0, OTablePt);
