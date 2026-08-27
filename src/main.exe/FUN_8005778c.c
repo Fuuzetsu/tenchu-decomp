@@ -7,34 +7,34 @@
  *
  * FUN_8005778c (0x8005778c, 0x184 bytes) — draws a bitmap-font glyph: grabs
  * a POLY_GT4 from the work base (and advances it, like FUN_80038c0c's
- * siblings), remaps the raw character code `param_4` to a cell index in the
+ * siblings), remaps the raw character code `code` to a cell index in the
  * FONT_IMAGE_ sheet (0x92 is special-cased to 0x27, then codes >=0x20/>=0xc0
  * fold down by 0x20/0x40 — a half-width-kana-style remap), copies the whole
  * FONT_IMAGE_ GsIMAGE descriptor onto the stack (one struct assignment —
  * see load_font_image_into_global.c for the identical 7-word unroll), slides
  * its px/py by the cell's (col,row) within the sheet (3 px wide, 0x10 px
- * tall cells), computes an extra y-nudge `sVar3` for a handful of special
+ * tall cells), computes an extra y-nudge `nudge` for a handful of special
  * codes (0xc7/0xe7 get -4/-2/3, everything else in [0xc0,0xdf) or
  * [0xe0,0xff) gets 0), then calls SetupImageToPolyGT4/AddPrim exactly like
  * FUN_80038c0c's neighbours.
  *
  * Matching notes:
- *  - `local_38 = FONT_IMAGE_;` (a plain GsIMAGE struct assignment) is the
+ *  - `img = FONT_IMAGE_;` (a plain GsIMAGE struct assignment) is the
  *    proven load_font_image_into_global.c idiom, reused here in the other
  *    direction (global -> stack).
- *  - The `sVar3` nudge is Ghidra's literal `if ((0x1f < (uint)(param_4 -
- *    0xc0)) || (sVar3 = -4, param_4 == 199)) {...}` — an `||` whose SECOND
- *    operand is a comma expression that unconditionally sets `sVar3 = -4`
+ *  - The `nudge` nudge is Ghidra's literal `if ((0x1f < (uint)(code -
+ *    0xc0)) || (nudge = -4, code == 199)) {...}` — an `||` whose SECOND
+ *    operand is a comma expression that unconditionally sets `nudge = -4`
  *    before testing `== 199`. Writing it as C's own short-circuit `||`
  *    reproduces the control flow directly: transcribe literally, don't
  *    "simplify" the comma away (the -4 must survive to the join point even
  *    on the branch where the equality test fails).
  *  - Preserve three full-width identities through the two-stage fold:
- *    `uVar4` is the unadjusted code, `t1` is the arithmetic working copy,
+ *    `c0` is the unadjusted code, `t1` is the arithmetic working copy,
  *    and `t2` is the final result. That gives the target its visible
  *    v1 -> a0 -> a1 copy chain instead of letting CSE test the original
  *    register and fill the branch delay slot with the first copy.
- *  - Capture `param_4` into the `u8 narrow` before either work-base call,
+ *  - Capture `code` into the `u8 narrow` before either work-base call,
  *    then widen it into `raw` afterwards. This is what keeps the raw a3 ->
  *    s0 copy in the target prologue while placing `andi s0,s0,0xff` after
  *    the calls; an in-place mask either rotates the saved-argument stores
@@ -43,7 +43,7 @@
  *    perform the final narrowing. The source order and full-width shift
  *    reproduce the target's independent column arithmetic before its
  *    `bgez`, followed by `sra`/`sll` for the row.
- *  - The local `short y` truncates `param_3 + sVar3` after the addition.
+ *  - The local `short y` truncates `y0 + nudge` after the addition.
  *    This old caller has no prototype in scope, so its `short` coordinates
  *    receive C's default integer promotions. The typed IMAGES.C API lives in
  *    images.h; keeping this legacy boundary unprototyped avoids inventing an
@@ -52,67 +52,67 @@
 extern GsIMAGE FONT_IMAGE_;
 extern void SetupImageToPolyGT4();
 
-void FUN_8005778c(void *param_1, short param_2, short param_3, u32 param_4)
+void FUN_8005778c(void *ot, short x, short y0, u32 code)
 {
-    u16 uVar2;
+    u16 cell;
     POLY_GT4 *ply;
-    s32 sVar3;
-    s32 uVar4;
+    s32 nudge;
+    s32 c0;
     s32 t1;
     s32 t2;
     u32 raw;
     u8 narrow;
-    GsIMAGE local_38;
+    GsIMAGE img;
 
-    narrow = param_4;
+    narrow = code;
     ply = (POLY_GT4 *)GsGetWorkBase();
     GsSetWorkBase(ply + 1);
     raw = narrow;
-    uVar4 = raw;
+    c0 = raw;
     if (raw == 0x92)
     {
-        uVar4 = 0x27;
+        c0 = 0x27;
     }
-    t1 = uVar4;
+    t1 = c0;
     if (0x1f < t1)
     {
         t1 = t1 - 0x20;
     }
-    if (0xbf < uVar4)
+    if (0xbf < c0)
     {
         t1 = t1 - 0x40;
     }
     t2 = t1;
-    uVar2 = (u16)t2;
-    local_38 = FONT_IMAGE_;
-    local_38.px = local_38.px + (uVar2 & 0xf) * 3;
+    cell = (u16)t2;
+    img = FONT_IMAGE_;
+    img.px = img.px + (cell & 0xf) * 3;
     if (t2 < 0)
     {
         t2 = t2 + 0xf;
     }
-    local_38.pw = 3;
-    local_38.ph = 0x10;
-    local_38.py = local_38.py + (t2 >> 4) * 0x10;
-    if ((0x1f < raw - 0xc0) || (sVar3 = -4, raw == 199))
+    img.pw = 3;
+    img.ph = 0x10;
+    img.py = img.py + (t2 >> 4) * 0x10;
+    if ((0x1f < raw - 0xc0) || (nudge = -4, raw == 199))
     {
         if (raw - 0xe0 < 0x20)
         {
-            sVar3 = -2;
+            nudge = -2;
             if (raw == 0xe7)
             {
-                sVar3 = 3;
+                nudge = 3;
             }
         }
         else
         {
-            sVar3 = 0;
+            nudge = 0;
         }
     }
     {
-        short y = param_3 + sVar3;
+        short y = y0 + nudge;
         s32 y_arg = y;
-        s32 x_arg = param_2;
-        SetupImageToPolyGT4(&local_38, ply, x_arg, y_arg);
+        s32 x_arg = x;
+        SetupImageToPolyGT4(&img, ply, x_arg, y_arg);
     }
-    AddPrim(param_1, ply);
+    AddPrim(ot, ply);
 }
