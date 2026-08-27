@@ -95,7 +95,7 @@
 
 static inline long SubFlyJitter(long mid, long half, long range)
 {
-    if (0 < range)
+    if (range > 0)
     {
         return mid - (rand() % range + half);
     }
@@ -125,7 +125,7 @@ void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 t
     fly->vy = end->vy;
     fly->vz = end->vz;
     len = GetVectorDistance(start, end);
-    if (0 < time)
+    if (time > 0)
     {
         fly->count = len / time;
         if ((fly->count & 0xff) != 0)
@@ -150,7 +150,7 @@ skip_default:
     yh = len >> 12;
     midx = (fly->sx + fly->vx) / 2;
     v8 = yw << 1;
-    if (0 < v8)
+    if (v8 > 0)
     {
         len = midx + (rand() % v8 - yw);
     }
@@ -167,7 +167,7 @@ skip_default:
     midz = (fly->sz + fly->vz) / 2;
     v8 = yw << 1;
     fly->ry = len;
-    if (0 < v8)
+    if (v8 > 0)
     {
         current_z = midz + (rand() % v8 - yw);
     }

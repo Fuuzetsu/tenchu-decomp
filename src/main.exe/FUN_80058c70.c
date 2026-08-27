@@ -281,7 +281,7 @@ u_long *FUN_80058c70(u_short *primtop, u_long vertop, u_long *packet, int count,
                 *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
                 FUN_80057b80(po, work, 0);
             }
-            count = count + -1;
+            count = count - 1;
             primitive++;
         } while (count != 0);
     }

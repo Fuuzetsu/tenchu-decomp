@@ -138,7 +138,7 @@ u_long *FUN_80059008(u_short *primtop, u_long vertop, u_long *packet, int count,
                 *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
                 FUN_80057b80(frame, work, 0);
             }
-            cnt = cnt + -1;
+            cnt = cnt - 1;
             primitive++;
         } while (cnt != 0);
     }

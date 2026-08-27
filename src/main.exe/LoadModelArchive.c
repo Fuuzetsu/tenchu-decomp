@@ -80,7 +80,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->object = (ModelType **)valloc(mad->n * sizeof(ModelType *));
     prntp = (ParentingType *)adr;
     tmdp = (u8 *)prntp;
-    if (0 < mad->n) {
+    if (mad->n > 0) {
         do {
             dtmd = (int)tmdp + prntp[i].index;
             dim = (ModelType *)valloc(sizeof(ModelType));
@@ -127,7 +127,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->id = -1;
     mad->attribute = 0;
     count = *(u16 *)&mad->n;
-    if (0 < mad->n) {
+    if (mad->n > 0) {
         do {
             objp = mad->object[i];
             super = (ModelType *)mad;

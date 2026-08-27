@@ -312,7 +312,7 @@ attack_break:
         motID = 0;
         motMODE = 1;
     }
-    dtL->vy = dtL->vy + -1;
+    dtL->vy = dtL->vy - 1;
     return;
 resolve_hit:
     dtM->mask = 0x7fff;
@@ -344,7 +344,7 @@ resolve_hit:
                 }
                 if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
                 {
-                    Me_MOTION_C->item[ITEM_SHURIKEN] = Me_MOTION_C->item[ITEM_SHURIKEN] + '\x01';
+                    Me_MOTION_C->item[ITEM_SHURIKEN] = Me_MOTION_C->item[ITEM_SHURIKEN] + 1;
                 }
                 /* fall through: the shared zero-damage test preserves an existing 20 */
             case ITEM_HAPPOU:
@@ -520,7 +520,7 @@ resolve_hit:
                     dir.vz >>= 1;
                 }
                 p = *dtL;
-                p.vy = p.vy + -1000;
+                p.vy = p.vy - 1000;
                 if (GetAreaMapPassage(GlobalAreaMap, &p, &dir, t) != (VECTOR *)0x0)
                 {
                     return;
@@ -587,7 +587,7 @@ resolve_hit:
                     VECTOR *blood_pos;
 
                     conflict_id = (int)(*Me_MOTION_C->model->object)->id;
-                    if (-1 < conflict_id)
+                    if (conflict_id >= 0)
                     {
                         dtL->vx = ConflictObject[conflict_id].position.vx;
                         dtL->vz = ConflictObject[conflict_id].position.vz;
@@ -660,7 +660,7 @@ resolve_hit:
             int conflict_id;
 
             conflict_id = (int)(*Me_MOTION_C->model->object)->id;
-            if (-1 < conflict_id)
+            if (conflict_id >= 0)
             {
                 dtL->vx = ConflictObject[conflict_id].position.vx;
                 dtL->vz = ConflictObject[conflict_id].position.vz;
@@ -727,7 +727,7 @@ resolve_hit:
                     }
                     else
                     {
-                        dtR->vy = newvy + -0x800;
+                        dtR->vy = newvy - 0x800;
                     }
                 }
                 if (deg == 3)

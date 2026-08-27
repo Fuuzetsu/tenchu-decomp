@@ -106,7 +106,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad->id = -1;
     newmad->attribute = 0;
     i = 0;
-    if (0 < newmad->n) {
+    if (newmad->n > 0) {
         do {
             objp = mad->object[i];
             dim = (ModelType *)valloc(sizeof(ModelType));

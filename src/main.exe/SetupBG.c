@@ -79,7 +79,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     size = (short)(bg->map.ncellw * bg->map.ncellh);
     bg->map.index = bg->index = (u16 *)valloc(size << 1);
     n = 0;
-    if (0 < size)
+    if (size > 0)
     {
         do
         {

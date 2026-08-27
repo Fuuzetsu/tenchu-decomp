@@ -167,7 +167,7 @@ void ActATTACK(void)
         battle = &BattleDB[warid];
         target = human->target;
     }
-    if (((target != (ModelType *)0x0) && (dtM->count < battle->revise)) && (-1 < dtM->count))
+    if (((target != (ModelType *)0x0) && (dtM->count < battle->revise)) && (dtM->count >= 0))
     {
         Humanoid *human;
         short turn;
@@ -537,7 +537,7 @@ dispatch:
                 int conflict_id;
 
                 conflict_id = (int)(*Me_MOTION_C->model->object)->id;
-                if (-1 < conflict_id)
+                if (conflict_id >= 0)
                 {
                     dtL->vx = ConflictObject[conflict_id].position.vx;
                     dtL->vz = ConflictObject[conflict_id].position.vz;
@@ -747,7 +747,7 @@ dispatch:
         waist = *Me_MOTION_C->model->object;
         ActionHalt = 0;
         conflict_id = (int)(*Me_MOTION_C->model->object)->id;
-        if (-1 < conflict_id)
+        if (conflict_id >= 0)
         {
             dtL->vx = ConflictObject[conflict_id].position.vx;
             dtL->vz = ConflictObject[conflict_id].position.vz;
@@ -886,7 +886,7 @@ attack_common:
         if (dtM->count == battle->atks)
         {
             wid = (int)Me_MOTION_C->wepid[0];
-            if (-1 < wid)
+            if (wid >= 0)
             {
                 Humanoid *owner;
                 short conflict_size;
@@ -902,7 +902,7 @@ attack_common:
                 ConflictObject[n].common = (void *)owner;
             }
             wid = (int)Me_MOTION_C->wepid[1];
-            if (-1 < wid)
+            if (wid >= 0)
             {
                 Humanoid *owner;
                 short conflict_size;
@@ -964,7 +964,7 @@ attack_common:
         if (dtM->count == battle->ilus)
         {
             wid = (int)Me_MOTION_C->wepid[0];
-            if (-1 < wid)
+            if (wid >= 0)
             {
                 ilu = SetupAfterimage(hand[0], 10);
                 ilu->vector1 = WeaponDB[wid].ilup0;

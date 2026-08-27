@@ -57,7 +57,7 @@ short ControlAllHumanoid(void)
     VISIBLE_ENEMIES_ = 0;
     i = 0;
     result = Humans;
-    if (0 < result)
+    if (result > 0)
     do
     {
         human = HumanGroup[i];

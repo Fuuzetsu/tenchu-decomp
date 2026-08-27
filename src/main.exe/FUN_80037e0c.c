@@ -83,7 +83,7 @@ void FUN_80037e0c(Humanoid *human, int mode)
         FrameType *frame;
 
         objects = human->model->object;
-        if (0 < human->model->n)
+        if (human->model->n > 0)
         {
             objects = objects + rand() % human->model->n;
         }

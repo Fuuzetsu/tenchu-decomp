@@ -115,7 +115,7 @@ short LoadTIMpack(unsigned long *adr)
     i = 0;
     n = (short)hw;
     p = adr;
-    if (0 < n) {
+    if (n > 0) {
         do {
             GsGetTimInfo((u_long *)((int)p + adr[0] + 4), &tim);
             rect.x = tim.px;

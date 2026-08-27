@@ -258,7 +258,7 @@ short LoadConstruction(u_long *data)
         ObjectSlotManager *slotman;
 
         slotman = &ModelSlot;
-        if (0 < slotman->max)
+        if (slotman->max > 0)
         {
             u32 mask;
             u32 base;

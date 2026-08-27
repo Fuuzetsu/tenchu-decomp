@@ -96,7 +96,7 @@ found:
 
         width = (s16)spread * 2;
         smoke = &ef->param.smoke;
-        if (0 < width)
+        if (width > 0)
         {
             smoke->vec.vx = rand() % width - spread;
         }
@@ -114,7 +114,7 @@ found:
         int width;
 
         width = (s16)spread * 2;
-        if (0 < width)
+        if (width > 0)
         {
             smoke->vec.vz = rand() % width - spread;
         }

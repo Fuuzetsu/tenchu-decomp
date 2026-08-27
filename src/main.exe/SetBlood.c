@@ -158,7 +158,7 @@ outer:
             blood->vz = rand() % 120 - 60;
             half = time / 2;
             half2 = time - half;
-            if (0 < half2)
+            if (half2 > 0)
             {
                 blood->time = rand() % half2 + half;
             }

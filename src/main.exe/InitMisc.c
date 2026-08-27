@@ -88,7 +88,7 @@ void InitMisc(void)
         tm->proc = 0;
         i--;
         tm--;
-    } while (-1 < i);
+    } while (i >= 0);
 
     {
         s32 iDoor1;
