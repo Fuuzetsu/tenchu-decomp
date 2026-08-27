@@ -313,6 +313,20 @@ across 170 files are these authentic classes. Remaining hex
 attribute bits (0x10, 0x100..0x8000) stay until runtime evidence
 names them (rerun tools/pcsx_attrbits.py with targeted steering).
 
+CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
+fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
+humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
+three guard gotos, and the library FUN_ audit: FUN_8006ebe4 identified
+as SsQuit (demo table confirms, 32 bytes, SsEnd/SsQuit shutdown pair in
+LoadExecEx); the pad ISR pair (FUN_80083538/FUN_800835b0) is unnamed
+even in the demo's own debug symbols (exact 120/56-byte correspondence
+to demo FUN_80087138/FUN_800871b0) and the 2D_BG22 sort worker
+FUN_80063b94 takes four args where official GsSortFixBg16 takes three —
+both stay honestly unidentified rather than guessed. Every remaining
+humanscan row is a documented byte-required spelling. Reopen conditions:
+new PSX.SYM-grade evidence for the library internals, or runtime
+evidence for the unnamed attribute bits.
+
 ## Current resume point (2026-07-20)
 
 The game-code matching queue is empty. Live output is 537/555 game functions in
