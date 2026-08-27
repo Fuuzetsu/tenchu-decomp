@@ -206,7 +206,7 @@
       "source_owner": "STAGE_SOUND_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x8001357c",
-      "target_owner": "D_80013500",
+      "target_owner": "fmt_playvoice_fail_chan_id",
       "symbol": "stage_sound_prefix_english"
     },
     {
@@ -215,7 +215,7 @@
       "source_owner": "STAGE_SOUND_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x8001355c",
-      "target_owner": "D_80013500",
+      "target_owner": "fmt_playvoice_fail_chan_id",
       "symbol": "stage_sound_prefix_french"
     },
     {
@@ -224,7 +224,7 @@
       "source_owner": "STAGE_SOUND_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x8001353c",
-      "target_owner": "D_80013500",
+      "target_owner": "fmt_playvoice_fail_chan_id",
       "symbol": "stage_sound_prefix_italian"
     },
     {
@@ -233,7 +233,7 @@
       "source_owner": "STAGE_SOUND_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x80013524",
-      "target_owner": "D_80013500",
+      "target_owner": "fmt_playvoice_fail_chan_id",
       "symbol": "stage_sound_prefix_default"
     },
     {
@@ -242,7 +242,7 @@
       "source_owner": "STAGE_ANIMATION_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x80013604",
-      "target_owner": "D_8001359C",
+      "target_owner": "fmt_stage_vab",
       "symbol": "stage_animation_prefix_english"
     },
     {
@@ -251,7 +251,7 @@
       "source_owner": "STAGE_ANIMATION_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x800135e4",
-      "target_owner": "D_8001359C",
+      "target_owner": "fmt_stage_vab",
       "symbol": "stage_animation_prefix_french"
     },
     {
@@ -260,7 +260,7 @@
       "source_owner": "STAGE_ANIMATION_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x800135c4",
-      "target_owner": "D_8001359C",
+      "target_owner": "fmt_stage_vab",
       "symbol": "stage_animation_prefix_italian"
     },
     {
@@ -269,13 +269,13 @@
       "source_owner": "STAGE_ANIMATION_PREFICES",
       "target_file": "207C.data.s",
       "target_address": "0x800135ac",
-      "target_owner": "D_8001359C",
+      "target_owner": "fmt_stage_vab",
       "symbol": "stage_animation_prefix_default"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ea90",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013794",
       "target_owner": "D_800136B0",
@@ -284,7 +284,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ea94",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013788",
       "target_owner": "D_800136B0",
@@ -293,7 +293,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ea9c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001377c",
       "target_owner": "D_800136B0",
@@ -302,7 +302,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eaa0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013770",
       "target_owner": "D_800136B0",
@@ -311,7 +311,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eaa8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013764",
       "target_owner": "D_800136B0",
@@ -320,7 +320,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eaac",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013758",
       "target_owner": "D_800136B0",
@@ -329,7 +329,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eab4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001374c",
       "target_owner": "D_800136B0",
@@ -338,7 +338,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eab8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013740",
       "target_owner": "D_800136B0",
@@ -347,7 +347,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eac0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013734",
       "target_owner": "D_800136B0",
@@ -356,7 +356,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eac4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013728",
       "target_owner": "D_800136B0",
@@ -365,7 +365,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eacc",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001371c",
       "target_owner": "D_800136B0",
@@ -374,7 +374,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ead0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013710",
       "target_owner": "D_800136B0",
@@ -383,7 +383,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ead8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013704",
       "target_owner": "D_800136B0",
@@ -392,7 +392,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eadc",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136f8",
       "target_owner": "D_800136B0",
@@ -401,7 +401,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eae4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136ec",
       "target_owner": "D_800136B0",
@@ -410,7 +410,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eae8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136e0",
       "target_owner": "D_800136B0",
@@ -419,7 +419,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eafc",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136d4",
       "target_owner": "D_800136B0",
@@ -428,7 +428,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb00",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136c8",
       "target_owner": "D_800136B0",
@@ -437,7 +437,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb08",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136bc",
       "target_owner": "D_800136B0",
@@ -446,7 +446,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb14",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013794",
       "target_owner": "D_800136B0",
@@ -455,7 +455,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb18",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013788",
       "target_owner": "D_800136B0",
@@ -464,7 +464,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb20",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001377c",
       "target_owner": "D_800136B0",
@@ -473,7 +473,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb24",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013770",
       "target_owner": "D_800136B0",
@@ -482,7 +482,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb2c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013764",
       "target_owner": "D_800136B0",
@@ -491,7 +491,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb30",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013758",
       "target_owner": "D_800136B0",
@@ -500,7 +500,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb38",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001374c",
       "target_owner": "D_800136B0",
@@ -509,7 +509,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb3c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013740",
       "target_owner": "D_800136B0",
@@ -518,7 +518,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb44",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013734",
       "target_owner": "D_800136B0",
@@ -527,7 +527,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb48",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013728",
       "target_owner": "D_800136B0",
@@ -536,7 +536,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb50",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001371c",
       "target_owner": "D_800136B0",
@@ -545,7 +545,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb54",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013710",
       "target_owner": "D_800136B0",
@@ -554,7 +554,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb5c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013704",
       "target_owner": "D_800136B0",
@@ -563,7 +563,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb60",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136f8",
       "target_owner": "D_800136B0",
@@ -572,7 +572,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb68",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136ec",
       "target_owner": "D_800136B0",
@@ -581,7 +581,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb6c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136e0",
       "target_owner": "D_800136B0",
@@ -590,7 +590,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb80",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136d4",
       "target_owner": "D_800136B0",
@@ -599,7 +599,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb84",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136c8",
       "target_owner": "D_800136B0",
@@ -608,7 +608,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb8c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136bc",
       "target_owner": "D_800136B0",
@@ -617,7 +617,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb98",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013794",
       "target_owner": "D_800136B0",
@@ -626,7 +626,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eb9c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013788",
       "target_owner": "D_800136B0",
@@ -635,7 +635,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eba4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001377c",
       "target_owner": "D_800136B0",
@@ -644,7 +644,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008eba8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013770",
       "target_owner": "D_800136B0",
@@ -653,7 +653,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebb0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013764",
       "target_owner": "D_800136B0",
@@ -662,7 +662,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebb4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013758",
       "target_owner": "D_800136B0",
@@ -671,7 +671,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebbc",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001374c",
       "target_owner": "D_800136B0",
@@ -680,7 +680,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebc0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013740",
       "target_owner": "D_800136B0",
@@ -689,7 +689,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebc8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013734",
       "target_owner": "D_800136B0",
@@ -698,7 +698,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebcc",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013728",
       "target_owner": "D_800136B0",
@@ -707,7 +707,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebd4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001371c",
       "target_owner": "D_800136B0",
@@ -716,7 +716,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebd8",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013710",
       "target_owner": "D_800136B0",
@@ -725,7 +725,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebe0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013704",
       "target_owner": "D_800136B0",
@@ -734,7 +734,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebe4",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136f8",
       "target_owner": "D_800136B0",
@@ -743,7 +743,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebec",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136ec",
       "target_owner": "D_800136B0",
@@ -752,7 +752,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ebf0",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136e0",
       "target_owner": "D_800136B0",
@@ -761,7 +761,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec04",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136d4",
       "target_owner": "D_800136B0",
@@ -770,7 +770,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec08",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136c8",
       "target_owner": "D_800136B0",
@@ -779,7 +779,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec10",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136bc",
       "target_owner": "D_800136B0",
@@ -788,7 +788,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec1c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013794",
       "target_owner": "D_800136B0",
@@ -797,7 +797,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec20",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013788",
       "target_owner": "D_800136B0",
@@ -806,7 +806,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec28",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001377c",
       "target_owner": "D_800136B0",
@@ -815,7 +815,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec2c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013770",
       "target_owner": "D_800136B0",
@@ -824,7 +824,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec34",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013764",
       "target_owner": "D_800136B0",
@@ -833,7 +833,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec38",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013758",
       "target_owner": "D_800136B0",
@@ -842,7 +842,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec40",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001374c",
       "target_owner": "D_800136B0",
@@ -851,7 +851,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec44",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013740",
       "target_owner": "D_800136B0",
@@ -860,7 +860,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec4c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013734",
       "target_owner": "D_800136B0",
@@ -869,7 +869,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec50",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013728",
       "target_owner": "D_800136B0",
@@ -878,7 +878,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec58",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x8001371c",
       "target_owner": "D_800136B0",
@@ -887,7 +887,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec5c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013710",
       "target_owner": "D_800136B0",
@@ -896,7 +896,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec64",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013704",
       "target_owner": "D_800136B0",
@@ -905,7 +905,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec68",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136f8",
       "target_owner": "D_800136B0",
@@ -914,7 +914,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec70",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136ec",
       "target_owner": "D_800136B0",
@@ -923,7 +923,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec74",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136e0",
       "target_owner": "D_800136B0",
@@ -932,7 +932,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec88",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136d4",
       "target_owner": "D_800136B0",
@@ -941,7 +941,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec8c",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136c8",
       "target_owner": "D_800136B0",
@@ -950,7 +950,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ec94",
-      "source_owner": "D_8008EA90",
+      "source_owner": "BriefingAssets",
       "target_file": "2EB0.data.s",
       "target_address": "0x800136bc",
       "target_owner": "D_800136B0",
@@ -962,7 +962,7 @@
       "source_owner": "ITEM_SEL_SPRITE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013824",
-      "target_owner": "D_800137A0",
+      "target_owner": "path_demo",
       "symbol": "item_selection_sprite_path_english"
     },
     {
@@ -971,7 +971,7 @@
       "source_owner": "ITEM_SEL_SPRITE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013800",
-      "target_owner": "D_800137A0",
+      "target_owner": "path_demo",
       "symbol": "item_selection_sprite_path_french"
     },
     {
@@ -980,7 +980,7 @@
       "source_owner": "ITEM_SEL_SPRITE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800137dc",
-      "target_owner": "D_800137A0",
+      "target_owner": "path_demo",
       "symbol": "item_selection_sprite_path_italian"
     },
     {
@@ -989,7 +989,7 @@
       "source_owner": "ITEM_SEL_SPRITE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800137b8",
-      "target_owner": "D_800137A0",
+      "target_owner": "path_demo",
       "symbol": "item_selection_sprite_path_japanese"
     },
     {
@@ -1142,7 +1142,7 @@
       "source_owner": "GOV_ARCHIVE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013af0",
-      "target_owner": "D_80013AC0",
+      "target_owner": "path_font_tim",
       "symbol": "gov_archive_name_english"
     },
     {
@@ -1151,7 +1151,7 @@
       "source_owner": "GOV_ARCHIVE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013ae4",
-      "target_owner": "D_80013AC0",
+      "target_owner": "path_font_tim",
       "symbol": "gov_archive_name_french"
     },
     {
@@ -1160,7 +1160,7 @@
       "source_owner": "GOV_ARCHIVE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013ad8",
-      "target_owner": "D_80013AC0",
+      "target_owner": "path_font_tim",
       "symbol": "gov_archive_name_italian"
     },
     {
@@ -1169,7 +1169,7 @@
       "source_owner": "GOV_ARCHIVE_PTRS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013acc",
-      "target_owner": "D_80013AC0",
+      "target_owner": "path_font_tim",
       "symbol": "gov_archive_name_japanese"
     },
     {
@@ -1178,7 +1178,7 @@
       "source_owner": "HumanData",
       "target_file": "E58.data.s",
       "target_address": "0x800116e0",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "human_name_rikimaru"
     },
     {
@@ -1187,7 +1187,7 @@
       "source_owner": "HumanData",
       "target_file": "E58.data.s",
       "target_address": "0x800116e0",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "human_name_rikimaru"
     },
     {
@@ -1196,7 +1196,7 @@
       "source_owner": "HumanData",
       "target_file": "E58.data.s",
       "target_address": "0x800116d4",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "human_name_onikerai"
     },
     {
@@ -1205,7 +1205,7 @@
       "source_owner": "HumanData",
       "target_file": "E58.data.s",
       "target_address": "0x800116c8",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "human_name_echigoya"
     },
     {
@@ -1214,7 +1214,7 @@
       "source_owner": "WeaponModel",
       "target_file": "E58.data.s",
       "target_address": "0x80011704",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "weapon_model_name_kabututi"
     },
     {
@@ -1223,7 +1223,7 @@
       "source_owner": "WeaponModel",
       "target_file": "E58.data.s",
       "target_address": "0x800116f8",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "weapon_model_name_sasumata"
     },
     {
@@ -1232,7 +1232,7 @@
       "source_owner": "WeaponModel",
       "target_file": "E58.data.s",
       "target_address": "0x800116ec",
-      "target_owner": "D_800116B8",
+      "target_owner": "msg_no_trace_point",
       "symbol": "weapon_model_name_katayumi"
     },
     {
@@ -1796,7 +1796,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097c98",
-      "source_owner": "D_80097C98",
+      "source_owner": "VoiceFiles1",
       "target_file": "207C.data.s",
       "target_address": "0x80012c74",
       "target_owner": "D_80012C68",
@@ -1805,7 +1805,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097c9c",
-      "source_owner": "D_80097C9C",
+      "source_owner": "VoiceFiles2",
       "target_file": "207C.data.s",
       "target_address": "0x80012c8c",
       "target_owner": "D_80012C68",
@@ -1826,7 +1826,7 @@
       "source_owner": "VoiceXaNameF",
       "target_file": "207C.data.s",
       "target_address": "0x80012e9c",
-      "target_owner": "D_80012CBC",
+      "target_owner": "VoiceCommon",
       "symbol": "voice_event_french_xa_name"
     },
     {
@@ -1862,17 +1862,17 @@
       "source_owner": "CID",
       "target_file": "37A8.data.s",
       "target_address": "0x800140f4",
-      "target_owner": "D_800140E0",
+      "target_owner": "fmt_layout_enemies",
       "symbol": "stage_card_id_prefix"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097e98",
-      "source_owner": "D_80097E98",
+      "source_owner": "AdtMsgPtr",
       "target_file": null,
       "target_address": "0x800c2eb2",
-      "target_owner": "D_800C2EB0",
-      "symbol": "D_800C2EB0",
+      "target_owner": "AdtMsgBuf",
+      "symbol": "AdtMsgBuf",
       "target_addend": "0x2"
     }
   ]

@@ -98,7 +98,7 @@ class RewriteTests(unittest.TestCase):
             {
                 "STAGE_SOUND_PREFICES",
                 "STAGE_ANIMATION_PREFICES",
-                "D_8008EA90",
+                "BriefingAssets",
                 "ITEM_SEL_SPRITE_PTRS",
                 "RS_ARCHIVE_PTRS",
                 "RANK_ARCHIVE_PTRS",
@@ -114,8 +114,8 @@ class RewriteTests(unittest.TestCase):
                 "D_800967B8",
                 "D_800973F4",
                 "D_80097400",
-                "D_80097C98",
-                "D_80097C9C",
+                "VoiceFiles1",
+                "VoiceFiles2",
                 "VoiceXaName",
                 "VoiceXaNameF",
                 "VoiceXaNameI",
@@ -123,26 +123,26 @@ class RewriteTests(unittest.TestCase):
                 "TENCHU_ID",
                 "CID",
                 "StageConfig",
-                "D_80097E98",
+                "AdtMsgPtr",
             },
         )
         self.assertEqual(
             {entry.target_owner for entry in entries},
             {
-                "D_80013500",
-                "D_8001359C",
+                "fmt_playvoice_fail_chan_id",
+                "fmt_stage_vab",
                 "D_800136B0",
-                "D_800137A0",
+                "path_demo",
                 "ITEM_HELP_TIM_PATHS",
-                "D_80013AC0",
-                "D_800116B8",
+                "path_font_tim",
+                "msg_no_trace_point",
                 "D_80011960",
                 "D_80012C68",
-                "D_80012CBC",
+                "VoiceCommon",
                 "D_80012EB4",
                 "D_800130AC",
                 "D_80013BC4",
-                "D_800140E0",
+                "fmt_layout_enemies",
                 "D_80014B34",
                 "D_80014D34",
                 "D_80015C04",
@@ -170,7 +170,7 @@ class RewriteTests(unittest.TestCase):
                 "D_80011EB4",
                 "D_80011ED4",
                 "D_80011EF8",
-                "D_800C2EB0",
+                "AdtMsgBuf",
             },
         )
         demo_sources = {
@@ -248,7 +248,7 @@ class RewriteTests(unittest.TestCase):
             },
         )
         demo_entries = [
-            entry for entry in entries if entry.source_owner == "D_8008EA90"
+            entry for entry in entries if entry.source_owner == "BriefingAssets"
         ]
         self.assertEqual(len(demo_entries), 76)
         self.assertEqual(
@@ -329,8 +329,8 @@ class RewriteTests(unittest.TestCase):
             "D_800967B8": 1,
             "D_800973F4": 1,
             "D_80097400": 1,
-            "D_80097C98": 1,
-            "D_80097C9C": 1,
+            "VoiceFiles1": 1,
+            "VoiceFiles2": 1,
             "VoiceXaName": 1,
             "VoiceXaNameF": 1,
             "VoiceXaNameI": 1,
@@ -338,7 +338,7 @@ class RewriteTests(unittest.TestCase):
             "TENCHU_ID": 1,
             "CID": 1,
             "StageConfig": 22,
-            "D_80097E98": 1,
+            "AdtMsgPtr": 1,
         }
         for owner, count in owner_counts.items():
             self.assertEqual(

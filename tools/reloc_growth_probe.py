@@ -87,7 +87,7 @@ SHIFTED_SYMBOLS = (
     "UnitVector2",
     "StageChar",
     "CamState",
-    "D_80097D70",
+    "fmt_num_2",
     "_gp",
     "main_exe_INITIALIZED_END",
 )
@@ -525,17 +525,17 @@ def verify_manifest_pointers(
         if entry.source_address == 0x80097E98:
             saw_bss_cursor = True
             if grown_source - base_source != growth:
-                raise ProbeError("D_80097E98 source did not follow initialized data")
+                raise ProbeError("AdtMsgPtr source did not follow initialized data")
             if grown_target - base_target != bss_delta:
                 raise ProbeError(
-                    "D_80097E98 target did not follow aligned linker-owned BSS"
+                    "AdtMsgPtr target did not follow aligned linker-owned BSS"
                 )
     # These cases enter the manifest together with the broadened byte/unaligned
     # audit.  Once present, keep their different movement semantics executable.
     if any(entry.source_owner == "StageConfig" for entry in entries) and not saw_stage_config:
         raise ProbeError("StageConfig manifest records were not checked")
     if any(entry.source_address == 0x80097E98 for entry in entries) and not saw_bss_cursor:
-        raise ProbeError("D_80097E98 manifest record was not checked")
+        raise ProbeError("AdtMsgPtr manifest record was not checked")
     return len(seen_sources)
 
 

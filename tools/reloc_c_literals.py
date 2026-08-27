@@ -211,20 +211,20 @@ ORDINARY_OBJECT_SPECS = {
         },
     ),
     "SelectCameraOwnerOption": ObjectSpec(
-        {"D_80097D70": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}},
+        {"fmt_num_2": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}},
         (0x8009,),
         {
-            "D_80097D70": {
+            "fmt_num_2": {
                 R_MIPS_HI16: (0x30,),
                 R_MIPS_LO16: (0x44,),
             }
         },
     ),
     "FileOption": ObjectSpec(
-        {"D_80097D70": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}},
+        {"fmt_num_2": {R_MIPS_HI16: 1, R_MIPS_LO16: 1}},
         (0x8009,),
         {
-            "D_80097D70": {
+            "fmt_num_2": {
                 R_MIPS_HI16: (0x2D8,),
                 R_MIPS_LO16: (0x2EC,),
             }
@@ -1149,7 +1149,7 @@ def verify_normal_link(
     reports.extend(verify_linked_relocations(variant, objects))
 
     stale_targets = []
-    for name in ("D_80097D70", "CamState", "StageChar"):
+    for name in ("fmt_num_2", "CamState", "StageChar"):
         symbol = variant.symbol(name)
         if symbol.section_index == SHN_ABS:
             stale_targets.append(name)
