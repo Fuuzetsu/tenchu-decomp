@@ -156,17 +156,15 @@ void ActJUMP(void)
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;
         fall_motion_done:
-            if (old_mid == 0x906)
+            if (old_mid != 0x906)
             {
-                goto half_count;
+                if (old_mid != 0x907)
+                {
+                    return;
+                }
+                dtR->vy += 0x800;
+                (*Me_MOTION_C->model->object)->rotate.vy = 0;
             }
-            if (old_mid != 0x907)
-            {
-                return;
-            }
-            dtR->vy += 0x800;
-            (*Me_MOTION_C->model->object)->rotate.vy = 0;
-        half_count:
             dtM->count >>= 1;
             return;
         }

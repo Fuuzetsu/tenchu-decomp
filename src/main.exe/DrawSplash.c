@@ -133,20 +133,19 @@ void DrawSplash(TEffectSlot *ef)
                 s32 t;
 
                 t = (s32)((u16)scr.vz << 16) >> 18;
-                if (t < 0)
+                if (t >= 0)
                 {
-                    goto zero;
+                    priority = 0x4E1;
+                    if (t < 0x4E2)
+                    {
+                        priority = t;
+                    }
                 }
-                priority = 0x4E1;
-                if (t < 0x4E2)
+                else
                 {
-                    priority = t;
+                    priority = 0;
                 }
             }
-            goto done;
-        zero:
-            priority = 0;
-        done:
             GsSortSprite(spr, OTablePt, (u16)priority);
         }
     }

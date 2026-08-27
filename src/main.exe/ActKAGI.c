@@ -117,31 +117,29 @@ void ActKAGI(void)
             motMODE = 1;
             dz = target->vz - locate->vz;
             v.vz = dz;
-            if (dx != 0 || dz != 0)
+            if (dx == 0 && dz == 0)
             {
-                goto rope_direction;
-            }
-            if (Me_MOTION_C == StagePlayer)
-            {
-                SetCameraMode(CMODE_NORMAL);
-            }
-            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
-            {
-                motID = 0x501;
-                motMODE = 1;
+                if (Me_MOTION_C == StagePlayer)
+                {
+                    SetCameraMode(CMODE_NORMAL);
+                }
+                if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+                {
+                    motID = 0x501;
+                    motMODE = 1;
+                }
+                else
+                {
+                    motID = 0;
+                    motMODE = 1;
+                }
             }
             else
             {
-                motID = 0;
-                motMODE = 1;
+                ry = GetDirection(v.vx, v.vz, dtR->vy);
+                dtR->vy += ry;
+                Sound(Me_MOTION_C, 0x1f);
             }
-            goto rope_done;
-
-        rope_direction:
-            ry = GetDirection(v.vx, v.vz, dtR->vy);
-            dtR->vy += ry;
-            Sound(Me_MOTION_C, 0x1f);
-        rope_done:;
         }
         else if (Me_MOTION_C->pad.trig & 0xe0)
         {

@@ -134,19 +134,19 @@ void ActACTION(void)
             DeleteConflict(model);
             cleanup_guard = 3;
         skip_afterimage_cleanup:
-            if ((cleanup_guard & 2) == 0)
-                goto afterimage_cleanup_done;
-            if (Me_MOTION_C->illusion[0] != 0)
+            if (cleanup_guard & 2)
             {
-                DisposeAfterimage(Me_MOTION_C->illusion[0]);
-                Me_MOTION_C->illusion[0] = 0;
+                if (Me_MOTION_C->illusion[0] != 0)
+                {
+                    DisposeAfterimage(Me_MOTION_C->illusion[0]);
+                    Me_MOTION_C->illusion[0] = 0;
+                }
+                if (Me_MOTION_C->illusion[1] != 0)
+                {
+                    DisposeAfterimage(Me_MOTION_C->illusion[1]);
+                    Me_MOTION_C->illusion[1] = 0;
+                }
             }
-            if (Me_MOTION_C->illusion[1] != 0)
-            {
-                DisposeAfterimage(Me_MOTION_C->illusion[1]);
-                Me_MOTION_C->illusion[1] = 0;
-            }
-        afterimage_cleanup_done:
             do
             {
                 motion = dtM;
