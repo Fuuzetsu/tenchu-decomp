@@ -40,7 +40,7 @@
 extern void save_pad_analog_(void);
 extern void CdaStop(void);
 extern void SsEnd(void);
-extern void FUN_8006ebe4(void);
+extern void SsQuit(void);
 extern void PadStopCom(void);
 extern void MemCardStop(void);
 extern void MemCardEnd(void);
@@ -54,7 +54,7 @@ void LoadExecEx(u8 *file, u32 stack, u32 size)
     save_pad_analog_();
     CdaStop();
     SsEnd();
-    FUN_8006ebe4();
+    SsQuit();
     ResetGraph(3);
     PadStopCom();
     MemCardStop();
