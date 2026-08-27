@@ -840,7 +840,7 @@ void mission_score_screen(void)
                     } while (0);
                 } while (0);
             } while (0);
-        score_row_loop:
+        do
         {
             do
             {
@@ -863,13 +863,11 @@ void mission_score_screen(void)
                 {
                     value = -widenedValue;
                     negative = 1;
-                    goto score_row_number;
                 }
                 else
                 {
                     negative = 0;
                 }
-            score_row_number:
                 do
                 {
                     dividend = (s16)value;
@@ -939,12 +937,8 @@ void mission_score_screen(void)
                 rankSprite->y = i * 0x16 + 0x16;
                 GsSortSprite(rankSprite, OTablePt, 1);
             }
-        }
             i++;
-            if (i < 3)
-            {
-                goto score_row_loop;
-            }
+        } while (i < 3);
         }
 
         SkipFrame = 2;
