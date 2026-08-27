@@ -156,42 +156,42 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
         if ((levmap & (FL | FR | BL | BR)) == BL) {
             CamState.Mode = CMODE_PEEP_R;
-            goto choose_camera;
+            break;
         } else if ((levmap & (FL | FR | BL | BR)) == BR) {
             CamState.Mode = CMODE_PEEP_L;
-            goto choose_camera;
+            break;
         } else if ((levmap & (FL | FR)) == FL) {
             CamState.Mode = CMODE_STICK_R;
-            goto choose_camera;
+            break;
         } else if ((levmap & (FL | FR)) == FR) {
             CamState.Mode = CMODE_STICK_L;
-            goto choose_camera;
+            break;
         } else {
             CamState.Mode = CMODE_NORMAL;
-            goto choose_camera;
+            break;
         }
     }
     case 8:
         CamState.Mode = CMODE_CROUCH;
-        goto choose_camera;
+        break;
     case 0:
         CamState.Mode = CMODE_SWIM;
-        goto choose_camera;
+        break;
     case 7:
         CamState.Mode = 0x11;
-        goto choose_camera;
+        break;
     case 3:
         cs = &CamState;
         if (cs->Owner->motion->mid != MOT_CHASE)
-            goto choose_camera;
+            break;
         cs->Mode = CMODE_RUN;
-        goto choose_camera;
+        break;
     case 5:
         cs = &CamState;
         if (cs->Owner->motion->mid != 0x801)
-            goto choose_camera;
+            break;
         cs->Mode = CMODE_RUN;
-        goto choose_camera;
+        break;
     case 0xD:
     {
         u16 mid;
@@ -200,18 +200,17 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         mid = cs->Owner->motion->mid;
         if ((u16)(mid - 0x1005) < 5) {
             cs->Mode = 0x10;
-            goto choose_camera;
+            break;
         }
         if ((s16)mid != 0x100C)
-            goto choose_camera;
+            break;
         cs->Mode = 0x10;
-        goto choose_camera;
+        break;
     }
     default:
-        goto choose_camera;
+        break;
     }
 
-choose_camera:
     switch (CamState.Mode) {
     case CMODE_CRITICAL_HIT:
         MakeCameraPosition(&pos, &pl->model->rotate,
