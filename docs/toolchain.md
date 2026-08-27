@@ -311,6 +311,16 @@ item-TU functions list none. When a new function needs `$gp` for a symbol, that'
 the signal its original TU defined it — add it to the list (and it'll seed the
 TU-ownership map for the eventual data segments).
 
+**RENAMING a small updates these lists too.** The lists match symbols BY NAME:
+after a `config/symbols.main.exe.txt` rename (e.g. `D_80097F44` →
+`ThinkBudget`), a stale entry silently stops gp-relativizing that symbol and
+every access balloons to an absolute `lui`/`addiu` pair (+4 bytes each — 40
+symbols and ~150 sites in the 2026-08-27 humanising sweep before the repair).
+Grep `Build.hs` and `tools/permute.py` for the old name as part of ANY data
+rename, and gate on an **unpiped** `./Build check` (a `| tail` in the command
+chain returns the pipe's status, not the check's — that masking shipped three
+broken commits before it was caught).
+
 History: the first version of this patch gp-addressed **every** small extern
 (no flag). That matched `Think1sleep` but was wrong for cross-TU references —
 `ProcItemManebue`'s absolute `EmergencyNotice` store (`lui $at`, scheduled late by the

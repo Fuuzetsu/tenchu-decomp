@@ -287,15 +287,16 @@ void DamageControl(void)
     }
     if (motID < 0x71a)
     {
-        goto hanging_hit;
+        goto attack_break;
     }
     if (motID == 0x1009)
     {
         return;
     }
     goto resolve_hit;
-/* motID 0x714..0x719: knocked out of a hang/climb — drop and restart motion */
-hanging_hit:
+/* motID 0x714..0x719 (ATTACK-family moves, per the Act table): the hit
+ * cancels the move — reset ActionHalt, pick recover/idle, nudge down */
+attack_break:
     ActionHalt = 0;
     if (Me_MOTION_C == StagePlayer)
     {
