@@ -9,8 +9,8 @@
  * The two INCLUDE_ASM pieces were one function: the interior prototype marker
  * sits at the printf call in the retry loop, and its branches cross the split.
  */
-extern char D_8001484C[];
-extern char D_80014860[];
+extern char fmt_reading_exec[];
+extern char msg_exe_read_ok[];
 extern void FUN_8005e948(void);
 extern void VSyncCallback(void (*func)(void));
 extern int printf(char *fmt, ...);
@@ -26,13 +26,13 @@ void run_exec_file(u8 *name, u32 stack, u32 size)
     VSyncCallback(FUN_8005e948);
     do {
         do {
-            printf(D_8001484C, name);
+            printf(fmt_reading_exec, name);
             exec = CdReadExec(name);
         } while (exec == NULL);
     } while (CdReadSync(0, NULL) != 0);
 
     VSyncCallback(NULL);
-    printf(D_80014860);
+    printf(msg_exe_read_ok);
     exec->s_addr = stack;
     exec->s_size = size;
     StopCallback();

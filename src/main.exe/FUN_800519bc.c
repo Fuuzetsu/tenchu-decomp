@@ -235,8 +235,8 @@ extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 /* The adjacent retail symbols prove four complete 11-stage language rows. */
-extern DemoScreenAssets D_8008EA90[4][11];
-extern s16 D_8008ECA0[4][11];
+extern DemoScreenAssets BriefingAssets[4][11];
+extern s16 BriefingLimit[4][11];
 extern s16 StageScrollAdj[4][11];
 
 extern BackGround *FUN_8004f4f8(u_long *tim);
@@ -288,7 +288,7 @@ void FUN_800519bc(void)
     s16 i;
 
     file = PathFileRead((u8 *)path_demo,
-                        D_8008EA90[PSTATE->language][PSTATE->StageNo].background);
+                        BriefingAssets[PSTATE->language][PSTATE->StageNo].background);
     sequence = 0;
     fade = 0xfe;
     scroll = -0xa000;
@@ -299,7 +299,7 @@ void FUN_800519bc(void)
     vfree(file);
 
     file = PathFileRead((u8 *)path_demo,
-                        D_8008EA90[PSTATE->language][PSTATE->StageNo].foreground);
+                        BriefingAssets[PSTATE->language][PSTATE->StageNo].foreground);
     TimToDemoSprite(file, &image, &sprite);
     sprite.x = -0xa0;
     sprite.y = -0x78;
@@ -358,7 +358,7 @@ void FUN_800519bc(void)
             {
                 s16 music;
 
-                music = D_8008EA90[PSTATE->language][PSTATE->StageNo].music;
+                music = BriefingAssets[PSTATE->language][PSTATE->StageNo].music;
                 if (PSTATE->CharType == 1 && PSTATE->language == 3 &&
                     (u32)(PSTATE->StageNo - 6) < 2)
                 {
@@ -378,7 +378,7 @@ void FUN_800519bc(void)
             break;
 
         case 2:
-            if (D_8008ECA0[PSTATE->language][PSTATE->StageNo] < counter++)
+            if (BriefingLimit[PSTATE->language][PSTATE->StageNo] < counter++)
             {
                 sequence = 3;
             }

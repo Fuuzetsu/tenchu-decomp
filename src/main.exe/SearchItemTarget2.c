@@ -103,7 +103,7 @@
  *    it's a plain signed comparison `0 < life`, unlike the narrowing `lhu`
  *    uses seen elsewhere) both check out against this function's own asm.
  */
-extern VECTOR D_800121F0;
+extern VECTOR vec_z_n17000;
 
 extern long abs(long x);
 
@@ -121,7 +121,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
     int z;
 
     ret = 0;
-    tv = D_800121F0;
+    tv = vec_z_n17000;
     RotateVector(&tv, rot->vx, rot->vy, rot->vz);
     tv.vx = tv.vx + start->vx;
     tv.vy = tv.vy + start->vy;

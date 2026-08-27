@@ -58,10 +58,10 @@ extern u8 *VoiceXaNameJ;
 extern TVoiceTable *VoiceTables[4];
 
 /* INTRO/TORA voice tables + their filenames (id ranges [100,200)/[200,300)). */
-extern TVoiceTable D_8008E82C[];
-extern TVoiceTable D_8008E930[];
-extern u8 *D_80097C98;
-extern u8 *D_80097C9C;
+extern TVoiceTable VoiceBank1[];
+extern TVoiceTable VoiceBank2[];
+extern u8 *VoiceFiles1;
+extern u8 *VoiceFiles2;
 
 /* Fallback (language/range-independent) voice table. */
 extern TVoiceTable VoiceCommon[]; /* fallback bank searched when no stage table matches */
@@ -202,14 +202,14 @@ void PlayVoice(int id)
     {
         if (id >= 200)
         {
-            voice = D_8008E930;
+            voice = VoiceBank2;
             id -= 200;
-            FileName = D_80097C9C;
+            FileName = VoiceFiles2;
         }
         else
         {
-            voice = D_8008E82C;
-            FileName = D_80097C98;
+            voice = VoiceBank1;
+            FileName = VoiceFiles1;
             id -= 100;
         }
         match = 0;
@@ -481,10 +481,10 @@ found:
 // extern ? VoiceTables;
 // extern ? fmt_bad_voice_no;
 // extern ? fmt_playvoice_fail_chan_id;
-// extern u8 D_8008E82C;
-// extern u8 D_8008E930;
-// extern s32 D_80097C98;
-// extern s32 D_80097C9C;
+// extern u8 VoiceBank1;
+// extern u8 VoiceBank2;
+// extern s32 VoiceFiles1;
+// extern s32 VoiceFiles2;
 // extern u8 *VoiceXaName;
 // extern u8 *VoiceXaNameF;
 // extern u8 *VoiceXaNameI;
@@ -536,12 +536,12 @@ found:
 //     memset(&sp40, 0, 4);
 //     if (var_s3 >= 0x64) {
 //         if (var_s3 >= 0xC8) {
-//             var_a0 = &D_8008E930;
-//             var_s4 = D_80097C9C;
+//             var_a0 = &VoiceBank2;
+//             var_s4 = VoiceFiles2;
 //             var_s3 -= 0xC8;
 //         } else {
-//             var_a0 = &D_8008E82C;
-//             var_s4 = D_80097C98;
+//             var_a0 = &VoiceBank1;
+//             var_s4 = VoiceFiles1;
 //             var_s3 -= 0x64;
 //         }
 //         var_s2 = NULL;

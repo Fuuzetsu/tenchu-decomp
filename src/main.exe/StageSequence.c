@@ -83,7 +83,7 @@ extern char fmt_dbg_quad[]; /* %d-%d-%d-%d  */
 extern char fmt_dbg_counts[]; /* %d/%d/%d(%d/%d)  */
 extern char fmt_num_paren[]; /* %d(%d) */
 extern char fmt_num_bracket[]; /*  [%d] */
-extern char D_80097C8C[];
+extern char str_newline_3[];
 
 extern void UpdateEvent(s16 n, s16 id);
 extern void PlayMusicFormID(s32 id);
@@ -164,7 +164,7 @@ active_events:
         {
             FntPrint(fmt_num_bracket, Event[1]->id);
         }
-        FntPrint(D_80097C8C);
+        FntPrint(str_newline_3);
     }
 
     StageTime++;

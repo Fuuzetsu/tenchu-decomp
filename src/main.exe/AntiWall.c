@@ -53,8 +53,8 @@
  *    truncation sequence and retain its intermediate numerator registers.
  */
 
-extern SVECTOR D_800979F4;
-extern SVECTOR D_800979FC;
+extern SVECTOR WallProbeL;
+extern SVECTOR WallProbeR;
 extern char str_mark_l[]; /* (L) */
 extern char str_mark_r[]; /* (R) */
 extern char str_mark_alert[]; /* (!) */
@@ -81,8 +81,8 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
                  (MATRIX *)TENCHU_SCRATCHPAD(0x40));
     SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x40));
 
-    ApplyRotMatrix(&D_800979F4, &vsL);
-    ApplyRotMatrix(&D_800979FC, &vsR);
+    ApplyRotMatrix(&WallProbeL, &vsL);
+    ApplyRotMatrix(&WallProbeR, &vsR);
 
     lvR = GetAreaMapLevel(GlobalAreaMap,
                           target->vpx + vsR.vx,

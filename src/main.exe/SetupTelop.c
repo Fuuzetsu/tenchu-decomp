@@ -355,7 +355,7 @@
  *     previously-live local (here the U-coordinate `u`) over an arbitrary one --
  *     any previously-live local supplies the pressure, so pick the human one.
  */
-extern u16 D_8008F078[];
+extern u16 TelopFont[];
 
 extern s16 *Krom2RawAdd(u32 code);
 extern void *memset(void *dst, int value, u32 size);
@@ -411,7 +411,7 @@ void SetupTelop(u8 *telop, short line)
 
             if (telop[n] == 0x81 && telop[n + 1] == 0x99)
             {
-                font = D_8008F078;
+                font = TelopFont;
             }
             else
             {

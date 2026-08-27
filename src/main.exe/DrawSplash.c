@@ -43,7 +43,7 @@
  *   below the scratchpad stores and reuses v0/v1.  Reading the same 32-bit
  *   representation through scalar lvalues keeps the original long-lived
  *   y/z values in a1/a2, as recorded by PSX.SYM and emitted by retail.
- * - D_80097A50 is an array in the original declaration.  Indexing element
+ * - svec_y_n20_2 is an array in the original declaration.  Indexing element
  *   zero, rather than declaring one SVECTOR object, produces the target's
  *   separately scheduled address high/low around the VECTOR block copy.
  * - The second z is deliberately scoped after RotTransPers; PSX.SYM records
@@ -51,7 +51,7 @@
  */
 
 extern MATRIX GsWSMATRIX;
-extern SVECTOR D_80097A50[];
+extern SVECTOR svec_y_n20_2[];
 
 extern void *memset(void *dst, int value, u32 size);
 
@@ -103,7 +103,7 @@ void DrawSplash(TEffectSlot *ef)
                 param->mode = param->mode + 1;
                 {
                     VECTOR pos = { param->px, param->py, param->pz };
-                    SVECTOR direction = D_80097A50[0];
+                    SVECTOR direction = svec_y_n20_2[0];
 
                     SetBleedsDir(&pos, &direction, 100, 6, 30, 0x9098A0);
                 }

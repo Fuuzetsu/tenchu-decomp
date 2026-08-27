@@ -44,7 +44,7 @@
  *  - `--m->count` (or equivalently `m->count = m->count - 1;`) stores
  *    unconditionally in the branch's delay slot even on the "still armed"
  *    path — ordinary statement order, no special shape needed.
- *  - `vec = D_80097C48;` is a whole-SVECTOR struct assignment (align-2
+ *  - `vec = svec_y_n35;` is a whole-SVECTOR struct assignment (align-2
  *    `lwl/lwr`+`swl/swr` block move, cookbook: cast type's alignment drives
  *    copy code) from an unnamed 8-byte rodata/data constant — NOT the
  *    Ghidra-rendered `local_28._4_4_ = (uint)(ushort)local_28.pad << 0x10;`
@@ -55,7 +55,7 @@
  *    divide operates directly on $v0.
  */
 
-extern SVECTOR D_80097C48[];
+extern SVECTOR svec_y_n35[];
 
 void ProcMiscFire(TMisc *m, TMiscMessage msg)
 {
@@ -79,7 +79,7 @@ do_check:
     m->count = m->count - 1;
     if (m->count < 1)
     {
-        vec = D_80097C48[0];
+        vec = svec_y_n35[0];
         pos.vx = m->x;
         pos.vy = m->y;
         pos.vz = m->z;

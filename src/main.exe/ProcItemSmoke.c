@@ -43,7 +43,7 @@
  *  - `i = 0x10;` is pre-assigned BEFORE the ActionHalt guard (the cookbook
  *    pre-assign lever), reusing the dead loop counter: its li lands in the
  *    guard's delay slot and rides $s1 across the two calls to the sh.
- *  - `extern SVECTOR D_80097AD8[]` (unknown size!) + `D_80097AD8[0]`: an
+ *  - `extern SVECTOR svec_y_n250[]` (unknown size!) + `svec_y_n250[0]`: an
  *    8-byte scalar extern is small-data-eligible (-G8), SYMBOL_REF_FLAG makes
  *    its address cost 1 and cse's find_best_addr folds the block-move source
  *    address back into the pattern (one-register `la`); the unknown-size
@@ -102,7 +102,7 @@ typedef union
     } smoke;
 } ProcItemSmokeScratch;
 
-extern SVECTOR D_80097AD8[];
+extern SVECTOR svec_y_n250[];
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
 
@@ -171,7 +171,7 @@ void ProcItemSmoke(TItem *item)
         }
         if ((cnt & 1) == 0)
         {
-            scratch.smoke.vec = D_80097AD8[0];
+            scratch.smoke.vec = svec_y_n250[0];
             memset(&scratch.smoke.build_pos, 0, sizeof(VECTOR));
             scratch.smoke.build_pos.vx = item->locate->locate.coord.t[0];
             scratch.smoke.build_pos.vy = item->locate->locate.coord.t[1];

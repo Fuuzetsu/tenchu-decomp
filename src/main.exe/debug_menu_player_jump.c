@@ -28,10 +28,10 @@
  *    proxy score; authoritative full-link rescoring proved it byte-exact.
  */
 
-extern char D_800146DC[];
-extern char D_800146EC[];
-extern char D_800146F8[];
-extern char D_80014704[];
+extern char str_player_jump[];
+extern char fmt_jump_x[];
+extern char fmt_jump_y[];
+extern char fmt_jump_z[];
 
 void debug_menu_player_jump(void)
 {
@@ -48,10 +48,10 @@ void debug_menu_player_jump(void)
     while (1)
     {
         StartDrawing();
-        FntPrint(D_800146DC);
-        FntPrint(D_800146EC, pos.vx);
-        FntPrint(D_800146F8, pos.vy);
-        FntPrint(D_80014704, pos.vz);
+        FntPrint(str_player_jump);
+        FntPrint(fmt_jump_x, pos.vx);
+        FntPrint(fmt_jump_y, pos.vy);
+        FntPrint(fmt_jump_z, pos.vz);
         FntFlush(-1);
         EndDrawing(-2);
         pad = GetRealPad(0);

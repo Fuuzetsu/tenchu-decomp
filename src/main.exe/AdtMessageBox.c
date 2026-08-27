@@ -73,8 +73,8 @@
 extern AdtFntState AdtFnt;
 extern s32 AdtMessageBoxCount; /* AdtMessageBox call counter */
 extern char msg_adtinit_not_called[]; /* *** AdtInit not called *** */ /* "*** AdtInit not called ***" */
-extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
-extern char D_80014ADC[]; /* "\n\nPress start to continue..." */
+extern char fmt_messagebox_count[]; /* "AdtMessageBox #%d\n\n" */
+extern char msg_press_start[]; /* "\n\nPress start to continue..." */
 
 extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
 extern s32 VSync(s32 mode);
@@ -117,11 +117,11 @@ skip:
         DrawPrim(&ad.bg);
         count = AdtMessageBoxCount + 1;
         AdtMessageBoxCount = count;
-        FntPrint(D_80014AC8, count);
+        FntPrint(fmt_messagebox_count, count);
     }
     FntPrint(buf);
     if (mode == 0)
-        FntPrint(D_80014ADC);
+        FntPrint(msg_press_start);
     FntFlush(-1);
     DrawSync(0);
     VSync(2);

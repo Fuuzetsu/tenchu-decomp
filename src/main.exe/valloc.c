@@ -102,7 +102,7 @@
 
 extern int sprintf(char *buf, char *fmt, ...);
 
-extern char D_80011024[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" — pooled
+extern char msg_out_of_memory[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" — pooled
                               right before vfree.c's msg_double_memory_release ("DOUBLE MEMORY
                               RELEASE") in this TU's rodata */
 
@@ -197,7 +197,7 @@ void *valloc(u32 size)
                 freesize += q->size;
         }
 
-        sprintf((char *)str, D_80011024, size << 2, maxsize, freesize << 2);
+        sprintf((char *)str, msg_out_of_memory, size << 2, maxsize, freesize << 2);
         SystemOut(str);
     }
 done:

@@ -23,7 +23,7 @@
  * Matching notes:
  *  - The explicit dispatch ladder leaves the ignored messages inline while
  *    CREATE and the active body are both forward targets.
- *  - D_80097C50 intentionally has unknown array size. The casted whole-
+ *  - svec_y_n60_2 intentionally has unknown array size. The casted whole-
  *    SVECTOR copy then uses the target's two-register HIGH/LO_SUM address.
  *  - `direction[2]` followed by three VECTOR locals reproduces the complete
  *    0x40-byte stack workspace. The middle VECTOR is reused as the first
@@ -31,7 +31,7 @@
  *  - The chained RGB assignment emits the target's b/g/r store order.
  */
 
-extern u8 D_80097C50[];
+extern u8 svec_y_n60_2[];
 
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
 extern void *memset(void *dst, s32 c, u32 n);
@@ -44,7 +44,7 @@ void FUN_8004c350(TMisc *m, TMiscMessage msg)
     VECTOR raw_pos;
     GsSPRITE *frame;
 
-    direction[0] = *(SVECTOR *)D_80097C50;
+    direction[0] = *(SVECTOR *)svec_y_n60_2;
     frame = &sprFrame[GameClock % MaxFrames];
 
     if (msg == MM_CREATE)

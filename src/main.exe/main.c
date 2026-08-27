@@ -63,7 +63,7 @@
  */
 
 extern u16 ControlScheme;
-extern char D_80011004[];
+extern char fmt_free_memory[];
 
 extern void ResetCallback(void);
 extern void InitFileSystem(s32 mode);
@@ -149,7 +149,7 @@ int main(void)
         pad = GetPad(0);
         if ((pad & 0x100) != 0 && SkipFrame == 0)
         {
-            FntPrint(D_80011004, vgetfreesize(), vgetmaxsize());
+            FntPrint(fmt_free_memory, vgetfreesize(), vgetmaxsize());
         }
         if (SkipFrame != 1 && (SystemFlag & SYSFLAG_DEBUGPRINT) != 0)
         {

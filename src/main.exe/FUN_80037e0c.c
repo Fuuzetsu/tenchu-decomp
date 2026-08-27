@@ -15,14 +15,14 @@
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void DrawFrame(TEffectSlot *ef);
 
-extern u8 D_80097A58[];
+extern u8 svec_y_n60[];
 
 /*
  * Spawns either a napalm request or a body-attached frame and bleed effect.
  * The union reflects mutually exclusive stack scratch used by the two paths.
  * Keeping the body position aliases split across rand(), and retaining a
  * separate pool-result pointer, reproduces the original register lifetimes.
- * D_80097A58 intentionally has unknown array size: a typed object declaration
+ * svec_y_n60 intentionally has unknown array size: a typed object declaration
  * changes the old compiler's address materialization and instruction schedule.
  */
 void FUN_80037e0c(Humanoid *human, int mode)
@@ -96,7 +96,7 @@ void FUN_80037e0c(Humanoid *human, int mode)
         work.blood.pos = work.blood.scratch.random_pos;
         position_base = &work.blood.pos;
 
-        work.blood.scratch.direction = *(SVECTOR *)D_80097A58;
+        work.blood.scratch.direction = *(SVECTOR *)svec_y_n60;
         time = rand() % 60 + 60;
         position = position_base;
 

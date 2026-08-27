@@ -74,7 +74,7 @@ typedef struct
 extern char str_newline[];
 /* Retail extends EFFECT.C's original three-entry static image-ID table. */
 extern u8 Effect_img[5];
-extern s32 D_80011C90[3];
+extern s32 EffectImages[3];
 extern s32 pat[MaxFrames];
 
 extern ModelType *LOCAL_COORDINATES_;
@@ -174,7 +174,7 @@ void InitEffect(void)
         {
             if (!(i < 3))
                 break;
-            __builtin_memcpy(img, D_80011C90, sizeof(img));
+            __builtin_memcpy(img, EffectImages, sizeof(img));
             image = GetImage(img[i]);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprBomb[i] = sprite;

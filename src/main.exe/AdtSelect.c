@@ -417,10 +417,10 @@ extern s32 VSync(s32 mode);
 extern char str_select_item_2[]; /* select item */
 extern char fmt_count_pair[]; /*  (%d/%d) */
 extern char fmt_str[]; /* %s */
-extern char D_80097EA0[]; /* "\n\n" */
+extern char str_blank_line[]; /* "\n\n" */
 extern char str_arrow[]; /* -> */
 extern char str_spaces[]; /*    */
-extern char D_80097EAC[]; /* "\n" */
+extern char str_newline_4[]; /* "\n" */
 
 s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
 {
@@ -463,7 +463,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
         FntPrint(fmt_str, title);
         if (pages > 1)
             FntPrint(fmt_count_pair, page + 1, pages);
-        FntPrint(D_80097EA0);
+        FntPrint(str_blank_line);
         i = first;
         for (; i < last; i++)
         {
@@ -473,7 +473,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
                 fmt = str_spaces;
             FntPrint(fmt);
             FntPrint(menu[i].name);
-            FntPrint(D_80097EAC);
+            FntPrint(str_newline_4);
         }
         FntFlush(-1);
         VSync(3);

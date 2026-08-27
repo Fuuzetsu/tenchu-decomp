@@ -81,8 +81,7 @@
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern u8 D_80010019;
-extern u8 D_8001001A;
+extern u8 ARMOUR_USED; /* persistent blob 0x1a: blocks re-buying ITEM_ARMOUR */
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 extern char *ITEM_SEL_SPRITE_PTRS[];
 extern char NUMBER_TIM_PATH[];
@@ -382,7 +381,7 @@ void BriefingAndInventorySelectionScreen(void)
                                     nsel++;
                                 }
                                 if ((s16)nsel < 6) {
-                                    if (idx != 0x13 || D_8001001A == 0) {
+                                    if (idx != 0x13 || ARMOUR_USED == 0) {
                                         (&ps->selItem[0])[idx] = cnt + 1;
                                         taken++;
                                         (&ps->gItem[0])[idx + (ps->CharType << 5)]--;

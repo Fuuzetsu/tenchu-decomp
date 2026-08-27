@@ -39,7 +39,7 @@
  * loop weight needed for the retail register colouring without emitting code.
  */
 
-/* splat's auto D_8008EA2C had drifted to 0x8008ea34 (+8 bytes, pre-existing
+/* splat's auto MusicIdMap had drifted to 0x8008ea34 (+8 bytes, pre-existing
    accumulation drift in a still-raw data blob) — bound fresh at the correct
    address in config/symbols.main.exe.txt (see the cookbook's drifted-D_
    note). */

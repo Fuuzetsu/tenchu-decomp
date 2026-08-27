@@ -4,7 +4,7 @@
 /*
  * ProcItemGun (0x80046528) — the gun item processor. mode 0: muzzle flash —
  * spray a grey (0x7F7F7F) SetBleeds burst from the item's position along a
- * backward direction vector (D_80097B0C, rotated by the owner's facing);
+ * backward direction vector (svec_z_n250, rotated by the owner's facing);
  * mode 1: fire — aim from the item at the launch target stored in
  * item->param (GetVectorRotation), trace the shot (SearchItemTarget2), snap
  * the item to the hit point, register a 100-unit conflict box there, and
@@ -25,7 +25,7 @@
  *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
  *    and the constant-register equivalence survives the calls. Plain literal
  *    `1`s in the source produce it — do NOT hand-substitute a variable.
- *  - The outer `vec = D_80097B0C[0];` / inner `vec = D_80097B14[0];` — the
+ *  - The outer `vec = svec_z_n250[0];` / inner `vec = svec_z_150[0];` — the
  *    two 8-byte SVECTOR globals MUST be declared as unknown-size arrays: that
  *    makes them non-small (-G8), so their address builds as split HIGH/LO_SUM
  *    through TWO registers (`lui $v0,%hi / addiu $t3,$v0,%lo`) whose lui
@@ -78,8 +78,8 @@
 
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
-extern SVECTOR D_80097B0C[];
-extern SVECTOR D_80097B14[];
+extern SVECTOR svec_z_n250[];
+extern SVECTOR svec_z_150[];
 
 void ProcItemGun(TItem *item)
 {
@@ -98,7 +98,7 @@ void ProcItemGun(TItem *item)
     switch (item->mode)
     {
     case 0:
-        vec = D_80097B0C[0];
+        vec = svec_z_n250[0];
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
         SetImpact((VECTOR *)item->locate->locate.coord.t, 0x2000, 0);
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, 0x7F7F7F);
@@ -137,7 +137,7 @@ void ProcItemGun(TItem *item)
         {
             SVECTOR vec;
 
-            vec = D_80097B14[0];
+            vec = svec_z_150[0];
             RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
             if (IsHuman != 0)
             {

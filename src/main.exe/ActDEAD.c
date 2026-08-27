@@ -39,7 +39,7 @@
  *    dispatch-chain-first layout and its otherwise-elided jump over splash.
  *  - The 0x28 scratch overlay fixes the VECTOR at sp+0x10 and the two
  *    SVECTORs at sp+0x28/sp+0x30 while keeping the source aggregates typed.
- *  - D_8009771C is an unknown-sized SVECTOR array so its [0] copy retains
+ *  - svec_y_n200_z_n240 is an unknown-sized SVECTOR array so its [0] copy retains
  *    the target's split high/low address materialization.
  *  - The event scan keeps count and the sentinel live across its backedge;
  *    its explicit labels prevent cc1 from peeling the known-zero first row.
@@ -70,8 +70,8 @@ typedef union
 
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *DeadHumanoid;
-extern DeadEvent *D_80086B0C[];
-extern SVECTOR D_8009771C[];
+extern DeadEvent *DeadEvents[];
+extern SVECTOR svec_y_n200_z_n240[];
 
 extern s32 rand(void);
 extern void *memset(void *dst, s32 value, u32 size);
@@ -201,7 +201,7 @@ event_dead:
         int stop;
 
         motion = dtM;
-        pp = D_80086B0C[motion->mid - 0x1109];
+        pp = DeadEvents[motion->mid - 0x1109];
         i = 0;
         if (pp[i].action == 4)
             goto event_ready;
@@ -260,7 +260,7 @@ ordinary_dead:
 blood_effect:
     if ((*(u16 *)&dtM->count & 4) && blood != -1)
     {
-        scratch.dead.position = D_8009771C[0];
+        scratch.dead.position = svec_y_n200_z_n240[0];
         memset(&scratch.dead.vector, 0, sizeof(scratch.dead.vector));
         scratch.dead.vector.vy = -blds;
         scratch.dead.vector.vz = -bldo;

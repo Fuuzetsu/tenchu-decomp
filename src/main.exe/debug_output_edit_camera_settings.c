@@ -30,7 +30,7 @@ extern s16 DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX;
 extern u8 *CAMERA_PTR_ARRAY_START;
 extern SVECTOR *CAMERA_POINTERS[4];
 extern char *CAMERA_PROPERTIES[4];
-extern char D_80011A50[];
+extern char fmt_camera_edit[];
 
 void debug_output_edit_camera_settings(s16 pad)
 {
@@ -89,7 +89,7 @@ void debug_output_edit_camera_settings(s16 pad)
     }
 
     i = 0;
-    format = D_80011A50;
+    format = fmt_camera_edit;
     for (; i < 4; i++)
     {
         marker = ' ';

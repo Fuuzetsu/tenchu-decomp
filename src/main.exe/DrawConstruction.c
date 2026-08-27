@@ -67,11 +67,11 @@
 
 extern MATRIX GsWSMATRIX;
 extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
-extern char D_8001212C[];
+extern char msg_overload[];
 extern char fmt_objs_d[]; /* objs D%d/%d; */
-extern char D_80012148[];
+extern char fmt_pk_size[];
 extern char str_map[]; /* map: */
-extern char D_80097AA0[];
+extern char str_newline_2[];
 
 extern s32 IsVisible(s32 x, s32 y, s32 z, s32 range);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
@@ -124,7 +124,7 @@ void DrawConstruction(void)
     nz = ViewInfo.vpz / 16000;
     goto have_z;
 overload:
-    FntPrint(D_8001212C);
+    FntPrint(msg_overload);
     goto draw_done;
 negative_z:
     nz = ViewInfo.vpz / 16000 - 1;
@@ -289,7 +289,7 @@ draw_done:
     {
         FntPrint(str_map);
         FntPrint(fmt_objs_d, ndl, ndt);
-        FntPrint(D_80097AA0);
-        FntPrint(D_80012148, GsGetWorkBase() - packet_base);
+        FntPrint(str_newline_2);
+        FntPrint(fmt_pk_size, GsGetWorkBase() - packet_base);
     }
 }

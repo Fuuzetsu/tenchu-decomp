@@ -3,7 +3,7 @@
 #include "appear.h"
 #include "item.h"
 
-extern SVECTOR D_80097B04[];
+extern SVECTOR svec_y_n150[];
 
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
 extern s16 Think1sleep(void);
@@ -242,7 +242,7 @@ void ProcItemNemuri(TItem *item)
                 random_pos = random_buf;
                 SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
 
-                *vec = D_80097B04[0];
+                *vec = svec_y_n150[0];
                 memset(&human_buf, 0, sizeof(VECTOR));
                 human_buf.vx = human->model->locate.coord.t[0];
                 human_buf.vy = human->model->locate.coord.t[1];

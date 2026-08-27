@@ -121,7 +121,7 @@ typedef union
 } ProcItemFireScratch;
 
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
-extern SVECTOR D_80097AFC[];
+extern SVECTOR svec_y_n30[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
@@ -196,7 +196,7 @@ void ProcItemFire(TItem *item)
         base_z = item->locate->locate.coord.t[2] - nr;
         scratch.particle.work.random_pos.vz = base_z + random_z % (nr * 2);
         scratch.particle.pos = scratch.particle.work.random_pos;
-        *vec = D_80097AFC[0];
+        *vec = svec_y_n30[0];
         position = &scratch.particle.pos;
         SetBleed(position, vec, rand() % 20, 0xffff00);
     }

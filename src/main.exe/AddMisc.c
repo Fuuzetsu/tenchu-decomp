@@ -89,7 +89,7 @@
  */
 
 typedef struct { u8 *n[7]; } TimNameBlock; /* codegen-only array view */
-extern u8 *D_80012788[7]; /* the seven water/warp TIM names */
+extern u8 *MiscTimNames[7]; /* the seven water/warp TIM names */
 extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */   /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char fmt_undefined_effect[]; /* "undefined effect %d" */
 
@@ -151,7 +151,7 @@ loop:
                 p->proc = ProcMiscSprite;
                 break;
             case 5:
-                __builtin_memcpy(tbl, D_80012788, sizeof(tbl));
+                __builtin_memcpy(tbl, MiscTimNames, sizeof(tbl));
                 adr = PathFileRead(path_image_2, tp->n[x]);
                 GetTIMInfo(adr, ptm);
                 LoadTIMAndFree(adr);

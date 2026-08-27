@@ -41,7 +41,7 @@
  * END PSX.SYM */
 
 extern char CardPathFormat[];
-extern char D_80013BE4[];
+extern char str_sjis_title[];
 
 extern void *memset(void *dst, s32 value, u32 size);
 extern void *memcpy(void *dst, const void *src, u32 size);
@@ -76,7 +76,7 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     hd->Type = 0x13;
     hd->BlockEntry = 1;
     memset(hd->Title, 0, sizeof(hd->Title));
-    sprintf(hd->Title, D_80013BE4);
+    sprintf(hd->Title, str_sjis_title);
     memset(hd->reserve, 0, sizeof(hd->reserve));
 
     icon1 = (u8 *)GetArcData(0x16);

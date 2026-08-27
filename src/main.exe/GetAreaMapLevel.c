@@ -47,7 +47,7 @@
  * then each
  * row entry's rect is tested and ComputeAreaLevel gives the height. The
  * result is cached in FieldArea/FieldIndex/FieldAttrib (attribute) and
- * D_80097EC0 (last `y2`). Returns the height*10 (or its delta to y with
+ * AreaMapLastY (last `y2`). Returns the height*10 (or its delta to y with
  * mode&2), 0x80000000 when nothing is below.
  *
  * Matching notes (docs/matching-cookbook.md; all verified against the bytes):
@@ -86,7 +86,7 @@
  *    (true `/` by a variable -> ASPSX's guarded div with break 7/break 6).
  */
 
-extern long D_80097EC0; /* last queried y/10 (`y2`) */
+extern long AreaMapLastY; /* last queried y/10 (`y2`) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
@@ -123,13 +123,13 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         if (mode & 1)
             y2 -= 0x96;
 
-        if (y2 == D_80097EC0 && (mode & 0x10)
+        if (y2 == AreaMapLastY && (mode & 0x10)
             && FieldArea->x1 <= x && x <= FieldArea->x2
             && FieldArea->z1 <= z && z <= FieldArea->z2)
         {
             yy = ComputeAreaLevel(FieldArea, x, z);
         }
-        D_80097EC0 = y2;
+        AreaMapLastY = y2;
 
         if (index == (NodeIndexType *)area)
             goto walked;

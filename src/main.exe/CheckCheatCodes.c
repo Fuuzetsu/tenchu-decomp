@@ -16,7 +16,7 @@
 /*
  * CheckCheatCodes (0x8004b354) — matches the just-entered button record
  * `rec` (n halfwords) against two hidden cheat sequences. If it equals the
- * first (D_8008E4F0), it plays a chime and opens the SAME debug item-cheat
+ * first (CheatSeq), it plays a chime and opens the SAME debug item-cheat
  * menus DoInfoViewProc's ItemAddMenu uses (pick an item, then a count) and
  * adds the chosen count to the current character's carried-item stock. If it
  * equals the second (`ForbiddenCommand`), it sets `SYSFLAG_DEBUGMODE`. Either match
@@ -44,7 +44,7 @@
  */
 extern char str_select_item[]; /* select item */
 extern char str_number_of[]; /* number of */
-extern u16 D_8008E4F0[];  /* cheat sequence 1 */
+extern u16 CheatSeq[];  /* cheat sequence 1 */
 /* The retail command grew from the demo's original short [15] to 21 entries. */
 extern s16 ForbiddenCommand[21];
 
@@ -60,7 +60,7 @@ void CheckCheatCodes(s16 *rec, int n)
         TAdtSelect Num[4];
     } menu;
 
-    if (memcmp(rec, D_8008E4F0, n << 1) == 0) {
+    if (memcmp(rec, CheatSeq, n << 1) == 0) {
         SoundEx(0, 10);
         __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));

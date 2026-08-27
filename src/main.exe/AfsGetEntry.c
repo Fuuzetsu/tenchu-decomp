@@ -32,7 +32,7 @@ extern char *strncpy(char *dst, const char *src, u32 n);
 extern char msg_afsgetentry_empty_index[]; /* AfsGetEntry: empty index */
 extern char msg_afsgetenty_no_memory[]; /* AfsGetEnty: memory not enough! */
 extern char msg_afsgetentry_no_memory[]; /* AfsGetEntry: memory not enough! */
-extern char D_80014930[];
+extern char msg_illigal_index[];
 
 static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
 {
@@ -69,7 +69,7 @@ int AfsGetEntry(TAFS *handle)
     return 1;
 
 bad_index:
-    AdtMessageBox(D_80014930);
+    AdtMessageBox(msg_illigal_index);
     return 1;
 
 entry_ready:

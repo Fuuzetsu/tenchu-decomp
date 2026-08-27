@@ -27,7 +27,7 @@
  *    error-message address materialization order and the branch polarity —
  *    the long success arm belongs unnested/fallthrough here.
  *  - Each arm calls `AdtMessageBox` directly with its own literal format
- *    string (`AdtMessageBox(D_80014960, path);` / `AdtMessageBox(D_80014978,
+ *    string (`AdtMessageBox(msg_afsopen_not_found, path);` / `AdtMessageBox(msg_afsopen_no_handle,
  *    path);`), NOT funnelled through a shared `char *fmt;` set in each arm
  *    and called once after the merge. The funnelled form makes `fmt` a
  *    pseudo that crosses the if/else join, so its per-arm `%hi` half is a
@@ -58,8 +58,8 @@
  */
 extern TAFSElement *AfsFindFile(TAFS *handle, char *path, s32 mode);
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_80014960[]; /* "AfsOpen: %s not found\n" */
-extern char D_80014978[]; /* "AfsOpen: no more handle\n[%s]" */
+extern char msg_afsopen_not_found[]; /* "AfsOpen: %s not found\n" */
+extern char msg_afsopen_no_handle[]; /* "AfsOpen: no more handle\n[%s]" */
 
 TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
 {
@@ -70,7 +70,7 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
     entry = AfsFindFile(handle, path, AfsFlag_File);
     count = 0;
     if (entry == 0) {
-        AdtMessageBox(D_80014960, path);
+        AdtMessageBox(msg_afsopen_not_found, path);
     } else {
         cur = handle->pHandle;
         do {
@@ -83,7 +83,7 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
             }
             cur += 2;
         } while (count < 5);
-        AdtMessageBox(D_80014978, path);
+        AdtMessageBox(msg_afsopen_no_handle, path);
     }
     return 0;
 }
