@@ -49,8 +49,9 @@
  *    the `memset` call in source, not after — same pooled rodata constant
  *    as leAddPath.c, same lwl/lwr+swl/swr block-copy shape.
  *  - The zeroed/filled VECTOR is a SEPARATE staging local from the one
- *    passed to SetExplosion: `local_40` gets memset then vx/vy/vz filled
- *    from `enemy[find]`, and `pos = local_40;` (a whole 4-word struct copy,
+ *    passed to SetExplosion: `epos` (invented name) gets memset then
+ *    vx/vy/vz filled from `enemy[find]`, and `pos = epos;` (a whole 4-word
+ *    struct copy,
  *    including the untouched zero `pad`) is what SetExplosion actually
  *    receives — not a fused "memset+fill one local" shape. PSX.SYM's demo
  *    build only names the one surviving local (`pos`); retail keeps the
@@ -75,7 +76,7 @@ int leFindEnemy(void)
     int dx, dy, dz;
     SVECTOR pow;
     VECTOR pos;
-    VECTOR local_40;
+    VECTOR epos;
 
     find = -1;
     r = 2000;
@@ -106,11 +107,11 @@ int leFindEnemy(void)
     if (find != -1)
     {
         pow = svec_y_n100[0];
-        memset((void *)&local_40, 0, 0x10);
-        local_40.vx = enemy[find].x;
-        local_40.vy = enemy[find].y;
-        local_40.vz = enemy[find].z;
-        pos = local_40;
+        memset((void *)&epos, 0, 0x10);
+        epos.vx = enemy[find].x;
+        epos.vy = enemy[find].y;
+        epos.vz = enemy[find].z;
+        pos = epos;
         SetExplosion(&pos, &pow);
     }
 
