@@ -187,7 +187,7 @@ void ActDAMAGE(void)
             human = Me_MOTION_C;
             player = StagePlayer;
             dtM->loop = -2;
-            human->status = 0x11;
+            human->status = STAT_DEAD;
             velocity = dtV;
             *(u16 *)&human->attribute &= 0xffef;
             velocity->vz = 0;

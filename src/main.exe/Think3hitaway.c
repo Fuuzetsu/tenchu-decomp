@@ -84,7 +84,7 @@ s16 Think3hitaway(void)
     {
         SR = 0;
     }
-    if (*(s16 *)&Me_THINK_C->status == 7)
+    if (*(s16 *)&Me_THINK_C->status == STAT_ATTACK)
     {
         Me_THINK_C->actflg = 0;
         Me_THINK_C->chase[1] = 0;

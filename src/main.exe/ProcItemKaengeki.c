@@ -114,7 +114,7 @@ void ProcItemKaengeki(TItem *item)
 
             dispose_weapon_data_of_char_(human, 3);
             UpdateMotion(human->motion, 0xf04);
-            human->status = 0xf;
+            human->status = STAT_ITEM;
             motion = human->motion->motion;
             MoveHumanoid(human, motion->orderspd, motion->sidespd);
         }

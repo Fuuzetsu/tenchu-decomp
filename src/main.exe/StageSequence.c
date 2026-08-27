@@ -101,7 +101,7 @@ s32 StageSequence(void)
     ScoreStats score_stats;
 
     flag = 0;
-    if (StagePlayer->status == 0x11)
+    if (StagePlayer->status == STAT_DEAD)
     {
         s32 result;
 
@@ -132,7 +132,7 @@ s32 StageSequence(void)
 active_events:
         UpdateEvent(0, 2);
         UpdateEvent(1, 3);
-        StagePlayer->status = 1;
+        StagePlayer->status = STAT_ACTION;
         if ((s16)StageSequence() != 0)
         {
             return -1;
@@ -145,7 +145,7 @@ active_events:
             SetCameraMode(CMODE_CRITICAL_HIT);
         }
         ActionHalt = -1;
-        StagePlayer->status = 0x11;
+        StagePlayer->status = STAT_DEAD;
         return 0;
     }
 
@@ -218,7 +218,7 @@ active_events:
             break;
 
         case 3:
-            if (StagePlayer->status != 7 && tgt->status == (s16)ev->status)
+            if (StagePlayer->status != STAT_ATTACK && tgt->status == (s16)ev->status)
             {
                 flag = 1;
             }

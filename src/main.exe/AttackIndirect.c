@@ -68,7 +68,7 @@ short AttackIndirect(void)
     s32 degree;
 
     pad = 0;
-    if (Me_THINK_C->status == 7)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         do
         {
@@ -121,7 +121,7 @@ status7_value:
 status7_return:
         return status7_result;
     }
-    if (Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == STAT_JUMP)
     {
         return pad;
     }

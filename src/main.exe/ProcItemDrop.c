@@ -168,13 +168,13 @@ void ProcItemDrop(TItem *item)
             return;
         if (human->motion->mid == 0x810)
             return;
-        if ((human->status != 6) && (human->status != 2))
+        if ((human->status != STAT_CHASE) && (human->status != STAT_MOVE))
             return;
         if (ActionHalt == 0 && 0 < human->life)
         {
             dispose_weapon_data_of_char_(human, 3);
             UpdateMotion(human->motion, 0x810);
-            human->status = 8;
+            human->status = STAT_STATE;
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
         }

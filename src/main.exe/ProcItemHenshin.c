@@ -114,7 +114,7 @@ void ProcItemHenshin(TItem *item)
                     i++;
                 } while (i < mad->n);
             }
-            if (item->owner->status == 0xb)
+            if (item->owner->status == STAT_SQUAT)
             {
                 NowReturnNormal(item->owner);
             }
@@ -249,10 +249,10 @@ void ProcItemHenshin(TItem *item)
         HenshinCount = count;
         if ((s32)(count << 16) > 0 &&
             item->owner->itmctl == item->type &&
-            item->owner->status != 0x10 &&
-            item->owner->status != 0x11)
+            item->owner->status != STAT_DAMAGE &&
+            item->owner->status != STAT_DEAD)
         {
-            if (item->owner->status != 7)
+            if (item->owner->status != STAT_ATTACK)
             {
                 return;
             }
@@ -322,7 +322,7 @@ void ProcItemHenshin(TItem *item)
 //           puVar6 = puVar6 + 6;
 //         } while (iVar12 < pMVar13->n);
 //       }
-//       if (item->owner->status == 0xb) {
+//       if (item->owner->status == STAT_SQUAT) {
 //         NowReturnNormal(item->owner);
 //       }
 //       DAT_80097aec = (tag_TItem *)0x0;

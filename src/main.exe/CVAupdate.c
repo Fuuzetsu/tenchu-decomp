@@ -199,7 +199,7 @@ s16 CVAupdate(void)
                 else
                 {
                     i = (s32)packed >> 24;
-                    if (human->status == 0x11 && (u32)(i - 0x10) > 1)
+                    if (human->status == STAT_DEAD && (u32)(i - 0x10) > 1)
                         return 0;
                     if (human->life > 0)
                     {

@@ -61,7 +61,7 @@ s16 Think3attack(void)
     pad = 0;
     idx = Me_THINK_C->wpatk >> 4;
 
-    if (Me_THINK_C->status == 7)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         if (idx != 3)
         {
@@ -156,7 +156,7 @@ add_attack:
         goto action_ready;
     }
 
-    if (Me_THINK_C->status != 5)
+    if (Me_THINK_C->status != STAT_ENGAGE)
     {
         goto action_ready;
     }
@@ -193,7 +193,7 @@ use_item:
 action_ready:
     if (Me_THINK_C->motion->count == 0 &&
         rand() % 30 == 0 &&
-        Me_THINK_C->status == 5)
+        Me_THINK_C->status == STAT_ENGAGE)
     {
         SetNowMotion(Me_THINK_C, 0x713, 1);
     }

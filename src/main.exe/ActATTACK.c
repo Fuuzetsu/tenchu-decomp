@@ -759,7 +759,7 @@ dispatch:
         saved_mid = motID;
         motion_flag = motMODE;
         human = Me_MOTION_C;
-        if (((human->status != 0x11) || (human->motion->loop != -1)) &&
+        if (((human->status != STAT_DEAD) || (human->motion->loop != -1)) &&
             ((shifted_mid = (u32)(u16)saved_mid << 16,
               updated = UpdateMotion(human->motion, (s16)(shifted_mid >> 16)), updated != 0) &&
              (human->status = (s8)(shifted_mid >> 24), motion_flag != 0)))

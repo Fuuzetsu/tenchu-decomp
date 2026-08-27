@@ -64,7 +64,7 @@ short AttackLong(void)
     s32 degree;
 
     pad = 0;
-    if (Me_THINK_C->status == 7)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         s32 status_degree;
 
@@ -120,7 +120,7 @@ status7_return:
         return status7_result;
     }
 
-    if (Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == STAT_JUMP)
     {
         return 0;
     }

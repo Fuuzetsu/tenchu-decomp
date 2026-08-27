@@ -76,7 +76,7 @@ s16 Think1ninja(void)
     s16 result;
 
     result = 0;
-    if (Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == STAT_JUMP)
     {
         return 0;
     }

@@ -324,7 +324,7 @@ resolve_hit:
         conflict = (Humanoid *)ConflictObject[t].common;
         if (conflict == (Humanoid *)1)
         {
-            if (Me_MOTION_C->status == 0x10)
+            if (Me_MOTION_C->status == STAT_DAMAGE)
             {
                 return;
             }
@@ -534,7 +534,7 @@ resolve_hit:
                 deg = GetAttackDBID(enemy, enemy->motion->mid);
                 if (Me_MOTION_C != StagePlayer)
                 {
-                    if ((((Me_MOTION_C->status != 7) &&
+                    if ((((Me_MOTION_C->status != STAT_ATTACK) &&
                           ((Me_MOTION_C->attribute & 0x40U) != 0)) &&
                          ((Me_MOTION_C->map).height == 0)) &&
                         (gNannido != DIFFICULTY_EASY))
@@ -594,13 +594,13 @@ resolve_hit:
                     }
                     mmp = dtM;
                     dtR->vy = dtR->vy + did;
-                    Me_MOTION_C->status = 5;
+                    Me_MOTION_C->status = STAT_ENGAGE;
                     mmp->count = 0;
                     PlayMotion(mmp, 1);
                     dmg = (u16)BattleDB[deg].power;
                     dtM->loop = -dmg - 8;
                     MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
-                    if (enemy->status == 7)
+                    if (enemy->status == STAT_ATTACK)
                     {
                         enemy->motion->loop = dmg / -3 - 1;
                         (enemy->vector).vz = 0;
@@ -836,7 +836,7 @@ resolve_hit:
                     reset_alert_duration();
                 }
             }
-            if (enemy->status == 7)
+            if (enemy->status == STAT_ATTACK)
             {
                 enemy->motion->loop = (short)dmg / -3 - 1;
                 (enemy->vector).vz = 0;

@@ -141,7 +141,7 @@ short CVArun(void)
                 reload->vector.vz = 0;
                 reload->vector.vx = 0;
             }
-            else if (human->status != 0x11)
+            else if (human->status != STAT_DEAD)
             {
                 SetNowMotion(human, motid, 1);
                 CVAhuman[i].human = 0;

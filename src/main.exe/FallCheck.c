@@ -66,7 +66,7 @@ short FallCheck(void)
     }
     if (motID != 0x70f)
     {
-        if (Me_MOTION_C->status == 9 && Me_MOTION_C->map.height > 0)
+        if (Me_MOTION_C->status == STAT_JUMP && Me_MOTION_C->map.height > 0)
         {
             return 1;
         }
@@ -119,7 +119,7 @@ fall:
     SetNowMotion(Me_MOTION_C, motID, motMODE);
     motMODE = -1;
 found:
-    if (Me_MOTION_C->status == 0xb)
+    if (Me_MOTION_C->status == STAT_SQUAT)
     {
         dtM->count >>= 2;
     }

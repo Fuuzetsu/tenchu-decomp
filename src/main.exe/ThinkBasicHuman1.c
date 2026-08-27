@@ -43,7 +43,7 @@ s16 ThinkBasicHuman1(void)
         pad = 0;
     }
     if ((Me_THINK_C->map.attrib & 0x200) &&
-        (Me_THINK_C->status == 9 || Me_THINK_C->status == 7)) {
+        (Me_THINK_C->status == STAT_JUMP || Me_THINK_C->status == STAT_ATTACK)) {
         pad &= 0xfff;
     }
     if (pad & 8) {

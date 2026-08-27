@@ -889,26 +889,33 @@ enum character_kind
     END_OF_CHARACTER_KIND_MARKER = 0xffff,
 };
 
+/* Humanoid.status is the same 18-way family index as the motion-id high
+ * byte: both index the Act* handler table at 0x80086b24, so the names below
+ * mirror the demo's own handler names (STAT_SYURI = shuriken aiming,
+ * STAT_STATE = ActSTATE's pick/drop/fall transitions, STAT_DAMAGE = the
+ * recovery/stagger state, ...).  This retires the old descriptive guesses
+ * (ATTACKING, PRESSED_AGAINST_WALL, ...), which matched these values 1:1. */
 typedef enum character_status character_status;
 enum character_status
 {
-    DEFAULT_STATE = 0x00,
-    POSING_OR_PLAYING_SOME_CUTSCENE_ANIMATION_THING = 0x01,
-    SLOW_WALKING = 0x02,
-    SWIMMING = 0x03,
-    AIMING_KAGINAWA = 0x04,
-    IDLING = 0x05,
-    MOVING = 0x06,
-    ATTACKING = 0x07,
-    FALLING_OR_PICKING_OR_DROPPING_ITEM = 0x08,
-    JUMPING = 0x09,
-    HANGING = 0x0a,
-    CROUCHING = 0x0b,
-    PRESSED_AGAINST_WALL = 0x0c,
-    AIMING_WEAPON = 0x0e,
-    USING_ITEM = 0x0f,
-    RECOVERY_ANIMATION = 0x10,
-    DEAD = 0x11,
+    STAT_NORMAL   = 0x00,
+    STAT_ACTION   = 0x01,
+    STAT_MOVE     = 0x02,
+    STAT_SWIM     = 0x03,
+    STAT_KAGI     = 0x04,
+    STAT_ENGAGE   = 0x05,
+    STAT_CHASE    = 0x06,
+    STAT_ATTACK   = 0x07,
+    STAT_STATE    = 0x08,
+    STAT_JUMP     = 0x09,
+    STAT_HANG     = 0x0a,
+    STAT_SQUAT    = 0x0b,
+    STAT_STICKON  = 0x0c,
+    STAT_CEILHANG = 0x0d,
+    STAT_SYURI    = 0x0e,
+    STAT_ITEM     = 0x0f,
+    STAT_DAMAGE   = 0x10,
+    STAT_DEAD     = 0x11
 };
 
 typedef enum stage_rank stage_rank;

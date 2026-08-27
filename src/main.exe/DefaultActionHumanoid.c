@@ -94,12 +94,12 @@ short DefaultActionHumanoid(Humanoid *human)
         VECTOR *wide;
         MapVector *call_map;
 
-        if (human->status == 7)
+        if (human->status == STAT_ATTACK)
         {
             goto use_conflict_position;
         }
         call_map = map;
-        if (human->status == 0xb)
+        if (human->status == STAT_SQUAT)
         {
             goto use_locate_position;
         }
@@ -201,7 +201,7 @@ map_probe_done:
             vector->vy = 0;
         }
 ground_motion:
-        if ((map->attrib & 0x200) && map->height == 0 && human->status != 0x11)
+        if ((map->attrib & 0x200) && map->height == 0 && human->status != STAT_DEAD)
         {
             SetNowMotion(human, 0x1100, 1);
         }
@@ -309,7 +309,7 @@ apply_reflection:
                 if (angle_abs < 0x708 || human != StagePlayer || map->height != 0)
                 {
                     if (map->angleH == 0 &&
-                        (human->status == 2 || human->status == 6))
+                        (human->status == STAT_MOVE || human->status == STAT_CHASE))
                     {
                         {
                             SVECTOR *rotate;
@@ -354,7 +354,7 @@ apply_reflection:
             }
             if (ConflictObject[i].size.pad & 1)
             {
-                if (human->status != 0x11)
+                if (human->status != STAT_DEAD)
                 {
                     u16 attribute;
 
@@ -424,8 +424,8 @@ apply_reflection:
                     continue;
                 }
                 if (yy + size_y < object_y &&
-                    (human->status == 0 || human->status == 2 ||
-                     human->status == 5 || human->status == 6))
+                    (human->status == STAT_NORMAL || human->status == STAT_MOVE ||
+                     human->status == STAT_ENGAGE || human->status == STAT_CHASE))
                 {
                     s32 direction_abs;
 
@@ -574,7 +574,7 @@ apply_reflection:
 //     FieldArea = *(AreaNodeType **)&human->field10_0x30;
 //     FieldIndex = *(NodeIndexType **)&human->field14_0x34;
 //   }
-//   if (human->status == 7) {
+//   if (human->status == STAT_ATTACK) {
 // LAB_80028214:
 //     sVar2 = (*human->model->object)->id;
 //     local_60.vx = ConflictObject[sVar2].position.vx;
@@ -585,7 +585,7 @@ apply_reflection:
 //   }
 //   else {
 //     wide = pVVar13;
-//     if ((human->status != 0xb) && ((human->map).height == 0)) {
+//     if ((human->status != STAT_SQUAT) && ((human->map).height == 0)) {
 //       iVar3 = (int)(human->vector).vx;
 //       if (iVar3 < 0) {
 //         iVar3 = -iVar3;
@@ -621,7 +621,7 @@ apply_reflection:
 //     }
 // LAB_8002841c:
 //     if (((((human->map).attrib & 0x200U) != 0) && ((human->map).height == 0)) &&
-//        (human->status != 0x11)) {
+//        (human->status != STAT_DEAD)) {
 //       SetNowMotion(human,0x1100,1);
 //     }
 //   }
@@ -737,7 +737,7 @@ apply_reflection:
 //           iVar3 = -iVar6;
 //         }
 //         if (((iVar3 < 0x708) || (human != StagePlayer)) || ((human->map).height != 0)) {
-//           if (((human->map).angleH == '\0') && ((human->status == 2 || (human->status == 6)))) {
+//           if (((human->map).angleH == '\0') && ((human->status == STAT_MOVE || (human->status == STAT_CHASE)))) {
 //             if (iVar6 < 1) {
 //               sVar2 = 0x20;
 //             }
@@ -844,7 +844,7 @@ apply_reflection:
 //             }
 //           }
 //         }
-//         else if (human->status != 0x11) {
+//         else if (human->status != STAT_DEAD) {
 //           uVar1 = human->attribute;
 //           (human->vector).pad = sVar2;
 //           human->attribute = uVar1 | 0x4000;

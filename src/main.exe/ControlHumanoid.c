@@ -136,7 +136,7 @@ void ControlHumanoid(Humanoid *human)
     }
     else
     {
-        if (human->status == 0x11)
+        if (human->status == STAT_DEAD)
         {
             register_character_death(human);
             death_camera_something_(human);
@@ -186,7 +186,7 @@ do_draw:
     }
 draw_done:
 
-    PlayMotion(human->motion, human->status == 7 ? -1 : m);
+    PlayMotion(human->motion, human->status == STAT_ATTACK ? -1 : m);
     human->slocate = *human->locate;
     human->locate->vx += human->vector.vx;
     human->locate->vz += human->vector.vz;
@@ -208,7 +208,7 @@ draw_done:
 
     if (human == StagePlayer)
     {
-        if (human->status == 0xc)
+        if (human->status == STAT_STICKON)
         {
             return;
         }
@@ -353,7 +353,7 @@ draw_done:
 //   pMVar11 = (ModelType *)human->model;
 //   iVar10 = 1;
 //   if (*(short *)(((pMVar11->object).coord2)->flg + 0x58) < 0) {
-//     if (human->status == 0x11) {
+//     if (human->status == STAT_DEAD) {
 //       FUN_8002bcb8(human);
 //       FUN_8003818c(human);
 //     }
@@ -397,7 +397,7 @@ draw_done:
 //     iVar10 = 0;
 //   }
 //   iVar6 = -1;
-//   if (human->status != 7) {
+//   if (human->status != STAT_ATTACK) {
 //     iVar6 = iVar10;
 //   }
 //   PlayMotion(human->motion,(short)iVar6);
@@ -428,7 +428,7 @@ draw_done:
 //     return;
 //   }
 //   if (human == StagePlayer) {
-//     if (human->status == 0xc) {
+//     if (human->status == STAT_STICKON) {
 //       return;
 //     }
 //     pMVar11 = human->model->object[2];

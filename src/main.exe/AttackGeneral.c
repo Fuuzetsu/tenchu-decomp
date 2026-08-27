@@ -68,7 +68,7 @@ short AttackGeneral(void)
     s16 status7_result;
 
     pad = 0;
-    if (Me_THINK_C->status == 7)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         s32 status_degree;
 
@@ -124,7 +124,7 @@ status7_return:
         return status7_result;
     }
 
-    if (Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == STAT_JUMP)
     {
         return 0;
     }
@@ -361,8 +361,8 @@ return_pad:
 //   ushort uVar6;
 //
 //   uVar6 = 0;
-//   if (Me_THINK_C->status != 7) {
-//     if (Me_THINK_C->status == 9) {
+//   if (Me_THINK_C->status != STAT_ATTACK) {
+//     if (Me_THINK_C->status == STAT_JUMP) {
 //       return 0;
 //     }
 //     if (Me_THINK_C->motion->mid == MOT_ENGAGE) {

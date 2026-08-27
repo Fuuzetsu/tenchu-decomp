@@ -128,7 +128,7 @@ degree_done:
     }
 
     mode = (u16)(StagePlayer->status - 0xb) < 2;
-    if (StagePlayer->status == 10)
+    if (StagePlayer->status == STAT_HANG)
     {
         if (vect.vy >= 0)
         {
@@ -188,7 +188,7 @@ degree_done:
         vect.vy = base_y;
         player_height = StagePlayer->height;
         full_height = (s16)player_height;
-        if (StagePlayer->status == 0xb)
+        if (StagePlayer->status == STAT_SQUAT)
         {
             half_height = (s16)player_height / 2;
             adjusted_y = base_y - half_height;
@@ -296,7 +296,7 @@ passage_failure:
 //     return 0;
 //   }
 //   uVar5 = (uint)((ushort)StagePlayer->status - 0xb < 2);
-//   if (StagePlayer->status == 10) {
+//   if (StagePlayer->status == STAT_HANG) {
 //     if (-1 < iVar3) {
 //       return -2;
 //     }
@@ -337,7 +337,7 @@ passage_failure:
 //     local_30.vy = (local_30.vy + 300) - (int)human->height;
 //     iVar7 = (uint)(ushort)StagePlayer->height << 0x10;
 //     local_3c = iVar7 >> 0x10;
-//     if (StagePlayer->status == 0xb) {
+//     if (StagePlayer->status == STAT_SQUAT) {
 //       local_3c = local_3c - (iVar7 >> 0x1f) >> 1;
 //     }
 //     local_3c = (iVar3 + -300 + (int)human->height) - local_3c;

@@ -66,7 +66,7 @@ s16 Think3area(void)
     s32 dist;
 
     pad = 0;
-    if (Me_THINK_C->status == 7)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         return SuccessionAttack(4000, 500);
     }
@@ -197,7 +197,7 @@ return_pad:
 //   uint uVar5;
 //
 //   uVar5 = 0;
-//   if (Me_THINK_C->status == 7) {
+//   if (Me_THINK_C->status == STAT_ATTACK) {
 //     uVar1 = SuccessionAttack(4000,500);
 //     iVar2 = (uint)uVar1 << 0x10;
 //   }

@@ -95,7 +95,7 @@ void ProcItemGoshikimai(TItem *item)
         {
             dispose_weapon_data_of_char_(human, 3);
             UpdateMotion(human->motion, 0xf03);
-            human->status = 8;
+            human->status = STAT_STATE;
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
         }
@@ -156,7 +156,7 @@ void ProcItemGoshikimai(TItem *item)
 //       if ((ActionHalt == 0) && (0 < human->life)) {
 //         FUN_800270c8(human,3);
 //         UpdateMotion(human->motion,0xf03);
-//         human->status = 8;
+//         human->status = STAT_STATE;
 //         pMVar1 = human->motion->motion;
 //         MoveHumanoid(human,(ushort)pMVar1->orderspd,(ushort)pMVar1->sidespd);
 //       }

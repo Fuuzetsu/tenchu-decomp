@@ -44,7 +44,7 @@ void register_character_death(Humanoid *dead)
         DeathIndex = index;
 
         if ((human->attribute & 0x83) == 0 &&
-            human->status != 0x11 && human->status != 0x10 &&
+            human->status != STAT_DEAD && human->status != STAT_DAMAGE &&
             human != StagePlayer)
         {
             delta.vx = dead->locate->vx - human->locate->vx;

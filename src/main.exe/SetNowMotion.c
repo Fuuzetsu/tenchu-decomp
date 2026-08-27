@@ -43,7 +43,7 @@ short SetNowMotion(Humanoid *human, short mid, short move)
 {
     MotionDataType *md;
 
-    if (human->status == 0x11 && human->motion->loop == -1) {
+    if (human->status == STAT_DEAD && human->motion->loop == -1) {
         return 0;
     }
     if (UpdateMotion(human->motion, mid) == 0) {

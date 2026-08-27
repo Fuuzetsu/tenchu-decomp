@@ -82,7 +82,7 @@ short AttackAnimal(void)
     s32 ret;
     u8 am;
 
-    if (Me_THINK_C->status == 7 || Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == STAT_ATTACK || Me_THINK_C->status == STAT_JUMP)
     {
         Me_THINK_C->actmode = 0;
         return 0;

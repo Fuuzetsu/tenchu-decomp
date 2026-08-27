@@ -72,7 +72,7 @@ short AttackShort(void)
         return AttackAnimal();
     }
 
-    if (Me_THINK_C->status == 7)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         Humanoid *status_human;
         s16 status_pad;
@@ -145,7 +145,7 @@ status7_return:
         return (s16)status7_result;
     }
 
-    if (Me_THINK_C->status == 9)
+    if (Me_THINK_C->status == STAT_JUMP)
     {
         return 0;
     }
@@ -407,8 +407,8 @@ return_pad:
 //     sVar2 = AttackAnimal();
 //     return sVar2;
 //   }
-//   if (Me_THINK_C->status != 7) {
-//     if (Me_THINK_C->status == 9) {
+//   if (Me_THINK_C->status != STAT_ATTACK) {
+//     if (Me_THINK_C->status == STAT_JUMP) {
 //       return 0;
 //     }
 //     pMVar7 = Me_THINK_C->motion;

@@ -127,7 +127,7 @@ void PlayerOption(void)
     case RESURRECT:
         CamState.Owner->life = CamState.Owner->lifemax;
         ActionHalt = 0;
-        CamState.Owner->status = 0;
+        CamState.Owner->status = STAT_NORMAL;
         break;
     case RESTART_EVENT:
         leLayoutEnemy(1);

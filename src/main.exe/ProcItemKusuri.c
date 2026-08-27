@@ -122,7 +122,7 @@ void ProcItemKusuri(TItem *item)
 
             dispose_weapon_data_of_char_(human, 3);
             UpdateMotion(human->motion, 0xf01);
-            human->status = 0xf;
+            human->status = STAT_ITEM;
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
         }

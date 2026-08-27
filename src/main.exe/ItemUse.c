@@ -70,7 +70,7 @@ static s16 ItemUse(void)
     {
         return 5;
     }
-    if (Me_THINK_C->status != 5)
+    if (Me_THINK_C->status != STAT_ENGAGE)
     {
         return 5;
     }

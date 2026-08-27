@@ -106,7 +106,7 @@ enemy_type_ok:
 
                 if (enemy != NULL &&
                     (enemy->attribute & 0x43U) == 0 &&
-                    enemy->status != 0xf && enemy->status != 1)
+                    enemy->status != STAT_ITEM && enemy->status != STAT_ACTION)
                 {
                     ModelType *target;
 
@@ -152,7 +152,7 @@ enemy_type_ok:
                         motMODE = 1;
                         enemy->locate->vz = dtL->vz;
                         enemy->life = 0;
-                        if ((enemy->status != 0x11 || enemy->motion->loop != -1) &&
+                        if ((enemy->status != STAT_DEAD || enemy->motion->loop != -1) &&
                             UpdateMotion(enemy->motion, emid) != 0)
                         {
                             enemy->status = (s8)(emid >> 8);

@@ -83,7 +83,7 @@ short SwimCheck(void)
             }
         }
 
-        if (Me_MOTION_C->status != 0xb)
+        if (Me_MOTION_C->status != STAT_SQUAT)
         {
             object_id = (*Me_MOTION_C->model->object)->id;
             if (object_id >= 0)

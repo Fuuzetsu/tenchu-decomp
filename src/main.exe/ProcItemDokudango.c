@@ -293,8 +293,8 @@ set_target:
                 return;
             }
             human = param->eater;
-            if (human->status == 0x10 || human->status == 8 ||
-                human->status == 7 || human->life <= 0)
+            if (human->status == STAT_DAMAGE || human->status == STAT_STATE ||
+                human->status == STAT_ATTACK || human->life <= 0)
             {
                 return;
             }
@@ -304,7 +304,7 @@ set_target:
 
                 dispose_weapon_data_of_char_(human, 3);
                 UpdateMotion(human->motion, 0xf01);
-                human->status = 0xf;
+                human->status = STAT_ITEM;
                 motion = human->motion->motion;
                 MoveHumanoid(human, motion->orderspd, motion->sidespd);
             }
@@ -451,7 +451,7 @@ poison_active:
 
                     dispose_weapon_data_of_char_(human, 3);
                     UpdateMotion(human->motion, 0x1000);
-                    human->status = 0xf;
+                    human->status = STAT_ITEM;
                     motion = human->motion->motion;
                     MoveHumanoid(human, motion->orderspd, motion->sidespd);
                 }
@@ -462,7 +462,7 @@ poison_active:
 
                 dispose_weapon_data_of_char_(human, 3);
                 UpdateMotion(human->motion, 0x100b);
-                human->status = 0xf;
+                human->status = STAT_ITEM;
                 motion = human->motion->motion;
                 MoveHumanoid(human, motion->orderspd, motion->sidespd);
             }

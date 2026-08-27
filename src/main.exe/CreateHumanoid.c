@@ -126,7 +126,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     }
     human = vcalloc(0xd0, 0);
     human->type = type;
-    human->status = 0;
+    human->status = STAT_NORMAL;
     human->attribute = 0;
     human->model = LoadModelArchive(mad, &World);
     human->locate = (VECTOR *)human->model->locate.coord.t;

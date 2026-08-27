@@ -68,7 +68,7 @@ MapVector *StickonCheck(void)
     if ((map.attrib & 0xC000) == 0)
     {
         rv = RefrectVector[map.vector];
-        if (Me_MOTION_C->status != 0xc && (rv & 0x200) != 0)
+        if (Me_MOTION_C->status != STAT_STICKON && (rv & 0x200) != 0)
         {
             return 0;
         }
@@ -76,7 +76,7 @@ MapVector *StickonCheck(void)
         {
             return 0;
         }
-        if (Me_MOTION_C->status != 0xc)
+        if (Me_MOTION_C->status != STAT_STICKON)
         {
             motID = MOT_STICKON;
             motMODE = 1;

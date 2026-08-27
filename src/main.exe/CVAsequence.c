@@ -114,7 +114,7 @@ event_found:
         {
             slot = &HumanGroup[i];
             human = *slot;
-            if (human->status != 0x11 &&
+            if (human->status != STAT_DEAD &&
                 (human->attribute & 0x80) == 0)
             {
                 dispose_weapon_data_of_char_(human, 3);
@@ -168,7 +168,7 @@ run_sequence:
     for (; i < 5; i++)
     {
         human = anim_base[i].human;
-        if (human != 0 && human->status != 0x11)
+        if (human != 0 && human->status != STAT_DEAD)
         {
             motion = 0x501;
             if ((human->attribute & 0x40) == 0 &&
@@ -269,7 +269,7 @@ run_sequence:
 //         iVar6 = 0;
 //         do {
 //           human = *(Humanoid **)((int)&CVAhuman[0].human + (iVar6 >> 0xd));
-//           if ((human != (Humanoid *)0x0) && (human->status != 0x11)) {
+//           if ((human != (Humanoid *)0x0) && (human->status != STAT_DEAD)) {
 //             sVar3 = 0x501;
 //             if (((human->attribute & 0x40U) == 0) && (sVar3 = 0, (human->type & 0xf0U) == 0x80)) {
 //               sVar3 = 0x80e;

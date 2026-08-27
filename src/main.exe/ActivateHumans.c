@@ -269,7 +269,7 @@ active_done:
             human->life = 1;
         }
     }
-    else if (human->status != 0x11 && ((u16)human->attribute & 0x20) == 0)
+    else if (human->status != STAT_DEAD && ((u16)human->attribute & 0x20) == 0)
     {
         memset(&work, 0, sizeof(work));
         work.vx = human->point[0];

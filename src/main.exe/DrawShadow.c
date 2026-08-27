@@ -120,7 +120,7 @@ void DrawShadow(Humanoid *human)
             SplashType *param;
             s32 z;
 
-            if (human->status == 3)
+            if (human->status == STAT_SWIM)
             {
                 s32 r = rand();
 

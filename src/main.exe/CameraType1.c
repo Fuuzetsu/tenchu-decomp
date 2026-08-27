@@ -114,7 +114,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     pos = scratch.init;
     mad->attribute |= 2;
 
-    switch ((s16)(CamState.Owner->status - 3)) {
+    switch ((s16)(CamState.Owner->status - STAT_SWIM)) {
     case 9:
     {
         s32 levfl;

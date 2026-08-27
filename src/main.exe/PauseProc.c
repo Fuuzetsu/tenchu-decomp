@@ -132,15 +132,15 @@ void PauseProc(void)
         if (cur == (START | SELECT))
             FUN_800566fc();
         com = check_for_known_button_combination(cur, trig);
-        if (CamState.Owner->status == 7 && 0x713 < CamState.Owner->motion->mid)
+        if (CamState.Owner->status == STAT_ATTACK && 0x713 < CamState.Owner->motion->mid)
             com = 0;
         if (com == 0x10)
         {
-            if (CamState.Owner->status != 0x11)
+            if (CamState.Owner->status != STAT_DEAD)
             {
                 CamState.Owner->life = CamState.Owner->lifemax;
                 dispose_weapon_data_of_char_(CamState.Owner, 3);
-                CamState.Owner->status = 0;
+                CamState.Owner->status = STAT_NORMAL;
                 ActionHalt = 0;
                 Sound(CamState.Owner, 0x4c);
                 SetCameraMode(CMODE_NORMAL);
