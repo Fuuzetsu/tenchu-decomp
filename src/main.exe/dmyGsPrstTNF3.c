@@ -6,15 +6,15 @@
  * clone of dmyGsPrstF3NL (see that file for the family's shape).
  */
 extern int printf(const char *fmt, ...);
-extern char D_800151f0[]; /* "PrstTNF3\n" */
-extern s32 D_8008f664;
+extern char str_dmyPrstTNF3[]; /* "PrstTNF3\n" */
+extern s32 warn_dmyPrstTNF3;
 
 void *dmyGsPrstTNF3(void *arg0, void *arg1, void *arg2, void *arg3)
 {
-    if (D_8008f664 == 0)
+    if (warn_dmyPrstTNF3 == 0)
     {
-        printf(D_800151f0);
-        D_8008f664 = 1;
+        printf(str_dmyPrstTNF3);
+        warn_dmyPrstTNF3 = 1;
     }
     return arg3;
 }

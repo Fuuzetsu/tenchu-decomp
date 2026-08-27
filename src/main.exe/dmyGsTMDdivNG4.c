@@ -9,15 +9,15 @@
  * every other byte of the family's 18-instruction shape).
  */
 extern int printf(const char *fmt, ...);
-extern char D_80015358[]; /* "TMDdivNG4\n" */
-extern s32 D_8008f6d4;
+extern char str_dmyTMDdivNG4[]; /* "TMDdivNG4\n" */
+extern s32 warn_dmyTMDdivNG4;
 
 void *dmyGsTMDdivNG4(void *arg0, void *arg1, void *arg2)
 {
-    if (D_8008f6d4 == 0)
+    if (warn_dmyTMDdivNG4 == 0)
     {
-        printf(D_80015358);
-        D_8008f6d4 = 1;
+        printf(str_dmyTMDdivNG4);
+        warn_dmyTMDdivNG4 = 1;
     }
     return arg2;
 }

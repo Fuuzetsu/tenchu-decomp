@@ -18,15 +18,15 @@
  * file). Verified per-function from the raw asm, not assumed.
  */
 extern int printf(const char *fmt, ...);
-extern char D_80015104[]; /* "PrstF3NL\n" */
-extern s32 D_8008f618;
+extern char str_dmyPrstF3NL[]; /* "PrstF3NL\n" */
+extern s32 warn_dmyPrstF3NL;
 
 void *dmyGsPrstF3NL(void *arg0, void *arg1, void *arg2, void *arg3)
 {
-    if (D_8008f618 == 0)
+    if (warn_dmyPrstF3NL == 0)
     {
-        printf(D_80015104);
-        D_8008f618 = 1;
+        printf(str_dmyPrstF3NL);
+        warn_dmyPrstF3NL = 1;
     }
     return arg3;
 }
