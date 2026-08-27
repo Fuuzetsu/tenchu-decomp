@@ -56,7 +56,7 @@ short NowReturnNormal(Humanoid *human)
     h = Me_MOTION_C;
     mid = *(u16 *)&motID;
     move = *(u16 *)&motMODE;
-    if (h->status == 0x11 && h->motion->loop == -1) {
+    if (h->status == STAT_DEAD && h->motion->loop == -1) {
         return 0;
     }
     if (UpdateMotion(h->motion, mid) == 0) {

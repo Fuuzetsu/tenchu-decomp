@@ -540,7 +540,7 @@ update_hint:
         Humanoid *me;
 
         me = Me_THINK_C;
-        if (me->status == 10)
+        if (me->status == STAT_HANG)
         {
             s32 degree;
             s32 abs_degree;

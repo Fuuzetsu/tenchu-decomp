@@ -433,8 +433,8 @@ dispose_case3:
             }
 
 poison_active:
-            if (eater->status == 0x10 || eater->status == 8 ||
-                eater->status == 7 || eater->status == 0xf)
+            if (eater->status == STAT_DAMAGE || eater->status == STAT_STATE ||
+                eater->status == STAT_ATTACK || eater->status == STAT_ITEM)
             {
                 return;
             }

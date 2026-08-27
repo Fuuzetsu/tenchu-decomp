@@ -80,7 +80,7 @@ Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
     for (i = 0; i < Humans; i = i + 1)
     {
         cur = HumanGroup[i];
-        if (cur != human && cur->status != 0x11 &&
+        if (cur != human && cur->status != STAT_DEAD &&
             (cur->attribute & 0x80) == 0)
         {
             dx = 0x90;
