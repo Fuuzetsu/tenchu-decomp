@@ -83,18 +83,9 @@ void DrawGore(TEffectSlot *ef)
     spr2 = &sprBloodStay[index];
     state = param->mode;
 
-    if (state == 2)
+    switch (state)
     {
-        goto state_two;
-    }
-    if (state < 3)
-    {
-        if (state == 1)
-        {
-            goto state_one;
-        }
-    }
-    else if (state == 3)
+    case 3:
     {
         u16 fade;
         s32 fade_shift;
@@ -158,42 +149,38 @@ void DrawGore(TEffectSlot *ef)
         spr2->b = (u8)half_brightness;
 
         value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
-        if (value < 0)
+        if (value >= 0)
         {
-            goto zero_first;
+            priority = 0x4e1;
+            if (value < 0x4e2)
+            {
+                priority = value;
+            }
         }
-        priority = 0x4e1;
-        if (value < 0x4e2)
+        else
         {
-            priority = value;
+            priority = 0;
         }
-        goto first_done;
-    zero_first:
-        priority = 0;
-    first_done:
         GsSortSprite(spr, OTablePt, (u16)priority);
 
         value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
-        if (value < 0)
+        if (value >= 0)
         {
-            goto zero_second;
+            priority = 0x4e1;
+            if (value < 0x4e2)
+            {
+                priority = value;
+            }
         }
-        priority = 0x4e1;
-        if (value < 0x4e2)
+        else
         {
-            priority = value;
+            priority = 0;
         }
-        goto second_done;
-    zero_second:
-        priority = 0;
-    second_done:
         GsSortSprite(spr2, OTablePt, (u16)priority);
         return;
     }
 
-    goto normal_state;
-
-state_two:
+    case 2:
     {
         u16 count;
 
@@ -204,10 +191,10 @@ state_two:
             param->time = 0x80;
             param->mode++;
         }
-        goto move_and_draw;
+        break;
     }
 
-state_one:
+    case 1:
     {
         u16 count;
 
@@ -219,10 +206,10 @@ state_one:
             param->mode++;
             param->time = rand() % 90;
         }
-        goto move_and_draw;
+        break;
     }
 
-normal_state:
+    default:
     {
         s32 x;
         s32 y;
@@ -384,9 +371,10 @@ normal_state:
         bleed->b = color;
         bleed->mode = 0;
         found->proc = (void (*)())DrawBleed;
+        break;
+    }
     }
 
-move_and_draw:
     {
         s32 size;
         s32 otz;
@@ -415,19 +403,18 @@ move_and_draw:
         spr->x = scratch.screen.vx;
         spr->y = scratch.screen.vy;
         value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
-        if (value < 0)
+        if (value >= 0)
         {
-            goto zero_final;
+            priority = 0x4e1;
+            if (value < 0x4e2)
+            {
+                priority = value;
+            }
         }
-        priority = 0x4e1;
-        if (value < 0x4e2)
+        else
         {
-            priority = value;
+            priority = 0;
         }
-        goto final_done;
-    zero_final:
-        priority = 0;
-    final_done:
         GsSortSprite(spr, OTablePt, (u16)priority);
     }
 }
