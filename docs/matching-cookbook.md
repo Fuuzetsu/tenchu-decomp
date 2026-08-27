@@ -419,6 +419,12 @@ dump-to-source reasoning.
 with A falling through** — the THEN body is always physically first, `cond` is
 negated. Everything else here is corollaries:
 
+- **A Ghidra if-goto ladder shaped as a balanced comparison tree with a
+  cross-jumped tail IS a compiled switch** — rewriting it as the `switch` it
+  was is byte-identical, and reads as the original. cc1 emits case BODIES in
+  source order (the tree is built separately), so order the cases to the
+  target's body layout, not by value (ActSTICKON: its dtCMD ladder and item
+  ladder both collapsed; the item switch needed FIRE before SMOKE).
 - **De Morgan is the body-placement lever.** `||` vs `&&` place the bodies
   differently: `bnez a,BIG; beqz b,SMALL` = the `||` form (BIG first);
   `bnez a,BIG; bnez b,BIG` = the `&&` form (SMALL first) (MoveHumanoid). An

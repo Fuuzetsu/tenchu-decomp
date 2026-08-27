@@ -170,47 +170,26 @@ void ActSTICKON(void)
 
         if (dtCMD != 0)
         {
-            if (dtCMD == 0x12)
+            switch (dtCMD)
             {
-                goto case0_command_12;
+            case 0x11:
+                motID = 0xB05;
+                motMODE = 1;
+                break;
+            case 0x12:
+                motID = 0xB06;
+                motMODE = 1;
+                break;
+            case 0x13:
+                motID = 0xB08;
+                motMODE = 1;
+                break;
+            case 0x14:
+                motID = 0xB07;
+                motMODE = 1;
+                break;
             }
-            if (dtCMD < 0x13)
-            {
-                if (dtCMD == 0x11)
-                {
-                    goto case0_command_11;
-                }
-                goto case0_command_done;
-            }
-            if (dtCMD == 0x13)
-            {
-                goto case0_command_13;
-            }
-            if (dtCMD == 0x14)
-            {
-                goto case0_command_14;
-            }
-            goto case0_command_done;
 
-case0_command_12:
-            motID = 0xB06;
-            goto case0_command_flag;
-
-case0_command_13:
-            motID = 0xB08;
-            goto case0_command_flag;
-
-case0_command_11:
-            motID = 0xB05;
-            goto case0_command_flag;
-
-case0_command_14:
-            motID = 0xB07;
-
-case0_command_flag:
-            motMODE = 1;
-
-case0_command_done:
             if ((s8)((u16)motID >> 8) == 0xB)
             {
                 dtM->mask = 0x7FFF;
@@ -350,47 +329,26 @@ case0_motion_done:
 
         if (dtCMD != 0)
         {
-            if (dtCMD == 0x12)
+            switch (dtCMD)
             {
-                goto case12_command_12;
+            case 0x11:
+                motID = 0xB05;
+                motMODE = 1;
+                break;
+            case 0x12:
+                motID = 0xB06;
+                motMODE = 1;
+                break;
+            case 0x13:
+                motID = 0xB08;
+                motMODE = 1;
+                break;
+            case 0x14:
+                motID = 0xB07;
+                motMODE = 1;
+                break;
             }
-            if (dtCMD < 0x13)
-            {
-                if (dtCMD == 0x11)
-                {
-                    goto case12_command_11;
-                }
-                goto case12_command_done;
-            }
-            if (dtCMD == 0x13)
-            {
-                goto case12_command_13;
-            }
-            if (dtCMD == 0x14)
-            {
-                goto case12_command_14;
-            }
-            goto case12_command_done;
 
-case12_command_12:
-            motID = 0xB06;
-            goto case12_command_flag;
-
-case12_command_13:
-            motID = 0xB08;
-            goto case12_command_flag;
-
-case12_command_11:
-            motID = 0xB05;
-            goto case12_command_flag;
-
-case12_command_14:
-            motID = 0xB07;
-
-case12_command_flag:
-            motMODE = 1;
-
-case12_command_done:
             if ((s8)((u16)motID >> 8) == 0xB)
             {
                 dtM->mask = 0x7FFF;
@@ -564,39 +522,18 @@ case12_no_pad:
             item.end.vx = (rsin(y) * -120) >> 12;
             item.end.vy = 0;
             item.end.vz = (rcos(y) * -120) >> 12;
-            if (item.type == ITEM_SMOKE)
+            switch (item.type)
             {
-                goto item_smoke;
+            case ITEM_FIRE:
+                ReqItemFire(&item);
+                break;
+            case ITEM_SMOKE:
+                ReqItemSmoke(&item);
+                break;
+            case ITEM_DOKUDANGO:
+                ReqItemDokudango(&item);
+                break;
             }
-            if ((u32)item.type >= 6)
-            {
-                goto item_high;
-            }
-            if (item.type == ITEM_FIRE)
-            {
-                goto item_fire;
-            }
-            goto item_done;
-
-item_high:
-            if (item.type == ITEM_DOKUDANGO)
-            {
-                goto item_dokudango;
-            }
-            goto item_done;
-
-item_fire:
-            ReqItemFire(&item);
-            goto item_done;
-
-item_smoke:
-            ReqItemSmoke(&item);
-            goto item_done;
-
-item_dokudango:
-            ReqItemDokudango(&item);
-
-item_done:
         }
         motID = MOT_STICKON;
         motMODE = 1;
