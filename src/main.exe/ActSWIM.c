@@ -59,7 +59,7 @@ void ActSWIM(void)
         {
             motID = 0x301;
             motMODE = 1;
-            goto common_action;
+            break;
         }
         if ((dtPAD & 0xa000) != 0)
         {
@@ -78,17 +78,17 @@ void ActSWIM(void)
                     result = current - Me_MOTION_C->turn;
                 rotation->vy = result;
             }
-            goto common_action;
+            break;
         }
         if ((MOTION_PAD_BITS & 0x5000) == 0)
-            goto common_action;
+            break;
         motID = 0x302;
         motMODE = 0;
         speed = 0x3c;
         if (MOTION_PAD_BITS & 0x1000)
         {
             MoveHumanoid(Me_MOTION_C, speed, 0);
-            goto common_action;
+            break;
         }
         {
             Humanoid *human;
@@ -96,9 +96,9 @@ void ActSWIM(void)
             speed = -0x3c;
             human = Me_MOTION_C;
             if (human->map.angleH != 0)
-                goto common_action;
+                break;
             MoveHumanoid(human, speed, 0);
-            goto common_action;
+            break;
         }
 
     case 0x302:
@@ -112,7 +112,7 @@ void ActSWIM(void)
             {
                 motID = 0x301;
                 motMODE = 1;
-                goto common_action;
+                break;
             }
             if ((dtPAD & 0xa000) != 0)
             {
@@ -131,7 +131,7 @@ void ActSWIM(void)
             speed = 0x3c;
             human = Me_MOTION_C;
             MoveHumanoid(human, speed, 0);
-            goto common_action;
+            break;
         }
         else
         {
@@ -148,7 +148,7 @@ void ActSWIM(void)
                     locate->vz -= velocity->vz;
                     velocity->vz = 0;
                     velocity->vx = 0;
-                    goto common_action;
+                    break;
                 }
                 if ((dtPAD & 0xa000) != 0)
                 {
@@ -173,12 +173,12 @@ void ActSWIM(void)
         }
 
         MoveHumanoid(Me_MOTION_C, speed, 0);
-        goto common_action;
+        break;
 
     set_swim_idle:
         motID = MOT_SWIM;
         motMODE = 1;
-        goto common_action;
+        break;
 
     case 0x301:
         if (dtM->count == 1)
@@ -227,10 +227,9 @@ void ActSWIM(void)
         return;
 
     default:
-        goto common_action;
+        break;
     }
 
-common_action:
 {
     Humanoid *human;
 

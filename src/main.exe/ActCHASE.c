@@ -106,7 +106,7 @@ void ActCHASE(void)
                 {
                     dtM->mode |= 1;
                 }
-                goto common_action;
+                break;
             }
 
             if (Me_MOTION_C->attribute & 0x400)
@@ -123,7 +123,7 @@ void ActCHASE(void)
                     dtL->vy = y;
                     Me_MOTION_C->map.height = height;
                 }
-                goto common_action;
+                break;
             }
 
             if (dtPAD & 0xa000)
@@ -146,12 +146,12 @@ void ActCHASE(void)
                 rotation->vy = result;
                 motion = Me_MOTION_C->motion->motion;
                 MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
-                goto common_action;
+                break;
             }
 
             if ((dtPAD & 0x20) == 0)
             {
-                goto common_action;
+                break;
             }
             motID = MOT_SQUAT;
         }
@@ -160,7 +160,7 @@ void ActCHASE(void)
             motID = 0x501;
         }
         motMODE = 1;
-        goto common_action;
+        break;
     }
 
     case 2:
@@ -204,7 +204,7 @@ void ActCHASE(void)
 
         if ((dtPAD & 0x20) == 0)
         {
-            goto common_action;
+            break;
         }
         if (Me_MOTION_C->pad.trig & 0x80)
         {
@@ -214,7 +214,7 @@ void ActCHASE(void)
         }
         motID = MOT_SQUAT;
         motMODE = 1;
-        goto common_action;
+        break;
     }
 
     case 7:
@@ -251,7 +251,6 @@ void ActCHASE(void)
         break;
     }
 
-common_action:
     if (dtCMD == 0x31)
     {
         motID = 0x907;
