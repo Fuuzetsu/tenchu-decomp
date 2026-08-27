@@ -129,7 +129,7 @@ static inline void ItemAddMenu(void)
     __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                      sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
     n = AdtSelect(str_select_item, menu.ItemName, 0);
-    __builtin_memcpy(menu.Num, D_800124CC, sizeof(D_800124CC));
+    __builtin_memcpy(menu.Num, sel_quantity, sizeof(sel_quantity));
     CamState.Owner->item[n] += AdtSelect(str_number_of, menu.Num, 0);
 }
 

@@ -3,7 +3,7 @@
 #include "humanoid.h"
 #include "item.h"
 
-extern u16 D_800979DE;
+extern u16 DeathIndex;
 extern long EmergencyNotice;
 
 /*
@@ -19,7 +19,7 @@ extern long EmergencyNotice;
  *    absolute-value tests.  cc1 duplicates its exit test at entry and emits
  *    the target's shared loop body without source labels.
  *  - Publishing the incremented selection cursor before the modulo keeps both
- *    target stores to D_800979DE; writing the two stores adjacently lets dead
+ *    target stores to DeathIndex; writing the two stores adjacently lets dead
  *    store elimination discard the first one.
  */
 
@@ -37,11 +37,11 @@ void register_character_death(Humanoid *dead)
     scale = 1;
     if ((dead->attribute & 0x10) == 0 && gNannido != DIFFICULTY_EASY)
     {
-        next = D_800979DE + 1;
-        D_800979DE = next;
+        next = DeathIndex + 1;
+        DeathIndex = next;
         index = next % Humans;
         human = HumanGroup[index];
-        D_800979DE = index;
+        DeathIndex = index;
 
         if ((human->attribute & 0x83) == 0 &&
             human->status != 0x11 && human->status != 0x10 &&

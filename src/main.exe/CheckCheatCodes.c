@@ -65,7 +65,7 @@ void CheckCheatCodes(s16 *rec, int n)
         __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
         sel = AdtSelect(str_select_item, menu.ItemName, 0);
-        __builtin_memcpy(menu.Num, D_800124CC, sizeof(D_800124CC));
+        __builtin_memcpy(menu.Num, sel_quantity, sizeof(sel_quantity));
         CamState.Owner->item[sel] +=
             AdtSelect(str_number_of, menu.Num, 0);
         SoundEx(0, 0x4c);

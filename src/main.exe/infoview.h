@@ -7,7 +7,7 @@
  * subsystem headers in being included after main.exe.h, where TAdtSelect is
  * defined. */
 extern TAdtSelect DEBUG_MENU_ITEM_CHOICE_OPTIONS[25];
-extern TAdtSelect D_800124CC[4];
+extern TAdtSelect sel_quantity[4]; /* {"10",10},{"100",100},{"FULL",255} */
 extern TAdtSelect DEBUG_MENU_MAIN_SCREEN_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_ITEM_LAYOUT_OPTIONS[5];
 extern TAdtSelect D_8001252C[3];

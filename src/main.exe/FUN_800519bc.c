@@ -80,8 +80,8 @@
  *   already produces BYTE-IDENTICAL bytes for that instruction (confirmed: it
  *   was never part of any diffed cluster). Do not re-attempt this lever without
  *   new evidence.
- * - Merging `adjusted = stack.scroll; adjusted += D_8008ECF8[lang][stage];` into
- *   one statement `adjusted = stack.scroll + D_8008ECF8[lang][stage];`: regresses
+ * - Merging `adjusted = stack.scroll; adjusted += StageScrollAdj[lang][stage];` into
+ *   one statement `adjusted = stack.scroll + StageScrollAdj[lang][stage];`: regresses
  *   87->97, same length, but DOES prove the two-statement split is a live,
  *   non-neutral lever for that hunk (load order changed) — just backwards from
  *   what's needed here. The reverse pairing (index loads merged some other way)
@@ -175,7 +175,7 @@
  *     round-2/3 plateau claim stands.
  *   - autorules re-run (73 candidates) — no improving edit (unchanged).
  *   - NEW structural hypotheses tested & REJECTED (each rebuilt+remeasured):
- *     * index-first scroll (`adjusted = D_8008ECF8[..]; adjusted += stack.scroll;`
+ *     * index-first scroll (`adjusted = StageScrollAdj[..]; adjusted += stack.scroll;`
  *       — round 2's own "untried" suggestion): 87->102. The scroll-first split is
  *       optimal; the reverse pairing is worse, not better.
  *     * tpage_value as a direct `stack.tpage_base >> 16` OR a plain two-statement
@@ -237,7 +237,7 @@ extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 /* The adjacent retail symbols prove four complete 11-stage language rows. */
 extern DemoScreenAssets D_8008EA90[4][11];
 extern s16 D_8008ECA0[4][11];
-extern s16 D_8008ECF8[4][11];
+extern s16 StageScrollAdj[4][11];
 
 extern BackGround *FUN_8004f4f8(u_long *tim);
 extern void vfree(void *ptr);
@@ -471,7 +471,7 @@ brightness_done:
             }
             scroll_value = scroll;
             adjusted = scroll_value +
-                D_8008ECF8[PSTATE->language][PSTATE->StageNo];
+                StageScrollAdj[PSTATE->language][PSTATE->StageNo];
             scroll = adjusted;
             if (adjusted < 0)
             {

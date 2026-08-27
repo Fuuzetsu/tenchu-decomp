@@ -53,11 +53,11 @@
  * the destination is a multi-block pseudo -- which a loop cursor always is.  The
  * split is declined only when mips_check_split() sees SYMBOL_REF_FLAG, which
  * ENCODE_SECTION_INFO (mips.h) sets iff the symbol's declared type is COMPLETE
- * and 0 < sizeof <= the -G threshold (8).  `extern short D_8008E404[];` is an
+ * and 0 < sizeof <= the -G threshold (8).  `extern short DropOffsets[];` is an
  * incomplete type (size -1), so it always split.  Widening this bound past [4]
  * re-splits the address and costs 3 bytes.  See docs/matching-cookbook.md.
  */
-extern short D_8008E404[4];
+extern short DropOffsets[4]; /* {dx,dz} probe pairs x1000 */
 
 extern s32 abs(s32 x);
 extern void *memset(void *s, int c, u32 n);
@@ -113,7 +113,7 @@ loop2:
         level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, one);
         if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8) {
             s32 k = 0;
-            short *offs = D_8008E404;
+            short *offs = DropOffsets;
 
         searchloop:
             if (k < 4) {
@@ -244,7 +244,7 @@ search_success:
 // s32 abs(s32);                                       /* extern */
 // ? memset(s32 *, ?, ?);                              /* extern */
 // extern ? msg_item_dispose_fail;
-// extern ? D_8008E404;
+// extern ? DropOffsets;
 // extern s32 GlobalAreaMap;
 // extern ? items;
 //
@@ -310,7 +310,7 @@ search_success:
 //             var_s0_2 = GetAreaMapLevel(GlobalAreaMap, sp1C, sp20, sp24, 1);
 //             var_s4 = 0;
 //             if ((var_s0_2 == 0x80000000) || (var_s4 = 0, ((abs(var_s0_2 - sp20) < 0x3E8) == 0))) {
-//                 var_s3 = &D_8008E404;
+//                 var_s3 = &DropOffsets;
 // loop_13:
 //                 if (var_s4 < 4) {
 //                     temp_s2 = sp1C + (var_s3->unk0 * 0x3E8);
