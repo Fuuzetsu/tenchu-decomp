@@ -48,14 +48,14 @@
  * knocks the character off the wall.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - A real jump-table `switch` on `(short)(dtM->mid - 0xA00)`: the (short)
+ *  - A real jump-table `switch` on `(short)(dtM->mid - MOT_HANG)`: the (short)
  *    cast narrows the subtract to HImode — `lhu` (raw load) + HImode `addiu`
  *    + `sll/sra` re-widen, then expand_case's `sltiu 5` + table jump. A plain
  *    `switch (dtM->mid)` with 0xA00-based cases would subtract in SImode off
  *    an `lh` (no sll/sra) — wrong shape.
  *  - Case bodies are emitted in SOURCE order; the original's order is the
  *    MEMORY order 0, 2/3, 4, 1 (case 1 last, falling into the shared tail;
- *    its `motID = 0xA00; motMODE = 1;` island is the physically-last copy
+ *    its `motID = MOT_HANG; motMODE = 1;` island is the physically-last copy
  *    that case 0's 0xA02/0xA03 stores cross-jump onto, leaving each
  *    predecessor just its own `li` in the branch delay slot).
  *  - `motMODE = 1;` written literally per arm (never hoisted/shared);
@@ -86,7 +86,7 @@ void ActHANG(void)
     long y;
 
     dtV->vy = 0;
-    switch ((short)(dtM->mid - 0xA00))
+    switch ((short)(dtM->mid - MOT_HANG))
     {
     case 0:
         if (MOTION_PAD_BITS & 0x4000)
@@ -120,7 +120,7 @@ void ActHANG(void)
     case 3:
         if ((dtPAD & 0xA000) == 0)
         {
-            motID = 0xA00;
+            motID = MOT_HANG;
             motMODE = 1;
         }
         else if (HangCheck() == 0)
@@ -162,7 +162,7 @@ void ActHANG(void)
     case 1:
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0xA00;
+            motID = MOT_HANG;
             motMODE = 1;
         }
         break;

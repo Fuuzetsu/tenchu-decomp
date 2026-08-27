@@ -151,7 +151,7 @@ status7_return:
     }
 
     motion = Me_THINK_C->motion;
-    if (motion->mid == 0x500)
+    if (motion->mid == MOT_ENGAGE)
     {
         return (u16)(rand() % (EngageLevel + 1) != 0) << 14;
     }
@@ -412,7 +412,7 @@ return_pad:
 //       return 0;
 //     }
 //     pMVar7 = Me_THINK_C->motion;
-//     if (pMVar7->mid == 0x500) {
+//     if (pMVar7->mid == MOT_ENGAGE) {
 //       iVar4 = rand();
 //       iVar6 = EngageLevel + 1;
 //       if (iVar6 == 0) {

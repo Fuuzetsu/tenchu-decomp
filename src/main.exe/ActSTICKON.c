@@ -101,7 +101,7 @@ void ActSTICKON(void)
     short drop_index;
 
     model = Me_MOTION_C->model;
-    switch ((short)(dtM->mid - 0xC00))
+    switch ((short)(dtM->mid - MOT_STICKON))
     {
     case 0:
         if (dtM->count < 0)
@@ -115,7 +115,7 @@ void ActSTICKON(void)
             map = StickonCheck();
             if (map == 0)
             {
-                motID = 0xB00;
+                motID = MOT_SQUAT;
                 motMODE = 1;
                 dtM->mask = 0x7FFF;
                 return;
@@ -480,7 +480,7 @@ case12_motion_done:
             {
                 dtL->vx -= dtV->vx;
                 dtL->vz -= dtV->vz;
-                UpdateMotion(dtM, 0xC00);
+                UpdateMotion(dtM, MOT_STICKON);
                 dtM->loop = -1;
                 dtM->mask = 0x7FFF;
             }
@@ -494,7 +494,7 @@ case12_motion_done:
         goto common_end;
 
 case12_no_pad:
-        motID = 0xC00;
+        motID = MOT_STICKON;
         motMODE = 1;
         dtM->mask = 0x7FFF;
         goto common_end;
@@ -598,7 +598,7 @@ item_dokudango:
 
 item_done:
         }
-        motID = 0xC00;
+        motID = MOT_STICKON;
         motMODE = 1;
         dtM->mask = 0x7FFF;
         return;

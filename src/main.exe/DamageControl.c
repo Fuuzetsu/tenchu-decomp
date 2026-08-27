@@ -234,14 +234,14 @@ void DamageControl(void)
         ReqLifeBar(Me_MOTION_C);
         if (Me_MOTION_C->life != 0)
         {
-            motID = 0x1000;
+            motID = MOT_DAMAGE;
             motMODE = 1;
             Sound(Me_MOTION_C, 6);
             reset_alert_duration();
         }
         else
         {
-            motID = 0x1100;
+            motID = MOT_DEAD;
             motMODE = 1;
             if ((Me_MOTION_C->type != 0xa9) &&
                 ((StagePlayer == enemy || (enemy == (Humanoid *)1))))
@@ -365,7 +365,7 @@ resolve_hit:
                     int h;
 
                     p.vx = dtL->vx;
-                    motID = 0x1000;
+                    motID = MOT_DAMAGE;
                     h = (u32)(u16)Me_MOTION_C->height << 0x10;
                     p.vy = dtL->vy -
                            (((h >> 0x10) + (int)((u32)h >> 0x1f)) >> 1);
@@ -446,7 +446,7 @@ resolve_hit:
                     Me_MOTION_C->life = 0;
                     if (1 < (u32)(u16)motID - 0x1005)
                     {
-                        motID = 0x1100;
+                        motID = MOT_DEAD;
                         motMODE = 1;
                     }
                     Sound(Me_MOTION_C, 8);
@@ -565,7 +565,7 @@ resolve_hit:
                     {
                         goto counter_attack;
                     }
-                    if (motID == 0x500)
+                    if (motID == MOT_ENGAGE)
                     {
                         return;
                     }
@@ -575,11 +575,11 @@ resolve_hit:
                     goto take_damage;
                 }
             counter_attack:
-                if (motID == 0x500)
+                if (motID == MOT_ENGAGE)
                 {
                     return;
                 }
-                ret = UpdateMotion(dtM, 0x500);
+                ret = UpdateMotion(dtM, MOT_ENGAGE);
                 if (ret != 0)
                 {
                     int conflict_id;
@@ -755,7 +755,7 @@ resolve_hit:
                     {
                         short i;
 
-                        motID = 0x1100;
+                        motID = MOT_DEAD;
                         motMODE = 1;
                         if (MotionUpdateMode != 0)
                         {
@@ -906,7 +906,7 @@ resolve_hit:
         }
     }
     (Me_MOTION_C->pad).time = 0;
-    if ((dtM->mid == 0x300) || (dtM->mid == 0x302))
+    if ((dtM->mid == MOT_SWIM) || (dtM->mid == 0x302))
     {
         SVECTOR *v;
 

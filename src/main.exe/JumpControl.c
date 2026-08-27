@@ -72,7 +72,7 @@ void JumpControl(void)
     int id;
 
     FUN_80033bc0(dtL, 0x96, 0xC, 8);
-    if (GetMotionID(dtM, 0x900) < 0)
+    if (GetMotionID(dtM, MOT_JUMP) < 0)
         return;
 
     if (motID == 0x607)
@@ -100,7 +100,7 @@ void JumpControl(void)
             dtL->vx = ConflictObject[id].position.vx;
             dtL->vz = ConflictObject[id].position.vz;
         }
-        motID = 0x900;
+        motID = MOT_JUMP;
         motMODE = 0;
         dtV->vy = 0;
         if (MOTION_PAD_BITS & 0x1000)

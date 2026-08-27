@@ -78,7 +78,7 @@
  */
 
 /* TU-local UNSIGNED view of MotionManager's leading `mid` (item.h keeps the
- * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - 0x100)`
+ * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - MOT_ACTION)`
  * in ActACTION.c). Reading through this view is what gives MOTION.C's `lhu`
  * while keeping the access a COMPONENT_REF — see the note above; the
  * `*(u16 *)&motion->mid` cast spelling costs 11 bytes. */

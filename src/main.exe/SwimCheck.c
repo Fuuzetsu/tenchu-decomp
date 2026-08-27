@@ -117,7 +117,7 @@ short SwimCheck(void)
         }
         ActionHalt = 0;
         FUN_800270f8(Me_MOTION_C, 1);
-        motion = GetMotionID(dtM, 0x300);
+        motion = GetMotionID(dtM, MOT_SWIM);
         if ((s16)motion < 0 || Me_MOTION_C->life == 0)
         {
             motID = 0x1108;
@@ -128,7 +128,7 @@ short SwimCheck(void)
         }
         else
         {
-            motID = 0x300;
+            motID = MOT_SWIM;
             motMODE = 1;
         }
 

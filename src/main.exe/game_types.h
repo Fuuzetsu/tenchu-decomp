@@ -475,6 +475,33 @@ struct HumanAnimType
     s16 motid;                    /* 0x06 */
 };                                /* 0x08 */
 
+/* Motion-id families (motID / MotionManager.mid): the high byte indexes the
+ * Act* handler table at 0x80086b24 (ActNORMAL..ActDEAD, the demo's own
+ * function names), the low byte selects the move within the family.  A
+ * named-constant overlay — PSX.SYM records no enum for these; the bases are
+ * proven by the dispatch table order. */
+enum motion_family
+{
+    MOT_NORMAL   = 0x000,
+    MOT_ACTION   = 0x100,
+    MOT_MOVE     = 0x200,
+    MOT_SWIM     = 0x300,
+    MOT_KAGI     = 0x400,
+    MOT_ENGAGE   = 0x500,
+    MOT_CHASE    = 0x600,
+    MOT_ATTACK   = 0x700,
+    MOT_STATE    = 0x800,
+    MOT_JUMP     = 0x900,
+    MOT_HANG     = 0xA00,
+    MOT_SQUAT    = 0xB00,
+    MOT_STICKON  = 0xC00,
+    MOT_CEILHANG = 0xD00,
+    MOT_SYURI    = 0xE00,
+    MOT_ITEM     = 0xF00,
+    MOT_DAMAGE   = 0x1000,
+    MOT_DEAD     = 0x1100
+};
+
 /* Camera-mode names recovered from the demo's CAMERA.C. This list is not
  * exhaustive for retail: current code also supplies unnamed modes 15-17. */
 typedef enum TCameraMode TCameraMode;

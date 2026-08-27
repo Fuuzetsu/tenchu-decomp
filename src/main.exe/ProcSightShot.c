@@ -104,7 +104,7 @@ void ProcSightShot(TItem *item)
         goto dispose;
     }
 
-    if (human->motion->mid == 0xe00)
+    if (human->motion->mid == MOT_SYURI)
     {
         goto sight_mode;
     }

@@ -147,7 +147,7 @@ check_motion_end:
     if (dtM->mid > 0x1108 && dtL->vy != StagePlayer->locate->vy)
     {
         dtL->vy--;
-        motID = 0x1100;
+        motID = MOT_DEAD;
         ActionHalt = 0;
         motMODE = 1;
         if (dtM->count >= 10)

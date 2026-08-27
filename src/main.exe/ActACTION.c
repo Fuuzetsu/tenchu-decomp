@@ -47,7 +47,7 @@ void ActACTION(void)
 {
     short i;
 
-    switch ((short)(dtM->mid - 0x100))
+    switch ((short)(dtM->mid - MOT_ACTION))
     {
     case 1:
         if (dtM->loop == 0)

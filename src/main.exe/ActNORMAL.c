@@ -62,7 +62,7 @@ void ActNORMAL(void)
             }
             if (dtPAD & 0x1000)
             {
-                motID = 0x100;
+                motID = MOT_ACTION;
                 motMODE = 1;
             }
             return;
@@ -184,13 +184,13 @@ command_0:
             switch ((short)(SelectedItem + 1))
             {
             case 2:
-                motID = 0xe00;
+                motID = MOT_SYURI;
                 break;
             case 1:
-                motID = 0x400;
+                motID = MOT_KAGI;
                 break;
             case 3:
-                motID = 0xf00;
+                motID = MOT_ITEM;
                 break;
             case 6:
                 motID = 0xf02;
@@ -221,13 +221,13 @@ item_default:
         }
         if (dtPAD & 0x20)
         {
-            motID = 0xb00;
+            motID = MOT_SQUAT;
             motMODE = 1;
             return;
         }
         if (dtPAD & 0x1000)
         {
-            motID = 0x200;
+            motID = MOT_MOVE;
             motMODE = 1;
             return;
         }

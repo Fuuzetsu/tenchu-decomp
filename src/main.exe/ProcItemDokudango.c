@@ -180,7 +180,7 @@ void ProcItemDokudango(TItem *item)
                     {
                         candidate = *group;
                         if (candidate->life > 0 &&
-                            candidate->motion->mid != 0x100 &&
+                            candidate->motion->mid != MOT_ACTION &&
                             (candidate->attribute & 0x80) == 0)
                         {
                             dist = GetVectorDistance(&search->pos,

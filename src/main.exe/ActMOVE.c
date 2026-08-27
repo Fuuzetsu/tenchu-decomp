@@ -147,13 +147,13 @@ common_action:
             switch ((short)(SelectedItem + 1))
             {
             case 2:
-                motID = 0xe00;
+                motID = MOT_SYURI;
                 break;
             case 1:
-                motID = 0x400;
+                motID = MOT_KAGI;
                 break;
             case 3:
-                motID = 0xf00;
+                motID = MOT_ITEM;
                 break;
             case 6:
                 motID = 0xf02;
@@ -184,7 +184,7 @@ item_default:
         }
         if (dtPAD & 0x20)
         {
-            motID = 0xb00;
+            motID = MOT_SQUAT;
             motMODE = 1;
             return;
         }

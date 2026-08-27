@@ -185,7 +185,7 @@ rope_done:;
                 } while (i <= ry);
             }
             *(u16 *)&model->object[0]->attribute |= 1;
-            motID = 0x300;
+            motID = MOT_SWIM;
             motMODE = 1;
             dtM->mask = 0x7fff;
         }
@@ -606,7 +606,7 @@ make_wire:
 //       } while (iVar14 * 0x10000 >> 0x10 <= (int)sVar7);
 //     }
 //     (*pMVar15->object)->attribute = (*pMVar15->object)->attribute | 1;
-//     motID = 0x300;
+//     motID = MOT_SWIM;
 //     DAT_80097f0e = 1;
 //     dtM->mask = 0x7fff;
 //   }

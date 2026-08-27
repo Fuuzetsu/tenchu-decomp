@@ -276,7 +276,7 @@ draw_done:
             {
                 return;
             }
-            if (human->motion->mid == 0x100)
+            if (human->motion->mid == MOT_ACTION)
             {
                 return;
             }
@@ -484,7 +484,7 @@ draw_done:
 //       if (human->target == (ModelType *)StagePlayer->model) {
 //         return;
 //       }
-//       if (human->motion->mid == 0x100) {
+//       if (human->motion->mid == MOT_ACTION) {
 //         return;
 //       }
 //     }

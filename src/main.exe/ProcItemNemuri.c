@@ -251,7 +251,7 @@ void ProcItemNemuri(TItem *item)
                 SetSmoke(&smoke_pos, vec, 10, 0x1e);
 
                 life = human->life;
-                if (life > 0 && human->motion->mid != 0x100)
+                if (life > 0 && human->motion->mid != MOT_ACTION)
                 {
                     if ((human->type & 0xf0) != 0x80 && life != dead)
                     {

@@ -41,9 +41,9 @@
  * ProcItem dispose tail:
  *  - owner->hookflag (Humanoid+0xCD) == 0: not yet thrown — enter DIRECTION
  *    camera mode and dispose.
- *  - owner is mid-throw but not in the hook-fly motion (motion->mid != 0x400):
+ *  - owner is mid-throw but not in the hook-fly motion (motion->mid != MOT_KAGI):
  *    dispose.
- *  - owner IS in the hook-fly motion (mid == 0x400): aim the camera along the
+ *  - owner IS in the hook-fly motion (mid == MOT_KAGI): aim the camera along the
  *    throw (GetVectorRotation off ViewInfo), and if the sight bit is held just
  *    re-sort the reticle sprite and bail; otherwise walk the camera target
  *    toward the hook tip (RotateVector a fixed offset, FUN_80039ddc a step,
@@ -111,7 +111,7 @@ void ProcKaginawa(TItem *item)
         item->owner = 0;
         item->proc = 0;
     }
-    else if (own->motion->mid != 0x400)
+    else if (own->motion->mid != MOT_KAGI)
     {
         ppu = item->proc;
         if (ppu == 0)
@@ -211,7 +211,7 @@ void ProcKaginawa(TItem *item)
 //     }
 //     item->mode = 0xff;
 //   }
-//   else if (item->owner->motion->mid == 0x400) {
+//   else if (item->owner->motion->mid == MOT_KAGI) {
 //     GetVectorRotation((VECTOR *)&ViewInfo,(VECTOR *)&ViewInfo.vrx,&local_20,&local_1c);
 //     if (((item->owner->pad).data & 0x10) != 0) {
 //       if (-1 < local_20) {

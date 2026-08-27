@@ -148,7 +148,7 @@ void ActATTACK(void)
 
             if (Me_MOTION_C->life == 0)
             {
-                motID = 0x1100;
+                motID = MOT_DEAD;
                 motMODE = 1;
                 return;
             }
@@ -193,10 +193,10 @@ void ActATTACK(void)
         MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
     }
 dispatch:
-    switch ((short)(dtM->mid - 0x700))
+    switch ((short)(dtM->mid - MOT_ATTACK))
     {
     case 0:
-        t = GetMotionID(dtM, 0x700);
+        t = GetMotionID(dtM, MOT_ATTACK);
         switch (t)
         {
         case 0xf1:

@@ -22,7 +22,7 @@ s16 Think1sleep(void)
 
     mmp = Me_THINK_C->motion;
     mot = 0;
-    if (mmp->mid == 0x100)
+    if (mmp->mid == MOT_ACTION)
     {
         SR = -1;
     }

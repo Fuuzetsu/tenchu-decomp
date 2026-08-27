@@ -176,7 +176,7 @@ void ActSWIM(void)
         goto common_action;
 
 set_swim_idle:
-        motID = 0x300;
+        motID = MOT_SWIM;
         motMODE = 1;
         goto common_action;
 
@@ -268,13 +268,13 @@ common_action:
         switch ((short)(SelectedItem + 1))
         {
         case 2:
-            motID = 0xe00;
+            motID = MOT_SYURI;
             break;
         case 1:
-            motID = 0x400;
+            motID = MOT_KAGI;
             break;
         case 3:
-            motID = 0xf00;
+            motID = MOT_ITEM;
             break;
         case 6:
             motID = 0xf02;

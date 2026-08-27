@@ -129,7 +129,7 @@ status7_return:
         return 0;
     }
 
-    if (Me_THINK_C->motion->mid == 0x500)
+    if (Me_THINK_C->motion->mid == MOT_ENGAGE)
     {
         return (u16)(rand() % (EngageLevel + 1) != 0) << 14;
     }
@@ -365,7 +365,7 @@ return_pad:
 //     if (Me_THINK_C->status == 9) {
 //       return 0;
 //     }
-//     if (Me_THINK_C->motion->mid == 0x500) {
+//     if (Me_THINK_C->motion->mid == MOT_ENGAGE) {
 //       iVar3 = rand();
 //       iVar5 = EngageLevel + 1;
 //       if (iVar5 == 0) {

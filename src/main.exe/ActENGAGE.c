@@ -51,7 +51,7 @@ void ActENGAGE(void)
     short mask;
     int random;
 
-    switch ((short)(dtM->mid - 0x500))
+    switch ((short)(dtM->mid - MOT_ENGAGE))
     {
     case 1:
     {
@@ -255,15 +255,15 @@ engage_case_post:
             switch ((short)(SelectedItem + 1))
             {
             case 2:
-                motID = 0xe00;
+                motID = MOT_SYURI;
                 motMODE = 1;
                 return;
             case 1:
-                motID = 0x400;
+                motID = MOT_KAGI;
                 motMODE = 1;
                 return;
             case 3:
-                motID = 0xf00;
+                motID = MOT_ITEM;
                 motMODE = 1;
                 return;
             case 6:
@@ -298,7 +298,7 @@ engage_case_post:
                     motMODE = 1;
                     return;
                 }
-                motID = 0xb00;
+                motID = MOT_SQUAT;
                 motMODE = 1;
                 return;
             }
@@ -311,7 +311,7 @@ engage_case_post:
                 }
                 if (dtPAD & 0x1000)
                 {
-                    motID = 0x600;
+                    motID = MOT_CHASE;
                     motMODE = 1;
                     return;
                 }
@@ -338,7 +338,7 @@ engage_case_post:
 //   
 //   pMVar2 = dtM;
 //   human = Me_MOTION_C;
-//   switch((int)(((ushort)dtM->mid - 0x500) * 0x10000) >> 0x10) {
+//   switch((int)(((ushort)dtM->mid - MOT_ENGAGE) * 0x10000) >> 0x10) {
 //   case 0:
 //     sVar3 = dtV->vx;
 //     if (sVar3 != 0) {

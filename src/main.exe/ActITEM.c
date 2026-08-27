@@ -50,7 +50,7 @@ void ActITEM(void)
     PARAM_ITEM_LAUNCH item;
 
     flag = 0;
-    switch ((s16)(dtM->mid - 0xF00))
+    switch ((s16)(dtM->mid - MOT_ITEM))
     {
     case 0:
         if (dtM->count != 10)

@@ -176,7 +176,7 @@ enemy_type_ok:
         }
         motID = 0x711;
     }
-    else if (motID == 0xb00)
+    else if (motID == MOT_SQUAT)
     {
         if (GetMotionID(dtM, 0x70c) < 0)
         {
@@ -190,7 +190,7 @@ enemy_type_ok:
         {
             return;
         }
-        motID = 0x700;
+        motID = MOT_ATTACK;
         motMODE = 1;
         if (GetMotionID(dtM, 0x70d) >= 0)
         {
@@ -201,7 +201,7 @@ enemy_type_ok:
     }
     else if (MOTION_PAD_BITS & 0x1000)
     {
-        motID = 0x700;
+        motID = MOT_ATTACK;
     }
     else if (MOTION_PAD_BITS & 0x2000)
     {
@@ -213,7 +213,7 @@ enemy_type_ok:
     }
     else
     {
-        motID = 0x700;
+        motID = MOT_ATTACK;
     }
     motMODE = 1;
 

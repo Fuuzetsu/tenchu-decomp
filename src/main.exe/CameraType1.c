@@ -182,7 +182,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         goto choose_camera;
     case 3:
         cs = &CamState;
-        if (cs->Owner->motion->mid != 0x600)
+        if (cs->Owner->motion->mid != MOT_CHASE)
             goto choose_camera;
         cs->Mode = CMODE_RUN;
         goto choose_camera;

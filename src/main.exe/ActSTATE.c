@@ -421,7 +421,7 @@ void ActSTATE(void)
                 return;
             }
         }
-        motID = 0x600;
+        motID = MOT_CHASE;
         motMODE = 1;
         i = MotionUpdateMode;
         if (i != 0)

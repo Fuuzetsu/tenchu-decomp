@@ -56,7 +56,7 @@ void ActCHASE(void)
     short turn;
 
     turn = Me_MOTION_C->turn / 2;
-    switch ((short)(dtM->mid - 0x600))
+    switch ((short)(dtM->mid - MOT_CHASE))
     {
     case 0:
     {
@@ -153,7 +153,7 @@ void ActCHASE(void)
             {
                 goto common_action;
             }
-            motID = 0xb00;
+            motID = MOT_SQUAT;
         }
         else
         {
@@ -212,7 +212,7 @@ void ActCHASE(void)
             motMODE = 1;
             return;
         }
-        motID = 0xb00;
+        motID = MOT_SQUAT;
         motMODE = 1;
         goto common_action;
     }
@@ -270,13 +270,13 @@ common_action:
         switch ((short)(SelectedItem + 1))
         {
         case 2:
-            motID = 0xe00;
+            motID = MOT_SYURI;
             break;
         case 1:
-            motID = 0x400;
+            motID = MOT_KAGI;
             break;
         case 3:
-            motID = 0xf00;
+            motID = MOT_ITEM;
             break;
         case 6:
             motID = 0xf02;
@@ -326,7 +326,7 @@ common_action:
 //   
 //   iVar5 = (uint)(ushort)Me_MOTION_C->turn << 0x10;
 //   uVar8 = (uint)((iVar5 >> 0x10) - (iVar5 >> 0x1f)) >> 1;
-//   switch((int)(((ushort)dtM->mid - 0x600) * 0x10000) >> 0x10) {
+//   switch((int)(((ushort)dtM->mid - MOT_CHASE) * 0x10000) >> 0x10) {
 //   case 0:
 //     if ((dtM->count == 0) ||
 //        (iVar5 = (uint)(ushort)dtM->motion->time << 0x10,
@@ -480,13 +480,13 @@ common_action:
 //       SoundEx(Me_MOTION_C->locate,0xc);
 //       return;
 //     case 1:
-//       motID = 0x400;
+//       motID = MOT_KAGI;
 //       break;
 //     case 2:
-//       motID = 0xe00;
+//       motID = MOT_SYURI;
 //       break;
 //     case 3:
-//       motID = 0xf00;
+//       motID = MOT_ITEM;
 //       break;
 //     default:
 //       ReqItemDefault(Me_MOTION_C,(int)(short)DAT_80097b1e);

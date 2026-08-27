@@ -72,7 +72,7 @@ void ActSQUAT(void)
     short turn;
 
     turn = Me_MOTION_C->turn / 2;
-    switch ((short)(dtM->mid - 0xB00))
+    switch ((short)(dtM->mid - MOT_SQUAT))
     {
     case 0:
         if (dtM->count == 0 && dtM->loop != 0)
@@ -118,7 +118,7 @@ void ActSQUAT(void)
         }
         if ((MOTION_PAD_BITS & 0x1000) == 0)
         {
-            motID = 0xB00;
+            motID = MOT_SQUAT;
             motMODE = 1;
         }
         else if (Me_MOTION_C->pad.trig & 0x40)
@@ -136,7 +136,7 @@ void ActSQUAT(void)
         }
         if ((MOTION_PAD_BITS & 0x4000) == 0)
         {
-            motID = 0xB00;
+            motID = MOT_SQUAT;
             motMODE = 1;
             goto common_action;
         }
@@ -170,7 +170,7 @@ void ActSQUAT(void)
         }
         if ((MOTION_PAD_BITS & 0x2000) == 0)
         {
-            motID = 0xB00;
+            motID = MOT_SQUAT;
             motMODE = 1;
             goto common_action;
         }
@@ -190,7 +190,7 @@ void ActSQUAT(void)
         }
         if ((dtPAD & 0x8000U) == 0)
         {
-            motID = 0xB00;
+            motID = MOT_SQUAT;
             motMODE = 1;
             goto common_action;
         }
@@ -218,7 +218,7 @@ move_if_stationary:
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0xB00;
+            motID = MOT_SQUAT;
             motMODE = 1;
         }
         goto common_action;
@@ -231,7 +231,7 @@ move_if_stationary:
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0xB00;
+            motID = MOT_SQUAT;
             motMODE = 1;
             return;
         }
@@ -258,7 +258,7 @@ common_action:
     {
         return;
     }
-    if (motID != 0xB00 && (dtV->vx != 0 || dtV->vz != 0))
+    if (motID != MOT_SQUAT && (dtV->vx != 0 || dtV->vz != 0))
     {
         if (__builtin_abs(GetAreaMapLevel(GlobalAreaMap,
                                           dtL->vx + dtV->vx * 16,
@@ -325,13 +325,13 @@ command_flag:
         switch ((short)(SelectedItem + 1))
         {
         case 2:
-            motID = 0xE00;
+            motID = MOT_SYURI;
             break;
         case 1:
-            motID = 0x400;
+            motID = MOT_KAGI;
             break;
         case 3:
-            motID = 0xF00;
+            motID = MOT_ITEM;
             break;
         case 6:
             motID = 0xF02;
