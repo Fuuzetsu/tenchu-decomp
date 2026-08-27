@@ -57,7 +57,7 @@
  *  - The 16-byte magic write is ONE aligned-1 byte-array copy,
  *    not Ghidra's 16 separate byte assignments (its usual block-move
  *    decompilation artifact — same class as the DRAWENV copies in
- *    cbAccess.c/FUN_80018f00.c). A fixed-size built-in copy reproduces the
+ *    cbAccess.c/stop_access_meter_.c). A fixed-size built-in copy reproduces the
  *    raw .s's lwl/lwr+swl/swr chunking.
  *  - `virtual_memory_pool`'s save/restore around the vinit+vcalloc pair
  *    sits INSIDE the `if (ReadMode & 9)` guard in the asm (the load is

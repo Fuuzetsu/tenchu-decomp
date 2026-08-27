@@ -35,7 +35,7 @@
  * (MOTION.C's ActionFunc[] table, dispatched by HumanActionControl on
  * human->status). Two motion ids: 0xE00 (throw) spawns the shuriken item at
  * the weapon-hand model's absolute position on frame 1 (count == 1), or —
- * past that frame — holds the aim lock (FUN_8004a368) until it breaks or the
+ * past that frame — holds the aim lock (spare_item_slot_) until it breaks or the
  * player cancels via pad.trig & 0xE0; 0xE01 (recover) restocks the AI's
  * shuriken (ReqItemDefault) and returns to motion 0 or 0x501 (attribute &
  * 0x40 = crouching?) when the motion runs out.
@@ -66,7 +66,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern s32 FUN_8004a368(s32 arg0, Humanoid *arg1);
+extern s32 spare_item_slot_(s32 arg0, Humanoid *arg1);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ActSYURI(void)
@@ -102,7 +102,7 @@ void ActSYURI(void)
             ReqItemUse(&item);
             Sound(Me_MOTION_C, 0x1E);
         }
-        else if (FUN_8004a368(1, Me_MOTION_C) == 0)
+        else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
             motID = 0xE01;
             motMODE = 1;
@@ -110,7 +110,7 @@ void ActSYURI(void)
         }
         else if (Me_MOTION_C->pad.trig & 0xE0)
         {
-            FUN_8004a368(0, 0);
+            spare_item_slot_(0, 0);
             if (Me_MOTION_C == StagePlayer)
             {
                 SetCameraMode(CMODE_NORMAL);

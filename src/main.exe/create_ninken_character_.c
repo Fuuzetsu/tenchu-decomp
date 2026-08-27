@@ -84,7 +84,7 @@ void create_ninken_character_(s16 type, s32 stage)
     }
 }
 
-// triage: MEDIUM — 144 insns, 2 loop, 2 callees, ~0.09 to FUN_8004a598
+// triage: MEDIUM — 144 insns, 2 loop, 2 callees, ~0.09 to get_henshin_type_
 // likely-relevant cookbook sections:
 //   - Loops: 2 back-edge(s) — for/while/do vs goto shape
 //   - gp vs absolute globals: gp-relative smalls — tools/gpsyms.py

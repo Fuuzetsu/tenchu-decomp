@@ -16,10 +16,10 @@
  *  - Variadic prologue: taking `&fmt` (the ONLY named parameter) forces
  *    cc1 to spill all four incoming argument registers (fmt + 3 varargs)
  *    to their ABI-reserved stack slots at function entry, the same idiom
- *    already verified in this file's own sibling FUN_8005fe38.c
+ *    already verified in this file's own sibling debug_printf_.c
  *    (`s32 *ap = (s32 *)((char *)&arg0 + sizeof(arg0));`). AdtVsprintf's
  *    own signature (`int AdtVsprintf(s32 *args, char *dst, u32 n, char
- *    *fmt)`, from FUN_8005fe38.c) takes that raw spilled-register pointer,
+ *    *fmt)`, from debug_printf_.c) takes that raw spilled-register pointer,
  *    not a `va_list` abstraction — there is no stdarg.h in this codebase.
  *  - `fmt` doubles as a MUTABLE local (its own address is taken below, so
  *    cc1 keeps it memory-resident for its whole lifetime — reusing a

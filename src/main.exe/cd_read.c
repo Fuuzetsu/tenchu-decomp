@@ -14,12 +14,12 @@
  * $a0 is the live incoming `f` parameter, never reassigned before the jal;
  * see the cookbook's "leading argument carried in live" rule); adding
  * `pos` (rounded down to a whole sector via the 0x7FF bias before the
- * arithmetic shift) locates the absolute sector/byte-offset FUN_8005f380
+ * arithmetic shift) locates the absolute sector/byte-offset cd_read_sectors_
  * forwards to the raw sector reader.
  */
 
 extern int puts(char *s);
-extern void FUN_8005f380(void *buffer, int sector, int byteOffset, int byteLength);
+extern void cd_read_sectors_(void *buffer, int sector, int byteOffset, int byteLength);
 extern char msg_cd_read_invalid_handle[]; /* cd_read:invalid handle */ /* "cd_read:invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same
                             * pattern as AfsInit's msg_afsinit_not_enough_memory. */
@@ -44,7 +44,7 @@ int cd_read(FILE *f, void *buffer, int length)
         if (pos < 0) {
             adj = pos + 0x7FF;
         }
-        FUN_8005f380(buffer, sector + (adj >> 11), pos - ((adj >> 11) << 11), length);
+        cd_read_sectors_(buffer, sector + (adj >> 11), pos - ((adj >> 11) << 11), length);
         return length;
     }
     return 0;

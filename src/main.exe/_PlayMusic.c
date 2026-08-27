@@ -63,7 +63,7 @@
  * (`(char *)0x8001349C`) compiles the low half with `ori` (raw 32-bit
  * constant synthesis); the target's `addiu` (address-style combine)
  * needs a real named `extern char msg_bad_music_no[];` (config/symbols.main.exe.txt
- * entries added), confirmed empirically. Contrast FUN_800568b8.c's
+ * entries added), confirmed empirically. Contrast clamp_shop_stock_.c's
  * `(TLinkInfo *)0x80010000` cast, which really is a bare literal
  * (that lui has NO addiu at all, reused as a base for several field
  * offsets) — a different, narrower tell than "no %hi(SYMBOL) shown here".
@@ -72,8 +72,8 @@
  * singular `start`/`end` declarations. Ghidra rendered each as a two-element
  * array only because the following stack object begins one `CdlLOC` later.
  *
- * `gSoundLevel` is FUN_8004f68c.c's already-proven persisted volume byte
- * (passed to `FUN_8004fbf4` twice, identically, exactly as that file
+ * `gSoundLevel` is apply_cd_volume_.c's already-proven persisted volume byte
+ * (passed to `set_cda_volume_` twice, identically, exactly as that file
  * does).
  *
  * The MusicNo<100-vs->=100 id offset (`+0x52`/`+0x64`) is a plain
@@ -111,7 +111,7 @@ extern void CdaStop(void);
 extern void PlayVoice(s32 id);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void SsSetMVol(int voll, int volr);
-extern void FUN_8004fbf4(u8 voll, u8 volr);
+extern void set_cda_volume_(u8 voll, u8 volr);
 extern void *memset(void *s, int c, u32 n);
 extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);
 
@@ -152,7 +152,7 @@ void _PlayMusic(int MusicNo, int mode)
         music = &MusicTable[MusicNo];
         sprintf((char *)fname, fmt_xa_path, music->file);
         SsSetMVol(0x7F, 0x7F);
-        FUN_8004fbf4(gSoundLevel, gSoundLevel);
+        set_cda_volume_(gSoundLevel, gSoundLevel);
 
         min = music->min;
         sec = music->sec;

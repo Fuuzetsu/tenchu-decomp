@@ -15,7 +15,7 @@
 
 extern ModelType *LOCAL_COORDINATES_;
 
-extern void FUN_80037e0c(Humanoid *human, s32 mode);
+extern void spawn_damage_effect_(Humanoid *human, s32 mode);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 
 void death_camera_something_(Humanoid *human)
@@ -44,7 +44,7 @@ void death_camera_something_(Humanoid *human)
     {
         if ((GameClock & 0xf) == 0)
         {
-            FUN_80037e0c(human, 0);
+            spawn_damage_effect_(human, 0);
         }
         return;
     }
@@ -134,7 +134,7 @@ void death_camera_something_(Humanoid *human)
 //         if ((GameClock & 0xfU) != 0) {
 //           return;
 //         }
-//         FUN_80037e0c(param_1,0);
+//         spawn_damage_effect_(param_1,0);
 //         return;
 //       }
 //       *(int *)(param_1 + 0x80) = iVar3;
@@ -191,7 +191,7 @@ void death_camera_something_(Humanoid *human)
 // temps straight from the asm; Ghidra above has the real types):
 //
 // ? DrawTMD(void *, s32, ?);                          /* extern */
-// ? FUN_80037e0c(void *, ?);                          /* extern */
+// ? spawn_damage_effect_(void *, ?);                          /* extern */
 // void *GetAbsolutePosition(s32, ?, ?, ?);            /* extern */
 // ? GsGetLs(void *, ? *);                             /* extern */
 // ? GsSetLsMatrix(? *);                               /* extern */
@@ -230,7 +230,7 @@ void death_camera_something_(Humanoid *human)
 //     temp_v0 = temp_v1 + 0x88;
 //     if (temp_a0 & 0x100) {
 //         if (!(GameClock & 0xF)) {
-//             FUN_80037e0c(arg0, 0);
+//             spawn_damage_effect_(arg0, 0);
 //         }
 //     } else {
 //         arg0->unk80 = temp_v0;

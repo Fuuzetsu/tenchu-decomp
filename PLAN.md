@@ -34,15 +34,15 @@ byte-identical `main.exe`.
 - **Partial matches** (kept via the
   NON_MATCHING convention — default build stays green byte-identical, draft
   builds with `NON_MATCHING=<Name> ./Build`): **no game functions remain** as
-  of 2026-07-19. `FUN_800519bc`, `AdtSelect`, and `mission_score_screen` are
-  exact pure C; `FUN_8001c730` is classified as a canonical handwritten GTE
+  of 2026-07-19. `briefing_screen_`, `AdtSelect`, and `mission_score_screen` are
+  exact pure C; `eval_spline_gte_` is classified as a canonical handwritten GTE
   helper. Remaining guarded drafts are stock SDK or canonical-assembly work.
   Older headers often describe residuals as proven sub-C floors,
   but repeated exact matches have falsified that conclusion. Those diagnostics
   describe one tested pseudo graph, not everything human C can express. Common
   residuals still include
   the named **`la` address-materialization tie** (`%hi` in a temp vs the target
-  reg — `PrepareAccess`, `cd_open`, `PlayMusicFromID`, `FUN_8004a368`),
+  reg — `PrepareAccess`, `cd_open`, `PlayMusicFromID`, `spare_item_slot_`),
   goto-merge copy-chains (`turn_towards_player_`, `Think3chase`), and the
   big-handler flag/frame ties. The permuter is often immune to these late-pass
   decisions, so fresh compiler dumps, demo homologs, original types/macros, and
@@ -125,8 +125,8 @@ Evidence it works, this session:
 - **DecodeTMD family ~620 -> 0:** the whole breakthrough was recognising the hand-rolled
   `goto` loop as a WRONG FIX propping up damage it caused (it killed the loop-depth ref
   weighting), and the TU wanting `-fno-strength-reduce`. **FOUR of six now MATCHED:**
-  FUN_80059ff4/FUN_8005a3cc AND the 1260-pair FUN_8005961c/FUN_80059b08 all -> **0**.
-  FUN_80058c70/FUN_80059008 subsequently went **25 -> 0**. The single-statement
+  fast_tnf3_/fast_tng3_ AND the 1260-pair fast_tng4_/fast_tnf4_ all -> **0**.
+  adiv_tng4_/adiv_tnf4_ subsequently went **25 -> 0**. The single-statement
   reach proof was accurate only for that decomposition: one twin uses a dedicated
   `colorWord` instead of reusing a later GTE-address carrier; the other uses the
   real loop counter plus one two-set packet initializer. Both ordinary local
@@ -145,14 +145,14 @@ relocatable member or canonical assembly when C adds no editing value.
 
 ### Batch 2026-07-18: a broad sweep found apparent sub-C floors
 
-A 13-lane sweep across the whole value spectrum (DrawImpact 4, FUN_80057b80 8,
-AdtSelect 9, SetupTelop 9, SetLightningI 15, CameraDirection 7, FUN_80058c70/9008
-26, start_demo_ 39, PutItemList 27, PadProc 28, FUN_80036284 34, FUN_800519bc 87,
+A 13-lane sweep across the whole value spectrum (DrawImpact 4, subdivide_quad_ 8,
+AdtSelect 9, SetupTelop 9, SetLightningI 15, CameraDirection 7, adiv_tng4_/9008
+26, start_demo_ 39, PutItemList 27, PadProc 28, draw_fade_ 34, briefing_screen_ 87,
 StageEndScreen 202) re-tested every park with the repaired tooling (regalloc
 --local, the `-fno-builtin`-fixed permuter). Its immediate result was 0 full
 matches and well-characterised ties in the structures tested. The follow-up
 human-source pass then falsified most of the closest "floors": SetupTelop,
-DrawImpact, CameraDirection, FUN_80057b80, FUN_80058c70, FUN_80059008,
+DrawImpact, CameraDirection, subdivide_quad_, adiv_tng4_, adiv_tnf4_,
 SetLightningI, SetWire, DrawBleed, and ControlTraceLine are now exact. These
 outcomes are the durable result: compiler diagnostics prove properties of a
 pseudo graph, not that the original human decomposition cannot create another.
@@ -160,14 +160,14 @@ The observed tie taxonomy is documented in the cookbook — local-alloc
 (conflict-free-window, containment, interference-wall), sched1 LUID wall, sched2
 emission-order (prologue parm-copy, biv-init), dbr delay-slot, reload round-robin,
 hard-conflict register renames, register-coloring cascade. Residual SIZE does not
-indicate structural-vs-tie: even 87-byte FUN_800519bc is identical-CFG register
+indicate structural-vs-tie: even 87-byte briefing_screen_ is identical-CFG register
 renames.
 
 **What still moves, and what doesn't.** The `-fno-builtin` permuter fix is the ONE
 lever that produced progress: it found StageEndScreen 202->199 (a human-plausible
 named coordinate variable earlier rounds' buggy permuter missed). But on most ties
-its wins are non-human seed-temp/no-op scaffolds (SetLightningI 12, FUN_80036284
-16/12, FUN_80058c70 22) — all correctly REJECTED per the human-source directive; the
+its wins are non-human seed-temp/no-op scaffolds (SetLightningI 12, draw_fade_
+16/12, adiv_tng4_ 22) — all correctly REJECTED per the human-source directive; the
 clean park is the honest state. The human-source discipline held in every lane.
 
 The batch's original conclusion that the frontier had moved off "match more
@@ -176,7 +176,7 @@ larger scale than the permuter searched: same-TU inline helpers, ordered local
 copies of formals, direct control-flow tails, and purpose-specific reused locals.
 DrawBleed and ControlTraceLine both matched after their bounded searches had
 reported floors; the DecodeTMD twins matched after their one-statement proof;
-FUN_80057b80 matched after a quantified signature proof. Continue to rank by
+subdivide_quad_ matched after a quantified signature proof. Continue to rank by
 value and evidence, but treat every park as a falsifiable claim about one graph.
 
 ## Humanising pass — the active loop (2026-08-27)
@@ -207,7 +207,7 @@ Workflow (resumable — a fresh session continues from here):
 State (2026-08-27): stale dumps stripped from all 23 matched carriers;
 `DamageControl` humanised (labels/locals/format); the whole TMD renderer
 family humanised — the fast cluster fully struct-typed (`TMD_FAST_WORK`,
-`src/main.exe/tmdfast.h`), the subdivision cluster's `FUN_80057b80`
+`src/main.exe/tmdfast.h`), the subdivision cluster's `subdivide_quad_`
 rewritten on `ADIV_VERT`/`ADIV_FRAME`/`ADIV_WORK`, and the entry
 renderers annotated (their index spelling is byte-required — see the
 struct-store scheduling rule added to cookbook 3.13).
@@ -273,8 +273,8 @@ Remaining lanes ALL need owner input or new evidence:
 The game-code matching queue is empty. Live output is 537/555 game functions in
 exact C plus 18/555 canonical handwritten-assembly originals, or 555/555 and
 100% of game-code bytes done. `tools/findsimilar.py --targets --by-value`
-returns zero game candidates. `FUN_800519bc`, `AdtSelect`, and
-`mission_score_screen` are exact C; `FUN_8001c730` is the eighteenth canonical
+returns zero game candidates. `briefing_screen_`, `AdtSelect`, and
+`mission_score_screen` are exact C; `eval_spline_gte_` is the eighteenth canonical
 GTE assembly body. Do not restart the old matching flywheel from the historical
 target lists below.
 
@@ -368,11 +368,11 @@ printed this set (it defaults to `--scope game`):
 
         6084  15.2%  StageEndScreen        (residual 199 — cluster B confirmed uncollectable)
         4636  26.9%  mission_score_screen  (residual 187 — HUMAN-STRUCTURE rewrite, see below)
-        3796  36.4%  FUN_80057b80          (residual   8)
+        3796  36.4%  subdivide_quad_          (residual   8)
         2188  41.8%  start_demo_           (residual  75 — 96.6% exact)
-        1448  49.2%  FUN_800519bc          (residual  87 — 94.0% exact)
+        1448  49.2%  briefing_screen_          (residual  87 — 94.0% exact)
         ...
-          48 100.0%  FUN_8001b174
+          48 100.0%  get_pad_active_
 
     **The top 4 are 42% of everything left; the bottom 10 are ~2%.** Chasing 4- and
     9-byte parks on 500-byte functions ranks by probability and ignores the prize.
@@ -389,7 +389,7 @@ printed this set (it defaults to `--scope game`):
     tool-verified; `.loop`: the div-magic is hoisted but current_x is NOT, so its
     low source-LUID makes sched1 emit it first — a genuine un-raisable sched1 LUID
     wall, not a scaffold artifact). So StageEndScreen's cluster B (168 of its bytes)
-    is not collectable at any price; the prize ranking moves to `FUN_80057b80`
+    is not collectable at any price; the prize ranking moves to `subdivide_quad_`
     (3796, residual 8 — also a proven sched2 wall) and the medium structural
     residuals. **Read the dominant cluster's mechanism before spending a round on
     size alone.**
@@ -421,8 +421,8 @@ printed this set (it defaults to `--scope game`):
     SetupSpline's "permuter plateaued" was a crash. Re-check cheaply before honoring
     one (cookbook §4).
   * **The DecodeTMD primitive-renderer family (updated 2026-07-18)** — all six
-    members now MATCH: FUN_8005961c/FUN_80059b08 (1260 each),
-    FUN_80059ff4/FUN_8005a3cc (984 each), and FUN_80058c70/FUN_80059008
+    members now MATCH: fast_tng4_/fast_tnf4_ (1260 each),
+    fast_tnf3_/fast_tng3_ (984 each), and adiv_tng4_/adiv_tnf4_
     (920 each). The final pair closed by replacing decompiler carrier reuse with
     coherent colour/counter/initializer identities; their former v0/v1 floor was
     decomposition-relative.

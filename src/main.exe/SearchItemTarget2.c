@@ -46,7 +46,7 @@
  * ProcItemLightningBolt, ProcSightShot, ReqItemArrow, ReqItemHappou,
  * ReqItemUse all call this). Builds a world-space aim point in `*target`
  * (rotate a fixed muzzle-offset constant by `rot`, add `start`, then trace it
- * via FUN_80039ddc — likely a ground-following raycast) and its distance from
+ * via trace_ground_ — likely a ground-following raycast) and its distance from
  * `start`, then scans every live Humanoid other than `owner` for the one
  * whose position, transformed into the aim-ray's local space (RotMatrix of
  * `-rot` applied via ApplyMatrixLV), sits within a narrow forward cone
@@ -60,7 +60,7 @@
  *    (`tv` here) holds the constant/rotated muzzle offset before the loop,
  *    then each candidate's own absolute position inside the loop (the value
  *    ultimately copied into `*target` on a hit); the second (`lv`) holds
- *    FUN_80039ddc's traced point before the loop, then the aim-space-relative
+ *    trace_ground_'s traced point before the loop, then the aim-space-relative
  *    delta used for the cone test inside the loop. Reusing the same two
  *    locals for both roles (rather than four distinct VECTORs) reproduces
  *    the asm reusing the same two stack slots.
@@ -77,7 +77,7 @@
  *  - `while (1) { if (!(i < Humans)) break; ...; i = i + 1; }` — the top
  *    test is reached both from fall-in and from an unconditional back-jump
  *    (no duplicated entry test), the loop-rule-2 shape (leFindEnemy).
- *  - FUN_80039ddc's own Ghidra decompilation shows only 3 params, but this
+ *  - trace_ground_'s own Ghidra decompilation shows only 3 params, but this
  *    call site sets up 4 argument registers (a0-a3) — the trailing `u32`
  *    flag is forwarded unchanged to CGetLevel and not otherwise interpreted,
  *    an instance of the Ghidra-under-counts-trailing-args class (cookbook:
@@ -126,7 +126,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
     tv.vx = tv.vx + start->vx;
     tv.vy = tv.vy + start->vy;
     tv.vz = tv.vz + start->vz;
-    FUN_80039ddc(start, &tv, &lv, 0);
+    trace_ground_(start, &tv, &lv, 0);
     target->vx = lv.vx;
     target->vy = lv.vy;
     target->vz = lv.vz;

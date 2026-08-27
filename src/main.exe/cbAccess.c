@@ -37,7 +37,7 @@
  * environment with the display's own clip rect (so the meter draws
  * unclipped over the current frame), draws it, and restores the original
  * draw environment. Same canonical DRAWENV/DISPENV/RECT types as sibling
- * FUN_80018f00.c and AdtReleaseDisp.c.
+ * stop_access_meter_.c and AdtReleaseDisp.c.
  *
  * Matching notes:
  *  - `n_draw = o_draw;` is a plain DRAWENV (align-4, 0x5c bytes) struct

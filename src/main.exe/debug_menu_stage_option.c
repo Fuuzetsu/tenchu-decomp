@@ -37,7 +37,7 @@ extern u8 CHOSEN_LANGUAGE;
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void StageEndScreen(void);
 extern void SelectStage(TLinkInfo *ps);
-extern void FUN_8004f6c0(s32 arg);
+extern void exec_process_(s32 arg);
 extern void AdtMessageBox(char *fmt, ...);
 extern void CVAsetup(void);
 
@@ -57,7 +57,7 @@ void debug_menu_stage_option(void)
         return;
     case 1:
         SelectStage(PSTATE);
-        FUN_8004f6c0(0x11);
+        exec_process_(0x11);
         return;
     case 2:
         init_score_stats(&stats);

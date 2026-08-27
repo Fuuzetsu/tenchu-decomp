@@ -9,17 +9,19 @@
  * Tenchu's own modified copies of the libgs linked-TMD renderers live in game
  * code at 0x80057b80..0x8005a7a4 (the stock SDK builds sit separately at
  * their library addresses, e.g. GsA4divTNF4/GsTMDfastTNF3).  The demo's
- * PSX.SYM does not cover this TU, so the FUN_ names stay until real names are
- * recovered; the data shapes below are reconstructed from the matched bytes.
+ * PSX.SYM does not cover this TU, so the functions carry descriptive
+ * trailing-underscore names (the repo's invented-name convention; addresses
+ * in each file header keep the identity); the data shapes below are
+ * reconstructed from the matched bytes.
  *
  * Both renderer clusters run out of one caller-supplied scratch workspace
  * (GsSortObject4-style: ot, shift, scratch):
- *  - the "fast" cluster (FUN_800593a0 dispatching FUN_8005961c/FUN_80059b08/
- *    FUN_80059ff4/FUN_8005a3cc) stages one whole output packet per primitive
+ *  - the "fast" cluster (decode_tmd_fast_ dispatching fast_tng4_/fast_tnf4_/
+ *    fast_tnf3_/fast_tng3_) stages one whole output packet per primitive
  *    in the workspace, clip-tests it, then block-copies it to the packet
  *    list — TMD_FAST_WORK below;
- *  - the active-subdivision cluster (FUN_80058a54 dispatching FUN_80058c70/
- *    FUN_80059008 into the recursive FUN_80057b80) keeps per-vertex records
+ *  - the active-subdivision cluster (decode_tmd_adiv_ dispatching adiv_tng4_/
+ *    adiv_tnf4_ into the recursive subdivide_quad_) keeps per-vertex records
  *    and a recursion stack there instead.
  */
 
@@ -27,7 +29,7 @@
  * Workspace of the fast (non-dividing) renderers.  Quads stage their
  * POLY_GT4 at +0, the triangle pair stages its POLY_GT3 at +0x34; the
  * context fields from +0x5c are shared by all four.  The dispatcher
- * FUN_800593a0 fills the constants: farz 0x4a98, fogz 15000, and the
+ * decode_tmd_fast_ fills the constants: farz 0x4a98, fogz 15000, and the
  * 320x240 screen clip box.
  */
 typedef struct
@@ -59,7 +61,7 @@ typedef struct
 /*
  * One subdivision vertex of the active-subdivision cluster: object-space
  * position, (interpolated) colour with the primitive code byte, projected
- * screen XY/Z, and texture coordinates.  FUN_80057b80 averages two of
+ * screen XY/Z, and texture coordinates.  subdivide_quad_ averages two of
  * these into an edge midpoint field by field.
  */
 typedef struct
@@ -86,8 +88,8 @@ typedef struct
 } ADIV_FRAME; /* 0x88 bytes */
 
 /*
- * Workspace of the active-subdivision cluster (FUN_80058a54 dispatching
- * FUN_80058c70/FUN_80059008 into the recursive FUN_80057b80).  The entry
+ * Workspace of the active-subdivision cluster (decode_tmd_adiv_ dispatching
+ * adiv_tng4_/adiv_tnf4_ into the recursive subdivide_quad_).  The entry
  * renderer fills the header and the four root vertices; the subdivider
  * walks frames from frame[0] down the remaining scratch.
  *

@@ -3,7 +3,7 @@
 
 /*
  * PauseProc (0x8004b4c0) — the in-game pause loop. Entered every frame;
- * Start (or a dead player, FUN_8001b174 == 0) raises the pause flag
+ * Start (or a dead player, get_pad_active_ == 0) raises the pause flag
  * (`SYSFLAG_PAUSE`), then this spins: polling the pad, feeding new presses
  * to the combo matcher (0x10 = revive cheat, 0x1000 = debug enable) and the
  * cheat-code recorder, Select opening the debug menu when debug is enabled,
@@ -22,7 +22,7 @@
  *    splits live ranges).
  *  - `cur == (START | SELECT)` and the call argument share one sign-extension
  *    of cur, CSE'd into callee-saved $s0 because it lives across
- *    FUN_800566fc().
+ *    return_to_menu_().
  *  - com is int, not short: the combo matcher's short return is extended
  *    once at the assignment (sll/sra straight into $a1, before the
  *    status==7/mid>0x713 override) and both == compares then run on the word.
@@ -86,8 +86,8 @@
  *     extern short Findenemies;
  * END PSX.SYM */
 
-extern short FUN_8001b174(s32 arg);
-extern void FUN_800566fc(void);
+extern short get_pad_active_(s32 arg);
+extern void return_to_menu_(void);
 extern short check_for_known_button_combination(short pad, short trg);
 extern void CheckCheatCodes(s16 *rec, int n);
 extern void DrawPause(int frame);
@@ -111,7 +111,7 @@ void PauseProc(void)
     pad = GetPad(0);
     i = 0;
     cnt = 0;
-    if (((pad & START) && !(SystemFlag & SYSFLAG_PAUSE)) || FUN_8001b174(0) == 0)
+    if (((pad & START) && !(SystemFlag & SYSFLAG_PAUSE)) || get_pad_active_(0) == 0)
     {
         SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~0x10;
         SoundEx((VECTOR *)0, 9);
@@ -130,7 +130,7 @@ void PauseProc(void)
         trig = cur & (cur ^ opad);
         opad = trig;
         if (cur == (START | SELECT))
-            FUN_800566fc();
+            return_to_menu_();
         com = check_for_known_button_combination(cur, trig);
         if (CamState.Owner->status == STAT_ATTACK && 0x713 < CamState.Owner->motion->mid)
             com = 0;

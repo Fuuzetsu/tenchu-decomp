@@ -73,9 +73,9 @@ extern void DestroyTraceLine(TraceLine *trace);
 extern void SetupSoundEffect(s16 character, s16 stage);
 extern void DoBriefingAndInventorySelection(void);
 extern GsIMAGE *GetImage(s32 id);
-extern BackGround *FUN_8004f4f8(u_long *data);
+extern BackGround *load_background_(u_long *data);
 extern void vfree(void *ptr);
-extern void FUN_80038ce0(void);
+extern void clear_screen_(void);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *bg);
 extern short LoadConstruction(u_long *data);
@@ -141,10 +141,10 @@ void CreateStage(int StageNo, int CharType)
     dat = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
     image = GetImage(0x2D);
     SetupImageToPolyFT4(image, &ply_ten, 0x34, 0x43);
-    bg = FUN_8004f4f8(dat);
+    bg = load_background_(dat);
     vfree(dat);
 
-    FUN_80038ce0();
+    clear_screen_();
     StartDrawing();
     GsSortPoly(&ply_ten, OTablePt, 0);
     DrawBG(bg);

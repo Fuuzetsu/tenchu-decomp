@@ -40,7 +40,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
+extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void JumpControl(void);
 extern void AttackControl(void);
 
@@ -185,7 +185,7 @@ engage_case_post:
         }
         if ((GameClock & 3) != 0)
             return;
-        FUN_80033bc0(dtL, 300, 10, 5);
+        spawn_smoke_burst_(dtL, 300, 10, 5);
         return;
     }
 
@@ -383,7 +383,7 @@ engage_case_post:
 //     if ((GameClock & 3U) != 0) {
 //       return;
 //     }
-//     FUN_80033bc0(dtL,300,10,5);
+//     spawn_smoke_burst_(dtL,300,10,5);
 //     return;
 //   case 1:
 //     sVar3 = 0x504;

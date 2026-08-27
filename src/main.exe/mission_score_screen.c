@@ -54,15 +54,15 @@ extern s16 StageItem[];
 
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);
-extern BackGround *FUN_8004f4f8(u_long *tim);
+extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);
-extern void FUN_800515b0(GsSPRITE *number, s32 value, s16 x, s32 y,
+extern void draw_time_(GsSPRITE *number, s32 value, s16 x, s32 y,
                          s32 mode);
 extern void FadeOutDirect(s16 time, s16 attribute, u8 r, u8 g, u8 b);
-extern void FUN_80038ce0(void);
-extern void FUN_800514d8(void);
-extern void FUN_8004f6c0(s32 screen);
+extern void clear_screen_(void);
+extern void score_screen_input_(void);
+extern void exec_process_(s32 screen);
 
 static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
                                    GsSPRITE *sprite)
@@ -228,7 +228,7 @@ score_character_sprite_init_loop:
     vfree(archive);
 
     tim = FileRead(TRN_SPRITE_PTRS[CHOSEN_LANGUAGE]);
-    tail.background = FUN_8004f4f8(tim);
+    tail.background = load_background_(tim);
     vfree(tim);
 
     {
@@ -310,7 +310,7 @@ score_character_sprite_init_loop:
 
         StartDrawing();
         DrawBG(tail.background);
-        FUN_800515b0(&number, stats.clock, 0x46, -0x61, 1);
+        draw_time_(&number, stats.clock, 0x46, -0x61, 1);
 
         do
         {
@@ -1007,7 +1007,7 @@ score_row_loop:
                         (rowSprite)->u = signBaseU;
                     }
                 } while (0);
-                FUN_800515b0(&number, SCORE_STATE->t_time[i],
+                draw_time_(&number, SCORE_STATE->t_time[i],
                              0x79, i * 0x16 + 0x18, 1);
                 {
                     /* Dead local retained by the row-rendering template. */
@@ -1082,25 +1082,25 @@ score_row_loop:
     }
 
     FadeOutDirect(0x20, 2, 8, 8, 8);
-    FUN_80038ce0();
+    clear_screen_();
     do {
         statePtr = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     } while (0);
     if (gfMemory != 0)
     {
         LoadTIMAndFree(PathFileRead(path_image_3, path_font_tim));
-        FUN_800514d8();
+        score_screen_input_();
     }
     DisposeBG(tail.background);
 
     if (goNext == 1)
     {
-        FUN_8004f6c0(0x11);
+        exec_process_(0x11);
     }
     else
     {
         statePtr->layout = 0xFF;
-        FUN_8004f6c0(0x10);
+        exec_process_(0x10);
     }
 }
 #undef result

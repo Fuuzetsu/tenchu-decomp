@@ -45,7 +45,7 @@
  *  - outer search: `i = 0; while (Command[i] != 0) { entry = Command[i];
  *    found = (entry[0] == cmd); one = 1; if (found) {...match...} i++; }`
  *    — the classic duplicate_loop_exit_test bottom-test do-while (provable
- *    i=0 entry, same shape as this session's FUN_800566c0/FUN_800565f0).
+ *    i=0 entry, same shape as this session's backup_shop_stock_/apply_purchases_).
  *    Two non-obvious things about this loop's exact spelling, both found
  *    by reading cc1's `-dS`/`-dg` RTL dumps (tools/rtldump.py) after the
  *    plain Ghidra-shaped draft (i++ as the SECOND statement, `if

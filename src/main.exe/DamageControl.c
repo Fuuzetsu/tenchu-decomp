@@ -14,7 +14,7 @@ extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
 extern void AttackCancelControl(s16 mode);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
-extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
+extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                          short start_size, short end_size,
                          long start_color, long end_color,
                          s16 rotate, u16 rotate_speed, u16 time, u16 type);
@@ -114,7 +114,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    `who=Me_MOTION_C`), which lets who coalesce with the Me load in $a0 and
  *    compile the else arm to zero code.
  *  - GetAbsolutePosition's third arg is (short)-converted at the call site
- *    (sll/sra interleaved into the pointer chain); FUN_8003944c's rot arg is
+ *    (sll/sra interleaved into the pointer chain); set_impact_ex_'s rot arg is
  *    an s16 param (sll/sra, not andi — prototype changed in this TU), and its
  *    `rand() % 0x168` is precomputed into a temp so the 0xB60B60B7 magic pair
  *    forms before the 0xDCDCDC pair.
@@ -641,7 +641,7 @@ resolve_hit:
                         s16 r;
 
                         r = rand() % 0x168;
-                        FUN_8003944c(blood_pos, 0, 0x2000, 0x6000, 0xdcdcdc, 0, r, 6, 9, 1);
+                        set_impact_ex_(blood_pos, 0, 0x2000, 0x6000, 0xdcdcdc, 0, r, 6, 9, 1);
                     }
                     if ((rand() & 1) != 0)
                     {

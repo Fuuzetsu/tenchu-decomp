@@ -110,7 +110,7 @@ stays NON_MATCHING (StateTransition is the worked correction).
    refuses inline-asm functions before compiling — its parser can't read the
    macro layer, so it never searches and the -fno-builtin fix is irrelevant). A
    small residual on a gte.h function LOOKS like a permuter target and is not
-   (FUN_80057b80's 8-byte / FUN_80058c70's prologue sched2 ties) — escalate
+   (subdivide_quad_'s 8-byte / adiv_tng4_'s prologue sched2 ties) — escalate
    STRAIGHT to RTL. linked rescore is authoritative (`--rescore-only`
    after interrupts; ControlHumanoid's real winner was proxy output-525).
    Bisect winners — they carry dead statements (bow_shoot_logic). Read a
@@ -125,8 +125,8 @@ stays NON_MATCHING (StateTransition is the worked correction).
    evidence-complete if the named levers are exhausted — do NOT open more
    surgical sessions (~1.4M tokens once produced zero matches this way). But do
    not park same-length residuals unpermuted: the permuter has cracked 5-byte
-   register ties (FUN_800568b8, ~400 iters), a 61-byte same-length miss
-   (AfsGetHeader), and pure statement-order fixes (FUN_80038c0c) — "autorules
+   register ties (clamp_shop_stock_, ~400 iters), a 61-byte same-length miss
+   (AfsGetHeader), and pure statement-order fixes (draw_shade_quad_) — "autorules
    reports no win" plus right length is the signal to permute, not to park.
    decomp.me (psyq4.3 preset — the real Sony compiler) arbitrates "is this
    expressible at all": if it can't, restructure; if it can, keep hunting.
@@ -158,7 +158,7 @@ Look up what the authors wrote before drafting anything.
   instruction selection. `lui s6,%hi(CHOSEN_STAGE)` does not mean the source said
   `CHOSEN_STAGE`; a `PSTATE->stage` field access through a base pointer lands on the
   same address and assembles to the same bytes. **Check whether your current spelling
-  ALREADY produces those exact bytes before rewriting toward the label.** FUN_800519bc
+  ALREADY produces those exact bytes before rewriting toward the label.** briefing_screen_
   spent a full build-and-revert cycle rewriting proven-identical code into named
   externs because the label read like a demand (and the rewrite regressed 1448 → 1488).
   The same caution applies to any name in a disassembly comment: `tools/tdis.py` and
@@ -201,7 +201,7 @@ Look up what the authors wrote before drafting anything.
   a candidate's real win is a variable-routing trick (routing a call return through
   an already-declared, momentarily-dead local; capturing an old value before
   overwrite), grep the matched siblings in the TU for the same IDIOM before adopting
-  the permuter's literal phrasing. FUN_800514d8's permuter reconstructed
+  the permuter's literal phrasing. score_screen_input_'s permuter reconstructed
   `prev = lastpad` from scratch in an awkward position; the matched sibling
   `update_pressed_buttons.c` already had the human form
   (`previously_pressed = buttons->currently_pressed;`). Same bytes, real code. And a
@@ -221,7 +221,7 @@ Look up what the authors wrote before drafting anything.
   provisionally in that draft**: measured necessity, not macro provenance,
   decides whether to retain the current experiment (StageEndScreen's 4-nest at
   L423 scores 202→227 unwrapped). It does NOT prove original-source authenticity
-  or a global minimum: FUN_800519bc's five old fences measured 87→91..1012 when
+  or a global minimum: briefing_screen_'s five old fences measured 87→91..1012 when
   removed, yet all disappeared when a human tpage/width/x-coordinate decomposition
   replaced the local minimum and matched at zero.
   **Classify (b) vs (c) by the UNWRAPPED RESIDUAL, not the byte delta**: read the
@@ -303,7 +303,7 @@ Look up what the authors wrote before drafting anything.
   SHAPE and check whether a function with that shape is already matched — its
   source is evidence for "what C produces this?" **Match on the CAUSE, not
   only the shape**, but do not mistake a failed direct transcription for a
-  contradiction. FUN_80057b80's target prologue existed in the corpus; its
+  contradiction. subdivide_quad_'s target prologue existed in the corpus; its
   pointer formal could not use the narrow-parameter cause, but ordinary local
   pointer copies reproduced the same emitted shape exactly.
 
@@ -322,7 +322,7 @@ prints — that habit has produced confidently wrong rounds (see cc1says below).
 | Same length, registers only, ONE basic block | `regalloc <Name> --local` (the quantity walk, self-validated) then `--order` for globals | LOCAL tie → `copy-seed`/`binop-operand-seed` (index); local-alloc facts §3.9 |
 | Same length, registers, across blocks | `regalloc --order`, `rtlguide` | Identity canon §3.8 first (two-regs-for-one-value?), then allocation steering §3.9 |
 | Target holds one value in TWO regs | (read the target) | Two source variables — §3.8. Cheapest question on the board |
-| Rotation of many registers | `regalloc --order` | Diff cc1's printed order vs the target-implied order (§3.9). If orders MATCH, the lever is find_reg exclusions / pre-RA insn order, not weighting (FUN_80036284) |
+| Rotation of many registers | `regalloc --order` | Diff cc1's printed order vs the target-implied order (§3.9). If orders MATCH, the lever is find_reg exclusions / pre-RA insn order, not weighting (draw_fade_) |
 | INSEPARABLE pair (regalloc prints it) | — | No spelling can split them — restructure or park (§3.8). Passing this gate proves nothing (SetupTelop d487683) |
 | Delay slot / `nop` diffs | `cc1says`, `rtldump --pass dbr,sched2` | §3.13 delay-slot family: read the block LEADER and the SKIP LABEL, not the branch. **TOOL TICKET (dslot)** |
 | Load position / batching | `.sched` LOG_LINKS: classify the ADDRESS | FIXED symbol_ref floats; CHAINED lo_sum is scheduler-chained (extern-array decl!); VARYING reg+K (incl. sp!) pins below stores → §3.13. **TOOL TICKET (loadclass)** |
@@ -330,7 +330,7 @@ prints — that habit has produced confidently wrong rounds (see cc1says below).
 | Preheader contents/order | `rtldump --loop-log` | loop.c economy §3.14 — price the gate, never argue with it |
 | Equal-priority sched tie | `sched-deps <Name>`, `schedtrace` | §3.13: what made the priorities EQUAL? sched-deps prints the group + demotion candidates; LAUNCH_PRIORITY bumps; ready-list lines are the truth |
 | Empty/odd delay slot, block-leader question | `sched-deps <Name>` (flow-vs-sched leader report), `cc1says` | §3.13 delay-slot family |
-| Prologue / parm-copy order | `schedtrace --pass sched2`, `sched-deps --pass sched2` | sched1 never sees the prologue. Before changing the signature, copy formals into ordinary locals in the target order and use those locals throughout; coalescing can retain bare moves while moving their definitions out of `assign_parms` (FUN_80057b80 8→0) |
+| Prologue / parm-copy order | `schedtrace --pass sched2`, `sched-deps --pass sched2` | sched1 never sees the prologue. Before changing the signature, copy formals into ordinary locals in the target order and use those locals throughout; coalescing can retain bare moves while moving their definitions out of `assign_parms` (subdivide_quad_ 8→0) |
 | Target repeats a block; one of your sites matches | `asmdiff`, then diff the TARGET's sites against each other | Spelling asymmetry — stop looking at the compiler (LoadTIMpack). **TOOL TICKET (selfsim)** |
 | Frame size / slot layout | `stackplan [--emit-overlay]` | §3.7: unions, three-phase rule, slot arithmetic, spill-count residue. **TOOL TICKET (slotcalc)** |
 | Guard polarity / return island | `rtlguide` (`guard-return-island-layout`) | `terminal-guard-flip` / `if-else-invert` (index), §3.1–§3.2 |
@@ -399,7 +399,7 @@ Hard regs: 0 zero, 1 at, 2 v0, 3 v1, 4–7 a0–a3, 8–15 t0–t7, 16–23 s0�
    ~5 s). Dump ONCE to hypothesise; iterate with the loop, not by re-dumping.
 5. **Dump a CONTROL variant** (`rtldump --src <variant>`) to falsify a suspected
    cause by removing it — identical deps with and without kill a theory in one
-   shot (FUN_8003944c).
+   shot (set_impact_ex_).
 6. Testbed: reproduce the shape in a standalone 25-line `.c` (~1 s/variant) for
    register/forwarding questions; do not trust it for scheduling or copy
    survival (§ zoo).
@@ -436,8 +436,8 @@ negated. Everything else here is corollaries:
   shape).
 - **Two independent `if (c) goto L;` tests with the short do-nothing case
   falling through** — both real bodies forward-jump targets — is its own shape,
-  distinct from if/else-if (ProcMiscSprite/ProcMiscFire; FUN_8004c59c/
-  FUN_8004d6d4; also the dual-role variant where both bodies are substantial).
+  distinct from if/else-if (ProcMiscSprite/ProcMiscFire; proc_misc_sound_/
+  proc_misc_puff_; also the dual-role variant where both bodies are substantial).
   An explicit goto ladder **decouples test ORDER from body LAYOUT** (cd_seek
   tests 1,0,2, bodies 0,2,1; ProcItemArrow/ProcSightShot forward skips).
 - **A guard clause with no second `return` is a plain `if`** — Ghidra renders it
@@ -552,7 +552,7 @@ negated. Everything else here is corollaries:
   boundary that costs a reload + nop (ProcItemNinken/Napalm; LoadSI's error
   arms). Write per-case calls INLINE rather than funnelling arguments through
   shared locals into one post-switch call — cross-jump merges the tails AND each
-  address materialises straight into `$a0` (FUN_8004f6c0); when two branches
+  address materialises straight into `$a0` (exec_process_); when two branches
   build the same call with all-different arguments, write it twice
   (StartDrawing). Keep duplicated branch-local calls when the target preps
   different arguments per predecessor but shows one merged `jal`
@@ -572,7 +572,7 @@ negated. Everything else here is corollaries:
   keeps an exceptional copy distinct where if/fences/unreferenced labels cannot
   (StateTransition; `case-fence` mechanises the two-way form). Algebraically
   equal affine tails can be kept distinct with different spellings
-  (`mul-affine-shape`, FUN_800519bc). Machine-identical calls can be different
+  (`mul-affine-shape`, briefing_screen_). Machine-identical calls can be different
   to jump2 (result mode / USAGE fingerprint — ActATTACK's five DeleteConflicts;
   rtlguide prints call fingerprints; changing a shared prototype needs semantic
   review).
@@ -635,14 +635,14 @@ decides notes, hoisting, rotation, and delay-slot fills:**
 - **Counter width**: a `short` counter suppresses strength reduction — the
   recompute-from-base shape (SetupMotionRegist); a `u16` counter that only helps
   in a do-while is a strength-reduction artifact — the counter is `int` and the
-  LOOP SHAPE is wrong (FUN_80058c70). Disjoint loops need not share one counter
+  LOOP SHAPE is wrong (adiv_tng4_). Disjoint loops need not share one counter
   (block-scoped `short scan_i` when colouring rotates: ActKAGI, SwimCheck) — and
   conversely repeated hard-register identities recover WHICH named counter drove
   each loop (ArrangeLocalMatrix's `k`/`j` from `$a2`/`$t4`).
 - **Index (`T[i].f`) vs walking pointer**: at 2+ touched fields a walker gets
   biased to the LAST field (offset-0 tell); at 3+ it splits into a second
   parallel induction register — index by the loop's own counter
-  (FUN_800568b8, FUN_8004a6bc). A literal goto backedge rescues a walker when a
+  (clamp_shop_stock_, init_lifebar_). A literal goto backedge rescues a walker when a
   field store would become a second GIV (DoMiscProc's nonvolatile walker +
   movable `pause = 0`). Indexing can also steer PREHEADER order at identical
   loop bodies (check_for_known_button_combination — require `.loop`'s
@@ -698,9 +698,9 @@ judgment:
     copy is `lhu/lbu` regardless of signedness — don't fight it.
   - Store + later `sll/sra` at the consumer = u16 storage + `(s16)` cast AT THE
     CONSUMER, in a wide working local — not an `s16` field or an early cast
-    (mission_score_screen; FUN_8002fd9c).
+    (mission_score_screen; camera_terrain_pitch_).
   - `u8` locals re-narrowed after arithmetic get `andi 0xff` + `sltiu`; if the
-    target compares `slti`, the local is `s32` (FUN_800576e8, ProcMiscPitfall).
+    target compares `slti`, the local is `s32` (telop_text_width_, ProcMiscPitfall).
   - A flag's width (`s16` vs `s32`) changes copy chains, case-constant reuse,
     literal rematerialisation, and whole-function length
     (handle_char_state_using_item_, SearchTarget, ActATTACK's HImode
@@ -727,13 +727,13 @@ judgment:
     an `s32` temp when the target zero-tests `sll 16` (ProcItemDokudango).
   - An s16→s32 extend the target does IN PLACE can be an explicit shift pair
     (`x <<= 16; x >>= 16;`), but that is a candidate, not a prescription.
-    FUN_800519bc's exact human source instead has a genuine `s16` sprite
+    briefing_screen_'s exact human source instead has a genuine `s16` sprite
     coordinate followed by a distinct `s32` brightness coordinate; their
     non-overlapping lifetimes coalesce and emit the same in-place `sll/sra`.
     Its earlier explicit shifts were a convincing local minimum.
     **TOOL TICKET (signext-inplace-pair autorule)**.
   - Preserve semantic width stages when the target couples a reload register to
-    an in-place narrowing. In FUN_800519bc, `s32 offset` → `s16 sprite_x` →
+    an in-place narrowing. In briefing_screen_, `s32 offset` → `s16 sprite_x` →
     `s32 signed_x` lets combine consume the spilled u16 x-base directly, so reload
     selects `$t0`, while sched2 must store `sprite_x` before the destructive
     in-place extension. Collapsing those values into one wide expression creates
@@ -750,16 +750,16 @@ judgment:
   the call when retail calls the library: GetVectorLength). The builtin also
   absorbs a sign-fix's allocation shape (ProcMiscDoor) and — being ONE
   multi-insn through reorg — preserves delay-slot `nop`s an open-coded compare
-  would let reorg raid (FUN_80056910; DamageControl lesson 1). All three
+  would let reorg raid (tile_sprite_; DamageControl lesson 1). All three
   ABS_EXPR spellings are identical; do not credit "inline vs named temp"
   (ChasetoTarget, by experiment).
 - **A ternary is NOT an if/else variant when both arms assign one destination**:
   it forces a merge pseudo + a SINGLE store at the join. Diagnose by STORE COUNT
-  per destination in the target, not delay slots (FUN_8004d6d4: two ternaries,
+  per destination in the target, not delay slots (proc_misc_puff_: two ternaries,
   55→0; the park had rejected Ghidra's shared trailing assignment as an
   artifact). The inverse select-shape: `bnez/nop/move dst,src/L: sh dst` is
   `if (c) next = saved; X = next;` — NEVER a ternary, which duplicates the store
-  (FUN_8005a7a4).
+  (update_card_screen_).
 - **Multiplies/divisions**: `%`/`/` by constants are magic-multiply sequences;
   the same magic constant CSEs into one callee-saved register. A negative
   non-power-of-two multiply is spelled as its own strength reduction
@@ -769,17 +769,17 @@ judgment:
   divisor compile eagerly before any consuming call (IsVisible); expanded
   divisions physically before a flag branch belong before the guard in C too
   (PadProc); grouped quotient temps when the target groups the stores
-  (FUN_80036284); signed fixed-point bias-and-shift spelled literally
+  (draw_fade_); signed fixed-point bias-and-shift spelled literally
   (SetWire). Variable division needs `--expand-div` (§3.16).
 - **Match a quotient temporary's destination width before steering its
   allocation.** A value used only by `sb` can still be a QImode source local;
   widening three natural color bytes to a tuned `u32/u16/u32` mix left the
   mnemonics and stores intact but manufactured a 34-byte register rotation in
-  `FUN_80036284`. Restoring three plain `u8` temporaries made the whole first
+  `draw_fade_`. Restoring three plain `u8` temporaries made the whole first
   fade case exact. Source mode is part of value identity even when the final
   machine store already truncates.
 - **A repeated pure expression and a named destructive update need not have
-  the same register identity.** In `FUN_80036284` case 2, writing
+  the same register identity.** In `draw_fade_` case 2, writing
   `(duration - elapsed)` in each of three channel expressions lets CSE share a
   separate pseudo in v1. `elapsed = duration - elapsed`, and the seemingly
   cleaner `remaining = duration - elapsed`, both tie the value to a1 and leave
@@ -798,7 +798,7 @@ judgment:
   only spelling giving short-circuit AND one load (SearchItemTarget2). Keep a
   compared memory read INLINE in both `&&` operands — hoisting it into a temp
   swaps two registers, and neither autorules nor regalloc sees it
-  (FUN_800568b8's 5-byte tie).
+  (clamp_shop_stock_'s 5-byte tie).
 - **Call-result width is read off the extension position**: extends once at the
   assignment before joins = `int`; re-extends at each compare after joins =
   `short` (PauseProc). A short-returning call result that INDEXES an array
@@ -807,7 +807,7 @@ judgment:
   `u32` intermediate or the double-shift collapses (EndDrawing).
 - **A narrow field's first use can need a distinct one-use full-width carrier**
   (`s32 initial_h = sp->h;` keeps the `lhu` SI-producing and schedulable —
-  FUN_80056910); when an `lbu` field feeds a multiply, a full-width named temp
+  tile_sprite_); when an `lbu` field feeds a multiply, a full-width named temp
   schedules the load early without the `andi` a u8 temp inserts
   (ProcItemNemuri).
 - **A target's "redundant" extra reload = a fresh field dereference in
@@ -847,7 +847,7 @@ judgment:
 - **Audit the callee's return width before blaming the allocator** — a
   wrongly-wide prototype creates a full-width call-result pseudo that CSE
   propagates across calls (Think1ninja's `s16 Think1random`). Take prototypes
-  from the matched CALLER over Ghidra (FUN_80058a54 → FUN_80058c70).
+  from the matched CALLER over Ghidra (decode_tmd_adiv_ → adiv_tng4_).
 - **An ignored SDK return still changes hard-register conflicts.** PsyQ declares
   `MoveImage` as returning `int`; spelling it `void` emits the same call but
   leaves v0 available to a preceding multiply result. The correct prototype
@@ -862,7 +862,7 @@ judgment:
   `andi` in the delay slot).
 - **Small static-inline helpers are real codegen levers**: pointer formals
   create parameter bindings that act as deliberate CSE barriers
-  (FUN_800519bc's TimToDemoSprite); an inlined byte-pack helper may need both
+  (briefing_screen_'s TimToDemoSprite); an inlined byte-pack helper may need both
   cursor identities as inputs (AfsGetEntry); keep helpers inside the caller's
   `#if` guard (stub TUs emit unreferenced statics). Demo-call inlining: §1.
 - **A guarded indirect call**: null-check through a variable, call through the
@@ -935,15 +935,15 @@ bytes.
   circular evidence from self-sized scratch structs — the non-circular
   signature is `$t1` saved in the jal delay slot + reverse-order restores).
   An unexplained gap with no accesses is a DEAD LOCAL (AttackGunControl's unused
-  `PARAM_ITEM_USE`; FUN_8004a6bc's PSX.SYM-recorded `image[25]`; `main`).
+  `PARAM_ITEM_USE`; init_lifebar_'s PSX.SYM-recorded `image[25]`; `main`).
   **TOOL TICKET (slotcalc)**: model assign_stack_local from declared sizes +
   target sp+K accesses → the unique declaration order + implied spill count;
   0 or >1 orders fit ⇒ the object set is wrong.
 - **Slot order is arithmetic** (compiler-facts): declaration order is the only
-  input — compute the order, never permute declarations (FUN_80018f00). When
+  input — compute the order, never permute declarations (stop_access_meter_). When
   declaration order is double-booked (slots AND a CSE merge), break the merge
   with the independent lever — the identical-arm call fence (cbAccess,
-  FUN_80018f00). `stack-decl-swap` sweeps the adjacent-pair case
+  stop_access_meter_). `stack-decl-swap` sweeps the adjacent-pair case
   (leLayoutEnemy).
 - **The three-phase rule**: params → declared locals → reload spills (pseudo
   order). A declared local can never sit above a reload spill; target layouts
@@ -964,11 +964,11 @@ bytes.
   (load_layout), through a NAMED source pointer when the target materialises the
   member address (InitEffect).
 - **Truncated per-TU structs break under array-INDEXING** (stride =
-  `i * sizeof(T)`) — reuse the proven full-size element (FUN_80027304).
+  `i * sizeof(T)`) — reuse the proven full-size element (publish_ground_point_).
 - **Grouped stores through the same base expression a later copy reads** keep
   the store→copy dependence (the divide-latency interleave).
 - **A varargs arg pointer is computed lazily at the call** unless the call is
-  near entry (AdtMessageBox vs FUN_8005fe38).
+  near entry (AdtMessageBox vs debug_printf_).
 - **cc1 does not fold away a pointer temp to a frame object** — repeated
   `((T *)buf)->field` casts are the source's real shape when the target
   rematerialises `addiu sp,K` per use; a mid-sequence `addiu $a0,$s1,8` is a
@@ -1005,7 +1005,7 @@ The identity canon — the cheapest questions on the board, asked in order:
    to arg registers = pure renames, decomposition already matches, STOP
    splitting (StageEndScreen, AddEnemy). The target assigning the same
    expression to a1,a1,a1,a2 across blocks is direct proof of separate
-   variables (FUN_80057b80 759→619). Delay-slot diffs can be pure CONSEQUENCES
+   variables (subdivide_quad_ 759→619). Delay-slot diffs can be pure CONSEQUENCES
    of allocation — fix allocation, not the schedule.
 4. **Two disjoint same-role temps may be ONE reused variable** — merging sums
    refs and vaults priority in `floor_log2` jumps (vfree's `s`; DamageControl's
@@ -1014,7 +1014,7 @@ The identity canon — the cheapest questions on the board, asked in order:
    disjoint regions. Requires `.lreg`-proven disjoint lives + target
    hard-register homes — names/semantics are irrelevant. Works for long-lived
    roles (AddEnemy's `$s4/$s7/$s5` from demo locals), one local spanning three
-   phases in `$s3` (FUN_8005b17c), reuse of a DYING call result for a
+   phases in `$s3` (draw_card_help_), reuse of a DYING call result for a
    call-crossing value (SoundEx's `dist`/vol coalesce — reach for it when the
    target's frame is LARGER than yours), and callee-saved homes on short-lived
    block locals (BIS's shared `j`). But do NOT fuse two locals just to chase a
@@ -1079,10 +1079,10 @@ The identity canon — the cheapest questions on the board, asked in order:
    cache boundary can be the ENCLOSING object (ProcSightShot's `model` not
    `&model->rotate`). Base + advancing walker want distinct identities
    (BreedLife). Store through the DERIVED pointer when the target does — base+
-   offset spelling starves the pointer of refs (FUN_80057b80's `$s6`). When the
+   offset spelling starves the pointer of refs (subdivide_quad_'s `$s6`). When the
    target keeps two same-valued pointers in separate homes, compute both
    independently — a copy carries a preference edge that coalesces them
-   (compiler-facts; FUN_80057b80).
+   (compiler-facts; subdivide_quad_).
 10. **Accumulator types carry copies**: `acc = acc | call()`'s surviving
    `or/move` pair is forced by narrowing the ACCUMULATOR to s16 (what PSX.SYM
    recorded) — the copy's source stays live past the copy and
@@ -1112,7 +1112,7 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   if (i != 0) { i = 0; … }`, ActCHASE), reusing a dead named local for the
   operand (think_setting_small_rotation_small_steps_), duplicating a pointer
   assignment into both arms so it can reuse the dead condition register
-  (FUN_8001b2f4), or one function-scope local across mutually-exclusive arms to
+  (remap_buttons_), or one function-scope local across mutually-exclusive arms to
   move the value from local- to global-alloc (ProcMiscPitfall).
 - **Containment kills a pressure lever only inside the CURRENT decomposition.**
   Two mutually-conflicting allocnos where one's live range strictly contains the
@@ -1181,9 +1181,9 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   `.lreg` and `QTY_CMP_PRI` can correctly prove that no single-statement move
   changes a color without destroying a sched1 bubble; that is a request for a
   multi-statement human decomposition, not an irreconcilable floor. Both cited
-  twins now match. FUN_80058c70 removed an unrelated carrier, kept the packet
+  twins now match. adiv_tng4_ removed an unrelated carrier, kept the packet
   colour in a dedicated `colorWord`, and read the later GTE address directly.
-  FUN_80059008 used the real loop counter `cnt` and one two-set packet initializer
+  adiv_tnf4_ used the real loop counter `cnt` and one two-set packet initializer
   (`4`, then `0x96`); the multi-set quantity suppresses the birthing bump and
   produces the exact sched1/sched2 order. Purposeful local identity and ordinary
   reuse can change the quantity graph in ways a statement-position sweep cannot.
@@ -1200,7 +1200,7 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   preference exists at all (compiler-facts).
 - **Return funnels**: a shared `ret` copy-preferences its sources together —
   early returns split them (InsertConflict); the flag variant is
-  `flag-return-split` (DrawBG, FUN_8005adbc); the INVERSE funnel keeps one
+  `flag-return-split` (DrawBG, setup_card_screen_); the INVERSE funnel keeps one
   result pseudo when the target preserves an early narrow result
   (`shared-result-return`, Think3chase).
 - **Statement order is the main regalloc lever**: register-held stores first
@@ -1209,11 +1209,11 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   "hard-conflict" (mission_score_screen's rowValue — ask which value is created
   first); source liveness across a call beats final scheduled position
   (DrawBlood; SaveCard's inverse); a pre-call narrow capture + post-call
-  widening separates a saved copy from its mask (FUN_8005778c). But it is the
+  widening separates a saved copy from its mask (draw_glyph_). But it is the
   order of the SETs/USES that matters, NOT the order of scalar DECLARATIONS:
   reordering scalar local declarations is a nullcheck no-op — gcc-2.8.1 defers
   scalar pseudo allocation to first-use, so declaration order cannot renumber
-  allocnos or break an equal-priority coloring tie (FUN_80036284; contrast
+  allocnos or break an equal-priority coloring tie (draw_fade_; contrast
   address-taken/stack locals, whose declaration order DOES fix slot order, §3.8).
 - **The `%hi` reload tie is `combine_regs` refusing a block-crossing pseudo**
   (compiler-facts): a shared local funnelled from both if/else arms into one
@@ -1279,7 +1279,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   ATTRIBUTION TEST: identical counts ⇒ the barrier is doing all the work,
   StageEndScreen); (3) a wall against local-alloc's copy propagation when it
   ENCLOSES the copy. It does supply real CODE_LABELs — blocking combine's
-  compare-into-branch merge and reorg's backward scan (FUN_8005a7a4's two tells,
+  compare-into-branch merge and reorg's backward scan (update_card_screen_'s two tells,
   one fence) — but it CANNOT keep a copy alive past combine (jump1 deletes
   unreferenced labels; only an identical-arm fence can, below) and does NOT
   block cse store-to-load forwarding.
@@ -1302,11 +1302,11 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   control-flow merge blocks cse from forwarding a statically-known stack value, so
   a fresh `lw`/`sra` reload of a field cc1 could prove survives. Treat it as a
   diagnostic candidate, not a source conclusion: shortening when it is removed
-  only proves the barrier affects the current RTL. FUN_800519bc once appeared to
+  only proves the barrier affects the current RTL. briefing_screen_ once appeared to
   require this exact device; scoped direct tpage/width values later reproduced
   the reload and load-delay nop naturally and removed the identical arms at zero.
 - **Donor variants** (all erased by jump2): `allocation-donor-fence` (duplicated
-  assignment under an initialized/guard-proven discriminator — FUN_80033bc0,
+  assignment under an initialized/guard-proven discriminator — spawn_smoke_burst_,
   Think1target, AddEnemy's weapon_entry after removing invented base locals);
   preference donors (function-scope discriminator overwritten before a call,
   ProcItemNemuri); `redundant-field-donor` (repeated pure local-aggregate field
@@ -1316,7 +1316,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   supersede scaffolding (CameraDirection 47→17).
 - **Siting and costing**: a fence weights EVERY allocno the statement mentions —
   source AND dest (AddEnemy's three-round dest blindness); histogram both rivals
-  and prefer the opposite if/else branch from the collateral (FUN_80057b80's
+  and prefer the opposite if/else branch from the collateral (subdivide_quad_'s
   swap came free only in the leaf branch); BLOCK-WRAP a densely interleaved
   region rather than one statement inside it (+19 every time on AddEnemy);
   deepening an existing fence is free, adding a new one is not; pull a value's
@@ -1369,7 +1369,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
 - **Never infer pre-jump2 structure OR allocation from final asm** — cross-jump
   runs after both cse and allocation; impossible-looking co-located store/reload
   pairs were two arms; "register cycles" can be merged-tail artifacts. A store
-  that must not be forwarded belongs inside BOTH arms (FUN_80057b80 494→8;
+  that must not be forwarded belongs inside BOTH arms (subdivide_quad_ 494→8;
   ActSTICKON's switch-literal tails: plain switch on an UNSIGNED mode with
   inline literals, case order by fallthrough layout).
 - **An inline early `return K` mid-function leaves a join CODE_LABEL that ends
@@ -1383,7 +1383,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   **TOOL TICKET (guard-clause-invert autorule)**: rewrite a whole-body
   `if (c) {…}` wrapper into `if (!c) return <init>;` + unwrapped body.
 - **Offset-0 dereferences**: cse1 canonicalises an offset-0 local-pointer deref
-  back to base+const (but not nonzero offsets) (FUN_8004c59c); `find_best_addr`
+  back to base+const (but not nonzero offsets) (proc_misc_sound_); `find_best_addr`
   folds only where the equivalence is in its table — per-arm duplicated stores
   fold, the join-block store keeps the pointer (compiler-facts).
 - **Global re-reads in one extended block fold** (including via narrow
@@ -1404,9 +1404,9 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   the knob is label position.
 - **Repeat reads of an ESCAPED struct stop CSEing even across adjacent
   statements** — two stores of one field to different objects need a named
-  temp for the shared load (FUN_80039fb0); a clamp's final expression must
+  temp for the shared load (draw_sprite_pair_); a clamp's final expression must
   re-read the field fresh when the target shows a reload at an identical value
-  (FUN_8003a148). End a loop temp's SCOPE before testing its copied working
+  (draw_sprite_coord_). End a loop temp's SCOPE before testing its copied working
   value to steer which equivalent register cse retains — a block-scope-end
   note, zero code (PutLifeBar's digit quotient). A comma-expression
   initializer gives independent loads earlier UIDs without extra code
@@ -1441,7 +1441,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   owning `%hi(SYM)` from the splat `.s` — settles these leads in one glance.
 - **A bare `lui` with NO `addiu`, reused as a base**, is a LOCAL holding a
   literal pointer cast (`(PersistentState *)0x80010000` — %lo is 0)
-  (FUN_8001b2b8); a read-modify-reread absolute across a call wants a raw
+  (save_pad_analog_); a read-modify-reread absolute across a call wants a raw
   `#define` literal, which cc1 CSEs as `lui+ori` and reorg can steal the store
   (InitGraphicsSystem — named extern and pointer temp both fail).
 - **`lui`+`addiu(base)` + scaled index + load at `0(base+index)` is a REAL named
@@ -1477,7 +1477,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   indices first (think_setting_small_rotation_small_steps_). Build a dynamic
   row base BEFORE a large constant field displacement when retail folds the
   displacement onto a register (`row = (u8 *)state + chr * stride;
-  row[field]` — FUN_80052ea8). Name a scaled byte offset in its own `s32`
+  row[field]` — award_stage_items_). Name a scaled byte offset in its own `s32`
   statement when the target completes the extension/scale before an
   independent `%hi` base materialisation (UpdateEvent).
 - Adjacent tables are separate symbols, not one array with a folded offset
@@ -1508,9 +1508,9 @@ LUID, barriers). The levers:
   chase it (ReqItemKusuri). A load's freedom is its ADDRESS KIND: FIXED
   symbol_ref floats (and gets pulled into load-delay holes, stealing fillers —
   order the field writes so the intended filler is assigned FIRST,
-  FUN_8004c59c 23/29); CHAINED lo_sum is scheduler-chained; VARYING reg+K —
+  proc_misc_sound_ 23/29); CHAINED lo_sum is scheduler-chained; VARYING reg+K —
   **including sp-relative** — pins below address-taken stores, and when the
-  target's load looks hoisted it's the STORE that sank (FUN_8003944c). A
+  target's load looks hoisted it's the STORE that sank (set_impact_ex_). A
   width-cast that clears `/s` turns a load into an anti-dep barrier for later
   `%gp_rel` stores — read a displaced store's LOG_LINKS before calling it a
   sched tie (HumanActionControl's typedef fix); equal-priority hazard swaps are
@@ -1529,13 +1529,13 @@ LUID, barriers). The levers:
 - **A prologue-copy tie has two source layers.** `sched2` accurately reports the
   final backward LUID/hazard choice, but it cannot prove the definitions must
   originate in `assign_parms`. First try ordinary local copies and use the
-  locals throughout. In FUN_80057b80, `param_2 = arg_2; param_1 = arg_1;`
+  locals throughout. In subdivide_quad_, `param_2 = arg_2; param_1 = arg_1;`
   coalesces to the same bare `move s1,a1` / `move s0,a0` instructions while
   retaining local-assignment order; the alleged rigid formal-vs-formal floor
   went 8→0. For formal-vs-body leaders, purposeful multi-set locals are also
-  real levers: FUN_80059008's loop counter and two-set packet initializer
+  real levers: adiv_tnf4_'s loop counter and two-set packet initializer
   suppress the relevant birthing bump and match the target, while its twin
-  FUN_80058c70 matches with separate colour and later GTE-address identities.
+  adiv_tng4_ matches with separate colour and later GTE-address identities.
   Read `.greg`, `.sched`, and `.sched2` to verify survival/order, but treat the
   result as a diagnosis of the current definition sites. "Both are parm
   copies" and "one ready-list tick" are not source-level impossibility proofs.
@@ -1582,7 +1582,7 @@ LUID, barriers). The levers:
   register for the earlier expression (AfsGetHeader's named `tmp` — the tell:
   the second expression's loads schedule before the intervening store while its
   own store stays after). A table-backed field store before a literal field
-  store steers the surrounding call schedule (FUN_8004a6bc's bounded two-order
+  store steers the surrounding call schedule (init_lifebar_'s bounded two-order
   test; `adjacent-field-store-swap` covers the literal/literal case). When only
   adjacent independent stores remain, score BOTH source orders and trust the
   linked diff — the lexical order that exposes the longer dependency chain
@@ -1608,16 +1608,16 @@ LUID, barriers). The levers:
   them across the parameter loads they retail-interleave with, while
   index/cast spellings (`work[N] = ...`, `*(u_long *)(work + 0xNN) = ...`)
   keep the conservative dependence and the retail order. Three measured
-  cases: FUN_800593a0's eight context stores match only with an INT-typed
+  cases: decode_tmd_fast_'s eight context stores match only with an INT-typed
   workspace parameter and per-site casts (+4 bytes, a0→v0 re-allocation as
   pointer of ANY flavor — `p[i]` keeps a scalar MEM but the alias base still
   frees it there since the loads it pins against are its OWN volatile-read
-  copies); FUN_80059008/FUN_80058c70's header fills match only index-spelled
+  copies); adiv_tnf4_/adiv_tng4_'s header fills match only index-spelled
   through the `u_long *` scratch (struct members un-pin the volatile
   shift/ot parameter reads, the a0/a1 entry copies leave, the prologue
   reschedules). Loop-body accesses interleaved with other VARYING accesses
   (record loads via a cursor) are indifferent — the fast-cluster leaves
-  (FUN_8005961c et al.) converted fully to struct members byte-identically.
+  (fast_tng4_ et al.) converted fully to struct members byte-identically.
   When retail keeps parameter stores in source order around volatile or
   stack-parameter reads, spell the workspace as a raw scratch pointer/int
   with offsets, and keep the struct as documentation.
@@ -1704,7 +1704,7 @@ Variable `/`/`%` needs maspsx `--expand-div` (break 7; signed also break 6 —
 compiler-facts). Tells before building: Ghidra `trap(0x1c00)/trap(0x1800)`;
 `div` + `break 7`+`break 6` or `divu` + `break 7` in the target.
 `maspsxflags --write` syncs Build.hs + permute.py (ProcItemNapalm combined
-case; FUN_80036284 unsigned case). Constant division is magic-multiply, no
+case; draw_fade_ unsigned case). Constant division is magic-multiply, no
 guards, no flag.
 
 ### 3.17 Split functions & carve integrity
@@ -1724,13 +1724,13 @@ guards, no flag.
 - **An under-sized carve builds GREEN and is silently unmatchable** — the tail
   becomes a `.data` blob defining the labels. Run `tools/coverage.py`; objdump
   the word at `carve_start + size` (a `jr ra` delay slot or `addiu sp,sp,+N`
-  teardown = the carve dropped the delay slot — LoadCard, FUN_800593a0,
+  teardown = the carve dropped the delay slot — LoadCard, decode_tmd_fast_,
   valloc, BreedLife 214→59 after the fix). Variants: an orphan anonymous
   `{ start, type: data }` yaml entry (delete it); a phantom function label
   exactly at the boundary — first insn a small POSITIVE `addiu sp,sp,+N`,
   preceding function's `.s` ends in bare `jr ra`; corroborate with zero
   callers + zero address-word grep hits, then move the boundary
-  (FUN_8005fe34/FUN_8005fe38). Parked drafts carrying padding hacks to reach
+  (FUN_8005fe34/debug_printf_). Parked drafts carrying padding hacks to reach
   length: verify the carve FIRST. **TOOL TICKET (reverse.py --size re-carve)**:
   cannot re-carve an existing `c` subsegment; mechanical fix is deleting the
   orphan yaml line.
@@ -1768,7 +1768,7 @@ guards, no flag.
   epilogues, not functions.
 - **The 3-insn split (`sll 16 / sra k / sra 16-k`) is matchable ordinary C.**
   The former park-on-sight rule was a local-minimum error: all three game
-  examples (`GetPad`, `GetPadXY`, `FUN_8001b174`) are now exact. Their human
+  examples (`GetPad`, `GetPadXY`, `get_pad_active_`) are now exact. Their human
   source first forms the API's encoded port (`s32 port = no << 4`) and then
   consumes both halves in `PadPort[port >> 4][port & 3]`. Because the shared
   encoded value has two distinct consumers, cc1 naturally retains the three
@@ -1803,10 +1803,10 @@ A park is a hypothesis, and the record says parks are wrong often enough to
 re-check cheaply before honoring them:
 
 - **Re-verify a park's verdict against the CURRENT rules before trusting it**
-  (one grep/matchdiff run): FUN_8004a368's "la-reload tie" park was really the
+  (one grep/matchdiff run): spare_item_slot_'s "la-reload tie" park was really the
   offset-0-alias lever and closed in minutes; DrawSnow's park contained its own
   mechanism read as a wall; parks have been dissolved by the ternary join
-  (FUN_8004d6d4), the label position (DrawClip), the carve (BreedLife), and a
+  (proc_misc_puff_), the label position (DrawClip), the carve (BreedLife), and a
   stale claim surviving a function's own match (LoadSI).
 - **Write negatives falsifiably**: "X failed WITH Z fixed at W" — a negative
   measured while another free variable was held fixed is a statement about the
@@ -1891,7 +1891,7 @@ re-check cheaply before honoring them:
   is provably wrong once any other arm reaches the same test with a non-constant
   value: write ONE statement and `goto` every arm to it. Read the raw target `.s`
   before assuming physical == lexical (MIPS makes the delay slot the literal next
-  insn). And a park may FILE THIS WRONG: FUN_8005aba4's own STATUS called it a
+  insn). And a park may FILE THIS WRONG: update_card_message_'s own STATUS called it a
   `lui` fold PLUS an independent v0/v1 register swap — both were the ONE cause, and
   the register swap resolved as a side effect of removing the extra definition
   sites (13→0, one edit). A "register tie" next to an opcode diff is often a
@@ -1924,7 +1924,7 @@ re-check cheaply before honoring them:
   target. If the divisor register is written once and read N times with no other
   write, any candidate that reassigns the source variable before the Nth read
   cannot reproduce the target's dependency chain, and its lower whole-image score
-  is register-pressure fallout elsewhere, not progress. FUN_80036284 disqualified
+  is register-pressure fallout elsewhere, not progress. draw_fade_ disqualified
   5 of 7 retained candidates this way in one grep (they all reused `duration` as a
   scratch for case 2's quotient; the target's `$a2` is written once at 0x800362f0
   and read 7×). This is the concrete form of "verify a win, never adopt a score"
@@ -1947,7 +1947,7 @@ re-check cheaply before honoring them:
   as a failed attempt worth 19 bytes — was the answer. Diff parked drafts
   against matched siblings' C before extending them.
 - **Length-neutral packages need a payer**: a proven finding costing +1
-  rejected on length means go find what pays for it (FUN_80057b80's four-site
+  rejected on length means go find what pays for it (subdivide_quad_'s four-site
   package; mission_score_screen's ±4 complementary pair — "both are the same
   parked pair" is an instruction to try them TOGETHER).
 - **Diff the region a "missing piece" lives in against the CURRENT draft before

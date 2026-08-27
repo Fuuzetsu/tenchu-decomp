@@ -7,7 +7,7 @@
  *
  * SetSnow (0x80039160, 0x134 bytes) — EFFECT.C effect-pool allocator:
  * the same EffectSlot[200] round-robin search as SetSplash/SetFrame/
- * SetBleed/FUN_80038fdc/FUN_8003944c (see SetSplash.c for the shared idiom
+ * SetBleed/set_fade_/set_impact_ex_ (see SetSplash.c for the shared idiom
  * writeup), filling the slot straight from its 4 caller-supplied parameters
  * (a raw "spawn exactly as told" setter, no randomization) and handing it
  * to DrawSnow — a DIFFERENT draw callback from DrawBlood/DrawImpact,

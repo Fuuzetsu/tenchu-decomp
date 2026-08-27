@@ -29,7 +29,7 @@
  * GetSpline (0x8001c170, 0x150 bytes) — advance a bone's spline bracket
  * (spc->key0/key1) so it straddles `cnt`, re-deriving the per-frame deltas
  * (UpdateSplineControl) whenever the bracket actually moved, then evaluate
- * the spline at `cnt` via FUN_8001c730 (independently guarded), using a
+ * the spline at `cnt` via eval_spline_gte_ (independently guarded), using a
  * memoized fixed-point interpolation fraction (SplineFrac, cached in
  * SplineFracOld so SplineRow's table-row address is only recomputed when the
  * fraction changes). PSX.SYM's globals (StageMotion/FieldIndex/Command)
@@ -50,11 +50,11 @@
  * --expand-div supplies ASPSX's bnez/break 7/break 6 guards; they are not
  * hand-written C. Updating SplineFracOld before SplineRow preserves the target
  * store order. SplineTable is a large, non-`-G8`-small table, so its address
- * fully materializes with `lui/addiu`. FUN_8001c730's separate GTE-backed
+ * fully materializes with `lui/addiu`. eval_spline_gte_'s separate GTE-backed
  * implementation remains guarded; this matched caller contains only C.
  */
 extern void UpdateSplineControl(SplineControlType *spc);
-extern void FUN_8001c730(SVECTOR *vect, SplineControlType *spc, s32 row);
+extern void eval_spline_gte_(SVECTOR *vect, SplineControlType *spc, s32 row);
 extern s16 SplineFracOld;
 extern s16 SplineFrac;
 extern s32 SplineRow;
@@ -93,5 +93,5 @@ skip:
         SplineFracOld = SplineFrac;
         SplineRow = (s32)(SplineTable + SplineFrac * 8);
     }
-    FUN_8001c730(vect, spc, SplineRow);
+    eval_spline_gte_(vect, spc, SplineRow);
 }

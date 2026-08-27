@@ -105,7 +105,7 @@ extern void handle_char_state_attacking_SEVEN_(s16 frame);
 extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
-extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
+extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
 extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
@@ -585,7 +585,7 @@ dispatch:
             motID = 0x710;
             motMODE = 0;
             Sound(Me_MOTION_C, 0x1a);
-            FUN_80033bc0(dtL, 300, 0xc, 10);
+            spawn_smoke_burst_(dtL, 300, 0xc, 10);
         }
         if ((dtM->count == 0) && (dtM->loop == 1))
         {

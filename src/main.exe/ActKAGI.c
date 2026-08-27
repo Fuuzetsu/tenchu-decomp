@@ -72,7 +72,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern s32 FUN_8004a368(s32 mode, Humanoid *human);
+extern s32 spare_item_slot_(s32 mode, Humanoid *human);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ActKAGI(void)
@@ -102,7 +102,7 @@ void ActKAGI(void)
             ReqItemUse(&item);
             Sound(Me_MOTION_C, 0x1e);
         }
-        else if (FUN_8004a368(1, Me_MOTION_C) == 0)
+        else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
             register VECTOR *target;
             register VECTOR *locate;
@@ -145,7 +145,7 @@ rope_done:;
         }
         else if (Me_MOTION_C->pad.trig & 0xe0)
         {
-            FUN_8004a368(0, Me_MOTION_C);
+            spare_item_slot_(0, Me_MOTION_C);
             if (Me_MOTION_C == StagePlayer)
             {
                 SetCameraMode(CMODE_NORMAL);
@@ -554,7 +554,7 @@ make_wire:
 //     Sound(Me_MOTION_C,0x1e);
 //     goto LAB_80020c90;
 //   }
-//   iVar14 = FUN_8004a368(1,Me_MOTION_C);
+//   iVar14 = spare_item_slot_(1,Me_MOTION_C);
 //   if (iVar14 == 0) {
 //     DAT_80097f0e = 1;
 //     iVar14 = CamState.TargetVector.vx - dtL->vx;
@@ -580,7 +580,7 @@ make_wire:
 //   }
 //   else {
 //     if (((Me_MOTION_C->pad).trig & 0xe0) == 0) goto LAB_80020c90;
-//     FUN_8004a368(0);
+//     spare_item_slot_(0);
 //     if (Me_MOTION_C == StagePlayer) {
 //       SetCameraMode(CMODE_NORMAL);
 //     }

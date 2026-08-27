@@ -35,7 +35,7 @@
  * initializes the PC-link reader on first use (ReadMode == -1), then
  * dispatches on ReadMode & 3 to one of the three backends (0 = DEVPC,
  * 1 = MEMORY, 2 = CDROM; 3 has no backend and returns NULL) before running
- * the access-indicator draw (FUN_80018f00) and returning the loaded buffer.
+ * the access-indicator draw (stop_access_meter_) and returning the loaded buffer.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - No named local exists in PSX.SYM for the dispatch value (only
@@ -80,7 +80,7 @@ extern void PCinit(void);
 extern u_long *LoadFromMEMORY(u8 *filename);
 extern u_long *LoadFromDEVPC(u8 *filename);
 extern u_long *LoadFromCDROM(u8 *filename);
-extern void FUN_80018f00(void);
+extern void stop_access_meter_(void);
 
 u_long *FileRead(u8 *filename)
 {
@@ -112,6 +112,6 @@ u_long *FileRead(u8 *filename)
         ret = 0;
         break;
     }
-    FUN_80018f00();
+    stop_access_meter_();
     return ret;
 }

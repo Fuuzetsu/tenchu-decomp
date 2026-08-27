@@ -57,7 +57,7 @@ tightly coupled family) per isolated worktree:
    `Think3*`, `handle_char_state_*`, `0x80060xxx`, and — until the inline-asm
    policy lands — **`DrawTMD`**, whose handler interface uses non-ABI live
    registers (m2c confirms the callees read `input_t0/t3/t5`). Prefer trivial/easy
-   tier + a strong twin. **`LoadCard` and `FUN_800593a0` are under-sized in
+   tier + a strong twin. **`LoadCard` and `decode_tmd_fast_` are under-sized in
    `functions.tsv`** — carve them with `--size 0x168` / `--size 0x27C` or their
    `.c` can never match (see `tools/coverage.py`).
    **Select only from the live `triage.py` output on current master.** Old session
@@ -133,10 +133,10 @@ Everything the pipeline needs, in the order you touch it:
 | `tools/autorules.py <Name>` | once the draft compiles: mechanically sweep the *local* cookbook rules and greedily keep what shrinks the authoritative byte diff. It recognizes target-gp anti-sites, aggregate VECTOR copies, explicit builtin abs, pointer-index integer sums in declarations or later assignments, subscript-postincrement working copies, centered-modulo typed-temp splits, paired same-call argument producers, same-literal field assignment chains, 0/1 default-and-override returns, literal equality swaps, and the atomic byte-literal/direct-indirect-field pair; `--guided` can invert a compound if/else or swap adjacent compound terminal arms to score the opposite physical body layout, atomically move an arithmetic working-copy identity from seed to update/writeback, defer a scalar-global capture behind a read-only decision tree (including the later s16-capture widening needed to preserve exact length), inline a multi-edge shared field writeback into direct compound updates plus the useful fallthrough inversion, split a casted dereference into distinct address/value identities, turn a commutative extern-global sum into both initializer/compound-accumulator orders, turn a three-literal equality ladder into all six sparse-switch body orders, split a constant right shift into every two-stage form, toggle divisible affine multiply spellings to block unwanted cross-jumps, name an extern array base before indexing, selectively rematerialize matching-type local-array member lvalues, swap adjacent literal stores to distinct fields for late scheduling ties, toggle a local integer pointer's volatile pointee, insert or remove a weight-free empty LOOP_END boundary, fence one statement or a safe 2–4-statement range, add two or three nested weights atomically, split adjacent statements behind two one-shot fences, dead-evict a switch index from CSE, shift a statement across an existing LOOP_END, duplicate one statement into zero-code identical arms, permute an existing identical-arm fence's pure discriminator, duplicate one adjacent shared assignment into both compound if/else arms, try real case labels, and enumerate the six three-term addition trees while preserving nonconstant/call order. AST rules mask the inactive side of guarded INCLUDE_ASM drafts when tree-sitter wraps the whole preprocessor region in an error node. Output is line-buffered for monitoring and flags a byte win that worsens the equal-length aligned instruction shape as `LOCAL-SHAPE REGRESSION`. Candidates compile from a private staged source; only the selected result is atomically published. Owned build process groups, Linux parent-death handling, and the per-worktree matching lock prevent interrupted/orphaned work from mutating or racing the live source. It never emits inline asm. |
 | `tools/permute.py <Name>` | late-stage decomp-permuter for pure register-allocation ties, after deterministic structure/RTL work. A preflight refuses drafts over one instruction from target length or broader than 128 aligned lines / 32 blocks; `--force-early` requires an explicit reviewed allocation-cascade justification. Every retained output is full-link rescored and must be bisected rather than pasted wholesale. It shares the per-worktree matching lock, so an accidental launch during autorules/diff/rtlguide fails immediately with the owning PID/target instead of producing a torn build. |
 | `tools/dedupe-symbols.py [--check]` | one name per address in `config/symbols.main.exe.txt`. splat >= 0.4x refuses duplicates, and our file cannot disambiguate them (it doubles as an ld script, no comment syntax). Re-run after any Ghidra symbol import. |
-| `tools/coverage.py [--all]` | code claimed by NO function — finds under-sized `functions.tsv` entries (a truncated carve still builds green; the tail becomes a `.data` blob that defines the `.L` labels, so nothing complains). `LoadCard` and `FUN_800593a0` are the two in game code. |
+| `tools/coverage.py [--all]` | code claimed by NO function — finds under-sized `functions.tsv` entries (a truncated carve still builds green; the tail becomes a `.data` blob that defines the `.L` labels, so nothing complains). `LoadCard` and `decode_tmd_fast_` are the two in game code. |
 | `tools/rtldump.py <Name> [--pass …] [--draft]` | **the escalation tool** — standalone cc1-281 RTL dumps (`.greg`/`.lreg`/`.loop`/`.combine`/`.jump2`/`.sched2`/`.dbr`), race-free in the scratchpad, ~1 s. When a same-length residual beats respelling + the permuter, dump the pass that owns the diverging decision and read it (cookbook: "Reading cc1's RTL dumps"). Cracked 9 "permuter-immune" ties this session. |
 | `tools/rtlguide.py <Name>` | **mechanical RTL escalation** — aligns target asm with our candidate, classifies each hunk by owning pass, recompiles with debug RTL notes, maps residual instructions back to C lines, names locals in the divergent hard registers, and emits the exact guided autorules command. It also audits target/candidate physical branch/jump/call/return counts (warning when a score win invents a conditional branch), detects target-only physical calls, distinguishes `jal abs` from target inline abs, recognizes postincrement and arithmetic working-copy, cross-call argument-pipeline, terminal commutative-equality, branch-phi register ties, and target stack-address rematerialization residuals, prioritizing the corresponding arm/writeback, working-copy, or alias-rematerialization rules for those traces, summarizes CALL_INSN fingerprints through jump2, names proven residual signatures, reports source lines whose first RTL instruction is fenced by LOOP_END in sched/sched2, and flags allocnos whose target hard register is categorically forbidden by `.greg` (so loop weighting cannot help). The target has no RTL; target asm is the specification and our RTL is the causal trace. `--json` is stable; direct runs share the matching lock. `--no-build` validates the processed source's line-marker provenance and rejects both private staged candidates and a guarded function's default INCLUDE_ASM artifact, so cached bytes cannot masquerade as current C progress. |
-| `tools/reghist.py <Name>` | **the first move on a big Ghidra function** — histograms register mentions target-vs-draft. A draft-heavy caller-saved register is a MEGA-PSEUDO (one Ghidra variable doing many jobs; one pseudo gets one hard reg for all fragments, so a conflict anywhere exiles every use) — split it per site (worth 140 bytes on FUN_80057b80). The delta SUM is also an exhaustion proof: zero-sum deltas in the arg registers = pure renames, decomposition already matches, residual is allocation/scheduling. |
+| `tools/reghist.py <Name>` | **the first move on a big Ghidra function** — histograms register mentions target-vs-draft. A draft-heavy caller-saved register is a MEGA-PSEUDO (one Ghidra variable doing many jobs; one pseudo gets one hard reg for all fragments, so a conflict anywhere exiles every use) — split it per site (worth 140 bytes on subdivide_quad_). The delta SUM is also an exhaustion proof: zero-sum deltas in the arg registers = pure renames, decomposition already matches, residual is allocation/scheduling. |
 | `tools/regalloc.py <Name>` | **diagnose a register tie** — reads both `-dl` and `-dg`, filters to real global allocnos, shows refs/live-length/computed priority, pseudo→hard-reg dispositions, hard-register conflict sets, and copy chains. `--prefer a0` focuses the allocnos carrying one hard-register preference so distant call-argument donors become visible. `--compare P Q [--enclosed-refs N]` quantifies how many weighted refs/loop depths P needs to outrank Q; `--between SUBJECT LOWER UPPER` finds a bounded three-allocno priority window (equal-mode comparisons). Run this BEFORE blindly permuting a sub-C tie. |
 | `tools/extract-demo.py`, `tools/psxsym.py`, `tools/symdump.py` | carve/parse/dump the demo disc's `PSX.SYM` — original prototypes, locals, structs, TU map. See [psx-sym.md](psx-sym.md). `matcher-prompt.py` injects the per-function facts automatically. |
 | `tools/symmatch.py`, `tools/xbuildnames.py`, `tools/callmatch.py`, `tools/datamatch.py` | recover original **names** (functions, then globals) from `PSX.SYM` + the demo `PSX.EXE`. All four keep Ghidra's boundary/size inventory but mechanically overlay current splat `c` names, so adopted names, named callees, and data-reference pairs cannot go stale. `datamatch` retains label aliases and infers the PSX.SYM-data→demo-data relocation from unique anchors (minimum 64 at 99% dominance) to reconstruct labels omitted by the Ghidra export; duplicate statics require translation-unit agreement, reverse uniqueness covers raw conflicting votes, and `--apply` hard-fails below 100% control precision. |
@@ -494,7 +494,7 @@ rules**:
   donors/fences, restore PSX.SYM locals, try same-TU inline helper boundaries,
   and replace decompiler carrier reuse with purpose-specific locals. In one
   2026-07-18 sweep those moves turned 9/15/8/7/4-byte "sub-C floors" into exact
-  SetupTelop, SetLightningI, FUN_80057b80, CameraDirection, and DrawImpact.
+  SetupTelop, SetLightningI, subdivide_quad_, CameraDirection, and DrawImpact.
   Bound tuning of a fixed decomposition; do not bound structural falsification.
 
 ## A park verdict is a hypothesis — and "do not retry it" is a bug
@@ -574,7 +574,7 @@ $ tools/coddog match <Name> -t 0.5 # similar whole functions; good for BIG
   out to be Shake being correct. Check the dispositions or the `.o` timestamp,
   not the byte count alone.
 - **Read the matched SIBLING's source, not a park's description of it.**
-  FUN_80018f00's header recorded cbAccess's identical-arm CSE fence as one of
+  stop_access_meter_'s header recorded cbAccess's identical-arm CSE fence as one of
   "cbAccess's FAILED attempts" — it is the thing that made cbAccess MATCH. Once the
   sibling was read directly, the function matched first try, and the park's detailed
   `.greg` escalation turned out to be real work aimed at a lever that was never
@@ -752,7 +752,7 @@ $ tools/coddog match <Name> -t 0.5 # similar whole functions; good for BIG
 - **TOOLING BACKLOG — a per-block load classifier.** Nothing surfaces "which load is
   free to move": printing each load's LOG_LINKS classified as FIXED (`symbol_ref`,
   floats anywhere) vs VARYING (`(plus (reg N) K)`, pinned below every preceding
-  store) would have named FUN_8004c59c's 23-byte lever immediately.
+  store) would have named proc_misc_sound_'s 23-byte lever immediately.
 - **TOOLING BACKLOG — autorules `join-store` and `guard-expr-inline`.** Both
   mechanical, both byte-safe, both matched a function by hand tonight: hoist a store
   duplicated in both if/else arms into a single post-if statement (and its inverse);
@@ -784,7 +784,7 @@ $ tools/coddog match <Name> -t 0.5 # similar whole functions; good for BIG
 - **Rank with `config/fuzzy.main.exe.tsv` — it is free and needs no builds.** Still the
   right selection tool, but because it is cheap and total, NOT because the headers lie:
 
-      99.79%  FUN_80057b80    98.17%  SetBleedsDir    97.81%  GetAreaMapVector
+      99.79%  subdivide_quad_    98.17%  SetBleedsDir    97.81%  GetAreaMapVector
       98.61%  AddEnemy        98.16%  StageEndScreen  96.28%  SetupTelop
 
 - **RE-SCREEN EVERY PARK WHEN A TOOL'S BLIND SPOT IS FOUND.** `asmdiff` hid branch
@@ -938,7 +938,7 @@ $ tools/coddog match <Name> -t 0.5 # similar whole functions; good for BIG
 
 - **An agent's worktree can be based on a STALE commit — tell every round-N
   lane to check.** Agent worktrees do not reliably branch from master's tip: a
-  FUN_80057b80 round-3 worktree was based on a commit predating round 2, so its
+  subdivide_quad_ round-3 worktree was based on a commit predating round 2, so its
   `.c` was a bare `INCLUDE_ASM` stub with none of the banked findings; several
   other lanes silently fast-forwarded before starting. The agent noticed and
   recovered, but a lane that does NOT notice will re-derive banked work or
@@ -1188,7 +1188,7 @@ findrule.
   found it.
 - **autorules: in-place sign-extend shift-pair rule** — rewrite `x = (s16)x` /
   `x = (s16)src` sites as `x <<= 16; x >>= 16;` (forces in-place sll/sra
-  instead of a $v0 scratch; FUN_800519bc paid it manually twice). Also
+  instead of a $v0 scratch; briefing_screen_ paid it manually twice). Also
   consider a bounded cross-statement move family (`fade_step = -8;` moved
   across one call to fill its delay slot was manual).
 - **permute.py: report the minimal semantic delta of the best
@@ -1238,13 +1238,13 @@ findrule.
   self-validation verdict that REFUSES divergent output; 12 functions / 267
   allocnos, zero divergence).
 - **A backward-branch scan must EXCLUDE calls.** A recursive `jal` back to the
-  function's own entry glabel reads as a loop; FUN_80057b80 was briefly credited
+  function's own entry glabel reads as a loop; subdivide_quad_ was briefly credited
   with 4 loops when it has 0. Affects any loop-counting heuristic.
 - **rtldump's output directory changes per `nix develop` invocation**
   (`/tmp/nix-shell.XXXX/`), so an A/B across two invocations silently compares
   stale files. Capture the path rtldump prints, per invocation.
 - ~~per-register reference-count diff~~ **BUILT: `tools/reghist.py`** — three
-  lanes hand-rolled it before it became a tool (worth 140 bytes on FUN_80057b80;
+  lanes hand-rolled it before it became a tool (worth 140 bytes on subdivide_quad_;
   a cheap negative on StageEndScreen and AddEnemy). It is now the recommended
   first move on any big Ghidra function, and its delta SUM doubles as an
   exhaustion proof. Note the trap it was born with: objdump prints MIPS registers
@@ -1321,11 +1321,11 @@ findrule.
   pinned-register locals, ONLY for functions whitelisted in
   `config/gte-allowlist.txt`; containment + whitelist are unit-tested.
   `SetDepthQ` matched byte-exactly as the pipeline spike. The
-  `GetPad`/`GetPadXY`/`FUN_8001b174` trio is deliberately EXCLUDED and now
+  `GetPad`/`GetPadXY`/`get_pad_active_` trio is deliberately EXCLUDED and now
   exact plain C: the encoded-port model naturally emits the former
   "SIGNEXT-SPLIT" signature. `PClseek` is a separate support-code question;
   neither case expands GTE policy. Family order: `drawF3` anchor →
-  15 `draw*` clones → the three twin pairs → `FUN_80057b80` → `DrawTMD`. m2c
+  15 `draw*` clones → the three twin pairs → `subdivide_quad_` → `DrawTMD`. m2c
   can already read the region (`--input-regs`). ArrangeLocalMatrix was an old
   false positive in this list: its `$t2..$t6` values are internal loop
   temporaries and its calls use the normal ABI; it now matches in pure C.

@@ -57,7 +57,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
+extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern int ReqLifeBar(Humanoid *h);
 
 void ActSTATE(void)
@@ -360,7 +360,7 @@ void ActSTATE(void)
                 sound = 0x19;
             }
             Sound(human, sound);
-            FUN_80033bc0(dtL, 300, 0xc, 10);
+            spawn_smoke_burst_(dtL, 300, 0xc, 10);
             if (StagePlayer == Me_MOTION_C)
             {
                 if (motID == 0x805)

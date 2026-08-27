@@ -955,7 +955,7 @@ enum stage_rank
  * exe keeps a standalone `unsigned char gNannido` (0x80098090); "nannido"
  * is Japanese for difficulty. Retail moved it into the 0x80010000 blob;
  * the neighbouring bytes keep TLinkInfo's field run (0x5A SoundLevel ->
- * CD volume in FUN_8004f68c, 0x5B SELevel -> PlaySE scale, 0x5D Anakon ->
+ * CD volume in apply_cd_volume_, 0x5B SELevel -> PlaySE scale, 0x5D Anakon ->
  * PadShock gate). The demo has NO enum for the values -- the original does
  * arithmetic on the raw byte (`EngageLevel = 3 - pt[0x58]` in
  * SetupAppearance, `rand() % 4 - 2 >= gNannido` in StateTransition) -- so
@@ -1046,12 +1046,12 @@ typedef struct TLinkInfo
                              *       (InitSoundEffect/InitPersistentState
                              *       -> SsSetStereo/SsSetMono; demo +0x7) */
     u8 SoundLevel;          /* 0x05A gSoundLevel: music/CD volume 0..0x7F
-                             *       (FUN_8004f68c, _PlayMusic; demo +0x8) */
+                             *       (apply_cd_volume_, _PlayMusic; demo +0x8) */
     u8 SELevel;             /* 0x05B gSELevel: SE volume 0..0x7F
                              *       (PlaySE, PlayVoice; demo +0x9) */
     u8 fMemory;             /* 0x05C gfMemory: post-mission memory-card
                              *       save flow enabled (StageEndScreen /
-                             *       mission_score_screen -> FUN_800514d8
+                             *       mission_score_screen -> score_screen_input_
                              *       save UI; demo +0xC) */
     u8 Anakon;              /* 0x05D analog pad / rumble enabled (PadShock
                              *       gate, PadProc; demo +0xE; default 1) */

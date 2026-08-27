@@ -76,9 +76,9 @@
 
 
 
-extern void FUN_80033bc0(VECTOR *pos, s32 spread, s32 divisor, s32 count);
+extern void spawn_smoke_burst_(VECTOR *pos, s32 spread, s32 divisor, s32 count);
 /* Retail's caller promotes these scalar arguments before the call. */
-extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
+extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                          s32 start_size, s32 end_size,
                          s32 start_color, s32 end_color,
                          s32 rotate, s32 rotate_speed, s32 time, s32 type);
@@ -172,7 +172,7 @@ void ProcItemShinsoku(TItem *item)
         {
             return;
         }
-        FUN_80033bc0(item->owner->locate, 0x96, 0xc, 8);
+        spawn_smoke_burst_(item->owner->locate, 0x96, 0xc, 8);
         param->count = 0x4b;
         item->mode = item->mode + 1;
         return;
@@ -243,7 +243,7 @@ void ProcItemShinsoku(TItem *item)
             scratch.query.pos =
                 *(VECTOR *)item->owner->model->locate.coord.t;
             scratch.query.pos.vy -= 300;
-            FUN_8003944c(&scratch.query.pos, 0, 0x2000, 0x5000,
+            set_impact_ex_(&scratch.query.pos, 0, 0x2000, 0x5000,
                          0x808080, 0, 0, -30, 0x10, 3);
         }
         if (CamState.Owner == item->owner)
@@ -334,7 +334,7 @@ void ProcItemShinsoku(TItem *item)
 //       if (pMVar8->loop == 0) {
 //         return;
 //       }
-//       FUN_80033bc0(item->owner->locate,0x96,0xc,8);
+//       spawn_smoke_burst_(item->owner->locate,0x96,0xc,8);
 //       (item->param).napalm.count = 'K';
 //       goto LAB_8003fab0;
 //     }
@@ -404,7 +404,7 @@ void ProcItemShinsoku(TItem *item)
 //     local_40.start.vx = (pMVar7->locate).coord.t[2];
 //     local_40.start.vy = *(long *)(pMVar7->locate).workm.m[0];
 //     local_40.user = (Humanoid *)((pMVar7->locate).coord.t[1] + -300);
-//     FUN_8003944c(&local_40,0,0x2000,0x5000,0x808080,0,0,0xffffffe2,0x10,3);
+//     set_impact_ex_(&local_40,0,0x2000,0x5000,0x808080,0,0,0xffffffe2,0x10,3);
 //   }
 //   if (CamState.Owner == item->owner) {
 //     SetCameraMode(CMODE_CROUCH);

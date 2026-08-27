@@ -40,7 +40,7 @@
  * (gp-relative, this TU's own): 0 = just opened (init the wipe position/
  * sound), 1 = wipe animating closed (draws a highlighted-outline "seam"
  * frame each tick, then slides `x` toward 0 by 0x28/tick), 2 =
- * fully closed (draws the player's on-map marker via `FUN_8003d768`).
+ * fully closed (draws the player's on-map marker via `draw_map_items_`).
  *
  * `rgb` (PSX.SYM's declared local) is a brightness ramp derived from the
  * wipe position: `(0xA0 - x) / 4` — plain integer division by the
@@ -87,7 +87,7 @@ extern s32 y;
 extern s32 MapPlacement[][4];
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
-extern void FUN_8003d768(s32 x, s32 z, s32 *area);
+extern void draw_map_items_(s32 x, s32 z, s32 *area);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 
 void PutMap(void)
@@ -147,7 +147,7 @@ void PutMap(void)
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
-        FUN_8003d768(CamState.Owner->model->locate.coord.t[0],
+        draw_map_items_(CamState.Owner->model->locate.coord.t[0],
                      CamState.Owner->model->locate.coord.t[2],
                      MapPlacement[StageID]);
         break;

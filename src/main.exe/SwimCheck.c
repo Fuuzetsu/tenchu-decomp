@@ -48,7 +48,7 @@
 extern Humanoid *Me_MOTION_C;
 
 extern void AttackCancelControl(short mode);
-extern void FUN_800270f8(Humanoid *human, short hide);
+extern void set_model_hide_(Humanoid *human, short hide);
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
 
@@ -124,7 +124,7 @@ short SwimCheck(void)
             PadShockAR(0, 0xff, 10, 0);
         }
         ActionHalt = 0;
-        FUN_800270f8(Me_MOTION_C, 1);
+        set_model_hide_(Me_MOTION_C, 1);
         motion = GetMotionID(dtM, MOT_SWIM);
         if ((s16)motion < 0 || Me_MOTION_C->life == 0)
         {

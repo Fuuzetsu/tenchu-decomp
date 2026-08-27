@@ -84,7 +84,7 @@ extern s16 TexScrollY;
 extern GsIMAGE *GetImage(s32 index);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern ModelType *LoadModel(u_long *adr);
-extern void FUN_80039c14(void);
+extern void reset_effects_(void);
 
 void InitEffect(void)
 {
@@ -204,7 +204,7 @@ void InitEffect(void)
 
     TexScrollX = 0x340;
     TexScrollY = 0x100;
-    FUN_80039c14();
+    reset_effects_();
 }
 
 // triage: MEDIUM — 226 insns, 2 loop, 6 callees, ~0.07 to AddItem2
@@ -306,6 +306,6 @@ void InitEffect(void)
 //   } while (iVar6 * 0x10000 < 1);
 //   DAT_80097f30 = 0x340;
 //   DAT_80097f32 = 0x100;
-//   FUN_80039c14();
+//   reset_effects_();
 //   return;
 // }

@@ -20,7 +20,7 @@
  * (VSyncCallback(NULL)), stops the drive (cd_control(9,0,0), already
  * matched — a retry wrapper over CdControlB; 9 = CdlPause), flushes it
  * (CdFlush), then resets CdaStatus.CurPos to -2 and clears .status. Same
- * proven TCdaStatus struct as FUN_8004fbf4.c/FUN_8004fc08.c.
+ * proven TCdaStatus struct as set_cda_volume_.c/apply_cda_attr_.c.
  *
  * SsSetSerialAttr/SsSetSerialVol/VSyncCallback/CdFlush are precompiled PsyQ
  * SDK calls (all > 0x80060000, see the cookbook's toolchain-gotchas note) —

@@ -18,7 +18,7 @@
  * libraries: MemCardInit/MemCardStart, zero the shared ComBuf[2][34] comm
  * scratch and the PadPort[2][4] state table, PadInitDirect over the two
  * 34-byte ComBuf rows, PadStartCom, then — only when the persistent-state
- * `analog_pad_present` bit (byte 0x47; see FUN_8001b2b8.c) is set — burn 15
+ * `analog_pad_present` bit (byte 0x47; see save_pad_analog_.c) is set — burn 15
  * VSyncs and force PadSetMainMode(0,1,0) (digital mode) once.
  *
  * The raw `.s` disproves Ghidra's own `ComBuf[0x11]` second PadInitDirect
@@ -28,7 +28,7 @@
  * size), not a flattened byte index.
  *
  * The one-time member read is a plain absolute scalar load (lui+lbu, no
- * reuse across branches), while FUN_8001b2b8.c retains a local TLinkInfo
+ * reuse across branches), while save_pad_analog_.c retains a local TLinkInfo
  * pointer for its two-arm update.
  */
 extern void MemCardInit(int unit);

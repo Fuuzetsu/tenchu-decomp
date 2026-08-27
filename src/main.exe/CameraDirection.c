@@ -47,7 +47,7 @@
 #include "item.h"
 #include "padcmd.h"
 
-extern void FUN_80030644(VECTOR *pos, s32 amount);
+extern void push_from_walls_(VECTOR *pos, s32 amount);
 
 void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
 {
@@ -95,7 +95,7 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     CamLoc.vx = mad->locate.coord.t[0];
     CamLoc.vy = mad->locate.coord.t[1] - 0x60E;
     CamLoc.vz = mad->locate.coord.t[2];
-    FUN_80030644(&CamLoc, 1000);
+    push_from_walls_(&CamLoc, 1000);
     CamLoc.vx -= rx;
     CamLoc.vz -= ry;
     if (r.vy > 0) {

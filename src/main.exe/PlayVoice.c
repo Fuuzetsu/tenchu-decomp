@@ -72,7 +72,7 @@ extern char fmt_playvoice_fail_chan_id[]; /* playvoice fail %s  chan %d  id %d *
 extern void AdtMessageBox(char *fmt, ...);
 extern void CdaStop(void);
 extern void SsSetMVol(int voll, int volr);
-extern void FUN_8004fbf4(u8 voll, u8 volr);
+extern void set_cda_volume_(u8 voll, u8 volr);
 extern void *memset(void *s, int c, u32 n);
 extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);
 
@@ -319,7 +319,7 @@ found:
     if (volume > 0x7e)
         volume = 0x7f;
     SsSetMVol(0x7f, 0x7f);
-    FUN_8004fbf4(volume, volume);
+    set_cda_volume_(volume, volume);
 
     {
         u8 min;
@@ -442,7 +442,7 @@ found:
 //     uVar7 = 0x7f;
 //   }
 //   SsSetMVol(0x7f,0x7f);
-//   FUN_8004fbf4(uVar7,uVar7);
+//   set_cda_volume_(uVar7,uVar7);
 //   bVar1 = pbVar6[2];
 //   bVar2 = pbVar6[3];
 //   memset(&local_28[0].minute,'\0',4);
@@ -472,7 +472,7 @@ found:
 // s32 CdPosToInt(u8 *);                               /* extern */
 // s32 CdaPlayXA(s32, u8 *, u8 *, u8, s32);            /* extern */
 // ? CdaStop();                                        /* extern */
-// ? FUN_8004fbf4(s32, s32);                           /* extern */
+// ? set_cda_volume_(s32, s32);                           /* extern */
 // ? SsSetMVol(?, ?);                                  /* extern */
 // ? memset(u8 *, ?, ?, s32);                          /* extern */
 // extern u8 CHOSEN_LANGUAGE;
@@ -609,7 +609,7 @@ found:
 //     }
 //     SsSetMVol(0x7F, 0x7F);
 //     temp_a0_2 = var_s0 & 0xFF;
-//     FUN_8004fbf4(temp_a0_2, temp_a0_2);
+//     set_cda_volume_(temp_a0_2, temp_a0_2);
 //     temp_s0 = var_s2->unk2;
 //     temp_s1 = var_s2->unk3;
 //     memset(&sp38, 0, 4);

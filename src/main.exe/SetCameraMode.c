@@ -44,7 +44,7 @@
  * Matching notes (see docs/matching-cookbook.md):
  *  - Case 4's search loop is a hand-rolled goto loop (loop:/goto loop): no
  *    loop notes, so nothing hoists/forces the &va..&vd call args — each
- *    RotTrans/FUN_80039ddc frame-address arg re-materializes `addiu aN,sp,N`
+ *    RotTrans/trace_ground_ frame-address arg re-materializes `addiu aN,sp,N`
  *    at its use. cs/tbl/fp are REAL locals assigned before the loop (that is
  *    what the "hoisted" $s4/$s7/$s3 are); cs's init lands as `addu s4,a1`
  *    because cse folds it onto the preceding OldMode-store's address pseudo.
@@ -68,7 +68,7 @@
  *  - `RotTrans(p+2, pv = &vc, fp); RotTrans(p+3, pv = &vd, fp); pv = 0;`:
  *    each pv reassignment EVICTS pv's register from cse's value class for
  *    the previous &vN, and the dead `pv = 0;` (deleted by flow, zero bytes)
- *    evicts it from &vd's class — so the FUN_80039ddc args find no register
+ *    evicts it from &vd's class — so the trace_ground_ args find no register
  *    equivalent and re-materialize fresh addius like the target. Without
  *    this, cse2 (which unlike cse1 does not stop at LOOP_END notes) folds
  *    the ddc args onto the RotTrans arg pseudos, which then need two extra
@@ -80,7 +80,7 @@
  *    fuses into camera's register; the entry rand() result is a SEPARATE
  *    variable n (caller-saved $v1) — Ghidra's iVar4 double-role is an SSA
  *    artifact.
- *  - FUN_8002fd9c takes the Humanoid* (its own asm derefs $a0 at
+ *  - camera_terrain_pitch_ takes the Humanoid* (its own asm derefs $a0 at
  *    0x30/0x38/0x3C); passing cs->Owner ties the Owner temp to $a0.
  *  - hitf (a named flag for the ddc result compare) keeps the scc form
  *    slti/xori/bnez; an inline `if (... > 0x7ff)` compiles slti/beqz (short).
@@ -94,7 +94,7 @@
 extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 
-extern short FUN_8002fd9c(Humanoid *h);
+extern short camera_terrain_pitch_(Humanoid *h);
 
 
 void SetCameraMode(TCameraMode mode)
@@ -134,7 +134,7 @@ void SetCameraMode(TCameraMode mode)
         pos = cs->Owner->locate;
         rot = cs->Owner->rotate;
         do {
-            scratch_rot_1f800040.vx = rot->vx + FUN_8002fd9c(cs->Owner);
+            scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
             scratch_rot_1f800040.vy = rot->vy;
             scratch_rot_1f800040.vz = rot->vz;
             RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
@@ -152,7 +152,7 @@ void SetCameraMode(TCameraMode mode)
             RotTrans(&camera->p2, pv = &vd, fp);
         } while (0);
         pv = 0;
-        hitf = FUN_80039ddc(&vc, &vd, 0, 0) > 0x7ff;
+        hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
         i++;
         if (hitf) goto hit;
         goto loop;

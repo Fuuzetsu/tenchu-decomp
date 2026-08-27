@@ -42,7 +42,7 @@
  *
  * Bound under fresh names (TENCHU_ID/CardPathFormat) in
  * config/symbols.main.exe.txt instead of the splat-auto TENCHU_ID/
- * CardPathFormat: once FUN_80056e30 (the same TU, same "%s%s" idiom) stopped
+ * CardPathFormat: once check_card_file_ (the same TU, same "%s%s" idiom) stopped
  * being raw asm, splat's auto-symbol table lost its only remaining
  * raw-bytes anchor for these two addresses and started deriving them from
  * a drifted accumulation elsewhere (+4 bytes each) — the same "matching a

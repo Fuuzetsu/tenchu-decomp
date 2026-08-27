@@ -11,7 +11,7 @@
  */
 extern char fmt_reading_exec[];
 extern char msg_exe_read_ok[];
-extern void FUN_8005e948(void);
+extern void cb_nop_(void);
 extern void VSyncCallback(void (*func)(void));
 extern int printf(char *fmt, ...);
 extern EXEC *CdReadExec(u8 *name);
@@ -23,7 +23,7 @@ void run_exec_file(u8 *name, u32 stack, u32 size)
 {
     EXEC *exec;
 
-    VSyncCallback(FUN_8005e948);
+    VSyncCallback(cb_nop_);
     do {
         do {
             printf(fmt_reading_exec, name);
@@ -53,7 +53,7 @@ void run_exec_file(u8 *name, u32 stack, u32 size)
 //   EXEC *pEVar1;
 //   int iVar2;
 //
-//   VSyncCallback(FUN_8005e948);
+//   VSyncCallback(cb_nop_);
 //   do {
 //     do {
 //       printf("reading exec %s\n",param_1);

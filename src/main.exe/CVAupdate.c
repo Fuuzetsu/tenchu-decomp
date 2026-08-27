@@ -80,7 +80,7 @@ extern int ReqLifeBar(Humanoid *h);
 extern void CdaStop(void);
 extern void AVCameraSetup(void);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
-extern void FUN_80038fdc(u8 arg0, u8 arg1, u8 arg2, long arg3);
+extern void set_fade_(u8 arg0, u8 arg1, u8 arg2, long arg3);
 extern char *strcpy(char *dst, const char *src);
 extern void SetupTelop(u8 *telop, s16 line);
 
@@ -308,7 +308,7 @@ s16 CVAupdate(void)
                     SetBlood(&vect, event->p, 30);
                     break;
                 case 3:
-                    FUN_80038fdc((u8)event->x, (u8)event->y,
+                    set_fade_((u8)event->x, (u8)event->y,
                                  (u8)event->z, event->p);
                     break;
                 }

@@ -76,7 +76,7 @@ extern void InitSoundEffect(void);
 extern void DemoPatchInit(void);
 extern void InitPersistentState(void);
 extern void CreateStage(s32 stage, s32 chr);
-extern void FUN_8001b4bc(void);
+extern void clear_pad_send_(void);
 extern void PadProc(void);
 extern short StageSequence(void);
 extern void StageEndScreen(void);
@@ -119,7 +119,7 @@ int main(void)
     ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     ControlScheme = ps->control_scheme;
     CreateStage(ps->StageNo, ps->CharType);
-    FUN_8001b4bc();
+    clear_pad_send_();
     do
     {
         PadProc();

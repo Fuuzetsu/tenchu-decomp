@@ -9,7 +9,7 @@ worked example — read that function's `.c` header for the full story.
 
 - **Raw value + adjusted index as separate roles**: one remapped char drives a
   table index and a later range test — keep `ch` intact, copy to `index`, adjust
-  `index` only (FUN_800570b8; also: source-ordered local aliases for directly
+  `index` only (draw_telop_line_; also: source-ordered local aliases for directly
   used params, and right-associated `x0 = x2 = cursor` pair stores).
 - **Guard-constant label past the main tail**: `goto ret_min;` to a label at the
   function's very end, or the constant's `lui` floats into the guard's delay slot
@@ -82,9 +82,9 @@ worked example — read that function's `.c` header for the full story.
   8 bytes short (Makibishi/LightningBolt; harmless in Ningyo).
 - **Initialize a pointer alias at its first path-specific use**, not at entry
   (SwimCheck); a call can be the boundary between two aliases of one address
-  (FUN_80037e0c's `position_base`/`position`).
+  (spawn_damage_effect_'s `position_base`/`position`).
 - **Separate the scan cursor from the loop-exit capture** (`found_slot = slot`
-  before the shared label) so the cursor dies (FUN_80037e0c).
+  before the shared label) so the cursor dies (spawn_damage_effect_).
 - **Struct-typed local cached at a post-branch join**, not at entry — a named
   local whose liveness crosses the label beats hoisting (ItemUse's `me`).
 - **A parameter that walks stays in its incoming register; the fixed base gets
@@ -123,7 +123,7 @@ worked example — read that function's `.c` header for the full story.
   immediately dominating equality test (PadProc).
 - **A per-axis raw computation needs a temp distinct from its final assigned
   value** (`dx*dx` fed onward) or the whole chain goes callee-saved
-  (FUN_80039ddc); preserve per-axis definition order — coefficient-X/input-X/
+  (trace_ground_); preserve per-axis definition order — coefficient-X/input-X/
   output-X then Z (DefaultActionHumanoid). The INVERSE — direct
   `x = A - B;` when the difference itself survives as a call argument — is
   mechanised (`difference-role-fuse`, Think1random).
@@ -184,7 +184,7 @@ worked example — read that function's `.c` header for the full story.
 
 - **Byte-account the census before inferring an object count**: a lone odd
   `addiu sp,K` in a block-move frame is usually the copy's limit cursor
-  (`&src + 16*chunks`), not another local (FUN_80018f00).
+  (`&src + 16*chunks`), not another local (stop_access_meter_).
 - **Screen REGISTER questions in a 25-line testbed; verify SCHEDULING and COPY
   SURVIVAL in the real function** — both false-positive under low pressure
   (division delay slot; ActSTICKON's self-XOR).

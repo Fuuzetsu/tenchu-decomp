@@ -46,7 +46,7 @@
  *  - owner IS in the hook-fly motion (mid == MOT_KAGI): aim the camera along the
  *    throw (GetVectorRotation off ViewInfo), and if the sight bit is held just
  *    re-sort the reticle sprite and bail; otherwise walk the camera target
- *    toward the hook tip (RotateVector a fixed offset, FUN_80039ddc a step,
+ *    toward the hook tip (RotateVector a fixed offset, trace_ground_ a step,
  *    accumulate into CamState.TargetVector), snap onto the owner's model once
  *    close enough or the pitch turned upward, drop into LOCK camera mode,
  *    clear the hook flag, and dispose.
@@ -141,7 +141,7 @@ void ProcKaginawa(TItem *item)
         w.vx += ViewInfo.vpx;
         w.vy += ViewInfo.vpy;
         w.vz += ViewInfo.vpz;
-        FUN_80039ddc((VECTOR *)&ViewInfo, &w, (VECTOR *)&CamState, 0);
+        trace_ground_((VECTOR *)&ViewInfo, &w, (VECTOR *)&CamState, 0);
         tx = v.vx;
         if (tx < 0)
             tx += 0xF;
@@ -228,7 +228,7 @@ void ProcKaginawa(TItem *item)
 //     local_30 = local_40.vx + ViewInfo.vpx;
 //     local_2c = local_40.vy + ViewInfo.vpy;
 //     local_28 = local_40.vz + ViewInfo.vpz;
-//     FUN_80039ddc(&ViewInfo,&local_30,&CamState,0);
+//     trace_ground_(&ViewInfo,&local_30,&CamState,0);
 //     if (local_40.vx < 0) {
 //       local_40.vx = local_40.vx + 0xf;
 //     }
@@ -283,7 +283,7 @@ void ProcKaginawa(TItem *item)
 //
 // ? AdtMessageBox(? *, s32, u8);                      /* extern */
 // ? DeleteConflict(s32);                              /* extern */
-// ? FUN_80039ddc(? *, s32 *, ? *, ?);                 /* extern */
+// ? trace_ground_(? *, s32 *, ? *, ?);                 /* extern */
 // s32 GetVectorDistance(s32, ? *, s32);               /* extern */
 // ? GetVectorRotation(? *, void *, s32 *, s32 *);     /* extern */
 // ? GsSortSprite(? *, s32, ?);                        /* extern */
@@ -351,7 +351,7 @@ void ProcKaginawa(TItem *item)
 //             sp20 = sp10 + ViewInfo.unk0;
 //             sp24 = sp14 + ViewInfo.unk4;
 //             sp28 = sp18 + ViewInfo.unk8;
-//             FUN_80039ddc(&ViewInfo, &sp20, &CamState, 0);
+//             trace_ground_(&ViewInfo, &sp20, &CamState, 0);
 //             var_v0 = sp10;
 //             if (var_v0 < 0) {
 //                 var_v0 += 0xF;

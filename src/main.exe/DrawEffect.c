@@ -16,7 +16,7 @@
 /*
  * DrawEffect (0x80039bbc, 0x58 bytes) — walks the EffectSlot[] pool (200
  * entries) and runs every live slot's `proc` callback, passing the slot itself.
- * Same pool/stride as FUN_80039c14.c (0x4C-byte tag_EffectSlot, 0xC8
+ * Same pool/stride as reset_effects_.c (0x4C-byte tag_EffectSlot, 0xC8
  * entries) — a real `for` loop whose i<0xC8 entry test provably folds away,
  * leaving the bottom-test-only do-while shape and a strength-reduced
  * walking pointer (cookbook Loops/leResetEnemyLayout).

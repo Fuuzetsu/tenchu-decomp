@@ -33,17 +33,17 @@ extern char *GOV_RESOURCE_PREFIX_PTRS[];
 extern char *GOV_ARCHIVE_PTRS[];
 
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
-extern void FUN_80038ce0(void);
+extern void clear_screen_(void);
 extern s32 VSync(s32 mode);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern int sprintf(char *buffer, char *format, ...);
-extern BackGround *FUN_8004f4f8(u_long *tim);
+extern BackGround *load_background_(u_long *tim);
 extern void _PlayMusic(s32 music, s32 mode);
 extern short DrawBG(BackGround *bg);
-extern void FUN_80056910(Sprite3D *sprite, s16 shade);
+extern void tile_sprite_(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);
-extern void FUN_8004f6c0(s32 mode);
+extern void exec_process_(s32 mode);
 
 static inline void StartDemoInitSprite(u_long *tim, GsIMAGE *image,
                                        GsSPRITE *sprite)
@@ -104,7 +104,7 @@ void start_demo_(void)
     } while (i < 0x14);
 
     FadeOutDirect(0x20, 2, 8, 8, 8);
-    FUN_80038ce0();
+    clear_screen_();
     clear_rect.x = 0;
     clear_rect.y = 0;
     clear_rect.w = 0x400;
@@ -129,7 +129,7 @@ void start_demo_(void)
     sprintf(archive_path, fmt_arc, resource_root, *prefix_entry, suffix);
     fade_archive = FileRead(archive_path);
     tim = get_tim_from_archive(fade_archive, 0);
-    background = FUN_8004f4f8(tim);
+    background = load_background_(tim);
     gov_archive = PathFileRead(resource_root,
                                GOV_ARCHIVE_PTRS[language_state->language]);
     setup_brightness = 0x80;
@@ -220,7 +220,7 @@ void start_demo_(void)
                 GameClock = 0;
                 clear_rect.h = 0x28;
             }
-            FUN_80056910(fade_sprite, shade);
+            tile_sprite_(fade_sprite, shade);
             break;
 
         case 2:
@@ -329,9 +329,9 @@ void start_demo_(void)
                 vfree(gov_archive);
                 vfree(fade_sprite);
                 DisposeBG(background);
-                FUN_8004f6c0(0x11);
+                exec_process_(0x11);
             }
-            FUN_80056910(fade_sprite, shade);
+            tile_sprite_(fade_sprite, shade);
             break;
 
         case 5:
@@ -344,9 +344,9 @@ void start_demo_(void)
                 vfree(fade_sprite);
                 DisposeBG(background);
                 STAGE_LAYOUT_NUMBER = 0xff;
-                FUN_8004f6c0(0x10);
+                exec_process_(0x10);
             }
-            FUN_80056910(fade_sprite, shade);
+            tile_sprite_(fade_sprite, shade);
             break;
         }
 

@@ -101,7 +101,7 @@
  *     at slot #4 and $a1 at slots #0 and #1 with the same conflict set, so the
  *     deciding factor is find_reg's register CHOICE, not the order.
  *     regalloc.py --order self-validates the ORDER only; its "takes the lowest
- *     free register each time" model does not predict this (the FUN_80036284
+ *     free register each time" model does not predict this (the draw_fade_
  *     caveat).  Any plan of the form "move pseudo X to slot N so it takes the
  *     lowest free reg" must be MEASURED, not derived.
  *   - A shared green+blue load carrier (`s32 col; col = ...g; start2 = col *

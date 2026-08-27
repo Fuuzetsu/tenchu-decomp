@@ -90,16 +90,16 @@ extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
 extern int rand(void);
 extern void vfree(void *p);
-extern BackGround *FUN_8004f4f8(u_long *tim);
+extern BackGround *load_background_(u_long *tim);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
-extern void FUN_80038ce0(void);
-extern void FUN_8004f6c0(int arg);
+extern void clear_screen_(void);
+extern void exec_process_(int arg);
 extern short DrawBG(BackGround *bg);
 /* Retail's only caller omits PutNumber's dead fourth parameter. */
 extern void PutNumber();
 extern void DisposeBG(BackGround *bg);
 extern int check_for_known_button_combination(s16 pad, s16 newpress);
-extern void FUN_800519bc(void);
+extern void briefing_screen_(void);
 
 /*
  * The two TIM-sprite setup blocks are inlined static helpers (same mechanism
@@ -180,12 +180,12 @@ void BriefingAndInventorySelectionScreen(void)
         return;
     }
     if ((q->GameRetry & 1) == 0) {
-        FUN_800519bc();
+        briefing_screen_();
     }
     bounce = 0;
     scale = 0x1000;
     buf = FileRead(ITEM_SEL_SPRITE_PTRS[q->language]);
-    bg = FUN_8004f4f8(buf);
+    bg = load_background_(buf);
     vfree(buf);
     buf = FileRead(NUMBER_TIM_PATH);
     p = &spr;
@@ -295,10 +295,10 @@ void BriefingAndInventorySelectionScreen(void)
                     (&ps->saveItem[0])[j7];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
-            FUN_80038ce0();
+            clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xFF;
             GameRetry = GameRetry & 0xFE;
-            FUN_8004f6c0(0x10);
+            exec_process_(0x10);
             break;
         }
         if (np == 0x800) {
@@ -535,7 +535,7 @@ void BriefingAndInventorySelectionScreen(void)
 
 quit:
     FadeOutDirect(0x20, 2, 8, 8, 8);
-    FUN_80038ce0();
+    clear_screen_();
     if (PSTATE->selItem[0x12] != 0) {
         PSTATE->selItem[0x12] = 0xFF;
     }

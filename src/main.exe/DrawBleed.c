@@ -60,7 +60,7 @@
  * idiom) and, if visible (`otz > 0x24`), fills the shared `plyBleed` POLY_F4
  * quad (a diagonal streak from `(x,y)` to `(x+sz,y+sz)`, `sz` a distance-
  * scaled length) and GsSortPoly's it into the OT with the same
- * `[0, 0x4e1]` OTZ-derived priority clamp as DrawSpriteXYZ/FUN_8003a148.
+ * `[0, 0x4e1]` OTZ-derived priority clamp as DrawSpriteXYZ/draw_sprite_coord_.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `param = &ef->param.bleed;` (BleedType* at ef+4, matching PSX.SYM's
@@ -83,7 +83,7 @@
  *    idiom verbatim (zero the 3-word rotation, store `pos - (short)View`
  *    per axis, `SetTransMatrix`/`SetRotMatrix`/`RotTransPers`).
  *  - `scr.vz` gets RotTransPers's return value truncated in by the caller
- *    (`scr.vz = (s16)RotTransPers(...)`), matching FUN_8003a148's `scr`
+ *    (`scr.vz = (s16)RotTransPers(...)`), matching draw_sprite_coord_'s `scr`
  *    convention exactly (x/y filled via the `sxy` out-param, z assigned
  *    separately from the call result).
  *  - `t = (s32)((u32)(u16)scr.vz << 16);` must be its own NAMED variable,
@@ -92,7 +92,7 @@
  *    target computes the `(u16)x<<16` pattern only ONCE (one `lhu`) and
  *    keeps it alive in a register across the whole draw body (div, all the
  *    POLY_F4 field stores) to the clamp at the very end. Unlike
- *    DrawSpriteXYZ/FUN_8003a148 (which each re-read `scr.vz` fresh for
+ *    DrawSpriteXYZ/draw_sprite_coord_ (which each re-read `scr.vz` fresh for
  *    their own clamp — verified by their own asm), DrawBleed's target has
  *    NO second load at all: an independent re-read of `scr.vz` here costs
  *    an extra `lhu` (4 bytes) the target doesn't spend. Same shift-reuse
@@ -112,7 +112,7 @@
  *    fall-through — see that file's header for the reorg mechanics).
  *  - This TU divides by a runtime value (`900 / otz`): needs
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
- *    MASPSX_EXTRA), same as DrawSprite/DrawSpriteXYZ/FUN_8003a148.
+ *    MASPSX_EXTRA), same as DrawSprite/DrawSpriteXYZ/draw_sprite_coord_.
  *
  * HISTORICAL 47-BYTE PARK (superseded) was ONE clean mirror swap: sched1 (the
  * PRE-RA scheduler) dragged `dy`/`dz`'s loads from the top of the merge block

@@ -48,7 +48,7 @@ void AdtGetDisp(TAdtDisp *disp)
     setRGB0(&disp->bg, 1, 1, 0x64);
 }
 
-// triage: EASY — 89 insns, 11 callees, ~0.10 to FUN_80038c0c
+// triage: EASY — 89 insns, 11 callees, ~0.10 to draw_shade_quad_
 
 // Ghidra decompilation (reference — turn this into matching C,
 // then drop the INCLUDE_ASM above):

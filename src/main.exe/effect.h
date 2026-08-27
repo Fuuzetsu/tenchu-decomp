@@ -189,8 +189,8 @@ struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
     u8 mode;        /* +0x44 */
 };
 
-/* Retail-only full-screen fade state, proven jointly by FUN_80038fdc and its
- * renderer FUN_80036284. The renderer interpolates r/g/b between start_time
+/* Retail-only full-screen fade state, proven jointly by set_fade_ and its
+ * renderer draw_fade_. The renderer interpolates r/g/b between start_time
  * and end_time, advances mode through fade-in/hold/fade-out, and submits a
  * screen-sized POLY_XF4 at `OTablePt->org + priority`. This is effect state,
  * not PSX.SYM's standalone POLY_XF4 drawing helper. */

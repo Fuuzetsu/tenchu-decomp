@@ -33,7 +33,7 @@
  * but instead of writing OTZ into a caller-supplied output pointer, it reads
  * RotTransPers's packed screen (x,y) back off its own stack scratch and
  * calls DrawTargetS(x, y, otz - 5, color) — a line-draw/sort helper
- * (DrawTargetS's only other caller, FUN_8003d768, is also unmatched).
+ * (DrawTargetS's only other caller, draw_map_items_, is also unmatched).
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - `x - (short)ViewInfo.vpx` etc. — same NARROWING lhu-of-a-s32-global

@@ -63,7 +63,7 @@
  *
  * TransformCameraPoint's pointer formal keeps the two expanded output
  * addresses independent, so cc1 rematerializes &vc and &vd for the following
- * FUN_80039ddc call. The late tp alias supplies the target's s0=&target base
+ * trace_ground_ call. The late tp alias supplies the target's s0=&target base
  * without extending its lifetime over the earlier calls. Spelling each
  * component delta as -va + vb preserves the target's independent-load order.
  * Retail removed the demo's fourth `SVECTOR *ref` input; its fourth argument
@@ -75,7 +75,7 @@ extern TMakeDifInfo pnt;
 extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 
-extern short FUN_8002fd9c(Humanoid *h);
+extern short camera_terrain_pitch_(Humanoid *h);
 extern void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target);
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);
 
@@ -96,7 +96,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
     s32 d1, d2, d3;
 
     cs = &CamState;
-    scratch_rot_1f800040.vx = orgrot->vx + FUN_8002fd9c(cs->Owner);
+    scratch_rot_1f800040.vx = orgrot->vx + camera_terrain_pitch_(cs->Owner);
     scratch_rot_1f800040.vy = orgrot->vy;
     scratch_rot_1f800040.vz = orgrot->vz;
     RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
@@ -112,7 +112,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
     TransformCameraPoint(campos + 2, &vc, flag);
     TransformCameraPoint(campos + 3, &vd, flag);
 
-    fwRot = FUN_80039ddc(&vc, &vd, (VECTOR *)&target, 0);
+    fwRot = trace_ground_(&vc, &vd, (VECTOR *)&target, 0);
 
     d1 = -va.vx;
     d1 += vb.vx;

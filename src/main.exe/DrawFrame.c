@@ -47,7 +47,7 @@
  * mode-driven countdown state machine (mode 0: white flash fading via
  * `count`, resetting to mode 1 at 0; mode 1: fade using the LOW BYTE of
  * `count` as the RGB level, self-disposing at 0), then projects `param`'s
- * position through the FUN_8003a148-style hint-or-camera-relative dispatch
+ * position through the draw_sprite_coord_-style hint-or-camera-relative dispatch
  * and, if visible, scales/positions the picked `sprFrame` slot and
  * GsSortSprite's it with the same `[0, 0x4e1]` OTZ-derived clamp.
  *
@@ -72,16 +72,16 @@
  *    the target's own `addiu -1`/`addiu -0x1D`; Ghidra's `-0x1D` text is
  *    the real encoded immediate here, unlike DrawBleed's `+0xff` — verify
  *    the encoded byte before trusting Ghidra's rendering either way).
- *  - The camera-relative projection is FUN_8003a148's exact `if (hint !=
+ *  - The camera-relative projection is draw_sprite_coord_'s exact `if (hint !=
  *    0) { Scratchpad GsGetLs/GsSetLsMatrix/RotTransPers } else {
  *    GetScreenPosition }` shape and polarity (hint!=0 is the fall-through).
  *  - `otz = scr.vz;` re-reads FRESH for the clamp (`t = scr.vz - 0x32; t =
- *    t >> 2;`), matching FUN_8003a148's own re-read (opposite of
+ *    t >> 2;`), matching draw_sprite_coord_'s own re-read (opposite of
  *    DrawBleed's reuse) — the target's asm shows a second, independent
  *    `lh` there.
  *  - `size * 300` is a plain constant multiply; cc1's own strength
  *    reduction produces the target's shift/subtract/shift sequence
- *    automatically (same as FUN_8003a148's `size * 300`) — but ONLY once
+ *    automatically (same as draw_sprite_coord_'s `size * 300`) — but ONLY once
  *    `size` is captured into a plain `s32` local (not `s16`): a `s16 size`
  *    local fed by a same-width struct-field copy triggers the "pure
  *    narrowing copy loads lhu" rule even though `size` is later used in
@@ -97,8 +97,8 @@
  *    a fresh reload after).
  *  - The scratchpad `px/py/pz` store is the FLAT `*(s16*)0x1F8000xx = ...`
  *    per-store macro cast (DrawTarget's idiom), NOT a named `SVECTOR *sv`
- *    pointer local (FUN_8003a148's idiom) — even though the shape looks
- *    identical to FUN_8003a148 otherwise (same hint-vs-camera-relative
+ *    pointer local (draw_sprite_coord_'s idiom) — even though the shape looks
+ *    identical to draw_sprite_coord_ otherwise (same hint-vs-camera-relative
  *    dispatch, same RotTransPers call reusing the pointer): a named `sv`
  *    here combines the three stores through one materialized base register
  *    instead of three independent one-line macros, 4 bytes off. Read the
@@ -113,7 +113,7 @@
  *    lever: statement splitting, not a permuter/RTL escalation).
  *  - This TU divides by a runtime value (`size*300/otz`): needs
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
- *    MASPSX_EXTRA), same as FUN_8003a148/DrawSpriteXYZ.
+ *    MASPSX_EXTRA), same as draw_sprite_coord_/DrawSpriteXYZ.
  */
 
 void DrawFrame(TEffectSlot *ef)

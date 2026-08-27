@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * load_layout (0x8003cc78, 0x8c bytes) - sibling of FUN_8003cd04 (the very
+ * load_layout (0x8003cc78, 0x8c bytes) - sibling of load_save_slot_ (the very
  * next function in this TU): loads a built-in enemy/item layout blob via
  * LoadSI (always target 0) using one of three known filenames,
  * copied from the 3-entry table `LayoutNames` into a local array first (the
@@ -11,7 +11,7 @@
  * direct `LayoutNames[index]` index, which would materialize the address
  * differently), then restores the enemy layout and item layout out of it
  * and frees the buffer; reports an error via AdtMessageBox on a NULL
- * buffer (same shape as FUN_8003cd04). Unlike FUN_8003cd04, this always
+ * buffer (same shape as load_save_slot_). Unlike load_save_slot_, this always
  * re-lays-out the enemy table via leLayoutEnemy(1) at the end, even on a
  * failed load.
  */

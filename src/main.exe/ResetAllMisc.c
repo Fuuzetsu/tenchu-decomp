@@ -19,7 +19,7 @@
  * and force-disposes every live slot: runs `proc(p, MM_DESTROY)`,
  * then clears proc to NULL. Same pool/stride (0x24-byte TMisc, MaxMisc (0xC8)
  * entries) and the same "for whose entry test provably folds away" shape as
- * DrawEffect.c/FUN_80039c14.c (cookbook Loops/leResetEnemyLayout): a bottom
+ * DrawEffect.c/reset_effects_.c (cookbook Loops/leResetEnemyLayout): a bottom
  * -test-only do-while with a strength-reduced walking pointer.
  *
  * The null-check and the indirect call both read `p->proc` — cc1's cse

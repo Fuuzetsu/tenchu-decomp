@@ -7,7 +7,7 @@
  * animation plays, on completion (count==0 && loop) spray blood, set the
  * owner's itmctl and start a 0x1C2-frame effect countdown — if the
  * animation was interrupted, toss the item back out (ReqItemDrop) and
- * dispose; mode 2: tick the countdown, spawning a FUN_8003944c flash every
+ * dispose; mode 2: tick the countdown, spawning a set_impact_ex_ flash every
  * 0x40 frames, dispose at 0.
  *
  * Matching notes (all verified against the original bytes; this is
@@ -20,7 +20,7 @@
  *    cases 0 and 1 end in a literal duplicated `item->mode = item->mode + 1;
  *    return;` cross-jumped into case 1's copy.
  *  - The dispatch index rides callee-saved $s0 because case 2 passes the
- *    literal `2` to FUN_8003944c after rand(): cse's record_jump_equiv on the
+ *    literal `2` to set_impact_ex_ after rand(): cse's record_jump_equiv on the
  *    `beq idx,2` taken edge substitutes the index register for the literal
  *    (the ProcItemGun rule).
  *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail changed the demo's
@@ -68,7 +68,7 @@ typedef union
 } ProcItemGosinScratch;
 
 /* Retail's caller promotes these scalar arguments before the call. */
-extern void FUN_8003944c(VECTOR *pos, GsCOORDINATE2 *super,
+extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                          s32 start_size, s32 end_size,
                          s32 start_color, s32 end_color,
                          s32 rotate, s32 rotate_speed, s32 time, s32 type);
@@ -167,7 +167,7 @@ void ProcItemGosin(TItem *item)
         if ((c & 0x3f) != 0)
             return;
         scratch.v = vec_y_n1200_z_400;
-        FUN_8003944c(&scratch.v, &item->owner->model->locate,
+        set_impact_ex_(&scratch.v, &item->owner->model->locate,
                      0x1000, 0x6000, 0x808080, 0,
                      (s16)(rand() % 0x168), 2, 0x78, 4);
         return;

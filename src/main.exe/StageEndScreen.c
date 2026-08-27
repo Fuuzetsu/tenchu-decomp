@@ -43,17 +43,17 @@ extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
-extern void FUN_80038ce0(void);
+extern void clear_screen_(void);
 extern void mission_score_screen(s32 stage);
-extern BackGround *FUN_8004f4f8(u_long *tim);
+extern BackGround *load_background_(u_long *tim);
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern short DrawBG(BackGround *bg);
-extern void FUN_800515b0(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
+extern void draw_time_(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
 extern void DisposeBG(BackGround *background);
-extern void FUN_80052ea8(TLinkInfo *state, ScoreResult *result);
-extern void FUN_800514d8(void);
-extern void FUN_8004f6c0(s32 state);
+extern void award_stage_items_(TLinkInfo *state, ScoreResult *result);
+extern void score_screen_input_(void);
+extern void exec_process_(s32 state);
 
 static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
     GsSPRITE *sprite)
@@ -217,7 +217,7 @@ void StageEndScreen(void)
     SetupAppearance(0, -1);
     PadShockAR(0, 0, 0, 0);
     FadeOutDirect(0x20, 2, 8, 8, 8);
-    FUN_80038ce0();
+    clear_screen_();
 
     item_index = 0;
     while (StageOrder[item_index] != CHOSEN_STAGE)
@@ -321,7 +321,7 @@ void StageEndScreen(void)
             }
 
             tim = FileRead(RS_ARCHIVE_PTRS[((TLinkInfo *)best_x)->language]);
-            ui.background = FUN_8004f4f8(tim);
+            ui.background = load_background_(tim);
             vfree(tim);
             rank_archive =
                 FileRead(RANK_ARCHIVE_PTRS[((TLinkInfo *)best_x)->language]);
@@ -374,7 +374,7 @@ void StageEndScreen(void)
 
                 StartDrawing();
                 DrawBG(ui.background);
-                FUN_800515b0(&digit, stats.clock, 0x61, -0x5d, 0);
+                draw_time_(&digit, stats.clock, 0x61, -0x5d, 0);
                 DRAW_SCORE_NUMBER(stats.criticals, s32, 1, number_0,
                     10, top_y);
                 {
@@ -528,9 +528,9 @@ number_1:
         }
     }
 
-    FUN_80052ea8(PSTATE, &current);
+    award_stage_items_(PSTATE, &current);
     FadeOutDirect(0x20, 2, 8, 8, 8);
-    FUN_80038ce0();
+    clear_screen_();
 
     if (PSTATE->StageNoMAX[PSTATE->CharType] <
         StageConfig[PSTATE->StageNo].uid)
@@ -576,7 +576,7 @@ number_1:
         dispatch = *(volatile u8 *)(dispatch + 5);
         if (dispatch != 7)
         {
-            FUN_800514d8();
+            score_screen_input_();
         }
     }
 
@@ -587,7 +587,7 @@ number_1:
         PSTATE->GameRetry &= 0xfe;
         if (PSTATE->StageNo == 7)
         {
-            FUN_8004f6c0(0x12);
+            exec_process_(0x12);
         }
         else
         {
@@ -631,11 +631,11 @@ layout_done:
         break;
     case 2:
         STAGE_LAYOUT_NUMBER = 0xff;
-        FUN_8004f6c0(0x10);
+        exec_process_(0x10);
         break;
     }
 
-    FUN_8004f6c0(0x11);
+    exec_process_(0x11);
 }
 
 #undef DRAW_SCORE_NUMBER

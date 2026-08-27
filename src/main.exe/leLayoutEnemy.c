@@ -45,7 +45,7 @@
 
 #include "item.h"
 
-extern void FUN_80039c14(void);
+extern void reset_effects_(void);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void *valloc(u32 size);
 extern void vfree(void *ptr);
@@ -73,7 +73,7 @@ void leLayoutEnemy(int mode)
     TraceLine *t;
     Humanoid **group;
 
-    FUN_80039c14();
+    reset_effects_();
     group = HumanGroup;
     while (1)
     {

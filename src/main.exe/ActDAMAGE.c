@@ -53,7 +53,7 @@
  */
 extern Humanoid *Me_MOTION_C;
 
-extern void FUN_80033bc0(VECTOR *pos, u16 spread, s16 divisor, s16 count);
+extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 extern void TurnAroundAllItems(Humanoid *human);
@@ -160,7 +160,7 @@ void ActDAMAGE(void)
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x1d);
-            FUN_80033bc0(dtL, 500, 0x1e, 0x1e);
+            spawn_smoke_burst_(dtL, 500, 0x1e, 0x1e);
             if (StagePlayer == Me_MOTION_C)
                 PadShockAR(0, 0xff, 0, 0x1e);
         }

@@ -23,7 +23,7 @@
 /*
  * JumpControl (0x8001d474, 0x248 bytes) — per-frame controller for the
  * jump/hang motion state (MOTION.C, called from ActCHASE/ActENGAGE/ActMOVE/
- * ActNORMAL). Kicks off a landing-dust effect at `*dtL` via FUN_80033bc0,
+ * ActNORMAL). Kicks off a landing-dust effect at `*dtL` via spawn_smoke_burst_,
  * then checks whether the player's current motion (0x900) is still valid.
  * If not (GetMotionID returns a "not found" sentinel with the sign bit set),
  * the whole rest of the function is skipped. While already mid-jump-attack
@@ -65,13 +65,13 @@
  */
 extern Humanoid *Me_MOTION_C;
 
-extern void FUN_80033bc0(VECTOR *pos, int a, int b, int c);
+extern void spawn_smoke_burst_(VECTOR *pos, int a, int b, int c);
 
 void JumpControl(void)
 {
     int id;
 
-    FUN_80033bc0(dtL, 0x96, 0xC, 8);
+    spawn_smoke_burst_(dtL, 0x96, 0xC, 8);
     if (GetMotionID(dtM, MOT_JUMP) < 0)
         return;
 

@@ -89,8 +89,8 @@ profile enumerates every carved member of the object, not a function chosen to
 improve a local score:
 
 `AdtGetDisp`, `AdtMessageBox`, `AdtQuiet`, `AdtFntOpen`, `AdtFntLoad`,
-`AdtReleaseDisp`, `AdtDmyPadRead`, `AdtVsprintf`, `FUN_8005fe38`,
-`FUN_8005fe88`, and `AdtSelect`.
+`AdtReleaseDisp`, `AdtDmyPadRead`, `AdtVsprintf`, `debug_printf_`,
+`debug_msg_open_`, and `AdtSelect`.
 
 This attribution is byte- and compiler-proven. Recompiling all eleven with
 2.8.0 preserves every already-exact member and makes the clean 776-byte

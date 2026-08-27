@@ -94,13 +94,13 @@ extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */   /* "K:\\WORK\\CDIMA
 extern char fmt_undefined_effect[]; /* "undefined effect %d" */
 
 extern void ProcMiscFire(TMisc *m, TMiscMessage msg);
-extern void FUN_8004d6d4(TMisc *m, TMiscMessage msg);
+extern void proc_misc_puff_(TMisc *m, TMiscMessage msg);
 extern void ProcMiscDoor(TMisc *m, TMiscMessage msg);
 extern void ProcMiscPitfall(TMisc *m, TMiscMessage msg);
 extern void ProcMiscSnowfall(TMisc *m, TMiscMessage msg);
 extern void ProcMiscSprite(TMisc *m, TMiscMessage msg);
-extern void FUN_8004c350(TMisc *m, TMiscMessage msg);
-extern void FUN_8004c59c(TMisc *m, TMiscMessage msg);
+extern void proc_misc_type6_(TMisc *m, TMiscMessage msg);
+extern void proc_misc_sound_(TMisc *m, TMiscMessage msg);
 extern void SetupTexScroll(GsIMAGE *im, short vx, short vy);
 extern void AdtMessageBox(char *fmt, ...);
 
@@ -136,7 +136,7 @@ loop:
                 if (va == 0)
                     p->proc = ProcMiscFire;
                 else
-                    p->proc = FUN_8004d6d4;
+                    p->proc = proc_misc_puff_;
                 break;
             case MISC_DOOR:
                 p->proc = ProcMiscDoor;
@@ -158,10 +158,10 @@ loop:
                 SetupTexScroll(ptm, y, z);
                 return;
             case 6:
-                p->proc = FUN_8004c350;
+                p->proc = proc_misc_type6_;
                 break;
             case 7:
-                p->proc = FUN_8004c59c;
+                p->proc = proc_misc_sound_;
                 break;
             default:
                 AdtMessageBox(fmt_undefined_effect, type);

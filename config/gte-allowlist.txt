@@ -16,10 +16,10 @@ drawzG4
 drawGT4
 drawzFT4
 drawzGT4
-FUN_80058c70
-FUN_80059008
-FUN_80059ff4
-FUN_8005a3cc
-FUN_8005961c
-FUN_80059b08
-FUN_80057b80
+adiv_tng4_
+adiv_tnf4_
+fast_tnf3_
+fast_tng3_
+fast_tng4_
+fast_tnf4_
+subdivide_quad_

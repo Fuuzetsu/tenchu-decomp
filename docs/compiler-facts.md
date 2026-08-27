@@ -77,7 +77,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   small unsigned types `sltiu`.
 - **`store_flag`** cannot put the constant in the immediate field for `>`:
   `cond = x > K-1` folds to `lui`/`slt` vs `K<<16`; `cond = x < K` is the natural
-  `slti` (FUN_8005a7a4).
+  `slti` (update_card_screen_).
 - **`main` gets an implicit `__main()` call** inserted by gcc; writing it
   explicitly compiles a second call (main).
 
@@ -87,7 +87,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   `PROMOTE_MODE` and no `POINTERS_EXTEND_UNSIGNED`. Never reason about which types
   it moves. This constrains direct formal-parameter conversion; it does not
   constrain later ordinary local copies (the distinction that matched
-  FUN_80057b80).
+  subdivide_quad_).
 - **Narrow locals are genuine QI/HI pseudos** (`reg/v:QI`, `reg/v:HI`); a narrow
   local always needs a real extension and can never produce a bare `move` at a
   join (ActivateHumans). A `short`→`short` copy coalesces to NOTHING; routing
@@ -109,7 +109,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   slots and its shifted-scroll pseudo at the third).
 - **`assign_stack_local` assigns slots in declaration order**, ascending from the
   outgoing-arg boundary, each BLKmode local rounded up to 8 bytes — slot order is
-  arithmetic, not searchable (FUN_80018f00; AdtMessageBox: each separately
+  arithmetic, not searchable (stop_access_meter_; AdtMessageBox: each separately
   declared aggregate is individually rounded; LoadConstruction: odd 20-byte
   aggregates spaced 24 apart are N separate locals).
 - **`mips_expand_epilogue` ALWAYS lets reorg pull the sp-restore into `jr ra`'s
@@ -118,7 +118,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   sources).
 - **A varargs `&fmt + sizeof(fmt)` computed at entry** is held in a callee-saved
   register across the whole function; inline at the call site it uses a
-  caller-saved temp (AdtMessageBox vs FUN_8005fe38).
+  caller-saved temp (AdtMessageBox vs debug_printf_).
 
 ## cse
 
@@ -145,7 +145,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   pseudo==constant — surviving calls (ProcItemGun's literal case stores).
 - **`find_best_addr`** rewrites `MEM(ptr)` to `MEM(base+K)` only where the
   defining equivalence is in cse1's table — rebuilt at every multi-predecessor
-  label; nonzero offsets are never folded (FUN_8004c59c).
+  label; nonzero offsets are never folded (proc_misc_sound_).
 - **cse's tables do not follow the taken edge** of a branch — constants proven on
   the fallthrough path are unavailable in branch-taken bodies (the nested-switch
   fresh `li` fact).
@@ -498,7 +498,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   only when it swaps, then names the winner; `schedule_block` (3793) prints after
   the pick. **The pick is the head of the LAST `, now`.** ("The pick is the first
   insn of the `now` list" was "verified across 11 consecutive insns" — against
-  FUN_80057b80 block 0's ELEVEN HAZARD SWAPS, the only cycles where it breaks.)
+  subdivide_quad_ block 0's ELEVEN HAZARD SWAPS, the only cycles where it breaks.)
 - **`priority()` (sched.c:1452) is NOT depth**: it accumulates
   `priority(x) + insn_cost(x, prev, insn) - 1` over LOG_LINKS (producers), and
   gcc's own comment on that `- 1` says it exists so *"when all instructions have a
@@ -556,7 +556,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   to class 1 (data) or 2 (anti/output), and the sort is DESCENDING. So perturbing
   a dependence's cost can only sort the DEPENDENT insn **later**. "Make the dep
   cost ≠ 1 to flip the tie" was proposed once as an open lever and is exactly
-  backwards. FUN_80057b80 confirmed the scheduler fact, then bypassed the tie by
+  backwards. subdivide_quad_ confirmed the scheduler fact, then bypassed the tie by
   defining ordered local pointer copies instead of using formal pseudos directly.
 - **All-latency-1 blocks cannot be reordered by sched** (sched.c:1521's own
   comment) — only a LOAD (cost 2) differentiates; a misplaced insn in a load-free
@@ -634,7 +634,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   slot (DrawModelArchive, DrawClip).
 - **An `abssi2` is ONE `multi`-type insn through reorg** (template carries its
   own branch) — invisible to delay-slot filling; the open-coded form exposes a
-  real `bgez` that steals (DamageControl lesson 1, FUN_80056910).
+  real `bgez` that steals (DamageControl lesson 1, tile_sprite_).
 - **cc1 emits `.set reorder`** — a `bgez` delay slot can be filled by the
   ASSEMBLER; cc1's own dbr only considers the single preceding insn.
 - **`x = 0` compiles to `move r,$0`, never `addiu r,$zero,0`** — the target byte
@@ -649,10 +649,10 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
 - **Cross-jump compares whole insns**: a `CALL_INSN`'s result mode and
   `CALL_INSN_FUNCTION_USAGE` distinguish machine-identical `jal`s (ActATTACK);
   algebraically equal `x*3+480` vs `(x+160)*3` do not present the same suffix
-  (FUN_800519bc).
+  (briefing_screen_).
 - **`jump_optimize(insns,1,1,0)` — the only cross_jump=1 call (toplev.c:3548) —
   runs AFTER combine and AFTER allocation**: never infer pre-jump2 block
-  structure or allocation constraints from final asm (FUN_80057b80 494→8→0;
+  structure or allocation constraints from final asm (subdivide_quad_ 494→8→0;
   ActSTICKON's "register cycle" was a jump2 artifact). jump1 hoists a common
   leading insn out of identical arms — a dead store in one arm keeps the heads
   different.

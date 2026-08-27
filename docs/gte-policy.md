@@ -46,7 +46,7 @@ matching shortcut.
    needs a missing operation, and must report the addition for review.
 5. Additions to the whitelist are an owner-level decision. The whitelist is
    only for genuine COP2/GTE operations; unrelated integer or support-code
-   residuals do not belong here. `GetPad`, `GetPadXY`, and `FUN_8001b174` are
+   residuals do not belong here. `GetPad`, `GetPadXY`, and `get_pad_active_` are
    now exact plain C through the encoded-port idiom, confirming that excluding
    them from inline assembly was correct. `PClseek` remains a separate
    support-code investigation, not a GTE-policy precedent.
@@ -71,8 +71,8 @@ matching shortcut.
 `SetDepthQ` (matched), `DrawTMD`, the 16 primitive renderers
 `drawF3 drawG3 drawzF3 drawF4 drawFT3 drawzG3 drawG4 drawGT3 drawzFT3
 drawzF4 drawFT4 drawzGT3 drawzG4 drawGT4 drawzFT4 drawzGT4`, the twin pairs
-`FUN_80058c70/FUN_80059008`, `FUN_80059ff4/FUN_8005a3cc`,
-`FUN_8005961c/FUN_80059b08`, and `FUN_80057b80`.
+`adiv_tng4_/adiv_tnf4_`, `fast_tnf3_/fast_tng3_`,
+`fast_tng4_/fast_tnf4_`, and `subdivide_quad_`.
 
 ## Compiled vs HANDWRITTEN split (established by the drawF3 anchor, 2026-07-16)
 
@@ -108,8 +108,8 @@ family cleanly:
   15 into pretend-C matching targets — the owner decides the class's accounting
   (committed-canonical-asm vs excluded) before any further lanes.
 - **COMPILED-STYLE (8, now all matched)**: `SetDepthQ`, the twin pairs
-  `FUN_80058c70/FUN_80059008` (920 B), `FUN_80059ff4/FUN_8005a3cc` (984 B),
-  `FUN_8005961c/FUN_80059b08` (1260 B), and `FUN_80057b80` (3796 B). The
+  `adiv_tng4_/adiv_tnf4_` (920 B), `fast_tnf3_/fast_tng3_` (984 B),
+  `fast_tng4_/fast_tnf4_` (1260 B), and `subdivide_quad_` (3796 B). The
   restricted gte.h layer reproduced the original compiled mechanism for all
   eight.
 
@@ -117,7 +117,7 @@ family cleanly:
 
 1. ~~`SetDepthQ`~~ — DONE (the spike).
 2. ~~`drawF3`~~ — provenance anchor DONE; guarded reference is byte-exact.
-3. ~~`FUN_80057b80`~~ — DONE.
+3. ~~`subdivide_quad_`~~ — DONE.
 4. ~~The three twin pairs~~ — all six DONE.
 
 **Two facts this family established** (detail in the cookbook):
@@ -140,7 +140,7 @@ family cleanly:
 
 ## Post-demo handwritten Hermite helper (owner decision, 2026-07-19)
 
-`FUN_8001c730` is also **asm-canonical**, independently of the 17-function draw
+`eval_spline_gte_` is also **asm-canonical**, independently of the 17-function draw
 family. The demo's `GetSpline` (0x8001b39c) evaluates all four Hermite terms in
 scalar C. Retail replaces that exact tail with a call to this new 220-byte leaf:
 it feeds Hermite terms 0..2 and the `key0/key1/dd0` matrix through GTE MVMVA,
@@ -160,7 +160,7 @@ volatile spelling orders that `mflo` before the `mfc2` reads. Real PsyQ
 MAC reads otherwise occur only in the already-classified handwritten draw
 handlers. Keeping fixed-register C or inventing a fake GTE macro would therefore
 encode assembly as C. The semantic C reference remains in
-`src/main.exe/FUN_8001c730.c`; `config/handwritten-asm.txt` makes the original
+`src/main.exe/eval_spline_gte_.c`; `config/handwritten-asm.txt` makes the original
 assembly authoritative.
 
 ## Candidate for the handwritten class: PClseek (flagged, NOT yet added)

@@ -21,14 +21,14 @@ is an explicit escape hatch only when RTL has proved one allocation cascade.
 
 CAVEAT: the permuter's search score ignores stack-frame slot placement. It can
 report score 0 ("perfect") for a candidate that still differs from the target only
-in stack-slot ordering -- FUN_80018f00 has an 11-byte residual the scorer cannot
+in stack-slot ordering -- stop_access_meter_ has an 11-byte residual the scorer cannot
 see. It also ranks some register-allocation wins that are real byte regressions.
 This wrapper therefore full-links every retained output and prints matchdiff's raw
 whole-image ranking after the run. Use `<name> --rescore-only` after interrupting
 one, and still verify an adopted/cleaned candidate with tools/matchdiff.py.
 
 The scorer is BLIND to stack-slot offsets. A residual that is purely
-`addiu a0,sp,K` placement (FUN_80018f00's whole 11 bytes) scores base 0 and the
+`addiu a0,sp,K` placement (stop_access_meter_'s whole 11 bytes) scores base 0 and the
 permuter writes no candidate at all — it cannot see the defect, so a bounded run
 on that class is pure wasted wall-clock. Check `tools/asmdiff.py` first: if every
 differing line is an `sp+K` offset, this is an `assign_stack_local` DECLARATION-ORDER
@@ -116,7 +116,7 @@ ORIGINAL_OBJECT_MEMBERS = {
     "ADT.OBJ": (
         "AdtGetDisp", "AdtMessageBox", "AdtQuiet", "AdtFntOpen",
         "AdtFntLoad", "AdtReleaseDisp", "AdtDmyPadRead", "AdtVsprintf",
-        "FUN_8005fe38", "FUN_8005fe88", "AdtSelect",
+        "debug_printf_", "debug_msg_open_", "AdtSelect",
     ),
 }
 ORIGINAL_OBJECT_CC_FLAGS = {
@@ -261,7 +261,7 @@ GP_EXTERNS = {
     "SetupTexScroll": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_", "TexScrollX", "TexScrollY"],
     "PlaySE": ["voice"],
     "SetBleedsDir": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
-    "FUN_80037e0c": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "spawn_damage_effect_": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "ChasetoTarget": ["Me_THINK_C", "Attrib", "Distance"],
     "GetAreaMapPassage": ["FieldArea", "FieldIndex"],
     "SetBlood": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
@@ -288,7 +288,7 @@ GP_EXTERNS = {
     "CVArun": ["CVAtime", "CVAnow"],
     "CVAsetup": ["CVAdata"],
     "valloc": ["virtual_memory_pool"],
-    "FUN_80018f00": ["AccessPower"],
+    "stop_access_meter_": ["AccessPower"],
     "GetAreaMapVector": ["FieldAttrib", "FieldArea", "FieldIndex"],
     "SetSnow": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "SetImpact": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
@@ -341,7 +341,7 @@ GP_EXTERNS = {
     "DrawBG": ["OTablePt"],
     "PrepareAccess": ["AccessPower"],
     "handle_balmer_acm_": ["GlobalAreaMap", "FieldIndex", "BalmaAreaMap", "FieldArea"],
-    "FUN_80027304": ["Me_MOTION_C", "dtL"],
+    "publish_ground_point_": ["Me_MOTION_C", "dtL"],
     "init_score_stats": ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"],
     "is_character_state_present_on_stage_": ["Humans"],
     "Think2contact": ["Attrib", "Me_THINK_C", "Degree"],
@@ -359,7 +359,7 @@ GP_EXTERNS = {
     "AttackFire": ["dtM", "Me_MOTION_C", "dtR"],
     "ReturnNormal": ["Me_MOTION_C", "motID", "motMODE"],
     "DrawOrnament": ["OTablePt"],
-    "FUN_8005fe88": ["AdtMsgPtr"],
+    "debug_msg_open_": ["AdtMsgPtr"],
     "SetupStageSequence": ["StageEvent", "StagePlayer"],
     "AttackGunControl": ["dtM", "Me_MOTION_C"],
     "ThinkBasicHuman1": ["Me_THINK_C"],
@@ -390,7 +390,7 @@ GP_EXTERNS = {
     "DoItemProc": ["Item_fInitial"],
     "vfree": ["virtual_memory_pool"],
     "DrawModel": ["OTablePt"],
-    "FUN_8001b2f4": ["ControlScheme"],
+    "remap_buttons_": ["ControlScheme"],
     "LoadMotion": ["MotionPack"],
     "SearchMotion": ["CommonMotion", "PlayerMotion", "StageMotion"],
     "GetSpline": ["SplineFracOld", "SplineFrac", "SplineRow"],
@@ -402,10 +402,10 @@ GP_EXTERNS = {
     "Think3callaid": ["Distance", "SR", "Me_THINK_C", "Degree", "Pad", "Attrib"],
     "InitFileSystem": ["ReadMode", "TotalIO", "MDfat"],
     "cbAccess": ["AccessPower"],
-    "FUN_80056e30": ["TENCHU_ID"],
-    "FUN_80038fdc": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
-    "FUN_8003944c": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
-    "FUN_8005fe38": ["AdtMsgPtr"],
+    "check_card_file_": ["TENCHU_ID"],
+    "set_fade_": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "set_impact_ex_": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "debug_printf_": ["AdtMsgPtr"],
     "InitMisc": ["Misc_fInitial"],
     "InitializeItem": ["SyurikenModel", "ArrowModel", "NingyoModel", "HappouModel", "sprNapalm", "sprNapalm2", "Item_fInitial"],
     "ProcItemNapalm": ["sprNapalm2"],
@@ -436,7 +436,7 @@ GP_EXTERNS = {
     "StartStageSequence": ["StageEvent", "StageTime", "FriendHits", "Murders", "Findenemies", "Criticals", "Event", "StagePlayer", "StageCitizens", "StageEnemies", "StageBosses"],
     "StageSequence": ["StagePlayer", "Event", "StageTime", "Findenemies", "Murders", "Criticals", "StageEnemies", "StageBosses", "FriendHits", "StageCitizens"],
     "AddEnemy": ["CurrentEnemyID"],
-    "FUN_8005b17c": ["McardPageNow", "McardHelp", "McardAnswered", "McardPageText", "McardSprite", "CardStateFlag"],
+    "draw_card_help_": ["McardPageNow", "McardHelp", "McardAnswered", "McardPageText", "McardSprite", "CardStateFlag"],
     "LoadConstruction": ["mma", "ObjectArc", "StageID"],
     "CreateStage": ["StageID"],
     "SetWire": ["ModelHook"],
@@ -449,10 +449,10 @@ GP_EXTERNS = {
     "SetFlyWire": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "SetGore": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "InitEffect": ["ShadowMdl", "LOCAL_COORDINATES_", "AfterIMG", "ModelHook", "TexScrollX", "TexScrollY"],
-    "FUN_80033bc0": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
+    "spawn_smoke_burst_": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "AttackControl": ["Me_MOTION_C", "dtL", "dtR", "motID", "motMODE", "dtPAD", "dtM"],
     "Think1target": ["Me_THINK_C", "SR", "Attrib", "EmergencyNotice"],
-    "FUN_8005adbc": ["McardVramSave", "McardHelp", "McardSprite"],
+    "setup_card_screen_": ["McardVramSave", "McardHelp", "McardSprite"],
     "ActDEAD": ["Me_MOTION_C", "dtM", "dtV", "motID", "dtL", "motMODE", "DeadHumanoid"],
     "ActSTICKON": ["dtM", "Me_MOTION_C", "dtR", "dtCMD", "motID", "motMODE", "MotionUpdateMode", "dtPAD", "dtV", "StickonItem", "dtL"],
     "ActACTION": ["dtM", "Me_MOTION_C", "dtV", "dtPAD", "MotionUpdateMode", "motID", "motMODE"],
@@ -463,8 +463,8 @@ GP_EXTERNS = {
     "ActSQUAT": ["Me_MOTION_C", "dtM", "dtPAD", "dtR", "motID", "motMODE", "dtV", "dtL", "dtCMD"],
     "ActSTATE": ["dtM", "MotionUpdateMode", "motID", "motMODE", "Me_MOTION_C", "dtV", "dtPAD", "dtR", "dtL"],
     "ActSWIM": ["dtM", "motID", "motMODE", "dtPAD", "Me_MOTION_C", "dtR", "dtV", "dtL"],
-    "FUN_8005a7a4": ["McardState", "McardPage", "McardFile", "McardRetry", "CardStateFlag"],
-    "FUN_8005aba4": ["CardRetryCount", "CardStateFlag"],
+    "update_card_screen_": ["McardState", "McardPage", "McardFile", "McardRetry", "CardStateFlag"],
+    "update_card_message_": ["CardRetryCount", "CardStateFlag"],
     "FallCheck": ["motID", "Me_MOTION_C", "dtM", "dtL", "motMODE", "MotionUpdateMode"],
     "ItemControl": ["Me_MOTION_C", "motID", "motMODE"],
     "character_balma_around_main_routine_": ["BalmaAreaMap", "GlobalAreaMap", "FieldIndex", "FieldArea"],
@@ -487,13 +487,13 @@ MASPSX_EXTRA = {
     "DrawFrame": ["--expand-div"],
     "DrawAfterimage": ["--expand-div"],
     "MoveFly": ["--expand-div"],
-    "FUN_80039ddc": ["--expand-div"],
-    "FUN_8004c59c": ["--expand-div"],
-    "FUN_8004d6d4": ["--expand-div"],
-    "FUN_8003a148": ["--expand-div"],
-    "FUN_80039fb0": ["--expand-div"],
+    "trace_ground_": ["--expand-div"],
+    "proc_misc_sound_": ["--expand-div"],
+    "proc_misc_puff_": ["--expand-div"],
+    "draw_sprite_coord_": ["--expand-div"],
+    "draw_sprite_pair_": ["--expand-div"],
     "SetBleedsDir": ["--expand-div"],
-    "FUN_80037e0c": ["--expand-div"],
+    "spawn_damage_effect_": ["--expand-div"],
     "SetBlood": ["--expand-div"],
     "SetHinoko": ["--expand-div"],
     "SetupFly": ["--expand-div"],
@@ -533,17 +533,17 @@ MASPSX_EXTRA = {
     "Think3attack": ["--expand-div"],
     "DrawSplash": ["--expand-div"],
     "SetFlyWire": ["--expand-div"],
-    "FUN_8002fd9c": ["--expand-div"],
+    "camera_terrain_pitch_": ["--expand-div"],
     "ArrangeLocalMatrix": ["--expand-div"],
-    "FUN_80033bc0": ["--expand-div"],
+    "spawn_smoke_burst_": ["--expand-div"],
     "ActDEAD": ["--expand-div"],
     "ActSTICKON": ["--expand-div"],
     "SetSmokeS": ["--expand-div"],
     "FUN_80033f10": ["--expand-div"],
     "DrawSnow": ["--expand-div"],
     "DrawImpact": ["--expand-div"],
-    "FUN_80036284": ["--expand-div"],
-    "FUN_8003d768": ["--expand-div"],
+    "draw_fade_": ["--expand-div"],
+    "draw_map_items_": ["--expand-div"],
 }
 
 COMPILE_SH = r"""#!/usr/bin/env bash
@@ -1067,7 +1067,7 @@ def main():
     # ("base.c does not contain any function!"), so this whole class is not a
     # "bounded run then park" step — the run is impossible, and an agent that
     # tries it burns a turn on a confusing parser error. Say so and point at the
-    # escalation that does work (docs/gte-policy.md, FUN_80058c70).
+    # escalation that does work (docs/gte-policy.md, adiv_tng4_).
     if re.search(r"^\s*#\s*include\s+\"gte\.h\"", open(src).read(), re.M):
         sys.exit(
             f"permute: {name} uses the gte.h macro layer — the permuter's C parser\n"

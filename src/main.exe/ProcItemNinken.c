@@ -68,7 +68,7 @@ extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_character_state_present_on_stage_(Humanoid *human);
-extern void FUN_800270f8(Humanoid *human, s16 hide);
+extern void set_model_hide_(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, TThinkType think);
 extern void TurnAroundAllItems(Humanoid *human);
 
@@ -267,7 +267,7 @@ void ProcItemNinken(TItem *item)
         PlayMotion(param->slave->motion, 1);
         param->slave->attribute &= 0xff7f;
         param->slave->model->object[0]->attribute |= 0x4000;
-        FUN_800270f8(param->slave, 0);
+        set_model_hide_(param->slave, 0);
         param->slave->vector.vy = 0;
         item->mode = item->mode + 1;
         param->count = 0x708;
@@ -494,7 +494,7 @@ active:
 //         pHVar10->attribute = pHVar10->attribute & 0xff7f;
 //         pMVar7 = *((item->param).ninken.slave)->model->object;
 //         pMVar7->attribute = pMVar7->attribute | 0x4000;
-//         FUN_800270f8((item->param).gun.vec.pad,0);
+//         set_model_hide_((item->param).gun.vec.pad,0);
 //         (((item->param).ninken.slave)->vector).vy = 0;
 //         item->mode = item->mode + '\x01';
 //         (item->param).ninken.count = 0x708;

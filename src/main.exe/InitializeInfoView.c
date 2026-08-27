@@ -86,7 +86,7 @@ extern GsIMAGE *GetImage(s32 id);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void leResetEnemyLayout(void);
 extern void ResetInfoview(s32 stage);
-extern void FUN_8004a6bc(void);
+extern void init_lifebar_(void);
 
 void InitializeInfoView(void)
 {
@@ -146,6 +146,6 @@ loop1:
     } while (i < 4);
     leResetEnemyLayout();
     ResetInfoview(-1);
-    FUN_8004a6bc();
+    init_lifebar_();
     fInitialize = 1;
 }

@@ -10,7 +10,7 @@
  * (dtM->count) matches the caller's id, then plays a sound and spawns a
  * lightning-bolt item flying from the wielded weapon's tip
  * (Me_MOTION_C->model->object[0xd], the same item-TU Humanoid/ModelArchiveType
- * used by FUN_80027304/NowReturnNormal/dispose_weapon_data_of_char_) towards
+ * used by publish_ground_point_/NowReturnNormal/dispose_weapon_data_of_char_) towards
  * the target, landing at the target's actual height
  * (Me_MOTION_C->target->locate.coord.t[1] — the Y translation of its world
  * matrix) rather than a computed offset.

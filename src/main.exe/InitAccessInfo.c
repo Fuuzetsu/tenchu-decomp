@@ -21,7 +21,7 @@
  *
  * AccessImage (0x800bc0c0) is the POLY_GT4 named and typed by PSX.SYM; the
  * same layout is independently exercised field-by-field by cbAccess.c and
- * FUN_80018f00.c. splat auto-named it D_800BC0C0 only because this function's
+ * stop_access_meter_.c. splat auto-named it D_800BC0C0 only because this function's
  * asm was the sole reference before those functions were matched, so the
  * explicit `AccessImage = 0x800bc0c0;` in config/symbols.main.exe.txt keeps
  * the original name (see PathFileRead.c for the same trap).

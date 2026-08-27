@@ -13,7 +13,7 @@
  * and reused as the base for `addu`+displacement accesses — the cookbook's
  * "gp vs absolute globals" tell for a literal pointer-cast local
  * (`(TLinkInfo *)0x80010000`, the same PSTATE convention as
- * FUN_8001b2b8.c/FUN_800565f0.c), not a plain `extern u8
+ * save_pad_analog_.c/apply_purchases_.c), not a plain `extern u8
  * SELECTED_ITEM_COUNTS[]` (which would materialize a one-register `la`
  * instead). The loop counter is `short i`: each iteration re-sign-extends it
  * (`sll 16/sra 16`) before adding it to the hoisted base — the textbook

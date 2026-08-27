@@ -27,7 +27,7 @@
 
 /* Load the RGB/code word (C2 data reg 6) through a POINTER — verbatim PsyQ
  * INLINE_N.H form ("r" operand, so the address is materialised in a register
- * and never folded into the lwc2 displacement; FUN_80059ff4's target proves
+ * and never folded into the lwc2 displacement; fast_tnf3_'s target proves
  * the `addiu t0,t3,4; lwc2 $6,0(t0)` shape). */
 #define gte_ldrgb(r0) __asm__ volatile("lwc2\t$6, 0( %0 )" : : "r"(r0))
 
@@ -59,7 +59,7 @@
 /* Store SXY0/SXY1/SXY2 (C2 data regs 12/13/14) into a POLY_GT3 packet's
  * three screen-XY fields (offsets 8/0x14/0x20). Verbatim from the real PsyQ
  * SDK's INLINE_C.H (this SDK revision's INLINE_N.H equivalent) — Ghidra's
- * decompile of FUN_80059ff4/FUN_8005a3cc already guessed this exact name
+ * decompile of fast_tnf3_/fast_tng3_ already guessed this exact name
  * from the offset pattern, confirming it against the extracted psyq4.5
  * headers rather than inventing a name. */
 #define gte_stsxy3_gt3(p)                                                     \
@@ -91,7 +91,7 @@
 /* Read the FLAG control register (C2 control reg 31) and store it through a
  * POINTER — verbatim PsyQ INLINE_N.H form: the value stages through the
  * HARDCODED $12 (t4) with the cop-move hazard nop, and the store is inside
- * the asm. FUN_80059ff4's target (`cfc2 t4,$31; nop; sw t4,0(v0)`) is this
+ * the asm. fast_tnf3_'s target (`cfc2 t4,$31; nop; sw t4,0(v0)`) is this
  * macro exactly; a "=r" spelling can never reach $12 there (v1/a0/t0 are all
  * free at that point and the allocator walks upward from $2). */
 #define gte_stflg(r0)                                                          \
@@ -108,7 +108,7 @@
 
 /* Read SZ1/SZ2/SZ3 (C2 data regs 17/18/19) into CPU REGISTERS.
  * `gte_stsz3` proper is the memory-store form above (that is what INLINE_N.H's
- * `st` prefix means, and FUN_80057b80's target proves it with `swc2 $17..$19`).
+ * `st` prefix means, and subdivide_quad_'s target proves it with `swc2 $17..$19`).
  * This mfc2 sibling is a reconstruction helper for drawF3's OTZ average and is
  * NOT a standard INLINE_N.H name — hence the distinct `r` suffix. */
 #define gte_stsz3r(r0, r1, r2)                                                 \
@@ -127,7 +127,7 @@
  *   gte_<cmd>()      the PsyQ INLINE_N.H-style macro a COMPILED caller used:
  *                    the macro itself absorbs the latency with two nops,
  *                    because at the call site the loads and the command are
- *                    adjacent (FUN_80058c70 is exactly 2 instructions short per
+ *                    adjacent (adiv_tng4_ is exactly 2 instructions short per
  *                    command without them).
  *   gte_<cmd>_raw()  the bare command, for reconstructions of HANDWRITTEN
  *                    assembly (config/handwritten-asm.txt), whose authors

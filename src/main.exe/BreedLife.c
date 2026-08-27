@@ -43,7 +43,7 @@
  *
  * CARVE FIX (kept for the record): the Ghidra functions.tsv size for
  * BreedLife (628) was UNDER-SIZED by one word — the same class as LoadCard /
- * FUN_800593a0 / AdtVsprintf (cookbook: "UNDER-SIZED functions.tsv entry").
+ * decode_tmd_fast_ / AdtVsprintf (cookbook: "UNDER-SIZED functions.tsv entry").
  * The word at 0x8002a28c is BreedLife's own return-delay-slot `addiu
  * sp,sp,168`, which splat had parked as a data blob between BreedLife and
  * GetWeaponData; deleting that `{ start:0x19A8C, type:data, ... }` line in

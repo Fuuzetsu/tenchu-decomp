@@ -37,7 +37,7 @@
  * builds it as a plain `lui/ori` 32-bit constant, never with a
  * `-G8`/`%lo`-style small-symbol relocation).
  */
-extern void FUN_8001b2b8(void);
+extern void save_pad_analog_(void);
 extern void CdaStop(void);
 extern void SsEnd(void);
 extern void FUN_8006ebe4(void);
@@ -45,13 +45,13 @@ extern void PadStopCom(void);
 extern void MemCardStop(void);
 extern void MemCardEnd(void);
 extern void StopCallback(void);
-extern void FUN_8005e8f0(u8 *file, u32 stack, u32 size);
+extern void set_boot_exec_(u8 *file, u32 stack, u32 size);
 extern void run_exec_file(u8 *name, u32 stack, u32 size);
 extern char path_tenchu_run_exe_1[]; /* \\TENCHU\\RUN.EXE;1 */
 
 void LoadExecEx(u8 *file, u32 stack, u32 size)
 {
-    FUN_8001b2b8();
+    save_pad_analog_();
     CdaStop();
     SsEnd();
     FUN_8006ebe4();
@@ -60,7 +60,7 @@ void LoadExecEx(u8 *file, u32 stack, u32 size)
     MemCardStop();
     MemCardEnd();
     StopCallback();
-    FUN_8005e8f0(file, stack, size);
+    set_boot_exec_(file, stack, size);
     CdInit();
     run_exec_file(path_tenchu_run_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
 }

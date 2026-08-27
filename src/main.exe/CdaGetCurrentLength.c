@@ -17,7 +17,7 @@
  * CD-audio playback length (CurPos - StartPos) once the drive is ready;
  * -1 if CdaReady() reports not-ready, or 1 (a truthy placeholder) if
  * CD audio is disabled (flag bit0 clear). Same proven TCdaStatus struct
- * as CdaStop.c/FUN_8004fbf4.c/FUN_8004fc08.c.
+ * as CdaStop.c/set_cda_volume_.c/apply_cda_attr_.c.
  *
  * Matching notes: write as three independent early returns, not Ghidra's
  * single shared `iVar1` funneled through one `return iVar1;`. Each arm's

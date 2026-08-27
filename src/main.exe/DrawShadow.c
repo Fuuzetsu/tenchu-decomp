@@ -80,7 +80,7 @@
  *    the target's reverse z/y/x stack-store order.
  */
 
-extern void FUN_80037e0c(Humanoid *human, s32 mode);
+extern void spawn_damage_effect_(Humanoid *human, s32 mode);
 extern void DrawSplash(TEffectSlot *ef);
 void DrawShadow(Humanoid *human)
 {
@@ -182,11 +182,11 @@ void DrawShadow(Humanoid *human)
         {
             if ((GameClock & 0x3f) == 1)
             {
-                FUN_80037e0c(human, 1);
+                spawn_damage_effect_(human, 1);
             }
             else if ((GameClock & 0xf) == 0)
             {
-                FUN_80037e0c(human, 0);
+                spawn_damage_effect_(human, 0);
             }
         }
     }

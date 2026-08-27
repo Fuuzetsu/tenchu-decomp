@@ -91,7 +91,7 @@ extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(void *buf, long size);
 extern void PackItemLayout(void *buf, long size);
 extern void SaveSI(int target, u8 *name, void *mem, long size);
-extern void FUN_8003cd04(int target, u8 *name);
+extern void load_save_slot_(int target, u8 *name);
 extern void InitializeImage(void);
 extern void _PlayMusic(s32 id, s32 mode);
 extern void CdaStop(void);
@@ -164,7 +164,7 @@ void FileOption(void)
         fname = (u8 *)AdtSelect(msg_load_no, SelectSlot, 0x10);
         if (fname == (u8 *)-1)
             return;
-        FUN_8003cd04(TargetIO & 0xFF, fname);
+        load_save_slot_(TargetIO & 0xFF, fname);
         leLayoutEnemy(0);
         break;
     case SAVE:
