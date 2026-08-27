@@ -21,7 +21,7 @@
  * is written as ONE plain C function, no _jtbl array.
  */
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_800128C0[]; /* "bad archive index %d" */
+extern char fmt_bad_archive_index[]; /* bad archive index %d */
 
 u_long *get_tim_from_archive(u_long *archive, int idx)
 {
@@ -46,7 +46,7 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
     }
     if (idx < 0 || arc->count <= idx)
     {
-        AdtMessageBox(D_800128C0, idx);
+        AdtMessageBox(fmt_bad_archive_index, idx);
         return 0;
     }
     return (u_long *)arc->entry[idx];

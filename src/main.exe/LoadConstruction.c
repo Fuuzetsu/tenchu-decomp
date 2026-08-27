@@ -139,16 +139,16 @@ extern ObjectSlotManager ModelSlot;
 extern OrnamentArchiveType *mma;
 extern OrnamentArchiveType *ObjectArc;
 
-extern char D_800120C4[];
-extern char D_800120D8[];
-extern char D_800120F0[];
-extern char D_80012108[];
-extern char D_80012114[];
-extern char D_80012120[];
-extern char D_80097A78[];
-extern char D_80097A80[];
-extern char D_80097A88[];
-extern char D_80097A90[];
+extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
+extern char msg_no_construction_data[]; /* NO CONSTRUCTION DATA */
+extern char path_image[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
+extern char path_common_tpd[]; /* COMMON.TPD */
+extern char path_objects_mad[]; /* OBJECTS.MAD */
+extern char path_balmer_acm[]; /* BALMER.ACM */
+extern char path_tim_tpd[]; /* TIM.TPD */
+extern char fmt_acm[]; /* %s.ACM */
+extern char fmt_tim[]; /* %s.TIM */
+extern char path_map_mad[]; /* map.mad */
 
 extern void DisposeAreaMap(AreaMapType *area);
 extern void ResetAllMisc(void);
@@ -191,7 +191,7 @@ short LoadConstruction(u_long *data)
     ObjectID = 0;
     wlddt = (WorldDataType *)data;
     if (wlddt == 0)
-        SystemOut(D_800120D8);
+        SystemOut(msg_no_construction_data);
     memset(WorldMap, 0, sizeof(WorldMap));
 
     nModel = 0;
@@ -242,13 +242,13 @@ short LoadConstruction(u_long *data)
         }
     }
 
-    LoadTIMpackAndFree(PathFileRead(ImagePath, (u8 *)D_80097A78));
-    LoadTIMpackAndFree(PathFileRead((u8 *)D_800120F0,
-                                    (u8 *)D_80012108));
+    LoadTIMpackAndFree(PathFileRead(ImagePath, (u8 *)path_tim_tpd));
+    LoadTIMpackAndFree(PathFileRead((u8 *)path_image,
+                                    (u8 *)path_common_tpd));
 
     MapModel = (u_long *)valloc(MapModelSize);
     ObjectArc = LoadOrnamentArchive(
-        PathFileRead(ImagePath, (u8 *)D_80012114), &World);
+        PathFileRead(ImagePath, (u8 *)path_objects_mad), &World);
 
     nModel += 500;
     {
@@ -297,19 +297,19 @@ short LoadConstruction(u_long *data)
             switch (wlddt[i].mode)
             {
     case 0:
-        sprintf((char *)name, D_80097A80, wlddt[i].real.common.name);
+        sprintf((char *)name, fmt_acm, wlddt[i].real.common.name);
         DisposeAreaMap(GlobalAreaMap);
         GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
         if (StageID == 4)
         {
             D_800976E8 = handle_balmer_acm_(
-                PathFileRead(ImagePath, (u8 *)D_80012120));
+                PathFileRead(ImagePath, (u8 *)path_balmer_acm));
         }
         break;
 
     case 5:
-        sprintf((char *)name, D_80097A88, wlddt[i].real.common.name);
-        LoadTIMAndFree(PathFileRead((u8 *)D_800120F0, name));
+        sprintf((char *)name, fmt_tim, wlddt[i].real.common.name);
+        LoadTIMAndFree(PathFileRead((u8 *)path_image, name));
         break;
 
     case 2:
@@ -366,7 +366,7 @@ short LoadConstruction(u_long *data)
         shifty = center.vy;
         msize = size / 2;
         if (slotman->n >= slotman->max)
-            AdtMessageBox(D_800120C4);
+            AdtMessageBox(msg_modelslot_overflow);
         slotman->slot[slotman->n].model = model;
         slotman->slot[slotman->n].next = ((WorldType *)nModel)->top;
         slotman->slot[slotman->n].ModelSize = msize;
@@ -411,7 +411,7 @@ short LoadConstruction(u_long *data)
         ParentingType *ix;
         int msize;
 
-        sprintf((char *)name, D_80097A90);
+        sprintf((char *)name, path_map_mad);
         vfree(MapModel);
         i = 0;
         MapModel = PathFileRead(ImagePath, name);
@@ -467,7 +467,7 @@ short LoadConstruction(u_long *data)
             slotman = &ModelSlot;
             model = mma->object[i];
             if (slotman->n >= slotman->max)
-                AdtMessageBox(D_800120C4);
+                AdtMessageBox(msg_modelslot_overflow);
             slotman->slot[slotman->n].model = model;
             slotman->slot[slotman->n].next = *slot;
             slotman->slot[slotman->n].ModelSize = msize;

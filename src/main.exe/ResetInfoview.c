@@ -44,7 +44,7 @@
  * iteration, starting at &LifeBar[4]); only one field is touched so there's
  * no walking-pointer field-order bias to worry about (cookbook Loops).
  */
-extern char D_80012564[]; /* "chizu.tim" */
+extern char path_chizu_tim[]; /* chizu.tim */
 
 void ResetInfoview(int stage)
 {
@@ -56,7 +56,7 @@ void ResetInfoview(int stage)
         LifeBar[i].count = 0;
     }
     if (stage >= 0) {
-        adr = PathFileRead(ImagePath, D_80012564);
+        adr = PathFileRead(ImagePath, path_chizu_tim);
         GetTIMInfo(adr, &image);
         LoadTIMAndFree(adr);
         InitSprite(&image, &MapImage);

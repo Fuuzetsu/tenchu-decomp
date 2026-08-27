@@ -19,7 +19,7 @@ extern void leRestoreEnemyLayout(void *buf);
 extern void RestoreItemLayout(void *buf);
 extern void vfree(void *buf);
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_80012154[]; /* "load layout error" */
+extern char msg_load_layout_error[]; /* load layout error */
 
 void FUN_8003cd04(int target, u8 *name)
 {
@@ -27,7 +27,7 @@ void FUN_8003cd04(int target, u8 *name)
 
     buf = LoadSI(target & 0xFF, name);
     if (buf == 0) {
-        AdtMessageBox(D_80012154);
+        AdtMessageBox(msg_load_layout_error);
     } else {
         leRestoreEnemyLayout(buf);
         RestoreItemLayout((u8 *)buf + 0x1388);

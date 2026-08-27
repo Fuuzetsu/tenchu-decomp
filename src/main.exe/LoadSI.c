@@ -69,15 +69,15 @@
  *    VALUE); Build.hs maspsxGpExterns / tools/gpsyms.py confirm it's the
  *    only %gp_rel symbol in this function.
  *  - fmt_concat/fmt_card_name sit in the same INFOVIEW.C string-table run as
- *    SelectCameraOwnerOption's D_80097D70 (fixed there as D_80097D70);
+ *    SelectCameraOwnerOption's fmt_num_2 (fixed there as fmt_num_2);
  *    once that anchor was bound, splat's whole auto-name chain for this
  *    region resolved correctly (verified against the .map) — no separate
  *    fix needed for these two.
  */
-extern char fmt_concat[]; /* "%s%s" */  /* "%s%s" */
-extern char fmt_card_name[]; /* "%s%d_%s" */  /* "%s\%d\%s" */
-extern char D_800141A4[];  /* "file read error" */
-extern char msg_card_error[]; /* "card error %d" */  /* "card error %d" */
+extern char fmt_concat[]; /* "%s%s" */
+extern char fmt_card_name[]; /* "%s\%d\%s" */
+extern char msg_file_read_error[]; /* "file read error" */
+extern char msg_card_error[]; /* "card error %d" */
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);
@@ -122,7 +122,7 @@ void *LoadSI(int target, u8 *name)
     MemCardSync(0, &cmd, &result);
     if (result != 0)
     {
-        msg = D_800141A4;
+        msg = msg_file_read_error;
         vfree(ret);
         ret = 0;
         goto done;

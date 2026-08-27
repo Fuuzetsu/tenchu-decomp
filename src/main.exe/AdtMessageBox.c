@@ -72,7 +72,7 @@
  */
 extern AdtFntState D_8008F1B8;
 extern s32 AdtMessageBoxCount; /* AdtMessageBox call counter */
-extern char D_80014AAC[]; /* "*** AdtInit not called ***" */
+extern char msg_adtinit_not_called[]; /* *** AdtInit not called *** */ /* "*** AdtInit not called ***" */
 extern char D_80014AC8[]; /* "AdtMessageBox #%d\n\n" */
 extern char D_80014ADC[]; /* "\n\nPress start to continue..." */
 
@@ -88,7 +88,7 @@ void AdtMessageBox(char *fmt, ...)
 
     mode = 0;
     if (AdtPadRead == AdtDmyPadRead)
-        fmt = D_80014AAC;
+        fmt = msg_adtinit_not_called;
     if (D_8008F1B8.quiet == ADT_QUIET)
         return;
     if (*fmt == '%')

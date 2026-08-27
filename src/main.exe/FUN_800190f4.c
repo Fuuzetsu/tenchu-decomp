@@ -29,8 +29,8 @@
  *    `.s` still referenced; keep them as `extern char D_XXXXXXXX[];` (never
  *    write fresh string literals here) — see config/symbols.main.exe.txt.
  */
-extern char D_8001118C[];
-extern char D_800111B0[];
+extern char path_demo_loading_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\loading.tim */
+extern char path_demo_load_ten_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\load_ten.tim */
 
 void FUN_800190f4(void)
 {
@@ -42,11 +42,11 @@ void FUN_800190f4(void)
     DRAWENV draw;
     DRAWENV draw2;
 
-    tim = FileRead(D_8001118C);
+    tim = FileRead(path_demo_loading_tim);
     GetTIMInfo(tim, &img);
     LoadTIMAndFree(tim);
     SetupImageToPolyFT4(&img, &poly1, 0xD4, 0xDE);
-    tim = FileRead(D_800111B0);
+    tim = FileRead(path_demo_load_ten_tim);
     GetTIMInfo(tim, &img);
     LoadTIMAndFree(tim);
     SetupImageToPolyFT4(&img, &poly2, 0xD4, 0xC0);

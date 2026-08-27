@@ -55,9 +55,9 @@
 
 extern SVECTOR D_800979F4;
 extern SVECTOR D_800979FC;
-extern char D_80097A04[];
-extern char D_80097A08[];
-extern char D_80097A0C[];
+extern char str_mark_l[]; /* (L) */
+extern char str_mark_r[]; /* (R) */
+extern char str_mark_alert[]; /* (!) */
 
 void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 {
@@ -95,12 +95,12 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
                         target->vpz + vsL.vz, 0) <= target->vpy)
     {
         rmap = FL;
-        FntPrint(D_80097A04);
+        FntPrint(str_mark_l);
     }
     if (lvR <= target->vpy)
     {
         rmap |= FR;
-        FntPrint(D_80097A08);
+        FntPrint(str_mark_r);
     }
 
     rmap &= FL | FR;
@@ -135,7 +135,7 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
             av.vx = sx / 2;
             av.vy = sy / 2;
             av.vz = sz / 2;
-            FntPrint(D_80097A0C);
+            FntPrint(str_mark_alert);
         }
         target->vpx += av.vx;
         target->vpy += av.vy;

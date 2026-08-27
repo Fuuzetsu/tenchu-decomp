@@ -75,7 +75,7 @@
  *    signed value still loads `lhu`).
  */
 extern void *valloc(u32 size);
-extern char D_8001107C[]; /* "NO SOURCE MODEL ARCHIVE DATA" */
+extern char msg_no_source_model_archive[]; /* NO SOURCE MODEL ARCHIVE DATA */
 
 
 ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
@@ -86,7 +86,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     ModelType *dim;
 
     if (mad == 0) {
-        SystemOut(D_8001107C);
+        SystemOut(msg_no_source_model_archive);
     }
     newmad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
     newmad->n = mad->n;

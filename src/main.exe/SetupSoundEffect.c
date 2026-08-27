@@ -60,7 +60,7 @@ extern void sprintf(char *s, char *fmt, ...);
 
 extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[];
-extern char D_8001359C[]; /* "%sSTAGE%d%c.VAB" */
+extern char fmt_stage_vab[]; /* %sSTAGE%d%c.VAB */
 
 void SetupSoundEffect(short mode, short stage)
 {
@@ -73,7 +73,7 @@ void SetupSoundEffect(short mode, short stage)
     StageSE = 0;
     if (stage >= 0)
     {
-        sprintf((char *)name, D_8001359C,
+        sprintf((char *)name, fmt_stage_vab,
                 STAGE_SOUND_PREFICES[CHOSEN_LANGUAGE], stage,
                 mode == 0 ? 0x52 : 0x41);
         StageSE = SetupSE((u8 *)FileRead(name));

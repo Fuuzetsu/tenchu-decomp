@@ -20,9 +20,9 @@
 
 extern int puts(char *s);
 extern void FUN_8005f380(void *buffer, int sector, int byteOffset, int byteLength);
-extern char D_80014A94[]; /* "cd_read:invalid handle" — lives in this TU's
+extern char msg_cd_read_invalid_handle[]; /* cd_read:invalid handle */ /* "cd_read:invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same
-                            * pattern as AfsInit's D_80014944. */
+                            * pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 int cd_read(FILE *f, void *buffer, int length)
 {
@@ -31,7 +31,7 @@ int cd_read(FILE *f, void *buffer, int length)
     s32 adj;
 
     if (f == 0) {
-        puts(D_80014A94);
+        puts(msg_cd_read_invalid_handle);
         return -1;
     }
     pos = f->pos;

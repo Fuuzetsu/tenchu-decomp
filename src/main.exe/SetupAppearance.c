@@ -61,14 +61,14 @@
 extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
 extern s16 smode;
 extern s16 sstage;
-extern u8 D_80011710[];
-extern u8 D_800979A8[];
-extern u8 D_800979B0[];
-extern char D_8001171C[];
-extern char D_80011734[];
-extern char D_8001174C[];
-extern char D_80011774[];
-extern char D_800117A0[];
+extern u8 str_rikimaua[]; /* RIKIMAUA */
+extern u8 str_ayamea[]; /* AYAMEA */
+extern u8 str_ayames[]; /* AYAMES */
+extern char fmt_motion_stage_amd[]; /* %sMOTION\\STAGE%d.AMD */
+extern char path_human[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
+extern char path_human_motion_common_amd[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\COMMON.AMD */
+extern char path_human_motion_rikimaru_amd[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\RIKIMARU.AMD */
+extern char path_human_motion_ayame_amd[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTION\\AYAME.AMD */
 extern int strcmp(const char *a, const char *b);
 extern int sprintf(char *dst, const char *fmt, ...);
 
@@ -88,9 +88,9 @@ void SetupAppearance(short mode, short stage)
     if (appearance != 0)
     {
         resource = HumanData;
-        ((HumanDataType *)resource)[0].name = D_80011710;
+        ((HumanDataType *)resource)[0].name = str_rikimaua;
         ((HumanDataType *)resource)[1].name =
-            appearance != 0xff ? D_800979A8 : D_800979B0;
+            appearance != 0xff ? str_ayamea : str_ayames;
         *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
         PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR = -1;
     }
@@ -155,13 +155,13 @@ void SetupAppearance(short mode, short stage)
             vfree(StageMotion);
         }
         sstage = stage;
-        sprintf((char *)name, D_8001171C, D_80011734, (int)stage);
+        sprintf((char *)name, fmt_motion_stage_amd, path_human, (int)stage);
         StageMotion = LoadMotion(FileRead(name));
         if (stage != 0)
         {
             if (CommonMotion == 0)
             {
-                CommonMotion = LoadMotion(FileRead((u8 *)D_8001174C));
+                CommonMotion = LoadMotion(FileRead((u8 *)path_human_motion_common_amd));
                 SetupMotionRegist(MOTcommon);
             }
             if (PlayerMotion != 0)
@@ -179,11 +179,11 @@ void SetupAppearance(short mode, short stage)
             smode = mode;
             if (mode == 0)
             {
-                pt = (u8 *)D_80011774;
+                pt = (u8 *)path_human_motion_rikimaru_amd;
             }
             else
             {
-                pt = (u8 *)D_800117A0;
+                pt = (u8 *)path_human_motion_ayame_amd;
             }
             PlayerMotion = LoadMotion(FileRead(pt));
         }

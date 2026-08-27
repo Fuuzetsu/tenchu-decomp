@@ -47,7 +47,7 @@
  * bound check of `for (j = 0; j < mmp->n; j++)` (cookbook Loops), not a
  * second nested if.
  */
-extern char D_80011230[]; /* "NO MOTION DATA" */
+extern char msg_no_motion_data[]; /* NO MOTION DATA */
 
 MotionPackType *LoadMotion(unsigned long *data)
 {
@@ -58,7 +58,7 @@ MotionPackType *LoadMotion(unsigned long *data)
 
     mpd = (MotionPackType *)data;
     if (mpd == 0) {
-        SystemOut(D_80011230);
+        SystemOut(msg_no_motion_data);
     }
     for (i = 0; i < mpd->n; i++) {
         mpd->motion[i] = (MotionDataType *)((s32)mpd->motion[i] + (s32)mpd);

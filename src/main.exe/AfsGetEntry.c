@@ -29,9 +29,9 @@ extern void *valloc(u32 size);
 extern void vfree(void *p);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char *strncpy(char *dst, const char *src, u32 n);
-extern char D_800148D4[];
-extern char D_800148F0[];
-extern char D_80014910[];
+extern char msg_afsgetentry_empty_index[]; /* AfsGetEntry: empty index */
+extern char msg_afsgetenty_no_memory[]; /* AfsGetEnty: memory not enough! */
+extern char msg_afsgetentry_no_memory[]; /* AfsGetEntry: memory not enough! */
 extern char D_80014930[];
 
 static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
@@ -50,13 +50,13 @@ int AfsGetEntry(TAFS *handle)
     u16 marker;
 
     if (handle->maxElements == 0) {
-        AdtMessageBox(D_800148D4);
+        AdtMessageBox(msg_afsgetentry_empty_index);
         return 0;
     }
 
     elements = valloc(handle->maxElements * sizeof(TAFSElement));
     if (elements == 0) {
-        AdtMessageBox(D_800148F0);
+        AdtMessageBox(msg_afsgetenty_no_memory);
         vfree(0);
         return 1;
     }
@@ -65,7 +65,7 @@ int AfsGetEntry(TAFS *handle)
     if (buffer != 0) {
         goto entry_ready;
     }
-    AdtMessageBox(D_80014910);
+    AdtMessageBox(msg_afsgetentry_no_memory);
     return 1;
 
 bad_index:

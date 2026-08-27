@@ -52,11 +52,11 @@
  *    piece; this single C body matches the complete 420-byte carve.
  */
 
-extern char D_80097DC0[];
-extern u8 D_80097DC8[];
-extern char D_8001420C[];
-extern char D_8001421C[];
-extern char D_8001422C[];
+extern char fmt_index_name[]; /* %2d  %s */
+extern u8 str_back[]; /* back */
+extern char str_language_select[]; /* language select */
+extern char str_player_select[]; /* player select */
+extern char str_stage_select[]; /* stage select */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -78,19 +78,19 @@ void SelectStage(TLinkInfo *ps)
             break;
         }
         uid = StageConfig[i].uid;
-        sprintf((char *)name[i], D_80097DC0, uid, StageConfig[i].name);
+        sprintf((char *)name[i], fmt_index_name, uid, StageConfig[i].name);
         StageSelect[uid].name = name[i];
         StageSelect[uid].value = i;
         i++;
     }
-    StageSelect[i].name = D_80097DC8;
+    StageSelect[i].name = str_back;
     StageSelect[i].value = 11;
     StageSelect[i + 1].name = NULL;
 
     do {
-        ps->language = AdtSelect(D_8001420C, language, 0);
-        ps->CharType = AdtSelect(D_8001421C, player, 0);
-        ps->StageNo = AdtSelect(D_8001422C, StageSelect, 0);
+        ps->language = AdtSelect(str_language_select, language, 0);
+        ps->CharType = AdtSelect(str_player_select, player, 0);
+        ps->StageNo = AdtSelect(str_stage_select, StageSelect, 0);
     } while (ps->StageNo > 10);
 }
 

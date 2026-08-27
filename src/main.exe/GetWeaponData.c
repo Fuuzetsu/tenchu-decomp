@@ -86,8 +86,8 @@
  * reads it directly instead of reloading through human->weapon[w].
  */
 
-extern char D_800117EC[]; /* "%s%s.TMD" */
-extern char D_800117F8[]; /* "K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\" */
+extern char fmt_tmd[]; /* %s%s.TMD */
+extern char path_human_weapon[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\ */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern OrnamentType *LoadOrnament(u_long *adr);
@@ -136,7 +136,7 @@ void GetWeaponData(Humanoid *human, s16 body, s16 wid, s16 wpid, int wep)
         {
             if (WeaponModel[i].model == 0)
             {
-                sprintf(name, D_800117EC, D_800117F8, WeaponModel[i].name);
+                sprintf(name, fmt_tmd, path_human_weapon, WeaponModel[i].name);
                 WeaponModel[i].model = FileRead(name);
             }
             base = LoadOrnament(WeaponModel[i].model);

@@ -74,7 +74,7 @@
  *    first and copying to `cur` puts the lh in i's register (move a0,v1).
  *  - gp smalls of this TU: fInitialize (fInitialize),
  *    ItemCursor, PutMapMode (Build.hs maspsxGpExterns +
- *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/D_80097C40 are other
+ *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/str_opt are other
  *    TUs' — plain absolute externs.
  */
 
@@ -82,12 +82,12 @@ extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;                       /* fInitialize */
 
-extern char D_800124C0[];                   /* "select item" */
-extern char D_800124EC[];                   /* "number of" */
-extern char D_80012544[];                   /* "item layout option" */
-extern char D_80012558[];                   /* "clear ok?" */
-extern char D_800125F0[];                   /* "select option" */
-extern char D_80097C40[];                   /* effect-menu title buffer */
+extern char str_select_item[]; /* select item */                   /* "select item" */
+extern char str_number_of[]; /* number of */                   /* "number of" */
+extern char str_item_layout_option[]; /* item layout option */                   /* "item layout option" */
+extern char msg_clear_ok[]; /* clear ok? */                   /* "clear ok?" */
+extern char str_select_option[]; /* select option */                   /* "select option" */
+extern char str_opt[]; /* opt */                   /* effect-menu title buffer */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void InitializeInfoView(void);
@@ -128,9 +128,9 @@ static inline void ItemAddMenu(void)
 
     __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                      sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
-    n = AdtSelect(D_800124C0, menu.ItemName, 0);
+    n = AdtSelect(str_select_item, menu.ItemName, 0);
     __builtin_memcpy(menu.Num, D_800124CC, sizeof(D_800124CC));
-    CamState.Owner->item[n] += AdtSelect(D_800124EC, menu.Num, 0);
+    CamState.Owner->item[n] += AdtSelect(str_number_of, menu.Num, 0);
 }
 
 static inline void ItemLayoutMenu(void)
@@ -141,14 +141,14 @@ static inline void ItemLayoutMenu(void)
 
     __builtin_memcpy(Option, DEBUG_MENU_ITEM_LAYOUT_OPTIONS, sizeof(Option));
     __builtin_memcpy(OkCancel, D_8001252C, sizeof(OkCancel));
-    n = AdtSelect(D_80012544, Option, 0);
+    n = AdtSelect(str_item_layout_option, Option, 0);
     switch (n)
     {
     case 0:
         AddItem2();
         break;
     case 1:
-        if (AdtSelect(D_80012558, OkCancel, 1) == 1)
+        if (AdtSelect(msg_clear_ok, OkCancel, 1) == 1)
         {
             ClearItemLayout();
         }
@@ -166,7 +166,7 @@ static inline void EffectSpawnMenu(void)
             CamState.Owner->model->locate.coord.t[1],
             CamState.Owner->model->locate.coord.t[2],
             CamState.Owner->model->rotate.vy,
-            AdtSelect(D_80097C40, Option, 0), 0);
+            AdtSelect(str_opt, Option, 0), 0);
 }
 
 void DoInfoViewProc(void)
@@ -199,7 +199,7 @@ void DoInfoViewProc(void)
         __builtin_memcpy(Option, DEBUG_MENU_MAIN_SCREEN_OPTIONS,
                          sizeof(Option));
         VISIBLE_ENEMIES_ = 0;
-        sel = AdtSelect(D_800125F0, Option, 0);
+        sel = AdtSelect(str_select_option, Option, 0);
         switch (sel)
         {
         case ENEMY:

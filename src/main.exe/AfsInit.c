@@ -25,9 +25,9 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
 extern void *valloc(u32 size);
-extern char D_80014944[]; /* "AfsInit: not enough memory!" — lives in this
+extern char msg_afsinit_not_enough_memory[]; /* AfsInit: not enough memory! */ /* "AfsInit: not enough memory!" — lives in this
                             * TU's unsplit data blob (splat auto-symbol), same
-                            * pattern as msg_item_dispose_fail/D_8001113C elsewhere: a
+                            * pattern as msg_item_dispose_fail/msg_memory_load_is_disabled elsewhere: a
                             * fresh string literal here would land in a NEW
                             * .rodata for this .c.o, which the linker script
                             * has no section-order slot for (rodata is only
@@ -44,7 +44,7 @@ void AfsInit(TAFS *handle)
     p = valloc(0x3C);
     handle->pHandle = p;
     if (p == 0)
-        AdtMessageBox(D_80014944);
+        AdtMessageBox(msg_afsinit_not_enough_memory);
     else
         memset(p, 0, 0x3C);
 }

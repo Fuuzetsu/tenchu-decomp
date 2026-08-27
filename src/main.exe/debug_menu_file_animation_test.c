@@ -20,9 +20,9 @@
  *    and the second piece branches back into the first. One C body spans it.
  */
 
-extern char D_80097CD0[];
-extern u8 D_80097CD4[];
-extern char D_80013654[];
+extern char fmt_num[]; /* %d */
+extern u8 str_cancel[]; /* cancel */
+extern char str_event_test[]; /* event test */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strlen(char *s);
@@ -43,7 +43,7 @@ void debug_menu_file_animation_test(void)
     count = 0;
     while (event->mode != -1) {
         if (event->mode == 0) {
-            sprintf((char *)buffer, D_80097CD0, event->id);
+            sprintf((char *)buffer, fmt_num, event->id);
             menu[count].name = buffer;
             menu[count].value = event->id;
             count++;
@@ -51,12 +51,12 @@ void debug_menu_file_animation_test(void)
         }
         event++;
     }
-    menu[count].name = D_80097CD4;
+    menu[count].name = str_cancel;
     menu[count].value = -1;
     count++;
     menu[count].name = NULL;
 
-    selection = AdtSelect(D_80013654, menu, 0);
+    selection = AdtSelect(str_event_test, menu, 0);
     if (selection != -1) {
         CVAsequence((s16)selection);
     }

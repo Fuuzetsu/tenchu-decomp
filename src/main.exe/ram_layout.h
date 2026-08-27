@@ -9,7 +9,7 @@
  * addresses as retail oracles; normal-link generators must translate those
  * inputs through this policy before they become runtime definitions.
  *
- * Section-owned objects such as StageChar, CamState, and D_80097D70 are NOT
+ * Section-owned objects such as StageChar, CamState, and fmt_num_2 are NOT
  * layout constants.  Normal code must name their linker symbols so ordinary
  * growth moves them.  Earlier matching attempts used 0x80090000 high-half
  * scaffolds for three such objects; those removed local minima never described

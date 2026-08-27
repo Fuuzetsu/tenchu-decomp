@@ -414,12 +414,12 @@
 
 extern s32 VSync(s32 mode);
 
-extern char D_80014AFC[]; /* "select item" */
-extern char D_80014B08[]; /* " (%d/%d)" */
-extern char D_80097E9C[]; /* "%s" */
+extern char str_select_item_2[]; /* select item */
+extern char fmt_count_pair[]; /*  (%d/%d) */
+extern char fmt_str[]; /* %s */
 extern char D_80097EA0[]; /* "\n\n" */
-extern char D_80097EA4[]; /* "->" */
-extern char D_80097EA8[]; /* "  " */
+extern char str_arrow[]; /* -> */
+extern char str_spaces[]; /*    */
 extern char D_80097EAC[]; /* "\n" */
 
 s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
@@ -440,7 +440,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
     } while (AdtPadRead(0) != 0);
 
     if (title == 0)
-        title = D_80014AFC;
+        title = str_select_item_2;
 
     for (count = 0; menu[count].name != 0; count++)
     {
@@ -460,17 +460,17 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
         last = first + 0x12;
         if (count < last)
             last = count;
-        FntPrint(D_80097E9C, title);
+        FntPrint(fmt_str, title);
         if (pages > 1)
-            FntPrint(D_80014B08, page + 1, pages);
+            FntPrint(fmt_count_pair, page + 1, pages);
         FntPrint(D_80097EA0);
         i = first;
         for (; i < last; i++)
         {
             if (selection == i)
-                fmt = D_80097EA4;
+                fmt = str_arrow;
             else
-                fmt = D_80097EA8;
+                fmt = str_spaces;
             FntPrint(fmt);
             FntPrint(menu[i].name);
             FntPrint(D_80097EAC);

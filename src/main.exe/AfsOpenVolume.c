@@ -32,10 +32,10 @@ extern int cd_open(char *name, int mode);
 extern int AfsGetHeader(TAFS *handle);
 extern int AfsGetEntry(TAFS *handle);
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_80097E78[]; /* ".VOL" */
+extern char str_ext_vol[]; /* .VOL */
 extern char D_80014870[]; /* "AfsOpenVolume: %s open err\n" */
-extern char D_8001488C[]; /* "AfsOpenVolume: Header error" */
-extern char D_800148A8[]; /* "AfsOpenVolume: Entry error" */
+extern char msg_afsopenvolume_header_error[]; /* AfsOpenVolume: Header error */
+extern char msg_afsopenvolume_entry_error[]; /* AfsOpenVolume: Entry error */
 
 int AfsOpenVolume(TAFS *handle, char *path)
 {
@@ -46,18 +46,18 @@ int AfsOpenVolume(TAFS *handle, char *path)
         return 1;
     }
     strcpy(buf, path);
-    strcat(buf, D_80097E78);
+    strcat(buf, str_ext_vol);
     handle->fpVol = (FILE *)cd_open(buf, 0);
     if (handle->fpVol == 0) {
         AdtMessageBox(D_80014870, buf);
         return 1;
     }
     if (AfsGetHeader(handle) != 0) {
-        AdtMessageBox(D_8001488C);
+        AdtMessageBox(msg_afsopenvolume_header_error);
         return 2;
     }
     if (AfsGetEntry(handle) != 0) {
-        AdtMessageBox(D_800148A8);
+        AdtMessageBox(msg_afsopenvolume_entry_error);
         return 3;
     }
     return 0;

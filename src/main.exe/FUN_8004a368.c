@@ -31,7 +31,7 @@
  *    (`beqz`/`beq`/fallthrough) fire in source order (0, 1, default), but
  *    the DEFAULT case's actual `jal AdtMessageBox` sits physically AFTER
  *    both case bodies — only its dependency-free argument address
- *    (`lui`/`addiu` of D_80012224) gets scheduled early, split across the
+ *    (`lui`/`addiu` of fmt_not_support_yet) gets scheduled early, split across the
  *    preceding `beq`'s delay slot and the ladder's own unconditional
  *    `goto do_default`, which reorg retargets past both stolen
  *    instructions straight to the `jal` (same delay-slot-stealing
@@ -52,7 +52,7 @@
  */
 
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_80012224[]; /* "not support yet %d" */
+extern char fmt_not_support_yet[]; /* not support yet %d */
 
 s32 FUN_8004a368(s32 arg0, Humanoid *arg1)
 {
@@ -77,7 +77,7 @@ case1:
     return arg1->item[0x19] == 1;
 
 do_default:
-    AdtMessageBox(D_80012224, arg0);
+    AdtMessageBox(fmt_not_support_yet, arg0);
 ret0:
     return 0;
 }

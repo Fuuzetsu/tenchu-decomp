@@ -52,7 +52,7 @@
 #include "item.h"
 #include "misc.h"
 
-extern char D_80012710[];
+extern char fmt_unknown_pitfall_type[]; /* unknown pitfall type %d */
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
 extern short DrawModel(ModelType *objp);
@@ -74,7 +74,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
             t = m->param.init.a;
             if (type >= 3)
             {
-                AdtMessageBox(D_80012710, type);
+                AdtMessageBox(fmt_unknown_pitfall_type, type);
                 type = 0;
             }
             m->mode = 0;

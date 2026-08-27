@@ -66,10 +66,10 @@ typedef struct ThinkDBtype
 
 extern ThinkDBtype ThinkDB[20];
 
-extern char D_80013FA8[];
-extern char D_80013FB4[];
-extern char D_80097D48[];
-extern u8 D_80097D50[];
+extern char str_select_type[]; /* select type */
+extern char str_custom_think_setting[]; /* custom think setting */
+extern char fmt_pair[]; /* %s %s */
+extern u8 str_cancel_2[]; /* cancel */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -113,7 +113,7 @@ void AddEnemy(void)
                         break;
                     y++;
                 }
-                sprintf((char *)names[x], D_80097D48,
+                sprintf((char *)names[x], fmt_pair,
                         HumanData[i].name, WeaponModel[y].name);
                 ItemName[x].name = names[x];
                 ItemName[x].value = HumanData[i].type;
@@ -123,10 +123,10 @@ void AddEnemy(void)
         }
     }
 
-    ItemName[x].name = D_80097D50;
+    ItemName[x].name = str_cancel_2;
     ItemName[x++].value = -1;
     ItemName[x].name = 0;
-    type = (s16)AdtSelect(D_80013FA8, ItemName, 0);
+    type = (s16)AdtSelect(str_select_type, ItemName, 0);
     if (type == -1)
         return;
 
@@ -152,7 +152,7 @@ void AddEnemy(void)
             }
         }
         ItemName[x].name = 0;
-        think = think | AdtSelect(D_80013FB4, ItemName, 0);
+        think = think | AdtSelect(str_custom_think_setting, ItemName, 0);
     } while (think != 0x1111 && think != 0x2222 && ++r < 4);
 
     {

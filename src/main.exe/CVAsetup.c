@@ -68,8 +68,8 @@
  */
 
 extern char *STAGE_ANIMATION_PREFICES[];
-extern char D_80013624[]; /* "%sSTAGE%d%c.CAD" */
-extern char D_80013634[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd" */
+extern char fmt_stage_cad[]; /* %sSTAGE%d%c.CAD */
+extern char path_anim_tanka_tpd[]; /* K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd */
 
 
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
@@ -101,7 +101,7 @@ void CVAsetup(void)
     {
         letter = 0x52;
     }
-    sprintf((char *)name, D_80013624,
+    sprintf((char *)name, fmt_stage_cad,
             STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
     CVAdata = (CVAType *)FileRead(name);
 
@@ -116,7 +116,7 @@ void CVAsetup(void)
 
     if (StageID == 10 && PSTATE->CharType == 0)
     {
-        adr = FileRead((u8 *)D_80013634);
+        adr = FileRead((u8 *)path_anim_tanka_tpd);
         for (i = 0; i < 6; i++)
         {
             GetTIMpackInfo(adr, &image, i);

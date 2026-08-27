@@ -51,7 +51,7 @@
  * the inner loop.
  */
 extern void *valloc(u32 size);
-extern char D_80011064[]; /* "NO MODEL ARCHIVE DATA" */
+extern char msg_no_model_archive_data[]; /* NO MODEL ARCHIVE DATA */
 
 
 ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
@@ -70,7 +70,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     int parent;
 
     if (adr == 0) {
-        SystemOut(D_80011064);
+        SystemOut(msg_no_model_archive_data);
     }
     mad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
     adr++;

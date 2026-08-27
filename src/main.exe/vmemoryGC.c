@@ -38,7 +38,7 @@
  *     extern unsigned long *virtual_memory_pool;
  * END PSX.SYM */
 
-extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" */
+extern char msg_double_memory_release[]; /* DOUBLE MEMORY RELEASE */
 extern void *valloc(u32 size);
 extern void *memcpy(void *dst, void *src, u32 n);
 
@@ -61,7 +61,7 @@ static inline void FreePoolBlockInline(void *pt, u32 cmask)
     } while (0);
     mask = 0x80000000;
     if ((header->size & mask) == 0)
-        SystemOut(D_8001104C);
+        SystemOut(msg_double_memory_release);
 
     sz = header->size & cmask;
     header->size = sz;
@@ -365,7 +365,7 @@ void *vmemoryGC(void *pt)
 // ? SystemOut(? *);                                   /* extern */
 // ? memcpy(u32, void *, s32, void *);                 /* extern */
 // u32 valloc(s32);                                    /* extern */
-// extern ? D_8001104C;
+// extern ? msg_double_memory_release;
 // extern void *virtual_memory_pool;
 //
 // u32 vmemoryGC(void *arg0) {
@@ -406,7 +406,7 @@ void *vmemoryGC(void *pt)
 //             memcpy(temp_v0, var_s2, temp_s6);
 //             if (var_s2 != NULL) {
 //                 if (var_s2->unk-8 >= 0) {
-//                     SystemOut(&D_8001104C);
+//                     SystemOut(&msg_double_memory_release);
 //                 }
 //                 temp_a1 = var_s2->unk-8 & 0x7FFFFFFF;
 //                 var_s2->unk-8 = temp_a1;
@@ -450,7 +450,7 @@ void *vmemoryGC(void *pt)
 //         temp_s0 = temp_v0 - 8;
 //         if (temp_v0 != 0) {
 //             if (temp_v0->unk-8 >= 0) {
-//                 SystemOut(&D_8001104C);
+//                 SystemOut(&msg_double_memory_release);
 //             }
 //             temp_a1_2 = temp_v0->unk-8 & 0x7FFFFFFF;
 //             temp_v0->unk-8 = temp_a1_2;

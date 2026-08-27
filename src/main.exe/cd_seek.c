@@ -34,9 +34,9 @@
  */
 
 extern int puts(char *s);
-extern char D_80014A48[]; /* "cd_seek:invalid handle" — lives in this TU's
+extern char msg_cd_seek_invalid_handle[]; /* cd_seek:invalid handle */ /* "cd_seek:invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same
-                            * pattern as AfsInit's D_80014944. */
+                            * pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 int cd_seek(FILE *f, int offset, TSeekMode whence)
 {
@@ -44,7 +44,7 @@ int cd_seek(FILE *f, int offset, TSeekMode whence)
     u32 size;
 
     if (f == 0) {
-        puts(D_80014A48);
+        puts(msg_cd_seek_invalid_handle);
         return -1;
     }
     if (whence == CDSEEK_CUR)

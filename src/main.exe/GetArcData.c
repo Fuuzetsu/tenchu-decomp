@@ -55,8 +55,8 @@
 /* PSX.SYM names IMAGES.C's original archive pointer ArcData. */
 extern ArcFile *ArcData;
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_800128D8[]; /* "K:\WORK\CDIMAGE\IMAGE\models.arc" */
-extern char D_800128C0[]; /* "bad archive index %d" */
+extern char path_image_models_arc[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\models.arc */
+extern char fmt_bad_archive_index[]; /* bad archive index %d */
 
 u_long *GetArcData(int index)
 {
@@ -67,7 +67,7 @@ u_long *GetArcData(int index)
 
     if (ArcData == 0)
     {
-        ArcData = (ArcFile *) FileRead(D_800128D8);
+        ArcData = (ArcFile *) FileRead(path_image_models_arc);
     }
     arc = ArcData;
     if (arc->loaded == 0)
@@ -86,7 +86,7 @@ u_long *GetArcData(int index)
     }
     if (index < 0 || arc->count <= index)
     {
-        AdtMessageBox(D_800128C0, index);
+        AdtMessageBox(fmt_bad_archive_index, index);
         return 0;
     }
     return (u_long *) arc->entry[index];

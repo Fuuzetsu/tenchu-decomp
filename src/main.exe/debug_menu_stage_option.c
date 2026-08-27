@@ -25,9 +25,9 @@
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-extern char D_80014648[];  /* "stage option" (AdtSelect title) */
+extern char str_stage_option[]; /* stage option */  /* "stage option" (AdtSelect title) */
 extern char D_80014658[];  /* score message format string */
-extern char D_800146D0[];  /* "(by rnd.)" */
+extern char str_by_rnd[]; /* "(by rnd.)" */
 extern char EMPTY_STRING[];
 
 extern u8 CHOSEN_STAGE;
@@ -49,7 +49,7 @@ void debug_menu_stage_option(void)
     ScoreResult sr;
 
     __builtin_memcpy(menu, DEBUG_MENU_STAGE_OPTIONS, sizeof(menu));
-    sel = AdtSelect(D_80014648, menu, 0);
+    sel = AdtSelect(str_stage_option, menu, 0);
     switch (sel)
     {
     case 0:
@@ -64,7 +64,7 @@ void debug_menu_stage_option(void)
         sr = *calculate_score(&stats, CHOSEN_STAGE);
         AdtMessageBox(D_80014658, STAGE_LAYOUT_NUMBER + 1,
                       (SystemFlag & SYSFLAG_RANDOM_LAYOUT)
-                          ? D_800146D0 : EMPTY_STRING,
+                          ? str_by_rnd : EMPTY_STRING,
                       stats.criticals, stats.murders, stats.findEnemies,
                       stats.friendHits, sr.score);
         return;

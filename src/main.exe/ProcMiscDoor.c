@@ -48,7 +48,7 @@
  *    bgez/nop/negu sequence and the required DoorData register allocation.
  */
 
-extern char D_800126F8[];
+extern char fmt_unknown_door_type[]; /* unknown door type %d */
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
 extern short DrawModel(ModelType *objp);
@@ -77,7 +77,7 @@ do_create:
         t = m->param.init.a;
         if (10 < type)
         {
-            AdtMessageBox(D_800126F8, type);
+            AdtMessageBox(fmt_unknown_door_type, type);
             type = 0;
         }
         m->mode = 0;

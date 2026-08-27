@@ -39,7 +39,7 @@
  * midpoint narrowing. The cell-width capture and source-level u-before-v
  * stores are also load-bearing for the inner-loop allocation and schedule. */
 
-extern char D_8001109C[];
+extern char msg_no_background_image_data[]; /* NO BACKGROUND IMAGE DATA */
 extern void *valloc(u32 size);
 
 BackGround *SetupBG(GsIMAGE *image, short w, short h)
@@ -55,7 +55,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     u16 raw_pmode;
 
     if (image == 0)
-        SystemOut((u8 *)D_8001109C);
+        SystemOut((u8 *)msg_no_background_image_data);
 
     bg = (BackGround *)valloc(sizeof(BackGround));
     bg->id = -1;

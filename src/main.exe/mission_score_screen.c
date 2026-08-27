@@ -47,8 +47,8 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char NUMBER_TIM_PATH[];
 extern char *RANKS_ARCHIVE_PTRS[];
 extern char *TRN_SPRITE_PTRS[];
-extern char D_80013AA8[];
-extern char D_80013AC0[];
+extern char path_image_3[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
+extern char path_font_tim[]; /* font.tim */
 
 extern s16 D_8008ED50[];
 
@@ -1088,7 +1088,7 @@ score_row_loop:
     } while (0);
     if (gfMemory != 0)
     {
-        LoadTIMAndFree(PathFileRead(D_80013AA8, D_80013AC0));
+        LoadTIMAndFree(PathFileRead(path_image_3, path_font_tim));
         FUN_800514d8();
     }
     DisposeBG(tail.background);

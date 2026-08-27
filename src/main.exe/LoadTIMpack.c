@@ -95,7 +95,7 @@
  *    reloads the FULL `lw` (needs all 32 bits for `>> 3 & 1`), independent
  *    of any earlier access — different machine modes/uses don't CSE.
  */
-extern char D_800110C8[]; /* "NO IMAGE PACK DATA" */
+extern char msg_no_image_pack_data[]; /* NO IMAGE PACK DATA */
 
 short LoadTIMpack(unsigned long *adr)
 {
@@ -107,7 +107,7 @@ short LoadTIMpack(unsigned long *adr)
     short i;
 
     if (adr == 0) {
-        SystemOut(D_800110C8);
+        SystemOut(msg_no_image_pack_data);
     }
     adr = adr + 1;
     uVar1 = *(u16 *)adr;

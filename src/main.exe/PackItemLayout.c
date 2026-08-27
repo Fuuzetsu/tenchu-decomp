@@ -77,17 +77,17 @@
  *    just how it renders the constant `~0` given `ITEM_KAGINAWA == 0`; the
  *    asm materializes it once, outside the loop, with `addiu $a3,$zero,-1`
  *    and reuses that register every empty-slot iteration).
- *  - `D_80012200` ("item storing size too small %d/%d") is this function's
+ *  - `fmt_item_storing_size_too` ("item storing size too small %d/%d") is this function's
  *    OWN string, still sitting as raw copied bytes in the leading uncarved
  *    `data` blob (not near this function's own code — see the cookbook's
  *    "matching a function can delete the very D_ symbol its C body needs"
  *    entry). PackItemLayout was the sole `.s` referencing it, so matching
- *    would have dropped the auto-symbol; added a `D_80012200 = 0x80012200;`
- *    line to config/symbols.main.exe.txt (same fix as D_800976DC) rather
+ *    would have dropped the auto-symbol; added a `fmt_item_storing_size_too = 0x80012200;`
+ *    line to config/symbols.main.exe.txt (same fix as fmt_concat_2) rather
  *    than let cc1 synthesize a brand-new string.
  */
 
-extern char D_80012200[]; /* "item storing size too small %d/%d" */
+extern char fmt_item_storing_size_too[]; /* item storing size too small %d/%d */
 
 void PackItemLayout(void *buf, s32 size)
 {
@@ -97,7 +97,7 @@ void PackItemLayout(void *buf, s32 size)
 
     if ((u32)size < 600)
     {
-        AdtMessageBox(D_80012200, size, 600);
+        AdtMessageBox(fmt_item_storing_size_too, size, 600);
     }
     else
     {

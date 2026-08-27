@@ -106,7 +106,7 @@ extern Humanoid *vcalloc(u32 size, u8 c);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 
-extern char D_80011658[]; /* "HUMAN OVERFLOW" */
+extern char msg_human_overflow[]; /* HUMAN OVERFLOW */
 
 Humanoid *CreateHumanoid(short type, unsigned long *mad)
 {
@@ -122,7 +122,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
 
     if (mad == 0 || Humans >= 0x28)
     {
-        SystemOut(D_80011658);
+        SystemOut(msg_human_overflow);
     }
     human = vcalloc(0xd0, 0);
     human->type = type;

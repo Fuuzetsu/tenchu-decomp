@@ -25,10 +25,10 @@ extern u8 *D_80097D24;
 extern Sprite3D *D_80097D28;
 extern Sprite3D *D_800C2D58[];
 
-extern char D_80013C94[];
-extern char D_80013CBC[];
-extern char D_80013CE4[];
-extern char D_80013D0C[];
+extern char path_demo_start_card_j[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt */
+extern char path_demo_start_mcard_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim */
+extern char path_demo_start_mbuttonj_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mbuttonj.tim */
+extern char path_demo_start_xtoselj_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\xtoselj.tim */
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);
@@ -74,7 +74,7 @@ s32 FUN_8005adbc(s16 mode)
         StoreImage(&rect, D_80097D20);
         DrawSync(0);
 
-        D_80097D24 = (u8 *)FileRead(D_80013C94);
+        D_80097D24 = (u8 *)FileRead(path_demo_start_card_j);
         FUN_8005b17c(0, 0);
         i = 0;
         size = vsize(D_80097D24);
@@ -95,13 +95,13 @@ s32 FUN_8005adbc(s16 mode)
             } while (i < size);
         }
 
-        tim = FileRead(D_80013CBC);
+        tim = FileRead(path_demo_start_mcard_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
         D_80097D28 = SetupSprite(0, &image);
         D_80097D28->sprite.y = -0x3c;
 
-        tim = FileRead(D_80013CE4);
+        tim = FileRead(path_demo_start_mbuttonj_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
         D_800C2D58[0] = SetupSprite(0, &image);
@@ -126,7 +126,7 @@ s32 FUN_8005adbc(s16 mode)
         D_800C2D58[3]->sprite.u += ((image.pw >> 1) * 4) + 10;
         D_800C2D58[3]->sprite.attribute |= 0x30000000;
 
-        tim = FileRead(D_80013D0C);
+        tim = FileRead(path_demo_start_xtoselj_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
         D_800C2D58[4] = SetupSprite(0, &image);

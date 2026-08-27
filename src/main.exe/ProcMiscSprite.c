@@ -56,11 +56,11 @@
  */
 
 extern short DrawSprite(Sprite3D *sprt);
-/* Shared MISC.C rodata pool (same block as AddMisc.c's D_800127A4/D_800127BC
+/* Shared MISC.C rodata pool (same block as AddMisc.c's path_image_2/fmt_undefined_effect
  * strings, carved via AddMisc's .rodata segment) — "unknown sprite type",
  * NOT a fresh literal in this file's own rodata (which would place it at
  * the wrong address, cookbook: TU-shared string pooling). */
-extern char D_80012728[];
+extern char msg_unknown_sprite_type[]; /* unknown sprite type */
 
 void ProcMiscSprite(TMisc *m, TMiscMessage msg)
 {
@@ -78,7 +78,7 @@ do_create:
     type = m->param.init.a;
     if (1 < type)
     {
-        AdtMessageBox(D_80012728);
+        AdtMessageBox(msg_unknown_sprite_type);
         type = 0;
     }
     m->mode = 0;

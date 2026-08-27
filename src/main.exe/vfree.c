@@ -85,7 +85,7 @@
  *    under-record; treat a zero-locals record as unverified.
  */
 
-extern char D_8001104C[]; /* "DOUBLE MEMORY RELEASE" — still referenced by
+extern char msg_double_memory_release[]; /* DOUBLE MEMORY RELEASE */ /* "DOUBLE MEMORY RELEASE" — still referenced by
                               the unmatched vmemoryGC asm; reuse it rather
                               than opening a fresh .rodata (see LoadAreaMap.c) */
 
@@ -105,7 +105,7 @@ void vfree(void *pt)
     header = (struct VMhead *)pt - 1;
     mask = 0x80000000;
     if ((header->size & mask) == 0)
-        SystemOut(D_8001104C);
+        SystemOut(msg_double_memory_release);
 
     sz = header->size & 0x7fffffff;
     header->size = sz;

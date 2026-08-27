@@ -58,8 +58,8 @@ extern s32 DepthPoint;
 extern u8 *TITLE_SPRITES_PTRS[4];
 extern u8 CHOSEN_LANGUAGE;
 extern volatile u8 STAGE_LAYOUT_NUMBER;
-extern char D_8001204C[];
-extern char D_800120A0[];
+extern char fmt_illigal_stage_id[]; /* illigal stage id %d */
+extern char path_stage_con[]; /* STAGE.CON */
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void DestroyTraceLine(TraceLine *trace);
@@ -104,7 +104,7 @@ void CreateStage(int StageNo, int CharType)
 
     if ((u32)StageNo >= 11)
     {
-        AdtMessageBox(D_8001204C, StageNo);
+        AdtMessageBox(fmt_illigal_stage_id, StageNo);
         return;
     }
 
@@ -149,7 +149,7 @@ void CreateStage(int StageNo, int CharType)
     DisposeBG(bg);
 
     SetupAppearance(mode, stageNo);
-    LoadConstruction(PathFileRead(ImagePath, (u8 *)D_800120A0));
+    LoadConstruction(PathFileRead(ImagePath, (u8 *)path_stage_con));
     initialise_font();
     InitializeImage();
     ResetInfoview(StageNo);

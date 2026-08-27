@@ -67,7 +67,7 @@
  * The FileOptionWork union expresses the retail stack reuse directly. Its
  * indexed targets/messages view is the human shape recorded in PSX.SYM (with
  * larger retail bounds); loop.c derives the target's three walking pointers.
- * That source shape also lets case 9 name D_80097D70 directly: cc1 keeps its
+ * That source shape also lets case 9 name fmt_num_2 directly: cc1 keeps its
  * `%hi` half loop-invariant while forming `%lo` at each call, producing both
  * the retail instruction schedule and ordinary relocations.
  */
@@ -78,14 +78,14 @@ extern s32 D_80014554[11]; /* music id by stage */
  * spelling would be sdata-flagged and become a $at macro store */
 extern u8 STAGE_LAYOUT_NUMBER[];
 
-extern char D_80014518[];   /* "file option" */
-extern char D_80014524[];   /* "load ok?" */
-extern char D_80014530[];   /* "load no?" */
-extern char D_8001453C[];   /* "save ok?" */
-extern char D_80014548[];   /* "save no?" */
-extern char D_8001423C[];   /* "select music" */
-extern char D_800145A8[];   /* "layout no" */
-extern char D_80097D70[];   /* "%d" */
+extern char str_file_option[]; /* file option */   /* "file option" */
+extern char msg_load_ok[]; /* load ok? */   /* "load ok?" */
+extern char msg_load_no[]; /* load no? */   /* "load no?" */
+extern char msg_save_ok[]; /* save ok? */   /* "save ok?" */
+extern char msg_save_no[]; /* save no? */   /* "save no?" */
+extern char str_select_music[]; /* select music */   /* "select music" */
+extern char str_layout_no[]; /* layout no */   /* "layout no" */
+extern char fmt_num_2[]; /* %d */   /* "%d" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(void *buf, long size);
@@ -152,26 +152,26 @@ void FileOption(void)
     __builtin_memcpy(ItemName, DEBUG_MENU_FILE_CHOICES, sizeof(ItemName));
     __builtin_memcpy(SelectIO, DEBUG_MENU_SAVE_LOAD_CHOICES, sizeof(SelectIO));
     __builtin_memcpy(SelectSlot, DEBUG_MENU_FILE_LAYOUT_CHOICES, sizeof(SelectSlot));
-    n = AdtSelect(D_80014518, ItemName, 0);
+    n = AdtSelect(str_file_option, ItemName, 0);
     if (n == -1)
         return;
     switch (n)
     {
     case LOAD:
-        TargetIO = AdtSelect(D_80014524, SelectIO, 3);
+        TargetIO = AdtSelect(msg_load_ok, SelectIO, 3);
         if (TargetIO == -1)
             return;
-        fname = (u8 *)AdtSelect(D_80014530, SelectSlot, 0x10);
+        fname = (u8 *)AdtSelect(msg_load_no, SelectSlot, 0x10);
         if (fname == (u8 *)-1)
             return;
         FUN_8003cd04(TargetIO & 0xFF, fname);
         leLayoutEnemy(0);
         break;
     case SAVE:
-        TargetIO = AdtSelect(D_8001453C, SelectIO, 3);
+        TargetIO = AdtSelect(msg_save_ok, SelectIO, 3);
         if (TargetIO != -1)
         {
-            fname = (u8 *)AdtSelect(D_80014548, SelectSlot, 0x10);
+            fname = (u8 *)AdtSelect(msg_save_no, SelectSlot, 0x10);
             if (fname != (u8 *)-1)
             {
                 lePackEnemyLayout(Buf.bytes, ENESIZE);
@@ -209,13 +209,13 @@ void FileOption(void)
         messages = Buf.music.msg;
         for (; i < 0xA1; i++)
         {
-            sprintf((char *)messages[i], D_80097D70, i);
+            sprintf((char *)messages[i], fmt_num_2, i);
             targets[i].name = messages[i];
             targets[i].value = i;
         }
         ((TAdtSelect *)((u8 *)targets + (i << 3)))->name = 0;
         PlayMusicFormID(AdtSelect(
-            D_8001423C, (TAdtSelect *)Buf.bytes, 0));
+            str_select_music, (TAdtSelect *)Buf.bytes, 0));
         break;
     case EASY_GAME:
         EngageLevel = 3;
@@ -232,7 +232,7 @@ void FileOption(void)
     case STOCK_LAYOUT:
         __builtin_memcpy(Buf.bytes, DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES,
                          sizeof(DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES));
-        k = AdtSelect(D_800145A8, (TAdtSelect *)Buf.bytes, 0);
+        k = AdtSelect(str_layout_no, (TAdtSelect *)Buf.bytes, 0);
         if (k < 0)
             break;
         STAGE_LAYOUT_NUMBER[0] = k;

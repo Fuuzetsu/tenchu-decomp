@@ -67,10 +67,10 @@
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
 
-extern char D_800140C0[];                   /* "enemy layout option" */
-extern char D_800140D4[];                   /* "clear ok?" */
-extern char D_80014004[];                   /* "path layout option" */
-extern char D_800140E0[];                   /* "layout %d enemies" */
+extern char str_enemy_layout_option[]; /* enemy layout option */                   /* "enemy layout option" */
+extern char msg_clear_ok_2[]; /* clear ok? */                   /* "clear ok?" */
+extern char str_path_layout_option[]; /* path layout option */                   /* "path layout option" */
+extern char fmt_layout_enemies[]; /* layout %d enemies */                   /* "layout %d enemies" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
@@ -100,7 +100,7 @@ void LayoutEnemyOption(void)
     __builtin_memcpy(ItemName, DEBUG_MENU_ENEMY_LAYOUT_OPTIONS,
                      sizeof(ItemName));
     __builtin_memcpy(OkCancel, sel_okcancel, sizeof(OkCancel));
-    n = AdtSelect(D_800140C0, ItemName, 0);
+    n = AdtSelect(str_enemy_layout_option, ItemName, 0);
     if ((n & 0xFFFF) != 0xFFFF)
     {
         switch ((s16)n)
@@ -118,7 +118,7 @@ void LayoutEnemyOption(void)
             leLayoutEnemy(1);
             break;
         case CLEAR:
-            if (AdtSelect(D_800140D4, OkCancel, 1) == 1)
+            if (AdtSelect(msg_clear_ok_2, OkCancel, 1) == 1)
             {
                 leClearLayout();
             }
@@ -130,7 +130,7 @@ void LayoutEnemyOption(void)
                 __builtin_memcpy(ItemName,
                                  DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS,
                                  sizeof(ItemName));
-                k = (s16)AdtSelect(D_80014004, ItemName, 0);
+                k = (s16)AdtSelect(str_path_layout_option, ItemName, 0);
                 if (k != -1)
                 {
                     switch (k)
@@ -152,7 +152,7 @@ void LayoutEnemyOption(void)
             }
             break;
         case REPORT:
-            AdtMessageBox(D_800140E0, Humans);
+            AdtMessageBox(fmt_layout_enemies, Humans);
             break;
         case CAMERA:
             SelectCameraOwnerOption();

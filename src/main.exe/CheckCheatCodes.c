@@ -42,8 +42,8 @@
  *    field.  Its nonzero member access gives the target's separate base and
  *    destination registers without inventing a second object at +0x10.
  */
-extern char D_800124C0[]; /* "select item" */
-extern char D_800124EC[]; /* "number of" */
+extern char str_select_item[]; /* select item */
+extern char str_number_of[]; /* number of */
 extern u16 D_8008E4F0[];  /* cheat sequence 1 */
 /* The retail command grew from the demo's original short [15] to 21 entries. */
 extern s16 ForbiddenCommand[21];
@@ -64,10 +64,10 @@ void CheckCheatCodes(s16 *rec, int n)
         SoundEx(0, 10);
         __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
-        sel = AdtSelect(D_800124C0, menu.ItemName, 0);
+        sel = AdtSelect(str_select_item, menu.ItemName, 0);
         __builtin_memcpy(menu.Num, D_800124CC, sizeof(D_800124CC));
         CamState.Owner->item[sel] +=
-            AdtSelect(D_800124EC, menu.Num, 0);
+            AdtSelect(str_number_of, menu.Num, 0);
         SoundEx(0, 0x4c);
     } else {
         if (memcmp(rec, ForbiddenCommand, n << 1) != 0) {

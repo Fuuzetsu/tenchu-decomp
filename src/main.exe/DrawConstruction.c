@@ -66,11 +66,11 @@
  * END PSX.SYM */
 
 extern MATRIX GsWSMATRIX;
-extern char D_800120C4[];
+extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
 extern char D_8001212C[];
-extern char D_80012138[];
+extern char fmt_objs_d[]; /* objs D%d/%d; */
 extern char D_80012148[];
-extern char D_80097A98[];
+extern char str_map[]; /* map: */
 extern char D_80097AA0[];
 
 extern s32 IsVisible(s32 x, s32 y, s32 z, s32 range);
@@ -209,7 +209,7 @@ scan_cur:
                 model = cur->model;
 
                 if (SlotMan.n >= SlotMan.max)
-                    AdtMessageBox(D_800120C4);
+                    AdtMessageBox(msg_modelslot_overflow);
                 do
                 {
                     SlotMan.slot[SlotMan.n].model = model;
@@ -287,8 +287,8 @@ next_bucket:
 draw_done:
     if (GetPad(0) & 0x100)
     {
-        FntPrint(D_80097A98);
-        FntPrint(D_80012138, ndl, ndt);
+        FntPrint(str_map);
+        FntPrint(fmt_objs_d, ndl, ndt);
         FntPrint(D_80097AA0);
         FntPrint(D_80012148, GsGetWorkBase() - packet_base);
     }

@@ -47,8 +47,8 @@
  *    `targets[i]` as the target's fresh `sp+16+i*8` calculation.  Manually
  *    spelling the first two walkers made a real loop reduce the third as well
  *    and led to the misleading hand-written-goto reconstruction.
- *  - That real loop also hoists `%hi(D_80097D70)` into s3 while leaving the
- *    `%lo(D_80097D70)` addiu at the sprintf call.  Thus the same symbolic C
+ *  - That real loop also hoists `%hi(fmt_num_2)` into s3 while leaving the
+ *    `%lo(fmt_num_2)` addiu at the sprintf call.  Thus the same symbolic C
  *    both resolves to the retail `lui s3,0x8009; addiu a1,s3,0x7D70` bytes and
  *    carries the HI16/LO16 relocation pair required by a normal link.
  *  - Real retail layout differs from PSX.SYM's (earlier-build) recollection:
@@ -74,14 +74,14 @@
  *    Ghidra's reverse. Fixed a 6-instruction register-identity mismatch.
  *  - No %gp_rel symbols in this function (tools/gpsyms.py): Humans/
  *    HumanGroup are another TU's smalls, absolute here.
- *  - `D_80097D70` (the "%d" format string) is a splat auto-name drifted -8
+ *  - `fmt_num_2` (the "%d" format string) is a splat auto-name drifted -8
  *    bytes in this run (a whole D_80097D68..fmt_concat chain shares the
  *    offset — verified against the .map). Bound a fresh
- *    `D_80097D70 = 0x80097D70;` in config/symbols.main.exe.txt per the
+ *    `fmt_num_2 = 0x80097D70;` in config/symbols.main.exe.txt per the
  *    cookbook's drifted-symbol recipe rather than fight the wrong auto-name.
  */
-extern char D_80097D70[];   /* "%d" */
-extern char D_80014018[];   /* "select camera owner" */
+extern char fmt_num_2[]; /* %d */   /* "%d" */
+extern char str_select_camera_owner[]; /* select camera owner */   /* "select camera owner" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void sprintf(char *s, char *fmt, ...);
@@ -96,12 +96,12 @@ void SelectCameraOwnerOption(void)
     {
         for (i = 0; i < Humans; i++)
         {
-            sprintf((char *)msg[i], D_80097D70, i);
+            sprintf((char *)msg[i], fmt_num_2, i);
             targets[i].name = msg[i];
             targets[i].value = (u_long)HumanGroup[i];
         }
         targets[i].name = NULL;
-        CamState.Owner = (Humanoid *)AdtSelect(D_80014018, targets, 0);
+        CamState.Owner = (Humanoid *)AdtSelect(str_select_camera_owner, targets, 0);
         ViewInfo.vrx = CamState.Owner->model->locate.coord.t[0];
         ViewInfo.vry = CamState.Owner->model->locate.coord.t[1];
         ViewInfo.vrz = CamState.Owner->model->locate.coord.t[2];

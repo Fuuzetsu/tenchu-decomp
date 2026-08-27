@@ -20,7 +20,7 @@ extern void leRestoreEnemyLayout(void *buf);
 extern void RestoreItemLayout(void *buf);
 extern void vfree(void *buf);
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_80012154[]; /* "load layout error" */
+extern char msg_load_layout_error[]; /* load layout error */
 extern u8 *D_80012168[3];
 
 void load_layout(s32 index)
@@ -31,7 +31,7 @@ void load_layout(s32 index)
     __builtin_memcpy(names, D_80012168, sizeof(names));
     buf = LoadSI(0, names[index]);
     if (buf == 0) {
-        AdtMessageBox(D_80012154);
+        AdtMessageBox(msg_load_layout_error);
     } else {
         leRestoreEnemyLayout(buf);
         RestoreItemLayout((u8 *)buf + 0x1388);

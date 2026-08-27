@@ -89,14 +89,14 @@
  *    falls straight through after the call (plain `if (adr == 0)
  *    SystemOut(...);` with no early return) — matches InsertConflict.c's
  *    identical SystemOut-then-continue shape.
- *  - "NO AREA DATA" is D_800111E8, 16 bytes before InsertConflict.c's
- *    D_800111F8 ("CONFLICT REGIST FAILURE") — same rodata blob; reference it
- *    via `extern char D_800111E8[];` (a fresh string literal here would open
+ *  - "NO AREA DATA" is msg_no_area_data, 16 bytes before InsertConflict.c's
+ *    msg_conflict_regist_failure ("CONFLICT REGIST FAILURE") — same rodata blob; reference it
+ *    via `extern char msg_no_area_data[];` (a fresh string literal here would open
  *    a NEW .rodata this linker script has no slot for — see AfsInit.c).
  */
 
 
-extern char D_800111E8[]; /* "NO AREA DATA" */
+extern char msg_no_area_data[]; /* NO AREA DATA */
 
 AreaMapType *LoadAreaMap(AreaMapType *adr)
 {
@@ -106,7 +106,7 @@ AreaMapType *LoadAreaMap(AreaMapType *adr)
 
     map = (NodeIndexType *)adr;
     if (adr == 0)
-        SystemOut(D_800111E8);
+        SystemOut(msg_no_area_data);
 
     j = 0;
     idx0 = ((NodeIndexType *)adr)->index;

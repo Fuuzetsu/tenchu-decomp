@@ -66,8 +66,8 @@ extern u8 *D_80097C9C;
 /* Fallback (language/range-independent) voice table. */
 extern TVoiceTable D_80012CBC[];
 
-extern char D_800134F0[]; /* "bad voice no %d" */
-extern char D_80013500[]; /* "playvoice fail %s  chan %d  id %d" */
+extern char fmt_bad_voice_no[]; /* bad voice no %d */
+extern char fmt_playvoice_fail_chan_id[]; /* playvoice fail %s  chan %d  id %d */
 
 extern void AdtMessageBox(char *fmt, ...);
 extern void CdaStop(void);
@@ -309,7 +309,7 @@ found:
         FileName = VoiceXaName;
         if (match == 0)
         {
-            AdtMessageBox(D_800134F0, id);
+            AdtMessageBox(fmt_bad_voice_no, id);
             CdaStop();
             return;
         }
@@ -341,7 +341,7 @@ found:
 
     if (CdaPlayXA(FileName, &start, &end, match->channel, CDA_ONCE) == 0)
     {
-        AdtMessageBox(D_80013500, FileName, match->channel, id);
+        AdtMessageBox(fmt_playvoice_fail_chan_id, FileName, match->channel, id);
     }
 }
 
@@ -479,8 +479,8 @@ found:
 // extern u8 gSELevel;
 // extern u8 D_80012CBC;
 // extern ? D_800134E0;
-// extern ? D_800134F0;
-// extern ? D_80013500;
+// extern ? fmt_bad_voice_no;
+// extern ? fmt_playvoice_fail_chan_id;
 // extern u8 D_8008E82C;
 // extern u8 D_8008E930;
 // extern s32 D_80097C98;
@@ -596,7 +596,7 @@ found:
 //         }
 //         var_s4 = (s32) VoiceXaName;
 //         if (var_s2 == NULL) {
-//             AdtMessageBox(&D_800134F0, var_s3);
+//             AdtMessageBox(&fmt_bad_voice_no, var_s3);
 //             CdaStop();
 //             return;
 //         }
@@ -623,6 +623,6 @@ found:
 //     sp41 = temp_s1_2;
 //     CdIntToPos((CdPosToInt(&sp40) * 2) + 0x96, &sp40);
 //     if (CdaPlayXA(var_s4, &sp38, &sp40, var_s2->unk1, 0) == 0) {
-//         AdtMessageBox(&D_80013500, var_s4, var_s2->unk1, var_s3);
+//         AdtMessageBox(&fmt_playvoice_fail_chan_id, var_s4, var_s2->unk1, var_s3);
 //     }
 // }

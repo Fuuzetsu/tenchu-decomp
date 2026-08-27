@@ -54,7 +54,7 @@
  *    constant division (automatic from plain `/100`).
  */
 extern void *valloc(u32 size);
-extern char D_800116B8[]; /* "NO TRACE POINT" */
+extern char msg_no_trace_point[]; /* NO TRACE POINT */
 
 TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
 {
@@ -63,7 +63,7 @@ TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
 
     if (point == 0)
     {
-        SystemOut(D_800116B8);
+        SystemOut(msg_no_trace_point);
     }
     trcl = (TraceLine *)valloc(8);
     trcl->count = 0;

@@ -154,9 +154,9 @@
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strcmp(char *a, char *b);
 
-extern char D_800117C8[]; /* "ILLIGAL CHARACTER TYPE" */
-extern char D_800117E0[]; /* "%s%s.MAD" */
-extern char D_80011734[]; /* "K:\\WORK\\CDIMAGE\\HUMAN\\" */
+extern char msg_illigal_character_type[]; /* ILLIGAL CHARACTER TYPE */
+extern char fmt_mad[]; /* %s%s.MAD */
+extern char path_human[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
 
 Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
 {
@@ -194,14 +194,14 @@ Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
     if (base[idx].type != -1)
         goto type_found;
 illegal_type:
-    SystemOut(D_800117C8);
+    SystemOut(msg_illigal_character_type);
 type_found:
     tbl = HumanData;
     pp = (HumanDataType *)(idx * sizeof(HumanDataType) + (u32)tbl);
     model = pp->model;
     if (model == 0)
     {
-        sprintf((char *)name, D_800117E0, D_80011734, pp->name);
+        sprintf((char *)name, fmt_mad, path_human, pp->name);
         model = FileRead(name);
         pp->model = model;
         sVar1 = HumanData[0].type;

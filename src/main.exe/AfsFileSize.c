@@ -22,14 +22,14 @@
  */
 
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_800149B4[]; /* "AfsFileSize: invalid handle" — lives in this
+extern char msg_afsfilesize_invalid_handle[]; /* AfsFileSize: invalid handle */ /* "AfsFileSize: invalid handle" — lives in this
                             * TU's unsplit data blob (splat auto-symbol),
-                            * same pattern as AfsInit's D_80014944. */
+                            * same pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 int AfsFileSize(TAFS *handle, TAFSFileHandle *fh)
 {
     if (fh == 0) {
-        AdtMessageBox(D_800149B4);
+        AdtMessageBox(msg_afsfilesize_invalid_handle);
         return 0;
     }
     return fh->info->size;

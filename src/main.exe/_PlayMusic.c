@@ -62,7 +62,7 @@
  * source used a literal pointer cast: writing them as literal casts
  * (`(char *)0x8001349C`) compiles the low half with `ori` (raw 32-bit
  * constant synthesis); the target's `addiu` (address-style combine)
- * needs a real named `extern char D_8001349C[];` (config/symbols.main.exe.txt
+ * needs a real named `extern char msg_bad_music_no[];` (config/symbols.main.exe.txt
  * entries added), confirmed empirically. Contrast FUN_800568b8.c's
  * `(TLinkInfo *)0x80010000` cast, which really is a bare literal
  * (that lui has NO addiu at all, reused as a base for several field
@@ -102,9 +102,9 @@ typedef struct TMusicTable
 } TMusicTable; /* 0xC */
 
 extern TMusicTable MusicTable[];
-extern char D_8001349C[];  /* "bad music no" */
-extern char D_800134AC[];  /* "\TENCHU\XA\%s;1" */
-extern char D_800134BC[];  /* "playmusic fail %s  chan %d  id %d" */
+extern char msg_bad_music_no[]; /* "bad music no" */
+extern char fmt_xa_path[]; /* "\TENCHU\XA\%s;1" */
+extern char fmt_playmusic_fail_chan_id[]; /* "playmusic fail %s  chan %d  id %d" */
 
 extern void AdtMessageBox(char *fmt, ...);
 extern void CdaStop(void);
@@ -135,7 +135,7 @@ void _PlayMusic(int MusicNo, int mode)
 
     if (MusicNo < 0 || (u32)(MusicNo - 0x3D) < 0x27)
     {
-        AdtMessageBox(D_8001349C, MusicNo);
+        AdtMessageBox(msg_bad_music_no, MusicNo);
         CdaStop();
     }
     else if (MusicNo >= 0x13)
@@ -150,7 +150,7 @@ void _PlayMusic(int MusicNo, int mode)
     else
     {
         music = &MusicTable[MusicNo];
-        sprintf((char *)fname, D_800134AC, music->file);
+        sprintf((char *)fname, fmt_xa_path, music->file);
         SsSetMVol(0x7F, 0x7F);
         FUN_8004fbf4(gSoundLevel, gSoundLevel);
 
@@ -165,7 +165,7 @@ void _PlayMusic(int MusicNo, int mode)
         n = CdaPlayXA(fname, &start, &end, music->channel, (int)(short)mode);
         if (n == 0)
         {
-            AdtMessageBox(D_800134BC, fname, music->channel, MusicNo);
+            AdtMessageBox(fmt_playmusic_fail_chan_id, fname, music->channel, MusicNo);
         }
     }
 }

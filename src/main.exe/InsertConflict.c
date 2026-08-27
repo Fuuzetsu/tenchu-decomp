@@ -64,7 +64,7 @@
 /* Identity constants copied into a fresh slot. UnitVector2 is Ghidra's
  * UnitVector2 (the VECTOR position); UnitVector is the SVECTOR offset/size. */
 
-extern char D_800111F8[];        /* "CONFLICT REGIST FAILURE" */
+extern char msg_conflict_regist_failure[]; /* CONFLICT REGIST FAILURE */        /* "CONFLICT REGIST FAILURE" */
 
 short InsertConflict(ModelType *model)
 {
@@ -79,7 +79,7 @@ short InsertConflict(ModelType *model)
     }
     if (ConflictObjects >= 0x50)
     {
-        SystemOut(D_800111F8);
+        SystemOut(msg_conflict_regist_failure);
     }
     cnt = ConflictObjects;
     ConflictObjects = cnt + 1;

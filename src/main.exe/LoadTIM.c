@@ -38,7 +38,7 @@
  * ignores it. This is ordinary old-C fallthrough, not evidence for replacing
  * the original return type with `void`.
  */
-extern char D_800110B8[]; /* "NO IMAGE DATA" */
+extern char msg_no_image_data[]; /* NO IMAGE DATA */
 
 short LoadTIM(unsigned long *adr)
 {
@@ -46,7 +46,7 @@ short LoadTIM(unsigned long *adr)
     GsIMAGE tim;
 
     if (adr == 0) {
-        SystemOut(D_800110B8);
+        SystemOut(msg_no_image_data);
     }
     GsGetTimInfo(adr + 1, &tim);
     rect.x = tim.px;

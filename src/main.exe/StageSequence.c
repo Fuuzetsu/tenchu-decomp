@@ -79,10 +79,10 @@
 extern volatile s32 StageTime;
 extern long EmergencyNotice;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern char D_80012830[];
-extern char D_80012840[];
-extern char D_80097C7C[];
-extern char D_80097C84[];
+extern char fmt_dbg_quad[]; /* %d-%d-%d-%d  */
+extern char fmt_dbg_counts[]; /* %d/%d/%d(%d/%d)  */
+extern char fmt_num_paren[]; /* %d(%d) */
+extern char fmt_num_bracket[]; /*  [%d] */
 extern char D_80097C8C[];
 
 extern void UpdateEvent(s16 n, s16 id);
@@ -151,18 +151,18 @@ active_events:
 
     if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0 && SkipFrame == 0)
     {
-        FntPrint(D_80012830, StageID + 1, STAGE_LAYOUT_NUMBER,
+        FntPrint(fmt_dbg_quad, StageID + 1, STAGE_LAYOUT_NUMBER,
                  GameClock / 30, EmergencyNotice);
-        FntPrint(D_80012840, Findenemies, Murders, Criticals,
+        FntPrint(fmt_dbg_counts, Findenemies, Murders, Criticals,
                  StageEnemies, StageBosses);
-        FntPrint(D_80097C7C, FriendHits, StageCitizens);
+        FntPrint(fmt_num_paren, FriendHits, StageCitizens);
         if (Event[0] != 0)
         {
-            FntPrint(D_80097C84, Event[0]->id);
+            FntPrint(fmt_num_bracket, Event[0]->id);
         }
         if (Event[1] != 0)
         {
-            FntPrint(D_80097C84, Event[1]->id);
+            FntPrint(fmt_num_bracket, Event[1]->id);
         }
         FntPrint(D_80097C8C);
     }

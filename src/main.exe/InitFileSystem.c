@@ -73,8 +73,8 @@ extern int strncmp(const char *a, const char *b, u32 n);
 extern void vinit(void *adr, u32 size);
 extern void *vcalloc(u32 size, u8 c);
 extern int AfsOpenVolume(TAFS *handle, char *path);
-extern u8 D_800110F0[16]; /* "ACQUREMEMORYDISK" */
-extern char D_80011104[]; /* "TENCHU\DATA" */
+extern u8 str_acqurememorydisk[16]; /* "ACQUREMEMORYDISK" */
+extern char path_tenchu_data[]; /* TENCHU\\DATA */
 
 void InitFileSystem(int mode)
 {
@@ -90,11 +90,11 @@ void InitFileSystem(int mode)
     case 1:
         PCinit();
         if (strncmp((char *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
-                    (char *)D_800110F0,
+                    (char *)str_acqurememorydisk,
                     TENCHU_PC_MEMORY_HANDSHAKE_SIZE) != 0) {
             vinit(0, 0);
             __builtin_memcpy((void *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
-                             D_800110F0, sizeof(D_800110F0));
+                             str_acqurememorydisk, sizeof(str_acqurememorydisk));
             ReadMode = ReadMode | 9;
         }
         if (ReadMode & 9) {
@@ -109,7 +109,7 @@ void InitFileSystem(int mode)
     case 2:
         CdInit();
         cd_init();
-        AfsOpenVolume(&systemAFS, D_80011104);
+        AfsOpenVolume(&systemAFS, path_tenchu_data);
         break;
     }
 }

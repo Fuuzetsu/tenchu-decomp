@@ -79,7 +79,7 @@
  *    source order is sin-block then cos-block, each self-contained).
  */
 
-extern char D_800124C0[];                   /* "select item" */
+extern char str_select_item[]; /* select item */                   /* "select item" */
 extern SVECTOR D_80097B88[];                /* smoke-puff velocity/offset const */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
@@ -104,7 +104,7 @@ void AddItem2(void)
 
     __builtin_memcpy(work.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                      sizeof(work.ItemName));
-    n = AdtSelect(D_800124C0, work.ItemName, 0);
+    n = AdtSelect(str_select_item, work.ItemName, 0);
     memset(&work.spawn.param, 0, sizeof(work.spawn.param));
     work.spawn.param.type = n;
 

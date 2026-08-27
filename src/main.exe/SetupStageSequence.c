@@ -50,8 +50,8 @@ extern void vfree(void *p);
 extern void StartStageSequence(void);
 extern void sprintf(char *s, char *fmt, ...);
 
-extern char D_80012808[]; /* "%sSTAGE%d.ESD" */
-extern char D_80012818[]; /* "K:\\WORK\\CDIMAGE\\ANIM\\" */
+extern char fmt_stage_esd[]; /* %sSTAGE%d.ESD */
+extern char path_anim[]; /* K:\\WORK\\CDIMAGE\\ANIM\\ */
 
 void SetupStageSequence(void)
 {
@@ -61,7 +61,7 @@ void SetupStageSequence(void)
     if (StageEvent != 0) {
         vfree(StageEvent);
     }
-    sprintf((char *)name, D_80012808, D_80012818, StageID + 1);
+    sprintf((char *)name, fmt_stage_esd, path_anim, StageID + 1);
     StageEvent = (EventSeqType *)FileRead(name);
     StartStageSequence();
 }

@@ -103,9 +103,9 @@
 extern s16 VISIBLE_ENEMIES_;
 extern s16 D_800BE768[];
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
-extern char D_80011668[];
-extern char D_80011684[];
-extern char D_80011694[];
+extern char fmt_dbg_pos[]; /* ~c800%02x~c888(%d,%d,%d)  */
+extern char fmt_dbg_word[]; /* ~c880%04x=%02x  */
+extern char fmt_dbg_pair[]; /* ~c080%02x/%d%d  */
 extern char D_800116A4[];
 
 extern void StateTransition(Humanoid *human);
@@ -151,12 +151,12 @@ void ControlHumanoid(Humanoid *human)
         }
         if (human == StagePlayer)
         {
-            FntPrint(D_80011668, human->type,
+            FntPrint(fmt_dbg_pos, human->type,
                      human->locate->vx / 1000,
                      human->locate->vy / 1000,
                      human->locate->vz / 1000);
-            FntPrint(D_80011684, (u16)human->attribute, (u8)human->status);
-            FntPrint(D_80011694, (u8)human->motion->mid,
+            FntPrint(fmt_dbg_word, (u16)human->attribute, (u8)human->status);
+            FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
                      human->motion->loop, human->motion->count);
             FntPrint(D_800116A4, human->rotate->vy,
                      human->model->object[0]->id);

@@ -18,14 +18,14 @@
  */
 
 extern void AdtMessageBox(char *fmt, ...);
-extern char D_80014998[]; /* "AfsClose: invalid handle" — lives in this
+extern char msg_afsclose_invalid_handle[]; /* AfsClose: invalid handle */ /* "AfsClose: invalid handle" — lives in this
                             * TU's unsplit data blob (splat auto-symbol),
-                            * same pattern as AfsInit's D_80014944. */
+                            * same pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 int AfsClose(TAFSFileHandle *fd)
 {
     if (fd == 0) {
-        AdtMessageBox(D_80014998);
+        AdtMessageBox(msg_afsclose_invalid_handle);
         return -1;
     }
     fd->flagUse = 0;

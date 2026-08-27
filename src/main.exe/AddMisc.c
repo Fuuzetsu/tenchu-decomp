@@ -90,8 +90,8 @@
 
 typedef struct { u8 *n[7]; } TimNameBlock; /* codegen-only array view */
 extern u8 *D_80012788[7]; /* the seven water/warp TIM names */
-extern u8 D_800127A4[];   /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
-extern char D_800127BC[];  /* "undefined effect %d" */
+extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */   /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
+extern char fmt_undefined_effect[]; /* "undefined effect %d" */
 
 extern void ProcMiscFire(TMisc *m, TMiscMessage msg);
 extern void FUN_8004d6d4(TMisc *m, TMiscMessage msg);
@@ -152,7 +152,7 @@ loop:
                 break;
             case 5:
                 __builtin_memcpy(tbl, D_80012788, sizeof(tbl));
-                adr = PathFileRead(D_800127A4, tp->n[x]);
+                adr = PathFileRead(path_image_2, tp->n[x]);
                 GetTIMInfo(adr, ptm);
                 LoadTIMAndFree(adr);
                 SetupTexScroll(ptm, y, z);
@@ -164,7 +164,7 @@ loop:
                 p->proc = FUN_8004c59c;
                 break;
             default:
-                AdtMessageBox(D_800127BC, type);
+                AdtMessageBox(fmt_undefined_effect, type);
                 return;
             }
             p->proc(p, MM_CREATE);

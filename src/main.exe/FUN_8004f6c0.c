@@ -23,29 +23,29 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern void LoadExecEx(u8 *file, u32 addr, s32 arg2);
 
-extern char D_800128FC[]; /* "cdrom:\TENCHU\MENU.EXE;1" */
-extern char D_80012918[]; /* "cdrom:\TENCHU\MAIN.EXE;1" */
-extern char D_80012934[]; /* "cdrom:\TENCHU\ENDING.EXE;1" */
-extern char D_80012950[]; /* "cdrom:\TENCHU\TRIAL.EXE;1" */
-extern char D_8001296C[]; /* "bad process id %x" */
+extern char path_tenchu_menu_exe_1[]; /* cdrom:\\TENCHU\\MENU.EXE;1 */
+extern char path_tenchu_main_exe_1[]; /* cdrom:\\TENCHU\\MAIN.EXE;1 */
+extern char path_tenchu_ending_exe_1[]; /* cdrom:\\TENCHU\\ENDING.EXE;1 */
+extern char path_tenchu_trial_exe_1[]; /* cdrom:\\TENCHU\\TRIAL.EXE;1 */
+extern char fmt_bad_process_id[]; /* bad process id %x */
 
 void FUN_8004f6c0(int param_1)
 {
     switch (param_1) {
     case 0x10:
-        LoadExecEx((u8 *)D_800128FC, TENCHU_INITIAL_STACK_ADDRESS, 0);
+        LoadExecEx((u8 *)path_tenchu_menu_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     case 0x11:
-        LoadExecEx((u8 *)D_80012918, TENCHU_INITIAL_STACK_ADDRESS, 0);
+        LoadExecEx((u8 *)path_tenchu_main_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     case 0x12:
-        LoadExecEx((u8 *)D_80012934, TENCHU_INITIAL_STACK_ADDRESS, 0);
+        LoadExecEx((u8 *)path_tenchu_ending_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     case 0x13:
-        LoadExecEx((u8 *)D_80012950, TENCHU_INITIAL_STACK_ADDRESS, 0);
+        LoadExecEx((u8 *)path_tenchu_trial_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     default:
-        AdtMessageBox(D_8001296C, param_1);
+        AdtMessageBox(fmt_bad_process_id, param_1);
         FUN_8004f6c0(0x10);
         return;
     }

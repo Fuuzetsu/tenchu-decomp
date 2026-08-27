@@ -47,7 +47,7 @@
 extern void *valloc(u32 size);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern OrnamentType *LoadOrnament(u_long *adr);
-extern char D_800120AC[]; /* "NO MODEL ARCHIVE DATA" */
+extern char msg_no_model_archive_data_2[]; /* NO MODEL ARCHIVE DATA */
 
 OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
 {
@@ -63,7 +63,7 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     int count;
 
     if (adr == 0) {
-        SystemOut(D_800120AC);
+        SystemOut(msg_no_model_archive_data_2);
     }
     mad = (OrnamentArchiveType *)valloc(sizeof(OrnamentArchiveType));
     mad->data = adr;

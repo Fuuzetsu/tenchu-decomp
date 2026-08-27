@@ -37,8 +37,8 @@
  */
 extern void AdtMessageBox(char *fmt, ...);
 extern void vfree(void *p);
-extern char D_8001287C[]; /* "K:\\WORK\\CDIMAGE\\IMAGE\\images.arc" */
-extern char D_800128A0[]; /* "bad image file" */
+extern char path_image_images_arc[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\images.arc */
+extern char msg_bad_image_file[]; /* bad image file */
 extern GsIMAGE Images[62];
 
 void InitializeImage(void)
@@ -48,9 +48,9 @@ void InitializeImage(void)
     int i;
     GsIMAGE *image;
 
-    pt = FileRead(D_8001287C);
+    pt = FileRead(path_image_images_arc);
     if ((short)*pt < 0x3e) {
-        AdtMessageBox(D_800128A0);
+        AdtMessageBox(msg_bad_image_file);
     }
     i = 0;
     image = Images;

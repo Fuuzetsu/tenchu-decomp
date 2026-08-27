@@ -233,7 +233,7 @@ typedef struct
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern char D_800137A0[];
+extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 /* The adjacent retail symbols prove four complete 11-stage language rows. */
 extern DemoScreenAssets D_8008EA90[4][11];
 extern s16 D_8008ECA0[4][11];
@@ -287,7 +287,7 @@ void FUN_800519bc(void)
     s32 scaled_brightness;
     s16 i;
 
-    file = PathFileRead((u8 *)D_800137A0,
+    file = PathFileRead((u8 *)path_demo,
                         D_8008EA90[PSTATE->language][PSTATE->StageNo].background);
     sequence = 0;
     fade = 0xfe;
@@ -298,7 +298,7 @@ void FUN_800519bc(void)
     background = FUN_8004f4f8(file);
     vfree(file);
 
-    file = PathFileRead((u8 *)D_800137A0,
+    file = PathFileRead((u8 *)path_demo,
                         D_8008EA90[PSTATE->language][PSTATE->StageNo].foreground);
     TimToDemoSprite(file, &image, &sprite);
     sprite.x = -0xa0;

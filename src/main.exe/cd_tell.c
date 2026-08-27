@@ -13,14 +13,14 @@
  */
 
 extern int puts(char *s);
-extern char D_80014A60[]; /* "cd_tell:invalid handle" — lives in this TU's
+extern char msg_cd_tell_invalid_handle[]; /* cd_tell:invalid handle */ /* "cd_tell:invalid handle" — lives in this TU's
                             * unsplit data blob (splat auto-symbol), same
-                            * pattern as AfsInit's D_80014944. */
+                            * pattern as AfsInit's msg_afsinit_not_enough_memory. */
 
 int cd_tell(FILE *f)
 {
     if (f == 0) {
-        puts(D_80014A60);
+        puts(msg_cd_tell_invalid_handle);
         return -1;
     }
     return f->pos;

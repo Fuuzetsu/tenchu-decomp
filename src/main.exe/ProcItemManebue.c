@@ -47,7 +47,7 @@
  *    did not define it (think's TU does), so ASPSX addressed it absolutely
  *    (lui $at) — unlike Think1sleep, where the same symbol is gp-relative.
  */
-extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
+extern char msg_item_dispose_fail[];
 
 void ProcItemManebue(TItem *item)
 {

@@ -62,7 +62,7 @@
  *    is taken — ordinary scheduling, no special spelling.
  */
 
-extern char D_800127D0[];
+extern char msg_misc_not_initialized[]; /* misc not initialized */
 
 /* Misc visibility distance from MISC.C's anonymous enum. */
 enum
@@ -81,7 +81,7 @@ void DoMiscProc(void)
 
     if (Misc_fInitial == 0)
     {
-        AdtMessageBox(D_800127D0);
+        AdtMessageBox(msg_misc_not_initialized);
     }
     else
     {

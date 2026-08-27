@@ -26,9 +26,9 @@
 
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern char D_80013AFC[];
-extern char D_80013B24[];
-extern char D_800137A0[];
+extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
+extern char fmt_arc[]; /* %s%s%c.Arc */
+extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 extern char *GOV_RESOURCE_PREFIX_PTRS[];
 extern char *GOV_ARCHIVE_PTRS[];
 
@@ -112,7 +112,7 @@ void start_demo_(void)
     ClearImage(&clear_rect, 0, 0, clear_b);
     DrawSync(0);
 
-    tim = FileRead(D_80013AFC);
+    tim = FileRead(path_demo_start_fadeio_tim);
     GetTIMInfo(tim, &fade_image);
     LoadTIMAndFree(tim);
     fade_sprite = SetupSprite(0, &fade_image);
@@ -124,9 +124,9 @@ void start_demo_(void)
     {
         suffix = 'a';
     }
-    resource_root = D_800137A0;
+    resource_root = path_demo;
     prefix_entry = &GOV_RESOURCE_PREFIX_PTRS[language_state->language];
-    sprintf(archive_path, D_80013B24, resource_root, *prefix_entry, suffix);
+    sprintf(archive_path, fmt_arc, resource_root, *prefix_entry, suffix);
     fade_archive = FileRead(archive_path);
     tim = get_tim_from_archive(fade_archive, 0);
     background = FUN_8004f4f8(tim);

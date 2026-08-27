@@ -103,7 +103,7 @@
 extern int sprintf(char *buf, char *fmt, ...);
 
 extern char D_80011024[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" — pooled
-                              right before vfree.c's D_8001104C ("DOUBLE MEMORY
+                              right before vfree.c's msg_double_memory_release ("DOUBLE MEMORY
                               RELEASE") in this TU's rodata */
 
 void *valloc(u32 size)

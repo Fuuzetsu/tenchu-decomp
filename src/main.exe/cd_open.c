@@ -28,10 +28,10 @@
  * STATUS: MATCH (66/66 instructions).
  */
 
-extern char D_80097E80[];
-extern char D_80097E88[];
-extern char D_80014A08[];
-extern char D_80014A1C[];
+extern char fmt_cd_path[]; /* \\%s;1 */
+extern char fmt_cd_file[]; /* %s;1 */
+extern char str_open_out_of_handle[]; /* open:out of handle */
+extern char msg_open_file_not_found[]; /* open:file not found */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern int puts(char *s);
@@ -46,9 +46,9 @@ FILE *cd_open(char *name)
     s16 retries;
 
     if (*name != '\\') {
-        sprintf(path, D_80097E80, name);
+        sprintf(path, fmt_cd_path, name);
     } else {
-        sprintf(path, D_80097E88, name);
+        sprintf(path, fmt_cd_file, name);
     }
 
     index = 0;
@@ -65,7 +65,7 @@ FILE *cd_open(char *name)
 have_handle:
     retries = 0;
     if (file == NULL) {
-        puts(D_80014A08);
+        puts(str_open_out_of_handle);
     } else {
         do {
             found = CdSearchFile(&file->finfo, path);
@@ -76,7 +76,7 @@ have_handle:
             }
             retries++;
         } while (retries < 10);
-        puts(D_80014A1C);
+        puts(msg_open_file_not_found);
     }
     return NULL;
 }

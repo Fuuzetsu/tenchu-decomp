@@ -54,7 +54,7 @@
  *    eight-byte growth from PSX.SYM's original MapVector.
  *  - The menu-title string ("player option") and the table itself sit in a
  *    shared debug-menu data blob far from this function's own code (like
- *    DoInfoViewProc's D_800125F0 etc.) — referenced by address, not
+ *    DoInfoViewProc's str_select_option etc.) — referenced by address, not
  *    embedded as a fresh C literal (a literal would land in this object's
  *    own .rodata, not the original's fixed address).
  *  - The dispatch is a real switch (dense case set 0..3, no default), case
@@ -89,7 +89,7 @@
  *    semantically identical but flips that scheduling tie.
  */
 
-extern char D_80014784[];                    /* "player option" */
+extern char str_player_option[]; /* player option */                    /* "player option" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void debug_menu_player_jump(void);
@@ -108,7 +108,7 @@ void PlayerOption(void)
     TAdtSelect option[7];
 
     __builtin_memcpy(option, DEBUG_MENU_PLAYER_CHOICE_OPTIONS, sizeof(option));
-    n = AdtSelect(D_80014784, option, 0);
+    n = AdtSelect(str_player_option, option, 0);
     switch (n)
     {
     case RESET:

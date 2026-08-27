@@ -46,7 +46,7 @@ extern void *valloc(u32 size);
 extern void *vmemoryGC(void *p);
 extern void *vrealloc(void *p, s32 size);
 
-extern char D_800110DC[]; /* "SOUND SETUP FAILURE" */
+extern char msg_sound_setup_failure[]; /* SOUND SETUP FAILURE */
 
 SoundEffect *SetupSE(u8 *vab)
 {
@@ -62,7 +62,7 @@ SoundEffect *SetupSE(u8 *vab)
     se->VABid = SsVabOpenHead(vab, -1);
     if (se->VABid == -1)
     {
-        SystemOut(D_800110DC);
+        SystemOut(msg_sound_setup_failure);
     }
     t = *(u16 *)(vab + 0x12);
     size = ((t << 16) >> 7) + 0xA20;
