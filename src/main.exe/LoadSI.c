@@ -68,16 +68,16 @@
  *    not an array — the asm `lw a2,%gp_rel(CID)($gp)` loads its
  *    VALUE); Build.hs maspsxGpExterns / tools/gpsyms.py confirm it's the
  *    only %gp_rel symbol in this function.
- *  - D_80097D90/D_80097D98 sit in the same INFOVIEW.C string-table run as
+ *  - fmt_concat/fmt_card_name sit in the same INFOVIEW.C string-table run as
  *    SelectCameraOwnerOption's D_80097D70 (fixed there as D_80097D70);
  *    once that anchor was bound, splat's whole auto-name chain for this
  *    region resolved correctly (verified against the .map) — no separate
  *    fix needed for these two.
  */
-extern char D_80097D90[];  /* "%s%s" */
-extern char D_80097D98[];  /* "%s\%d\%s" */
+extern char fmt_concat[]; /* "%s%s" */  /* "%s%s" */
+extern char fmt_card_name[]; /* "%s%d_%s" */  /* "%s\%d\%s" */
 extern char D_800141A4[];  /* "file read error" */
-extern char D_80014168[];  /* "card error %d" */
+extern char msg_card_error[]; /* "card error %d" */  /* "card error %d" */
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);
@@ -99,7 +99,7 @@ void *LoadSI(int target, u8 *name)
 
     if (target == 0)
     {
-        sprintf(fn, D_80097D90, ImagePath, name);
+        sprintf(fn, fmt_concat, ImagePath, name);
         ret = FileRead(fn);
         goto return_result;
     }
@@ -112,12 +112,12 @@ void *LoadSI(int target, u8 *name)
     MemCardSync((s32)msg, &cmd, &result);
     if (result != 0 && result != 3)
     {
-        msg = D_80014168;
+        msg = msg_card_error;
         vfree(ret);
         ret = 0;
         goto done;
     }
-    sprintf(fn, D_80097D98, CID, StageID, name);
+    sprintf(fn, fmt_card_name, CID, StageID, name);
     MemCardReadFile(0, fn, block, 0, BLOCKSIZE);
     MemCardSync(0, &cmd, &result);
     if (result != 0)

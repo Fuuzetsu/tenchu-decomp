@@ -99,7 +99,7 @@ void LayoutEnemyOption(void)
 
     __builtin_memcpy(ItemName, DEBUG_MENU_ENEMY_LAYOUT_OPTIONS,
                      sizeof(ItemName));
-    __builtin_memcpy(OkCancel, D_800140A8, sizeof(OkCancel));
+    __builtin_memcpy(OkCancel, sel_okcancel, sizeof(OkCancel));
     n = AdtSelect(D_800140C0, ItemName, 0);
     if ((n & 0xFFFF) != 0xFFFF)
     {

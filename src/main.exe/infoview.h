@@ -14,7 +14,7 @@ extern TAdtSelect D_8001252C[3];
 extern TAdtSelect DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS[31];
 extern TAdtSelect DEBUG_MENU_ENEMY_LAYOUT_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS[7];
-extern TAdtSelect D_800140A8[3];
+extern TAdtSelect sel_okcancel[3]; /* {"ok",1},{"cancel",0},{0,0} */
 extern TAdtSelect DEBUG_MENU_LANGUAGE_CHOICES[5];
 extern TAdtSelect D_800141F4[3];
 extern TAdtSelect DEBUG_MENU_FILE_CHOICES[20];

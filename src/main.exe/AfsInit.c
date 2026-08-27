@@ -27,7 +27,7 @@ extern void *memset(void *s, int c, u32 n);
 extern void *valloc(u32 size);
 extern char D_80014944[]; /* "AfsInit: not enough memory!" — lives in this
                             * TU's unsplit data blob (splat auto-symbol), same
-                            * pattern as D_800121CC/D_8001113C elsewhere: a
+                            * pattern as msg_item_dispose_fail/D_8001113C elsewhere: a
                             * fresh string literal here would land in a NEW
                             * .rodata for this .c.o, which the linker script
                             * has no section-order slot for (rodata is only

@@ -145,7 +145,7 @@ void ProcItemLightningBolt(TItem *item)
         DeleteConflict(item->locate);
         if (item->mode != 0)
         {
-            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
         item->owner = 0;
         item->proc = 0;
@@ -239,7 +239,7 @@ void ProcItemLightningBolt(TItem *item)
 // ? SetLightning(void *, void *, ?, ?, s32);          /* extern */
 // ? SoundEx(?, ?, ?);                                 /* extern */
 // extern TCameraStatus CamState;
-// extern ? D_800121CC;
+// extern ? msg_item_dispose_fail;
 // extern ? ConflictObject;
 // extern s32 GameClock;
 //
@@ -281,7 +281,7 @@ void ProcItemLightningBolt(TItem *item)
 //                 DeleteConflict(arg0->unk10);
 //                 temp_v0_3 = arg0->unk54;
 //                 if (temp_v0_3 != 0) {
-//                     AdtMessageBox(&D_800121CC, arg0->unk8, temp_v0_3);
+//                     AdtMessageBox(&msg_item_dispose_fail, arg0->unk8, temp_v0_3);
 //                 }
 //                 arg0->unk0 = 0;
 //                 arg0->unkC = NULL;

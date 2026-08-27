@@ -392,7 +392,7 @@ extern int rand(void);
 extern void *memset(void *s, int c, u32 n);
 
 /* "item dispose fail   id %d  mode %d" */
-extern char D_800121CC[];
+extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 /* The global item pool. */
 extern TItem items[30];
 /* ITEM.C's shared model and sprite resources. */

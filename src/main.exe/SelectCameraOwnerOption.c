@@ -75,7 +75,7 @@
  *  - No %gp_rel symbols in this function (tools/gpsyms.py): Humans/
  *    HumanGroup are another TU's smalls, absolute here.
  *  - `D_80097D70` (the "%d" format string) is a splat auto-name drifted -8
- *    bytes in this run (a whole D_80097D68..D_80097D90 chain shares the
+ *    bytes in this run (a whole D_80097D68..fmt_concat chain shares the
  *    offset — verified against the .map). Bound a fresh
  *    `D_80097D70 = 0x80097D70;` in config/symbols.main.exe.txt per the
  *    cookbook's drifted-symbol recipe rather than fight the wrong auto-name.

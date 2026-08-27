@@ -25,7 +25,7 @@
  * Matching notes (see docs/matching-cookbook.md):
  *  - A hand-rolled `label: ...; goto label;` loop, NOT a `for`/`while`: the
  *    target keeps ONE cursor register (`it`) with plain field offsets and
- *    never hoists the loop-invariant D_800121CC address or the
+ *    never hoists the loop-invariant msg_item_dispose_fail address or the
  *    ITEM_MODE_DISPOSE constant (emitted as `li 0xff`) out of the loop. A
  *    real for/while(1) here gets recognized by
  *    loop.c, which both strength-reduces `it->proc`'s repeated offset into a
@@ -51,7 +51,7 @@ loop:
         DeleteConflict(it->locate);
         if (it->mode != 0)
         {
-            AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+            AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
         }
         it->owner = 0;
         it->proc = 0;

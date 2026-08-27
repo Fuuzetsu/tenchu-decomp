@@ -61,17 +61,17 @@ typedef struct
  * A single fixed-size built-in copy changes that allocation in this larger
  * function; Clut's short copy does not need the distinction. */
 
-extern char D_80097D90[];
-extern char D_80097D98[];
-extern char D_80014104[];
-extern char D_80014114[];
-extern char D_80014128[];
-extern char D_80014134[];
-extern char D_80014144[];
-extern char D_80014158[];
-extern char D_80014168[];
-extern char D_80014178[];
-extern char D_80014190[];
+extern char fmt_concat[]; /* "%s%s" */
+extern char fmt_card_name[]; /* "%s%d_%s" */
+extern char msg_open_error[]; /* "open error %s" */
+extern char msg_size_too_large[]; /* "file size too large" */
+extern char fmt_save_title[]; /* "STAGE %d %s" */
+extern char msg_format_card[]; /* "format card?" */
+extern char msg_not_formatted[]; /* "card not formated" (sic) */
+extern char msg_card_damaged[]; /* "card damaged" */
+extern char msg_card_error[]; /* "card error %d" */
+extern char msg_create_error[]; /* "file create error %d" */
+extern char msg_write_error[]; /* "file write error %d" */
 
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -102,11 +102,11 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
 
     if (target == 0)
     {
-        sprintf(fn, D_80097D90, ImagePath, name);
+        sprintf(fn, fmt_concat, ImagePath, name);
         fd = PCcreat(fn, 0);
         if (fd == -1)
         {
-            AdtMessageBox(D_80014104, fn);
+            AdtMessageBox(msg_open_error, fn);
             return;
         }
         PCwrite(fd, mem, size);
@@ -120,7 +120,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     data = block + sizeof(TCardHeader);
     if ((u32)size > BLOCKSIZE - sizeof(TCardHeader))
     {
-        AdtMessageBox(D_80014114);
+        AdtMessageBox(msg_size_too_large);
         goto done;
     }
     {
@@ -138,7 +138,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         hd->Magic[1] = 0x43;
         hd->Type = 0x13;
         hd->BlockEntry = 1;
-        sprintf(hd->Title, D_80014128, StageID + 1, name);
+        sprintf(hd->Title, fmt_save_title, StageID + 1, name);
 
         icon1 = (u8 *)GetArcData(0x16);
         icon2 = (u8 *)GetArcData(0x17);
@@ -232,12 +232,12 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         }
         if (result == 4)
         {
-            __builtin_memcpy(sel, D_800140A8, sizeof(sel));
+            __builtin_memcpy(sel, sel_okcancel, sizeof(sel));
             if (msg != 0)
             {
                 do
                 {
-                    src = (u8 *)D_80014134;
+                    src = (u8 *)msg_format_card;
                 } while (0);
                 dst = (u8 *)sel;
                 end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
@@ -246,14 +246,14 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             {
                 do
                 {
-                    src = (u8 *)D_80014134;
+                    src = (u8 *)msg_format_card;
                 } while (0);
                 dst = (u8 *)sel;
                 end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
             }
             if (end == 0)
             {
-                msg = D_80014144;
+                msg = msg_not_formatted;
             }
             else
             {
@@ -263,17 +263,17 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                 {
                     goto create_file;
                 }
-                msg = D_80014158;
+                msg = msg_card_damaged;
             }
         }
         else
         {
-            msg = D_80014168;
+            msg = msg_card_error;
         }
         goto done;
 
 create_file:
-        sprintf(fn, D_80097D98, CID, StageID, name);
+        sprintf(fn, fmt_card_name, CID, StageID, name);
         src = (u8 *)chan;
         if (msg != 0)
         {
@@ -287,7 +287,7 @@ create_file:
         result = alignment;
         if (alignment != 0 && alignment != 6)
         {
-            msg = D_80014178;
+            msg = msg_create_error;
             goto done;
         }
         memcpy(data, mem, size);
@@ -295,7 +295,7 @@ create_file:
         MemCardSync(0, &cmd, &result);
         if (result != 0)
         {
-            msg = D_80014190;
+            msg = msg_write_error;
         }
     }
 

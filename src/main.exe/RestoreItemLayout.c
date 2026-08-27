@@ -85,7 +85,7 @@ loop1:
         it->proc(it);
         DeleteConflict(it->locate);
         if (it->mode != 0) {
-            AdtMessageBox(D_800121CC, it->type, (u32)it->mode);
+            AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
         }
         it->owner = 0;
         it->proc = 0;
@@ -243,7 +243,7 @@ search_success:
 // ? ReqItemStay(s32 *);                               /* extern */
 // s32 abs(s32);                                       /* extern */
 // ? memset(s32 *, ?, ?);                              /* extern */
-// extern ? D_800121CC;
+// extern ? msg_item_dispose_fail;
 // extern ? D_8008E404;
 // extern s32 GlobalAreaMap;
 // extern ? items;
@@ -283,7 +283,7 @@ search_success:
 //             DeleteConflict(var_s0->unk10);
 //             temp_v0_2 = var_s0->unk54;
 //             if (temp_v0_2 != 0) {
-//                 AdtMessageBox(&D_800121CC, var_s0->unk8, temp_v0_2);
+//                 AdtMessageBox(&msg_item_dispose_fail, var_s0->unk8, temp_v0_2);
 //             }
 //             var_s0->unk0 = 0;
 //             var_s0->unkC = NULL;

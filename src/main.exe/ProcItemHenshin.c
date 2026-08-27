@@ -166,7 +166,7 @@ void ProcItemHenshin(TItem *item)
             DeleteConflict(item->locate);
             if (item->mode != 0)
             {
-                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
             item->owner = 0;
             item->proc = 0;
@@ -195,7 +195,7 @@ void ProcItemHenshin(TItem *item)
                 DeleteConflict(old->locate);
                 if (old->mode != 0)
                 {
-                    AdtMessageBox(D_800121CC, old->type, (u32)old->mode);
+                    AdtMessageBox(msg_item_dispose_fail, old->type, (u32)old->mode);
                 }
                 old->owner = 0;
                 old->proc = 0;
@@ -273,7 +273,7 @@ void ProcItemHenshin(TItem *item)
         DeleteConflict(item->locate);
         if (item->mode != 0)
         {
-            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
         item->owner = 0;
         item->proc = 0;

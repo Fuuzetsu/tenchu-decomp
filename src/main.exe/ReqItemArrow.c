@@ -128,7 +128,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     DeleteConflict(slot->locate);
     if (slot->mode != 0)
     {
-        AdtMessageBox(D_800121CC, slot->type, (u32)slot->mode);
+        AdtMessageBox(msg_item_dispose_fail, slot->type, (u32)slot->mode);
     }
     item = slot;
     item->owner = 0;

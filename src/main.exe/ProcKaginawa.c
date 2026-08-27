@@ -107,7 +107,7 @@ void ProcKaginawa(TItem *item)
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
-            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         item->owner = 0;
         item->proc = 0;
     }
@@ -120,7 +120,7 @@ void ProcKaginawa(TItem *item)
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
-            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         item->owner = 0;
         item->proc = 0;
     }
@@ -171,7 +171,7 @@ void ProcKaginawa(TItem *item)
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
-            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         item->owner = 0;
         item->proc = 0;
     }
@@ -290,7 +290,7 @@ void ProcKaginawa(TItem *item)
 // ? RotateVector(s32 *, s32, s32, ?);                 /* extern */
 // ? SetCameraMode(?);                                 /* extern */
 // extern ? CamState;
-// extern ? D_800121CC;
+// extern ? msg_item_dispose_fail;
 // extern ? D_80012238;
 // extern s32 OTablePt;
 // extern ? TargetSprite;
@@ -390,7 +390,7 @@ void ProcKaginawa(TItem *item)
 //                 DeleteConflict(arg0->unk10);
 //                 temp_v0_3 = arg0->unk54;
 //                 if (temp_v0_3 != 0) {
-//                     AdtMessageBox(&D_800121CC, arg0->unk8, temp_v0_3);
+//                     AdtMessageBox(&msg_item_dispose_fail, arg0->unk8, temp_v0_3);
 //                 }
 //                 arg0->unk0 = NULL;
 //                 arg0->unkC = NULL;

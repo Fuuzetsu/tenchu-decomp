@@ -360,7 +360,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             DeleteConflict(cur->locate);
             if (cur->mode != 0)
             {
-                AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+                AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
             }
             it = cur;
             it->owner = 0;
@@ -763,7 +763,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         DeleteConflict(cur->locate);
         if (cur->mode != 0)
         {
-            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+            AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
         }
         it = cur;
         it->owner = 0;
@@ -851,7 +851,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         DeleteConflict(cur->locate);
         if (cur->mode != 0)
         {
-            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+            AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
         }
         it = cur;
         it->owner = 0;
@@ -971,7 +971,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         DeleteConflict(cur->locate);
         if (cur->mode != 0)
         {
-            AdtMessageBox(D_800121CC, cur->type, (u32)cur->mode);
+            AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
         }
         it = cur;
         it->owner = 0;

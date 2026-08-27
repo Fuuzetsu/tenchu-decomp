@@ -162,7 +162,7 @@ void ProcItemFire(TItem *item)
             DeleteConflict(item->locate);
             if (item->mode != 0)
             {
-                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
             item->owner = 0;
             item->proc = 0;
@@ -229,7 +229,7 @@ void ProcItemFire(TItem *item)
                     DeleteConflict(item->locate);
                     if (item->mode != 0)
                     {
-                        AdtMessageBox(D_800121CC, item->type,
+                        AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
                     }
                     item->owner = 0;
@@ -353,7 +353,7 @@ void ProcItemFire(TItem *item)
             DeleteConflict(item->locate);
             if (item->mode != 0)
             {
-                AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
             item->owner = 0;
             item->proc = 0;

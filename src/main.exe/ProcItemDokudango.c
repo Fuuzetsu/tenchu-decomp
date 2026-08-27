@@ -107,7 +107,7 @@ void ProcItemDokudango(TItem *item)
         DeleteConflict(item->locate);
         if (item->mode != 0)
         {
-            AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
         item->owner = 0;
         item->proc = 0;
@@ -249,7 +249,7 @@ set_target:
                     DeleteConflict(item->locate);
                     if (item->mode != 0)
                     {
-                        AdtMessageBox(D_800121CC, item->type,
+                        AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
                     }
                     item->owner = 0;
@@ -425,7 +425,7 @@ dispose_case3:
                 DeleteConflict(item->locate);
                 if (item->mode != 0)
                 {
-                    AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+                    AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
                 }
                 item->owner = 0;
                 item->proc = 0;

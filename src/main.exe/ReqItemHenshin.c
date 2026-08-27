@@ -75,7 +75,7 @@ int ReqItemHenshin(PARAM_ITEM_LAUNCH *p)
     DeleteConflict(item->locate);
     if (item->mode != 0)
     {
-        AdtMessageBox(D_800121CC, item->type, (u32)item->mode);
+        AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
     }
     item->owner = 0;
     item->proc = 0;
