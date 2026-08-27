@@ -193,19 +193,18 @@ short DrawAfterimage(AfterimageType *afi, short disp)
 
         otz = afi->sz;
         otz = otz >> 2;
-        if (otz < 0)
+        if (otz >= 0)
         {
-            goto zero;
+            pri = 0x4e1;
+            if (otz < 0x4e2)
+            {
+                pri = otz;
+            }
         }
-        pri = 0x4e1;
-        if (otz < 0x4e2)
+        else
         {
-            pri = otz;
+            pri = 0;
         }
-        goto done;
-    zero:
-        pri = 0;
-    done:
         GsSortPoly(poly, OTablePt, (u16)pri);
         i++;
     }

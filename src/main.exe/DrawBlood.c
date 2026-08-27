@@ -169,35 +169,33 @@ void DrawBlood(TEffectSlot *ef)
         sprt->b = (u8)half;
 
         t = (s32)((u16)scratch.scr.vz << 16) >> 18;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto special_zero1;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto special_done1;
-    special_zero1:
-        pri = 0;
-    special_done1:
         GsSortSprite(spr, OTablePt, (u16)pri);
 
         t = (s32)((u16)scratch.scr.vz << 16) >> 18;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto special_zero2;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto special_done2;
-    special_zero2:
-        pri = 0;
-    special_done2:
         GsSortSprite(sprt, OTablePt, (u16)pri);
         return;
     }
@@ -371,19 +369,18 @@ draw:
     spr->x = scratch.scr.vx;
     spr->y = scratch.scr.vy;
     t = (s32)((u16)scratch.scr.vz << 16) >> 18;
-    if (t < 0)
+    if (t >= 0)
     {
-        goto draw_zero;
+        pri = 0x4e1;
+        if (t < 0x4e2)
+        {
+            pri = t;
+        }
     }
-    pri = 0x4e1;
-    if (t < 0x4e2)
+    else
     {
-        pri = t;
+        pri = 0;
     }
-    goto draw_done;
-draw_zero:
-    pri = 0;
-draw_done:
     GsSortSprite(spr, OTablePt, (u16)pri);
     }
 }

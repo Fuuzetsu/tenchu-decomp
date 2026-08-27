@@ -273,19 +273,18 @@ void DrawBleed(TEffectSlot *ef)
         plyBleed.g0 = param->g;
         plyBleed.b0 = param->b;
         pri = t >> 18;
-        if (pri < 0)
+        if (pri >= 0)
         {
-            goto zero;
+            pri = 0x4e1;
+            if ((t >> 18) < 0x4e2)
+            {
+                pri = t >> 18;
+            }
         }
-        pri = 0x4e1;
-        if ((t >> 18) < 0x4e2)
+        else
         {
-            pri = t >> 18;
+            pri = 0;
         }
-        goto done;
-    zero:
-        pri = 0;
-    done:
         GsSortPoly(&plyBleed, OTablePt, (u16)pri);
     }
 }

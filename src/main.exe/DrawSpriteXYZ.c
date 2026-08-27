@@ -88,19 +88,18 @@ void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
         sprt->x = scr.vx;
         sprt->y = scr.vy;
         t = (s32)((u32)(u16)scr.vz << 16) >> 0x12;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto zero;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto done;
-    zero:
-        pri = 0;
-    done:
         GsSortSprite(sprt, OTablePt, (u16)pri);
     }
 }

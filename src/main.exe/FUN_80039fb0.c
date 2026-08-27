@@ -86,35 +86,33 @@ void FUN_80039fb0(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 size, l
         sp1->b = (u8)(color / 2);
 
         t = (s32)((u16)out.vz << 16) >> 0x12;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto zero1;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto done1;
-    zero1:
-        pri = 0;
-    done1:
         GsSortSprite(sp2, OTablePt, (u16)pri);
 
         t = (s32)((u16)out.vz << 16) >> 0x12;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto zero2;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto done2;
-    zero2:
-        pri = 0;
-    done2:
         GsSortSprite(sp1, OTablePt, (u16)pri);
     }
 }

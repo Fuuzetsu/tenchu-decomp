@@ -109,19 +109,18 @@ void DrawSnow(TEffectSlot *effect)
         sprite->x = screen.vx;
         sprite->y = screen.vy;
         depth = (s32)((u32)(u16)screen.vz << 16) >> 18;
-        if (depth < 0)
+        if (depth >= 0)
         {
-            goto zero;
+            priority = 0x4e1;
+            if (depth < 0x4e2)
+            {
+                priority = depth;
+            }
         }
-        priority = 0x4e1;
-        if (depth < 0x4e2)
+        else
         {
-            priority = depth;
+            priority = 0;
         }
-        goto draw;
-    zero:
-        priority = 0;
-    draw:
         GsSortSprite(sprite, OTablePt, (u16)priority);
     }
 }

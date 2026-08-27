@@ -198,19 +198,18 @@ draw:
         spr->y = scr.vy;
         t = scr.vz - 0x32;
         t = t >> 2;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto zero;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto done;
-    zero:
-        pri = 0;
-    done:
         GsSortSprite(spr, OTablePt, (u16)pri);
     }
 }

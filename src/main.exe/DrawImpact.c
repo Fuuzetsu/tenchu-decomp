@@ -322,19 +322,18 @@ void DrawImpact(TEffectSlot *ef)
         spr->y = scr.vy;
 
         start2 = (s32)((u16)scr.vz << 16) >> 18;
-        if (start2 < 0)
+        if (start2 >= 0)
         {
-            goto zero;
+            priority = 0x4e1;
+            if (start2 < 0x4e2)
+            {
+                priority = start2;
+            }
         }
-        priority = 0x4e1;
-        if (start2 < 0x4e2)
+        else
         {
-            priority = start2;
+            priority = 0;
         }
-        goto done;
-    zero:
-        priority = 0;
-    done:
         GsSortSprite(spr, OTablePt, (u16)priority);
     }
 

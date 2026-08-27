@@ -85,19 +85,18 @@ void FUN_8003a148(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *co
         sp->x = scr.vx;
         sp->y = scr.vy;
         t = (scr.vz + (s32)d) >> 2;
-        if (t < 0)
+        if (t >= 0)
         {
-            goto zero;
+            pri = 0x4e1;
+            if (t < 0x4e2)
+            {
+                pri = t;
+            }
         }
-        pri = 0x4e1;
-        if (t < 0x4e2)
+        else
         {
-            pri = t;
+            pri = 0;
         }
-        goto done;
-    zero:
-        pri = 0;
-    done:
         GsSortSprite(sp, OTablePt, (u16)pri);
     }
 }
