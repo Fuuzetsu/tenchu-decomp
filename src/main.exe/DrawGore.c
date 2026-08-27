@@ -247,72 +247,59 @@ void DrawGore(TEffectSlot *ef)
         z10 = z / 10;
         param->vy += 10;
         node = param->hint;
-        if (node != 0)
+        if (node == 0 || y10 < (node_y = node->y) - 200 || node_y < y10 ||
+            x10 < node->x1 || z10 < node->z1 || node->x2 < x10 ||
+            node->z2 < z10)
         {
-            node_y = node->y;
-            if (y10 < node_y - 200 || node_y < y10 || x10 < node->x1 ||
-                z10 < node->z1 || node->x2 < x10 || node->z2 < z10)
+            level = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z, 0);
+            if (y <= level && FieldArea->division == -1)
             {
-                goto map_level;
+                param->hint = FieldArea;
             }
-            goto compute_level;
         }
-    map_level:
-        level = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z, 0);
-        if (y <= level && FieldArea->division == -1)
+        else if (node->dy != 0)
         {
-            param->hint = FieldArea;
+            level = ComputeAreaLevel(node, x10, z10);
+            if (level != (s32)0x80000000)
+            {
+                level *= 10;
+            }
         }
-        goto level_done;
-    compute_level:
-        if (node->dy == 0)
+        else
         {
-            goto flat_level;
+            level = node_y * 10;
         }
-        level = ComputeAreaLevel(node, x10, z10);
-        if (level == (s32)0x80000000)
+        if (param->py >= level)
         {
-            goto level_done;
+            param->vz = 0;
+            param->vy = 0;
+            param->vx = 0;
+            if (level != (s32)0x80000000)
+            {
+                param->py = level;
+            }
+            else
+            {
+                param->vy = rand() % 8 + 8;
+                param->rotate = 0;
+                r = rand();
+                param->sprite += 2;
+                param->scale = r % 0x2ab + 0x555;
+            }
+            param->mode = 1;
+            param->time = rand() % 10;
+            SoundEx((VECTOR *)&param->px, 0x37);
         }
-        level *= 10;
-        goto level_done;
-    flat_level:
-        level = node_y * 10;
-    level_done:
-        if (param->py < level)
+        else
         {
-            goto expire;
-        }
-        param->vz = 0;
-        param->vy = 0;
-        param->vx = 0;
-        if (level == (s32)0x80000000)
-        {
-            goto no_floor;
-        }
-        param->py = level;
-        goto bounce_done;
-    no_floor:
-        param->vy = rand() % 8 + 8;
-        param->rotate = 0;
-        r = rand();
-        param->sprite += 2;
-        param->scale = r % 0x2ab + 0x555;
-    bounce_done:
-        param->mode = 1;
-        param->time = rand() % 10;
-        SoundEx((VECTOR *)&param->px, 0x37);
-        goto spawn_bleed;
-
-    expire:
-        count = param->time;
-        param->time = count - 1;
-        if ((s16)count <= 0)
-        {
-            ef->proc = 0;
+            count = param->time;
+            param->time = count - 1;
+            if ((s16)count <= 0)
+            {
+                ef->proc = 0;
+            }
         }
 
-    spawn_bleed:
         memset(&scratch.bleed.temporary.position, 0, sizeof(VECTOR));
         random_x = rand();
         bleed_x = param->px - 60;
