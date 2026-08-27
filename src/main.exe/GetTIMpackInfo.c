@@ -45,21 +45,21 @@
 short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
 {
     short i;
-    u_long *puVar3;
-    u_long *puVar4;
+    u_long *p;
+    u_long *offsets;
 
     adr = adr + 1;
-    if (idx < 0 || (puVar4 = adr + 1, (int)adr[0] <= idx)) {
+    if (idx < 0 || (offsets = adr + 1, (int)adr[0] <= idx)) {
         return 0;
     }
-    puVar3 = puVar4;
+    p = offsets;
     i = 0;
     if (idx > 0) {
         do {
             i = i + 1;
-            puVar3 = puVar3 + 1;
+            p = p + 1;
         } while (i < idx);
     }
-    GsGetTimInfo((u_long *)((int)puVar4 + puVar3[0] + 4), image);
+    GsGetTimInfo((u_long *)((int)offsets + p[0] + 4), image);
     return 1;
 }

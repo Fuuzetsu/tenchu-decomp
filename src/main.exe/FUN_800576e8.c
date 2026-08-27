@@ -53,15 +53,15 @@ extern u8 D_8008EF98[];
 
 s32 FUN_800576e8(u8 *param_1)
 {
-    s32 iVar4;
+    s32 width;
     s32 bVar1;
     s32 idx;
     u8 *entry;
 
-    iVar4 = 0;
+    width = 0;
     if (TelopP.u0 != 0 || TelopP.u1 != 0)
     {
-        iVar4 = TelopP.u1 - TelopP.u0;
+        width = TelopP.u1 - TelopP.u0;
     }
     else if (*param_1 != 0)
     {
@@ -83,8 +83,8 @@ s32 FUN_800576e8(u8 *param_1)
                 idx -= 0x40;
             }
             entry = idx + D_8008EF98;
-            iVar4 += *entry;
+            width += *entry;
         } while (*param_1 != 0);
     }
-    return iVar4;
+    return width;
 }

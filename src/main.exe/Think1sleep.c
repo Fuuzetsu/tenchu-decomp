@@ -17,23 +17,23 @@
 
 s16 Think1sleep(void)
 {
-    MotionManager *temp_a0;
-    u16 uVar1;
+    MotionManager *mmp;
+    u16 mot;
 
-    temp_a0 = Me_THINK_C->motion;
-    uVar1 = 0;
-    if (temp_a0->mid == 0x100)
+    mmp = Me_THINK_C->motion;
+    mot = 0;
+    if (mmp->mid == 0x100)
     {
         SR = -1;
     }
-    else if (temp_a0->count == 0)
+    else if (mmp->count == 0)
     {
-        uVar1 = 0x1001;
+        mot = 0x1001;
     }
     if ((EmergencyNotice != 0) || ((Attrib & 0x8000) != 0))
     {
-        uVar1 = turn_towards_player_(0, 0);
-        uVar1 = uVar1 & 0xA000;
+        mot = turn_towards_player_(0, 0);
+        mot = mot & 0xA000;
     }
-    return uVar1;
+    return mot;
 }

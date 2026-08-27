@@ -28,10 +28,10 @@
 /*
  * STATUS: MATCHING. The last 9-byte residual was a three-way saved-register
  * rotation. Two separate `fail = 1` source assignments gave `fail` 4 refs / 22
- * live insns (priority 3636), so it outranked `q2` (3333) and `iVar4` (1764).
+ * live insns (priority 3636), so it outranked `q2` (3333) and `qs` (1764).
  * Both failing tests now jump to one `failed:` assignment, reducing `fail` to
  * 3 refs / 20 live insns (1500) and producing the target allocation
- * `q2=$s0`, `iVar4=$s1`, `fail=$s2`. The separate `done:` join is essential:
+ * `q2=$s0`, `qs=$s1`, `fail=$s2`. The separate `done:` join is essential:
  * the success path jumps to it while the failure assignment falls through,
  * so cc1 retains the runtime `!fail` expression instead of folding the
  * failure path to literal zero. This exact pure-C body is 520/520 bytes.
@@ -54,11 +54,11 @@
  *    after ApplyRotMatrix) gets the SAME treatment for its own 3 reads, but
  *    is a SEPARATE raw literal — cc1 never merges the two hardcoded
  *    constants even though both sit in PSX scratchpad RAM.
- *  - All THREE divisions by `iVar1` (a runtime value, not a constant) are
- *    computed EAGERLY, back-to-back, into named temporaries (`q0`, `iVar4`,
+ *  - All THREE divisions by `z` (a runtime value, not a constant) are
+ *    computed EAGERLY, back-to-back, into named temporaries (`q0`, `qs`,
  *    `q2`) — BEFORE either `abs()` call that consumes them. Ghidra's own
  *    rendering shows the third division folded inline into the second
- *    `abs()` call's argument (`abs(iVar3/iVar1)`), which is an SSA/statement-
+ *    `abs()` call's argument (`abs(iVar3/z)`), which is an SSA/statement-
  *    order artifact: the raw asm computes all three quotients up front
  *    (sharing the one divisor register across all three `div`s before a
  *    call could clobber it), then does the two `abs()` calls.
@@ -89,9 +89,9 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     s32 *view;
     s32 *scratch;
     s32 dx, dy, dz;
-    s32 iVar1;
-    s32 iVar2;
-    s32 iVar4;
+    s32 z;
+    s32 aq;
+    s32 qs;
     s32 q0, q2;
     s32 fail;
 
@@ -116,22 +116,22 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
                    (VECTOR *)TENCHU_SCRATCHPAD_ADDRESS);
 
     scratch = (s32 *)TENCHU_SCRATCHPAD_ADDRESS;
-    iVar1 = scratch[2] + s;
-    if (iVar1 <= NEAR)
+    z = scratch[2] + s;
+    if (z <= NEAR)
         return 0;
     if (17000 < scratch[2] - s)
         return 0;
 
-    q0 = (scratch[0] * 300) / iVar1;
-    iVar4 = (s * 300) / iVar1;
-    q2 = (scratch[1] * 300) / iVar1;
+    q0 = (scratch[0] * 300) / z;
+    qs = (s * 300) / z;
+    q2 = (scratch[1] * 300) / z;
     fail = 0;
-    iVar2 = abs(q0);
-    if (iVar4 + SXW < iVar2)
+    aq = abs(q0);
+    if (qs + SXW < aq)
         goto failed;
 
-    iVar1 = abs(q2);
-    if (iVar4 + SYW < iVar1)
+    z = abs(q2);
+    if (qs + SYW < z)
         goto failed;
     goto done;
 

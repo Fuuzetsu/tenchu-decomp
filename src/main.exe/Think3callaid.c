@@ -72,7 +72,7 @@
  * same expression that installs Me_THINK_C, preserving the target load/store
  * schedule.
  *
- * `AIDHumanType[StageID * 2 + iVar4 % 2]` is a signed `s16` table (`lh`,
+ * `AIDHumanType[StageID * 2 + r % 2]` is a signed `s16` table (`lh`,
  * unlike the item-TU's usual unsigned tables) — passed to BreedLife's
  * `short type` parameter directly, no narrowing cast needed since the array
  * element is already the right width.
@@ -126,7 +126,7 @@ short Think3callaid(void)
 {
     Humanoid *human;
     Humanoid *human_00;
-    s32 iVar4;
+    s32 r;
 
     if (Distance < 0x4074)
     {
@@ -142,11 +142,11 @@ short Think3callaid(void)
         s16 *aid = AIDHumanType;
         s16 *type_ptr;
         s16 type;
-        ThinkFunc ppuVar2;
+        ThinkFunc func;
 
         SR = -1;
-        iVar4 = rand();
-        type_ptr = (s16 *)((u8 *)aid + ((iVar4 % 2) * 2 + StageID * 4));
+        r = rand();
+        type_ptr = (s16 *)((u8 *)aid + ((r % 2) * 2 + StageID * 4));
         type = *type_ptr;
         human_00 = BreedLife(type,
                              Me_THINK_C->locate->vx,
@@ -160,9 +160,9 @@ short Think3callaid(void)
         human_00->think[1] = Think2Func[4];
         human_00->think[2] = Think3Func[4];
         Pad = &human_00->pad;
-        ppuVar2 = Think4Func[4];
+        func = Think4Func[4];
         (Me_THINK_C = (Humanoid *)human_00)->attribute |= 4;
-        human_00->think[3] = ppuVar2;
+        human_00->think[3] = func;
         EquipWeapon(human_00, 1);
         SetNowMotion((Humanoid *)Me_THINK_C, 0x501, 1);
         Attrib = Me_THINK_C->attribute | 2;

@@ -82,14 +82,14 @@
  *    idiom in this same TU): combine proves the raw 32-bit accumulation
  *    need not be truncated at every `i + 1`, only the compare needs the
  *    16-bit view, so a throwaway sign-extended copy feeds `slt`.
- *  - THE WALKER IS `adr` ITSELF, not the `puVar2` copy. The address the loop
+ *  - THE WALKER IS `adr` ITSELF, not the `p` copy. The address the loop
  *    hands GsGetTimInfo is `(int)base + table[k] + 4` where `base` (the fixed
  *    `adr+2` table origin) is constant and the table cursor advances — but the
  *    target keeps the INCOMING pointer register ($s0, from param `adr`) as the
  *    advancing cursor and saves the fixed base into a fresh callee reg ($s3).
  *    So write `adr` as the one that `adr = adr + 1`s each iteration and let
- *    `puVar2 = adr;` be the saved fixed base read as `(int)puVar2 + adr[0]`;
- *    writing it the other way round (puVar2 walks, adr fixed) rotates every
+ *    `p = adr;` be the saved fixed base read as `(int)p + adr[0]`;
+ *    writing it the other way round (p walks, adr fixed) rotates every
  *    callee-saved register by one and mismatches the whole prologue/epilogue.
  *  - `tim.pmode` is read TWICE with different widths: the CLUT-bit test
  *    reloads the FULL `lw` (needs all 32 bits for `>> 3 & 1`), independent
@@ -101,8 +101,8 @@ short LoadTIMpack(unsigned long *adr)
 {
     RECT rect;
     GsIMAGE tim;
-    u_long *puVar2;
-    u16 uVar1;
+    u_long *p;
+    u16 hw;
     short n;
     short i;
 
@@ -110,14 +110,14 @@ short LoadTIMpack(unsigned long *adr)
         SystemOut(msg_no_image_pack_data);
     }
     adr = adr + 1;
-    uVar1 = *(u16 *)adr;
+    hw = *(u16 *)adr;
     adr = adr + 1;
     i = 0;
-    n = (short)uVar1;
-    puVar2 = adr;
+    n = (short)hw;
+    p = adr;
     if (0 < n) {
         do {
-            GsGetTimInfo((u_long *)((int)puVar2 + adr[0] + 4), &tim);
+            GsGetTimInfo((u_long *)((int)p + adr[0] + 4), &tim);
             rect.x = tim.px;
             rect.y = tim.py;
             rect.w = tim.pw;
