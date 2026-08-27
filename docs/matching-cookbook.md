@@ -539,6 +539,25 @@ negated. Everything else here is corollaries:
   top forces a single materialisation (DrawSprite — whose textually-identical
   reject condition must also be a STANDALONE if, not an else, or cross-jump
   merges it away).
+- **Humanising direction — a `goto` INTO another block's middle is often
+  cross-jump residue, not source**: when a draft carries `goto X` where `X:`
+  sits inside a different nested block and the code at `X` is a short tail
+  (a couple of statements ending in another jump/`break`/`return`), spell the
+  duplicated statements at the goto site instead — cc1's cross-jump pass
+  merges the identical tails back to the retail bytes (Think3attack's
+  `pad |= 0x80; goto action_ready;` recovered from `goto add_attack`;
+  cbCheckCD's case 5 three-store tail recovered from `goto shared_tail`).
+  The inverse cue — the label's copy pinned at a spot no structured chain
+  can reach (an island wedged between an if's arms, a compute jumping
+  forward over unrelated blocks to its own stores) — proves the goto IS
+  source (ActATTACK `no_motion`, briefing_screen_'s brightness ladder). And
+  a `goto L;` immediately followed by `L:` is a no-op — delete it.
+- **A hand-labelled loop (top exit test, conditional continue, unconditional
+  backward `goto`) has NO structured spelling**: any real C loop construct
+  gets loop-rotated at -O2 (`duplicate_loop_exit_test` copies the exit test;
+  StageEndScreen's layout scan measured +7 insns as `for(;;)`+`break`) — the
+  label form is the source. Same shape in CVAupdate's slot scans, AfsGetEntry,
+  PutStrain, RestoreItemLayout, SetBleeds/SetBleedsDir, DrawShadow, vmemoryGC.
 - **A shared flag assignment feeding a real multi-predecessor join is an
   allocation lever; followed immediately by its own local return it
   constant-folds** (`return !flag` after `flag = 1` → literal) — keep the

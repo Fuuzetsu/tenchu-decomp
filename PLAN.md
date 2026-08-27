@@ -288,6 +288,31 @@ structure, one formatting style, prose on every TU, and every
 attribute bit either named from runtime observation or logged with
 its observed behavior — byte-identical throughout, ~70 commits.
 
+GOTO-TAIL GRIND (2026-08-27, user-confirmed continuation): the
+remaining goto/hex classes triaged to the floor, ~8 more commits.
+Structured away (all byte-identical): the break-in-disguise sweep
+(10 files); mission_score_screen fully de-gotoed (21 gotos — nine
+copy-pasted sign-test shapes with matcher constant-ifs, one label
+loop); StageEndScreen's DRAW_SCORE_NUMBER/DRAW_LAST_SCORE_NUMBER
+macros now goto-free (clear_first_ flag replaces jump_/label_, 14
+call sites); Think1random's reset condition; cbCheckCD's shared
+tail (duplicated, cross-jump re-merges); DrawSplash's clamp;
+ActJUMP half_count; ActACTION cleanup guard; ActKAGI rope diamond;
+Think3attack's add_attack + briefing_screen_'s no-op goto; raw
+ALERT/SUSPEND bits named at nine sites (~ATTR_x folds identically).
+Proven authentic and documented in cookbook §3 (do not re-attempt):
+hand-labelled loops (StageEndScreen layout scan measured +7 insns
+structured — same shape in CVAupdate/AfsGetEntry/PutStrain/
+RestoreItemLayout/SetBleeds*/DrawShadow/vmemoryGC), CVA-scan
+double-breaks, the ReqItem* search-with-fallback family (35 files),
+cross-case shared tails (ActATTACK/ActACTION/SearchTarget/
+check_for_known_button_combination), ActDEAD's range dispatch
+(constant changes), briefing_screen_'s brightness ladder (island
+layout unreachable by structured chains). The residual ~650 gotos
+across 170 files are these authentic classes. Remaining hex
+attribute bits (0x10, 0x100..0x8000) stay until runtime evidence
+names them (rerun tools/pcsx_attrbits.py with targeted steering).
+
 ## Current resume point (2026-07-20)
 
 The game-code matching queue is empty. Live output is 537/555 game functions in
