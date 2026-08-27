@@ -30,8 +30,8 @@
  * (spc->key0/key1) so it straddles `cnt`, re-deriving the per-frame deltas
  * (UpdateSplineControl) whenever the bracket actually moved, then evaluate
  * the spline at `cnt` via FUN_8001c730 (independently guarded), using a
- * memoized fixed-point interpolation fraction (D_80097EEC, cached against
- * D_80097708 so D_80097EE8's table-row address is only recomputed when the
+ * memoized fixed-point interpolation fraction (SplineFrac, cached in
+ * SplineFracOld so SplineRow's table-row address is only recomputed when the
  * fraction changes). PSX.SYM's globals (StageMotion/FieldIndex/Command)
  * belong to the demo build's differently-shaped callee — this retail body
  * doesn't reference them directly.
@@ -48,17 +48,17 @@
  *
  * The fraction is one direct `/` expression. Build.hs's per-file
  * --expand-div supplies ASPSX's bnez/break 7/break 6 guards; they are not
- * hand-written C. Updating D_80097708 before D_80097EE8 preserves the target
- * store order. D_800868A4 is a large, non-`-G8`-small table, so its address
+ * hand-written C. Updating SplineFracOld before SplineRow preserves the target
+ * store order. SplineTable is a large, non-`-G8`-small table, so its address
  * fully materializes with `lui/addiu`. FUN_8001c730's separate GTE-backed
  * implementation remains guarded; this matched caller contains only C.
  */
 extern void UpdateSplineControl(SplineControlType *spc);
 extern void FUN_8001c730(SVECTOR *vect, SplineControlType *spc, s32 row);
-extern s16 D_80097708;
-extern s16 D_80097EEC;
-extern s32 D_80097EE8;
-extern u8 D_800868A4[];
+extern s16 SplineFracOld;
+extern s16 SplineFrac;
+extern s32 SplineRow;
+extern u8 SplineTable[];
 
 void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
 {
@@ -87,11 +87,11 @@ void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
     }
     UpdateSplineControl(spc);
 skip:
-    D_80097EEC = (s16)(((cnt - spc->key0->time) * 0x20) /
+    SplineFrac = (s16)(((cnt - spc->key0->time) * 0x20) /
                       (spc->key1->time - spc->key0->time));
-    if ((s32)D_80097708 != (s32)D_80097EEC) {
-        D_80097708 = D_80097EEC;
-        D_80097EE8 = (s32)(D_800868A4 + D_80097EEC * 8);
+    if ((s32)SplineFracOld != (s32)SplineFrac) {
+        SplineFracOld = SplineFrac;
+        SplineRow = (s32)(SplineTable + SplineFrac * 8);
     }
-    FUN_8001c730(vect, spc, D_80097EE8);
+    FUN_8001c730(vect, spc, SplineRow);
 }
