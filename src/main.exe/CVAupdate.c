@@ -69,9 +69,9 @@
  */
 
 
-extern s16 D_80097CCC;
-extern u8 D_800C2C50[];
-extern u8 D_8008FFB9[];
+extern s16 CVAflag; /* set by CVA camera/telop commands */
+extern u8 TelopText[];
+extern u8 ctype_tab[]; /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
 
@@ -266,7 +266,7 @@ s16 CVAupdate(void)
 
             case 4:
                 AVCameraSetup();
-                D_80097CCC = 1;
+                CVAflag = 1;
                 break;
 
             case 5:
@@ -317,14 +317,14 @@ s16 CVAupdate(void)
             case 8:
                 if (CVAnow->id != invalid)
                 {
-                    SetupTelop((u8 *)strcpy((char *)D_800C2C50,
+                    SetupTelop((u8 *)strcpy((char *)TelopText,
                                             (char *)CVAdata + CVAnow->id), 0);
-                    D_80097CCC = 1;
+                    CVAflag = 1;
                     if (StageID != 10 || CHOSEN_CHARACTER != 0)
                         break;
 
-                    ch = D_800C2C50[0];
-                    if ((D_8008FFB9[ch] & 4) == 0)
+                    ch = TelopText[0];
+                    if ((ctype_tab[ch] & 4) == 0)
                         break;
 
                     i = ch - '0';
@@ -341,7 +341,7 @@ s16 CVAupdate(void)
                         *(u16 *)&TENCHU_POSITIONAL_DATA_AREA_[ch - '1']->attribute &= 0xFFFE;
                     }
                 }
-                D_800C2C50[0] = 0;
+                TelopText[0] = 0;
                 break;
             }
 

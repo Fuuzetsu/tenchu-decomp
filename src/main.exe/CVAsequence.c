@@ -54,8 +54,8 @@
 
 #include "item.h"
 
-extern u8 D_800C2C50[];
-extern s16 D_80097CCC;
+extern u8 TelopText[];
+extern s16 CVAflag; /* set by CVA camera/telop commands */
 
 extern void *memset(void *s, int c, u32 n);
 extern void dispose_weapon_data_of_char_(Humanoid *human, s32 mode);
@@ -107,7 +107,7 @@ event_found:
     CameraTarget = StagePlayer;
     cursor++;
     CVAnow = cursor;
-    D_800C2C50[0] = 0;
+    TelopText[0] = 0;
     if (Humans > 0)
     {
         do
@@ -125,7 +125,7 @@ event_found:
         } while (i < Humans);
     }
 
-    D_80097CCC = 0;
+    CVAflag = 0;
     if (CVAupdate() != 0)
         goto run_sequence;
 

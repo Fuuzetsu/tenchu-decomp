@@ -37,12 +37,12 @@
  * ActATTACK's own (still-unmatched) call sites don't show an argument either
  * (same earlier-build/retail signature drift, on both ends of the call).
  *
- * `D_80097714`/Ghidra's separately-invented `DAT_80097716` are the SAME
- * byte-addressed table read through ONE base (`&D_80097714 + idx`, `idx`
+ * `BowTiming`/Ghidra's separately-invented `DAT_80097716` are the SAME
+ * byte-addressed table read through ONE base (`&BowTiming + idx`, `idx`
  * already scaled ×4): `min` at +0, `max` at +2 — a `{s16 min, max;}` struct
  * array, not two parallel arrays (the aggregate-splits-into-drifted-D_-
  * symbols pattern, cookbook's gp section). Bound the sole symbol
- * (`D_80097714`) in config/symbols.main.exe.txt since this was its only
+ * (`BowTiming`) in config/symbols.main.exe.txt since this was its only
  * `.s` referencer.
  *
  * `n` (the parameter) survives THREE calls (Sound/UpdateOrnament/
@@ -54,8 +54,8 @@
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - **Ghidra's own literal form — `iVar2 = (n<<16)>>14;` as its OWN
- *    statement, THEN `*(s16*)((u8*)D_80097714 + iVar2)` — is load-bearing,
- *    not just a reference style.** Writing the equivalent `D_80097714[n]`
+ *    statement, THEN `*(s16*)((u8*)BowTiming + iVar2)` — is load-bearing,
+ *    not just a reference style.** Writing the equivalent `BowTiming[n]`
  *    array subscript inline computes the SAME address but in the OPPOSITE
  *    instruction order (base lui/addiu, then the idx sll/sra, then addu);
  *    only when `idx` is a NAMED local assigned as its own prior statement
@@ -99,7 +99,7 @@
  *    order) all plateaued at exactly 15 — the copy is the only lever.
  */
 
-extern s16 D_80097714[]; /* byte-addressed; {min,max} pairs, stride 4 */
+extern s16 BowTiming[]; /* byte-addressed; {min,max} pairs, stride 4 */
 extern Humanoid *Me_MOTION_C;
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
@@ -126,7 +126,7 @@ void AttackBowControl(s16 n)
     else
     {
         idx = (n << 16) >> 14;
-        p = (u8 *)D_80097714 + idx;
+        p = (u8 *)BowTiming + idx;
         if (*(s16 *)p <= count && count < *(s16 *)(p + 2))
         {
             UpdateOrnament(Me_MOTION_C->weapon[2], 0);
@@ -135,7 +135,7 @@ void AttackBowControl(s16 n)
     }
     idx2 = n;
     idx2 = (idx2 << 16) >> 14;
-    p2 = (u8 *)D_80097714 + idx2;
+    p2 = (u8 *)BowTiming + idx2;
     if (dtM->count == *(s16 *)(p2 + 2))
     {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);

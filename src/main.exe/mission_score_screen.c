@@ -50,7 +50,7 @@ extern char *TRN_SPRITE_PTRS[];
 extern char path_image_3[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
-extern s16 D_8008ED50[];
+extern s16 StageItem[];
 
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);
@@ -922,7 +922,7 @@ score_character_sprite_init_loop:
 
         if (result.grade == RANK_GRAND_MASTER)
         {
-            medal = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
+            medal = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
             medal->x = 0x8A;
             medal->y = -0xE;
             medal->scalex = 0x1000;
@@ -1068,13 +1068,13 @@ score_row_loop:
         register TLinkInfo *state =
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
-        stageItem = D_8008ED50[state->StageNo];
+        stageItem = StageItem[state->StageNo];
         brightness = stageItem;
         if (state->gItem[brightness + (state->CharType << 5)] == 0xFE)
         {
             state->gItem[brightness + (state->CharType << 5)] += 3;
         }
-        stageItem = D_8008ED50[state->StageNo];
+        stageItem = StageItem[state->StageNo];
         if (state->saveItem[stageItem] == 0xFE)
         {
             state->saveItem[stageItem] += 3;

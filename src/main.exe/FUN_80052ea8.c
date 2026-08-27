@@ -23,7 +23,7 @@
  *    replacing the required sll/sra sign extension with andi/sltiu.
  */
 
-extern s16 D_8008ED50[];
+extern s16 StageItem[];
 extern s32 rand(void);
 
 void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
@@ -158,7 +158,7 @@ void FUN_80052ea8(TLinkInfo *state, ScoreResult *result)
             i++;
         }
 
-        i = D_8008ED50[state->StageNo];
+        i = StageItem[state->StageNo];
         if (state->gItem[i + state->CharType * 0x20] == 0xfe)
         {
             state->gItem[i + state->CharType * 0x20] =

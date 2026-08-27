@@ -25,14 +25,14 @@
  */
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-extern s16 D_8008EA78[];
+extern s16 StageOrder[];
 extern s16 FUN_8005a7a4(s32 input);
 
 void FUN_800514d8(void)
 {
     s32 lastpad;
     s32 result;
-    if (PSTATE->StageNo != D_8008EA78[0])
+    if (PSTATE->StageNo != StageOrder[0])
     {
         if (PSTATE->StageNoMAX[PSTATE->CharType] <
             StageConfig[PSTATE->StageNo].uid)

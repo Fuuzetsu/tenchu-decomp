@@ -36,7 +36,7 @@
  *    the width-derived arg2 is computed before arg1 (OTablePt->org, a fresh
  *    load right before the call).
  */
-extern u8 D_800C2C50[];
+extern u8 TelopText[];
 
 extern s32 FUN_800576e8(u8 *str);
 extern void FUN_800570b8(GsOT_TAG *org, s32 x, s32 y, u8 *str);
@@ -55,6 +55,6 @@ void DrawTelop(void)
     TelopbgP.y3 = -0x5a;
     TelopbgP.y2 = -0x5a;
     GsSortPoly(&TelopbgP, OTablePt, 1);
-    w = FUN_800576e8(D_800C2C50);
-    FUN_800570b8(OTablePt->org, -(w / 2), 0x5c, D_800C2C50);
+    w = FUN_800576e8(TelopText);
+    FUN_800570b8(OTablePt->org, -(w / 2), 0x5c, TelopText);
 }

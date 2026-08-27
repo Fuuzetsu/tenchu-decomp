@@ -37,8 +37,8 @@
 extern u8 CHOSEN_CHARACTER;
 extern u8 CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern s16 D_8008EA78[];
-extern s16 D_8008ED50[];
+extern s16 StageOrder[];
+extern s16 StageItem[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[];
 extern char *RANK_ARCHIVE_PTRS[];
@@ -220,7 +220,7 @@ void StageEndScreen(void)
     FUN_80038ce0();
 
     item_index = 0;
-    while (D_8008EA78[item_index] != CHOSEN_STAGE)
+    while (StageOrder[item_index] != CHOSEN_STAGE)
     {
         item_index++;
     }
@@ -505,7 +505,7 @@ number_1:
 
                 if (current.grade == 4)
                 {
-                    icon = &ItemImage[D_8008ED50[CHOSEN_STAGE]]->sprite;
+                    icon = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
                     icon->x = -0x78;
                     icon->y = 0x38;
                     icon->scalex = 0x1000;
@@ -595,7 +595,7 @@ number_1:
             u32 layout_base;
 
             layout_base = (u32)&PSTATE->stage_stats;
-            next_stage = (u8 *)D_8008EA78;
+            next_stage = (u8 *)StageOrder;
             PSTATE->StageNo = next_stage[StageEndNextStageOffset(
                 StageConfig[PSTATE->StageNo].uid)];
             layout_character_offset = (u32)PSTATE->CharType *
