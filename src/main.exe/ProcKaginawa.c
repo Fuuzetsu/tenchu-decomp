@@ -71,13 +71,13 @@
  *  - `w.vx = v.vx; …; w.vx += ViewInfo.vpx; …` is the two-phase raw-copy-
  *    then-add the target stores twice per field (a single `w.vx = v.vx +
  *    ViewInfo.vpx` would store once); v/w are separate VECTOR locals.
- *  - `v = D_80012238;` is a plain extern VECTOR struct assignment — under
+ *  - `v = vec_z_n20000;` is a plain extern VECTOR struct assignment — under
  *    -msplit-addresses the 16-byte (non-small) source address builds as a
  *    two-register lui/addiu pair and the four words copy through it.
  */
 #include <psxsdk/libgs.h>
 
-extern VECTOR D_80012238;
+extern VECTOR vec_z_n20000; /* {0,0,-20000} */
 
 void ProcKaginawa(TItem *item)
 {
@@ -133,7 +133,7 @@ void ProcKaginawa(TItem *item)
                 GsSortSprite(TargetSprite, OTablePt, 0);
             return;
         }
-        v = D_80012238;
+        v = vec_z_n20000;
         RotateVector(&v, rx, ry, 0);
         w.vx = v.vx;
         w.vy = v.vy;
@@ -291,7 +291,7 @@ void ProcKaginawa(TItem *item)
 // ? SetCameraMode(?);                                 /* extern */
 // extern ? CamState;
 // extern ? msg_item_dispose_fail;
-// extern ? D_80012238;
+// extern ? vec_z_n20000;
 // extern s32 OTablePt;
 // extern ? TargetSprite;
 // extern ? ViewInfo;
@@ -340,10 +340,10 @@ void ProcKaginawa(TItem *item)
 //                 GsSortSprite(&TargetSprite, OTablePt, 0);
 //             }
 //         } else {
-//             sp10 = D_80012238.unk0;
-//             sp14 = D_80012238.unk4;
-//             sp18 = D_80012238.unk8;
-//             sp1C = D_80012238.unkC;
+//             sp10 = vec_z_n20000.unk0;
+//             sp14 = vec_z_n20000.unk4;
+//             sp18 = vec_z_n20000.unk8;
+//             sp1C = vec_z_n20000.unkC;
 //             RotateVector(&sp10, sp30, sp34, 0);
 //             sp20 = sp10;
 //             sp24 = sp14;

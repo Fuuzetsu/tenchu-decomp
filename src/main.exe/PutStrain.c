@@ -31,7 +31,7 @@
  * END PSX.SYM */
 
 extern s32 StrainRatio;
-extern u16 D_80097F68;
+extern u16 StrainPhase;
 
 
 /*
@@ -48,7 +48,7 @@ extern u16 D_80097F68;
  * ratio>20000 returns without drawing anything.
  * The chosen icon sprite is then positioned at (x,y), tinted a shade of
  * gray that oscillates via rsin() driven by a persistent phase counter
- * (D_80097F68, advanced by the (adjusted) strain delta), and scaled by a
+ * (StrainPhase, advanced by the (adjusted) strain delta), and scaled by a
  * strain-proportional factor, then GsSortSprite'd.
  *
  * Matching notes:
@@ -161,8 +161,8 @@ void PutStrain(s32 x, s32 y)
 
         spr->x = (s16)x;
         spr->y = (s16)y;
-        phase = D_80097F68 + (s >> 5);
-        D_80097F68 = phase;
+        phase = StrainPhase + (s >> 5);
+        StrainPhase = phase;
         iVar4 = rsin(phase) * 0x60;
         if (iVar4 < 0)
             iVar4 = iVar4 + 0xfff;
@@ -272,7 +272,7 @@ void PutStrain(s32 x, s32 y)
 // ? GsSortSprite(? *, s32, ?, s32);                   /* extern */
 // ? SoundEx(s32, ?, s32);                             /* extern */
 // s32 rsin(s32);                                      /* extern */
-// extern u16 D_80097F68;
+// extern u16 StrainPhase;
 // extern ? KehaiYellowImage;
 // extern ? KehaiRedImage;
 // extern ? KehaiCriticalImage;
@@ -336,8 +336,8 @@ void PutStrain(s32 x, s32 y)
 //             }
 //             var_s4->unk4 = arg0;
 //             var_s4->unk6 = arg1;
-//             temp_v0 = D_80097F68 + (var_v1_2 >> 5);
-//             D_80097F68 = temp_v0;
+//             temp_v0 = StrainPhase + (var_v1_2 >> 5);
+//             StrainPhase = temp_v0;
 //             var_a1 = rsin(temp_v0 & 0xFFFF) * 0x60;
 //             if (var_a1 < 0) {
 //                 var_a1 += 0xFFF;

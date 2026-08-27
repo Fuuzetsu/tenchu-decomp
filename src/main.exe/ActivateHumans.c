@@ -38,9 +38,9 @@
  * END PSX.SYM */
 
 extern s32 PacketUsed;
-extern s16 D_80097F40;
-extern s16 D_80097F42;
-extern s16 D_80097F44;
+extern s16 ThinkBudgetRaw;
+extern s16 ThinkCount;
+extern s16 ThinkBudget;
 extern s16 VISIBLE_ENEMIES_;
 extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 
@@ -114,12 +114,12 @@ void ActivateHumans(void)
     }
 
     n = (0xec78 - PacketUsed) / 5000 - 1;
-    D_80097F40 = n;
+    ThinkBudgetRaw = n;
     if ((s16)n < 2)
     {
-        n = (u16)D_80097F44 - 1;
+        n = (u16)ThinkBudget - 1;
     }
-    D_80097F44 = n;
+    ThinkBudget = n;
     if ((s16)n < 7)
     {
         if ((s16)n < 3)
@@ -132,8 +132,8 @@ void ActivateHumans(void)
         n = 6;
     }
     i = 0;
-    D_80097F44 = n;
-    D_80097F42 = 0;
+    ThinkBudget = n;
+    ThinkCount = 0;
     while (1)
     {
         if ((s16)i >= Humans)
@@ -169,10 +169,10 @@ void ActivateHumans(void)
     {
         goto set_active;
     }
-    if (VISIBLE_ENEMIES_ < D_80097F44)
+    if (VISIBLE_ENEMIES_ < ThinkBudget)
     {
         active = 1;
-        if (D_80097F42 < D_80097F44)
+        if (ThinkCount < ThinkBudget)
         {
             goto active_done;
         }
@@ -190,7 +190,7 @@ set_inactive:
 
 near_human:
     if (((u16)human->attribute & 0x80) == 0 &&
-        D_80097F42 < D_80097F44)
+        ThinkCount < ThinkBudget)
     {
         goto set_active;
     }
@@ -228,16 +228,16 @@ active_done:
     {
         if (((u16)human->attribute & 0x80) == 0)
         {
-            D_80097F42++;
+            ThinkCount++;
             goto next_human;
         }
         if (StageID != 8 && human->life >= 0 && GameClock != 30 &&
-            (D_80097F42 >= D_80097F44 || distance <= 13000))
+            (ThinkCount >= ThinkBudget || distance <= 13000))
         {
             goto next_human;
         }
         human->attribute = (u16)human->attribute & 0xff7f;
-        D_80097F42++;
+        ThinkCount++;
         model = *human->model->object;
         model->attribute |= 0x4000;
         goto next_human;

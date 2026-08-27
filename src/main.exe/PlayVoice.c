@@ -55,7 +55,7 @@ extern u8 *VoiceXaNameF;
 extern u8 *VoiceXaNameI;
 extern u8 *VoiceXaNameJ;
 /* Per-language voice tables. */
-extern TVoiceTable *D_800134E0[4];
+extern TVoiceTable *VoiceTables[4];
 
 /* INTRO/TORA voice tables + their filenames (id ranges [100,200)/[200,300)). */
 extern TVoiceTable D_8008E82C[];
@@ -64,7 +64,7 @@ extern u8 *D_80097C98;
 extern u8 *D_80097C9C;
 
 /* Fallback (language/range-independent) voice table. */
-extern TVoiceTable D_80012CBC[];
+extern TVoiceTable VoiceCommon[]; /* fallback bank searched when no stage table matches */
 
 extern char fmt_bad_voice_no[]; /* bad voice no %d */
 extern char fmt_playvoice_fail_chan_id[]; /* playvoice fail %s  chan %d  id %d */
@@ -90,10 +90,10 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
 /*
  * PlayVoice (0x8004eee4) — look up voice-clip `id` in one of several
  * TVoiceTable arrays and CdaPlayXA it. id < 100: current-language event
- * table (D_800134E0..EC / VoiceXaName, indexed by CHOSEN_LANGUAGE).
+ * table (VoiceTables..EC / VoiceXaName, indexed by CHOSEN_LANGUAGE).
  * 100 <= id < 200: the INTRO table (id -= 100). id >= 200: the TORA table
  * (id -= 200). If none of those has the id, falls back to the shared
- * D_80012CBC table (always using the first event-table filename).
+ * VoiceCommon table (always using the first event-table filename).
  * Each table is a linear array of {no,channel,smin,ssec,emin,esec}
  * records terminated by no==0xff. On a total miss: AdtMessageBox + CdaStop.
  * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
@@ -140,7 +140,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * sentinel vs. the `cursor = voice` copy — matches a live permuter find,
  * ported by delta not score, from a bounded run (RESULT.md's
  * `output-50-1`): 14 -> 10 bytes. (2) The SAME reused `end_marker` local,
- * shared with the fallback search (`D_80012CBC`), was forced to CONFLICT
+ * shared with the fallback search (`VoiceCommon`), was forced to CONFLICT
  * with `voice` in regalloc.py's `.greg` dump (`82 conflicts: ... 88`) —
  * `voice`'s pseudo is read every iteration of the CHOSEN_LANGUAGE loop by
  * its nested `if (voice != 0)` fence, so it stays live well past where the
@@ -194,7 +194,7 @@ void PlayVoice(int id)
     CdlLOC start;
     CdlLOC end;
 
-    __builtin_memcpy(tables, D_800134E0, sizeof(tables));
+    __builtin_memcpy(tables, VoiceTables, sizeof(tables));
     memset(&start.minute, 0, 4);
     memset(&end.minute, 0, 4);
 
@@ -289,7 +289,7 @@ void PlayVoice(int id)
 found:
     if (match == 0)
     {
-        fallback = D_80012CBC;
+        fallback = VoiceCommon;
         if (fallback->no != 0xff)
         {
             fallback_end = 0xff;
@@ -477,8 +477,8 @@ found:
 // ? memset(u8 *, ?, ?, s32);                          /* extern */
 // extern u8 CHOSEN_LANGUAGE;
 // extern u8 gSELevel;
-// extern u8 D_80012CBC;
-// extern ? D_800134E0;
+// extern u8 VoiceCommon;
+// extern ? VoiceTables;
 // extern ? fmt_bad_voice_no;
 // extern ? fmt_playvoice_fail_chan_id;
 // extern u8 D_8008E82C;
@@ -528,10 +528,10 @@ found:
 //     sp1C = sp2C;
 //     sp20 = sp30;
 //     sp24 = sp34;
-//     sp28 = D_800134E0.unk0;
-//     sp2C = D_800134E0.unk4;
-//     sp30 = D_800134E0.unk8;
-//     sp34 = D_800134E0.unkC;
+//     sp28 = VoiceTables.unk0;
+//     sp2C = VoiceTables.unk4;
+//     sp30 = VoiceTables.unk8;
+//     sp34 = VoiceTables.unkC;
 //     memset(&sp38, 0, 4, VoiceXaNameI);
 //     memset(&sp40, 0, 4);
 //     if (var_s3 >= 0x64) {
@@ -577,9 +577,9 @@ found:
 //         }
 //     }
 //     if (var_s2 == NULL) {
-//         if (D_80012CBC != 0xFF) {
-//             var_v1_2 = &D_80012CBC;
-//             var_v0_2 = D_80012CBC;
+//         if (VoiceCommon != 0xFF) {
+//             var_v1_2 = &VoiceCommon;
+//             var_v0_2 = VoiceCommon;
 // loop_17:
 //             if (var_s3 != var_v0_2) {
 //                 var_v1_2 += 6;
