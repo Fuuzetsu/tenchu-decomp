@@ -10,13 +10,13 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-extern u8 *D_80097D24;
-extern Sprite3D *D_80097D28;
+extern u8 *McardHelp;
+extern Sprite3D *McardSprite;
 extern s16 CardStateFlag;
-extern s32 D_80097D38;
-extern s32 D_80097D3C;
-extern u8 *D_80097D40;
-extern Sprite3D *D_800C2D58[];
+extern s32 McardPageNow;
+extern s32 McardAnswered;
+extern u8 *McardPageText;
+extern Sprite3D *McardButtons[];
 
 extern void SetupTelop(u8 *telop, short line);
 extern s32 FUN_800576e8(u8 *str);
@@ -47,17 +47,17 @@ s32 FUN_8005b17c(s32 page, s32 pad)
 
     if (page == 0)
     {
-        D_80097D38 = 0;
+        McardPageNow = 0;
         return 0;
     }
 
-    if (D_80097D38 != page)
+    if (McardPageNow != page)
     {
         page_num = 1;
         n = 0;
         if (page != 1)
         {
-            scan = D_80097D24;
+            scan = McardHelp;
             do
             {
                 while (*scan != 0 || scan[1] != 0)
@@ -70,16 +70,16 @@ s32 FUN_8005b17c(s32 page, s32 pad)
                 n += 2;
             } while (page != page_num);
         }
-        D_80097D38 = page;
-        D_80097D3C = 0;
-        D_80097D40 = D_80097D24 + n;
+        McardPageNow = page;
+        McardAnswered = 0;
+        McardPageText = McardHelp + n;
         SoundEx(0, 0x1f);
     }
 
-    GsSortSprite(&D_80097D28->sprite, OTablePt, 0);
+    GsSortSprite(&McardSprite->sprite, OTablePt, 0);
 
     y = 0;
-    text = D_80097D40;
+    text = McardPageText;
     if (*text != 0)
         {
             scan = text;
@@ -109,7 +109,7 @@ s32 FUN_8005b17c(s32 page, s32 pad)
     }
 
     n = 0;
-    if (D_80097D3C != 0)
+    if (McardAnswered != 0)
     {
         pad = n;
     }
@@ -126,7 +126,7 @@ s32 FUN_8005b17c(s32 page, s32 pad)
 
 period:
     {
-        GsSortSprite(&D_800C2D58[1]->sprite, OTablePt, 0);
+        GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
         if (pad != 0x20)
         {
             goto done;
@@ -140,17 +140,17 @@ question:
         {
             if (CardStateFlag != 0)
             {
-                D_800C2D58[2]->sprite.attribute &= 0xbfffffff;
-                D_800C2D58[3]->sprite.attribute |= 0x40000000;
+                McardButtons[2]->sprite.attribute &= 0xbfffffff;
+                McardButtons[3]->sprite.attribute |= 0x40000000;
             }
             else
             {
-                D_800C2D58[2]->sprite.attribute |= 0x40000000;
-                D_800C2D58[3]->sprite.attribute &= 0xbfffffff;
+                McardButtons[2]->sprite.attribute |= 0x40000000;
+                McardButtons[3]->sprite.attribute &= 0xbfffffff;
             }
-            GsSortSprite(&D_800C2D58[2]->sprite, OTablePt, 0);
-            GsSortSprite(&D_800C2D58[3]->sprite, OTablePt, 0);
-            GsSortSprite(&D_800C2D58[4]->sprite, OTablePt, 0);
+            GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
+            GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);
+            GsSortSprite(&McardButtons[4]->sprite, OTablePt, 0);
 
             switch (pad)
             {
@@ -181,7 +181,7 @@ question:
         }
         else
         {
-            GsSortSprite(&D_800C2D58[0]->sprite, OTablePt, 0);
+            GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
             if (pad != 0x20)
             {
                 goto check_cancel;
@@ -207,7 +207,7 @@ cancel:
 done:
     if (n != 0)
     {
-        D_80097D3C = 1;
+        McardAnswered = 1;
     }
     return (short)n;
 }

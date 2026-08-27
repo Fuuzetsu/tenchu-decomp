@@ -14,7 +14,7 @@
  * FUN_8005a7a4 (0x8005a7a4) — advance the memory-card save UI state machine.
  *
  * The target selects the new state into a register and does ONE store. A
- * ternary is NOT equivalent (cc1 duplicates the D_80097D32 store into both
+ * ternary is NOT equivalent (cc1 duplicates the McardRetry store into both
  * arms, +8). Three constructs in the shared `update_count` tail are
  * load-bearing; each is measured, and removing any of them costs bytes.
  *
@@ -31,7 +31,7 @@
  *     and folds to `lui`/`slt` against 2<<16 (measured: 13). `< 3` is
  *     store_flag's natural `slti` — the target's exact instruction.
  *
- *   - the do{}while(0) around the D_80097D32 store. A fence emits CODE_LABELs,
+ *   - the do{}while(0) around the McardRetry store. A fence emits CODE_LABELs,
  *     i.e. a basic-block boundary, and that boundary is what pins the result:
  *       * combine will not merge the compare into the branch across it, so the
  *         `slti` stays put instead of being re-split back down at the branch.
@@ -41,22 +41,22 @@
  *         `sh` sits right before it and never touches v0.
  *     Both of the target's oddities come from that single boundary.
  *
- *   - the do{}while(0) around the D_80097D2E store buys next_state one
+ *   - the do{}while(0) around the McardState store buys next_state one
  *     loop-depth-weighted ref, winning it a0 (regalloc.py: `p83 > p117: needs
  *     +1 weighted ref`). It must enclose ONLY this read: wrapping the `if`
  *     would also double saved_state's refs, and its shorter live range would
  *     then outrank next_state and take a0 the wrong way.
  *
  * Measured, so nobody re-derives them: cond alone 12, fence alone 12, both 0;
- * unwrapping the D_80097D2E fence 7. Moving the store after the `if` lets
+ * unwrapping the McardState fence 7. Moving the store after the `if` lets
  * reorg take it into the delay slot: 1020 bytes, 4 short.
  */
 
-extern char *D_80097D18;
+extern char *McardFile;
 extern s16 CardStateFlag;
-extern s16 D_80097D2E;
-extern s16 D_80097D30;
-extern s16 D_80097D32;
+extern s16 McardState;
+extern s16 McardPage;
+extern s16 McardRetry;
 
 extern s32 FUN_8005adbc(s16 mode);
 extern s16 FUN_8005aba4(u16 *state, s16 *page);
@@ -74,42 +74,42 @@ s32 FUN_8005a7a4(s32 pad)
     u16 incremented;
 
     FUN_8005adbc(0);
-    switch ((s16)(D_80097D2E - 10))
+    switch ((s16)(McardState - 10))
     {
     case 0:
-        D_80097D30 = 0x18;
+        McardPage = 0x18;
         break;
     case 10:
-        D_80097D30 = 0x19;
+        McardPage = 0x19;
         break;
     case 0x1c:
-        D_80097D2E = 0x28;
+        McardState = 0x28;
         break;
     case 0x1e:
-        D_80097D2E = 0x2b;
+        McardState = 0x2b;
         break;
     case 0x21:
-        value = FUN_80056e30(D_80097D18);
+        value = FUN_80056e30(McardFile);
         if (value == 0)
             goto probe_missing;
         if (value == 5)
             goto probe_present;
         goto clear_state;
 probe_missing:
-        D_80097D2E = 0x3c;
+        McardState = 0x3c;
         break;
 probe_present:
-        D_80097D2E = 0x32;
+        McardState = 0x32;
         break;
     case 0x28:
-        D_80097D30 = 7;
-        D_80097D32 = 0;
+        McardPage = 7;
+        McardRetry = 0;
         goto increment_state;
     case 0x2b:
-        SaveCard(0, (u8 *)D_80097D18,
+        SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                  TENCHU_PERSISTENT_STATE_SIZE, 0);
-        value = SaveCard(0, (u8 *)D_80097D18,
+        value = SaveCard(0, (u8 *)McardFile,
                          (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                          TENCHU_PERSISTENT_STATE_SIZE, 1);
         if (value == 1)
@@ -137,42 +137,42 @@ save_2b_seven:
         assigned = 0x46;
         goto save_2b_assign;
 save_2b_four:
-        D_80097D2E = 0x1e;
+        McardState = 0x1e;
         CardStateFlag = 0;
         goto save_2b_after_assign;
 save_2b_assign:
-        D_80097D2E = assigned;
+        McardState = assigned;
 save_2b_after_assign:
-        if (D_80097D2E == 0x36)
+        if (McardState == 0x36)
             break;
         next_state = 0x35;
-        saved_state = (u16)D_80097D2E;
-        value = D_80097D32;
+        saved_state = (u16)McardState;
+        value = McardRetry;
         incremented = value + 1;
         goto update_count;
     case 0x2c:
         if (gfMemory == 0)
         {
-            D_80097D30 = 9;
+            McardPage = 9;
             break;
         }
     case 0x2d:
-        D_80097D2E = 99;
+        McardState = 99;
         break;
     case 0x2e:
-        D_80097D30 = 0xe;
+        McardPage = 0xe;
         break;
     case 0x32:
-        D_80097D30 = 0x2c;
+        McardPage = 0x2c;
         break;
     case 0x33:
-        D_80097D30 = 7;
-        D_80097D2E = 0x3f;
-        D_80097D32 = 0;
+        McardPage = 7;
+        McardState = 0x3f;
+        McardRetry = 0;
         break;
     case 0x2f:
     case 0x34:
-        D_80097D2E = 0x5a;
+        McardState = 0x5a;
         break;
     case 0x1f:
     case 0x20:
@@ -181,13 +181,13 @@ save_2b_after_assign:
     case 0x35:
     case 0x36:
 increment_state:
-        D_80097D2E++;
+        McardState++;
         break;
     case 0x37:
-        SaveCard(0, (u8 *)D_80097D18,
+        SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                  TENCHU_PERSISTENT_STATE_SIZE, 0);
-        value = SaveCard(0, (u8 *)D_80097D18,
+        value = SaveCard(0, (u8 *)McardFile,
                          (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                          TENCHU_PERSISTENT_STATE_SIZE, 1);
         if (value == 1)
@@ -215,22 +215,22 @@ save_37_seven:
         assigned = 0x46;
         goto save_37_assign;
 save_37_four:
-        D_80097D2E = 0x1e;
+        McardState = 0x1e;
         CardStateFlag = 0;
         goto save_37_after_assign;
 save_37_assign:
-        D_80097D2E = assigned;
+        McardState = assigned;
 save_37_after_assign:
-        if (D_80097D2E == 0x36)
+        if (McardState == 0x36)
             break;
         next_state = 0x41;
-        saved_state = (u16)D_80097D2E;
-        value = D_80097D32;
+        saved_state = (u16)McardState;
+        value = McardRetry;
         incremented = value + 1;
 update_count:
         cond = value < 3;
         do {
-            D_80097D32 = incremented;
+            McardRetry = incremented;
         } while (0);
         if (!cond)
             next_state = saved_state;
@@ -247,41 +247,41 @@ update_count:
          * (3/11) would then outrank next_state and take a0 the wrong way.
          */
         do {
-            D_80097D2E = next_state;
+            McardState = next_state;
         } while (0);
         break;
     case 0x3c:
-        D_80097D30 = 0x1a;
+        McardPage = 0x1a;
         break;
     case 1:
     case 0xb:
     case 0x3d:
-        D_80097D2E = -1;
+        McardState = -1;
         break;
     case 2:
     case 0xc:
     case 0x3e:
 clear_state:
-        D_80097D2E = 0;
+        McardState = 0;
         break;
     default:
-        value = FUN_8005aba4((u16 *)&D_80097D2E, &D_80097D30);
+        value = FUN_8005aba4((u16 *)&McardState, &McardPage);
         if (value == 0)
         {
-            D_80097D30 = 0;
-            D_80097D32 = 0;
+            McardPage = 0;
+            McardRetry = 0;
             FUN_8005adbc(1);
-            if (D_80097D2E < 0)
+            if (McardState < 0)
             {
-                D_80097D2E = 3;
+                McardState = 3;
                 return 1;
             }
-            D_80097D2E = 3;
+            McardState = 3;
             return -1;
         }
         break;
     }
 
-    D_80097D2E += FUN_8005b17c(D_80097D30, pad);
+    McardState += FUN_8005b17c(McardPage, pad);
     return 0;
 }

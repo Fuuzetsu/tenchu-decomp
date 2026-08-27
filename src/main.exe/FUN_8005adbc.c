@@ -20,10 +20,10 @@
  *    final SetupSprite result to a0 before the two field stores.
  */
 
-extern u_long *D_80097D20;
-extern u8 *D_80097D24;
-extern Sprite3D *D_80097D28;
-extern Sprite3D *D_800C2D58[];
+extern u_long *McardVramSave;
+extern u8 *McardHelp;
+extern Sprite3D *McardSprite;
+extern Sprite3D *McardButtons[];
 
 extern char path_demo_start_card_j[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt */
 extern char path_demo_start_mcard_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim */
@@ -50,46 +50,46 @@ s32 FUN_8005adbc(s16 mode)
         rect.y = 0x100;
         rect.w = 0x40;
         rect.h = 0x100;
-        LoadImage(&rect, D_80097D20);
+        LoadImage(&rect, McardVramSave);
         DrawSync(0);
-        vfree(D_80097D20);
-        D_80097D20 = 0;
-        vfree(D_80097D24);
-        vfree(D_80097D28);
-        vfree(D_800C2D58[0]);
-        vfree(D_800C2D58[1]);
-        vfree(D_800C2D58[2]);
-        vfree(D_800C2D58[3]);
-        vfree(D_800C2D58[4]);
+        vfree(McardVramSave);
+        McardVramSave = 0;
+        vfree(McardHelp);
+        vfree(McardSprite);
+        vfree(McardButtons[0]);
+        vfree(McardButtons[1]);
+        vfree(McardButtons[2]);
+        vfree(McardButtons[3]);
+        vfree(McardButtons[4]);
         return 0;
     }
 
-    if (D_80097D20 == 0)
+    if (McardVramSave == 0)
     {
-        D_80097D20 = valloc(0x8000);
+        McardVramSave = valloc(0x8000);
         rect.x = 0x3c0;
         rect.y = 0x100;
         rect.w = 0x40;
         rect.h = 0x100;
-        StoreImage(&rect, D_80097D20);
+        StoreImage(&rect, McardVramSave);
         DrawSync(0);
 
-        D_80097D24 = (u8 *)FileRead(path_demo_start_card_j);
+        McardHelp = (u8 *)FileRead(path_demo_start_card_j);
         FUN_8005b17c(0, 0);
         i = 0;
-        size = vsize(D_80097D24);
+        size = vsize(McardHelp);
         if (size > 0)
         {
             do
             {
-                c = D_80097D24[i];
+                c = McardHelp[i];
                 if ((c & 0x80) != 0)
                 {
                     i++;
                 }
                 else if (c < 0x20 || c == 0x5c)
                 {
-                    D_80097D24[i] = 0;
+                    McardHelp[i] = 0;
                 }
                 i++;
             } while (i < size);
@@ -98,40 +98,40 @@ s32 FUN_8005adbc(s16 mode)
         tim = FileRead(path_demo_start_mcard_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
-        D_80097D28 = SetupSprite(0, &image);
-        D_80097D28->sprite.y = -0x3c;
+        McardSprite = SetupSprite(0, &image);
+        McardSprite->sprite.y = -0x3c;
 
         tim = FileRead(path_demo_start_mbuttonj_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
-        D_800C2D58[0] = SetupSprite(0, &image);
-        D_800C2D58[0]->sprite.h >>= 1;
-        D_800C2D58[0]->sprite.my = image.ph >> 2;
-        D_800C2D58[0]->sprite.y = 0x3c;
+        McardButtons[0] = SetupSprite(0, &image);
+        McardButtons[0]->sprite.h >>= 1;
+        McardButtons[0]->sprite.my = image.ph >> 2;
+        McardButtons[0]->sprite.y = 0x3c;
 
-        D_800C2D58[1] = SetupSprite(D_800C2D58[0], 0);
-        D_800C2D58[1]->sprite.v += image.ph >> 1;
+        McardButtons[1] = SetupSprite(McardButtons[0], 0);
+        McardButtons[1]->sprite.v += image.ph >> 1;
 
-        D_800C2D58[2] = SetupSprite(D_800C2D58[0], 0);
-        D_800C2D58[2]->sprite.w = (D_800C2D58[0]->sprite.w >> 1) - 0x14;
-        D_800C2D58[2]->sprite.mx = (D_800C2D58[2]->sprite.w >> 1) + 10;
-        D_800C2D58[2]->sprite.x = -0x14;
-        D_800C2D58[2]->sprite.u += 0xf;
-        D_800C2D58[2]->sprite.attribute |= 0x30000000;
+        McardButtons[2] = SetupSprite(McardButtons[0], 0);
+        McardButtons[2]->sprite.w = (McardButtons[0]->sprite.w >> 1) - 0x14;
+        McardButtons[2]->sprite.mx = (McardButtons[2]->sprite.w >> 1) + 10;
+        McardButtons[2]->sprite.x = -0x14;
+        McardButtons[2]->sprite.u += 0xf;
+        McardButtons[2]->sprite.attribute |= 0x30000000;
 
-        D_800C2D58[3] = SetupSprite(D_800C2D58[0], 0);
-        D_800C2D58[3]->sprite.w = (D_800C2D58[0]->sprite.w >> 1) - 10;
-        D_800C2D58[3]->sprite.mx = D_800C2D58[3]->sprite.w >> 1;
-        D_800C2D58[3]->sprite.x = 0x1c;
-        D_800C2D58[3]->sprite.u += ((image.pw >> 1) * 4) + 10;
-        D_800C2D58[3]->sprite.attribute |= 0x30000000;
+        McardButtons[3] = SetupSprite(McardButtons[0], 0);
+        McardButtons[3]->sprite.w = (McardButtons[0]->sprite.w >> 1) - 10;
+        McardButtons[3]->sprite.mx = McardButtons[3]->sprite.w >> 1;
+        McardButtons[3]->sprite.x = 0x1c;
+        McardButtons[3]->sprite.u += ((image.pw >> 1) * 4) + 10;
+        McardButtons[3]->sprite.attribute |= 0x30000000;
 
         tim = FileRead(path_demo_start_xtoselj_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
-        D_800C2D58[4] = SetupSprite(0, &image);
-        D_800C2D58[4]->sprite.x = 2;
-        D_800C2D58[4]->sprite.y = 0x5a;
+        McardButtons[4] = SetupSprite(0, &image);
+        McardButtons[4]->sprite.x = 2;
+        McardButtons[4]->sprite.y = 0x5a;
         return 1;
     }
     return 0;
