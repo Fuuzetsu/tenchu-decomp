@@ -1,6 +1,11 @@
 #ifndef ITEM_H
 #define ITEM_H
 
+/* ModelType.attribute bit 15: ComputeAllConflict raises it on both models
+ * when it records a collision result for the frame; every GetConflictResult
+ * caller tests it before reading the result table. */
+#define MODEL_ATTR_CONFLICT 0x8000
+
 /*
  * Shared types + externs of the original item translation unit (ProcItem*,
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
@@ -66,7 +71,7 @@ typedef struct Humanoid
 {
     s16 type;                    /* 0x00 */
     s16 status;                  /* 0x02 */
-    s16 attribute;               /* 0x04 */
+    s16 attribute;               /* 0x04 */ /* bit 15 = MODEL_ATTR_CONFLICT */
     s16 turn;                    /* 0x06 */
     s16 life;                    /* 0x08 */
     s16 lifemax;                 /* 0x0A (PSX.SYM's original signed maximum-life field) */

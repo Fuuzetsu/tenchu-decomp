@@ -133,7 +133,7 @@ do_control:
         switch (m->mode)
         {
         case 0:
-            if ((param->locate->attribute & 0x8000) != 0)
+            if ((param->locate->attribute & 0x8000 /* MODEL_ATTR_CONFLICT */) != 0)
             {
                 s32 cid;
 

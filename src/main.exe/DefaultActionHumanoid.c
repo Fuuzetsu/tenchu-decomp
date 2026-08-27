@@ -758,7 +758,7 @@ apply_reflection:
 //       pVVar13->vz = iVar8;
 //     }
 //   }
-//   if (((int)model->attribute & 0x8000U) != 0) {
+//   if (((int)model->attribute & MODEL_ATTR_CONFLICT) != 0) {
 //     while( true ) {
 //       sVar2 = GetConflictResult(model,-1);
 //       uVar12 = (uint)sVar2;

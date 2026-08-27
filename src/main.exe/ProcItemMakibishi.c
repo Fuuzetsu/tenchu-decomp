@@ -141,7 +141,7 @@ void ProcItemMakibishi(TItem *item)
         break;
 
     case 1:
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             i = -1;
         else
             i = GetConflictResult(item->locate, -1);
@@ -232,7 +232,7 @@ void ProcItemMakibishi(TItem *item)
 //     }
 //   }
 //   else if (item->mode == '\x01') {
-//     if (((int)item->locate->attribute & 0x8000U) == 0) {
+//     if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //       iVar6 = -1;
 //     }
 //     else {

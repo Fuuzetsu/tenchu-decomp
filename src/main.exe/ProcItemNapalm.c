@@ -156,7 +156,7 @@ void ProcItemNapalm(TItem *item)
             item->mode = item->mode + 1;
         }
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }
@@ -336,7 +336,7 @@ void ProcItemNapalm(TItem *item)
 //     if (0x14 < bVar2) {
 //       item->mode = item->mode + '\x01';
 //     }
-//     if (((int)item->locate->attribute & 0x8000U) == 0) {
+//     if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //       iVar9 = -1;
 //     }
 //     else {

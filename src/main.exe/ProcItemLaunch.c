@@ -129,7 +129,7 @@ void ProcItemLaunch(TItem *item)
     model->locate = item->locate->locate;
     DrawModel(model);
     DrawAfterimage(param->effect, 1);
-    if ((item->locate->attribute & 0x8000) == 0)
+    if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         cid = -1;
     else
         cid = GetConflictResult(item->locate, -1);

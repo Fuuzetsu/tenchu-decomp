@@ -133,8 +133,8 @@ void ComputeAllConflict(void)
                                 ConflictObject[i].result[j] = other->size.pad | 0x80;
                                 ConflictObject[j].result[i] = ConflictObject[i].size.pad | 0x80;
                                 ConflictObject[i].model->attribute =
-                                    ConflictObject[i].model->attribute | 0x8000;
-                                other->model->attribute = other->model->attribute | 0x8000;
+                                    ConflictObject[i].model->attribute | MODEL_ATTR_CONFLICT;
+                                other->model->attribute = other->model->attribute | MODEL_ATTR_CONFLICT;
                                 ConflictObject[i].offset.pad = ConflictObject[i].offset.pad + 1;
                                 other->offset.pad = other->offset.pad + 1;
                             }

@@ -208,7 +208,7 @@ void ProcItemNemuri(TItem *item)
             item->mode = item->mode + 1;
         }
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }

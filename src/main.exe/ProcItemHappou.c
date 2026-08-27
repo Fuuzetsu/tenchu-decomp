@@ -152,7 +152,7 @@ void ProcItemHappou(TItem *item)
             }
         }
     }
-    if ((item->locate->attribute & 0x8000) == 0)
+    if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         i = -1;
     else
         i = GetConflictResult(item->locate, -1);
@@ -240,7 +240,7 @@ void ProcItemHappou(TItem *item)
 //         item->proc = (undefined **)0x0;
 //       }
 //     }
-//     if (((int)item->locate->attribute & 0x8000U) == 0) {
+//     if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //       iVar7 = -1;
 //     }
 //     else {

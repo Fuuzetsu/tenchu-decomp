@@ -285,7 +285,7 @@ draw_mode0:
     {
         s32 count;
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }
@@ -579,7 +579,7 @@ draw_mode0:
 //       if (bVar1 != 2) {
 //         return;
 //       }
-//       if (((int)item->locate->attribute & 0x8000U) == 0) {
+//       if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //         iVar7 = -1;
 //       }
 //       else {

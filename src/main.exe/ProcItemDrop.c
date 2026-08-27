@@ -157,7 +157,7 @@ void ProcItemDrop(TItem *item)
         return;
 
     case 1:
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             i = -1;
         else
             i = GetConflictResult(item->locate, -1);

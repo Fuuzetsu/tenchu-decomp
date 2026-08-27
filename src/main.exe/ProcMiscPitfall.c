@@ -131,7 +131,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                 {
                     if (mode == 0)
                     {
-                        if ((param->locate->attribute & 0x8000) != 0)
+                        if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
                         {
                             /* Preserve the array base across the call. */
                             conflict = ConflictObject;

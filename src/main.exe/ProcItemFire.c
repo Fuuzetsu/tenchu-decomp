@@ -281,7 +281,7 @@ void ProcItemFire(TItem *item)
                 item->collision.pause = 0;
             }
 
-            if ((item->locate->attribute & 0x8000) == 0)
+            if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             {
                 cid = -1;
             }
@@ -359,7 +359,7 @@ void ProcItemFire(TItem *item)
             item->proc = 0;
         }
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }
@@ -592,7 +592,7 @@ void ProcItemFire(TItem *item)
 //               (item->collision).mode = 8;
 //               (item->collision).pause = 0;
 //             }
-//             if (((int)item->locate->attribute & 0x8000U) == 0) {
+//             if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //               iVar4 = -1;
 //             }
 //             else {
@@ -621,7 +621,7 @@ void ProcItemFire(TItem *item)
 //           item->owner = (Humanoid *)0x0;
 //           item->proc = (undefined **)0x0;
 //         }
-//         if (((int)item->locate->attribute & 0x8000U) == 0) {
+//         if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //           iVar4 = -1;
 //         }
 //         else {

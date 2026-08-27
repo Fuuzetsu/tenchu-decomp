@@ -161,7 +161,7 @@ void ProcItemJirai(TItem *item)
     {
         s32 cid;
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }
@@ -225,7 +225,7 @@ void ProcItemJirai(TItem *item)
         s32 cid;
         s32 count;
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }
@@ -361,7 +361,7 @@ dispose:
 //   bVar1 = item->mode;
 //   if (bVar1 == 1) {
 //     iVar10 = -1;
-//     if (((int)item->locate->attribute & 0x8000U) != 0) {
+//     if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) != 0) {
 //       sVar4 = GetConflictResult(item->locate,-1);
 //       iVar10 = (int)sVar4;
 //     }
@@ -453,7 +453,7 @@ dispose:
 //     FUN_8002f7f4();
 //   }
 //   else if (bVar1 == 3) {
-//     if (((int)item->locate->attribute & 0x8000U) == 0) {
+//     if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //       iVar10 = -1;
 //     }
 //     else {

@@ -145,7 +145,7 @@ void ProcItemArrow(TItem *item)
             item->collision.pause = 0;
         }
 
-        if ((item->locate->attribute & 0x8000) == 0)
+        if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
             cid = -1;
         }
@@ -389,7 +389,7 @@ aim:
 //         (item->collision).mode = 1;
 //         (item->collision).pause = 0;
 //       }
-//       if (((int)item->locate->attribute & 0x8000U) == 0) {
+//       if (((int)item->locate->attribute & MODEL_ATTR_CONFLICT) == 0) {
 //         iVar9 = -1;
 //       }
 //       else {
