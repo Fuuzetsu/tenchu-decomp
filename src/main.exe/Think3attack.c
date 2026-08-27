@@ -113,7 +113,8 @@ s16 Think3attack(void)
                 pad = 0xa0;
                 goto action_ready;
             }
-            goto add_attack;
+            pad |= 0x80;
+            goto action_ready;
         }
         pad |= 0x4000;
         goto action_ready;
@@ -143,7 +144,6 @@ s16 Think3attack(void)
         {
             if (__builtin_abs(Degree) < 1200)
             {
-            add_attack:
                 pad |= 0x80;
                 goto action_ready;
             }

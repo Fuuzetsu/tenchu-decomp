@@ -456,7 +456,6 @@ void briefing_screen_(void)
                     sprite.r = brightness;
                     sprite.g = brightness;
                     sprite.b = brightness;
-                    goto brightness_done;
                 brightness_done:
                     sprite.x -= 8;
                     GsSortSprite(&sprite, OTablePt, 1);
