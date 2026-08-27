@@ -78,18 +78,21 @@ typedef union
     } probe;
 } CameraScratch;
 
-extern SVECTOR D_80097A28[];
-extern SVECTOR D_80097A30[];
-extern TCameraPos D_80011A64;
-extern TCameraPos D_80011A84;
-extern TCameraPos D_80011AA4;
-extern TCameraPos D_80011AC4;
-extern TCameraPos D_80011AE4;
-extern TCameraPos D_80011B04;
-extern TCameraPos D_80011B24;
-extern TCameraPos D_80011B44;
-extern TCameraPos D_80011B64;
-extern TCameraPos D_80011B84;
+/* the CAMERA.C statics, named by the CMODE (or trigger) each one serves;
+ * CamPosKnockback fires on mids 0x1005..0x1009/0x100C, CamPosStunned on
+ * status 7. CamVecL/R seed the probe's vecl/vecr. */
+extern SVECTOR CamVecL[];
+extern SVECTOR CamVecR[];
+extern TCameraPos CamPosStickL;
+extern TCameraPos CamPosStickR;
+extern TCameraPos CamPosPeepL;
+extern TCameraPos CamPosPeepR;
+extern TCameraPos CamPosCrouch;
+extern TCameraPos CamPosRun;
+extern TCameraPos CamPosSwim;
+extern TCameraPos CamPosKnockback;
+extern TCameraPos CamPosKnockbackAlt;
+extern TCameraPos CamPosStunned;
 
 extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
                               SVECTOR *campos, GsRVIEW2 *vDif);
@@ -120,8 +123,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         s32 levbr;
         s32 levmap;
 
-        scratch.probe.vecl = D_80097A28[0];
-        scratch.probe.vecr = D_80097A30[0];
+        scratch.probe.vecl = CamVecL[0];
+        scratch.probe.vecr = CamVecR[0];
         RotateVectorS(&scratch.probe.vecl,
                       mad->rotate.vx, mad->rotate.vy, 0);
         RotateVectorS(&scratch.probe.vecr,
@@ -215,46 +218,46 @@ choose_camera:
                            &CamPosCriticalHit[CamState.OldMode].r1, vDif);
         return;
     case CMODE_STICK_L:
-        scratch.probe.stick_l_camera = D_80011A64;
+        scratch.probe.stick_l_camera = CamPosStickL;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.probe.stick_l_camera.r1, vDif);
         return;
     case CMODE_STICK_R:
-        scratch.camera = D_80011A84;
+        scratch.camera = CamPosStickR;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         return;
     case CMODE_PEEP_L:
-        scratch.camera = D_80011AA4;
+        scratch.camera = CamPosPeepL;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         return;
     case CMODE_PEEP_R:
-        scratch.camera = D_80011AC4;
+        scratch.camera = CamPosPeepR;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         return;
     case CMODE_CROUCH:
-        scratch.camera = D_80011AE4;
+        scratch.camera = CamPosCrouch;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         CamState.Mode = CMODE_NORMAL;
         return;
     case CMODE_RUN:
-        scratch.camera = D_80011B04;
+        scratch.camera = CamPosRun;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         CamState.Mode = CMODE_NORMAL;
         return;
     case CMODE_SWIM:
-        scratch.camera = D_80011B24;
+        scratch.camera = CamPosSwim;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         CamState.Mode = CMODE_NORMAL;
         return;
     case 0x10:
-        scratch.camera = D_80011B44;
-        alternate = D_80011B64;
+        scratch.camera = CamPosKnockback;
+        alternate = CamPosKnockbackAlt;
 
         if (MakeCameraPosition(&pos, &pl->model->rotate,
                                &scratch.camera.r1, vDif) < 0x801) {
@@ -264,7 +267,7 @@ choose_camera:
         CamState.Mode = CMODE_NORMAL;
         return;
     case 0x11:
-        scratch.camera = D_80011B84;
+        scratch.camera = CamPosStunned;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         CamState.Mode = CMODE_NORMAL;
