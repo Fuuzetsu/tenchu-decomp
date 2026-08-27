@@ -162,8 +162,8 @@ Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
 {
     /* PSX.SYM and the retail multiply both show a full-width counter. */
     u32 idx;
-    s32 sVar1;
-    HumanDataType *pHVar5;
+    s32 kind;
+    HumanDataType *row;
     HumanDataType *base;
     u_long *model;
     HumanDataType *pp;
@@ -204,19 +204,19 @@ type_found:
         sprintf((char *)name, fmt_mad, path_human, pp->name);
         model = FileRead(name);
         pp->model = model;
-        sVar1 = HumanData[0].type;
-        if (sVar1 != -1)
+        kind = HumanData[0].type;
+        if (kind != -1)
         {
             q = pp;
-            pHVar5 = HumanData;
+            row = HumanData;
         scan_next:
-            if (strcmp((char *)q->name, (char *)pHVar5->name) == 0)
+            if (strcmp((char *)q->name, (char *)row->name) == 0)
             {
-                pHVar5->model = model;
+                row->model = model;
             }
-            pHVar5 = pHVar5 + 1;
-            sVar1 = pHVar5->type;
-            if (sVar1 != -1)
+            row = row + 1;
+            kind = row->type;
+            if (kind != -1)
                 goto scan_next;
         }
     }

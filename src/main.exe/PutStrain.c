@@ -104,7 +104,7 @@ void PutStrain(s32 x, s32 y)
     GsSPRITE *spr;
     s32 delta;
     s32 s;
-    s32 iVar4;
+    s32 osc;
     u16 phase;
     u8 shade;
     s16 scale;
@@ -169,10 +169,10 @@ void PutStrain(s32 x, s32 y)
         spr->y = (s16)y;
         phase = StrainPhase + (s >> 5);
         StrainPhase = phase;
-        iVar4 = rsin(phase) * 0x60;
-        if (iVar4 < 0)
-            iVar4 = iVar4 + 0xfff;
-        shade = (iVar4 >> 0xc) + range / 2;
+        osc = rsin(phase) * 0x60;
+        if (osc < 0)
+            osc = osc + 0xfff;
+        shade = (osc >> 0xc) + range / 2;
         spr->b = shade;
         spr->g = shade;
         spr->r = shade;
