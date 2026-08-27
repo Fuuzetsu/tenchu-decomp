@@ -67,90 +67,88 @@ void ActSTATE(void)
     switch ((short)(dtM->mid - 0x801))
     {
     case 0xd:
-        if (dtM->count != 1)
+        if (dtM->count == 1)
         {
-            goto draw_not_one;
-        }
-        {
-            short cleanup_guard;
-            short kind;
+            {
+                short cleanup_guard;
+                short kind;
 
-            kind = Me_MOTION_C->wpatk;
-            switch (kind)
-            {
-            case 2:
-                DeleteConflict(Me_MOTION_C->model->object[8]);
-                DeleteConflict(Me_MOTION_C->model->object[0xb]);
-                cleanup_guard = 3;
-                break;
-            case 3:
-                DeleteConflict(Me_MOTION_C->model->object[2]);
-                cleanup_guard = 3;
-                break;
-            case 0:
-                cleanup_guard = 3;
-                break;
-            default:
-                DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                DeleteConflict(Me_MOTION_C->model->object[0xe]);
-                cleanup_guard = 3;
-                break;
+                kind = Me_MOTION_C->wpatk;
+                switch (kind)
+                {
+                case 2:
+                    DeleteConflict(Me_MOTION_C->model->object[8]);
+                    DeleteConflict(Me_MOTION_C->model->object[0xb]);
+                    cleanup_guard = 3;
+                    break;
+                case 3:
+                    DeleteConflict(Me_MOTION_C->model->object[2]);
+                    cleanup_guard = 3;
+                    break;
+                case 0:
+                    cleanup_guard = 3;
+                    break;
+                default:
+                    DeleteConflict(Me_MOTION_C->model->object[0xd]);
+                    DeleteConflict(Me_MOTION_C->model->object[0xe]);
+                    cleanup_guard = 3;
+                    break;
+                }
+                if ((cleanup_guard & 2) != 0)
+                {
+                    if (Me_MOTION_C->illusion[0] != 0)
+                    {
+                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                        Me_MOTION_C->illusion[0] = 0;
+                    }
+                    if (Me_MOTION_C->illusion[1] != 0)
+                    {
+                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                        Me_MOTION_C->illusion[1] = 0;
+                    }
+                }
             }
-            if ((cleanup_guard & 2) != 0)
+            dtM->mask = 0x7fff;
+            if (Me_MOTION_C->type < 7)
             {
-                if (Me_MOTION_C->illusion[0] != 0)
+                if (Me_MOTION_C->type > 3)
                 {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = 0;
-                }
-                if (Me_MOTION_C->illusion[1] != 0)
-                {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = 0;
-                }
-            }
-        }
-        dtM->mask = 0x7fff;
-        if (Me_MOTION_C->type < 7)
-        {
-            if (Me_MOTION_C->type > 3)
-            {
-                if (Me_MOTION_C == StagePlayer)
-                {
-                    SetCameraMode(CMODE_NORMAL);
-                }
-                {
-                    s32 special_motion_id;
+                    if (Me_MOTION_C == StagePlayer)
+                    {
+                        SetCameraMode(CMODE_NORMAL);
+                    }
+                    {
+                        s32 special_motion_id;
 
-                    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
-                    {
-                        special_motion_id = 0x501;
+                        if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                        {
+                            special_motion_id = 0x501;
+                        }
+                        else
+                        {
+                            goto zero_motion;
+                        }
+                        motID = special_motion_id;
                     }
-                    else
-                    {
-                        goto zero_motion;
-                    }
-                    motID = special_motion_id;
+                    break;
                 }
-                break;
             }
-        }
-        if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
-        {
+            if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
+            {
+                return;
+            }
+            motID = 0x501;
+            if (dtM->count != 0)
+            {
+                motMODE = 1;
+            }
+            else
+            {
+                motMODE = 1;
+            }
             return;
-        }
-        motID = 0x501;
-        if (dtM->count != 0)
-        {
-            motMODE = 1;
-        }
-        else
-        {
-            motMODE = 1;
-        }
-        return;
 
-    draw_not_one:
+        }
         if (dtM->count == dtM->motion->time / 2)
         {
             Sound(Me_MOTION_C, 0);
@@ -186,57 +184,55 @@ void ActSTATE(void)
         return;
 
     case 0xe:
-        if (dtM->count != 1)
+        if (dtM->count == 1)
         {
-            goto sheath_not_one;
-        }
-        {
-            short cleanup_guard;
-            short kind;
-
-            kind = Me_MOTION_C->wpatk;
-            switch (kind)
             {
-            case 2:
-                DeleteConflict(Me_MOTION_C->model->object[8]);
-                DeleteConflict(Me_MOTION_C->model->object[0xb]);
-                cleanup_guard = 3;
-                break;
-            case 3:
-                DeleteConflict(Me_MOTION_C->model->object[2]);
-                cleanup_guard = 3;
-                break;
-            case 0:
-                cleanup_guard = 3;
-                break;
-            default:
-                DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                DeleteConflict(Me_MOTION_C->model->object[0xe]);
-                cleanup_guard = 3;
-                break;
-            }
-            if ((cleanup_guard & 2) != 0)
-            {
-                if (Me_MOTION_C->illusion[0] != 0)
-                {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = 0;
-                }
-                if (Me_MOTION_C->illusion[1] != 0)
-                {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = 0;
-                }
-            }
-        }
-        dtM->mask = 0x7fff;
-        if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
-        {
-            return;
-        }
-        goto zero_motion;
+                short cleanup_guard;
+                short kind;
 
-    sheath_not_one:
+                kind = Me_MOTION_C->wpatk;
+                switch (kind)
+                {
+                case 2:
+                    DeleteConflict(Me_MOTION_C->model->object[8]);
+                    DeleteConflict(Me_MOTION_C->model->object[0xb]);
+                    cleanup_guard = 3;
+                    break;
+                case 3:
+                    DeleteConflict(Me_MOTION_C->model->object[2]);
+                    cleanup_guard = 3;
+                    break;
+                case 0:
+                    cleanup_guard = 3;
+                    break;
+                default:
+                    DeleteConflict(Me_MOTION_C->model->object[0xd]);
+                    DeleteConflict(Me_MOTION_C->model->object[0xe]);
+                    cleanup_guard = 3;
+                    break;
+                }
+                if ((cleanup_guard & 2) != 0)
+                {
+                    if (Me_MOTION_C->illusion[0] != 0)
+                    {
+                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                        Me_MOTION_C->illusion[0] = 0;
+                    }
+                    if (Me_MOTION_C->illusion[1] != 0)
+                    {
+                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                        Me_MOTION_C->illusion[1] = 0;
+                    }
+                }
+            }
+            dtM->mask = 0x7fff;
+            if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+            {
+                return;
+            }
+            goto zero_motion;
+
+        }
         if (dtM->count == dtM->motion->time / 2)
         {
             Sound(Me_MOTION_C, 1);
@@ -377,38 +373,31 @@ void ActSTATE(void)
                 }
             }
         }
-        if (dtM->count != 0)
+        if (dtM->count == 0 && dtM->loop != 0)
         {
-            goto damp_fall;
-        }
-        if (dtM->loop == 0)
-        {
-            goto damp_fall;
-        }
-        if (motID == 0x806)
-        {
-            CamState.snap_pending = 1;
-        }
-        if (Me_MOTION_C == StagePlayer)
-        {
-            ((s16 (*)(s32))SetCameraMode)(0);
-        }
-        {
-            s32 positive_motion_id;
-
-            if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+            if (motID == 0x806)
             {
-                positive_motion_id = 0x501;
+                CamState.snap_pending = 1;
             }
-            else
+            if (Me_MOTION_C == StagePlayer)
             {
-                goto zero_motion;
+                ((s16 (*)(s32))SetCameraMode)(0);
             }
-            motID = positive_motion_id;
-        }
-        goto positive_motion;
+            {
+                s32 positive_motion_id;
 
-    damp_fall:
+                if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                {
+                    positive_motion_id = 0x501;
+                }
+                else
+                {
+                    goto zero_motion;
+                }
+                motID = positive_motion_id;
+            }
+            goto positive_motion;
+        }
         dtV->vx -= dtV->vx >> 2;
         dtV->vz -= dtV->vz >> 2;
         return;
