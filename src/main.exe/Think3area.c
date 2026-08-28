@@ -139,7 +139,7 @@ s16 Think3area(void)
         }
         else if (degree < 1000)
         {
-            pad |= 0x80;
+            pad |= PADRleft;
         }
         Me_THINK_C->actflg = 1;
         goto return_pad;
@@ -168,7 +168,7 @@ s16 Think3area(void)
         }
         if (degree < 1000)
         {
-            pad |= 0x80;
+            pad |= PADRleft;
         }
     }
 

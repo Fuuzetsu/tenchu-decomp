@@ -223,7 +223,7 @@ void ActSTICKON(void)
             MotionManager *update_motion;
 
             pad = (s16)(u16)dtPAD;
-            if ((pad & 0xF000) != 0)
+            if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
             {
                 pd = 0;
                 rv = (u16)model->object[0]->rotate.vy >> 10 & 3;
@@ -256,7 +256,7 @@ void ActSTICKON(void)
             }
         }
 
-        if ((Me_MOTION_C->pad.trig & 0x10) != 0)
+        if ((Me_MOTION_C->pad.trig & PADRup) != 0)
         {
             s32 selected_item;
             s32 high_item;
@@ -377,7 +377,7 @@ void ActSTICKON(void)
 
         pad_bits = (u32)(u16)dtPAD << 16;
         pad = (s32)pad_bits >> 16;
-        if ((pad & 0xF000) == 0)
+        if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) == 0)
         {
             goto case12_no_pad;
         }
@@ -406,19 +406,19 @@ void ActSTICKON(void)
             UpdateMotion(dtM, drop_index);
         }
 
-        if (dtPAD & 0x1000)
+        if (dtPAD & PADLup)
         {
             MoveHumanoid(Me_MOTION_C, 0x1E, 0);
         }
-        else if (dtPAD & 0x4000)
+        else if (dtPAD & PADLdown)
         {
             MoveHumanoid(Me_MOTION_C, -0x1E, 0);
         }
-        else if (dtPAD & 0x8000)
+        else if (dtPAD & PADLleft)
         {
             MoveHumanoid(Me_MOTION_C, 0, 0x1E);
         }
-        else if (dtPAD & 0x2000)
+        else if (dtPAD & PADLright)
         {
             MoveHumanoid(Me_MOTION_C, 0, -0x1E);
         }
@@ -545,7 +545,7 @@ void ActSTICKON(void)
     default:
         break;
     }
-    if ((dtPAD & 0x20) == 0)
+    if ((dtPAD & PADRright) == 0)
     {
         dtM->mask = 0x7FFF;
         if (Me_MOTION_C == StagePlayer)

@@ -102,7 +102,7 @@ short AttackLong(void)
         }
         else
         {
-            pad |= 0x80;
+            pad |= PADRleft;
             if (Degree < -300)
             {
                 pad = -0x8000;
@@ -112,7 +112,7 @@ short AttackLong(void)
                 goto status7_value;
             }
         }
-        pad |= 0x80;
+        pad |= PADRleft;
 
     status7_value:
         status7_result = pad;
@@ -205,7 +205,7 @@ short AttackLong(void)
         {
             AttackActionCount = GameClock;
             AttackActionCount += EngageLevel * 10;
-            return pad | 0x80;
+            return pad | PADRleft;
         }
     }
 
@@ -247,7 +247,7 @@ short AttackLong(void)
     {
         if (Me_THINK_C->motion->count != 0)
         {
-            pad |= 0x1000;
+            pad |= PADLup;
             goto return_pad;
         }
         if (ad > 50)

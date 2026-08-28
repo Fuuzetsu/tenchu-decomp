@@ -104,7 +104,7 @@ short AttackIndirect(void)
         }
         else
         {
-            pad |= 0x80;
+            pad |= PADRleft;
             if (Degree < -300)
             {
                 pad = -0x8000;
@@ -114,7 +114,7 @@ short AttackIndirect(void)
                 goto status7_value;
             }
         }
-        pad |= 0x80;
+        pad |= PADRleft;
 
     status7_value:
         status7_result = pad;
@@ -146,7 +146,7 @@ short AttackIndirect(void)
         pad = turn_towards_player_(0, 0) & ~0x5fff;
         if ((u32)(Distance - 1000) > 2000)
         {
-            pad |= 0x4000;
+            pad |= PADLdown;
         }
 
         degree = Degree;

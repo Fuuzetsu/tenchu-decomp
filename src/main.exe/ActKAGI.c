@@ -141,7 +141,7 @@ void ActKAGI(void)
                 Sound(Me_MOTION_C, 0x1f);
             }
         }
-        else if (Me_MOTION_C->pad.trig & 0xe0)
+        else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
         {
             spare_item_slot_(0, Me_MOTION_C);
             if (Me_MOTION_C == StagePlayer)

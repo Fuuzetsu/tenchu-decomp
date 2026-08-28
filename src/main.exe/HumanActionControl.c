@@ -146,7 +146,7 @@ void HumanActionControl(Humanoid *human)
             }
         }
     }
-    if ((MOTION_PAD_BITS & 4) != 0)
+    if ((MOTION_PAD_BITS & PADL1) != 0)
     {
         dtPAD = MOTION_PAD_BITS & 0xFFF;
     }

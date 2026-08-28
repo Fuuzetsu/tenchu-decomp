@@ -79,31 +79,31 @@ void ActSQUAT(void)
         {
             dtM->loop = -1;
         }
-        if (MOTION_PAD_BITS & 0x1000)
+        if (MOTION_PAD_BITS & PADLup)
         {
             motID = 0xB01;
             motMODE = 1;
             break;
         }
-        if (MOTION_PAD_BITS & 0x4000)
+        if (MOTION_PAD_BITS & PADLdown)
         {
             motID = 0xB02;
             motMODE = 1;
             break;
         }
-        if (MOTION_PAD_BITS & 0x2000)
+        if (MOTION_PAD_BITS & PADLright)
         {
             motID = 0xB03;
             motMODE = 1;
             break;
         }
-        if (MOTION_PAD_BITS & 0x8000)
+        if (MOTION_PAD_BITS & PADLleft)
         {
             motID = 0xB04;
             motMODE = 1;
             break;
         }
-        if (Me_MOTION_C->pad.trig & 0x40)
+        if (Me_MOTION_C->pad.trig & PADRdown)
         {
             motID = 0xB09;
             motMODE = 1;
@@ -116,12 +116,12 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((MOTION_PAD_BITS & 0x1000) == 0)
+        if ((MOTION_PAD_BITS & PADLup) == 0)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
         }
-        else if (Me_MOTION_C->pad.trig & 0x40)
+        else if (Me_MOTION_C->pad.trig & PADRdown)
         {
             motID = 0xB09;
             motMODE = 1;
@@ -134,13 +134,13 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((MOTION_PAD_BITS & 0x4000) == 0)
+        if ((MOTION_PAD_BITS & PADLdown) == 0)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
             break;
         }
-        if (MOTION_PAD_BITS & 0xA000)
+        if (MOTION_PAD_BITS & (PADLleft | PADLright))
         {
             int current;
             int result;
@@ -148,7 +148,7 @@ void ActSQUAT(void)
 
             rotation = dtR;
             current = rotation->vy;
-            if (MOTION_PAD_BITS & 0x2000)
+            if (MOTION_PAD_BITS & PADLright)
             {
                 result = current + turn;
             }
@@ -168,13 +168,13 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((MOTION_PAD_BITS & 0x2000) == 0)
+        if ((MOTION_PAD_BITS & PADLright) == 0)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
             break;
         }
-        if (MOTION_PAD_BITS & 0x4000)
+        if (MOTION_PAD_BITS & PADLdown)
         {
             dtR->vy += turn;
             dtV->vz = 0;
@@ -188,13 +188,13 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((dtPAD & 0x8000U) == 0)
+        if ((dtPAD & PADLleft) == 0)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
             break;
         }
-        if (MOTION_PAD_BITS & 0x4000)
+        if (MOTION_PAD_BITS & PADLdown)
         {
             dtR->vy -= turn;
             dtV->vz = 0;
@@ -293,12 +293,12 @@ void ActSQUAT(void)
         return;
     }
 
-    if (Me_MOTION_C->pad.trig & 0x80)
+    if (Me_MOTION_C->pad.trig & PADRleft)
     {
         AttackControl();
         return;
     }
-    if (Me_MOTION_C->pad.trig & 0x10)
+    if (Me_MOTION_C->pad.trig & PADRup)
     {
         switch ((short)(SelectedItem + 1))
         {
@@ -338,7 +338,7 @@ void ActSQUAT(void)
         return;
     }
 
-    if ((MOTION_PAD_BITS & 0x20) == 0)
+    if ((MOTION_PAD_BITS & PADRright) == 0)
     {
         if (Me_MOTION_C == StagePlayer)
         {

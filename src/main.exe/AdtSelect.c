@@ -477,9 +477,9 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
         }
         FntFlush(-1);
         VSync(3);
-        if (pad & 0x820)
+        if (pad & (PADstart | PADRright))
             break;
-        if (pad & 0x40)
+        if (pad & PADRdown)
         {
             selection = count - 1;
             break;

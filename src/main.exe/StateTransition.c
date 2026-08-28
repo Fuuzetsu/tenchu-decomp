@@ -154,7 +154,7 @@ void StateTransition(Humanoid *human)
             }
             if (SquareRoot0(dx * dx + dz * dz) < 2000)
             {
-                pad |= 0x4000;
+                pad |= PADLdown;
             }
         }
         update_pressed_buttons(Pad, pad);
@@ -403,7 +403,7 @@ void StateTransition(Humanoid *human)
             pad = Think3firstattack();
         }
 
-        if (pad & 0x80)
+        if (pad & PADRleft)
         {
             Humanoid *me;
             s32 dy;
@@ -431,7 +431,7 @@ void StateTransition(Humanoid *human)
             }
 
         mask_attack:
-            pad &= 0xf000;
+            pad &= (PADLleft | PADLdown | PADLright | PADLup);
             goto attack_checked;
 
         random_attack:
@@ -460,12 +460,12 @@ void StateTransition(Humanoid *human)
 
         if (Me_THINK_C->pad_hold == 0)
         {
-            if ((pad & 0x4000) &&
+            if ((pad & PADLdown) &&
                 ((ProbeAttrib[1] & 0x204) || ProbeLevelHigh > 5000))
             {
                 Me_THINK_C->pad_hold = 0x1000001e;
             }
-            if ((pad & 0x1000) &&
+            if ((pad & PADLup) &&
                 ((ProbeAttrib[0] & 0x204) || ProbeLevelLow > 5000))
             {
                 pad = turn_towards_player_(0, 0) & 0xa000;
@@ -522,7 +522,7 @@ void StateTransition(Humanoid *human)
             {
                 Me_THINK_C->pad_hold = (pad << 16) | count;
             }
-            else if (pad & 0xa000)
+            else if (pad & (PADLleft | PADLright))
             {
                 Me_THINK_C->pad_hold =
                     ((rand() % 3 + 1) * 0x1e) | 0x10000000;
@@ -567,13 +567,13 @@ void StateTransition(Humanoid *human)
                 }
             }
         }
-        else if ((ProbeAttrib[0] & 0x204) && (pad & 0x1000))
+        else if ((ProbeAttrib[0] & 0x204) && (pad & PADLup))
         {
-            pad &= 0xefff;
+            pad &= (PADLleft | PADLdown | PADLright | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
-        else if ((ProbeAttrib[1] & 0x204) && (pad & 0x4000))
+        else if ((ProbeAttrib[1] & 0x204) && (pad & PADLdown))
         {
-            pad &= 0xbfff;
+            pad &= (PADLleft | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
         else if (Me_THINK_C->motion->count == 0)
         {
@@ -625,12 +625,12 @@ void StateTransition(Humanoid *human)
         periodic_check:
             if (GameClock == (GameClock / 90) * 90 &&
                 (((u16)Me_THINK_C->map.attrib & 0x100) ||
-                 ((pad & 0x1000) && ProbeLevelLow < 0x899 &&
+                 ((pad & PADLup) && ProbeLevelLow < 0x899 &&
                   ProbeLevelLow != (s32)0x80000000) ||
-                 ((pad & 0x4000) && ProbeLevelHigh < 0x899 &&
+                 ((pad & PADLdown) && ProbeLevelHigh < 0x899 &&
                   ProbeLevelHigh != (s32)0x80000000)))
             {
-                pad |= 0x40;
+                pad |= PADRdown;
             }
         }
     }

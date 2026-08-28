@@ -344,12 +344,12 @@ void StageEndScreen(void)
                 pad = GetRealPad(0);
                 pressed = pad & (pad ^ ui.old_pad);
                 ui.old_pad = pad;
-                if ((pressed & 0x20) != 0)
+                if ((pressed & PADRright) != 0)
                 {
                     selection = 0;
                     break;
                 }
-                if ((pressed & 0x40) != 0)
+                if ((pressed & PADRdown) != 0)
                 {
                     switch (!!pad)
                     {
@@ -363,7 +363,7 @@ void StageEndScreen(void)
                     break;
                 }
                 selection = 1;
-                if ((pressed & 0x800) != 0)
+                if ((pressed & PADstart) != 0)
                 {
                     break;
                 }

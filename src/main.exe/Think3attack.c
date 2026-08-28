@@ -107,16 +107,16 @@ s16 Think3attack(void)
             {
                 if (rand() % (EngageLevel + 1) != 0)
                 {
-                    pad |= 0x80;
+                    pad |= PADRleft;
                     goto action_ready;
                 }
                 pad = 0xa0;
                 goto action_ready;
             }
-            pad |= 0x80;
+            pad |= PADRleft;
             goto action_ready;
         }
-        pad |= 0x4000;
+        pad |= PADLdown;
         goto action_ready;
     }
 
@@ -144,14 +144,14 @@ s16 Think3attack(void)
         {
             if (__builtin_abs(Degree) < 1200)
             {
-                pad |= 0x80;
+                pad |= PADRleft;
                 goto action_ready;
             }
         }
 
         if (rng + 500 < Distance)
         {
-            pad |= 0x1000;
+            pad |= PADLup;
         }
         goto action_ready;
     }

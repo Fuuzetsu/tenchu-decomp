@@ -44,7 +44,7 @@ void ActMOVE(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((dtPAD & 0x1000) == 0)
+        if ((dtPAD & PADLup) == 0)
         {
             motID = 0;
             motMODE = 1;
@@ -66,7 +66,7 @@ void ActMOVE(void)
             }
             break;
         }
-        if (dtPAD & 0xa000)
+        if (dtPAD & (PADLleft | PADLright))
         {
             int current;
             int result;
@@ -75,7 +75,7 @@ void ActMOVE(void)
 
             rotation = dtR;
             current = rotation->vy;
-            if (dtPAD & 0x2000)
+            if (dtPAD & PADLright)
                 result = current + Me_MOTION_C->turn;
             else
                 result = current - Me_MOTION_C->turn;
@@ -90,7 +90,7 @@ void ActMOVE(void)
         {
             Sound(Me_MOTION_C, 0x11);
         }
-        if ((dtPAD & 0x4000) == 0)
+        if ((dtPAD & PADLdown) == 0)
         {
             motID = 0;
             motMODE = 1;
@@ -103,7 +103,7 @@ void ActMOVE(void)
 
             rotation = dtR;
             current = rotation->vy;
-            if (dtPAD & 0x2000)
+            if (dtPAD & PADLright)
                 result = current + Me_MOTION_C->turn;
             else
                 result = current - Me_MOTION_C->turn;
@@ -180,7 +180,7 @@ void ActMOVE(void)
                        SelectedItem);
         return;
     }
-    if (dtPAD & 0x20)
+    if (dtPAD & PADRright)
     {
         motID = MOT_SQUAT;
         motMODE = 1;

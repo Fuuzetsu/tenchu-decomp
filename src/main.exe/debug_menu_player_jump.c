@@ -56,23 +56,23 @@ void debug_menu_player_jump(void)
         EndDrawing(-2);
         pad = GetRealPad(0);
         exit_pad = pad;
-        if (pad & 0x100)
+        if (pad & PADselect)
         {
             break;
         }
-        if (pad & 0x800)
+        if (pad & PADstart)
             goto move_player;
-        if (pad & 0x1000)
+        if (pad & PADLup)
             pos.vx--;
-        if (pad & 0x4000)
+        if (pad & PADLdown)
             pos.vx++;
-        if (pad & 0x2000)
+        if (pad & PADLright)
             pos.vz--;
-        if (pad & 0x8000)
+        if (pad & PADLleft)
             pos.vz++;
-        if (pad & 4)
+        if (pad & PADL1)
             pos.vy--;
-        if (pad & 1)
+        if (pad & PADL2)
             pos.vy++;
     }
 

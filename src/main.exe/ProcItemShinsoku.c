@@ -267,7 +267,7 @@ void ProcItemShinsoku(TItem *item)
         }
 
         param->count--;
-        if (param->count != 0 && (item->owner->pad.trig & 0xf0) == 0)
+        if (param->count != 0 && (item->owner->pad.trig & (PADRleft | PADRdown | PADRright | PADRup)) == 0)
         {
             return;
         }

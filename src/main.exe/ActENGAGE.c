@@ -55,13 +55,13 @@ void ActENGAGE(void)
     {
     case 1:
     {
-        if (dtPAD & 0x2000)
+        if (dtPAD & PADLright)
         {
             motID = 0x504;
             motMODE = 0;
             goto engage_case_post;
         }
-        if (dtPAD & 0x8000)
+        if (dtPAD & PADLleft)
         {
             motID = 0x505;
             motMODE = 0;
@@ -110,7 +110,7 @@ void ActENGAGE(void)
         one = 1;
         if (dtM->count == one)
             Sound(Me_MOTION_C, 0x10);
-        if ((dtPAD & 0x2000) == 0)
+        if ((dtPAD & PADLright) == 0)
         {
             motID = 0x501;
             motMODE = one;
@@ -122,7 +122,7 @@ void ActENGAGE(void)
         one = 1;
         if (dtM->count == one)
             Sound(Me_MOTION_C, 0x10);
-        if ((dtPAD & 0x8000) == 0)
+        if ((dtPAD & PADLleft) == 0)
         {
             motID = 0x501;
             motMODE = one;
@@ -161,7 +161,7 @@ void ActENGAGE(void)
         motion->count = count;
         if (count < motion->loop)
         {
-            switch (dtPAD & 0x4000)
+            switch (dtPAD & PADLdown)
             {
             default:
                 motID = 0x602;
@@ -290,7 +290,7 @@ void ActENGAGE(void)
         }
         else
         {
-            if (dtPAD & 0x20)
+            if (dtPAD & PADRright)
             {
                 if (mask & 0x80)
                 {
@@ -309,13 +309,13 @@ void ActENGAGE(void)
                     AttackControl();
                     return;
                 }
-                if (dtPAD & 0x1000)
+                if (dtPAD & PADLup)
                 {
                     motID = MOT_CHASE;
                     motMODE = 1;
                     return;
                 }
-                if ((dtPAD & 0x4000) == 0)
+                if ((dtPAD & PADLdown) == 0)
                     return;
                 motID = 0x602;
                 motMODE = 1;

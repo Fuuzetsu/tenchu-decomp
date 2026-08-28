@@ -147,7 +147,7 @@ int main(void)
         DoMiscProc();
         update_something_for_each_visible_enemy_();
         pad = GetPad(0);
-        if ((pad & 0x100) != 0 && SkipFrame == 0)
+        if ((pad & PADselect) != 0 && SkipFrame == 0)
         {
             FntPrint(fmt_free_memory, vgetfreesize(), vgetmaxsize());
         }

@@ -168,7 +168,7 @@ void AttackControl(void)
         }
     }
 
-    if (MOTION_PAD_BITS & 0x4000)
+    if (MOTION_PAD_BITS & PADLdown)
     {
         if (GetMotionID(dtM, 0x711) < 0)
         {
@@ -199,15 +199,15 @@ void AttackControl(void)
         }
         goto update_target;
     }
-    else if (MOTION_PAD_BITS & 0x1000)
+    else if (MOTION_PAD_BITS & PADLup)
     {
         motID = MOT_ATTACK;
     }
-    else if (MOTION_PAD_BITS & 0x2000)
+    else if (MOTION_PAD_BITS & PADLright)
     {
         motID = 0x706;
     }
-    else if (MOTION_PAD_BITS & 0x8000)
+    else if (MOTION_PAD_BITS & PADLleft)
     {
         motID = 0x709;
     }

@@ -96,11 +96,11 @@ short ControlTraceLine(Humanoid *human)
         degree = d32;
         if (human->turn <= d32)
         {
-            pad |= 0x2000;
+            pad |= PADLright;
         }
         else if (d32 <= -human->turn)
         {
-            pad |= 0x8000;
+            pad |= PADLleft;
         }
         absdeg = degree;
         if (absdeg < 0)
@@ -109,7 +109,7 @@ short ControlTraceLine(Humanoid *human)
         }
         if (absdeg > 500)
         {
-            pad &= 0xA000;
+            pad &= (PADLleft | PADLright);
         }
     }
     if (dist <= point->range)

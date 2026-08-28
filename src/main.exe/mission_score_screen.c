@@ -300,12 +300,12 @@ void mission_score_screen(void)
         pad = GetRealPad(0);
         newPress = pad & (pad ^ tail.oldPad);
         tail.oldPad = pad;
-        if (newPress & 0x20)
+        if (newPress & PADRright)
         {
             goNext = 0;
             break;
         }
-        if (newPress & 0x800)
+        if (newPress & PADstart)
         {
             goNext = 1;
             break;

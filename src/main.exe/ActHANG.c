@@ -89,7 +89,7 @@ void ActHANG(void)
     switch ((short)(dtM->mid - MOT_HANG))
     {
     case 0:
-        if (MOTION_PAD_BITS & 0x4000)
+        if (MOTION_PAD_BITS & PADLdown)
         {
             y = dtL->vy;
             do
@@ -100,17 +100,17 @@ void ActHANG(void)
             motID = 0x803;
             motMODE = 0;
         }
-        else if (MOTION_PAD_BITS & 0x2000)
+        else if (MOTION_PAD_BITS & PADLright)
         {
             motID = 0xA02;
             motMODE = 1;
         }
-        else if (MOTION_PAD_BITS & 0x8000)
+        else if (MOTION_PAD_BITS & PADLleft)
         {
             motID = 0xA03;
             motMODE = 1;
         }
-        else if ((MOTION_PAD_BITS & 0x1000) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != 0x80000000)
+        else if ((MOTION_PAD_BITS & PADLup) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != 0x80000000)
         {
             motID = 0xA04;
             motMODE = 1;
@@ -118,7 +118,7 @@ void ActHANG(void)
         break;
     case 2:
     case 3:
-        if ((dtPAD & 0xA000) == 0)
+        if ((dtPAD & (PADLleft | PADLright)) == 0)
         {
             motID = MOT_HANG;
             motMODE = 1;

@@ -106,7 +106,7 @@ short AttackGeneral(void)
         }
         else
         {
-            pad |= 0x80;
+            pad |= PADRleft;
             if (Degree < -300)
             {
                 pad = -0x8000;
@@ -116,7 +116,7 @@ short AttackGeneral(void)
                 goto status7_value;
             }
         }
-        pad |= 0x80;
+        pad |= PADRleft;
 
     status7_value:
         status7_result = pad;
@@ -241,7 +241,7 @@ short AttackGeneral(void)
                 {
                     pad = 0x4000;
                 }
-                return pad | 0x80;
+                return pad | PADRleft;
             }
         } while (0);
     }
@@ -271,19 +271,19 @@ short AttackGeneral(void)
                     pad = SetCommand(&Me_THINK_C->pad, 2);
                     goto return_pad;
                 case 3:
-                    pad |= 0x80;
+                    pad |= PADRleft;
                     goto return_pad;
                 default:
                     goto return_pad;
                 }
             }
-            pad |= 0x4000;
+            pad |= PADLdown;
             goto return_pad;
         }
 
         if (Distance >= 3001)
         {
-            pad |= 0x1000;
+            pad |= PADLup;
             if (Distance < 4001)
             {
                 goto return_pad;

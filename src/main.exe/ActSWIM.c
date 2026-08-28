@@ -61,7 +61,7 @@ void ActSWIM(void)
             motMODE = 1;
             break;
         }
-        if ((dtPAD & 0xa000) != 0)
+        if ((dtPAD & (PADLleft | PADLright)) != 0)
         {
             if (dtM->count == 1)
                 Sound(Me_MOTION_C, 0x15);
@@ -72,7 +72,7 @@ void ActSWIM(void)
 
                 rotation = dtR;
                 current = rotation->vy;
-                if (MOTION_PAD_BITS & 0x2000)
+                if (MOTION_PAD_BITS & PADLright)
                     result = current + Me_MOTION_C->turn;
                 else
                     result = current - Me_MOTION_C->turn;
@@ -80,12 +80,12 @@ void ActSWIM(void)
             }
             break;
         }
-        if ((MOTION_PAD_BITS & 0x5000) == 0)
+        if ((MOTION_PAD_BITS & (PADLdown | PADLup)) == 0)
             break;
         motID = 0x302;
         motMODE = 0;
         speed = 0x3c;
-        if (MOTION_PAD_BITS & 0x1000)
+        if (MOTION_PAD_BITS & PADLup)
         {
             MoveHumanoid(Me_MOTION_C, speed, 0);
             break;
@@ -104,7 +104,7 @@ void ActSWIM(void)
     case 0x302:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x15);
-        if (MOTION_PAD_BITS & 0x1000)
+        if (MOTION_PAD_BITS & PADLup)
         {
             Humanoid *human;
 
@@ -114,7 +114,7 @@ void ActSWIM(void)
                 motMODE = 1;
                 break;
             }
-            if ((dtPAD & 0xa000) != 0)
+            if ((dtPAD & (PADLleft | PADLright)) != 0)
             {
                 int current;
                 int result;
@@ -122,7 +122,7 @@ void ActSWIM(void)
 
                 rotation = dtR;
                 current = rotation->vy;
-                if (MOTION_PAD_BITS & 0x2000)
+                if (MOTION_PAD_BITS & PADLright)
                     result = current + Me_MOTION_C->turn;
                 else
                     result = current - Me_MOTION_C->turn;
@@ -135,7 +135,7 @@ void ActSWIM(void)
         }
         else
         {
-            if (MOTION_PAD_BITS & 0x4000)
+            if (MOTION_PAD_BITS & PADLdown)
             {
                 if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
                 {
@@ -150,7 +150,7 @@ void ActSWIM(void)
                     velocity->vx = 0;
                     break;
                 }
-                if ((dtPAD & 0xa000) != 0)
+                if ((dtPAD & (PADLleft | PADLright)) != 0)
                 {
                     int current;
                     int result;
@@ -158,7 +158,7 @@ void ActSWIM(void)
 
                     rotation = dtR;
                     current = rotation->vy;
-                    if (MOTION_PAD_BITS & 0x2000)
+                    if (MOTION_PAD_BITS & PADLright)
                         result = current - Me_MOTION_C->turn;
                     else
                         result = current + Me_MOTION_C->turn;
@@ -234,7 +234,7 @@ void ActSWIM(void)
     Humanoid *human;
 
     human = Me_MOTION_C;
-    if ((human->pad.trig & 0x10) == 0)
+    if ((human->pad.trig & PADRup) == 0)
         return;
     if (SelectedItem != 0)
         return;

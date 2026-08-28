@@ -256,7 +256,7 @@ void ActSTATE(void)
         {
             dtM->count = -0x1e;
         }
-        if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & 0x80) != 0)
+        if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {
             motID = 0x70f;
             motMODE = 0;
@@ -339,8 +339,8 @@ void ActSTATE(void)
             PadShockAR(0, 0xff, 10, 0);
             SetCameraMode(CMODE_NORMAL);
         }
-        if (dtM->count < 5 && (dtPAD & 0x20) != 0 &&
-            (Me_MOTION_C->pad.trig & 0x40) != 0)
+        if (dtM->count < 5 && (dtPAD & PADRright) != 0 &&
+            (Me_MOTION_C->pad.trig & PADRdown) != 0)
         {
             motID = 0xb09;
             motMODE = 1;

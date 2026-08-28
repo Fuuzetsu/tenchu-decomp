@@ -103,7 +103,7 @@ void JumpControl(void)
         motID = MOT_JUMP;
         motMODE = 0;
         dtV->vy = 0;
-        if (MOTION_PAD_BITS & 0x1000)
+        if (MOTION_PAD_BITS & PADLup)
         {
             if (GetMotionID(dtM, 0x902) >= 0)
             {
@@ -112,7 +112,7 @@ void JumpControl(void)
             }
             MoveHumanoid(Me_MOTION_C, 100, 0);
         }
-        else if (MOTION_PAD_BITS & 0x4000)
+        else if (MOTION_PAD_BITS & PADLdown)
         {
             if (GetMotionID(dtM, 0x903) >= 0)
             {
@@ -121,7 +121,7 @@ void JumpControl(void)
             }
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
-        else if (MOTION_PAD_BITS & 0x2000)
+        else if (MOTION_PAD_BITS & PADLright)
         {
             if (GetMotionID(dtM, 0x904) >= 0)
             {
@@ -130,7 +130,7 @@ void JumpControl(void)
             }
             MoveHumanoid(Me_MOTION_C, 0, -100);
         }
-        else if (MOTION_PAD_BITS & 0x8000)
+        else if (MOTION_PAD_BITS & PADLleft)
         {
             if (GetMotionID(dtM, 0x905) >= 0)
             {

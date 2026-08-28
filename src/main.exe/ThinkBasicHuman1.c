@@ -39,7 +39,7 @@ s16 ThinkBasicHuman1(void)
     s32 pad;
 
     pad = remap_buttons_(GetPad(0));
-    if ((pad & 0x100) && (SystemFlag & SYSFLAG_DEBUGPRINT))
+    if ((pad & PADselect) && (SystemFlag & SYSFLAG_DEBUGPRINT))
     {
         pad = 0;
     }
@@ -48,9 +48,9 @@ s16 ThinkBasicHuman1(void)
     {
         pad &= 0xfff;
     }
-    if (pad & 8)
+    if (pad & PADR1)
     {
-        pad = (pad & 0xfff7) | 0x20;
+        pad = (pad & (PADLleft | PADLdown | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADL1 | PADR2 | PADL2)) | 0x20;
     }
     return pad;
 }

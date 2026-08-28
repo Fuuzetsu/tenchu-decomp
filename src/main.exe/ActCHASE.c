@@ -72,7 +72,7 @@ void ActCHASE(void)
             Sound(Me_MOTION_C, sound);
         }
 
-        if (dtPAD & 0x1000)
+        if (dtPAD & PADLup)
         {
             if (Me_MOTION_C->attribute & 0x1000)
             {
@@ -126,7 +126,7 @@ void ActCHASE(void)
                 break;
             }
 
-            if (dtPAD & 0xa000)
+            if (dtPAD & (PADLleft | PADLright))
             {
                 int current;
                 int result;
@@ -135,7 +135,7 @@ void ActCHASE(void)
 
                 rotation = dtR;
                 current = rotation->vy;
-                if (dtPAD & 0x2000)
+                if (dtPAD & PADLright)
                 {
                     result = current + turn;
                 }
@@ -149,7 +149,7 @@ void ActCHASE(void)
                 break;
             }
 
-            if ((dtPAD & 0x20) == 0)
+            if ((dtPAD & PADRright) == 0)
             {
                 break;
             }
@@ -170,7 +170,7 @@ void ActCHASE(void)
             Sound(Me_MOTION_C, 0x11);
         }
 
-        if ((dtPAD & 0x4000) == 0)
+        if ((dtPAD & PADLdown) == 0)
         {
             motID = 0x501;
             motMODE = 1;
@@ -180,7 +180,7 @@ void ActCHASE(void)
             motID = 0x712;
             motMODE = 1;
         }
-        else if (dtPAD & 0xa000)
+        else if (dtPAD & (PADLleft | PADLright))
         {
             int current;
             int result;
@@ -189,7 +189,7 @@ void ActCHASE(void)
 
             rotation = dtR;
             current = rotation->vy;
-            if (dtPAD & 0x2000)
+            if (dtPAD & PADLright)
             {
                 result = current + turn * 4;
             }
@@ -202,11 +202,11 @@ void ActCHASE(void)
             MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
         }
 
-        if ((dtPAD & 0x20) == 0)
+        if ((dtPAD & PADRright) == 0)
         {
             break;
         }
-        if (Me_MOTION_C->pad.trig & 0x80)
+        if (Me_MOTION_C->pad.trig & PADRleft)
         {
             motID = 0x70c;
             motMODE = 1;
@@ -218,11 +218,11 @@ void ActCHASE(void)
     }
 
     case 7:
-        if (Me_MOTION_C->pad.trig & 0x80)
+        if (Me_MOTION_C->pad.trig & PADRleft)
         {
             AttackControl();
         }
-        else if (Me_MOTION_C->pad.trig & 0x40)
+        else if (Me_MOTION_C->pad.trig & PADRdown)
         {
             JumpControl();
         }
@@ -259,12 +259,12 @@ void ActCHASE(void)
         return;
     }
 
-    if (Me_MOTION_C->pad.trig & 0x40)
+    if (Me_MOTION_C->pad.trig & PADRdown)
     {
         JumpControl();
         return;
     }
-    if (Me_MOTION_C->pad.trig & 0x10)
+    if (Me_MOTION_C->pad.trig & PADRup)
     {
         switch ((short)(SelectedItem + 1))
         {
@@ -303,7 +303,7 @@ void ActCHASE(void)
         ReqItemDefault(Me_MOTION_C, SelectedItem);
         return;
     }
-    if (Me_MOTION_C->pad.trig & 0x80)
+    if (Me_MOTION_C->pad.trig & PADRleft)
     {
         AttackControl();
     }

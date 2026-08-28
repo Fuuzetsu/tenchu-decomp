@@ -229,7 +229,7 @@ void DoInfoViewProc(void)
         }
     }
 
-    if ((pad & 0x10) == 0)
+    if ((pad & PADRup) == 0)
     {
         if ((trig & 2) != 0)
         {

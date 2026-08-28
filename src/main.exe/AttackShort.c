@@ -179,7 +179,7 @@ short AttackShort(void)
                 {
                     pad = -0x8000;
                 }
-                pad |= 0x80;
+                pad |= PADRleft;
                 goto activate_and_return;
             }
         }
@@ -294,7 +294,7 @@ short AttackShort(void)
             {
                 pad = 0x4000;
             }
-            return pad | 0x80;
+            return pad | PADRleft;
         }
     }
 
@@ -306,7 +306,7 @@ short AttackShort(void)
         degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
         if (degree >= 1501)
         {
-            pad |= 0x4000;
+            pad |= PADLdown;
             goto return_pad;
         }
 
@@ -330,7 +330,7 @@ short AttackShort(void)
             goto return_pad;
 
         return_with_1000:
-            pad |= 0x1000;
+            pad |= PADLup;
             goto return_pad;
         }
 
@@ -348,7 +348,7 @@ short AttackShort(void)
             }
             if (Distance >= 1000)
             {
-                pad |= 0x80;
+                pad |= PADRleft;
                 goto return_pad;
             }
             pad = 0xa0;

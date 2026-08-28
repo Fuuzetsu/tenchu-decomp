@@ -40,40 +40,40 @@ void ActNORMAL(void)
     switch (mid)
     {
     case 0:
-        if ((dtPAD & 1) && StagePlayer != Me_MOTION_C)
+        if ((dtPAD & PADL2) && StagePlayer != Me_MOTION_C)
         {
-            if (dtPAD & 0x4000)
+            if (dtPAD & PADLdown)
             {
                 motID = 0x102;
                 motMODE = 1;
                 return;
             }
-            if (dtPAD & 0x2000)
+            if (dtPAD & PADLright)
             {
                 motID = 0x101;
                 motMODE = 1;
                 return;
             }
-            if (dtPAD & 0x8000)
+            if (dtPAD & PADLleft)
             {
                 motID = 0x106;
                 motMODE = 1;
                 return;
             }
-            if (dtPAD & 0x1000)
+            if (dtPAD & PADLup)
             {
                 motID = MOT_ACTION;
                 motMODE = 1;
             }
             return;
         }
-        if (dtPAD & 0x2000)
+        if (dtPAD & PADLright)
         {
             motID = 1;
             motMODE = 0;
             break;
         }
-        if (dtPAD & 0x8000)
+        if (dtPAD & PADLleft)
         {
             motID = 2;
             motMODE = 0;
@@ -96,7 +96,7 @@ void ActNORMAL(void)
     case 1:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
-        if (dtPAD & 0x2000)
+        if (dtPAD & PADLright)
         {
             dtR->vy += (u16)Me_MOTION_C->turn;
         }
@@ -110,7 +110,7 @@ void ActNORMAL(void)
     case 2:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
-        rotation_value = (s16)dtPAD & 0x8000U;
+        rotation_value = (s16)dtPAD & PADLleft;
         if (rotation_value == 0)
         {
             motID = 0;
@@ -217,19 +217,19 @@ void ActNORMAL(void)
                            SelectedItem);
             return;
         }
-        if (dtPAD & 0x20)
+        if (dtPAD & PADRright)
         {
             motID = MOT_SQUAT;
             motMODE = 1;
             return;
         }
-        if (dtPAD & 0x1000)
+        if (dtPAD & PADLup)
         {
             motID = MOT_MOVE;
             motMODE = 1;
             return;
         }
-        if (dtPAD & 0x4000)
+        if (dtPAD & PADLdown)
         {
             motID = 0x201;
             motMODE = 1;

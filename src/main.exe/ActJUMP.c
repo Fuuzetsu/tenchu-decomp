@@ -61,7 +61,7 @@ void ActJUMP(void)
     long scaled;
     SVECTOR *velocity;
 
-    if ((Me_MOTION_C->pad.trig & 0x40) != 0 && motID != 0x901)
+    if ((Me_MOTION_C->pad.trig & PADRdown) != 0 && motID != 0x901)
     {
         GetAreaMapVector(GlobalAreaMap, &map, dtL,
                          Me_MOTION_C->width + 300, 0);
@@ -181,18 +181,18 @@ void ActJUMP(void)
         }
         velocity->vy = scaled;
 
-        if (((s16)dtPAD & 0xf000) != 0 && motID != 0x906)
+        if (((s16)dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0 && motID != 0x906)
         {
             pad = (u16)dtPAD;
-            if ((pad & 0x1000) != 0)
+            if ((pad & PADLup) != 0)
             {
                 GetMoveSpeed(&spd, dtR->vy, 10, 0);
             }
-            else if ((pad & 0x4000) != 0)
+            else if ((pad & PADLdown) != 0)
             {
                 GetMoveSpeed(&spd, dtR->vy, -10, 0);
             }
-            else if ((pad & 0x2000) != 0)
+            else if ((pad & PADLright) != 0)
             {
                 GetMoveSpeed(&spd, dtR->vy, 0, -10);
             }
@@ -212,7 +212,7 @@ void ActJUMP(void)
             }
         }
 
-        if ((dtPAD & 0x80) == 0)
+        if ((dtPAD & PADRleft) == 0)
         {
             return;
         }

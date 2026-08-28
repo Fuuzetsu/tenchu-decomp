@@ -108,7 +108,7 @@ void ActSYURI(void)
             motMODE = 1;
             Sound(Me_MOTION_C, 0x1F);
         }
-        else if (Me_MOTION_C->pad.trig & 0xE0)
+        else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
         {
             spare_item_slot_(0, 0);
             if (Me_MOTION_C == StagePlayer)

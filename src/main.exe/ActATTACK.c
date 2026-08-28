@@ -289,16 +289,16 @@ dispatch:
             AttackBowControl(0);
             break;
         }
-        if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
+        if ((((Me_MOTION_C->pad).trig & PADRleft) != 0) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
 
-            if ((dtPAD & 0x2000) != 0)
+            if ((dtPAD & PADLright) != 0)
             {
                 motID = 0x702;
             }
-            else if ((dtPAD & 0x8000) != 0)
+            else if ((dtPAD & PADLleft) != 0)
             {
                 motID = 0x703;
             }
@@ -358,7 +358,7 @@ dispatch:
         {
             AttackBowControl(1);
         }
-        if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
+        if ((((Me_MOTION_C->pad).trig & PADRleft) != 0) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
@@ -388,7 +388,7 @@ dispatch:
         {
             AttackBowControl(1);
         }
-        if ((((Me_MOTION_C->pad).trig & 0x80) != 0) &&
+        if ((((Me_MOTION_C->pad).trig & PADRleft) != 0) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
@@ -439,12 +439,12 @@ dispatch:
                 Sound(Me_MOTION_C, 0);
             }
         }
-        if (((((Me_MOTION_C->pad).trig & 0x80) != 0) && (((int)(short)dtPAD & 0xa000U) != 0)) &&
+        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && (((int)(short)dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
 
-            if (((int)(short)dtPAD & 0x8000U) != 0)
+            if (((int)(short)dtPAD & PADLleft) != 0)
             {
                 motID = 0x708;
             }
@@ -496,12 +496,12 @@ dispatch:
                 Sound(Me_MOTION_C, 0);
             }
         }
-        if (((((Me_MOTION_C->pad).trig & 0x80) != 0) && (((int)(short)dtPAD & 0xa000U) != 0)) &&
+        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && (((int)(short)dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
 
-            if ((dtPAD & 0x2000) == 0)
+            if ((dtPAD & PADLright) == 0)
             {
                 goto combo_alt;
             }
@@ -552,17 +552,17 @@ dispatch:
         {
             SetCameraMode(CMODE_FALL);
         }
-        if (((int)(short)dtPAD & 0xf000U) != 0)
+        if (((int)(short)dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
         {
-            if ((dtPAD & 0x1000) != 0)
+            if ((dtPAD & PADLup) != 0)
             {
                 GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 10, 0);
             }
-            else if ((dtPAD & 0x4000) != 0)
+            else if ((dtPAD & PADLdown) != 0)
             {
                 GetMoveSpeed(&scratch.fall_velocity, dtR->vy, -10, 0);
             }
-            else if ((dtPAD & 0x2000) != 0)
+            else if ((dtPAD & PADLright) != 0)
             {
                 GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 0, -10);
             }
