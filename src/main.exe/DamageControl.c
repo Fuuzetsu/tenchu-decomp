@@ -199,7 +199,7 @@ void DamageControl(void)
     if ((Me_MOTION_C->type & 0xf0U) == PAGE_BEAST)
     {
         enemy = (Humanoid *)ConflictObject[(short)id].common;
-        if (enemy != (Humanoid *)1)
+        if (enemy != (Humanoid *)CONFLICT_OWNER_ITEM)
         {
             int h;
 
@@ -244,7 +244,7 @@ void DamageControl(void)
             motID = MOT_DEAD;
             motMODE = 1;
             if ((Me_MOTION_C->type != NINKEN) &&
-                ((StagePlayer == enemy || (enemy == (Humanoid *)1))))
+                ((StagePlayer == enemy || (enemy == (Humanoid *)CONFLICT_OWNER_ITEM))))
             {
                 if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                 {
@@ -322,7 +322,7 @@ resolve_hit:
 
         t = id;
         conflict = (Humanoid *)ConflictObject[t].common;
-        if (conflict == (Humanoid *)1)
+        if (conflict == (Humanoid *)CONFLICT_OWNER_ITEM)
         {
             if (Me_MOTION_C->status == STAT_DAMAGE)
             {

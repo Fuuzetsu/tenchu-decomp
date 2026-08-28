@@ -239,7 +239,7 @@ void ProcItemFire(TItem *item)
                 saved = &scratch.drop.saved;
                 launch = &scratch.drop.param;
                 scratch.drop.param.type = saved->type;
-                launch->user = (Humanoid *)1;
+                launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
                 scratch.drop.param.start.vx = saved->locate.vx;
                 scratch.drop.param.start.vy = saved->locate.vy;
                 scratch.drop.param.start.vz = saved->locate.vz;

@@ -160,7 +160,7 @@ void ProcItemNinken(TItem *item)
             saved = &scratch.drop.saved;
             launch = &scratch.drop.launch;
             scratch.drop.launch.type = saved->type;
-            launch->user = (Humanoid *)1;
+            launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
             scratch.drop.launch.start.vx = saved->locate.vx;
             scratch.drop.launch.start.vy = saved->locate.vy;
             scratch.drop.launch.start.vz = saved->locate.vz;
