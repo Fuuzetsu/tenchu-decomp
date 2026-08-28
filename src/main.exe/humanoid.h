@@ -9,8 +9,13 @@
  *                  Think4abandon write 0/1/2; observed toggling on idle NPCs)
  *   0x0004         set by SetupThinkFunction iff the think type is a real
  *                  mix (not 0/0x1111/0x2222)
- *   0x0010         raised on NPCs entering their alarm reaction (ActSTATE
- *                  sets 0x12 on body pickup; exact meaning still open)
+ *   ATTR_SEARCH    0x0010 — the personal investigation latch: when the
+ *                  startle motion (0x80e) completes, ActSTATE sets 0x12
+ *                  (think-mode 2 + this bit), stores the player's spot in
+ *                  chase[], and the guard goes searching; StateTransition
+ *                  keeps alert behavior while it (or EmergencyNotice) is
+ *                  up. ActDEAD REUSES the bit on corpses to tag a splash
+ *                  (drowning) death, clearing it for every other death
  *   ATTR_ALERT     0x0040 — aware of the intruder: observed raised on
  *                  fighters AND civilians the moment EmergencyNotice fires,
  *                  cleared when the alarm expires; without it a hit is an
@@ -21,6 +26,10 @@
  *                  think budget and sets it on far ones;
  *                  ControlAllHumanoid/GetNearestHumanoid/CVA skip suspended
  *                  humans; the ninken summon template stays suspended
+ *   ATTR_FLOAT     0x0020 — free-floating creature: only BreedLife's
+ *                  S1/S2 spawn arm sets it, and it exempts the character
+ *                  from FallCheck, gravity accumulation, and conflict
+ *                  push-out (the moat fish)
  *   ATTR_FALL      0x0100 — airborne: DefaultActionHumanoid raises it while
  *                  map->height > 0 and accumulates gravity (vy += 20)
  *   ATTR_WALL      0x0400 — terrain contact: DefaultActionHumanoid raises it
@@ -45,6 +54,8 @@
  * 0x12 on body pickup), 0x0020 (gravity/collision exemption), 0x0200
  * (map->attrib & 2 head clamp), 0x0800 (no footing), 0x1000/0x2000 (wall
  * step/snap pair, set as | 0x3000 on deep wall contact). */
+#define ATTR_SEARCH 0x0010
+#define ATTR_FLOAT 0x0020
 #define ATTR_ALERT 0x0040
 #define ATTR_SUSPEND 0x0080
 #define ATTR_FALL 0x0100

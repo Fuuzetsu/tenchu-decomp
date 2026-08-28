@@ -88,7 +88,7 @@ s16 Think4abandon(void)
     u16 cleared;
     s16 result;
 
-    cleared = ATTRIB_BITS & 0xFFEC;
+    cleared = ATTRIB_BITS & ~(ATTR_SEARCH | 3);
     Me_THINK_C->chase[1] = 0;
     Me_THINK_C->chase[0] = 0;
     if ((Me_THINK_C->type & 0xF0) == 0x80)

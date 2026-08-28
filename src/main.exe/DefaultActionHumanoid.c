@@ -156,7 +156,7 @@ short DefaultActionHumanoid(Humanoid *human)
         map->height = 1;
     }
 
-    if (map->height > 0 && (human->attribute & 0x20) == 0)
+    if (map->height > 0 && (human->attribute & ATTR_FLOAT) == 0)
     {
         human->attribute |= ATTR_FALL;
         if (vector->vy < 400)
@@ -364,7 +364,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 continue;
             }
             if ((ConflictObject[i].size.pad & CONFLICT_SOFT) == 0 &&
-                (human->attribute & 0x20) == 0)
+                (human->attribute & ATTR_FLOAT) == 0)
             {
                 s32 top;
                 s32 object_y;

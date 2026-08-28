@@ -255,7 +255,7 @@ equip:
     SetNowMotion(human, 0x501, 1);
     goto done;
 high_type:
-    human->attribute = human->attribute | 0x20;
+    human->attribute = human->attribute | ATTR_FLOAT;
 done:
     return human;
 }

@@ -111,7 +111,7 @@ void StateTransition(Humanoid *human)
     Me_THINK_C = human;
     Pad = &human->pad;
     Attrib = human->attribute;
-    atr0 = ATTRIB_BITS & 0xffec;
+    atr0 = ATTRIB_BITS & ~(ATTR_SEARCH | 3);
 
     if (human == StagePlayer)
     {
@@ -309,13 +309,13 @@ void StateTransition(Humanoid *human)
         break;
 
     case 1:
-        if (EmergencyNotice != 0 || (ATTRIB_BITS & 0x10) != 0)
+        if (EmergencyNotice != 0 || (ATTRIB_BITS & ATTR_SEARCH) != 0)
         {
             if (StrainRatio > 0)
             {
                 StrainRatio = -0x8000;
             }
-            if (ATTRIB_BITS & 0x10)
+            if (ATTRIB_BITS & ATTR_SEARCH)
             {
                 pad = think_alarm_reaction_();
             }
@@ -390,7 +390,7 @@ void StateTransition(Humanoid *human)
             StrainRatio = -1;
         }
 
-        if (ATTRIB_BITS & 0x10)
+        if (ATTRIB_BITS & ATTR_SEARCH)
         {
             pad = Me_THINK_C->think[2]();
         }
@@ -500,7 +500,7 @@ void StateTransition(Humanoid *human)
             Sound(Me_THINK_C, 0xd);
             reset_alert_duration();
             me = Me_THINK_C;
-            if (me->type < PAGE_BOSS && (ATTRIB_BITS & 0x10) == 0)
+            if (me->type < PAGE_BOSS && (ATTRIB_BITS & ATTR_SEARCH) == 0)
             {
                 if (me->target == (ModelType *)StagePlayer->model)
                 {

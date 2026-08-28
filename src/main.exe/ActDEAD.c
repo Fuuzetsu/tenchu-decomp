@@ -118,11 +118,11 @@ void ActDEAD(void)
             dtM->loop = -1;
             if (motID != 0x1108)
             {
-                *(u16 *)&Me_MOTION_C->attribute &= 0xffef;
+                *(u16 *)&Me_MOTION_C->attribute &= ~ATTR_SEARCH;
             }
             else
             {
-                *(u16 *)&Me_MOTION_C->attribute |= 0x10;
+                *(u16 *)&Me_MOTION_C->attribute |= ATTR_SEARCH; /* drowned */
                 *(u16 *)&Me_MOTION_C->model->attribute |= 1;
             }
 

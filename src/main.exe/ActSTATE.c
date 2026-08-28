@@ -171,7 +171,7 @@ void ActSTATE(void)
             human = Me_MOTION_C;
             if ((human->attribute & 3) == 0)
             {
-                human->attribute |= 0x12;
+                human->attribute |= ATTR_SEARCH | 2;
                 player = StagePlayer;
                 human->chase[0] = player->locate->vx;
                 chase_z = player->locate->vz;

@@ -189,7 +189,7 @@ void ActDAMAGE(void)
             dtM->loop = -2;
             human->status = STAT_DEAD;
             velocity = dtV;
-            *(u16 *)&human->attribute &= 0xffef;
+            *(u16 *)&human->attribute &= ~ATTR_SEARCH;
             velocity->vz = 0;
             velocity->vy = 0;
             velocity->vx = 0;
