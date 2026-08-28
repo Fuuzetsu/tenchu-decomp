@@ -141,7 +141,7 @@ void ProcItemNapalm(TItem *item)
             ConflictObject[n].size.vy = 500;
             ConflictObject[n].size.vx = 500;
             ConflictObject[n].common = (void *)1;
-            ConflictObject[n].size.pad = 1;
+            ConflictObject[n].size.pad = CONFLICT_HIT;
             item->collision.size = 500;
             item->collision.ofsY = 0;
             item->collision.mode = 1;

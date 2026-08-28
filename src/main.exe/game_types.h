@@ -413,6 +413,21 @@ struct BattleType
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
  * result bytes, and reserves 0x2580 bytes for 80 slots, proving that the old
  * result array grew to 80 rather than gaining sixteen bytes of padding. */
+/* ConflictObject slot class, stored in size.pad (and mirrored into
+ * result[] entries together with the flags below when two slots overlap):
+ *   CONFLICT_HIT   — a weapon/projectile hitbox (raises ATTR_HIT on touch)
+ *   CONFLICT_STAND — the object's top can be stood on (resolver snaps the
+ *                    character up and clears ATTR_PUSH | ATTR_FALL)
+ *   CONFLICT_SOFT  — never pushes the character out (doors, sleep gas)
+ * result[] entries carry the partner's class bits plus:
+ *   CONFLICT_LIVE     — overlap recorded this frame (ComputeAllConflict)
+ *   CONFLICT_CONSUMED — already returned once by GetConflictResult */
+#define CONFLICT_HIT 1
+#define CONFLICT_STAND 4
+#define CONFLICT_SOFT 8
+#define CONFLICT_CONSUMED 0x40
+#define CONFLICT_LIVE 0x80
+
 typedef struct ConflictObjectType ConflictObjectType;
 struct ConflictObjectType
 {

@@ -116,7 +116,7 @@ do_resume:
     ConflictObject[cid].offset.vy = -t / 2;
     w = DoorData[param->type].HitSize;
     ConflictObject[cid].common = (void *)2;
-    ConflictObject[cid].size.pad = 8;
+    ConflictObject[cid].size.pad = CONFLICT_SOFT;
     ConflictObject[cid].size.vy = w;
     w = (s16)(((w / 3) * 0x10000) >> 15);
     ConflictObject[cid].size.vx = w;

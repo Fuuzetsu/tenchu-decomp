@@ -351,7 +351,7 @@ short DefaultActionHumanoid(Humanoid *human)
             {
                 continue;
             }
-            if (ConflictObject[i].size.pad & 1)
+            if (ConflictObject[i].size.pad & CONFLICT_HIT)
             {
                 if (human->status != STAT_DEAD)
                 {
@@ -359,11 +359,11 @@ short DefaultActionHumanoid(Humanoid *human)
 
                     attribute = human->attribute;
                     human->vector.pad = i;
-                    human->attribute = attribute | ATTR_TOUCH;
+                    human->attribute = attribute | ATTR_HIT;
                 }
                 continue;
             }
-            if ((ConflictObject[i].size.pad & 8) == 0 &&
+            if ((ConflictObject[i].size.pad & CONFLICT_SOFT) == 0 &&
                 (human->attribute & 0x20) == 0)
             {
                 s32 top;
@@ -409,7 +409,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 {
                     locate->vx = xx;
                     locate->vz = zz;
-                    if (conflict->size.pad & 4)
+                    if (conflict->size.pad & CONFLICT_STAND)
                     {
                         vector->vy = 0;
                         map->level = top;

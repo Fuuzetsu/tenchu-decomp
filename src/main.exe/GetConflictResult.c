@@ -131,7 +131,7 @@ short GetConflictResult(ModelType *model, short index)
                     {
                         goto ret_m1;
                     }
-                    if ((ConflictObject[id].result[index] & 0x40) == 0)
+                    if ((ConflictObject[id].result[index] & CONFLICT_CONSUMED) == 0)
                     {
                         break;
                     }
@@ -143,7 +143,7 @@ short GetConflictResult(ModelType *model, short index)
         {
             if (ConflictObject[idx].result[k] != 0)
             {
-                ConflictObject[idx].result[k] |= 0x40;
+                ConflictObject[idx].result[k] |= CONFLICT_CONSUMED;
                 ConflictModel = ConflictObject[k].model;
                 ConflictDistance.vx = (short)ConflictObject[k].position.vx - (short)ConflictObject[idx].position.vx;
                 ConflictDistance.vy = (short)ConflictObject[k].position.vy - (short)ConflictObject[idx].position.vy;

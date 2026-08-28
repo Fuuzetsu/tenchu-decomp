@@ -894,7 +894,7 @@ dispatch:
                 ConflictObject[n].offset = WeaponDB[wid].confp;
                 conflict_size = WeaponDB[wid].confp.pad;
                 owner = Me_MOTION_C;
-                ConflictObject[n].size.pad = 1;
+                ConflictObject[n].size.pad = CONFLICT_HIT;
                 ConflictObject[n].size.vz = conflict_size;
                 ConflictObject[n].size.vy = conflict_size;
                 ConflictObject[n].size.vx = conflict_size;
@@ -910,7 +910,7 @@ dispatch:
                 ConflictObject[n].offset = WeaponDB[wid].confp;
                 conflict_size = WeaponDB[wid].confp.pad;
                 owner = Me_MOTION_C;
-                ConflictObject[n].size.pad = 1;
+                ConflictObject[n].size.pad = CONFLICT_HIT;
                 ConflictObject[n].size.vz = conflict_size;
                 ConflictObject[n].size.vy = conflict_size;
                 ConflictObject[n].size.vx = conflict_size;

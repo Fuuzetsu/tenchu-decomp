@@ -71,7 +71,7 @@ short ChasetoTarget(long length)
         return 0;
     }
 
-    if ((Attrib & (ATTR_TOUCH | ATTR_PUSH)) != 0 ||
+    if ((Attrib & (ATTR_HIT | ATTR_PUSH)) != 0 ||
         (me->chase[0] | chase[1]) == 0)
     {
         deg = rand();

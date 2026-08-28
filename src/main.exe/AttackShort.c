@@ -202,7 +202,7 @@ short AttackShort(void)
                 pad = PADLup | PADRdown;
             }
         }
-        if ((ATTRIB_BITS & ATTR_TOUCH) == 0)
+        if ((ATTRIB_BITS & ATTR_HIT) == 0)
         {
             goto return_pad;
         }

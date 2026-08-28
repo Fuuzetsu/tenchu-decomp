@@ -333,7 +333,7 @@ void StateTransition(Humanoid *human)
             pad = Me_THINK_C->think[1]();
         }
 
-        if (SR == 1 || ((ATTRIB_BITS & ATTR_TOUCH) != 0 && SR > 0))
+        if (SR == 1 || ((ATTRIB_BITS & ATTR_HIT) != 0 && SR > 0))
         {
             Attrib = atr0 | 2;
             if ((ATTRIB_BITS & ATTR_ALERT) == 0)

@@ -99,7 +99,7 @@ s16 Think3area(void)
         goto return_pad;
     }
 
-    if ((ATTRIB_BITS & ATTR_TOUCH) != 0)
+    if ((ATTRIB_BITS & ATTR_HIT) != 0)
     {
         Me_THINK_C->actflg = 1;
     }

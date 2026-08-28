@@ -129,8 +129,8 @@ void ComputeAllConflict(void)
                             d = __builtin_abs(other->position.vx - ConflictObject[i].position.vx);
                             if (d <= ConflictObject[i].size.vx + other->size.vx)
                             {
-                                ConflictObject[i].result[j] = other->size.pad | 0x80;
-                                ConflictObject[j].result[i] = ConflictObject[i].size.pad | 0x80;
+                                ConflictObject[i].result[j] = other->size.pad | CONFLICT_LIVE;
+                                ConflictObject[j].result[i] = ConflictObject[i].size.pad | CONFLICT_LIVE;
                                 ConflictObject[i].model->attribute =
                                     ConflictObject[i].model->attribute | MODEL_ATTR_CONFLICT;
                                 other->model->attribute = other->model->attribute | MODEL_ATTR_CONFLICT;

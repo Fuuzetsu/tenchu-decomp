@@ -134,7 +134,7 @@ short AttackLong(void)
     if (Me_THINK_C->actmode == 0)
     {
         pad = ChasetoTarget(3000);
-        if (pad == 0 || (ATTRIB_BITS & ATTR_TOUCH) != 0)
+        if (pad == 0 || (ATTRIB_BITS & ATTR_HIT) != 0)
         {
             Me_THINK_C->actmode = 1;
         }

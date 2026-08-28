@@ -29,10 +29,13 @@
  *                  wall). The think layer treats it as "blocked": Think1random
  *                  stops random-walking, Think2contact/StateTransition stop
  *                  when pushing against it, ChasetoTarget gives up
- *   ATTR_TOUCH    0x4000 — touching another character's conflict slot
- *                  (size.pad & 1); the slot index is saved in vector.pad.
- *                  contact"; the Attack and Think3area layers read it as
- *                  "target in contact"
+ *   ATTR_HIT      0x4000 — inside a weapon/projectile hitbox: every
+ *                  size.pad=CONFLICT_HIT slot is created by an attack
+ *                  (ActATTACK's swing, the gun/launcher/happou/napalm
+ *                  projectiles), and the resolver saves the slot index in
+ *                  vector.pad. StateTransition reacts with the startle
+ *                  motion and engage promotion; AttackShort activates
+ *                  actmode
  *   ATTR_PUSH     0x8000 — being pushed out of a solid conflict object
  *                  (an earlier note called this the spotted-the-player
  *                  trigger — wrong: the only setter is the object-collision
@@ -46,7 +49,7 @@
 #define ATTR_SUSPEND 0x0080
 #define ATTR_FALL 0x0100
 #define ATTR_WALL 0x0400
-#define ATTR_TOUCH 0x4000
+#define ATTR_HIT 0x4000
 #define ATTR_PUSH 0x8000
 
 
