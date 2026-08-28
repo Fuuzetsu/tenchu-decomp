@@ -245,7 +245,7 @@ void ActSTICKON(void)
                         y = 0xC01;
                     }
                     UpdateMotion(update_motion, y);
-                    Me_MOTION_C->status = 0xC;
+                    Me_MOTION_C->status = STAT_STICKON;
                     dtV->vz = 0;
                     dtV->vx = 0;
                     dtM->mask = -2;

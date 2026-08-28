@@ -113,7 +113,7 @@ void cbCheckCD(void)
         {
             return;
         }
-        if (com == 0x11)
+        if (com == CdlGetlocP)
         {
             cs->CurPos = CdPosToInt(&scratch.second.loc);
             if ((cs->status & CdlStatRead) &&

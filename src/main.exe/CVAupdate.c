@@ -200,11 +200,11 @@ s16 CVAupdate(void)
                 else
                 {
                     i = (s32)packed >> 24;
-                    if (human->status == STAT_DEAD && (u32)(i - 0x10) > 1)
+                    if (human->status == STAT_DEAD && (u32)(i - (MOT_DAMAGE >> 8)) > 1)
                         return 0;
                     if (human->life > 0)
                     {
-                        if (i == 0x11)
+                        if (i == (MOT_DEAD >> 8))
                         {
                             human->life = 0;
                             ReqLifeBar(human);
