@@ -539,6 +539,16 @@ negated. Everything else here is corollaries:
   top forces a single materialisation (DrawSprite — whose textually-identical
   reject condition must also be a STANDALONE if, not an else, or cross-jump
   merges it away).
+- **Humanising direction — think-layer literals are synthesized PAD
+  words**: every Think*/Attack*-family return value flows into the
+  humanoid's pad word, so its hex literals are button masks — spell them
+  with the official libetc PAD names (0x2000 = PADLright is the guards'
+  scan turn, 0x1000 = PADLup the approach, 0x80 = PADRleft the attack
+  press, 0xA000 = PADLleft|PADLright the turn-only filter). The
+  fits-andi/addiu lever picks raw vs named spelling: positive masks that
+  fit andi/ori take the named form freely, but a target `addiu -0x8000`
+  or register-and `~0x5FFF` needs the negative literal kept (spell the
+  PAD identity in a comment — SuccessionAttack, Think2confirm).
 - **Humanising direction — a `goto` INTO another block's middle is often
   cross-jump residue, not source**: when a draft carries `goto X` where `X:`
   sits inside a different nested block and the code at `X` is a short tail
