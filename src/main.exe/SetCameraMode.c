@@ -167,7 +167,7 @@ void SetCameraMode(TCameraMode mode)
     giveup:
         CamState.OldMode = 0;
         break;
-    case 15:
+    case CMODE_AIM:
         CamState.DirectionRX = 0;
         CamState.DirectionRY = 0;
         CamState.Mode = CMODE_DIRECTION;

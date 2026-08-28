@@ -229,7 +229,7 @@ void ActKAGI(void)
     }
 
     case 0x402:
-        SetCameraMode(15);
+        SetCameraMode(CMODE_AIM);
         v.vx = CamState.TargetVector.vx - dtL->vx;
         v.vy = CamState.TargetVector.vy - dtL->vy;
         v.vz = CamState.TargetVector.vz - dtL->vz;

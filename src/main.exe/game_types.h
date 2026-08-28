@@ -559,7 +559,10 @@ enum TCameraMode
     CMODE_CROUCH = 11,
     CMODE_RUN = 12,
     CMODE_LOCK = 13,
-    CMODE_FALL = 14
+    CMODE_FALL = 14,
+    /* Invented name: zeroes DirectionRX/RY and enters the direction view
+     * looking straight ahead — the kaginawa first-person aim. */
+    CMODE_AIM = 15
 };
 
 /* CAMERA.C's global camera state. Retail rearranges the demo PSX.SYM
