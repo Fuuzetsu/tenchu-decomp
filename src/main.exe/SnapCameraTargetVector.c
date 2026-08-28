@@ -48,6 +48,12 @@
  *    bytes of saved regs + 4 bytes alignment pad (0x10+0x20+0x14+4=0x48),
  *    so there is no room for a hidden 5th local here — this cast-through-sv
  *    shape is the only way to build `v` from just `v`/`sv`/`sv2`.
+ *    DEMO-VERIFIED (PSX.EXE @ 0x8002aad4): the original build does the
+ *    identical dance — memset 16 bytes over both adjacent SVECTORs, three
+ *    32-bit ViewInfo stores through sv's memory, 4-word block copy into v
+ *    (the demo zeroes and reuses sv where retail uses sv2 for the second
+ *    phase — a variable-role swap, same construct). The casts are the
+ *    original author's own scratch-buffer idiom, not a matching artifact.
  *  - `sv2.vx/vy/vz = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx` etc. are
  *    NARROWING uses of the s32 GsRVIEW2 fields (result stores into a
  *    16-bit SVECTOR field) — cc1 emits `lhu`, not `lh`, for both operands.
@@ -86,13 +92,13 @@ void SnapCameraTargetVector(void)
     VECTOR *target;
     s32 t1, t2, t3;
 
-    memset(&sv, 0, 0x10);
+    memset(&sv, 0, sizeof(sv) + sizeof(sv2)); /* both, as one 16-byte scratch */
     ((VECTOR *)&sv)->vx = ViewInfo.vpx;
     ((VECTOR *)&sv)->vy = ViewInfo.vpy;
     ((VECTOR *)&sv)->vz = ViewInfo.vpz;
     v = *(VECTOR *)&sv;
 
-    memset(&sv2, 0, 8);
+    memset(&sv2, 0, sizeof(sv2));
     sv2.vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx;
     sv2.vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy;
     sv2.vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz;
