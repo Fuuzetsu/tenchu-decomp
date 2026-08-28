@@ -234,16 +234,16 @@ type_found:
     {
         human->item[ITEM_KUSURI] = 1;
     }
-    if (type < 0x8B)
+    if (type < ANI)
         goto low_type;
-    if (type >= 0xA8)
+    if (type >= ARROW)
         goto done;
-    if (type < 0xA6)
+    if (type < S1)
         goto done;
     goto high_type;
 
 low_type:
-    if (type >= 0x81)
+    if (type >= HANBE)
         goto equip;
     if (type >= 2)
         goto done;

@@ -281,7 +281,7 @@ void StateTransition(Humanoid *human)
 
                     reset_alert_duration(life);
                     alert_me = Me_THINK_C;
-                    switch (alert_me->type < 0x80)
+                    switch (alert_me->type < PAGE_BOSS)
                     {
                     case 0:
                         break;
@@ -349,7 +349,7 @@ void StateTransition(Humanoid *human)
 
                 reset_alert_duration();
                 me = Me_THINK_C;
-                if (me->type < 0x80)
+                if (me->type < PAGE_BOSS)
                 {
                     if (me->target == (ModelType *)StagePlayer->model)
                     {
@@ -500,7 +500,7 @@ void StateTransition(Humanoid *human)
             Sound(Me_THINK_C, 0xd);
             reset_alert_duration();
             me = Me_THINK_C;
-            if (me->type < 0x80 && (ATTRIB_BITS & 0x10) == 0)
+            if (me->type < PAGE_BOSS && (ATTRIB_BITS & 0x10) == 0)
             {
                 if (me->target == (ModelType *)StagePlayer->model)
                 {
