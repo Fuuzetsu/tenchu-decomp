@@ -306,7 +306,7 @@ structured — same shape in CVAupdate/AfsGetEntry/PutStrain/
 RestoreItemLayout/SetBleeds*/DrawShadow/vmemoryGC), CVA-scan
 double-breaks, the ReqItem* search-with-fallback family (35 files),
 cross-case shared tails (ActATTACK/ActACTION/SearchTarget/
-check_for_known_button_combination), ActDEAD's range dispatch
+check_cheat_command_), ActDEAD's range dispatch
 (constant changes), briefing_screen_'s brightness ladder (island
 layout unreachable by structured chains). The residual ~650 gotos
 across 170 files are these authentic classes. Remaining hex

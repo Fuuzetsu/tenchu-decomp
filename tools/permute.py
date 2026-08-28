@@ -417,7 +417,7 @@ GP_EXTERNS = {
     "ActHANG": ["dtV", "dtM", "dtPAD", "dtL", "motID", "motMODE", "Me_MOTION_C"],
     "ReqItemGun": ["ic"],
     "SetSmokeS": ["EFFECT_CURSOR_"],
-    "SetupAppearance": ["NowStage", "PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR", "sstage", "smode"],
+    "SetupAppearance": ["NowStage", "ARMOUR_EQUIPPED_", "sstage", "smode"],
     "StateTransition": ["StrainRatio", "Me_THINK_C", "Pad", "Attrib", "PlayerSSR", "ActionHalt", "EmergencyNotice", "SR", "Distance", "ProbeLevelLow", "ProbeAttrib", "ProbeLevelHigh", "EngageLevel", "Degree"],
     "ActATTACK": ["dtM", "Me_MOTION_C", "motID", "motMODE", "dtR", "dtL", "dtPAD", "MotionUpdateMode", "dtV"],
     "AttackIndirect": ["Me_THINK_C", "Distance", "Degree", "EngageLevel", "SR"],

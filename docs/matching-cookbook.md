@@ -699,7 +699,7 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   (clamp_shop_stock_, init_lifebar_). A literal goto backedge rescues a walker when a
   field store would become a second GIV (DoMiscProc's nonvolatile walker +
   movable `pause = 0`). Indexing can also steer PREHEADER order at identical
-  loop bodies (check_for_known_button_combination — require `.loop`'s
+  loop bodies (check_cheat_command_ — require `.loop`'s
   BIV-elimination report). Increment-first beats read-one-ahead
   (SetupTraceLine).
 - **Rotated sentinel scans**: the direct `while (table[i] != needle) { if

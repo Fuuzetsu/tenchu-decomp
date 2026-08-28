@@ -171,7 +171,7 @@ GUIDANCE = [
     "try `T[index]` with an `s32` index. loop.c can eliminate that BIV and create "
     "the strength-reduced pointer GIV later, changing its RTL UID/order without "
     "changing the loop body. Require `.loop` BIV/GIV evidence and `.sched2` "
-    "confirmation (check_for_known_button_combination).",
+    "confirmation (check_cheat_command_).",
     "N loads adjacent with no use between them are source temps (us/ty), even if "
     "the scheduler later scatters their stores.",
     "Before inventing a `D_XXXXXXXX` name or an anonymous struct layout for an "

@@ -128,7 +128,7 @@ def candidate_disassembly(name, addr, target_size):
 
     Old versions guessed the end by taking the first ``jr ra`` near the target
     size.  A function with an early return therefore lost its real tail (the
-    72-instruction check_for_known_button_combination was displayed as 65).
+    72-instruction check_cheat_command_ was displayed as 65).
     The map's per-object .text extent is authoritative for a compiled draft.
     Keep the old return heuristic only as a fallback for artifacts whose map
     has no C-object entry.

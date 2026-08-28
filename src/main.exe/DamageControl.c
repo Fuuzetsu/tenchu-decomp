@@ -5,7 +5,7 @@
 #include "item.h"
 
 extern Humanoid *Me_MOTION_C;
-extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
+extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
 /* MOTION.C's original direction-to-damage-animation table. */
 extern s16 damagemotion[8];
@@ -431,7 +431,7 @@ resolve_hit:
                     MoveHumanoid(Me_MOTION_C, 0x46, 0);
                 }
             }
-            if ((Me_MOTION_C == StagePlayer) && (PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR != 0))
+            if ((Me_MOTION_C == StagePlayer) && (ARMOUR_EQUIPPED_ != 0))
             {
                 dmg = ((short)dmg * 7) / 10;
             }
@@ -701,7 +701,7 @@ resolve_hit:
                 dmg = (u32)(dmg << 0x10) >> 0xf;
             }
             {
-                if ((Me_MOTION_C == StagePlayer) && (PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR != 0))
+                if ((Me_MOTION_C == StagePlayer) && (ARMOUR_EQUIPPED_ != 0))
                 {
                     dmg = ((short)dmg * 7) / 10;
                 }

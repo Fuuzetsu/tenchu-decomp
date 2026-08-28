@@ -248,14 +248,14 @@ its name has priority.
 
 The earlier fresh slate is now exact. Default triage has almost exhausted
 non-GTE game targets: the only straightforward fresh candidate is
-`FUN_8005fe34`, while `check_for_known_button_combination` has an unmerged
+`FUN_8005fe34`, while `check_cheat_command_` has an unmerged
 near-match. A larger replacement pool can still be useful if each parked slot
 gets a distinct, evidence-driven residual instead of another broad search:
 
 | Candidate | Size | Starting evidence / permitted next attack |
 |---|---:|---|
 | `FUN_8005fe34` | 84 B | fresh 21-instruction leaf with one callee; first priority |
-| `check_for_known_button_combination` | 288 B | isolated `fd303e1` is 12 bytes / three instructions away; solve the final register rotation, never merge that checkpoint |
+| `check_cheat_command_` | 288 B | isolated `fd303e1` is 12 bytes / three instructions away; solve the final register rotation, never merge that checkpoint |
 | `ProcItemNingyo` | 2256 B | start from isolated `c10c3ab` (15 bytes); attack only the two six-instruction ordering clusters |
 | `GetAreaMapVector` | 548 B | start from isolated `f2d0a6e` (40 bytes); persistent allocation and loop body are already exact |
 | `FUN_80056910` | 300 B | parked with two extra instructions; seek the specific lifetime/CFG cause |

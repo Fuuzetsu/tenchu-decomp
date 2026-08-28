@@ -615,7 +615,7 @@ segments:
       - [0x40CD8, c, score_screen_input_]
       - [0x40DB0, c, draw_time_]
       - [0x411BC, c, briefing_screen_]
-      - [0x41764, c, check_for_known_button_combination]
+      - [0x41764, c, check_cheat_command_]
       - [0x41884, c, BriefingAndInventorySelectionScreen]
       - [0x426A8, c, award_stage_items_]
       - [0x42B84, c, StageEndScreen]

@@ -14,10 +14,10 @@
  * pointer cursor emits the same three instructions and registers in the wrong
  * schedule order (the former 12-byte residual).
  */
-extern s16 *SPECIAL_BUTTON_COMBINATIONS_PTR[7];
-extern u16 RECENTLY_PRESSED_BUTTONS[12];
+extern s16 *CHEAT_COMMANDS_[7];
+extern u16 PAD_HISTORY_[12];
 
-s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
+s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
 {
     u16 *history;
     s32 combination_index;
@@ -34,18 +34,18 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
         i = 11;
         do
         {
-            RECENTLY_PRESSED_BUTTONS[i] = RECENTLY_PRESSED_BUTTONS[i - 1];
+            PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
             i--;
         } while (i > 0);
-        guard_entry = SPECIAL_BUTTON_COMBINATIONS_PTR[0];
-        RECENTLY_PRESSED_BUTTONS[0] = buttons;
+        guard_entry = CHEAT_COMMANDS_[0];
+        PAD_HISTORY_[0] = buttons;
         if (guard_entry != NULL)
         {
             outer_end = 0xffff;
             combination_index = 0;
             do
             {
-                entry = SPECIAL_BUTTON_COMBINATIONS_PTR[combination_index];
+                entry = CHEAT_COMMANDS_[combination_index];
                 i = 0;
                 pattern_start = entry + 1;
                 if ((u16)entry[1] == outer_end)
@@ -63,12 +63,12 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
                  * movability clauses). A ternary folds at tree level and
                  * fails the same way; jump threading later deletes the
                  * branch and the dead [1] read. No demo homolog exists. */
-                if (RECENTLY_PRESSED_BUTTONS[1] != 0)
+                if (PAD_HISTORY_[1] != 0)
                     inner_end = 0xffff;
                 else
                     inner_end = 0xffff;
                 pattern = pattern_start;
-                history = RECENTLY_PRESSED_BUTTONS;
+                history = PAD_HISTORY_;
                 do
                 {
 
@@ -88,15 +88,15 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
                     i = 11;
                     do
                     {
-                        RECENTLY_PRESSED_BUTTONS[i] = RECENTLY_PRESSED_BUTTONS[i - 1];
+                        PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
                         i--;
                     } while (i > 0);
-                    RECENTLY_PRESSED_BUTTONS[0] = 0;
-                    return SPECIAL_BUTTON_COMBINATIONS_PTR[combination_index][0];
+                    PAD_HISTORY_[0] = 0;
+                    return CHEAT_COMMANDS_[combination_index][0];
                 }
 
                 combination_index++;
-            } while (SPECIAL_BUTTON_COMBINATIONS_PTR[combination_index] != NULL);
+            } while (CHEAT_COMMANDS_[combination_index] != NULL);
         }
     }
     return 0;

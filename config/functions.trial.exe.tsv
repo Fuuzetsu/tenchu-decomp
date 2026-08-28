@@ -387,7 +387,7 @@
 0x80048e04	512	SoundEx
 0x80049004	192	SetupSoundEffect
 0x800490c4	136	Sound
-0x8004914c	288	check_for_known_button_combination
+0x8004914c	288	check_cheat_command_
 0x8004926c	476	FUN_8004926c
 0x80049448	3604	FUN_80049448
 0x8004a25c	800	FUN_8004a25c

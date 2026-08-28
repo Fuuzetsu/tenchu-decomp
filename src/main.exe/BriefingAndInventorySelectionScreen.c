@@ -22,7 +22,7 @@
  *   1. GetRealPad's shared return type must be the recovered `long` (s32;
  *      u32 and `volatile unsigned int` score the
  *      same -- the width matters, not the sign). With a u16 return the
- *      (s16)pad ext for check_for_known_button_combination was emitted before
+ *      (s16)pad ext for check_cheat_command_ was emitted before
  *      the np xor/and chain via a0; with the full-word return it lands after,
  *      reusing the dying pad copy in v0 (permuter r4).
  *   2. Entry-clamp compare re-read `mx < cq->gItem[n]` (for `mx < c`):
@@ -99,7 +99,7 @@ extern short DrawBG(BackGround *bg);
 /* Retail's only caller omits PutNumber's dead fourth parameter. */
 extern void PutNumber();
 extern void DisposeBG(BackGround *bg);
-extern int check_for_known_button_combination(s16 pad, s16 newpress);
+extern int check_cheat_command_(s16 pad, s16 newpress);
 extern void briefing_screen_(void);
 
 /*
@@ -238,7 +238,7 @@ void BriefingAndInventorySelectionScreen(void)
         np = pad.u;
         pad.u = GetRealPad(0);
         np = pad.u & (pad.u ^ np);
-        id = check_for_known_button_combination(pad.s, np);
+        id = check_cheat_command_(pad.s, np);
         /* The subtract-then-narrow is retail's own: addiu -1 then an
          * sll/sra s16 truncation before the bound check, i.e. the
          * original biased through a short temp exactly like EquipWeapon's

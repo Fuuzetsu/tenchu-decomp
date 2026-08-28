@@ -58,7 +58,7 @@
  *    flag/HumanData base as the target's $v1/$a0. The neutral pointer type is
  *    intentional because those two uses point at unrelated object types.
  */
-extern s16 PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR;
+extern s16 ARMOUR_EQUIPPED_;
 extern s16 smode;
 extern s16 sstage;
 extern u8 str_rikimaua[];                     /* RIKIMAUA */
@@ -92,7 +92,7 @@ void SetupAppearance(short mode, short stage)
         ((HumanDataType *)resource)[1].name =
             appearance != 0xff ? str_ayamea : str_ayames;
         *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
-        PLAYER_REDUCE_DAMAGE_DUE_TO_ARMOUR = -1;
+        ARMOUR_EQUIPPED_ = -1;
     }
 
     i = 0;

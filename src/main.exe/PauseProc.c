@@ -88,7 +88,7 @@
 
 extern short get_pad_active_(s32 arg);
 extern void return_to_menu_(void);
-extern short check_for_known_button_combination(short pad, short trg);
+extern short check_cheat_command_(short pad, short trg);
 extern void CheckCheatCodes(s16 *rec, int n);
 extern void DrawPause(int frame);
 extern int VSync(int mode);
@@ -129,7 +129,7 @@ void PauseProc(void)
         opad = trig;
         if (cur == (PADstart | PADselect))
             return_to_menu_();
-        com = check_for_known_button_combination(cur, trig);
+        com = check_cheat_command_(cur, trig);
         /* Motion ids above the taunt (0x713) are the stealth-kill
          * finishers — no cheating mid-finisher. */
         if (CamState.Owner->status == STAT_ATTACK && CamState.Owner->motion->mid > 0x713)

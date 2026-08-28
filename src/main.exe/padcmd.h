@@ -19,7 +19,7 @@ struct PADtype;
 #define CMD_ROLL_RIGHT 0x14
 #define CMD_LUNGE 0x21
 
-/* check_for_known_button_combination results (the cheat inputs; retail
+/* check_cheat_command_ results (the cheat inputs; retail
  * table @ 0x8008eddc). Consumers: the briefing/shop screen (item cap,
  * refill, special-item unlocks) and PauseProc (revive, debug menu —
  * the R2 L2 R1 L1 + L1+R2-chord sequence). Results 8 (Start+Select)
