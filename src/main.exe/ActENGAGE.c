@@ -252,37 +252,34 @@ void ActENGAGE(void)
         }
         if (mask & 0x10)
         {
-            /* Byte-required biased spelling (its six siblings unbias
-             * cleanly to switch (SelectedItem) with -1-based cases; this
-             * one's (short) cast feeds a promotion retail keeps). */
-            switch ((short)(SelectedItem + 1))
+            switch (SelectedItem)
             {
-            case 2:
+            case 1:
                 motID = MOT_SYURI;
                 motMODE = 1;
                 return;
-            case 1:
+            case 0:
                 motID = MOT_KAGI;
                 motMODE = 1;
                 return;
-            case 3:
+            case 2:
                 motID = MOT_ITEM;
-                motMODE = 1;
-                return;
-            case 6:
-                motID = 0xf02;
                 motMODE = 1;
                 return;
             case 5:
                 motID = 0xf02;
                 motMODE = 1;
                 return;
-            case 7:
+            case 4:
+                motID = 0xf02;
+                motMODE = 1;
+                return;
+            case 6:
                 motID = 0xf03;
                 motMODE = 1;
                 return;
-            case 0:
-            case 0xb:
+            case -1:
+            case 0xa:
                 SoundEx(Me_MOTION_C->locate, 0xc);
                 return;
             default:

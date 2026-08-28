@@ -158,6 +158,13 @@ void ActDEAD(void)
         return;
     }
 
+    /* The death-kind dispatch is a hand-written goto ladder, and the
+     * evidence is now two-sided: retail's branches jump TO the labeled
+     * bodies (test-first layout only `if (c) goto L;` produces — a
+     * structured else-if falls INTO its arms instead), and the DEMO's
+     * ActDEAD has a simpler single `mid < 0x1109` test here — retail
+     * added the DeadEvents 0x1109..0x110e range and extended the demo's
+     * test into this ladder by hand. */
     mid = dtM->mid;
     if (mid == 0x1108)
         goto splash_dead;

@@ -163,6 +163,7 @@ void BriefingAndInventorySelectionScreen(void)
     int t;
     int uid;
     int id;
+    s16 cheat;
 
     pad.s = -1;
     cap = 0xF;
@@ -237,13 +238,15 @@ void BriefingAndInventorySelectionScreen(void)
         pad.u = GetRealPad(0);
         np = pad.u & (pad.u ^ np);
         id = check_for_known_button_combination(pad.s, np);
-        /* The biased spelling is byte-required here (unlike the other
-         * biased switches, which unbias cleanly): the (s16) cast of the
-         * subtraction feeds the sll/sra promotion pair retail has before
-         * the jump-table bound check. Cases are the cheat ids minus one
-         * (case 0 = CHEAT_ITEM_CAP .. case 0xF = CHEAT_REVIVE, 0x1F =
-         * the character-specific unlock). */
-        switch ((s16)(id - 1))
+        /* The subtract-then-narrow is retail's own: addiu -1 then an
+         * sll/sra s16 truncation before the bound check, i.e. the
+         * original biased through a short temp exactly like EquipWeapon's
+         * proven `idx = wpatk - 4`. Cases are cheat ids minus one
+         * (case 0 = CHEAT_ITEM_CAP, 1 = CHEAT_ITEM_REFILL, 3 =
+         * CHEAT_ITEM_UNLOCK, 0xF = CHEAT_REVIVE, 0x1F = the
+         * character-specific unlock). */
+        cheat = id - 1;
+        switch (cheat)
         {
         case 0:
             if (CARRY_30_ITEMS_CHEAT_APPLIED == 0)
