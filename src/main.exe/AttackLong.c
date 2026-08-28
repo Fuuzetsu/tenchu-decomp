@@ -69,6 +69,7 @@ short AttackLong(void)
     {
         s32 status_degree;
 
+        /* One-shot fence: byte-required (collapse measured; see cookbook). */
         do
         {
             if (Me_THINK_C->motion->count !=

@@ -121,6 +121,7 @@ found:
                 v = dx + 0xff;
             }
             dx = v >> 8;
+            /* One-shot fences here: byte-required (collapse measured; see cookbook). */
             do
             {
                 v = dy;

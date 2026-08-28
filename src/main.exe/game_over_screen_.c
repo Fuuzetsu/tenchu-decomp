@@ -102,6 +102,7 @@ void game_over_screen_(void)
 
     i = 0;
     persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
     do
     {
         chr_offset = CHOSEN_CHARACTER * 0x20;

@@ -171,6 +171,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     ((work->maxx - work->minx < 0xff) &&
                      (work->maxy - work->miny < 0x7f)))
                 {
+                    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
                     do
                     {
                         do

@@ -550,8 +550,14 @@ negated. Everything else here is corollaries:
   allocation cascade — the weight MAGNITUDE (2^depth ref-weighting)
   matters, not just relative order. (3) `while (1) { if (i >= N) break; }`
   loops: the natural `for` spelling changes the emitted length
-  (InitEffect). Before re-trying any of these, check the file's notes for
-  the measurement; add one if you run a new experiment.
+  (InitEffect). (4) plain single-level fences: collapsing every
+  previously-undocumented `do{}while(0)` across ten files (AfsGetEntry,
+  CreateStage, SetFlyWire, game_over_screen_, SaveSI, ProcItemDokudango,
+  subdivide_quad_, draw_time_, SetupImageToPolyGT4, AttackLong) broke
+  every one — the ONLY removable scaffold found in the whole sweep was
+  one twin-arm pair (SaveSI's icon3 twin). Before re-trying any of
+  these, check the file's notes for the measurement; add one if you run
+  a new experiment.
 - **Humanising direction — think-layer literals are synthesized PAD
   words**: every Think*/Attack*-family return value flows into the
   humanoid's pad word, so its hex literals are button masks — spell them

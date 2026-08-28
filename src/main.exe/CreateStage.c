@@ -192,6 +192,7 @@ void CreateStage(int StageNo, int CharType)
     py = StageConfig[StageNo].py;
     pz = StageConfig[StageNo].pz;
     ViewInfo.vpx = px;
+    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
     do
     {
         ViewInfo.vpy = py - 10000;

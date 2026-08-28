@@ -189,6 +189,7 @@ void ProcItemDokudango(TItem *item)
                                 goto hit;
                             }
                         }
+                        /* One-shot fences here: byte-required (collapse measured; see cookbook). */
                         do
                         {
                             group++;

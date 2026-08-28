@@ -84,6 +84,7 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     w = pw << sh;
     x = x + w;
     y = y + ph;
+    /* One-shot fence: byte-required (collapse measured; see cookbook). */
     do
     {
     } while (0);

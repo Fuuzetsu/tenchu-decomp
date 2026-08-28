@@ -26,6 +26,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
     value = time / 60;
     sprite->y = y;
     sprite->x = x - 0x20;
+    /* One-shot fence: byte-required (collapse measured; see cookbook). */
     do
     {
         signedValue = (s16)value;

@@ -156,6 +156,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         alignment = (u32)src & 3;
         if (alignment)
         {
+            /* One-shot fences here: byte-required (collapse measured; see cookbook). */
             do
             {
                 *(SaveSIUnalignedChunk *)dst =

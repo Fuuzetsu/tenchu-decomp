@@ -82,6 +82,7 @@ entry_ready:
             handle->maxElements * sizeof(TAFSElement));
 
     raw = buffer;
+    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
     do
     {
         do
