@@ -67,7 +67,11 @@
  * adds a sll/sra narrowing pair before the call (multi-source defs stop
  * the constant folding that direction's enjoy), and ry-as-selector is
  * worse still (+20 bytes). The +14 must come from other regions'
- * factoring if it comes at all -- see PLAN's DAH endgame lead.
+ * factoring if it comes at all -- see PLAN's DAH endgame lead. Also
+ * refuted: retargeting the reflection region's `direction` onto zz
+ * (liveness-legal, +4 natural refs) perturbs two allocnos at once --
+ * no tower depth 9-14 rebalances it (13 under by the s0/s1 class,
+ * 14 over by a different pair).
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
