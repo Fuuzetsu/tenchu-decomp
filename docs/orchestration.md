@@ -445,6 +445,12 @@ rules**:
 - A new *idiom* → fold into `matching-cookbook.md` (quote the agent verbatim;
   agents don't edit it themselves). Anchor on an existing nearby rule; **verify
   the anchor string matches** (wrapped lines / backticks bite — check after).
+  The same trap bites batch EDIT scripts: a per-edit `assert old in text`
+  that dies mid-list silently leaves every later edit unapplied while the
+  commit message you already drafted still enumerates them (this shipped
+  once: 1b20da30 claimed two fixes its script never reached). Before
+  committing a message that lists edits, grep each claimed change back
+  out of the diff.
   If the idiom is *mechanical and local* (a token/expression rewrite at an
   enumerable site — a type width, a sign toggle, a condition normalization),
   ALSO add it as a rule in `tools/autorules.py` so it's machine-applied and
