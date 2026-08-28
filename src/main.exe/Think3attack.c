@@ -74,10 +74,10 @@ s16 Think3attack(void)
         return pad;
     }
 
-    if (SR != -2 &&
+    if (SR != SR_GONE &&
         ((idx == 3 && Distance < 14000) || Distance < 10000))
     {
-        SR = 0;
+        SR = SR_NONE;
     }
 
     if ((s16)((4 - idx) * Me_THINK_C->turn) < Degree)

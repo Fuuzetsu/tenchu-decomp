@@ -36,7 +36,16 @@ extern short Degree;
 extern short Attrib;
 /* Raw flag-bit view for THINK.C sites whose retail loads are unsigned. */
 #define ATTRIB_BITS (*(unsigned short *)&Attrib)
-/* SearchTarget result/state code (-2..2), not a distance. */
+/* SearchTarget result/state code (-2..2), not a distance. The value
+ * names are invented from the return contexts: */
+enum
+{
+    SR_GONE = -2,   /* out of range or unreachable (height gap, too far) */
+    SR_UNSEEN = -1, /* outside the view cone / beyond near distance */
+    SR_NONE = 0,    /* no target */
+    SR_SEEN = 1,    /* clear sight (inside clear_distance) */
+    SR_GLIMPSE = 2  /* perceived beyond clear distance (the "?" case) */
+};
 extern short SR;
 extern PADtype *Pad;
 /* Retail stores 12 pointers. Slot 0 is NULL; stage1appearance through

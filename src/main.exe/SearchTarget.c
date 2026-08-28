@@ -137,7 +137,7 @@ degree_done:
         {
             if (*distance < 4000)
             {
-                return -2;
+                return SR_GONE;
             }
         }
     }
@@ -146,7 +146,7 @@ degree_done:
     {
         if (EmergencyNotice == 0)
         {
-            return -2;
+            return SR_GONE;
         }
         if (*distance < 4000)
         {
@@ -156,7 +156,7 @@ degree_done:
 
     if (*distance >= searchsight[mode].far_distance)
     {
-        return -2;
+        return SR_GONE;
     }
 
     absolute = __builtin_abs(*degree);
@@ -164,11 +164,11 @@ degree_done:
     {
         if (absolute >= 450 && mode != 0)
         {
-            return -1;
+            return SR_UNSEEN;
         }
         if (*distance >= searchsight[mode].near_distance)
         {
-            return -1;
+            return SR_UNSEEN;
         }
 
         limit = 500;
@@ -235,8 +235,8 @@ degree_done:
             return passage_result;
         }
         }
-        return (*distance < searchsight[mode].clear_distance) ? 1 : 2;
+        return (*distance < searchsight[mode].clear_distance) ? SR_SEEN : SR_GLIMPSE;
     }
-    return -1;
+    return SR_UNSEEN;
 }
 

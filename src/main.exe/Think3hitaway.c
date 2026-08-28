@@ -81,9 +81,9 @@ s16 Think3hitaway(void)
     u16 result;
     s32 degree;
 
-    if (Distance < 10000 && SR != -2)
+    if (Distance < 10000 && SR != SR_GONE)
     {
-        SR = 0;
+        SR = SR_NONE;
     }
     if (*(s16 *)&Me_THINK_C->status == STAT_ATTACK)
     {

@@ -41,9 +41,9 @@ s16 Think3escape(void)
     s32 degree;
 
     result = 0;
-    if (Distance < 0x4074 && SR != -2)
+    if (Distance < 0x4074 && SR != SR_GONE)
     {
-        SR = 0;
+        SR = SR_NONE;
     }
     if (Degree > 0)
     {

@@ -113,7 +113,7 @@ s16 Think4abandon(void)
     {
         if (EmergencyNotice != 0)
         {
-            if (SR == 1)
+            if (SR == SR_SEEN)
             {
                 Attrib = cleared | PHASE_ALERT;
             }
@@ -129,7 +129,7 @@ s16 Think4abandon(void)
                     return result;
                 }
             }
-            if (SR == 1)
+            if (SR == SR_SEEN)
             {
                 goto sr_eq_1;
             }
@@ -137,7 +137,7 @@ s16 Think4abandon(void)
             {
                 goto sr_low;
             }
-            if (SR == 2)
+            if (SR == SR_GLIMPSE)
             {
                 goto sr_eq_2;
             }

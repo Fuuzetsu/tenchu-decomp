@@ -222,7 +222,7 @@ void StateTransition(Humanoid *human)
             {
                 SR = 2;
             }
-            else if (SR == 2)
+            else if (SR == SR_GLIMPSE)
             {
                 SR = 1;
             }
@@ -257,7 +257,7 @@ void StateTransition(Humanoid *human)
         pad = Me_THINK_C->think[0]();
         if (Me_THINK_C->type >= 7)
         {
-            if (SR == 1)
+            if (SR == SR_SEEN)
             {
                 Humanoid *me;
                 s32 life;
@@ -294,7 +294,7 @@ void StateTransition(Humanoid *human)
                     }
                 }
             }
-            else if (SR == 2)
+            else if (SR == SR_GLIMPSE)
             {
                 if (EmergencyNotice != 0)
                 {
@@ -333,7 +333,7 @@ void StateTransition(Humanoid *human)
             pad = Me_THINK_C->think[1]();
         }
 
-        if (SR == 1 || ((ATTRIB_BITS & ATTR_HIT) != 0 && SR > 0))
+        if (SR == SR_SEEN || ((ATTRIB_BITS & ATTR_HIT) != 0 && SR > 0))
         {
             Attrib = atr0 | PHASE_ALERT;
             if ((ATTRIB_BITS & ATTR_ALERT) == 0)
@@ -443,7 +443,7 @@ void StateTransition(Humanoid *human)
         }
 
     attack_checked:
-        if (SR == -2)
+        if (SR == SR_GONE)
         {
             Humanoid *me;
             s32 target_x;

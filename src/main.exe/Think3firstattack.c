@@ -55,9 +55,9 @@ s16 Think3firstattack(void)
     s32 degree;
 
     result = turn_towards_player_(0, 0);
-    if (Distance < 10000 && SR != -2)
+    if (Distance < 10000 && SR != SR_GONE)
     {
-        SR = 0;
+        SR = SR_NONE;
     }
     if ((Me_THINK_C->type & 0xF0) == 0x90)
     {

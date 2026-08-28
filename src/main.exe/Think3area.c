@@ -71,9 +71,9 @@ s16 Think3area(void)
         return SuccessionAttack(4000, 500);
     }
 
-    if (Distance < 10000 && SR != -2)
+    if (Distance < 10000 && SR != SR_GONE)
     {
-        SR = 0;
+        SR = SR_NONE;
     }
 
     if (Me_THINK_C->wpatk >> 4 == 3)

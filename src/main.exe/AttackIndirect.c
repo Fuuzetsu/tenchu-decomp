@@ -126,9 +126,9 @@ short AttackIndirect(void)
         return pad;
     }
 
-    if (Distance < 20000 && SR != -2)
+    if (Distance < 20000 && SR != SR_GONE)
     {
-        SR = 0;
+        SR = SR_NONE;
     }
 
     if (Distance < 5000)

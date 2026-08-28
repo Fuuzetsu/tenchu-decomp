@@ -130,9 +130,9 @@ short Think3callaid(void)
 
     if (Distance < 0x4074)
     {
-        if (SR != -2)
+        if (SR != SR_GONE)
         {
-            SR = 0;
+            SR = SR_NONE;
         }
         return Think3escape();
     }

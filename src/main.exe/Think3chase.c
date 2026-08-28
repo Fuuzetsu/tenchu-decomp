@@ -43,9 +43,9 @@ s16 Think3chase(void)
     s32 degree;
     u16 result;
 
-    if (Distance < 10000 && SR != -2)
+    if (Distance < 10000 && SR != SR_GONE)
     {
-        SR = 0;
+        SR = SR_NONE;
     }
     if (AttackActionCount + EngageLevel * 30 < GameClock)
     {

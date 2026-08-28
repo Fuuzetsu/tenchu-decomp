@@ -56,7 +56,7 @@ s16 Think4chase(void)
 {
     s32 result;
 
-    if (SR == 1)
+    if (SR == SR_SEEN)
     {
         Attrib = (Attrib & (u16)~ATTR_PHASE) | PHASE_ALERT;
         return 0;
