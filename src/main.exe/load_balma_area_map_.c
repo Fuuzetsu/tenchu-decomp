@@ -2,12 +2,12 @@
 #include "main.exe.h"
 
 /*
- * handle_balmer_acm_ (0x8001ab64) — load a new area-map (`adr`) into the
+ * load_balma_area_map_ (0x8001ab64) — load a new area-map (`adr`) into the
  * SAVED cursor slot (BalmaAreaMap) without disturbing the currently-active one
  * (GlobalAreaMap/FieldIndex/FieldArea are all restored to their pre-call
  * values afterward). Same original TU as GetAreaMapLevel.c/LoadAreaMap.c/
- * character_balma_around_main_routine_.c (shares NodeIndexType and all four
- * globals, all %gp_rel here too) — character_balma_around_main_routine_ is
+ * swap_balma_area_map_.c (shares NodeIndexType and all four
+ * globals, all %gp_rel here too) — swap_balma_area_map_ is
  * the counterpart that later swaps BalmaAreaMap back into the live slot.
  * `adr` is never reassigned, so it's simply left in $a0 across the call (no
  * explicit move) — LoadAreaMap(adr)'s result is kept live in $v0 until the
@@ -19,7 +19,7 @@
 
 extern AreaMapType *LoadAreaMap(AreaMapType *adr);
 
-AreaMapType *handle_balmer_acm_(AreaMapType *adr)
+AreaMapType *load_balma_area_map_(AreaMapType *adr)
 {
     NodeIndexType *cur;
     AreaMapType *newmap;

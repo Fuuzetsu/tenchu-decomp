@@ -3,7 +3,7 @@
 
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/drawFT3", drawFT3);
 
-// triage: VERY-HARD — 86 insns, 3 GTE CMD — UN-SPLITTABLE (as can't assemble), 1 loop, 0 callees, ~0.04 to character_balma_around_main_routine_
+// triage: VERY-HARD — 86 insns, 3 GTE CMD — UN-SPLITTABLE (as can't assemble), 1 loop, 0 callees, ~0.04 to swap_balma_area_map_
 // likely-relevant cookbook sections:
 //   - Loops: 1 back-edge(s) — for/while/do vs goto shape
 //   - Toolchain gotchas: GTE command opcodes — `as` rejects them, so the per-function split does not even assemble; needs the GTE->.word pass first

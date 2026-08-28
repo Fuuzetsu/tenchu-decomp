@@ -23,7 +23,7 @@
  * HumanGroup[]/Humans array (the same short-counter fused sign-extend+scale
  * loop shape as GetHumanoid), calling ControlHumanoid(human) on every entry
  * whose attribute bit 0x80 is clear — bracketing the call with
- * character_balma_around_main_routine_() (the area-map cursor save/restore
+ * swap_balma_area_map_() (the area-map cursor save/restore
  * helper, HUMAN.C's own name for FUN_8001aba0, called TWICE) when
  * human->type == BALMA (BALMA).
  *
@@ -46,7 +46,7 @@
  * epilogue.
  */
 extern s16 VISIBLE_ENEMIES_;
-extern void character_balma_around_main_routine_(void);
+extern void swap_balma_area_map_(void);
 
 short ControlAllHumanoid(void)
 {
@@ -65,9 +65,9 @@ short ControlAllHumanoid(void)
             {
                 if (human->type == BALMA)
                 {
-                    character_balma_around_main_routine_();
+                    swap_balma_area_map_();
                     ControlHumanoid(human);
-                    character_balma_around_main_routine_();
+                    swap_balma_area_map_();
                 }
                 else
                 {

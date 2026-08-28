@@ -158,7 +158,7 @@ extern void LoadTIMpackAndFree(u_long *data);
 extern void *valloc(u32 size);
 extern OrnamentArchiveType *LoadOrnamentArchive(u_long *data, ModelType *parent);
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
-extern AreaMapType *handle_balmer_acm_(AreaMapType *data);
+extern AreaMapType *load_balma_area_map_(AreaMapType *data);
 extern void UpdateOrnament(OrnamentType *model, s16 ry);
 extern void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size);
 extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
@@ -301,7 +301,7 @@ short LoadConstruction(u_long *data)
                 GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
                 if (StageID == 4)
                 {
-                    BalmaAreaMap = handle_balmer_acm_(
+                    BalmaAreaMap = load_balma_area_map_(
                         PathFileRead(ImagePath, (u8 *)path_balmer_acm));
                 }
                 break;

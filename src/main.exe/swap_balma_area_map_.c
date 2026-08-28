@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * character_balma_around_main_routine_ (0x8001aba0, 0x24 bytes) — swaps the
+ * swap_balma_area_map_ (0x8001aba0, 0x24 bytes) — swaps the
  * live area-map cursor (GlobalAreaMap) with a saved one (BalmaAreaMap) and
  * refreshes FieldIndex/FieldArea from the newly-installed cursor. Called
  * twice from ControlAllHumanoid (save/restore the cached area-map state
@@ -16,7 +16,7 @@
  * symbol needed — splat auto-names it).
  */
 
-void character_balma_around_main_routine_(void)
+void swap_balma_area_map_(void)
 {
     NodeIndexType *saved;
     AreaMapType *cur;
