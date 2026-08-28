@@ -220,7 +220,7 @@ void ActKAGI(void)
         mmp->mask = -2;
         attrib = *(u16 *)&human->map.attrib;
         motMODE = 1;
-        if (attrib & 4)
+        if (attrib & MAP_WATER)
         {
             Sound(human, 0x15);
         }
@@ -284,7 +284,8 @@ void ActKAGI(void)
             u32 quantized;
 
             human = Me_MOTION_C;
-            if ((human->attribute & 0xce00) == 0)
+            if ((human->attribute &
+                 (ATTR_PUSH | ATTR_HIT | ATTR_NOFLOOR | ATTR_WALL | 0x200)) == 0)
             {
                 goto make_wire;
             }

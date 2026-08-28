@@ -105,7 +105,7 @@ void AttackControl(void)
             enemy_type_ok:
 
                 if (enemy != NULL &&
-                    (enemy->attribute & 0x43U) == 0 &&
+                    (enemy->attribute & (ATTR_ALERT | ATTR_PHASE)) == 0 &&
                     enemy->status != STAT_ITEM && enemy->status != STAT_ACTION)
                 {
                     ModelType *target;

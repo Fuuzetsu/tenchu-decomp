@@ -275,7 +275,7 @@ void ActDAMAGE(void)
             motID = 0x501;
             attribute = *(u16 *)&human->attribute;
             motMODE = 1;
-            attribute = (attribute & 0xfffc) | 2;
+            attribute = (attribute & (u16)~ATTR_PHASE) | PHASE_ALERT;
             *(u16 *)&human->attribute = attribute;
         }
         else

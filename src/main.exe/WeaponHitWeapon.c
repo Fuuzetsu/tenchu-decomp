@@ -57,7 +57,7 @@ void WeaponHitWeapon(ModelType *hand)
     short id;
     VECTOR *p;
 
-    if ((hand->attribute & 0x8000) != 0)
+    if ((hand->attribute & MODEL_ATTR_CONFLICT) != 0)
     {
         do
         {
@@ -66,7 +66,7 @@ void WeaponHitWeapon(ModelType *hand)
             {
                 return;
             }
-            if ((ConflictObject[id].size.pad & 1) == 0)
+            if ((ConflictObject[id].size.pad & CONFLICT_HIT) == 0)
             {
                 continue;
             }
@@ -90,7 +90,7 @@ void WeaponHitWeapon(ModelType *hand)
                 SetBleed(p, &pv, rand() % 20 + 20, 0x7FFF);
             }
 
-            hand->attribute = hand->attribute & 0xBFFF;
+            hand->attribute = hand->attribute & ~MODEL_ATTR_COLLIDE;
             dtM->loop = BattleDB[id].power / -3 - 1;
             Sound(Me_MOTION_C, 0x36);
             if (StagePlayer == Me_MOTION_C)

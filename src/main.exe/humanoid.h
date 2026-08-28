@@ -12,8 +12,13 @@
  *                  PHASE_INVESTIGATE 3 (SR==-2, target lost; written as
  *                  ATTR_SEARCH | phase with chase[] set to the last-known
  *                  spot)
- *   0x0004         set by SetupThinkFunction iff the think type is a real
- *                  mix (not 0/0x1111/0x2222)
+ *   0x0004         "non-template AI": SetupThinkFunction sets it iff the
+ *                  think type is a real mix (not 0/0x1111/0x2222), the
+ *                  call-aid/alarm reinforcement morphs set it while
+ *                  hand-assigning Think*Func[4], and CVA sets it when a
+ *                  cutscene revives a dead actor; StartStageSequence and
+ *                  the CVA despawn clear it. Write-only in retail (no
+ *                  reader survives), so it stays unnamed
  *   ATTR_SEARCH    0x0010 — the personal investigation latch: when the
  *                  startle motion (0x80e) completes, ActSTATE sets 0x12
  *                  (think-mode 2 + this bit), stores the player's spot in
@@ -66,8 +71,11 @@
  *                  angles (MapVector.angleL/angleH nonzero — the data the
  *                  swim/rope handlers steer along); +ATTR_LEDGE when that
  *                  wall is low (height < -450). Set-only in retail.
- * Still unnamed, set-only (no reader found): 0x0200 (mirrors map->attrib
- * bit 2, the stand-anywhere/buoyancy clamp). */
+ * Still unnamed: 0x0200, the buoyant-surface mirror — set by
+ * DefaultActionHumanoid whenever map->attrib bit 2 is up (the clamp that
+ * floors vy at 0 and forces height 1), and read only inside compound
+ * masks (ActJUMP's ATTR_NOFLOOR|0x200 dive check, ActKAGI's
+ * any-contact mask). */
 #define ATTR_PHASE 0x0003
 #define PHASE_CALM 0
 #define PHASE_SUSPICIOUS 1

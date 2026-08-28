@@ -174,7 +174,7 @@ void StartStageSequence(void)
                 ModelType *target;
 
                 target = (ModelType *)StagePlayer->model;
-                human->attribute = (human->attribute | 0x82) & 0xfffb;
+                human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~4;
                 human->life = -1;
                 human->target = target;
             }

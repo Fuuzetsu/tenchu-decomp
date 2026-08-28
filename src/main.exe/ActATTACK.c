@@ -580,7 +580,7 @@ dispatch:
                 v->vz = scratch.fall_velocity.vz;
             }
         }
-        if ((Me_MOTION_C->attribute & 0x800U) != 0)
+        if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0)
         {
             motID = 0x710;
             motMODE = 0;

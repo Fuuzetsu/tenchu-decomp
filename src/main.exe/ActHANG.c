@@ -44,7 +44,7 @@
  * when the motion runs out; 0xA02/0xA03 (shimmy) keep moving while LEFT/RIGHT
  * held else return to 0xA00, falling (0x803) if the grip breaks; 0xA04
  * (pull-up) ends in stand (0) or crouch (0x501, attribute & 0x40) and RETURNS
- * (skipping the shared tail). Shared tail: attribute & 0x8000 (damaged?)
+ * (skipping the shared tail). Shared tail: ATTR_PUSH (shoved off the ledge)
  * knocks the character off the wall.
  *
  * Matching notes (docs/matching-cookbook.md):
@@ -167,8 +167,9 @@ void ActHANG(void)
         }
         break;
     }
-    if (Me_MOTION_C->attribute & 0x8000)
+    if (Me_MOTION_C->attribute & ATTR_PUSH)
     {
+        /* Shoved by a conflict object while hanging: knocked off. */
         MoveHumanoid(Me_MOTION_C, -10, 0);
         motID = 0x803;
         motMODE = 0;

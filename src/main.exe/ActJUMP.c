@@ -89,7 +89,7 @@ void ActJUMP(void)
         return;
     }
 
-    if ((Me_MOTION_C->attribute & 0xa00) != 0 && dtM->count >= 2)
+    if ((Me_MOTION_C->attribute & (ATTR_NOFLOOR | 0x200)) != 0 && dtM->count >= 2)
     {
         level = GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy, dtL->vz, 0);
         if (dtL->vy < level)
