@@ -3,6 +3,7 @@
 #include "item.h"
 #include "padcmd.h"
 #include <psxsdk/libgpu.h>
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -244,7 +245,7 @@ next_x:
 scan_done:
 
     packet_base = GsGetWorkBase();
-    DrawTMDmode = 0x20;
+    DrawTMDmode = TMD_BANK_FOG;
     ot = *OTablePt;
     ot.org += 0x37;
 

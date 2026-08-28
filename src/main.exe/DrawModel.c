@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -96,9 +97,9 @@
  *    out byte-identical to each other — it changes which cross-jump merge
  *    cc1 finds, which is what actually broke the LENGTH (4 extra
  *    instructions with the wrong tail).
- *  - The two-arm `if (sz < 300) DrawTMDmode = 0; else DrawTMDmode = 0x20;`
+ *  - The two-arm `if (sz < 300) DrawTMDmode = TMD_BANK_PLAIN; else DrawTMDmode = TMD_BANK_FOG;`
  *    inside unit_vector must be written negated — `if (sz >= 300)
- *    DrawTMDmode = 0x20; else DrawTMDmode = 0;` — to match which arm ends
+ *    DrawTMDmode = TMD_BANK_FOG; else DrawTMDmode = TMD_BANK_PLAIN;` — to match which arm ends
  *    up adjacent to the shared reject/ret tail (worth 4 of the 8
  *    residual bytes on its own; the cookbook's "if(cond)A;else B" A/B
  *    labels are NOT swap-invariant once a shared tail sits past the
@@ -195,11 +196,11 @@ short DrawModel(ModelType *objp)
         }
         if (sz >= 300)
         {
-            DrawTMDmode = 0x20;
+            DrawTMDmode = TMD_BANK_FOG;
         }
         else
         {
-            DrawTMDmode = 0;
+            DrawTMDmode = TMD_BANK_PLAIN;
         }
     }
 ret:

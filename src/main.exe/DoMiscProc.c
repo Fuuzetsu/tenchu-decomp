@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "misc.h"
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -56,7 +57,7 @@
  *    coord;` fixes both the target load order and its v0/v1 subtraction roles.
  *  - Cache `p->proc` for the in-range call, but dispatch the out-of-range call
  *    through the field.  That distinction matches the target call carriers.
- *  - `DrawTMDmode = 0x20;` sits textually right after the cull loop in
+ *  - `DrawTMDmode = TMD_BANK_FOG;` sits textually right after the cull loop in
  *    source, but its `li` is independent of the tick-gate branch, so cc1
  *    hoists it into that branch's own delay slot regardless of which side
  *    is taken — ordinary scheduling, no special spelling.
@@ -137,7 +138,7 @@ void DoMiscProc(void)
             if (d)
                 goto cull_loop;
         }
-        DrawTMDmode = 0x20;
+        DrawTMDmode = TMD_BANK_FOG;
         for (i = 0; i < MaxMisc; i++)
         {
             if (misc[i].proc != 0 && misc[i].pause == 0)

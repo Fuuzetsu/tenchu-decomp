@@ -1,6 +1,13 @@
 #ifndef TMDFAST_H
 #define TMDFAST_H
 
+/* DrawTMDmode: byte offset added into the per-primitive renderer
+ * dispatch table — 0 selects the plain (tnf) bank, TMD_BANK_FOG the
+ * depth-queued gradation (tng) bank the draw family switches to for
+ * far objects (sz >= 300). */
+#define TMD_BANK_PLAIN 0
+#define TMD_BANK_FOG 0x20
+
 #include "common.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libgs.h>

@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -82,7 +83,7 @@ void InitGraphicsSystem(void)
     GsInit3D();
     GsInitCoordinate2((GsCOORDINATE2 *)0, &World.locate);
     UpdateCoordinate(&World);
-    DrawTMDmode = 0;
+    DrawTMDmode = TMD_BANK_PLAIN;
     SetDepthQ(-0x7ef4, 0x2f282e0);
     DepthPoint = 0x4e2;
     SlightPoint = 0x96;

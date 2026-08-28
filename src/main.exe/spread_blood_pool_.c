@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "tmdfast.h"
 
 /*
  * MATCH.
@@ -94,7 +95,7 @@ void spread_blood_pool_(Humanoid *human)
     screen.vz = depth;
     if ((depth << 16) >> 18 < 0x4e2)
     {
-        DrawTMDmode = 0x20;
+        DrawTMDmode = TMD_BANK_FOG;
         DrawTMD(&BLOOD_POOL_MODEL_->object, OTablePt, 0);
     }
 }

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -107,7 +108,7 @@
  *    shared `ret` variable reassigned twice — DrawModel/DrawBG's "two
  *    literal early returns" lever, even though Ghidra renders it with one
  *    reused `scale`.
- *  - The two-arm `if (sz < 300) DrawTMDmode = 0; else = 0x20;` inside
+ *  - The two-arm `if (sz < 300) DrawTMDmode = TMD_BANK_PLAIN; else = 0x20;` inside
  *    unit_vector is spelled NEGATED (`if (sz >= 300) = 0x20; else = 0;`) so
  *    the 0x20 arm sits adjacent to the shared tail, same swap-non-invariance
  *    DrawModel needed.
@@ -188,9 +189,9 @@ short DrawSprite(Sprite3D *sprt)
             goto ret;
         }
         if (sz >= 300)
-            DrawTMDmode = 0x20;
+            DrawTMDmode = TMD_BANK_FOG;
         else
-            DrawTMDmode = 0;
+            DrawTMDmode = TMD_BANK_PLAIN;
         result = sz;
     }
 ret:

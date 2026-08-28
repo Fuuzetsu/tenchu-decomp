@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -71,7 +72,7 @@
  *    label lives. A trailing `reject:` next to `ret:` takes a free
  *    fallthrough and cross-jump swaps it with the arm that should have
  *    owned it; that swap was the whole 62-byte residual.
- *  - The `if (sz >= 300) DrawTMDmode = 0x20; else = 0;` two-armer is
+ *  - The `if (sz >= 300) DrawTMDmode = TMD_BANK_FOG; else = 0;` two-armer is
  *    spelled NEGATED so the `= 0` arm sits adjacent to the tail and takes
  *    the fallthrough (target 0x8001842c) — same swap-non-invariance
  *    DrawModel and DrawSprite needed.
@@ -143,9 +144,9 @@ long DrawClip(ModelType *objp, long *xy)
             goto ret;
         }
         if (sz >= 300)
-            DrawTMDmode = 0x20;
+            DrawTMDmode = TMD_BANK_FOG;
         else
-            DrawTMDmode = 0;
+            DrawTMDmode = TMD_BANK_PLAIN;
         result = sz;
     }
 ret:
