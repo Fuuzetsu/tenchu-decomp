@@ -58,7 +58,7 @@ void DoItemProc(void)
     it = items;
     while (1)
     {
-        if (i >= 0x1e)
+        if (i >= MAX_ITEMS)
             break;
         if (it->proc != 0)
         {

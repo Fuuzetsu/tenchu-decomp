@@ -64,7 +64,7 @@ void leAddPath(s32 id, s32 x, s32 y, s32 z)
     VECTOR pos;
     SVECTOR pow;
 
-    if ((u32)id < 0x1E)
+    if ((u32)id < MAX_ENEMIES)
     {
         e = &enemy[id];
         if (e->nPath < 7)

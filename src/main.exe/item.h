@@ -399,7 +399,8 @@ extern void *memset(void *s, int c, u32 n);
 /* "item dispose fail   id %d  mode %d" */
 extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 /* The global item pool. */
-extern TItem items[30];
+#define MAX_ITEMS 30
+extern TItem items[MAX_ITEMS];
 /* ITEM.C's shared model and sprite resources. */
 extern ModelType *SyurikenModel;
 extern ModelType *ArrowModel;

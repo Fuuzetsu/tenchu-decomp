@@ -118,6 +118,6 @@ void PackItemLayout(void *buf, s32 size)
                 slot->type = -1;
             }
             i++;
-        } while (i < 0x1e);
+        } while (i < MAX_ITEMS);
     }
 }

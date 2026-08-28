@@ -72,7 +72,7 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
     i = 0;
     while (1)
     {
-        if (i >= 30)
+        if (i >= MAX_ITEMS)
         {
             break;
         }

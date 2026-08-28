@@ -94,7 +94,7 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
     do
     {
         ic++;
-        if (ic > 0x1d)
+        if (ic >= MAX_ITEMS)
             ic = 0;
         slot = items + ic;
         if (slot->proc == 0)
@@ -103,7 +103,7 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
             goto found;
         }
         i++;
-    } while (i < 0x1d);
+    } while (i < MAX_ITEMS - 1);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
     slot->mode = ITEM_MODE_DISPOSE;

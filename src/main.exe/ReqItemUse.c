@@ -343,7 +343,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             do
             {
                 ic++;
-                if (ic > 0x1d)
+                if (ic >= MAX_ITEMS)
                     ic = 0;
                 cur = items + ic;
                 if (cur->proc == 0)
@@ -352,7 +352,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                     goto found_shuriken;
                 }
                 i++;
-            } while (i < 0x1d);
+            } while (i < MAX_ITEMS - 1);
 
             cur->mode = ITEM_MODE_DISPOSE;
             cur->proc(cur);
@@ -745,7 +745,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         do
         {
             ic++;
-            if (ic > 0x1d)
+            if (ic >= MAX_ITEMS)
                 ic = 0;
             z = ic * sizeof(*items);
             cur = (TItem *)(z + sz);
@@ -755,7 +755,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                 goto found_kaginawa;
             }
             i++;
-        } while (i < 0x1d);
+        } while (i < MAX_ITEMS - 1);
 
         cur->mode = ITEM_MODE_DISPOSE;
         cur->proc(cur);
@@ -834,7 +834,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         do
         {
             ic++;
-            if (ic > 0x1d)
+            if (ic >= MAX_ITEMS)
                 ic = 0;
             cur = items + ic;
             if (cur->proc == 0)
@@ -843,7 +843,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                 goto found_teleport;
             }
             i++;
-        } while (i < 0x1d);
+        } while (i < MAX_ITEMS - 1);
 
         cur->mode = ITEM_MODE_DISPOSE;
         cur->proc(cur);
@@ -954,7 +954,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         do
         {
             ic++;
-            if (ic > 0x1d)
+            if (ic >= MAX_ITEMS)
                 ic = 0;
             cur = items + ic;
             if (cur->proc == 0)
@@ -963,7 +963,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                 goto found_napalm;
             }
             i++;
-        } while (i < 0x1d);
+        } while (i < MAX_ITEMS - 1);
 
         cur->mode = ITEM_MODE_DISPOSE;
         cur->proc(cur);

@@ -32,7 +32,8 @@ extern TCameraPos CamPosDefault;
 extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];
-extern TEnemyLayout enemy[30];
+#define MAX_ENEMIES 30
+extern TEnemyLayout enemy[MAX_ENEMIES];
 extern TStageConfig StageConfig[];
 extern MotionManager *dtM;
 extern VECTOR *dtL;

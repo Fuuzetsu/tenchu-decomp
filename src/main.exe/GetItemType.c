@@ -62,7 +62,7 @@ loop:
     if (p->locate->id != ConflictID)
     {
         p++;
-        if (i < 0x1e)
+        if (i < MAX_ITEMS)
         {
             goto loop;
         }

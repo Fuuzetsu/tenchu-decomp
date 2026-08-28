@@ -87,7 +87,7 @@ int leFindEnemy(void)
     i = 0;
     while (1)
     {
-        if (i >= 0x1E)
+        if (i >= MAX_ENEMIES)
             break;
         if (enemy[i].type != -1)
         {

@@ -33,7 +33,7 @@ void leClearLayout(void)
     s32 i;
 
     dead = -1;
-    for (i = 0x1D; i >= 0; i--)
+    for (i = MAX_ENEMIES - 1; i >= 0; i--)
     {
         enemy[i].type = dead;
     }

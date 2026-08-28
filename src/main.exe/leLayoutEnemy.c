@@ -105,7 +105,7 @@ void leLayoutEnemy(int mode)
     {
         TEnemyLayout *en;
 
-        if (i >= 30)
+        if (i >= MAX_ENEMIES)
         {
             break;
         }

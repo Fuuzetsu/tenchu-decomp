@@ -75,7 +75,7 @@ void InitializeItem(void)
     arc = GetArcData(0x1C);
     HappouModel = LoadModel(arc);
 
-    for (i = 0; i < 0x1E; i++)
+    for (i = 0; i < MAX_ITEMS; i++)
     {
         items[i].locate = LoadModel((u_long *)0);
         items[i].proc = 0;

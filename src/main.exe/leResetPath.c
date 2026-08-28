@@ -37,7 +37,7 @@
 
 void leResetPath(s32 id)
 {
-    if ((u32)id < 0x1E)
+    if ((u32)id < MAX_ENEMIES)
     {
         enemy[id].nPath = 0;
     }

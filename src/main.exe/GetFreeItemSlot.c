@@ -44,13 +44,13 @@ TItem *GetFreeItemSlot(void)
     do
     {
         ic++;
-        if (ic > 0x1d)
+        if (ic >= MAX_ITEMS)
             ic = 0;
         item = items + ic;
         if (item->proc == 0)
             return item;
         i++;
-    } while (i < 0x1d);
+    } while (i < MAX_ITEMS - 1);
 
     item->mode = ITEM_MODE_DISPOSE;
     item->proc(item);
