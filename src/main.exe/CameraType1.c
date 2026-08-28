@@ -120,9 +120,9 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     pos = scratch.init;
     mad->attribute |= 2;
 
-    switch ((s16)(CamState.Owner->status - STAT_SWIM))
+    switch (CamState.Owner->status)
     {
-    case 9:
+    case STAT_STICKON:
     {
         s32 levfl;
         s32 levfr;
@@ -187,28 +187,28 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
             break;
         }
     }
-    case 8:
+    case STAT_SQUAT:
         CamState.Mode = CMODE_CROUCH;
         break;
-    case 0:
+    case STAT_SWIM:
         CamState.Mode = CMODE_SWIM;
         break;
-    case 7:
+    case STAT_HANG:
         CamState.Mode = 0x11;
         break;
-    case 3:
+    case STAT_CHASE:
         cs = &CamState;
         if (cs->Owner->motion->mid != MOT_CHASE)
             break;
         cs->Mode = CMODE_RUN;
         break;
-    case 5:
+    case STAT_STATE:
         cs = &CamState;
         if (cs->Owner->motion->mid != 0x801)
             break;
         cs->Mode = CMODE_RUN;
         break;
-    case 0xD:
+    case STAT_DAMAGE:
     {
         u16 mid;
 

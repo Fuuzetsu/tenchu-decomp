@@ -76,18 +76,18 @@ short FallCheck(void)
             {
                 return 0;
             }
-            switch ((short)((u16)Me_MOTION_C->status - 4))
+            switch (Me_MOTION_C->status)
             {
-            case 7:
+            case STAT_SQUAT:
                 if (dtM->loop != 0)
                 {
                     goto fall;
                 }
-            case 0:
-            case 6:
-            case 9:
-            case 12:
-            case 13:
+            case STAT_KAGI:
+            case STAT_HANG:
+            case STAT_CEILHANG:
+            case STAT_DAMAGE:
+            case STAT_DEAD:
                 break;
             default:
                 goto fall;
