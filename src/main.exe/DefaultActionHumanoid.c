@@ -507,7 +507,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 {
                     MoveHumanoid(human, human->motion->motion->orderspd,
                                  human->motion->motion->sidespd);
-                    if (human->trace != 0 && (human->attribute & 8))
+                    if (human->trace != 0 && (human->attribute & ATTR_TRACE))
                     {
                         human->trace->count = -20;
                     }

@@ -19,6 +19,11 @@
  *                  cutscene revives a dead actor; StartStageSequence and
  *                  the CVA despawn clear it. Write-only in retail (no
  *                  reader survives), so it stays unnamed
+ *   ATTR_TRACE     0x0008 — a patrol route is attached: leLayoutEnemy
+ *                  raises it after SetupTraceLine succeeds, Think1trace
+ *                  forwards to ControlTraceLine on it, and
+ *                  DefaultActionHumanoid's route logic gates on it
+ *                  (with human->trace). Never cleared in retail
  *   ATTR_SEARCH    0x0010 — the personal investigation latch: when the
  *                  startle motion (0x80e) completes, ActSTATE sets 0x12
  *                  (think-mode 2 + this bit), stores the player's spot in
@@ -81,6 +86,7 @@
 #define PHASE_SUSPICIOUS 1
 #define PHASE_ALERT 2
 #define PHASE_INVESTIGATE 3
+#define ATTR_TRACE 0x0008
 #define ATTR_SEARCH 0x0010
 #define ATTR_FLOAT 0x0020
 #define ATTR_ALERT 0x0040

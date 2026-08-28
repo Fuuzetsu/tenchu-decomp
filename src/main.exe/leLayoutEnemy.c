@@ -145,7 +145,7 @@ void leLayoutEnemy(int mode)
                 }
                 if (human->trace != 0)
                 {
-                    human->attribute |= 8;
+                    human->attribute |= ATTR_TRACE;
                 }
             }
             if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)
