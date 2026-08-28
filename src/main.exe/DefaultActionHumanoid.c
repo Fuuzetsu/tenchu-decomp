@@ -62,7 +62,12 @@
  * s0/s1 pair swap) and the flat form cascades to ~114. Extra
  * source-level zz reads cannot substitute (cse folds them) and a
  * block-scoped local cannot take $s0 (it crosses no call). The
- * scaffold is a measured register-pressure dial, not a guess.
+ * scaffold is a measured register-pressure dial, not a guess. Selector
+ * rewrites also fail: zz-as-selector reaches the same 43-diff state but
+ * adds a sll/sra narrowing pair before the call (multi-source defs stop
+ * the constant folding that direction's enjoy), and ry-as-selector is
+ * worse still (+20 bytes). The +14 must come from other regions'
+ * factoring if it comes at all -- see PLAN's DAH endgame lead.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
