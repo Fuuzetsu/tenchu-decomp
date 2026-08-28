@@ -51,6 +51,14 @@
  * sched1 loop-note fences between the target's pointer, id, and size loads.
  * The identical yy arms add a zero-code CFG fence without loop-weighting the
  * collision pointer and rotating its a1/a2 allocation.
+ * The 14-deep one-shot tower around the object-vault turn (direction_abs
+ * innermost, the SetNowMotion/Sound tail on the outer rungs) is a
+ * loop-note WEIGHT AMPLIFIER: each level doubles flow.c's loop_depth
+ * ref-weighting, and the huge weight on the abs is what wins its
+ * registers. Measured: flattening it, or a depth-5 tower with the same
+ * statement interleave, both produce the identical ~114-instruction
+ * s1/s2 allocation cascade -- the MAGNITUDE is required, not just the
+ * relative order.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
