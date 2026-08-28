@@ -10,6 +10,7 @@ extern void PadShockAR(int port, int pow, int attack, int release);
 extern long GetRealPad(int port);
 extern TPadPort PadPort[2][4];
 extern COMMAND *Command[12];
+/* The two standard 34-byte PSY-Q pad receive buffers InitPAD registers. */
 extern unsigned char ComBuf[2][34];
 extern PadArrangeType PadArrange;
 
@@ -22,6 +23,10 @@ extern HumanDataType HumanData[78];
 extern HumanAnimType CVAhuman[5];
 extern SVECTOR UnitVector;
 extern VECTOR UnitVector2;
+/* Unit x/z push per 4-bit probe direction code (retail data: 0/±1
+ * pairs) — FallCheck and DefaultActionHumanoid nudge the character
+ * away from the coded edge by width*RefrectMove[code]/4. Sibling of
+ * RefrectVector below. */
 extern short RefrectMove[16][2];
 extern short RefrectVector[16];
 extern TCameraStatus CamState;
