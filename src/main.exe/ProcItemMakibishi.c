@@ -147,7 +147,7 @@ void ProcItemMakibishi(TItem *item)
             i = GetConflictResult(item->locate, -1);
         if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
-            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x14, 0xa, 0xf, 0x7f0000);
+            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, 0x7f0000);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
             ppu = item->proc;
             if (ppu == 0)

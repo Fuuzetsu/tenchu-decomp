@@ -91,7 +91,7 @@ do_check:
         vec.vx = 0;
         vec.vy = -200;
         vec.vz = 0;
-        SetSmoke(&pos, &vec, 0x14, 6);
+        SetSmoke(&pos, &vec, 20, 6);
         m->count = rand() % 150;
         SoundEx(&pos, 0x28);
     }

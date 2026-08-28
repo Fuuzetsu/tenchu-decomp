@@ -75,7 +75,7 @@
  *    as the cookbook's magic-multiply rule but the power-of-2 special case).
  *    Its STORE is scheduled into the SECOND `rand()` call's delay slot
  *    (independent, textually precedes it — same mechanism as rotate.vx).
- *  - `rotate.vz = rand() % 0x44;` (0x44 = 68) — non-power-of-2 modulo, the
+ *  - `rotate.vz = rand() % 68;` — non-power-of-2 modulo, the
  *    canonical magic-multiply (0x78787879, shift 5, sign correction).
  *  - SetNowMotion is called with the SAME 3 args as ReqItemDokudango
  *    (`item->owner, 0xf02, 1`) — m2c reports a spurious 4th argument in $a3,
@@ -161,7 +161,7 @@ found:
     param->count = 0x5a;
     item->locate->rotate.vx = 0;
     item->locate->rotate.vy = rand() % 0x1000;
-    item->locate->rotate.vz = rand() % 0x44;
+    item->locate->rotate.vz = rand() % 68;
     param->hp = 0x63;
     SetNowMotion(item->owner, 0xf02, 1);
     return 1;

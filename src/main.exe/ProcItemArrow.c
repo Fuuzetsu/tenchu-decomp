@@ -248,7 +248,7 @@ void ProcItemArrow(TItem *item)
             }
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
             SetBleeds((VECTOR *)item->locate->locate.coord.t,
-                      0, 0x19, 0x1e, 0x1e, 0xffff00);
+                      0, 25, 30, 30, 0xffff00);
             param->count = 30;
             item->mode++;
             DeleteConflict(item->locate);

@@ -252,7 +252,7 @@ void ProcItemNemuri(TItem *item)
                 human_buf.vy = human->model->locate.coord.t[1];
                 human_buf.vz = human->model->locate.coord.t[2];
                 smoke_pos = human_buf;
-                SetSmoke(&smoke_pos, vec, 10, 0x1e);
+                SetSmoke(&smoke_pos, vec, 10, 30);
 
                 life = human->life;
                 if (life > 0 && human->motion->mid != MOT_ACTION)

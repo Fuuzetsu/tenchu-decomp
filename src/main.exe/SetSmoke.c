@@ -142,7 +142,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         smoke->vec.vx = vect->vx + (rand() % 100 - 50);
         smoke->vec.vy = vect->vy + (rand() % 100 - 50);
         smoke->vec.vz = vect->vz + (rand() % 100 - 50);
-        smoke->time = time + rand() % 0xa0;
+        smoke->time = time + rand() % 160;
         r = rand();
         i++;
         smoke->sprite = 0;

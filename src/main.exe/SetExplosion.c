@@ -118,5 +118,5 @@ found:
     param->mode = 0;
     param->vec.vz = vz;
     ef->proc = (void (*)())DrawExplosion;
-    SetBleeds(pos, 200, 0x96, 0x14, 0x1e, 0xFFFF00);
+    SetBleeds(pos, 200, 150, 20, 30, 0xFFFF00);
 }
