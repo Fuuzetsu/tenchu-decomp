@@ -19,6 +19,16 @@
 #define CdlSeekP 0x16
 #define CdlReadS 0x1B
 
+/* Official libcd.h mode bits (CdlSetmode's parameter). */
+#define CdlModeDA 0x01
+#define CdlModeAP 0x02
+#define CdlModeRept 0x04
+#define CdlModeSF 0x08
+#define CdlModeSize0 0x10
+#define CdlModeSize1 0x20
+#define CdlModeRT 0x40
+#define CdlModeSpeed 0x80
+
 /* Official libcd.h drive-status bits (CdlSTAT). */
 #define CdlStatError 0x01
 #define CdlStatStandby 0x02

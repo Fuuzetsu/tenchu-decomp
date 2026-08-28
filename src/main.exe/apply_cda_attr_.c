@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libsnd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -52,12 +53,12 @@ void apply_cda_attr_(s32 arg0)
 {
     if (arg0 != 0)
     {
-        SsSetSerialAttr(0, 0, 1);
-        SsSetSerialVol(0, CdaStatus.voll, CdaStatus.volr);
+        SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
+        SsSetSerialVol(SS_SERIAL_A, CdaStatus.voll, CdaStatus.volr);
     }
     else
     {
-        SsSetSerialAttr(0, 0, 1);
-        SsSetSerialVol(0, 0, 0);
+        SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
+        SsSetSerialVol(SS_SERIAL_A, 0, 0);
     }
 }

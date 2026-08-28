@@ -141,7 +141,7 @@ void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
         return;
 
 full_retry:
-    param[0] = 0xA0;
+    param[0] = CdlModeSpeed | CdlModeSize1;
     CdIntToPos(sector, loc);
 
     dst = buffer;

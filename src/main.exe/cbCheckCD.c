@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
+#include <psxsdk/libsnd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -87,8 +88,8 @@ void cbCheckCD(void)
             return;
         }
         cs->command = 0;
-        SsSetSerialAttr(0, 0, 1);
-        SsSetSerialVol(0, cs->voll, cs->volr);
+        SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
+        SsSetSerialVol(SS_SERIAL_A, cs->voll, cs->volr);
         return;
     }
 
@@ -125,8 +126,8 @@ void cbCheckCD(void)
                     cs->status = 0;
                     return;
                 }
-                SsSetSerialAttr(0, 0, 1);
-                SsSetSerialVol(0, 0, 0);
+                SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
+                SsSetSerialVol(SS_SERIAL_A, 0, 0);
                 cd_control(CdlPause, 0, 0);
                 cs->status = 0;
                 return;

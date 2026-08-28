@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
+#include <psxsdk/libsnd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -26,7 +27,7 @@
  * SDK calls (all > 0x80060000, see the cookbook's toolchain-gotchas note) —
  * only this call site's own argument setup is source-shaped, not their
  * bodies. The repeated zero arguments (SsSetSerialAttr(0,0,1),
- * SsSetSerialVol(0,0,0), cd_control(9,0,0)) chain via register-to-register
+ * SsSetSerialVol(SS_SERIAL_A,0,0), cd_control(9,0,0)) chain via register-to-register
  * moves rather than fresh `li`s — ordinary cc1 reuse of whichever register
  * already holds 0, not something to hand-engineer.
  */
@@ -39,8 +40,8 @@ void CdaStop(void)
 {
     if (CdaStatus.flag & CDA_FLAG_ACTIVE)
     {
-        SsSetSerialAttr(0, 0, 1);
-        SsSetSerialVol(0, 0, 0);
+        SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
+        SsSetSerialVol(SS_SERIAL_A, 0, 0);
         VSyncCallback(0);
         cd_control(CdlPause, 0, 0);
         CdFlush();
