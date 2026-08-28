@@ -226,6 +226,7 @@ void StageEndScreen(void)
 
         state = PSTATE;
         state->mission_flags |= 1 << (item_index - 1);
+        /* Campaign SLOT 7 (not a stage uid) is the final mission. */
         if (state->StageNo == 7 && state->language == LANG_ENGLISH)
         {
             state->mission_flags |= 0x400;
