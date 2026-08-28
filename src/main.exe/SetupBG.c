@@ -120,7 +120,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     }
 
     bg->work = (u32 *)valloc(
-        (((bg->map.ncellw + 1) * (bg->map.ncellh + 2) * 12 + 10) << 16) >> 14);
+        (s16)((bg->map.ncellw + 1) * (bg->map.ncellh + 2) * 12 + 10) * 4);
     GsInitFixBg16(&bg->hundle, bg->work);
     bg->sz = 0;
     return bg;

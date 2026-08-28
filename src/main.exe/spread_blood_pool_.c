@@ -93,7 +93,7 @@ void spread_blood_pool_(Humanoid *human)
     GsSetLsMatrix(&matrix);
     depth = RotTransPers(&UnitVector, (s32 *)&screen, &p, &flag);
     screen.vz = depth;
-    if ((depth << 16) >> 18 < 0x4e2)
+    if ((s16)depth >> 2 < 0x4e2)
     {
         DrawTMDmode = TMD_BANK_FOG;
         DrawTMD(&BLOOD_POOL_MODEL_->object, OTablePt, 0);

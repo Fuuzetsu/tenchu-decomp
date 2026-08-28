@@ -184,7 +184,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 
             line.x0 = oldscr.vx;
             line.y0 = oldscr.vy;
-            z = ((s32)scr.vz << 16) >> 18;
+            z = (s16)scr.vz >> 2;
             line.x1 = scr.vx;
             line.y1 = scr.vy;
             if (z >= 0)

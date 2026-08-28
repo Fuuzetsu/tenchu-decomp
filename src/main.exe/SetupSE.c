@@ -65,6 +65,8 @@ SoundEffect *SetupSE(u8 *vab)
         SystemOut(msg_sound_setup_failure);
     }
     t = *(u16 *)(vab + 0x12);
+    /* Byte-required raw spelling: (s16)t << 9 emits one sll; the target
+     * keeps the sll16/sra7 pair. Semantically programs * 0x200 + 0xA20. */
     size = ((t << 16) >> 7) + 0xA20;
     se->program = t;
     SsVabTransBody(vab + size, se->VABid);

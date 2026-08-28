@@ -221,7 +221,7 @@ void DrawShadow(Humanoid *human)
         GsSetLsMatrix(&mat);
         depth = RotTransPers(&UnitVector, (s32 *)&scr, &p, &flag);
         scr.vz = depth;
-        if ((depth << 16) >> 18 < 0x4e2)
+        if ((s16)depth >> 2 < 0x4e2)
         {
             GsSortObject4(&ShadowMdl->object, OTablePt, 2,
                           (u_long *)TENCHU_SCRATCHPAD_ADDRESS);

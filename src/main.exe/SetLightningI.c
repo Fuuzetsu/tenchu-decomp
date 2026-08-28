@@ -203,7 +203,7 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
 
                     line.x0 = oldscr.vx;
                     line.y0 = oldscr.vy;
-                    z = ((s32)(u16)scr.vz << 16) >> 18;
+                    z = (s16)(u16)scr.vz >> 2;
                     line.x1 = scr.vx;
                     line.y1 = scr.vy;
                     if (z >= 0)
