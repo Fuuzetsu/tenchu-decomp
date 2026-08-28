@@ -37,7 +37,7 @@ void load_layout(s32 index)
     else
     {
         leRestoreEnemyLayout(buf);
-        RestoreItemLayout((u8 *)buf + 0x1388);
+        RestoreItemLayout((u8 *)buf + ENESIZE);
         vfree(buf);
     }
     leLayoutEnemy(1);

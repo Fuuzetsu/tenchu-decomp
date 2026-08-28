@@ -33,6 +33,14 @@ extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];
 #define MAX_ENEMIES 30
+/* Layout save-file sections (the names FileOption's writer uses): the
+ * packed enemy layout, then the packed item layout. */
+enum
+{
+    ENESIZE = 5000,
+    ITEMSIZE = 2000
+};
+
 /* models.arc slots (GetArcData indices) whose contents the code pins:
  * each name is read off what the loaded entry becomes. Invented names. */
 enum

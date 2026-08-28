@@ -122,11 +122,6 @@ void FileOption(void)
         HARD_GAME = 0xC,
         STOCK_LAYOUT = 0xD
     };
-    enum
-    {
-        ENESIZE = 5000,
-        ITEMSIZE = 2000
-    };
     typedef union FileOptionWork
     {
         u8 bytes[ENESIZE + ITEMSIZE];

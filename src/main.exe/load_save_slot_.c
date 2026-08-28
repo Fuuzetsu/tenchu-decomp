@@ -33,7 +33,7 @@ void load_save_slot_(int target, u8 *name)
     else
     {
         leRestoreEnemyLayout(buf);
-        RestoreItemLayout((u8 *)buf + 0x1388);
+        RestoreItemLayout((u8 *)buf + ENESIZE);
         vfree(buf);
     }
 }
