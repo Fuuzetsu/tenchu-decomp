@@ -11,8 +11,8 @@
  * END PSX.SYM */
 
 /*
- * get_pad_active_ (0x8001b174) — reads byte offset 6 of the selected controller
- * record (the low byte of controller_input.unk_2[2]).  The pad API encodes a
+ * get_pad_active_ (0x8001b174) — reads the selected controller record's
+ * `active` byte (TPadPort offset 6).  The pad API encodes a
  * physical port in the high nibble and a multitap slot in the low nibble.
  *
  * This entry point receives a physical port number, so it first converts it
