@@ -18,7 +18,14 @@ enum MiscType
     MISC_DOOR = 1,
     MISC_PITFALL = 2,
     MISC_SNOWFALL = 3,
-    MISC_SPRITE = 4
+    MISC_SPRITE = 4,
+    /* The last three are invented names (not in any psxsym source): 5
+     * installs a scrolling texture, 6 is the stage bonfire (flickering
+     * sprFrame sprite, rising embers, crackle loop), 7 a looping
+     * positional sound. */
+    MISC_TEXSCROLL = 5,
+    MISC_BONFIRE = 6,
+    MISC_SOUND = 7
 };
 
 /* Misc-object pool bound from MISC.C's anonymous enum. */

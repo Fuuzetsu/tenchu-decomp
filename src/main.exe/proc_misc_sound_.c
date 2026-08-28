@@ -15,7 +15,7 @@
  * proc_misc_sound_ (0x8004c59c, 0x19C bytes) — periodic-sound-emitter think
  * function (message-style: called with `(m, msg)`, no direct `jal` callers
  * found — reached through TMisc.proc). Shares TMisc's position and
- * mode fields with the neighbouring proc_misc_type6_; its retail-only parameter
+ * mode fields with the neighbouring proc_misc_bonfire_; its retail-only parameter
  * overlay is a GameClock-based schedule. MM_CREATE reshapes the AddMisc
  * initialization payload into that schedule and clears mode. The other
  * lifecycle messages are ignored. MM_DO fires while `mode==0` once

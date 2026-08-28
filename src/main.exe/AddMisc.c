@@ -102,7 +102,7 @@ extern void ProcMiscDoor(TMisc *m, TMiscMessage msg);
 extern void ProcMiscPitfall(TMisc *m, TMiscMessage msg);
 extern void ProcMiscSnowfall(TMisc *m, TMiscMessage msg);
 extern void ProcMiscSprite(TMisc *m, TMiscMessage msg);
-extern void proc_misc_type6_(TMisc *m, TMiscMessage msg);
+extern void proc_misc_bonfire_(TMisc *m, TMiscMessage msg);
 extern void proc_misc_sound_(TMisc *m, TMiscMessage msg);
 extern void SetupTexScroll(GsIMAGE *im, short vx, short vy);
 extern void AdtMessageBox(char *fmt, ...);
@@ -153,17 +153,17 @@ loop:
             case MISC_SPRITE:
                 p->proc = ProcMiscSprite;
                 break;
-            case 5:
+            case MISC_TEXSCROLL:
                 __builtin_memcpy(tbl, MiscTimNames, sizeof(tbl));
                 adr = PathFileRead(path_image_2, tp->n[x]);
                 GetTIMInfo(adr, ptm);
                 LoadTIMAndFree(adr);
                 SetupTexScroll(ptm, y, z);
                 return;
-            case 6:
-                p->proc = proc_misc_type6_;
+            case MISC_BONFIRE:
+                p->proc = proc_misc_bonfire_;
                 break;
-            case 7:
+            case MISC_SOUND:
                 p->proc = proc_misc_sound_;
                 break;
             default:

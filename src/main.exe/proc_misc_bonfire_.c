@@ -36,7 +36,7 @@ extern u8 svec_y_n60_2[];
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
 extern void *memset(void *dst, s32 c, u32 n);
 
-void proc_misc_type6_(TMisc *m, TMiscMessage msg)
+void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
 {
     SVECTOR direction[2];
     VECTOR bleed_pos;

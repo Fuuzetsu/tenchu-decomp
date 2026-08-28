@@ -561,7 +561,7 @@ segments:
       - [0x3B8E4, c, PutItemIcon]
       - [0x3B938, c, PutNumber]
       - [0x3B9E8, c, InitMisc]
-      - [0x3BB50, c, proc_misc_type6_]
+      - [0x3BB50, c, proc_misc_bonfire_]
       - [0x3BD9C, c, proc_misc_sound_]
       - [0x3BF38, c, ProcMiscDoor]
       - [0x3C36C, c, ProcMiscPitfall]

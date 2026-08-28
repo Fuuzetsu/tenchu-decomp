@@ -550,7 +550,7 @@
 8004c0e4	84	PutItemIcon
 8004c138	176	PutNumber
 8004c1e8	360	InitMisc
-8004c350	588	proc_misc_type6_
+8004c350	588	proc_misc_bonfire_
 8004c59c	412	proc_misc_sound_
 8004c738	1076	ProcMiscDoor
 8004cb6c	868	ProcMiscPitfall
