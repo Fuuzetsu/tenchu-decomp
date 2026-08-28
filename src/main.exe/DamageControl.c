@@ -4,6 +4,31 @@
 #include "humanoid.h"
 #include "item.h"
 
+/* Commit motID/motMODE to the humanoid -- unless a cutscene (CVA) is
+ * currently driving them, in which case the script owns the motion and
+ * the caller bails out via `escape` instead. Retail copy-pastes this
+ * guard at every damage/death motion commit; the macro is
+ * reconstruction shorthand for that copy-paste (expands to the
+ * identical text). */
+#define SET_NOW_MOTION_UNLESS_CVA(escape)                                     \
+    {                                                                         \
+        short i;                                                              \
+                                                                              \
+        if (MotionUpdateMode != 0)                                            \
+        {                                                                     \
+            for (i = 0; i < 5; i++)                                           \
+            {                                                                 \
+                if (CVAhuman[i].human == Me_MOTION_C)                         \
+                {                                                             \
+                    escape;                                                   \
+                }                                                             \
+            }                                                                 \
+        }                                                                     \
+        SetNowMotion(Me_MOTION_C, motID, motMODE);                            \
+        motMODE = -1;                                                         \
+    }
+
+
 extern Humanoid *Me_MOTION_C;
 extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
@@ -257,22 +282,7 @@ void DamageControl(void)
                 reset_alert_duration();
             }
         }
-        {
-            short i;
-
-            if (MotionUpdateMode != 0)
-            {
-                for (i = 0; i < 5; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto attack_cancel;
-                    }
-                }
-            }
-            SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = -1;
-        }
+        SET_NOW_MOTION_UNLESS_CVA(goto attack_cancel);
     attack_cancel:
         AttackCancelControl(3);
         return;
@@ -746,31 +756,16 @@ resolve_hit:
                     {
                         goto directional_death;
                     }
+                    motID = MOT_DEAD;
+                    motMODE = 1;
+                    SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
+                death_motion_set:
+                    if ((rand() & 1) != 0)
                     {
-                        short i;
-
-                        motID = MOT_DEAD;
+                        motID = 0x1101;
                         motMODE = 1;
-                        if (MotionUpdateMode != 0)
-                        {
-                            for (i = 0; i < 5; i++)
-                            {
-                                if (CVAhuman[i].human == Me_MOTION_C)
-                                {
-                                    goto death_motion_set;
-                                }
-                            }
-                        }
-                        SetNowMotion(Me_MOTION_C, motID, motMODE);
-                        motMODE = -1;
-                    death_motion_set:
-                        if ((rand() & 1) != 0)
-                        {
-                            motID = 0x1101;
-                            motMODE = 1;
-                        }
-                        goto score_kill;
                     }
+                    goto score_kill;
                 directional_death:
                 {
                     int ad;
@@ -909,21 +904,6 @@ resolve_hit:
         motID = 0x1108;
         motMODE = 1;
     }
-    {
-        short i;
-
-        if (MotionUpdateMode != 0)
-        {
-            for (i = 0; i < 5; i++)
-            {
-                if (CVAhuman[i].human == Me_MOTION_C)
-                {
-                    return;
-                }
-            }
-        }
-        SetNowMotion(Me_MOTION_C, motID, motMODE);
-        motMODE = -1;
-    }
+    SET_NOW_MOTION_UNLESS_CVA(return);
     return;
 }

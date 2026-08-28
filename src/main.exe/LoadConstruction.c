@@ -5,6 +5,28 @@
 #include "misc.h"
 #include "vmemory.h"
 
+/* Free an ornament archive: every ornament, then the object table, the
+ * model data, and the archive record itself. Retail repeats the block
+ * for the mission archive and the shared object archive; the macro is
+ * reconstruction shorthand for that copy-paste (expands to the
+ * identical text). */
+#define DISPOSE_ORNAMENT_ARCHIVE(arc)                                         \
+    {                                                                         \
+        OrnamentArchiveType *mad;                                             \
+        int i;                                                                \
+                                                                              \
+        mad = (arc);                                                          \
+        if (mad != 0)                                                         \
+        {                                                                     \
+            for (i = 0; i < mad->n; i++)                                      \
+                DisposeOrnament(mad->object[i]);                              \
+            vfree(mad->object);                                               \
+            vfree(mad->data);                                                 \
+            vfree(mad);                                                       \
+        }                                                                     \
+    }
+
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -211,35 +233,9 @@ short LoadConstruction(u_long *data)
     ResetAllMisc();
     ClearItemLayout();
 
-    {
-        OrnamentArchiveType *mad;
-        int i;
+    DISPOSE_ORNAMENT_ARCHIVE(mma);
 
-        mad = mma;
-        if (mad != 0)
-        {
-            for (i = 0; i < mad->n; i++)
-                DisposeOrnament(mad->object[i]);
-            vfree(mad->object);
-            vfree(mad->data);
-            vfree(mad);
-        }
-    }
-
-    {
-        OrnamentArchiveType *mad;
-        int i;
-
-        mad = ObjectArc;
-        if (mad != 0)
-        {
-            for (i = 0; i < mad->n; i++)
-                DisposeOrnament(mad->object[i]);
-            vfree(mad->object);
-            vfree(mad->data);
-            vfree(mad);
-        }
-    }
+    DISPOSE_ORNAMENT_ARCHIVE(ObjectArc);
 
     LoadTIMpackAndFree(PathFileRead(ImagePath, (u8 *)path_tim_tpd));
     LoadTIMpackAndFree(PathFileRead((u8 *)path_image,
@@ -253,28 +249,16 @@ short LoadConstruction(u_long *data)
     {
         OrnamentType *disposeModel;
         int i;
-        int offset;
         ObjectSlotManager *slotman;
 
         slotman = &ModelSlot;
         if (slotman->max > 0)
         {
-            u32 mask;
-            u32 base;
-
-            i = 0;
-            if (i < slotman->n)
+            for (i = 0; i < slotman->n; i++)
             {
-                mask = 0xFF000000;
-                base = 0x80000000;
-                offset = i;
-                for (; i < slotman->n; i++)
-                {
-                    disposeModel = *(OrnamentType **)((u8 *)&slotman->slot->model + offset);
-                    if (((u32)disposeModel & mask) == base)
-                        DisposeOrnament(disposeModel);
-                    offset += sizeof(ObjectSlotType);
-                }
+                disposeModel = slotman->slot[i].model;
+                if (((u32)disposeModel & 0xFF000000) == 0x80000000)
+                    DisposeOrnament(disposeModel);
             }
             vfree(slotman->slot);
         }

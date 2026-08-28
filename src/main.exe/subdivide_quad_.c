@@ -2,6 +2,53 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 #include "gte.h"
+
+/* Emit one textured gouraud triangle (POLY_GT3, code 0x34, len 9) for a
+ * subdivided corner quad straight into the packet stream, z-sorted by the
+ * FIRST vertex's depth. Retail copy-pastes this block four times; the
+ * macro is reconstruction shorthand for the first three copies (expands
+ * to the identical text). The fourth, final copy stays open-coded below:
+ * its two corner loads are issued in the opposite order and it parks the
+ * bumped output pointer in `tail` for the shared epilogue. */
+#define EMIT_SUBDIV_GT3(a, b, m)                                              \
+    {                                                                         \
+        ADIV_VERT *va;                                                        \
+        ADIV_VERT *vb;                                                        \
+        u32 *pk;                                                              \
+        u32 *slot;                                                            \
+        int dz;                                                               \
+        u16 tp;                                                               \
+                                                                              \
+        va = (a);                                                             \
+        pk = (u32 *)work->out;                                                \
+        vb = (b);                                                             \
+        pk[2] = *(u32 *)&va->sxy;                                             \
+        pk[5] = *(u32 *)&vb->sxy;                                             \
+        pk[8] = *(u32 *)&(m)->sxy;                                            \
+        dz = va->sz;                                                          \
+        if (dz < 0)                                                           \
+        {                                                                     \
+            dz = dz + 3;                                                      \
+        }                                                                     \
+        work->zmax = dz >> 2;                                                 \
+        pk[3] = (u32) * (u16 *)&va->tu;                                       \
+        pk[6] = (u32) * (u16 *)&vb->tu;                                       \
+        pk[9] = (u32) * (u16 *)&(m)->tu;                                      \
+        pk[1] = *(u32 *)&va->col;                                             \
+        pk[4] = *(u32 *)&vb->col;                                             \
+        pk[7] = *(u32 *)&(m)->col;                                            \
+        *(u16 *)((int)pk + 0xe) = work->packet.clut;                          \
+        tp = work->packet.tpage;                                              \
+        *(u8 *)((int)pk + 3) = 9;                                             \
+        *(u8 *)((int)pk + 7) = 0x34;                                          \
+        *(u16 *)((int)pk + 0x1a) = tp;                                        \
+        slot = (u32 *)(work->org + (work->zmax >> work->shift));              \
+        work->otp = (u_long *)slot;                                           \
+        *pk = *slot & 0xffffff | 0x9000000;                                   \
+        *(u32 *)work->otp = (u32)pk & 0xffffff;                               \
+        work->out = work->out + 10;                                           \
+    }
+
 /*
  * subdivide_quad_ (0x80057b80, 3796 bytes) — the recursive quad subdivider of
  * the active-subdivision cluster (entered from adiv_tng4_/adiv_tnf4_;
@@ -281,128 +328,20 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     gte_stsz3((u_long *)&fp->mid[2].sz, (u_long *)&fp->mid[3].sz, (u_long *)&fp->mid[4].sz);
                     depth++;
                     subdivide_quad_(next, work, depth);
-                    {
-                        ADIV_VERT *va;
-                        ADIV_VERT *vb;
-                        u32 *pk;
-                        u32 *slot;
-                        int dz;
-                        u16 tp;
-
-                        va = fp->vp[0];
-                        pk = (u32 *)work->out;
-                        vb = fp->vp[1];
-                        pk[2] = *(u32 *)&va->sxy;
-                        pk[5] = *(u32 *)&vb->sxy;
-                        pk[8] = *(u32 *)&m01->sxy;
-                        dz = va->sz;
-                        if (dz < 0)
-                        {
-                            dz = dz + 3;
-                        }
-                        work->zmax = dz >> 2;
-                        pk[3] = (u32) * (u16 *)&va->tu;
-                        pk[6] = (u32) * (u16 *)&vb->tu;
-                        pk[9] = (u32) * (u16 *)&m01->tu;
-                        pk[1] = *(u32 *)&va->col;
-                        pk[4] = *(u32 *)&vb->col;
-                        pk[7] = *(u32 *)&m01->col;
-                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
-                        tp = work->packet.tpage;
-                        *(u8 *)((int)pk + 3) = 9;
-                        *(u8 *)((int)pk + 7) = 0x34;
-                        *(u16 *)((int)pk + 0x1a) = tp;
-                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
-                        work->otp = (u_long *)slot;
-                        *pk = *slot & 0xffffff | 0x9000000;
-                        *(u32 *)work->otp = (u32)pk & 0xffffff;
-                        work->out = work->out + 10;
-                    }
+                    EMIT_SUBDIV_GT3(fp->vp[0], fp->vp[1], m01);
                     nf->vp[0] = m01;
                     pv2 = fp->vp[1];
                     nf->vp[2] = m03;
                     nf->vp[1] = pv2;
                     nf->vp[3] = m31;
                     subdivide_quad_(next, work, depth);
-                    {
-                        ADIV_VERT *va;
-                        ADIV_VERT *vb;
-                        u32 *pk;
-                        u32 *slot;
-                        int dz;
-                        u16 tp;
-
-                        va = fp->vp[2];
-                        pk = (u32 *)work->out;
-                        vb = fp->vp[0];
-                        pk[2] = *(u32 *)&va->sxy;
-                        pk[5] = *(u32 *)&vb->sxy;
-                        pk[8] = *(u32 *)&m02->sxy;
-                        dz = va->sz;
-                        if (dz < 0)
-                        {
-                            dz = dz + 3;
-                        }
-                        work->zmax = dz >> 2;
-                        pk[3] = (u32) * (u16 *)&va->tu;
-                        pk[6] = (u32) * (u16 *)&vb->tu;
-                        pk[9] = (u32) * (u16 *)&m02->tu;
-                        pk[1] = *(u32 *)&va->col;
-                        pk[4] = *(u32 *)&vb->col;
-                        pk[7] = *(u32 *)&m02->col;
-                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
-                        tp = work->packet.tpage;
-                        *(u8 *)((int)pk + 3) = 9;
-                        *(u8 *)((int)pk + 7) = 0x34;
-                        *(u16 *)((int)pk + 0x1a) = tp;
-                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
-                        work->otp = (u_long *)slot;
-                        *pk = *slot & 0xffffff | 0x9000000;
-                        *(u32 *)work->otp = (u32)pk & 0xffffff;
-                        work->out = work->out + 10;
-                    }
+                    EMIT_SUBDIV_GT3(fp->vp[2], fp->vp[0], m02);
                     nf->vp[0] = m02;
                     nf->vp[1] = m03;
                     nf->vp[2] = fp->vp[2];
                     nf->vp[3] = m23;
                     subdivide_quad_(next, work, depth);
-                    {
-                        ADIV_VERT *va;
-                        ADIV_VERT *vb;
-                        u32 *pk;
-                        u32 *slot;
-                        int dz;
-                        u16 tp;
-
-                        va = fp->vp[3];
-                        pk = (u32 *)work->out;
-                        vb = fp->vp[2];
-                        pk[2] = *(u32 *)&va->sxy;
-                        pk[5] = *(u32 *)&vb->sxy;
-                        pk[8] = *(u32 *)&m23->sxy;
-                        dz = va->sz;
-                        if (dz < 0)
-                        {
-                            dz = dz + 3;
-                        }
-                        work->zmax = dz >> 2;
-                        pk[3] = (u32) * (u16 *)&va->tu;
-                        pk[6] = (u32) * (u16 *)&vb->tu;
-                        pk[9] = (u32) * (u16 *)&m23->tu;
-                        pk[1] = *(u32 *)&va->col;
-                        pk[4] = *(u32 *)&vb->col;
-                        pk[7] = *(u32 *)&m23->col;
-                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
-                        tp = work->packet.tpage;
-                        *(u8 *)((int)pk + 3) = 9;
-                        *(u8 *)((int)pk + 7) = 0x34;
-                        *(u16 *)((int)pk + 0x1a) = tp;
-                        slot = (u32 *)(work->org + (work->zmax >> work->shift));
-                        work->otp = (u_long *)slot;
-                        *pk = *slot & 0xffffff | 0x9000000;
-                        *(u32 *)work->otp = (u32)pk & 0xffffff;
-                        work->out = work->out + 10;
-                    }
+                    EMIT_SUBDIV_GT3(fp->vp[3], fp->vp[2], m23);
                     nf->vp[0] = m03;
                     nf->vp[1] = m31;
                     nf->vp[2] = m23;

@@ -225,6 +225,26 @@
 
 #include "item.h"
 
+/* Every launcher aims the same way: along the first-person view when the
+ * thrower is the aimed camera owner (CMODE_DIRECTION), else along the
+ * thrower model's own facing. The block is ReqItemDefault.c's idiom,
+ * copy-pasted into every case in retail; the macro is reconstruction
+ * shorthand for that copy-paste (expands to the identical text). */
+#define GET_THROW_ROTATION(mdl, rx, ry, rz)                                   \
+    if (CamState.Owner->model == (mdl) && CamState.Mode == CMODE_DIRECTION)   \
+    {                                                                         \
+        GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx,       \
+                          &(rx), &(ry));                                      \
+        (rz) = 0;                                                             \
+    }                                                                         \
+    else                                                                      \
+    {                                                                         \
+        (rx) = (mdl)->rotate.vx;                                              \
+        (rz) = (mdl)->rotate.vz;                                              \
+        (ry) = (mdl)->rotate.vy;                                              \
+    }
+
+
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
 extern VECTOR vec_z_n100[];        /* {0,0,-100} */
 extern VECTOR vec_z_100[];         /* {0,0,100} */
@@ -301,17 +321,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         param = work;
         *(VECTOR *)&work = vec_z_100[0];
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector((VECTOR *)&work, rx, ry, rz);
         i = 0;
         while (1)
@@ -410,17 +420,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_z_n60[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -439,17 +439,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n240[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -468,17 +458,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -497,17 +477,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -526,17 +496,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_z_n100[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -564,17 +524,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -593,17 +543,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -622,17 +562,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -656,17 +586,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             *(VECTOR *)&param = vec_z_n4096[0];
             st = (VECTOR *)&param;
             model = p->user->model;
-            if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-            {
-                GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-                rz = 0;
-            }
-            else
-            {
-                rx = model->rotate.vx;
-                rz = model->rotate.vz;
-                ry = model->rotate.vy;
-            }
+            GET_THROW_ROTATION(model, rx, ry, rz);
             RotateVector(st, rx, ry, rz);
             sx = p->start.vx;
             sz = p->start.vz;
@@ -707,17 +627,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         param = work;
         *(VECTOR *)&work = vec_z_n1000[0];
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector((VECTOR *)&work, rx, ry, rz);
         vx = ((VECTOR *)&work)->vx;
         vy = ((VECTOR *)&work)->vy;
@@ -803,17 +713,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_z_n500[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -887,17 +787,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;
@@ -916,17 +806,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         *(VECTOR *)&param = vec_y_n120_z_n120[0];
         st = (VECTOR *)&param;
         model = p->user->model;
-        if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
-        {
-            GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-            rz = 0;
-        }
-        else
-        {
-            rx = model->rotate.vx;
-            rz = model->rotate.vz;
-            ry = model->rotate.vy;
-        }
+        GET_THROW_ROTATION(model, rx, ry, rz);
         RotateVector(st, rx, ry, rz);
         p->end.vx = ((VECTOR *)&param)->vx;
         p->end.vy = ((VECTOR *)&param)->vy;

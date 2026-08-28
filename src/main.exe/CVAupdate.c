@@ -128,16 +128,15 @@ s16 CVAupdate(void)
                 human->attribute &= ~ATTR_SUSPEND;
                 human->motion->mask = 0x7FFF;
                 anim = anim_base;
-            scan_case2_empty:
-                if (anim->human == 0)
-                    goto scan_case2_done;
-                i++;
-                if (i < 5)
+                while (1)
                 {
+                    if (anim->human == 0)
+                        break;
+                    i++;
+                    if (i >= 5)
+                        break;
                     anim++;
-                    goto scan_case2_empty;
                 }
-            scan_case2_done:
                 if (i == 5)
                     SetNowMotion(human, 0x501, 1);
 
@@ -221,30 +220,28 @@ s16 CVAupdate(void)
                     }
 
                     slot = anim_base;
-                scan_case3_human:
-                    if (slot->human == human)
-                        goto scan_case3_human_done;
-                    i++;
-                    if (i < 5)
+                    while (1)
                     {
+                        if (slot->human == human)
+                            break;
+                        i++;
+                        if (i >= 5)
+                            break;
                         slot++;
-                        goto scan_case3_human;
                     }
-                scan_case3_human_done:
                     if (i == 5)
                     {
                         i = 0;
                         slot = anim_base;
-                    scan_case3_empty:
-                        if (slot->human == 0)
-                            goto scan_case3_empty_done;
-                        i++;
-                        if (i < 5)
+                        while (1)
                         {
+                            if (slot->human == 0)
+                                break;
+                            i++;
+                            if (i >= 5)
+                                break;
                             slot++;
-                            goto scan_case3_empty;
                         }
-                    scan_case3_empty_done:
                         if (i == 5)
                             return 0;
                     }

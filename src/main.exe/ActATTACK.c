@@ -7,6 +7,32 @@
 #include "item.h"
 #include "afterimage.h"
 
+/* Twin-katana second-blade juggling: slot 0 is the blade in hand, slots
+ * 2/3 park the other one. On the motion's draw frame the parked blade
+ * moves into the hand (draw sound), on the stow frame it goes back
+ * (sheathe sound). Retail copy-pastes this block into each dual-wield
+ * attack case with different frame numbers; the macro is reconstruction
+ * shorthand for that copy-paste (expands to the identical text). */
+#define SWAP_TWIN_BLADE(draw_frame, stow_frame)                               \
+    if (dtM->count == (draw_frame))                                           \
+    {                                                                         \
+        if (weapon[3] != 0)                                                   \
+        {                                                                     \
+            weapon[2] = weapon[0];                                            \
+            weapon[0] = weapon[3];                                            \
+            weapon[3] = 0;                                                    \
+            Sound(Me_MOTION_C, 1);                                            \
+        }                                                                     \
+    }                                                                         \
+    else if ((dtM->count == (stow_frame)) && (weapon[2] != 0))                \
+    {                                                                         \
+        weapon[3] = weapon[0];                                                \
+        weapon[0] = weapon[2];                                                \
+        weapon[2] = 0;                                                        \
+        Sound(Me_MOTION_C, 0);                                                \
+    }
+
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -204,23 +230,7 @@ dispatch:
             OrnamentType **weapon;
 
             weapon = Me_MOTION_C->weapon;
-            if (dtM->count == 0x2a)
-            {
-                if (weapon[3] != 0)
-                {
-                    weapon[2] = weapon[0];
-                    weapon[0] = weapon[3];
-                    weapon[3] = 0;
-                    Sound(Me_MOTION_C, 1);
-                }
-            }
-            else if ((dtM->count == 6) && (weapon[2] != 0))
-            {
-                weapon[3] = weapon[0];
-                weapon[0] = weapon[2];
-                weapon[2] = 0;
-                Sound(Me_MOTION_C, 0);
-            }
+            SWAP_TWIN_BLADE(0x2a, 6);
             break;
         }
         case 0xab:
@@ -332,23 +342,7 @@ dispatch:
         if (t == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
-            if (dtM->count == 0x34)
-            {
-                if (weapon[3] != 0)
-                {
-                    weapon[2] = weapon[0];
-                    weapon[0] = weapon[3];
-                    weapon[3] = 0;
-                    Sound(Me_MOTION_C, 1);
-                }
-            }
-            else if ((dtM->count == 1) && (weapon[2] != 0))
-            {
-                weapon[3] = weapon[0];
-                weapon[0] = weapon[2];
-                weapon[2] = 0;
-                Sound(Me_MOTION_C, 0);
-            }
+            SWAP_TWIN_BLADE(0x34, 1);
         }
         else if (t == WEP_MEIOU)
         {
@@ -421,23 +415,7 @@ dispatch:
         if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
-            if (dtM->count == 0x34)
-            {
-                if (weapon[3] != 0)
-                {
-                    weapon[2] = weapon[0];
-                    weapon[0] = weapon[3];
-                    weapon[3] = 0;
-                    Sound(Me_MOTION_C, 1);
-                }
-            }
-            else if ((dtM->count == 0x10) && (weapon[2] != 0))
-            {
-                weapon[3] = weapon[0];
-                weapon[0] = weapon[2];
-                weapon[2] = 0;
-                Sound(Me_MOTION_C, 0);
-            }
+            SWAP_TWIN_BLADE(0x34, 0x10);
         }
         if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))
@@ -478,23 +456,7 @@ dispatch:
         if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
-            if (dtM->count == 0x2b)
-            {
-                if (weapon[3] != 0)
-                {
-                    weapon[2] = weapon[0];
-                    weapon[0] = weapon[3];
-                    weapon[3] = 0;
-                    Sound(Me_MOTION_C, 1);
-                }
-            }
-            else if ((dtM->count == 0xd) && (weapon[2] != 0))
-            {
-                weapon[3] = weapon[0];
-                weapon[0] = weapon[2];
-                weapon[2] = 0;
-                Sound(Me_MOTION_C, 0);
-            }
+            SWAP_TWIN_BLADE(0x2b, 0xd);
         }
         if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))

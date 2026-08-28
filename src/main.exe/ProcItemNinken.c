@@ -180,6 +180,8 @@ void ProcItemNinken(TItem *item)
 
             count = param->count - 1;
             param->count = count;
+            /* sll+blez u16-countdown test (cookbook class 3b): true at 0, or on
+             * a 0xFFFF wrap from 0. Plain `count == 0` (beqz) does not match. */
             if ((count << 16) <= 0)
             {
                 item->mode++;
@@ -298,6 +300,8 @@ void ProcItemNinken(TItem *item)
 
         count = param->count - 1;
         param->count = count;
+        /* sll+blez u16-countdown test (cookbook class 3b): true at 0, or on
+         * a 0xFFFF wrap from 0. Plain `count == 0` (beqz) does not match. */
         if ((count << 16) <= 0)
         {
             goto expire;
