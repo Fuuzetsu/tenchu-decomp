@@ -60,7 +60,7 @@ s16 think_alarm_reaction_(void)
                 alertTime = 600;
             }
             EmergencyNotice = alertTime;
-            Sound((Humanoid *)Me_THINK_C, 0xE);
+            Sound(Me_THINK_C, 0xE);
 
             switch (gNannido)
             {
@@ -119,7 +119,7 @@ s16 think_alarm_reaction_(void)
         {
             if (count != 8)
             {
-                result = ((Humanoid *)Me_THINK_C)->pad.data;
+                result = Me_THINK_C->pad.data;
                 goto done;
             }
             else
@@ -234,7 +234,7 @@ s16 think_alarm_reaction_(void)
             {
                 soundId = 9;
             }
-            Sound((Humanoid *)Me_THINK_C, soundId);
+            Sound(Me_THINK_C, soundId);
 
             type = AIDHumanType[StageID][rand() % 2];
             rotation = (SVECTOR *)Me_THINK_C->rotate;
@@ -245,7 +245,7 @@ s16 think_alarm_reaction_(void)
             human = BreedLife(type, position->vx, position->vy, position->vz,
                               newRotation);
 
-            human->target = ((Humanoid *)Me_THINK_C)->target;
+            human->target = Me_THINK_C->target;
             human->think[0] = Think1Func[4];
             human->think[1] = Think2Func[4];
             human->think[2] = Think3Func[4];

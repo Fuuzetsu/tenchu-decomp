@@ -58,12 +58,6 @@
  * bumping StageEnemies/StageCitizens by +1/-1 when the new character is a
  * civilian-turned-enemy (character_kind & 0xF0 == 0x90).
  *
- * `human = (Humanoid *)Me_THINK_C;` bridges this TU's own `Humanoid *`
- * view of the current character to the item-TU `Humanoid *` that
- * KillHumanoid/BreedLife/EquipWeapon/SetNowMotion all take — both describe
- * the same runtime object from different TUs (established convention; see
- * the cookbook's gp/cross-TU-struct notes).
- *
  * `human_00->think[0..3] = Think1Func[4]/Think2Func[4]/Think3Func[4]/
  * Think4Func[4]` — PSX.SYM's original `short (*think[4])()` field, shifted
  * from demo +0x58 to retail +0x60 by the expanded MapVector.
@@ -156,7 +150,7 @@ short Think3callaid(void)
                              Me_THINK_C->locate->vy,
                              Me_THINK_C->locate->vz,
                              (s32)Me_THINK_C->rotate->vy + (s32)Degree);
-        human = (Humanoid *)Me_THINK_C;
+        human = Me_THINK_C;
         human_00->target = human->target;
         KillHumanoid(human);
         human_00->think[0] = Think1Func[4];
@@ -167,7 +161,7 @@ short Think3callaid(void)
         (Me_THINK_C = (Humanoid *)human_00)->attribute |= 4;
         human_00->think[3] = func;
         EquipWeapon(human_00, 1);
-        SetNowMotion((Humanoid *)Me_THINK_C, 0x501, 1);
+        SetNowMotion(Me_THINK_C, 0x501, 1);
         Attrib = Me_THINK_C->attribute | PHASE_ALERT;
         ret = 0;
         if ((Me_THINK_C->type & 0xF0) == 0x90)

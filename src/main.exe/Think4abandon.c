@@ -121,7 +121,7 @@ s16 Think4abandon(void)
         }
         else
         {
-            if (((Humanoid *)Me_THINK_C)->think[3] == Think4abandon)
+            if (Me_THINK_C->think[3] == Think4abandon)
             {
                 result = (s16)(turn_towards_player_(0, 0) & ~0x5FFF);
                 if (result != 0)
@@ -153,13 +153,13 @@ s16 Think4abandon(void)
                 return 0;
             }
             Attrib = cleared;
-            SetNowMotion((Humanoid *)Me_THINK_C, 0x80F, 1);
+            SetNowMotion(Me_THINK_C, 0x80F, 1);
             Sound(Me_THINK_C, 0xE);
             return 0;
 
         sr_eq_2:
             Attrib = cleared | 1;
-            SetNowMotion((Humanoid *)Me_THINK_C, 0x80F, 1);
+            SetNowMotion(Me_THINK_C, 0x80F, 1);
             return 0;
 
         sr_eq_1:
