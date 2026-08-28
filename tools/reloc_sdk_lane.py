@@ -675,7 +675,7 @@ def verify(
         require_jump(elf, "_card_open", 0x08, "InitCARD", 3)
         require_hi_lo(elf, "_card_start", 0x20, "funcEvSpIOE")
         require_jump(elf, "StartPAD", 0x08, "StartPAD2", 3)
-        require_hi_lo(elf, "FUN_80083538", 0x20, "func_800835E8")
+        require_hi_lo(elf, "kernel_start_pad_", 0x20, "func_800835E8")
         require_hi_lo(elf, "_ExitCard", 0x24, "D_80083A74")
         require_hi_lo(elf, "_ExitCard", 0x2C, "D_80083A80")
         require_jump(elf, "FUN_80085f0c", 0x14, "bzero", 3)

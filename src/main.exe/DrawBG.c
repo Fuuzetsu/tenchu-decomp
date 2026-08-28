@@ -32,7 +32,7 @@
  * BackGround uses the complete PSX.SYM layout shared in game_types.h.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - m2c undercounts FUN_80063b94's call args: `bg` itself (a0) is carried
+ *  - m2c undercounts GsSortFixBg16's call args: `bg` itself (a0) is carried
  *    in live from the caller and never overwritten before the jal, so
  *    m2c's basic-block-local view misses it — Ghidra's 4-arg rendering
  *    (bg, bg->work, OTablePt, bg->sz) is the real call (same undercount
@@ -55,13 +55,17 @@
  *    a caller-saved temp. Try both shapes when a flag-return is off by a
  *    register.)
  */
-extern void FUN_80063b94(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
+/* Official libgs name: sits immediately before GsInitFixBg16 in the
+ * same module order as the demo's GsSortFixBg32/GsInitFixBg32 pair
+ * (the demo's DrawBG called the Bg32 variant; retail switched to
+ * 16x16 cells). The 4-arg shape is the real implementation ABI. */
+extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 
 short DrawBG(BackGround *bg)
 {
     if ((bg->attribute & 1) == 0)
     {
-        FUN_80063b94(bg, bg->work, OTablePt, bg->sz);
+        GsSortFixBg16(bg, bg->work, OTablePt, bg->sz);
         return 1;
     }
     return 0;

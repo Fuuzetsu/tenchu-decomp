@@ -51,7 +51,7 @@ extern void EnterCriticalSection(void);
 extern void _patch_pad(void);
 extern void ExitCriticalSection(void);
 extern void ChangeClearPAD(long mode);
-extern void FUN_80083538(void);
+extern void kernel_start_pad_(void);
 extern void PAD_init2(u_long a, u_long b, u_long c, u_long d);
 
 extern s32 PadInitFlag;
@@ -67,7 +67,7 @@ void PAD_init(u_long a, u_long b, u_long c, u_long d)
         _patch_pad();
         ExitCriticalSection();
         ChangeClearPAD(0);
-        FUN_80083538();
+        kernel_start_pad_();
         PAD_init2(a, b, c, d);
         new_var = 1;
         PadInitFlag = new_var;
