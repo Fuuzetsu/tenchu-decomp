@@ -74,8 +74,11 @@ struct HenshinModelSnapshot
 extern HenshinModelSnapshot Item_save;
 extern HenshinModelSnapshot HenshinSnapshot;
 
-/* Per-stage disguise character types. The original demo ITEM.C table had
- * nine anonymous two-byte rows; retail appends three more stage rows. */
+/* Per-stage disguise character-type pair (what the henshin potion turns
+ * you into). The original demo ITEM.C table had nine anonymous two-byte
+ * rows; retail appends three more. Retail data: townsfolk on the early
+ * stages (JOCHU/MUSUME/CHONIN, rouban guards), then the stage's own
+ * faction — Manji cultists, tengu, oni, kabane, kerai, asigaru, sisi. */
 extern struct
 {
     u8 type[2];
