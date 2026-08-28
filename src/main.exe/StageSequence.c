@@ -130,6 +130,8 @@ s32 StageSequence(void)
         return result;
 
     active_events:
+        /* Boot the stage's two root sequences (ids 2 and 3) — the master
+         * scripts that keep running even through player death. */
         UpdateEvent(0, 2);
         UpdateEvent(1, 3);
         StagePlayer->status = STAT_ACTION;
@@ -175,6 +177,9 @@ s32 StageSequence(void)
         {
             continue;
         }
+        /* Only the root sequences (ids 2-3) keep running once the player
+         * is dead; the single-read range trick avoids an allocation
+         * ripple (see briefing_screen_'s note). */
         if ((u8)(ev->id - 2) >= 2 && StagePlayer->life == 0)
         {
             continue;
