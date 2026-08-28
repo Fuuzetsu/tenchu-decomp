@@ -86,6 +86,15 @@
 
 extern s16 direction[][2];
 
+/* The 4-direction movement probe. The centre query fills level/attrib/
+ * area/index (mode forwards to GetAreaMapLevel with the cache bit 0x10
+ * stripped; the four neighbour queries keep it). Each compass
+ * neighbour at `wide` distance then classifies into: vector — no
+ * floor there, or a >500 drop (unless mode bit 4 or a HIT/PUSH
+ * attribute) — the 4-bit wall-direction code RefrectVector maps to
+ * deflection angles; angleL — the neighbour floor is HIGHER than the
+ * centre's (a wall or step up); angleH — lower. With no floor at the
+ * centre the result is fabricated: attrib 2, all four codes 0xF. */
 long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
 {
     long x, y, z;
