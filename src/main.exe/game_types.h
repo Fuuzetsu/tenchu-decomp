@@ -690,7 +690,12 @@ struct EventSeqType
     s16 z[2];   /* 0x10 */
 }; /* 0x14 */
 
-/* APPEAR.C's weapon placement vectors. */
+/* APPEAR.C's per-weapon anchor points, in the weapon model's local
+ * space: confp positions the CONFlict hitbox (its .pad doubles as the
+ * hitbox size — ActATTACK), and ilup0/ilup1 are the two ILlUsion
+ * Points the afterimage trail (BattleType's ilus/ilue window)
+ * stretches between — blade root and tip. ilup1.pad doubles as the
+ * row's weapon id, -1 terminating the table (GetWeaponData). */
 typedef struct WeaponType WeaponType;
 struct WeaponType
 {
