@@ -31,12 +31,12 @@
  * bracketing keyframes move. key0p/key1n are key0/key1 nudged one slot
  * outward whenever the frame lands exactly on a keyframe boundary.
  *
- * Matching notes: `dt` (the byte-truncated Q8 time delta) must be written
- * via the unsigned-widened form `(u32)(u16)a - (u32)(u16)b) * 0x1000000)
- * >> 16`, not a direct `(s8)(a - b) << 8` cast — the latter lets cc1's
- * value-range narrowing recompute the whole subtraction (and its operand
- * LOADS) in QImode (`lbu` instead of `lhu`/`lh`), a different instruction
- * sequence even though it's numerically identical.
+ * Matching note: `dt` (the byte-truncated Q8 time delta — keyframe times
+ * wrap at 256) is an s16 difference narrowed through (s8) then shifted:
+ * combine fuses the narrowing pair with the shift into retail's
+ * sll 24 / sra 16. The s16 `diff` temp matters: casting the raw
+ * subtraction directly lets cc1's value-range narrowing recompute the
+ * operand LOADS in QImode (lbu instead of lh).
  *
  * Both quotients (slope1 for dd0, slope2 for ds1) must be computed
  * BACK-TO-BACK, before either's store block — i.e. exactly Ghidra's
@@ -66,7 +66,12 @@ void UpdateSplineControl(SplineControlType *spc)
     {
         key1n++;
     }
-    dt = (s32)(((u32)(u16)spc->key1->time - (u32)(u16)spc->key0->time) * 0x1000000) >> 16;
+    {
+        s16 diff;
+
+        diff = spc->key1->time - spc->key0->time;
+        dt = (s8)diff << 8;
+    }
     slope1 = (s16)(dt / (spc->key1->time - key0p->time));
     slope2 = (s16)(dt / (key1n->time - spc->key0->time));
     spc->dd0.vx = (s16)(slope1 * (spc->key1->x - key0p->x) >> 8);

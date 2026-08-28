@@ -118,7 +118,7 @@ do_resume:
     ConflictObject[cid].common = (void *)2;
     ConflictObject[cid].size.pad = CONFLICT_SOFT;
     ConflictObject[cid].size.vy = w;
-    w = (s16)(((w / 3) * 0x10000) >> 15);
+    w = (s16)(w / 3) * 2;
     ConflictObject[cid].size.vx = w;
     ConflictObject[cid].size.vz = w;
     param->r = 0;
