@@ -130,6 +130,8 @@ void PauseProc(void)
         if (cur == (PADstart | PADselect))
             return_to_menu_();
         com = check_for_known_button_combination(cur, trig);
+        /* Motion ids above the taunt (0x713) are the stealth-kill
+         * finishers — no cheating mid-finisher. */
         if (CamState.Owner->status == STAT_ATTACK && CamState.Owner->motion->mid > 0x713)
             com = 0;
         if (com == CHEAT_REVIVE)

@@ -47,6 +47,8 @@
  */
 
 extern Humanoid *Me_THINK_C;
+/* Per-range-class engagement distances (retail data: 3000/3500/4000
+ * for the melee classes, 20000 for the ranged class — wpatk >> 4). */
 extern s16 atkd[4];
 
 extern s16 SuccessionAttack(s32 dist, s16 degree);
@@ -195,7 +197,7 @@ action_ready:
         rand() % 30 == 0 &&
         Me_THINK_C->status == STAT_ENGAGE)
     {
-        SetNowMotion(Me_THINK_C, 0x713, 1);
+        SetNowMotion(Me_THINK_C, 0x713, 1); /* taunt */
     }
 
     return pad;
