@@ -54,6 +54,9 @@
 #define MANEBUE_DURATION 30   /* lure-flute effect window */
 #define KAENGEKI_DELAY 40     /* flame-wave wind-up after the swing */
 
+/* Memory-card retry cap (both card state machines). */
+#define CARD_RETRY_LIMIT 3
+
 /* Timers, in frames. */
 #define GAME_OVER_TIMEOUT 2700 /* game-over screen auto-advance (45 s) */
 

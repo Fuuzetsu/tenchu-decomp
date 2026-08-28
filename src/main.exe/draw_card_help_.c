@@ -12,7 +12,7 @@
 
 extern u8 *McardHelp;
 extern Sprite3D *McardSprite;
-extern s16 CardStateFlag;
+extern s16 McardStateFlag;
 extern s32 McardPageNow;
 extern s32 McardAnswered;
 extern u8 *McardPageText;
@@ -31,7 +31,7 @@ extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
  * weights put end/text/y/n in the target's s0/s1/s2/s3 order; rtlguide and
  * regalloc.py identify this as allocation, not control-flow.  Keeping the
  * sparse pad values as a switch also matters: cc1 emits the target's
- * 0x2000-centered comparison tree and separately placed case tails.  Finally,
+ * PADLright-centered comparison tree and separately placed case tails.  Finally,
  * `n` intentionally serves as page offset, line number, and signed result so
  * all three non-overlapping lifetimes reuse s3.
  */
@@ -127,7 +127,7 @@ s32 draw_card_help_(s32 page, s32 pad)
 period:
 {
     GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
-    if (pad != 0x20)
+    if (pad != PADRright)
     {
         goto done;
     }
@@ -138,7 +138,7 @@ question:
 {
     if (page == 3)
     {
-        if (CardStateFlag != 0)
+        if (McardStateFlag != 0)
         {
             McardButtons[2]->sprite.attribute &= 0xbfffffff;
             McardButtons[3]->sprite.attribute |= 0x40000000;
@@ -154,26 +154,26 @@ question:
 
         switch (pad)
         {
-        case 0x20:
-            if (CardStateFlag != 0)
+        case PADRright:
+            if (McardStateFlag != 0)
             {
                 goto accept;
             }
             goto cancel;
 
-        case 0x8000:
-            if (CardStateFlag != 1)
+        case PADLleft:
+            if (McardStateFlag != 1)
             {
                 SoundEx(0, 0x30);
-                CardStateFlag = 1;
+                McardStateFlag = 1;
             }
             break;
 
-        case 0x2000:
-            if (CardStateFlag != 0)
+        case PADLright:
+            if (McardStateFlag != 0)
             {
                 SoundEx(0, 0x30);
-                CardStateFlag = 0;
+                McardStateFlag = 0;
             }
             break;
         }
@@ -182,7 +182,7 @@ question:
     else
     {
         GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
-        if (pad != 0x20)
+        if (pad != PADRright)
         {
             goto check_cancel;
         }
@@ -195,7 +195,7 @@ accept:
     goto done;
 
 check_cancel:
-    if (pad != 0x40)
+    if (pad != PADRdown)
     {
         goto done;
     }

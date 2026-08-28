@@ -14,14 +14,14 @@
  * passes the PSX.SYM-proven `unsigned char *fname` in that register,
  * confirming that the second argument is LoadSI's filename.
  */
-extern void *LoadSI(int target, u8 *name);
+extern void *LoadSI(s32 target, u8 *name);
 extern void leRestoreEnemyLayout(void *buf);
 extern void RestoreItemLayout(void *buf);
 extern void vfree(void *buf);
 extern void AdtMessageBox(char *fmt, ...);
 extern char msg_load_layout_error[]; /* load layout error */
 
-void load_save_slot_(int target, u8 *name)
+void load_save_slot_(s32 target, u8 *name)
 {
     void *buf;
 

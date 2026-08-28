@@ -4,7 +4,7 @@
 #include <psxsdk/libgpu.h>
 
 /*
- * Save or restore the memory-card menu's VRAM window and allocate/free its
+ * setup_card_screen_ (0x8005adbc) — Save or restore the memory-card menu's VRAM window and allocate/free its
  * help text and sprites.  The load path also sanitises the help text, skipping
  * the second byte of high-bit characters and replacing control/backslash
  * bytes with NUL separators.

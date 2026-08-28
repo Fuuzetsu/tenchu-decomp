@@ -22,7 +22,7 @@
  * no read/write in between if the open failed (`result == 0`). That shape
  * (open, sync, close-on-failure, return the raw open result truncated to a
  * short, no data transfer at all) reads as a plain "does this save file
- * exist on the card" probe. Called only by (still-asm) update_card_screen_.
+ * exist on the card" probe. Called only by update_card_screen_.
  *
  * The Ghidra `__override__prt_80056e6c_aee7b64a` split (cookbook's
  * "Toolchain gotchas") is a call-site prototype marker for the `jal
@@ -56,6 +56,9 @@ s16 check_card_file_(char *name)
     char path[200];
     s32 cmd;
     s32 result;
+    /* A second sync pair, unlike every sibling's single reused cmd/result:
+     * collapsing them onto one pair mismatches (separate stack slots are
+     * retail's own). */
     s32 cmd2;
     s32 result2;
 

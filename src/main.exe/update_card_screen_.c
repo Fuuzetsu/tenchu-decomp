@@ -22,7 +22,7 @@
  * is 1, so priority() collapses to 1 and nothing moves) — its order is expand
  * order, and the answer had to be source structure:
  *
- *   - `cond = value < 3;` ahead of the store. cc1 emits a compare and its
+ *   - `cond = value < CARD_RETRY_LIMIT;` ahead of the store. cc1 emits a compare and its
  *     branch TOGETHER from the MIPS branch expander (`cmpsi` only records the
  *     operands and emits nothing), so no statement can be parked between them;
  *     hoisting the compare into a local is the only way to emit `slti` before
@@ -53,12 +53,17 @@
  */
 
 extern char *McardFile;
-extern s16 CardStateFlag;
+extern s16 McardStateFlag;
 extern s16 McardState;
 extern s16 McardPage;
 extern s16 McardRetry;
 
 extern s32 setup_card_screen_(s16 mode);
+/* The definition is s32 update_card_message_(s16 *state, u16 *message) --
+ * this TU's swapped pointer types and s16 return are retail's own
+ * prototype drift, and they are byte-required: correcting the extern (the
+ * cast moves to the other argument) changes the caller's frame. 1998
+ * shipped without a shared header here. */
 extern s16 update_card_message_(u16 *state, s16 *page);
 extern s16 check_card_file_(char *name);
 extern s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data);
@@ -128,7 +133,7 @@ s32 update_card_screen_(s32 pad)
             break;
         case 4:
             McardState = 30;
-            CardStateFlag = 0;
+            McardStateFlag = 0;
             goto save_2b_after_assign;
         }
         McardState = assigned;
@@ -196,7 +201,7 @@ s32 update_card_screen_(s32 pad)
             break;
         case 4:
             McardState = 30;
-            CardStateFlag = 0;
+            McardStateFlag = 0;
             goto save_37_after_assign;
         }
         McardState = assigned;
@@ -208,7 +213,7 @@ s32 update_card_screen_(s32 pad)
         value = McardRetry;
         incremented = value + 1;
     update_count:
-        cond = value < 3;
+        cond = value < CARD_RETRY_LIMIT;
         do
         {
             McardRetry = incremented;

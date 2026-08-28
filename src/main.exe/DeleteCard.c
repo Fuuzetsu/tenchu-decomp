@@ -55,13 +55,13 @@ extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
 extern s32 MemCardDeleteFile(s32 chan, char *path);
-extern long MemCardSync(long mode, long *cmd, long *result);
+extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
-short DeleteCard(unsigned char *name)
+s16 DeleteCard(u8 *name)
 {
-    unsigned char fn[200];
-    long cmd;
-    long result;
+    u8 fn[200];
+    s32 cmd;
+    s32 result;
 
     sprintf((char *)fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardDeleteFile(0, (char *)fn);

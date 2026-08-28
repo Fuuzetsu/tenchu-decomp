@@ -33,8 +33,8 @@
  * before suspecting the source has two copies of the statement.
  */
 
-extern s16 CardStateFlag;
-extern s16 CardRetryCount;
+extern s16 McardStateFlag;
+extern s16 McardRetryCount;
 
 extern s16 ChkCard(void);
 extern s16 FormatCard(void);
@@ -55,11 +55,11 @@ s32 update_card_message_(s16 *state, u16 *message)
     switch (next_state)
     {
     case 0:
-        next_message = 0x10;
+        next_message = 16;
         goto increment_state;
 
     case 3:
-        CardRetryCount = 0;
+        McardRetryCount = 0;
         next_state = 4;
         break;
 
@@ -105,18 +105,18 @@ s32 update_card_message_(s16 *state, u16 *message)
         next_state = 20;
         goto card_state_shift;
     card_status_four:
-        CardStateFlag = 0;
+        McardStateFlag = 0;
         next_state = 30;
 
     card_state_shift:
-        if (next_state != 40 && CardRetryCount++ < 3)
+        if (next_state != 40 && McardRetryCount++ < CARD_RETRY_LIMIT)
         {
             next_state = 4;
         }
         break;
 
     case 10:
-        next_message = 0x12;
+        next_message = 18;
         break;
 
     case 20:
@@ -140,7 +140,7 @@ s32 update_card_message_(s16 *state, u16 *message)
 
     case 31:
         next_message = 10;
-        CardRetryCount = 0;
+        McardRetryCount = 0;
         next_state = 33;
         break;
 
@@ -163,22 +163,22 @@ s32 update_card_message_(s16 *state, u16 *message)
         {
             next_state = 38;
         }
-        if (next_state != 38 && CardRetryCount++ < 3)
+        if (next_state != 38 && McardRetryCount++ < CARD_RETRY_LIMIT)
         {
             next_state = 35;
         }
         break;
 
     case 36:
-        next_message = 0xc;
+        next_message = 12;
         break;
 
     case 38:
-        next_message = 0xb;
+        next_message = 11;
         break;
 
     case 90:
-        next_message = 0x14;
+        next_message = 20;
         break;
 
     case 11:
