@@ -361,7 +361,7 @@ void StateTransition(Humanoid *human)
         else if (EmergencyNotice < 2 &&
                  (u16)(SR + 2) < 2)
         {
-            if ((Me_THINK_C->type & 0xf0) != 0x80)
+            if ((Me_THINK_C->type & 0xf0) != PAGE_BOSS)
             {
                 SetNowMotion(Me_THINK_C, 0x80f, 1);
             }

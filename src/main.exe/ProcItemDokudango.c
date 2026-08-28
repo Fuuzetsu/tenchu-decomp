@@ -204,7 +204,7 @@ void ProcItemDokudango(TItem *item)
                 {
                     break;
                 }
-                if ((find.find->type & 0xf0) != 0x80 &&
+                if ((find.find->type & 0xf0) != PAGE_BOSS &&
                     find.find->life != -1 && find.dist < targetlen)
                 {
                     if (find.find != item->owner)
@@ -386,7 +386,7 @@ void ProcItemDokudango(TItem *item)
                 return;
             }
             if ((eater->attribute & ATTR_ALERT) != 0 &&
-                (eater->type & 0xf0) != 0xa0)
+                (eater->type & 0xf0) != PAGE_BEAST)
             {
                 NowReturnNormal(eater);
             }

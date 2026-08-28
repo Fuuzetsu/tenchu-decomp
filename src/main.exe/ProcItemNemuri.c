@@ -253,7 +253,7 @@ void ProcItemNemuri(TItem *item)
                 life = human->life;
                 if (life > 0 && human->motion->mid != MOT_ACTION)
                 {
-                    if ((human->type & 0xf0) != 0x80 && life != dead)
+                    if ((human->type & 0xf0) != PAGE_BOSS && life != dead)
                     {
                         EquipWeapon(human, 0);
                         SetNowMotion(human, 0x80f, 1);

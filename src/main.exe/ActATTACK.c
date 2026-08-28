@@ -957,7 +957,7 @@ dispatch:
             }
             dtM->mask = 0x7fff;
         }
-        if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & 0xf0U) != 0xa0))
+        if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & 0xf0U) != PAGE_BEAST))
         {
             if (hand[0]->id != -1)
             {

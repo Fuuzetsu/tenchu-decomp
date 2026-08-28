@@ -322,7 +322,7 @@ void ProcItemNingyo(TItem *item)
                     len < GetVectorDistance(
                               (VECTOR *)human->target->locate.coord.t,
                               human->locate) &&
-                    ((u16)human->type & 0xf0) != 0x80)
+                    ((u16)human->type & 0xf0) != PAGE_BOSS)
                 {
                     human->target = item->locate;
                 }

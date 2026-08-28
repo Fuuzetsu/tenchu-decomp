@@ -645,7 +645,7 @@ resolve_hit:
                     {
                         Sound(Me_MOTION_C, 10);
                     }
-                    if ((enemy->type & 0xf0U) != 0xa0)
+                    if ((enemy->type & 0xf0U) != PAGE_BEAST)
                     {
                         Sound(Me_MOTION_C, 3);
                         return;

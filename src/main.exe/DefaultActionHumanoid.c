@@ -177,7 +177,7 @@ short DefaultActionHumanoid(Humanoid *human)
                     Sound(human, 8);
                 }
                 human->life = 0;
-                if ((human->type & 0xf0) != 0x80 && human != StagePlayer)
+                if ((human->type & 0xf0) != PAGE_BOSS && human != StagePlayer)
                 {
                     ReqLifeBar(human);
                 }
