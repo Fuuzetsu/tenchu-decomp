@@ -114,7 +114,7 @@ s16 Think1ninja(void)
                 return result;
             }
         set_1040:
-            result = 0x1040;
+            result = PADLup | PADRdown;
         }
     }
     return result;

@@ -468,7 +468,7 @@ void StateTransition(Humanoid *human)
             if ((pad & PADLup) &&
                 ((ProbeAttrib[0] & 0x204) || ProbeLevelLow > 5000))
             {
-                pad = turn_towards_player_(0, 0) & 0xa000;
+                pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
             }
             if (StagePlayer->motion->mid == 0xe01 &&
                 (rand() % (EngageLevel + 1) == 0 ||

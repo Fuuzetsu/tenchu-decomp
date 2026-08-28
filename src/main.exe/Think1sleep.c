@@ -36,7 +36,7 @@ s16 Think1sleep(void)
     if ((EmergencyNotice != 0) || ((Attrib & 0x8000) != 0))
     {
         mot = turn_towards_player_(0, 0);
-        mot = mot & 0xA000;
+        mot = mot & (PADLleft | PADLright);
     }
     return mot;
 }

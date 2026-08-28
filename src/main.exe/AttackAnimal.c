@@ -29,15 +29,15 @@
 
 /*
  * AttackAnimal (0x8002f170, 0xe4 bytes) — animal-enemy attack-decision
- * think-helper: while jumping/landing (character_status 7/9) resets
- * `actmode` and returns 0. Otherwise, when close (Distance>=2000) or facing
- * roughly at the player already (|Degree|>=200) it bumps `actmode`, turns
- * toward the player (turn_towards_player_), and escalates the result by
- * `actmode`'s run length: an early roll (<30) forces 0x1000 (turn only), the
- * 30th call plays a warning Sound, otherwise (up to 90) masks the turn
- * result to 0xA000 (start attacking), beyond that returns it unmasked. When
- * NOT close/facing yet it early-returns a fixed 0x80 (small correction turn)
- * without touching `actmode`.
+ * think-helper, returning a synthesized pad word: while attacking or
+ * jumping (status 7/9) it resets `actmode` and returns 0. Close AND
+ * already facing the player (Distance < 2000, |Degree| < 200) it bites —
+ * a plain Square press (PADRleft) without touching `actmode`. Otherwise
+ * it bumps `actmode`, steers via turn_towards_player_, and escalates by
+ * `actmode`'s run length: an early roll (<30) forces plain forward
+ * (PADLup), the 30th call plays a warning Sound, up to 90 it masks the
+ * steer to turn-only (PADLleft|PADLright), beyond that returns the full
+ * steer word.
  *
  * Same "think" TU as Think1ninja.c/ThinkBasicHuman1.c/Think3chase.c/
  * Think3escape.c/Think3firstattack.c (Me_THINK_C, Distance, Degree, the
@@ -96,7 +96,7 @@ short AttackAnimal(void)
         }
         if (deg < 200)
         {
-            return 0x80;
+            return PADRleft; /* bite */
         }
     }
     Me_THINK_C->actmode++;
@@ -104,7 +104,7 @@ short AttackAnimal(void)
     am = Me_THINK_C->actmode;
     if (am < 0x1e)
     {
-        ret = 0x1000;
+        ret = PADLup;
     }
     else if (am == 0x1e)
     {
@@ -112,7 +112,7 @@ short AttackAnimal(void)
     }
     else if (am < 0x5a)
     {
-        ret = ret & 0xA000;
+        ret = ret & (PADLleft | PADLright);
     }
     return ret;
 }
