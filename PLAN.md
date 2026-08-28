@@ -313,6 +313,27 @@ across 170 files are these authentic classes. Remaining hex
 attribute bits (0x10, 0x100..0x8000) stay until runtime evidence
 names them (rerun tools/pcsx_attrbits.py with targeted steering).
 
+VOCABULARY HUNT (2026-08-28, "would a human write this?" loop, ~20
+commits): pad buttons carry the official PsyQ libetc names tree-wide
+(ComPad.c's byte order proves the PadRead layout; include/psxsdk/
+libetc.h); the AI's canned Command[] tags are CMD_DASH_*/CMD_ROLL_*/
+CMD_LUNGE (decoded from the retail table); the cheat inputs are
+CHEAT_* (item cap/refill/unlock, revive, debug menu); wpatk decodes
+via the HumanData roster's own name strings (WEP_MEIOU, the HANBE/TUZI
+twin-katana bosses, WEP_ONININ, WEP_BEAST; high nibble = the Attack*
+range class); Humanoid attribute bits ATTR_FALL/WALL/HIT/PUSH named
+from the collision resolver; terrain bits MAP_WATER/DEATH/SLOPE_X/Z;
+conflict-slot classes CONFLICT_*; MAX_ITEMS/MAX_ENEMIES;
+SYSFLAG_DEBUG_SELECT (dead-in-retail latch, documented). Constructs:
+memset sizes spell sizeof, x++/comparison/null-cast/paren sweeps,
+seven //-form Ghidra dumps stripped, redundant double casts dropped,
+ten biased switches unbiased (two byte-required, documented), the
+function-cast mystery re-investigated against retail AND demo bytes
+(cross-jump blocker, not jalr — cookbook corrected), and
+SnapCameraTargetVector's scratch casts demo-verified as the original
+author's own idiom. Every remaining humanscan row is a documented
+byte-required spelling.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's

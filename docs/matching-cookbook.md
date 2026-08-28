@@ -563,6 +563,15 @@ negated. Everything else here is corollaries:
   claiming the cast forced a jalr was wrong. Blockers that do NOT work: extra
   arguments (not part of call-insn identity), and a block-scope conflicting
   extern (cc1 errors). The cast is the minimal C construct.
+- **Biased switches usually unbias**: a draft's `switch ((s16)(X - K))`
+  with rebased case labels almost always compiles identically as plain
+  `switch (X)` with the real case values — cc1's expand_case subtracts the
+  minimum itself (verified across update_card_screen_, ActSTATE, ActDAMAGE,
+  ActENGAGE's dtCMD, and six of the seven SelectedItem+1 dispatches,
+  including a -1 sentinel case). The exceptions keep the bias because the
+  explicit cast feeds an sll/sra promotion retail has before the bound
+  check (EquipWeapon's documented `- 4`, the briefing cheat switch,
+  ActENGAGE's item switch) — measure, then document whichever way it lands.
 - **A hand-labelled loop (top exit test, conditional continue, unconditional
   backward `goto`) has NO structured spelling**: any real C loop construct
   gets loop-rotated at -O2 (`duplicate_loop_exit_test` copies the exit test;
