@@ -82,11 +82,11 @@ s16 Think3attack(void)
 
     if ((s16)((4 - idx) * Me_THINK_C->turn) < Degree)
     {
-        pad = 0x2000;
+        pad = PADLright;
     }
     else if (Degree < -(s16)((4 - idx) * Me_THINK_C->turn))
     {
-        pad = -0x8000;
+        pad = PADLleft;
     }
 
     if (idx != 3)
@@ -110,7 +110,7 @@ s16 Think3attack(void)
                     pad |= PADRleft;
                     goto action_ready;
                 }
-                pad = 0xa0;
+                pad = PADRleft | PADRright;
                 goto action_ready;
             }
             pad |= PADRleft;
@@ -126,7 +126,7 @@ s16 Think3attack(void)
         {
             if (pad == 0 && rand() % (EngageLevel * 4) == 0)
             {
-                pad = 0x80;
+                pad = PADRleft;
             }
             goto action_ready;
         }

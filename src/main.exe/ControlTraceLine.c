@@ -63,7 +63,7 @@ short ControlTraceLine(Humanoid *human)
     s32 d32;
 
     trcl = human->trace;
-    pad = 0x1000;
+    pad = PADLup;
     if (trcl == 0)
     {
         return 0;

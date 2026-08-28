@@ -173,11 +173,11 @@ short AttackShort(void)
                 }
                 if (raw_degree >= 501)
                 {
-                    pad = 0x2000;
+                    pad = PADLright;
                 }
                 else if (raw_degree < -500)
                 {
-                    pad = -0x8000;
+                    pad = PADLleft;
                 }
                 pad |= PADRleft;
                 goto activate_and_return;
@@ -198,7 +198,7 @@ short AttackShort(void)
             }
             if (degree < 100 && rand() % 5 == 0)
             {
-                pad = 0x1040;
+                pad = PADLup | PADRdown;
             }
         }
         if ((ATTRIB_BITS & 0x4000) == 0)
@@ -225,7 +225,7 @@ short AttackShort(void)
         degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
         if (degree < 1000)
         {
-            pad = 0x4000;
+            pad = PADLdown;
             goto return_pad;
         }
         if (degree >= 1501)
@@ -235,7 +235,7 @@ short AttackShort(void)
                 pad = SetCommand(&Me_THINK_C->pad, 1);
                 goto return_pad;
             }
-            pad = 0x1000;
+            pad = PADLup;
             goto return_pad;
         }
         if (rand() % 30 != 0)
@@ -257,7 +257,7 @@ short AttackShort(void)
         ItemUse();
         if (Distance >= 5001)
         {
-            pad = 0x1040;
+            pad = PADLup | PADRdown;
         }
         goto return_pad;
     }
@@ -269,11 +269,11 @@ short AttackShort(void)
 
     if (Degree >= 501)
     {
-        pad = 0x2000;
+        pad = PADLright;
     }
     else if (Degree < -500)
     {
-        pad = -0x8000;
+        pad = PADLleft;
     }
 
     if ((u32)(Distance - 1501) < 2499)
@@ -292,7 +292,7 @@ short AttackShort(void)
             AttackActionCount = GameClock + EngageLevel * 10;
             if (rand() % 3 == 0)
             {
-                pad = 0x4000;
+                pad = PADLdown;
             }
             return pad | PADRleft;
         }
@@ -351,10 +351,10 @@ short AttackShort(void)
                 pad |= PADRleft;
                 goto return_pad;
             }
-            pad = 0xa0;
+            pad = PADRleft | PADRright;
             if ((rand() & 1) != 0)
             {
-                pad = 0x4040;
+                pad = PADLdown | PADRdown;
             }
             goto return_pad;
         }

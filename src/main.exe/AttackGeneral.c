@@ -102,14 +102,14 @@ short AttackGeneral(void)
     choose_status7:
         if (Degree >= 301)
         {
-            pad = 0x2000;
+            pad = PADLright;
         }
         else
         {
             pad |= PADRleft;
             if (Degree < -300)
             {
-                pad = -0x8000;
+                pad = PADLleft;
             }
             else
             {
@@ -160,7 +160,7 @@ short AttackGeneral(void)
         {
             goto return_pad;
         }
-        pad = 0x1040;
+        pad = PADLup | PADRdown;
         goto return_pad;
     }
 
@@ -178,14 +178,14 @@ short AttackGeneral(void)
         motion_degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
         if (motion_degree < 1000)
         {
-            pad = 0x4000;
+            pad = PADLdown;
             goto return_pad;
         }
         if (motion_degree < 1501)
         {
             goto return_pad;
         }
-        pad = 0x1000;
+        pad = PADLup;
         goto return_pad;
     }
 
@@ -208,11 +208,11 @@ short AttackGeneral(void)
 
     if (Degree >= 501)
     {
-        pad = 0x2000;
+        pad = PADLright;
     }
     else if (Degree < -500)
     {
-        pad = -0x8000;
+        pad = PADLleft;
     }
 
     if ((u32)(Distance - 1001) < 1999)
@@ -239,7 +239,7 @@ short AttackGeneral(void)
                 AttackActionCount = GameClock + EngageLevel * 10;
                 if (rand() % 3 == 0)
                 {
-                    pad = 0x4000;
+                    pad = PADLdown;
                 }
                 return pad | PADRleft;
             }
@@ -262,10 +262,10 @@ short AttackGeneral(void)
                 switch (rand() % 4)
                 {
                 case 0:
-                    pad = 0x4040;
+                    pad = PADLdown | PADRdown;
                     goto return_pad;
                 case 1:
-                    pad = 0xa0;
+                    pad = PADRleft | PADRright;
                     goto return_pad;
                 case 2:
                     pad = SetCommand(&Me_THINK_C->pad, 2);

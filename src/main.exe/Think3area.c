@@ -114,11 +114,11 @@ s16 Think3area(void)
         }
         else if (Degree >= 501)
         {
-            pad = 0x2000;
+            pad = PADLright;
         }
         else if (Degree < -500)
         {
-            pad = -0x8000;
+            pad = PADLleft;
         }
         else if (rand() % 10 == 0)
         {

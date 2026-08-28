@@ -98,14 +98,14 @@ short AttackLong(void)
     choose_status7:
         if (Degree >= 301)
         {
-            pad = 0x2000;
+            pad = PADLright;
         }
         else
         {
             pad |= PADRleft;
             if (Degree < -300)
             {
-                pad = -0x8000;
+                pad = PADLleft;
             }
             else
             {
@@ -145,7 +145,7 @@ short AttackLong(void)
         {
             goto return_pad;
         }
-        pad = 0x1040;
+        pad = PADLup | PADRdown;
         goto return_pad;
     }
 
@@ -162,14 +162,14 @@ short AttackLong(void)
         motion_degree = (ad >= 0) ? ad : -ad;
         if (motion_degree < 500)
         {
-            pad = 0x4000;
+            pad = PADLdown;
             goto return_pad;
         }
         if (motion_degree < 1501)
         {
             goto return_pad;
         }
-        pad = 0x1000;
+        pad = PADLup;
         goto return_pad;
     }
 
@@ -192,11 +192,11 @@ short AttackLong(void)
 
     if (Degree >= 301)
     {
-        pad = 0x2000;
+        pad = PADLright;
     }
     else if (Degree < -300)
     {
-        pad = -0x8000;
+        pad = PADLleft;
     }
 
     if ((u32)(Distance - 3001) < 999)
@@ -216,18 +216,18 @@ short AttackLong(void)
     {
         if (Distance < 1000)
         {
-            pad = 0xa0;
+            pad = PADRleft | PADRright;
             if ((rand() & 1) != 0)
             {
-                pad = 0x4040;
+                pad = PADLdown | PADRdown;
             }
         }
         else
         {
-            pad = 0x2080;
+            pad = PADLright | PADRleft;
             if ((rand() & 1) != 0)
             {
-                pad = -0x7f80;
+                pad = PADLleft | PADRleft;
             }
         }
         goto return_pad;
@@ -267,7 +267,7 @@ short AttackLong(void)
                 pad = SetCommand(&Me_THINK_C->pad, 1);
                 goto return_pad;
             }
-            pad = 0xc0;
+            pad = PADRleft | PADRdown;
         }
         else
         {

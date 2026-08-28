@@ -70,10 +70,10 @@ s16 Think1target(void)
         pad = 0;
         if ((actcnt & 0x7f) == 0)
         {
-            pad = -0x8000;
+            pad = PADLleft;
             if (Me_THINK_C->actflg != 0)
             {
-                pad = 0x2000;
+                pad = PADLright;
             }
             old_actscnt = Me_THINK_C->actscnt;
             Me_THINK_C->actscnt = old_actscnt + 1;
@@ -164,10 +164,10 @@ s16 Think1target(void)
             pad = 0;
             if ((actcnt & 0x7f) == 0)
             {
-                pad = -0x8000;
+                pad = PADLleft;
                 if (Me_THINK_C->actflg != 0)
                 {
-                    pad = 0x2000;
+                    pad = PADLright;
                 }
                 old_actscnt = Me_THINK_C->actscnt;
                 Me_THINK_C->actscnt = old_actscnt + 1;

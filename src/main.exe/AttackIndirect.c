@@ -100,14 +100,14 @@ short AttackIndirect(void)
     choose_attack:
         if (Degree >= 301)
         {
-            pad = 0x2000;
+            pad = PADLright;
         }
         else
         {
             pad |= PADRleft;
             if (Degree < -300)
             {
-                pad = -0x8000;
+                pad = PADLleft;
             }
             else
             {
@@ -156,12 +156,12 @@ short AttackIndirect(void)
         }
         if (degree < 200 && Me_THINK_C->motion->mid == 0x501)
         {
-            pad = 0x80;
+            pad = PADRleft;
         }
         goto action_ready;
 
     close_not_aimed:
-        pad = 0x1000;
+        pad = PADLup;
         goto action_ready;
     }
 
@@ -175,7 +175,7 @@ short AttackIndirect(void)
             }
             if (degree < 200 && Me_THINK_C->motion->mid == 0x501)
             {
-                pad = 0x80;
+                pad = PADRleft;
             }
         }
 
@@ -185,7 +185,7 @@ short AttackIndirect(void)
         }
         else if (Degree >= 201)
         {
-            pad = 0x2000;
+            pad = PADLright;
         }
         else if (Degree >= 101)
         {
@@ -193,7 +193,7 @@ short AttackIndirect(void)
         }
         else if (Degree < -200)
         {
-            pad = -0x8000;
+            pad = PADLleft;
         }
         else if (Degree < -100)
         {

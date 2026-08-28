@@ -143,13 +143,13 @@ void StateTransition(Humanoid *human)
             direction = GetDirection(dx, dz, human->rotate->vy);
             if (direction > Me_THINK_C->turn)
             {
-                pad = 0x2000;
+                pad = PADLright;
             }
             else
             {
                 if (-Me_THINK_C->turn > direction)
                 {
-                    pad = -0x8000;
+                    pad = PADLleft;
                 }
             }
             if (SquareRoot0(dx * dx + dz * dz) < 2000)
@@ -546,13 +546,13 @@ void StateTransition(Humanoid *human)
             degree = Degree;
             abs_degree = degree;
             abs_degree = abs_degree >= 0 ? abs_degree : -abs_degree;
-            pad = 0x1000;
+            pad = PADLup;
             if (abs_degree >= 500)
             {
-                pad = 0x4000;
+                pad = PADLdown;
                 if ((ATTRIB_BITS & 3) == 0)
                 {
-                    pad = 0x1000;
+                    pad = PADLup;
                 }
                 else
                 {
@@ -614,7 +614,7 @@ void StateTransition(Humanoid *human)
                 if (next_level >= 0x17d5)
                 {
                 set_obstacle_pad:
-                    pad = 0x1040;
+                    pad = PADLup | PADRdown;
                 }
                 goto tail;
             }
