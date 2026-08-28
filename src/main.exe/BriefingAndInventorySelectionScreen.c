@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "images.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -242,21 +243,18 @@ void BriefingAndInventorySelectionScreen(void)
         /* The subtract-then-narrow is retail's own: addiu -1 then an
          * sll/sra s16 truncation before the bound check, i.e. the
          * original biased through a short temp exactly like EquipWeapon's
-         * proven `idx = wpatk - 4`. Cases are cheat ids minus one
-         * (case 0 = CHEAT_ITEM_CAP, 1 = CHEAT_ITEM_REFILL, 3 =
-         * CHEAT_ITEM_UNLOCK, 0xF = CHEAT_REVIVE, 0x1F = the
-         * character-specific unlock). */
+         * proven `idx = wpatk - 4`. Cases are combo ids minus one. */
         cheat = id - 1;
         switch (cheat)
         {
-        case 0:
+        case CHEAT_ITEM_CAP - 1:
             if (CARRY_30_ITEMS_CHEAT_APPLIED == 0)
             {
                 CARRY_30_ITEMS_CHEAT_APPLIED = 1;
                 cap = 0x1E;
             }
             break;
-        case 1:
+        case CHEAT_ITEM_REFILL - 1:
             for (j = 1; j < 9; j++)
             {
                 int n = j + ps->CharType * 0x20;
@@ -292,7 +290,7 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             }
             break;
-        case 3:
+        case CHEAT_ITEM_UNLOCK - 1:
             for (j = 9; j < 0x14; j++)
             {
                 int n = j + ps->CharType * 0x20;
@@ -302,11 +300,11 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             }
             break;
-        case 0x1F:
+        case CHEAT_ARMOUR - 1:
             if (ps->CharType != RIKIMARU_0)
             {
-                u8 already = ps->selItem[0x13];
-                if (already != 0 || (&ps->gItem[0x13])[ps->CharType * 0x20] == 1)
+                u8 already = ps->selItem[ITEM_ARMOUR];
+                if (already != 0 || (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] == 1)
                 {
                     do
                     {
@@ -319,8 +317,8 @@ void BriefingAndInventorySelectionScreen(void)
                                     nsel++;
                                     taken++;
                                 }
-                                ps->selItem[0x13] = 0xFF;
-                                (&ps->gItem[0x13])[ps->CharType * 0x20] = 0;
+                                ps->selItem[ITEM_ARMOUR] = 0xFF;
+                                (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
                                 SoundEx(0, 8);
                             }
                         } while (0);
@@ -328,7 +326,7 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             }
             break;
-        case 7:
+        case CHEAT_QUIT - 1:
             for (j7 = 0; j7 < 0x14; j7++)
             {
                 (&ps->gItem[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] =

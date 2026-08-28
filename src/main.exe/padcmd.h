@@ -19,15 +19,19 @@ struct PADtype;
 #define CMD_ROLL_RIGHT 0x14
 #define CMD_LUNGE 0x21
 
-/* check_cheat_command_ results (the cheat inputs; retail
+/* check_cheat_command_ results (the recognized input combos; retail
  * table @ 0x8008eddc). Consumers: the briefing/shop screen (item cap,
- * refill, special-item unlocks) and PauseProc (revive, debug menu —
- * the R2 L2 R1 L1 + L1+R2-chord sequence). Results 8 (Start+Select)
- * and 0x20 (character-specific unlock) are decoded but not named yet. */
+ * refill, unlocks, quit, armour) and PauseProc (revive, debug menu —
+ * the R2 L2 R1 L1 + L1+R2-chord sequence). CHEAT_QUIT is the plain
+ * Start+Select combo sharing the table: it restores the saved loadout
+ * and returns to the menu. CHEAT_ARMOUR selects the armour
+ * (selItem[ITEM_ARMOUR]) for non-Rikimaru characters. */
 #define CHEAT_ITEM_CAP 0x1
 #define CHEAT_ITEM_REFILL 0x2
 #define CHEAT_ITEM_UNLOCK 0x4
+#define CHEAT_QUIT 0x8
 #define CHEAT_REVIVE 0x10
+#define CHEAT_ARMOUR 0x20
 #define CHEAT_DEBUG_MENU 0x1000
 
 extern void GetPadXY(short no, short *x, short *y);
