@@ -41,10 +41,11 @@
 
 /*
  * Sound (0x8004ff10) — play a character's sound effect. `seid` with any of the
- * high nibble set (0xf0) is an explicit id: play it at the character's position.
- * Otherwise it's a "category" (< 0x10): ids >= 6 are gated by a global mute
- * (VoiceMode) and the character's 0x80 attribute (e.g. dead/silent), and the
- * character's own default sound (Humanoid.sound) is OR'd in.
+ * high nibble set (0xf0) is an explicit id: play it at the character's
+ * position. Otherwise it's a per-character category slot (< 0x10), OR'd
+ * with Humanoid.sound (the character's SE-bank base); category ids >= 6
+ * are the voice lines — muted globally by VoiceMode and while the
+ * character's AI is suspended (ATTR_SUSPEND).
  *
  * Matching notes (this was a parked 5-byte NON_MATCHING; the fix needed BOTH
  * edits below — RTL story from cc1 -dl/-dg dumps):

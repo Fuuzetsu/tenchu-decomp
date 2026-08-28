@@ -145,7 +145,8 @@ typedef struct Humanoid
     void *illusion[2];        /* 0xA4 (PSX.SYM's original type; these
                                  opaque effect pointers are passed to the
                                  afterimage draw/dispose API) */
-    s16 sound;                /* 0xAC (PSX.SYM's original default sound id) */
+    s16 sound;                /* 0xAC (PSX.SYM name) SE-bank base: Sound()
+                               * ORs category ids < 0x10 into it */
     s16 itmctl;               /* 0xAE (PSX.SYM's item-control field;
                                  retail shifts it eight bytes from +0xA6) */
     s32 pad_hold;             /* 0xB0 (packed AI pad command/duration;
