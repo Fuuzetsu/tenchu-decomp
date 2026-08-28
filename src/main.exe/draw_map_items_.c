@@ -20,6 +20,10 @@
  * owner after rotating and scaling their X/Z coordinates through `area`.
  *
  * Matching notes:
+ *  - The RequestItem candidate above is REFUTED: the demo dispatcher's
+ *    (enum TRequestItem, void *) shape cannot produce this (x, z, area)
+ *    signature, and retail replaced RequestItem with the per-item
+ *    ReqItem* helper family (item.h) — every demo role is accounted for.
  *  - Indexing `items` with the loop counter gives cc1 the target's single
  *    natural 0x58-byte induction pointer; a separately incremented item
  *    pointer was biased to `items + 0x10` and made the function four
