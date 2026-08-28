@@ -181,13 +181,14 @@ void ProcItemNingyo(TItem *item)
                 launchp = 0;
                 scratch.drop.launch.type = type;
                 scratch.drop.launch.user = owner;
-                scratch.drop.launch.start.vx =
-                    ((VECTOR *)model->locate.coord.t)->vx;
-                model = (ModelType *)model->locate.coord.t;
-                scratch.drop.launch.start.vy =
-                    ((VECTOR *)model)->vy;
-                scratch.drop.launch.start.vz =
-                    ((VECTOR *)model)->vz;
+                {
+                    VECTOR *pos;
+
+                    pos = (VECTOR *)model->locate.coord.t;
+                    scratch.drop.launch.start.vx = pos->vx;
+                    scratch.drop.launch.start.vy = pos->vy;
+                    scratch.drop.launch.start.vz = pos->vz;
+                }
                 scratch.drop.launch.end.vx = rand() % 200 - 100;
                 scratch.drop.launch.end.vy = rand() % 100 - 200;
                 scratch.drop.launch.end.vz = rand() % 200 - 100;
