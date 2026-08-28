@@ -90,7 +90,7 @@
 0x80022c90	420	AttackContinuousCheck	main	-
 0x80022e34	644	WeaponHitWeapon	main	-
 0x800230b8	272	AttackBowControl	main	-
-0x800231c8	300	handle_char_state_attacking_SEVEN_	main	-
+0x800231c8	300	launch_lightning_bolt_	main	-
 0x800232f4	948	ActNORMAL	main	-
 0x80023bf4	860	ActMOVE	main	-
 0x80023f50	1500	ActSWIM	main	-

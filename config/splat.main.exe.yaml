@@ -278,7 +278,7 @@ segments:
       - [0xE980, c, AttackContinuousCheck]
       - [0xEB24, c, WeaponHitWeapon]
       - [0xEDA8, c, AttackBowControl]
-      - [0xEEB8, c, handle_char_state_attacking_SEVEN_]
+      - [0xEEB8, c, launch_lightning_bolt_]
       - [0xEFE4, c, ActNORMAL]
       - [0xF398, c, ActACTION]
       - [0xF908, c, ActMOVE]

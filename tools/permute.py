@@ -349,7 +349,7 @@ GP_EXTERNS = {
     "turn_towards_player_": ["Me_THINK_C", "Degree", "Attrib", "ProbeLevelLow"],
     "Think1trace": ["Me_THINK_C", "Degree", "Attrib"],
     "Think3chase": ["Distance", "SR", "EngageLevel", "AttackActionCount", "Degree", "Me_THINK_C"],
-    "handle_char_state_attacking_SEVEN_": ["dtM", "Me_MOTION_C", "dtR"],
+    "launch_lightning_bolt_": ["dtM", "Me_MOTION_C", "dtR"],
     "bow_shoot_logic": ["Me_MOTION_C", "dtR"],
     "Think1watch": ["Me_THINK_C"],
     "Think3firstattack": ["Distance", "SR", "Me_THINK_C", "Attrib", "Degree"],

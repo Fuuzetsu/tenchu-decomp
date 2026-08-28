@@ -309,7 +309,7 @@ machine-code audit showed that the historical `AttackFire` adoption was such a
 collision: the demo function launches napalm over a frame range, which matches
 retail `0x80027730`, while `0x8001f6b8` launches a lightning bolt on one frame.
 The names are now corrected: the former is `AttackFire`, while the latter has
-returned to the honest retail-only name `handle_char_state_attacking_SEVEN_`.
+returned to the honest retail-only name `launch_lightning_bolt_`.
 Verify signature, parameters, constants, and semantics together before adopting
 a name.
 

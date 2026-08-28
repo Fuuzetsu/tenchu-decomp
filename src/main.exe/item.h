@@ -92,7 +92,7 @@ typedef struct Humanoid
     TraceLine *trace;         /* 0x70 (SetupTraceLine/ControlTraceLine;
                                  Ghidra's own independently-built Humanoid
                                  also names this exact offset `trace`) */
-    ModelType *target;        /* 0x74 (handle_char_state_attacking_SEVEN_
+    ModelType *target;        /* 0x74 (launch_lightning_bolt_
                                  reads target->locate.coord.t[1], the Y
                                  translation of the target's world matrix,
                                  for a lightning-bolt end point) */

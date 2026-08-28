@@ -101,7 +101,7 @@
 extern Humanoid *Me_MOTION_C;
 extern void DeleteConflict();
 
-extern void handle_char_state_attacking_SEVEN_(s16 frame);
+extern void launch_lightning_bolt_(s16 frame);
 extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
@@ -282,7 +282,7 @@ dispatch:
             break;
         }
         case 0xe9:
-            handle_char_state_attacking_SEVEN_(0xd);
+            launch_lightning_bolt_(0xd);
             break;
         case 0xaa:
         case 0x1a4:
@@ -352,7 +352,7 @@ dispatch:
         }
         else if (t == WEP_MEIOU)
         {
-            handle_char_state_attacking_SEVEN_(0xd);
+            launch_lightning_bolt_(0xd);
         }
         else if (t == 0x35)
         {
@@ -382,7 +382,7 @@ dispatch:
     case 0x704:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
-            handle_char_state_attacking_SEVEN_(0xd);
+            launch_lightning_bolt_(0xd);
         }
         else if (Me_MOTION_C->wpatk == 0x35)
         {
@@ -411,7 +411,7 @@ dispatch:
     case 0x705:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
-            handle_char_state_attacking_SEVEN_(0xd);
+            launch_lightning_bolt_(0xd);
         }
         break;
     case 0x706:

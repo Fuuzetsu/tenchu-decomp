@@ -193,7 +193,7 @@ segments:
       - [0x12490, c, AttackContinuousCheck]
       - [0x12634, c, WeaponHitWeapon]
       - [0x128b8, c, AttackBowControl]
-      - [0x129c8, c, handle_char_state_attacking_SEVEN_]
+      - [0x129c8, c, launch_lightning_bolt_]
       - [0x12af4, c, ActNORMAL]
       - [0x133f4, c, ActMOVE]
       - [0x13750, c, ActSWIM]

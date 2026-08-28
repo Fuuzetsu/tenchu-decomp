@@ -8,7 +8,7 @@
  * (`kind` is the PARAM_ITEM_LAUNCH.type — ITEM_ARROW for the arrow)
  * travelling from `*start` towards the target, landing at
  * the target's actual world-Y (Me_MOTION_C->target->locate.coord.t[1], same
- * field proven by handle_char_state_attacking_SEVEN_.c) with a small chance
+ * field proven by launch_lightning_bolt_.c) with a small chance
  * (1 in EngageLevel+1) of landing 1000 units short specifically for arrows.
  *
  * `move.pad` is a real write, not a stray local: Ghidra's own struct-typed

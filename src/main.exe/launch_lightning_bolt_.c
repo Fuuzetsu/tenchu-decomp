@@ -4,7 +4,7 @@
 #include "item.h"
 
 /*
- * handle_char_state_attacking_SEVEN_ (0x8001f6b8, 0x12c bytes) — an
+ * launch_lightning_bolt_ (0x8001f6b8, 0x12c bytes) — an
  * animation-frame callback (param is the frame/trigger id) for the SEVEN
  * weapon's attack: only fires when the currently-armed motion trigger
  * (dtM->count) matches the caller's id, then plays a sound and spawns a
@@ -15,8 +15,9 @@
  * (Me_MOTION_C->target->locate.coord.t[1] — the Y translation of its world
  * matrix) rather than a computed offset.
  *
- * This descriptive retail name is intentional. The historical `AttackFire`
- * assignment was a call-fingerprint collision: this callback has one short
+ * This descriptive retail name is intentional (launches Mei-Oh's lightning
+ * bolt: every caller is ActATTACK's WEP_MEIOU arm). The historical
+ * `AttackFire` assignment was a call-fingerprint collision: this callback has one short
  * parameter and launches a lightning bolt, while the demo `AttackFire` has two
  * shorts and launches fire over a frame range. That original name now belongs
  * to the matching callback at 0x80027730.
@@ -32,7 +33,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-void handle_char_state_attacking_SEVEN_(s16 frame)
+void launch_lightning_bolt_(s16 frame)
 {
     VECTOR *start_pos;
     PARAM_ITEM_LAUNCH p;
