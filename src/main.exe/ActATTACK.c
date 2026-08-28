@@ -931,9 +931,15 @@ dispatch:
             {
             case 2:
                 DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);
-                /* The cast is load-bearing: calling through a cast function
-                 * type makes cc1 emit the retail indirect call (lui/addiu +
-                 * jalr, +8 bytes vs a plain jal). */
+                /* The value-typed cast is load-bearing, but NOT as an indirect
+                 * call (retail emits a plain jal here — an earlier note claimed
+                 * jalr and was wrong). It makes this the one call_value insn
+                 * among the DeleteConflict calls, which blocks jump2's
+                 * cross-jump from merging this tail's [jal; j end] with case
+                 * 3's identical pair (retail keeps all three tails separate).
+                 * A 2-arg spelling does not block the merge (args are not part
+                 * of call-insn identity), and a block-scope `extern s16
+                 * DeleteConflict();` is a conflicting-types error. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[0xb]);
                 break;
             case 3:

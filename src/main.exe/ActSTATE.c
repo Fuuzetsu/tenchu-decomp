@@ -381,9 +381,13 @@ void ActSTATE(void)
             }
             if (Me_MOTION_C == StagePlayer)
             {
-                /* The cast is load-bearing: calling through a cast function
-                 * type makes cc1 emit the retail indirect call (lui/addiu +
-                 * jalr, +8 bytes vs a plain jal). */
+                /* The value-typed cast is load-bearing, but NOT as an
+                 * indirect call (retail emits a plain jal — an earlier note
+                 * claimed jalr and was wrong). Typing this one call as a
+                 * call_value blocks jump2's cross-jump from merging its tail
+                 * with the identical SetCameraMode(0) tail nearby, which
+                 * retail keeps separate. See ActATTACK's DeleteConflict case
+                 * for the full analysis. */
                 ((s16 (*)(s32))SetCameraMode)(CMODE_NORMAL);
             }
             {

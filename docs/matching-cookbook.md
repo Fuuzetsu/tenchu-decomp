@@ -552,6 +552,17 @@ negated. Everything else here is corollaries:
   forward over unrelated blocks to its own stores) — proves the goto IS
   source (ActATTACK `no_motion`, briefing_screen_'s brightness ladder). And
   a `goto L;` immediately followed by `L:` is a no-op — delete it.
+- **A value-typed function cast on ONE call is a cross-jump blocker, not an
+  indirect call**: `((s16 (*)(ModelType *))DeleteConflict)(...)` still emits a
+  plain `jal` — but typing that one call as a call_value makes its call insn
+  rtx-unequal to the sibling void calls, so jump2 cannot merge its
+  `[jal; j end]` tail with an identical sibling's (ActATTACK's hand_kind
+  dispatch keeps three identical DeleteConflict tails separate; ActSTATE's
+  SetCameraMode likewise). Verified against the retail bytes — the demo build
+  has no such construct (plain jal everywhere), and an earlier in-repo note
+  claiming the cast forced a jalr was wrong. Blockers that do NOT work: extra
+  arguments (not part of call-insn identity), and a block-scope conflicting
+  extern (cc1 errors). The cast is the minimal C construct.
 - **A hand-labelled loop (top exit test, conditional continue, unconditional
   backward `goto`) has NO structured spelling**: any real C loop construct
   gets loop-rotated at -O2 (`duplicate_loop_exit_test` copies the exit test;
