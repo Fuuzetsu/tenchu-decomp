@@ -183,7 +183,8 @@ void ActSTATE(void)
         motMODE = 1;
         return;
 
-    case 0x80f:
+    case 0x80f: /* stand down: sheathe (hitboxes and afterimage off),
+                 * then back to idle unless still combat-ready */
         if (dtM->count == 1)
         {
             {
