@@ -90,6 +90,15 @@ extern long AreaMapLastY; /* last queried y/10 (`y2`) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 
+/* mode bits: 1 = also accept floors up to 1500 units below y
+ * (step-down tolerance); 2 = return the height difference (level - y)
+ * instead of the level; 4 = keep floors deeper than 1000 below (else
+ * "no floor"); 8 = first-hit sampling — take the first containing
+ * node without the highest-below pick (DrawSnow); 0x10 = same-height
+ * fast path reusing the cached FieldArea via AreaMapLastY. Returns
+ * 0x80000000 for no floor; a base-material-2 node (the buoyant
+ * surface) reports no floor, and a 0x2000 node is recorded but does
+ * not stop the scan. */
 long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
 {
     long n;
