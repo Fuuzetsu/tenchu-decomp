@@ -366,7 +366,7 @@ void ActSTATE(void)
             {
                 if (motID == 0x805)
                 {
-                    PadShockAR(0, 0xff, 0, 0x1e);
+                    PadShockAR(0, 0xff, 0, 30);
                 }
                 else
                 {

@@ -29,6 +29,18 @@
 #define CHASE_WALK_SPEED 120 /* enemies closing in (ActCHASE/ActENGAGE) */
 #define SWIM_SPEED 60
 
+/* Weapon-item damage (DamageControl's per-item switch; a fall-through
+ * chain lets a nonzero incoming dmg override the shuriken/happou/gun/
+ * arrow defaults). */
+#define DMG_MAKIBISHI 3
+#define DMG_SHURIKEN 20
+#define DMG_HAPPOU 30
+#define DMG_GUN 20
+#define DMG_ARROW 10
+#define DMG_NAPALM 25
+#define DMG_FIRE 30 /* also lightning */
+#define DMG_JIRAI 45
+
 /* Timers, in frames. */
 #define GAME_OVER_TIMEOUT 2700 /* game-over screen auto-advance (45 s) */
 

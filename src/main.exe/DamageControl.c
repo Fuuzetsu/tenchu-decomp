@@ -339,14 +339,14 @@ resolve_hit:
             switch (t)
             {
             case ITEM_MAKIBISHI:
-                dmg = 3;
+                dmg = DMG_MAKIBISHI;
                 motID = 0x100a;
                 motMODE = 1;
                 break;
             case ITEM_SHURIKEN:
                 if ((short)dmg == 0)
                 {
-                    dmg = 20;
+                    dmg = DMG_SHURIKEN;
                 }
                 if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
                 {
@@ -356,19 +356,19 @@ resolve_hit:
             case ITEM_HAPPOU:
                 if ((short)dmg == 0)
                 {
-                    dmg = 30;
+                    dmg = DMG_HAPPOU;
                 }
                 /* fall through */
             case ITEM_GUN:
                 if ((short)dmg == 0)
                 {
-                    dmg = 20;
+                    dmg = DMG_GUN;
                 }
                 /* fall through */
             case ITEM_ARROW:
                 if ((short)dmg == 0)
                 {
-                    dmg = 10;
+                    dmg = DMG_ARROW;
                 }
                 {
                     p.vx = dtL->vx;
@@ -380,7 +380,7 @@ resolve_hit:
                 SetBlood(&p, 5, 90);
                 break;
             case ITEM_NAPALM:
-                dmg = 25;
+                dmg = DMG_NAPALM;
                 if ((rand() & 1) == 0)
                 {
                     motID = 0x1003;
@@ -394,10 +394,10 @@ resolve_hit:
             case ITEM_FIRE:
             case ITEM_JIRAI:
             case ITEM_LIGHTNINGBOLT:
-                dmg = 30;
+                dmg = DMG_FIRE;
                 if (t == ITEM_JIRAI)
                 {
-                    dmg = 45;
+                    dmg = DMG_JIRAI;
                 }
                 if ((Me_MOTION_C->map.attrib & MAP_WATER) == 0)
                 {
