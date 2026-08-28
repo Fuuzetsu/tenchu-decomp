@@ -307,6 +307,14 @@ struct ModelType
     GsDOBJ2 object;       /* 0x64 */
 }; /* 0x74 */
 
+/* A humanoid's articulated model. The skeleton's sub-object indices
+ * the code pins: 0 is the waist/root, 2 the head (WEP_BEAST's bite
+ * hitbox; simple models' attach fallback), 8/0xb the barehanded
+ * WEP_ONININ fighter's striking-limb pair, 0xd/0xe the left/right
+ * hands (arrows spawn at 0xd; the grapple hook fires and the medicine
+ * bottle attaches at 0xe; armed attacks put hitboxes on both). Ninja
+ * models carry 15 parts (HenshinModelSnapshot); NPC models fewer
+ * (ProcItemKusuri's n > 0xe test picks the fallback). */
 typedef struct ModelArchiveType ModelArchiveType;
 struct ModelArchiveType
 {
