@@ -89,7 +89,7 @@ s16 CVAsequence(s16 sid)
     end_mode = -1;
 scan_event:
     event = CVAnow;
-    if (event->mode == 0 && event->id == wanted)
+    if (event->mode == CVA_CMD_SEQUENCE && event->id == wanted)
         goto event_found;
     CVAnow = event + 1;
     if (event[1].mode != end_mode)

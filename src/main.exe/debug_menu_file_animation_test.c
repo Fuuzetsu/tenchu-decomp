@@ -43,7 +43,7 @@ void debug_menu_file_animation_test(void)
     count = 0;
     while (event->mode != -1)
     {
-        if (event->mode == 0)
+        if (event->mode == CVA_CMD_SEQUENCE)
         {
             sprintf((char *)buffer, fmt_num, event->id);
             menu[count].name = buffer;

@@ -104,7 +104,7 @@ s16 CVAupdate(void)
     u8 ch;
 
     cursor = CVAnow;
-    if (cursor->mode != 1)
+    if (cursor->mode != CVA_CMD_WAIT)
     {
         invalid = -1;
         anim_base = CVAhuman;
@@ -112,7 +112,9 @@ s16 CVAupdate(void)
         {
             switch (cursor->mode)
             {
-            case CVA_CMD_MUSIC:
+            case CVA_CMD_SEQUENCE:
+                /* A chained header mid-stream: p re-selects the CD
+                 * track, and -1 silences it. */
                 if (CVAnow->p == invalid)
                     CdaStop();
                 break;
@@ -347,7 +349,7 @@ s16 CVAupdate(void)
 
             CVAnow++;
             cursor = CVAnow;
-        } while (cursor->mode != 1);
+        } while (cursor->mode != CVA_CMD_WAIT);
     }
 
     return CVAnow->id != 0;

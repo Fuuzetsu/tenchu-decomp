@@ -751,9 +751,15 @@ struct StageCharType
  * names, read off each case's behavior): music/CD control, forcing an
  * actor's motion, setting or despawning an actor, camera cut/pose/pan,
  * point effects (blood, screen fade), and subtitles. */
+/* CVA cutscene-script row types (the 12-byte CVAType). A sequence opens
+ * with a SEQUENCE header (id = the sequence id CVAsequence scans for,
+ * p = the CD track to play, -1 = silence) and then runs batches of
+ * command rows separated by WAIT markers (id = frame count; a zero-length
+ * wait ends the sequence). mode -1 terminates the whole table. */
 enum
 {
-    CVA_CMD_MUSIC = 0,
+    CVA_CMD_SEQUENCE = 0,
+    CVA_CMD_WAIT = 1,
     CVA_CMD_MOTION = 2,
     CVA_CMD_ACTOR = 3,
     CVA_CMD_CAMERA_CUT = 4,

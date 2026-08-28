@@ -284,6 +284,8 @@ s32 StageSequence(void)
             flag = 0;
             if ((u8)(ev->id - 2) < 2 || StagePlayer->life != 0)
             {
+                /* Movie id 0xff means "no movie": fire the event
+                 * directly without a CVA sequence. */
                 if (ev->event == 0xff)
                 {
                     goto run_event;
@@ -306,7 +308,9 @@ s32 StageSequence(void)
             continue;
 
         run_event:
-            if (StagePlayer->type == 0 && ev->mode == 5 &&
+            /* Rikimaru watching Hikone's life hit zero reroutes the
+             * follow-up to event 100 (his version of the finale). */
+            if (StagePlayer->type == 0 && ev->mode == EVTRIG_LIFE &&
                 tgt->type == HIKONE)
             {
                 ev->next1 = 100;
