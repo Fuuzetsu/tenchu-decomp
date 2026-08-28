@@ -65,6 +65,10 @@ typedef struct
     s32 far_distance;
 } SearchSight;
 
+/* The two sight-range rows (retail data @ 0x80086b7c): row 0 for a
+ * walking player {clear 16000, near 10000, far 20000}, row 1 when the
+ * player sneaks {12000, 7000, 16000} — crouching or wall-pressing cuts
+ * every enemy's perception ranges by roughly a quarter. */
 extern SearchSight searchsight[];
 
 short SearchTarget(Humanoid *human, long *distance, short *degree)
@@ -126,6 +130,8 @@ degree_done:
         return 0;
     }
 
+    /* Sneaking (STAT_SQUAT or STAT_STICKON) selects the short-range
+     * sight row. */
     mode = (u16)(StagePlayer->status - 0xb) < 2;
     if (StagePlayer->status == STAT_HANG)
     {
