@@ -334,6 +334,29 @@ SnapCameraTargetVector's scratch casts demo-verified as the original
 author's own idiom. Every remaining humanscan row is a documented
 byte-required spelling.
 
+HUMANISING LOOP 2 (2026-08-28, ~35 commits): names decoded from the
+game's OWN data wherever a table carries the truth — the stage uids
+from StageConfig's title strings (STAGE_TRAINING..STAGE_FREE_PRINCESS),
+the HumanData roster names behind wpatk (WEP_MEIOU/WEP_TWIN_KATANA/
+WEP_ONININ/WEP_BEAST + the >>4 range class), the Command[] input
+streams (CMD_DASH_*/CMD_ROLL_*/CMD_LUNGE), the cheat inputs (CHEAT_*),
+official libetc pad names tree-wide (ComPad.c's byte order proves the
+PadRead layout), MISC_/PROCESS_/ARC_/IMG_/THINK_MIX_/MUSIC_/CMODE_AIM
+vocabularies, MAX_ITEMS/MAX_ENEMIES, ATTR_/MAP_/CONFLICT_ bit families,
+STAT_/PAGE_/character_kind coverage completed, item[ITEM_N] flag.
+Behavior-renamed inventions: launch_lightning_bolt_,
+spread_blood_pool_, draw_visible_characters_, load/swap_balma_area_map_,
+think_alarm_reaction_, proc_misc_bonfire_, BLOOD_POOL_MODEL_,
+TANKA_SPRITES_. Construct work: DamageControl's damage cascade is case
+fallthrough; ten biased switches unbiased (Act handlers dispatch on
+real motion ids; two byte-required, mechanism-documented); range
+tricks unfolded where operands allow; redundant casts dropped; the
+function-cast and twin-arm constructs pinned against gcc 2.8.1's own
+jump.c/loop.c; the scratchpad casts and label loops proven original
+(lui+ori vs displacement; delay-slot fill prediction). Officials from
+the demo's PSX.SYM were never renamed — confusing ones carry
+clarifying comments at their definitions instead.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
