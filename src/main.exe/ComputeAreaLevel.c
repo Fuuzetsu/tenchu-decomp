@@ -93,9 +93,9 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
 
     yy = node->y;
 
-    if ((node->attribute & 0xC000) == 0x4000)
+    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
         goto case_4000;
-    if ((node->attribute & 0xC000) == 0x8000)
+    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
         goto case_8000;
     goto tail;
 

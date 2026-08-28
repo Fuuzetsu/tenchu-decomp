@@ -340,7 +340,7 @@ void BriefingAndInventorySelectionScreen(void)
             exec_process_(PROCESS_MENU);
             break;
         }
-        if (np == 0x800)
+        if (np == PADstart)
         {
             goto quit;
         }

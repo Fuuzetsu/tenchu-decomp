@@ -330,7 +330,7 @@ void briefing_screen_(void)
             fade_step = 8;
         }
 
-        if ((pad & (PADstart | PADselect)) == 0x900)
+        if ((pad & (PADstart | PADselect)) == (PADstart | PADselect))
         {
             for (i = 0; i < 0x14; i++)
             {
