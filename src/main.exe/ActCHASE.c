@@ -74,7 +74,7 @@ void ActCHASE(void)
 
         if (dtPAD & PADLup)
         {
-            if (Me_MOTION_C->attribute & 0x1000)
+            if (Me_MOTION_C->attribute & ATTR_LEDGE)
             {
                 short i;
 

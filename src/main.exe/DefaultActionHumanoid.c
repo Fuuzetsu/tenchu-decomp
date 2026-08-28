@@ -191,7 +191,7 @@ short DefaultActionHumanoid(Humanoid *human)
         {
             if ((map->attrib & MAP_DEATH) == 0)
             {
-                human->attribute |= 0x800;
+                human->attribute |= ATTR_NOFLOOR;
             }
             if (map->level != (s32)0x80000000)
             {
@@ -214,7 +214,7 @@ short DefaultActionHumanoid(Humanoid *human)
         human->attribute = attribute | 0x2000;
         if (map->height < -450)
         {
-            human->attribute = attribute | 0x3000;
+            human->attribute = attribute | 0x2000 | ATTR_LEDGE;
             locate->vy = map->level;
         }
         else if (map->height < 0)

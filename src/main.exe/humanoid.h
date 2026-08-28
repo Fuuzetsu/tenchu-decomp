@@ -50,15 +50,23 @@
  *                  trigger — wrong: the only setter is the object-collision
  *                  resolver). Cleared together with ATTR_FALL (& 0x7eff)
  *                  when the character stands on the object's top
- * Still unnamed (evidence too thin): 0x0010 (alarm-reaction, ActSTATE sets
- * 0x12 on body pickup), 0x0020 (gravity/collision exemption), 0x0200
- * (map->attrib & 2 head clamp), 0x0800 (no footing), 0x1000/0x2000 (wall
- * step/snap pair, set as | 0x3000 on deep wall contact). */
+ *   ATTR_NOFLOOR   0x0800 — nothing solid underfoot: the resolver raises
+ *                  it in the no-footing branch; damage taken with it (or
+ *                  below ground level) switches to the falling-damage
+ *                  motion, and ActSTATE's fall handler branches on it
+ *   ATTR_LEDGE     0x1000 — climbable ledge ahead: set (with 0x2000) on
+ *                  deep low wall contact; pressing forward with it up
+ *                  starts the 0x801 climb motion (ActCHASE/ActNORMAL)
+ * Still unnamed, set-only (no reader found): 0x0200 (map->attrib & 2
+ * buoyancy clamp) and 0x2000 (raised on every wall contact; only its
+ * 0x3000 composite with ATTR_LEDGE distinguishes depth). */
 #define ATTR_SEARCH 0x0010
 #define ATTR_FLOAT 0x0020
 #define ATTR_ALERT 0x0040
 #define ATTR_SUSPEND 0x0080
 #define ATTR_FALL 0x0100
+#define ATTR_NOFLOOR 0x0800
+#define ATTR_LEDGE 0x1000
 #define ATTR_WALL 0x0400
 #define ATTR_HIT 0x4000
 #define ATTR_PUSH 0x8000

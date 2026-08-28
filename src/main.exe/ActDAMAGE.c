@@ -99,7 +99,7 @@ void ActDAMAGE(void)
         {
             dtV->vy = (dtM->count - dtM->motion->time) * 6;
         }
-        if ((*(u16 *)&Me_MOTION_C->attribute & 0x800) ||
+        if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
             motID = 0x1007;
@@ -144,7 +144,7 @@ void ActDAMAGE(void)
         {
             dtV->vy = (dtM->count - dtM->motion->time) * 6;
         }
-        if ((*(u16 *)&Me_MOTION_C->attribute & 0x800) ||
+        if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
             motID = 0x1008;

@@ -265,7 +265,7 @@ void ActSTATE(void)
             Humanoid *human;
 
             human = Me_MOTION_C;
-            if ((human->attribute & 0x800) == 0 && human->map.height > 0)
+            if ((human->attribute & ATTR_NOFLOOR) == 0 && human->map.height > 0)
             {
                 goto grounded_fall;
             }
