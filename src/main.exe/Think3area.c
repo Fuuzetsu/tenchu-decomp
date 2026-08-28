@@ -135,7 +135,7 @@ s16 Think3area(void)
 
         if (degree < 100)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 0x21);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
         }
         else if (degree < 1000)
         {

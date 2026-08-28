@@ -20,7 +20,7 @@
  *    copied into opad (`opad = trig;`, $s2) which the rest of the body reads:
  *    two registers holding one value = an explicit source copy (cc1 never
  *    splits live ranges).
- *  - `cur == (START | SELECT)` and the call argument share one sign-extension
+ *  - `cur == (PADstart | PADselect)` and the call argument share one sign-extension
  *    of cur, CSE'd into callee-saved $s0 because it lives across
  *    return_to_menu_().
  *  - com is int, not short: the combo matcher's short return is extended
@@ -49,7 +49,7 @@
  *    and the sh through Owner->life kills cse's memory equivalence, which is
  *    exactly the original's reload pattern.
  *  - The unpause wait is the cookbook's top-test shape:
- *    while(1) { if (!(GetRealPad(0) & START)) break; VSync(2); }.
+ *    while(1) { if (!(GetRealPad(0) & PADstart)) break; VSync(2); }.
  */
 #include "item.h"
 #include "padcmd.h"
@@ -96,11 +96,6 @@ extern void SsSetMVol(int voll, int volr);
 
 void PauseProc(void)
 {
-    enum
-    {
-        START = 2048,
-        SELECT = 256
-    };
     s16 pad;
     s16 cur;
     s16 opad;
@@ -114,7 +109,7 @@ void PauseProc(void)
     pad = GetPad(0);
     i = 0;
     cnt = 0;
-    if (((pad & START) && !(SystemFlag & SYSFLAG_PAUSE)) || get_pad_active_(0) == 0)
+    if (((pad & PADstart) && !(SystemFlag & SYSFLAG_PAUSE)) || get_pad_active_(0) == 0)
     {
         SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~0x10;
         SoundEx((VECTOR *)0, 9);
@@ -132,12 +127,12 @@ void PauseProc(void)
         cur = GetPad(0);
         trig = cur & (cur ^ opad);
         opad = trig;
-        if (cur == (START | SELECT))
+        if (cur == (PADstart | PADselect))
             return_to_menu_();
         com = check_for_known_button_combination(cur, trig);
         if (CamState.Owner->status == STAT_ATTACK && CamState.Owner->motion->mid > 0x713)
             com = 0;
-        if (com == 0x10)
+        if (com == CHEAT_REVIVE)
         {
             if (CamState.Owner->status != STAT_DEAD)
             {
@@ -154,17 +149,17 @@ void PauseProc(void)
             }
             continue;
         }
-        if (com == 0x1000)
+        if (com == CHEAT_DEBUG_MENU)
         {
             SystemFlag = SystemFlag | SYSFLAG_DEBUGMODE;
             SoundEx((VECTOR *)0, 10);
             break;
         }
-        if (opad & START)
+        if (opad & PADstart)
         {
             while (1)
             {
-                if (!(GetRealPad(0) & START))
+                if (!(GetRealPad(0) & PADstart))
                     break;
                 VSync(2);
             }
@@ -172,7 +167,7 @@ void PauseProc(void)
             SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
             break;
         }
-        if ((opad & SELECT) && (SystemFlag & SYSFLAG_DEBUGMODE))
+        if ((opad & PADselect) && (SystemFlag & SYSFLAG_DEBUGMODE))
         {
             SystemFlag = SystemFlag | 0x10;
             break;
@@ -190,7 +185,7 @@ void PauseProc(void)
         }
         if ((SystemFlag & (SYSFLAG_DEBUGMODE | 0x10)) !=
                 (SYSFLAG_DEBUGMODE | 0x10) ||
-            (pad & START))
+            (pad & PADstart))
             DrawPause(cnt);
         VSync(2);
         cnt++;

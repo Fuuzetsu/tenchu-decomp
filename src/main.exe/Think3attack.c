@@ -135,7 +135,7 @@ s16 Think3attack(void)
         {
             if (atkd[idx] - 1000 < Distance)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 0x21);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
                 goto action_ready;
             }
         }
@@ -184,7 +184,7 @@ s16 Think3attack(void)
     {
         goto use_item;
     }
-    pad = SetCommand(&Me_THINK_C->pad, 1);
+    pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
     goto action_ready;
 
 use_item:

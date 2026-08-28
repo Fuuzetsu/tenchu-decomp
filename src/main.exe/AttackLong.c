@@ -241,7 +241,7 @@ short AttackLong(void)
 
     if (degree < 50)
     {
-        pad = SetCommand(&Me_THINK_C->pad, 0x21);
+        pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
         goto return_pad;
     }
     else
@@ -253,19 +253,19 @@ short AttackLong(void)
         }
         if (ad > 50)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 4);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
             goto return_pad;
         }
         if (ad < -50)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 3);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
             goto return_pad;
         }
         if ((rand() & 1) != 0)
         {
             if ((rand() & 1) != 0)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 1);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
                 goto return_pad;
             }
             pad = PADRleft | PADRdown;

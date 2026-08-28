@@ -233,7 +233,7 @@ short AttackShort(void)
         {
             if (Distance < 1000)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 1);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
                 goto return_pad;
             }
             pad = PADLup;
@@ -243,7 +243,7 @@ short AttackShort(void)
         {
             goto return_pad;
         }
-        pad = SetCommand(&Me_THINK_C->pad, 0x21);
+        pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
         goto return_pad;
     }
 
@@ -319,12 +319,12 @@ short AttackShort(void)
             }
             if ((rand() & 1) != 0)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 1);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
                 goto return_pad;
             }
             if ((rand() & 1) != 0)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 0x21);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
                 goto return_pad;
             }
             ItemUse();
@@ -339,12 +339,12 @@ short AttackShort(void)
         {
             if (raw_degree >= 301)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 3);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
                 goto return_pad;
             }
             if (raw_degree < -300)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 4);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
                 goto return_pad;
             }
             if (Distance >= 1000)
@@ -366,15 +366,15 @@ short AttackShort(void)
         }
         if (Degree >= 101)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 4);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
             goto return_pad;
         }
         if (Degree < -100)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 3);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
             goto return_pad;
         }
-        pad = SetCommand(&Me_THINK_C->pad, 2);
+        pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_BACKWARD);
     }
 
 return_pad:

@@ -189,7 +189,7 @@ short AttackIndirect(void)
         }
         else if (Degree >= 101)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 4);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
         }
         else if (Degree < -200)
         {
@@ -197,7 +197,7 @@ short AttackIndirect(void)
         }
         else if (Degree < -100)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 3);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
         }
         else
         {

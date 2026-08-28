@@ -62,7 +62,7 @@ s16 Think3chase(void)
             }
             else if (Distance >= 0xBB9)
             {
-                result = SetCommand(&Me_THINK_C->pad, 0x21);
+                result = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
             }
             else
             {

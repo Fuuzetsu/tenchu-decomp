@@ -269,7 +269,7 @@ short AttackGeneral(void)
                     pad = PADRleft | PADRright;
                     goto return_pad;
                 case 2:
-                    pad = SetCommand(&Me_THINK_C->pad, 2);
+                    pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_BACKWARD);
                     goto return_pad;
                 case 3:
                     pad |= PADRleft;
@@ -291,7 +291,7 @@ short AttackGeneral(void)
             }
             if ((rand() & 1) != 0)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 1);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
                 goto return_pad;
             }
 
@@ -302,7 +302,7 @@ short AttackGeneral(void)
             }
             if (degree < 500)
             {
-                pad = SetCommand(&Me_THINK_C->pad, 0x21);
+                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
                 goto return_pad;
             }
             ItemUse();
@@ -315,12 +315,12 @@ short AttackGeneral(void)
         }
         if (Degree >= 101)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 4);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
             goto return_pad;
         }
         if (Degree < -100)
         {
-            pad = SetCommand(&Me_THINK_C->pad, 3);
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
             goto return_pad;
         }
         goto return_pad;
