@@ -71,6 +71,10 @@ extern void DrawBleed(TEffectSlot *ef);
  */
 void DrawGore(TEffectSlot *ef)
 {
+    enum
+    {
+        R = 60
+    };
     BloodType *param;
     GsSPRITE *spr;
     GsSPRITE *spr2;
@@ -302,14 +306,14 @@ void DrawGore(TEffectSlot *ef)
 
         memset(&scratch.bleed.temporary.position, 0, sizeof(VECTOR));
         random_x = rand();
-        bleed_x = param->px - 60;
-        scratch.bleed.temporary.position.vx = bleed_x + random_x % 120;
+        bleed_x = param->px - R;
+        scratch.bleed.temporary.position.vx = bleed_x + random_x % (R * 2);
         random_y = rand();
-        bleed_y = param->py - 60;
-        scratch.bleed.temporary.position.vy = bleed_y + random_y % 120;
+        bleed_y = param->py - R;
+        scratch.bleed.temporary.position.vy = bleed_y + random_y % (R * 2);
         random_z = rand();
-        bleed_z = param->pz - 60;
-        scratch.bleed.temporary.position.vz = bleed_z + random_z % 120;
+        bleed_z = param->pz - R;
+        scratch.bleed.temporary.position.vz = bleed_z + random_z % (R * 2);
         scratch.bleed.position = scratch.bleed.temporary.position;
         temporary = &scratch.bleed.temporary.velocity;
         memset(&scratch.bleed.temporary.velocity, 0, sizeof(SVECTOR));

@@ -7,12 +7,12 @@ extern s32 abs(s32 value);
 /*
  * Naming: retail added this pair after the demo build. SetSnow is called only
  * by ProcMiscSnowfall and installs this callback; this body advances exactly
- * those snow-particle fields and draws the dedicated sprite. The unused
+ * those snow-param fields and draws the dedicated sprite. The unused
  * SetSnow/DrawSnow pair follows every surrounding EffectSlot setter/callback.
  */
-void DrawSnow(TEffectSlot *effect)
+void DrawSnow(TEffectSlot *ef)
 {
-    SnowParticleType *particle;
+    SnowParticleType *param;
     Sprite3D *model;
     GsSPRITE *sprite;
     SVECTOR screen;
@@ -30,9 +30,10 @@ void DrawSnow(TEffectSlot *effect)
     s32 size;
     s16 scale;
     s16 depth;
+    s16 otz;
     s32 priority;
 
-    particle = &effect->param.snow;
+    param = &ef->param.snow;
     view_x = ViewInfo.vrx;
     view_y = ViewInfo.vry;
     view_z = ViewInfo.vrz;
@@ -41,22 +42,22 @@ void DrawSnow(TEffectSlot *effect)
         s16 velocity_z;
         s16 velocity_y;
 
-        x = particle->x;
-        y = particle->y;
-        velocity_x = particle->velocity[0];
-        z = particle->z;
-        velocity_y = particle->velocity[1];
+        x = param->x;
+        y = param->y;
+        velocity_x = param->velocity[0];
+        z = param->z;
+        velocity_y = param->velocity[1];
         x += velocity_x;
         y += velocity_y;
-        velocity_z = particle->velocity[2];
-        ground = particle->ground;
+        velocity_z = param->velocity[2];
+        ground = param->ground;
         z += velocity_z;
     }
     state = 0;
 
     if (ground < y)
     {
-        effect->proc = 0;
+        ef->proc = 0;
         return;
     }
 
@@ -84,21 +85,24 @@ void DrawSnow(TEffectSlot *effect)
 
     if (state != 0)
     {
-        state = GetAreaMapLevel(GlobalAreaMap, x, particle->sample_y, z, 8);
+        /* Retail reuses the rewrap flag's register for the ground query
+         * (a fresh local, or reusing `ground`, re-colors a pseudo --
+         * measured). */
+        state = GetAreaMapLevel(GlobalAreaMap, x, param->sample_y, z, 8);
         if (state < y)
         {
-            effect->proc = 0;
+            ef->proc = 0;
             return;
         }
-        particle->ground = state;
+        param->ground = state;
     }
 
-    particle->x = x;
-    particle->y = y;
-    particle->z = z;
-    model = SpriteSnow[particle->sprite];
+    param->x = x;
+    param->y = y;
+    param->z = z;
+    model = SpriteSnow[param->sprite];
     sprite = &model->sprite;
-    size = particle->size;
+    size = param->size;
     GetScreenPosition(x, y, z, &screen);
     depth = screen.vz;
     if (depth > 0x24)
@@ -108,13 +112,13 @@ void DrawSnow(TEffectSlot *effect)
         sprite->scalex = scale;
         sprite->x = screen.vx;
         sprite->y = screen.vy;
-        depth = (s16)(u16)screen.vz >> 2;
-        if (depth >= 0)
+        otz = (s16)(u16)screen.vz >> 2;
+        if (otz >= 0)
         {
-            priority = 0x4e1;
-            if (depth < DEPTH_LIMIT)
+            priority = DEPTH_LIMIT - 1;
+            if (otz < DEPTH_LIMIT)
             {
-                priority = depth;
+                priority = otz;
             }
         }
         else

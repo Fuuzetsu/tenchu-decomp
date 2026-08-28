@@ -161,7 +161,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         impact = &ef->param.impact;
         impact->py = rotated[1].vy;
         final_py = rotated[1].vz;
-        impact->rotate_speed = 0x50;
+        impact->rotate_speed = 80;
         impact->start_size = 0x2000;
         impact->end_size = 0x2000;
         impact->time = 3;

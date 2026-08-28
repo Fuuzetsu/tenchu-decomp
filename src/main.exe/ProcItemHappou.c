@@ -136,7 +136,7 @@ void ProcItemHappou(TItem *item)
     {
         if (mode == 1 && param->fly.p.koro.status != KORO_NORMAL)
         {
-            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
+            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, 0xffff00);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
             if (item->proc != 0)
             {

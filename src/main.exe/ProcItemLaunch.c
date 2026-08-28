@@ -144,7 +144,7 @@ void ProcItemLaunch(TItem *item)
     switch (param->fly.p.koro.status)
     {
     case KORO_WALL:
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x19, 0xa, 0xa, 0xffff00);
+        SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, 0xffff00);
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
         reset_alert_duration();
         return;

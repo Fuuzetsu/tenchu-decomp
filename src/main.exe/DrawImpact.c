@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -224,7 +225,6 @@
  * does this for GLOBAL allocnos) would have made this cross-check one call
  * instead of hand-correlating cc1says --pass lreg against the raw dump.
  */
-#include "effect.h"
 
 void DrawImpact(TEffectSlot *ef)
 {

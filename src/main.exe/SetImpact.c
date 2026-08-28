@@ -75,7 +75,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     int count;
     TEffectSlot *ef;
     ImpactType *param;
-    long py;
+    long pz;
 
     r = rand();
     spd = r % 90 + 90;
@@ -112,7 +112,7 @@ found:
     ef->param.impact.px = pos->vx;
     param = &ef->param.impact;
     param->py = pos->vy;
-    py = pos->vz;
+    pz = pos->vz;
     param->super = 0;
     param->rotate = 0;
     param->rotate_speed = spd;
@@ -123,5 +123,5 @@ found:
     param->time = 15;
     param->count = 0;
     param->type = type;
-    param->pz = py;
+    param->pz = pz;
 }
