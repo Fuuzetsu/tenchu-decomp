@@ -116,7 +116,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *  - GetAbsolutePosition's third arg is (short)-converted at the call site
  *    (sll/sra interleaved into the pointer chain); set_impact_ex_'s rot arg is
  *    an s16 param (sll/sra, not andi — prototype changed in this TU), and its
- *    `rand() % 0x168` is precomputed into a temp so the 0xB60B60B7 magic pair
+ *    `rand() % 360` is precomputed into a temp so the 0xB60B60B7 magic pair
  *    forms before the 0xDCDCDC pair.
  *  - The exit block loads dtV INSIDE the mid==0x300/0x302 arm; the pad.time
  *    identical-arm fence was scaffolding and is gone.

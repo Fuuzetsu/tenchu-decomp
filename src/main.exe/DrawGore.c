@@ -285,7 +285,8 @@ void DrawGore(TEffectSlot *ef)
                 param->rotate = 0;
                 r = rand();
                 param->sprite += 2;
-                param->scale = r % 0x2ab + 0x555;
+                /* random scale in [1/3, 1/2) of 4.12 one */
+        param->scale = r % 0x2ab + 0x555;
             }
             param->mode = 1;
             param->time = rand() % 10;

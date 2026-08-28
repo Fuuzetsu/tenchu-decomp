@@ -169,7 +169,7 @@ void ProcItemGosin(TItem *item)
         scratch.v = vec_y_n1200_z_400;
         set_impact_ex_(&scratch.v, &item->owner->model->locate,
                        0x1000, 0x6000, 0x808080, 0,
-                       (s16)(rand() % 0x168), 2, 0x78, 4);
+                       (s16)(rand() % 360), 2, 0x78, 4);
         return;
     }
     }
