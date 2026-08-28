@@ -494,6 +494,17 @@ ranges overlap; ry-as-abs was refuted earlier; twin SetNowMotion calls
 are +4 bytes). A decomp-permuter run over the flat variant is searching
 the remaining space in the census worktree (scratchpad/permute-dah.log).
 
+DAH ENDGAME CLOSED (2026-08-29): the score-10 permuter candidate from
+the earlier run repaired the flat variant's allocation by adding a dead
+`i = (i > 0) ? (i - 0x1000) : (i + 0x1000);` -- proof that only extra
+refs on the starved pseudo fix the assignment, and that any CODE
+carrier leaves its own bytes behind (the residual 10 = the dead
+statement itself). The unique zero-code carrier in cc1 2.8.1 is
+note-based loop ref-weighting, i.e. the do-while(0) tower family. The
+original source necessarily contained a construct that reduces to it
+(nested statement macros were the period idiom). The tower stays, fully
+documented in the file; no further endgame experiments planned.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's

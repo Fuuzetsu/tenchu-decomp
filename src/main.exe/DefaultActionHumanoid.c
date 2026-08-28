@@ -72,6 +72,17 @@
  * (liveness-legal, +4 natural refs) perturbs two allocnos at once --
  * no tower depth 9-14 rebalances it (13 under by the s0/s1 class,
  * 14 over by a different pair).
+ * ENDGAME CLOSED (2026-08-29): the cliff arithmetic caps every natural
+ * refactor -- zz needs floor_log2(r)*r/live > 0.9701 (34 refs at <=167
+ * live) and in-place reuse tops out around 28/169; the permuter's best
+ * flat candidate repaired the allocation with a DEAD compute on the
+ * starved pseudo, which fixes the registers but emits its own
+ * instructions (score stalls at the dead code's size). A zero-code ref
+ * amplifier is required, and in cc1 2.8.1 only note-based loop
+ * weighting -- the do-while(0) family -- adds refs without emitting a
+ * single byte. Whatever the 1998 source spelled (statement macros
+ * expanding to one-shot wrappers being the period idiom), it reduced to
+ * exactly this construct.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
