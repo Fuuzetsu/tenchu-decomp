@@ -381,13 +381,13 @@ void ActSTATE(void)
             }
             if (Me_MOTION_C == StagePlayer)
             {
-                /* The value-typed cast is load-bearing, but NOT as an
-                 * indirect call (retail emits a plain jal — an earlier note
-                 * claimed jalr and was wrong). Typing this one call as a
-                 * call_value blocks jump2's cross-jump from merging its tail
-                 * with the identical SetCameraMode(0) tail nearby, which
-                 * retail keeps separate. See ActATTACK's DeleteConflict case
-                 * for the full analysis. */
+                /* The value-typed cast is load-bearing: gcc 2.8.1's
+                 * find_cross_jump compares CALL_INSN_FUNCTION_USAGE plus the
+                 * pattern code, and every sibling SetCameraMode(0) call has
+                 * identical 1-arg usage — only value-typing (call_value vs
+                 * call) makes this one unmergeable. Retail emits a plain jal —
+                 * an earlier note claiming jalr was wrong. See ActATTACK's
+                 * DeleteConflict case for the two-partner analysis. */
                 ((s16 (*)(s32))SetCameraMode)(CMODE_NORMAL);
             }
             {

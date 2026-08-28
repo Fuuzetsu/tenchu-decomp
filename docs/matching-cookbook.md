@@ -558,11 +558,16 @@ negated. Everything else here is corollaries:
   rtx-unequal to the sibling void calls, so jump2 cannot merge its
   `[jal; j end]` tail with an identical sibling's (ActATTACK's hand_kind
   dispatch keeps three identical DeleteConflict tails separate; ActSTATE's
-  SetCameraMode likewise). Verified against the retail bytes — the demo build
-  has no such construct (plain jal everywhere), and an earlier in-repo note
-  claiming the cast forced a jalr was wrong. Blockers that do NOT work: extra
-  arguments (not part of call-insn identity), and a block-scope conflicting
-  extern (cc1 errors). The cast is the minimal C construct.
+  SetCameraMode likewise). Verified against the retail bytes AND gcc 2.8.1's
+  own jump.c: find_cross_jump compares CALL_INSN_FUNCTION_USAGE (the
+  argument-register use list) plus the pattern code, so an argument-COUNT
+  asymmetry blocks a merge against one partner — but a call with two
+  potential partners of different arities (ActATTACK: default's 1-arg
+  fallthrough AND case 3's 2-arg jump, both measured) can only differ from
+  both via the pattern code, i.e. value-typing (call_value vs call) — the
+  cast. The demo build has no such construct (plain jal everywhere); an
+  earlier in-repo note claiming the cast forced a jalr was wrong, and a
+  block-scope conflicting extern is a cc1 error.
 - **Biased switches usually unbias**: a draft's `switch ((s16)(X - K))`
   with rebased case labels almost always compiles identically as plain
   `switch (X)` with the real case values — cc1's expand_case subtracts the

@@ -51,15 +51,18 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
                 if ((u16)entry[1] == outer_end)
                     goto matched;
 
-                /* Identical arms, and byte-required (measured both ways):
-                 * the CONDITIONAL assignment survives loop.c's invariant
-                 * motion, so inner_end's `li 0xffff` re-materializes inside
-                 * the outer loop exactly where retail has it; jump threading
-                 * later folds the branch and the dead [1] read away. A plain
-                 * assignment gets hoisted (12B off), and literal 0xffff
-                 * comparisons let cse unify the two end-marker constants
-                 * into ONE register where retail keeps two (t3 outer, t1
-                 * inner). No demo homolog exists to consult. */
+                /* Identical arms, and byte-required (measured both ways,
+                 * then pinned against gcc 2.8.1's own sources): retail keeps
+                 * TWO 0xffff registers (t3 outer, t1 inner), and cse1 unifies
+                 * any straight-line `inner_end = 0xffff` — or literal
+                 * comparisons — with outer_end's constant into one. The
+                 * conditional's join makes inner_end's value flow-dependent,
+                 * which is the only thing that hides the constant from cse
+                 * (loop.c could not hoist it anyway: a REG_USERVAR set past
+                 * the matched-exit jump is maybe_never and fails all three
+                 * movability clauses). A ternary folds at tree level and
+                 * fails the same way; jump threading later deletes the
+                 * branch and the dead [1] read. No demo homolog exists. */
                 if (RECENTLY_PRESSED_BUTTONS[1] != 0)
                     inner_end = 0xffff;
                 else

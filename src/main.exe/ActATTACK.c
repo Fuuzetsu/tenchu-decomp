@@ -931,15 +931,18 @@ dispatch:
             {
             case WEP_ONININ:
                 DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);
-                /* The value-typed cast is load-bearing, but NOT as an indirect
-                 * call (retail emits a plain jal here — an earlier note claimed
-                 * jalr and was wrong). It makes this the one call_value insn
-                 * among the DeleteConflict calls, which blocks jump2's
-                 * cross-jump from merging this tail's [jal; j end] with case
-                 * 3's identical pair (retail keeps all three tails separate).
-                 * A 2-arg spelling does not block the merge (args are not part
-                 * of call-insn identity), and a block-scope `extern s16
-                 * DeleteConflict();` is a conflicting-types error. */
+                /* The value-typed cast is load-bearing, and gcc 2.8.1's own
+                 * jump.c proves it is the ONLY C-level escape: find_cross_jump
+                 * compares CALL_INSN_FUNCTION_USAGE (the argument-register use
+                 * list) plus the pattern code. This call has two potential
+                 * merge partners — default's 1-arg call (the fallthrough
+                 * before the join label; measured: plain 1-arg merges into it)
+                 * and case 3's 2-arg call (measured: a hand_kind 2-arg
+                 * spelling merges with that one instead). No argument shape
+                 * differs from both at once; only the pattern code does, and
+                 * value-typing this call (call_value vs call) is how. Retail
+                 * emits a plain jal — an earlier note claiming jalr was
+                 * wrong. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[0xb]);
                 break;
             case WEP_BEAST:
