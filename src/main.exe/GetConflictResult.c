@@ -98,6 +98,12 @@
  *    delta).
  */
 
+/* index -1 walks the slot's result[] for the next unconsumed overlap,
+ * marking it CONFLICT_CONSUMED and returning the partner's slot id —
+ * giving up after offset.pad hits (the SVECTOR pad field doubling as
+ * the per-wave hit budget). A non-negative index reads that specific
+ * partner entry directly (DamageControl). -1 = no slot, conflict
+ * inactive, or nothing left. */
 short GetConflictResult(ModelType *model, short index)
 {
     short idx;

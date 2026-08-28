@@ -469,6 +469,7 @@ struct BattleType
  *   CONFLICT_STAND — the object's top can be stood on (resolver snaps the
  *                    character up and clears ATTR_PUSH | ATTR_FALL)
  *   CONFLICT_SOFT  — never pushes the character out (doors, sleep gas)
+ * offset.pad doubles as GetConflictResult's per-wave hit budget.
  * result[] entries carry the partner's class bits plus:
  *   CONFLICT_LIVE     — overlap recorded this frame (ComputeAllConflict)
  *   CONFLICT_CONSUMED — already returned once by GetConflictResult */
