@@ -343,7 +343,7 @@ GP_EXTERNS = {
     "load_balma_area_map_": ["GlobalAreaMap", "FieldIndex", "BalmaAreaMap", "FieldArea"],
     "publish_ground_point_": ["Me_MOTION_C", "dtL"],
     "init_score_stats": ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"],
-    "is_character_state_present_on_stage_": ["Humans"],
+    "is_humanoid_on_stage_": ["Humans"],
     "Think2contact": ["Attrib", "Me_THINK_C", "Degree"],
     "draw_visible_characters_": ["VISIBLE_ENEMIES_"],
     "turn_towards_player_": ["Me_THINK_C", "Degree", "Attrib", "ProbeLevelLow"],

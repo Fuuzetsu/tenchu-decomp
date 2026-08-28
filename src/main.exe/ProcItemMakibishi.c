@@ -76,7 +76,7 @@
  * END PSX.SYM */
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
-extern s32 is_character_state_present_on_stage_(Humanoid *h);
+extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemMakibishi(TItem *item)
 {
@@ -145,7 +145,7 @@ void ProcItemMakibishi(TItem *item)
             i = -1;
         else
             i = GetConflictResult(item->locate, -1);
-        if (i != -1 && is_character_state_present_on_stage_(ConflictObject[i].common) != 0)
+        if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 0x14, 0xa, 0xf, 0x7f0000);
             SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);

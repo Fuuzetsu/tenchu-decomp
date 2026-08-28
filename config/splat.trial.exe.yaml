@@ -226,7 +226,7 @@ segments:
       - [0x1c548, c, FUN_8002cd48]
       - [0x1c5d4, c, draw_visible_characters_]
       - [0x1c6d8, c, GetHumanoid]
-      - [0x1c748, c, is_character_state_present_on_stage_]
+      - [0x1c748, c, is_humanoid_on_stage_]
       - [0x1c798, c, MoveHumanoid]
       - [0x1c8cc, c, GetMoveSpeed]
       - [0x1c998, c, GetDirection]

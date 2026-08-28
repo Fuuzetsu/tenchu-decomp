@@ -86,7 +86,7 @@
  */
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
-extern s32 is_character_state_present_on_stage_(Humanoid *h);
+extern s32 is_humanoid_on_stage_(Humanoid *h);
 /* The conflict pool (Ghidra: ConflictObject). */
 
 void ProcItemDrop(TItem *item)
@@ -164,7 +164,7 @@ void ProcItemDrop(TItem *item)
         if (i == -1)
             return;
         human = (Humanoid *)ConflictObject[i].common;
-        if (is_character_state_present_on_stage_(human) == 0)
+        if (is_humanoid_on_stage_(human) == 0)
             return;
         if (human->motion->mid == 0x810)
             return;

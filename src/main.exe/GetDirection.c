@@ -29,7 +29,7 @@
  * GetDirection (0x8002972c, 0x68 bytes) — angle-difference-to-target,
  * wrapped into [-0x800, 0x7FF] (a 0x1000/4096 = one full turn representation,
  * same units as SVECTOR rotation components). Same "Humanoid control" TU as
- * is_character_state_present_on_stage_.c; called by turn_towards_player_.
+ * is_humanoid_on_stage_.c; called by turn_towards_player_.
  *
  * Retail widened the demo's `short roty` parameter to s32. Giving the retail
  * definition a short parameter adds an absent sign-extension pair in the

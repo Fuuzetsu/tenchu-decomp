@@ -67,7 +67,7 @@ extern Humanoid *NINKEN_CHARACTER_PTR;
 extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void set_model_hide_(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, TThinkType think);
 extern void TurnAroundAllItems(Humanoid *human);
@@ -201,7 +201,7 @@ void ProcItemNinken(TItem *item)
         MapVector *map;
 
         create = 0;
-        if (is_character_state_present_on_stage_(NINKEN_CHARACTER_PTR) == 0 ||
+        if (is_humanoid_on_stage_(NINKEN_CHARACTER_PTR) == 0 ||
             GetHumanoid(0xa9) == 0)
         {
             create = 1;
@@ -279,7 +279,7 @@ void ProcItemNinken(TItem *item)
         u16 count;
         Humanoid *slave;
 
-        if (is_character_state_present_on_stage_(param->slave) == 0)
+        if (is_humanoid_on_stage_(param->slave) == 0)
         {
             if (item->proc != 0)
             {

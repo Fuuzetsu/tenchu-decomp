@@ -81,7 +81,7 @@
 
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
-extern s32 is_character_state_present_on_stage_(Humanoid *h);
+extern s32 is_humanoid_on_stage_(Humanoid *h);
 extern void reset_alert_duration(void);
 
 void ProcItemLaunch(TItem *item)
@@ -133,7 +133,7 @@ void ProcItemLaunch(TItem *item)
         cid = -1;
     else
         cid = GetConflictResult(item->locate, -1);
-    if (cid != -1 && is_character_state_present_on_stage_(ConflictObject[cid].common) != 0)
+    if (cid != -1 && is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
         SetImpact((VECTOR *)item->locate->locate.coord.t, 0x4000, 2);
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);

@@ -19,7 +19,7 @@ typedef union
 
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void reset_alert_duration(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -170,7 +170,7 @@ void ProcItemJirai(TItem *item)
             cid = GetConflictResult(item->locate, -1);
         }
         if (cid != -1 &&
-            is_character_state_present_on_stage_(
+            is_humanoid_on_stage_(
                 (Humanoid *)ConflictObject[cid].common) != 0)
         {
             s32 n;
@@ -240,7 +240,7 @@ void ProcItemJirai(TItem *item)
             s32 present;
 
             human = (Humanoid *)ConflictObject[cid].common;
-            present = is_character_state_present_on_stage_(human);
+            present = is_humanoid_on_stage_(human);
             do
             {
                 i = 0;

@@ -5,7 +5,7 @@
 
 extern SVECTOR svec_y_n150[];
 
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1sleep(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -220,7 +220,7 @@ void ProcItemNemuri(TItem *item)
         if (cid != dead)
         {
             human = (Humanoid *)ConflictObject[cid].common;
-            if (is_character_state_present_on_stage_(human) != 0 &&
+            if (is_humanoid_on_stage_(human) != 0 &&
                 human != item->owner)
             {
                 VECTOR random_pos;

@@ -82,7 +82,7 @@
  */
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
 
 void ProcItemArrow(TItem *item)
@@ -158,7 +158,7 @@ void ProcItemArrow(TItem *item)
             Humanoid *human;
 
             human = (Humanoid *)ConflictObject[cid].common;
-            if (is_character_state_present_on_stage_(human) != 0)
+            if (is_humanoid_on_stage_(human) != 0)
             {
                 if ((ConflictObject[cid].size.pad & 1) != 0)
                 {

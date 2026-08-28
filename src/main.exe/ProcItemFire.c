@@ -124,7 +124,7 @@ extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 extern SVECTOR svec_y_n30[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time);
 extern void reset_alert_duration(void);
 
@@ -293,7 +293,7 @@ void ProcItemFire(TItem *item)
             {
                 return;
             }
-            if (is_character_state_present_on_stage_(
+            if (is_humanoid_on_stage_(
                     (Humanoid *)ConflictObject[cid].common) == 0 &&
                 ConflictObject[cid].size.pad != 1)
             {
@@ -372,7 +372,7 @@ void ProcItemFire(TItem *item)
             Humanoid *human;
 
             human = (Humanoid *)ConflictObject[cid].common;
-            if (is_character_state_present_on_stage_(human) != 0)
+            if (is_humanoid_on_stage_(human) != 0)
             {
                 ModelType **objects;
                 ModelType *frame_model;

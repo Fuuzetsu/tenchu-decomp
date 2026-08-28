@@ -23,7 +23,7 @@
  * away (cookbook Loops/leResetEnemyLayout), leaving the textbook
  * bottom-test-only do-while shape; EffectSlot[i] strength-reduces to a
  * walking pointer automatically (same "write the indexed form" precedent as
- * is_character_state_present_on_stage_'s HumanGroup[i]).
+ * is_humanoid_on_stage_'s HumanGroup[i]).
  */
 
 void reset_effects_(void)

@@ -33,13 +33,13 @@
  * pointer array (length Humans) for the first entry whose `type` field
  * (item.h's Humanoid.type @0x00) matches `type`, returning that pointer (or
  * 0 if none). Same "Humanoid control" TU as
- * is_character_state_present_on_stage_.c/GetDirection.c/MoveHumanoid.c
- * (address-contiguous; is_character_state_present_on_stage_ sits immediately
+ * is_humanoid_on_stage_.c/GetDirection.c/MoveHumanoid.c
+ * (address-contiguous; is_humanoid_on_stage_ sits immediately
  * after this function at 0x800294dc and shares HumanGroup/Humans).
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - The loop counter `i` is `short`, NOT `int` like the sibling
- *    is_character_state_present_on_stage_'s `s32 i` (which strength-reduces
+ *    is_humanoid_on_stage_'s `s32 i` (which strength-reduces
  *    HumanGroup[i] to a walking +4 pointer). A short index instead
  *    recomputes the array byte-offset every iteration via a FUSED
  *    sign-extend+scale shift pair (`sll $v0,i,16` / `sra $v0,$v0,14`) —

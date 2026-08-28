@@ -3,15 +3,12 @@
 #include "item.h"
 
 /*
- * is_character_state_present_on_stage_ (0x800294dc, 0x50 bytes) — linear
- * search of the live HumanGroup[] pointer array (length Humans) for `cs`;
+ * is_humanoid_on_stage_ (0x800294dc, 0x50 bytes) — linear
+ * search of the live HumanGroup[] pointer array (length Humans) for `human`;
  * returns whether it was found. Same "Humanoid control" TU as MoveHumanoid.c
  * (address-contiguous with GetHumanoid/MoveHumanoid/GetDirection/etc.).
- * Cross-TU callers (ProcItemDrop.c etc.) declare it `s32 f(Humanoid *h)` —
- * this TU's own view of the object is `Humanoid` (Me_THINK_C's type
- * in main.exe.h); the parameter is never dereferenced here (pure pointer
- * compare), so the type choice is cosmetic, but kept consistent with the
- * rest of this batch.
+ * The parameter is never dereferenced here (pure pointer compare). The
+ * former name carried the retired "character_state" guess vocabulary.
  *
  * A plain `for` loop's entry test (i=0 < Humans, i.e. Humans>0) is
  * duplicated to the top by jump.c's duplicate_loop_exit_test, and the
@@ -25,13 +22,13 @@
  * pointer (+4 each iteration) automatically; write the indexed form.
  */
 
-s32 is_character_state_present_on_stage_(Humanoid *cs)
+s32 is_humanoid_on_stage_(Humanoid *human)
 {
     s32 i;
 
     for (i = 0; i < Humans; i++)
     {
-        if (HumanGroup[i] == cs)
+        if (HumanGroup[i] == human)
             break;
     }
     return i != Humans;

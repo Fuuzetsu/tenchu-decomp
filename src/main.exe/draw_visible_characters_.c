@@ -9,12 +9,12 @@
  * model archive (id = -i, per DrawAfterimage/DrawOrnament's existing
  * per-item-index convention), then draw any active weapon ornaments and
  * afterimage effects it currently has armed. Same "Humanoid control" TU as
- * is_character_state_present_on_stage_.c/GetDirection.c; called from CVArun
+ * is_humanoid_on_stage_.c/GetDirection.c; called from CVArun
  * and main (a per-frame render pass, not think-handler logic).
  *
  * `i` is a genuine s16 (matches m2c): re-widened via sll+sra at the top of
  * EVERY iteration for the index*4/index*2 address math and the negated
- * DrawModelArchive arg — unlike is_character_state_present_on_stage_'s s32
+ * DrawModelArchive arg — unlike is_humanoid_on_stage_'s s32
  * counter, a real s16 can't cache a wider extended copy across iterations.
  * VISIBLE_ENEMIES_ is reloaded fresh at the bottom test too (not hoisted
  * into a preheader register like Humans there) because this loop contains

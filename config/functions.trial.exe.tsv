@@ -179,7 +179,7 @@
 0x8002cd48	140	FUN_8002cd48
 0x8002cdd4	260	draw_visible_characters_
 0x8002ced8	112	GetHumanoid
-0x8002cf48	80	is_character_state_present_on_stage_
+0x8002cf48	80	is_humanoid_on_stage_
 0x8002cf98	308	MoveHumanoid
 0x8002d0cc	204	GetMoveSpeed
 0x8002d198	104	GetDirection

@@ -80,7 +80,7 @@
 
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
-extern s32 is_character_state_present_on_stage_(Humanoid *h);
+extern s32 is_humanoid_on_stage_(Humanoid *h);
 /* Ghidra/m2c call this D_80097F54; bound here under a fresh name via
  * config/symbols.main.exe.txt because the data.s-internal `glabel
  * D_80097F54` (and its neighbor SyurikenModel, also referenced by
@@ -156,7 +156,7 @@ void ProcItemHappou(TItem *item)
         i = -1;
     else
         i = GetConflictResult(item->locate, -1);
-    if (i != -1 && is_character_state_present_on_stage_(ConflictObject[i].common) != 0)
+    if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
     {
         SetImpact((VECTOR *)item->locate->locate.coord.t, 0x4000, 2);
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);

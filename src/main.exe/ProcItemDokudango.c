@@ -54,7 +54,7 @@
  * END PSX.SYM */
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1target(void);
 
 /*
@@ -82,7 +82,7 @@ void ProcItemDokudango(TItem *item)
         param_dokudango *restore;
 
         restore = param;
-        if (is_character_state_present_on_stage_(restore->eater) != 0 &&
+        if (is_humanoid_on_stage_(restore->eater) != 0 &&
             restore->org_think != 0)
         {
             restore->eater->think[0] = restore->org_think;
@@ -266,7 +266,7 @@ void ProcItemDokudango(TItem *item)
                 param_dokudango *restore;
 
                 restore = &item->param.dokudango;
-                if (is_character_state_present_on_stage_(restore->eater) != 0 &&
+                if (is_humanoid_on_stage_(restore->eater) != 0 &&
                     restore->org_think != 0)
                 {
                     restore->eater->think[0] = restore->org_think;
@@ -332,7 +332,7 @@ void ProcItemDokudango(TItem *item)
             MotionManager *motion;
             Humanoid *eater;
 
-            if (is_character_state_present_on_stage_(param->eater) == 0)
+            if (is_humanoid_on_stage_(param->eater) == 0)
             {
                 goto dispose_case3;
             }
@@ -372,7 +372,7 @@ void ProcItemDokudango(TItem *item)
 
                 human = eater;
                 restore = &item->param.dokudango;
-                if (is_character_state_present_on_stage_(restore->eater) != 0 &&
+                if (is_humanoid_on_stage_(restore->eater) != 0 &&
                     restore->org_think != 0)
                 {
                     restore->eater->think[0] = restore->org_think;
@@ -398,7 +398,7 @@ void ProcItemDokudango(TItem *item)
             Humanoid *human;
             s32 count;
 
-            if (is_character_state_present_on_stage_(param->eater) == 0)
+            if (is_humanoid_on_stage_(param->eater) == 0)
             {
                 goto dispose_case3;
             }

@@ -34,7 +34,7 @@
  *    and permute.py carry the mirrored per-function settings.
  */
 
-extern s32 is_character_state_present_on_stage_(Humanoid *human);
+extern s32 is_humanoid_on_stage_(Humanoid *human);
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -168,7 +168,7 @@ void ProcItemNapalm(TItem *item)
             Humanoid *human;
 
             human = (Humanoid *)ConflictObject[cid].common;
-            if (is_character_state_present_on_stage_(human) != 0)
+            if (is_humanoid_on_stage_(human) != 0)
             {
                 ModelType **objects;
                 ModelType *frame_model;
