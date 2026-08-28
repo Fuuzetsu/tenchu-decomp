@@ -4,14 +4,10 @@
 /*
  * InitPAD (0x80083440) — stock PsyQ libapi: tear down any existing pad
  * handler, patch the pad ISR under a critical section, hand the caller's four
- * buffers to PAD_init2, and record that the pad system is up.
+ * buffers to InitPAD2, and record that the pad system is up.
  *
  * All four parameters are cached in callee-saved registers across the six
- * argument-less calls, then replayed into PAD_init2.
- *
- * InitPAD (0x80083440) is the SAME function with one instruction different —
- * its final `jal` goes to 0x80083694 instead of PAD_init2 — so it is a
- * near-clone, not a separate job. Match this one and clone it.
+ * argument-less calls, then replayed into InitPAD2 (0x80083694).
  *
  * MATCHED, and the shape is load-bearing — do not "clean it up".
  *

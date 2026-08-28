@@ -40,7 +40,7 @@
 
 /*
  * ActSTATE (0x8002375c) — handles the humanoid state-motion family rooted at
- * 0x801: weapon draw/sheath cleanup, falls and landing reactions, and the
+ * 0x800: weapon draw/sheath cleanup, falls and landing reactions, and the
  * return to the normal standing motion.
  *
  * Matching notes (2,680 bytes / 670 instructions):

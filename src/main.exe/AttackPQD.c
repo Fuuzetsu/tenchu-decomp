@@ -29,8 +29,9 @@
  * matching motion-frame trigger (dtM->count, MotionManager's proven
  * `count` field) or a wildcard trigger (efrm == -1), draws the holstered
  * weapon at weapon[3] into weapon[0] (the active slot) and clears
- * weapon[3]; on the OTHER trigger frame (dtM->count == sfrm), holsters the
- * active weapon[0] into weapon[2] instead. Either swap plays a sound
+ * weapon[3]; on the OTHER trigger frame (dtM->count == sfrm), parks the
+ * active weapon[0] in weapon[3] and draws weapon[2] into the hand
+ * instead. Either swap plays a sound
  * (Sound(human, seid), seid=1 for draw / 0 for holster) — unless the
  * source slot was already empty, in which case it's a silent no-op.
  *

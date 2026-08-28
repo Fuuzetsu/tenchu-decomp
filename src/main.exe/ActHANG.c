@@ -37,13 +37,14 @@
 /*
  * ActHANG (0x80024748, 0x2bc bytes incl. jump table) — the ledge-hang action
  * state (MOTION.C's ActionFunc[] table). Motion ids 0xA00..0xA04: 0xA00
- * (hanging) climbs up while UP is held (raise dtL->vy by 100 until HangCheck
- * fails -> motion 0x803 falling), or starts a shimmy left (0xA02, LEFT) /
- * right (0xA03, RIGHT), or checks the ledge above (DOWN? 0x1000) via
+ * (hanging) drops while DOWN is held (raise dtL->vy by 100 until HangCheck
+ * fails -> motion 0x803 falling), or starts a shimmy (0xA02 on RIGHT,
+ * 0xA03 on LEFT), or on UP (PADLup) checks the ledge above via
  * GetAreaMapLevel before pulling up (0xA04); 0xA01 (reach) returns to 0xA00
- * when the motion runs out; 0xA02/0xA03 (shimmy) keep moving while LEFT/RIGHT
- * held else return to 0xA00, falling (0x803) if the grip breaks; 0xA04
- * (pull-up) ends in stand (0) or crouch (0x501, attribute & 0x40) and RETURNS
+ * when the motion runs out; 0xA02/0xA03 (shimmy) keep moving while the
+ * direction is held else return to 0xA00, falling (0x803) if the grip
+ * breaks; 0xA04 (pull-up) ends in stand (0) or the weapon-drawn engage
+ * stance (0x501, attribute & ATTR_ALERT) and RETURNS
  * (skipping the shared tail). Shared tail: ATTR_PUSH (shoved off the ledge)
  * knocks the character off the wall.
  *

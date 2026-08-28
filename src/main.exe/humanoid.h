@@ -73,7 +73,7 @@
  *                  motion, and ActSTATE's fall handler branches on it
  *   ATTR_LEDGE     0x1000 — climbable ledge ahead: set (with 0x2000) on
  *                  deep low wall contact; pressing forward with it up
- *                  starts the 0x801 climb motion (ActCHASE/ActNORMAL)
+ *                  starts the 0x801 climb motion (ActCHASE)
  *   ATTR_WALLANGLE 0x2000 — the movement probe recorded wall-deflection
  *                  angles (MapVector.angleL/angleH nonzero — the data the
  *                  swim/rope handlers steer along); +ATTR_LEDGE when that

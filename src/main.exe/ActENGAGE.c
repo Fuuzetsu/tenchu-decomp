@@ -26,7 +26,7 @@
  * END PSX.SYM */
 
 /*
- * ActENGAGE (0x80021270) — updates the player's engage movement and selects
+ * ActENGAGE (0x80021270) — updates a humanoid's engage movement and selects
  * the next command, jump, attack, or item-use motion.
  *
  * Matching notes (1,388 bytes / 347 instructions):

@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * GsMulCoord3 (0x800652fc) — stock PsyQ libgs, GsMulCoord2's sibling with two
+ * GsMulCoord3 (0x80065300) — stock PsyQ libgs, GsMulCoord2's sibling with two
  * deliberate differences (both verified in the asm, not assumed from the clone):
  *   - it composes via MulMatrix, not MulMatrix2;
  *   - it writes the summed translation back into m1 (`sw v0,20(s0)`), where
