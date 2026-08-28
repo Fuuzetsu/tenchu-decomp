@@ -41,6 +41,9 @@
 #define DMG_FIRE 30 /* also lightning */
 #define DMG_JIRAI 45
 
+/* Poisoned-bait attraction radius (world units). */
+#define DOKUDANGO_RANGE 10000
+
 /* Item effect durations, in frames. */
 #define SMOKE_DURATION 120    /* smoke-bomb cloud lifetime */
 #define SHINSOKU_DURATION 75  /* speed-potion boost length */

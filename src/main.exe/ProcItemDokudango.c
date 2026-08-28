@@ -167,7 +167,7 @@ void ProcItemDokudango(TItem *item)
                 return;
             }
             target = 0;
-            targetlen = 10000;
+            targetlen = DOKUDANGO_RANGE;
             q = &find;
             pos = (VECTOR *)item->locate->locate.coord.t;
             ownerlen = targetlen;
