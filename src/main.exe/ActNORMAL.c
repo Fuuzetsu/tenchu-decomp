@@ -135,6 +135,9 @@ void ActNORMAL(void)
     {
         int command;
 
+        /* A hand goto ladder, provably not a peeled-zero switch: the
+         * bodies lay out 1,2,3,0,4 — command 0's (non-case) body sits
+         * BETWEEN case bodies, which no switch emission can produce. */
         command = dtCMD;
         if (command == 0)
             goto command_0;
