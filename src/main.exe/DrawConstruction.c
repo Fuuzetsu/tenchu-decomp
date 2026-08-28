@@ -288,7 +288,7 @@ next_bucket:
     goto draw_bucket;
 
 draw_done:
-    if (GetPad(0) & 0x100)
+    if (GetPad(0) & PADselect)
     {
         FntPrint(str_map);
         FntPrint(fmt_objs_d, ndl, ndt);

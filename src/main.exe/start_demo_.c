@@ -231,7 +231,7 @@ void start_demo_(void)
             pad = GetRealPad(0);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
-            if ((new_press & 0x20) != 0 && GameClock < 0x23b)
+            if ((new_press & PADRright) != 0 && GameClock < 0x23b)
             {
                 state = 3;
                 gov_title.r = gov_title.g = gov_title.b = 0x80;
@@ -309,14 +309,14 @@ void start_demo_(void)
             GsSortSprite(&archive_line_3, OTablePt, 0x50);
         sort_prompt_and_handle_input:
             GsSortSprite(&gov_prompt, OTablePt, 0x50);
-            if ((new_press & 0x20) != 0)
+            if ((new_press & PADRright) != 0)
             {
                 do
                 {
                     state = 4;
                 } while (0);
             }
-            if ((new_press & 0x800) != 0 || GameClock >= 0xa8c)
+            if ((new_press & PADstart) != 0 || GameClock >= 0xa8c)
             {
                 do
                 {

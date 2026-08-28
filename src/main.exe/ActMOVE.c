@@ -135,12 +135,12 @@ void ActMOVE(void)
     u16 trig;
 
     trig = Me_MOTION_C->pad.trig;
-    if (trig & 0x40)
+    if (trig & PADRdown)
     {
         JumpControl();
         return;
     }
-    if (trig & 0x10)
+    if (trig & PADRup)
     {
         switch (SelectedItem)
         {
@@ -186,7 +186,7 @@ void ActMOVE(void)
         motMODE = 1;
         return;
     }
-    if (trig & 0x80)
+    if (trig & PADRleft)
     {
         motID = 0x80e;
         motMODE = 1;

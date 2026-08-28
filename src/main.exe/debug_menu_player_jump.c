@@ -76,7 +76,7 @@ void debug_menu_player_jump(void)
             pos.vy++;
     }
 
-    if (exit_pad & 0x800)
+    if (exit_pad & PADstart)
     {
     move_player:
         pos.vy = GetAreaMapLevel(GlobalAreaMap,

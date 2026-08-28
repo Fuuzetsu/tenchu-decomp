@@ -36,7 +36,7 @@
  * human->status). Two motion ids: 0xE00 (throw) spawns the shuriken item at
  * the weapon-hand model's absolute position on frame 1 (count == 1), or —
  * past that frame — holds the aim lock (spare_item_slot_) until it breaks or the
- * player cancels via pad.trig & 0xE0; 0xE01 (recover) restocks the AI's
+ * player cancels via pad.trig & (PADRleft | PADRdown | PADRright); 0xE01 (recover) restocks the AI's
  * shuriken (ReqItemDefault) and returns to motion 0 or 0x501 (attribute &
  * 0x40 = crouching?) when the motion runs out.
  *
