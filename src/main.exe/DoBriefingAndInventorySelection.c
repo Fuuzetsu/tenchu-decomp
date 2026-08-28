@@ -4,9 +4,17 @@
 
 /*
  * DoBriefingAndInventorySelection (0x800164e0, 0x8c bytes) — snapshot the
- * briefing screen's VRAM rect (_gp, a fixed canonical PsyQ RECT)
- * into a freshly valloc'd buffer via StoreImage2, run the briefing/inventory
- * screen, then restore the VRAM via LoadImage2 and free the buffer.
+ * briefing screen's VRAM rect into a freshly valloc'd buffer via
+ * StoreImage2, run the briefing/inventory screen, then restore the VRAM
+ * via LoadImage2 and free the buffer.
+ *
+ * The rect is addressed here as `_gp` only because the MIPS gp anchor
+ * happens to land exactly on this RECT object in sdata (0x80097698), and
+ * that reserved linker symbol is the one name the address already has.
+ * The original surely called it something like BriefRect; giving it its
+ * own symbol needs the normal-link lane to treat it as section-owned
+ * data rather than a pinned numeric alias of the gp anchor — parked in
+ * PLAN.md until the shiftability contract can express that.
  *
  * `r = _gp;` is the align-2 RECT struct-copy idiom (lwl/lwr +
  * swl/swr pairs, see UpdateOrnament.c's SVECTOR copy) — m2c mis-decodes the

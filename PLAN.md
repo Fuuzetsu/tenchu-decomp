@@ -472,6 +472,15 @@ offset-walk, comma-chain, pun-collapse). NEXT: another adversarial
 round with fresh lenses (data tables / dead code / doc accuracy), and
 the DAH demo-locals-inventory endgame remains open.
 
+PARKED (needs shiftability-contract work): the briefing VRAM RECT in
+DoBriefingAndInventorySelection.c is addressed as `_gp` because the gp
+anchor coincides with the RECT's sdata address; a truthful name needs
+a section-owned symbol in the normal lane, not a pinned numeric alias
+(CLAUDE.md forbids those). Also SKIPPED deliberately: the data-lens
+suggestion to CamelCase ALL_CAPS_/trailing-underscore globals -- that
+casing is the repo's marker for invented (non-PSX.SYM) names, and
+erasing it would lose provenance.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
