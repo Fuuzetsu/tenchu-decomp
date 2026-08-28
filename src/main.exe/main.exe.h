@@ -33,6 +33,22 @@ extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];
 #define MAX_ENEMIES 30
+/* models.arc slots (GetArcData indices) whose contents the code pins:
+ * each name is read off what the loaded entry becomes. Invented names. */
+enum
+{
+    ARC_SYURIKEN_MODEL = 0x14,
+    ARC_ARROW_MODEL = 0x15,
+    ARC_CARD_ICON1 = 0x16,
+    ARC_CARD_ICON2 = 0x17,
+    ARC_CARD_ICON3 = 0x18,
+    ARC_SHADOW_MODEL = 0x19,
+    ARC_HOOK_MODEL = 0x1A,
+    ARC_NINGYO_MODEL = 0x1B,
+    ARC_HAPPOU_MODEL = 0x1C,
+    ARC_BLOOD_POOL_MODEL = 0x1F
+};
+
 /* exec_process_ ids — which PS-X EXE boots next ("bad process id" is
  * the game's own error message; the value names are invented). */
 enum

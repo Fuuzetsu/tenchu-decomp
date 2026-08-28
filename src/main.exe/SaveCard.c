@@ -79,10 +79,10 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     sprintf(hd->Title, str_sjis_title);
     memset(hd->reserve, 0, sizeof(hd->reserve));
 
-    icon1 = (u8 *)GetArcData(0x16);
-    icon2 = (u8 *)GetArcData(0x17);
+    icon1 = (u8 *)GetArcData(ARC_CARD_ICON1);
+    icon2 = (u8 *)GetArcData(ARC_CARD_ICON2);
     chan = 0;
-    icon3 = (u8 *)GetArcData(0x18);
+    icon3 = (u8 *)GetArcData(ARC_CARD_ICON3);
     data = block + sizeof(TCardHeader);
     __builtin_memcpy(hd->Clut, icon1 + 0x14, sizeof(hd->Clut));
     __builtin_memcpy(hd->Icon[0], icon1 + 0x40, sizeof(hd->Icon[0]));

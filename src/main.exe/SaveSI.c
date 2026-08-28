@@ -147,9 +147,9 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         hd->BlockEntry = 1;
         sprintf(hd->Title, fmt_save_title, StageID + 1, name);
 
-        icon1 = (u8 *)GetArcData(0x16);
-        icon2 = (u8 *)GetArcData(0x17);
-        icon3 = (u8 *)GetArcData(0x18);
+        icon1 = (u8 *)GetArcData(ARC_CARD_ICON1);
+        icon2 = (u8 *)GetArcData(ARC_CARD_ICON2);
+        icon3 = (u8 *)GetArcData(ARC_CARD_ICON3);
         __builtin_memcpy(hd->Clut, icon1 + 0x14, sizeof(hd->Clut));
         dst = hd->Icon[0];
         src = icon1 + 0x40;
