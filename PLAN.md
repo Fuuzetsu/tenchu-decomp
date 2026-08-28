@@ -518,7 +518,17 @@ thresholds (rand()%360, <1100), screen coordinates (-160/-120
 corners), doll HP 99. Extern cross-check unified six signatures and
 adjudicated the set_impact_ex_ s32 tails (negative-constant lever).
 Redundant (int) promotion casts trimmed (move-speed pair,
-subdivide_quad_ midpoints). Effect-family lens round pending.
+subdivide_quad_ midpoints). Effect-family lens round done: include placement, decimal
+stragglers, SetImpact pz, DrawSnow ef/param + otz split (flag reuse
+measured required), DrawGore enum R, FlyWire glosses.
+
+TUNING KNOBS (owner directive 2026-08-29): recurring quantities live
+in src/main.exe/tuning.h (via game_globals.h) as named defaults --
+SCREEN_W/H, DEPTH_LIMIT, EYE_HEIGHT, THROW_HEIGHT, CAMERA_EYE_HEIGHT,
+N_EFFECT_SLOTS, CHASE_WALK_SPEED, SWIM_SPEED, GAME_OVER_TIMEOUT. Add
+new knobs there when a quantity recurs or is a gameplay lever; keep
+one-off frame counts inline. Changing a value deliberately fails
+./Build check (mod flow: ./Build mod).
 
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
