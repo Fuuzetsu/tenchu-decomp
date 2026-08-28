@@ -43,6 +43,10 @@
 #define TENCHU_MMIO_ADDRESS                   0x1f801000
 #define TENCHU_MMIO_SIZE                      0x00002000
 
+/* Per-use integer-constant casts (like PsyQ's own getScratchAddr) are
+ * byte-required: retail materialises these addresses as lui+ORI integer
+ * constants, while any struct/member spelling folds the offset into the
+ * access displacement instead (measured across the draw family). */
 #define TENCHU_SCRATCHPAD(offset) \
     (TENCHU_SCRATCHPAD_ADDRESS + (offset))
 
