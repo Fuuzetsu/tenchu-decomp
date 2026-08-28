@@ -484,13 +484,13 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
             selection = count - 1;
             break;
         }
-        if (trg & 0x1000)
+        if (trg & PADLup)
             i = -1;
-        else if (trg & 0x4000)
+        else if (trg & PADLdown)
             i = 1;
-        else if (trg & 0x8000)
+        else if (trg & PADLleft)
             i = -0x12;
-        else if (trg & 0x2000)
+        else if (trg & PADLright)
             i = 0x12;
         else
             i = 0;

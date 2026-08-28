@@ -269,7 +269,7 @@ nosel:
     PutLifeBar(-0x94, 0x69, CamState.Owner->life, CamState.Owner->lifemax, 0);
     PutLifeBarS();
     PutStrain(-0x86, 0x5C);
-    if ((GetPad(0) & 0x100) &&
+    if ((GetPad(0) & PADselect) &&
         (SystemFlag & (SYSFLAG_DEBUGPRINT | SYSFLAG_PAUSE)) == 0)
     {
         PutMap();

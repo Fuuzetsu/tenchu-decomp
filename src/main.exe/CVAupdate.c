@@ -258,7 +258,7 @@ s16 CVAupdate(void)
                         value = 0x501;
                     anim_base[i].motid = value;
 
-                    if (human->type == S2 && CVAnow->x == 0x1100)
+                    if (human->type == S2 && CVAnow->x == MOT_DEAD)
                         SoundEx(0, 0x41);
                 }
                 break;

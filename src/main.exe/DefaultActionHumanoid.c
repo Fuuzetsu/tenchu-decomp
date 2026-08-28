@@ -202,7 +202,7 @@ short DefaultActionHumanoid(Humanoid *human)
     ground_motion:
         if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
         {
-            SetNowMotion(human, 0x1100, 1);
+            SetNowMotion(human, MOT_DEAD, 1);
         }
     }
 
