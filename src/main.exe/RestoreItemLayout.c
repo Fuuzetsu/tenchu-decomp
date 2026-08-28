@@ -113,7 +113,7 @@ loop2:
         param = tmp;
 
         level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, one);
-        if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8)
+        if (level == sentinel || abs(level - param.locate.vy) >= 1000)
         {
             s32 k = 0;
             short *offs = DropOffsets;
@@ -124,7 +124,7 @@ loop2:
                 x = param.locate.vx + offs[0] * 1000;
                 z = param.locate.vz + offs[1] * 1000;
                 level = GetAreaMapLevel(GlobalAreaMap, x, param.locate.vy, z, one);
-                if (level == sentinel || abs(level - param.locate.vy) >= 0x3e8)
+                if (level == sentinel || abs(level - param.locate.vy) >= 1000)
                 {
                     offs += 2;
                     k++;

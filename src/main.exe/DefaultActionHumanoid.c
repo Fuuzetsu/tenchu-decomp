@@ -503,7 +503,7 @@ short DefaultActionHumanoid(Humanoid *human)
                                     } while (0);
                                     direction = 0x1003;
                                 } while (0);
-                                if (direction_abs < 0x44c)
+                                if (direction_abs < 1100)
                                 {
                                     direction = 0x1000;
                                 }

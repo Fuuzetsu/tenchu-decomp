@@ -127,7 +127,7 @@ found:
         x = p->end.vx;
         z = p->end.vz;
         param->vx = x;
-        param->vy = -0xfa;
+        param->vy = -250;
         param->vz = z;
         item->param.ninken.koro.hint = 0;
         param->status = KORO_NORMAL;

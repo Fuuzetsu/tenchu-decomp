@@ -196,7 +196,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         rot.vy = rot.vy + (r % (R * 2) - R);
         en = &p->end;
         SearchItemTarget2(p->user, &rot, pos, en);
-        SetupFly(&param->fly, pos, en, 0x1000, 0x400, 0x190);
+        SetupFly(&param->fly, pos, en, 0x1000, 0x400, 400);
         i++;
         ai = SetupAfterimage(item->locate, 10);
         param->effect = ai;
