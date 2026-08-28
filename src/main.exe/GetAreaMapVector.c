@@ -125,6 +125,9 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
         mvp->height = 0;
         if (!(mode & 4))
         {
+            /* TRIPLE identical arms, byte-required: collapsing to one body
+             * swaps the s7/s8 allocation (measured) — the extra flow joins
+             * are a CFG fence, same class as the twin arms (cookbook). */
             if (wide != 0)
             {
                 if (y != 0)
