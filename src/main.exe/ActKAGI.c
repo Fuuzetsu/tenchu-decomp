@@ -179,10 +179,10 @@ void ActKAGI(void)
             {
                 do
                 {
-                    *(u16 *)&model->object[i++]->attribute |= 1;
+                    *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
                 } while (i <= ry);
             }
-            *(u16 *)&model->object[0]->attribute |= 1;
+            *(u16 *)&model->object[0]->attribute |= MODEL_ATTR_HIDDEN;
             motID = MOT_SWIM;
             motMODE = 1;
             dtM->mask = 0x7fff;

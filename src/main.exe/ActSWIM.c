@@ -200,10 +200,10 @@ void ActSWIM(void)
 
                 attribute = (u16 *)&model->object[i++]->attribute;
                 attr = *attribute;
-                attr = attr & ~1;
+                attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[0]->attribute &= 0xfffe;
+            *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
             Sound(Me_MOTION_C, 0x15);
             return;
         }
@@ -258,10 +258,10 @@ void ActSWIM(void)
 
             attribute = (u16 *)&model->object[i++]->attribute;
             attr = *attribute;
-            attr = attr & ~1;
+            attr = attr & ~MODEL_ATTR_HIDDEN;
             *attribute = attr;
         }
-        *(u16 *)&model->object[0]->attribute &= 0xfffe;
+        *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
     }
 
     switch (SelectedItem)

@@ -86,10 +86,10 @@ void ActDAMAGE(void)
 
                 attribute = (u16 *)&model->object[i++]->attribute;
                 attr = *attribute;
-                attr = attr & ~1;
+                attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[0]->attribute &= 0xfffe;
+            *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -131,10 +131,10 @@ void ActDAMAGE(void)
 
                 attribute = (u16 *)&model->object[i++]->attribute;
                 attr = *attribute;
-                attr = attr & ~1;
+                attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[0]->attribute &= 0xfffe;
+            *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
