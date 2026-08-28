@@ -20,8 +20,8 @@
  * buttons through remap_buttons_ (a pad-processing helper, not yet named/
  * matched), clears them all if bit 0x100 is held while `SYSFLAG_DEBUGPRINT`
  * is set (a cheat/debug toggle), masks to the low 12 bits while the area
- * attribute bit 0x200 is set and the character is jumping/landing
- * (character_status 9 or 7), then remaps bit 3 to bit 5 (0x8 -> 0x20).
+ * attribute bit 0x200 is set and the character is jumping or attacking
+ * (STAT_JUMP 9 / STAT_ATTACK 7), then remaps bit 3 to bit 5 (0x8 -> 0x20).
  *
  * `Me_THINK_C->map.attrib` (game_types.h, field @0x28 — see its header
  * comment there) is proven by the raw `lhu` here; status is the shared

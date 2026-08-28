@@ -27,7 +27,8 @@
 /*
  * ActACTION (0x8001fb98) — controls action-motion cleanup and completion,
  * including weapon/afterimage teardown, replay transitions, sounds, and the
- * return to the normal or crouching motion.
+ * return to the normal motion, or to the weapon-drawn engage stance
+ * (0x501) when ATTR_ALERT is up.
  *
  * Matching notes (1,392 bytes / 348 instructions):
  *  - The one-shot loop around the dtM/Me_MOTION_C loads and mask store leaves

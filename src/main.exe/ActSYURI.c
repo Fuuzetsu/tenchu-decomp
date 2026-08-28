@@ -37,8 +37,8 @@
  * the weapon-hand model's absolute position on frame 1 (count == 1), or —
  * past that frame — holds the aim lock (spare_item_slot_) until it breaks or the
  * player cancels via pad.trig & (PADRleft | PADRdown | PADRright); 0xE01 (recover) restocks the AI's
- * shuriken (ReqItemDefault) and returns to motion 0 or 0x501 (attribute &
- * 0x40 = crouching?) when the motion runs out.
+ * shuriken (ReqItemDefault) and returns to motion 0 or the weapon-drawn
+ * engage stance (0x501, attribute & ATTR_ALERT) when the motion runs out.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `switch (dtM->mid)` (a real switch: sequential beqs + `j default`,

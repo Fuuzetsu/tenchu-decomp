@@ -2,9 +2,11 @@
 #include "main.exe.h"
 #include "item.h"
 
-/* Sleeping guard: wake into the damage flinch when the nap animation runs
- * out, clear the search request on a scripted action, and hand control to
- * the pursue logic when the alarm or the attribute alert bit is up. */
+/* Sleeping guard: when the nap animation runs out, feed ActNORMAL the
+ * AI-only PADLup|PADL2 chord that restarts the scripted nap action
+ * (MOT_ACTION); clear the search request while that action plays; and
+ * hand control to the pursue logic when the alarm is up or the guard is
+ * being shoved out of an object (ATTR_PUSH -- not the alert bit). */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
