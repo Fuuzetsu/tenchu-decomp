@@ -195,11 +195,11 @@ void ProcItemKaengeki(TItem *item)
 
         human = item->owner;
         buttons = human->pad.data;
-        if ((buttons & 0x2000) != 0)
+        if ((buttons & PADLright) != 0)
         {
             human->model->rotate.vy = human->model->rotate.vy + 0x20;
         }
-        else if ((buttons & 0x8000) != 0)
+        else if ((buttons & PADLleft) != 0)
         {
             human->model->rotate.vy = human->model->rotate.vy - 0x20;
         }

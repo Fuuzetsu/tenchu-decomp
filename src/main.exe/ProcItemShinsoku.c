@@ -251,14 +251,14 @@ void ProcItemShinsoku(TItem *item)
 
         human = item->owner;
         buttons = human->pad.data;
-        if ((buttons & 0x2000) != 0)
+        if ((buttons & PADLright) != 0)
         {
             model = human->model;
             rotate = 0x40;
             model->rotate.vy += rotate;
             RotateVectorS(&param->vec, 0, rotate, 0);
         }
-        else if ((buttons & 0x8000) != 0)
+        else if ((buttons & PADLleft) != 0)
         {
             model = human->model;
             rotate = -0x40;
