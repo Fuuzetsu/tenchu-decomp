@@ -266,7 +266,7 @@ void ProcItemNinken(TItem *item)
         param->slave->motion->count = 0;
         PlayMotion(param->slave->motion, 1);
         param->slave->attribute &= ~ATTR_SUSPEND;
-        param->slave->model->object[0]->attribute |= 0x4000;
+        param->slave->model->object[0]->attribute |= MODEL_ATTR_COLLIDE;
         set_model_hide_(param->slave, 0);
         param->slave->vector.vy = 0;
         item->mode++;

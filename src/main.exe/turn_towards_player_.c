@@ -104,7 +104,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     }
     if (adir < 500)
     {
-        result |= 0x1000;
+        result |= PADLup;
     }
     if (!(ATTRIB_BITS & 3))
     {
@@ -135,14 +135,16 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
                                      Me_THINK_C->locate->vy - 500,
                                      Me_THINK_C->locate->vz - local.vz,
                                      0x1a);
-                if ((result & 0x2000) && (d1 != cached))
+                /* pad_hold packs (button << 16) | frames: latch a 30-frame
+                 * sidestep toward the clearer flank. */
+                if ((result & PADLright) && (d1 != cached))
                 {
-                    d2 = 0x20000000;
+                    d2 = 0x20000000; /* PADLright << 16 */
                     goto apply;
                 }
-                if ((result & 0x8000) && (d2 != 0x80000000))
+                if ((result & PADLleft) && (d2 != 0x80000000))
                 {
-                    d2 = 0x80000000;
+                    d2 = 0x80000000; /* PADLleft << 16 */
                 apply:
                     d2 |= 0x1e;
                     Me_THINK_C->pad_hold = d2;
