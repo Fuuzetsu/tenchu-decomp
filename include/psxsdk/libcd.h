@@ -1,6 +1,16 @@
 #ifndef PSXSDK_LIBCD_H
 #define PSXSDK_LIBCD_H
 
+/* Official libcd.h drive-status bits (CdlSTAT). */
+#define CdlStatError 0x01
+#define CdlStatStandby 0x02
+#define CdlStatSeekError 0x04
+#define CdlStatIdError 0x08
+#define CdlStatShellOpen 0x10
+#define CdlStatRead 0x20
+#define CdlStatSeek 0x40
+#define CdlStatPlay 0x80
+
 #include <types.h>
 
 /* Minimal PsyQ 4.5 ABI declarations; see docs/psyq-headers.md. */

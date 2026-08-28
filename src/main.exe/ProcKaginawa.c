@@ -127,7 +127,7 @@ void ProcKaginawa(TItem *item)
     else
     {
         GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-        if (item->owner->pad.data & 0x10)
+        if (item->owner->pad.data & PADRup)
         {
             if (rx < 0)
                 GsSortSprite(TargetSprite, OTablePt, 0);

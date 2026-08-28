@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libcd.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -20,5 +21,5 @@
  */
 s32 CdaReady(void)
 {
-    return CdaStatus.status & 0x20;
+    return CdaStatus.status & CdlStatRead;
 }

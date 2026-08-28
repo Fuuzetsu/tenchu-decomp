@@ -115,7 +115,7 @@ void cbCheckCD(void)
         if (com == 0x11)
         {
             cs->CurPos = CdPosToInt(&scratch.second.loc);
-            if ((cs->status & 0x20) &&
+            if ((cs->status & CdlStatRead) &&
                 (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300))
             {
                 if (cs->mode == CDA_REPEAT)

@@ -74,7 +74,7 @@ void ProcItemTeleport(TItem *item)
         item->mode = 0;
         return;
     }
-    if ((item->owner->pad.data & 0x10) != 0)
+    if ((item->owner->pad.data & PADRup) != 0)
     {
         SetCameraMode(CMODE_SIGHT);
         GsSortSprite(TargetSprite, OTablePt, 0);

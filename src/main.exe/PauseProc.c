@@ -144,7 +144,7 @@ void PauseProc(void)
                 SetCameraMode(CMODE_NORMAL);
                 Findenemies++;
                 SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
-                CamState.Owner->pad.data = 0x80;
+                CamState.Owner->pad.data = PADRleft;
                 break;
             }
             continue;

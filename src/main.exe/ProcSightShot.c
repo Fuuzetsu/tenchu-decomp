@@ -154,7 +154,7 @@ sight_mode:
     {
         launch->count = count - 1;
     }
-    if ((item->owner->pad.data & 0x10) != 0)
+    if ((item->owner->pad.data & PADRup) != 0)
     {
         if (launch->count != 0)
         {
