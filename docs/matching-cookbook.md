@@ -557,7 +557,10 @@ negated. Everything else here is corollaries:
   dial is also a HINT the surrounding reconstruction under-uses that
   variable vs the original (check the PSX.SYM locals inventory). (3) `while (1) { if (i >= N) break; }`
   loops: the natural `for` spelling changes the emitted length
-  (InitEffect). (4) plain single-level fences: collapsing every
+  (InitEffect). (3b) `(s32)(count << 16) > 0`-style tests on u16 fields:
+  the shifted SIGNED compare (sll+bgtz/blez) is byte-different from the
+  plain `count > 0` (bnez/beqz) — the contraption stays (ProcItemDokudango,
+  ProcItemHenshin, ProcItemNinken; measured). (4) plain single-level fences: collapsing every
   previously-undocumented `do{}while(0)` across ten files (AfsGetEntry,
   CreateStage, SetFlyWire, game_over_screen_, SaveSI, ProcItemDokudango,
   subdivide_quad_, draw_time_, SetupImageToPolyGT4, AttackLong) broke

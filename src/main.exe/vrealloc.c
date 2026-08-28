@@ -128,6 +128,8 @@ void *vrealloc(void *pt, u32 size)
             vhp->size = size | 0x80000000;
             nb = (struct VMhead *)((u8 *)vhp + (size << 2) + 8);
             vhp->next = nb;
+            /* Byte-required spelling: the not-and differs from line 144's
+             * (s32)size >= 0 form of the same in-use test (measured). */
             if (svhp != 0 && (~svhp->size & 0x80000000) != 0)
             {
                 vh.size = vh.size + (svhp->size + 2);

@@ -209,7 +209,7 @@ void DamageControl(void)
 
                 hp = (u16)Me_MOTION_C->life - (u16)BattleDB[deg].power;
                 Me_MOTION_C->life = hp;
-                if ((hp * 0x10000 < 0) || ((Me_MOTION_C->attribute & ATTR_ALERT) == 0))
+                if (hp < 0 || (Me_MOTION_C->attribute & ATTR_ALERT) == 0)
                 {
                     Me_MOTION_C->life = 0;
                 }
@@ -432,7 +432,7 @@ resolve_hit:
 
                 hp = (u16)Me_MOTION_C->life - dmg;
                 Me_MOTION_C->life = (short)hp;
-                if (hp * 0x10000 < 1)
+                if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
                     if (1 < (u32)(u16)motID - 0x1005)
@@ -735,7 +735,7 @@ resolve_hit:
 
                 hp = (u16)Me_MOTION_C->life - dmg;
                 Me_MOTION_C->life = (short)hp;
-                if (hp * 0x10000 < 1)
+                if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
                     DeadHumanoid = Me_MOTION_C;
@@ -880,7 +880,7 @@ resolve_hit:
             }
         }
     }
-    if ((Me_MOTION_C->life == 0) && (Me_MOTION_C->item[ITEM_KAWARIMI] != '\0'))
+    if ((Me_MOTION_C->life == 0) && (Me_MOTION_C->item[ITEM_KAWARIMI] != 0))
     {
         ReqItemDefault(Me_MOTION_C, ITEM_KAWARIMI);
         Me_MOTION_C->life = Me_MOTION_C->lifemax;

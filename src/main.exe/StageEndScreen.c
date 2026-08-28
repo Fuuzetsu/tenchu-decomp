@@ -353,6 +353,8 @@ void StageEndScreen(void)
                 }
                 if ((pressed & PADRdown) != 0)
                 {
+                    /* Twin-arm fence in switch clothing: both arms set
+                     * selection = 2; collapsing it is measured off. */
                     switch (!!pad)
                     {
                     case 0:

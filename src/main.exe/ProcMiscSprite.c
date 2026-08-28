@@ -87,7 +87,7 @@ do_create:
 
 do_draw:
     s = SpriteData[m->param.sprite.type].spr;
-    grey = (u8)(rand() % 60 + 'b');
+    grey = (u8)(rand() % 60 + 0x62);
     s->sprite.r = grey;
     s->sprite.g = grey;
     s->sprite.b = grey;
