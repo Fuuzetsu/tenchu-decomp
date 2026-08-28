@@ -30,7 +30,7 @@
  * bit (0x40) and, on the transition, rotate the equipped-weapon slots
  * (item.h's proven `weapon[4]`) according to the weapon's kind (this
  * function proves the recovered `wpatk` field at retail offset 0x8E).
- * dispose_weapon_data_of_char_ (FUN_800270c8) is always called first with a
+ * dispose_weapon_data_of_char_ is always called first with a
  * literal mode of 3.
  *
  * Matching notes (docs/matching-cookbook.md):

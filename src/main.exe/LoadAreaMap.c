@@ -35,7 +35,7 @@
  * IndexArrayType's own leading `index` one level down. Same TU as
  * GetAreaMapLevel.c/swap_balma_area_map_.c (shares
  * NodeIndexType/AreaNodeType and the GlobalAreaMap/FieldIndex/FieldArea
- * globals — all %gp_rel here too). Callers: FUN_8001ab64 and LoadConstruction
+ * globals — all %gp_rel here too). Callers: load_balma_area_map_ and LoadConstruction
  * (`GlobalAreaMap = LoadAreaMap(PathFileRead(...));`).
  *
  * Matching notes:
