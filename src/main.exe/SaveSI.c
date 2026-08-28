@@ -221,14 +221,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             } while ((s32)src != end);
         }
 
-        if (icon3 != 0)
-        {
-            src = (u8 *)chan;
-        }
-        else
-        {
-            src = (u8 *)chan;
-        }
+        src = (u8 *)chan;
         MemCardAccept((s32)src);
         cmdp = &cmd;
         resultp = &result;
@@ -282,6 +275,11 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     create_file:
         sprintf(fn, fmt_card_name, CID, StageID, name);
         src = (u8 *)chan;
+        /* Identical arms, byte-required (measured: collapsing costs a
+         * ~108-instruction allocation cascade). The flow join keeps fn's
+         * address in its own register across the call; the icon3 twin
+         * that used to sit before MemCardAccept was NOT load-bearing and
+         * was collapsed. */
         if (msg != 0)
         {
             dst = fn;
