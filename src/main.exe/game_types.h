@@ -1134,7 +1134,10 @@ enum TItemType
     ITEM_TELEPORT = 0x18,
     /* Kind count — and retail reuses the item[ITEM_N] inventory slot as
      * the aimed-projectile flag (ProcKaginawa's hook flag; item.h sizes
-     * Humanoid.item[] to 0x1A to cover it). */
+     * Humanoid.item[] to 0x1A to cover it). The demo enum had a dedicated
+     * ITEM_SYSFLAG kind for that role, which retail folded away (it also
+     * inserted ITEM_ARMOUR and swapped GOSHIKIMAI/NEMURI, so demo and
+     * retail item ids diverge from 0x08 up). */
     ITEM_N = 0x19,
 };
 // s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);

@@ -74,7 +74,7 @@ typedef struct
 /* "\n"; +4 is an independent effect-pool cursor, and the image table starts at +8. */
 extern char str_newline[];
 /* Retail extends EFFECT.C's original three-entry static image-ID table. */
-extern u8 Effect_img[5];
+extern u8 Effect_img[MaxImpacts];
 extern s32 EffectImages[3];
 extern s32 pat[MaxFrames];
 
@@ -132,7 +132,7 @@ void InitEffect(void)
     i = 0;
     while (1)
     {
-        if (i >= 5)
+        if (i >= MaxImpacts)
             break;
         image = GetImage(Effect_img[i]);
         InitSprite(image, &sprImpact[i]);

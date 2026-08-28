@@ -237,7 +237,10 @@ extern GsSPRITE sprBloodStay[4];
 extern GsSPRITE sprFrame[MaxFrames];
 extern GsSPRITE sprSplash;
 /* Retail replaces the demo's three Sprite3D pointers with five GsSPRITEs. */
-extern GsSPRITE sprImpact[5];
+/* Impact-flash sprite count — official demo name (EFFECT.C's enum,
+ * demo value 3); retail extends the family to 5. */
+#define MaxImpacts 5
+extern GsSPRITE sprImpact[MaxImpacts];
 extern POLY_F4 plyBleed;
 /* Retail stores two smoke sprites before the next global. */
 extern Sprite3D *sprSmoke[2];
