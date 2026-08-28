@@ -683,6 +683,14 @@ struct WeaponModelType
 }; /* 0x0C */
 
 /* APPEAR.C's character database row. */
+/* SetupThinkFunction mixes — one Think-table index per nibble (think[0]
+ * in the low nibble .. think[3] in the high). The literals the code
+ * spells: none, the player's mix, and the summoned ninken's. Invented
+ * names; stage data supplies the rest. */
+#define THINK_MIX_NONE 0
+#define THINK_MIX_PLAYER 0x1111
+#define THINK_MIX_NINKEN 0x5449
+
 /* Weapon kinds (HumanDataType.wepid, copied into Humanoid.wpatk by
  * SetupWeapon). The high nibble is the RANGE CLASS the think layer
  * extracts with `wpatk >> 4` to pick the Attack* controller (0 short /

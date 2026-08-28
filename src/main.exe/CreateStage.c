@@ -162,7 +162,7 @@ void CreateStage(int StageNo, int CharType)
     ResetInfoview(StageNo);
 
     human = BreedLife(mode, 0, 0, 0, 0);
-    SetupThinkFunction(human, 0x1111);
+    SetupThinkFunction(human, THINK_MIX_PLAYER);
     human->model->locate.coord.t[0] = stage->px;
     human->model->locate.coord.t[1] = stage->py;
     human->model->locate.coord.t[2] = stage->pz;

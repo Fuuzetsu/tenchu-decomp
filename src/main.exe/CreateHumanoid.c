@@ -132,7 +132,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     human->locate = (VECTOR *)human->model->locate.coord.t;
     human->rotate = &human->model->rotate;
     human->model->attribute = 0x1c;
-    SetupThinkFunction(human, 0);
+    SetupThinkFunction(human, THINK_MIX_NONE);
     SetupCharacterParameter(type, human);
     hh = human->height;
     human->model->clip.vy = -((s16)hh / 2);

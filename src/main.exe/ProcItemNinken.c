@@ -364,7 +364,7 @@ void ProcItemNinken(TItem *item)
             {
                 return;
             }
-            SetupThinkFunction(param->slave, 0x5449);
+            SetupThinkFunction(param->slave, THINK_MIX_NINKEN);
             param->slave->target = (ModelType *)target->model;
             param->slave->attribute |= 2;
             EquipWeapon(param->slave, 1);
@@ -380,7 +380,7 @@ void ProcItemNinken(TItem *item)
             EquipWeapon(param->slave, 0);
             SetNowMotion(param->slave, 0x80f, 1);
             param->slave->attribute &= 0xfffc;
-            SetupThinkFunction(param->slave, 0);
+            SetupThinkFunction(param->slave, THINK_MIX_NONE);
             param->slave->target = (ModelType *)item->owner->model;
             return;
         }
