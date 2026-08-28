@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -58,7 +59,7 @@ void tile_sprite_(Sprite3D *g, u16 dir)
     height = 0x78;
     flags = g->sprite.attribute & 0x8fffffff;
     g->sprite.attribute = flags;
-    g->sprite.attribute = flags | (0 < signedDir ? 0x60000000 : 0x50000000);
+    g->sprite.attribute = flags | (0 < signedDir ? SPR_TRANS_SUB : SPR_TRANS_ADD);
     sp = &g->sprite;
     shade = __builtin_abs((s32)signedDir);
     sp->b = (u8)shade;

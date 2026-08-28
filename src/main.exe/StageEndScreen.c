@@ -3,6 +3,7 @@
 #include "score.h"
 #include "appear.h"
 #include "item.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -301,7 +302,7 @@ void StageEndScreen(void)
 
                 sprite = &digit;
                 StageEndInitSprite(tim, &image, sprite);
-                sprite->attribute |= 0x50000000;
+                sprite->attribute |= SPR_TRANS_ADD;
                 sprite->x = -0x8c;
                 sprite->y = -0x28;
                 sprite->r = 0x80;
@@ -330,7 +331,7 @@ void StageEndScreen(void)
             rank.r = 0x80;
             rank.g = 0x80;
             rank.b = 0x80;
-            rank.attribute |= 0x50000000;
+            rank.attribute |= SPR_TRANS_ADD;
             rank.mx = rank.w >> 1;
             rank.my = rank.h >> 1;
             rank.mx = 0;

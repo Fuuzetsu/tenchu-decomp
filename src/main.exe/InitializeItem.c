@@ -82,7 +82,7 @@ void InitializeItem(void)
     }
 
     i = 0;
-    attr = 0x50000000;
+    attr = SPR_TRANS_ADD;
     sprite = TargetSprite;
     while (1)
     {
@@ -97,10 +97,10 @@ void InitializeItem(void)
 
     image = GetImage(IMG_BOMB0);
     sprNapalm = SetupSprite((Sprite3D *)0, image);
-    sprNapalm->sprite.attribute = 0x50000000;
+    sprNapalm->sprite.attribute = SPR_TRANS_ADD;
     image = GetImage(IMG_SMOKE);
     sprNapalm2 = SetupSprite((Sprite3D *)0, image);
-    sprNapalm2->sprite.attribute = 0x60000000;
+    sprNapalm2->sprite.attribute = SPR_TRANS_SUB;
     image = GetImage(IMG_GOSHIKIMAI);
     InitSprite(image, &SpriteGoshikimai);
 

@@ -1,6 +1,12 @@
 #ifndef TENCHU_IMAGES_H
 #define TENCHU_IMAGES_H
 
+/* GsSPRITE.attribute semi-transparency field (bit 30 = ABE enable,
+ * bits 28-29 = blend rate): the two blends the game uses. Invented
+ * names for the composite values. */
+#define SPR_TRANS_ADD 0x50000000 /* rate 1: back + front (additive) */
+#define SPR_TRANS_SUB 0x60000000 /* rate 2: back - front (subtractive) */
+
 /* GetImage slots the code pins, named by what each becomes (invented
  * names): the afterimage texture, the water-splash sprite, the item
  * icon sheet, the title kanji poly, and the snowflake sprite. */

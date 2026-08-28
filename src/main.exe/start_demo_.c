@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "appear.h"
 #include <psxsdk/libgpu.h>
+#include "images.h"
 
 /*
  * start_demo_ (0x80055d64) loads and runs the localized post-stage demo
@@ -118,7 +119,7 @@ void start_demo_(void)
     LoadTIMAndFree(tim);
     fade_sprite = SetupSprite(0, &fade_image);
     suffix = 'r';
-    fade_sprite->sprite.attribute |= 0x60000000;
+    fade_sprite->sprite.attribute |= SPR_TRANS_SUB;
 
     language_state = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     if (CHOSEN_CHARACTER != 0)
@@ -141,7 +142,7 @@ void start_demo_(void)
     gov_title.r = setup_brightness;
     gov_title.g = setup_brightness;
     gov_title.b = setup_brightness;
-    gov_title.attribute |= 0x50000000;
+    gov_title.attribute |= SPR_TRANS_ADD;
     gov_title.mx = gov_title.w >> 1;
     gov_title.my = gov_title.h >> 1;
     LoadTIM(tim);
@@ -165,7 +166,7 @@ void start_demo_(void)
     archive_line_1.r = 0;
     archive_line_1.g = 0;
     archive_line_1.b = 0;
-    archive_line_1.attribute |= 0x50000000;
+    archive_line_1.attribute |= SPR_TRANS_ADD;
     archive_line_1.mx = archive_line_1.w >> 1;
     archive_line_1.my = archive_line_1.h >> 1;
     LoadTIM(tim);
@@ -177,7 +178,7 @@ void start_demo_(void)
     archive_line_2.r = 0;
     archive_line_2.g = 0;
     archive_line_2.b = 0;
-    archive_line_2.attribute |= 0x50000000;
+    archive_line_2.attribute |= SPR_TRANS_ADD;
     archive_line_2.mx = archive_line_2.w >> 1;
     archive_line_2.my = archive_line_2.h >> 1;
     LoadTIM(tim);
@@ -189,7 +190,7 @@ void start_demo_(void)
     archive_line_3.r = 0;
     archive_line_3.g = 0;
     archive_line_3.b = 0;
-    archive_line_3.attribute |= 0x50000000;
+    archive_line_3.attribute |= SPR_TRANS_ADD;
     archive_line_3.mx = archive_line_3.w >> 1;
     archive_line_3.my = archive_line_3.h >> 1;
     LoadTIM(tim);

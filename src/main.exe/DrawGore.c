@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "effect.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -111,7 +112,7 @@ void DrawGore(TEffectSlot *ef)
             ef->proc = 0;
         }
 
-        spr->attribute = 0x50000000;
+        spr->attribute = SPR_TRANS_ADD;
         x = param->px;
         y = param->py + param->vy;
         z = param->pz;

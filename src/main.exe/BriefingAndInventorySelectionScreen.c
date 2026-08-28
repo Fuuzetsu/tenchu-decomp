@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -199,7 +200,7 @@ void BriefingAndInventorySelectionScreen(void)
     buf = FileRead(NUMBER_TIM_PATH);
     p = &spr;
     TimToSprite(buf, p);
-    spr.attribute |= 0x50000000;
+    spr.attribute |= SPR_TRANS_ADD;
     p->x = -0xA0;
     p->y = -0x78;
     p->r = 0x80;
@@ -515,7 +516,7 @@ void BriefingAndInventorySelectionScreen(void)
             hspr.r = 0x80;
             hspr.g = 0x80;
             hspr.b = 0x80;
-            hspr.attribute |= 0x50000000;
+            hspr.attribute |= SPR_TRANS_ADD;
             hspr.mx = hspr.w >> 1;
             hspr.my = hspr.h >> 1;
             hspr.mx = 0;

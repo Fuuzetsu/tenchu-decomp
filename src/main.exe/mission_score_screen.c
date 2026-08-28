@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "score.h"
 #include "misc.h"
+#include "images.h"
 
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
@@ -129,7 +130,7 @@ void mission_score_screen(void)
         register GsSPRITE *initNumber = &number;
 
         InitScoreSprite(tim, &image, initNumber);
-        initNumber->attribute |= 0x50000000;
+        initNumber->attribute |= SPR_TRANS_ADD;
         initNumber->x = -140;
         initNumber->y = -40;
         brightness = 128;
@@ -152,7 +153,7 @@ void mission_score_screen(void)
         register u32 attributeMask;
 
         archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
-        attributeMask = 0x50000000;
+        attributeMask = SPR_TRANS_ADD;
     score_rank_sprite_init_loop:
     {
         u32 width;

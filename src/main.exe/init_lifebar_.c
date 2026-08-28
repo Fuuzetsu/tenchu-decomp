@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -14,7 +15,7 @@
  * STATUS: MATCHING — 212 bytes.
  *
  * init_lifebar_ (0x8004a6bc, 0xd4 bytes) — INFOVIEW.C: initializes two pairs
- * of life-bar element sprites (attribute 0x40000000 / 0x50000000 — likely
+ * of life-bar element sprites (attribute 0x40000000 / SPR_TRANS_ADD — likely
  * two different GsSortSprite draw-primitive kinds for the same bar, e.g. a
  * background half and a fill half), one pair per "style" for 2 styles, each
  * pair a `GsSPRITE[2]` 0x50 bytes apart (0x24-byte GsSPRITE pair + 8 bytes
@@ -86,7 +87,7 @@ void init_lifebar_(void)
         slot->mx = 0;
         slot->my = 0;
         tmp = LifeBarParts[i].rotate;
-        slot->attribute = 0x50000000;
+        slot->attribute = SPR_TRANS_ADD;
         slot->rotate = tmp;
     }
 }

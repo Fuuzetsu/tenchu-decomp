@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libcd.h>
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -307,7 +308,7 @@ void briefing_screen_(void)
     sprite.r = 0x80;
     sprite.g = 0x80;
     sprite.b = 0x80;
-    sprite.attribute |= 0x50000000;
+    sprite.attribute |= SPR_TRANS_ADD;
     sprite.mx = sprite.w >> 1;
     sprite.my = sprite.h >> 1;
     sprite.mx = 0;

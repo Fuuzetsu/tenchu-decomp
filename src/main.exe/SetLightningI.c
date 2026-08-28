@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -132,7 +133,7 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
         PrepareLightningScreenPosition();
         GetLightningScreenPosition(start->vx, start->vy, start->vz, &oldscr);
 
-        line.attribute = 0x50000000;
+        line.attribute = SPR_TRANS_ADD;
         line.r = lr;
         line.g = lg;
         line.b = lb;

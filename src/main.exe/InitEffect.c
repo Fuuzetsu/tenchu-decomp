@@ -107,15 +107,15 @@ void InitEffect(void)
     {
         image = GetImage(bloodp->image[i * 2]);
         InitSprite(image, &sprBlood[i]);
-        sprBlood[i].attribute = 0x50000000;
+        sprBlood[i].attribute = SPR_TRANS_ADD;
         image = GetImage(bloodp->image[i * 2 + 1]);
         InitSprite(image, &sprBloodStay[i]);
-        sprBloodStay[i].attribute = 0x60000000;
+        sprBloodStay[i].attribute = SPR_TRANS_SUB;
     }
 
     image = GetImage(IMG_SPLASH);
     InitSprite(image, &sprSplash);
-    sprSplash.attribute = 0x50000000;
+    sprSplash.attribute = SPR_TRANS_ADD;
     sprSplash.my = sprSplash.h;
 
     i = 0;
@@ -125,7 +125,7 @@ void InitEffect(void)
             break;
         image = GetImage(pat[i]);
         InitSprite(image, &sprFrame[i]);
-        sprFrame[i].attribute = 0x50000000;
+        sprFrame[i].attribute = SPR_TRANS_ADD;
         i++;
     }
 
@@ -136,7 +136,7 @@ void InitEffect(void)
             break;
         image = GetImage(Effect_img[i]);
         InitSprite(image, &sprImpact[i]);
-        sprImpact[i].attribute = 0x50000000;
+        sprImpact[i].attribute = SPR_TRANS_ADD;
         i++;
     }
 
@@ -163,7 +163,7 @@ void InitEffect(void)
             image = GetImage(*(s32 *)smoke_address);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprSmoke[i] = sprite;
-            sprite->sprite.attribute = 0x50000000;
+            sprite->sprite.attribute = SPR_TRANS_ADD;
             i++;
         }
     }
@@ -180,7 +180,7 @@ void InitEffect(void)
             image = GetImage(img[i]);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprBomb[i] = sprite;
-            sprite->sprite.attribute = 0x50000000;
+            sprite->sprite.attribute = SPR_TRANS_ADD;
             i++;
         }
     }
@@ -199,7 +199,7 @@ void InitEffect(void)
             image = GetImage(IMG_SNOW);
             sprite = SetupSprite((Sprite3D *)0, image);
             SpriteSnow[i] = sprite;
-            sprite->sprite.attribute = 0x50000000;
+            sprite->sprite.attribute = SPR_TRANS_ADD;
             i++;
         } while (i < 1);
     }
