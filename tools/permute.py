@@ -448,7 +448,7 @@ GP_EXTERNS = {
     "Think3attack": ["Me_THINK_C", "SR", "Distance", "Degree", "EngageLevel"],
     "SetFlyWire": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "SetGore": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
-    "InitEffect": ["ShadowMdl", "LOCAL_COORDINATES_", "AfterIMG", "ModelHook", "TexScrollX", "TexScrollY"],
+    "InitEffect": ["ShadowMdl", "BLOOD_POOL_MODEL_", "AfterIMG", "ModelHook", "TexScrollX", "TexScrollY"],
     "spawn_smoke_burst_": ["CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_"],
     "AttackControl": ["Me_MOTION_C", "dtL", "dtR", "motID", "motMODE", "dtPAD", "dtM"],
     "Think1target": ["Me_THINK_C", "SR", "Attrib", "EmergencyNotice"],
@@ -471,7 +471,7 @@ GP_EXTERNS = {
     "reset_alert_duration": ["EmergencyNotice"],
     "Think3area": ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"],
     "create_ninken_character_": ["NINKEN_CHARACTER_PTR"],
-    "spread_blood_pool_": ["LOCAL_COORDINATES_"],
+    "spread_blood_pool_": ["BLOOD_POOL_MODEL_"],
     "debug_output_edit_camera_settings": ["BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT", "BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT", "DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX", "CAMERA_PTR_ARRAY_START"],
     "debug_menu_file_animation_test": ["CVAdata"],
 }

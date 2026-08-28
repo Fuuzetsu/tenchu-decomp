@@ -37,7 +37,7 @@
  * draw_visible_characters_, matched — Ghidra's own
  * `FUN_80029368`), then two CVA-specific passes:
  *  1. stage 10 (a specific cutscene stage) + CHOSEN_CHARACTER==0 only:
- *     6-entry TENCHU_POSITIONAL_DATA_AREA_ sprite-fade-and-sort pass — each
+ *     6-entry TANKA_SPRITES_ sprite-fade-and-sort pass — each
  *     each slot is a Sprite3D with a "hidden" `attribute` bit and a
  *     three-channel fade in its embedded GsSPRITE. The shared brightness
  *     increments by 8 while `sprite.r`'s sign bit is clear, then the sprite
@@ -58,10 +58,10 @@
  *  - Both loop counters are `short i` (PSX.SYM), reused across both loops —
  *    the narrow counter suppresses loop.c's strength reduction, matching
  *    the target's recompute-from-base address for both
- *    `TENCHU_POSITIONAL_DATA_AREA_[i]` and `&CVAhuman[i]`.
+ *    `TANKA_SPRITES_[i]` and `&CVAhuman[i]`.
  *  - The positional-data slot's own pointer is loaded ONCE per iteration
  *    into a named local (`e`) for the flag/fade field accesses, but the
- *    GsSortSprite call re-reads `TENCHU_POSITIONAL_DATA_AREA_[i]` directly
+ *    GsSortSprite call re-reads `TANKA_SPRITES_[i]` directly
  *    (NOT `e`) — the target reloads the slot a SECOND time right before
  *    the call instead of reusing the cached value, matching Ghidra's own
  *    rendering (`*piVar4 + 0x68`, a fresh dereference of the slot address,
@@ -72,7 +72,7 @@
  *    store as `+8` inline would reload/recompute three times.
  */
 
-extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
+extern Sprite3D *TANKA_SPRITES_[6];
 extern u8 CHOSEN_CHARACTER;
 
 extern void AVCameraControl(void);
@@ -109,7 +109,7 @@ short CVArun(void)
     {
         for (i = 0; i < 6; i++)
         {
-            e = TENCHU_POSITIONAL_DATA_AREA_[i];
+            e = TANKA_SPRITES_[i];
             if ((e->attribute & 1) == 0)
             {
                 if ((s8)e->sprite.r >= 0)
@@ -119,7 +119,7 @@ short CVArun(void)
                     e->sprite.g = c;
                     e->sprite.r = c;
                 }
-                GsSortSprite(&TENCHU_POSITIONAL_DATA_AREA_[i]->sprite, OTablePt, 0);
+                GsSortSprite(&TANKA_SPRITES_[i]->sprite, OTablePt, 0);
             }
         }
     }

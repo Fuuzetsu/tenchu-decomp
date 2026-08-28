@@ -13,7 +13,7 @@
  * also preserve the target's register lifetimes and signed `lh` load.
  */
 
-extern ModelType *LOCAL_COORDINATES_;
+extern ModelType *BLOOD_POOL_MODEL_;
 
 extern void spawn_damage_effect_(Humanoid *human, s32 mode);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
@@ -59,9 +59,9 @@ void spread_blood_pool_(Humanoid *human)
     position = GetAbsolutePosition(human->model->object[0], 0, 0, 0);
     height = human->model->rotate.pad;
     position->vy = human->model->locate.coord.t[1];
-    LOCAL_COORDINATES_->locate.coord.t[0] = position->vx;
-    LOCAL_COORDINATES_->locate.coord.t[1] = position->vy;
-    LOCAL_COORDINATES_->locate.coord.t[2] = position->vz;
+    BLOOD_POOL_MODEL_->locate.coord.t[0] = position->vx;
+    BLOOD_POOL_MODEL_->locate.coord.t[1] = position->vy;
+    BLOOD_POOL_MODEL_->locate.coord.t[2] = position->vz;
 
     scaled = human->chase[0] * -height;
     if (scaled < 0)
@@ -73,28 +73,28 @@ void spread_blood_pool_(Humanoid *human)
 
     if (human->map.angleH != 0)
     {
-        LOCAL_COORDINATES_->rotate.vx = 0x100;
-        LOCAL_COORDINATES_->rotate.vy = RefrectVector[human->map.angleH];
-        LOCAL_COORDINATES_->rotate.vz = 0;
+        BLOOD_POOL_MODEL_->rotate.vx = 0x100;
+        BLOOD_POOL_MODEL_->rotate.vy = RefrectVector[human->map.angleH];
+        BLOOD_POOL_MODEL_->rotate.vz = 0;
     }
     else
     {
-        LOCAL_COORDINATES_->rotate.vx = 0;
-        LOCAL_COORDINATES_->rotate.vy = 0;
-        LOCAL_COORDINATES_->rotate.vz = 0;
+        BLOOD_POOL_MODEL_->rotate.vx = 0;
+        BLOOD_POOL_MODEL_->rotate.vy = 0;
+        BLOOD_POOL_MODEL_->rotate.vz = 0;
     }
 
-    RotMatrixYXZ(&LOCAL_COORDINATES_->rotate,
-                 &LOCAL_COORDINATES_->locate.coord);
-    ScaleMatrix(&LOCAL_COORDINATES_->locate.coord, &scale);
-    LOCAL_COORDINATES_->locate.flg = 0;
-    GsGetLs(&LOCAL_COORDINATES_->locate, &matrix);
+    RotMatrixYXZ(&BLOOD_POOL_MODEL_->rotate,
+                 &BLOOD_POOL_MODEL_->locate.coord);
+    ScaleMatrix(&BLOOD_POOL_MODEL_->locate.coord, &scale);
+    BLOOD_POOL_MODEL_->locate.flg = 0;
+    GsGetLs(&BLOOD_POOL_MODEL_->locate, &matrix);
     GsSetLsMatrix(&matrix);
     depth = RotTransPers(&UnitVector, (s32 *)&screen, &p, &flag);
     screen.vz = depth;
     if ((depth << 16) >> 18 < 0x4e2)
     {
         DrawTMDmode = 0x20;
-        DrawTMD(&LOCAL_COORDINATES_->object, OTablePt, 0);
+        DrawTMD(&BLOOD_POOL_MODEL_->object, OTablePt, 0);
     }
 }

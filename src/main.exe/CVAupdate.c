@@ -72,7 +72,7 @@ extern s16 CVAflag; /* set by CVA camera/telop commands */
 extern u8 TelopText[];
 extern u8 ctype_tab[]; /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
-extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
+extern Sprite3D *TANKA_SPRITES_[6];
 
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern int ReqLifeBar(Humanoid *h);
@@ -332,13 +332,13 @@ s16 CVAupdate(void)
                     {
                         do
                         {
-                            *(u16 *)&TENCHU_POSITIONAL_DATA_AREA_[i]->attribute |= 1;
+                            *(u16 *)&TANKA_SPRITES_[i]->attribute |= 1;
                             i++;
                         } while (i < 6);
                     }
                     else
                     {
-                        *(u16 *)&TENCHU_POSITIONAL_DATA_AREA_[ch - '1']->attribute &= 0xFFFE;
+                        *(u16 *)&TANKA_SPRITES_[ch - '1']->attribute &= 0xFFFE;
                     }
                 }
                 TelopText[0] = 0;

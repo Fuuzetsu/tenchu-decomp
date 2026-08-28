@@ -86,7 +86,7 @@ extern s32 is_character_state_present_on_stage_(Humanoid *h);
  * D_80097F54` (and its neighbor SyurikenModel, also referenced by
  * ReqItemLaunch) resolves 8 bytes low — a pre-existing accumulated-offset
  * drift in that data section, upstream of this function. Symbols bound
- * via config/symbols.main.exe.txt (LOCAL_COORDINATES_/NINKEN_CHARACTER_PTR,
+ * via config/symbols.main.exe.txt (BLOOD_POOL_MODEL_/NINKEN_CHARACTER_PTR,
  * right next to the drifted ones) resolve correctly regardless, which is
  * how this was diagnosed and is the same mechanism used to route around it. */
 

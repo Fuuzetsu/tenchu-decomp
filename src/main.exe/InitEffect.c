@@ -77,7 +77,7 @@ extern u8 Effect_img[5];
 extern s32 EffectImages[3];
 extern s32 pat[MaxFrames];
 
-extern ModelType *LOCAL_COORDINATES_;
+extern ModelType *BLOOD_POOL_MODEL_;
 extern s16 TexScrollX;
 extern s16 TexScrollY;
 
@@ -185,7 +185,7 @@ void InitEffect(void)
     }
 
     ShadowMdl = LoadModel(GetArcData(0x19));
-    LOCAL_COORDINATES_ = LoadModel(GetArcData(0x1F));
+    BLOOD_POOL_MODEL_ = LoadModel(GetArcData(0x1F));
     AfterIMG = GetImage(0xA);
     ModelHook = LoadModel(GetArcData(0x1A));
 

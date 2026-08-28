@@ -48,7 +48,7 @@
  * Attract/Retail-ish variant per CHOSEN_CHARACTER), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, x0..x3 = -0xA0/0xA0/-0xA0/0xA0 —
  * the canonical PsyQ SDK POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
- * "tanka.tpd" and populates 6 TENCHU_POSITIONAL_DATA_AREA_ Sprite3D slots.
+ * "tanka.tpd" and populates 6 TANKA_SPRITES_ Sprite3D slots.
  * Each slot's `attribute` gets bit 0 set (visible-but-hidden-until-faded),
  * and the embedded GsSPRITE's x/y are
  * laid out in a fan (`(2-i)*20+10`, `(i%3)*8-4`) — then the LAST slot's
@@ -56,7 +56,7 @@
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - The embedded-GsSPRITE x/y stores go through a FRESH
- *    `TENCHU_POSITIONAL_DATA_AREA_[i]` re-read each time (matching
+ *    `TANKA_SPRITES_[i]` re-read each time (matching
  *    Ghidra's own `*piVar2` — a dereference of the SLOT ADDRESS, not the
  *    `pSVar1` variable already holding the same value) — only the
  *    `attribute |= 1` update reuses `pSVar1` directly. Same lever as
@@ -71,7 +71,7 @@ extern char *STAGE_ANIMATION_PREFICES[];
 extern char fmt_stage_cad[];       /* %sSTAGE%d%c.CAD */
 extern char path_anim_tanka_tpd[]; /* K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd */
 
-extern Sprite3D *TENCHU_POSITIONAL_DATA_AREA_[6];
+extern Sprite3D *TANKA_SPRITES_[6];
 
 extern void vfree(void *p);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -120,17 +120,17 @@ void CVAsetup(void)
         {
             GetTIMpackInfo(adr, &image, i);
             sprite = SetupSprite(0, &image);
-            TENCHU_POSITIONAL_DATA_AREA_[i] = sprite;
+            TANKA_SPRITES_[i] = sprite;
             sprite->attribute = sprite->attribute | 1;
-            TENCHU_POSITIONAL_DATA_AREA_[i]->sprite.x = (2 - i) * 0x14 + 10;
-            TENCHU_POSITIONAL_DATA_AREA_[i]->sprite.y = (i % 3) * 8 - 4;
-            reload = TENCHU_POSITIONAL_DATA_AREA_[i];
+            TANKA_SPRITES_[i]->sprite.x = (2 - i) * 0x14 + 10;
+            TANKA_SPRITES_[i]->sprite.y = (i % 3) * 8 - 4;
+            reload = TANKA_SPRITES_[i];
             reload->sprite.b = 0;
             reload->sprite.g = 0;
             reload->sprite.r = 0;
         }
-        TENCHU_POSITIONAL_DATA_AREA_[5]->sprite.x = TENCHU_POSITIONAL_DATA_AREA_[5]->sprite.x - 8;
-        TENCHU_POSITIONAL_DATA_AREA_[5]->sprite.y = 0x28;
+        TANKA_SPRITES_[5]->sprite.x = TANKA_SPRITES_[5]->sprite.x - 8;
+        TANKA_SPRITES_[5]->sprite.y = 0x28;
         LoadTIMpackAndFree(adr);
     }
 }
