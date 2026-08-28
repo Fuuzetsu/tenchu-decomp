@@ -111,7 +111,7 @@ void PauseProc(void)
     cnt = 0;
     if (((pad & PADstart) && !(SystemFlag & SYSFLAG_PAUSE)) || get_pad_active_(0) == 0)
     {
-        SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~0x10;
+        SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~SYSFLAG_DEBUG_SELECT;
         SoundEx((VECTOR *)0, 9);
         VSync(0x14);
     }
@@ -169,7 +169,7 @@ void PauseProc(void)
         }
         if ((opad & PADselect) && (SystemFlag & SYSFLAG_DEBUGMODE))
         {
-            SystemFlag = SystemFlag | 0x10;
+            SystemFlag = SystemFlag | SYSFLAG_DEBUG_SELECT;
             break;
         }
         if (opad != 0)
@@ -183,8 +183,8 @@ void PauseProc(void)
                 CheckCheatCodes(buf, j + 1);
             }
         }
-        if ((SystemFlag & (SYSFLAG_DEBUGMODE | 0x10)) !=
-                (SYSFLAG_DEBUGMODE | 0x10) ||
+        if ((SystemFlag & (SYSFLAG_DEBUGMODE | SYSFLAG_DEBUG_SELECT)) !=
+                (SYSFLAG_DEBUGMODE | SYSFLAG_DEBUG_SELECT) ||
             (pad & PADstart))
             DrawPause(cnt);
         VSync(2);

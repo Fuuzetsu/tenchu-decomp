@@ -573,15 +573,21 @@ struct TCameraStatus
 }; /* 0x20 */
 
 /* System flags named by the demo's PSX.SYM.  The random-layout name is
- * retail-inferred from CreateStage and the stage debug menu; bit 0x10 remains
- * unknown. */
+ * retail-inferred from CreateStage and the stage debug menu.
+ * SYSFLAG_DEBUG_SELECT is a vestigial latch: PauseProc raises it when
+ * Select exits a debug-mode pause and clears it on the next pause entry.
+ * Its only reader (the DrawPause suppression inside the pause loop) can
+ * never observe it set — the setter breaks out of the loop and re-entry
+ * clears it first — so the effect is dead in retail (a demo-era debug
+ * hook). */
 typedef enum TSystemFlag TSystemFlag;
 enum TSystemFlag
 {
     SYSFLAG_DEBUGPRINT = 1,
     SYSFLAG_DEBUGMODE = 2,
     SYSFLAG_PAUSE = 4,
-    SYSFLAG_RANDOM_LAYOUT = 8
+    SYSFLAG_RANDOM_LAYOUT = 8,
+    SYSFLAG_DEBUG_SELECT = 0x10
 };
 
 /* The demo's TCameraPos contained one pos/ref pair. Retail replaces it with
