@@ -183,11 +183,11 @@ s32 StageSequence(void)
         tgt = eTarget[i];
         switch (ev->mode)
         {
-        case 0:
+        case EVTRIG_ALWAYS:
             flag = 1;
             break;
 
-        case 1:
+        case EVTRIG_ZONE:
             if ((u8)(ev->id - 2) < 2)
             {
                 tgt = StagePlayer;
@@ -210,35 +210,35 @@ s32 StageSequence(void)
             flag = 1;
             break;
 
-        case 2:
+        case EVTRIG_ATTRIBUTE:
             if (((u16)tgt->attribute & (u16)ev->status) == (u16)ev->status)
             {
                 flag = 1;
             }
             break;
 
-        case 3:
+        case EVTRIG_STATUS:
             if (StagePlayer->status != STAT_ATTACK && tgt->status == (s16)ev->status)
             {
                 flag = 1;
             }
             break;
 
-        case 4:
+        case EVTRIG_MOTION:
             if (tgt->motion->mid == (s16)ev->status)
             {
                 flag = 1;
             }
             break;
 
-        case 5:
+        case EVTRIG_LIFE:
             if (tgt->life <= (s16)ev->status)
             {
                 flag = 1;
             }
             break;
 
-        case 6:
+        case EVTRIG_NEAR:
         {
             VECTOR *player_pos;
             VECTOR *target_pos;
@@ -260,14 +260,14 @@ s32 StageSequence(void)
             break;
         }
 
-        case 7:
+        case EVTRIG_TIME:
             if ((s16)ev->status >= 0 && StageTime >= (s16)ev->status)
             {
                 flag = 1;
             }
             break;
 
-        case 8:
+        case EVTRIG_MUSIC:
             flag = 1;
             PlayMusicFormID((s16)ev->status);
             break;
