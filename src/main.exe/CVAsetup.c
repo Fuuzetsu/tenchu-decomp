@@ -130,7 +130,7 @@ void CVAsetup(void)
             reload->sprite.r = 0;
         }
         TANKA_SPRITES_[5]->sprite.x = TANKA_SPRITES_[5]->sprite.x - 8;
-        TANKA_SPRITES_[5]->sprite.y = 0x28;
+        TANKA_SPRITES_[5]->sprite.y = 40;
         LoadTIMpackAndFree(adr);
     }
 }

@@ -356,7 +356,7 @@ resolve_hit:
             case ITEM_HAPPOU:
                 if ((short)dmg == 0)
                 {
-                    dmg = 0x1e;
+                    dmg = 30;
                 }
                 /* fall through */
             case ITEM_GUN:
@@ -394,10 +394,10 @@ resolve_hit:
             case ITEM_FIRE:
             case ITEM_JIRAI:
             case ITEM_LIGHTNINGBOLT:
-                dmg = 0x1e;
+                dmg = 30;
                 if (t == ITEM_JIRAI)
                 {
-                    dmg = 0x2d;
+                    dmg = 45;
                 }
                 if ((Me_MOTION_C->map.attrib & MAP_WATER) == 0)
                 {
@@ -644,7 +644,7 @@ resolve_hit:
                     {
                         s16 r;
 
-                        r = rand() % 0x168;
+                        r = rand() % 360;
                         set_impact_ex_(blood_pos, 0, 0x2000, 0x6000, 0xdcdcdc, 0, r, 6, 9, 1);
                     }
                     if ((rand() & 1) != 0)

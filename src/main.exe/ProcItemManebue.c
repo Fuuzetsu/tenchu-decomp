@@ -71,7 +71,7 @@ mode0:
     EmergencyNotice = 0;
     item->owner->itmctl = item->type;
     SoundEx(0, 0x43);
-    param->count = 0x1e;
+    param->count = 30;
     item->mode++;
     return;
 mode1:

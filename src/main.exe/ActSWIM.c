@@ -84,7 +84,7 @@ void ActSWIM(void)
             break;
         motID = 0x302;
         motMODE = 0;
-        speed = 0x3c;
+        speed = 60;
         if (MOTION_PAD_BITS & PADLup)
         {
             MoveHumanoid(Me_MOTION_C, speed, 0);
@@ -128,7 +128,7 @@ void ActSWIM(void)
                     result = current - Me_MOTION_C->turn;
                 rotation->vy = result;
             }
-            speed = 0x3c;
+            speed = 60;
             human = Me_MOTION_C;
             MoveHumanoid(human, speed, 0);
             break;

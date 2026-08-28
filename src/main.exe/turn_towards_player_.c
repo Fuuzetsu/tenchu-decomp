@@ -48,7 +48,7 @@
  *    `beq s0,s2` (stealing `lui $v1,0x2000` would clobber live $v1), which
  *    reproduces the target's beq/nop/j/lui shape and the single early
  *    `andi 0x8000` shared by both paths.
- *  - `d2 |= 0x1e;` then store (in-place or) — NOT `... = d2 | 0x1e;`. The
+ *  - `d2 |= 30;` then store (in-place or) — NOT `... = d2 | 0x1e;`. The
  *    fresh or-temp of the compound-expression form is colored by local-alloc
  *    before the (longer-lived) Me_THINK_C pointer temp, stealing $v0 and
  *    pushing Me to $v1, which then pushes d2 off $v1 entirely (to $a0).
@@ -146,7 +146,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
                 {
                     d2 = 0x80000000; /* PADLleft << 16 */
                 apply:
-                    d2 |= 0x1e;
+                    d2 |= 30;
                     Me_THINK_C->pad_hold = d2;
                 }
                 else

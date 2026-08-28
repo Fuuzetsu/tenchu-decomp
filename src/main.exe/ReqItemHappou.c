@@ -200,10 +200,10 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         i++;
         ai = SetupAfterimage(item->locate, 10);
         param->effect = ai;
-        ai->vector1.vx = 0x1e;
+        ai->vector1.vx = 30;
         ai->vector1.vy = 0;
         ai->vector1.vz = 0;
-        ai->vector2.vx = -0x1e;
+        ai->vector2.vx = -30;
         ai->vector2.vy = 0;
         ai->vector2.vz = 0;
         param->count = 8;

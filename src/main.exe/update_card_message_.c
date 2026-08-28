@@ -5,19 +5,19 @@
  * update_card_message_ (0x8005aba4) — advance the memory-card state/message machine.
  *
  * `case 4` (ChkCard() dispatch) has FIVE origins that all need the same
- * "is next_state == 0x28" shift+test. A prior draft wrote that test out
+ * "is next_state == 40" shift+test. A prior draft wrote that test out
  * TWICE — once after each of the two inner default: arms — reasoning that
- * cc1 would fold `next_state = 0x28; shifted = (u32)(u16)next_state << 16;`
+ * cc1 would fold `next_state = 40; shifted = (u32)(u16)next_state << 16;`
  * into a `lui` there (which it does) and leave the genuine dynamic
  * sll/sra only at the shared `card_state_shift:` label used by the other
  * three origins. That measured 13 bytes off across 6 instructions.
  *
  * The target's raw asm shows this fold is wrong: ALL FIVE origins reach
  * the SAME single `sll $v0,$s0,16 / sra $v0,$v0,16` — there is only ONE
- * `next_state != 0x28` test in the source, reached by `goto` from every
+ * `next_state != 40` test in the source, reached by `goto` from every
  * arm (including both defaults). The apparent "extra" sll/sra copies at
  * two addresses are a pure reorg (delay-slot-fill) artifact: the two
- * default arms' `addiu $s0,0x28` gets sunk into the PRECEDING beq's delay
+ * default arms' `addiu $s0,40` gets sunk into the PRECEDING beq's delay
  * slot (the fallthrough continuation is safe to run on the taken path too,
  * since the taken target immediately overwrites $s0), which leaves each
  * default's own trailing unconditional `j card_state_shift` with an empty
@@ -80,7 +80,7 @@ s32 update_card_message_(s16 *state, u16 *message)
         switch (card_status)
         {
         default:
-            next_state = 0x28;
+            next_state = 40;
             break;
         case 1:
             goto card_status_one;
@@ -91,7 +91,7 @@ s32 update_card_message_(s16 *state, u16 *message)
         switch (card_status)
         {
         default:
-            next_state = 0x28;
+            next_state = 40;
             break;
         case 4:
             goto card_status_four;
@@ -102,14 +102,14 @@ s32 update_card_message_(s16 *state, u16 *message)
         next_state = 10;
         goto card_state_shift;
     card_status_two:
-        next_state = 0x14;
+        next_state = 20;
         goto card_state_shift;
     card_status_four:
         CardStateFlag = 0;
-        next_state = 0x1e;
+        next_state = 30;
 
     card_state_shift:
-        if (next_state != 0x28 && CardRetryCount++ < 3)
+        if (next_state != 40 && CardRetryCount++ < 3)
         {
             next_state = 4;
         }
@@ -119,11 +119,11 @@ s32 update_card_message_(s16 *state, u16 *message)
         next_message = 0x12;
         break;
 
-    case 0x14:
+    case 20:
         next_message = 2;
         break;
 
-    case 0x1e:
+    case 30:
         result = MemCardExist(0);
         MemCardSync(0, &cmd, &result);
         next_message = 3;
@@ -133,57 +133,57 @@ s32 update_card_message_(s16 *state, u16 *message)
         }
         next_message = 0;
         /* fallthrough */
-    case 0x25:
-    case 0x5c:
+    case 37:
+    case 92:
         next_state = 0;
         break;
 
-    case 0x1f:
+    case 31:
         next_message = 10;
         CardRetryCount = 0;
-        next_state = 0x21;
+        next_state = 33;
         break;
 
-    case 0x20:
-        next_state = 0x5a;
+    case 32:
+        next_state = 90;
         break;
 
     case 1:
     case 2:
-    case 0x21:
-    case 0x22:
+    case 33:
+    case 34:
     increment_state:
         next_state++;
         break;
 
-    case 0x23:
-        next_state = 0x24;
+    case 35:
+        next_state = 36;
         card_status = FormatCard();
         if (card_status == 0)
         {
-            next_state = 0x26;
+            next_state = 38;
         }
-        if (next_state != 0x26 && CardRetryCount++ < 3)
+        if (next_state != 38 && CardRetryCount++ < 3)
         {
-            next_state = 0x23;
+            next_state = 35;
         }
         break;
 
-    case 0x24:
+    case 36:
         next_message = 0xc;
         break;
 
-    case 0x26:
+    case 38:
         next_message = 0xb;
         break;
 
-    case 0x5a:
+    case 90:
         next_message = 0x14;
         break;
 
-    case 0xb:
-    case 0x15:
-    case 0x5b:
+    case 11:
+    case 21:
+    case 91:
         next_state = -1;
         break;
 
