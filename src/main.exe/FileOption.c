@@ -78,14 +78,14 @@ extern s32 MusicByStage[11]; /* music id by stage */
  * spelling would be sdata-flagged and become a $at macro store */
 extern u8 STAGE_LAYOUT_NUMBER[];
 
-extern char str_file_option[]; /* file option */   /* "file option" */
-extern char msg_load_ok[]; /* load ok? */          /* "load ok?" */
-extern char msg_load_no[]; /* load no? */          /* "load no?" */
-extern char msg_save_ok[]; /* save ok? */          /* "save ok?" */
-extern char msg_save_no[]; /* save no? */          /* "save no?" */
-extern char str_select_music[]; /* select music */ /* "select music" */
-extern char str_layout_no[]; /* layout no */       /* "layout no" */
-extern char fmt_num_2[]; /* %d */                  /* "%d" */
+extern char str_file_option[]; /* "file option" */
+extern char msg_load_ok[]; /* "load ok?" */
+extern char msg_load_no[]; /* "load no?" */
+extern char msg_save_ok[]; /* "save ok?" */
+extern char msg_save_no[]; /* "save no?" */
+extern char str_select_music[]; /* "select music" */
+extern char str_layout_no[]; /* "layout no" */
+extern char fmt_num_2[]; /* "%d" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(void *buf, long size);

@@ -197,15 +197,17 @@ typedef struct TItemLayout
     VECTOR locate; /* 0x04 */
 } TItemLayout;     /* 0x14 */
 
-/* Rolling-item states from ITEM.C's anonymous enum. Retail adds state 5,
- * whose name is not present in the demo symbols. */
+/* Rolling-item states from ITEM.C's anonymous enum. Retail adds state 5
+ * (entered when CGetLevel reports the item left the map); its name is not
+ * in the demo symbols, so KORO_OUT is our invention. */
 enum
 {
     KORO_NORMAL = 0,
     KORO_WATER = 1,
     KORO_GRAND = 2,
     KORO_WALL = 3,
-    KORO_STAY = 4
+    KORO_STAY = 4,
+    KORO_OUT = 5
 };
 
 /* Item-processor teardown sentinel from ITEM.C's anonymous enum. */

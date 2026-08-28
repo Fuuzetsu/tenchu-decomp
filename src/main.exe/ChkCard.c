@@ -25,7 +25,7 @@
  * END PSX.SYM */
 
 /*
- * ChkCard (0x8001b4bc region's memory-card TU) — kicks off a MemCardAccept on
+ * ChkCard (0x80056df8) — kicks off a MemCardAccept on
  * slot 0 and blocks on MemCardSync until it reports a result, returning that
  * result truncated to a short. `cmd` is MemCardSync's command out-param, which
  * this caller ignores; `result` is seeded with MemCardAccept's return and then

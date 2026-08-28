@@ -75,7 +75,7 @@
  *    fix needed for these two.
  */
 extern char fmt_concat[];          /* "%s%s" */
-extern char fmt_card_name[];       /* "%s\%d\%s" */
+extern char fmt_card_name[];       /* "%s%d_%s" */
 extern char msg_file_read_error[]; /* "file read error" */
 extern char msg_card_error[];      /* "card error %d" */
 

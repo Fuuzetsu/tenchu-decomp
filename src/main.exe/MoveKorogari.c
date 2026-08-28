@@ -83,7 +83,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                               item->locate->locate.coord.t[2], 0);
             if (level == (s32)0x80000000)
             {
-                if (param->status == 5)
+                if (param->status == KORO_OUT)
                 {
                     param->vx = rand() % 1600 - 800;
                     param->vy = rand() % 1600 - 800;
@@ -95,7 +95,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                     param->vy = 250;
                     param->vz = 0;
                 }
-                param->status = 5;
+                param->status = KORO_OUT;
                 return;
             }
         }

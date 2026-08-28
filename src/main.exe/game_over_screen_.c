@@ -37,7 +37,7 @@ extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 extern char *GOV_RESOURCE_PREFIX_PTRS[];
 extern char *GOV_ARCHIVE_PTRS[];
 
-extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, s32 b);
+extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern s32 VSync(s32 mode);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);

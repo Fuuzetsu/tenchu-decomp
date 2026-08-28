@@ -3,7 +3,7 @@
 #include "adt.h"
 
 /*
- * AdtSelect (0x8005fecc, 776 bytes) — modal debug-menu selection widget:
+ * AdtSelect (0x8005fecc, 776 bytes) — modal debug-menu mode widget:
  * waits for pad release, saves the display state into a 0x8090-byte frame
  * buffer, then draws the choice list (18 per page) and moves the cursor on
  * edge-detected pad input until confirm (pad & 0x820 -> current entry) or
@@ -82,7 +82,7 @@
  * 2. THE TWO do{}while(0) FENCES ARE COOKBOOK CASE (c) — BARE LOAD-BEARING,
  *    KEEP.  Unwrapping is NOT a byte-chase that hides a better human structure:
  *    removing BOTH (autorules fence-unwrap L412/L446, each +16) yields 37 bytes
- *    that are ENTIRELY callee-saved register renames — selection s1<->s2,
+ *    that are ENTIRELY callee-saved register renames — mode s1<->s2,
  *    count s3<->s4, trg/last/page shuffled among s1-s4 (the classic "same
  *    s1/s2 tie" the cookbook §3.10 case-c/cluster note names).  The fences fix
  *    the GLOBAL find_reg allocation; nothing more complete is behind them, so
@@ -142,7 +142,7 @@
  * the pseudo's VALUE is a bare operand requiring a register, so it is reloaded
  * as RELOAD_FOR_INPUT, whose free-check scans input_addr/inpaddr_addr only for
  * `i > opnum` — an INPUT reload may therefore share its OWN address reload's
- * register.  Same for `menu[i]` / `menu[selection]`.  That is the real rule.
+ * register.  Same for `menu[i]` / `menu[mode]`.  That is the real rule.
  *
  * Two consequences for site 1:
  *   1. Making the operand require a register would ADD a third reload
@@ -422,7 +422,7 @@ extern char str_arrow[];         /* -> */
 extern char str_spaces[];        /*    */
 extern char str_newline_4[];     /* "\n" */
 
-s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
+s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
 {
     TAdtDisp ad;
     s32 last;
@@ -455,7 +455,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
         trg = pad;
         pad = AdtPadRead(0);
         trg = ~trg & pad;
-        page = selection / 0x12;
+        page = mode / 0x12;
         first = page * 0x12;
         last = first + 0x12;
         if (count < last)
@@ -467,7 +467,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
         i = first;
         for (; i < last; i++)
         {
-            if (selection == i)
+            if (mode == i)
                 fmt = str_arrow;
             else
                 fmt = str_spaces;
@@ -481,7 +481,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
             break;
         if (pad & PADRdown)
         {
-            selection = count - 1;
+            mode = count - 1;
             break;
         }
         if (trg & PADLup)
@@ -494,12 +494,12 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 selection)
             i = 0x12;
         else
             i = 0;
-        selection += i;
-        if (selection < 0)
-            selection = 0;
-        else if (count <= selection)
-            selection = count - 1;
+        mode += i;
+        if (mode < 0)
+            mode = 0;
+        else if (count <= mode)
+            mode = count - 1;
     }
     AdtReleaseDisp(&ad);
-    return menu[selection].value;
+    return menu[mode].value;
 }

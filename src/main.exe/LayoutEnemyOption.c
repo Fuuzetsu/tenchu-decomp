@@ -67,10 +67,10 @@
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
 
-extern char str_enemy_layout_option[]; /* enemy layout option */ /* "enemy layout option" */
-extern char msg_clear_ok_2[]; /* clear ok? */                    /* "clear ok?" */
-extern char str_path_layout_option[]; /* path layout option */   /* "path layout option" */
-extern char fmt_layout_enemies[]; /* layout %d enemies */        /* "layout %d enemies" */
+extern char str_enemy_layout_option[]; /* "enemy layout option" */
+extern char msg_clear_ok_2[]; /* "clear ok?" */
+extern char str_path_layout_option[]; /* "path layout option" */
+extern char fmt_layout_enemies[]; /* "layout %d enemies" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);

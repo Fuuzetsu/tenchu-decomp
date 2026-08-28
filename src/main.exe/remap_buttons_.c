@@ -90,6 +90,8 @@
  */
 
 extern u8 ButtonAssign[32];
+/* s16 here vs main.c's u16 is byte-required: this TU's read is a
+ * signed lh (measured — the u16 form flips it to lhu). */
 extern s16 ControlScheme;
 
 s32 remap_buttons_(s16 pad)

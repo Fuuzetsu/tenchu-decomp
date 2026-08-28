@@ -28,7 +28,7 @@
  *    ...; return; } ...` (both fixes verified against matchdiff).
  *  - The clear-bit AND uses a register mask (`li $t0,-2; and`), not `andi
  *    0xfffe`, ONLY inside the loop — this is what a plain (non-truncating)
- *    `int attr = *(u16*)&...; attr = attr & ~1; *(u16*)&... = attr;` produces
+ *    `int attr = *(u16*)&...; attr = attr & ~MODEL_ATTR_HIDDEN; *(u16*)&... = attr;` produces
  *    (the truncating compound form `x &= ~1;`/`x &= 0xfffe;` folds the mask
  *    to 16 bits and emits andi instead) — the one-shot "entry 0" epilogue
  *    store, by contrast, DOES want the plain truncating `&= 0xfffe;` form
@@ -66,7 +66,7 @@ void set_model_hide_(Humanoid *human, s16 hide)
 
             attribute = (u16 *)&model->object[i++]->attribute;
             attr = *attribute;
-            attr = attr | 1;
+            attr = attr | MODEL_ATTR_HIDDEN;
             *attribute = attr;
         }
         *(u16 *)&model->object[0]->attribute |= MODEL_ATTR_HIDDEN;
@@ -80,7 +80,7 @@ void set_model_hide_(Humanoid *human, s16 hide)
 
         attribute = (u16 *)&model->object[i++]->attribute;
         attr = *attribute;
-        attr = attr & ~1;
+        attr = attr & ~MODEL_ATTR_HIDDEN;
         *attribute = attr;
     }
     *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;

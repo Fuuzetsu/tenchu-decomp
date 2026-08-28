@@ -1215,7 +1215,6 @@ enum TItemType
  * (not yet earned) special item, and the infinite-ammo count. */
 #define ITEM_LOCKED 0xFE
 #define ITEM_INFINITE 0xFF
-// s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);
 
 // The persistent game state blob at 0x80010000 (below the exe image; survives
 // across screens). TLinkInfo is the OFFICIAL typedef from the demo PSX.SYM

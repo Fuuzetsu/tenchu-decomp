@@ -79,7 +79,7 @@
  *    source order is sin-block then cos-block, each self-contained).
  */
 
-extern char str_select_item[]; /* select item */ /* "select item" */
+extern char str_select_item[]; /* "select item" */
 extern SVECTOR svec_y_n600[];                    /* smoke-puff velocity/offset const */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);

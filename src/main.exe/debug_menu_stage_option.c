@@ -26,7 +26,7 @@
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern char str_stage_option[]; /* stage option */ /* "stage option" (AdtSelect title) */
-extern char fmt_layout_no[];                       /* score message format string */
+extern char fmt_layout_no[]; /* layout number + kill/spot stats debug dump */
 extern char str_by_rnd[];                          /* "(by rnd.)" */
 extern char EMPTY_STRING[];
 

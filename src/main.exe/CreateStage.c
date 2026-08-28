@@ -64,7 +64,7 @@ typedef struct
 extern s32 DepthPoint;
 extern u8 *TITLE_SPRITES_PTRS[4];
 extern u8 CHOSEN_LANGUAGE;
-extern volatile u8 STAGE_LAYOUT_NUMBER;
+extern u8 STAGE_LAYOUT_NUMBER;
 extern char fmt_illigal_stage_id[]; /* illigal stage id %d */
 extern char path_stage_con[];       /* STAGE.CON */
 

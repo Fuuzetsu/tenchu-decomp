@@ -115,7 +115,7 @@ extern Humanoid *Me_THINK_C;
 /* Per-stage reinforcement pair (StageID*2 + coin flip) — the stage's
  * own guard faction (retail data): rouban/rounin, ninja A+B, rouban,
  * Manji cultists, pirates, tengu, oni, kabane, kerai, asigaru, sisi. */
-extern s16 AIDHumanType[];
+extern s16 AIDHumanType[]; /* [][2] in think_alarm_reaction_.c; flat here for the required pointer idiom above */
 extern int rand(void);
 extern s16 Think3escape(void);
 

@@ -32,7 +32,7 @@
  * END PSX.SYM */
 
 /*
- * SelectCameraOwnerOption (0x8005ba08, 0x158 bytes) — debug menu's "select
+ * SelectCameraOwnerOption (0x8005ba08, 0x110 bytes) — debug menu's "select
  * camera owner" submenu (LayoutEnemyOption dispatch case 7): builds an
  * AdtSelect menu of every live Humanoid's index ("%d") -> pointer pair, lets
  * the user pick one, and re-centers the debug camera (ViewInfo) on the
