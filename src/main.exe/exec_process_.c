@@ -33,21 +33,21 @@ void exec_process_(int id)
 {
     switch (id)
     {
-    case 0x10:
+    case PROCESS_MENU:
         LoadExecEx((u8 *)path_tenchu_menu_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
-    case 0x11:
+    case PROCESS_MAIN:
         LoadExecEx((u8 *)path_tenchu_main_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
-    case 0x12:
+    case PROCESS_ENDING:
         LoadExecEx((u8 *)path_tenchu_ending_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
-    case 0x13:
+    case PROCESS_TRIAL:
         LoadExecEx((u8 *)path_tenchu_trial_exe_1, TENCHU_INITIAL_STACK_ADDRESS, 0);
         break;
     default:
         AdtMessageBox(fmt_bad_process_id, id);
-        exec_process_(0x10);
+        exec_process_(PROCESS_MENU);
         return;
     }
 }

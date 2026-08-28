@@ -567,7 +567,7 @@ void StageEndScreen(void)
         PSTATE->GameRetry &= 0xfe;
         if (PSTATE->StageNo == 7)
         {
-            exec_process_(0x12);
+            exec_process_(PROCESS_ENDING);
         }
         else
         {
@@ -620,11 +620,11 @@ void StageEndScreen(void)
         break;
     case 2:
         STAGE_LAYOUT_NUMBER = 0xff;
-        exec_process_(0x10);
+        exec_process_(PROCESS_MENU);
         break;
     }
 
-    exec_process_(0x11);
+    exec_process_(PROCESS_MAIN);
 }
 
 #undef DRAW_SCORE_NUMBER

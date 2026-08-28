@@ -991,12 +991,12 @@ void mission_score_screen(void)
 
     if (goNext == 1)
     {
-        exec_process_(0x11);
+        exec_process_(PROCESS_MAIN);
     }
     else
     {
         statePtr->layout = 0xFF;
-        exec_process_(0x10);
+        exec_process_(PROCESS_MENU);
     }
 }
 #undef result

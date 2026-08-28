@@ -33,6 +33,16 @@ extern GsRVIEW2 ViewInfo;
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];
 #define MAX_ENEMIES 30
+/* exec_process_ ids — which PS-X EXE boots next ("bad process id" is
+ * the game's own error message; the value names are invented). */
+enum
+{
+    PROCESS_MENU = 0x10,
+    PROCESS_MAIN = 0x11,
+    PROCESS_ENDING = 0x12,
+    PROCESS_TRIAL = 0x13
+};
+
 extern TEnemyLayout enemy[MAX_ENEMIES];
 extern TStageConfig StageConfig[];
 extern MotionManager *dtM;

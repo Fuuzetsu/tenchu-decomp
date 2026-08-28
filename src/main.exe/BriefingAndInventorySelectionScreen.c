@@ -337,7 +337,7 @@ void BriefingAndInventorySelectionScreen(void)
             clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xFF;
             GameRetry = GameRetry & 0xFE;
-            exec_process_(0x10);
+            exec_process_(PROCESS_MENU);
             break;
         }
         if (np == 0x800)

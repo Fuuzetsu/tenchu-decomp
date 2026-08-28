@@ -57,7 +57,7 @@ void debug_menu_stage_option(void)
         return;
     case 1:
         SelectStage(PSTATE);
-        exec_process_(0x11);
+        exec_process_(PROCESS_MAIN);
         return;
     case 2:
         init_score_stats(&stats);

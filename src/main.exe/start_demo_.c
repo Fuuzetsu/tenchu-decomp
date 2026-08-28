@@ -334,7 +334,7 @@ void start_demo_(void)
                 vfree(gov_archive);
                 vfree(fade_sprite);
                 DisposeBG(background);
-                exec_process_(0x11);
+                exec_process_(PROCESS_MAIN);
             }
             tile_sprite_(fade_sprite, shade);
             break;
@@ -349,7 +349,7 @@ void start_demo_(void)
                 vfree(fade_sprite);
                 DisposeBG(background);
                 STAGE_LAYOUT_NUMBER = 0xff;
-                exec_process_(0x10);
+                exec_process_(PROCESS_MENU);
             }
             tile_sprite_(fade_sprite, shade);
             break;

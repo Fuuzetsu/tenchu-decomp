@@ -341,7 +341,7 @@ void briefing_screen_(void)
             clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xff;
             GameRetry &= 0xfe;
-            exec_process_(0x10);
+            exec_process_(PROCESS_MENU);
         }
 
         page_x = fade;

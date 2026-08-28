@@ -10,7 +10,7 @@
  * (`PSTATE->gItem[i + PSTATE->CharType*0x20] = PSTATE->saveItem[i];`), then fades
  * out, tears down (clear_screen_), resets the stage layout number to 0xFF
  * and clears PersistentState's retry/continue flag (GameRetry &= ~1), then
- * calls exec_process_(0x10) (a cleanup/teardown helper
+ * calls exec_process_(PROCESS_MENU) (a cleanup/teardown helper
  * — see its own file).
  *
  * Matching notes:
@@ -62,5 +62,5 @@ void return_to_menu_(void)
     clear_screen_();
     PSTATE->layout = 0xff;
     PSTATE->GameRetry = PSTATE->GameRetry & 0xfe;
-    exec_process_(0x10);
+    exec_process_(PROCESS_MENU);
 }
