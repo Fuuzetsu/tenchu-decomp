@@ -135,7 +135,9 @@ coordinate_init:
     objp->locate.coord.t[2] = prntp[i].dz;
     UpdateOrnament(objp, 0);
     i++;
-    objp->object.attribute |= 0x400;
+    objp->object.attribute |= 0x400; /* libgs GsDOBJ2 bit 10 — consumed
+                              inside the linked libgs sorter, set
+                              on every loaded world object */
     goto loop2;
 
 parent_found:

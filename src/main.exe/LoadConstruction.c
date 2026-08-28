@@ -459,7 +459,9 @@ short LoadConstruction(u_long *data)
                 z = q & 7;
             }
 
-            mma->object[i]->object.attribute |= 0x400;
+            mma->object[i]->object.attribute |= 0x400; /* libgs GsDOBJ2 bit 10 — consumed
+                              inside the linked libgs sorter, set
+                              on every loaded world object */
             UpdateOrnament(mma->object[i], 0);
             slot = (ObjectSlotType **)((z << 2) + ((x << 8) + (y << 5)));
             slot = &((WorldType *)((int)slot + (int)WorldMap))->top;

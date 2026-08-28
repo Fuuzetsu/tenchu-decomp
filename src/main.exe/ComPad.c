@@ -121,9 +121,9 @@ void ComPad(int port, u8 *rxbuf)
         int i;
 
         i = pad->button;
-        if (i & 0x4000)
+        if (i & PADLdown)
             pad->y = 0x2D;
-        else if (i & 0x1000)
+        else if (i & PADLup)
             pad->y = -0x2D;
     }
 

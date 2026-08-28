@@ -369,10 +369,10 @@ void BriefingAndInventorySelectionScreen(void)
             do
             {
                 shown = 0x10;
-                if ((np & 0x4000) == 0)
+                if ((np & PADLdown) == 0)
                 {
                     shown = 0;
-                    if ((np & 0x1000) != 0)
+                    if ((np & PADLup) != 0)
                     {
                         shown = -0x10;
                     }
