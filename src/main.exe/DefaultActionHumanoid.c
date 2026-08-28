@@ -206,15 +206,17 @@ short DefaultActionHumanoid(Humanoid *human)
         }
     }
 
+    /* One lw covering vector/direct/angleL/angleH; the high half is the
+     * two wall-angle bytes. */
     if (*(s32 *)&map->vector & (s32)0xffff0000)
     {
         u16 attribute;
 
         attribute = human->attribute;
-        human->attribute = attribute | 0x2000;
+        human->attribute = attribute | ATTR_WALLANGLE;
         if (map->height < -450)
         {
-            human->attribute = attribute | 0x2000 | ATTR_LEDGE;
+            human->attribute = attribute | ATTR_WALLANGLE | ATTR_LEDGE;
             locate->vy = map->level;
         }
         else if (map->height < 0)

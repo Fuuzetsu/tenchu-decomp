@@ -5,8 +5,13 @@
  * global `Attrib` while a character thinks). Bits, by evidence — static
  * reading plus the tools/pcsx_attrbits.py runtime observer (332 transitions
  * over a live mission, 2026-08-27):
- *   0x0001/0x0002  the 2-bit think command subfield (Think1target/
- *                  Think4abandon write 0/1/2; observed toggling on idle NPCs)
+ *   ATTR_PHASE     0x0003 — the 2-bit awareness phase, written from
+ *                  SearchTarget's result: PHASE_CALM 0, PHASE_SUSPICIOUS 1
+ *                  (SR==2, the "?" bark), PHASE_ALERT 2 (SR==1, target
+ *                  seen — kills in it score Murders, not stealth kills),
+ *                  PHASE_INVESTIGATE 3 (SR==-2, target lost; written as
+ *                  ATTR_SEARCH | phase with chase[] set to the last-known
+ *                  spot)
  *   0x0004         set by SetupThinkFunction iff the think type is a real
  *                  mix (not 0/0x1111/0x2222)
  *   ATTR_SEARCH    0x0010 — the personal investigation latch: when the
@@ -57,9 +62,17 @@
  *   ATTR_LEDGE     0x1000 — climbable ledge ahead: set (with 0x2000) on
  *                  deep low wall contact; pressing forward with it up
  *                  starts the 0x801 climb motion (ActCHASE/ActNORMAL)
- * Still unnamed, set-only (no reader found): 0x0200 (map->attrib & 2
- * buoyancy clamp) and 0x2000 (raised on every wall contact; only its
- * 0x3000 composite with ATTR_LEDGE distinguishes depth). */
+ *   ATTR_WALLANGLE 0x2000 — the movement probe recorded wall-deflection
+ *                  angles (MapVector.angleL/angleH nonzero — the data the
+ *                  swim/rope handlers steer along); +ATTR_LEDGE when that
+ *                  wall is low (height < -450). Set-only in retail.
+ * Still unnamed, set-only (no reader found): 0x0200 (mirrors map->attrib
+ * bit 2, the stand-anywhere/buoyancy clamp). */
+#define ATTR_PHASE 0x0003
+#define PHASE_CALM 0
+#define PHASE_SUSPICIOUS 1
+#define PHASE_ALERT 2
+#define PHASE_INVESTIGATE 3
 #define ATTR_SEARCH 0x0010
 #define ATTR_FLOAT 0x0020
 #define ATTR_ALERT 0x0040
@@ -67,6 +80,7 @@
 #define ATTR_FALL 0x0100
 #define ATTR_NOFLOOR 0x0800
 #define ATTR_LEDGE 0x1000
+#define ATTR_WALLANGLE 0x2000
 #define ATTR_WALL 0x0400
 #define ATTR_HIT 0x4000
 #define ATTR_PUSH 0x8000

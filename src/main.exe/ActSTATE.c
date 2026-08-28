@@ -169,9 +169,9 @@ void ActSTATE(void)
             long chase_z;
 
             human = Me_MOTION_C;
-            if ((human->attribute & 3) == 0)
+            if ((human->attribute & ATTR_PHASE) == 0)
             {
-                human->attribute |= ATTR_SEARCH | 2;
+                human->attribute |= ATTR_SEARCH | PHASE_ALERT;
                 player = StagePlayer;
                 human->chase[0] = player->locate->vx;
                 chase_z = player->locate->vz;

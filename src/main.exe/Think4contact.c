@@ -52,7 +52,7 @@ s16 Think4contact(void)
 
     if (SR == 1)
     {
-        Attrib = (Attrib & 0xFFFC) | 2;
+        Attrib = (Attrib & (u16)~ATTR_PHASE) | PHASE_ALERT;
         return 0;
     }
 

@@ -111,7 +111,7 @@ void StateTransition(Humanoid *human)
     Me_THINK_C = human;
     Pad = &human->pad;
     Attrib = human->attribute;
-    atr0 = ATTRIB_BITS & ~(ATTR_SEARCH | 3);
+    atr0 = ATTRIB_BITS & ~(ATTR_SEARCH | ATTR_PHASE);
 
     if (human == StagePlayer)
     {
@@ -269,7 +269,7 @@ void StateTransition(Humanoid *human)
                 }
                 me = Me_THINK_C;
                 life = me->life;
-                Attrib = atr0 | 2;
+                Attrib = atr0 | PHASE_ALERT;
                 do
                 {
                     me->chase[1] = 0;
@@ -302,7 +302,7 @@ void StateTransition(Humanoid *human)
                     Me_THINK_C->chase[1] = 0;
                     Me_THINK_C->chase[0] = 0;
                 }
-                Attrib = atr0 | 1;
+                Attrib = atr0 | PHASE_SUSPICIOUS;
                 Sound(Me_THINK_C, 0xc);
             }
         }
@@ -335,7 +335,7 @@ void StateTransition(Humanoid *human)
 
         if (SR == 1 || ((ATTRIB_BITS & ATTR_HIT) != 0 && SR > 0))
         {
-            Attrib = atr0 | 2;
+            Attrib = atr0 | PHASE_ALERT;
             if ((ATTRIB_BITS & ATTR_ALERT) == 0)
             {
                 SetNowMotion(Me_THINK_C, 0x80e, 1);
@@ -451,7 +451,7 @@ void StateTransition(Humanoid *human)
 
             me = Me_THINK_C;
             target_x = me->target->locate.coord.t[0];
-            Attrib = atr0 | 0x13;
+            Attrib = atr0 | ATTR_SEARCH | PHASE_INVESTIGATE;
             me->chase[0] = target_x;
             target_z = me->target->locate.coord.t[2];
             me->actscnt = 1;

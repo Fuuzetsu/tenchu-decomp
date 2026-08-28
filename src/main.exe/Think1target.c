@@ -123,7 +123,7 @@ s16 Think1target(void)
                     s32 alert_time;
 
                     Me_THINK_C->target = (ModelType *)StagePlayer->model;
-                    Attrib = (ATTRIB_BITS & 0xfffc) | 2;
+                    Attrib = (ATTRIB_BITS & (u16)~ATTR_PHASE) | PHASE_ALERT;
                     SetNowMotion(Me_THINK_C, 0x80e, 1);
                     Me_THINK_C->chase[1] = 0;
                     Me_THINK_C->chase[0] = 0;

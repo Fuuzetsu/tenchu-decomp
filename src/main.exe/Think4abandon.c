@@ -88,14 +88,14 @@ s16 Think4abandon(void)
     u16 cleared;
     s16 result;
 
-    cleared = ATTRIB_BITS & ~(ATTR_SEARCH | 3);
+    cleared = ATTRIB_BITS & ~(ATTR_SEARCH | ATTR_PHASE);
     Me_THINK_C->chase[1] = 0;
     Me_THINK_C->chase[0] = 0;
     if ((Me_THINK_C->type & 0xF0) == 0x80)
     {
         if ((u16)(SR - 1) < 2)
         {
-            Attrib = cleared | 2;
+            Attrib = cleared | PHASE_ALERT;
             if (Me_THINK_C->motion->count == 0)
             {
                 s32 r;
@@ -115,7 +115,7 @@ s16 Think4abandon(void)
         {
             if (SR == 1)
             {
-                Attrib = cleared | 2;
+                Attrib = cleared | PHASE_ALERT;
             }
             return (s16)(turn_towards_player_(0, 0) & ~0x5FFF);
         }
@@ -163,7 +163,7 @@ s16 Think4abandon(void)
             return 0;
 
         sr_eq_1:
-            Attrib = cleared | 2;
+            Attrib = cleared | PHASE_ALERT;
             return 0;
         }
     }
