@@ -98,12 +98,12 @@ void ActSTATE(void)
                 {
                     if (Me_MOTION_C->illusion[0] != 0)
                     {
-                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                        DisposeAfterimage(Me_MOTION_C->illusion[0]);
                         Me_MOTION_C->illusion[0] = 0;
                     }
                     if (Me_MOTION_C->illusion[1] != 0)
                     {
-                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                        DisposeAfterimage(Me_MOTION_C->illusion[1]);
                         Me_MOTION_C->illusion[1] = 0;
                     }
                 }
@@ -216,12 +216,12 @@ void ActSTATE(void)
                 {
                     if (Me_MOTION_C->illusion[0] != 0)
                     {
-                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                        DisposeAfterimage(Me_MOTION_C->illusion[0]);
                         Me_MOTION_C->illusion[0] = 0;
                     }
                     if (Me_MOTION_C->illusion[1] != 0)
                     {
-                        DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                        DisposeAfterimage(Me_MOTION_C->illusion[1]);
                         Me_MOTION_C->illusion[1] = 0;
                     }
                 }

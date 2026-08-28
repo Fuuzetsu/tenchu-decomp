@@ -628,14 +628,14 @@ dispatch:
             }
             if ((cleanup_guard & 2) != 0)
             {
-                if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
+                if (Me_MOTION_C->illusion[0] != 0)
                 {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                    DisposeAfterimage(Me_MOTION_C->illusion[0]);
                     Me_MOTION_C->illusion[0] = 0;
                 }
-                if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
+                if (Me_MOTION_C->illusion[1] != 0)
                 {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                    DisposeAfterimage(Me_MOTION_C->illusion[1]);
                     Me_MOTION_C->illusion[1] = 0;
                 }
             }
@@ -681,14 +681,14 @@ dispatch:
             }
             if ((cleanup_guard & 2) != 0)
             {
-                if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
+                if (Me_MOTION_C->illusion[0] != 0)
                 {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                    DisposeAfterimage(Me_MOTION_C->illusion[0]);
                     Me_MOTION_C->illusion[0] = 0;
                 }
-                if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
+                if (Me_MOTION_C->illusion[1] != 0)
                 {
-                    DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                    DisposeAfterimage(Me_MOTION_C->illusion[1]);
                     Me_MOTION_C->illusion[1] = 0;
                 }
             }
@@ -817,14 +817,14 @@ dispatch:
         }
         if ((cleanup_guard & 2) != 0)
         {
-            if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
+            if (Me_MOTION_C->illusion[0] != 0)
             {
-                DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+                DisposeAfterimage(Me_MOTION_C->illusion[0]);
                 Me_MOTION_C->illusion[0] = 0;
             }
-            if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
+            if (Me_MOTION_C->illusion[1] != 0)
             {
-                DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+                DisposeAfterimage(Me_MOTION_C->illusion[1]);
                 Me_MOTION_C->illusion[1] = 0;
             }
         }
@@ -997,14 +997,14 @@ dispatch:
         {
             return;
         }
-        if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
+        if (Me_MOTION_C->illusion[0] != 0)
         {
-            DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
+            DisposeAfterimage(Me_MOTION_C->illusion[0]);
             Me_MOTION_C->illusion[0] = 0;
         }
-        if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
+        if (Me_MOTION_C->illusion[1] != 0)
         {
-            DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
+            DisposeAfterimage(Me_MOTION_C->illusion[1]);
             Me_MOTION_C->illusion[1] = 0;
         }
         mmp = dtM;
