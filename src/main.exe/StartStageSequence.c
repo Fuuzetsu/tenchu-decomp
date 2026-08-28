@@ -244,11 +244,11 @@ void StartStageSequence(void)
             goto next_human;
         }
         kind = (u16)human->type & 0xf0;
-        if (kind == 0x80)
+        if (kind == PAGE_BOSS)
         {
             StageBosses++;
         }
-        else if (kind == 0x90)
+        else if (kind == PAGE_CIVILIAN)
         {
             StageCitizens++;
             goto next_human;

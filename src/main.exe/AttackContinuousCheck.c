@@ -73,14 +73,14 @@ s16 AttackContinuousCheck(BattleType *battle)
     wk = Me_MOTION_C->wpatk;
     switch (wk)
     {
-    case 2:
+    case WEP_ONININ:
         DeleteConflict(Me_MOTION_C->model->object[8]);
         model = Me_MOTION_C->model->object[0xB];
         break;
-    case 3:
+    case WEP_BEAST:
         model = Me_MOTION_C->model->object[2];
         break;
-    case 0:
+    case WEP_NONE:
         mode = 3;
         goto skip_mode2;
     default:

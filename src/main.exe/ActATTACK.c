@@ -384,7 +384,7 @@ dispatch:
         {
             launch_lightning_bolt_(0xd);
         }
-        else if (Me_MOTION_C->wpatk == 0x35)
+        else if (Me_MOTION_C->wpatk == WEP_KATAOKA)
         {
             AttackBowControl(1);
         }

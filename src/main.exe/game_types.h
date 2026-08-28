@@ -764,6 +764,8 @@ struct WeaponModelType
 #define WEP_NONE 0
 #define WEP_ONININ 2
 #define WEP_BEAST 3
+#define WEP_KATAOKA 0x35 /* the boss Kataoka's matchlock gun (roster
+                          * wepid; range class 3 like the archers) */
 #define WEP_MEIOU 0x29
 #define WEP_TWIN_KATANA 0x2a
 

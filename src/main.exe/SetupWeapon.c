@@ -129,7 +129,7 @@ void SetupWeapon(Humanoid *human)
     case 0x32:
     case 0x35:
         GetWeaponData(human, 0xd, human->wpatk,
-                      human->wpatk == 0x35 ? 0 : -1, 0);
+                      human->wpatk == WEP_KATAOKA ? 0 : -1, 0);
         GetWeaponData(human, 1, human->wpatk + 2, -1, 1);
         GetWeaponData(human, 0xe, human->wpatk + 1, -1, 2);
         break;
