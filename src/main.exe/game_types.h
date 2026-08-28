@@ -1188,6 +1188,11 @@ enum TItemType
      * retail item ids diverge from 0x08 up). */
     ITEM_N = 0x19,
 };
+
+/* Stock markers shared by TLinkInfo.gItem and Humanoid.item[]: a locked
+ * (not yet earned) special item, and the infinite-ammo count. */
+#define ITEM_LOCKED 0xFE
+#define ITEM_INFINITE 0xFF
 // s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);
 
 // The persistent game state blob at 0x80010000 (below the exe image; survives

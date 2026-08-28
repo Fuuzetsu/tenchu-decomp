@@ -530,7 +530,7 @@ void StageEndScreen(void)
         }
         else if (CamState.Owner->item[item_index] != 0)
         {
-            if (PSTATE->gItem[item_index + (PSTATE->CharType << 5)] == 0xfe)
+            if (PSTATE->gItem[item_index + (PSTATE->CharType << 5)] == ITEM_LOCKED)
             {
                 PSTATE->gItem[item_index + (PSTATE->CharType << 5)] += 2;
             }

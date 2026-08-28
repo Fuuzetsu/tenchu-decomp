@@ -225,7 +225,7 @@ void BriefingAndInventorySelectionScreen(void)
             int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
             u8 c = cq->gItem[n];
             s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
-            if (c != 0xFE && mx < cq->gItem[n])
+            if (c != ITEM_LOCKED && mx < cq->gItem[n])
             {
                 cq->gItem[n] = mx;
             }
@@ -258,7 +258,7 @@ void BriefingAndInventorySelectionScreen(void)
             for (j = 1; j < 9; j++)
             {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] == 0xFE)
+                if ((&ps->gItem[0])[n] == ITEM_LOCKED)
                 {
                     (&ps->gItem[0])[n] = 1;
                 }
@@ -270,7 +270,7 @@ void BriefingAndInventorySelectionScreen(void)
             for (j = 9; j < 0x14; j++)
             {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] != 0xFE)
+                if ((&ps->gItem[0])[n] != ITEM_LOCKED)
                 {
                     (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
                 }
@@ -283,7 +283,7 @@ void BriefingAndInventorySelectionScreen(void)
                     int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
                     u8 c = cq->gItem[n];
                     s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
-                    if (c != 0xFE && mx < c)
+                    if (c != ITEM_LOCKED && mx < c)
                     {
                         cq->gItem[n] = mx;
                     }
@@ -294,7 +294,7 @@ void BriefingAndInventorySelectionScreen(void)
             for (j = 9; j < 0x14; j++)
             {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] == 0xFE)
+                if ((&ps->gItem[0])[n] == ITEM_LOCKED)
                 {
                     (&ps->gItem[0])[n] = 1;
                 }
@@ -349,7 +349,7 @@ void BriefingAndInventorySelectionScreen(void)
         {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
             u8 c = (&ps->gItem[0])[n + (ps->CharType << 5)];
-            if (c != 0xFE)
+            if (c != ITEM_LOCKED)
             {
                 x = SHOP_ITEM_DEFAULTS[j].x;
                 y = SHOP_ITEM_DEFAULTS[j].y;
@@ -428,7 +428,7 @@ void BriefingAndInventorySelectionScreen(void)
                     scale = 0x200;
                     if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0)
                     {
-                        if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0xFE)
+                        if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != ITEM_LOCKED)
                         {
                             if ((s16)taken < cap)
                             {
@@ -500,7 +500,7 @@ void BriefingAndInventorySelectionScreen(void)
         }
         if (help == -1)
         {
-            if ((&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != 0xFE)
+            if ((&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != ITEM_LOCKED)
             {
                 help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
             }
@@ -637,7 +637,7 @@ quit:
         int n = j + PSTATE->CharType * 0x20;
         if (PSTATE->gItem[n] == 0)
         {
-            PSTATE->gItem[n] = 0xFE;
+            PSTATE->gItem[n] = ITEM_LOCKED;
         }
     }
     vfree(harc);

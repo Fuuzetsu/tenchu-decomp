@@ -66,7 +66,7 @@ s32 InitPersistentState(void)
                TENCHU_PERSISTENT_STATE_SIZE);
         magic = 0x19981110;
 
-        fill = 0xfe;
+        fill = ITEM_LOCKED;
         i = 0x1f;
         stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
         ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
