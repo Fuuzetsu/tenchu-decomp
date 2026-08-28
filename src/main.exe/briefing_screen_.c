@@ -360,7 +360,7 @@ void briefing_screen_(void)
 
                 music = BriefingAssets[PSTATE->language][PSTATE->StageNo].music;
                 if (PSTATE->CharType == 1 && PSTATE->language == 3 &&
-                    (u32)(PSTATE->StageNo - 6) < 2)
+                    (u32)(PSTATE->StageNo - 6) < 2 /* stages 6-7; the && spelling double-reads the field */)
                 {
                     music++;
                 }

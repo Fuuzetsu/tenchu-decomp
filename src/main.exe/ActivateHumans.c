@@ -258,7 +258,7 @@ void ActivateHumans(void)
         {
             goto next_human;
         }
-        if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2) ||
+        if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2 /* stages 6-7; the && spelling double-reads the global and ripples allocation */) ||
             human->type == GOO)
         {
             j = 0;

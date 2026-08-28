@@ -200,7 +200,7 @@ short AttackLong(void)
         pad = PADLleft;
     }
 
-    if ((u32)(Distance - 3001) < 999)
+    if (Distance > 3000 && Distance < 4000)
     {
         if (rand() % (EngageLevel + 1) == 0)
         {

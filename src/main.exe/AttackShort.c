@@ -288,7 +288,7 @@ short AttackShort(void)
         pad = PADLleft;
     }
 
-    if ((u32)(Distance - 1501) < 2499)
+    if (Distance > 1500 && Distance < 4000)
     {
         s32 attack_degree;
 

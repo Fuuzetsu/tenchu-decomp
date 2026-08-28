@@ -122,7 +122,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
         i++;
     }
 
-    if ((u32)(det - 0x800) < 0x801)
+    if (det >= 0x800 && det <= 0x1000)
     {
         MulMatrix(&m, t);
         *t = m;
