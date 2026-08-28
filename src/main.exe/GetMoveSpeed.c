@@ -41,17 +41,18 @@
  *    uses in the vx/vz expressions; cc1 CSEs the repeated cast into a
  *    single truncation per variable (no re-truncation on reuse).
  *  - `ordr`/`side` are the plain `short` parameters (no MoveHumanoid-style
- *    io/o resign locals — this function does no -0x100 byte-resign), so
- *    their (int) promotion is deferred to each expression's first use.
+ *    io/o resign locals — this function does no -0x100 byte-resign); their
+ *    promotion to int is the ordinary implicit one (the decompiler's
+ *    explicit (int) wrappers were measured byte-free and removed).
  */
 
 void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side)
 {
     int s, c;
 
-    s = -rsin((int)ry);
-    c = -rcos((int)ry);
+    s = -rsin(ry);
+    c = -rcos(ry);
     vect->vy = 0;
-    vect->vx = (short)(((int)(short)s * (int)ordr - (int)(short)c * (int)side) >> 0xc);
-    vect->vz = (short)(((int)(short)c * (int)ordr + (int)(short)s * (int)side) >> 0xc);
+    vect->vx = (short)(((short)s * ordr - (short)c * side) >> 0xc);
+    vect->vz = (short)(((short)c * ordr + (short)s * side) >> 0xc);
 }

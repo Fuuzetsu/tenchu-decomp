@@ -72,8 +72,8 @@ void MoveHumanoid(Humanoid *human, short ordr, short side)
         {
             si = side - 0x100;
         }
-        human->vector.vx = (short)(((int)(short)s * (int)o - (int)(short)c * (int)si) >> 0xc);
-        human->vector.vz = (short)(((int)(short)c * (int)o + (int)(short)s * (int)si) >> 0xc);
+        human->vector.vx = (short)(((short)s * o - (short)c * si) >> 0xc);
+        human->vector.vz = (short)(((short)c * o + (short)s * si) >> 0xc);
     }
     else
     {
