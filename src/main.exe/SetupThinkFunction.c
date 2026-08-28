@@ -76,7 +76,7 @@ void SetupThinkFunction(Humanoid *human, TThinkType type)
     if (check == THINK_MIX_NONE || check == THINK_MIX_PLAYER ||
         check == THINK_MIX_PAD2)
     {
-        human->attribute &= 0xFFFB;
+        human->attribute &= ~4;
     }
     else
     {
