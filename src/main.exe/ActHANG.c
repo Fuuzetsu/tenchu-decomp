@@ -86,9 +86,9 @@ void ActHANG(void)
     long y;
 
     dtV->vy = 0;
-    switch ((short)(dtM->mid - MOT_HANG))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0xa00:
         if (MOTION_PAD_BITS & PADLdown)
         {
             y = dtL->vy;
@@ -116,8 +116,8 @@ void ActHANG(void)
             motMODE = 1;
         }
         break;
-    case 2:
-    case 3:
+    case 0xa02:
+    case 0xa03:
         if ((dtPAD & (PADLleft | PADLright)) == 0)
         {
             motID = MOT_HANG;
@@ -133,7 +133,7 @@ void ActHANG(void)
             Sound(Me_MOTION_C, 0x1B);
         }
         break;
-    case 4:
+    case 0xa04:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             if (Me_MOTION_C == StagePlayer)
@@ -159,7 +159,7 @@ void ActHANG(void)
             }
         }
         break;
-    case 1:
+    case 0xa01:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             motID = MOT_HANG;

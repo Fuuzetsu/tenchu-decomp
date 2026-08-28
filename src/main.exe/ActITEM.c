@@ -50,16 +50,16 @@ void ActITEM(void)
     PARAM_ITEM_LAUNCH item;
 
     flag = 0;
-    switch ((s16)(dtM->mid - MOT_ITEM))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0xf00:
         if (dtM->count != 10)
             break;
         flag = 1;
         item.type = ITEM_MAKIBISHI;
         break;
 
-    case 2:
+    case 0xf02:
         if (dtM->count != 5)
             break;
         mode = ITEM_FIRE;
@@ -77,15 +77,15 @@ void ActITEM(void)
         }
         break;
 
-    case 3:
+    case 0xf03:
         if (dtM->count != 5)
             break;
         flag = 1;
         item.type = ITEM_JIRAI;
         break;
 
-    case 4:
-    case 5:
+    case 0xf04:
+    case 0xf05:
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)

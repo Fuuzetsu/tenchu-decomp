@@ -193,9 +193,9 @@ void ActATTACK(void)
         MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
     }
 dispatch:
-    switch ((short)(dtM->mid - MOT_ATTACK))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0x700:
         t = GetMotionID(dtM, MOT_ATTACK);
         switch (t)
         {
@@ -324,7 +324,7 @@ dispatch:
             goto set_motion;
         }
         break;
-    case 1:
+    case 0x701:
     {
         OrnamentType **weapon;
 
@@ -379,7 +379,7 @@ dispatch:
         }
         break;
     }
-    case 4:
+    case 0x704:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
             handle_char_state_attacking_SEVEN_(0xd);
@@ -408,13 +408,13 @@ dispatch:
             goto set_motion;
         }
         break;
-    case 5:
+    case 0x705:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
             handle_char_state_attacking_SEVEN_(0xd);
         }
         break;
-    case 6:
+    case 0x706:
     {
         OrnamentType **weapon;
 
@@ -471,7 +471,7 @@ dispatch:
         }
         break;
     }
-    case 9:
+    case 0x709:
     {
         OrnamentType **weapon;
 
@@ -547,7 +547,7 @@ dispatch:
         }
         break;
     }
-    case 0xf:
+    case 0x70f:
         if ((dtM->count == 1) && (3000 < (Me_MOTION_C->map).height))
         {
             SetCameraMode(CMODE_FALL);
@@ -647,7 +647,7 @@ dispatch:
             }
         }
         break;
-    case 0x10:
+    case 0x710:
     {
         short cleanup_guard;
         short kind;
@@ -706,7 +706,7 @@ dispatch:
         v->vz = v->vz - (v->vz >> 2);
         return;
     }
-    case 0x13:
+    case 0x713:
         if (dtM->count != 0)
         {
             return;
@@ -718,12 +718,12 @@ dispatch:
         motID = 0x501;
         motMODE = 1;
         return;
-    case 0x14:
-    case 0x15:
-    case 0x16:
-    case 0x17:
-    case 0x18:
-    case 0x19:
+    case 0x714:
+    case 0x715:
+    case 0x716:
+    case 0x717:
+    case 0x718:
+    case 0x719:
     {
         int conflict_id;
         Humanoid *human;

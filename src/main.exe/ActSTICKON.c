@@ -101,9 +101,9 @@ void ActSTICKON(void)
     short drop_index;
 
     model = Me_MOTION_C->model;
-    switch ((short)(dtM->mid - MOT_STICKON))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0xc00:
         if (dtM->count < 0)
         {
             MotionElementType *rotation;
@@ -320,8 +320,8 @@ void ActSTICKON(void)
         }
         break;
 
-    case 1:
-    case 2:
+    case 0xc01:
+    case 0xc02:
     {
         u32 pad_bits;
         s32 pad;
@@ -458,8 +458,8 @@ void ActSTICKON(void)
         break;
     }
 
-    case 3:
-    case 4:
+    case 0xc03:
+    case 0xc04:
     {
         VECTOR *position;
         short base_angle;

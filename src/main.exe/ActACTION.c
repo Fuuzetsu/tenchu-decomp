@@ -47,9 +47,9 @@ void ActACTION(void)
 {
     short i;
 
-    switch ((short)(dtM->mid - MOT_ACTION))
+    switch (dtM->mid)
     {
-    case 1:
+    case 0x101:
         if (dtM->loop == 0)
             return;
         if (dtPAD == 0)
@@ -64,8 +64,8 @@ void ActACTION(void)
         }
         goto set_normal_motion;
 
-    case 4:
-    case 5:
+    case 0x104:
+    case 0x105:
         if (Me_MOTION_C->life != Me_MOTION_C->lifemax ||
             (*(u16 *)&Me_MOTION_C->attribute & 1))
         {
@@ -103,7 +103,7 @@ void ActACTION(void)
         }
         break;
 
-    case 0:
+    case 0x100:
         if (dtM->count == 1)
         {
             s16 kind;
@@ -197,7 +197,7 @@ void ActACTION(void)
         }
         break;
 
-    case 6:
+    case 0x106:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 6);
@@ -209,8 +209,8 @@ void ActACTION(void)
         }
         break;
 
-    case 2:
-    case 3:
+    case 0x102:
+    case 0x103:
     default:
         if (dtM->count != 0)
             return;

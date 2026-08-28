@@ -72,9 +72,9 @@ void ActSQUAT(void)
     short turn;
 
     turn = Me_MOTION_C->turn / 2;
-    switch ((short)(dtM->mid - MOT_SQUAT))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0xb00:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             dtM->loop = -1;
@@ -111,7 +111,7 @@ void ActSQUAT(void)
         }
         break;
 
-    case 1:
+    case 0xb01:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -129,7 +129,7 @@ void ActSQUAT(void)
         }
         break;
 
-    case 2:
+    case 0xb02:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -163,7 +163,7 @@ void ActSQUAT(void)
         }
         goto move_if_stationary;
 
-    case 3:
+    case 0xb03:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -183,7 +183,7 @@ void ActSQUAT(void)
         }
         goto move_if_stationary;
 
-    case 4:
+    case 0xb04:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -210,7 +210,7 @@ void ActSQUAT(void)
         }
         break;
 
-    case 9:
+    case 0xb09:
         if (dtM->count == (dtM->motion->time >> 1))
         {
             Sound(Me_MOTION_C, 0x13);

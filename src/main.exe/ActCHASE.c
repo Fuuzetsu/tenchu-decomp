@@ -56,9 +56,9 @@ void ActCHASE(void)
     short turn;
 
     turn = Me_MOTION_C->turn / 2;
-    switch ((short)(dtM->mid - MOT_CHASE))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0x600:
     {
         if (dtM->count == 0 || dtM->count == dtM->motion->time / 2)
         {
@@ -163,7 +163,7 @@ void ActCHASE(void)
         break;
     }
 
-    case 2:
+    case 0x602:
     {
         if (dtM->count == 1)
         {
@@ -217,7 +217,7 @@ void ActCHASE(void)
         break;
     }
 
-    case 7:
+    case 0x607:
         if (Me_MOTION_C->pad.trig & PADRleft)
         {
             AttackControl();
@@ -227,9 +227,9 @@ void ActCHASE(void)
             JumpControl();
         }
         /* fall through */
-    case 4:
-    case 5:
-    case 6:
+    case 0x604:
+    case 0x605:
+    case 0x606:
     {
         if (dtM->count == 1)
         {
