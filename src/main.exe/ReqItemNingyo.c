@@ -158,7 +158,7 @@ found:
         item->param.ningyo.koro.hint = 0;
         param->status = KORO_NORMAL;
     }
-    param->count = 0x5a;
+    param->count = 90;
     item->locate->rotate.vx = 0;
     item->locate->rotate.vy = rand() % 0x1000;
     item->locate->rotate.vz = rand() % 68;

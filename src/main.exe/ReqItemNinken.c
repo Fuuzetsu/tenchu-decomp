@@ -133,7 +133,7 @@ found:
         param->status = KORO_NORMAL;
     }
     param->slave = 0;
-    param->count = 0xf;
+    param->count = 15;
     SetNowMotion(item->owner, 0xf02, 1);
     return 1;
 }

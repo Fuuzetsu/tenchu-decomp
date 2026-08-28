@@ -201,7 +201,7 @@ void ProcItemArrow(TItem *item)
                     item->locate->locate.coord.t[0] = 0;
                     item->locate->locate.coord.t[1] = 0;
                     item->locate->locate.coord.t[2] = 0;
-                    param->count = 0x78;
+                    param->count = 120;
                     item->mode++;
                     DeleteConflict(item->locate);
                     break;
@@ -282,7 +282,7 @@ void ProcItemArrow(TItem *item)
         {
             break;
         }
-        param->count = 0xf;
+        param->count = 15;
         item->mode++;
         break;
     }

@@ -101,7 +101,7 @@ void ActCHASE(void)
                 if (dtM->mode & 1)
                 {
                     dtM->mode &= 0xfffe;
-                    dtM->count = 0xd;
+                    dtM->count = 13;
                 }
                 else
                 {

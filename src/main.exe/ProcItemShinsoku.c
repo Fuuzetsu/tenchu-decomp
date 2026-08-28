@@ -171,7 +171,7 @@ void ProcItemShinsoku(TItem *item)
             return;
         }
         spawn_smoke_burst_(item->owner->locate, 0x96, 0xc, 8);
-        param->count = 0x4b;
+        param->count = 75;
         item->mode++;
         return;
     }

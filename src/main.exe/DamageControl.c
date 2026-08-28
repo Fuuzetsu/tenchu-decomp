@@ -346,7 +346,7 @@ resolve_hit:
             case ITEM_SHURIKEN:
                 if ((short)dmg == 0)
                 {
-                    dmg = 0x14;
+                    dmg = 20;
                 }
                 if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
                 {
@@ -362,7 +362,7 @@ resolve_hit:
             case ITEM_GUN:
                 if ((short)dmg == 0)
                 {
-                    dmg = 0x14;
+                    dmg = 20;
                 }
                 /* fall through */
             case ITEM_ARROW:
@@ -380,7 +380,7 @@ resolve_hit:
                 SetBlood(&p, 5, 0x5a);
                 break;
             case ITEM_NAPALM:
-                dmg = 0x19;
+                dmg = 25;
                 if ((rand() & 1) == 0)
                 {
                     motID = 0x1003;

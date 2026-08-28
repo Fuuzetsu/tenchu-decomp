@@ -149,7 +149,7 @@ void ProcItemSmoke(TItem *item)
         if ((u8)cnt != 0)
             return;
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
-        param->count = 0x78;
+        param->count = 120;
         item->mode++;
         return;
 

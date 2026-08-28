@@ -120,7 +120,7 @@ found:
     param->end_color.word = end_color;
     param->start_size = size;
     param->end_size = 0;
-    param->time = 0xf;
+    param->time = 15;
     param->count = 0;
     param->type = type;
     param->pz = py;

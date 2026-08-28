@@ -91,7 +91,7 @@ void ProcItemLightningBolt(TItem *item)
     switch (item->mode)
     {
     case 0:
-        param->count = 0xf;
+        param->count = 15;
         item->mode++;
         if (item->owner == CamState.Owner)
         {
