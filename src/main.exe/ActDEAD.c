@@ -56,6 +56,18 @@ typedef struct
     s16 packed;
 } DeadEvent;
 
+/* DeadEvent.action codes (invented names): the killer's grunt, the
+ * victim's cry, pad rumble, a blood burst, and the burst that also
+ * terminates the event list (the scan stops on it). */
+enum
+{
+    DEADEV_SOUND_PLAYER = 0,
+    DEADEV_SOUND_SELF = 1,
+    DEADEV_RUMBLE = 2,
+    DEADEV_BLOOD = 3,
+    DEADEV_END = 4
+};
+
 typedef union
 {
     struct
@@ -210,10 +222,10 @@ event_dead:
     motion = dtM;
     pp = DeadEvents[motion->mid - 0x1109];
     i = 0;
-    if (pp[i].action == 4)
+    if (pp[i].action == DEADEV_END)
         goto event_ready;
     count = motion->count;
-    stop = 4;
+    stop = DEADEV_END;
 scan_event:
     if (pp[i].frame == count)
         goto event_ready;
@@ -226,17 +238,17 @@ event_ready:
 
     switch (pp[i].action)
     {
-    case 0:
+    case DEADEV_SOUND_PLAYER:
         Sound(StagePlayer, pp[i].argument);
         break;
-    case 1:
+    case DEADEV_SOUND_SELF:
         Sound(Me_MOTION_C, pp[i].argument);
         break;
-    case 2:
+    case DEADEV_RUMBLE:
         PadShockAR(0, 0xff, pp[i].argument, pp[i].packed);
         break;
-    case 3:
-    case 4:
+    case DEADEV_BLOOD:
+    case DEADEV_END:
     {
         u16 packed;
 
