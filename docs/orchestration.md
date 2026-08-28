@@ -1194,7 +1194,7 @@ findrule.
 - **permute.py: report the minimal semantic delta of the best
   authoritatively-rescored candidate** (with dead-declaration flagging), and
   PERSIST the best candidate to a known path on timeout-kill (StageEndScreen's
-  bounded run lost all candidate output; start_demo_'s win had to be recovered
+  bounded run lost all candidate output; game_over_screen_'s win had to be recovered
   via `--rescore-only` plus a manual diff).
 - **autorules: two guided transforms from ChasetoTarget** — "inline a
   single-use abs/min/max temp into its comparison" and "inline a single-use

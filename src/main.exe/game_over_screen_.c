@@ -5,7 +5,11 @@
 #include "images.h"
 
 /*
- * start_demo_ (0x80055d64) loads and runs the localized post-stage demo
+ * game_over_screen_ (0x80055d64) — the mission-failed screen (invented
+ * name; a prior guess called it start_demo_): loads the localized gov_*
+ * (game-over) telop archive, plays the game-over theme once, and waits —
+ * retry sets GameRetry and reboots PROCESS_MAIN, Start/timeout clears it
+ * and returns to PROCESS_MENU. Original description continues below.
  * screen, fades in its sprites, handles continue/cancel input, then releases
  * the resources and dispatches to the selected executable.
  *
@@ -53,7 +57,7 @@ static inline void StartDemoInitSprite(u_long *tim, GsIMAGE *image,
     InitSprite(image, sprite);
 }
 
-void start_demo_(void)
+void game_over_screen_(void)
 {
     GsIMAGE fade_image;
     GsSPRITE gov_title;
@@ -197,7 +201,7 @@ void start_demo_(void)
 
     DrawSync(0);
     VSync(0);
-    _PlayMusic(MUSIC_OPENING, CDA_ONCE);
+    _PlayMusic(MUSIC_GAMEOVER, CDA_ONCE);
 
     while (1)
     {

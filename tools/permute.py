@@ -883,7 +883,7 @@ def dead_declarations(text):
     """Identifiers declared in `text` but never used again.
 
     The permuter invents scratch declarations that ride along into a winning
-    candidate without contributing to it (start_demo_'s retained candidate
+    candidate without contributing to it (game_over_screen_'s retained candidate
     carried a dead `GsSPRITE *new_var`). Flag them so whoever transcribes the
     win drops the noise instead of copying it into the draft.
     """
@@ -900,7 +900,7 @@ def semantic_delta(base_path, candidate_path, limit=120):
 
     The permuter rewrites whitespace/parenthesisation wholesale, so a raw diff
     buries the two or three real edits. Normalizing first is what turns a
-    retained candidate into something a reader can act on (start_demo_'s two
+    retained candidate into something a reader can act on (game_over_screen_'s two
     real edits had to be extracted by hand from exactly this diff).
     """
     diff = list(difflib.unified_diff(

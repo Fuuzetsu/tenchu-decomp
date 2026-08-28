@@ -880,7 +880,7 @@ judgment:
   (GetConflictResult); constants stored to narrow+wide fields share an int
   variable only when the constant also feeds arithmetic (ProcItemDrop/Makibishi
   vs LightningBolt); same-byte constants can be distinct identities via a
-  byte-equivalent signed value (start_demo_ checkpoint); positive-immediate
+  byte-equivalent signed value (game_over_screen_ checkpoint); positive-immediate
   spelling of a byte-store literal needs a named variable (`s32 bias = 0x80;`,
   SelectCameraOwnerOption; same family: compute a fanned-out coordinate once in
   an s32 temp — SetupTelop).
@@ -926,7 +926,7 @@ judgment:
 ### 3.6 Volatile discipline
 
 Every `volatile` is a scheduling barrier at each access, and the barrier itself
-can BE the residual (start_demo_'s prologue rotation — when a residual block
+can BE the residual (game_over_screen_'s prologue rotation — when a residual block
 ROTATES around a volatile, suspect the qualifier). Site-local forms, in
 preference order: a pointer-to-volatile view for one access
 (`(*(Object *volatile *)&Objects[i])->field`, UpdateEvent; StartStageSequence's

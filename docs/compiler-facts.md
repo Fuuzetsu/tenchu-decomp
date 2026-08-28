@@ -184,7 +184,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   hoisted CONSTANT before pointer assignments proves those pointers were assigned
   IN-LOOP, at their use sites** — a pre-loop assignment is unreachable for that
   particular pseudo. This diagnosed SetLightningI's 65->15 draft and
-  start_demo_; SetLightningI ultimately matched by replacing those manual
+  game_over_screen_; SetLightningI ultimately matched by replacing those manual
   pseudos with the same-TU inline projection helpers.
 - **A `p = &Global.field` pointer set with a REG_EQUIV const note costs ZERO final
   instructions** — reload deletes it — **yet it shifts local-alloc quantity spans
@@ -438,7 +438,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   see the cse section). Both facts were recorded here separately for a long time
   and nobody joined them. So removing a fence does not just re-schedule: it lets
   cse propagate values across the span, which can reallocate the whole function.
-  Measured: start_demo_'s fence removal cost **679 bytes** against a 39-byte
+  Measured: game_over_screen_'s fence removal cost **679 bytes** against a 39-byte
   residual — a 17x overshoot that reads as "the fence was load-bearing" without
   saying WHY. Price both effects before touching one (and note cse2 runs
   `after_loop=1` and crosses loop notes anyway, so the cse half is a cse1-only

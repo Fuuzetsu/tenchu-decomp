@@ -18,7 +18,7 @@ canonical handwritten-assembly original: it is absent from the demo's PSX.SYM
 function inventory, reads GTE MAC registers directly, and only follows retail
 scheduling when expressed as a hand schedule rather than normal C.
 
-The current exact-source run also promoted `start_demo_`, `AddEnemy`,
+The current exact-source run also promoted `game_over_screen_`, `AddEnemy`,
 `FUN_80036284`, `SetupTexScroll`, `WeaponHitWeapon`, `DrawHinoko`,
 `FUN_8001b174`, `GetPadXY`, and `GetPad`. `drawF3` and `PClseek` now have exact
 guarded reference reconstructions while retaining their handwritten/SDK

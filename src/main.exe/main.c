@@ -80,7 +80,7 @@ extern void clear_pad_send_(void);
 extern void PadProc(void);
 extern short StageSequence(void);
 extern void StageEndScreen(void);
-extern void start_demo_(void);
+extern void game_over_screen_(void);
 extern void Camera(void);
 extern void ActivateHumans(void);
 extern void DrawConstruction(void);
@@ -132,7 +132,7 @@ int main(void)
             }
             else if (seq == -1)
             {
-                start_demo_();
+                game_over_screen_();
             }
         }
         ComputeAllConflict();

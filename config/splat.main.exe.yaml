@@ -144,7 +144,7 @@ segments:
       # 0x80013B30): linked from the C object's .rodata so the compiled table
       # lands at the original address (the raw data bin is split around it).
       - { start: 0x3330, type: .rodata, name: BriefingAndInventorySelectionScreen, linker_section_order: .data }
-      - { start: 0x33B0, type: .rodata, name: start_demo_, linker_section_order: .data }
+      - { start: 0x33B0, type: .rodata, name: game_over_screen_, linker_section_order: .data }
       - [0x33C4, data]
       # decode_tmd_fast_'s 29-entry primitive-type jump table (vram 0x80013C20).
       - { start: 0x3420, type: .rodata, name: decode_tmd_fast_, linker_section_order: .data }
@@ -620,7 +620,7 @@ segments:
       - [0x426A8, c, award_stage_items_]
       - [0x42B84, c, StageEndScreen]
       - [0x44348, c, mission_score_screen]
-      - [0x45564, c, start_demo_]
+      - [0x45564, c, game_over_screen_]
       - [0x45DF0, c, apply_purchases_]
       - [0x45E3C, c, ResetInventory]
       - [0x45EC0, c, backup_shop_stock_]

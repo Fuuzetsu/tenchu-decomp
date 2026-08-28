@@ -147,7 +147,7 @@ relocatable member or canonical assembly when C adds no editing value.
 
 A 13-lane sweep across the whole value spectrum (DrawImpact 4, subdivide_quad_ 8,
 AdtSelect 9, SetupTelop 9, SetLightningI 15, CameraDirection 7, adiv_tng4_/9008
-26, start_demo_ 39, PutItemList 27, PadProc 28, draw_fade_ 34, briefing_screen_ 87,
+26, game_over_screen_ 39, PutItemList 27, PadProc 28, draw_fade_ 34, briefing_screen_ 87,
 StageEndScreen 202) re-tested every park with the repaired tooling (regalloc
 --local, the `-fno-builtin`-fixed permuter). Its immediate result was 0 full
 matches and well-characterised ties in the structures tested. The follow-up
@@ -491,7 +491,7 @@ printed this set (it defaults to `--scope game`):
         6084  15.2%  StageEndScreen        (residual 199 — cluster B confirmed uncollectable)
         4636  26.9%  mission_score_screen  (residual 187 — HUMAN-STRUCTURE rewrite, see below)
         3796  36.4%  subdivide_quad_          (residual   8)
-        2188  41.8%  start_demo_           (residual  75 — 96.6% exact)
+        2188  41.8%  game_over_screen_           (residual  75 — 96.6% exact)
         1448  49.2%  briefing_screen_          (residual  87 — 94.0% exact)
         ...
           48 100.0%  get_pad_active_
@@ -548,7 +548,7 @@ printed this set (it defaults to `--scope game`):
     (920 each). The final pair closed by replacing decompiler carrier reuse with
     coherent colour/counter/initializer identities; their former v0/v1 floor was
     decomposition-relative.
-  * Also present but hidden by `--max-size 2048`: **`start_demo_`** (2188) and
+  * Also present but hidden by `--max-size 2048`: **`game_over_screen_`** (2188) and
     **`mission_score_screen`** (4636). Raise the flag or they are invisible.
 
 **THE SDK IS NOT A BULK C-DECOMP TARGET (revised owner direction,

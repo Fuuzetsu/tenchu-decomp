@@ -57,10 +57,16 @@ enum
     ARC_BLOOD_POOL_MODEL = 0x1F
 };
 
-/* Music ids the code plays by literal (usage-named: both score screens
- * loop 12; the attract demo plays 0xb once). */
-#define MUSIC_OPENING 0xb
-#define MUSIC_RESULTS 12
+/* Music ids the code plays by literal — _PlayMusic's argument is the
+ * PHYSICAL MusicTable row. Names are official (the demo CHRANIM enum);
+ * script data instead uses the demo-era LOGICAL ids, remapped through
+ * MusicIDTable by PlayMusicFormID (row = table index whose byte equals
+ * id-100): logical 0-8 = MUSIC_STAGE1..9 keep rows 0-8, rows 9/10/18
+ * are retail-new themes (logical 26/27/30), and logical 9-15
+ * (GAMEOVER, COMPLETE, KIKI, TITLE, CHARA, BARMAR, MEIOU) sit at rows
+ * 11-17. */
+#define MUSIC_GAMEOVER 11
+#define MUSIC_COMPLETE 12
 
 /* exec_process_ ids — which PS-X EXE boots next ("bad process id" is
  * the game's own error message; the value names are invented). */
