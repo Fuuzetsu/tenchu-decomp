@@ -60,7 +60,7 @@
  * - `xbase` as `s16` (to get retail's `addiu -160` instead of `ori 0xff60` per
  *   the addiu/ori-names-the-type rule): regresses 87->1464. Root cause read off
  *   the objdump: cc1's CSE now recognises the signed -160 constant as the SAME
- *   value as the later `sprite.x = -0xa0;` (also genuinely -160 in target) and
+ *   value as the later `sprite.x = -160;` (also genuinely -160 in target) and
  *   merges them into ONE persistent value, promoted to a callee-saved register
  *   (`li s3,-160` + an extra spill) to survive the 6 intervening calls — even
  *   though TARGET keeps these two materialisations separate (t0 early, v0 late,
@@ -303,8 +303,8 @@ void briefing_screen_(void)
     file = PathFileRead((u8 *)path_demo,
                         BriefingAssets[PSTATE->language][PSTATE->StageNo].foreground);
     TimToDemoSprite(file, &image, &sprite);
-    sprite.x = -0xa0;
-    sprite.y = -0x78;
+    sprite.x = -160;
+    sprite.y = -120;
     sprite.r = 0x80;
     sprite.g = 0x80;
     sprite.b = 0x80;
@@ -318,7 +318,7 @@ void briefing_screen_(void)
     strip_width = strip_image.pw;
     strip_px = (u16)strip_image.px;
     sprite.w = 0x10;
-    sprite.y = -0x68;
+    sprite.y = -104;
     clear_screen_();
     tpage_base = (s32)strip_px << 16;
 

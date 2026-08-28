@@ -321,8 +321,8 @@ void StageEndScreen(void)
                                        current.grade);
             best_x = 0x7f;
             StageEndInitSprite(tim, &image, &rank);
-            rank.x = -0xa0;
-            rank.y = -0x78;
+            rank.x = -160;
+            rank.y = -120;
             rank.r = 0x80;
             rank.g = 0x80;
             rank.b = 0x80;
@@ -469,8 +469,8 @@ void StageEndScreen(void)
 
                 do
                 {
-                    rank.x = -0x19;
-                    rank.y = 0x4e;
+                    rank.x = -25;
+                    rank.y = 78;
                     pulse = rsin((GameClock << 12) / 90) * 0x7f;
                 } while (0);
                 if (pulse < 0)

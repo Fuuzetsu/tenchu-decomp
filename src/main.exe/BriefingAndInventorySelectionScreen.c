@@ -509,8 +509,8 @@ void BriefingAndInventorySelectionScreen(void)
         {
             buf = get_tim_from_archive(harc, help);
             TimToSprite(buf, &hspr);
-            hspr.x = -0xA0;
-            hspr.y = -0x78;
+            hspr.x = -160;
+            hspr.y = -120;
             hspr.r = 0x80;
             hspr.g = 0x80;
             hspr.b = 0x80;
@@ -520,8 +520,8 @@ void BriefingAndInventorySelectionScreen(void)
             hspr.mx = 0;
             hspr.my = 0;
             LoadTIM(buf);
-            hspr.x = -0x92;
-            hspr.y = 0x23;
+            hspr.x = -146;
+            hspr.y = 35;
             GsSortSprite(&hspr, OTablePt, 1);
         }
         if (bounce == 1)

@@ -142,7 +142,7 @@ void game_over_screen_(void)
     setup_brightness = 0x80;
     tim = get_tim_from_archive(gov_archive, 0);
     StartDemoInitSprite(tim, &image, &gov_title);
-    gov_title.y = -0x28;
+    gov_title.y = -40;
     gov_title.x = 0;
     gov_title.r = setup_brightness;
     gov_title.g = setup_brightness;
@@ -155,7 +155,7 @@ void game_over_screen_(void)
     tim = get_tim_from_archive(gov_archive, 1);
     StartDemoInitSprite(tim, &image, &gov_prompt);
     increment = *(volatile u32 *)&gov_prompt.attribute;
-    gov_prompt.y = 0x5f;
+    gov_prompt.y = 95;
     gov_prompt.x = 0;
     gov_prompt.r = setup_brightness;
     gov_prompt.g = setup_brightness;
@@ -178,7 +178,7 @@ void game_over_screen_(void)
 
     tim = get_tim_from_archive(fade_archive, 2);
     StartDemoInitSprite(tim, &image, &archive_line_2);
-    archive_line_2.y = 0x14;
+    archive_line_2.y = 20;
     archive_line_2.x = 0;
     archive_line_2.r = 0;
     archive_line_2.g = 0;
@@ -190,7 +190,7 @@ void game_over_screen_(void)
 
     tim = get_tim_from_archive(fade_archive, 3);
     StartDemoInitSprite(tim, &image, &archive_line_3);
-    archive_line_3.y = 0x28;
+    archive_line_3.y = 40;
     archive_line_3.x = 0;
     archive_line_3.r = 0;
     archive_line_3.g = 0;
