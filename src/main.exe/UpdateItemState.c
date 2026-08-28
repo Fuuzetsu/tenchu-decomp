@@ -101,7 +101,7 @@ loop:
                         object->size.vz = sz;
                         object->size.vy = sz;
                         object->size.vx = sz;
-                        object->common = (void *)1;
+                        object->common = CONFLICT_OWNER_ITEM;
                         object->size.pad = mode;
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;

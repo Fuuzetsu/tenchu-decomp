@@ -136,7 +136,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                         /* Preserve the array base across the call. */
                         conflict = ConflictObject;
                         r = GetConflictResult(param->locate, -1);
-                        if (conflict[r].common != (void *)2)
+                        if (conflict[r].common != CONFLICT_OWNER_DOOR)
                         {
                             m->mode++;
                             SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);

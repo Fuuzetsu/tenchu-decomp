@@ -115,7 +115,7 @@ do_resume:
     ConflictObject[cid].offset.vz = 0;
     ConflictObject[cid].offset.vy = -t / 2;
     w = DoorData[param->type].HitSize;
-    ConflictObject[cid].common = (void *)2;
+    ConflictObject[cid].common = CONFLICT_OWNER_DOOR;
     ConflictObject[cid].size.pad = CONFLICT_SOFT;
     ConflictObject[cid].size.vy = w;
     w = (s16)(w / 3) * 2;
@@ -138,7 +138,7 @@ do_control:
             s32 cid;
 
             cid = GetConflictResult(param->locate, -1);
-            if (ConflictObject[cid].common != (void *)2)
+            if (ConflictObject[cid].common != CONFLICT_OWNER_DOOR)
             {
                 s32 t;
                 s32 angle;

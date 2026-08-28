@@ -450,6 +450,13 @@ struct BattleType
  * result[] entries carry the partner's class bits plus:
  *   CONFLICT_LIVE     — overlap recorded this frame (ComputeAllConflict)
  *   CONFLICT_CONSUMED — already returned once by GetConflictResult */
+/* ConflictObjectType.common — the slot's owner: a Humanoid pointer,
+ * or a sentinel tag for ownerless slots (WeaponHitWeapon skips both
+ * tags when crediting weapon clashes; the door/pitfall procs recognise
+ * their own slots by the door tag). */
+#define CONFLICT_OWNER_ITEM ((void *)1)
+#define CONFLICT_OWNER_DOOR ((void *)2)
+
 #define CONFLICT_HIT 1
 #define CONFLICT_STAND 4
 #define CONFLICT_SOFT 8

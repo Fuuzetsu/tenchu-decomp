@@ -265,7 +265,7 @@ void ProcItemNingyo(TItem *item)
             offset_y = -250;
             size = 500;
         } while (0);
-        conflict->common = (void *)1;
+        conflict->common = CONFLICT_OWNER_ITEM;
         collision_mode = 12;
         conflict->offset.vx = 0;
         conflict->offset.vz = 0;

@@ -115,7 +115,7 @@ void ProcItemLaunch(TItem *item)
         ConflictObject[n].size.vz = 300;
         ConflictObject[n].size.vy = 300;
         ConflictObject[n].size.vx = 300;
-        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].common = CONFLICT_OWNER_ITEM;
         ConflictObject[n].size.pad = CONFLICT_HIT;
         item->collision.size = 300;
         item->collision.ofsY = 0;

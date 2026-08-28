@@ -76,7 +76,7 @@ void WeaponHitWeapon(ModelType *hand)
             }
 
             MoveHumanoid(Me_MOTION_C, -0x1E, 0);
-            if ((Humanoid *)ConflictObject[id].common != (Humanoid *)1)
+            if ((Humanoid *)ConflictObject[id].common != (Humanoid *)CONFLICT_OWNER_ITEM)
             {
                 MoveHumanoid((Humanoid *)ConflictObject[id].common, -0x1E, 0);
             }
