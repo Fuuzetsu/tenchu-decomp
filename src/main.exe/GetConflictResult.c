@@ -109,7 +109,7 @@ short GetConflictResult(ModelType *model, short index)
     idx = model->id;
     if (id != -1)
     {
-        if ((model->attribute & 0x4000) == 0)
+        if ((model->attribute & MODEL_ATTR_COLLIDE) == 0)
         {
         ret_m1:
             return -1;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -130,17 +131,17 @@ short DrawSprite(Sprite3D *sprt)
     GsSetLsMatrix(&mat);
     atr = objp->attribute;
     xy = (long *)&sprt->sprite.x;
-    if ((atr & 1) != 0)
+    if ((atr & MODEL_ATTR_HIDDEN) != 0)
         goto reject;
-    if ((atr & 2) == 0)
+    if ((atr & MODEL_ATTR_NOCULL) == 0)
     {
         sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((atr & 4) != 0 && sz == 0)
+        if ((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
         {
             result = -1;
             goto ret;
         }
-        if ((atr & 8) != 0)
+        if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
         {
             iv = rxy[0];
             if (iv < 0)
@@ -164,7 +165,7 @@ short DrawSprite(Sprite3D *sprt)
             goto ret;
         }
     reject_check:
-        if ((atr & 0x10) != 0 && sz > 0x4e2)
+        if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > 0x4e2)
         {
             result = -1;
             goto ret;

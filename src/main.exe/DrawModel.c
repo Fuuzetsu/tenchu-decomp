@@ -76,7 +76,7 @@
  *  - `reject_check` is reached from THREE edges (attribute&8==0 skip, the
  *    box check passing cleanly, and the box check's own "iv<0xb5"
  *    loop-back). The target lays the box-check body out FIRST — `if
- *    ((atr & 8) != 0) { <box check> } reject_check: ...` — so its OWN
+ *    ((atr & MODEL_ATTR_CULL_SCREEN) != 0) { <box check> } reject_check: ...` — so its OWN
  *    attribute&8==0 case is the negated guard's forward branch straight
  *    into reject_check's test, and the box check's clean pass-through is
  *    a plain fallthrough into the SAME test, both feeding one physical
@@ -140,15 +140,15 @@ short DrawModel(ModelType *objp)
     GsSetLsMatrix(&mat);
     atr = objp->attribute;
     sz = -1;
-    if ((atr & 1) != 0)
+    if ((atr & MODEL_ATTR_HIDDEN) != 0)
         goto ret;
-    if ((atr & 2) == 0)
+    if ((atr & MODEL_ATTR_NOCULL) == 0)
     {
         lv = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0);
         sz = lv >> 2;
         if ((atr & 4) == 0 || sz != 0)
         {
-            if ((atr & 8) != 0)
+            if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
             {
                 iv = rxy[0];
                 if (iv < 0)
@@ -170,7 +170,7 @@ short DrawModel(ModelType *objp)
                 goto reject;
             }
         reject_check:
-            if ((atr & 0x10) != 0 && sz > 0x4e2)
+            if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > 0x4e2)
             {
                 sz = -1;
                 goto ret;

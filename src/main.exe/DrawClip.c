@@ -86,17 +86,17 @@ long DrawClip(ModelType *objp, long *xy)
     short rxy[2];
 
     attr = objp->attribute;
-    if ((attr & 1) != 0)
+    if ((attr & MODEL_ATTR_HIDDEN) != 0)
         goto reject;
-    if ((attr & 2) == 0)
+    if ((attr & MODEL_ATTR_NOCULL) == 0)
     {
         sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((attr & 4) != 0 && sz == 0)
+        if ((attr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
         {
             result = -1;
             goto ret;
         }
-        if ((attr & 8) != 0)
+        if ((attr & MODEL_ATTR_CULL_SCREEN) != 0)
         {
             iv = rxy[0];
             if (iv < 0)
@@ -120,7 +120,7 @@ long DrawClip(ModelType *objp, long *xy)
             goto ret;
         }
     reject_check:
-        if ((attr & 0x10) != 0 && sz > 0x4e2)
+        if ((attr & MODEL_ATTR_CULL_FAR) != 0 && sz > 0x4e2)
         {
             result = -1;
             goto ret;

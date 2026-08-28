@@ -4,6 +4,20 @@
 /* ModelType.attribute bit 15: ComputeAllConflict raises it on both models
  * when it records a collision result for the frame; every GetConflictResult
  * caller tests it before reading the result table. */
+/* ModelType.attribute draw/cull configuration (the Draw* family's atr
+ * tests, in test order) and the collision pair: */
+#define MODEL_ATTR_HIDDEN 0x0001      /* never draw (ActDEAD sinks drowned
+                                         corpses with it) */
+#define MODEL_ATTR_NOCULL 0x0002      /* skip the whole clip-point test */
+#define MODEL_ATTR_CULL_BEHIND 0x0004 /* reject when the clip point is
+                                         behind the camera (sz == 0) */
+#define MODEL_ATTR_CULL_SCREEN 0x0008 /* reject outside the half-screen
+                                         bounds (|x|>=0xf1 or |y|>=0xb5) */
+#define MODEL_ATTR_CULL_FAR 0x0010    /* reject beyond the depth splice
+                                         (sz > 0x4e2) */
+#define MODEL_ATTR_COLLIDE 0x4000     /* conflict slot active (ActivateHumans
+                                         raises it; the conflict queries gate
+                                         on it) */
 #define MODEL_ATTR_CONFLICT 0x8000
 
 /*

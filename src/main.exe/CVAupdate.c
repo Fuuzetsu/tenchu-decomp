@@ -140,7 +140,7 @@ s16 CVAupdate(void)
                     SetNowMotion(human, 0x501, 1);
 
                 human->vector = UnitVector;
-                human->model->object[0]->attribute |= 0x4000;
+                human->model->object[0]->attribute |= MODEL_ATTR_COLLIDE;
                 model = human->model;
                 i = 0;
                 if (model->n > 0)

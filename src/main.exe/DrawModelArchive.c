@@ -116,17 +116,17 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
     GsGetLs(&mad->locate, &mat);
     GsSetLsMatrix(&mat);
     atr = mad->attribute;
-    if ((atr & 1) != 0)
+    if ((atr & MODEL_ATTR_HIDDEN) != 0)
         goto reject;
-    if ((atr & 2) == 0)
+    if ((atr & MODEL_ATTR_NOCULL) == 0)
     {
         sz = RotTransPers(&mad->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((atr & 4) != 0 && sz == 0)
+        if ((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
         {
             result = -1;
             goto tail;
         }
-        if ((atr & 8) != 0)
+        if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
         {
             iv = rxy[0];
             if (iv < 0)
@@ -150,7 +150,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
             goto tail;
         }
     reject_check:
-        if ((atr & 0x10) != 0 && sz > 0x4e2)
+        if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > 0x4e2)
         {
             result = -1;
             goto tail;

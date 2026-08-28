@@ -123,7 +123,7 @@ void ActDEAD(void)
             else
             {
                 *(u16 *)&Me_MOTION_C->attribute |= ATTR_SEARCH; /* drowned */
-                *(u16 *)&Me_MOTION_C->model->attribute |= 1;
+                *(u16 *)&Me_MOTION_C->model->attribute |= MODEL_ATTR_HIDDEN;
             }
 
             velocity = dtV;

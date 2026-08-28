@@ -90,7 +90,7 @@ void ComputeAllConflict(void)
     {
         confop = &ConflictObject[i];
         model = confop->model;
-        if (model->attribute & 0x4000)
+        if (model->attribute & MODEL_ATTR_COLLIDE)
         {
             memset(confop->result, 0, sizeof(confop->result));
             confop->offset.pad = 0;
@@ -112,13 +112,13 @@ void ComputeAllConflict(void)
 
     for (i = 0; i < ConflictObjects; i++)
     {
-        if (ConflictObject[i].model->attribute & 0x4000)
+        if (ConflictObject[i].model->attribute & MODEL_ATTR_COLLIDE)
         {
             for (j = i + 1; j < ConflictObjects; j++)
             {
                 ConflictObjectType *other = &ConflictObject[j];
 
-                if (other->model->attribute & 0x4000)
+                if (other->model->attribute & MODEL_ATTR_COLLIDE)
                 {
                     d = __builtin_abs(other->position.vy - ConflictObject[i].position.vy);
                     if (d <= ConflictObject[i].size.vy + other->size.vy)

@@ -250,7 +250,7 @@ void ActivateHumans(void)
             human->attribute = (u16)human->attribute & 0xff7f; /* clear ATTR_SUSPEND */
             ThinkCount++;
             model = *human->model->object;
-            model->attribute |= 0x4000;
+            model->attribute |= MODEL_ATTR_COLLIDE;
             goto next_human;
         }
 
@@ -303,7 +303,7 @@ void ActivateHumans(void)
 
         human->attribute = (u16)human->attribute | ATTR_SUSPEND;
         model = *human->model->object;
-        model->attribute &= 0xbfff;
+        model->attribute &= ~MODEL_ATTR_COLLIDE;
 
     next_human:
         do
