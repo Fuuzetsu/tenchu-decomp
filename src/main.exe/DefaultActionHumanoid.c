@@ -283,23 +283,17 @@ short DefaultActionHumanoid(Humanoid *human)
             ry = RefrectVector[direction];
             if (ry == -1)
             {
-                if (vector->vx != 0)
+                if (vector->vx != 0 || vector->vz != 0)
                 {
-                    goto reflect_motion;
+                    xx = -vector->vx;
+                    zz = -vector->vz;
                 }
-                if (vector->vz == 0)
+                else
                 {
-                    goto reflect_width;
+                    i = ((s32)((u16)human->width << 16)) >> 18;
+                    xx = RefrectMove[direction][0] * i;
+                    zz = RefrectMove[direction][1] * i;
                 }
-            reflect_motion:
-                xx = -vector->vx;
-                zz = -vector->vz;
-                goto apply_reflection;
-            reflect_width:
-                i = ((s32)((u16)human->width << 16)) >> 18;
-                xx = RefrectMove[direction][0] * i;
-                zz = RefrectMove[direction][1] * i;
-            apply_reflection:
                 locate->vx += xx;
                 locate->vz += zz;
             }
