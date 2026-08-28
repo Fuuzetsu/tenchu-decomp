@@ -321,7 +321,7 @@ void DrawImpact(TEffectSlot *ef)
         spr->x = scr.vx;
         spr->y = scr.vy;
 
-        start2 = (s32)((u16)scr.vz << 16) >> 18;
+        start2 = (s16)(u16)scr.vz >> 2;
         if (start2 >= 0)
         {
             priority = 0x4e1;

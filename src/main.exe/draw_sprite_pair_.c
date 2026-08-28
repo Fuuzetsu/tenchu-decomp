@@ -28,7 +28,7 @@
  *  - This TU divides by a runtime value (`size*300/otz`): needs
  *    `--expand-div` (Build.hs maspsxGpExterns' `extra` list + permute.py's
  *    MASPSX_EXTRA), same as DrawSpriteXYZ/draw_sprite_coord_.
- *  - The clamp expression (`(s32)((u16)out.vz << 16) >> 0x12`) is written
+ *  - The clamp expression (`(s16)(u16)out.vz >> 2`) is written
  *    out TWICE, once per GsSortSprite call — each occurrence independently
  *    re-reads the struct field `out.vz` (a fresh `lhu` in the target both
  *    times), rather than sharing one `t`/`pri` computation across both
@@ -85,7 +85,7 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
         sp1->g = (u8)(color / 2);
         sp1->b = (u8)(color / 2);
 
-        t = (s32)((u16)out.vz << 16) >> 0x12;
+        t = (s16)(u16)out.vz >> 2;
         if (t >= 0)
         {
             pri = 0x4e1;
@@ -100,7 +100,7 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
         }
         GsSortSprite(sp2, OTablePt, (u16)pri);
 
-        t = (s32)((u16)out.vz << 16) >> 0x12;
+        t = (s16)(u16)out.vz >> 2;
         if (t >= 0)
         {
             pri = 0x4e1;

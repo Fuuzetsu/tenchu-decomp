@@ -108,7 +108,7 @@ void DrawSnow(TEffectSlot *effect)
         sprite->scalex = scale;
         sprite->x = screen.vx;
         sprite->y = screen.vy;
-        depth = (s32)((u32)(u16)screen.vz << 16) >> 18;
+        depth = (s16)(u16)screen.vz >> 2;
         if (depth >= 0)
         {
             priority = 0x4e1;

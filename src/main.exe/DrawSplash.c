@@ -132,7 +132,7 @@ void DrawSplash(TEffectSlot *ef)
             {
                 s32 t;
 
-                t = (s32)((u16)scr.vz << 16) >> 18;
+                t = (s16)(u16)scr.vz >> 2;
                 if (t >= 0)
                 {
                     priority = 0x4E1;

@@ -63,6 +63,11 @@ void SetupThinkFunction(Humanoid *human, TThinkType type)
 
     human->think[0] = Think1Func[type & 0xF];
     table2 = Think2Func;
+    /* Each selector spells its own ((s32)type << 16) >> N compound: a
+     * shared (s16)type narrowing would be cse-unified into one sll/sra
+     * pair feeding per-site shifts, but retail keeps four independent
+     * fused pairs (measured: the (s16)type spelling reorders the
+     * prologue). */
     human->think[1] = *(ThinkFunc *)((u8 *)table2 + ((((s32)type << 16) >> 18) & 0x3C));
     table3 = Think3Func;
     human->think[2] = *(ThinkFunc *)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));

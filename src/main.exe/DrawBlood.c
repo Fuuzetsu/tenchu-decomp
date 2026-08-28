@@ -172,7 +172,7 @@ void DrawBlood(TEffectSlot *ef)
         sprt->g = (u8)half;
         sprt->b = (u8)half;
 
-        t = (s32)((u16)scratch.scr.vz << 16) >> 18;
+        t = (s16)(u16)scratch.scr.vz >> 2;
         if (t >= 0)
         {
             pri = 0x4e1;
@@ -187,7 +187,7 @@ void DrawBlood(TEffectSlot *ef)
         }
         GsSortSprite(spr, OTablePt, (u16)pri);
 
-        t = (s32)((u16)scratch.scr.vz << 16) >> 18;
+        t = (s16)(u16)scratch.scr.vz >> 2;
         if (t >= 0)
         {
             pri = 0x4e1;
@@ -373,7 +373,7 @@ void DrawBlood(TEffectSlot *ef)
     spr->scalex = sc;
     spr->x = scratch.scr.vx;
     spr->y = scratch.scr.vy;
-    t = (s32)((u16)scratch.scr.vz << 16) >> 18;
+    t = (s16)(u16)scratch.scr.vz >> 2;
     if (t >= 0)
     {
         pri = 0x4e1;

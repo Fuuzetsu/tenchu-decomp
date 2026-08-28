@@ -148,7 +148,7 @@ void DrawGore(TEffectSlot *ef)
         spr2->g = (u8)half_brightness;
         spr2->b = (u8)half_brightness;
 
-        value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
+        value = (s16)(u16)scratch.screen.vz >> 2;
         if (value >= 0)
         {
             priority = 0x4e1;
@@ -163,7 +163,7 @@ void DrawGore(TEffectSlot *ef)
         }
         GsSortSprite(spr, OTablePt, (u16)priority);
 
-        value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
+        value = (s16)(u16)scratch.screen.vz >> 2;
         if (value >= 0)
         {
             priority = 0x4e1;
@@ -389,7 +389,7 @@ void DrawGore(TEffectSlot *ef)
         spr->scalex = scale;
         spr->x = scratch.screen.vx;
         spr->y = scratch.screen.vy;
-        value = (s32)((u16)scratch.screen.vz << 16) >> 0x12;
+        value = (s16)(u16)scratch.screen.vz >> 2;
         if (value >= 0)
         {
             priority = 0x4e1;
