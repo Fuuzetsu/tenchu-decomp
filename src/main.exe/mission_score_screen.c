@@ -58,7 +58,7 @@ extern void _PlayMusic(s32 music, s32 mode);
 extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);
-extern void draw_time_(GsSPRITE *number, s32 value, s16 x, s32 y,
+extern void draw_time_(GsSPRITE *number, s32 value, s32 x, s32 y,
                        s32 mode);
 extern void FadeOutDirect(s16 time, s16 attribute, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);

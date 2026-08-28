@@ -37,7 +37,7 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-extern s32 PacketUsed;
+extern s32 PacketUsed; /* u32 in EndDrawing.c; the signed view here is measured byte-required */
 extern s16 ThinkBudgetRaw;
 extern s16 ThinkCount;
 extern s16 ThinkBudget;

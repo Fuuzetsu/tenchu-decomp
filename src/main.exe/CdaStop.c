@@ -33,7 +33,7 @@
  */
 extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
-extern void VSyncCallback(void *func);
+extern void VSyncCallback(void (*func)(void));
 extern void cd_control(u8 com, u8 *param, u8 *result);
 
 void CdaStop(void)

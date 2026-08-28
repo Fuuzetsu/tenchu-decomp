@@ -29,7 +29,7 @@
  *    at 0x80013C20.
  */
 
-extern int DivDepth; /* GsDOBJ2 attribute bits 9..11 */
+extern u_long DivDepth; /* GsDOBJ2 attribute bits 9..11 */
 
 extern u_long *fast_tng4_(u_short *primitive, u_long vertop, u_long *packet,
                           u_short count, u_long *work);

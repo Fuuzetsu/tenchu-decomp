@@ -102,7 +102,7 @@
  *    repeated ARRAY_REF is also correct — a `ConflictObjectType *co` local sinks
  *    the `lui/addiu` and scores 52.
  */
-extern Humanoid *vcalloc(u32 size, u8 c);
+extern void *vcalloc(u32 size, u8 c);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 
@@ -124,7 +124,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     {
         SystemOut(msg_human_overflow);
     }
-    human = vcalloc(0xd0, 0);
+    human = (Humanoid *)vcalloc(0xd0, 0);
     human->type = type;
     human->status = STAT_NORMAL;
     human->attribute = 0;

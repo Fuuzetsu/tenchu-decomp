@@ -65,7 +65,7 @@
  */
 extern Humanoid *Me_MOTION_C;
 
-extern void spawn_smoke_burst_(VECTOR *pos, int a, int b, int c);
+extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 
 void JumpControl(void)
 {
