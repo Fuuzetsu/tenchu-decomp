@@ -44,8 +44,13 @@
  */
 extern char str_select_item[]; /* select item */
 extern char str_number_of[];   /* number of */
-extern u16 CheatSeq[];         /* cheat sequence 1 */
-/* The retail command grew from the demo's original short [15] to 21 entries. */
+/* Retail data: Left Right Left Right, Cross x2, Circle x2, Square x2,
+ * Triangle x2 — the debug item-grant code. */
+extern u16 CheatSeq[];
+/* The retail command grew from the demo's original short [15] to 21
+ * entries: Triangle Cross Square Circle, Cross x4, Triangle x4,
+ * Square Circle Triangle Cross, Square x2, Circle x2 — the debug-mode
+ * code. */
 extern s16 ForbiddenCommand[21];
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
