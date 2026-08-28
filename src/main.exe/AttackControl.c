@@ -78,6 +78,12 @@ void AttackControl(void)
                 u16 type;
                 s32 group;
 
+                /* Target filter: bosses (0x80), civilians (0x90) and
+                 * beasts (0xa0) never trade blows; on the story page
+                 * (group 0) only the armed kerai retainers (types 7-9)
+                 * do. The goto ladder is byte-required: both a switch
+                 * (branch polarity flips) and the structured chain
+                 * (length change) were measured off. */
                 type = enemy->type;
                 group = type & 0xf0;
                 if (group == 0x80)
