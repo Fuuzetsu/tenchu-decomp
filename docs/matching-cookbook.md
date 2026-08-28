@@ -711,6 +711,26 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   reduction, no VTOP (GetAreaMapLevel; ClearItemLayout matched first try where
   while(1)+break grew the frame). **No combined address bases + no rotated
   tests ⇒ goto loop.**
+- **Decompiler goto scans are usually `while (1)` in disguise** (CVAupdate):
+  the shape `top: if (found) goto done; i++; if (i < N) { p++; goto top; }
+  done:` is exactly `while (1) { if (found) break; i++; if (i >= N) break;
+  p++; }` — the "guarded" increment is the back-branch's DELAY SLOT, executed
+  on both paths' encodings identically. A `do { … } while (i < N)` respelling
+  instead duplicates the top test (+52 bytes on three loops); the
+  while(1)+break form is exact. Related: a decompiler OFFSET-WALK
+  (`*(T **)((u8 *)&base->field + offset)` with a manual `offset +=
+  sizeof(Elem)`) is usually just an indexed `base->slot[i].field` loop —
+  cc1's own strength reduction produces the offset walk (LoadConstruction's
+  model-slot dispose loop; hoisted mask/base constants folded too).
+- **Decompiler comma chains flatten to nested ifs byte-identically**
+  (ActATTACK): `if (A && (x = e, f(x), y != 0) && (g(), z))` is the same
+  bytes as the structured nested-if spelling with the assignments as plain
+  statements — sequencing is identical, so always test the structured form.
+  While there, test collapsing single-consumer register puns outright:
+  ActATTACK's `shifted_mid = (u32)(u16)mid << 16` + two shift-extracts
+  reduced to plain `mid` / `mid >> 8` with zero byte churn. Only puns whose
+  ONE sll feeds TWO different extractions (ActSTICKON pad>>16 with >>28&1;
+  CVAupdate x-slot >>16 with >>24) are byte-required — annotate those.
 - **Fallback placement selects the shape for pool scans**: a give-up
   `return &dmy;` INSIDE the loop body is an invariant `la` that loop.c hoists —
   no spelling suppresses it; hand-roll the loop (SetFrame/SetSplash/SetBleed).

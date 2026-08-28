@@ -454,6 +454,24 @@ gave it naturally; refactoring regions onto the demo inventory could
 retire the tower for real. The permuter independently confirmed the
 knife-edge (a single dead i-ref rebalances 96% of the cascade).
 
+HUMANISING LOOP 8 (2026-08-29, adversarial subagent round): three
+independent Explore lenses (expression / control-flow / naming) swept
+all matched sources; every finding triaged and either fixed or
+annotated across five commits. Highlights: ActATTACK's comma chains
+are now structured nested ifs and its shifted_mid pun collapsed
+entirely; CVAupdate's three goto scan loops are while(1) loops (the
+guarded increment was the delay slot; do-while measured +52); the
+LoadConstruction offset-walk was a plain indexed loop; five copy-paste
+families became textual macros (GET_THROW_ROTATION x14,
+SWAP_TWIN_BLADE x4, EMIT_SUBDIV_GT3 x3, DISPOSE_ORNAMENT_ARCHIVE x2,
+SET_NOW_MOTION_UNLESS_CVA x3); naming batch fixed wrong addresses,
+sizes, format-string comments, KORO_OUT, and proved remap_buttons_'s
+s16 ControlScheme extern byte-required (u16 flips lh->lhu). New
+reusable rules folded into the cookbook (goto-scan/delay-slot,
+offset-walk, comma-chain, pun-collapse). NEXT: another adversarial
+round with fresh lenses (data tables / dead code / doc accuracy), and
+the DAH demo-locals-inventory endgame remains open.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
