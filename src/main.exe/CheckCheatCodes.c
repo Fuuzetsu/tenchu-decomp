@@ -46,7 +46,7 @@ extern char str_select_item[]; /* select item */
 extern char str_number_of[];   /* number of */
 /* Retail data: Left Right Left Right, Cross x2, Circle x2, Square x2,
  * Triangle x2 — the debug item-grant code. */
-extern u16 CheatSeq[];
+extern s16 CheatSeq[];
 /* The retail command grew from the demo's original short [15] to 21
  * entries: Triangle Cross Square Circle, Cross x4, Triangle x4,
  * Square Circle Triangle Cross, Square x2, Circle x2 — the debug-mode

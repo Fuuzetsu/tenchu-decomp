@@ -60,13 +60,13 @@
 
 typedef struct
 {
-    s32 near_distance;
-    s32 clear_distance;
-    s32 far_distance;
+    s32 sight_distance; /* beyond this: SR_UNSEEN */
+    s32 clear_distance; /* within this: SR_SEEN, else SR_GLIMPSE */
+    s32 far_distance;   /* beyond this: SR_GONE (target lost) */
 } SearchSight;
 
 /* The two sight-range rows (retail data @ 0x80086b7c): row 0 for a
- * walking player {clear 16000, near 10000, far 20000}, row 1 when the
+ * walking player {sight 16000, clear 10000, gone 20000}, row 1 when the
  * player sneaks {12000, 7000, 16000} — crouching or wall-pressing cuts
  * every enemy's perception ranges by roughly a quarter. */
 extern SearchSight searchsight[];
@@ -172,7 +172,7 @@ degree_done:
         {
             return SR_UNSEEN;
         }
-        if (*distance >= searchsight[mode].near_distance)
+        if (*distance >= searchsight[mode].sight_distance)
         {
             return SR_UNSEEN;
         }

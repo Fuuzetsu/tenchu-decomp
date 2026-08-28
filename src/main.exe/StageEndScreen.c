@@ -63,12 +63,6 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
     InitSprite(image, sprite);
 }
 
-static inline s32 StageEndNextStageOffset(s32 index)
-{
-    index++;
-    return index * 2;
-}
-
 #define DRAW_SCORE_NUMBER(value_, type_, clear_first_,     \
                           x_, y_)                            \
     {                                                        \
@@ -575,13 +569,11 @@ void StageEndScreen(void)
         }
         else
         {
-            u8 *next_stage;
             u32 layout_base;
 
             layout_base = (u32)&PSTATE->stage_stats;
-            next_stage = (u8 *)StageOrder;
-            PSTATE->StageNo = next_stage[StageEndNextStageOffset(
-                StageConfig[PSTATE->StageNo].uid)];
+            PSTATE->StageNo =
+                StageOrder[StageConfig[PSTATE->StageNo].uid + 1];
             layout_character_offset = (u32)PSTATE->CharType *
                                       sizeof(PSTATE->stage_stats[0]);
             layout_stage_offset =

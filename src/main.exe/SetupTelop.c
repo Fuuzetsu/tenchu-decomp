@@ -355,7 +355,7 @@
  *     previously-live local (here the U-coordinate `u`) over an arbitrary one --
  *     any previously-live local supplies the pressure, so pick the human one.
  */
-extern u16 TelopFont[];
+extern s16 TelopFont[];
 
 extern s16 *Krom2RawAdd(u32 code);
 extern void *memset(void *dst, int value, u32 size);

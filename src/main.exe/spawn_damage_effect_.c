@@ -15,7 +15,7 @@
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void DrawFrame(TEffectSlot *ef);
 
-extern u8 svec_y_n60[];
+extern SVECTOR svec_y_n60[];
 
 /*
  * Spawns either a napalm request or a body-attached frame and bleed effect.
@@ -96,7 +96,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         work.blood.pos = work.blood.scratch.random_pos;
         position_base = &work.blood.pos;
 
-        work.blood.scratch.direction = *(SVECTOR *)svec_y_n60;
+        work.blood.scratch.direction = svec_y_n60[0];
         time = rand() % 60 + 60;
         position = position_base;
 

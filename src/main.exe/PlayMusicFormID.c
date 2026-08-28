@@ -35,7 +35,8 @@
  * its low half only after the sentinel branch. Assigning `j` after the match
  * guard lets the scheduler move it into that guard's delay slot and reuse
  * $v0, while the signed integer pointer sums preserve the target's
- * index-first `addu` operand order. The nested one-shot fence supplies the
+ * index-first `addu` operand order (measured: plain p[i] flips the
+ * addu operands; the minimal `*(u8 *)(i + (s32)p)` spelling is exact). The nested one-shot fence supplies the
  * loop weight needed for the retail register colouring without emitting code.
  */
 
@@ -78,7 +79,7 @@ void PlayMusicFormID(s32 id)
         {
             do
             {
-                if (*(u8 *)((s32)i + (s32)p) == MusicNo)
+                if (*(u8 *)(i + (s32)p) == MusicNo)
                 {
                     goto found;
                 }
@@ -86,12 +87,12 @@ void PlayMusicFormID(s32 id)
         } while (0);
         j = i + 1;
         i = j;
-        if (*(u8 *)((s32)j + (s32)p) != flag)
+        if (*(u8 *)(j + (s32)p) != flag)
         {
             goto search;
         }
     found:
-        if (*(u8 *)((s32)i + (s32)p) != 0xFF)
+        if (*(u8 *)(i + (s32)p) != 0xFF)
         {
             MusicNo = i;
         }

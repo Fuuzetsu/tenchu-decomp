@@ -31,7 +31,7 @@
  *  - The chained RGB assignment emits the target's b/g/r store order.
  */
 
-extern u8 svec_y_n60_2[];
+extern SVECTOR svec_y_n60_2[];
 
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
 extern void *memset(void *dst, s32 c, u32 n);
@@ -44,7 +44,7 @@ void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
     VECTOR raw_pos;
     GsSPRITE *frame;
 
-    direction[0] = *(SVECTOR *)svec_y_n60_2;
+    direction[0] = svec_y_n60_2[0];
     frame = &sprFrame[GameClock % MaxFrames];
 
     if (msg == MM_CREATE)
