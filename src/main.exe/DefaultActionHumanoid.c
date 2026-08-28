@@ -51,14 +51,18 @@
  * sched1 loop-note fences between the target's pointer, id, and size loads.
  * The identical yy arms add a zero-code CFG fence without loop-weighting the
  * collision pointer and rotating its a1/a2 allocation.
- * The 14-deep one-shot tower around the object-vault turn (direction_abs
- * innermost, the SetNowMotion/Sound tail on the outer rungs) is a
- * loop-note WEIGHT AMPLIFIER: each level doubles flow.c's loop_depth
- * ref-weighting, and the huge weight on the abs is what wins its
- * registers. Measured: flattening it, or a depth-5 tower with the same
- * statement interleave, both produce the identical ~114-instruction
- * s1/s2 allocation cascade -- the MAGNITUDE is required, not just the
- * relative order.
+ * The 14-deep one-shot tower around the object-vault turn is now
+ * EXACTLY understood (regalloc.py --order on both shapes): each level
+ * adds +1 weighted ref to the function-wide zz (18 -> 32), pushing its
+ * global-alloc priority (floor_log2(refs)*refs/live_length) over the
+ * floor_log2 cliff at 32 refs -- 10062 vs 9701 for the STAT_DEAD
+ * constant's pseudo -- so zz wins $s0 and the whole callee-saved
+ * assignment matches. 14 levels is the measured minimum for the +14;
+ * 5/6-level abs-only towers stall at 43 differing instructions (the
+ * s0/s1 pair swap) and the flat form cascades to ~114. Extra
+ * source-level zz reads cannot substitute (cse folds them) and a
+ * block-scoped local cannot take $s0 (it crosses no call). The
+ * scaffold is a measured register-pressure dial, not a guess.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
