@@ -122,14 +122,14 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
         CdaStatus.StartPos = CdaStatus.StartPos + pos;
     }
     param[0] = 0xc9;
-    cd_control(0xe, param, 0);
+    cd_control(CdlSetmode, param, 0);
     VSync(3);
     CdaStatus.command = 0x1b;
     CdaStatus.CheckCount = 0;
     CdaStatus.status = 0;
     filter.file = 1;
     filter.chan = channel;
-    cd_control(0xd, (u8 *)&filter, 0);
+    cd_control(CdlSetfilter, (u8 *)&filter, 0);
     VSyncCallback(cbCheckCD);
     return 1;
 }

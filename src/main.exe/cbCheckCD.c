@@ -82,7 +82,7 @@ void cbCheckCD(void)
     {
         CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
         if ((cs->flag & CDA_FLAG_ACTIVE) &&
-            CdControl(0x1B, (u8 *)&scratch.first.loc, NULL) == 0)
+            CdControl(CdlReadS, (u8 *)&scratch.first.loc, NULL) == 0)
         {
             return;
         }
@@ -127,17 +127,17 @@ void cbCheckCD(void)
                 }
                 SsSetSerialAttr(0, 0, 1);
                 SsSetSerialVol(0, 0, 0);
-                cd_control(9, 0, 0);
+                cd_control(CdlPause, 0, 0);
                 cs->status = 0;
                 return;
             }
-            CdControl(1, NULL, scratch.first.result);
+            CdControl(CdlNop, NULL, scratch.first.result);
             CdaStatus.status = scratch.first.result[0];
-            CdControlF(0x11, NULL);
+            CdControlF(CdlGetlocP, NULL);
         }
         else
         {
-            CdControlF(0x11, NULL);
+            CdControlF(CdlGetlocP, NULL);
         }
         break;
     }

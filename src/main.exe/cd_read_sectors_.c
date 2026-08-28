@@ -149,7 +149,7 @@ full_retry:
     curSector = sector;
     off = byteOffset;
 
-    while (CdControlB(0xE, param, 0) == 0)
+    while (CdControlB(CdlSetmode, param, 0) == 0)
     {
         VSync(0);
     }
@@ -158,7 +158,7 @@ full_retry:
     do
     {
         VSync(vsyncArg);
-        n = CdControlB(6, (u8 *)loc, 0);
+        n = CdControlB(CdlReadN, (u8 *)loc, 0);
         vsyncArg = 0;
     } while (n == 0);
 
@@ -175,7 +175,7 @@ full_retry:
         if (n != curSector)
         {
             CdIntToPos(curSector, loc);
-            while (CdControlB(6, (u8 *)loc, 0) == 0)
+            while (CdControlB(CdlReadN, (u8 *)loc, 0) == 0)
             {
                 VSync(0);
             }
@@ -198,7 +198,7 @@ full_retry:
         }
     }
 
-    while (CdControlB(9, (u8 *)loc, 0) == 0)
+    while (CdControlB(CdlPause, (u8 *)loc, 0) == 0)
     {
         VSync(0);
     }

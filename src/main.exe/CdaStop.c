@@ -42,7 +42,7 @@ void CdaStop(void)
         SsSetSerialAttr(0, 0, 1);
         SsSetSerialVol(0, 0, 0);
         VSyncCallback(0);
-        cd_control(9, 0, 0);
+        cd_control(CdlPause, 0, 0);
         CdFlush();
         CdaStatus.CurPos = -2;
         CdaStatus.status = 0;
