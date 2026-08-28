@@ -73,6 +73,7 @@
  */
 extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 
+/* mode 1 draws the weapon (raising ATTR_ALERT), 0 sheathes it. */
 void EquipWeapon(Humanoid *human, short mode)
 {
     OrnamentType **wp;

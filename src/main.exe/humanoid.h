@@ -31,11 +31,13 @@
  *                  keeps alert behavior while it (or EmergencyNotice) is
  *                  up. ActDEAD REUSES the bit on corpses to tag a splash
  *                  (drowning) death, clearing it for every other death
- *   ATTR_ALERT     0x0040 — aware of the intruder: observed raised on
- *                  fighters AND civilians the moment EmergencyNotice fires,
- *                  cleared when the alarm expires; without it a hit is an
+ *   ATTR_ALERT     0x0040 — combat-ready / weapon drawn: EquipWeapon
+ *                  raises it on draw (mode 1) and clears it on sheathe,
+ *                  and the alarm raises it on fighters AND civilians the
+ *                  moment EmergencyNotice fires; without it a hit is an
  *                  instant kill and scores Criticals (the stealth-kill
- *                  counter), with it (or 0x0002) the kill scores Murders
+ *                  counter — a sheathed enemy is a stealth-kill target),
+ *                  with it (or 0x0002) the kill scores Murders
  *   ATTR_SUSPEND   0x0080 — AI suspended: ActivateHumans clears it (and
  *                  raises the model's 0x4000) to wake a human within the
  *                  think budget and sets it on far ones;
