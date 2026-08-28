@@ -74,21 +74,21 @@ s32 update_card_screen_(s32 pad)
     u16 incremented;
 
     setup_card_screen_(0);
-    switch ((s16)(McardState - 10))
+    switch (McardState)
     {
-    case 0:
+    case 0xa:
         McardPage = 0x18;
         break;
-    case 10:
+    case 0x14:
         McardPage = 0x19;
         break;
-    case 0x1c:
+    case 0x26:
         McardState = 0x28;
         break;
-    case 0x1e:
+    case 0x28:
         McardState = 0x2b;
         break;
-    case 0x21:
+    case 0x2b:
         value = check_card_file_(McardFile);
         if (value == 0)
             goto probe_missing;
@@ -101,11 +101,11 @@ s32 update_card_screen_(s32 pad)
     probe_present:
         McardState = 0x32;
         break;
-    case 0x28:
+    case 0x32:
         McardPage = 7;
         McardRetry = 0;
         goto increment_state;
-    case 0x2b:
+    case 0x35:
         SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                  TENCHU_PERSISTENT_STATE_SIZE, 0);
@@ -140,40 +140,40 @@ s32 update_card_screen_(s32 pad)
         value = McardRetry;
         incremented = value + 1;
         goto update_count;
-    case 0x2c:
+    case 0x36:
         if (gfMemory == 0)
         {
             McardPage = 9;
             break;
         }
-    case 0x2d:
+    case 0x37:
         McardState = 99;
         break;
-    case 0x2e:
+    case 0x38:
         McardPage = 0xe;
         break;
-    case 0x32:
+    case 0x3c:
         McardPage = 0x2c;
         break;
-    case 0x33:
+    case 0x3d:
         McardPage = 7;
         McardState = 0x3f;
         McardRetry = 0;
         break;
-    case 0x2f:
-    case 0x34:
+    case 0x39:
+    case 0x3e:
         McardState = 0x5a;
         break;
-    case 0x1f:
-    case 0x20:
     case 0x29:
     case 0x2a:
-    case 0x35:
-    case 0x36:
+    case 0x33:
+    case 0x34:
+    case 0x3f:
+    case 0x40:
     increment_state:
         McardState++;
         break;
-    case 0x37:
+    case 0x41:
         SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                  TENCHU_PERSISTENT_STATE_SIZE, 0);
@@ -232,17 +232,17 @@ s32 update_card_screen_(s32 pad)
             McardState = next_state;
         } while (0);
         break;
-    case 0x3c:
+    case 0x46:
         McardPage = 0x1a;
         break;
-    case 1:
     case 0xb:
-    case 0x3d:
+    case 0x15:
+    case 0x47:
         McardState = -1;
         break;
-    case 2:
     case 0xc:
-    case 0x3e:
+    case 0x16:
+    case 0x48:
     clear_state:
         McardState = 0;
         break;

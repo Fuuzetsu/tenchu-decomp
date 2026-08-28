@@ -64,9 +64,9 @@ void ActSTATE(void)
 {
     short i;
 
-    switch ((short)(dtM->mid - 0x801))
+    switch (dtM->mid)
     {
-    case 0xd:
+    case 0x80e:
         if (dtM->count == 1)
         {
             {
@@ -183,7 +183,7 @@ void ActSTATE(void)
         motMODE = 1;
         return;
 
-    case 0xe:
+    case 0x80f:
         if (dtM->count == 1)
         {
             {
@@ -251,7 +251,7 @@ void ActSTATE(void)
         motMODE = 1;
         return;
 
-    case 2:
+    case 0x803:
         if (dtM->count < -0x36 && dtV->vy > 200)
         {
             dtM->count = -0x1e;
@@ -332,8 +332,8 @@ void ActSTATE(void)
         dtV->vz >>= 1;
         return;
 
-    case 3:
-    case 4:
+    case 0x804:
+    case 0x805:
         if (dtM->count == 1 && Me_MOTION_C == StagePlayer)
         {
             PadShockAR(0, 0xff, 10, 0);
@@ -347,7 +347,7 @@ void ActSTATE(void)
             dtR->vy += 0x800;
         }
         /* fall through */
-    case 5:
+    case 0x806:
         if (dtM->count == 1)
         {
             Humanoid *human;
@@ -409,7 +409,7 @@ void ActSTATE(void)
         dtV->vz -= dtV->vz >> 2;
         return;
 
-    case 0:
+    case 0x801:
         if (dtM->count != dtM->motion->time / 2)
         {
             if (dtM->count != 0)
@@ -442,7 +442,7 @@ void ActSTATE(void)
         Sound(Me_MOTION_C, 0x13);
         return;
 
-    case 0xf:
+    case 0x810:
         if (dtM->count != 0)
         {
             return;
@@ -466,7 +466,7 @@ void ActSTATE(void)
         return;
 
     default:
-    case 1:
+    case 0x802:
         return;
     }
     motMODE = 1;

@@ -237,6 +237,12 @@ void BriefingAndInventorySelectionScreen(void)
         pad.u = GetRealPad(0);
         np = pad.u & (pad.u ^ np);
         id = check_for_known_button_combination(pad.s, np);
+        /* The biased spelling is byte-required here (unlike the other
+         * biased switches, which unbias cleanly): the (s16) cast of the
+         * subtraction feeds the sll/sra promotion pair retail has before
+         * the jump-table bound check. Cases are the cheat ids minus one
+         * (case 0 = CHEAT_ITEM_CAP .. case 0xF = CHEAT_REVIVE, 0x1F =
+         * the character-specific unlock). */
         switch ((s16)(id - 1))
         {
         case 0:

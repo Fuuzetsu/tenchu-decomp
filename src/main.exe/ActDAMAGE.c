@@ -63,9 +63,9 @@ void ActDAMAGE(void)
     short done;
 
     done = false;
-    switch ((short)(dtM->mid - 0x1005))
+    switch (dtM->mid)
     {
-    case 0:
+    case 0x1005:
     {
         if (dtM->count == 1)
         {
@@ -110,7 +110,7 @@ void ActDAMAGE(void)
         break;
     }
 
-    case 1:
+    case 0x1006:
     {
         if (dtM->count == 1)
         {
@@ -155,8 +155,8 @@ void ActDAMAGE(void)
         break;
     }
 
-    case 2:
-    case 3:
+    case 0x1007:
+    case 0x1008:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x1d);
@@ -174,7 +174,7 @@ void ActDAMAGE(void)
         dtV->vz = dtV->vz - (dtV->vz >> 2);
         break;
 
-    case 4:
+    case 0x1009:
         if (Me_MOTION_C->life == 0)
         {
             Humanoid *human;
@@ -207,9 +207,9 @@ void ActDAMAGE(void)
         }
         break;
 
-    case 5:
-    case 6:
-    case 7:
+    case 0x100a:
+    case 0x100b:
+    case 0x100c:
         if (dtM->count == 0 && dtM->loop != 0)
             done = true;
         break;

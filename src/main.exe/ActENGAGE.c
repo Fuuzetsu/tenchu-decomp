@@ -216,25 +216,25 @@ void ActENGAGE(void)
     }
     else if (dtCMD != 0)
     {
-        switch ((short)(dtCMD - 1))
+        switch (dtCMD)
         {
-        case 0:
+        case 1:
             motID = 0x607;
             motMODE = 1;
             return;
-        case 0x20:
+        case 0x21:
             motID = 0x70d;
             motMODE = 1;
             return;
-        case 1:
+        case 2:
             motID = 0x604;
             motMODE = 1;
             return;
-        case 3:
+        case 4:
             motID = 0x605;
             motMODE = 1;
             return;
-        case 2:
+        case 3:
             motID = 0x606;
             motMODE = 1;
             return;
