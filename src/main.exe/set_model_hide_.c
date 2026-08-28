@@ -69,7 +69,7 @@ void set_model_hide_(Humanoid *human, s16 hide)
             attr = attr | 1;
             *attribute = attr;
         }
-        *(u16 *)&model->object[0]->attribute |= 1;
+        *(u16 *)&model->object[0]->attribute |= MODEL_ATTR_HIDDEN;
         return;
     }
     i = 7;
@@ -83,5 +83,5 @@ void set_model_hide_(Humanoid *human, s16 hide)
         attr = attr & ~1;
         *attribute = attr;
     }
-    *(u16 *)&model->object[0]->attribute &= 0xfffe;
+    *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
 }
