@@ -65,7 +65,7 @@ s16 Think1watch(void)
         result = -0x8000;
         if (Me_THINK_C->actflg != 0)
         {
-            result = 0x2000;
+            result = PADLright;
         }
         old_actscnt = Me_THINK_C->actscnt;
         Me_THINK_C->actscnt = old_actscnt + 1;

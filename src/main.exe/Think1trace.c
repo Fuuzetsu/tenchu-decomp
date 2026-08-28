@@ -119,7 +119,7 @@ s16 Think1trace(void)
                     result = -0x8000;
                     if (turn < degree)
                     {
-                        result = 0x2000;
+                        result = PADLright;
                     }
                 }
             }

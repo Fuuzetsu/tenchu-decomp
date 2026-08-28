@@ -152,13 +152,15 @@ short SuccessionAttack(long dist, short deg)
 in_range:
     if (Degree >= 0x12d)
     {
-        buttons = 0x2000;
+        buttons = PADLright;
     }
     else
     {
-        buttons |= 0x80;
+        buttons |= PADRleft;
         if (Degree < -300)
         {
+            /* PADLleft, spelled negative so the constant fits
+             * addiu's signed immediate (fits-andi/addiu lever). */
             buttons = -0x8000;
         }
         else
@@ -166,7 +168,7 @@ in_range:
             goto ret;
         }
     }
-    buttons |= 0x80;
+    buttons |= PADRleft;
 ret:
     return buttons;
 }

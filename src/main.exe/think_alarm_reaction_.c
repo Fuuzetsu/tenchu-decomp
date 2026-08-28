@@ -134,7 +134,7 @@ s16 think_alarm_reaction_(void)
                     result = -0x8000;
                     if (degree > 0)
                     {
-                        result = 0x2000;
+                        result = PADLright;
                     }
                     goto done;
                 }
@@ -145,7 +145,7 @@ s16 think_alarm_reaction_(void)
                     randomValue = rand();
                     if (randomValue % 5 != 0)
                     {
-                        result = 0x2000;
+                        result = PADLright;
                         if ((rand() & 1) == 0)
                         {
                             goto done;
@@ -154,7 +154,7 @@ s16 think_alarm_reaction_(void)
                     }
                     else
                     {
-                        result = 0x1000;
+                        result = PADLup;
                     }
                 }
             }

@@ -31,7 +31,7 @@ s16 Think1sleep(void)
     }
     else if (mmp->count == 0)
     {
-        mot = 0x1001;
+        mot = PADLup | PADL2;
     }
     if ((EmergencyNotice != 0) || ((Attrib & 0x8000) != 0))
     {

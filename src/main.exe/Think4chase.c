@@ -71,12 +71,12 @@ s16 Think4chase(void)
         else
         {
             Me_THINK_C->actcnt++;
-            result = 0x1000;
+            result = PADLup;
             if (Me_THINK_C->actcnt < 0x1E)
             {
                 if (Degree > Me_THINK_C->turn)
                 {
-                    result = 0x3000;
+                    result = PADLup | PADLright;
                 }
                 else if (Degree < -Me_THINK_C->turn)
                 {

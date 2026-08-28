@@ -91,7 +91,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     turn = Me_THINK_C->turn;
     if (turn < (s16)dir)
     {
-        result = 0x2000;
+        result = PADLright;
     }
     else if ((s16)dir < -turn)
     {

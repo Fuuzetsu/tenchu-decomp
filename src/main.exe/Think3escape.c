@@ -55,11 +55,11 @@ s16 Think3escape(void)
         {
             if (result != 0)
             {
-                result = 0x2000;
+                result = PADLright;
             }
             else
             {
-                result = 0x2000;
+                result = PADLright;
             }
         }
     }

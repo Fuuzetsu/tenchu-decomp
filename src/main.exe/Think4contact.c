@@ -68,7 +68,7 @@ s16 Think4contact(void)
             result = 0;
             if (Me_THINK_C->turn < Degree)
             {
-                result = 0x2000;
+                result = PADLright;
             }
             else if (Degree < -Me_THINK_C->turn)
             {

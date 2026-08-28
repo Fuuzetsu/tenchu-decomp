@@ -66,10 +66,10 @@ s16 Think3chase(void)
             }
             else
             {
-                result = 0x80;
+                result = PADRleft;
                 if (Distance < 2000)
                 {
-                    result = 0xA0;
+                    result = PADRleft | PADRright;
                 }
             }
             AttackActionCount = GameClock + EngageLevel * 10;
