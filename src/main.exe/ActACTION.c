@@ -67,7 +67,7 @@ void ActACTION(void)
     case 0x104:
     case 0x105:
         if (Me_MOTION_C->life != Me_MOTION_C->lifemax ||
-            (*(u16 *)&Me_MOTION_C->attribute & 1))
+            (*(u16 *)&Me_MOTION_C->attribute & PHASE_SUSPICIOUS))
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);

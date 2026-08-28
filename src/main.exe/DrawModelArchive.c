@@ -183,7 +183,7 @@ loop:
     for (i = 0; i < mad->n; i++)
     {
         objp = mad->object[i];
-        if ((objp->attribute & 1) == 0)
+        if ((objp->attribute & MODEL_ATTR_HIDDEN) == 0)
         {
             GsGetLs(&objp->locate, &mat);
             GsSetLsMatrix(&mat);

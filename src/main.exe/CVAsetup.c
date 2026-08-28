@@ -121,7 +121,7 @@ void CVAsetup(void)
             GetTIMpackInfo(adr, &image, i);
             sprite = SetupSprite(0, &image);
             TANKA_SPRITES_[i] = sprite;
-            sprite->attribute = sprite->attribute | 1;
+            sprite->attribute = sprite->attribute | MODEL_ATTR_HIDDEN;
             TANKA_SPRITES_[i]->sprite.x = (2 - i) * 0x14 + 10;
             TANKA_SPRITES_[i]->sprite.y = (i % 3) * 8 - 4;
             reload = TANKA_SPRITES_[i];

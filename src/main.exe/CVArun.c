@@ -110,7 +110,7 @@ short CVArun(void)
         for (i = 0; i < 6; i++)
         {
             e = TANKA_SPRITES_[i];
-            if ((e->attribute & 1) == 0)
+            if ((e->attribute & MODEL_ATTR_HIDDEN) == 0)
             {
                 if ((s8)e->sprite.r >= 0)
                 {

@@ -197,13 +197,13 @@ void StateTransition(Humanoid *human)
         s16 active_item;
 
         active_item = StagePlayer->itmctl;
-        if (active_item == 0xb || active_item == 0x12)
+        if (active_item == ITEM_HENSHIN || active_item == ITEM_MANEBUE)
         {
             u16 kind;
 
             kind = Me_THINK_C->type & 0xf0;
-            if (kind != 0x80 && kind != 0xa0 &&
-                (active_item != 0x12 || (ATTRIB_BITS & 3) != 2))
+            if (kind != PAGE_BOSS && kind != PAGE_BEAST &&
+                (active_item != ITEM_MANEBUE || (ATTRIB_BITS & 3) != PHASE_ALERT))
             {
                 if (EmergencyNotice != 0)
                 {

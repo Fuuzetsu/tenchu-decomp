@@ -191,7 +191,7 @@ void StartStageSequence(void)
     while (i < Humans)
     {
         entry = HumanGroup[i];
-        if (entry != 0 && (((u16)entry->type & 0xf0) == 0))
+        if (entry != 0 && (((u16)entry->type & 0xf0) == PAGE_PALACE))
         {
             order[tp++] = entry;
             HumanGroup[i] = 0;

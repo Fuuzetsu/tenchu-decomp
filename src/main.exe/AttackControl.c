@@ -86,11 +86,11 @@ void AttackControl(void)
                  * (length change) were measured off. */
                 type = enemy->type;
                 group = type & 0xf0;
-                if (group == 0x80)
+                if (group == PAGE_BOSS)
                     goto reject_enemy;
-                if (group >= 0x81)
+                if (group > PAGE_BOSS)
                     goto check_high_group;
-                if (group == 0)
+                if (group == PAGE_PALACE)
                     goto check_low_group;
                 goto enemy_type_ok;
 

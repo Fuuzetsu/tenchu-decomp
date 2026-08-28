@@ -250,7 +250,7 @@ low_type:
     if (type < 0)
         goto done;
 equip:
-    human->attribute = human->attribute | 2;
+    human->attribute = human->attribute | PHASE_ALERT;
     EquipWeapon(human, 1);
     SetNowMotion(human, 0x501, 1);
     goto done;
