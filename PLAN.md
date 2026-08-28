@@ -481,6 +481,19 @@ suggestion to CamelCase ALL_CAPS_/trailing-underscore globals -- that
 casing is the repo's marker for invented (non-PSX.SYM) names, and
 erasing it would lose provenance.
 
+DAH ENDGAME MEASUREMENTS (2026-08-29): the in-place-abs variant
+(`zz = GetDirection(...); zz = zz >= 0 ? zz : -zz;` flat, no tower)
+measures zz at 22 refs / 161 live -> 5465 priority, landing $s2 while
+the STAT_DEAD pseudo (39/201 -> 9701) keeps $s0; the full diff is 116
+instructions. The cliff arithmetic: zz wins $s0 at
+floor_log2(r)*r/live > 0.9701, i.e. 34 refs at <=167 live (10180).
+In-place reuse is cheap (+4 refs / +2 live for the abs), and
+rotate_y->zz in the loop's turn block projects ~28/169 -- still ~6
+refs short with no natural donor left (direction can't merge: live
+ranges overlap; ry-as-abs was refuted earlier; twin SetNowMotion calls
+are +4 bytes). A decomp-permuter run over the flat variant is searching
+the remaining space in the census worktree (scratchpad/permute-dah.log).
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
