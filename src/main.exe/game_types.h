@@ -872,7 +872,11 @@ struct TLifeBarStyle
     GsSPRITE fill;  /* 0x2C */
 }; /* 0x50 */
 
-/* HUMAN.C/WORLD.C's waypoint path. */
+/* HUMAN.C/WORLD.C's waypoint path. Each point steers the AI walk:
+ * range is the arrival radius, and pad holds extra PAD buttons OR'd
+ * into the synthesized input from that point on (ControlTraceLine —
+ * how patrol routes make a guard crouch or run on a segment);
+ * pad == -1 terminates the list and restarts the patrol at index 0. */
 typedef struct TracePoint TracePoint;
 struct TracePoint
 {
