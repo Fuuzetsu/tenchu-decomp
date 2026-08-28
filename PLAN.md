@@ -505,6 +505,21 @@ original source necessarily contained a construct that reduces to it
 (nested statement macros were the period idiom). The tower stays, fully
 documented in the file; no further endgame experiments planned.
 
+HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
+adversarial rounds continued -- the Act*/think header re-audit fixed
+five wrong glosses (and caught commit 1b20da30 claiming fixes its
+died script never applied; edit-verification discipline now in
+docs/orchestration.md); the item-family lens harmonized dispose
+sentinels/pool bounds/names across 19 files with two measured
+byte-required divergences annotated. The decimal campaign converted
+hexified decimal constants repo-wide: card-save state machine
+(tens-with-substeps scheme), damage/frame/effect quantities, angle
+thresholds (rand()%360, <1100), screen coordinates (-160/-120
+corners), doll HP 99. Extern cross-check unified six signatures and
+adjudicated the set_impact_ex_ s32 tails (negative-constant lever).
+Redundant (int) promotion casts trimmed (move-speed pair,
+subdivide_quad_ midpoints). Effect-family lens round pending.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
