@@ -74,7 +74,7 @@ void SetupThinkFunction(Humanoid *human, TThinkType type)
     human->think[3] = Think4Func[(u32)((s32)type << 16) >> 28];
     check = ((s32)type << 16) >> 16;
     if (check == THINK_MIX_NONE || check == THINK_MIX_PLAYER ||
-        check == 0x2222 /* the other stock template */)
+        check == THINK_MIX_PAD2)
     {
         human->attribute &= 0xFFFB;
     }

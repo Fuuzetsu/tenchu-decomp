@@ -715,11 +715,23 @@ struct WeaponModelType
 
 /* APPEAR.C's character database row. */
 /* SetupThinkFunction mixes — one Think-table index per nibble (think[0]
- * in the low nibble .. think[3] in the high). The literals the code
- * spells: none, the player's mix, and the summoned ninken's. Invented
- * names; stage data supplies the rest. */
+ * in the low nibble .. think[3] in the high). The debug enemy-editor's
+ * ThinkDB (retail data @0x80089e40) names every program with the
+ * game's own labels, and they line up exactly with the Think*Func
+ * pointer tables:
+ *   Think1: 1 PAD 1 (ThinkBasicHuman1), 2 PAD 2 (ThinkBasicHuman2),
+ *           3 TRACE, 4 WATCH, 5 RANDOM, 6 NINJA, 7 SLEEP, 8 CHASE,
+ *           9 (Think1target)
+ *   Think2: 3 CONFIRM, 4 CONTACT
+ *   Think3: 3 CALLAID, 4 ATK-CHASE, 5 ATK-POINT, 6 ESCAPE,
+ *           7 ATK-AREA, 8 ATK-HITAWAY
+ *   Think4: 3 ABANDON, 4 CONTACT, 5 CHASE
+ * The spelled literals: none, the first-pad player mix ("PAD 1"), the
+ * second-pad mix ("PAD 2"), and the summoned ninken's. Stage data
+ * supplies the rest. */
 #define THINK_MIX_NONE 0
 #define THINK_MIX_PLAYER 0x1111
+#define THINK_MIX_PAD2 0x2222
 #define THINK_MIX_NINKEN 0x5449
 
 /* Weapon kinds (HumanDataType.wepid, copied into Humanoid.wpatk by

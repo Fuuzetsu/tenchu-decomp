@@ -153,7 +153,7 @@ void AddEnemy(void)
         }
         ItemName[x].name = 0;
         think = think | AdtSelect(str_custom_think_setting, ItemName, 0);
-    } while (think != 0x1111 && think != 0x2222 && ++r < 4);
+    } while (think != THINK_MIX_PLAYER && think != THINK_MIX_PAD2 && ++r < 4);
 
     {
         VECTOR pos;
