@@ -531,11 +531,17 @@ struct BackGround
     s16 attribute; /* 0x44 */
 }; /* 0x48 */
 
-/* CHRANIM.C's character-animation event record. */
+/* CHRANIM.C's character-animation event record — one CVA cutscene
+ * script row (see the CVA_CMD_ grammar). The fields are per-command:
+ * a SEQUENCE header's id is the sequence id and p the CD track; a
+ * WAIT's id is the frame count; MOTION packs the motion id into x's
+ * high byte with x/z also giving a *1000 teleport and p a facing (or
+ * -1); the camera rows use x/y/z *100 and p as the retarget human;
+ * AVCameraSetup sub-dispatches on a camera row's id. */
 typedef struct CVAType CVAType;
 struct CVAType
 {
-    s16 mode; /* 0x00 */
+    s16 mode; /* 0x00 CVA_CMD_ row type; 1 ends a batch, -1 the table */
     s16 id;   /* 0x02 */
     s16 x;    /* 0x04 */
     s16 y;    /* 0x06 */
