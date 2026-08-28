@@ -135,7 +135,7 @@ void PauseProc(void)
         if (cur == (START | SELECT))
             return_to_menu_();
         com = check_for_known_button_combination(cur, trig);
-        if (CamState.Owner->status == STAT_ATTACK && 0x713 < CamState.Owner->motion->mid)
+        if (CamState.Owner->status == STAT_ATTACK && CamState.Owner->motion->mid > 0x713)
             com = 0;
         if (com == 0x10)
         {

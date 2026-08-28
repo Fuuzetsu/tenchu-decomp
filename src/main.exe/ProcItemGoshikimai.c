@@ -90,7 +90,7 @@ void ProcItemGoshikimai(TItem *item)
     {
     case 0:
         human = item->owner;
-        if (ActionHalt == 0 && 0 < human->life)
+        if (ActionHalt == 0 && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, 3);
             UpdateMotion(human->motion, 0xf03);

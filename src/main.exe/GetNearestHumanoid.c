@@ -83,7 +83,7 @@ Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
             (cur->attribute & ATTR_SUSPEND) == 0)
         {
             dx = 0x90;
-            if ((cur->type & 0xf0) != dx && -1 < cur->life)
+            if ((cur->type & 0xf0) != dx && cur->life > -1)
             {
                 dx = __builtin_abs(cur->locate->vx - human->locate->vx);
                 dz = __builtin_abs(cur->locate->vz - human->locate->vz);

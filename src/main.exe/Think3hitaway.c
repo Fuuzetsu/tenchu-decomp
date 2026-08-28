@@ -121,7 +121,7 @@ s16 Think3hitaway(void)
                 result |= 0x40;
             }
         }
-        if (4000 < Distance || (ATTRIB_BITS & 0x400))
+        if (Distance > 4000 || (ATTRIB_BITS & 0x400))
         {
             Me_THINK_C->actflg = 1;
         }

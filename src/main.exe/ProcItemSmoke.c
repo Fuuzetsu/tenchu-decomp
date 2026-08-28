@@ -208,7 +208,7 @@ void ProcItemSmoke(TItem *item)
                     if (i < Humans)
                     {
                         target = HumanGroup[i];
-                        if (0 < target->life && target->motion->mid != MOT_ACTION && (target->attribute & ATTR_SUSPEND) == 0)
+                        if (target->life > 0 && target->motion->mid != MOT_ACTION && (target->attribute & ATTR_SUSPEND) == 0)
                         {
                             dist = GetVectorDistance(&find->pos, target->locate);
                             if (dist < find->find_dist)
@@ -227,7 +227,7 @@ void ProcItemSmoke(TItem *item)
                 if (human != item->owner && human->life != -1 && human->motion->mid != 0x100b)
                 {
                     i = 0x10;
-                    if (ActionHalt == 0 && 0 < human->life)
+                    if (ActionHalt == 0 && human->life > 0)
                     {
                         dispose_weapon_data_of_char_(human, 3);
                         UpdateMotion(human->motion, 0x100b);

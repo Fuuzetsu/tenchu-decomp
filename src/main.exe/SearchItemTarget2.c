@@ -144,7 +144,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
         human = HumanGroup[i];
         tv = *GetAbsolutePosition(*human->model->object, 0, 0, 0);
         lv = tv;
-        if (0 < human->life && human != owner)
+        if (human->life > 0 && human != owner)
         {
             lv.vx = lv.vx - start->vx;
             lv.vy = lv.vy - start->vy;

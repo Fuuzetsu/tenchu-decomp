@@ -170,7 +170,7 @@ short DrawModel(ModelType *objp)
                 goto reject;
             }
         reject_check:
-            if ((atr & 0x10) != 0 && 0x4e2 < sz)
+            if ((atr & 0x10) != 0 && sz > 0x4e2)
             {
                 sz = -1;
                 goto ret;

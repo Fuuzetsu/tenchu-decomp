@@ -77,7 +77,7 @@ void leLayoutEnemy(int mode)
     group = HumanGroup;
     while (1)
     {
-        if (1 >= Humans)
+        if (Humans <= 1)
         {
             break;
         }

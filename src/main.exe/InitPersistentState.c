@@ -60,7 +60,7 @@ s32 InitPersistentState(void)
     u8 fill;
     u8 *stockp;
 
-    if ((pg->CharType & 0xfe) != 0 || 10 < pg->StageNo)
+    if ((pg->CharType & 0xfe) != 0 || pg->StageNo > 10)
     {
         memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
                TENCHU_PERSISTENT_STATE_SIZE);

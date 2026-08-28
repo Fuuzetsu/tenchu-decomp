@@ -120,7 +120,7 @@ long DrawClip(ModelType *objp, long *xy)
             goto ret;
         }
     reject_check:
-        if ((attr & 0x10) != 0 && 0x4e2 < sz)
+        if ((attr & 0x10) != 0 && sz > 0x4e2)
         {
             result = -1;
             goto ret;

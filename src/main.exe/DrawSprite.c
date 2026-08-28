@@ -164,7 +164,7 @@ short DrawSprite(Sprite3D *sprt)
             goto ret;
         }
     reject_check:
-        if ((atr & 0x10) != 0 && 0x4e2 < sz)
+        if ((atr & 0x10) != 0 && sz > 0x4e2)
         {
             result = -1;
             goto ret;

@@ -117,7 +117,7 @@ loop2:
         goto loop2_end;
     objp = mad->object[i];
     super = (ModelType *)mad;
-    if (0 <= prntp[i].np && 0 < count)
+    if (prntp[i].np >= 0 && count > 0)
     {
         j = 0;
         parent = prntp[i].np;
