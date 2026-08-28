@@ -511,7 +511,7 @@ void mission_score_screen(void)
                 signedValue = (s32)value;
                 drawY = -0x35;
                 drawnSprite->x = (0x16);
-                drawnSprite->y = -0x35;
+                drawnSprite->y = drawY;
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -575,7 +575,7 @@ void mission_score_screen(void)
                 signedValue = (s32)value;
                 drawY = -0x35;
                 drawnSprite->x = (0x2F);
-                drawnSprite->y = -0x35;
+                drawnSprite->y = drawY;
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -677,7 +677,7 @@ void mission_score_screen(void)
                 signedValue = (s32)value;
                 drawY = -0x24;
                 drawnSprite->x = (0x23);
-                (drawnSprite->y = (-0x24));
+                (drawnSprite->y = drawY);
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -727,7 +727,7 @@ void mission_score_screen(void)
                 signedValue = (s16)value;
                 drawY = -0x24;
                 drawnSprite->x = resultX;
-                (drawnSprite->y = (-0x24));
+                (drawnSprite->y = drawY);
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -779,7 +779,7 @@ void mission_score_screen(void)
                 signedValue = (s16)value;
                 drawY = -0x12;
                 drawnSprite->x = resultX;
-                (drawnSprite->y = (-0x12));
+                (drawnSprite->y = drawY);
                 negative = 0;
                 if (signedValue < 0)
                 {

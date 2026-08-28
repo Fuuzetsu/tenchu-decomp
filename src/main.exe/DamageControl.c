@@ -435,7 +435,7 @@ resolve_hit:
                 if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
-                    if (1 < (u32)(u16)motID - 0x1005)
+                    if ((u32)(u16)motID - 0x1005 > 1)
                     {
                         motID = MOT_DEAD;
                         motMODE = 1;
@@ -566,6 +566,10 @@ resolve_hit:
                     goto take_damage;
                 }
             counter_attack:
+                /* Retail's own redundancy: unreachable here with
+                 * MOT_ENGAGE (both entries guard on 0x602/0x100c), yet
+                 * the binary carries the duplicate test — reproduced
+                 * faithfully. */
                 if (motID == MOT_ENGAGE)
                 {
                     return;
@@ -640,7 +644,6 @@ resolve_hit:
                     if ((enemy->type & 0xf0U) != PAGE_BEAST)
                     {
                         Sound(Me_MOTION_C, 3);
-                        return;
                     }
                     return;
                 }
@@ -884,7 +887,7 @@ resolve_hit:
     {
         ReqItemDefault(Me_MOTION_C, ITEM_KAWARIMI);
         Me_MOTION_C->life = Me_MOTION_C->lifemax;
-        if (1 < (u32)(u16)motID - 0x1005)
+        if ((u32)(u16)motID - 0x1005 > 1)
         {
             motID = 0x1002;
             motMODE = 1;
