@@ -84,9 +84,9 @@ do_check:
         pos.vy = m->y;
         pos.vz = m->z;
         SetExplosion(&pos, &vec);
-        vec.vx = 0x4B;
-        vec.vy = 0xB4;
-        vec.vz = 0x4B;
+        vec.vx = 75;
+        vec.vy = 180;
+        vec.vz = 75;
         SetHinoko(&pos, &vec, 10);
         vec.vx = 0;
         vec.vy = -200;

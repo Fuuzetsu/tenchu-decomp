@@ -75,7 +75,7 @@
  *  - The camera-relative projection is draw_sprite_coord_'s exact `if (hint !=
  *    0) { Scratchpad GsGetLs/GsSetLsMatrix/RotTransPers } else {
  *    GetScreenPosition }` shape and polarity (hint!=0 is the fall-through).
- *  - `otz = scr.vz;` re-reads FRESH for the clamp (`t = scr.vz - 0x32; t =
+ *  - `otz = scr.vz;` re-reads FRESH for the clamp (`t = scr.vz - 50; t =
  *    t >> 2;`), matching draw_sprite_coord_'s own re-read (opposite of
  *    DrawBleed's reuse) — the target's asm shows a second, independent
  *    `lh` there.
@@ -201,7 +201,7 @@ draw:
         if (t >= 0)
         {
             pri = 0x4e1;
-            if (t < 0x4e2)
+            if (t < 1250)
             {
                 pri = t;
             }

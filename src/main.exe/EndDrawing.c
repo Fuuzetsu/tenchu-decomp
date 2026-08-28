@@ -192,7 +192,7 @@ case2:
     SkipFrame = 0;
 
 join:
-    OTablePt->org[0x7FE] = OTablePt->org[0x4E2];
+    OTablePt->org[0x7FE] = OTablePt->org[1250];
 
     if (sync <= 0)
     {

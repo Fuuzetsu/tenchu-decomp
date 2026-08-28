@@ -137,7 +137,7 @@ void ProcItemKusuri(TItem *item)
                 item->locate->locate.super = &arc->object[2]->locate;
         }
         item->locate->locate.coord.t[0] = 0;
-        item->locate->locate.coord.t[1] = 0x32;
+        item->locate->locate.coord.t[1] = 50;
         item->locate->locate.coord.t[2] = 0;
         item->mode++;
         return;
@@ -213,7 +213,7 @@ void ProcItemKusuri(TItem *item)
             scratch.bleed.build.pos_build.vx =
                 item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
             scratch.bleed.build.pos_build.vy =
-                item->owner->model->locate.coord.t[1] + (rand() % 1000 - 0x4b0);
+                item->owner->model->locate.coord.t[1] + (rand() % 1000 - 1200);
             scratch.bleed.build.pos_build.vz =
                 item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
             scratch.bleed.pos = scratch.bleed.build.pos_build;

@@ -238,7 +238,7 @@ void ActCHASE(void)
         }
         if (dtM->count < 7)
         {
-            spawn_smoke_burst_(dtL, 0x96, 0xc, 1);
+            spawn_smoke_burst_(dtL, 150, 12, 1);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -256,7 +256,7 @@ void ActCHASE(void)
     {
         motID = 0x907;
         motMODE = 0;
-        MoveHumanoid(Me_MOTION_C, 0x78, 0);
+        MoveHumanoid(Me_MOTION_C, 120, 0);
         return;
     }
 

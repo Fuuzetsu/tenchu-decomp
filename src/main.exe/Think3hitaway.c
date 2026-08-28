@@ -90,7 +90,7 @@ s16 Think3hitaway(void)
         Me_THINK_C->actflg = 0;
         Me_THINK_C->chase[1] = 0;
         Me_THINK_C->chase[0] = 0;
-        return SuccessionAttack(3000, 0x5dc);
+        return SuccessionAttack(3000, 1500);
     }
     else if (Me_THINK_C->actflg != 0)
     {

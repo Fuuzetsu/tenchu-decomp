@@ -255,7 +255,7 @@ void ActSTATE(void)
     case 0x803:
         if (dtM->count < -0x36 && dtV->vy > 200)
         {
-            dtM->count = -0x1e;
+            dtM->count = -30;
         }
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {

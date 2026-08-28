@@ -87,7 +87,7 @@ s16 Think1trace(void)
 
         old_actscnt = Me_THINK_C->actscnt;
         Me_THINK_C->actscnt = old_actscnt + 1;
-        if (old_actscnt < 0x3C)
+        if (old_actscnt < 60)
         {
             Humanoid *self;
             s32 turn;
@@ -114,7 +114,7 @@ s16 Think1trace(void)
             }
             if (turn < abs_degree)
             {
-                if (self->actscnt < 0x1E)
+                if (self->actscnt < 30)
                 {
                     result = -0x8000;
                     if (turn < degree)

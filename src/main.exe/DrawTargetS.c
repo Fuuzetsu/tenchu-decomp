@@ -70,7 +70,7 @@ void DrawTargetS(long x, long y, long z, long color)
     long callpri;
 
     z = z >> 2;
-    otz = z < 0 ? 0 : (z >= 0x4e2 ? 0x4e1 : z);
+    otz = z < 0 ? 0 : (z >= 1250 ? 1249 : z);
 
     line.r = (u8)(color >> 16);
     line.attribute = 0;

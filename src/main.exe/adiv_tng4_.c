@@ -219,7 +219,7 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     *(short *)((int)work + 0x36) = (short)(vwd / 2); /* adivh */
     t0 = *(u_long *)(ot + 4);
     shiftWord = shift;
-    work[8] = 0x96;                      /* adivz */
+    work[8] = 150;                       /* adivz */
     work[3] = shiftWord;                 /* shift */
     *(u_char *)((int)work + 0x4f) = 0xc; /* packet len */
     code = 0x3c;

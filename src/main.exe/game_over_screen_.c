@@ -224,7 +224,7 @@ void game_over_screen_(void)
                 } while (0);
                 shade = 0;
                 clear_rect.x = 0x280;
-                clear_rect.y = 0x168;
+                clear_rect.y = 360;
                 clear_rect.w = 0x100;
                 GameClock = 0;
                 clear_rect.h = 0x28;
@@ -322,7 +322,7 @@ void game_over_screen_(void)
                     state = 4;
                 } while (0);
             }
-            if ((new_press & PADstart) != 0 || GameClock >= 0xa8c)
+            if ((new_press & PADstart) != 0 || GameClock >= 2700)
             {
                 do
                 {

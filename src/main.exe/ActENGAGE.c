@@ -78,7 +78,7 @@ void ActENGAGE(void)
         {
             motID = 0x907;
             motMODE = 0;
-            MoveHumanoid(Me_MOTION_C, 0x78, 0);
+            MoveHumanoid(Me_MOTION_C, 120, 0);
             goto engage_case_post;
         }
         if (dtM->count != 0)

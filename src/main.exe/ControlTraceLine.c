@@ -74,7 +74,7 @@ short ControlTraceLine(Humanoid *human)
     dist = SquareRoot0(dx * dx + dz * dz);
     if ((human->attribute & ATTR_WALL) != 0)
     {
-        trcl->count = -0x1e;
+        trcl->count = -30;
     }
     cnt = trcl->count;
     trcl->count = cnt + 1;

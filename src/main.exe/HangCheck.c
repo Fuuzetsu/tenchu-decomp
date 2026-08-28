@@ -257,6 +257,6 @@ found:
     {
         return -1;
     }
-    PadShockAR(0, 0x7F, 0, 0x1E);
+    PadShockAR(0, 0x7F, 0, 30);
     return -1;
 }

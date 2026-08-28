@@ -116,7 +116,7 @@ void CreateStage(int StageNo, int CharType)
     }
 
     SetDepthQ(-0x7EF4, 0x2F282E0);
-    DepthPoint = 0x4E2;
+    DepthPoint = 1250;
 
     while (1)
     {

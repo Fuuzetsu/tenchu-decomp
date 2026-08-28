@@ -333,7 +333,7 @@ short DefaultActionHumanoid(Humanoid *human)
                     i = (i > 0) ? i - 0x1000 : i + 0x1000;
                 }
                 angle_abs = (i >= 0) ? i : -i;
-                if (angle_abs < 0x708 || human != StagePlayer || map->height != 0)
+                if (angle_abs < 1800 || human != StagePlayer || map->height != 0)
                 {
                     if (map->angleH == 0 &&
                         (human->status == STAT_MOVE || human->status == STAT_CHASE))

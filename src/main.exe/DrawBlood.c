@@ -177,7 +177,7 @@ void DrawBlood(TEffectSlot *ef)
         if (t >= 0)
         {
             pri = 0x4e1;
-            if (t < 0x4e2)
+            if (t < 1250)
             {
                 pri = t;
             }
@@ -192,7 +192,7 @@ void DrawBlood(TEffectSlot *ef)
         if (t >= 0)
         {
             pri = 0x4e1;
-            if (t < 0x4e2)
+            if (t < 1250)
             {
                 pri = t;
             }
@@ -379,7 +379,7 @@ void DrawBlood(TEffectSlot *ef)
     if (t >= 0)
     {
         pri = 0x4e1;
-        if (t < 0x4e2)
+        if (t < 1250)
         {
             pri = t;
         }

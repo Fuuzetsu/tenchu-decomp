@@ -203,7 +203,7 @@ void BriefingAndInventorySelectionScreen(void)
     TimToSprite(buf, p);
     spr.attribute |= SPR_TRANS_ADD;
     p->x = -0xA0;
-    p->y = -0x78;
+    p->y = -120;
     p->r = 0x80;
     p->g = 0x80;
     p->b = 0x80;
@@ -251,7 +251,7 @@ void BriefingAndInventorySelectionScreen(void)
             if (CARRY_30_ITEMS_CHEAT_APPLIED == 0)
             {
                 CARRY_30_ITEMS_CHEAT_APPLIED = 1;
-                cap = 0x1E;
+                cap = 30;
             }
             break;
         case CHEAT_ITEM_REFILL - 1:
@@ -588,7 +588,7 @@ void BriefingAndInventorySelectionScreen(void)
             t1 = cap;
             dsp = &spr;
             dsp->x = 0x22;
-            dsp->y = -0x32;
+            dsp->y = -50;
             av = t1 - taken;
             tv = (s16)av;
             if (tv < 0)

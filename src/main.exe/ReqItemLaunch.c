@@ -156,7 +156,7 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = SyurikenModel;
-    SetupFly(&param->fly, pos, &p->end, 0x400, 0x400, 0x12c);
+    SetupFly(&param->fly, pos, &p->end, 0x400, 0x400, 300);
     item->param.launch.fly.mode = 0;
     ai = SetupAfterimage(item->model, 10);
     param->effect = ai;

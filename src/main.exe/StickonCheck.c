@@ -64,7 +64,7 @@ MapVector *StickonCheck(void)
         return 0;
     }
     GetAreaMapVector(GlobalAreaMap, &map, dtL,
-                     Me_MOTION_C->width + 0x64, 5);
+                     Me_MOTION_C->width + 100, 5);
     if ((map.attrib & (MAP_SLOPE_X | MAP_SLOPE_Z)) == 0)
     {
         rv = RefrectVector[map.vector];

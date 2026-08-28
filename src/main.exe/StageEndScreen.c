@@ -484,7 +484,7 @@ void StageEndScreen(void)
                 if (current.grade == RANK_GRAND_MASTER)
                 {
                     icon = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
-                    icon->x = -0x78;
+                    icon->x = -120;
                     icon->y = 0x38;
                     icon->scalex = 0x1000;
                     icon->scaley = 0x1000;

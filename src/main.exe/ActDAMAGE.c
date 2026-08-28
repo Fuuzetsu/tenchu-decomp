@@ -106,7 +106,7 @@ void ActDAMAGE(void)
             motMODE = 0;
         }
         if (dtM->count & 4)
-            SetBlood(dtL, 1, 0x3c);
+            SetBlood(dtL, 1, 60);
         break;
     }
 
@@ -151,7 +151,7 @@ void ActDAMAGE(void)
             motMODE = 0;
         }
         if (dtM->count & 4)
-            SetBlood(dtL, 1, 0x3c);
+            SetBlood(dtL, 1, 60);
         break;
     }
 
@@ -160,9 +160,9 @@ void ActDAMAGE(void)
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x1d);
-            spawn_smoke_burst_(dtL, 500, 0x1e, 0x1e);
+            spawn_smoke_burst_(dtL, 500, 30, 30);
             if (StagePlayer == Me_MOTION_C)
-                PadShockAR(0, 0xff, 0, 0x1e);
+                PadShockAR(0, 0xff, 0, 30);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {

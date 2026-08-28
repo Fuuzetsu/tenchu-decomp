@@ -141,7 +141,7 @@ void ProcItemGosin(TItem *item)
         NowReturnNormal(item->owner);
         SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, 0xB48C1E);
         item->owner->itmctl = item->type;
-        item->param.gosin.count = 0x1c2;
+        item->param.gosin.count = 450;
         item->mode++;
         return;
     }
@@ -172,7 +172,7 @@ void ProcItemGosin(TItem *item)
         scratch.v = vec_y_n1200_z_400;
         set_impact_ex_(&scratch.v, &item->owner->model->locate,
                        0x1000, 0x6000, 0x808080, 0,
-                       (s16)(rand() % 360), 2, 0x78, 4);
+                       (s16)(rand() % 360), 2, 120, 4);
         return;
     }
     }

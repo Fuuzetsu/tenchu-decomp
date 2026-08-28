@@ -176,7 +176,7 @@ do_control:
         r = param->r;
         if (r < 0)
             r = -r;
-        if (r < 0x3c0)
+        if (r < 960)
             param->r += param->dr;
         else
             m->mode = 0;

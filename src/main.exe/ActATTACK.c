@@ -554,7 +554,7 @@ dispatch:
         if (dtM->loop < 0)
         {
             dtM->loop--;
-            if (dtM->loop < -0x1e)
+            if (dtM->loop < -30)
             {
                 motID = 0x803;
                 motMODE = 0;

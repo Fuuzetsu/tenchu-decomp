@@ -45,15 +45,15 @@ void DrawTelop(void)
 {
     s32 w;
 
-    TelopbgP.y1 = 0x5a;
-    TelopbgP.y0 = 0x5a;
-    TelopbgP.y3 = 0x78;
-    TelopbgP.y2 = 0x78;
+    TelopbgP.y1 = 90;
+    TelopbgP.y0 = 90;
+    TelopbgP.y3 = 120;
+    TelopbgP.y2 = 120;
     GsSortPoly(&TelopbgP, OTablePt, 1);
-    TelopbgP.y1 = -0x78;
-    TelopbgP.y0 = -0x78;
-    TelopbgP.y3 = -0x5a;
-    TelopbgP.y2 = -0x5a;
+    TelopbgP.y1 = -120;
+    TelopbgP.y0 = -120;
+    TelopbgP.y3 = -90;
+    TelopbgP.y2 = -90;
     GsSortPoly(&TelopbgP, OTablePt, 1);
     w = telop_text_width_(TelopText);
     draw_telop_line_(OTablePt->org, -(w / 2), 0x5c, TelopText);

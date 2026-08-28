@@ -196,7 +196,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         if (otz >= 0)
         {
             pri = 0x4e1;
-            if (otz < 0x4e2)
+            if (otz < 1250)
             {
                 pri = otz;
             }

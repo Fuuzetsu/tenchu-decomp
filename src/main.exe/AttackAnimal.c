@@ -102,15 +102,15 @@ short AttackAnimal(void)
     Me_THINK_C->actmode++;
     ret = turn_towards_player_(0, 0);
     am = Me_THINK_C->actmode;
-    if (am < 0x1e)
+    if (am < 30)
     {
         ret = PADLup;
     }
-    else if (am == 0x1e)
+    else if (am == 30)
     {
         Sound(Me_THINK_C, 0xc);
     }
-    else if (am < 0x5a)
+    else if (am < 90)
     {
         ret = ret & (PADLleft | PADLright);
     }

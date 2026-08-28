@@ -409,7 +409,7 @@ void briefing_screen_(void)
                     {
                         goto brightness_zero;
                     }
-                    if (renderer_x >= -0x78)
+                    if (renderer_x >= -120)
                     {
                         goto brightness_normal;
                     }

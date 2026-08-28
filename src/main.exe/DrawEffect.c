@@ -31,7 +31,7 @@ void DrawEffect(void)
     TEffectSlot *p;
     s32 i;
 
-    for (i = 0; i < 0xC8; i++)
+    for (i = 0; i < 200; i++)
     {
         p = &EffectSlot[i];
         if (p->proc != 0)

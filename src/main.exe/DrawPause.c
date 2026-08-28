@@ -111,13 +111,13 @@ void DrawPause(int frame)
             t = (s16)frame * 0x44;
         } while (0);
         bias = 0x80;
-        v = rsin(t) * 0x7D;
+        v = rsin(t) * 125;
         if (v < 0)
         {
             v = v + 0xFFF;
         }
         far_col = (v >> 0xC) + bias;
-        v = rsin(t + 0x200) * 0x7D;
+        v = rsin(t + 0x200) * 125;
         if (v < 0)
         {
             v = v + 0xFFF;

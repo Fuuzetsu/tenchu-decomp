@@ -86,7 +86,7 @@ void leLayoutEnemy(int mode)
         {
             memset(&pos, 0, sizeof(pos));
             pos.vx = target->model->locate.coord.t[0];
-            pos.vy = target->model->locate.coord.t[1] - 0x4B0;
+            pos.vy = target->model->locate.coord.t[1] - 1200;
             pos.vz = target->model->locate.coord.t[2];
             tmp = pos;
             SetBleeds(&tmp, 600, 20, 10, 10, 0xFFFF00);
@@ -152,7 +152,7 @@ void leLayoutEnemy(int mode)
             {
                 memset(&pos, 0, sizeof(pos));
                 pos.vx = human->model->locate.coord.t[0];
-                pos.vy = human->model->locate.coord.t[1] - 0x4B0;
+                pos.vy = human->model->locate.coord.t[1] - 1200;
                 pos.vz = human->model->locate.coord.t[2];
                 tmp = pos;
                 SetBleeds(&tmp, 400, 0, 20, 15, 0xFFFFFF);

@@ -35,13 +35,13 @@ void draw_shade_quad_(u8 *ot, s8 r, s8 g, s8 b)
     setlen(&ply->tpage, 1);
     ply->ply.x0 = -0xA0;
     ply->tpage.code[0] = 0xE1000240;
-    ply->ply.y0 = -0x78;
-    ply->ply.y1 = -0x78;
+    ply->ply.y0 = -120;
+    ply->ply.y1 = -120;
     ply->ply.x1 = 0xA0;
     ply->ply.x2 = -0xA0;
-    ply->ply.y2 = 0x78;
+    ply->ply.y2 = 120;
     ply->ply.x3 = 0xA0;
-    ply->ply.y3 = 0x78;
+    ply->ply.y3 = 120;
     ply->ply.r0 = r;
     ply->ply.g0 = g;
     ply->ply.b0 = b;

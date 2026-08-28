@@ -290,7 +290,7 @@ draw_done:
             human->target->locate.coord.t[2] - human->locate->vz,
             (s16)rotation_pair);
         magnitude = direction >= 0 ? direction : -direction;
-        if (magnitude >= 0x708)
+        if (magnitude >= 1800)
         {
             return;
         }

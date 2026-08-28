@@ -44,7 +44,7 @@ void launch_lightning_bolt_(s16 frame)
         Sound(Me_MOTION_C, 5);
         p.type = ITEM_LIGHTNINGBOLT;
         p.user = Me_MOTION_C;
-        start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, -0x2BC);
+        start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, -700);
         p.start.vx = start_pos->vx;
         p.start.vy = start_pos->vy;
         p.start.vz = start_pos->vz;

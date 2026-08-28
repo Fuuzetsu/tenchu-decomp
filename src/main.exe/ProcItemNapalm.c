@@ -186,7 +186,7 @@ void ProcItemNapalm(TItem *item)
                 random_pos.vy = rand() % 200 - 100;
                 random_pos.vz = rand() % 200 - 100;
                 pos = random_pos;
-                SetFrame(&pos, 0x3000, 0x3c,
+                SetFrame(&pos, 0x3000, 60,
                          (GsCOORDINATE2 *)frame_model);
             }
         }

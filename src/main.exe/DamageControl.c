@@ -377,7 +377,7 @@ resolve_hit:
                     p.vz = dtL->vz;
                 }
                 motMODE = 1;
-                SetBlood(&p, 5, 0x5a);
+                SetBlood(&p, 5, 90);
                 break;
             case ITEM_NAPALM:
                 dmg = 25;
@@ -620,9 +620,9 @@ resolve_hit:
                         t = 0;
                         do
                         {
-                            pv.vx = rand() % 100 - 0x32;
-                            pv.vy = rand() % 100 - 0x32;
-                            pv.vz = rand() % 100 - 0x32;
+                            pv.vx = rand() % 100 - 50;
+                            pv.vy = rand() % 100 - 50;
+                            pv.vz = rand() % 100 - 50;
                             SetBleed(blood_pos, &pv, rand() % 0x14 + 0x14, 0xffff00);
                             t++;
                         } while (t < 10);
@@ -838,14 +838,14 @@ resolve_hit:
             p.vx = dtL->vx;
             p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
-            SetBlood(&p, 5, 0x78);
+            SetBlood(&p, 5, 120);
             SetImpact(&p, 0x6000, 2);
             {
                 Humanoid *who;
 
                 if (StagePlayer == Me_MOTION_C)
                 {
-                    PadShockAR(0, 0x7f, 10, 0x1e);
+                    PadShockAR(0, 0x7f, 10, 30);
                     who = enemy;
                 }
                 else

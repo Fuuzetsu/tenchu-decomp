@@ -106,7 +106,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     }
     CdaStatus.mode = saved_mode;
     pos = CdPosToInt(&cf.pos);
-    CdaStatus.StartPos = pos + 0x96;
+    CdaStatus.StartPos = pos + 150;
     if (end != 0)
     {
         pos = CdPosToInt(end);

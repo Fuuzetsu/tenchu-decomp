@@ -136,7 +136,7 @@ void DrawSplash(TEffectSlot *ef)
                 if (t >= 0)
                 {
                     priority = 0x4E1;
-                    if (t < 0x4E2)
+                    if (t < 1250)
                     {
                         priority = t;
                     }

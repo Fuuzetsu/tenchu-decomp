@@ -71,7 +71,7 @@ void JumpControl(void)
 {
     int id;
 
-    spawn_smoke_burst_(dtL, 0x96, 0xC, 8);
+    spawn_smoke_burst_(dtL, 150, 12, 8);
     if (GetMotionID(dtM, MOT_JUMP) < 0)
         return;
 

@@ -74,7 +74,7 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     o = ot;
     t1 = shift;
     t0 = *(u_long *)(o + 4);
-    init = 0x96;
+    init = 150;
     work[8] = init;                      /* adivz */
     *(u_char *)((int)work + 0x4f) = 0xc; /* packet len */
     code = 0x3c;

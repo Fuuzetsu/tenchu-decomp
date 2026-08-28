@@ -99,7 +99,7 @@ s32 setup_card_screen_(s16 mode)
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
         McardSprite = SetupSprite(0, &image);
-        McardSprite->sprite.y = -0x3c;
+        McardSprite->sprite.y = -60;
 
         tim = FileRead(path_demo_start_mbuttonj_tim);
         GetTIMInfo(tim, &image);
@@ -107,7 +107,7 @@ s32 setup_card_screen_(s16 mode)
         McardButtons[0] = SetupSprite(0, &image);
         McardButtons[0]->sprite.h >>= 1;
         McardButtons[0]->sprite.my = image.ph >> 2;
-        McardButtons[0]->sprite.y = 0x3c;
+        McardButtons[0]->sprite.y = 60;
 
         McardButtons[1] = SetupSprite(McardButtons[0], 0);
         McardButtons[1]->sprite.v += image.ph >> 1;
@@ -131,7 +131,7 @@ s32 setup_card_screen_(s16 mode)
         LoadTIMAndFree(tim);
         McardButtons[4] = SetupSprite(0, &image);
         McardButtons[4]->sprite.x = 2;
-        McardButtons[4]->sprite.y = 0x5a;
+        McardButtons[4]->sprite.y = 90;
         return 1;
     }
     return 0;

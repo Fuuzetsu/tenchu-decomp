@@ -143,7 +143,7 @@ void _PlayMusic(int MusicNo, int mode)
         n = MusicNo + 0x52;
         if (MusicNo > 99)
         {
-            n = MusicNo + 0x64;
+            n = MusicNo + 100;
         }
         PlayVoice(n);
     }

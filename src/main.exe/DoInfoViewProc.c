@@ -239,7 +239,7 @@ void DoInfoViewProc(void)
             {
                 i--;
                 if (i < 0)
-                    i = 0x19;
+                    i = 25;
             } while (CamState.Owner->item[i] == 0 && i != cur);
         }
         else if ((trig & 1) != 0)
@@ -249,7 +249,7 @@ void DoInfoViewProc(void)
             do
             {
                 i++;
-                if (i > 0x19)
+                if (i > 25)
                     i = 0;
             } while (CamState.Owner->item[i] == 0 && i != cur);
         }

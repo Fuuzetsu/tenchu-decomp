@@ -152,7 +152,7 @@ found:
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = ArrowModel;
-    SetupFly(&param->fly, pos, &target, 0, 0x800, 0x12c);
+    SetupFly(&param->fly, pos, &target, 0, 0x800, 300);
     param->count = 5;
     return 1;
 }
