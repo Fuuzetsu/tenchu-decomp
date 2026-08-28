@@ -435,6 +435,25 @@ remaining un-human construct carries its measured justification, and
 the cookbook's scaffold entry records the campaign so nothing gets
 re-tried blind.
 
+HUMANISING LOOP 7 (2026-08-28 evening, casts + the tower endgame): the
+weird-cast census removed 29 pure-noise casts (nine (Humanoid *)
+Me_THINK_C, twenty (AfterimageType *) on the void* illusion slots) and
+respelled eight (GsCOORDINATE2 *)base loader casts as &base->locate —
+all byte-free — while classifying the rest (scratchpad/persistent
+literals, width puns, TItem.model dual-use, MATRIX.t-as-VECTOR, era
+valloc casts) as documented or human. DefaultActionHumanoid's goto
+reflection spaghetti proved to be a plain structured (vx || vz) choice
+(byte-identical), and the 14-deep fence tower was solved to the unit
+with regalloc.py + gcc 2.8.1's own global.c: it adds +1 weighted ref
+per level to zz (18 -> 32) to cross allocno_compare's floor_log2
+priority cliff and win $s0 from the STAT_DEAD constant. OPEN LEAD (the
+DAH endgame): the demo's locals inventory is only i/xx/yy/zz/ry — our
+reconstruction's invented block locals (top, object_y, size_y,
+direction_abs, ...) starve zz of the 14 refs the original factoring
+gave it naturally; refactoring regions onto the demo inventory could
+retire the tower for real. The permuter independently confirmed the
+knife-edge (a single dead i-ref rebalances 96% of the cascade).
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
