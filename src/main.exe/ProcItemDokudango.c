@@ -277,7 +277,7 @@ void ProcItemDokudango(TItem *item)
             }
             param->eater = target;
             if (target->target == (ModelType *)item->owner->model &&
-                (target->attribute & 3) == 0)
+                (target->attribute & 3) == PHASE_CALM)
             {
                 param->org_think = target->think[0];
                 param->eater->target = item->locate;

@@ -218,7 +218,7 @@ void StateTransition(Humanoid *human)
             {
                 SR = -1;
             }
-            else if ((ATTRIB_BITS & 3) == 0)
+            else if ((ATTRIB_BITS & 3) == PHASE_CALM)
             {
                 SR = 2;
             }
@@ -463,7 +463,7 @@ void StateTransition(Humanoid *human)
             if ((pad & PADLdown) &&
                 ((ProbeAttrib[1] & 0x204) || ProbeLevelHigh > 5000))
             {
-                Me_THINK_C->pad_hold = 0x1000001e;
+                Me_THINK_C->pad_hold = (PADLup << 16) | 30;
             }
             if ((pad & PADLup) &&
                 ((ProbeAttrib[0] & 0x204) || ProbeLevelLow > 5000))
@@ -490,10 +490,10 @@ void StateTransition(Humanoid *human)
         pad = Me_THINK_C->think[3]();
         if ((ATTRIB_BITS & ATTR_WALL) && Me_THINK_C->pad_hold == 0)
         {
-            Me_THINK_C->pad_hold =
-                Degree > 0 ? 0x20000008 : 0x80000008;
+            Me_THINK_C->pad_hold = Degree > 0 ? (PADLright << 16) | 8
+                                               : (PADLleft << 16) | 8;
         }
-        if ((ATTRIB_BITS & 3) == 2)
+        if ((ATTRIB_BITS & 3) == PHASE_ALERT)
         {
             Humanoid *me;
 
@@ -517,7 +517,7 @@ void StateTransition(Humanoid *human)
         {
             s32 count;
 
-            count = *(u8 *)&Me_THINK_C->pad_hold - 1;
+            count = (u8)Me_THINK_C->pad_hold - 1;
             if (count != 0)
             {
                 Me_THINK_C->pad_hold = (pad << 16) | count;
@@ -525,7 +525,7 @@ void StateTransition(Humanoid *human)
             else if (pad & (PADLleft | PADLright))
             {
                 Me_THINK_C->pad_hold =
-                    ((rand() % 3 + 1) * 0x1e) | 0x10000000;
+                    (PADLup << 16) | ((rand() % 3 + 1) * 30);
             }
             else
             {
@@ -550,7 +550,7 @@ void StateTransition(Humanoid *human)
             if (abs_degree >= 500)
             {
                 pad = PADLdown;
-                if ((ATTRIB_BITS & 3) == 0)
+                if ((ATTRIB_BITS & 3) == PHASE_CALM)
                 {
                     pad = PADLup;
                 }

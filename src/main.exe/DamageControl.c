@@ -267,7 +267,7 @@ void DamageControl(void)
             if ((Me_MOTION_C->type != NINKEN) &&
                 ((StagePlayer == enemy || (enemy == (Humanoid *)CONFLICT_OWNER_ITEM))))
             {
-                if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
+                if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
                 {
                     Criticals++;
                 }
@@ -276,7 +276,7 @@ void DamageControl(void)
                     Murders++;
                 }
             }
-            if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) != 0)
+            if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
             {
                 Sound(Me_MOTION_C, 8);
                 reset_alert_duration();
@@ -462,7 +462,7 @@ resolve_hit:
                             {
                                 FriendHits++;
                             }
-                            else if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
+                            else if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
                             {
                                 Criticals++;
                             }
@@ -789,7 +789,7 @@ resolve_hit:
                         {
                             FriendHits++;
                         }
-                        else if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
+                        else if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
                         {
                             Criticals++;
                         }
@@ -798,7 +798,7 @@ resolve_hit:
                             Murders++;
                         }
                     }
-                    if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) != 0)
+                    if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
                     {
                         Sound(Me_MOTION_C, 8);
                         goto alerted;

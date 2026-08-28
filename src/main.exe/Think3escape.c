@@ -108,8 +108,8 @@ s16 Think3escape(void)
                 human = Me_THINK_C;
             }
             quotient = 1000 / human->turn;
-            human->pad_hold = quotient |
-                              (degree2 > 0 ? 0x20000000 : 0x80000000);
+            human->pad_hold =
+                quotient | ((degree2 > 0 ? PADLright : PADLleft) << 16);
         }
     }
     return result;
