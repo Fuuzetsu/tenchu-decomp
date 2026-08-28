@@ -539,6 +539,19 @@ negated. Everything else here is corollaries:
   top forces a single materialisation (DrawSprite — whose textually-identical
   reject condition must also be a STANDALONE if, not an else, or cross-jump
   merges it away).
+- **Humanising direction — the scaffold constructs are measured-required,
+  not leftover**: a systematic 2026-08-28 re-test of the three ugliest
+  construct classes confirmed each is byte-load-bearing. (1) `goto
+  return_pad` ladders: spelling every site as `return pad;` and letting
+  cross-jump re-merge came out 12 bytes short with ~29 scattered
+  scheduling diffs (AttackShort). (2) one-shot fence TOWERS: flattening
+  DefaultActionHumanoid's 14-deep tower, or shrinking it to depth 5 with
+  the same statement interleave, both cost the same ~114-instruction
+  allocation cascade — the weight MAGNITUDE (2^depth ref-weighting)
+  matters, not just relative order. (3) `while (1) { if (i >= N) break; }`
+  loops: the natural `for` spelling changes the emitted length
+  (InitEffect). Before re-trying any of these, check the file's notes for
+  the measurement; add one if you run a new experiment.
 - **Humanising direction — think-layer literals are synthesized PAD
   words**: every Think*/Attack*-family return value flows into the
   humanoid's pad word, so its hex literals are button masks — spell them
