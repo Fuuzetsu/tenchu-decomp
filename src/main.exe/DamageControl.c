@@ -142,7 +142,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *
  * What the 90 -> 0 step proved (the 0x8001e7d8-e858 knockback family):
  *  - The knockback abs is the ASSIGNED-abs statement
- *    `ad = __builtin_abs((int)(short)did);` — cc1's mips abssi2 is ONE
+ *    `ad = __builtin_abs(did);` — cc1's mips abssi2 is ONE
  *    type-"multi" insn whose template emits `bgez %1,1f%# / subu %0,$0,%0 /
  *    1:` internally (same-register form; identical bytes to bgez/nop/negu).
  *    Because the branch lives INSIDE the template, reorg never sees an
@@ -696,7 +696,7 @@ resolve_hit:
             }
             if (Me_MOTION_C->itmctl == ITEM_GOSIN)
             {
-                dmg = (int)(short)dmg / 3;
+                dmg = dmg / 3;
             }
             if (enemy->itmctl == ITEM_GOSIN)
             {
@@ -719,7 +719,7 @@ resolve_hit:
                 t = (short)dmg * 5 / 2 + 0x50;
                 {
                     newvy = dtR->vy + did;
-                    ad = __builtin_abs((int)(short)did);
+                    ad = __builtin_abs(did);
                     dtR->vy = newvy;
                     if (ad < 0x400)
                     {
@@ -733,7 +733,7 @@ resolve_hit:
                 if (deg == 3)
                 {
                     MoveHumanoid(Me_MOTION_C,
-                                 (0x400 < __builtin_abs((int)(short)did)) ? 0x46 : -0x46, 0);
+                                 (0x400 < __builtin_abs(did)) ? 0x46 : -0x46, 0);
                 }
                 else
                 {
@@ -782,7 +782,7 @@ resolve_hit:
                 {
                     int ad;
 
-                    ad = (int)(short)did;
+                    ad = did;
                     if (ad < 0)
                     {
                         ad = -ad;
@@ -820,7 +820,7 @@ resolve_hit:
                 {
                     int ad;
 
-                    ad = (int)(short)did;
+                    ad = did;
                     if (ad < 0)
                     {
                         ad = -ad;

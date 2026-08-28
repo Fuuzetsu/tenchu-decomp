@@ -120,5 +120,5 @@ s32 remap_buttons_(s16 pad)
         i++;
         row++;
     } while (i < 8);
-    return (s32)(s16)acc;
+    return (s16)acc;
 }

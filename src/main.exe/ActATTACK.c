@@ -439,12 +439,12 @@ dispatch:
                 Sound(Me_MOTION_C, 0);
             }
         }
-        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && (((int)(short)dtPAD & (PADLleft | PADLright)) != 0)) &&
+        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
 
-            if (((int)(short)dtPAD & PADLleft) != 0)
+            if ((dtPAD & PADLleft) != 0)
             {
                 motID = 0x708;
             }
@@ -496,7 +496,7 @@ dispatch:
                 Sound(Me_MOTION_C, 0);
             }
         }
-        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && (((int)(short)dtPAD & (PADLleft | PADLright)) != 0)) &&
+        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))
         {
             short i;
@@ -552,7 +552,7 @@ dispatch:
         {
             SetCameraMode(CMODE_FALL);
         }
-        if (((int)(short)dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
+        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
         {
             if ((dtPAD & PADLup) != 0)
             {

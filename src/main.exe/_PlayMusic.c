@@ -162,7 +162,7 @@ void _PlayMusic(int MusicNo, int mode)
         sec = music->endsec;
         InitMusicLocation(&end, min, sec);
 
-        n = CdaPlayXA(fname, &start, &end, music->channel, (int)(short)mode);
+        n = CdaPlayXA(fname, &start, &end, music->channel, (s16)mode);
         if (n == 0)
         {
             AdtMessageBox(fmt_playmusic_fail_chan_id, fname, music->channel, MusicNo);

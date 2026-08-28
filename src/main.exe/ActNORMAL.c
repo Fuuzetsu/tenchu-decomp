@@ -110,7 +110,7 @@ void ActNORMAL(void)
     case 2:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
-        rotation_value = (s16)dtPAD & PADLleft;
+        rotation_value = dtPAD & PADLleft;
         if (rotation_value == 0)
         {
             motID = 0;

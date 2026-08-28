@@ -181,7 +181,7 @@ void ActJUMP(void)
         }
         velocity->vy = scaled;
 
-        if (((s16)dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0 && motID != 0x906)
+        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0 && motID != 0x906)
         {
             pad = (u16)dtPAD;
             if ((pad & PADLup) != 0)
