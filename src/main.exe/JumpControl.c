@@ -77,7 +77,7 @@ void JumpControl(void)
 
     if (motID == 0x607)
     {
-        if (dtM->count < 0xB)
+        if (dtM->count < 11)
         {
             if (GetMotionID(dtM, 0x906) >= 0)
             {

@@ -228,14 +228,14 @@ dispatch:
             OrnamentType **weapon;
 
             weapon = Me_MOTION_C->weapon;
-            SWAP_TWIN_BLADE(0x2a, 6);
+            SWAP_TWIN_BLADE(42, 6);
             break;
         }
         case 0xab:
         {
             VECTOR *pos;
 
-            if (dtM->count == 0x14)
+            if (dtM->count == 20)
             {
                 pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd], 0, 100, -100);
                 bow_shoot_logic(ITEM_GUN, pos);
@@ -247,7 +247,7 @@ dispatch:
         {
             VECTOR *pos;
 
-            if (dtM->count == 0x16)
+            if (dtM->count == 22)
             {
                 pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd], 0, 700, -100);
                 bow_shoot_logic(ITEM_GUN, pos);
@@ -340,7 +340,7 @@ dispatch:
         if (t == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
-            SWAP_TWIN_BLADE(0x34, 1);
+            SWAP_TWIN_BLADE(52, 1);
         }
         else if (t == WEP_MEIOU)
         {
@@ -413,7 +413,7 @@ dispatch:
         if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
-            SWAP_TWIN_BLADE(0x34, 0x10);
+            SWAP_TWIN_BLADE(52, 16);
         }
         if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))
@@ -454,7 +454,7 @@ dispatch:
         if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
-            SWAP_TWIN_BLADE(0x2b, 0xd);
+            SWAP_TWIN_BLADE(43, 13);
         }
         if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             (t = AttackContinuousCheck(battle), t != 0))

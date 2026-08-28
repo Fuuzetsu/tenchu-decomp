@@ -130,7 +130,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
     do
     {
         if (mode & 1)
-            y2 -= 0x96;
+            y2 -= 150;
 
         if (y2 == AreaMapLastY && (mode & 0x10) && FieldArea->x1 <= x && x <= FieldArea->x2 && FieldArea->z1 <= z && z <= FieldArea->z2)
         {

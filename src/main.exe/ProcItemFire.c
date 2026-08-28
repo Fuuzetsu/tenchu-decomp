@@ -257,7 +257,7 @@ void ProcItemFire(TItem *item)
         }
         else
         {
-            if ((u8)count == 0x8c)
+            if ((u8)count == 140)
             {
                 s32 n;
                 s32 size;

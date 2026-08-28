@@ -60,27 +60,27 @@ void debug_output_edit_camera_settings(s16 pad)
     camera = DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_INDEX_];
     if (DEBUG_PAD_HELD_ & PADLup)
     {
-        camera->vz -= 0x32;
+        camera->vz -= 50;
     }
     if (DEBUG_PAD_HELD_ & PADLdown)
     {
-        camera->vz += 0x32;
+        camera->vz += 50;
     }
     if (DEBUG_PAD_HELD_ & PADRup)
     {
-        camera->vy -= 0x32;
+        camera->vy -= 50;
     }
     if (DEBUG_PAD_HELD_ & PADRdown)
     {
-        camera->vy += 0x32;
+        camera->vy += 50;
     }
     if (DEBUG_PAD_HELD_ & PADRleft)
     {
-        camera->vx -= 0x32;
+        camera->vx -= 50;
     }
     if (DEBUG_PAD_HELD_ & PADRright)
     {
-        camera->vx += 0x32;
+        camera->vx += 50;
     }
 
     if ((DEBUG_PAD_HELD_ & (PADL2 | PADR2)) == (PADL2 | PADR2))

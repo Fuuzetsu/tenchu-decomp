@@ -366,7 +366,7 @@ void ProcItemDokudango(TItem *item)
                 item->mode = 0;
                 return;
             }
-            if (motion->count == 0x37)
+            if (motion->count == 55)
             {
                 Humanoid *human;
                 param_dokudango *restore;

@@ -221,7 +221,7 @@ void ActSWIM(void)
             motMODE = 1;
             return;
         }
-        if (dtM->count < 0x29)
+        if (dtM->count < 41)
             return;
         MoveHumanoid(Me_MOTION_C, 100, 0);
         return;

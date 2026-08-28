@@ -162,7 +162,7 @@ found:
     item->locate->rotate.vx = 0;
     item->locate->rotate.vy = rand() % 0x1000;
     item->locate->rotate.vz = rand() % 68;
-    param->hp = 0x63;
+    param->hp = 99;
     SetNowMotion(item->owner, 0xf02, 1);
     return 1;
 }
