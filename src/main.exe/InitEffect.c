@@ -4,6 +4,7 @@
 #include "effect.h"
 #include "afterimage.h"
 #include "misc.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -112,7 +113,7 @@ void InitEffect(void)
         sprBloodStay[i].attribute = 0x60000000;
     }
 
-    image = GetImage(0xE);
+    image = GetImage(IMG_SPLASH);
     InitSprite(image, &sprSplash);
     sprSplash.attribute = 0x50000000;
     sprSplash.my = sprSplash.h;
@@ -186,7 +187,7 @@ void InitEffect(void)
 
     ShadowMdl = LoadModel(GetArcData(ARC_SHADOW_MODEL));
     BLOOD_POOL_MODEL_ = LoadModel(GetArcData(ARC_BLOOD_POOL_MODEL));
-    AfterIMG = GetImage(0xA);
+    AfterIMG = GetImage(IMG_AFTERIMAGE);
     ModelHook = LoadModel(GetArcData(ARC_HOOK_MODEL));
 
     {
@@ -195,7 +196,7 @@ void InitEffect(void)
         i = 0;
         do
         {
-            image = GetImage(0x37);
+            image = GetImage(IMG_SNOW);
             sprite = SetupSprite((Sprite3D *)0, image);
             SpriteSnow[i] = sprite;
             sprite->sprite.attribute = 0x50000000;

@@ -1,6 +1,18 @@
 #ifndef TENCHU_IMAGES_H
 #define TENCHU_IMAGES_H
 
+/* GetImage slots the code pins, named by what each becomes (invented
+ * names): the afterimage texture, the water-splash sprite, the item
+ * icon sheet, the title kanji poly, and the snowflake sprite. */
+enum
+{
+    IMG_AFTERIMAGE = 0xA,
+    IMG_SPLASH = 0xE,
+    IMG_ITEM_ICONS = 0xF,
+    IMG_TEN_LOGO = 0x2D,
+    IMG_SNOW = 0x37
+};
+
 /* IMAGES.C's original CD location lead-in. */
 enum
 {

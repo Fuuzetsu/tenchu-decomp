@@ -124,7 +124,7 @@ loop1:
         base2 = ItemImage;
         slot = base2 + i;
     loop2:
-        image = GetImage(0xF);
+        image = GetImage(IMG_ITEM_ICONS);
         item = SetupSprite(0, image);
         *slot = item;
         item->scale = scale2;

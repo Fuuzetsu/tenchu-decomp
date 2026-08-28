@@ -139,7 +139,7 @@ void CreateStage(int StageNo, int CharType)
     __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
                      sizeof(scratch.title));
     dat = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
-    image = GetImage(0x2D);
+    image = GetImage(IMG_TEN_LOGO);
     SetupImageToPolyFT4(image, &ply_ten, 0x34, 0x43);
     bg = load_background_(dat);
     vfree(dat);
